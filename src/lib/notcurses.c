@@ -14,6 +14,7 @@ typedef struct notcurses {
   int colors;
   char* smcup;  // enter alternate mode
   char* rmcup;  // restore primary mode
+  struct termios tpreserved; // terminal state upon entry
 } notcurses;
 
 static const char NOTCURSES_VERSION[] =
@@ -66,38 +67,45 @@ notcurses* notcurses_init(void){
   if(ret == NULL){
     return ret;
   }
-  int termerr;
-  if(setupterm(NULL, STDERR_FILENO, &termerr) != OK){
-    fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
+  ret->ttyfd = STDIN_FILENO; // FIXME use others if stderr is redirected?
+  if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
+    fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
+            ret->ttyfd, strerror(errno));
     free(ret);
     return NULL;
   }
+  int termerr;
+  if(setupterm(NULL, ret->ttyfd, &termerr) != OK){
+    fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
+    goto err;
+  }
   if((ret->colors = tigetnum("colors")) <= 0){
     fprintf(stderr, "This terminal doesn't appear to support colors\n");
-    free(ret);
-    return NULL;
+    goto err;
   }
   printf("Colors: %d\n", ret->colors);
   int fails = 0;
   fails |= term_get_seq(&ret->smcup, "smcup");
   fails |= term_get_seq(&ret->rmcup, "rmcup");
   if(fails){
-    free(ret);
-    return NULL;
+    goto err;
   }
-  // FIXME should we maybe use stdout if stdin was redirected?
-  ret->ttyfd = STDIN_FILENO;
   if(term_emit(ret->smcup)){
-    free(ret);
-    return NULL;
+    goto err;
   }
   return ret;
+
+err:
+    tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
+    free(ret);
+    return NULL;
 }
 
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     ret |= term_emit(nc->rmcup);
+    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     free(nc);
   }
   return ret;
