@@ -15,6 +15,7 @@ typedef struct notcurses {
   char* smcup;  // enter alternate mode
   char* rmcup;  // restore primary mode
   struct termios tpreserved; // terminal state upon entry
+  bool RGBflag; // terminfo reported "RGB" flag for 24bpc directcolor
 } notcurses;
 
 static const char NOTCURSES_VERSION[] =
@@ -87,11 +88,16 @@ notcurses* notcurses_init(void){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
+  ret->RGBflag = tigetflag("RGB") == 1;
   if((ret->colors = tigetnum("colors")) <= 0){
     fprintf(stderr, "This terminal doesn't appear to support colors\n");
     goto err;
+  }else if(ret->RGBflag && (unsigned)ret->colors < (1u << 23u)){
+    fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
+            ret->colors);
+  }else{
+    printf("Colors: %d\n", ret->colors);
   }
-  printf("Colors: %d\n", ret->colors);
   int fails = 0;
   fails |= term_get_seq(&ret->smcup, "smcup");
   fails |= term_get_seq(&ret->rmcup, "rmcup");
