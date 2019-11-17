@@ -63,6 +63,7 @@ term_emit(const char* seq){
 }
 
 notcurses* notcurses_init(void){
+  struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
@@ -73,6 +74,13 @@ notcurses* notcurses_init(void){
             ret->ttyfd, strerror(errno));
     free(ret);
     return NULL;
+  }
+  memcpy(&modtermios, &ret->tpreserved, sizeof(modtermios));
+  modtermios.c_lflag &= (~ECHO & ~ICANON);
+  if(tcsetattr(ret->ttyfd, TCSANOW, &modtermios)){
+    fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n",
+            ret->ttyfd, strerror(errno));
+    goto err;
   }
   int termerr;
   if(setupterm(NULL, ret->ttyfd, &termerr) != OK){
