@@ -7,6 +7,9 @@ extern "C" {
 
 const char* notcurses_version(void);
 
+int notcurses_init(void);
+int notcurses_stop(void);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
