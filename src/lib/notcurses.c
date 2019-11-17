@@ -1,3 +1,5 @@
+#include <curses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <term.h>
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -36,6 +38,12 @@ notcurses* notcurses_init(void){
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
+  }
+  int termerr;
+  if(setupterm(NULL, STDERR_FILENO, &termerr) != OK){
+    fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
+    free(ret);
+    return NULL;
   }
   // FIXME should we maybe use stdout if stdin was redirected?
   ret->ttyfd = STDIN_FILENO;

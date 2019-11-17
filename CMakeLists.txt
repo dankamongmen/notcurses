@@ -10,12 +10,20 @@ configure_file(tools/version.h.in include/version.h)
 
 include(GNUInstallDirs)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
+
 file(GLOB LIBSRCS CONFIGURE_DEPENDS src/lib/*.c)
 add_library(notcurses SHARED ${LIBSRCS})
 target_include_directories(notcurses
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIR}"
+)
+target_link_libraries(notcurses
+  INTERFACE
+  "${TERMINFO_LIBRARIES}"
 )
 set_target_properties(notcurses PROPERTIES
   PUBLIC_HEADER "include/notcurses.h"
