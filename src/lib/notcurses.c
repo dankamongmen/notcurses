@@ -8,7 +8,7 @@
 #include "version.h"
 
 typedef struct notcurses {
-  int ttyfd;  // file descriptor for controlling tty
+  int ttyfd;  // file descriptor for controlling tty (takes stdin)
 } notcurses;
 
 static const char NOTCURSES_VERSION[] =
@@ -37,17 +37,19 @@ notcurses* notcurses_init(void){
   if(ret == NULL){
     return ret;
   }
+  // FIXME should we maybe use stdout if stdin was redirected?
+  ret->ttyfd = STDIN_FILENO;
   return ret;
 }
 
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
-    if(close(nc->ttyfd)){
+    /*if(close(nc->ttyfd)){
       fprintf(stderr, "Error closing TTY file descriptor %d (%s)\n",
               nc->ttyfd, strerror(errno));
       ret = -1;
-    }
+    }*/
     free(nc);
   }
   return ret;
