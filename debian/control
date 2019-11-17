@@ -1,0 +1,27 @@
+Source: notcurses
+Priority: optional
+Maintainer: Nick Black <dankamongmen@gmail.com>
+Build-Depends: debhelper-compat (= 12), cmake (>= 3.13),
+ libgtest-dev (>= 1.9.0)
+Standards-Version: 4.4.1.1
+Section: libs
+Homepage: https://nick-black.com/dankwiki/index.php/notcurses
+Vcs-Browser: https://github.com/dankamongmen/notcurses
+Vcs-Git: https://github.com/dankamongmen/notcurses.git
+
+Package: libnotcurses-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libnotcurses0 (= ${binary:Version}), ${misc:Depends}
+Description: Development files for notcurses
+ Files necessary for developing programs using notcurses.
+
+Package: libnotcurses0
+Architecture: any
+Multi-Arch: same
+Depends:${shlibs:Depends}, ${misc:Depends}
+Description: Shared libraries for notcurses TUI
+ notcurses facilitates the creation of TUI programs making
+ use of modern terminal emulator features, including
+ 24-bit direct color. It does not require curses.
