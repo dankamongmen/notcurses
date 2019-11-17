@@ -1,0 +1,94 @@
+cmake_minimum_required(VERSION 3.13)
+project(notcurses VERSION 0.0.1
+  DESCRIPTION "UI library for modern terminal emulators"
+  HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
+  LANGUAGES C CXX)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
+
+configure_file(tools/version.h.in include/version.h)
+
+include(GNUInstallDirs)
+
+file(GLOB LIBSRCS CONFIGURE_DEPENDS src/lib/*.c)
+add_library(notcurses SHARED ${LIBSRCS})
+target_include_directories(notcurses
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
+set_target_properties(notcurses PROPERTIES
+  PUBLIC_HEADER "include/notcurses.h"
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+
+target_compile_options(notcurses
+  PRIVATE
+    -Wall -Wextra -W
+)
+
+file(GLOB BINSRCS CONFIGURE_DEPENDS src/bin/*.c)
+add_executable(notcurses-demo ${BINSRCS})
+target_include_directories(notcurses-demo PRIVATE include)
+target_link_libraries(notcurses-demo
+  PRIVATE
+    notcurses
+)
+target_compile_options(notcurses-demo PRIVATE
+  -Wall -Wextra -W
+)
+
+file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
+add_executable(notcurses-tester ${TESTSRCS})
+find_package(GTest 1.9 REQUIRED)
+target_include_directories(notcurses-tester PRIVATE include)
+target_link_libraries(notcurses-tester
+  GTest::GTest
+  notcurses
+)
+target_compile_options(notcurses-tester PRIVATE
+  -Wall -Wextra -W
+)
+
+gtest_discover_tests(notcurses-tester)
+enable_testing()
+
+configure_file(tools/notcurses.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
+  @ONLY
+)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(tools/notcursesConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/notcurses/cmake
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake
+  COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/notcurses
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+)
+
+install(TARGETS notcurses-demo DESTINATION bin)
+install(TARGETS notcurses
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT Libraries
+    NAMELINK_COMPONENT Development
+  PUBLIC_HEADER
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    COMPONENT Development
+)

@@ -1,0 +1,3 @@
+#define notcurses_VERSION_MAJOR "@notcurses_VERSION_MAJOR@"
+#define notcurses_VERSION_MINOR "@notcurses_VERSION_MINOR@"
+#define notcurses_VERSION_PATCH "@notcurses_VERSION_PATCH@"
