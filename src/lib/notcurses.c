@@ -126,6 +126,7 @@ alloc_plane(notcurses* nc, cell* oldplane, int* rows, int* cols){
   return newcells;
 }
 
+// FIXME should probably register a SIGWINCH handler here
 notcurses* notcurses_init(void){
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
@@ -162,19 +163,16 @@ notcurses* notcurses_init(void){
     printf("Colors: %d (%s)\n", ret->colors,
            ret->RGBflag ? "direct" : "palette");
   }
-  int fails = 0;
-  fails |= term_get_seq(&ret->smcup, "smcup");
-  fails |= term_get_seq(&ret->rmcup, "rmcup");
-  if(fails){
-    goto err;
-  }
+  // Neither of these is supported on e.g. the "linux" virtual console.
+  term_get_seq(&ret->smcup, "smcup");
+  term_get_seq(&ret->rmcup, "rmcup");
   ret->rows = ret->cols = 0;
   if((ret->plane = alloc_plane(ret, NULL, &ret->rows, &ret->cols)) == NULL){
     goto err;
   }
   printf("Geometry: %d rows, %d columns (%zub)\n",
          ret->rows, ret->cols, ret->rows * ret->cols * sizeof(*ret->plane));
-  if(term_emit(ret->smcup)){
+  if(ret->smcup && term_emit(ret->smcup)){
     free(ret->plane);
     goto err;
   }
@@ -189,7 +187,9 @@ err:
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
-    ret |= term_emit(nc->rmcup);
+    if(nc->rmcup && term_emit(nc->rmcup)){
+      ret = -1;
+    }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     free(nc->plane);
     free(nc);
@@ -197,6 +197,8 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
+// FIXME this needs to keep an invalidation bitmap, rather than blitting the
+// world every time
 int notcurses_render(notcurses* nc){
   int ret = 0;
   // FIXME mariahv("make it happen!");

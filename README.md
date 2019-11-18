@@ -25,7 +25,7 @@ portable, and definitely tested on less hardware.
 notcurses opens up advanced functionality for the interactive user on
 workstations, phones, laptops, and tablets, at the expense of e.g.
 industrial and retail terminals (or even the Linux virtual console,
-which offers only 8+8 colors and limited glyphs).
+which offers only eight colors and limited glyphs).
 
 Why use this non-standard library?
 
@@ -36,6 +36,9 @@ Why use this non-standard library?
 
 * Visual features not directly available via NCURSES, including images,
     fonts, and video.
+
+* Thread safety, and use in parallel programs, has been a design consideration
+    from the beginning.
 
 On the other hand, if you're targeting industrial or critical applications,
 or wish to benefit from the time-tested reliability and portability of Curses,
