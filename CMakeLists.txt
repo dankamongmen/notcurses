@@ -35,6 +35,11 @@ target_compile_options(notcurses
   PRIVATE
     -Wall -Wextra -W
 )
+target_compile_definitions(notcurses
+  PRIVATE
+    _DEFAULT_SOURCE _XOPEN_SOURCE=600
+)
+
 
 file(GLOB BINSRCS CONFIGURE_DEPENDS src/bin/*.c)
 add_executable(notcurses-demo ${BINSRCS})

@@ -1,4 +1,4 @@
-#include <curses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <term.h>
 #include <errno.h>
 #include <stdio.h>
@@ -26,6 +26,31 @@ static const char NOTCURSES_VERSION[] =
 const char* notcurses_version(void){
   return NOTCURSES_VERSION;
 }
+
+// A cell represents a single character cell in the display. At any cell, we
+// can have a short array of wchar_t (L'\0'-terminated; we need support an
+// array due to the possibility of combining characters), a foreground color,
+// a background color, and an attribute set. The rules on the wchar_t array are
+// the same as those for an ncurses 6.1 cchar_t:
+//
+//  * At most one spacing character, which must be the first if present
+//  * Up to CCHARW_MAX-1 nonspacing characters follow. Extra spacing characters
+//    are ignored. A nonspacing character is one for which wcwidth() returns
+//    zero, and is not the wide NUL (L'\0').
+//  * A single control character can be present, with no other characters.
+//  * If there are fewer than CCHARW_MAX wide characters, they must be
+//    terminated with a wide NUL (L'\0').
+//
+// Multi-column characters can only have a single attribute/color.
+// https://pubs.opengroup.org/onlinepubs/007908799/xcurses/intov.html
+//
+// Each cell occupies 32 bytes (256 bits). The surface is thus ~4MB for a
+// (pretty large) 500x200 terminal.
+typedef struct cell {
+  wchar_t cchar[CCHARW_MAX];   // 5 * 4b == 20b
+  uint64_t attrs;              // 16 MSB of attr bits, 24 of fg, 24 of bg
+  uint32_t reserved;           // 0 for now
+} cell;
 
 int notcurses_term_dimensions(notcurses* n, int* rows, int* cols){
   struct winsize ws;
@@ -96,7 +121,8 @@ notcurses* notcurses_init(void){
     fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
             ret->colors);
   }else{
-    printf("Colors: %d\n", ret->colors);
+    printf("Colors: %d (%s)\n", ret->colors,
+           ret->RGBflag ? "direct" : "palette");
   }
   int fails = 0;
   fails |= term_get_seq(&ret->smcup, "smcup");
