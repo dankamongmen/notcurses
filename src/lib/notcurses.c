@@ -196,3 +196,9 @@ int notcurses_stop(notcurses* nc){
   }
   return ret;
 }
+
+int notcurses_render(notcurses* nc){
+  int ret = 0;
+  // FIXME mariahv("make it happen!");
+  return ret;
+}
