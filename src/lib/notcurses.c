@@ -9,24 +9,6 @@
 #include "notcurses.h"
 #include "version.h"
 
-typedef struct notcurses {
-  int ttyfd;  // file descriptor for controlling tty (takes stdin)
-  int colors;
-  char* smcup;  // enter alternate mode
-  char* rmcup;  // restore primary mode
-  struct termios tpreserved; // terminal state upon entry
-  bool RGBflag; // terminfo reported "RGB" flag for 24bpc directcolor
-} notcurses;
-
-static const char NOTCURSES_VERSION[] =
- notcurses_VERSION_MAJOR "."
- notcurses_VERSION_MINOR "."
- notcurses_VERSION_PATCH;
-
-const char* notcurses_version(void){
-  return NOTCURSES_VERSION;
-}
-
 // A cell represents a single character cell in the display. At any cell, we
 // can have a short array of wchar_t (L'\0'-terminated; we need support an
 // array due to the possibility of combining characters), a foreground color,
@@ -45,12 +27,32 @@ const char* notcurses_version(void){
 // https://pubs.opengroup.org/onlinepubs/007908799/xcurses/intov.html
 //
 // Each cell occupies 32 bytes (256 bits). The surface is thus ~4MB for a
-// (pretty large) 500x200 terminal.
+// (pretty large) 500x200 terminal. At 80x43, it's less than 200KB.
 typedef struct cell {
   wchar_t cchar[CCHARW_MAX];   // 5 * 4b == 20b
   uint64_t attrs;              // 16 MSB of attr bits, 24 of fg, 24 of bg
   uint32_t reserved;           // 0 for now
 } cell;
+
+typedef struct notcurses {
+  int ttyfd;  // file descriptor for controlling tty (takes stdin)
+  int colors;
+  int rows, cols; // most recently measured values
+  char* smcup;  // enter alternate mode
+  char* rmcup;  // restore primary mode
+  struct termios tpreserved; // terminal state upon entry
+  bool RGBflag; // terminfo reported "RGB" flag for 24bpc directcolor
+  cell* plane;  // the contents of our bottommost plane
+} notcurses;
+
+static const char NOTCURSES_VERSION[] =
+ notcurses_VERSION_MAJOR "."
+ notcurses_VERSION_MINOR "."
+ notcurses_VERSION_PATCH;
+
+const char* notcurses_version(void){
+  return NOTCURSES_VERSION;
+}
 
 int notcurses_term_dimensions(notcurses* n, int* rows, int* cols){
   struct winsize ws;
@@ -86,6 +88,42 @@ term_emit(const char* seq){
     return -1;
   }
   return 0;
+}
+
+// Call this on initialization, or when the screen size changes. Takes a flat
+// array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
+// new size, and copies what can be copied. Assumes that the screen is always
+// anchored in the same place. Never free()s oldplane.
+static cell*
+alloc_plane(notcurses* nc, cell* oldplane, int* rows, int* cols){
+  int oldrows = *rows;
+  int oldcols = *cols;
+  if(notcurses_term_dimensions(nc, rows, cols)){
+    return NULL;
+  }
+  cell* newcells = malloc(sizeof(*newcells) * (*rows * *cols));
+  if(newcells == NULL){
+    return NULL;
+  }
+  int y, idx;
+  idx = 0;
+  for(y = 0 ; y < *rows ; ++y){
+    idx = y * *cols;
+    if(y > oldrows){
+      memset(&newcells[idx], 0, sizeof(*newcells) * *cols);
+      continue;
+    }
+    if(oldcols){
+      int oldcopy = oldcols;
+      if(oldcopy > *cols){
+        oldcopy = *cols;
+      }
+      memcpy(&newcells[idx], &oldplane[y * oldcols], oldcopy * sizeof(*newcells));
+      idx += oldcols;
+    }
+    memset(&newcells[idx], 0, sizeof(*newcells) * *cols - oldcols);
+  }
+  return newcells;
 }
 
 notcurses* notcurses_init(void){
@@ -130,15 +168,22 @@ notcurses* notcurses_init(void){
   if(fails){
     goto err;
   }
+  ret->rows = ret->cols = 0;
+  if((ret->plane = alloc_plane(ret, NULL, &ret->rows, &ret->cols)) == NULL){
+    goto err;
+  }
+  printf("Geometry: %d rows, %d columns (%zub)\n",
+         ret->rows, ret->cols, ret->rows * ret->cols * sizeof(*ret->plane));
   if(term_emit(ret->smcup)){
+    free(ret->plane);
     goto err;
   }
   return ret;
 
 err:
-    tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
-    free(ret);
-    return NULL;
+  tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
+  free(ret);
+  return NULL;
 }
 
 int notcurses_stop(notcurses* nc){
@@ -146,6 +191,7 @@ int notcurses_stop(notcurses* nc){
   if(nc){
     ret |= term_emit(nc->rmcup);
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
+    free(nc->plane);
     free(nc);
   }
   return ret;
