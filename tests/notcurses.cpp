@@ -4,24 +4,27 @@
 #include "main.h"
 
 class NotcursesTest : public :: testing::Test {
+ protected:
   void SetUp() override {
+    nc_ = notcurses_init();
+    std::cerr << (void*)nc_ << std::endl;
+    ASSERT_NE(nullptr, nc_);
     if(getenv("TERM") == nullptr){
       GTEST_SKIP();
     }
   }
+
+  struct notcurses* nc_;
 };
 
 TEST_F(NotcursesTest, BasicLifetime) {
-  struct notcurses* nc = notcurses_init();
-  ASSERT_NE(nullptr, nc);
-  EXPECT_EQ(0, notcurses_stop(nc));
+  EXPECT_EQ(0, notcurses_stop(nc_));
 }
 
 TEST_F(NotcursesTest, TermDimensions) {
-  struct notcurses* nc = notcurses_init();
+  ASSERT_NE(nullptr, nc_);
   int x, y;
-  ASSERT_NE(nullptr, nc);
-  EXPECT_EQ(0, notcurses_term_dimensions(nc, &y, &x));
+  EXPECT_EQ(0, notcurses_term_dimensions(nc_, &y, &x));
   auto stry = getenv("LINES");
   if(stry){
     auto envy = std::stoi(stry, nullptr);
@@ -32,5 +35,5 @@ TEST_F(NotcursesTest, TermDimensions) {
     auto envx = std::stoi(strx, nullptr);
     EXPECT_EQ(envx, x);
   }
-  EXPECT_EQ(0, notcurses_stop(nc));
+  EXPECT_EQ(0, notcurses_stop(nc_));
 }

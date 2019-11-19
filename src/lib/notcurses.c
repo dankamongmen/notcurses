@@ -61,8 +61,8 @@ int notcurses_term_dimensions(notcurses* n, int* rows, int* cols){
     fprintf(stderr, "TIOCGWINSZ failed on %d (%s)\n", n->ttyfd, strerror(errno));
     return -1;
   }
-  *rows = ws.ws_row;
-  *cols = ws.ws_col;
+  n->rows = *rows = ws.ws_row;
+  n->cols = *cols = ws.ws_col;
   return 0;
 }
 
@@ -127,6 +127,7 @@ alloc_plane(notcurses* nc, cell* oldplane, int* rows, int* cols){
 }
 
 // FIXME should probably register a SIGWINCH handler here
+// FIXME install other sighandlers to clean things up
 notcurses* notcurses_init(void){
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
@@ -197,10 +198,32 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
+// only works with string literals!
+#define strout(x) write(STDOUT_FILENO, (x), sizeof(x))
+
+static int
+erpchar(int c){
+  if(write(STDOUT_FILENO, &c, 1) == 1){
+    return c;
+  }
+  return EOF;
+}
+
+#define tparm2(a,b)   tparm(a,b,0,0,0,0,0,0,0,0)
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
   int ret = 0;
+  char* tstr = tparm2(set_a_foreground, 1/*, 255, 255*/);
+  if(tstr == NULL){
+    fprintf(stderr, "couldn't get string\n");
+    return -1;
+  }
+  if(tputs(tstr, 1, erpchar) != OK){
+    fprintf(stderr, "couldn't write string\n");
+  }
+  strout("make it happen!\n");
   // FIXME mariahv("make it happen!");
   return ret;
 }
