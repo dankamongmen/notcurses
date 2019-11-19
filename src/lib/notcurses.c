@@ -145,12 +145,15 @@ alloc_plane(notcurses* nc, cell* oldplane, int* rows, int* cols){
 // FIXME should probably register a SIGWINCH handler here
 // FIXME install other sighandlers to clean things up
 notcurses* notcurses_init(const notcurses_options* opts){
+if(!ttyname(opts->outfd)){
+  exit(EXIT_FAILURE);
+}
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
   }
-  ret->ttyfd = STDOUT_FILENO; // FIXME use others if stdout is redirected?
+  ret->ttyfd = opts->outfd;
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
     fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
             ret->ttyfd, strerror(errno));
@@ -193,6 +196,8 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(!opts->inhibit_alternate_screen){
     term_verify_seq(&ret->smcup, "smcup");
     term_verify_seq(&ret->rmcup, "rmcup");
+  }else{
+    ret->smcup = ret->rmcup = NULL;
   }
   if((ret->plane = alloc_plane(ret, NULL, &ret->rows, &ret->cols)) == NULL){
     goto err;
@@ -224,6 +229,7 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
+// FIXME don't go using STDOUT_FILENO here, we want nc->outfd!
 // only works with string literals!
 #define strout(x) write(STDOUT_FILENO, (x), sizeof(x))
 
