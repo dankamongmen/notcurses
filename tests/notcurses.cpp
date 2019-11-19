@@ -6,12 +6,11 @@
 class NotcursesTest : public :: testing::Test {
  protected:
   void SetUp() override {
-    nc_ = notcurses_init(nullptr);
-    std::cerr << (void*)nc_ << std::endl;
-    ASSERT_NE(nullptr, nc_);
     if(getenv("TERM") == nullptr){
       GTEST_SKIP();
     }
+    nc_ = notcurses_init(nullptr);
+    ASSERT_NE(nullptr, nc_);
   }
 
   struct notcurses* nc_;

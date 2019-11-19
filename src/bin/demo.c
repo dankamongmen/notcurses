@@ -8,13 +8,17 @@ int main(void){
     return EXIT_FAILURE;
   }
   if(notcurses_setrgb(nc, 200, 0, 200)){
-    return EXIT_FAILURE;
+    goto err;
   }
   if(notcurses_render(nc)){
-    return EXIT_FAILURE;
+    goto err;
   }
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
+
+err:
+  notcurses_stop(nc);
+  return EXIT_FAILURE;
 }
