@@ -13,7 +13,7 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
     bedrock of Open Source, nor a battle-proven, veteran library.
 
 notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
-Specification. The latter shows its age, seems not capable of making use of
+Specification. The latter shows its age, and seems not capable of making use of
 terminal functionality such as unindexed 24-bit color ("DirectColor", not to be
 confused with 8-bit indexed 24-bit color, aka "TrueColor"). For some necessary
 background, consult Thomas E. Dickey's superb and authoritative [NCURSES
