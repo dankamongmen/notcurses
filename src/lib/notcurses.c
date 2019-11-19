@@ -31,17 +31,27 @@
 typedef struct cell {
   wchar_t cchar[CCHARW_MAX];   // 5 * 4b == 20b
   uint64_t attrs;              // 16 MSB of attr bits, 24 of fg, 24 of bg
-  uint32_t reserved;           // 0 for now
+  uint32_t reserved;           // 0 for now, serves to pad out struct
 } cell;
+
+static const char* required_caps[] = {
+  "cup",
+  "clear",
+  NULL
+};
 
 typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty (takes stdin)
   int colors;
   int rows, cols; // most recently measured values
+  int x, y;       // our location on the screen
+  // We verify that some capabilities exist (see required_caps). Those needn't
+  // be checked before further use; just use tiparm() directly. These might be
+  // NULL, and we can more or less work without them.
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode
-  char* setaf;    // set foreground
-  char* setab;    // set background
+  char* setaf;    // set foreground color (ANSI)
+  char* setab;    // set background color (ANSI)
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo reported "RGB" flag for 24bpc directcolor
   cell* plane;    // the contents of our bottommost plane
@@ -69,9 +79,13 @@ int notcurses_term_dimensions(notcurses* n, int* rows, int* cols){
 }
 
 static int
-term_get_seq(char** seq, const char* name){
-  *seq = tigetstr(name);
-  if(*seq == NULL || *seq == (char*)-1){
+term_verify_seq(char** gseq, const char* name){
+  char* seq;
+  if(gseq == NULL){
+    gseq = &seq;
+  }
+  *gseq = tigetstr(name);
+  if(*gseq == NULL || *gseq == (char*)-1){
     fprintf(stderr, "Capability not defined for terminal: %s\n", name);
     return -1;
   }
@@ -130,7 +144,7 @@ alloc_plane(notcurses* nc, cell* oldplane, int* rows, int* cols){
 
 // FIXME should probably register a SIGWINCH handler here
 // FIXME install other sighandlers to clean things up
-notcurses* notcurses_init(const char* termtype){
+notcurses* notcurses_init(const notcurses_options* opts){
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
@@ -151,7 +165,7 @@ notcurses* notcurses_init(const char* termtype){
     goto err;
   }
   int termerr;
-  if(setupterm(termtype, ret->ttyfd, &termerr) != OK){
+  if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
@@ -166,12 +180,20 @@ notcurses* notcurses_init(const char* termtype){
     printf("Colors: %d (%s)\n", ret->colors,
            ret->RGBflag ? "direct" : "palette");
   }
+  const char** cap;
+  for(cap = required_caps ; *cap ; ++cap){
+    if(term_verify_seq(NULL, *cap)){
+      goto err;
+    }
+  }
+  // Not all terminals support setting the fore/background independently
+  term_verify_seq(&ret->setaf, "setaf");
+  term_verify_seq(&ret->setab, "setab");
   // Neither of these is supported on e.g. the "linux" virtual console.
-  term_get_seq(&ret->smcup, "smcup");
-  term_get_seq(&ret->rmcup, "rmcup");
-  term_get_seq(&ret->setaf, "setaf");
-  term_get_seq(&ret->setab, "setab");
-  ret->rows = ret->cols = 0;
+  if(!opts->inhibit_alternate_screen){
+    term_verify_seq(&ret->smcup, "smcup");
+    term_verify_seq(&ret->rmcup, "rmcup");
+  }
   if((ret->plane = alloc_plane(ret, NULL, &ret->rows, &ret->cols)) == NULL){
     goto err;
   }
@@ -213,19 +235,28 @@ erpchar(int c){
   return EOF;
 }
 
-#define tparm2(a,b)   tparm(a,b,0,0,0,0,0,0,0,0)
-
-int notcurses_setrgb(notcurses* nc, uint32_t r, uint32_t g, uint32_t b){
-  static char rgbesc[] = "\x1b[38;2;200;0;200m";
+int notcurses_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
+  if(r >= 256 || g >= 256 || b >= 256){
+    return -1;
+  }
+  if(nc->setaf == NULL){
+    return -1;
+  }
+  // We typically want to use tputs() and tiperm() to acquire and write the
+  // escapes, as these take into account terminal-specific delays, padding,
+  // etc. For the case of DirectColor, there is no suitable terminfo entry, but
+  // we're also in that case working with hopefully more robust terminals.
+  // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
+  static char rgbesc[] = "\x1b[38;2;%u;%u;%um";
   if(nc->RGBflag){
     if(write(nc->ttyfd, rgbesc, sizeof(rgbesc)) != sizeof(rgbesc)){
       return -1;
     }
   }else{
     // For 256-color indexed mode, start constructing a palette based off
-    // the inputs. If more than 256 are used on a single screen, start...
-    // combining close ones? For 8-color mode, simple interpolation. I have no
-    // idea what to do for 88 colors. FIXME
+    // the inputs *if we can change the palette*. If more than 256 are used on
+    // a single screen, start... combining close ones? For 8-color mode, simple
+    // interpolation. I have no idea what to do for 88 colors. FIXME
     return -1;
   }
   return 0;
@@ -235,7 +266,17 @@ int notcurses_setrgb(notcurses* nc, uint32_t r, uint32_t g, uint32_t b){
 // world every time
 int notcurses_render(notcurses* nc){
   int ret = 0;
-  strout("make it happen!\n");
-  // FIXME mariahv("make it happen!");
+  strout("make it happen!\n"); // FIXME
   return ret;
+}
+
+int notcurses_move(notcurses* n, int x, int y){
+  char* tstr = tiparm(cursor_address, y, x);
+  if(tstr == NULL){
+    return -1;
+  }
+  if(tputs(tstr, 1, erpchar) != OK){
+    return -1;
+  }
+  return 0;
 }
