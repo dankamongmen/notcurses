@@ -9,7 +9,9 @@ class NotcursesTest : public :: testing::Test {
     if(getenv("TERM") == nullptr){
       GTEST_SKIP();
     }
-    nc_ = notcurses_init(nullptr);
+    notcurses_options nopts{};
+    nopts.outfd = STDIN_FILENO;
+    nc_ = notcurses_init(&nopts);
     ASSERT_NE(nullptr, nc_);
   }
 
@@ -21,7 +23,6 @@ TEST_F(NotcursesTest, BasicLifetime) {
 }
 
 TEST_F(NotcursesTest, TermDimensions) {
-  ASSERT_NE(nullptr, nc_);
   int x, y;
   EXPECT_EQ(0, notcurses_term_dimensions(nc_, &y, &x));
   auto stry = getenv("LINES");

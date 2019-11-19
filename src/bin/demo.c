@@ -5,7 +5,12 @@
 
 int main(void){
   struct notcurses* nc;
-  if((nc = notcurses_init(NULL)) == NULL){
+  notcurses_options nopts = {
+    .inhibit_alternate_screen = false,
+    .outfd = STDOUT_FILENO,
+    .termtype = NULL,
+  };
+  if((nc = notcurses_init(&nopts)) == NULL){
     return EXIT_FAILURE;
   }
   if(notcurses_fg_rgb8(nc, 200, 0, 200)){
