@@ -35,14 +35,16 @@ typedef struct cell {
 } cell;
 
 typedef struct notcurses {
-  int ttyfd;  // file descriptor for controlling tty (takes stdin)
+  int ttyfd;      // file descriptor for controlling tty (takes stdin)
   int colors;
   int rows, cols; // most recently measured values
-  char* smcup;  // enter alternate mode
-  char* rmcup;  // restore primary mode
+  char* smcup;    // enter alternate mode
+  char* rmcup;    // restore primary mode
+  char* setaf;    // set foreground
+  char* setab;    // set background
   struct termios tpreserved; // terminal state upon entry
-  bool RGBflag; // terminfo reported "RGB" flag for 24bpc directcolor
-  cell* plane;  // the contents of our bottommost plane
+  bool RGBflag;   // terminfo reported "RGB" flag for 24bpc directcolor
+  cell* plane;    // the contents of our bottommost plane
 } notcurses;
 
 static const char NOTCURSES_VERSION[] =
@@ -128,13 +130,13 @@ alloc_plane(notcurses* nc, cell* oldplane, int* rows, int* cols){
 
 // FIXME should probably register a SIGWINCH handler here
 // FIXME install other sighandlers to clean things up
-notcurses* notcurses_init(void){
+notcurses* notcurses_init(const char* termtype){
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
   }
-  ret->ttyfd = STDIN_FILENO; // FIXME use others if stderr is redirected?
+  ret->ttyfd = STDOUT_FILENO; // FIXME use others if stdout is redirected?
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
     fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
             ret->ttyfd, strerror(errno));
@@ -149,7 +151,7 @@ notcurses* notcurses_init(void){
     goto err;
   }
   int termerr;
-  if(setupterm(NULL, ret->ttyfd, &termerr) != OK){
+  if(setupterm(termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
@@ -167,6 +169,8 @@ notcurses* notcurses_init(void){
   // Neither of these is supported on e.g. the "linux" virtual console.
   term_get_seq(&ret->smcup, "smcup");
   term_get_seq(&ret->rmcup, "rmcup");
+  term_get_seq(&ret->setaf, "setaf");
+  term_get_seq(&ret->setab, "setab");
   ret->rows = ret->cols = 0;
   if((ret->plane = alloc_plane(ret, NULL, &ret->rows, &ret->cols)) == NULL){
     goto err;
@@ -211,18 +215,26 @@ erpchar(int c){
 
 #define tparm2(a,b)   tparm(a,b,0,0,0,0,0,0,0,0)
 
+int notcurses_setrgb(notcurses* nc, uint32_t r, uint32_t g, uint32_t b){
+  static char rgbesc[] = "\x1b[38;2;200;0;200m";
+  if(nc->RGBflag){
+    if(write(nc->ttyfd, rgbesc, sizeof(rgbesc)) != sizeof(rgbesc)){
+      return -1;
+    }
+  }else{
+    // For 256-color indexed mode, start constructing a palette based off
+    // the inputs. If more than 256 are used on a single screen, start...
+    // combining close ones? For 8-color mode, simple interpolation. I have no
+    // idea what to do for 88 colors. FIXME
+    return -1;
+  }
+  return 0;
+}
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
   int ret = 0;
-  char* tstr = tparm2(set_a_foreground, 1/*, 255, 255*/);
-  if(tstr == NULL){
-    fprintf(stderr, "couldn't get string\n");
-    return -1;
-  }
-  if(tputs(tstr, 1, erpchar) != OK){
-    fprintf(stderr, "couldn't write string\n");
-  }
   strout("make it happen!\n");
   // FIXME mariahv("make it happen!");
   return ret;
