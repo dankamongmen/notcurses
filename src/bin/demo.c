@@ -31,7 +31,6 @@ int main(void){
   if(notcurses_render(nc)){
     goto err;
   }
-  sleep(5);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
