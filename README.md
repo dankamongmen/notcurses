@@ -18,9 +18,10 @@ terminal functionality such as unindexed 24-bit color ("DirectColor", not to be
 confused with 8-bit indexed 24-bit color, aka "TrueColor"). For some necessary
 background, consult Thomas E. Dickey's superb and authoritative [NCURSES
 FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
-As such, it is not a drop-in Curses replacement. notcurses furthermore makes
-use of the Terminfo library shipped with NCURSES. It is almost certainly less
-portable, and definitely tested on less hardware.
+As such, it is not a drop-in Curses replacement. It is almost certainly less
+portable, and definitely tested on less hardware. Sorry about that.
+
+notcurses makes use of the Terminfo library shipped with NCURSES.
 
 notcurses opens up advanced functionality for the interactive user on
 workstations, phones, laptops, and tablets, at the expense of e.g.
@@ -78,7 +79,7 @@ typedef struct notcurses_options {
   // refuse to start. You'll usually want STDOUT_FILENO.
   int outfd;
   // If smcup/rmcup capabilities are indicated, notcurses defaults to making
-  // use of the "alternate screen." This flag inhibits use of smcup/rmcup.
+  // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;
 } notcurses_options;
 

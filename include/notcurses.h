@@ -23,7 +23,7 @@ typedef struct notcurses_options {
   // refuse to start. You'll usually want STDOUT_FILENO.
   int outfd;
   // If smcup/rmcup capabilities are indicated, notcurses defaults to making
-  // use of the "alternate screen." This flag inhibits use of smcup/rmcup.
+  // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;
 } notcurses_options;
 
