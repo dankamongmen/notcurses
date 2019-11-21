@@ -24,7 +24,7 @@ TEST_F(NotcursesTest, BasicLifetime) {
 
 TEST_F(NotcursesTest, TermDimensions) {
   int x, y;
-  notcurses_term_dimensions(nc_, &y, &x);
+  notcurses_term_dimyx(nc_, &y, &x);
   auto stry = getenv("LINES");
   if(stry){
     auto envy = std::stoi(stry, nullptr);
@@ -40,10 +40,10 @@ TEST_F(NotcursesTest, TermDimensions) {
 
 TEST_F(NotcursesTest, ResizeSameSize) {
   int x, y;
-  notcurses_term_dimensions(nc_, &y, &x);
+  notcurses_term_dimyx(nc_, &y, &x);
   EXPECT_EQ(0, notcurses_resize(nc_));
   int newx, newy;
-  notcurses_term_dimensions(nc_, &newy, &newx);
+  notcurses_term_dimyx(nc_, &newy, &newx);
   EXPECT_EQ(newx, x);
   EXPECT_EQ(newy, y);
   EXPECT_EQ(0, notcurses_stop(nc_));
