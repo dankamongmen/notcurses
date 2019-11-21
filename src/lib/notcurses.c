@@ -404,21 +404,20 @@ term_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(nc->RGBflag){
     #define RGBESC "\x1b[38;2;"
-                         // rrr;ggg;bbb;m
-    char rgbesc[] = RGBESC "             ";
+                         // rrr;ggg;bbbm
+    char rgbesc[] = RGBESC "            ";
     size_t len = strlen(RGBESC);
-    if(r > 99){ rgbesc[len++] = r / 100; }
-    if(r > 9){ rgbesc[len++] = (r % 100) / 10; }
-    rgbesc[len++] = r % 10;
+    if(r > 99){ rgbesc[len++] = r / 100 + '0'; }
+    if(r > 9){ rgbesc[len++] = (r % 100) / 10 + '0'; }
+    rgbesc[len++] = (r % 10) + '0';
     rgbesc[len++] = ';';
-    if(g > 99){ rgbesc[len++] = g / 100; }
-    if(g > 9){ rgbesc[len++] = (g % 100) / 10; }
-    rgbesc[len++] = g % 10;
+    if(g > 99){ rgbesc[len++] = g / 100 + '0'; }
+    if(g > 9){ rgbesc[len++] = (g % 100) / 10 + '0'; }
+    rgbesc[len++] = g % 10 + '0';
     rgbesc[len++] = ';';
-    if(b > 99){ rgbesc[len++] = b / 100; }
-    if(b > 9){ rgbesc[len++] = (b % 100) / 10; }
-    rgbesc[len++] = b % 10;
-    rgbesc[len++] = ';';
+    if(b > 99){ rgbesc[len++] = b / 100 + '0'; }
+    if(b > 9){ rgbesc[len++] = (b % 100) / 10 + '0'; }
+    rgbesc[len++] = b % 10 + '0';
     rgbesc[len++] = 'm';
     rgbesc[len] = '\0';
     ssize_t w;

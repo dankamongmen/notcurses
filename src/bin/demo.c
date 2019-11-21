@@ -29,10 +29,10 @@ int main(void){
   if(ncplane_movyx(ncp, 1, 1)){
     goto err;
   }
-  if(ncplane_fg_rgb8(ncp, 200, 0, 200)){
-    goto err;
-  }
   for(x = 1 ; x < cols - 1 ; ++x){
+    if(ncplane_fg_rgb8(ncp, 200, 0, 200)){
+      goto err;
+    }
     if(ncplane_putwc(ncp, L"X"/*💣*/)){
       goto err;
     }
