@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <notcurses.h>
 
+// just fucking around...for now
 int main(void){
   struct notcurses* nc;
   notcurses_options nopts = {
@@ -18,13 +19,13 @@ int main(void){
     fprintf(stderr, "Couldn't get standard plane\n");
     goto err;
   }
-  if(notcurses_fg_rgb8(nc, 200, 0, 200)){
+  if(ncplane_move(ncp, 1, 1)){
     goto err;
   }
   if(notcurses_render(nc)){
     goto err;
   }
-  if(ncplane_move(ncp, 1, 1)){
+  if(ncplane_fg_rgb8(ncp, 200, 0, 200)){
     goto err;
   }
   if(notcurses_render(nc)){

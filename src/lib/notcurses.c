@@ -63,6 +63,7 @@ typedef struct ncplane {
   int absx, absy;  // origin of the plane relative to the screen
   int lenx, leny;  // size of the plane, [0..len{x,y}) is addressable
   struct ncplane* z; // plane below us
+  struct notcurses* nc; // our parent nc, kinda lame waste of memory FIXME
 } ncplane;
 
 typedef struct notcurses {
@@ -150,6 +151,24 @@ term_emit(const char* seq){
   return 0;
 }
 
+// Create an ncplane of the specified dimensions, but does not place it in
+// the z-buffer.
+static ncplane*
+create_ncplane(notcurses* nc, int rows, int cols){
+  ncplane* p = NULL;
+  if((p = malloc(sizeof(*p))) == NULL){
+    return NULL;
+  }
+  if((p->fb = malloc(sizeof(*p->fb) * (rows * cols))) == NULL){
+    free(p);
+    return NULL;
+  }
+  p->leny = rows;
+  p->lenx = cols;
+  p->nc = nc;
+  return p;
+}
+
 // Call this on initialization, or when the screen size changes. Takes a flat
 // array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
 // new size, and copies what can be copied from the old stdscr. Assumes that
@@ -163,13 +182,11 @@ alloc_stdscr(notcurses* nc){
     oldrows = nc->stdscr->leny;
     oldcols = nc->stdscr->lenx;
   }
-  if((p = malloc(sizeof(*p))) == NULL){
+  int rows, cols;
+  if(update_term_dimensions(nc, &rows, &cols)){
     goto err;
   }
-  if(update_term_dimensions(nc, &p->leny, &p->lenx)){
-    goto err;
-  }
-  if((p->fb = malloc(sizeof(*p->fb) * (p->leny * p->lenx))) == NULL){
+  if((p = create_ncplane(nc, rows, cols)) == NULL){
     goto err;
   }
   ncplane** oldscr;
@@ -190,7 +207,6 @@ alloc_stdscr(notcurses* nc){
   nc->stdscr = p;
   int y, idx;
   idx = 0;
-fprintf(stderr, "%d/%d -> %d/%d\n", oldrows, oldcols, p->leny, p->lenx);
   for(y = 0 ; y < p->leny ; ++y){
     idx = y * p->lenx;
     if(y > oldrows){
@@ -334,11 +350,11 @@ erpchar(int c){
   return EOF;
 }
 
-int notcurses_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
+int ncplane_fg_rgb8(ncplane* n, unsigned r, unsigned g, unsigned b){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
-  if(nc->setaf == NULL){
+  if(n->nc->setaf == NULL){
     return -1;
   }
   // We typically want to use tputs() and tiperm() to acquire and write the
@@ -347,8 +363,8 @@ int notcurses_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   static char rgbesc[] = "\x1b[38;2;%u;%u;%um";
-  if(nc->RGBflag){
-    if(write(nc->ttyfd, rgbesc, sizeof(rgbesc)) != sizeof(rgbesc)){
+  if(n->nc->RGBflag){
+    if(write(n->nc->ttyfd, rgbesc, sizeof(rgbesc)) != sizeof(rgbesc)){
       return -1;
     }
   }else{
@@ -392,10 +408,10 @@ int notcurses_render(notcurses* nc){
 }
 
 int ncplane_move(ncplane* n, int x, int y){
-  if(x >= n->lenx){
+  if(x >= n->lenx || x < 0){
     return -1;
   }
-  if(y >= n->leny){
+  if(y >= n->leny || y < 0){
     return -1;
   }
   n->x = x;
