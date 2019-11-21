@@ -98,3 +98,28 @@ int notcurses_stop(struct notcurses* nc);
 
 `notcurses_stop` should be called before exiting your program to restore the
 terminal settings and free resources.
+
+The vast majority of the notcurses API draws into virtual buffers. Only upon
+a call to `notcurses_render` will the visible terminal display be updated to
+reflect the changes:
+
+```c
+// Make the physical screen match the virtual screen. Changes made to the
+// virtual screen (i.e. most other calls) will not be visible until after a
+// successful call to notcurses_render().
+int notcurses_render(struct notcurses* nc);
+```
+
+## Planes
+
+Fundamental to notcurses is a z-buffer of rectilinear virtual screens, known
+as `ncplane`s. An `ncplane` can be larger than the physical screen, or smaller,
+or the same size; it can be entirely contained within the physical screen, or
+overlap in part, or lie wholly beyond the boundaries, never to be rendered.
+Each `ncplane` has a current writing state (cursor position, foreground and
+background color, etc.), a backing array of wide characters, and a z-index. If
+opaque, a cell on a higher `ncplane` completely obstructs a corresponding cell
+from a lower `ncplane` from being seen. An `ncplane` corresponds loosely to an
+[NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
+but is the primary drawing surface of notcurses—there is no object
+corresponding to a bare NCURSES `WINDOW`.
