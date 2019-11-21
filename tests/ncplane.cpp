@@ -16,12 +16,14 @@ class NcplaneTest : public :: testing::Test {
   }
 
   void TearDown() override {
-    EXPECT_EQ(0, notcurses_render(nc_));
-    EXPECT_EQ(0, notcurses_stop(nc_));
+    if(nc_){
+      EXPECT_EQ(0, notcurses_render(nc_));
+      EXPECT_EQ(0, notcurses_stop(nc_));
+    }
   }
 
-  struct notcurses* nc_;
-  struct ncplane* n_;
+  struct notcurses* nc_{};
+  struct ncplane* n_{};
 };
 
 // Starting position ought be 0, 0 (the origin)

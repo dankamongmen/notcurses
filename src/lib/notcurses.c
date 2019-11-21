@@ -135,7 +135,6 @@ term_verify_seq(char** gseq, const char* name){
   }
   *gseq = tigetstr(name);
   if(*gseq == NULL || *gseq == (char*)-1){
-    fprintf(stderr, "Capability not defined for terminal: %s\n", name);
     return -1;
   }
   return 0;
@@ -302,6 +301,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
   const char** cap;
   for(cap = required_caps ; *cap ; ++cap){
     if(term_verify_seq(NULL, *cap)){
+      fprintf(stderr, "Capability not defined for terminal: %s\n", *cap);
       goto err;
     }
   }
