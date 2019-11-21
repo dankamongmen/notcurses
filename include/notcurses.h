@@ -27,11 +27,8 @@ typedef struct notcurses_options {
   bool inhibit_alternate_screen;
 } notcurses_options;
 
-// Initialize a notcurses context. While a program can have more than one
-// context, it usually doesn't make much sense, as they're all dealing with
-// the same screen(s). Returns NULL on error, including any failure to
-// initialize the terminfo library. If termtype is NULL, the environment
-// variable TERM is used.
+// Initialize a notcurses context, corresponding to a connected terminal.
+// Returns NULL on error, including any failure to initialize terminfo.
 struct notcurses* notcurses_init(const notcurses_options* opts);
 
 // Destroy a notcurses context.

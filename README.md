@@ -43,3 +43,52 @@ Why use this non-standard library?
 On the other hand, if you're targeting industrial or critical applications,
 or wish to benefit from the time-tested reliability and portability of Curses,
 you should by all means use that fine library.
+
+## Basic use
+
+A program wishing to use notcurses will need to link it, ideally using the
+output of `pkg-config --libs notcurses`. It is advised to compile with the
+output of `pkg-config --cflags notcurses`. If using CMake, a support file is
+provided, and can be accessed as `notcurses`.
+
+Before calling into notcurses—and usually as one of the first calls of the
+program—be sure to call `setlocale(3)` with an appropriate UTF-8 `LC_ALL`
+locale. It is usually appropriate to pass `NULL` to `setlocale()`, relying on
+the user to properly set the `LANG` environment variable.
+
+notcurses requires an available `terminfo(5)` definition appropriate for the
+terminal. It is usually appropriate to pass `NULL` in the `termtype` field of a
+`notcurses_options` struct, relying on the user to properly set the `TERM`
+environment variable. This variable is usually set by the terminal itself. It
+might be necessary to manually select a higher-quality definition for your
+terminal, i.e. `xterm-direct` as opposed to `xterm` or `xterm-256color`.
+
+Each terminal can be prepared via a call to `notcurses_init()`, which is
+supplied a struct of type `notcurses_options`:
+
+```c
+// Configuration for notcurses_init().
+typedef struct notcurses_options {
+  // The name of the terminfo database entry describing this terminal. If NULL,
+  // the environment variable TERM is used. Failure to open the terminal
+  // definition will result in failure to initialize notcurses.
+  const char* termtype;
+  // A file descriptor for this terminal on which we will generate output.
+  // Must be a valid file descriptor attached to a terminal, or notcurses will
+  // refuse to start. You'll usually want STDOUT_FILENO.
+  int outfd;
+  // If smcup/rmcup capabilities are indicated, notcurses defaults to making
+  // use of the "alternate screen." This flag inhibits use of smcup/rmcup.
+  bool inhibit_alternate_screen;
+} notcurses_options;
+
+// Initialize a notcurses context, corresponding to a connected terminal.
+// Returns NULL on error, including any failure to initialize terminfo.
+struct notcurses* notcurses_init(const notcurses_options* opts);
+
+// Destroy a notcurses context.
+int notcurses_stop(struct notcurses* nc);
+```
+
+`notcurses_stop` should be called before exiting your program to restore the
+terminal settings and free resources.
