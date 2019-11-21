@@ -49,12 +49,12 @@ const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 int notcurses_render(struct notcurses* nc);
 
 // Returns the dimensions of this ncplane.
-void ncplane_dimensions(const struct ncplane* n, int* rows, int* cols);
+void ncplane_dimyx(const struct ncplane* n, int* rows, int* cols);
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dimensions(const struct notcurses* n, int* rows, int* cols){
-  ncplane_dimensions(notcurses_stdplane_const(n), rows, cols);
+notcurses_term_dimyx(const struct notcurses* n, int* rows, int* cols){
+  ncplane_dimyx(notcurses_stdplane_const(n), rows, cols);
 }
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
@@ -67,7 +67,15 @@ int notcurses_resize(struct notcurses* n);
 // Move the cursor to the specified position (the cursor needn't be visible).
 // Returns -1 on error, including negative parameters, or ones exceeding the
 // plane's dimensions.
-int ncplane_move(struct ncplane* n, int x, int y);
+int ncplane_movyx(struct ncplane* n, int y, int x);
+
+// Get the current position of the cursor within n. y and/or x may be NULL.
+void ncplane_posyx(const struct ncplane* n, int* y, int* x);
+
+// Set the current cell in the specified plane to the provided wchar_t array.
+// The array must not be more than one column worth of wchar_t's, among other
+// restrictions. Advances the cursor by one cell.
+int ncplane_putwc(struct ncplane* n, const wchar_t* wcs);
 
 // Set the current fore/background color using RGB specifications. If the
 // terminal does not support directly-specified 3x8b cells (24-bit "Direct

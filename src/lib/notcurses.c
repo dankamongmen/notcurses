@@ -99,9 +99,13 @@ fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
 }
 
-void ncplane_dimensions(const ncplane* n, int* rows, int* cols){
-  *rows = n->leny;
-  *cols = n->lenx;
+void ncplane_dimyx(const ncplane* n, int* rows, int* cols){
+  if(rows){
+    *rows = n->leny;
+  }
+  if(cols){
+    *cols = n->lenx;
+  }
 }
 
 // This should really only be called from within alloc_stdscr()
@@ -436,7 +440,7 @@ term_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
 
 // Move to the given coordinates on the physical terminal
 static int
-term_move(int x, int y){
+term_movyx(int y, int x){
   char* tstr = tiparm(cursor_address, y, x);
   if(tstr == NULL){
     return -1;
@@ -450,8 +454,14 @@ term_move(int x, int y){
 // Write the cchar (one cell's worth of wchar_t's) to the physical terminal
 static int
 term_putw(const notcurses* nc, const cell* c){
-  size_t len = wcslen(c->cchar);
   ssize_t w;
+  size_t len = wcslen(c->cchar);
+  if(len == 0){
+    if((w = write(nc->ttyfd, " ", 1)) < 0 || (size_t)w != 1){
+      return -1;
+    }
+    return 0;
+  }
   if((w = write(nc->ttyfd, c->cchar, len * sizeof(*c->cchar))) < 0){
     return -1;
   }
@@ -466,7 +476,7 @@ term_putw(const notcurses* nc, const cell* c){
 int notcurses_render(notcurses* nc){
   int ret = 0;
   int y, x;
-  if(term_move(0, 0)){
+  if(term_movyx(0, 0)){
     return -1;
   }
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
@@ -482,7 +492,7 @@ int notcurses_render(notcurses* nc){
   return ret;
 }
 
-int ncplane_move(ncplane* n, int x, int y){
+int ncplane_movyx(ncplane* n, int y, int x){
   if(x >= n->lenx || x < 0){
     return -1;
   }
@@ -491,5 +501,43 @@ int ncplane_move(ncplane* n, int x, int y){
   }
   n->x = x;
   n->y = y;
+  return 0;
+}
+
+void ncplane_posyx(const ncplane* n, int* y, int* x){
+  if(y){
+    *y = n->y;
+  }
+  if(x){
+    *x = n->x;
+  }
+}
+
+static inline bool
+validate_wchar_cell(const cell* c, const wchar_t* wcs){
+  if(wcslen(wcs) >= sizeof(c->cchar) / sizeof(*c->cchar)){
+    return false;
+  }
+  // FIXME check other crap
+  return true;
+}
+
+static void
+advance_cursor(struct ncplane* n){
+  if(++n->x == n->lenx){
+    n->x = 0;
+    if(++n->y == n->leny){
+      n->y = 0;
+    }
+  }
+}
+
+int ncplane_putwc(struct ncplane* n, const wchar_t* wcs){
+  cell* c = &n->fb[fbcellidx(n, n->y, n->x)];
+  if(!validate_wchar_cell(c, wcs)){
+    return -1;
+  }
+  memcpy(c->cchar, wcs, wcslen(wcs) * sizeof(*wcs));
+  advance_cursor(n);
   return 0;
 }
