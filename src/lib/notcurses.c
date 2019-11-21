@@ -478,13 +478,19 @@ int notcurses_render(notcurses* nc){
   if(term_movyx(0, 0)){
     return -1;
   }
+  unsigned pr, pg, pb;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b;
       // FIXME z-culling
       const cell* c = &nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)];
       cell_get_fb(c, &r, &g, &b);
-      term_fg_rgb8(nc, r, g, b);
+      if(r != pr || g != pg || b != pb || (x == 0 && y == 0)){
+        term_fg_rgb8(nc, r, g, b);
+        pr = r;
+        pg = g;
+        pb = b;
+      }
       term_putw(nc, c);
     }
   }
