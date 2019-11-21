@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+// Get a human-readable string describing the running ncurses version.
 const char* notcurses_version(void);
 
 struct ncplane;   // a drawable notcurses surface

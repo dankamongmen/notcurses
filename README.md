@@ -68,6 +68,9 @@ Each terminal can be prepared via a call to `notcurses_init()`, which is
 supplied a struct of type `notcurses_options`:
 
 ```c
+// Get a human-readable string describing the running ncurses version.
+const char* notcurses_version(void);
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -82,6 +85,8 @@ typedef struct notcurses_options {
   // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;
 } notcurses_options;
+
+struct notcurses; // notcurses state for a given terminal
 
 // Initialize a notcurses context, corresponding to a connected terminal.
 // Returns NULL on error, including any failure to initialize terminfo.
