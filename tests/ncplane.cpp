@@ -16,6 +16,7 @@ class NcplaneTest : public :: testing::Test {
   }
 
   void TearDown() override {
+    EXPECT_EQ(0, notcurses_render(nc_));
     EXPECT_EQ(0, notcurses_stop(nc_));
   }
 
@@ -23,12 +24,20 @@ class NcplaneTest : public :: testing::Test {
   struct ncplane* n_;
 };
 
+// Starting position ought be 0, 0 (the origin)
+TEST_F(NcplaneTest, StdPlanePosition) {
+  int x, y;
+  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(0, x);
+  EXPECT_EQ(0, y);
+}
+
 // Dimensions of the standard plane ought be the same as those of the context
 TEST_F(NcplaneTest, StdPlaneDimensions) {
   int cols, rows;
-  notcurses_term_dimensions(nc_, &rows, &cols);
+  notcurses_term_dimyx(nc_, &rows, &cols);
   int ncols, nrows;
-  ncplane_dimensions(n_, &nrows, &ncols);
+  ncplane_dimyx(n_, &nrows, &ncols);
   EXPECT_EQ(rows, nrows);
   EXPECT_EQ(cols, ncols);
 }
@@ -36,27 +45,40 @@ TEST_F(NcplaneTest, StdPlaneDimensions) {
 // Verify that we can move to all four coordinates of the standard plane
 TEST_F(NcplaneTest, MoveStdPlaneDimensions) {
   int cols, rows;
-  notcurses_term_dimensions(nc_, &rows, &cols);
-  EXPECT_EQ(0, ncplane_move(n_, 0, 0));
-  EXPECT_EQ(0, ncplane_move(n_, cols - 1, 0));
-  EXPECT_EQ(0, ncplane_move(n_, cols - 1, rows - 1));
-  EXPECT_EQ(0, ncplane_move(n_, 0, rows - 1));
+  notcurses_term_dimyx(nc_, &rows, &cols);
+  EXPECT_EQ(0, ncplane_movyx(n_, 0, 0));
+  int x, y;
+  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(y, 0);
+  EXPECT_EQ(x, 0);
+  EXPECT_EQ(0, ncplane_movyx(n_, rows - 1, 0));
+  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(y, rows - 1);
+  EXPECT_EQ(x, 0);
+  EXPECT_EQ(0, ncplane_movyx(n_, rows - 1, cols - 1));
+  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(y, rows - 1);
+  EXPECT_EQ(x, cols - 1);
+  EXPECT_EQ(0, ncplane_movyx(n_, 0, cols - 1));
+  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(y, 0);
+  EXPECT_EQ(x, cols - 1);
 }
 
 // Verify that we can move to all four coordinates of the standard plane
 TEST_F(NcplaneTest, MoveBeyondPlaneFails) {
   int cols, rows;
-  notcurses_term_dimensions(nc_, &rows, &cols);
-  EXPECT_NE(0, ncplane_move(n_, -1, 0));
-  EXPECT_NE(0, ncplane_move(n_, -1, -1));
-  EXPECT_NE(0, ncplane_move(n_, 0, -1));
-  EXPECT_NE(0, ncplane_move(n_, cols - 1, -1));
-  EXPECT_NE(0, ncplane_move(n_, cols, 0));
-  EXPECT_NE(0, ncplane_move(n_, cols + 1, 0));
-  EXPECT_NE(0, ncplane_move(n_, cols, rows));
-  EXPECT_NE(0, ncplane_move(n_, -1, rows - 1));
-  EXPECT_NE(0, ncplane_move(n_, 0, rows));
-  EXPECT_NE(0, ncplane_move(n_, 0, rows + 1));
+  notcurses_term_dimyx(nc_, &rows, &cols);
+  EXPECT_NE(0, ncplane_movyx(n_, -1, 0));
+  EXPECT_NE(0, ncplane_movyx(n_, -1, -1));
+  EXPECT_NE(0, ncplane_movyx(n_, 0, -1));
+  EXPECT_NE(0, ncplane_movyx(n_, rows - 1, -1));
+  EXPECT_NE(0, ncplane_movyx(n_, rows, 0));
+  EXPECT_NE(0, ncplane_movyx(n_, rows + 1, 0));
+  EXPECT_NE(0, ncplane_movyx(n_, rows, cols));
+  EXPECT_NE(0, ncplane_movyx(n_, -1, cols - 1));
+  EXPECT_NE(0, ncplane_movyx(n_, 0, cols));
+  EXPECT_NE(0, ncplane_movyx(n_, 0, cols + 1));
 }
 
 TEST_F(NcplaneTest, SetPlaneRGB) {
@@ -73,4 +95,14 @@ TEST_F(NcplaneTest, RejectBadRGB) {
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 255, 256, 255));
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 255, 255, 256));
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 256, 256, 256));
+}
+
+// Verify we can emit a wide character, and it advances the cursor
+TEST_F(NcplaneTest, EmitWchar) {
+  wchar_t cchar[] = L"✔";
+  EXPECT_EQ(0, ncplane_putwc(n_, cchar));
+  int x, y;
+  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(y, 0);
+  EXPECT_EQ(x, 1);
 }
