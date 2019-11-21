@@ -33,7 +33,7 @@ set_target_properties(notcurses PROPERTIES
 
 target_compile_options(notcurses
   PRIVATE
-    -Wall -Wextra -W
+    -Wall -Wextra -W -Wshadow
 )
 target_compile_definitions(notcurses
   PRIVATE
@@ -49,7 +49,7 @@ target_link_libraries(notcurses-demo
     notcurses
 )
 target_compile_options(notcurses-demo PRIVATE
-  -Wall -Wextra -W
+  -Wall -Wextra -W -Wshadow
 )
 
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
@@ -61,7 +61,7 @@ target_link_libraries(notcurses-tester
   notcurses
 )
 target_compile_options(notcurses-tester PRIVATE
-  -Wall -Wextra -W
+  -Wall -Wextra -W -Wshadow
 )
 
 gtest_discover_tests(notcurses-tester)
