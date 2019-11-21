@@ -30,7 +30,10 @@
 // (pretty large) 500x200 terminal. At 80x43, it's less than 200KB.
 typedef struct cell {
   wchar_t cchar[CCHARW_MAX];   // 5 * 4b == 20b
-  uint64_t attrs;              // 16 MSB of attr bits, 24 of fg, 24 of bg
+  // The attrword covers classic NCURSES attributes (16 bits), plus foreground
+  // and background color, stored as 3x8bits of RGB. At render time, these
+  // 24-bit values are quantized down to terminal capabilities, if necessary.
+  uint64_t attrs;
   uint32_t reserved;           // 0 for now, serves to pad out struct
 } cell;
 
@@ -89,6 +92,11 @@ static const char NOTCURSES_VERSION[] =
 
 const char* notcurses_version(void){
   return NOTCURSES_VERSION;
+}
+
+static inline int
+fbcellidx(const ncplane* n, int row, int col){
+  return row * n->lenx + col;
 }
 
 void ncplane_dimensions(const ncplane* n, int* rows, int* cols){
@@ -350,29 +358,72 @@ erpchar(int c){
   return EOF;
 }
 
+#define CELL_RMASK 0x0000ff0000000000ull
+#define CELL_GMASK 0x000000ff00000000ull
+#define CELL_BMASK 0x00000000ff000000ull
+#define CELL_RGBMASK (CELL_RMASK | CELL_GMASK | CELL_BMASK)
+
+static void
+cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
+  uint64_t rgb = (r & 0xffull) << 40u;
+  rgb += (g & 0xffull) << 32u;
+  rgb += (b & 0xffull) << 24u;
+  c->attrs = (c->attrs & ~CELL_RGBMASK) | rgb;
+}
+
+static void
+cell_get_fb(const cell* c, unsigned* r, unsigned* g, unsigned* b){
+  *r = (c->attrs & CELL_RMASK) >> 40u;
+  *g = (c->attrs & CELL_GMASK) >> 32;
+  *b = (c->attrs & CELL_BMASK) >> 24u;
+}
+
 int ncplane_fg_rgb8(ncplane* n, unsigned r, unsigned g, unsigned b){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
-  if(n->nc->setaf == NULL){
-    return -1;
-  }
+  cell_set_fg(&n->fb[fbcellidx(n, n->y, n->x)], r, g, b);
+  return 0;
+}
+
+static int
+term_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  static char rgbesc[] = "\x1b[38;2;%u;%u;%um";
-  if(n->nc->RGBflag){
-    if(write(n->nc->ttyfd, rgbesc, sizeof(rgbesc)) != sizeof(rgbesc)){
+  if(nc->RGBflag){
+    #define RGBESC "\x1b[38;2;"
+                         // rrr;ggg;bbb;m
+    char rgbesc[] = RGBESC "             ";
+    size_t len = strlen(RGBESC);
+    if(r > 99){ rgbesc[len++] = r / 100; }
+    if(r > 9){ rgbesc[len++] = (r % 100) / 10; }
+    rgbesc[len++] = r % 10;
+    rgbesc[len++] = ';';
+    if(g > 99){ rgbesc[len++] = g / 100; }
+    if(g > 9){ rgbesc[len++] = (g % 100) / 10; }
+    rgbesc[len++] = g % 10;
+    rgbesc[len++] = ';';
+    if(b > 99){ rgbesc[len++] = b / 100; }
+    if(b > 9){ rgbesc[len++] = (b % 100) / 10; }
+    rgbesc[len++] = b % 10;
+    rgbesc[len++] = ';';
+    rgbesc[len++] = 'm';
+    rgbesc[len] = '\0';
+    ssize_t w;
+    if((w = write(nc->ttyfd, rgbesc, len)) < 0 || (size_t)w != len){
       return -1;
     }
   }else{
+    if(nc->setaf == NULL){
+      return -1;
+    }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
-    fprintf(stderr, "you need more colors, fool\n");
     return -1;
   }
   return 0;
@@ -399,7 +450,11 @@ int notcurses_render(notcurses* nc){
     return -1;
   }
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
-    for(x = 0 ; x < nc->stdscr->lenx ; ++y){
+    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
+      unsigned r, g, b;
+      // FIXME z-culling
+      cell_get_fb(&nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)], &r, &g, &b);
+      term_fg_rgb8(nc, r, g, b);
       // FIXME blit those fuckers
     }
   }
