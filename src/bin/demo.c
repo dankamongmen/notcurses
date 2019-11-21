@@ -10,8 +10,13 @@ int main(void){
     .outfd = STDOUT_FILENO,
     .termtype = NULL,
   };
+  struct ncplane* ncp;
   if((nc = notcurses_init(&nopts)) == NULL){
     return EXIT_FAILURE;
+  }
+  if((ncp = notcurses_stdplane(nc)) == NULL){
+    fprintf(stderr, "Couldn't get standard plane\n");
+    goto err;
   }
   if(notcurses_fg_rgb8(nc, 200, 0, 200)){
     goto err;
@@ -19,7 +24,7 @@ int main(void){
   if(notcurses_render(nc)){
     goto err;
   }
-  if(notcurses_move(nc, 1, 1)){
+  if(ncplane_move(ncp, 1, 1)){
     goto err;
   }
   if(notcurses_render(nc)){

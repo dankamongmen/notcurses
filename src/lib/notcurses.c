@@ -34,17 +34,40 @@ typedef struct cell {
   uint32_t reserved;           // 0 for now, serves to pad out struct
 } cell;
 
+// Some capabilities are so fundamental that we don't attempt to run without
+// them. Essentially, we require a two-dimensional, random-access terminal.
 static const char* required_caps[] = {
   "cup",
   "clear",
   NULL
 };
 
+// A plane is memory for some rectilinear virtual window, plus current cursor
+// state for that window. A notcurses context describes a single terminal, and
+// has a z-order of planes (I see no advantage to maintaining a poset, and we
+// instead just use a list, top-to-bottom). Every cell on the terminal is part
+// of at least one plane, and at least one plane covers the entirety of the
+// terminal (this plane is created during initialization).
+//
+// Functions update these virtual planes over a series of API calls. Eventually,
+// notcurses_render() is called. We then do a depth buffer blit of updated
+// cells. A cell is updated if the topmost plane including that cell updates it,
+// not simply if any plane updates it.
+//
+// A plane may be partially or wholly offscreen--this might occur if the
+// screen is resized, for example. Offscreen portions will not be rendered.
+// Accesses beyond the borders of a panel, however, are errors.
+typedef struct ncplane {
+  cell* fb;        // "framebuffer" of character cells
+  int x, y;        // current location within this plane
+  int absx, absy;  // origin of the plane relative to the screen
+  int lenx, leny;  // size of the plane, [0..len{x,y}) is addressable
+  struct ncplane* z; // plane below us
+} ncplane;
+
 typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty (takes stdin)
-  int colors;
-  int rows, cols; // most recently measured values
-  int x, y;       // our location on the screen
+  int colors;     // number of colors usable for this screen
   // We verify that some capabilities exist (see required_caps). Those needn't
   // be checked before further use; just use tiparm() directly. These might be
   // NULL, and we can more or less work without them.
@@ -53,8 +76,9 @@ typedef struct notcurses {
   char* setaf;    // set foreground color (ANSI)
   char* setab;    // set background color (ANSI)
   struct termios tpreserved; // terminal state upon entry
-  bool RGBflag;   // terminfo reported "RGB" flag for 24bpc directcolor
-  cell* plane;    // the contents of our bottommost plane
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  ncplane* top;   // the contents of our topmost plane (initially entire screen)
+  ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
 } notcurses;
 
 static const char NOTCURSES_VERSION[] =
@@ -66,15 +90,27 @@ const char* notcurses_version(void){
   return NOTCURSES_VERSION;
 }
 
-int notcurses_term_dimensions(notcurses* n, int* rows, int* cols){
+void ncplane_dimensions(const ncplane* n, int* rows, int* cols){
+  *rows = n->leny;
+  *cols = n->lenx;
+}
+
+// This should really only be called from within alloc_stdscr()
+static int
+update_term_dimensions(notcurses* n, int* rows, int* cols){
   struct winsize ws;
   int i = ioctl(n->ttyfd, TIOCGWINSZ, &ws);
   if(i < 0){
     fprintf(stderr, "TIOCGWINSZ failed on %d (%s)\n", n->ttyfd, strerror(errno));
     return -1;
   }
-  n->rows = *rows = ws.ws_row;
-  n->cols = *cols = ws.ws_col;
+  if(ws.ws_row <= 0 || ws.ws_col <= 0){
+    fprintf(stderr, "Bogus return from TIOCGWINSZ on %d (%d/%d)\n",
+            n->ttyfd, ws.ws_row, ws.ws_col);
+    return -1;
+  }
+  *rows = ws.ws_row;
+  *cols = ws.ws_col;
   return 0;
 }
 
@@ -90,6 +126,14 @@ term_verify_seq(char** gseq, const char* name){
     return -1;
   }
   return 0;
+}
+
+static void
+free_plane(ncplane* p){
+  if(p){
+    free(p->fb);
+    free(p);
+  }
 }
 
 static int
@@ -108,46 +152,88 @@ term_emit(const char* seq){
 
 // Call this on initialization, or when the screen size changes. Takes a flat
 // array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
-// new size, and copies what can be copied. Assumes that the screen is always
-// anchored in the same place. Never free()s oldplane.
-static cell*
-alloc_plane(notcurses* nc, cell* oldplane, int* rows, int* cols){
-  int oldrows = *rows;
-  int oldcols = *cols;
-  if(notcurses_term_dimensions(nc, rows, cols)){
-    return NULL;
+// new size, and copies what can be copied from the old stdscr. Assumes that
+// the screen is always anchored in the same place.
+static ncplane*
+alloc_stdscr(notcurses* nc){
+  ncplane* p = NULL;
+  int oldrows = 0;
+  int oldcols = 0;
+  if(nc->stdscr){
+    oldrows = nc->stdscr->leny;
+    oldcols = nc->stdscr->lenx;
   }
-  cell* newcells = malloc(sizeof(*newcells) * (*rows * *cols));
-  if(newcells == NULL){
-    return NULL;
+  if((p = malloc(sizeof(*p))) == NULL){
+    goto err;
   }
+  if(update_term_dimensions(nc, &p->leny, &p->lenx)){
+    goto err;
+  }
+  if((p->fb = malloc(sizeof(*p->fb) * (p->leny * p->lenx))) == NULL){
+    goto err;
+  }
+  ncplane** oldscr;
+  ncplane* preserve;
+  // if we ever make this a doubly-linked list, turn this into o(1)
+  // if nc->stdscr is NULL, we're all good -- there are no entries
+  for(oldscr = &nc->top ; *oldscr ; oldscr = &(*oldscr)->z){
+    if(*oldscr == nc->stdscr){
+      break;
+    }
+  }
+  if( (preserve = *oldscr) ){
+    p->z = preserve->z;
+  }else{
+    p->z = NULL;
+  }
+  *oldscr = p;
+  nc->stdscr = p;
   int y, idx;
   idx = 0;
-  for(y = 0 ; y < *rows ; ++y){
-    idx = y * *cols;
+fprintf(stderr, "%d/%d -> %d/%d\n", oldrows, oldcols, p->leny, p->lenx);
+  for(y = 0 ; y < p->leny ; ++y){
+    idx = y * p->lenx;
     if(y > oldrows){
-      memset(&newcells[idx], 0, sizeof(*newcells) * *cols);
+      memset(&p->fb[idx], 0, sizeof(*p->fb) * p->lenx);
       continue;
     }
-    if(oldcols){
-      int oldcopy = oldcols;
-      if(oldcopy > *cols){
-        oldcopy = *cols;
+    int oldcopy = oldcols;
+    if(oldcopy){
+      if(oldcopy > p->lenx){
+        oldcopy = p->lenx;
       }
-      memcpy(&newcells[idx], &oldplane[y * oldcols], oldcopy * sizeof(*newcells));
-      idx += oldcols;
+      memcpy(&p->fb[idx], &preserve->fb[y * oldcols], oldcopy * sizeof(*p->fb));
     }
-    memset(&newcells[idx], 0, sizeof(*newcells) * *cols - oldcols);
+    if(p->lenx - oldcopy){
+      memset(&p->fb[idx + oldcopy], 0, sizeof(*p->fb) * (p->lenx - oldcopy));
+    }
   }
-  return newcells;
+  free_plane(preserve);
+  return p;
+
+err:
+  free_plane(p);
+  return NULL;
+}
+
+int notcurses_resize(notcurses* n){
+  if(alloc_stdscr(n) == NULL){
+    return -1;
+  }
+  return 0;
+}
+
+ncplane* notcurses_stdplane(notcurses* nc){
+  return nc->stdscr;
+}
+
+const ncplane* notcurses_stdplane_const(const notcurses* nc){
+  return nc->stdscr;
 }
 
 // FIXME should probably register a SIGWINCH handler here
 // FIXME install other sighandlers to clean things up
 notcurses* notcurses_init(const notcurses_options* opts){
-if(!ttyname(opts->outfd)){
-  exit(EXIT_FAILURE);
-}
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
@@ -199,13 +285,16 @@ if(!ttyname(opts->outfd)){
   }else{
     ret->smcup = ret->rmcup = NULL;
   }
-  if((ret->plane = alloc_plane(ret, NULL, &ret->rows, &ret->cols)) == NULL){
+  ret->top = ret->stdscr = NULL;
+  if(alloc_stdscr(ret) == NULL){
     goto err;
   }
+  ret->stdscr = ret->top;
   printf("Geometry: %d rows, %d columns (%zub)\n",
-         ret->rows, ret->cols, ret->rows * ret->cols * sizeof(*ret->plane));
+         ret->top->leny, ret->top->lenx,
+         ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb));
   if(ret->smcup && term_emit(ret->smcup)){
-    free(ret->plane);
+    free_plane(ret->top);
     goto err;
   }
   return ret;
@@ -223,7 +312,11 @@ int notcurses_stop(notcurses* nc){
       ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
-    free(nc->plane);
+    while(nc->top){
+      ncplane* p = nc->top;
+      nc->top = p->z;
+      free_plane(p);
+    }
     free(nc);
   }
   return ret;
@@ -263,6 +356,19 @@ int notcurses_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
     // the inputs *if we can change the palette*. If more than 256 are used on
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
+    fprintf(stderr, "you need more colors, fool\n");
+    return -1;
+  }
+  return 0;
+}
+
+static int
+term_move(int x, int y){
+  char* tstr = tiparm(cursor_address, y, x);
+  if(tstr == NULL){
+    return -1;
+  }
+  if(tputs(tstr, 1, erpchar) != OK){
     return -1;
   }
   return 0;
@@ -272,17 +378,27 @@ int notcurses_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
 // world every time
 int notcurses_render(notcurses* nc){
   int ret = 0;
+  int y, x;
+  if(term_move(0, 0)){
+    return -1;
+  }
+  for(y = 0 ; y < nc->stdscr->leny ; ++y){
+    for(x = 0 ; x < nc->stdscr->lenx ; ++y){
+      // FIXME blit those fuckers
+    }
+  }
   strout("make it happen!\n"); // FIXME
   return ret;
 }
 
-int notcurses_move(notcurses* n, int x, int y){
-  char* tstr = tiparm(cursor_address, y, x);
-  if(tstr == NULL){
+int ncplane_move(ncplane* n, int x, int y){
+  if(x >= n->lenx){
     return -1;
   }
-  if(tputs(tstr, 1, erpchar) != OK){
+  if(y >= n->leny){
     return -1;
   }
+  n->x = x;
+  n->y = y;
   return 0;
 }
