@@ -15,11 +15,12 @@
 // a background color, and an attribute set. The rules on the wchar_t array are
 // the same as those for an ncurses 6.1 cchar_t:
 //
-//  * At most one spacing character, which must be the first if present
+//  * At most one spacing character, which must be the first if present.
 //  * Up to CCHARW_MAX-1 nonspacing characters follow. Extra spacing characters
 //    are ignored. A nonspacing character is one for which wcwidth() returns
 //    zero, and is not the wide NUL (L'\0').
-//  * A single control character can be present, with no other characters.
+//  * A single control character can be present, with no other characters (save
+//    an immediate wide NUL (L'\0').
 //  * If there are fewer than CCHARW_MAX wide characters, they must be
 //    terminated with a wide NUL (L'\0').
 //
@@ -29,12 +30,11 @@
 // Each cell occupies 32 bytes (256 bits). The surface is thus ~4MB for a
 // (pretty large) 500x200 terminal. At 80x43, it's less than 200KB.
 typedef struct cell {
-  wchar_t cchar[CCHARW_MAX];   // 5 * 4b == 20b
+  wchar_t cchar[CCHARW_MAX + 1]; // 6 * 4b == 24b
   // The attrword covers classic NCURSES attributes (16 bits), plus foreground
   // and background color, stored as 3x8bits of RGB. At render time, these
   // 24-bit values are quantized down to terminal capabilities, if necessary.
   uint64_t attrs;
-  uint32_t reserved;           // 0 for now, serves to pad out struct
 } cell;
 
 // Some capabilities are so fundamental that we don't attempt to run without
@@ -174,6 +174,8 @@ create_ncplane(notcurses* nc, int rows, int cols){
   p->leny = rows;
   p->lenx = cols;
   p->nc = nc;
+  p->x = p->y = 0;
+  p->absx = p->absy = 0;
   return p;
 }
 
@@ -378,8 +380,11 @@ cell_get_fb(const cell* c, unsigned* r, unsigned* g, unsigned* b){
   *b = (c->attrs & CELL_BMASK) >> 24u;
 }
 
-int ncplane_fg_rgb8(ncplane* n, unsigned r, unsigned g, unsigned b){
+int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
   if(r >= 256 || g >= 256 || b >= 256){
+    return -1;
+  }
+  if(r < 0 || g < 0 || b < 0){
     return -1;
   }
   cell_set_fg(&n->fb[fbcellidx(n, n->y, n->x)], r, g, b);
@@ -429,6 +434,7 @@ term_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
   return 0;
 }
 
+// Move to the given coordinates on the physical terminal
 static int
 term_move(int x, int y){
   char* tstr = tiparm(cursor_address, y, x);
@@ -436,6 +442,20 @@ term_move(int x, int y){
     return -1;
   }
   if(tputs(tstr, 1, erpchar) != OK){
+    return -1;
+  }
+  return 0;
+}
+
+// Write the cchar (one cell's worth of wchar_t's) to the physical terminal
+static int
+term_putw(const notcurses* nc, const cell* c){
+  size_t len = wcslen(c->cchar);
+  ssize_t w;
+  if((w = write(nc->ttyfd, c->cchar, len * sizeof(*c->cchar))) < 0){
+    return -1;
+  }
+  if((size_t)w != len * sizeof(*c->cchar)){
     return -1;
   }
   return 0;
@@ -453,12 +473,12 @@ int notcurses_render(notcurses* nc){
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b;
       // FIXME z-culling
-      cell_get_fb(&nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)], &r, &g, &b);
+      const cell* c = &nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)];
+      cell_get_fb(c, &r, &g, &b);
       term_fg_rgb8(nc, r, g, b);
-      // FIXME blit those fuckers
+      term_putw(nc, c);
     }
   }
-  strout("make it happen!\n"); // FIXME
   return ret;
 }
 

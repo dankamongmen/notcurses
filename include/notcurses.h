@@ -75,8 +75,8 @@ int ncplane_move(struct ncplane* n, int x, int y);
 // will be interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
 // time using "color pairs"; notcurses will manage color pairs transparently.
-int ncplane_fg_rgb8(struct ncplane* n, unsigned r, unsigned g, unsigned b);
-int ncplane_bg_rgb8(struct ncplane* n, unsigned r, unsigned g, unsigned b);
+int ncplane_fg_rgb8(struct ncplane* n, int r, int g, int b);
+int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
 #ifdef __cplusplus
 } // extern "C"
