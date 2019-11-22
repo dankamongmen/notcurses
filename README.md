@@ -22,6 +22,8 @@ As such, it is not a drop-in Curses replacement. It is almost certainly less
 portable, and definitely tested on less hardware. Sorry about that. Ultimately,
 I hope to properly support all terminals *supporting the features necessary for
 complex TUIs*. I would argue that teletypes etc. are fundamentally unsuitable.
+Most operating systems seem reasonable targets, but I only have Linux and
+FreeBSD available for testing.
 
 notcurses makes use of the Terminfo library shipped with NCURSES.
 
