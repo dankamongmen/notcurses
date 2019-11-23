@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -16,36 +17,29 @@ struct cell;      // a coordinate on an ncplane: wchar_t(s) and styling
 struct ncplane;   // a drawable notcurses surface, composed of cells
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 
-// A cell corresponds to a single character cell on some plane. At any cell, we
-// can have a short array of wchar_t (L'\0'-terminated; we need support an
-// array due to the possibility of combining characters), a foreground color,
-// a background color, and an attribute set. The rules on the wchar_t array are
-// the same as those for an ncurses 6.1 cchar_t:
+// A cell corresponds to a single character cell on some plane, which can be
+// occupied by a single grapheme cluster (some root spacing glyph, along with
+// possible combining characters, which might span multiple columns). At any
+// cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground
+// color, a background color, and an attribute set. Valid grapheme cluster
+// contents include:
 //
-// FIXME i don't care for this (large) static array one whit. we're not bound
-// to X/Open, and owe cchar_t no fealty. i do like the attrs and colors being
-// bound up with it, though. this definition is almost certain to change. we
-// could overload some invalid UTF-8 construction (say a first byte greater
-// than 0x7f) to escape out to some attached storage pool, using the
-// difference as an index into the pool. we would have 25 bits, after all...
+//  * A NUL terminator,
+//  * A single control character, followed by a NUL terminaotr,
+//  * At most one spacing character, followed by zero or more nonspacing
+//    characters, followed by a NUL terminator.
 //
-//  * At most one spacing character, which must be the first if present.
-//  * Up to NCCHARW_MAX-1 nonspacing characters follow. Extra spacing
-//    characters are ignored. A nonspacing character is one for which wcwidth()
-//    returns zero, and is not the wide NUL (L'\0').
-//  * A single control character can be present, with no other characters (save
-//    an immediate wide NUL (L'\0').
-//  * If there are fewer than NCCHARW_MAX wide characters, they must be
-//    terminated with a wide NUL (L'\0').
+// Multi-column characters can only have a single style/color throughout.
 //
-// Multi-column characters can only have a single attribute/color.
-// https://pubs.opengroup.org/onlinepubs/007908799/xcurses/intov.html
-//
-// Each cell occupies 16 bytes (128 bits). The surface is thus ~2MB for a
-// (pretty large) 500x200 terminal. At 80x43, it's less than 100KB.
-#define NCCHARW_MAX 1
+// Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
+// for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
+// Dynamic requirements can add up to 16MB to an ncplane, but such large pools
+// are unlikely in common use.
 typedef struct cell {
-  wchar_t cchar[NCCHARW_MAX]; // 1 * 4b -> 4b
+  // These 32 bits are either a single-byte, single-character grapheme cluster
+  // (values 0--0x7f), or a pointer into a per-ncplane attached pool of
+  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 16MB.
+  uint32_t gcluster;          // 1 * 4b -> 4b
   // The classic NCURSES WA_* attributes (16 bits), plus 16 bits of alpha.
   uint32_t attrword;          // + 4b -> 8b
   // (channels & 0x8000000000000000ull): inherit styling from prior cell
@@ -156,51 +150,43 @@ void ncplane_move_top(struct ncplane* n);
 void ncplane_move_bottom(struct ncplane* n);
 
 // Replace the cell underneath the cursor with the provided cell 'c', and
-// advance the cursor by one cell *unless we are at the end of the plane*.
-// On success, returns 1 if the cursor was advanced, and 0 otherwise. On
-// failure, -1 is returned.
-int ncplane_putwc(struct ncplane* n, const cell* c);
+// advance the cursor by the width of the cell *unless we are at the end of
+// the plane*. On success, returns the number of columns the cursor was
+// advanced. On failure, -1 is returned. 'gclust' only needs be specified, and
+// will only be used, if 'c->gcluster' has a value >= 0x80.
+int ncplane_putc(struct ncplane* n, const cell* c, const char* gclust);
 
-// Retrieve the cell under the cursor, returning it in 'c'.
-void ncplane_getwc(const struct ncplane* n, cell* c);
+// Retrieve the cell under the cursor, returning it in 'c'. If there is more
+// than a byte of gcluster, it will be returned as a heap allocation in
+// '*gclust', and '*c' will be 0x80.
+void ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
 
-// Write a series of wchar_ts to the current location. They will be interpreted
-// as a series of columns (according to the definition of ncplane_putwc()).
-// Advances the cursor by some positive number of cells; this number is returned
-// on success. On error, a non-positive number is returned, indicating the
-// number of cells which were written before the error.
-int ncplane_putwstr(struct ncplane* n, const wchar_t* wstr);
+// Write a series of cells to the current location, using the current style.
+// They will be interpreted as a series of columns (according to the definition
+// of ncplane_putc()). Advances the cursor by some positive number of cells
+// (though not beyond the end of the plane); this number is returned on success.
+// On error, a non-positive number is returned, indicating the number of cells
+// which were written before the error.
+int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 
-// The ncplane equivalent of wprintf(3) and vwprintf(3), themselves the
-// wide-character equivalents of printf(3) and vprintf(3).
-int ncplane_wprintf(struct ncplane* n, const wchar_t* format, ...);
+// The ncplane equivalents of printf(3) and vprintf(3).
+int ncplane_printf(struct ncplane* n, const wchar_t* format, ...);
+int ncplane_vprintf(struct ncplane* n, const wchar_t* format, va_list ap);
 
 // Draw horizontal or vertical lines using the specified cell of wchar_t's,
 // starting at the current cursor position. The cursor will end at the cell
 // following the last cell output (even, perhaps counter-intuitively, when
-// drawing vertical lines), just as if ncplane_putwc() was called at that spot.
+// drawing vertical lines), just as if ncplane_putc() was called at that spot.
 // Returns the number of cells drawn on success. On error, returns the negative
 // number of cells drawn.
-int ncplane_hline(struct ncplane* n, const wchar_t* wcs, int len);
-int ncplane_vline(struct ncplane* n, int yoff, const wchar_t* wcs, int len);
+int ncplane_hline(struct ncplane* n, int xoff, const cell* c,
+                  const char* gclust, int len);
+int ncplane_vline(struct ncplane* n, int yoff, const cell* c,
+                  const char* gclust, int len);
 
 // Erase all content in the ncplane, resetting all attributes to normal, all
 // colors to -1, and all cells to undrawn.
 void ncplane_erase(struct ncplane* n);
-
-// Retrieve the cell under the cursor, returning it in 'c'.
-void ncplane_getwc(const struct ncplane* n, struct cell* c);
-
-// Write a series of wchar_ts to the current location. They will be interpreted
-// as a series of columns (according to the definition of ncplane_putwc()).
-// Advances the cursor by some positive number of cells; this number is returned
-// on success. On error, a non-positive number is returned, indicating the
-// number of cells which were written before the error.
-int ncplane_putwstr(struct ncplane* n, const wchar_t* wstr);
-
-// The ncplane equivalent of wprintf(3) and vwprintf(3), themselves the
-// wide-character equivalents of printf(3) and vprintf(3).
-int ncplane_wprintf(struct ncplane* n, const wchar_t* format, ...);
 
 // Set the current fore/background color using RGB specifications. If the
 // terminal does not support directly-specified 3x8b cells (24-bit "Direct
@@ -224,11 +210,8 @@ int notcurses_palette_size(const struct notcurses* nc);
 
 // Working with cells
 
-// Copies as many wchar_ts out of 'wstr' and into 'c' as it can, according to
-// the rules of cell composition. If the leading part of wstr is not a valid
-// cell, -1 is returned. Returns the number of wchar_ts copied, not including
-// the terminating L'\0' (if 'wstr' is empty, zero is returned).
-int load_cell(cell* c, const wchar_t* wstr);
+// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
+int cell_load(cell* c, const char* gcluster);
 
 static inline uint32_t
 cell_fg_rgb(uint64_t channel){

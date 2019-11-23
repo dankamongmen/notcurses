@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <wchar.h>
+#include <string.h>
 #include <locale.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -28,14 +28,14 @@ int main(void){
   int x, y, rows, cols;
   ncplane_dimyx(ncp, &rows, &cols);
   cell c;
-  load_cell(&c, /*L"💣*/L"X");
+  cell_load(&c, /*L"💣*/"X");
   cell_set_fg(&c, 200, 0, 200);
   for(y = 1 ; y < rows - 1 ; ++y){
     if(ncplane_cursor_move_yx(ncp, y, 1)){
       goto err;
     }
     for(x = 1 ; x < cols - 1 ; ++x){
-      if(ncplane_putwc(ncp, &c)){
+      if(ncplane_putc(ncp, &c, NULL)){
         goto err;
       }
     }
@@ -44,8 +44,8 @@ int main(void){
     goto err;
   }
   sleep(1);
-  const wchar_t lstr[] = L"Wovon man nicht sprechen kann, darüber muss man schweigen.";
-  if(ncplane_cursor_move_yx(ncp, y / 2, (x - wcslen(lstr)) / 2)){
+  const char str[] = "Wovon man nicht sprechen kann, darüber muss man schweigen.";
+  if(ncplane_cursor_move_yx(ncp, y / 2, (x - strlen(str)) / 2)){
     goto err;
   }
   if(ncplane_fg_rgb8(ncp, 176, 121, 176)){
@@ -54,7 +54,7 @@ int main(void){
   if(ncplane_bg_rgb8(ncp, 255, 255, 255)){
     goto err;
   }
-  if(ncplane_putwstr(ncp, lstr) != (int)wcslen(lstr)){
+  if(ncplane_putstr(ncp, str) != (int)strlen(str)){
     goto err;
   }
   if(notcurses_render(nc)){

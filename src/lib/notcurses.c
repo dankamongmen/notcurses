@@ -41,6 +41,7 @@ typedef struct ncplane {
   struct ncplane* z; // plane below us
   struct notcurses* nc; // our parent nc, kinda lame waste of memory FIXME
   uint64_t channels; // colors when not provided an active style
+  char* pool;      // storage pool for multibyte grapheme clusters
 } ncplane;
 
 typedef struct notcurses {
@@ -184,6 +185,7 @@ alloc_stdscr(notcurses* nc){
   if((p = create_ncplane(nc, rows, cols)) == NULL){
     goto err;
   }
+  p->pool = NULL;
   ncplane** oldscr;
   ncplane* preserve;
   // if we ever make this a doubly-linked list, turn this into o(1)
@@ -504,22 +506,43 @@ term_movyx(int y, int x){
   return 0;
 }
 
-// Write the cchar (one cell's worth of wchar_t's) to the physical terminal
-// FIXME probably want to use a wmemstream
+// is it a single ASCII byte, wholly contained within the cell?
+static inline bool
+simple_gcluster_p(const char* gcluster){
+  return *gcluster == '\0' || (*(unsigned char*)gcluster < 0x80 && gcluster[1] == '\0');
+}
+
+static inline bool
+simple_cell_p(const cell* c){
+  return c->gcluster < 0x80;
+}
+
+static inline const char*
+extended_gcluster(const ncplane* n, const cell* c){
+  uint32_t idx = c->gcluster - 0x80;
+  return n->pool + idx;
+}
+
+// Write the cell's UTF-8 grapheme cluster to the physical terminal.
+// FIXME maybe want to use a wmemstream
 static int
-term_putw(const notcurses* nc, const cell* c){
+term_putc(const notcurses* nc, const ncplane* n, const cell* c){
   ssize_t w;
-  size_t len = wcsnlen(c->cchar, sizeof(c->cchar) / sizeof(*c->cchar));
-  if(len == 0){
-    if((w = write(nc->ttyfd, " ", 1)) < 0 || (size_t)w != 1){ // FIXME
+  if(simple_cell_p(c)){
+    if(c->gcluster == 0){
+      if((w = write(nc->ttyfd, " ", 1)) < 0 || (size_t)w != 1){ // FIXME
+        return -1;
+      }
+      return 0;
+    }
+    if((w = write(nc->ttyfd, &c->gcluster, 1)) < 0 || (size_t)w != 1){ // FIXME
       return -1;
     }
     return 0;
   }
-  if((w = write(nc->ttyfd, c->cchar, len * sizeof(*c->cchar))) < 0){
-    return -1;
-  }
-  if((size_t)w != len * sizeof(*c->cchar)){
+  const char* ext = extended_gcluster(n, c);
+  size_t len = strlen(ext);
+  if((w = write(nc->ttyfd, ext, len)) < 0 || (size_t)w != len){
     return -1;
   }
   return 0;
@@ -548,7 +571,7 @@ int notcurses_render(notcurses* nc){
         pg = g;
         pb = b;
       }
-      term_putw(nc, c);
+      term_putc(nc, nc->stdscr, c);
     }
   }
   return ret;
@@ -585,31 +608,24 @@ advance_cursor(ncplane* n){
   }
 }
 
-int ncplane_putwc(ncplane* n, const cell* c){
+int ncplane_putc(ncplane* n, const cell* c, const char* gclust){
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   memcpy(targ, c, sizeof(*c));
-  advance_cursor(n);
+  cell_load(targ, gclust);
   return 0;
 }
 
-int load_cell(cell* c, const wchar_t* wstr){
-  int copied = 0;
-  do{
-    if(copied == sizeof(c->cchar) / sizeof(*c->cchar)){
-      if(*wstr != L'\0' && wcwidth(*wstr) == 0){ // next one *must* be a spacer
-        return -1; // filled up the buffer
-      }
-      break; // no terminator on cells which fill the array [shrug]
-    }
-    if(copied && *wstr != L'\0' && wcwidth(*wstr)){
-      break; // only nonspacing (zero-width) chars after first; throw it back
-    }
-    c->cchar[copied++] = *wstr;
-  }while(*wstr++ != L'\0'); // did we just copy L'\0'? if so, we're always done
-  return copied;
+int cell_load(cell* c, const char* gcluster){
+  if(simple_gcluster_p(gcluster)){
+    c->gcluster = *gcluster;
+    return !!c->gcluster;
+  }
+  // FIXME gotta copy gcluster into storage pool, up through terminator OR
+  // next spacing character...
+  return strlen(gcluster);
 }
 
-int ncplane_putwstr(ncplane* n, const wchar_t* wstr){
+int ncplane_putstr(ncplane* n, const char* gcluster){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
   cell c;
@@ -618,16 +634,16 @@ int ncplane_putwstr(ncplane* n, const wchar_t* wstr){
   cell_set_fg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
   rgb = cell_bg_rgb(n->channels);
   cell_set_bg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
-  while(*wstr != L'\0'){
-    int wcs = load_cell(&c, wstr);
+  while(*gcluster){
+    int wcs = cell_load(&c, gcluster);
     if(wcs < 0){
       return -ret;
     }
     if(wcs == 0){
       break;
     }
-    wstr += wcs;
-    if(ncplane_putwc(n, &c)){
+    gcluster += wcs;
+    if(ncplane_putc(n, &c, extended_gcluster(n, &c))){
       return -ret;
     }
     ++ret;
