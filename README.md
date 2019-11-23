@@ -15,7 +15,8 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
 notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
 terminal functionality such as unindexed 24-bit color ("DirectColor", not to be
-confused with 8-bit indexed 24-bit color, aka "TrueColor"). For some necessary
+confused with 8-bit indexed 24-bit color, aka "TrueColor" or (by NCURSES) as
+"extended color"). For some necessary
 background, consult Thomas E. Dickey's superb and authoritative [NCURSES
 FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
 As such, notcurses is not a drop-in Curses replacement. It is almost certainly
@@ -47,7 +48,7 @@ Why use this non-standard library?
   from the beginning.
 
 * It's Apache2-licensed in its entirety, as opposed to the
-  [drama in several acts](https://invisible-island.net/ncurses/ncurses-license.html])
+  [drama in several acts](https://invisible-island.net/ncurses/ncurses-license.html)
   that is the NCURSES license (the latter is [summarized](https://invisible-island.net/ncurses/ncurses-license.html#issues_freer)
   as "a restatement of MIT-X11").
 
@@ -166,9 +167,9 @@ some design decisions might surprise NCURSES programmers:
 This isn't "features currently missing", but rather "features I do not intend
 to implement".
 
-* There is no immediate-output mode (`immedok()`, `echochar()` etc.)
-  With that said, `ncplane_putc()` followed by `notcurses_render()` ought
-  be just as fast as `echochar()`.
+* There is no immediate-output mode (`immedok()`, `echochar()` etc.).
+  `ncplane_putc()` followed by `notcurses_render()` ought be just as fast as
+  `echochar()`.
 * There is no support for soft labels (`slk_init()`, etc.).
 * There is no concept of subwindows which share memory with their parents.
 * There is no tracing functionality ala `trace(3NCURSES)`. Superior external
