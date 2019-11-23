@@ -267,7 +267,15 @@ cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   uint64_t rgb = (r & 0xffull) << 48u;
   rgb |= (g & 0xffull) << 40u;
   rgb |= (b & 0xffull) << 32u;
-  *channels = (*channels & 0x00ffffff00000000ull) | rgb;
+  *channels = (*channels & ~0x00ffffff00000000ull) | rgb;
+}
+
+static inline void
+cell_rgb_set_bg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
+  uint64_t rgb = (r & 0xffull) << 16u;
+  rgb |= (g & 0xffull) << 8u;
+  rgb |= (b & 0xffull);
+  *channels = (*channels & ~0x0000000000ffffffull) | rgb;
 }
 
 static inline void
@@ -276,10 +284,22 @@ cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
 }
 
 static inline void
-cell_get_fb(const cell* c, unsigned* r, unsigned* g, unsigned* b){
+cell_set_bg(cell* c, unsigned r, unsigned g, unsigned b){
+  cell_rgb_set_bg(&c->channels, r, g, b);
+}
+
+static inline void
+cell_get_fg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
   *r = cell_rgb_red(cell_fg_rgb(c->channels));
   *g = cell_rgb_green(cell_fg_rgb(c->channels));
   *b = cell_rgb_blue(cell_fg_rgb(c->channels));
+}
+
+static inline void
+cell_get_bg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
+  *r = cell_rgb_red(cell_bg_rgb(c->channels));
+  *g = cell_rgb_green(cell_bg_rgb(c->channels));
+  *b = cell_rgb_blue(cell_bg_rgb(c->channels));
 }
 
 #ifdef __cplusplus

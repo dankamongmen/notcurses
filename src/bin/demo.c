@@ -48,7 +48,10 @@ int main(void){
   if(ncplane_cursor_move_yx(ncp, y / 2, (x - wcslen(lstr)) / 2)){
     goto err;
   }
-  if(ncplane_fg_rgb8(ncp, 255, 255, 255)){
+  if(ncplane_fg_rgb8(ncp, 176, 121, 176)){
+    goto err;
+  }
+  if(ncplane_bg_rgb8(ncp, 255, 255, 255)){
     goto err;
   }
   if(ncplane_putwstr(ncp, lstr) != (int)wcslen(lstr)){

@@ -395,6 +395,17 @@ erpchar(int c){
   return EOF;
 }
 
+int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
+  if(r >= 256 || g >= 256 || b >= 256){
+    return -1;
+  }
+  if(r < 0 || g < 0 || b < 0){
+    return -1;
+  }
+  cell_rgb_set_bg(&n->channels, r, g, b);
+  return 0;
+}
+
 int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
@@ -406,6 +417,58 @@ int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
   return 0;
 }
 
+// 3 for foreground, 4 for background, ugh FIXME
+static int
+term_esc_rgb(notcurses* nc, int esc, unsigned r, unsigned g, unsigned b){
+  #define RGBESC1 "\x1b["
+  #define RGBESC2 "8;2;"
+                                    // rrr;ggg;bbbm
+  char rgbesc[] = RGBESC1 " " RGBESC2 "            ";
+  size_t len = strlen(RGBESC1);
+  rgbesc[len++] = esc + '0';
+  len += strlen(RGBESC2);
+  if(r > 99){ rgbesc[len++] = r / 100 + '0'; }
+  if(r > 9){ rgbesc[len++] = (r % 100) / 10 + '0'; }
+  rgbesc[len++] = (r % 10) + '0';
+  rgbesc[len++] = ';';
+  if(g > 99){ rgbesc[len++] = g / 100 + '0'; }
+  if(g > 9){ rgbesc[len++] = (g % 100) / 10 + '0'; }
+  rgbesc[len++] = g % 10 + '0';
+  rgbesc[len++] = ';';
+  if(b > 99){ rgbesc[len++] = b / 100 + '0'; }
+  if(b > 9){ rgbesc[len++] = (b % 100) / 10 + '0'; }
+  rgbesc[len++] = b % 10 + '0';
+  rgbesc[len++] = 'm';
+  rgbesc[len] = '\0';
+  ssize_t w;
+  if((w = write(nc->ttyfd, rgbesc, len)) < 0 || (size_t)w != len){
+    return -1;
+  }
+  return 0;
+}
+
+static int
+term_bg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
+  // We typically want to use tputs() and tiperm() to acquire and write the
+  // escapes, as these take into account terminal-specific delays, padding,
+  // etc. For the case of DirectColor, there is no suitable terminfo entry, but
+  // we're also in that case working with hopefully more robust terminals.
+  // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
+  if(nc->RGBflag){
+    return term_esc_rgb(nc, 4, r, g, b);
+  }else{
+    if(nc->setaf == NULL){
+      return -1;
+    }
+    // For 256-color indexed mode, start constructing a palette based off
+    // the inputs *if we can change the palette*. If more than 256 are used on
+    // a single screen, start... combining close ones? For 8-color mode, simple
+    // interpolation. I have no idea what to do for 88 colors. FIXME
+    return -1;
+  }
+  return 0;
+}
+
 static int
 term_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
@@ -414,27 +477,7 @@ term_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(nc->RGBflag){
-    #define RGBESC "\x1b[38;2;"
-                         // rrr;ggg;bbbm
-    char rgbesc[] = RGBESC "            ";
-    size_t len = strlen(RGBESC);
-    if(r > 99){ rgbesc[len++] = r / 100 + '0'; }
-    if(r > 9){ rgbesc[len++] = (r % 100) / 10 + '0'; }
-    rgbesc[len++] = (r % 10) + '0';
-    rgbesc[len++] = ';';
-    if(g > 99){ rgbesc[len++] = g / 100 + '0'; }
-    if(g > 9){ rgbesc[len++] = (g % 100) / 10 + '0'; }
-    rgbesc[len++] = g % 10 + '0';
-    rgbesc[len++] = ';';
-    if(b > 99){ rgbesc[len++] = b / 100 + '0'; }
-    if(b > 9){ rgbesc[len++] = (b % 100) / 10 + '0'; }
-    rgbesc[len++] = b % 10 + '0';
-    rgbesc[len++] = 'm';
-    rgbesc[len] = '\0';
-    ssize_t w;
-    if((w = write(nc->ttyfd, rgbesc, len)) < 0 || (size_t)w != len){
-      return -1;
-    }
+    return term_esc_rgb(nc, 3, r, g, b);
   }else{
     if(nc->setaf == NULL){
       return -1;
@@ -493,12 +536,14 @@ int notcurses_render(notcurses* nc){
   unsigned pr, pg, pb;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
-      unsigned r, g, b;
+      unsigned r, g, b, br, bg, bb;
       // FIXME z-culling
       const cell* c = &nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)];
-      cell_get_fb(c, &r, &g, &b);
+      cell_get_fg(c, &r, &g, &b);
+      cell_get_bg(c, &br, &bg, &bb);
       if(r != pr || g != pg || b != pb || (x == 0 && y == 0)){
         term_fg_rgb8(nc, r, g, b);
+        term_bg_rgb8(nc, br, bg, bb);
         pr = r;
         pg = g;
         pb = b;
@@ -571,6 +616,8 @@ int ncplane_putwstr(ncplane* n, const wchar_t* wstr){
   memset(&c, 0, sizeof(c));
   uint32_t rgb = cell_fg_rgb(n->channels);
   cell_set_fg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
+  rgb = cell_bg_rgb(n->channels);
+  cell_set_bg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
   while(*wstr != L'\0'){
     int wcs = load_cell(&c, wstr);
     if(wcs < 0){
