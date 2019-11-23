@@ -24,17 +24,19 @@ int main(void){
     fprintf(stderr, "Couldn't get standard plane\n");
     goto err;
   }
-  int x, cols;
-  ncplane_dimyx(ncp, NULL, &cols);
-  if(ncplane_movyx(ncp, 1, 1)){
-    goto err;
-  }
-  for(x = 1 ; x < cols - 1 ; ++x){
-    if(ncplane_fg_rgb8(ncp, 200, 0, 200)){
+  int x, y, rows, cols;
+  ncplane_dimyx(ncp, &rows, &cols);
+  cell c;
+  load_cell(&c, /*L"💣*/L"X");
+  cell_set_fg(&c, 200, 0, 200);
+  for(y = 1 ; y < rows - 1 ; ++y){
+    if(ncplane_cursor_move_yx(ncp, y, 1)){
       goto err;
     }
-    if(ncplane_putwc(ncp, L"X"/*💣*/)){
-      goto err;
+    for(x = 1 ; x < cols - 1 ; ++x){
+      if(ncplane_putwc(ncp, &c)){
+        goto err;
+      }
     }
   }
   if(notcurses_render(nc)){

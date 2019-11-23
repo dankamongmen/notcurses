@@ -25,7 +25,9 @@ complex TUIs*. I would argue that teletypes etc. are fundamentally unsuitable.
 Most operating systems seem reasonable targets, but I only have Linux and
 FreeBSD available for testing.
 
-notcurses makes use of the Terminfo library shipped with NCURSES.
+notcurses makes use of the Terminfo library shipped with NCURSES. notcurses
+uses Terminfo wherever possible, benefiting greatly from its portability and
+thoroughness.
 
 notcurses opens up advanced functionality for the interactive user on
 workstations, phones, laptops, and tablets, at the expense of e.g.
@@ -40,10 +42,15 @@ Why use this non-standard library?
     24-bit RGB color.
 
 * Visual features not directly available via NCURSES, including images,
-    fonts, and video.
+    fonts, video, high-contrast text, and transparent regions.
 
 * Thread safety, and use in parallel programs, has been a design consideration
     from the beginning.
+
+* It's Apache2-licensed in its entirety, as opposed to the
+  [drama in several acts](https://invisible-island.net/ncurses/ncurses-license.html])
+  that is the NCURSES license (the latter is [summarized](https://invisible-island.net/ncurses/ncurses-license.html#issues_freer)
+  as "a restatement of MIT-X11").
 
 On the other hand, if you're targeting industrial or critical applications,
 or wish to benefit from the time-tested reliability and portability of Curses,
@@ -127,3 +134,45 @@ from a lower `ncplane` from being seen. An `ncplane` corresponds loosely to an
 [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
 but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
+
+## Differences from NCURSES
+
+The biggest difference, of course, is that notcurses is not an implementation
+of X/Open (aka XSI) Curses, nor part of SUS4-2018.
+
+The detailed differences between notcurses and NCURSES probably can't be fully
+enumerated, and if they could, no one would want to read it. With that said,
+some design decisions might surprise NCURSES programmers:
+
+* The screen is not cleared on entry.
+* There is no distinct `PANEL` type. The z-buffer is a fundamental property,
+  and all drawable surfaces are ordered along the z axis. There is no
+  equivalent to `update_panels()`.
+* Scrolling is disabled by default, and cannot be globally enabled.
+* The hardware cursor is disabled by default, when supported (`civis` capability).
+* Echoing of input is disabled by default, and `cbreak` mode is used by default.
+* Colors are always specified as 24 bits in 3 components (RGB). If necessary,
+  these will be quantized for the actual terminal. There are no "color pairs".
+* There is no distinct "pad" concept (these are NCURSES `WINDOW`s created with
+  the `newpad()` function). All drawable surfaces can exceed the display size.
+* Multiple threads can freely call into notcurses, so long as they're not
+  accessing the same data. In particular, it is always safe to concurrently
+  mutate different ncplanes in different threads.
+* NCURSES has thread-ignorant and thread-semi-safe versions, trace-enabled and
+  traceless versions, and versions with and without support for wide characters.
+  notcurses is one library: no tracing, wide characters, thread safety.
+
+### Features missing relative to NCURSES
+
+This isn't "features currently missing", but rather "features I do not intend
+to implement".
+
+* There is no immediate-output mode (`immedok()`, `echochar()` etc.)
+  With that said, `ncplane_putc()` followed by `notcurses_render()` ought
+  be just as fast as `echochar()`.
+* There is no support for soft labels (`slk_init()`, etc.).
+* There is no concept of subwindows which share memory with their parents.
+* There is no tracing functionality ala `trace(3NCURSES)`. Superior external
+  tracing solutions exist, such as `bpftrace`.
+* There is no timeout functionality for input (`timeout()`, `halfdelay()`, etc.).
+  Roll your own with any of the four thousand ways to do it.
