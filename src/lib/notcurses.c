@@ -40,6 +40,7 @@ typedef struct ncplane {
   int lenx, leny;  // size of the plane, [0..len{x,y}) is addressable
   struct ncplane* z; // plane below us
   struct notcurses* nc; // our parent nc, kinda lame waste of memory FIXME
+  uint64_t channels; // colors when not provided an active style
 } ncplane;
 
 typedef struct notcurses {
@@ -401,7 +402,7 @@ int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
   if(r < 0 || g < 0 || b < 0){
     return -1;
   }
-  cell_set_fg(&n->fb[fbcellidx(n, n->y, n->x)], r, g, b);
+  cell_rgb_set_fg(&n->channels, r, g, b);
   return 0;
 }
 
@@ -550,7 +551,7 @@ int load_cell(cell* c, const wchar_t* wstr){
   int copied = 0;
   do{
     if(copied == sizeof(c->cchar) / sizeof(*c->cchar)){
-      if(!wcwidth(*wstr)){ // next one *must* be a spacing char
+      if(*wstr != L'\0' && wcwidth(*wstr) == 0){ // next one *must* be a spacer
         return -1; // filled up the buffer
       }
       break; // no terminator on cells which fill the array [shrug]
@@ -567,10 +568,16 @@ int ncplane_putwstr(ncplane* n, const wchar_t* wstr){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
   cell c;
+  memset(&c, 0, sizeof(c));
+  uint32_t rgb = cell_fg_rgb(n->channels);
+  cell_set_fg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
   while(*wstr != L'\0'){
     int wcs = load_cell(&c, wstr);
-    if(wcs <= 0){
+    if(wcs < 0){
       return -ret;
+    }
+    if(wcs == 0){
+      break;
     }
     wstr += wcs;
     if(ncplane_putwc(n, &c)){

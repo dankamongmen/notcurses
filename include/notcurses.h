@@ -263,11 +263,16 @@ cell_rgb_blue(uint32_t rgb){
 }
 
 static inline void
-cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
+cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   uint64_t rgb = (r & 0xffull) << 48u;
   rgb |= (g & 0xffull) << 40u;
   rgb |= (b & 0xffull) << 32u;
-  c->channels = (c->channels & 0x00ffffff00000000ull) | rgb;
+  *channels = (*channels & 0x00ffffff00000000ull) | rgb;
+}
+
+static inline void
+cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
+  cell_rgb_set_fg(&c->channels, r, g, b);
 }
 
 static inline void

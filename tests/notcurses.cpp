@@ -15,11 +15,16 @@ class NotcursesTest : public :: testing::Test {
     ASSERT_NE(nullptr, nc_);
   }
 
+  void TearDown() override {
+    if(nc_){
+      EXPECT_EQ(0, notcurses_stop(nc_));
+    }
+  }
+
   struct notcurses* nc_;
 };
 
 TEST_F(NotcursesTest, BasicLifetime) {
-  EXPECT_EQ(0, notcurses_stop(nc_));
 }
 
 TEST_F(NotcursesTest, TermDimensions) {
@@ -35,7 +40,6 @@ TEST_F(NotcursesTest, TermDimensions) {
     auto envx = std::stoi(strx, nullptr);
     EXPECT_EQ(envx, x);
   }
-  EXPECT_EQ(0, notcurses_stop(nc_));
 }
 
 TEST_F(NotcursesTest, ResizeSameSize) {
@@ -46,7 +50,6 @@ TEST_F(NotcursesTest, ResizeSameSize) {
   notcurses_term_dimyx(nc_, &newy, &newx);
   EXPECT_EQ(newx, x);
   EXPECT_EQ(newy, y);
-  EXPECT_EQ(0, notcurses_stop(nc_));
 }
 
 // we should at least have WA_STANDOUT everywhere, i should think?

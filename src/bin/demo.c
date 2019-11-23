@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <wchar.h>
 #include <locale.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -42,6 +43,21 @@ int main(void){
   if(notcurses_render(nc)){
     goto err;
   }
+  sleep(1);
+  const wchar_t lstr[] = L"Wovon man nicht sprechen kann, darüber muss man schweigen.";
+  if(ncplane_cursor_move_yx(ncp, y / 2, (x - wcslen(lstr)) / 2)){
+    goto err;
+  }
+  if(ncplane_fg_rgb8(ncp, 255, 255, 255)){
+    goto err;
+  }
+  if(ncplane_putwstr(ncp, lstr) != (int)wcslen(lstr)){
+    goto err;
+  }
+  if(notcurses_render(nc)){
+    goto err;
+  }
+  sleep(1);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
