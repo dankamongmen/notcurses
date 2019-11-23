@@ -64,6 +64,9 @@ typedef struct cell {
   uint64_t channels;          // + 8b == 16b
 } cell;
 
+// FIXME we'll need to expose this definition for ncplane_getwc()
+struct cell;      // the contents of a single cell on a single plane
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -146,6 +149,11 @@ void ncplane_yx(const struct ncplane* n, int* y, int* x);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 void ncplane_move_above(struct ncplane* n, struct ncplane* above);
+// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+void ncplane_move_below(struct ncplane* n, struct ncplane* below);
+// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
+void ncplane_move_top(struct ncplane* n);
+void ncplane_move_bottom(struct ncplane* n);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
 void ncplane_move_below(struct ncplane* n, struct ncplane* below);
@@ -186,6 +194,20 @@ int ncplane_vline(struct ncplane* n, int yoff, const wchar_t* wcs, int len);
 // Erase all content in the ncplane, resetting all attributes to normal, all
 // colors to -1, and all cells to undrawn.
 void ncplane_erase(struct ncplane* n);
+
+// Retrieve the cell under the cursor, returning it in 'c'.
+void ncplane_getwc(const struct ncplane* n, struct cell* c);
+
+// Write a series of wchar_ts to the current location. They will be interpreted
+// as a series of columns (according to the definition of ncplane_putwc()).
+// Advances the cursor by some positive number of cells; this number is returned
+// on success. On error, a non-positive number is returned, indicating the
+// number of cells which were written before the error.
+int ncplane_putwstr(struct ncplane* n, const wchar_t* wstr);
+
+// The ncplane equivalent of wprintf(3) and vwprintf(3), themselves the
+// wide-character equivalents of printf(3) and vprintf(3).
+int ncplane_wprintf(struct ncplane* n, const wchar_t* format, ...);
 
 // Set the current fore/background color using RGB specifications. If the
 // terminal does not support directly-specified 3x8b cells (24-bit "Direct
