@@ -38,11 +38,13 @@ Why use this non-standard library?
 
 * A svelter design than that codified in X/Open. All exported identifiers
   are prefixed to avoid namespace collisions. Far fewer identifiers are
-  exported overall. All APIs natively suport wide characters and 24-bit RGB
-  color.
+  exported overall. All APIs natively suport wide characters, and the `cell`
+  API is based around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/)
+  concept.
 
 * Visual features not directly available via NCURSES, including images,
-  fonts, video, high-contrast text, and transparent regions.
+  fonts, video, high-contrast text, and transparent regions. All APIs
+  natively support 24-bit color, quantized down as necessary for the terminal.
 
 * Thread safety, and use in parallel programs, has been a design consideration
   from the beginning.
@@ -149,6 +151,10 @@ some design decisions might surprise NCURSES programmers:
   and all drawable surfaces are ordered along the z axis. There is no
   equivalent to `update_panels()`.
 * Scrolling is disabled by default, and cannot be globally enabled.
+* The Curses `cchar_t` has a fixed-size array of `wchar_t`. The notcurses
+  `cell` instead supports a UTF-8 encoded extended grapheme cluster of
+  arbitrary length. The only supported charsets are `C` and `UTF-8`. notcurses
+  does not generally make use of `wchar_t`.
 * The hardware cursor is disabled by default, when supported (`civis` capability).
 * Echoing of input is disabled by default, and `cbreak` mode is used by default.
 * Colors are always specified as 24 bits in 3 components (RGB). If necessary,
