@@ -497,7 +497,7 @@ int notcurses_render(notcurses* nc){
   return ret;
 }
 
-int ncplane_movyx(ncplane* n, int y, int x){
+int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x >= n->lenx || x < 0){
     return -1;
   }
@@ -509,7 +509,7 @@ int ncplane_movyx(ncplane* n, int y, int x){
   return 0;
 }
 
-void ncplane_posyx(const ncplane* n, int* y, int* x){
+void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   if(y){
     *y = n->y;
   }

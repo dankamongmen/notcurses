@@ -29,7 +29,7 @@ class NcplaneTest : public :: testing::Test {
 // Starting position ought be 0, 0 (the origin)
 TEST_F(NcplaneTest, StdPlanePosition) {
   int x, y;
-  ncplane_posyx(n_, &y, &x);
+  ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, x);
   EXPECT_EQ(0, y);
 }
@@ -48,21 +48,21 @@ TEST_F(NcplaneTest, StdPlaneDimensions) {
 TEST_F(NcplaneTest, MoveStdPlaneDimensions) {
   int cols, rows;
   notcurses_term_dimyx(nc_, &rows, &cols);
-  EXPECT_EQ(0, ncplane_movyx(n_, 0, 0));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
   int x, y;
-  ncplane_posyx(n_, &y, &x);
+  ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(y, 0);
   EXPECT_EQ(x, 0);
-  EXPECT_EQ(0, ncplane_movyx(n_, rows - 1, 0));
-  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, rows - 1, 0));
+  ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(y, rows - 1);
   EXPECT_EQ(x, 0);
-  EXPECT_EQ(0, ncplane_movyx(n_, rows - 1, cols - 1));
-  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, rows - 1, cols - 1));
+  ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(y, rows - 1);
   EXPECT_EQ(x, cols - 1);
-  EXPECT_EQ(0, ncplane_movyx(n_, 0, cols - 1));
-  ncplane_posyx(n_, &y, &x);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, cols - 1));
+  ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(y, 0);
   EXPECT_EQ(x, cols - 1);
 }
@@ -71,16 +71,16 @@ TEST_F(NcplaneTest, MoveStdPlaneDimensions) {
 TEST_F(NcplaneTest, MoveBeyondPlaneFails) {
   int cols, rows;
   notcurses_term_dimyx(nc_, &rows, &cols);
-  EXPECT_NE(0, ncplane_movyx(n_, -1, 0));
-  EXPECT_NE(0, ncplane_movyx(n_, -1, -1));
-  EXPECT_NE(0, ncplane_movyx(n_, 0, -1));
-  EXPECT_NE(0, ncplane_movyx(n_, rows - 1, -1));
-  EXPECT_NE(0, ncplane_movyx(n_, rows, 0));
-  EXPECT_NE(0, ncplane_movyx(n_, rows + 1, 0));
-  EXPECT_NE(0, ncplane_movyx(n_, rows, cols));
-  EXPECT_NE(0, ncplane_movyx(n_, -1, cols - 1));
-  EXPECT_NE(0, ncplane_movyx(n_, 0, cols));
-  EXPECT_NE(0, ncplane_movyx(n_, 0, cols + 1));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -1, 0));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -1, -1));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, 0, -1));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows - 1, -1));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows, 0));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows + 1, 0));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows, cols));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -1, cols - 1));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, 0, cols));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, 0, cols + 1));
 }
 
 TEST_F(NcplaneTest, SetPlaneRGB) {
@@ -104,7 +104,7 @@ TEST_F(NcplaneTest, EmitWchar) {
   wchar_t cchar[] = L"✔";
   EXPECT_EQ(0, ncplane_putwc(n_, cchar));
   int x, y;
-  ncplane_posyx(n_, &y, &x);
+  ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(y, 0);
   EXPECT_EQ(x, 1);
 }

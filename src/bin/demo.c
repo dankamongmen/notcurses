@@ -26,7 +26,7 @@ int main(void){
   }
   int x, cols;
   ncplane_dimyx(ncp, NULL, &cols);
-  if(ncplane_movyx(ncp, 1, 1)){
+  if(ncplane_cursor_move_yx(ncp, 1, 1)){
     goto err;
   }
   for(x = 1 ; x < cols - 1 ; ++x){
