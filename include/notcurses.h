@@ -155,13 +155,6 @@ void ncplane_move_below(struct ncplane* n, struct ncplane* below);
 void ncplane_move_top(struct ncplane* n);
 void ncplane_move_bottom(struct ncplane* n);
 
-// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-void ncplane_move_below(struct ncplane* n, struct ncplane* below);
-
-// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-void ncplane_move_top(struct ncplane* n);
-void ncplane_move_bottom(struct ncplane* n);
-
 // Replace the cell underneath the cursor with the provided cell 'c', and
 // advance the cursor by one cell *unless we are at the end of the plane*.
 // On success, returns 1 if the cursor was advanced, and 0 otherwise. On
