@@ -25,9 +25,8 @@ necessary for complex TUIs*. I would argue that teletypes etc. are
 fundamentally unsuitable. Most operating systems seem reasonable targets, but I
 only have Linux and FreeBSD available for testing.
 
-notcurses makes use of the Terminfo library shipped with NCURSES. notcurses
-uses Terminfo wherever possible, benefiting greatly from its portability and
-thoroughness.
+Whenever possible, notcurses makes use of the Terminfo library shipped with
+NCURSES, benefiting greatly from its portability and thoroughness.
 
 notcurses opens up advanced functionality for the interactive user on
 workstations, phones, laptops, and tablets, at the expense of e.g.
@@ -37,15 +36,15 @@ which offers only eight colors and limited glyphs).
 Why use this non-standard library?
 
 * A svelter design than that codified in X/Open. All exported identifiers
-    are prefixed with `notcurses_` to avoid namespace pollution. Fewer
-    identifiers overall. All APIs natively suport wide characters and
-    24-bit RGB color.
+  are prefixed to avoid namespace collisions. Far fewer identifiers are
+  exported overall. All APIs natively suport wide characters and 24-bit RGB
+  color.
 
 * Visual features not directly available via NCURSES, including images,
-    fonts, video, high-contrast text, and transparent regions.
+  fonts, video, high-contrast text, and transparent regions.
 
 * Thread safety, and use in parallel programs, has been a design consideration
-    from the beginning.
+  from the beginning.
 
 * It's Apache2-licensed in its entirety, as opposed to the
   [drama in several acts](https://invisible-island.net/ncurses/ncurses-license.html])
