@@ -17,6 +17,7 @@ class NcplaneTest : public :: testing::Test {
 
   void TearDown() override {
     if(nc_){
+      EXPECT_EQ(0, ncplane_fg_rgb8(n_, 255, 255, 255));
       EXPECT_EQ(0, notcurses_render(nc_));
       EXPECT_EQ(0, notcurses_stop(nc_));
     }
@@ -97,7 +98,6 @@ TEST_F(NcplaneTest, RejectBadRGB) {
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 255, 256, 255));
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 255, 255, 256));
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 256, 256, 256));
-  EXPECT_EQ(0, ncplane_fg_rgb8(n_, 255, 255, 255));
 }
 
 // Verify we can emit a wide character, and it advances the cursor

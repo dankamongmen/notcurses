@@ -220,8 +220,10 @@ int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
 // Fine details about terminal
 
-// FIXME bools for the various WA_* attributes
-// FIXME verify that they are both supported AND not part of no_color_video
+// Returns a 16-bit bitmask in the LSBs of supported NCURSES-style attributes
+// (WA_UNDERLINE, WA_BOLD, etc.) The attribute is only indicated as supported
+// if the terminal can support it together with color.
+unsigned notcurses_supported_styles(const struct notcurses* nc);
 
 // Returns the number of colors supported by the palette, or 0 if there is no
 // palette (DirectColor or no colors).

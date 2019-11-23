@@ -48,3 +48,9 @@ TEST_F(NotcursesTest, ResizeSameSize) {
   EXPECT_EQ(newy, y);
   EXPECT_EQ(0, notcurses_stop(nc_));
 }
+
+// we should at least have WA_STANDOUT everywhere, i should think?
+TEST_F(NotcursesTest, CursesStyles) {
+  unsigned attrs = notcurses_supported_styles(nc_);
+  EXPECT_EQ(1, !!(WA_STANDOUT & attrs));
+}

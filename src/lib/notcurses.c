@@ -53,6 +53,13 @@ typedef struct notcurses {
   char* rmcup;    // restore primary mode
   char* setaf;    // set foreground color (ANSI)
   char* setab;    // set background color (ANSI)
+  char* standout; // WA_STANDOUT
+  char* uline;    // WA_UNDERLINK
+  char* reverse;  // WA_REVERSE
+  char* blink;    // WA_BLINK
+  char* dim;      // WA_DIM
+  char* bold;     // WA_BOLD
+  char* italics;  // WA_ITALIC
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
@@ -234,6 +241,74 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
   return nc->stdscr;
 }
 
+static int
+interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
+  char* longname_term = longname();
+  fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
+  nc->RGBflag = tigetflag("RGB") == 1;
+  if((nc->colors = tigetnum("colors")) <= 0){
+    fprintf(stderr, "This terminal doesn't appear to support colors\n");
+    return -1;
+  }else if(nc->RGBflag && (unsigned)nc->colors < (1u << 23u)){
+    fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
+            nc->colors);
+  }else{
+    printf("Colors: %d (%s)\n", nc->colors, nc->RGBflag ? "direct" : "palette");
+  }
+  const char** cap;
+  for(cap = required_caps ; *cap ; ++cap){
+    if(term_verify_seq(NULL, *cap)){
+      fprintf(stderr, "Capability not defined for terminal: %s\n", *cap);
+      return -1;
+    }
+  }
+  term_verify_seq(&nc->standout, "smso");
+  term_verify_seq(&nc->uline, "smul");
+  term_verify_seq(&nc->reverse, "reverse");
+  term_verify_seq(&nc->blink, "blink");
+  term_verify_seq(&nc->dim, "dim");
+  term_verify_seq(&nc->bold, "bold");
+  term_verify_seq(&nc->italics, "sitm");
+  // Some terminals cannot combine certain styles with colors. Don't advertise
+  // support for the style in that case.
+  int nocolor_stylemask = tigetnum("ncv");
+  if(nocolor_stylemask > 0){
+    if(nocolor_stylemask & WA_STANDOUT){
+      nc->standout = NULL;
+    }
+    if(nocolor_stylemask & WA_UNDERLINE){
+      nc->uline = NULL;
+    }
+    if(nocolor_stylemask & WA_REVERSE){
+      nc->reverse = NULL;
+    }
+    if(nocolor_stylemask & WA_BLINK){
+      nc->blink = NULL;
+    }
+    if(nocolor_stylemask & WA_DIM){
+      nc->dim = NULL;
+    }
+    if(nocolor_stylemask & WA_BOLD){
+      nc->bold = NULL;
+    }
+    if(nocolor_stylemask & WA_ITALIC){
+      nc->italics = NULL;
+    }
+  }
+  // Not all terminals support setting the fore/background independently
+  term_verify_seq(&nc->setaf, "setaf");
+  term_verify_seq(&nc->setab, "setab");
+  // Neither of these is supported on e.g. the "linux" virtual console.
+  if(!opts->inhibit_alternate_screen){
+    term_verify_seq(&nc->smcup, "smcup");
+    term_verify_seq(&nc->rmcup, "rmcup");
+  }else{
+    nc->smcup = nc->rmcup = NULL;
+  }
+  nc->top = nc->stdscr = NULL;
+  return 0;
+}
+
 // FIXME should probably register a SIGWINCH handler here
 // FIXME install other sighandlers to clean things up
 notcurses* notcurses_init(const notcurses_options* opts){
@@ -267,37 +342,9 @@ notcurses* notcurses_init(const notcurses_options* opts){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
-  char* longname_term = longname();
-  fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
-  ret->RGBflag = tigetflag("RGB") == 1;
-  if((ret->colors = tigetnum("colors")) <= 0){
-    fprintf(stderr, "This terminal doesn't appear to support colors\n");
+  if(interrogate_terminfo(ret, opts)){
     goto err;
-  }else if(ret->RGBflag && (unsigned)ret->colors < (1u << 23u)){
-    fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
-            ret->colors);
-  }else{
-    printf("Colors: %d (%s)\n", ret->colors,
-           ret->RGBflag ? "direct" : "palette");
   }
-  const char** cap;
-  for(cap = required_caps ; *cap ; ++cap){
-    if(term_verify_seq(NULL, *cap)){
-      fprintf(stderr, "Capability not defined for terminal: %s\n", *cap);
-      goto err;
-    }
-  }
-  // Not all terminals support setting the fore/background independently
-  term_verify_seq(&ret->setaf, "setaf");
-  term_verify_seq(&ret->setab, "setab");
-  // Neither of these is supported on e.g. the "linux" virtual console.
-  if(!opts->inhibit_alternate_screen){
-    term_verify_seq(&ret->smcup, "smcup");
-    term_verify_seq(&ret->rmcup, "rmcup");
-  }else{
-    ret->smcup = ret->rmcup = NULL;
-  }
-  ret->top = ret->stdscr = NULL;
   if(alloc_stdscr(ret) == NULL){
     goto err;
   }
@@ -483,7 +530,7 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
 }
 
 static void
-advance_cursor(struct ncplane* n){
+advance_cursor(ncplane* n){
   if(++n->x == n->lenx){
     n->x = 0;
     if(++n->y == n->leny){
@@ -492,7 +539,7 @@ advance_cursor(struct ncplane* n){
   }
 }
 
-int ncplane_putwc(struct ncplane* n, const cell* c){
+int ncplane_putwc(ncplane* n, const cell* c){
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   memcpy(targ, c, sizeof(*c));
   advance_cursor(n);
@@ -516,7 +563,7 @@ int load_cell(cell* c, const wchar_t* wstr){
   return copied;
 }
 
-int ncplane_putwstr(struct ncplane* n, const wchar_t* wstr){
+int ncplane_putwstr(ncplane* n, const wchar_t* wstr){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
   cell c;
@@ -532,4 +579,16 @@ int ncplane_putwstr(struct ncplane* n, const wchar_t* wstr){
     ++ret;
   }
   return ret;
+}
+
+unsigned notcurses_supported_styles(const notcurses* nc){
+  unsigned styles = 0;
+  styles |= nc->standout ? WA_STANDOUT : 0;
+  styles |= nc->uline ? WA_UNDERLINE : 0;
+  styles |= nc->reverse ? WA_REVERSE : 0;
+  styles |= nc->blink ? WA_BLINK : 0;
+  styles |= nc->dim ? WA_DIM : 0;
+  styles |= nc->bold ? WA_BOLD : 0;
+  styles |= nc->italics ? WA_ITALIC : 0;
+  return styles;
 }
