@@ -111,3 +111,13 @@ TEST_F(NcplaneTest, EmitWchar) {
   EXPECT_EQ(y, 0);
   EXPECT_EQ(x, 1);
 }
+
+// Verify we can emit a wide string, and it advances the cursor
+TEST_F(NcplaneTest, EmitWstr) {
+  const wchar_t wstr[] = L"Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
+  EXPECT_EQ(wcslen(wstr), ncplane_putwstr(n_, wstr));
+  int x, y;
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_EQ(y, 0);
+  EXPECT_EQ(x, wcswidth(wstr, wcslen(wstr)));
+}
