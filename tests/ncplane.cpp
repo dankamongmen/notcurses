@@ -97,12 +97,15 @@ TEST_F(NcplaneTest, RejectBadRGB) {
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 255, 256, 255));
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 255, 255, 256));
   EXPECT_NE(0, ncplane_fg_rgb8(n_, 256, 256, 256));
+  EXPECT_EQ(0, ncplane_fg_rgb8(n_, 255, 255, 255));
 }
 
 // Verify we can emit a wide character, and it advances the cursor
 TEST_F(NcplaneTest, EmitWchar) {
   wchar_t cchar[] = L"✔";
-  EXPECT_EQ(0, ncplane_putwc(n_, cchar));
+  cell c;
+  load_cell(&c, cchar);
+  EXPECT_EQ(0, ncplane_putwc(n_, &c));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(y, 0);

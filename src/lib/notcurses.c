@@ -1,4 +1,5 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <time.h>
 #include <term.h>
 #include <errno.h>
 #include <stdio.h>
@@ -8,34 +9,6 @@
 #include <sys/ioctl.h>
 #include "notcurses.h"
 #include "version.h"
-
-// A cell represents a single character cell in the display. At any cell, we
-// can have a short array of wchar_t (L'\0'-terminated; we need support an
-// array due to the possibility of combining characters), a foreground color,
-// a background color, and an attribute set. The rules on the wchar_t array are
-// the same as those for an ncurses 6.1 cchar_t:
-//
-//  * At most one spacing character, which must be the first if present.
-//  * Up to CCHARW_MAX-1 nonspacing characters follow. Extra spacing characters
-//    are ignored. A nonspacing character is one for which wcwidth() returns
-//    zero, and is not the wide NUL (L'\0').
-//  * A single control character can be present, with no other characters (save
-//    an immediate wide NUL (L'\0').
-//  * If there are fewer than CCHARW_MAX wide characters, they must be
-//    terminated with a wide NUL (L'\0').
-//
-// Multi-column characters can only have a single attribute/color.
-// https://pubs.opengroup.org/onlinepubs/007908799/xcurses/intov.html
-//
-// Each cell occupies 32 bytes (256 bits). The surface is thus ~4MB for a
-// (pretty large) 500x200 terminal. At 80x43, it's less than 200KB.
-typedef struct cell {
-  wchar_t cchar[CCHARW_MAX + 1]; // 6 * 4b == 24b
-  // The attrword covers classic NCURSES attributes (16 bits), plus foreground
-  // and background color, stored as 3x8bits of RGB. At render time, these
-  // 24-bit values are quantized down to terminal capabilities, if necessary.
-  uint64_t attrs;
-} cell;
 
 // Some capabilities are so fundamental that we don't attempt to run without
 // them. Essentially, we require a two-dimensional, random-access terminal.
@@ -71,6 +44,7 @@ typedef struct ncplane {
 
 typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty (takes stdin)
+  timer_t timer;  // CLOCK_MONOTONIC timer for benchmarking
   int colors;     // number of colors usable for this screen
   // We verify that some capabilities exist (see required_caps). Those needn't
   // be checked before further use; just use tiparm() directly. These might be
@@ -268,10 +242,16 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(ret == NULL){
     return ret;
   }
+  if(timer_create(CLOCK_MONOTONIC, NULL, &ret->timer)){
+    fprintf(stderr, "Error initializing monotonic clock (%s)\n", strerror(errno));
+    free(ret);
+    return NULL;
+  }
   ret->ttyfd = opts->outfd;
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
     fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
             ret->ttyfd, strerror(errno));
+    timer_delete(ret->timer);
     free(ret);
     return NULL;
   }
@@ -287,6 +267,8 @@ notcurses* notcurses_init(const notcurses_options* opts){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
+  char* longname_term = longname();
+  fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
   ret->RGBflag = tigetflag("RGB") == 1;
   if((ret->colors = tigetnum("colors")) <= 0){
     fprintf(stderr, "This terminal doesn't appear to support colors\n");
@@ -331,6 +313,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
 
 err:
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
+  timer_delete(ret->timer);
   free(ret);
   return NULL;
 }
@@ -362,26 +345,6 @@ erpchar(int c){
     return c;
   }
   return EOF;
-}
-
-#define CELL_RMASK 0x0000ff0000000000ull
-#define CELL_GMASK 0x000000ff00000000ull
-#define CELL_BMASK 0x00000000ff000000ull
-#define CELL_RGBMASK (CELL_RMASK | CELL_GMASK | CELL_BMASK)
-
-static void
-cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
-  uint64_t rgb = (r & 0xffull) << 40u;
-  rgb += (g & 0xffull) << 32u;
-  rgb += (b & 0xffull) << 24u;
-  c->attrs = (c->attrs & ~CELL_RGBMASK) | rgb;
-}
-
-static void
-cell_get_fb(const cell* c, unsigned* r, unsigned* g, unsigned* b){
-  *r = (c->attrs & CELL_RMASK) >> 40u;
-  *g = (c->attrs & CELL_GMASK) >> 32;
-  *b = (c->attrs & CELL_BMASK) >> 24u;
 }
 
 int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
@@ -451,12 +414,13 @@ term_movyx(int y, int x){
 }
 
 // Write the cchar (one cell's worth of wchar_t's) to the physical terminal
+// FIXME probably want to use a wmemstream
 static int
 term_putw(const notcurses* nc, const cell* c){
   ssize_t w;
-  size_t len = wcslen(c->cchar);
+  size_t len = wcsnlen(c->cchar, sizeof(c->cchar) / sizeof(*c->cchar));
   if(len == 0){
-    if((w = write(nc->ttyfd, " ", 1)) < 0 || (size_t)w != 1){
+    if((w = write(nc->ttyfd, " ", 1)) < 0 || (size_t)w != 1){ // FIXME
       return -1;
     }
     return 0;
@@ -518,15 +482,6 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   }
 }
 
-static inline bool
-validate_wchar_cell(const cell* c, const wchar_t* wcs){
-  if(wcslen(wcs) >= sizeof(c->cchar) / sizeof(*c->cchar)){
-    return false;
-  }
-  // FIXME check other crap
-  return true;
-}
-
 static void
 advance_cursor(struct ncplane* n){
   if(++n->x == n->lenx){
@@ -537,12 +492,44 @@ advance_cursor(struct ncplane* n){
   }
 }
 
-int ncplane_putwc(struct ncplane* n, const wchar_t* wcs){
-  cell* c = &n->fb[fbcellidx(n, n->y, n->x)];
-  if(!validate_wchar_cell(c, wcs)){
-    return -1;
-  }
-  memcpy(c->cchar, wcs, wcslen(wcs) * sizeof(*wcs));
+int ncplane_putwc(struct ncplane* n, const cell* c){
+  cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
+  memcpy(targ, c, sizeof(*c));
   advance_cursor(n);
   return 0;
+}
+
+int load_cell(cell* c, const wchar_t* wstr){
+  int copied = 0;
+  do{
+    if(copied == sizeof(c->cchar) / sizeof(*c->cchar)){
+      if(!wcwidth(*wstr)){ // next one *must* be a spacing char
+        return -1; // filled up the buffer
+      }
+      break; // no terminator on cells which fill the array [shrug]
+    }
+    if(copied && *wstr != L'\0' && wcwidth(*wstr)){
+      break; // only nonspacing (zero-width) chars after first; throw it back
+    }
+    c->cchar[copied++] = *wstr;
+  }while(*wstr++ != L'\0'); // did we just copy L'\0'? if so, we're always done
+  return copied;
+}
+
+int ncplane_putwstr(struct ncplane* n, const wchar_t* wstr){
+  int ret = 0;
+  // FIXME speed up this blissfully naive solution
+  cell c;
+  while(*wstr != L'\0'){
+    int wcs = load_cell(&c, wstr);
+    if(wcs <= 0){
+      return -ret;
+    }
+    wstr += wcs;
+    if(ncplane_putwc(n, &c)){
+      return -ret;
+    }
+    ++ret;
+  }
+  return ret;
 }

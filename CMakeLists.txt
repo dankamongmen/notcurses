@@ -12,6 +12,7 @@ include(GNUInstallDirs)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
+find_library(LIBRT rt)
 
 file(GLOB LIBSRCS CONFIGURE_DEPENDS src/lib/*.c)
 add_library(notcurses SHARED ${LIBSRCS})
@@ -22,8 +23,9 @@ target_include_directories(notcurses
     "${TERMINFO_INCLUDE_DIR}"
 )
 target_link_libraries(notcurses
-  INTERFACE
-  "${TERMINFO_LIBRARIES}"
+  PRIVATE
+    "${TERMINFO_LIBRARIES}"
+    "${LIBRT}"
 )
 set_target_properties(notcurses PROPERTIES
   PUBLIC_HEADER "include/notcurses.h"
