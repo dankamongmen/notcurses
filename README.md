@@ -4,9 +4,9 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
-    emulators, supporting vivid colors and wide characters to the
-    maximum degree possible. Many tasks delegated to Curses can be
-    achieved using notcurses (and vice versa).
+    emulators, supporting vivid colors and Unicode to the maximum degree
+    possible. Many tasks delegated to Curses can be achieved using notcurses
+    (and vice versa).
 
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
     replacement for NCURSES on existing systems, nor a widely-ported and -tested
@@ -38,9 +38,8 @@ Why use this non-standard library?
 
 * A svelter design than that codified in X/Open. All exported identifiers
   are prefixed to avoid namespace collisions. Far fewer identifiers are
-  exported overall. All APIs natively suport wide characters, and the `cell`
-  API is based around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/)
-  concept.
+  exported overall. All APIs natively suport UTF-8, and the `cell` API is based
+  around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
 
 * Visual features not directly available via NCURSES, including images,
   fonts, video, high-contrast text, and transparent regions. All APIs
@@ -130,7 +129,7 @@ as `ncplane`s. An `ncplane` can be larger than the physical screen, or smaller,
 or the same size; it can be entirely contained within the physical screen, or
 overlap in part, or lie wholly beyond the boundaries, never to be rendered.
 Each `ncplane` has a current writing state (cursor position, foreground and
-background color, etc.), a backing array of wide characters, and a z-index. If
+background color, etc.), a backing array of UTF-8 EGCs, and a z-index. If
 opaque, a cell on a higher `ncplane` completely obstructs a corresponding cell
 from a lower `ncplane` from being seen. An `ncplane` corresponds loosely to an
 [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
@@ -166,7 +165,7 @@ some design decisions might surprise NCURSES programmers:
   mutate different ncplanes in different threads.
 * NCURSES has thread-ignorant and thread-semi-safe versions, trace-enabled and
   traceless versions, and versions with and without support for wide characters.
-  notcurses is one library: no tracing, wide characters, thread safety.
+  notcurses is one library: no tracing, UTF-8, thread safety.
 
 ### Features missing relative to NCURSES
 
