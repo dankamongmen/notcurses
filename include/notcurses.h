@@ -113,6 +113,11 @@ struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
 // the standard plane.
 int ncplane_destroy(struct ncplane* n);
 
+// Retrieve the topmost cell at this location on the screen, returning it in
+// 'c'. If there is more than a byte of gcluster, it will be returned as a heap
+// allocation in '*gclust', and '*c' will be 0x80.
+void notcurses_getc(const struct notcurses* n, cell* c, char** gclust);
+
 // Manipulate the opaque user pointer associated with this plane.
 void ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);
@@ -156,10 +161,10 @@ void ncplane_move_bottom(struct ncplane* n);
 // will only be used, if 'c->gcluster' has a value >= 0x80.
 int ncplane_putc(struct ncplane* n, const cell* c, const char* gclust);
 
-// Retrieve the cell under the cursor, returning it in 'c'. If there is more
-// than a byte of gcluster, it will be returned as a heap allocation in
-// '*gclust', and '*c' will be 0x80.
-void ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
+// Retrieve the cell under this plane's cursor, returning it in 'c'. If there
+// is more than a byte of gcluster, it will be returned as a heap allocation in
+// '*gclust', and '*c' will be 0x80. Returns -1 on error, 0 on success.
+int ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
 
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition

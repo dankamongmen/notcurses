@@ -627,6 +627,19 @@ int ncplane_putc(ncplane* n, const cell* c, const char* gclust){
   return ret;
 }
 
+int ncplane_getc(const ncplane* n, cell* c, char** gclust){
+  const cell* src = &n->fb[fbcellidx(n, n->y, n->x)];
+  memcpy(c, src, sizeof(*src));
+  *gclust = NULL;
+  if(!simple_cell_p(src)){
+    *gclust = strdup(extended_gcluster(n, src));
+    if(*gclust == NULL){
+      return -1;
+    }
+  }
+  return 0;
+}
+
 int cell_load(ncplane* n, cell* c, const char* gcluster){
   if(simple_gcluster_p(gcluster)){
     c->gcluster = *gcluster;
