@@ -133,6 +133,27 @@ TEST_F(NcplaneTest, HorizontalLines) {
   for(int yidx = 0 ; yidx < y ; ++yidx){
     EXPECT_EQ(0, ncplane_cursor_move_yx(n_, yidx, 1));
     EXPECT_EQ(x - 2, ncplane_hline(n_, &c, x - 2));
+    int posx, posy;
+    ncplane_cursor_yx(n_, &posy, &posx);
+    EXPECT_EQ(yidx, posy);
+    EXPECT_EQ(x - 1, posx);
+  }
+}
+
+TEST_F(NcplaneTest, VerticalLines) {
+  int x, y;
+  ncplane_dimyx(n_, &y, &x);
+  ASSERT_LT(0, y);
+  ASSERT_LT(0, x);
+  cell c{};
+  cell_load(n_, &c, "-");
+  for(int xidx = 0 ; xidx < x - 1 ; ++xidx){
+    EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 1, xidx));
+    EXPECT_EQ(y - 2, ncplane_vline(n_, &c, y - 2));
+    int posx, posy;
+    ncplane_cursor_yx(n_, &posy, &posx);
+    EXPECT_EQ(y - 2, posy);
+    EXPECT_EQ(xidx, posx - 1);
   }
 }
 
