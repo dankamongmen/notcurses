@@ -169,8 +169,8 @@ TEST_F(NcplaneTest, ConcentricBoxen) {
   cell_load(n_, &ur, "╮");
   cell_load(n_, &ll, "╰");
   cell_load(n_, &lr, "╯");
-  cell_load(n_, &hl, "│");
-  cell_load(n_, &vl, "─");
+  cell_load(n_, &vl, "│");
+  cell_load(n_, &hl, "─");
   EXPECT_EQ(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
   cell_release(n_, &vl);
   cell_release(n_, &hl);

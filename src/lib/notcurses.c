@@ -797,7 +797,6 @@ int ncplane_vline(ncplane* n, const cell* c, int len){
   int ret, ypos, xpos;
   ncplane_cursor_yx(n, &ypos, &xpos);
   for(ret = 0 ; ret < len ; ++ret){
-fprintf(stderr, "MOCNG: %d %d\n", ypos + ret, xpos);
     if(ncplane_cursor_move_yx(n, ypos + ret, xpos)){
       return -1;
     }
@@ -805,7 +804,6 @@ fprintf(stderr, "MOCNG: %d %d\n", ypos + ret, xpos);
       break;
     }
   }
-fprintf(stderr, "RETURN %d of %d\n", ret, len);
   return ret;
 }
 
