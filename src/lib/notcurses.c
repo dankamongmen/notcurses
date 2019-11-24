@@ -560,11 +560,14 @@ term_putc(const notcurses* nc, const ncplane* n, const cell* c){
 
 static void
 advance_cursor(ncplane* n){
+  if(n->y == n->leny){
+    if(n->x == n->lenx){
+      return; // stuck!
+    }
+  }
   if(++n->x == n->lenx){
     n->x = 0;
-    if(++n->y == n->leny){
-      n->y = 0;
-    }
+    ++n->y;
   }
 }
 
@@ -621,6 +624,11 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   if(x){
     *x = n->x;
   }
+}
+
+static inline bool
+ncplane_cursor_stuck(const ncplane* n){
+  return (n->x == n->lenx && n->y == n->leny);
 }
 
 static int
@@ -704,6 +712,9 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
     ncplane_putc(n, &c);
     gcluster += wcs;
     ret += wcs;
+    if(ncplane_cursor_stuck(n)){
+      break;
+    }
   }
   return ret;
 }
