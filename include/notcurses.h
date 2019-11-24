@@ -172,8 +172,8 @@ int ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
 int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 
 // The ncplane equivalents of printf(3) and vprintf(3).
-int ncplane_printf(struct ncplane* n, const wchar_t* format, ...);
-int ncplane_vprintf(struct ncplane* n, const wchar_t* format, va_list ap);
+int ncplane_printf(struct ncplane* n, const char* format, ...);
+int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last
@@ -199,6 +199,16 @@ void ncplane_erase(struct ncplane* n);
 int ncplane_fg_rgb8(struct ncplane* n, int r, int g, int b);
 int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
+// Set the specified style bits for the ncplane 'n', whether they're actively
+// supported or not.
+void ncplane_set_style(struct ncplane* n, unsigned stylebits);
+
+// Add the specified styles to the ncplane's existing spec.
+void ncplane_enable_styles(struct ncplane* n, unsigned stylebits);
+
+// Remove the specified styles from the ncplane's existing spec.
+void ncplane_disable_styles(struct ncplane* n, unsigned stylebits);
+
 // Fine details about terminal
 
 // Returns a 16-bit bitmask in the LSBs of supported NCURSES-style attributes
@@ -214,6 +224,29 @@ int notcurses_palette_size(const struct notcurses* nc);
 
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+
+#define CELL_STYLE_MASK 0xffff0000ul
+#define CELL_ALPHA_MASK 0x0000fffful
+
+// Set the specified style bits for the cell 'c', whether they're actively
+// supported or not.
+static inline void
+cell_set_style(cell* c, unsigned stylebits){
+  c->attrword = (c->attrword & ~CELL_STYLE_MASK) |
+                ((stylebits & 0xffff) << 16u);
+}
+
+// Add the specified styles to the cell's existing spec.
+static inline void
+cell_enable_styles(cell* c, unsigned stylebits){
+  c->attrword |= ((stylebits & 0xffff) << 16u);
+}
+
+// Remove the specified styles from the cell's existing spec.
+static inline void
+cell_disable_styles(cell* c, unsigned stylebits){
+  c->attrword &= ~((stylebits & 0xffff) << 16u);
+}
 
 static inline uint32_t
 cell_fg_rgb(uint64_t channel){

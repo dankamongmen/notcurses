@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <notcurses.h>
+#include "demo.h"
 
 static void
 usage(const char* exe, int status){
@@ -92,6 +93,9 @@ int main(int argc, char** argv){
     goto err;
   }
   sleep(1);
+  /*if(widecolor_demo(nc, ncp)){
+    goto err;
+  }*/
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }

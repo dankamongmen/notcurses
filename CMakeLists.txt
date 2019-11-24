@@ -42,7 +42,6 @@ target_compile_definitions(notcurses
     _DEFAULT_SOURCE _XOPEN_SOURCE=600
 )
 
-
 file(GLOB BINSRCS CONFIGURE_DEPENDS src/bin/*.c)
 add_executable(notcurses-demo ${BINSRCS})
 target_include_directories(notcurses-demo PRIVATE include)
@@ -57,7 +56,11 @@ target_compile_options(notcurses-demo PRIVATE
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 find_package(GTest 1.9 REQUIRED)
-target_include_directories(notcurses-tester PRIVATE include)
+target_include_directories(notcurses-tester
+  PRIVATE
+    include
+    src/lib
+)
 target_link_libraries(notcurses-tester
   GTest::GTest
   notcurses
