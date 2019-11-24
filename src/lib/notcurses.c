@@ -587,6 +587,9 @@ int notcurses_render(notcurses* nc){
       // FIXME z-culling
       const cell* c = &nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)];
       cell_get_fg(c, &r, &g, &b);
+      if(cell_fg_default_p(c)){
+        r = 255; g = 255; b = 255; // FIXME
+      }
       cell_get_bg(c, &br, &bg, &bb);
       if(r != pr || g != pg || b != pb || br != pbr || bg != pbg || bb != pbb ||
           (x == 0 && y == 0)){

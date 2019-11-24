@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <string.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -227,6 +228,13 @@ int notcurses_palette_size(const struct notcurses* nc);
 
 // Working with cells
 
+#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+
+static inline void
+cell_init(cell* c){
+  memset(c, 0, sizeof(*c));
+}
+
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
@@ -281,11 +289,15 @@ cell_rgb_blue(uint32_t rgb){
   return (rgb & 0xffull);
 }
 
+#define CELL_FGDEFAULT_MASK 0x4000000000000000ull
+#define CELL_BGDEFAULT_MASK 0x0000000040000000ull
+
 static inline void
 cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   uint64_t rgb = (r & 0xffull) << 48u;
   rgb |= (g & 0xffull) << 40u;
   rgb |= (b & 0xffull) << 32u;
+  rgb |= CELL_FGDEFAULT_MASK;
   *channels = (*channels & ~0x00ffffff00000000ull) | rgb;
 }
 
@@ -294,6 +306,7 @@ cell_rgb_set_bg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   uint64_t rgb = (r & 0xffull) << 16u;
   rgb |= (g & 0xffull) << 8u;
   rgb |= (b & 0xffull);
+  rgb |= CELL_BGDEFAULT_MASK;
   *channels = (*channels & ~0x0000000000ffffffull) | rgb;
 }
 
@@ -319,6 +332,16 @@ cell_get_bg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
   *r = cell_rgb_red(cell_bg_rgb(c->channels));
   *g = cell_rgb_green(cell_bg_rgb(c->channels));
   *b = cell_rgb_blue(cell_bg_rgb(c->channels));
+}
+
+static inline bool
+cell_fg_default_p(const cell* c){
+  return !(c->channels & CELL_FGDEFAULT_MASK);
+}
+
+static inline bool
+cell_bg_default_p(const cell* c){
+  return !(c->channels & CELL_BGDEFAULT_MASK);
 }
 
 #ifdef __cplusplus
