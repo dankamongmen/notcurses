@@ -216,14 +216,14 @@ int widecolor_demo(struct notcurses* nc, struct ncplane* n){
       do{ // we fill up the entire screen, however large
         for(s = strs ; *s ; ++s){
           cell wch;
+          memset(&wch, 0, sizeof(wch));
           cell_set_style(&wch, WA_NORMAL);
           cell_set_fg(&wch, cpair, cpair, cpair);
           cell_load(n, &wch, " ");
-          ncplane_putc(n, &wch, " ");
           size_t idx;
           for(idx = 0 ; idx < strlen(*s) ; ++idx){
             cell_load(n, &wch, &(*s)[idx]);
-            ncplane_putc(n, &wch, &(*s)[idx]);
+            ncplane_putc(n, &wch);
             ncplane_cursor_yx(n, &y, &x);
             if(y >= maxy && x >= maxx){
               break;
@@ -240,7 +240,6 @@ int widecolor_demo(struct notcurses* nc, struct ncplane* n){
       ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, i, sizeof(steps) / sizeof(*steps));
       ncplane_set_style(n, WA_NORMAL);
       ncplane_fg_rgb8(n, cpair, cpair, cpair);
-      ncplane_cursor_move_yx(n, 2, 2);
       ncplane_putstr(n, "wide chars, multiple colors, resize awareness …");
       if(notcurses_render(nc)){
         return -1;
