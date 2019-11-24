@@ -196,7 +196,7 @@ int widecolor_demo(struct notcurses* nc, struct ncplane* n){
   };
   const char** s;
   int count = notcurses_palette_size(nc);
-  int key;
+  //int key;
   const int steps[] = { 1, 16, count, count + 16, };
   const int starts[] = { 0, 48 * count, 48 * count, 48 * count, };
 
@@ -204,7 +204,7 @@ int widecolor_demo(struct notcurses* nc, struct ncplane* n){
   for(i = 0 ; i < sizeof(steps) / sizeof(*steps) ; ++i){
     const int start = starts[i];
     const int step = steps[i];
-    do{
+    //do{
       int y, x, maxy, maxx;
       ncplane_dimyx(n, &maxy, &maxx);
       --maxy;
@@ -228,20 +228,19 @@ int widecolor_demo(struct notcurses* nc, struct ncplane* n){
             if(y >= maxy && x >= maxx){
               break;
             }
-            if((cpair += step) >= COLOR_PAIRS){
+            if((cpair += step) >= 256){
               cpair = 1;
             }
           }
         }
       }while(y != maxy || x != maxx);
-      int pair = 0; // use default for summary in case something else fucks up
       ncplane_fg_rgb8(n, 255, 255, 255);
       ncplane_set_style(n, WA_BOLD);
       ncplane_cursor_move_yx(n, 2, 2);
       ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, i, sizeof(steps) / sizeof(*steps));
       ncplane_set_style(n, WA_NORMAL);
-      ncplane_fg_rgb8(n, cpair, cpair);
-      ncplane_putstr(n, L"wide chars, multiple colors, resize awareness ");//…");
+      ncplane_fg_rgb8(n, cpair, cpair, cpair);
+      ncplane_putstr(n, "wide chars, multiple colors, resize awareness ");//…");
       /*if(i){ FIXME
         fadein(w, count, palette, FADE_MILLISECONDS);
       }
@@ -250,8 +249,8 @@ int widecolor_demo(struct notcurses* nc, struct ncplane* n){
       }while(key == ERR);
       */
       sleep(1); // FIXME
-      ncplane_cursor_move_yx(w);
-    }while(key == KEY_RESIZE);
+      ncplane_cursor_move_yx(n, 0, 0);
+    //}while(key == KEY_RESIZE);
   }
   return 0;
 }
