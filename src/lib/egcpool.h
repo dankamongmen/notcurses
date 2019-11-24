@@ -27,7 +27,7 @@ egcpool_init(egcpool* p){
   memset(p, 0, sizeof(*p));
 }
 
-int egcpool_grow(egcpool* pool, size_t len, bool force);
+int egcpool_grow(egcpool* pool, size_t len);
 
 // FIXME needs to loop on wcwidth() == 0
 static inline size_t
@@ -38,6 +38,20 @@ utf8_gce_len(const char* gcluster){
     return 0; // will cascade into error in egcpool_stash()
   }
   return r;
+}
+
+// if we're inserting a EGC of |len| bytes, ought we proactively realloc?
+static inline bool
+egcpool_alloc_justified(const egcpool* pool, size_t len){
+  const size_t poolfree = pool->poolsize - pool->poolused;
+  // proactively get more space if we have less than 10% free. this doesn't
+  // guarantee that we'll have enough space to insert the string -- we could
+  // theoretically have every 10th byte free, and be unable to write even a
+  // two-byte egc -- so we might have to allocate after an expensive search :/.
+  if(poolfree >= len && poolfree * 10 > pool->poolsize){
+    return false;
+  }
+  return true;
 }
 
 // stash away the provided UTF8, NUL-terminated grapheme cluster. the cluster
@@ -55,9 +69,20 @@ egcpool_stash(egcpool* pool, const char* egc, size_t* ulen){
   // to have too little space. once we've done a search, we do force the grow.
   // we should thus never have more than two iterations of this loop.
   bool searched = false;
+  // we might have to realloc our underlying pool. it is possible that this EGC
+  // is actually *in* that pool, in which case our pointer will be invalidated.
+  // to be safe, duplicate prior to a realloc, and free along all paths.
+  char* duplicated = NULL;
   do{
-    if(egcpool_grow(pool, len, false)){
-      return -1;
+    if(egcpool_alloc_justified(pool, len) || searched){
+      if(!duplicated){
+        duplicated = strdup(egc);
+      }
+      if(egcpool_grow(pool, len)){
+        free(duplicated);
+        return -1;
+      }
+      egc = duplicated;
     }
     // we now look for a place to lay out this egc. we need |len| zeroes in a
     // row. starting at pool->poolwrite, look for such a range of unused
@@ -95,12 +120,14 @@ egcpool_stash(egcpool* pool, const char* egc, size_t* ulen){
             pool->poolwrite = len - fchunk;
           }
           pool->poolused += len;
+          free(duplicated);
           return curpos;
         }
         curpos += len - need; // do we always hit pool->poolwrite properly?
       }
     }while(curpos != pool->poolwrite); 
   }while( (searched = !searched) );
+  free(duplicated);
   return -1; // should never get here
 }
 
