@@ -265,7 +265,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   nc->RGBflag = tigetflag("RGB") == 1;
   if((nc->colors = tigetnum("colors")) <= 0){
     fprintf(stderr, "This terminal doesn't appear to support colors\n");
-    return -1;
+    nc->colors = 1;
   }else if(nc->RGBflag && (unsigned)nc->colors < (1u << 23u)){
     fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
             nc->colors);
@@ -630,14 +630,12 @@ int ncplane_putc(ncplane* n, const cell* c, const char* gclust){
 int cell_load(ncplane* n, cell* c, const char* gcluster){
   if(simple_gcluster_p(gcluster)){
     c->gcluster = *gcluster;
-fprintf(stderr, "SIMPLE! %c %d\n", c->gcluster, !!c->gcluster);
     return !!c->gcluster;
   }
   const char* end = gcluster + 1;
   while(*(const unsigned char*)end >= 0x80){ // FIXME broken broken broken
     ++end;
   }
-fprintf(stderr, "END: %p G: %p DIFF: %zu %s\n", end, gcluster, end - gcluster, gcluster);
   // FIXME enlarge pool on demand
   memcpy(n->pool + n->poolwrite, gcluster, end - gcluster);
   c->gcluster = n->poolwrite + 0x80;
@@ -657,7 +655,6 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
   cell_set_bg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
   int wcs = 0;
   while(*gcluster){
-fprintf(stderr, "wcs: %d gcluster: %s ret: %d\n", wcs, gcluster, ret);
     wcs = cell_load(n, &c, gcluster);
     if(wcs < 0){
       return -ret;
@@ -667,17 +664,14 @@ fprintf(stderr, "wcs: %d gcluster: %s ret: %d\n", wcs, gcluster, ret);
     }
     wcs = ncplane_putc(n, &c, gcluster);
     if(wcs < 0){
-fprintf(stderr, "wcsnew: %d\n", wcs);
       return -ret;
     }
     if(wcs == 0){
       break;
     }
-fprintf(stderr, "wcsnew: %d\n", wcs);
     gcluster += wcs;
     ret += wcs;
   }
-fprintf(stderr, "RETURNING %d\n", ret);
   return ret;
 }
 
@@ -691,4 +685,8 @@ unsigned notcurses_supported_styles(const notcurses* nc){
   styles |= nc->bold ? WA_BOLD : 0;
   styles |= nc->italics ? WA_ITALIC : 0;
   return styles;
+}
+
+int notcurses_palette_size(const notcurses* nc){
+  return nc->colors;
 }

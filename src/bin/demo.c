@@ -25,6 +25,7 @@ int main(void){
     fprintf(stderr, "Couldn't get standard plane\n");
     goto err;
   }
+  sleep(1);
   int x, y, rows, cols;
   ncplane_dimyx(ncp, &rows, &cols);
   cell c;

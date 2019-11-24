@@ -204,8 +204,8 @@ int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
 // if the terminal can support it together with color.
 unsigned notcurses_supported_styles(const struct notcurses* nc);
 
-// Returns the number of colors supported by the palette, or 0 if there is no
-// palette (DirectColor or no colors).
+// Returns the number of colors supported by the palette, or 1 if there is no
+// color support.
 int notcurses_palette_size(const struct notcurses* nc);
 
 // Working with cells
