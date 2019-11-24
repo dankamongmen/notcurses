@@ -62,11 +62,11 @@ int main(int argc, char** argv){
   const char* cstr = "✓";
   cell_load(ncp, &c, cstr);
   cell_set_fg(&c, 200, 0, 200);
-  for(y = 1 ; y < rows - 1 ; ++y){
-    if(ncplane_cursor_move_yx(ncp, y, 1)){
+  for(y = 2 ; y < rows - 2 ; ++y){
+    if(ncplane_cursor_move_yx(ncp, y, 2)){
       goto err;
     }
-    for(x = 1 ; x < cols - 1 ; ++x){
+    for(x = 2 ; x < cols - 2 ; ++x){
       if(ncplane_putc(ncp, &c, cstr) != (int)strlen(cstr)){
         goto err;
       }
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
   }
   sleep(1);
   const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
-  if(ncplane_cursor_move_yx(ncp, y / 2, (x - strlen(str)) / 2)){
+  if(ncplane_cursor_move_yx(ncp, y / 2, (x - strlen(str) + 4) / 2)){
     goto err;
   }
   if(ncplane_fg_rgb8(ncp, 176, 121, 176)){
@@ -93,9 +93,9 @@ int main(int argc, char** argv){
     goto err;
   }
   sleep(1);
-  /*if(widecolor_demo(nc, ncp)){
+  if(widecolor_demo(nc, ncp)){
     goto err;
-  }*/
+  }
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
