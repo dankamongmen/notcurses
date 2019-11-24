@@ -58,9 +58,6 @@ typedef struct cell {
   uint64_t channels;          // + 8b == 16b
 } cell;
 
-// FIXME we'll need to expose this definition for ncplane_getwc()
-struct cell;      // the contents of a single cell on a single plane
-
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -178,12 +175,12 @@ int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 int ncplane_printf(struct ncplane* n, const wchar_t* format, ...);
 int ncplane_vprintf(struct ncplane* n, const wchar_t* format, va_list ap);
 
-// Draw horizontal or vertical lines using the specified cell of wchar_t's,
-// starting at the current cursor position. The cursor will end at the cell
-// following the last cell output (even, perhaps counter-intuitively, when
-// drawing vertical lines), just as if ncplane_putc() was called at that spot.
-// Returns the number of cells drawn on success. On error, returns the negative
-// number of cells drawn.
+// Draw horizontal or vertical lines using the specified cell, starting at the
+// current cursor position. The cursor will end at the cell following the last
+// cell output (even, perhaps counter-intuitively, when drawing vertical
+// lines), just as if ncplane_putc() was called at that spot. Return the
+// number of cells drawn on success. On error, return the negative number of
+// cells drawn.
 int ncplane_hline(struct ncplane* n, int xoff, const cell* c,
                   const char* gclust, int len);
 int ncplane_vline(struct ncplane* n, int yoff, const cell* c,
