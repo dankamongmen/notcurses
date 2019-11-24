@@ -781,15 +781,24 @@ int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
 }
 
 int ncplane_hline(ncplane* n, const cell* c, int len){
+  int ret;
+  for(ret = 0 ; ret < len ; ++ret){
+    if(ncplane_putc(n, c) <= 0){
+      break;
+    }
+  }
+  return ret;
 }
 
 int ncplane_vline(ncplane* n, const cell* c, int len){
+  return 0;
 }
 
 
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hline,
                 const cell* vline, int ylen, int xlen){
+  return 0;
 }
 
 void ncplane_erase(ncplane* n){
