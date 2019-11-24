@@ -123,6 +123,19 @@ TEST_F(NcplaneTest, EmitStr) {
   EXPECT_NE(1, x); // FIXME tighten in on this
 }
 
+TEST_F(NcplaneTest, HorizontalLines) {
+  int x, y;
+  ncplane_dimyx(n_, &y, &x);
+  ASSERT_LT(0, y);
+  ASSERT_LT(0, x);
+  cell c{};
+  cell_load(n_, &c, "-");
+  for(int yidx = 0 ; yidx < y ; ++yidx){
+    EXPECT_EQ(0, ncplane_cursor_move_yx(n_, yidx, 1));
+    EXPECT_EQ(x - 2, ncplane_hline(n_, &c, x - 2));
+  }
+}
+
 TEST_F(NcplaneTest, EraseScreen) {
   ncplane_erase(n_);
 }
