@@ -83,6 +83,7 @@ int notcurses_stop(struct notcurses* nc);
 // Make the physical screen match the virtual screen. Changes made to the
 // virtual screen (i.e. most other calls) will not be visible until after a
 // successful call to notcurses_render().
+int notcurses_check(struct notcurses* nc);
 int notcurses_render(struct notcurses* nc);
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
@@ -152,11 +153,10 @@ void ncplane_move_top(struct ncplane* n);
 void ncplane_move_bottom(struct ncplane* n);
 
 // Replace the cell underneath the cursor with the provided cell 'c', and
-// advance the cursor by the width of the cell *unless we are at the end of
-// the plane*. On success, returns the number of columns the cursor was
-// advanced. On failure, -1 is returned. 'gclust' only needs be specified, and
-// will only be used, if 'c->gcluster' has a value >= 0x80.
-int ncplane_putc(struct ncplane* n, const cell* c, const char* gclust);
+// advance the cursor by the width of the cell (but not past the end of the
+// plane). On success, returns the number of columns the cursor was advanced.
+// On failure, -1 is returned.
+int ncplane_putc(struct ncplane* n, const cell* c);
 
 // Retrieve the cell under this plane's cursor, returning it in 'c'. If there
 // is more than a byte of gcluster, it will be returned as a heap allocation in
@@ -225,6 +225,9 @@ int notcurses_palette_size(const struct notcurses* nc);
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
+// Release resources held by the cell 'c'.
+void cell_release(struct ncplane* n, cell* c);
+
 #define CELL_STYLE_MASK 0xffff0000ul
 #define CELL_ALPHA_MASK 0x0000fffful
 
@@ -255,7 +258,7 @@ cell_fg_rgb(uint64_t channel){
 
 static inline uint32_t
 cell_bg_rgb(uint64_t channel){
-  return (channel & 0xffffffull);
+  return (channel & 0x0000000000ffffffull);
 }
 
 static inline unsigned
