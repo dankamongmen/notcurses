@@ -172,8 +172,8 @@ int ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
 int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 
 // The ncplane equivalents of printf(3) and vprintf(3).
-int ncplane_printf(struct ncplane* n, const wchar_t* format, ...);
-int ncplane_vprintf(struct ncplane* n, const wchar_t* format, va_list ap);
+int ncplane_printf(struct ncplane* n, const char* format, ...);
+int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last
