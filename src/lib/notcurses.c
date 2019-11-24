@@ -40,10 +40,11 @@ typedef struct ncplane {
   int lenx, leny;  // size of the plane, [0..len{x,y}) is addressable
   struct ncplane* z; // plane below us
   struct notcurses* nc; // our parent nc, kinda lame waste of memory FIXME
-  uint64_t channels; // colors when not provided an active style
   char* pool;      // storage pool for multibyte grapheme clusters
   size_t poolsize; // bytes allocated for gcluster pool
   size_t poolwrite;// where next to write into the pool
+  uint64_t channels;    // works the same way as cells
+  uint32_t attrword;    // same deal as in a cell
 } ncplane;
 
 typedef struct notcurses {
@@ -200,6 +201,8 @@ alloc_stdscr(notcurses* nc){
   if(init_gcluster_pool(p)){
     goto err;
   }
+  p->attrword = 0;
+  p->channels = 0;
   ncplane** oldscr;
   ncplane* preserve;
   // if we ever make this a doubly-linked list, turn this into o(1)
@@ -702,4 +705,17 @@ unsigned notcurses_supported_styles(const notcurses* nc){
 
 int notcurses_palette_size(const notcurses* nc){
   return nc->colors;
+}
+
+void ncplane_enable_styles(ncplane* n, unsigned stylebits){
+  n->attrword |= ((stylebits & 0xffff) << 16u);
+}
+
+void ncplane_disable_styles(ncplane* n, unsigned stylebits){
+  n->attrword &= ~((stylebits & 0xffff) << 16u);
+}
+
+void ncplane_set_style(ncplane* n, unsigned stylebits){
+  n->attrword = (n->attrword & ~CELL_STYLE_MASK) |
+                ((stylebits & 0xffff) << 16u);
 }
