@@ -650,6 +650,9 @@ cell_duplicate(ncplane* n, cell* targ, const cell* c){
 }
 
 int ncplane_putc(ncplane* n, const cell* c){
+  if(n->y == n->leny && n->x == n->lenx){
+    return -1;
+  }
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
   advance_cursor(n);
@@ -657,6 +660,9 @@ int ncplane_putc(ncplane* n, const cell* c){
 }
 
 int ncplane_getc(const ncplane* n, cell* c, char** gclust){
+  if(n->y == n->leny && n->x == n->lenx){
+    return -1;
+  }
   const cell* src = &n->fb[fbcellidx(n, n->y, n->x)];
   memcpy(c, src, sizeof(*src));
   *gclust = NULL;
