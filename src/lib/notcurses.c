@@ -42,6 +42,8 @@ typedef struct ncplane {
   struct notcurses* nc; // our parent nc, kinda lame waste of memory FIXME
   uint64_t channels; // colors when not provided an active style
   char* pool;      // storage pool for multibyte grapheme clusters
+  size_t poolsize; // bytes allocated for gcluster pool
+  size_t poolwrite;// where next to write into the pool
 } ncplane;
 
 typedef struct notcurses {
@@ -126,6 +128,7 @@ term_verify_seq(char** gseq, const char* name){
 static void
 free_plane(ncplane* p){
   if(p){
+    free(p->pool);
     free(p->fb);
     free(p);
   }
@@ -165,6 +168,15 @@ create_ncplane(notcurses* nc, int rows, int cols){
   return p;
 }
 
+static int
+init_gcluster_pool(ncplane* p){
+  // FIXME VERY rough proof of concept, do not merge!
+  p->poolsize = BUFSIZ * p->leny;
+  p->pool = malloc(p->poolsize);
+  p->poolwrite = 0;
+  return 0;
+}
+
 // Call this on initialization, or when the screen size changes. Takes a flat
 // array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
 // new size, and copies what can be copied from the old stdscr. Assumes that
@@ -185,7 +197,9 @@ alloc_stdscr(notcurses* nc){
   if((p = create_ncplane(nc, rows, cols)) == NULL){
     goto err;
   }
-  p->pool = NULL;
+  if(init_gcluster_pool(p)){
+    goto err;
+  }
   ncplane** oldscr;
   ncplane* preserve;
   // if we ever make this a doubly-linked list, turn this into o(1)
@@ -385,10 +399,6 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
-// FIXME don't go using STDOUT_FILENO here, we want nc->outfd!
-// only works with string literals!
-#define strout(x) write(STDOUT_FILENO, (x), sizeof(x))
-
 static int
 erpchar(int c){
   if(write(STDOUT_FILENO, &c, 1) == 1){
@@ -507,6 +517,7 @@ term_movyx(int y, int x){
 }
 
 // is it a single ASCII byte, wholly contained within the cell?
+// FIXME need check that next character is visible mainly
 static inline bool
 simple_gcluster_p(const char* gcluster){
   return *gcluster == '\0' || (*(unsigned char*)gcluster < 0x80 && gcluster[1] == '\0');
@@ -546,6 +557,16 @@ term_putc(const notcurses* nc, const ncplane* n, const cell* c){
     return -1;
   }
   return 0;
+}
+
+static void
+advance_cursor(ncplane* n){
+  if(++n->x == n->lenx){
+    n->x = 0;
+    if(++n->y == n->leny){
+      n->y = 0;
+    }
+  }
 }
 
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
@@ -598,31 +619,31 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   }
 }
 
-static void
-advance_cursor(ncplane* n){
-  if(++n->x == n->lenx){
-    n->x = 0;
-    if(++n->y == n->leny){
-      n->y = 0;
-    }
-  }
-}
-
 int ncplane_putc(ncplane* n, const cell* c, const char* gclust){
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   memcpy(targ, c, sizeof(*c));
-  cell_load(targ, gclust);
-  return 0;
+  int ret = cell_load(n, targ, gclust);
+  advance_cursor(n);
+  return ret;
 }
 
-int cell_load(cell* c, const char* gcluster){
+int cell_load(ncplane* n, cell* c, const char* gcluster){
   if(simple_gcluster_p(gcluster)){
     c->gcluster = *gcluster;
+fprintf(stderr, "SIMPLE! %c %d\n", c->gcluster, !!c->gcluster);
     return !!c->gcluster;
   }
-  // FIXME gotta copy gcluster into storage pool, up through terminator OR
-  // next spacing character...
-  return strlen(gcluster);
+  const char* end = gcluster + 1;
+  while(*(const unsigned char*)end >= 0x80){ // FIXME broken broken broken
+    ++end;
+  }
+fprintf(stderr, "END: %p G: %p DIFF: %zu %s\n", end, gcluster, end - gcluster, gcluster);
+  // FIXME enlarge pool on demand
+  memcpy(n->pool + n->poolwrite, gcluster, end - gcluster);
+  c->gcluster = n->poolwrite + 0x80;
+  n->poolwrite += end - gcluster;
+  n->pool[n->poolwrite++] = '\0';
+  return end - gcluster;
 }
 
 int ncplane_putstr(ncplane* n, const char* gcluster){
@@ -634,20 +655,29 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
   cell_set_fg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
   rgb = cell_bg_rgb(n->channels);
   cell_set_bg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
+  int wcs = 0;
   while(*gcluster){
-    int wcs = cell_load(&c, gcluster);
+fprintf(stderr, "wcs: %d gcluster: %s ret: %d\n", wcs, gcluster, ret);
+    wcs = cell_load(n, &c, gcluster);
     if(wcs < 0){
       return -ret;
     }
     if(wcs == 0){
       break;
     }
-    gcluster += wcs;
-    if(ncplane_putc(n, &c, extended_gcluster(n, &c))){
+    wcs = ncplane_putc(n, &c, gcluster);
+    if(wcs < 0){
+fprintf(stderr, "wcsnew: %d\n", wcs);
       return -ret;
     }
-    ++ret;
+    if(wcs == 0){
+      break;
+    }
+fprintf(stderr, "wcsnew: %d\n", wcs);
+    gcluster += wcs;
+    ret += wcs;
   }
+fprintf(stderr, "RETURNING %d\n", ret);
   return ret;
 }
 

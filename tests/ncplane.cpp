@@ -104,20 +104,21 @@ TEST_F(NcplaneTest, RejectBadRGB) {
 TEST_F(NcplaneTest, EmitWchar) {
   const char cchar[] = "✔";
   cell c;
-  cell_load(&c, cchar);
-  EXPECT_EQ(0, ncplane_putc(n_, &c, cchar));
+  cell_load(n_, &c, cchar);
+  EXPECT_EQ(strlen(cchar), ncplane_putc(n_, &c, cchar));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
-  EXPECT_EQ(y, 0);
-  EXPECT_EQ(x, 1);
+  EXPECT_EQ(0, y);
+  EXPECT_EQ(1, x);
 }
 
 // Verify we can emit a wide string, and it advances the cursor
 TEST_F(NcplaneTest, EmitStr) {
   const char s[] = "Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
-  EXPECT_EQ(strlen(s), ncplane_putstr(n_, s));
+  int wrote = ncplane_putstr(n_, s);
+  EXPECT_EQ(strlen(s), wrote);
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
-  EXPECT_EQ(y, 0);
-  // FIXME EXPECT_EQ(x, wcswidth(wstr, wcslen(wstr)));
+  EXPECT_EQ(0, y);
+  EXPECT_NE(1, x); // FIXME tighten in on this
 }

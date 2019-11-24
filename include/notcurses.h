@@ -211,7 +211,7 @@ int notcurses_palette_size(const struct notcurses* nc);
 // Working with cells
 
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
-int cell_load(cell* c, const char* gcluster);
+int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 static inline uint32_t
 cell_fg_rgb(uint64_t channel){

@@ -28,14 +28,15 @@ int main(void){
   int x, y, rows, cols;
   ncplane_dimyx(ncp, &rows, &cols);
   cell c;
-  cell_load(&c, /*L"💣*/"X");
+  const char* cstr = "✓";
+  cell_load(ncp, &c, cstr);
   cell_set_fg(&c, 200, 0, 200);
   for(y = 1 ; y < rows - 1 ; ++y){
     if(ncplane_cursor_move_yx(ncp, y, 1)){
       goto err;
     }
     for(x = 1 ; x < cols - 1 ; ++x){
-      if(ncplane_putc(ncp, &c, NULL)){
+      if(ncplane_putc(ncp, &c, cstr) != (int)strlen(cstr)){
         goto err;
       }
     }
@@ -44,7 +45,7 @@ int main(void){
     goto err;
   }
   sleep(1);
-  const char str[] = "Wovon man nicht sprechen kann, darüber muss man schweigen.";
+  const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
   if(ncplane_cursor_move_yx(ncp, y / 2, (x - strlen(str)) / 2)){
     goto err;
   }
