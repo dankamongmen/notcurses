@@ -2,20 +2,49 @@
 #include <string.h>
 #include <locale.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <stdlib.h>
 #include <notcurses.h>
 
+static void
+usage(const char* exe, int status){
+  FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
+  fprintf(out, "usage: %s [ -h | -k ]\n", exe);
+  fprintf(out, " h: this message\n");
+  fprintf(out, " k: keep screen; do not switch to alternate\n");
+  exit(status);
+}
+
+static int
+handle_opts(int argc, char** argv, notcurses_options* opts){
+  int c;
+  memset(opts, 0, sizeof(*opts));
+  opts->outfd = STDOUT_FILENO;
+  while((c = getopt(argc, argv, "hk")) != EOF){
+    switch(c){
+      case 'h':
+        usage(*argv, EXIT_SUCCESS);
+        break;
+      case 'k':
+        opts->inhibit_alternate_screen = true;
+        break;
+      default:
+        usage(*argv, EXIT_FAILURE);
+    }
+  }
+  return 0;
+}
+
 // just fucking around...for now
-int main(void){
+int main(int argc, char** argv){
   struct notcurses* nc;
-  notcurses_options nopts = {
-    .inhibit_alternate_screen = false,
-    .outfd = STDOUT_FILENO,
-    .termtype = NULL,
-  };
+  notcurses_options nopts;
   struct ncplane* ncp;
   if(!setlocale(LC_ALL, "")){
     fprintf(stderr, "Couldn't set locale based on user preferences\n");
+    return EXIT_FAILURE;
+  }
+  if(handle_opts(argc, argv, &nopts)){
     return EXIT_FAILURE;
   }
   if((nc = notcurses_init(&nopts)) == NULL){
