@@ -719,3 +719,16 @@ void ncplane_set_style(ncplane* n, unsigned stylebits){
   n->attrword = (n->attrword & ~CELL_STYLE_MASK) |
                 ((stylebits & 0xffff) << 16u);
 }
+
+int ncplane_printf(ncplane* n, const char* format, ...){
+  int ret;
+  va_list va;
+  va_start(va, format);
+  ret = ncplane_vprintf(n, format, va);
+  va_end(va);
+  return ret;
+}
+
+int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
+  return 0;
+}
