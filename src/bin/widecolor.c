@@ -240,7 +240,11 @@ int widecolor_demo(struct notcurses* nc, struct ncplane* n){
       ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, i, sizeof(steps) / sizeof(*steps));
       ncplane_set_style(n, WA_NORMAL);
       ncplane_fg_rgb8(n, cpair, cpair, cpair);
-      ncplane_putstr(n, "wide chars, multiple colors, resize awareness ");//…");
+      ncplane_cursor_move_yx(n, 2, 2);
+      ncplane_putstr(n, "wide chars, multiple colors, resize awareness …");
+      if(notcurses_render(nc)){
+        return -1;
+      }
       /*if(i){ FIXME
         fadein(w, count, palette, FADE_MILLISECONDS);
       }
