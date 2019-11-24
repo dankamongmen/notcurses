@@ -122,3 +122,7 @@ TEST_F(NcplaneTest, EmitStr) {
   EXPECT_EQ(0, y);
   EXPECT_NE(1, x); // FIXME tighten in on this
 }
+
+TEST_F(NcplaneTest, EraseScreen) {
+  ncplane_erase(n_);
+}

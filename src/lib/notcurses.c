@@ -779,3 +779,23 @@ int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
   free(buf);
   return ret;
 }
+
+int ncplane_hline(ncplane* n, const cell* c, int len){
+}
+
+int ncplane_vline(ncplane* n, const cell* c, int len){
+}
+
+
+int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
+                const cell* ll, const cell* lr, const cell* hline,
+                const cell* vline, int ylen, int xlen){
+}
+
+void ncplane_erase(ncplane* n){
+  // FIXME if we've been shrunk since creation, and haven't explicitly resized,
+  // what happens here...?
+  memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
+  egcpool_dump(&n->pool);
+  egcpool_init(&n->pool);
+}
