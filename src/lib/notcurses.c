@@ -508,10 +508,11 @@ term_movyx(int y, int x){
 }
 
 // is it a single ASCII byte, wholly contained within the cell?
-// FIXME need check that next character is visible mainly
 static inline bool
 simple_gcluster_p(const char* gcluster){
-  return *gcluster == '\0' || (*(unsigned char*)gcluster < 0x80 && gcluster[1] == '\0');
+  return *gcluster == '\0' ||
+         // FIXME need to ensure next character is not a nonspacer!
+         (*(unsigned char*)gcluster < 0x80);
 }
 
 static inline bool
@@ -547,7 +548,6 @@ term_putc(const notcurses* nc, const ncplane* n, const cell* c){
   if((w = write(nc->ttyfd, ext, len)) < 0 || (size_t)w != len){
     return -1;
   }
-fprintf(stderr, "WROTE %zu\n", len);
   return 0;
 }
 
@@ -638,16 +638,13 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
     c->gcluster = *gcluster;
     return !!c->gcluster;
   }
-  const char* end = gcluster + 1;
-  while(*(const unsigned char*)end >= 0x80){ // FIXME broken broken broken
-    ++end;
-  }
-  int eoffset = egcpool_stash(&n->pool, gcluster);
+  size_t ulen;
+  int eoffset = egcpool_stash(&n->pool, gcluster, &ulen);
   if(eoffset < 0){
     return -1;
   }
   c->gcluster = eoffset + 0x80;
-  return end - gcluster;
+  return ulen;
 }
 
 int ncplane_putstr(ncplane* n, const char* gcluster){

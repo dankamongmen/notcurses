@@ -29,15 +29,28 @@ egcpool_init(egcpool* p){
 
 int egcpool_grow(egcpool* pool, size_t len, bool force);
 
+// FIXME needs to loop on wcwidth() == 0
+static inline size_t
+utf8_gce_len(const char* gcluster){
+  wchar_t wc;
+  int r = mbtowc(&wc, gcluster, MB_CUR_MAX);
+  if(r <= 0){
+    return 0; // will cascade into error in egcpool_stash()
+  }
+  return r;
+}
+
 // stash away the provided UTF8, NUL-terminated grapheme cluster. the cluster
 // should not be less than 2 bytes (such a cluster should be directly stored in
 // the cell). returns -1 on error, and otherwise a non-negative 24-bit offset.
+// The number of bytes copied is stored to |*ulen|.
 static inline int
-egcpool_stash(egcpool* pool, const char* egc){
-  size_t len = strlen(egc) + 1; // count the NUL terminator
+egcpool_stash(egcpool* pool, const char* egc, size_t* ulen){
+  size_t len = utf8_gce_len(egc) + 1; // count the NUL terminator
   if(len <= 2){ // should never be empty, nor a single byte + NUL
     return -1;
   }
+  *ulen = len - 1;
   // the first time through, we don't force a grow unless we expect ourselves
   // to have too little space. once we've done a search, we do force the grow.
   // we should thus never have more than two iterations of this loop.
@@ -70,13 +83,15 @@ egcpool_stash(egcpool* pool, const char* egc){
         }
         if(need == 0){ // found a suitable space, copy it!
           if(pool->poolsize - len > curpos){ // one chunk
-            memcpy(pool->pool + curpos, egc, len);
+            memcpy(pool->pool + curpos, egc, len - 1);
             pool->poolwrite = curpos + len;
+            pool->pool[curpos + len - 1] = '\0';
           }else{ // two chunks
             // FIXME are clients prepared for split egcs? i doubt it...
             size_t fchunk = pool->poolsize - curpos - 1;
             memcpy(pool->pool + curpos, egc, fchunk);
-            memcpy(pool->pool, egc + fchunk, len - fchunk);
+            memcpy(pool->pool, egc + fchunk, len - fchunk - 1);
+            pool->pool[len - fchunk - 1] = '\0';
             pool->poolwrite = len - fchunk;
           }
           pool->poolused += len;
