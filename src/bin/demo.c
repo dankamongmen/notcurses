@@ -59,6 +59,7 @@ int main(int argc, char** argv){
   int x, y, rows, cols;
   ncplane_dimyx(ncp, &rows, &cols);
   cell c;
+  memset(&c, 0, sizeof(c));
   const char* cstr = "✓";
   cell_load(ncp, &c, cstr);
   cell_set_fg(&c, 200, 0, 200);
@@ -67,11 +68,12 @@ int main(int argc, char** argv){
       goto err;
     }
     for(x = 2 ; x < cols - 2 ; ++x){
-      if(ncplane_putc(ncp, &c, cstr) != (int)strlen(cstr)){
+      if(ncplane_putc(ncp, &c) != (int)strlen(cstr)){
         goto err;
       }
     }
   }
+  cell_release(ncp, &c);
   if(notcurses_render(nc)){
     goto err;
   }
