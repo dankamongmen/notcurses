@@ -763,8 +763,19 @@ int ncplane_printf(ncplane* n, const char* format, ...){
   return ret;
 }
 
+// i hate the big allocation and two copies here, but eh what you gonna do?
+// well, for one, we don't need the huge allocation FIXME
 int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
-  // FIXME
-vfprintf(stderr, format, ap);
-  return 0;
+  // FIXME technically insufficient to cover area due to EGCs, lol
+  const size_t size = n->leny * n->lenx + 1;
+  char* buf = malloc(size);
+  if(buf == NULL){
+    return -1;
+  }
+  int ret = vsnprintf(buf, size, format, ap);
+  if(ncplane_putstr(n, buf)){ // FIXME handle short writes also!
+    ret = -1;
+  }
+  free(buf);
+  return ret;
 }
