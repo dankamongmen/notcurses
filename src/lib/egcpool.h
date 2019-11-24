@@ -95,35 +95,31 @@ egcpool_stash(egcpool* pool, const char* egc, size_t* ulen){
       }
       if(pool->pool[curpos]){ // can't write if there's stuff here
         ++curpos;
+      }else if(pool->poolsize - curpos < len){ // can't wrap around
+        if(pool->poolwrite > curpos){
+          break;
+        }
+        curpos = 0; // can this skip pool->poolwrite?
       }else{ // promising! let's see if there's enough space
         size_t need = len;
         size_t trial = curpos;
         while(--need){
-          if(++trial == pool->poolsize){
-            trial = 0;
-          }
-          if(pool->pool[trial]){ // alas, not enough space here
+          if(pool->pool[++trial]){ // alas, not enough space here
             break;
           }
         }
         if(need == 0){ // found a suitable space, copy it!
-          if(pool->poolsize - len > curpos){ // one chunk
-            memcpy(pool->pool + curpos, egc, len - 1);
-            pool->poolwrite = curpos + len;
-            pool->pool[curpos + len - 1] = '\0';
-          }else{ // two chunks
-            // FIXME are clients prepared for split egcs? i doubt it...
-            size_t fchunk = pool->poolsize - curpos - 1;
-            memcpy(pool->pool + curpos, egc, fchunk);
-            memcpy(pool->pool, egc + fchunk, len - fchunk - 1);
-            pool->pool[len - fchunk - 1] = '\0';
-            pool->poolwrite = len - fchunk;
-          }
+          memcpy(pool->pool + curpos, egc, len - 1);
+          pool->poolwrite = curpos + len;
+          pool->pool[curpos + len - 1] = '\0';
           pool->poolused += len;
           free(duplicated);
           return curpos;
         }
-        curpos += len - need; // do we always hit pool->poolwrite properly?
+        if(pool->poolwrite > curpos && pool->poolwrite - (len - need) < curpos){
+          break;
+        }
+        curpos += len - need;
       }
     }while(curpos != pool->poolwrite); 
   }while( (searched = !searched) );
