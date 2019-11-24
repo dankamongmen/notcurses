@@ -25,7 +25,7 @@ struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 // contents include:
 //
 //  * A NUL terminator,
-//  * A single control character, followed by a NUL terminaotr,
+//  * A single control character, followed by a NUL terminator,
 //  * At most one spacing character, followed by zero or more nonspacing
 //    characters, followed by a NUL terminator.
 //
