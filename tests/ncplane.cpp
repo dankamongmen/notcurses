@@ -138,6 +138,7 @@ TEST_F(NcplaneTest, HorizontalLines) {
     EXPECT_EQ(yidx, posy);
     EXPECT_EQ(x - 1, posx);
   }
+  cell_release(n_, &c);
 }
 
 TEST_F(NcplaneTest, VerticalLines) {
@@ -155,6 +156,28 @@ TEST_F(NcplaneTest, VerticalLines) {
     EXPECT_EQ(y - 2, posy);
     EXPECT_EQ(xidx, posx - 1);
   }
+  cell_release(n_, &c);
+}
+
+TEST_F(NcplaneTest, ConcentricBoxen) {
+  int x, y;
+  ncplane_dimyx(n_, &y, &x);
+  ASSERT_LT(0, y);
+  ASSERT_LT(0, x);
+  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
+  cell_load(n_, &ul, "╭");
+  cell_load(n_, &ur, "╮");
+  cell_load(n_, &ll, "╰");
+  cell_load(n_, &lr, "╯");
+  cell_load(n_, &hl, "│");
+  cell_load(n_, &vl, "─");
+  EXPECT_EQ(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
+  cell_release(n_, &vl);
+  cell_release(n_, &hl);
+  cell_release(n_, &ul);
+  cell_release(n_, &ll);
+  cell_release(n_, &ur);
+  cell_release(n_, &lr);
 }
 
 TEST_F(NcplaneTest, EraseScreen) {

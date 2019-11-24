@@ -808,8 +808,51 @@ fprintf(stderr, "RETURN %d of %d\n", ret, len);
 
 
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
-                const cell* ll, const cell* lr, const cell* hline,
-                const cell* vline, int ylen, int xlen){
+                const cell* ll, const cell* lr, const cell* hl,
+                const cell* vl, int ylen, int xlen){
+  int yoff, xoff;
+  ncplane_cursor_yx(n, &yoff, &xoff);
+  if(xlen < 2 || ylen < 2){
+    return -1;
+  }
+  if(ncplane_putc(n, ul) < 0){
+    return -1;
+  }
+  if(xlen > 2){
+    if(ncplane_hline(n, hl, xlen - 2) < 0){
+      return -1;
+    }
+  }
+  if(ncplane_putc(n, ur) < 0){
+    return -1;
+  }
+  ++yoff;
+  while(yoff < ylen - 1){
+    if(ncplane_cursor_move_yx(n, yoff, xoff)){
+      return -1;
+    }
+    if(ncplane_putc(n, vl) < 0){
+      return -1;
+    }
+    if(ncplane_cursor_move_yx(n, yoff, xoff + xlen - 1)){
+      return -1;
+    }
+    if(ncplane_putc(n, vl) < 0){
+      return -1;
+    }
+    ++yoff;
+  }
+  if(ncplane_putc(n, ll) < 0){
+    return -1;
+  }
+  if(xlen > 2){
+    if(ncplane_hline(n, hl, xlen - 2) < 0){
+      return -1;
+    }
+  }
+  if(ncplane_putc(n, lr) < 0){
+    return -1;
+  }
   return 0;
 }
 
