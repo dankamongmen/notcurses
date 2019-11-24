@@ -181,10 +181,15 @@ int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 // lines), just as if ncplane_putc() was called at that spot. Return the
 // number of cells drawn on success. On error, return the negative number of
 // cells drawn.
-int ncplane_hline(struct ncplane* n, int xoff, const cell* c,
-                  const char* gclust, int len);
-int ncplane_vline(struct ncplane* n, int yoff, const cell* c,
-                  const char* gclust, int len);
+int ncplane_hline(struct ncplane* n, const cell* c, int len);
+int ncplane_vline(struct ncplane* n, const cell* c, int len);
+
+// Draw a box with its upper-left corner at the current cursor position, having
+// dimensions |ylen| x |xlen|. The 6 cells provided are used to draw the
+// upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
+int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
+                const cell* ll, const cell* lr, const cell* hline,
+                const cell* vline, int ylen, int xlen);
 
 // Erase all content in the ncplane, resetting all attributes to normal, all
 // colors to -1, and all cells to undrawn.
