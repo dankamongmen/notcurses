@@ -103,9 +103,9 @@ TEST_F(NcplaneTest, RejectBadRGB) {
 // Verify we can emit a wide character, and it advances the cursor
 TEST_F(NcplaneTest, EmitWchar) {
   const char cchar[] = "✔";
-  cell c;
+  cell c{};
   cell_load(n_, &c, cchar);
-  EXPECT_EQ(strlen(cchar), ncplane_putc(n_, &c, cchar));
+  EXPECT_EQ(strlen(cchar), ncplane_putc(n_, &c));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, y);
