@@ -25,13 +25,18 @@ int box_demo(struct notcurses* nc){
   cell_load(n, &lr, "╯");
   cell_load(n, &vl, "│");
   cell_load(n, &hl, "─");
+  cell_set_fg(&hl, 107, 40, 107);
+  cell_set_bg(&vl, 107, 40, 107);
   if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ymax, xmax)){
     return -1;
   }
+  cell_set_bg(&hl, 40, 107, 40);
   ncplane_cursor_move_yx(n, 1, 1);
   if(ncplane_hline(n, &hl, xmax - 2) != xmax - 2){
     return -1;
   }
+  cell_set_fg(&hl, 40, 107, 40);
+  cell_set_bg(&hl, 0, 0, 0);
   ncplane_cursor_move_yx(n, ymax - 2, 1);
   if(ncplane_hline(n, &hl, xmax - 2) != xmax - 2){
     return -1;
