@@ -156,7 +156,8 @@ create_ncplane(notcurses* nc, int rows, int cols){
   if((p = malloc(sizeof(*p))) == NULL){
     return NULL;
   }
-  if((p->fb = malloc(sizeof(*p->fb) * (rows * cols))) == NULL){
+  size_t fbsize = sizeof(*p->fb) * (rows * cols);
+  if((p->fb = malloc(fbsize)) == NULL){
     free(p);
     return NULL;
   }
@@ -165,6 +166,7 @@ create_ncplane(notcurses* nc, int rows, int cols){
   p->nc = nc;
   p->x = p->y = 0;
   p->absx = p->absy = 0;
+  // framebuffer is initialized by calling function, might be copy
   return p;
 }
 
@@ -520,9 +522,14 @@ simple_cell_p(const cell* c){
   return c->gcluster < 0x80;
 }
 
+static inline uint32_t
+extended_gcluster_idx(const cell* c){
+  return c->gcluster - 0x80;
+}
+
 static inline const char*
 extended_gcluster(const ncplane* n, const cell* c){
-  uint32_t idx = c->gcluster - 0x80;
+  uint32_t idx = extended_gcluster_idx(c);
   return n->pool.pool + idx;
 }
 
@@ -569,7 +576,8 @@ int notcurses_render(notcurses* nc){
   if(term_movyx(0, 0)){
     return -1;
   }
-  unsigned pr, pg, pb;
+  unsigned pr = 0, pg = 0, pb = 0;
+  unsigned pbr = 0, pbg = 0, pbb = 0;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
@@ -577,12 +585,16 @@ int notcurses_render(notcurses* nc){
       const cell* c = &nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)];
       cell_get_fg(c, &r, &g, &b);
       cell_get_bg(c, &br, &bg, &bb);
-      if(r != pr || g != pg || b != pb || (x == 0 && y == 0)){
+      if(r != pr || g != pg || b != pb || br != pbr || bg != pbg || bb != pbb ||
+          (x == 0 && y == 0)){
         term_fg_rgb8(nc, r, g, b);
         term_bg_rgb8(nc, br, bg, bb);
         pr = r;
         pg = g;
         pb = b;
+        pbr = br;
+        pbg = bg;
+        pbb = bb;
       }
       term_putc(nc, nc->stdscr, c);
     }
@@ -611,10 +623,27 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   }
 }
 
-int ncplane_putc(ncplane* n, const cell* c, const char* gclust){
+static int
+cell_duplicate(ncplane* n, cell* targ, const cell* c){
+  cell_release(n, targ);
+  if(simple_cell_p(c)){
+    targ->gcluster = c->gcluster;
+    return !!c->gcluster;
+  }
+  size_t ulen;
+  int eoffset = egcpool_stash(&n->pool, extended_gcluster(n, c), &ulen);
+  if(eoffset < 0){
+    return -1;
+  }
+  targ->gcluster = eoffset + 0x80;
+  targ->attrword = c->attrword;
+  targ->channels = c->channels;
+  return ulen;
+}
+
+int ncplane_putc(ncplane* n, const cell* c){
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
-  memcpy(targ, c, sizeof(*c));
-  int ret = cell_load(n, targ, gclust);
+  int ret = cell_duplicate(n, targ, c);
   advance_cursor(n);
   return ret;
 }
@@ -632,8 +661,16 @@ int ncplane_getc(const ncplane* n, cell* c, char** gclust){
   return 0;
 }
 
-// loads the cell with the next EGC from gcluster.
+void cell_release(ncplane* n, cell* c){
+  if(!simple_cell_p(c)){
+    egcpool_release(&n->pool, extended_gcluster_idx(c));
+  }
+}
+
+// loads the cell with the next EGC from 'gcluster'. returns the number of
+// bytes copied out of 'gcluster', or -1 on failure.
 int cell_load(ncplane* n, cell* c, const char* gcluster){
+  cell_release(n, c);
   if(simple_gcluster_p(gcluster)){
     c->gcluster = *gcluster;
     return !!c->gcluster;
@@ -650,21 +687,21 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
 int ncplane_putstr(ncplane* n, const char* gcluster){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
-  cell c;
-  memset(&c, 0, sizeof(c));
-  uint32_t rgb = cell_fg_rgb(n->channels);
-  cell_set_fg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
-  rgb = cell_bg_rgb(n->channels);
-  cell_set_bg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
-  int wcs = 0;
   while(*gcluster){
-    wcs = ncplane_putc(n, &c, gcluster);
+    cell c;
+    memset(&c, 0, sizeof(c));
+    uint32_t rgb = cell_fg_rgb(n->channels);
+    cell_set_fg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
+    rgb = cell_bg_rgb(n->channels);
+    cell_set_bg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
+    int wcs = cell_load(n, &c, gcluster);
     if(wcs < 0){
       return -ret;
     }
     if(wcs == 0){
       break;
     }
+    ncplane_putc(n, &c);
     gcluster += wcs;
     ret += wcs;
   }
@@ -710,5 +747,7 @@ int ncplane_printf(ncplane* n, const char* format, ...){
 }
 
 int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
+  // FIXME
+vfprintf(stderr, format, ap);
   return 0;
 }
