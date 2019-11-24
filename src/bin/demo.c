@@ -95,6 +95,9 @@ int main(int argc, char** argv){
     goto err;
   }
   sleep(1);
+  if(box_demo(nc)){
+    goto err;
+  }
   if(widecolor_demo(nc, ncp)){
     goto err;
   }
