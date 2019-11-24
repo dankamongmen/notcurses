@@ -93,9 +93,9 @@ int main(int argc, char** argv){
     goto err;
   }
   sleep(1);
-  if(widecolor_demo(nc, ncp)){
+  /*if(widecolor_demo(nc, ncp)){
     goto err;
-  }
+  }*/
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }

@@ -31,8 +31,8 @@ TEST_F(CellTest, SetStyles) {
   cell c;
   memset(&c, 0, sizeof(c));
   cell_set_style(&c, WA_ITALIC);
-  cell_load(n_, &c, "stylish");
-  EXPECT_EQ(1, ncplane_putc(n_, &c, "stylish"));
+  cell_load(n_, &c, "s");
+  EXPECT_EQ(1, ncplane_putc(n_, &c, "s"));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(1, x);

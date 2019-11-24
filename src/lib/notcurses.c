@@ -9,6 +9,7 @@
 #include <sys/ioctl.h>
 #include "notcurses.h"
 #include "version.h"
+#include "egcpool.h"
 
 // Some capabilities are so fundamental that we don't attempt to run without
 // them. Essentially, we require a two-dimensional, random-access terminal.
@@ -34,15 +35,13 @@ static const char* required_caps[] = {
 // screen is resized, for example. Offscreen portions will not be rendered.
 // Accesses beyond the borders of a panel, however, are errors.
 typedef struct ncplane {
-  cell* fb;        // "framebuffer" of character cells
-  int x, y;        // current location within this plane
-  int absx, absy;  // origin of the plane relative to the screen
-  int lenx, leny;  // size of the plane, [0..len{x,y}) is addressable
-  struct ncplane* z; // plane below us
+  cell* fb;             // "framebuffer" of character cells
+  int x, y;             // current location within this plane
+  int absx, absy;       // origin of the plane relative to the screen
+  int lenx, leny;       // size of the plane, [0..len{x,y}) is addressable
+  struct ncplane* z;    // plane below us
   struct notcurses* nc; // our parent nc, kinda lame waste of memory FIXME
-  char* pool;      // storage pool for multibyte grapheme clusters
-  size_t poolsize; // bytes allocated for gcluster pool
-  size_t poolwrite;// where next to write into the pool
+  egcpool pool;         // attached storage pool for UTF-8 EGCs
   uint64_t channels;    // works the same way as cells
   uint32_t attrword;    // same deal as in a cell
 } ncplane;
@@ -129,7 +128,7 @@ term_verify_seq(char** gseq, const char* name){
 static void
 free_plane(ncplane* p){
   if(p){
-    free(p->pool);
+    egcpool_dump(&p->pool);
     free(p->fb);
     free(p);
   }
@@ -169,15 +168,6 @@ create_ncplane(notcurses* nc, int rows, int cols){
   return p;
 }
 
-static int
-init_gcluster_pool(ncplane* p){
-  // FIXME VERY rough proof of concept, do not merge!
-  p->poolsize = BUFSIZ * p->leny;
-  p->pool = malloc(p->poolsize);
-  p->poolwrite = 0;
-  return 0;
-}
-
 // Call this on initialization, or when the screen size changes. Takes a flat
 // array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
 // new size, and copies what can be copied from the old stdscr. Assumes that
@@ -198,9 +188,7 @@ alloc_stdscr(notcurses* nc){
   if((p = create_ncplane(nc, rows, cols)) == NULL){
     goto err;
   }
-  if(init_gcluster_pool(p)){
-    goto err;
-  }
+  egcpool_init(&p->pool);
   p->attrword = 0;
   p->channels = 0;
   ncplane** oldscr;
@@ -534,7 +522,7 @@ simple_cell_p(const cell* c){
 static inline const char*
 extended_gcluster(const ncplane* n, const cell* c){
   uint32_t idx = c->gcluster - 0x80;
-  return n->pool + idx;
+  return n->pool.pool + idx;
 }
 
 // Write the cell's UTF-8 grapheme cluster to the physical terminal.
@@ -559,6 +547,7 @@ term_putc(const notcurses* nc, const ncplane* n, const cell* c){
   if((w = write(nc->ttyfd, ext, len)) < 0 || (size_t)w != len){
     return -1;
   }
+fprintf(stderr, "WROTE %zu\n", len);
   return 0;
 }
 
@@ -643,6 +632,7 @@ int ncplane_getc(const ncplane* n, cell* c, char** gclust){
   return 0;
 }
 
+// loads the cell with the next EGC from gcluster.
 int cell_load(ncplane* n, cell* c, const char* gcluster){
   if(simple_gcluster_p(gcluster)){
     c->gcluster = *gcluster;
@@ -652,11 +642,11 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   while(*(const unsigned char*)end >= 0x80){ // FIXME broken broken broken
     ++end;
   }
-  // FIXME enlarge pool on demand
-  memcpy(n->pool + n->poolwrite, gcluster, end - gcluster);
-  c->gcluster = n->poolwrite + 0x80;
-  n->poolwrite += end - gcluster;
-  n->pool[n->poolwrite++] = '\0';
+  int eoffset = egcpool_stash(&n->pool, gcluster);
+  if(eoffset < 0){
+    return -1;
+  }
+  c->gcluster = eoffset + 0x80;
   return end - gcluster;
 }
 
@@ -671,13 +661,6 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
   cell_set_bg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
   int wcs = 0;
   while(*gcluster){
-    wcs = cell_load(n, &c, gcluster);
-    if(wcs < 0){
-      return -ret;
-    }
-    if(wcs == 0){
-      break;
-    }
     wcs = ncplane_putc(n, &c, gcluster);
     if(wcs < 0){
       return -ret;

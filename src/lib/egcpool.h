@@ -22,6 +22,11 @@ typedef struct egcpool {
   size_t poolwrite;      // next place to *look for* a place to write
 } egcpool;
 
+static inline void
+egcpool_init(egcpool* p){
+  memset(p, 0, sizeof(*p));
+}
+
 int egcpool_grow(egcpool* pool, size_t len, bool force);
 
 // stash away the provided UTF8, NUL-terminated grapheme cluster. the cluster
