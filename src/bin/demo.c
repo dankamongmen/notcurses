@@ -107,6 +107,13 @@ int main(int argc, char** argv){
   if(ncplane_putstr(ncp, str) != (int)strlen(str)){
     goto err;
   }
+  const char bstr[] = "▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
+  if(ncplane_cursor_move_yx(ncp, rows / 2 + 1, (cols - strlen(bstr) + 4) / 2)){
+    goto err;
+  }
+  if(ncplane_putstr(ncp, bstr) != (int)strlen(bstr)){
+    goto err;
+  }
   if(notcurses_render(nc)){
     goto err;
   }

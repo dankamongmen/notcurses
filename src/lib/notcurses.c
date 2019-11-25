@@ -262,8 +262,6 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   }else if(nc->RGBflag && (unsigned)nc->colors < (1u << 23u)){
     fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
             nc->colors);
-  }else{
-    printf("Colors: %d (%s)\n", nc->colors, nc->RGBflag ? "direct" : "palette");
   }
   const char** cap;
   for(cap = required_caps ; *cap ; ++cap){
@@ -341,6 +339,10 @@ notcurses* notcurses_init(const notcurses_options* opts){
     return NULL;
   }
   memcpy(&modtermios, &ret->tpreserved, sizeof(modtermios));
+  // see termios(3). disabling ECHO and ICANON means input will not be echoed
+  // to the screen, input is made available without enter-based buffering, and
+  // line editing is disabled. since we have not gone into raw mode, ctrl+c
+  // etc. still have their typical effects.
   modtermios.c_lflag &= (~ECHO & ~ICANON);
   if(tcsetattr(ret->ttyfd, TCSANOW, &modtermios)){
     fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n",
@@ -359,9 +361,10 @@ notcurses* notcurses_init(const notcurses_options* opts){
     goto err;
   }
   ret->stdscr = ret->top;
-  printf("Geometry: %d rows, %d columns (%zub)\n",
+  printf("%d rows, %d columns (%zub), %d colors (%s)\n",
          ret->top->leny, ret->top->lenx,
-         ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb));
+         ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
+         ret->colors, ret->RGBflag ? "direct" : "palette");
   if(ret->smcup && term_emit(ret->smcup)){
     free_plane(ret->top);
     goto err;
