@@ -18,6 +18,9 @@ usage(const char* exe, int status){
 
 static int
 ext_demos(struct notcurses* nc){
+  if(unicodeblocks_demo(nc)){
+    return -1;
+  }
   if(grid_demo(nc)){
     return -1;
   }
@@ -108,7 +111,7 @@ int main(int argc, char** argv){
     goto err;
   }
   const char bstr[] = "▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  if(ncplane_cursor_move_yx(ncp, rows / 2 + 1, (cols - strlen(bstr) + 4) / 2)){
+  if(ncplane_cursor_move_yx(ncp, rows / 2 + 3, (cols - strlen(bstr) + 4) / 2)){
     goto err;
   }
   if(ncplane_putstr(ncp, bstr) != (int)strlen(bstr)){
