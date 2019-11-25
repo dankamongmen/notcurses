@@ -49,7 +49,6 @@ typedef struct ncplane {
 
 typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty (takes stdin)
-  timer_t timer;  // CLOCK_MONOTONIC timer for benchmarking
   int colors;     // number of colors usable for this screen
   // We verify that some capabilities exist (see required_caps). Those needn't
   // be checked before further use; just use tiparm() directly. These might be
@@ -346,16 +345,10 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(ret == NULL){
     return ret;
   }
-  if(timer_create(CLOCK_MONOTONIC, NULL, &ret->timer)){
-    fprintf(stderr, "Error initializing monotonic clock (%s)\n", strerror(errno));
-    free(ret);
-    return NULL;
-  }
   ret->ttyfd = opts->outfd;
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
     fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
             ret->ttyfd, strerror(errno));
-    timer_delete(ret->timer);
     free(ret);
     return NULL;
   }
@@ -397,7 +390,6 @@ notcurses* notcurses_init(const notcurses_options* opts){
 
 err:
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
-  timer_delete(ret->timer);
   free(ret);
   return NULL;
 }
@@ -594,7 +586,7 @@ advance_cursor(ncplane* n){
 // world every time
 int notcurses_render(notcurses* nc){
   struct timespec start, done;
-  clock_gettime(nc->timer, &start);
+  clock_gettime(CLOCK_MONOTONIC, &start);
   int ret = 0;
   int y, x;
   if(term_movyx(0, 0)){
@@ -618,7 +610,7 @@ int notcurses_render(notcurses* nc){
       term_putc(nc, nc->stdscr, c);
     }
   }
-  clock_gettime(nc->timer, &done);
+  clock_gettime(CLOCK_MONOTONIC, &done);
   return ret;
 }
 
