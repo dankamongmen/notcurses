@@ -425,6 +425,10 @@ err:
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
+    if(nc->rmcup && term_emit(nc->rmcup)){
+      ret = -1;
+    }
+    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     double avg = nc->stats.renders_ns / (double)nc->stats.renders;
     fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
             nc->stats.renders,
@@ -432,10 +436,6 @@ int notcurses_stop(notcurses* nc){
             nc->stats.render_min_ns / 1000000000.0,
             nc->stats.render_max_ns / 1000000000.0,
             avg / 1000000000);
-    if(nc->rmcup && term_emit(nc->rmcup)){
-      ret = -1;
-    }
-    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;
