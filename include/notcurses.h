@@ -356,6 +356,9 @@ cell_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
+// multimedia functionality
+int notcurses_image_open(struct notcurses* nc, const char* filename);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
