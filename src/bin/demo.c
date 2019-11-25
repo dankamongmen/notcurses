@@ -85,7 +85,7 @@ int main(int argc, char** argv){
   if(ncplane_fg_rgb8(ncp, 176, 121, 176)){
     goto err;
   }
-  if(ncplane_bg_rgb8(ncp, 255, 255, 255)){
+  if(ncplane_bg_rgb8(ncp, 100, 100, 100)){
     goto err;
   }
   if(ncplane_putstr(ncp, str) != (int)strlen(str)){
