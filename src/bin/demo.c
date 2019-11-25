@@ -18,6 +18,9 @@ usage(const char* exe, int status){
 
 static int
 ext_demos(struct notcurses* nc){
+  if(maxcolor_demo(nc)){
+    return -1;
+  }
   if(unicodeblocks_demo(nc)){
     return -1;
   }
