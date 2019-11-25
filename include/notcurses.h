@@ -111,6 +111,20 @@ struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
 // the standard plane.
 int ncplane_destroy(struct ncplane* n);
 
+// Move this plane relative to the standard plane.
+int ncplane_move_yx(struct ncplane* n, int y, int x);
+
+// Get the origin of this plane relative to the standard plane.
+void ncplane_yx(const struct ncplane* n, int* y, int* x);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
+void ncplane_move_above(struct ncplane* n, struct ncplane* above);
+// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+void ncplane_move_below(struct ncplane* n, struct ncplane* below);
+// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
+void ncplane_move_top(struct ncplane* n);
+void ncplane_move_bottom(struct ncplane* n);
+
 // Retrieve the topmost cell at this location on the screen, returning it in
 // 'c'. If there is more than a byte of gcluster, it will be returned as a heap
 // allocation in '*gclust', and '*c' will be 0x80.
@@ -137,20 +151,6 @@ int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
 void ncplane_cursor_yx(const struct ncplane* n, int* y, int* x);
-
-// Move this plane relative to the standard plane.
-int ncplane_move_yx(struct ncplane* n, int y, int x);
-
-// Get the origin of this plane relative to the standard plane.
-void ncplane_yx(const struct ncplane* n, int* y, int* x);
-
-// Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
-void ncplane_move_above(struct ncplane* n, struct ncplane* above);
-// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-void ncplane_move_below(struct ncplane* n, struct ncplane* below);
-// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-void ncplane_move_top(struct ncplane* n);
-void ncplane_move_bottom(struct ncplane* n);
 
 // Replace the cell underneath the cursor with the provided cell 'c', and
 // advance the cursor by the width of the cell (but not past the end of the
