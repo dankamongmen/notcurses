@@ -211,9 +211,9 @@ The EGC should be loaded using `cell_load()`. Either a single NUL-terminated
 EGC can be provided, or a string composed of multiple EGCs. In the latter case,
 the first EGC from the string is loaded. Remember, backing storage for the EGC
 is provided by the `ncplane` passed to `cell_load()`; if this `ncplane` is
-destroyed, the `cell` cannot safely be used. If you're done using the `cell`
-before being done with the `ncplane`, call `cell_release()` to free up the
-EGC resources.
+destroyed (or even erased), the `cell` cannot safely be used. If you're done
+using the `cell` before being done with the `ncplane`, call `cell_release()`
+to free up the EGC resources.
 
 ```c
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
