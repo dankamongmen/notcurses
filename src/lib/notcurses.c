@@ -602,15 +602,19 @@ term_putc(const notcurses* nc, const ncplane* n, const cell* c){
 }
 
 static void
-advance_cursor(ncplane* n){
+advance_cursor(ncplane* n, int cols){
   if(n->y == n->leny){
     if(n->x == n->lenx){
       return; // stuck!
     }
   }
-  if(++n->x == n->lenx){
-    n->x = 0;
-    ++n->y;
+  if((n->x += cols) >= n->lenx){
+    if(n->y == n->leny){
+      n->x = n->lenx;
+    }else{
+      n->x -= n->lenx;
+      ++n->y;
+    }
   }
 }
 
@@ -683,7 +687,9 @@ cell_duplicate(ncplane* n, cell* targ, const cell* c){
     return !!c->gcluster;
   }
   size_t ulen;
-  int eoffset = egcpool_stash(&n->pool, extended_gcluster(n, c), &ulen);
+  int cols;
+  // FIXME insert colcount into cell...
+  int eoffset = egcpool_stash(&n->pool, extended_gcluster(n, c), &ulen, &cols);
   if(eoffset < 0){
     return -1;
   }
@@ -697,7 +703,7 @@ int ncplane_putc(ncplane* n, const cell* c){
   }
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
-  advance_cursor(n);
+  advance_cursor(n, 1); // FIXME
   return ret;
 }
 
@@ -732,7 +738,8 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
     return !!c->gcluster;
   }
   size_t ulen;
-  int eoffset = egcpool_stash(&n->pool, gcluster, &ulen);
+  int cols;
+  int eoffset = egcpool_stash(&n->pool, gcluster, &ulen, &cols);
   if(eoffset < 0){
     return -1;
   }
