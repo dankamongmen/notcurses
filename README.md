@@ -12,6 +12,12 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
     replacement for NCURSES on existing systems, nor a widely-ported and -tested
     bedrock of Open Source, nor a battle-proven, veteran library.
 
+* [Basic use](#basic-use)
+  * [Planes](#planes)
+  * [Cells](#cells)
+* [Differences from NCURSES](#differences-from-ncurses)
+* [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
+
 notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
 terminal functionality such as unindexed 24-bit color ("DirectColor", not to be
@@ -124,7 +130,7 @@ reflect the changes:
 int notcurses_render(struct notcurses* nc);
 ```
 
-## Planes
+### Planes
 
 Fundamental to notcurses is a z-buffer of rectilinear virtual screens, known
 as `ncplane`s. An `ncplane` can be larger than the physical screen, or smaller,
@@ -137,6 +143,146 @@ from a lower `ncplane` from being seen. An `ncplane` corresponds loosely to an
 [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
 but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
+
+### Cells
+
+A `cell` ought be initialized with `CELL_TRIVIAL_INITIALIZER` or the
+`cell_init()` function before it is further used. These just zero out the
+`cell`. A `cell` has three fundamental elements:
+
+* The EGC displayed at this coordinate, encoded in UTF-8. If the EGC is a
+  single ASCII character (value less than 0x80), it is stored inline in
+  the `cell`'s `gcluster` field. Otherwise, `gcluster`'s top 24 bits
+  are a 128-biased offset into the associated `ncplane`'s egcpool. This
+  implies that `cell`s are associated with `ncplane`s once prepared.
+* The Curses-style attributes of the text, and a 16-bit alpha channel.
+* The 48 bits of foreground and background RGB, plus a few flags.
+
+The EGC should be loaded using `cell_load()`. Either a single NUL-terminated
+EGC can be provided, or a string composed of multiple EGCs. In the latter case,
+the first EGC from the string is loaded. Remember, backing storage for the EGC
+is provided by the `ncplane` passed to `cell_load()`; if this `ncplane` is
+destroyed, the `cell` cannot safely be used. If you're done using the `cell`
+before being done with the `ncplane`, call `cell_release()` to free up the
+EGC resources.
+
+```c
+#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+
+static inline void
+cell_init(cell* c){
+  memset(c, 0, sizeof(*c));
+}
+
+// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
+int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+
+// Release resources held by the cell 'c'.
+void cell_release(struct ncplane* n, cell* c);
+
+#define CELL_STYLE_MASK 0xffff0000ul
+#define CELL_ALPHA_MASK 0x0000fffful
+
+// Set the specified style bits for the cell 'c', whether they're actively
+// supported or not.
+static inline void
+cell_set_style(cell* c, unsigned stylebits){
+  c->attrword = (c->attrword & ~CELL_STYLE_MASK) |
+                ((stylebits & 0xffff) << 16u);
+}
+
+// Add the specified styles to the cell's existing spec.
+static inline void
+cell_enable_styles(cell* c, unsigned stylebits){
+  c->attrword |= ((stylebits & 0xffff) << 16u);
+}
+
+// Remove the specified styles from the cell's existing spec.
+static inline void
+cell_disable_styles(cell* c, unsigned stylebits){
+  c->attrword &= ~((stylebits & 0xffff) << 16u);
+}
+
+static inline uint32_t
+cell_fg_rgb(uint64_t channel){
+  return (channel & 0x00ffffff00000000ull) >> 32u;
+}
+
+static inline uint32_t
+cell_bg_rgb(uint64_t channel){
+  return (channel & 0x0000000000ffffffull);
+}
+
+static inline unsigned
+cell_rgb_red(uint32_t rgb){
+  return (rgb & 0xff0000ull) >> 16u;
+}
+
+static inline unsigned
+cell_rgb_green(uint32_t rgb){
+  return (rgb & 0xff00ull) >> 8u;
+}
+
+static inline unsigned
+cell_rgb_blue(uint32_t rgb){
+  return (rgb & 0xffull);
+}
+
+#define CELL_FGDEFAULT_MASK 0x4000000000000000ull
+#define CELL_BGDEFAULT_MASK 0x0000000040000000ull
+
+static inline void
+cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
+  uint64_t rgb = (r & 0xffull) << 48u;
+  rgb |= (g & 0xffull) << 40u;
+  rgb |= (b & 0xffull) << 32u;
+  rgb |= CELL_FGDEFAULT_MASK;
+  *channels = (*channels & ~0x40ffffff00000000ull) | rgb;
+}
+
+static inline void
+cell_rgb_set_bg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
+  uint64_t rgb = (r & 0xffull) << 16u;
+  rgb |= (g & 0xffull) << 8u;
+  rgb |= (b & 0xffull);
+  rgb |= CELL_BGDEFAULT_MASK;
+  *channels = (*channels & ~0x0000000040ffffffull) | rgb;
+}
+
+static inline void
+cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
+  cell_rgb_set_fg(&c->channels, r, g, b);
+}
+
+static inline void
+cell_set_bg(cell* c, unsigned r, unsigned g, unsigned b){
+  cell_rgb_set_bg(&c->channels, r, g, b);
+}
+
+static inline void
+cell_get_fg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
+  *r = cell_rgb_red(cell_fg_rgb(c->channels));
+  *g = cell_rgb_green(cell_fg_rgb(c->channels));
+  *b = cell_rgb_blue(cell_fg_rgb(c->channels));
+}
+
+static inline void
+cell_get_bg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
+  *r = cell_rgb_red(cell_bg_rgb(c->channels));
+  *g = cell_rgb_green(cell_bg_rgb(c->channels));
+  *b = cell_rgb_blue(cell_bg_rgb(c->channels));
+}
+
+static inline bool
+cell_fg_default_p(const cell* c){
+  return !(c->channels & CELL_FGDEFAULT_MASK);
+}
+
+static inline bool
+cell_bg_default_p(const cell* c){
+  return !(c->channels & CELL_BGDEFAULT_MASK);
+}
+```
 
 ## Differences from NCURSES
 
