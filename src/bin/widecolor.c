@@ -197,8 +197,8 @@ int widecolor_demo(struct notcurses* nc){
   const char** s;
   int count = notcurses_palette_size(nc);
   //int key;
-  const int steps[] = { 1, 16, 64, 128, };
-  const int starts[] = { 0, 420, 1024, 2048, };
+  const int steps[] = { 128, 64, 16, 1, };
+  const int starts[] = { 0, 16, 62, 128, };
 
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
@@ -223,10 +223,10 @@ int widecolor_demo(struct notcurses* nc){
           cell wch;
           cell_init(&wch);
           cell_set_style(&wch, WA_NORMAL);
-          cell_set_fg(&wch, cell_rgb_red(rgb), cell_rgb_green(rgb),
+          cell_set_fg(&wch, cell_rgb_red(rgb), 255 - cell_rgb_green(rgb),
                       cell_rgb_blue(rgb));
           cell_set_bg(&wch, 255 - cell_rgb_red(rgb),
-                      255 - cell_rgb_green(rgb), 255 - cell_rgb_blue(rgb));
+                      cell_rgb_green(rgb), 255 - cell_rgb_blue(rgb));
           size_t idx = 0;
           while((*s)[idx]){
             if(y >= maxy && x >= maxx){
