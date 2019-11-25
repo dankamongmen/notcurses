@@ -1,6 +1,7 @@
 #ifndef NOTCURSES_EGCPOOL
 #define NOTCURSES_EGCPOOL
 
+#include <wchar.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,15 +30,36 @@ egcpool_init(egcpool* p){
 
 int egcpool_grow(egcpool* pool, size_t len);
 
-// FIXME needs to loop on wcwidth() == 0
+// Eat an EGC from the UTF-8 string input. This consists of extracting a
+// multibyte via mbtowc, then continuing to extract any which have zero
+// width until hitting another spacing character or a NUL terminator. Writes
+// the number of columns occupied to '*colcount'. Returns the number of bytes
+// consumed, not including any NUL terminator. Note that neither the number
+// of bytes nor columns is necessarily equivalent to the number of decoded code
+// points. Such are the ways of Unicode.
 static inline size_t
-utf8_gce_len(const char* gcluster){
+utf8_gce_len(const char* gcluster, int* colcount){
+  size_t ret = 0;
+  *colcount = 0;
   wchar_t wc;
-  int r = mbtowc(&wc, gcluster, MB_CUR_MAX);
-  if(r <= 0){
-    return 0; // will cascade into error in egcpool_stash()
-  }
-  return r;
+  int r;
+  do{
+    r = mbtowc(&wc, gcluster, MB_CUR_MAX);
+    if(r < 0){
+      return -1;
+    }else if(r){
+      int cols = wcwidth(wc);
+      if(cols){
+        if(*colcount){ // this must be starting a new EGC, exit and do not claim
+          break;
+        }
+        *colcount += cols;
+      }
+      ret += r;
+      gcluster += r;
+    }
+  }while(r);
+  return ret;
 }
 
 // if we're inserting a EGC of |len| bytes, ought we proactively realloc?
@@ -57,10 +79,11 @@ egcpool_alloc_justified(const egcpool* pool, size_t len){
 // stash away the provided UTF8, NUL-terminated grapheme cluster. the cluster
 // should not be less than 2 bytes (such a cluster should be directly stored in
 // the cell). returns -1 on error, and otherwise a non-negative 24-bit offset.
-// The number of bytes copied is stored to |*ulen|.
+// The number of bytes copied is stored to '*ulen'. The number of presentation
+// columns is stored to '*cols'.
 static inline int
-egcpool_stash(egcpool* pool, const char* egc, size_t* ulen){
-  size_t len = utf8_gce_len(egc) + 1; // count the NUL terminator
+egcpool_stash(egcpool* pool, const char* egc, size_t* ulen, int* cols){
+  size_t len = utf8_gce_len(egc, cols) + 1; // count the NUL terminator
   if(len <= 2){ // should never be empty, nor a single byte + NUL
     return -1;
   }
