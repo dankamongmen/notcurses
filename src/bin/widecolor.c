@@ -5,7 +5,7 @@
 #include "demo.h"
 
 // Much of this text comes from http://kermitproject.org/utf8.html
-int widecolor_demo(struct notcurses* nc, struct ncplane* n){
+int widecolor_demo(struct notcurses* nc){
   static const char* strs[] = {
     "Война и мир",
     "Бра́тья Карама́зовы",
@@ -200,6 +200,7 @@ int widecolor_demo(struct notcurses* nc, struct ncplane* n){
   const int steps[] = { 1, 16, count, count + 16, };
   const int starts[] = { 0, 48 * count, 48 * count, 48 * count, };
 
+  struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
   for(i = 0 ; i < sizeof(steps) / sizeof(*steps) ; ++i){
     const int start = starts[i];
