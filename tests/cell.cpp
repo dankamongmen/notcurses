@@ -4,6 +4,7 @@
 class CellTest : public :: testing::Test {
  protected:
   void SetUp() override {
+    setlocale(LC_ALL, nullptr);
     if(getenv("TERM") == nullptr){
       GTEST_SKIP();
     }
