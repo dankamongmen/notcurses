@@ -149,7 +149,7 @@ TEST_F(NcplaneTest, VerticalLines) {
   ASSERT_LT(0, y);
   ASSERT_LT(0, x);
   cell c{};
-  cell_load(n_, &c, "-");
+  cell_load(n_, &c, "|");
   for(int xidx = 0 ; xidx < x - 1 ; ++xidx){
     EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 1, xidx));
     EXPECT_EQ(y - 2, ncplane_vline(n_, &c, y - 2));
