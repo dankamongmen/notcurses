@@ -80,6 +80,8 @@ typedef struct notcurses {
   // We verify that some capabilities exist (see required_caps). Those needn't
   // be checked before further use; just use tiparm() directly. These might be
   // NULL, and we can more or less work without them.
+  char* civis;    // hide cursor
+  char* cnorm;    // restore cursor to default state
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode
   char* setaf;    // set foreground color (ANSI)
@@ -287,18 +289,6 @@ erpchar(int c){
 }
 
 static int
-term_disable_cursor(void){
-  char* tstr = tiparm(cursor_invisible);
-  if(tstr == NULL){
-    return -1;
-  }
-  if(tputs(tstr, 1, erpchar) != OK){
-    return -1;
-  }
-  return 0;
-}
-
-static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
   fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
@@ -317,7 +307,14 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
       return -1;
     }
   }
-  term_verify_seq(&nc->standout, "smso");
+  if(!opts->retain_cursor){
+    if(term_emit(tiparm(cursor_invisible))){
+      return -1;
+    }
+    term_verify_seq(&nc->cnorm, "cnorm");
+  }else{
+    nc->cnorm = NULL;
+  }
   term_verify_seq(&nc->uline, "smul");
   term_verify_seq(&nc->reverse, "reverse");
   term_verify_seq(&nc->blink, "blink");
@@ -398,9 +395,6 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(interrogate_terminfo(ret, opts)){
     goto err;
   }
-  if(term_disable_cursor()){
-    goto err;
-  }
   if(alloc_stdscr(ret) == NULL){
     goto err;
   }
@@ -427,6 +421,9 @@ int notcurses_stop(notcurses* nc){
   if(nc){
     if(nc->rmcup && term_emit(nc->rmcup)){
       ret = -1;
+    }
+    if(nc->cnorm && term_emit(nc->cnorm)){
+      return -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     double avg = nc->stats.renders_ns / (double)nc->stats.renders;
