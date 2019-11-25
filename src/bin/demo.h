@@ -9,7 +9,7 @@ extern "C" {
 
 #define FADE_MILLISECONDS 500
 
-int widecolor_demo(struct notcurses* nc, struct ncplane* n);
+int widecolor_demo(struct notcurses* nc);
 int box_demo(struct notcurses* nc);
 int grid_demo(struct notcurses* nc);
 
