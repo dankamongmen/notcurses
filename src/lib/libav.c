@@ -15,7 +15,7 @@ int notcurses_image_open(struct notcurses* nc, const char* filename){
     avformat_free_context(ps);
     return ret;
   }
-  // av_dump_format(ps, 0, filename, false);
+av_dump_format(ps, 0, filename, false);
   AVPacket* packet = av_packet_alloc();
   if((ret = av_read_frame(ps, packet)) < 0){
     fprintf(stderr, "Error reading frame info from %s (%s)\n", filename,
@@ -24,7 +24,23 @@ int notcurses_image_open(struct notcurses* nc, const char* filename){
     avformat_free_context(ps);
     return -1;
   }
+  // FIXME need codec object
+  if((ret = avcodec_send_packet(codec, &packet)) < 0){
+    fprintf(stderr, "Error decoding packet from %s (%s)\n", filename,
+            av_err2str(ret));
+    av_packet_free(&packet);
+    avformat_free_context(ps);
+    return -1;
+  }
+  AVFrame* frame = av_frame_alloc();
+  if(frame == NULL){
+    av_packet_free(&packet);
+    avformat_free_context(ps);
+    return -1;
+  }
+
   // FIXME
+  av_frame_free(&frame);
   av_packet_free(&packet);
   avformat_free_context(ps);
   return 0;
