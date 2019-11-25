@@ -52,8 +52,8 @@ TEST_F(NotcursesTest, ResizeSameSize) {
   EXPECT_EQ(newy, y);
 }
 
-// we should at least have WA_STANDOUT everywhere, i should think?
+// we should at least have WA_BOLD everywhere, i should think?
 TEST_F(NotcursesTest, CursesStyles) {
   unsigned attrs = notcurses_supported_styles(nc_);
-  EXPECT_EQ(1, !!(WA_STANDOUT & attrs));
+  EXPECT_EQ(1, !!(WA_BOLD & attrs));
 }
