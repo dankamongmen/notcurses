@@ -579,8 +579,6 @@ int notcurses_render(notcurses* nc){
   if(term_movyx(0, 0)){
     return -1;
   }
-  unsigned pr = 0, pg = 0, pb = 0;
-  unsigned pbr = 0, pbg = 0, pbb = 0;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
@@ -591,17 +589,11 @@ int notcurses_render(notcurses* nc){
         r = 255; g = 255; b = 255; // FIXME
       }
       cell_get_bg(c, &br, &bg, &bb);
-      if(r != pr || g != pg || b != pb || br != pbr || bg != pbg || bb != pbb ||
-          (x == 0 && y == 0)){
-        term_fg_rgb8(nc, r, g, b);
-        term_bg_rgb8(nc, br, bg, bb);
-        pr = r;
-        pg = g;
-        pb = b;
-        pbr = br;
-        pbg = bg;
-        pbb = bb;
+      if(cell_bg_default_p(c)){
+        r = 0; g = 0; b = 0; // FIXME
       }
+      term_fg_rgb8(nc, r, g, b);
+      term_bg_rgb8(nc, br, bg, bb);
       term_putc(nc, nc->stdscr, c);
     }
   }
@@ -637,6 +629,8 @@ ncplane_cursor_stuck(const ncplane* n){
 static int
 cell_duplicate(ncplane* n, cell* targ, const cell* c){
   cell_release(n, targ);
+  targ->attrword = c->attrword;
+  targ->channels = c->channels;
   if(simple_cell_p(c)){
     targ->gcluster = c->gcluster;
     return !!c->gcluster;
@@ -647,8 +641,6 @@ cell_duplicate(ncplane* n, cell* targ, const cell* c){
     return -1;
   }
   targ->gcluster = eoffset + 0x80;
-  targ->attrword = c->attrword;
-  targ->channels = c->channels;
   return ulen;
 }
 
@@ -709,8 +701,8 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
     memset(&c, 0, sizeof(c));
     uint32_t rgb = cell_fg_rgb(n->channels);
     cell_set_fg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
-    rgb = cell_bg_rgb(n->channels);
-    cell_set_bg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
+    uint32_t rgbbg = cell_bg_rgb(n->channels);
+    cell_set_bg(&c, cell_rgb_red(rgbbg), cell_rgb_green(rgbbg), cell_rgb_blue(rgbbg));
     int wcs = cell_load(n, &c, gcluster);
     if(wcs < 0){
       return -ret;
