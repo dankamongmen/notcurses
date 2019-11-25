@@ -6,12 +6,7 @@ int box_demo(struct notcurses* nc){
   int ymax, xmax;
   notcurses_term_dimyx(nc, &ymax, &xmax);
   struct ncplane* n = notcurses_stdplane(nc);
-  ncplane_cursor_move_yx(n, 0, 0);
   cell ul, ll, lr, ur, hl, vl;
-  ncplane_erase(n);
-  if(notcurses_render(nc)){
-    return -1;
-  }
   ncplane_fg_rgb8(n, 255, 255, 255);
   cell_init(&ul);
   cell_init(&ur);
@@ -27,19 +22,16 @@ int box_demo(struct notcurses* nc){
   cell_load(n, &hl, "─");
   cell_set_fg(&hl, 107, 40, 107);
   cell_set_bg(&vl, 107, 40, 107);
-  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ymax, xmax)){
-    return -1;
-  }
-  cell_set_bg(&hl, 40, 107, 40);
-  ncplane_cursor_move_yx(n, 1, 1);
-  if(ncplane_hline(n, &hl, xmax - 2) != xmax - 2){
-    return -1;
-  }
-  cell_set_fg(&hl, 40, 107, 40);
-  cell_set_bg(&hl, 0, 0, 0);
-  ncplane_cursor_move_yx(n, ymax - 2, 1);
-  if(ncplane_hline(n, &hl, xmax - 2) != xmax - 2){
-    return -1;
+  int y = 0, x = 0;
+  while(ymax - y - 1 > 2 && xmax - x - 1 > 2){
+    ncplane_cursor_move_yx(n, y, x);
+    if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ymax, xmax)){
+      return -1;
+    }
+    ymax -= 2;
+    xmax -= 2;
+    ++y;
+    ++x;
   }
   cell_release(n, &ul);
   cell_release(n, &ur);
