@@ -297,7 +297,7 @@ cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   rgb |= (g & 0xffull) << 40u;
   rgb |= (b & 0xffull) << 32u;
   rgb |= CELL_FGDEFAULT_MASK;
-  *channels = (*channels & ~0x00ffffff00000000ull) | rgb;
+  *channels = (*channels & ~0x40ffffff00000000ull) | rgb;
 }
 
 static inline void
@@ -306,7 +306,7 @@ cell_rgb_set_bg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   rgb |= (g & 0xffull) << 8u;
   rgb |= (b & 0xffull);
   rgb |= CELL_BGDEFAULT_MASK;
-  *channels = (*channels & ~0x0000000000ffffffull) | rgb;
+  *channels = (*channels & ~0x0000000040ffffffull) | rgb;
 }
 
 static inline void

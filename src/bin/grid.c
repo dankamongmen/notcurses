@@ -62,7 +62,7 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n,
 
   // render!
   notcurses_render(nc);
-  sleep(5);
+  sleep(1);
   return 0;
 }
 
@@ -140,7 +140,7 @@ int grid_demo(struct notcurses* nc){
   int bs = 256 / maxy;
   int y, x;
   struct ncplane* n = notcurses_stdplane(nc);
-  // ncplane_erase(n);
+  ncplane_erase(n);
   cell ul, ll, cl, cr, lc, lr, ur, uc, cc;
   cell_init(&ul);
   cell_init(&uc);
