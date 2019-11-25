@@ -149,6 +149,52 @@ corresponding to a bare NCURSES `WINDOW`.
 
 ### Cells
 
+Unlike the `notcurses` or `ncplane` objects, the definition of `cell` is
+available to the user:
+
+```c
+// A cell corresponds to a single character cell on some plane, which can be
+// occupied by a single grapheme cluster (some root spacing glyph, along with
+// possible combining characters, which might span multiple columns). At any
+// cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground
+// color, a background color, and an attribute set. Valid grapheme cluster
+// contents include:
+//
+//  * A NUL terminator,
+//  * A single control character, followed by a NUL terminator,
+//  * At most one spacing character, followed by zero or more nonspacing
+//    characters, followed by a NUL terminator.
+//
+// Multi-column characters can only have a single style/color throughout.
+//
+// Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
+// for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
+// Dynamic requirements can add up to 16MB to an ncplane, but such large pools
+// are unlikely in common use.
+typedef struct cell {
+  // These 32 bits are either a single-byte, single-character grapheme cluster
+  // (values 0--0x7f), or a pointer into a per-ncplane attached pool of
+  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 16MB.
+  uint32_t gcluster;          // 1 * 4b -> 4b
+  // The classic NCURSES WA_* attributes (16 bits), plus 16 bits of alpha.
+  uint32_t attrword;          // + 4b -> 8b
+  // (channels & 0x8000000000000000ull): inherit styling from prior cell
+  // (channels & 0x4000000000000000ull): foreground is *not* "default color"
+  // (channels & 0x3f00000000000000ull): reserved, must be 0
+  // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
+  // (channels & 0x0000000080000000ull): in the middle of a multicolumn glyph
+  // (channels & 0x0000000040000000ull): background is *not* "default color"
+  // (channels & 0x000000003f000000ull): reserved, must be 0
+  // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
+  // At render time, these 24-bit values are quantized down to terminal
+  // capabilities, if necessary. There's a clear path to 10-bit support should
+  // we one day need it, but keep things cagey for now. "default color" is
+  // best explained by color(3NCURSES). ours is the same concept. until the
+  // "not default color" bit is set, any color you load will be ignored.
+  uint64_t channels;          // + 8b == 16b
+} cell;
+```
+
 A `cell` ought be initialized with `CELL_TRIVIAL_INITIALIZER` or the
 `cell_init()` function before it is further used. These just zero out the
 `cell`. A `cell` has three fundamental elements:
