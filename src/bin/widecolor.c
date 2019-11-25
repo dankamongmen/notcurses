@@ -197,10 +197,11 @@ int widecolor_demo(struct notcurses* nc){
   const char** s;
   int count = notcurses_palette_size(nc);
   //int key;
-  const int steps[] = { 1, 16, count, count + 16, };
-  const int starts[] = { 0, 48 * count, 48 * count, 48 * count, };
+  const int steps[] = { 1, 16, 64, 128, };
+  const int starts[] = { 0, 420, 1024, 2048, };
 
   struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_erase(n);
   size_t i;
   for(i = 0 ; i < sizeof(steps) / sizeof(*steps) ; ++i){
     const int start = starts[i];
@@ -210,17 +211,22 @@ int widecolor_demo(struct notcurses* nc){
       ncplane_dimyx(n, &maxy, &maxx);
       --maxy;
       --maxx;
-      int cpair = start;
-      ncplane_cursor_move_yx(n, 0, 0);
+      int rgb = start;
+      if(ncplane_cursor_move_yx(n, 0, 0)){
+        return -1;
+      }
       y = 0;
       x = 0;
       do{ // we fill up the entire screen, however large
         s = strs;
         for(s = strs ; *s ; ++s){
           cell wch;
-          memset(&wch, 0, sizeof(wch));
+          cell_init(&wch);
           cell_set_style(&wch, WA_NORMAL);
-          cell_set_fg(&wch, cpair, cpair, cpair);
+          cell_set_fg(&wch, cell_rgb_red(rgb), cell_rgb_green(rgb),
+                      cell_rgb_blue(rgb));
+          cell_set_bg(&wch, 255 - cell_rgb_red(rgb),
+                      255 - cell_rgb_green(rgb), 255 - cell_rgb_blue(rgb));
           size_t idx = 0;
           while((*s)[idx]){
             if(y >= maxy && x >= maxx){
@@ -231,11 +237,13 @@ int widecolor_demo(struct notcurses* nc){
               return -1;
             }
             if(ncplane_putc(n, &wch) < 0){
-              return -1;
+              cell_release(n, &wch);
+              break;
             }
+            cell_release(n, &wch);
             ncplane_cursor_yx(n, &y, &x);
-            if((cpair += step) >= 256){
-              cpair = 1;
+            if((rgb += step) >= count){
+              rgb = 1;
             }
             idx += ulen;
           }
@@ -246,8 +254,8 @@ int widecolor_demo(struct notcurses* nc){
       ncplane_cursor_move_yx(n, 2, 2);
       ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, i, sizeof(steps) / sizeof(*steps));
       ncplane_set_style(n, WA_NORMAL);
-      ncplane_fg_rgb8(n, cpair, cpair, cpair);
-      ncplane_putstr(n, "wide chars, multiple colors, resize awareness …");
+      ncplane_fg_rgb8(n, 200, 255, 200);
+      ncplane_putstr(n, "wide chars, multiple colors, resize awareness…");
       if(notcurses_render(nc)){
         return -1;
       }
@@ -259,7 +267,6 @@ int widecolor_demo(struct notcurses* nc){
       }while(key == ERR);
       */
       sleep(1); // FIXME
-      ncplane_cursor_move_yx(n, 0, 0);
     //}while(key == KEY_RESIZE);
   }
   return 0;
