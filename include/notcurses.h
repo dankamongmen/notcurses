@@ -14,7 +14,7 @@ extern "C" {
 // Get a human-readable string describing the running notcurses version.
 const char* notcurses_version(void);
 
-struct cell;      // a coordinate on an ncplane: wchar_t(s) and styling
+struct cell;      // a coordinate on an ncplane: an EGC plus styling
 struct ncplane;   // a drawable notcurses surface, composed of cells
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 
@@ -84,7 +84,6 @@ int notcurses_stop(struct notcurses* nc);
 // Make the physical screen match the virtual screen. Changes made to the
 // virtual screen (i.e. most other calls) will not be visible until after a
 // successful call to notcurses_render().
-int notcurses_check(struct notcurses* nc);
 int notcurses_render(struct notcurses* nc);
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
