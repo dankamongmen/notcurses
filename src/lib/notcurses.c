@@ -14,8 +14,9 @@
 // Some capabilities are so fundamental that we don't attempt to run without
 // them. Essentially, we require a two-dimensional, random-access terminal.
 static const char* required_caps[] = {
-  "cup",
-  "clear",
+  "cup",   // can we move to an x,y coordinate in one op?
+  "clear", // can we clear the screen?
+  "civis", // can we hide the cursor?
   NULL
 };
 
@@ -252,6 +253,26 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 static int
+erpchar(int c){
+  if(write(STDOUT_FILENO, &c, 1) == 1){
+    return c;
+  }
+  return EOF;
+}
+
+static int
+term_disable_cursor(void){
+  char* tstr = tiparm(cursor_invisible);
+  if(tstr == NULL){
+    return -1;
+  }
+  if(tputs(tstr, 1, erpchar) != OK){
+    return -1;
+  }
+  return 0;
+}
+
+static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
   fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
@@ -357,6 +378,9 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(interrogate_terminfo(ret, opts)){
     goto err;
   }
+  if(term_disable_cursor()){
+    goto err;
+  }
   if(alloc_stdscr(ret) == NULL){
     goto err;
   }
@@ -393,14 +417,6 @@ int notcurses_stop(notcurses* nc){
     free(nc);
   }
   return ret;
-}
-
-static int
-erpchar(int c){
-  if(write(STDOUT_FILENO, &c, 1) == 1){
-    return c;
-  }
-  return EOF;
 }
 
 int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
@@ -577,6 +593,8 @@ advance_cursor(ncplane* n){
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
+  struct timespec start, done;
+  clock_gettime(nc->timer, &start);
   int ret = 0;
   int y, x;
   if(term_movyx(0, 0)){
@@ -600,6 +618,7 @@ int notcurses_render(notcurses* nc){
       term_putc(nc, nc->stdscr, c);
     }
   }
+  clock_gettime(nc->timer, &done);
   return ret;
 }
 
@@ -771,8 +790,8 @@ int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
     return -1;
   }
   int ret = vsnprintf(buf, size, format, ap);
-  if(ncplane_putstr(n, buf)){ // FIXME handle short writes also!
-    ret = -1;
+  if(ret > 0){
+    ret = ncplane_putstr(n, buf); // FIXME handle short writes also!
   }
   free(buf);
   return ret;
