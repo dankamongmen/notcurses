@@ -4,6 +4,7 @@
 class NcplaneTest : public :: testing::Test {
  protected:
   void SetUp() override {
+    setlocale(LC_ALL, nullptr);
     if(getenv("TERM") == nullptr){
       GTEST_SKIP();
     }
@@ -13,6 +14,7 @@ class NcplaneTest : public :: testing::Test {
     ASSERT_NE(nullptr, nc_);
     n_ = notcurses_stdplane(nc_);
     ASSERT_NE(nullptr, n_);
+    ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
   }
 
   void TearDown() override {
@@ -104,7 +106,7 @@ TEST_F(NcplaneTest, RejectBadRGB) {
 TEST_F(NcplaneTest, EmitWchar) {
   const char cchar[] = "✔";
   cell c{};
-  cell_load(n_, &c, cchar);
+  EXPECT_EQ(strlen(cchar), cell_load(n_, &c, cchar));
   EXPECT_EQ(strlen(cchar), ncplane_putc(n_, &c));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
