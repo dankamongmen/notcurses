@@ -110,6 +110,12 @@ int main(int argc, char** argv){
   if(ncplane_putstr(ncp, str) != (int)strlen(str)){
     goto err;
   }
+  if(ncplane_fg_rgb8(ncp, 121, 176, 121)){
+    goto err;
+  }
+  if(ncplane_bg_rgb8(ncp, 0, 0, 0)){
+    goto err;
+  }
   const char bstr[] = "▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
   if(ncplane_cursor_move_yx(ncp, rows / 2 + 3, (cols - strlen(bstr) + 4) / 2)){
     goto err;
@@ -117,6 +123,32 @@ int main(int argc, char** argv){
   if(ncplane_putstr(ncp, bstr) != (int)strlen(bstr)){
     goto err;
   }
+  /* FIXME
+  cell ul = CELL_TRIVIAL_INITIALIZER;
+  cell ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER;
+  cell lr = CELL_TRIVIAL_INITIALIZER;
+  cell vl = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER;
+  cell_load(ncp, &ul, "╭");
+  cell_load(ncp, &ur, "╮");
+  cell_load(ncp, &ll, "╰");
+  cell_load(ncp, &lr, "╯");
+  cell_load(ncp, &vl, "│");
+  cell_load(ncp, &hl, "─");
+  if(ncplane_cursor_move_yx(ncp, 1, 1)){
+    goto err;
+  }
+  if(ncplane_fg_rgb8(ncp, 121, 176, 121)){
+    goto err;
+  }
+  if(ncplane_bg_rgb8(ncp, 250, 250, 250)){
+    goto err;
+  }
+  if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &vl, &hl, y - 4, x - 4)){
+    goto err;
+  }
+  */
   if(notcurses_render(nc)){
     goto err;
   }

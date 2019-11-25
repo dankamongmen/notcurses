@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include "notcurses.h"
+#include "timespec.h"
 #include "version.h"
 #include "egcpool.h"
 
@@ -47,9 +48,35 @@ typedef struct ncplane {
   uint32_t attrword;    // same deal as in a cell
 } ncplane;
 
+typedef struct ncstats {
+  uint64_t renders;       // number of notcurses_render() runs
+  uint64_t renders_ns;    // number of nanoseconds spent in notcurses_render()
+  int64_t render_max_ns;  // max ns spent in notcurses_render()
+  int64_t render_min_ns;  // min ns spent in successful notcurses_render()
+} ncstats;
+
+static void
+update_render_stats(const struct timespec* time1, const struct timespec* time0,
+                    ncstats* stats){
+  int64_t elapsed = timespec_subtract_ns(time1, time0);
+  fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / 1000000000,
+          (elapsed % 1000000000) / 1000000);
+  if(elapsed > 0){ // don't count clearly incorrect information, egads
+    ++stats->renders;
+    stats->renders_ns += elapsed;
+    if(elapsed > stats->render_max_ns){
+      stats->render_max_ns = elapsed;
+    }
+    if(elapsed < stats->render_min_ns || stats->render_min_ns == 0){
+      stats->render_min_ns = elapsed;
+    }
+  }
+}
+
 typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty (takes stdin)
   int colors;     // number of colors usable for this screen
+  ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some capabilities exist (see required_caps). Those needn't
   // be checked before further use; just use tiparm() directly. These might be
   // NULL, and we can more or less work without them.
@@ -378,6 +405,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
     goto err;
   }
   ret->stdscr = ret->top;
+  memset(&ret->stats, 0, sizeof(ret->stats));
   printf("%d rows, %d columns (%zub), %d colors (%s)\n",
          ret->top->leny, ret->top->lenx,
          ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
@@ -397,6 +425,13 @@ err:
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
+    double avg = nc->stats.renders_ns / (double)nc->stats.renders;
+    fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
+            nc->stats.renders,
+            nc->stats.renders_ns / 1000000000.0,
+            nc->stats.render_min_ns / 1000000000.0,
+            nc->stats.render_max_ns / 1000000000.0,
+            avg / 1000000000);
     if(nc->rmcup && term_emit(nc->rmcup)){
       ret = -1;
     }
@@ -611,6 +646,7 @@ int notcurses_render(notcurses* nc){
     }
   }
   clock_gettime(CLOCK_MONOTONIC, &done);
+  update_render_stats(&done, &start, &nc->stats);
   return ret;
 }
 
