@@ -59,8 +59,8 @@ static void
 update_render_stats(const struct timespec* time1, const struct timespec* time0,
                     ncstats* stats){
   int64_t elapsed = timespec_subtract_ns(time1, time0);
-  fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / 1000000000,
-          (elapsed % 1000000000) / 1000000);
+  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / 1000000000,
+  //        (elapsed % 1000000000) / 1000000);
   if(elapsed > 0){ // don't count clearly incorrect information, egads
     ++stats->renders;
     stats->renders_ns += elapsed;
