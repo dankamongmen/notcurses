@@ -17,6 +17,20 @@ usage(const char* exe, int status){
 }
 
 static int
+ext_demos(struct notcurses* nc){
+  if(grid_demo(nc)){
+    return -1;
+  }
+  if(box_demo(nc)){
+    return -1;
+  }
+  if(widecolor_demo(nc)){
+    return -1;
+  }
+  return 0;
+}
+
+static int
 handle_opts(int argc, char** argv, notcurses_options* opts){
   int c;
   memset(opts, 0, sizeof(*opts));
@@ -59,10 +73,11 @@ int main(int argc, char** argv){
   int x, y, rows, cols;
   ncplane_dimyx(ncp, &rows, &cols);
   cell c;
-  memset(&c, 0, sizeof(c));
+  cell_init(&c);
   const char* cstr = "✓";
   cell_load(ncp, &c, cstr);
   cell_set_fg(&c, 200, 0, 200);
+  cell_set_bg(&c, 0, 200, 200);
   for(y = 2 ; y < rows - 2 ; ++y){
     if(ncplane_cursor_move_yx(ncp, y, 2)){
       goto err;
@@ -79,7 +94,7 @@ int main(int argc, char** argv){
   }
   sleep(1);
   const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
-  if(ncplane_cursor_move_yx(ncp, y / 2, (x - strlen(str) + 4) / 2)){
+  if(ncplane_cursor_move_yx(ncp, rows / 2, (cols - strlen(str) + 4) / 2)){
     goto err;
   }
   if(ncplane_fg_rgb8(ncp, 176, 121, 176)){
@@ -95,13 +110,7 @@ int main(int argc, char** argv){
     goto err;
   }
   sleep(1);
-  if(grid_demo(nc)){
-    goto err;
-  }
-  if(box_demo(nc)){
-    goto err;
-  }
-  if(widecolor_demo(nc, ncp)){
+  if(ext_demos(nc)){
     goto err;
   }
   if(notcurses_stop(nc)){
