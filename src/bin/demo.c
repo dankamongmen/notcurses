@@ -95,6 +95,9 @@ int main(int argc, char** argv){
     goto err;
   }
   sleep(1);
+  if(grid_demo(nc)){
+    goto err;
+  }
   if(box_demo(nc)){
     goto err;
   }

@@ -11,6 +11,7 @@ extern "C" {
 
 int widecolor_demo(struct notcurses* nc, struct ncplane* n);
 int box_demo(struct notcurses* nc);
+int grid_demo(struct notcurses* nc);
 
 #ifdef __cplusplus
 }
