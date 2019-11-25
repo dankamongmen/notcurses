@@ -72,6 +72,9 @@ typedef struct notcurses_options {
   // If smcup/rmcup capabilities are indicated, notcurses defaults to making
   // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;
+  // By default, we hide the cursor if possible. This flag inhibits use of
+  // the civis capability, retaining the cursor.
+  bool retain_cursor;
 } notcurses_options;
 
 // Initialize a notcurses context, corresponding to a connected terminal.
