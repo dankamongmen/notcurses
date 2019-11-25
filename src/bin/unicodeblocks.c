@@ -7,9 +7,9 @@
 #include "demo.h"
 
 // show unicode blocks. a block is always a multiple of 16 codepoints.
-#define ITERATIONS 20 // show this many pages
-#define BLOCKSIZE 256 // show this many per page
-#define CHUNKSIZE 16  // show this many per line
+#define ITERATIONS 30 // show this many pages
+#define BLOCKSIZE 512 // show this many per page
+#define CHUNKSIZE 32  // show this many per line
 
 int unicodeblocks_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
@@ -26,11 +26,11 @@ int unicodeblocks_demo(struct notcurses* nc){
     }
     ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
     ncplane_bg_rgb8(n, 0, 0, 0);
-    if(ncplane_printf(n, "Unicode points %x–%x\n", blockstart, blockstart + BLOCKSIZE) <= 0){
+    if(ncplane_printf(n, "Unicode points %04x–%04x\n", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
     for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
-      if(ncplane_cursor_move_yx(n, 4 + chunk, 4)){
+      if(ncplane_cursor_move_yx(n, 4 + chunk, 1)){
         return -1;
       }
       int z;
@@ -70,10 +70,10 @@ int unicodeblocks_demo(struct notcurses* nc){
         return -1;
       }
     }
-    usleep(100000);
+    usleep(10000);
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused. cap at 0x3000.
-    blockstart = random() % 0x3000;
+    blockstart += BLOCKSIZE;
   }
   return 0;
 }
