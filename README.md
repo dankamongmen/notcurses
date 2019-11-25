@@ -66,6 +66,13 @@ On the other hand, if you're targeting industrial or critical applications,
 or wish to benefit from the time-tested reliability and portability of Curses,
 you should by all means use that fine library.
 
+## Requirements
+
+* A C11 and a C++14 compiler
+* CMake 3.13.0+
+* NCurses 6.1+
+* LibAV 0.29+
+
 ## Basic use
 
 A program wishing to use notcurses will need to link it, ideally using the
