@@ -77,8 +77,9 @@ int main(int argc, char** argv){
   const char* cstr = "✓";
   cell_load(ncp, &c, cstr);
   cell_set_fg(&c, 200, 0, 200);
-  cell_set_bg(&c, 0, 200, 200);
+  int ys = 200 / (rows - 2);
   for(y = 2 ; y < rows - 2 ; ++y){
+    cell_set_bg(&c, 0, y * ys  , 0);
     if(ncplane_cursor_move_yx(ncp, y, 2)){
       goto err;
     }

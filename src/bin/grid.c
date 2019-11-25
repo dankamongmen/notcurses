@@ -191,6 +191,9 @@ int grid_demo(struct notcurses* nc){
 
   // top line
   x = 0;
+  cell_set_bg(&ul, y, y, y);
+  cell_set_bg(&uc, y, y, y);
+  cell_set_bg(&ur, y, y, y);
   cell_set_fg(&ul, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
   ncplane_putc(n, &ul);
   for(x = 1 ; x < maxx - 1 ; ++x){
@@ -203,6 +206,9 @@ int grid_demo(struct notcurses* nc){
   // center
   for(y = 1 ; y < maxy - 1 ; ++y){
     x = 0;
+    cell_set_bg(&cl, y, y, y);
+    cell_set_bg(&cc, y, y, y);
+    cell_set_bg(&cr, y, y, y);
     cell_set_fg(&cl, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
     ncplane_putc(n, &cl);
     for(x = 1 ; x < maxx - 1 ; ++x){
@@ -215,6 +221,9 @@ int grid_demo(struct notcurses* nc){
 
   // bottom line
   x = 0;
+  cell_set_bg(&ll, y, y, y);
+  cell_set_bg(&lc, y, y, y);
+  cell_set_bg(&lr, y, y, y);
   cell_set_fg(&ll, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
   ncplane_putc(n, &ll);
   for(x = 1 ; x < maxx - 1 ; ++x){
