@@ -1,7 +1,16 @@
 # notcurses
 cleanroom TUI library for modern terminal emulators. definitely not curses.
 
+* [Introduction](#introduction)
+* [Basic use](#basic-use)
+  * [Planes](#planes)
+  * [Cells](#cells)
+* [Differences from NCURSES](#differences-from-ncurses)
+* [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
+
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
+
+## Introduction
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
     emulators, supporting vivid colors and Unicode to the maximum degree
@@ -11,12 +20,6 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
     replacement for NCURSES on existing systems, nor a widely-ported and -tested
     bedrock of Open Source, nor a battle-proven, veteran library.
-
-* [Basic use](#basic-use)
-  * [Planes](#planes)
-  * [Cells](#cells)
-* [Differences from NCURSES](#differences-from-ncurses)
-* [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
 
 notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
