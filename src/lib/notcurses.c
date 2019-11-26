@@ -12,15 +12,6 @@
 #include "version.h"
 #include "egcpool.h"
 
-// Some capabilities are so fundamental that we don't attempt to run without
-// them. Essentially, we require a two-dimensional, random-access terminal.
-static const char* required_caps[] = {
-  "cup",   // can we move to an x,y coordinate in one op?
-  "clear", // can we clear the screen?
-  "civis", // can we hide the cursor?
-  NULL
-};
-
 // A plane is memory for some rectilinear virtual window, plus current cursor
 // state for that window. A notcurses context describes a single terminal, and
 // has a z-order of planes (I see no advantage to maintaining a poset, and we
@@ -76,15 +67,18 @@ typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty (takes stdin)
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
-  // We verify that some capabilities exist (see required_caps). Those needn't
-  // be checked before further use; just use tiparm() directly. These might be
-  // NULL, and we can more or less work without them.
+  // We verify that some terminfo capabilities exist. These needn't be checked
+  // before further use; just use tiparm() directly.
+  char* cup;      // move cursor
   char* civis;    // hide cursor
+  char* clear;    // erase screen and home cursor
+  // These might be NULL, and we can more or less work without them. Check!
   char* cnorm;    // restore cursor to default state
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode
   char* setaf;    // set foreground color (ANSI)
   char* setab;    // set background color (ANSI)
+  char* op;       // set foreground and background color to default
   char* standout; // WA_STANDOUT
   char* uline;    // WA_UNDERLINK
   char* reverse;  // WA_REVERSE
@@ -164,8 +158,8 @@ free_plane(ncplane* p){
 }
 
 static int
-term_emit(const char* seq){
-  int ret = printf("%s", seq);
+term_emit(const char* seq, FILE* out){
+  int ret = fprintf(out, "%s", seq);
   if(ret < 0){
     fprintf(stderr, "Error emitting %zub sequence (%s)\n", strlen(seq), strerror(errno));
     return -1;
@@ -252,14 +246,6 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 static int
-erpchar(int c){
-  if(write(STDOUT_FILENO, &c, 1) == 1){
-    return c;
-  }
-  return EOF;
-}
-
-static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
   fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
@@ -271,15 +257,15 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
     fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
             nc->colors);
   }
-  const char** cap;
-  for(cap = required_caps ; *cap ; ++cap){
-    if(term_verify_seq(NULL, *cap)){
-      fprintf(stderr, "Capability not defined for terminal: %s\n", *cap);
-      return -1;
-    }
+  term_verify_seq(&nc->cup, "cup");
+  term_verify_seq(&nc->civis, "civis");
+  term_verify_seq(&nc->clear, "clear");
+  if(nc->cup == NULL || nc->civis == NULL || nc->clear == NULL){
+    fprintf(stderr, "Required terminfo capability not defined\n");
+    return -1;
   }
   if(!opts->retain_cursor){
-    if(term_emit(tiparm(cursor_invisible))){
+    if(term_emit(tiparm(cursor_invisible), stdout)){
       return -1;
     }
     term_verify_seq(&nc->cnorm, "cnorm");
@@ -292,6 +278,8 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   term_verify_seq(&nc->dim, "dim");
   term_verify_seq(&nc->bold, "bold");
   term_verify_seq(&nc->italics, "sitm");
+  term_verify_seq(&nc->op, "op");
+  term_verify_seq(&nc->clear, "clear");
   // Some terminals cannot combine certain styles with colors. Don't advertise
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
@@ -375,7 +363,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
          ret->top->leny, ret->top->lenx,
          ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
          ret->colors, ret->RGBflag ? "direct" : "palette");
-  if(ret->smcup && term_emit(ret->smcup)){
+  if(ret->smcup && term_emit(ret->smcup, stdout)){
     free_plane(ret->top);
     goto err;
   }
@@ -390,10 +378,10 @@ err:
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
-    if(nc->rmcup && term_emit(nc->rmcup)){
+    if(nc->rmcup && term_emit(nc->rmcup, stdout)){
       ret = -1;
     }
-    if(nc->cnorm && term_emit(nc->cnorm)){
+    if(nc->cnorm && term_emit(nc->cnorm, stdout)){
       return -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
@@ -438,12 +426,12 @@ int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
 
 // 3 for foreground, 4 for background, ugh FIXME
 static int
-term_esc_rgb(notcurses* nc, int esc, unsigned r, unsigned g, unsigned b){
+term_esc_rgb(FILE* out, int esc, unsigned r, unsigned g, unsigned b){
   #define RGBESC1 "\x1b["
   #define RGBESC2 "8;2;"
                                     // rrr;ggg;bbbm
   char rgbesc[] = RGBESC1 " " RGBESC2 "            ";
-  size_t len = strlen(RGBESC1);
+  int len = strlen(RGBESC1);
   rgbesc[len++] = esc + '0';
   len += strlen(RGBESC2);
   if(r > 99){ rgbesc[len++] = r / 100 + '0'; }
@@ -459,22 +447,22 @@ term_esc_rgb(notcurses* nc, int esc, unsigned r, unsigned g, unsigned b){
   rgbesc[len++] = b % 10 + '0';
   rgbesc[len++] = 'm';
   rgbesc[len] = '\0';
-  ssize_t w;
-  if((w = write(nc->ttyfd, rgbesc, len)) < 0 || (size_t)w != len){
+  int w;
+  if((w = fprintf(out, "%.*s", len, rgbesc)) < len){
     return -1;
   }
   return 0;
 }
 
 static int
-term_bg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
+term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(nc->RGBflag){
-    return term_esc_rgb(nc, 4, r, g, b);
+    return term_esc_rgb(out, 4, r, g, b);
   }else{
     if(nc->setaf == NULL){
       return -1;
@@ -489,14 +477,14 @@ term_bg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
 }
 
 static int
-term_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
+term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(nc->RGBflag){
-    return term_esc_rgb(nc, 3, r, g, b);
+    return term_esc_rgb(out, 3, r, g, b);
   }else{
     if(nc->setaf == NULL){
       return -1;
@@ -505,19 +493,6 @@ term_fg_rgb8(notcurses* nc, unsigned r, unsigned g, unsigned b){
     // the inputs *if we can change the palette*. If more than 256 are used on
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
-    return -1;
-  }
-  return 0;
-}
-
-// Move to the given coordinates on the physical terminal
-static int
-term_movyx(int y, int x){
-  char* tstr = tiparm(cursor_address, y, x);
-  if(tstr == NULL){
-    return -1;
-  }
-  if(tputs(tstr, 1, erpchar) != OK){
     return -1;
   }
   return 0;
@@ -553,27 +528,24 @@ extended_gcluster(const ncplane* n, const cell* c){
   return n->pool.pool + idx;
 }
 
-// Write the cell's UTF-8 grapheme cluster to the physical terminal.
-// FIXME maybe want to use a wmemstream
+// write the cell's UTF-8 grapheme cluster to the provided FILE*
 static int
-term_putc(const notcurses* nc, const ncplane* n, const cell* c){
-  ssize_t w;
+term_putc(FILE* out, const ncplane* n, const cell* c){
   if(simple_cell_p(c)){
     if(c->gcluster == 0){
-      if((w = write(nc->ttyfd, " ", 1)) < 0 || (size_t)w != 1){ // FIXME
+      if(fputc(' ', out) == EOF){
         return -1;
       }
-      return 0;
+    }else{
+      if(fputc(c->gcluster, out) == EOF){
+        return -1;
+      }
     }
-    if((w = write(nc->ttyfd, &c->gcluster, 1)) < 0 || (size_t)w != 1){ // FIXME
+  }else{
+    const char* ext = extended_gcluster(n, c);
+    if(fprintf(out, "%s", ext) < 0){ // FIXME check for short write
       return -1;
     }
-    return 0;
-  }
-  const char* ext = extended_gcluster(n, c);
-  size_t len = strlen(ext);
-  if((w = write(nc->ttyfd, ext, len)) < 0 || (size_t)w != len){
-    return -1;
   }
   return 0;
 }
@@ -602,28 +574,35 @@ int notcurses_render(notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &start);
   int ret = 0;
   int y, x;
-  if(term_movyx(0, 0)){
+  char* buf = NULL;
+  size_t buflen = 0;
+  FILE* out = open_memstream(&buf, &buflen);
+  if(out == NULL){
     return -1;
   }
+  term_emit(nc->clear, out);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
-      // FIXME z-culling
+      // FIXME z-culling!
       const cell* c = &nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)];
-      cell_get_fg(c, &r, &g, &b);
-      if(cell_fg_default_p(c)){
-        r = 255; g = 255; b = 255; // FIXME
+      // FIXME we allow these to be set distinctly, but terminfo only
+      // supports using them both via the 'op' capability
+      if(cell_fg_default_p(c) || cell_bg_default_p(c)){
+        term_emit(nc->op, out);
+      }else{
+        cell_get_fg(c, &r, &g, &b);
+        cell_get_bg(c, &br, &bg, &bb);
+        term_fg_rgb8(nc, out, r, g, b);
+        term_bg_rgb8(nc, out, br, bg, bb);
       }
-      cell_get_bg(c, &br, &bg, &bb);
-      if(cell_bg_default_p(c)){
-        r = 0; g = 0; b = 0; // FIXME
-      }
-      term_fg_rgb8(nc, r, g, b);
-      term_bg_rgb8(nc, br, bg, bb);
-      term_putc(nc, nc->stdscr, c);
+      term_putc(out, nc->stdscr, c);
     }
   }
+  ret |= fclose(out);
+  printf("%.*s", (int)buflen, buf);
   clock_gettime(CLOCK_MONOTONIC, &done);
+  free(buf);
   update_render_stats(&done, &start, &nc->stats);
   return ret;
 }
