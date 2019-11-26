@@ -24,13 +24,13 @@ ext_demos(struct notcurses* nc){
   if(box_demo(nc)){
     return -1;
   }
-  if(unicodeblocks_demo(nc)){
-    return -1;
-  }
   if(grid_demo(nc)){
     return -1;
   }
   if(widecolor_demo(nc)){
+    return -1;
+  }
+  if(unicodeblocks_demo(nc)){
     return -1;
   }
   return 0;
@@ -80,7 +80,7 @@ int main(int argc, char** argv){
   ncplane_dimyx(ncp, &rows, &cols);
   cell c;
   cell_init(&c);
-  const char* cstr = "✓";
+  const char* cstr = "Δ";
   cell_load(ncp, &c, cstr);
   cell_set_fg(&c, 200, 0, 200);
   int ys = 200 / (rows - 2);
@@ -96,44 +96,6 @@ int main(int argc, char** argv){
     }
   }
   cell_release(ncp, &c);
-  if(notcurses_render(nc)){
-    goto err;
-  }
-  sleep(1);
-  const char s1[] = " Die Welt ist alles, was der Fall ist. ";
-  const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
-  if(ncplane_fg_rgb8(ncp, 176, 121, 176)){
-    goto err;
-  }
-  if(ncplane_bg_rgb8(ncp, 100, 100, 100)){
-    goto err;
-  }
-  if(ncplane_cursor_move_yx(ncp, rows / 2 - 1, (cols - strlen(s1) + 4) / 2)){
-    goto err;
-  }
-  if(ncplane_putstr(ncp, s1) != (int)strlen(s1)){
-    goto err;
-  }
-  if(ncplane_cursor_move_yx(ncp, rows / 2, (cols - strlen(str) + 4) / 2)){
-    goto err;
-  }
-  if(ncplane_putstr(ncp, str) != (int)strlen(str)){
-    goto err;
-  }
-  if(ncplane_fg_rgb8(ncp, 121, 176, 121)){
-    goto err;
-  }
-  if(ncplane_bg_rgb8(ncp, 0, 0, 0)){
-    goto err;
-  }
-  const char bstr[] = "▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  if(ncplane_cursor_move_yx(ncp, rows / 2 + 3, (cols - strlen(bstr) + 4) / 2)){
-    goto err;
-  }
-  if(ncplane_putstr(ncp, bstr) != (int)strlen(bstr)){
-    goto err;
-  }
-  /* FIXME
   cell ul = CELL_TRIVIAL_INITIALIZER;
   cell ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER;
@@ -149,16 +111,52 @@ int main(int argc, char** argv){
   if(ncplane_cursor_move_yx(ncp, 1, 1)){
     goto err;
   }
-  if(ncplane_fg_rgb8(ncp, 121, 176, 121)){
+  cell_set_fg(&ul, 90, 0, 90);
+  cell_set_fg(&ur, 90, 0, 90);
+  cell_set_fg(&ll, 90, 0, 90);
+  cell_set_fg(&lr, 90, 0, 90);
+  cell_set_fg(&vl, 90, 0, 90);
+  cell_set_fg(&hl, 90, 0, 90);
+  cell_set_bg(&ul, 0, 0, 180);
+  cell_set_bg(&ur, 0, 0, 180);
+  cell_set_bg(&ll, 0, 0, 180);
+  cell_set_bg(&lr, 0, 0, 180);
+  cell_set_bg(&vl, 0, 0, 180);
+  cell_set_bg(&hl, 0, 0, 180);
+  if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 1, cols - 2)){
     goto err;
   }
-  if(ncplane_bg_rgb8(ncp, 250, 250, 250)){
+  if(notcurses_render(nc)){
     goto err;
   }
-  if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &vl, &hl, y - 4, x - 4)){
+  sleep(1);
+  const char s1[] = " Die Welt ist alles, was der Fall ist. ";
+  const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
+  if(ncplane_fg_rgb8(ncp, 192, 192, 192)){
     goto err;
   }
-  */
+  if(ncplane_bg_rgb8(ncp, 0, 40, 0)){
+    goto err;
+  }
+  if(ncplane_cursor_move_yx(ncp, rows / 2 - 2, (cols - strlen(s1) + 4) / 2)){
+    goto err;
+  }
+  if(ncplane_putstr(ncp, s1) != (int)strlen(s1)){
+    goto err;
+  }
+  if(ncplane_cursor_move_yx(ncp, rows / 2, (cols - strlen(str) + 4) / 2)){
+    goto err;
+  }
+  if(ncplane_putstr(ncp, str) != (int)strlen(str)){
+    goto err;
+  }
+  const char bstr[] = "▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
+  if(ncplane_cursor_move_yx(ncp, rows / 2 + 3, (cols - strlen(bstr) + 4) / 2)){
+    goto err;
+  }
+  if(ncplane_putstr(ncp, bstr) != (int)strlen(bstr)){
+    goto err;
+  }
   if(notcurses_render(nc)){
     goto err;
   }
