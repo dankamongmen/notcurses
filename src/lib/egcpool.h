@@ -170,8 +170,10 @@ egcpool_release(egcpool* pool, size_t offset){
 static inline void
 egcpool_dump(egcpool* pool){
   free(pool->pool);
+  pool->pool = NULL;
   pool->poolsize = 0;
   pool->poolwrite = 0;
+  pool->poolused = 0;
 }
 
 #ifdef __cplusplus
