@@ -659,7 +659,7 @@ int ncplane_putc(ncplane* n, const cell* c){
   }
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
-  advance_cursor(n, 1); // FIXME
+  advance_cursor(n, 1 + cell_wide_p(c)); // FIXME
   return ret;
 }
 
