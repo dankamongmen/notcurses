@@ -12,7 +12,7 @@ int egcpool_grow(egcpool* pool, size_t len){
     newsize *= 2;
   }
   // offsets only have 24 bits available...
-  if(newsize >= 1u << 23u){
+  if(newsize >= 1u << 24u){
     return -1;
   }
   typeof(*pool->pool)* tmp = realloc(pool->pool, newsize);
