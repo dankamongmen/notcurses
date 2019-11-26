@@ -900,6 +900,9 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
     }
     ++yoff;
   }
+  if(ncplane_cursor_move_yx(n, yoff, xoff)){
+    return -1;
+  }
   if(ncplane_putc(n, ll) < 0){
     return -1;
   }
