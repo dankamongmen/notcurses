@@ -30,7 +30,7 @@ int unicodeblocks_demo(struct notcurses* nc){
       return -1;
     }
     for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
-      if(ncplane_cursor_move_yx(n, 4 + chunk, 1)){
+      if(ncplane_cursor_move_yx(n, 4 + chunk, 2)){
         return -1;
       }
       int z;
