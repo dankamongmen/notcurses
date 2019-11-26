@@ -161,7 +161,31 @@ TEST_F(NcplaneTest, VerticalLines) {
   cell_release(n_, &c);
 }
 
-TEST_F(NcplaneTest, ConcentricBoxen) {
+// reject attempts to draw boxes beyond the boundaries of the ncplane
+TEST_F(NcplaneTest, BadlyPlacedBoxen) {
+  int x, y;
+  ncplane_dimyx(n_, &y, &x);
+  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
+  cell_load(n_, &ul, "╭");
+  cell_load(n_, &ur, "╮");
+  cell_load(n_, &ll, "╰");
+  cell_load(n_, &lr, "╯");
+  cell_load(n_, &vl, "│");
+  cell_load(n_, &hl, "─");
+  EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 1, 0));
+  EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, 1));
+  EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 1, x - 1));
+  EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, 2, 2));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 2, x - 1));
+  EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, 2, 2));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 1, x - 2));
+  EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, 2, 2));
+}
+
+TEST_F(NcplaneTest, PerimeterBox) {
   int x, y;
   ncplane_dimyx(n_, &y, &x);
   ASSERT_LT(0, y);
