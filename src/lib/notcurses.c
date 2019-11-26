@@ -889,8 +889,6 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
 }
 
 void ncplane_erase(ncplane* n){
-  // FIXME if we've been shrunk since creation, and haven't explicitly resized,
-  // what happens here...?
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
