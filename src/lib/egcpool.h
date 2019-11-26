@@ -17,10 +17,10 @@ extern "C" {
 // recognizable as use for another cell.
 
 typedef struct egcpool {
-  char* pool;            // ringbuffer of attached extension storage
-  size_t poolsize;       // total number of bytes in pool
-  size_t poolused;       // bytes actively used, grow when this gets too large
-  size_t poolwrite;      // next place to *look for* a place to write
+  char* pool;         // ringbuffer of attached extension storage
+  int poolsize;       // total number of bytes in pool
+  int poolused;       // bytes actively used, grow when this gets too large
+  int poolwrite;      // next place to *look for* a place to write
 } egcpool;
 
 static inline void
@@ -37,8 +37,8 @@ int egcpool_grow(egcpool* pool, size_t len);
 // consumed, not including any NUL terminator. Note that neither the number
 // of bytes nor columns is necessarily equivalent to the number of decoded code
 // points. Such are the ways of Unicode.
-static inline size_t
-utf8_gce_len(const char* gcluster, int* colcount){
+static inline int
+utf8_egc_len(const char* gcluster, int* colcount){
   size_t ret = 0;
   *colcount = 0;
   wchar_t wc;
@@ -64,8 +64,8 @@ utf8_gce_len(const char* gcluster, int* colcount){
 
 // if we're inserting a EGC of |len| bytes, ought we proactively realloc?
 static inline bool
-egcpool_alloc_justified(const egcpool* pool, size_t len){
-  const size_t poolfree = pool->poolsize - pool->poolused;
+egcpool_alloc_justified(const egcpool* pool, int len){
+  const int poolfree = pool->poolsize - pool->poolused;
   // proactively get more space if we have less than 10% free. this doesn't
   // guarantee that we'll have enough space to insert the string -- we could
   // theoretically have every 10th byte free, and be unable to write even a
@@ -83,7 +83,7 @@ egcpool_alloc_justified(const egcpool* pool, size_t len){
 // columns is stored to '*cols'.
 static inline int
 egcpool_stash(egcpool* pool, const char* egc, size_t* ulen, int* cols){
-  size_t len = utf8_gce_len(egc, cols) + 1; // count the NUL terminator
+  int len = utf8_egc_len(egc, cols) + 1; // count the NUL terminator
   if(len <= 2){ // should never be empty, nor a single byte + NUL
     return -1;
   }
@@ -111,7 +111,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t* ulen, int* cols){
     // row. starting at pool->poolwrite, look for such a range of unused
     // memory. if we find it, write it out, and update used count. if we come
     // back to where we started, force a growth and try again.
-    size_t curpos = pool->poolwrite; 
+    int curpos = pool->poolwrite;
     do{
       if(curpos == pool->poolsize){
         curpos = 0;
@@ -124,7 +124,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t* ulen, int* cols){
         }
         curpos = 0; // can this skip pool->poolwrite?
       }else{ // promising! let's see if there's enough space
-        size_t need = len;
+        int need = len;
         size_t trial = curpos;
         while(--need){
           if(pool->pool[++trial]){ // alas, not enough space here
@@ -144,7 +144,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t* ulen, int* cols){
         }
         curpos += len - need;
       }
-    }while(curpos != pool->poolwrite); 
+    }while(curpos != pool->poolwrite);
   }while( (searched = !searched) );
   free(duplicated);
   return -1; // should never get here
@@ -154,7 +154,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t* ulen, int* cols){
 // we find a zero (our own NUL terminator). remove that number of bytes from
 // the usedcount.
 static inline void
-egcpool_release(egcpool* pool, size_t offset){
+egcpool_release(egcpool* pool, int offset){
   size_t freed = 1; // account for free(d) NUL terminator
   while(pool->pool[offset]){
     pool->pool[offset] = '\0';

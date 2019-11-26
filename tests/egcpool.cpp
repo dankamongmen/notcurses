@@ -26,7 +26,7 @@ TEST_F(EGCPoolTest, Initialized) {
 TEST_F(EGCPoolTest, UTF8EGC) {
   const char* wstr = "☢";
   int c;
-  auto ulen = utf8_gce_len(wstr, &c);
+  auto ulen = utf8_egc_len(wstr, &c);
   ASSERT_LT(0, ulen);
   EXPECT_LT(0, c);
 }
@@ -36,13 +36,17 @@ TEST_F(EGCPoolTest, UTF8EGC) {
 TEST_F(EGCPoolTest, UTF8EGCCombining) {
   const char* w1 = "à"; // U+00E0, U+0000         (c3 a0)
   const char* w2 = "à"; // U+0061, U+0300, U+0000 (61 cc 80)
-  int c1, c2;
-  auto u1 = utf8_gce_len(w1, &c1);
-  auto u2 = utf8_gce_len(w2, &c2);
+  const char* w3 = "a"; // U+0061, U+0000         (61)
+  int c1, c2, c3;
+  auto u1 = utf8_egc_len(w1, &c1);
+  auto u2 = utf8_egc_len(w2, &c2);
+  auto u3 = utf8_egc_len(w3, &c3);
   ASSERT_EQ(2, u1);
   ASSERT_EQ(3, u2);
+  ASSERT_EQ(1, u3);
   ASSERT_EQ(1, c1);
   ASSERT_EQ(1, c2);
+  ASSERT_EQ(1, c3);
 }
 
 TEST_F(EGCPoolTest, AddAndRemove) {

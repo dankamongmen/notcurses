@@ -555,9 +555,15 @@ term_movyx(int y, int x){
 // is it a single ASCII byte, wholly contained within the cell?
 static inline bool
 simple_gcluster_p(const char* gcluster){
-  return *gcluster == '\0' ||
-         // FIXME need to ensure next character is not a nonspacer!
-         (*(unsigned char*)gcluster < 0x80);
+  if(*gcluster == '\0'){
+    return true;
+  }
+  if(*(unsigned char*)gcluster >= 0x80){
+    return false;
+  }
+  // we might be a simple ASCII, if the next character is *not* a nonspacing
+  // combining character
+  return false; // FIXME
 }
 
 static inline bool
@@ -677,8 +683,7 @@ ncplane_cursor_stuck(const ncplane* n){
   return (n->x == n->lenx && n->y == n->leny);
 }
 
-static int
-cell_duplicate(ncplane* n, cell* targ, const cell* c){
+int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   cell_release(n, targ);
   targ->attrword = c->attrword;
   targ->channels = c->channels;
@@ -688,7 +693,7 @@ cell_duplicate(ncplane* n, cell* targ, const cell* c){
   }
   size_t ulen;
   int cols;
-  // FIXME insert colcount into cell...
+  // FIXME insert colcount into cell...if it's ever valid, anyway
   int eoffset = egcpool_stash(&n->pool, extended_gcluster(n, c), &ulen, &cols);
   if(eoffset < 0){
     return -1;
@@ -733,12 +738,14 @@ void cell_release(ncplane* n, cell* c){
 // bytes copied out of 'gcluster', or -1 on failure.
 int cell_load(ncplane* n, cell* c, const char* gcluster){
   cell_release(n, c);
-  if(simple_gcluster_p(gcluster)){
+  int bytes;
+  int cols;
+  if((bytes = utf8_egc_len(gcluster, &cols)) >= 0 && bytes <= 1){
     c->gcluster = *gcluster;
     return !!c->gcluster;
   }
   size_t ulen;
-  int cols;
+  // FIXME feed in already-calculated lengths from prior utf8_egc_len()!
   int eoffset = egcpool_stash(&n->pool, gcluster, &ulen, &cols);
   if(eoffset < 0){
     return -1;

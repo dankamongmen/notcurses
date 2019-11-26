@@ -240,6 +240,10 @@ cell_init(cell* c){
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
+// Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
+// benefit of unit tests.
+int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
+
 // Release resources held by the cell 'c'.
 void cell_release(struct ncplane* n, cell* c);
 

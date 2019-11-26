@@ -209,3 +209,50 @@ TEST_F(NcplaneTest, PerimeterBox) {
 TEST_F(NcplaneTest, EraseScreen) {
   ncplane_erase(n_);
 }
+
+// we're gonna run both a composed latin a with grave, and then a latin a with
+// a combining nonspacing grave
+TEST_F(NcplaneTest, CellLoadCombining) {
+  const char* w1 = "à"; // U+00E0, U+0000         (c3 a0)
+  const char* w2 = "à"; // U+0061, U+0300, U+0000 (61 cc 80)
+  const char* w3 = "a"; // U+0061, U+0000         (61)
+  cell cell1 = CELL_TRIVIAL_INITIALIZER;
+  cell cell2 = CELL_TRIVIAL_INITIALIZER;
+  cell cell3 = CELL_TRIVIAL_INITIALIZER;
+  auto u1 = cell_load(n_, &cell1, w1);
+  auto u2 = cell_load(n_, &cell2, w2);
+  auto u3 = cell_load(n_, &cell3, w3);
+  ASSERT_EQ(2, u1);
+  ASSERT_EQ(3, u2);
+  ASSERT_EQ(1, u3);
+  cell_release(n_, &cell1);
+  cell_release(n_, &cell2);
+  cell_release(n_, &cell3);
+}
+
+TEST_F(NcplaneTest, CellDuplicateCombining) {
+  const char* w1 = "à"; // U+00E0, U+0000         (c3 a0)
+  const char* w2 = "à"; // U+0061, U+0300, U+0000 (61 cc 80)
+  const char* w3 = "a"; // U+0061, U+0000         (61)
+  cell cell1 = CELL_TRIVIAL_INITIALIZER;
+  cell cell2 = CELL_TRIVIAL_INITIALIZER;
+  cell cell3 = CELL_TRIVIAL_INITIALIZER;
+  auto u1 = cell_load(n_, &cell1, w1);
+  auto u2 = cell_load(n_, &cell2, w2);
+  auto u3 = cell_load(n_, &cell3, w3);
+  ASSERT_EQ(2, u1);
+  ASSERT_EQ(3, u2);
+  ASSERT_EQ(1, u3);
+  cell cell4 = CELL_TRIVIAL_INITIALIZER;
+  cell cell5 = CELL_TRIVIAL_INITIALIZER;
+  cell cell6 = CELL_TRIVIAL_INITIALIZER;
+  EXPECT_EQ(2, cell_duplicate(n_, &cell4, &cell1));
+  EXPECT_EQ(3, cell_duplicate(n_, &cell5, &cell2));
+  EXPECT_EQ(1, cell_duplicate(n_, &cell6, &cell3));
+  cell_release(n_, &cell1);
+  cell_release(n_, &cell2);
+  cell_release(n_, &cell3);
+  cell_release(n_, &cell4);
+  cell_release(n_, &cell5);
+  cell_release(n_, &cell6);
+}

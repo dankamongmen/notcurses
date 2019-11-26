@@ -100,14 +100,21 @@ int main(int argc, char** argv){
     goto err;
   }
   sleep(1);
+  const char s1[] = " Die Welt ist alles, was der Fall ist. ";
   const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
-  if(ncplane_cursor_move_yx(ncp, rows / 2, (cols - strlen(str) + 4) / 2)){
-    goto err;
-  }
   if(ncplane_fg_rgb8(ncp, 176, 121, 176)){
     goto err;
   }
   if(ncplane_bg_rgb8(ncp, 100, 100, 100)){
+    goto err;
+  }
+  if(ncplane_cursor_move_yx(ncp, rows / 2 - 1, (cols - strlen(s1) + 4) / 2)){
+    goto err;
+  }
+  if(ncplane_putstr(ncp, s1) != (int)strlen(s1)){
+    goto err;
+  }
+  if(ncplane_cursor_move_yx(ncp, rows / 2, (cols - strlen(str) + 4) / 2)){
     goto err;
   }
   if(ncplane_putstr(ncp, str) != (int)strlen(str)){
