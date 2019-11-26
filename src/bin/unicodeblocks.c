@@ -7,7 +7,7 @@
 #include "demo.h"
 
 // show unicode blocks. a block is always a multiple of 16 codepoints.
-#define ITERATIONS 30 // show this many pages
+#define ITERATIONS 24 // show this many pages
 #define BLOCKSIZE 512 // show this many per page
 #define CHUNKSIZE 32  // show this many per line
 
@@ -41,7 +41,7 @@ int unicodeblocks_demo(struct notcurses* nc){
         memset(&ps, 0, sizeof(ps));
         wchar_t w = blockstart + chunk * CHUNKSIZE + z;
         char utf8arr[MB_CUR_MAX + 1];
-        if(iswprint(w)){
+        if(wcwidth(w) == 1 && iswprint(w)){
           int bwc = wcrtomb(utf8arr, w, &ps);
           if(bwc < 0){
             fprintf(stderr, "Couldn't convert %u (%x) (%lc) (%s)\n",
