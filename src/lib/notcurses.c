@@ -576,7 +576,7 @@ int notcurses_render(notcurses* nc){
   int y, x;
   char* buf = NULL;
   size_t buflen = 0;
-  FILE* out = open_memstream(&buf, &buflen);
+  FILE* out = open_memstream(&buf, &buflen); // worth keeping around?
   if(out == NULL){
     return -1;
   }
@@ -600,7 +600,7 @@ int notcurses_render(notcurses* nc){
     }
   }
   ret |= fclose(out);
-  printf("%.*s", (int)buflen, buf);
+  printf("%s", buf);
   clock_gettime(CLOCK_MONOTONIC, &done);
   free(buf);
   update_render_stats(&done, &start, &nc->stats);
