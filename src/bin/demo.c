@@ -151,7 +151,7 @@ int main(int argc, char** argv){
     goto err;
   }
   const char bstr[] = "▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  if(ncplane_cursor_move_yx(ncp, rows / 2 + 3, (cols - strlen(bstr) + 4) / 2)){
+  if(ncplane_cursor_move_yx(ncp, rows / 2 - 5, (cols - strlen(bstr) + 4) / 2)){
     goto err;
   }
   if(ncplane_putstr(ncp, bstr) != (int)strlen(bstr)){
