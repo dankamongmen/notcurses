@@ -61,22 +61,22 @@ int unicodeblocks_demo(struct notcurses* nc){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     int chunk;
-    if(ncplane_cursor_move_yx(n, 2, 2)){
+    if(ncplane_cursor_move_yx(n, 2, 4)){
       return -1;
     }
     ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
     ncplane_bg_rgb8(n, 0, 0, 0);
-    if(ncplane_printf(n, "Unicode points %04x–%04x\n", blockstart, blockstart + BLOCKSIZE) <= 0){
+    if(ncplane_printf(n, "Unicode points %04x–%04x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
     if(ncplane_cursor_move_yx(n, 3, 3)){
       return -1;
     }
-    if(ncplane_printf(n, description) <= 0){
+    if(ncplane_printf(n, "%-*.*s", maxx - 3, maxx - 3, description) <= 0){
       return -1;
     }
     for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
-      if(ncplane_cursor_move_yx(n, 4 + chunk, 2)){
+      if(ncplane_cursor_move_yx(n, 5 + chunk, 5)){
         return -1;
       }
       int z;
