@@ -116,7 +116,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(notcurses_render(nc)){
       return -1;
     }
-    usleep(10000);
+    usleep(100000);
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused. cap at 0x3000.
     blockstart += BLOCKSIZE;
