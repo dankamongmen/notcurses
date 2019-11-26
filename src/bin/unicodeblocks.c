@@ -45,6 +45,15 @@ int unicodeblocks_demo(struct notcurses* nc){
     { .name = "Supplemental Mathematical Operators", .start = 0x2a00, },
     { .name = "Glagolitic, Georgian Supplement, Tifinagh", .start = 0x2c00, },
     { .name = "Supplemental Punctuation, CJK Radicals", .start = 0x2e00, },
+    { .name = "Cuneiform", .start = 0x12000, },
+    { .name = "Cuneiform (cont.)", .start = 0x12200, },
+    { .name = "Byzantine Musical Symbols, Musical Symbols", .start = 0x1d000, },
+    { .name = "Mahjong Tiles, Domino Tiles, Playing Cards", .start = 0x1f000, },
+    { .name = "Enclosed Ideographic Supplement, Miscellaneous Symbols", .start = 0x1f200, },
+    { .name = "Miscellaneous Symbols and Pictographs (cont.)", .start = 0x1f400, },
+    { .name = "Emoticons, Ornamental Dingbats, Transport and Map Symbols", .start = 0x1f600, },
+    { .name = "Supplemental Arrows-C, Supplemental Symbols", .start = 0x1f800, },
+    { .name = "Chess Symbols, Symbols and Pictographs Extended-A", .start = 0x1fa00, },
   };
   size_t sindex;
   ncplane_erase(n);
@@ -97,7 +106,7 @@ int unicodeblocks_demo(struct notcurses* nc){
         /*ncplane_fg_rgb8(n, 0xad + z, 0xd8, 0xe6);
         ncplane_bg_rgb8(n, 0x20, 0x20, 0x20);*/
         cell_set_fg(&c, 0xad + z * 2, 0xd8, 0xe6 - z * 2);
-        cell_set_bg(&c, 8 * chunk, 8 * chunk, 8 * chunk);
+        cell_set_bg(&c, 8 * chunk, 8 * chunk + z, 8 * chunk);
         if(ncplane_putc(n, &c) < 0){
           return -1;
         }
