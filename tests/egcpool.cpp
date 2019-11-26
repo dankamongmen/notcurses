@@ -31,6 +31,20 @@ TEST_F(EGCPoolTest, UTF8EGC) {
   EXPECT_LT(0, c);
 }
 
+// we're gonna run both a composed latin a with grave, and then a latin a with
+// a combining nonspacing grave
+TEST_F(EGCPoolTest, UTF8EGCCombining) {
+  const char* w1 = "à"; // U+00E0, U+0000         (c3 a0)
+  const char* w2 = "à"; // U+0061, U+0300, U+0000 (61 cc 80)
+  int c1, c2;
+  auto u1 = utf8_gce_len(w1, &c1);
+  auto u2 = utf8_gce_len(w2, &c2);
+  ASSERT_EQ(2, u1);
+  ASSERT_EQ(3, u2);
+  ASSERT_EQ(1, c1);
+  ASSERT_EQ(1, c2);
+}
+
 TEST_F(EGCPoolTest, AddAndRemove) {
   const char* wstr = "﷽";
   size_t ulen;
