@@ -65,7 +65,6 @@ int unicodeblocks_demo(struct notcurses* nc){
       return -1;
     }
     ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
-    ncplane_bg_rgb8(n, 0, 0, 0);
     if(ncplane_printf(n, "Unicode points %04x–%04x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
@@ -87,6 +86,7 @@ int unicodeblocks_demo(struct notcurses* nc){
         memset(&ps, 0, sizeof(ps));
         wchar_t w = blockstart + chunk * CHUNKSIZE + z;
         char utf8arr[MB_CUR_MAX + 1];
+        // FIXME we can print wide ones here, just add an extra line
         if(wcwidth(w) == 1 && iswprint(w)){
           int bwc = wcrtomb(utf8arr, w, &ps);
           if(bwc < 0){
