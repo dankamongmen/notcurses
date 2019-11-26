@@ -38,8 +38,8 @@ target_compile_options(notcurses
     -Wall -Wextra -W -Wshadow
 )
 target_compile_definitions(notcurses
-  PRIVATE
-    _DEFAULT_SOURCE _XOPEN_SOURCE=600
+  PUBLIC
+    _DEFAULT_SOURCE _XOPEN_SOURCE=700
 )
 
 file(GLOB BINSRCS CONFIGURE_DEPENDS src/bin/*.c)
@@ -49,8 +49,9 @@ target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
 )
-target_compile_options(notcurses-demo PRIVATE
-  -Wall -Wextra -W -Wshadow
+target_compile_options(notcurses-demo
+  PRIVATE
+    -Wall -Wextra -W -Wshadow
 )
 
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
