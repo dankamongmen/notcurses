@@ -1,3 +1,4 @@
+#include <wchar.h>
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
@@ -150,11 +151,15 @@ int main(int argc, char** argv){
   if(ncplane_putstr(ncp, str) != (int)strlen(str)){
     goto err;
   }
-  const char bstr[] = "▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  if(ncplane_cursor_move_yx(ncp, rows / 2 - 5, (cols - strlen(bstr) + 4) / 2)){
+  const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
+  char mbstr[128];
+  if(wcstombs(mbstr, wstr, sizeof(mbstr)) <= 0){
     goto err;
   }
-  if(ncplane_putstr(ncp, bstr) != (int)strlen(bstr)){
+  if(ncplane_cursor_move_yx(ncp, rows / 2 - 5, (cols - wcslen(wstr) + 4) / 2)){
+    goto err;
+  }
+  if(ncplane_putstr(ncp, mbstr) != (int)strlen(mbstr)){
     goto err;
   }
   if(notcurses_render(nc)){
