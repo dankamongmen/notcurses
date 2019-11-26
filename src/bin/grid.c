@@ -18,6 +18,33 @@ release_cells(struct ncplane* n,
 }
 
 static int
+prep_cells2(struct ncplane* n,
+           cell* ul, cell* uc, cell* ur,
+           cell* cl, cell* cc, cell* cr,
+           cell* ll, cell* lc, cell* lr){
+  cell_init(ul);
+  cell_init(uc);
+  cell_init(cl);
+  cell_init(cr);
+  cell_init(ll);
+  cell_init(lc);
+  cell_init(lr);
+  cell_init(ur);
+  cell_init(cc);
+  int ret = 0;
+  ret |= cell_load(n, ul, "╔");
+  ret |= cell_load(n, uc, "╦");
+  ret |= cell_load(n, ur, "╗");
+  ret |= cell_load(n, cl, "╠");
+  ret |= cell_load(n, cc, "╬");
+  ret |= cell_load(n, cr, "╣");
+  ret |= cell_load(n, ll, "╚");
+  ret |= cell_load(n, lc, "╩");
+  ret |= cell_load(n, lr, "╝");
+  return ret;
+}
+
+static int
 prep_cells(struct ncplane* n,
            cell* ul, cell* uc, cell* ur,
            cell* cl, cell* cc, cell* cr,
@@ -120,7 +147,7 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
   int x = 0;
   int y = 0;
   cell ul, ll, cl, cr, lc, lr, ur, uc, cc;
-  prep_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
+  prep_cells2(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
