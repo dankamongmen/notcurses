@@ -112,9 +112,9 @@ int unicodeblocks_demo(struct notcurses* nc){
         }
       }
       cell_release(n, &c);
-      if(notcurses_render(nc)){
-        return -1;
-      }
+    }
+    if(notcurses_render(nc)){
+      return -1;
     }
     usleep(10000);
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
