@@ -272,6 +272,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   }else{
     nc->cnorm = NULL;
   }
+  term_verify_seq(&nc->standout, "smso"); // smso / rmso
   term_verify_seq(&nc->uline, "smul");
   term_verify_seq(&nc->reverse, "reverse");
   term_verify_seq(&nc->blink, "blink");
@@ -357,6 +358,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if((ret->top = create_initial_ncplane(ret)) == NULL){
     goto err;
   }
+  ret->top->z = NULL;
   ret->stdscr = ret->top;
   memset(&ret->stats, 0, sizeof(ret->stats));
   printf("%d rows, %d columns (%zub), %d colors (%s)\n",
@@ -385,7 +387,8 @@ int notcurses_stop(notcurses* nc){
       return -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
-    double avg = nc->stats.renders_ns / (double)nc->stats.renders;
+    double avg = nc->stats.renders ?
+             nc->stats.renders_ns / (double)nc->stats.renders : 0;
     fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
             nc->stats.renders,
             nc->stats.renders_ns / 1000000000.0,
