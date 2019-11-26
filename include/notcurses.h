@@ -45,7 +45,8 @@ typedef struct cell {
   uint32_t attrword;          // + 4b -> 8b
   // (channels & 0x8000000000000000ull): inherit styling from prior cell
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
-  // (channels & 0x3f00000000000000ull): reserved, must be 0
+  // (channels & 0x2000000000000000ull): wide character (left or right side)
+  // (channels & 0x1f00000000000000ull): reserved, must be 0
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
   // (channels & 0x0000000080000000ull): in the middle of a multicolumn glyph
   // (channels & 0x0000000040000000ull): background is *not* "default color"
@@ -295,6 +296,7 @@ cell_rgb_blue(uint32_t rgb){
 }
 
 #define CELL_FGDEFAULT_MASK 0x4000000000000000ull
+#define CELL_WIDEASIAN_MASK 0x2000000000000000ull
 #define CELL_BGDEFAULT_MASK 0x0000000040000000ull
 
 static inline void
@@ -347,6 +349,11 @@ cell_fg_default_p(const cell* c){
 static inline bool
 cell_bg_default_p(const cell* c){
   return !(c->channels & CELL_BGDEFAULT_MASK);
+}
+
+static inline bool
+cell_wide_p(const cell* c){
+  return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
 #ifdef __cplusplus

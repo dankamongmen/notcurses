@@ -695,6 +695,11 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
     c->gcluster = *gcluster;
     return !!c->gcluster;
   }
+  if(cols > 1){
+    c->channels |= CELL_WIDEASIAN_MASK;
+  }else{
+    c->channels &= ~CELL_WIDEASIAN_MASK;
+  }
   size_t ulen;
   // FIXME feed in already-calculated lengths from prior utf8_egc_len()!
   int eoffset = egcpool_stash(&n->pool, gcluster, &ulen, &cols);

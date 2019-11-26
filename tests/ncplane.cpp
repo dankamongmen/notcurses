@@ -256,3 +256,18 @@ TEST_F(NcplaneTest, CellDuplicateCombining) {
   cell_release(n_, &cell5);
   cell_release(n_, &cell6);
 }
+
+TEST_F(NcplaneTest, CellMultiColumn) {
+  const char* w1 = "👨";
+  const char* w2 = "N";
+  cell c1 = CELL_TRIVIAL_INITIALIZER;
+  cell c2 = CELL_TRIVIAL_INITIALIZER;
+  auto u1 = cell_load(n_, &c1, w1);
+  auto u2 = cell_load(n_, &c2, w2);
+  ASSERT_EQ(strlen(w1), u1);
+  ASSERT_EQ(strlen(w2), u2);
+  EXPECT_TRUE(cell_wide_p(&c1));
+  EXPECT_FALSE(cell_wide_p(&c2));
+  cell_release(n_, &c1);
+  cell_release(n_, &c2);
+}
