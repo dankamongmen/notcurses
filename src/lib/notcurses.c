@@ -857,9 +857,13 @@ int ncplane_vline(ncplane* n, const cell* c, int len){
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hl,
                 const cell* vl, int ylen, int xlen){
-  int yoff, xoff;
-  ncplane_cursor_yx(n, &yoff, &xoff);
   if(xlen < 2 || ylen < 2){
+    return -1;
+  }
+  int yoff, xoff, ymax, xmax;
+  ncplane_cursor_yx(n, &yoff, &xoff);
+  ncplane_dimyx(n, &ymax, &xmax);
+  if(xmax - xoff < xlen || ymax - yoff < ylen){
     return -1;
   }
   if(ncplane_putc(n, ul) < 0){
