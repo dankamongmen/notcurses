@@ -92,13 +92,12 @@ int notcurses_render(struct notcurses* nc);
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
-// Following a call to notcurses_resize(), any references to the standard plane
-// ought be considered invalidated.
+// References to ncplanes remain valid following a resize operation, but the
+// cursor might have changed position.
 int notcurses_resize(struct notcurses* n);
 
 // Get a reference to the standard plane (one matching our current idea of the
-// terminal size) for this terminal. Invalidated following a call to
-// notcurses_resize().
+// terminal size) for this terminal.
 struct ncplane* notcurses_stdplane(struct notcurses* nc);
 const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 

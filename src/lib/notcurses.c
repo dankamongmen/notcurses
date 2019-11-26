@@ -42,7 +42,6 @@ typedef struct ncplane {
   int absx, absy;       // origin of the plane relative to the screen
   int lenx, leny;       // size of the plane, [0..len{x,y}) is addressable
   struct ncplane* z;    // plane below us
-  struct notcurses* nc; // our parent nc, kinda lame waste of memory FIXME
   egcpool pool;         // attached storage pool for UTF-8 EGCs
   uint64_t channels;    // works the same way as cells
   uint32_t attrword;    // same deal as in a cell
@@ -122,7 +121,8 @@ void ncplane_dimyx(const ncplane* n, int* rows, int* cols){
   }
 }
 
-// This should really only be called from within alloc_stdscr()
+// anyone calling this needs ensure the ncplane's framebuffer is updated
+// to reflect changes in geometry.
 static int
 update_term_dimensions(notcurses* n, int* rows, int* cols){
   struct winsize ws;
@@ -177,67 +177,49 @@ term_emit(const char* seq){
   return 0;
 }
 
-// Create an ncplane of the specified dimensions, but does not place it in
-// the z-buffer.
+// create an ncplane of the specified dimensions, but do not yet place it in
+// the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
-create_ncplane(notcurses* nc, int rows, int cols){
-  ncplane* p = NULL;
-  if((p = malloc(sizeof(*p))) == NULL){
+create_initial_ncplane(notcurses* nc){
+  int rows, cols;
+  if(update_term_dimensions(nc, &rows, &cols)){
     return NULL;
   }
+  ncplane* p = malloc(sizeof(*p));
   size_t fbsize = sizeof(*p->fb) * (rows * cols);
   if((p->fb = malloc(fbsize)) == NULL){
     free(p);
     return NULL;
   }
+  memset(p->fb, 0, fbsize);
   p->leny = rows;
   p->lenx = cols;
-  p->nc = nc;
   p->x = p->y = 0;
   p->absx = p->absy = 0;
-  // framebuffer is initialized by calling function, might be copy
+  p->attrword = 0;
+  p->channels = 0;
+  egcpool_init(&p->pool);
   return p;
 }
 
-// Call this on initialization, or when the screen size changes. Takes a flat
+// Call this when the screen size changes. Takes a flat
 // array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
 // new size, and copies what can be copied from the old stdscr. Assumes that
 // the screen is always anchored in the same place.
-static ncplane*
-alloc_stdscr(notcurses* nc){
-  ncplane* p = NULL;
-  int oldrows = 0;
-  int oldcols = 0;
-  if(nc->stdscr){
-    oldrows = nc->stdscr->leny;
-    oldcols = nc->stdscr->lenx;
-  }
+int notcurses_resize(notcurses* n){
+  int oldrows = n->stdscr->leny;
+  int oldcols = n->stdscr->lenx;
   int rows, cols;
-  if(update_term_dimensions(nc, &rows, &cols)){
-    goto err;
+  if(update_term_dimensions(n, &rows, &cols)){
+    return -1;
   }
-  if((p = create_ncplane(nc, rows, cols)) == NULL){
-    goto err;
+  ncplane* p = n->stdscr;
+  cell* preserved = p->fb;
+  size_t fbsize = sizeof(*preserved) * (rows * cols);
+  if((p->fb = malloc(fbsize)) == NULL){
+    p->fb = preserved;
+    return -1;
   }
-  egcpool_init(&p->pool);
-  p->attrword = 0;
-  p->channels = 0;
-  ncplane** oldscr;
-  ncplane* preserve;
-  // if we ever make this a doubly-linked list, turn this into o(1)
-  // if nc->stdscr is NULL, we're all good -- there are no entries
-  for(oldscr = &nc->top ; *oldscr ; oldscr = &(*oldscr)->z){
-    if(*oldscr == nc->stdscr){
-      break;
-    }
-  }
-  if( (preserve = *oldscr) ){
-    p->z = preserve->z;
-  }else{
-    p->z = NULL;
-  }
-  *oldscr = p;
-  nc->stdscr = p;
   int y, idx;
   idx = 0;
   for(y = 0 ; y < p->leny ; ++y){
@@ -251,24 +233,13 @@ alloc_stdscr(notcurses* nc){
       if(oldcopy > p->lenx){
         oldcopy = p->lenx;
       }
-      memcpy(&p->fb[idx], &preserve->fb[y * oldcols], oldcopy * sizeof(*p->fb));
+      memcpy(&p->fb[idx], &preserved[y * oldcols], oldcopy * sizeof(*p->fb));
     }
     if(p->lenx - oldcopy){
       memset(&p->fb[idx + oldcopy], 0, sizeof(*p->fb) * (p->lenx - oldcopy));
     }
   }
-  free_plane(preserve);
-  return p;
-
-err:
-  free_plane(p);
-  return NULL;
-}
-
-int notcurses_resize(notcurses* n){
-  if(alloc_stdscr(n) == NULL){
-    return -1;
-  }
+  free(preserved);
   return 0;
 }
 
@@ -395,7 +366,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(interrogate_terminfo(ret, opts)){
     goto err;
   }
-  if(alloc_stdscr(ret) == NULL){
+  if((ret->top = create_initial_ncplane(ret)) == NULL){
     goto err;
   }
   ret->stdscr = ret->top;
