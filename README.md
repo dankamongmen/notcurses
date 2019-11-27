@@ -238,7 +238,9 @@ cell_init(cell* c){
   memset(c, 0, sizeof(*c));
 }
 
-// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
+// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
+// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
+// of the cell is left untouched, but any resources are released.
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // Release resources held by the cell 'c'.
