@@ -65,3 +65,10 @@ TEST_F(NotcursesTest, CursesStyles) {
   unsigned attrs = notcurses_supported_styles(nc_);
   EXPECT_EQ(1, !!(WA_BOLD & attrs));
 }
+
+// it is an error to attempt to destroy the standard plane
+TEST_F(NotcursesTest, RejectDestroyStdPlane) {
+  ncplane* ncp = notcurses_stdplane(nc_);
+  ASSERT_NE(nullptr, ncp);
+  ASSERT_NE(0, ncplane_destroy(nc_, ncp));
+}
