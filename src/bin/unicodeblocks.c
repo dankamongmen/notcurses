@@ -71,22 +71,24 @@ int unicodeblocks_demo(struct notcurses* nc){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     int chunk;
-    if(ncplane_cursor_move_yx(n, 1, 8)){
+    ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
+    if(ncplane_cursor_move_yx(n, 1, (maxx - 26) / 2)){
       return -1;
     }
-    ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
     if(ncplane_printf(n, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
-    if(ncplane_cursor_move_yx(n, 3, 4)){
+    int xstart = (maxx - CHUNKSIZE * 2) / 2;
+    if(ncplane_cursor_move_yx(n, 3, xstart)){
       return -1;
     }
+    ++xstart;
     if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl,
-                         BLOCKSIZE / CHUNKSIZE + 2, CHUNKSIZE + 2)){
+                         BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2)){
       return -1;
     }
     for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
-      if(ncplane_cursor_move_yx(n, 4 + chunk, 5)){
+      if(ncplane_cursor_move_yx(n, 4 + chunk, xstart)){
         return -1;
       }
       int z;
@@ -125,10 +127,16 @@ int unicodeblocks_demo(struct notcurses* nc){
       cell_release(n, &c);
     }
     ncplane_fg_rgb8(n, 0x40, 0xc0, 0x40);
-    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 3)){
+    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 0)){
       return -1;
     }
-    if(ncplane_printf(n, "%-*.*s", maxx - 3, maxx - 3, description) <= 0){
+    if(ncplane_printf(n, "%*.*s", maxx, maxx, "") <= 0){
+      return -1;
+    }
+    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, (maxx - strlen(description)) / 2)){
+      return -1;
+    }
+    if(ncplane_printf(n, "%s", description) <= 0){
       return -1;
     }
     if(notcurses_render(nc)){
