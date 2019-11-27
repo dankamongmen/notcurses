@@ -33,9 +33,9 @@ TEST_F(EGCPoolTest, UTF8EGC) {
 // we're gonna run both a composed latin a with grave, and then a latin a with
 // a combining nonspacing grave
 TEST_F(EGCPoolTest, UTF8EGCCombining) {
-  const char* w1 = "à"; // U+00E0, U+0000         (c3 a0)
-  const char* w2 = "à"; // U+0061, U+0300, U+0000 (61 cc 80)
-  const char* w3 = "a"; // U+0061, U+0000         (61)
+  const char* w1 = "\u00e0"; // (utf8: c3 a0)
+  const char* w2 = "\u0061\u0300"; // (utf8: 61 cc 80)
+  const char* w3 = "\u0061"; // (utf8: 61)
   int c1, c2, c3;
   auto u1 = utf8_egc_len(w1, &c1);
   auto u2 = utf8_egc_len(w2, &c2);
@@ -49,11 +49,11 @@ TEST_F(EGCPoolTest, UTF8EGCCombining) {
 }
 
 TEST_F(EGCPoolTest, AddAndRemove) {
-  const char* wstr = "﷽";
-  size_t ulen;
-  int c; // column count
-  ASSERT_LE(0, egcpool_stash(&pool_, wstr, &ulen, &c));
-  ASSERT_LT(0, c);
+  const char* wstr = "\ufdfd"; // bismallih
+  int c;
+  auto ulen = utf8_egc_len(wstr, &c);
+  ASSERT_LE(0, egcpool_stash(&pool_, wstr, ulen));
+  ASSERT_EQ(1, c); // not considered wide, believe it or not
   EXPECT_NE(nullptr, pool_.pool);
   EXPECT_STREQ(pool_.pool, wstr);
   EXPECT_LT(0, pool_.poolsize);
@@ -68,14 +68,15 @@ TEST_F(EGCPoolTest, AddAndRemove) {
 }
 
 TEST_F(EGCPoolTest, AddTwiceRemoveFirst) {
-  const char* wstr = "血";
-  size_t u1, u2; // bytes consumed
+  const char* wstr = "\u8840"; // cjk unified ideograph, wide
   int c1, c2; // column counts
-  int o1 = egcpool_stash(&pool_, wstr, &u1, &c1);
-  int o2 = egcpool_stash(&pool_, wstr, &u2, &c2);
+  auto u1 = utf8_egc_len(wstr, &c1); // bytes consumed
+  auto u2 = utf8_egc_len(wstr, &c2);
+  int o1 = egcpool_stash(&pool_, wstr, u1);
+  int o2 = egcpool_stash(&pool_, wstr, u2);
   ASSERT_LE(0, o1);
   ASSERT_LT(o1, o2);
-  ASSERT_LT(0, c1);
+  ASSERT_EQ(2, c1);
   ASSERT_EQ(c1, c2);
   EXPECT_NE(nullptr, pool_.pool);
   EXPECT_STREQ(pool_.pool + o1, wstr);
@@ -91,13 +92,14 @@ TEST_F(EGCPoolTest, AddTwiceRemoveFirst) {
 }
 
 TEST_F(EGCPoolTest, AddTwiceRemoveSecond) {
-  const char* wstr = "血";
-  size_t u1, u2;
+  const char* wstr = "\u8840"; // cjk unified ideograph, wide
   int c1, c2; // column counts
-  int o1 = egcpool_stash(&pool_, wstr, &u1, &c1);
-  int o2 = egcpool_stash(&pool_, wstr, &u2, &c2);
+  auto u1 = utf8_egc_len(wstr, &c1); // bytes consumed
+  auto u2 = utf8_egc_len(wstr, &c2);
+  int o1 = egcpool_stash(&pool_, wstr, u1);
+  int o2 = egcpool_stash(&pool_, wstr, u2);
   ASSERT_LT(o1, o2);
-  ASSERT_LT(0, c1);
+  ASSERT_EQ(2, c1);
   ASSERT_EQ(c1, c2);
   EXPECT_NE(nullptr, pool_.pool);
   EXPECT_STREQ(pool_.pool + o1, wstr);

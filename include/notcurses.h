@@ -80,10 +80,10 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // A file descriptor for this terminal, on which we will generate output.
-  // Must be a valid file descriptor attached to a terminal, or notcurses will
-  // refuse to start. You'll usually want STDOUT_FILENO.
-  int outfd;
+  // An open FILE* for this terminal, on which we will generate output. If
+  // not attached to a sufficiently capable terminal, notcurses will refuse
+  // to start. You'll usually want stdout.
+  FILE* outfp;
   // If smcup/rmcup capabilities are indicated, notcurses defaults to making
   // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;

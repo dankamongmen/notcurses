@@ -13,24 +13,25 @@ int widecolor_demo(struct notcurses* nc){
     "Час сэканд-хэнд",
     "ஸீரோ டிகிரி",
     "Tonio Kröger",
-    "بين القصرين",
+    /*"بين القصرين",
     "قصر الشوق",
-    "السكرية",
-    "三体",
-    "血的神话: 公元1967年湖南道县文革大屠杀纪实",
+    "السكرية",*/
+    /* "三体",
+    "血的神话公元年湖南道县文革大屠杀纪实",
     "三国演义",
     "紅樓夢",
     "Hónglóumèng",
     "红楼梦",
     "महाभारतम्",
     "Mahābhāratam",
-    " रामायणम्",
+    " रामायणम्",*/
     "Rāmāyaṇam",
-    "القرآن",
+    /* "القرآن",
     "תּוֹרָה",
-    "תָּנָ״ךְ",
+    "תָּנָ״ךְ",*/
     "Osudy dobrého vojáka Švejka za světové války",
     "Σίβνλλα τί ϴέλεις; respondebat illa: άπο ϴανεΐν ϴέλω",
+    /*
     "① На всей земле был один язык и одно наречие.",
     "② А кад отидоше од истока, нађоше равницу у земљи сенарској, и населише се онде.",
     "③ І сказалі адно аднаму: наробім цэглы і абпалім агнём. І стала ў іх цэгла замест камянёў, а земляная смала замест вапны.",
@@ -75,7 +76,7 @@ int widecolor_demo(struct notcurses* nc){
     "Foddym gee glonney agh cha jean eh gortaghey mee",
     "᚛᚛ᚉᚑᚅᚔᚉᚉᚔᚋ ᚔᚈᚔ ᚍᚂᚐᚅᚑ ᚅᚔᚋᚌᚓᚅᚐ",
     "Con·iccim ithi nglano. Ním·géna",
-    "🗽🏴☭卐࿗࿕☮࿖࿘卍☭🏴",
+    "🗽🏴☭࿗☮࿘☭🏴🗽",
     "Is féidir liom gloinne a ithe. Ní dhéanann sí dochar ar bith dom",
     "Ithim-sa gloine agus ní miste damh é",
     "S urrainn dhomh gloinne ithe; cha ghoirtich i mi",
@@ -139,10 +140,10 @@ int widecolor_demo(struct notcurses* nc){
     "நான் கண்ணாடி சாப்பிடுவேன், அதனால் எனக்கு ஒரு கேடும் வராது",
     "నేను గాజు తినగలను మరియు అలా చేసినా నాకు ఏమి ఇబ్బంది లే",
     "මට වීදුරු කෑමට හැකියි. එයින් මට කිසි හානියක් සිදු නොවේ",
-    "میں کانچ کھا سکتا ہوں اور مجھے تکلیف نہیں ہوتی",
-    "زه شيشه خوړلې شم، هغه ما نه خوږو",
-    ".من می توانم بدونِ احساس درد شيشه بخور",
-    "أنا قادر على أكل الزجاج و هذا لا يؤلمني",
+    // "میں کانچ کھا سکتا ہوں اور مجھے تکلیف نہیں ہوتی",
+    // "زه شيشه خوړلې شم، هغه ما نه خوږو",
+    // ".من می توانم بدونِ احساس درد شيشه بخور",
+    // "أنا قادر على أكل الزجاج و هذا لا يؤلمني",
     "Nista' niekol il-ħġieġ u ma jagħmilli xejn",
     "אני יכול לאכול זכוכית וזה לא מזיק לי",
     "איך קען עסן גלאָז און עס טוט מיר נישט װײ",
@@ -194,11 +195,11 @@ int widecolor_demo(struct notcurses* nc){
     "Siña yo' chumocho krestat, ti ha na'lalamen yo'",
     "Au rawa ni kana iloilo, ia au sega ni vakacacani kina",
     "Aku isa mangan beling tanpa lara",
+    */
     NULL
   };
   const char** s;
   int count = notcurses_palette_size(nc);
-  //int key;
   const int steps[] = { 128, 64, 16, 1, };
   const int starts[] = { 0, 16, 62, 128, };
 
@@ -211,8 +212,6 @@ int widecolor_demo(struct notcurses* nc){
     //do{
       int y, x, maxy, maxx;
       ncplane_dimyx(n, &maxy, &maxx);
-      --maxy;
-      --maxx;
       int rgb = start;
       if(ncplane_cursor_move_yx(n, 0, 0)){
         return -1;
@@ -222,40 +221,41 @@ int widecolor_demo(struct notcurses* nc){
       do{ // we fill up the entire screen, however large
         s = strs;
         for(s = strs ; *s ; ++s){
-          cell wch;
-          cell_init(&wch);
+          cell wch = CELL_TRIVIAL_INITIALIZER;
           cell_set_style(&wch, WA_NORMAL);
           cell_set_fg(&wch, cell_rgb_red(rgb), 255 - cell_rgb_green(rgb),
                       cell_rgb_blue(rgb));
           cell_set_bg(&wch, 64, 64, 64);
           size_t idx = 0;
+          ncplane_cursor_yx(n, &y, &x);
+          fprintf(stderr, "%02d %s\n", y, *s);
           while((*s)[idx]){
-            if(y >= maxy && x >= maxx){
+            if(y >= maxy || x >= maxx){
               break;
             }
             if(isspace((*s)[idx])){
               ++idx;
               continue;
             }
+            // cell_load frees the previous contents
             int ulen = cell_load(n, &wch, &(*s)[idx]);
             if(ulen < 0){
               return -1;
             }
             if(ncplane_putc(n, &wch) < 0){
-              cell_release(n, &wch);
               break;
             }
-            cell_release(n, &wch);
             ncplane_cursor_yx(n, &y, &x);
             if((rgb += step) >= count){
               rgb = 1;
             }
             idx += ulen;
           }
+          cell_release(n, &wch);
         }
-      }while(y < maxy || x < maxx);
+      }while(y < maxy && x < maxx);
       ncplane_fg_rgb8(n, 255, 255, 255);
-      ncplane_set_style(n, WA_BOLD);
+      // ncplane_set_style(n, WA_BOLD);
       ncplane_cursor_move_yx(n, 2, 2);
       ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, i, sizeof(steps) / sizeof(*steps));
       ncplane_cursor_move_yx(n, 3, 2);

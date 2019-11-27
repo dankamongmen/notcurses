@@ -9,7 +9,7 @@ class NcplaneTest : public :: testing::Test {
       GTEST_SKIP();
     }
     notcurses_options nopts{};
-    nopts.outfd = STDIN_FILENO;
+    nopts.outfp = stdin;
     nc_ = notcurses_init(&nopts);
     ASSERT_NE(nullptr, nc_);
     n_ = notcurses_stdplane(nc_);

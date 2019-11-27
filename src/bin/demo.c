@@ -41,7 +41,7 @@ static int
 handle_opts(int argc, char** argv, notcurses_options* opts){
   int c;
   memset(opts, 0, sizeof(*opts));
-  opts->outfd = STDOUT_FILENO;
+  opts->outfp = stdout;
   while((c = getopt(argc, argv, "hk")) != EOF){
     switch(c){
       case 'h':

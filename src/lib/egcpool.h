@@ -67,8 +67,10 @@ utf8_egc_len(const char* gcluster, int* colcount){
   *colcount = 0;
   wchar_t wc;
   int r;
+  mbstate_t mbt;
+  memset(&mbt, 0, sizeof(mbt));
   do{
-    r = mbtowc(&wc, gcluster, MB_CUR_MAX);
+    r = mbrtowc(&wc, gcluster, MB_CUR_MAX, &mbt);
     if(r < 0){
       return -1;
     }else if(r){
@@ -103,15 +105,13 @@ egcpool_alloc_justified(const egcpool* pool, int len){
 // stash away the provided UTF8, NUL-terminated grapheme cluster. the cluster
 // should not be less than 2 bytes (such a cluster should be directly stored in
 // the cell). returns -1 on error, and otherwise a non-negative 24-bit offset.
-// The number of bytes copied is stored to '*ulen'. The number of presentation
-// columns is stored to '*cols'.
+// 'ulen' must be the number of bytes to lift from egc (utf8_egc_len()).
 static inline int
-egcpool_stash(egcpool* pool, const char* egc, size_t* ulen, int* cols){
-  int len = utf8_egc_len(egc, cols) + 1; // count the NUL terminator
+egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
+  int len = ulen + 1; // count the NUL terminator
   if(len <= 2){ // should never be empty, nor a single byte + NUL
     return -1;
   }
-  *ulen = len - 1;
   // the first time through, we don't force a grow unless we expect ourselves
   // to have too little space. once we've done a search, we do force the grow.
   // we should thus never have more than two iterations of this loop.
