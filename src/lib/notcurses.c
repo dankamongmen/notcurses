@@ -325,6 +325,16 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
   return nc->stdscr;
 }
 
+int ncplane_destroy(notcurses* nc, ncplane* ncp){
+  if(ncp){
+    if(nc->stdscr == ncp){
+      return -1;
+    }
+    // FIXME close it up
+  }
+  return 0;
+}
+
 static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
