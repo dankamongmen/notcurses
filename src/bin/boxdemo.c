@@ -36,7 +36,6 @@ int box_demo(struct notcurses* nc){
       return -1;
     }
     if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, ymax, xmax)){
-fprintf(stderr, "failed at %d/%d + %d/%d\n", y, x, ymax, xmax);
       return -1;
     }
     ymax -= 2;

@@ -617,7 +617,9 @@ extended_gcluster(const ncplane* n, const cell* c){
   return n->pool.pool + idx;
 }
 
-// write the cell's UTF-8 grapheme cluster to the provided FILE*
+// write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
+// number of columns occupied by this EGC (only an approximation; it's actually
+// a property of the font being used).
 static int
 term_putc(FILE* out, const ncplane* n, const cell* c){
   if(simple_cell_p(c)){
@@ -632,7 +634,7 @@ term_putc(FILE* out, const ncplane* n, const cell* c){
     }
   }else{
     const char* ext = extended_gcluster(n, c);
-    if(fprintf(out, "%s", ext) < 0){ // FIXME check for short write
+    if(fprintf(out, "%s", ext) < 0){ // FIXME check for short write?
       return -1;
     }
   }
@@ -690,7 +692,11 @@ int notcurses_render(notcurses* nc){
         cell_get_bg(c, &br, &bg, &bb);
         term_bg_rgb8(nc, out, br, bg, bb);
       }
+      // FIXME what to do if we're at the last cell, and it's wide?
       term_putc(out, nc->stdscr, c);
+      if(cell_wide_p(c)){
+        ++x;
+      }
     }
   }
   ret |= fclose(out);
@@ -738,7 +744,7 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   }
   size_t ulen;
   int cols;
-  // FIXME insert colcount into cell...if it's ever valid, anyway
+  // wide flag is inherited from copy of channels
   int eoffset = egcpool_stash(&n->pool, extended_gcluster(n, c), &ulen, &cols);
   if(eoffset < 0){
     return -1;
@@ -754,7 +760,7 @@ int ncplane_putc(ncplane* n, const cell* c){
   }
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
-  advance_cursor(n, 1 + cell_wide_p(c)); // FIXME
+  advance_cursor(n, 1 + cell_wide_p(c));
   return ret;
 }
 
@@ -777,6 +783,7 @@ int ncplane_getc(const ncplane* n, cell* c, char** gclust){
 void cell_release(ncplane* n, cell* c){
   if(!simple_cell_p(c)){
     egcpool_release(&n->pool, extended_gcluster_idx(c));
+    c->gcluster = 0; // don't subject ourselves to double-release problems
   }
 }
 
