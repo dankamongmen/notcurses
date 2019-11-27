@@ -11,11 +11,13 @@ class LibavTest : public :: testing::Test {
 };
 
 TEST_F(LibavTest, LoadImage) {
-  int ret = notcurses_visual_open(nullptr, "../tools/dsscaw-purp.png");
-  ASSERT_EQ(0, ret);
+  auto ncv = notcurses_visual_open(nullptr, "../tools/dsscaw-purp.png");
+  ASSERT_NE(nullptr, ncv);
+  ncvisual_destroy(ncv);
 }
 
 TEST_F(LibavTest, LoadVideo) {
-  int ret = notcurses_visual_open(nullptr, "../tools/atliens.mkv");
-  ASSERT_EQ(0, ret);
+  auto ncv = notcurses_visual_open(nullptr, "../tools/atliens.mkv");
+  ASSERT_NE(nullptr, ncv);
+  ncvisual_destroy(ncv);
 }
