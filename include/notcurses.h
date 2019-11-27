@@ -394,6 +394,11 @@ cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
+static inline uint32_t
+cell_egc_idx(const cell* c){
+  return c->gcluster - 0x80;
+}
+
 // load up six cells with the EGCs necessary to draw a light, rounded box.
 // returns 0 on success, -1 on error. on error, any cells this function might
 // have loaded before the error are cell_release()d.
