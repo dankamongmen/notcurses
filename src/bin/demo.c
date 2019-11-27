@@ -85,12 +85,12 @@ int main(int argc, char** argv){
   cell_load(ncp, &c, cstr);
   cell_set_fg(&c, 200, 0, 200);
   int ys = 200 / (rows - 2);
-  for(y = 2 ; y < rows - 2 ; ++y){
+  for(y = 5 ; y < rows - 6 ; ++y){
     cell_set_bg(&c, 0, y * ys  , 0);
-    if(ncplane_cursor_move_yx(ncp, y, 2)){
-      goto err;
-    }
-    for(x = 2 ; x < cols - 2 ; ++x){
+    for(x = 5 ; x < cols - 6 ; ++x){
+      if(ncplane_cursor_move_yx(ncp, y, x)){
+        goto err;
+      }
       if(ncplane_putc(ncp, &c) != (int)strlen(cstr)){
         goto err;
       }
@@ -118,10 +118,10 @@ int main(int argc, char** argv){
   cell_set_bg(&lr, 0, 0, 180);
   cell_set_bg(&vl, 0, 0, 180);
   cell_set_bg(&hl, 0, 0, 180);
-  if(ncplane_cursor_move_yx(ncp, 1, 1)){
+  if(ncplane_cursor_move_yx(ncp, 4, 4)){
     goto err;
   }
-  if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 2, cols - 2)){
+  if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 6, cols - 6)){
     goto err;
   }
   if(notcurses_render(nc)){
