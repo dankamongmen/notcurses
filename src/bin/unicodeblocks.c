@@ -23,10 +23,9 @@ int unicodeblocks_demo(struct notcurses* nc){
   } blocks[] = {
     { .name = "Basic Latin, Latin 1 Supplement, Latin Extended", .start = 0, },
     { .name = "IPA Extensions, Spacing Modifiers, Greek and Coptic", .start = 0x200, },
-    // too much right-to-left crap here for now :(
-    // { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
-    // { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
-    // { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
+    { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
+    { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
+    { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
     { .name = "Gurmukhi, Gujarati, Oriya, Tamil", .start = 0xa00, },
     { .name = "Telugu, Kannada, Malayalam, Sinhala", .start = 0xc00, },
     { .name = "Thai, Lao, Tibetan", .start = 0xe00, },
@@ -100,7 +99,7 @@ int unicodeblocks_demo(struct notcurses* nc){
         wchar_t w = blockstart + chunk * CHUNKSIZE + z;
         char utf8arr[MB_CUR_MAX + 1];
         // FIXME we can print wide ones here, just add an extra line
-        if(wcwidth(w) == 1 && iswprint(w)){
+        if(wcwidth(w) >= 1 && iswprint(w)){
           int bwc = wcrtomb(utf8arr, w, &ps);
           if(bwc < 0){
             fprintf(stderr, "Couldn't convert %u (%x) (%lc) (%s)\n",
@@ -122,6 +121,14 @@ int unicodeblocks_demo(struct notcurses* nc){
         cell_set_bg(&c, 8 * chunk, 8 * chunk + z, 8 * chunk);
         if(ncplane_putc(n, &c) < 0){
           return -1;
+        }
+        if(wcwidth(w) < 2 || !iswprint(w)){
+          if(cell_load(n, &c, " ") < 0){
+            return -1;
+          }
+          if(ncplane_putc(n, &c) < 0){
+            return -1;
+          }
         }
       }
       cell_release(n, &c);
