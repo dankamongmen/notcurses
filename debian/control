@@ -26,3 +26,14 @@ Description: Shared libraries for notcurses TUI
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
  an API similar to that of Curses, and rides atop libtinfo.
+
+Package: notcurses-bin
+Architecture: any
+Multi-Arch: foreign
+Depends:${shlibs:Depends}, ${misc:Depends}
+Description: Binaries from libnotcurses
+ notcurses facilitates the creation of modern TUI programs,
+ making full use of Unicode and 24-bit direct color. It presents
+ an API similar to that of Curses, and rides atop libtinfo.
+ .
+ These utilities from the notcurses project include notcurses-demo.
