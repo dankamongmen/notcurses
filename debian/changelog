@@ -1,6 +1,6 @@
-notcurses (0.0.9-1) UNRELEASED; urgency=medium
+notcurses (0.0.9-1) unstable; urgency=medium
 
   * Initial release
   * Deps on libncurses-dev, libavformat-dev
 
- -- Nick Black <dankamongmen@gmail.com>  Sun, 17 Nov 2019 05:15:19 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Tue, 26 Nov 2019 22:46:35 -0500
