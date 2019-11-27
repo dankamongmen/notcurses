@@ -361,14 +361,14 @@ notcurses* notcurses_init(const notcurses_options* opts){
   ret->top->z = NULL;
   ret->stdscr = ret->top;
   memset(&ret->stats, 0, sizeof(ret->stats));
-  printf("%d rows, %d columns (%zub), %d colors (%s)\n",
-         ret->top->leny, ret->top->lenx,
-         ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
-         ret->colors, ret->RGBflag ? "direct" : "palette");
   if(ret->smcup && term_emit(ret->smcup, stdout)){
     free_plane(ret->top);
     goto err;
   }
+  printf("%d rows, %d columns (%zub), %d colors (%s)\n",
+         ret->top->leny, ret->top->lenx,
+         ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
+         ret->colors, ret->RGBflag ? "direct" : "palette");
   return ret;
 
 err:
@@ -609,6 +609,7 @@ int notcurses_render(notcurses* nc){
   }
   ret |= fclose(out);
   printf("%s", buf);
+  fflush(stdout);
   clock_gettime(CLOCK_MONOTONIC, &done);
   free(buf);
   update_render_stats(&done, &start, &nc->stats);
