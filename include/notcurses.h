@@ -68,7 +68,7 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // A file descriptor for this terminal on which we will generate output.
+  // A file descriptor for this terminal, on which we will generate output.
   // Must be a valid file descriptor attached to a terminal, or notcurses will
   // refuse to start. You'll usually want STDOUT_FILENO.
   int outfd;
@@ -78,6 +78,13 @@ typedef struct notcurses_options {
   // By default, we hide the cursor if possible. This flag inhibits use of
   // the civis capability, retaining the cursor.
   bool retain_cursor;
+  // We typically install a signal handler for SIGINT and SIGQUIT that restores
+  // the screen, and then calls the old signal handler. Set this to inhibit
+  // registration of any signal handlers.
+  bool no_quit_sighandlers;
+  // We typically install a signal handler for SIGWINCH that generates a resize
+  // event in the notcurses_getc() queue. Set this to inhibit the handler.
+  bool no_winch_sighandler;
 } notcurses_options;
 
 // Initialize a notcurses context, corresponding to a connected terminal.

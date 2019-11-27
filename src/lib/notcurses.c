@@ -3,9 +3,11 @@
 #include <term.h>
 #include <errno.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <stdatomic.h>
 #include <sys/ioctl.h>
 #include <libavformat/version.h>
 #include "notcurses.h"
@@ -46,24 +48,6 @@ typedef struct ncstats {
   int64_t render_min_ns;  // min ns spent in successful notcurses_render()
 } ncstats;
 
-static void
-update_render_stats(const struct timespec* time1, const struct timespec* time0,
-                    ncstats* stats){
-  int64_t elapsed = timespec_subtract_ns(time1, time0);
-  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / 1000000000,
-  //        (elapsed % 1000000000) / 1000000);
-  if(elapsed > 0){ // don't count clearly incorrect information, egads
-    ++stats->renders;
-    stats->renders_ns += elapsed;
-    if(elapsed > stats->render_max_ns){
-      stats->render_max_ns = elapsed;
-    }
-    if(elapsed < stats->render_min_ns || stats->render_min_ns == 0){
-      stats->render_min_ns = elapsed;
-    }
-  }
-}
-
 typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty (takes stdin)
   int colors;     // number of colors usable for this screen
@@ -92,6 +76,95 @@ typedef struct notcurses {
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
 } notcurses;
+
+// only one notcurses object can be the target of signal handlers, due to their
+// process-wide nature.
+static notcurses* _Atomic signal_nc; // ugh
+static void (*signal_sa_handler)(int); // stashed signal handler we replaced
+
+static void
+sigwinch_handler(int signo __attribute__ ((unused))){
+  // FIXME
+}
+
+// this wildly unsafe handler will attempt to restore the screen upon
+// reception of a SIGINT or SIGQUIT. godspeed you, black emperor!
+static void
+fatal_handler(int signo){
+  notcurses* nc = atomic_load(&signal_nc);
+  if(nc){
+    notcurses_stop(nc);
+    if(signal_sa_handler){
+      signal_sa_handler(signo);
+    }
+    raise(signo);
+  }
+}
+
+static int
+setup_signals(notcurses* nc, bool no_quit_sigs, bool no_winch_sig){
+  notcurses* expected = NULL;
+  struct sigaction oldact;
+  struct sigaction sa;
+
+  if(!atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
+    fprintf(stderr, "%p is already registered for signals\n", expected);
+    return -1;
+  }
+  if(!no_winch_sig){
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = sigwinch_handler;
+    if(sigaction(SIGWINCH, &sa, NULL)){
+      atomic_store(&signal_nc, NULL);
+      fprintf(stderr, "Error installing SIGWINCH handler (%s)\n",
+              strerror(errno));
+      return -1;
+    }
+  }
+  if(!no_quit_sigs){
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = fatal_handler;
+    sigaddset(&sa.sa_mask, SIGINT);
+    sigaddset(&sa.sa_mask, SIGQUIT);
+    sa.sa_flags = SA_RESETHAND; // don't try twice
+    if(sigaction(SIGINT, &sa, &oldact) || sigaction(SIGQUIT, &sa, &oldact)){
+      atomic_store(&signal_nc, NULL);
+      fprintf(stderr, "Error installing fatal signal handlers (%s)\n",
+              strerror(errno));
+      return -1;
+    }
+    signal_sa_handler = oldact.sa_handler;
+  }
+  return 0;
+}
+
+static int
+drop_signals(notcurses* nc){
+  notcurses* old = nc;
+  if(!atomic_compare_exchange_strong(&signal_nc, &old, NULL)){
+    fprintf(stderr, "Can't drop signals: %p != %p\n", old, nc);
+    return -1;
+  }
+  return 0;
+}
+
+static void
+update_render_stats(const struct timespec* time1, const struct timespec* time0,
+                    ncstats* stats){
+  int64_t elapsed = timespec_subtract_ns(time1, time0);
+  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / 1000000000,
+  //        (elapsed % 1000000000) / 1000000);
+  if(elapsed > 0){ // don't count clearly incorrect information, egads
+    ++stats->renders;
+    stats->renders_ns += elapsed;
+    if(elapsed > stats->render_max_ns){
+      stats->render_max_ns = elapsed;
+    }
+    if(elapsed < stats->render_min_ns || stats->render_min_ns == 0){
+      stats->render_min_ns = elapsed;
+    }
+  }
+}
 
 static const char NOTCURSES_VERSION[] =
  notcurses_VERSION_MAJOR "."
@@ -159,7 +232,7 @@ free_plane(ncplane* p){
 }
 
 static int
-term_emit(const char* seq, FILE* out){
+term_emit(const char* seq, FILE* out, bool flush){
   int ret = fprintf(out, "%s", seq);
   if(ret < 0){
     fprintf(stderr, "Error emitting %zub sequence (%s)\n", strlen(seq), strerror(errno));
@@ -167,6 +240,10 @@ term_emit(const char* seq, FILE* out){
   }
   if((size_t)ret != strlen(seq)){
     fprintf(stderr, "Short write (%db) for %zub sequence\n", ret, strlen(seq));
+    return -1;
+  }
+  if(flush && fflush(out)){
+    fprintf(stderr, "Error flushing after %db sequence (%s)\n", ret, strerror(errno));
     return -1;
   }
   return 0;
@@ -266,7 +343,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
     return -1;
   }
   if(!opts->retain_cursor){
-    if(term_emit(tiparm(cursor_invisible), stdout)){
+    if(term_emit(tiparm(cursor_invisible), stdout, true)){
       return -1;
     }
     term_verify_seq(&nc->cnorm, "cnorm");
@@ -348,6 +425,9 @@ notcurses* notcurses_init(const notcurses_options* opts){
             ret->ttyfd, strerror(errno));
     goto err;
   }
+  if(setup_signals(ret, opts->no_quit_sighandlers, opts->no_winch_sighandler)){
+    goto err;
+  }
   int termerr;
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
@@ -362,7 +442,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
   ret->top->z = NULL;
   ret->stdscr = ret->top;
   memset(&ret->stats, 0, sizeof(ret->stats));
-  if(ret->smcup && term_emit(ret->smcup, stdout)){
+  if(ret->smcup && term_emit(ret->smcup, stdout, true)){
     free_plane(ret->top);
     goto err;
   }
@@ -385,10 +465,11 @@ err:
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
-    if(nc->rmcup && term_emit(nc->rmcup, stdout)){
+    drop_signals(nc);
+    if(nc->rmcup && term_emit(nc->rmcup, stdout, true)){
       ret = -1;
     }
-    if(nc->cnorm && term_emit(nc->cnorm, stdout)){
+    if(nc->cnorm && term_emit(nc->cnorm, stdout, true)){
       return -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
@@ -588,7 +669,7 @@ int notcurses_render(notcurses* nc){
   if(out == NULL){
     return -1;
   }
-  term_emit(nc->clear, out);
+  term_emit(nc->clear, out, false);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
@@ -599,7 +680,7 @@ int notcurses_render(notcurses* nc){
       // escapes ourselves, if either is set to default, we first send op, and
       // then a turnon for whichever aren't default.
       if(cell_fg_default_p(c) || cell_bg_default_p(c)){
-        term_emit(nc->op, out);
+        term_emit(nc->op, out, false);
       }
       if(!cell_fg_default_p(c)){
         cell_get_fg(c, &r, &g, &b);

@@ -117,6 +117,13 @@ typedef struct notcurses_options {
   // If smcup/rmcup capabilities are indicated, notcurses defaults to making
   // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;
+  // We typically install a signal handler for SIGINT and SIGQUIT that restores
+  // the screen, and then calls the old signal handler. Set this to inhibit
+  // registration of any signal handlers.
+  bool no_quit_sighandlers;
+  // We typically install a signal handler for SIGWINCH that generates a resize
+  // event in the notcurses_getc() queue. Set this to inhibit the handler.
+  bool no_winch_sighandler;
 } notcurses_options;
 
 // Initialize a notcurses context, corresponding to a connected terminal.
