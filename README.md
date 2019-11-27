@@ -9,6 +9,7 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
 * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
 
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Introduction
 
