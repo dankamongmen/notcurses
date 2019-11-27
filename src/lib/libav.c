@@ -8,6 +8,7 @@ typedef struct ncvisual {
   AVFrame* frame;
   AVCodec* codec;
   AVPacket* packet;
+  int packet_outstanding;
 } ncvisual;
 
 static ncvisual*
@@ -32,22 +33,24 @@ void ncvisual_destroy(ncvisual* ncv){
 }
 
 AVFrame* ncvisual_decode(struct ncvisual* nc){
-  int ret = avcodec_send_packet(nc->codecctx, nc->packet);
-  if(ret < 0){
-    fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(ret));
-    return NULL;
-  }
-  do{
-    ret = avcodec_receive_frame(nc->codecctx, nc->frame);
-    if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
-      return nc->frame; // FIXME is this safe? could it have been blown away?
-    }else if(ret < 0){
-      fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(ret));
+  int ret;
+  if(nc->packet_outstanding){
+    ret = avcodec_send_packet(nc->codecctx, nc->packet);
+    if(ret < 0){
+      fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(ret));
       return NULL;
     }
-    fprintf(stderr, "Got frame %05d\n", nc->codecctx->frame_number);
-  }while(ret > 0);
-  return NULL; // FIXME
+    --nc->packet_outstanding;
+  }
+  ret = avcodec_receive_frame(nc->codecctx, nc->frame);
+  if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
+    return NULL; // FIXME do something smarter
+  }else if(ret < 0){
+    fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(ret));
+    return NULL;
+  }
+  fprintf(stderr, "Got frame %05d\n", nc->codecctx->frame_number);
+  return nc->frame;
 }
 
 ncvisual* notcurses_visual_open(struct notcurses* nc __attribute__ ((unused)),
@@ -98,6 +101,7 @@ av_dump_format(ncv->fmtctx, 0, filename, false);
             av_err2str(ret));
     goto err;
   }
+  ++ncv->packet_outstanding;
   if((ncv->frame = av_frame_alloc()) == NULL){
     fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
     goto err;
