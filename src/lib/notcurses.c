@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
+#include <libavformat/version.h>
 #include "notcurses.h"
 #include "timespec.h"
 #include "version.h"
@@ -365,7 +366,11 @@ notcurses* notcurses_init(const notcurses_options* opts){
     free_plane(ret->top);
     goto err;
   }
-  printf("%d rows, %d columns (%zub), %d colors (%s)\n",
+  printf("notcurses %s by nick black\nterminfo from %s\n"
+         "avformat %u.%u.%u\n"
+         "%d rows, %d columns (%zub), %d colors (%s)\n",
+         notcurses_version(), curses_version(), LIBAVFORMAT_VERSION_MAJOR,
+         LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
          ret->top->leny, ret->top->lenx,
          ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
          ret->colors, ret->RGBflag ? "direct" : "palette");
