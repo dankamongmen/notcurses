@@ -123,6 +123,7 @@ int unicodeblocks_demo(struct notcurses* nc){
       }
       cell_release(n, &c);
     }
+    ncplane_fg_rgb8(n, 0x40, 0xc0, 0x40);
     if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 3)){
       return -1;
     }

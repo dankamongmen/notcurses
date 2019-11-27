@@ -589,14 +589,19 @@ int notcurses_render(notcurses* nc){
       unsigned r, g, b, br, bg, bb;
       // FIXME z-culling!
       const cell* c = &nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)];
-      // FIXME we allow these to be set distinctly, but terminfo only
-      // supports using them both via the 'op' capability
+      // we allow these to be set distinctly, but terminfo only supports using
+      // them both via the 'op' capability. unless we want to generate the 'op'
+      // escapes ourselves, if either is set to default, we first send op, and
+      // then a turnon for whichever aren't default.
       if(cell_fg_default_p(c) || cell_bg_default_p(c)){
         term_emit(nc->op, out);
-      }else{
+      }
+      if(!cell_fg_default_p(c)){
         cell_get_fg(c, &r, &g, &b);
-        cell_get_bg(c, &br, &bg, &bb);
         term_fg_rgb8(nc, out, r, g, b);
+      }
+      if(!cell_bg_default_p(c)){
+        cell_get_bg(c, &br, &bg, &bb);
         term_bg_rgb8(nc, out, br, bg, bb);
       }
       term_putc(out, nc->stdscr, c);
