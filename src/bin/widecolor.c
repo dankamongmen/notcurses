@@ -45,6 +45,7 @@ int widecolor_demo(struct notcurses* nc){
     "Μπορῶ νὰ φάω σπασμένα γυαλιὰ χωρὶς νὰ πάθω τίποτα",
     "Vitrum edere possum; mihi non nocet",
     "🚬🌿💉💊☢☣🔫💣⚔🤜🤛🧠🦹🤺🏋️,🦔🐧🐣🦆🦢🦜🦉🐊🐸🦕 🦖🐬🐙🦂🦠🦀",
+    */
     "Je puis mangier del voirre. Ne me nuit",
     "Je peux manger du verre, ça ne me fait pas mal",
     "Pòdi manjar de veire, me nafrariá pas",
@@ -76,7 +77,7 @@ int widecolor_demo(struct notcurses* nc){
     "Foddym gee glonney agh cha jean eh gortaghey mee",
     "᚛᚛ᚉᚑᚅᚔᚉᚉᚔᚋ ᚔᚈᚔ ᚍᚂᚐᚅᚑ ᚅᚔᚋᚌᚓᚅᚐ",
     "Con·iccim ithi nglano. Ním·géna",
-    "🗽🏴☭࿗☮࿘☭🏴🗽",
+    "☭࿗☮࿘☭",
     "Is féidir liom gloinne a ithe. Ní dhéanann sí dochar ar bith dom",
     "Ithim-sa gloine agus ní miste damh é",
     "S urrainn dhomh gloinne ithe; cha ghoirtich i mi",
@@ -98,6 +99,7 @@ int widecolor_demo(struct notcurses* nc){
     "Jag kan äta glas utan att skada mig",
     "Jeg kan spise glas, det gør ikke ondt på mig",
     "Æ ka æe glass uhen at det go mæ naue",
+    /*
     "က္ယ္ဝန္တော္၊က္ယ္ဝန္မ မ္ယက္စားနုိင္သည္။ ၎က္ရောင္ ထိခုိက္မ္ဟု မရ္ဟိပာ။",
     "ကျွန်တော် ကျွန်မ မှန်စားနိုင်တယ်။ ၎င်းကြောင့် ထိခိုက်မှုမရှိပါ။ ",
     "Tôi có thể ăn thủy tinh mà không hại gì",
@@ -118,6 +120,7 @@ int widecolor_demo(struct notcurses* nc){
     "Hiki iaʻu ke ʻai i ke aniani; ʻaʻole nō lā au e ʻeha",
     "E koʻana e kai i te karahi, mea ʻā, ʻaʻe hauhau",
     "ᐊᓕᒍᖅ ᓂᕆᔭᕌᖓᒃᑯ ᓱᕋᙱᑦᑐᓐᓇᖅᑐ",
+    */
     "Naika məkmək kakshət labutay, pi weyk ukuk munk-sik nay",
     "Tsésǫʼ yishą́ągo bííníshghah dóó doo shił neezgai da",
     "mi kakne le nu citka le blaci .iku'i le se go'i na xrani m",
@@ -132,6 +135,7 @@ int widecolor_demo(struct notcurses* nc){
     "Isch kann Jlaas kimmeln, uuhne datt mich datt weh dääd",
     "Ich koann Gloos assn und doas dudd merr ni wii",
     "Мен шиша ейишим мумкин, аммо у менга зарар келтирмайди",
+    /*
     "আমি কাঁচ খেতে পারি, তাতে আমার কোনো ক্ষতি হয় না",
     "मी काच खाऊ शकतो, मला ते दुखत नाही",
     "ನನಗೆ ಹಾನಿ ಆಗದೆ, ನಾನು ಗಜನ್ನು ತಿನಬಹು",

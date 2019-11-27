@@ -113,3 +113,92 @@ TEST_F(EGCPoolTest, AddTwiceRemoveSecond) {
   EXPECT_EQ(u2 + 1, pool_.poolused);
   EXPECT_LT(0, pool_.poolwrite);
 }
+
+// POOL_MINIMUM_ALLOC is the minimum size of an egcpool once it goes active.
+// add EGCs to it past this boundary, and verify that they're all still
+// accurate.
+TEST_F(EGCPoolTest, ForceReallocation) {
+  std::array<int, POOL_MINIMUM_ALLOC * 8> candidates; // offsets
+  char* firstalloc = nullptr;
+  for(auto i = 0u ; i < candidates.max_size() ; ++i){
+    char mb[MB_CUR_MAX + 1];
+    wchar_t wcs = i + 0x80;
+    auto r = wctomb(mb, wcs);
+    if(r < 0){
+      candidates[i] = -1;
+      continue;
+    }
+    ASSERT_GE(sizeof(mb), r);
+    mb[r] = '\0';
+    candidates[i] = egcpool_stash(&pool_, mb, r);
+    ASSERT_GT(1u << 24u, candidates[i]);
+    if(!firstalloc){
+      firstalloc = pool_.pool;
+    }
+  }
+  // verify that we moved the pool at least once
+  ASSERT_NE(pool_.pool, firstalloc);
+  for(auto i = 0u ; i < candidates.max_size() ; ++i){
+    auto stored = pool_.pool + candidates[i];
+    char mb[MB_CUR_MAX + 1];
+    wchar_t wcs = i + 0x80;
+    auto r = wctomb(mb, wcs);
+    if(r < 0){
+      ASSERT_EQ(-1, candidates[i]);
+      continue;
+    }
+    ASSERT_LT(0, r);
+    mb[r] = '\0';
+    EXPECT_STREQ(mb, stored);
+  }
+}
+
+// POOL_MINIMUM_ALLOC is the minimum size of an egcpool once it goes active.
+// add EGCs to it past this boundary, and verify that they're all still
+// accurate.
+TEST_F(EGCPoolTest, ForceReallocationWithRemovals) {
+  std::array<int, POOL_MINIMUM_ALLOC * 8> candidates; // offsets
+  char* curpool = nullptr;
+  for(auto i = 0u ; i < candidates.max_size() ; ++i){
+    char mb[MB_CUR_MAX + 1];
+    wchar_t wcs = i + 0x80;
+    auto r = wctomb(mb, wcs);
+    if(r < 0){
+      candidates[i] = -1;
+      continue;
+    }
+    ASSERT_GE(sizeof(mb), r);
+    mb[r] = '\0';
+    candidates[i] = egcpool_stash(&pool_, mb, r);
+    ASSERT_GT(1u << 24u, candidates[i]);
+    if(pool_.pool != curpool){
+      // cut through and release a bunch of them
+      if(curpool){
+        for(auto j = 0u ; j < i ; j += 3){
+          if(candidates[j] >= 0){
+            egcpool_release(&pool_, candidates[j]);
+            candidates[j] = -1;
+          }
+        }
+      }
+      curpool = pool_.pool;
+    }
+  }
+  for(auto i = 0u ; i < candidates.max_size() ; ++i){
+    auto stored = pool_.pool + candidates[i];
+    char mb[MB_CUR_MAX + 1];
+    wchar_t wcs = i + 0x80;
+    auto r = wctomb(mb, wcs);
+    if(r < 0){
+      ASSERT_EQ(-1, candidates[i]);
+      continue;
+    }
+    ASSERT_LT(0, r);
+    mb[r] = '\0';
+    if(i % 3 == 0){
+      EXPECT_STREQ(mb, "");
+    }else{
+      EXPECT_STREQ(mb, stored);
+    }
+  }
+}

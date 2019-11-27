@@ -616,14 +616,9 @@ simple_cell_p(const cell* c){
   return c->gcluster < 0x80;
 }
 
-static inline uint32_t
-extended_gcluster_idx(const cell* c){
-  return c->gcluster - 0x80;
-}
-
 static inline const char*
 extended_gcluster(const ncplane* n, const cell* c){
-  uint32_t idx = extended_gcluster_idx(c);
+  uint32_t idx = cell_egc_idx(c);
   return n->pool.pool + idx;
 }
 
@@ -796,7 +791,7 @@ int ncplane_getc(const ncplane* n, cell* c, char** gclust){
 
 void cell_release(ncplane* n, cell* c){
   if(!simple_cell_p(c)){
-    egcpool_release(&n->pool, extended_gcluster_idx(c));
+    egcpool_release(&n->pool, cell_egc_idx(c));
     c->gcluster = 0; // don't subject ourselves to double-release problems
   }
 }
