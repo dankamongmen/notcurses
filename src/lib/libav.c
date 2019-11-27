@@ -2,7 +2,8 @@
 #include <libavformat/avformat.h>
 #include "notcurses.h"
 
-int notcurses_visual_open(struct notcurses* nc, const char* filename){
+int notcurses_visual_open(struct notcurses* nc __attribute__ ((unused)),
+                          const char* filename){
   AVFormatContext* ps = NULL;
   int ret = avformat_open_input(&ps, filename, NULL, NULL);
   if(ret < 0){

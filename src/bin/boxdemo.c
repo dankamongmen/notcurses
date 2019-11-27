@@ -15,12 +15,9 @@ int box_demo(struct notcurses* nc){
   cell_init(&lr);
   cell_init(&hl);
   cell_init(&vl);
-  cell_load(n, &ul, "╭");
-  cell_load(n, &ur, "╮");
-  cell_load(n, &ll, "╰");
-  cell_load(n, &lr, "╯");
-  cell_load(n, &vl, "│");
-  cell_load(n, &hl, "─");
+  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
   cell_set_fg(&ul, 107, 40, 107);
   cell_set_bg(&ul, 20, 20, 20);
   cell_set_fg(&ur, 107, 40, 107);
@@ -38,7 +35,8 @@ int box_demo(struct notcurses* nc){
     if(ncplane_cursor_move_yx(n, y, x)){
       return -1;
     }
-    if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ymax, xmax)){
+    if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, ymax, xmax)){
+fprintf(stderr, "failed at %d/%d + %d/%d\n", y, x, ymax, xmax);
       return -1;
     }
     ymax -= 2;
