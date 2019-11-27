@@ -103,13 +103,7 @@ int main(int argc, char** argv){
   cell lr = CELL_TRIVIAL_INITIALIZER;
   cell vl = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER;
-  cell_load(ncp, &ul, "╭");
-  cell_load(ncp, &ur, "╮");
-  cell_load(ncp, &ll, "╰");
-  cell_load(ncp, &lr, "╯");
-  cell_load(ncp, &vl, "│");
-  cell_load(ncp, &hl, "─");
-  if(ncplane_cursor_move_yx(ncp, 1, 1)){
+  if(ncplane_rounded_box_cells(ncp, &ul, &ur, &ll, &lr, &hl, &vl)){
     goto err;
   }
   cell_set_fg(&ul, 90, 0, 90);
@@ -124,7 +118,10 @@ int main(int argc, char** argv){
   cell_set_bg(&lr, 0, 0, 180);
   cell_set_bg(&vl, 0, 0, 180);
   cell_set_bg(&hl, 0, 0, 180);
-  if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 1, cols - 2)){
+  if(ncplane_cursor_move_yx(ncp, 1, 1)){
+    goto err;
+  }
+  if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 2, cols - 2)){
     goto err;
   }
   if(notcurses_render(nc)){

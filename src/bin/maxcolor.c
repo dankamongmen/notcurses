@@ -39,12 +39,9 @@ int maxcolor_demo(struct notcurses* nc){
   cell ur = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER;
   cell vl = CELL_TRIVIAL_INITIALIZER;
-  cell_load(n, &ul, "╭");
-  cell_load(n, &ur, "╮");
-  cell_load(n, &ll, "╰");
-  cell_load(n, &lr, "╯");
-  cell_load(n, &vl, "│");
-  cell_load(n, &hl, "─");
+  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
   cell_set_fg(&ul, 0, 128, 128);
   cell_set_fg(&ur, 0, 128, 128);
   cell_set_fg(&ll, 0, 128, 128);
@@ -59,7 +56,7 @@ int maxcolor_demo(struct notcurses* nc){
   cell_set_bg(&hl, 90, 0, 90);
   int y = 0, x = 0;
   ncplane_cursor_move_yx(n, y, x);
-  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, maxy, maxx)){
+  if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, maxy, maxx)){
     return -1;
   }
   uint32_t rgb = 0;

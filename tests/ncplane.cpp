@@ -165,13 +165,10 @@ TEST_F(NcplaneTest, VerticalLines) {
 TEST_F(NcplaneTest, BadlyPlacedBoxen) {
   int x, y;
   ncplane_dimyx(n_, &y, &x);
+  ASSERT_LT(2, y);
+  ASSERT_LT(2, x);
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-  cell_load(n_, &ul, "╭");
-  cell_load(n_, &ur, "╮");
-  cell_load(n_, &ll, "╰");
-  cell_load(n_, &lr, "╯");
-  cell_load(n_, &vl, "│");
-  cell_load(n_, &hl, "─");
+  ASSERT_EQ(0, ncplane_rounded_box_cells(n_, &ul, &ur, &ll, &lr, &hl, &vl));
   EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1));
   EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 1, 0));
   EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
@@ -188,16 +185,11 @@ TEST_F(NcplaneTest, BadlyPlacedBoxen) {
 TEST_F(NcplaneTest, PerimeterBox) {
   int x, y;
   ncplane_dimyx(n_, &y, &x);
-  ASSERT_LT(0, y);
-  ASSERT_LT(0, x);
+  ASSERT_LT(2, y);
+  ASSERT_LT(2, x);
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-  cell_load(n_, &ul, "╭");
-  cell_load(n_, &ur, "╮");
-  cell_load(n_, &ll, "╰");
-  cell_load(n_, &lr, "╯");
-  cell_load(n_, &vl, "│");
-  cell_load(n_, &hl, "─");
-  EXPECT_EQ(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
+  ASSERT_EQ(0, ncplane_rounded_box_cells(n_, &ul, &ur, &ll, &lr, &hl, &vl));
+  EXPECT_EQ(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y - 1, x - 1));
   cell_release(n_, &vl);
   cell_release(n_, &hl);
   cell_release(n_, &ul);
@@ -206,6 +198,21 @@ TEST_F(NcplaneTest, PerimeterBox) {
   cell_release(n_, &lr);
 }
 
+TEST_F(NcplaneTest, PerimeterBoxSized) {
+  int x, y;
+  ncplane_dimyx(n_, &y, &x);
+  ASSERT_LT(2, y);
+  ASSERT_LT(2, x);
+  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
+  ASSERT_EQ(0, ncplane_rounded_box_cells(n_, &ul, &ur, &ll, &lr, &hl, &vl));
+  EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
+  cell_release(n_, &vl);
+  cell_release(n_, &hl);
+  cell_release(n_, &ul);
+  cell_release(n_, &ll);
+  cell_release(n_, &ur);
+  cell_release(n_, &lr);
+}
 TEST_F(NcplaneTest, EraseScreen) {
   ncplane_erase(n_);
 }
