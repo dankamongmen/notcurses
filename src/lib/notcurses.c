@@ -895,26 +895,3 @@ void ncplane_erase(ncplane* n){
   n->channels = 0;
   n->attrword = 0;
 }
-
-int ncplane_rounded_box_cells(ncplane* n, cell* ul, cell* ur, cell* ll,
-                              cell* lr, cell* hl, cell* vl){
-  if(cell_load(n, ul, "╭") > 0){
-    if(cell_load(n, ur, "╮") > 0){
-      if(cell_load(n, ll, "╰") > 0){
-        if(cell_load(n, lr, "╯") > 0){
-          if(cell_load(n, hl, "─") > 0){
-            if(cell_load(n, vl, "│") > 0){
-              return 0;
-            }
-            cell_release(n, hl);
-          }
-          cell_release(n, lr);
-        }
-        cell_release(n, ll);
-      }
-      cell_release(n, ur);
-    }
-    cell_release(n, ul);
-  }
-  return -1;
-}

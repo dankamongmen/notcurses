@@ -11,8 +11,10 @@
 extern "C" {
 #endif
 
+#define API __attribute__((visibility("default")))
+
 // Get a human-readable string describing the running notcurses version.
-const char* notcurses_version(void);
+API const char* notcurses_version(void);
 
 struct cell;      // a coordinate on an ncplane: an EGC plus styling
 struct ncplane;   // a drawable notcurses surface, composed of cells
@@ -80,66 +82,66 @@ typedef struct notcurses_options {
 
 // Initialize a notcurses context, corresponding to a connected terminal.
 // Returns NULL on error, including any failure to initialize terminfo.
-struct notcurses* notcurses_init(const notcurses_options* opts);
+API struct notcurses* notcurses_init(const notcurses_options* opts);
 
 // Destroy a notcurses context.
-int notcurses_stop(struct notcurses* nc);
+API int notcurses_stop(struct notcurses* nc);
 
 // Make the physical screen match the virtual screen. Changes made to the
 // virtual screen (i.e. most other calls) will not be visible until after a
 // successful call to notcurses_render().
-int notcurses_render(struct notcurses* nc);
+API int notcurses_render(struct notcurses* nc);
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
 // References to ncplanes remain valid following a resize operation, but the
 // cursor might have changed position.
-int notcurses_resize(struct notcurses* n);
+API int notcurses_resize(struct notcurses* n);
 
 // Get a reference to the standard plane (one matching our current idea of the
 // terminal size) for this terminal.
-struct ncplane* notcurses_stdplane(struct notcurses* nc);
-const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+API struct ncplane* notcurses_stdplane(struct notcurses* nc);
+API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
 // Create a new plane at the specified offset (relative to the standard plane)
 // and the specified size. The number of rows and columns must both be positive.
 // This plane is initially at the top of the z-buffer, as if ncplane_move_top()
 // had been called on it. The void* 'opaque' can be retrieved (and reset) later.
-struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
-                                   int yoff, int xoff, void* opaque);
+API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
+                                       int yoff, int xoff, void* opaque);
 
 // Destroy the specified ncplane. None of its contents will be visible after
 // the next call to notcurses_render(). It is an error to attempt to destroy
 // the standard plane.
-int ncplane_destroy(struct ncplane* n);
+API int ncplane_destroy(struct ncplane* n);
 
 // Move this plane relative to the standard plane.
-int ncplane_move_yx(struct ncplane* n, int y, int x);
+API int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of this plane relative to the standard plane.
-void ncplane_yx(const struct ncplane* n, int* y, int* x);
+API void ncplane_yx(const struct ncplane* n, int* y, int* x);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
-void ncplane_move_above(struct ncplane* n, struct ncplane* above);
+API void ncplane_move_above(struct ncplane* n, struct ncplane* above);
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-void ncplane_move_below(struct ncplane* n, struct ncplane* below);
+API void ncplane_move_below(struct ncplane* n, struct ncplane* below);
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-void ncplane_move_top(struct ncplane* n);
-void ncplane_move_bottom(struct ncplane* n);
+API void ncplane_move_top(struct ncplane* n);
+API void ncplane_move_bottom(struct ncplane* n);
 
 // Retrieve the topmost cell at this location on the screen, returning it in
 // 'c'. If there is more than a byte of gcluster, it will be returned as a heap
 // allocation in '*gclust', and '*c' will be 0x80.
-void notcurses_getc(const struct notcurses* n, cell* c, char** gclust);
+API void notcurses_getc(const struct notcurses* n, cell* c, char** gclust);
 
 // Manipulate the opaque user pointer associated with this plane.
-void ncplane_set_userptr(struct ncplane* n, void* opaque);
-void* ncplane_userptr(struct ncplane* n);
-const void* ncplane_userptr_const(const struct ncplane* n);
+API void ncplane_set_userptr(struct ncplane* n, void* opaque);
+API void* ncplane_userptr(struct ncplane* n);
+API const void* ncplane_userptr_const(const struct ncplane* n);
 
 // Returns the dimensions of this ncplane.
-void ncplane_dimyx(const struct ncplane* n, int* rows, int* cols);
+API void ncplane_dimyx(const struct ncplane* n, int* rows, int* cols);
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
@@ -150,21 +152,21 @@ notcurses_term_dimyx(const struct notcurses* n, int* rows, int* cols){
 // Move the cursor to the specified position (the cursor needn't be visible).
 // Returns -1 on error, including negative parameters, or ones exceeding the
 // plane's dimensions.
-int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
+API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-void ncplane_cursor_yx(const struct ncplane* n, int* y, int* x);
+API void ncplane_cursor_yx(const struct ncplane* n, int* y, int* x);
 
 // Replace the cell underneath the cursor with the provided cell 'c', and
 // advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
 // On failure, -1 is returned.
-int ncplane_putc(struct ncplane* n, const cell* c);
+API int ncplane_putc(struct ncplane* n, const cell* c);
 
 // Retrieve the cell under this plane's cursor, returning it in 'c'. If there
 // is more than a byte of gcluster, it will be returned as a heap allocation in
 // '*gclust', and '*c' will be 0x80. Returns -1 on error, 0 on success.
-int ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
+API int ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
 
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -172,11 +174,11 @@ int ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of cells
 // which were written before the error.
-int ncplane_putstr(struct ncplane* n, const char* gclustarr);
+API int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 
 // The ncplane equivalents of printf(3) and vprintf(3).
-int ncplane_printf(struct ncplane* n, const char* format, ...);
-int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
+API int ncplane_printf(struct ncplane* n, const char* format, ...);
+API int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last
@@ -184,15 +186,15 @@ int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 // lines), just as if ncplane_putc() was called at that spot. Return the
 // number of cells drawn on success. On error, return the negative number of
 // cells drawn.
-int ncplane_hline(struct ncplane* n, const cell* c, int len);
-int ncplane_vline(struct ncplane* n, const cell* c, int len);
+API int ncplane_hline(struct ncplane* n, const cell* c, int len);
+API int ncplane_vline(struct ncplane* n, const cell* c, int len);
 
 // Draw a box with its upper-left corner at the current cursor position, and its
 // lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the
 // upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
-int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
-                const cell* ll, const cell* lr, const cell* hline,
-                const cell* vline, int ystop, int xstop);
+API int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
+                    const cell* ll, const cell* lr, const cell* hline,
+                    const cell* vline, int ystop, int xstop);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
@@ -209,7 +211,7 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane is invalidated, and must not be used after the call.
-void ncplane_erase(struct ncplane* n);
+API void ncplane_erase(struct ncplane* n);
 
 // Set the current fore/background color using RGB specifications. If the
 // terminal does not support directly-specified 3x8b cells (24-bit "Direct
@@ -217,29 +219,29 @@ void ncplane_erase(struct ncplane* n);
 // will be interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
 // time using "color pairs"; notcurses will manage color pairs transparently.
-int ncplane_fg_rgb8(struct ncplane* n, int r, int g, int b);
-int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
+API int ncplane_fg_rgb8(struct ncplane* n, int r, int g, int b);
+API int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
-void ncplane_set_style(struct ncplane* n, unsigned stylebits);
+API void ncplane_set_style(struct ncplane* n, unsigned stylebits);
 
 // Add the specified styles to the ncplane's existing spec.
-void ncplane_enable_styles(struct ncplane* n, unsigned stylebits);
+API void ncplane_enable_styles(struct ncplane* n, unsigned stylebits);
 
 // Remove the specified styles from the ncplane's existing spec.
-void ncplane_disable_styles(struct ncplane* n, unsigned stylebits);
+API void ncplane_disable_styles(struct ncplane* n, unsigned stylebits);
 
 // Fine details about terminal
 
 // Returns a 16-bit bitmask in the LSBs of supported NCURSES-style attributes
 // (WA_UNDERLINE, WA_BOLD, etc.) The attribute is only indicated as supported
 // if the terminal can support it together with color.
-unsigned notcurses_supported_styles(const struct notcurses* nc);
+API unsigned notcurses_supported_styles(const struct notcurses* nc);
 
 // Returns the number of colors supported by the palette, or 1 if there is no
 // color support.
-int notcurses_palette_size(const struct notcurses* nc);
+API int notcurses_palette_size(const struct notcurses* nc);
 
 // Working with cells
 
@@ -251,14 +253,14 @@ cell_init(cell* c){
 }
 
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
-int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
 // benefit of unit tests.
-int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
+API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 
 // Release resources held by the cell 'c'.
-void cell_release(struct ncplane* n, cell* c);
+API void cell_release(struct ncplane* n, cell* c);
 
 #define CELL_STYLE_MASK 0xffff0000ul
 #define CELL_ALPHA_MASK 0x0000fffful
@@ -372,11 +374,34 @@ cell_wide_p(const cell* c){
 // load up six cells with the EGCs necessary to draw a light, rounded box.
 // returns 0 on success, -1 on error. on error, any cells this function might
 // have loaded before the error are cell_release()d.
-int ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                              cell* lr, cell* hl, cell* vl);
+static inline int
+ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
+                          cell* lr, cell* hl, cell* vl){
+  if(cell_load(n, ul, "╭") > 0){
+    if(cell_load(n, ur, "╮") > 0){
+      if(cell_load(n, ll, "╰") > 0){
+        if(cell_load(n, lr, "╯") > 0){
+          if(cell_load(n, hl, "─") > 0){
+            if(cell_load(n, vl, "│") > 0){
+              return 0;
+            }
+            cell_release(n, hl);
+          }
+          cell_release(n, lr);
+        }
+        cell_release(n, ll);
+      }
+      cell_release(n, ur);
+    }
+    cell_release(n, ul);
+  }
+  return -1;
+}
 
 // multimedia functionality
-int notcurses_visual_open(struct notcurses* nc, const char* filename);
+API int notcurses_visual_open(struct notcurses* nc, const char* filename);
+
+#undef API
 
 #ifdef __cplusplus
 } // extern "C"

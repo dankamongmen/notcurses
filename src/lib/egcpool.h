@@ -23,12 +23,36 @@ typedef struct egcpool {
   int poolwrite;      // next place to *look for* a place to write
 } egcpool;
 
+#define POOL_MINIMUM_ALLOC BUFSIZ
+
 static inline void
 egcpool_init(egcpool* p){
   memset(p, 0, sizeof(*p));
 }
 
-int egcpool_grow(egcpool* pool, size_t len);
+static inline int
+egcpool_grow(egcpool* pool, size_t len){
+  size_t newsize = pool->poolsize * 2;
+  if(newsize < POOL_MINIMUM_ALLOC){
+    newsize = POOL_MINIMUM_ALLOC;
+  }
+  while(len > newsize - pool->poolsize){ // ensure we make enough space
+    newsize *= 2;
+  }
+  // offsets only have 24 bits available...
+  if(newsize >= 1u << 24u){
+    return -1;
+  }
+  // nasty cast here because c++ source might include this header :/
+  typeof(*pool->pool)* tmp = (typeof(pool->pool))realloc(pool->pool, newsize);
+  if(tmp == NULL){
+    return -1;
+  }
+  pool->pool = tmp;
+  memset(pool->pool + pool->poolsize, 0, newsize - pool->poolsize);
+  pool->poolsize = newsize;
+  return 0;
+}
 
 // Eat an EGC from the UTF-8 string input. This consists of extracting a
 // multibyte via mbtowc, then continuing to extract any which have zero

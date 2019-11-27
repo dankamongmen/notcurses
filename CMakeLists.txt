@@ -4,7 +4,9 @@ project(notcurses VERSION 0.0.9
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 configure_file(tools/version.h.in include/version.h)
 
