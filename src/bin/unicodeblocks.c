@@ -23,9 +23,10 @@ int unicodeblocks_demo(struct notcurses* nc){
   } blocks[] = {
     { .name = "Basic Latin, Latin 1 Supplement, Latin Extended", .start = 0, },
     { .name = "IPA Extensions, Spacing Modifiers, Greek and Coptic", .start = 0x200, },
-    { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
-    { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
-    { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
+    // too much right-to-left crap here for now :(
+    // { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
+    // { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
+    // { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
     { .name = "Gurmukhi, Gujarati, Oriya, Tamil", .start = 0xa00, },
     { .name = "Telugu, Kannada, Malayalam, Sinhala", .start = 0xc00, },
     { .name = "Thai, Lao, Tibetan", .start = 0xe00, },
@@ -70,11 +71,11 @@ int unicodeblocks_demo(struct notcurses* nc){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     int chunk;
-    if(ncplane_cursor_move_yx(n, 1, 4)){
+    if(ncplane_cursor_move_yx(n, 1, 8)){
       return -1;
     }
     ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
-    if(ncplane_printf(n, "Unicode points %04x–%04x", blockstart, blockstart + BLOCKSIZE) <= 0){
+    if(ncplane_printf(n, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
     if(ncplane_cursor_move_yx(n, 3, 4)){
