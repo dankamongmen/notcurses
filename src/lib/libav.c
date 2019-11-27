@@ -1,4 +1,5 @@
 #include <libavutil/error.h>
+#include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 #include <libavformat/avformat.h>
 #include "notcurses.h"
@@ -53,7 +54,14 @@ AVFrame* ncvisual_decode(struct ncvisual* nc){
     fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(ret));
     return NULL;
   }
+#define IMGALLOCALIGN 32
   fprintf(stderr, "Got frame %05d\n", nc->codecctx->frame_number);
+  ret = av_image_alloc(nc->frame->data, nc->frame->linesize, nc->frame->width,
+                       nc->frame->height, nc->frame->format, IMGALLOCALIGN);
+  if(ret < 0){
+    fprintf(stderr, "Error allocating input data (%s)\n", av_err2str(ret));
+    return NULL;
+  }
   nc->swsctx = sws_getCachedContext(nc->swsctx,
                                     nc->frame->width,
                                     nc->frame->height,
@@ -67,7 +75,29 @@ AVFrame* ncvisual_decode(struct ncvisual* nc){
     fprintf(stderr, "Error retrieving swsctx (%s)\n", av_err2str(ret));
     return NULL;
   }
-  return nc->frame;
+  AVFrame* oframe = av_frame_alloc();
+  if(oframe == NULL){
+    fprintf(stderr, "Couldn't allocate output frame\n");
+    return NULL;
+  }
+  oframe->format = AV_PIX_FMT_RGB24;
+  oframe->width = nc->dstwidth;
+  oframe->height = nc->dstheight;
+  if((ret = av_image_alloc(oframe->data, oframe->linesize, oframe->width, oframe->height,
+                           oframe->format, IMGALLOCALIGN)) < 0){
+    fprintf(stderr, "Error allocating visual data (%s)\n", av_err2str(ret));
+    av_frame_free(&oframe);
+    return NULL;
+  }
+  ret = sws_scale(nc->swsctx, (const uint8_t* const*)nc->frame->data, nc->frame->linesize, 0,
+                  nc->frame->height, oframe->data, oframe->linesize);
+  if(ret < 0){
+    fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(ret));
+    av_frame_free(&oframe);
+    return NULL;
+  }
+#undef IMGALLOCALIGN
+  return oframe;
 }
 
 ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename){
