@@ -23,6 +23,11 @@ class LibavTest : public :: testing::Test {
 };
 
 TEST_F(LibavTest, LoadImage) {
-  int ret = notcurses_image_open(nc_, "../tools/dsscaw-purp.png");
+  int ret = notcurses_visual_open(nc_, "../tools/dsscaw-purp.png");
+  ASSERT_EQ(0, ret);
+}
+
+TEST_F(LibavTest, LoadVideo) {
+  int ret = notcurses_visual_open(nc_, "../tools/atliens.mkv");
   ASSERT_EQ(0, ret);
 }
