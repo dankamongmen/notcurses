@@ -14,6 +14,7 @@ include(GNUInstallDirs)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
+pkg_check_modules(AVUTIL REQUIRED libavutil)
 pkg_check_modules(AVFORMAT REQUIRED libavformat)
 find_library(LIBRT rt)
 
@@ -61,10 +62,21 @@ target_compile_options(notcurses-demo
 
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 add_executable(notcurses-view ${VIEWSRCS})
-target_include_directories(notcurses-view PRIVATE include)
+target_include_directories(notcurses-view
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+    "${AVUTIL_INCLUDE_DIR}"
+)
+target_link_directories(notcurses-view
+  PRIVATE
+    "${AVUTIL_LIBRARY_DIRS}"
+)
 target_link_libraries(notcurses-view
   PRIVATE
     notcurses
+  PRIVATE
+    "${AVUTIL_LIBRARIES}"
 )
 target_compile_options(notcurses-view
   PRIVATE

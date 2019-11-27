@@ -1,6 +1,9 @@
 #include <cstdlib>
 #include <libgen.h>
 #include <iostream>
+#include <libavutil/pixdesc.h>
+#include <libavutil/avconfig.h>
+#include <libavcodec/avcodec.h>
 #include "notcurses.h"
 
 static void usage(std::ostream& os, const char* name, int exitcode)
@@ -12,9 +15,13 @@ void usage(std::ostream& o, const char* name, int exitcode){
 }
 
 int ncview(struct ncvisual* ncv, const notcurses_options* opts){
-  if(ncvisual_decode(ncv) == nullptr){
+  AVFrame* avf;
+  if((avf = ncvisual_decode(ncv)) == nullptr){
     return -1;
   }
+  printf("%s: %dx%d aspect %d:%d %d\n", avf->key_frame ? "Keyframe" : "Frame",
+         avf->height, avf->width, avf->sample_aspect_ratio.num,
+         avf->sample_aspect_ratio.den, avf->format);
   auto nc = notcurses_init(opts);
   if(nc == nullptr){
     return -1;
