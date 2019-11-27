@@ -18,6 +18,7 @@ API const char* notcurses_version(void);
 
 struct cell;      // a coordinate on an ncplane: an EGC plus styling
 struct ncplane;   // a drawable notcurses surface, composed of cells
+struct ncvisual;  // a visual bit of multimedia opened with LibAV
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 
 // A cell corresponds to a single character cell on some plane, which can be
@@ -427,7 +428,9 @@ ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
 }
 
 // multimedia functionality
-API int notcurses_visual_open(struct notcurses* nc, const char* filename);
+API struct ncvisual* notcurses_visual_open(struct notcurses* nc,
+                                           const char* filename);
+API void ncvisual_destroy(struct ncvisual* ncv);
 
 #undef API
 
