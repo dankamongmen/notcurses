@@ -428,9 +428,13 @@ ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
 }
 
 // multimedia functionality
+struct AVFrame;
 API struct ncvisual* notcurses_visual_open(struct notcurses* nc,
                                            const char* filename);
+
 API void ncvisual_destroy(struct ncvisual* ncv);
+
+API struct AVFrame* ncvisual_decode(struct ncvisual* nc);
 
 #undef API
 

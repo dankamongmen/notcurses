@@ -31,10 +31,31 @@ void ncvisual_destroy(ncvisual* ncv){
   }
 }
 
+AVFrame* ncvisual_decode(struct ncvisual* nc){
+  int ret = avcodec_send_packet(nc->codecctx, nc->packet);
+  if(ret < 0){
+    fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(ret));
+    return NULL;
+  }
+  do{
+    ret = avcodec_receive_frame(nc->codecctx, nc->frame);
+    if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
+      // FIXME can we still use nc->frame?
+      return NULL;
+    }else if(ret < 0){
+      fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(ret));
+      return NULL;
+    }
+    fprintf(stderr, "Got frame %05d\n", nc->codecctx->frame_number);
+  }while(ret > 0);
+  return NULL; // FIXME
+}
+
 ncvisual* notcurses_visual_open(struct notcurses* nc __attribute__ ((unused)),
                                 const char* filename){
   ncvisual* ncv = ncvisual_create();
   if(ncv == NULL){
+    fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     return NULL;
   }
   int ret = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
