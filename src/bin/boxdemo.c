@@ -18,20 +18,20 @@ int box_demo(struct notcurses* nc){
   if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  cell_set_fg(&ul, 107, 40, 107);
-  cell_set_bg(&ul, 20, 20, 20);
-  cell_set_fg(&ur, 107, 40, 107);
-  cell_set_bg(&ur, 20, 20, 20);
-  cell_set_fg(&hl, 107, 40, 107);
-  cell_set_bg(&hl, 20, 20, 20);
-  cell_set_fg(&ll, 20, 20, 20);
-  cell_set_bg(&ll, 107, 40, 107);
-  cell_set_fg(&lr, 20, 20, 20);
-  cell_set_bg(&lr, 107, 40, 107);
-  cell_set_fg(&vl, 20, 20, 20);
-  cell_set_bg(&vl, 107, 40, 107);
   int y = 0, x = 0;
   while(ymax - y - 1 > 2 && xmax - x - 1 > 2){
+    cell_set_fg(&ul, 107 - (y * 2), 40, 107 + (y * 2));
+    cell_set_bg(&ul, 20 + y, 20 + y, 20 + y);
+    cell_set_fg(&ur, 107 - (y * 2), 40, 107 + (y * 2));
+    cell_set_bg(&ur, 20 + y, 20 + y, 20 + y);
+    cell_set_fg(&hl, 107 - (y * 2), 40, 107 + (y * 2));
+    cell_set_bg(&hl, 20, 20, 20);
+    cell_set_fg(&ll, 107 - (y * 2), 40, 107 + (y * 2));
+    cell_set_bg(&ll, 20 + y, 20 + y, 20 + y);
+    cell_set_fg(&lr, 107 - (y * 2), 40, 107 + (y * 2));
+    cell_set_bg(&lr, 20 + y, 20 + y, 20 + y);
+    cell_set_fg(&vl, 20, 20, 20);
+    cell_set_bg(&vl, 107 - (y * 2), 40, 107 + (y * 2));
     if(ncplane_cursor_move_yx(n, y, x)){
       return -1;
     }
