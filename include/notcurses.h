@@ -187,15 +187,28 @@ int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 int ncplane_hline(struct ncplane* n, const cell* c, int len);
 int ncplane_vline(struct ncplane* n, const cell* c, int len);
 
-// Draw a box with its upper-left corner at the current cursor position, having
-// dimensions |ylen| x |xlen|. The 6 cells provided are used to draw the
+// Draw a box with its upper-left corner at the current cursor position, and its
+// lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the
 // upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
 int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hline,
-                const cell* vline, int ylen, int xlen);
+                const cell* vline, int ystop, int xstop);
 
-// Erase all content in the ncplane, resetting all attributes to normal, all
-// colors to -1, and all cells to undrawn.
+// Draw a box with its upper-left corner at the current cursor position, having
+// dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
+// minimum box size is 2x2, and it cannot be drawn off-screen.
+static inline int
+ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
+                  const cell* ll, const cell* lr, const cell* hline,
+                  const cell* vline, int ylen, int xlen){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1, x + xlen - 1);
+}
+
+// Erase every cell in the ncplane, resetting all attributes to normal, all
+// colors to the default color, and all cells to undrawn. All cells associated
+// with this ncplane is invalidated, and must not be used after the call.
 void ncplane_erase(struct ncplane* n);
 
 // Set the current fore/background color using RGB specifications. If the
@@ -355,6 +368,12 @@ static inline bool
 cell_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
+
+// load up six cells with the EGCs necessary to draw a light, rounded box.
+// returns 0 on success, -1 on error. on error, any cells this function might
+// have loaded before the error are cell_release()d.
+int ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
+                              cell* lr, cell* hl, cell* vl);
 
 // multimedia functionality
 int notcurses_visual_open(struct notcurses* nc, const char* filename);
