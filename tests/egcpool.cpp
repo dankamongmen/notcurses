@@ -118,19 +118,19 @@ TEST_F(EGCPoolTest, AddTwiceRemoveSecond) {
 // add EGCs to it past this boundary, and verify that they're all still
 // accurate.
 TEST_F(EGCPoolTest, ForceReallocation) {
-  std::array<int, POOL_MINIMUM_ALLOC * 8> candidates; // offsets
+  std::vector<int> candidates;
   char* firstalloc = nullptr;
-  for(auto i = 0u ; i < candidates.max_size() ; ++i){
+  for(auto i = 0u ; i < 1u << 20u ; ++i){
     char mb[MB_CUR_MAX + 1];
     wchar_t wcs = i + 0x80;
     auto r = wctomb(mb, wcs);
     if(r < 0){
-      candidates[i] = -1;
+      candidates.push_back(-1);
       continue;
     }
     ASSERT_GE(sizeof(mb), r);
     mb[r] = '\0';
-    candidates[i] = egcpool_stash(&pool_, mb, r);
+    candidates.push_back(egcpool_stash(&pool_, mb, r));
     ASSERT_GT(1u << 24u, candidates[i]);
     if(!firstalloc){
       firstalloc = pool_.pool;
@@ -138,7 +138,7 @@ TEST_F(EGCPoolTest, ForceReallocation) {
   }
   // verify that we moved the pool at least once
   ASSERT_NE(pool_.pool, firstalloc);
-  for(auto i = 0u ; i < candidates.max_size() ; ++i){
+  for(auto i = 0u ; i < candidates.size() ; ++i){
     auto stored = pool_.pool + candidates[i];
     char mb[MB_CUR_MAX + 1];
     wchar_t wcs = i + 0x80;
@@ -157,24 +157,25 @@ TEST_F(EGCPoolTest, ForceReallocation) {
 // add EGCs to it past this boundary, and verify that they're all still
 // accurate.
 TEST_F(EGCPoolTest, ForceReallocationWithRemovals) {
-  std::array<int, POOL_MINIMUM_ALLOC * 8> candidates; // offsets
+  std::vector<int> candidates;
   char* curpool = nullptr;
-  for(auto i = 0u ; i < candidates.max_size() ; ++i){
+  for(auto i = 0u ; i < 1u << 20u ; ++i){
     char mb[MB_CUR_MAX + 1];
-    wchar_t wcs = i + 0x80;
+    wchar_t wcs = (i % 0x1000) + 0x80;
     auto r = wctomb(mb, wcs);
     if(r < 0){
-      candidates[i] = -1;
+      candidates.push_back(-1);
       continue;
     }
     ASSERT_GE(sizeof(mb), r);
     mb[r] = '\0';
-    candidates[i] = egcpool_stash(&pool_, mb, r);
+    candidates.push_back(egcpool_stash(&pool_, mb, r));
+
     ASSERT_GT(1u << 24u, candidates[i]);
     if(pool_.pool != curpool){
       // cut through and release a bunch of them
       if(curpool){
-        for(auto j = 0u ; j < i ; j += 3){
+        for(auto j = 0u ; j < i ; j += 13){
           if(candidates[j] >= 0){
             egcpool_release(&pool_, candidates[j]);
             candidates[j] = -1;
@@ -184,10 +185,15 @@ TEST_F(EGCPoolTest, ForceReallocationWithRemovals) {
       curpool = pool_.pool;
     }
   }
-  for(auto i = 0u ; i < candidates.max_size() ; ++i){
+  int no = 0;
+  for(auto i = 0u ; i < candidates.size() ; ++i){
+    if(candidates[i] == -1){
+      ++no;
+      continue;
+    }
     auto stored = pool_.pool + candidates[i];
     char mb[MB_CUR_MAX + 1];
-    wchar_t wcs = i + 0x80;
+    wchar_t wcs = (i % 0x1000) + 0x80;
     auto r = wctomb(mb, wcs);
     if(r < 0){
       ASSERT_EQ(-1, candidates[i]);
@@ -195,10 +201,7 @@ TEST_F(EGCPoolTest, ForceReallocationWithRemovals) {
     }
     ASSERT_LT(0, r);
     mb[r] = '\0';
-    if(i % 3 == 0){
-      EXPECT_STREQ(mb, "");
-    }else{
-      EXPECT_STREQ(mb, stored);
-    }
+    EXPECT_STREQ(mb, stored);
   }
+  ASSERT_GT(candidates.size() / 13, no);
 }
