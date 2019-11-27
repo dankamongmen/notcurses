@@ -2,7 +2,9 @@
 #define NOTCURSES_EGCPOOL
 
 #include <wchar.h>
+#include <errno.h>
 #include <stddef.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -174,12 +176,34 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
   return -1; // should never get here
 }
 
+// Run a consistency check on the offset; ensure it's a valid, non-empty EGC.
+static inline bool
+egcpool_check_validity(const egcpool* pool, int offset){
+  const char* egc = pool->pool + offset;
+  if(*egc == '\0'){
+    fprintf(stderr, "Bad offset (%d): empty\n", offset);
+    return false;
+  }
+  do{
+    wchar_t wcs;
+    int r = mbtowc(&wcs, egc, strlen(egc));
+    if(r < 0){
+      fprintf(stderr, "Invalid UTF8 at offset %d, len %zu [%s]\n",
+              offset, strlen(egc), strerror(errno));
+      return false;
+    }
+    egc += r;
+  }while(*egc);
+  return true;
+}
+
 // remove the egc from the pool. start at offset, and zero out everything until
 // we find a zero (our own NUL terminator). remove that number of bytes from
 // the usedcount.
 static inline void
 egcpool_release(egcpool* pool, int offset){
   size_t freed = 1; // account for free(d) NUL terminator
+  assert(egcpool_check_validity(pool, offset));
   while(pool->pool[offset]){
     pool->pool[offset] = '\0';
     ++freed;

@@ -210,7 +210,7 @@ int widecolor_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
   for(i = 0 ; i < sizeof(steps) / sizeof(*steps) ; ++i){
-  ncplane_erase(n);
+    // ncplane_erase(n);
     const int start = starts[i];
     const int step = steps[i];
     //do{
@@ -232,7 +232,7 @@ int widecolor_demo(struct notcurses* nc){
           cell_set_bg(&wch, 64, 64, 64);
           size_t idx = 0;
           ncplane_cursor_yx(n, &y, &x);
-          fprintf(stderr, "%02d %s\n", y, *s);
+// fprintf(stderr, "%02d %s\n", y, *s);
           while((*s)[idx]){
             if(y >= maxy || x >= maxx){
               break;
