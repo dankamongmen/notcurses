@@ -134,7 +134,7 @@ API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
 // Destroy the specified ncplane. None of its contents will be visible after
 // the next call to notcurses_render(). It is an error to attempt to destroy
 // the standard plane.
-API int ncplane_destroy(struct ncplane* n);
+API int ncplane_destroy(struct notcurses* nc, struct ncplane* ncp);
 
 // Move this plane relative to the standard plane.
 API int ncplane_move_yx(struct ncplane* n, int y, int x);
@@ -429,8 +429,7 @@ ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
 
 // multimedia functionality
 struct AVFrame;
-API struct ncvisual* notcurses_visual_open(struct notcurses* nc,
-                                           const char* filename);
+API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file);
 
 API void ncvisual_destroy(struct ncvisual* ncv);
 

@@ -1,4 +1,5 @@
 #include <libavutil/error.h>
+#include <libswscale/swscale.h>
 #include <libavformat/avformat.h>
 #include "notcurses.h"
 
@@ -8,7 +9,9 @@ typedef struct ncvisual {
   AVFrame* frame;
   AVCodec* codec;
   AVPacket* packet;
+  struct SwsContext* swsctx;
   int packet_outstanding;
+  int dstwidth, dstheight;
 } ncvisual;
 
 static ncvisual*
@@ -26,6 +29,7 @@ void ncvisual_destroy(ncvisual* ncv){
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
+    sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
     avformat_close_input(&ncv->fmtctx);
     free(ncv);
@@ -50,16 +54,29 @@ AVFrame* ncvisual_decode(struct ncvisual* nc){
     return NULL;
   }
   fprintf(stderr, "Got frame %05d\n", nc->codecctx->frame_number);
+  nc->swsctx = sws_getCachedContext(nc->swsctx,
+                                    nc->frame->width,
+                                    nc->frame->height,
+                                    nc->frame->format,
+                                    nc->dstwidth,
+                                    nc->dstheight,
+                                    AV_PIX_FMT_RGB24,
+                                    SWS_LANCZOS,
+                                    NULL, NULL, NULL);
+  if(nc->swsctx == NULL){
+    fprintf(stderr, "Error retrieving swsctx (%s)\n", av_err2str(ret));
+    return NULL;
+  }
   return nc->frame;
 }
 
-ncvisual* notcurses_visual_open(struct notcurses* nc __attribute__ ((unused)),
-                                const char* filename){
+ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename){
   ncvisual* ncv = ncvisual_create();
   if(ncv == NULL){
     fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     return NULL;
   }
+  ncplane_dimyx(nc, &ncv->dstheight, &ncv->dstwidth);
   int ret = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
   if(ret < 0){
     fprintf(stderr, "Couldn't open %s (%s)\n", filename, av_err2str(ret));
