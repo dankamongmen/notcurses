@@ -2,7 +2,8 @@ Source: notcurses
 Priority: optional
 Maintainer: Nick Black <dankamongmen@gmail.com>
 Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config,
- libgtest-dev (>= 1.9.0), libncurses-dev (>= 6.1), libavformat-dev
+ libgtest-dev (>= 1.9.0), libncurses-dev (>= 6.1), libavformat-dev,
+ libswscale-dev, libavutil-dev
 Standards-Version: 4.4.1.1
 Section: libs
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses
