@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <curses.h>
 #include <unistd.h>
 #include <string.h>
@@ -202,9 +203,9 @@ int widecolor_demo(struct notcurses* nc){
   const int starts[] = { 0, 16, 62, 128, };
 
   struct ncplane* n = notcurses_stdplane(nc);
-  ncplane_erase(n);
   size_t i;
   for(i = 0 ; i < sizeof(steps) / sizeof(*steps) ; ++i){
+  ncplane_erase(n);
     const int start = starts[i];
     const int step = steps[i];
     //do{
@@ -232,6 +233,10 @@ int widecolor_demo(struct notcurses* nc){
             if(y >= maxy && x >= maxx){
               break;
             }
+            if(isspace((*s)[idx])){
+              ++idx;
+              continue;
+            }
             int ulen = cell_load(n, &wch, &(*s)[idx]);
             if(ulen < 0){
               return -1;
@@ -253,8 +258,9 @@ int widecolor_demo(struct notcurses* nc){
       ncplane_set_style(n, WA_BOLD);
       ncplane_cursor_move_yx(n, 2, 2);
       ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, i, sizeof(steps) / sizeof(*steps));
+      ncplane_cursor_move_yx(n, 3, 2);
       ncplane_set_style(n, WA_NORMAL);
-      ncplane_fg_rgb8(n, 200, 255, 200);
+      ncplane_fg_rgb8(n, 200, 20, 200);
       ncplane_putstr(n, " 🔥wide chars, multiple colors, resize awareness…🔥 ");
       if(notcurses_render(nc)){
         return -1;
