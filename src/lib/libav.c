@@ -40,8 +40,7 @@ AVFrame* ncvisual_decode(struct ncvisual* nc){
   do{
     ret = avcodec_receive_frame(nc->codecctx, nc->frame);
     if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
-      // FIXME can we still use nc->frame?
-      return NULL;
+      return nc->frame; // FIXME is this safe? could it have been blown away?
     }else if(ret < 0){
       fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(ret));
       return NULL;

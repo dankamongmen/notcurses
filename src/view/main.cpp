@@ -12,7 +12,9 @@ void usage(std::ostream& o, const char* name, int exitcode){
 }
 
 int ncview(struct ncvisual* ncv, const notcurses_options* opts){
-  ncvisual_decode(ncv);
+  if(ncvisual_decode(ncv) == nullptr){
+    return -1;
+  }
   auto nc = notcurses_init(opts);
   if(nc == nullptr){
     return -1;
