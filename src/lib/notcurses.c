@@ -762,7 +762,6 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   return ulen;
 }
 
-// FIXME check that it's not a '\n'? newlines cause annoying, tricky problems
 int ncplane_putc(ncplane* n, const cell* c){
   if(n->y >= n->leny || n->x >= n->lenx){
     return -1;
