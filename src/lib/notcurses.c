@@ -719,10 +719,8 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
   while(*gcluster){
     cell c;
     memset(&c, 0, sizeof(c));
-    uint32_t rgb = cell_fg_rgb(n->channels);
-    cell_set_fg(&c, cell_rgb_red(rgb), cell_rgb_green(rgb), cell_rgb_blue(rgb));
-    uint32_t rgbbg = cell_bg_rgb(n->channels);
-    cell_set_bg(&c, cell_rgb_red(rgbbg), cell_rgb_green(rgbbg), cell_rgb_blue(rgbbg));
+    c.channels = n->channels;
+    c.attrword = n->attrword;
     int wcs = cell_load(n, &c, gcluster);
     if(wcs < 0){
       return -ret;
@@ -883,6 +881,8 @@ void ncplane_erase(ncplane* n){
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
+  n->channels = 0;
+  n->attrword = 0;
 }
 
 int ncplane_rounded_box_cells(ncplane* n, cell* ul, cell* ur, cell* ll,
