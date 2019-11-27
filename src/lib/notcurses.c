@@ -787,8 +787,6 @@ void cell_release(ncplane* n, cell* c){
   }
 }
 
-// loads the cell with the next EGC from 'gcluster'. returns the number of
-// bytes copied out of 'gcluster', or -1 on failure.
 int cell_load(ncplane* n, cell* c, const char* gcluster){
   cell_release(n, c);
   int bytes;
