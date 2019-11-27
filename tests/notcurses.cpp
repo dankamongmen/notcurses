@@ -22,8 +22,15 @@ class NotcursesTest : public :: testing::Test {
     }
   }
 
-  struct notcurses* nc_;
+  struct notcurses* nc_{};
 };
+
+TEST_F(NotcursesTest, NotcursesVersionString) {
+  const char* ver = notcurses_version();
+  ASSERT_NE(nullptr, ver);
+  ASSERT_LT(0, strlen(ver));
+  std::cout << "notcurses version " << ver << std::endl;
+}
 
 TEST_F(NotcursesTest, BasicLifetime) {
 }

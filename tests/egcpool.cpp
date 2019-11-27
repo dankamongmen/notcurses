@@ -13,7 +13,6 @@ class EGCPoolTest : public :: testing::Test {
   }
 
   egcpool pool_{};
-
 };
 
 TEST_F(EGCPoolTest, Initialized) {
