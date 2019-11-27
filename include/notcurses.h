@@ -357,7 +357,7 @@ cell_wide_p(const cell* c){
 }
 
 // multimedia functionality
-int notcurses_image_open(struct notcurses* nc, const char* filename);
+int notcurses_visual_open(struct notcurses* nc, const char* filename);
 
 #ifdef __cplusplus
 } // extern "C"
