@@ -822,21 +822,24 @@ int ncplane_vline(ncplane* n, const cell* c, int len){
 
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hl,
-                const cell* vl, int ylen, int xlen){
-  if(xlen < 2 || ylen < 2){
-    return -1;
-  }
+                const cell* vl, int ystop, int xstop){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
+  if(ystop < yoff + 1){
+    return -1;
+  }
+  if(xstop < xoff + 1){
+    return -1;
+  }
   ncplane_dimyx(n, &ymax, &xmax);
-  if(xmax - xoff < xlen || ymax - yoff < ylen){
+  if(xstop >= xmax || ystop >= ymax){
     return -1;
   }
   if(ncplane_putc(n, ul) < 0){
     return -1;
   }
-  if(xlen > 2){
-    if(ncplane_hline(n, hl, xlen - 2) < 0){
+  if(xstop - xoff >= 2){
+    if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
       return -1;
     }
   }
@@ -844,14 +847,14 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
     return -1;
   }
   ++yoff;
-  while(yoff < ylen - 1){
+  while(yoff < ystop){
     if(ncplane_cursor_move_yx(n, yoff, xoff)){
       return -1;
     }
     if(ncplane_putc(n, vl) < 0){
       return -1;
     }
-    if(ncplane_cursor_move_yx(n, yoff, xoff + xlen - 1)){
+    if(ncplane_cursor_move_yx(n, yoff, xstop)){
       return -1;
     }
     if(ncplane_putc(n, vl) < 0){
@@ -865,8 +868,8 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   if(ncplane_putc(n, ll) < 0){
     return -1;
   }
-  if(xlen > 2){
-    if(ncplane_hline(n, hl, xlen - 2) < 0){
+  if(xstop - xoff >= 2){
+    if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
       return -1;
     }
   }
@@ -880,4 +883,27 @@ void ncplane_erase(ncplane* n){
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
+}
+
+int ncplane_rounded_box_cells(ncplane* n, cell* ul, cell* ur, cell* ll,
+                              cell* lr, cell* hl, cell* vl){
+  if(cell_load(n, ul, "╭") > 0){
+    if(cell_load(n, ur, "╮") > 0){
+      if(cell_load(n, ll, "╰") > 0){
+        if(cell_load(n, lr, "╯") > 0){
+          if(cell_load(n, hl, "─") > 0){
+            if(cell_load(n, vl, "│") > 0){
+              return 0;
+            }
+            cell_release(n, hl);
+          }
+          cell_release(n, lr);
+        }
+        cell_release(n, ll);
+      }
+      cell_release(n, ur);
+    }
+    cell_release(n, ul);
+  }
+  return -1;
 }
