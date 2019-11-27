@@ -23,9 +23,10 @@ int unicodeblocks_demo(struct notcurses* nc){
   } blocks[] = {
     { .name = "Basic Latin, Latin 1 Supplement, Latin Extended", .start = 0, },
     { .name = "IPA Extensions, Spacing Modifiers, Greek and Coptic", .start = 0x200, },
-    { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
-    { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
-    { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
+    // too much right-to-left crap here for now :(
+    // { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
+    // { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
+    // { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
     { .name = "Gurmukhi, Gujarati, Oriya, Tamil", .start = 0xa00, },
     { .name = "Telugu, Kannada, Malayalam, Sinhala", .start = 0xc00, },
     { .name = "Thai, Lao, Tibetan", .start = 0xe00, },
