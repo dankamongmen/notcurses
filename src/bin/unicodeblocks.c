@@ -71,11 +71,11 @@ int unicodeblocks_demo(struct notcurses* nc){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     int chunk;
-    if(ncplane_cursor_move_yx(n, 1, 4)){
+    if(ncplane_cursor_move_yx(n, 1, 8)){
       return -1;
     }
     ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
-    if(ncplane_printf(n, "Unicode points %04x–%04x", blockstart, blockstart + BLOCKSIZE) <= 0){
+    if(ncplane_printf(n, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
     if(ncplane_cursor_move_yx(n, 3, 4)){

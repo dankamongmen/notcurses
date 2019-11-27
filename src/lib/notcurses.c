@@ -446,7 +446,8 @@ notcurses* notcurses_init(const notcurses_options* opts){
     free_plane(ret->top);
     goto err;
   }
-  printf("\nnotcurses %s by nick black\nterminfo from %s\n"
+  printf("\n notcurses %s by nick black\n"
+         "terminfo from %s\n"
          "avformat %u.%u.%u\n"
          "%d rows, %d columns (%zub), %d colors (%s)\n",
          notcurses_version(), curses_version(), LIBAVFORMAT_VERSION_MAJOR,
@@ -694,7 +695,7 @@ int notcurses_render(notcurses* nc){
       }
       // FIXME what to do if we're at the last cell, and it's wide?
       term_putc(out, nc->stdscr, c);
-      if(cell_wide_p(c)){
+      if(cell_double_wide_p(c)){
         ++x;
       }
     }
@@ -760,7 +761,7 @@ int ncplane_putc(ncplane* n, const cell* c){
   }
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
-  advance_cursor(n, 1 + cell_wide_p(c));
+  advance_cursor(n, 1 + cell_double_wide_p(c));
   return ret;
 }
 

@@ -376,7 +376,7 @@ cell_bg_default_p(const cell* c){
 }
 
 static inline bool
-cell_wide_p(const cell* c){
+cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 

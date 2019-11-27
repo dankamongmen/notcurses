@@ -18,7 +18,6 @@ class CellTest : public :: testing::Test {
 
   void TearDown() override {
     if(nc_){
-      EXPECT_EQ(0, notcurses_render(nc_));
       EXPECT_EQ(0, notcurses_stop(nc_));
     }
   }
