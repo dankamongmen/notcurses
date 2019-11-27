@@ -446,7 +446,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
     free_plane(ret->top);
     goto err;
   }
-  printf("notcurses %s by nick black\nterminfo from %s\n"
+  printf("\nnotcurses %s by nick black\nterminfo from %s\n"
          "avformat %u.%u.%u\n"
          "%d rows, %d columns (%zub), %d colors (%s)\n",
          notcurses_version(), curses_version(), LIBAVFORMAT_VERSION_MAJOR,
