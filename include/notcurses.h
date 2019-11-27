@@ -40,7 +40,7 @@ struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 // other things, like cuneiform. Fucccccck. True display width is a *property
 // of the font*. Fuccccccccckkkkk. Among the longest Unicode codepoints is
 //
-//            U+FDFD ARABIC LIGATURE BISMILLAH ﷽
+//    U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM ﷽
 //
 // wcwidth() rather optimistically claims this suicide bomber of a glyph to
 // occupy a single column, right before it explodes in your diner. BiDi text
