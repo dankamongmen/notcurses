@@ -14,7 +14,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   exit(exitcode);
 }
 
-int ncview(struct ncvisual* ncv, const notcurses_options* opts){
+int ncview(struct ncvisual* ncv){
   AVFrame* avf;
   if((avf = ncvisual_decode(ncv)) == nullptr){
     return -1;
@@ -22,12 +22,7 @@ int ncview(struct ncvisual* ncv, const notcurses_options* opts){
   printf("%s: %dx%d aspect %d:%d %d\n", avf->key_frame ? "Keyframe" : "Frame",
          avf->height, avf->width, avf->sample_aspect_ratio.num,
          avf->sample_aspect_ratio.den, avf->format);
-  auto nc = notcurses_init(opts);
-  if(nc == nullptr){
-    return -1;
-  }
-  ncvisual_destroy(ncv);
-  return notcurses_stop(nc);
+  return 0;
 }
 
 int main(int argc, char** argv){
@@ -37,15 +32,24 @@ int main(int argc, char** argv){
   notcurses_options opts{};
   opts.outfp = stdout;
   bool success = true;
+  auto nc = notcurses_init(&opts);
+  if(nc == nullptr){
+    return -1;
+  }
+  auto ncp = notcurses_stdplane(nc);
   for(int i = 1 ; i < argc ; ++i){
-    auto ncv = notcurses_visual_open(nullptr, argv[i]);
+    auto ncv = ncplane_visual_open(ncp, argv[i]);
     if(ncv == nullptr){
       success = false;
       continue;
     }
-    if(ncview(ncv, &opts)){
+    if(ncview(ncv)){
       success = false;
     }
+    ncvisual_destroy(ncv);
+  }
+  if(notcurses_stop(nc)){
+    success = false;
   }
   if(!success){
     return EXIT_FAILURE;

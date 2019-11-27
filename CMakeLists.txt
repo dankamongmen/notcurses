@@ -16,6 +16,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
 pkg_check_modules(AVUTIL REQUIRED libavutil)
 pkg_check_modules(AVFORMAT REQUIRED libavformat)
+pkg_check_modules(SWSCALE REQUIRED libswscale)
 find_library(LIBRT rt)
 
 file(GLOB LIBSRCS CONFIGURE_DEPENDS src/lib/*.c)
@@ -26,11 +27,13 @@ target_include_directories(notcurses
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIR}"
     "${AVFORMAT_INCLUDE_DIR}"
+    "${SWSCALE_INCLUDE_DIR}"
 )
 target_link_libraries(notcurses
   PRIVATE
     "${TERMINFO_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
+    "${SWSCALE_LIBRARIES}"
     "${LIBRT}"
 )
 set_target_properties(notcurses PROPERTIES
