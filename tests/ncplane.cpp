@@ -9,7 +9,7 @@ class NcplaneTest : public :: testing::Test {
       GTEST_SKIP();
     }
     notcurses_options nopts{};
-    nopts.outfd = STDIN_FILENO;
+    nopts.outfp = stdin;
     nc_ = notcurses_init(&nopts);
     ASSERT_NE(nullptr, nc_);
     n_ = notcurses_stdplane(nc_);
@@ -19,8 +19,6 @@ class NcplaneTest : public :: testing::Test {
 
   void TearDown() override {
     if(nc_){
-      EXPECT_EQ(0, ncplane_fg_rgb8(n_, 255, 255, 255));
-      EXPECT_EQ(0, notcurses_render(nc_));
       EXPECT_EQ(0, notcurses_stop(nc_));
     }
   }
@@ -89,6 +87,7 @@ TEST_F(NcplaneTest, MoveBeyondPlaneFails) {
 TEST_F(NcplaneTest, SetPlaneRGB) {
   EXPECT_EQ(0, ncplane_fg_rgb8(n_, 0, 0, 0));
   EXPECT_EQ(0, ncplane_fg_rgb8(n_, 255, 255, 255));
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 TEST_F(NcplaneTest, RejectBadRGB) {
@@ -112,6 +111,7 @@ TEST_F(NcplaneTest, EmitWchar) {
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, y);
   EXPECT_EQ(1, x);
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 // Verify we can emit a wide string, and it advances the cursor
@@ -123,6 +123,7 @@ TEST_F(NcplaneTest, EmitStr) {
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, y);
   EXPECT_NE(1, x); // FIXME tighten in on this
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 TEST_F(NcplaneTest, HorizontalLines) {
@@ -141,6 +142,7 @@ TEST_F(NcplaneTest, HorizontalLines) {
     EXPECT_EQ(x - 1, posx);
   }
   cell_release(n_, &c);
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 TEST_F(NcplaneTest, VerticalLines) {
@@ -159,6 +161,7 @@ TEST_F(NcplaneTest, VerticalLines) {
     EXPECT_EQ(xidx, posx - 1);
   }
   cell_release(n_, &c);
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 // reject attempts to draw boxes beyond the boundaries of the ncplane
@@ -180,6 +183,7 @@ TEST_F(NcplaneTest, BadlyPlacedBoxen) {
   EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, 2, 2));
   EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 1, x - 2));
   EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, 2, 2));
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 TEST_F(NcplaneTest, PerimeterBox) {
@@ -196,6 +200,7 @@ TEST_F(NcplaneTest, PerimeterBox) {
   cell_release(n_, &ll);
   cell_release(n_, &ur);
   cell_release(n_, &lr);
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 TEST_F(NcplaneTest, PerimeterBoxSized) {
@@ -212,9 +217,12 @@ TEST_F(NcplaneTest, PerimeterBoxSized) {
   cell_release(n_, &ll);
   cell_release(n_, &ur);
   cell_release(n_, &lr);
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
+
 TEST_F(NcplaneTest, EraseScreen) {
   ncplane_erase(n_);
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 // we're gonna run both a composed latin a with grave, and then a latin a with
@@ -273,8 +281,8 @@ TEST_F(NcplaneTest, CellMultiColumn) {
   auto u2 = cell_load(n_, &c2, w2);
   ASSERT_EQ(strlen(w1), u1);
   ASSERT_EQ(strlen(w2), u2);
-  EXPECT_TRUE(cell_wide_p(&c1));
-  EXPECT_FALSE(cell_wide_p(&c2));
+  EXPECT_TRUE(cell_double_wide_p(&c1));
+  EXPECT_FALSE(cell_double_wide_p(&c2));
   cell_release(n_, &c1);
   cell_release(n_, &c2);
 }

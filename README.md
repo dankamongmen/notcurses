@@ -110,13 +110,16 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // A file descriptor for this terminal on which we will generate output.
-  // Must be a valid file descriptor attached to a terminal, or notcurses will
-  // refuse to start. You'll usually want STDOUT_FILENO.
-  int outfd;
+  // An open FILE* for this terminal, on which we will generate output. If
+  // not attached to a sufficiently capable terminal, notcurses will refuse
+  // to start. You'll usually want stdout.
+  FILE* outfp;
   // If smcup/rmcup capabilities are indicated, notcurses defaults to making
   // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;
+  // By default, we hide the cursor if possible. This flag inhibits use of
+  // the civis capability, retaining the cursor.
+  bool retain_cursor;
   // We typically install a signal handler for SIGINT and SIGQUIT that restores
   // the screen, and then calls the old signal handler. Set this to inhibit
   // registration of any signal handlers.
@@ -238,7 +241,9 @@ cell_init(cell* c){
   memset(c, 0, sizeof(*c));
 }
 
-// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
+// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
+// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
+// of the cell is left untouched, but any resources are released.
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // Release resources held by the cell 'c'.

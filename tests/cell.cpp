@@ -1,4 +1,5 @@
 #include <notcurses.h>
+#include "egcpool.h"
 #include "main.h"
 
 class CellTest : public :: testing::Test {
@@ -9,7 +10,7 @@ class CellTest : public :: testing::Test {
       GTEST_SKIP();
     }
     notcurses_options nopts{};
-    nopts.outfd = STDIN_FILENO;
+    nopts.outfp = stdin;
     nc_ = notcurses_init(&nopts);
     ASSERT_NE(nullptr, nc_);
     n_ = notcurses_stdplane(nc_);
@@ -18,7 +19,6 @@ class CellTest : public :: testing::Test {
 
   void TearDown() override {
     if(nc_){
-      EXPECT_EQ(0, notcurses_render(nc_));
       EXPECT_EQ(0, notcurses_stop(nc_));
     }
   }
@@ -40,3 +40,17 @@ TEST_F(CellTest, SetStyles) {
   EXPECT_EQ(0, y);
   EXPECT_EQ(0, notcurses_render(nc_));
 }
+
+/*TEST_F(CellTest, CellLoadTamil) {
+  const char zerodeg[] = "\u0bb8\u0bc0\u0bb0\u0bc7\u0bb3\u0b95\u0bbf\u0b95\u0bbf\u0bb0\u0bbf";
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  size_t ulen = cell_load(n_, &c, zerodeg);
+  // First have U+0BB8 TAMIL LETTER SA U+0BC0 TAMIL VOWEL SIGN II
+  // // e0 ae b8 e0 af 80
+  ASSERT_EQ(6, ulen);
+  ulen = cell_load(n_, &c, zerodeg + ulen);
+  // U+0BB0 TAMIL LETTER RA U+0BCB TAMIL VOWEL SIGN OO
+  // e0 ae b0 e0 af 8b
+  ASSERT_EQ(6, ulen);
+  // FIXME
+}*/

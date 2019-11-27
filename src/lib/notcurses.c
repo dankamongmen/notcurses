@@ -1,6 +1,7 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <time.h>
 #include <term.h>
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -49,7 +50,8 @@ typedef struct ncstats {
 } ncstats;
 
 typedef struct notcurses {
-  int ttyfd;      // file descriptor for controlling tty (takes stdin)
+  int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
+  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some terminfo capabilities exist. These needn't be checked
@@ -407,7 +409,12 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(ret == NULL){
     return ret;
   }
-  ret->ttyfd = opts->outfd;
+  ret->ttyfp = opts->outfp;
+  if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
+    fprintf(stderr, "No file descriptor was available in opts->outfp\n");
+    free(ret);
+    return NULL;
+  }
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
     fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
             ret->ttyfd, strerror(errno));
@@ -446,9 +453,12 @@ notcurses* notcurses_init(const notcurses_options* opts){
     free_plane(ret->top);
     goto err;
   }
-  printf("notcurses %s by nick black\nterminfo from %s\n"
-         "avformat %u.%u.%u\n"
-         "%d rows, %d columns (%zub), %d colors (%s)\n",
+  term_emit(ret->clear, ret->ttyfp, false);
+  fprintf(ret->ttyfp, "\n"
+         " notcurses %s by nick black\n"
+         " terminfo from %s\n"
+         " avformat %u.%u.%u\n"
+         " %d rows, %d columns (%zub), %d colors (%s)\n",
          notcurses_version(), curses_version(), LIBAVFORMAT_VERSION_MAJOR,
          LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
          ret->top->leny, ret->top->lenx,
@@ -623,17 +633,20 @@ extended_gcluster(const ncplane* n, const cell* c){
 static int
 term_putc(FILE* out, const ncplane* n, const cell* c){
   if(simple_cell_p(c)){
-    if(c->gcluster == 0){
+    if(c->gcluster == 0 || iscntrl(c->gcluster)){
+// fprintf(stderr, "[ ]\n");
       if(fputc(' ', out) == EOF){
         return -1;
       }
     }else{
+// fprintf(stderr, "[%c]\n", c->gcluster);
       if(fputc(c->gcluster, out) == EOF){
         return -1;
       }
     }
   }else{
     const char* ext = extended_gcluster(n, c);
+// fprintf(stderr, "[%s]\n", ext);
     if(fprintf(out, "%s", ext) < 0){ // FIXME check for short write?
       return -1;
     }
@@ -673,6 +686,7 @@ int notcurses_render(notcurses* nc){
   }
   term_emit(nc->clear, out, false);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
+    // FIXME previous line could have ended halfway through multicol. what happens?
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       // FIXME z-culling!
@@ -693,15 +707,17 @@ int notcurses_render(notcurses* nc){
         term_bg_rgb8(nc, out, br, bg, bb);
       }
       // FIXME what to do if we're at the last cell, and it's wide?
+// fprintf(stderr, "[%02d/%02d] ", y, x);
       term_putc(out, nc->stdscr, c);
-      if(cell_wide_p(c)){
+      if(cell_double_wide_p(c)){
         ++x;
       }
     }
   }
   ret |= fclose(out);
-  printf("%s", buf);
-  fflush(stdout);
+  fflush(nc->ttyfp);
+  write(nc->ttyfd, buf, buflen);
+// fprintf(stderr, "%s\n", buf);
   clock_gettime(CLOCK_MONOTONIC, &done);
   free(buf);
   update_render_stats(&done, &start, &nc->stats);
@@ -742,10 +758,8 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
     targ->gcluster = c->gcluster;
     return !!c->gcluster;
   }
-  size_t ulen;
-  int cols;
-  // wide flag is inherited from copy of channels
-  int eoffset = egcpool_stash(&n->pool, extended_gcluster(n, c), &ulen, &cols);
+  size_t ulen = strlen(extended_gcluster(n, c));
+  int eoffset = egcpool_stash(&n->pool, extended_gcluster(n, c), ulen);
   if(eoffset < 0){
     return -1;
   }
@@ -755,12 +769,12 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 
 // FIXME check that it's not a '\n'? newlines cause annoying, tricky problems
 int ncplane_putc(ncplane* n, const cell* c){
-  if(n->y == n->leny && n->x == n->lenx){
+  if(n->y >= n->leny || n->x >= n->lenx){
     return -1;
   }
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
-  advance_cursor(n, 1 + cell_wide_p(c));
+  advance_cursor(n, 1 + cell_double_wide_p(targ));
   return ret;
 }
 
@@ -787,8 +801,6 @@ void cell_release(ncplane* n, cell* c){
   }
 }
 
-// loads the cell with the next EGC from 'gcluster'. returns the number of
-// bytes copied out of 'gcluster', or -1 on failure.
 int cell_load(ncplane* n, cell* c, const char* gcluster){
   cell_release(n, c);
   int bytes;
@@ -802,14 +814,12 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   }else{
     c->channels &= ~CELL_WIDEASIAN_MASK;
   }
-  size_t ulen;
-  // FIXME feed in already-calculated lengths from prior utf8_egc_len()!
-  int eoffset = egcpool_stash(&n->pool, gcluster, &ulen, &cols);
+  int eoffset = egcpool_stash(&n->pool, gcluster, bytes);
   if(eoffset < 0){
     return -1;
   }
   c->gcluster = eoffset + 0x80;
-  return ulen;
+  return bytes;
 }
 
 int ncplane_putstr(ncplane* n, const char* gcluster){

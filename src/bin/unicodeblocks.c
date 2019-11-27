@@ -23,10 +23,9 @@ int unicodeblocks_demo(struct notcurses* nc){
   } blocks[] = {
     { .name = "Basic Latin, Latin 1 Supplement, Latin Extended", .start = 0, },
     { .name = "IPA Extensions, Spacing Modifiers, Greek and Coptic", .start = 0x200, },
-    // too much right-to-left crap here for now :(
-    // { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
-    // { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
-    // { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
+    { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
+    { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
+    { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
     { .name = "Gurmukhi, Gujarati, Oriya, Tamil", .start = 0xa00, },
     { .name = "Telugu, Kannada, Malayalam, Sinhala", .start = 0xc00, },
     { .name = "Thai, Lao, Tibetan", .start = 0xe00, },
@@ -71,22 +70,24 @@ int unicodeblocks_demo(struct notcurses* nc){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     int chunk;
-    if(ncplane_cursor_move_yx(n, 1, 4)){
-      return -1;
-    }
     ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
-    if(ncplane_printf(n, "Unicode points %04x–%04x", blockstart, blockstart + BLOCKSIZE) <= 0){
+    if(ncplane_cursor_move_yx(n, 1, (maxx - 26) / 2)){
       return -1;
     }
-    if(ncplane_cursor_move_yx(n, 3, 4)){
+    if(ncplane_printf(n, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
+    int xstart = (maxx - CHUNKSIZE * 2) / 2;
+    if(ncplane_cursor_move_yx(n, 3, xstart)){
+      return -1;
+    }
+    ++xstart;
     if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl,
-                         BLOCKSIZE / CHUNKSIZE + 2, CHUNKSIZE + 2)){
+                         BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2)){
       return -1;
     }
     for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
-      if(ncplane_cursor_move_yx(n, 4 + chunk, 5)){
+      if(ncplane_cursor_move_yx(n, 4 + chunk, xstart)){
         return -1;
       }
       int z;
@@ -98,7 +99,7 @@ int unicodeblocks_demo(struct notcurses* nc){
         wchar_t w = blockstart + chunk * CHUNKSIZE + z;
         char utf8arr[MB_CUR_MAX + 1];
         // FIXME we can print wide ones here, just add an extra line
-        if(wcwidth(w) == 1 && iswprint(w)){
+        if(wcwidth(w) >= 1 && iswprint(w)){
           int bwc = wcrtomb(utf8arr, w, &ps);
           if(bwc < 0){
             fprintf(stderr, "Couldn't convert %u (%x) (%lc) (%s)\n",
@@ -121,14 +122,28 @@ int unicodeblocks_demo(struct notcurses* nc){
         if(ncplane_putc(n, &c) < 0){
           return -1;
         }
+        if(wcwidth(w) < 2 || !iswprint(w)){
+          if(cell_load(n, &c, " ") < 0){
+            return -1;
+          }
+          if(ncplane_putc(n, &c) < 0){
+            return -1;
+          }
+        }
       }
       cell_release(n, &c);
     }
     ncplane_fg_rgb8(n, 0x40, 0xc0, 0x40);
-    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 3)){
+    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 0)){
       return -1;
     }
-    if(ncplane_printf(n, "%-*.*s", maxx - 3, maxx - 3, description) <= 0){
+    if(ncplane_printf(n, "%*.*s", maxx, maxx, "") <= 0){
+      return -1;
+    }
+    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, (maxx - strlen(description)) / 2)){
+      return -1;
+    }
+    if(ncplane_printf(n, "%s", description) <= 0){
       return -1;
     }
     if(notcurses_render(nc)){

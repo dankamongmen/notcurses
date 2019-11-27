@@ -33,6 +33,18 @@ struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 //    characters, followed by a NUL terminator.
 //
 // Multi-column characters can only have a single style/color throughout.
+// Existence is suffering, and thus wcwidth() is not reliable. It's just
+// quoting whether or not the EGC contains a "Wide Asian" double-width
+// character. This is set for some things, like most emoji, and not set for
+// other things, like cuneiform. Fucccccck. True display width is a *property
+// of the font*. Fuccccccccckkkkk. Among the longest Unicode codepoints is
+//
+//            U+FDFD ARABIC LIGATURE BISMILLAH ﷽
+//
+// wcwidth() rather optimistically claims this suicide bomber of a glyph to
+// occupy a single column, right before it explodes in your diner. BiDi text
+// is too complicated for me to even get into here. It sucks ass. Be assured
+// there are no easy answers. Allah, the All-Powerful, has fucked us again!
 //
 // Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
@@ -50,7 +62,7 @@ typedef struct cell {
   // (channels & 0x2000000000000000ull): wide character (left or right side)
   // (channels & 0x1f00000000000000ull): reserved, must be 0
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
-  // (channels & 0x0000000080000000ull): in the middle of a multicolumn glyph
+  // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"
   // (channels & 0x000000003f000000ull): reserved, must be 0
   // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
@@ -68,10 +80,10 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // A file descriptor for this terminal, on which we will generate output.
-  // Must be a valid file descriptor attached to a terminal, or notcurses will
-  // refuse to start. You'll usually want STDOUT_FILENO.
-  int outfd;
+  // An open FILE* for this terminal, on which we will generate output. If
+  // not attached to a sufficiently capable terminal, notcurses will refuse
+  // to start. You'll usually want stdout.
+  FILE* outfp;
   // If smcup/rmcup capabilities are indicated, notcurses defaults to making
   // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;
@@ -259,7 +271,9 @@ cell_init(cell* c){
   memset(c, 0, sizeof(*c));
 }
 
-// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'.
+// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
+// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
+// of the cell is left untouched, but any resources are released.
 API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
@@ -318,8 +332,10 @@ cell_rgb_blue(uint32_t rgb){
 }
 
 #define CELL_FGDEFAULT_MASK 0x4000000000000000ull
+#define CELL_FG_MASK        0x00ffffff00000000ull
 #define CELL_WIDEASIAN_MASK 0x2000000000000000ull
 #define CELL_BGDEFAULT_MASK 0x0000000040000000ull
+#define CELL_BG_MASK        0x0000000000ffffffull
 
 static inline void
 cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
@@ -327,7 +343,7 @@ cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   rgb |= (g & 0xffull) << 40u;
   rgb |= (b & 0xffull) << 32u;
   rgb |= CELL_FGDEFAULT_MASK;
-  *channels = (*channels & ~0x40ffffff00000000ull) | rgb;
+  *channels = (*channels & ~(CELL_FGDEFAULT_MASK | CELL_FG_MASK)) | rgb;
 }
 
 static inline void
@@ -336,7 +352,7 @@ cell_rgb_set_bg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   rgb |= (g & 0xffull) << 8u;
   rgb |= (b & 0xffull);
   rgb |= CELL_BGDEFAULT_MASK;
-  *channels = (*channels & ~0x0000000040ffffffull) | rgb;
+  *channels = (*channels & ~(CELL_BGDEFAULT_MASK | CELL_BG_MASK)) | rgb;
 }
 
 static inline void
@@ -374,7 +390,7 @@ cell_bg_default_p(const cell* c){
 }
 
 static inline bool
-cell_wide_p(const cell* c){
+cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
