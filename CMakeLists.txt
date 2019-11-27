@@ -47,14 +47,26 @@ target_compile_definitions(notcurses
     _DEFAULT_SOURCE _XOPEN_SOURCE=700
 )
 
-file(GLOB BINSRCS CONFIGURE_DEPENDS src/bin/*.c)
-add_executable(notcurses-demo ${BINSRCS})
+file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
+add_executable(notcurses-demo ${DEMOSRCS})
 target_include_directories(notcurses-demo PRIVATE include)
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
 )
 target_compile_options(notcurses-demo
+  PRIVATE
+    -Wall -Wextra -W -Wshadow
+)
+
+file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
+add_executable(notcurses-view ${VIEWSRCS})
+target_include_directories(notcurses-view PRIVATE include)
+target_link_libraries(notcurses-view
+  PRIVATE
+    notcurses
+)
+target_compile_options(notcurses-view
   PRIVATE
     -Wall -Wextra -W -Wshadow
 )
@@ -107,6 +119,7 @@ install(FILES
 )
 
 install(TARGETS notcurses-demo DESTINATION bin)
+install(TARGETS notcurses-view DESTINATION bin)
 install(TARGETS notcurses
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
