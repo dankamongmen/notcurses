@@ -19,9 +19,15 @@ fill_chunk(struct ncplane* n, int idx){
   if(ncplane_double_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  int r = (255 - (idx * 3)) % 256;
-  int g = (idx * 3) % 256;
-  int b = (255 - (idx * 3)) % 256;
+  int r = 255, g = 255, b = 255;
+  switch(idx % 6){
+    case 5: r -= (idx % 64) * 4; break;
+    case 4: g -= (idx % 64) * 4; break;
+    case 3: b -= (idx % 64) * 4; break;
+    case 2: r -= (idx % 64) * 4; b -= (idx % 64) * 4; break;
+    case 1: r -= (idx % 64) * 4; g -= (idx % 64) * 4; break;
+    case 0: b -= (idx % 64) * 4; g -= (idx % 64) * 4; break;
+  }
   cell_set_fg(&ul, r, g, b);
   cell_set_fg(&ur, r, g, b);
   cell_set_fg(&ll, r, g, b);
