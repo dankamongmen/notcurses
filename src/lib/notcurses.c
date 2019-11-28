@@ -42,6 +42,7 @@ typedef struct ncplane {
   egcpool pool;         // attached storage pool for UTF-8 EGCs
   uint64_t channels;    // works the same way as cells
   uint32_t attrword;    // same deal as in a cell
+  void* userptr;        // slot for the user to stick some opaque pointer
 } ncplane;
 
 typedef struct ncstats {
@@ -253,14 +254,8 @@ term_emit(const char* seq, FILE* out, bool flush){
   return 0;
 }
 
-// create an ncplane of the specified dimensions, but do not yet place it in
-// the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
-create_initial_ncplane(notcurses* nc){
-  int rows, cols;
-  if(update_term_dimensions(nc, &rows, &cols)){
-    return NULL;
-  }
+ncplane_create(notcurses* nc, int rows, int cols){
   ncplane* p = malloc(sizeof(*p));
   size_t fbsize = sizeof(*p->fb) * (rows * cols);
   if((p->fb = malloc(fbsize)) == NULL){
@@ -276,6 +271,17 @@ create_initial_ncplane(notcurses* nc){
   p->channels = 0;
   egcpool_init(&p->pool);
   return p;
+}
+
+// create an ncplane of the specified dimensions, but do not yet place it in
+// the z-buffer. clear out all cells. this is for a wholly new context.
+static ncplane*
+create_initial_ncplane(notcurses* nc){
+  int rows, cols;
+  if(update_term_dimensions(nc, &rows, &cols)){
+    return NULL;
+  }
+  return ncplane_create(nc, rows, cols);
 }
 
 // Call this when the screen size changes. Takes a flat
@@ -325,6 +331,21 @@ ncplane* notcurses_stdplane(notcurses* nc){
 
 const ncplane* notcurses_stdplane_const(const notcurses* nc){
   return nc->stdscr;
+}
+
+ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
+                            int yoff, int xoff, void* opaque){
+  if(rows <= 0 || cols <= 0){
+    return NULL;
+  }
+  ncplane* n = create_initial_ncplane(nc);
+  if(n == NULL){
+    return n;
+  }
+  n->absx = xoff;
+  n->absy = yoff;
+  n->userptr = opaque;
+  return n;
 }
 
 int ncplane_destroy(notcurses* nc, ncplane* ncp){

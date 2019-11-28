@@ -11,7 +11,7 @@ int widecolor_demo(struct notcurses* nc){
     "Война и мир",
     "Бра́тья Карама́зовы",
     "Час сэканд-хэнд",
-    "ஸீரோ டிகிரி",
+    //"ஸீரோ டிகிரி",
     "Tonio Kröger",
     /*"بين القصرين",
     "قصر الشوق",
@@ -259,7 +259,7 @@ int widecolor_demo(struct notcurses* nc){
         }
       }while(y < maxy && x < maxx);
       ncplane_fg_rgb8(n, 255, 255, 255);
-      // ncplane_set_style(n, WA_BOLD);
+      ncplane_set_style(n, WA_BOLD);
       ncplane_cursor_move_yx(n, 2, 2);
       ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, i, sizeof(steps) / sizeof(*steps));
       ncplane_cursor_move_yx(n, 3, 2);
