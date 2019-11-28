@@ -289,15 +289,16 @@ API void cell_release(struct ncplane* n, cell* c);
 #define CELL_STYLE_SHIFT     16u
 #define CELL_STYLE_MASK      0xffff0000ul
 #define CELL_ALPHA_MASK      0x0000fffful
-#define CELL_STYLE_STANDOUT  (0x001u << CELL_STYLE_SHIFT)
-#define CELL_STYLE_UNDERLINE (0x002u << CELL_STYLE_SHIFT)
-#define CELL_STYLE_REVERSE   (0x004u << CELL_STYLE_SHIFT)
-#define CELL_STYLE_BLINK     (0x008u << CELL_STYLE_SHIFT)
-#define CELL_STYLE_DIM       (0x010u << CELL_STYLE_SHIFT)
-#define CELL_STYLE_BOLD      (0x020u << CELL_STYLE_SHIFT)
-#define CELL_STYLE_INVIS     (0x040u << CELL_STYLE_SHIFT)
-#define CELL_STYLE_PROTECT   (0x080u << CELL_STYLE_SHIFT)
-#define CELL_STYLE_ITALIC    (0x100u << CELL_STYLE_SHIFT)
+// these are used for the style bitfield *after* it is shifted
+#define CELL_STYLE_STANDOUT  0x0001u
+#define CELL_STYLE_UNDERLINE 0x0002u
+#define CELL_STYLE_REVERSE   0x0004u
+#define CELL_STYLE_BLINK     0x0008u
+#define CELL_STYLE_DIM       0x0010u
+#define CELL_STYLE_BOLD      0x0020u
+#define CELL_STYLE_INVIS     0x0040u
+#define CELL_STYLE_PROTECT   0x0080u
+#define CELL_STYLE_ITALIC    0x0100u
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not.
@@ -310,7 +311,7 @@ cell_styles_set(cell* c, unsigned stylebits){
 // Get the style bits, shifted over into the LSBs.
 static inline unsigned
 cell_get_style(const cell* c){
-  return (c->attrword & ~CELL_STYLE_MASK) >> 16u;
+  return (c->attrword & CELL_STYLE_MASK) >> 16u;
 }
 
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
