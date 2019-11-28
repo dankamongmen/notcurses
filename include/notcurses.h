@@ -431,11 +431,23 @@ ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
 
 // multimedia functionality
 struct AVFrame;
+
+// open a visual (image or video), associating it with the specified ncplane.
 API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file);
 
+// destroy an ncvisual. rendered elements will not be disrupted, but the visual
+// can be neither decoded nor rendered any further.
 API void ncvisual_destroy(struct ncvisual* ncv);
 
+// extract the next frame from an ncvisual. returns NULL on a decoding or
+// allocation error. if all frames have been returned, starts over at the
+// beginning. for a still image, all calls will return the same frame.
 API struct AVFrame* ncvisual_decode(struct ncvisual* nc);
+
+// render the next frame to the associated ncplane at the current cursor
+// position, going through ystop/xstop. the frame will be scaled to the
+// appropriate size.
+API int ncvisual_render(struct ncvisual* ncv, int ystop, int xstop);
 
 #undef API
 
