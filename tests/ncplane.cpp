@@ -286,3 +286,39 @@ TEST_F(NcplaneTest, CellMultiColumn) {
   cell_release(n_, &c1);
   cell_release(n_, &c2);
 }
+
+// verifies that the initial userptr is what we provided, that it is a nullptr
+// for the standard plane, and that we can change it.
+TEST_F(NcplaneTest, UserPtr) {
+  EXPECT_EQ(nullptr, ncplane_userptr(n_));
+  int x, y;
+  void* sentinel = &x;
+  notcurses_term_dimyx(nc_, &y, &x);
+  struct ncplane* ncp = notcurses_newplane(nc_, y, x, 0, 0, sentinel);
+  ASSERT_NE(ncp, nullptr);
+  EXPECT_EQ(&x, ncplane_userptr(ncp));
+  EXPECT_EQ(sentinel, ncplane_set_userptr(ncp, nullptr));
+  EXPECT_EQ(nullptr, ncplane_userptr(ncp));
+  sentinel = &y;
+  EXPECT_EQ(nullptr, ncplane_set_userptr(ncp, sentinel));
+  EXPECT_EQ(&y, ncplane_userptr(ncp));
+  EXPECT_EQ(0, ncplane_destroy(nc_, ncp));
+}
+
+// create a new plane, the same size as the terminal, and verify that it
+// occupies the same dimensions as the standard plane.
+TEST_F(NcplaneTest, NewPlaneSameSize) {
+  int x, y;
+  notcurses_term_dimyx(nc_, &y, &x);
+  struct ncplane* ncp = notcurses_newplane(nc_, y, x, 0, 0, nullptr);
+  ASSERT_NE(nullptr, ncp);
+  int px, py;
+  ncplane_dimyx(ncp, &py, &px);
+  EXPECT_EQ(y, py);
+  EXPECT_EQ(x, px);
+  int sx, sy;
+  ncplane_dimyx(n_, &sy, &sx);
+  EXPECT_EQ(sy, py);
+  EXPECT_EQ(sx, px);
+  EXPECT_EQ(0, ncplane_destroy(nc_, ncp));
+}

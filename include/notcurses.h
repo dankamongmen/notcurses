@@ -156,7 +156,9 @@ API void ncplane_move_bottom(struct ncplane* n);
 API void notcurses_getc(const struct notcurses* n, cell* c, char** gclust);
 
 // Manipulate the opaque user pointer associated with this plane.
-API void ncplane_set_userptr(struct ncplane* n, void* opaque);
+// ncplane_set_userptr() returns the previous userptr after replacing
+// it with 'opaque'. the others simply return the userptr.
+API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 API void* ncplane_userptr(struct ncplane* n);
 API const void* ncplane_userptr_const(const struct ncplane* n);
 
