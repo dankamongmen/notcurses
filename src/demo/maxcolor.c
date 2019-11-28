@@ -82,12 +82,12 @@ int maxcolor_demo(struct notcurses* nc){
   if(notcurses_render(nc)){
     return -1;
   }
-  sleep(2);
   cell_release(n, &ul);
   cell_release(n, &ur);
   cell_release(n, &ll);
   cell_release(n, &lr);
   cell_release(n, &vl);
   cell_release(n, &hl);
+  nanosleep(&demodelay, NULL);
   return 0;
 }

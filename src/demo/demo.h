@@ -1,11 +1,15 @@
 #ifndef NOTCURSES_DEMO
 #define NOTCURSES_DEMO
 
+#include <time.h>
 #include <notcurses.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// configured via command line option -- the base number of ns between demos
+extern struct timespec demodelay;
 
 #define FADE_MILLISECONDS 500
 

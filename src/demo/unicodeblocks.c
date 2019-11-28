@@ -66,6 +66,13 @@ int unicodeblocks_demo(struct notcurses* nc){
   if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
+  // we don't want a full delay period for each one, urk
+  struct timespec subdelay;
+  uint64_t nstotal = demodelay.tv_sec * 1000000000 + demodelay.tv_nsec;
+  nstotal /= 10;
+  subdelay.tv_sec = nstotal / 1000000000;
+  subdelay.tv_nsec = nstotal % 1000000000;
+fprintf(stderr, "SUBDELAY: %lu %lu\n", subdelay.tv_sec, subdelay.tv_nsec);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
@@ -149,9 +156,9 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(notcurses_render(nc)){
       return -1;
     }
-    usleep(100000);
+    nanosleep(&subdelay, NULL);
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
-    // really, the vast majority of space is unused. cap at 0x3000.
+    // really, the vast majority of space is unused.
     blockstart += BLOCKSIZE;
   }
   return 0;

@@ -40,6 +40,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
       }
     }
   }
+  nanosleep(&demodelay, NULL);
   ret = 0;
 
 done:
