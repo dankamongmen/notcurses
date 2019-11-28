@@ -11,20 +11,39 @@
 // we take 4*demodelay to play MOVES moves
 static int
 play(struct notcurses* nc, struct ncplane** chunks, int yoff, int xoff){
+  const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   uint64_t movens = 4 * (demodelay.tv_sec * 1000000000 + demodelay.tv_nsec);
   struct timespec movetime = {
     .tv_sec = movens / MOVES / 1000000000,
     .tv_nsec = movens / MOVES % 1000000000,
   };
   // struct ncplane* n = notcurses_stdplane(nc);
+  int hole = random() % chunkcount;
+  ncplane_destroy(nc, chunks[hole]);
+  chunks[hole] = NULL;
   int m;
+  int lastdir = -1;
   for(m = 0 ; m < MOVES ; ++m){
-    int hole;
+    int mover = chunkcount;
+    int direction;
     do{
-      hole = random() % (CHUNKS_VERT * CHUNKS_HORZ);
-    }while(!chunks[hole]);
-    ncplane_destroy(nc, chunks[hole]);
-    chunks[hole] = NULL;
+      direction = random() % 4;
+      switch(direction){
+        case 3: // up
+          if(lastdir != 1 && hole >= CHUNKS_HORZ){ mover = hole - CHUNKS_HORZ; } break;
+        case 2: // right
+          if(lastdir != 0 && hole % CHUNKS_HORZ < CHUNKS_HORZ - 1){ mover = hole + 1; } break;
+        case 1: // down
+          if(lastdir != 3 && hole < chunkcount - CHUNKS_HORZ){ mover = hole + CHUNKS_HORZ; } break;
+        case 0: // left
+          if(lastdir != 2 && hole % CHUNKS_HORZ){ mover = hole - 1; } break;
+      }
+    }while(mover == chunkcount);
+    lastdir = direction;
+ncplane_destroy(nc, chunks[mover]);
+    chunks[hole] = chunks[mover];
+    chunks[mover] = NULL;
+    hole = mover;
     if(notcurses_render(nc)){
       return -1;
     }
