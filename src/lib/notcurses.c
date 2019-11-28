@@ -185,6 +185,20 @@ fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
 }
 
+void* ncplane_set_userptr(ncplane* n, void* opaque){
+  void* ret = n->userptr;
+  n->userptr = opaque;
+  return ret;
+}
+
+void* ncplane_userptr(ncplane* n){
+  return n->userptr;
+}
+
+const void* ncplane_userptr_const(const ncplane* n){
+  return n->userptr;
+}
+
 void ncplane_dimyx(const ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;
@@ -254,8 +268,16 @@ term_emit(const char* seq, FILE* out, bool flush){
   return 0;
 }
 
+// create a new ncplane at the specified location (relative to the true screen,
+// having origin at 0,0), having the specified size, and put it at the top of
+// the planestack. its cursor starts at its origin; its style starts as null.
+// a plane may exceed the boundaries of the screen, but must have positive
+// size in both dimensions.
 static ncplane*
-ncplane_create(notcurses* nc, int rows, int cols){
+ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
+  if(rows <= 0 || cols <= 0){
+    return NULL;
+  }
   ncplane* p = malloc(sizeof(*p));
   size_t fbsize = sizeof(*p->fb) * (rows * cols);
   if((p->fb = malloc(fbsize)) == NULL){
@@ -266,10 +288,13 @@ ncplane_create(notcurses* nc, int rows, int cols){
   p->leny = rows;
   p->lenx = cols;
   p->x = p->y = 0;
-  p->absx = p->absy = 0;
+  p->absx = xoff;
+  p->absy = yoff;
   p->attrword = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
+  p->z = nc->top;
+  nc->top = p;
   return p;
 }
 
@@ -281,7 +306,8 @@ create_initial_ncplane(notcurses* nc){
   if(update_term_dimensions(nc, &rows, &cols)){
     return NULL;
   }
-  return ncplane_create(nc, rows, cols);
+  nc->stdscr = ncplane_create(nc, rows, cols, 0, 0);
+  return nc->stdscr;
 }
 
 // Call this when the screen size changes. Takes a flat
@@ -335,10 +361,7 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 
 ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
                             int yoff, int xoff, void* opaque){
-  if(rows <= 0 || cols <= 0){
-    return NULL;
-  }
-  ncplane* n = create_initial_ncplane(nc);
+  ncplane* n = ncplane_create(nc, rows, cols, yoff, xoff);
   if(n == NULL){
     return n;
   }
@@ -474,11 +497,9 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(interrogate_terminfo(ret, opts)){
     goto err;
   }
-  if((ret->top = create_initial_ncplane(ret)) == NULL){
+  if((ret->stdscr = create_initial_ncplane(ret)) == NULL){
     goto err;
   }
-  ret->top->z = NULL;
-  ret->stdscr = ret->top;
   memset(&ret->stats, 0, sizeof(ret->stats));
   if(ret->smcup && term_emit(ret->smcup, stdout, true)){
     free_plane(ret->top);
