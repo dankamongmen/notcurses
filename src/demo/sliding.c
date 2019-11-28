@@ -6,20 +6,22 @@
 // FIXME do the bigger dimension on the screen's bigger dimension
 #define CHUNKS_VERT 6
 #define CHUNKS_HORZ 12
-#define MOVES 10
+#define MOVES 45
 #define GIG 1000000000
 
-// we take (MOVES / 2) * demodelay to play MOVES moves
+// we take (MOVES / 5) * demodelay to play MOVES moves
 static int
 play(struct notcurses* nc, struct ncplane** chunks, int yoff, int xoff){
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
-  uint64_t movens = (MOVES / 2) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
+  uint64_t movens = (MOVES / 5) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
   struct timespec movetime = {
     .tv_sec = movens / MOVES / GIG,
     .tv_nsec = movens / MOVES % GIG,
   };
   // struct ncplane* n = notcurses_stdplane(nc);
   int hole = random() % chunkcount;
+  int holex, holey;
+  ncplane_yx(chunks[hole], &holey, &holex);
   ncplane_destroy(nc, chunks[hole]);
   chunks[hole] = NULL;
   int m;
@@ -41,7 +43,11 @@ play(struct notcurses* nc, struct ncplane** chunks, int yoff, int xoff){
       }
     }while(mover == chunkcount);
     lastdir = direction;
-ncplane_destroy(nc, chunks[mover]);
+    int newholex, newholey;
+    ncplane_yx(chunks[mover], &newholey, &newholex);
+    ncplane_move_yx(chunks[mover], holey, holex);
+    holey = newholey;
+    holex = newholex;
     chunks[hole] = chunks[mover];
     chunks[mover] = NULL;
     hole = mover;
@@ -57,7 +63,7 @@ static int
 fill_chunk(struct ncplane* n, int idx){
   char buf[4];
   int maxy, maxx;
-  ncplane_dimyx(n, &maxy, &maxx);
+  ncplane_dim_yx(n, &maxy, &maxx);
   snprintf(buf, sizeof(buf), "%03d", idx);
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
@@ -138,7 +144,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   int ret = -1, z;
   int maxx, maxy;
   int chunky, chunkx;
-  notcurses_term_dimyx(nc, &maxy, &maxx);
+  notcurses_term_dim_yx(nc, &maxy, &maxx);
   // want at least 2x2 for each sliding chunk
   if(maxy < CHUNKS_VERT * 2 || maxx < CHUNKS_HORZ * 2){
     fprintf(stderr, "Terminal too small, need at least %dx%d\n",

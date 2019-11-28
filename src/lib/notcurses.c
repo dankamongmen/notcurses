@@ -200,7 +200,7 @@ const void* ncplane_userptr_const(const ncplane* n){
   return n->userptr;
 }
 
-void ncplane_dimyx(const ncplane* n, int* rows, int* cols){
+void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;
   }
@@ -570,26 +570,20 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
+void ncplane_fg_default(struct ncplane* n){
+  n->channels |= CELL_FGDEFAULT_MASK;
+}
+
+void ncplane_bg_default(struct ncplane* n){
+  n->channels |= CELL_BGDEFAULT_MASK;
+}
+
 int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
-  if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
-    return -1;
-  }
-  cell_rgb_set_bg(&n->channels, r, g, b);
-  return 0;
+  return cell_rgb_set_bg(&n->channels, r, g, b);
 }
 
 int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
-  if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
-    return -1;
-  }
-  cell_rgb_set_fg(&n->channels, r, g, b);
-  return 0;
+  return cell_rgb_set_fg(&n->channels, r, g, b);
 }
 
 // 3 for foreground, 4 for background, ugh FIXME
@@ -1146,7 +1140,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   if(xstop < xoff + 1){
     return -1;
   }
-  ncplane_dimyx(n, &ymax, &xmax);
+  ncplane_dim_yx(n, &ymax, &xmax);
   if(xstop >= xmax || ystop >= ymax){
     return -1;
   }
@@ -1192,6 +1186,16 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
     return -1;
   }
   return 0;
+}
+
+void ncplane_move_yx(ncplane* n, int y, int x){
+  n->absy = y;
+  n->absx = x;
+}
+
+void ncplane_yx(const ncplane* n, int* y, int* x){
+  *y = n->absy;
+  *x = n->absx;
 }
 
 void ncplane_erase(ncplane* n){

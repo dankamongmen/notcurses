@@ -75,7 +75,7 @@ static int
 gridswitch_demo(struct notcurses* nc, struct ncplane *n){
   ncplane_erase(n);
   int maxx, maxy;
-  notcurses_term_dimyx(nc, &maxy, &maxx);
+  notcurses_term_dim_yx(nc, &maxy, &maxx);
   int rs = 256 / maxx;
   int gs = 256 / (maxx + maxy);
   int bs = 256 / maxy;
@@ -140,7 +140,7 @@ static int
 gridinv_demo(struct notcurses* nc, struct ncplane *n){
   ncplane_erase(n);
   int maxx, maxy;
-  notcurses_term_dimyx(nc, &maxy, &maxx);
+  notcurses_term_dim_yx(nc, &maxy, &maxx);
   int rs = 256 / maxx;
   int gs = 256 / (maxx + maxy);
   int bs = 256 / maxy;
@@ -204,7 +204,7 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
 // red across, blue down, green from UL to LR
 int grid_demo(struct notcurses* nc){
   int maxx, maxy;
-  notcurses_term_dimyx(nc, &maxy, &maxx);
+  notcurses_term_dim_yx(nc, &maxy, &maxx);
   int rs = 256 / maxx;
   int gs = 256 / (maxx + maxy);
   int bs = 256 / maxy;

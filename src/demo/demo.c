@@ -39,7 +39,7 @@ intro(struct notcurses* nc){
   }
   ncplane_erase(ncp);
   int x, y, rows, cols;
-  ncplane_dimyx(ncp, &rows, &cols);
+  ncplane_dim_yx(ncp, &rows, &cols);
   cell c;
   cell_init(&c);
   const char* cstr = "Δ";

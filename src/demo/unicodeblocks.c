@@ -13,7 +13,7 @@
 int unicodeblocks_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   int maxx, maxy;
-  notcurses_term_dimyx(nc, &maxy, &maxx);
+  notcurses_term_dim_yx(nc, &maxy, &maxx);
   // some blocks are good for the printing, some less so. some are only
   // marginally covered by mainstream fonts, some not at all. we explicitly
   // list the ones we want.

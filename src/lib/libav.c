@@ -106,7 +106,7 @@ ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename){
     fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     return NULL;
   }
-  ncplane_dimyx(nc, &ncv->dstheight, &ncv->dstwidth);
+  ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
   int ret = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
   if(ret < 0){
     fprintf(stderr, "Couldn't open %s (%s)\n", filename, av_err2str(ret));

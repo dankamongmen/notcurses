@@ -140,7 +140,7 @@ API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
 API int ncplane_destroy(struct notcurses* nc, struct ncplane* ncp);
 
 // Move this plane relative to the standard plane.
-API int ncplane_move_yx(struct ncplane* n, int y, int x);
+API void ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of this plane relative to the standard plane.
 API void ncplane_yx(const struct ncplane* n, int* y, int* x);
@@ -170,12 +170,12 @@ API void* ncplane_userptr(struct ncplane* n);
 API const void* ncplane_userptr_const(const struct ncplane* n);
 
 // Returns the dimensions of this ncplane.
-API void ncplane_dimyx(const struct ncplane* n, int* rows, int* cols);
+API void ncplane_dim_yx(const struct ncplane* n, int* rows, int* cols);
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dimyx(const struct notcurses* n, int* rows, int* cols){
-  ncplane_dimyx(notcurses_stdplane_const(n), rows, cols);
+notcurses_term_dim_yx(const struct notcurses* n, int* rows, int* cols){
+  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 }
 
 // Move the cursor to the specified position (the cursor needn't be visible).
@@ -250,6 +250,10 @@ API void ncplane_erase(struct ncplane* n);
 // time using "color pairs"; notcurses will manage color pairs transparently.
 API int ncplane_fg_rgb8(struct ncplane* n, int r, int g, int b);
 API int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
+
+// use the default color for the foreground/background
+API void ncplane_fg_default(struct ncplane* n);
+API void ncplane_bg_default(struct ncplane* n);
 
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
@@ -366,22 +370,36 @@ cell_rgb_blue(uint32_t rgb){
 #define CELL_BGDEFAULT_MASK    0x0000000040000000ull
 #define CELL_BG_MASK           0x0000000000ffffffull
 
-static inline void
-cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
+static inline int
+cell_rgb_set_fg(uint64_t* channels, int r, int g, int b){
+  if(r >= 256 || g >= 256 || b >= 256){
+    return -1;
+  }
+  if(r < 0 || g < 0 || b < 0){
+    return -1;
+  }
   uint64_t rgb = (r & 0xffull) << 48u;
   rgb |= (g & 0xffull) << 40u;
   rgb |= (b & 0xffull) << 32u;
   rgb |= CELL_FGDEFAULT_MASK;
   *channels = (*channels & ~(CELL_FGDEFAULT_MASK | CELL_FG_MASK)) | rgb;
+  return 0;
 }
 
-static inline void
-cell_rgb_set_bg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
+static inline int
+cell_rgb_set_bg(uint64_t* channels, int r, int g, int b){
+  if(r >= 256 || g >= 256 || b >= 256){
+    return -1;
+  }
+  if(r < 0 || g < 0 || b < 0){
+    return -1;
+  }
   uint64_t rgb = (r & 0xffull) << 16u;
   rgb |= (g & 0xffull) << 8u;
   rgb |= (b & 0xffull);
   rgb |= CELL_BGDEFAULT_MASK;
   *channels = (*channels & ~(CELL_BGDEFAULT_MASK | CELL_BG_MASK)) | rgb;
+  return 0;
 }
 
 static inline void
@@ -414,10 +432,22 @@ cell_inherits_style(const cell* c){
   return (c->channels & CELL_INHERITSTYLE_MASK);
 }
 
+// use the default color for the foreground
+static inline void
+cell_fg_default(cell* c){
+  c->channels |= CELL_FGDEFAULT_MASK;
+}
+
 // is the cell using the terminal's default foreground color for its foreground?
 static inline bool
 cell_fg_default_p(const cell* c){
   return !(c->channels & CELL_FGDEFAULT_MASK);
+}
+
+// use the default color for the background
+static inline void
+cell_bg_default(cell* c){
+  c->channels |= CELL_BGDEFAULT_MASK;
 }
 
 // is the cell using the terminal's default background color for its background?
