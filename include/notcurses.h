@@ -432,18 +432,20 @@ cell_egc_idx(const cell* c){
   return c->gcluster - 0x80;
 }
 
-// load up six cells with the EGCs necessary to draw a light, rounded box.
-// returns 0 on success, -1 on error. on error, any cells this function might
-// have loaded before the error are cell_release()d.
+// load up six cells with the EGCs necessary to draw a box. returns 0 on
+// success, -1 on error. on error, any cells this function might
+// have loaded before the error are cell_release()d. There must be at least
+// six EGCs in gcluster.
 static inline int
-ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                          cell* lr, cell* hl, cell* vl){
-  if(cell_load(n, ul, "╭") > 0){
-    if(cell_load(n, ur, "╮") > 0){
-      if(cell_load(n, ll, "╰") > 0){
-        if(cell_load(n, lr, "╯") > 0){
-          if(cell_load(n, hl, "─") > 0){
-            if(cell_load(n, vl, "│") > 0){
+ncplane_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
+                          cell* lr, cell* hl, cell* vl, const char* gclusters){
+  int ulen;
+  if((ulen = cell_load(n, ul, gclusters)) > 0){
+    if((ulen = cell_load(n, ur, gclusters += ulen)) > 0){
+      if((ulen = cell_load(n, ll, gclusters += ulen)) > 0){
+        if((ulen = cell_load(n, lr, gclusters += ulen)) > 0){
+          if((ulen = cell_load(n, hl, gclusters += ulen)) > 0){
+            if((ulen = cell_load(n, vl, gclusters += ulen)) > 0){
               return 0;
             }
             cell_release(n, hl);
@@ -457,6 +459,18 @@ ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
     cell_release(n, ul);
   }
   return -1;
+}
+
+static inline int
+ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
+                          cell* lr, cell* hl, cell* vl){
+  return ncplane_box_cells(n, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+}
+
+static inline int
+ncplane_double_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
+                          cell* lr, cell* hl, cell* vl){
+  return ncplane_box_cells(n, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
 }
 
 // multimedia functionality

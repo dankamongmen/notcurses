@@ -16,12 +16,12 @@ fill_chunk(struct ncplane* n, int idx){
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(ncplane_double_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  int r = 255 - (idx * 3);
-  int g = idx * 3;
-  int b = 255 - (idx * 3);
+  int r = (255 - (idx * 3)) % 256;
+  int g = (idx * 3) % 256;
+  int b = (255 - (idx * 3)) % 256;
   cell_set_fg(&ul, r, g, b);
   cell_set_fg(&ur, r, g, b);
   cell_set_fg(&ll, r, g, b);
