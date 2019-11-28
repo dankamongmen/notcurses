@@ -434,8 +434,6 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   return 0;
 }
 
-// FIXME should probably register a SIGWINCH handler here
-// FIXME install other sighandlers to clean things up
 notcurses* notcurses_init(const notcurses_options* opts){
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
