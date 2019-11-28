@@ -69,14 +69,14 @@ typedef struct notcurses {
   char* setaf;    // set foreground color (ANSI)
   char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
-  char* standout; // WA_STANDOUT
-  char* uline;    // WA_UNDERLINK
-  char* reverse;  // WA_REVERSE
-  char* blink;    // WA_BLINK
-  char* dim;      // WA_DIM
-  char* bold;     // WA_BOLD
-  char* italics;  // WA_ITALIC
-  char* italoff;  // WA_ITALIC (disable)
+  char* standout; // CELL_STYLE_STANDOUT
+  char* uline;    // CELL_STYLE_UNDERLINK
+  char* reverse;  // CELL_STYLE_REVERSE
+  char* blink;    // CELL_STYLE_BLINK
+  char* dim;      // CELL_STYLE_DIM
+  char* bold;     // CELL_STYLE_BOLD
+  char* italics;  // CELL_STYLE_ITALIC
+  char* italoff;  // CELL_STYLE_ITALIC (disable)
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
@@ -433,6 +433,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
   if(nocolor_stylemask > 0){
+    // ncv is defined in terms of curses style bits, which differ from ours
     if(nocolor_stylemask & WA_STANDOUT){
       nc->standout = NULL;
     }
@@ -762,20 +763,22 @@ term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 
 // write any escape sequences necessary to set the desired style
 static int
-term_setstyles(const notcurses* nc, FILE* out, uint32_t curattr, const cell* c){
+term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c){
   if(cell_inherits_style(c)){
     return 0; // change nothing
   }
   uint32_t cellattr = cell_get_style(c);
-  if(cellattr == curattr){
+  if(cellattr == *curattr){
     return 0; // happy agreement, change nothing
   }
+fprintf(stderr, "GOTTA PRINT IT! %08x %08x\n", *curattr, cell_get_style(c));
   int ret = 0;
-  ret |= term_setstyle(out, curattr, cellattr, WA_ITALIC, nc->italics, nc->italoff);
-  /*ret |= term_setstyle(out, curattr, cellattr, WA_BOLD, nc->bold, nc->boldoff);
-  ret |= term_setstyle(out, curattr, cellattr, WA_UNDERLINE, nc->uline, nc->ulineoff);
-  ret |= term_setstyle(out, curattr, cellattr, WA_BLINK, nc->blink, nc->blinkoff);*/
+  ret |= term_setstyle(out, *curattr, cellattr, CELL_STYLE_ITALIC, nc->italics, nc->italoff);
+  /*ret |= term_setstyle(out, curattr, cellattr, CELL_STYLE_BOLD, nc->bold, nc->boldoff);
+  ret |= term_setstyle(out, curattr, cellattr, CELL_STYLE_UNDERLINE, nc->uline, nc->ulineoff);
+  ret |= term_setstyle(out, curattr, cellattr, CELL_STYLE_BLINK, nc->blink, nc->blinkoff);*/
   // FIXME a few others
+  *curattr = cellattr;
   return ret;
 }
 
@@ -815,9 +818,9 @@ int notcurses_render(notcurses* nc){
         cell_get_bg(c, &br, &bg, &bb);
         term_bg_rgb8(nc, out, br, bg, bb);
       }
-      term_setstyles(nc, out, curattr, c);
+      term_setstyles(nc, out, &curattr, c);
       // FIXME what to do if we're at the last cell, and it's wide?
-// fprintf(stderr, "[%02d/%02d] ", y, x);
+// fprintf(stderr, "[%02d/%02d] %p ", y, x, c);
       term_putc(out, nc->stdscr, c);
       if(cell_double_wide_p(c)){
         ++x;
@@ -935,6 +938,7 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
   while(*gcluster){
+    // FIXME can we not dispense with this cell, and print directly in?
     cell c;
     memset(&c, 0, sizeof(c));
     c.channels = n->channels;
@@ -958,13 +962,13 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
 
 unsigned notcurses_supported_styles(const notcurses* nc){
   unsigned styles = 0;
-  styles |= nc->standout ? WA_STANDOUT : 0;
-  styles |= nc->uline ? WA_UNDERLINE : 0;
-  styles |= nc->reverse ? WA_REVERSE : 0;
-  styles |= nc->blink ? WA_BLINK : 0;
-  styles |= nc->dim ? WA_DIM : 0;
-  styles |= nc->bold ? WA_BOLD : 0;
-  styles |= nc->italics ? WA_ITALIC : 0;
+  styles |= nc->standout ? CELL_STYLE_STANDOUT : 0;
+  styles |= nc->uline ? CELL_STYLE_UNDERLINE : 0;
+  styles |= nc->reverse ? CELL_STYLE_REVERSE : 0;
+  styles |= nc->blink ? CELL_STYLE_BLINK : 0;
+  styles |= nc->dim ? CELL_STYLE_DIM : 0;
+  styles |= nc->bold ? CELL_STYLE_BOLD : 0;
+  styles |= nc->italics ? CELL_STYLE_ITALIC : 0;
   return styles;
 }
 
