@@ -821,6 +821,8 @@ int notcurses_render(notcurses* nc){
   term_emit(nc->clear, out, false);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // FIXME previous line could have ended halfway through multicol. what happens?
+    // FIXME also must explicitly move to next line if we're to deal with
+    //  surprise enlargenings, otherwise we just print forward
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       const ncplane* p;

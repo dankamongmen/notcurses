@@ -4,8 +4,8 @@
 #include "demo.h"
 
 // FIXME do the bigger dimension on the screen's bigger dimension
-#define CHUNKS_VERT 8
-#define CHUNKS_HORZ 16
+#define CHUNKS_VERT 6
+#define CHUNKS_HORZ 12
 
 static int
 fill_chunk(struct ncplane* n, int idx){
@@ -55,6 +55,36 @@ fill_chunk(struct ncplane* n, int idx){
   return 0;
 }
 
+static int
+draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx){
+  int ret = -1;
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+  cell_set_fg(&ul, 180, 80, 180);
+  cell_set_fg(&ur, 180, 80, 180);
+  cell_set_fg(&ll, 180, 80, 180);
+  cell_set_fg(&lr, 180, 80, 180);
+  cell_set_fg(&hl, 180, 80, 180);
+  cell_set_fg(&vl, 180, 80, 180);
+  ncplane_cursor_move_yx(n, yoff, xoff);
+  if(!ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl,
+                 CHUNKS_VERT * chunky + yoff + 1,
+                 CHUNKS_HORZ * chunkx + xoff + 1)){
+    ret = 0;
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
+  return ret;
+}
+
 // break whatever's on the screen into panels and shift them around like a
 // sliding puzzle. FIXME once we have copying, anyway. until then, just use
 // background colors.
@@ -69,9 +99,13 @@ int sliding_puzzle_demo(struct notcurses* nc){
             CHUNKS_HORZ, CHUNKS_VERT);
     return -1;
   } 
-  // we want an 8x8 grid of chunks. the leftover space will be unused
-  chunky = maxy / CHUNKS_VERT;
-  chunkx = maxx / CHUNKS_HORZ;
+  // we want an 8x8 grid of chunks with a border. the leftover space will be unused
+  chunky = (maxy - 2) / CHUNKS_VERT;
+  chunkx = (maxx - 2) / CHUNKS_HORZ;
+  int wastey = ((maxy - 2) % CHUNKS_VERT) / 2;
+  int wastex = ((maxx - 2) % CHUNKS_HORZ) / 2;
+  struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_erase(n);
   int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){
@@ -83,12 +117,16 @@ int sliding_puzzle_demo(struct notcurses* nc){
     for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){
       const int idx = cy * CHUNKS_HORZ + cx;
       chunks[idx] =
-        notcurses_newplane(nc, chunky, chunkx, cy * chunky, cx * chunkx, NULL);
+        notcurses_newplane(nc, chunky, chunkx, cy * chunky + wastey + 1,
+                           cx * chunkx + wastex + 1, NULL);
       if(chunks[idx] == NULL){
         goto done;
       }
       fill_chunk(chunks[idx], idx);
     }
+  }
+  if(draw_bounding_box(n, wastey, wastex, chunky, chunkx)){
+    return -1;
   }
   if(notcurses_render(nc)){
     goto done;
