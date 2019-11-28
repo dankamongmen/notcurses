@@ -781,6 +781,28 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c)
   return ret;
 }
 
+// find the topmost cell for this coordinate
+static const cell*
+visible_cell(const notcurses* nc, int y, int x){
+  const ncplane* p = nc->top;
+  while(p){
+    // where in the plane this coordinate would be, based off absy/absx. the
+    // true origin is 0,0, so abs=2,2 means coordinate 3,3 would be 1,1, while
+    // abs=-2,-2 would make coordinate 3,3 relative 5, 5.
+    int poffx, poffy;
+    poffy = y - p->absy;
+    poffx = x - p->absx;
+    if(poffy < p->leny && poffy >= 0){
+      if(poffx < p->lenx && poffx >= 0){
+        return &p->fb[fbcellidx(p, poffy, poffx)];
+      }
+    }
+    p = p->z;
+  }
+  // should never happen for valid y, x thanks to the stdscreen
+  return NULL;
+}
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
@@ -800,8 +822,10 @@ int notcurses_render(notcurses* nc){
     // FIXME previous line could have ended halfway through multicol. what happens?
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
-      // FIXME z-culling!
-      const cell* c = &nc->stdscr->fb[fbcellidx(nc->stdscr, y, x)];
+      const cell* c = visible_cell(nc, y, x);
+      if(c == NULL){ // very bad :(
+        continue;
+      }
       // we allow these to be set distinctly, but terminfo only supports using
       // them both via the 'op' capability. unless we want to generate the 'op'
       // escapes ourselves, if either is set to default, we first send op, and
