@@ -933,16 +933,16 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   return bytes;
 }
 
-int ncplane_putstr(ncplane* n, const char* gcluster){
+int ncplane_putstr(ncplane* n, const char* gclusters){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
-  while(*gcluster){
+  while(*gclusters){
     // FIXME can we not dispense with this cell, and print directly in?
     cell c;
     memset(&c, 0, sizeof(c));
     c.channels = n->channels;
     c.attrword = n->attrword;
-    int wcs = cell_load(n, &c, gcluster);
+    int wcs = cell_load(n, &c, gclusters);
     if(wcs < 0){
       return -ret;
     }
@@ -950,7 +950,7 @@ int ncplane_putstr(ncplane* n, const char* gcluster){
       break;
     }
     ncplane_putc(n, &c);
-    gcluster += wcs;
+    gclusters += wcs;
     ret += wcs;
     if(ncplane_cursor_stuck(n)){
       break;
