@@ -9,6 +9,9 @@
 
 #ifdef __cplusplus
 extern "C" {
+#define RESTRICT
+#else
+#define RESTRICT restrict
 #endif
 
 #define API __attribute__((visibility("default")))
@@ -142,13 +145,17 @@ API int ncplane_move_yx(struct ncplane* n, int y, int x);
 // Get the origin of this plane relative to the standard plane.
 API void ncplane_yx(const struct ncplane* n, int* y, int* x);
 
-// Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
-API void ncplane_move_above(struct ncplane* n, struct ncplane* above);
-// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-API void ncplane_move_below(struct ncplane* n, struct ncplane* below);
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-API void ncplane_move_top(struct ncplane* n);
-API void ncplane_move_bottom(struct ncplane* n);
+API int ncplane_move_top(struct notcurses* nc, struct ncplane* n);
+API int ncplane_move_bottom(struct notcurses* nc, struct ncplane* n);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+API int ncplane_move_below(struct notcurses* nc, struct ncplane* RESTRICT n,
+                           struct ncplane* RESTRICT below);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
+API int ncplane_move_above(struct notcurses* nc, struct ncplane* RESTRICT n,
+                           struct ncplane* RESTRICT above);
 
 // Retrieve the topmost cell at this location on the screen, returning it in
 // 'c'. If there is more than a byte of gcluster, it will be returned as a heap

@@ -6,16 +6,17 @@
 // FIXME do the bigger dimension on the screen's bigger dimension
 #define CHUNKS_VERT 6
 #define CHUNKS_HORZ 12
-#define MOVES 6
+#define MOVES 10
+#define GIG 1000000000
 
-// we take 4*demodelay to play MOVES moves
+// we take (MOVES / 2) * demodelay to play MOVES moves
 static int
 play(struct notcurses* nc, struct ncplane** chunks, int yoff, int xoff){
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
-  uint64_t movens = 4 * (demodelay.tv_sec * 1000000000 + demodelay.tv_nsec);
+  uint64_t movens = (MOVES / 2) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
   struct timespec movetime = {
-    .tv_sec = movens / MOVES / 1000000000,
-    .tv_nsec = movens / MOVES % 1000000000,
+    .tv_sec = movens / MOVES / GIG,
+    .tv_nsec = movens / MOVES % GIG,
   };
   // struct ncplane* n = notcurses_stdplane(nc);
   int hole = random() % chunkcount;

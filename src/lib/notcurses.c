@@ -804,6 +804,72 @@ visible_cell(const notcurses* nc, int y, int x, const ncplane** retp){
   return NULL;
 }
 
+static ncplane**
+find_above_ncplane(notcurses* nc, ncplane* n){
+  ncplane** above = &nc->top;
+  while(*above){
+    if(*above == n){
+      return above;
+    }
+    above = &(*above)->z;
+  }
+  return NULL;
+}
+
+// 'n' ends up above 'above'
+int ncplane_move_above(notcurses* nc, ncplane* restrict n, ncplane* restrict above){
+  ncplane** an = find_above_ncplane(nc, n);
+  if(an == NULL){
+    return -1;
+  }
+  ncplane** aa = find_above_ncplane(nc, above);
+  if(aa == NULL){
+    return -1;
+  }
+  *an = n->z; // splice n out
+  n->z = above; // attach above below n
+  *aa = n; // spline n in above
+  return 0;
+}
+
+// 'n' ends up below 'below'
+int ncplane_move_below(notcurses* nc, ncplane* restrict n, ncplane* restrict below){
+  ncplane** an = find_above_ncplane(nc, n);
+  if(an == NULL){
+    return -1;
+  }
+  *an = n->z; // splice n out
+  n->z = below->z; // reattach subbelow list to n
+  below->z = n; // splice n in below
+  return 0;
+}
+
+int ncplane_move_top(notcurses* nc, ncplane* n){
+  ncplane** an = find_above_ncplane(nc, n);
+  if(an == NULL){
+    return -1;
+  }
+  *an = n->z; // splice n out
+  n->z = nc->top;
+  nc->top = n;
+  return 0;
+}
+
+int ncplane_move_bottom(notcurses* nc, ncplane* n){
+  ncplane** an = find_above_ncplane(nc, n);
+  if(an == NULL){
+    return -1;
+  }
+  *an = n->z; // splice n out
+  an = &nc->top;
+  while(*an){
+    an = &(*an)->z;
+  }
+  *an = n;
+  n->z = NULL;
+  return 0;
+}
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){

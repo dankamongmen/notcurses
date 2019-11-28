@@ -77,6 +77,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
 
 // just fucking around...for now
 int main(int argc, char** argv){
+  srandom(time(NULL)); // a classic blunder
   struct notcurses* nc;
   notcurses_options nopts;
   struct ncplane* ncp;
