@@ -783,7 +783,7 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c)
 
 // find the topmost cell for this coordinate
 static const cell*
-visible_cell(const notcurses* nc, int y, int x){
+visible_cell(const notcurses* nc, int y, int x, const ncplane** retp){
   const ncplane* p = nc->top;
   while(p){
     // where in the plane this coordinate would be, based off absy/absx. the
@@ -794,6 +794,7 @@ visible_cell(const notcurses* nc, int y, int x){
     poffx = x - p->absx;
     if(poffy < p->leny && poffy >= 0){
       if(poffx < p->lenx && poffx >= 0){
+        *retp = p;
         return &p->fb[fbcellidx(p, poffy, poffx)];
       }
     }
@@ -822,10 +823,10 @@ int notcurses_render(notcurses* nc){
     // FIXME previous line could have ended halfway through multicol. what happens?
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
-      const cell* c = visible_cell(nc, y, x);
-      if(c == NULL){ // very bad :(
-        continue;
-      }
+      const ncplane* p;
+      const cell* c = visible_cell(nc, y, x, &p);
+      assert(c);
+      assert(p);
       // we allow these to be set distinctly, but terminfo only supports using
       // them both via the 'op' capability. unless we want to generate the 'op'
       // escapes ourselves, if either is set to default, we first send op, and
@@ -844,7 +845,7 @@ int notcurses_render(notcurses* nc){
       term_setstyles(nc, out, &curattr, c);
       // FIXME what to do if we're at the last cell, and it's wide?
 // fprintf(stderr, "[%02d/%02d] %p ", y, x, c);
-      term_putc(out, nc->stdscr, c);
+      term_putc(out, p, c);
       if(cell_double_wide_p(c)){
         ++x;
       }

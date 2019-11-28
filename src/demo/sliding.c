@@ -13,10 +13,39 @@ fill_chunk(struct ncplane* n, int idx){
   int maxy, maxx;
   ncplane_dimyx(n, &maxy, &maxx);
   snprintf(buf, sizeof(buf), "%03d", idx);
-  ncplane_fg_rgb8(n, 255 - (idx * 4), idx * 4, 255 - (idx * 4));
-  if(ncplane_putstr(n, buf) <= 0){
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
+  int r = 255 - (idx * 3);
+  int g = idx * 3;
+  int b = 255 - (idx * 3);
+  cell_set_fg(&ul, r, g, b);
+  cell_set_fg(&ur, r, g, b);
+  cell_set_fg(&ll, r, g, b);
+  cell_set_fg(&lr, r, g, b);
+  cell_set_fg(&hl, r, g, b);
+  cell_set_fg(&vl, r, g, b);
+  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, maxy - 1, maxx - 1)){
+    return -1;
+  }
+  if(maxx >= 5 && maxy >= 3){
+    if(ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 3) / 2)){
+      return -1;
+    }
+    ncplane_fg_rgb8(n, 224, 224, 224);
+    if(ncplane_putstr(n, buf) <= 0){
+      return -1;
+    }
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
   return 0;
 }
 
@@ -28,7 +57,8 @@ int sliding_puzzle_demo(struct notcurses* nc){
   int maxx, maxy;
   int chunky, chunkx;
   notcurses_term_dimyx(nc, &maxy, &maxx);
-  if(maxy < CHUNKS_VERT || maxx < CHUNKS_HORZ){
+  // want at least 2x2 for each sliding chunk
+  if(maxy < CHUNKS_VERT * 2 || maxx < CHUNKS_HORZ * 2){
     fprintf(stderr, "Terminal too small, need at least %dx%d\n",
             CHUNKS_HORZ, CHUNKS_VERT);
     return -1;
