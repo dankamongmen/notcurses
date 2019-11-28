@@ -7,6 +7,19 @@
 #define CHUNKS_VERT 8
 #define CHUNKS_HORZ 16
 
+static int
+fill_chunk(struct ncplane* n, int idx){
+  char buf[4];
+  int maxy, maxx;
+  ncplane_dimyx(n, &maxy, &maxx);
+  snprintf(buf, sizeof(buf), "%03d", idx);
+  ncplane_fg_rgb8(n, 255 - (idx * 4), idx * 4, 255 - (idx * 4));
+  if(ncplane_putstr(n, buf) <= 0){
+    return -1;
+  }
+  return 0;
+}
+
 // break whatever's on the screen into panels and shift them around like a
 // sliding puzzle. FIXME once we have copying, anyway. until then, just use
 // background colors.
@@ -38,7 +51,11 @@ int sliding_puzzle_demo(struct notcurses* nc){
       if(chunks[idx] == NULL){
         goto done;
       }
+      fill_chunk(chunks[idx], idx);
     }
+  }
+  if(notcurses_render(nc)){
+    goto done;
   }
   nanosleep(&demodelay, NULL);
   ret = 0;
