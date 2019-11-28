@@ -14,9 +14,9 @@ include(GNUInstallDirs)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
-pkg_check_modules(AVUTIL REQUIRED libavutil)
-pkg_check_modules(AVFORMAT REQUIRED libavformat)
-pkg_check_modules(SWSCALE REQUIRED libswscale)
+pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
+pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
+pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 find_library(LIBRT rt)
 
 file(GLOB LIBSRCS CONFIGURE_DEPENDS src/lib/*.c)
