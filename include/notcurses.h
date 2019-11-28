@@ -297,13 +297,20 @@ cell_set_style(cell* c, unsigned stylebits){
                 ((stylebits & 0xffff) << 16u);
 }
 
-// Add the specified styles to the cell's existing spec.
+// Get the style bits, shifted over into the LSBs.
+static inline unsigned
+cell_get_style(const cell* c){
+  return (c->attrword & ~CELL_STYLE_MASK) >> 16u;
+}
+
+// Add the specified styles (in the LSBs) to the cell's existing spec, whether
+// they're actively supported or not.
 static inline void
 cell_enable_styles(cell* c, unsigned stylebits){
   c->attrword |= ((stylebits & 0xffff) << 16u);
 }
 
-// Remove the specified styles from the cell's existing spec.
+// Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
 cell_disable_styles(cell* c, unsigned stylebits){
   c->attrword &= ~((stylebits & 0xffff) << 16u);
@@ -334,11 +341,12 @@ cell_rgb_blue(uint32_t rgb){
   return (rgb & 0xffull);
 }
 
-#define CELL_FGDEFAULT_MASK 0x4000000000000000ull
-#define CELL_FG_MASK        0x00ffffff00000000ull
-#define CELL_WIDEASIAN_MASK 0x2000000000000000ull
-#define CELL_BGDEFAULT_MASK 0x0000000040000000ull
-#define CELL_BG_MASK        0x0000000000ffffffull
+#define CELL_INHERITSTYLE_MASK 0x8000000000000000ull
+#define CELL_FGDEFAULT_MASK    0x4000000000000000ull
+#define CELL_WIDEASIAN_MASK    0x2000000000000000ull
+#define CELL_FG_MASK           0x00ffffff00000000ull
+#define CELL_BGDEFAULT_MASK    0x0000000040000000ull
+#define CELL_BG_MASK           0x0000000000ffffffull
 
 static inline void
 cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
@@ -382,21 +390,32 @@ cell_get_bg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
   *b = cell_rgb_blue(cell_bg_rgb(c->channels));
 }
 
+// does the cell passively retain the styling of the previously-rendered cell?
+static inline bool
+cell_inherits_style(const cell* c){
+  return (c->channels & CELL_INHERITSTYLE_MASK);
+}
+
+// is the cell using the terminal's default foreground color for its foreground?
 static inline bool
 cell_fg_default_p(const cell* c){
   return !(c->channels & CELL_FGDEFAULT_MASK);
 }
 
+// is the cell using the terminal's default background color for its background?
 static inline bool
 cell_bg_default_p(const cell* c){
   return !(c->channels & CELL_BGDEFAULT_MASK);
 }
 
+// does the cell contain an East Asian Wide codepoint?
 static inline bool
 cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
+// get the offset into the egcpool for this cell's EGC. returns meaningless and
+// unsafe results if called on a simple cell.
 static inline uint32_t
 cell_egc_idx(const cell* c){
   return c->gcluster - 0x80;

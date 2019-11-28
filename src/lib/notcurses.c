@@ -76,6 +76,7 @@ typedef struct notcurses {
   char* dim;      // WA_DIM
   char* bold;     // WA_BOLD
   char* italics;  // WA_ITALIC
+  char* italoff;  // WA_ITALIC (disable)
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
@@ -425,6 +426,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   term_verify_seq(&nc->dim, "dim");
   term_verify_seq(&nc->bold, "bold");
   term_verify_seq(&nc->italics, "sitm");
+  term_verify_seq(&nc->italoff, "ritm");
   term_verify_seq(&nc->op, "op");
   term_verify_seq(&nc->clear, "clear");
   // Some terminals cannot combine certain styles with colors. Don't advertise
@@ -732,6 +734,51 @@ advance_cursor(ncplane* n, int cols){
   }
 }
 
+// check the current and target style bitmasks against the specified 'stylebit'.
+// if they are different, and we have the necessary capability, write the
+// applicable terminfo entry to 'out'. returns -1 only on a true error.
+static int
+term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
+              const char* ton, const char* toff){
+  int ret = 0;
+  unsigned curon = cur & stylebit;
+  unsigned targon = targ & stylebit;
+  if(curon != targon){
+    if(targon){
+      if(ton){
+        ret = term_emit(ton, out, false);
+      }
+    }else{
+      if(toff){ // how did this happen? we can turn it on, but not off?
+        ret = term_emit(toff, out, false);
+      }
+    }
+  }
+  if(ret < 0){
+    return -1;
+  }
+  return 0;
+}
+
+// write any escape sequences necessary to set the desired style
+static int
+term_setstyles(const notcurses* nc, FILE* out, uint32_t curattr, const cell* c){
+  if(cell_inherits_style(c)){
+    return 0; // change nothing
+  }
+  uint32_t cellattr = cell_get_style(c);
+  if(cellattr == curattr){
+    return 0; // happy agreement, change nothing
+  }
+  int ret = 0;
+  ret |= term_setstyle(out, curattr, cellattr, WA_ITALIC, nc->italics, nc->italoff);
+  /*ret |= term_setstyle(out, curattr, cellattr, WA_BOLD, nc->bold, nc->boldoff);
+  ret |= term_setstyle(out, curattr, cellattr, WA_UNDERLINE, nc->uline, nc->ulineoff);
+  ret |= term_setstyle(out, curattr, cellattr, WA_BLINK, nc->blink, nc->blinkoff);*/
+  // FIXME a few others
+  return ret;
+}
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
@@ -745,6 +792,7 @@ int notcurses_render(notcurses* nc){
   if(out == NULL){
     return -1;
   }
+  uint32_t curattr = 0; // current attributes set (does not include colors)
   term_emit(nc->clear, out, false);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // FIXME previous line could have ended halfway through multicol. what happens?
@@ -767,6 +815,7 @@ int notcurses_render(notcurses* nc){
         cell_get_bg(c, &br, &bg, &bb);
         term_bg_rgb8(nc, out, br, bg, bb);
       }
+      term_setstyles(nc, out, curattr, c);
       // FIXME what to do if we're at the last cell, and it's wide?
 // fprintf(stderr, "[%02d/%02d] ", y, x);
       term_putc(out, nc->stdscr, c);
