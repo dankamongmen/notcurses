@@ -127,12 +127,27 @@ API int notcurses_resize(struct notcurses* n);
 API struct ncplane* notcurses_stdplane(struct notcurses* nc);
 API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
-// Create a new plane at the specified offset (relative to the standard plane)
+// Create a new ncplane at the specified offset (relative to the standard plane)
 // and the specified size. The number of rows and columns must both be positive.
 // This plane is initially at the top of the z-buffer, as if ncplane_move_top()
 // had been called on it. The void* 'opaque' can be retrieved (and reset) later.
 API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
                                        int yoff, int xoff, void* opaque);
+
+// Resize the specified ncplane. The four parameters 'keepy', 'keepx',
+// 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
+// unchanged. This may be a section of size 0, though none of these four
+// parameters may be negative. 'keepx' and 'keepy' are relative to the ncplane.
+// They must specify a coordinate within the ncplane's totality. 'yoff' and
+// 'xoff' are relative to 'keepy' and 'keepx', and place the upper-left corner
+// of the resized ncplane. Finally, 'ylen' and 'xlen' are the dimensions of the
+// ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
+// and 'xlen' must be greater than or equal to 'keeplenx'.
+//
+// This is a powerful operation (note that notcurses_newplane() can be
+// implemented in terms of ncplane_resize()).
+API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
+                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
 
 // Destroy the specified ncplane. None of its contents will be visible after
 // the next call to notcurses_render(). It is an error to attempt to destroy

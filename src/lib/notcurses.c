@@ -372,6 +372,18 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
   return n;
 }
 
+int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
+                   int keeplenx, int yoff, int xoff, int ylen, int xlen){
+  if(keepy < 0 || keepx < 0){
+    return -1;
+  }
+  if(ylen < keepleny || xlen < keeplenx){
+    return -1;
+  }
+  // FIXME
+  return 0;
+}
+
 int ncplane_destroy(notcurses* nc, ncplane* ncp){
   if(ncp == NULL){
     return 0;
