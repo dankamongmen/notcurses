@@ -972,15 +972,18 @@ int notcurses_palette_size(const notcurses* nc){
   return nc->colors;
 }
 
-void ncplane_enable_styles(ncplane* n, unsigned stylebits){
+// turn on any specified stylebits
+void ncplane_styles_on(ncplane* n, unsigned stylebits){
   n->attrword |= ((stylebits & 0xffff) << 16u);
 }
 
-void ncplane_disable_styles(ncplane* n, unsigned stylebits){
+// turn off any specified stylebits
+void ncplane_styles_off(ncplane* n, unsigned stylebits){
   n->attrword &= ~((stylebits & 0xffff) << 16u);
 }
 
-void ncplane_set_style(ncplane* n, unsigned stylebits){
+// set the current stylebits to exactly those provided
+void ncplane_styles_set(ncplane* n, unsigned stylebits){
   n->attrword = (n->attrword & ~CELL_STYLE_MASK) |
                 ((stylebits & 0xffff) << 16u);
 }

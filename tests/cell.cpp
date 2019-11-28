@@ -30,7 +30,7 @@ class CellTest : public :: testing::Test {
 TEST_F(CellTest, SetStyles) {
   cell c;
   memset(&c, 0, sizeof(c));
-  cell_set_style(&c, WA_ITALIC);
+  cell_styles_set(&c, CELL_STYLE_ITALIC);
   ASSERT_EQ(1, cell_load(n_, &c, "s"));
   EXPECT_EQ(0, ncplane_fg_rgb8(n_, 255, 255, 255));
   EXPECT_EQ(1, ncplane_putc(n_, &c));

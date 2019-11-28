@@ -56,7 +56,7 @@ typedef struct cell {
   // (values 0--0x7f), or a pointer into a per-ncplane attached pool of
   // varying-length UTF-8 grapheme clusters. This pool may thus be up to 16MB.
   uint32_t gcluster;          // 1 * 4b -> 4b
-  // The classic NCURSES WA_* attributes (16 bits), plus 16 bits of alpha.
+  // The CELL_STYLE_* attributes (16 bits), plus 16 bits of alpha.
   uint32_t attrword;          // + 4b -> 8b
   // (channels & 0x8000000000000000ull): inherit styling from prior cell
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
@@ -246,19 +246,19 @@ API int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
-API void ncplane_set_style(struct ncplane* n, unsigned stylebits);
+API void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
 
 // Add the specified styles to the ncplane's existing spec.
-API void ncplane_enable_styles(struct ncplane* n, unsigned stylebits);
+API void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 
 // Remove the specified styles from the ncplane's existing spec.
-API void ncplane_disable_styles(struct ncplane* n, unsigned stylebits);
+API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Fine details about terminal
 
-// Returns a 16-bit bitmask in the LSBs of supported NCURSES-style attributes
-// (WA_UNDERLINE, WA_BOLD, etc.) The attribute is only indicated as supported
-// if the terminal can support it together with color.
+// Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
+// (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
+// indicated as supported if the terminal can support it together with color.
 API unsigned notcurses_supported_styles(const struct notcurses* nc);
 
 // Returns the number of colors supported by the palette, or 1 if there is no
@@ -286,13 +286,23 @@ API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 API void cell_release(struct ncplane* n, cell* c);
 
-#define CELL_STYLE_MASK 0xffff0000ul
-#define CELL_ALPHA_MASK 0x0000fffful
+#define CELL_STYLE_SHIFT     16u
+#define CELL_STYLE_MASK      0xffff0000ul
+#define CELL_ALPHA_MASK      0x0000fffful
+#define CELL_STYLE_STANDOUT  (0x001u << CELL_STYLE_SHIFT)
+#define CELL_STYLE_UNDERLINE (0x002u << CELL_STYLE_SHIFT)
+#define CELL_STYLE_REVERSE   (0x004u << CELL_STYLE_SHIFT)
+#define CELL_STYLE_BLINK     (0x008u << CELL_STYLE_SHIFT)
+#define CELL_STYLE_DIM       (0x010u << CELL_STYLE_SHIFT)
+#define CELL_STYLE_BOLD      (0x020u << CELL_STYLE_SHIFT)
+#define CELL_STYLE_INVIS     (0x040u << CELL_STYLE_SHIFT)
+#define CELL_STYLE_PROTECT   (0x080u << CELL_STYLE_SHIFT)
+#define CELL_STYLE_ITALIC    (0x100u << CELL_STYLE_SHIFT)
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not.
 static inline void
-cell_set_style(cell* c, unsigned stylebits){
+cell_styles_set(cell* c, unsigned stylebits){
   c->attrword = (c->attrword & ~CELL_STYLE_MASK) |
                 ((stylebits & 0xffff) << 16u);
 }
@@ -306,13 +316,13 @@ cell_get_style(const cell* c){
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
-cell_enable_styles(cell* c, unsigned stylebits){
+cell_styles_on(cell* c, unsigned stylebits){
   c->attrword |= ((stylebits & 0xffff) << 16u);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
-cell_disable_styles(cell* c, unsigned stylebits){
+cell_styles_off(cell* c, unsigned stylebits){
   c->attrword &= ~((stylebits & 0xffff) << 16u);
 }
 
