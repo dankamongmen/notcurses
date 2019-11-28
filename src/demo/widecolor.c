@@ -5,6 +5,52 @@
 #include <stdlib.h>
 #include "demo.h"
 
+static int
+message(struct ncplane* n, int maxy, int maxx, int num, int total){
+  cell ul, ur, ll, lr, vl, hl;
+  cell_init(&ul);
+  cell_init(&ur);
+  cell_init(&ll);
+  cell_init(&lr);
+  cell_init(&hl);
+  cell_init(&vl);
+  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+  ncplane_cursor_move_yx(n, 3, 1);
+  ncplane_fg_rgb8(n, 255, 255, 255);
+  ncplane_bg_rgb8(n, 0, 20, 0);
+  ncplane_set_style(n, WA_BOLD);
+  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, 5, 54)){
+    return -1;
+  }
+  cell_load(n, &ll, "╨");
+  ncplane_cursor_move_yx(n, 3, 4);
+  ncplane_putc(n, &ll);
+  ncplane_cursor_move_yx(n, 3, 18);
+  ncplane_putc(n, &ll);
+  cell_load(n, &vl, "║");
+  ncplane_cursor_move_yx(n, 2, 18);
+  ncplane_putc(n, &vl);
+  ncplane_cursor_move_yx(n, 2, 4);
+  ncplane_putc(n, &vl);
+  cell_load(n, &ul, "╔");
+  ncplane_cursor_move_yx(n, 1, 4);
+  ncplane_putc(n, &ul);
+  cell_load(n, &hl, "═");
+  ncplane_hline(n, &hl, 13);
+  cell_load(n, &ur, "╗");
+  ncplane_putc(n, &ur);
+  ncplane_bg_rgb8(n, 0, 0, 0);
+  ncplane_cursor_move_yx(n, 2, 5);
+  ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, num, total);
+  ncplane_cursor_move_yx(n, 4, 2);
+  ncplane_set_style(n, WA_NORMAL);
+  ncplane_fg_rgb8(n, 200, 20, 200);
+  ncplane_putstr(n, " 🔥wide chars, multiple colors, resize awareness…🔥 ");
+  return 0;
+}
+
 // Much of this text comes from http://kermitproject.org/utf8.html
 int widecolor_demo(struct notcurses* nc){
   static const char* strs[] = {
@@ -258,14 +304,9 @@ int widecolor_demo(struct notcurses* nc){
           cell_release(n, &wch);
         }
       }while(y < maxy && x < maxx);
-      ncplane_fg_rgb8(n, 255, 255, 255);
-      ncplane_set_style(n, WA_BOLD);
-      ncplane_cursor_move_yx(n, 2, 2);
-      ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, i, sizeof(steps) / sizeof(*steps));
-      ncplane_cursor_move_yx(n, 3, 2);
-      ncplane_set_style(n, WA_NORMAL);
-      ncplane_fg_rgb8(n, 200, 20, 200);
-      ncplane_putstr(n, " 🔥wide chars, multiple colors, resize awareness…🔥 ");
+      if(message(n, maxy, maxx, i, sizeof(steps) / sizeof(*steps))){
+        return -1;
+      }
       if(notcurses_render(nc)){
         return -1;
       }
