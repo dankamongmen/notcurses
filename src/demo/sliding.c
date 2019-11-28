@@ -6,6 +6,32 @@
 // FIXME do the bigger dimension on the screen's bigger dimension
 #define CHUNKS_VERT 6
 #define CHUNKS_HORZ 12
+#define MOVES 6
+
+// we take 4*demodelay to play MOVES moves
+static int
+play(struct notcurses* nc, struct ncplane** chunks, int yoff, int xoff){
+  uint64_t movens = 4 * (demodelay.tv_sec * 1000000000 + demodelay.tv_nsec);
+  struct timespec movetime = {
+    .tv_sec = movens / MOVES / 1000000000,
+    .tv_nsec = movens / MOVES % 1000000000,
+  };
+  // struct ncplane* n = notcurses_stdplane(nc);
+  int m;
+  for(m = 0 ; m < MOVES ; ++m){
+    int hole;
+    do{
+      hole = random() % (CHUNKS_VERT * CHUNKS_HORZ);
+    }while(!chunks[hole]);
+    ncplane_destroy(nc, chunks[hole]);
+    chunks[hole] = NULL;
+    if(notcurses_render(nc)){
+      return -1;
+    }
+    nanosleep(&movetime, NULL);
+  }
+  return 0;
+}
 
 static int
 fill_chunk(struct ncplane* n, int idx){
@@ -106,7 +132,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   int wastex = ((maxx - 2) % CHUNKS_HORZ) / 2;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
-  int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
+  const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){
     return -1;
@@ -131,7 +157,9 @@ int sliding_puzzle_demo(struct notcurses* nc){
   if(notcurses_render(nc)){
     goto done;
   }
-  nanosleep(&demodelay, NULL);
+  if(play(nc, chunks, wastey, wastex)){
+    goto done;
+  }
   ret = 0;
 
 done:
