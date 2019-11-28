@@ -60,10 +60,10 @@ TEST_F(NotcursesTest, ResizeSameSize) {
   EXPECT_EQ(newy, y);
 }
 
-// we should at least have WA_BOLD everywhere, i should think?
+// we should at least have CELL_STYLE_BOLD everywhere, i should think?
 TEST_F(NotcursesTest, CursesStyles) {
   unsigned attrs = notcurses_supported_styles(nc_);
-  EXPECT_EQ(1, !!(WA_BOLD & attrs));
+  EXPECT_EQ(1, !!(CELL_STYLE_BOLD & attrs));
 }
 
 // it is an error to attempt to destroy the standard plane
@@ -71,4 +71,33 @@ TEST_F(NotcursesTest, RejectDestroyStdPlane) {
   ncplane* ncp = notcurses_stdplane(nc_);
   ASSERT_NE(nullptr, ncp);
   ASSERT_NE(0, ncplane_destroy(nc_, ncp));
+}
+
+// create planes partitioning the entirety of the screen, one at each coordinate
+TEST_F(NotcursesTest, TileScreenWithPlanes) {
+  int maxx, maxy;
+  notcurses_term_dimyx(nc_, &maxy, &maxx);
+  auto total = maxx * maxy;
+  struct ncplane** planes = new struct ncplane*[total];
+  int* planesecrets = new int[total];
+  for(int y = 0 ; y < maxy ; ++y){
+    for(int x = 0 ; x < maxx ; ++x){
+      const auto idx = y * maxx + x;
+      planes[idx] = notcurses_newplane(nc_, 1, 1, y, x, &planesecrets[idx]);
+      ASSERT_NE(nullptr, planes[idx]);
+    }
+  }
+  ASSERT_EQ(0, notcurses_render(nc_));
+  for(int y = 0 ; y < maxy ; ++y){
+    for(int x = 0 ; x < maxx ; ++x){
+      const auto idx = y * maxx + x;
+      auto userptr = ncplane_userptr(planes[idx]);
+      ASSERT_NE(nullptr, userptr);
+      EXPECT_EQ(userptr, &planesecrets[idx]);
+      ASSERT_EQ(0, ncplane_destroy(nc_, planes[idx]));
+    }
+  }
+  delete[] planesecrets;
+  delete[] planes;
+  ASSERT_EQ(0, notcurses_render(nc_));
 }
