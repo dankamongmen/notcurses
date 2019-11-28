@@ -316,7 +316,7 @@ int widecolor_demo(struct notcurses* nc){
         key = wgetch(w);
       }while(key == ERR);
       */
-      sleep(1); // FIXME
+      nanosleep(&demodelay, NULL);
     //}while(key == KEY_RESIZE);
   }
   return 0;

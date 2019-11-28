@@ -8,12 +8,18 @@
 #include <notcurses.h>
 #include "demo.h"
 
+struct timespec demodelay = {
+  .tv_sec = 1,
+  .tv_nsec = 0,
+};
+
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -h | -k ]\n", exe);
+  fprintf(out, "usage: %s [ -h ] [ -k ] [ -d ns ]\n", exe);
   fprintf(out, " h: this message\n");
   fprintf(out, " k: keep screen; do not switch to alternate\n");
+  fprintf(out, " d: delay in nanoseconds between demos\n");
   exit(status);
 }
 
@@ -45,7 +51,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
   int c;
   memset(opts, 0, sizeof(*opts));
   opts->outfp = stdout;
-  while((c = getopt(argc, argv, "hk")) != EOF){
+  while((c = getopt(argc, argv, "hkd:")) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
@@ -53,7 +59,16 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
       case 'k':
         opts->inhibit_alternate_screen = true;
         break;
-      default:
+      case 'd':{
+        char* eptr;
+        unsigned long ns = strtoul(optarg, &eptr, 0);
+        if(*eptr){
+          usage(*argv, EXIT_FAILURE);
+        }
+        demodelay.tv_sec = ns / 1000000000;
+        demodelay.tv_nsec = ns % 1000000000;
+        break; 
+      }default:
         usage(*argv, EXIT_FAILURE);
     }
   }
@@ -79,7 +94,7 @@ int main(int argc, char** argv){
     fprintf(stderr, "Couldn't get standard plane\n");
     goto err;
   }
-  sleep(1);
+  nanosleep(&demodelay, NULL);
   int x, y, rows, cols;
   ncplane_dimyx(ncp, &rows, &cols);
   cell c;
@@ -127,10 +142,6 @@ int main(int argc, char** argv){
   if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 6, cols - 6)){
     goto err;
   }
-  if(notcurses_render(nc)){
-    goto err;
-  }
-  sleep(1);
   const char s1[] = " Die Welt ist alles, was der Fall ist. ";
   const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
   if(ncplane_fg_rgb8(ncp, 192, 192, 192)){
@@ -167,7 +178,7 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
-  sleep(1);
+  nanosleep(&demodelay, NULL);
   if(ext_demos(nc)){
     goto err;
   }

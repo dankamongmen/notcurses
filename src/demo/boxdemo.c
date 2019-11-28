@@ -53,6 +53,6 @@ int box_demo(struct notcurses* nc){
   if(notcurses_render(nc)){
     return -1;
   }
-  sleep(1);
+  nanosleep(&demodelay, NULL);
   return 0;
 }
