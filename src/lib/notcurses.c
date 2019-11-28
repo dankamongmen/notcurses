@@ -372,13 +372,23 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
 }
 
 int ncplane_destroy(notcurses* nc, ncplane* ncp){
-  if(ncp){
-    if(nc->stdscr == ncp){
-      return -1;
-    }
-    // FIXME close it up
+  if(ncp == NULL){
+    return 0;
   }
-  return 0;
+  if(nc->stdscr == ncp){
+    return -1;
+  }
+  ncplane** above;
+  // pull it out of the list
+  for(above = &nc->top ; *above ; above = &(*above)->z){
+    if(*above == ncp){
+      *above = ncp->z;
+      free_plane(ncp);
+      return 0;
+    }
+  }
+  // couldn't find it in our stack. don't try to free this interloper.
+  return -1;
 }
 
 static int
