@@ -20,7 +20,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_cursor_move_yx(n, 3, 1);
   ncplane_fg_rgb8(n, 255, 255, 255);
   ncplane_bg_rgb8(n, 0, 20, 0);
-  ncplane_set_style(n, WA_BOLD);
+  ncplane_styles_on(n, CELL_STYLE_BOLD);
   if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, 5, 54)){
     return -1;
   }
@@ -45,7 +45,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_cursor_move_yx(n, 2, 5);
   ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, num, total);
   ncplane_cursor_move_yx(n, 4, 2);
-  ncplane_set_style(n, WA_NORMAL);
+  ncplane_styles_off(n, CELL_STYLE_BOLD);
   ncplane_fg_rgb8(n, 200, 20, 200);
   ncplane_putstr(n, " 🔥wide chars, multiple colors, resize awareness…🔥 ");
   return 0;
@@ -272,7 +272,6 @@ int widecolor_demo(struct notcurses* nc){
         s = strs;
         for(s = strs ; *s ; ++s){
           cell wch = CELL_TRIVIAL_INITIALIZER;
-          cell_set_style(&wch, WA_NORMAL);
           cell_set_fg(&wch, cell_rgb_red(rgb), 255 - cell_rgb_green(rgb),
                       cell_rgb_blue(rgb));
           cell_set_bg(&wch, 64, 64, 64);

@@ -145,9 +145,11 @@ int main(int argc, char** argv){
   if(ncplane_cursor_move_yx(ncp, rows / 2, (cols - strlen(str) + 4) / 2)){
     goto err;
   }
+  ncplane_styles_on(ncp, CELL_STYLE_ITALIC);
   if(ncplane_putstr(ncp, str) != (int)strlen(str)){
     goto err;
   }
+  ncplane_styles_off(ncp, CELL_STYLE_ITALIC);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
   char mbstr[128];
   if(wcstombs(mbstr, wstr, sizeof(mbstr)) <= 0){
