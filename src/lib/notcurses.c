@@ -771,7 +771,6 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c)
   if(cellattr == *curattr){
     return 0; // happy agreement, change nothing
   }
-fprintf(stderr, "GOTTA PRINT IT! %08x %08x\n", *curattr, cell_get_style(c));
   int ret = 0;
   ret |= term_setstyle(out, *curattr, cellattr, CELL_STYLE_ITALIC, nc->italics, nc->italoff);
   /*ret |= term_setstyle(out, curattr, cellattr, CELL_STYLE_BOLD, nc->bold, nc->boldoff);

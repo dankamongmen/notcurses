@@ -19,6 +19,9 @@ usage(const char* exe, int status){
 
 static int
 ext_demos(struct notcurses* nc){
+  if(sliding_puzzle_demo(nc)){
+    return -1;
+  }
   if(unicodeblocks_demo(nc)){
     return -1;
   }
