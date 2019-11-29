@@ -1062,7 +1062,7 @@ int ncplane_putc(ncplane* n, const cell* c){
   return ret;
 }
 
-int ncplane_getc(const ncplane* n, cell* c, char** gclust){
+int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
   if(n->y == n->leny && n->x == n->lenx){
     return -1;
   }
@@ -1290,4 +1290,14 @@ void ncplane_erase(ncplane* n){
   egcpool_init(&n->pool);
   n->channels = 0;
   n->attrword = 0;
+}
+
+int ncplane_getc(const struct ncplane* n, cell* c){
+  int r = getc(n->nc->ttyfp);
+  return r;
+}
+
+int ncplane_getc_blocking(const struct ncplane* n, cell* c){
+  int r = getc(n->nc->ttyfp);
+  return r;
 }

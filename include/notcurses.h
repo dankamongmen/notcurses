@@ -174,10 +174,9 @@ API int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 API int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
 
-// Retrieve the topmost cell at this location on the screen, returning it in
-// 'c'. If there is more than a byte of gcluster, it will be returned as a heap
-// allocation in '*gclust', and '*c' will be 0x80.
-API void notcurses_getc(const struct notcurses* n, cell* c, char** gclust);
+// Retrieve the topmost cell at the cursor location on the specified plane,
+// returning it in 'c'. This copy is safe to use until the ncplane is destroyed.
+API void ncplane_at_cursor(const struct ncplane* n, cell* c);
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
@@ -212,10 +211,18 @@ API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
 // On failure, -1 is returned.
 API int ncplane_putc(struct ncplane* n, const cell* c);
 
-// Retrieve the cell under this plane's cursor, returning it in 'c'. If there
-// is more than a byte of gcluster, it will be returned as a heap allocation in
-// '*gclust', and '*c' will be 0x80. Returns -1 on error, 0 on success.
-API int ncplane_getc(const struct ncplane* n, cell* c, char** gclust);
+// Return an input from stdin, if one is available. Note that we do *not*
+// attempt to read an EGC in its entirety. 'c' will reference a single
+// UTF-8-encoded Unicode codepoint. This is a non-blocking operation. If no
+// input is available, 0 is returned. On other errors, -1 is returned.
+// Otherwise, the number of bytes in the UTF-8 character are returned.
+API int ncplane_getc(const struct ncplane* n, cell* c);
+
+// The same as ncplane_getc(), but blocking until input is read. It can still
+// return early due to interruption by signal, in which case 0 is returned. On
+// any other error, -1 is returned. Otherwise, the number of bytes in the UTF-8
+// character are returned.
+API int ncplane_getc_blocking(const struct ncplane* n, cell* c);
 
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition

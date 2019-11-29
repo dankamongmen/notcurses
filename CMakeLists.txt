@@ -63,6 +63,22 @@ target_compile_options(notcurses-demo
     -Wall -Wextra -W -Wshadow
 )
 
+file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/*.cpp)
+add_executable(notcurses-input ${INPUTSRCS})
+target_include_directories(notcurses-input
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(notcurses-input
+  PRIVATE
+    notcurses
+)
+target_compile_options(notcurses-input
+  PRIVATE
+    -Wall -Wextra -W -Wshadow
+)
+
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 add_executable(notcurses-view ${VIEWSRCS})
 target_include_directories(notcurses-view
@@ -135,6 +151,7 @@ install(FILES
 
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-view DESTINATION bin)
+install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
