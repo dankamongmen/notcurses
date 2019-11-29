@@ -50,6 +50,17 @@ TEST_F(CellTest, SetStyles) {
     }
   }
   EXPECT_EQ(0, notcurses_render(nc_));
+  cell_styles_off(&c, CELL_STYLE_ITALIC);
+  for(y = 0 ; y < dimy ; ++y){
+    ncplane_cursor_move_yx(n_, y, 0);
+    for(x = 0 ; x < dimx ; ++x){
+      EXPECT_EQ(1, ncplane_putc(n_, &c));
+    }
+  }
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_EQ(dimy, y);
+  EXPECT_EQ(0, x); // FIXME shouldn't this be dimx?!?!
+  EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 /*TEST_F(CellTest, CellLoadTamil) {

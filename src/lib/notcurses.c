@@ -834,13 +834,13 @@ term_putc(FILE* out, const ncplane* n, const cell* c){
 
 static void
 advance_cursor(ncplane* n, int cols){
-  if(n->y == n->leny){
-    if(n->x == n->lenx){
+  if(n->y >= n->leny){
+    if(n->x >= n->lenx){
       return; // stuck!
     }
   }
   if((n->x += cols) >= n->lenx){
-    if(n->y == n->leny){
+    if(n->y >= n->leny){
       n->x = n->lenx;
     }else{
       n->x -= n->lenx;
