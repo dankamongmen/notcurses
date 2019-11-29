@@ -463,6 +463,17 @@ to implement".
 * There is no timeout functionality for input (`timeout()`, `halfdelay()`, etc.).
   Roll your own with any of the four thousand ways to do it.
 
+## Environment notes
+
+* If your terminal has an option about default interpretation of "ambiguous-width
+  characters" (this is actually a technical term from Unicode), ensure it is
+  set to **Wide**, not narrow.
+
+* If you can disable BiDi in your terminal, do so while running notcurses
+  applications, until I have that handled better. notcurses doesn't recognize
+  the BiDi state machine transitions, and thus merrily continues writing
+  left-to-right. ﷽
+
 ## Useful links
 
 * [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)
