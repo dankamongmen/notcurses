@@ -16,4 +16,4 @@
   * `makepkg --printsrcinfo > .SRCINFO`
   * Test that package builds with `makepkg`
   * `git commit -a`
-* Update Debian changelog with `dch -v $NEXTVERSION-1`
+ Update Debian changelog with `dch -v $NEXTVERSION-1`
