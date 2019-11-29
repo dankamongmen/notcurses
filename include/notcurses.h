@@ -142,11 +142,13 @@ API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
 // 'xoff' are relative to 'keepy' and 'keepx', and place the upper-left corner
 // of the resized ncplane. Finally, 'ylen' and 'xlen' are the dimensions of the
 // ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
-// and 'xlen' must be greater than or equal to 'keeplenx'.
+// and 'xlen' must be greater than or equal to 'keeplenx'. It is an error to
+// attempt to resize the standard plane. If either of 'keepy' or 'keepx' is
+// non-zero, both must be non-zero.
 //
-// This is a powerful operation (note that notcurses_newplane() can be
-// implemented in terms of ncplane_resize()). It is an error to attempt to
-// resize the standard plane.
+// Essentially, the kept material does not move. It serves to anchor the
+// resized plane. If there is no kept material, the plane can move freely:
+// it is possible to implement ncplane_move() in terms of ncplane_resize().
 API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 

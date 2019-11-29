@@ -317,6 +317,7 @@ create_initial_ncplane(notcurses* nc){
 // array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
 // new size, and copies what can be copied from the old stdscr. Assumes that
 // the screen is always anchored in the same place.
+// FIXME rewrite this in terms of ncpanel_resize(n->stdscr)
 int notcurses_resize(notcurses* n){
   int oldrows = n->stdscr->leny;
   int oldcols = n->stdscr->lenx;
@@ -379,13 +380,72 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   if(n == n->nc->stdscr){
     return -1;
   }
-  if(keepy < 0 || keepx < 0){
+  if(keepy < 0 || keepx < 0){ // can't retain negative size
     return -1;
   }
-  if(ylen < keepleny || xlen < keeplenx){
+  if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
     return -1;
   }
+  if((!keepy && keepx) || (keepy && !keepx)){ // both must be 0
+    return -1;
+  }
+  if(ylen < keepleny || xlen < keeplenx){ // can't be smaller than our keep
+    return -1;
+  }
+  // we're good to resize. we'll need alloc up a new framebuffer, and copy in
+  // those elements we're retaining, zeroing out the rest. alternatively, if
+  // we've shrunk, we will be filling the new structure.
+  int keptarea = keepy * keepx;
+  int newarea = ylen * xlen;
+  cell* fb = malloc(sizeof(*fb) * newarea);
+  if(fb == NULL){
+    return -1;
+  }
+  // update the cursor, if it would otherwise be off-plane
+  if(n->y >= ylen){
+    n->y = ylen - 1;
+  }
+  if(n->x >= xlen){
+    n->x = xlen - 1;
+  }
+  cell* preserved = n->fb;
+  n->fb = fb;
+  // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
+  // and keep it. perhaps we ought compact it?
+  if(keptarea == 0){ // keep nothing, resize/move only
+    memset(fb, 0, sizeof(*fb) * newarea);
+    egcpool_dump(&n->pool);
+    free(n->fb);
+    n->fb = fb;
+    n->lenx = xlen;
+    n->leny = ylen;
+    return 0;
+  }
+  // we currently have maxy rows of maxx cells each. we will be keeping rows
+  // keepy..keepy + keepleny - 1.
   // FIXME
+  /*
+  int y, idx;
+  idx = 0;
+  for(y = 0 ; y < ylen ; ++y){
+    idx = y * n->lenx;
+    if(y > oldrows){
+      memset(&n->fb[idx], 0, sizeof(*n->fb) * n->lenx);
+      continue;
+    }
+    int oldcopy = oldcols;
+    if(oldcopy){
+      if(oldcopy > n->lenx){
+        oldcopy = n->lenx;
+      }
+      memcpy(&n->fb[idx], &preserved[y * oldcols], oldcopy * sizeof(*n->fb));
+    }
+    if(n->lenx - oldcopy){
+      memset(&n->fb[idx + oldcopy], 0, sizeof(*n->fb) * (n->lenx - oldcopy));
+    }
+  }
+  */
+  free(preserved);
   return 0;
 }
 
