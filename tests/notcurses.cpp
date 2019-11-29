@@ -70,7 +70,7 @@ TEST_F(NotcursesTest, CursesStyles) {
 TEST_F(NotcursesTest, RejectDestroyStdPlane) {
   ncplane* ncp = notcurses_stdplane(nc_);
   ASSERT_NE(nullptr, ncp);
-  ASSERT_NE(0, ncplane_destroy(nc_, ncp));
+  ASSERT_NE(0, ncplane_destroy(ncp));
 }
 
 // create planes partitioning the entirety of the screen, one at each coordinate
@@ -94,7 +94,7 @@ TEST_F(NotcursesTest, TileScreenWithPlanes) {
       auto userptr = ncplane_userptr(planes[idx]);
       ASSERT_NE(nullptr, userptr);
       EXPECT_EQ(userptr, &planesecrets[idx]);
-      ASSERT_EQ(0, ncplane_destroy(nc_, planes[idx]));
+      ASSERT_EQ(0, ncplane_destroy(planes[idx]));
     }
   }
   delete[] planesecrets;

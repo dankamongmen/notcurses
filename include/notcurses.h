@@ -153,7 +153,7 @@ API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
 // Destroy the specified ncplane. None of its contents will be visible after
 // the next call to notcurses_render(). It is an error to attempt to destroy
 // the standard plane.
-API int ncplane_destroy(struct notcurses* nc, struct ncplane* ncp);
+API int ncplane_destroy(struct ncplane* ncp);
 
 // Move this plane relative to the standard plane. It is an error to attempt to
 // move the standard plane.

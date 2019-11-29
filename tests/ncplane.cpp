@@ -302,7 +302,7 @@ TEST_F(NcplaneTest, UserPtr) {
   sentinel = &y;
   EXPECT_EQ(nullptr, ncplane_set_userptr(ncp, sentinel));
   EXPECT_EQ(&y, ncplane_userptr(ncp));
-  EXPECT_EQ(0, ncplane_destroy(nc_, ncp));
+  EXPECT_EQ(0, ncplane_destroy(ncp));
 }
 
 // create a new plane, the same size as the terminal, and verify that it
@@ -320,35 +320,33 @@ TEST_F(NcplaneTest, NewPlaneSameSize) {
   ncplane_dim_yx(n_, &sy, &sx);
   EXPECT_EQ(sy, py);
   EXPECT_EQ(sx, px);
-  EXPECT_EQ(0, ncplane_destroy(nc_, ncp));
+  EXPECT_EQ(0, ncplane_destroy(ncp));
 }
 
 TEST_F(NcplaneTest, ResizePlane) {
   int maxx, maxy;
-  int x = 1, y = 1;
-  maxx -= 2;
-  maxy -= 2;
+  int x = 0, y = 0;
   notcurses_term_dim_yx(nc_, &maxy, &maxx);
-  struct ncplane* newp = notcurses_newplane(nc_, maxy - 2, maxx - 2, y, x, nullptr);
+  struct ncplane* newp = notcurses_newplane(nc_, maxy, maxx, y, x, nullptr);
   ASSERT_NE(nullptr, newp);
   while(y > 4 && x > 4){
     maxx -= 2;
     maxy -= 2;
     ++x;
     ++y;
-    ASSERT_EQ(0, ncplane_resize(newp, 1, 1, maxy - 2, maxx - 2, 1, 1, maxy - 2, maxx - 2));
+    ASSERT_EQ(0, ncplane_resize(newp, 1, 1, maxy, maxx, 1, 1, maxy, maxx));
     // FIXME check dims, pos
   }
   while(y > 4){
     maxy -= 2;
     ++y;
-    ASSERT_EQ(0, ncplane_resize(newp, 1, 0, maxy - 2, maxx, 1, 0, maxy - 2, maxx));
+    ASSERT_EQ(0, ncplane_resize(newp, 1, 0, maxy, maxx, 1, 0, maxy, maxx));
     // FIXME check dims, pos
   }
   while(x > 4){
     maxx -= 2;
     ++x;
-    ASSERT_EQ(0, ncplane_resize(newp, 0, 1, maxy, maxx - 2, 0, 1, maxy, maxx - 2));
+    ASSERT_EQ(0, ncplane_resize(newp, 0, 1, maxy, maxx, 0, 1, maxy, maxx));
     // FIXME check dims, pos
   }
   ASSERT_EQ(0, ncplane_resize(newp, 0, 0, 0, 0, 0, 0, 2, 2));

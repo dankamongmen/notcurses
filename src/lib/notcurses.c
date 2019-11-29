@@ -389,21 +389,31 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   return 0;
 }
 
-int ncplane_destroy(notcurses* nc, ncplane* ncp){
+static ncplane**
+find_above_ncplane(ncplane* n){
+  notcurses* nc = n->nc;
+  ncplane** above = &nc->top;
+  while(*above){
+    if(*above == n){
+      return above;
+    }
+    above = &(*above)->z;
+  }
+  return NULL;
+}
+
+int ncplane_destroy(ncplane* ncp){
   if(ncp == NULL){
     return 0;
   }
-  if(nc->stdscr == ncp){
+  if(ncp->nc->stdscr == ncp){
     return -1;
   }
-  ncplane** above;
-  // pull it out of the list
-  for(above = &nc->top ; *above ; above = &(*above)->z){
-    if(*above == ncp){
-      *above = ncp->z;
-      free_plane(ncp);
-      return 0;
-    }
+  ncplane** above = find_above_ncplane(ncp);
+  if(*above){
+    *above = ncp->z; // splice it out of the list
+    free_plane(ncp);
+    return 0;
   }
   // couldn't find it in our stack. don't try to free this interloper.
   return -1;
@@ -812,19 +822,6 @@ visible_cell(const notcurses* nc, int y, int x, const ncplane** retp){
     p = p->z;
   }
   // should never happen for valid y, x thanks to the stdscreen
-  return NULL;
-}
-
-static ncplane**
-find_above_ncplane(ncplane* n){
-  notcurses* nc = n->nc;
-  ncplane** above = &nc->top;
-  while(*above){
-    if(*above == n){
-      return above;
-    }
-    above = &(*above)->z;
-  }
   return NULL;
 }
 
