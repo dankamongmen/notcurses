@@ -1,3 +1,9 @@
+notcurses (0.2.0-1) UNRELEASED; urgency=medium
+
+  * 
+
+ -- Nick Black <dankamongmen@gmail.com>  Thu, 28 Nov 2019 22:32:11 -0500
+
 notcurses (0.1.0-1) unstable; urgency=medium
 
   * Build notcurses-bin package, silencing lintian error about
