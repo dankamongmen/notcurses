@@ -27,14 +27,14 @@ class LibavTest : public :: testing::Test {
 };
 
 TEST_F(LibavTest, LoadImage) {
-  auto ncv = ncplane_visual_open(ncp_, "../tools/dsscaw-purp.png");
+  auto ncv = ncplane_visual_open(ncp_, "../tests/dsscaw-purp.png");
   ASSERT_NE(nullptr, ncv);
   ASSERT_NE(nullptr, ncvisual_decode(ncv));
   ncvisual_destroy(ncv);
 }
 
 TEST_F(LibavTest, LoadVideo) {
-  auto ncv = ncplane_visual_open(ncp_, "../tools/atliens.mkv");
+  auto ncv = ncplane_visual_open(ncp_, "../tests/atliens.mkv");
   ASSERT_NE(nullptr, ncv);
   ASSERT_NE(nullptr, ncvisual_decode(ncv));
   ncvisual_destroy(ncv);
