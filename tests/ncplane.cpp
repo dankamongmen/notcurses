@@ -323,7 +323,7 @@ TEST_F(NcplaneTest, NewPlaneSameSize) {
   EXPECT_EQ(0, ncplane_destroy(ncp));
 }
 
-TEST_F(NcplaneTest, ResizePlane) {
+TEST_F(NcplaneTest, ShrinkPlane) {
   int maxx, maxy;
   int x = 0, y = 0;
   notcurses_term_dim_yx(nc_, &maxy, &maxx);
@@ -351,4 +351,43 @@ TEST_F(NcplaneTest, ResizePlane) {
   }
   ASSERT_EQ(0, ncplane_resize(newp, 0, 0, 0, 0, 0, 0, 2, 2));
   // FIXME check dims, pos
+  ASSERT_EQ(0, ncplane_destroy(newp));
+}
+
+TEST_F(NcplaneTest, GrowPlane) {
+  int maxx = 2, maxy = 2;
+  int x = 0, y = 0;
+  int dimy, dimx;
+  notcurses_term_dim_yx(nc_, &dimy, &dimx);
+  x = dimx / 2 - 1;
+  y = dimy / 2 - 1;
+  struct ncplane* newp = notcurses_newplane(nc_, maxy, maxx, y, x, nullptr);
+  ASSERT_NE(nullptr, newp);
+  while(dimx - maxx > 4 && dimy - maxy > 4){
+    maxx += 2;
+    maxy += 2;
+    --x;
+    --y;
+    // ASSERT_EQ(0, ncplane_resize(newp, 1, 1, maxy, maxx, 1, 1, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  while(y < dimy){
+    ++maxy;
+    if(y){
+      ++y;
+    }
+    // ASSERT_EQ(0, ncplane_resize(newp, 1, 0, maxy, maxx, 1, 0, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  while(x < dimx){
+    ++maxx;
+    if(x){
+      ++x;
+    }
+    // ASSERT_EQ(0, ncplane_resize(newp, 0, 1, maxy, maxx, 0, 1, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  ASSERT_EQ(0, ncplane_resize(newp, 0, 0, 0, 0, 0, 0, dimy, dimx));
+  // FIXME check dims, pos
+  ASSERT_EQ(0, ncplane_destroy(newp));
 }

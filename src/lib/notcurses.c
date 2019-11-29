@@ -410,6 +410,8 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   }
   cell* preserved = n->fb;
   n->fb = fb;
+  n->absy = n->absy + keepy - yoff;
+  n->absx = n->absx + keepx - xoff;
   // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
   // and keep it. perhaps we ought compact it?
   if(keptarea == 0){ // keep nothing, resize/move only
@@ -419,32 +421,40 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
     n->fb = fb;
     n->lenx = xlen;
     n->leny = ylen;
+    free(preserved);
     return 0;
   }
   // we currently have maxy rows of maxx cells each. we will be keeping rows
-  // keepy..keepy + keepleny - 1.
-  // FIXME
-  /*
-  int y, idx;
-  idx = 0;
-  for(y = 0 ; y < ylen ; ++y){
-    idx = y * n->lenx;
-    if(y > oldrows){
-      memset(&n->fb[idx], 0, sizeof(*n->fb) * n->lenx);
+  // keepy..keepy + keepleny - 1 and columns keepx..keepx + keeplenx - 1. they
+  // will end up at keepy + yoff..keepy + keepleny - 1 + yoff and
+  // keepx + xoff..keepx + keeplenx - 1 + xoff. everything else is zerod out.
+  int itery;
+  // we'll prepare each cell in our new framebuffer with either zeroes or a copy
+  // from the old one.
+  int sourceline = keepy;
+  for(itery = 0 ; itery < ylen ; ++itery){
+    int copyoff = itery * xlen; // our target at any given time
+    // if we have nothing copied to this line, zero it out in one go
+    if(itery < keepy + yoff || itery > keepy + keepleny - 1 + yoff){
+      memset(fb + copyoff, 0, sizeof(*fb) * xlen);
       continue;
     }
-    int oldcopy = oldcols;
-    if(oldcopy){
-      if(oldcopy > n->lenx){
-        oldcopy = n->lenx;
-      }
-      memcpy(&n->fb[idx], &preserved[y * oldcols], oldcopy * sizeof(*n->fb));
+    // we do have something to copy, and zero, one, or two regions to zero out
+    int copied = 0;
+    if(xoff < 0){
+      memset(fb + copyoff, 0, sizeof(*fb) * -xoff);
+      copyoff += -xoff;
+      copied += -xoff;
     }
-    if(n->lenx - oldcopy){
-      memset(&n->fb[idx + oldcopy], 0, sizeof(*n->fb) * (n->lenx - oldcopy));
+    const int sourceidx = fbcellidx(n, sourceline, keepx);
+    memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keepx);
+    copyoff += keepx;
+    copied += keepx;
+    if(xlen > copied){
+      memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
     }
+    ++sourceline;
   }
-  */
   free(preserved);
   return 0;
 }
