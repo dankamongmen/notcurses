@@ -56,6 +56,7 @@ typedef struct ncstats {
 typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
+  FILE* ttyinfp;  // FILE* for processing input
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some terminfo capabilities exist. These needn't be checked
@@ -572,6 +573,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
     return ret;
   }
   ret->ttyfp = opts->outfp;
+  ret->ttyinfp = stdin; // FIXME
   if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
     fprintf(stderr, "No file descriptor was available in opts->outfp\n");
     free(ret);
@@ -1292,12 +1294,12 @@ void ncplane_erase(ncplane* n){
   n->attrword = 0;
 }
 
-int ncplane_getc(const struct ncplane* n, cell* c){
-  int r = getc(n->nc->ttyfp);
+int notcurses_getc(const notcurses* nc, cell* c){
+  int r = getc(nc->ttyinfp);
   return r;
 }
 
-int ncplane_getc_blocking(const struct ncplane* n, cell* c){
-  int r = getc(n->nc->ttyfp);
+int notcurses_getc_blocking(const notcurses* nc, cell* c){
+  int r = getc(nc->ttyinfp);
   return r;
 }

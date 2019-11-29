@@ -115,6 +115,20 @@ API int notcurses_stop(struct notcurses* nc);
 // successful call to notcurses_render().
 API int notcurses_render(struct notcurses* nc);
 
+// Return an input from stdin, if one is available. Note that we do *not*
+// attempt to read an EGC in its entirety. 'c' will reference a single
+// UTF-8-encoded Unicode codepoint. This is a non-blocking operation. If no
+// input is available, 0 is returned. On other errors, -1 is returned.
+// Otherwise, the number of bytes in the UTF-8 character are returned. Note
+// that EOF is considered an error.
+API int notcurses_getc(const struct notcurses* n, cell* c);
+
+// The same as notcurses_getc(), but blocking until input is read. It can still
+// return early due to interruption by signal, in which case 0 is returned. On
+// any other error, -1 is returned. Otherwise, the number of bytes in the UTF-8
+// character are returned. Note that EOF is considered an error.
+API int notcurses_getc_blocking(const struct notcurses* n, cell* c);
+
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
@@ -210,19 +224,6 @@ API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
 // plane). On success, returns the number of columns the cursor was advanced.
 // On failure, -1 is returned.
 API int ncplane_putc(struct ncplane* n, const cell* c);
-
-// Return an input from stdin, if one is available. Note that we do *not*
-// attempt to read an EGC in its entirety. 'c' will reference a single
-// UTF-8-encoded Unicode codepoint. This is a non-blocking operation. If no
-// input is available, 0 is returned. On other errors, -1 is returned.
-// Otherwise, the number of bytes in the UTF-8 character are returned.
-API int ncplane_getc(const struct ncplane* n, cell* c);
-
-// The same as ncplane_getc(), but blocking until input is read. It can still
-// return early due to interruption by signal, in which case 0 is returned. On
-// any other error, -1 is returned. Otherwise, the number of bytes in the UTF-8
-// character are returned.
-API int ncplane_getc_blocking(const struct ncplane* n, cell* c);
 
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
