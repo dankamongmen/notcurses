@@ -85,6 +85,7 @@ typedef struct notcurses {
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
+  FILE* renderfp; // debugging FILE* to which renderings are written
 } notcurses;
 
 // only one notcurses object can be the target of signal handlers, due to their
@@ -578,6 +579,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
     return ret;
   }
   ret->ttyfp = opts->outfp;
+  ret->renderfp = opts->renderfp;
   ret->ttyinfp = stdin; // FIXME
   if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
     fprintf(stderr, "No file descriptor was available in opts->outfp\n");
@@ -1008,7 +1010,9 @@ int notcurses_render(notcurses* nc){
   if(w < 0 || (size_t)w != buflen){
     ret = -1;
   }
-// fprintf(stderr, "%s\n", buf);
+  if(nc->renderfp){
+    fprintf(nc->renderfp, "%s\n", buf);
+  }
   clock_gettime(CLOCK_MONOTONIC, &done);
   free(buf);
   update_render_stats(&done, &start, &nc->stats);
