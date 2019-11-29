@@ -474,3 +474,4 @@ to implement".
 * [Unicode 12.1 Full Emoji List](https://unicode.org/emoji/charts/full-emoji-list.html)
 * [Unicode Standard Annex #29 Text Segmenation](http://www.unicode.org/reports/tr29)
 * [Unicode Standard Annex #15 Normalization Forms](https://unicode.org/reports/tr15/)
+* [The TTY demystified](http://www.linusakesson.net/programming/tty/)
