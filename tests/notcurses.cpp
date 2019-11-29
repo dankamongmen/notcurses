@@ -37,7 +37,7 @@ TEST_F(NotcursesTest, BasicLifetime) {
 
 TEST_F(NotcursesTest, TermDimensions) {
   int x, y;
-  notcurses_term_dimyx(nc_, &y, &x);
+  notcurses_term_dim_yx(nc_, &y, &x);
   auto stry = getenv("LINES");
   if(stry){
     auto envy = std::stoi(stry, nullptr);
@@ -52,10 +52,10 @@ TEST_F(NotcursesTest, TermDimensions) {
 
 TEST_F(NotcursesTest, ResizeSameSize) {
   int x, y;
-  notcurses_term_dimyx(nc_, &y, &x);
+  notcurses_term_dim_yx(nc_, &y, &x);
   EXPECT_EQ(0, notcurses_resize(nc_));
   int newx, newy;
-  notcurses_term_dimyx(nc_, &newy, &newx);
+  notcurses_term_dim_yx(nc_, &newy, &newx);
   EXPECT_EQ(newx, x);
   EXPECT_EQ(newy, y);
 }
@@ -70,13 +70,13 @@ TEST_F(NotcursesTest, CursesStyles) {
 TEST_F(NotcursesTest, RejectDestroyStdPlane) {
   ncplane* ncp = notcurses_stdplane(nc_);
   ASSERT_NE(nullptr, ncp);
-  ASSERT_NE(0, ncplane_destroy(nc_, ncp));
+  ASSERT_NE(0, ncplane_destroy(ncp));
 }
 
 // create planes partitioning the entirety of the screen, one at each coordinate
 TEST_F(NotcursesTest, TileScreenWithPlanes) {
   int maxx, maxy;
-  notcurses_term_dimyx(nc_, &maxy, &maxx);
+  notcurses_term_dim_yx(nc_, &maxy, &maxx);
   auto total = maxx * maxy;
   struct ncplane** planes = new struct ncplane*[total];
   int* planesecrets = new int[total];
@@ -94,7 +94,7 @@ TEST_F(NotcursesTest, TileScreenWithPlanes) {
       auto userptr = ncplane_userptr(planes[idx]);
       ASSERT_NE(nullptr, userptr);
       EXPECT_EQ(userptr, &planesecrets[idx]);
-      ASSERT_EQ(0, ncplane_destroy(nc_, planes[idx]));
+      ASSERT_EQ(0, ncplane_destroy(planes[idx]));
     }
   }
   delete[] planesecrets;

@@ -4,7 +4,7 @@
 
 int box_demo(struct notcurses* nc){
   int ylen, xlen;
-  notcurses_term_dimyx(nc, &ylen, &xlen);
+  notcurses_term_dim_yx(nc, &ylen, &xlen);
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
   cell ul, ll, lr, ur, hl, vl;

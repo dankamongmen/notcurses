@@ -43,6 +43,7 @@ typedef struct ncplane {
   uint64_t channels;    // works the same way as cells
   uint32_t attrword;    // same deal as in a cell
   void* userptr;        // slot for the user to stick some opaque pointer
+  struct notcurses* nc; // notcurses object of which we are a part
 } ncplane;
 
 typedef struct ncstats {
@@ -200,7 +201,7 @@ const void* ncplane_userptr_const(const ncplane* n){
   return n->userptr;
 }
 
-void ncplane_dimyx(const ncplane* n, int* rows, int* cols){
+void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;
   }
@@ -296,6 +297,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   egcpool_init(&p->pool);
   p->z = nc->top;
   nc->top = p;
+  p->nc = nc;
   return p;
 }
 
@@ -315,6 +317,7 @@ create_initial_ncplane(notcurses* nc){
 // array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
 // new size, and copies what can be copied from the old stdscr. Assumes that
 // the screen is always anchored in the same place.
+// FIXME rewrite this in terms of ncpanel_resize(n->stdscr)
 int notcurses_resize(notcurses* n){
   int oldrows = n->stdscr->leny;
   int oldcols = n->stdscr->lenx;
@@ -372,21 +375,113 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
   return n;
 }
 
-int ncplane_destroy(notcurses* nc, ncplane* ncp){
+int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
+                   int keeplenx, int yoff, int xoff, int ylen, int xlen){
+  if(n == n->nc->stdscr){
+    return -1;
+  }
+  if(keepy < 0 || keepx < 0){ // can't retain negative size
+    return -1;
+  }
+  if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
+    return -1;
+  }
+  if((!keepy && keepx) || (keepy && !keepx)){ // both must be 0
+    return -1;
+  }
+  if(ylen < keepleny || xlen < keeplenx){ // can't be smaller than our keep
+    return -1;
+  }
+  // we're good to resize. we'll need alloc up a new framebuffer, and copy in
+  // those elements we're retaining, zeroing out the rest. alternatively, if
+  // we've shrunk, we will be filling the new structure.
+  int keptarea = keepy * keepx;
+  int newarea = ylen * xlen;
+  cell* fb = malloc(sizeof(*fb) * newarea);
+  if(fb == NULL){
+    return -1;
+  }
+  // update the cursor, if it would otherwise be off-plane
+  if(n->y >= ylen){
+    n->y = ylen - 1;
+  }
+  if(n->x >= xlen){
+    n->x = xlen - 1;
+  }
+  cell* preserved = n->fb;
+  n->fb = fb;
+  n->absy = n->absy + keepy - yoff;
+  n->absx = n->absx + keepx - xoff;
+  // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
+  // and keep it. perhaps we ought compact it?
+  if(keptarea == 0){ // keep nothing, resize/move only
+    memset(fb, 0, sizeof(*fb) * newarea);
+    egcpool_dump(&n->pool);
+    n->lenx = xlen;
+    n->leny = ylen;
+    free(preserved);
+    return 0;
+  }
+  // we currently have maxy rows of maxx cells each. we will be keeping rows
+  // keepy..keepy + keepleny - 1 and columns keepx..keepx + keeplenx - 1. they
+  // will end up at keepy + yoff..keepy + keepleny - 1 + yoff and
+  // keepx + xoff..keepx + keeplenx - 1 + xoff. everything else is zerod out.
+  int itery;
+  // we'll prepare each cell in our new framebuffer with either zeroes or a copy
+  // from the old one.
+  int sourceline = keepy;
+  for(itery = 0 ; itery < ylen ; ++itery){
+    int copyoff = itery * xlen; // our target at any given time
+    // if we have nothing copied to this line, zero it out in one go
+    if(itery < keepy + yoff || itery > keepy + keepleny - 1 + yoff){
+      memset(fb + copyoff, 0, sizeof(*fb) * xlen);
+      continue;
+    }
+    // we do have something to copy, and zero, one, or two regions to zero out
+    int copied = 0;
+    if(xoff < 0){
+      memset(fb + copyoff, 0, sizeof(*fb) * -xoff);
+      copyoff += -xoff;
+      copied += -xoff;
+    }
+    const int sourceidx = fbcellidx(n, sourceline, keepx);
+    memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keepx);
+    copyoff += keepx;
+    copied += keepx;
+    if(xlen > copied){
+      memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
+    }
+    ++sourceline;
+  }
+  free(preserved);
+  return 0;
+}
+
+static ncplane**
+find_above_ncplane(ncplane* n){
+  notcurses* nc = n->nc;
+  ncplane** above = &nc->top;
+  while(*above){
+    if(*above == n){
+      return above;
+    }
+    above = &(*above)->z;
+  }
+  return NULL;
+}
+
+int ncplane_destroy(ncplane* ncp){
   if(ncp == NULL){
     return 0;
   }
-  if(nc->stdscr == ncp){
+  if(ncp->nc->stdscr == ncp){
     return -1;
   }
-  ncplane** above;
-  // pull it out of the list
-  for(above = &nc->top ; *above ; above = &(*above)->z){
-    if(*above == ncp){
-      *above = ncp->z;
-      free_plane(ncp);
-      return 0;
-    }
+  ncplane** above = find_above_ncplane(ncp);
+  if(*above){
+    *above = ncp->z; // splice it out of the list
+    free_plane(ncp);
+    return 0;
   }
   // couldn't find it in our stack. don't try to free this interloper.
   return -1;
@@ -570,26 +665,20 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
+void ncplane_fg_default(struct ncplane* n){
+  n->channels |= CELL_FGDEFAULT_MASK;
+}
+
+void ncplane_bg_default(struct ncplane* n){
+  n->channels |= CELL_BGDEFAULT_MASK;
+}
+
 int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
-  if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
-    return -1;
-  }
-  cell_rgb_set_bg(&n->channels, r, g, b);
-  return 0;
+  return cell_rgb_set_bg(&n->channels, r, g, b);
 }
 
 int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
-  if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
-    return -1;
-  }
-  cell_rgb_set_fg(&n->channels, r, g, b);
-  return 0;
+  return cell_rgb_set_fg(&n->channels, r, g, b);
 }
 
 // 3 for foreground, 4 for background, ugh FIXME
@@ -804,6 +893,60 @@ visible_cell(const notcurses* nc, int y, int x, const ncplane** retp){
   return NULL;
 }
 
+// 'n' ends up above 'above'
+int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
+  ncplane** an = find_above_ncplane(n);
+  if(an == NULL){
+    return -1;
+  }
+  ncplane** aa = find_above_ncplane(above);
+  if(aa == NULL){
+    return -1;
+  }
+  *an = n->z; // splice n out
+  n->z = above; // attach above below n
+  *aa = n; // spline n in above
+  return 0;
+}
+
+// 'n' ends up below 'below'
+int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
+  ncplane** an = find_above_ncplane(n);
+  if(an == NULL){
+    return -1;
+  }
+  *an = n->z; // splice n out
+  n->z = below->z; // reattach subbelow list to n
+  below->z = n; // splice n in below
+  return 0;
+}
+
+int ncplane_move_top(ncplane* n){
+  ncplane** an = find_above_ncplane(n);
+  if(an == NULL){
+    return -1;
+  }
+  *an = n->z; // splice n out
+  n->z = n->nc->top;
+  n->nc->top = n;
+  return 0;
+}
+
+int ncplane_move_bottom(ncplane* n){
+  ncplane** an = find_above_ncplane(n);
+  if(an == NULL){
+    return -1;
+  }
+  *an = n->z; // splice n out
+  an = &n->nc->top;
+  while(*an){
+    an = &(*an)->z;
+  }
+  *an = n;
+  n->z = NULL;
+  return 0;
+}
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
@@ -821,6 +964,8 @@ int notcurses_render(notcurses* nc){
   term_emit(nc->clear, out, false);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // FIXME previous line could have ended halfway through multicol. what happens?
+    // FIXME also must explicitly move to next line if we're to deal with
+    //  surprise enlargenings, otherwise we just print forward
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       const ncplane* p;
@@ -1078,7 +1223,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   if(xstop < xoff + 1){
     return -1;
   }
-  ncplane_dimyx(n, &ymax, &xmax);
+  ncplane_dim_yx(n, &ymax, &xmax);
   if(xstop >= xmax || ystop >= ymax){
     return -1;
   }
@@ -1124,6 +1269,16 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
     return -1;
   }
   return 0;
+}
+
+void ncplane_move_yx(ncplane* n, int y, int x){
+  n->absy = y;
+  n->absx = x;
+}
+
+void ncplane_yx(const ncplane* n, int* y, int* x){
+  *y = n->absy;
+  *x = n->absx;
 }
 
 void ncplane_erase(ncplane* n){

@@ -398,3 +398,15 @@ to implement".
   tracing solutions exist, such as `bpftrace`.
 * There is no timeout functionality for input (`timeout()`, `halfdelay()`, etc.).
   Roll your own with any of the four thousand ways to do it.
+
+## Useful links
+
+* [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)
+* [The Xterm FAQ](https://invisible-island.net/xterm/xterm.faq.html)
+* [The NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html)
+* [ECMA-35 Character Code Structure and Extension Techniques](https://www.ecma-international.org/publications/standards/Ecma-035.htm) (ISO/IEC 2022)
+* [ECMA-43 8-bit Coded Character Set Structure and Rules](https://www.ecma-international.org/publications/standards/Ecma-043.htm)
+* [ECMA-48 Control Functions for Coded Character Sets](https://www.ecma-international.org/publications/standards/Ecma-048.htm) (ISO/IEC 6429)
+* [Unicode 12.1 Full Emoji List](https://unicode.org/emoji/charts/full-emoji-list.html)
+* [Unicode Standard Annex #29 Text Segmenation](http://www.unicode.org/reports/tr29)
+* [Unicode Standard Annex #15 Normalization Forms](https://unicode.org/reports/tr15/)

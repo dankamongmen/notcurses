@@ -7,6 +7,7 @@
 
 static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total){
+  ncplane_bg_default(n);
   cell ul, ur, ll, lr, vl, hl;
   cell_init(&ul);
   cell_init(&ur);
@@ -19,9 +20,8 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   }
   ncplane_cursor_move_yx(n, 3, 1);
   ncplane_fg_rgb8(n, 255, 255, 255);
-  ncplane_bg_rgb8(n, 0, 20, 0);
   ncplane_styles_on(n, CELL_STYLE_BOLD);
-  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, 5, 54)){
+  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, 5, 56)){
     return -1;
   }
   cell_load(n, &ll, "╨");
@@ -41,13 +41,12 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_hline(n, &hl, 13);
   cell_load(n, &ur, "╗");
   ncplane_putc(n, &ur);
-  ncplane_bg_rgb8(n, 0, 0, 0);
   ncplane_cursor_move_yx(n, 2, 5);
   ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, num, total);
   ncplane_cursor_move_yx(n, 4, 2);
   ncplane_styles_off(n, CELL_STYLE_BOLD);
   ncplane_fg_rgb8(n, 200, 20, 200);
-  ncplane_putstr(n, " 🔥wide chars, multiple colors, resize awareness…🔥 ");
+  ncplane_putstr(n, "  🔥wide chars, multiple colors, resize awareness…🔥  ");
   return 0;
 }
 
@@ -261,7 +260,7 @@ int widecolor_demo(struct notcurses* nc){
     const int step = steps[i];
     //do{
       int y, x, maxy, maxx;
-      ncplane_dimyx(n, &maxy, &maxx);
+      ncplane_dim_yx(n, &maxy, &maxx);
       int rgb = start;
       if(ncplane_cursor_move_yx(n, 0, 0)){
         return -1;

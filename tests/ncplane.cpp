@@ -38,9 +38,9 @@ TEST_F(NcplaneTest, StdPlanePosition) {
 // Dimensions of the standard plane ought be the same as those of the context
 TEST_F(NcplaneTest, StdPlaneDimensions) {
   int cols, rows;
-  notcurses_term_dimyx(nc_, &rows, &cols);
+  notcurses_term_dim_yx(nc_, &rows, &cols);
   int ncols, nrows;
-  ncplane_dimyx(n_, &nrows, &ncols);
+  ncplane_dim_yx(n_, &nrows, &ncols);
   EXPECT_EQ(rows, nrows);
   EXPECT_EQ(cols, ncols);
 }
@@ -48,7 +48,7 @@ TEST_F(NcplaneTest, StdPlaneDimensions) {
 // Verify that we can move to all four coordinates of the standard plane
 TEST_F(NcplaneTest, MoveStdPlaneDimensions) {
   int cols, rows;
-  notcurses_term_dimyx(nc_, &rows, &cols);
+  notcurses_term_dim_yx(nc_, &rows, &cols);
   EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
@@ -71,7 +71,7 @@ TEST_F(NcplaneTest, MoveStdPlaneDimensions) {
 // Verify that we can move to all four coordinates of the standard plane
 TEST_F(NcplaneTest, MoveBeyondPlaneFails) {
   int cols, rows;
-  notcurses_term_dimyx(nc_, &rows, &cols);
+  notcurses_term_dim_yx(nc_, &rows, &cols);
   EXPECT_NE(0, ncplane_cursor_move_yx(n_, -1, 0));
   EXPECT_NE(0, ncplane_cursor_move_yx(n_, -1, -1));
   EXPECT_NE(0, ncplane_cursor_move_yx(n_, 0, -1));
@@ -128,7 +128,7 @@ TEST_F(NcplaneTest, EmitStr) {
 
 TEST_F(NcplaneTest, HorizontalLines) {
   int x, y;
-  ncplane_dimyx(n_, &y, &x);
+  ncplane_dim_yx(n_, &y, &x);
   ASSERT_LT(0, y);
   ASSERT_LT(0, x);
   cell c{};
@@ -147,7 +147,7 @@ TEST_F(NcplaneTest, HorizontalLines) {
 
 TEST_F(NcplaneTest, VerticalLines) {
   int x, y;
-  ncplane_dimyx(n_, &y, &x);
+  ncplane_dim_yx(n_, &y, &x);
   ASSERT_LT(0, y);
   ASSERT_LT(0, x);
   cell c{};
@@ -167,7 +167,7 @@ TEST_F(NcplaneTest, VerticalLines) {
 // reject attempts to draw boxes beyond the boundaries of the ncplane
 TEST_F(NcplaneTest, BadlyPlacedBoxen) {
   int x, y;
-  ncplane_dimyx(n_, &y, &x);
+  ncplane_dim_yx(n_, &y, &x);
   ASSERT_LT(2, y);
   ASSERT_LT(2, x);
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
@@ -188,7 +188,7 @@ TEST_F(NcplaneTest, BadlyPlacedBoxen) {
 
 TEST_F(NcplaneTest, PerimeterBox) {
   int x, y;
-  ncplane_dimyx(n_, &y, &x);
+  ncplane_dim_yx(n_, &y, &x);
   ASSERT_LT(2, y);
   ASSERT_LT(2, x);
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
@@ -205,7 +205,7 @@ TEST_F(NcplaneTest, PerimeterBox) {
 
 TEST_F(NcplaneTest, PerimeterBoxSized) {
   int x, y;
-  ncplane_dimyx(n_, &y, &x);
+  ncplane_dim_yx(n_, &y, &x);
   ASSERT_LT(2, y);
   ASSERT_LT(2, x);
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
@@ -293,7 +293,7 @@ TEST_F(NcplaneTest, UserPtr) {
   EXPECT_EQ(nullptr, ncplane_userptr(n_));
   int x, y;
   void* sentinel = &x;
-  notcurses_term_dimyx(nc_, &y, &x);
+  notcurses_term_dim_yx(nc_, &y, &x);
   struct ncplane* ncp = notcurses_newplane(nc_, y, x, 0, 0, sentinel);
   ASSERT_NE(ncp, nullptr);
   EXPECT_EQ(&x, ncplane_userptr(ncp));
@@ -302,23 +302,92 @@ TEST_F(NcplaneTest, UserPtr) {
   sentinel = &y;
   EXPECT_EQ(nullptr, ncplane_set_userptr(ncp, sentinel));
   EXPECT_EQ(&y, ncplane_userptr(ncp));
-  EXPECT_EQ(0, ncplane_destroy(nc_, ncp));
+  EXPECT_EQ(0, ncplane_destroy(ncp));
 }
 
 // create a new plane, the same size as the terminal, and verify that it
 // occupies the same dimensions as the standard plane.
 TEST_F(NcplaneTest, NewPlaneSameSize) {
   int x, y;
-  notcurses_term_dimyx(nc_, &y, &x);
+  notcurses_term_dim_yx(nc_, &y, &x);
   struct ncplane* ncp = notcurses_newplane(nc_, y, x, 0, 0, nullptr);
   ASSERT_NE(nullptr, ncp);
   int px, py;
-  ncplane_dimyx(ncp, &py, &px);
+  ncplane_dim_yx(ncp, &py, &px);
   EXPECT_EQ(y, py);
   EXPECT_EQ(x, px);
   int sx, sy;
-  ncplane_dimyx(n_, &sy, &sx);
+  ncplane_dim_yx(n_, &sy, &sx);
   EXPECT_EQ(sy, py);
   EXPECT_EQ(sx, px);
-  EXPECT_EQ(0, ncplane_destroy(nc_, ncp));
+  EXPECT_EQ(0, ncplane_destroy(ncp));
+}
+
+TEST_F(NcplaneTest, ShrinkPlane) {
+  int maxx, maxy;
+  int x = 0, y = 0;
+  notcurses_term_dim_yx(nc_, &maxy, &maxx);
+  struct ncplane* newp = notcurses_newplane(nc_, maxy, maxx, y, x, nullptr);
+  ASSERT_NE(nullptr, newp);
+  while(y > 4 && x > 4){
+    maxx -= 2;
+    maxy -= 2;
+    ++x;
+    ++y;
+    ASSERT_EQ(0, ncplane_resize(newp, 1, 1, maxy, maxx, 1, 1, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  while(y > 4){
+    maxy -= 2;
+    ++y;
+    ASSERT_EQ(0, ncplane_resize(newp, 1, 0, maxy, maxx, 1, 0, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  while(x > 4){
+    maxx -= 2;
+    ++x;
+    ASSERT_EQ(0, ncplane_resize(newp, 0, 1, maxy, maxx, 0, 1, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  ASSERT_EQ(0, ncplane_resize(newp, 0, 0, 0, 0, 0, 0, 2, 2));
+  // FIXME check dims, pos
+  ASSERT_EQ(0, ncplane_destroy(newp));
+}
+
+TEST_F(NcplaneTest, GrowPlane) {
+  int maxx = 2, maxy = 2;
+  int x = 0, y = 0;
+  int dimy, dimx;
+  notcurses_term_dim_yx(nc_, &dimy, &dimx);
+  x = dimx / 2 - 1;
+  y = dimy / 2 - 1;
+  struct ncplane* newp = notcurses_newplane(nc_, maxy, maxx, y, x, nullptr);
+  ASSERT_NE(nullptr, newp);
+  while(dimx - maxx > 4 && dimy - maxy > 4){
+    maxx += 2;
+    maxy += 2;
+    --x;
+    --y;
+    // ASSERT_EQ(0, ncplane_resize(newp, 1, 1, maxy, maxx, 1, 1, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  while(y < dimy){
+    ++maxy;
+    if(y){
+      ++y;
+    }
+    // ASSERT_EQ(0, ncplane_resize(newp, 1, 0, maxy, maxx, 1, 0, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  while(x < dimx){
+    ++maxx;
+    if(x){
+      ++x;
+    }
+    // ASSERT_EQ(0, ncplane_resize(newp, 0, 1, maxy, maxx, 0, 1, maxy, maxx));
+    // FIXME check dims, pos
+  }
+  ASSERT_EQ(0, ncplane_resize(newp, 0, 0, 0, 0, 0, 0, dimy, dimx));
+  // FIXME check dims, pos
+  ASSERT_EQ(0, ncplane_destroy(newp));
 }

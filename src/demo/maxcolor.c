@@ -30,7 +30,7 @@ grow_rgb(uint32_t* rgb){
 // and that we can write to every coordinate.
 int maxcolor_demo(struct notcurses* nc){
   int maxx, maxy;
-  notcurses_term_dimyx(nc, &maxy, &maxx);
+  notcurses_term_dim_yx(nc, &maxy, &maxx);
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_fg_rgb8(n, 255, 255, 255);
   cell ul = CELL_TRIVIAL_INITIALIZER;

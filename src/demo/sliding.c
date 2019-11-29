@@ -4,14 +4,66 @@
 #include "demo.h"
 
 // FIXME do the bigger dimension on the screen's bigger dimension
-#define CHUNKS_VERT 8
-#define CHUNKS_HORZ 16
+#define CHUNKS_VERT 6
+#define CHUNKS_HORZ 12
+#define MOVES 45
+#define GIG 1000000000
+
+// we take (MOVES / 5) * demodelay to play MOVES moves
+static int
+play(struct notcurses* nc, struct ncplane** chunks){
+  const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
+  uint64_t movens = (MOVES / 5) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
+  struct timespec movetime = {
+    .tv_sec = movens / MOVES / GIG,
+    .tv_nsec = movens / MOVES % GIG,
+  };
+  // struct ncplane* n = notcurses_stdplane(nc);
+  int hole = random() % chunkcount;
+  int holex, holey;
+  ncplane_yx(chunks[hole], &holey, &holex);
+  ncplane_destroy(chunks[hole]);
+  chunks[hole] = NULL;
+  int m;
+  int lastdir = -1;
+  for(m = 0 ; m < MOVES ; ++m){
+    int mover = chunkcount;
+    int direction;
+    do{
+      direction = random() % 4;
+      switch(direction){
+        case 3: // up
+          if(lastdir != 1 && hole >= CHUNKS_HORZ){ mover = hole - CHUNKS_HORZ; } break;
+        case 2: // right
+          if(lastdir != 0 && hole % CHUNKS_HORZ < CHUNKS_HORZ - 1){ mover = hole + 1; } break;
+        case 1: // down
+          if(lastdir != 3 && hole < chunkcount - CHUNKS_HORZ){ mover = hole + CHUNKS_HORZ; } break;
+        case 0: // left
+          if(lastdir != 2 && hole % CHUNKS_HORZ){ mover = hole - 1; } break;
+      }
+    }while(mover == chunkcount);
+    lastdir = direction;
+    int newholex, newholey;
+    ncplane_yx(chunks[mover], &newholey, &newholex);
+    ncplane_move_yx(chunks[mover], holey, holex);
+    holey = newholey;
+    holex = newholex;
+    chunks[hole] = chunks[mover];
+    chunks[mover] = NULL;
+    hole = mover;
+    if(notcurses_render(nc)){
+      return -1;
+    }
+    nanosleep(&movetime, NULL);
+  }
+  return 0;
+}
 
 static int
 fill_chunk(struct ncplane* n, int idx){
   char buf[4];
   int maxy, maxx;
-  ncplane_dimyx(n, &maxy, &maxx);
+  ncplane_dim_yx(n, &maxy, &maxx);
   snprintf(buf, sizeof(buf), "%03d", idx);
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
@@ -19,15 +71,7 @@ fill_chunk(struct ncplane* n, int idx){
   if(ncplane_double_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  int r = 255, g = 255, b = 255;
-  switch(idx % 6){
-    case 5: r -= (idx % 64) * 4; break;
-    case 4: g -= (idx % 64) * 4; break;
-    case 3: b -= (idx % 64) * 4; break;
-    case 2: r -= (idx % 64) * 4; b -= (idx % 64) * 4; break;
-    case 1: r -= (idx % 64) * 4; g -= (idx % 64) * 4; break;
-    case 0: b -= (idx % 64) * 4; g -= (idx % 64) * 4; break;
-  }
+  int r = random() % 256, g = random() % 256, b = random() % 256;
   cell_set_fg(&ul, r, g, b);
   cell_set_fg(&ur, r, g, b);
   cell_set_fg(&ll, r, g, b);
@@ -55,6 +99,36 @@ fill_chunk(struct ncplane* n, int idx){
   return 0;
 }
 
+static int
+draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx){
+  int ret = -1;
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+  cell_set_fg(&ul, 180, 80, 180);
+  cell_set_fg(&ur, 180, 80, 180);
+  cell_set_fg(&ll, 180, 80, 180);
+  cell_set_fg(&lr, 180, 80, 180);
+  cell_set_fg(&hl, 180, 80, 180);
+  cell_set_fg(&vl, 180, 80, 180);
+  ncplane_cursor_move_yx(n, yoff, xoff);
+  if(!ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl,
+                 CHUNKS_VERT * chunky + yoff + 1,
+                 CHUNKS_HORZ * chunkx + xoff + 1)){
+    ret = 0;
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
+  return ret;
+}
+
 // break whatever's on the screen into panels and shift them around like a
 // sliding puzzle. FIXME once we have copying, anyway. until then, just use
 // background colors.
@@ -62,17 +136,21 @@ int sliding_puzzle_demo(struct notcurses* nc){
   int ret = -1, z;
   int maxx, maxy;
   int chunky, chunkx;
-  notcurses_term_dimyx(nc, &maxy, &maxx);
+  notcurses_term_dim_yx(nc, &maxy, &maxx);
   // want at least 2x2 for each sliding chunk
   if(maxy < CHUNKS_VERT * 2 || maxx < CHUNKS_HORZ * 2){
     fprintf(stderr, "Terminal too small, need at least %dx%d\n",
             CHUNKS_HORZ, CHUNKS_VERT);
     return -1;
   } 
-  // we want an 8x8 grid of chunks. the leftover space will be unused
-  chunky = maxy / CHUNKS_VERT;
-  chunkx = maxx / CHUNKS_HORZ;
-  int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
+  // we want an 8x8 grid of chunks with a border. the leftover space will be unused
+  chunky = (maxy - 2) / CHUNKS_VERT;
+  chunkx = (maxx - 2) / CHUNKS_HORZ;
+  int wastey = ((maxy - 2) % CHUNKS_VERT) / 2;
+  int wastex = ((maxx - 2) % CHUNKS_HORZ) / 2;
+  struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_erase(n);
+  const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){
     return -1;
@@ -83,22 +161,28 @@ int sliding_puzzle_demo(struct notcurses* nc){
     for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){
       const int idx = cy * CHUNKS_HORZ + cx;
       chunks[idx] =
-        notcurses_newplane(nc, chunky, chunkx, cy * chunky, cx * chunkx, NULL);
+        notcurses_newplane(nc, chunky, chunkx, cy * chunky + wastey + 1,
+                           cx * chunkx + wastex + 1, NULL);
       if(chunks[idx] == NULL){
         goto done;
       }
       fill_chunk(chunks[idx], idx);
     }
   }
+  if(draw_bounding_box(n, wastey, wastex, chunky, chunkx)){
+    return -1;
+  }
   if(notcurses_render(nc)){
     goto done;
   }
-  nanosleep(&demodelay, NULL);
+  if(play(nc, chunks)){
+    goto done;
+  }
   ret = 0;
 
 done:
   for(z = 0 ; z < chunkcount ; ++z){
-    ncplane_destroy(nc, chunks[z]);
+    ncplane_destroy(chunks[z]);
   }
   free(chunks);
   return ret;
