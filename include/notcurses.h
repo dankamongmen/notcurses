@@ -490,6 +490,12 @@ cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
+// is the cell simple (a lone ASCII character)?
+static inline bool
+cell_simple_p(const cell* c){
+  return c->gcluster < 0x80;
+}
+
 // get the offset into the egcpool for this cell's EGC. returns meaningless and
 // unsafe results if called on a simple cell.
 static inline uint32_t

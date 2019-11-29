@@ -771,11 +771,6 @@ simple_gcluster_p(const char* gcluster){
   return false; // FIXME
 }
 
-static inline bool
-simple_cell_p(const cell* c){
-  return c->gcluster < 0x80;
-}
-
 static inline const char*
 extended_gcluster(const ncplane* n, const cell* c){
   uint32_t idx = cell_egc_idx(c);
@@ -787,7 +782,7 @@ extended_gcluster(const ncplane* n, const cell* c){
 // a property of the font being used).
 static int
 term_putc(FILE* out, const ncplane* n, const cell* c){
-  if(simple_cell_p(c)){
+  if(cell_simple_p(c)){
     if(c->gcluster == 0 || iscntrl(c->gcluster)){
 // fprintf(stderr, "[ ]\n");
       if(fputc(' ', out) == EOF){
@@ -1041,7 +1036,7 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   cell_release(n, targ);
   targ->attrword = c->attrword;
   targ->channels = c->channels;
-  if(simple_cell_p(c)){
+  if(cell_simple_p(c)){
     targ->gcluster = c->gcluster;
     return !!c->gcluster;
   }
@@ -1071,7 +1066,7 @@ int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
   const cell* src = &n->fb[fbcellidx(n, n->y, n->x)];
   memcpy(c, src, sizeof(*src));
   *gclust = NULL;
-  if(!simple_cell_p(src)){
+  if(!cell_simple_p(src)){
     *gclust = strdup(extended_gcluster(n, src));
     if(*gclust == NULL){
       return -1;
@@ -1081,7 +1076,7 @@ int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
 }
 
 void cell_release(ncplane* n, cell* c){
-  if(!simple_cell_p(c)){
+  if(!cell_simple_p(c)){
     egcpool_release(&n->pool, cell_egc_idx(c));
     c->gcluster = 0; // don't subject ourselves to double-release problems
   }
@@ -1294,12 +1289,31 @@ void ncplane_erase(ncplane* n){
   n->attrword = 0;
 }
 
+static int
+handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress){
+  if(kpress == 0x04){ // ctrl-d
+    return -1;
+  }
+  if(kpress < 0x80){
+    c->gcluster = kpress;
+  }else{
+    // FIXME
+  }
+  return kpress;
+}
+
 int notcurses_getc(const notcurses* nc, cell* c){
   int r = getc(nc->ttyinfp);
-  return r;
+  if(r < 0){
+    return r;
+  }
+  return handle_getc(nc, c, r);
 }
 
 int notcurses_getc_blocking(const notcurses* nc, cell* c){
   int r = getc(nc->ttyinfp);
-  return r;
+  if(r < 0){
+    return r;
+  }
+  return handle_getc(nc, c, r);
 }
