@@ -124,6 +124,10 @@ typedef struct notcurses_options {
   // By default, we hide the cursor if possible. This flag inhibits use of
   // the civis capability, retaining the cursor.
   bool retain_cursor;
+  // By default, we handle escape sequences and turn them into special keys.
+  // This is necessary for e.g. arrow keys. This can cause notcurses_getc() to
+  // block for a short time when Escape is pressed. Disable with this bool.
+  bool pass_through_esc;
   // We typically install a signal handler for SIGINT and SIGQUIT that restores
   // the screen, and then calls the old signal handler. Set this to inhibit
   // registration of any signal handlers.
@@ -131,6 +135,9 @@ typedef struct notcurses_options {
   // We typically install a signal handler for SIGWINCH that generates a resize
   // event in the notcurses_getc() queue. Set this to inhibit the handler.
   bool no_winch_sighandler;
+  // If non-NULL, notcurses_render() will write each rendered frame to this
+  // FILE* in addition to outfp. This is used primarily for debugging.
+  FILE* renderfp;
 } notcurses_options;
 
 // Initialize a notcurses context, corresponding to a connected terminal.

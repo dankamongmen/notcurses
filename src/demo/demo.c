@@ -16,10 +16,11 @@ struct timespec demodelay = {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -h ] [ -k ] [ -d ns ] [ demos ]\n", exe);
+  fprintf(out, "usage: %s [ -h ] [ -k ] [ -d ns ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
   fprintf(out, " -d: delay in nanoseconds between demos\n");
+  fprintf(out, " -f: render to file in addition to stdout\n");
   fprintf(out, "all demos are run if no specification is provided\n");
   fprintf(out, " i: run intro\n");
   fprintf(out, " s: run shuffle\n");
@@ -154,13 +155,22 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
   int c;
   memset(opts, 0, sizeof(*opts));
   opts->outfp = stdout;
-  while((c = getopt(argc, argv, "hkd:")) != EOF){
+  while((c = getopt(argc, argv, "hkd:f:")) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
         break;
       case 'k':
         opts->inhibit_alternate_screen = true;
+        break;
+      case 'f':
+        if(opts->renderfp){
+          fprintf(stderr, "-f may only be supplied once\n");
+          usage(*argv, EXIT_FAILURE);
+        }
+        if((opts->renderfp = fopen(optarg, "wb")) == NULL){
+          usage(*argv, EXIT_FAILURE);
+        }
         break;
       case 'd':{
         char* eptr;
