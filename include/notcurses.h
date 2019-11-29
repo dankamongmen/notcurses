@@ -162,7 +162,7 @@ API int ncplane_destroy(struct ncplane* ncp);
 API void ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of this plane relative to the standard plane.
-API void ncplane_yx(const struct ncplane* n, int* y, int* x);
+API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
 API int ncplane_move_top(struct ncplane* n);
@@ -187,11 +187,13 @@ API void* ncplane_userptr(struct ncplane* n);
 API const void* ncplane_userptr_const(const struct ncplane* n);
 
 // Returns the dimensions of this ncplane.
-API void ncplane_dim_yx(const struct ncplane* n, int* rows, int* cols);
+API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
+                        int* RESTRICT cols);
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dim_yx(const struct notcurses* n, int* rows, int* cols){
+notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
+                      int* RESTRICT cols){
   ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 }
 
@@ -201,7 +203,8 @@ notcurses_term_dim_yx(const struct notcurses* n, int* rows, int* cols){
 API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-API void ncplane_cursor_yx(const struct ncplane* n, int* y, int* x);
+API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
+                           int* RESTRICT x);
 
 // Replace the cell underneath the cursor with the provided cell 'c', and
 // advance the cursor by the width of the cell (but not past the end of the

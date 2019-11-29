@@ -417,8 +417,6 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   if(keptarea == 0){ // keep nothing, resize/move only
     memset(fb, 0, sizeof(*fb) * newarea);
     egcpool_dump(&n->pool);
-    free(n->fb);
-    n->fb = fb;
     n->lenx = xlen;
     n->leny = ylen;
     free(preserved);
