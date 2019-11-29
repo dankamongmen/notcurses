@@ -56,9 +56,8 @@ TEST_F(NotcursesTest, TermDimensions) {
 TEST_F(NotcursesTest, ResizeSameSize) {
   int x, y;
   notcurses_term_dim_yx(nc_, &y, &x);
-  EXPECT_EQ(0, notcurses_resize(nc_));
   int newx, newy;
-  notcurses_term_dim_yx(nc_, &newy, &newx);
+  EXPECT_EQ(0, notcurses_resize(nc_, &newy, &newx));
   EXPECT_EQ(newx, x);
   EXPECT_EQ(newy, y);
 }

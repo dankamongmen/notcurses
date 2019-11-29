@@ -140,6 +140,7 @@ API int notcurses_render(struct notcurses* nc);
 // 0 is returned only by notcurses_getc(), to indicate that no input was
 // available. Otherwise (including on EOF) -1 is returned.
 typedef enum {
+  NCKEY_INVALID,
   NCKEY_RESIZE,
   NCKEY_UP,
   NCKEY_RIGHT,
@@ -158,7 +159,7 @@ API int notcurses_getc_blocking(const struct notcurses* n, cell* c,
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
 // References to ncplanes remain valid following a resize operation, but the
 // cursor might have changed position.
-API int notcurses_resize(struct notcurses* n);
+API int notcurses_resize(struct notcurses* n, int* y, int* x);
 
 // Get a reference to the standard plane (one matching our current idea of the
 // terminal size) for this terminal.

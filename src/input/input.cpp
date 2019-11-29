@@ -6,18 +6,34 @@
 #include <iostream>
 #include <notcurses.h>
 
+static int dimy, dimx;
+static struct notcurses* nc;
+
+const char* nckeystr(ncspecial_key key){
+  switch(key){
+    case NCKEY_RESIZE:
+      notcurses_resize(nc, &dimy, &dimx);
+      return "resize event";
+    case NCKEY_INVALID: return "invalid";
+    case NCKEY_LEFT:    return "left";
+    case NCKEY_UP:      return "up";
+    case NCKEY_RIGHT:   return "right";
+    case NCKEY_DOWN:    return "down";
+    default:            return "unknown";
+  }
+}
+
 int main(void){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
   notcurses_options opts{};
   opts.outfp = stdout;
-  struct notcurses* nc = notcurses_init(&opts);
-  if(nc == nullptr){
+  if((nc = notcurses_init(&opts)) == nullptr){
     return EXIT_FAILURE;;
   }
   struct ncplane* n = notcurses_stdplane(nc);
-  int r, dimy, dimx;
+  int r;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   cell c = CELL_TRIVIAL_INITIALIZER;
   if(ncplane_fg_rgb8(n, 255, 255, 255)){
@@ -36,7 +52,12 @@ int main(void){
     }
     if(cell_simple_p(&c)){
       char kp = c.gcluster;
-      if(ncplane_printf(n, "Got keypress: [0x%04x (%04d)] '%c'\n", kp, kp, kp) < 0){
+      if(kp == 0){
+        if(ncplane_printf(n, "Got special key: [0x%04x (%04d)] '%s'\n",
+                          special, special, nckeystr(special)) < 0){
+          break;
+        }
+      }else if(ncplane_printf(n, "Got UTF-8: [0x%04x (%04d)] '%c'\n", kp, kp, kp) < 0){
         break;
       }
     }else{

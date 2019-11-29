@@ -89,12 +89,13 @@ typedef struct notcurses {
 
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
+static sig_atomic_t resize_seen;
 static notcurses* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh
 static void (*signal_sa_handler)(int); // stashed signal handler we replaced
 
 static void
-sigwinch_handler(int signo __attribute__ ((unused))){
-  // FIXME
+sigwinch_handler(int signo){
+  resize_seen = signo;
 }
 
 // this wildly unsafe handler will attempt to restore the screen upon
@@ -316,21 +317,19 @@ create_initial_ncplane(notcurses* nc){
   return nc->stdscr;
 }
 
-// Call this when the screen size changes. Takes a flat
-// array of *rows * *cols cells (may be NULL if *rows == *cols == 0). Gets the
-// new size, and copies what can be copied from the old stdscr. Assumes that
-// the screen is always anchored in the same place.
-// FIXME rewrite this in terms of ncpanel_resize(n->stdscr)
-int notcurses_resize(notcurses* n){
+// Call this when the screen size changes. Acquires the new size, and copies
+// what can be copied from the old stdscr. Assumes that the screen is always
+// anchored in the same place.
+// // FIXME rewrite this in terms of ncpanel_resize(n->stdscr)
+int notcurses_resize(notcurses* n, int* rows, int* cols){
   int oldrows = n->stdscr->leny;
   int oldcols = n->stdscr->lenx;
-  int rows, cols;
-  if(update_term_dimensions(n, &rows, &cols)){
+  if(update_term_dimensions(n, rows, cols)){
     return -1;
   }
   ncplane* p = n->stdscr;
   cell* preserved = p->fb;
-  size_t fbsize = sizeof(*preserved) * (rows * cols);
+  size_t fbsize = sizeof(*preserved) * (*rows * *cols);
   if((p->fb = malloc(fbsize)) == NULL){
     p->fb = preserved;
     return -1;
@@ -1315,6 +1314,12 @@ handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress,
 }
 
 int notcurses_getc(const notcurses* nc, cell* c, ncspecial_key* special){
+  if(resize_seen){
+    resize_seen = 0;
+    c->gcluster = 0;
+    *special = NCKEY_RESIZE;
+    return 1;
+  }
   int r = getc(nc->ttyinfp);
   if(r < 0){
     return r;
@@ -1325,6 +1330,14 @@ int notcurses_getc(const notcurses* nc, cell* c, ncspecial_key* special){
 int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special){
   int r = getc(nc->ttyinfp);
   if(r < 0){
+    if(errno == EINTR){
+      if(resize_seen){
+        resize_seen = 0;
+        c->gcluster = 0;
+        *special = NCKEY_RESIZE;
+        return 1;
+      }
+    }
     return r;
   }
   return handle_getc(nc, c, r, special);
