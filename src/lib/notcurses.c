@@ -988,6 +988,14 @@ int notcurses_render(notcurses* nc){
   uint32_t curattr = 0; // current attributes set (does not include colors)
   term_emit(nc->clear, out, false);
   unsigned lastr, lastg, lastb;
+  unsigned lastbr, lastbg, lastbb;
+  // we can elide a color escape iff the color has not changed between the two
+  // cells and the current cell uses no defaults, or if both the current and
+  // the last used both defaults.
+  bool fgelidable = false, bgelidable = false, defaultelidable = false;
+  uint64_t fgelisions = 0, fgemissions = 0;
+  uint64_t bgelisions = 0, bgemissions = 0;
+  uint64_t defaultelisions = 0, defaultemissions = 0;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // FIXME previous line could have ended halfway through multicol. what happens?
     // FIXME also must explicitly move to next line if we're to deal with
@@ -1000,16 +1008,45 @@ int notcurses_render(notcurses* nc){
       // them both via the 'op' capability. unless we want to generate the 'op'
       // escapes ourselves, if either is set to default, we first send op, and
       // then a turnon for whichever aren't default.
+
+      // we can elide the default set iff the previous used both defaults
       if(cell_fg_default_p(c) || cell_bg_default_p(c)){
-        term_emit(nc->op, out, false);
+        if(!defaultelidable){
+          ++defaultemissions;
+          term_emit(nc->op, out, false);
+        }else{
+          ++defaultelisions;
+        }
+        // if either is not default, this will get turned off
+        defaultelidable = true;
+        fgelidable = false;
+        bgelidable = false;
       }
+
+      // we can elide the foreground set iff the previous used fg and matched
       if(!cell_fg_default_p(c)){
         cell_get_fg(c, &r, &g, &b);
-        term_fg_rgb8(nc, out, r, g, b);
+        if(!fgelidable || lastr != r || lastg != g || lastb != b){
+          term_fg_rgb8(nc, out, r, g, b);
+          ++fgemissions;
+          fgelidable = true;
+        }else{
+          ++fgelisions;
+        }
+        lastr = r; lastg = g; lastb = b;
+        defaultelidable = false;
       }
       if(!cell_bg_default_p(c)){
         cell_get_bg(c, &br, &bg, &bb);
-        term_bg_rgb8(nc, out, br, bg, bb);
+        if(!bgelidable || lastbr != br || lastbg != bg || lastbb != bb){
+          term_bg_rgb8(nc, out, br, bg, bb);
+          ++bgemissions;
+          bgelidable = true;
+        }else{
+          ++bgelisions;
+        }
+        lastbr = br; lastbg = bg; lastbb = bb;
+        defaultelidable = false;
       }
       term_setstyles(nc, out, &curattr, c);
       // FIXME what to do if we're at the last cell, and it's wide?
@@ -1026,6 +1063,8 @@ int notcurses_render(notcurses* nc){
   if(w < 0 || (size_t)w != buflen){
     ret = -1;
   }
+/*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
+     fgelisions, fgemissions, bgelisions, bgemissions);*/
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", buf);
   }

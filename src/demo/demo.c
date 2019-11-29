@@ -213,7 +213,12 @@ int main(int argc, char** argv){
     fprintf(stderr, "Couldn't get standard plane\n");
     goto err;
   }
-  nanosleep(&demodelay, NULL);
+  // no one cares about the leaderscreen. 1s max.
+  if(demodelay.tv_sec >= 1){
+    sleep(1);
+  }else{
+    nanosleep(&demodelay, NULL);
+  }
   if(ext_demos(nc, demos)){
     goto err;
   }

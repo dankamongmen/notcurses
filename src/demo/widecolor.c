@@ -42,7 +42,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   cell_load(n, &ur, "╗");
   ncplane_putc(n, &ur);
   ncplane_cursor_move_yx(n, 2, 5);
-  ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, num, total);
+  ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_cursor_move_yx(n, 4, 2);
   ncplane_styles_off(n, CELL_STYLE_BOLD);
   ncplane_fg_rgb8(n, 200, 20, 200);
