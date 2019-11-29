@@ -11,7 +11,7 @@
 
 // we take (MOVES / 5) * demodelay to play MOVES moves
 static int
-play(struct notcurses* nc, struct ncplane** chunks, int yoff, int xoff){
+play(struct notcurses* nc, struct ncplane** chunks){
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   uint64_t movens = (MOVES / 5) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
   struct timespec movetime = {
@@ -22,7 +22,7 @@ play(struct notcurses* nc, struct ncplane** chunks, int yoff, int xoff){
   int hole = random() % chunkcount;
   int holex, holey;
   ncplane_yx(chunks[hole], &holey, &holex);
-  ncplane_destroy(nc, chunks[hole]);
+  ncplane_destroy(chunks[hole]);
   chunks[hole] = NULL;
   int m;
   int lastdir = -1;
@@ -71,15 +71,7 @@ fill_chunk(struct ncplane* n, int idx){
   if(ncplane_double_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  int r = 255, g = 255, b = 255;
-  switch(idx % 6){
-    case 5: r -= (idx % 64) * 4; break;
-    case 4: g -= (idx % 64) * 4; break;
-    case 3: b -= (idx % 64) * 4; break;
-    case 2: r -= (idx % 64) * 4; b -= (idx % 64) * 4; break;
-    case 1: r -= (idx % 64) * 4; g -= (idx % 64) * 4; break;
-    case 0: b -= (idx % 64) * 4; g -= (idx % 64) * 4; break;
-  }
+  int r = random() % 256, g = random() % 256, b = random() % 256;
   cell_set_fg(&ul, r, g, b);
   cell_set_fg(&ur, r, g, b);
   cell_set_fg(&ll, r, g, b);
@@ -183,14 +175,14 @@ int sliding_puzzle_demo(struct notcurses* nc){
   if(notcurses_render(nc)){
     goto done;
   }
-  if(play(nc, chunks, wastey, wastex)){
+  if(play(nc, chunks)){
     goto done;
   }
   ret = 0;
 
 done:
   for(z = 0 ; z < chunkcount ; ++z){
-    ncplane_destroy(nc, chunks[z]);
+    ncplane_destroy(chunks[z]);
   }
   free(chunks);
   return ret;
