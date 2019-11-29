@@ -998,7 +998,10 @@ int notcurses_render(notcurses* nc){
   }
   ret |= fclose(out);
   fflush(nc->ttyfp);
-  write(nc->ttyfd, buf, buflen);
+  ssize_t w = write(nc->ttyfd, buf, buflen);
+  if(w < 0 || (size_t)w != buflen){
+    ret = -1;
+  }
 // fprintf(stderr, "%s\n", buf);
   clock_gettime(CLOCK_MONOTONIC, &done);
   free(buf);
