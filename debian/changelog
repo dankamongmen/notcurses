@@ -1,10 +1,10 @@
-notcurses (0.1.0-1) UNRELEASED; urgency=medium
+notcurses (0.1.0-1) unstable; urgency=medium
 
   * Build notcurses-bin package, silencing lintian error about
      installing notcurses-demo to architecture-specific dir.
   * Add deps on libavcodec-dev and libavutil-dev
 
- -- Nick Black <dankamongmen@gmail.com>  Tue, 26 Nov 2019 23:05:37 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Thu, 28 Nov 2019 22:20:32 -0500
 
 notcurses (0.0.9-1) unstable; urgency=medium
 

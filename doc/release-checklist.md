@@ -1,4 +1,4 @@
-* Update version in CMakeLists.txt
+* Verify version in CMakeLists.txt
 * Finalize Debian changelog with `dch -r`
 * git commit -a -m v$VERSION
 * Tag with `git tag -a v$VERSION -m "v$VERSION"`
@@ -16,4 +16,5 @@
   * `makepkg --printsrcinfo > .SRCINFO`
   * Test that package builds with `makepkg`
   * `git commit -a`
- Update Debian changelog with `dch -v $NEXTVERSION-1`
+* Update Debian changelog with `dch -v $NEXTVERSION-1`
+* Update CMakeLists.txt with next version
