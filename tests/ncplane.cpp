@@ -322,3 +322,35 @@ TEST_F(NcplaneTest, NewPlaneSameSize) {
   EXPECT_EQ(sx, px);
   EXPECT_EQ(0, ncplane_destroy(nc_, ncp));
 }
+
+TEST_F(NcplaneTest, ResizePlane) {
+  int maxx, maxy;
+  int x = 1, y = 1;
+  maxx -= 2;
+  maxy -= 2;
+  notcurses_term_dim_yx(nc_, &maxy, &maxx);
+  struct ncplane* newp = notcurses_newplane(nc_, maxy - 2, maxx - 2, y, x, nullptr);
+  ASSERT_NE(nullptr, newp);
+  while(y > 4 && x > 4){
+    maxx -= 2;
+    maxy -= 2;
+    ++x;
+    ++y;
+    ASSERT_EQ(0, ncplane_resize(newp, 1, 1, maxy - 2, maxx - 2, 1, 1, maxy - 2, maxx - 2));
+    // FIXME check dims, pos
+  }
+  while(y > 4){
+    maxy -= 2;
+    ++y;
+    ASSERT_EQ(0, ncplane_resize(newp, 1, 0, maxy - 2, maxx, 1, 0, maxy - 2, maxx));
+    // FIXME check dims, pos
+  }
+  while(x > 4){
+    maxx -= 2;
+    ++x;
+    ASSERT_EQ(0, ncplane_resize(newp, 0, 1, maxy, maxx - 2, 0, 1, maxy, maxx - 2));
+    // FIXME check dims, pos
+  }
+  ASSERT_EQ(0, ncplane_resize(newp, 0, 0, 0, 0, 0, 0, 2, 2));
+  // FIXME check dims, pos
+}

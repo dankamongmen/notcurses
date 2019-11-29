@@ -43,6 +43,7 @@ typedef struct ncplane {
   uint64_t channels;    // works the same way as cells
   uint32_t attrword;    // same deal as in a cell
   void* userptr;        // slot for the user to stick some opaque pointer
+  struct notcurses* nc; // notcurses object of which we are a part
 } ncplane;
 
 typedef struct ncstats {
@@ -296,6 +297,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   egcpool_init(&p->pool);
   p->z = nc->top;
   nc->top = p;
+  p->nc = nc;
   return p;
 }
 
@@ -374,6 +376,9 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
 
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                    int keeplenx, int yoff, int xoff, int ylen, int xlen){
+  if(n == n->nc->stdscr){
+    return -1;
+  }
   if(keepy < 0 || keepx < 0){
     return -1;
   }
@@ -811,7 +816,8 @@ visible_cell(const notcurses* nc, int y, int x, const ncplane** retp){
 }
 
 static ncplane**
-find_above_ncplane(notcurses* nc, ncplane* n){
+find_above_ncplane(ncplane* n){
+  notcurses* nc = n->nc;
   ncplane** above = &nc->top;
   while(*above){
     if(*above == n){
@@ -823,12 +829,12 @@ find_above_ncplane(notcurses* nc, ncplane* n){
 }
 
 // 'n' ends up above 'above'
-int ncplane_move_above(notcurses* nc, ncplane* restrict n, ncplane* restrict above){
-  ncplane** an = find_above_ncplane(nc, n);
+int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
+  ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
   }
-  ncplane** aa = find_above_ncplane(nc, above);
+  ncplane** aa = find_above_ncplane(above);
   if(aa == NULL){
     return -1;
   }
@@ -839,8 +845,8 @@ int ncplane_move_above(notcurses* nc, ncplane* restrict n, ncplane* restrict abo
 }
 
 // 'n' ends up below 'below'
-int ncplane_move_below(notcurses* nc, ncplane* restrict n, ncplane* restrict below){
-  ncplane** an = find_above_ncplane(nc, n);
+int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
+  ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
   }
@@ -850,24 +856,24 @@ int ncplane_move_below(notcurses* nc, ncplane* restrict n, ncplane* restrict bel
   return 0;
 }
 
-int ncplane_move_top(notcurses* nc, ncplane* n){
-  ncplane** an = find_above_ncplane(nc, n);
+int ncplane_move_top(ncplane* n){
+  ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
   }
   *an = n->z; // splice n out
-  n->z = nc->top;
-  nc->top = n;
+  n->z = n->nc->top;
+  n->nc->top = n;
   return 0;
 }
 
-int ncplane_move_bottom(notcurses* nc, ncplane* n){
-  ncplane** an = find_above_ncplane(nc, n);
+int ncplane_move_bottom(ncplane* n){
+  ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
   }
   *an = n->z; // splice n out
-  an = &nc->top;
+  an = &n->nc->top;
   while(*an){
     an = &(*an)->z;
   }

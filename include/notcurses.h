@@ -145,7 +145,8 @@ API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
 // and 'xlen' must be greater than or equal to 'keeplenx'.
 //
 // This is a powerful operation (note that notcurses_newplane() can be
-// implemented in terms of ncplane_resize()).
+// implemented in terms of ncplane_resize()). It is an error to attempt to
+// resize the standard plane.
 API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 
@@ -154,23 +155,22 @@ API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
 // the standard plane.
 API int ncplane_destroy(struct notcurses* nc, struct ncplane* ncp);
 
-// Move this plane relative to the standard plane.
+// Move this plane relative to the standard plane. It is an error to attempt to
+// move the standard plane.
 API void ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of this plane relative to the standard plane.
 API void ncplane_yx(const struct ncplane* n, int* y, int* x);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-API int ncplane_move_top(struct notcurses* nc, struct ncplane* n);
-API int ncplane_move_bottom(struct notcurses* nc, struct ncplane* n);
+API int ncplane_move_top(struct ncplane* n);
+API int ncplane_move_bottom(struct ncplane* n);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-API int ncplane_move_below(struct notcurses* nc, struct ncplane* RESTRICT n,
-                           struct ncplane* RESTRICT below);
+API int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT below);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
-API int ncplane_move_above(struct notcurses* nc, struct ncplane* RESTRICT n,
-                           struct ncplane* RESTRICT above);
+API int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
 
 // Retrieve the topmost cell at this location on the screen, returning it in
 // 'c'. If there is more than a byte of gcluster, it will be returned as a heap
