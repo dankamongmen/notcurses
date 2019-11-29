@@ -9,6 +9,9 @@ class NcplaneTest : public :: testing::Test {
       GTEST_SKIP();
     }
     notcurses_options nopts{};
+    nopts.inhibit_alternate_screen = true;
+    nopts.retain_cursor = true;
+    nopts.pass_through_esc = true;
     nopts.outfp = stdin;
     nc_ = notcurses_init(&nopts);
     ASSERT_NE(nullptr, nc_);
@@ -152,7 +155,7 @@ TEST_F(NcplaneTest, VerticalLines) {
   ASSERT_LT(0, x);
   cell c{};
   cell_load(n_, &c, "|");
-  for(int xidx = 0 ; xidx < x - 1 ; ++xidx){
+  for(int xidx = 1 ; xidx < x - 1 ; ++xidx){
     EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 1, xidx));
     EXPECT_EQ(y - 2, ncplane_vline(n_, &c, y - 2));
     int posx, posy;

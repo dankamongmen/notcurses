@@ -162,20 +162,42 @@ needn't be a terminal device (unlike the ttyfp `FILE*` passed in a
 `notcurses_options`). Generalized input ought happen soon. There is only one
 input queue per `struct notcurses`.
 
-```c
-// Return an input from stdin, if one is available. Note that we do *not*
-// attempt to read an EGC in its entirety. 'c' will reference a single
-// UTF-8-encoded Unicode codepoint. This is a non-blocking operation. If no
-// input is available, 0 is returned. On other errors, -1 is returned.
-// Otherwise, the number of bytes in the UTF-8 character are returned. Note
-// that EOF is considered an error.
-int notcurses_getc(const struct notcurses* n, cell* c);
+Like NCURSES, notcurses will watch for escape sequences, check them against the
+terminfo database, and return them as special keys. Unlike NCURSES, the
+fundamental unit of input is the UTF8-encoded Unicode codepoint.
 
-// The same as notcurses_getc(), but blocking until input is read. It can still
-// return early due to interruption by signal, in which case 0 is returned. On
-// any other error, -1 is returned. Otherwise, the number of bytes in the UTF-8
-// character are returned. Note that EOF is considered an error.
-int notcurses_getc_blocking(const struct notcurses* n, cell* c);
+```c
+// All input is currently taken from stdin, though this will likely change. We
+// attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
+// Extended Grapheme Cluster (despite use of the cell object, which encodes an
+// entire EGC). It is also possible that we will read a special keypress, i.e.
+// anything that doesn't correspond to a Unicode codepoint (e.g. arrow keys,
+// function keys, screen resize events, etc.). On return, 'special' is a valid
+// special key if and only if c.gcluster is 0 AND the return value is positive.
+//
+// Many special keys arrive as an escape sequence. It can thus be necessary for
+// notcurses_getc() to wait a short time following receipt of an escape. If no
+// further input is received, it is assumed that the actual Escape key was
+// pressed. Otherwise, the input will be checked against the terminfo database
+// to see if it indicates a special key. In all other cases, notcurses_getc()
+// is non-blocking. notcurses_getc_blocking() blocks until a codepoint or
+// special key is read (though it can be interrupted by a signal).
+//
+// In the case of a valid read, a positive value is returned corresponding to
+// the number of bytes in the UTF-8 character, or '1' for all specials keys.
+// 0 is returned only by notcurses_getc(), to indicate that no input was
+// available. Otherwise (including on EOF) -1 is returned.
+enum {
+  NCKEY_RESIZE,
+  NCKEY_UP,
+  NCKEY_RIGHT,
+  NCKEY_DOWN,
+  NCKEY_LEFT,
+  // FIXME...
+} ncspecial_keys;
+
+API int notcurses_getc(const struct notcurses* n, cell* c, int* special);
+API int notcurses_getc_blocking(const struct notcurses* n, cell* c, int* special);
 ```
 
 ### Planes

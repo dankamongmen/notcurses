@@ -11,6 +11,9 @@ class NotcursesTest : public :: testing::Test {
       GTEST_SKIP();
     }
     notcurses_options nopts{};
+    nopts.inhibit_alternate_screen = true;
+    nopts.retain_cursor = true;
+    nopts.pass_through_esc = true;
     nopts.outfp = stdin;
     nc_ = notcurses_init(&nopts);
     ASSERT_NE(nullptr, nc_);

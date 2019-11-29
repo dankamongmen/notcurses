@@ -1,3 +1,4 @@
+#include <deque>
 #include <cerrno>
 #include <cstring>
 #include <cstdlib>
@@ -16,17 +17,21 @@ int main(void){
     return EXIT_FAILURE;;
   }
   struct ncplane* n = notcurses_stdplane(nc);
-  int r;
+  int r, dimy, dimx;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
   cell c = CELL_TRIVIAL_INITIALIZER;
   if(ncplane_fg_rgb8(n, 255, 255, 255)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  while(errno = 0, (r = notcurses_getc_blocking(nc, &c)) >= 0){
+  int y = 1;
+  std::deque<cell> cells;
+  ncspecial_key special;
+  while(errno = 0, (r = notcurses_getc_blocking(nc, &c, &special)) >= 0){
     if(r == 0){ // interrupted by signal
       continue;
     }
-    if(ncplane_cursor_move_yx(n, 0, 0)){
+    if(ncplane_cursor_move_yx(n, y, 0)){
       break;
     }
     if(cell_simple_p(&c)){
@@ -35,11 +40,19 @@ int main(void){
         break;
       }
     }else{
-      ncplane_printf(n, "Curious! %d\n", c.gcluster); // FIXME
+      ncplane_printf(n, "Curious! %d%5s\n", c.gcluster, ""); // FIXME
     }
+    // FIXME reprint all lines, fading older ones
     if(notcurses_render(nc)){
       break;
     }
+    if(++y >= dimy - 2){ // leave a blank line at the bottom
+      y = 1;             // and at the top
+    }
+    while(cells.size() >= dimy - 3u){
+      cells.pop_back();
+    }
+    cells.push_front(c);
   }
   int e = errno;
   notcurses_stop(nc);

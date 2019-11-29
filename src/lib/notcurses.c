@@ -79,6 +79,8 @@ typedef struct notcurses {
   char* bold;     // CELL_STYLE_BOLD
   char* italics;  // CELL_STYLE_ITALIC
   char* italoff;  // CELL_STYLE_ITALIC (disable)
+  char* smkx;     // enter keypad transmit mode (keypad_xmit)
+  char* rmkx;     // leave keypad transmit mode (keypad_local)
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
@@ -87,7 +89,7 @@ typedef struct notcurses {
 
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
-static notcurses* _Atomic signal_nc; // ugh
+static notcurses* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh
 static void (*signal_sa_handler)(int); // stashed signal handler we replaced
 
 static void
@@ -508,7 +510,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
     return -1;
   }
   if(!opts->retain_cursor){
-    if(term_emit(tiparm(cursor_invisible), stdout, true)){
+    if(term_emit(tiparm(cursor_invisible), opts->outfp, true)){
       return -1;
     }
     term_verify_seq(&nc->cnorm, "cnorm");
@@ -555,6 +557,10 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   // Not all terminals support setting the fore/background independently
   term_verify_seq(&nc->setaf, "setaf");
   term_verify_seq(&nc->setab, "setab");
+  if(!opts->pass_through_esc){
+    term_verify_seq(&nc->smkx, "smkx");
+    term_verify_seq(&nc->rmkx, "rmkx");
+  }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!opts->inhibit_alternate_screen){
     term_verify_seq(&nc->smcup, "smcup");
@@ -611,7 +617,11 @@ notcurses* notcurses_init(const notcurses_options* opts){
     goto err;
   }
   memset(&ret->stats, 0, sizeof(ret->stats));
-  if(ret->smcup && term_emit(ret->smcup, stdout, true)){
+  if(ret->smkx && term_emit(ret->smkx, ret->ttyfp, true)){
+    free_plane(ret->top);
+    goto err;
+  }
+  if(ret->smcup && term_emit(ret->smcup, ret->ttyfp, true)){
     free_plane(ret->top);
     goto err;
   }
@@ -642,11 +652,11 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     drop_signals(nc);
-    if(nc->rmcup && term_emit(nc->rmcup, stdout, true)){
+    if(nc->rmcup && term_emit(nc->rmcup, nc->ttyfp, true)){
       ret = -1;
     }
-    if(nc->cnorm && term_emit(nc->cnorm, stdout, true)){
-      return -1;
+    if(nc->cnorm && term_emit(nc->cnorm, nc->ttyfp, true)){
+      ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     double avg = nc->stats.renders ?
@@ -1290,7 +1300,9 @@ void ncplane_erase(ncplane* n){
 }
 
 static int
-handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress){
+handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress,
+            ncspecial_key* special){
+  *special = 0;
   if(kpress == 0x04){ // ctrl-d
     return -1;
   }
@@ -1299,21 +1311,21 @@ handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress){
   }else{
     // FIXME
   }
-  return kpress;
+  return 1;
 }
 
-int notcurses_getc(const notcurses* nc, cell* c){
+int notcurses_getc(const notcurses* nc, cell* c, ncspecial_key* special){
   int r = getc(nc->ttyinfp);
   if(r < 0){
     return r;
   }
-  return handle_getc(nc, c, r);
+  return handle_getc(nc, c, r, special);
 }
 
-int notcurses_getc_blocking(const notcurses* nc, cell* c){
+int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special){
   int r = getc(nc->ttyinfp);
   if(r < 0){
     return r;
   }
-  return handle_getc(nc, c, r);
+  return handle_getc(nc, c, r, special);
 }
