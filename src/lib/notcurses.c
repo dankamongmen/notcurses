@@ -18,6 +18,8 @@
 #include "version.h"
 #include "egcpool.h"
 
+#define ESC "\x1b"
+
 // A plane is memory for some rectilinear virtual window, plus current cursor
 // state for that window. A notcurses context describes a single terminal, and
 // has a z-order of planes (I see no advantage to maintaining a poset, and we
@@ -81,6 +83,15 @@ typedef struct notcurses {
   char* italoff;  // CELL_STYLE_ITALIC (disable)
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
+
+  // special keys
+  char* left;  // kcub1
+  char* right; // kcuf1
+  char* up;    // kcuu1
+  char* down;  // kcud1
+  char* npage; // knp
+  char* ppage; // kpp
+
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
@@ -527,6 +538,12 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   term_verify_seq(&nc->italoff, "ritm");
   term_verify_seq(&nc->op, "op");
   term_verify_seq(&nc->clear, "clear");
+  term_verify_seq(&nc->left, "kcub1");
+  term_verify_seq(&nc->right, "kcuf1");
+  term_verify_seq(&nc->up, "kcuu1");
+  term_verify_seq(&nc->down, "kcud1");
+  term_verify_seq(&nc->npage, "knp");
+  term_verify_seq(&nc->ppage, "kpp");
   // Some terminals cannot combine certain styles with colors. Don't advertise
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
@@ -697,7 +714,7 @@ int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
 // 3 for foreground, 4 for background, ugh FIXME
 static int
 term_esc_rgb(FILE* out, int esc, unsigned r, unsigned g, unsigned b){
-  #define RGBESC1 "\x1b["
+  #define RGBESC1 ESC "["
   #define RGBESC2 "8;2;"
                                     // rrr;ggg;bbbm
   char rgbesc[] = RGBESC1 " " RGBESC2 "            ";
@@ -970,6 +987,7 @@ int notcurses_render(notcurses* nc){
   }
   uint32_t curattr = 0; // current attributes set (does not include colors)
   term_emit(nc->clear, out, false);
+  unsigned lastr, lastg, lastb;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // FIXME previous line could have ended halfway through multicol. what happens?
     // FIXME also must explicitly move to next line if we're to deal with
@@ -978,8 +996,6 @@ int notcurses_render(notcurses* nc){
       unsigned r, g, b, br, bg, bb;
       const ncplane* p;
       const cell* c = visible_cell(nc, y, x, &p);
-      assert(c);
-      assert(p);
       // we allow these to be set distinctly, but terminfo only supports using
       // them both via the 'op' capability. unless we want to generate the 'op'
       // escapes ourselves, if either is set to default, we first send op, and
