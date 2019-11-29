@@ -3,9 +3,11 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
 
 * [Introduction](#introduction)
 * [Requirements](#requirements)
-* [Basic use](#basic-use)
+* [Use](#use)
+  * [Input](#input)
   * [Planes](#planes)
   * [Cells](#cells)
+* [Included tools](#included-tools)
 * [Differences from NCURSES](#differences-from-ncurses)
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
 * [Useful links](#cells)
@@ -76,7 +78,7 @@ you should by all means use that fine library.
 * NCurses 6.1+
 * From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 
-## Basic use
+## Use
 
 A program wishing to use notcurses will need to link it, ideally using the
 output of `pkg-config --libs notcurses`. It is advised to compile with the
@@ -151,6 +153,29 @@ reflect the changes:
 // virtual screen (i.e. most other calls) will not be visible until after a
 // successful call to notcurses_render().
 int notcurses_render(struct notcurses* nc);
+```
+
+### Input
+
+Input can currently be taken only from `stdin`, but on the plus side, stdin
+needn't be a terminal device (unlike the ttyfp `FILE*` passed in a
+`notcurses_options`). Generalized input ought happen soon. There is only one
+input queue per `struct notcurses`.
+
+```c
+// Return an input from stdin, if one is available. Note that we do *not*
+// attempt to read an EGC in its entirety. 'c' will reference a single
+// UTF-8-encoded Unicode codepoint. This is a non-blocking operation. If no
+// input is available, 0 is returned. On other errors, -1 is returned.
+// Otherwise, the number of bytes in the UTF-8 character are returned. Note
+// that EOF is considered an error.
+int notcurses_getc(const struct notcurses* n, cell* c);
+
+// The same as notcurses_getc(), but blocking until input is read. It can still
+// return early due to interruption by signal, in which case 0 is returned. On
+// any other error, -1 is returned. Otherwise, the number of bytes in the UTF-8
+// character are returned. Note that EOF is considered an error.
+int notcurses_getc_blocking(const struct notcurses* n, cell* c);
 ```
 
 ### Planes
@@ -354,6 +379,14 @@ cell_bg_default_p(const cell* c){
   return !(c->channels & CELL_BGDEFAULT_MASK);
 }
 ```
+
+## Included tools
+
+Four binaries are built as part of notcurses:
+* `notcurses-demo`: some demonstration code
+* `notcurses-view`: renders visual media (images/videos)
+* `notcurses-tester`: unit testing
+* `notcurses-input`: decode and print keypresses
 
 ## Differences from NCURSES
 
