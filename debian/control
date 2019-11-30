@@ -37,4 +37,5 @@ Description: Binaries from libnotcurses
  making full use of Unicode and 24-bit direct color. It presents
  an API similar to that of Curses, and rides atop libtinfo.
  .
- These utilities from the notcurses project include notcurses-demo.
+ These utilities from the notcurses project include notcurses-demo,
+ notcurses-view, and notcurses-input.
