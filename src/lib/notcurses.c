@@ -1,6 +1,7 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <time.h>
 #include <term.h>
+#include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -590,6 +591,19 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   return 0;
 }
 
+static int
+make_nonblocking(FILE* fp){
+  int fd = fileno(fp);
+  if(fd < 0){
+    return -1;
+  }
+  int flags = fcntl(fd, F_GETFL, 0);
+  if(flags < 0){
+    return -1;
+  }
+  return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
 notcurses* notcurses_init(const notcurses_options* opts){
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
@@ -599,6 +613,10 @@ notcurses* notcurses_init(const notcurses_options* opts){
   ret->ttyfp = opts->outfp;
   ret->renderfp = opts->renderfp;
   ret->ttyinfp = stdin; // FIXME
+  if(make_nonblocking(ret->ttyinfp)){
+    free(ret);
+    return NULL;
+  }
   if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
     fprintf(stderr, "No file descriptor was available in opts->outfp\n");
     free(ret);
@@ -973,6 +991,22 @@ int ncplane_move_bottom(ncplane* n){
   return 0;
 }
 
+static int
+blocking_write(int fd, const char* buf, size_t buflen){
+  size_t written = 0;
+  do{
+    ssize_t w = write(fd, buf + written, buflen - written);
+    if(w < 0){
+      if(errno != EAGAIN && errno != EWOULDBLOCK){
+        return -1;
+      }
+    }else{
+      written += w;
+    }
+  }while(written < buflen);
+  return 0;
+}
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
@@ -1060,8 +1094,8 @@ int notcurses_render(notcurses* nc){
   }
   ret |= fclose(out);
   fflush(nc->ttyfp);
-  ssize_t w = write(nc->ttyfd, buf, buflen);
-  if(w < 0 || (size_t)w != buflen){
+  fprintf(nc->ttyfp, "%s", buf);
+  if(blocking_write(nc->ttyfd, buf, buflen)){
     ret = -1;
   }
 /*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
