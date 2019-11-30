@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/poll.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
 #include <libavutil/version.h>
@@ -1421,18 +1422,31 @@ int notcurses_getc(const notcurses* nc, cell* c, ncspecial_key* special){
   return handle_getc(nc, c, r, special);
 }
 
+// we set our infd to non-blocking on entry, so to do a blocking call (without
+// burning cpu) we'll need to set up a poll().
 int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special){
-  int r = getc(nc->ttyinfp);
-  if(r < 0){
-    if(errno == EINTR){
-      if(resize_seen){
-        resize_seen = 0;
-        c->gcluster = 0;
-        *special = NCKEY_RESIZE;
-        return 1;
-      }
+  struct pollfd pfd = {
+    .fd = fileno(nc->ttyinfp),
+    .events = POLLIN | POLLRDHUP,
+    .revents = 0,
+  };
+  int pret;
+  while((pret = poll(&pfd, 1, -1)) >= 0){
+    if(pret == 0){
+      continue;
     }
-    return r;
+    int r = getc(nc->ttyinfp);
+    if(r < 0){
+      if(errno == EINTR){
+        if(resize_seen){
+          resize_seen = 0;
+          c->gcluster = 0;
+          *special = NCKEY_RESIZE;
+          return 1;
+        }
+      }
+      return handle_getc(nc, c, r, special);
+    }
   }
-  return handle_getc(nc, c, r, special);
+  return -1;
 }
