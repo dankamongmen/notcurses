@@ -303,6 +303,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
     return NULL;
   }
   memset(p->fb, 0, fbsize);
+  p->userptr = NULL;
   p->leny = rows;
   p->lenx = cols;
   p->x = p->y = 0;
