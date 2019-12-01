@@ -90,7 +90,7 @@ sigwinch_handler(int signo){
 }
 
 // this wildly unsafe handler will attempt to restore the screen upon
-// reception of a SIGINT or SIGQUIT. godspeed you, black emperor!
+// reception of SIGINT, SIGSEGV, or SIGQUIT. godspeed you, black emperor!
 static void
 fatal_handler(int signo){
   notcurses* nc = atomic_load(&signal_nc);
@@ -129,7 +129,11 @@ setup_signals(notcurses* nc, bool no_quit_sigs, bool no_winch_sig){
     sigaddset(&sa.sa_mask, SIGINT);
     sigaddset(&sa.sa_mask, SIGQUIT);
     sa.sa_flags = SA_RESETHAND; // don't try twice
-    if(sigaction(SIGINT, &sa, &oldact) || sigaction(SIGQUIT, &sa, &oldact)){
+    int ret = 0;
+    ret |= sigaction(SIGINT, &sa, &oldact);
+    ret |= sigaction(SIGQUIT, &sa, &oldact);
+    ret |= sigaction(SIGSEGV, &sa, &oldact);
+    if(ret){
       atomic_store(&signal_nc, NULL);
       fprintf(stderr, "Error installing fatal signal handlers (%s)\n",
               strerror(errno));
