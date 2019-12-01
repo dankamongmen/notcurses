@@ -21,7 +21,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_cursor_move_yx(n, 3, 1);
   ncplane_fg_rgb8(n, 255, 255, 255);
   ncplane_styles_on(n, CELL_STYLE_BOLD);
-  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, 5, 56)){
+  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, 5, 57)){
     return -1;
   }
   cell_load(n, &ll, "╨");
@@ -46,7 +46,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_cursor_move_yx(n, 4, 2);
   ncplane_styles_off(n, CELL_STYLE_BOLD);
   ncplane_fg_rgb8(n, 200, 20, 200);
-  ncplane_putstr(n, "  🔥wide chars, multiple colors, resize awareness…🔥  ");
+  ncplane_putstr(n, "  🔥 wide chars, multiple colors, resize awareness…🔥  ");
   return 0;
 }
 
