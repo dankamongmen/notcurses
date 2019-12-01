@@ -20,7 +20,7 @@ void ncvisual_destroy(ncvisual* ncv){
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
-    av_frame_free(&ncv->oframe);
+    // av_frame_free(&ncv->oframe); FIXME
     avcodec_parameters_free(&ncv->cparams);
     sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
@@ -107,7 +107,6 @@ print_frame_summary(nc->codecctx, nc->frame);
                               nc->oframe->width, nc->oframe->height,
                               nc->oframe->format, IMGALLOCALIGN)) < 0){
     fprintf(stderr, "Error allocating visual data (%s)\n", av_err2str(*averr));
-    av_frame_free(&nc->oframe);
     return NULL;
   }
   *averr = sws_scale(nc->swsctx, (const uint8_t* const*)nc->frame->data,
@@ -115,7 +114,6 @@ print_frame_summary(nc->codecctx, nc->frame);
                      nc->frame->height, nc->oframe->data, nc->oframe->linesize);
   if(*averr < 0){
     fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(*averr));
-    av_frame_free(&nc->oframe);
     return NULL;
   }
 print_frame_summary(nc->codecctx, nc->oframe);
