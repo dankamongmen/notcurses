@@ -236,6 +236,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
 
 static struct panelreel*
 panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
+  bool done = false;
   int x = 4, y = 4;
   panelreel_options popts = {
     .infinitescroll = true,
@@ -262,7 +263,6 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   // Press a for a new panel above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement. q quits.
   ncplane_fg_rgb8(w, 58, 150, 221);
-  int key;
   ncplane_cursor_move_yx(w, 1, 1);
   ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
   // FIXME clrtoeol();
@@ -277,7 +277,10 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     ncplane_fg_rgb8(w, 0, 55, 218);
     ncspecial_key special = NCKEY_INVALID;
     cell c = CELL_TRIVIAL_INITIALIZER;
-    key = handle_input(nc, pr, efd, &c, &special);
+    if(handle_input(nc, pr, efd, &c, &special) < 0){
+      done = true;
+      break;
+    }
     // FIXME clrtoeol();
     struct tabletctx* newtablet = NULL;
     if(cell_simple_p(&c)){
@@ -291,7 +294,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
           case 'l': ++x; if(panelreel_move(pr, x, y)){ --x; } break;
           case 'k': panelreel_prev(pr); break;
           case 'j': panelreel_next(pr); break;
-          case 'q': break;
+          case 'q': done = true; break;
           default:
                     ncplane_cursor_move_yx(w, 3, 2);
                     ncplane_printf(w, "Unknown keycode (%d)\n", c.gcluster);
@@ -315,7 +318,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
       *tctxs = newtablet;
     }
     //panelreel_validate(w, pr); // do what, if not assert()ing? FIXME
-  }while(key != 'q');
+  }while(!done);
   return pr;
 }
 
