@@ -13,6 +13,7 @@ configure_file(tools/version.h.in include/version.h)
 include(GNUInstallDirs)
 
 find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
@@ -62,6 +63,7 @@ target_include_directories(notcurses-demo PRIVATE include)
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
+    Threads::Threads
 )
 target_compile_options(notcurses-demo
   PRIVATE

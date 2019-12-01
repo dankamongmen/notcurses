@@ -24,12 +24,13 @@ usage(const char* exe, int status){
   fprintf(out, " -d: delay multiplier (float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
   fprintf(out, "all demos are run if no specification is provided\n");
-  fprintf(out, " i: run intro\n");
-  fprintf(out, " s: run shuffle\n");
-  fprintf(out, " u: run uniblock\n");
-  fprintf(out, " m: run maxcolor\n");
   fprintf(out, " b: run box\n");
   fprintf(out, " g: run grid\n");
+  fprintf(out, " i: run intro\n");
+  fprintf(out, " m: run maxcolor\n");
+  fprintf(out, " p: run panelreels\n");
+  fprintf(out, " s: run shuffle\n");
+  fprintf(out, " u: run uniblock\n");
   fprintf(out, " v: run view\n");
   fprintf(out, " w: run widecolors\n");
   exit(status);
@@ -142,6 +143,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'g': ret = grid_demo(nc); break;
       case 'v': ret = view_demo(nc); break;
       case 'w': ret = widecolor_demo(nc); break;
+      case 'p': ret = panelreel_demo(nc); break;
     }
     if(ret){
       return ret;
@@ -209,7 +211,7 @@ int main(int argc, char** argv){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
-    demos = "isumbgwv";
+    demos = "isumbgwvp";
   }
   if((nc = notcurses_init(&nopts)) == NULL){
     return EXIT_FAILURE;
