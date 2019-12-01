@@ -208,6 +208,14 @@ API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
 // the standard plane.
 API int ncplane_destroy(struct ncplane* ncp);
 
+// Set the ncplane's background cell to this cell. It will be rendered anywhere
+// that the ncplane's gcluster is 0. The default background is all zeroes.
+// Erasing the ncplane does not eliminate the background.
+API int ncplane_set_background(struct ncplane* ncp, const cell* c);
+
+// Extract the ncplane's background cell into 'c'.
+API int ncplane_background(struct ncplane* ncp, cell* c);
+
 // Move this plane relative to the standard plane. It is an error to attempt to
 // move the standard plane.
 API void ncplane_move_yx(struct ncplane* n, int y, int x);
