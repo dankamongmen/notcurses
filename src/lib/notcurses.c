@@ -219,6 +219,29 @@ const void* ncplane_userptr_const(const ncplane* n){
   return n->userptr;
 }
 
+// is the cursor in an invalid position? it never should be, but it's probably
+// better to make sure (it's cheap) than to read from/write to random crap.
+static bool
+cursor_invalid_p(const ncplane* n){
+  if(n->y >= n->leny || n->x >= n->lenx){
+    return true;
+  }
+  if(n->y < 0 || n->x < 0){
+    return true;
+  }
+  return false;
+}
+
+int ncplane_at_cursor(ncplane* n, cell* c){
+  if(cursor_invalid_p(n)){
+    return -1;
+  }
+  if(cell_duplicate(n, c, &n->fb[fbcellidx(n, n->y, n->x)])){
+    return -1;
+  }
+  return 0;
+}
+
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;
@@ -474,6 +497,8 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   return 0;
 }
 
+// find the pointer on the z-index referencing the specified plane. writing to
+// this pointer will remove the plane (and everything below it) from the stack.
 static ncplane**
 find_above_ncplane(ncplane* n){
   notcurses* nc = n->nc;
@@ -1400,6 +1425,7 @@ handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress,
   if(kpress == 0x04){ // ctrl-d
     return -1;
   }
+  // FIXME look for keypad
   if(kpress < 0x80){
     c->gcluster = kpress;
   }else{
