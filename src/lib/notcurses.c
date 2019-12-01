@@ -47,6 +47,7 @@ typedef struct ncplane {
   uint64_t channels;    // works the same way as cells
   uint32_t attrword;    // same deal as in a cell
   void* userptr;        // slot for the user to stick some opaque pointer
+  cell background;      // cell written anywhere that fb[i].gcluster == 0
   struct notcurses* nc; // notcurses object of which we are a part
 } ncplane;
 
@@ -338,6 +339,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->z = nc->top;
   nc->top = p;
   p->nc = nc;
+  cell_init(&p->background);
   return p;
 }
 
@@ -755,6 +757,14 @@ int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
 
 int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
   return cell_rgb_set_fg(&n->channels, r, g, b);
+}
+
+int ncplane_set_background(ncplane* ncp, const cell* c){
+  return cell_duplicate(ncp, &ncp->background, c);
+}
+
+int ncplane_background(ncplane* ncp, cell* c){
+  return cell_duplicate(ncp, c, &ncp->background);
 }
 
 // 3 for foreground, 4 for background, ugh FIXME
@@ -1430,12 +1440,32 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
   *x = n->absx;
 }
 
+// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+// result is not tied to the ncplane, and persists across erases / destruction.
+static inline char*
+cell_egc_copy(const ncplane* n, const cell* c){
+  char* ret;
+  if(cell_simple_p(c)){
+    if( (ret = malloc(2)) ){
+      ret[0] = c->gcluster;
+      ret[1] = '\0';
+    }
+  }else{
+    ret = strdup(cell_extended_gcluster(n, c));
+  }
+  return ret;
+}
+
 void ncplane_erase(ncplane* n){
+  // we must preserve the background, but a pure cell_duplicate() would be
+  // wiped out by the egcpool_dump(). do a duplication (to get the attrword
+  // and channels), and then reload.
+  char* egc = cell_egc_copy(n, &n->background);
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
-  n->channels = 0;
-  n->attrword = 0;
+  cell_load(n, &n->background, egc);
+  free(egc);
 }
 
 static int
