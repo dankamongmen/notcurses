@@ -9,6 +9,7 @@ typedef struct ncvisual {
   AVCodecContext* codecctx;
   AVFrame* frame;
   AVCodec* codec;
+  AVCodecParameters* cparams;
   AVPacket* packet;
   struct SwsContext* swsctx;
   int packet_outstanding;
@@ -30,11 +31,48 @@ void ncvisual_destroy(ncvisual* ncv){
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
+    avcodec_parameters_free(&ncv->cparams);
     sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
     avformat_close_input(&ncv->fmtctx);
     free(ncv);
   }
+}
+
+static void
+print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
+  char pfmt[128];
+  av_get_pix_fmt_string(pfmt, sizeof(pfmt), f->format);
+  fprintf(stderr, "Frame %05d (%d? %d?) pfmt %d (%s) %lums@%lums (%skeyframe) qual: %d\n",
+          cctx->frame_number,
+          f->coded_picture_number,
+          f->display_picture_number,
+          f->format, pfmt,
+          f->pkt_duration, // FIXME in 'time_base' units
+          f->best_effort_timestamp,
+          f->key_frame ? "" : "non-",
+          f->quality);
+  fprintf(stderr, " Data (%d):", AV_NUM_DATA_POINTERS);
+  int i;
+  for(i = 0 ; i < AV_NUM_DATA_POINTERS ; ++i){
+    fprintf(stderr, " %p", f->data[i]);
+  }
+  fprintf(stderr, "\n Linesizes:");
+  for(i = 0 ; i < AV_NUM_DATA_POINTERS ; ++i){
+    fprintf(stderr, " %d", f->linesize[i]);
+  }
+  if(f->sample_aspect_ratio.num == 0 && f->sample_aspect_ratio.den == 1){
+    fprintf(stderr, "\n Aspect ratio unknown");
+  }else{
+    fprintf(stderr, "\n Aspect ratio %d:%d", f->sample_aspect_ratio.num, f->sample_aspect_ratio.den);
+  }
+  if(f->interlaced_frame){
+    fprintf(stderr, " [ILaced]");
+  }
+  if(f->palette_has_changed){
+    fprintf(stderr, " [NewPal]");
+  }
+  fprintf(stderr, " PTS %ld Flags: 0x%04x\n", f->pts, f->flags);
 }
 
 AVFrame* ncvisual_decode(struct ncvisual* nc){
@@ -54,8 +92,10 @@ AVFrame* ncvisual_decode(struct ncvisual* nc){
     fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(ret));
     return NULL;
   }
+print_frame_summary(nc->codecctx, nc->frame);
+  return nc->frame;
 #define IMGALLOCALIGN 32
-  fprintf(stderr, "Got frame %05d\n", nc->codecctx->frame_number);
+  /*
   ret = av_image_alloc(nc->frame->data, nc->frame->linesize, nc->frame->width,
                        nc->frame->height, nc->frame->format, IMGALLOCALIGN);
   if(ret < 0){
@@ -98,6 +138,7 @@ AVFrame* ncvisual_decode(struct ncvisual* nc){
   }
 #undef IMGALLOCALIGN
   return oframe;
+  */
 }
 
 ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename){
@@ -141,6 +182,14 @@ av_dump_format(ncv->fmtctx, 0, filename, false);
   }
   if((ret = avcodec_open2(ncv->codecctx, ncv->codec, NULL)) < 0){
     fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(ret));
+    goto err;
+  }
+  if((ncv->cparams = avcodec_parameters_alloc()) == NULL){
+    fprintf(stderr, "Couldn't allocate codec params for %s\n", filename);
+    goto err;
+  }
+  if((ret = avcodec_parameters_from_context(ncv->cparams, ncv->codecctx)) < 0){
+    fprintf(stderr, "Couldn't get codec params for %s (%s)\n", filename, av_err2str(ret));
     goto err;
   }
   if((ret = avcodec_send_packet(ncv->codecctx, ncv->packet)) < 0){
