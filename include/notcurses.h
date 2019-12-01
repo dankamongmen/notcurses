@@ -660,13 +660,10 @@ typedef struct panelreel_options {
   // focused and non-focused tablets can have different styles. you can instead
   // draw your own borders, or forgo borders entirely.
   unsigned bordermask; // bitfield; 1s will not be drawn (see bordermaskbits)
-  uint32_t borderattr; // attributes used for panelreel border, no color!
-  int borderpair;      // extended color pair for panelreel border
+  cell borderattr;     // attributes used for panelreel border
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
-  uint32_t tabletattr; // attributes used for tablet borders, no color!
-  int tabletpair;      // extended color pair for tablet borders
-  uint32_t focusedattr;// attributes used for focused tablet borders, no color!
-  int focusedpair;     // extended color pair for focused tablet borders
+  cell tabletattr;     // attributes used for tablet borders
+  cell focusedattr;    // attributes used for focused tablet borders, no color!
 } panelreel_options;
 
 struct tablet;
@@ -698,7 +695,7 @@ struct panelreel* panelreel_create(struct ncplane* nc,
 // Returns the number of lines of output, which ought be less than or equal to
 // maxy - begy, and non-negative (negative values might be used in the future).
 typedef int (*tabletcb)(struct ncplane* p, int begx, int begy, int maxx,
-                        int maxy, bool cliptop);
+                        int maxy, bool cliptop, void* curry);
 
 // Add a new tablet to the provided panelreel, having the callback object
 // opaque. Neither, either, or both of after and before may be specified. If
@@ -707,8 +704,10 @@ typedef int (*tabletcb)(struct ncplane* p, int begx, int begy, int maxx,
 // specified tablet. If both are specifid, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
-struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
-                             struct tablet *before, tabletcb cb, void* opaque);
+// FIXME get rid of nc here
+struct tablet* panelreel_add(struct notcurses* nc, struct panelreel* pr,
+                             struct tablet* after, struct tablet *before,
+                             tabletcb cb, void* opaque);
 
 // Return the number of tablets.
 int panelreel_tabletcount(const struct panelreel* pr);
