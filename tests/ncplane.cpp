@@ -394,3 +394,46 @@ TEST_F(NcplaneTest, GrowPlane) {
   // FIXME check dims, pos
   ASSERT_EQ(0, ncplane_destroy(newp));
 }
+
+// we ought be able to see what we're about to render, or have just rendered, or
+// in any case whatever's in the virtual framebuffer for a plane
+TEST_F(NcplaneTest, PlaneAtCursorSimples){
+  const char STR1[] = "Jackdaws love my big sphinx of quartz";
+  const char STR2[] = "Cwm fjord bank glyphs vext quiz";
+  ncplane_styles_set(n_, 0);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  ASSERT_LT(0, ncplane_putstr(n_, STR1));
+  int dimy, dimx;
+  ncplane_dim_yx(n_, &dimy, &dimx);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 1, dimx - strlen(STR2)));
+  ASSERT_LT(0, ncplane_putstr(n_, STR2));
+  cell testcell = CELL_TRIVIAL_INITIALIZER;
+  int y, x;
+  ncplane_cursor_yx(n_, &y, &x);
+  ASSERT_EQ(2, y);
+  ASSERT_EQ(0, x);
+  ncplane_at_cursor(n_, &testcell); // should be nothing at the cursor
+  EXPECT_EQ(0, testcell.gcluster);
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  ncplane_at_cursor(n_, &testcell); // should be first char of STR1
+  EXPECT_EQ(STR1[0], testcell.gcluster);
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 1, dimx - 1));
+  ncplane_at_cursor(n_, &testcell); // should be last char of STR2
+  EXPECT_EQ(STR2[strlen(STR2) - 1], testcell.gcluster);
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+}
+
+// ensure we read back what's expected for complex characters, checking wide,
+// narrow, and ambiguous ones
+TEST_F(NcplaneTest, PlaneAtCursorComplex){
+
+}
+// test that we read back correct attrs/colors despite changing defaults
+TEST_F(NcplaneTest, PlaneAtCursorAttrs){
+
+}

@@ -881,18 +881,12 @@ term_putc(FILE* out, const ncplane* n, const cell* c){
 
 static void
 advance_cursor(ncplane* n, int cols){
-  if(n->y >= n->leny){
-    if(n->x >= n->lenx){
-      return; // stuck!
-    }
+  if(cursor_invalid_p(n)){
+    return; // stuck!
   }
   if((n->x += cols) >= n->lenx){
-    if(n->y >= n->leny){
-      n->x = n->lenx;
-    }else{
-      n->x -= n->lenx;
-      ++n->y;
-    }
+    ++n->y;
+    n->x -= n->lenx;
   }
 }
 
@@ -1045,7 +1039,8 @@ prep_optimized_palette(notcurses* nc, FILE* out){
   if(!nc->CCCflag){
     return 0; // can't change palette
   }
-  return -1;
+  // FIXME
+  return 0;
 }
 
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
@@ -1061,7 +1056,7 @@ int notcurses_render(notcurses* nc){
   if(out == NULL){
     return -1;
   }
-  prep_optimized_palette(nc, out);
+  prep_optimized_palette(nc, out); // FIXME do what on failure?
   uint32_t curattr = 0; // current attributes set (does not include colors)
   // no need to write a clearscreen, since we update everything that's been
   // changed. just move the physical cursor to the upper left corner.
@@ -1197,7 +1192,7 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 }
 
 int ncplane_putc(ncplane* n, const cell* c){
-  if(n->y >= n->leny || n->x >= n->lenx){
+  if(cursor_invalid_p(n)){
     return -1;
   }
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
