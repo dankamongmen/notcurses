@@ -82,6 +82,7 @@ tabletup(struct ncplane* w, int begx, int begy, int maxx, int maxy,
       // lower-right corner always returns an error unless scrollok() is used
       ncplane_putc(w, &c);
     }
+    cell_release(w, &c);
     if(--idx == 0){
       break;
     }
@@ -109,6 +110,7 @@ tabletdown(struct ncplane* w, int begx, int begy, int maxx, int maxy,
       // lower-right corner always returns an error unless scrollok() is used
       ncplane_putc(w, &c);
     }
+    cell_release(w, &c);
   }
   return y - begy;
 }

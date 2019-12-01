@@ -57,7 +57,7 @@ int wresize(ncplane* n, int leny, int lenx){
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   int keepy = dimy > leny ? leny : dimy;
-  return ncplane_resize(n, 0, 0, keepy, dimx, y, x, leny, lenx);
+  return ncplane_resize(n, keepy, dimx, 0, 0, y, x, leny, lenx);
 }
 
 // bchrs: 6-element array of wide border characters + attributes FIXME
@@ -77,8 +77,8 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   if(ncplane_rounded_box_cells(w, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-fprintf(stderr, "drawing borders %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
-        begx, begy, maxx, maxy, nobordermask,
+fprintf(stderr, "drawing borders %p %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
+        w, begx, begy, maxx, maxy, nobordermask,
         cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');
   ul.attrword = attr->attrword; ul.channels = attr->channels;
   ur.attrword = attr->attrword; ur.channels = attr->channels;
