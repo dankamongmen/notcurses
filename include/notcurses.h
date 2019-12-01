@@ -321,6 +321,9 @@ API void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 // Remove the specified styles from the ncplane's existing spec.
 API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
+// Return the current styling for this ncplane.
+API unsigned ncplane_styles(const struct ncplane* n);
+
 // Fine details about terminal
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
@@ -377,7 +380,7 @@ cell_styles_set(cell* c, unsigned stylebits){
 
 // Get the style bits, shifted over into the LSBs.
 static inline unsigned
-cell_get_style(const cell* c){
+cell_styles(const cell* c){
   return (c->attrword & CELL_STYLE_MASK) >> 16u;
 }
 

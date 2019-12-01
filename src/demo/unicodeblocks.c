@@ -102,7 +102,6 @@ int unicodeblocks_demo(struct notcurses* nc){
   nstotal /= 10;
   subdelay.tv_sec = nstotal / 1000000000;
   subdelay.tv_nsec = nstotal % 1000000000;
-fprintf(stderr, "SUBDELAY: %lu %lu\n", subdelay.tv_sec, subdelay.tv_nsec);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
@@ -135,7 +134,6 @@ fprintf(stderr, "SUBDELAY: %lu %lu\n", subdelay.tv_sec, subdelay.tv_nsec);
         memset(&ps, 0, sizeof(ps));
         wchar_t w = blockstart + chunk * CHUNKSIZE + z;
         char utf8arr[MB_CUR_MAX + 1];
-        // FIXME we can print wide ones here, just add an extra line
         if(wcwidth(w) >= 1 && iswprint(w)){
           int bwc = wcrtomb(utf8arr, w, &ps);
           if(bwc < 0){
@@ -152,8 +150,6 @@ fprintf(stderr, "SUBDELAY: %lu %lu\n", subdelay.tv_sec, subdelay.tv_nsec);
         if(cell_load(n, &c, utf8arr) < 0){ // FIXME check full len was eaten?
           return -1;;
         }
-        /*ncplane_fg_rgb8(n, 0xad + z, 0xd8, 0xe6);
-        ncplane_bg_rgb8(n, 0x20, 0x20, 0x20);*/
         cell_set_fg(&c, 0xad + z * 2, 0xd8, 0xe6 - z * 2);
         cell_set_bg(&c, 8 * chunk, 8 * chunk + z, 8 * chunk);
         if(ncplane_putc(n, &c) < 0){
