@@ -144,6 +144,8 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
       }
       if(pool->pool[curpos]){ // can't write if there's stuff here
         ++curpos;
+      }else if(curpos && pool->pool[curpos - 1]){ // don't kill someone's NUL
+        ++curpos;
       }else if(pool->poolsize - curpos < len){ // can't wrap around
         if(pool->poolwrite > curpos){
           break;
@@ -159,8 +161,8 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
         }
         if(need == 0){ // found a suitable space, copy it!
           memcpy(pool->pool + curpos, egc, len - 1);
-          pool->poolwrite = curpos + len;
           pool->pool[curpos + len - 1] = '\0';
+          pool->poolwrite = curpos + len;
           pool->poolused += len;
           free(duplicated);
           return curpos;
@@ -173,6 +175,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
     }while(curpos != pool->poolwrite);
   }while( (searched = !searched) );
   free(duplicated);
+  assert(false);
   return -1; // should never get here
 }
 
@@ -180,19 +183,19 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
 static inline bool
 egcpool_check_validity(const egcpool* pool, int offset){
   if(offset >= pool->poolsize){
-    fprintf(stderr, "Offset (%d) greater than size (%d)\n", offset, pool->poolsize);
+    fprintf(stderr, "Offset 0x%06x greater than size (%d)\n", offset, pool->poolsize);
     return false;
   }
   const char* egc = pool->pool + offset;
   if(*egc == '\0'){
-    fprintf(stderr, "Bad offset (%d): empty\n", offset);
+    fprintf(stderr, "Bad offset 0x%06x: empty\n", offset);
     return false;
   }
   do{
     wchar_t wcs;
     int r = mbtowc(&wcs, egc, strlen(egc));
     if(r < 0){
-      fprintf(stderr, "Invalid UTF8 at offset %d, len %zu [%s]\n",
+      fprintf(stderr, "Invalid UTF8 at offset 0x%06x, len %zu [%s]\n",
               offset, strlen(egc), strerror(errno));
       return false;
     }
@@ -211,9 +214,8 @@ egcpool_release(egcpool* pool, int offset){
   while(pool->pool[offset]){
     pool->pool[offset] = '\0';
     ++freed;
-    if(++offset == pool->poolsize){
-      offset = 0;
-    }
+    ++offset;
+    assert(offset < pool->poolsize);
   }
   pool->poolused -= freed;
   // FIXME ought we update pool->poolwrite?

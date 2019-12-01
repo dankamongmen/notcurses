@@ -744,11 +744,11 @@ int notcurses_stop(notcurses* nc){
 }
 
 void ncplane_fg_default(struct ncplane* n){
-  n->channels |= CELL_FGDEFAULT_MASK;
+  n->channels &= ~(CELL_FGDEFAULT_MASK);
 }
 
 void ncplane_bg_default(struct ncplane* n){
-  n->channels |= CELL_BGDEFAULT_MASK;
+  n->channels &= ~(CELL_BGDEFAULT_MASK);
 }
 
 int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
@@ -1200,6 +1200,7 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
     return !!c->gcluster;
   }
   size_t ulen = strlen(extended_gcluster(n, c));
+// fprintf(stderr, "[%s] (%zu)\n", extended_gcluster(n, c), strlen(extended_gcluster(n, c)));
   int eoffset = egcpool_stash(&n->pool, extended_gcluster(n, c), ulen);
   if(eoffset < 0){
     return -1;
