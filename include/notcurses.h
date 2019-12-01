@@ -531,6 +531,10 @@ cell_egc_idx(const cell* c){
   return c->gcluster - 0x80;
 }
 
+// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
+// is invalidated by any further operation on the plane 'n', so...watch out!
+API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might
 // have loaded before the error are cell_release()d. There must be at least

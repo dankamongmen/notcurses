@@ -852,6 +852,10 @@ extended_gcluster(const ncplane* n, const cell* c){
   return n->pool.pool + idx;
 }
 
+const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
+  return extended_gcluster(n, c);
+}
+
 // write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
 // number of columns occupied by this EGC (only an approximation; it's actually
 // a property of the font being used).
