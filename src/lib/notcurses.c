@@ -604,6 +604,8 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   if(!opts->pass_through_esc){
     term_verify_seq(&nc->smkx, "smkx");
     term_verify_seq(&nc->rmkx, "rmkx");
+  }else{
+    nc->smkx = nc->rmkx = NULL;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!opts->inhibit_alternate_screen){
@@ -923,7 +925,7 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c)
   if(cell_inherits_style(c)){
     return 0; // change nothing
   }
-  uint32_t cellattr = cell_get_style(c);
+  uint32_t cellattr = cell_styles(c);
   if(cellattr == *curattr){
     return 0; // happy agreement, change nothing
   }
@@ -1302,6 +1304,10 @@ void ncplane_styles_off(ncplane* n, unsigned stylebits){
 void ncplane_styles_set(ncplane* n, unsigned stylebits){
   n->attrword = (n->attrword & ~CELL_STYLE_MASK) |
                 ((stylebits & 0xffff) << 16u);
+}
+
+unsigned ncplane_styles(const ncplane* n){
+  return (n->attrword & CELL_STYLE_MASK) >> 16u;
 }
 
 int ncplane_printf(ncplane* n, const char* format, ...){
