@@ -137,7 +137,7 @@ tabletdraw(struct ncplane* p, int begx, int begy, int maxx, int maxy,
       }
     }
     err |= ncplane_cursor_move_yx(p, summaryy, begx);
-    err |= ncplane_printf(p, "[#%u %d line%s %u/%u] ", tctx->id, tctx->lines,
+    ncplane_printf(p, "[#%u %d line%s %u/%u] ", tctx->id, tctx->lines,
                           tctx->lines == 1 ? "" : "s", begy, maxy);
   }
 /*fprintf(stderr, "  \\--> callback for %d, %d lines (%d/%d -> %d/%d) dir: %s wrote: %d ret: %d\n", tctx->id,
