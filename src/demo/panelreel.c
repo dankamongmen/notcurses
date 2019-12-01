@@ -227,6 +227,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
         if(read(efd, &val, sizeof(val)) != sizeof(val)){
           fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno)); }else if(key < 0){
           panelreel_redraw(pr);
+          notcurses_render(nc);
         }
       }
     }
