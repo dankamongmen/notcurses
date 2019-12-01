@@ -202,7 +202,8 @@ new_tabletctx(struct panelreel* pr, unsigned *id){
 }
 
 static int
-handle_input(struct notcurses* nc, struct panelreel* pr, int efd){
+handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
+             cell* c, ncspecial_key* special){
   struct pollfd fds[2] = {
     { .fd = STDIN_FILENO, .events = POLLIN, .revents = 0, },
     { .fd = efd,          .events = POLLIN, .revents = 0, },
@@ -216,9 +217,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd){
       fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
     }else{
       if(fds[0].revents & POLLIN){
-        cell c = CELL_TRIVIAL_INITIALIZER;
-        ncspecial_key special = 0;
-        key = notcurses_getc(nc, &c, &special);
+        key = notcurses_getc(nc, c, special);
         if(key < 0){
           return -1;
         }
@@ -276,28 +275,41 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     ncplane_printf(w, "%d tablet%s", count, count == 1 ? "" : "s");
     // FIXME wclrtoeol(w);
     ncplane_fg_rgb8(w, 0, 55, 218);
-    key = handle_input(nc, pr, efd);
+    ncspecial_key special = NCKEY_INVALID;
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    key = handle_input(nc, pr, efd, &c, &special);
     // FIXME clrtoeol();
     struct tabletctx* newtablet = NULL;
-    switch(key){
-      case 'p': sleep(60); exit(EXIT_FAILURE); break;
-      case 'a': newtablet = new_tabletctx(pr, &id); break;
-      case 'b': newtablet = new_tabletctx(pr, &id); break;
-      case 'c': newtablet = new_tabletctx(pr, &id); break;
-      case NCKEY_LEFT:
-      case 'h': --x; if(panelreel_move(pr, x, y)){ ++x; } break;
-      case NCKEY_RIGHT:
-      case 'l': ++x; if(panelreel_move(pr, x, y)){ --x; } break;
-      case NCKEY_UP:
-      case 'k': panelreel_prev(pr); break;
-      case NCKEY_DOWN:
-      case 'j': panelreel_next(pr); break;
-      case NCKEY_DC: kill_active_tablet(pr, tctxs); break;
-      case 'q': break;
-      default:
-                ncplane_cursor_move_yx(w, 3, 2);
-                ncplane_printf(w, "Unknown keycode (%d)\n", key);
+    if(cell_simple_p(&c)){
+      if(c.gcluster){
+        switch(c.gcluster){
+          case 'p': sleep(60); exit(EXIT_FAILURE); break;
+          case 'a': newtablet = new_tabletctx(pr, &id); break;
+          case 'b': newtablet = new_tabletctx(pr, &id); break;
+          case 'c': newtablet = new_tabletctx(pr, &id); break;
+          case 'h': --x; if(panelreel_move(pr, x, y)){ ++x; } break;
+          case 'l': ++x; if(panelreel_move(pr, x, y)){ --x; } break;
+          case 'k': panelreel_prev(pr); break;
+          case 'j': panelreel_next(pr); break;
+          case 'q': break;
+          default:
+                    ncplane_cursor_move_yx(w, 3, 2);
+                    ncplane_printf(w, "Unknown keycode (%d)\n", c.gcluster);
+        }
+      }else{
+        switch(special){
+          case NCKEY_LEFT: --x; if(panelreel_move(pr, x, y)){ ++x; } break;
+          case NCKEY_RIGHT: ++x; if(panelreel_move(pr, x, y)){ --x; } break;
+          case NCKEY_UP: panelreel_prev(pr); break;
+          case NCKEY_DOWN: panelreel_next(pr); break;
+          case NCKEY_DC: kill_active_tablet(pr, tctxs); break;
+          default:
+                    ncplane_cursor_move_yx(w, 3, 2);
+                    ncplane_printf(w, "Unknown special (%d)\n", special);
+        }
+      }
     }
+    cell_release(w, &c);
     if(newtablet){
       newtablet->next = *tctxs;
       *tctxs = newtablet;

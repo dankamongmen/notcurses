@@ -63,7 +63,6 @@ int wresize(ncplane* n, int leny, int lenx){
 static int
 draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
              bool cliphead, bool clipfoot){
-  // wattr_set(w, attr, 0, &pair);
   int begx, begy, lenx, leny;
   int ret = 0;
   window_coordinates(w, &begy, &begx, &leny, &lenx);
@@ -71,25 +70,37 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   begy = 0;
   int maxx = begx + lenx - 1;
   int maxy = begy + leny - 1;
-/*fprintf(stderr, "drawing borders %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
+  cell ul, ur, ll, lr, hl, vl;
+  cell_init(&ul); cell_init(&ur); cell_init(&hl);
+  cell_init(&ll); cell_init(&lr); cell_init(&vl);
+  if(ncplane_rounded_box_cells(w, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+fprintf(stderr, "drawing borders %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
         begx, begy, maxx, maxy, nobordermask,
-        cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');*/
+        cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');
+  ul.attrword = attr->attrword; ul.channels = attr->channels;
+  ur.attrword = attr->attrword; ur.channels = attr->channels;
+  ll.attrword = attr->attrword; ll.channels = attr->channels;
+  lr.attrword = attr->attrword; lr.channels = attr->channels;
+  hl.attrword = attr->attrword; hl.channels = attr->channels;
+  vl.attrword = attr->attrword; vl.channels = attr->channels;
   if(!cliphead){
     // lenx - begx + 1 is the number of columns we have, but drop 2 due to
     // corners. we thus want lenx - begx - 1 horizontal lines.
     if(!(nobordermask & BORDERMASK_TOP)){
       ret |= ncplane_cursor_move_yx(w, begy, begx);
-      ret |= ncplane_putc(w, attr);
-      ret |= ncplane_hline(w, attr, lenx - 2);
-      ret |= ncplane_putc(w, attr);
+      ncplane_putc(w, &ul);
+      ncplane_hline(w, &hl, lenx - 2);
+      ncplane_putc(w, &ur);
     }else{
       if(!(nobordermask & BORDERMASK_LEFT)){
         ret |= ncplane_cursor_move_yx(w, begy, begx);
-        ret |= ncplane_putc(w, attr);
+        ncplane_putc(w, &ul);
       }
       if(!(nobordermask & BORDERMASK_RIGHT)){
         ret |= ncplane_cursor_move_yx(w, begy, maxx);
-        ret |= ncplane_putc(w, attr);
+        ncplane_putc(w, &ur);
       }
     }
   }
@@ -97,33 +108,35 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   for(y = begy + !cliphead ; y < maxy + !!clipfoot ; ++y){
     if(!(nobordermask & BORDERMASK_LEFT)){
       ret |= ncplane_cursor_move_yx(w, y, begx);
-      ret |= ncplane_putc(w, attr);
+      ncplane_putc(w, &vl);
     }
     if(!(nobordermask & BORDERMASK_RIGHT)){
       ret |= ncplane_cursor_move_yx(w, y, maxx);
-      ret |= ncplane_putc(w, attr);
+      ncplane_putc(w, &vl);
     }
   }
   if(!clipfoot){
     if(!(nobordermask & BORDERMASK_BOTTOM)){
       ret |= ncplane_cursor_move_yx(w, maxy, begx);
-      ret |= ncplane_putc(w, attr);
-      ret |= ncplane_hline(w, attr, lenx - 2);
-      ret |= ncplane_putc(w, attr);
+      ncplane_putc(w, &ll);
+      ncplane_hline(w, &hl, lenx - 2);
+      ncplane_putc(w, &lr);
     }else{
       if(!(nobordermask & BORDERMASK_LEFT)){
         ret |= ncplane_cursor_move_yx(w, maxy, begx);
-        ret |= ncplane_putc(w, attr);
+        ret |= ncplane_putc(w, &ll);
       }
       if(!(nobordermask & BORDERMASK_RIGHT)){
         // mvwadd_wch returns error if we print to the lowermost+rightmost
         // character cell. maybe we can make this go away with scrolling controls
         // at setup? until then, don't check for error here FIXME.
         ret |= ncplane_cursor_move_yx(w, maxy, maxx);
-        ret |= ncplane_putc(w, attr);
+        ret |= ncplane_putc(w, &lr);
       }
     }
   }
+  cell_release(w, &ul); cell_release(w, &ur); cell_release(w, &hl);
+  cell_release(w, &ll); cell_release(w, &lr); cell_release(w, &vl);
 // fprintf(stderr, "||--borders %d %d %d %d clip: %c%c ret: %d\n",
 //    begx, begy, maxx, maxy, cliphead ? 'y' : 'n', clipfoot ? 'y' : 'n', ret);
   return ret;
@@ -573,7 +586,6 @@ panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd)
     }
   }
   if((pr->p = notcurses_newplane(w->nc, ylen, xlen, popts->toff + wy, popts->loff + wx, NULL)) == NULL){
-fprintf(stderr, "UGH\n");
     free(pr);
     return NULL;
   }
