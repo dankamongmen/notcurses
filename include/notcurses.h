@@ -143,15 +143,16 @@ API int notcurses_render(struct notcurses* nc);
 //
 // In the case of a valid read, a positive value is returned corresponding to
 // the number of bytes in the UTF-8 character, or '1' for all specials keys.
-// 0 is returned only by notcurses_getc(), to indicate that no input was
-// available. Otherwise (including on EOF) -1 is returned.
+// 0 is returned to indicate that no input was available, but only by
+// notcurses_getc(). Otherwise (including on EOF) -1 is returned.
 typedef enum {
   NCKEY_INVALID,
-  NCKEY_RESIZE,
+  NCKEY_RESIZE,   // generated interally in response to SIGWINCH
   NCKEY_UP,
   NCKEY_RIGHT,
   NCKEY_DOWN,
   NCKEY_LEFT,
+  NCKEY_DC,       // delete
   // FIXME...
 } ncspecial_key;
 

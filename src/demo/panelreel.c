@@ -202,7 +202,7 @@ new_tabletctx(struct panelreel* pr, unsigned *id){
 }
 
 static int
-handle_input(struct notcurses* nc, struct panelreel* pr, int efd, int y, int x){
+handle_input(struct notcurses* nc, struct panelreel* pr, int efd){
   struct pollfd fds[2] = {
     { .fd = STDIN_FILENO, .events = POLLIN, .revents = 0, },
     { .fd = efd,          .events = POLLIN, .revents = 0, },
@@ -216,7 +216,12 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd, int y, int x){
       fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
     }else{
       if(fds[0].revents & POLLIN){
-        key = mvwgetch(w, y, x);
+        cell c = CELL_TRIVIAL_INITIALIZER;
+        ncspecial_key special = 0;
+        key = notcurses_getc(nc, &c, &special);
+        if(key < 0){
+          return -1;
+        }
       }
       if(fds[1].revents & POLLIN){
         uint64_t val;
@@ -271,7 +276,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     ncplane_printf(w, "%d tablet%s", count, count == 1 ? "" : "s");
     // FIXME wclrtoeol(w);
     ncplane_fg_rgb8(w, 0, 55, 218);
-    key = handle_input(nc, pr, efd, 3, 2);
+    key = handle_input(nc, pr, efd);
     // FIXME clrtoeol();
     struct tabletctx* newtablet = NULL;
     switch(key){
@@ -279,15 +284,15 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
       case 'a': newtablet = new_tabletctx(pr, &id); break;
       case 'b': newtablet = new_tabletctx(pr, &id); break;
       case 'c': newtablet = new_tabletctx(pr, &id); break;
-      case KEY_LEFT:
+      case NCKEY_LEFT:
       case 'h': --x; if(panelreel_move(pr, x, y)){ ++x; } break;
-      case KEY_RIGHT:
+      case NCKEY_RIGHT:
       case 'l': ++x; if(panelreel_move(pr, x, y)){ --x; } break;
-      case KEY_UP:
+      case NCKEY_UP:
       case 'k': panelreel_prev(pr); break;
-      case KEY_DOWN:
+      case NCKEY_DOWN:
       case 'j': panelreel_next(pr); break;
-      case KEY_DC: kill_active_tablet(pr, tctxs); break;
+      case NCKEY_DC: kill_active_tablet(pr, tctxs); break;
       case 'q': break;
       default:
                 ncplane_cursor_move_yx(w, 3, 2);
