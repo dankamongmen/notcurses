@@ -492,7 +492,7 @@ TEST_F(NcplaneTest, PlaneAtCursorInsane){
   int x = 0;
   for(auto i = 0u ; i < tcells.size() ; ++i){
     EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, x));
-    cell testcell;
+    cell testcell = CELL_TRIVIAL_INITIALIZER;
     ASSERT_LT(0, ncplane_at_cursor(n_, &testcell));
     EXPECT_STREQ(cell_extended_gcluster(n_, &tcells[i]),
                  cell_extended_gcluster(n_, &testcell));
@@ -511,4 +511,32 @@ TEST_F(NcplaneTest, PlaneAtCursorInsane){
 
 // test that we read back correct attrs/colors despite changing defaults
 TEST_F(NcplaneTest, PlaneAtCursorAttrs){
+  const char STR1[] = "this has been a world destroyer production";
+  const char STR2[] = "not to mention dank";
+  const char STR3[] = "da chronic lives";
+  ncplane_styles_set(n_, CELL_STYLE_BOLD);
+  ASSERT_LT(0, ncplane_putstr(n_, STR1));
+  int y, x;
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y + 1, x - strlen(STR2)));
+  ncplane_styles_on(n_, CELL_STYLE_ITALIC);
+  ASSERT_LT(0, ncplane_putstr(n_, STR2));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y + 2, x - strlen(STR3)));
+  ncplane_styles_off(n_, CELL_STYLE_BOLD);
+  ASSERT_LT(0, ncplane_putstr(n_, STR3));
+  ncplane_styles_off(n_, CELL_STYLE_ITALIC);
+  EXPECT_EQ(0, notcurses_render(nc_));
+  int newx;
+  ncplane_cursor_yx(n_, &y, &newx);
+  EXPECT_EQ(newx, x);
+  cell testcell = CELL_TRIVIAL_INITIALIZER;
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 2, x - 1));
+  ASSERT_EQ(1, ncplane_at_cursor(n_, &testcell));
+  EXPECT_EQ(testcell.gcluster, STR1[strlen(STR1) - 1]);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 1, x - 1));
+  ASSERT_EQ(1, ncplane_at_cursor(n_, &testcell));
+  EXPECT_EQ(testcell.gcluster, STR2[strlen(STR2) - 1]);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y, x - 1));
+  ASSERT_EQ(1, ncplane_at_cursor(n_, &testcell));
+  EXPECT_EQ(testcell.gcluster, STR3[strlen(STR3) - 1]);
 }
