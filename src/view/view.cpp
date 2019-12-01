@@ -1,9 +1,14 @@
+#include <array>
 #include <cstdlib>
 #include <libgen.h>
 #include <iostream>
+
+extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/avconfig.h>
 #include <libavcodec/avcodec.h>
+}
+
 #include "notcurses.h"
 
 static void usage(std::ostream& os, const char* name, int exitcode)
@@ -14,15 +19,16 @@ void usage(std::ostream& o, const char* name, int exitcode){
   exit(exitcode);
 }
 
-int ncview(struct ncvisual* ncv){
+int ncview(struct notcurses* nc, struct ncvisual* ncv, int* averr){
+  struct ncplane* n = notcurses_stdplane(nc);
+  int frame = 0;
   AVFrame* avf;
-  if((avf = ncvisual_decode(ncv)) == nullptr){
-    return -1;
+  while( (avf = ncvisual_decode(ncv, averr)) ){
+    ncplane_cursor_move_yx(n, 0, 0);
+    ncplane_printf(n, "Got frame %05d\u2026", frame);
+    ++frame;
   }
-  printf("%s: %dx%d aspect %d:%d %d\n", avf->key_frame ? "Keyframe" : "Frame",
-         avf->height, avf->width, avf->sample_aspect_ratio.num,
-         avf->sample_aspect_ratio.den, avf->format);
-  return 0;
+  return *averr;
 }
 
 int main(int argc, char** argv){
@@ -38,12 +44,18 @@ int main(int argc, char** argv){
   }
   auto ncp = notcurses_stdplane(nc);
   for(int i = 1 ; i < argc ; ++i){
-    auto ncv = ncplane_visual_open(ncp, argv[i]);
+    std::array<char, 128> errbuf;
+    int averr;
+    auto ncv = ncplane_visual_open(ncp, argv[i], &averr);
     if(ncv == nullptr){
+      av_make_error_string(errbuf.data(), errbuf.size(), averr);
+      std::cerr << "Error opening " << argv[i] << ": " << errbuf.data() << std::endl;
       success = false;
       continue;
     }
-    if(ncview(ncv)){
+    if(ncview(nc, ncv, &averr)){
+      av_make_error_string(errbuf.data(), errbuf.size(), averr);
+      std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       success = false;
     }
     ncvisual_destroy(ncv);
