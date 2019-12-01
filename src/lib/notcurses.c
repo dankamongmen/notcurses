@@ -96,6 +96,7 @@ typedef struct notcurses {
 
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
   FILE* renderfp; // debugging FILE* to which renderings are written
@@ -509,6 +510,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
   fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
   nc->RGBflag = tigetflag("RGB") == 1;
+  nc->CCCflag = tigetflag("ccc") == 1;
   if((nc->colors = tigetnum("colors")) <= 0){
     fprintf(stderr, "This terminal doesn't appear to support colors\n");
     nc->colors = 1;
@@ -663,7 +665,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
     free_plane(ret->top);
     goto err;
   }
-  term_emit(ret->clear, ret->ttyfp, false);
+  // term_emit(ret->clear, ret->ttyfp, false);
   fprintf(ret->ttyfp, "\n"
          " notcurses %s by nick black\n"
          " terminfo from %s\n"
@@ -1008,6 +1010,19 @@ blocking_write(int fd, const char* buf, size_t buflen){
   return 0;
 }
 
+// determine the best palette for the current frame, and write the necessary
+// escape sequences to 'out'.
+static int
+prep_optimized_palette(notcurses* nc, FILE* out){
+  if(nc->RGBflag){
+    return 0; // DirectColor, no need to write palette
+  }
+  if(!nc->CCCflag){
+    return 0; // can't change palette
+  }
+  return -1;
+}
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
@@ -1021,8 +1036,11 @@ int notcurses_render(notcurses* nc){
   if(out == NULL){
     return -1;
   }
+  prep_optimized_palette(nc, out);
   uint32_t curattr = 0; // current attributes set (does not include colors)
-  term_emit(nc->clear, out, false);
+  // no need to write a clearscreen, since we update everything that's been
+  // changed. just move the physical cursor to the upper left corner.
+  term_emit(tiparm(nc->cup, 0, 0), out, false);
   unsigned lastr, lastg, lastb;
   unsigned lastbr, lastbg, lastbb;
   // we can elide a color escape iff the color has not changed between the two
