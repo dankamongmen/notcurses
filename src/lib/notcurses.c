@@ -1551,13 +1551,22 @@ int ncvisual_render(const ncvisual* ncv){
     for(x = 0 ; x < f->width && x < dimx ; ++x){
       int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
       const unsigned char* rgbbase = data + (linesize * y) + (x * bpp / CHAR_BIT);
-/*fprintf(stderr, "[%04d/%04d] %p bpp: %d lsize: %d %02x %02x %02x\n",
-        y, x, rgbbase, bpp, linesize, rgbbase[0], rgbbase[1], rgbbase[2]);*/
+/*fprintf(stderr, "[%04d/%04d] %p bpp: %d lsize: %d %02x %02x %02x %02x\n",
+        y, x, rgbbase, bpp, linesize, rgbbase[0], rgbbase[1], rgbbase[2], rgbbase[3]);*/
       cell c = CELL_TRIVIAL_INITIALIZER;
-      if(cell_load(ncv->ncp, &c, "▓") <= 0){
-        return -1;
+      if(!rgbbase[3]){
+        cell_fg_default(&c);
+        cell_bg_default(&c);
+        if(cell_load(ncv->ncp, &c, " ") <= 0){
+          return -1;
+        }
+      }else{
+        cell_set_fg(&c, rgbbase[0], rgbbase[1], rgbbase[2]);
+        cell_set_bg(&c, rgbbase[0], rgbbase[1], rgbbase[2]);
+        if(cell_load(ncv->ncp, &c, "▓") <= 0){
+          return -1;
+        }
       }
-      cell_set_fg(&c, rgbbase[0], rgbbase[1], rgbbase[2]);
       if(ncplane_putc(ncv->ncp, &c) <= 0){
         cell_release(ncv->ncp, &c);
         return -1;
