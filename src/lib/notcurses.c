@@ -12,10 +12,13 @@
 #include <sys/poll.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
+#include <libavutil/error.h>
+#include <libavutil/frame.h>
 #include <libavutil/version.h>
 #include <libswscale/version.h>
 #include <libavformat/version.h>
 #include "notcurses.h"
+#include "internal.h"
 #include "timespec.h"
 #include "version.h"
 #include "egcpool.h"
@@ -1530,4 +1533,33 @@ int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special
     }
   }
   return -1;
+}
+
+int ncvisual_render(const ncvisual* ncv){
+  const AVFrame* f = ncv->frame;
+  if(f == NULL){
+    return -1;
+  }
+  int x, y;
+  int dimy, dimx;
+  ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
+  ncplane_cursor_move_yx(ncv->ncp, 0, 0);
+  for(y = 0 ; y < f->height && y < dimy ; ++y){
+    for(x = 0 ; x < f->width && x < dimx ; ++x){
+      const unsigned char* rgbbase = ((const unsigned char*)f->data) + (f->width * y) + x;
+      fprintf(stderr, "[%04d/%04d] %02x %02x %02x\n", y, x,
+              rgbbase[0], rgbbase[1], rgbbase[2]);
+      cell c = CELL_TRIVIAL_INITIALIZER;
+      if(cell_load(ncv->ncp, &c, "▓") <= 0){
+        return -1;
+      }
+      cell_set_fg(&c, rgbbase[0], rgbbase[1], rgbbase[2]);
+      if(ncplane_putc(ncv->ncp, &c) <= 0){
+        cell_release(ncv->ncp, &c);
+        return -1;
+      }
+      cell_release(ncv->ncp, &c);
+    }
+  }
+  return 0;
 }

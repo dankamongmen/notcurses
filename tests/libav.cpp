@@ -31,11 +31,16 @@ class LibavTest : public :: testing::Test {
 
 TEST_F(LibavTest, LoadImage) {
   int averr;
+  int dimy, dimx;
+  ncplane_dim_yx(ncp_, &dimy, &dimx);
   auto ncv = ncplane_visual_open(ncp_, "../tests/dsscaw-purp.png", &averr);
   EXPECT_EQ(0, averr);
   ASSERT_NE(nullptr, ncv);
-  ASSERT_NE(nullptr, ncvisual_decode(ncv, &averr));
+  auto frame = ncvisual_decode(ncv, &averr);
+  ASSERT_NE(nullptr, frame);
   EXPECT_EQ(AVERROR_EOF, averr);
+  EXPECT_EQ(dimy, frame->height);
+  EXPECT_EQ(dimx, frame->width);
   ncvisual_destroy(ncv);
 }
 
