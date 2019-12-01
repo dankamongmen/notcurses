@@ -203,8 +203,8 @@ enum {
   // FIXME...
 } ncspecial_keys;
 
-API int notcurses_getc(const struct notcurses* n, cell* c, int* special);
-API int notcurses_getc_blocking(const struct notcurses* n, cell* c, int* special);
+int notcurses_getc(const struct notcurses* n, cell* c, int* special);
+int notcurses_getc_blocking(const struct notcurses* n, cell* c, int* special);
 ```
 
 ### Planes
@@ -220,6 +220,156 @@ from a lower `ncplane` from being seen. An `ncplane` corresponds loosely to an
 [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
 but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
+
+```c
+// Resize the specified ncplane. The four parameters 'keepy', 'keepx',
+// 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
+// unchanged. This may be a section of size 0, though none of these four
+// parameters may be negative. 'keepx' and 'keepy' are relative to the ncplane.
+// They must specify a coordinate within the ncplane's totality. 'yoff' and
+// 'xoff' are relative to 'keepy' and 'keepx', and place the upper-left corner
+// of the resized ncplane. Finally, 'ylen' and 'xlen' are the dimensions of the
+// ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
+// and 'xlen' must be greater than or equal to 'keeplenx'. It is an error to
+// attempt to resize the standard plane. If either of 'keepy' or 'keepx' is
+// non-zero, both must be non-zero.
+//
+// Essentially, the kept material does not move. It serves to anchor the
+// resized plane. If there is no kept material, the plane can move freely:
+// it is possible to implement ncplane_move() in terms of ncplane_resize().
+int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
+                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
+
+// Destroy the specified ncplane. None of its contents will be visible after
+// the next call to notcurses_render(). It is an error to attempt to destroy
+// the standard plane.
+int ncplane_destroy(struct ncplane* ncp);
+
+// Move this plane relative to the standard plane. It is an error to attempt to
+// move the standard plane.
+void ncplane_move_yx(struct ncplane* n, int y, int x);
+
+// Get the origin of this plane relative to the standard plane.
+void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
+int ncplane_move_top(struct ncplane* n);
+int ncplane_move_bottom(struct ncplane* n);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT below);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
+int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
+
+// Retrieve the cell at the cursor location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+int ncplane_at_cursor(struct ncplane* n, cell* c);
+
+// Manipulate the opaque user pointer associated with this plane.
+// ncplane_set_userptr() returns the previous userptr after replacing
+// it with 'opaque'. the others simply return the userptr.
+void* ncplane_set_userptr(struct ncplane* n, void* opaque);
+void* ncplane_userptr(struct ncplane* n);
+const void* ncplane_userptr_const(const struct ncplane* n);
+
+// Returns the dimensions of this ncplane.
+void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
+                        int* RESTRICT cols);
+
+// Return our current idea of the terminal dimensions in rows and cols.
+static inline void
+notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
+                      int* RESTRICT cols){
+  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
+}
+
+// Move the cursor to the specified position (the cursor needn't be visible).
+// Returns -1 on error, including negative parameters, or ones exceeding the
+// plane's dimensions.
+int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
+
+// Get the current position of the cursor within n. y and/or x may be NULL.
+void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
+                           int* RESTRICT x);
+
+// Replace the cell underneath the cursor with the provided cell 'c', and
+// advance the cursor by the width of the cell (but not past the end of the
+// plane). On success, returns the number of columns the cursor was advanced.
+// On failure, -1 is returned.
+int ncplane_putc(struct ncplane* n, const cell* c);
+
+// Write a series of cells to the current location, using the current style.
+// They will be interpreted as a series of columns (according to the definition
+// of ncplane_putc()). Advances the cursor by some positive number of cells
+// (though not beyond the end of the plane); this number is returned on success.
+// On error, a non-positive number is returned, indicating the number of cells
+// which were written before the error.
+int ncplane_putstr(struct ncplane* n, const char* gclustarr);
+
+// The ncplane equivalents of printf(3) and vprintf(3).
+int ncplane_printf(struct ncplane* n, const char* format, ...);
+int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
+
+// Draw horizontal or vertical lines using the specified cell, starting at the
+// current cursor position. The cursor will end at the cell following the last
+// cell output (even, perhaps counter-intuitively, when drawing vertical
+// lines), just as if ncplane_putc() was called at that spot. Return the
+// number of cells drawn on success. On error, return the negative number of
+// cells drawn.
+int ncplane_hline(struct ncplane* n, const cell* c, int len);
+int ncplane_vline(struct ncplane* n, const cell* c, int len);
+
+// Draw a box with its upper-left corner at the current cursor position, and its
+// lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the
+// upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
+int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
+                    const cell* ll, const cell* lr, const cell* hline,
+                    const cell* vline, int ystop, int xstop);
+
+// Draw a box with its upper-left corner at the current cursor position, having
+// dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
+// minimum box size is 2x2, and it cannot be drawn off-screen.
+static inline int
+ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
+                  const cell* ll, const cell* lr, const cell* hline,
+                  const cell* vline, int ylen, int xlen){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1, x + xlen - 1);
+}
+
+// Erase every cell in the ncplane, resetting all attributes to normal, all
+// colors to the default color, and all cells to undrawn. All cells associated
+// with this ncplane is invalidated, and must not be used after the call.
+void ncplane_erase(struct ncplane* n);
+
+// Set the current fore/background color using RGB specifications. If the
+// terminal does not support directly-specified 3x8b cells (24-bit "Direct
+// Color", indicated by the "RGB" terminfo capability), the provided values
+// will be interpreted in some lossy fashion. None of r, g, or b may exceed 255.
+// "HP-like" terminals require setting foreground and background at the same
+// time using "color pairs"; notcurses will manage color pairs transparently.
+int ncplane_fg_rgb8(struct ncplane* n, int r, int g, int b);
+int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
+
+// use the default color for the foreground/background
+void ncplane_fg_default(struct ncplane* n);
+void ncplane_bg_default(struct ncplane* n);
+
+// Set the specified style bits for the ncplane 'n', whether they're actively
+// supported or not.
+void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
+
+// Add the specified styles to the ncplane's existing spec.
+void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
+
+// Remove the specified styles from the ncplane's existing spec.
+void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
+
+// Return the current styling for this ncplane.
+unsigned ncplane_styles(const struct ncplane* n);
+```
 
 ### Cells
 

@@ -176,6 +176,15 @@ API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
                                        int yoff, int xoff, void* opaque);
 
+// Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
+// (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
+// indicated as supported if the terminal can support it together with color.
+API unsigned notcurses_supported_styles(const struct notcurses* nc);
+
+// Returns the number of colors supported by the palette, or 1 if there is no
+// color support.
+API int notcurses_palette_size(const struct notcurses* nc);
+
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
 // unchanged. This may be a section of size 0, though none of these four
@@ -323,17 +332,6 @@ API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Return the current styling for this ncplane.
 API unsigned ncplane_styles(const struct ncplane* n);
-
-// Fine details about terminal
-
-// Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
-// (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
-// indicated as supported if the terminal can support it together with color.
-API unsigned notcurses_supported_styles(const struct notcurses* nc);
-
-// Returns the number of colors supported by the palette, or 1 if there is no
-// color support.
-API int notcurses_palette_size(const struct notcurses* nc);
 
 // Working with cells
 
