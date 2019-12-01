@@ -237,10 +237,7 @@ int ncplane_at_cursor(ncplane* n, cell* c){
   if(cursor_invalid_p(n)){
     return -1;
   }
-  if(cell_duplicate(n, c, &n->fb[fbcellidx(n, n->y, n->x)])){
-    return -1;
-  }
-  return 0;
+  return cell_duplicate(n, c, &n->fb[fbcellidx(n, n->y, n->x)]);
 }
 
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
