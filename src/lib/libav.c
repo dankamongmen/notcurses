@@ -68,7 +68,6 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
 }
 
 AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr){
-fprintf(stderr, "\n*********************running decode+scale\n");
   if(nc->packet_outstanding){
     *averr = avcodec_send_packet(nc->codecctx, nc->packet);
     if(*averr < 0){
@@ -86,13 +85,14 @@ fprintf(stderr, "\n*********************running decode+scale\n");
   }
 print_frame_summary(nc->codecctx, nc->frame);
 #define IMGALLOCALIGN 32
+  const int targformat = AV_PIX_FMT_RGBA;
   nc->swsctx = sws_getCachedContext(nc->swsctx,
                                     nc->frame->width,
                                     nc->frame->height,
                                     nc->frame->format,
                                     nc->dstwidth,
                                     nc->dstheight,
-                                    AV_PIX_FMT_RGB24,
+                                    targformat,
                                     SWS_LANCZOS,
                                     NULL, NULL, NULL);
   if(nc->swsctx == NULL){
@@ -100,7 +100,7 @@ print_frame_summary(nc->codecctx, nc->frame);
     return NULL;
   }
   memcpy(nc->oframe, nc->frame, sizeof(*nc->oframe));
-  nc->oframe->format = AV_PIX_FMT_RGB24;
+  nc->oframe->format = targformat;
   nc->oframe->width = nc->dstwidth;
   nc->oframe->height = nc->dstheight;
   if((*averr = av_image_alloc(nc->oframe->data, nc->oframe->linesize,
