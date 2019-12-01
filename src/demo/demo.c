@@ -181,7 +181,6 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
           usage(*argv, EXIT_FAILURE);
         }
         uint64_t ns = f * GIG;
-        printf("F: %f NS: %lu\n", f, ns);
         demodelay.tv_sec = ns / GIG;
         demodelay.tv_nsec = ns % GIG;
         break;
