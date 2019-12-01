@@ -154,6 +154,12 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
+file(GLOB TESTDATA CONFIGURE_DEPENDS tests/*.png)
+install(FILES
+  ${TESTDATA}
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/notcurses
+)
+
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-view DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
