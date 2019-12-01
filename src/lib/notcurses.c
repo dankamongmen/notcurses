@@ -1550,9 +1550,9 @@ int ncvisual_render(const ncvisual* ncv){
   for(y = 0 ; y < f->height && y < dimy ; ++y){
     for(x = 0 ; x < f->width && x < dimx ; ++x){
       int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
-      const unsigned char* rgbbase = data + (linesize * y) + (x * bpp);
-      fprintf(stderr, "[%04d/%04d] %02x %02x %02x\n", y, x,
-              rgbbase[0], rgbbase[1], rgbbase[2]);
+      const unsigned char* rgbbase = data + (linesize * y) + (x * bpp / CHAR_BIT);
+/*fprintf(stderr, "[%04d/%04d] %p bpp: %d lsize: %d %02x %02x %02x\n",
+        y, x, rgbbase, bpp, linesize, rgbbase[0], rgbbase[1], rgbbase[2]);*/
       cell c = CELL_TRIVIAL_INITIALIZER;
       if(cell_load(ncv->ncp, &c, "▓") <= 0){
         return -1;
@@ -1563,7 +1563,6 @@ int ncvisual_render(const ncvisual* ncv){
         return -1;
       }
       cell_release(ncv->ncp, &c);
-      fprintf(stderr, "bpp: %d linesize: %d\n", bpp, linesize);
     }
   }
   return 0;

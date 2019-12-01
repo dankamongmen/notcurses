@@ -22,14 +22,14 @@ int ncview(struct notcurses* nc, struct ncvisual* ncv, int* averr){
     ncplane_cursor_move_yx(n, 0, 0);
     ncplane_printf(n, "Got frame %05d\u2026", frame);
     if(ncvisual_render(ncv)){
-fprintf(stderr, "couldn't render, fuck!\n");
       return -1;
     }
     if(notcurses_render(nc)){
       return -1;
     }
     ++frame;
-    sleep(100);
+    struct timespec ts = { .tv_sec = 1, .tv_nsec = 0 }; // FIXME
+    nanosleep(&ts, NULL);
   }
   if(*averr == AVERROR_EOF){
     return 0;
