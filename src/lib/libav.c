@@ -99,6 +99,7 @@ print_frame_summary(nc->codecctx, nc->frame);
     fprintf(stderr, "Error retrieving swsctx (%s)\n", av_err2str(*averr));
     return NULL;
   }
+  memcpy(nc->oframe, nc->frame, sizeof(*nc->oframe));
   nc->oframe->format = AV_PIX_FMT_RGB24;
   nc->oframe->width = nc->dstwidth;
   nc->oframe->height = nc->dstheight;
@@ -109,7 +110,6 @@ print_frame_summary(nc->codecctx, nc->frame);
     av_frame_free(&nc->oframe);
     return NULL;
   }
-fprintf(stderr, "ALLOCATED %d BYTES\n", *averr);
   *averr = sws_scale(nc->swsctx, (const uint8_t* const*)nc->frame->data,
                      nc->frame->linesize, 0,
                      nc->frame->height, nc->oframe->data, nc->oframe->linesize);
