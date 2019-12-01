@@ -600,16 +600,15 @@ API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
 // can be neither decoded nor rendered any further.
 API void ncvisual_destroy(struct ncvisual* ncv);
 
-// extract the next frame from an ncvisual. returns NULL on end of file, writing
-// AVERROR_EOF to 'averr'. returns NULL on a decoding or allocation error,
-// placing the AVError in 'averr'. this frame is invalidated by a subsequent
-// call to ncvisual_decode(), and should not be freed by the caller.
+// extract the next frame from an ncvisual. returns NULL on end of file,
+// writing AVERROR_EOF to 'averr'. returns NULL on a decoding or allocation
+// error, placing the AVError in 'averr'. this frame is invalidated by a
+// subsequent call to ncvisual_decode(), and should not be freed by the caller.
 API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 
-// render the next frame to the associated ncplane at the current cursor
-// position, going through ystop/xstop. the frame will be scaled to the
-// appropriate size.
-API int ncvisual_render(struct ncvisual* ncv, int ystop, int xstop);
+// render the decoded frame to the associated ncplane. the frame will be scaled
+// to the size of the ncplane at ncplane_visual_open() time.
+API int ncvisual_render(const struct ncvisual* ncv);
 
 // A panelreel is an notcurses region devoted to displaying zero or more
 // line-oriented, contained panels between which the user may navigate. If at

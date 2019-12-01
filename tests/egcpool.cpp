@@ -28,6 +28,10 @@ TEST_F(EGCPoolTest, UTF8EGC) {
   auto ulen = utf8_egc_len(wstr, &c);
   ASSERT_LT(0, ulen);
   EXPECT_LT(0, c);
+  wstr = "▓";
+  ulen = utf8_egc_len(wstr, &c);
+  ASSERT_LT(0, ulen);
+  EXPECT_LT(0, c);
 }
 
 // we're gonna run both a composed latin a with grave, and then a latin a with

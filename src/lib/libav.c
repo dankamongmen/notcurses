@@ -3,18 +3,7 @@
 #include <libswscale/swscale.h>
 #include <libavformat/avformat.h>
 #include "notcurses.h"
-
-typedef struct ncvisual {
-  AVFormatContext* fmtctx;
-  AVCodecContext* codecctx;
-  AVFrame* frame;
-  AVCodec* codec;
-  AVCodecParameters* cparams;
-  AVPacket* packet;
-  struct SwsContext* swsctx;
-  int packet_outstanding;
-  int dstwidth, dstheight;
-} ncvisual;
+#include "internal.h"
 
 static ncvisual*
 ncvisual_create(void){
@@ -31,6 +20,7 @@ void ncvisual_destroy(ncvisual* ncv){
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
+    av_frame_free(&ncv->oframe);
     avcodec_parameters_free(&ncv->cparams);
     sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
@@ -109,31 +99,28 @@ print_frame_summary(nc->codecctx, nc->frame);
     fprintf(stderr, "Error retrieving swsctx (%s)\n", av_err2str(*averr));
     return NULL;
   }
-  AVFrame* oframe = av_frame_alloc();
-  if(oframe == NULL){
-    fprintf(stderr, "Couldn't allocate output frame\n");
-    return NULL;
-  }
-  oframe->format = AV_PIX_FMT_RGB24;
-  oframe->width = nc->dstwidth;
-  oframe->height = nc->dstheight;
-  if((*averr = av_image_alloc(oframe->data, oframe->linesize, oframe->width, oframe->height,
-                              oframe->format, IMGALLOCALIGN)) < 0){
+  nc->oframe->format = AV_PIX_FMT_RGB24;
+  nc->oframe->width = nc->dstwidth;
+  nc->oframe->height = nc->dstheight;
+  if((*averr = av_image_alloc(nc->oframe->data, nc->oframe->linesize,
+                              nc->oframe->width, nc->oframe->height,
+                              nc->oframe->format, IMGALLOCALIGN)) < 0){
     fprintf(stderr, "Error allocating visual data (%s)\n", av_err2str(*averr));
-    av_frame_free(&oframe);
+    av_frame_free(&nc->oframe);
     return NULL;
   }
-print_frame_summary(nc->codecctx, oframe);
-  *averr = sws_scale(nc->swsctx, (const uint8_t* const*)nc->frame->data, nc->frame->linesize, 0,
-                     nc->frame->height, oframe->data, oframe->linesize);
+fprintf(stderr, "ALLOCATED %d BYTES\n", *averr);
+  *averr = sws_scale(nc->swsctx, (const uint8_t* const*)nc->frame->data,
+                     nc->frame->linesize, 0,
+                     nc->frame->height, nc->oframe->data, nc->oframe->linesize);
   if(*averr < 0){
     fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(*averr));
-    av_frame_free(&oframe);
+    av_frame_free(&nc->oframe);
     return NULL;
   }
-print_frame_summary(nc->codecctx, oframe);
+print_frame_summary(nc->codecctx, nc->oframe);
 #undef IMGALLOCALIGN
-  return oframe;
+  return nc->oframe;
 }
 
 ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename, int* averr){
@@ -144,6 +131,7 @@ ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename, int* ave
     return NULL;
   }
   memset(ncv, 0, sizeof(*ncv));
+  ncv->ncp = nc;
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
   *averr = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
   if(*averr < 0){
@@ -200,6 +188,11 @@ ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename, int* ave
   ++ncv->packet_outstanding;
   if((ncv->frame = av_frame_alloc()) == NULL){
     fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
+    *averr = AVERROR(ENOMEM);
+    goto err;
+  }
+  if((ncv->oframe = av_frame_alloc()) == NULL){
+    fprintf(stderr, "Couldn't allocate output frame for %s\n", filename);
     *averr = AVERROR(ENOMEM);
     goto err;
   }
