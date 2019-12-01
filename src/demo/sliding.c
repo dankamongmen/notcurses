@@ -85,7 +85,8 @@ fill_chunk(struct ncplane* n, int idx){
     if(ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 3) / 2)){
       return -1;
     }
-    ncplane_fg_rgb8(n, 224, 224, 224);
+    ncplane_fg_rgb8(n, 255 - r, 255 - g, 255 - b);
+    ncplane_bg_rgb8(n, r, g, b);
     if(ncplane_putstr(n, buf) <= 0){
       return -1;
     }
@@ -96,6 +97,10 @@ fill_chunk(struct ncplane* n, int idx){
   cell_release(n, &lr);
   cell_release(n, &hl);
   cell_release(n, &vl);
+  cell bg = CELL_TRIVIAL_INITIALIZER;
+  cell_set_bg(&bg, r, g, b);
+  ncplane_set_background(n, &bg);
+  cell_release(n, &bg);
   return 0;
 }
 

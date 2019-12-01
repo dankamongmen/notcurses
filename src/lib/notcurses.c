@@ -963,7 +963,11 @@ visible_cell(const notcurses* nc, int y, int x, const ncplane** retp){
     if(poffy < p->leny && poffy >= 0){
       if(poffx < p->lenx && poffx >= 0){
         *retp = p;
-        return &p->fb[fbcellidx(p, poffy, poffx)];
+        const cell* vis = &p->fb[fbcellidx(p, poffy, poffx)];
+        if(vis->gcluster == 0){
+          vis = &p->background;
+        }
+        return vis;
       }
     }
     p = p->z;
