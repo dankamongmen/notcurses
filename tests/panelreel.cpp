@@ -37,7 +37,6 @@ TEST_F(PanelReelTest, InitLinear) {
   ASSERT_NE(nullptr, pr);
 }
 
-/*
 TEST_F(PanelReelTest, InitLinearInfinite) {
   panelreel_options p{};
   p.infinitescroll = true;
@@ -63,6 +62,7 @@ TEST_F(PanelReelTest, FiniteCircleRejected) {
   ASSERT_EQ(nullptr, pr);
 }
 
+/*
 // We ought be able to invoke panelreel_next() and panelreel_prev() safely,
 // even if there are no tablets. They both ought return nullptr.
 TEST_F(PanelReelTest, MovementWithoutTablets) {
