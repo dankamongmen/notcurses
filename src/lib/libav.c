@@ -43,15 +43,12 @@ static void
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
   char pfmt[128];
   av_get_pix_fmt_string(pfmt, sizeof(pfmt), f->format);
-  fprintf(stderr, "Frame %05d (%d? %d?) pfmt %d (%s) %lums@%lums (%skeyframe) qual: %d\n",
+  fprintf(stderr, "Frame %05d (%d? %d?) %dx%d pfmt %d (%s)\n",
           cctx->frame_number,
           f->coded_picture_number,
           f->display_picture_number,
-          f->format, pfmt,
-          f->pkt_duration, // FIXME in 'time_base' units
-          f->best_effort_timestamp,
-          f->key_frame ? "" : "non-",
-          f->quality);
+          f->width, f->height,
+          f->format, pfmt);
   fprintf(stderr, " Data (%d):", AV_NUM_DATA_POINTERS);
   int i;
   for(i = 0 ; i < AV_NUM_DATA_POINTERS ; ++i){
@@ -73,6 +70,11 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
     fprintf(stderr, " [NewPal]");
   }
   fprintf(stderr, " PTS %ld Flags: 0x%04x\n", f->pts, f->flags);
+  fprintf(stderr, " %lums@%lums (%skeyframe) qual: %d\n",
+          f->pkt_duration, // FIXME in 'time_base' units
+          f->best_effort_timestamp,
+          f->key_frame ? "" : "non-",
+          f->quality);
 }
 
 AVFrame* ncvisual_decode(struct ncvisual* nc){
@@ -158,7 +160,7 @@ ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename){
             av_err2str(ret));
     goto err;
   }
-av_dump_format(ncv->fmtctx, 0, filename, false);
+// av_dump_format(ncv->fmtctx, 0, filename, false);
   if((ncv->packet = av_packet_alloc()) == NULL){
     fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
     goto err;
