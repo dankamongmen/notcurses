@@ -248,10 +248,10 @@ int ncplane_destroy(struct ncplane* ncp);
 // Set the ncplane's background cell to this cell. It will be rendered anywhere
 // that the ncplane's gcluster is 0. The default background is all zeroes.
 // Erasing the ncplane does not eliminate the background.
-API int ncplane_set_background(struct ncplane* ncp, const cell* c);
+int ncplane_set_background(struct ncplane* ncp, const cell* c);
 
 // Extract the ncplane's background cell into 'c'.
-API int ncplane_background(struct ncplane* ncp, cell* c);
+int ncplane_background(struct ncplane* ncp, cell* c);
 
 // Move this plane relative to the standard plane. It is an error to attempt to
 // move the standard plane.
@@ -460,29 +460,51 @@ cell_init(cell* c){
 // of the cell is left untouched, but any resources are released.
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
+// Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
+// benefit of unit tests.
+int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
+
 // Release resources held by the cell 'c'.
 void cell_release(struct ncplane* n, cell* c);
 
-#define CELL_STYLE_MASK 0xffff0000ul
-#define CELL_ALPHA_MASK 0x0000fffful
+#define CELL_STYLE_SHIFT     16u
+#define CELL_STYLE_MASK      0xffff0000ul
+#define CELL_ALPHA_MASK      0x0000fffful
+// these are used for the style bitfield *after* it is shifted
+#define CELL_STYLE_STANDOUT  0x0001u
+#define CELL_STYLE_UNDERLINE 0x0002u
+#define CELL_STYLE_REVERSE   0x0004u
+#define CELL_STYLE_BLINK     0x0008u
+#define CELL_STYLE_DIM       0x0010u
+#define CELL_STYLE_BOLD      0x0020u
+#define CELL_STYLE_INVIS     0x0040u
+#define CELL_STYLE_PROTECT   0x0080u
+#define CELL_STYLE_ITALIC    0x0100u
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not.
 static inline void
-cell_set_style(cell* c, unsigned stylebits){
+cell_styles_set(cell* c, unsigned stylebits){
   c->attrword = (c->attrword & ~CELL_STYLE_MASK) |
                 ((stylebits & 0xffff) << 16u);
 }
 
-// Add the specified styles to the cell's existing spec.
+// Get the style bits, shifted over into the LSBs.
+static inline unsigned
+cell_styles(const cell* c){
+  return (c->attrword & CELL_STYLE_MASK) >> 16u;
+}
+
+// Add the specified styles (in the LSBs) to the cell's existing spec, whether
+// they're actively supported or not.
 static inline void
-cell_enable_styles(cell* c, unsigned stylebits){
+cell_styles_on(cell* c, unsigned stylebits){
   c->attrword |= ((stylebits & 0xffff) << 16u);
 }
 
-// Remove the specified styles from the cell's existing spec.
+// Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
-cell_disable_styles(cell* c, unsigned stylebits){
+cell_styles_off(cell* c, unsigned stylebits){
   c->attrword &= ~((stylebits & 0xffff) << 16u);
 }
 
@@ -511,25 +533,43 @@ cell_rgb_blue(uint32_t rgb){
   return (rgb & 0xffull);
 }
 
-#define CELL_FGDEFAULT_MASK 0x4000000000000000ull
-#define CELL_BGDEFAULT_MASK 0x0000000040000000ull
+#define CELL_INHERITSTYLE_MASK 0x8000000000000000ull
+#define CELL_FGDEFAULT_MASK    0x4000000000000000ull
+#define CELL_WIDEASIAN_MASK    0x2000000000000000ull
+#define CELL_FG_MASK           0x00ffffff00000000ull
+#define CELL_BGDEFAULT_MASK    0x0000000040000000ull
+#define CELL_BG_MASK           0x0000000000ffffffull
 
-static inline void
-cell_rgb_set_fg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
+static inline int
+cell_rgb_set_fg(uint64_t* channels, int r, int g, int b){
+  if(r >= 256 || g >= 256 || b >= 256){
+    return -1;
+  }
+  if(r < 0 || g < 0 || b < 0){
+    return -1;
+  }
   uint64_t rgb = (r & 0xffull) << 48u;
   rgb |= (g & 0xffull) << 40u;
   rgb |= (b & 0xffull) << 32u;
   rgb |= CELL_FGDEFAULT_MASK;
-  *channels = (*channels & ~0x40ffffff00000000ull) | rgb;
+  *channels = (*channels & ~(CELL_FGDEFAULT_MASK | CELL_FG_MASK)) | rgb;
+  return 0;
 }
 
-static inline void
-cell_rgb_set_bg(uint64_t* channels, unsigned r, unsigned g, unsigned b){
+static inline int
+cell_rgb_set_bg(uint64_t* channels, int r, int g, int b){
+  if(r >= 256 || g >= 256 || b >= 256){
+    return -1;
+  }
+  if(r < 0 || g < 0 || b < 0){
+    return -1;
+  }
   uint64_t rgb = (r & 0xffull) << 16u;
   rgb |= (g & 0xffull) << 8u;
   rgb |= (b & 0xffull);
   rgb |= CELL_BGDEFAULT_MASK;
-  *channels = (*channels & ~0x0000000040ffffffull) | rgb;
+  *channels = (*channels & ~(CELL_BGDEFAULT_MASK | CELL_BG_MASK)) | rgb;
+  return 0;
 }
 
 static inline void
@@ -556,15 +596,58 @@ cell_get_bg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
   *b = cell_rgb_blue(cell_bg_rgb(c->channels));
 }
 
+// does the cell passively retain the styling of the previously-rendered cell?
+static inline bool
+cell_inherits_style(const cell* c){
+  return (c->channels & CELL_INHERITSTYLE_MASK);
+}
+
+// use the default color for the foreground
+static inline void
+cell_fg_default(cell* c){
+  c->channels &= ~CELL_FGDEFAULT_MASK;
+}
+
+// is the cell using the terminal's default foreground color for its foreground?
 static inline bool
 cell_fg_default_p(const cell* c){
   return !(c->channels & CELL_FGDEFAULT_MASK);
 }
 
+// use the default color for the background
+static inline void
+cell_bg_default(cell* c){
+  c->channels &= ~CELL_BGDEFAULT_MASK;
+}
+
+// is the cell using the terminal's default background color for its background?
 static inline bool
 cell_bg_default_p(const cell* c){
   return !(c->channels & CELL_BGDEFAULT_MASK);
 }
+
+// does the cell contain an East Asian Wide codepoint?
+static inline bool
+cell_double_wide_p(const cell* c){
+  return (c->channels & CELL_WIDEASIAN_MASK);
+}
+
+// is the cell simple (a lone ASCII character)?
+static inline bool
+cell_simple_p(const cell* c){
+  return c->gcluster < 0x80;
+}
+
+// get the offset into the egcpool for this cell's EGC. returns meaningless and
+// unsafe results if called on a simple cell.
+static inline uint32_t
+cell_egc_idx(const cell* c){
+  return c->gcluster - 0x80;
+}
+
+// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
+// is invalidated by any further operation on the plane 'n', so...watch out!
+const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 ```
 
 ## Included tools
