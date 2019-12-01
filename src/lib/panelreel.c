@@ -501,12 +501,12 @@ panelreel_arrange(panelreel* pr){
     otherend = draw_previous_tablets(pr, otherend);
   }
   // FIXME move them up to plug any holes in original direction?
-//fprintf(stderr, "DONE ARRANGING\n");
+fprintf(stderr, "DONE ARRANGING\n");
   return 0;
 }
 
 int panelreel_redraw(panelreel* pr){
-//fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
+fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
   int ret = 0;
   if(draw_panelreel_borders(pr)){
     return -1; // enforces specified dimensional minima
@@ -572,7 +572,8 @@ panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd)
       xlen = 0; // FIXME see above...
     }
   }
-  if((pr->p = notcurses_newplane(w->nc, popts->toff + wy, popts->loff + wx, ylen, xlen, NULL)) == NULL){
+  if((pr->p = notcurses_newplane(w->nc, ylen, xlen, popts->toff + wy, popts->loff + wx, NULL)) == NULL){
+fprintf(stderr, "UGH\n");
     free(pr);
     return NULL;
   }
@@ -605,12 +606,12 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
       pr->all_visible = false;
       return t;
     }
-//fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
+fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
     if((t->p = notcurses_newplane(nc, leny, lenx, begy, begx, NULL)) == NULL){
       pr->all_visible = false;
       return t;
     }
-//fprintf(stderr, "created first tablet!\n");
+fprintf(stderr, "created first tablet!\n");
     return t;
   }
   // we're not the only tablet, alas.
@@ -633,8 +634,8 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
   return t;
 }
 
-tablet* panelreel_add(struct notcurses* nc, panelreel* pr, tablet* after,
-                      tablet *before, tabletcb cbfxn, void* opaque){
+tablet* panelreel_add(panelreel* pr, tablet* after, tablet *before,
+                      tabletcb cbfxn, void* opaque){
   tablet* t;
   if(after && before){
     if(after->prev != before || before->next != after){
@@ -650,7 +651,7 @@ tablet* panelreel_add(struct notcurses* nc, panelreel* pr, tablet* after,
   if((t = malloc(sizeof(*t))) == NULL){
     return NULL;
   }
-//fprintf(stderr, "--------->NEW TABLET %p\n", t);
+fprintf(stderr, "--------->NEW TABLET %p\n", t);
   if(after){
     t->next = after->next;
     after->next = t;
@@ -671,16 +672,16 @@ tablet* panelreel_add(struct notcurses* nc, panelreel* pr, tablet* after,
   t->p = NULL;
   // if we have room, it needs become visible immediately, in the proper place,
   // lest we invalidate the preconditions of panelreel_arrange_denormalized().
-  insert_new_panel(nc, pr, t);
+  insert_new_panel(pr->p->nc, pr, t);
   panelreel_redraw(pr); // don't return failure; tablet was still created...
   return t;
 }
 
-int panelreel_del_focused(struct panelreel* pr){
+int panelreel_del_focused(panelreel* pr){
   return panelreel_del(pr, pr->tablets);
 }
 
-int panelreel_del(struct panelreel* pr, struct tablet* t){
+int panelreel_del(panelreel* pr, struct tablet* t){
   if(pr == NULL || t == NULL){
     return -1;
   }
@@ -783,8 +784,8 @@ int panelreel_move(panelreel* preel, int x, int y){
 tablet* panelreel_next(panelreel* pr){
   if(pr->tablets){
     pr->tablets = pr->tablets->next;
-//fprintf(stderr, "---------------> moved to next, %p to %p <----------\n",
-//        pr->tablets->prev, pr->tablets);
+fprintf(stderr, "---------------> moved to next, %p to %p <----------\n",
+        pr->tablets->prev, pr->tablets);
     pr->last_traveled_direction = 1;
   }
   panelreel_redraw(pr);
@@ -794,8 +795,8 @@ tablet* panelreel_next(panelreel* pr){
 tablet* panelreel_prev(panelreel* pr){
   if(pr->tablets){
     pr->tablets = pr->tablets->prev;
-//fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n",
-//        pr->tablets->next, pr->tablets);
+fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n",
+        pr->tablets->next, pr->tablets);
     pr->last_traveled_direction = -1;
   }
   panelreel_redraw(pr);

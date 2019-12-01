@@ -676,9 +676,9 @@ struct panelreel;
 // and columns can be enforced via popts. efd, if non-negative, is an eventfd
 // that ought be written to whenever panelreel_touch() updates a tablet (this
 // is useful in the case of nonblocking input).
-struct panelreel* panelreel_create(struct ncplane* nc,
-                                   const panelreel_options* popts,
-                                   int efd);
+API struct panelreel* panelreel_create(struct ncplane* nc,
+                                       const panelreel_options* popts,
+                                       int efd);
 
 // Tablet draw callback, provided a ncplane the first column that may be used,
 // the first row that may be used, the first column that may not be used, the
@@ -704,46 +704,45 @@ typedef int (*tabletcb)(struct ncplane* p, int begx, int begy, int maxx,
 // specified tablet. If both are specifid, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
-// FIXME get rid of nc here
-struct tablet* panelreel_add(struct notcurses* nc, struct panelreel* pr,
-                             struct tablet* after, struct tablet *before,
-                             tabletcb cb, void* opaque);
+API struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
+                                 struct tablet *before, tabletcb cb,
+                                 void* opaque);
 
 // Return the number of tablets.
-int panelreel_tabletcount(const struct panelreel* pr);
+API int panelreel_tabletcount(const struct panelreel* pr);
 
 // Indicate that the specified tablet has been updated in a way that would
 // change its display. This will trigger some non-negative number of callbacks
 // (though not in the caller's context).
-int panelreel_touch(struct panelreel* pr, struct tablet* t);
+API int panelreel_touch(struct panelreel* pr, struct tablet* t);
 
 // Delete the tablet specified by t from the panelreel specified by pr. Returns
 // -1 if the tablet cannot be found.
-int panelreel_del(struct panelreel* pr, struct tablet* t);
+API int panelreel_del(struct panelreel* pr, struct tablet* t);
 
 // Delete the active tablet. Returns -1 if there are no tablets.
-int panelreel_del_focused(struct panelreel* pr);
+API int panelreel_del_focused(struct panelreel* pr);
 
 // Move to the specified location within the containing WINDOW.
-int panelreel_move(struct panelreel* pr, int x, int y);
+API int panelreel_move(struct panelreel* pr, int x, int y);
 
 // Redraw the panelreel in its entirety, for instance after
 // clearing the screen due to external corruption, or a SIGWINCH.
-int panelreel_redraw(struct panelreel* pr);
+API int panelreel_redraw(struct panelreel* pr);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
-struct tablet* panelreel_focused(struct panelreel* pr);
+API struct tablet* panelreel_focused(struct panelreel* pr);
 
 // Change focus to the next tablet, if one exists
-struct tablet* panelreel_next(struct panelreel* pr);
+API struct tablet* panelreel_next(struct panelreel* pr);
 
 // Change focus to the previous tablet, if one exists
-struct tablet* panelreel_prev(struct panelreel* pr);
+API struct tablet* panelreel_prev(struct panelreel* pr);
 
 // Destroy a panelreel allocated with panelreel_create(). Does not destroy the
 // underlying WINDOW. Returns non-zero on failure.
-int panelreel_destroy(struct panelreel* pr);
+API int panelreel_destroy(struct panelreel* pr);
 
 #undef API
 
