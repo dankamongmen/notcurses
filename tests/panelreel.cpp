@@ -62,7 +62,6 @@ TEST_F(PanelReelTest, FiniteCircleRejected) {
   ASSERT_EQ(nullptr, pr);
 }
 
-/*
 // We ought be able to invoke panelreel_next() and panelreel_prev() safely,
 // even if there are no tablets. They both ought return nullptr.
 TEST_F(PanelReelTest, MovementWithoutTablets) {
@@ -71,13 +70,13 @@ TEST_F(PanelReelTest, MovementWithoutTablets) {
   struct panelreel* pr = panelreel_create(n_, &p, -1);
   ASSERT_NE(nullptr, pr);
   EXPECT_EQ(nullptr, panelreel_next(pr));
-  EXPECT_EQ(0, panelreel_validate(n_, pr));
+  // EXPECT_EQ(0, panelreel_validate(n_, pr));
   EXPECT_EQ(nullptr, panelreel_prev(pr));
-  EXPECT_EQ(0, panelreel_validate(n_, pr));
+  // EXPECT_EQ(0, panelreel_validate(n_, pr));
 }
 
-int panelcb(PANEL* p, int begx, int begy, int maxx, int maxy, bool cliptop,
-            void* curry){
+int panelcb(struct ncplane* p, int begx, int begy, int maxx, int maxy,
+            bool cliptop, void* curry){
   EXPECT_NE(nullptr, p);
   EXPECT_LT(begx, maxx);
   EXPECT_LT(begy, maxy);
@@ -94,9 +93,9 @@ TEST_F(PanelReelTest, OneTablet) {
   ASSERT_NE(nullptr, pr);
   struct tablet* t = panelreel_add(pr, nullptr, nullptr, panelcb, nullptr);
   ASSERT_NE(nullptr, t);
-  EXPECT_EQ(0, panelreel_validate(n_, pr));
+  // EXPECT_EQ(0, panelreel_validate(n_, pr));
   EXPECT_EQ(0, panelreel_del(pr, t));
-  EXPECT_EQ(0, panelreel_validate(n_, pr));
+  // EXPECT_EQ(0, panelreel_validate(n_, pr));
 }
 
 TEST_F(PanelReelTest, MovementWithOneTablet) {
@@ -106,15 +105,16 @@ TEST_F(PanelReelTest, MovementWithOneTablet) {
   ASSERT_NE(nullptr, pr);
   struct tablet* t = panelreel_add(pr, nullptr, nullptr, panelcb, nullptr);
   ASSERT_NE(nullptr, t);
-  EXPECT_EQ(0, panelreel_validate(n_, pr));
+  // EXPECT_EQ(0, panelreel_validate(n_, pr));
   EXPECT_NE(nullptr, panelreel_next(pr));
-  EXPECT_EQ(0, panelreel_validate(n_, pr));
+  // EXPECT_EQ(0, panelreel_validate(n_, pr));
   EXPECT_NE(nullptr, panelreel_prev(pr));
-  EXPECT_EQ(0, panelreel_validate(n_, pr));
+  // EXPECT_EQ(0, panelreel_validate(n_, pr));
   EXPECT_EQ(0, panelreel_del(pr, t));
-  EXPECT_EQ(0, panelreel_validate(n_, pr));
+  // EXPECT_EQ(0, panelreel_validate(n_, pr));
 }
 
+/*
 TEST_F(PanelReelTest, DeleteActiveTablet) {
   panelreel_options p{};
   p.infinitescroll = false;
