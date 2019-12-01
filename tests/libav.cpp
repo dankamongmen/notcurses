@@ -35,7 +35,7 @@ TEST_F(LibavTest, LoadImage) {
   EXPECT_EQ(0, averr);
   ASSERT_NE(nullptr, ncv);
   ASSERT_NE(nullptr, ncvisual_decode(ncv, &averr));
-  EXPECT_EQ(0, averr);
+  EXPECT_EQ(AVERROR_EOF, averr);
   ncvisual_destroy(ncv);
 }
 

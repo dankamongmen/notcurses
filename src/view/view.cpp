@@ -2,13 +2,6 @@
 #include <cstdlib>
 #include <libgen.h>
 #include <iostream>
-
-extern "C" {
-#include <libavutil/pixdesc.h>
-#include <libavutil/avconfig.h>
-#include <libavcodec/avcodec.h>
-}
-
 #include "notcurses.h"
 
 static void usage(std::ostream& os, const char* name, int exitcode)
@@ -28,7 +21,10 @@ int ncview(struct notcurses* nc, struct ncvisual* ncv, int* averr){
     ncplane_printf(n, "Got frame %05d\u2026", frame);
     ++frame;
   }
-  return *averr;
+  if(*averr == AVERROR_EOF){
+    return 0;
+  }
+  return -1;
 }
 
 int main(int argc, char** argv){

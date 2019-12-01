@@ -10,6 +10,9 @@
 #ifdef __cplusplus
 extern "C" {
 #define RESTRICT
+#include <libavutil/pixdesc.h>
+#include <libavutil/avconfig.h>
+#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
 #else
 #define RESTRICT restrict
 #endif
@@ -598,9 +601,9 @@ API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
 API void ncvisual_destroy(struct ncvisual* ncv);
 
 // extract the next frame from an ncvisual. returns NULL on end of file, writing
-// 0 to 'averr'. returns NULL on a decoding or allocation error, placing the
-// AVError in 'averr'. this frame is invalidated by a subsequent call to
-// ncvisual_decode(), and should not be freed by the caller.
+// AVERROR_EOF to 'averr'. returns NULL on a decoding or allocation error,
+// placing the AVError in 'averr'. this frame is invalidated by a subsequent
+// call to ncvisual_decode(), and should not be freed by the caller.
 API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 
 // render the next frame to the associated ncplane at the current cursor
