@@ -114,7 +114,6 @@ TEST_F(PanelReelTest, MovementWithOneTablet) {
   // EXPECT_EQ(0, panelreel_validate(n_, pr));
 }
 
-/*
 TEST_F(PanelReelTest, DeleteActiveTablet) {
   panelreel_options p{};
   p.infinitescroll = false;
@@ -155,9 +154,10 @@ TEST_F(PanelReelTest, BadTabletBorderBitsRejected) {
   ASSERT_EQ(nullptr, pr);
 }
 
+/*
 // Make a target window occupying all but a containing perimeter of the
 // specified WINDOW (which will usually be n_).
-PANEL* make_targwin(WINDOW* w) {
+struct ncpanel* make_targwin(struct ncpanel* w) {
   cchar_t cc;
   int cpair = COLOR_GREEN;
   EXPECT_EQ(OK, setcchar(&cc, L"W", 0, 0, &cpair));
