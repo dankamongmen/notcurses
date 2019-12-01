@@ -14,6 +14,7 @@
 #include <sys/ioctl.h>
 #include <libavutil/error.h>
 #include <libavutil/frame.h>
+#include <libavutil/pixdesc.h>
 #include <libavutil/version.h>
 #include <libswscale/version.h>
 #include <libavformat/version.h>
@@ -1536,7 +1537,7 @@ int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special
 }
 
 int ncvisual_render(const ncvisual* ncv){
-  const AVFrame* f = ncv->frame;
+  const AVFrame* f = ncv->oframe;
   if(f == NULL){
     return -1;
   }
@@ -1544,9 +1545,12 @@ int ncvisual_render(const ncvisual* ncv){
   int dimy, dimx;
   ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
   ncplane_cursor_move_yx(ncv->ncp, 0, 0);
+  const int linesize = f->linesize[0];
+  const unsigned char* data = f->data[0];
   for(y = 0 ; y < f->height && y < dimy ; ++y){
     for(x = 0 ; x < f->width && x < dimx ; ++x){
-      const unsigned char* rgbbase = ((const unsigned char*)f->data) + (f->width * y) + x;
+      int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
+      const unsigned char* rgbbase = data + (linesize * y) + (x * bpp);
       fprintf(stderr, "[%04d/%04d] %02x %02x %02x\n", y, x,
               rgbbase[0], rgbbase[1], rgbbase[2]);
       cell c = CELL_TRIVIAL_INITIALIZER;
@@ -1559,6 +1563,7 @@ int ncvisual_render(const ncvisual* ncv){
         return -1;
       }
       cell_release(ncv->ncp, &c);
+      fprintf(stderr, "bpp: %d linesize: %d\n", bpp, linesize);
     }
   }
   return 0;
