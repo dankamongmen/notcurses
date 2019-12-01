@@ -57,7 +57,7 @@ int wresize(ncplane* n, int leny, int lenx){
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   int keepy = dimy > leny ? leny : dimy;
-  return ncplane_resize(n, keepy, dimx, 0, 0, y, x, leny, lenx);
+  return ncplane_resize(n, 0, 0, keepy, dimx, y, x, leny, lenx);
 }
 
 // bchrs: 6-element array of wide border characters + attributes FIXME

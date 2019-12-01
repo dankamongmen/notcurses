@@ -400,16 +400,16 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
     fprintf(stderr, "Can't resize standard plane\n");
     return -1;
   }
-  if(keepy < 0 || keepx < 0){ // can't retain negative size
-    fprintf(stderr, "Can't retain negative size %dx%d\n", keepy, keepx);
+  if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
+    fprintf(stderr, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
     fprintf(stderr, "Can't achieve negative size %dx%d\n", ylen, xlen);
     return -1;
   }
-  if((!keepy && keepx) || (keepy && !keepx)){ // both must be 0
-    fprintf(stderr, "Can't keep zero dimensions %dx%d\n", keepy, keepx);
+  if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
+    fprintf(stderr, "Can't keep zero dimensions %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(ylen < keepleny || xlen < keeplenx){ // can't be smaller than our keep
@@ -417,11 +417,11 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
     return -1;
   }
 fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
-        ylen, xlen, yoff, xoff, keepy, keepx, keepleny, keeplenx);
+        ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.
-  int keptarea = keepy * keepx;
+  int keptarea = keepleny * keeplenx;
   int newarea = ylen * xlen;
   cell* fb = malloc(sizeof(*fb) * newarea);
   if(fb == NULL){
@@ -459,7 +459,7 @@ fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\
   for(itery = 0 ; itery < ylen ; ++itery){
     int copyoff = itery * xlen; // our target at any given time
     // if we have nothing copied to this line, zero it out in one go
-    if(itery < keepy + yoff || itery > keepy + keepleny - 1 + yoff){
+    if(itery < keepy || itery > keepy + keepleny - 1){
       memset(fb + copyoff, 0, sizeof(*fb) * xlen);
       continue;
     }
@@ -471,9 +471,9 @@ fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\
       copied += -xoff;
     }
     const int sourceidx = fbcellidx(n, sourceline, keepx);
-    memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keepx);
-    copyoff += keepx;
-    copied += keepx;
+    memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
+    copyoff += keeplenx;
+    copied += keeplenx;
     if(xlen > copied){
       memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
     }
