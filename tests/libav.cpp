@@ -30,15 +30,22 @@ class LibavTest : public :: testing::Test {
 };
 
 TEST_F(LibavTest, LoadImage) {
-  auto ncv = ncplane_visual_open(ncp_, "../tests/dsscaw-purp.png");
+  int averr;
+  auto ncv = ncplane_visual_open(ncp_, "../tests/dsscaw-purp.png", &averr);
+  EXPECT_EQ(0, averr);
   ASSERT_NE(nullptr, ncv);
-  ASSERT_NE(nullptr, ncvisual_decode(ncv));
+  ASSERT_NE(nullptr, ncvisual_decode(ncv, &averr));
+  EXPECT_EQ(0, averr);
   ncvisual_destroy(ncv);
 }
 
+// FIXME ought run through full video, not just first frame
 TEST_F(LibavTest, LoadVideo) {
-  auto ncv = ncplane_visual_open(ncp_, "../tests/atliens.mkv");
+  int averr;
+  auto ncv = ncplane_visual_open(ncp_, "../tests/atliens.mkv", &averr);
+  EXPECT_EQ(0, averr);
   ASSERT_NE(nullptr, ncv);
-  ASSERT_NE(nullptr, ncvisual_decode(ncv));
+  ASSERT_NE(nullptr, ncvisual_decode(ncv, &averr));
+  EXPECT_EQ(0, averr);
   ncvisual_destroy(ncv);
 }
