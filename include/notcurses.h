@@ -503,7 +503,7 @@ cell_inherits_style(const cell* c){
 // use the default color for the foreground
 static inline void
 cell_fg_default(cell* c){
-  c->channels |= CELL_FGDEFAULT_MASK;
+  c->channels &= ~CELL_FGDEFAULT_MASK;
 }
 
 // is the cell using the terminal's default foreground color for its foreground?
@@ -515,7 +515,7 @@ cell_fg_default_p(const cell* c){
 // use the default color for the background
 static inline void
 cell_bg_default(cell* c){
-  c->channels |= CELL_BGDEFAULT_MASK;
+  c->channels &= ~CELL_BGDEFAULT_MASK;
 }
 
 // is the cell using the terminal's default background color for its background?
