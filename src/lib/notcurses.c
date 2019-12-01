@@ -479,6 +479,8 @@ fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\
     }
     ++sourceline;
   }
+  n->lenx = xlen;
+  n->leny = ylen;
   free(preserved);
   return 0;
 }
