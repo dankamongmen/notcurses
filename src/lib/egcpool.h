@@ -179,6 +179,10 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
 // Run a consistency check on the offset; ensure it's a valid, non-empty EGC.
 static inline bool
 egcpool_check_validity(const egcpool* pool, int offset){
+  if(offset >= pool->poolsize){
+    fprintf(stderr, "Offset (%d) greater than size (%d)\n", offset, pool->poolsize);
+    return false;
+  }
   const char* egc = pool->pool + offset;
   if(*egc == '\0'){
     fprintf(stderr, "Bad offset (%d): empty\n", offset);
