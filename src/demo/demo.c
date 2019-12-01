@@ -8,6 +8,8 @@
 #include <notcurses.h>
 #include "demo.h"
 
+static const unsigned long GIG = 1000000000;
+
 struct timespec demodelay = {
   .tv_sec = 1,
   .tv_nsec = 0,
@@ -19,7 +21,7 @@ usage(const char* exe, int status){
   fprintf(out, "usage: %s [ -h ] [ -k ] [ -d ns ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
-  fprintf(out, " -d: delay in nanoseconds between demos\n");
+  fprintf(out, " -d: delay multiplier (float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
   fprintf(out, "all demos are run if no specification is provided\n");
   fprintf(out, " i: run intro\n");
@@ -173,13 +175,15 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
         }
         break;
       case 'd':{
-        char* eptr;
-        unsigned long ns = strtoul(optarg, &eptr, 0);
-        if(*eptr){
+        float f;
+        if(sscanf(optarg, "%f", &f) != 1){
+          fprintf(stderr, "Couldn't get a float from %s\n", optarg);
           usage(*argv, EXIT_FAILURE);
         }
-        demodelay.tv_sec = ns / 1000000000;
-        demodelay.tv_nsec = ns % 1000000000;
+        uint64_t ns = f * GIG;
+        printf("F: %f NS: %lu\n", f, ns);
+        demodelay.tv_sec = ns / GIG;
+        demodelay.tv_nsec = ns % GIG;
         break;
       }default:
         usage(*argv, EXIT_FAILURE);

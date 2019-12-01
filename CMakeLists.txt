@@ -48,7 +48,7 @@ target_compile_options(notcurses
 )
 target_compile_definitions(notcurses
   PUBLIC
-    _DEFAULT_SOURCE _XOPEN_SOURCE=700
+  _DEFAULT_SOURCE _XOPEN_SOURCE=700 _GNU_SOURCE
 )
 
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)

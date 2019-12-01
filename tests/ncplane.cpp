@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <notcurses.h>
 #include "main.h"
 
@@ -393,4 +394,149 @@ TEST_F(NcplaneTest, GrowPlane) {
   ASSERT_EQ(0, ncplane_resize(newp, 0, 0, 0, 0, 0, 0, dimy, dimx));
   // FIXME check dims, pos
   ASSERT_EQ(0, ncplane_destroy(newp));
+}
+
+// we ought be able to see what we're about to render, or have just rendered, or
+// in any case whatever's in the virtual framebuffer for a plane
+TEST_F(NcplaneTest, PlaneAtCursorSimples){
+  const char STR1[] = "Jackdaws love my big sphinx of quartz";
+  const char STR2[] = "Cwm fjord bank glyphs vext quiz";
+  const char STR3[] = "Pack my box with five dozen liquor jugs";
+  ncplane_styles_set(n_, 0);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  ASSERT_LT(0, ncplane_putstr(n_, STR1));
+  int dimy, dimx;
+  ncplane_dim_yx(n_, &dimy, &dimx);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 1, dimx - strlen(STR2)));
+  ASSERT_LT(0, ncplane_putstr(n_, STR2));
+  int y, x;
+  ncplane_cursor_yx(n_, &y, &x);
+  ASSERT_EQ(2, y);
+  ASSERT_EQ(0, x);
+  ASSERT_LT(0, ncplane_putstr(n_, STR3));
+  cell testcell = CELL_TRIVIAL_INITIALIZER;
+  ASSERT_EQ(0, ncplane_at_cursor(n_, &testcell)); // want nothing at the cursor
+  EXPECT_EQ(0, testcell.gcluster);
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  ASSERT_LT(0, ncplane_at_cursor(n_, &testcell)); // want first char of STR1
+  EXPECT_EQ(STR1[0], testcell.gcluster);
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 1, dimx - 1));
+  ASSERT_LT(0, ncplane_at_cursor(n_, &testcell)); // want last char of STR2
+  EXPECT_EQ(STR2[strlen(STR2) - 1], testcell.gcluster);
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+  // FIXME maybe check all cells?
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+// ensure we read back what's expected for latinesque complex characters
+TEST_F(NcplaneTest, PlaneAtCursorComplex){
+  const char STR1[] = "Σιβυλλα τι θελεις; respondebat illa:";
+  const char STR2[] = "αποθανειν θελω";
+  const char STR3[] = "Война и мир"; // just thrown in to complicate things
+  ncplane_styles_set(n_, 0);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  ASSERT_LT(0, ncplane_putstr(n_, STR1));
+  int dimy, dimx;
+  ncplane_dim_yx(n_, &dimy, &dimx);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(NULL, STR2, 0)));
+  ASSERT_LT(0, ncplane_putstr(n_, STR2));
+  int y, x;
+  ncplane_cursor_yx(n_, &y, &x);
+  ASSERT_EQ(2, y);
+  ASSERT_EQ(0, x);
+  ASSERT_LT(0, ncplane_putstr(n_, STR3));
+  cell testcell = CELL_TRIVIAL_INITIALIZER;
+  ncplane_at_cursor(n_, &testcell); // should be nothing at the cursor
+  EXPECT_EQ(0, testcell.gcluster);
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  ASSERT_LT(0, ncplane_at_cursor(n_, &testcell)); // want first char of STR1
+  EXPECT_STREQ("Σ", cell_extended_gcluster(n_, &testcell));
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(NULL, STR2, 0)));
+  ASSERT_LT(0, ncplane_at_cursor(n_, &testcell)); // want first char of STR2
+  EXPECT_STREQ("α", cell_extended_gcluster(n_, &testcell));
+  EXPECT_EQ(0, testcell.attrword);
+  EXPECT_EQ(0, testcell.channels);
+  // FIXME maybe check all cells?
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+// half-width, double-width, huge-yet-narrow, all that crap
+TEST_F(NcplaneTest, PlaneAtCursorInsane){
+  const char EGC0[] = "\uffe0"; // fullwidth cent sign ￠
+  const char EGC1[] = "\u00c5"; // neutral A with ring above Å
+  const char EGC2[] = "\u20a9"; // half-width won ₩
+  const char EGC3[] = "\u212b"; // ambiguous angstrom Å
+  const char EGC4[] = "\ufdfd"; // neutral yet huge bismillah ﷽
+  std::array<cell, 5> tcells;
+  for(auto i = 0u ; i < tcells.size() ; ++i){
+    cell_init(&tcells[i]);
+  }
+  ASSERT_LT(1, cell_load(n_, &tcells[0], EGC0));
+  ASSERT_LT(1, cell_load(n_, &tcells[1], EGC1));
+  ASSERT_LT(1, cell_load(n_, &tcells[2], EGC2));
+  ASSERT_LT(1, cell_load(n_, &tcells[3], EGC3));
+  ASSERT_LT(1, cell_load(n_, &tcells[4], EGC4));
+  for(auto i = 0u ; i < tcells.size() ; ++i){
+    ASSERT_LT(1, ncplane_putc(n_, &tcells[i]));
+  }
+  EXPECT_EQ(0, notcurses_render(nc_));
+  int x = 0;
+  for(auto i = 0u ; i < tcells.size() ; ++i){
+    EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, x));
+    cell testcell = CELL_TRIVIAL_INITIALIZER;
+    ASSERT_LT(0, ncplane_at_cursor(n_, &testcell));
+    EXPECT_STREQ(cell_extended_gcluster(n_, &tcells[i]),
+                 cell_extended_gcluster(n_, &testcell));
+    EXPECT_EQ(0, testcell.attrword);
+    wchar_t w;
+    ASSERT_LT(0, mbtowc(&w, cell_extended_gcluster(n_, &tcells[i]), MB_CUR_MAX));
+    if(wcwidth(w) == 2){
+      EXPECT_EQ(CELL_WIDEASIAN_MASK, testcell.channels);
+      ++x;
+    }else{
+      EXPECT_EQ(0, testcell.channels);
+    }
+    ++x;
+  }
+}
+
+// test that we read back correct attrs/colors despite changing defaults
+TEST_F(NcplaneTest, PlaneAtCursorAttrs){
+  const char STR1[] = "this has been a world destroyer production";
+  const char STR2[] = "not to mention dank";
+  const char STR3[] = "da chronic lives";
+  ncplane_styles_set(n_, CELL_STYLE_BOLD);
+  ASSERT_LT(0, ncplane_putstr(n_, STR1));
+  int y, x;
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y + 1, x - strlen(STR2)));
+  ncplane_styles_on(n_, CELL_STYLE_ITALIC);
+  ASSERT_LT(0, ncplane_putstr(n_, STR2));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y + 2, x - strlen(STR3)));
+  ncplane_styles_off(n_, CELL_STYLE_BOLD);
+  ASSERT_LT(0, ncplane_putstr(n_, STR3));
+  ncplane_styles_off(n_, CELL_STYLE_ITALIC);
+  EXPECT_EQ(0, notcurses_render(nc_));
+  int newx;
+  ncplane_cursor_yx(n_, &y, &newx);
+  EXPECT_EQ(newx, x);
+  cell testcell = CELL_TRIVIAL_INITIALIZER;
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 2, x - 1));
+  ASSERT_EQ(1, ncplane_at_cursor(n_, &testcell));
+  EXPECT_EQ(testcell.gcluster, STR1[strlen(STR1) - 1]);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 1, x - 1));
+  ASSERT_EQ(1, ncplane_at_cursor(n_, &testcell));
+  EXPECT_EQ(testcell.gcluster, STR2[strlen(STR2) - 1]);
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y, x - 1));
+  ASSERT_EQ(1, ncplane_at_cursor(n_, &testcell));
+  EXPECT_EQ(testcell.gcluster, STR3[strlen(STR3) - 1]);
 }

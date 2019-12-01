@@ -1,6 +1,7 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <time.h>
 #include <term.h>
+#include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -8,6 +9,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/poll.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
 #include <libavutil/version.h>
@@ -94,6 +96,7 @@ typedef struct notcurses {
 
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
   FILE* renderfp; // debugging FILE* to which renderings are written
@@ -215,6 +218,26 @@ void* ncplane_userptr(ncplane* n){
 
 const void* ncplane_userptr_const(const ncplane* n){
   return n->userptr;
+}
+
+// is the cursor in an invalid position? it never should be, but it's probably
+// better to make sure (it's cheap) than to read from/write to random crap.
+static bool
+cursor_invalid_p(const ncplane* n){
+  if(n->y >= n->leny || n->x >= n->lenx){
+    return true;
+  }
+  if(n->y < 0 || n->x < 0){
+    return true;
+  }
+  return false;
+}
+
+int ncplane_at_cursor(ncplane* n, cell* c){
+  if(cursor_invalid_p(n)){
+    return -1;
+  }
+  return cell_duplicate(n, c, &n->fb[fbcellidx(n, n->y, n->x)]);
 }
 
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
@@ -472,6 +495,8 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   return 0;
 }
 
+// find the pointer on the z-index referencing the specified plane. writing to
+// this pointer will remove the plane (and everything below it) from the stack.
 static ncplane**
 find_above_ncplane(ncplane* n){
   notcurses* nc = n->nc;
@@ -507,6 +532,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
   fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
   nc->RGBflag = tigetflag("RGB") == 1;
+  nc->CCCflag = tigetflag("ccc") == 1;
   if((nc->colors = tigetnum("colors")) <= 0){
     fprintf(stderr, "This terminal doesn't appear to support colors\n");
     nc->colors = 1;
@@ -578,6 +604,8 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   if(!opts->pass_through_esc){
     term_verify_seq(&nc->smkx, "smkx");
     term_verify_seq(&nc->rmkx, "rmkx");
+  }else{
+    nc->smkx = nc->rmkx = NULL;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!opts->inhibit_alternate_screen){
@@ -590,6 +618,19 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   return 0;
 }
 
+static int
+make_nonblocking(FILE* fp){
+  int fd = fileno(fp);
+  if(fd < 0){
+    return -1;
+  }
+  int flags = fcntl(fd, F_GETFL, 0);
+  if(flags < 0){
+    return -1;
+  }
+  return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
 notcurses* notcurses_init(const notcurses_options* opts){
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
@@ -599,6 +640,10 @@ notcurses* notcurses_init(const notcurses_options* opts){
   ret->ttyfp = opts->outfp;
   ret->renderfp = opts->renderfp;
   ret->ttyinfp = stdin; // FIXME
+  if(make_nonblocking(ret->ttyinfp)){
+    free(ret);
+    return NULL;
+  }
   if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
     fprintf(stderr, "No file descriptor was available in opts->outfp\n");
     free(ret);
@@ -644,7 +689,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
     free_plane(ret->top);
     goto err;
   }
-  term_emit(ret->clear, ret->ttyfp, false);
+  // term_emit(ret->clear, ret->ttyfp, false);
   fprintf(ret->ttyfp, "\n"
          " notcurses %s by nick black\n"
          " terminfo from %s\n"
@@ -806,6 +851,10 @@ extended_gcluster(const ncplane* n, const cell* c){
   return n->pool.pool + idx;
 }
 
+const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
+  return extended_gcluster(n, c);
+}
+
 // write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
 // number of columns occupied by this EGC (only an approximation; it's actually
 // a property of the font being used).
@@ -835,18 +884,12 @@ term_putc(FILE* out, const ncplane* n, const cell* c){
 
 static void
 advance_cursor(ncplane* n, int cols){
-  if(n->y >= n->leny){
-    if(n->x >= n->lenx){
-      return; // stuck!
-    }
+  if(cursor_invalid_p(n)){
+    return; // stuck!
   }
   if((n->x += cols) >= n->lenx){
-    if(n->y >= n->leny){
-      n->x = n->lenx;
-    }else{
-      n->x -= n->lenx;
-      ++n->y;
-    }
+    ++n->y;
+    n->x -= n->lenx;
   }
 }
 
@@ -882,7 +925,7 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c)
   if(cell_inherits_style(c)){
     return 0; // change nothing
   }
-  uint32_t cellattr = cell_get_style(c);
+  uint32_t cellattr = cell_styles(c);
   if(cellattr == *curattr){
     return 0; // happy agreement, change nothing
   }
@@ -973,6 +1016,36 @@ int ncplane_move_bottom(ncplane* n){
   return 0;
 }
 
+static int
+blocking_write(int fd, const char* buf, size_t buflen){
+  size_t written = 0;
+  do{
+    ssize_t w = write(fd, buf + written, buflen - written);
+    if(w < 0){
+      if(errno != EAGAIN && errno != EWOULDBLOCK){
+        return -1;
+      }
+    }else{
+      written += w;
+    }
+  }while(written < buflen);
+  return 0;
+}
+
+// determine the best palette for the current frame, and write the necessary
+// escape sequences to 'out'.
+static int
+prep_optimized_palette(notcurses* nc, FILE* out){
+  if(nc->RGBflag){
+    return 0; // DirectColor, no need to write palette
+  }
+  if(!nc->CCCflag){
+    return 0; // can't change palette
+  }
+  // FIXME
+  return 0;
+}
+
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
 int notcurses_render(notcurses* nc){
@@ -986,8 +1059,11 @@ int notcurses_render(notcurses* nc){
   if(out == NULL){
     return -1;
   }
+  prep_optimized_palette(nc, out); // FIXME do what on failure?
   uint32_t curattr = 0; // current attributes set (does not include colors)
-  term_emit(nc->clear, out, false);
+  // no need to write a clearscreen, since we update everything that's been
+  // changed. just move the physical cursor to the upper left corner.
+  term_emit(tiparm(nc->cup, 0, 0), out, false);
   unsigned lastr, lastg, lastb;
   unsigned lastbr, lastbg, lastbb;
   // we can elide a color escape iff the color has not changed between the two
@@ -1060,8 +1136,8 @@ int notcurses_render(notcurses* nc){
   }
   ret |= fclose(out);
   fflush(nc->ttyfp);
-  ssize_t w = write(nc->ttyfd, buf, buflen);
-  if(w < 0 || (size_t)w != buflen){
+  fprintf(nc->ttyfp, "%s", buf);
+  if(blocking_write(nc->ttyfd, buf, buflen)){
     ret = -1;
   }
 /*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
@@ -1119,7 +1195,7 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 }
 
 int ncplane_putc(ncplane* n, const cell* c){
-  if(n->y >= n->leny || n->x >= n->lenx){
+  if(cursor_invalid_p(n)){
     return -1;
   }
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
@@ -1228,6 +1304,10 @@ void ncplane_styles_off(ncplane* n, unsigned stylebits){
 void ncplane_styles_set(ncplane* n, unsigned stylebits){
   n->attrword = (n->attrword & ~CELL_STYLE_MASK) |
                 ((stylebits & 0xffff) << 16u);
+}
+
+unsigned ncplane_styles(const ncplane* n){
+  return (n->attrword & CELL_STYLE_MASK) >> 16u;
 }
 
 int ncplane_printf(ncplane* n, const char* format, ...){
@@ -1365,6 +1445,7 @@ handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress,
   if(kpress == 0x04){ // ctrl-d
     return -1;
   }
+  // FIXME look for keypad
   if(kpress < 0x80){
     c->gcluster = kpress;
   }else{
@@ -1387,18 +1468,31 @@ int notcurses_getc(const notcurses* nc, cell* c, ncspecial_key* special){
   return handle_getc(nc, c, r, special);
 }
 
+// we set our infd to non-blocking on entry, so to do a blocking call (without
+// burning cpu) we'll need to set up a poll().
 int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special){
-  int r = getc(nc->ttyinfp);
-  if(r < 0){
-    if(errno == EINTR){
-      if(resize_seen){
-        resize_seen = 0;
-        c->gcluster = 0;
-        *special = NCKEY_RESIZE;
-        return 1;
-      }
+  struct pollfd pfd = {
+    .fd = fileno(nc->ttyinfp),
+    .events = POLLIN | POLLRDHUP,
+    .revents = 0,
+  };
+  int pret;
+  while((pret = poll(&pfd, 1, -1)) >= 0){
+    if(pret == 0){
+      continue;
     }
-    return r;
+    int r = getc(nc->ttyinfp);
+    if(r < 0){
+      if(errno == EINTR){
+        if(resize_seen){
+          resize_seen = 0;
+          c->gcluster = 0;
+          *special = NCKEY_RESIZE;
+          return 1;
+        }
+      }
+      return handle_getc(nc, c, r, special);
+    }
   }
-  return handle_getc(nc, c, r, special);
+  return -1;
 }
