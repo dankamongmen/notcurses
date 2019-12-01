@@ -397,20 +397,27 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                    int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(n == n->nc->stdscr){
+    fprintf(stderr, "Can't resize standard plane\n");
     return -1;
   }
   if(keepy < 0 || keepx < 0){ // can't retain negative size
+    fprintf(stderr, "Can't retain negative size %dx%d\n", keepy, keepx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
+    fprintf(stderr, "Can't achieve negative size %dx%d\n", ylen, xlen);
     return -1;
   }
   if((!keepy && keepx) || (keepy && !keepx)){ // both must be 0
+    fprintf(stderr, "Can't keep zero dimensions %dx%d\n", keepy, keepx);
     return -1;
   }
   if(ylen < keepleny || xlen < keeplenx){ // can't be smaller than our keep
+    fprintf(stderr, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
     return -1;
   }
+fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
+        ylen, xlen, yoff, xoff, keepy, keepx, keepleny, keeplenx);
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.

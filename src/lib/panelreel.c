@@ -56,7 +56,8 @@ int wresize(ncplane* n, int leny, int lenx){
   ncplane_yx(n, &y, &x);
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  return ncplane_resize(n, 0, 0, dimy, dimx, y, x, leny, lenx);
+  int keepy = dimy > leny ? leny : dimy;
+  return ncplane_resize(n, 0, 0, keepy, dimx, y, x, leny, lenx);
 }
 
 // bchrs: 6-element array of wide border characters + attributes FIXME
@@ -228,7 +229,7 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
   int lenx, leny, begy, begx;
   ncplane* fp = t->p;
   if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, direction)){
-//fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
+fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
 // fprintf(stderr, "FRONTIER DONE!!!!!!\n");
     if(fp){
 // fprintf(stderr, "HIDING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
@@ -287,8 +288,8 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cbmaxx/cbmaxy: %d/%d dir: %d\n",
 //    lenx, leny, cbx, cby, cbmaxx, cbmaxy, direction);
   int ll = t->cbfxn(fp, cbx, cby, cbmaxx, cbmaxy, cbdir, t->curry);
-//fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n",
-//        t, ll, cby, cbmaxy, leny, direction);
+fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n",
+        t, ll, cby, cbmaxy, leny, direction);
   if(ll != leny){
     if(ll == leny - 1){ // only has one border visible (partially off-screen)
       ++ll; // account for that border
@@ -296,17 +297,17 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
       if(direction < 0){
         cliphead = true;
         ncplane_move_yx(fp, begy + leny - ll, begx);
-// fprintf(stderr, "MOVEDOWN CLIPPED RESIZED (-1) from %d to %d\n", leny, ll);
+fprintf(stderr, "MOVEDOWN CLIPPED RESIZED (-1) from %d to %d\n", leny, ll);
       }else{
         clipfoot = true;
-// fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
+fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
       }
     }else{ // both borders are visible
       ll += 2; // account for both borders
-// fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
+fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
       wresize(fp, ll, lenx);
       if(direction < 0){
-// fprintf(stderr, "MOVEDOWN UNCLIPPED (skip %d)\n", leny - ll);
+fprintf(stderr, "MOVEDOWN UNCLIPPED (skip %d)\n", leny - ll);
         ncplane_move_yx(fp, begy + leny - ll, begx);
       }
     }
