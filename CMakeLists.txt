@@ -36,6 +36,11 @@ target_link_libraries(notcurses
     "${SWSCALE_LIBRARIES}"
     "${LIBRT}"
 )
+target_link_directories(notcurses
+  PRIVATE
+    "${AVFORMAT_LIBRARY_DIRS}"
+    "${SWSCALE_LIBRARY_DIRS}"
+)
 set_target_properties(notcurses PROPERTIES
   PUBLIC_HEADER "include/notcurses.h"
   VERSION ${PROJECT_VERSION}
