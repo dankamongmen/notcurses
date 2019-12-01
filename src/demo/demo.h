@@ -19,6 +19,7 @@ int box_demo(struct notcurses* nc);
 int maxcolor_demo(struct notcurses* nc);
 int grid_demo(struct notcurses* nc);
 int sliding_puzzle_demo(struct notcurses* nc);
+int view_demo(struct notcurses* nc);
 
 #ifdef __cplusplus
 }

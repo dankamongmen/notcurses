@@ -30,6 +30,7 @@ usage(const char* exe, int status){
   fprintf(out, " m: run maxcolor\n");
   fprintf(out, " b: run box\n");
   fprintf(out, " g: run grid\n");
+  fprintf(out, " v: run view\n");
   fprintf(out, " w: run widecolors\n");
   exit(status);
 }
@@ -139,6 +140,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'm': ret = maxcolor_demo(nc); break;
       case 'b': ret = box_demo(nc); break;
       case 'g': ret = grid_demo(nc); break;
+      case 'v': ret = view_demo(nc); break;
       case 'w': ret = widecolor_demo(nc); break;
     }
     if(ret){
@@ -207,7 +209,7 @@ int main(int argc, char** argv){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
-    demos = "isumbgw";
+    demos = "isumbgwv";
   }
   if((nc = notcurses_init(&nopts)) == NULL){
     return EXIT_FAILURE;
