@@ -18,7 +18,11 @@ int ncview(struct notcurses* nc, struct ncvisual* ncv, int* averr){
   struct ncplane* n = notcurses_stdplane(nc);
   int frame = 1;
   AVFrame* avf;
-  while( (avf = ncvisual_decode(ncv, averr)) ){
+  struct timespec start;
+  // FIXME should keep a start time and cumulative time; this will push things
+  // out on a loaded machine
+  while(clock_gettime(CLOCK_MONOTONIC, &start),
+        (avf = ncvisual_decode(ncv, averr)) ){
     ncplane_cursor_move_yx(n, 0, 0);
     ncplane_printf(n, "Got frame %05d\u2026", frame);
     if(ncvisual_render(ncv)){
@@ -28,11 +32,12 @@ int ncview(struct notcurses* nc, struct ncvisual* ncv, int* averr){
       return -1;
     }
     ++frame;
-    struct timespec ts = {
-      .tv_sec = avf->pkt_duration / 1000000,
-      .tv_nsec = avf->pkt_duration * 1000000,
+    uint64_t ns = avf->pkt_duration * 1000000;
+    struct timespec interval = {
+      .tv_sec = start.tv_sec + (long)(ns / 1000000000),
+      .tv_nsec = start.tv_nsec + (long)(ns % 1000000000),
     };
-    nanosleep(&ts, NULL);
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
   }
   if(*averr == AVERROR_EOF){
     return 0;
