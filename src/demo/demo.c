@@ -127,6 +127,8 @@ intro(struct notcurses* nc){
     return -1;
   }
   nanosleep(&demodelay, NULL);
+  struct timespec fade = demodelay;
+  ncplane_fadeout(ncp, &fade);
   return 0;
 }
 
