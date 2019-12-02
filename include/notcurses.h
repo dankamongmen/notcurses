@@ -449,7 +449,7 @@ cell_rgb_blue(uint32_t rgb){
 
 static inline void
 cell_rgb_get_fg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  uint32_t fg = ((channels & CELL_FG_MASK));
+  uint32_t fg = ((channels & CELL_FG_MASK) >> 32u);
   *r = cell_rgb_red(fg);
   *g = cell_rgb_green(fg);
   *b = cell_rgb_blue(fg);
@@ -457,7 +457,7 @@ cell_rgb_get_fg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
 
 static inline void
 cell_rgb_get_bg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  uint32_t bg = ((channels & CELL_BG_MASK) >> 32u);
+  uint32_t bg = ((channels & CELL_BG_MASK));
   *r = cell_rgb_red(bg);
   *g = cell_rgb_green(bg);
   *b = cell_rgb_blue(bg);
