@@ -29,7 +29,7 @@ void ncvisual_destroy(ncvisual* ncv){
   }
 }
 
-static void
+/* static void
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
   char pfmt[128];
   av_get_pix_fmt_string(pfmt, sizeof(pfmt), f->format);
@@ -65,7 +65,7 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
           f->best_effort_timestamp,
           f->key_frame ? "" : "non-",
           f->quality);
-}
+}*/
 
 AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr){
   bool have_frame = false;
@@ -151,6 +151,10 @@ ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename, int* ave
   memset(ncv, 0, sizeof(*ncv));
   ncv->ncp = nc;
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
+  // FIXME we only want to do this if we're not already large enough to
+  // faithfully reproduce the image, methinks?
+  //ncv->dstwidth *= 2;
+  ncv->dstheight *= 2;
   *averr = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
   if(*averr < 0){
     fprintf(stderr, "Couldn't open %s (%s)\n", filename, av_err2str(*averr));
