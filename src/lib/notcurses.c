@@ -1041,7 +1041,7 @@ blocking_write(int fd, const char* buf, size_t buflen){
 // determine the best palette for the current frame, and write the necessary
 // escape sequences to 'out'.
 static int
-prep_optimized_palette(notcurses* nc, FILE* out){
+prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   if(nc->RGBflag){
     return 0; // DirectColor, no need to write palette
   }
@@ -1109,24 +1109,24 @@ int notcurses_render(notcurses* nc){
       // we can elide the foreground set iff the previous used fg and matched
       if(!cell_fg_default_p(c)){
         cell_get_fg(c, &r, &g, &b);
-        if(!fgelidable || lastr != r || lastg != g || lastb != b){
+        if(fgelidable && lastr == r && lastg == g && lastb == b){
+          ++fgelisions;
+        }else{
           term_fg_rgb8(nc, out, r, g, b);
           ++fgemissions;
           fgelidable = true;
-        }else{
-          ++fgelisions;
         }
         lastr = r; lastg = g; lastb = b;
         defaultelidable = false;
       }
       if(!cell_bg_default_p(c)){
         cell_get_bg(c, &br, &bg, &bb);
-        if(!bgelidable || lastbr != br || lastbg != bg || lastbb != bb){
+        if(bgelidable && lastbr == br && lastbg == bg && lastbb == bb){
+          ++bgelisions;
+        }else{
           term_bg_rgb8(nc, out, br, bg, bb);
           ++bgemissions;
           bgelidable = true;
-        }else{
-          ++bgelisions;
         }
         lastbr = br; lastbg = bg; lastbb = bb;
         defaultelidable = false;

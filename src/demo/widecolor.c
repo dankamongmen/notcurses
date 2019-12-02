@@ -27,10 +27,10 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   cell_load(n, &ll, "╨");
   ncplane_cursor_move_yx(n, 3, 4);
   ncplane_putc(n, &ll);
-  ncplane_cursor_move_yx(n, 3, 18);
+  ncplane_cursor_move_yx(n, 3, 20);
   ncplane_putc(n, &ll);
   cell_load(n, &vl, "║");
-  ncplane_cursor_move_yx(n, 2, 18);
+  ncplane_cursor_move_yx(n, 2, 20);
   ncplane_putc(n, &vl);
   ncplane_cursor_move_yx(n, 2, 4);
   ncplane_putc(n, &vl);
@@ -38,11 +38,11 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_cursor_move_yx(n, 1, 4);
   ncplane_putc(n, &ul);
   cell_load(n, &hl, "═");
-  ncplane_hline(n, &hl, 13);
+  ncplane_hline(n, &hl, 15);
   cell_load(n, &ur, "╗");
   ncplane_putc(n, &ur);
   ncplane_cursor_move_yx(n, 2, 5);
-  ncplane_printf(n, " %dx%d (%d/%d) ", maxx, maxy, num + 1, total);
+  ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_cursor_move_yx(n, 4, 2);
   ncplane_styles_off(n, CELL_STYLE_BOLD);
   ncplane_fg_rgb8(n, 200, 20, 200);
