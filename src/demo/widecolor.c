@@ -256,7 +256,13 @@ int widecolor_demo(struct notcurses* nc){
     // ncplane_erase(n);
     const int start = starts[i];
     const int step = steps[i];
-    //do{
+    ncspecial_key special;
+    cell c;
+    do{
+      int dimy, dimx;
+      notcurses_resize(nc, &dimy, &dimx);
+      cell_init(&c);
+      special = NCKEY_INVALID;
       int y, x, maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx);
       int rgb = start;
@@ -309,12 +315,13 @@ int widecolor_demo(struct notcurses* nc){
       /*if(i){ FIXME
         fadein(w, count, palette, FADE_MILLISECONDS);
       }
-      do{
-        key = wgetch(w);
-      }while(key == ERR);
       */
-      nanosleep(&demodelay, NULL);
-    //}while(key == KEY_RESIZE);
+      int key;
+      do{
+        key = notcurses_getc_blocking(nc, &c, &special);
+      }while(key < 0);
+      // nanosleep(&demodelay, NULL);
+    }while(c.gcluster == 0 && special == NCKEY_RESIZE);
   }
   return 0;
 }
