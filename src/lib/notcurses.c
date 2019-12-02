@@ -357,7 +357,7 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   p->leny = *rows;
   for(y = 0 ; y < p->leny ; ++y){
     idx = y * p->lenx;
-    if(y > oldrows){
+    if(y >= oldrows){
       memset(&p->fb[idx], 0, sizeof(*p->fb) * p->lenx);
       continue;
     }
@@ -1513,8 +1513,8 @@ int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special
   };
   int pret, r;
   sigset_t smask;
-  sigemptyset(&smask);
-  sigaddset(&smask, SIGWINCH);
+  sigfillset(&smask);
+  sigdelset(&smask, SIGWINCH);
   while((pret = ppoll(&pfd, 1, NULL, &smask)) >= 0){
     if(pret == 0){
       continue;
