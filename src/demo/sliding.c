@@ -9,6 +9,19 @@
 #define MOVES 45
 #define GIG 1000000000
 
+static int
+move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex){
+  int newholex, newholey;
+  ncplane_yx(chunk, &newholey, &newholex);
+  ncplane_move_yx(chunk, *holey, *holex);
+  *holey = newholey;
+  *holex = newholex;
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  return 0;
+}
+
 // we take (MOVES / 5) * demodelay to play MOVES moves
 static int
 play(struct notcurses* nc, struct ncplane** chunks){
@@ -43,17 +56,10 @@ play(struct notcurses* nc, struct ncplane** chunks){
       }
     }while(mover == chunkcount);
     lastdir = direction;
-    int newholex, newholey;
-    ncplane_yx(chunks[mover], &newholey, &newholex);
-    ncplane_move_yx(chunks[mover], holey, holex);
-    holey = newholey;
-    holex = newholex;
+    move_square(nc, chunks[mover], &holey, &holex);
     chunks[hole] = chunks[mover];
     chunks[mover] = NULL;
     hole = mover;
-    if(notcurses_render(nc)){
-      return -1;
-    }
     nanosleep(&movetime, NULL);
   }
   return 0;
