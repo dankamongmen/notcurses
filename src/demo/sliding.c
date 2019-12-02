@@ -13,12 +13,34 @@ static int
 move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex){
   int newholex, newholey;
   ncplane_yx(chunk, &newholey, &newholex);
-  ncplane_move_yx(chunk, *holey, *holex);
+  // we need to move from newhole to hole over the course of movetime
+  int deltay, deltax;
+  deltay = *holey - newholey;
+  deltax = *holex - newholex;
+  // divide movetime into abs(max(deltay, deltax)) units, and move delta
+  int units = abs(deltay) > abs(deltax) ? abs(deltay) : abs(deltax);
+  uint64_t movens = (MOVES / 5) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
+  movens /= units;
+  struct timespec movetime = {
+    .tv_sec = movens / MOVES / GIG,
+    .tv_nsec = movens / MOVES % GIG,
+  };
+  int i;
+  int targy = newholey;
+  int targx = newholex;
+  deltay = deltay < 0 ? -1 : deltay == 0 ? 0 : 1;
+  deltax = deltax < 0 ? -1 : deltax == 0 ? 0 : 1;
+  for(i = 0 ; i < units ; ++i){
+    targy += deltay;
+    targx += deltax;
+    ncplane_move_yx(chunk, targy, targx);
+    if(notcurses_render(nc)){
+      return -1;
+    }
+    nanosleep(&movetime, NULL);
+  }
   *holey = newholey;
   *holex = newholex;
-  if(notcurses_render(nc)){
-    return -1;
-  }
   return 0;
 }
 
@@ -26,11 +48,6 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex)
 static int
 play(struct notcurses* nc, struct ncplane** chunks){
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
-  uint64_t movens = (MOVES / 5) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
-  struct timespec movetime = {
-    .tv_sec = movens / MOVES / GIG,
-    .tv_nsec = movens / MOVES % GIG,
-  };
   // struct ncplane* n = notcurses_stdplane(nc);
   int hole = random() % chunkcount;
   int holex, holey;
@@ -60,7 +77,6 @@ play(struct notcurses* nc, struct ncplane** chunks){
     chunks[hole] = chunks[mover];
     chunks[mover] = NULL;
     hole = mover;
-    nanosleep(&movetime, NULL);
   }
   return 0;
 }
