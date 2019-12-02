@@ -68,35 +68,40 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
 }
 
 AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr){
+  bool have_frame = false;
   bool unref = false;
   do{
-    if(nc->packet_outstanding){
-      break;
+    do{
+      if(nc->packet_outstanding){
+        break;
+      }
+      if(unref){
+  // fprintf(stderr, "stream index %d != %d\n", nc->packet->stream_index, nc->stream_index);
+        av_packet_unref(nc->packet);
+      }
+      if((*averr = av_read_frame(nc->fmtctx, nc->packet)) < 0){
+        fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(*averr));
+        return NULL;
+      }
+      unref = true;
+    }while(nc->packet->stream_index != nc->stream_index);
+    ++nc->packet_outstanding;
+    *averr = avcodec_send_packet(nc->codecctx, nc->packet);
+    if(*averr < 0){
+      fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(*averr));
+      return ncvisual_decode(nc, averr);
     }
-    if(unref){
-// fprintf(stderr, "stream index %d != %d\n", nc->packet->stream_index, nc->stream_index);
-      av_packet_unref(nc->packet);
-    }
-    if((*averr = av_read_frame(nc->fmtctx, nc->packet)) < 0){
-      fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(*averr));
+    --nc->packet_outstanding;
+    *averr = avcodec_receive_frame(nc->codecctx, nc->frame);
+    if(*averr >= 0){
+      have_frame = true;
+    }else if(*averr == AVERROR(EAGAIN) || *averr == AVERROR_EOF){
+      have_frame = false;
+    }else if(*averr < 0){
+      fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(*averr));
       return NULL;
     }
-    unref = true;
-  }while(nc->packet->stream_index != nc->stream_index);
-  ++nc->packet_outstanding;
-  *averr = avcodec_send_packet(nc->codecctx, nc->packet);
-  if(*averr < 0){
-    fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(*averr));
-    return ncvisual_decode(nc, averr);
-  }
-  --nc->packet_outstanding;
-  *averr = avcodec_receive_frame(nc->codecctx, nc->frame);
-  if(*averr == AVERROR(EAGAIN) || *averr == AVERROR_EOF){
-    return NULL; // FIXME do something smarter
-  }else if(*averr < 0){
-    fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(*averr));
-    return NULL;
-  }
+  }while(!have_frame);
 print_frame_summary(nc->codecctx, nc->frame);
 #define IMGALLOCALIGN 32
   const int targformat = AV_PIX_FMT_RGBA;
