@@ -1553,23 +1553,44 @@ int ncvisual_render(const ncvisual* ncv){
   ncplane_cursor_move_yx(ncv->ncp, 0, 0);
   const int linesize = f->linesize[0];
   const unsigned char* data = f->data[0];
-  for(y = 0 ; y < f->height && y < dimy ; ++y){
+  if(f->height != dimy * 2){
+    return -1;
+  }
+  /*if(f->width != dimx * 2){
+    return -1;
+  }*/
+  for(y = 0 ; y < f->height / 2 && y < dimy ; ++y){
     for(x = 0 ; x < f->width && x < dimx ; ++x){
       int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
-      const unsigned char* rgbbase = data + (linesize * y) + (x * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_up = data + (linesize * (y * 2)) + (x * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_down = data + (linesize * (y * 2 + 1)) + (x * bpp / CHAR_BIT);
 /*fprintf(stderr, "[%04d/%04d] %p bpp: %d lsize: %d %02x %02x %02x %02x\n",
         y, x, rgbbase, bpp, linesize, rgbbase[0], rgbbase[1], rgbbase[2], rgbbase[3]);*/
       cell c = CELL_TRIVIAL_INITIALIZER;
-      if(!rgbbase[3]){
-        cell_fg_default(&c);
+      // use the default for the background, as that's the only way it's
+      // effective in that case anyway
+      if(!rgbbase_up[3] || !rgbbase_down[3]){
         cell_bg_default(&c);
-        if(cell_load(ncv->ncp, &c, " ") <= 0){
-          return -1;
+        if(!rgbbase_up[3] && !rgbbase_down[3]){
+          if(cell_load(ncv->ncp, &c, " ") <= 0){
+            return -1;
+          }
+          cell_fg_default(&c);
+        }else if(!rgbbase_up[3]){ // down has the color
+          if(cell_load(ncv->ncp, &c, "\u2584") <= 0){ // lower half block
+            return -1;
+          }
+          cell_set_fg(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+        }else{ // up has the color
+          if(cell_load(ncv->ncp, &c, "\u2580") <= 0){ // upper half block
+            return -1;
+          }
+          cell_set_fg(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
         }
       }else{
-        cell_set_fg(&c, rgbbase[0], rgbbase[1], rgbbase[2]);
-        cell_set_bg(&c, rgbbase[0], rgbbase[1], rgbbase[2]);
-        if(cell_load(ncv->ncp, &c, "▓") <= 0){
+        cell_set_fg(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+        cell_set_bg(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+        if(cell_load(ncv->ncp, &c, "\u2580") <= 0){ // upper half block
           return -1;
         }
       }
