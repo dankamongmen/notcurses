@@ -75,9 +75,9 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   if(ncplane_rounded_box_cells(w, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-fprintf(stderr, "drawing borders %p %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
+/*fprintf(stderr, "drawing borders %p %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
         w, begx, begy, maxx, maxy, nobordermask,
-        cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');
+        cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');*/
   ul.attrword = attr->attrword; ul.channels = attr->channels;
   ur.attrword = attr->attrword; ur.channels = attr->channels;
   ll.attrword = attr->attrword; ll.channels = attr->channels;
@@ -227,7 +227,7 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
   int lenx, leny, begy, begx;
   ncplane* fp = t->p;
   if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, direction)){
-fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
+//fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
 // fprintf(stderr, "FRONTIER DONE!!!!!!\n");
     if(fp){
 // fprintf(stderr, "HIDING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
@@ -286,8 +286,8 @@ fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cbmaxx/cbmaxy: %d/%d dir: %d\n",
 //    lenx, leny, cbx, cby, cbmaxx, cbmaxy, direction);
   int ll = t->cbfxn(fp, cbx, cby, cbmaxx, cbmaxy, cbdir, t->curry);
-fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n",
-        t, ll, cby, cbmaxy, leny, direction);
+//fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n",
+//        t, ll, cby, cbmaxy, leny, direction);
   if(ll != leny){
     if(ll == leny - 1){ // only has one border visible (partially off-screen)
       ++ll; // account for that border
@@ -295,17 +295,17 @@ fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n",
       if(direction < 0){
         cliphead = true;
         ncplane_move_yx(fp, begy + leny - ll, begx);
-fprintf(stderr, "MOVEDOWN CLIPPED RESIZED (-1) from %d to %d\n", leny, ll);
+//fprintf(stderr, "MOVEDOWN CLIPPED RESIZED (-1) from %d to %d\n", leny, ll);
       }else{
         clipfoot = true;
-fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
+//fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
       }
     }else{ // both borders are visible
       ll += 2; // account for both borders
-fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
+//fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
       wresize(fp, ll, lenx);
       if(direction < 0){
-fprintf(stderr, "MOVEDOWN UNCLIPPED (skip %d)\n", leny - ll);
+//fprintf(stderr, "MOVEDOWN UNCLIPPED (skip %d)\n", leny - ll);
         ncplane_move_yx(fp, begy + leny - ll, begx);
       }
     }
@@ -513,12 +513,12 @@ panelreel_arrange(panelreel* pr){
     otherend = draw_previous_tablets(pr, otherend);
   }
   // FIXME move them up to plug any holes in original direction?
-fprintf(stderr, "DONE ARRANGING\n");
+//fprintf(stderr, "DONE ARRANGING\n");
   return 0;
 }
 
 int panelreel_redraw(panelreel* pr){
-fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
+//fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
   int ret = 0;
   if(draw_panelreel_borders(pr)){
     return -1; // enforces specified dimensional minima
@@ -662,7 +662,7 @@ tablet* panelreel_add(panelreel* pr, tablet* after, tablet *before,
   if((t = malloc(sizeof(*t))) == NULL){
     return NULL;
   }
-fprintf(stderr, "--------->NEW TABLET %p\n", t);
+//fprintf(stderr, "--------->NEW TABLET %p\n", t);
   if(after){
     t->next = after->next;
     after->next = t;
@@ -795,8 +795,8 @@ int panelreel_move(panelreel* preel, int x, int y){
 tablet* panelreel_next(panelreel* pr){
   if(pr->tablets){
     pr->tablets = pr->tablets->next;
-fprintf(stderr, "---------------> moved to next, %p to %p <----------\n",
-        pr->tablets->prev, pr->tablets);
+//fprintf(stderr, "---------------> moved to next, %p to %p <----------\n",
+//        pr->tablets->prev, pr->tablets);
     pr->last_traveled_direction = 1;
   }
   panelreel_redraw(pr);
@@ -806,8 +806,8 @@ fprintf(stderr, "---------------> moved to next, %p to %p <----------\n",
 tablet* panelreel_prev(panelreel* pr){
   if(pr->tablets){
     pr->tablets = pr->tablets->prev;
-fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n",
-        pr->tablets->next, pr->tablets);
+//fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n",
+//        pr->tablets->next, pr->tablets);
     pr->last_traveled_direction = -1;
   }
   panelreel_redraw(pr);
