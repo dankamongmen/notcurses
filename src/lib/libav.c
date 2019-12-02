@@ -102,7 +102,7 @@ AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr){
       return NULL;
     }
   }while(!have_frame);
-print_frame_summary(nc->codecctx, nc->frame);
+//print_frame_summary(nc->codecctx, nc->frame);
 #define IMGALLOCALIGN 32
   const int targformat = AV_PIX_FMT_RGBA;
   nc->swsctx = sws_getCachedContext(nc->swsctx,
@@ -135,7 +135,7 @@ print_frame_summary(nc->codecctx, nc->frame);
     fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(*averr));
     return NULL;
   }
-print_frame_summary(nc->codecctx, nc->oframe);
+//print_frame_summary(nc->codecctx, nc->oframe);
 #undef IMGALLOCALIGN
   av_frame_unref(nc->frame);
   return nc->oframe;

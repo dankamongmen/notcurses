@@ -1032,6 +1032,14 @@ blocking_write(int fd, const char* buf, size_t buflen){
     }else{
       written += w;
     }
+    if(written < buflen){
+      struct pollfd pfd = {
+        .fd = fd,
+        .events = POLLOUT,
+        .revents = 0,
+      };
+      poll(&pfd, 1, -1);
+    }
   }while(written < buflen);
   return 0;
 }
