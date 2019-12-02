@@ -7,10 +7,25 @@ view_video_demo(struct notcurses* nc){
   int dimy, dimx;
   ncplane_dim_yx(ncp, &dimy, &dimx);
   int averr;
-  struct ncvisual* ncv = ncplane_visual_open(ncp, "../tests/atliens.mkv", &averr);
-  if(ncvisual_stream(nc, ncv, &averr)){
+  struct ncvisual* ncv;
+  ncv = ncplane_visual_open(ncp, "../tests/bob.mkv", &averr);
+  if(!ncv){
     return -1;
   }
+  if(ncvisual_stream(nc, ncv, &averr)){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  ncvisual_destroy(ncv);
+  ncv = ncplane_visual_open(ncp, "../tests/atliens.mkv", &averr);
+  if(!ncv){
+    return -1;
+  }
+  if(ncvisual_stream(nc, ncv, &averr)){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  ncvisual_destroy(ncv);
   return 0;
 }
 
