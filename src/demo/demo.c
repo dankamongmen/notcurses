@@ -44,6 +44,7 @@ outro(struct notcurses* nc){
     return -1;
   }
   int rows, cols;
+  ncplane_erase(ncp);
   ncplane_dim_yx(ncp, &rows, &cols);
   int averr = 0;
   struct ncvisual* ncv = ncplane_visual_open(ncp, "../tests/changes.jpg", &averr);
@@ -61,7 +62,7 @@ outro(struct notcurses* nc){
   const char str0[] = "      ATL, baby! ATL!      ";
   const char str1[] = " much, much more is coming ";
   const char str2[] = "      hack on 💖 dank      ";
-  int ybase = rows - 6;
+  int ybase = rows - 5;
   if(ncplane_fg_rgb8(ncp, 0, 0, 0)){
     return -1;
   }

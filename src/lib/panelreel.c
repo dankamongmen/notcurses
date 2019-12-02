@@ -722,6 +722,7 @@ int panelreel_destroy(panelreel* preel){
       panelreel_del(preel, t);
       t = tmp;
     }
+    ncplane_destroy(preel->p);
     free(preel);
   }
   return ret;

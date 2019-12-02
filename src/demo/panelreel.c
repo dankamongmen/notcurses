@@ -338,7 +338,6 @@ int panelreel_demo(struct notcurses* nc){
     close(efd);
     return -1;
   }
-  /*fadeout(w, FADE_MILLISECONDS);*/
   while(tctxs){
     kill_tablet(&tctxs);
   }
@@ -348,5 +347,8 @@ int panelreel_demo(struct notcurses* nc){
     return -1;
   }
   close(efd);
+  if(notcurses_render(nc)){
+    return -1;
+  }
   return 0;
 }
