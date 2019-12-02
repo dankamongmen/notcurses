@@ -1,3 +1,9 @@
+notcurses (0.4.0-1) UNRELEASED; urgency=medium
+
+  * 
+
+ -- Nick Black <dankamongmen@gmail.com>  Mon, 02 Dec 2019 06:01:40 -0500
+
 notcurses (0.3.0-1) unstable; urgency=medium
 
   * New upstream version
