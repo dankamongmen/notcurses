@@ -1,6 +1,7 @@
 #ifndef NOTCURSES_NOTCURSES
 #define NOTCURSES_NOTCURSES
 
+#include <time.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
@@ -345,6 +346,13 @@ API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 // Return the current styling for this ncplane.
 API unsigned ncplane_styles(const struct ncplane* n);
 
+// Fade the ncplane out over the provided time, calling the specified function
+// when done. Requires a terminal which supports direct color, or at least
+// palette modification (if the terminal uses a palette, our ability to fade
+// planes is limited, and affected by the complexity of the rest of the screen).
+// It is not safe to resize or destroy the plane during the fadeout FIXME.
+API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);
+
 // Working with cells
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
@@ -438,6 +446,22 @@ cell_rgb_blue(uint32_t rgb){
 #define CELL_FG_MASK           0x00ffffff00000000ull
 #define CELL_BGDEFAULT_MASK    0x0000000040000000ull
 #define CELL_BG_MASK           0x0000000000ffffffull
+
+static inline void
+cell_rgb_get_fg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  uint32_t fg = ((channels & CELL_FG_MASK));
+  *r = cell_rgb_red(fg);
+  *g = cell_rgb_green(fg);
+  *b = cell_rgb_blue(fg);
+}
+
+static inline void
+cell_rgb_get_bg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  uint32_t bg = ((channels & CELL_BG_MASK) >> 32u);
+  *r = cell_rgb_red(bg);
+  *g = cell_rgb_green(bg);
+  *b = cell_rgb_blue(bg);
+}
 
 static inline int
 cell_rgb_set_fg(uint64_t* channels, int r, int g, int b){

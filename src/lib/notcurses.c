@@ -25,6 +25,7 @@
 #include "egcpool.h"
 
 #define ESC "\x1b"
+#define NANOSECS_IN_SEC 1000000000
 
 typedef struct ncstats {
   uint64_t renders;       // number of notcurses_render() runs
@@ -158,8 +159,8 @@ static void
 update_render_stats(const struct timespec* time1, const struct timespec* time0,
                     ncstats* stats){
   int64_t elapsed = timespec_subtract_ns(time1, time0);
-  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / 1000000000,
-  //        (elapsed % 1000000000) / 1000000);
+  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
+  //        (elapsed % NANOSECS_IN_SEC) / 1000000);
   if(elapsed > 0){ // don't count clearly incorrect information, egads
     ++stats->renders;
     stats->renders_ns += elapsed;
@@ -722,7 +723,7 @@ int notcurses_stop(notcurses* nc){
             nc->stats.renders_ns / 1000000000.0,
             nc->stats.render_min_ns / 1000000000.0,
             nc->stats.render_max_ns / 1000000000.0,
-            avg / 1000000000);
+            avg / NANOSECS_IN_SEC);
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;
@@ -1595,5 +1596,113 @@ int ncvisual_render(const ncvisual* ncv){
       cell_release(ncv->ncp, &c);
     }
   }
+  return 0;
+}
+
+typedef struct planepalette {
+  int size;                     // number of channel entries
+  unsigned maxr, maxg, maxb;    // maxima across foreground channels
+  unsigned maxbr, maxbg, maxbb; // maxima across background channels
+  uint64_t* channels;           // all channels from the framebuffer
+} planepalette;
+
+// These arrays are too large to be safely placed on the stack.
+static int
+alloc_ncplane_palette(ncplane* n, planepalette* pp){
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  pp->size = dimy * dimx;
+  if((pp->channels = malloc(sizeof(*pp->channels) * pp->size)) == NULL){
+    return -1;
+  }
+  pp->maxr = pp->maxg = pp->maxb = 0;
+  pp->maxbr = pp->maxbg = pp->maxbb = 0;
+  int y, x;
+  for(y = 0 ; y < dimy ; ++y){
+    for(x = 0 ; x < dimx ; ++x){
+      uint64_t channels = n->fb[fbcellidx(n, y, x)].channels;
+      pp->channels[y * dimx + x] = channels;
+      unsigned r, g, b, br, bg, bb;
+      cell_rgb_get_fg(channels, &r, &g, &b);
+      if(r > pp->maxr){
+        pp->maxr = r;
+      }
+      if(g > pp->maxg){
+        pp->maxg = g;
+      }
+      if(b > pp->maxb){
+        pp->maxb = b;
+      }
+      cell_rgb_get_bg(channels, &br, &bg, &bb);
+      if(br > pp->maxbr){
+        pp->maxbr = br;
+      }
+      if(bg > pp->maxbg){
+        pp->maxbg = bg;
+      }
+      if(bb > pp->maxbb){
+        pp->maxbb = bb;
+      }
+    }
+  }
+  return 0;
+}
+
+int ncplane_fadeout(ncplane* n, const struct timespec* ts){
+  planepalette pp;
+  if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
+    return -1;
+  }
+  if(alloc_ncplane_palette(n, &pp)){
+    return -1;
+  }
+  int maxfsteps = pp.maxg > pp.maxr ? (pp.maxb > pp.maxg ? pp.maxb : pp.maxg) :
+                  (pp.maxb > pp.maxr ? pp.maxb : pp.maxr);
+  int maxbsteps = pp.maxbg > pp.maxbr ? (pp.maxbb > pp.maxbg ? pp.maxbb : pp.maxbg) :
+                  (pp.maxbb > pp.maxbr ? pp.maxbb : pp.maxbr);
+  int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
+  uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
+  uint64_t nanosecs_step = nanosecs_total / maxsteps;
+  struct timespec times;
+  clock_gettime(CLOCK_MONOTONIC, &times);
+  // Start time in absolute nanoseconds
+  uint64_t startns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
+  do{
+    clock_gettime(CLOCK_MONOTONIC, &times);
+    uint64_t curns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
+    int iter = (curns - startns) / nanosecs_step + 1;
+    if(iter > maxsteps){
+      break;
+    }
+    int p;
+    for(p = 0 ; p < pp.size ; ++p){
+      cell* c = &n->fb[p];
+      unsigned r, g, b;
+      cell_rgb_get_fg(pp.channels[p], &r, &g, &b);
+      unsigned br, bg, bb;
+      cell_rgb_get_bg(pp.channels[p], &br, &bg, &bb);
+      r = r * (maxsteps - iter) / maxsteps;
+      g = g * (maxsteps - iter) / maxsteps;
+      b = b * (maxsteps - iter) / maxsteps;
+      br = br * (maxsteps - iter) / maxsteps;
+      bg = bg * (maxsteps - iter) / maxsteps;
+      bb = bb * (maxsteps - iter) / maxsteps;
+      cell_set_fg(c, r, g, b);
+      cell_set_bg(c, br, bg, bb);
+    }
+    notcurses_render(n->nc);
+    uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
+    struct timespec sleepspec;
+    sleepspec.tv_sec = nextwake / NANOSECS_IN_SEC;
+    sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
+    int r;
+    // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
+    // of Glibc 2.29 + Linux 5.3 :/.
+    r = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
+    if(r){
+      break;
+    }
+  }while(true);
+  free(pp.channels);
   return 0;
 }
