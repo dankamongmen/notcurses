@@ -1684,14 +1684,18 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts){
       cell_rgb_get_fg(pp.channels[p], &r, &g, &b);
       unsigned br, bg, bb;
       cell_rgb_get_bg(pp.channels[p], &br, &bg, &bb);
-      r = r * iter / maxsteps;
-      g = g * iter / maxsteps;
-      b = b * iter / maxsteps;
-      cell_set_fg(c, r, g, b);
-      br = br * iter / maxsteps;
-      bg = bg * iter / maxsteps;
-      bb = bb * iter / maxsteps;
-      cell_set_bg(c, br, bg, bb);
+      if(!cell_fg_default_p(c)){
+        r = r * iter / maxsteps;
+        g = g * iter / maxsteps;
+        b = b * iter / maxsteps;
+        cell_set_fg(c, r, g, b);
+      }
+      if(!cell_bg_default_p(c)){
+        br = br * iter / maxsteps;
+        bg = bg * iter / maxsteps;
+        bb = bb * iter / maxsteps;
+        cell_set_bg(c, br, bg, bb);
+      }
     }
     notcurses_render(n->nc);
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
@@ -1767,4 +1771,34 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
   }while(true);
   free(pp.channels);
   return 0;
+}
+
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr){
+  ncplane* n = ncv->ncp;
+  int frame = 1;
+  AVFrame* avf;
+  struct timespec start;
+  // FIXME should keep a start time and cumulative time; this will push things
+  // out on a loaded machine
+  while(clock_gettime(CLOCK_MONOTONIC, &start),
+        (avf = ncvisual_decode(ncv, averr)) ){
+    ncplane_cursor_move_yx(n, 0, 0);
+    if(ncvisual_render(ncv)){
+      return -1;
+    }
+    if(notcurses_render(nc)){
+      return -1;
+    }
+    ++frame;
+    uint64_t ns = avf->pkt_duration * 1000000;
+    struct timespec interval = {
+      .tv_sec = start.tv_sec + (long)(ns / 1000000000),
+      .tv_nsec = start.tv_nsec + (long)(ns % 1000000000),
+    };
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
+  }
+  if(*averr == AVERROR_EOF){
+    return 0;
+  }
+  return -1;
 }
