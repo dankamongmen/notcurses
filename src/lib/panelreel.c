@@ -617,6 +617,7 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
       pr->all_visible = false;
       return t;
     }
+// fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
     if((t->p = notcurses_newplane(nc, leny, lenx, begy, begx, NULL)) == NULL){
       pr->all_visible = false;
       return t;
@@ -635,7 +636,7 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
     pr->all_visible = false;
     return t;
   }
-fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, 2, lenx);
+// fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, 2, lenx);
   if((t->p = notcurses_newplane(nc, 2, lenx, begy, begx, NULL)) == NULL){
     pr->all_visible = false;
     return t;

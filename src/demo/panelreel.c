@@ -255,6 +255,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     .boff = 0,
   };
   cell_set_fg(&popts.focusedattr, 58, 150, 221);
+  cell_set_bg(&popts.focusedattr, 97, 214, 214);
   cell_set_fg(&popts.tabletattr, 19, 161, 14);
   cell_set_fg(&popts.borderattr, 136, 23, 152);
   struct ncplane* w = notcurses_stdplane(nc);
