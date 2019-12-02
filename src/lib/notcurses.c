@@ -436,8 +436,10 @@ fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\
   }
   cell* preserved = n->fb;
   n->fb = fb;
+fprintf(stderr, "ABS: %d %d\n", n->absy, n->absx);
   n->absy = n->absy + keepy - yoff;
   n->absx = n->absx + keepx - xoff;
+fprintf(stderr, "ABS: %d %d\n", n->absy, n->absx);
   // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
   // and keep it. perhaps we ought compact it?
   if(keptarea == 0){ // keep nothing, resize/move only

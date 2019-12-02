@@ -52,12 +52,10 @@ window_coordinates(const ncplane* w, int* begy, int* begx, int* leny, int* lenx)
 
 // FIXME compatability wrapper for libpanel
 int wresize(ncplane* n, int leny, int lenx){
-  int y, x;
-  ncplane_yx(n, &y, &x);
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   int keepy = dimy > leny ? leny : dimy;
-  return ncplane_resize(n, 0, 0, keepy, dimx, y, x, leny, lenx);
+  return ncplane_resize(n, 0, 0, keepy, dimx, 0, 0, leny, lenx);
 }
 
 // bchrs: 6-element array of wide border characters + attributes FIXME
@@ -598,7 +596,7 @@ panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd)
   return pr;
 }
 
-// we've just added a new tablet. it need be inserted at the correct place in
+// we've just added a new tablet. it needs be inserted at the correct place in
 // the reel. this will naturally fall out of things if the panelreel is full; we
 // can just call panelreel_redraw(). otherwise, we need make ourselves at least
 // minimally visible, to satisfy the preconditions of
@@ -619,12 +617,10 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
       pr->all_visible = false;
       return t;
     }
-fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
     if((t->p = notcurses_newplane(nc, leny, lenx, begy, begx, NULL)) == NULL){
       pr->all_visible = false;
       return t;
     }
-fprintf(stderr, "created first tablet!\n");
     return t;
   }
   // we're not the only tablet, alas.
@@ -639,6 +635,7 @@ fprintf(stderr, "created first tablet!\n");
     pr->all_visible = false;
     return t;
   }
+fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, 2, lenx);
   if((t->p = notcurses_newplane(nc, 2, lenx, begy, begx, NULL)) == NULL){
     pr->all_visible = false;
     return t;
