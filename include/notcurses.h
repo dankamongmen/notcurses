@@ -640,6 +640,10 @@ API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 // to the size of the ncplane at ncplane_visual_open() time.
 API int ncvisual_render(const struct ncvisual* ncv);
 
+// stream the entirety of the media, according to its own timing.
+// blocking, obviously. pretty raw; beware.
+API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr);
+
 // A panelreel is an notcurses region devoted to displaying zero or more
 // line-oriented, contained panels between which the user may navigate. If at
 // least one panel exists, there is an active panel. As much of the active

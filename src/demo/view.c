@@ -1,6 +1,19 @@
 #include <notcurses.h>
 #include "demo.h"
 
+static int
+view_video_demo(struct notcurses* nc){
+  struct ncplane* ncp = notcurses_stdplane(nc);
+  int dimy, dimx;
+  ncplane_dim_yx(ncp, &dimy, &dimx);
+  int averr;
+  struct ncvisual* ncv = ncplane_visual_open(ncp, "../tests/atliens.mkv", &averr);
+  if(ncvisual_stream(nc, ncv, &averr)){
+    return -1;
+  }
+  return 0;
+}
+
 int view_demo(struct notcurses* nc){
   struct ncplane* ncp = notcurses_stdplane(nc);
   int dimy, dimx;
@@ -49,5 +62,8 @@ int view_demo(struct notcurses* nc){
     return -1;
   }
   nanosleep(&demodelay, NULL);
+  if(view_video_demo(nc)){
+    return -1;
+  }
   return 0;
 }
