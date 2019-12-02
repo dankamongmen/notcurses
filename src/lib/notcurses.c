@@ -1470,7 +1470,11 @@ void ncplane_erase(ncplane* n){
 static int
 handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress,
             ncspecial_key* special){
+  if(kpress < 0){
+    return -1;
+  }
   *special = 0;
+// fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress == 0x04){ // ctrl-d
     return -1;
   }
@@ -1505,12 +1509,12 @@ int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special
     .events = POLLIN | POLLRDHUP,
     .revents = 0,
   };
-  int pret;
+  int pret, r;
   while((pret = poll(&pfd, 1, -1)) >= 0){
     if(pret == 0){
       continue;
     }
-    int r = getc(nc->ttyinfp);
+    r = getc(nc->ttyinfp);
     if(r < 0){
       if(errno == EINTR){
         if(resize_seen){
@@ -1520,8 +1524,8 @@ int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special
           return 1;
         }
       }
-      return handle_getc(nc, c, r, special);
     }
+    return handle_getc(nc, c, r, special);
   }
   return -1;
 }
