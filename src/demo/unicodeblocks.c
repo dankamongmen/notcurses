@@ -86,16 +86,6 @@ int unicodeblocks_demo(struct notcurses* nc){
     { .name = "Chess Symbols, Symbols and Pictographs Extended-A", .start = 0x1fa00, },
   };
   size_t sindex;
-  ncplane_erase(n);
-  cell ul = CELL_TRIVIAL_INITIALIZER;
-  cell ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER;
-  cell lr = CELL_TRIVIAL_INITIALIZER;
-  cell vl = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
-    return -1;
-  }
   // we don't want a full delay period for each one, urk
   struct timespec subdelay;
   uint64_t nstotal = demodelay.tv_sec * 1000000000 + demodelay.tv_nsec;
@@ -103,6 +93,16 @@ int unicodeblocks_demo(struct notcurses* nc){
   subdelay.tv_sec = nstotal / 1000000000;
   subdelay.tv_nsec = nstotal % 1000000000;
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
+    ncplane_erase(n);
+    cell ul = CELL_TRIVIAL_INITIALIZER;
+    cell ur = CELL_TRIVIAL_INITIALIZER;
+    cell ll = CELL_TRIVIAL_INITIALIZER;
+    cell lr = CELL_TRIVIAL_INITIALIZER;
+    cell vl = CELL_TRIVIAL_INITIALIZER;
+    cell hl = CELL_TRIVIAL_INITIALIZER;
+    if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+      return -1;
+    }
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     int chunk;
@@ -186,6 +186,8 @@ int unicodeblocks_demo(struct notcurses* nc){
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused.
     blockstart += BLOCKSIZE;
+    cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
+    cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
   }
   return 0;
 }
