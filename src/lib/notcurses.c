@@ -418,8 +418,8 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
     fprintf(stderr, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
     return -1;
   }
-fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
-        ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);
+/*fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
+        ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);*/
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.
@@ -438,10 +438,8 @@ fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\
   }
   cell* preserved = n->fb;
   n->fb = fb;
-fprintf(stderr, "ABS: %d %d\n", n->absy, n->absx);
   n->absy = n->absy + keepy - yoff;
   n->absx = n->absx + keepx - xoff;
-fprintf(stderr, "ABS: %d %d\n", n->absy, n->absx);
   // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
   // and keep it. perhaps we ought compact it?
   if(keptarea == 0){ // keep nothing, resize/move only
@@ -1472,7 +1470,7 @@ void ncplane_erase(ncplane* n){
 static int
 handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress,
             ncspecial_key* special){
-fprintf(stderr, "KEYPRESS: %d\n", kpress);
+// fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress < 0){
     return -1;
   }
