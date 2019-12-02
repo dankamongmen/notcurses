@@ -1,8 +1,9 @@
-notcurses (0.2.0-1) UNRELEASED; urgency=medium
+notcurses (0.2.0-1) unstable; urgency=medium
 
   * Install data files used by notcurses-demo to /usr/share
+  * New upstream version
 
- -- Nick Black <dankamongmen@gmail.com>  Thu, 28 Nov 2019 22:32:11 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Sun, 01 Dec 2019 20:45:23 -0500
 
 notcurses (0.1.0-1) unstable; urgency=medium
 
