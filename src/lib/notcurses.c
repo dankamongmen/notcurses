@@ -353,6 +353,8 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   }
   int y, idx;
   idx = 0;
+  p->lenx = *cols;
+  p->leny = *rows;
   for(y = 0 ; y < p->leny ; ++y){
     idx = y * p->lenx;
     if(y > oldrows){
@@ -366,7 +368,7 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
       }
       memcpy(&p->fb[idx], &preserved[y * oldcols], oldcopy * sizeof(*p->fb));
     }
-    if(p->lenx - oldcopy){
+    if(p->lenx > oldcopy){
       memset(&p->fb[idx + oldcopy], 0, sizeof(*p->fb) * (p->lenx - oldcopy));
     }
   }
@@ -1470,11 +1472,11 @@ void ncplane_erase(ncplane* n){
 static int
 handle_getc(const notcurses* nc __attribute__ ((unused)), cell* c, int kpress,
             ncspecial_key* special){
+fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress < 0){
     return -1;
   }
   *special = 0;
-// fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress == 0x04){ // ctrl-d
     return -1;
   }
@@ -1510,22 +1512,26 @@ int notcurses_getc_blocking(const notcurses* nc, cell* c, ncspecial_key* special
     .revents = 0,
   };
   int pret, r;
-  while((pret = poll(&pfd, 1, -1)) >= 0){
+  sigset_t smask;
+  sigemptyset(&smask);
+  sigaddset(&smask, SIGWINCH);
+  while((pret = ppoll(&pfd, 1, NULL, &smask)) >= 0){
     if(pret == 0){
       continue;
     }
     r = getc(nc->ttyinfp);
     if(r < 0){
-      if(errno == EINTR){
-        if(resize_seen){
-          resize_seen = 0;
-          c->gcluster = 0;
-          *special = NCKEY_RESIZE;
-          return 1;
-        }
-      }
+      break; // want EINTR handling below
     }
     return handle_getc(nc, c, r, special);
+  }
+  if(errno == EINTR){
+    if(resize_seen){
+      resize_seen = 0;
+      c->gcluster = 0;
+      *special = NCKEY_RESIZE;
+      return 1;
+    }
   }
   return -1;
 }
