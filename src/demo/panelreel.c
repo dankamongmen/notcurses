@@ -240,7 +240,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
 static struct panelreel*
 panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   bool done = false;
-  int x = 4, y = 4;
+  int x = 8, y = 8;
   panelreel_options popts = {
     .infinitescroll = true,
     .circular = true,
@@ -251,8 +251,8 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     .focusedattr = CELL_TRIVIAL_INITIALIZER,
     .toff = y,
     .loff = x,
-    .roff = 0,
-    .boff = 0,
+    .roff = x,
+    .boff = y,
   };
   cell_set_fg(&popts.focusedattr, 58, 150, 221);
   cell_set_bg(&popts.focusedattr, 97, 214, 214);
