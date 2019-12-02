@@ -52,11 +52,10 @@ window_coordinates(const ncplane* w, int* begy, int* begx, int* leny, int* lenx)
 
 // FIXME compatability wrapper for libpanel
 int wresize(ncplane* n, int leny, int lenx){
-  int y, x;
-  ncplane_yx(n, &y, &x);
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  return ncplane_resize(n, 0, 0, dimy, dimx, y, x, leny, lenx);
+  int keepy = dimy > leny ? leny : dimy;
+  return ncplane_resize(n, 0, 0, keepy, dimx, 0, 0, leny, lenx);
 }
 
 // bchrs: 6-element array of wide border characters + attributes FIXME
@@ -76,8 +75,8 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   if(ncplane_rounded_box_cells(w, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-fprintf(stderr, "drawing borders %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
-        begx, begy, maxx, maxy, nobordermask,
+fprintf(stderr, "drawing borders %p %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
+        w, begx, begy, maxx, maxy, nobordermask,
         cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');
   ul.attrword = attr->attrword; ul.channels = attr->channels;
   ur.attrword = attr->attrword; ur.channels = attr->channels;
@@ -228,7 +227,7 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
   int lenx, leny, begy, begx;
   ncplane* fp = t->p;
   if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, direction)){
-//fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
+fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
 // fprintf(stderr, "FRONTIER DONE!!!!!!\n");
     if(fp){
 // fprintf(stderr, "HIDING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
@@ -287,8 +286,8 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cbmaxx/cbmaxy: %d/%d dir: %d\n",
 //    lenx, leny, cbx, cby, cbmaxx, cbmaxy, direction);
   int ll = t->cbfxn(fp, cbx, cby, cbmaxx, cbmaxy, cbdir, t->curry);
-//fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n",
-//        t, ll, cby, cbmaxy, leny, direction);
+fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n",
+        t, ll, cby, cbmaxy, leny, direction);
   if(ll != leny){
     if(ll == leny - 1){ // only has one border visible (partially off-screen)
       ++ll; // account for that border
@@ -296,17 +295,17 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
       if(direction < 0){
         cliphead = true;
         ncplane_move_yx(fp, begy + leny - ll, begx);
-// fprintf(stderr, "MOVEDOWN CLIPPED RESIZED (-1) from %d to %d\n", leny, ll);
+fprintf(stderr, "MOVEDOWN CLIPPED RESIZED (-1) from %d to %d\n", leny, ll);
       }else{
         clipfoot = true;
-// fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
+fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
       }
     }else{ // both borders are visible
       ll += 2; // account for both borders
-// fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
+fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
       wresize(fp, ll, lenx);
       if(direction < 0){
-// fprintf(stderr, "MOVEDOWN UNCLIPPED (skip %d)\n", leny - ll);
+fprintf(stderr, "MOVEDOWN UNCLIPPED (skip %d)\n", leny - ll);
         ncplane_move_yx(fp, begy + leny - ll, begx);
       }
     }
@@ -597,7 +596,7 @@ panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd)
   return pr;
 }
 
-// we've just added a new tablet. it need be inserted at the correct place in
+// we've just added a new tablet. it needs be inserted at the correct place in
 // the reel. this will naturally fall out of things if the panelreel is full; we
 // can just call panelreel_redraw(). otherwise, we need make ourselves at least
 // minimally visible, to satisfy the preconditions of
@@ -618,12 +617,11 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
       pr->all_visible = false;
       return t;
     }
-fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
+// fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
     if((t->p = notcurses_newplane(nc, leny, lenx, begy, begx, NULL)) == NULL){
       pr->all_visible = false;
       return t;
     }
-fprintf(stderr, "created first tablet!\n");
     return t;
   }
   // we're not the only tablet, alas.
@@ -638,6 +636,7 @@ fprintf(stderr, "created first tablet!\n");
     pr->all_visible = false;
     return t;
   }
+// fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, 2, lenx);
   if((t->p = notcurses_newplane(nc, 2, lenx, begy, begx, NULL)) == NULL){
     pr->all_visible = false;
     return t;

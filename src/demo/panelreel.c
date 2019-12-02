@@ -82,6 +82,7 @@ tabletup(struct ncplane* w, int begx, int begy, int maxx, int maxy,
       // lower-right corner always returns an error unless scrollok() is used
       ncplane_putc(w, &c);
     }
+    cell_release(w, &c);
     if(--idx == 0){
       break;
     }
@@ -109,6 +110,7 @@ tabletdown(struct ncplane* w, int begx, int begy, int maxx, int maxy,
       // lower-right corner always returns an error unless scrollok() is used
       ncplane_putc(w, &c);
     }
+    cell_release(w, &c);
   }
   return y - begy;
 }
@@ -253,6 +255,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     .boff = 0,
   };
   cell_set_fg(&popts.focusedattr, 58, 150, 221);
+  cell_set_bg(&popts.focusedattr, 97, 214, 214);
   cell_set_fg(&popts.tabletattr, 19, 161, 14);
   cell_set_fg(&popts.borderattr, 136, 23, 152);
   struct ncplane* w = notcurses_stdplane(nc);
@@ -291,7 +294,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
           case 'a': newtablet = new_tabletctx(pr, &id); break;
           case 'b': newtablet = new_tabletctx(pr, &id); break;
           case 'c': newtablet = new_tabletctx(pr, &id); break;
-          case 'h': --x; if(panelreel_move(pr, x, y)){ ++x; } break;
+          case 'h': if(x > 0) { --x; if(panelreel_move(pr, x, y)){ ++x; } } break;
           case 'l': ++x; if(panelreel_move(pr, x, y)){ --x; } break;
           case 'k': panelreel_prev(pr); break;
           case 'j': panelreel_next(pr); break;

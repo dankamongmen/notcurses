@@ -90,7 +90,7 @@ sigwinch_handler(int signo){
 }
 
 // this wildly unsafe handler will attempt to restore the screen upon
-// reception of a SIGINT or SIGQUIT. godspeed you, black emperor!
+// reception of SIGINT, SIGSEGV, or SIGQUIT. godspeed you, black emperor!
 static void
 fatal_handler(int signo){
   notcurses* nc = atomic_load(&signal_nc);
@@ -129,7 +129,11 @@ setup_signals(notcurses* nc, bool no_quit_sigs, bool no_winch_sig){
     sigaddset(&sa.sa_mask, SIGINT);
     sigaddset(&sa.sa_mask, SIGQUIT);
     sa.sa_flags = SA_RESETHAND; // don't try twice
-    if(sigaction(SIGINT, &sa, &oldact) || sigaction(SIGQUIT, &sa, &oldact)){
+    int ret = 0;
+    ret |= sigaction(SIGINT, &sa, &oldact);
+    ret |= sigaction(SIGQUIT, &sa, &oldact);
+    ret |= sigaction(SIGSEGV, &sa, &oldact);
+    if(ret){
       atomic_store(&signal_nc, NULL);
       fprintf(stderr, "Error installing fatal signal handlers (%s)\n",
               strerror(errno));
@@ -393,24 +397,31 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                    int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(n == n->nc->stdscr){
+    fprintf(stderr, "Can't resize standard plane\n");
     return -1;
   }
-  if(keepy < 0 || keepx < 0){ // can't retain negative size
+  if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
+    fprintf(stderr, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
+    fprintf(stderr, "Can't achieve negative size %dx%d\n", ylen, xlen);
     return -1;
   }
-  if((!keepy && keepx) || (keepy && !keepx)){ // both must be 0
+  if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
+    fprintf(stderr, "Can't keep zero dimensions %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(ylen < keepleny || xlen < keeplenx){ // can't be smaller than our keep
+    fprintf(stderr, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
     return -1;
   }
+fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
+        ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.
-  int keptarea = keepy * keepx;
+  int keptarea = keepleny * keeplenx;
   int newarea = ylen * xlen;
   cell* fb = malloc(sizeof(*fb) * newarea);
   if(fb == NULL){
@@ -425,8 +436,10 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   }
   cell* preserved = n->fb;
   n->fb = fb;
+fprintf(stderr, "ABS: %d %d\n", n->absy, n->absx);
   n->absy = n->absy + keepy - yoff;
   n->absx = n->absx + keepx - xoff;
+fprintf(stderr, "ABS: %d %d\n", n->absy, n->absx);
   // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
   // and keep it. perhaps we ought compact it?
   if(keptarea == 0){ // keep nothing, resize/move only
@@ -448,7 +461,7 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   for(itery = 0 ; itery < ylen ; ++itery){
     int copyoff = itery * xlen; // our target at any given time
     // if we have nothing copied to this line, zero it out in one go
-    if(itery < keepy + yoff || itery > keepy + keepleny - 1 + yoff){
+    if(itery < keepy || itery > keepy + keepleny - 1){
       memset(fb + copyoff, 0, sizeof(*fb) * xlen);
       continue;
     }
@@ -460,14 +473,16 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
       copied += -xoff;
     }
     const int sourceidx = fbcellidx(n, sourceline, keepx);
-    memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keepx);
-    copyoff += keepx;
-    copied += keepx;
+    memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
+    copyoff += keeplenx;
+    copied += keeplenx;
     if(xlen > copied){
       memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
     }
     ++sourceline;
   }
+  n->lenx = xlen;
+  n->leny = ylen;
   free(preserved);
   return 0;
 }
