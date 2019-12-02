@@ -1648,6 +1648,68 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   return 0;
 }
 
+int ncplane_fadein(ncplane* n, const struct timespec* ts){
+  planepalette pp;
+  if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
+    notcurses_render(n->nc); // render at the target levels (ought we delay?)
+    return -1;
+  }
+  if(alloc_ncplane_palette(n, &pp)){
+    return -1;
+  }
+  int maxfsteps = pp.maxg > pp.maxr ? (pp.maxb > pp.maxg ? pp.maxb : pp.maxg) :
+                  (pp.maxb > pp.maxr ? pp.maxb : pp.maxr);
+  int maxbsteps = pp.maxbg > pp.maxbr ? (pp.maxbb > pp.maxbg ? pp.maxbb : pp.maxbg) :
+                  (pp.maxbb > pp.maxbr ? pp.maxbb : pp.maxbr);
+  int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
+  uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
+  uint64_t nanosecs_step = nanosecs_total / maxsteps;
+  struct timespec times;
+  clock_gettime(CLOCK_MONOTONIC, &times);
+  // Start time in absolute nanoseconds
+  uint64_t startns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
+  // Current time, sampled each iteration
+  uint64_t curns;
+  do{
+    clock_gettime(CLOCK_MONOTONIC, &times);
+    curns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
+    int iter = (curns - startns) / nanosecs_step + 1;
+    if(iter > maxsteps){
+      break;
+    }
+    int p;
+    for(p = 0 ; p < pp.size ; ++p){
+      cell* c = &n->fb[p];
+      unsigned r, g, b;
+      cell_rgb_get_fg(pp.channels[p], &r, &g, &b);
+      unsigned br, bg, bb;
+      cell_rgb_get_bg(pp.channels[p], &br, &bg, &bb);
+      r = r * iter / maxsteps;
+      g = g * iter / maxsteps;
+      b = b * iter / maxsteps;
+      cell_set_fg(c, r, g, b);
+      br = br * iter / maxsteps;
+      bg = bg * iter / maxsteps;
+      bb = bb * iter / maxsteps;
+      cell_set_bg(c, br, bg, bb);
+    }
+    notcurses_render(n->nc);
+    uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
+    struct timespec sleepspec;
+    sleepspec.tv_sec = nextwake / NANOSECS_IN_SEC;
+    sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
+    int r;
+    // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
+    // of Glibc 2.29 + Linux 5.3 :/.
+    r = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
+    if(r){
+      break;
+    }
+  }while(true);
+  free(pp.channels);
+  return 0;
+}
+
 int ncplane_fadeout(ncplane* n, const struct timespec* ts){
   planepalette pp;
   if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade

@@ -312,10 +312,12 @@ int widecolor_demo(struct notcurses* nc){
       if(notcurses_render(nc)){
         return -1;
       }
-      /*if(i){ FIXME
-        fadein(w, count, palette, FADE_MILLISECONDS);
+      if(i){
+        struct timespec tv = {
+          .tv_sec = 0, .tv_nsec = FADE_MILLISECONDS * 1000000,
+        };
+        ncplane_fadein(n, &tv);
       }
-      */
       int key;
       do{
         key = notcurses_getc_blocking(nc, &c, &special);

@@ -353,6 +353,11 @@ API unsigned ncplane_styles(const struct ncplane* n);
 // It is not safe to resize or destroy the plane during the fadeout FIXME.
 API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);
 
+// Fade the ncplane in over the specified time. Load the ncplane with the
+// target cells without rendering, then call this function. When it's done, the
+// ncplane will have reached the target levels, starting from zeroes.
+API int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
+
 // Working with cells
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
