@@ -28,7 +28,10 @@ int ncview(struct notcurses* nc, struct ncvisual* ncv, int* averr){
       return -1;
     }
     ++frame;
-    struct timespec ts = { .tv_sec = 1, .tv_nsec = 0 }; // FIXME
+    struct timespec ts = {
+      .tv_sec = avf->pkt_duration / 1000000,
+      .tv_nsec = avf->pkt_duration * 1000000,
+    };
     nanosleep(&ts, NULL);
   }
   if(*averr == AVERROR_EOF){

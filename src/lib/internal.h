@@ -60,6 +60,7 @@ typedef struct ncvisual {
   struct SwsContext* swsctx;
   int packet_outstanding;
   int dstwidth, dstheight;
+  int stream_index;     // match against this following av_read_frame()
   ncplane* ncp;
 } ncvisual;
 
