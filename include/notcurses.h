@@ -714,6 +714,9 @@ API struct panelreel* panelreel_create(struct ncplane* nc,
                                        const panelreel_options* popts,
                                        int efd);
 
+// Returns the ncplane on which this panelreel lives.
+API struct ncplane* panelreel_plane(struct panelreel* pr);
+
 // Tablet draw callback, provided a ncplane the first column that may be used,
 // the first row that may be used, the first column that may not be used, the
 // first row that may not be used, and a bool indicating whether output ought

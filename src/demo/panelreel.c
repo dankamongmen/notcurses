@@ -270,6 +270,12 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   ncplane_cursor_move_yx(w, 1, 1);
   ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
   // FIXME clrtoeol();
+  /*
+  struct timespec fadets = { .tv_sec = 1, .tv_nsec = 0, };
+  if(ncplane_fadein(panelreel_plane(pr), &fadets)){
+    return NULL;
+  }
+  */
   unsigned id = 0;
   do{
     ncplane_styles_set(w, 0);

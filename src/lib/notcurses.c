@@ -942,8 +942,8 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c)
 
 // find the topmost cell for this coordinate
 static const cell*
-visible_cell(const notcurses* nc, int y, int x, const ncplane** retp){
-  const ncplane* p = nc->top;
+visible_cell(int y, int x, ncplane** retp){
+  ncplane* p = *retp;
   while(p){
     // where in the plane this coordinate would be, based off absy/absx. the
     // true origin is 0,0, so abs=2,2 means coordinate 3,3 would be 1,1, while
@@ -955,8 +955,21 @@ visible_cell(const notcurses* nc, int y, int x, const ncplane** retp){
       if(poffx < p->lenx && poffx >= 0){
         *retp = p;
         const cell* vis = &p->fb[fbcellidx(p, poffy, poffx)];
+        // if we never actually loaded the cell, use the background, if one
+        // is defined.
         if(vis->gcluster == 0){
           vis = &p->background;
+        }
+        // if it's using the terminal default, chase further down
+        // FIXME should probably be based off alpha channel
+        if(cell_fg_default_p(vis) && cell_bg_default_p(vis) && vis->gcluster == 0){
+          *retp = p->z;
+          const cell* trans = visible_cell(y, x, retp);
+          if(trans){
+            vis = trans;
+          }else{
+            *retp = p;
+          }
         }
         return vis;
       }
@@ -1092,8 +1105,8 @@ int notcurses_render(notcurses* nc){
     //  surprise enlargenings, otherwise we just print forward
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
-      const ncplane* p;
-      const cell* c = visible_cell(nc, y, x, &p);
+      ncplane* p = nc->top;
+      const cell* c = visible_cell(y, x, &p);
       // we allow these to be set distinctly, but terminfo only supports using
       // them both via the 'op' capability. unless we want to generate the 'op'
       // escapes ourselves, if either is set to default, we first send op, and
