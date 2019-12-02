@@ -1107,6 +1107,9 @@ int notcurses_render(notcurses* nc){
       unsigned r, g, b, br, bg, bb;
       ncplane* p = nc->top;
       const cell* c = visible_cell(y, x, &p);
+      if(c == NULL){
+        continue; // shrug?
+      }
       // we allow these to be set distinctly, but terminfo only supports using
       // them both via the 'op' capability. unless we want to generate the 'op'
       // escapes ourselves, if either is set to default, we first send op, and

@@ -30,6 +30,7 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex)
   int targx = newholex;
   deltay = deltay < 0 ? -1 : deltay == 0 ? 0 : 1;
   deltax = deltax < 0 ? -1 : deltax == 0 ? 0 : 1;
+  // FIXME do an adaptive time, like our fades, so we whip along under load
   for(i = 0 ; i < units ; ++i){
     targy += deltay;
     targx += deltax;
@@ -177,6 +178,19 @@ int sliding_puzzle_demo(struct notcurses* nc){
   int wastex = ((maxx - 2) % CHUNKS_HORZ) / 2;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
+  int averr = 0;
+  struct ncvisual* ncv = ncplane_visual_open(n, "../tests/changes.jpg", &averr);
+  if(ncv == NULL){
+    return -1;
+  }
+  if(ncvisual_decode(ncv, &averr) == NULL){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  if(ncvisual_render(ncv)){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){
