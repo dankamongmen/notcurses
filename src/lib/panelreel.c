@@ -550,6 +550,10 @@ validate_panelreel_opts(ncplane* w, const panelreel_options* popts){
   return true;
 }
 
+ncplane* panelreel_plane(panelreel* pr){
+  return pr->p;
+}
+
 panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd){
   panelreel* pr;
 
