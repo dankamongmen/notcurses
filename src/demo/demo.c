@@ -28,12 +28,84 @@ usage(const char* exe, int status){
   fprintf(out, " g: run grid\n");
   fprintf(out, " i: run intro\n");
   fprintf(out, " m: run maxcolor\n");
+  fprintf(out, " o: run outro\n");
   fprintf(out, " p: run panelreels\n");
   fprintf(out, " s: run shuffle\n");
   fprintf(out, " u: run uniblock\n");
   fprintf(out, " v: run view\n");
   fprintf(out, " w: run widecolors\n");
   exit(status);
+}
+
+static int
+outro(struct notcurses* nc){
+  struct ncplane* ncp;
+  if((ncp = notcurses_stdplane(nc)) == NULL){
+    return -1;
+  }
+  int rows, cols;
+  ncplane_dim_yx(ncp, &rows, &cols);
+  int averr = 0;
+  struct ncvisual* ncv = ncplane_visual_open(ncp, "../tests/changes.jpg", &averr);
+  if(ncv == NULL){
+    return -1;
+  }
+  if(ncvisual_decode(ncv, &averr) == NULL){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  if(ncvisual_render(ncv)){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  const char str0[] = "      ATL, baby! ATL!      ";
+  const char str1[] = " much, much more is coming ";
+  const char str2[] = "      hack on 💖 dank      ";
+  int ybase = rows - 6;
+  if(ncplane_fg_rgb8(ncp, 0, 0, 0)){
+    return -1;
+  }
+  if(ncplane_bg_rgb8(ncp, 0, 180, 180)){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(ncp, ybase, (cols - strlen(str0) + 4) / 2 - 1)){
+    return -1;
+  }
+  if(ncplane_printf(ncp, "%*s", strlen(str0) + 2, "") < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str0) + 4) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(ncp, str0) != (int)strlen(str0)){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str1) + 4) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(ncp, str1) != (int)strlen(str1)){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str2) + 5) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(ncp, str2) != (int)strlen(str2)){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str2) + 4) / 2)){
+    return -1;
+  }
+  if(ncplane_printf(ncp, "%*s", strlen(str2), "") < 0){
+    return -1;
+  }
+  if(notcurses_render(nc)){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  nanosleep(&demodelay, NULL);
+  struct timespec fade = { .tv_sec = 5, .tv_nsec = 0, };
+  ncplane_fadeout(ncp, &fade);
+  return 0;
 }
 
 static int
@@ -138,6 +210,7 @@ ext_demos(struct notcurses* nc, const char* demos){
     int ret = 0;
     switch(*demos){
       case 'i': ret = intro(nc); break;
+      case 'o': ret = outro(nc); break;
       case 's': ret = sliding_puzzle_demo(nc); break;
       case 'u': ret = unicodeblocks_demo(nc); break;
       case 'm': ret = maxcolor_demo(nc); break;
@@ -213,7 +286,7 @@ int main(int argc, char** argv){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
-    demos = "isumbgwvp";
+    demos = "isumbgwvpo";
   }
   if((nc = notcurses_init(&nopts)) == NULL){
     return EXIT_FAILURE;

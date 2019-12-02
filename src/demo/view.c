@@ -18,7 +18,7 @@ int view_demo(struct notcurses* nc){
   struct ncplane* ncp = notcurses_stdplane(nc);
   int dimy, dimx;
   ncplane_dim_yx(ncp, &dimy, &dimx);
-  int averr;
+  int averr = 0;
   struct ncvisual* ncv = ncplane_visual_open(ncp, "../tests/PurpleDrank.jpg", &averr);
   if(ncv == NULL){
     return -1;
