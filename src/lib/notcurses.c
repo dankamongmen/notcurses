@@ -1553,12 +1553,6 @@ int ncvisual_render(const ncvisual* ncv){
   ncplane_cursor_move_yx(ncv->ncp, 0, 0);
   const int linesize = f->linesize[0];
   const unsigned char* data = f->data[0];
-  if(f->height != dimy * 2){
-    return -1;
-  }
-  /*if(f->width != dimx * 2){
-    return -1;
-  }*/
   for(y = 0 ; y < f->height / 2 && y < dimy ; ++y){
     for(x = 0 ; x < f->width && x < dimx ; ++x){
       int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
