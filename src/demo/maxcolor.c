@@ -33,12 +33,12 @@ int maxcolor_demo(struct notcurses* nc){
   notcurses_term_dim_yx(nc, &maxy, &maxx);
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_fg_rgb8(n, 255, 255, 255);
-  cell style = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg(&style, 0, 128, 128);
-  cell_set_bg(&style, 90, 0, 90);
+  uint64_t channels = 0;
+  notcurses_fg_prep(&channels, 0, 128, 128);
+  notcurses_bg_prep(&channels, 90, 0, 90);
   int y = 0, x = 0;
   ncplane_cursor_move_yx(n, y, x);
-  if(ncplane_rounded_box_sized(n, style.attrword, style.channels, maxy, maxx)){
+  if(ncplane_rounded_box_sized(n, 0, channels, maxy, maxx)){
     return -1;
   }
   uint32_t rgb = 0;
@@ -64,7 +64,6 @@ int maxcolor_demo(struct notcurses* nc){
   if(notcurses_render(nc)){
     return -1;
   }
-  cell_release(n, &style);
   nanosleep(&demodelay, NULL);
   return 0;
 }
