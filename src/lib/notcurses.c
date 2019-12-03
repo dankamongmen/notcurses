@@ -1132,8 +1132,10 @@ int notcurses_render(notcurses* nc){
       // we can elide the foreground set iff the previous used fg and matched
       if(!cell_fg_default_p(c)){
         cell_get_fg(c, &r, &g, &b);
-        if(fgelidable && lastr == r && lastg == g && lastb == b){
-          ++fgelisions;
+        if(fgelidable){
+          if(lastr == r && lastg == g && lastb == b){
+            ++fgelisions;
+          }
         }else{
           term_fg_rgb8(nc, out, r, g, b);
           ++fgemissions;
@@ -1144,8 +1146,10 @@ int notcurses_render(notcurses* nc){
       }
       if(!cell_bg_default_p(c)){
         cell_get_bg(c, &br, &bg, &bb);
-        if(bgelidable && lastbr == br && lastbg == bg && lastbb == bb){
-          ++bgelisions;
+        if(bgelidable){
+          if(lastbr == br && lastbg == bg && lastbb == bb){
+            ++bgelisions;
+          }
         }else{
           term_bg_rgb8(nc, out, br, bg, bb);
           ++bgemissions;
