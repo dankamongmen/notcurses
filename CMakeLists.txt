@@ -54,7 +54,9 @@ target_compile_options(notcurses
 )
 target_compile_definitions(notcurses
   PUBLIC
-  _DEFAULT_SOURCE _XOPEN_SOURCE=700 _GNU_SOURCE
+    _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  PRIVATE
+    FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
 )
 
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
@@ -68,6 +70,10 @@ target_link_libraries(notcurses-demo
 target_compile_options(notcurses-demo
   PRIVATE
     -Wall -Wextra -W -Wshadow
+)
+target_compile_definitions(notcurses-demo
+  PRIVATE
+    FORTIFY_SOURCE=2
 )
 
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/*.cpp)
@@ -84,6 +90,10 @@ target_link_libraries(notcurses-input
 target_compile_options(notcurses-input
   PRIVATE
     -Wall -Wextra -W -Wshadow
+)
+target_compile_definitions(notcurses-input
+  PRIVATE
+    FORTIFY_SOURCE=2
 )
 
 file(GLOB PVSRCS CONFIGURE_DEPENDS src/panelvideo/*.cpp)
@@ -109,6 +119,10 @@ target_compile_options(notcurses-panelvideo
   PRIVATE
     -Wall -Wextra -W -Wshadow
 )
+target_compile_definitions(notcurses-panelvideo
+  PRIVATE
+    FORTIFY_SOURCE=2
+)
 
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 add_executable(notcurses-view ${VIEWSRCS})
@@ -132,6 +146,10 @@ target_compile_options(notcurses-view
   PRIVATE
     -Wall -Wextra -W -Wshadow
 )
+target_compile_definitions(notcurses-view
+  PRIVATE
+    FORTIFY_SOURCE=2
+)
 
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
@@ -147,6 +165,10 @@ target_link_libraries(notcurses-tester
 )
 target_compile_options(notcurses-tester PRIVATE
   -Wall -Wextra -W -Wshadow
+)
+target_compile_definitions(notcurses-tester
+  PRIVATE
+    FORTIFY_SOURCE=2
 )
 
 gtest_discover_tests(notcurses-tester)
