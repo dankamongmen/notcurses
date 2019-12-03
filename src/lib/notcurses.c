@@ -721,6 +721,20 @@ int notcurses_stop(notcurses* nc){
             nc->stats.render_min_ns / 1000000000.0,
             nc->stats.render_max_ns / 1000000000.0,
             avg / NANOSECS_IN_SEC);
+    fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
+            nc->stats.defaultemissions,
+            nc->stats.defaultelisions,
+            nc->stats.fgemissions,
+            nc->stats.fgelisions,
+            nc->stats.bgemissions,
+            nc->stats.bgelisions);
+    fprintf(stderr, " Elide rates: %.2f%% %.2f%% %.2f%%\n",
+            (nc->stats.defaultemissions + nc->stats.defaultelisions) == 0 ? 0 :
+             (nc->stats.defaultelisions * 100.0) / (nc->stats.defaultemissions + nc->stats.defaultelisions),
+            (nc->stats.fgemissions + nc->stats.fgelisions) == 0 ? 0 :
+             (nc->stats.fgelisions * 100.0) / (nc->stats.fgemissions + nc->stats.fgelisions),
+            (nc->stats.bgemissions + nc->stats.bgelisions) == 0 ? 0 :
+             (nc->stats.bgelisions * 100.0) / (nc->stats.bgemissions + nc->stats.bgelisions));
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;
