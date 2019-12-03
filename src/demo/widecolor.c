@@ -8,22 +8,17 @@
 static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_bg_default(n);
-  cell ul, ur, ll, lr, vl, hl;
-  cell_init(&ul);
-  cell_init(&ur);
-  cell_init(&ll);
-  cell_init(&lr);
-  cell_init(&hl);
-  cell_init(&vl);
-  if(cells_rounded_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
-    return -1;
-  }
   ncplane_cursor_move_yx(n, 3, 1);
   ncplane_fg_rgb8(n, 255, 255, 255);
   ncplane_styles_on(n, CELL_STYLE_BOLD);
-  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, 5, 57)){
+  if(ncplane_rounded_box(n, 0, 0, 5, 57)){
     return -1;
   }
+  cell ll = CELL_TRIVIAL_INITIALIZER;
+  cell vl = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER;
+  cell ul = CELL_TRIVIAL_INITIALIZER;
+  cell ur = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &ll, "╨");
   ncplane_cursor_move_yx(n, 3, 4);
   ncplane_putc(n, &ll);
@@ -47,6 +42,11 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_styles_off(n, CELL_STYLE_BOLD);
   ncplane_fg_rgb8(n, 200, 20, 200);
   ncplane_putstr(n, "  🔥 wide chars, multiple colors, resize awareness…🔥  ");
+  cell_release(n, &ll);
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
   return 0;
 }
 
