@@ -94,15 +94,6 @@ int unicodeblocks_demo(struct notcurses* nc){
   subdelay.tv_nsec = nstotal % 1000000000;
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_erase(n);
-    cell ul = CELL_TRIVIAL_INITIALIZER;
-    cell ur = CELL_TRIVIAL_INITIALIZER;
-    cell ll = CELL_TRIVIAL_INITIALIZER;
-    cell lr = CELL_TRIVIAL_INITIALIZER;
-    cell vl = CELL_TRIVIAL_INITIALIZER;
-    cell hl = CELL_TRIVIAL_INITIALIZER;
-    if(cells_rounded_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
-      return -1;
-    }
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     int chunk;
@@ -118,8 +109,7 @@ int unicodeblocks_demo(struct notcurses* nc){
       return -1;
     }
     ++xstart;
-    if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl,
-                         BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2)){
+    if(ncplane_rounded_box_sized(n, 0, 0, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2)){
       return -1;
     }
     for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
@@ -186,8 +176,6 @@ int unicodeblocks_demo(struct notcurses* nc){
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused.
     blockstart += BLOCKSIZE;
-    cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-    cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
   }
   return 0;
 }

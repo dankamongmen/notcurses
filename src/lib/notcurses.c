@@ -754,11 +754,11 @@ void ncplane_bg_default(struct ncplane* n){
 }
 
 int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
-  return cell_rgb_set_bg(&n->channels, r, g, b);
+  return notcurses_bg_prep(&n->channels, r, g, b);
 }
 
 int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
-  return cell_rgb_set_fg(&n->channels, r, g, b);
+  return notcurses_fg_prep(&n->channels, r, g, b);
 }
 
 int ncplane_set_background(ncplane* ncp, const cell* c){
@@ -1242,6 +1242,33 @@ int ncplane_putc(ncplane* n, const cell* c){
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
   advance_cursor(n, 1 + cell_double_wide_p(targ));
+  return ret;
+}
+
+int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels){
+  cell ce = {
+    .gcluster = c,
+    .attrword = attr,
+    .channels = channels,
+  };
+  if(!cell_simple_p(&ce)){
+    return -1;
+  }
+  return ncplane_putc(n, &ce);
+}
+
+int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
+                   uint64_t channels, int* sbytes){
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  int primed = cell_prime(n, &c, gclust, attr, channels);
+  if(primed < 0){
+    return -1;
+  }
+  if(sbytes){
+    *sbytes = primed;
+  }
+  int ret = ncplane_putc(n, &c);
+  cell_release(n, &c);
   return ret;
 }
 

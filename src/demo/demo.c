@@ -136,31 +136,13 @@ intro(struct notcurses* nc){
     }
   }
   cell_release(ncp, &c);
-  cell ul = CELL_TRIVIAL_INITIALIZER;
-  cell ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER;
-  cell lr = CELL_TRIVIAL_INITIALIZER;
-  cell vl = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_rounded_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl)){
-    return -1;
-  }
-  cell_set_fg(&ul, 90, 0, 90);
-  cell_set_fg(&ur, 90, 0, 90);
-  cell_set_fg(&ll, 90, 0, 90);
-  cell_set_fg(&lr, 90, 0, 90);
-  cell_set_fg(&vl, 90, 0, 90);
-  cell_set_fg(&hl, 90, 0, 90);
-  cell_set_bg(&ul, 0, 0, 180);
-  cell_set_bg(&ur, 0, 0, 180);
-  cell_set_bg(&ll, 0, 0, 180);
-  cell_set_bg(&lr, 0, 0, 180);
-  cell_set_bg(&vl, 0, 0, 180);
-  cell_set_bg(&hl, 0, 0, 180);
+  uint64_t channels = 0;
+  notcurses_fg_prep(&channels, 90, 0, 90);
+  notcurses_bg_prep(&channels, 0, 0, 180);
   if(ncplane_cursor_move_yx(ncp, 4, 4)){
     return -1;
   }
-  if(ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 6, cols - 6)){
+  if(ncplane_rounded_box(ncp, 0, channels, rows - 6, cols - 6)){
     return -1;
   }
   const char s1[] = " Die Welt ist alles, was der Fall ist. ";
@@ -207,6 +189,7 @@ intro(struct notcurses* nc){
 
 static int
 ext_demos(struct notcurses* nc, const char* demos){
+  int dimy, dimx;
   while(*demos){
     int ret = 0;
     switch(*demos){
@@ -222,9 +205,11 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'p': ret = panelreel_demo(nc); break;
     }
     if(ret){
+      fprintf(stderr, "Unknown demo specification: %c\n", *demos);
       return ret;
     }
     ++demos;
+    notcurses_resize(nc, &dimy, &dimx);
   }
   return 0;
 }

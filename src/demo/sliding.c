@@ -7,10 +7,11 @@
 #define CHUNKS_VERT 6
 #define CHUNKS_HORZ 12
 #define MOVES 45
-#define GIG 1000000000
+#define GIG 1000000000ul
 
 static int
-move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex){
+move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
+            uint64_t movens){
   int newholex, newholey;
   ncplane_yx(chunk, &newholey, &newholex);
   // we need to move from newhole to hole over the course of movetime
@@ -19,7 +20,6 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex)
   deltax = *holex - newholex;
   // divide movetime into abs(max(deltay, deltax)) units, and move delta
   int units = abs(deltay) > abs(deltax) ? abs(deltay) : abs(deltax);
-  uint64_t movens = (MOVES / 5) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
   movens /= units;
   struct timespec movetime = {
     .tv_sec = movens / MOVES / GIG,
@@ -48,8 +48,14 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex)
 // we take (MOVES / 5) * demodelay to play MOVES moves
 static int
 play(struct notcurses* nc, struct ncplane** chunks){
+  const uint64_t delayns = demodelay.tv_sec * GIG + demodelay.tv_nsec;
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
-  // struct ncplane* n = notcurses_stdplane(nc);
+  struct timespec cur;
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  // we don't want to spend more than demodelay * 5
+  const uint64_t totalns = delayns * 5;
+  const uint64_t deadline_ns = cur.tv_sec * GIG + cur.tv_nsec + totalns;
+  const uint64_t movens = totalns / MOVES;
   int hole = random() % chunkcount;
   int holex, holey;
   ncplane_yx(chunks[hole], &holey, &holex);
@@ -58,6 +64,11 @@ play(struct notcurses* nc, struct ncplane** chunks){
   int m;
   int lastdir = -1;
   for(m = 0 ; m < MOVES ; ++m){
+    clock_gettime(CLOCK_MONOTONIC, &cur);
+    uint64_t now = cur.tv_sec * GIG + cur.tv_nsec;
+    if(now >= deadline_ns){
+      break;
+    }
     int mover = chunkcount;
     int direction;
     do{
@@ -74,7 +85,7 @@ play(struct notcurses* nc, struct ncplane** chunks){
       }
     }while(mover == chunkcount);
     lastdir = direction;
-    move_square(nc, chunks[mover], &holey, &holex);
+    move_square(nc, chunks[mover], &holey, &holex, movens);
     chunks[hole] = chunks[mover];
     chunks[mover] = NULL;
     hole = mover;
@@ -88,20 +99,10 @@ fill_chunk(struct ncplane* n, int idx){
   int maxy, maxx;
   ncplane_dim_yx(n, &maxy, &maxx);
   snprintf(buf, sizeof(buf), "%03d", idx);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
-    return -1;
-  }
+  uint64_t channels = 0;
   int r = random() % 256, g = random() % 256, b = random() % 256;
-  cell_set_fg(&ul, r, g, b);
-  cell_set_fg(&ur, r, g, b);
-  cell_set_fg(&ll, r, g, b);
-  cell_set_fg(&lr, r, g, b);
-  cell_set_fg(&hl, r, g, b);
-  cell_set_fg(&vl, r, g, b);
-  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, maxy - 1, maxx - 1)){
+  notcurses_fg_prep(&channels, r, g, b);
+  if(ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1)){
     return -1;
   }
   if(maxx >= 5 && maxy >= 3){
@@ -114,46 +115,23 @@ fill_chunk(struct ncplane* n, int idx){
       return -1;
     }
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
-  cell bg = CELL_TRIVIAL_INITIALIZER;
-  cell_set_bg(&bg, r, g, b);
-  ncplane_set_background(n, &bg);
-  cell_release(n, &bg);
+  cell style;
+  cell_init(&style);
+  cell_set_bg(&style, r, g, b);
+  ncplane_set_background(n, &style);
+  cell_release(n, &style);
   return 0;
 }
 
 static int
 draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx){
-  int ret = -1;
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_rounded_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
-    return -1;
-  }
-  cell_set_fg(&ul, 180, 80, 180);
-  cell_set_fg(&ur, 180, 80, 180);
-  cell_set_fg(&ll, 180, 80, 180);
-  cell_set_fg(&lr, 180, 80, 180);
-  cell_set_fg(&hl, 180, 80, 180);
-  cell_set_fg(&vl, 180, 80, 180);
+  int ret;
+  uint64_t channels = 0;
+  notcurses_fg_prep(&channels, 180, 80, 180);
   ncplane_cursor_move_yx(n, yoff, xoff);
-  if(!ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl,
-                 CHUNKS_VERT * chunky + yoff + 1,
-                 CHUNKS_HORZ * chunkx + xoff + 1)){
-    ret = 0;
-  }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  ret = ncplane_rounded_box(n, 0, channels,
+                            CHUNKS_VERT * chunky + yoff + 1,
+                            CHUNKS_HORZ * chunkx + xoff + 1);
   return ret;
 }
 

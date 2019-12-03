@@ -291,6 +291,19 @@ API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
 // On failure, -1 is returned.
 API int ncplane_putc(struct ncplane* n, const cell* c);
 
+// Replace the cell underneath the cursor with the provided 7-bit char 'c',
+// using the specified 'attr' and 'channels' for styling. Advance the cursor by
+// 1. On success, returns 1. On failure, returns -1.
+API int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels);
+
+// Replace the cell underneath the cursor with the provided EGC, using the
+// specified 'attr' and 'channels' for styling, and advance the cursor by the
+// width of the cluster (but not past the end of the plane). On success, returns
+// the number of columns the cursor was advanced. On failure, -1 is returned.
+// The number of bytes converted from gclust is written to 'sbytes' if non-NULL.
+API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
+                       uint64_t channels, int* sbytes);
+
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of cells
@@ -388,6 +401,16 @@ cell_init(cell* c){
 // of the cell is left untouched, but any resources are released.
 API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
+// cell_load(), plus blast the styling with 'attr' and 'channels'.
+static inline int
+cell_prime(struct ncplane* n, cell* c, const char *gcluster,
+           uint32_t attr, uint64_t channels){
+  c->attrword = attr;
+  c->channels = channels;
+  int ret = cell_load(n, c, gcluster);
+  return ret;
+}
+
 // Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
 // benefit of unit tests.
 API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
@@ -484,46 +507,46 @@ cell_rgb_get_bg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
   *b = cell_rgb_blue(bg);
 }
 
+// set the r, g, and b channels for either the foreground or background
+// component of this 64-bit 'channels' variable. 'shift' is the base number
+// of bits to shift r/g/b by; it ought either be 0 (bg) or 32 (fg). each of
+// r, g, and b must be in [0, 256), or -1 is returned. 'mask' is the
+// appropriate r/g/b mask, and 'nodefbit' is the appropriate nodefault bit.
 static inline int
-cell_rgb_set_fg(uint64_t* channels, int r, int g, int b){
+notcurses_channel_prep(uint64_t* channels, uint64_t mask, unsigned shift,
+                       int r, int g, int b, uint64_t nodefbit){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
   if(r < 0 || g < 0 || b < 0){
     return -1;
   }
-  uint64_t rgb = (r & 0xffull) << 48u;
-  rgb |= (g & 0xffull) << 40u;
-  rgb |= (b & 0xffull) << 32u;
-  rgb |= CELL_FGDEFAULT_MASK;
-  *channels = (*channels & ~(CELL_FGDEFAULT_MASK | CELL_FG_MASK)) | rgb;
+  uint64_t rgb = (r & 0xffull) << (shift + 16);
+  rgb |= (g & 0xffull) << (shift + 8);
+  rgb |= (b & 0xffull) << shift;
+  rgb |= nodefbit;
+  *channels = (*channels & ~(mask | nodefbit)) | rgb;
   return 0;
 }
 
 static inline int
-cell_rgb_set_bg(uint64_t* channels, int r, int g, int b){
-  if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
-    return -1;
-  }
-  uint64_t rgb = (r & 0xffull) << 16u;
-  rgb |= (g & 0xffull) << 8u;
-  rgb |= (b & 0xffull);
-  rgb |= CELL_BGDEFAULT_MASK;
-  *channels = (*channels & ~(CELL_BGDEFAULT_MASK | CELL_BG_MASK)) | rgb;
-  return 0;
+notcurses_fg_prep(uint64_t* channels, int r, int g, int b){
+  return notcurses_channel_prep(channels, CELL_FG_MASK, 32, r, g, b, CELL_FGDEFAULT_MASK);
+}
+
+static inline int
+notcurses_bg_prep(uint64_t* channels, int r, int g, int b){
+  return notcurses_channel_prep(channels, CELL_BG_MASK, 0, r, g, b, CELL_BGDEFAULT_MASK);
 }
 
 static inline void
 cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
-  cell_rgb_set_fg(&c->channels, r, g, b);
+  notcurses_fg_prep(&c->channels, r, g, b);
 }
 
 static inline void
 cell_set_bg(cell* c, unsigned r, unsigned g, unsigned b){
-  cell_rgb_set_bg(&c->channels, r, g, b);
+  notcurses_bg_prep(&c->channels, r, g, b);
 }
 
 static inline void
@@ -598,7 +621,8 @@ API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 // have loaded before the error are cell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
-cells_load_box(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr,
+cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
+               cell* ul, cell* ur, cell* ll, cell* lr,
                cell* hl, cell* vl, const char* gclusters){
   int ulen;
   if((ulen = cell_load(n, ul, gclusters)) > 0){
@@ -607,6 +631,12 @@ cells_load_box(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr,
         if((ulen = cell_load(n, lr, gclusters += ulen)) > 0){
           if((ulen = cell_load(n, hl, gclusters += ulen)) > 0){
             if((ulen = cell_load(n, vl, gclusters += ulen)) > 0){
+              ul->attrword = attrs; ul->channels = channels;
+              ur->attrword = attrs; ur->channels = channels;
+              ll->attrword = attrs; ll->channels = channels;
+              lr->attrword = attrs; lr->channels = channels;
+              hl->attrword = attrs; hl->channels = channels;
+              vl->attrword = attrs; vl->channels = channels;
               return 0;
             }
             cell_release(n, hl);
@@ -623,15 +653,69 @@ cells_load_box(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr,
 }
 
 static inline int
-cells_rounded_box(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                  cell* lr, cell* hl, cell* vl){
-  return cells_load_box(n, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                  cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
 }
 
 static inline int
-cells_double_box(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                 cell* lr, cell* hl, cell* vl){
-  return cells_load_box(n, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
+ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                    int ystop, int xstop){
+  int ret = 0;
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop);
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
+  return ret;
+}
+
+static inline int
+ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
+                          int ylen, int xlen){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_rounded_box(n, attr, channels, y + ylen - 1, x + xlen - 1);
+}
+
+static inline int
+cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                 cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
+}
+
+static inline int
+ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                   int ystop, int xstop){
+  int ret = 0;
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop);
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
+  return ret;
+}
+
+static inline int
+ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
+                         int ylen, int xlen){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_double_box(n, attr, channels, y + ylen - 1, x + xlen - 1);
 }
 
 // multimedia functionality

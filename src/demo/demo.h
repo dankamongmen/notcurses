@@ -11,8 +11,6 @@ extern "C" {
 // configured via command line option -- the base number of ns between demos
 extern struct timespec demodelay;
 
-#define FADE_MILLISECONDS 500
-
 int unicodeblocks_demo(struct notcurses* nc);
 int widecolor_demo(struct notcurses* nc);
 int box_demo(struct notcurses* nc);
