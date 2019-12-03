@@ -300,7 +300,9 @@ API int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t cha
 // specified 'attr' and 'channels' for styling, and advance the cursor by the
 // width of the cluster (but not past the end of the plane). On success, returns
 // the number of columns the cursor was advanced. On failure, -1 is returned.
-API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr, uint64_t channels);
+// The number of bytes converted from gclust is written to 'sbytes' if non-NULL.
+API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
+                       uint64_t channels, int* sbytes);
 
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -403,11 +405,9 @@ API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 static inline int
 cell_prime(struct ncplane* n, cell* c, const char *gcluster,
            uint32_t attr, uint64_t channels){
+  c->attrword = attr;
+  c->channels = channels;
   int ret = cell_load(n, c, gcluster);
-  if(ret >= 0){
-    c->attrword = attr;
-    c->channels = channels;
-  }
   return ret;
 }
 

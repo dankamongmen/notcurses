@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <ctype.h>
 #include <curses.h>
 #include <unistd.h>
@@ -9,27 +10,28 @@ static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_bg_default(n);
   ncplane_cursor_move_yx(n, 3, 1);
-  ncplane_fg_rgb8(n, 255, 255, 255);
+  ncplane_fg_rgb8(n, 0, 0, 0);
+  ncplane_bg_rgb8(n, 255, 255, 255);
   ncplane_styles_on(n, CELL_STYLE_BOLD);
   if(ncplane_rounded_box(n, 0, 0, 5, 57)){
     return -1;
   }
   ncplane_cursor_move_yx(n, 3, 4);
-  ncplane_putegc(n, "╨", 0, 0);
+  ncplane_putegc(n, "╨", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 2, 4);
-  ncplane_putegc(n, "║", 0, 0);
+  ncplane_putegc(n, "║", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 1, 4);
-  ncplane_putegc(n, "╔", 0, 0);
+  ncplane_putegc(n, "╔", 0, 0, NULL);
   cell hl = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &hl, "═");
   ncplane_hline(n, &hl, 15);
   cell_release(n, &hl);
   ncplane_cursor_move_yx(n, 1, 20);
-  ncplane_putegc(n, "╗", 0, 0);
+  ncplane_putegc(n, "╗", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 2, 20);
-  ncplane_putegc(n, "║", 0, 0);
+  ncplane_putegc(n, "║", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 3, 20);
-  ncplane_putegc(n, "╨", 0, 0);
+  ncplane_putegc(n, "╨", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 2, 5);
   ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_cursor_move_yx(n, 4, 2);
@@ -236,18 +238,22 @@ int widecolor_demo(struct notcurses* nc){
   };
   const char** s;
   int count = notcurses_palette_size(nc);
-  const int steps[] = { 128, 64, 16, 1, };
-  const int starts[] = { 0, 16, 62, 128, };
+  const int steps[] = { 1, 0x100, 0x40000, 0x10001, };
+  const int starts[] = { 1, 0x100, 0x10000, 0x10001, };
 
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
-  for(i = 0 ; i < sizeof(steps) / sizeof(*steps) ; ++i){
-    // ncplane_erase(n);
+  const size_t screens = sizeof(steps) / sizeof(*steps);
+  for(i = 0 ; i < screens ; ++i){
     const int start = starts[i];
-    const int step = steps[i];
+    int step = steps[i];
     ncspecial_key special;
     cell c;
-    do{
+    do{ // (re)draw a screen
+      // ncplane_erase(n);
+      const int rollover = 256 / ((step & 0xff) | ((step & 0xff00) >> 8u)
+                                     | ((step & 0xff0000) >> 16u));
+      int rollcount = 0; // number of times we've added this step
       int dimy, dimx;
       notcurses_resize(nc, &dimy, &dimx);
       cell_init(&c);
@@ -260,17 +266,21 @@ int widecolor_demo(struct notcurses* nc){
       }
       y = 0;
       x = 0;
-      do{ // we fill up the entire screen, however large
+      do{ // we fill up the entire screen, however large, walking our strtable
         s = strs;
         uint64_t channels = 0;
-        notcurses_bg_prep(&channels, 64, 64, 64);
+        notcurses_bg_prep(&channels, 20, 20, 20);
         for(s = strs ; *s ; ++s){
-          notcurses_fg_prep(&channels, cell_rgb_red(rgb),
-                            255 - cell_rgb_green(rgb), cell_rgb_blue(rgb));
           size_t idx = 0;
           ncplane_cursor_yx(n, &y, &x);
 // fprintf(stderr, "%02d %s\n", y, *s);
-          while((*s)[idx]){
+          while((*s)[idx]){ // each multibyte char of string
+            if(notcurses_fg_prep(&channels,
+                                 cell_rgb_red(rgb),
+                                 cell_rgb_green(rgb),
+                                 cell_rgb_blue(rgb))){
+              return -1;
+            }
             if(y >= maxy || x >= maxx){
               break;
             }
@@ -278,15 +288,29 @@ int widecolor_demo(struct notcurses* nc){
               ++idx;
               continue;
             }
-            int ulen = ncplane_putegc(n, &(*s)[idx], 0, channels);
-            if(ulen < 0){
-              return -1;
+            int ulen = 0;
+            int r;
+            if((r = ncplane_putegc(n, &(*s)[idx], 0, channels, &ulen)) < 0){
+              if(ulen < 0){
+                return -1;
+              }
+              break;
             }
             ncplane_cursor_yx(n, &y, &x);
-            if((rgb += step) >= count){
-              rgb = 1;
-            }
             idx += ulen;
+          }
+          if(++rollcount % rollover == 0){
+            step *= 256;
+          }
+          if((unsigned)step >= 1ul << 24){
+            step >>= 24u;
+          }
+          if(step == 0){
+            step = 1;
+          }
+          if((rgb += step) >= count){
+            rgb = 0;
+            step *= 256;
           }
         }
       }while(y < maxy && x < maxx);
@@ -297,8 +321,10 @@ int widecolor_demo(struct notcurses* nc){
         return -1;
       }
       if(i){
+        uint64_t delay = demodelay.tv_sec * 1000000000 + demodelay.tv_nsec;
+        delay /= screens;
         struct timespec tv = {
-          .tv_sec = 0, .tv_nsec = FADE_MILLISECONDS * 1000000,
+          .tv_sec = delay / 1000000000, .tv_nsec = delay % 1000000000,
         };
         ncplane_fadein(n, &tv);
       }
