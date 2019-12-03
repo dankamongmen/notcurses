@@ -72,18 +72,12 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   cell ul, ur, ll, lr, hl, vl;
   cell_init(&ul); cell_init(&ur); cell_init(&hl);
   cell_init(&ll); cell_init(&lr); cell_init(&vl);
-  if(cells_rounded_box(w, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_rounded_box(w, attr->attrword, attr->channels, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
 /*fprintf(stderr, "drawing borders %p %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
         w, begx, begy, maxx, maxy, nobordermask,
         cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');*/
-  ul.attrword = attr->attrword; ul.channels = attr->channels;
-  ur.attrword = attr->attrword; ur.channels = attr->channels;
-  ll.attrword = attr->attrword; ll.channels = attr->channels;
-  lr.attrword = attr->attrword; lr.channels = attr->channels;
-  hl.attrword = attr->attrword; hl.channels = attr->channels;
-  vl.attrword = attr->attrword; vl.channels = attr->channels;
   if(!cliphead){
     // lenx - begx + 1 is the number of columns we have, but drop 2 due to
     // corners. we thus want lenx - begx - 1 horizontal lines.
