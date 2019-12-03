@@ -484,46 +484,46 @@ cell_rgb_get_bg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
   *b = cell_rgb_blue(bg);
 }
 
+// set the r, g, and b channels for either the foreground or background
+// component of this 64-bit 'channels' variable. 'shift' is the base number
+// of bits to shift r/g/b by; it ought either be 0 (bg) or 32 (fg). each of
+// r, g, and b must be in [0, 256), or -1 is returned. 'mask' is the
+// appropriate r/g/b mask, and 'nodefbit' is the appropriate nodefault bit.
 static inline int
-cell_rgb_set_fg(uint64_t* channels, int r, int g, int b){
+notcurses_channel_prep(uint64_t* channels, uint64_t mask, unsigned shift,
+                       int r, int g, int b, uint64_t nodefbit){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
   if(r < 0 || g < 0 || b < 0){
     return -1;
   }
-  uint64_t rgb = (r & 0xffull) << 48u;
-  rgb |= (g & 0xffull) << 40u;
-  rgb |= (b & 0xffull) << 32u;
-  rgb |= CELL_FGDEFAULT_MASK;
-  *channels = (*channels & ~(CELL_FGDEFAULT_MASK | CELL_FG_MASK)) | rgb;
+  uint64_t rgb = (r & 0xffull) << (shift + 16);
+  rgb |= (g & 0xffull) << (shift + 8);
+  rgb |= (b & 0xffull) << shift;
+  rgb |= nodefbit;
+  *channels = (*channels & ~(mask | nodefbit)) | rgb;
   return 0;
 }
 
 static inline int
-cell_rgb_set_bg(uint64_t* channels, int r, int g, int b){
-  if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
-    return -1;
-  }
-  uint64_t rgb = (r & 0xffull) << 16u;
-  rgb |= (g & 0xffull) << 8u;
-  rgb |= (b & 0xffull);
-  rgb |= CELL_BGDEFAULT_MASK;
-  *channels = (*channels & ~(CELL_BGDEFAULT_MASK | CELL_BG_MASK)) | rgb;
-  return 0;
+notcurses_fg_prep(uint64_t* channels, int r, int g, int b){
+  return notcurses_channel_prep(channels, CELL_FG_MASK, 32, r, g, b, CELL_FGDEFAULT_MASK);
+}
+
+static inline int
+notcurses_bg_prep(uint64_t* channels, int r, int g, int b){
+  return notcurses_channel_prep(channels, CELL_BG_MASK, 0, r, g, b, CELL_BGDEFAULT_MASK);
 }
 
 static inline void
 cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
-  cell_rgb_set_fg(&c->channels, r, g, b);
+  notcurses_fg_prep(&c->channels, r, g, b);
 }
 
 static inline void
 cell_set_bg(cell* c, unsigned r, unsigned g, unsigned b){
-  cell_rgb_set_bg(&c->channels, r, g, b);
+  notcurses_bg_prep(&c->channels, r, g, b);
 }
 
 static inline void

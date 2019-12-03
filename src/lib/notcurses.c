@@ -754,11 +754,11 @@ void ncplane_bg_default(struct ncplane* n){
 }
 
 int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
-  return cell_rgb_set_bg(&n->channels, r, g, b);
+  return notcurses_bg_prep(&n->channels, r, g, b);
 }
 
 int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
-  return cell_rgb_set_fg(&n->channels, r, g, b);
+  return notcurses_fg_prep(&n->channels, r, g, b);
 }
 
 int ncplane_set_background(ncplane* ncp, const cell* c){
