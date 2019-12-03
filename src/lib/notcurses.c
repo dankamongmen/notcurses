@@ -27,13 +27,6 @@
 #define ESC "\x1b"
 #define NANOSECS_IN_SEC 1000000000
 
-typedef struct ncstats {
-  uint64_t renders;       // number of notcurses_render() runs
-  uint64_t renders_ns;    // number of nanoseconds spent in notcurses_render()
-  int64_t render_max_ns;  // max ns spent in notcurses_render()
-  int64_t render_min_ns;  // min ns spent in successful notcurses_render()
-} ncstats;
-
 typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
@@ -180,6 +173,10 @@ static const char NOTCURSES_VERSION[] =
 
 const char* notcurses_version(void){
   return NOTCURSES_VERSION;
+}
+
+void notcurses_stats(const notcurses* nc, ncstats* stats){
+  memcpy(stats, &nc->stats, sizeof(*stats));
 }
 
 static inline int
@@ -630,6 +627,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(ret == NULL){
     return ret;
   }
+  memset(&ret->stats, 0, sizeof(ret->stats));
   ret->ttyfp = opts->outfp;
   ret->renderfp = opts->renderfp;
   ret->ttyinfp = stdin; // FIXME
@@ -673,7 +671,6 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if((ret->stdscr = create_initial_ncplane(ret)) == NULL){
     goto err;
   }
-  memset(&ret->stats, 0, sizeof(ret->stats));
   if(ret->smkx && term_emit(ret->smkx, ret->ttyfp, true)){
     free_plane(ret->top);
     goto err;
@@ -1090,15 +1087,15 @@ int notcurses_render(notcurses* nc){
   // no need to write a clearscreen, since we update everything that's been
   // changed. just move the physical cursor to the upper left corner.
   term_emit(tiparm(nc->cup, 0, 0), out, false);
-  unsigned lastr, lastg, lastb;
-  unsigned lastbr, lastbg, lastbb;
+  // FIXME as of at least gcc 9.2.1, we get a false -Wmaybe-uninitialized below
+  // when using these without explicit initializations. for the life of me, i
+  // can't see any such path, and valgrind is cool with it, so what ya gonna do?
+  unsigned lastr = 0, lastg = 0, lastb = 0;
+  unsigned lastbr = 0, lastbg = 0, lastbb = 0;
   // we can elide a color escape iff the color has not changed between the two
   // cells and the current cell uses no defaults, or if both the current and
   // the last used both defaults.
   bool fgelidable = false, bgelidable = false, defaultelidable = false;
-  uint64_t fgelisions = 0, fgemissions = 0;
-  uint64_t bgelisions = 0, bgemissions = 0;
-  uint64_t defaultelisions = 0, defaultemissions = 0;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // FIXME previous line could have ended halfway through multicol. what happens?
     // FIXME also must explicitly move to next line if we're to deal with
@@ -1118,10 +1115,10 @@ int notcurses_render(notcurses* nc){
       // we can elide the default set iff the previous used both defaults
       if(cell_fg_default_p(c) || cell_bg_default_p(c)){
         if(!defaultelidable){
-          ++defaultemissions;
+          ++nc->stats.defaultemissions;
           term_emit(nc->op, out, false);
         }else{
-          ++defaultelisions;
+          ++nc->stats.defaultelisions;
         }
         // if either is not default, this will get turned off
         defaultelidable = true;
@@ -1132,13 +1129,11 @@ int notcurses_render(notcurses* nc){
       // we can elide the foreground set iff the previous used fg and matched
       if(!cell_fg_default_p(c)){
         cell_get_fg(c, &r, &g, &b);
-        if(fgelidable){
-          if(lastr == r && lastg == g && lastb == b){
-            ++fgelisions;
-          }
+        if(fgelidable && lastr == r && lastg == g && lastb == b){
+          ++nc->stats.fgelisions;
         }else{
           term_fg_rgb8(nc, out, r, g, b);
-          ++fgemissions;
+          ++nc->stats.fgemissions;
           fgelidable = true;
         }
         lastr = r; lastg = g; lastb = b;
@@ -1146,13 +1141,11 @@ int notcurses_render(notcurses* nc){
       }
       if(!cell_bg_default_p(c)){
         cell_get_bg(c, &br, &bg, &bb);
-        if(bgelidable){
-          if(lastbr == br && lastbg == bg && lastbb == bb){
-            ++bgelisions;
-          }
+        if(bgelidable && lastbr == br && lastbg == bg && lastbb == bb){
+          ++nc->stats.bgelisions;
         }else{
           term_bg_rgb8(nc, out, br, bg, bb);
-          ++bgemissions;
+          ++nc->stats.bgemissions;
           bgelidable = true;
         }
         lastbr = br; lastbg = bg; lastbb = bb;

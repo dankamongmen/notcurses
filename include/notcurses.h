@@ -190,6 +190,22 @@ API unsigned notcurses_supported_styles(const struct notcurses* nc);
 // color support.
 API int notcurses_palette_size(const struct notcurses* nc);
 
+typedef struct ncstats {
+  uint64_t renders;          // number of notcurses_render() runs
+  uint64_t renders_ns;       // nanoseconds spent in notcurses_render()
+  int64_t render_max_ns;     // max ns spent in notcurses_render()
+  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
+  uint64_t fgelisions;       // RGB fg elision count
+  uint64_t fgemissions;      // RGB fg emissions
+  uint64_t bgelisions;       // RGB bg elision count
+  uint64_t bgemissions;      // RGB bg emissions
+  uint64_t defaultelisions;  // default color was emitted
+  uint64_t defaultemissions; // default color was elided
+} ncstats;
+
+// Acquire a snapshot of the notcurses object's stats.
+API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
+
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
 // unchanged. This may be a section of size 0, though none of these four
