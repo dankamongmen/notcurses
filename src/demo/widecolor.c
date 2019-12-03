@@ -262,11 +262,11 @@ int widecolor_demo(struct notcurses* nc){
       x = 0;
       do{ // we fill up the entire screen, however large
         s = strs;
+        uint64_t channels = 0;
+        notcurses_bg_prep(&channels, 64, 64, 64);
         for(s = strs ; *s ; ++s){
-          cell wch = CELL_TRIVIAL_INITIALIZER;
-          cell_set_fg(&wch, cell_rgb_red(rgb), 255 - cell_rgb_green(rgb),
-                      cell_rgb_blue(rgb));
-          cell_set_bg(&wch, 64, 64, 64);
+          notcurses_fg_prep(&channels, cell_rgb_red(rgb),
+                            255 - cell_rgb_green(rgb), cell_rgb_blue(rgb));
           size_t idx = 0;
           ncplane_cursor_yx(n, &y, &x);
 // fprintf(stderr, "%02d %s\n", y, *s);
@@ -278,13 +278,9 @@ int widecolor_demo(struct notcurses* nc){
               ++idx;
               continue;
             }
-            // cell_load frees the previous contents
-            int ulen = cell_load(n, &wch, &(*s)[idx]);
+            int ulen = ncplane_putegc(n, &(*s)[idx], 0, channels);
             if(ulen < 0){
               return -1;
-            }
-            if(ncplane_putc(n, &wch) < 0){
-              break;
             }
             ncplane_cursor_yx(n, &y, &x);
             if((rgb += step) >= count){
@@ -292,7 +288,6 @@ int widecolor_demo(struct notcurses* nc){
             }
             idx += ulen;
           }
-          cell_release(n, &wch);
         }
       }while(y < maxy && x < maxx);
       if(message(n, maxy, maxx, i, sizeof(steps) / sizeof(*steps))){
