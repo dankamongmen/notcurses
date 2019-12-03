@@ -10,13 +10,7 @@ int box_demo(struct notcurses* nc){
   cell ul, ll, lr, ur, hl, vl;
   ncplane_fg_rgb8(n, 255, 255, 255);
   ncplane_bg_rgb8(n, 180, 40, 180);
-  cell_init(&ul);
-  cell_init(&ur);
-  cell_init(&ll);
-  cell_init(&lr);
-  cell_init(&hl);
-  cell_init(&vl);
-  if(cells_double_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int y = 0, x = 0;
