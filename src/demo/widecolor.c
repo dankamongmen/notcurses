@@ -14,39 +14,28 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   if(ncplane_rounded_box(n, 0, 0, 5, 57)){
     return -1;
   }
-  cell ll = CELL_TRIVIAL_INITIALIZER;
-  cell vl = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER;
-  cell ul = CELL_TRIVIAL_INITIALIZER;
-  cell ur = CELL_TRIVIAL_INITIALIZER;
-  cell_load(n, &ll, "╨");
   ncplane_cursor_move_yx(n, 3, 4);
-  ncplane_putc(n, &ll);
-  ncplane_cursor_move_yx(n, 3, 20);
-  ncplane_putc(n, &ll);
-  cell_load(n, &vl, "║");
-  ncplane_cursor_move_yx(n, 2, 20);
-  ncplane_putc(n, &vl);
+  ncplane_putegc(n, "╨", 0, 0);
   ncplane_cursor_move_yx(n, 2, 4);
-  ncplane_putc(n, &vl);
-  cell_load(n, &ul, "╔");
+  ncplane_putegc(n, "║", 0, 0);
   ncplane_cursor_move_yx(n, 1, 4);
-  ncplane_putc(n, &ul);
+  ncplane_putegc(n, "╔", 0, 0);
+  cell hl = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &hl, "═");
   ncplane_hline(n, &hl, 15);
-  cell_load(n, &ur, "╗");
-  ncplane_putc(n, &ur);
+  cell_release(n, &hl);
+  ncplane_cursor_move_yx(n, 1, 20);
+  ncplane_putegc(n, "╗", 0, 0);
+  ncplane_cursor_move_yx(n, 2, 20);
+  ncplane_putegc(n, "║", 0, 0);
+  ncplane_cursor_move_yx(n, 3, 20);
+  ncplane_putegc(n, "╨", 0, 0);
   ncplane_cursor_move_yx(n, 2, 5);
   ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_cursor_move_yx(n, 4, 2);
   ncplane_styles_off(n, CELL_STYLE_BOLD);
   ncplane_fg_rgb8(n, 200, 20, 200);
   ncplane_putstr(n, "  🔥 wide chars, multiple colors, resize awareness…🔥  ");
-  cell_release(n, &ll);
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
   return 0;
 }
 
