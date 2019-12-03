@@ -88,20 +88,10 @@ fill_chunk(struct ncplane* n, int idx){
   int maxy, maxx;
   ncplane_dim_yx(n, &maxy, &maxx);
   snprintf(buf, sizeof(buf), "%03d", idx);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
-    return -1;
-  }
+  cell style = CELL_TRIVIAL_INITIALIZER;
   int r = random() % 256, g = random() % 256, b = random() % 256;
-  cell_set_fg(&ul, r, g, b);
-  cell_set_fg(&ur, r, g, b);
-  cell_set_fg(&ll, r, g, b);
-  cell_set_fg(&lr, r, g, b);
-  cell_set_fg(&hl, r, g, b);
-  cell_set_fg(&vl, r, g, b);
-  if(ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, maxy - 1, maxx - 1)){
+  cell_set_fg(&style, r, g, b);
+  if(ncplane_double_box(n, style.attrword, style.channels, maxy - 1, maxx - 1)){
     return -1;
   }
   if(maxx >= 5 && maxy >= 3){
@@ -114,46 +104,23 @@ fill_chunk(struct ncplane* n, int idx){
       return -1;
     }
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
-  cell bg = CELL_TRIVIAL_INITIALIZER;
-  cell_set_bg(&bg, r, g, b);
-  ncplane_set_background(n, &bg);
-  cell_release(n, &bg);
+  cell_init(&style);
+  cell_set_bg(&style, r, g, b);
+  ncplane_set_background(n, &style);
+  cell_release(n, &style);
   return 0;
 }
 
 static int
 draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx){
-  int ret = -1;
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_rounded_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
-    return -1;
-  }
-  cell_set_fg(&ul, 180, 80, 180);
-  cell_set_fg(&ur, 180, 80, 180);
-  cell_set_fg(&ll, 180, 80, 180);
-  cell_set_fg(&lr, 180, 80, 180);
-  cell_set_fg(&hl, 180, 80, 180);
-  cell_set_fg(&vl, 180, 80, 180);
+  int ret;
+  cell style = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg(&style, 180, 80, 180);
   ncplane_cursor_move_yx(n, yoff, xoff);
-  if(!ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl,
-                 CHUNKS_VERT * chunky + yoff + 1,
-                 CHUNKS_HORZ * chunkx + xoff + 1)){
-    ret = 0;
-  }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  ret = ncplane_rounded_box(n, style.attrword, style.channels,
+                            CHUNKS_VERT * chunky + yoff + 1,
+                            CHUNKS_HORZ * chunkx + xoff + 1);
+  cell_release(n, &style);
   return ret;
 }
 
