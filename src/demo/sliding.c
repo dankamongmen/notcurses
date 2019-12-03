@@ -91,7 +91,7 @@ fill_chunk(struct ncplane* n, int idx){
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_double_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_double_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int r = random() % 256, g = random() % 256, b = random() % 256;
@@ -133,7 +133,7 @@ draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx)
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_rounded_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   cell_set_fg(&ul, 180, 80, 180);

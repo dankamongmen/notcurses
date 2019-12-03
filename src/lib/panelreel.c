@@ -72,7 +72,7 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   cell ul, ur, ll, lr, hl, vl;
   cell_init(&ul); cell_init(&ur); cell_init(&hl);
   cell_init(&ll); cell_init(&lr); cell_init(&vl);
-  if(ncplane_rounded_box_cells(w, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_rounded_box(w, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
 /*fprintf(stderr, "drawing borders %p %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",

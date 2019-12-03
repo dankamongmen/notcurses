@@ -100,7 +100,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     cell lr = CELL_TRIVIAL_INITIALIZER;
     cell vl = CELL_TRIVIAL_INITIALIZER;
     cell hl = CELL_TRIVIAL_INITIALIZER;
-    if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+    if(cells_rounded_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
       return -1;
     }
     uint32_t blockstart = blocks[sindex].start;

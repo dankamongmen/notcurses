@@ -16,7 +16,7 @@ int box_demo(struct notcurses* nc){
   cell_init(&lr);
   cell_init(&hl);
   cell_init(&vl);
-  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_double_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int y = 0, x = 0;

@@ -598,8 +598,8 @@ API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 // have loaded before the error are cell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
-ncplane_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                          cell* lr, cell* hl, cell* vl, const char* gclusters){
+cells_load_box(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr,
+               cell* hl, cell* vl, const char* gclusters){
   int ulen;
   if((ulen = cell_load(n, ul, gclusters)) > 0){
     if((ulen = cell_load(n, ur, gclusters += ulen)) > 0){
@@ -623,15 +623,15 @@ ncplane_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
 }
 
 static inline int
-ncplane_rounded_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                          cell* lr, cell* hl, cell* vl){
-  return ncplane_box_cells(n, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+cells_rounded_box(struct ncplane* n, cell* ul, cell* ur, cell* ll,
+                  cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
 }
 
 static inline int
-ncplane_double_box_cells(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                          cell* lr, cell* hl, cell* vl){
-  return ncplane_box_cells(n, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
+cells_double_box(struct ncplane* n, cell* ul, cell* ur, cell* ll,
+                 cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
 }
 
 // multimedia functionality

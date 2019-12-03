@@ -15,7 +15,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   cell_init(&lr);
   cell_init(&hl);
   cell_init(&vl);
-  if(ncplane_rounded_box_cells(n, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_rounded_box(n, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   ncplane_cursor_move_yx(n, 3, 1);
