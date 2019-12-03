@@ -294,13 +294,13 @@ API int ncplane_putc(struct ncplane* n, const cell* c);
 // Replace the cell underneath the cursor with the provided 7-bit char 'c',
 // using the specified 'attr' and 'channels' for styling. Advance the cursor by
 // 1. On success, returns 1. On failure, returns -1.
-API int ncplane_putsimple(struct ncplane* n, char c);
+API int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels);
 
 // Replace the cell underneath the cursor with the provided EGC, using the
 // specified 'attr' and 'channels' for styling, and advance the cursor by the
 // width of the cluster (but not past the end of the plane). On success, returns
 // the number of columns the cursor was advanced. On failure, -1 is returned.
-API int ncplane_putegc(struct ncplane* n, const char* gclust);
+API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr, uint64_t channels);
 
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -398,6 +398,18 @@ cell_init(cell* c){
 // the number of bytes copied out of 'gcluster', or -1 on failure. The styling
 // of the cell is left untouched, but any resources are released.
 API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+
+// cell_load(), plus blast the styling with 'attr' and 'channels'.
+static inline int
+cell_prime(struct ncplane* n, cell* c, const char *gcluster,
+           uint32_t attr, uint64_t channels){
+  int ret = cell_load(n, c, gcluster);
+  if(ret >= 0){
+    c->attrword = attr;
+    c->channels = channels;
+  }
+  return ret;
+}
 
 // Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
 // benefit of unit tests.

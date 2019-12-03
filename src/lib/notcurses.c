@@ -1245,6 +1245,32 @@ int ncplane_putc(ncplane* n, const cell* c){
   return ret;
 }
 
+int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels){
+  cell ce = {
+    .gcluster = c,
+    .attrword = attr,
+    .channels = channels,
+  };
+  if(!cell_simple_p(&ce)){
+    return -1;
+  }
+  return ncplane_putc(n, &ce);
+}
+
+// Replace the cell underneath the cursor with the provided EGC, using the
+// specified 'attr' and 'channels' for styling, and advance the cursor by the
+// width of the cluster (but not past the end of the plane). On success, returns
+// the number of columns the cursor was advanced. On failure, -1 is returned.
+int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr, uint64_t channels){
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  if(cell_prime(n, &c, gclust, attr, channels) < 0){
+    return -1;
+  }
+  int ret = ncplane_putc(n, &c);
+  cell_release(n, &c);
+  return ret;
+}
+
 int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
   if(n->y == n->leny && n->x == n->lenx){
     return -1;
