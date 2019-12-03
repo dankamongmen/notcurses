@@ -46,7 +46,7 @@ egcpool_grow(egcpool* pool, size_t len){
     return -1;
   }
   // nasty cast here because c++ source might include this header :/
-  typeof(*pool->pool)* tmp = (typeof(pool->pool))realloc(pool->pool, newsize);
+  char* tmp = (char*)realloc(pool->pool, newsize);
   if(tmp == NULL){
     return -1;
   }
