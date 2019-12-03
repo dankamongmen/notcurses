@@ -175,7 +175,7 @@ TEST_F(NcplaneTest, BadlyPlacedBoxen) {
   ASSERT_LT(2, y);
   ASSERT_LT(2, x);
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-  ASSERT_EQ(0, cells_rounded_box(n_, &ul, &ur, &ll, &lr, &hl, &vl));
+  ASSERT_EQ(0, cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
   EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1));
   EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 1, 0));
   EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
@@ -190,37 +190,43 @@ TEST_F(NcplaneTest, BadlyPlacedBoxen) {
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 
-TEST_F(NcplaneTest, PerimeterBox) {
+TEST_F(NcplaneTest, PerimeterRoundedBox) {
   int x, y;
   ncplane_dim_yx(n_, &y, &x);
   ASSERT_LT(2, y);
   ASSERT_LT(2, x);
-  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-  ASSERT_EQ(0, cells_rounded_box(n_, &ul, &ur, &ll, &lr, &hl, &vl));
-  EXPECT_EQ(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y - 1, x - 1));
-  cell_release(n_, &vl);
-  cell_release(n_, &hl);
-  cell_release(n_, &ul);
-  cell_release(n_, &ll);
-  cell_release(n_, &ur);
-  cell_release(n_, &lr);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  EXPECT_EQ(0, ncplane_rounded_box(n_, 0, 0, y - 1, x - 1));
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 
-TEST_F(NcplaneTest, PerimeterBoxSized) {
+TEST_F(NcplaneTest, PerimeterRoundedBoxSized) {
   int x, y;
   ncplane_dim_yx(n_, &y, &x);
   ASSERT_LT(2, y);
   ASSERT_LT(2, x);
-  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-  ASSERT_EQ(0, cells_rounded_box(n_, &ul, &ur, &ll, &lr, &hl, &vl));
-  EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x));
-  cell_release(n_, &vl);
-  cell_release(n_, &hl);
-  cell_release(n_, &ul);
-  cell_release(n_, &ll);
-  cell_release(n_, &ur);
-  cell_release(n_, &lr);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  EXPECT_EQ(0, ncplane_rounded_box_sized(n_, 0, 0, y, x));
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+TEST_F(NcplaneTest, PerimeterDoubleBox) {
+  int x, y;
+  ncplane_dim_yx(n_, &y, &x);
+  ASSERT_LT(2, y);
+  ASSERT_LT(2, x);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  EXPECT_EQ(0, ncplane_double_box(n_, 0, 0, y - 1, x - 1));
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+TEST_F(NcplaneTest, PerimeterDoubleBoxSized) {
+  int x, y;
+  ncplane_dim_yx(n_, &y, &x);
+  ASSERT_LT(2, y);
+  ASSERT_LT(2, x);
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  EXPECT_EQ(0, ncplane_double_box_sized(n_, 0, 0, y, x));
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 

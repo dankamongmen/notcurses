@@ -598,7 +598,8 @@ API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 // have loaded before the error are cell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
-cells_load_box(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr,
+cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
+               cell* ul, cell* ur, cell* ll, cell* lr,
                cell* hl, cell* vl, const char* gclusters){
   int ulen;
   if((ulen = cell_load(n, ul, gclusters)) > 0){
@@ -607,6 +608,12 @@ cells_load_box(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr,
         if((ulen = cell_load(n, lr, gclusters += ulen)) > 0){
           if((ulen = cell_load(n, hl, gclusters += ulen)) > 0){
             if((ulen = cell_load(n, vl, gclusters += ulen)) > 0){
+              ul->attrword = attrs; ul->channels = channels;
+              ur->attrword = attrs; ur->channels = channels;
+              ll->attrword = attrs; ll->channels = channels;
+              lr->attrword = attrs; lr->channels = channels;
+              hl->attrword = attrs; hl->channels = channels;
+              vl->attrword = attrs; vl->channels = channels;
               return 0;
             }
             cell_release(n, hl);
@@ -623,15 +630,69 @@ cells_load_box(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr,
 }
 
 static inline int
-cells_rounded_box(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                  cell* lr, cell* hl, cell* vl){
-  return cells_load_box(n, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                  cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
 }
 
 static inline int
-cells_double_box(struct ncplane* n, cell* ul, cell* ur, cell* ll,
-                 cell* lr, cell* hl, cell* vl){
-  return cells_load_box(n, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
+ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                    int ystop, int xstop){
+  int ret = 0;
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop);
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
+  return ret;
+}
+
+static inline int
+ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
+                          int ylen, int xlen){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_rounded_box(n, attr, channels, y + ylen - 1, x + xlen - 1);
+}
+
+static inline int
+cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                 cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
+}
+
+static inline int
+ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                   int ystop, int xstop){
+  int ret = 0;
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop);
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
+  return ret;
+}
+
+static inline int
+ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
+                         int ylen, int xlen){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_double_box(n, attr, channels, y + ylen - 1, x + xlen - 1);
 }
 
 // multimedia functionality
