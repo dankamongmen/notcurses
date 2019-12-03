@@ -204,6 +204,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'p': ret = panelreel_demo(nc); break;
     }
     if(ret){
+      fprintf(stderr, "Unknown demo specification: %c\n", *demos);
       return ret;
     }
     ++demos;

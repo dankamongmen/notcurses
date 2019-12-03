@@ -7,10 +7,11 @@
 #define CHUNKS_VERT 6
 #define CHUNKS_HORZ 12
 #define MOVES 45
-#define GIG 1000000000
+#define GIG 1000000000ul
 
 static int
-move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex){
+move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
+            uint64_t movens){
   int newholex, newholey;
   ncplane_yx(chunk, &newholey, &newholex);
   // we need to move from newhole to hole over the course of movetime
@@ -19,7 +20,6 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex)
   deltax = *holex - newholex;
   // divide movetime into abs(max(deltay, deltax)) units, and move delta
   int units = abs(deltay) > abs(deltax) ? abs(deltay) : abs(deltax);
-  uint64_t movens = (MOVES / 5) * (demodelay.tv_sec * GIG + demodelay.tv_nsec);
   movens /= units;
   struct timespec movetime = {
     .tv_sec = movens / MOVES / GIG,
@@ -48,8 +48,14 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex)
 // we take (MOVES / 5) * demodelay to play MOVES moves
 static int
 play(struct notcurses* nc, struct ncplane** chunks){
+  const uint64_t delayns = demodelay.tv_sec * GIG + demodelay.tv_nsec;
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
-  // struct ncplane* n = notcurses_stdplane(nc);
+  struct timespec cur;
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  // we don't want to spend more than demodelay * 5
+  const uint64_t totalns = delayns * 5;
+  const uint64_t deadline_ns = cur.tv_sec * GIG + cur.tv_nsec + totalns;
+  const uint64_t movens = totalns / MOVES;
   int hole = random() % chunkcount;
   int holex, holey;
   ncplane_yx(chunks[hole], &holey, &holex);
@@ -58,6 +64,11 @@ play(struct notcurses* nc, struct ncplane** chunks){
   int m;
   int lastdir = -1;
   for(m = 0 ; m < MOVES ; ++m){
+    clock_gettime(CLOCK_MONOTONIC, &cur);
+    uint64_t now = cur.tv_sec * GIG + cur.tv_nsec;
+    if(now >= deadline_ns){
+      break;
+    }
     int mover = chunkcount;
     int direction;
     do{
@@ -74,7 +85,7 @@ play(struct notcurses* nc, struct ncplane** chunks){
       }
     }while(mover == chunkcount);
     lastdir = direction;
-    move_square(nc, chunks[mover], &holey, &holex);
+    move_square(nc, chunks[mover], &holey, &holex, movens);
     chunks[hole] = chunks[mover];
     chunks[mover] = NULL;
     hole = mover;
