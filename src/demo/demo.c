@@ -136,13 +136,13 @@ intro(struct notcurses* nc){
     }
   }
   cell_release(ncp, &c);
-  cell style = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg(&style, 90, 0, 90);
-  cell_set_bg(&style, 0, 0, 180);
+  uint64_t channels = 0;
+  notcurses_fg_prep(&channels, 90, 0, 90);
+  notcurses_bg_prep(&channels, 0, 0, 180);
   if(ncplane_cursor_move_yx(ncp, 4, 4)){
     return -1;
   }
-  if(ncplane_rounded_box(ncp, style.attrword, style.channels, rows - 6, cols - 6)){
+  if(ncplane_rounded_box(ncp, 0, channels, rows - 6, cols - 6)){
     return -1;
   }
   const char s1[] = " Die Welt ist alles, was der Fall ist. ";
