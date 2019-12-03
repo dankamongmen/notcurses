@@ -291,6 +291,17 @@ API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
 // On failure, -1 is returned.
 API int ncplane_putc(struct ncplane* n, const cell* c);
 
+// Replace the cell underneath the cursor with the provided 7-bit char 'c',
+// using the specified 'attr' and 'channels' for styling. Advance the cursor by
+// 1. On success, returns 1. On failure, returns -1.
+API int ncplane_putsimple(struct ncplane* n, char c);
+
+// Replace the cell underneath the cursor with the provided EGC, using the
+// specified 'attr' and 'channels' for styling, and advance the cursor by the
+// width of the cluster (but not past the end of the plane). On success, returns
+// the number of columns the cursor was advanced. On failure, -1 is returned.
+API int ncplane_putegc(struct ncplane* n, const char* gclust);
+
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of cells
