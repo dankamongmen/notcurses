@@ -240,7 +240,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
 static struct panelreel*
 panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   bool done = false;
-  int x = 8, y = 8;
+  int x = 8, y = 4;
   panelreel_options popts = {
     .infinitescroll = true,
     .circular = true,

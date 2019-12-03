@@ -228,16 +228,16 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
   ncplane* fp = t->p;
   if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, direction)){
 //fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
-// fprintf(stderr, "FRONTIER DONE!!!!!!\n");
+//fprintf(stderr, "FRONTIER DONE!!!!!!\n");
     if(fp){
-// fprintf(stderr, "HIDING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
+//fprintf(stderr, "HIDING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
       ncplane_destroy(fp);
       t->p = NULL;
     }
     return -1;
   }
-// fprintf(stderr, "tplacement: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
-// fprintf(stderr, "DRAWING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
+//fprintf(stderr, "tplacement: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
+//fprintf(stderr, "DRAWING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
   if(fp == NULL){ // create a panel for the tablet
     t->p = notcurses_newplane(pr->p->nc, leny + 1, lenx, begy, begx, NULL);
     if((fp = t->p) == NULL){
@@ -346,14 +346,22 @@ draw_focused_tablet(const panelreel* pr){
     int dontcarex;
     ncplane_yx(pr->tablets->p, &fulcrum, &dontcarex);
     // FIXME ugh can't we just remember the previous fulcrum?
-    int prevfulcrum;
-    ncplane_yx(pr->tablets->prev->p, &prevfulcrum, &dontcarex);
-    int nextfulcrum;
-    ncplane_yx(pr->tablets->next->p, &nextfulcrum, &dontcarex);
-    if(pr->last_traveled_direction > 0 && fulcrum < prevfulcrum){
-      fulcrum = pleny + pbegy - !(pr->popts.bordermask & BORDERMASK_BOTTOM);
-    }else if(pr->last_traveled_direction < 0 && fulcrum > nextfulcrum){
-      fulcrum = pbegy + !(pr->popts.bordermask & BORDERMASK_TOP);
+    if(pr->last_traveled_direction > 0){
+      if(pr->tablets->prev->p){
+        int prevfulcrum;
+        ncplane_yx(pr->tablets->prev->p, &prevfulcrum, &dontcarex);
+        if(fulcrum < prevfulcrum){
+          fulcrum = pleny + pbegy - !(pr->popts.bordermask & BORDERMASK_BOTTOM);
+        }
+      }
+    }else if(pr->last_traveled_direction < 0){
+      if(pr->tablets->next->p){
+        int nextfulcrum;
+        ncplane_yx(pr->tablets->next->p, &nextfulcrum, &dontcarex);
+        if(fulcrum > nextfulcrum){
+          fulcrum = pbegy + !(pr->popts.bordermask & BORDERMASK_TOP);
+        }
+      }
     }
   }
 //fprintf(stderr, "PR dims: %d/%d + %d/%d fulcrum: %d\n", pbegy, pbegx, pleny, plenx, fulcrum);
@@ -393,14 +401,16 @@ draw_previous_tablets(const panelreel* pr, const tablet* otherend){
   int frontiery;
   while(upworking->prev != otherend || otherend->p == NULL){
     window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
-//fprintf(stderr, "MOVIN' ON UP: %d %d\n", frontiery, wbegy - 2);
     frontiery = wbegy - 2;
+//fprintf(stderr, "MOVIN' ON UP: %d %d\n", frontiery, wbegy - 2);
     upworking = upworking->prev;
     panelreel_draw_tablet(pr, upworking, frontiery, -1);
     if(upworking->p){
       window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
 //fprintf(stderr, "new up coords: %d/%d + %d/%d, %d\n", wbegy, wbegx, wleny, wlenx, frontiery);
       frontiery = wbegy - 2;
+    }else{
+      break;
     }
     if(upworking == otherend){
       otherend = otherend->prev;
@@ -435,6 +445,7 @@ find_topmost(panelreel* pr){
 // good god almighty, this is some fucking garbage.
 static int
 panelreel_arrange_denormalized(panelreel* pr){
+//fprintf(stderr, "denormalized devolution (are we men?)\n");
   // we'll need the starting line of the tablet which just lost focus, and the
   // starting line of the tablet which just gained focus.
   int fromline, nowline;
@@ -460,7 +471,7 @@ panelreel_arrange_denormalized(panelreel* pr){
       topmost = topmost->prev;
     }
   }
-// fprintf(stderr, "gotta draw 'em all FROM: %d NOW: %d!\n", fromline, nowline);
+//fprintf(stderr, "gotta draw 'em all FROM: %d NOW: %d!\n", fromline, nowline);
   tablet* t = topmost;
   do{
     int broken;
@@ -490,12 +501,17 @@ panelreel_arrange_denormalized(panelreel* pr){
 // focus, if we're not filling out the reel.
 //
 // This can still leave a gap plus a partially-onscreen tablet FIXME
-static int
-panelreel_arrange(panelreel* pr){
+int panelreel_redraw(panelreel* pr){
+//fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
+  if(draw_panelreel_borders(pr)){
+    return -1; // enforces specified dimensional minima
+  }
   tablet* focused = pr->tablets;
   if(focused == NULL){
+//fprintf(stderr, "no focus!\n");
     return 0; // if none are focused, none exist
   }
+//fprintf(stderr, "focused %p!\n", focused);
   // FIXME we special-cased this because i'm dumb and couldn't think of a more
   // elegant way to do this. we keep 'all_visible' as boolean state to avoid
   // having to do an o(n) iteration each round, but this is still grotesque, and
@@ -503,7 +519,9 @@ panelreel_arrange(panelreel* pr){
   if(pr->all_visible){
     return panelreel_arrange_denormalized(pr);
   }
+//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, pr->last_traveled_direction);
   draw_focused_tablet(pr);
+//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, pr->last_traveled_direction);
   tablet* otherend = focused;
   if(pr->last_traveled_direction >= 0){
     otherend = draw_previous_tablets(pr, otherend);
@@ -515,16 +533,6 @@ panelreel_arrange(panelreel* pr){
   // FIXME move them up to plug any holes in original direction?
 //fprintf(stderr, "DONE ARRANGING\n");
   return 0;
-}
-
-int panelreel_redraw(panelreel* pr){
-//fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
-  int ret = 0;
-  if(draw_panelreel_borders(pr)){
-    return -1; // enforces specified dimensional minima
-  }
-  ret |= panelreel_arrange(pr);
-  return ret;
 }
 
 static bool
