@@ -42,25 +42,20 @@ int maxcolor_demo(struct notcurses* nc){
     return -1;
   }
   uint32_t rgb = 0;
-  char buf[2] = "";
-  cell c = CELL_TRIVIAL_INITIALIZER;
   for(y = 1 ; y < maxy - 1 ; ++y){
     x = 1;
     if(ncplane_cursor_move_yx(n, y, x)){
       return -1;
     }
     while(x < maxx - 1){
-      cell_set_fg(&c, (rgb & 0xff0000) >> 16u, (rgb & 0xff00) >> 8u, rgb & 0xff);
-      cell_set_bg(&c, 0, 10, 0);
-      buf[0] = (x % 10) + '0';
-
-      cell_load(n, &c, buf);
-      ncplane_putc(n, &c);
+      notcurses_fg_prep(&channels, (rgb & 0xff0000) >> 16u,
+                        (rgb & 0xff00) >> 8u, rgb & 0xff);
+      notcurses_bg_prep(&channels, 0, 10, 0);
+      ncplane_putsimple(n, x % 10 + '0', 0, channels);
       grow_rgb(&rgb);
       ++x;
     }
   }
-  cell_release(n, &c);
   if(notcurses_render(nc)){
     return -1;
   }
