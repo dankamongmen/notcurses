@@ -32,7 +32,7 @@ int box_demo(struct notcurses* nc){
     if(ncplane_cursor_move_yx(n, y, x)){
       return -1;
     }
-    if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, ylen, xlen)){
+    if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, ylen, xlen, 0)){
       return -1;
     }
     ylen -= 2;

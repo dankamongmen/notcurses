@@ -126,30 +126,30 @@ TEST_F(PanelReelTest, DeleteActiveTablet) {
 
 TEST_F(PanelReelTest, NoBorder) {
   panelreel_options p{};
-  p.bordermask = BORDERMASK_LEFT | BORDERMASK_RIGHT |
-                  BORDERMASK_TOP | BORDERMASK_BOTTOM;
+  p.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT |
+                  NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
   struct panelreel* pr = panelreel_create(n_, &p, -1);
   ASSERT_NE(nullptr, pr);
 }
 
 TEST_F(PanelReelTest, BadBorderBitsRejected) {
   panelreel_options p{};
-  p.bordermask = BORDERMASK_LEFT * 2;
+  p.bordermask = NCBOXMASK_LEFT * 2;
   struct panelreel* pr = panelreel_create(n_, &p, -1);
   ASSERT_EQ(nullptr, pr);
 }
 
 TEST_F(PanelReelTest, NoTabletBorder) {
   panelreel_options p{};
-  p.tabletmask = BORDERMASK_LEFT | BORDERMASK_RIGHT |
-                  BORDERMASK_TOP | BORDERMASK_BOTTOM;
+  p.tabletmask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT |
+                  NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
   struct panelreel* pr = panelreel_create(n_, &p, -1);
   ASSERT_NE(nullptr, pr);
 }
 
 TEST_F(PanelReelTest, BadTabletBorderBitsRejected) {
   panelreel_options p{};
-  p.tabletmask = BORDERMASK_LEFT * 2;
+  p.tabletmask = NCBOXMASK_LEFT * 2;
   struct panelreel* pr = panelreel_create(n_, &p, -1);
   ASSERT_EQ(nullptr, pr);
 }
@@ -201,8 +201,8 @@ TEST_F(PanelReelTest, SubwinNoPanelreelBorders) {
   p.roff = 1;
   p.toff = 1;
   p.boff = 1;
-  p.bordermask = BORDERMASK_LEFT | BORDERMASK_RIGHT |
-                  BORDERMASK_TOP | BORDERMASK_BOTTOM;
+  p.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT |
+                  NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
   EXPECT_EQ(0, clear());
   PANEL* base = make_targwin(n_);
   ASSERT_NE(nullptr, base);

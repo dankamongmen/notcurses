@@ -38,7 +38,7 @@ int maxcolor_demo(struct notcurses* nc){
   notcurses_bg_prep(&channels, 90, 0, 90);
   int y = 0, x = 0;
   ncplane_cursor_move_yx(n, y, x);
-  if(ncplane_rounded_box_sized(n, 0, channels, maxy, maxx)){
+  if(ncplane_rounded_box_sized(n, 0, channels, maxy, maxx, 0)){
     return -1;
   }
   uint32_t rgb = 0;

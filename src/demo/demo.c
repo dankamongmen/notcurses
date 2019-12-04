@@ -142,7 +142,7 @@ intro(struct notcurses* nc){
   if(ncplane_cursor_move_yx(ncp, 4, 4)){
     return -1;
   }
-  if(ncplane_rounded_box(ncp, 0, channels, rows - 6, cols - 6)){
+  if(ncplane_rounded_box(ncp, 0, channels, rows - 6, cols - 6, 0)){
     return -1;
   }
   const char s1[] = " Die Welt ist alles, was der Fall ist. ";

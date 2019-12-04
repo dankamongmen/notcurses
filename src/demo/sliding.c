@@ -102,7 +102,7 @@ fill_chunk(struct ncplane* n, int idx){
   uint64_t channels = 0;
   int r = random() % 256, g = random() % 256, b = random() % 256;
   notcurses_fg_prep(&channels, r, g, b);
-  if(ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1)){
+  if(ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0)){
     return -1;
   }
   if(maxx >= 5 && maxy >= 3){
@@ -131,7 +131,7 @@ draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx)
   ncplane_cursor_move_yx(n, yoff, xoff);
   ret = ncplane_rounded_box(n, 0, channels,
                             CHUNKS_VERT * chunky + yoff + 1,
-                            CHUNKS_HORZ * chunkx + xoff + 1);
+                            CHUNKS_HORZ * chunkx + xoff + 1, 0);
   return ret;
 }
 

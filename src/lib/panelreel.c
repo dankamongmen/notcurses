@@ -81,17 +81,17 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   if(!cliphead){
     // lenx - begx + 1 is the number of columns we have, but drop 2 due to
     // corners. we thus want lenx - begx - 1 horizontal lines.
-    if(!(nobordermask & BORDERMASK_TOP)){
+    if(!(nobordermask & NCBOXMASK_TOP)){
       ret |= ncplane_cursor_move_yx(w, begy, begx);
       ncplane_putc(w, &ul);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &ur);
     }else{
-      if(!(nobordermask & BORDERMASK_LEFT)){
+      if(!(nobordermask & NCBOXMASK_LEFT)){
         ret |= ncplane_cursor_move_yx(w, begy, begx);
         ncplane_putc(w, &ul);
       }
-      if(!(nobordermask & BORDERMASK_RIGHT)){
+      if(!(nobordermask & NCBOXMASK_RIGHT)){
         ret |= ncplane_cursor_move_yx(w, begy, maxx);
         ncplane_putc(w, &ur);
       }
@@ -99,27 +99,27 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   }
   int y;
   for(y = begy + !cliphead ; y < maxy + !!clipfoot ; ++y){
-    if(!(nobordermask & BORDERMASK_LEFT)){
+    if(!(nobordermask & NCBOXMASK_LEFT)){
       ret |= ncplane_cursor_move_yx(w, y, begx);
       ncplane_putc(w, &vl);
     }
-    if(!(nobordermask & BORDERMASK_RIGHT)){
+    if(!(nobordermask & NCBOXMASK_RIGHT)){
       ret |= ncplane_cursor_move_yx(w, y, maxx);
       ncplane_putc(w, &vl);
     }
   }
   if(!clipfoot){
-    if(!(nobordermask & BORDERMASK_BOTTOM)){
+    if(!(nobordermask & NCBOXMASK_BOTTOM)){
       ret |= ncplane_cursor_move_yx(w, maxy, begx);
       ncplane_putc(w, &ll);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &lr);
     }else{
-      if(!(nobordermask & BORDERMASK_LEFT)){
+      if(!(nobordermask & NCBOXMASK_LEFT)){
         ret |= ncplane_cursor_move_yx(w, maxy, begx);
         ret |= ncplane_putc(w, &ll);
       }
-      if(!(nobordermask & BORDERMASK_RIGHT)){
+      if(!(nobordermask & NCBOXMASK_RIGHT)){
         // mvwadd_wch returns error if we print to the lowermost+rightmost
         // character cell. maybe we can make this go away with scrolling controls
         // at setup? until then, don't check for error here FIXME.
@@ -164,9 +164,9 @@ tablet_columns(const panelreel* pr, int* begx, int* begy, int* lenx, int* leny,
                int frontiery, int direction){
   window_coordinates(pr->p, begy, begx, leny, lenx);
   int maxy = *leny + *begy - 1;
-  int begindraw = *begy + !(pr->popts.bordermask & BORDERMASK_TOP);
+  int begindraw = *begy + !(pr->popts.bordermask & NCBOXMASK_TOP);
   // FIXME i think this fails to account for an absent panelreel bottom?
-  int enddraw = maxy - !(pr->popts.bordermask & BORDERMASK_TOP);
+  int enddraw = maxy - !(pr->popts.bordermask & NCBOXMASK_TOP);
   if(direction){
     if(frontiery < begindraw){
       return -1;
@@ -177,18 +177,18 @@ tablet_columns(const panelreel* pr, int* begx, int* begy, int* lenx, int* leny,
     }
   }
   // account for the panelreel borders
-  if(direction <= 0 && !(pr->popts.bordermask & BORDERMASK_TOP)){
+  if(direction <= 0 && !(pr->popts.bordermask & NCBOXMASK_TOP)){
     ++*begy;
     --*leny;
   }
-  if(direction >= 0 && !(pr->popts.bordermask & BORDERMASK_BOTTOM)){
+  if(direction >= 0 && !(pr->popts.bordermask & NCBOXMASK_BOTTOM)){
     --*leny;
   }
-  if(!(pr->popts.bordermask & BORDERMASK_LEFT)){
+  if(!(pr->popts.bordermask & NCBOXMASK_LEFT)){
     ++*begx;
     --*lenx;
   }
-  if(!(pr->popts.bordermask & BORDERMASK_RIGHT)){
+  if(!(pr->popts.bordermask & NCBOXMASK_RIGHT)){
     --*lenx;
   }
   // at this point, our coordinates describe the largest possible tablet for
@@ -265,16 +265,16 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
   --cbmaxy;
   --cbmaxx;
   // If we're drawing up, we'll always have a bottom border unless it's masked
-  if(direction < 0 && !(pr->popts.tabletmask & BORDERMASK_BOTTOM)){
+  if(direction < 0 && !(pr->popts.tabletmask & NCBOXMASK_BOTTOM)){
     --cbmaxy;
   }
   // If we're drawing down, we'll always have a top border unless it's masked
-  if(direction >= 0 && !(pr->popts.tabletmask & BORDERMASK_TOP)){
+  if(direction >= 0 && !(pr->popts.tabletmask & NCBOXMASK_TOP)){
     ++cby;
   }
   // Adjust the x-bounds for side borders, which we always have if unmasked
-  cbmaxx -= !(pr->popts.tabletmask & BORDERMASK_RIGHT);
-  cbx += !(pr->popts.tabletmask & BORDERMASK_LEFT);
+  cbmaxx -= !(pr->popts.tabletmask & NCBOXMASK_RIGHT);
+  cbx += !(pr->popts.tabletmask & NCBOXMASK_LEFT);
   bool cbdir = direction < 0 ? true : false;
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cbmaxx/cbmaxy: %d/%d dir: %d\n",
 //    lenx, leny, cbx, cby, cbmaxx, cbmaxy, direction);
@@ -331,9 +331,9 @@ draw_focused_tablet(const panelreel* pr){
   int fulcrum;
   if(pr->tablets->p == NULL){
     if(pr->last_traveled_direction >= 0){
-      fulcrum = pleny + pbegy - !(pr->popts.bordermask & BORDERMASK_BOTTOM);
+      fulcrum = pleny + pbegy - !(pr->popts.bordermask & NCBOXMASK_BOTTOM);
     }else{
-      fulcrum = pbegy + !(pr->popts.bordermask & BORDERMASK_TOP);
+      fulcrum = pbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
     }
   }else{ // focused was already present. want to stay where we are, if possible
     int dontcarex;
@@ -344,7 +344,7 @@ draw_focused_tablet(const panelreel* pr){
         int prevfulcrum;
         ncplane_yx(pr->tablets->prev->p, &prevfulcrum, &dontcarex);
         if(fulcrum < prevfulcrum){
-          fulcrum = pleny + pbegy - !(pr->popts.bordermask & BORDERMASK_BOTTOM);
+          fulcrum = pleny + pbegy - !(pr->popts.bordermask & NCBOXMASK_BOTTOM);
         }
       }
     }else if(pr->last_traveled_direction < 0){
@@ -352,7 +352,7 @@ draw_focused_tablet(const panelreel* pr){
         int nextfulcrum;
         ncplane_yx(pr->tablets->next->p, &nextfulcrum, &dontcarex);
         if(fulcrum > nextfulcrum){
-          fulcrum = pbegy + !(pr->popts.bordermask & BORDERMASK_TOP);
+          fulcrum = pbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
         }
       }
     }
@@ -452,7 +452,7 @@ panelreel_arrange_denormalized(panelreel* pr){
   tablet* topmost = find_topmost(pr);
   int wbegy, wbegx, wleny, wlenx;
   window_coordinates(pr->p, &wbegy, &wbegx, &wleny, &wlenx);
-  int frontiery = wbegy + !(pr->popts.bordermask & BORDERMASK_TOP);
+  int frontiery = wbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
   if(pr->last_traveled_direction >= 0){
     ncplane_yx(pr->tablets->prev->p, &fromline, NULL);
     if(fromline > nowline){ // keep the order we had
@@ -538,10 +538,10 @@ validate_panelreel_opts(ncplane* w, const panelreel_options* popts){
       return false; // can't set circular without infinitescroll
     }
   }
-  const unsigned fullmask = BORDERMASK_LEFT |
-                            BORDERMASK_RIGHT |
-                            BORDERMASK_TOP |
-                            BORDERMASK_BOTTOM;
+  const unsigned fullmask = NCBOXMASK_LEFT |
+                            NCBOXMASK_RIGHT |
+                            NCBOXMASK_TOP |
+                            NCBOXMASK_BOTTOM;
   if(popts->bordermask > fullmask){
     return false;
   }
@@ -617,7 +617,7 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
   // are we the only tablet?
   int begx, begy, lenx, leny, frontiery;
   if(t->prev == t){
-    frontiery = wbegy + !(pr->popts.bordermask & BORDERMASK_TOP);
+    frontiery = wbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
     if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, 1)){
       pr->all_visible = false;
       return t;
