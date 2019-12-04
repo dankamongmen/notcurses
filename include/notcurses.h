@@ -325,8 +325,21 @@ API int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 // lines), just as if ncplane_putc() was called at that spot. Return the
 // number of cells drawn on success. On error, return the negative number of
 // cells drawn.
-API int ncplane_hline(struct ncplane* n, const cell* c, int len);
-API int ncplane_vline(struct ncplane* n, const cell* c, int len);
+API int ncplane_hline_interp(struct ncplane* n, const cell* c, int len,
+                             uint64_t c1, uint64_t c2);
+
+static inline int
+ncplane_hline(struct ncplane* n, const cell* c, int len){
+  return ncplane_hline_interp(n, c, len, c->channels, c->channels);
+}
+
+API int ncplane_vline_interp(struct ncplane* n, const cell* c, int len,
+                             uint64_t c1, uint64_t c2);
+
+static inline int
+ncplane_vline(struct ncplane* n, const cell* c, int len){
+  return ncplane_vline_interp(n, c, len, c->channels, c->channels);
+}
 
 // Draw a box with its upper-left corner at the current cursor position, and its
 // lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the

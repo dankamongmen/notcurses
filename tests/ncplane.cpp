@@ -572,69 +572,81 @@ TEST_F(NcplaneTest, PlaneAtCursorAttrs){
   EXPECT_EQ(testcell.gcluster, STR3[strlen(STR3) - 1]);
 }
 
-TEST_F(NcplaneTest, BoxSideColors) {
-  int dimx, dimy;
-  ncplane_dim_yx(n_, &dimy, &dimx);
-  ASSERT_LT(12, dimy);
-  ASSERT_LT(24, dimx);
-  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-  ASSERT_EQ(0, cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
-  // we'll try all 16 boxmasks in 4x4 configurations in a 4x4 map
-  EXPECT_EQ(0, notcurses_fg_prep(&ul.channels, 255, 0, 0));
-  EXPECT_EQ(0, notcurses_fg_prep(&ur.channels, 0, 255, 0));
-  EXPECT_EQ(0, notcurses_fg_prep(&ll.channels, 0, 0, 255));
-  EXPECT_EQ(0, notcurses_fg_prep(&lr.channels, 0, 0, 0));
-  EXPECT_EQ(0, notcurses_fg_prep(&hl.channels, 255, 0, 255));
-  EXPECT_EQ(0, notcurses_fg_prep(&vl.channels, 255, 255, 255));
-  unsigned boxmask = 0;
-  for(auto y0 = 0 ; y0 < 4 ; ++y0){
-    for(auto x0 = 0 ; x0 < 4 ; ++x0){
-      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * 4, x0 * 4));
-      EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                     4, 4, boxmask));
-      ++boxmask;
-    }
-  }
-  boxmask = 0;
-  for(auto y0 = 0 ; y0 < 4 ; ++y0){
-    for(auto x0 = 0 ; x0 < 4 ; ++x0){
-      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * 4, x0 * 4 + 12));
-      EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                     4, 4, boxmask));
-      ++boxmask;
-    }
-  }
-  EXPECT_EQ(0, notcurses_render(nc_));
-}
-
 TEST_F(NcplaneTest, BoxGradients) {
+  const auto sidesz = 5;
   int dimx, dimy;
   ncplane_dim_yx(n_, &dimy, &dimx);
-  ASSERT_LT(16, dimy);
-  ASSERT_LT(32, dimx);
+  ASSERT_LT(20, dimy);
+  ASSERT_LT(40, dimx);
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
   ASSERT_EQ(0, cells_double_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
   EXPECT_EQ(0, notcurses_fg_prep(&ul.channels, 255, 0, 0));
   EXPECT_EQ(0, notcurses_fg_prep(&ur.channels, 0, 255, 0));
   EXPECT_EQ(0, notcurses_fg_prep(&ll.channels, 0, 0, 255));
   EXPECT_EQ(0, notcurses_fg_prep(&lr.channels, 255, 255, 255));
-  // we'll try all 16 boxmasks in 4x4 configurations in a 4x4 map
+  EXPECT_EQ(0, notcurses_bg_prep(&ul.channels, 0, 255, 255));
+  EXPECT_EQ(0, notcurses_bg_prep(&ur.channels, 255, 0, 255));
+  EXPECT_EQ(0, notcurses_bg_prep(&ll.channels, 255, 255, 0));
+  EXPECT_EQ(0, notcurses_bg_prep(&lr.channels, 0, 0, 0));
+  // we'll try all 16 gradmasks in sideszXsidesz configs in a 4x4 map
   unsigned gradmask = 0;
   for(auto y0 = 0 ; y0 < 4 ; ++y0){
     for(auto x0 = 0 ; x0 < 4 ; ++x0){
-      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * 4, x0 * 4));
+      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1)));
       EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                     4, 4, gradmask));
+                                     sidesz, sidesz, gradmask));
       ++gradmask;
     }
   }
   gradmask = 0;
   for(auto y0 = 0 ; y0 < 4 ; ++y0){
     for(auto x0 = 0 ; x0 < 4 ; ++x0){
-      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * 4, x0 * 4 + 16));
+      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1) + (4 * (sidesz + 1))));
       EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                     4, 4, gradmask));
+                                     sidesz, sidesz, gradmask));
       ++gradmask;
+    }
+  }
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+TEST_F(NcplaneTest, BoxSideColors) {
+  const auto sidesz = 5;
+  int dimx, dimy;
+  ncplane_dim_yx(n_, &dimy, &dimx);
+  ASSERT_LT(20, dimy);
+  ASSERT_LT(40, dimx);
+  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
+  ASSERT_EQ(0, cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+  // we'll try all 16 boxmasks in sideszXsidesz configurations in a 4x4 map
+  EXPECT_EQ(0, notcurses_fg_prep(&ul.channels, 255, 0, 0));
+  EXPECT_EQ(0, notcurses_fg_prep(&ur.channels, 0, 255, 0));
+  EXPECT_EQ(0, notcurses_fg_prep(&ll.channels, 0, 0, 255));
+  EXPECT_EQ(0, notcurses_fg_prep(&lr.channels, 0, 0, 0));
+  EXPECT_EQ(0, notcurses_bg_prep(&ul.channels, 0, 255, 255));
+  EXPECT_EQ(0, notcurses_bg_prep(&ur.channels, 255, 0, 255));
+  EXPECT_EQ(0, notcurses_bg_prep(&ll.channels, 255, 255, 0));
+  EXPECT_EQ(0, notcurses_bg_prep(&lr.channels, 0, 0, 0));
+  EXPECT_EQ(0, notcurses_fg_prep(&hl.channels, 255, 0, 255));
+  EXPECT_EQ(0, notcurses_fg_prep(&vl.channels, 255, 255, 255));
+  EXPECT_EQ(0, notcurses_bg_prep(&hl.channels, 0, 255, 0));
+  EXPECT_EQ(0, notcurses_bg_prep(&vl.channels, 0, 0, 0));
+  unsigned boxmask = 0;
+  for(auto y0 = 0 ; y0 < 4 ; ++y0){
+    for(auto x0 = 0 ; x0 < 4 ; ++x0){
+      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1)));
+      EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
+                                     sidesz, sidesz, boxmask));
+      ++boxmask;
+    }
+  }
+  boxmask = 0;
+  for(auto y0 = 0 ; y0 < 4 ; ++y0){
+    for(auto x0 = 0 ; x0 < 4 ; ++x0){
+      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1) + (4 * (sidesz + 1))));
+      EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
+                                     sidesz, sidesz, boxmask));
+      ++boxmask;
     }
   }
   EXPECT_EQ(0, notcurses_render(nc_));
