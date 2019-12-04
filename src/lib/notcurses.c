@@ -589,6 +589,10 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(ret == NULL){
     return ret;
   }
+  if(pthread_mutex_init(&ret->lock, NULL)){
+    free(ret);
+    return NULL;
+  }
   memset(&ret->stats, 0, sizeof(ret->stats));
   ret->stats.render_min_ns = ~0UL;
   ret->stats.render_min_bytes = ~0UL;
@@ -664,6 +668,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
 
 err:
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
+  pthread_mutex_destroy(&ret->lock);
   free(ret);
   return NULL;
 }
@@ -712,6 +717,7 @@ int notcurses_stop(notcurses* nc){
       nc->top = p->z;
       free_plane(p);
     }
+    ret |= pthread_mutex_destroy(&nc->lock);
     free(nc);
   }
   return ret;
@@ -1162,7 +1168,7 @@ int notcurses_render(notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   update_render_stats(&done, &start, &nc->stats);
   pthread_mutex_unlock(&nc->lock);
-  return bytes;
+  return bytes < 0 ? -1 : 0;
 }
 
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
@@ -1213,9 +1219,11 @@ int ncplane_putc(ncplane* n, const cell* c){
   if(cursor_invalid_p(n)){
     return -1;
   }
+  pthread_mutex_lock(&n->nc->lock);
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
   advance_cursor(n, 1 + cell_double_wide_p(targ));
+  pthread_mutex_unlock(&n->nc->lock);
   return ret;
 }
 
@@ -1297,16 +1305,17 @@ int ncplane_putstr(ncplane* n, const char* gclusters){
     // FIXME can we not dispense with this cell, and print directly in?
     cell c;
     memset(&c, 0, sizeof(c));
-    c.channels = n->channels;
-    c.attrword = n->attrword;
     int wcs = cell_load(n, &c, gclusters);
-    if(wcs < 0){
-      return -ret;
+    if(ncplane_putegc(n, gclusters, n->attrword, n->channels, &wcs) < 0){
+      if(wcs < 0){
+        pthread_mutex_unlock(&n->nc->lock);
+        return -ret;
+      }
+      break;
     }
     if(wcs == 0){
       break;
     }
-    ncplane_putc(n, &c);
     gclusters += wcs;
     ret += wcs;
     if(ncplane_cursor_stuck(n)){
