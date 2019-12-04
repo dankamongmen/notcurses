@@ -7,24 +7,45 @@
 #include "demo.h"
 
 static int
-message(struct ncplane* n, int maxy, int maxx, int num, int total){
+message(struct ncplane* n, int maxy, int maxx, int num, int total,
+        int bytes_out, int egs_out, int cols_out){
   uint64_t channels = 0;
   notcurses_fg_prep(&channels, 255, 255, 255);
   ncplane_bg_default(n);
   ncplane_cursor_move_yx(n, 3, 1);
-  ncplane_styles_on(n, CELL_STYLE_BOLD);
   if(ncplane_rounded_box(n, 0, channels, 5, 57, 0)){
     return -1;
   }
+  // bottom handle
+  ncplane_cursor_move_yx(n, 5, 18);
+  ncplane_putegc(n, "┬", 0, 0, NULL);
+  ncplane_cursor_move_yx(n, 6, 18);
+  ncplane_putegc(n, "│", 0, 0, NULL);
+  ncplane_cursor_move_yx(n, 7, 18);
+  ncplane_putegc(n, "╰", 0, 0, NULL);
+  cell hl = CELL_TRIVIAL_INITIALIZER;
+  cell_prime(n, &hl, "━", 0, channels);
+  ncplane_hline(n, &hl, 57 - 18 - 1);
+  ncplane_cursor_move_yx(n, 7, 57);
+  ncplane_putegc(n, "╯", 0, 0, NULL);
+  ncplane_cursor_move_yx(n, 6, 57);
+  ncplane_putegc(n, "│", 0, 0, NULL);
+  ncplane_cursor_move_yx(n, 5, 57);
+  ncplane_putegc(n, "┤", 0, 0, NULL);
+  ncplane_cursor_move_yx(n, 6, 19);
+  ncplane_styles_on(n, CELL_STYLE_ITALIC);
+  ncplane_printf(n, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
+  ncplane_styles_off(n, CELL_STYLE_ITALIC);
+
+  // top handle
   ncplane_cursor_move_yx(n, 3, 4);
   ncplane_putegc(n, "╨", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 2, 4);
   ncplane_putegc(n, "║", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 1, 4);
   ncplane_putegc(n, "╔", 0, 0, NULL);
-  cell hl = CELL_TRIVIAL_INITIALIZER;
   cell_prime(n, &hl, "═", 0, channels);
-  ncplane_hline(n, &hl, 15);
+  ncplane_hline(n, &hl, 20 - 4 - 1);
   cell_release(n, &hl);
   ncplane_cursor_move_yx(n, 1, 20);
   ncplane_putegc(n, "╗", 0, 0, NULL);
@@ -33,6 +54,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_cursor_move_yx(n, 3, 20);
   ncplane_putegc(n, "╨", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 2, 5);
+  ncplane_styles_on(n, CELL_STYLE_BOLD);
   ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_cursor_move_yx(n, 4, 2);
   ncplane_styles_off(n, CELL_STYLE_BOLD);
@@ -264,6 +286,9 @@ int widecolor_demo(struct notcurses* nc){
       if(ncplane_cursor_move_yx(n, 0, 0)){
         return -1;
       }
+      int bytes_out = 0;
+      int egcs_out = 0;
+      int cols_out = 0;
       y = 0;
       x = 0;
       do{ // we fill up the entire screen, however large, walking our strtable
@@ -298,6 +323,9 @@ int widecolor_demo(struct notcurses* nc){
             }
             ncplane_cursor_yx(n, &y, &x);
             idx += ulen;
+            bytes_out += ulen;
+            cols_out += r;
+            ++egcs_out;
           }
           if(++rollcount % rollover == 0){
             step *= 256;
@@ -314,7 +342,8 @@ int widecolor_demo(struct notcurses* nc){
           }
         }
       }while(y < maxy && x < maxx);
-      if(message(n, maxy, maxx, i, sizeof(steps) / sizeof(*steps))){
+      if(message(n, maxy, maxx, i, sizeof(steps) / sizeof(*steps),
+                 bytes_out, egcs_out, cols_out)){
         return -1;
       }
       if(notcurses_render(nc)){

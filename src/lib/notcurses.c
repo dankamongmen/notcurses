@@ -1233,10 +1233,14 @@ int ncplane_putc(ncplane* n, const cell* c){
   }
   ncplane_lock(n);
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
-  int ret = cell_duplicate(n, targ, c);
-  advance_cursor(n, 1 + cell_double_wide_p(targ));
+  if(cell_duplicate(n, targ, c) < 0){
+    ncplane_unlock(n);
+    return -1;
+  }
+  int cols = 1 + cell_double_wide_p(targ);
+  advance_cursor(n, cols);
   ncplane_unlock(n);
-  return ret;
+  return cols;
 }
 
 int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels){

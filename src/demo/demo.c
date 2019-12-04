@@ -130,7 +130,7 @@ intro(struct notcurses* nc){
       if(ncplane_cursor_move_yx(ncp, y, x)){
         return -1;
       }
-      if(ncplane_putc(ncp, &c) != (int)strlen(cstr)){
+      if(ncplane_putc(ncp, &c) <= 0){
         return -1;
       }
     }
