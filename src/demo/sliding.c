@@ -22,8 +22,8 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
   int units = abs(deltay) > abs(deltax) ? abs(deltay) : abs(deltax);
   movens /= units;
   struct timespec movetime = {
-    .tv_sec = movens / MOVES / GIG,
-    .tv_nsec = movens / MOVES % GIG,
+    .tv_sec = (movens / MOVES) / GIG,
+    .tv_nsec = (movens / MOVES) % GIG,
   };
   int i;
   int targy = newholey;
@@ -109,11 +109,11 @@ fill_chunk(struct ncplane* n, int idx){
   if(ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0)){
     return -1;
   }
-  if(maxx >= 5 && maxy >= 3){
+  if(maxx >= 4 && maxy >= 3){
     if(ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 3) / 2)){
       return -1;
     }
-    ncplane_fg_rgb8(n, 255 - r, 255 - g, 255 - b);
+    ncplane_fg_rgb8(n, 0, 0, 0);
     ncplane_bg_rgb8(n, r, g, b);
     if(ncplane_putstr(n, buf) <= 0){
       return -1;
@@ -121,7 +121,8 @@ fill_chunk(struct ncplane* n, int idx){
   }
   cell style;
   cell_init(&style);
-  cell_set_bg(&style, r, g, b);
+  cell_set_fg(&style, r, g, b);
+  cell_prime(n, &style, "█", 0, channels);
   ncplane_set_background(n, &style);
   cell_release(n, &style);
   return 0;
@@ -200,8 +201,8 @@ int sliding_puzzle_demo(struct notcurses* nc){
   if(notcurses_render(nc)){
     goto done;
   }
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000000000, };
   // fade out each of the chunks in succession
-  struct timespec ts = { .tv_sec = 0, .tv_nsec = 100000000, };
   /*for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
     for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){
       const int idx = cy * CHUNKS_HORZ + cx;
