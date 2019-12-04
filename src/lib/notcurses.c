@@ -1417,12 +1417,12 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   cell_rgb_get_fg(c2, &r2, &g2, &b2);
   cell_rgb_get_bg(c1, &br1, &bg1, &bb1);
   cell_rgb_get_bg(c2, &br2, &bg2, &bb2);
-  int deltr = (unsigned)r2 - r1;
-  int deltg = (unsigned)g2 - g1;
-  int deltb = (unsigned)b2 - b1;
-  int deltbr = (unsigned)br2 - br1;
-  int deltbg = (unsigned)bg2 - bg1;
-  int deltbb = (unsigned)bb2 - bb1;
+  int deltr = ((unsigned)r2 - r1) / (len + 1);
+  int deltg = ((unsigned)g2 - g1) / (len + 1);
+  int deltb = ((unsigned)b2 - b1) / (len + 1);
+  int deltbr = ((unsigned)br2 - br1) / (len + 1);
+  int deltbg = ((unsigned)bg2 - bg1) / (len + 1);
+  int deltbb = ((unsigned)bb2 - bb1) / (len + 1);
   int ret;
   cell dupc = CELL_TRIVIAL_INITIALIZER;
   if(cell_duplicate(n, &dupc, c) < 0){
@@ -1454,12 +1454,12 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
   cell_rgb_get_fg(c2, &r2, &g2, &b2);
   cell_rgb_get_bg(c1, &br1, &bg1, &bb1);
   cell_rgb_get_bg(c2, &br2, &bg2, &bb2);
-  int deltr = (unsigned)r2 - r1;
-  int deltg = (unsigned)g2 - g1;
-  int deltb = (unsigned)b2 - b1;
-  int deltbr = (unsigned)br2 - br1;
-  int deltbg = (unsigned)bg2 - bg1;
-  int deltbb = (unsigned)bb2 - bb1;
+  int deltr = ((unsigned)r2 - r1) / (len + 1);
+  int deltg = ((unsigned)g2 - g1) / (len + 1);
+  int deltb = ((unsigned)b2 - b1) / (len + 1);
+  int deltbr = ((unsigned)br2 - br1) / (len + 1);
+  int deltbg = ((unsigned)bg2 - bg1) / (len + 1);
+  int deltbb = ((unsigned)bb2 - bb1) / (len + 1);
   int ret, ypos, xpos;
   ncplane_cursor_yx(n, &ypos, &xpos);
   cell dupc = CELL_TRIVIAL_INITIALIZER;
@@ -1541,13 +1541,13 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
     }
   }
   ++yoff;
-  // middle rows
-  while(yoff < ystop){
+  // middle rows (vertical lines)
+  if(yoff < ystop - 1){
     if(!(ctlword & NCBOXMASK_LEFT)){
       if(ncplane_cursor_move_yx(n, yoff, xoff)){
         return -1;
       }
-      if(ncplane_putc(n, vl) < 0){
+      if(ncplane_vline_interp(n, vl, ystop - yoff + 1, ul->channels, ll->channels) < 0){
         return -1;
       }
     }
@@ -1555,13 +1555,13 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xstop)){
         return -1;
       }
-      if(ncplane_putc(n, vl) < 0){
+      if(ncplane_vline_interp(n, vl, ystop - yoff + 1, ur->channels, lr->channels) < 0){
         return -1;
       }
     }
-    ++yoff;
   }
   // bottom line
+  yoff = ystop;
   if(!(ctlword & NCBOXMASK_BOTTOM)){
     if(ncplane_cursor_move_yx(n, yoff, xoff)){
       return -1;
@@ -1570,8 +1570,14 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       return -1;
     }
     if(xstop - xoff >= 2){
-      if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
-        return -1;
+      if(!(ctlword & (NCBOXGRAD_BOTTOM << 4u))){ // cell styling, hl
+        if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
+          return -1;
+        }
+      }else{
+        if(ncplane_hline_interp(n, hl, xstop - xoff - 1, ll->channels, lr->channels) < 0){
+          return -1;
+        }
       }
     }
     if(ncplane_putc(n, lr) < 0){
