@@ -189,7 +189,6 @@ intro(struct notcurses* nc){
 
 static int
 ext_demos(struct notcurses* nc, const char* demos){
-  int dimy, dimx;
   while(*demos){
     int ret = 0;
     switch(*demos){
@@ -209,7 +208,6 @@ ext_demos(struct notcurses* nc, const char* demos){
       return ret;
     }
     ++demos;
-    notcurses_resize(nc, &dimy, &dimx);
   }
   return 0;
 }
