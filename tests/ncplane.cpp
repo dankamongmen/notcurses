@@ -11,8 +11,8 @@ class NcplaneTest : public :: testing::Test {
     }
     notcurses_options nopts{};
     nopts.inhibit_alternate_screen = true;
-    nopts.retain_cursor = true;
     nopts.pass_through_esc = true;
+    nopts.retain_cursor = true;
     nopts.outfp = stdin;
     nc_ = notcurses_init(&nopts);
     ASSERT_NE(nullptr, nc_);
@@ -187,6 +187,31 @@ TEST_F(NcplaneTest, BadlyPlacedBoxen) {
   EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, 2, 2, 0));
   EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y - 1, x - 2));
   EXPECT_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, 2, 2, 0));
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+TEST_F(NcplaneTest, BoxPermutations) {
+  int dimx, dimy;
+  ncplane_dim_yx(n_, &dimy, &dimx);
+  ASSERT_LT(12, dimy);
+  ASSERT_LT(24, dimx);
+  // we'll try all 16 boxmasks in 3x3 configurations in a 4x4 map
+  unsigned boxmask = 0;
+  for(auto y0 = 0 ; y0 < 4 ; ++y0){
+    for(auto x0 = 0 ; x0 < 4 ; ++x0){
+      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * 3, x0 * 3));
+      EXPECT_EQ(0, ncplane_rounded_box_sized(n_, 0, 0, 3, 3, boxmask));
+      ++boxmask;
+    }
+  }
+  boxmask = 0;
+  for(auto y0 = 0 ; y0 < 4 ; ++y0){
+    for(auto x0 = 0 ; x0 < 4 ; ++x0){
+      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * 3, x0 * 3 + 12));
+      EXPECT_EQ(0, ncplane_double_box_sized(n_, 0, 0, 3, 3, boxmask));
+      ++boxmask;
+    }
+  }
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 

@@ -504,7 +504,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
     return -1;
   }
   if(!opts->retain_cursor){
-    if(term_emit(tiparm(cursor_invisible), opts->outfp, true)){
+    if(term_emit(nc->civis, opts->outfp, true)){
       return -1;
     }
     term_verify_seq(&nc->cnorm, "cnorm");
@@ -1440,6 +1440,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 unsigned ctlword){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
+  // must be at least 2x2, with its upper-left corner at the current cursor
   if(ystop < yoff + 1){
     return -1;
   }
@@ -1447,49 +1448,92 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);
+  // must be within the ncplane
   if(xstop >= xmax || ystop >= ymax){
     return -1;
   }
-  if(ncplane_putc(n, ul) < 0){
-    return -1;
-  }
-  if(xstop - xoff >= 2){
-    if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
+  // top row
+  if(!(ctlword & NCBOXMASK_TOP)){
+    if(ncplane_putc(n, ul) < 0){
       return -1;
     }
-  }
-  if(ncplane_putc(n, ur) < 0){
-    return -1;
+    if(xstop - xoff >= 2){
+      if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
+        return -1;
+      }
+    }
+    if(ncplane_putc(n, ur) < 0){
+      return -1;
+    }
+  }else{
+    if(!(ctlword & NCBOXMASK_LEFT)){
+      if(ncplane_putc(n, ul) < 0){
+        return -1;
+      }
+    }
+    if(!(ctlword & NCBOXMASK_RIGHT)){
+      if(ncplane_cursor_move_yx(n, yoff, xstop)){
+        return -1;
+      }
+      if(ncplane_putc(n, ur) < 0){
+        return -1;
+      }
+    }
   }
   ++yoff;
+  // middle rows
   while(yoff < ystop){
-    if(ncplane_cursor_move_yx(n, yoff, xoff)){
-      return -1;
+    if(!(ctlword & NCBOXMASK_LEFT)){
+      if(ncplane_cursor_move_yx(n, yoff, xoff)){
+        return -1;
+      }
+      if(ncplane_putc(n, vl) < 0){
+        return -1;
+      }
     }
-    if(ncplane_putc(n, vl) < 0){
-      return -1;
-    }
-    if(ncplane_cursor_move_yx(n, yoff, xstop)){
-      return -1;
-    }
-    if(ncplane_putc(n, vl) < 0){
-      return -1;
+    if(!(ctlword & NCBOXMASK_RIGHT)){
+      if(ncplane_cursor_move_yx(n, yoff, xstop)){
+        return -1;
+      }
+      if(ncplane_putc(n, vl) < 0){
+        return -1;
+      }
     }
     ++yoff;
   }
-  if(ncplane_cursor_move_yx(n, yoff, xoff)){
-    return -1;
-  }
-  if(ncplane_putc(n, ll) < 0){
-    return -1;
-  }
-  if(xstop - xoff >= 2){
-    if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
+  // bottom line
+  if(!(ctlword & NCBOXMASK_BOTTOM)){
+    if(ncplane_cursor_move_yx(n, yoff, xoff)){
       return -1;
     }
-  }
-  if(ncplane_putc(n, lr) < 0){
-    return -1;
+    if(ncplane_putc(n, ll) < 0){
+      return -1;
+    }
+    if(xstop - xoff >= 2){
+      if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
+        return -1;
+      }
+    }
+    if(ncplane_putc(n, lr) < 0){
+      return -1;
+    }
+  }else{
+    if(!(ctlword & NCBOXMASK_LEFT)){
+      if(ncplane_cursor_move_yx(n, yoff, xoff)){
+        return -1;
+      }
+      if(ncplane_putc(n, ll) < 0){
+        return -1;
+      }
+    }
+    if(!(ctlword & NCBOXMASK_RIGHT)){
+      if(ncplane_cursor_move_yx(n, yoff, xstop)){
+        return -1;
+      }
+      if(ncplane_putc(n, lr) < 0){
+        return -1;
+      }
+    }
   }
   return 0;
 }
