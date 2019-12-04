@@ -28,6 +28,16 @@
 #define ESC "\x1b"
 #define NANOSECS_IN_SEC 1000000000
 
+static inline void
+ncplane_lock(const ncplane* n){
+  pthread_mutex_lock(&n->nc->lock);
+}
+
+static inline void
+ncplane_unlock(const ncplane* n){
+  pthread_mutex_unlock(&n->nc->lock);
+}
+
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
 static sig_atomic_t resize_seen;
@@ -1219,11 +1229,11 @@ int ncplane_putc(ncplane* n, const cell* c){
   if(cursor_invalid_p(n)){
     return -1;
   }
-  pthread_mutex_lock(&n->nc->lock);
+  ncplane_lock(n);
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
   advance_cursor(n, 1 + cell_double_wide_p(targ));
-  pthread_mutex_unlock(&n->nc->lock);
+  ncplane_unlock(n);
   return ret;
 }
 
@@ -1343,22 +1353,32 @@ int notcurses_palette_size(const notcurses* nc){
 
 // turn on any specified stylebits
 void ncplane_styles_on(ncplane* n, unsigned stylebits){
+  ncplane_lock(n);
   n->attrword |= ((stylebits & 0xffff) << 16u);
+  ncplane_unlock(n);
 }
 
 // turn off any specified stylebits
 void ncplane_styles_off(ncplane* n, unsigned stylebits){
+  ncplane_lock(n);
   n->attrword &= ~((stylebits & 0xffff) << 16u);
+  ncplane_unlock(n);
 }
 
 // set the current stylebits to exactly those provided
 void ncplane_styles_set(ncplane* n, unsigned stylebits){
+  ncplane_lock(n);
   n->attrword = (n->attrword & ~CELL_STYLE_MASK) |
                 ((stylebits & 0xffff) << 16u);
+  ncplane_unlock(n);
 }
 
 unsigned ncplane_styles(const ncplane* n){
-  return (n->attrword & CELL_STYLE_MASK) >> 16u;
+  unsigned ret;
+  ncplane_lock(n);
+  ret = (n->attrword & CELL_STYLE_MASK) >> 16u;
+  ncplane_unlock(n);
+  return ret;
 }
 
 int ncplane_printf(ncplane* n, const char* format, ...){
@@ -1502,6 +1522,7 @@ cell_egc_copy(const ncplane* n, const cell* c){
 }
 
 void ncplane_erase(ncplane* n){
+  ncplane_lock(n);
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the attrword
   // and channels), and then reload.
@@ -1511,6 +1532,7 @@ void ncplane_erase(ncplane* n){
   egcpool_init(&n->pool);
   cell_load(n, &n->background, egc);
   free(egc);
+  ncplane_unlock(n);
 }
 
 static int
