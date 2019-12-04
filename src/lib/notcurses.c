@@ -112,11 +112,11 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
   //        (elapsed % NANOSECS_IN_SEC) / 1000000);
   if(elapsed > 0){ // don't count clearly incorrect information, egads
     ++stats->renders;
-    stats->renders_ns += elapsed;
+    stats->render_ns += elapsed;
     if(elapsed > stats->render_max_ns){
       stats->render_max_ns = elapsed;
     }
-    if(elapsed < stats->render_min_ns || stats->render_min_ns == 0){
+    if(elapsed < stats->render_min_ns){
       stats->render_min_ns = elapsed;
     }
   }
@@ -590,6 +590,8 @@ notcurses* notcurses_init(const notcurses_options* opts){
     return ret;
   }
   memset(&ret->stats, 0, sizeof(ret->stats));
+  ret->stats.render_min_ns = ~0UL;
+  ret->stats.render_min_bytes = ~0UL;
   ret->ttyfp = opts->outfp;
   ret->renderfp = opts->renderfp;
   ret->ttyinfp = stdin; // FIXME
@@ -678,13 +680,19 @@ int notcurses_stop(notcurses* nc){
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     double avg = nc->stats.renders ?
-             nc->stats.renders_ns / (double)nc->stats.renders : 0;
+             nc->stats.render_ns / (double)nc->stats.renders : 0;
     fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
             nc->stats.renders,
-            nc->stats.renders_ns / 1000000000.0,
+            nc->stats.render_ns / 1000000000.0,
             nc->stats.render_min_ns / 1000000000.0,
             nc->stats.render_max_ns / 1000000000.0,
             avg / NANOSECS_IN_SEC);
+    avg = nc->stats.renders ? nc->stats.render_bytes / (double)nc->stats.renders : 0;
+    fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
+            nc->stats.render_bytes / 1024.0,
+            nc->stats.render_min_bytes / 1024.0,
+            nc->stats.render_max_bytes / 1024.0,
+            avg / 1024);
     fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
             nc->stats.defaultemissions,
             nc->stats.defaultelisions,
@@ -1037,7 +1045,7 @@ prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
 // world every time
 int notcurses_render(notcurses* nc){
   struct timespec start, done;
-  clock_gettime(CLOCK_MONOTONIC, &start);
+  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   int ret = 0;
   int y, x;
   char* buf = NULL;
@@ -1129,12 +1137,19 @@ int notcurses_render(notcurses* nc){
   if(blocking_write(nc->ttyfd, buf, buflen)){
     ret = -1;
   }
+  nc->stats.render_bytes += buflen;
+  if(buflen > nc->stats.render_max_bytes){
+    nc->stats.render_max_bytes = buflen;
+  }
+  if(buflen < nc->stats.render_min_bytes){
+    nc->stats.render_min_bytes = buflen;
+  }
 /*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
      fgelisions, fgemissions, bgelisions, bgemissions);*/
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", buf);
   }
-  clock_gettime(CLOCK_MONOTONIC, &done);
+  clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   free(buf);
   update_render_stats(&done, &start, &nc->stats);
   return ret;

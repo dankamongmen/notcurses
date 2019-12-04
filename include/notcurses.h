@@ -196,8 +196,8 @@ typedef struct ncstats {
   uint64_t render_max_bytes; // max bytes emitted for a frame
   uint64_t render_min_bytes; // min bytes emitted for a frame
   uint64_t render_ns;        // nanoseconds spent in notcurses_render()
-  uint64_t render_max_ns;    // max ns spent in notcurses_render()
-  uint64_t render_min_ns;    // min ns spent in successful notcurses_render()
+  int64_t render_max_ns;     // max ns spent in notcurses_render()
+  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
   uint64_t fgelisions;       // RGB fg elision count
   uint64_t fgemissions;      // RGB fg emissions
   uint64_t bgelisions;       // RGB bg elision count

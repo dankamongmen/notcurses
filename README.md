@@ -7,6 +7,7 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
   * [Input](#input)
   * [Planes](#planes)
   * [Cells](#cells)
+  * [Statistics/Performance](#statistics/performance)
 * [Included tools](#included-tools)
 * [Differences from NCURSES](#differences-from-ncurses)
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
@@ -650,7 +651,7 @@ cell_egc_idx(const cell* c){
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 ```
 
-## Statistics and performance
+### Statistics/Performance
 
 notcurses tracks statistics across its operation, and a snapshot can be
 acquired using the `notcurses_stats()` function. This function cannot fail.
@@ -662,8 +663,8 @@ typedef struct ncstats {
   uint64_t render_max_bytes; // max bytes emitted for a frame
   uint64_t render_min_bytes; // min bytes emitted for a frame
   uint64_t render_ns;        // nanoseconds spent in notcurses_render()
-  uint64_t render_max_ns;    // max ns spent in notcurses_render()
-  uint64_t render_min_ns;    // min ns spent in successful notcurses_render()
+  int64_t render_max_ns;     // max ns spent in notcurses_render()
+  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
   uint64_t fgelisions;       // RGB fg elision count
   uint64_t fgemissions;      // RGB fg emissions
   uint64_t bgelisions;       // RGB bg elision count
