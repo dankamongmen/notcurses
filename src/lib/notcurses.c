@@ -1183,7 +1183,6 @@ int notcurses_render(notcurses* nc){
   }
   ret |= fclose(out);
   fflush(nc->ttyfp);
-  fprintf(nc->ttyfp, "%s", buf);
   if(blocking_write(nc->ttyfd, buf, buflen)){
     ret = -1;
   }
