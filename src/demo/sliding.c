@@ -6,7 +6,7 @@
 // FIXME do the bigger dimension on the screen's bigger dimension
 #define CHUNKS_VERT 6
 #define CHUNKS_HORZ 12
-#define MOVES 45
+#define MOVES 20
 #define GIG 1000000000ul
 
 static int
@@ -179,6 +179,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
     return -1;
   }
   memset(chunks, 0, sizeof(*chunks) * chunkcount);
+  // draw the 72 boxes in a nice color pattern, in order
   int cy, cx;
   for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
     for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){
@@ -192,11 +193,44 @@ int sliding_puzzle_demo(struct notcurses* nc){
       fill_chunk(chunks[idx], idx);
     }
   }
+  // draw a box around the playing area
   if(draw_bounding_box(n, wastey, wastex, chunky, chunkx)){
     return -1;
   }
   if(notcurses_render(nc)){
     goto done;
+  }
+  // fade out each of the chunks in succession
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 100000000, };
+  /*for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
+    for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){
+      const int idx = cy * CHUNKS_HORZ + cx;
+      if(ncplane_fadeout(chunks[idx], &ts)){
+        goto done;
+      }
+    }
+  }*/
+  // shuffle up the chunks
+  int i;
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+  for(i = 0 ; i < 200 ; ++i){
+    int i0 = random() % chunkcount;
+    int i1 = random() % chunkcount;
+    while(i1 == i0){
+      i1 = random() % chunkcount;
+    }
+    int targy0, targx0;
+    int targy, targx;
+    ncplane_yx(chunks[i0], &targy0, &targx0);
+    ncplane_yx(chunks[i1], &targy, &targx);
+    struct ncplane* t = chunks[i0];
+    ncplane_move_yx(t, targy, targx);
+    chunks[i0] = chunks[i1];
+    ncplane_move_yx(chunks[i0], targy0, targx0);
+    chunks[i1] = t;
+    if(notcurses_render(nc)){
+      goto done;
+    }
   }
   if(play(nc, chunks)){
     goto done;

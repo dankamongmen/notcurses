@@ -498,16 +498,6 @@ cell_styles_off(cell* c, unsigned stylebits){
   c->attrword &= ~((stylebits & 0xffff) << 16u);
 }
 
-static inline uint32_t
-cell_fg_rgb(uint64_t channel){
-  return (channel & 0x00ffffff00000000ull) >> 32u;
-}
-
-static inline uint32_t
-cell_bg_rgb(uint64_t channel){
-  return (channel & 0x0000000000ffffffull);
-}
-
 static inline unsigned
 cell_rgb_red(uint32_t rgb){
   return (rgb & 0xff0000ull) >> 16u;
@@ -530,9 +520,19 @@ cell_rgb_blue(uint32_t rgb){
 #define CELL_BGDEFAULT_MASK    0x0000000040000000ull
 #define CELL_BG_MASK           0x0000000000ffffffull
 
+static inline uint32_t
+cell_fg_rgb(uint64_t channel){
+  return (channel & CELL_FG_MASK) >> 32u;
+}
+
+static inline uint32_t
+cell_bg_rgb(uint64_t channel){
+  return (channel & CELL_BG_MASK);
+}
+
 static inline void
 cell_rgb_get_fg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  uint32_t fg = ((channels & CELL_FG_MASK) >> 32u);
+  uint32_t fg = cell_fg_rgb(channels);
   *r = cell_rgb_red(fg);
   *g = cell_rgb_green(fg);
   *b = cell_rgb_blue(fg);
@@ -540,7 +540,7 @@ cell_rgb_get_fg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
 
 static inline void
 cell_rgb_get_bg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  uint32_t bg = ((channels & CELL_BG_MASK));
+  uint32_t bg = cell_bg_rgb(channels);
   *r = cell_rgb_red(bg);
   *g = cell_rgb_green(bg);
   *b = cell_rgb_blue(bg);
