@@ -332,9 +332,31 @@ int ncplane_vline(struct ncplane* n, const cell* c, int len);
 // Draw a box with its upper-left corner at the current cursor position, and its
 // lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the
 // upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
-int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
+// 'ctlword' is defined in the least significant byte, where bits [7, 4] are a
+// gradient mask, and [3, 0] are a border mask:
+//  * 7, 3: top
+//  * 6, 2: right
+//  * 5, 1: bottom
+//  * 4, 0: left
+// if the gradient bit is not set, the styling from the hl/vl cells is used for
+// the horizontal and vertical lines, respectively. if the gradient bit is set,
+// the color is linearly interpolated between the two relevant corner cells. if
+// the bordermask bit is set, that side of the box is not drawn. iff either edge
+// connecting to a corner is drawn, the corner is drawn.
+
+#define NCBOXMASK_TOP    0x01
+#define NCBOXMASK_RIGHT  0x02
+#define NCBOXMASK_BOTTOM 0x04
+#define NCBOXMASK_LEFT   0x08
+#define NCBOXGRAD_TOP    0x10
+#define NCBOXGRAD_RIGHT  0x20
+#define NCBOXGRAD_BOTTOM 0x40
+#define NCBOXGRAD_LEFT   0x80
+
+API int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
                     const cell* ll, const cell* lr, const cell* hline,
-                    const cell* vline, int ystop, int xstop);
+                    const cell* vline, int ystop, int xstop,
+                    unsigned ctlword);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
@@ -342,10 +364,11 @@ int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
 static inline int
 ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
                   const cell* ll, const cell* lr, const cell* hline,
-                  const cell* vline, int ylen, int xlen){
+                  const cell* vline, int ylen, int xlen, unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1, x + xlen - 1);
+  return ncplane_box(n, ul, ur, ll, lr, hline, vline,
+                     y + ylen - 1, x + xlen - 1, ctlword);
 }
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
