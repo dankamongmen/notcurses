@@ -504,7 +504,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
     return -1;
   }
   if(!opts->retain_cursor){
-    if(term_emit(nc->civis, opts->outfp, true)){
+    if(term_emit(nc->civis, opts->outfp, false)){
       return -1;
     }
     term_verify_seq(&nc->cnorm, "cnorm");
@@ -1069,11 +1069,11 @@ notcurses_render_internal(notcurses* nc){
   if(out == NULL){
     return -1;
   }
+  // no need to write a clearscreen, since we update everything that's been
+  // changed. we explicitly move the cursor at the beginning of each line
+  // (to work around broken prior lines), do no need to home it here, either.
   prep_optimized_palette(nc, out); // FIXME do what on failure?
   uint32_t curattr = 0; // current attributes set (does not include colors)
-  // no need to write a clearscreen, since we update everything that's been
-  // changed. just move the physical cursor to the upper left corner.
-  term_emit(tiparm(nc->cup, 0, 0), out, false);
   // FIXME as of at least gcc 9.2.1, we get a false -Wmaybe-uninitialized below
   // when using these without explicit initializations. for the life of me, i
   // can't see any such path, and valgrind is cool with it, so what ya gonna do?
@@ -1087,6 +1087,7 @@ notcurses_render_internal(notcurses* nc){
     // FIXME previous line could have ended halfway through multicol. what happens?
     // FIXME also must explicitly move to next line if we're to deal with
     //  surprise enlargenings, otherwise we just print forward
+    term_emit(tiparm(nc->cup, y, 0), out, false);
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       ncplane* p = nc->top;
