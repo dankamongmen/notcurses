@@ -13,7 +13,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_fg_rgb8(n, 0, 0, 0);
   ncplane_bg_rgb8(n, 255, 255, 255);
   ncplane_styles_on(n, CELL_STYLE_BOLD);
-  if(ncplane_rounded_box(n, 0, 0, 5, 57)){
+  if(ncplane_rounded_box(n, 0, 0, 5, 57, 0)){
     return -1;
   }
   ncplane_cursor_move_yx(n, 3, 4);

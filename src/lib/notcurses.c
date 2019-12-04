@@ -1436,7 +1436,8 @@ int ncplane_vline(ncplane* n, const cell* c, int len){
 
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hl,
-                const cell* vl, int ystop, int xstop){
+                const cell* vl, int ystop, int xstop,
+                unsigned ctlword){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   if(ystop < yoff + 1){

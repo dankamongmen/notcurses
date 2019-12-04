@@ -109,7 +109,7 @@ int unicodeblocks_demo(struct notcurses* nc){
       return -1;
     }
     ++xstart;
-    if(ncplane_rounded_box_sized(n, 0, 0, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2)){
+    if(ncplane_rounded_box_sized(n, 0, 0, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 0)){
       return -1;
     }
     for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
