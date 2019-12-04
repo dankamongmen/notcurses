@@ -599,7 +599,7 @@ cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
-// is the cell simple (a lone ASCII character)?
+// is the cell simple (a lone ASCII character, encoded as such)?
 static inline bool
 cell_simple_p(const cell* c){
   return c->gcluster < 0x80;

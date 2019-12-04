@@ -28,51 +28,6 @@
 #define ESC "\x1b"
 #define NANOSECS_IN_SEC 1000000000
 
-typedef struct notcurses {
-  int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
-  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
-  FILE* ttyinfp;  // FILE* for processing input
-  int colors;     // number of colors usable for this screen
-  ncstats stats;  // some statistics across the lifetime of the notcurses ctx
-  // We verify that some terminfo capabilities exist. These needn't be checked
-  // before further use; just use tiparm() directly.
-  char* cup;      // move cursor
-  char* civis;    // hide cursor
-  char* clear;    // erase screen and home cursor
-  // These might be NULL, and we can more or less work without them. Check!
-  char* cnorm;    // restore cursor to default state
-  char* smcup;    // enter alternate mode
-  char* rmcup;    // restore primary mode
-  char* setaf;    // set foreground color (ANSI)
-  char* setab;    // set background color (ANSI)
-  char* op;       // set foreground and background color to default
-  char* standout; // CELL_STYLE_STANDOUT
-  char* uline;    // CELL_STYLE_UNDERLINK
-  char* reverse;  // CELL_STYLE_REVERSE
-  char* blink;    // CELL_STYLE_BLINK
-  char* dim;      // CELL_STYLE_DIM
-  char* bold;     // CELL_STYLE_BOLD
-  char* italics;  // CELL_STYLE_ITALIC
-  char* italoff;  // CELL_STYLE_ITALIC (disable)
-  char* smkx;     // enter keypad transmit mode (keypad_xmit)
-  char* rmkx;     // leave keypad transmit mode (keypad_local)
-
-  // special keys
-  char* left;  // kcub1
-  char* right; // kcuf1
-  char* up;    // kcuu1
-  char* down;  // kcud1
-  char* npage; // knp
-  char* ppage; // kpp
-
-  struct termios tpreserved; // terminal state upon entry
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
-  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
-  ncplane* top;   // the contents of our topmost plane (initially entire screen)
-  ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
-  FILE* renderfp; // debugging FILE* to which renderings are written
-} notcurses;
-
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
 static sig_atomic_t resize_seen;
@@ -689,12 +644,14 @@ notcurses* notcurses_init(const notcurses_options* opts){
   // term_emit(ret->clear, ret->ttyfp, false);
   fprintf(ret->ttyfp, "\n"
          " notcurses %s by nick black\n"
+         " compiled with gcc-%s\n"
          " terminfo from %s\n"
          " avformat %u.%u.%u\n"
          " avutil %u.%u.%u\n"
          " swscale %u.%u.%u\n"
          " %d rows, %d columns (%zub), %d colors (%s)\n",
-         notcurses_version(), curses_version(), LIBAVFORMAT_VERSION_MAJOR,
+         notcurses_version(), __VERSION__,
+         curses_version(), LIBAVFORMAT_VERSION_MAJOR,
          LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
@@ -848,20 +805,6 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
     return -1;
   }
   return 0;
-}
-
-// is it a single ASCII byte, wholly contained within the cell?
-static inline bool
-simple_gcluster_p(const char* gcluster){
-  if(*gcluster == '\0'){
-    return true;
-  }
-  if(*(unsigned char*)gcluster >= 0x80){
-    return false;
-  }
-  // we might be a simple ASCII, if the next character is *not* a nonspacing
-  // combining character
-  return false; // FIXME
 }
 
 static inline const char*
