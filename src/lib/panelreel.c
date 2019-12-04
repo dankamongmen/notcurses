@@ -142,7 +142,6 @@ draw_panelreel_borders(const panelreel* pr){
   int begx, begy;
   int maxx, maxy;
   window_coordinates(pr->p, &begy, &begx, &maxy, &maxx);
-  assert(begy >= 0 && begx >= 0);
   assert(maxy >= 0 && maxx >= 0);
   --maxx; // last column we can safely write to
   --maxy; // last line we can safely write to

@@ -300,7 +300,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
           case 'a': newtablet = new_tabletctx(pr, &id); break;
           case 'b': newtablet = new_tabletctx(pr, &id); break;
           case 'c': newtablet = new_tabletctx(pr, &id); break;
-          case 'h': if(x > 0) { --x; if(panelreel_move(pr, x, y)){ ++x; } } break;
+          case 'h': --x; if(panelreel_move(pr, x, y)){ ++x; } break;
           case 'l': ++x; if(panelreel_move(pr, x, y)){ --x; } break;
           case 'k': panelreel_prev(pr); break;
           case 'j': panelreel_next(pr); break;
