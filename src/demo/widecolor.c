@@ -8,12 +8,12 @@
 
 static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total){
+  uint64_t channels = 0;
+  notcurses_fg_prep(&channels, 255, 255, 255);
   ncplane_bg_default(n);
   ncplane_cursor_move_yx(n, 3, 1);
-  ncplane_fg_rgb8(n, 0, 0, 0);
-  ncplane_bg_rgb8(n, 255, 255, 255);
   ncplane_styles_on(n, CELL_STYLE_BOLD);
-  if(ncplane_rounded_box(n, 0, 0, 5, 57, 0)){
+  if(ncplane_rounded_box(n, 0, channels, 5, 57, 0)){
     return -1;
   }
   ncplane_cursor_move_yx(n, 3, 4);
@@ -23,7 +23,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total){
   ncplane_cursor_move_yx(n, 1, 4);
   ncplane_putegc(n, "╔", 0, 0, NULL);
   cell hl = CELL_TRIVIAL_INITIALIZER;
-  cell_load(n, &hl, "═");
+  cell_prime(n, &hl, "═", 0, channels);
   ncplane_hline(n, &hl, 15);
   cell_release(n, &hl);
   ncplane_cursor_move_yx(n, 1, 20);

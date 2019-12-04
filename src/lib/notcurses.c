@@ -1542,21 +1542,33 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   ++yoff;
   // middle rows (vertical lines)
-  if(yoff < ystop - 1){
+  if(yoff < ystop){
     if(!(ctlword & NCBOXMASK_LEFT)){
       if(ncplane_cursor_move_yx(n, yoff, xoff)){
         return -1;
       }
-      if(ncplane_vline_interp(n, vl, ystop - yoff + 1, ul->channels, ll->channels) < 0){
-        return -1;
+      if((ctlword & (NCBOXGRAD_LEFT << 4u))){ // grad styling, ul->ll
+        if(ncplane_vline_interp(n, vl, ystop - yoff + 1, ul->channels, ll->channels) < 0){
+          return -1;
+        }
+      }else{
+        if(ncplane_vline(n, vl, ystop - yoff + 1) < 0){
+          return -1;
+        }
       }
     }
     if(!(ctlword & NCBOXMASK_RIGHT)){
       if(ncplane_cursor_move_yx(n, yoff, xstop)){
         return -1;
       }
-      if(ncplane_vline_interp(n, vl, ystop - yoff + 1, ur->channels, lr->channels) < 0){
-        return -1;
+      if((ctlword & (NCBOXGRAD_RIGHT << 4u))){ // grad styling, ur->lr
+        if(ncplane_vline_interp(n, vl, ystop - yoff + 1, ur->channels, lr->channels) < 0){
+          return -1;
+        }
+      }else{
+        if(ncplane_vline(n, vl, ystop - yoff + 1) < 0){
+          return -1;
+        }
       }
     }
   }
