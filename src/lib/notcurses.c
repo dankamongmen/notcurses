@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <langinfo.h>
 #include <sys/poll.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
@@ -622,6 +623,12 @@ make_nonblocking(FILE* fp){
 }
 
 notcurses* notcurses_init(const notcurses_options* opts){
+  const char* encoding = nl_langinfo(CODESET);
+  if(encoding == NULL || strcmp(encoding, "UTF-8")){
+    fprintf(stderr, "Encoding (\"%s\") wasn't UTF-8, refusing to start\n",
+            encoding ? encoding : "none found");
+    return NULL;
+  }
   struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
