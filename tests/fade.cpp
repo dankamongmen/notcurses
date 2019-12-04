@@ -32,6 +32,7 @@ class FadeTest : public :: testing::Test {
           rgb = 0xffffffu;
         }
         cell_set_fg(&c, (rgb >> 16u) & 0xff, (rgb >> 8u) & 0xff, rgb & 0xff);
+        cell_set_bg(&c, rgb & 0xff, (rgb >> 16u) & 0xff, (rgb >> 8u) & 0xff);
         EXPECT_LT(0, ncplane_putc(n_, &c));
       }
     }
