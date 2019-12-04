@@ -192,7 +192,10 @@ API int notcurses_palette_size(const struct notcurses* nc);
 
 typedef struct ncstats {
   uint64_t renders;          // number of notcurses_render() runs
-  uint64_t renders_ns;       // nanoseconds spent in notcurses_render()
+  uint64_t render_bytes;     // bytes emitted to ttyfp
+  int64_t render_max_bytes;  // max bytes emitted for a frame
+  int64_t render_min_bytes;  // min bytes emitted for a frame
+  uint64_t render_ns;        // nanoseconds spent in notcurses_render()
   int64_t render_max_ns;     // max ns spent in notcurses_render()
   int64_t render_min_ns;     // min ns spent in successful notcurses_render()
   uint64_t fgelisions;       // RGB fg elision count
@@ -599,7 +602,7 @@ cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
-// is the cell simple (a lone ASCII character)?
+// is the cell simple (a lone ASCII character, encoded as such)?
 static inline bool
 cell_simple_p(const cell* c){
   return c->gcluster < 0x80;

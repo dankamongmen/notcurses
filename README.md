@@ -7,6 +7,7 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
   * [Input](#input)
   * [Planes](#planes)
   * [Cells](#cells)
+  * [Perf](#perf)
 * [Included tools](#included-tools)
 * [Differences from NCURSES](#differences-from-ncurses)
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
@@ -649,6 +650,52 @@ cell_egc_idx(const cell* c){
 // is invalidated by any further operation on the plane 'n', so...watch out!
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 ```
+
+### Perf
+
+notcurses tracks statistics across its operation, and a snapshot can be
+acquired using the `notcurses_stats()` function. This function cannot fail.
+
+```c
+typedef struct ncstats {
+  uint64_t renders;          // number of notcurses_render() runs
+  uint64_t render_bytes;     // bytes emitted to ttyfp
+  uint64_t render_max_bytes; // max bytes emitted for a frame
+  uint64_t render_min_bytes; // min bytes emitted for a frame
+  uint64_t render_ns;        // nanoseconds spent in notcurses_render()
+  int64_t render_max_ns;     // max ns spent in notcurses_render()
+  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
+  uint64_t fgelisions;       // RGB fg elision count
+  uint64_t fgemissions;      // RGB fg emissions
+  uint64_t bgelisions;       // RGB bg elision count
+  uint64_t bgemissions;      // RGB bg emissions
+  uint64_t defaultelisions;  // default color was emitted
+  uint64_t defaultemissions; // default color was elided
+} ncstats;
+
+// Acquire a snapshot of the notcurses object's stats.
+API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
+```
+
+Timings for renderings are across the breadth of `notcurses_render()`: they
+include all per-render preprocessing, output generation, and dumping of the
+output (including any sleeping while waiting on the terminal).
+
+The notcurses rendering algorithm starts by moving the physical cursor to the
+upper left corner of the visible screen (it does *not* clear the screen
+beforehand). At each coordinate, it finds the topmost visible `ncplane`. There
+will always be at least one `ncplane` visible at each coordinate, due to the
+default plane. Once the plane is determined, the damage map is consulted to see
+whether the cell need be redrawn. If so, it will be redrawn, and the virtual
+cursor is updated based on the width of the output. Along the way, notcurses
+attempts to minimize total amount of data written by eliding unnecessary color
+and style specifications, and moving the cursor over large unchanged areas.
+
+The worst case input frame (in terms of output size) is one whose colors change
+from coordinate to coordinate, uses multiple combining characters within each
+grapheme cluster, and the geometry is large. Peculiarities of the terminal
+make it impossible to comment more meaningfully regarding delay.
+
 
 ## Included tools
 

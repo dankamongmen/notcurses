@@ -28,50 +28,15 @@
 #define ESC "\x1b"
 #define NANOSECS_IN_SEC 1000000000
 
-typedef struct notcurses {
-  int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
-  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
-  FILE* ttyinfp;  // FILE* for processing input
-  int colors;     // number of colors usable for this screen
-  ncstats stats;  // some statistics across the lifetime of the notcurses ctx
-  // We verify that some terminfo capabilities exist. These needn't be checked
-  // before further use; just use tiparm() directly.
-  char* cup;      // move cursor
-  char* civis;    // hide cursor
-  char* clear;    // erase screen and home cursor
-  // These might be NULL, and we can more or less work without them. Check!
-  char* cnorm;    // restore cursor to default state
-  char* smcup;    // enter alternate mode
-  char* rmcup;    // restore primary mode
-  char* setaf;    // set foreground color (ANSI)
-  char* setab;    // set background color (ANSI)
-  char* op;       // set foreground and background color to default
-  char* standout; // CELL_STYLE_STANDOUT
-  char* uline;    // CELL_STYLE_UNDERLINK
-  char* reverse;  // CELL_STYLE_REVERSE
-  char* blink;    // CELL_STYLE_BLINK
-  char* dim;      // CELL_STYLE_DIM
-  char* bold;     // CELL_STYLE_BOLD
-  char* italics;  // CELL_STYLE_ITALIC
-  char* italoff;  // CELL_STYLE_ITALIC (disable)
-  char* smkx;     // enter keypad transmit mode (keypad_xmit)
-  char* rmkx;     // leave keypad transmit mode (keypad_local)
+static inline void
+ncplane_lock(const ncplane* n){
+  pthread_mutex_lock(&n->nc->lock);
+}
 
-  // special keys
-  char* left;  // kcub1
-  char* right; // kcuf1
-  char* up;    // kcuu1
-  char* down;  // kcud1
-  char* npage; // knp
-  char* ppage; // kpp
-
-  struct termios tpreserved; // terminal state upon entry
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
-  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
-  ncplane* top;   // the contents of our topmost plane (initially entire screen)
-  ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
-  FILE* renderfp; // debugging FILE* to which renderings are written
-} notcurses;
+static inline void
+ncplane_unlock(const ncplane* n){
+  pthread_mutex_unlock(&n->nc->lock);
+}
 
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
@@ -157,11 +122,11 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
   //        (elapsed % NANOSECS_IN_SEC) / 1000000);
   if(elapsed > 0){ // don't count clearly incorrect information, egads
     ++stats->renders;
-    stats->renders_ns += elapsed;
+    stats->render_ns += elapsed;
     if(elapsed > stats->render_max_ns){
       stats->render_max_ns = elapsed;
     }
-    if(elapsed < stats->render_min_ns || stats->render_min_ns == 0){
+    if(elapsed < stats->render_min_ns){
       stats->render_min_ns = elapsed;
     }
   }
@@ -634,7 +599,13 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if(ret == NULL){
     return ret;
   }
+  if(pthread_mutex_init(&ret->lock, NULL)){
+    free(ret);
+    return NULL;
+  }
   memset(&ret->stats, 0, sizeof(ret->stats));
+  ret->stats.render_min_ns = ~0UL;
+  ret->stats.render_min_bytes = ~0UL;
   ret->ttyfp = opts->outfp;
   ret->renderfp = opts->renderfp;
   ret->ttyinfp = stdin; // FIXME
@@ -689,12 +660,14 @@ notcurses* notcurses_init(const notcurses_options* opts){
   // term_emit(ret->clear, ret->ttyfp, false);
   fprintf(ret->ttyfp, "\n"
          " notcurses %s by nick black\n"
+         " compiled with gcc-%s\n"
          " terminfo from %s\n"
          " avformat %u.%u.%u\n"
          " avutil %u.%u.%u\n"
          " swscale %u.%u.%u\n"
          " %d rows, %d columns (%zub), %d colors (%s)\n",
-         notcurses_version(), curses_version(), LIBAVFORMAT_VERSION_MAJOR,
+         notcurses_version(), __VERSION__,
+         curses_version(), LIBAVFORMAT_VERSION_MAJOR,
          LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
@@ -705,6 +678,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
 
 err:
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
+  pthread_mutex_destroy(&ret->lock);
   free(ret);
   return NULL;
 }
@@ -721,13 +695,19 @@ int notcurses_stop(notcurses* nc){
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     double avg = nc->stats.renders ?
-             nc->stats.renders_ns / (double)nc->stats.renders : 0;
+             nc->stats.render_ns / (double)nc->stats.renders : 0;
     fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
             nc->stats.renders,
-            nc->stats.renders_ns / 1000000000.0,
+            nc->stats.render_ns / 1000000000.0,
             nc->stats.render_min_ns / 1000000000.0,
             nc->stats.render_max_ns / 1000000000.0,
             avg / NANOSECS_IN_SEC);
+    avg = nc->stats.renders ? nc->stats.render_bytes / (double)nc->stats.renders : 0;
+    fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
+            nc->stats.render_bytes / 1024.0,
+            nc->stats.render_min_bytes / 1024.0,
+            nc->stats.render_max_bytes / 1024.0,
+            avg / 1024);
     fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
             nc->stats.defaultemissions,
             nc->stats.defaultelisions,
@@ -747,6 +727,7 @@ int notcurses_stop(notcurses* nc){
       nc->top = p->z;
       free_plane(p);
     }
+    ret |= pthread_mutex_destroy(&nc->lock);
     free(nc);
   }
   return ret;
@@ -848,20 +829,6 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
     return -1;
   }
   return 0;
-}
-
-// is it a single ASCII byte, wholly contained within the cell?
-static inline bool
-simple_gcluster_p(const char* gcluster){
-  if(*gcluster == '\0'){
-    return true;
-  }
-  if(*(unsigned char*)gcluster >= 0x80){
-    return false;
-  }
-  // we might be a simple ASCII, if the next character is *not* a nonspacing
-  // combining character
-  return false; // FIXME
 }
 
 static inline const char*
@@ -1092,9 +1059,8 @@ prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
 
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
-int notcurses_render(notcurses* nc){
-  struct timespec start, done;
-  clock_gettime(CLOCK_MONOTONIC, &start);
+static inline int
+notcurses_render_internal(notcurses* nc){
   int ret = 0;
   int y, x;
   char* buf = NULL;
@@ -1191,10 +1157,28 @@ int notcurses_render(notcurses* nc){
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", buf);
   }
-  clock_gettime(CLOCK_MONOTONIC, &done);
   free(buf);
+  return buflen;
+}
+
+int notcurses_render(notcurses* nc){
+  struct timespec start, done;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+  pthread_mutex_lock(&nc->lock);
+  int bytes = notcurses_render_internal(nc);
+  if(bytes > 0){
+    nc->stats.render_bytes += bytes;
+    if(bytes > nc->stats.render_max_bytes){
+      nc->stats.render_max_bytes = bytes;
+    }
+    if(bytes < nc->stats.render_min_bytes){
+      nc->stats.render_min_bytes = bytes;
+    }
+  }
+  clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   update_render_stats(&done, &start, &nc->stats);
-  return ret;
+  pthread_mutex_unlock(&nc->lock);
+  return bytes < 0 ? -1 : 0;
 }
 
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
@@ -1245,9 +1229,11 @@ int ncplane_putc(ncplane* n, const cell* c){
   if(cursor_invalid_p(n)){
     return -1;
   }
+  ncplane_lock(n);
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   int ret = cell_duplicate(n, targ, c);
   advance_cursor(n, 1 + cell_double_wide_p(targ));
+  ncplane_unlock(n);
   return ret;
 }
 
@@ -1329,16 +1315,17 @@ int ncplane_putstr(ncplane* n, const char* gclusters){
     // FIXME can we not dispense with this cell, and print directly in?
     cell c;
     memset(&c, 0, sizeof(c));
-    c.channels = n->channels;
-    c.attrword = n->attrword;
     int wcs = cell_load(n, &c, gclusters);
-    if(wcs < 0){
-      return -ret;
+    if(ncplane_putegc(n, gclusters, n->attrword, n->channels, &wcs) < 0){
+      if(wcs < 0){
+        pthread_mutex_unlock(&n->nc->lock);
+        return -ret;
+      }
+      break;
     }
     if(wcs == 0){
       break;
     }
-    ncplane_putc(n, &c);
     gclusters += wcs;
     ret += wcs;
     if(ncplane_cursor_stuck(n)){
@@ -1366,22 +1353,32 @@ int notcurses_palette_size(const notcurses* nc){
 
 // turn on any specified stylebits
 void ncplane_styles_on(ncplane* n, unsigned stylebits){
+  ncplane_lock(n);
   n->attrword |= ((stylebits & 0xffff) << 16u);
+  ncplane_unlock(n);
 }
 
 // turn off any specified stylebits
 void ncplane_styles_off(ncplane* n, unsigned stylebits){
+  ncplane_lock(n);
   n->attrword &= ~((stylebits & 0xffff) << 16u);
+  ncplane_unlock(n);
 }
 
 // set the current stylebits to exactly those provided
 void ncplane_styles_set(ncplane* n, unsigned stylebits){
+  ncplane_lock(n);
   n->attrword = (n->attrword & ~CELL_STYLE_MASK) |
                 ((stylebits & 0xffff) << 16u);
+  ncplane_unlock(n);
 }
 
 unsigned ncplane_styles(const ncplane* n){
-  return (n->attrword & CELL_STYLE_MASK) >> 16u;
+  unsigned ret;
+  ncplane_lock(n);
+  ret = (n->attrword & CELL_STYLE_MASK) >> 16u;
+  ncplane_unlock(n);
+  return ret;
 }
 
 int ncplane_printf(ncplane* n, const char* format, ...){
@@ -1525,6 +1522,7 @@ cell_egc_copy(const ncplane* n, const cell* c){
 }
 
 void ncplane_erase(ncplane* n){
+  ncplane_lock(n);
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the attrword
   // and channels), and then reload.
@@ -1534,6 +1532,7 @@ void ncplane_erase(ncplane* n){
   egcpool_init(&n->pool);
   cell_load(n, &n->background, egc);
   free(egc);
+  ncplane_unlock(n);
 }
 
 static int
