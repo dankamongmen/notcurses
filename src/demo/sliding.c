@@ -110,7 +110,7 @@ fill_chunk(struct ncplane* n, int idx){
     return -1;
   }
   if(maxx >= 4 && maxy >= 3){
-    if(ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 3) / 2)){
+    if(ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 2) / 2)){
       return -1;
     }
     ncplane_fg_rgb8(n, 0, 0, 0);
