@@ -95,12 +95,16 @@ play(struct notcurses* nc, struct ncplane** chunks){
 
 static int
 fill_chunk(struct ncplane* n, int idx){
+  const int hidx = idx % CHUNKS_HORZ;
+  const int vidx = idx / CHUNKS_HORZ;
   char buf[4];
   int maxy, maxx;
   ncplane_dim_yx(n, &maxy, &maxx);
-  snprintf(buf, sizeof(buf), "%03d", idx);
+  snprintf(buf, sizeof(buf), "%02d", idx);
   uint64_t channels = 0;
-  int r = random() % 256, g = random() % 256, b = random() % 256;
+  int r = 64 + hidx * 10;
+  int b = 64 + vidx * 30;
+  int g = 225 - ((hidx + vidx) * 12);
   notcurses_fg_prep(&channels, r, g, b);
   if(ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0)){
     return -1;
