@@ -594,7 +594,7 @@ TEST_F(NcplaneTest, BoxGradients) {
     for(auto x0 = 0 ; x0 < 4 ; ++x0){
       EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1)));
       EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                     sidesz, sidesz, gradmask));
+                                     sidesz, sidesz, gradmask << 4u));
       ++gradmask;
     }
   }
@@ -603,7 +603,7 @@ TEST_F(NcplaneTest, BoxGradients) {
     for(auto x0 = 0 ; x0 < 4 ; ++x0){
       EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1) + (4 * (sidesz + 1))));
       EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                     sidesz, sidesz, gradmask));
+                                     sidesz, sidesz, gradmask << 4u));
       ++gradmask;
     }
   }
@@ -631,22 +631,18 @@ TEST_F(NcplaneTest, BoxSideColors) {
   EXPECT_EQ(0, notcurses_fg_prep(&vl.channels, 255, 255, 255));
   EXPECT_EQ(0, notcurses_bg_prep(&hl.channels, 0, 255, 0));
   EXPECT_EQ(0, notcurses_bg_prep(&vl.channels, 0, 0, 0));
-  unsigned boxmask = 0;
   for(auto y0 = 0 ; y0 < 4 ; ++y0){
     for(auto x0 = 0 ; x0 < 4 ; ++x0){
       EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1)));
       EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                     sidesz, sidesz, boxmask));
-      ++boxmask;
+                                     sidesz, sidesz, 0));
     }
   }
-  boxmask = 0;
   for(auto y0 = 0 ; y0 < 4 ; ++y0){
     for(auto x0 = 0 ; x0 < 4 ; ++x0){
       EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1) + (4 * (sidesz + 1))));
       EXPECT_EQ(0, ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                     sidesz, sidesz, boxmask));
-      ++boxmask;
+                                     sidesz, sidesz, 0));
     }
   }
   EXPECT_EQ(0, notcurses_render(nc_));
