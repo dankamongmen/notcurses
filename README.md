@@ -326,8 +326,21 @@ int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 // lines), just as if ncplane_putc() was called at that spot. Return the
 // number of cells drawn on success. On error, return the negative number of
 // cells drawn.
-int ncplane_hline(struct ncplane* n, const cell* c, int len);
-int ncplane_vline(struct ncplane* n, const cell* c, int len);
+int ncplane_hline_interp(struct ncplane* n, const cell* c, int len,
+                         uint64_t c1, uint64_t c2);
+
+static inline int
+ncplane_hline(struct ncplane* n, const cell* c, int len){
+  return ncplane_hline_interp(n, c, len, c->channels, c->channels);
+}
+
+int ncplane_vline_interp(struct ncplane* n, const cell* c, int len,
+                         uint64_t c1, uint64_t c2);
+
+static inline int
+ncplane_vline(struct ncplane* n, const cell* c, int len){
+  return ncplane_vline_interp(n, c, len, c->channels, c->channels);
+}
 
 // Draw a box with its upper-left corner at the current cursor position, and its
 // lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the
@@ -353,21 +366,20 @@ int ncplane_vline(struct ncplane* n, const cell* c, int len);
 #define NCBOXGRAD_BOTTOM 0x40
 #define NCBOXGRAD_LEFT   0x80
 
-API int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
-                    const cell* ll, const cell* lr, const cell* hline,
-                    const cell* vline, int ystop, int xstop,
-                    unsigned ctlword);
+int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
+                const cell* ll, const cell* lr, const cell* hl,
+                const cell* vl, int ystop, int xstop, unsigned ctlword);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
 // minimum box size is 2x2, and it cannot be drawn off-screen.
 static inline int
 ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
-                  const cell* ll, const cell* lr, const cell* hline,
-                  const cell* vline, int ylen, int xlen, unsigned ctlword){
+                  const cell* ll, const cell* lr, const cell* hl,
+                  const cell* vl, int ylen, int xlen, unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_box(n, ul, ur, ll, lr, hline, vline,
+  return ncplane_box(n, ul, ur, ll, lr, hl, vl,
                      y + ylen - 1, x + xlen - 1, ctlword);
 }
 
@@ -697,7 +709,7 @@ typedef struct ncstats {
 } ncstats;
 
 // Acquire a snapshot of the notcurses object's stats.
-API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
+void notcurses_stats(const struct notcurses* nc, ncstats* stats);
 ```
 
 Timings for renderings are across the breadth of `notcurses_render()`: they

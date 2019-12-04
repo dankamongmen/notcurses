@@ -1409,27 +1409,81 @@ int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
   return ret;
 }
 
-int ncplane_hline(ncplane* n, const cell* c, int len){
+int ncplane_hline_interp(ncplane* n, const cell* c, int len,
+                         uint64_t c1, uint64_t c2){
+  unsigned r1, g1, b1, r2, g2, b2;
+  unsigned br1, bg1, bb1, br2, bg2, bb2;
+  cell_rgb_get_fg(c1, &r1, &g1, &b1);
+  cell_rgb_get_fg(c2, &r2, &g2, &b2);
+  cell_rgb_get_bg(c1, &br1, &bg1, &bb1);
+  cell_rgb_get_bg(c2, &br2, &bg2, &bb2);
+  int deltr = (unsigned)r2 - r1;
+  int deltg = (unsigned)g2 - g1;
+  int deltb = (unsigned)b2 - b1;
+  int deltbr = (unsigned)br2 - br1;
+  int deltbg = (unsigned)bg2 - bg1;
+  int deltbb = (unsigned)bb2 - bb1;
   int ret;
+  cell dupc = CELL_TRIVIAL_INITIALIZER;
+  if(cell_duplicate(n, &dupc, c) < 0){
+    return -1;
+  }
   for(ret = 0 ; ret < len ; ++ret){
-    if(ncplane_putc(n, c) <= 0){
+    r1 += deltr;
+    g1 += deltg;
+    b1 += deltb;
+    br1 += deltbr;
+    bg1 += deltbg;
+    bb1 += deltbb;
+    notcurses_fg_prep(&c1, r1, g1, b1);
+    notcurses_bg_prep(&c1, br1, bg1, bb1);
+    dupc.channels = c1;
+    if(ncplane_putc(n, &dupc) <= 0){
       break;
     }
   }
+  cell_release(n, &dupc);
   return ret;
 }
 
-int ncplane_vline(ncplane* n, const cell* c, int len){
+int ncplane_vline_interp(ncplane* n, const cell* c, int len,
+                         uint64_t c1, uint64_t c2){
+  unsigned r1, g1, b1, r2, g2, b2;
+  unsigned br1, bg1, bb1, br2, bg2, bb2;
+  cell_rgb_get_fg(c1, &r1, &g1, &b1);
+  cell_rgb_get_fg(c2, &r2, &g2, &b2);
+  cell_rgb_get_bg(c1, &br1, &bg1, &bb1);
+  cell_rgb_get_bg(c2, &br2, &bg2, &bb2);
+  int deltr = (unsigned)r2 - r1;
+  int deltg = (unsigned)g2 - g1;
+  int deltb = (unsigned)b2 - b1;
+  int deltbr = (unsigned)br2 - br1;
+  int deltbg = (unsigned)bg2 - bg1;
+  int deltbb = (unsigned)bb2 - bb1;
   int ret, ypos, xpos;
   ncplane_cursor_yx(n, &ypos, &xpos);
+  cell dupc = CELL_TRIVIAL_INITIALIZER;
+  if(cell_duplicate(n, &dupc, c) < 0){
+    return -1;
+  }
   for(ret = 0 ; ret < len ; ++ret){
     if(ncplane_cursor_move_yx(n, ypos + ret, xpos)){
       return -1;
     }
-    if(ncplane_putc(n, c) <= 0){
+    r1 += deltr;
+    g1 += deltg;
+    b1 += deltb;
+    br1 += deltbr;
+    bg1 += deltbg;
+    bb1 += deltbb;
+    notcurses_fg_prep(&c1, r1, g1, b1);
+    notcurses_bg_prep(&c1, br1, bg1, bb1);
+    dupc.channels = c1;
+    if(ncplane_putc(n, &dupc) <= 0){
       break;
     }
   }
+  cell_release(n, &dupc);
   return ret;
 }
 
@@ -1458,8 +1512,14 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       return -1;
     }
     if(xstop - xoff >= 2){
-      if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
-        return -1;
+      if(!(ctlword & (NCBOXGRAD_TOP << 4u))){ // cell styling, hl
+        if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
+          return -1;
+        }
+      }else{ // gradient, ul -> ur
+        if(ncplane_hline_interp(n, hl, xstop - xoff - 1, ul->channels, ur->channels) < 0){
+          return -1;
+        }
       }
     }
     if(ncplane_putc(n, ur) < 0){
