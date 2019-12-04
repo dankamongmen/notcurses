@@ -122,20 +122,27 @@ int unicodeblocks_demo(struct notcurses* nc){
       for(z = 0 ; z < CHUNKSIZE ; ++z){
         mbstate_t ps;
         memset(&ps, 0, sizeof(ps));
-        wchar_t w = blockstart + chunk * CHUNKSIZE + z;
-        char utf8arr[MB_CUR_MAX + 1];
-        if(wcwidth(w) >= 1 && iswprint(w)){
-          int bwc = wcrtomb(utf8arr, w, &ps);
+        wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\u200e' };
+        char utf8arr[MB_CUR_MAX * 2 + 1];
+if(w[0] == L'\u3250'){
+continue;
+}
+        if(wcswidth(w, 2) >= 1 && iswprint(w[0])){
+          const wchar_t *wptr = w;
+          int bwc = wcsrtombs(utf8arr, &wptr, sizeof(utf8arr), &ps);
           if(bwc < 0){
             fprintf(stderr, "Couldn't convert %u (%x) (%lc) (%s)\n",
                     blockstart + chunk * CHUNKSIZE + z,
-                    blockstart + chunk * CHUNKSIZE + z, w, strerror(errno));
+                    blockstart + chunk * CHUNKSIZE + z, w[0], strerror(errno));
             return -1;
           }
           utf8arr[bwc] = '\0';
         }else{ // don't dump non-printing codepoints
           utf8arr[0] = ' ';
-          utf8arr[1] = '\0';
+          utf8arr[1] = 0xe2;
+          utf8arr[2] = 0x80;
+          utf8arr[3] = 0x8e;
+          utf8arr[4] = '\0';
         }
         if(cell_load(n, &c, utf8arr) < 0){ // FIXME check full len was eaten?
           return -1;;
@@ -145,7 +152,7 @@ int unicodeblocks_demo(struct notcurses* nc){
         if(ncplane_putc(n, &c) < 0){
           return -1;
         }
-        if(wcwidth(w) < 2 || !iswprint(w)){
+        if(wcwidth(w[0]) < 2 || !iswprint(w[0])){
           if(cell_load(n, &c, " ") < 0){
             return -1;
           }
