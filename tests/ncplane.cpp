@@ -110,7 +110,7 @@ TEST_F(NcplaneTest, EmitWchar) {
   const char cchar[] = "✔";
   cell c{};
   EXPECT_EQ(strlen(cchar), cell_load(n_, &c, cchar));
-  EXPECT_EQ(strlen(cchar), ncplane_putc(n_, &c));
+  EXPECT_LT(0, ncplane_putc(n_, &c));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, y);
@@ -517,7 +517,7 @@ TEST_F(NcplaneTest, PlaneAtCursorInsane){
   ASSERT_LT(1, cell_load(n_, &tcells[3], EGC3));
   ASSERT_LT(1, cell_load(n_, &tcells[4], EGC4));
   for(auto i = 0u ; i < tcells.size() ; ++i){
-    ASSERT_LT(1, ncplane_putc(n_, &tcells[i]));
+    ASSERT_LT(0, ncplane_putc(n_, &tcells[i]));
   }
   EXPECT_EQ(0, notcurses_render(nc_));
   int x = 0;
@@ -645,5 +645,18 @@ TEST_F(NcplaneTest, BoxSideColors) {
                                      sidesz, sidesz, 0));
     }
   }
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+TEST_F(NcplaneTest, RightToLeft) {
+  // give us some room on both sides
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 1, 10));
+  int sbytes = -1;
+  EXPECT_LT(0, ncplane_putegc(n_, "־", 0, 0, &sbytes));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 3, 10));
+  EXPECT_LT(0, ncplane_putstr(n_, "I can write English with מילים בעברית in the same sentence."));
+  EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 5, 10));
+  EXPECT_LT(0, ncplane_putstr(n_, "|🔥|I have not yet ־ begun to hack|🔥|"));
   EXPECT_EQ(0, notcurses_render(nc_));
 }
