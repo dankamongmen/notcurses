@@ -61,7 +61,7 @@ outro(struct notcurses* nc){
   }
   const char str0[] = "      ATL, baby! ATL!      ";
   const char str1[] = " much, much more is coming ";
-  const char str2[] = "      hack on 💖 dank      ";
+  const char str2[] = "      hack on! —dank❤      ";
   int ybase = rows - 5;
   if(ncplane_fg_rgb8(ncp, 0, 0, 0)){
     return -1;
@@ -87,7 +87,7 @@ outro(struct notcurses* nc){
   if(ncplane_putstr(ncp, str1) != (int)strlen(str1)){
     return -1;
   }
-  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str2) + 5) / 2)){
+  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str2) + 8) / 2)){
     return -1;
   }
   if(ncplane_putstr(ncp, str2) != (int)strlen(str2)){

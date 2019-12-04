@@ -60,6 +60,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_styles_off(n, CELL_STYLE_BOLD);
   ncplane_fg_rgb8(n, 200, 20, 200);
   ncplane_putstr(n, "  🔥 wide chars, multiple colors, resize awareness…🔥  ");
+  ncplane_fg_rgb8(n, 255, 255, 255);
   return 0;
 }
 
