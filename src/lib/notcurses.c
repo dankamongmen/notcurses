@@ -1166,6 +1166,8 @@ int notcurses_render(notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   pthread_mutex_lock(&nc->lock);
   int bytes = notcurses_render_internal(nc);
+  int dimy, dimx;
+  notcurses_resize(nc, &dimy, &dimx);
   if(bytes > 0){
     nc->stats.render_bytes += bytes;
     if(bytes > nc->stats.render_max_bytes){
@@ -1659,28 +1661,32 @@ int ncvisual_render(const ncvisual* ncv){
 }
 
 typedef struct planepalette {
-  int size;                     // number of channel entries
+  int rows;                     // number of rows when allocated
+  int cols;                     // number of columns when allocated
   unsigned maxr, maxg, maxb;    // maxima across foreground channels
   unsigned maxbr, maxbg, maxbb; // maxima across background channels
   uint64_t* channels;           // all channels from the framebuffer
 } planepalette;
 
-// These arrays are too large to be safely placed on the stack.
+// These arrays are too large to be safely placed on the stack. Get an atomic
+// snapshot of all channels on the plane. While copying the snapshot, determine
+// the maxima across each of the six components.
 static int
 alloc_ncplane_palette(ncplane* n, planepalette* pp){
-  int dimy, dimx;
-  ncplane_dim_yx(n, &dimy, &dimx);
-  pp->size = dimy * dimx;
-  if((pp->channels = malloc(sizeof(*pp->channels) * pp->size)) == NULL){
+  ncplane_lock(n);
+  ncplane_dim_yx(n, &pp->rows, &pp->cols);
+  int size = pp->rows * pp->cols;
+  if((pp->channels = malloc(sizeof(*pp->channels) * size)) == NULL){
+    ncplane_unlock(n);
     return -1;
   }
   pp->maxr = pp->maxg = pp->maxb = 0;
   pp->maxbr = pp->maxbg = pp->maxbb = 0;
   int y, x;
-  for(y = 0 ; y < dimy ; ++y){
-    for(x = 0 ; x < dimx ; ++x){
+  for(y = 0 ; y < pp->rows ; ++y){
+    for(x = 0 ; x < pp->cols ; ++x){
       uint64_t channels = n->fb[fbcellidx(n, y, x)].channels;
-      pp->channels[y * dimx + x] = channels;
+      pp->channels[y * pp->cols + x] = channels;
       unsigned r, g, b, br, bg, bb;
       cell_rgb_get_fg(channels, &r, &g, &b);
       if(r > pp->maxr){
@@ -1704,6 +1710,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
       }
     }
   }
+  ncplane_unlock(n);
   return 0;
 }
 
@@ -1736,24 +1743,30 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts){
     if(iter > maxsteps){
       break;
     }
-    int p;
-    for(p = 0 ; p < pp.size ; ++p){
-      cell* c = &n->fb[p];
-      unsigned r, g, b;
-      cell_rgb_get_fg(pp.channels[p], &r, &g, &b);
-      unsigned br, bg, bb;
-      cell_rgb_get_bg(pp.channels[p], &br, &bg, &bb);
-      if(!cell_fg_default_p(c)){
-        r = r * iter / maxsteps;
-        g = g * iter / maxsteps;
-        b = b * iter / maxsteps;
-        cell_set_fg(c, r, g, b);
-      }
-      if(!cell_bg_default_p(c)){
-        br = br * iter / maxsteps;
-        bg = bg * iter / maxsteps;
-        bb = bb * iter / maxsteps;
-        cell_set_bg(c, br, bg, bb);
+    int y, x;
+    // each time through, we need look each cell back up, due to the
+    // possibility of a resize event :/
+    int dimy, dimx;
+    ncplane_dim_yx(n, &dimy, &dimx);
+    for(y = 0 ; y < pp.rows && y < dimy ; ++y){
+      for(x = 0 ; x < pp.cols && x < dimx; ++x){
+        unsigned r, g, b;
+        cell_rgb_get_fg(pp.channels[pp.cols * y + x], &r, &g, &b);
+        unsigned br, bg, bb;
+        cell_rgb_get_bg(pp.channels[pp.cols * y + x], &br, &bg, &bb);
+        cell* c = &n->fb[dimx * y + x];
+        if(!cell_fg_default_p(c)){
+          r = r * iter / maxsteps;
+          g = g * iter / maxsteps;
+          b = b * iter / maxsteps;
+          cell_set_fg(c, r, g, b);
+        }
+        if(!cell_bg_default_p(c)){
+          br = br * iter / maxsteps;
+          bg = bg * iter / maxsteps;
+          bb = bb * iter / maxsteps;
+          cell_set_bg(c, br, bg, bb);
+        }
       }
     }
     notcurses_render(n->nc);
@@ -1799,21 +1812,31 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
     if(iter > maxsteps){
       break;
     }
-    int p;
-    for(p = 0 ; p < pp.size ; ++p){
-      cell* c = &n->fb[p];
-      unsigned r, g, b;
-      cell_rgb_get_fg(pp.channels[p], &r, &g, &b);
-      unsigned br, bg, bb;
-      cell_rgb_get_bg(pp.channels[p], &br, &bg, &bb);
-      r = r * (maxsteps - iter) / maxsteps;
-      g = g * (maxsteps - iter) / maxsteps;
-      b = b * (maxsteps - iter) / maxsteps;
-      br = br * (maxsteps - iter) / maxsteps;
-      bg = bg * (maxsteps - iter) / maxsteps;
-      bb = bb * (maxsteps - iter) / maxsteps;
-      cell_set_fg(c, r, g, b);
-      cell_set_bg(c, br, bg, bb);
+    int y, x;
+    // each time through, we need look each cell back up, due to the
+    // possibility of a resize event :/
+    int dimy, dimx;
+    ncplane_dim_yx(n, &dimy, &dimx);
+    for(y = 0 ; y < pp.rows && y < dimy ; ++y){
+      for(x = 0 ; x < pp.cols && x < dimx; ++x){
+        unsigned r, g, b;
+        cell_rgb_get_fg(pp.channels[pp.cols * y + x], &r, &g, &b);
+        unsigned br, bg, bb;
+        cell_rgb_get_bg(pp.channels[pp.cols * y + x], &br, &bg, &bb);
+        cell* c = &n->fb[dimx * y + x];
+        if(!cell_fg_default_p(c)){
+          r = r * (maxsteps - iter) / maxsteps;
+          g = g * (maxsteps - iter) / maxsteps;
+          b = b * (maxsteps - iter) / maxsteps;
+          cell_set_fg(c, r, g, b);
+        }
+        if(!cell_bg_default_p(c)){
+          br = br * (maxsteps - iter) / maxsteps;
+          bg = bg * (maxsteps - iter) / maxsteps;
+          bb = bb * (maxsteps - iter) / maxsteps;
+          cell_set_bg(c, br, bg, bb);
+        }
+      }
     }
     notcurses_render(n->nc);
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
