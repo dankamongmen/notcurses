@@ -124,9 +124,6 @@ int unicodeblocks_demo(struct notcurses* nc){
         memset(&ps, 0, sizeof(ps));
         wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\u200e' };
         char utf8arr[MB_CUR_MAX * 2 + 1];
-if(w[0] == L'\u3250'){
-continue;
-}
         if(wcswidth(w, 2) >= 1 && iswprint(w[0])){
           const wchar_t *wptr = w;
           int bwc = wcsrtombs(utf8arr, &wptr, sizeof(utf8arr), &ps);
