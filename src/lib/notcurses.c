@@ -1043,9 +1043,8 @@ prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
 
 // FIXME this needs to keep an invalidation bitmap, rather than blitting the
 // world every time
-int notcurses_render(notcurses* nc){
-  struct timespec start, done;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+static inline int
+notcurses_render_internal(notcurses* nc){
   int ret = 0;
   int y, x;
   char* buf = NULL;
@@ -1137,22 +1136,33 @@ int notcurses_render(notcurses* nc){
   if(blocking_write(nc->ttyfd, buf, buflen)){
     ret = -1;
   }
-  nc->stats.render_bytes += buflen;
-  if(buflen > nc->stats.render_max_bytes){
-    nc->stats.render_max_bytes = buflen;
-  }
-  if(buflen < nc->stats.render_min_bytes){
-    nc->stats.render_min_bytes = buflen;
-  }
 /*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
      fgelisions, fgemissions, bgelisions, bgemissions);*/
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", buf);
   }
-  clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   free(buf);
+  return buflen;
+}
+
+int notcurses_render(notcurses* nc){
+  struct timespec start, done;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+  pthread_mutex_lock(&nc->lock);
+  int bytes = notcurses_render_internal(nc);
+  if(bytes > 0){
+    nc->stats.render_bytes += bytes;
+    if(bytes > nc->stats.render_max_bytes){
+      nc->stats.render_max_bytes = bytes;
+    }
+    if(bytes < nc->stats.render_min_bytes){
+      nc->stats.render_min_bytes = bytes;
+    }
+  }
+  clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   update_render_stats(&done, &start, &nc->stats);
-  return ret;
+  pthread_mutex_unlock(&nc->lock);
+  return bytes;
 }
 
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){

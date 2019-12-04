@@ -193,8 +193,8 @@ API int notcurses_palette_size(const struct notcurses* nc);
 typedef struct ncstats {
   uint64_t renders;          // number of notcurses_render() runs
   uint64_t render_bytes;     // bytes emitted to ttyfp
-  uint64_t render_max_bytes; // max bytes emitted for a frame
-  uint64_t render_min_bytes; // min bytes emitted for a frame
+  int64_t render_max_bytes;  // max bytes emitted for a frame
+  int64_t render_min_bytes;  // min bytes emitted for a frame
   uint64_t render_ns;        // nanoseconds spent in notcurses_render()
   int64_t render_max_ns;     // max ns spent in notcurses_render()
   int64_t render_min_ns;     // min ns spent in successful notcurses_render()
