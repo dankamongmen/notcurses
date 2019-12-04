@@ -239,7 +239,7 @@ int widecolor_demo(struct notcurses* nc){
   const char** s;
   int count = notcurses_palette_size(nc);
   const int steps[] = { 1, 0x100, 0x40000, 0x10001, };
-  const int starts[] = { 1, 0x100, 0x10000, 0x10001, };
+  const int starts[] = { 0x4000, 0x40, 0x10000, 0x400040, };
 
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
