@@ -17,15 +17,6 @@ view_video_demo(struct notcurses* nc){
     return -1;
   }
   ncvisual_destroy(ncv);
-  ncv = ncplane_visual_open(ncp, "../tests/atliens.mkv", &averr);
-  if(!ncv){
-    return -1;
-  }
-  if(ncvisual_stream(nc, ncv, &averr)){
-    ncvisual_destroy(ncv);
-    return -1;
-  }
-  ncvisual_destroy(ncv);
   return 0;
 }
 

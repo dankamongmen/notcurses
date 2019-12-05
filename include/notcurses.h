@@ -207,11 +207,6 @@ notcurses_getc_blocking(struct notcurses* n, cell* c, ncspecial_key* nkey){
   return notcurses_getc(n, c, nkey, NULL, &sigmask);
 }
 
-// Add this escape sequence to the trie, resolving to the specified specialkey.
-// Exported mainly for the benefit of unit tests.
-API int notcurses_add_input_escape(struct notcurses* nc, const char* esc,
-                                   ncspecial_key special);
-
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
