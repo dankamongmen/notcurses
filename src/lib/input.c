@@ -1,3 +1,5 @@
+#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <term.h>
 #include <sys/poll.h>
 #include "internal.h"
 
@@ -104,6 +106,7 @@ handle_getc(notcurses* nc, cell* c, int kpress, ncspecial_key* special){
         esc = esc->trie[candidate];
       }
     }
+//fprintf(stderr, "esc? %c special: %d\n", esc ? 'y' : 'n', esc ? esc->special : NCKEY_INVALID);
     if(esc && esc->special != NCKEY_INVALID){
       *special = esc->special;
       return 1;
@@ -183,4 +186,62 @@ int notcurses_getc(notcurses* nc, cell* c, ncspecial_key* special,
     r = handle_input(nc, c, special);
   }
   return r;
+}
+
+int prep_special_keys(notcurses* nc){
+  static const struct {
+    const char* tinfo;
+    ncspecial_key key;
+  } keys[] = {
+    { .tinfo = "kcub1", .key = NCKEY_LEFT, },
+    { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
+    { .tinfo = "kcuu1", .key = NCKEY_UP, },
+    { .tinfo = "kcud1", .key = NCKEY_DOWN, },
+    { .tinfo = "kdch1", .key = NCKEY_DEL, },
+    { .tinfo = "kbs",   .key = NCKEY_BS, },
+    { .tinfo = "kich1", .key = NCKEY_INS, },
+    { .tinfo = "kend",  .key = NCKEY_END, },
+    { .tinfo = "khome", .key = NCKEY_HOME, },
+    { .tinfo = "knp",   .key = NCKEY_PGDOWN, },
+    { .tinfo = "kpp",   .key = NCKEY_PGUP, },
+    { .tinfo = "kf0",   .key = NCKEY_F01, },
+    { .tinfo = "kf1",   .key = NCKEY_F01, },
+    { .tinfo = "kf2",   .key = NCKEY_F02, },
+    { .tinfo = "kf3",   .key = NCKEY_F03, },
+    { .tinfo = "kf4",   .key = NCKEY_F04, },
+    { .tinfo = "kf5",   .key = NCKEY_F05, },
+    { .tinfo = "kf6",   .key = NCKEY_F06, },
+    { .tinfo = "kf7",   .key = NCKEY_F07, },
+    { .tinfo = "kf8",   .key = NCKEY_F08, },
+    { .tinfo = "kf9",   .key = NCKEY_F09, },
+    { .tinfo = "kf10",  .key = NCKEY_F10, },
+    { .tinfo = "kf11",  .key = NCKEY_F11, },
+    { .tinfo = "kf12",  .key = NCKEY_F12, },
+    { .tinfo = "kf13",  .key = NCKEY_F13, },
+    { .tinfo = "kf14",  .key = NCKEY_F14, },
+    { .tinfo = "kf15",  .key = NCKEY_F15, },
+    { .tinfo = "kf16",  .key = NCKEY_F16, },
+    { .tinfo = "kf17",  .key = NCKEY_F17, },
+    { .tinfo = "kf18",  .key = NCKEY_F18, },
+    { .tinfo = "kf19",  .key = NCKEY_F19, },
+    { .tinfo = "kf20",  .key = NCKEY_F20, },
+    { .tinfo = NULL,    .key = NCKEY_INVALID, }
+  }, *k;
+  for(k = keys ; k->tinfo ; ++k){
+    char* seq = tigetstr(k->tinfo);
+    if(seq == NULL || seq == (char*)-1){
+//fprintf(stderr, "no support for terminfo's %s\n", k->tinfo);
+      continue;
+    }
+    if(seq[0] != ESC){
+      fprintf(stderr, "Terminfo's %s is not an escape sequence: %s\n",
+              k->tinfo, seq);
+      continue;
+    }
+//fprintf(stderr, "support for terminfo's %s: %s\n", k->tinfo, seq);
+    if(notcurses_add_input_escape(nc, seq, k->key)){
+      return -1;
+    }
+  }
+  return 0;
 }

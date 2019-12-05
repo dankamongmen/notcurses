@@ -19,6 +19,25 @@ const char* nckeystr(ncspecial_key key){
     case NCKEY_UP:      return "up";
     case NCKEY_RIGHT:   return "right";
     case NCKEY_DOWN:    return "down";
+    case NCKEY_INS:     return "insert";
+    case NCKEY_DEL:     return "delete";
+    case NCKEY_PGDOWN:  return "pgdown";
+    case NCKEY_PGUP:    return "pgup";
+    case NCKEY_HOME:    return "home";
+    case NCKEY_END:     return "end";
+    case NCKEY_F00:     return "F0";
+    case NCKEY_F01:     return "F1";
+    case NCKEY_F02:     return "F2";
+    case NCKEY_F03:     return "F3";
+    case NCKEY_F04:     return "F4";
+    case NCKEY_F05:     return "F5";
+    case NCKEY_F06:     return "F6";
+    case NCKEY_F07:     return "F7";
+    case NCKEY_F08:     return "F8";
+    case NCKEY_F09:     return "F9";
+    case NCKEY_F10:     return "F10";
+    case NCKEY_F11:     return "F11";
+    case NCKEY_F12:     return "F12";
     default:            return "unknown";
   }
 }
@@ -61,7 +80,7 @@ int main(void){
     if(cell_simple_p(&c)){
       char kp = c.gcluster;
       if(kp == 0){
-        if(ncplane_printf(n, "Got special key: [0x%04x (%04d)] '%s'\n",
+        if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'\n",
                           special, special, nckeystr(special)) < 0){
           break;
         }

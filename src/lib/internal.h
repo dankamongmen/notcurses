@@ -99,16 +99,6 @@ typedef struct notcurses {
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
 
-  // special keys
-  char* left;  // kcub1
-  char* right; // kcuf1
-  char* up;    // kcuu1
-  char* down;  // kcud1
-  char* del;   // delete
-  char* home;  // home
-  char* npage; // knp
-  char* ppage; // kpp
-
   struct termios tpreserved; // terminal state upon entry
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
@@ -128,6 +118,9 @@ typedef struct notcurses {
 } notcurses;
 
 extern sig_atomic_t resize_seen;
+
+// load all known special keys from terminfo, and build the input sequence trie
+int prep_special_keys(notcurses* nc);
 
 // free up the input escapes trie
 void input_free_esctrie(struct esctrie** trie);
