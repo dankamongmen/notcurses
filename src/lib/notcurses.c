@@ -1163,10 +1163,17 @@ notcurses_render_internal(notcurses* nc){
   return buflen;
 }
 
+static void
+mutex_unlock(void* vlock){
+  pthread_mutex_unlock(vlock);
+}
+
 int notcurses_render(notcurses* nc){
+  int ret = 0;
   struct timespec start, done;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   pthread_mutex_lock(&nc->lock);
+  pthread_cleanup_push(mutex_unlock, &nc->lock);
   int bytes = notcurses_render_internal(nc);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
@@ -1181,8 +1188,11 @@ int notcurses_render(notcurses* nc){
   }
   clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   update_render_stats(&done, &start, &nc->stats);
-  pthread_mutex_unlock(&nc->lock);
-  return bytes < 0 ? -1 : 0;
+  if(bytes < 0){
+    ret = -1;
+  }
+  pthread_cleanup_pop(1);
+  return ret;
 }
 
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
