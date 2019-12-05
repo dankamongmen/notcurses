@@ -629,6 +629,16 @@ notcurses_bg_prep(uint64_t* channels, int r, int g, int b){
 }
 
 static inline void
+notcurses_fg_default_prep(uint64_t* channels){
+  *channels &= ~(CELL_FGDEFAULT_MASK);
+}
+
+static inline void
+notcurses_bg_default_prep(uint64_t* channels){
+  *channels &= ~(CELL_BGDEFAULT_MASK);
+}
+
+static inline void
 cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
   notcurses_fg_prep(&c->channels, r, g, b);
 }
@@ -661,7 +671,7 @@ cell_inherits_style(const cell* c){
 // use the default color for the foreground
 static inline void
 cell_fg_default(cell* c){
-  c->channels &= ~CELL_FGDEFAULT_MASK;
+  notcurses_fg_default_prep(&c->channels);
 }
 
 // is the cell using the terminal's default foreground color for its foreground?
@@ -673,7 +683,7 @@ cell_fg_default_p(const cell* c){
 // use the default color for the background
 static inline void
 cell_bg_default(cell* c){
-  c->channels &= ~CELL_BGDEFAULT_MASK;
+  notcurses_bg_default_prep(&c->channels);
 }
 
 // is the cell using the terminal's default background color for its background?

@@ -109,9 +109,17 @@ int unicodeblocks_demo(struct notcurses* nc){
       return -1;
     }
     ++xstart;
+    cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+    cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+    cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+    cells_rounded_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
+    cell_set_bg(&hl, 0, 0, 0);
+    cell_set_bg(&vl, 0, 0, 0);
     if(ncplane_rounded_box_sized(n, 0, 0, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 0)){
       return -1;
     }
+    cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
+    cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
     for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
       if(ncplane_cursor_move_yx(n, 4 + chunk, xstart)){
         return -1;
