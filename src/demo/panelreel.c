@@ -219,7 +219,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
       fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
     }else{
       if(fds[0].revents & POLLIN){
-        key = notcurses_getc(nc, c, special);
+        key = notcurses_getc_blocking(nc, c, special);
         if(key < 0){
           return -1;
         }

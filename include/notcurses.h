@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include <signal.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -157,10 +158,27 @@ typedef enum {
   // FIXME...
 } ncspecial_key;
 
-API int notcurses_getc(const struct notcurses* n, cell* c,
-                       ncspecial_key* special);
-API int notcurses_getc_blocking(const struct notcurses* n, cell* c,
-                                ncspecial_key* special);
+// See ppoll(2) for more detail. Provide a NULL 'ts' to block at lenghth, a 'ts'
+// of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
+// Signals in sigmask (less several we handle internally) will be atomically
+// masked and unmasked per ppoll(2). It should generally contain all signals.
+API int notcurses_getc(struct notcurses* n, cell* c, ncspecial_key* special,
+                       const struct timespec* ts, sigset_t* sigmask);
+
+static inline int
+notcurses_getc_nblock(struct notcurses* n, cell* c, ncspecial_key* nkey){
+  sigset_t sigmask;
+  sigfillset(&sigmask);
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+  return notcurses_getc(n, c, nkey, &ts, &sigmask);
+}
+
+static inline int
+notcurses_getc_blocking(struct notcurses* n, cell* c, ncspecial_key* nkey){
+  sigset_t sigmask;
+  sigemptyset(&sigmask);
+  return notcurses_getc(n, c, nkey, NULL, &sigmask);
+}
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize

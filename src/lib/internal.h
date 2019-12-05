@@ -112,7 +112,7 @@ typedef struct notcurses {
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
   FILE* renderfp; // debugging FILE* to which renderings are written
-  char inputbuf[BUFSIZ];
+  unsigned char inputbuf[BUFSIZ];
   // we keep a wee ringbuffer of input queued up for delivery. if
   // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
   // can be read to inputbuf_write_at until we fill up. the first datum
