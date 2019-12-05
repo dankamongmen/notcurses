@@ -1,6 +1,7 @@
 #include <string>
 #include <cstdlib>
 #include <notcurses.h>
+#include "internal.h"
 #include "main.h"
 
 class NotcursesTest : public :: testing::Test {
@@ -102,4 +103,11 @@ TEST_F(NotcursesTest, TileScreenWithPlanes) {
   delete[] planesecrets;
   delete[] planes;
   ASSERT_EQ(0, notcurses_render(nc_));
+}
+
+// build a trie up from terminfo(5)-style escape sequences
+TEST_F(NotcursesTest, InputEscapesTrie) {
+  const char* khome = "\x1bOH";
+  ASSERT_EQ(0, notcurses_add_input_escape(nc_, khome, NCKEY_HOME));
+  // FIXME need be able to lookup
 }

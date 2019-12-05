@@ -520,12 +520,33 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   term_verify_seq(&nc->italoff, "ritm");
   term_verify_seq(&nc->op, "op");
   term_verify_seq(&nc->clear, "clear");
-  term_verify_seq(&nc->left, "kcub1");
-  term_verify_seq(&nc->right, "kcuf1");
-  term_verify_seq(&nc->up, "kcuu1");
-  term_verify_seq(&nc->down, "kcud1");
-  term_verify_seq(&nc->npage, "knp");
-  term_verify_seq(&nc->ppage, "kpp");
+  if(term_verify_seq(&nc->left, "kcub1") == 0){
+    notcurses_add_input_escape(nc, nc->left, NCKEY_LEFT);
+  }
+  if(term_verify_seq(&nc->right, "kcuf1") == 0){
+    notcurses_add_input_escape(nc, nc->right, NCKEY_RIGHT);
+  }
+  if(term_verify_seq(&nc->up, "kcuu1") == 0){
+    notcurses_add_input_escape(nc, nc->up, NCKEY_UP);
+  }
+  if(term_verify_seq(&nc->down, "kcud1") == 0){
+    notcurses_add_input_escape(nc, nc->down, NCKEY_DOWN);
+  }
+  if(term_verify_seq(&nc->del, "kdch1") == 0){
+    notcurses_add_input_escape(nc, nc->down, NCKEY_DEL);
+  }
+  if(term_verify_seq(&nc->home, "kend") == 0){
+    notcurses_add_input_escape(nc, nc->down, NCKEY_END);
+  }
+  if(term_verify_seq(&nc->home, "khome") == 0){
+    notcurses_add_input_escape(nc, nc->down, NCKEY_HOME);
+  }
+  if(term_verify_seq(&nc->npage, "knp") == 0){
+    notcurses_add_input_escape(nc, nc->down, NCKEY_PGDOWN);
+  }
+  if(term_verify_seq(&nc->ppage, "kpp") == 0){
+    notcurses_add_input_escape(nc, nc->down, NCKEY_PGUP);
+  }
   // Some terminals cannot combine certain styles with colors. Don't advertise
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");

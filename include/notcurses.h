@@ -154,7 +154,11 @@ typedef enum {
   NCKEY_RIGHT,
   NCKEY_DOWN,
   NCKEY_LEFT,
-  NCKEY_DC,       // delete
+  NCKEY_DEL,
+  NCKEY_PGDOWN,
+  NCKEY_PGUP,
+  NCKEY_HOME,
+  NCKEY_END,
   // FIXME...
 } ncspecial_key;
 
@@ -179,6 +183,11 @@ notcurses_getc_blocking(struct notcurses* n, cell* c, ncspecial_key* nkey){
   sigemptyset(&sigmask);
   return notcurses_getc(n, c, nkey, NULL, &sigmask);
 }
+
+// Add this escape sequence to the trie, resolving to the specified specialkey.
+// Exported mainly for the benefit of unit tests.
+API int notcurses_add_input_escape(struct notcurses* nc, const char* esc,
+                                   ncspecial_key special);
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize

@@ -48,32 +48,30 @@ void input_free_esctrie(esctrie** eptr){
   }
 }
 
-int input_add_escape(notcurses* nc, const char* esc, ncspecial_key special){
-  esctrie** cur;
-  fprintf(stderr, "ADDING: %s for %d\n", esc, special);
+int notcurses_add_input_escape(notcurses* nc, const char* esc, ncspecial_key special){
   if(esc[0] != ESC || strlen(esc) < 2){ // assume ESC prefix + content
     return -1;
   }
+  esctrie** cur = &nc->inputescapes;
   do{
+//fprintf(stderr, "ADDING: %s (%zu) for %d\n", esc, strlen(esc), special);
     ++esc;
     int validate = *esc;
     if(validate < 0 || validate >= 0x80){
       return -1;
     }
-    if(nc->inputescapes == NULL){
-      cur = &nc->inputescapes;
-    }else if(validate){
+    if(*cur == NULL){
+      if((*cur = create_esctrie_node(NCKEY_INVALID)) == NULL){
+        return -1;
+      }
+    }
+    if(validate){
       if((*cur)->trie == NULL){
         const size_t tsize = sizeof((*cur)->trie) * 0x80;
         (*cur)->trie = malloc(tsize);
         memset((*cur)->trie, 0, tsize);
       }
       cur = &(*cur)->trie[validate];
-    }
-    if(*cur == NULL){
-      if((*cur = create_esctrie_node(NCKEY_INVALID)) == NULL){
-        return -1;
-      }
     }
   }while(*esc);
   if((*cur)->special){ // already had one here!
@@ -94,13 +92,24 @@ handle_getc(notcurses* nc, cell* c, int kpress, ncspecial_key* special){
   }
   if(kpress == ESC){
     // FIXME delay a little waiting for more?
-    while(nc->inputbuf_occupied){
+    const esctrie* esc = nc->inputescapes;
+    while(esc && esc->special == NCKEY_INVALID && nc->inputbuf_occupied){
       int candidate = pop_input_keypress(nc);
-      // FIXME walk trie via candidate, exiting (and ungetc()ing) on failure
-fprintf(stderr, "CANDIDATE: %c\n", candidate);
+//fprintf(stderr, "CANDIDATE: %c\n", candidate);
+      if(esc->trie == NULL){
+        esc = NULL;
+      }else if(candidate >= 0x80 || candidate < 0){
+        esc = NULL;
+      }else{
+        esc = esc->trie[candidate];
+      }
     }
+    if(esc && esc->special != NCKEY_INVALID){
+      *special = esc->special;
+      return 1;
+    }
+    // FIXME ungetc on failure! walk trie backwards or something
   }
-  *special = 0;
   if(kpress == 0x04){ // ctrl-d, treated as EOF
     return -1;
   }
@@ -137,10 +146,11 @@ static int
 handle_input(notcurses* nc, cell* c, ncspecial_key* special){
   int r;
   c->gcluster = 0;
+  *special = NCKEY_INVALID;
   // getc() returns unsigned chars cast to ints
   while(!input_queue_full(nc) && (r = getc(nc->ttyinfp)) >= 0){
     nc->inputbuf[nc->inputbuf_write_at] = (unsigned char)r;
-fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
+//fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
     if(++nc->inputbuf_write_at == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
       nc->inputbuf_write_at = 0;
     }
