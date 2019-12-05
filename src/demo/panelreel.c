@@ -246,6 +246,8 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     .circular = true,
     .min_supported_cols = 8,
     .min_supported_rows = 5,
+    .bordermask = NCBOXMASK_BOTTOM | NCBOXMASK_TOP |
+                  NCBOXMASK_LEFT | NCBOXMASK_RIGHT,
     .borderattr = CELL_TRIVIAL_INITIALIZER,
     .tabletattr = CELL_TRIVIAL_INITIALIZER,
     .focusedattr = CELL_TRIVIAL_INITIALIZER,
