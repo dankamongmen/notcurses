@@ -23,6 +23,8 @@ snake_thread(void* vnc){
   cell_prime(n, &head, "🐍", 0, channels);
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_bg_default(&head);
+  struct timespec iterdelay;
+  timespec_div(&demodelay, 10, &iterdelay);
   while(true){
     pthread_testcancel();
     ncplane_cursor_move_yx(n, y, x);
@@ -33,7 +35,7 @@ snake_thread(void* vnc){
     ncplane_cursor_move_yx(n, y, x);
     ncplane_putc(n, &c);
     int oldy, oldx;
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &demodelay, NULL);
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &iterdelay, NULL);
     do{ // force a move
       oldy = y;
       oldx = x;
