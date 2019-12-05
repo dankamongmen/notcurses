@@ -258,6 +258,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   cell_set_bg(&popts.focusedattr, 97, 214, 214);
   cell_set_fg(&popts.tabletattr, 19, 161, 14);
   cell_set_fg(&popts.borderattr, 136, 23, 152);
+  cell_set_bg(&popts.borderattr, 0, 0, 0);
   struct ncplane* w = notcurses_stdplane(nc);
   struct panelreel* pr = panelreel_create(w, &popts, efd);
   if(pr == NULL){
@@ -267,6 +268,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   // Press a for a new panel above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement. q quits.
   ncplane_fg_rgb8(w, 58, 150, 221);
+  ncplane_bg_default(w);
   ncplane_cursor_move_yx(w, 1, 1);
   ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
   // FIXME clrtoeol();
