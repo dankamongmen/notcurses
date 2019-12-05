@@ -104,6 +104,8 @@ typedef struct notcurses {
   char* right; // kcuf1
   char* up;    // kcuu1
   char* down;  // kcud1
+  char* del;   // delete
+  char* home;  // home
   char* npage; // knp
   char* ppage; // kpp
 
@@ -126,9 +128,6 @@ typedef struct notcurses {
 } notcurses;
 
 extern sig_atomic_t resize_seen;
-
-// add this escape sequence to the trie, resolving to the specified specialkey
-int input_add_escape(notcurses* nc, const char* esc, ncspecial_key special);
 
 // free up the input escapes trie
 void input_free_esctrie(struct esctrie** trie);

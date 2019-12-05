@@ -315,7 +315,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
           case NCKEY_RIGHT: ++x; if(panelreel_move(pr, x, y)){ --x; } break;
           case NCKEY_UP: panelreel_prev(pr); break;
           case NCKEY_DOWN: panelreel_next(pr); break;
-          case NCKEY_DC: kill_active_tablet(pr, tctxs); break;
+          case NCKEY_DEL: kill_active_tablet(pr, tctxs); break;
           default:
                     ncplane_cursor_move_yx(w, 3, 2);
                     ncplane_printf(w, "Unknown special (%d)\n", special);
