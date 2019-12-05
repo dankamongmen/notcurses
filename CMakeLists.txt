@@ -181,6 +181,12 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/notcurses
 )
 
+file(GLOB MANPAGES1 CONFIGURE_DEPENDS doc/man/man1/*.1)
+install(FILES
+  ${MANPAGES1}
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1
+)
+
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-view DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)

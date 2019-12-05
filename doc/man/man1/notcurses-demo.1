@@ -1,0 +1,50 @@
+.TH notcurses-demo 1 "2019-12-05"
+.SH NAME
+notcurses-demo \- Show off some notcurses features
+.SH SYNOPSIS
+.B notcurses-demo
+[ \fB\-d \fIdelaymult \fR]
+[ \fB\-k \fR]
+[ \fB\-h / \fB\-\-help \fR]
+.IR demospec
+.SH OPTIONS
+.TP
+.BR \-d \fIdelaymult\fR
+Apply a (floating-point) multiplier to the standard delay of 1s.
+.TP
+.BR \-k
+Inhibit use of the alternate screen. Necessary if you want the output left
+on your terminal after the program exits.
+.TP
+.BR \-h ", " \-\-help
+Print a usage message, and exit with success.
+.TP
+.IR demospec
+Select which demos to run, and what order to run them in. The default is "isumbgwvpo". See below for a list of demos.
+.SH DESCRIPTION
+.B notcurses-demo
+contains a set of text-based demonstrations of capabilities from the notcurses library. The demonstrations include:
+.P
+(i)ntro—a setting of tone
+.P
+(s)liders—a missing-piece puzzle made up of colorful blocks
+.P
+(u)niblocks—a series of blocks detailing Unicode pages
+.P
+(m)axcolors—smoothly changing colors
+.P
+(b)oxes—pulsating boxes with a transparent center
+.P
+(g)rid—a gradient of color lain atop a great grid
+.P
+(w)idecolors—letters of many languages in many colors
+.P
+(v)iew—in which PNGs are rendered as text, and a video, too
+.P
+(p)anelreels—demonstration of the panelreel high-level widget
+.P
+(o)utro—a message of hope from the library author
+.SH NOTES
+Proper display requires a terminal advertising the RGB terminfo(5) capability (necessary for specification of arbitrary 24bpp colors), and a monospaced font with good Unicode support.
+.SH SEE ALSO
+notcurses(3notcurses), ncurses(3ncurses), terminfo(5)
