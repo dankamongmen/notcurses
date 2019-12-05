@@ -34,7 +34,7 @@ struct timespec demodelay = {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -h ] [ -k ] [ -d ns ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -h ] [ -k ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
   fprintf(out, " -d: delay multiplier (float)\n");
