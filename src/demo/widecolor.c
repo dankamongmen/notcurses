@@ -79,8 +79,10 @@ static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
   uint64_t channels = 0;
+  ncplane_fg_rgb8(n, 64, 128, 240);
+  ncplane_bg_rgb8(n, 32, 64, 32);
   notcurses_fg_prep(&channels, 255, 255, 255);
-  ncplane_bg_default(n);
+  notcurses_bg_default_prep(&channels);
   ncplane_cursor_move_yx(n, 3, 1);
   if(ncplane_rounded_box(n, 0, channels, 5, 57, 0)){
     return -1;
@@ -123,11 +125,11 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_cursor_move_yx(n, 3, 20);
   ncplane_putegc(n, "╨", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 2, 5);
-  ncplane_styles_on(n, CELL_STYLE_BOLD);
+  ncplane_styles_on(n, CELL_STYLE_ITALIC);
   ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_cursor_move_yx(n, 4, 2);
-  ncplane_styles_off(n, CELL_STYLE_BOLD);
-  ncplane_fg_rgb8(n, 200, 20, 200);
+  ncplane_styles_off(n, CELL_STYLE_ITALIC);
+  ncplane_fg_rgb8(n, 224, 128, 224);
   ncplane_putstr(n, "  🔥 wide chars, multiple colors, resize awareness…🔥  ");
   ncplane_fg_rgb8(n, 255, 255, 255);
   return 0;
