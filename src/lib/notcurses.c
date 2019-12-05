@@ -21,7 +21,6 @@
 #include <libavformat/version.h>
 #include "notcurses.h"
 #include "internal.h"
-#include "timespec.h"
 #include "version.h"
 #include "egcpool.h"
 
@@ -113,10 +112,15 @@ drop_signals(notcurses* nc){
   return 0;
 }
 
+static inline uint64_t
+timespec_to_ns(const struct timespec* t){
+  return t->tv_sec * NANOSECS_IN_SEC + t->tv_nsec;
+}
+
 static void
 update_render_stats(const struct timespec* time1, const struct timespec* time0,
                     ncstats* stats){
-  int64_t elapsed = timespec_subtract_ns(time1, time0);
+  int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
   //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
   //        (elapsed % NANOSECS_IN_SEC) / 1000000);
   if(elapsed > 0){ // don't count clearly incorrect information, egads

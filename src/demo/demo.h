@@ -20,6 +20,32 @@ int sliding_puzzle_demo(struct notcurses* nc);
 int view_demo(struct notcurses* nc);
 int panelreel_demo(struct notcurses* nc);
 
+int timespec_subtract(struct timespec *result, const struct timespec *time1,
+                      struct timespec *time0);
+
+#define GIG 1000000000ul
+
+static inline uint64_t
+timespec_to_ns(const struct timespec* ts){
+  return ts->tv_sec * GIG + ts->tv_nsec;
+}
+
+static inline int64_t
+timespec_subtract_ns(const struct timespec* time1, const struct timespec* time0){
+  int64_t ns = timespec_to_ns(time1);
+  ns -= timespec_to_ns(time0);
+  return ns;
+}
+
+// divide the provided timespec 'ts' by 'divisor' into 'quots'
+static inline void
+timespec_div(const struct timespec* ts, unsigned divisor, struct timespec* quots){
+  uint64_t ns = timespec_to_ns(ts);
+  ns /= divisor;
+  quots->tv_nsec = ns % GIG;
+  quots->tv_sec = ns / GIG;
+}
+
 #ifdef __cplusplus
 }
 #endif

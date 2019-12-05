@@ -1,3 +1,4 @@
+#include <time.h>
 #include <wchar.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +9,22 @@
 #include <notcurses.h>
 #include "demo.h"
 
-static const unsigned long GIG = 1000000000;
+int timespec_subtract(struct timespec *result, const struct timespec *time0,
+                      struct timespec *time1){
+  if(time0->tv_nsec < time1->tv_nsec){
+    int nsec = (time1->tv_nsec - time0->tv_nsec) / 1000000000 + 1;
+    time1->tv_nsec -= 1000000000 * nsec;
+    time1->tv_sec += nsec;
+  }
+  if(time0->tv_nsec - time1->tv_nsec > 1000000000){
+    int nsec = (time0->tv_nsec - time1->tv_nsec) / 1000000000;
+    time1->tv_nsec += 1000000000 * nsec;
+    time1->tv_sec -= nsec;
+  }
+  result->tv_sec = time0->tv_sec - time1->tv_sec;
+  result->tv_nsec = time0->tv_nsec - time1->tv_nsec;
+  return time0->tv_sec < time1->tv_sec;
+}
 
 struct timespec demodelay = {
   .tv_sec = 1,
@@ -38,6 +54,52 @@ usage(const char* exe, int status){
 }
 
 static int
+outro_message(struct notcurses* nc, int rows, int cols){
+  const char str0[] = " ATL, baby! ATL! ";
+  const char str1[] = "much, much more is coming";
+  const char str2[] = " hack on! —dank❤ ";
+  struct ncplane* on = notcurses_newplane(nc, 5, strlen(str1) + 6, rows - 6,
+                                         (cols - (strlen(str1) + 6)) / 2, NULL);
+  if(on == NULL){
+    return -1;
+  }
+  cell bgcell = CELL_TRIVIAL_INITIALIZER;
+  notcurses_bg_prep(&bgcell.channels, 0x58, 0x36, 0x58);
+  ncplane_set_background(on, &bgcell);
+  ncplane_dim_yx(on, &rows, &cols);
+  int ybase = 0;
+  if(ncplane_fg_rgb8(on, 0, 0, 0)){
+    return -1;
+  }
+  if(ncplane_bg_rgb8(on, 0, 180, 180)){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(on, ++ybase, (cols - strlen(str0)) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(on, str0) < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(on, ++ybase, (cols - strlen(str1)) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(on, str1) < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(on, ++ybase, (cols - (strlen(str2) - 4)) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(on, str2) < 0){
+    return -1;
+  }
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  cell_release(on, &bgcell);
+  return 0;
+}
+
+static int
 outro(struct notcurses* nc){
   struct ncplane* ncp;
   if((ncp = notcurses_stdplane(nc)) == NULL){
@@ -59,54 +121,13 @@ outro(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  const char str0[] = "      ATL, baby! ATL!      ";
-  const char str1[] = " much, much more is coming ";
-  const char str2[] = "      hack on! —dank❤      ";
-  int ybase = rows - 5;
-  if(ncplane_fg_rgb8(ncp, 0, 0, 0)){
-    return -1;
+  int ret = outro_message(nc, rows, cols);
+  if(ret == 0){
+    struct timespec fade = { .tv_sec = 5, .tv_nsec = 0, };
+    ret |= ncplane_fadeout(ncp, &fade);
   }
-  if(ncplane_bg_rgb8(ncp, 0, 180, 180)){
-    return -1;
-  }
-  if(ncplane_cursor_move_yx(ncp, ybase, (cols - strlen(str0) + 4) / 2 - 1)){
-    return -1;
-  }
-  if(ncplane_printf(ncp, "%*s", strlen(str0) + 2, "") < 0){
-    return -1;
-  }
-  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str0) + 4) / 2)){
-    return -1;
-  }
-  if(ncplane_putstr(ncp, str0) != (int)strlen(str0)){
-    return -1;
-  }
-  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str1) + 4) / 2)){
-    return -1;
-  }
-  if(ncplane_putstr(ncp, str1) != (int)strlen(str1)){
-    return -1;
-  }
-  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str2) + 8) / 2)){
-    return -1;
-  }
-  if(ncplane_putstr(ncp, str2) != (int)strlen(str2)){
-    return -1;
-  }
-  if(ncplane_cursor_move_yx(ncp, ++ybase, (cols - strlen(str2) + 4) / 2)){
-    return -1;
-  }
-  if(ncplane_printf(ncp, "%*s", strlen(str2), "") < 0){
-    return -1;
-  }
-  if(notcurses_render(nc)){
-    ncvisual_destroy(ncv);
-    return -1;
-  }
-  nanosleep(&demodelay, NULL);
-  struct timespec fade = { .tv_sec = 5, .tv_nsec = 0, };
-  ncplane_fadeout(ncp, &fade);
-  return 0;
+  ncvisual_destroy(ncv);
+  return ret;
 }
 
 static int
