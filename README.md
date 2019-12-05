@@ -237,7 +237,7 @@ typedef enum {
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
-API int notcurses_getc(struct notcurses* n, cell* c, ncspecial_key* special,
+int notcurses_getc(struct notcurses* n, cell* c, ncspecial_key* special,
                        const struct timespec* ts, sigset_t* sigmask);
 
 static inline int
@@ -356,6 +356,19 @@ void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
 // On failure, -1 is returned.
 int ncplane_putc(struct ncplane* n, const cell* c);
 
+// Replace the cell underneath the cursor with the provided 7-bit char 'c',
+// using the specified 'attr' and 'channels' for styling. Advance the cursor by
+// 1. On success, returns 1. On failure, returns -1.
+int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels);
+
+// Replace the cell underneath the cursor with the provided EGC, using the
+// specified 'attr' and 'channels' for styling, and advance the cursor by the
+// width of the cluster (but not past the end of the plane). On success, returns
+// the number of columns the cursor was advanced. On failure, -1 is returned.
+// The number of bytes converted from gclust is written to 'sbytes' if non-NULL.
+int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
+                       uint64_t channels, int* sbytes);
+
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of cells
@@ -375,7 +388,7 @@ int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 // number of cells drawn on success. On error, return the negative number of
 // cells drawn.
 int ncplane_hline_interp(struct ncplane* n, const cell* c, int len,
-                         uint64_t c1, uint64_t c2);
+                             uint64_t c1, uint64_t c2);
 
 static inline int
 ncplane_hline(struct ncplane* n, const cell* c, int len){
@@ -383,7 +396,7 @@ ncplane_hline(struct ncplane* n, const cell* c, int len){
 }
 
 int ncplane_vline_interp(struct ncplane* n, const cell* c, int len,
-                         uint64_t c1, uint64_t c2);
+                             uint64_t c1, uint64_t c2);
 
 static inline int
 ncplane_vline(struct ncplane* n, const cell* c, int len){
@@ -415,20 +428,21 @@ ncplane_vline(struct ncplane* n, const cell* c, int len){
 #define NCBOXGRAD_LEFT   0x80
 
 int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
-                const cell* ll, const cell* lr, const cell* hl,
-                const cell* vl, int ystop, int xstop, unsigned ctlword);
+                    const cell* ll, const cell* lr, const cell* hline,
+                    const cell* vline, int ystop, int xstop,
+                    unsigned ctlword);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
 // minimum box size is 2x2, and it cannot be drawn off-screen.
 static inline int
 ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
-                  const cell* ll, const cell* lr, const cell* hl,
-                  const cell* vl, int ylen, int xlen, unsigned ctlword){
+                  const cell* ll, const cell* lr, const cell* hline,
+                  const cell* vline, int ylen, int xlen, unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_box(n, ul, ur, ll, lr, hl, vl,
-                     y + ylen - 1, x + xlen - 1, ctlword);
+  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1,
+                     x + xlen - 1, ctlword);
 }
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
@@ -461,6 +475,18 @@ void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Return the current styling for this ncplane.
 unsigned ncplane_styles(const struct ncplane* n);
+
+// Fade the ncplane out over the provided time, calling the specified function
+// when done. Requires a terminal which supports direct color, or at least
+// palette modification (if the terminal uses a palette, our ability to fade
+// planes is limited, and affected by the complexity of the rest of the screen).
+// It is not safe to resize or destroy the plane during the fadeout FIXME.
+int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);
+
+// Fade the ncplane in over the specified time. Load the ncplane with the
+// target cells without rendering, then call this function. When it's done, the
+// ncplane will have reached the target levels, starting from zeroes.
+int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
 ```
 
 ### Cells
