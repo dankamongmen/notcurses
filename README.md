@@ -783,8 +783,6 @@ to implement".
 * There is no concept of subwindows which share memory with their parents.
 * There is no tracing functionality ala `trace(3NCURSES)`. Superior external
   tracing solutions exist, such as `bpftrace`.
-* There is no timeout functionality for input (`timeout()`, `halfdelay()`, etc.).
-  Roll your own with any of the four thousand ways to do it.
 
 ## Environment notes
 

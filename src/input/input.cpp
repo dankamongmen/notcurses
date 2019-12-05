@@ -23,6 +23,14 @@ const char* nckeystr(ncspecial_key key){
   }
 }
 
+// print the utf8 Control Pictures for otherwise unprintable chars
+wchar_t printutf8(int kp){
+  if(kp <= 27 && kp >= 0){
+    return 0x2400 + kp;
+  }
+  return kp;
+}
+
 int main(void){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
@@ -57,7 +65,8 @@ int main(void){
                           special, special, nckeystr(special)) < 0){
           break;
         }
-      }else if(ncplane_printf(n, "Got UTF-8: [0x%04x (%04d)] '%c'\n", kp, kp, kp) < 0){
+      }else if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'\n",
+                              kp, kp, isprint(kp) ? kp : printutf8(kp)) < 0){
         break;
       }
     }else{
