@@ -193,19 +193,67 @@ fundamental unit of input is the UTF8-encoded Unicode codepoint.
 //
 // In the case of a valid read, a positive value is returned corresponding to
 // the number of bytes in the UTF-8 character, or '1' for all specials keys.
-// 0 is returned only by notcurses_getc(), to indicate that no input was
-// available. Otherwise (including on EOF) -1 is returned.
-enum {
-  NCKEY_RESIZE,
+// 0 is returned to indicate that no input was available, but only by
+// notcurses_getc(). Otherwise (including on EOF) -1 is returned.
+typedef enum {
+  NCKEY_INVALID,
+  NCKEY_RESIZE,   // generated interally in response to SIGWINCH
   NCKEY_UP,
   NCKEY_RIGHT,
   NCKEY_DOWN,
   NCKEY_LEFT,
+  NCKEY_INS,
+  NCKEY_DEL,
+  NCKEY_BS,       // backspace (sometimes)
+  NCKEY_PGDOWN,
+  NCKEY_PGUP,
+  NCKEY_HOME,
+  NCKEY_END,
+  NCKEY_F00,
+  NCKEY_F01,
+  NCKEY_F02,
+  NCKEY_F03,
+  NCKEY_F04,
+  NCKEY_F05,
+  NCKEY_F06,
+  NCKEY_F07,
+  NCKEY_F08,
+  NCKEY_F09,
+  NCKEY_F10,
+  NCKEY_F11,
+  NCKEY_F12,
+  NCKEY_F13,
+  NCKEY_F14,
+  NCKEY_F15,
+  NCKEY_F16,
+  NCKEY_F17,
+  NCKEY_F18,
+  NCKEY_F19,
+  NCKEY_F20,
   // FIXME...
-} ncspecial_keys;
+} ncspecial_key;
 
-int notcurses_getc(const struct notcurses* n, cell* c, int* special);
-int notcurses_getc_blocking(const struct notcurses* n, cell* c, int* special);
+// See ppoll(2) for more detail. Provide a NULL 'ts' to block at lenghth, a 'ts'
+// of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
+// Signals in sigmask (less several we handle internally) will be atomically
+// masked and unmasked per ppoll(2). It should generally contain all signals.
+API int notcurses_getc(struct notcurses* n, cell* c, ncspecial_key* special,
+                       const struct timespec* ts, sigset_t* sigmask);
+
+static inline int
+notcurses_getc_nblock(struct notcurses* n, cell* c, ncspecial_key* nkey){
+  sigset_t sigmask;
+  sigfillset(&sigmask);
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+  return notcurses_getc(n, c, nkey, &ts, &sigmask);
+}
+
+static inline int
+notcurses_getc_blocking(struct notcurses* n, cell* c, ncspecial_key* nkey){
+  sigset_t sigmask;
+  sigemptyset(&sigmask);
+  return notcurses_getc(n, c, nkey, NULL, &sigmask);
+}
 ```
 
 ### Planes
@@ -770,6 +818,9 @@ some design decisions might surprise NCURSES programmers:
 * NCURSES has thread-ignorant and thread-semi-safe versions, trace-enabled and
   traceless versions, and versions with and without support for wide characters.
   notcurses is one library: no tracing, UTF-8, thread safety.
+* There is no `ESCDELAY` concept; notcurses expects that all bytes of a
+  keyboard escape sequence to arrive at the same time. This improves latency
+  and simplifies the API.
 
 ### Features missing relative to NCURSES
 
