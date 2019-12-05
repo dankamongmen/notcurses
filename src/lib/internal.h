@@ -6,8 +6,10 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include "notcurses.h"
 #include "egcpool.h"
 
 #ifdef __cplusplus
@@ -120,6 +122,8 @@ typedef struct notcurses {
   unsigned inputbuf_valid_starts;
   unsigned inputbuf_write_at;
 } notcurses;
+
+extern sig_atomic_t resize_seen;
 
 #ifdef __cplusplus
 }
