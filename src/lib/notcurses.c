@@ -607,6 +607,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
   ret->stats.render_min_bytes = ~0UL;
   ret->ttyfp = opts->outfp;
   ret->renderfp = opts->renderfp;
+  ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
   if(make_nonblocking(ret->ttyinfp)){
     free(ret);
@@ -729,6 +730,7 @@ int notcurses_stop(notcurses* nc){
       nc->top = p->z;
       free_plane(p);
     }
+    input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);
     free(nc);
   }

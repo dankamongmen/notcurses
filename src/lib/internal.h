@@ -23,6 +23,7 @@ struct AVCodec;
 struct AVCodecParameters;
 struct AVPacket;
 struct SwsContext;
+struct esctrie;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
 // state for that window. A notcurses context describes a single terminal, and
@@ -121,9 +122,16 @@ typedef struct notcurses {
   unsigned inputbuf_occupied;
   unsigned inputbuf_valid_starts;
   unsigned inputbuf_write_at;
+  struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
 } notcurses;
 
 extern sig_atomic_t resize_seen;
+
+// add this escape sequence to the trie, resolving to the specified specialkey
+int input_add_escape(notcurses* nc, const char* esc, ncspecial_key special);
+
+// free up the input escapes trie
+void input_free_esctrie(struct esctrie** trie);
 
 #ifdef __cplusplus
 }
