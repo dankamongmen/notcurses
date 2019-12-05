@@ -97,34 +97,6 @@ target_compile_definitions(notcurses-input
     FORTIFY_SOURCE=2
 )
 
-file(GLOB PVSRCS CONFIGURE_DEPENDS src/panelvideo/*.cpp)
-add_executable(notcurses-panelvideo ${PVSRCS})
-target_include_directories(notcurses-panelvideo
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-    "${AVUTIL_INCLUDE_DIR}"
-)
-target_link_directories(notcurses-panelvideo
-  PRIVATE
-    "${AVUTIL_LIBRARY_DIRS}"
-)
-target_link_libraries(notcurses-panelvideo
-  PRIVATE
-    notcurses
-  PRIVATE
-    "${AVUTIL_LIBRARIES}"
-    Threads::Threads
-)
-target_compile_options(notcurses-panelvideo
-  PRIVATE
-    -Wall -Wextra -W -Wshadow
-)
-target_compile_definitions(notcurses-panelvideo
-  PRIVATE
-    FORTIFY_SOURCE=2
-)
-
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 add_executable(notcurses-view ${VIEWSRCS})
 target_include_directories(notcurses-view
@@ -211,7 +183,6 @@ install(FILES
 
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-view DESTINATION bin)
-install(TARGETS notcurses-panelvideo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses
   LIBRARY

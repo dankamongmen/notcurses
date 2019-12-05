@@ -157,8 +157,14 @@ int sliding_puzzle_demo(struct notcurses* nc){
   // we want an 8x8 grid of chunks with a border. the leftover space will be unused
   chunky = (maxy - 2) / CHUNKS_VERT;
   chunkx = (maxx - 2) / CHUNKS_HORZ;
-  int wastey = ((maxy - 2) % CHUNKS_VERT) / 2;
-  int wastex = ((maxx - 2) % CHUNKS_HORZ) / 2;
+  // don't allow them to be too rectangular, but keep aspect ratio in mind!
+  if(chunky > chunkx + 1){
+    chunky = chunkx + 1;
+  }else if(chunkx > chunky * 2){
+    chunkx = chunky * 2;
+  }
+  int wastey = ((maxy - 2) - (CHUNKS_VERT * chunky)) / 2;
+  int wastex = ((maxx - 2) - (CHUNKS_HORZ * chunkx)) / 2;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
   int averr = 0;
