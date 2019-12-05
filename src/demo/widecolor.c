@@ -7,10 +7,197 @@
 #include <pthread.h>
 #include "demo.h"
 
+// get the (up to) eight surrounding cells. they run clockwise, starting from
+// the upper left: 012
+//                 7 3
+//                 654
+static void
+get_surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
+  if(ncplane_cursor_move_yx(n, y - 1, x - 1) == 0){
+    ncplane_at_cursor(n, &cells[0]);
+  }
+  if(ncplane_cursor_move_yx(n, y - 1, x) == 0){
+    ncplane_at_cursor(n, &cells[1]);
+  }
+  if(ncplane_cursor_move_yx(n, y - 1, x + 1) == 0){
+    ncplane_at_cursor(n, &cells[2]);
+  }
+  if(ncplane_cursor_move_yx(n, y, x - 1) == 0){
+    ncplane_at_cursor(n, &cells[7]);
+  }
+  if(ncplane_cursor_move_yx(n, y, x + 1) == 0){
+    ncplane_at_cursor(n, &cells[3]);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x - 1) == 0){
+    ncplane_at_cursor(n, &cells[6]);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x) == 0){
+    ncplane_at_cursor(n, &cells[5]);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x + 1) == 0){
+    ncplane_at_cursor(n, &cells[4]);
+  }
+  if(ncplane_cursor_move_yx(n, y - 2, x) == 0){
+    ncplane_at_cursor(n, &cells[8]);
+  }
+  if(ncplane_cursor_move_yx(n, y + 2, x) == 0){
+    ncplane_at_cursor(n, &cells[9]);
+  }
+  if(ncplane_cursor_move_yx(n, y, x - 2) == 0){
+    ncplane_at_cursor(n, &cells[10]);
+  }
+  if(ncplane_cursor_move_yx(n, y, x + 2) == 0){
+    ncplane_at_cursor(n, &cells[11]);
+  }
+}
+
+// is the provided cell part of the wall (i.e. a box-drawing character)?
+static bool
+wall_p(const struct ncplane* n, const cell* c){
+  if(cell_simple_p(c)){ // any simple cell is fine to consume
+    return false;
+  }
+  const char* egc = cell_extended_gcluster(n, c);
+  wchar_t w;
+  if(mbtowc(&w, egc, strlen(egc)) > 0){
+    if(w >= 0x2500 && w <= 0x257f){ // no room in the inn, little snake!
+      return true;
+    }
+  }
+  return false;
+}
+
+static inline void
+lighten(cell* c){
+  unsigned r, g, b;
+  cell_get_fg(c, &r, &g, &b);
+  r += (255 - r) / 3;
+  g += (255 - g) / 3;
+  b += (255 - b) / 3;
+  cell_set_fg(c, r, g, b);
+}
+
+static int
+lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_cursor_move_yx(n, y - 1, x - 1) == 0){
+    cell_duplicate(n, &c, &cells[0]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y - 1, x) == 0){
+    cell_duplicate(n, &c, &cells[1]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y - 1, x + 1) == 0){
+    cell_duplicate(n, &c, &cells[2]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y, x - 1) == 0){
+    cell_duplicate(n, &c, &cells[7]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y, x + 1) == 0){
+    cell_duplicate(n, &c, &cells[3]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x - 1) == 0){
+    cell_duplicate(n, &c, &cells[6]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x) == 0){
+    cell_duplicate(n, &c, &cells[5]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x + 1) == 0){
+    cell_duplicate(n, &c, &cells[4]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y - 2, x) == 0){
+    cell_duplicate(n, &c, &cells[8]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y + 2, x) == 0){
+    cell_duplicate(n, &c, &cells[9]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y, x - 2) == 0){
+    cell_duplicate(n, &c, &cells[10]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  if(ncplane_cursor_move_yx(n, y, x + 2) == 0){
+    cell_duplicate(n, &c, &cells[11]);
+    lighten(&c);
+    ncplane_putc(n, &c);
+  }
+  cell_release(n, &c);
+  return 0;
+}
+
+static int
+restore_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
+  if(ncplane_cursor_move_yx(n, y - 1, x - 1) == 0){
+    ncplane_putc(n, &cells[0]);
+  }
+  if(ncplane_cursor_move_yx(n, y - 1, x) == 0){
+    ncplane_putc(n, &cells[1]);
+  }
+  if(ncplane_cursor_move_yx(n, y - 1, x + 1) == 0){
+    ncplane_putc(n, &cells[2]);
+  }
+  if(ncplane_cursor_move_yx(n, y, x - 1) == 0){
+    ncplane_putc(n, &cells[7]);
+  }
+  if(ncplane_cursor_move_yx(n, y, x + 1) == 0){
+    ncplane_putc(n, &cells[3]);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x - 1) == 0){
+    ncplane_putc(n, &cells[6]);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x) == 0){
+    ncplane_putc(n, &cells[5]);
+  }
+  if(ncplane_cursor_move_yx(n, y + 1, x + 1) == 0){
+    ncplane_putc(n, &cells[4]);
+  }
+  if(ncplane_cursor_move_yx(n, y - 2, x) == 0){
+    ncplane_putc(n, &cells[8]);
+  }
+  if(ncplane_cursor_move_yx(n, y + 2, x) == 0){
+    ncplane_putc(n, &cells[9]);
+   }
+  if(ncplane_cursor_move_yx(n, y, x - 2) == 0){
+    ncplane_putc(n, &cells[10]);
+  }
+  if(ncplane_cursor_move_yx(n, y, x + 2) == 0){
+    ncplane_putc(n, &cells[11]);
+  }
+  return 0;
+}
+
+// each snake wanders around aimlessly, prohibited from entering the summary
+// section. it ought light up the cells around it; to do this, we keep an array
+// of 12 cells with the original colors, which we tune up for the duration of
+// our colocality (unless they're summary area walls).
 static void *
 snake_thread(void* vnc){
   struct notcurses* nc = vnc;
   struct ncplane* n = notcurses_stdplane(nc);
+  cell lightup[12];
+  size_t i;
+  for(i = 0 ; i < sizeof(lightup) / sizeof(*lightup) ; ++i){
+    cell_init(&lightup[i]);
+  }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   int x, y;
@@ -20,17 +207,21 @@ snake_thread(void* vnc){
   cell head = CELL_TRIVIAL_INITIALIZER;
   uint64_t channels = 0;
   notcurses_fg_prep(&channels, 255, 255, 255);
-  cell_prime(n, &head, "🐍", 0, channels);
+  cell_prime(n, &head, "א", 0, channels);
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_bg_default(&head);
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
   while(true){
     pthread_testcancel();
+    get_surrounding_cells(n, lightup, y, x);
     ncplane_cursor_move_yx(n, y, x);
     ncplane_at_cursor(n, &c);
     // FIXME should be a whole body
     ncplane_putc(n, &head);
+    if(lightup_surrounding_cells(n, lightup, y, x)){
+      return NULL;
+    }
     notcurses_render(nc);
     ncplane_cursor_move_yx(n, y, x);
     ncplane_putc(n, &c);
@@ -60,20 +251,20 @@ snake_thread(void* vnc){
       ncplane_cursor_move_yx(n, y, x);
       ncplane_at_cursor(n, &c);
       // don't allow the snake into the summary zone (test for walls)
-      if(!cell_simple_p(&c)){ // any simple cell is fine to consume
-        const char* egc = cell_extended_gcluster(n, &c);
-        wchar_t w;
-        if(mbtowc(&w, egc, strlen(egc)) > 0){
-          if(w >= 0x2500 && w <= 0x257f){ // no room in the inn, little snake!
-            x = oldx;
-            y = oldy;
-          }
-        }
+      if(wall_p(n, &c)){
+        x = oldx;
+        y = oldy;
       }
     }while(oldx == x && oldy == y);
+    if(restore_surrounding_cells(n, lightup, oldy, oldx)){
+      return NULL;
+    }
   }
   cell_release(n, &head); // FIXME won't be released when cancelled
   cell_release(n, &c); // FIXME won't be released when cancelled
+  for(i = 0 ; i < sizeof(lightup) / sizeof(*lightup) ; ++i){
+    cell_release(n, &lightup[i]);
+  }
   return NULL;
 }
 
