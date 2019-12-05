@@ -1,0 +1,17 @@
+.TH notcurses-view 1 "2019-12-05"
+.SH NAME
+notcurses-view \- Render multimedia to the terminal
+.SH SYNOPSIS
+.B notcurses-view
+.IR files...
+.SH OPTIONS
+.TP
+.IR files
+Files to successively render.
+.SH DESCRIPTION
+.B notcurses-view
+renders multimedia to the terminal using libav.
+.SH NOTES
+Proper display requires a terminal advertising the RGB terminfo(5) capability (necessary for specification of arbitrary 24bpp colors), and a monospaced font with good Unicode support.
+.SH SEE ALSO
+notcurses(3notcurses), ffmpeg(1), terminfo(5)
