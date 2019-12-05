@@ -4,7 +4,76 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "demo.h"
+
+static void *
+snake_thread(void* vnc){
+  struct notcurses* nc = vnc;
+  struct ncplane* n = notcurses_stdplane(nc);
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  int x, y;
+  // start it in the lower center of the screen
+  x = (random() % (dimx / 2)) + (dimx / 4);
+  y = (random() % (dimy / 2)) + (dimy / 2);
+  cell head = CELL_TRIVIAL_INITIALIZER;
+  uint64_t channels = 0;
+  notcurses_fg_prep(&channels, 255, 255, 255);
+  cell_prime(n, &head, "🐍", 0, channels);
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_bg_default(&head);
+  while(true){
+    pthread_testcancel();
+    ncplane_cursor_move_yx(n, y, x);
+    ncplane_at_cursor(n, &c);
+    // FIXME should be a whole body
+    ncplane_putc(n, &head);
+    notcurses_render(nc);
+    ncplane_cursor_move_yx(n, y, x);
+    ncplane_putc(n, &c);
+    int oldy, oldx;
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &demodelay, NULL);
+    do{ // force a move
+      oldy = y;
+      oldx = x;
+      int direction = random() % 4;
+      switch(direction){
+        case 0: --y; break;
+        case 1: ++x; break;
+        case 2: ++y; break;
+        case 3: --x; break;
+      }
+      // keep him away from the sides due to width irregularities
+      if(x < (dimx / 4)){
+        x = dimx / 4;
+      }else if(x >= dimx * 3 / 4){
+        x = dimx * 3 / 4;
+      }
+      if(y < 0){
+        y = 0;
+      }else if(y >= dimy){
+        y = dimy - 1;
+      }
+      ncplane_cursor_move_yx(n, y, x);
+      ncplane_at_cursor(n, &c);
+      // don't allow the snake into the summary zone (test for walls)
+      if(!cell_simple_p(&c)){ // any simple cell is fine to consume
+        const char* egc = cell_extended_gcluster(n, &c);
+        wchar_t w;
+        if(mbtowc(&w, egc, strlen(egc)) > 0){
+          if(w >= 0x2500 && w <= 0x257f){ // no room in the inn, little snake!
+            x = oldx;
+            y = oldy;
+          }
+        }
+      }
+    }while(oldx == x && oldy == y);
+  }
+  cell_release(n, &head); // FIXME won't be released when cancelled
+  cell_release(n, &c); // FIXME won't be released when cancelled
+  return NULL;
+}
 
 static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total,
@@ -358,11 +427,14 @@ int widecolor_demo(struct notcurses* nc){
         };
         ncplane_fadein(n, &tv);
       }
+      pthread_t tid;
+      pthread_create(&tid, NULL, snake_thread, nc);
       int key;
       do{
         key = notcurses_getc_blocking(nc, &c, &special);
       }while(key < 0);
-      // nanosleep(&demodelay, NULL);
+      pthread_cancel(tid);
+      pthread_join(tid, NULL);
     }while(c.gcluster == 0 && special == NCKEY_RESIZE);
   }
   return 0;
