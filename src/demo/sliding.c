@@ -133,6 +133,7 @@ draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx)
   int ret;
   uint64_t channels = 0;
   notcurses_fg_prep(&channels, 180, 80, 180);
+  //notcurses_bg_prep(&channels, 0, 0, 0);
   ncplane_cursor_move_yx(n, yoff, xoff);
   ret = ncplane_rounded_box(n, 0, channels,
                             CHUNKS_VERT * chunky + yoff + 1,

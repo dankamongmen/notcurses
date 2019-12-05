@@ -852,18 +852,12 @@ cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
                cell* ul, cell* ur, cell* ll, cell* lr,
                cell* hl, cell* vl, const char* gclusters){
   int ulen;
-  if((ulen = cell_load(n, ul, gclusters)) > 0){
-    if((ulen = cell_load(n, ur, gclusters += ulen)) > 0){
-      if((ulen = cell_load(n, ll, gclusters += ulen)) > 0){
-        if((ulen = cell_load(n, lr, gclusters += ulen)) > 0){
-          if((ulen = cell_load(n, hl, gclusters += ulen)) > 0){
-            if((ulen = cell_load(n, vl, gclusters += ulen)) > 0){
-              ul->attrword = attrs; ul->channels = channels;
-              ur->attrword = attrs; ur->channels = channels;
-              ll->attrword = attrs; ll->channels = channels;
-              lr->attrword = attrs; lr->channels = channels;
-              hl->attrword = attrs; hl->channels = channels;
-              vl->attrword = attrs; vl->channels = channels;
+  if((ulen = cell_prime(n, ul, gclusters, attrs, channels)) > 0){
+    if((ulen = cell_prime(n, ur, gclusters += ulen, attrs, channels)) > 0){
+      if((ulen = cell_prime(n, ll, gclusters += ulen, attrs, channels)) > 0){
+        if((ulen = cell_prime(n, lr, gclusters += ulen, attrs, channels)) > 0){
+          if((ulen = cell_prime(n, hl, gclusters += ulen, attrs, channels)) > 0){
+            if((ulen = cell_prime(n, vl, gclusters += ulen, attrs, channels)) > 0){
               return 0;
             }
             cell_release(n, hl);
@@ -878,6 +872,7 @@ cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
   }
   return -1;
 }
+
 
 static inline int
 cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,

@@ -600,8 +600,8 @@ notcurses* notcurses_init(const notcurses_options* opts){
     return NULL;
   }
   memset(&ret->stats, 0, sizeof(ret->stats));
-  ret->stats.render_min_ns = ~0UL;
-  ret->stats.render_min_bytes = ~0UL;
+  ret->stats.render_min_ns = 1ul << 62u;
+  ret->stats.render_min_bytes = 1ul << 62u;
   ret->ttyfp = opts->outfp;
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;

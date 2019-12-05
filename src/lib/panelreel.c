@@ -60,7 +60,7 @@ int wresize(ncplane* n, int leny, int lenx){
 
 // bchrs: 6-element array of wide border characters + attributes FIXME
 static int
-draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
+draw_borders(ncplane* w, unsigned mask, const cell* attr,
              bool cliphead, bool clipfoot){
   int begx, begy, lenx, leny;
   int ret = 0;
@@ -76,22 +76,22 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
     return -1;
   }
 /*fprintf(stderr, "drawing borders %p %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
-        w, begx, begy, maxx, maxy, nobordermask,
+        w, begx, begy, maxx, maxy, mask,
         cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');*/
   if(!cliphead){
     // lenx - begx + 1 is the number of columns we have, but drop 2 due to
     // corners. we thus want lenx - begx - 1 horizontal lines.
-    if(!(nobordermask & NCBOXMASK_TOP)){
+    if(!(mask & NCBOXMASK_TOP)){
       ret |= ncplane_cursor_move_yx(w, begy, begx);
       ncplane_putc(w, &ul);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &ur);
     }else{
-      if(!(nobordermask & NCBOXMASK_LEFT)){
+      if(!(mask & NCBOXMASK_LEFT)){
         ret |= ncplane_cursor_move_yx(w, begy, begx);
         ncplane_putc(w, &ul);
       }
-      if(!(nobordermask & NCBOXMASK_RIGHT)){
+      if(!(mask & NCBOXMASK_RIGHT)){
         ret |= ncplane_cursor_move_yx(w, begy, maxx);
         ncplane_putc(w, &ur);
       }
@@ -99,27 +99,27 @@ draw_borders(ncplane* w, unsigned nobordermask, const cell* attr,
   }
   int y;
   for(y = begy + !cliphead ; y < maxy + !!clipfoot ; ++y){
-    if(!(nobordermask & NCBOXMASK_LEFT)){
+    if(!(mask & NCBOXMASK_LEFT)){
       ret |= ncplane_cursor_move_yx(w, y, begx);
       ncplane_putc(w, &vl);
     }
-    if(!(nobordermask & NCBOXMASK_RIGHT)){
+    if(!(mask & NCBOXMASK_RIGHT)){
       ret |= ncplane_cursor_move_yx(w, y, maxx);
       ncplane_putc(w, &vl);
     }
   }
   if(!clipfoot){
-    if(!(nobordermask & NCBOXMASK_BOTTOM)){
+    if(!(mask & NCBOXMASK_BOTTOM)){
       ret |= ncplane_cursor_move_yx(w, maxy, begx);
       ncplane_putc(w, &ll);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &lr);
     }else{
-      if(!(nobordermask & NCBOXMASK_LEFT)){
+      if(!(mask & NCBOXMASK_LEFT)){
         ret |= ncplane_cursor_move_yx(w, maxy, begx);
         ret |= ncplane_putc(w, &ll);
       }
-      if(!(nobordermask & NCBOXMASK_RIGHT)){
+      if(!(mask & NCBOXMASK_RIGHT)){
         // mvwadd_wch returns error if we print to the lowermost+rightmost
         // character cell. maybe we can make this go away with scrolling controls
         // at setup? until then, don't check for error here FIXME.
