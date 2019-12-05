@@ -7,6 +7,8 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
   * [Input](#input)
   * [Planes](#planes)
   * [Cells](#cells)
+  * [Multimedia](#multimedia)
+  * [Panelreels](#panelreels)
   * [Perf](#perf)
 * [Included tools](#included-tools)
 * [Differences from NCURSES](#differences-from-ncurses)
@@ -445,6 +447,62 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
                      x + xlen - 1, ctlword);
 }
 
+static inline int
+ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                    int ystop, int xstop, unsigned ctlword){
+  int ret = 0;
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
+  return ret;
+}
+
+static inline int
+ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
+                          int ylen, int xlen, unsigned ctlword){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_rounded_box(n, attr, channels, y + ylen - 1,
+                             x + xlen - 1, ctlword);
+}
+
+static inline int
+ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                   int ystop, int xstop, unsigned ctlword){
+  int ret = 0;
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
+  }
+  cell_release(n, &ul);
+  cell_release(n, &ur);
+  cell_release(n, &ll);
+  cell_release(n, &lr);
+  cell_release(n, &hl);
+  cell_release(n, &vl);
+  return ret;
+}
+
+static inline int
+ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
+                         int ylen, int xlen, unsigned ctlword){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_double_box(n, attr, channels, y + ylen - 1,
+                            x + xlen - 1, ctlword);
+}
+
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane is invalidated, and must not be used after the call.
@@ -570,6 +628,16 @@ cell_init(cell* c){
 // of the cell is left untouched, but any resources are released.
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
+// cell_load(), plus blast the styling with 'attr' and 'channels'.
+static inline int
+cell_prime(struct ncplane* n, cell* c, const char *gcluster,
+           uint32_t attr, uint64_t channels){
+  c->attrword = attr;
+  c->channels = channels;
+  int ret = cell_load(n, c, gcluster);
+  return ret;
+}
+
 // Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
 // benefit of unit tests.
 int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
@@ -618,16 +686,6 @@ cell_styles_off(cell* c, unsigned stylebits){
   c->attrword &= ~((stylebits & 0xffff) << 16u);
 }
 
-static inline uint32_t
-cell_fg_rgb(uint64_t channel){
-  return (channel & 0x00ffffff00000000ull) >> 32u;
-}
-
-static inline uint32_t
-cell_bg_rgb(uint64_t channel){
-  return (channel & 0x0000000000ffffffull);
-}
-
 static inline unsigned
 cell_rgb_red(uint32_t rgb){
   return (rgb & 0xff0000ull) >> 16u;
@@ -650,46 +708,72 @@ cell_rgb_blue(uint32_t rgb){
 #define CELL_BGDEFAULT_MASK    0x0000000040000000ull
 #define CELL_BG_MASK           0x0000000000ffffffull
 
+static inline uint32_t
+cell_fg_rgb(uint64_t channel){
+  return (channel & CELL_FG_MASK) >> 32u;
+}
+
+static inline uint32_t
+cell_bg_rgb(uint64_t channel){
+  return (channel & CELL_BG_MASK);
+}
+
+static inline void
+cell_rgb_get_fg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  uint32_t fg = cell_fg_rgb(channels);
+  *r = cell_rgb_red(fg);
+  *g = cell_rgb_green(fg);
+  *b = cell_rgb_blue(fg);
+}
+
+static inline void
+cell_rgb_get_bg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  uint32_t bg = cell_bg_rgb(channels);
+  *r = cell_rgb_red(bg);
+  *g = cell_rgb_green(bg);
+  *b = cell_rgb_blue(bg);
+}
+
+// set the r, g, and b channels for either the foreground or background
+// component of this 64-bit 'channels' variable. 'shift' is the base number
+// of bits to shift r/g/b by; it ought either be 0 (bg) or 32 (fg). each of
+// r, g, and b must be in [0, 256), or -1 is returned. 'mask' is the
+// appropriate r/g/b mask, and 'nodefbit' is the appropriate nodefault bit.
 static inline int
-cell_rgb_set_fg(uint64_t* channels, int r, int g, int b){
+notcurses_channel_prep(uint64_t* channels, uint64_t mask, unsigned shift,
+                       int r, int g, int b, uint64_t nodefbit){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
   if(r < 0 || g < 0 || b < 0){
     return -1;
   }
-  uint64_t rgb = (r & 0xffull) << 48u;
-  rgb |= (g & 0xffull) << 40u;
-  rgb |= (b & 0xffull) << 32u;
-  rgb |= CELL_FGDEFAULT_MASK;
-  *channels = (*channels & ~(CELL_FGDEFAULT_MASK | CELL_FG_MASK)) | rgb;
+  uint64_t rgb = (r & 0xffull) << (shift + 16);
+  rgb |= (g & 0xffull) << (shift + 8);
+  rgb |= (b & 0xffull) << shift;
+  rgb |= nodefbit;
+  *channels = (*channels & ~(mask | nodefbit)) | rgb;
   return 0;
 }
 
 static inline int
-cell_rgb_set_bg(uint64_t* channels, int r, int g, int b){
-  if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
-    return -1;
-  }
-  uint64_t rgb = (r & 0xffull) << 16u;
-  rgb |= (g & 0xffull) << 8u;
-  rgb |= (b & 0xffull);
-  rgb |= CELL_BGDEFAULT_MASK;
-  *channels = (*channels & ~(CELL_BGDEFAULT_MASK | CELL_BG_MASK)) | rgb;
-  return 0;
+notcurses_fg_prep(uint64_t* channels, int r, int g, int b){
+  return notcurses_channel_prep(channels, CELL_FG_MASK, 32, r, g, b, CELL_FGDEFAULT_MASK);
+}
+
+static inline int
+notcurses_bg_prep(uint64_t* channels, int r, int g, int b){
+  return notcurses_channel_prep(channels, CELL_BG_MASK, 0, r, g, b, CELL_BGDEFAULT_MASK);
 }
 
 static inline void
 cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
-  cell_rgb_set_fg(&c->channels, r, g, b);
+  notcurses_fg_prep(&c->channels, r, g, b);
 }
 
 static inline void
 cell_set_bg(cell* c, unsigned r, unsigned g, unsigned b){
-  cell_rgb_set_bg(&c->channels, r, g, b);
+  notcurses_bg_prep(&c->channels, r, g, b);
 }
 
 static inline void
@@ -742,7 +826,7 @@ cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
-// is the cell simple (a lone ASCII character)?
+// is the cell simple (a lone ASCII character, encoded as such)?
 static inline bool
 cell_simple_p(const cell* c){
   return c->gcluster < 0x80;
@@ -758,7 +842,91 @@ cell_egc_idx(const cell* c){
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // is invalidated by any further operation on the plane 'n', so...watch out!
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+
+// load up six cells with the EGCs necessary to draw a box. returns 0 on
+// success, -1 on error. on error, any cells this function might
+// have loaded before the error are cell_release()d. There must be at least
+// six EGCs in gcluster.
+static inline int
+cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
+               cell* ul, cell* ur, cell* ll, cell* lr,
+               cell* hl, cell* vl, const char* gclusters){
+  int ulen;
+  if((ulen = cell_load(n, ul, gclusters)) > 0){
+    if((ulen = cell_load(n, ur, gclusters += ulen)) > 0){
+      if((ulen = cell_load(n, ll, gclusters += ulen)) > 0){
+        if((ulen = cell_load(n, lr, gclusters += ulen)) > 0){
+          if((ulen = cell_load(n, hl, gclusters += ulen)) > 0){
+            if((ulen = cell_load(n, vl, gclusters += ulen)) > 0){
+              ul->attrword = attrs; ul->channels = channels;
+              ur->attrword = attrs; ur->channels = channels;
+              ll->attrword = attrs; ll->channels = channels;
+              lr->attrword = attrs; lr->channels = channels;
+              hl->attrword = attrs; hl->channels = channels;
+              vl->attrword = attrs; vl->channels = channels;
+              return 0;
+            }
+            cell_release(n, hl);
+          }
+          cell_release(n, lr);
+        }
+        cell_release(n, ll);
+      }
+      cell_release(n, ur);
+    }
+    cell_release(n, ul);
+  }
+  return -1;
+}
+
+static inline int
+cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                  cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+}
+
+static inline int
+cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                 cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
+}
 ```
+
+### Multimedia
+
+Media decoding and scaling is handled by libAV from FFmpeg, resulting in a
+`notcurses_visual` object. This object generates frames, each one corresponding
+to a renderable scene on the associated `ncplane`.
+
+```c
+// open a visual (image or video), associating it with the specified ncplane.
+// returns NULL on any error, writing the AVError to 'averr'.
+struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
+                                         int* averr);
+
+// destroy an ncvisual. rendered elements will not be disrupted, but the visual
+// can be neither decoded nor rendered any further.
+void ncvisual_destroy(struct ncvisual* ncv);
+
+// extract the next frame from an ncvisual. returns NULL on end of file,
+// writing AVERROR_EOF to 'averr'. returns NULL on a decoding or allocation
+// error, placing the AVError in 'averr'. this frame is invalidated by a
+// subsequent call to ncvisual_decode(), and should not be freed by the caller.
+struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
+
+// render the decoded frame to the associated ncplane. the frame will be scaled
+// to the size of the ncplane at ncplane_visual_open() time.
+int ncvisual_render(const struct ncvisual* ncv);
+
+// stream the entirety of the media, according to its own timing.
+// blocking, obviously. pretty raw; beware.
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr);
+```
+
+### Panelreels
+
+Panelreels are a complex UI abstraction offered by notcurses, derived from my
+similar work in [outcurses](https://github.com/dankamongmen/outcurses#Panelreels).
 
 ### Perf
 
