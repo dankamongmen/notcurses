@@ -1093,9 +1093,6 @@ notcurses_render_internal(notcurses* nc){
     // move to the beginning of the line, in case our accounting was befouled
     // by wider- (or narrower-) than-reported characters
     term_emit(tiparm(nc->cup, y, 0), out, false);
-    if(nc->cleareol){
-      term_emit(nc->cleareol, out, false);
-    }
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       ncplane* p = nc->top;
