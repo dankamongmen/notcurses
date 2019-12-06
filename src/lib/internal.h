@@ -81,6 +81,7 @@ typedef struct notcurses {
   char* cup;      // move cursor
   char* civis;    // hide cursor
   char* clear;    // erase screen and home cursor
+  char* cleareol; // clear to end of line
   // These might be NULL, and we can more or less work without them. Check!
   char* cnorm;    // restore cursor to default state
   char* smcup;    // enter alternate mode

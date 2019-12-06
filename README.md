@@ -78,7 +78,7 @@ you should by all means use that fine library.
 
 * A C11 and a C++14 compiler
 * CMake 3.13.0+
-* NCurses 6.1+
+* NCurses 6.1+ (for terminfo)
 * From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 
 ## Use
@@ -965,7 +965,7 @@ and style specifications, and moving the cursor over large unchanged areas.
 
 The worst case input frame (in terms of output size) is one whose colors change
 from coordinate to coordinate, uses multiple combining characters within each
-grapheme cluster, and the geometry is large. Peculiarities of the terminal
+grapheme cluster, and has a large geometry. Peculiarities of the terminal
 make it impossible to comment more meaningfully regarding delay.
 
 
