@@ -13,6 +13,7 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
 * [Included tools](#included-tools)
 * [Differences from NCURSES](#differences-from-ncurses)
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
+  * [Adapting NCURSES programs](#adapting-ncurses-programs)
 * [Useful links](#cells)
 
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
@@ -1023,6 +1024,26 @@ to implement".
 * There is no concept of subwindows which share memory with their parents.
 * There is no tracing functionality ala `trace(3NCURSES)`. Superior external
   tracing solutions exist, such as `bpftrace`.
+
+### Adapting NCURSES programs
+
+First off, ask whether you really want to do such a thing. NCURSES and the
+Curses API it implements are far more portable and better-tested than notcurses
+is ever likely to be. Will the program really benefit from notcurses's advanced
+features? If not, it's probably best left as it is.
+
+Otherwise, most NCURSES concepts have clear partners in notcurses. Any functions
+making implicit use of `stdscr` ought be replaced with their explicit
+equivalents. `stdscr` ought then be replaced with the result of
+`notcurses_stdplane()` (the standard plane). `PANEL`s become `ncplane`s; the
+Panels API is otherwise pretty close. Anything writing a bare character will
+become a simple `cell`; multibyte or wide characters become complex `cell`s.
+Color no longer uses "color pairs". You can either hack together a simple table
+mapping your colors to RGB values and color pairs to foreground and background
+indices into said table.
+
+I have adapted two large (~5k lines of C UI code each) from NCURSES to
+notcurses, and found it a fairly painless process.
 
 ## Environment notes
 
