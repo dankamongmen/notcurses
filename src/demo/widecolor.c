@@ -484,7 +484,7 @@ int widecolor_demo(struct notcurses* nc){
     "我能吞下玻璃而不伤身体",
     "我能吞下玻璃而不傷身體",
     "Góa ē-tàng chia̍h po-lê, mā bē tio̍h-siong",
-    "私はガラスを食べられます。それは私を傷つけません",
+    "私はガラスを食べられますそれは私を傷つけません",
     "나는 유리를 먹을 수 있어요. 그래도 아프지 않아",
     "Mi save kakae glas, hemi no save katem mi",
     "Hiki iaʻu ke ʻai i ke aniani; ʻaʻole nō lā au e ʻeha",
@@ -568,15 +568,15 @@ int widecolor_demo(struct notcurses* nc){
   size_t i;
   const size_t screens = sizeof(steps) / sizeof(*steps);
   for(i = 0 ; i < screens ; ++i){
-    const int start = starts[i];
-    int step = steps[i];
     ncspecial_key special;
     cell c;
     do{ // (re)draw a screen
-      //ncplane_erase(n);
+      const int start = starts[i];
+      int step = steps[i];
       const int rollover = 256 / ((step & 0xff) | ((step & 0xff00) >> 8u)
-                                     | ((step & 0xff0000) >> 16u));
+                                  | ((step & 0xff0000) >> 16u));
       int rollcount = 0; // number of times we've added this step
+      //ncplane_erase(n);
       int dimy, dimx;
       notcurses_resize(nc, &dimy, &dimx);
       cell_init(&c);
