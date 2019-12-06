@@ -501,8 +501,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   }
   term_verify_seq(&nc->cup, "cup");
   term_verify_seq(&nc->civis, "civis");
-  term_verify_seq(&nc->clear, "clear");
-  if(nc->cup == NULL || nc->civis == NULL || nc->clear == NULL){
+  if(nc->cup == NULL || nc->civis == NULL){
     fprintf(stderr, "Required terminfo capability not defined\n");
     return -1;
   }
@@ -523,7 +522,9 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   term_verify_seq(&nc->italics, "sitm");
   term_verify_seq(&nc->italoff, "ritm");
   term_verify_seq(&nc->op, "op");
-  term_verify_seq(&nc->clear, "clear");
+  term_verify_seq(&nc->clearscr, "clear");
+  term_verify_seq(&nc->cleareol, "el");
+  term_verify_seq(&nc->clearbol, "el1");
   if(prep_special_keys(nc)){
     return -1;
   }
@@ -1089,10 +1090,12 @@ notcurses_render_internal(notcurses* nc){
   // the last used both defaults.
   bool fgelidable = false, bgelidable = false, defaultelidable = false;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
-    // FIXME previous line could have ended halfway through multicol. what happens?
-    // FIXME also must explicitly move to next line if we're to deal with
-    //  surprise enlargenings, otherwise we just print forward
+    // move to the beginning of the line, in case our accounting was befouled
+    // by wider- (or narrower-) than-reported characters
     term_emit(tiparm(nc->cup, y, 0), out, false);
+    if(nc->cleareol){
+      term_emit(nc->cleareol, out, false);
+    }
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       ncplane* p = nc->top;
@@ -1144,13 +1147,21 @@ notcurses_render_internal(notcurses* nc){
         lastbr = br; lastbg = bg; lastbb = bb;
         defaultelidable = false;
       }
-      term_setstyles(nc, out, &curattr, c);
-      // FIXME what to do if we're at the last cell, and it's wide?
-// fprintf(stderr, "[%02d/%02d] %p ", y, x, c);
-      term_putc(out, p, c);
-      if(cell_double_wide_p(c)){
-        ++x;
-      }
+      // don't try to print a wide character on the last column; it'll instead
+      // be printed on the next line. they probably shouldn't be admitted, but
+      // we can end up with one due to a resize.
+      if((x + 1 < nc->stdscr->lenx || !cell_double_wide_p(c))){
+        term_setstyles(nc, out, &curattr, c);
+        term_putc(out, p, c);
+        if(cell_double_wide_p(c)){
+          ++x;
+        }
+      }/*else{
+        cell space = CELL_TRIVIAL_INITIALIZER;
+        space.gcluster = ' ';
+        term_putc(out, p, &space);
+      }*/
+//fprintf(stderr, "[%02d/%02d]\n", y, x);
     }
   }
   ret |= fclose(out);

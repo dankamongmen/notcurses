@@ -80,9 +80,10 @@ typedef struct notcurses {
   // before further use; just use tiparm() directly.
   char* cup;      // move cursor
   char* civis;    // hide cursor
-  char* clear;    // erase screen and home cursor
-  char* cleareol; // clear to end of line
   // These might be NULL, and we can more or less work without them. Check!
+  char* clearscr; // erase screen and home cursor
+  char* cleareol; // clear to end of line
+  char* clearbol; // clear to beginning of line
   char* cnorm;    // restore cursor to default state
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode
