@@ -49,7 +49,7 @@ TEST_F(LibavTest, LoadVideo) {
   int averr;
   int dimy, dimx;
   ncplane_dim_yx(ncp_, &dimy, &dimx);
-  auto ncv = ncplane_visual_open(ncp_, "../tests/atliens.mkv", &averr);
+  auto ncv = ncplane_visual_open(ncp_, "../tests/bob.mkv", &averr);
   EXPECT_EQ(0, averr);
   ASSERT_NE(nullptr, ncv);
   auto frame = ncvisual_decode(ncv, &averr);

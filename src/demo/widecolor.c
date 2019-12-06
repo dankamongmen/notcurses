@@ -573,7 +573,7 @@ int widecolor_demo(struct notcurses* nc){
     ncspecial_key special;
     cell c;
     do{ // (re)draw a screen
-      ncplane_erase(n);
+      //ncplane_erase(n);
       const int rollover = 256 / ((step & 0xff) | ((step & 0xff00) >> 8u)
                                      | ((step & 0xff0000) >> 16u));
       int rollcount = 0; // number of times we've added this step
