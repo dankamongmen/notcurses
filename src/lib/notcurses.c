@@ -1181,11 +1181,12 @@ mutex_unlock(void* vlock){
 }
 
 int notcurses_render(notcurses* nc){
-  int ret = 0;
+  int ret;
   struct timespec start, done;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   pthread_mutex_lock(&nc->lock);
   pthread_cleanup_push(mutex_unlock, &nc->lock);
+  ret = 0;
   int bytes = notcurses_render_internal(nc);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
