@@ -442,6 +442,23 @@ API void ncplane_erase(struct ncplane* n);
 API int ncplane_set_fg(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg(struct ncplane* n, int r, int g, int b);
 
+#define CELL_INHERITSTYLE_MASK 0x8000000000000000ull
+#define CELL_FGDEFAULT_MASK    0x4000000000000000ull
+#define CELL_WIDEASIAN_MASK    0x2000000000000000ull
+#define CELL_FG_MASK           0x00ffffff00000000ull
+#define CELL_BGDEFAULT_MASK    0x0000000040000000ull
+#define CELL_BG_MASK           0x0000000000ffffffull
+
+static inline uint32_t
+ncplane_fg_rgb(uint64_t channel){
+  return (channel & CELL_FG_MASK) >> 32u;
+}
+
+static inline uint32_t
+ncplane_bg_rgb(uint64_t channel){
+  return (channel & CELL_BG_MASK);
+}
+
 // use the default color for the foreground/background
 API void ncplane_fg_default(struct ncplane* n);
 API void ncplane_bg_default(struct ncplane* n);
@@ -557,13 +574,6 @@ static inline unsigned
 cell_rgb_blue(uint32_t rgb){
   return (rgb & 0xffull);
 }
-
-#define CELL_INHERITSTYLE_MASK 0x8000000000000000ull
-#define CELL_FGDEFAULT_MASK    0x4000000000000000ull
-#define CELL_WIDEASIAN_MASK    0x2000000000000000ull
-#define CELL_FG_MASK           0x00ffffff00000000ull
-#define CELL_BGDEFAULT_MASK    0x0000000040000000ull
-#define CELL_BG_MASK           0x0000000000ffffffull
 
 static inline uint32_t
 cell_fg_rgb(uint64_t channel){
