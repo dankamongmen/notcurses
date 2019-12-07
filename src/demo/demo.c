@@ -223,9 +223,12 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'v': ret = view_demo(nc); break;
       case 'w': ret = widecolor_demo(nc); break;
       case 'p': ret = panelreel_demo(nc); break;
+      default:
+        fprintf(stderr, "Unknown demo specification: %c\n", *demos);
+        ret = -1;
+        break;
     }
     if(ret){
-      fprintf(stderr, "Unknown demo specification: %c\n", *demos);
       return ret;
     }
     ++demos;

@@ -131,11 +131,11 @@ int unicodeblocks_demo(struct notcurses* nc){
       cell c = CELL_TRIVIAL_INITIALIZER;
       // 16 to a line
       for(z = 0 ; z < CHUNKSIZE ; ++z){
-        mbstate_t ps;
-        memset(&ps, 0, sizeof(ps));
         wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\u200e' };
         char utf8arr[MB_CUR_MAX * 2 + 1];
         if(wcswidth(w, 2) >= 1 && iswprint(w[0])){
+          mbstate_t ps;
+          memset(&ps, 0, sizeof(ps));
           const wchar_t *wptr = w;
           int bwc = wcsrtombs(utf8arr, &wptr, sizeof(utf8arr), &ps);
           if(bwc < 0){
