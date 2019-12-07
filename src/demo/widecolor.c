@@ -272,8 +272,8 @@ static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
   uint64_t channels = 0;
-  ncplane_set_fg(n, 64, 128, 240);
-  ncplane_set_bg(n, 32, 64, 32);
+  ncplane_set_fg_rgb(n, 64, 128, 240);
+  ncplane_set_bg_rgb(n, 32, 64, 32);
   notcurses_fg_prep(&channels, 255, 255, 255);
   notcurses_bg_default_prep(&channels);
   ncplane_cursor_move_yx(n, 3, 1);
@@ -322,9 +322,9 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_cursor_move_yx(n, 4, 2);
   ncplane_styles_off(n, CELL_STYLE_ITALIC);
-  ncplane_set_fg(n, 224, 128, 224);
+  ncplane_set_fg_rgb(n, 224, 128, 224);
   ncplane_putstr(n, "  🔥 wide chars, multiple colors, resize awareness…🔥  ");
-  ncplane_set_fg(n, 255, 255, 255);
+  ncplane_set_fg_rgb(n, 255, 255, 255);
   return 0;
 }
 

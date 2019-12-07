@@ -128,7 +128,7 @@ tabletdraw(struct ncplane* p, int begx, int begy, int maxx, int maxy,
   }else{
     ll = tabletdown(p, begx, begy, maxx, maxy, tctx, rgb);
   }
-  ncplane_set_fg(p, 242, 242, 242);
+  ncplane_set_fg_rgb(p, 242, 242, 242);
   if(ll){
     int summaryy = begy;
     if(cliptop){
@@ -269,7 +269,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   }
   // Press a for a new panel above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement. q quits.
-  ncplane_set_fg(w, 58, 150, 221);
+  ncplane_set_fg_rgb(w, 58, 150, 221);
   ncplane_bg_default(w);
   ncplane_cursor_move_yx(w, 1, 1);
   ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
@@ -283,12 +283,12 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   unsigned id = 0;
   do{
     ncplane_styles_set(w, 0);
-    ncplane_set_fg(w, 197, 15, 31);
+    ncplane_set_fg_rgb(w, 197, 15, 31);
     int count = panelreel_tabletcount(pr);
     ncplane_cursor_move_yx(w, 2, 2);
     ncplane_printf(w, "%d tablet%s", count, count == 1 ? "" : "s");
     // FIXME wclrtoeol(w);
-    ncplane_set_fg(w, 0, 55, 218);
+    ncplane_set_fg_rgb(w, 0, 55, 218);
     ncspecial_key special = NCKEY_INVALID;
     cell c = CELL_TRIVIAL_INITIALIZER;
     if(handle_input(nc, pr, efd, &c, &special) < 0){

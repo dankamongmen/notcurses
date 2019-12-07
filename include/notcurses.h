@@ -439,8 +439,12 @@ API void ncplane_erase(struct ncplane* n);
 // will be interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
 // time using "color pairs"; notcurses will manage color pairs transparently.
-API int ncplane_set_fg(struct ncplane* n, int r, int g, int b);
-API int ncplane_set_bg(struct ncplane* n, int r, int g, int b);
+API int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
+API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
+
+// Same, but with rgb assembled into a half-channel (i.e. lower 32 bits).
+API void ncplane_set_fg(struct ncplane* n, uint32_t halfchannel);
+API void ncplane_set_bg(struct ncplane* n, uint32_t halfchannel);
 
 #define CELL_INHERITSTYLE_MASK 0x8000000000000000ull
 #define CELL_FGDEFAULT_MASK    0x4000000000000000ull

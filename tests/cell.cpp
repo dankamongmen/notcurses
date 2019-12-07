@@ -37,7 +37,7 @@ TEST_F(CellTest, SetStyles) {
   notcurses_term_dim_yx(nc_, &dimy, &dimx);
   cell_styles_set(&c, CELL_STYLE_ITALIC);
   ASSERT_EQ(1, cell_load(n_, &c, "s"));
-  EXPECT_EQ(0, ncplane_set_fg(n_, 255, 255, 255));
+  EXPECT_EQ(0, ncplane_set_fg_rgb(n_, 255, 255, 255));
   EXPECT_EQ(1, ncplane_putc(n_, &c));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);

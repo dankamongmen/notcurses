@@ -747,12 +747,20 @@ void ncplane_bg_default(struct ncplane* n){
   n->channels &= ~(CELL_BGDEFAULT_MASK);
 }
 
-int ncplane_set_bg(ncplane* n, int r, int g, int b){
+int ncplane_set_bg_rgb(ncplane* n, int r, int g, int b){
   return notcurses_bg_prep(&n->channels, r, g, b);
 }
 
-int ncplane_set_fg(ncplane* n, int r, int g, int b){
+int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
   return notcurses_fg_prep(&n->channels, r, g, b);
+}
+
+void ncplane_set_fg(ncplane* n, uint32_t halfchannel){
+  n->channels = ((uint64_t)halfchannel << 32ul) | (n->channels & 0xffffffffull);
+}
+
+void ncplane_set_bg(ncplane* n, uint32_t halfchannel){
+  n->channels = (n->channels & 0xffffffff00000000ull) | halfchannel;
 }
 
 int ncplane_set_background(ncplane* ncp, const cell* c){

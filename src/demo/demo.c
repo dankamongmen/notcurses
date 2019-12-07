@@ -68,10 +68,10 @@ outro_message(struct notcurses* nc, int rows, int cols){
   ncplane_set_background(on, &bgcell);
   ncplane_dim_yx(on, &rows, &cols);
   int ybase = 0;
-  if(ncplane_set_fg(on, 0, 0, 0)){
+  if(ncplane_set_fg_rgb(on, 0, 0, 0)){
     return -1;
   }
-  if(ncplane_set_bg(on, 0, 180, 180)){
+  if(ncplane_set_bg_rgb(on, 0, 180, 180)){
     return -1;
   }
   if(ncplane_cursor_move_yx(on, ++ybase, (cols - strlen(str0)) / 2)){
@@ -168,10 +168,10 @@ intro(struct notcurses* nc){
   }
   const char s1[] = " Die Welt ist alles, was der Fall ist. ";
   const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
-  if(ncplane_set_fg(ncp, 192, 192, 192)){
+  if(ncplane_set_fg_rgb(ncp, 192, 192, 192)){
     return -1;
   }
-  if(ncplane_set_bg(ncp, 0, 40, 0)){
+  if(ncplane_set_bg_rgb(ncp, 0, 40, 0)){
     return -1;
   }
   if(ncplane_cursor_move_yx(ncp, rows / 2 - 2, (cols - strlen(s1) + 4) / 2)){

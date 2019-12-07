@@ -89,20 +89,20 @@ TEST_F(NcplaneTest, MoveBeyondPlaneFails) {
 }
 
 TEST_F(NcplaneTest, SetPlaneRGB) {
-  EXPECT_EQ(0, ncplane_set_fg(n_, 0, 0, 0));
-  EXPECT_EQ(0, ncplane_set_fg(n_, 255, 255, 255));
+  EXPECT_EQ(0, ncplane_set_fg_rgb(n_, 0, 0, 0));
+  EXPECT_EQ(0, ncplane_set_fg_rgb(n_, 255, 255, 255));
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 
 TEST_F(NcplaneTest, RejectBadRGB) {
-  EXPECT_NE(0, ncplane_set_fg(n_, -1, 0, 0));
-  EXPECT_NE(0, ncplane_set_fg(n_, 0, -1, 0));
-  EXPECT_NE(0, ncplane_set_fg(n_, 0, 0, -1));
-  EXPECT_NE(0, ncplane_set_fg(n_, -1, -1, -1));
-  EXPECT_NE(0, ncplane_set_fg(n_, 256, 255, 255));
-  EXPECT_NE(0, ncplane_set_fg(n_, 255, 256, 255));
-  EXPECT_NE(0, ncplane_set_fg(n_, 255, 255, 256));
-  EXPECT_NE(0, ncplane_set_fg(n_, 256, 256, 256));
+  EXPECT_NE(0, ncplane_set_fg_rgb(n_, -1, 0, 0));
+  EXPECT_NE(0, ncplane_set_fg_rgb(n_, 0, -1, 0));
+  EXPECT_NE(0, ncplane_set_fg_rgb(n_, 0, 0, -1));
+  EXPECT_NE(0, ncplane_set_fg_rgb(n_, -1, -1, -1));
+  EXPECT_NE(0, ncplane_set_fg_rgb(n_, 256, 255, 255));
+  EXPECT_NE(0, ncplane_set_fg_rgb(n_, 255, 256, 255));
+  EXPECT_NE(0, ncplane_set_fg_rgb(n_, 255, 255, 256));
+  EXPECT_NE(0, ncplane_set_fg_rgb(n_, 256, 256, 256));
 }
 
 // Verify we can emit a wide character, and it advances the cursor
