@@ -99,7 +99,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     int chunk;
-    ncplane_fg_rgb8(n, 0xad, 0xd8, 0xe6);
+    ncplane_set_fg(n, 0xad, 0xd8, 0xe6);
     if(ncplane_cursor_move_yx(n, 1, (maxx - 26) / 2)){
       return -1;
     }
@@ -171,7 +171,7 @@ int unicodeblocks_demo(struct notcurses* nc){
       }
       cell_release(n, &c);
     }
-    ncplane_fg_rgb8(n, 0x40, 0xc0, 0x40);
+    ncplane_set_fg(n, 0x40, 0xc0, 0x40);
     if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 0)){
       return -1;
     }

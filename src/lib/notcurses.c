@@ -747,11 +747,11 @@ void ncplane_bg_default(struct ncplane* n){
   n->channels &= ~(CELL_BGDEFAULT_MASK);
 }
 
-int ncplane_bg_rgb8(ncplane* n, int r, int g, int b){
+int ncplane_set_bg(ncplane* n, int r, int g, int b){
   return notcurses_bg_prep(&n->channels, r, g, b);
 }
 
-int ncplane_fg_rgb8(ncplane* n, int r, int g, int b){
+int ncplane_set_fg(ncplane* n, int r, int g, int b){
   return notcurses_fg_prep(&n->channels, r, g, b);
 }
 

@@ -32,7 +32,7 @@ int maxcolor_demo(struct notcurses* nc){
   int maxx, maxy;
   notcurses_term_dim_yx(nc, &maxy, &maxx);
   struct ncplane* n = notcurses_stdplane(nc);
-  ncplane_fg_rgb8(n, 255, 255, 255);
+  ncplane_set_fg(n, 255, 255, 255);
   uint64_t channels = 0;
   notcurses_fg_prep(&channels, 0, 128, 128);
   notcurses_bg_prep(&channels, 90, 0, 90);

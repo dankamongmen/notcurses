@@ -63,7 +63,7 @@ int main(void){
   int r;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   cell c = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_fg_rgb8(n, 255, 255, 255)){
+  if(ncplane_set_fg(n, 255, 255, 255)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }

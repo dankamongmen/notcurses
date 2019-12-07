@@ -113,8 +113,8 @@ fill_chunk(struct ncplane* n, int idx){
     if(ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 2) / 2)){
       return -1;
     }
-    ncplane_fg_rgb8(n, 0, 0, 0);
-    ncplane_bg_rgb8(n, r, g, b);
+    ncplane_set_fg(n, 0, 0, 0);
+    ncplane_set_bg(n, r, g, b);
     if(ncplane_putstr(n, buf) <= 0){
       return -1;
     }

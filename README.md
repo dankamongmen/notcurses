@@ -515,8 +515,8 @@ void ncplane_erase(struct ncplane* n);
 // will be interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
 // time using "color pairs"; notcurses will manage color pairs transparently.
-int ncplane_fg_rgb8(struct ncplane* n, int r, int g, int b);
-int ncplane_bg_rgb8(struct ncplane* n, int r, int g, int b);
+int ncplane_set_fg(struct ncplane* n, int r, int g, int b);
+int ncplane_set_bg(struct ncplane* n, int r, int g, int b);
 
 // use the default color for the foreground/background
 void ncplane_fg_default(struct ncplane* n);
@@ -1043,7 +1043,25 @@ mapping your colors to RGB values and color pairs to foreground and background
 indices into said table.
 
 I have adapted two large (~5k lines of C UI code each) from NCURSES to
-notcurses, and found it a fairly painless process.
+notcurses, and found it a fairly painless process. It was helpful to introduce
+a shim layer, e.g. `compat_mvwprintw` for NCURSES's `mvwprintw`:
+
+```c
+static int
+compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
+  if(ncplane_cursor_move_yx(nc, y, x)){
+    return ERR;
+  }
+  va_list va;
+  va_start(va, fmt);
+  if(ncplane_vprintf(nc, fmt, va) < 0){
+    va_end(va);
+    return ERR;
+  }
+  va_end(va);
+  return OK;
+}
+```
 
 ## Environment notes
 
