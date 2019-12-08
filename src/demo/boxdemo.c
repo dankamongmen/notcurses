@@ -4,15 +4,6 @@
 
 #define ITERATIONS 10
 
-// throw this in the middle with transparent background FIXME
-/* ┏━━┳━━┓ 
-   ┃┌─╂─┐┃ 
-   ┃│╲╿╱│┃ 
-   ┣┿╾╳╼┿┫ 
-   ┃│╱╽╲│┃ 
-   ┃└─╂─┘┃ 
-   ┗━━┻━━┛ */
-
 int box_demo(struct notcurses* nc){
   const int64_t totalns = timespec_to_ns(&demodelay);
   struct timespec iterdelay;
@@ -22,8 +13,6 @@ int box_demo(struct notcurses* nc){
   cell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
   cell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  ncplane_set_fg_rgb(n, 255, 255, 255);
-  ncplane_set_bg_rgb(n, 180, 40, 180);
   if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
@@ -31,11 +20,62 @@ int box_demo(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   int zbonus = 40;
   int zbonusdelta = 20;
+  int ylen, xlen;
+  ncplane_dim_yx(n, &ylen, &xlen);
+  // target grid is 7x7
+  const int targx = 7;
+  const int targy = 7;
+  int ytargbase = (ylen - targy) / 2;
+  ncplane_set_fg_rgb(n, 180, 40, 180);
+  ncplane_bg_default(n);
+  if(ncplane_cursor_move_yx(n, ytargbase++, (xlen - targx) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(n, "┏━━┳━━┓") < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(n, ytargbase++, (xlen - targx) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(n, "┃┌─╂─┐┃") < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(n, ytargbase++, (xlen - targx) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(n, "┃│╲╿╱│┃") < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(n, ytargbase++, (xlen - targx) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(n, "┣┿╾╳╼┿┫") < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(n, ytargbase++, (xlen - targx) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(n, "┃│╱╽╲│┃") < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(n, ytargbase++, (xlen - targx) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(n, "┃└─╂─┘┃") < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(n, ytargbase++, (xlen - targx) / 2)){
+    return -1;
+  }
+  if(ncplane_putstr(n, "┗━━┻━━┛") < 0){
+    return -1;
+  }
+  ncplane_set_fg_rgb(n, 255, 255, 255);
+  ncplane_set_bg_rgb(n, 180, 40, 180);
   do{
-    int ylen, xlen;
-    ncplane_dim_yx(n, &ylen, &xlen);
     int y = 0, x = 0;
-    while(ylen - y - 1 > 2 && xlen - x - 1 > 2){
+    ncplane_dim_yx(n, &ylen, &xlen);
+    while(ylen - y >= targy && xlen - x >= targx){
       cell_set_fg(&ul, 107 - (y * 2), zbonus, 107 + (y * 2));
       cell_set_bg(&ul, zbonus, 20 + y, 20 + y);
       cell_set_fg(&ur, 107 - (y * 2), zbonus, 107 + (y * 2));
