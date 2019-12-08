@@ -500,18 +500,15 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
             nc->colors);
   }
   term_verify_seq(&nc->cup, "cup");
-  term_verify_seq(&nc->civis, "civis");
-  if(nc->cup == NULL || nc->civis == NULL){
+  if(nc->cup == NULL){
     fprintf(stderr, "Required terminfo capability not defined\n");
     return -1;
   }
   if(!opts->retain_cursor){
-    if(term_emit(nc->civis, opts->outfp, false)){
-      return -1;
-    }
+    term_verify_seq(&nc->civis, "civis");
     term_verify_seq(&nc->cnorm, "cnorm");
   }else{
-    nc->cnorm = NULL;
+    nc->civis = nc->cnorm = NULL;
   }
   term_verify_seq(&nc->standout, "smso"); // smso / rmso
   term_verify_seq(&nc->uline, "smul");
@@ -654,11 +651,15 @@ notcurses* notcurses_init(const notcurses_options* opts){
   if((ret->stdscr = create_initial_ncplane(ret)) == NULL){
     goto err;
   }
-  if(ret->smkx && term_emit(ret->smkx, ret->ttyfp, true)){
+  if(ret->civis && term_emit(ret->civis, ret->ttyfp, false)){
     free_plane(ret->top);
     goto err;
   }
-  if(ret->smcup && term_emit(ret->smcup, ret->ttyfp, true)){
+  if(ret->smkx && term_emit(ret->smkx, ret->ttyfp, false)){
+    free_plane(ret->top);
+    goto err;
+  }
+  if(ret->smcup && term_emit(ret->smcup, ret->ttyfp, false)){
     free_plane(ret->top);
     goto err;
   }
