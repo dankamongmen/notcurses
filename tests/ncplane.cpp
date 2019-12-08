@@ -105,12 +105,24 @@ TEST_F(NcplaneTest, RejectBadRGB) {
   EXPECT_NE(0, ncplane_set_fg_rgb(n_, 256, 256, 256));
 }
 
-// Verify we can emit a wide character, and it advances the cursor
-TEST_F(NcplaneTest, EmitWchar) {
+// Verify we can emit a multibyte character, and it advances the cursor
+TEST_F(NcplaneTest, EmitCell) {
   const char cchar[] = "✔";
   cell c{};
   EXPECT_EQ(strlen(cchar), cell_load(n_, &c, cchar));
   EXPECT_LT(0, ncplane_putc(n_, &c));
+  int x, y;
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_EQ(0, y);
+  EXPECT_EQ(1, x);
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+// Verify we can emit a wide character, and it advances the cursor
+TEST_F(NcplaneTest, EmitWchar) {
+  const wchar_t w = L'✔';
+  int sbytes;
+  EXPECT_LT(0, ncplane_putwegc(n_, &w, 0, 0, &sbytes));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, y);

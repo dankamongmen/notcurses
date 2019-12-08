@@ -354,6 +354,28 @@ API int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t cha
 API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
                        uint64_t channels, int* sbytes);
 
+#define WCHAR_MAX_UTF8BYTES 6
+
+// ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
+static inline int
+ncplane_putwegc(struct ncplane* n, const wchar_t* gclustarr, uint32_t attr,
+                uint64_t channels, int* sbytes){
+  // maximum of six UTF8-encoded bytes per wchar_t
+  const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
+  char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
+  if(mbstr == NULL){
+    return -1;
+  }
+  size_t s = wcstombs(mbstr, gclustarr, mbytes);
+  if(s == (size_t)-1){
+    free(mbstr);
+    return -1;
+  }
+  int ret = ncplane_putegc(n, mbstr, attr, channels, sbytes);
+  free(mbstr);
+  return ret;
+}
+
 // Write a series of cells to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of cells
@@ -362,11 +384,11 @@ API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
 // which were written before the error.
 API int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 
-// ncplane_putstr(), but following a conversion from wchar_t to UTF8.
+// ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
 ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
   // maximum of six UTF8-encoded bytes per wchar_t
-  const size_t mbytes = (wcslen(gclustarr) * 6) + 1;
+  const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
   if(mbstr == NULL){
     return -1;
