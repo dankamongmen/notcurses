@@ -63,12 +63,12 @@ struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 // are unlikely in common use.
 typedef struct cell {
   // These 32 bits are either a single-byte, single-character grapheme cluster
-  // (values 0--0x7f), or a pointer into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 16MB.
+  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
+  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
   uint32_t gcluster;          // 1 * 4b -> 4b
-  // The CELL_STYLE_* attributes (16 bits), plus 16 bits of alpha.
+  // The CELL_STYLE_* attributes (16 bits), 8 reserved bits, and 8 bits of alpha.
   uint32_t attrword;          // + 4b -> 8b
-  // (channels & 0x8000000000000000ull): inherit styling from prior cell
+  // (channels & 0x8000000000000000ull): reserved, must be 0
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x2000000000000000ull): wide character (left or right side)
   // (channels & 0x1f00000000000000ull): reserved, must be 0
@@ -489,7 +489,6 @@ API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 API void ncplane_set_fg(struct ncplane* n, uint32_t halfchannel);
 API void ncplane_set_bg(struct ncplane* n, uint32_t halfchannel);
 
-#define CELL_INHERITSTYLE_MASK 0x8000000000000000ull
 #define CELL_FGDEFAULT_MASK    0x4000000000000000ull
 #define CELL_WIDEASIAN_MASK    0x2000000000000000ull
 #define CELL_FG_MASK           0x00ffffff00000000ull
@@ -569,7 +568,7 @@ API void cell_release(struct ncplane* n, cell* c);
 
 #define CELL_STYLE_SHIFT     16u
 #define CELL_STYLE_MASK      0xffff0000ul
-#define CELL_ALPHA_MASK      0x0000fffful
+#define CELL_ALPHA_MASK      0x000000fful
 // these are used for the style bitfield *after* it is shifted
 #define CELL_STYLE_STANDOUT  0x0001u
 #define CELL_STYLE_UNDERLINE 0x0002u
@@ -713,12 +712,6 @@ cell_get_bg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
   *r = cell_rgb_red(cell_bg_rgb(c->channels));
   *g = cell_rgb_green(cell_bg_rgb(c->channels));
   *b = cell_rgb_blue(cell_bg_rgb(c->channels));
-}
-
-// does the cell passively retain the styling of the previously-rendered cell?
-static inline bool
-cell_inherits_style(const cell* c){
-  return (c->channels & CELL_INHERITSTYLE_MASK);
 }
 
 // use the default color for the foreground
