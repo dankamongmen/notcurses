@@ -1,79 +1,90 @@
+#include <pthread.h>
 #include "demo.h"
 
-static int
-outro_message(struct notcurses* nc, int rows, int cols){
+static void*
+fadethread(void* vncp){
+  struct timespec fade = { .tv_sec = 5, .tv_nsec = 0, };
+  ncplane_fadeout(vncp, &fade);
+  return NULL;
+}
+
+static struct ncplane*
+outro_message(struct notcurses* nc, int* rows, int* cols){
   const char str0[] = " ATL, baby! ATL! ";
   const char str1[] = " much, much more is coming ";
   const char str2[] = " hack on! —dank❤ ";
-  struct ncplane* on = notcurses_newplane(nc, 5, strlen(str1) + 4, rows - 6,
-                                         (cols - (strlen(str1) + 4)) / 2, NULL);
+  int xstart = (*cols - (strlen(str1) + 4)) / 2;
+  int ystart = *rows - 6;
+  struct ncplane* on = notcurses_newplane(nc, 5, strlen(str1) + 4, ystart, xstart, NULL);
   if(on == NULL){
-    return -1;
+    return NULL;
   }
   cell bgcell = CELL_TRIVIAL_INITIALIZER;
   notcurses_bg_prep(&bgcell.channels, 0x58, 0x36, 0x58);
   ncplane_set_background(on, &bgcell);
-  ncplane_dim_yx(on, &rows, &cols);
+  ncplane_dim_yx(on, rows, cols);
   int ybase = 0;
   // bevel the upper corners
   uint64_t channel = 0;
   if(notcurses_bg_set_alpha(&channel, 3)){
-    return -1;
+    return NULL;
   }
   if(ncplane_cursor_move_yx(on, ybase, 0)){
-    return -1;
+    return NULL;
   }
   if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
-    return -1;
+    return NULL;
   }
-  if(ncplane_cursor_move_yx(on, ybase, cols - 2)){
-    return -1;
+  if(ncplane_cursor_move_yx(on, ybase, *cols - 2)){
+    return NULL;
   }
   if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
-    return -1;
+    return NULL;
   }
   // ...and now the lower corners
-  if(ncplane_cursor_move_yx(on, rows - 1, 0)){
-    return -1;
+  if(ncplane_cursor_move_yx(on, *rows - 1, 0)){
+    return NULL;
   }
   if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
-    return -1;
+    return NULL;
   }
-  if(ncplane_cursor_move_yx(on, rows - 1, cols - 2)){
-    return -1;
+  if(ncplane_cursor_move_yx(on, *rows - 1, *cols - 2)){
+    return NULL;
   }
   if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
-    return -1;
+    return NULL;
   }
   if(ncplane_set_fg_rgb(on, 0, 0, 0)){
-    return -1;
+    return NULL;
   }
   if(ncplane_set_bg_rgb(on, 0, 180, 180)){
-    return -1;
+    return NULL;
   }
-  if(ncplane_cursor_move_yx(on, ++ybase, (cols - strlen(str0)) / 2)){
-    return -1;
+  if(ncplane_cursor_move_yx(on, ++ybase, (*cols - strlen(str0)) / 2)){
+    return NULL;
   }
   if(ncplane_putstr(on, str0) < 0){
-    return -1;
+    return NULL;
   }
-  if(ncplane_cursor_move_yx(on, ++ybase, (cols - strlen(str1)) / 2)){
-    return -1;
+  if(ncplane_cursor_move_yx(on, ++ybase, (*cols - strlen(str1)) / 2)){
+    return NULL;
   }
   if(ncplane_putstr(on, str1) < 0){
-    return -1;
+    return NULL;
   }
-  if(ncplane_cursor_move_yx(on, ++ybase, (cols - (strlen(str2) - 4)) / 2)){
-    return -1;
+  if(ncplane_cursor_move_yx(on, ++ybase, (*cols - (strlen(str2) - 4)) / 2)){
+    return NULL;
   }
   if(ncplane_putstr(on, str2) < 0){
-    return -1;
+    return NULL;
   }
   if(notcurses_render(nc)){
-    return -1;
+    return NULL;
   }
   cell_release(on, &bgcell);
-  return 0;
+  *rows = ystart;
+  *cols = xstart;
+  return on;
 }
 
 int outro(struct notcurses* nc){
@@ -97,11 +108,26 @@ int outro(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  int ret = outro_message(nc, rows, cols);
-  if(ret == 0){
-    struct timespec fade = { .tv_sec = 5, .tv_nsec = 0, };
-    ret |= ncplane_fadeout(ncp, &fade);
+  int xstart = cols;
+  int ystart = rows;
+  struct ncplane* on = outro_message(nc, &ystart, &xstart);
+  if(on){
+    pthread_t tid;
+    // will fade across 5s
+    pthread_create(&tid, NULL, fadethread, ncp);
+    struct timespec iterts;
+    int targy = rows / 2 - (rows - ystart);
+    ns_to_timespec(5000000000 / (ystart - targy), &iterts);
+    int y;
+    for(y = ystart - 1 ; y >= targy ; --y){
+      nanosleep(&iterts, NULL);
+      ncplane_move_yx(on, y, xstart);
+      notcurses_render(nc);
+    }
+    ncplane_fadeout(on, &demodelay);
+    pthread_join(tid, NULL);
+    ncplane_destroy(on);
   }
   ncvisual_destroy(ncv);
-  return ret;
+  return on ? 0 : -1;
 }
