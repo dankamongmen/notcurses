@@ -593,6 +593,10 @@ panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd)
     free(pr);
     return NULL;
   }
+  cell bgc = CELL_TRIVIAL_INITIALIZER;
+  bgc.channels = popts->bgchannel;
+  ncplane_set_background(pr->p, &bgc);
+  cell_release(pr->p, &bgc);
   if(panelreel_redraw(pr)){
     ncplane_destroy(pr->p);
     free(pr);

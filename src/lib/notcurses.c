@@ -923,9 +923,6 @@ term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 // write any escape sequences necessary to set the desired style
 static int
 term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c){
-  if(cell_inherits_style(c)){
-    return 0; // change nothing
-  }
   uint32_t cellattr = cell_styles(c);
   if(cellattr == *curattr){
     return 0; // happy agreement, change nothing
@@ -955,14 +952,13 @@ visible_cell(int y, int x, ncplane** retp){
       if(poffx < p->lenx && poffx >= 0){
         *retp = p;
         const cell* vis = &p->fb[fbcellidx(p, poffy, poffx)];
-        // if we never actually loaded the cell, use the background, if one
-        // is defined.
+        // if we never loaded any content into the cell (or obliterated it by
+        // writing in a zero), use the plane's background cell.
         if(vis->gcluster == 0){
           vis = &p->background;
         }
-        // if it's using the terminal default, chase further down
-        // FIXME should probably be based off alpha channel
-        if(cell_fg_default_p(vis) && cell_bg_default_p(vis) && vis->gcluster == 0){
+        // FIXME do this more rigorously, PoC
+        if(cell_fg_alpha(vis) || cell_bg_alpha(vis)){
           *retp = p->z;
           const cell* trans = visible_cell(y, x, retp);
           if(trans){
@@ -1086,7 +1082,7 @@ notcurses_render_internal(notcurses* nc){
   }
   // no need to write a clearscreen, since we update everything that's been
   // changed. we explicitly move the cursor at the beginning of each line
-  // (to work around broken prior lines), do no need to home it here, either.
+  // (to work around broken prior lines), so no need to home it expliticly.
   prep_optimized_palette(nc, out); // FIXME do what on failure?
   uint32_t curattr = 0; // current attributes set (does not include colors)
   // FIXME as of at least gcc 9.2.1, we get a false -Wmaybe-uninitialized below

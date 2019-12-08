@@ -59,23 +59,34 @@ struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 //
 // Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
-// Dynamic requirements can add up to 16MB to an ncplane, but such large pools
-// are unlikely in common use.
+// Dynamic requirements (the egcpool) can add up to 32MB to an ncplane, but
+// such large pools are unlikely in common use.
+//
+// We implement some small alpha compositing. Foreground and background both
+// have two bits of inverted alpha. The actual grapheme written to a cell is
+// the topmost non-zero grapheme. If its alpha is 00, its foreground color is
+// used unchanged. If its alpha is 11, its foreground color is derived entirely
+// from cells underneath it. Otherwise, the result will be a composite.
+// Likewise for the background. If the bottom of a coordinate's zbuffer is
+// reached with a cumulative alpha of zero, the default is used. In this way,
+// a terminal configured with transparent background can be supported through
+// multiple occluding ncplanes.
 typedef struct cell {
   // These 32 bits are either a single-byte, single-character grapheme cluster
-  // (values 0--0x7f), or a pointer into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 16MB.
+  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
+  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
   uint32_t gcluster;          // 1 * 4b -> 4b
-  // The CELL_STYLE_* attributes (16 bits), plus 16 bits of alpha.
+  // CELL_STYLE_* attributes (16 bits) + 16 reserved bits
   uint32_t attrword;          // + 4b -> 8b
-  // (channels & 0x8000000000000000ull): inherit styling from prior cell
+  // (channels & 0x8000000000000000ull): wide character (left or right side)
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
-  // (channels & 0x2000000000000000ull): wide character (left or right side)
-  // (channels & 0x1f00000000000000ull): reserved, must be 0
+  // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
+  // (channels & 0x0f00000000000000ull): reserved, must be 0
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
   // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"
-  // (channels & 0x000000003f000000ull): reserved, must be 0
+  // (channels & 0x0000000030000000ull): background alpha (2 bits)
+  // (channels & 0x000000000f000000ull): reserved, must be 0
   // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
   // At render time, these 24-bit values are quantized down to terminal
   // capabilities, if necessary. There's a clear path to 10-bit support should
@@ -489,11 +500,12 @@ API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 API void ncplane_set_fg(struct ncplane* n, uint32_t halfchannel);
 API void ncplane_set_bg(struct ncplane* n, uint32_t halfchannel);
 
-#define CELL_INHERITSTYLE_MASK 0x8000000000000000ull
+#define CELL_WIDEASIAN_MASK    0x8000000000000000ull
 #define CELL_FGDEFAULT_MASK    0x4000000000000000ull
-#define CELL_WIDEASIAN_MASK    0x2000000000000000ull
+#define CELL_FGALPHA_MASK      0x3000000000000000ull
 #define CELL_FG_MASK           0x00ffffff00000000ull
 #define CELL_BGDEFAULT_MASK    0x0000000040000000ull
+#define CELL_BGALPHA_MASK      0x3000000030000000ull
 #define CELL_BG_MASK           0x0000000000ffffffull
 
 static inline uint32_t
@@ -671,6 +683,34 @@ notcurses_channel_prep(uint64_t* channels, uint64_t mask, unsigned shift,
 }
 
 static inline int
+notcurses_fg_set_alpha(uint64_t* channels, int alpha){
+  if(alpha > 3 || alpha < 0){
+    return -1;
+  }
+  *channels = (*channels & ~CELL_FGALPHA_MASK) | ((uint64_t)alpha << 60);
+  return 0;
+}
+
+static inline int
+notcurses_bg_set_alpha(uint64_t* channels, int alpha){
+  if(alpha > 3 || alpha < 0){
+    return -1;
+  }
+  *channels = (*channels & ~CELL_BGALPHA_MASK) | ((uint64_t)alpha << 28);
+  return 0;
+}
+
+static inline int
+notcurses_fg_alpha(uint64_t channels){
+  return (channels & CELL_BGALPHA_MASK) >> 60u;
+}
+
+static inline int
+notcurses_bg_alpha(uint64_t channels){
+  return (channels & CELL_BGALPHA_MASK) >> 28u;
+}
+
+static inline int
 notcurses_fg_prep(uint64_t* channels, int r, int g, int b){
   return notcurses_channel_prep(channels, CELL_FG_MASK, 32, r, g, b, CELL_FGDEFAULT_MASK);
 }
@@ -714,12 +754,6 @@ cell_get_bg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
   *b = cell_rgb_blue(cell_bg_rgb(c->channels));
 }
 
-// does the cell passively retain the styling of the previously-rendered cell?
-static inline bool
-cell_inherits_style(const cell* c){
-  return (c->channels & CELL_INHERITSTYLE_MASK);
-}
-
 // use the default color for the foreground
 static inline void
 cell_fg_default(cell* c){
@@ -738,10 +772,40 @@ cell_bg_default(cell* c){
   notcurses_bg_default_prep(&c->channels);
 }
 
+static inline bool
+notcurses_fg_default_p(uint64_t channels){
+  return !(channels & CELL_FGDEFAULT_MASK);
+}
+
+static inline bool
+notcurses_bg_default_p(uint64_t channels){
+  return !(channels & CELL_BGDEFAULT_MASK);
+}
+
 // is the cell using the terminal's default background color for its background?
 static inline bool
 cell_bg_default_p(const cell* c){
   return !(c->channels & CELL_BGDEFAULT_MASK);
+}
+
+static inline int
+cell_fg_set_alpha(cell* c, int alpha){
+  return notcurses_fg_set_alpha(&c->channels, alpha);
+}
+
+static inline int
+cell_bg_set_alpha(cell *c, int alpha){
+  return notcurses_bg_set_alpha(&c->channels, alpha);
+}
+
+static inline int
+cell_fg_alpha(const cell* c){
+  return notcurses_fg_alpha(c->channels);
+}
+
+static inline int
+cell_bg_alpha(const cell* c){
+  return notcurses_bg_alpha(c->channels);
 }
 
 // does the cell contain an East Asian Wide codepoint?
@@ -938,6 +1002,7 @@ typedef struct panelreel_options {
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
   cell tabletattr;     // attributes used for tablet borders
   cell focusedattr;    // attributes used for focused tablet borders, no color!
+  uint64_t bgchannel;  // background colors
 } panelreel_options;
 
 struct tablet;

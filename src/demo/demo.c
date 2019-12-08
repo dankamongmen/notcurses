@@ -56,10 +56,10 @@ usage(const char* exe, int status){
 static int
 outro_message(struct notcurses* nc, int rows, int cols){
   const char str0[] = " ATL, baby! ATL! ";
-  const char str1[] = "much, much more is coming";
+  const char str1[] = " much, much more is coming ";
   const char str2[] = " hack on! —dank❤ ";
-  struct ncplane* on = notcurses_newplane(nc, 5, strlen(str1) + 6, rows - 6,
-                                         (cols - (strlen(str1) + 6)) / 2, NULL);
+  struct ncplane* on = notcurses_newplane(nc, 5, strlen(str1) + 4, rows - 6,
+                                         (cols - (strlen(str1) + 4)) / 2, NULL);
   if(on == NULL){
     return -1;
   }
@@ -68,6 +68,36 @@ outro_message(struct notcurses* nc, int rows, int cols){
   ncplane_set_background(on, &bgcell);
   ncplane_dim_yx(on, &rows, &cols);
   int ybase = 0;
+  // bevel the upper corners
+  uint64_t channel = 0;
+  if(notcurses_bg_set_alpha(&channel, 3)){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(on, ybase, 0)){
+    return -1;
+  }
+  if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(on, ybase, cols - 2)){
+    return -1;
+  }
+  if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
+    return -1;
+  }
+  // ...and now the lower corners
+  if(ncplane_cursor_move_yx(on, rows - 1, 0)){
+    return -1;
+  }
+  if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
+    return -1;
+  }
+  if(ncplane_cursor_move_yx(on, rows - 1, cols - 2)){
+    return -1;
+  }
+  if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
+    return -1;
+  }
   if(ncplane_set_fg_rgb(on, 0, 0, 0)){
     return -1;
   }

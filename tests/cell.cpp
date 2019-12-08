@@ -76,3 +76,27 @@ TEST_F(CellTest, SetStyles) {
   ASSERT_EQ(6, ulen);
   // FIXME
 }*/
+
+TEST_F(CellTest, CellSetFGAlpha){
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  EXPECT_GT(0, cell_fg_set_alpha(&c, -1));
+  EXPECT_GT(0, cell_fg_set_alpha(&c, 4));
+  EXPECT_EQ(0, cell_fg_set_alpha(&c, 0));
+  EXPECT_EQ(0, cell_fg_alpha(&c));
+  EXPECT_EQ(0, cell_fg_set_alpha(&c, 3));
+  EXPECT_EQ(3, cell_fg_alpha(&c));
+  EXPECT_TRUE(cell_fg_default_p(&c));
+  EXPECT_TRUE(cell_bg_default_p(&c));
+}
+
+TEST_F(CellTest, CellSetBGAlpha){
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  EXPECT_GT(0, cell_bg_set_alpha(&c, -1));
+  EXPECT_GT(0, cell_bg_set_alpha(&c, 4));
+  EXPECT_EQ(0, cell_bg_set_alpha(&c, 0));
+  EXPECT_EQ(0, cell_bg_alpha(&c));
+  EXPECT_EQ(0, cell_bg_set_alpha(&c, 3));
+  EXPECT_EQ(3, cell_bg_alpha(&c));
+  EXPECT_TRUE(cell_fg_default_p(&c));
+  EXPECT_TRUE(cell_bg_default_p(&c));
+}

@@ -255,12 +255,16 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     .loff = x,
     .roff = x,
     .boff = y,
+    .bgchannel = 0,
   };
   cell_set_fg(&popts.focusedattr, 58, 150, 221);
   cell_set_bg(&popts.focusedattr, 97, 214, 214);
   cell_set_fg(&popts.tabletattr, 19, 161, 14);
   cell_set_fg(&popts.borderattr, 136, 23, 152);
   cell_set_bg(&popts.borderattr, 0, 0, 0);
+  if(notcurses_bg_set_alpha(&popts.bgchannel, 3)){
+    return NULL;
+  }
   struct ncplane* w = notcurses_stdplane(nc);
   struct panelreel* pr = panelreel_create(w, &popts, efd);
   if(pr == NULL){
