@@ -569,7 +569,6 @@ API void cell_release(struct ncplane* n, cell* c);
 
 #define CELL_STYLE_SHIFT     16u
 #define CELL_STYLE_MASK      0xffff0000ul
-#define CELL_ALPHA_MASK      0x0000fffful
 // these are used for the style bitfield *after* it is shifted
 #define CELL_STYLE_STANDOUT  0x0001u
 #define CELL_STYLE_UNDERLINE 0x0002u
@@ -586,26 +585,26 @@ API void cell_release(struct ncplane* n, cell* c);
 static inline void
 cell_styles_set(cell* c, unsigned stylebits){
   c->attrword = (c->attrword & ~CELL_STYLE_MASK) |
-                ((stylebits & 0xffff) << 16u);
+                ((stylebits & 0xffff) << CELL_STYLE_SHIFT);
 }
 
 // Get the style bits, shifted over into the LSBs.
 static inline unsigned
 cell_styles(const cell* c){
-  return (c->attrword & CELL_STYLE_MASK) >> 16u;
+  return (c->attrword & CELL_STYLE_MASK) >> CELL_STYLE_SHIFT;
 }
 
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
 cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= ((stylebits & 0xffff) << 16u);
+  c->attrword |= ((stylebits & 0xffff) << CELL_STYLE_SHIFT);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
 cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~((stylebits & 0xffff) << 16u);
+  c->attrword &= ~((stylebits & 0xffff) << CELL_STYLE_SHIFT);
 }
 
 static inline unsigned
