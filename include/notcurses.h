@@ -773,7 +773,6 @@ cell_bg_default(cell* c){
   notcurses_bg_default_prep(&c->channels);
 }
 
-// is the cell using the terminal's default foreground color for its foreground?
 static inline bool
 notcurses_fg_default_p(uint64_t channels){
   return !(channels & CELL_FGDEFAULT_MASK);
@@ -788,6 +787,26 @@ notcurses_bg_default_p(uint64_t channels){
 static inline bool
 cell_bg_default_p(const cell* c){
   return !(c->channels & CELL_BGDEFAULT_MASK);
+}
+
+static inline int
+cell_fg_set_alpha(cell* c, int alpha){
+  return notcurses_fg_set_alpha(&c->channels, alpha);
+}
+
+static inline int
+cell_bg_set_alpha(cell *c, int alpha){
+  return notcurses_bg_set_alpha(&c->channels, alpha);
+}
+
+static inline int
+cell_fg_alpha(const cell* c){
+  return notcurses_fg_alpha(c->channels);
+}
+
+static inline int
+cell_bg_alpha(const cell* c){
+  return notcurses_bg_alpha(c->channels);
 }
 
 // does the cell contain an East Asian Wide codepoint?
