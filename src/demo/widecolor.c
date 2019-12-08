@@ -282,56 +282,62 @@ snake_thread(void* vnc){
 static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_load(n, &c, " ");
+  cell_fg_set_alpha(&c, 3);
+  cell_bg_set_alpha(&c, 3);
+  ncplane_set_background(n, &c);
+  cell_release(n, &c);
   uint64_t channels = 0;
   ncplane_set_fg_rgb(n, 64, 128, 240);
   ncplane_set_bg_rgb(n, 32, 64, 32);
   notcurses_fg_prep(&channels, 255, 255, 255);
   notcurses_bg_default_prep(&channels);
-  ncplane_cursor_move_yx(n, 3, 1);
-  if(ncplane_rounded_box(n, 0, channels, 5, 57, 0)){
+  ncplane_cursor_move_yx(n, 2, 0);
+  if(ncplane_rounded_box(n, 0, channels, 4, 56, 0)){
     return -1;
   }
   // bottom handle
-  ncplane_cursor_move_yx(n, 5, 18);
+  ncplane_cursor_move_yx(n, 4, 17);
   ncplane_putegc(n, "┬", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 6, 18);
+  ncplane_cursor_move_yx(n, 5, 17);
   ncplane_putegc(n, "│", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 7, 18);
+  ncplane_cursor_move_yx(n, 6, 17);
   ncplane_putegc(n, "╰", 0, 0, NULL);
   cell hl = CELL_TRIVIAL_INITIALIZER;
   cell_prime(n, &hl, "━", 0, channels);
   ncplane_hline(n, &hl, 57 - 18 - 1);
-  ncplane_cursor_move_yx(n, 7, 57);
+  ncplane_cursor_move_yx(n, 6, 56);
   ncplane_putegc(n, "╯", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 6, 57);
+  ncplane_cursor_move_yx(n, 5, 56);
   ncplane_putegc(n, "│", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 5, 57);
+  ncplane_cursor_move_yx(n, 4, 56);
   ncplane_putegc(n, "┤", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 6, 19);
+  ncplane_cursor_move_yx(n, 5, 18);
   ncplane_styles_on(n, CELL_STYLE_ITALIC);
   ncplane_printf(n, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
   ncplane_styles_off(n, CELL_STYLE_ITALIC);
 
   // top handle
-  ncplane_cursor_move_yx(n, 3, 4);
+  ncplane_cursor_move_yx(n, 2, 3);
   ncplane_putegc(n, "╨", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 2, 4);
+  ncplane_cursor_move_yx(n, 1, 3);
   ncplane_putegc(n, "║", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 1, 4);
+  ncplane_cursor_move_yx(n, 0, 3);
   ncplane_putegc(n, "╔", 0, 0, NULL);
   cell_prime(n, &hl, "═", 0, channels);
   ncplane_hline(n, &hl, 20 - 4 - 1);
   cell_release(n, &hl);
-  ncplane_cursor_move_yx(n, 1, 20);
+  ncplane_cursor_move_yx(n, 0, 19);
   ncplane_putegc(n, "╗", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 2, 20);
+  ncplane_cursor_move_yx(n, 1, 19);
   ncplane_putegc(n, "║", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 3, 20);
+  ncplane_cursor_move_yx(n, 2, 19);
   ncplane_putegc(n, "╨", 0, 0, NULL);
-  ncplane_cursor_move_yx(n, 2, 5);
+  ncplane_cursor_move_yx(n, 1, 4);
   ncplane_styles_on(n, CELL_STYLE_ITALIC);
   ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
-  ncplane_cursor_move_yx(n, 4, 2);
+  ncplane_cursor_move_yx(n, 3, 1);
   ncplane_styles_off(n, CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(n, 224, 128, 224);
   ncplane_putstr(n, "  🔥 wide chars, multiple colors, resize awareness…🔥  ");
@@ -658,7 +664,11 @@ int widecolor_demo(struct notcurses* nc){
           }
         }
       }while(y < maxy && x < maxx);
-      if(message(n, maxy, maxx, i, sizeof(steps) / sizeof(*steps),
+      struct ncplane* mess = notcurses_newplane(nc, 7, 57, 1, 4, NULL);
+      if(mess == NULL){
+        return -1;
+      }
+      if(message(mess, maxy, maxx, i, sizeof(steps) / sizeof(*steps),
                  bytes_out, egcs_out, cols_out)){
         return -1;
       }
@@ -680,7 +690,8 @@ int widecolor_demo(struct notcurses* nc){
       }while(key < 0);
       pthread_cancel(tid);
       pthread_join(tid, NULL);
-    }while(c.gcluster == 0 && key == NCKEY_RESIZE);
+      ncplane_destroy(mess);
+    }while(key == NCKEY_RESIZE);
   }
   return 0;
 }
