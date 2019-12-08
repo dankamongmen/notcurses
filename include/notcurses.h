@@ -1003,6 +1003,7 @@ typedef struct panelreel_options {
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
   cell tabletattr;     // attributes used for tablet borders
   cell focusedattr;    // attributes used for focused tablet borders, no color!
+  uint64_t bgchannel;  // background colors
 } panelreel_options;
 
 struct tablet;
