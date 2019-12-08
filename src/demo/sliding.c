@@ -7,7 +7,6 @@
 #define CHUNKS_VERT 6
 #define CHUNKS_HORZ 12
 #define MOVES 20
-#define GIG 1000000000ul
 
 static int
 move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
