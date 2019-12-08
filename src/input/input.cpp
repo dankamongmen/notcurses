@@ -67,6 +67,7 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+  ncplane_bg_default(n);
   int y = 1;
   std::deque<cell> cells;
   ncspecial_key special;
@@ -80,15 +81,28 @@ int main(void){
     if(cell_simple_p(&c)){
       char kp = c.gcluster;
       if(kp == 0){
-        if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'\n",
-                          special, special, nckeystr(special)) < 0){
+        if(special == 0){
+          ncplane_set_fg_rgb(n, 255, 95, 255);
+          if(ncplane_printf(n, "Read garbage: [0x%02x (%02d)] '%s'\n",
+                            special, special, nckeystr(special)) < 0){
+            break;
+          }
+        }else{
+          ncplane_set_fg_rgb(n, 175, 175, 255);
+          if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'\n",
+                            special, special, nckeystr(special)) < 0){
+            break;
+          }
+        }
+      }else{
+        ncplane_set_fg_rgb(n, 175, 255, 135);
+        if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'\n",
+                          kp, kp, isprint(kp) ? kp : printutf8(kp)) < 0){
           break;
         }
-      }else if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'\n",
-                              kp, kp, isprint(kp) ? kp : printutf8(kp)) < 0){
-        break;
       }
     }else{
+      ncplane_set_fg_rgb(n, 215, 0, 95);
       ncplane_printf(n, "Curious! %d%5s\n", c.gcluster, ""); // FIXME
     }
     // FIXME reprint all lines, fading older ones
