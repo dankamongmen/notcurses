@@ -182,7 +182,7 @@ int unicodeblocks_demo(struct notcurses* nc){
   uint64_t nstotal = timespec_to_ns(&demodelay);
   ns_to_timespec(nstotal, &subdelay);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
-    ncplane_erase(n);
+    //ncplane_erase(n);
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     ncplane_set_fg_rgb(n, 0xad, 0xd8, 0xe6);
