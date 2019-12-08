@@ -1787,19 +1787,21 @@ static int
 alloc_ncplane_palette(ncplane* n, planepalette* pp){
   ncplane_lock(n);
   ncplane_dim_yx(n, &pp->rows, &pp->cols);
-  int size = pp->rows * pp->cols;
+  // add an additional element for the background cell
+  int size = pp->rows * pp->cols + 1;
   if((pp->channels = malloc(sizeof(*pp->channels) * size)) == NULL){
     ncplane_unlock(n);
     return -1;
   }
   pp->maxr = pp->maxg = pp->maxb = 0;
   pp->maxbr = pp->maxbg = pp->maxbb = 0;
+  unsigned r, g, b, br, bg, bb;
+  uint64_t channels;
   int y, x;
   for(y = 0 ; y < pp->rows ; ++y){
     for(x = 0 ; x < pp->cols ; ++x){
-      uint64_t channels = n->fb[fbcellidx(n, y, x)].channels;
+      channels = n->fb[fbcellidx(n, y, x)].channels;
       pp->channels[y * pp->cols + x] = channels;
-      unsigned r, g, b, br, bg, bb;
       cell_rgb_get_fg(channels, &r, &g, &b);
       if(r > pp->maxr){
         pp->maxr = r;
@@ -1821,6 +1823,29 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
         pp->maxbb = bb;
       }
     }
+  }
+  // FIXME factor this duplication out
+  channels = n->background.channels;
+  pp->channels[y * pp->cols] = channels;
+  cell_rgb_get_fg(channels, &r, &g, &b);
+  if(r > pp->maxr){
+    pp->maxr = r;
+  }
+  if(g > pp->maxg){
+    pp->maxg = g;
+  }
+  if(b > pp->maxb){
+    pp->maxb = b;
+  }
+  cell_rgb_get_bg(channels, &br, &bg, &bb);
+  if(br > pp->maxbr){
+    pp->maxbr = br;
+  }
+  if(bg > pp->maxbg){
+    pp->maxbg = bg;
+  }
+  if(bb > pp->maxbb){
+    pp->maxbb = bb;
   }
   ncplane_unlock(n);
   return 0;
@@ -1918,6 +1943,8 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
   // Start time in absolute nanoseconds
   uint64_t startns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
   do{
+    unsigned br, bg, bb;
+    unsigned r, g, b;
     clock_gettime(CLOCK_MONOTONIC, &times);
     uint64_t curns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
     int iter = (curns - startns) / nanosecs_step + 1;
@@ -1931,18 +1958,16 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
     ncplane_dim_yx(n, &dimy, &dimx);
     for(y = 0 ; y < pp.rows && y < dimy ; ++y){
       for(x = 0 ; x < pp.cols && x < dimx; ++x){
-        unsigned r, g, b;
-        cell_rgb_get_fg(pp.channels[pp.cols * y + x], &r, &g, &b);
-        unsigned br, bg, bb;
-        cell_rgb_get_bg(pp.channels[pp.cols * y + x], &br, &bg, &bb);
         cell* c = &n->fb[dimx * y + x];
         if(!cell_fg_default_p(c)){
+          cell_rgb_get_fg(pp.channels[pp.cols * y + x], &r, &g, &b);
           r = r * (maxsteps - iter) / maxsteps;
           g = g * (maxsteps - iter) / maxsteps;
           b = b * (maxsteps - iter) / maxsteps;
           cell_set_fg(c, r, g, b);
         }
         if(!cell_bg_default_p(c)){
+          cell_rgb_get_bg(pp.channels[pp.cols * y + x], &br, &bg, &bb);
           br = br * (maxsteps - iter) / maxsteps;
           bg = bg * (maxsteps - iter) / maxsteps;
           bb = bb * (maxsteps - iter) / maxsteps;
@@ -1950,16 +1975,31 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
         }
       }
     }
+    cell* c = &n->background;
+    if(!cell_fg_default_p(c)){
+      cell_rgb_get_fg(pp.channels[pp.cols * y], &r, &g, &b);
+      r = r * (maxsteps - iter) / maxsteps;
+      g = g * (maxsteps - iter) / maxsteps;
+      b = b * (maxsteps - iter) / maxsteps;
+      cell_set_fg(&n->background, r, g, b);
+    }
+    if(!cell_bg_default_p(c)){
+      cell_rgb_get_bg(pp.channels[pp.cols * y], &br, &bg, &bb);
+      br = br * (maxsteps - iter) / maxsteps;
+      bg = bg * (maxsteps - iter) / maxsteps;
+      bb = bb * (maxsteps - iter) / maxsteps;
+      cell_set_bg(&n->background, br, bg, bb);
+    }
     notcurses_render(n->nc);
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
     struct timespec sleepspec;
     sleepspec.tv_sec = nextwake / NANOSECS_IN_SEC;
     sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
-    int r;
+    int rsleep;
     // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
     // of Glibc 2.29 + Linux 5.3 :/.
-    r = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
-    if(r){
+    rsleep = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
+    if(rsleep){
       break;
     }
   }while(true);
