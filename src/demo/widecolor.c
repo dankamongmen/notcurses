@@ -7,6 +7,17 @@
 #include <pthread.h>
 #include "demo.h"
 
+// FIXME throw this in there somehow
+//   ∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),     ⎧⎡⎛┌─────┐⎞⎤⎫
+//                                            ⎪⎢⎜│a²+b³ ⎟⎥⎪
+//  ∀x∈ℝ: ⌈x⌉ = −⌊−x⌋, α ∧ ¬β = ¬(¬α ∨ β),    ⎪⎢⎜│───── ⎟⎥⎪
+//                                            ⎪⎢⎜⎷ c₈   ⎟⎥⎪
+//  ℕ ⊆ ℕ₀ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (z̄ = ℜ(z)−ℑ(z)⋅𝑖), ⎨⎢⎜       ⎟⎥⎬
+//                                            ⎪⎢⎜ ∞     ⎟⎥⎪
+//  ⊥ < a ≠ b ≡ c ≤ d ≪ ⊤ ⇒ (⟦A⟧ ⇔ ⟪B⟫),      ⎪⎢⎜ ⎲     ⎟⎥⎪
+//                                            ⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪
+//  2H₂ + O₂ ⇌ 2H₂O, R = 4.7 kΩ, ⌀ 200 µm     ⎩⎣⎝i=1    ⎠⎦⎭
+
 // get the (up to) eight surrounding cells. they run clockwise, starting from
 // the upper left: 012
 //                 7 3

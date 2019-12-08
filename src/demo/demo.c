@@ -69,7 +69,7 @@ outro_message(struct notcurses* nc, int rows, int cols){
   ncplane_dim_yx(on, &rows, &cols);
   int ybase = 0;
   // bevel the upper corners
-  if(ncplane_cursor_move_yx(on, ybase, 0) || ncplane_putsimple(on, '\0', 0, 0) < 0){
+  if(ncplane_cursor_move_yx(on, ybase, 0) || ncplane_putsimple(on, ' ', 0, 0) < 0){
     return -1;
   }
   if(ncplane_cursor_move_yx(on, ybase, cols - 1) || ncplane_putsimple(on, ' ', 0, 0) < 0){

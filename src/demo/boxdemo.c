@@ -4,6 +4,15 @@
 
 #define ITERATIONS 10
 
+// throw this in the middle with transparent background FIXME
+/* ┏━━┳━━┓ 
+   ┃┌─╂─┐┃ 
+   ┃│╲╿╱│┃ 
+   ┣┿╾╳╼┿┫ 
+   ┃│╱╽╲│┃ 
+   ┃└─╂─┘┃ 
+   ┗━━┻━━┛ */
+
 int box_demo(struct notcurses* nc){
   const int64_t totalns = timespec_to_ns(&demodelay);
   struct timespec iterdelay;
