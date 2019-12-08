@@ -957,9 +957,8 @@ visible_cell(int y, int x, ncplane** retp){
         if(vis->gcluster == 0){
           vis = &p->background;
         }
-        // if it's using the terminal default, chase further down
-        // FIXME should probably be based off alpha channel
-        if(cell_fg_default_p(vis) && cell_bg_default_p(vis) && vis->gcluster == 0){
+        // FIXME do this more rigorously, PoC
+        if(cell_fg_alpha(vis) || cell_bg_alpha(vis)){
           *retp = p->z;
           const cell* trans = visible_cell(y, x, retp);
           if(trans){
