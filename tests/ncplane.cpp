@@ -120,9 +120,9 @@ TEST_F(NcplaneTest, EmitCell) {
 
 // Verify we can emit a wide character, and it advances the cursor
 TEST_F(NcplaneTest, EmitWchar) {
-  const wchar_t w = L'✔';
-  int sbytes;
-  EXPECT_LT(0, ncplane_putwegc(n_, &w, 0, 0, &sbytes));
+  const wchar_t* w = L"✔";
+  int sbytes = 0;
+  EXPECT_LT(0, ncplane_putwegc(n_, w, 0, 0, &sbytes));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, y);
