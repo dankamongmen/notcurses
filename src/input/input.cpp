@@ -9,8 +9,9 @@
 static int dimy, dimx;
 static struct notcurses* nc;
 
-const char* nckeystr(ncspecial_key key){
-  switch(key){
+// return the string version of a special composed key
+const char* nckeystr(wchar_t spkey){
+  switch(spkey){ // FIXME
     case NCKEY_RESIZE:
       notcurses_resize(nc, &dimy, &dimx);
       return "resize event";
@@ -43,7 +44,7 @@ const char* nckeystr(ncspecial_key key){
 }
 
 // print the utf8 Control Pictures for otherwise unprintable chars
-wchar_t printutf8(int kp){
+wchar_t printutf8(wchar_t kp){
   if(kp <= 27 && kp >= 0){
     return 0x2400 + kp;
   }
@@ -60,50 +61,39 @@ int main(void){
     return EXIT_FAILURE;;
   }
   struct ncplane* n = notcurses_stdplane(nc);
-  int r;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  cell c = CELL_TRIVIAL_INITIALIZER;
   if(ncplane_set_fg_rgb(n, 255, 255, 255)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
   ncplane_bg_default(n);
   int y = 1;
-  std::deque<cell> cells;
-  ncspecial_key special;
-  while(errno = 0, (r = notcurses_getc_blocking(nc, &c, &special)) >= 0){
+  std::deque<wchar_t> cells;
+  wchar_t r;
+  while(errno = 0, (r = notcurses_getc_blocking(nc)) >= 0){
     if(r == 0){ // interrupted by signal
       continue;
     }
     if(ncplane_cursor_move_yx(n, y, 0)){
       break;
     }
-    if(cell_simple_p(&c)){
-      char kp = c.gcluster;
-      if(kp == 0){
-        if(special == 0){
-          ncplane_set_fg_rgb(n, 255, 95, 255);
-          if(ncplane_printf(n, "Read garbage: [0x%02x (%02d)] '%s'\n",
-                            special, special, nckeystr(special)) < 0){
-            break;
-          }
-        }else{
-          ncplane_set_fg_rgb(n, 175, 175, 255);
-          if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'\n",
-                            special, special, nckeystr(special)) < 0){
-            break;
-          }
-        }
-      }else{
-        ncplane_set_fg_rgb(n, 175, 255, 135);
-        if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'\n",
-                          kp, kp, isprint(kp) ? kp : printutf8(kp)) < 0){
-          break;
-        }
+    if(r < 0x80){
+      ncplane_set_fg_rgb(n, 175, 255, 135);
+      if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'\n",
+                        r, r, iswprint(r) ? r : printutf8(r)) < 0){
+        break;
       }
     }else{
-      ncplane_set_fg_rgb(n, 215, 0, 95);
-      ncplane_printf(n, "Curious! %d%5s\n", c.gcluster, ""); // FIXME
+      if(wchar_supppuab_p(r)){
+        ncplane_set_fg_rgb(n, 175, 175, 255);
+        if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'\n",
+                          r, r, nckeystr(r)) < 0){
+          break;
+        }
+      }else{
+        ncplane_set_fg_rgb(n, 215, 0, 95);
+        ncplane_printf(n, "Curious! 0x%x %5s\n", r, ""); // FIXME
+      }
     }
     // FIXME reprint all lines, fading older ones
     if(notcurses_render(nc)){
@@ -115,7 +105,7 @@ int main(void){
     while(cells.size() >= dimy - 3u){
       cells.pop_back();
     }
-    cells.push_front(c);
+    cells.push_front(r);
   }
   int e = errno;
   notcurses_stop(nc);

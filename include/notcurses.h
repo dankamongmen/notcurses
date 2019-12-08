@@ -145,79 +145,82 @@ API int notcurses_render(struct notcurses* nc);
 // Extended Grapheme Cluster (despite use of the cell object, which encodes an
 // entire EGC). It is also possible that we will read a special keypress, i.e.
 // anything that doesn't correspond to a Unicode codepoint (e.g. arrow keys,
-// function keys, screen resize events, etc.). On return, 'special' is a valid
-// special key if and only if c.gcluster is 0 AND the return value is positive.
+// function keys, screen resize events, etc.). These are mapped into Unicode's
+// Supplementary Private Use Area-B, starting at U+100000.
 //
-// Many special keys arrive as an escape sequence. It can thus be necessary for
-// notcurses_getc() to wait a short time following receipt of an escape. If no
-// further input is received, it is assumed that the actual Escape key was
-// pressed. Otherwise, the input will be checked against the terminfo database
-// to see if it indicates a special key. In all other cases, notcurses_getc()
-// is non-blocking. notcurses_getc_blocking() blocks until a codepoint or
-// special key is read (though it can be interrupted by a signal).
+// notcurses_getc() and notcurses_getc_nblock() are both nonblocking.
+// notcurses_getc_blocking() blocks until a codepoint or special key is read,
+// or until interrupted by a signal.
 //
 // In the case of a valid read, a positive value is returned corresponding to
-// the number of bytes in the UTF-8 character, or '1' for all specials keys.
+// the number of bytes in the UTF-8 character, or '1' for all special keys.
 // 0 is returned to indicate that no input was available, but only by
 // notcurses_getc(). Otherwise (including on EOF) -1 is returned.
-typedef enum {
-  NCKEY_INVALID,
-  NCKEY_RESIZE,   // generated interally in response to SIGWINCH
-  NCKEY_UP,
-  NCKEY_RIGHT,
-  NCKEY_DOWN,
-  NCKEY_LEFT,
-  NCKEY_INS,
-  NCKEY_DEL,
-  NCKEY_BS,       // backspace (sometimes)
-  NCKEY_PGDOWN,
-  NCKEY_PGUP,
-  NCKEY_HOME,
-  NCKEY_END,
-  NCKEY_F00,
-  NCKEY_F01,
-  NCKEY_F02,
-  NCKEY_F03,
-  NCKEY_F04,
-  NCKEY_F05,
-  NCKEY_F06,
-  NCKEY_F07,
-  NCKEY_F08,
-  NCKEY_F09,
-  NCKEY_F10,
-  NCKEY_F11,
-  NCKEY_F12,
-  NCKEY_F13,
-  NCKEY_F14,
-  NCKEY_F15,
-  NCKEY_F16,
-  NCKEY_F17,
-  NCKEY_F18,
-  NCKEY_F19,
-  NCKEY_F20,
-  // FIXME...
-} ncspecial_key;
+
+#define suppuabize(w) ((w) + 0x100000)
+
+// is this wide character a Supplementary Private Use Area-B codepoint?
+static inline bool
+wchar_supppuab_p(wchar_t w){
+  return w >= 0x100000 && w <= 0x10fffd;
+}
+
+// Special composed key defintions. These values are added to 0x100000.
+#define NCKEY_INVALID suppuabize(0)
+#define NCKEY_RESIZE  suppuabize(1) // generated interally in response to SIGWINCH
+#define NCKEY_UP      suppuabize(2)
+#define NCKEY_RIGHT   suppuabize(3)
+#define NCKEY_DOWN    suppuabize(4)
+#define NCKEY_LEFT    suppuabize(5)
+#define NCKEY_INS     suppuabize(6)
+#define NCKEY_DEL     suppuabize(7)
+#define NCKEY_BS      suppuabize(8) // backspace (sometimes)
+#define NCKEY_PGDOWN  suppuabize(9)
+#define NCKEY_PGUP    suppuabize(10)
+#define NCKEY_HOME    suppuabize(11)
+#define NCKEY_END     suppuabize(12)
+#define NCKEY_F00     suppuabize(20)
+#define NCKEY_F01     suppuabize(21)
+#define NCKEY_F02     suppuabize(22)
+#define NCKEY_F03     suppuabize(23)
+#define NCKEY_F04     suppuabize(24)
+#define NCKEY_F05     suppuabize(25)
+#define NCKEY_F06     suppuabize(26)
+#define NCKEY_F07     suppuabize(27)
+#define NCKEY_F08     suppuabize(28)
+#define NCKEY_F09     suppuabize(29)
+#define NCKEY_F10     suppuabize(30)
+#define NCKEY_F11     suppuabize(31)
+#define NCKEY_F12     suppuabize(32)
+#define NCKEY_F13     suppuabize(33)
+#define NCKEY_F14     suppuabize(34)
+#define NCKEY_F15     suppuabize(35)
+#define NCKEY_F16     suppuabize(36)
+#define NCKEY_F17     suppuabize(37)
+#define NCKEY_F18     suppuabize(38)
+#define NCKEY_F19     suppuabize(39)
+#define NCKEY_F20     suppuabize(40)
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at lenghth, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
-API int notcurses_getc(struct notcurses* n, cell* c, ncspecial_key* special,
-                       const struct timespec* ts, sigset_t* sigmask);
+// Returns a single Unicode code point, or (wchar_t)-1 on error.
+API int notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
 
 static inline int
-notcurses_getc_nblock(struct notcurses* n, cell* c, ncspecial_key* nkey){
+notcurses_getc_nblock(struct notcurses* n){
   sigset_t sigmask;
   sigfillset(&sigmask);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-  return notcurses_getc(n, c, nkey, &ts, &sigmask);
+  return notcurses_getc(n, &ts, &sigmask);
 }
 
-static inline int
-notcurses_getc_blocking(struct notcurses* n, cell* c, ncspecial_key* nkey){
+static inline wchar_t
+notcurses_getc_blocking(struct notcurses* n){
   sigset_t sigmask;
   sigemptyset(&sigmask);
-  return notcurses_getc(n, c, nkey, NULL, &sigmask);
+  return notcurses_getc(n, NULL, &sigmask);
 }
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane

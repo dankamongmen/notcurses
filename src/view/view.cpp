@@ -79,10 +79,7 @@ int main(int argc, char** argv){
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }
-    ncspecial_key special;
-    cell c = CELL_TRIVIAL_INITIALIZER;
-    notcurses_getc_blocking(nc, &c, &special);
-    cell_release(ncp, &c);
+    notcurses_getc_blocking(nc);
     ncvisual_destroy(ncv);
   }
   if(notcurses_stop(nc)){

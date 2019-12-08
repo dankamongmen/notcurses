@@ -175,7 +175,8 @@ input queue per `struct notcurses`.
 
 Like NCURSES, notcurses will watch for escape sequences, check them against the
 terminfo database, and return them as special keys. Unlike NCURSES, the
-fundamental unit of input is the UTF8-encoded Unicode codepoint.
+fundamental unit of input is the UTF8-encoded Unicode codepoint. Note, however,
+that only one codepoint is returned at a time (as opposed to an entire EGC).
 
 ```c
 // All input is currently taken from stdin, though this will likely change. We
@@ -183,19 +184,15 @@ fundamental unit of input is the UTF8-encoded Unicode codepoint.
 // Extended Grapheme Cluster (despite use of the cell object, which encodes an
 // entire EGC). It is also possible that we will read a special keypress, i.e.
 // anything that doesn't correspond to a Unicode codepoint (e.g. arrow keys,
-// function keys, screen resize events, etc.). On return, 'special' is a valid
-// special key if and only if c.gcluster is 0 AND the return value is positive.
+// function keys, screen resize events, etc.). These are mapped into Unicode's
+// Private Use Area.
 //
-// Many special keys arrive as an escape sequence. It can thus be necessary for
-// notcurses_getc() to wait a short time following receipt of an escape. If no
-// further input is received, it is assumed that the actual Escape key was
-// pressed. Otherwise, the input will be checked against the terminfo database
-// to see if it indicates a special key. In all other cases, notcurses_getc()
-// is non-blocking. notcurses_getc_blocking() blocks until a codepoint or
-// special key is read (though it can be interrupted by a signal).
+// notcurses_getc() and notcurses_getc_nblock() are both nonblocking.
+// notcurses_getc_blocking() blocks until a codepoint or special key is read,
+// or until interrupted by a signal.
 //
 // In the case of a valid read, a positive value is returned corresponding to
-// the number of bytes in the UTF-8 character, or '1' for all specials keys.
+// the number of bytes in the UTF-8 character, or '1' for all special keys.
 // 0 is returned to indicate that no input was available, but only by
 // notcurses_getc(). Otherwise (including on EOF) -1 is returned.
 typedef enum {
@@ -968,7 +965,6 @@ The worst case input frame (in terms of output size) is one whose colors change
 from coordinate to coordinate, uses multiple combining characters within each
 grapheme cluster, and has a large geometry. Peculiarities of the terminal
 make it impossible to comment more meaningfully regarding delay.
-
 
 ## Included tools
 

@@ -580,7 +580,7 @@ int widecolor_demo(struct notcurses* nc){
   const size_t screens = sizeof(steps) / sizeof(*steps);
   ncplane_erase(n);
   for(i = 0 ; i < screens ; ++i){
-    ncspecial_key special;
+    wchar_t key = NCKEY_INVALID;
     cell c;
     do{ // (re)draw a screen
       const int start = starts[i];
@@ -591,7 +591,6 @@ int widecolor_demo(struct notcurses* nc){
       int dimy, dimx;
       notcurses_resize(nc, &dimy, &dimx);
       cell_init(&c);
-      special = NCKEY_INVALID;
       int y, x, maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx);
       int rgb = start;
@@ -676,13 +675,12 @@ int widecolor_demo(struct notcurses* nc){
       }
       pthread_t tid;
       pthread_create(&tid, NULL, snake_thread, nc);
-      int key;
       do{
-        key = notcurses_getc_blocking(nc, &c, &special);
+        key = notcurses_getc_blocking(nc);
       }while(key < 0);
       pthread_cancel(tid);
       pthread_join(tid, NULL);
-    }while(c.gcluster == 0 && special == NCKEY_RESIZE);
+    }while(c.gcluster == 0 && key == NCKEY_RESIZE);
   }
   return 0;
 }

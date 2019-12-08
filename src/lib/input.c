@@ -20,12 +20,12 @@ pop_input_keypress(notcurses* nc){
 
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
-  ncspecial_key special; // escape terminating here
+  int special;            // composed key terminating here
   struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
 } esctrie;
 
 static esctrie*
-create_esctrie_node(ncspecial_key special){
+create_esctrie_node(int special){
   esctrie* e = malloc(sizeof(*e));
   if(e){
     e->special = special;
@@ -50,8 +50,14 @@ void input_free_esctrie(esctrie** eptr){
   }
 }
 
-int notcurses_add_input_escape(notcurses* nc, const char* esc, ncspecial_key special){
+static int
+notcurses_add_input_escape(notcurses* nc, const char* esc, wchar_t special){
   if(esc[0] != ESC || strlen(esc) < 2){ // assume ESC prefix + content
+    fprintf(stderr, "Not an escape: %s (0x%x)\n", esc, special);
+    return -1;
+  }
+  if(!wchar_supppuab_p(special)){
+    fprintf(stderr, "Not a supplementary-b PUA char: %lc (0x%x)\n", special, special);
     return -1;
   }
   esctrie** cur = &nc->inputescapes;
@@ -76,7 +82,8 @@ int notcurses_add_input_escape(notcurses* nc, const char* esc, ncspecial_key spe
       cur = &(*cur)->trie[validate];
     }
   }while(*esc);
-  if((*cur)->special){ // already had one here!
+  if((*cur)->special != NCKEY_INVALID){ // already had one here!
+    fprintf(stderr, "Already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
     return -1;
   }
   (*cur)->special = special;
@@ -86,8 +93,8 @@ int notcurses_add_input_escape(notcurses* nc, const char* esc, ncspecial_key spe
 // add the keypress we just read to our input queue (assuming there is room).
 // if there is a full UTF8 codepoint or keystroke (composed or otherwise),
 // return it, and pop it from the queue.
-static int
-handle_getc(notcurses* nc, cell* c, int kpress, ncspecial_key* special){
+static wchar_t
+handle_getc(notcurses* nc, int kpress){
 // fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress < 0){
     return -1;
@@ -108,16 +115,15 @@ handle_getc(notcurses* nc, cell* c, int kpress, ncspecial_key* special){
     }
 //fprintf(stderr, "esc? %c special: %d\n", esc ? 'y' : 'n', esc ? esc->special : NCKEY_INVALID);
     if(esc && esc->special != NCKEY_INVALID){
-      *special = esc->special;
-      return 1;
+      return esc->special;
     }
     // FIXME ungetc on failure! walk trie backwards or something
   }
   if(kpress == 0x04){ // ctrl-d, treated as EOF
-    return -1;
+    return (wchar_t)-1;
   }
   if(kpress < 0x80){
-    c->gcluster = kpress;
+    return kpress;
   }else{
     // FIXME load up zee utf8
   }
@@ -145,11 +151,9 @@ input_queue_full(const notcurses* nc){
   return nc->inputbuf_occupied == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf);
 }
 
-static int
-handle_input(notcurses* nc, cell* c, ncspecial_key* special){
+static wchar_t
+handle_input(notcurses* nc){
   int r;
-  c->gcluster = 0;
-  *special = NCKEY_INVALID;
   // getc() returns unsigned chars cast to ints
   while(!input_queue_full(nc) && (r = getc(nc->ttyinfp)) >= 0){
     nc->inputbuf[nc->inputbuf_write_at] = (unsigned char)r;
@@ -162,28 +166,26 @@ handle_input(notcurses* nc, cell* c, ncspecial_key* special){
   // highest priority is resize notifications, since they don't queue
   if(resize_seen){
     resize_seen = 0;
-    *special = NCKEY_RESIZE;
-    return 1;
+    return NCKEY_RESIZE;
   }
   // if there was some error in getc(), we still dole out the existing queue
   if(nc->inputbuf_occupied == 0){
     return -1;
   }
   r = pop_input_keypress(nc);
-  return handle_getc(nc, c, r, special);
+  return handle_getc(nc, r);
 }
 
 // infp has always been set non-blocking
-int notcurses_getc(notcurses* nc, cell* c, ncspecial_key* special,
-                   const struct timespec *ts, sigset_t* sigmask){
+wchar_t notcurses_getc(notcurses* nc, const struct timespec *ts, sigset_t* sigmask){
   errno = 0;
-  int r = handle_input(nc, c, special);
+  int r = handle_input(nc);
   if(r > 0){
     return r;
   }
   if(errno == EAGAIN || errno == EWOULDBLOCK){
     block_on_input(nc->ttyinfp, ts, sigmask);
-    r = handle_input(nc, c, special);
+    return handle_input(nc);
   }
   return r;
 }
@@ -191,7 +193,7 @@ int notcurses_getc(notcurses* nc, cell* c, ncspecial_key* special,
 int prep_special_keys(notcurses* nc){
   static const struct {
     const char* tinfo;
-    ncspecial_key key;
+    wchar_t key;
   } keys[] = {
     { .tinfo = "kcub1", .key = NCKEY_LEFT, },
     { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
