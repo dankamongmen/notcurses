@@ -41,8 +41,8 @@ egcpool_grow(egcpool* pool, size_t len){
   while(len > newsize - pool->poolsize){ // ensure we make enough space
     newsize *= 2;
   }
-  // offsets only have 24 bits available...
-  if(newsize >= 1u << 24u){
+  // offsets only have 25 bits available...
+  if(newsize >= 1u << 25u){
     return -1;
   }
   // nasty cast here because c++ source might include this header :/
@@ -106,7 +106,7 @@ egcpool_alloc_justified(const egcpool* pool, int len){
 
 // stash away the provided UTF8, NUL-terminated grapheme cluster. the cluster
 // should not be less than 2 bytes (such a cluster should be directly stored in
-// the cell). returns -1 on error, and otherwise a non-negative 24-bit offset.
+// the cell). returns -1 on error, and otherwise a non-negative 25-bit offset.
 // 'ulen' must be the number of bytes to lift from egc (utf8_egc_len()).
 static inline int
 egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
