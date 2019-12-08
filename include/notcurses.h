@@ -581,7 +581,6 @@ API void cell_release(struct ncplane* n, cell* c);
 
 #define CELL_STYLE_SHIFT     16u
 #define CELL_STYLE_MASK      0xffff0000ul
-#define CELL_ALPHA_MASK      0x000000fful
 // these are used for the style bitfield *after* it is shifted
 #define CELL_STYLE_STANDOUT  0x0001u
 #define CELL_STYLE_UNDERLINE 0x0002u
