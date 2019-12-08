@@ -19,6 +19,7 @@ int grid_demo(struct notcurses* nc);
 int sliding_puzzle_demo(struct notcurses* nc);
 int view_demo(struct notcurses* nc);
 int panelreel_demo(struct notcurses* nc);
+int outro(struct notcurses* nc);
 
 int timespec_subtract(struct timespec *result, const struct timespec *time1,
                       struct timespec *time0);
