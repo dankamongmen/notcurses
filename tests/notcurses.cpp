@@ -104,3 +104,19 @@ TEST_F(NotcursesTest, TileScreenWithPlanes) {
   delete[] planes;
   ASSERT_EQ(0, notcurses_render(nc_));
 }
+
+TEST_F(NotcursesTest, ChannelSetFGAlpha){
+  uint64_t channel = 0;
+  EXPECT_GT(0, notcurses_fg_set_alpha(&channel, -1));
+  EXPECT_GT(0, notcurses_fg_set_alpha(&channel, 4));
+  EXPECT_EQ(0, notcurses_fg_set_alpha(&channel, 0));
+  EXPECT_EQ(0, notcurses_fg_set_alpha(&channel, 3));
+}
+
+TEST_F(NotcursesTest, ChannelSetBGAlpha){
+  uint64_t channel = 0;
+  EXPECT_GT(0, notcurses_bg_set_alpha(&channel, -1));
+  EXPECT_GT(0, notcurses_bg_set_alpha(&channel, 4));
+  EXPECT_EQ(0, notcurses_bg_set_alpha(&channel, 0));
+  EXPECT_EQ(0, notcurses_bg_set_alpha(&channel, 3));
+}
