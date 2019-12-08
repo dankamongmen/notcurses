@@ -9,6 +9,8 @@
 #include <notcurses.h>
 #include "demo.h"
 
+static const char DEFAULT_DEMO[] = "imbgsuwvpo";
+
 int timespec_subtract(struct timespec *result, const struct timespec *time0,
                       struct timespec *time1){
   if(time0->tv_nsec < time1->tv_nsec){
@@ -324,7 +326,7 @@ int main(int argc, char** argv){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
-    demos = "isumbgwvpo";
+    demos = DEFAULT_DEMO;
   }
   if((nc = notcurses_init(&nopts)) == NULL){
     return EXIT_FAILURE;

@@ -578,6 +578,7 @@ int widecolor_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
   const size_t screens = sizeof(steps) / sizeof(*steps);
+  ncplane_erase(n);
   for(i = 0 ; i < screens ; ++i){
     ncspecial_key special;
     cell c;
@@ -587,7 +588,6 @@ int widecolor_demo(struct notcurses* nc){
       const int rollover = 256 / ((step & 0xff) | ((step & 0xff00) >> 8u)
                                   | ((step & 0xff0000) >> 16u));
       int rollcount = 0; // number of times we've added this step
-      //ncplane_erase(n);
       int dimy, dimx;
       notcurses_resize(nc, &dimy, &dimx);
       cell_init(&c);
