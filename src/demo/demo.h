@@ -30,6 +30,13 @@ timespec_to_ns(const struct timespec* ts){
   return ts->tv_sec * GIG + ts->tv_nsec;
 }
 
+static inline struct timespec*
+ns_to_timespec(uint64_t ns, struct timespec* ts){
+  ts->tv_sec = ns / GIG;
+  ts->tv_nsec = ns % GIG;
+  return ts;
+}
+
 static inline int64_t
 timespec_subtract_ns(const struct timespec* time1, const struct timespec* time0){
   int64_t ns = timespec_to_ns(time1);

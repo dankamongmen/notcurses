@@ -79,7 +79,7 @@ you should by all means use that fine library.
 
 * A C11 and a C++14 compiler
 * CMake 3.13.0+
-* NCurses 6.1+ (for terminfo)
+* From NCURSES: terminfo 6.1+
 * From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 
 ## Use

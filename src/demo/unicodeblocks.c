@@ -12,6 +12,95 @@
 #define BLOCKSIZE 512 // show this many per page
 #define CHUNKSIZE 32  // show this many per line
 
+static int
+hook_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subdelay){
+  uint64_t ns = timespec_to_ns(subdelay);
+  int dimx;
+  ncplane_dim_yx(nn, NULL, &dimx);
+  int y, x;
+  ncplane_yx(nn, &y, &x);
+  struct timespec iterts;
+  ns_to_timespec(ns / x, &iterts);
+  int newx;
+  for(newx = x - 1 ; newx >= -dimx ; --newx){
+    if(notcurses_render(nc)){
+      ncplane_destroy(nn);
+      return -1;
+    }
+    nanosleep(&iterts, NULL); // FIXME adaptive!
+    ncplane_move_yx(nn, y, newx);
+  }
+  ncplane_destroy(nn);
+  return 0;
+}
+
+static int
+draw_block(struct ncplane* nn, uint32_t blockstart){
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  cells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
+  cell_set_bg(&hl, 0, 0, 0);
+  cell_set_bg(&vl, 0, 0, 0);
+  if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl,
+                  BLOCKSIZE / CHUNKSIZE + 2,
+                  (CHUNKSIZE * 2) + 2, 0)){
+    return -1;
+  }
+  cell_release(nn, &ul); cell_release(nn, &ur); cell_release(nn, &hl);
+  cell_release(nn, &ll); cell_release(nn, &lr); cell_release(nn, &vl);
+  int chunk;
+  for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
+    if(ncplane_cursor_move_yx(nn, chunk + 1, 1)){
+      return -1;
+    }
+    int z;
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    // 16 to a line
+    for(z = 0 ; z < CHUNKSIZE ; ++z){
+      wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\u200e' };
+      char utf8arr[MB_CUR_MAX * 2 + 1];
+      if(wcswidth(w, 2) >= 1 && iswprint(w[0])){
+        mbstate_t ps;
+        memset(&ps, 0, sizeof(ps));
+        const wchar_t *wptr = w;
+        int bwc = wcsrtombs(utf8arr, &wptr, sizeof(utf8arr), &ps);
+        if(bwc < 0){
+          fprintf(stderr, "Couldn't convert %u (%x) (%lc) (%s)\n",
+                  blockstart + chunk * CHUNKSIZE + z,
+                  blockstart + chunk * CHUNKSIZE + z, w[0], strerror(errno));
+          return -1;
+        }
+        utf8arr[bwc] = '\0';
+      }else{ // don't dump non-printing codepoints
+        utf8arr[0] = ' ';
+        utf8arr[1] = 0xe2;
+        utf8arr[2] = 0x80;
+        utf8arr[3] = 0x8e;
+        utf8arr[4] = '\0';
+      }
+      if(cell_load(nn, &c, utf8arr) < 0){ // FIXME check full len was eaten?
+        return -1;;
+      }
+      cell_set_fg(&c, 0xad + z * 2, 0xd8, 0xe6 - z * 2);
+      cell_set_bg(&c, 8 * chunk, 8 * chunk + z, 8 * chunk);
+      if(ncplane_putc(nn, &c) < 0){
+        return -1;
+      }
+      if(wcwidth(w[0]) < 2 || !iswprint(w[0])){
+        if(cell_load(nn, &c, " ") < 0){
+          return -1;
+        }
+        if(ncplane_putc(nn, &c) < 0){
+          return -1;
+        }
+      }
+    }
+    cell_release(nn, &c);
+  }
+  return 0;
+}
+
 int unicodeblocks_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   int maxx, maxy;
@@ -88,17 +177,14 @@ int unicodeblocks_demo(struct notcurses* nc){
     { .name = "Chess Symbols, Symbols and Pictographs Extended-A", .start = 0x1fa00, },
   };
   size_t sindex;
-  // we don't want a full delay period for each one, urk
+  // we don't want a full delay period for each one, urk...or do we?
   struct timespec subdelay;
-  uint64_t nstotal = demodelay.tv_sec * 1000000000 + demodelay.tv_nsec;
-  nstotal /= 10;
-  subdelay.tv_sec = nstotal / 1000000000;
-  subdelay.tv_nsec = nstotal % 1000000000;
+  uint64_t nstotal = timespec_to_ns(&demodelay);
+  ns_to_timespec(nstotal, &subdelay);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_erase(n);
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
-    int chunk;
     ncplane_set_fg_rgb(n, 0xad, 0xd8, 0xe6);
     if(ncplane_cursor_move_yx(n, 1, (maxx - 26) / 2)){
       return -1;
@@ -106,70 +192,16 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf(n, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
-    int xstart = (maxx - (CHUNKSIZE * 2 + 2)) / 2;
+    int xstart = maxx - 1;
     if(ncplane_cursor_move_yx(n, 3, xstart)){
       return -1;
     }
-    cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-    cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-    cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-    cells_rounded_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
-    cell_set_bg(&hl, 0, 0, 0);
-    cell_set_bg(&vl, 0, 0, 0);
-    if(ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl,
-                   BLOCKSIZE / CHUNKSIZE + 2,
-                   (CHUNKSIZE * 2) + 2, 0)){
+    struct ncplane* nn;
+    if((nn = notcurses_newplane(nc, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 3, xstart, NULL)) == NULL){
       return -1;
     }
-    cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-    cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
-    for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
-      if(ncplane_cursor_move_yx(n, 4 + chunk, xstart + 1)){
-        return -1;
-      }
-      int z;
-      cell c = CELL_TRIVIAL_INITIALIZER;
-      // 16 to a line
-      for(z = 0 ; z < CHUNKSIZE ; ++z){
-        wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\u200e' };
-        char utf8arr[MB_CUR_MAX * 2 + 1];
-        if(wcswidth(w, 2) >= 1 && iswprint(w[0])){
-          mbstate_t ps;
-          memset(&ps, 0, sizeof(ps));
-          const wchar_t *wptr = w;
-          int bwc = wcsrtombs(utf8arr, &wptr, sizeof(utf8arr), &ps);
-          if(bwc < 0){
-            fprintf(stderr, "Couldn't convert %u (%x) (%lc) (%s)\n",
-                    blockstart + chunk * CHUNKSIZE + z,
-                    blockstart + chunk * CHUNKSIZE + z, w[0], strerror(errno));
-            return -1;
-          }
-          utf8arr[bwc] = '\0';
-        }else{ // don't dump non-printing codepoints
-          utf8arr[0] = ' ';
-          utf8arr[1] = 0xe2;
-          utf8arr[2] = 0x80;
-          utf8arr[3] = 0x8e;
-          utf8arr[4] = '\0';
-        }
-        if(cell_load(n, &c, utf8arr) < 0){ // FIXME check full len was eaten?
-          return -1;;
-        }
-        cell_set_fg(&c, 0xad + z * 2, 0xd8, 0xe6 - z * 2);
-        cell_set_bg(&c, 8 * chunk, 8 * chunk + z, 8 * chunk);
-        if(ncplane_putc(n, &c) < 0){
-          return -1;
-        }
-        if(wcwidth(w[0]) < 2 || !iswprint(w[0])){
-          if(cell_load(n, &c, " ") < 0){
-            return -1;
-          }
-          if(ncplane_putc(n, &c) < 0){
-            return -1;
-          }
-        }
-      }
-      cell_release(n, &c);
+    if(draw_block(nn, blockstart)){
+      return -1;
     }
     ncplane_set_fg_rgb(n, 0x40, 0xc0, 0x40);
     ncplane_set_bg_rgb(n, 0, 0, 0);
@@ -185,10 +217,9 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf(n, "%s", description) <= 0){
       return -1;
     }
-    if(notcurses_render(nc)){
+    if(hook_block(nc, nn, &subdelay)){ // destroys nn
       return -1;
     }
-    nanosleep(&subdelay, NULL);
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused.
     blockstart += BLOCKSIZE;
