@@ -118,11 +118,23 @@ TEST_F(NcplaneTest, EmitWchar) {
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 
-// Verify we can emit a wide string, and it advances the cursor
+// Verify we can emit a multibyte string, and it advances the cursor
 TEST_F(NcplaneTest, EmitStr) {
   const char s[] = "Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
   int wrote = ncplane_putstr(n_, s);
   EXPECT_EQ(strlen(s), wrote);
+  int x, y;
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_EQ(0, y);
+  EXPECT_NE(1, x); // FIXME tighten in on this
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+// Verify we can emit a wide string, and it advances the cursor
+TEST_F(NcplaneTest, EmitWideStr) {
+  const wchar_t s[] = L"Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
+  int wrote = ncplane_putwstr(n_, s);
+  EXPECT_LT(0, wrote);
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, y);

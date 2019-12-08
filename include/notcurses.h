@@ -2,8 +2,10 @@
 #define NOTCURSES_NOTCURSES
 
 #include <time.h>
+#include <wchar.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <signal.h>
@@ -360,6 +362,25 @@ API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
 // which were written before the error.
 API int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 
+// ncplane_putstr(), but following a conversion from wchar_t to UTF8.
+static inline int
+ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
+  // maximum of six UTF8-encoded bytes per wchar_t
+  const size_t mbytes = (wcslen(gclustarr) * 6) + 1;
+  char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
+  if(mbstr == NULL){
+    return -1;
+  }
+  size_t s = wcstombs(mbstr, gclustarr, mbytes);
+  if(s == (size_t)-1){
+    free(mbstr);
+    return -1;
+  }
+  int ret = ncplane_putstr(n, mbstr);
+  free(mbstr);
+  return ret;
+}
+
 // The ncplane equivalents of printf(3) and vprintf(3).
 API int ncplane_printf(struct ncplane* n, const char* format, ...);
 API int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
@@ -495,6 +516,7 @@ API int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
 // Working with cells
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = c, .attrword = 0, .channels = 0, }
 
 static inline void
 cell_init(cell* c){
