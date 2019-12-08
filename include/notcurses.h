@@ -702,6 +702,16 @@ notcurses_bg_set_alpha(uint64_t* channels, int alpha){
 }
 
 static inline int
+notcurses_fg_alpha(uint64_t channels){
+  return (channels & CELL_BGALPHA_MASK) >> 60u;
+}
+
+static inline int
+notcurses_bg_alpha(uint64_t channels){
+  return (channels & CELL_BGALPHA_MASK) >> 28u;
+}
+
+static inline int
 notcurses_fg_prep(uint64_t* channels, int r, int g, int b){
   return notcurses_channel_prep(channels, CELL_FG_MASK, 32, r, g, b, CELL_FGDEFAULT_MASK);
 }
@@ -761,6 +771,17 @@ cell_fg_default_p(const cell* c){
 static inline void
 cell_bg_default(cell* c){
   notcurses_bg_default_prep(&c->channels);
+}
+
+// is the cell using the terminal's default foreground color for its foreground?
+static inline bool
+notcurses_fg_default_p(uint64_t channels){
+  return !(channels & CELL_FGDEFAULT_MASK);
+}
+
+static inline bool
+notcurses_bg_default_p(uint64_t channels){
+  return !(channels & CELL_BGDEFAULT_MASK);
 }
 
 // is the cell using the terminal's default background color for its background?
