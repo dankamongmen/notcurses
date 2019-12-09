@@ -180,8 +180,9 @@ int unicodeblocks_demo(struct notcurses* nc){
   // we don't want a full delay period for each one, urk...or do we?
   struct timespec subdelay;
   uint64_t nstotal = timespec_to_ns(&demodelay);
-  ns_to_timespec(nstotal, &subdelay);
+  ns_to_timespec(nstotal / 5, &subdelay);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
+    ncplane_set_bg_rgb(n, 0, 0, 0);
     //ncplane_erase(n);
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
@@ -204,7 +205,6 @@ int unicodeblocks_demo(struct notcurses* nc){
       return -1;
     }
     ncplane_set_fg_rgb(n, 0x40, 0xc0, 0x40);
-    ncplane_set_bg_rgb(n, 0, 0, 0);
     if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 0)){
       return -1;
     }
