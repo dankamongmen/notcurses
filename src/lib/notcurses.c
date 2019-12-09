@@ -680,6 +680,15 @@ notcurses* notcurses_init(const notcurses_options* opts){
          ret->top->leny, ret->top->lenx,
          ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
          ret->colors, ret->RGBflag ? "direct" : "palette");
+  if(!ret->RGBflag){ // FIXME
+    if(ret->colors > 16){
+      putp(tiparm(ret->setaf, 207));
+    }else{
+      putp(tiparm(ret->setaf, 9));
+    }
+    fprintf(ret->ttyfp, "\nWarning: you will not have colors until this is resolved:\n");
+    fprintf(ret->ttyfp, " https://github.com/dankamongmen/notcurses/issues/4\n");
+  }
   return ret;
 
 err:
