@@ -28,37 +28,46 @@ class CellTest : public :: testing::Test {
   struct ncplane* n_{};
 };
 
-TEST_F(CellTest, SetStyles) {
+TEST_F(CellTest, SetItalic) {
   cell c;
   int dimy, dimx;
   memset(&c, 0, sizeof(c));
   notcurses_term_dim_yx(nc_, &dimy, &dimx);
   cell_styles_set(&c, CELL_STYLE_ITALIC);
-  ASSERT_EQ(1, cell_load(n_, &c, "s"));
-  EXPECT_EQ(0, ncplane_set_fg_rgb(n_, 255, 255, 255));
-  EXPECT_EQ(1, ncplane_putc(n_, &c));
-  int x, y;
-  ncplane_cursor_yx(n_, &y, &x);
-  EXPECT_EQ(1, x);
-  EXPECT_EQ(0, y);
-  for(y = 0 ; y < dimy ; ++y){
-    ncplane_cursor_move_yx(n_, y, 0);
-    for(x = 0 ; x < dimx ; ++x){
-      EXPECT_EQ(1, ncplane_putc(n_, &c));
-    }
-  }
+  ASSERT_EQ(1, cell_load(n_, &c, "i"));
+  cell_set_fg(&c, 255, 255, 255);
+  ncplane_set_background(n_, &c);
+  cell_release(n_, &c);
   EXPECT_EQ(0, notcurses_render(nc_));
   cell_styles_off(&c, CELL_STYLE_ITALIC);
-  for(y = 0 ; y < dimy ; ++y){
-    ncplane_cursor_move_yx(n_, y, 0);
-    for(x = 0 ; x < dimx ; ++x){
-      EXPECT_EQ(1, ncplane_putc(n_, &c));
-    }
-  }
-  ncplane_cursor_yx(n_, &y, &x);
-  EXPECT_EQ(dimy, y);
-  EXPECT_EQ(0, x); // FIXME shouldn't this be dimx?!?!
+}
+
+TEST_F(CellTest, SetBold) {
+  cell c;
+  int dimy, dimx;
+  memset(&c, 0, sizeof(c));
+  notcurses_term_dim_yx(nc_, &dimy, &dimx);
+  cell_styles_set(&c, CELL_STYLE_BOLD);
+  ASSERT_EQ(1, cell_load(n_, &c, "b"));
+  cell_set_fg(&c, 255, 255, 255);
+  ncplane_set_background(n_, &c);
+  cell_release(n_, &c);
   EXPECT_EQ(0, notcurses_render(nc_));
+  cell_styles_off(&c, CELL_STYLE_BOLD);
+}
+
+TEST_F(CellTest, SetUnderline) {
+  cell c;
+  int dimy, dimx;
+  memset(&c, 0, sizeof(c));
+  notcurses_term_dim_yx(nc_, &dimy, &dimx);
+  cell_styles_set(&c, CELL_STYLE_UNDERLINE);
+  ASSERT_EQ(1, cell_load(n_, &c, "u"));
+  cell_set_fg(&c, 255, 255, 255);
+  ncplane_set_background(n_, &c);
+  cell_release(n_, &c);
+  EXPECT_EQ(0, notcurses_render(nc_));
+  cell_styles_off(&c, CELL_STYLE_UNDERLINE);
 }
 
 /*TEST_F(CellTest, CellLoadTamil) {

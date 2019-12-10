@@ -516,6 +516,8 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   term_verify_seq(&nc->bold, "bold");
   term_verify_seq(&nc->italics, "sitm");
   term_verify_seq(&nc->italoff, "ritm");
+  term_verify_seq(&nc->sgr, "sgr");
+  term_verify_seq(&nc->sgr0, "sgr0");
   term_verify_seq(&nc->op, "op");
   term_verify_seq(&nc->clearscr, "clear");
   term_verify_seq(&nc->cleareol, "el");
@@ -703,6 +705,9 @@ int notcurses_stop(notcurses* nc){
       ret = -1;
     }
     if(nc->op && term_emit("op", nc->op, nc->ttyfp, true)){
+      ret = -1;
+    }
+    if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
       ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
@@ -936,10 +941,19 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c)
   }
   int ret = 0;
   ret |= term_setstyle(out, *curattr, cellattr, CELL_STYLE_ITALIC, nc->italics, nc->italoff);
-  /*ret |= term_setstyle(out, curattr, cellattr, CELL_STYLE_BOLD, nc->bold, nc->boldoff);
-  ret |= term_setstyle(out, curattr, cellattr, CELL_STYLE_UNDERLINE, nc->uline, nc->ulineoff);
-  ret |= term_setstyle(out, curattr, cellattr, CELL_STYLE_BLINK, nc->blink, nc->blinkoff);*/
-  // FIXME a few others
+  /*if(nc->sgr){
+    if(term_emit("sgr", tiparm(nc->sgr, cellattr & CELL_STYLE_STANDOUT,
+                                        cellattr & CELL_STYLE_UNDERLINE,
+                                        cellattr & CELL_STYLE_REVERSE,
+                                        cellattr & CELL_STYLE_BLINK,
+                                        cellattr & CELL_STYLE_DIM,
+                                        cellattr & CELL_STYLE_BOLD,
+                                        cellattr & CELL_STYLE_INVIS,
+                                        cellattr & CELL_STYLE_PROTECT, 0),
+                                        out, false) < 0){
+      ret = -1;
+    }
+  }*/
   *curattr = cellattr;
   return ret;
 }

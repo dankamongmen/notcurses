@@ -85,6 +85,8 @@ typedef struct notcurses {
   char* cleareol; // clear to end of line
   char* clearbol; // clear to beginning of line
   char* cnorm;    // restore cursor to default state
+  char* sgr;      // set many graphics properties at once
+  char* sgr0;     // restore default presentation properties
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode
   char* setaf;    // set foreground color (ANSI)
