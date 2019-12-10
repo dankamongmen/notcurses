@@ -1679,9 +1679,13 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   return 0;
 }
 
-void ncplane_move_yx(ncplane* n, int y, int x){
+int ncplane_move_yx(ncplane* n, int y, int x){
+  if(n == n->nc->stdscr){
+    return -1;
+  }
   n->absy = y;
   n->absx = x;
+  return 0;
 }
 
 void ncplane_yx(const ncplane* n, int* y, int* x){

@@ -111,7 +111,6 @@ draw_luigi(struct ncplane* n, const char* sprite){
   ncplane_set_background(n, &bgc);
   cell_release(n, &bgc);
   size_t s;
-  ncplane_move_yx(n, 0, 0);
   int sbytes;
   uint64_t channels = 0;
   for(s = 0 ; s < strlen(sprite) ; ++s){
@@ -140,8 +139,8 @@ draw_luigi(struct ncplane* n, const char* sprite){
 
 int luigi_demo(struct notcurses* nc){
   struct ncplane* n1 = notcurses_newplane(nc, 32, 16, 0, 0, NULL);
-  struct ncplane* n2 = notcurses_newplane(nc, 32, 16, 32, 0, NULL);
-  struct ncplane* n3 = notcurses_newplane(nc, 32, 16, 32, 48, NULL);
+  struct ncplane* n2 = notcurses_newplane(nc, 32, 16, 0, 16, NULL);
+  struct ncplane* n3 = notcurses_newplane(nc, 32, 16, 0, 32, NULL);
   if(n1 == NULL || n2 == NULL || n3 == NULL){
     return -1;
   }
