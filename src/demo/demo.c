@@ -9,7 +9,7 @@
 #include <notcurses.h>
 #include "demo.h"
 
-static const char DEFAULT_DEMO[] = "imbgswuvpo";
+static const char DEFAULT_DEMO[] = "imlbgswuvpo";
 
 int timespec_subtract(struct timespec *result, const struct timespec *time0,
                       struct timespec *time1){
@@ -45,6 +45,7 @@ usage(const char* exe, int status){
   fprintf(out, " b: run box\n");
   fprintf(out, " g: run grid\n");
   fprintf(out, " i: run intro\n");
+  fprintf(out, " l: run luigi\n");
   fprintf(out, " m: run maxcolor\n");
   fprintf(out, " o: run outro\n");
   fprintf(out, " p: run panelreels\n");
@@ -145,6 +146,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'm': ret = maxcolor_demo(nc); break;
       case 'b': ret = box_demo(nc); break;
       case 'g': ret = grid_demo(nc); break;
+      case 'l': ret = luigi_demo(nc); break;
       case 'v': ret = view_demo(nc); break;
       case 'w': ret = widecolor_demo(nc); break;
       case 'p': ret = panelreel_demo(nc); break;

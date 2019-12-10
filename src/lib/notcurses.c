@@ -357,8 +357,6 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
   if(n == NULL){
     return n;
   }
-  n->absx = xoff;
-  n->absy = yoff;
   n->userptr = opaque;
   return n;
 }
