@@ -214,27 +214,32 @@ TEST_F(NcplaneTest, BadlyPlacedBoxen) {
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 
-TEST_F(NcplaneTest, BoxPermutations) {
+TEST_F(NcplaneTest, BoxPermutationsRounded) {
   int dimx, dimy;
   ncplane_dim_yx(n_, &dimy, &dimx);
-  ASSERT_LT(12, dimy);
-  ASSERT_LT(24, dimx);
-  // we'll try all 16 boxmasks in 3x3 configurations in a 4x4 map
+  ASSERT_LT(2, dimy);
+  ASSERT_LT(47, dimx);
+  // we'll try all 16 boxmasks in 3x3 configurations in a 1x16 map
   unsigned boxmask = 0;
-  for(auto y0 = 0 ; y0 < 4 ; ++y0){
-    for(auto x0 = 0 ; x0 < 4 ; ++x0){
-      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * 3, x0 * 3));
-      EXPECT_EQ(0, ncplane_rounded_box_sized(n_, 0, 0, 3, 3, boxmask));
-      ++boxmask;
-    }
+  for(auto x0 = 0 ; x0 < 16 ; ++x0){
+    EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, x0 * 3));
+    EXPECT_EQ(0, ncplane_rounded_box_sized(n_, 0, 0, 3, 3, boxmask));
+    ++boxmask;
   }
-  boxmask = 0;
-  for(auto y0 = 0 ; y0 < 4 ; ++y0){
-    for(auto x0 = 0 ; x0 < 4 ; ++x0){
-      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * 3, x0 * 3 + 12));
-      EXPECT_EQ(0, ncplane_double_box_sized(n_, 0, 0, 3, 3, boxmask));
-      ++boxmask;
-    }
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+TEST_F(NcplaneTest, BoxPermutationsDouble) {
+  int dimx, dimy;
+  ncplane_dim_yx(n_, &dimy, &dimx);
+  ASSERT_LT(2, dimx);
+  ASSERT_LT(47, dimx);
+  // we'll try all 16 boxmasks in 3x3 configurations in a 1x16 map
+  unsigned boxmask = 0;
+  for(auto x0 = 0 ; x0 < 16 ; ++x0){
+    EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, x0 * 3));
+    EXPECT_EQ(0, ncplane_double_box_sized(n_, 0, 0, 3, 3, boxmask));
+    ++boxmask;
   }
   EXPECT_EQ(0, notcurses_render(nc_));
 }
@@ -388,27 +393,32 @@ TEST_F(NcplaneTest, ShrinkPlane) {
   notcurses_term_dim_yx(nc_, &maxy, &maxx);
   struct ncplane* newp = notcurses_newplane(nc_, maxy, maxx, y, x, nullptr);
   ASSERT_NE(nullptr, newp);
+  EXPECT_EQ(0, notcurses_render(nc_));
   while(y > 4 && x > 4){
     maxx -= 2;
     maxy -= 2;
     ++x;
     ++y;
     ASSERT_EQ(0, ncplane_resize(newp, 1, 1, maxy, maxx, 1, 1, maxy, maxx));
+    EXPECT_EQ(0, notcurses_render(nc_));
     // FIXME check dims, pos
   }
   while(y > 4){
     maxy -= 2;
     ++y;
     ASSERT_EQ(0, ncplane_resize(newp, 1, 0, maxy, maxx, 1, 0, maxy, maxx));
+    EXPECT_EQ(0, notcurses_render(nc_));
     // FIXME check dims, pos
   }
   while(x > 4){
     maxx -= 2;
     ++x;
     ASSERT_EQ(0, ncplane_resize(newp, 0, 1, maxy, maxx, 0, 1, maxy, maxx));
+    EXPECT_EQ(0, notcurses_render(nc_));
     // FIXME check dims, pos
   }
   ASSERT_EQ(0, ncplane_resize(newp, 0, 0, 0, 0, 0, 0, 2, 2));
+  EXPECT_EQ(0, notcurses_render(nc_));
   // FIXME check dims, pos
   ASSERT_EQ(0, ncplane_destroy(newp));
 }
@@ -685,4 +695,35 @@ TEST_F(NcplaneTest, RightToLeft) {
   EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 7, 10));
   EXPECT_LT(0, ncplane_putstr(n_, "㉀㉁㉂㉃㉄㉅㉆㉇㉈㉉㉊㉋㉌㉍㉎㉏㉐㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟"));
   EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+TEST_F(NcplaneTest, NewPlaneOnRight) {
+  int ncols, nrows;
+  ncplane_dim_yx(n_, &nrows, &ncols);
+  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
+  int y, x;
+  ncplane_yx(n_, &y, &x);
+  struct ncplane* ncp = notcurses_newplane(nc_, 2, 2, y, ncols - 3, nullptr);
+  ASSERT_NE(nullptr, ncp);
+  ASSERT_EQ(0, cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+  EXPECT_EQ(0, ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  // FIXME verify with ncplane_at_cursor()
+  EXPECT_EQ(0, ncplane_destroy(ncp));
+}
+TEST_F(NcplaneTest, MoveToLowerRight) {
+  int ncols, nrows;
+  ncplane_dim_yx(n_, &nrows, &ncols);
+  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
+  int y, x;
+  ncplane_yx(n_, &y, &x);
+  struct ncplane* ncp = notcurses_newplane(nc_, 2, 2, y, x, nullptr);
+  ASSERT_NE(nullptr, ncp);
+  ASSERT_EQ(0, cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+  EXPECT_EQ(0, ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  EXPECT_EQ(0, ncplane_move_yx(ncp, nrows - 3, ncols - 3));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  EXPECT_EQ(0, ncplane_destroy(ncp));
+  // FIXME verify with ncplane_at_cursor()
 }

@@ -76,6 +76,13 @@ TEST_F(NotcursesTest, RejectDestroyStdPlane) {
   ASSERT_NE(0, ncplane_destroy(ncp));
 }
 
+// it is an error to attempt to move the standard plane
+TEST_F(NotcursesTest, RejectMoveStdPlane) {
+  ncplane* ncp = notcurses_stdplane(nc_);
+  ASSERT_NE(nullptr, ncp);
+  ASSERT_NE(0, ncplane_move_yx(ncp, 1, 1));
+}
+
 // create planes partitioning the entirety of the screen, one at each coordinate
 TEST_F(NotcursesTest, TileScreenWithPlanes) {
   int maxx, maxy;

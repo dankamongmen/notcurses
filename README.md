@@ -304,7 +304,7 @@ int ncplane_background(struct ncplane* ncp, cell* c);
 
 // Move this plane relative to the standard plane. It is an error to attempt to
 // move the standard plane.
-void ncplane_move_yx(struct ncplane* n, int y, int x);
+int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of this plane relative to the standard plane.
 void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
@@ -503,7 +503,7 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
-// with this ncplane is invalidated, and must not be used after the call.
+// with this ncplane are invalidated, and must not be used after the call.
 void ncplane_erase(struct ncplane* n);
 
 // Set the current fore/background color using RGB specifications. If the
@@ -571,18 +571,20 @@ available to the user:
 // are unlikely in common use.
 typedef struct cell {
   // These 32 bits are either a single-byte, single-character grapheme cluster
-  // (values 0--0x7f), or a pointer into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 16MB.
+  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
+  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
   uint32_t gcluster;          // 1 * 4b -> 4b
-  // The classic NCURSES WA_* attributes (16 bits), plus 16 bits of alpha.
+  // CELL_STYLE_* attributes (16 bits) + 16 reserved bits
   uint32_t attrword;          // + 4b -> 8b
-  // (channels & 0x8000000000000000ull): inherit styling from prior cell
+  // (channels & 0x8000000000000000ull): wide character (left or right side)
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
-  // (channels & 0x3f00000000000000ull): reserved, must be 0
+  // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
+  // (channels & 0x0f00000000000000ull): reserved, must be 0
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
-  // (channels & 0x0000000080000000ull): in the middle of a multicolumn glyph
+  // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"
-  // (channels & 0x000000003f000000ull): reserved, must be 0
+  // (channels & 0x0000000030000000ull): background alpha (2 bits)
+  // (channels & 0x000000000f000000ull): reserved, must be 0
   // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
   // At render time, these 24-bit values are quantized down to terminal
   // capabilities, if necessary. There's a clear path to 10-bit support should

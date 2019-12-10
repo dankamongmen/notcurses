@@ -303,7 +303,7 @@ API int ncplane_background(struct ncplane* ncp, cell* c);
 
 // Move this plane relative to the standard plane. It is an error to attempt to
 // move the standard plane.
-API void ncplane_move_yx(struct ncplane* n, int y, int x);
+API int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of this plane relative to the standard plane.
 API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);

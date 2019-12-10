@@ -357,8 +357,6 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
   if(n == NULL){
     return n;
   }
-  n->absx = xoff;
-  n->absy = yoff;
   n->userptr = opaque;
   return n;
 }
@@ -680,6 +678,15 @@ notcurses* notcurses_init(const notcurses_options* opts){
          ret->top->leny, ret->top->lenx,
          ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
          ret->colors, ret->RGBflag ? "direct" : "palette");
+  if(!ret->RGBflag){ // FIXME
+    if(ret->colors > 16){
+      putp(tiparm(ret->setaf, 207));
+    }else{
+      putp(tiparm(ret->setaf, 9));
+    }
+    fprintf(ret->ttyfp, "\nWarning: you will not have colors until this is resolved:\n");
+    fprintf(ret->ttyfp, " https://github.com/dankamongmen/notcurses/issues/4\n");
+  }
   return ret;
 
 err:
@@ -700,20 +707,21 @@ int notcurses_stop(notcurses* nc){
       ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
-    double avg = nc->stats.renders ?
-             nc->stats.render_ns / (double)nc->stats.renders : 0;
-    fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
-            nc->stats.renders,
-            nc->stats.render_ns / 1000000000.0,
-            nc->stats.render_min_ns / 1000000000.0,
-            nc->stats.render_max_ns / 1000000000.0,
-            avg / NANOSECS_IN_SEC);
-    avg = nc->stats.renders ? nc->stats.render_bytes / (double)nc->stats.renders : 0;
-    fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
-            nc->stats.render_bytes / 1024.0,
-            nc->stats.render_min_bytes / 1024.0,
-            nc->stats.render_max_bytes / 1024.0,
-            avg / 1024);
+    if(nc->stats.renders){
+      double avg = nc->stats.render_ns / (double)nc->stats.renders;
+      fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
+              nc->stats.renders,
+              nc->stats.render_ns / 1000000000.0,
+              nc->stats.render_min_ns / 1000000000.0,
+              nc->stats.render_max_ns / 1000000000.0,
+              avg / NANOSECS_IN_SEC);
+      avg = nc->stats.render_bytes / (double)nc->stats.renders;
+      fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
+              nc->stats.render_bytes / 1024.0,
+              nc->stats.render_min_bytes / 1024.0,
+              nc->stats.render_max_bytes / 1024.0,
+              avg / 1024);
+    }
     fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
             nc->stats.defaultemissions,
             nc->stats.defaultelisions,
@@ -1672,9 +1680,13 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   return 0;
 }
 
-void ncplane_move_yx(ncplane* n, int y, int x){
+int ncplane_move_yx(ncplane* n, int y, int x){
+  if(n == n->nc->stdscr){
+    return -1;
+  }
   n->absy = y;
   n->absx = x;
+  return 0;
 }
 
 void ncplane_yx(const ncplane* n, int* y, int* x){
