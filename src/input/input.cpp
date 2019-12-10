@@ -92,7 +92,7 @@ int main(void){
         }
       }else{
         ncplane_set_fg_rgb(n, 215, 0, 95);
-        ncplane_printf(n, "Got UTF-8: [0x%08x %lc\n", r, r);
+        ncplane_printf(n, "Got UTF-8: [0x%08x %lc]\n", r, r);
       }
     }
     // FIXME reprint all lines, fading older ones
