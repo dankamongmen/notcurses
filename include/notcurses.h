@@ -112,10 +112,6 @@ typedef struct notcurses_options {
   // By default, we hide the cursor if possible. This flag inhibits use of
   // the civis capability, retaining the cursor.
   bool retain_cursor;
-  // By default, we handle escape sequences and turn them into special keys.
-  // This is necessary for e.g. arrow keys. This can cause notcurses_getc() to
-  // block for a short time when Escape is pressed. Disable with this bool.
-  bool pass_through_esc;
   // We typically install a signal handler for SIGINT and SIGQUIT that restores
   // the screen, and then calls the old signal handler. Set this to inhibit
   // registration of any signal handlers.
