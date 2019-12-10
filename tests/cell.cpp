@@ -11,9 +11,7 @@ class CellTest : public :: testing::Test {
     }
     notcurses_options nopts{};
     nopts.inhibit_alternate_screen = true;
-    nopts.retain_cursor = true;
-    nopts.pass_through_esc = true;
-    nopts.outfp = stdin;
+    nopts.outfp = fopen("/dev/tty", "wb");
     nc_ = notcurses_init(&nopts);
     ASSERT_NE(nullptr, nc_);
     n_ = notcurses_stdplane(nc_);

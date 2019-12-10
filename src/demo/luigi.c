@@ -119,7 +119,7 @@ draw_luigi(struct ncplane* n, const char* sprite){
         ncplane_cursor_move_yx(n, (s + 1) / 16, (s + 1) % 16);
         break;
       case '1':
-        notcurses_fg_prep(&channels, 255, 255, 255);
+        notcurses_fg_prep(&channels, 0xff, 0xff, 0xff);
         break;
       case '2':
         notcurses_fg_prep(&channels, 0xe3, 0x9d, 0x25);
