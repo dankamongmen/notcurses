@@ -503,7 +503,7 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
-// with this ncplane is invalidated, and must not be used after the call.
+// with this ncplane are invalidated, and must not be used after the call.
 void ncplane_erase(struct ncplane* n);
 
 // Set the current fore/background color using RGB specifications. If the
