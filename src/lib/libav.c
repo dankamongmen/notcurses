@@ -153,7 +153,7 @@ ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename, int* ave
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
   // FIXME we only want to do this if we're not already large enough to
   // faithfully reproduce the image, methinks?
-  ncv->dstwidth *= 2;
+  // ncv->dstwidth *= 2;
   ncv->dstheight *= 2;
   *averr = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
   if(*averr < 0){

@@ -686,3 +686,20 @@ TEST_F(NcplaneTest, RightToLeft) {
   EXPECT_LT(0, ncplane_putstr(n_, "㉀㉁㉂㉃㉄㉅㉆㉇㉈㉉㉊㉋㉌㉍㉎㉏㉐㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟"));
   EXPECT_EQ(0, notcurses_render(nc_));
 }
+
+TEST_F(NcplaneTest, MoveToLowerRight) {
+  int ncols, nrows;
+  ncplane_dim_yx(n_, &nrows, &ncols);
+  cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
+  int y, x;
+  ncplane_yx(n_, &y, &x);
+  struct ncplane* ncp = notcurses_newplane(nc_, 2, 2, y, x, nullptr);
+  ASSERT_NE(nullptr, ncp);
+  ASSERT_EQ(0, cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+  EXPECT_EQ(0, ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  EXPECT_EQ(0, ncplane_move_yx(ncp, nrows - 3, ncols - 3));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  EXPECT_EQ(0, ncplane_destroy(ncp));
+  // FIXME verify with ncplane_at_cursor()
+}
