@@ -18,6 +18,16 @@ pop_input_keypress(notcurses* nc){
   return candidate;
 }
 
+// assumes there is space, as you presumably just popped it
+static inline void
+unpop_keypress(notcurses* nc, int kpress){
+  ++nc->inputbuf_occupied;
+  if(nc->inputbuf_valid_starts-- == 0){
+    nc->inputbuf_valid_starts = sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - 1;
+  }
+  nc->inputbuf[nc->inputbuf_valid_starts] = kpress;
+}
+
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
   int special;            // composed key terminating here
@@ -124,10 +134,24 @@ handle_getc(notcurses* nc, int kpress){
   }
   if(kpress < 0x80){
     return kpress;
-  }else{
-    // FIXME load up zee utf8
   }
-  return 1;
+  char cpoint[MB_CUR_MAX];
+  size_t cpointlen = 0;
+  cpoint[cpointlen] = kpress;
+  // FIXME need to stop as soon as we have a full codepoint urk
+  while(++cpointlen < MB_CUR_MAX - 1 && nc->inputbuf_occupied){
+    int candidate = pop_input_keypress(nc);
+    if(candidate < 0x80){
+      unpop_keypress(nc, candidate);
+    }
+    cpoint[cpointlen] = candidate;
+  }
+  cpoint[cpointlen] = '\0';
+  wchar_t w;
+  if(mbtowc(&w, cpoint, cpointlen) < 0){
+    return (wchar_t)-1;
+  }
+  return w;
 }
 
 // blocks up through ts (infinite with NULL ts), returning number of events
@@ -157,7 +181,7 @@ handle_input(notcurses* nc){
   // getc() returns unsigned chars cast to ints
   while(!input_queue_full(nc) && (r = getc(nc->ttyinfp)) >= 0){
     nc->inputbuf[nc->inputbuf_write_at] = (unsigned char)r;
-//fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
+// fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
     if(++nc->inputbuf_write_at == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
       nc->inputbuf_write_at = 0;
     }
