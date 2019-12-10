@@ -138,19 +138,56 @@ draw_luigi(struct ncplane* n, const char* sprite){
 }
 
 int luigi_demo(struct notcurses* nc){
-  struct ncplane* n1 = notcurses_newplane(nc, 32, 16, 0, 0, NULL);
-  struct ncplane* n2 = notcurses_newplane(nc, 32, 16, 0, 16, NULL);
-  struct ncplane* n3 = notcurses_newplane(nc, 32, 16, 0, 32, NULL);
-  if(n1 == NULL || n2 == NULL || n3 == NULL){
+  struct ncplane* n = notcurses_stdplane(nc);
+  int averr = 0;
+  struct ncvisual* nv = ncplane_visual_open(n, "../tests/megaman2.bmp", &averr);
+  if(nv == NULL){
     return -1;
   }
-  draw_luigi(n1, luigi1);
-  draw_luigi(n2, luigi2);
-  draw_luigi(n3, luigi3);
-  notcurses_render(nc);
-  nanosleep(&demodelay, NULL);
-  ncplane_destroy(n1);
-  ncplane_destroy(n2);
-  ncplane_destroy(n3);
+  if(ncvisual_decode(nv, &averr) == NULL){
+    return -1;
+  }
+  if(ncvisual_render(nv)){
+    return -1;
+  }
+  int rows, cols;
+  ncplane_dim_yx(n, &rows, &cols);
+  // he should be walking on the platform ~4/5 of the way down
+  const int height = 32;
+  int yoff = rows * 4 / 5 - height + 1; // tuned
+  struct ncplane* lns[3];
+  int i;
+  for(i = 0 ; i < 3 ; ++i){
+    lns[i] = notcurses_newplane(nc, height, 16, yoff, -16, NULL);
+    if(lns[i] == NULL){
+      while(--i){
+        ncplane_destroy(lns[i]);
+      }
+      return -1;
+    }
+  }
+  draw_luigi(lns[0], luigi1);
+  draw_luigi(lns[1], luigi2);
+  draw_luigi(lns[2], luigi3);
+  struct ncplane* lastseen = NULL;
+  struct timespec stepdelay;
+  ns_to_timespec(timespec_to_ns(&demodelay) / (cols - 16 - 1), &stepdelay);
+  for(i = 0 ; i < cols - 16 - 1 ; ++i){
+    if(lastseen){ // hide the previous sprite
+      ncplane_move_yx(lastseen, yoff, -16);
+    }
+    if(i % 4 == 3){
+      lastseen = lns[1];
+    }else{
+      lastseen = lns[i % 4];
+    }
+    ncplane_move_yx(lastseen, yoff, i);
+    notcurses_render(nc);
+    nanosleep(&stepdelay, NULL);
+  }
+  for(i = 0 ; i < 3 ; ++i){
+    ncplane_destroy(lns[i]);
+  }
+  ncvisual_destroy(nv);
   return 0;
 }
