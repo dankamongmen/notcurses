@@ -178,11 +178,7 @@ int luigi_demo(struct notcurses* nc){
     if(lastseen){ // hide the previous sprite
       ncplane_move_yx(lastseen, yoff, -16);
     }
-    if(i % 4 == 3){
-      lastseen = lns[1];
-    }else{
-      lastseen = lns[i % 4];
-    }
+    lastseen = lns[i % 3];
     ncplane_move_yx(lastseen, yoff, i);
     notcurses_render(nc);
     nanosleep(&stepdelay, NULL);
