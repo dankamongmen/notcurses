@@ -707,20 +707,21 @@ int notcurses_stop(notcurses* nc){
       ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
-    double avg = nc->stats.renders ?
-             nc->stats.render_ns / (double)nc->stats.renders : 0;
-    fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
-            nc->stats.renders,
-            nc->stats.render_ns / 1000000000.0,
-            nc->stats.render_min_ns / 1000000000.0,
-            nc->stats.render_max_ns / 1000000000.0,
-            avg / NANOSECS_IN_SEC);
-    avg = nc->stats.renders ? nc->stats.render_bytes / (double)nc->stats.renders : 0;
-    fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
-            nc->stats.render_bytes / 1024.0,
-            nc->stats.render_min_bytes / 1024.0,
-            nc->stats.render_max_bytes / 1024.0,
-            avg / 1024);
+    if(nc->stats.renders){
+      double avg = nc->stats.render_ns / (double)nc->stats.renders;
+      fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg)\n",
+              nc->stats.renders,
+              nc->stats.render_ns / 1000000000.0,
+              nc->stats.render_min_ns / 1000000000.0,
+              nc->stats.render_max_ns / 1000000000.0,
+              avg / NANOSECS_IN_SEC);
+      avg = nc->stats.render_bytes / (double)nc->stats.renders;
+      fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
+              nc->stats.render_bytes / 1024.0,
+              nc->stats.render_min_bytes / 1024.0,
+              nc->stats.render_max_bytes / 1024.0,
+              avg / 1024);
+    }
     fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
             nc->stats.defaultemissions,
             nc->stats.defaultelisions,
