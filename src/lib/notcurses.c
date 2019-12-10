@@ -211,8 +211,12 @@ update_term_dimensions(notcurses* n, int* rows, int* cols){
             n->ttyfd, ws.ws_row, ws.ws_col);
     return -1;
   }
-  *rows = ws.ws_row;
-  *cols = ws.ws_col;
+  if(rows){
+    *rows = ws.ws_row;
+  }
+  if(cols){
+    *cols = ws.ws_col;
+  }
   return 0;
 }
 
@@ -306,6 +310,13 @@ create_initial_ncplane(notcurses* nc){
 // anchored in the same place.
 // // FIXME rewrite this in terms of ncpanel_resize(n->stdscr)
 int notcurses_resize(notcurses* n, int* rows, int* cols){
+  int r, c;
+  if(rows == NULL){
+    rows = &r;
+  }
+  if(cols == NULL){
+    cols = &c;
+  }
   int oldrows = n->stdscr->leny;
   int oldcols = n->stdscr->lenx;
   if(update_term_dimensions(n, rows, cols)){
