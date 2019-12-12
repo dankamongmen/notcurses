@@ -6,16 +6,14 @@
 #include <assert.h>
 #include <notcurses.h>
 
+#define DISABLE_ALTCHARSET 1
+
 static int
 pivot_on(int pivot, int* sgrs, int sgrcount){
   assert(0 <= pivot);
   assert(sgrcount > pivot);
   int i;
-  for(i = 0 ; i < sgrcount ; ++i){
-    printf("%c", sgrs[i] ? '1' : '0');
-  }
-  putchar('\n');
-  for(i = 8 ; i >= pivot ; --i){
+  for(i = sgrcount - 1 ; i >= pivot ; --i){
     if(sgrs[i] == 0){
       sgrs[i] = 1;
       int j;
@@ -25,7 +23,11 @@ pivot_on(int pivot, int* sgrs, int sgrcount){
       return pivot;
     }
   }
-  return pivot - 1;
+  for(i = 8 ; i >= pivot ; --i){
+    sgrs[i] = 0;
+  }
+  sgrs[i] = 1;
+  return i;
 }
 
 int main(int argc, char** argv){
@@ -42,19 +44,29 @@ int main(int argc, char** argv){
   }
   int sgrs[9] = { 0 };
   int pivot = 8;
+  if(DISABLE_ALTCHARSET){
+    --pivot;
+  }
+  int sgrcount = pivot + 1;
   // generate all values
   while(pivot >= 0){
-    pivot = pivot_on(pivot, sgrs, 9);
-    int p = putp(tiparm(sgr, sgrs[0], sgrs[1], sgrs[2], sgrs[3], sgrs[4],
-                             sgrs[5], sgrs[6], sgrs[7], sgrs[8]));
-    assert(OK == p);
-    for(a = argv ; *a ; ++a){
-      if((p = printf("%s\n", *a)) < 0){
+    int i;
+    for(i = 0 ; i < 9 ; ++i){
+      printf("%c", sgrs[i] ? '1' : '0');
+    }
+    printf(" (%02d)", pivot);
+    i = putp(tiparm(sgr, sgrs[0], sgrs[1], sgrs[2], sgrs[3], sgrs[4],
+                         sgrs[5], sgrs[6], sgrs[7], sgrs[8]));
+    assert(OK == i);
+    for(a = argv + 1 ; *a ; ++a){
+      if((i = printf(" %s", *a)) < 0){
         return EXIT_FAILURE;
       }
     }
-    p = putp(tiparm(sgr, 0, 0, 0, 0, 0, 0, 0, 0, 0));
-    assert(OK == p);
+    printf("\n");
+    i = putp(tiparm(sgr, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+    assert(OK == i);
+    pivot = pivot_on(pivot, sgrs, sgrcount);
   }
   return EXIT_SUCCESS;
 }
