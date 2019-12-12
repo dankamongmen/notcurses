@@ -84,7 +84,7 @@ foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
   add_executable(${fe} ${f})
   target_include_directories(${fe}
-    PRIVATE "${TERMINFO_INCLUDE_DIR}"
+    PRIVATE include "${TERMINFO_INCLUDE_DIR}"
   )
   target_link_libraries(${fe}
     PRIVATE "${TERMINFO_LIBRARIES}"
