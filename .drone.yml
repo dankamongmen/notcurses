@@ -2,6 +2,8 @@
 pipeline:
   prep:
     image: library/debian:unstable
+    docker:
+      tty: true
     commands:
       - apt-get update
       - apt-get -y remove man-db
@@ -14,8 +16,3 @@ pipeline:
       - cmake ..
       - make
       - LANG="en_US.UTF-8" ./notcurses-tester
----
-kind: signature
-hmac: 0047d07ba756687fe8ba01830a5a4883a0c001c9181317aa84c91df1a3b87ba0
-
-...
