@@ -1377,6 +1377,10 @@ int ncplane_putc(ncplane* n, const cell* c){
   return cols;
 }
 
+uint64_t ncplane_get_channels(const ncplane* n){
+  return n->channels;
+}
+
 int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels){
   cell ce = {
     .gcluster = c,

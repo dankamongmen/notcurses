@@ -568,6 +568,8 @@ API void ncplane_erase(struct ncplane* n);
 API int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 
+API uint64_t ncplane_get_channels(const struct ncplane* n);
+
 // Same, but with rgb assembled into a half-channel (i.e. lower 32 bits).
 API void ncplane_set_fg(struct ncplane* n, uint32_t halfchannel);
 API void ncplane_set_bg(struct ncplane* n, uint32_t halfchannel);
