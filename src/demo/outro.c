@@ -60,22 +60,13 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   if(ncplane_set_bg_rgb(on, 0, 180, 180)){
     return NULL;
   }
-  if(ncplane_cursor_move_yx(on, ++ybase, (*cols - strlen(str0)) / 2)){
+  if(ncplane_putstr_aligned(on, ++ybase, str0, NCALIGN_CENTER) < 0){
     return NULL;
   }
-  if(ncplane_putstr(on, str0) < 0){
+  if(ncplane_putstr_aligned(on, ++ybase, str1, NCALIGN_CENTER) < 0){
     return NULL;
   }
-  if(ncplane_cursor_move_yx(on, ++ybase, (*cols - strlen(str1)) / 2)){
-    return NULL;
-  }
-  if(ncplane_putstr(on, str1) < 0){
-    return NULL;
-  }
-  if(ncplane_cursor_move_yx(on, ++ybase, (*cols - (strlen(str2) - 4)) / 2)){
-    return NULL;
-  }
-  if(ncplane_putstr(on, str2) < 0){
+  if(ncplane_putstr_aligned(on, ++ybase, str2, NCALIGN_CENTER) < 0){
     return NULL;
   }
   if(notcurses_render(nc)){
