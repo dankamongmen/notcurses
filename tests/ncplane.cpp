@@ -167,7 +167,7 @@ TEST_F(NcplaneTest, EmitEmojiStr) {
   EXPECT_LT(0, wrote);
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
-  EXPECT_LT(0, y);
+  EXPECT_LE(0, y);
   EXPECT_NE(1, x); // FIXME tighten in on this
   EXPECT_EQ(0, notcurses_render(nc_));
 }
