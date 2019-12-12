@@ -5,7 +5,7 @@
 class FadeTest : public :: testing::Test {
  protected:
   void SetUp() override {
-    setlocale(LC_ALL, nullptr);
+    setlocale(LC_ALL, "");
     if(getenv("TERM") == nullptr){
       GTEST_SKIP();
     }

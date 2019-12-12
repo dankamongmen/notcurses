@@ -5,7 +5,7 @@
 class EGCPoolTest : public :: testing::Test {
  protected:
   void SetUp() override {
-    setlocale(LC_ALL, nullptr);
+    setlocale(LC_ALL, "");
   }
 
   void TearDown() override {
