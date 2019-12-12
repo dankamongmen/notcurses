@@ -40,6 +40,7 @@ target_link_libraries(notcurses
 )
 target_link_directories(notcurses
   PRIVATE
+    "${TERMINFO_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
     "${SWSCALE_LIBRARY_DIRS}"
 )
@@ -76,6 +77,22 @@ target_compile_definitions(notcurses-demo
   PRIVATE
     FORTIFY_SOURCE=2
 )
+
+# tiny proofs of concept, one binary per source file
+file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c)
+foreach(f ${POCSRCS})
+  get_filename_component(fe "${f}" NAME_WE)
+  add_executable(${fe} ${f})
+  target_include_directories(${fe}
+    PRIVATE "${TERMINFO_INCLUDE_DIR}"
+  )
+  target_link_libraries(${fe}
+    PRIVATE "${TERMINFO_LIBRARIES}"
+  )
+  target_link_directories(${fe}
+    PRIVATE "${TERMINFO_LIBRARY_DIRS}"
+  )
+endforeach()
 
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/*.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
