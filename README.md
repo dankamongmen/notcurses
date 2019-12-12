@@ -91,7 +91,7 @@ provided, and can be accessed as `notcurses`.
 
 Before calling into notcurses—and usually as one of the first calls of the
 program—be sure to call `setlocale(3)` with an appropriate UTF-8 `LC_ALL`
-locale. It is usually appropriate to pass `NULL` to `setlocale()`, relying on
+locale. It is usually appropriate to use `setlocale(LC_ALL, "")`, relying on
 the user to properly set the `LANG` environment variable.
 
 notcurses requires an available `terminfo(5)` definition appropriate for the
