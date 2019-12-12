@@ -112,6 +112,55 @@ drop_signals(notcurses* nc){
   return 0;
 }
 
+// make a heap-allocated wchar_t expansion of the multibyte string at s
+wchar_t* wchar_from_utf8(const char* s){
+  mbstate_t ps;
+  memset(&ps, 0, sizeof(ps));
+  // worst case is a wchar_t for every byte of input (all-ASCII case)
+  const size_t maxw = strlen(s) + 1;
+  wchar_t* dst = malloc(sizeof(*dst) * maxw);
+  size_t wcount = mbsrtowcs(dst, &s, maxw, &ps);
+  if(wcount == (size_t)-1){
+    free(dst);
+    return NULL;
+  }
+  if(s){
+    free(dst);
+    return NULL;
+  }
+  return dst;
+}
+
+int ncplane_putstr_aligned(ncplane* n, int y, const char* s, ncalign_e atype){
+  wchar_t* w = wchar_from_utf8(s);
+  if(w == NULL){
+    return -1;
+  }
+  int width = wcswidth(w, INT_MAX);
+  free(w);
+  int cols;
+  int xpos;
+  switch(atype){
+    case NCALIGN_LEFT:
+      xpos = 0;
+      break;
+    case NCALIGN_CENTER:
+      ncplane_dim_yx(n, NULL, &cols);
+      xpos = (cols - width) / 2;
+      break;
+    case NCALIGN_RIGHT:
+      ncplane_dim_yx(n, NULL, &cols);
+      xpos = cols - width;
+      break;
+    default:
+      return -1;
+  }
+  if(ncplane_cursor_move_yx(n, y, xpos)){
+    return -1;
+  }
+  return ncplane_putstr(n, s);
+}
+
 static inline uint64_t
 timespec_to_ns(const struct timespec* t){
   return t->tv_sec * NANOSECS_IN_SEC + t->tv_nsec;

@@ -433,6 +433,16 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
 // which were written before the error.
 API int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 
+// Alignment within the ncplane. Left/right-justified, or centered.
+typedef enum {
+  NCALIGN_LEFT,
+  NCALIGN_CENTER,
+  NCALIGN_RIGHT,
+} ncalign_e;
+
+API int ncplane_putstr_aligned(struct ncplane* n, int y, const char* s,
+                               ncalign_e atype);
+
 static inline int
 ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr){
   if(ncplane_cursor_move_yx(n, y, x)){

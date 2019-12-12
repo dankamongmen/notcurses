@@ -100,30 +100,21 @@ intro(struct notcurses* nc){
   if(ncplane_set_bg_rgb(ncp, 0, 40, 0)){
     return -1;
   }
-  if(ncplane_cursor_move_yx(ncp, rows / 2 - 2, (cols - strlen(s1) + 4) / 2)){
-    return -1;
-  }
-  if(ncplane_putstr(ncp, s1) != (int)strlen(s1)){
-    return -1;
-  }
-  if(ncplane_cursor_move_yx(ncp, rows / 2, (cols - strlen(str) + 4) / 2)){
+  if(ncplane_putstr_aligned(ncp, rows / 2 - 2, s1, NCALIGN_CENTER) != (int)strlen(s1)){
     return -1;
   }
   ncplane_styles_on(ncp, CELL_STYLE_ITALIC | CELL_STYLE_BOLD);
-  if(ncplane_putstr(ncp, str) != (int)strlen(str)){
+  if(ncplane_putstr_aligned(ncp, rows / 2, str, NCALIGN_CENTER) != (int)strlen(str)){
     return -1;
   }
   ncplane_styles_off(ncp, CELL_STYLE_ITALIC | CELL_STYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  char mbstr[128];
-  if(wcstombs(mbstr, wstr, sizeof(mbstr)) <= 0){
-    return -1;
-  }
+  // FIXME need NCALIGN_CENTER
   if(ncplane_cursor_move_yx(ncp, rows / 2 - 5, (cols - wcslen(wstr) + 4) / 2)){
     return -1;
   }
-  if(ncplane_putstr(ncp, mbstr) != (int)strlen(mbstr)){
-    return -1;
+  if(ncplane_putwstr(ncp, wstr) != (int)wcslen(wstr)){
+    //return -1;
   }
   if(notcurses_render(nc)){
     return -1;
