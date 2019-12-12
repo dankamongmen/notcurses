@@ -945,15 +945,24 @@ term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 
 // write any escape sequences necessary to set the desired style
 static int
-term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c){
+term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
+               bool* normalized){
+  *normalized = false;
   uint32_t cellattr = cell_styles(c);
   if(cellattr == *curattr){
     return 0; // happy agreement, change nothing
   }
   int ret = 0;
-  ret |= term_setstyle(out, *curattr, cellattr, CELL_STYLE_ITALIC, nc->italics, nc->italoff);
-  /*if(nc->sgr){
-    if(term_emit("sgr", tiparm(nc->sgr, cellattr & CELL_STYLE_STANDOUT,
+  // if only italics changed, don't emit any sgr escapes. xor of current and
+  // target ought have all 0s in the lower 16 bits if only italics changed.
+  if((cellattr ^ *curattr) & 0xffffu){
+    *normalized = true; // FIXME this is pretty conservative
+    // if everything's 0, emit the shorter sgr0
+    if(nc->sgr0 && ((cellattr & 0xffff) == 0)){
+      if(term_emit("sgr0", nc->sgr0, out, false) < 0){
+        ret = -1;
+      }
+    }else if(term_emit("sgr", tiparm(nc->sgr, cellattr & CELL_STYLE_STANDOUT,
                                         cellattr & CELL_STYLE_UNDERLINE,
                                         cellattr & CELL_STYLE_REVERSE,
                                         cellattr & CELL_STYLE_BLINK,
@@ -964,7 +973,9 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c)
                                         out, false) < 0){
       ret = -1;
     }
-  }*/
+  }
+  // sgr will blow away italics if they were set beforehand
+  ret |= term_setstyle(out, *curattr, cellattr, CELL_STYLE_ITALIC, nc->italics, nc->italoff);
   *curattr = cellattr;
   return ret;
 }
@@ -1137,6 +1148,21 @@ notcurses_render_internal(notcurses* nc){
       if(c == NULL){
         continue; // shrug?
       }
+      // don't try to print a wide character on the last column; it'll instead
+      // be printed on the next line. they probably shouldn't be admitted, but
+      // we can end up with one due to a resize.
+      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(c))){
+        continue;
+      }
+      // set the style. this can change the color back to the default; if it
+      // does, we need update our elision possibilities.
+      bool normalized;
+      term_setstyles(nc, out, &curattr, c, &normalized);
+      if(normalized){
+        defaultelidable = true;
+        bgelidable = false;
+        fgelidable = false;
+      }
       // we allow these to be set distinctly, but terminfo only supports using
       // them both via the 'op' capability. unless we want to generate the 'op'
       // escapes ourselves, if either is set to default, we first send op, and
@@ -1181,20 +1207,10 @@ notcurses_render_internal(notcurses* nc){
         lastbr = br; lastbg = bg; lastbb = bb;
         defaultelidable = false;
       }
-      // don't try to print a wide character on the last column; it'll instead
-      // be printed on the next line. they probably shouldn't be admitted, but
-      // we can end up with one due to a resize.
-      if((x + 1 < nc->stdscr->lenx || !cell_double_wide_p(c))){
-        term_setstyles(nc, out, &curattr, c);
-        term_putc(out, p, c);
-        if(cell_double_wide_p(c)){
-          ++x;
-        }
-      }/*else{
-        cell space = CELL_TRIVIAL_INITIALIZER;
-        space.gcluster = ' ';
-        term_putc(out, p, &space);
-      }*/
+      term_putc(out, p, c);
+      if(cell_double_wide_p(c)){
+        ++x;
+      }
 //fprintf(stderr, "[%02d/%02d]\n", y, x);
     }
   }

@@ -580,14 +580,14 @@ API void cell_release(struct ncplane* n, cell* c);
 #define CELL_STYLE_SHIFT     16u
 #define CELL_STYLE_MASK      0xffff0000ul
 // these are used for the style bitfield *after* it is shifted
-#define CELL_STYLE_STANDOUT  0x0001u
-#define CELL_STYLE_UNDERLINE 0x0002u
-#define CELL_STYLE_REVERSE   0x0004u
-#define CELL_STYLE_BLINK     0x0008u
-#define CELL_STYLE_DIM       0x0010u
-#define CELL_STYLE_BOLD      0x0020u
-#define CELL_STYLE_INVIS     0x0040u
-#define CELL_STYLE_PROTECT   0x0080u
+#define CELL_STYLE_STANDOUT  0x0080u
+#define CELL_STYLE_UNDERLINE 0x0040u
+#define CELL_STYLE_REVERSE   0x0020u
+#define CELL_STYLE_BLINK     0x0010u
+#define CELL_STYLE_DIM       0x0008u
+#define CELL_STYLE_BOLD      0x0004u
+#define CELL_STYLE_INVIS     0x0002u
+#define CELL_STYLE_PROTECT   0x0001u
 #define CELL_STYLE_ITALIC    0x0100u
 
 // Set the specified style bits for the cell 'c', whether they're actively

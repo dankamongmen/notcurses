@@ -109,11 +109,11 @@ intro(struct notcurses* nc){
   if(ncplane_cursor_move_yx(ncp, rows / 2, (cols - strlen(str) + 4) / 2)){
     return -1;
   }
-  ncplane_styles_on(ncp, CELL_STYLE_ITALIC);
+  ncplane_styles_on(ncp, CELL_STYLE_ITALIC | CELL_STYLE_BOLD);
   if(ncplane_putstr(ncp, str) != (int)strlen(str)){
     return -1;
   }
-  ncplane_styles_off(ncp, CELL_STYLE_ITALIC);
+  ncplane_styles_off(ncp, CELL_STYLE_ITALIC | CELL_STYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
   char mbstr[128];
   if(wcstombs(mbstr, wstr, sizeof(mbstr)) <= 0){

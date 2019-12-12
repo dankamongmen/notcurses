@@ -49,24 +49,30 @@ int main(int argc, char** argv){
   }
   int sgrcount = pivot + 1;
   // generate all values
+  int cols = 0;
   while(pivot >= 0){
     int i;
     for(i = 0 ; i < 9 ; ++i){
-      printf("%c", sgrs[i] ? '1' : '0');
+      cols += printf("%c", sgrs[i] ? '1' : '0');
     }
-    printf(" (%02d)", pivot);
+    cols += printf(" (%02d)", pivot);
     i = putp(tiparm(sgr, sgrs[0], sgrs[1], sgrs[2], sgrs[3], sgrs[4],
                          sgrs[5], sgrs[6], sgrs[7], sgrs[8]));
     assert(OK == i);
-    for(a = argv + 1 ; *a ; ++a){
-      if((i = printf(" %s", *a)) < 0){
-        return EXIT_FAILURE;
-      }
+    if((i = printf(" %s ", argv[0])) < 0){
+      return EXIT_FAILURE;
     }
-    printf("\n");
+    cols += i;
     i = putp(tiparm(sgr, 0, 0, 0, 0, 0, 0, 0, 0, 0));
     assert(OK == i);
     pivot = pivot_on(pivot, sgrs, sgrcount);
+    if(cols >= 60){ // FIXME
+      printf("\n");
+      cols = 0;
+    }else{
+      cols += printf("  ");
+    }
   }
+  printf("\n");
   return EXIT_SUCCESS;
 }
