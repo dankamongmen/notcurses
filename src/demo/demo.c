@@ -157,7 +157,6 @@ static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts){
   int c;
   memset(opts, 0, sizeof(*opts));
-  opts->outfp = stdout;
   while((c = getopt(argc, argv, "hkd:f:")) != EOF){
     switch(c){
       case 'h':
@@ -210,7 +209,7 @@ int main(int argc, char** argv){
     }
     demos = DEFAULT_DEMO;
   }
-  if((nc = notcurses_init(&nopts)) == NULL){
+  if((nc = notcurses_init(&nopts, stdout)) == NULL){
     return EXIT_FAILURE;
   }
   if((ncp = notcurses_stdplane(nc)) == NULL){

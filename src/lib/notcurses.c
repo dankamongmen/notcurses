@@ -647,7 +647,7 @@ make_nonblocking(FILE* fp){
   return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
-notcurses* notcurses_init(const notcurses_options* opts){
+notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || strcmp(encoding, "UTF-8")){
     fprintf(stderr, "Encoding (\"%s\") wasn't UTF-8, refusing to start\n",
@@ -666,7 +666,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
   memset(&ret->stats, 0, sizeof(ret->stats));
   ret->stats.render_min_ns = 1ul << 62u;
   ret->stats.render_min_bytes = 1ul << 62u;
-  ret->ttyfp = opts->outfp;
+  ret->ttyfp = outfp;
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
@@ -678,7 +678,7 @@ notcurses* notcurses_init(const notcurses_options* opts){
   ret->inputbuf_valid_starts = 0;
   ret->inputbuf_write_at = 0;
   if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
-    fprintf(stderr, "No file descriptor was available in opts->outfp\n");
+    fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
     free(ret);
     return NULL;
   }

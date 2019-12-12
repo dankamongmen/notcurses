@@ -13,8 +13,9 @@ class NotcursesTest : public :: testing::Test {
     }
     notcurses_options nopts{};
     nopts.inhibit_alternate_screen = true;
-    nopts.outfp = fopen("/dev/tty", "wb");
-    nc_ = notcurses_init(&nopts);
+    outfp_ = fopen("/dev/tty", "wb");
+    ASSERT_NE(nullptr, outfp_);
+    nc_ = notcurses_init(&nopts, outfp_);
     ASSERT_NE(nullptr, nc_);
   }
 
@@ -22,9 +23,11 @@ class NotcursesTest : public :: testing::Test {
     if(nc_){
       EXPECT_EQ(0, notcurses_stop(nc_));
     }
+    fclose(outfp_);
   }
 
   struct notcurses* nc_{};
+  FILE* outfp_{};
 };
 
 TEST_F(NotcursesTest, NotcursesVersionString) {

@@ -51,8 +51,7 @@ int main(int argc, char** argv){
     usage(std::cerr, argv[0], EXIT_FAILURE);
   }
   notcurses_options opts{};
-  opts.outfp = stdout;
-  auto nc = notcurses_init(&opts);
+  auto nc = notcurses_init(&opts, stdout);
   if(nc == nullptr){
     return EXIT_FAILURE;
   }

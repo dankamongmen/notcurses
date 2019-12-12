@@ -56,8 +56,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   notcurses_options opts{};
-  opts.outfp = stdout;
-  if((nc = notcurses_init(&opts)) == nullptr){
+  if((nc = notcurses_init(&opts, stdout)) == nullptr){
     return EXIT_FAILURE;;
   }
   struct ncplane* n = notcurses_stdplane(nc);

@@ -102,10 +102,6 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // An open FILE* for this terminal, on which we will generate output. If
-  // not attached to a sufficiently capable terminal, notcurses will refuse
-  // to start. You'll usually want stdout.
-  FILE* outfp;
   // If smcup/rmcup capabilities are indicated, notcurses defaults to making
   // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
   bool inhibit_alternate_screen;
@@ -124,9 +120,10 @@ typedef struct notcurses_options {
   FILE* renderfp;
 } notcurses_options;
 
-// Initialize a notcurses context, corresponding to a connected terminal.
-// Returns NULL on error, including any failure to initialize terminfo.
-API struct notcurses* notcurses_init(const notcurses_options* opts);
+// Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
+// be a tty. You'll usually want stdout. Returns NULL on error, including any
+// failure to initialize terminfo.
+API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 
 // Destroy a notcurses context.
 API int notcurses_stop(struct notcurses* nc);

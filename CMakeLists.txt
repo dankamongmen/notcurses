@@ -87,7 +87,7 @@ foreach(f ${POCSRCS})
     PRIVATE include "${TERMINFO_INCLUDE_DIR}"
   )
   target_link_libraries(${fe}
-    PRIVATE "${TERMINFO_LIBRARIES}"
+    PRIVATE notcurses "${TERMINFO_LIBRARIES}"
   )
   target_link_directories(${fe}
     PRIVATE "${TERMINFO_LIBRARY_DIRS}"

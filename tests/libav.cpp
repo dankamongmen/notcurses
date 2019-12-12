@@ -10,8 +10,9 @@ class LibavTest : public :: testing::Test {
     }
     notcurses_options nopts{};
     nopts.inhibit_alternate_screen = true;
-    nopts.outfp = fopen("/dev/tty", "wb");
-    nc_ = notcurses_init(&nopts);
+    outfp_ = fopen("/dev/tty", "wb");
+    ASSERT_NE(nullptr, outfp_);
+    nc_ = notcurses_init(&nopts, outfp_);
     ASSERT_NE(nullptr, nc_);
     ncp_ = notcurses_stdplane(nc_);
     ASSERT_NE(nullptr, ncp_);
@@ -21,10 +22,12 @@ class LibavTest : public :: testing::Test {
     if(nc_){
       EXPECT_EQ(0, notcurses_stop(nc_));
     }
+    fclose(outfp_);
   }
 
   notcurses* nc_{};
   ncplane* ncp_{};
+  FILE* outfp_{};
 };
 
 TEST_F(LibavTest, LoadImage) {
