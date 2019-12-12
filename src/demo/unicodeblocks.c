@@ -13,25 +13,10 @@
 #define CHUNKSIZE 32  // show this many per line
 
 static int
-hook_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subdelay){
-  uint64_t ns = timespec_to_ns(subdelay);
-  int dimx;
-  ncplane_dim_yx(nn, NULL, &dimx);
-  int y, x;
-  ncplane_yx(nn, &y, &x);
-  struct timespec iterts;
-  ns_to_timespec(ns / x, &iterts);
-  int newx;
-  for(newx = x - 1 ; newx >= -dimx ; --newx){
-    if(notcurses_render(nc)){
-      ncplane_destroy(nn);
-      return -1;
-    }
-    nanosleep(&iterts, NULL); // FIXME adaptive!
-    ncplane_move_yx(nn, y, newx);
-  }
+fade_block(struct ncplane* nn, const struct timespec* subdelay){
+  int ret = ncplane_fadein(nn, subdelay);
   ncplane_destroy(nn);
-  return 0;
+  return ret;
 }
 
 static int
@@ -193,10 +178,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf(n, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
-    int xstart = maxx - 1;
-    if(ncplane_cursor_move_yx(n, 3, xstart)){
-      return -1;
-    }
+    int xstart = (maxx - ((CHUNKSIZE * 2) + 3)) / 2;
     struct ncplane* nn;
     if((nn = notcurses_newplane(nc, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 3, xstart, NULL)) == NULL){
       return -1;
@@ -217,7 +199,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf(n, "%s", description) <= 0){
       return -1;
     }
-    if(hook_block(nc, nn, &subdelay)){ // destroys nn
+    if(fade_block(nn, &subdelay)){ // destroys nn
       return -1;
     }
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but

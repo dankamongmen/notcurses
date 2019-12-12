@@ -9,7 +9,7 @@
 #include <notcurses.h>
 #include "demo.h"
 
-static const char DEFAULT_DEMO[] = "imlbgswuvpo";
+static const char DEFAULT_DEMO[] = "imlubgswvpo";
 
 int timespec_subtract(struct timespec *result, const struct timespec *time0,
                       struct timespec *time1){
