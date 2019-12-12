@@ -6,8 +6,6 @@
 #include <string.h>
 #include "demo.h"
 
-// "🍺🚬🌿💉💊🔫💣🤜🤛🐌🐍🐎🐑🐒🐔🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🦉🐊🐸🦕🦖🐬🐙🦂🦠🦀",
-
 // show unicode blocks. a block is always a multiple of 16 codepoints.
 #define BLOCKSIZE 512 // show this many per page
 #define CHUNKSIZE 32  // show this many per line

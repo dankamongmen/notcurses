@@ -157,6 +157,21 @@ TEST_F(NcplaneTest, EmitWideStr) {
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 
+TEST_F(NcplaneTest, EmitEmojiStr) {
+  const wchar_t e[] =
+    L"🍺🚬🌿💉💊🔫💣🤜🤛🐌🐍🐎🐑🐒🐔🐗🐘🐙🐚"
+     "🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐫🐬🐭🐮"
+     "🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🦉🐊🐸🦕🦖"
+     "🐬🐙🦂🦠🦀";
+  int wrote = ncplane_putwstr(n_, e);
+  EXPECT_LT(0, wrote);
+  int x, y;
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_LT(0, y);
+  EXPECT_NE(1, x); // FIXME tighten in on this
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
 TEST_F(NcplaneTest, HorizontalLines) {
   int x, y;
   ncplane_dim_yx(n_, &y, &x);
