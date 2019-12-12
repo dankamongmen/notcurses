@@ -655,6 +655,24 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);
 int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
 ```
 
+Aligned forms are available for `ncplane_putstr()` and `ncplane_putwstr()`.
+These forms correctly take double-column glyphs into account.
+
+```c
+// Alignment within the ncplane. Left/right-justified, or centered.
+typedef enum {
+  NCALIGN_LEFT,
+  NCALIGN_CENTER,
+  NCALIGN_RIGHT,
+} ncalign_e;
+
+API int ncplane_putstr_aligned(struct ncplane* n, int y, const char* s,
+                               ncalign_e atype);
+
+API int ncplane_putwstr_aligned(struct ncplane* n, int y,
+                                const wchar_t* gclustarr, ncalign_e atype);
+```
+
 ### Cells
 
 Unlike the `notcurses` or `ncplane` objects, the definition of `cell` is

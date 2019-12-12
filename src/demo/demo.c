@@ -109,12 +109,8 @@ intro(struct notcurses* nc){
   }
   ncplane_styles_off(ncp, CELL_STYLE_ITALIC | CELL_STYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  // FIXME need NCALIGN_CENTER
-  if(ncplane_cursor_move_yx(ncp, rows / 2 - 5, (cols - wcslen(wstr) + 4) / 2)){
-    return -1;
-  }
-  if(ncplane_putwstr(ncp, wstr) != (int)wcslen(wstr)){
-    //return -1;
+  if(ncplane_putwstr_aligned(ncp, rows / 2 - 5, wstr, NCALIGN_CENTER) != (int)wcslen(wstr)){
+    // return -1;
   }
   if(notcurses_render(nc)){
     return -1;

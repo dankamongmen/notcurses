@@ -470,6 +470,9 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
   return ret;
 }
 
+API int ncplane_putwstr_aligned(struct ncplane* n, int y,
+                                const wchar_t* gclustarr, ncalign_e atype);
+
 static inline int
 ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
   if(ncplane_cursor_move_yx(n, y, x)){

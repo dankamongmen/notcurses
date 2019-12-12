@@ -136,8 +136,14 @@ int ncplane_putstr_aligned(ncplane* n, int y, const char* s, ncalign_e atype){
   if(w == NULL){
     return -1;
   }
-  int width = wcswidth(w, INT_MAX);
+  int r = ncplane_putwstr_aligned(n, y, w, atype);
   free(w);
+  return r;
+}
+
+int ncplane_putwstr_aligned(struct ncplane* n, int y, const wchar_t* gclustarr,
+                            ncalign_e atype){
+  int width = wcswidth(gclustarr, INT_MAX);
   int cols;
   int xpos;
   switch(atype){
@@ -158,7 +164,7 @@ int ncplane_putstr_aligned(ncplane* n, int y, const char* s, ncalign_e atype){
   if(ncplane_cursor_move_yx(n, y, xpos)){
     return -1;
   }
-  return ncplane_putstr(n, s);
+  return ncplane_putwstr(n, gclustarr);
 }
 
 static inline uint64_t
