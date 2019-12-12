@@ -595,6 +595,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
   if(nocolor_stylemask > 0){
+    // FIXME this doesn't work if we're using sgr, which we are at the moment!
     // ncv is defined in terms of curses style bits, which differ from ours
     if(nocolor_stylemask & WA_STANDOUT){
       nc->standout = NULL;
