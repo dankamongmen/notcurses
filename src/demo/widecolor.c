@@ -218,9 +218,9 @@ snake_thread(void* vnc){
   cell head = CELL_TRIVIAL_INITIALIZER;
   uint64_t channels = 0;
   notcurses_fg_prep(&channels, 255, 255, 255);
+  notcurses_bg_prep(&channels, 20, 20, 20);
   cell_prime(n, &head, "א", 0, channels);
   cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_bg_default(&head);
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
   while(true){
@@ -292,7 +292,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_set_fg_rgb(n, 64, 128, 240);
   ncplane_set_bg_rgb(n, 32, 64, 32);
   notcurses_fg_prep(&channels, 255, 255, 255);
-  notcurses_bg_default_prep(&channels);
+  notcurses_bg_prep(&channels, 32, 64, 32);
   ncplane_cursor_move_yx(n, 2, 0);
   if(ncplane_rounded_box(n, 0, channels, 4, 56, 0)){
     return -1;
@@ -301,18 +301,18 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_cursor_move_yx(n, 4, 17);
   ncplane_putegc(n, "┬", 0, 0, NULL);
   ncplane_cursor_move_yx(n, 5, 17);
-  ncplane_putegc(n, "│", 0, 0, NULL);
+  ncplane_putegc(n, "│", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 6, 17);
-  ncplane_putegc(n, "╰", 0, 0, NULL);
+  ncplane_putegc(n, "╰", 0, channels, NULL);
   cell hl = CELL_TRIVIAL_INITIALIZER;
-  cell_prime(n, &hl, "━", 0, channels);
+  cell_prime(n, &hl, "─", 0, channels);
   ncplane_hline(n, &hl, 57 - 18 - 1);
   ncplane_cursor_move_yx(n, 6, 56);
-  ncplane_putegc(n, "╯", 0, 0, NULL);
+  ncplane_putegc(n, "╯", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 5, 56);
-  ncplane_putegc(n, "│", 0, 0, NULL);
+  ncplane_putegc(n, "│", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 4, 56);
-  ncplane_putegc(n, "┤", 0, 0, NULL);
+  ncplane_putegc(n, "┤", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 5, 18);
   ncplane_styles_on(n, CELL_STYLE_ITALIC);
   ncplane_printf(n, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
@@ -320,20 +320,20 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
 
   // top handle
   ncplane_cursor_move_yx(n, 2, 3);
-  ncplane_putegc(n, "╨", 0, 0, NULL);
+  ncplane_putegc(n, "╨", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 1, 3);
-  ncplane_putegc(n, "║", 0, 0, NULL);
+  ncplane_putegc(n, "║", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 0, 3);
-  ncplane_putegc(n, "╔", 0, 0, NULL);
+  ncplane_putegc(n, "╔", 0, channels, NULL);
   cell_prime(n, &hl, "═", 0, channels);
   ncplane_hline(n, &hl, 20 - 4 - 1);
   cell_release(n, &hl);
   ncplane_cursor_move_yx(n, 0, 19);
-  ncplane_putegc(n, "╗", 0, 0, NULL);
+  ncplane_putegc(n, "╗", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 1, 19);
-  ncplane_putegc(n, "║", 0, 0, NULL);
+  ncplane_putegc(n, "║", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 2, 19);
-  ncplane_putegc(n, "╨", 0, 0, NULL);
+  ncplane_putegc(n, "╨", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 1, 4);
   ncplane_styles_on(n, CELL_STYLE_ITALIC);
   ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
