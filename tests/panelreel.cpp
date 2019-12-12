@@ -23,7 +23,9 @@ class PanelReelTest : public :: testing::Test {
     if(nc_){
       EXPECT_EQ(0, notcurses_stop(nc_));
     }
-    fclose(outfp_);
+    if(outfp_){
+      fclose(outfp_);
+    }
   }
 
   struct notcurses* nc_{};
