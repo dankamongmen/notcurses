@@ -138,11 +138,10 @@ API int notcurses_render(struct notcurses* nc);
 
 // All input is currently taken from stdin, though this will likely change. We
 // attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
-// Extended Grapheme Cluster (despite use of the cell object, which encodes an
-// entire EGC). It is also possible that we will read a special keypress, i.e.
-// anything that doesn't correspond to a Unicode codepoint (e.g. arrow keys,
-// function keys, screen resize events, etc.). These are mapped into Unicode's
-// Supplementary Private Use Area-B, starting at U+100000.
+// Extended Grapheme Cluster. It is also possible that we will read a special
+// keypress, i.e. anything that doesn't correspond to a Unicode codepoint (e.g.
+// arrow keys, function keys, screen resize events, etc.). These are mapped
+// into Unicode's Supplementary Private Use Area-B, starting at U+100000.
 //
 // notcurses_getc() and notcurses_getc_nblock() are both nonblocking.
 // notcurses_getc_blocking() blocks until a codepoint or special key is read,
