@@ -264,8 +264,8 @@ as `ncplane`s. An `ncplane` can be larger than the physical screen, or smaller,
 or the same size; it can be entirely contained within the physical screen, or
 overlap in part, or lie wholly beyond the boundaries, never to be rendered.
 Each `ncplane` has a current writing state (cursor position, foreground and
-background color, etc.), a backing array of UTF-8 EGCs, and a z-index. If
-opaque, a cell on a higher `ncplane` completely obstructs a corresponding cell
+background color, etc.), a backing array of `cell`s, and a z-index. If
+opaque, a `cell` on a higher `ncplane` completely obstructs a corresponding `cell`
 from a lower `ncplane` from being seen. An `ncplane` corresponds loosely to an
 [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
 but is the primary drawing surface of notcurses—there is no object
