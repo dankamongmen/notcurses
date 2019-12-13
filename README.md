@@ -164,6 +164,43 @@ reflect the changes:
 int notcurses_render(struct notcurses* nc);
 ```
 
+Utility functions operating on the toplevel `notcurses` object include:
+
+```c
+// Refresh our idea of the terminal's dimensions, reshaping the standard plane
+// if necessary. Without a call to this function following a terminal resize
+// (as signaled via SIGWINCH), notcurses_render() might not function properly.
+// References to ncplanes remain valid following a resize operation, but the
+// cursor might have changed position.
+int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
+
+// Refresh the physical screen to match what was last rendered (i.e., without
+// reflecting any changes since the last call to notcurses_render()). This is
+// primarily useful if the screen is externally corrupted.
+int notcurses_refresh(struct notcurses* n);
+
+// Get a reference to the standard plane (one matching our current idea of the
+// terminal size) for this terminal.
+struct ncplane* notcurses_stdplane(struct notcurses* nc);
+const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+
+// Create a new ncplane at the specified offset (relative to the standard plane)
+// and the specified size. The number of rows and columns must both be positive.
+// This plane is initially at the top of the z-buffer, as if ncplane_move_top()
+// had been called on it. The void* 'opaque' can be retrieved (and reset) later.
+struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
+                                   int yoff, int xoff, void* opaque);
+
+// Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
+// (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
+// indicated as supported if the terminal can support it together with color.
+unsigned notcurses_supported_styles(const struct notcurses* nc);
+
+// Returns the number of colors supported by the palette, or 1 if there is no
+// color support.
+int notcurses_palette_size(const struct notcurses* nc);
+```
+
 ### Input
 
 Input can currently be taken only from `stdin`, but on the plus side, stdin

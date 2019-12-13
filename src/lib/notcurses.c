@@ -2153,3 +2153,16 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr){
   }
   return -1;
 }
+
+// if "retain_cursor" was set, we don't have these definitions FIXME
+void notcurses_cursor_enable(struct notcurses* nc){
+  if(nc->cnorm){
+    term_emit("cnorm", nc->cnorm, nc->ttyfp, false);
+  }
+}
+
+void notcurses_cursor_disable(struct notcurses* nc){
+  if(nc->civis){
+    term_emit("civis", nc->civis, nc->ttyfp, false);
+  }
+}

@@ -236,7 +236,12 @@ notcurses_getc_blocking(struct notcurses* n){
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
 // References to ncplanes remain valid following a resize operation, but the
 // cursor might have changed position.
-API int notcurses_resize(struct notcurses* n, int* y, int* x);
+API int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
+
+// Refresh the physical screen to match what was last rendered (i.e., without
+// reflecting any changes since the last call to notcurses_render()). This is
+// primarily useful if the screen is externally corrupted.
+API int notcurses_refresh(struct notcurses* n);
 
 // Get a reference to the standard plane (one matching our current idea of the
 // terminal size) for this terminal.
@@ -1224,6 +1229,9 @@ static inline const char *
 bprefix(uintmax_t val, unsigned decimal, char *buf, int omitdec){
   return enmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
+
+API void notcurses_cursor_enable(struct notcurses* nc);
+API void notcurses_cursor_disable(struct notcurses* nc);
 
 #undef API
 
