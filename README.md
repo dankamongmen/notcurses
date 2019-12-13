@@ -14,7 +14,10 @@ cleanroom TUI library for modern terminal emulators. definitely not curses.
 * [Differences from NCURSES](#differences-from-ncurses)
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
   * [Adapting NCURSES programs](#adapting-ncurses-programs)
-* [Useful links](#cells)
+* [Supplemental material](#supplemental-material)
+  * [Useful links](#useful-links)
+  * [History](#history)
+  * [Thanks](#thanks)
 
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -1099,7 +1102,9 @@ fore- or background (since `op` changes both at once). If you're printing full
 block characters, it's for this reason better to give them all the same
 meaningless background color than to leave the background on the default. If
 you're printing spaces, you likewise want a meaningless foreground color. For
-a long string of such cells, eliding these ops can be a nice savings.
+a long string of such cells, eliding these ops can be a nice savings. See
+[Issue #131](https://github.com/dankamongmen/notcurses/issues/131), though;
+I'll likely natively handle this within `notcurses_render()` soon.
 
 ## Included tools
 
@@ -1140,7 +1145,7 @@ some design decisions might surprise NCURSES programmers:
   traceless versions, and versions with and without support for wide characters.
   notcurses is one library: no tracing, UTF-8, thread safety.
 * There is no `ESCDELAY` concept; notcurses expects that all bytes of a
-  keyboard escape sequence to arrive at the same time. This improves latency
+  keyboard escape sequence arrive at the same time. This improves latency
   and simplifies the API.
 
 ### Features missing relative to NCURSES
@@ -1205,7 +1210,9 @@ compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
   the BiDi state machine transitions, and thus merrily continues writing
   left-to-right. ﷽
 
-## Useful links
+## Supplemental material
+
+### Useful links
 
 * [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)
 * [The Xterm FAQ](https://invisible-island.net/xterm/xterm.faq.html)
@@ -1217,3 +1224,54 @@ compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
 * [Unicode Standard Annex #29 Text Segmentation](http://www.unicode.org/reports/tr29)
 * [Unicode Standard Annex #15 Normalization Forms](https://unicode.org/reports/tr15/)
 * [The TTY demystified](http://www.linusakesson.net/programming/tty/)
+
+### History
+
+* 2019-12-05: notcurses 0.4.0 "TRAP MUSIC ALL NIGHT LONG" is released, the first
+    generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
+    and release it on YouTube.
+* November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/outcurses).
+    Outcurses is a collection of routines atop NCURSES, including Panelreels.
+    I study the history of NCURSES, primarily using Thomas E. Dickey's FAQ and
+    the mailing list archives.
+    * 2019-11-14: I file [Ourcurses issue #56](https://github.com/dankamongmen/outcurses/issues/56)
+      regarding use of DirectColor in outcurses. This is partially inspired by
+      Lexi Summer Hale's essay [everything you ever wanted to know about terminals](http://xn--rpa.cc/irl/term.html).
+      I get into contact with Thomas E. Dickey and confirm that what I'm hoping
+      to do doesn't really fit in with the codified Curses API.
+    * 2019-11-16: I make the [first commit](https://github.com/dankamongmen/notcurses/commit/635d7039d79e4f94ba645e8cb601e3a6d82a6b30)
+      to notcurses.
+* September 2019: I extracted fade routines from Growlight and Omphalos, and
+    offered them to NCURSES as extensions. They are not accepted, which is
+    understandable. I mention that I intend to extract Panelreels, and offer to
+    include them in the CDK (Curses Development Kit). [Growlight issue #43](https://github.com/dankamongmen/growlight/issues/43)
+    is created regarding this extraction. A few minor patches go into NCURSES.
+* 2011, 2013: I develop [Growlight](https://github.com/dankamongmen/growlight)
+    and [Omphalos](https://github.com/dankamongmen/omphalos), complicated TUIs
+    making extensive use of NCURSES.
+
+### Thanks
+
+* Notcurses could never be what it is without decades of tireless, likely
+    thankless work by Thomas E. Dickey on NCURSES. His FAQ is a model of
+    engineering history. He exemplifies documentation excellence and
+    conservative, thoughtful stewardship. The Open Source community owes
+    Mr. Dickey a great debt.
+* Justine Tunney, one of my first friends at Google NYC, was always present
+    with support, and pointed out the useful memstream functionality of
+    POSIX, eliminating the need for me to cons up something similar.
+* I one night read the entirety of Lexi Summer Hale's [essays](http://xn--rpa.cc/irl/index.html),
+    and woke up intending to write notcurses.
+* Finally, the [demoscene](https://en.wikipedia.org/wiki/Demoscene) and general
+    l33t scene of the 90s and early twenty-first century endlessly inspired a
+    young hax0r. There is great joy in computing; no one will drive us from
+    this paradise Turing has created!
+
+> “Our fine arts were developed, their types and uses were established, in times
+very different from the present, by men whose power of action upon things was
+insignificant in comparison with ours. But the amazing growth of our
+techniques, the adaptability and precision they have attained, the ideas and
+habits they are creating, make it a certainty that _profound changes are
+impending in the ancient craft of the Beautiful_.”
+
+—Paul Valéry

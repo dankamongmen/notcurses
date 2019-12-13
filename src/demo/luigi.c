@@ -115,7 +115,7 @@ draw_luigi(struct ncplane* n, const char* sprite){
   uint64_t channels = 0;
   // optimization so we can elide more color changes, see README's "#perf"
   notcurses_bg_prep(&channels, 0x00, 0x00, 0x00);
-  for(s = 0 ; s < strlen(sprite) ; ++s){
+  for(s = 0 ; sprite[s] ; ++s){
     switch(sprite[s]){
       case '0':
         ncplane_cursor_move_yx(n, (s + 1) / 16, (s + 1) % 16);
