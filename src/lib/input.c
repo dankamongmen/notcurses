@@ -224,7 +224,7 @@ int prep_special_keys(notcurses* nc){
     { .tinfo = "kcuu1", .key = NCKEY_UP, },
     { .tinfo = "kcud1", .key = NCKEY_DOWN, },
     { .tinfo = "kdch1", .key = NCKEY_DEL, },
-    { .tinfo = "kbs",   .key = NCKEY_BS, },
+    { .tinfo = "kbs",   .key = NCKEY_BACKSPACE, },
     { .tinfo = "kich1", .key = NCKEY_INS, },
     { .tinfo = "kend",  .key = NCKEY_END, },
     { .tinfo = "khome", .key = NCKEY_HOME, },
@@ -251,6 +251,13 @@ int prep_special_keys(notcurses* nc){
     { .tinfo = "kf18",  .key = NCKEY_F18, },
     { .tinfo = "kf19",  .key = NCKEY_F19, },
     { .tinfo = "kf20",  .key = NCKEY_F20, },
+    { .tinfo = "kent",  .key = NCKEY_ENTER, },
+    { .tinfo = "kclr",  .key = NCKEY_CLS, },
+    { .tinfo = "kc1",   .key = NCKEY_DLEFT, },
+    { .tinfo = "kc3",   .key = NCKEY_DRIGHT, },
+    { .tinfo = "ka1",   .key = NCKEY_ULEFT, },
+    { .tinfo = "ka3",   .key = NCKEY_URIGHT, },
+    { .tinfo = "kb2",   .key = NCKEY_CENTER, },
     { .tinfo = NULL,    .key = NCKEY_INVALID, }
   }, *k;
   for(k = keys ; k->tinfo ; ++k){
