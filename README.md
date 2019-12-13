@@ -139,7 +139,7 @@ typedef struct notcurses_options {
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
 // be a tty. You'll usually want stdout. Returns NULL on error, including any
 // failure to initialize terminfo.
-API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
+struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 
 // Destroy a notcurses context.
 int notcurses_stop(struct notcurses* nc);
@@ -239,7 +239,7 @@ wchar_supppuab_p(wchar_t w){
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
 // Returns a single Unicode code point, or (wchar_t)-1 on error.
-API int notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
+int notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
 
 static inline int
 notcurses_getc_nblock(struct notcurses* n){
@@ -355,7 +355,7 @@ void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
 // advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
 // On failure, -1 is returned.
-API int ncplane_putc(struct ncplane* n, const cell* c);
+int ncplane_putc(struct ncplane* n, const cell* c);
 
 // Call ncplane_putc() after successfully moving to y, x on the specified plane.
 static inline int
@@ -370,7 +370,7 @@ ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c){
 // using the specified 'attr' and 'channels' for styling. Advance the cursor by
 // 1. On success, returns 1. On failure, returns -1. This works whether the
 // underlying char is signed or unsigned.
-API int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels);
+int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels);
 
 // Call ncplane_simple() after successfully moving to y, x.
 static inline int
@@ -387,7 +387,7 @@ ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c,
 // width of the cluster (but not past the end of the plane). On success, returns
 // the number of columns the cursor was advanced. On failure, -1 is returned.
 // The number of bytes converted from gclust is written to 'sbytes' if non-NULL.
-API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
+int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
                        uint64_t channels, int* sbytes);
 
 // Call ncplane_putegc() after successfully moving to y, x.
@@ -438,7 +438,7 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of cells
 // which were written before the error.
-API int ncplane_putstr(struct ncplane* n, const char* gclustarr);
+int ncplane_putstr(struct ncplane* n, const char* gclustarr);
 
 static inline int
 ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr){
@@ -476,8 +476,8 @@ ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
 }
 
 // The ncplane equivalents of printf(3) and vprintf(3).
-API int ncplane_printf(struct ncplane* n, const char* format, ...);
-API int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
+int ncplane_printf(struct ncplane* n, const char* format, ...);
+int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
 
 static inline int
 ncplane_vprintf_yx(struct ncplane* n, int y, int x, const char* format, va_list ap){
@@ -663,11 +663,11 @@ typedef enum {
   NCALIGN_RIGHT,
 } ncalign_e;
 
-API int ncplane_putstr_aligned(struct ncplane* n, int y, const char* s,
-                               ncalign_e atype);
+int ncplane_putstr_aligned(struct ncplane* n, int y, const char* s,
+                           ncalign_e atype);
 
-API int ncplane_putwstr_aligned(struct ncplane* n, int y,
-                                const wchar_t* gclustarr, ncalign_e atype);
+int ncplane_putwstr_aligned(struct ncplane* n, int y,
+                            const wchar_t* gclustarr, ncalign_e atype);
 ```
 
 ### Cells
