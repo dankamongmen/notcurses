@@ -345,6 +345,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   nc->top = p;
   p->nc = nc;
   cell_init(&p->background);
+  nc->stats.fbbytes += fbsize;
   return p;
 }
 
@@ -380,6 +381,7 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   ncplane* p = n->stdscr;
   cell* preserved = p->fb;
   size_t fbsize = sizeof(*preserved) * (*rows * *cols);
+  // FIXME we could realloc if we're just adding/deleting rows, saving a copy
   if((p->fb = malloc(fbsize)) == NULL){
     p->fb = preserved;
     return -1;
@@ -406,6 +408,8 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
     }
   }
   free(preserved);
+  n->stats.fbbytes += fbsize;
+  n->stats.fbbytes -= sizeof(*preserved) * (oldrows * oldcols);
   return 0;
 }
 
@@ -727,6 +731,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   // term_emit("clear", ret->clear, ret->ttyfp, false);
+  char prefixbuf[BPREFIXSTRLEN + 1];
   fprintf(ret->ttyfp, "\n"
          " notcurses %s by nick black\n"
          " compiled with gcc-%s\n"
@@ -734,14 +739,14 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
          " avformat %u.%u.%u\n"
          " avutil %u.%u.%u\n"
          " swscale %u.%u.%u\n"
-         " %d rows, %d columns (%zub), %d colors (%s)\n",
+         " %d rows, %d columns (%sB), %d colors (%s)\n",
          notcurses_version(), __VERSION__,
          curses_version(), LIBAVFORMAT_VERSION_MAJOR,
          LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
          ret->top->leny, ret->top->lenx,
-         ret->top->lenx * ret->top->leny * sizeof(*ret->top->fb),
+         bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
          ret->colors, ret->RGBflag ? "direct" : "palette");
   if(!ret->RGBflag){ // FIXME
     if(ret->colors > 16){
