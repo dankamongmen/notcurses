@@ -212,7 +212,7 @@ wchar_supppuab_p(wchar_t w){
 #define NCKEY_LEFT    suppuabize(5)
 #define NCKEY_INS     suppuabize(6)
 #define NCKEY_DEL     suppuabize(7)
-#define NCKEY_BS      suppuabize(8) // backspace (sometimes)
+#define NCKEY_BACKSPACE suppuabize(8) // backspace (sometimes)
 #define NCKEY_PGDOWN  suppuabize(9)
 #define NCKEY_PGUP    suppuabize(10)
 #define NCKEY_HOME    suppuabize(11)
@@ -228,16 +228,22 @@ wchar_supppuab_p(wchar_t w){
 #define NCKEY_F08     suppuabize(28)
 #define NCKEY_F09     suppuabize(29)
 #define NCKEY_F10     suppuabize(30)
-#define NCKEY_F11     suppuabize(31)
-#define NCKEY_F12     suppuabize(32)
-#define NCKEY_F13     suppuabize(33)
-#define NCKEY_F14     suppuabize(34)
-#define NCKEY_F15     suppuabize(35)
-#define NCKEY_F16     suppuabize(36)
-#define NCKEY_F17     suppuabize(37)
-#define NCKEY_F18     suppuabize(38)
-#define NCKEY_F19     suppuabize(39)
-#define NCKEY_F20     suppuabize(40)
+// ... leave room for up to 100 function keys, egads
+#define NCKEY_ENTER   suppuabize(121)
+#define NCKEY_CLS     suppuabize(122) // "clear-screen or erase"
+#define NCKEY_DLEFT   suppuabize(123) // down + left on keypad
+#define NCKEY_DRIGHT  suppuabize(124)
+#define NCKEY_ULEFT   suppuabize(125) // up + left on keypad
+#define NCKEY_URIGHT  suppuabize(126)
+#define NCKEY_CENTER  suppuabize(127) // the most truly neutral of keypresses
+#define NCKEY_BEGIN   suppuabize(128)
+#define NCKEY_CANCEL  suppuabize(129)
+#define NCKEY_CLOSE   suppuabize(130)
+#define NCKEY_COMMAND suppuabize(131)
+#define NCKEY_COPY    suppuabize(132)
+#define NCKEY_EXIT    suppuabize(133)
+#define NCKEY_PRINT   suppuabize(134)
+#define NCKEY_REFRESH suppuabize(135)
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.

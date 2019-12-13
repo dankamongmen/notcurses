@@ -258,6 +258,14 @@ int prep_special_keys(notcurses* nc){
     { .tinfo = "ka1",   .key = NCKEY_ULEFT, },
     { .tinfo = "ka3",   .key = NCKEY_URIGHT, },
     { .tinfo = "kb2",   .key = NCKEY_CENTER, },
+    { .tinfo = "kbeg",  .key = NCKEY_BEGIN, },
+    { .tinfo = "kcan",  .key = NCKEY_CANCEL, },
+    { .tinfo = "kclo",  .key = NCKEY_CLOSE, },
+    { .tinfo = "kcmd",  .key = NCKEY_COMMAND, },
+    { .tinfo = "kcpy",  .key = NCKEY_COPY, },
+    { .tinfo = "kext",  .key = NCKEY_EXIT, },
+    { .tinfo = "kprt",  .key = NCKEY_PRINT, },
+    { .tinfo = "krfr",  .key = NCKEY_REFRESH, },
     { .tinfo = NULL,    .key = NCKEY_INVALID, }
   }, *k;
   for(k = keys ; k->tinfo ; ++k){

@@ -200,6 +200,14 @@ wchar_supppuab_p(wchar_t w){
 #define NCKEY_ULEFT   suppuabize(125) // up + left on keypad
 #define NCKEY_URIGHT  suppuabize(126)
 #define NCKEY_CENTER  suppuabize(127) // the most truly neutral of keypresses
+#define NCKEY_BEGIN   suppuabize(128)
+#define NCKEY_CANCEL  suppuabize(129)
+#define NCKEY_CLOSE   suppuabize(130)
+#define NCKEY_COMMAND suppuabize(131)
+#define NCKEY_COPY    suppuabize(132)
+#define NCKEY_EXIT    suppuabize(133)
+#define NCKEY_PRINT   suppuabize(134)
+#define NCKEY_REFRESH suppuabize(135)
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at lenghth, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
@@ -259,6 +267,7 @@ typedef struct ncstats {
   uint64_t render_ns;        // nanoseconds spent in notcurses_render()
   int64_t render_max_ns;     // max ns spent in notcurses_render()
   int64_t render_min_ns;     // min ns spent in successful notcurses_render()
+  uint64_t fbbytes;          // total bytes devoted to all active framebuffers
   uint64_t fgelisions;       // RGB fg elision count
   uint64_t fgemissions;      // RGB fg emissions
   uint64_t bgelisions;       // RGB bg elision count
