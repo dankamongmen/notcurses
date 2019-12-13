@@ -150,6 +150,20 @@ TEST_F(PanelReelTest, NoTabletBorder) {
   ASSERT_NE(nullptr, pr);
 }
 
+TEST_F(PanelReelTest, NoTopBottomBorder) {
+  panelreel_options p{};
+  p.bordermask = NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
+  struct panelreel* pr = panelreel_create(n_, &p, -1);
+  ASSERT_NE(nullptr, pr);
+}
+
+TEST_F(PanelReelTest, NoSideBorders) {
+  panelreel_options p{};
+  p.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT;
+  struct panelreel* pr = panelreel_create(n_, &p, -1);
+  ASSERT_NE(nullptr, pr);
+}
+
 TEST_F(PanelReelTest, BadTabletBorderBitsRejected) {
   panelreel_options p{};
   p.tabletmask = NCBOXMASK_LEFT * 2;

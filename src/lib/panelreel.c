@@ -116,15 +116,17 @@ draw_borders(ncplane* w, unsigned mask, const cell* attr,
       ncplane_putc(w, &lr);
     }else{
       if(!(mask & NCBOXMASK_LEFT)){
-        ret |= ncplane_cursor_move_yx(w, maxy, begx);
-        ret |= ncplane_putc(w, &ll);
+        if(ncplane_cursor_move_yx(w, maxy, begx) || ncplane_putc(w, &ll) < 0){
+          ret = -1;
+        }
       }
       if(!(mask & NCBOXMASK_RIGHT)){
         // mvwadd_wch returns error if we print to the lowermost+rightmost
         // character cell. maybe we can make this go away with scrolling controls
         // at setup? until then, don't check for error here FIXME.
-        ret |= ncplane_cursor_move_yx(w, maxy, maxx);
-        ret |= ncplane_putc(w, &lr);
+        if(ncplane_cursor_move_yx(w, maxy, maxx) || ncplane_putc(w, &lr) < 0){
+          ret = -1;
+        }
       }
     }
   }
@@ -317,8 +319,8 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
     }
   }
   draw_borders(fp, pr->popts.tabletmask,
-                direction == 0 ? &pr->popts.focusedattr : &pr->popts.tabletattr,
-                cliphead, clipfoot);
+               direction == 0 ? &pr->popts.focusedattr : &pr->popts.tabletattr,
+               cliphead, clipfoot);
   return cliphead || clipfoot;
 }
 
@@ -510,6 +512,7 @@ int panelreel_redraw(panelreel* pr){
   // having to do an o(n) iteration each round, but this is still grotesque, and
   // feels fragile...
   if(pr->all_visible){
+//fprintf(stderr, "all are visible!\n");
     return panelreel_arrange_denormalized(pr);
   }
 //fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, pr->last_traveled_direction);
