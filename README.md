@@ -234,7 +234,7 @@ wchar_supppuab_p(wchar_t w){
 #define NCKEY_F19     suppuabize(39)
 #define NCKEY_F20     suppuabize(40)
 
-// See ppoll(2) for more detail. Provide a NULL 'ts' to block at lenghth, a 'ts'
+// See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
