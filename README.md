@@ -469,7 +469,7 @@ virtual framebuffer. Output that's never rendered still has some memory transfer
 cost as the virtual framebuffer is prepared, but new data overwrites it in
 memory.
 
-```
+```c
 // Move the cursor to the specified position (the cursor needn't be visible).
 // Returns -1 on error, including negative parameters, or ones exceeding the
 // plane's dimensions.
