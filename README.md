@@ -59,22 +59,30 @@ which offers only eight colors and limited glyphs).
 
 Why use this non-standard library?
 
-* A svelter design than that codified in X/Open. All exported identifiers
-  are prefixed to avoid namespace collisions. Far fewer identifiers are
-  exported overall. All APIs natively suport UTF-8, and the `cell` API is based
-  around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
+* Thread safety, and efficient use in parallel programs, has been a design
+  consideration from the beginning.
 
-* Visual features not directly available via NCURSES, including images,
-  fonts, video, high-contrast text, and transparent regions. All APIs
-  natively support 24-bit color, quantized down as necessary for the terminal.
+* A svelter design than that codified by X/Open.
+  * Exported identifiers are prefixed to avoid common namespace collisions.
+  * The library object exports a minimal set of symbols. Where reasonable,
+    `static inline` header-only code is used. This facilitates compiler
+    optimizations, and reduces loader time.
 
-* Thread safety, and use in parallel programs, has been a design consideration
-  from the beginning.
+* All APIs natively suport UTF-8. The `cell` API is based around Unicode's
+  [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
+
+* Visual features including images, fonts, video, high-contrast text, sprites,
+  and transparent regions. All APIs natively support 24-bit color, quantized
+  down as necessary for the terminal.
 
 * It's Apache2-licensed in its entirety, as opposed to the
   [drama in several acts](https://invisible-island.net/ncurses/ncurses-license.html)
   that is the NCURSES license (the latter is [summarized](https://invisible-island.net/ncurses/ncurses-license.html#issues_freer)
   as "a restatement of MIT-X11").
+
+Much of the above can be had with NCURSES, but they're not what NCURSES was
+*designed* for. The most fundamental advantage in my mind, though, is
+that notcurses is of the multithreaded era.
 
 On the other hand, if you're targeting industrial or critical applications,
 or wish to benefit from the time-tested reliability and portability of Curses,
@@ -1270,6 +1278,9 @@ compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
   applications, until I have that handled better. notcurses doesn't recognize
   the BiDi state machine transitions, and thus merrily continues writing
   left-to-right. ﷽
+
+* The unit tests assume dimensions of at least 80x25. They might work in a
+  smaller terminal. They might not. Don't file bugs on it.
 
 ## Supplemental material
 
