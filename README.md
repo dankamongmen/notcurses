@@ -748,7 +748,11 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
   return ncplane_double_box(n, attr, channels, y + ylen - 1,
                             x + xlen - 1, ctlword);
 }
+```
 
+My 14 year-old self would never forgive me if we didn't have sweet palette fades.
+
+```c
 // Fade the ncplane out over the provided time, calling the specified function
 // when done. Requires a terminal which supports direct color, or at least
 // palette modification (if the terminal uses a palette, our ability to fade
