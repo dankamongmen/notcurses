@@ -33,10 +33,16 @@ class CellTest : public :: testing::Test {
   FILE* outfp_{};
 };
 
+TEST_F(CellTest, LoadSimple) {
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  ASSERT_EQ(1, cell_load(n_, &c, " "));
+  EXPECT_TRUE(cell_simple_p(&c));
+  cell_release(n_, &c);
+}
+
 TEST_F(CellTest, SetItalic) {
-  cell c;
+  cell c = CELL_TRIVIAL_INITIALIZER;
   int dimy, dimx;
-  memset(&c, 0, sizeof(c));
   notcurses_term_dim_yx(nc_, &dimy, &dimx);
   cell_styles_set(&c, CELL_STYLE_ITALIC);
   ASSERT_EQ(1, cell_load(n_, &c, "i"));
@@ -48,9 +54,8 @@ TEST_F(CellTest, SetItalic) {
 }
 
 TEST_F(CellTest, SetBold) {
-  cell c;
+  cell c = CELL_TRIVIAL_INITIALIZER;
   int dimy, dimx;
-  memset(&c, 0, sizeof(c));
   notcurses_term_dim_yx(nc_, &dimy, &dimx);
   cell_styles_set(&c, CELL_STYLE_BOLD);
   ASSERT_EQ(1, cell_load(n_, &c, "b"));
@@ -62,9 +67,8 @@ TEST_F(CellTest, SetBold) {
 }
 
 TEST_F(CellTest, SetUnderline) {
-  cell c;
+  cell c = CELL_TRIVIAL_INITIALIZER;
   int dimy, dimx;
-  memset(&c, 0, sizeof(c));
   notcurses_term_dim_yx(nc_, &dimy, &dimx);
   cell_styles_set(&c, CELL_STYLE_UNDERLINE);
   ASSERT_EQ(1, cell_load(n_, &c, "u"));
