@@ -83,11 +83,10 @@ Why use this non-standard library?
 
 Much of the above can be had with NCURSES, but they're not what NCURSES was
 *designed* for. The most fundamental advantage in my mind, though, is
-that notcurses is of the multithreaded era.
-
-On the other hand, if you're targeting industrial or critical applications,
-or wish to benefit from the time-tested reliability and portability of Curses,
-you should by all means use that fine library.
+that notcurses is of the multithreaded era. On the other hand, if you're
+targeting industrial or critical applications, or wish to benefit from the
+time-tested reliability and portability of Curses, you should by all means use
+that fine library.
 
 ## Requirements
 
