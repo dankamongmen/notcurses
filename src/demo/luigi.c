@@ -107,7 +107,7 @@ static const char luigi3[] = "0000001111100000"
 static int
 draw_luigi(struct ncplane* n, const char* sprite){
   cell bgc = CELL_TRIVIAL_INITIALIZER;
-  cell_set_bg_alpha(&bgc, 3);
+  cell_set_bg_alpha(&bgc, CELL_ALPHA_TRANS);
   ncplane_set_background(n, &bgc);
   cell_release(n, &bgc);
   size_t s;

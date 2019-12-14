@@ -26,7 +26,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   int ybase = 0;
   // bevel the upper corners
   uint64_t channel = 0;
-  if(channels_set_bg_alpha(&channel, 3)){
+  if(channels_set_bg_alpha(&channel, CELL_ALPHA_TRANS)){
     return NULL;
   }
   if(ncplane_cursor_move_yx(on, ybase, 0)){
