@@ -221,8 +221,7 @@ snake_thread(void* vnc){
   notcurses_bg_prep(&channels, 20, 20, 20);
   cell_prime(n, &head, "א", 0, channels);
   cell c = CELL_TRIVIAL_INITIALIZER;
-  struct timespec iterdelay;
-  timespec_div(&demodelay, 10, &iterdelay);
+  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 1000000000ul / 20, };
   while(true){
     pthread_testcancel();
     get_surrounding_cells(n, lightup, y, x);
@@ -588,14 +587,15 @@ int widecolor_demo(struct notcurses* nc){
   for(i = 0 ; i < screens ; ++i){
     wchar_t key = NCKEY_INVALID;
     cell c;
+    struct timespec screenend;
+    clock_gettime(CLOCK_MONOTONIC, &screenend);
+    ns_to_timespec(timespec_to_ns(&screenend) + timespec_to_ns(&demodelay), &screenend);
     do{ // (re)draw a screen
       const int start = starts[i];
       int step = steps[i];
       const int rollover = 256 / ((step & 0xff) | ((step & 0xff00) >> 8u)
                                   | ((step & 0xff0000) >> 16u));
       int rollcount = 0; // number of times we've added this step
-      int dimy, dimx;
-      notcurses_resize(nc, &dimy, &dimx);
       cell_init(&c);
       int y, x, maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx);
@@ -686,11 +686,22 @@ int widecolor_demo(struct notcurses* nc){
       pthread_t tid;
       pthread_create(&tid, NULL, snake_thread, nc);
       do{
-        key = notcurses_getc_blocking(nc);
+        struct timespec left, cur;
+        clock_gettime(CLOCK_MONOTONIC, &cur);
+        timespec_subtract(&left, &screenend, &cur);
+        key = notcurses_getc(nc, &left, NULL);
+        clock_gettime(CLOCK_MONOTONIC, &cur);
+        int64_t ns = timespec_subtract_ns(&cur, &screenend);
+        if(ns > 0){
+          break;
+        }
       }while(key < 0);
       pthread_cancel(tid);
       pthread_join(tid, NULL);
       ncplane_destroy(mess);
+      if(key == NCKEY_RESIZE){
+        notcurses_resize(nc, NULL, NULL);
+      }
     }while(key == NCKEY_RESIZE);
   }
   return 0;

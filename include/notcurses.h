@@ -213,7 +213,8 @@ wchar_supppuab_p(wchar_t w){
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
-// Returns a single Unicode code point, or (wchar_t)-1 on error.
+// Returns a single Unicode code point, or (wchar_t)-1 on error. 'sigmask' may
+// be NULL.
 API int notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
 
 static inline int
@@ -240,7 +241,8 @@ API int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
-// primarily useful if the screen is externally corrupted.
+// primarily useful if the screen is externally corrupted. Has no effect if
+// notcurses_render() has never been successfully called.
 API int notcurses_refresh(struct notcurses* n);
 
 // Get a reference to the standard plane (one matching our current idea of the
