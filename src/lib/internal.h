@@ -50,7 +50,7 @@ typedef struct ncplane {
   uint64_t channels;    // works the same way as cells
   uint32_t attrword;    // same deal as in a cell
   void* userptr;        // slot for the user to stick some opaque pointer
-  cell background;      // cell written anywhere that fb[i].gcluster == 0
+  cell defcell;         // cell written anywhere that fb[i].gcluster == 0
   struct notcurses* nc; // notcurses object of which we are a part
 } ncplane;
 

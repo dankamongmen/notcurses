@@ -21,7 +21,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   }
   cell bgcell = CELL_SIMPLE_INITIALIZER(' ');
   channels_set_bg_rgb(&bgcell.channels, 0x58, 0x36, 0x58);
-  if(ncplane_set_background(on, &bgcell) < 0){
+  if(ncplane_set_default(on, &bgcell) < 0){
     return NULL;
   }
   ncplane_dim_yx(on, rows, cols);

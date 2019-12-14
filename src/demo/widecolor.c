@@ -284,7 +284,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, " ");
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANS);
-  ncplane_set_background(n, &c);
+  ncplane_set_default(n, &c);
   cell_release(n, &c);
   uint64_t channels = 0;
   ncplane_set_fg_rgb(n, 64, 128, 240);

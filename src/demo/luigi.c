@@ -108,7 +108,7 @@ static int
 draw_luigi(struct ncplane* n, const char* sprite){
   cell bgc = CELL_TRIVIAL_INITIALIZER;
   cell_set_bg_alpha(&bgc, CELL_ALPHA_TRANS);
-  ncplane_set_background(n, &bgc);
+  ncplane_set_default(n, &bgc);
   cell_release(n, &bgc);
   size_t s;
   int sbytes;

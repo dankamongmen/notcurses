@@ -347,7 +347,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->z = nc->top;
   nc->top = p;
   p->nc = nc;
-  cell_init(&p->background);
+  cell_init(&p->defcell);
   nc->stats.fbbytes += fbsize;
   return p;
 }
@@ -869,12 +869,12 @@ int ncplane_set_bg_alpha(ncplane *n, int alpha){
   return channels_set_bg_alpha(&n->channels, alpha);
 }
 
-int ncplane_set_background(ncplane* ncp, const cell* c){
-  return cell_duplicate(ncp, &ncp->background, c);
+int ncplane_set_default(ncplane* ncp, const cell* c){
+  return cell_duplicate(ncp, &ncp->defcell, c);
 }
 
-int ncplane_background(ncplane* ncp, cell* c){
-  return cell_duplicate(ncp, c, &ncp->background);
+int ncplane_default(ncplane* ncp, cell* c){
+  return cell_duplicate(ncp, c, &ncp->defcell);
 }
 
 // 3 for foreground, 4 for background, ugh FIXME
@@ -1077,9 +1077,9 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
 // So, as we go down, we find planes which can have impact on the result. Once
 // we've locked the result in (base case), write the deep values we have to 'c'.
 // Then, as we come back up, blend them as appropriate. The actual glyph is
-// whichever one occurs at the top with a non-transparent (positive) alpha. To
-// effect tail recursion, though, we instead write first, and then recurse,
-// blending as we descend. α <= 0 is opaque. α >= 3 is fully transparent.
+// whichever one occurs at the top with a non-transparent α (α < 3). To effect
+// tail recursion, though, we instead write first, and then recurse, blending
+// as we descend. α <= 0 is opaque. α >= 3 is fully transparent.
 static ncplane*
 dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
   while(p){
@@ -1095,7 +1095,7 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
         // if we never loaded any content into the cell (or obliterated it by
         // writing in a zero), use the plane's background cell.
         if(vis->gcluster == 0){
-          vis = &p->background;
+          vis = &p->defcell;
         }
         bool lockedglyph = false;
         int nalpha;
@@ -1114,7 +1114,6 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
           balpha -= (CELL_ALPHA_TRANS - nalpha);
         }
         if((falpha > 0 || balpha > 0) && p->z){ // we must go further!
-          assert(p->z);
           ncplane* cand = dig_visible_cell(c, y, x, p->z, falpha, balpha);
           if(!lockedglyph && cand){
             p = cand;
@@ -1876,11 +1875,11 @@ void ncplane_erase(ncplane* n){
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the attrword
   // and channels), and then reload.
-  char* egc = cell_egc_copy(n, &n->background);
+  char* egc = cell_egc_copy(n, &n->defcell);
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
-  cell_load(n, &n->background, egc);
+  cell_load(n, &n->defcell, egc);
   free(egc);
   ncplane_unlock(n);
 }
@@ -1994,7 +1993,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
     }
   }
   // FIXME factor this duplication out
-  channels = n->background.channels;
+  channels = n->defcell.channels;
   pp->channels[y * pp->cols] = channels;
   channels_get_fg_rgb(channels, &r, &g, &b);
   if(r > pp->maxr){
@@ -2144,20 +2143,20 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
         }
       }
     }
-    cell* c = &n->background;
+    cell* c = &n->defcell;
     if(!cell_fg_default_p(c)){
       channels_get_fg_rgb(pp.channels[pp.cols * y], &r, &g, &b);
       r = r * (maxsteps - iter) / maxsteps;
       g = g * (maxsteps - iter) / maxsteps;
       b = b * (maxsteps - iter) / maxsteps;
-      cell_set_fg_rgb(&n->background, r, g, b);
+      cell_set_fg_rgb(&n->defcell, r, g, b);
     }
     if(!cell_bg_default_p(c)){
       channels_get_bg_rgb(pp.channels[pp.cols * y], &br, &bg, &bb);
       br = br * (maxsteps - iter) / maxsteps;
       bg = bg * (maxsteps - iter) / maxsteps;
       bb = bb * (maxsteps - iter) / maxsteps;
-      cell_set_bg_rgb(&n->background, br, bg, bb);
+      cell_set_bg_rgb(&n->defcell, br, bg, bb);
     }
     notcurses_render(n->nc);
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;

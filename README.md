@@ -202,6 +202,13 @@ Utility functions operating on the toplevel `notcurses` object include:
 // following a resize operation, but the cursor might have changed position.
 int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
+// Return our current idea of the terminal dimensions in rows and cols.
+static inline void
+notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
+                      int* RESTRICT cols){
+  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
+}
+
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
 // primarily useful if the screen is externally corrupted.
@@ -376,14 +383,6 @@ int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
 // the standard plane.
 int ncplane_destroy(struct ncplane* ncp);
 
-// Set the ncplane's background cell to this cell. It will be rendered anywhere
-// that the ncplane's gcluster is 0. The default background is all zeroes.
-// Erasing the ncplane does not eliminate the background.
-int ncplane_set_background(struct ncplane* ncp, const cell* c);
-
-// Extract the ncplane's background cell into 'c'.
-int ncplane_background(struct ncplane* ncp, cell* c);
-
 // Move this plane relative to the standard plane. It is an error to attempt to
 // move the standard plane.
 int ncplane_move_yx(struct ncplane* n, int y, int x);
@@ -391,6 +390,52 @@ int ncplane_move_yx(struct ncplane* n, int y, int x);
 // Get the origin of this plane relative to the standard plane.
 void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
+// Returns the dimensions of this ncplane.
+void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
+                        int* RESTRICT cols);
+
+// Erase every cell in the ncplane, resetting all attributes to normal, all
+// colors to the default color, and all cells to undrawn. All cells associated
+// with this ncplane are invalidated, and must not be used after the call,
+// excluding the default cell.
+void ncplane_erase(struct ncplane* n);
+
+// Set the specified style bits for the ncplane 'n', whether they're actively
+// supported or not.
+void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
+
+// Add the specified styles to the ncplane's existing spec.
+void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
+
+// Remove the specified styles from the ncplane's existing spec.
+void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
+
+// Return the current styling for this ncplane.
+unsigned ncplane_styles(const struct ncplane* n);
+
+```
+
+If a given cell's glyph is zero, or its foreground channel is fully transparent,
+it is considered to have no foreground. A _default_ cell can be chosen for the
+`ncplane`, to be consulted in this case. If the default cell's glyph is likewise
+zero (or its foreground channel fully transparent), the plane's foreground is
+not rendered. Note that the default cell, like every other cell, has its own
+foreground and background channels.
+
+```c
+// Set the ncplane's default cell to this cell. If defined, it will be rendered
+// anywhere that the ncplane's gcluster is 0. Erasing the ncplane does not
+// reset the default cell; this function must instead be called with a zero c.
+int ncplane_set_default(struct ncplane* ncp, const cell* c);
+
+// Extract the ncplane's default cell into 'c'.
+int ncplane_default(struct ncplane* ncp, cell* c);
+```
+
+`ncplane`s are completely ordered along an imaginary z-axis. Newly-created
+`ncplane`s are on the top of the stack. They can be freely reordered.
+
+```c
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
 int ncplane_move_top(struct ncplane* n);
 int ncplane_move_bottom(struct ncplane* n);
@@ -400,7 +445,13 @@ int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT belo
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
+```
 
+Each plane holds a user pointer which can be retrieved and set (or ignored). In
+addition, the plane's virtual framebuffer can be accessed (note that this does
+not necessarily reflect anything on the actual screen).
+
+```c
 // Retrieve the cell at the cursor location on the specified plane, returning
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
 int ncplane_at_cursor(struct ncplane* n, cell* c);
@@ -411,18 +462,14 @@ int ncplane_at_cursor(struct ncplane* n, cell* c);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);
 const void* ncplane_userptr_const(const struct ncplane* n);
+```
 
-// Returns the dimensions of this ncplane.
-void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
-                        int* RESTRICT cols);
+All output is to `ncplane`s. There is no cost in moving the cursor around the
+virtual framebuffer. Output that's never rendered still has some memory transfer
+cost as the virtual framebuffer is prepared, but new data overwrites it in
+memory.
 
-// Return our current idea of the terminal dimensions in rows and cols.
-static inline void
-notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
-                      int* RESTRICT cols){
-  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
-}
-
+```
 // Move the cursor to the specified position (the cursor needn't be visible).
 // Returns -1 on error, including negative parameters, or ones exceeding the
 // plane's dimensions.
@@ -569,8 +616,13 @@ ncplane_vprintf_yx(struct ncplane* n, int y, int x, const char* format, va_list 
   }
   return ncplane_vprintf(n, format, ap);
 }
+```
 
+Lines and boxes can be drawn, interpolating their colors between their two
+endpoints. For a line of a single color, be sure to specify the same channels
+on both sides. Boxes allow fairly detailed specification of how they're drawn.
 
+```c
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last
 // cell output (even, perhaps counter-intuitively, when drawing vertical
@@ -696,24 +748,6 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
   return ncplane_double_box(n, attr, channels, y + ylen - 1,
                             x + xlen - 1, ctlword);
 }
-
-// Erase every cell in the ncplane, resetting all attributes to normal, all
-// colors to the default color, and all cells to undrawn. All cells associated
-// with this ncplane are invalidated, and must not be used after the call.
-void ncplane_erase(struct ncplane* n);
-
-// Set the specified style bits for the ncplane 'n', whether they're actively
-// supported or not.
-void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
-
-// Add the specified styles to the ncplane's existing spec.
-void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
-
-// Remove the specified styles from the ncplane's existing spec.
-void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
-
-// Return the current styling for this ncplane.
-unsigned ncplane_styles(const struct ncplane* n);
 
 // Fade the ncplane out over the provided time, calling the specified function
 // when done. Requires a terminal which supports direct color, or at least
@@ -1454,6 +1488,13 @@ channels_set_bg_default(uint64_t* channels){
 
 ### Perf
 
+Rendering performance can be very roughly categorized as inversely proportional
+to the product of:
+* color changes across the rendered screen,
+* planar depth before an opaque glyph and background are locked in,
+* number of UTF-8 bytes composing the rendered glyphs, and
+* screen geometry
+
 notcurses tracks statistics across its operation, and a snapshot can be
 acquired using the `notcurses_stats()` function. This function cannot fail.
 
@@ -1492,11 +1533,6 @@ whether the cell need be redrawn. If so, it will be redrawn, and the virtual
 cursor is updated based on the width of the output. Along the way, notcurses
 attempts to minimize total amount of data written by eliding unnecessary color
 and style specifications, and moving the cursor over large unchanged areas.
-
-The worst case input frame (in terms of output size) is one whose colors change
-from coordinate to coordinate, uses multiple combining characters within each
-grapheme cluster, and has a large geometry. Peculiarities of the terminal
-make it impossible to comment more meaningfully regarding delay.
 
 Using the "default color" as only one of the foreground or background requires
 emitting the `op` escape followed by the appropriate escape for changing the
