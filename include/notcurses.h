@@ -545,20 +545,26 @@ ncplane_vline(struct ncplane* n, const cell* c, int len){
 //  * 6, 2: right
 //  * 5, 1: bottom
 //  * 4, 0: left
-// if the gradient bit is not set, the styling from the hl/vl cells is used for
-// the horizontal and vertical lines, respectively. if the gradient bit is set,
-// the color is linearly interpolated between the two relevant corner cells. if
-// the bordermask bit is set, that side of the box is not drawn. iff either edge
-// connecting to a corner is drawn, the corner is drawn.
+// If the gradient bit is not set, the styling from the hl/vl cells is used for
+// the horizontal and vertical lines, respectively. If the gradient bit is set,
+// the color is linearly interpolated between the two relevant corner cells.
+//
+// By default, vertexes are drawn whether their connecting edges are drawn or
+// not. The value of the bits corresponding to NCBOXCORNER_MASK control this,
+// and are interpreted as the number of connecting edges necessary to draw a
+// given corner. At 0 (the default), corners are always drawn. At 3, corners
+// are never drawn (as at most 2 edges can touch a box's corner).
 
-#define NCBOXMASK_TOP    0x01
-#define NCBOXMASK_RIGHT  0x02
-#define NCBOXMASK_BOTTOM 0x04
-#define NCBOXMASK_LEFT   0x08
-#define NCBOXGRAD_TOP    0x10
-#define NCBOXGRAD_RIGHT  0x20
-#define NCBOXGRAD_BOTTOM 0x40
-#define NCBOXGRAD_LEFT   0x80
+#define NCBOXMASK_TOP    0x0001
+#define NCBOXMASK_RIGHT  0x0002
+#define NCBOXMASK_BOTTOM 0x0004
+#define NCBOXMASK_LEFT   0x0008
+#define NCBOXGRAD_TOP    0x0010
+#define NCBOXGRAD_RIGHT  0x0020
+#define NCBOXGRAD_BOTTOM 0x0040
+#define NCBOXGRAD_LEFT   0x0080
+#define NCBOXCORNER_MASK 0x0300
+#define NCBOXCORNER_SHIFT 8u
 
 API int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
                     const cell* ll, const cell* lr, const cell* hline,

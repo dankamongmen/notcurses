@@ -32,6 +32,22 @@ class NcplaneTest : public :: testing::Test {
   struct notcurses* nc_{};
   struct ncplane* n_{};
   FILE* outfp_{};
+
+  void BoxPermutationsRounded(unsigned edges) {
+    int dimx, dimy;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    ASSERT_LT(2, dimy);
+    ASSERT_LT(47, dimx);
+    // we'll try all 16 boxmasks in 3x3 configurations in a 1x16 map
+    unsigned boxmask = edges << NCBOXCORNER_SHIFT;
+    for(auto x0 = 0 ; x0 < 16 ; ++x0){
+      EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, x0 * 3));
+      EXPECT_EQ(0, ncplane_rounded_box_sized(n_, 0, 0, 3, 3, boxmask));
+      ++boxmask;
+    }
+    EXPECT_EQ(0, notcurses_render(nc_));
+  }
+
 };
 
 // Starting position ought be 0, 0 (the origin)
@@ -232,19 +248,20 @@ TEST_F(NcplaneTest, BadlyPlacedBoxen) {
   EXPECT_EQ(0, notcurses_render(nc_));
 }
 
-TEST_F(NcplaneTest, BoxPermutationsRounded) {
-  int dimx, dimy;
-  ncplane_dim_yx(n_, &dimy, &dimx);
-  ASSERT_LT(2, dimy);
-  ASSERT_LT(47, dimx);
-  // we'll try all 16 boxmasks in 3x3 configurations in a 1x16 map
-  unsigned boxmask = 0;
-  for(auto x0 = 0 ; x0 < 16 ; ++x0){
-    EXPECT_EQ(0, ncplane_cursor_move_yx(n_, 0, x0 * 3));
-    EXPECT_EQ(0, ncplane_rounded_box_sized(n_, 0, 0, 3, 3, boxmask));
-    ++boxmask;
-  }
-  EXPECT_EQ(0, notcurses_render(nc_));
+TEST_F(NcplaneTest, BoxPermutationsRoundedZeroEdges) {
+  BoxPermutationsRounded(0);
+}
+
+TEST_F(NcplaneTest, BoxPermutationsRoundedOneEdges) {
+  BoxPermutationsRounded(1);
+}
+
+TEST_F(NcplaneTest, BoxPermutationsRoundedTwoEdges) {
+  BoxPermutationsRounded(2);
+}
+
+TEST_F(NcplaneTest, BoxPermutationsRoundedThreeEdges) {
+  BoxPermutationsRounded(3);
 }
 
 TEST_F(NcplaneTest, BoxPermutationsDouble) {
