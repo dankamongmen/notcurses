@@ -129,8 +129,8 @@ handle_getc(notcurses* nc, int kpress){
     }
     // FIXME ungetc on failure! walk trie backwards or something
   }
-  if(kpress == 0x04){ // ctrl-d, treated as EOF
-    return (wchar_t)-1;
+  if(kpress == 0x7f){ // ASCII del, treated as backspace
+    return NCKEY_BACKSPACE;
   }
   if(kpress < 0x80){
     return kpress;

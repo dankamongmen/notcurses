@@ -39,6 +39,22 @@ const char* nckeystr(wchar_t spkey){
     case NCKEY_F10:     return "F10";
     case NCKEY_F11:     return "F11";
     case NCKEY_F12:     return "F12";
+    case NCKEY_BACKSPACE: return "backspace";
+    case NCKEY_CENTER:  return "center";
+    case NCKEY_ENTER:   return "enter";
+    case NCKEY_CLS:     return "clear";
+    case NCKEY_DLEFT:   return "down+left";
+    case NCKEY_DRIGHT:  return "down+right";
+    case NCKEY_ULEFT:   return "up+left";
+    case NCKEY_URIGHT:  return "up+right";
+    case NCKEY_BEGIN:   return "begin";
+    case NCKEY_CANCEL:  return "cancel";
+    case NCKEY_CLOSE:   return "close";
+    case NCKEY_COMMAND: return "command";
+    case NCKEY_COPY:    return "copy";
+    case NCKEY_EXIT:    return "exit";
+    case NCKEY_PRINT:   return "print";
+    case NCKEY_REFRESH: return "refresh";
     default:            return "unknown";
   }
 }

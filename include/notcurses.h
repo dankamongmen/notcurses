@@ -396,6 +396,20 @@ ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
   return ncplane_putsimple(n, c);
 }
 
+// Replace the cell underneath the cursor with the provided wide char 'w'.
+// Advance the cursor by the character's width as reported by wcwidth(). On
+// success, returns 1. On failure, returns -1.
+API int ncplane_putwc(struct ncplane* n, wchar_t w);
+
+// Call ncplane_putwc() after successfully moving to y, x.
+static inline int
+ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
+  if(ncplane_cursor_move_yx(n, y, x)){
+    return -1;
+  }
+  return ncplane_putwc(n, w);
+}
+
 // Replace the cell underneath the cursor with the provided EGC, using the
 // specified 'attr' and 'channels' for styling, and advance the cursor by the
 // width of the cluster (but not past the end of the plane). On success, returns
