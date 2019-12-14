@@ -1104,13 +1104,13 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
             if( (c->gcluster = vis->gcluster) ){ // index copy only
               lockedglyph = true; // must return this ncplane for this glyph
               c->attrword = vis->attrword;
-              cell_set_fg(c, cell_get_fg(vis)); // FIXME blend it in
+              cell_set_fchannel(c, cell_get_fchannel(vis)); // FIXME blend it in
               falpha -= (CELL_ALPHA_TRANS - nalpha); // FIXME blend it in
             }
           }
         }
         if(balpha > 0 && (nalpha = cell_get_bg_alpha(vis)) < CELL_ALPHA_TRANS){
-          cell_set_bg(c, cell_get_bg(vis)); // FIXME blend it in
+          cell_set_bchannel(c, cell_get_bchannel(vis)); // FIXME blend it in
           balpha -= (CELL_ALPHA_TRANS - nalpha);
         }
         if((falpha > 0 || balpha > 0) && p->z){ // we must go further!

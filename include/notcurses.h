@@ -700,6 +700,18 @@ channels_get_fchannel(uint64_t channels){
   return channels_get_bchannel(channels >> 32u);
 }
 
+// Set the 32-bit background channel of a channel pair.
+static inline uint64_t
+channels_set_bchannel(uint64_t* channels, uint32_t channel){
+  return *channels = (*channels & 0xffffffff00000000llu) | channel;
+}
+
+// Set the 32-bit foreground channel of a channel pair.
+static inline uint64_t
+channels_set_fchannel(uint64_t* channels, uint32_t channel){
+  return *channels = (*channels & 0xfffffffflu) | ((uint64_t)channel << 32u);
+}
+
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline unsigned
 channels_get_fg(uint64_t channels){
@@ -845,6 +857,18 @@ cell_get_bchannel(const cell* cl){
 static inline unsigned
 cell_get_fchannel(const cell* cl){
   return channels_get_fchannel(cl->channels);
+}
+
+// Set the 32-bit background channel of a cell.
+static inline uint64_t
+cell_set_bchannel(cell* cl, uint32_t channel){
+  return channels_set_bchannel(&cl->channels, channel);
+}
+
+// Set the 32-bit foreground channel of a cell.
+static inline uint64_t
+cell_set_fchannel(cell* cl, uint32_t channel){
+  return channels_set_fchannel(&cl->channels, channel);
 }
 
 // Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
