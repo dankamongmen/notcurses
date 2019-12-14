@@ -1157,8 +1157,8 @@ I'll likely natively handle this within `notcurses_render()` soon.
 Four binaries are built as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
-* `notcurses-tester`: unit testing
 * `notcurses-input`: decode and print keypresses
+* `notcurses-tester`: unit testing
 
 ## Differences from NCURSES
 
@@ -1193,6 +1193,11 @@ some design decisions might surprise NCURSES programmers:
 * There is no `ESCDELAY` concept; notcurses expects that all bytes of a
   keyboard escape sequence arrive at the same time. This improves latency
   and simplifies the API.
+* It is an error in NCURSES to print to the bottommost, rightmost coordinate of
+  the screen when scrolling is disabled (because the cursor cannot be advanced).
+  Failure to advance the cursor does not result in an error in notcurses (but
+  attempting to print at the cursor when it has been advanced off the plane
+  *does*).
 
 ### Features missing relative to NCURSES
 
