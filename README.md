@@ -702,19 +702,6 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 // with this ncplane are invalidated, and must not be used after the call.
 void ncplane_erase(struct ncplane* n);
 
-// Set the current fore/background color using RGB specifications. If the
-// terminal does not support directly-specified 3x8b cells (24-bit "Direct
-// Color", indicated by the "RGB" terminfo capability), the provided values
-// will be interpreted in some lossy fashion. None of r, g, or b may exceed 255.
-// "HP-like" terminals require setting foreground and background at the same
-// time using "color pairs"; notcurses will manage color pairs transparently.
-int ncplane_set_fg(struct ncplane* n, int r, int g, int b);
-int ncplane_set_bg(struct ncplane* n, int r, int g, int b);
-
-// use the default color for the foreground/background
-void ncplane_fg_default(struct ncplane* n);
-void ncplane_bg_default(struct ncplane* n);
-
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
 void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
@@ -829,7 +816,7 @@ int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 void ncplane_set_fg(struct ncplane* n, uint32_t channel);
 void ncplane_set_bg(struct ncplane* n, uint32_t channel);
 
-// use the default color for the foreground/background
+// Use the default color for the foreground/background.
 void ncplane_set_fg_default(struct ncplane* n);
 void ncplane_set_bg_default(struct ncplane* n);
 ```

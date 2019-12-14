@@ -942,7 +942,7 @@ API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 API void ncplane_set_fg(struct ncplane* n, uint32_t channel);
 API void ncplane_set_bg(struct ncplane* n, uint32_t channel);
 
-// use the default color for the foreground/background
+// Use the default color for the foreground/background.
 API void ncplane_set_fg_default(struct ncplane* n);
 API void ncplane_set_bg_default(struct ncplane* n);
 
