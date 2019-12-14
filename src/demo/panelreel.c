@@ -76,7 +76,7 @@ tabletup(struct ncplane* w, int begx, int begy, int maxx, int maxy,
     ncplane_cursor_move_yx(w, y, begx);
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", idx % 16);
     cell_load(w, &c, cchbuf);
-    cell_set_fg(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu);
+    cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu);
     int x;
     for(x = begx ; x <= maxx ; ++x){
       // lower-right corner always returns an error unless scrollok() is used
@@ -104,7 +104,7 @@ tabletdown(struct ncplane* w, int begx, int begy, int maxx, int maxy,
     ncplane_cursor_move_yx(w, y, begx);
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", y % 16);
     cell_load(w, &c, cchbuf);
-    cell_set_fg(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu);
+    cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu);
     int x;
     for(x = begx ; x <= maxx ; ++x){
       // lower-right corner always returns an error unless scrollok() is used
@@ -265,12 +265,12 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     .boff = y,
     .bgchannel = 0,
   };
-  cell_set_fg(&popts.focusedattr, 58, 150, 221);
-  cell_set_bg(&popts.focusedattr, 97, 214, 214);
-  cell_set_fg(&popts.tabletattr, 19, 161, 14);
-  cell_set_fg(&popts.borderattr, 136, 23, 152);
-  cell_set_bg(&popts.borderattr, 0, 0, 0);
-  if(notcurses_bg_set_alpha(&popts.bgchannel, 3)){
+  cell_set_fg_rgb(&popts.focusedattr, 58, 150, 221);
+  cell_set_bg_rgb(&popts.focusedattr, 97, 214, 214);
+  cell_set_fg_rgb(&popts.tabletattr, 19, 161, 14);
+  cell_set_fg_rgb(&popts.borderattr, 136, 23, 152);
+  cell_set_bg_rgb(&popts.borderattr, 0, 0, 0);
+  if(channels_set_bg_alpha(&popts.bgchannel, 3)){
     return NULL;
   }
   struct ncplane* w = notcurses_stdplane(nc);
@@ -282,7 +282,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   // Press a for a new panel above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement. q quits.
   ncplane_set_fg_rgb(w, 58, 150, 221);
-  ncplane_bg_default(w);
+  ncplane_set_bg_default(w);
   ncplane_cursor_move_yx(w, 1, 1);
   ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
   // FIXME clrtoeol();

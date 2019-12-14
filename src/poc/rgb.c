@@ -12,26 +12,28 @@ int main(void){
   memset(&opts, 0, sizeof(opts));
   opts.inhibit_alternate_screen = true;
   struct notcurses* nc = notcurses_init(&opts, stdout);
+  if(nc == NULL){
+    return EXIT_FAILURE;
+  }
   int y, x, dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
-  uint64_t channels = 0;
   int r , g, b;
   r = 0;
   g = 0x80;
   b = 0;
   for(y = 0 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
-      notcurses_fg_prep(&channels, r, g, b);
-      ncplane_putsimple(n, 'x', 0, channels);
-      if(r % 2){
+      ncplane_set_fg_rgb(n, r, g, b);
+      ncplane_putsimple(n, 'x');
+      if(g % 2){
         if(b-- == 0){
-          ++r;
+          ++g;
           b = 0;
         }
       }else{
         if(b++ >= 256){
-          ++r;
+          ++g;
           b = 256;
         }
       }

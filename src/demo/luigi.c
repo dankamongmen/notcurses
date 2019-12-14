@@ -107,27 +107,27 @@ static const char luigi3[] = "0000001111100000"
 static int
 draw_luigi(struct ncplane* n, const char* sprite){
   cell bgc = CELL_TRIVIAL_INITIALIZER;
-  cell_bg_set_alpha(&bgc, 3);
+  cell_set_bg_alpha(&bgc, 3);
   ncplane_set_background(n, &bgc);
   cell_release(n, &bgc);
   size_t s;
   int sbytes;
   uint64_t channels = 0;
   // optimization so we can elide more color changes, see README's "#perf"
-  notcurses_bg_prep(&channels, 0x00, 0x00, 0x00);
+  channels_set_bg_rgb(&channels, 0x00, 0x00, 0x00);
   for(s = 0 ; sprite[s] ; ++s){
     switch(sprite[s]){
       case '0':
         ncplane_cursor_move_yx(n, (s + 1) / 16, (s + 1) % 16);
         break;
       case '1':
-        notcurses_fg_prep(&channels, 0xff, 0xff, 0xff);
+        channels_set_fg_rgb(&channels, 0xff, 0xff, 0xff);
         break;
       case '2':
-        notcurses_fg_prep(&channels, 0xe3, 0x9d, 0x25);
+        channels_set_fg_rgb(&channels, 0xe3, 0x9d, 0x25);
         break;
       case '3':
-        notcurses_fg_prep(&channels, 0x3a, 0x84, 0x00);
+        channels_set_fg_rgb(&channels, 0x3a, 0x84, 0x00);
         break;
     }
     if(sprite[s] != '0'){

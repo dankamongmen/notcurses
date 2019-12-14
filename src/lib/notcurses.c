@@ -752,10 +752,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
          bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
          ret->colors, ret->RGBflag ? "direct" : "palette");
   if(!ret->RGBflag){ // FIXME
-    if(ret->colors > 16){
+    if(ret->colors >= 16){
       putp(tiparm(ret->setaf, 207));
     }else{
-      putp(tiparm(ret->setaf, 9));
+      putp(tiparm(ret->setaf, 3));
     }
     fprintf(ret->ttyfp, "\nWarning: you will not have colors until this is resolved:\n");
     fprintf(ret->ttyfp, " https://github.com/dankamongmen/notcurses/issues/4\n");
@@ -827,20 +827,28 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
-void ncplane_fg_default(struct ncplane* n){
-  n->channels &= ~(CELL_FGDEFAULT_MASK);
+uint64_t ncplane_get_channels(const ncplane* n){
+  return n->channels;
 }
 
-void ncplane_bg_default(struct ncplane* n){
-  n->channels &= ~(CELL_BGDEFAULT_MASK);
+uint32_t ncplane_get_attr(const ncplane* n){
+  return n->attrword;
+}
+
+void ncplane_set_fg_default(struct ncplane* n){
+  channels_set_fg_default(&n->channels);
+}
+
+void ncplane_set_bg_default(struct ncplane* n){
+  channels_set_bg_default(&n->channels);
 }
 
 int ncplane_set_bg_rgb(ncplane* n, int r, int g, int b){
-  return notcurses_bg_prep(&n->channels, r, g, b);
+  return channels_set_bg_rgb(&n->channels, r, g, b);
 }
 
 int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
-  return notcurses_fg_prep(&n->channels, r, g, b);
+  return channels_set_fg_rgb(&n->channels, r, g, b);
 }
 
 void ncplane_set_fg(ncplane* n, uint32_t halfchannel){
@@ -1065,7 +1073,7 @@ visible_cell(int y, int x, ncplane** retp){
           vis = &p->background;
         }
         // FIXME do this more rigorously, PoC
-        if(cell_fg_alpha(vis) || cell_bg_alpha(vis)){
+        if(cell_get_fg_alpha(vis) || cell_get_bg_alpha(vis)){
           *retp = p->z;
           const cell* trans = visible_cell(y, x, retp);
           if(trans){
@@ -1248,7 +1256,7 @@ notcurses_render_internal(notcurses* nc){
 
       // we can elide the foreground set iff the previous used fg and matched
       if(!cell_fg_default_p(c)){
-        cell_get_fg(c, &r, &g, &b);
+        cell_get_fg_rgb(c, &r, &g, &b);
         if(fgelidable && lastr == r && lastg == g && lastb == b){
           ++nc->stats.fgelisions;
         }else{
@@ -1260,7 +1268,7 @@ notcurses_render_internal(notcurses* nc){
         defaultelidable = false;
       }
       if(!cell_bg_default_p(c)){
-        cell_get_bg(c, &br, &bg, &bb);
+        cell_get_bg_rgb(c, &br, &bg, &bb);
         if(bgelidable && lastbr == br && lastbg == bg && lastbb == bb){
           ++nc->stats.bgelisions;
         }else{
@@ -1385,15 +1393,11 @@ int ncplane_putc(ncplane* n, const cell* c){
   return cols;
 }
 
-uint64_t ncplane_get_channels(const ncplane* n){
-  return n->channels;
-}
-
-int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels){
+int ncplane_putsimple(struct ncplane* n, char c){
   cell ce = {
     .gcluster = c,
-    .attrword = attr,
-    .channels = channels,
+    .attrword = ncplane_get_attr(n),
+    .channels = ncplane_get_channels(n),
   };
   if(!cell_simple_p(&ce)){
     return -1;
@@ -1563,10 +1567,10 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
                          uint64_t c1, uint64_t c2){
   unsigned r1, g1, b1, r2, g2, b2;
   unsigned br1, bg1, bb1, br2, bg2, bb2;
-  cell_rgb_get_fg(c1, &r1, &g1, &b1);
-  cell_rgb_get_fg(c2, &r2, &g2, &b2);
-  cell_rgb_get_bg(c1, &br1, &bg1, &bb1);
-  cell_rgb_get_bg(c2, &br2, &bg2, &bb2);
+  channels_get_fg_rgb(c1, &r1, &g1, &b1);
+  channels_get_fg_rgb(c2, &r2, &g2, &b2);
+  channels_get_bg_rgb(c1, &br1, &bg1, &bb1);
+  channels_get_bg_rgb(c2, &br2, &bg2, &bb2);
   int deltr = ((unsigned)r2 - r1) / (len + 1);
   int deltg = ((unsigned)g2 - g1) / (len + 1);
   int deltb = ((unsigned)b2 - b1) / (len + 1);
@@ -1593,10 +1597,10 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
     bg1 += deltbg;
     bb1 += deltbb;
     if(!fgdef){
-      notcurses_fg_prep(&c1, r1, g1, b1);
+      channels_set_fg_rgb(&c1, r1, g1, b1);
     }
     if(!bgdef){
-      notcurses_bg_prep(&c1, br1, bg1, bb1);
+      channels_set_bg_rgb(&c1, br1, bg1, bb1);
     }
     dupc.channels = c1;
     if(ncplane_putc(n, &dupc) <= 0){
@@ -1611,10 +1615,10 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
                          uint64_t c1, uint64_t c2){
   unsigned r1, g1, b1, r2, g2, b2;
   unsigned br1, bg1, bb1, br2, bg2, bb2;
-  cell_rgb_get_fg(c1, &r1, &g1, &b1);
-  cell_rgb_get_fg(c2, &r2, &g2, &b2);
-  cell_rgb_get_bg(c1, &br1, &bg1, &bb1);
-  cell_rgb_get_bg(c2, &br2, &bg2, &bb2);
+  channels_get_fg_rgb(c1, &r1, &g1, &b1);
+  channels_get_fg_rgb(c2, &r2, &g2, &b2);
+  channels_get_bg_rgb(c1, &br1, &bg1, &bb1);
+  channels_get_bg_rgb(c2, &br2, &bg2, &bb2);
   int deltr = ((unsigned)r2 - r1) / (len + 1);
   int deltg = ((unsigned)g2 - g1) / (len + 1);
   int deltb = ((unsigned)b2 - b1) / (len + 1);
@@ -1645,10 +1649,10 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
     bg1 += deltbg;
     bb1 += deltbb;
     if(!fgdef){
-      notcurses_fg_prep(&c1, r1, g1, b1);
+      channels_set_fg_rgb(&c1, r1, g1, b1);
     }
     if(!bgdef){
-      notcurses_bg_prep(&c1, br1, bg1, bb1);
+      channels_set_bg_rgb(&c1, br1, bg1, bb1);
     }
     dupc.channels = c1;
     if(ncplane_putc(n, &dupc) <= 0){
@@ -1857,26 +1861,26 @@ int ncvisual_render(const ncvisual* ncv){
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       if(!rgbbase_up[3] || !rgbbase_down[3]){
-        cell_bg_default(&c);
+        cell_set_bg_default(&c);
         if(!rgbbase_up[3] && !rgbbase_down[3]){
           if(cell_load(ncv->ncp, &c, " ") <= 0){
             return -1;
           }
-          cell_fg_default(&c);
+          cell_set_fg_default(&c);
         }else if(!rgbbase_up[3]){ // down has the color
           if(cell_load(ncv->ncp, &c, "\u2584") <= 0){ // lower half block
             return -1;
           }
-          cell_set_fg(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          cell_set_fg_rgb(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
         }else{ // up has the color
           if(cell_load(ncv->ncp, &c, "\u2580") <= 0){ // upper half block
             return -1;
           }
-          cell_set_fg(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+          cell_set_fg_rgb(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
         }
       }else{
-        cell_set_fg(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
-        cell_set_bg(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+        cell_set_fg_rgb(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+        cell_set_bg_rgb(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
         if(cell_load(ncv->ncp, &c, "\u2580") <= 0){ // upper half block
           return -1;
         }
@@ -1921,7 +1925,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
     for(x = 0 ; x < pp->cols ; ++x){
       channels = n->fb[fbcellidx(n, y, x)].channels;
       pp->channels[y * pp->cols + x] = channels;
-      cell_rgb_get_fg(channels, &r, &g, &b);
+      channels_get_fg_rgb(channels, &r, &g, &b);
       if(r > pp->maxr){
         pp->maxr = r;
       }
@@ -1931,7 +1935,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
       if(b > pp->maxb){
         pp->maxb = b;
       }
-      cell_rgb_get_bg(channels, &br, &bg, &bb);
+      channels_get_bg_rgb(channels, &br, &bg, &bb);
       if(br > pp->maxbr){
         pp->maxbr = br;
       }
@@ -1946,7 +1950,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   // FIXME factor this duplication out
   channels = n->background.channels;
   pp->channels[y * pp->cols] = channels;
-  cell_rgb_get_fg(channels, &r, &g, &b);
+  channels_get_fg_rgb(channels, &r, &g, &b);
   if(r > pp->maxr){
     pp->maxr = r;
   }
@@ -1956,7 +1960,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   if(b > pp->maxb){
     pp->maxb = b;
   }
-  cell_rgb_get_bg(channels, &br, &bg, &bb);
+  channels_get_bg_rgb(channels, &br, &bg, &bb);
   if(br > pp->maxbr){
     pp->maxbr = br;
   }
@@ -2007,21 +2011,21 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts){
     for(y = 0 ; y < pp.rows && y < dimy ; ++y){
       for(x = 0 ; x < pp.cols && x < dimx; ++x){
         unsigned r, g, b;
-        cell_rgb_get_fg(pp.channels[pp.cols * y + x], &r, &g, &b);
+        channels_get_fg_rgb(pp.channels[pp.cols * y + x], &r, &g, &b);
         unsigned br, bg, bb;
-        cell_rgb_get_bg(pp.channels[pp.cols * y + x], &br, &bg, &bb);
+        channels_get_bg_rgb(pp.channels[pp.cols * y + x], &br, &bg, &bb);
         cell* c = &n->fb[dimx * y + x];
         if(!cell_fg_default_p(c)){
           r = r * iter / maxsteps;
           g = g * iter / maxsteps;
           b = b * iter / maxsteps;
-          cell_set_fg(c, r, g, b);
+          cell_set_fg_rgb(c, r, g, b);
         }
         if(!cell_bg_default_p(c)){
           br = br * iter / maxsteps;
           bg = bg * iter / maxsteps;
           bb = bb * iter / maxsteps;
-          cell_set_bg(c, br, bg, bb);
+          cell_set_bg_rgb(c, br, bg, bb);
         }
       }
     }
@@ -2079,35 +2083,35 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
       for(x = 0 ; x < pp.cols && x < dimx; ++x){
         cell* c = &n->fb[dimx * y + x];
         if(!cell_fg_default_p(c)){
-          cell_rgb_get_fg(pp.channels[pp.cols * y + x], &r, &g, &b);
+          channels_get_fg_rgb(pp.channels[pp.cols * y + x], &r, &g, &b);
           r = r * (maxsteps - iter) / maxsteps;
           g = g * (maxsteps - iter) / maxsteps;
           b = b * (maxsteps - iter) / maxsteps;
-          cell_set_fg(c, r, g, b);
+          cell_set_fg_rgb(c, r, g, b);
         }
         if(!cell_bg_default_p(c)){
-          cell_rgb_get_bg(pp.channels[pp.cols * y + x], &br, &bg, &bb);
+          channels_get_bg_rgb(pp.channels[pp.cols * y + x], &br, &bg, &bb);
           br = br * (maxsteps - iter) / maxsteps;
           bg = bg * (maxsteps - iter) / maxsteps;
           bb = bb * (maxsteps - iter) / maxsteps;
-          cell_set_bg(c, br, bg, bb);
+          cell_set_bg_rgb(c, br, bg, bb);
         }
       }
     }
     cell* c = &n->background;
     if(!cell_fg_default_p(c)){
-      cell_rgb_get_fg(pp.channels[pp.cols * y], &r, &g, &b);
+      channels_get_fg_rgb(pp.channels[pp.cols * y], &r, &g, &b);
       r = r * (maxsteps - iter) / maxsteps;
       g = g * (maxsteps - iter) / maxsteps;
       b = b * (maxsteps - iter) / maxsteps;
-      cell_set_fg(&n->background, r, g, b);
+      cell_set_fg_rgb(&n->background, r, g, b);
     }
     if(!cell_bg_default_p(c)){
-      cell_rgb_get_bg(pp.channels[pp.cols * y], &br, &bg, &bb);
+      channels_get_bg_rgb(pp.channels[pp.cols * y], &br, &bg, &bb);
       br = br * (maxsteps - iter) / maxsteps;
       bg = bg * (maxsteps - iter) / maxsteps;
       bb = bb * (maxsteps - iter) / maxsteps;
-      cell_set_bg(&n->background, br, bg, bb);
+      cell_set_bg_rgb(&n->background, br, bg, bb);
     }
     notcurses_render(n->nc);
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
@@ -2170,6 +2174,9 @@ void notcurses_cursor_disable(notcurses* nc){
 }
 
 int notcurses_refresh(notcurses* nc){
+  if(nc->stats.renders == 0){
+    return -1; // haven't rendered yet, and thus don't know what should be there
+  }
   // FIXME
   return 0;
 }

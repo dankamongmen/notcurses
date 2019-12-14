@@ -251,7 +251,7 @@ TEST_F(PanelReelTest, SubwinNoOffsetGeom) {
 
 TEST_F(PanelReelTest, TransparentBackground) {
   panelreel_options p{};
-  notcurses_bg_set_alpha(&p.bgchannel, 3);
+  channels_set_bg_alpha(&p.bgchannel, 3);
   struct panelreel* pr = panelreel_create(n_, &p, -1);
   ASSERT_NE(nullptr, pr);
   // FIXME
