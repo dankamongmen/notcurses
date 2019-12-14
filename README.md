@@ -1463,7 +1463,7 @@ some design decisions might surprise NCURSES programmers:
   the `newpad()` function). All drawable surfaces can exceed the display size.
 * Multiple threads can freely call into notcurses, so long as they're not
   accessing the same data. In particular, it is always safe to concurrently
-  mutate different ncplanes in different threads.
+  mutate different `ncplane`s in different threads.
 * NCURSES has thread-ignorant and thread-semi-safe versions, trace-enabled and
   traceless versions, and versions with and without support for wide characters.
   notcurses is one library: no tracing, UTF-8, thread safety.
@@ -1491,10 +1491,10 @@ to implement".
 
 ### Adapting NCURSES programs
 
-First off, ask whether you really want to do such a thing. NCURSES and the
-Curses API it implements are far more portable and better-tested than notcurses
-is ever likely to be. Will the program really benefit from notcurses's advanced
-features? If not, it's probably best left as it is.
+Do you really want to do such a thing? NCURSES and the Curses API it implements
+are far more portable and better-tested than notcurses is ever likely to be.
+Will your program really benefit from notcurses's advanced features? If not,
+it's probably best left as it is.
 
 Otherwise, most NCURSES concepts have clear partners in notcurses. Any functions
 making implicit use of `stdscr` ought be replaced with their explicit
@@ -1502,11 +1502,12 @@ equivalents. `stdscr` ought then be replaced with the result of
 `notcurses_stdplane()` (the standard plane). `PANEL`s become `ncplane`s; the
 Panels API is otherwise pretty close. Anything writing a bare character will
 become a simple `cell`; multibyte or wide characters become complex `cell`s.
-Color no longer uses "color pairs". You can either hack together a simple table
-mapping your colors to RGB values and color pairs to foreground and background
-indices into said table.
+Color no longer uses "color pairs". You can easily enough hack together a
+simple table mapping your colors to RGB values, and color pairs to foreground
+and background indices into said table. That'll work for the duration of a
+porting effort, certainly.
 
-I have adapted two large (~5k lines of C UI code each) from NCURSES to
+I have adapted two large (~5k lines of C UI code each) programs from NCURSES to
 notcurses, and found it a fairly painless process. It was helpful to introduce
 a shim layer, e.g. `compat_mvwprintw` for NCURSES's `mvwprintw`:
 
@@ -1527,6 +1528,8 @@ compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
 }
 ```
 
+These are pretty obvious, implementation-wise.
+
 ## Environment notes
 
 * If your terminal has an option about default interpretation of "ambiguous-width
@@ -1536,7 +1539,7 @@ compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
 * If you can disable BiDi in your terminal, do so while running notcurses
   applications, until I have that handled better. notcurses doesn't recognize
   the BiDi state machine transitions, and thus merrily continues writing
-  left-to-right. ﷽
+  left-to-right. ﷽!
 
 * The unit tests assume dimensions of at least 80x25. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
@@ -1567,7 +1570,7 @@ compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
     Outcurses is a collection of routines atop NCURSES, including Panelreels.
     I study the history of NCURSES, primarily using Thomas E. Dickey's FAQ and
     the mailing list archives.
-    * 2019-11-14: I file [Ourcurses issue #56](https://github.com/dankamongmen/outcurses/issues/56)
+    * 2019-11-14: I file [Outcurses issue #56](https://github.com/dankamongmen/outcurses/issues/56)
       regarding use of DirectColor in outcurses. This is partially inspired by
       Lexi Summer Hale's essay [everything you ever wanted to know about terminals](http://xn--rpa.cc/irl/term.html).
       I get into contact with Thomas E. Dickey and confirm that what I'm hoping
