@@ -1947,5 +1947,4 @@ very different from the present, by men whose power of action upon things was
 insignificant in comparison with ours. But the amazing growth of our
 techniques, the adaptability and precision they have attained, the ideas and
 habits they are creating, make it a certainty that _profound changes are
-impending in the ancient craft of the Beautiful_.”
-
+impending in the ancient craft of the Beautiful_.” —Paul Valéry
