@@ -27,6 +27,12 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell_set_bg_alpha(&ur, CELL_ALPHA_TRANS);
   cell_set_bg_alpha(&ll, CELL_ALPHA_TRANS);
   cell_set_bg_alpha(&lr, CELL_ALPHA_TRANS);
+  cell_set_fg_rgb(&ll, 255, 255, 255);
+  cell_set_fg_rgb(&lr, 255, 255, 255);
+  cell_set_fg_rgb(&ul, 255, 255, 255);
+  cell_set_fg_rgb(&ur, 255, 255, 255);
+  cell_set_fg_rgb(&hl, 255, 255, 255);
+  cell_set_fg_rgb(&vl, 255, 255, 255);
   cell_set_bg_rgb(&hl, 0, 0, 0);
   cell_set_bg_rgb(&vl, 0, 0, 0);
   if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl,
