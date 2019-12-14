@@ -1288,8 +1288,8 @@ compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
 
 ### History
 
-* 2019-12-05: notcurses 0.4.0 "TRAP MUSIC ALL NIGHT LONG" is released, the first
-    generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
+* 2019-12-05: notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
+    the first generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
     and release it on YouTube.
 * November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/outcurses).
     Outcurses is a collection of routines atop NCURSES, including Panelreels.
