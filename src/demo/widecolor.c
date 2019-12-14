@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
-#include <curses.h>
+#include <wctype.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>

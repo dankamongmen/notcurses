@@ -75,7 +75,7 @@ target_compile_options(notcurses-demo
 )
 target_compile_definitions(notcurses-demo
   PRIVATE
-    FORTIFY_SOURCE=2
+  FORTIFY_SOURCE=2 _GNU_SOURCE
 )
 
 # tiny proofs of concept, one binary per source file

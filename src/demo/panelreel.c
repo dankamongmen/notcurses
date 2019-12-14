@@ -204,18 +204,27 @@ new_tabletctx(struct panelreel* pr, unsigned *id){
 }
 
 static wchar_t
-handle_input(struct notcurses* nc, struct panelreel* pr, int efd){
+handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
+             const struct timespec* deadline){
   struct pollfd fds[2] = {
     { .fd = STDIN_FILENO, .events = POLLIN, .revents = 0, },
     { .fd = efd,          .events = POLLIN, .revents = 0, },
   };
+  sigset_t sset;
+  sigemptyset(&sset);
   wchar_t key = -1;
   int pret;
   notcurses_render(nc);
   do{
-    pret = poll(fds, sizeof(fds) / sizeof(*fds), -1);
-    if(pret < 0){
+    struct timespec pollspec, cur;
+    clock_gettime(CLOCK_MONOTONIC, &cur);
+    timespec_subtract(&pollspec, deadline, &cur);
+    pret = ppoll(fds, sizeof(fds) / sizeof(*fds), &pollspec, &sset);
+    if(pret == 0){
+      return 0;
+    }else if(pret < 0){
       fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
+      return (wchar_t)-1;
     }else{
       if(fds[0].revents & POLLIN){
         key = notcurses_getc_blocking(nc);
@@ -277,13 +286,11 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   ncplane_cursor_move_yx(w, 1, 1);
   ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
   // FIXME clrtoeol();
-  /*
-  struct timespec fadets = { .tv_sec = 1, .tv_nsec = 0, };
-  if(ncplane_fadein(panelreel_plane(pr), &fadets)){
-    return NULL;
-  }
-  */
   unsigned id = 0;
+  struct timespec deadline;
+  clock_gettime(CLOCK_MONOTONIC, &deadline);
+  ns_to_timespec((timespec_to_ns(&demodelay) * 5) + timespec_to_ns(&deadline),
+                 &deadline);
   do{
     ncplane_styles_set(w, 0);
     ncplane_set_fg_rgb(w, 197, 15, 31);
@@ -293,7 +300,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(w, 0, 55, 218);
     wchar_t rw;
-    if((rw = handle_input(nc, pr, efd)) < 0){
+    if((rw = handle_input(nc, pr, efd, &deadline)) <= 0){
       done = true;
       break;
     }
@@ -321,6 +328,11 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     if(newtablet){
       newtablet->next = *tctxs;
       *tctxs = newtablet;
+    }
+    struct timespec cur;
+    clock_gettime(CLOCK_MONOTONIC, &cur);
+    if(timespec_subtract_ns(&cur, &deadline) >= 0){
+      break;
     }
     //panelreel_validate(w, pr); // do what, if not assert()ing? FIXME
   }while(!done);
