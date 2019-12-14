@@ -879,6 +879,54 @@ cell_bg_default_p(const cell* cl){
 API uint64_t ncplane_get_channels(const struct ncplane* n);
 API uint32_t ncplane_get_attr(const struct ncplane* n);
 
+// Extract the 32-bit working background channel from an ncplane.
+static inline unsigned
+ncplane_get_bchannel(const struct ncplane* nc){
+  return channels_get_bchannel(ncplane_get_channels(nc));
+}
+
+// Extract the 32-bit working foreground channel from an ncplane.
+static inline unsigned
+ncplane_get_fchannel(const struct ncplane* nc){
+  return channels_get_fchannel(ncplane_get_channels(nc));
+}
+
+// Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
+static inline unsigned
+ncplane_get_fg(const struct ncplane* nc){
+  return channels_get_fg(ncplane_get_channels(nc));
+}
+
+// Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
+static inline unsigned
+ncplane_get_bg(const struct ncplane* nc){
+  return channels_get_bg(ncplane_get_channels(nc));
+}
+
+// Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
+static inline unsigned
+ncplane_get_fg_alpha(const struct ncplane* nc){
+  return channels_get_fg_alpha(ncplane_get_channels(nc));
+}
+
+// Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
+static inline unsigned
+ncplane_get_bg_alpha(const struct ncplane* nc){
+  return channels_get_bg_alpha(ncplane_get_channels(nc));
+}
+
+// Extract 24 bits of foreground RGB from 'n', split into subcomponents.
+static inline unsigned
+ncplane_get_fg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
+  return channels_get_fg_rgb(ncplane_get_channels(n), r, g, b);
+}
+
+// Extract 24 bits of background RGB from 'n', split into subcomponents.
+static inline unsigned
+ncplane_get_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
+  return channels_get_bg_rgb(ncplane_get_channels(n), r, g, b);
+}
+
 // Set the current fore/background color using RGB specifications. If the
 // terminal does not support directly-specified 3x8b cells (24-bit "Direct
 // Color", indicated by the "RGB" terminfo capability), the provided values
@@ -888,9 +936,9 @@ API uint32_t ncplane_get_attr(const struct ncplane* n);
 API int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 
-// Same, but with rgb assembled into a half-channel (i.e. lower 32 bits).
-API void ncplane_set_fg(struct ncplane* n, uint32_t halfchannel);
-API void ncplane_set_bg(struct ncplane* n, uint32_t halfchannel);
+// Same, but with rgb assembled into a channel (i.e. lower 32 bits).
+API void ncplane_set_fg(struct ncplane* n, uint32_t channel);
+API void ncplane_set_bg(struct ncplane* n, uint32_t channel);
 
 // use the default color for the foreground/background
 API void ncplane_set_fg_default(struct ncplane* n);
