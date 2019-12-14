@@ -347,7 +347,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->z = nc->top;
   nc->top = p;
   p->nc = nc;
-  cell_init(&p->background);
+  cell_init(&p->defcell);
   nc->stats.fbbytes += fbsize;
   return p;
 }
@@ -773,6 +773,8 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     drop_signals(nc);
+    // FIXME these can fail if we stop in the middle of a rendering operation.
+    // turn the fd back to blocking, perhaps?
     if(nc->rmcup && term_emit("rmcup", nc->rmcup, nc->ttyfp, true)){
       ret = -1;
     }
@@ -851,20 +853,28 @@ int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
   return channels_set_fg_rgb(&n->channels, r, g, b);
 }
 
-void ncplane_set_fg(ncplane* n, uint32_t halfchannel){
-  n->channels = ((uint64_t)halfchannel << 32ul) | (n->channels & 0xffffffffull);
+void ncplane_set_fg(ncplane* n, uint32_t channel){
+  n->channels = ((uint64_t)channel << 32ul) | (n->channels & 0xffffffffull);
 }
 
-void ncplane_set_bg(ncplane* n, uint32_t halfchannel){
-  n->channels = (n->channels & 0xffffffff00000000ull) | halfchannel;
+void ncplane_set_bg(ncplane* n, uint32_t channel){
+  n->channels = (n->channels & 0xffffffff00000000ull) | channel;
 }
 
-int ncplane_set_background(ncplane* ncp, const cell* c){
-  return cell_duplicate(ncp, &ncp->background, c);
+int ncplane_set_fg_alpha(ncplane* n, int alpha){
+  return channels_set_fg_alpha(&n->channels, alpha);
 }
 
-int ncplane_background(ncplane* ncp, cell* c){
-  return cell_duplicate(ncp, c, &ncp->background);
+int ncplane_set_bg_alpha(ncplane *n, int alpha){
+  return channels_set_bg_alpha(&n->channels, alpha);
+}
+
+int ncplane_set_default(ncplane* ncp, const cell* c){
+  return cell_duplicate(ncp, &ncp->defcell, c);
+}
+
+int ncplane_default(ncplane* ncp, cell* c){
+  return cell_duplicate(ncp, c, &ncp->defcell);
 }
 
 // 3 for foreground, 4 for background, ugh FIXME
@@ -1052,10 +1062,26 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
   return ret;
 }
 
-// find the topmost cell for this coordinate
-static const cell*
-visible_cell(int y, int x, ncplane** retp){
-  ncplane* p = *retp;
+// Find the topmost cell for this coordinate by walking down the z-buffer,
+// looking for an intersecting ncplane. Once we've found one, check it for
+// transparency in either the back- or foreground. If the alpha channel is
+// active, keep descending and blending until we hit opacity, or bedrock. We
+// recurse to find opacity, and blend the result into what we have. The
+// 'findfore' and 'findback' bools control our recursion--there's no point in
+// going further down when a color is locked in, so don't (for instance) recurse
+// further when we have a transparent foreground and opaque background atop an
+// opaque foreground and transparent background. The cell we ultimately return
+// (a const ref to 'c') is backed by '*retp' via rawdog copy; the caller must
+// not call cell_release() upon it, nor use it beyond the scope of the render.
+//
+// So, as we go down, we find planes which can have impact on the result. Once
+// we've locked the result in (base case), write the deep values we have to 'c'.
+// Then, as we come back up, blend them as appropriate. The actual glyph is
+// whichever one occurs at the top with a non-transparent α (α < 3). To effect
+// tail recursion, though, we instead write first, and then recurse, blending
+// as we descend. α <= 0 is opaque. α >= 3 is fully transparent.
+static ncplane*
+dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
   while(p){
     // where in the plane this coordinate would be, based off absy/absx. the
     // true origin is 0,0, so abs=2,2 means coordinate 3,3 would be 1,1, while
@@ -1064,32 +1090,51 @@ visible_cell(int y, int x, ncplane** retp){
     poffy = y - p->absy;
     poffx = x - p->absx;
     if(poffy < p->leny && poffy >= 0){
-      if(poffx < p->lenx && poffx >= 0){
-        *retp = p;
+      if(poffx < p->lenx && poffx >= 0){ // p is valid for this y, x
         const cell* vis = &p->fb[fbcellidx(p, poffy, poffx)];
         // if we never loaded any content into the cell (or obliterated it by
         // writing in a zero), use the plane's background cell.
         if(vis->gcluster == 0){
-          vis = &p->background;
+          vis = &p->defcell;
         }
-        // FIXME do this more rigorously, PoC
-        if(cell_get_fg_alpha(vis) || cell_get_bg_alpha(vis)){
-          *retp = p->z;
-          const cell* trans = visible_cell(y, x, retp);
-          if(trans){
-            vis = trans;
-          }else{
-            *retp = p;
+        bool lockedglyph = false;
+        int nalpha;
+        if(falpha > 0 && (nalpha = cell_get_fg_alpha(vis)) < CELL_ALPHA_TRANS){
+          if(c->gcluster == 0){ // never write fully trans glyphs, never replace
+            if( (c->gcluster = vis->gcluster) ){ // index copy only
+              lockedglyph = true; // must return this ncplane for this glyph
+              c->attrword = vis->attrword;
+              cell_set_fg(c, cell_get_fg(vis)); // FIXME blend it in
+              falpha -= (CELL_ALPHA_TRANS - nalpha); // FIXME blend it in
+            }
           }
         }
-        return vis;
+        if(balpha > 0 && (nalpha = cell_get_bg_alpha(vis)) < CELL_ALPHA_TRANS){
+          cell_set_bg(c, cell_get_bg(vis)); // FIXME blend it in
+          balpha -= (CELL_ALPHA_TRANS - nalpha);
+        }
+        if((falpha > 0 || balpha > 0) && p->z){ // we must go further!
+          ncplane* cand = dig_visible_cell(c, y, x, p->z, falpha, balpha);
+          if(!lockedglyph && cand){
+            p = cand;
+          }
+        }
+        return p;
       }
     }
     p = p->z;
   }
-  // should never happen for valid y, x thanks to the stdscreen
+  // should never happen for valid y, x thanks to the stdplane. you fucked up!
   return NULL;
 }
+
+static inline ncplane*
+visible_cell(cell* c, int y, int x, ncplane* n){
+  cell_init(c);
+  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANS, CELL_ALPHA_TRANS);
+}
+
+// Call with c->gcluster == 3, falpha == 3, balpha == 0, *retp == topplane.
 
 // 'n' ends up above 'above'
 int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
@@ -1215,21 +1260,20 @@ notcurses_render_internal(notcurses* nc){
     term_emit("cup", tiparm(nc->cup, y, 0), out, false);
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
-      ncplane* p = nc->top;
-      const cell* c = visible_cell(y, x, &p);
-      if(c == NULL){
-        continue; // shrug?
-      }
+      ncplane* p;
+      cell c; // no need to initialize
+      p = visible_cell(&c, y, x, nc->top);
+      assert(p);
       // don't try to print a wide character on the last column; it'll instead
       // be printed on the next line. they probably shouldn't be admitted, but
       // we can end up with one due to a resize.
-      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(c))){
+      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
         continue;
       }
       // set the style. this can change the color back to the default; if it
       // does, we need update our elision possibilities.
       bool normalized;
-      term_setstyles(nc, out, &curattr, c, &normalized);
+      term_setstyles(nc, out, &curattr, &c, &normalized);
       if(normalized){
         defaultelidable = true;
         bgelidable = false;
@@ -1241,7 +1285,7 @@ notcurses_render_internal(notcurses* nc){
       // then a turnon for whichever aren't default.
 
       // we can elide the default set iff the previous used both defaults
-      if(cell_fg_default_p(c) || cell_bg_default_p(c)){
+      if(cell_fg_default_p(&c) || cell_bg_default_p(&c)){
         if(!defaultelidable){
           ++nc->stats.defaultemissions;
           term_emit("op", nc->op, out, false);
@@ -1255,8 +1299,8 @@ notcurses_render_internal(notcurses* nc){
       }
 
       // we can elide the foreground set iff the previous used fg and matched
-      if(!cell_fg_default_p(c)){
-        cell_get_fg_rgb(c, &r, &g, &b);
+      if(!cell_fg_default_p(&c)){
+        cell_get_fg_rgb(&c, &r, &g, &b);
         if(fgelidable && lastr == r && lastg == g && lastb == b){
           ++nc->stats.fgelisions;
         }else{
@@ -1267,8 +1311,8 @@ notcurses_render_internal(notcurses* nc){
         lastr = r; lastg = g; lastb = b;
         defaultelidable = false;
       }
-      if(!cell_bg_default_p(c)){
-        cell_get_bg_rgb(c, &br, &bg, &bb);
+      if(!cell_bg_default_p(&c)){
+        cell_get_bg_rgb(&c, &br, &bg, &bb);
         if(bgelidable && lastbr == br && lastbg == bg && lastbb == bb){
           ++nc->stats.bgelisions;
         }else{
@@ -1279,11 +1323,11 @@ notcurses_render_internal(notcurses* nc){
         lastbr = br; lastbg = bg; lastbb = bb;
         defaultelidable = false;
       }
-      term_putc(out, p, c);
-      if(cell_double_wide_p(c)){
+// fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
+      term_putc(out, p, &c);
+      if(cell_double_wide_p(&c)){
         ++x;
       }
-//fprintf(stderr, "[%02d/%02d]\n", y, x);
     }
   }
   ret |= fclose(out);
@@ -1378,10 +1422,11 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 }
 
 int ncplane_putc(ncplane* n, const cell* c){
+  ncplane_lock(n);
   if(cursor_invalid_p(n)){
+    ncplane_unlock(n);
     return -1;
   }
-  ncplane_lock(n);
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
   if(cell_duplicate(n, targ, c) < 0){
     ncplane_unlock(n);
@@ -1830,11 +1875,11 @@ void ncplane_erase(ncplane* n){
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the attrword
   // and channels), and then reload.
-  char* egc = cell_egc_copy(n, &n->background);
+  char* egc = cell_egc_copy(n, &n->defcell);
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
-  cell_load(n, &n->background, egc);
+  cell_load(n, &n->defcell, egc);
   free(egc);
   ncplane_unlock(n);
 }
@@ -1948,7 +1993,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
     }
   }
   // FIXME factor this duplication out
-  channels = n->background.channels;
+  channels = n->defcell.channels;
   pp->channels[y * pp->cols] = channels;
   channels_get_fg_rgb(channels, &r, &g, &b);
   if(r > pp->maxr){
@@ -2098,20 +2143,20 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
         }
       }
     }
-    cell* c = &n->background;
+    cell* c = &n->defcell;
     if(!cell_fg_default_p(c)){
       channels_get_fg_rgb(pp.channels[pp.cols * y], &r, &g, &b);
       r = r * (maxsteps - iter) / maxsteps;
       g = g * (maxsteps - iter) / maxsteps;
       b = b * (maxsteps - iter) / maxsteps;
-      cell_set_fg_rgb(&n->background, r, g, b);
+      cell_set_fg_rgb(&n->defcell, r, g, b);
     }
     if(!cell_bg_default_p(c)){
       channels_get_bg_rgb(pp.channels[pp.cols * y], &br, &bg, &bb);
       br = br * (maxsteps - iter) / maxsteps;
       bg = bg * (maxsteps - iter) / maxsteps;
       bb = bb * (maxsteps - iter) / maxsteps;
-      cell_set_bg_rgb(&n->background, br, bg, bb);
+      cell_set_bg_rgb(&n->defcell, br, bg, bb);
     }
     notcurses_render(n->nc);
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;

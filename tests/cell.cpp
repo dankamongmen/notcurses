@@ -41,7 +41,7 @@ TEST_F(CellTest, SetItalic) {
   cell_styles_set(&c, CELL_STYLE_ITALIC);
   ASSERT_EQ(1, cell_load(n_, &c, "i"));
   cell_set_fg_rgb(&c, 255, 255, 255);
-  ncplane_set_background(n_, &c);
+  ncplane_set_default(n_, &c);
   cell_release(n_, &c);
   EXPECT_EQ(0, notcurses_render(nc_));
   cell_styles_off(&c, CELL_STYLE_ITALIC);
@@ -55,7 +55,7 @@ TEST_F(CellTest, SetBold) {
   cell_styles_set(&c, CELL_STYLE_BOLD);
   ASSERT_EQ(1, cell_load(n_, &c, "b"));
   cell_set_fg_rgb(&c, 255, 255, 255);
-  ncplane_set_background(n_, &c);
+  ncplane_set_default(n_, &c);
   cell_release(n_, &c);
   EXPECT_EQ(0, notcurses_render(nc_));
   cell_styles_off(&c, CELL_STYLE_BOLD);
@@ -69,7 +69,7 @@ TEST_F(CellTest, SetUnderline) {
   cell_styles_set(&c, CELL_STYLE_UNDERLINE);
   ASSERT_EQ(1, cell_load(n_, &c, "u"));
   cell_set_fg_rgb(&c, 255, 255, 255);
-  ncplane_set_background(n_, &c);
+  ncplane_set_default(n_, &c);
   cell_release(n_, &c);
   EXPECT_EQ(0, notcurses_render(nc_));
   cell_styles_off(&c, CELL_STYLE_UNDERLINE);
