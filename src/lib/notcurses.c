@@ -48,7 +48,7 @@ sigwinch_handler(int signo){
 }
 
 // this wildly unsafe handler will attempt to restore the screen upon
-// reception of SIGINT, SIGSEGV, or SIGQUIT. godspeed you, black emperor!
+// reception of SIG{INT, SEGV, ABRT, QUIT}. godspeed you, black emperor!
 static void
 fatal_handler(int signo){
   notcurses* nc = atomic_load(&signal_nc);
@@ -86,11 +86,14 @@ setup_signals(notcurses* nc, bool no_quit_sigs, bool no_winch_sig){
     sa.sa_handler = fatal_handler;
     sigaddset(&sa.sa_mask, SIGINT);
     sigaddset(&sa.sa_mask, SIGQUIT);
+    sigaddset(&sa.sa_mask, SIGSEGV);
+    sigaddset(&sa.sa_mask, SIGABRT);
     sa.sa_flags = SA_RESETHAND; // don't try twice
     int ret = 0;
     ret |= sigaction(SIGINT, &sa, &oldact);
     ret |= sigaction(SIGQUIT, &sa, &oldact);
     ret |= sigaction(SIGSEGV, &sa, &oldact);
+    ret |= sigaction(SIGABRT, &sa, &oldact);
     if(ret){
       atomic_store(&signal_nc, NULL);
       fprintf(stderr, "Error installing fatal signal handlers (%s)\n",
@@ -2155,14 +2158,19 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr){
 }
 
 // if "retain_cursor" was set, we don't have these definitions FIXME
-void notcurses_cursor_enable(struct notcurses* nc){
+void notcurses_cursor_enable(notcurses* nc){
   if(nc->cnorm){
     term_emit("cnorm", nc->cnorm, nc->ttyfp, false);
   }
 }
 
-void notcurses_cursor_disable(struct notcurses* nc){
+void notcurses_cursor_disable(notcurses* nc){
   if(nc->civis){
     term_emit("civis", nc->civis, nc->ttyfp, false);
   }
+}
+
+int notcurses_refresh(notcurses* nc){
+  // FIXME
+  return 0;
 }

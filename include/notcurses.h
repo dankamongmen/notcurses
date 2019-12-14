@@ -108,12 +108,12 @@ typedef struct notcurses_options {
   // By default, we hide the cursor if possible. This flag inhibits use of
   // the civis capability, retaining the cursor.
   bool retain_cursor;
-  // We typically install a signal handler for SIGINT and SIGQUIT that restores
-  // the screen, and then calls the old signal handler. Set this to inhibit
-  // registration of any signal handlers.
+  // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
+  // restores the screen, and then calls the old signal handler. Set to inhibit
+  // registration of these signal handlers.
   bool no_quit_sighandlers;
   // We typically install a signal handler for SIGWINCH that generates a resize
-  // event in the notcurses_getc() queue. Set this to inhibit the handler.
+  // event in the notcurses_getc() queue. Set to inhibit this handler.
   bool no_winch_sighandler;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
