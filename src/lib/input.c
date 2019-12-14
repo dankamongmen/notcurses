@@ -163,6 +163,11 @@ block_on_input(FILE* fp, const struct timespec* ts, sigset_t* sigmask){
     .events = POLLIN | POLLRDHUP,
     .revents = 0,
   };
+  sigset_t scratchmask;
+  if(!sigmask){
+    sigemptyset(&scratchmask);
+    sigmask = &scratchmask;
+  }
   sigdelset(sigmask, SIGWINCH);
   sigdelset(sigmask, SIGINT);
   sigdelset(sigmask, SIGQUIT);
