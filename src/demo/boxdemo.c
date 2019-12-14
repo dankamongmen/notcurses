@@ -55,18 +55,18 @@ int box_demo(struct notcurses* nc){
     int y = 0, x = 0;
     ncplane_dim_yx(n, &ylen, &xlen);
     while(ylen - y >= targy && xlen - x >= targx){
-      cell_set_fg(&ul, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg(&ul, zbonus, 20 + y, 20 + y);
-      cell_set_fg(&ur, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg(&ur, zbonus, 20 + y, 20 + y);
-      cell_set_fg(&hl, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg(&hl, 20, zbonus, 20);
-      cell_set_fg(&ll, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg(&ll, zbonus, 20 + y, 20 + y);
-      cell_set_fg(&lr, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg(&lr, zbonus, 20 + y, 20 + y);
-      cell_set_fg(&vl, 20, zbonus, 20);
-      cell_set_bg(&vl, 107 - (y * 2), zbonus, 107 + (y * 2));
+      cell_set_fg_rgb(&ul, 107 - (y * 2), zbonus, 107 + (y * 2));
+      cell_set_bg_rgb(&ul, zbonus, 20 + y, 20 + y);
+      cell_set_fg_rgb(&ur, 107 - (y * 2), zbonus, 107 + (y * 2));
+      cell_set_bg_rgb(&ur, zbonus, 20 + y, 20 + y);
+      cell_set_fg_rgb(&hl, 107 - (y * 2), zbonus, 107 + (y * 2));
+      cell_set_bg_rgb(&hl, 20, zbonus, 20);
+      cell_set_fg_rgb(&ll, 107 - (y * 2), zbonus, 107 + (y * 2));
+      cell_set_bg_rgb(&ll, zbonus, 20 + y, 20 + y);
+      cell_set_fg_rgb(&lr, 107 - (y * 2), zbonus, 107 + (y * 2));
+      cell_set_bg_rgb(&lr, zbonus, 20 + y, 20 + y);
+      cell_set_fg_rgb(&vl, 20, zbonus, 20);
+      cell_set_bg_rgb(&vl, 107 - (y * 2), zbonus, 107 + (y * 2));
       if(ncplane_cursor_move_yx(n, y, x)){
         return -1;
       }

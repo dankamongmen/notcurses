@@ -104,7 +104,7 @@ fill_chunk(struct ncplane* n, int idx){
   int r = 64 + hidx * 10;
   int b = 64 + vidx * 30;
   int g = 225 - ((hidx + vidx) * 12);
-  notcurses_fg_prep(&channels, r, g, b);
+  channels_set_fg_rgb(&channels, r, g, b);
   if(ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0)){
     return -1;
   }
@@ -117,7 +117,7 @@ fill_chunk(struct ncplane* n, int idx){
   }
   cell style;
   cell_init(&style);
-  cell_set_fg(&style, r, g, b);
+  cell_set_fg_rgb(&style, r, g, b);
   cell_prime(n, &style, "█", 0, channels);
   ncplane_set_background(n, &style);
   cell_release(n, &style);
@@ -128,8 +128,8 @@ static int
 draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx){
   int ret;
   uint64_t channels = 0;
-  notcurses_fg_prep(&channels, 180, 80, 180);
-  //notcurses_bg_prep(&channels, 0, 0, 0);
+  channels_set_fg_rgb(&channels, 180, 80, 180);
+  //channels_set_bg_rgb(&channels, 0, 0, 0);
   ncplane_cursor_move_yx(n, yoff, xoff);
   ret = ncplane_rounded_box(n, 0, channels,
                             CHUNKS_VERT * chunky + yoff + 1,

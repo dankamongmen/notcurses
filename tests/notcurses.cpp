@@ -117,24 +117,24 @@ TEST_F(NotcursesTest, TileScreenWithPlanes) {
 
 TEST_F(NotcursesTest, ChannelSetFGAlpha){
   uint64_t channel = 0;
-  EXPECT_GT(0, notcurses_fg_set_alpha(&channel, -1));
-  EXPECT_GT(0, notcurses_fg_set_alpha(&channel, 4));
-  EXPECT_EQ(0, notcurses_fg_set_alpha(&channel, 0));
-  EXPECT_EQ(0, notcurses_fg_alpha(channel));
-  EXPECT_EQ(0, notcurses_fg_set_alpha(&channel, 3));
-  EXPECT_EQ(3, notcurses_fg_alpha(channel));
-  EXPECT_TRUE(notcurses_fg_default_p(channel));
-  EXPECT_TRUE(notcurses_bg_default_p(channel));
+  EXPECT_GT(0, channels_set_fg_alpha(&channel, -1));
+  EXPECT_GT(0, channels_set_fg_alpha(&channel, 4));
+  EXPECT_EQ(0, channels_set_fg_alpha(&channel, 0));
+  EXPECT_EQ(0, channels_get_fg_alpha(channel));
+  EXPECT_EQ(0, channels_set_fg_alpha(&channel, 3));
+  EXPECT_EQ(3, channels_get_fg_alpha(channel));
+  EXPECT_TRUE(channels_fg_default_p(channel));
+  EXPECT_TRUE(channels_bg_default_p(channel));
 }
 
 TEST_F(NotcursesTest, ChannelSetBGAlpha){
   uint64_t channel = 0;
-  EXPECT_GT(0, notcurses_bg_set_alpha(&channel, -1));
-  EXPECT_GT(0, notcurses_bg_set_alpha(&channel, 4));
-  EXPECT_EQ(0, notcurses_bg_set_alpha(&channel, 0));
-  EXPECT_EQ(0, notcurses_bg_alpha(channel));
-  EXPECT_EQ(0, notcurses_bg_set_alpha(&channel, 3));
-  EXPECT_EQ(3, notcurses_bg_alpha(channel));
-  EXPECT_TRUE(notcurses_fg_default_p(channel));
-  EXPECT_TRUE(notcurses_bg_default_p(channel));
+  EXPECT_GT(0, channels_set_bg_alpha(&channel, -1));
+  EXPECT_GT(0, channels_set_bg_alpha(&channel, 4));
+  EXPECT_EQ(0, channels_set_bg_alpha(&channel, 0));
+  EXPECT_EQ(0, channels_get_bg_alpha(channel));
+  EXPECT_EQ(0, channels_set_bg_alpha(&channel, 3));
+  EXPECT_EQ(3, channels_get_bg_alpha(channel));
+  EXPECT_TRUE(channels_fg_default_p(channel));
+  EXPECT_TRUE(channels_bg_default_p(channel));
 }

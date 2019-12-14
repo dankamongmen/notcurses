@@ -40,7 +40,7 @@ TEST_F(CellTest, SetItalic) {
   notcurses_term_dim_yx(nc_, &dimy, &dimx);
   cell_styles_set(&c, CELL_STYLE_ITALIC);
   ASSERT_EQ(1, cell_load(n_, &c, "i"));
-  cell_set_fg(&c, 255, 255, 255);
+  cell_set_fg_rgb(&c, 255, 255, 255);
   ncplane_set_background(n_, &c);
   cell_release(n_, &c);
   EXPECT_EQ(0, notcurses_render(nc_));
@@ -54,7 +54,7 @@ TEST_F(CellTest, SetBold) {
   notcurses_term_dim_yx(nc_, &dimy, &dimx);
   cell_styles_set(&c, CELL_STYLE_BOLD);
   ASSERT_EQ(1, cell_load(n_, &c, "b"));
-  cell_set_fg(&c, 255, 255, 255);
+  cell_set_fg_rgb(&c, 255, 255, 255);
   ncplane_set_background(n_, &c);
   cell_release(n_, &c);
   EXPECT_EQ(0, notcurses_render(nc_));
@@ -68,7 +68,7 @@ TEST_F(CellTest, SetUnderline) {
   notcurses_term_dim_yx(nc_, &dimy, &dimx);
   cell_styles_set(&c, CELL_STYLE_UNDERLINE);
   ASSERT_EQ(1, cell_load(n_, &c, "u"));
-  cell_set_fg(&c, 255, 255, 255);
+  cell_set_fg_rgb(&c, 255, 255, 255);
   ncplane_set_background(n_, &c);
   cell_release(n_, &c);
   EXPECT_EQ(0, notcurses_render(nc_));
@@ -91,24 +91,24 @@ TEST_F(CellTest, SetUnderline) {
 
 TEST_F(CellTest, CellSetFGAlpha){
   cell c = CELL_TRIVIAL_INITIALIZER;
-  EXPECT_GT(0, cell_fg_set_alpha(&c, -1));
-  EXPECT_GT(0, cell_fg_set_alpha(&c, 4));
-  EXPECT_EQ(0, cell_fg_set_alpha(&c, 0));
-  EXPECT_EQ(0, cell_fg_alpha(&c));
-  EXPECT_EQ(0, cell_fg_set_alpha(&c, 3));
-  EXPECT_EQ(3, cell_fg_alpha(&c));
+  EXPECT_GT(0, cell_set_fg_alpha(&c, -1));
+  EXPECT_GT(0, cell_set_fg_alpha(&c, 4));
+  EXPECT_EQ(0, cell_set_fg_alpha(&c, 0));
+  EXPECT_EQ(0, cell_get_fg_alpha(&c));
+  EXPECT_EQ(0, cell_set_fg_alpha(&c, 3));
+  EXPECT_EQ(3, cell_get_fg_alpha(&c));
   EXPECT_TRUE(cell_fg_default_p(&c));
   EXPECT_TRUE(cell_bg_default_p(&c));
 }
 
 TEST_F(CellTest, CellSetBGAlpha){
   cell c = CELL_TRIVIAL_INITIALIZER;
-  EXPECT_GT(0, cell_bg_set_alpha(&c, -1));
-  EXPECT_GT(0, cell_bg_set_alpha(&c, 4));
-  EXPECT_EQ(0, cell_bg_set_alpha(&c, 0));
-  EXPECT_EQ(0, cell_bg_alpha(&c));
-  EXPECT_EQ(0, cell_bg_set_alpha(&c, 3));
-  EXPECT_EQ(3, cell_bg_alpha(&c));
+  EXPECT_GT(0, cell_set_bg_alpha(&c, -1));
+  EXPECT_GT(0, cell_set_bg_alpha(&c, 4));
+  EXPECT_EQ(0, cell_set_bg_alpha(&c, 0));
+  EXPECT_EQ(0, cell_get_bg_alpha(&c));
+  EXPECT_EQ(0, cell_set_bg_alpha(&c, 3));
+  EXPECT_EQ(3, cell_get_bg_alpha(&c));
   EXPECT_TRUE(cell_fg_default_p(&c));
   EXPECT_TRUE(cell_bg_default_p(&c));
 }

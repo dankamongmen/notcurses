@@ -3,9 +3,9 @@
 
 static void
 grow_rgb(uint32_t* rgb){
-  int r = cell_rgb_red(*rgb);
-  int g = cell_rgb_green(*rgb);
-  int b = cell_rgb_blue(*rgb);
+  int r = channel_get_r(*rgb);
+  int g = channel_get_g(*rgb);
+  int b = channel_get_b(*rgb);
   int delta = (*rgb & 0x80000000ul) ? -1 : 1;
   if(b == r){
     b += delta;
@@ -34,8 +34,8 @@ int maxcolor_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_set_fg_rgb(n, 255, 255, 255);
   uint64_t channels = 0;
-  notcurses_fg_prep(&channels, 0, 128, 128);
-  notcurses_bg_prep(&channels, 90, 0, 90);
+  channels_set_fg_rgb(&channels, 0, 128, 128);
+  channels_set_bg_rgb(&channels, 90, 0, 90);
   int y = 0, x = 0;
   ncplane_cursor_move_yx(n, y, x);
   if(ncplane_rounded_box_sized(n, 0, channels, maxy, maxx, 0)){
@@ -48,9 +48,9 @@ int maxcolor_demo(struct notcurses* nc){
       return -1;
     }
     while(x < maxx - 1){
-      notcurses_fg_prep(&channels, (rgb & 0xff0000) >> 16u,
+      channels_set_fg_rgb(&channels, (rgb & 0xff0000) >> 16u,
                         (rgb & 0xff00) >> 8u, rgb & 0xff);
-      notcurses_bg_prep(&channels, 0, 10, 0);
+      channels_set_bg_rgb(&channels, 0, 10, 0);
       ncplane_putsimple(n, x % 10 + '0', 0, channels);
       grow_rgb(&rgb);
       ++x;

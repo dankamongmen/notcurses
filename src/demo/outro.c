@@ -20,13 +20,13 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
     return NULL;
   }
   cell bgcell = CELL_TRIVIAL_INITIALIZER;
-  notcurses_bg_prep(&bgcell.channels, 0x58, 0x36, 0x58);
+  channels_set_bg_rgb(&bgcell.channels, 0x58, 0x36, 0x58);
   ncplane_set_background(on, &bgcell);
   ncplane_dim_yx(on, rows, cols);
   int ybase = 0;
   // bevel the upper corners
   uint64_t channel = 0;
-  if(notcurses_bg_set_alpha(&channel, 3)){
+  if(channels_set_bg_alpha(&channel, 3)){
     return NULL;
   }
   if(ncplane_cursor_move_yx(on, ybase, 0)){

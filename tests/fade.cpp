@@ -22,7 +22,7 @@ class FadeTest : public :: testing::Test {
     ncplane_dim_yx(n_, &dimy, &dimx);
     cell c = CELL_TRIVIAL_INITIALIZER;
     c.gcluster = '*';
-    cell_set_fg(&c, 0xff, 0xff, 0xff);
+    cell_set_fg_rgb(&c, 0xff, 0xff, 0xff);
     unsigned rgb = 0xffffffu;
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
@@ -30,8 +30,8 @@ class FadeTest : public :: testing::Test {
         if(rgb < 32){
           rgb = 0xffffffu;
         }
-        cell_set_fg(&c, (rgb >> 16u) & 0xff, (rgb >> 8u) & 0xff, rgb & 0xff);
-        cell_set_bg(&c, rgb & 0xff, (rgb >> 16u) & 0xff, (rgb >> 8u) & 0xff);
+        cell_set_fg_rgb(&c, (rgb >> 16u) & 0xff, (rgb >> 8u) & 0xff, rgb & 0xff);
+        cell_set_bg_rgb(&c, rgb & 0xff, (rgb >> 16u) & 0xff, (rgb >> 8u) & 0xff);
         EXPECT_LT(0, ncplane_putc(n_, &c));
       }
     }

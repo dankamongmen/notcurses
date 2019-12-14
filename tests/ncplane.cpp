@@ -649,14 +649,14 @@ TEST_F(NcplaneTest, BoxGradients) {
   ASSERT_LT(40, dimx);
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
   ASSERT_EQ(0, cells_double_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
-  EXPECT_EQ(0, notcurses_fg_prep(&ul.channels, 255, 0, 0));
-  EXPECT_EQ(0, notcurses_fg_prep(&ur.channels, 0, 255, 0));
-  EXPECT_EQ(0, notcurses_fg_prep(&ll.channels, 0, 0, 255));
-  EXPECT_EQ(0, notcurses_fg_prep(&lr.channels, 255, 255, 255));
-  EXPECT_EQ(0, notcurses_bg_prep(&ul.channels, 0, 255, 255));
-  EXPECT_EQ(0, notcurses_bg_prep(&ur.channels, 255, 0, 255));
-  EXPECT_EQ(0, notcurses_bg_prep(&ll.channels, 255, 255, 0));
-  EXPECT_EQ(0, notcurses_bg_prep(&lr.channels, 0, 0, 0));
+  EXPECT_EQ(0, channels_set_fg_rgb(&ul.channels, 255, 0, 0));
+  EXPECT_EQ(0, channels_set_fg_rgb(&ur.channels, 0, 255, 0));
+  EXPECT_EQ(0, channels_set_fg_rgb(&ll.channels, 0, 0, 255));
+  EXPECT_EQ(0, channels_set_fg_rgb(&lr.channels, 255, 255, 255));
+  EXPECT_EQ(0, channels_set_bg_rgb(&ul.channels, 0, 255, 255));
+  EXPECT_EQ(0, channels_set_bg_rgb(&ur.channels, 255, 0, 255));
+  EXPECT_EQ(0, channels_set_bg_rgb(&ll.channels, 255, 255, 0));
+  EXPECT_EQ(0, channels_set_bg_rgb(&lr.channels, 0, 0, 0));
   // we'll try all 16 gradmasks in sideszXsidesz configs in a 4x4 map
   unsigned gradmask = 0;
   for(auto y0 = 0 ; y0 < 4 ; ++y0){
@@ -688,18 +688,18 @@ TEST_F(NcplaneTest, BoxSideColors) {
   cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
   ASSERT_EQ(0, cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
   // we'll try all 16 boxmasks in sideszXsidesz configurations in a 4x4 map
-  EXPECT_EQ(0, notcurses_fg_prep(&ul.channels, 255, 0, 0));
-  EXPECT_EQ(0, notcurses_fg_prep(&ur.channels, 0, 255, 0));
-  EXPECT_EQ(0, notcurses_fg_prep(&ll.channels, 0, 0, 255));
-  EXPECT_EQ(0, notcurses_fg_prep(&lr.channels, 0, 0, 0));
-  EXPECT_EQ(0, notcurses_bg_prep(&ul.channels, 0, 255, 255));
-  EXPECT_EQ(0, notcurses_bg_prep(&ur.channels, 255, 0, 255));
-  EXPECT_EQ(0, notcurses_bg_prep(&ll.channels, 255, 255, 0));
-  EXPECT_EQ(0, notcurses_bg_prep(&lr.channels, 0, 0, 0));
-  EXPECT_EQ(0, notcurses_fg_prep(&hl.channels, 255, 0, 255));
-  EXPECT_EQ(0, notcurses_fg_prep(&vl.channels, 255, 255, 255));
-  EXPECT_EQ(0, notcurses_bg_prep(&hl.channels, 0, 255, 0));
-  EXPECT_EQ(0, notcurses_bg_prep(&vl.channels, 0, 0, 0));
+  EXPECT_EQ(0, channels_set_fg_rgb(&ul.channels, 255, 0, 0));
+  EXPECT_EQ(0, channels_set_fg_rgb(&ur.channels, 0, 255, 0));
+  EXPECT_EQ(0, channels_set_fg_rgb(&ll.channels, 0, 0, 255));
+  EXPECT_EQ(0, channels_set_fg_rgb(&lr.channels, 0, 0, 0));
+  EXPECT_EQ(0, channels_set_bg_rgb(&ul.channels, 0, 255, 255));
+  EXPECT_EQ(0, channels_set_bg_rgb(&ur.channels, 255, 0, 255));
+  EXPECT_EQ(0, channels_set_bg_rgb(&ll.channels, 255, 255, 0));
+  EXPECT_EQ(0, channels_set_bg_rgb(&lr.channels, 0, 0, 0));
+  EXPECT_EQ(0, channels_set_fg_rgb(&hl.channels, 255, 0, 255));
+  EXPECT_EQ(0, channels_set_fg_rgb(&vl.channels, 255, 255, 255));
+  EXPECT_EQ(0, channels_set_bg_rgb(&hl.channels, 0, 255, 0));
+  EXPECT_EQ(0, channels_set_bg_rgb(&vl.channels, 0, 0, 0));
   for(auto y0 = 0 ; y0 < 4 ; ++y0){
     for(auto x0 = 0 ; x0 < 4 ; ++x0){
       EXPECT_EQ(0, ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1)));

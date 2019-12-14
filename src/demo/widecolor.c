@@ -81,11 +81,11 @@ wall_p(const struct ncplane* n, const cell* c){
 static inline void
 lighten(cell* c){
   unsigned r, g, b;
-  cell_get_fg(c, &r, &g, &b);
+  cell_get_fg_rgb(c, &r, &g, &b);
   r += (255 - r) / 3;
   g += (255 - g) / 3;
   b += (255 - b) / 3;
-  cell_set_fg(c, r, g, b);
+  cell_set_fg_rgb(c, r, g, b);
 }
 
 static int
@@ -217,8 +217,8 @@ snake_thread(void* vnc){
   y = (random() % (dimy / 2)) + (dimy / 2);
   cell head = CELL_TRIVIAL_INITIALIZER;
   uint64_t channels = 0;
-  notcurses_fg_prep(&channels, 255, 255, 255);
-  notcurses_bg_prep(&channels, 20, 20, 20);
+  channels_set_fg_rgb(&channels, 255, 255, 255);
+  channels_set_bg_rgb(&channels, 20, 20, 20);
   cell_prime(n, &head, "א", 0, channels);
   cell c = CELL_TRIVIAL_INITIALIZER;
   struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 1000000000ul / 20, };
@@ -283,15 +283,15 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, " ");
-  cell_fg_set_alpha(&c, 3);
-  cell_bg_set_alpha(&c, 3);
+  cell_set_fg_alpha(&c, 3);
+  cell_set_bg_alpha(&c, 3);
   ncplane_set_background(n, &c);
   cell_release(n, &c);
   uint64_t channels = 0;
   ncplane_set_fg_rgb(n, 64, 128, 240);
   ncplane_set_bg_rgb(n, 32, 64, 32);
-  notcurses_fg_prep(&channels, 255, 255, 255);
-  notcurses_bg_prep(&channels, 32, 64, 32);
+  channels_set_fg_rgb(&channels, 255, 255, 255);
+  channels_set_bg_rgb(&channels, 32, 64, 32);
   ncplane_cursor_move_yx(n, 2, 0);
   if(ncplane_rounded_box(n, 0, channels, 4, 56, 0)){
     return -1;
@@ -611,16 +611,14 @@ int widecolor_demo(struct notcurses* nc){
       do{ // we fill up the entire screen, however large, walking our strtable
         s = strs;
         uint64_t channels = 0;
-        notcurses_bg_prep(&channels, 20, 20, 20);
+        channels_set_bg_rgb(&channels, 20, 20, 20);
         for(s = strs ; *s ; ++s){
           size_t idx = 0;
           ncplane_cursor_yx(n, &y, &x);
 // fprintf(stderr, "%02d %s\n", y, *s);
           while((*s)[idx]){ // each multibyte char of string
-            if(notcurses_fg_prep(&channels,
-                                 cell_rgb_red(rgb),
-                                 cell_rgb_green(rgb),
-                                 cell_rgb_blue(rgb))){
+            if(channels_set_fg_rgb(&channels, channel_get_r(rgb),
+                                   channel_get_g(rgb), channel_get_b(rgb))){
               return -1;
             }
             if(y >= maxy || x >= maxx){

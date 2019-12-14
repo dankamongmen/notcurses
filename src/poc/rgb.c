@@ -22,16 +22,16 @@ int main(void){
   b = 0;
   for(y = 0 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
-      notcurses_fg_prep(&channels, r, g, b);
+      channels_set_fg_rgb(&channels, r, g, b);
       ncplane_putsimple(n, 'x', 0, channels);
-      if(r % 2){
+      if(g % 2){
         if(b-- == 0){
-          ++r;
+          ++g;
           b = 0;
         }
       }else{
         if(b++ >= 256){
-          ++r;
+          ++g;
           b = 256;
         }
       }

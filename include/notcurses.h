@@ -596,7 +596,7 @@ API void ncplane_erase(struct ncplane* n);
 #define CELL_FGALPHA_MASK      0x3000000000000000ull
 #define CELL_FG_MASK           0x00ffffff00000000ull
 #define CELL_BGDEFAULT_MASK    0x0000000040000000ull
-#define CELL_BGALPHA_MASK      0x3000000030000000ull
+#define CELL_BGALPHA_MASK      0x0000000030000000ull
 #define CELL_BG_MASK           0x0000000000ffffffull
 
 // These lowest-level functions manipulate a 64-bit channel encoding directly.
@@ -642,8 +642,8 @@ channel_set_rgb(unsigned* channel, int r, int g, int b){
   }
   unsigned c = (r << 16u) | (g << 8u) | b;
   c |= CELL_BGDEFAULT_MASK;
-  const unsigned mask = CELL_BGALPHA_MASK | CELL_BG_MASK;
-  *channel = (channel & ~mask) | c;
+  const uint64_t mask = CELL_BGDEFAULT_MASK | CELL_BG_MASK;
+  *channel = (*channel & ~mask) | c;
   return 0;
 }
 
@@ -659,20 +659,20 @@ channel_set_alpha(unsigned* channel, int alpha){
   if(alpha < 0 || alpha > 3){
     return -1;
   }
-  *channel = (alpha << 28u) | (channel & ~CELL_BGALPHA_MASK);
+  *channel = (alpha << 28u) | (*channel & ~CELL_BGALPHA_MASK);
   return 0;
 }
 
 // Is this channel using the "default color" rather than its RGB?
 static inline bool
 channel_default_p(unsigned channel){
-  return channel & CELL_BGDEFAULT_MASK;
+  return !(channel & CELL_BGDEFAULT_MASK);
 }
 
 // Mark the channel as using its default color.
 static inline unsigned
 channel_set_default(unsigned* channel){
-  return channel | CELL_BGDEFAULT_MASK;
+  return *channel &= ~CELL_BGDEFAULT_MASK;
 }
 
 // Extract the 32-bit background channel from a channel pair.
@@ -714,24 +714,24 @@ channels_get_bg_alpha(uint64_t channels){
 // Extract 24 bits of foreground RGB from 'channels', split into subchannels.
 static inline unsigned
 channels_get_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_get_fg_rgb(channels_get_fchannel(channels), r, g, b);
+  return channel_get_rgb(channels_get_fchannel(channels), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'channels', split into subchannels.
 static inline unsigned
 channels_get_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_get_bg_rgb(channels_get_bchannel(channels), r, g, b);
+  return channel_get_rgb(channels_get_bchannel(channels), r, g, b);
 }
 
 // Set the r, g, and b channels for the foreground component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
 channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
-  uint64_t channel = channels_get_fchannel(channels);
-  if(channel_set_fg(&channel, r, g, b) < 0){
+  unsigned channel = channels_get_fchannel(*channels);
+  if(channel_set_rgb(&channel, r, g, b) < 0){
     return -1;
   }
-  *channels = (channel << 32u) | *channels;
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
   return 0;
 }
 
@@ -739,8 +739,30 @@ channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
 // 'channels' variable, and mark it as not using the default color.
 static inline int
 channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
-  uint64_t channel = channels_get_bchannel(channels);
-  if(channel_set_bg(&channel, r, g, b) < 0){
+  unsigned channel = channels_get_bchannel(*channels);
+  if(channel_set_rgb(&channel, r, g, b) < 0){
+    return -1;
+  }
+  *channels = (*channels & 0xffffffff00000000llu) | channel;
+  return 0;
+}
+
+// Set the 2-bit alpha component of the foreground channel.
+static inline int
+channels_set_fg_alpha(uint64_t* channels, int alpha){
+  unsigned channel = channels_get_fchannel(*channels);
+  if(channel_set_alpha(&channel, alpha) < 0){
+    return -1;
+  }
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return 0;
+}
+
+// Set the 2-bit alpha component of the background channel.
+static inline int
+channels_set_bg_alpha(uint64_t* channels, int alpha){
+  unsigned channel = channels_get_bchannel(*channels);
+  if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
   *channels = (*channels & 0xffffffff00000000llu) | channel;
@@ -761,51 +783,98 @@ channels_bg_default_p(uint64_t channels){
   return channel_default_p(channels_get_bchannel(channels));
 }
 
-static inline void
-cell_rgb_get_fg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  unsigned fg = cell_fg_rgb(channels);
-  *r = cell_rgb_red(fg);
-  *g = cell_rgb_green(fg);
-  *b = cell_rgb_blue(fg);
+// Mark the foreground channel as using its default color.
+static inline uint64_t
+channels_set_fg_default(uint64_t* channels){
+  unsigned channel = channels_get_fchannel(*channels);
+  channel_set_default(&channel);
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return *channels;
 }
 
-static inline void
-cell_rgb_get_bg(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  uint32_t bg = cell_bg_rgb(channels);
-  *r = cell_rgb_red(bg);
-  *g = cell_rgb_green(bg);
-  *b = cell_rgb_blue(bg);
+// Mark the foreground channel as using its default color.
+static inline uint64_t
+channels_set_bg_default(uint64_t* channels){
+  unsigned channel = channels_get_bchannel(*channels);
+  channel_set_default(&channel);
+  *channels = (*channels & 0xffffffff00000000llu) | channel;
+  return *channels;
 }
 
-// Channels API, but for an ncplane.
+// Extract the 32-bit background channel from a cell.
 static inline unsigned
-ncplane_get_fg(const struct ncplane* n){
-  return channels_get_fg(n->channels);
+cell_get_bchannel(const cell* cl){
+  return channels_get_bchannel(cl->channels);
 }
 
+// Extract the 32-bit foreground channel from a cell.
 static inline unsigned
-ncplane_get_bg(const struct ncplane* n){
-  return channels_get_bg(n->channels);
+cell_get_fchannel(const cell* cl){
+  return channels_get_fchannel(cl->channels);
 }
 
+// Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
 static inline unsigned
-ncplane_get_fg_alpha(const struct ncplane* n){
-  return channels_get_fg_alpha(n->channels);
+cell_get_fg(const cell* cl){
+  return channels_get_fg(cl->channels);
 }
 
+// Extract 24 bits of background RGB from 'cell', shifted to LSBs.
 static inline unsigned
-ncplane_get_bg_alpha(const struct ncplane* n){
-  return channels_get_bg_alpha(n->channels);
+cell_get_bg(const cell* cl){
+  return channels_get_bg(cl->channels);
 }
 
+// Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
+static inline unsigned
+cell_get_fg_alpha(const cell* cl){
+  return channels_get_fg_alpha(cl->channels);
+}
+
+// Extract 2 bits of background alpha from 'cell', shifted to LSBs.
+static inline unsigned
+cell_get_bg_alpha(const cell* cl){
+  return channels_get_bg_alpha(cl->channels);
+}
+
+// Extract 24 bits of foreground RGB from 'cell', split into subcell.
+static inline unsigned
+cell_get_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return channels_get_fg_rgb(cl->channels, r, g, b);
+}
+
+// Extract 24 bits of background RGB from 'cell', split into subcell.
+static inline unsigned
+cell_get_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return channels_get_bg_rgb(cl->channels, r, g, b);
+}
+
+// Set the r, g, and b cell for the foreground component of this 64-bit
+// 'cell' variable, and mark it as not using the default color.
+static inline int
+cell_set_fg_rgb(cell* cl, int r, int g, int b){
+  return channels_set_fg_rgb(&cl->channels, r, g, b);
+}
+
+// Set the r, g, and b cell for the background component of this 64-bit
+// 'cell' variable, and mark it as not using the default color.
+static inline int
+cell_set_bg_rgb(cell* cl, int r, int g, int b){
+  return channels_set_bg_rgb(&cl->channels, r, g, b);
+}
+
+// Is the foreground using the "default foreground color"?
 static inline bool
-ncplane_fg_default_p(const struct ncplane* n){
-  return channels_fg_default_p(n->channels);
+cell_fg_default_p(const cell* cl){
+  return channels_fg_default_p(cl->channels);
 }
 
+// Is the background using the "default background color"? The "default
+// background color" must generally be used to take advantage of
+// terminal-effected transparency.
 static inline bool
-ncplane_bg_default_p(const struct ncplane* n){
-  return channels_bg_default_p(n->channels);
+cell_bg_default_p(const cell* cl){
+  return channels_bg_default_p(cl->channels);
 }
 
 // Set the current fore/background color using RGB specifications. If the
@@ -822,37 +891,6 @@ API uint64_t ncplane_get_channels(const struct ncplane* n);
 // Same, but with rgb assembled into a half-channel (i.e. lower 32 bits).
 API void ncplane_set_fg(struct ncplane* n, uint32_t halfchannel);
 API void ncplane_set_bg(struct ncplane* n, uint32_t halfchannel);
-
-// Channels API, but for a cell.
-static inline uint32_t
-cell_get_fg(const cell* c){
-  return channels_get_fg(c->channels);
-}
-
-static inline uint32_t
-cell_get_bg(const cell* c){
-  return channels_get_bg(c->channels);
-}
-
-static inline unsigned
-cell_get_fg_alpha(const cell* c){
-  return channels_get_fg_alpha(c->channels);
-}
-
-static inline unsigned
-cell_get_bg_alpha(const cell* n){
-  return channels_get_bg_alpha(c->channels);
-}
-
-static inline bool
-cell_fg_default_p(const cell* c){
-  return channels_fg_default_p(c->channels);
-}
-
-static inline bool
-cell_bg_default_p(const cell* c){
-  return channels_bg_default_p(c->channels);
-}
 
 // use the default color for the foreground/background
 API void ncplane_fg_default(struct ncplane* n);
@@ -955,72 +993,26 @@ cell_styles_off(cell* c, unsigned stylebits){
   c->attrword &= ~((stylebits & 0xffff) << CELL_STYLE_SHIFT);
 }
 
-static inline void
-cell_set_fg(cell* c, unsigned r, unsigned g, unsigned b){
-  notcurses_fg_prep(&c->channels, r, g, b);
-}
-
-static inline void
-cell_set_bg(cell* c, unsigned r, unsigned g, unsigned b){
-  notcurses_bg_prep(&c->channels, r, g, b);
-}
-
-static inline void
-cell_get_fg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
-  *r = cell_rgb_red(cell_fg_rgb(c->channels));
-  *g = cell_rgb_green(cell_fg_rgb(c->channels));
-  *b = cell_rgb_blue(cell_fg_rgb(c->channels));
-}
-
-static inline void
-cell_get_bg(const cell* c, unsigned* r, unsigned* g, unsigned* b){
-  *r = cell_rgb_red(cell_bg_rgb(c->channels));
-  *g = cell_rgb_green(cell_bg_rgb(c->channels));
-  *b = cell_rgb_blue(cell_bg_rgb(c->channels));
-}
-
 // use the default color for the foreground
 static inline void
-cell_fg_default(cell* c){
-  notcurses_fg_default_prep(&c->channels);
-}
-
-// is the cell using the terminal's default foreground color for its foreground?
-static inline bool
-cell_fg_default_p(const cell* c){
-  return !(c->channels & CELL_FGDEFAULT_MASK);
+cell_set_fg_default(cell* c){
+  channels_set_fg_default(&c->channels);
 }
 
 // use the default color for the background
 static inline void
-cell_bg_default(cell* c){
-  notcurses_bg_default_prep(&c->channels);
-}
-
-// is the cell using the terminal's default background color for its background?
-static inline bool
-cell_bg_default_p(const cell* c){
-  return !(c->channels & CELL_BGDEFAULT_MASK);
+cell_set_bg_default(cell* c){
+  channels_set_bg_default(&c->channels);
 }
 
 static inline int
-cell_fg_set_alpha(cell* c, int alpha){
-  return notcurses_fg_set_alpha(&c->channels, alpha);
+cell_set_fg_alpha(cell* c, int alpha){
+  return channels_set_fg_alpha(&c->channels, alpha);
 }
 
 static inline int
-cell_bg_set_alpha(cell *c, int alpha){
-  return notcurses_bg_set_alpha(&c->channels, alpha);
-}
-
-static inline int
-cell_fg_alpha(const cell* c){
-  return notcurses_fg_alpha(c->channels);
-}
-
-static inline int
-cell_bg_alpha(const cell* c){
-  return notcurses_bg_alpha(c->channels);
+cell_set_bg_alpha(cell *c, int alpha){
+  return channels_set_bg_alpha(&c->channels, alpha);
 }
 
 // does the cell contain an East Asian Wide codepoint?

@@ -69,10 +69,10 @@ intro(struct notcurses* nc){
   cell_init(&c);
   const char* cstr = "Δ";
   cell_load(ncp, &c, cstr);
-  cell_set_fg(&c, 200, 0, 200);
+  cell_set_fg_rgb(&c, 200, 0, 200);
   int ys = 200 / (rows - 2);
   for(y = 5 ; y < rows - 6 ; ++y){
-    cell_set_bg(&c, 0, y * ys  , 0);
+    cell_set_bg_rgb(&c, 0, y * ys  , 0);
     for(x = 5 ; x < cols - 6 ; ++x){
       if(ncplane_cursor_move_yx(ncp, y, x)){
         return -1;
@@ -84,8 +84,8 @@ intro(struct notcurses* nc){
   }
   cell_release(ncp, &c);
   uint64_t channels = 0;
-  notcurses_fg_prep(&channels, 90, 0, 90);
-  notcurses_bg_prep(&channels, 0, 0, 180);
+  channels_set_fg_rgb(&channels, 90, 0, 90);
+  channels_set_bg_rgb(&channels, 0, 0, 180);
   if(ncplane_cursor_move_yx(ncp, 4, 4)){
     return -1;
   }

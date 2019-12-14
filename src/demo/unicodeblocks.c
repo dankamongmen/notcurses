@@ -23,8 +23,8 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   cells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
-  cell_set_bg(&hl, 0, 0, 0);
-  cell_set_bg(&vl, 0, 0, 0);
+  cell_set_bg_rgb(&hl, 0, 0, 0);
+  cell_set_bg_rgb(&vl, 0, 0, 0);
   if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl,
                   BLOCKSIZE / CHUNKSIZE + 2,
                   (CHUNKSIZE * 2) + 2, 0)){
@@ -65,8 +65,8 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
       if(cell_load(nn, &c, utf8arr) < 0){ // FIXME check full len was eaten?
         return -1;;
       }
-      cell_set_fg(&c, 0xad + z * 2, 0xd8, 0xe6 - z * 2);
-      cell_set_bg(&c, 8 * chunk, 8 * chunk + z, 8 * chunk);
+      cell_set_fg_rgb(&c, 0xad + z * 2, 0xd8, 0xe6 - z * 2);
+      cell_set_bg_rgb(&c, 8 * chunk, 8 * chunk + z, 8 * chunk);
       if(ncplane_putc(nn, &c) < 0){
         return -1;
       }
