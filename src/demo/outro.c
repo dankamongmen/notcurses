@@ -19,14 +19,15 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   if(on == NULL){
     return NULL;
   }
-  cell bgcell = CELL_TRIVIAL_INITIALIZER;
+  cell bgcell = CELL_SIMPLE_INITIALIZER(' ');
   channels_set_bg_rgb(&bgcell.channels, 0x58, 0x36, 0x58);
-  ncplane_set_background(on, &bgcell);
+  if(ncplane_set_background(on, &bgcell) < 0){
+    return NULL;
+  }
   ncplane_dim_yx(on, rows, cols);
   int ybase = 0;
   // bevel the upper corners
-  uint64_t channel = 0;
-  if(channels_set_bg_alpha(&channel, CELL_ALPHA_TRANS)){
+  if(ncplane_set_bg_alpha(on, CELL_ALPHA_TRANS)){
     return NULL;
   }
   if(ncplane_cursor_move_yx(on, ybase, 0)){
@@ -58,6 +59,9 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
     return NULL;
   }
   if(ncplane_set_bg_rgb(on, 0, 180, 180)){
+    return NULL;
+  }
+  if(ncplane_set_bg_alpha(on, CELL_ALPHA_OPAQUE)){ // FIXME use intermediate
     return NULL;
   }
   if(ncplane_putstr_aligned(on, ++ybase, str0, NCALIGN_CENTER) < 0){
