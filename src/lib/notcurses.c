@@ -1659,6 +1659,12 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
   return ret;
 }
 
+// how many edges need touch a corner for it to be printed?
+static inline unsigned
+box_corner_needs(unsigned ctlword){
+  return (ctlword & NCBOXCORNER_MASK) >> NCBOXCORNER_SHIFT;
+}
+
 
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hl,
@@ -1678,12 +1684,18 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   if(xstop >= xmax || ystop >= ymax){
     return -1;
   }
-  // top row
-  if(!(ctlword & NCBOXMASK_TOP)){
+  unsigned edges;
+  edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_LEFT);
+  if(edges >= box_corner_needs(ctlword)){
     if(ncplane_putc(n, ul) < 0){
       return -1;
     }
+  }
+  if(!(ctlword & NCBOXMASK_TOP)){ // draw top border, if called for
     if(xstop - xoff >= 2){
+      if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
+        return -1;
+      }
       if(!(ctlword & (NCBOXGRAD_TOP << 4u))){ // cell styling, hl
         if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
           return -1;
@@ -1694,22 +1706,14 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
         }
       }
     }
-    if(ncplane_putc(n, ur) < 0){
+  }
+  edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_RIGHT);
+  if(edges >= box_corner_needs(ctlword)){
+    if(ncplane_cursor_move_yx(n, yoff, xstop)){
       return -1;
     }
-  }else{
-    if(!(ctlword & NCBOXMASK_LEFT)){
-      if(ncplane_putc(n, ul) < 0){
-        return -1;
-      }
-    }
-    if(!(ctlword & NCBOXMASK_RIGHT)){
-      if(ncplane_cursor_move_yx(n, yoff, xstop)){
-        return -1;
-      }
-      if(ncplane_putc(n, ur) < 0){
-        return -1;
-      }
+    if(ncplane_putc(n, ur) < 0){
+      return -1;
     }
   }
   ++yoff;
@@ -1720,11 +1724,11 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
         return -1;
       }
       if((ctlword & (NCBOXGRAD_LEFT << 4u))){ // grad styling, ul->ll
-        if(ncplane_vline_interp(n, vl, ystop - yoff + 1, ul->channels, ll->channels) < 0){
+        if(ncplane_vline_interp(n, vl, ystop - yoff, ul->channels, ll->channels) < 0){
           return -1;
         }
       }else{
-        if(ncplane_vline(n, vl, ystop - yoff + 1) < 0){
+        if(ncplane_vline(n, vl, ystop - yoff) < 0){
           return -1;
         }
       }
@@ -1734,11 +1738,11 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
         return -1;
       }
       if((ctlword & (NCBOXGRAD_RIGHT << 4u))){ // grad styling, ur->lr
-        if(ncplane_vline_interp(n, vl, ystop - yoff + 1, ur->channels, lr->channels) < 0){
+        if(ncplane_vline_interp(n, vl, ystop - yoff, ur->channels, lr->channels) < 0){
           return -1;
         }
       }else{
-        if(ncplane_vline(n, vl, ystop - yoff + 1) < 0){
+        if(ncplane_vline(n, vl, ystop - yoff) < 0){
           return -1;
         }
       }
@@ -1746,14 +1750,20 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   // bottom line
   yoff = ystop;
-  if(!(ctlword & NCBOXMASK_BOTTOM)){
+  edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
+  if(edges >= box_corner_needs(ctlword)){
     if(ncplane_cursor_move_yx(n, yoff, xoff)){
       return -1;
     }
     if(ncplane_putc(n, ll) < 0){
       return -1;
     }
+  }
+  if(!(ctlword & NCBOXMASK_BOTTOM)){
     if(xstop - xoff >= 2){
+      if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
+        return -1;
+      }
       if(!(ctlword & (NCBOXGRAD_BOTTOM << 4u))){ // cell styling, hl
         if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
           return -1;
@@ -1764,25 +1774,14 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
         }
       }
     }
-    if(ncplane_putc(n, lr) < 0){
+  }
+  edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_RIGHT);
+  if(edges >= box_corner_needs(ctlword)){
+    if(ncplane_cursor_move_yx(n, yoff, xstop)){
       return -1;
     }
-  }else{
-    if(!(ctlword & NCBOXMASK_LEFT)){
-      if(ncplane_cursor_move_yx(n, yoff, xoff)){
-        return -1;
-      }
-      if(ncplane_putc(n, ll) < 0){
-        return -1;
-      }
-    }
-    if(!(ctlword & NCBOXMASK_RIGHT)){
-      if(ncplane_cursor_move_yx(n, yoff, xstop)){
-        return -1;
-      }
-      if(ncplane_putc(n, lr) < 0){
-        return -1;
-      }
+    if(ncplane_putc(n, lr) < 0){
+      return -1;
     }
   }
   return 0;
