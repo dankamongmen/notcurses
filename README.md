@@ -63,7 +63,7 @@ Why use this non-standard library?
 * Thread safety, and efficient use in parallel programs, has been a design
   consideration from the beginning.
 
-* A svelter design than that codified by X/Open.
+* A svelter design than that codified by X/Open:
   * Exported identifiers are prefixed to avoid common namespace collisions.
   * The library object exports a minimal set of symbols. Where reasonable,
     `static inline` header-only code is used. This facilitates compiler
@@ -873,6 +873,16 @@ typedef struct cell {
   // "not default color" bit is set, any color you load will be ignored.
   uint64_t channels;          // + 8b == 16b
 } cell;
+
+#define CELL_WIDEASIAN_MASK    0x8000000080000000ull
+#define CELL_FGDEFAULT_MASK    0x4000000000000000ull
+#define CELL_FG_MASK           0x00ffffff00000000ull
+#define CELL_BGDEFAULT_MASK    0x0000000040000000ull
+#define CELL_BG_MASK           0x0000000000ffffffull
+#define CELL_ALPHA_MASK        0x0000000030000000ull
+#define CELL_ALPHA_SHIFT       28u
+#define CELL_ALPHA_TRANS       3
+#define CELL_ALPHA_OPAQUE      0
 ```
 
 `cell`s must be initialized with `CELL_TRIVIAL_INITIALIZER` or `cell_init()`
@@ -1104,6 +1114,17 @@ cell_set_bg_rgb(cell* cl, int r, int g, int b){
   return channels_set_bg_rgb(&cl->channels, r, g, b);
 }
 
+// Same, but with rgb assembled into a channel (i.e. lower 24 bits).
+static inline int
+cell_set_fg(cell* c, uint32_t channel){
+  return channels_set_fg(&c->channels, channel);
+}
+
+static inline int
+cell_set_bg(cell* c, uint32_t channel){
+  return channels_set_bg(&c->channels, channel);
+}
+
 // Is the foreground using the "default foreground color"?
 static inline bool
 cell_fg_default_p(const cell* cl){
@@ -1117,6 +1138,19 @@ static inline bool
 cell_bg_default_p(const cell* cl){
   return channels_bg_default_p(cl->channels);
 }
+
+// Use the default color for the foreground.
+static inline void
+cell_set_fg_default(cell* c){
+  channels_set_fg_default(&c->channels);
+}
+
+// Use the default color for the background.
+static inline void
+cell_set_bg_default(cell* c){
+  channels_set_bg_default(&c->channels);
+}
+
 ```
 
 ### Multimedia
@@ -1217,19 +1251,29 @@ channel_set_rgb(unsigned* channel, int r, int g, int b){
   return 0;
 }
 
+// Same, but provide an assembled, packed 24 bits of rgb.
+static inline int
+channel_set(unsigned* channel, unsigned rgb){
+  if(rgb > 0xffffffu){
+    return -1;
+  }
+  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | rgb;
+  return 0;
+}
+
 // Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
 channel_get_alpha(unsigned channel){
-  return (channel & CELL_BGALPHA_MASK) >> 28u;
+  return (channel & CELL_ALPHA_MASK) >> CELL_ALPHA_SHIFT;
 }
 
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
 channel_set_alpha(unsigned* channel, int alpha){
-  if(alpha < 0 || alpha > 3){
+  if(alpha < CELL_ALPHA_OPAQUE || alpha > CELL_ALPHA_TRANS){
     return -1;
   }
-  *channel = (alpha << 28u) | (*channel & ~CELL_BGALPHA_MASK);
+  *channel = (alpha << CELL_ALPHA_SHIFT) | (*channel & ~CELL_ALPHA_MASK);
   return 0;
 }
 
@@ -1311,6 +1355,27 @@ static inline int
 channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
   unsigned channel = channels_get_bchannel(*channels);
   if(channel_set_rgb(&channel, r, g, b) < 0){
+    return -1;
+  }
+  *channels = (*channels & 0xffffffff00000000llu) | channel;
+  return 0;
+}
+
+// Same, but set an assembled 24 bits of rgb at once.
+static inline int
+channels_set_fg(uint64_t* channels, unsigned rgb){
+  unsigned channel = channels_get_fchannel(*channels);
+  if(channel_set(&channel, rgb) < 0){
+    return -1;
+  }
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return 0;
+}
+
+static inline int
+channels_set_bg(uint64_t* channels, unsigned rgb){
+  unsigned channel = channels_get_bchannel(*channels);
+  if(channel_set(&channel, rgb) < 0){
     return -1;
   }
   *channels = (*channels & 0xffffffff00000000llu) | channel;
