@@ -235,18 +235,18 @@ notcurses_getc_blocking(struct notcurses* n){
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
-// References to ncplanes remain valid following a resize operation, but the
-// cursor might have changed position.
+// References to ncplanes (and the egcpools underlying cells) remain valid
+// following a resize operation, but the cursor might have changed position.
 API int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
-// primarily useful if the screen is externally corrupted. Has no effect if
-// notcurses_render() has never been successfully called.
+// primarily useful if the screen is externally corrupted.
 API int notcurses_refresh(struct notcurses* n);
 
 // Get a reference to the standard plane (one matching our current idea of the
-// terminal size) for this terminal.
+// terminal size) for this terminal. The standard plane always exists, and its
+// origin is always at the uppermost, leftmost cell of the screen.
 API struct ncplane* notcurses_stdplane(struct notcurses* nc);
 API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
@@ -260,10 +260,12 @@ API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
+// For more information, see the "ncv" capability in terminfo(5).
 API unsigned notcurses_supported_styles(const struct notcurses* nc);
 
-// Returns the number of colors supported by the palette, or 1 if there is no
-// color support.
+// Returns the number of simultaneous colors claimed to be supported, or 1 if
+// there is no color support. Note that several terminal emulators advertise
+// more colors than they actually support, downsampling internally.
 API int notcurses_palette_size(const struct notcurses* nc);
 
 typedef struct ncstats {

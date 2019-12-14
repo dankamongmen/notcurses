@@ -162,9 +162,9 @@ int notcurses_stop(struct notcurses* nc);
 `notcurses_stop` should be called before exiting your program to restore the
 terminal settings and free resources.
 
-The vast majority of the notcurses API draws into virtual buffers. Only upon
-a call to `notcurses_render` will the visible terminal display be updated to
-reflect the changes:
+The notcurses API draws almost entirely into the virtual buffers of `ncplane`s.
+Only upon a call to `notcurses_render` will the visible terminal display be
+updated to reflect the changes:
 
 ```c
 // Make the physical screen match the virtual screen. Changes made to the
@@ -173,25 +173,39 @@ reflect the changes:
 int notcurses_render(struct notcurses* nc);
 ```
 
+One `ncplane` is guaranteed to exist: the "standard plane". The user cannot
+move, resize, reparent, or destroy the standard plane (it *can* be erased).
+Its dimensions always match notcurses's conception of the visible terminal. A
+handle on the standard plane can be acquired with two top-level functions:
+
+```c
+// Get a reference to the standard plane (one matching our current idea of the
+// terminal size) for this terminal. The standard plane always exists, and its
+// origin is always at the uppermost, leftmost cell of the screen.
+struct ncplane* notcurses_stdplane(struct notcurses* nc);
+const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+```
+
+A reference to the standard plane *is* persistent across a screen resize, as are
+any indexes into its egcpool, but its framebuffer *is not* necessarily
+persistent across a screen resize. Thankfully, you shouldn't have a reference
+to its framebuffer, and thus only the change to its dimensions can really catch
+you off guard.
+
 Utility functions operating on the toplevel `notcurses` object include:
 
 ```c
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
-// References to ncplanes remain valid following a resize operation, but the
-// cursor might have changed position.
+// References to ncplanes (and the egcpools underlying cells) remain valid
+// following a resize operation, but the cursor might have changed position.
 int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
 // primarily useful if the screen is externally corrupted.
 int notcurses_refresh(struct notcurses* n);
-
-// Get a reference to the standard plane (one matching our current idea of the
-// terminal size) for this terminal.
-struct ncplane* notcurses_stdplane(struct notcurses* nc);
-const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
 // Create a new ncplane at the specified offset (relative to the standard plane)
 // and the specified size. The number of rows and columns must both be positive.
@@ -203,26 +217,35 @@ struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
+// For more information, see the "ncv" capability in terminfo(5).
 unsigned notcurses_supported_styles(const struct notcurses* nc);
 
-// Returns the number of colors supported by the palette, or 1 if there is no
-// color support.
+// Returns the number of simultaneous colors claimed to be supported, or 1 if
+// there is no color support. Note that several terminal emulators advertise
+// more colors than they actually support, downsampling internally.
 int notcurses_palette_size(const struct notcurses* nc);
 ```
 
 ### Input
 
 Input can currently be taken only from `stdin`, but on the plus side, stdin
-needn't be a terminal device (unlike the ttyfp `FILE*` passed in a
-`notcurses_options`). Generalized input ought happen soon. There is only one
-input queue per `struct notcurses`.
+needn't be a terminal device (unlike the ttyfp `FILE*` passed to `notcurses_init()`).
+Generalized input ought happen soon. There is only one input queue per `struct
+notcurses`.
 
 Like NCURSES, notcurses will watch for escape sequences, check them against the
 terminfo database, and return them as special keys (we hijack the Private Use
-Area, specifically Supplementary Private Use Area B (u100000 through u10ffffd),
-for special keys). Unlike NCURSES, the fundamental unit of input is the
+Area for special keys, specifically Supplementary Private Use Area B (u100000
+through u10ffffd). Unlike NCURSES, the fundamental unit of input is the
 UTF8-encoded Unicode codepoint. Note, however, that only one codepoint is
 returned at a time (as opposed to an entire EGC).
+
+It is generally possible for a false positive to occur, wherein keypresses
+intended to be distinct are combined into an escape sequence. False negatives
+where an intended escape sequence are read as an ESC key followed by distinct
+keystrokes are also possible. NCURSES provides the `ESCDELAY` variable to
+control timing. notcurses brooks no delay; all characters of an escape sequence
+must be readable without delay for it to be interpreted as such.
 
 ```c
 // All input is currently taken from stdin, though this will likely change. We
@@ -814,7 +837,11 @@ void ncplane_set_bg_default(struct ncplane* n);
 ### Cells
 
 Unlike the `notcurses` or `ncplane` objects, the definition of `cell` is
-available to the user:
+available to the user. It is somewhat ironic, then, that the user typically
+needn't (and shouldn't) use `cell`s directly. Use a `cell` when the EGC being
+output is used several times. In this case, time otherwise spent running
+`cell_load()` (which tokenizes and verifies EGCs) can be saved. It can also be
+useful to use a `cell` when the same styling is used in a discontinuous manner.
 
 ```c
 // A cell corresponds to a single character cell on some plane, which can be
@@ -861,9 +888,19 @@ typedef struct cell {
 } cell;
 ```
 
-A `cell` ought be initialized with `CELL_TRIVIAL_INITIALIZER` or the
-`cell_init()` function before it is further used. These just zero out the
-`cell`. A `cell` has three fundamental elements:
+`cell`s must be initialized with `CELL_TRIVIAL_INITIALIZER` or `cell_init()`
+before any other use (both merely zero out the `cell`).
+
+```c
+#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+
+static inline void
+cell_init(cell* c){
+  memset(c, 0, sizeof(*c));
+}
+```
+
+A `cell` has three fundamental elements:
 
 * The EGC displayed at this coordinate, encoded in UTF-8. If the EGC is a
   single ASCII character (value less than 0x80), it is stored inline in
@@ -882,13 +919,6 @@ using the `cell` before being done with the `ncplane`, call `cell_release()`
 to free up the EGC resources.
 
 ```c
-#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-
-static inline void
-cell_init(cell* c){
-  memset(c, 0, sizeof(*c));
-}
-
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
 // the number of bytes copied out of 'gcluster', or -1 on failure. The styling
 // of the cell is left untouched, but any resources are released.
