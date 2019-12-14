@@ -990,6 +990,10 @@ API void ncplane_set_bg(struct ncplane* n, uint32_t channel);
 API void ncplane_set_fg_default(struct ncplane* n);
 API void ncplane_set_bg_default(struct ncplane* n);
 
+// Set the alpha parameters for ncplane 'n'.
+API int ncplane_set_fg_alpha(struct ncplane* n, int alpha);
+API int ncplane_set_bg_alpha(struct ncplane* n, int alpha);
+
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
 API void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
@@ -1105,7 +1109,7 @@ cell_set_fg_alpha(cell* c, int alpha){
 }
 
 static inline int
-cell_set_bg_alpha(cell *c, int alpha){
+cell_set_bg_alpha(cell* c, int alpha){
   return channels_set_bg_alpha(&c->channels, alpha);
 }
 

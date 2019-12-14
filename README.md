@@ -791,6 +791,10 @@ ncplane_get_bg_alpha(const struct ncplane* nc){
   return channels_get_bg_alpha(ncplane_get_channels(nc));
 }
 
+// Set the alpha parameters for ncplane 'n'.
+int ncplane_set_fg_alpha(struct ncplane* n, int alpha);
+int ncplane_set_bg_alpha(struct ncplane* n, int alpha);
+
 // Extract 24 bits of foreground RGB from 'n', split into subcomponents.
 static inline unsigned
 ncplane_get_fg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
@@ -1123,6 +1127,16 @@ cell_set_fg(cell* c, uint32_t channel){
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);
+}
+
+static inline int
+cell_set_fg_alpha(cell* c, int alpha){
+  return channels_set_fg_alpha(&c->channels, alpha);
+}
+
+static inline int
+cell_set_bg_alpha(cell* c, int alpha){
+  return channels_set_bg_alpha(&c->channels, alpha);
 }
 
 // Is the foreground using the "default foreground color"?
