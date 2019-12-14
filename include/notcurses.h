@@ -380,20 +380,18 @@ ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c){
   return ncplane_putc(n, c);
 }
 
-// Replace the cell underneath the cursor with the provided 7-bit char 'c',
-// using the specified 'attr' and 'channels' for styling. Advance the cursor by
-// 1. On success, returns 1. On failure, returns -1. This works whether the
-// underlying char is signed or unsigned.
-API int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels);
+// Replace the cell underneath the cursor with the provided 7-bit char 'c'.
+// Advance the cursor by 1. On success, returns 1. On failure, returns -1.
+// This works whether the underlying char is signed or unsigned.
+API int ncplane_putsimple(struct ncplane* n, char c);
 
 // Call ncplane_simple() after successfully moving to y, x.
 static inline int
-ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c,
-                     uint32_t attr, uint64_t channels){
+ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  return ncplane_putsimple(n, c, attr, channels);
+  return ncplane_putsimple(n, c);
 }
 
 // Replace the cell underneath the cursor with the provided EGC, using the
@@ -877,6 +875,10 @@ cell_bg_default_p(const cell* cl){
   return channels_bg_default_p(cl->channels);
 }
 
+// Get the current channels or attribute word for ncplane 'n'.
+API uint64_t ncplane_get_channels(const struct ncplane* n);
+API uint32_t ncplane_get_attr(const struct ncplane* n);
+
 // Set the current fore/background color using RGB specifications. If the
 // terminal does not support directly-specified 3x8b cells (24-bit "Direct
 // Color", indicated by the "RGB" terminfo capability), the provided values
@@ -886,15 +888,13 @@ cell_bg_default_p(const cell* cl){
 API int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 
-API uint64_t ncplane_get_channels(const struct ncplane* n);
-
 // Same, but with rgb assembled into a half-channel (i.e. lower 32 bits).
 API void ncplane_set_fg(struct ncplane* n, uint32_t halfchannel);
 API void ncplane_set_bg(struct ncplane* n, uint32_t halfchannel);
 
 // use the default color for the foreground/background
-API void ncplane_fg_default(struct ncplane* n);
-API void ncplane_bg_default(struct ncplane* n);
+API void ncplane_set_fg_default(struct ncplane* n);
+API void ncplane_set_bg_default(struct ncplane* n);
 
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.

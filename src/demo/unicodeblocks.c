@@ -23,6 +23,10 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   cells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
+  cell_set_bg_alpha(&ul, 3);
+  cell_set_bg_alpha(&ur, 3);
+  cell_set_bg_alpha(&ll, 3);
+  cell_set_bg_alpha(&lr, 3);
   cell_set_bg_rgb(&hl, 0, 0, 0);
   cell_set_bg_rgb(&vl, 0, 0, 0);
   if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl,

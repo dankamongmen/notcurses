@@ -752,10 +752,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
          bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
          ret->colors, ret->RGBflag ? "direct" : "palette");
   if(!ret->RGBflag){ // FIXME
-    if(ret->colors > 16){
+    if(ret->colors >= 16){
       putp(tiparm(ret->setaf, 207));
     }else{
-      putp(tiparm(ret->setaf, 9));
+      putp(tiparm(ret->setaf, 3));
     }
     fprintf(ret->ttyfp, "\nWarning: you will not have colors until this is resolved:\n");
     fprintf(ret->ttyfp, " https://github.com/dankamongmen/notcurses/issues/4\n");
@@ -827,12 +827,20 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
-void ncplane_fg_default(struct ncplane* n){
-  n->channels &= ~(CELL_FGDEFAULT_MASK);
+uint64_t ncplane_get_channels(const ncplane* n){
+  return n->channels;
 }
 
-void ncplane_bg_default(struct ncplane* n){
-  n->channels &= ~(CELL_BGDEFAULT_MASK);
+uint32_t ncplane_get_attr(const ncplane* n){
+  return n->attrword;
+}
+
+void ncplane_set_fg_default(struct ncplane* n){
+  channels_set_fg_default(&n->channels);
+}
+
+void ncplane_set_bg_default(struct ncplane* n){
+  channels_set_bg_default(&n->channels);
 }
 
 int ncplane_set_bg_rgb(ncplane* n, int r, int g, int b){
@@ -1385,15 +1393,11 @@ int ncplane_putc(ncplane* n, const cell* c){
   return cols;
 }
 
-uint64_t ncplane_get_channels(const ncplane* n){
-  return n->channels;
-}
-
-int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels){
+int ncplane_putsimple(struct ncplane* n, char c){
   cell ce = {
     .gcluster = c,
-    .attrword = attr,
-    .channels = channels,
+    .attrword = ncplane_get_attr(n),
+    .channels = ncplane_get_channels(n),
   };
   if(!cell_simple_p(&ce)){
     return -1;

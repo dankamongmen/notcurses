@@ -65,7 +65,7 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  ncplane_bg_default(n);
+  ncplane_set_bg_default(n);
   int y = 1;
   std::deque<wchar_t> cells;
   wchar_t r;

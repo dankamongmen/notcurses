@@ -32,26 +32,26 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   if(ncplane_cursor_move_yx(on, ybase, 0)){
     return NULL;
   }
-  if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
+  if(ncplane_putsimple(on, ' ') < 0 || ncplane_putsimple(on, ' ') < 0){
     return NULL;
   }
   if(ncplane_cursor_move_yx(on, ybase, *cols - 2)){
     return NULL;
   }
-  if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
+  if(ncplane_putsimple(on, ' ') < 0 || ncplane_putsimple(on, ' ') < 0){
     return NULL;
   }
   // ...and now the lower corners
   if(ncplane_cursor_move_yx(on, *rows - 1, 0)){
     return NULL;
   }
-  if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
+  if(ncplane_putsimple(on, ' ') < 0 || ncplane_putsimple(on, ' ') < 0){
     return NULL;
   }
   if(ncplane_cursor_move_yx(on, *rows - 1, *cols - 2)){
     return NULL;
   }
-  if(ncplane_putsimple(on, ' ', 0, channel) < 0 || ncplane_putsimple(on, ' ', 0, channel) < 0){
+  if(ncplane_putsimple(on, ' ') < 0 || ncplane_putsimple(on, ' ') < 0){
     return NULL;
   }
   if(ncplane_set_fg_rgb(on, 0, 0, 0)){

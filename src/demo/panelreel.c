@@ -282,7 +282,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   // Press a for a new panel above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement. q quits.
   ncplane_set_fg_rgb(w, 58, 150, 221);
-  ncplane_bg_default(w);
+  ncplane_set_bg_default(w);
   ncplane_cursor_move_yx(w, 1, 1);
   ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
   // FIXME clrtoeol();

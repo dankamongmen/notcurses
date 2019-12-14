@@ -48,10 +48,9 @@ int maxcolor_demo(struct notcurses* nc){
       return -1;
     }
     while(x < maxx - 1){
-      channels_set_fg_rgb(&channels, (rgb & 0xff0000) >> 16u,
-                        (rgb & 0xff00) >> 8u, rgb & 0xff);
-      channels_set_bg_rgb(&channels, 0, 10, 0);
-      ncplane_putsimple(n, x % 10 + '0', 0, channels);
+      ncplane_set_fg_rgb(n, (rgb & 0xff0000) >> 16u, (rgb & 0xff00) >> 8u, rgb & 0xff);
+      ncplane_set_bg_rgb(n, 0, 10, 0);
+      ncplane_putsimple(n, x % 10 + '0');
       grow_rgb(&rgb);
       ++x;
     }
