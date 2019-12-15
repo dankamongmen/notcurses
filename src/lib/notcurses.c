@@ -1956,6 +1956,7 @@ void ncplane_erase(ncplane* n){
   egcpool_init(&n->pool);
   cell_load(n, &n->defcell, egc);
   free(egc);
+  flash_damage_map(n->damage, n->leny, true);
   ncplane_unlock(n);
 }
 
