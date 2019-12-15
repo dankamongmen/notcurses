@@ -192,6 +192,16 @@ wchar_supppuab_p(wchar_t w){
 #define NCKEY_F18     suppuabize(38)
 #define NCKEY_F19     suppuabize(39)
 #define NCKEY_F20     suppuabize(40)
+#define NCKEY_F21     suppuabize(41)
+#define NCKEY_F22     suppuabize(42)
+#define NCKEY_F23     suppuabize(43)
+#define NCKEY_F24     suppuabize(44)
+#define NCKEY_F25     suppuabize(45)
+#define NCKEY_F26     suppuabize(46)
+#define NCKEY_F27     suppuabize(47)
+#define NCKEY_F28     suppuabize(48)
+#define NCKEY_F29     suppuabize(49)
+#define NCKEY_F30     suppuabize(50)
 // ... leave room for up to 100 function keys, egads
 #define NCKEY_ENTER   suppuabize(121)
 #define NCKEY_CLS     suppuabize(122) // "clear-screen or erase"
@@ -257,7 +267,7 @@ API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
                                        int yoff, int xoff, void* opaque);
 
-// Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
+// Returns a 16-bit bitmask of supported curses-style attributes
 // (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
@@ -640,7 +650,8 @@ channel_get_b(unsigned channel){
 
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 static inline unsigned
-channel_get_rgb(unsigned channel, unsigned* r, unsigned* g, unsigned* b){
+channel_get_rgb(unsigned channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
+                unsigned* RESTRICT b){
   *r = channel_get_r(channel);
   *g = channel_get_g(channel);
   *b = channel_get_b(channel);
@@ -1090,44 +1101,41 @@ API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 API void cell_release(struct ncplane* n, cell* c);
 
-#define CELL_STYLE_SHIFT     16u
 #define CELL_STYLE_MASK      0xffff0000ul
-// these are used for the style bitfield *after* it is shifted
-#define CELL_STYLE_STANDOUT  0x0080u
-#define CELL_STYLE_UNDERLINE 0x0040u
-#define CELL_STYLE_REVERSE   0x0020u
-#define CELL_STYLE_BLINK     0x0010u
-#define CELL_STYLE_DIM       0x0008u
-#define CELL_STYLE_BOLD      0x0004u
-#define CELL_STYLE_INVIS     0x0002u
-#define CELL_STYLE_PROTECT   0x0001u
-#define CELL_STYLE_ITALIC    0x0100u
+#define CELL_STYLE_STANDOUT  0x00800000ul
+#define CELL_STYLE_UNDERLINE 0x00400000ul
+#define CELL_STYLE_REVERSE   0x00200000ul
+#define CELL_STYLE_BLINK     0x00100000ul
+#define CELL_STYLE_DIM       0x00080000ul
+#define CELL_STYLE_BOLD      0x00040000ul
+#define CELL_STYLE_INVIS     0x00020000ul
+#define CELL_STYLE_PROTECT   0x00010000ul
+#define CELL_STYLE_ITALIC    0x01000000ul
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not.
 static inline void
 cell_styles_set(cell* c, unsigned stylebits){
-  c->attrword = (c->attrword & ~CELL_STYLE_MASK) |
-                ((stylebits & 0xffff) << CELL_STYLE_SHIFT);
+  c->attrword = (c->attrword & ~CELL_STYLE_MASK) | ((stylebits & CELL_STYLE_MASK));
 }
 
-// Get the style bits, shifted over into the LSBs.
+// Extract the style bits from the cell's attrword.
 static inline unsigned
 cell_styles(const cell* c){
-  return (c->attrword & CELL_STYLE_MASK) >> CELL_STYLE_SHIFT;
+  return c->attrword & CELL_STYLE_MASK;
 }
 
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
 cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= ((stylebits & 0xffff) << CELL_STYLE_SHIFT);
+  c->attrword |= (stylebits & CELL_STYLE_MASK);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
 cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~((stylebits & 0xffff) << CELL_STYLE_SHIFT);
+  c->attrword &= ~(stylebits & CELL_STYLE_MASK);
 }
 
 // Use the default color for the foreground.

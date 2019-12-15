@@ -256,6 +256,16 @@ int prep_special_keys(notcurses* nc){
     { .tinfo = "kf18",  .key = NCKEY_F18, },
     { .tinfo = "kf19",  .key = NCKEY_F19, },
     { .tinfo = "kf20",  .key = NCKEY_F20, },
+    { .tinfo = "kf21",  .key = NCKEY_F21, },
+    { .tinfo = "kf22",  .key = NCKEY_F22, },
+    { .tinfo = "kf23",  .key = NCKEY_F23, },
+    { .tinfo = "kf24",  .key = NCKEY_F24, },
+    { .tinfo = "kf25",  .key = NCKEY_F25, },
+    { .tinfo = "kf26",  .key = NCKEY_F26, },
+    { .tinfo = "kf27",  .key = NCKEY_F27, },
+    { .tinfo = "kf28",  .key = NCKEY_F28, },
+    { .tinfo = "kf29",  .key = NCKEY_F29, },
+    { .tinfo = "kf30",  .key = NCKEY_F30, },
     { .tinfo = "kent",  .key = NCKEY_ENTER, },
     { .tinfo = "kclr",  .key = NCKEY_CLS, },
     { .tinfo = "kc1",   .key = NCKEY_DLEFT, },
@@ -280,8 +290,7 @@ int prep_special_keys(notcurses* nc){
       continue;
     }
     if(seq[0] != ESC){
-      fprintf(stderr, "Terminfo's %s is not an escape sequence (%zub)\n",
-              k->tinfo, strlen(seq));
+//fprintf(stderr, "Terminfo's %s is not an escape sequence (%zub)\n", k->tinfo, strlen(seq));
       continue;
     }
 //fprintf(stderr, "support for terminfo's %s: %s\n", k->tinfo, seq);

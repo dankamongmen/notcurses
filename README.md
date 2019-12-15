@@ -981,45 +981,42 @@ int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 void cell_release(struct ncplane* n, cell* c);
 
-#define CELL_STYLE_SHIFT     16u
 #define CELL_STYLE_MASK      0xffff0000ul
-#define CELL_ALPHA_MASK      0x0000fffful
-// these are used for the style bitfield *after* it is shifted
-#define CELL_STYLE_STANDOUT  0x0001u
-#define CELL_STYLE_UNDERLINE 0x0002u
-#define CELL_STYLE_REVERSE   0x0004u
-#define CELL_STYLE_BLINK     0x0008u
-#define CELL_STYLE_DIM       0x0010u
-#define CELL_STYLE_BOLD      0x0020u
-#define CELL_STYLE_INVIS     0x0040u
-#define CELL_STYLE_PROTECT   0x0080u
-#define CELL_STYLE_ITALIC    0x0100u
+#define CELL_STYLE_STANDOUT  0x00800000ul
+#define CELL_STYLE_UNDERLINE 0x00400000ul
+#define CELL_STYLE_REVERSE   0x00200000ul
+#define CELL_STYLE_BLINK     0x00100000ul
+#define CELL_STYLE_DIM       0x00080000ul
+#define CELL_STYLE_BOLD      0x00040000ul
+#define CELL_STYLE_INVIS     0x00020000ul
+#define CELL_STYLE_PROTECT   0x00010000ul
+#define CELL_STYLE_ITALIC    0x01000000ul
+
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not.
 static inline void
 cell_styles_set(cell* c, unsigned stylebits){
-  c->attrword = (c->attrword & ~CELL_STYLE_MASK) |
-                ((stylebits & 0xffff) << 16u);
+  c->attrword = (c->attrword & ~CELL_STYLE_MASK) | ((stylebits & CELL_STYLE_MASK));
 }
 
-// Get the style bits, shifted over into the LSBs.
+// Extract the style bits from the cell's attrword.
 static inline unsigned
 cell_styles(const cell* c){
-  return (c->attrword & CELL_STYLE_MASK) >> 16u;
+  return c->attrword & CELL_STYLE_MASK;
 }
 
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
 cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= ((stylebits & 0xffff) << 16u);
+  c->attrword |= (stylebits & CELL_STYLE_MASK;
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
 cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~((stylebits & 0xffff) << 16u);
+  c->attrword &= ~(stylebits & CELL_STYLE_MASK);
 }
 
 // does the cell contain an East Asian Wide codepoint?
