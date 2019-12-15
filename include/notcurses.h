@@ -192,6 +192,16 @@ wchar_supppuab_p(wchar_t w){
 #define NCKEY_F18     suppuabize(38)
 #define NCKEY_F19     suppuabize(39)
 #define NCKEY_F20     suppuabize(40)
+#define NCKEY_F21     suppuabize(41)
+#define NCKEY_F22     suppuabize(42)
+#define NCKEY_F23     suppuabize(43)
+#define NCKEY_F24     suppuabize(44)
+#define NCKEY_F25     suppuabize(45)
+#define NCKEY_F26     suppuabize(46)
+#define NCKEY_F27     suppuabize(47)
+#define NCKEY_F28     suppuabize(48)
+#define NCKEY_F29     suppuabize(49)
+#define NCKEY_F30     suppuabize(50)
 // ... leave room for up to 100 function keys, egads
 #define NCKEY_ENTER   suppuabize(121)
 #define NCKEY_CLS     suppuabize(122) // "clear-screen or erase"
