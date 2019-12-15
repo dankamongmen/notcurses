@@ -37,13 +37,18 @@ TEST_F(LibavTest, LoadImage) {
   int dimy, dimx;
   ncplane_dim_yx(ncp_, &dimy, &dimx);
   auto ncv = ncplane_visual_open(ncp_, "../tests/dsscaw-purp.png", &averr);
-  EXPECT_EQ(0, averr);
   ASSERT_NE(nullptr, ncv);
+  ASSERT_EQ(0, averr);
   auto frame = ncvisual_decode(ncv, &averr);
   ASSERT_NE(nullptr, frame);
-  // EXPECT_EQ(AVERROR_EOF, averr);
+  ASSERT_EQ(0, averr);
   EXPECT_EQ(dimy * 2, frame->height);
   EXPECT_EQ(dimx, frame->width);
+  EXPECT_EQ(0, ncvisual_render(ncv));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  frame = ncvisual_decode(ncv, &averr);
+  ASSERT_EQ(nullptr, frame);
+  EXPECT_EQ(AVERROR_EOF, averr);
   ncvisual_destroy(ncv);
 }
 
@@ -53,12 +58,31 @@ TEST_F(LibavTest, LoadVideo) {
   int dimy, dimx;
   ncplane_dim_yx(ncp_, &dimy, &dimx);
   auto ncv = ncplane_visual_open(ncp_, "../tests/bob.mkv", &averr);
-  EXPECT_EQ(0, averr);
   ASSERT_NE(nullptr, ncv);
+  EXPECT_EQ(0, averr);
   auto frame = ncvisual_decode(ncv, &averr);
   ASSERT_NE(nullptr, frame);
-  // EXPECT_EQ(0, averr);
+  EXPECT_EQ(0, averr);
   EXPECT_EQ(dimy * 2, frame->height);
   EXPECT_EQ(dimx, frame->width);
+  EXPECT_EQ(0, ncvisual_render(ncv));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  ncvisual_destroy(ncv);
+}
+
+TEST_F(LibavTest, LoadVideoCreatePlane) {
+  int averr;
+  int dimy, dimx;
+  ncplane_dim_yx(ncp_, &dimy, &dimx);
+  auto ncv = ncvisual_open_plane(nc_, "../tests/bob.mkv", &averr, 0, 0, false);
+  ASSERT_NE(nullptr, ncv);
+  EXPECT_EQ(0, averr);
+  auto frame = ncvisual_decode(ncv, &averr);
+  ASSERT_NE(nullptr, frame);
+  EXPECT_EQ(0, averr);
+  EXPECT_EQ(dimy * 2, frame->height);
+  EXPECT_EQ(dimx, frame->width);
+  EXPECT_EQ(0, ncvisual_render(ncv));
+  EXPECT_EQ(0, notcurses_render(nc_));
   ncvisual_destroy(ncv);
 }
