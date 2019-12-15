@@ -1469,6 +1469,7 @@ int ncplane_putc(ncplane* n, const cell* c){
     return -1;
   }
   int cols = 1 + cell_double_wide_p(targ);
+  n->damage[n->y] = true;
   advance_cursor(n, cols);
   ncplane_unlock(n);
   return cols;
