@@ -1036,11 +1036,11 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
   }
   int ret = 0;
   // if only italics changed, don't emit any sgr escapes. xor of current and
-  // target ought have all 0s in the lower 16 bits if only italics changed.
-  if((cellattr ^ *curattr) & 0xffffu){
+  // target ought have all 0s in the lower 8 bits if only italics changed.
+  if((cellattr ^ *curattr) & 0x00ff0000ul){
     *normalized = true; // FIXME this is pretty conservative
     // if everything's 0, emit the shorter sgr0
-    if(nc->sgr0 && ((cellattr & 0xffff) == 0)){
+    if(nc->sgr0 && ((cellattr & CELL_STYLE_MASK) == 0)){
       if(term_emit("sgr0", nc->sgr0, out, false) < 0){
         ret = -1;
       }
@@ -1555,29 +1555,28 @@ int notcurses_palette_size(const notcurses* nc){
 // turn on any specified stylebits
 void ncplane_styles_on(ncplane* n, unsigned stylebits){
   ncplane_lock(n);
-  n->attrword |= ((stylebits & 0xffff) << 16u);
+  n->attrword |= (stylebits & CELL_STYLE_MASK);
   ncplane_unlock(n);
 }
 
 // turn off any specified stylebits
 void ncplane_styles_off(ncplane* n, unsigned stylebits){
   ncplane_lock(n);
-  n->attrword &= ~((stylebits & 0xffff) << 16u);
+  n->attrword &= ~(stylebits & CELL_STYLE_MASK);
   ncplane_unlock(n);
 }
 
 // set the current stylebits to exactly those provided
 void ncplane_styles_set(ncplane* n, unsigned stylebits){
   ncplane_lock(n);
-  n->attrword = (n->attrword & ~CELL_STYLE_MASK) |
-                ((stylebits & 0xffff) << 16u);
+  n->attrword = (n->attrword & ~CELL_STYLE_MASK) | ((stylebits & CELL_STYLE_MASK));
   ncplane_unlock(n);
 }
 
 unsigned ncplane_styles(const ncplane* n){
   unsigned ret;
   ncplane_lock(n);
-  ret = (n->attrword & CELL_STYLE_MASK) >> 16u;
+  ret = (n->attrword & CELL_STYLE_MASK);
   ncplane_unlock(n);
   return ret;
 }

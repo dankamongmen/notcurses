@@ -280,8 +280,7 @@ int prep_special_keys(notcurses* nc){
       continue;
     }
     if(seq[0] != ESC){
-      fprintf(stderr, "Terminfo's %s is not an escape sequence (%zub)\n",
-              k->tinfo, strlen(seq));
+//fprintf(stderr, "Terminfo's %s is not an escape sequence (%zub)\n", k->tinfo, strlen(seq));
       continue;
     }
 //fprintf(stderr, "support for terminfo's %s: %s\n", k->tinfo, seq);
