@@ -51,6 +51,7 @@ typedef struct ncplane {
   uint32_t attrword;    // same deal as in a cell
   void* userptr;        // slot for the user to stick some opaque pointer
   cell defcell;         // cell written anywhere that fb[i].gcluster == 0
+  bool* damage;         // damage map, one per row
   struct notcurses* nc; // notcurses object of which we are a part
 } ncplane;
 
@@ -67,8 +68,14 @@ typedef struct ncvisual {
   struct SwsContext* swsctx;
   int packet_outstanding;
   int dstwidth, dstheight;
-  int stream_index;     // match against this following av_read_frame()
+  int stream_index;        // match against this following av_read_frame()
   ncplane* ncp;
+  // if we're creating the plane based off the first frame's dimensions, these
+  // describe where the plane ought be placed, and how it ought be sized. this
+  // path sets ncobj. ncvisual_destroy() ought in that case kill the ncplane.
+  int placex, placey;
+  bool stretch;            // false maintains aspect ratio of source media
+  struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
 } ncvisual;
 
 typedef struct notcurses {
@@ -76,7 +83,7 @@ typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   FILE* ttyinfp;  // FILE* for processing input
-  uint64_t* damage; // damage map (row granularity)
+  bool* damage;   // damage map (row granularity)
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some terminfo capabilities exist. These needn't be checked

@@ -295,6 +295,7 @@ static void
 free_plane(ncplane* p){
   if(p){
     egcpool_dump(&p->pool);
+    free(p->damage);
     free(p->fb);
     free(p);
   }
@@ -318,6 +319,16 @@ term_emit(const char* name, const char* seq, FILE* out, bool flush){
   return 0;
 }
 
+// set all elements of a damage map true or false
+static inline void
+flash_damage_map(bool* map, int count, bool val){
+  if(val){
+    memset(map, 0xff, sizeof(*map) * count);
+  }else{
+    memset(map, 0, sizeof(*map) * count);
+  }
+}
+
 // create a new ncplane at the specified location (relative to the true screen,
 // having origin at 0,0), having the specified size, and put it at the top of
 // the planestack. its cursor starts at its origin; its style starts as null.
@@ -335,6 +346,13 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
     return NULL;
   }
   memset(p->fb, 0, fbsize);
+  p->damage = malloc(sizeof(*p->damage) * rows);
+  if(p->damage == NULL){
+    free(p->fb);
+    free(p);
+    return NULL;
+  }
+  flash_damage_map(p->damage, rows, false);
   p->userptr = NULL;
   p->leny = rows;
   p->lenx = cols;
@@ -382,7 +400,8 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
   return n;
 }
 
-// can be used on stdscr, unlike ncplane_resize() which prohibits it.
+// can be used on stdscr, unlike ncplane_resize() which prohibits it. sets all
+// members of the plane's damage map to damaged.
 static int
 ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen){
@@ -417,6 +436,13 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   if(fb == NULL){
     return -1;
   }
+  bool* tmpdamage;
+  if((tmpdamage = realloc(n->damage, sizeof(*n->damage) * ylen)) == NULL){
+    free(fb);
+    return -1;
+  }
+  n->damage = tmpdamage;
+  flash_damage_map(n->damage, ylen, true);
   // update the cursor, if it would otherwise be off-plane
   if(n->y >= ylen){
     n->y = ylen - 1;
@@ -511,7 +537,22 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   if(keepx > oldcols){
     keepx = oldcols;
   }
-  return ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols);
+  bool* tmpdamage;
+  if((tmpdamage = malloc(sizeof(*n->damage) * *rows)) == NULL){
+    return -1;
+  }
+  if(ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
+    free(tmpdamage);
+    return -1;
+  }
+  free(n->damage);
+  n->damage = tmpdamage;
+  if(oldcols < *cols){ // all are busted if rows got bigger
+    flash_damage_map(n->damage, *rows, true);
+  }else if(oldrows < *rows){ // new rows are pre-busted
+    flash_damage_map(n->damage + oldrows, *rows - oldrows, true);
+  }
+  return 0;
 }
 
 // find the pointer on the z-index referencing the specified plane. writing to
