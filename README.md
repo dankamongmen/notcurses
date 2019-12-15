@@ -932,6 +932,7 @@ before any other use (both merely zero out the `cell`).
 
 ```c
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = c, .attrword = 0, .channels = 0, }
 
 static inline void
 cell_init(cell* c){
