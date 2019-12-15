@@ -278,6 +278,7 @@ term_verify_seq(char** gseq, const char* name){
 static void
 free_plane(ncplane* p){
   if(p){
+    ncplane_updamage(p);
     egcpool_dump(&p->pool);
     free(p->damage);
     free(p->fb);
@@ -410,6 +411,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   if(fb == NULL){
     return -1;
   }
+  ncplane_updamage(n);
   unsigned char* tmpdamage;
   if((tmpdamage = realloc(n->damage, sizeof(*n->damage) * ylen)) == NULL){
     free(fb);
@@ -438,6 +440,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     n->lenx = xlen;
     n->leny = ylen;
     free(preserved);
+    ncplane_updamage(n);
     return 0;
   }
   // we currently have maxy rows of maxx cells each. we will be keeping rows
@@ -474,6 +477,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   n->lenx = xlen;
   n->leny = ylen;
   free(preserved);
+  ncplane_updamage(n);
   return 0;
 }
 
@@ -1872,6 +1876,19 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   return 0;
 }
 
+// mark all lines of the notcurses object touched by this plane as damaged
+void ncplane_updamage(ncplane* n){
+  int drangelow = n->absy;
+  int drangehigh = n->absy + n->leny;
+  if(drangehigh > n->nc->stdscr->leny){
+    drangehigh = n->nc->stdscr->leny;
+  }
+  if(drangelow < 0){
+    drangelow = 0;
+  }
+  flash_damage_map(n->nc->damage + drangelow, drangehigh - drangelow, true);
+}
+
 int ncplane_move_yx(ncplane* n, int y, int x){
   if(n == n->nc->stdscr){
     return -1;
@@ -1906,15 +1923,7 @@ int ncplane_move_yx(ncplane* n, int y, int x){
     }
     n->absy = y;
   }else if(n->absx != x){
-    int drangelow = n->absy;
-    int drangehigh = n->absy + n->leny;
-    if(drangehigh > n->nc->stdscr->leny){
-      drangehigh = n->nc->stdscr->leny;
-    }
-    if(drangelow < 0){
-      drangelow = 0;
-    }
-    flash_damage_map(n->nc->damage + drangelow, drangehigh - drangelow, true);
+    ncplane_updamage(n);
   }
   n->absx = x;
   return 0;
@@ -1956,7 +1965,7 @@ void ncplane_erase(ncplane* n){
   egcpool_init(&n->pool);
   cell_load(n, &n->defcell, egc);
   free(egc);
-  flash_damage_map(n->damage, n->leny, true);
+  ncplane_updamage(n);
   ncplane_unlock(n);
 }
 

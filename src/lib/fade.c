@@ -134,7 +134,7 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts){
         }
       }
     }
-    flash_damage_map(n->damage, dimy, true);
+    ncplane_updamage(n);
     notcurses_render(n->nc);
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
     struct timespec sleepspec;
@@ -204,7 +204,7 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
         }
       }
     }
-    flash_damage_map(n->damage, dimy, true);
+    ncplane_updamage(n);
     cell* c = &n->defcell;
     if(!cell_fg_default_p(c)){
       channels_get_fg_rgb(pp.channels[pp.cols * y], &r, &g, &b);

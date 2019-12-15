@@ -164,6 +164,9 @@ flash_damage_map(unsigned char* damage, int count, bool val){
   }
 }
 
+// mark all lines of the notcurses object touched by this plane as damaged
+void ncplane_updamage(ncplane* n);
+
 #define NANOSECS_IN_SEC 1000000000
 
 #ifdef __cplusplus
