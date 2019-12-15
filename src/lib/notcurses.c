@@ -303,16 +303,6 @@ term_emit(const char* name, const char* seq, FILE* out, bool flush){
   return 0;
 }
 
-// set all elements of a damage map true or false
-static inline void
-flash_damage_map(bool* map, int count, bool val){
-  if(val){
-    memset(map, 0xff, sizeof(*map) * count);
-  }else{
-    memset(map, 0, sizeof(*map) * count);
-  }
-}
-
 // create a new ncplane at the specified location (relative to the true screen,
 // having origin at 0,0), having the specified size, and put it at the top of
 // the planestack. its cursor starts at its origin; its style starts as null.
@@ -420,7 +410,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   if(fb == NULL){
     return -1;
   }
-  bool* tmpdamage;
+  unsigned char* tmpdamage;
   if((tmpdamage = realloc(n->damage, sizeof(*n->damage) * ylen)) == NULL){
     free(fb);
     return -1;
@@ -513,6 +503,9 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   if(update_term_dimensions(n, rows, cols)){
     return -1;
   }
+  if(*rows == oldrows && *cols == oldcols){
+    return 0; // no change
+  }
   int keepy = *rows;
   if(keepy > oldrows){
     keepy = oldrows;
@@ -521,7 +514,7 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   if(keepx > oldcols){
     keepx = oldcols;
   }
-  bool* tmpdamage;
+  unsigned char* tmpdamage;
   if((tmpdamage = malloc(sizeof(*n->damage) * *rows)) == NULL){
     return -1;
   }
@@ -529,13 +522,15 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
     free(tmpdamage);
     return -1;
   }
-  free(n->damage);
-  n->damage = tmpdamage;
   if(oldcols < *cols){ // all are busted if rows got bigger
-    flash_damage_map(n->damage, *rows, true);
-  }else if(oldrows < *rows){ // new rows are pre-busted
-    flash_damage_map(n->damage + oldrows, *rows - oldrows, true);
+    free(n->damage);
+    flash_damage_map(tmpdamage, *rows, true);
+  }else if(oldrows <= *rows){ // new rows are pre-busted, old are straight
+    memcpy(tmpdamage, n->damage, oldrows * sizeof(*tmpdamage));
+    flash_damage_map(tmpdamage + oldrows, *rows - oldrows, true);
+    free(n->damage);
   }
+  n->damage = tmpdamage;
   return 0;
 }
 
@@ -747,11 +742,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
-  if((ret->damage = malloc(sizeof(*ret->damage) * ret->top->leny)) == NULL){
+  if((ret->damage = malloc(sizeof(*ret->damage) * ret->stdscr->leny)) == NULL){
     free_plane(ret->top);
     goto err;
   }
-  flash_damage_map(ret->damage, ret->top->leny, false);
+  flash_damage_map(ret->damage, ret->stdscr->leny, false);
   // term_emit("clear", ret->clear, ret->ttyfp, false);
   char prefixbuf[BPREFIXSTRLEN + 1];
   fprintf(ret->ttyfp, "\n"
@@ -767,7 +762,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
          LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
-         ret->top->leny, ret->top->lenx,
+         ret->stdscr->leny, ret->stdscr->lenx,
          bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
          ret->colors, ret->RGBflag ? "direct" : "palette");
   if(!ret->RGBflag){ // FIXME
@@ -1100,7 +1095,8 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
 // tail recursion, though, we instead write first, and then recurse, blending
 // as we descend. α <= 0 is opaque. α >= 3 is fully transparent.
 static ncplane*
-dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
+dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
+                 bool* damage){
   while(p){
     // where in the plane this coordinate would be, based off absy/absx. the
     // true origin is 0,0, so abs=2,2 means coordinate 3,3 would be 1,1, while
@@ -1125,15 +1121,23 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
               c->attrword = vis->attrword;
               cell_set_fchannel(c, cell_get_fchannel(vis)); // FIXME blend it in
               falpha -= (CELL_ALPHA_TRANS - nalpha); // FIXME blend it in
+              if(p->damage[poffy]){
+                *damage = true;
+                p->damage[poffy] = false;
+              }
             }
           }
         }
         if(balpha > 0 && (nalpha = cell_get_bg_alpha(vis)) < CELL_ALPHA_TRANS){
           cell_set_bchannel(c, cell_get_bchannel(vis)); // FIXME blend it in
           balpha -= (CELL_ALPHA_TRANS - nalpha);
+          if(p->damage[poffy]){
+            *damage = true;
+            p->damage[poffy] = false;
+          }
         }
         if((falpha > 0 || balpha > 0) && p->z){ // we must go further!
-          ncplane* cand = dig_visible_cell(c, y, x, p->z, falpha, balpha);
+          ncplane* cand = dig_visible_cell(c, y, x, p->z, falpha, balpha, damage);
           if(!lockedglyph && cand){
             p = cand;
           }
@@ -1148,9 +1152,9 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
 }
 
 static inline ncplane*
-visible_cell(cell* c, int y, int x, ncplane* n){
+visible_cell(cell* c, int y, int x, ncplane* n, bool* damage){
   cell_init(c);
-  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANS, CELL_ALPHA_TRANS);
+  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANS, CELL_ALPHA_TRANS, damage);
 }
 
 // Call with c->gcluster == 3, falpha == 3, balpha == 0, *retp == topplane.
@@ -1274,10 +1278,11 @@ notcurses_render_internal(notcurses* nc){
   // the last used both defaults.
   bool fgelidable = false, bgelidable = false, defaultelidable = false;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
-    bool linedamaged = false; // have we repositioned the cursor to start line
+    bool linedamaged = false; // have we repositioned the cursor to start line?
     bool newdamage = nc->damage[y];
+// fprintf(stderr, "nc->damage[%d] (%p) = %u\n", y, nc->damage + y, nc->damage[y]);
     if(newdamage){
-      nc->damage[y] = false;
+      nc->damage[y] = 0;
     }
     // move to the beginning of the line, in case our accounting was befouled
     // by wider- (or narrower-) than-reported characters
@@ -1285,17 +1290,21 @@ notcurses_render_internal(notcurses* nc){
       unsigned r, g, b, br, bg, bb;
       ncplane* p;
       cell c; // no need to initialize
-      p = visible_cell(&c, y, x, nc->top);
+      p = visible_cell(&c, y, x, nc->top, &newdamage);
       assert(p);
-      if(!linedamaged && newdamage){
-        term_emit("cup", tiparm(nc->cup, y, x), out, false);
-        linedamaged = true;
-      }
       // don't try to print a wide character on the last column; it'll instead
       // be printed on the next line. they probably shouldn't be admitted, but
       // we can end up with one due to a resize.
       if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
         continue;
+      }
+      if(!linedamaged){
+        if(newdamage){
+          term_emit("cup", tiparm(nc->cup, y, x), out, false);
+          linedamaged = true;
+        }else{
+          continue;
+        }
       }
       // set the style. this can change the color back to the default; if it
       // does, we need update our elision possibilities.

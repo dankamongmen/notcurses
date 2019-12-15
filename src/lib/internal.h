@@ -51,7 +51,7 @@ typedef struct ncplane {
   uint32_t attrword;    // same deal as in a cell
   void* userptr;        // slot for the user to stick some opaque pointer
   cell defcell;         // cell written anywhere that fb[i].gcluster == 0
-  bool* damage;         // damage map, one per row
+  unsigned char* damage;// damage map, one per row
   struct notcurses* nc; // notcurses object of which we are a part
 } ncplane;
 
@@ -83,7 +83,7 @@ typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   FILE* ttyinfp;  // FILE* for processing input
-  bool* damage;   // damage map (row granularity)
+  unsigned char* damage;   // damage map (row granularity)
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some terminfo capabilities exist. These needn't be checked
@@ -152,6 +152,16 @@ ncplane_unlock(const ncplane* n){
 static inline int
 fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
+}
+
+// set all elements of a damage map true or false
+static inline void
+flash_damage_map(unsigned char* damage, int count, bool val){
+  if(val){
+    memset(damage, 0xff, sizeof(*damage) * count);
+  }else{
+    memset(damage, 0, sizeof(*damage) * count);
+  }
 }
 
 #define NANOSECS_IN_SEC 1000000000
