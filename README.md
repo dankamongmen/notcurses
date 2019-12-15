@@ -1232,9 +1232,21 @@ void ncvisual_destroy(struct ncvisual* ncv);
 // to the size of the ncplane at ncplane_visual_open() time.
 int ncvisual_render(const struct ncvisual* ncv);
 
-// stream the entirety of the media, according to its own timing.
-// blocking, obviously. pretty raw; beware.
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr);
+// Called for each frame rendered from 'ncv'. If anything but 0 is returned,
+// the streaming operation ceases immediately, and that value is propagated out.
+typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv);
+
+// Shut up and display my frames! Provide as an argument to ncvisual_stream().
+static inline int
+ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
+  return notcurses_render(nc);
+}
+
+// Stream the entirety of the media, according to its own timing. Blocking,
+// obviously. streamer may be NULL; it is otherwise called for each frame, and
+// its return value handled as outlined for stream cb. Pretty raw; beware.
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
+                    int* averr, streamcb streamer);
 ```
 
 ### Panelreels
