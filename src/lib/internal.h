@@ -74,6 +74,7 @@ typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   FILE* ttyinfp;  // FILE* for processing input
+  uint64_t* damage; // damage map (row granularity)
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some terminfo capabilities exist. These needn't be checked

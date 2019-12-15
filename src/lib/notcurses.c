@@ -364,58 +364,6 @@ create_initial_ncplane(notcurses* nc){
   return nc->stdscr;
 }
 
-// Call this when the screen size changes. Acquires the new size, and copies
-// what can be copied from the old stdscr. Assumes that the screen is always
-// anchored in the same place.
-// // FIXME rewrite this in terms of ncpanel_resize(n->stdscr)
-int notcurses_resize(notcurses* n, int* rows, int* cols){
-  int r, c;
-  if(rows == NULL){
-    rows = &r;
-  }
-  if(cols == NULL){
-    cols = &c;
-  }
-  int oldrows = n->stdscr->leny;
-  int oldcols = n->stdscr->lenx;
-  if(update_term_dimensions(n, rows, cols)){
-    return -1;
-  }
-  ncplane* p = n->stdscr;
-  cell* preserved = p->fb;
-  size_t fbsize = sizeof(*preserved) * (*rows * *cols);
-  // FIXME we could realloc if we're just adding/deleting rows, saving a copy
-  if((p->fb = malloc(fbsize)) == NULL){
-    p->fb = preserved;
-    return -1;
-  }
-  int y, idx;
-  idx = 0;
-  p->lenx = *cols;
-  p->leny = *rows;
-  for(y = 0 ; y < p->leny ; ++y){
-    idx = y * p->lenx;
-    if(y >= oldrows){
-      memset(&p->fb[idx], 0, sizeof(*p->fb) * p->lenx);
-      continue;
-    }
-    int oldcopy = oldcols;
-    if(oldcopy){
-      if(oldcopy > p->lenx){
-        oldcopy = p->lenx;
-      }
-      memcpy(&p->fb[idx], &preserved[y * oldcols], oldcopy * sizeof(*p->fb));
-    }
-    if(p->lenx > oldcopy){
-      memset(&p->fb[idx + oldcopy], 0, sizeof(*p->fb) * (p->lenx - oldcopy));
-    }
-  }
-  free(preserved);
-  n->stats.fbbytes += fbsize;
-  n->stats.fbbytes -= sizeof(*preserved) * (oldrows * oldcols);
-  return 0;
-}
-
 ncplane* notcurses_stdplane(notcurses* nc){
   return nc->stdscr;
 }
@@ -434,12 +382,10 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
   return n;
 }
 
-int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
-                   int keeplenx, int yoff, int xoff, int ylen, int xlen){
-  if(n == n->nc->stdscr){
-    fprintf(stderr, "Can't resize standard plane\n");
-    return -1;
-  }
+// can be used on stdscr, unlike ncplane_resize() which prohibits it.
+static int
+ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
+                       int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
     fprintf(stderr, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
@@ -456,6 +402,9 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
     fprintf(stderr, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
     return -1;
   }
+  int rows, cols;
+  ncplane_dim_yx(n, &rows, &cols);
+  // FIXME make sure we're not trying to keep more than we have?
 /*fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
         ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);*/
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
@@ -463,7 +412,8 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   // we've shrunk, we will be filling the new structure.
   int keptarea = keepleny * keeplenx;
   int newarea = ylen * xlen;
-  cell* fb = malloc(sizeof(*fb) * newarea);
+  size_t fbsize = sizeof(cell) * newarea;
+  cell* fb = malloc(fbsize);
   if(fb == NULL){
     return -1;
   }
@@ -475,6 +425,8 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
     n->x = xlen - 1;
   }
   cell* preserved = n->fb;
+  n->nc->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
+  n->nc->stats.fbbytes += fbsize;
   n->fb = fb;
   n->absy = n->absy + keepy - yoff;
   n->absx = n->absx + keepx - xoff;
@@ -523,6 +475,43 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   n->leny = ylen;
   free(preserved);
   return 0;
+}
+
+int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
+                   int keeplenx, int yoff, int xoff, int ylen, int xlen){
+  if(n == n->nc->stdscr){
+    fprintf(stderr, "Can't resize standard plane\n");
+    return -1;
+  }
+  return ncplane_resize_internal(n, keepy, keepx, keepleny, keeplenx,
+                                 yoff, xoff, ylen, xlen);
+}
+
+// Call this when the screen size changes. Acquires the new size, and copies
+// what can be copied from the old stdscr. Assumes that the screen is always
+// anchored in the same place.
+int notcurses_resize(notcurses* n, int* rows, int* cols){
+  int r, c;
+  if(rows == NULL){
+    rows = &r;
+  }
+  if(cols == NULL){
+    cols = &c;
+  }
+  int oldrows = n->stdscr->leny;
+  int oldcols = n->stdscr->lenx;
+  if(update_term_dimensions(n, rows, cols)){
+    return -1;
+  }
+  int keepy = *rows;
+  if(keepy > oldrows){
+    keepy = oldrows;
+  }
+  int keepx = *cols;
+  if(keepx > oldcols){
+    keepx = oldcols;
+  }
+  return ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols);
 }
 
 // find the pointer on the z-index referencing the specified plane. writing to
