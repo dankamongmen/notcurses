@@ -139,6 +139,23 @@ int prep_special_keys(notcurses* nc);
 // free up the input escapes trie
 void input_free_esctrie(struct esctrie** trie);
 
+static inline void
+ncplane_lock(const ncplane* n){
+  pthread_mutex_lock(&n->nc->lock);
+}
+
+static inline void
+ncplane_unlock(const ncplane* n){
+  pthread_mutex_unlock(&n->nc->lock);
+}
+
+static inline int
+fbcellidx(const ncplane* n, int row, int col){
+  return row * n->lenx + col;
+}
+
+#define NANOSECS_IN_SEC 1000000000
+
 #ifdef __cplusplus
 }
 #endif
