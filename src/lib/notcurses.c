@@ -381,6 +381,9 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   if(update_term_dimensions(n, rows, cols)){
     return -1;
   }
+  if(*rows == oldrows && *cols == oldcols){
+    return 0; // no change mang
+  }
   ncplane* p = n->stdscr;
   cell* preserved = p->fb;
   size_t fbsize = sizeof(*preserved) * (*rows * *cols);
