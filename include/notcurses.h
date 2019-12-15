@@ -1284,12 +1284,21 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 // multimedia functionality
 struct AVFrame;
 
-// open a visual (image or video), associating it with the specified ncplane.
-// returns NULL on any error, writing the AVError to 'averr'.
+// Open a visual (image or video), associating it with the specified ncplane.
+// Returns NULL on any error, writing the AVError to 'averr'.
 API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
                                          int* averr);
 
-// destroy an ncvisual. rendered elements will not be disrupted, but the visual
+// Open a visual, extract a codec and parameters, and create a new plane
+// suitable for its display at 'y','x'. If there is sufficient room to display
+// the visual in its native size, the new plane will be exactly that large.
+// Otherwise, the visual will be scaled to the available space. If 'stretch' is
+// false, its aspect ratio will be maintained. Otherwise, the visual will be
+// scaled to fill the maximum possible new plane.
+API struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
+                                         int* averr, int y, int x, bool stretch);
+
+// Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
 API void ncvisual_destroy(struct ncvisual* ncv);
 

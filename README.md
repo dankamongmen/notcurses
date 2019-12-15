@@ -1210,20 +1210,23 @@ Media decoding and scaling is handled by libAV from FFmpeg, resulting in a
 to a renderable scene on the associated `ncplane`.
 
 ```c
-// open a visual (image or video), associating it with the specified ncplane.
-// returns NULL on any error, writing the AVError to 'averr'.
+// Open a visual (image or video), associating it with the specified ncplane.
+// Returns NULL on any error, writing the AVError to 'averr'.
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                         int* averr);
+                                     int* averr);
 
-// destroy an ncvisual. rendered elements will not be disrupted, but the visual
+// Open a visual, extract a codec and parameters, and create a new plane
+// suitable for its display at 'y','x'. If there is sufficient room to display
+// the visual in its native size, the new plane will be exactly that large.
+// Otherwise, the visual will be scaled to the available space. If 'stretch' is
+// false, its aspect ratio will be maintained. Otherwise, the visual will be
+// scaled to fill the maximum possible new plane.
+struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
+                                     int* averr, int y, int x, bool stretch);
+
+// Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
 void ncvisual_destroy(struct ncvisual* ncv);
-
-// extract the next frame from an ncvisual. returns NULL on end of file,
-// writing AVERROR_EOF to 'averr'. returns NULL on a decoding or allocation
-// error, placing the AVError in 'averr'. this frame is invalidated by a
-// subsequent call to ncvisual_decode(), and should not be freed by the caller.
-struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 
 // render the decoded frame to the associated ncplane. the frame will be scaled
 // to the size of the ncplane at ncplane_visual_open() time.
