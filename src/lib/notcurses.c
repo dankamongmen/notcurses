@@ -835,6 +835,10 @@ int notcurses_stop(notcurses* nc){
              (nc->stats.fgelisions * 100.0) / (nc->stats.fgemissions + nc->stats.fgelisions),
             (nc->stats.bgemissions + nc->stats.bgelisions) == 0 ? 0 :
              (nc->stats.bgelisions * 100.0) / (nc->stats.bgemissions + nc->stats.bgelisions));
+    fprintf(stderr, "Cells emitted; %ju elided: %ju (%.2f%%)\n",
+            nc->stats.cellemissions, nc->stats.cellelisions,
+            (nc->stats.cellemissions + nc->stats.cellelisions) == 0 ? 0 :
+             (nc->stats.cellelisions * 100.0) / (nc->stats.cellemissions + nc->stats.cellelisions));
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;
@@ -1305,6 +1309,8 @@ notcurses_render_internal(notcurses* nc){
       if(!linedamaged){
         if(newdamage){
           term_emit("cup", tiparm(nc->cup, y, x), out, false);
+          nc->stats.cellelisions += x;
+          nc->stats.cellemissions += (nc->stdscr->lenx - x);
           linedamaged = true;
         }else{
           continue;
@@ -1368,6 +1374,9 @@ notcurses_render_internal(notcurses* nc){
       if(cell_double_wide_p(&c)){
         ++x;
       }
+    }
+    if(linedamaged == false){
+      nc->stats.cellelisions += x;
     }
   }
   ret |= fclose(out);
