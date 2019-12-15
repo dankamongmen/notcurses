@@ -947,8 +947,8 @@ A `cell` has three fundamental elements:
   the `cell`'s `gcluster` field. Otherwise, `gcluster`'s top 24 bits
   are a 128-biased offset into the associated `ncplane`'s egcpool. This
   implies that `cell`s are associated with `ncplane`s once prepared.
-* The Curses-style attributes of the text, and a 16-bit alpha channel.
-* The 48 bits of foreground and background RGB, plus a few flags.
+* The Curses-style attributes of the text.
+* The 52 bits of foreground and background RGBA (2x8/8/8/2), plus a few flags.
 
 The EGC should be loaded using `cell_load()`. Either a single NUL-terminated
 EGC can be provided, or a string composed of multiple EGCs. In the latter case,

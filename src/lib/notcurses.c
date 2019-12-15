@@ -747,6 +747,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
+  if((ret->damage = malloc(sizeof(*ret->damage) * ret->top->leny)) == NULL){
+    free_plane(ret->top);
+    goto err;
+  }
+  flash_damage_map(ret->damage, ret->top->leny, false);
   // term_emit("clear", ret->clear, ret->ttyfp, false);
   char prefixbuf[BPREFIXSTRLEN + 1];
   fprintf(ret->ttyfp, "\n"
@@ -1269,15 +1274,23 @@ notcurses_render_internal(notcurses* nc){
   // the last used both defaults.
   bool fgelidable = false, bgelidable = false, defaultelidable = false;
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
+    bool linedamaged = false; // have we repositioned the cursor to start line
+    bool newdamage = nc->damage[y];
+    if(newdamage){
+      nc->damage[y] = false;
+    }
     // move to the beginning of the line, in case our accounting was befouled
     // by wider- (or narrower-) than-reported characters
-    term_emit("cup", tiparm(nc->cup, y, 0), out, false);
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       ncplane* p;
       cell c; // no need to initialize
       p = visible_cell(&c, y, x, nc->top);
       assert(p);
+      if(linedamaged == false && newdamage){
+        term_emit("cup", tiparm(nc->cup, y, x), out, false);
+        linedamaged = true;
+      }
       // don't try to print a wide character on the last column; it'll instead
       // be printed on the next line. they probably shouldn't be admitted, but
       // we can end up with one due to a resize.
