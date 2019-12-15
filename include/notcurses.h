@@ -1430,6 +1430,9 @@ API struct tablet* panelreel_prev(struct panelreel* pr);
 // underlying WINDOW. Returns non-zero on failure.
 API int panelreel_destroy(struct panelreel* pr);
 
+API void* tablet_userptr(struct tablet* t);
+API const void* tablet_userptr_const(const struct tablet* t);
+
 #define PREFIXSTRLEN 7  // Does not include a '\0' (xxx.xxU)
 #define IPREFIXSTRLEN 8 //  Does not include a '\0' (xxxx.xxU)
 #define BPREFIXSTRLEN 9  // Does not include a '\0' (xxxx.xxUi), i == prefix

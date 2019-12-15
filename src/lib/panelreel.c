@@ -740,6 +740,14 @@ int panelreel_destroy(panelreel* preel){
   return ret;
 }
 
+void* tablet_userptr(tablet* t){
+  return t->curry;
+}
+
+const void* tablet_userptr_const(const tablet* t){
+  return t->curry;
+}
+
 int panelreel_tabletcount(const panelreel* preel){
   return preel->tabletcount;
 }
