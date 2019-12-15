@@ -9,6 +9,8 @@
 #include <sys/eventfd.h>
 #include "demo.h"
 
+#define INITIAL_TABLET_COUNT 2
+
 // FIXME ought just be an unordered_map
 typedef struct tabletctx {
   pthread_t tid;
@@ -291,6 +293,16 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   clock_gettime(CLOCK_MONOTONIC, &deadline);
   ns_to_timespec((timespec_to_ns(&demodelay) * 5) + timespec_to_ns(&deadline),
                  &deadline);
+
+  struct tabletctx* newtablet;
+  while(id < INITIAL_TABLET_COUNT){
+    newtablet = new_tabletctx(pr, &id);
+    if(newtablet == NULL){
+      return NULL;
+    }
+    newtablet->next = *tctxs;
+    *tctxs = newtablet;
+  }
   do{
     ncplane_styles_set(w, 0);
     ncplane_set_fg_rgb(w, 197, 15, 31);
@@ -305,7 +317,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
       break;
     }
     // FIXME clrtoeol();
-    struct tabletctx* newtablet = NULL;
+    newtablet = NULL;
     switch(rw){
       case 'p': sleep(60); exit(EXIT_FAILURE); break;
       case 'a': newtablet = new_tabletctx(pr, &id); break;
