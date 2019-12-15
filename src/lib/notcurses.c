@@ -1287,7 +1287,7 @@ notcurses_render_internal(notcurses* nc){
       cell c; // no need to initialize
       p = visible_cell(&c, y, x, nc->top);
       assert(p);
-      if(linedamaged == false && newdamage){
+      if(!linedamaged && newdamage){
         term_emit("cup", tiparm(nc->cup, y, x), out, false);
         linedamaged = true;
       }
@@ -1966,7 +1966,7 @@ int ncvisual_render(const ncvisual* ncv){
   return 0;
 }
 
-int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr){
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr, streamcb streamer){
   ncplane* n = ncv->ncp;
   int frame = 1;
   AVFrame* avf;
@@ -1979,8 +1979,11 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr){
     if(ncvisual_render(ncv)){
       return -1;
     }
-    if(notcurses_render(nc)){
-      return -1;
+    if(streamer){
+      int r = streamer(nc, ncv);
+      if(r){
+        return r;
+      }
     }
     ++frame;
     uint64_t ns = avf->pkt_duration * 1000000;
