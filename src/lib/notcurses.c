@@ -1876,7 +1876,46 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   if(n == n->nc->stdscr){
     return -1;
   }
-  n->absy = y;
+  if(n->absy != y){
+    // need to update the damage map of the notcurses object for both our old and
+    // our new lines
+    int drange1low = n->absy;
+    int drange1high = n->absy + n->leny;
+    if(drange1high > n->nc->stdscr->leny){
+      drange1high = n->nc->stdscr->leny;
+    }
+    if(drange1low < 0){
+      drange1low = 0;
+    }
+    int drange2low = y;
+    int drange2high = y + n->leny;
+    if(drange2high > n->nc->stdscr->leny){
+      drange2high = n->nc->stdscr->leny;
+    }
+    if(drange2low < 0){
+      drange2low = 0;
+    }
+    // must do two distinct flashes in either of these cases, as there's no overlap
+    if(drange2low > drange1high || drange2high < drange1low){
+      flash_damage_map(n->nc->damage + drange1low, drange1high - drange1low, true);
+      flash_damage_map(n->nc->damage + drange2low, drange2high - drange2low, true);
+    }else{
+      drange1low = drange1low < drange2low ? drange1low : drange2low;
+      drange1high = drange1high > drange2high ? drange1high : drange2high;
+      flash_damage_map(n->nc->damage + drange1low, drange1high - drange1low, true);
+    }
+    n->absy = y;
+  }else if(n->absx != x){
+    int drangelow = n->absy;
+    int drangehigh = n->absy + n->leny;
+    if(drangehigh > n->nc->stdscr->leny){
+      drangehigh = n->nc->stdscr->leny;
+    }
+    if(drangelow < 0){
+      drangelow = 0;
+    }
+    flash_damage_map(n->nc->damage + drangelow, drangehigh - drangelow, true);
+  }
   n->absx = x;
   return 0;
 }
