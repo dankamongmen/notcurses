@@ -1972,6 +1972,7 @@ int ncvisual_render(const ncvisual* ncv){
       cell_release(ncv->ncp, &c);
     }
   }
+  flash_damage_map(ncv->ncp->damage, y, true);
   return 0;
 }
 
