@@ -1352,6 +1352,7 @@ typedef struct panelreel_options {
   unsigned bordermask; // bitfield; 1s will not be drawn (see bordermaskbits)
   cell borderattr;     // attributes used for panelreel border
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
+  // FIXME should be attrword + channels, as we don't use gcluster here
   cell tabletattr;     // attributes used for tablet borders
   cell focusedattr;    // attributes used for focused tablet borders, no color!
   uint64_t bgchannel;  // background colors

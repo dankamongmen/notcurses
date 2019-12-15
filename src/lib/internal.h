@@ -60,8 +60,10 @@ typedef struct ncvisual {
   struct AVFrame* frame;
   struct AVFrame* oframe;
   struct AVCodec* codec;
+  struct AVCodec* subtcodec;
   struct AVCodecParameters* cparams;
   struct AVPacket* packet;
+  struct AVPacket* subtitle;
   struct SwsContext* swsctx;
   int packet_outstanding;
   int dstwidth, dstheight;

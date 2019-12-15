@@ -24,6 +24,7 @@ void ncvisual_destroy(ncvisual* ncv){
     avcodec_parameters_free(&ncv->cparams);
     sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
+    av_packet_free(&ncv->subtitle);
     avformat_close_input(&ncv->fmtctx);
     free(ncv);
   }
@@ -165,7 +166,14 @@ ncvisual* ncplane_visual_open(struct ncplane* nc, const char* filename, int* ave
             av_err2str(*averr));
     goto err;
   }
-// av_dump_format(ncv->fmtctx, 0, filename, false);
+av_dump_format(ncv->fmtctx, 0, filename, false);
+  if((*averr = av_find_best_stream(ncv->fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, &ncv->subtcodec, 0)) >= 0){
+    if((ncv->subtitle = av_packet_alloc()) == NULL){
+      fprintf(stderr, "Couldn't allocate subtitles for %s\n", filename);
+      *averr = AVERROR(ENOMEM);
+      goto err;
+    }
+  }
   if((ncv->packet = av_packet_alloc()) == NULL){
     fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
     *averr = AVERROR(ENOMEM);
