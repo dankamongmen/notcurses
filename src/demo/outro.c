@@ -11,7 +11,7 @@ fadethread(void* vncp){
 static struct ncplane*
 outro_message(struct notcurses* nc, int* rows, int* cols){
   const char str0[] = " ATL, baby! ATL! ";
-  const char str1[] = " much, much more is coming ";
+  const char str1[] = " throw those hands in the air";
   const char str2[] = " hack on! —dank❤ ";
   int xstart = (*cols - (strlen(str1) + 4)) / 2;
   int ystart = *rows - 6;

@@ -2,6 +2,20 @@
 #include "demo.h"
 
 static int
+watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
+  wchar_t w;
+  // we don't want a keypress, but should handle NCKEY_RESIZE
+  if((w = notcurses_getc_nblock(nc)) != (wchar_t)-1){
+    if(w == NCKEY_RESIZE){
+      // FIXME resize that sumbitch
+    }else{
+      return 1;
+    }
+  }
+  return notcurses_render(nc);
+}
+
+static int
 view_video_demo(struct notcurses* nc){
   struct ncplane* ncp = notcurses_stdplane(nc);
   int dimy, dimx;
@@ -12,7 +26,7 @@ view_video_demo(struct notcurses* nc){
   if(!ncv){
     return -1;
   }
-  if(ncvisual_stream(nc, ncv, &averr)){
+  if(ncvisual_stream(nc, ncv, &averr, watch_for_keystroke) < 0){
     ncvisual_destroy(ncv);
     return -1;
   }

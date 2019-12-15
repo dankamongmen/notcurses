@@ -947,8 +947,8 @@ A `cell` has three fundamental elements:
   the `cell`'s `gcluster` field. Otherwise, `gcluster`'s top 24 bits
   are a 128-biased offset into the associated `ncplane`'s egcpool. This
   implies that `cell`s are associated with `ncplane`s once prepared.
-* The Curses-style attributes of the text, and a 16-bit alpha channel.
-* The 48 bits of foreground and background RGB, plus a few flags.
+* The Curses-style attributes of the text.
+* The 52 bits of foreground and background RGBA (2x8/8/8/2), plus a few flags.
 
 The EGC should be loaded using `cell_load()`. Either a single NUL-terminated
 EGC can be provided, or a string composed of multiple EGCs. In the latter case,
@@ -1210,28 +1210,43 @@ Media decoding and scaling is handled by libAV from FFmpeg, resulting in a
 to a renderable scene on the associated `ncplane`.
 
 ```c
-// open a visual (image or video), associating it with the specified ncplane.
-// returns NULL on any error, writing the AVError to 'averr'.
+// Open a visual (image or video), associating it with the specified ncplane.
+// Returns NULL on any error, writing the AVError to 'averr'.
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                         int* averr);
+                                     int* averr);
 
-// destroy an ncvisual. rendered elements will not be disrupted, but the visual
+// Open a visual, extract a codec and parameters, and create a new plane
+// suitable for its display at 'y','x'. If there is sufficient room to display
+// the visual in its native size, the new plane will be exactly that large.
+// Otherwise, the visual will be scaled to the available space. If 'stretch' is
+// false, its aspect ratio will be maintained. Otherwise, the visual will be
+// scaled to fill the maximum possible new plane.
+struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
+                                     int* averr, int y, int x, bool stretch);
+
+// Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
 void ncvisual_destroy(struct ncvisual* ncv);
-
-// extract the next frame from an ncvisual. returns NULL on end of file,
-// writing AVERROR_EOF to 'averr'. returns NULL on a decoding or allocation
-// error, placing the AVError in 'averr'. this frame is invalidated by a
-// subsequent call to ncvisual_decode(), and should not be freed by the caller.
-struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 
 // render the decoded frame to the associated ncplane. the frame will be scaled
 // to the size of the ncplane at ncplane_visual_open() time.
 int ncvisual_render(const struct ncvisual* ncv);
 
-// stream the entirety of the media, according to its own timing.
-// blocking, obviously. pretty raw; beware.
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr);
+// Called for each frame rendered from 'ncv'. If anything but 0 is returned,
+// the streaming operation ceases immediately, and that value is propagated out.
+typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv);
+
+// Shut up and display my frames! Provide as an argument to ncvisual_stream().
+static inline int
+ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
+  return notcurses_render(nc);
+}
+
+// Stream the entirety of the media, according to its own timing. Blocking,
+// obviously. streamer may be NULL; it is otherwise called for each frame, and
+// its return value handled as outlined for stream cb. Pretty raw; beware.
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
+                    int* averr, streamcb streamer);
 ```
 
 ### Panelreels
@@ -1729,6 +1744,8 @@ typedef struct ncstats {
   uint64_t render_ns;        // nanoseconds spent in notcurses_render()
   int64_t render_max_ns;     // max ns spent in notcurses_render()
   int64_t render_min_ns;     // min ns spent in successful notcurses_render()
+  uint64_t cellelisions;     // cells we elided entirely thanks to damage maps
+  uint64_t cellemissions;    // cells we emitted due to inferred damage
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers
   uint64_t fgelisions;       // RGB fg elision count
   uint64_t fgemissions;      // RGB fg emissions
