@@ -180,12 +180,12 @@ rgb_to_ansi256(unsigned r, unsigned g, unsigned b){
   g &= GREYMASK;
   b &= GREYMASK;
   if(r == g && g == b){ // 5 MSBs match, return grey
-    return 216 + (r >> 3u);
+    return 224 + (r >> 3u);
   }
   r /= 43;
   g /= 43;
   b /= 43;
-  return r * 36 + g * 6 + b;
+  return r * 36 + g * 6 + b + 16;
 }
 
 #define NANOSECS_IN_SEC 1000000000

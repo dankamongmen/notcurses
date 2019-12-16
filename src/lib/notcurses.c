@@ -775,8 +775,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     }else{
       putp(tiparm(ret->setaf, 3));
     }
-    fprintf(ret->ttyfp, "\nWarning: you will not have colors until this is resolved:\n");
-    fprintf(ret->ttyfp, " https://github.com/dankamongmen/notcurses/issues/4\n");
+    fprintf(ret->ttyfp, "\nWarning!\nYour colors are subject to https://github.com/dankamongmen/notcurses/issues/4\n");
+    fprintf(ret->ttyfp, "Are you specifying a proper DirectColor TERM?\n");
   }
   return ret;
 
