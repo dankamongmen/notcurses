@@ -168,13 +168,13 @@ flash_damage_map(unsigned char* damage, int count, bool val){
 void ncplane_updamage(ncplane* n);
 
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
-// ~2.4-bit 6x6x6 ANSI cube + greyscale (assumed on entry; I know no way to
+// ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
 // even semi-portably recover the palette) proceeds via: map each 8-bit to
 // a 5-bit target grey. if all 3 components match, select that grey.
 // otherwise, c / 42.7 to map to 6 values. this never generates pure black
 // nor white, though, lame...FIXME
 static inline int
-rgb_to_ansi256(unsigned r, unsigned g, unsigned b){
+rgb_quantize_256(unsigned r, unsigned g, unsigned b){
   const unsigned GREYMASK = 0xf8;
   // if all 5 MSBs match, return grey from 24-member grey ramp or pure
   // black/white from original 16 (0 and 15, respectively)
