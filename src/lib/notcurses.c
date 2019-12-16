@@ -1174,7 +1174,7 @@ visible_cell(cell* c, int y, int x, ncplane* n, bool* damage){
 // Call with c->gcluster == 3, falpha == 3, balpha == 0, *retp == topplane.
 
 // 'n' ends up above 'above'
-int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
+int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
@@ -1190,7 +1190,7 @@ int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
 }
 
 // 'n' ends up below 'below'
-int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
+int ncplane_move_below_unsafe(ncplane* restrict n, ncplane* restrict below){
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
