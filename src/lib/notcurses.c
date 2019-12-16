@@ -929,27 +929,6 @@ term_esc_rgb(FILE* out, int esc, unsigned r, unsigned g, unsigned b){
   return 0;
 }
 
-// For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
-// ~2.4-bit 6x6x6 ANSI cube + greyscale (assumed on entry; I know no way to
-// even semi-portably recover the palette) proceeds via: map each 8-bit to
-// a 5-bit target grey. if all 3 components match, select that grey.
-// otherwise, c / 42.7 to map to 6 values. this never generates pure black
-// nor white, though, lame...FIXME
-static inline int
-rgb_to_ansi256(unsigned r, unsigned g, unsigned b){
-  const unsigned GREYMASK = 0xf8;
-  r &= GREYMASK;
-  g &= GREYMASK;
-  b &= GREYMASK;
-  if(r == g && g == b){ // 5 MSBs match, return grey
-    return 216 + (r >> 3u);
-  }
-  r /= 43;
-  g /= 43;
-  b /= 43;
-  return r * 36 + g * 6 + b;
-}
-
 static int
 term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
