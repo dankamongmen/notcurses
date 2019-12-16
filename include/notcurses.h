@@ -345,11 +345,32 @@ API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 API int ncplane_move_top(struct ncplane* n);
 API int ncplane_move_bottom(struct ncplane* n);
 
-// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-API int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT below);
-
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
-API int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
+API int ncplane_move_above_unsafe(struct ncplane* RESTRICT n,
+                                  struct ncplane* RESTRICT above);
+
+static inline int
+ncplane_move_above(struct ncplane* n, struct ncplane* above){
+  if(n == above){
+    return -1;
+  }
+  return ncplane_move_above_unsafe(n, above);
+}
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+API int ncplane_move_below_unsafe(struct ncplane* RESTRICT n,
+                                  struct ncplane* RESTRICT below);
+
+static inline int
+ncplane_move_below(struct ncplane* n, struct ncplane* below){
+  if(n == below){
+    return -1;
+  }
+  return ncplane_move_below_unsafe(n, below);
+}
+
+// Return the plane above this one, or NULL if this is at the top.
+API struct ncplane* ncplane_below(struct ncplane* n);
 
 // Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n);
