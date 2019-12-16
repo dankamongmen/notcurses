@@ -947,7 +947,7 @@ term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
     if(nc->colors >= 256){
-      term_emit("setab", tiparm(nc->setab, rgb_to_ansi256(r, g, b)), out, false);
+      term_emit("setab", tiparm(nc->setab, rgb_quantize_256(r, g, b)), out, false);
     }
     return -1;
   }
@@ -968,7 +968,7 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
       return -1;
     }
     if(nc->colors >= 256){
-      term_emit("setaf", tiparm(nc->setaf, rgb_to_ansi256(r, g, b)), out, false);
+      term_emit("setaf", tiparm(nc->setaf, rgb_quantize_256(r, g, b)), out, false);
     }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
