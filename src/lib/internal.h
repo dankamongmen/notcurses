@@ -176,13 +176,18 @@ void ncplane_updamage(ncplane* n);
 static inline int
 rgb_to_ansi256(unsigned r, unsigned g, unsigned b){
   const unsigned GREYMASK = 0xf8;
-  r &= GREYMASK;
-  g &= GREYMASK;
-  b &= GREYMASK;
-  if(r == g && g == b){ // 5 MSBs match, return grey
-    r >>= 3u;
-    r += 232;
-    return r > 255 ? 255: r;
+  // if all 5 MSBs match, return grey from 24-member grey ramp or pure
+  // black/white from original 16 (0 and 15, respectively)
+  if((r & GREYMASK) == (g & GREYMASK) && (g & GREYMASK) == (b & GREYMASK)){
+    // 256 / 26 == 9.846
+    int gidx = r * 5 / 49 - 1;
+    if(gidx < 0){
+      return 0;
+    }
+    if(gidx >= 24){
+      return 15;
+    }
+    return 232 + gidx;
   }
   r /= 43;
   g /= 43;
