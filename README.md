@@ -7,6 +7,9 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
 <img width="640" height="242" src="doc/0.4.0-sheet.png" alt="notcurses 0.4.0 contact sheet"/>
 </p>
 
+[![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 * [Introduction](#introduction)
 * [Requirements](#requirements)
 * [Use](#use)
@@ -21,13 +24,13 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
 * [Differences from NCURSES](#differences-from-ncurses)
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
   * [Adapting NCURSES programs](#adapting-ncurses-programs)
+* [Environment notes](#environment-notes)
+  * [Fonts](#fonts)
 * [Supplemental material](#supplemental-material)
   * [Useful links](#useful-links)
+  * [Other TUI libraries](#other-tui-libraries-of-note)
   * [History](#history)
   * [Thanks](#thanks)
-
-[![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Introduction
 
@@ -1902,6 +1905,10 @@ These are pretty obvious, implementation-wise.
 * The unit tests assume dimensions of at least 80x25. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
 
+### Fonts
+
+Fonts end up being a whole thing.
+
 ## Supplemental material
 
 ### Useful links
@@ -1918,6 +1925,11 @@ These are pretty obvious, implementation-wise.
 * [The TTY demystified](http://www.linusakesson.net/programming/tty/)
 * [Dark Corners of Unicode](https://eev.ee/blog/2015/09/12/dark-corners-of-unicode/)
 * [UTF-8 Decoder Capability and Stress Test](https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt)
+
+### Other TUI libraries of note
+
+* [tui-rs](https://github.com/fdehau/tui-rs) (Rust)
+* [blessed-contrib](https://github.com/yaronn/blessed-contrib) (Javascript)
 
 ### History
 
