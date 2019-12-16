@@ -929,6 +929,27 @@ term_esc_rgb(FILE* out, int esc, unsigned r, unsigned g, unsigned b){
   return 0;
 }
 
+// For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
+// ~2.4-bit 6x6x6 ANSI cube + greyscale (assumed on entry; I know no way to
+// even semi-portably recover the palette) proceeds via: map each 8-bit to
+// a 5-bit target grey. if all 3 components match, select that grey.
+// otherwise, c / 42.7 to map to 6 values. this never generates pure black
+// nor white, though, lame...FIXME
+static inline int
+rgb_to_ansi256(unsigned r, unsigned g, unsigned b){
+  const unsigned GREYMASK = 0xf8;
+  r &= GREYMASK;
+  g &= GREYMASK;
+  b &= GREYMASK;
+  if(r == g && g == b){ // 5 MSBs match, return grey
+    return 216 + (r >> 3u);
+  }
+  r /= 43;
+  g /= 43;
+  b /= 43;
+  return r * 36 + g * 6 + b;
+}
+
 static int
 term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
@@ -939,13 +960,16 @@ term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   if(nc->RGBflag){
     return term_esc_rgb(out, 4, r, g, b);
   }else{
-    if(nc->setaf == NULL){
+    if(nc->setab == NULL){
       return -1;
     }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
+    if(nc->colors >= 256){
+      term_emit("setab", tiparm(nc->setab, rgb_to_ansi256(r, g, b)), out, false);
+    }
     return -1;
   }
   return 0;
@@ -963,6 +987,9 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   }else{
     if(nc->setaf == NULL){
       return -1;
+    }
+    if(nc->colors >= 256){
+      term_emit("setaf", tiparm(nc->setaf, rgb_to_ansi256(r, g, b)), out, false);
     }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
@@ -1246,7 +1273,10 @@ blocking_write(int fd, const char* buf, size_t buflen){
 }
 
 // determine the best palette for the current frame, and write the necessary
-// escape sequences to 'out'.
+// escape sequences to 'out'. for now, we just assume the ANSI palettes. at
+// 256 colors, this is the 16 normal ones, 6x6x6 color cubes, and 32 greys.
+// it's probably better to sample the darker regions rather than cover so much
+// chroma, but whatever....FIXME
 static int
 prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   if(nc->RGBflag){
