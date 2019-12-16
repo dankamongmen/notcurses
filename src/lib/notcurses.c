@@ -545,6 +545,21 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
   fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
   nc->RGBflag = tigetflag("RGB") == 1;
+  if (nc->RGBflag == 0) {
+    // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not commonly found in
+    // terminal entries today. COLORTERM, however, is a de-facto (if imperfect/kludgy) standard way
+    // of indicating DirectColor support for a terminal. The variable takes one of two case-sensitive
+    // values:
+    //
+    //   truecolor
+    //   24bit
+    //
+    // https://gist.github.com/XVilka/8346728#true-color-detection gives some more information about
+    // the topic
+    //
+    const char* cterm = getenv("COLORTERM");
+    nc->RGBflag = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
+  }
   nc->CCCflag = tigetflag("ccc") == 1;
   if((nc->colors = tigetnum("colors")) <= 0){
     fprintf(stderr, "This terminal doesn't appear to support colors\n");

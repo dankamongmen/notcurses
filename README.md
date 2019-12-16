@@ -25,6 +25,7 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
   * [Adapting NCURSES programs](#adapting-ncurses-programs)
 * [Environment notes](#environment-notes)
+  * [DirectColor detection](#DirectColor-detection)
   * [Fonts](#fonts)
 * [Supplemental material](#supplemental-material)
   * [Useful links](#useful-links)
@@ -1946,6 +1947,18 @@ These are pretty obvious, implementation-wise.
 
 * The unit tests assume dimensions of at least 80x25. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
+
+### DirectColor detection
+
+ncurses aims to use only information found in the terminal's terminfo entry to detect capabilities, DirectColor
+being one of them. Support for this is indicated by terminfo having a flag, added in NCURSES 6.1, named `RGB` set
+to `true`. However, as of today there are few and far between terminfo entries which have the capability in their
+database entry and so DirectColor won't be used in most cases. Terminal emulators have had for years a kludge to
+work around this limitation of terminfo in the form of the `COLORTERM` environment variable which, if set to either
+`truecolor` or `24bit` does the job of indicating the capability of sending the escapes 48 and 38 together with a
+tripartite RGB (0 <= c <= 255 for all three components) to specify fore- and background colors.
+Checking for `COLORTERM` admittedly goes against the goal stated at the top of this section but, for all practical
+purposes, makes the detection work quite well **today**.
 
 ### Fonts
 
