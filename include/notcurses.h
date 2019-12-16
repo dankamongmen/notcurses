@@ -133,6 +133,9 @@ API int notcurses_stop(struct notcurses* nc);
 // successful call to notcurses_render().
 API int notcurses_render(struct notcurses* nc);
 
+// Return the topmost ncplane, of which there is always at least one.
+API struct ncplane* notcurses_top(struct notcurses* n);
+
 // All input is currently taken from stdin, though this will likely change. We
 // attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
 // Extended Grapheme Cluster. It is also possible that we will read a special
@@ -347,6 +350,9 @@ API int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT 
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 API int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
+
+// Return the plane below this one, or NULL if this is at the bottom.
+API struct ncplane* ncplane_below(struct ncplane* n);
 
 // Retrieve the cell at the cursor location on the specified plane, returning
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.

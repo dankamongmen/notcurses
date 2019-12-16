@@ -2097,3 +2097,11 @@ int notcurses_refresh(notcurses* nc){
   // FIXME
   return 0;
 }
+
+ncplane* notcurses_top(notcurses* n){
+  return n->top;
+}
+
+ncplane* ncplane_below(ncplane* n){
+  return n->z;
+}
