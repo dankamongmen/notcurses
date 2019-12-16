@@ -180,7 +180,9 @@ rgb_to_ansi256(unsigned r, unsigned g, unsigned b){
   g &= GREYMASK;
   b &= GREYMASK;
   if(r == g && g == b){ // 5 MSBs match, return grey
-    return 224 + (r >> 3u);
+    r >>= 3u;
+    r += 232;
+    return r > 255 ? 255: r;
   }
   r /= 43;
   g /= 43;

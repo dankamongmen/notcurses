@@ -16,3 +16,9 @@ TEST_F(InternalsTest, RGBtoANSIWhite) {
   r = g = b = 0xff;
   EXPECT_EQ(255, rgb_to_ansi256(r, g, b));
 }
+
+TEST_F(InternalsTest, RGBtoANSIBlack) {
+  unsigned r, g, b;
+  r = g = b = 0x0;
+  EXPECT_EQ(232, rgb_to_ansi256(r, g, b));
+}
