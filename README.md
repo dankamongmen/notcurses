@@ -199,6 +199,9 @@ you off guard.
 Utility functions operating on the toplevel `notcurses` object include:
 
 ```c
+// Return the topmost ncplane, of which there is always at least one.
+struct ncplane* notcurses_top(struct notcurses* n);
+
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
@@ -417,6 +420,8 @@ void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 // Return the current styling for this ncplane.
 unsigned ncplane_styles(const struct ncplane* n);
 
+// Return the ncplane below this one, or NULL if this is at the stack's bottom.
+struct ncplane* ncplane_below(struct ncplane* n);
 ```
 
 If a given cell's glyph is zero, or its foreground channel is fully transparent,
