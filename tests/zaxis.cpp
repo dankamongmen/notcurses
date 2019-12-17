@@ -99,3 +99,38 @@ TEST_F(ZAxisTest, TopToBottom) {
   EXPECT_EQ(np, ncplane_below(top));
   EXPECT_EQ(nullptr, ncplane_below(np));
 }
+
+// verify that moving one above another, with no other changes, is reflected at
+// render time (requires explicit damage maintenance from move functionality).
+TEST_F(ZAxisTest, ZAxisDamage) {
+  cell cat = CELL_TRIVIAL_INITIALIZER;
+  cell c = CELL_SIMPLE_INITIALIZER('x');
+  ASSERT_EQ(0, cell_set_fg_rgb(&c, 0xff, 0, 0));
+  ASSERT_EQ(1, ncplane_putc(n_, &c));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));
+  ASSERT_EQ(1, ncplane_at_cursor(n_, &cat));
+  ASSERT_TRUE(cell_simple_p(&cat));
+  ASSERT_EQ('x', cat.gcluster);
+  struct ncplane* n2 = notcurses_newplane(nc_, 2, 2, 0, 0, nullptr);
+  ASSERT_EQ(1, cell_load(n2, &c, "y"));
+  ASSERT_EQ(0, cell_set_fg_rgb(&c, 0, 0xff, 0));
+  ASSERT_EQ(1, ncplane_putc(n2, &c));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n2, 0, 0));
+  ASSERT_EQ(1, ncplane_at_cursor(n2, &cat));
+  ASSERT_EQ('y', cat.gcluster);
+  struct ncplane* n3 = notcurses_newplane(nc_, 2, 2, 0, 0, nullptr);
+  ASSERT_EQ(1, cell_load(n3, &c, "z"));
+  ASSERT_EQ(0, cell_set_fg_rgb(&c, 0, 0, 0xff));
+  ASSERT_EQ(1, ncplane_putc(n3, &c));
+  EXPECT_EQ(0, notcurses_render(nc_));
+  ASSERT_EQ(0, ncplane_cursor_move_yx(n3, 0, 0));
+  ASSERT_EQ(1, ncplane_at_cursor(n3, &cat));
+  ASSERT_EQ('z', cat.gcluster);
+  // FIXME testing damage requires notcurses keeping a copy of the screen....
+  // FIXME move y atop z
+  // FIXME inspect
+  // FIXME move z atop y
+  // FIXME inspect
+}
