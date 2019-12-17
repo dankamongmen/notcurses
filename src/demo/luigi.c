@@ -159,26 +159,27 @@ int luigi_demo(struct notcurses* nc){
   int yoff = rows * 4 / 5 - height + 1; // tuned
   struct ncplane* lns[3];
   int i;
+  struct ncplane* lastseen = NULL;
   for(i = 0 ; i < 3 ; ++i){
-    lns[i] = notcurses_newplane(nc, height, 16, yoff, -16, NULL);
+    lns[i] = notcurses_newplane(nc, height, 16, yoff, 0, NULL);
     if(lns[i] == NULL){
       while(--i){
         ncplane_destroy(lns[i]);
       }
       return -1;
     }
+    lastseen = lns[i];
+    ncplane_move_bottom(lastseen); // all start hidden underneath stdplane
   }
   draw_luigi(lns[0], luigi1);
   draw_luigi(lns[1], luigi2);
   draw_luigi(lns[2], luigi3);
-  struct ncplane* lastseen = NULL;
   struct timespec stepdelay;
   ns_to_timespec(timespec_to_ns(&demodelay) / (cols - 16 - 1), &stepdelay);
   for(i = 0 ; i < cols - 16 - 1 ; ++i){
-    if(lastseen){ // hide the previous sprite
-      ncplane_move_yx(lastseen, yoff, -16);
-    }
+    ncplane_move_bottom(lastseen); // hide the previous sprite
     lastseen = lns[i % 3];
+    ncplane_move_top(lastseen);
     ncplane_move_yx(lastseen, yoff, i);
     notcurses_render(nc);
     nanosleep(&stepdelay, NULL);
