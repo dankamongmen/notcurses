@@ -1200,6 +1200,7 @@ int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
   *an = n->z; // splice n out
   n->z = above; // attach above below n
   *aa = n; // spline n in above
+  ncplane_updamage(n); // conservative (we might not actually be visible)
   return 0;
 }
 
@@ -1212,6 +1213,7 @@ int ncplane_move_below_unsafe(ncplane* restrict n, ncplane* restrict below){
   *an = n->z; // splice n out
   n->z = below->z; // reattach subbelow list to n
   below->z = n; // splice n in below
+  ncplane_updamage(n); // conservative (we might not actually be visible)
   return 0;
 }
 
@@ -1223,6 +1225,7 @@ int ncplane_move_top(ncplane* n){
   *an = n->z; // splice n out
   n->z = n->nc->top;
   n->nc->top = n;
+  ncplane_updamage(n);
   return 0;
 }
 
@@ -1238,6 +1241,7 @@ int ncplane_move_bottom(ncplane* n){
   }
   *an = n;
   n->z = NULL;
+  ncplane_updamage(n);
   return 0;
 }
 
