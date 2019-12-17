@@ -24,8 +24,6 @@
 #include "version.h"
 #include "egcpool.h"
 
-#define ESC "\x1b"
-
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
 static notcurses* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh
@@ -901,16 +899,32 @@ int ncplane_default(ncplane* ncp, cell* c){
 
 // 3 for foreground, 4 for background, ugh FIXME
 static int
-term_esc_rgb(FILE* out, int esc, unsigned r, unsigned g, unsigned b){
-  #define RGBESC1 ESC "["
+term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, int esc,
+             unsigned r, unsigned g, unsigned b){
+  // The correct way to do this is using tiparm+tputs, but doing so (at least
+  // as of terminfo 6.1.20191019) both emits ~3% more bytes for a run of 'rgb'
+  // and gives rise to some corrupted cells (possibly due to special handling of
+  // values < 256; I'm not at this time sure). So we just cons up our own.
+  /*if(esc == 4){
+    return term_emit("setab", tiparm(nc->setab, (int)((r << 16u) | (g << 8u) | b)), out, false);
+  }else if(esc == 3){
+    return term_emit("setaf", tiparm(nc->setaf, (int)((r << 16u) | (g << 8u) | b)), out, false);
+  }else{
+    return -1;
+  }*/
+  #define RGBESC1 "\x1b" "["
   #define RGBESC2 "8;2;"
                                     // rrr;ggg;bbbm
   char rgbesc[] = RGBESC1 " " RGBESC2 "            ";
   int len = strlen(RGBESC1);
-  rgbesc[len++] = esc + '0';
+  rgbesc[len++] = esc;
   len += strlen(RGBESC2);
-  if(r > 99){ rgbesc[len++] = r / 100 + '0'; }
-  if(r > 9){ rgbesc[len++] = (r % 100) / 10 + '0'; }
+  if(r > 99){
+    rgbesc[len++] = r / 100 + '0';
+  }
+  if(r > 9){
+    rgbesc[len++] = (r % 100) / 10 + '0';
+  }
   rgbesc[len++] = (r % 10) + '0';
   rgbesc[len++] = ';';
   if(g > 99){ rgbesc[len++] = g / 100 + '0'; }
@@ -923,7 +937,7 @@ term_esc_rgb(FILE* out, int esc, unsigned r, unsigned g, unsigned b){
   rgbesc[len++] = 'm';
   rgbesc[len] = '\0';
   int w;
-  if((w = fprintf(out, "%.*s", len, rgbesc)) < len){
+  if((w = fputs_unlocked(rgbesc, out)) < len){
     return -1;
   }
   return 0;
@@ -937,7 +951,7 @@ term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(nc->RGBflag){
-    return term_esc_rgb(out, 4, r, g, b);
+    return term_esc_rgb(nc, out, '4', r, g, b);
   }else{
     if(nc->setab == NULL){
       return -1;
@@ -962,7 +976,7 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(nc->RGBflag){
-    return term_esc_rgb(out, 3, r, g, b);
+    return term_esc_rgb(nc, out, '3', r, g, b);
   }else{
     if(nc->setaf == NULL){
       return -1;
@@ -997,19 +1011,19 @@ term_putc(FILE* out, const ncplane* n, const cell* c){
   if(cell_simple_p(c)){
     if(c->gcluster == 0 || iscntrl(c->gcluster)){
 // fprintf(stderr, "[ ]\n");
-      if(fputc(' ', out) == EOF){
+      if(fputc_unlocked(' ', out) == EOF){
         return -1;
       }
     }else{
 // fprintf(stderr, "[%c]\n", c->gcluster);
-      if(fputc(c->gcluster, out) == EOF){
+      if(fputc_unlocked(c->gcluster, out) == EOF){
         return -1;
       }
     }
   }else{
     const char* ext = extended_gcluster(n, c);
 // fprintf(stderr, "[%s]\n", ext);
-    if(fprintf(out, "%s", ext) < 0){ // FIXME check for short write?
+    if(fputs_unlocked(ext, out) < 0){ // FIXME check for short write?
       return -1;
     }
   }
