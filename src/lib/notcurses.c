@@ -164,10 +164,19 @@ timespec_to_ns(const struct timespec* t){
 
 static void
 update_render_stats(const struct timespec* time1, const struct timespec* time0,
-                    ncstats* stats){
+                    ncstats* stats, int bytes){
   int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
   //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
   //        (elapsed % NANOSECS_IN_SEC) / 1000000);
+  if(bytes >= 0){
+    stats->render_bytes += bytes;
+    if(bytes > stats->render_max_bytes){
+      stats->render_max_bytes = bytes;
+    }
+    if(bytes < stats->render_min_bytes){
+      stats->render_min_bytes = bytes;
+    }
+  }
   if(elapsed > 0){ // don't count clearly incorrect information, egads
     ++stats->renders;
     stats->render_ns += elapsed;
@@ -806,8 +815,8 @@ int notcurses_stop(notcurses* nc){
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     if(nc->stats.renders){
       double avg = nc->stats.render_ns / (double)nc->stats.renders;
-      fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
-              nc->stats.renders,
+      fprintf(stderr, "%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
+              nc->stats.renders, nc->stats.renders == 1 ? "" : "s",
               nc->stats.render_ns / 1000000000.0,
               nc->stats.render_min_ns / 1000000000.0,
               nc->stats.render_max_ns / 1000000000.0,
@@ -890,7 +899,12 @@ int ncplane_set_bg_alpha(ncplane *n, int alpha){
 }
 
 int ncplane_set_default(ncplane* ncp, const cell* c){
-  return cell_duplicate(ncp, &ncp->defcell, c);
+  int ret = cell_duplicate(ncp, &ncp->defcell, c);
+  if(ret < 0){
+    return -1;
+  }
+  ncplane_updamage(ncp);
+  return ret;
 }
 
 int ncplane_default(ncplane* ncp, cell* c){
@@ -1435,17 +1449,8 @@ int notcurses_render(notcurses* nc){
   int bytes = notcurses_render_internal(nc);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
-  if(bytes > 0){
-    nc->stats.render_bytes += bytes;
-    if(bytes > nc->stats.render_max_bytes){
-      nc->stats.render_max_bytes = bytes;
-    }
-    if(bytes < nc->stats.render_min_bytes){
-      nc->stats.render_min_bytes = bytes;
-    }
-  }
   clock_gettime(CLOCK_MONOTONIC_RAW, &done);
-  update_render_stats(&done, &start, &nc->stats);
+  update_render_stats(&done, &start, &nc->stats, bytes);
   if(bytes < 0){
     ret = -1;
   }

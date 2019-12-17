@@ -79,7 +79,7 @@ target_compile_definitions(notcurses-demo
 )
 
 # tiny proofs of concept, one binary per source file
-file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c)
+file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c src/poc/*.cpp)
 foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
   add_executable(${fe} ${f})
