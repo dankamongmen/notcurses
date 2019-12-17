@@ -1954,7 +1954,7 @@ These are pretty obvious, implementation-wise.
 * Notcurses could never be what it is without decades of tireless, likely
     thankless work by Thomas E. Dickey on NCURSES. His FAQ is a model of
     engineering history. He exemplifies documentation excellence and
-    conservative, thoughtful stewardship. The Open Source community owes
+    conservative, thoughtful stewardship. The free software community owes
     Mr. Dickey a great debt.
 * Justine Tunney, one of my first friends at Google NYC, was always present
     with support, and pointed out the useful memstream functionality of
