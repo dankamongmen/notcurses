@@ -379,6 +379,10 @@ API struct ncplane* ncplane_below(struct ncplane* n);
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
 API int ncplane_at_cursor(struct ncplane* n, cell* c);
 
+// Retrieve the cell at the specified location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+API int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
+
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
 // it with 'opaque'. the others simply return the userptr.
@@ -1101,7 +1105,8 @@ API int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
 // Working with cells
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = c, .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
@@ -1199,6 +1204,17 @@ cell_double_wide_p(const cell* c){
 static inline bool
 cell_simple_p(const cell* c){
   return c->gcluster < 0x80;
+}
+
+static inline int
+cell_load_simple(struct ncplane* n, cell* c, char ch){
+  cell_release(n, c);
+  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->gcluster = ch;
+  if(cell_simple_p(c)){
+    return 1;
+  }
+  return -1;
 }
 
 // get the offset into the egcpool for this cell's EGC. returns meaningless and

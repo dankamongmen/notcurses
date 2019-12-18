@@ -7,6 +7,9 @@
 #include <pthread.h>
 #include "demo.h"
 
+// Fill up the screen with as much crazy Unicode as we can, and then set a
+// gremlin loose, looking to eat up all the wide characters.
+
 // FIXME throw this in there somehow
 //   ∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),     ⎧⎡⎛┌─────┐⎞⎤⎫
 //                                            ⎪⎢⎜│a²+b³ ⎟⎥⎪
@@ -283,6 +286,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, " ");
+  cell_set_fg_alpha(&c, CELL_ALPHA_TRANS);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANS);
   ncplane_set_default(n, &c);
   cell_release(n, &c);
@@ -297,7 +301,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   }
   // bottom handle
   ncplane_cursor_move_yx(n, 4, 17);
-  ncplane_putegc(n, "┬", 0, 0, NULL);
+  ncplane_putegc(n, "┬", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 5, 17);
   ncplane_putegc(n, "│", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 6, 17);
@@ -344,7 +348,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
 }
 
 // Much of this text comes from http://kermitproject.org/utf8.html
-int widecolor_demo(struct notcurses* nc){
+int widechomper_demo(struct notcurses* nc){
   static const char* strs[] = {
     "Война и мир",
     "Бра́тья Карама́зовы",
@@ -575,9 +579,8 @@ int widecolor_demo(struct notcurses* nc){
     NULL
   };
   const char** s;
-  int count = notcurses_palette_size(nc);
-  const int steps[] = { 1, 0x100, 0x40000, 0x10001, };
-  const int starts[] = { 0x4000, 0x40, 0x10000, 0x400040, };
+  const int steps[] = { 0x100, 0x100, 0x40000, 0x10001, };
+  const int starts[] = { 0x004000, 0x000040, 0x010101, 0x400040, };
 
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
@@ -588,13 +591,10 @@ int widecolor_demo(struct notcurses* nc){
     cell c;
     struct timespec screenend;
     clock_gettime(CLOCK_MONOTONIC, &screenend);
-    ns_to_timespec(timespec_to_ns(&screenend) + timespec_to_ns(&demodelay), &screenend);
+    ns_to_timespec(timespec_to_ns(&screenend) + 2 * timespec_to_ns(&demodelay), &screenend);
     do{ // (re)draw a screen
       const int start = starts[i];
       int step = steps[i];
-      const int rollover = 256 / ((step & 0xff) | ((step & 0xff00) >> 8u)
-                                  | ((step & 0xff0000) >> 16u));
-      int rollcount = 0; // number of times we've added this step
       cell_init(&c);
       int y, x, maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx);
@@ -634,11 +634,18 @@ int widecolor_demo(struct notcurses* nc){
             }
             int ulen = 0;
             int r;
-            if((r = ncplane_putegc(n, &(*s)[idx], 0, channels, &ulen)) < 0){
-              if(ulen < 0){
+            if(wcwidth(wcs) <= maxx - x){
+              if((r = ncplane_putegc(n, &(*s)[idx], 0, channels, &ulen)) < 0){
+                if(ulen < 0){
+                  return -1;
+                }
+              }
+            }else{
+              cell octo = CELL_INITIALIZER('#', 0, channels);
+              if((r = ncplane_putc(n, &octo)) < 1){
                 return -1;
               }
-              break;
+              cell_release(n, &octo);
             }
             ncplane_cursor_yx(n, &y, &x);
             idx += ulen;
@@ -646,19 +653,7 @@ int widecolor_demo(struct notcurses* nc){
             cols_out += r;
             ++egcs_out;
           }
-          if(++rollcount % rollover == 0){
-            step *= 256;
-          }
-          if((unsigned)step >= 1ul << 24){
-            step >>= 24u;
-          }
-          if(step == 0){
-            step = 1;
-          }
-          if((rgb += step) >= count){
-            rgb = 0;
-            step *= 256;
-          }
+          rgb += step;
         }
       }while(y < maxy && x < maxx);
       struct ncplane* mess = notcurses_newplane(nc, 7, 57, 1, 4, NULL);
@@ -697,7 +692,7 @@ int widecolor_demo(struct notcurses* nc){
       pthread_join(tid, NULL);
       ncplane_destroy(mess);
       if(key == NCKEY_RESIZE){
-        notcurses_resize(nc, NULL, NULL);
+        notcurses_resize(nc, &maxy, &maxx);
       }
     }while(key == NCKEY_RESIZE);
   }

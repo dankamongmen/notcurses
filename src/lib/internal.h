@@ -197,6 +197,31 @@ rgb_quantize_256(unsigned r, unsigned g, unsigned b){
   return r * 36 + g * 6 + b + 16;
 }
 
+static inline int
+term_emit(const char* name __attribute__ ((unused)), const char* seq,
+          FILE* out, bool flush){
+  int ret = fprintf(out, "%s", seq);
+  if(ret < 0){
+// fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
+    return -1;
+  }
+  if((size_t)ret != strlen(seq)){
+// fprintf(stderr, "Short write (%db) for %zub %s sequence\n", ret, strlen(seq), name);
+    return -1;
+  }
+  if(flush && fflush(out)){
+// fprintf(stderr, "Error flushing after %db %s sequence (%s)\n", ret, name, strerror(errno));
+    return -1;
+  }
+  return 0;
+}
+
+static inline const char*
+extended_gcluster(const ncplane* n, const cell* c){
+  uint32_t idx = cell_egc_idx(c);
+  return n->pool.pool + idx;
+}
+
 #define NANOSECS_IN_SEC 1000000000
 
 #ifdef __cplusplus

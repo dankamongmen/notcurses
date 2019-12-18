@@ -14,8 +14,8 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
 * [Requirements](#requirements)
 * [Use](#use)
   * [Input](#input)
-  * [Planes](#planes)
-  * [Cells](#cells)
+  * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
+  * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
   * [Multimedia](#multimedia)
   * [Panelreels](#panelreels)
   * [Channels](#channels)
@@ -467,6 +467,10 @@ not necessarily reflect anything on the actual screen).
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
 int ncplane_at_cursor(struct ncplane* n, cell* c);
 
+// Retrieve the cell at the specified location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
+
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
 // it with 'opaque'. the others simply return the userptr.
@@ -868,6 +872,32 @@ void ncplane_set_fg_default(struct ncplane* n);
 void ncplane_set_bg_default(struct ncplane* n);
 ```
 
+#### Wide chars
+
+Notcurses assumes that all glyphs occupy widths which are an integral multiple
+of the smallest possible glyph's cell width (aka a "fixed-width font"). Unicode
+introduces characters which generally occupy two such cells, known as wide
+characters (though in the end, width of a glyph is a property of the font). It
+is not possible to print half of such a glyph, nor is it generally possible to
+print a wide glyph on the last column of a terminal.
+
+Notcurses does not consider it an error to place a wide character on the last
+column of a line. It will obliterate any content which was in that cell, but
+will not itself be rendered. The default content will not be reproduced in such
+a cell, either. When any character is placed atop a wide character's left or
+right half, the wide character is obliterated in its entirety. When a wide
+character is placed, any character under its left or right side is annihilated,
+including wide characters. It is thus possible for two wide characters to sit
+at columns 0 and 2, and for both to be obliterated by a single wide character
+placed at column 1.
+
+Likewise, when rendering, a plane which would partially obstruct a wide glyph
+prevents it from being rendered entirely. A pathological case would be that of
+a terminal _n_ columns in width, containing _n-1_ planes, each 2 columns wide.
+The planes are placed at offsets [0..n - 2]. Each plane is above the plane to
+its left, and each plane contains a single wide character. Were this to be
+rendered, only the rightmost plane (and its single glyph) would be rendered!
+
 ### Cells
 
 Unlike the `notcurses` or `ncplane` objects, the definition of `cell` is
@@ -932,12 +962,14 @@ typedef struct cell {
 #define CELL_ALPHA_OPAQUE      0
 ```
 
-`cell`s must be initialized with `CELL_TRIVIAL_INITIALIZER` or `cell_init()`
-before any other use (both merely zero out the `cell`).
+`cell`s must be initialized with an initialization macro or `cell_init()`
+before any other use. `cell_init()` and `CELL_TRIVIAL_INITIALIZER` both
+simply zero out the `cell`.
 
 ```c
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = c, .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
@@ -1034,6 +1066,17 @@ cell_double_wide_p(const cell* c){
 static inline bool
 cell_simple_p(const cell* c){
   return c->gcluster < 0x80;
+}
+
+static inline int
+cell_load_simple(struct ncplane* n, cell* c, char ch){
+  cell_release(n, c);
+  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->gcluster = ch;
+  if(cell_simple_p(c)){
+    return 1;
+  }
+  return -1;
 }
 
 // get the offset into the egcpool for this cell's EGC. returns meaningless and
