@@ -18,19 +18,35 @@ int main(int argc, char** argv){
   int dimx, dimy;
   ncplane_dim_yx(n, &dimy, &dimx);
   cell c = CELL_TRIVIAL_INITIALIZER;
+  //cell_set_bg_rgb(&c, 0, 0x80, 0);
+  //ncplane_set_default(n, &c);
+  cell_set_bg_default(&c);
   if(cell_load(n, &c, "🐳") < 0){
     goto err;
   }
-  if(ncplane_set_default(n, &c) < 0){
-    goto err;
-  }
-  cell_release(n, &c);
-  if(cell_load(n, &c, "x") < 0){
-    goto err;
+  if(dimy > 5){
+    dimy = 5;
   }
   for(int i = 0 ; i < dimy ; ++i){
-    for(int j = 0 ; j < dimx / 2 ; j += 2){
-      if(ncplane_putc_yx(n, i, j, &c) < 0){
+    for(int j = 8 ; j < dimx / 2 ; ++j){ // leave some empty spaces
+      if(ncplane_putc_yx(n, i, j * 2, &c) < 0){
+        goto err;
+      }
+    }
+  }
+  cell_release(n, &c);
+  // put these on the right side of the wide glyphs
+  for(int i = 0 ; i < dimy / 2 ; ++i){
+    for(int j = 5 ; j < dimx / 2 ; j += 2){
+      if(ncplane_putsimple_yx(n, i, j, (j % 10) + '0') < 0){
+        goto err;
+      }
+    }
+  }
+  // put these on the left side of the wide glyphs
+  for(int i = dimy / 2 ; i < dimy ; ++i){
+    for(int j = 4 ; j < dimx / 2 ; j += 2){
+      if(ncplane_putsimple_yx(n, i, j, (j % 10) + '0') < 0){
         goto err;
       }
     }
@@ -38,6 +54,7 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
+  printf("\n");
   return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:
