@@ -176,6 +176,8 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
     if(bytes < stats->render_min_bytes){
       stats->render_min_bytes = bytes;
     }
+  }else{
+    ++stats->failed_renders;
   }
   if(elapsed > 0){ // don't count clearly incorrect information, egads
     ++stats->renders;
@@ -418,7 +420,12 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   if(fb == NULL){
     return -1;
   }
-  ncplane_updamage(n);
+  // if we're the standard plane, the updamage can be charged at the end. it's
+  // unsafe to call now anyway, because if we shrank, the notcurses damage map
+  // has already been shrunk down
+  if(n != n->nc->stdscr){
+    ncplane_updamage(n); // damage any lines we were on
+  }
   unsigned char* tmpdamage;
   if((tmpdamage = realloc(n->damage, sizeof(*n->damage) * ylen)) == NULL){
     free(fb);
@@ -447,7 +454,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     n->lenx = xlen;
     n->leny = ylen;
     free(preserved);
-    ncplane_updamage(n);
+    ncplane_updamage(n); // damage any lines we're now on
     return 0;
   }
   // we currently have maxy rows of maxx cells each. we will be keeping rows
@@ -484,7 +491,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   n->lenx = xlen;
   n->leny = ylen;
   free(preserved);
-  ncplane_updamage(n);
+  ncplane_updamage(n); // damage any lines we're now on
   return 0;
 }
 
@@ -529,10 +536,6 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   if((tmpdamage = malloc(sizeof(*n->damage) * *rows)) == NULL){
     return -1;
   }
-  if(ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
-    free(tmpdamage);
-    return -1;
-  }
   if(oldcols < *cols){ // all are busted if rows got bigger
     free(n->damage);
     flash_damage_map(tmpdamage, *rows, true);
@@ -542,6 +545,9 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
     free(n->damage);
   }
   n->damage = tmpdamage;
+  if(ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
+    return -1;
+  }
   return 0;
 }
 
@@ -698,6 +704,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
+  ret->mstream = NULL;
+  ret->mstrsize = 0;
   if(make_nonblocking(ret->ttyinfp)){
     free(ret);
     return NULL;
@@ -754,6 +762,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if((ret->damage = malloc(sizeof(*ret->damage) * ret->stdscr->leny)) == NULL){
+    free_plane(ret->top);
+    goto err;
+  }
+  if((ret->mstreamfp = open_memstream(&ret->mstream, &ret->mstrsize)) == NULL){
+    free(ret->damage);
     free_plane(ret->top);
     goto err;
   }
@@ -828,6 +841,8 @@ int notcurses_stop(notcurses* nc){
               nc->stats.render_max_bytes / 1024.0,
               avg / 1024);
     }
+    fprintf(stderr, "%ju failed render%s\n", nc->stats.failed_renders,
+            nc->stats.failed_renders == 1 ? "" : "s");
     fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
             nc->stats.defaultemissions,
             nc->stats.defaultelisions,
@@ -851,6 +866,11 @@ int notcurses_stop(notcurses* nc){
       nc->top = p->z;
       free_plane(p);
     }
+    free(nc->damage);
+    if(nc->mstreamfp){
+      fclose(nc->mstreamfp);
+    }
+    free(nc->mstream);
     input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);
     free(nc);
@@ -1300,21 +1320,34 @@ prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   return 0;
 }
 
-// FIXME this needs to keep an invalidation bitmap, rather than blitting the
-// world every time
+/*
+// reshape the shadow framebuffer to match the stdplane's dimensions, throwing
+// away the old one.
+static int
+reshape_shadow_fb(notcurses* nc){
+  const size_t size = sizeof(nc->shadowbuf) * nc->stdscr->leny * nc->stdscr->lenx;
+  cell* fb = malloc(size);
+  if(fb == NULL){
+    return -1;
+  }
+  free(nc->shadowbuf);
+  nc->shadowbuf = fb;
+  nc->shadowy = nc->stdscr->leny;
+  nc->shadowx = nc->stdscr->lenx;
+  memset(fb, 0, size);
+  return 0;
+}
+*/
+
 static inline int
 notcurses_render_internal(notcurses* nc){
   int ret = 0;
   int y, x;
-  char* buf = NULL;
-  size_t buflen = 0;
-  FILE* out = open_memstream(&buf, &buflen); // worth keeping around?
-  if(out == NULL){
-    return -1;
-  }
-  // no need to write a clearscreen, since we update everything that's been
-  // changed. we explicitly move the cursor at the beginning of each line
-  // (to work around broken prior lines), so no need to home it expliticly.
+  FILE* out = nc->mstreamfp;
+  fseeko(out, 0, SEEK_SET);
+  // don't write a clearscreen. we only update things that have been changed.
+  // we explicitly move the cursor at the beginning of each output line, so no
+  // need to home it expliticly.
   prep_optimized_palette(nc, out); // FIXME do what on failure?
   uint32_t curattr = 0; // current attributes set (does not include colors)
   // FIXME as of at least gcc 9.2.1, we get a false -Wmaybe-uninitialized below
@@ -1326,6 +1359,9 @@ notcurses_render_internal(notcurses* nc){
   // cells and the current cell uses no defaults, or if both the current and
   // the last used both defaults.
   bool fgelidable = false, bgelidable = false, defaultelidable = false;
+  /*if(nc->stdscr->leny != nc->shadowy || nc->stdscr->lenx != nc->shadowx){
+    reshape_shadow_fb(nc);
+  }*/
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     bool linedamaged = false; // have we repositioned the cursor to start line?
     bool newdamage = nc->damage[y];
@@ -1420,18 +1456,17 @@ notcurses_render_internal(notcurses* nc){
       nc->stats.cellelisions += x;
     }
   }
-  ret |= fclose(out);
+  ret |= fflush(out);
   fflush(nc->ttyfp);
-  if(blocking_write(nc->ttyfd, buf, buflen)){
+  if(blocking_write(nc->ttyfd, nc->mstream, nc->mstrsize)){
     ret = -1;
   }
 /*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
      fgelisions, fgemissions, bgelisions, bgemissions);*/
   if(nc->renderfp){
-    fprintf(nc->renderfp, "%s\n", buf);
+    fprintf(nc->renderfp, "%s\n", nc->mstream);
   }
-  free(buf);
-  return buflen;
+  return nc->mstrsize;
 }
 
 static void
@@ -1439,13 +1474,25 @@ mutex_unlock(void* vlock){
   pthread_mutex_unlock(vlock);
 }
 
+int notcurses_refresh(notcurses* nc){
+  int ret = 0;
+  pthread_mutex_lock(&nc->lock);
+  pthread_cleanup_push(mutex_unlock, &nc->lock);
+  if(nc->mstream == NULL){
+    ret = -1; // haven't rendered yet, and thus don't know what should be there
+  }else if(blocking_write(nc->ttyfd, nc->mstream, nc->mstrsize)){
+    ret = -1;
+  }
+  pthread_cleanup_pop(1);
+  return ret;
+}
+
 int notcurses_render(notcurses* nc){
-  int ret;
+  int ret = 0;
   struct timespec start, done;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   pthread_mutex_lock(&nc->lock);
   pthread_cleanup_push(mutex_unlock, &nc->lock);
-  ret = 0;
   int bytes = notcurses_render_internal(nc);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
@@ -1924,8 +1971,11 @@ void ncplane_updamage(ncplane* n){
   if(drangehigh > n->nc->stdscr->leny){
     drangehigh = n->nc->stdscr->leny;
   }
-  if(drangelow < 0){
-    drangelow = 0;
+  if(drangelow < n->nc->stdscr->absy){
+    drangelow = n->nc->stdscr->absy;
+  }
+  if(drangelow > n->nc->stdscr->absy + n->nc->stdscr->leny - 1){
+    drangelow = n->nc->stdscr->absy + n->nc->stdscr->leny - 1;
   }
   flash_damage_map(n->nc->damage + drangelow, drangehigh - drangelow, true);
 }
@@ -1934,39 +1984,13 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   if(n == n->nc->stdscr){
     return -1;
   }
-  if(n->absy != y){
-    // need to update the damage map of the notcurses object for both our old and
-    // our new lines
-    int drange1low = n->absy;
-    int drange1high = n->absy + n->leny;
-    if(drange1high > n->nc->stdscr->leny){
-      drange1high = n->nc->stdscr->leny;
-    }
-    if(drange1low < 0){
-      drange1low = 0;
-    }
-    int drange2low = y;
-    int drange2high = y + n->leny;
-    if(drange2high > n->nc->stdscr->leny){
-      drange2high = n->nc->stdscr->leny;
-    }
-    if(drange2low < 0){
-      drange2low = 0;
-    }
-    // must do two distinct flashes in either of these cases, as there's no overlap
-    if(drange2low > drange1high || drange2high < drange1low){
-      flash_damage_map(n->nc->damage + drange1low, drange1high - drange1low, true);
-      flash_damage_map(n->nc->damage + drange2low, drange2high - drange2low, true);
-    }else{
-      drange1low = drange1low < drange2low ? drange1low : drange2low;
-      drange1high = drange1high > drange2high ? drange1high : drange2high;
-      flash_damage_map(n->nc->damage + drange1low, drange1high - drange1low, true);
-    }
-    n->absy = y;
-  }else if(n->absx != x){
+  ncplane_updamage(n); // damage any lines we are currently on
+  bool movedy = n->absy != y;
+  n->absy = y;
+  n->absx = x;
+  if(movedy){
     ncplane_updamage(n);
   }
-  n->absx = x;
   return 0;
 }
 
@@ -2111,14 +2135,6 @@ void notcurses_cursor_disable(notcurses* nc){
   if(nc->civis){
     term_emit("civis", nc->civis, nc->ttyfp, false);
   }
-}
-
-int notcurses_refresh(notcurses* nc){
-  if(nc->stats.renders == 0){
-    return -1; // haven't rendered yet, and thus don't know what should be there
-  }
-  // FIXME
-  return 0;
 }
 
 ncplane* notcurses_top(notcurses* n){

@@ -49,24 +49,22 @@ int box_demo(struct notcurses* nc){
   if(ncplane_putstr_aligned(n, ytargbase++, "┗━━┻━━┛", NCALIGN_CENTER) < 0){
     return -1;
   }
-  ncplane_set_fg_rgb(n, 255, 255, 255);
-  ncplane_set_bg_rgb(n, 180, 40, 180);
   do{
     int y = 0, x = 0;
     ncplane_dim_yx(n, &ylen, &xlen);
     while(ylen - y >= targy && xlen - x >= targx){
       cell_set_fg_rgb(&ul, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg_rgb(&ul, zbonus, 20 + y, 20 + y);
+      cell_set_bg_rgb(&ul, 20, zbonus, 20);
       cell_set_fg_rgb(&ur, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg_rgb(&ur, zbonus, 20 + y, 20 + y);
+      cell_set_bg_rgb(&ur, 20, zbonus, 20);
       cell_set_fg_rgb(&hl, 107 - (y * 2), zbonus, 107 + (y * 2));
       cell_set_bg_rgb(&hl, 20, zbonus, 20);
       cell_set_fg_rgb(&ll, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg_rgb(&ll, zbonus, 20 + y, 20 + y);
+      cell_set_bg_rgb(&ll, 20, zbonus, 20);
       cell_set_fg_rgb(&lr, 107 - (y * 2), zbonus, 107 + (y * 2));
-      cell_set_bg_rgb(&lr, zbonus, 20 + y, 20 + y);
-      cell_set_fg_rgb(&vl, 20, zbonus, 20);
-      cell_set_bg_rgb(&vl, 107 - (y * 2), zbonus, 107 + (y * 2));
+      cell_set_bg_rgb(&lr, 20, zbonus, 20);
+      cell_set_fg_rgb(&vl, 107 - (y * 2), zbonus, 107 + (y * 2));
+      cell_set_bg_rgb(&vl, 20, zbonus, 20);
       if(ncplane_cursor_move_yx(n, y, x)){
         return -1;
       }

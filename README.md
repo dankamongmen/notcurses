@@ -379,12 +379,11 @@ corresponding to a bare NCURSES `WINDOW`.
 // of the resized ncplane. Finally, 'ylen' and 'xlen' are the dimensions of the
 // ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
 // and 'xlen' must be greater than or equal to 'keeplenx'. It is an error to
-// attempt to resize the standard plane. If either of 'keepy' or 'keepx' is
-// non-zero, both must be non-zero.
+// attempt to resize the standard plane. If either of 'keepleny' or 'keeplenx'
+// is non-zero, both must be non-zero.
 //
 // Essentially, the kept material does not move. It serves to anchor the
-// resized plane. If there is no kept material, the plane can move freely:
-// it is possible to implement ncplane_move() in terms of ncplane_resize().
+// resized plane. If there is no kept material, the plane can move freely.
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 
@@ -1750,6 +1749,7 @@ acquired using the `notcurses_stats()` function. This function cannot fail.
 ```c
 typedef struct ncstats {
   uint64_t renders;          // number of notcurses_render() runs
+  uint64_t failed_renders;   // number of aborted renders, should be 0
   uint64_t render_bytes;     // bytes emitted to ttyfp
   uint64_t render_max_bytes; // max bytes emitted for a frame
   uint64_t render_min_bytes; // min bytes emitted for a frame

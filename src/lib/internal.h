@@ -84,11 +84,15 @@ typedef struct notcurses {
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   FILE* ttyinfp;  // FILE* for processing input
   unsigned char* damage;   // damage map (row granularity)
+  char* mstream;  // buffer for rendering memstream, see open_memstream(3)
+  FILE* mstreamfp;// FILE* for rendering memstream
+  size_t mstrsize;// size of rendering memstream
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some terminfo capabilities exist. These needn't be checked
   // before further use; just use tiparm() directly.
   char* cup;      // move cursor
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   char* civis;    // hide cursor
   // These might be NULL, and we can more or less work without them. Check!
   char* clearscr; // erase screen and home cursor
@@ -112,9 +116,7 @@ typedef struct notcurses {
   char* italoff;  // CELL_STYLE_ITALIC (disable)
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
-
   struct termios tpreserved; // terminal state upon entry
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
