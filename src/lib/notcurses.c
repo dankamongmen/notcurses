@@ -889,7 +889,7 @@ advance_cursor(ncplane* n, int cols){
   }
   if((n->x += cols) >= n->lenx){
     ++n->y;
-    n->x -= n->lenx;
+    n->x = 0;
   }
 }
 
