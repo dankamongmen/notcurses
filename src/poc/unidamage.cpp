@@ -34,6 +34,8 @@ int main(int argc, char** argv){
       }
     }
   }
+  ncplane_putc_yx(n, dimy, dimx - 1, &c);
+  ncplane_putc_yx(n, dimy + 1, dimx - 2, &c);
   cell_release(n, &c);
   // put these on the right side of the wide glyphs
   for(int i = 0 ; i < dimy / 2 ; ++i){
