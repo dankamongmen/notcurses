@@ -932,12 +932,14 @@ typedef struct cell {
 #define CELL_ALPHA_OPAQUE      0
 ```
 
-`cell`s must be initialized with `CELL_TRIVIAL_INITIALIZER` or `cell_init()`
-before any other use (both merely zero out the `cell`).
+`cell`s must be initialized with an initialization macro or `cell_init()`
+before any other use. `cell_init()` and `CELL_TRIVIAL_INITIALIZER` both
+simply zero out the `cell`.
 
 ```c
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = c, .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
