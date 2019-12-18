@@ -829,7 +829,7 @@ int notcurses_stop(notcurses* nc){
              (nc->stats.fgelisions * 100.0) / (nc->stats.fgemissions + nc->stats.fgelisions),
             (nc->stats.bgemissions + nc->stats.bgelisions) == 0 ? 0 :
              (nc->stats.bgelisions * 100.0) / (nc->stats.bgemissions + nc->stats.bgelisions));
-    fprintf(stderr, "Cells emitted; %ju elided: %ju (%.2f%%)\n",
+    fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
             nc->stats.cellemissions, nc->stats.cellelisions,
             (nc->stats.cellemissions + nc->stats.cellelisions) == 0 ? 0 :
              (nc->stats.cellelisions * 100.0) / (nc->stats.cellemissions + nc->stats.cellelisions));
