@@ -7,6 +7,9 @@
 #include <pthread.h>
 #include "demo.h"
 
+// Fill up the screen with as much crazy Unicode as we can, and then set a
+// gremlin loose, looking to eat up all the wide characters.
+
 // FIXME throw this in there somehow
 //   ∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),     ⎧⎡⎛┌─────┐⎞⎤⎫
 //                                            ⎪⎢⎜│a²+b³ ⎟⎥⎪
@@ -345,7 +348,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
 }
 
 // Much of this text comes from http://kermitproject.org/utf8.html
-int widecolor_demo(struct notcurses* nc){
+int widechomper_demo(struct notcurses* nc){
   static const char* strs[] = {
     "Война и мир",
     "Бра́тья Карама́зовы",
