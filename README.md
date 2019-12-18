@@ -14,8 +14,8 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
 * [Requirements](#requirements)
 * [Use](#use)
   * [Input](#input)
-  * [Planes](#planes)
-  * [Cells](#cells)
+  * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
+  * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
   * [Multimedia](#multimedia)
   * [Panelreels](#panelreels)
   * [Channels](#channels)
@@ -25,6 +25,7 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
   * [Adapting NCURSES programs](#adapting-ncurses-programs)
 * [Environment notes](#environment-notes)
+  * [DirectColor detection](#DirectColor-detection)
   * [Fonts](#fonts)
 * [Supplemental material](#supplemental-material)
   * [Useful links](#useful-links)
@@ -41,7 +42,7 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
 
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
     replacement for NCURSES on existing systems, nor a widely-ported and -tested
-    bedrock of Open Source, nor a battle-proven, veteran library.
+    bedrock of free software, nor a battle-proven, veteran library.
 
 notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
@@ -202,6 +203,9 @@ you off guard.
 Utility functions operating on the toplevel `notcurses` object include:
 
 ```c
+// Return the topmost ncplane, of which there is always at least one.
+struct ncplane* notcurses_top(struct notcurses* n);
+
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
@@ -376,12 +380,11 @@ corresponding to a bare NCURSES `WINDOW`.
 // of the resized ncplane. Finally, 'ylen' and 'xlen' are the dimensions of the
 // ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
 // and 'xlen' must be greater than or equal to 'keeplenx'. It is an error to
-// attempt to resize the standard plane. If either of 'keepy' or 'keepx' is
-// non-zero, both must be non-zero.
+// attempt to resize the standard plane. If either of 'keepleny' or 'keeplenx'
+// is non-zero, both must be non-zero.
 //
 // Essentially, the kept material does not move. It serves to anchor the
-// resized plane. If there is no kept material, the plane can move freely:
-// it is possible to implement ncplane_move() in terms of ncplane_resize().
+// resized plane. If there is no kept material, the plane can move freely.
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 
@@ -420,6 +423,8 @@ void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 // Return the current styling for this ncplane.
 unsigned ncplane_styles(const struct ncplane* n);
 
+// Return the ncplane below this one, or NULL if this is at the stack's bottom.
+struct ncplane* ncplane_below(struct ncplane* n);
 ```
 
 If a given cell's glyph is zero, or its foreground channel is fully transparent,
@@ -462,6 +467,10 @@ not necessarily reflect anything on the actual screen).
 // Retrieve the cell at the cursor location on the specified plane, returning
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
 int ncplane_at_cursor(struct ncplane* n, cell* c);
+
+// Retrieve the cell at the specified location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
@@ -710,12 +719,9 @@ ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  cell_release(n, &ul); cell_release(n, &ur);
+  cell_release(n, &ll); cell_release(n, &lr);
+  cell_release(n, &hl); cell_release(n, &vl);
   return ret;
 }
 
@@ -738,12 +744,9 @@ ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  cell_release(n, &ul); cell_release(n, &ur);
+  cell_release(n, &ll); cell_release(n, &lr);
+  cell_release(n, &hl); cell_release(n, &vl);
   return ret;
 }
 
@@ -870,6 +873,32 @@ void ncplane_set_fg_default(struct ncplane* n);
 void ncplane_set_bg_default(struct ncplane* n);
 ```
 
+#### Wide chars
+
+Notcurses assumes that all glyphs occupy widths which are an integral multiple
+of the smallest possible glyph's cell width (aka a "fixed-width font"). Unicode
+introduces characters which generally occupy two such cells, known as wide
+characters (though in the end, width of a glyph is a property of the font). It
+is not possible to print half of such a glyph, nor is it generally possible to
+print a wide glyph on the last column of a terminal.
+
+Notcurses does not consider it an error to place a wide character on the last
+column of a line. It will obliterate any content which was in that cell, but
+will not itself be rendered. The default content will not be reproduced in such
+a cell, either. When any character is placed atop a wide character's left or
+right half, the wide character is obliterated in its entirety. When a wide
+character is placed, any character under its left or right side is annihilated,
+including wide characters. It is thus possible for two wide characters to sit
+at columns 0 and 2, and for both to be obliterated by a single wide character
+placed at column 1.
+
+Likewise, when rendering, a plane which would partially obstruct a wide glyph
+prevents it from being rendered entirely. A pathological case would be that of
+a terminal _n_ columns in width, containing _n-1_ planes, each 2 columns wide.
+The planes are placed at offsets [0..n - 2]. Each plane is above the plane to
+its left, and each plane contains a single wide character. Were this to be
+rendered, only the rightmost plane (and its single glyph) would be rendered!
+
 ### Cells
 
 Unlike the `notcurses` or `ncplane` objects, the definition of `cell` is
@@ -934,12 +963,14 @@ typedef struct cell {
 #define CELL_ALPHA_OPAQUE      0
 ```
 
-`cell`s must be initialized with `CELL_TRIVIAL_INITIALIZER` or `cell_init()`
-before any other use (both merely zero out the `cell`).
+`cell`s must be initialized with an initialization macro or `cell_init()`
+before any other use. `cell_init()` and `CELL_TRIVIAL_INITIALIZER` both
+simply zero out the `cell`.
 
 ```c
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = c, .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
@@ -1036,6 +1067,17 @@ cell_double_wide_p(const cell* c){
 static inline bool
 cell_simple_p(const cell* c){
   return c->gcluster < 0x80;
+}
+
+static inline int
+cell_load_simple(struct ncplane* n, cell* c, char ch){
+  cell_release(n, c);
+  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->gcluster = ch;
+  if(cell_simple_p(c)){
+    return 1;
+  }
+  return -1;
 }
 
 // get the offset into the egcpool for this cell's EGC. returns meaningless and
@@ -1745,6 +1787,7 @@ acquired using the `notcurses_stats()` function. This function cannot fail.
 ```c
 typedef struct ncstats {
   uint64_t renders;          // number of notcurses_render() runs
+  uint64_t failed_renders;   // number of aborted renders, should be 0
   uint64_t render_bytes;     // bytes emitted to ttyfp
   uint64_t render_max_bytes; // max bytes emitted for a frame
   uint64_t render_min_bytes; // min bytes emitted for a frame
@@ -1895,19 +1938,38 @@ These are pretty obvious, implementation-wise.
 
 * If your terminal has an option about default interpretation of "ambiguous-width
   characters" (this is actually a technical term from Unicode), ensure it is
-  set to **Wide**, not narrow.
+  set to **Wide**, not narrow. If that doesn't work, ensure it is set to
+  **Narrow**, heh.
 
 * If you can disable BiDi in your terminal, do so while running notcurses
   applications, until I have that handled better. notcurses doesn't recognize
   the BiDi state machine transitions, and thus merrily continues writing
-  left-to-right. ﷽!
+  left-to-right. Likewise, ultra-wide glyphs will have interesting effects.
+  ﷽!
 
 * The unit tests assume dimensions of at least 80x25. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
 
+### DirectColor detection
+
+notcurses aims to use only information found in the terminal's terminfo entry to detect capabilities, DirectColor
+being one of them. Support for this is indicated by terminfo having a flag, added in NCURSES 6.1, named `RGB` set
+to `true`. However, as of today there are few and far between terminfo entries which have the capability in their
+database entry and so DirectColor won't be used in most cases. Terminal emulators have had for years a kludge to
+work around this limitation of terminfo in the form of the `COLORTERM` environment variable which, if set to either
+`truecolor` or `24bit` does the job of indicating the capability of sending the escapes 48 and 38 together with a
+tripartite RGB (0 ≤ c ≤ 255 for all three components) to specify fore- and background colors.
+Checking for `COLORTERM` admittedly goes against the goal stated at the top of this section but, for all practical
+purposes, makes the detection work quite well **today**.
+
 ### Fonts
 
-Fonts end up being a whole thing.
+Fonts end up being a whole thing, little of which is pleasant. I'll write this
+up someday **FIXME**.
+
+### When all else fails...
+
+...fuck wit' it harder, hax0r.
 
 ## Supplemental material
 
@@ -1930,9 +1992,13 @@ Fonts end up being a whole thing.
 
 * [tui-rs](https://github.com/fdehau/tui-rs) (Rust)
 * [blessed-contrib](https://github.com/yaronn/blessed-contrib) (Javascript)
+* [FINAL CUT](https://github.com/gansm/finalcut) (C++)
 
 ### History
 
+* 2019-12-18: notcurses [0.9.0 "You dig in! You dig out! You get out!"](https://github.com/dankamongmen/notcurses/releases/tag/v0.9.0),
+    and also the first contributor besides myself (@grendello). Last major
+    pre-GA release.
 * 2019-12-05: notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
     the first generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
     and release it on YouTube.
@@ -1961,7 +2027,7 @@ Fonts end up being a whole thing.
 * Notcurses could never be what it is without decades of tireless, likely
     thankless work by Thomas E. Dickey on NCURSES. His FAQ is a model of
     engineering history. He exemplifies documentation excellence and
-    conservative, thoughtful stewardship. The Open Source community owes
+    conservative, thoughtful stewardship. The free software community owes
     Mr. Dickey a great debt.
 * Justine Tunney, one of my first friends at Google NYC, was always present
     with support, and pointed out the useful memstream functionality of

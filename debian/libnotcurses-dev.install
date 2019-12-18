@@ -2,3 +2,4 @@ usr/include
 usr/lib/*/*.so
 usr/lib/*/pkgconfig/*.pc
 usr/lib/*/cmake/*
+usr/share/man/man3/*

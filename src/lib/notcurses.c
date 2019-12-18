@@ -2,7 +2,6 @@
 #include <time.h>
 #include <term.h>
 #include <fcntl.h>
-#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -23,8 +22,6 @@
 #include "internal.h"
 #include "version.h"
 #include "egcpool.h"
-
-#define ESC "\x1b"
 
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
@@ -159,29 +156,6 @@ int ncplane_putwstr_aligned(struct ncplane* n, int y, const wchar_t* gclustarr,
   return ncplane_putwstr(n, gclustarr);
 }
 
-static inline uint64_t
-timespec_to_ns(const struct timespec* t){
-  return t->tv_sec * NANOSECS_IN_SEC + t->tv_nsec;
-}
-
-static void
-update_render_stats(const struct timespec* time1, const struct timespec* time0,
-                    ncstats* stats){
-  int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
-  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
-  //        (elapsed % NANOSECS_IN_SEC) / 1000000);
-  if(elapsed > 0){ // don't count clearly incorrect information, egads
-    ++stats->renders;
-    stats->render_ns += elapsed;
-    if(elapsed > stats->render_max_ns){
-      stats->render_max_ns = elapsed;
-    }
-    if(elapsed < stats->render_min_ns){
-      stats->render_min_ns = elapsed;
-    }
-  }
-}
-
 static const char NOTCURSES_VERSION[] =
  notcurses_VERSION_MAJOR "."
  notcurses_VERSION_MINOR "."
@@ -227,6 +201,16 @@ int ncplane_at_cursor(ncplane* n, cell* c){
     return -1;
   }
   return cell_duplicate(n, c, &n->fb[fbcellidx(n, n->y, n->x)]);
+}
+
+int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
+  if(y >= n->leny || x >= n->lenx){
+    return true;
+  }
+  if(y < 0 || x < 0){
+    return true;
+  }
+  return cell_duplicate(n, c, &n->fb[fbcellidx(n, y, x)]);
 }
 
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
@@ -284,24 +268,6 @@ free_plane(ncplane* p){
     free(p->fb);
     free(p);
   }
-}
-
-static int
-term_emit(const char* name, const char* seq, FILE* out, bool flush){
-  int ret = fprintf(out, "%s", seq);
-  if(ret < 0){
-    fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
-    return -1;
-  }
-  if((size_t)ret != strlen(seq)){
-    fprintf(stderr, "Short write (%db) for %zub %s sequence\n", ret, strlen(seq), name);
-    return -1;
-  }
-  if(flush && fflush(out)){
-    fprintf(stderr, "Error flushing after %db %s sequence (%s)\n", ret, name, strerror(errno));
-    return -1;
-  }
-  return 0;
 }
 
 // create a new ncplane at the specified location (relative to the true screen,
@@ -411,7 +377,12 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   if(fb == NULL){
     return -1;
   }
-  ncplane_updamage(n);
+  // if we're the standard plane, the updamage can be charged at the end. it's
+  // unsafe to call now anyway, because if we shrank, the notcurses damage map
+  // has already been shrunk down
+  if(n != n->nc->stdscr){
+    ncplane_updamage(n); // damage any lines we were on
+  }
   unsigned char* tmpdamage;
   if((tmpdamage = realloc(n->damage, sizeof(*n->damage) * ylen)) == NULL){
     free(fb);
@@ -440,7 +411,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     n->lenx = xlen;
     n->leny = ylen;
     free(preserved);
-    ncplane_updamage(n);
+    ncplane_updamage(n); // damage any lines we're now on
     return 0;
   }
   // we currently have maxy rows of maxx cells each. we will be keeping rows
@@ -477,7 +448,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   n->lenx = xlen;
   n->leny = ylen;
   free(preserved);
-  ncplane_updamage(n);
+  ncplane_updamage(n); // damage any lines we're now on
   return 0;
 }
 
@@ -522,10 +493,6 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   if((tmpdamage = malloc(sizeof(*n->damage) * *rows)) == NULL){
     return -1;
   }
-  if(ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
-    free(tmpdamage);
-    return -1;
-  }
   if(oldcols < *cols){ // all are busted if rows got bigger
     free(n->damage);
     flash_damage_map(tmpdamage, *rows, true);
@@ -535,6 +502,9 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
     free(n->damage);
   }
   n->damage = tmpdamage;
+  if(ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
+    return -1;
+  }
   return 0;
 }
 
@@ -575,6 +545,21 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
   fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
   nc->RGBflag = tigetflag("RGB") == 1;
+  if (nc->RGBflag == 0) {
+    // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not commonly found in
+    // terminal entries today. COLORTERM, however, is a de-facto (if imperfect/kludgy) standard way
+    // of indicating DirectColor support for a terminal. The variable takes one of two case-sensitive
+    // values:
+    //
+    //   truecolor
+    //   24bit
+    //
+    // https://gist.github.com/XVilka/8346728#true-color-detection gives some more information about
+    // the topic
+    //
+    const char* cterm = getenv("COLORTERM");
+    nc->RGBflag = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
+  }
   nc->CCCflag = tigetflag("ccc") == 1;
   if((nc->colors = tigetnum("colors")) <= 0){
     fprintf(stderr, "This terminal doesn't appear to support colors\n");
@@ -691,6 +676,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
+  ret->mstream = NULL;
+  ret->mstrsize = 0;
   if(make_nonblocking(ret->ttyinfp)){
     free(ret);
     return NULL;
@@ -747,6 +734,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if((ret->damage = malloc(sizeof(*ret->damage) * ret->stdscr->leny)) == NULL){
+    free_plane(ret->top);
+    goto err;
+  }
+  if((ret->mstreamfp = open_memstream(&ret->mstream, &ret->mstrsize)) == NULL){
+    free(ret->damage);
     free_plane(ret->top);
     goto err;
   }
@@ -808,8 +800,8 @@ int notcurses_stop(notcurses* nc){
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     if(nc->stats.renders){
       double avg = nc->stats.render_ns / (double)nc->stats.renders;
-      fprintf(stderr, "%ju renders, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
-              nc->stats.renders,
+      fprintf(stderr, "%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
+              nc->stats.renders, nc->stats.renders == 1 ? "" : "s",
               nc->stats.render_ns / 1000000000.0,
               nc->stats.render_min_ns / 1000000000.0,
               nc->stats.render_max_ns / 1000000000.0,
@@ -821,6 +813,8 @@ int notcurses_stop(notcurses* nc){
               nc->stats.render_max_bytes / 1024.0,
               avg / 1024);
     }
+    fprintf(stderr, "%ju failed render%s\n", nc->stats.failed_renders,
+            nc->stats.failed_renders == 1 ? "" : "s");
     fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
             nc->stats.defaultemissions,
             nc->stats.defaultelisions,
@@ -835,7 +829,7 @@ int notcurses_stop(notcurses* nc){
              (nc->stats.fgelisions * 100.0) / (nc->stats.fgemissions + nc->stats.fgelisions),
             (nc->stats.bgemissions + nc->stats.bgelisions) == 0 ? 0 :
              (nc->stats.bgelisions * 100.0) / (nc->stats.bgemissions + nc->stats.bgelisions));
-    fprintf(stderr, "Cells emitted; %ju elided: %ju (%.2f%%)\n",
+    fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
             nc->stats.cellemissions, nc->stats.cellelisions,
             (nc->stats.cellemissions + nc->stats.cellelisions) == 0 ? 0 :
              (nc->stats.cellelisions * 100.0) / (nc->stats.cellemissions + nc->stats.cellelisions));
@@ -844,6 +838,11 @@ int notcurses_stop(notcurses* nc){
       nc->top = p->z;
       free_plane(p);
     }
+    free(nc->damage);
+    if(nc->mstreamfp){
+      fclose(nc->mstreamfp);
+    }
+    free(nc->mstream);
     input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);
     free(nc);
@@ -892,128 +891,20 @@ int ncplane_set_bg_alpha(ncplane *n, int alpha){
 }
 
 int ncplane_set_default(ncplane* ncp, const cell* c){
-  return cell_duplicate(ncp, &ncp->defcell, c);
+  int ret = cell_duplicate(ncp, &ncp->defcell, c);
+  if(ret < 0){
+    return -1;
+  }
+  ncplane_updamage(ncp);
+  return ret;
 }
 
 int ncplane_default(ncplane* ncp, cell* c){
   return cell_duplicate(ncp, c, &ncp->defcell);
 }
 
-// 3 for foreground, 4 for background, ugh FIXME
-static int
-term_esc_rgb(FILE* out, int esc, unsigned r, unsigned g, unsigned b){
-  #define RGBESC1 ESC "["
-  #define RGBESC2 "8;2;"
-                                    // rrr;ggg;bbbm
-  char rgbesc[] = RGBESC1 " " RGBESC2 "            ";
-  int len = strlen(RGBESC1);
-  rgbesc[len++] = esc + '0';
-  len += strlen(RGBESC2);
-  if(r > 99){ rgbesc[len++] = r / 100 + '0'; }
-  if(r > 9){ rgbesc[len++] = (r % 100) / 10 + '0'; }
-  rgbesc[len++] = (r % 10) + '0';
-  rgbesc[len++] = ';';
-  if(g > 99){ rgbesc[len++] = g / 100 + '0'; }
-  if(g > 9){ rgbesc[len++] = (g % 100) / 10 + '0'; }
-  rgbesc[len++] = g % 10 + '0';
-  rgbesc[len++] = ';';
-  if(b > 99){ rgbesc[len++] = b / 100 + '0'; }
-  if(b > 9){ rgbesc[len++] = (b % 100) / 10 + '0'; }
-  rgbesc[len++] = b % 10 + '0';
-  rgbesc[len++] = 'm';
-  rgbesc[len] = '\0';
-  int w;
-  if((w = fprintf(out, "%.*s", len, rgbesc)) < len){
-    return -1;
-  }
-  return 0;
-}
-
-static int
-term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
-  // We typically want to use tputs() and tiperm() to acquire and write the
-  // escapes, as these take into account terminal-specific delays, padding,
-  // etc. For the case of DirectColor, there is no suitable terminfo entry, but
-  // we're also in that case working with hopefully more robust terminals.
-  // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  if(nc->RGBflag){
-    return term_esc_rgb(out, 4, r, g, b);
-  }else{
-    if(nc->setab == NULL){
-      return -1;
-    }
-    // For 256-color indexed mode, start constructing a palette based off
-    // the inputs *if we can change the palette*. If more than 256 are used on
-    // a single screen, start... combining close ones? For 8-color mode, simple
-    // interpolation. I have no idea what to do for 88 colors. FIXME
-    if(nc->colors >= 256){
-      term_emit("setab", tiparm(nc->setab, rgb_to_ansi256(r, g, b)), out, false);
-    }
-    return -1;
-  }
-  return 0;
-}
-
-static int
-term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
-  // We typically want to use tputs() and tiperm() to acquire and write the
-  // escapes, as these take into account terminal-specific delays, padding,
-  // etc. For the case of DirectColor, there is no suitable terminfo entry, but
-  // we're also in that case working with hopefully more robust terminals.
-  // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  if(nc->RGBflag){
-    return term_esc_rgb(out, 3, r, g, b);
-  }else{
-    if(nc->setaf == NULL){
-      return -1;
-    }
-    if(nc->colors >= 256){
-      term_emit("setaf", tiparm(nc->setaf, rgb_to_ansi256(r, g, b)), out, false);
-    }
-    // For 256-color indexed mode, start constructing a palette based off
-    // the inputs *if we can change the palette*. If more than 256 are used on
-    // a single screen, start... combining close ones? For 8-color mode, simple
-    // interpolation. I have no idea what to do for 88 colors. FIXME
-    return -1;
-  }
-  return 0;
-}
-
-static inline const char*
-extended_gcluster(const ncplane* n, const cell* c){
-  uint32_t idx = cell_egc_idx(c);
-  return n->pool.pool + idx;
-}
-
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
   return extended_gcluster(n, c);
-}
-
-// write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
-// number of columns occupied by this EGC (only an approximation; it's actually
-// a property of the font being used).
-static int
-term_putc(FILE* out, const ncplane* n, const cell* c){
-  if(cell_simple_p(c)){
-    if(c->gcluster == 0 || iscntrl(c->gcluster)){
-// fprintf(stderr, "[ ]\n");
-      if(fputc(' ', out) == EOF){
-        return -1;
-      }
-    }else{
-// fprintf(stderr, "[%c]\n", c->gcluster);
-      if(fputc(c->gcluster, out) == EOF){
-        return -1;
-      }
-    }
-  }else{
-    const char* ext = extended_gcluster(n, c);
-// fprintf(stderr, "[%s]\n", ext);
-    if(fprintf(out, "%s", ext) < 0){ // FIXME check for short write?
-      return -1;
-    }
-  }
-  return 0;
 }
 
 static void
@@ -1023,158 +914,12 @@ advance_cursor(ncplane* n, int cols){
   }
   if((n->x += cols) >= n->lenx){
     ++n->y;
-    n->x -= n->lenx;
+    n->x = 0;
   }
 }
-
-// check the current and target style bitmasks against the specified 'stylebit'.
-// if they are different, and we have the necessary capability, write the
-// applicable terminfo entry to 'out'. returns -1 only on a true error.
-static int
-term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
-              const char* ton, const char* toff){
-  int ret = 0;
-  unsigned curon = cur & stylebit;
-  unsigned targon = targ & stylebit;
-  if(curon != targon){
-    if(targon){
-      if(ton){
-        ret = term_emit("ton", ton, out, false);
-      }
-    }else{
-      if(toff){ // how did this happen? we can turn it on, but not off?
-        ret = term_emit("toff", toff, out, false);
-      }
-    }
-  }
-  if(ret < 0){
-    return -1;
-  }
-  return 0;
-}
-
-// write any escape sequences necessary to set the desired style
-static int
-term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
-               bool* normalized){
-  *normalized = false;
-  uint32_t cellattr = cell_styles(c);
-  if(cellattr == *curattr){
-    return 0; // happy agreement, change nothing
-  }
-  int ret = 0;
-  // if only italics changed, don't emit any sgr escapes. xor of current and
-  // target ought have all 0s in the lower 8 bits if only italics changed.
-  if((cellattr ^ *curattr) & 0x00ff0000ul){
-    *normalized = true; // FIXME this is pretty conservative
-    // if everything's 0, emit the shorter sgr0
-    if(nc->sgr0 && ((cellattr & CELL_STYLE_MASK) == 0)){
-      if(term_emit("sgr0", nc->sgr0, out, false) < 0){
-        ret = -1;
-      }
-    }else if(term_emit("sgr", tiparm(nc->sgr, cellattr & CELL_STYLE_STANDOUT,
-                                        cellattr & CELL_STYLE_UNDERLINE,
-                                        cellattr & CELL_STYLE_REVERSE,
-                                        cellattr & CELL_STYLE_BLINK,
-                                        cellattr & CELL_STYLE_DIM,
-                                        cellattr & CELL_STYLE_BOLD,
-                                        cellattr & CELL_STYLE_INVIS,
-                                        cellattr & CELL_STYLE_PROTECT, 0),
-                                        out, false) < 0){
-      ret = -1;
-    }
-  }
-  // sgr will blow away italics if they were set beforehand
-  ret |= term_setstyle(out, *curattr, cellattr, CELL_STYLE_ITALIC, nc->italics, nc->italoff);
-  *curattr = cellattr;
-  return ret;
-}
-
-// Find the topmost cell for this coordinate by walking down the z-buffer,
-// looking for an intersecting ncplane. Once we've found one, check it for
-// transparency in either the back- or foreground. If the alpha channel is
-// active, keep descending and blending until we hit opacity, or bedrock. We
-// recurse to find opacity, and blend the result into what we have. The
-// 'findfore' and 'findback' bools control our recursion--there's no point in
-// going further down when a color is locked in, so don't (for instance) recurse
-// further when we have a transparent foreground and opaque background atop an
-// opaque foreground and transparent background. The cell we ultimately return
-// (a const ref to 'c') is backed by '*retp' via rawdog copy; the caller must
-// not call cell_release() upon it, nor use it beyond the scope of the render.
-//
-// So, as we go down, we find planes which can have impact on the result. Once
-// we've locked the result in (base case), write the deep values we have to 'c'.
-// Then, as we come back up, blend them as appropriate. The actual glyph is
-// whichever one occurs at the top with a non-transparent α (α < 3). To effect
-// tail recursion, though, we instead write first, and then recurse, blending
-// as we descend. α <= 0 is opaque. α >= 3 is fully transparent.
-static ncplane*
-dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
-                 bool* damage){
-  while(p){
-    // where in the plane this coordinate would be, based off absy/absx. the
-    // true origin is 0,0, so abs=2,2 means coordinate 3,3 would be 1,1, while
-    // abs=-2,-2 would make coordinate 3,3 relative 5, 5.
-    int poffx, poffy;
-    poffy = y - p->absy;
-    poffx = x - p->absx;
-    if(poffy < p->leny && poffy >= 0){
-      if(poffx < p->lenx && poffx >= 0){ // p is valid for this y, x
-        const cell* vis = &p->fb[fbcellidx(p, poffy, poffx)];
-        // if we never loaded any content into the cell (or obliterated it by
-        // writing in a zero), use the plane's background cell.
-        if(vis->gcluster == 0){
-          vis = &p->defcell;
-        }
-        bool lockedglyph = false;
-        int nalpha;
-        if(falpha > 0 && (nalpha = cell_get_fg_alpha(vis)) < CELL_ALPHA_TRANS){
-          if(c->gcluster == 0){ // never write fully trans glyphs, never replace
-            if( (c->gcluster = vis->gcluster) ){ // index copy only
-              lockedglyph = true; // must return this ncplane for this glyph
-              c->attrword = vis->attrword;
-              cell_set_fchannel(c, cell_get_fchannel(vis)); // FIXME blend it in
-              falpha -= (CELL_ALPHA_TRANS - nalpha); // FIXME blend it in
-              if(p->damage[poffy]){
-                *damage = true;
-                p->damage[poffy] = false;
-              }
-            }
-          }
-        }
-        if(balpha > 0 && (nalpha = cell_get_bg_alpha(vis)) < CELL_ALPHA_TRANS){
-          cell_set_bchannel(c, cell_get_bchannel(vis)); // FIXME blend it in
-          balpha -= (CELL_ALPHA_TRANS - nalpha);
-          if(p->damage[poffy]){
-            *damage = true;
-            p->damage[poffy] = false;
-          }
-        }
-        if((falpha > 0 || balpha > 0) && p->z){ // we must go further!
-          ncplane* cand = dig_visible_cell(c, y, x, p->z, falpha, balpha, damage);
-          if(!lockedglyph && cand){
-            p = cand;
-          }
-        }
-        return p;
-      }
-    }
-    p = p->z;
-  }
-  // should never happen for valid y, x thanks to the stdplane. you fucked up!
-  return NULL;
-}
-
-static inline ncplane*
-visible_cell(cell* c, int y, int x, ncplane* n, bool* damage){
-  cell_init(c);
-  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANS, CELL_ALPHA_TRANS, damage);
-}
-
-// Call with c->gcluster == 3, falpha == 3, balpha == 0, *retp == topplane.
 
 // 'n' ends up above 'above'
-int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
+int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
@@ -1186,11 +931,12 @@ int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
   *an = n->z; // splice n out
   n->z = above; // attach above below n
   *aa = n; // spline n in above
+  ncplane_updamage(n); // conservative (we might not actually be visible)
   return 0;
 }
 
 // 'n' ends up below 'below'
-int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
+int ncplane_move_below_unsafe(ncplane* restrict n, ncplane* restrict below){
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
@@ -1198,6 +944,7 @@ int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
   *an = n->z; // splice n out
   n->z = below->z; // reattach subbelow list to n
   below->z = n; // splice n in below
+  ncplane_updamage(n); // conservative (we might not actually be visible)
   return 0;
 }
 
@@ -1209,6 +956,7 @@ int ncplane_move_top(ncplane* n){
   *an = n->z; // splice n out
   n->z = n->nc->top;
   n->nc->top = n;
+  ncplane_updamage(n);
   return 0;
 }
 
@@ -1224,215 +972,8 @@ int ncplane_move_bottom(ncplane* n){
   }
   *an = n;
   n->z = NULL;
+  ncplane_updamage(n);
   return 0;
-}
-
-static int
-blocking_write(int fd, const char* buf, size_t buflen){
-  size_t written = 0;
-  do{
-    ssize_t w = write(fd, buf + written, buflen - written);
-    if(w < 0){
-      if(errno != EAGAIN && errno != EWOULDBLOCK){
-        return -1;
-      }
-    }else{
-      written += w;
-    }
-    if(written < buflen){
-      struct pollfd pfd = {
-        .fd = fd,
-        .events = POLLOUT,
-        .revents = 0,
-      };
-      poll(&pfd, 1, -1);
-    }
-  }while(written < buflen);
-  return 0;
-}
-
-// determine the best palette for the current frame, and write the necessary
-// escape sequences to 'out'. for now, we just assume the ANSI palettes. at
-// 256 colors, this is the 16 normal ones, 6x6x6 color cubes, and 32 greys.
-// it's probably better to sample the darker regions rather than cover so much
-// chroma, but whatever....FIXME
-static int
-prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
-  if(nc->RGBflag){
-    return 0; // DirectColor, no need to write palette
-  }
-  if(!nc->CCCflag){
-    return 0; // can't change palette
-  }
-  // FIXME
-  return 0;
-}
-
-// FIXME this needs to keep an invalidation bitmap, rather than blitting the
-// world every time
-static inline int
-notcurses_render_internal(notcurses* nc){
-  int ret = 0;
-  int y, x;
-  char* buf = NULL;
-  size_t buflen = 0;
-  FILE* out = open_memstream(&buf, &buflen); // worth keeping around?
-  if(out == NULL){
-    return -1;
-  }
-  // no need to write a clearscreen, since we update everything that's been
-  // changed. we explicitly move the cursor at the beginning of each line
-  // (to work around broken prior lines), so no need to home it expliticly.
-  prep_optimized_palette(nc, out); // FIXME do what on failure?
-  uint32_t curattr = 0; // current attributes set (does not include colors)
-  // FIXME as of at least gcc 9.2.1, we get a false -Wmaybe-uninitialized below
-  // when using these without explicit initializations. for the life of me, i
-  // can't see any such path, and valgrind is cool with it, so what ya gonna do?
-  unsigned lastr = 0, lastg = 0, lastb = 0;
-  unsigned lastbr = 0, lastbg = 0, lastbb = 0;
-  // we can elide a color escape iff the color has not changed between the two
-  // cells and the current cell uses no defaults, or if both the current and
-  // the last used both defaults.
-  bool fgelidable = false, bgelidable = false, defaultelidable = false;
-  for(y = 0 ; y < nc->stdscr->leny ; ++y){
-    bool linedamaged = false; // have we repositioned the cursor to start line?
-    bool newdamage = nc->damage[y];
-// fprintf(stderr, "nc->damage[%d] (%p) = %u\n", y, nc->damage + y, nc->damage[y]);
-    if(newdamage){
-      nc->damage[y] = 0;
-    }
-    // move to the beginning of the line, in case our accounting was befouled
-    // by wider- (or narrower-) than-reported characters
-    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
-      unsigned r, g, b, br, bg, bb;
-      ncplane* p;
-      cell c; // no need to initialize
-      p = visible_cell(&c, y, x, nc->top, &newdamage);
-      assert(p);
-      // don't try to print a wide character on the last column; it'll instead
-      // be printed on the next line. they probably shouldn't be admitted, but
-      // we can end up with one due to a resize.
-      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
-        continue;
-      }
-      if(!linedamaged){
-        if(newdamage){
-          term_emit("cup", tiparm(nc->cup, y, x), out, false);
-          nc->stats.cellelisions += x;
-          nc->stats.cellemissions += (nc->stdscr->lenx - x);
-          linedamaged = true;
-        }else{
-          continue;
-        }
-      }
-      // set the style. this can change the color back to the default; if it
-      // does, we need update our elision possibilities.
-      bool normalized;
-      term_setstyles(nc, out, &curattr, &c, &normalized);
-      if(normalized){
-        defaultelidable = true;
-        bgelidable = false;
-        fgelidable = false;
-      }
-      // we allow these to be set distinctly, but terminfo only supports using
-      // them both via the 'op' capability. unless we want to generate the 'op'
-      // escapes ourselves, if either is set to default, we first send op, and
-      // then a turnon for whichever aren't default.
-
-      // we can elide the default set iff the previous used both defaults
-      if(cell_fg_default_p(&c) || cell_bg_default_p(&c)){
-        if(!defaultelidable){
-          ++nc->stats.defaultemissions;
-          term_emit("op", nc->op, out, false);
-        }else{
-          ++nc->stats.defaultelisions;
-        }
-        // if either is not default, this will get turned off
-        defaultelidable = true;
-        fgelidable = false;
-        bgelidable = false;
-      }
-
-      // we can elide the foreground set iff the previous used fg and matched
-      if(!cell_fg_default_p(&c)){
-        cell_get_fg_rgb(&c, &r, &g, &b);
-        if(fgelidable && lastr == r && lastg == g && lastb == b){
-          ++nc->stats.fgelisions;
-        }else{
-          term_fg_rgb8(nc, out, r, g, b);
-          ++nc->stats.fgemissions;
-          fgelidable = true;
-        }
-        lastr = r; lastg = g; lastb = b;
-        defaultelidable = false;
-      }
-      if(!cell_bg_default_p(&c)){
-        cell_get_bg_rgb(&c, &br, &bg, &bb);
-        if(bgelidable && lastbr == br && lastbg == bg && lastbb == bb){
-          ++nc->stats.bgelisions;
-        }else{
-          term_bg_rgb8(nc, out, br, bg, bb);
-          ++nc->stats.bgemissions;
-          bgelidable = true;
-        }
-        lastbr = br; lastbg = bg; lastbb = bb;
-        defaultelidable = false;
-      }
-// fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
-      term_putc(out, p, &c);
-      if(cell_double_wide_p(&c)){
-        ++x;
-      }
-    }
-    if(linedamaged == false){
-      nc->stats.cellelisions += x;
-    }
-  }
-  ret |= fclose(out);
-  fflush(nc->ttyfp);
-  if(blocking_write(nc->ttyfd, buf, buflen)){
-    ret = -1;
-  }
-/*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
-     fgelisions, fgemissions, bgelisions, bgemissions);*/
-  if(nc->renderfp){
-    fprintf(nc->renderfp, "%s\n", buf);
-  }
-  free(buf);
-  return buflen;
-}
-
-static void
-mutex_unlock(void* vlock){
-  pthread_mutex_unlock(vlock);
-}
-
-int notcurses_render(notcurses* nc){
-  int ret;
-  struct timespec start, done;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-  pthread_mutex_lock(&nc->lock);
-  pthread_cleanup_push(mutex_unlock, &nc->lock);
-  ret = 0;
-  int bytes = notcurses_render_internal(nc);
-  int dimy, dimx;
-  notcurses_resize(nc, &dimy, &dimx);
-  if(bytes > 0){
-    nc->stats.render_bytes += bytes;
-    if(bytes > nc->stats.render_max_bytes){
-      nc->stats.render_max_bytes = bytes;
-    }
-    if(bytes < nc->stats.render_min_bytes){
-      nc->stats.render_min_bytes = bytes;
-    }
-  }
-  clock_gettime(CLOCK_MONOTONIC_RAW, &done);
-  update_render_stats(&done, &start, &nc->stats);
-  if(bytes < 0){
-    ret = -1;
-  }
-  pthread_cleanup_pop(1);
-  return ret;
 }
 
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
@@ -1479,18 +1020,54 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   return ulen;
 }
 
+static inline void
+cell_set_wide(cell* c){
+  c->channels |= CELL_WIDEASIAN_MASK;
+}
+
+static inline void
+cell_obliterate(ncplane* n, cell* c){
+  cell_release(n, c);
+  cell_init(c);
+}
+
 int ncplane_putc(ncplane* n, const cell* c){
   ncplane_lock(n);
   if(cursor_invalid_p(n)){
     ncplane_unlock(n);
     return -1;
   }
+  bool wide = cell_double_wide_p(c);
+  // A wide character obliterates anything to its immediate right (and marks
+  // that cell as wide). Any character placed atop one half of a wide character
+  // obliterates the other half. Note that a wide char can thus obliterate two
+  // wide chars, totalling four columns.
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
+  if(n->x > 0){
+    if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
+      if(targ->gcluster == 0){ // we're the right half
+        cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x - 1)]);
+      }else{
+        cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x + 1)]);
+      }
+    }
+  }
   if(cell_duplicate(n, targ, c) < 0){
     ncplane_unlock(n);
     return -1;
   }
-  int cols = 1 + cell_double_wide_p(targ);
+  int cols = 1 + wide;
+  if(wide){ // must set our right wide, and check for further damage
+    if(n->x < n->lenx - 1){ // check to our right
+      cell* candidate = &n->fb[fbcellidx(n, n->y, n->x + 1)];
+      if(n->x < n->lenx - 2){
+        if(cell_double_wide_p(candidate) && targ->gcluster){ // left half
+          cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x + 2)]);
+        }
+      }
+      cell_set_wide(candidate);
+    }
+  }
   n->damage[n->y] = true;
   advance_cursor(n, cols);
   ncplane_unlock(n);
@@ -1498,11 +1075,7 @@ int ncplane_putc(ncplane* n, const cell* c){
 }
 
 int ncplane_putsimple(struct ncplane* n, char c){
-  cell ce = {
-    .gcluster = c,
-    .attrword = ncplane_get_attr(n),
-    .channels = ncplane_get_channels(n),
-  };
+  cell ce = CELL_INITIALIZER(c, ncplane_get_attr(n), ncplane_get_channels(n));
   if(!cell_simple_p(&ce)){
     return -1;
   }
@@ -1552,6 +1125,7 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   int bytes;
   int cols;
   if((bytes = utf8_egc_len(gcluster, &cols)) >= 0 && bytes <= 1){
+    c->channels &= ~CELL_WIDEASIAN_MASK;
     c->gcluster = *gcluster;
     return !!c->gcluster;
   }
@@ -1668,28 +1242,33 @@ int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
 
 int ncplane_hline_interp(ncplane* n, const cell* c, int len,
                          uint64_t c1, uint64_t c2){
-  unsigned r1, g1, b1, r2, g2, b2;
-  unsigned br1, bg1, bb1, br2, bg2, bb2;
-  channels_get_fg_rgb(c1, &r1, &g1, &b1);
-  channels_get_fg_rgb(c2, &r2, &g2, &b2);
-  channels_get_bg_rgb(c1, &br1, &bg1, &bb1);
-  channels_get_bg_rgb(c2, &br2, &bg2, &bb2);
-  int deltr = ((unsigned)r2 - r1) / (len + 1);
-  int deltg = ((unsigned)g2 - g1) / (len + 1);
-  int deltb = ((unsigned)b2 - b1) / (len + 1);
-  int deltbr = ((unsigned)br2 - br1) / (len + 1);
-  int deltbg = ((unsigned)bg2 - bg1) / (len + 1);
-  int deltbb = ((unsigned)bb2 - bb1) / (len + 1);
+  unsigned ur, ug, ub;
+  int r1, g1, b1, r2, g2, b2;
+  int br1, bg1, bb1, br2, bg2, bb2;
+  channels_get_fg_rgb(c1, &ur, &ug, &ub);
+  r1 = ur; g1 = ug; b1 = ub;
+  channels_get_fg_rgb(c2, &ur, &ug, &ub);
+  r2 = ur; g2 = ug; b2 = ub;
+  channels_get_bg_rgb(c1, &ur, &ug, &ub);
+  br1 = ur; bg1 = ug; bb1 = ub;
+  channels_get_bg_rgb(c2, &ur, &ug, &ub);
+  br2 = ur; bg2 = ug; bb2 = ub;
+  int deltr = (r2 - r1) / (len + 1);
+  int deltg = (g2 - g1) / (len + 1);
+  int deltb = (b2 - b1) / (len + 1);
+  int deltbr = (br2 - br1) / (len + 1);
+  int deltbg = (bg2 - bg1) / (len + 1);
+  int deltbb = (bb2 - bb1) / (len + 1);
   int ret;
   cell dupc = CELL_TRIVIAL_INITIALIZER;
   if(cell_duplicate(n, &dupc, c) < 0){
     return -1;
   }
   bool fgdef = false, bgdef = false;
-  if(cell_fg_default_p(c)){
+  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
     fgdef = true;
   }
-  if(cell_bg_default_p(c)){
+  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
@@ -1700,12 +1279,11 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
     bg1 += deltbg;
     bb1 += deltbb;
     if(!fgdef){
-      channels_set_fg_rgb(&c1, r1, g1, b1);
+      cell_set_fg_rgb(&dupc, r1, g1, b1);
     }
     if(!bgdef){
-      channels_set_bg_rgb(&c1, br1, bg1, bb1);
+      cell_set_bg_rgb(&dupc, br1, bg1, bb1);
     }
-    dupc.channels = c1;
     if(ncplane_putc(n, &dupc) <= 0){
       break;
     }
@@ -1716,18 +1294,23 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
 
 int ncplane_vline_interp(ncplane* n, const cell* c, int len,
                          uint64_t c1, uint64_t c2){
-  unsigned r1, g1, b1, r2, g2, b2;
-  unsigned br1, bg1, bb1, br2, bg2, bb2;
-  channels_get_fg_rgb(c1, &r1, &g1, &b1);
-  channels_get_fg_rgb(c2, &r2, &g2, &b2);
-  channels_get_bg_rgb(c1, &br1, &bg1, &bb1);
-  channels_get_bg_rgb(c2, &br2, &bg2, &bb2);
-  int deltr = ((unsigned)r2 - r1) / (len + 1);
-  int deltg = ((unsigned)g2 - g1) / (len + 1);
-  int deltb = ((unsigned)b2 - b1) / (len + 1);
-  int deltbr = ((unsigned)br2 - br1) / (len + 1);
-  int deltbg = ((unsigned)bg2 - bg1) / (len + 1);
-  int deltbb = ((unsigned)bb2 - bb1) / (len + 1);
+  unsigned ur, ug, ub;
+  int r1, g1, b1, r2, g2, b2;
+  int br1, bg1, bb1, br2, bg2, bb2;
+  channels_get_fg_rgb(c1, &ur, &ug, &ub);
+  r1 = ur; g1 = ug; b1 = ub;
+  channels_get_fg_rgb(c2, &ur, &ug, &ub);
+  r2 = ur; g2 = ug; b2 = ub;
+  channels_get_bg_rgb(c1, &ur, &ug, &ub);
+  br1 = ur; bg1 = ug; bb1 = ub;
+  channels_get_bg_rgb(c2, &ur, &ug, &ub);
+  br2 = ur; bg2 = ug; bb2 = ub;
+  int deltr = (r2 - r1) / (len + 1);
+  int deltg = (g2 - g1) / (len + 1);
+  int deltb = (b2 - b1) / (len + 1);
+  int deltbr = (br2 - br1) / (len + 1);
+  int deltbg = (bg2 - bg1) / (len + 1);
+  int deltbb = (bb2 - bb1) / (len + 1);
   int ret, ypos, xpos;
   ncplane_cursor_yx(n, &ypos, &xpos);
   cell dupc = CELL_TRIVIAL_INITIALIZER;
@@ -1735,10 +1318,10 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
     return -1;
   }
   bool fgdef = false, bgdef = false;
-  if(cell_fg_default_p(c)){
+  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
     fgdef = true;
   }
-  if(cell_bg_default_p(c)){
+  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
@@ -1752,12 +1335,11 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
     bg1 += deltbg;
     bb1 += deltbb;
     if(!fgdef){
-      channels_set_fg_rgb(&c1, r1, g1, b1);
+      cell_set_fg_rgb(&dupc, r1, g1, b1);
     }
     if(!bgdef){
-      channels_set_bg_rgb(&c1, br1, bg1, bb1);
+      cell_set_bg_rgb(&dupc, br1, bg1, bb1);
     }
-    dupc.channels = c1;
     if(ncplane_putc(n, &dupc) <= 0){
       break;
     }
@@ -1771,7 +1353,6 @@ static inline unsigned
 box_corner_needs(unsigned ctlword){
   return (ctlword & NCBOXCORNER_MASK) >> NCBOXCORNER_SHIFT;
 }
-
 
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hl,
@@ -1803,7 +1384,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
         return -1;
       }
-      if(!(ctlword & (NCBOXGRAD_TOP << 4u))){ // cell styling, hl
+      if(!(ctlword & NCBOXGRAD_TOP)){ // cell styling, hl
         if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
           return -1;
         }
@@ -1830,7 +1411,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xoff)){
         return -1;
       }
-      if((ctlword & (NCBOXGRAD_LEFT << 4u))){ // grad styling, ul->ll
+      if((ctlword & NCBOXGRAD_LEFT)){ // grad styling, ul->ll
         if(ncplane_vline_interp(n, vl, ystop - yoff, ul->channels, ll->channels) < 0){
           return -1;
         }
@@ -1844,7 +1425,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xstop)){
         return -1;
       }
-      if((ctlword & (NCBOXGRAD_RIGHT << 4u))){ // grad styling, ur->lr
+      if((ctlword & NCBOXGRAD_RIGHT)){ // grad styling, ur->lr
         if(ncplane_vline_interp(n, vl, ystop - yoff, ur->channels, lr->channels) < 0){
           return -1;
         }
@@ -1871,7 +1452,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
         return -1;
       }
-      if(!(ctlword & (NCBOXGRAD_BOTTOM << 4u))){ // cell styling, hl
+      if(!(ctlword & NCBOXGRAD_BOTTOM)){ // cell styling, hl
         if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
           return -1;
         }
@@ -1901,8 +1482,11 @@ void ncplane_updamage(ncplane* n){
   if(drangehigh > n->nc->stdscr->leny){
     drangehigh = n->nc->stdscr->leny;
   }
-  if(drangelow < 0){
-    drangelow = 0;
+  if(drangelow < n->nc->stdscr->absy){
+    drangelow = n->nc->stdscr->absy;
+  }
+  if(drangelow > n->nc->stdscr->absy + n->nc->stdscr->leny - 1){
+    drangelow = n->nc->stdscr->absy + n->nc->stdscr->leny - 1;
   }
   flash_damage_map(n->nc->damage + drangelow, drangehigh - drangelow, true);
 }
@@ -1911,39 +1495,13 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   if(n == n->nc->stdscr){
     return -1;
   }
-  if(n->absy != y){
-    // need to update the damage map of the notcurses object for both our old and
-    // our new lines
-    int drange1low = n->absy;
-    int drange1high = n->absy + n->leny;
-    if(drange1high > n->nc->stdscr->leny){
-      drange1high = n->nc->stdscr->leny;
-    }
-    if(drange1low < 0){
-      drange1low = 0;
-    }
-    int drange2low = y;
-    int drange2high = y + n->leny;
-    if(drange2high > n->nc->stdscr->leny){
-      drange2high = n->nc->stdscr->leny;
-    }
-    if(drange2low < 0){
-      drange2low = 0;
-    }
-    // must do two distinct flashes in either of these cases, as there's no overlap
-    if(drange2low > drange1high || drange2high < drange1low){
-      flash_damage_map(n->nc->damage + drange1low, drange1high - drange1low, true);
-      flash_damage_map(n->nc->damage + drange2low, drange2high - drange2low, true);
-    }else{
-      drange1low = drange1low < drange2low ? drange1low : drange2low;
-      drange1high = drange1high > drange2high ? drange1high : drange2high;
-      flash_damage_map(n->nc->damage + drange1low, drange1high - drange1low, true);
-    }
-    n->absy = y;
-  }else if(n->absx != x){
+  ncplane_updamage(n); // damage any lines we are currently on
+  bool movedy = n->absy != y;
+  n->absy = y;
+  n->absx = x;
+  if(movedy){
     ncplane_updamage(n);
   }
-  n->absx = x;
   return 0;
 }
 
@@ -1999,6 +1557,9 @@ int ncvisual_render(const ncvisual* ncv){
   const int linesize = f->linesize[0];
   const unsigned char* data = f->data[0];
   for(y = 0 ; y < f->height / 2 && y < dimy ; ++y){
+    if(ncplane_cursor_move_yx(ncv->ncp, y, 0)){
+      return -1;
+    }
     for(x = 0 ; x < f->width && x < dimx ; ++x){
       int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
       const unsigned char* rgbbase_up = data + (linesize * (y * 2)) + (x * bpp / CHAR_BIT);
@@ -2090,10 +1651,10 @@ void notcurses_cursor_disable(notcurses* nc){
   }
 }
 
-int notcurses_refresh(notcurses* nc){
-  if(nc->stats.renders == 0){
-    return -1; // haven't rendered yet, and thus don't know what should be there
-  }
-  // FIXME
-  return 0;
+ncplane* notcurses_top(notcurses* n){
+  return n->top;
+}
+
+ncplane* ncplane_below(ncplane* n){
+  return n->z;
 }

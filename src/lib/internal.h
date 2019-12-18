@@ -84,11 +84,15 @@ typedef struct notcurses {
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   FILE* ttyinfp;  // FILE* for processing input
   unsigned char* damage;   // damage map (row granularity)
+  char* mstream;  // buffer for rendering memstream, see open_memstream(3)
+  FILE* mstreamfp;// FILE* for rendering memstream
+  size_t mstrsize;// size of rendering memstream
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some terminfo capabilities exist. These needn't be checked
   // before further use; just use tiparm() directly.
   char* cup;      // move cursor
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   char* civis;    // hide cursor
   // These might be NULL, and we can more or less work without them. Check!
   char* clearscr; // erase screen and home cursor
@@ -112,9 +116,7 @@ typedef struct notcurses {
   char* italoff;  // CELL_STYLE_ITALIC (disable)
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
-
   struct termios tpreserved; // terminal state upon entry
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
@@ -168,26 +170,56 @@ flash_damage_map(unsigned char* damage, int count, bool val){
 void ncplane_updamage(ncplane* n);
 
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
-// ~2.4-bit 6x6x6 ANSI cube + greyscale (assumed on entry; I know no way to
+// ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
 // even semi-portably recover the palette) proceeds via: map each 8-bit to
 // a 5-bit target grey. if all 3 components match, select that grey.
 // otherwise, c / 42.7 to map to 6 values. this never generates pure black
 // nor white, though, lame...FIXME
 static inline int
-rgb_to_ansi256(unsigned r, unsigned g, unsigned b){
+rgb_quantize_256(unsigned r, unsigned g, unsigned b){
   const unsigned GREYMASK = 0xf8;
-  r &= GREYMASK;
-  g &= GREYMASK;
-  b &= GREYMASK;
-  if(r == g && g == b){ // 5 MSBs match, return grey
-    r >>= 3u;
-    r += 232;
-    return r > 255 ? 255: r;
+  // if all 5 MSBs match, return grey from 24-member grey ramp or pure
+  // black/white from original 16 (0 and 15, respectively)
+  if((r & GREYMASK) == (g & GREYMASK) && (g & GREYMASK) == (b & GREYMASK)){
+    // 256 / 26 == 9.846
+    int gidx = r * 5 / 49 - 1;
+    if(gidx < 0){
+      return 0;
+    }
+    if(gidx >= 24){
+      return 15;
+    }
+    return 232 + gidx;
   }
   r /= 43;
   g /= 43;
   b /= 43;
   return r * 36 + g * 6 + b + 16;
+}
+
+static inline int
+term_emit(const char* name __attribute__ ((unused)), const char* seq,
+          FILE* out, bool flush){
+  int ret = fprintf(out, "%s", seq);
+  if(ret < 0){
+// fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
+    return -1;
+  }
+  if((size_t)ret != strlen(seq)){
+// fprintf(stderr, "Short write (%db) for %zub %s sequence\n", ret, strlen(seq), name);
+    return -1;
+  }
+  if(flush && fflush(out)){
+// fprintf(stderr, "Error flushing after %db %s sequence (%s)\n", ret, name, strerror(errno));
+    return -1;
+  }
+  return 0;
+}
+
+static inline const char*
+extended_gcluster(const ncplane* n, const cell* c){
+  uint32_t idx = cell_egc_idx(c);
+  return n->pool.pool + idx;
 }
 
 #define NANOSECS_IN_SEC 1000000000

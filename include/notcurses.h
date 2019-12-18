@@ -133,6 +133,9 @@ API int notcurses_stop(struct notcurses* nc);
 // successful call to notcurses_render().
 API int notcurses_render(struct notcurses* nc);
 
+// Return the topmost ncplane, of which there is always at least one.
+API struct ncplane* notcurses_top(struct notcurses* n);
+
 // All input is currently taken from stdin, though this will likely change. We
 // attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
 // Extended Grapheme Cluster. It is also possible that we will read a special
@@ -279,7 +282,8 @@ API unsigned notcurses_supported_styles(const struct notcurses* nc);
 API int notcurses_palette_size(const struct notcurses* nc);
 
 typedef struct ncstats {
-  uint64_t renders;          // number of notcurses_render() runs
+  uint64_t renders;          // number of successful notcurses_render() runs
+  uint64_t failed_renders;   // number of aborted renders, should be 0
   uint64_t render_bytes;     // bytes emitted to ttyfp
   int64_t render_max_bytes;  // max bytes emitted for a frame
   int64_t render_min_bytes;  // min bytes emitted for a frame
@@ -309,12 +313,11 @@ API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
 // of the resized ncplane. Finally, 'ylen' and 'xlen' are the dimensions of the
 // ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
 // and 'xlen' must be greater than or equal to 'keeplenx'. It is an error to
-// attempt to resize the standard plane. If either of 'keepy' or 'keepx' is
-// non-zero, both must be non-zero.
+// attempt to resize the standard plane. If either of 'keepleny' or 'keeplenx'
+// is non-zero, both must be non-zero.
 //
 // Essentially, the kept material does not move. It serves to anchor the
-// resized plane. If there is no kept material, the plane can move freely:
-// it is possible to implement ncplane_move() in terms of ncplane_resize().
+// resized plane. If there is no kept material, the plane can move freely.
 API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 
@@ -342,15 +345,43 @@ API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 API int ncplane_move_top(struct ncplane* n);
 API int ncplane_move_bottom(struct ncplane* n);
 
-// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-API int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT below);
-
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
-API int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
+API int ncplane_move_above_unsafe(struct ncplane* RESTRICT n,
+                                  struct ncplane* RESTRICT above);
+
+static inline int
+ncplane_move_above(struct ncplane* n, struct ncplane* above){
+  if(n == above){
+    return -1;
+  }
+  return ncplane_move_above_unsafe(n, above);
+}
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+API int ncplane_move_below_unsafe(struct ncplane* RESTRICT n,
+                                  struct ncplane* RESTRICT below);
+
+static inline int
+ncplane_move_below(struct ncplane* n, struct ncplane* below){
+  if(n == below){
+    return -1;
+  }
+  return ncplane_move_below_unsafe(n, below);
+}
+
+// Return the plane above this one, or NULL if this is at the top.
+API struct ncplane* ncplane_below(struct ncplane* n);
+
+// Return the plane below this one, or NULL if this is at the bottom.
+API struct ncplane* ncplane_below(struct ncplane* n);
 
 // Retrieve the cell at the cursor location on the specified plane, returning
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
 API int ncplane_at_cursor(struct ncplane* n, cell* c);
+
+// Retrieve the cell at the specified location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+API int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
@@ -1074,7 +1105,8 @@ API int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
 // Working with cells
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = c, .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
@@ -1174,6 +1206,17 @@ cell_simple_p(const cell* c){
   return c->gcluster < 0x80;
 }
 
+static inline int
+cell_load_simple(struct ncplane* n, cell* c, char ch){
+  cell_release(n, c);
+  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->gcluster = ch;
+  if(cell_simple_p(c)){
+    return 1;
+  }
+  return -1;
+}
+
 // get the offset into the egcpool for this cell's EGC. returns meaningless and
 // unsafe results if called on a simple cell.
 static inline uint32_t
@@ -1231,12 +1274,9 @@ ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  cell_release(n, &ul); cell_release(n, &ur);
+  cell_release(n, &ll); cell_release(n, &lr);
+  cell_release(n, &hl); cell_release(n, &vl);
   return ret;
 }
 
@@ -1265,12 +1305,9 @@ ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  cell_release(n, &ul); cell_release(n, &ur);
+  cell_release(n, &ll); cell_release(n, &lr);
+  cell_release(n, &hl); cell_release(n, &vl);
   return ret;
 }
 

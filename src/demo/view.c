@@ -22,7 +22,7 @@ view_video_demo(struct notcurses* nc){
   ncplane_dim_yx(ncp, &dimy, &dimx);
   int averr;
   struct ncvisual* ncv;
-  ncv = ncplane_visual_open(ncp, "../tests/bob.mkv", &averr);
+  ncv = ncplane_visual_open(ncp, "../tests/fm6.mkv", &averr);
   if(!ncv){
     return -1;
   }

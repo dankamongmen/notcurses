@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(notcurses VERSION 0.9.0
+project(notcurses VERSION 1.0.0
   DESCRIPTION "UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)
@@ -79,7 +79,7 @@ target_compile_definitions(notcurses-demo
 )
 
 # tiny proofs of concept, one binary per source file
-file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c)
+file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c src/poc/*.cpp)
 foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
   add_executable(${fe} ${f})
@@ -202,11 +202,11 @@ file(GLOB MANPAGES1 CONFIGURE_DEPENDS doc/man/man1/*)
 file(GLOB MANPAGES3 CONFIGURE_DEPENDS doc/man/man3/*)
 install(FILES
   ${MANPAGES1}
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 )
 install(FILES
   ${MANPAGES3}
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man3
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3
 )
 
 install(TARGETS notcurses-demo DESTINATION bin)

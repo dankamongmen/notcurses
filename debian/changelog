@@ -1,8 +1,15 @@
-notcurses (0.9.0-1) UNRELEASED; urgency=medium
+notcurses (1.0.0-1) UNRELEASED; urgency=medium
 
-  * 
+  * Install binaries' man pages in notcurses-bin
+  * Install library man pages in libnotcurses-dev
 
- -- Nick Black <dankamongmen@gmail.com>  Thu, 05 Dec 2019 04:37:32 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Wed, 18 Dec 2019 06:47:44 -0500
+
+notcurses (0.9.0-1) unstable; urgency=medium
+
+  * New upstream version
+
+ -- Nick Black <dankamongmen@gmail.com>  Wed, 18 Dec 2019 05:32:55 -0500
 
 notcurses (0.4.0-1) unstable; urgency=medium
 

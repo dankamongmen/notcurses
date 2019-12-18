@@ -12,7 +12,7 @@ extern "C" {
 extern struct timespec demodelay;
 
 int unicodeblocks_demo(struct notcurses* nc);
-int widecolor_demo(struct notcurses* nc);
+int widechomper_demo(struct notcurses* nc);
 int box_demo(struct notcurses* nc);
 int maxcolor_demo(struct notcurses* nc);
 int grid_demo(struct notcurses* nc);

@@ -52,7 +52,7 @@ usage(const char* exe, int status){
   fprintf(out, " s: run shuffle\n");
   fprintf(out, " u: run uniblock\n");
   fprintf(out, " v: run view\n");
-  fprintf(out, " w: run widecolors\n");
+  fprintf(out, " w: run widechomper\n");
   exit(status);
 }
 
@@ -63,8 +63,29 @@ intro(struct notcurses* nc){
     return -1;
   }
   ncplane_erase(ncp);
+  if(ncplane_cursor_move_yx(ncp, 0, 0)){
+    return -1;
+  }
   int x, y, rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if(cells_rounded_box(ncp, CELL_STYLE_BOLD, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+  channels_set_fg_rgb(&ul.channels, 0xff, 0, 0);
+  channels_set_fg_rgb(&ur.channels, 0, 0xff, 0);
+  channels_set_fg_rgb(&ll.channels, 0, 0, 0xff);
+  channels_set_fg_rgb(&lr.channels, 0xff, 0xff, 0xff);
+  if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows, cols,
+                       NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM |
+                        NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
+    return -1;
+  }
+  cell_release(ncp, &ul); cell_release(ncp, &ur);
+  cell_release(ncp, &ll); cell_release(ncp, &lr);
+  cell_release(ncp, &hl); cell_release(ncp, &vl);
   cell c;
   cell_init(&c);
   const char* cstr = "Δ";
@@ -135,7 +156,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'g': ret = grid_demo(nc); break;
       case 'l': ret = luigi_demo(nc); break;
       case 'v': ret = view_demo(nc); break;
-      case 'w': ret = widecolor_demo(nc); break;
+      case 'w': ret = widechomper_demo(nc); break;
       case 'p': ret = panelreel_demo(nc); break;
       default:
         fprintf(stderr, "Unknown demo specification: %c\n", *demos);
