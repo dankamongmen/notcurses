@@ -1036,6 +1036,17 @@ cell_simple_p(const cell* c){
   return c->gcluster < 0x80;
 }
 
+static inline int
+cell_load_simple(struct ncplane* n, cell* c, char ch){
+  cell_release(n, c);
+  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->gcluster = ch;
+  if(cell_simple_p(c)){
+    return 1;
+  }
+  return -1;
+}
+
 // get the offset into the egcpool for this cell's EGC. returns meaningless and
 // unsafe results if called on a simple cell.
 static inline uint32_t
