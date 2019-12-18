@@ -576,8 +576,7 @@ int widecolor_demo(struct notcurses* nc){
     NULL
   };
   const char** s;
-  int count = notcurses_palette_size(nc);
-  const int steps[] = { 1, 0x100, 0x40000, 0x10001, };
+  const int steps[] = { 0x100, 0x100, 0x40000, 0x10001, };
   const int starts[] = { 0x004000, 0x000040, 0x010101, 0x400040, };
 
   struct ncplane* n = notcurses_stdplane(nc);
@@ -593,9 +592,6 @@ int widecolor_demo(struct notcurses* nc){
     do{ // (re)draw a screen
       const int start = starts[i];
       int step = steps[i];
-      const int rollover = 256 / ((step & 0xff) | ((step & 0xff00) >> 8u)
-                                  | ((step & 0xff0000) >> 16u));
-      int rollcount = 0; // number of times we've added this step
       cell_init(&c);
       int y, x, maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx);
@@ -654,19 +650,7 @@ int widecolor_demo(struct notcurses* nc){
             cols_out += r;
             ++egcs_out;
           }
-          if(++rollcount % rollover == 0){
-            step *= 256;
-          }
-          if((unsigned)step >= 1ul << 24){
-            step >>= 24u;
-          }
-          if(step == 0){
-            step = 1;
-          }
-          if((rgb += step) >= count){
-            rgb = 0;
-            step *= 256;
-          }
+          rgb += step;
         }
       }while(y < maxy && x < maxx);
       struct ncplane* mess = notcurses_newplane(nc, 7, 57, 1, 4, NULL);
