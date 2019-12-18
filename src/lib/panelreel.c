@@ -285,7 +285,11 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
 //        t, ll, cby, cbmaxy, leny, direction);
   if(ll != leny){
     if(ll == leny - 1){ // only has one border visible (partially off-screen)
-      ++ll; // account for that border
+      if(cbdir){
+        ll += !(pr->popts.tabletmask & NCBOXMASK_BOTTOM);
+      }else{
+        ll += !(pr->popts.tabletmask & NCBOXMASK_TOP);
+      }
       wresize(fp, ll, lenx);
       if(direction < 0){
         cliphead = true;
