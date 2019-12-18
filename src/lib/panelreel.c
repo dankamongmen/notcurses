@@ -296,7 +296,8 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
 //fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
       }
     }else{ // both borders are visible
-      ll += 2; // account for both borders
+      ll += !(pr->popts.tabletmask & NCBOXMASK_BOTTOM) +
+            !(pr->popts.tabletmask & NCBOXMASK_TOP);
 //fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
       wresize(fp, ll, lenx);
       if(direction < 0){
