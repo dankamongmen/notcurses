@@ -14,8 +14,8 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
 * [Requirements](#requirements)
 * [Use](#use)
   * [Input](#input)
-  * [Planes](#planes)
-  * [Cells](#cells)
+  * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
+  * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
   * [Multimedia](#multimedia)
   * [Panelreels](#panelreels)
   * [Channels](#channels)
@@ -867,6 +867,32 @@ void ncplane_set_bg(struct ncplane* n, uint32_t channel);
 void ncplane_set_fg_default(struct ncplane* n);
 void ncplane_set_bg_default(struct ncplane* n);
 ```
+
+#### Wide chars
+
+Notcurses assumes that all glyphs occupy widths which are an integral multiple
+of the smallest possible glyph's cell width (aka a "fixed-width font"). Unicode
+introduces characters which generally occupy two such cells, known as wide
+characters (though in the end, width of a glyph is a property of the font). It
+is not possible to print half of such a glyph, nor is it generally possible to
+print a wide glyph on the last column of a terminal.
+
+Notcurses does not consider it an error to place a wide character on the last
+column of a line. It will obliterate any content which was in that cell, but
+will not itself be rendered. The default content will not be reproduced in such
+a cell, either. When any character is placed atop a wide character's left or
+right half, the wide character is obliterated in its entirety. When a wide
+character is placed, any character under its left or right side is annihilated,
+including wide characters. It is thus possible for two wide characters to sit
+at columns 0 and 2, and for both to be obliterated by a single wide character
+placed at column 1.
+
+Likewise, when rendering, a plane which would partially obstruct a wide glyph
+prevents it from being rendered entirely. A pathological case would be that of
+a terminal _n_ columns in width, containing _n-1_ planes, each 2 columns wide.
+The planes are placed at offsets [0..n - 2]. Each plane is above the plane to
+its left, and each plane contains a single wide character. Were this to be
+rendered, only the rightmost plane (and its single glyph) would be rendered!
 
 ### Cells
 
