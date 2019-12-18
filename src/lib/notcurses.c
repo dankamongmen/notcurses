@@ -1014,11 +1014,7 @@ int ncplane_putc(ncplane* n, const cell* c){
 }
 
 int ncplane_putsimple(struct ncplane* n, char c){
-  cell ce = {
-    .gcluster = c,
-    .attrword = ncplane_get_attr(n),
-    .channels = ncplane_get_channels(n),
-  };
+  cell ce = CELL_INITIALIZER(c, ncplane_get_attr(n), ncplane_get_channels(n));
   if(!cell_simple_p(&ce)){
     return -1;
   }

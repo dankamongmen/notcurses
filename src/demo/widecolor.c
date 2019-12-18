@@ -283,6 +283,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, " ");
+  cell_set_fg_alpha(&c, CELL_ALPHA_TRANS);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANS);
   ncplane_set_default(n, &c);
   cell_release(n, &c);
@@ -297,7 +298,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   }
   // bottom handle
   ncplane_cursor_move_yx(n, 4, 17);
-  ncplane_putegc(n, "┬", 0, 0, NULL);
+  ncplane_putegc(n, "┬", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 5, 17);
   ncplane_putegc(n, "│", 0, channels, NULL);
   ncplane_cursor_move_yx(n, 6, 17);
@@ -577,7 +578,7 @@ int widecolor_demo(struct notcurses* nc){
   const char** s;
   int count = notcurses_palette_size(nc);
   const int steps[] = { 1, 0x100, 0x40000, 0x10001, };
-  const int starts[] = { 0x4000, 0x40, 0x10000, 0x400040, };
+  const int starts[] = { 0x004000, 0x000040, 0x010101, 0x400040, };
 
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
@@ -588,7 +589,7 @@ int widecolor_demo(struct notcurses* nc){
     cell c;
     struct timespec screenend;
     clock_gettime(CLOCK_MONOTONIC, &screenend);
-    ns_to_timespec(timespec_to_ns(&screenend) + timespec_to_ns(&demodelay), &screenend);
+    ns_to_timespec(timespec_to_ns(&screenend) + 2 * timespec_to_ns(&demodelay), &screenend);
     do{ // (re)draw a screen
       const int start = starts[i];
       int step = steps[i];
@@ -634,11 +635,18 @@ int widecolor_demo(struct notcurses* nc){
             }
             int ulen = 0;
             int r;
-            if((r = ncplane_putegc(n, &(*s)[idx], 0, channels, &ulen)) < 0){
-              if(ulen < 0){
+            if(wcwidth(wcs) <= maxx - x){
+              if((r = ncplane_putegc(n, &(*s)[idx], 0, channels, &ulen)) < 0){
+                if(ulen < 0){
+                  return -1;
+                }
+              }
+            }else{
+              cell octo = CELL_INITIALIZER('#', 0, channels);
+              if((r = ncplane_putc(n, &octo)) < 1){
                 return -1;
               }
-              break;
+              cell_release(n, &octo);
             }
             ncplane_cursor_yx(n, &y, &x);
             idx += ulen;
@@ -697,7 +705,7 @@ int widecolor_demo(struct notcurses* nc){
       pthread_join(tid, NULL);
       ncplane_destroy(mess);
       if(key == NCKEY_RESIZE){
-        notcurses_resize(nc, NULL, NULL);
+        notcurses_resize(nc, &maxy, &maxx);
       }
     }while(key == NCKEY_RESIZE);
   }
