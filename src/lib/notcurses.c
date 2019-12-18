@@ -1738,28 +1738,33 @@ int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
 
 int ncplane_hline_interp(ncplane* n, const cell* c, int len,
                          uint64_t c1, uint64_t c2){
-  unsigned r1, g1, b1, r2, g2, b2;
-  unsigned br1, bg1, bb1, br2, bg2, bb2;
-  channels_get_fg_rgb(c1, &r1, &g1, &b1);
-  channels_get_fg_rgb(c2, &r2, &g2, &b2);
-  channels_get_bg_rgb(c1, &br1, &bg1, &bb1);
-  channels_get_bg_rgb(c2, &br2, &bg2, &bb2);
-  int deltr = ((unsigned)r2 - r1) / (len + 1);
-  int deltg = ((unsigned)g2 - g1) / (len + 1);
-  int deltb = ((unsigned)b2 - b1) / (len + 1);
-  int deltbr = ((unsigned)br2 - br1) / (len + 1);
-  int deltbg = ((unsigned)bg2 - bg1) / (len + 1);
-  int deltbb = ((unsigned)bb2 - bb1) / (len + 1);
+  unsigned ur, ug, ub;
+  int r1, g1, b1, r2, g2, b2;
+  int br1, bg1, bb1, br2, bg2, bb2;
+  channels_get_fg_rgb(c1, &ur, &ug, &ub);
+  r1 = ur; g1 = ug; b1 = ub;
+  channels_get_fg_rgb(c2, &ur, &ug, &ub);
+  r2 = ur; g2 = ug; b2 = ub;
+  channels_get_bg_rgb(c1, &ur, &ug, &ub);
+  br1 = ur; bg1 = ug; bb1 = ub;
+  channels_get_bg_rgb(c2, &ur, &ug, &ub);
+  br2 = ur; bg2 = ug; bb2 = ub;
+  int deltr = (r2 - r1) / (len + 1);
+  int deltg = (g2 - g1) / (len + 1);
+  int deltb = (b2 - b1) / (len + 1);
+  int deltbr = (br2 - br1) / (len + 1);
+  int deltbg = (bg2 - bg1) / (len + 1);
+  int deltbb = (bb2 - bb1) / (len + 1);
   int ret;
   cell dupc = CELL_TRIVIAL_INITIALIZER;
   if(cell_duplicate(n, &dupc, c) < 0){
     return -1;
   }
   bool fgdef = false, bgdef = false;
-  if(cell_fg_default_p(c)){
+  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
     fgdef = true;
   }
-  if(cell_bg_default_p(c)){
+  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
@@ -1770,12 +1775,11 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
     bg1 += deltbg;
     bb1 += deltbb;
     if(!fgdef){
-      channels_set_fg_rgb(&c1, r1, g1, b1);
+      cell_set_fg_rgb(&dupc, r1, g1, b1);
     }
     if(!bgdef){
-      channels_set_bg_rgb(&c1, br1, bg1, bb1);
+      cell_set_bg_rgb(&dupc, br1, bg1, bb1);
     }
-    dupc.channels = c1;
     if(ncplane_putc(n, &dupc) <= 0){
       break;
     }
@@ -1786,18 +1790,23 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
 
 int ncplane_vline_interp(ncplane* n, const cell* c, int len,
                          uint64_t c1, uint64_t c2){
-  unsigned r1, g1, b1, r2, g2, b2;
-  unsigned br1, bg1, bb1, br2, bg2, bb2;
-  channels_get_fg_rgb(c1, &r1, &g1, &b1);
-  channels_get_fg_rgb(c2, &r2, &g2, &b2);
-  channels_get_bg_rgb(c1, &br1, &bg1, &bb1);
-  channels_get_bg_rgb(c2, &br2, &bg2, &bb2);
-  int deltr = ((unsigned)r2 - r1) / (len + 1);
-  int deltg = ((unsigned)g2 - g1) / (len + 1);
-  int deltb = ((unsigned)b2 - b1) / (len + 1);
-  int deltbr = ((unsigned)br2 - br1) / (len + 1);
-  int deltbg = ((unsigned)bg2 - bg1) / (len + 1);
-  int deltbb = ((unsigned)bb2 - bb1) / (len + 1);
+  unsigned ur, ug, ub;
+  int r1, g1, b1, r2, g2, b2;
+  int br1, bg1, bb1, br2, bg2, bb2;
+  channels_get_fg_rgb(c1, &ur, &ug, &ub);
+  r1 = ur; g1 = ug; b1 = ub;
+  channels_get_fg_rgb(c2, &ur, &ug, &ub);
+  r2 = ur; g2 = ug; b2 = ub;
+  channels_get_bg_rgb(c1, &ur, &ug, &ub);
+  br1 = ur; bg1 = ug; bb1 = ub;
+  channels_get_bg_rgb(c2, &ur, &ug, &ub);
+  br2 = ur; bg2 = ug; bb2 = ub;
+  int deltr = (r2 - r1) / (len + 1);
+  int deltg = (g2 - g1) / (len + 1);
+  int deltb = (b2 - b1) / (len + 1);
+  int deltbr = (br2 - br1) / (len + 1);
+  int deltbg = (bg2 - bg1) / (len + 1);
+  int deltbb = (bb2 - bb1) / (len + 1);
   int ret, ypos, xpos;
   ncplane_cursor_yx(n, &ypos, &xpos);
   cell dupc = CELL_TRIVIAL_INITIALIZER;
@@ -1805,10 +1814,10 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
     return -1;
   }
   bool fgdef = false, bgdef = false;
-  if(cell_fg_default_p(c)){
+  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
     fgdef = true;
   }
-  if(cell_bg_default_p(c)){
+  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
@@ -1822,12 +1831,11 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
     bg1 += deltbg;
     bb1 += deltbb;
     if(!fgdef){
-      channels_set_fg_rgb(&c1, r1, g1, b1);
+      cell_set_fg_rgb(&dupc, r1, g1, b1);
     }
     if(!bgdef){
-      channels_set_bg_rgb(&c1, br1, bg1, bb1);
+      cell_set_bg_rgb(&dupc, br1, bg1, bb1);
     }
-    dupc.channels = c1;
     if(ncplane_putc(n, &dupc) <= 0){
       break;
     }
@@ -1841,7 +1849,6 @@ static inline unsigned
 box_corner_needs(unsigned ctlword){
   return (ctlword & NCBOXCORNER_MASK) >> NCBOXCORNER_SHIFT;
 }
-
 
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hl,
@@ -1873,7 +1880,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
         return -1;
       }
-      if(!(ctlword & (NCBOXGRAD_TOP << 4u))){ // cell styling, hl
+      if(!(ctlword & NCBOXGRAD_TOP)){ // cell styling, hl
         if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
           return -1;
         }
@@ -1900,7 +1907,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xoff)){
         return -1;
       }
-      if((ctlword & (NCBOXGRAD_LEFT << 4u))){ // grad styling, ul->ll
+      if((ctlword & NCBOXGRAD_LEFT)){ // grad styling, ul->ll
         if(ncplane_vline_interp(n, vl, ystop - yoff, ul->channels, ll->channels) < 0){
           return -1;
         }
@@ -1914,7 +1921,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xstop)){
         return -1;
       }
-      if((ctlword & (NCBOXGRAD_RIGHT << 4u))){ // grad styling, ur->lr
+      if((ctlword & NCBOXGRAD_RIGHT)){ // grad styling, ur->lr
         if(ncplane_vline_interp(n, vl, ystop - yoff, ur->channels, lr->channels) < 0){
           return -1;
         }
@@ -1941,7 +1948,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
         return -1;
       }
-      if(!(ctlword & (NCBOXGRAD_BOTTOM << 4u))){ // cell styling, hl
+      if(!(ctlword & NCBOXGRAD_BOTTOM)){ // cell styling, hl
         if(ncplane_hline(n, hl, xstop - xoff - 1) < 0){
           return -1;
         }

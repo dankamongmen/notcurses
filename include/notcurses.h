@@ -1258,12 +1258,9 @@ ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  cell_release(n, &ul); cell_release(n, &ur);
+  cell_release(n, &ll); cell_release(n, &lr);
+  cell_release(n, &hl); cell_release(n, &vl);
   return ret;
 }
 
@@ -1292,12 +1289,9 @@ ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  cell_release(n, &ul); cell_release(n, &ur);
+  cell_release(n, &ll); cell_release(n, &lr);
+  cell_release(n, &hl); cell_release(n, &vl);
   return ret;
 }
 
