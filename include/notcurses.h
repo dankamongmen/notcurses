@@ -225,9 +225,9 @@ wchar_supppuab_p(wchar_t w){
 // masked and unmasked per ppoll(2). It should generally contain all signals.
 // Returns a single Unicode code point, or (wchar_t)-1 on error. 'sigmask' may
 // be NULL.
-API int notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
+API wchar_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
 
-static inline int
+static inline wchar_t
 notcurses_getc_nblock(struct notcurses* n){
   sigset_t sigmask;
   sigfillset(&sigmask);
