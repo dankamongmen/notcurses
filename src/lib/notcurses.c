@@ -1005,18 +1005,54 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   return ulen;
 }
 
+static inline void
+cell_set_wide(cell* c){
+  c->channels |= CELL_WIDEASIAN_MASK;
+}
+
+static inline void
+cell_obliterate(ncplane* n, cell* c){
+  cell_release(n, c);
+  cell_init(c);
+}
+
 int ncplane_putc(ncplane* n, const cell* c){
   ncplane_lock(n);
   if(cursor_invalid_p(n)){
     ncplane_unlock(n);
     return -1;
   }
+  bool wide = cell_double_wide_p(c);
+  // A wide character obliterates anything to its immediate right (and marks
+  // that cell as wide). Any character placed atop one half of a wide character
+  // obliterates the other half. Note that a wide char can thus obliterate two
+  // wide chars, totalling four columns.
   cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
+  if(n->x > 0){
+    if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
+      if(targ->gcluster == 0){ // we're the right half
+        cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x - 1)]);
+      }else{
+        cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x + 1)]);
+      }
+    }
+  }
   if(cell_duplicate(n, targ, c) < 0){
     ncplane_unlock(n);
     return -1;
   }
-  int cols = 1 + cell_double_wide_p(targ);
+  int cols = 1 + wide;
+  if(wide){ // must set our right wide, and check for further damage
+    if(n->x < n->lenx - 1){ // check to our right
+      cell* candidate = &n->fb[fbcellidx(n, n->y, n->x + 1)];
+      if(n->x < n->lenx - 2){
+        if(cell_double_wide_p(candidate) && targ->gcluster){ // left half
+          cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x + 2)]);
+        }
+      }
+      cell_set_wide(candidate);
+    }
+  }
   n->damage[n->y] = true;
   advance_cursor(n, cols);
   ncplane_unlock(n);
