@@ -1950,19 +1950,23 @@ These are pretty obvious, implementation-wise.
 
 ### DirectColor detection
 
-ncurses aims to use only information found in the terminal's terminfo entry to detect capabilities, DirectColor
+notcurses aims to use only information found in the terminal's terminfo entry to detect capabilities, DirectColor
 being one of them. Support for this is indicated by terminfo having a flag, added in NCURSES 6.1, named `RGB` set
 to `true`. However, as of today there are few and far between terminfo entries which have the capability in their
 database entry and so DirectColor won't be used in most cases. Terminal emulators have had for years a kludge to
 work around this limitation of terminfo in the form of the `COLORTERM` environment variable which, if set to either
 `truecolor` or `24bit` does the job of indicating the capability of sending the escapes 48 and 38 together with a
-tripartite RGB (0 <= c <= 255 for all three components) to specify fore- and background colors.
+tripartite RGB (0 ≤ c ≤ 255 for all three components) to specify fore- and background colors.
 Checking for `COLORTERM` admittedly goes against the goal stated at the top of this section but, for all practical
 purposes, makes the detection work quite well **today**.
 
 ### Fonts
 
-Fonts end up being a whole thing.
+Fonts end up being a whole thing, little of which is pleasant.
+
+### When all else fails...
+
+...fuck wit' it harder.
 
 ## Supplemental material
 
@@ -1985,6 +1989,7 @@ Fonts end up being a whole thing.
 
 * [tui-rs](https://github.com/fdehau/tui-rs) (Rust)
 * [blessed-contrib](https://github.com/yaronn/blessed-contrib) (Javascript)
+* [FINAL CUT](https://github.com/gansm/finalcut) (C++)
 
 ### History
 
