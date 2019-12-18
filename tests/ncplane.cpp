@@ -762,3 +762,59 @@ TEST_F(NcplaneTest, MoveToLowerRight) {
   EXPECT_EQ(0, ncplane_destroy(ncp));
   // FIXME verify with ncplane_at_cursor()
 }
+
+// Placing a wide char to the immediate left of any other char ought obliterate
+// that cell.
+TEST_F(NcplaneTest, WideCharAnnihilatesRight) {
+  const wchar_t* w = L"🐸";
+  const wchar_t* wbashed = L"🦂";
+  const char bashed = 'X';
+  int sbytes = 0;
+  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 1, wbashed, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putsimple_yx(n_, 1, 1, bashed));
+  int x, y;
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_EQ(1, y);
+  EXPECT_EQ(2, x);
+  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 0, w, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putwegc_yx(n_, 1, 0, w, 0, 0, &sbytes));
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  ncplane_at_yx(n_, 0, 0, &c);
+  const char* wres = extended_gcluster(n_, &c);
+  EXPECT_EQ(0, strcmp(wres, "🐸"));
+  ncplane_at_yx(n_, 0, 1, &c);
+  EXPECT_TRUE(cell_double_wide_p(&c));
+  ncplane_at_yx(n_, 0, 2, &c);
+  EXPECT_EQ(0, c.gcluster);
+  ncplane_at_yx(n_, 1, 0, &c);
+  wres = extended_gcluster(n_, &c);
+  EXPECT_EQ(0, strcmp(wres, "🐸"));
+  ncplane_at_yx(n_, 1, 1, &c);
+  EXPECT_TRUE(cell_double_wide_p(&c));
+  ncplane_at_yx(n_, 0, 2, &c);
+  EXPECT_EQ(0, c.gcluster);
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
+
+// Placing a wide char to the immediate right of a wide char ought obliterate
+// the original wide char.
+TEST_F(NcplaneTest, WideCharAnnihilatesWideLeft) {
+  const wchar_t* w = L"🐍";
+  const wchar_t* wbashed = L"🦂";
+  int sbytes = 0;
+  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 0, wbashed, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 1, w, 0, 0, &sbytes));
+  int x, y;
+  ncplane_cursor_yx(n_, &y, &x);
+  EXPECT_EQ(0, y);
+  EXPECT_EQ(3, x);
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  ncplane_at_yx(n_, 0, 0, &c);
+  EXPECT_EQ(0, c.gcluster);
+  ncplane_at_yx(n_, 0, 1, &c);
+  const char* wres = extended_gcluster(n_, &c);
+  EXPECT_EQ(0, strcmp(wres, "🐍"));
+  ncplane_at_yx(n_, 0, 2, &c);
+  EXPECT_TRUE(cell_double_wide_p(&c));
+  EXPECT_EQ(0, notcurses_render(nc_));
+}
