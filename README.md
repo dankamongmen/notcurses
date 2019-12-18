@@ -1938,12 +1938,14 @@ These are pretty obvious, implementation-wise.
 
 * If your terminal has an option about default interpretation of "ambiguous-width
   characters" (this is actually a technical term from Unicode), ensure it is
-  set to **Wide**, not narrow.
+  set to **Wide**, not narrow. If that doesn't work, ensure it is set to
+  **Narrow**, heh.
 
 * If you can disable BiDi in your terminal, do so while running notcurses
   applications, until I have that handled better. notcurses doesn't recognize
   the BiDi state machine transitions, and thus merrily continues writing
-  left-to-right. ﷽!
+  left-to-right. Likewise, ultra-wide glyphs will have interesting effects.
+  ﷽!
 
 * The unit tests assume dimensions of at least 80x25. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
@@ -1962,11 +1964,12 @@ purposes, makes the detection work quite well **today**.
 
 ### Fonts
 
-Fonts end up being a whole thing, little of which is pleasant.
+Fonts end up being a whole thing, little of which is pleasant. I'll write this
+up someday **FIXME**.
 
 ### When all else fails...
 
-...fuck wit' it harder.
+...fuck wit' it harder, hax0r.
 
 ## Supplemental material
 
@@ -1993,6 +1996,9 @@ Fonts end up being a whole thing, little of which is pleasant.
 
 ### History
 
+* 2019-12-18: notcurses [0.9.0 "You dig in! You dig out! You get out!"](https://github.com/dankamongmen/notcurses/releases/tag/v0.9.0),
+    and also the first contributor besides myself (@grendello). Last major
+    pre-GA release.
 * 2019-12-05: notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
     the first generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
     and release it on YouTube.
