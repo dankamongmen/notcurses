@@ -862,6 +862,8 @@ int notcurses_stop(notcurses* nc){
       nc->top = p->z;
       free_plane(p);
     }
+    free(nc->shadowbuf);
+    free(nc->damage);
     input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);
     free(nc);
@@ -1311,8 +1313,23 @@ prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   return 0;
 }
 
-// FIXME this needs to keep an invalidation bitmap, rather than blitting the
-// world every time
+// reshape the shadow framebuffer to match the stdplane's dimensions, throwing
+// away the old one.
+static int
+reshape_shadow_fb(notcurses* nc){
+  const size_t size = sizeof(nc->shadowbuf) * nc->stdscr->leny * nc->stdscr->lenx;
+  cell* fb = malloc(size);
+  if(fb == NULL){
+    return -1;
+  }
+  free(nc->shadowbuf);
+  nc->shadowbuf = fb;
+  nc->shadowy = nc->stdscr->leny;
+  nc->shadowx = nc->stdscr->lenx;
+  memset(fb, 0, size);
+  return 0;
+}
+
 static inline int
 notcurses_render_internal(notcurses* nc){
   int ret = 0;
@@ -1337,6 +1354,9 @@ notcurses_render_internal(notcurses* nc){
   // cells and the current cell uses no defaults, or if both the current and
   // the last used both defaults.
   bool fgelidable = false, bgelidable = false, defaultelidable = false;
+  if(nc->stdscr->leny != nc->shadowy || nc->stdscr->lenx != nc->shadowx){
+    reshape_shadow_fb(nc);
+  }
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     bool linedamaged = false; // have we repositioned the cursor to start line?
     bool newdamage = nc->damage[y];
