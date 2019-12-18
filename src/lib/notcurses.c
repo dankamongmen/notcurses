@@ -704,6 +704,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
+  ret->mstream = NULL;
+  ret->mstrsize = 0;
   if(make_nonblocking(ret->ttyinfp)){
     free(ret);
     return NULL;
@@ -711,9 +713,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->inputbuf_occupied = 0;
   ret->inputbuf_valid_starts = 0;
   ret->inputbuf_write_at = 0;
-  ret->shadowbuf = NULL;
-  ret->shadowy = 0;
-  ret->shadowx = 0;
   if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
     fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
     free(ret);
@@ -763,6 +762,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if((ret->damage = malloc(sizeof(*ret->damage) * ret->stdscr->leny)) == NULL){
+    free_plane(ret->top);
+    goto err;
+  }
+  if((ret->mstreamfp = open_memstream(&ret->mstream, &ret->mstrsize)) == NULL){
+    free(ret->damage);
     free_plane(ret->top);
     goto err;
   }
@@ -862,8 +866,11 @@ int notcurses_stop(notcurses* nc){
       nc->top = p->z;
       free_plane(p);
     }
-    free(nc->shadowbuf);
     free(nc->damage);
+    if(nc->mstreamfp){
+      fclose(nc->mstreamfp);
+    }
+    free(nc->mstream);
     input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);
     free(nc);
@@ -1313,6 +1320,7 @@ prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   return 0;
 }
 
+/*
 // reshape the shadow framebuffer to match the stdplane's dimensions, throwing
 // away the old one.
 static int
@@ -1329,20 +1337,17 @@ reshape_shadow_fb(notcurses* nc){
   memset(fb, 0, size);
   return 0;
 }
+*/
 
 static inline int
 notcurses_render_internal(notcurses* nc){
   int ret = 0;
   int y, x;
-  char* buf = NULL;
-  size_t buflen = 0;
-  FILE* out = open_memstream(&buf, &buflen); // worth keeping around?
-  if(out == NULL){
-    return -1;
-  }
-  // no need to write a clearscreen, since we update everything that's been
-  // changed. we explicitly move the cursor at the beginning of each line
-  // (to work around broken prior lines), so no need to home it expliticly.
+  FILE* out = nc->mstreamfp;
+  fseeko(out, 0, SEEK_SET);
+  // don't write a clearscreen. we only update things that have been changed.
+  // we explicitly move the cursor at the beginning of each output line, so no
+  // need to home it expliticly.
   prep_optimized_palette(nc, out); // FIXME do what on failure?
   uint32_t curattr = 0; // current attributes set (does not include colors)
   // FIXME as of at least gcc 9.2.1, we get a false -Wmaybe-uninitialized below
@@ -1354,9 +1359,9 @@ notcurses_render_internal(notcurses* nc){
   // cells and the current cell uses no defaults, or if both the current and
   // the last used both defaults.
   bool fgelidable = false, bgelidable = false, defaultelidable = false;
-  if(nc->stdscr->leny != nc->shadowy || nc->stdscr->lenx != nc->shadowx){
+  /*if(nc->stdscr->leny != nc->shadowy || nc->stdscr->lenx != nc->shadowx){
     reshape_shadow_fb(nc);
-  }
+  }*/
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     bool linedamaged = false; // have we repositioned the cursor to start line?
     bool newdamage = nc->damage[y];
@@ -1451,23 +1456,35 @@ notcurses_render_internal(notcurses* nc){
       nc->stats.cellelisions += x;
     }
   }
-  ret |= fclose(out);
+  ret |= fflush(out);
   fflush(nc->ttyfp);
-  if(blocking_write(nc->ttyfd, buf, buflen)){
+  if(blocking_write(nc->ttyfd, nc->mstream, nc->mstrsize)){
     ret = -1;
   }
 /*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
      fgelisions, fgemissions, bgelisions, bgemissions);*/
   if(nc->renderfp){
-    fprintf(nc->renderfp, "%s\n", buf);
+    fprintf(nc->renderfp, "%s\n", nc->mstream);
   }
-  free(buf);
-  return buflen;
+  return nc->mstrsize;
 }
 
 static void
 mutex_unlock(void* vlock){
   pthread_mutex_unlock(vlock);
+}
+
+int notcurses_refresh(notcurses* nc){
+  int ret = 0;
+  pthread_mutex_lock(&nc->lock);
+  pthread_cleanup_push(mutex_unlock, &nc->lock);
+  if(nc->mstream == NULL){
+    ret = -1; // haven't rendered yet, and thus don't know what should be there
+  }else if(blocking_write(nc->ttyfd, nc->mstream, nc->mstrsize)){
+    ret = -1;
+  }
+  pthread_cleanup_pop(1);
+  return ret;
 }
 
 int notcurses_render(notcurses* nc){
@@ -2118,14 +2135,6 @@ void notcurses_cursor_disable(notcurses* nc){
   if(nc->civis){
     term_emit("civis", nc->civis, nc->ttyfp, false);
   }
-}
-
-int notcurses_refresh(notcurses* nc){
-  if(nc->stats.renders == 0){
-    return -1; // haven't rendered yet, and thus don't know what should be there
-  }
-  // FIXME
-  return 0;
 }
 
 ncplane* notcurses_top(notcurses* n){

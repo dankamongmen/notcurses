@@ -1749,6 +1749,7 @@ acquired using the `notcurses_stats()` function. This function cannot fail.
 ```c
 typedef struct ncstats {
   uint64_t renders;          // number of notcurses_render() runs
+  uint64_t failed_renders;   // number of aborted renders, should be 0
   uint64_t render_bytes;     // bytes emitted to ttyfp
   uint64_t render_max_bytes; // max bytes emitted for a frame
   uint64_t render_min_bytes; // min bytes emitted for a frame

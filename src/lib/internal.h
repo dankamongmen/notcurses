@@ -84,6 +84,9 @@ typedef struct notcurses {
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   FILE* ttyinfp;  // FILE* for processing input
   unsigned char* damage;   // damage map (row granularity)
+  char* mstream;  // buffer for rendering memstream, see open_memstream(3)
+  FILE* mstreamfp;// FILE* for rendering memstream
+  size_t mstrsize;// size of rendering memstream
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   // We verify that some terminfo capabilities exist. These needn't be checked
@@ -113,9 +116,6 @@ typedef struct notcurses {
   char* italoff;  // CELL_STYLE_ITALIC (disable)
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
-  cell* shadowbuf;// last rendered frame
-  int shadowy;    // dimensions of shadowbuf
-  int shadowx;    // dimensions of shadowbuf
   struct termios tpreserved; // terminal state upon entry
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
