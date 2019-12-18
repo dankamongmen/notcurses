@@ -18,9 +18,8 @@ int main(int argc, char** argv){
   int dimx, dimy;
   ncplane_dim_yx(n, &dimy, &dimx);
   cell c = CELL_TRIVIAL_INITIALIZER;
-  //cell_set_bg_rgb(&c, 0, 0x80, 0);
+  cell_set_bg_rgb(&c, 0, 0x80, 0);
   //ncplane_set_default(n, &c);
-  cell_set_bg_default(&c);
   if(cell_load(n, &c, "🐳") < 0){
     goto err;
   }
@@ -34,8 +33,10 @@ int main(int argc, char** argv){
       }
     }
   }
+  ncplane_putc_yx(n, dimy, dimx - 3, &c);
   ncplane_putc_yx(n, dimy, dimx - 1, &c);
   ncplane_putc_yx(n, dimy + 1, dimx - 2, &c);
+  ncplane_putc_yx(n, dimy + 1, dimx - 4, &c);
   cell_release(n, &c);
   // put these on the right side of the wide glyphs
   for(int i = 0 ; i < dimy / 2 ; ++i){
