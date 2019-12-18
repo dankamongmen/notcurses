@@ -1622,6 +1622,7 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   int bytes;
   int cols;
   if((bytes = utf8_egc_len(gcluster, &cols)) >= 0 && bytes <= 1){
+    c->channels &= ~CELL_WIDEASIAN_MASK;
     c->gcluster = *gcluster;
     return !!c->gcluster;
   }
@@ -2053,6 +2054,9 @@ int ncvisual_render(const ncvisual* ncv){
   const int linesize = f->linesize[0];
   const unsigned char* data = f->data[0];
   for(y = 0 ; y < f->height / 2 && y < dimy ; ++y){
+    if(ncplane_cursor_move_yx(ncv->ncp, y, 0)){
+      return -1;
+    }
     for(x = 0 ; x < f->width && x < dimx ; ++x){
       int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
       const unsigned char* rgbbase_up = data + (linesize * (y * 2)) + (x * bpp / CHAR_BIT);
