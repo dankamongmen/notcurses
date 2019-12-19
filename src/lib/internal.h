@@ -74,7 +74,7 @@ typedef struct ncvisual {
   // describe where the plane ought be placed, and how it ought be sized. this
   // path sets ncobj. ncvisual_destroy() ought in that case kill the ncplane.
   int placex, placey;
-  bool stretch;            // false maintains aspect ratio of source media
+  ncscale_e style;         // none, scale, or stretch
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
 } ncvisual;
 

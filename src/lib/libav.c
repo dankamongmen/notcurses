@@ -251,18 +251,19 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, int* averr){
   // ncv->dstwidth *= 2;
   ncv->dstheight *= 2;
   ncv->ncp = nc;
+  ncv->style = NCSCALE_STRETCH;
   return ncv;
 }
 
 ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
-                              int* averr, int y, int x, bool stretch){
+                              int* averr, int y, int x, ncscale_e style){
   ncvisual* ncv = ncvisual_open(filename, averr);
   if(ncv == NULL){
     return NULL;
   }
   ncv->placey = y;
   ncv->placex = x;
-  ncv->stretch = stretch;
+  ncv->style = style;
   ncv->ncobj = nc;
   return ncv;
 }

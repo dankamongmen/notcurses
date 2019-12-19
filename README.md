@@ -1264,14 +1264,25 @@ to a renderable scene on the associated `ncplane`.
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
                                      int* averr);
 
+// How to scale the visual in ncvisual_open_plane(). NCSCALE_NONE will open a
+// plane tailored to the visual's exact needs, which is probably larger than the
+// visible screen (but might be smaller). NCSCALE_SCALE scales a visual larger
+// than the visible screen down, maintaining aspect ratio. NCSCALE_STRETCH
+// stretches and scales the image in an attempt to fill the visible screen.
+typedef enum {
+  NCSCALE_NONE,
+  NCSCALE_SCALE,
+  NCSCALE_STRETCH,
+} ncscale_e;
+
 // Open a visual, extract a codec and parameters, and create a new plane
 // suitable for its display at 'y','x'. If there is sufficient room to display
-// the visual in its native size, the new plane will be exactly that large.
-// Otherwise, the visual will be scaled to the available space. If 'stretch' is
-// false, its aspect ratio will be maintained. Otherwise, the visual will be
-// scaled to fill the maximum possible new plane.
+// the visual in its native size, or if NCSCALE_NONE is passed for 'style', the
+// new plane will be exactly that large. Otherwise, the plane will be as large
+// as possble (given the visible screen), either maintaining aspect ratio
+// (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
 struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
-                                     int* averr, int y, int x, bool stretch);
+                                     int* averr, int y, int x, ncscale_e style);
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
