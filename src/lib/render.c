@@ -84,7 +84,7 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
 // 256 colors, this is the 16 normal ones, 6x6x6 color cubes, and 32 greys.
 // it's probably better to sample the darker regions rather than cover so much
 // chroma, but whatever....FIXME
-static int
+static inline int
 prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   if(nc->RGBflag){
     return 0; // DirectColor, no need to write palette
@@ -136,6 +136,9 @@ reshape_shadow_fb(notcurses* nc){
 static ncplane*
 dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
                  bool* damage){
+  // once we decide on our glyph, it cannot be changed by anything below, so
+  // lock in this plane for the actual cell return.
+  ncplane* glyphplane = NULL;
   while(p){
     // where in the plane this coordinate would be, based off absy/absx. the
     // true origin is 0,0, so abs=2,2 means coordinate 3,3 would be 1,1, while
@@ -151,12 +154,11 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
         if(vis->gcluster == 0){
           vis = &p->defcell;
         }
-        bool lockedglyph = false;
         int nalpha;
         if(falpha > 0 && (nalpha = cell_get_fg_alpha(vis)) < CELL_ALPHA_TRANS){
           if(c->gcluster == 0){ // never write fully trans glyphs, never replace
             if( (c->gcluster = vis->gcluster) ){ // index copy only
-              lockedglyph = true; // must return this ncplane for this glyph
+              glyphplane = p; // must return this ncplane for this glyph
               c->attrword = vis->attrword;
               cell_set_fchannel(c, cell_get_fchannel(vis)); // FIXME blend it in
               falpha -= (CELL_ALPHA_TRANS - nalpha); // FIXME blend it in
@@ -175,13 +177,9 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
             p->damage[poffy] = false;
           }
         }
-        if((falpha > 0 || balpha > 0) && p->z){ // we must go further!
-          ncplane* cand = dig_visible_cell(c, y, x, p->z, falpha, balpha, damage);
-          if(!lockedglyph && cand){
-            p = cand;
-          }
+        if((falpha <= 0 && balpha <= 0) || !p->z){ // done!
+          return glyphplane ? glyphplane : p;
         }
-        return p;
       }
     }
     p = p->z;
@@ -513,8 +511,8 @@ notcurses_render_internal(notcurses* nc){
 }
 
 int notcurses_render(notcurses* nc){
-  int ret = 0;
   struct timespec start, done;
+  int ret;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   pthread_mutex_lock(&nc->lock);
   pthread_cleanup_push(mutex_unlock, &nc->lock);
@@ -523,9 +521,7 @@ int notcurses_render(notcurses* nc){
   notcurses_resize(nc, &dimy, &dimx);
   clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
-  if(bytes < 0){
-    ret = -1;
-  }
+  ret = bytes >= 0 ? 0 : -1;
   pthread_cleanup_pop(1);
   return ret;
 }
