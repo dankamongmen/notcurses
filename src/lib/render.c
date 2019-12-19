@@ -38,13 +38,15 @@ blocking_write(int fd, const char* buf, size_t buflen){
 }
 
 int notcurses_refresh(notcurses* nc){
-  int ret = 0;
+  int ret;
   pthread_mutex_lock(&nc->lock);
   pthread_cleanup_push(mutex_unlock, &nc->lock);
   if(nc->mstream == NULL){
     ret = -1; // haven't rendered yet, and thus don't know what should be there
   }else if(blocking_write(nc->ttyfd, nc->mstream, nc->mstrsize)){
     ret = -1;
+  }else{
+    ret = 0;
   }
   pthread_cleanup_pop(1);
   return ret;
