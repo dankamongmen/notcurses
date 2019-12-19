@@ -61,7 +61,7 @@ void input_free_esctrie(esctrie** eptr){
 }
 
 static int
-notcurses_add_input_escape(notcurses* nc, const char* esc, wchar_t special){
+notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
   if(esc[0] != ESC || strlen(esc) < 2){ // assume ESC prefix + content
     fprintf(stderr, "Not an escape: %s (0x%x)\n", esc, special);
     return -1;
@@ -103,7 +103,7 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, wchar_t special){
 // add the keypress we just read to our input queue (assuming there is room).
 // if there is a full UTF8 codepoint or keystroke (composed or otherwise),
 // return it, and pop it from the queue.
-static wchar_t
+static char32_t
 handle_getc(notcurses* nc, int kpress){
 // fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress < 0){
@@ -148,6 +148,7 @@ handle_getc(notcurses* nc, int kpress){
   }
   cpoint[cpointlen] = '\0';
   wchar_t w;
+  // FIXME how the hell does this work with 16-bit wchar_t?
   if(mbtowc(&w, cpoint, cpointlen) < 0){
     return (wchar_t)-1;
   }
@@ -180,7 +181,7 @@ input_queue_full(const notcurses* nc){
   return nc->inputbuf_occupied == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf);
 }
 
-static wchar_t
+static char32_t
 handle_input(notcurses* nc){
   int r;
   // getc() returns unsigned chars cast to ints
@@ -206,15 +207,15 @@ handle_input(notcurses* nc){
 }
 
 // infp has always been set non-blocking
-wchar_t notcurses_getc(notcurses* nc, const struct timespec *ts, sigset_t* sigmask){
+char32_t notcurses_getc(notcurses* nc, const struct timespec *ts, sigset_t* sigmask){
   errno = 0;
-  int r = handle_input(nc);
-  if(r > 0){
+  char32_t r = handle_input(nc);
+  if(r == (char32_t)-1){
+    if(errno == EAGAIN || errno == EWOULDBLOCK){
+      block_on_input(nc->ttyinfp, ts, sigmask);
+      return handle_input(nc);
+    }
     return r;
-  }
-  if(errno == EAGAIN || errno == EWOULDBLOCK){
-    block_on_input(nc->ttyinfp, ts, sigmask);
-    return handle_input(nc);
   }
   return r;
 }
@@ -222,7 +223,7 @@ wchar_t notcurses_getc(notcurses* nc, const struct timespec *ts, sigset_t* sigma
 int prep_special_keys(notcurses* nc){
   static const struct {
     const char* tinfo;
-    wchar_t key;
+    char32_t key;
   } keys[] = {
     { .tinfo = "kcub1", .key = NCKEY_LEFT, },
     { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
