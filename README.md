@@ -277,14 +277,13 @@ must be readable without delay for it to be interpreted as such.
 // notcurses_getc_blocking() blocks until a codepoint or special key is read,
 // or until interrupted by a signal.
 //
-// In the case of a valid read, a positive value is returned corresponding to
-// the number of bytes in the UTF-8 character, or '1' for all special keys.
-// 0 is returned to indicate that no input was available, but only by
-// notcurses_getc(). Otherwise (including on EOF) -1 is returned.
+// In the case of a valid read, a 32-bit Unicode codepoint is returned. 0 is
+// returned to indicate that no input was available, but only by
+// notcurses_getc(). Otherwise (including on EOF) (char32_t)-1 is returned.
 
 // is this wide character a Supplementary Private Use Area-B codepoint?
 static inline bool
-wchar_supppuab_p(wchar_t w){
+wchar_supppuab_p(char32_t w){
   return w >= 0x100000 && w <= 0x10fffd;
 }
 
@@ -336,11 +335,11 @@ wchar_supppuab_p(wchar_t w){
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
-// Returns a single Unicode code point, or (wchar_t)-1 on error. 'sigmask' may
+// Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
 // be NULL.
-wchar_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
+char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
 
-static inline wchar_t
+static inline char32_t
 notcurses_getc_nblock(struct notcurses* n){
   sigset_t sigmask;
   sigfillset(&sigmask);
@@ -348,7 +347,7 @@ notcurses_getc_nblock(struct notcurses* n){
   return notcurses_getc(n, &ts, &sigmask);
 }
 
-static inline wchar_t
+static inline char32_t
 notcurses_getc_blocking(struct notcurses* n){
   sigset_t sigmask;
   sigemptyset(&sigmask);
