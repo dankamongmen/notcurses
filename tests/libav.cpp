@@ -74,7 +74,7 @@ TEST_F(LibavTest, LoadVideoCreatePlane) {
   int averr;
   int dimy, dimx;
   ncplane_dim_yx(ncp_, &dimy, &dimx);
-  auto ncv = ncvisual_open_plane(nc_, "../tests/fm6.mkv", &averr, 0, 0, false);
+  auto ncv = ncvisual_open_plane(nc_, "../tests/fm6.mkv", &averr, 0, 0, NCSCALE_NONE);
   ASSERT_NE(nullptr, ncv);
   EXPECT_EQ(0, averr);
   auto frame = ncvisual_decode(ncv, &averr);
