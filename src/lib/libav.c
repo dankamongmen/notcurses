@@ -112,12 +112,17 @@ AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr){
 #define IMGALLOCALIGN 32
   if(nc->ncp == NULL){ // create plane
     int rows, cols;
-    notcurses_term_dim_yx(nc->ncobj, &rows, &cols);
-    if(nc->placey >= rows || nc->placex >= cols){
-      return NULL;
+    if(nc->style == NCSCALE_NONE){
+      rows = nc->frame->height / 2;
+      cols = nc->frame->width;
+    }else{ // FIXME differentiate between scale/stretch
+      notcurses_term_dim_yx(nc->ncobj, &rows, &cols);
+      if(nc->placey >= rows || nc->placex >= cols){
+        return NULL;
+      }
+      rows -= nc->placey;
+      cols -= nc->placex;
     }
-    rows -= nc->placey;
-    cols -= nc->placex;
     nc->dstwidth = cols;
     nc->dstheight = rows * 2;
     nc->ncp = notcurses_newplane(nc->ncobj, rows, cols, nc->placey, nc->placex, nc);
@@ -265,5 +270,6 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   ncv->placex = x;
   ncv->style = style;
   ncv->ncobj = nc;
+  ncv->ncp = NULL;
   return ncv;
 }
