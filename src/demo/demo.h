@@ -2,6 +2,7 @@
 #define NOTCURSES_DEMO
 
 #include <time.h>
+#include <limits.h>
 #include <notcurses.h>
 
 #ifdef __cplusplus
@@ -10,6 +11,9 @@ extern "C" {
 
 // configured via command line option -- the base number of ns between demos
 extern struct timespec demodelay;
+
+// heap-allocated, caller must free. locates data files per command line args.
+char* find_data(const char* datum);
 
 int unicodeblocks_demo(struct notcurses* nc);
 int widechomper_demo(struct notcurses* nc);

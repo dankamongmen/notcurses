@@ -3,11 +3,15 @@
 notcurses-demo \- Show off some notcurses features
 .SH SYNOPSIS
 .B notcurses-demo
+[ \fB\-p \fIpath \fR]
 [ \fB\-d \fIdelaymult \fR]
 [ \fB\-k \fR]
 [ \fB\-h / \fB\-\-help \fR]
 .IR demospec
 .SH OPTIONS
+.TP
+.BR \-p \fIpath\fR
+Look in the specified path for data files.
 .TP
 .BR \-d \fIdelaymult\fR
 Apply a (floating-point) multiplier to the standard delay of 1s.
@@ -26,6 +30,8 @@ Select which demos to run, and what order to run them in. The default is "imlubg
 contains a set of text-based demonstrations of capabilities from the notcurses library. The demonstrations include:
 .P
 (i)ntro—a setting of tone
+.P
+(e)agle—zoom in on a background from Ninja Gaiden
 .P
 (m)axcolors—smoothly changing colors
 .P

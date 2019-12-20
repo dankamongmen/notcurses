@@ -92,14 +92,17 @@ zoom_map(struct notcurses* nc, const char* map){
 
 // motherfucking eagles!
 int eagle_demo(struct notcurses* nc){
-  const char* map = "../tests/eagles.png";
+  char* map = find_data("eagles.png");
   struct ncvisual* zo;
   if((zo = outzoomed_map(nc, map)) == NULL){
+    free(map);
     return -1;
   }
   ncvisual_destroy(zo);
   if(zoom_map(nc, map)){
+    free(map);
     return -1;
   }
+  free(map);
   return 0;
 }

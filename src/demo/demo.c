@@ -1,6 +1,7 @@
 #include <time.h>
 #include <wchar.h>
 #include <stdio.h>
+#include <limits.h>
 #include <string.h>
 #include <locale.h>
 #include <unistd.h>
@@ -10,6 +11,15 @@
 #include "demo.h"
 
 static const char DEFAULT_DEMO[] = "iemlubgswvpo";
+static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
+
+char* find_data(const char* datum){
+  char* path = malloc(strlen(datadir) + 1 + strlen(datum));
+  strcpy(path, datadir);
+  strcat(path, "/");
+  strcat(path, datum);
+  return path;
+}
 
 int timespec_subtract(struct timespec *result, const struct timespec *time0,
                       struct timespec *time1){
@@ -200,7 +210,7 @@ static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts){
   int c;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "hkd:f:")) != EOF){
+  while((c = getopt(argc, argv, "hkd:f:p:")) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
@@ -216,6 +226,9 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
         if((opts->renderfp = fopen(optarg, "wb")) == NULL){
           usage(*argv, EXIT_FAILURE);
         }
+        break;
+      case 'p':
+        strcpy(datadir, optarg);
         break;
       case 'd':{
         float f;
@@ -272,6 +285,10 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   for(size_t i = 0 ; i < strlen(demos) ; ++i){
+    if(!results[i].selector){
+      printf(" Error running last demo. Did you need provide -p?\n");
+      break;
+    }
     printf("%2zu|%c|%2lu.%03lus|%4lu|\n", i, results[i].selector,
            results[i].timens / GIG,
            (results[i].timens % GIG) / 1000000,
