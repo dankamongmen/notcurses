@@ -5,6 +5,10 @@
 #include "notcurses.h"
 #include "internal.h"
 
+ncplane* ncvisual_plane(ncvisual* ncv){
+  return ncv->ncp;
+}
+
 static ncvisual*
 ncvisual_create(void){
   ncvisual* ret = malloc(sizeof(*ret));

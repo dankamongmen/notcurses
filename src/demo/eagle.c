@@ -1,10 +1,9 @@
 #include "demo.h"
 
 static struct ncvisual*
-outzoomed_map(struct notcurses* nc){
+outzoomed_map(struct notcurses* nc, const char* map){
   int averr;
-  struct ncvisual* ncv = ncvisual_open_plane(nc, "../tests/eagles.png", &averr,
-                                             0, 0, NCSCALE_SCALE);
+  struct ncvisual* ncv = ncvisual_open_plane(nc, map, &averr, 0, 0, NCSCALE_SCALE);
   if(ncv == NULL){
     return NULL;
   }
@@ -21,34 +20,53 @@ outzoomed_map(struct notcurses* nc){
   return ncv;
 }
 
-// motherfucking eagles!
-int eagle_demo(struct notcurses* nc){
-  struct ncvisual* zo;
-  if((zo = outzoomed_map(nc)) == NULL){
-    return -1;
-  }
+static int
+zoom_map(struct notcurses* nc, const char* map){
   int averr;
   // FIXME determine size that will be represented on screen at once, and how
   // large that section has been rendered in the outzoomed map. take the map
   // and begin opening it on larger and larger planes that fit on the screen
   // less and less. eventually, reach our natural NCSCALE_NONE size and begin
   // scrolling through the map, whooooooooosh.
-  struct ncvisual* ncv = ncvisual_open_plane(nc, "../tests/eagles.png", &averr,
-                                             0, 0, NCSCALE_NONE);
+  struct ncvisual* ncv = ncvisual_open_plane(nc, map, &averr, 0, 0, NCSCALE_NONE);
   if(ncv == NULL){
     return -1;
   }
   if(ncvisual_decode(ncv, &averr) == NULL){
+    ncvisual_destroy(ncv);
     return -1;
   }
+  // we start at the lower right corner of the outzoomed map
+  int truex, truey; // dimensions of true display
+  notcurses_term_dim_yx(nc, &truey, &truex);
+  struct ncplane* ncp = ncvisual_plane(ncv);
+  int vx, vy; // dimensions of unzoomed map
+  ncplane_dim_yx(ncp, &vy, &vx);
+fprintf(stderr, "TRUE DIMS: %d/%d\n", vy, vx);
+  ncplane_move_yx(ncp, truey - vy, truex - vx);
   if(ncvisual_render(ncv)){
+    ncvisual_destroy(ncv);
     return -1;
   }
   if(notcurses_render(nc)){
+    ncvisual_destroy(ncv);
     return -1;
   }
   nanosleep(&demodelay, NULL);
   ncvisual_destroy(ncv);
+  return 0;
+}
+
+// motherfucking eagles!
+int eagle_demo(struct notcurses* nc){
+  const char* map = "../tests/eagles.png";
+  struct ncvisual* zo;
+  if((zo = outzoomed_map(nc, map)) == NULL){
+    return -1;
+  }
   ncvisual_destroy(zo);
+  if(zoom_map(nc, map)){
+    return -1;
+  }
   return 0;
 }
