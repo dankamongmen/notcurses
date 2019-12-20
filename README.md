@@ -1306,6 +1306,9 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute_
 // its return value handled as outlined for stream cb. Pretty raw; beware.
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                     int* averr, streamcb streamer);
+
+// Return the plane to which this ncvisual is bound.
+struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 ```
 
 ### Panelreels

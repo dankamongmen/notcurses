@@ -1380,6 +1380,9 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute_
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         int* averr, streamcb streamer);
 
+// Return the plane to which this ncvisual is bound.
+API struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+
 // A panelreel is an notcurses region devoted to displaying zero or more
 // line-oriented, contained panels between which the user may navigate. If at
 // least one panel exists, there is an active panel. As much of the active
