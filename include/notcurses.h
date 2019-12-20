@@ -569,7 +569,23 @@ ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
 API int ncplane_printf(struct ncplane* n, const char* format, ...)
   __attribute__ ((format (printf, 2, 3)));
 
+static inline int
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
 API int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
+
+static inline int
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
+  if(ncplane_cursor_move_yx(n, y, x)){
+    return -1;
+  }
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf(n, format, va);
+  va_end(va);
+  return ret;
+}
 
 static inline int
 ncplane_vprintf_yx(struct ncplane* n, int y, int x, const char* format, va_list ap){
