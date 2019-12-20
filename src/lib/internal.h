@@ -117,6 +117,7 @@ typedef struct notcurses {
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
   struct termios tpreserved; // terminal state upon entry
+  bool suppress_banners; // from notcurses_options
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen

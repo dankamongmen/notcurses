@@ -654,9 +654,11 @@ make_nonblocking(FILE* fp){
 }
 
 void notcurses_reset_stats(notcurses* nc){
+  pthread_mutex_lock(&nc->lock);
   memset(&nc->stats, 0, sizeof(nc->stats));
   nc->stats.render_min_ns = 1ul << 62u;
   nc->stats.render_min_bytes = 1ul << 62u;
+  pthread_mutex_unlock(&nc->lock);
 }
 
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
@@ -748,31 +750,34 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }
   flash_damage_map(ret->damage, ret->stdscr->leny, false);
   // term_emit("clear", ret->clear, ret->ttyfp, false);
-  char prefixbuf[BPREFIXSTRLEN + 1];
-  fprintf(ret->ttyfp, "\n"
-         " notcurses %s by nick black\n"
-         " compiled with gcc-%s\n"
-         " terminfo from %s\n"
-         " avformat %u.%u.%u\n"
-         " avutil %u.%u.%u\n"
-         " swscale %u.%u.%u\n"
-         " %d rows, %d columns (%sB), %d colors (%s)\n",
-         notcurses_version(), __VERSION__,
-         curses_version(), LIBAVFORMAT_VERSION_MAJOR,
-         LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
-         LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
-         LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
-         ret->stdscr->leny, ret->stdscr->lenx,
-         bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
-         ret->colors, ret->RGBflag ? "direct" : "palette");
-  if(!ret->RGBflag){ // FIXME
-    if(ret->colors >= 16){
-      putp(tiparm(ret->setaf, 207));
-    }else{
-      putp(tiparm(ret->setaf, 3));
+  ret->suppress_banners = opts->suppress_bannner;
+  if(!opts->suppress_bannner){
+    char prefixbuf[BPREFIXSTRLEN + 1];
+    fprintf(ret->ttyfp, "\n"
+          " notcurses %s by nick black\n"
+          " compiled with gcc-%s\n"
+          " terminfo from %s\n"
+          " avformat %u.%u.%u\n"
+          " avutil %u.%u.%u\n"
+          " swscale %u.%u.%u\n"
+          " %d rows, %d columns (%sB), %d colors (%s)\n",
+          notcurses_version(), __VERSION__,
+          curses_version(), LIBAVFORMAT_VERSION_MAJOR,
+          LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
+          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
+          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
+          ret->stdscr->leny, ret->stdscr->lenx,
+          bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
+          ret->colors, ret->RGBflag ? "direct" : "palette");
+    if(!ret->RGBflag){ // FIXME
+      if(ret->colors >= 16){
+        putp(tiparm(ret->setaf, 207));
+      }else{
+        putp(tiparm(ret->setaf, 3));
+      }
+      fprintf(ret->ttyfp, "\nWarning!\nYour colors are subject to https://github.com/dankamongmen/notcurses/issues/4\n");
+      fprintf(ret->ttyfp, "Are you specifying a proper DirectColor TERM?\n");
     }
-    fprintf(ret->ttyfp, "\nWarning!\nYour colors are subject to https://github.com/dankamongmen/notcurses/issues/4\n");
-    fprintf(ret->ttyfp, "Are you specifying a proper DirectColor TERM?\n");
   }
   return ret;
 
@@ -802,41 +807,43 @@ int notcurses_stop(notcurses* nc){
       ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
-    if(nc->stats.renders){
-      double avg = nc->stats.render_ns / (double)nc->stats.renders;
-      fprintf(stderr, "%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
-              nc->stats.renders, nc->stats.renders == 1 ? "" : "s",
-              nc->stats.render_ns / 1000000000.0,
-              nc->stats.render_min_ns / 1000000000.0,
-              nc->stats.render_max_ns / 1000000000.0,
-              avg / NANOSECS_IN_SEC, NANOSECS_IN_SEC / avg);
-      avg = nc->stats.render_bytes / (double)nc->stats.renders;
-      fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
-              nc->stats.render_bytes / 1024.0,
-              nc->stats.render_min_bytes / 1024.0,
-              nc->stats.render_max_bytes / 1024.0,
-              avg / 1024);
+    if(!nc->suppress_banners){
+      if(nc->stats.renders){
+        double avg = nc->stats.render_ns / (double)nc->stats.renders;
+        fprintf(stderr, "%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
+                nc->stats.renders, nc->stats.renders == 1 ? "" : "s",
+                nc->stats.render_ns / 1000000000.0,
+                nc->stats.render_min_ns / 1000000000.0,
+                nc->stats.render_max_ns / 1000000000.0,
+                avg / NANOSECS_IN_SEC, NANOSECS_IN_SEC / avg);
+        avg = nc->stats.render_bytes / (double)nc->stats.renders;
+        fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
+                nc->stats.render_bytes / 1024.0,
+                nc->stats.render_min_bytes / 1024.0,
+                nc->stats.render_max_bytes / 1024.0,
+                avg / 1024);
+      }
+      fprintf(stderr, "%ju failed render%s\n", nc->stats.failed_renders,
+              nc->stats.failed_renders == 1 ? "" : "s");
+      fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
+              nc->stats.defaultemissions,
+              nc->stats.defaultelisions,
+              nc->stats.fgemissions,
+              nc->stats.fgelisions,
+              nc->stats.bgemissions,
+              nc->stats.bgelisions);
+      fprintf(stderr, " Elide rates: %.2f%% %.2f%% %.2f%%\n",
+              (nc->stats.defaultemissions + nc->stats.defaultelisions) == 0 ? 0 :
+              (nc->stats.defaultelisions * 100.0) / (nc->stats.defaultemissions + nc->stats.defaultelisions),
+              (nc->stats.fgemissions + nc->stats.fgelisions) == 0 ? 0 :
+              (nc->stats.fgelisions * 100.0) / (nc->stats.fgemissions + nc->stats.fgelisions),
+              (nc->stats.bgemissions + nc->stats.bgelisions) == 0 ? 0 :
+              (nc->stats.bgelisions * 100.0) / (nc->stats.bgemissions + nc->stats.bgelisions));
+      fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
+              nc->stats.cellemissions, nc->stats.cellelisions,
+              (nc->stats.cellemissions + nc->stats.cellelisions) == 0 ? 0 :
+              (nc->stats.cellelisions * 100.0) / (nc->stats.cellemissions + nc->stats.cellelisions));
     }
-    fprintf(stderr, "%ju failed render%s\n", nc->stats.failed_renders,
-            nc->stats.failed_renders == 1 ? "" : "s");
-    fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
-            nc->stats.defaultemissions,
-            nc->stats.defaultelisions,
-            nc->stats.fgemissions,
-            nc->stats.fgelisions,
-            nc->stats.bgemissions,
-            nc->stats.bgelisions);
-    fprintf(stderr, " Elide rates: %.2f%% %.2f%% %.2f%%\n",
-            (nc->stats.defaultemissions + nc->stats.defaultelisions) == 0 ? 0 :
-             (nc->stats.defaultelisions * 100.0) / (nc->stats.defaultemissions + nc->stats.defaultelisions),
-            (nc->stats.fgemissions + nc->stats.fgelisions) == 0 ? 0 :
-             (nc->stats.fgelisions * 100.0) / (nc->stats.fgemissions + nc->stats.fgelisions),
-            (nc->stats.bgemissions + nc->stats.bgelisions) == 0 ? 0 :
-             (nc->stats.bgelisions * 100.0) / (nc->stats.bgemissions + nc->stats.bgelisions));
-    fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
-            nc->stats.cellemissions, nc->stats.cellelisions,
-            (nc->stats.cellemissions + nc->stats.cellelisions) == 0 ? 0 :
-             (nc->stats.cellelisions * 100.0) / (nc->stats.cellemissions + nc->stats.cellelisions));
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;

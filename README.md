@@ -153,6 +153,9 @@ typedef struct notcurses_options {
   // We typically install a signal handler for SIGWINCH that generates a resize
   // event in the notcurses_getc() queue. Set this to inhibit the handler.
   bool no_winch_sighandler;
+  // Notcurses typically prints version info in notcurses_init() and
+  // performance info in notcurses_stop(). This inhibits that output.
+  bool suppress_bannner;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
