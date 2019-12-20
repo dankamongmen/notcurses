@@ -255,9 +255,6 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, int* averr){
     return NULL;
   }
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
-  // FIXME we only want to do this if we're not already large enough to
-  // faithfully reproduce the image, methinks?
-  // ncv->dstwidth *= 2;
   ncv->dstheight *= 2;
   ncv->ncp = nc;
   ncv->style = NCSCALE_STRETCH;
@@ -276,4 +273,10 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   ncv->ncobj = nc;
   ncv->ncp = NULL;
   return ncv;
+}
+
+int ncvisual_init(void){
+  av_log_set_level(AV_LOG_QUIET); // FIXME make this configurable?
+  // FIXME could also use av_log_set_callback() and capture the message...
+  return 0;
 }

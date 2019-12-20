@@ -763,6 +763,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(ret, opts)){
     goto err;
   }
+  if(ncvisual_init()){
+    goto err;
+  }
   if((ret->stdscr = create_initial_ncplane(ret)) == NULL){
     goto err;
   }

@@ -143,6 +143,9 @@ int prep_special_keys(notcurses* nc);
 // free up the input escapes trie
 void input_free_esctrie(struct esctrie** trie);
 
+// initialize libav
+int ncvisual_init(void);
+
 static inline void
 ncplane_lock(const ncplane* n){
   pthread_mutex_lock(&n->nc->lock);
