@@ -290,12 +290,16 @@ int main(int argc, char** argv){
       break;
     }
     char totalbuf[BPREFIXSTRLEN + 1];
-    bprefix(results[i].stats.render_bytes, 1, totalbuf, 0),
-    printf("%2zu|%c|%2lu.%03lus|%4lu|%*sB|\n", i, results[i].selector,
+    bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
+    double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
+    printf("%2zu|%c|%2lu.%03lus|%4luf|%*sB|%8juµs|%.1f FPS|\n", i,
+           results[i].selector,
            results[i].timens / GIG,
            (results[i].timens % GIG) / 1000000,
            results[i].stats.renders,
-           BPREFIXSTRLEN, totalbuf);
+           BPREFIXSTRLEN, totalbuf,
+           results[i].stats.render_ns / 1000,
+           GIG / avg);
     // FIXME
   }
   free(results);

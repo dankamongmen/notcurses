@@ -147,7 +147,9 @@ draw_luigi(struct ncplane* n, const char* sprite){
 int luigi_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   int averr = 0;
-  struct ncvisual* nv = ncplane_visual_open(n, "../tests/megaman2.bmp", &averr);
+  char* map = find_data("megaman2.bmp");
+  struct ncvisual* nv = ncplane_visual_open(n, map, &averr);
+  free(map);
   if(nv == NULL){
     return -1;
   }
