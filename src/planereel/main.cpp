@@ -4,11 +4,11 @@
 
 int tabletfxn(struct ncplane* p, int begx, int begy, int maxx, int maxy,
               bool cliptop, void* curry){
-  uint64_t channels = 0;
-  channels_set_fg(&channels, 0x008040);
-  ncplane_cursor_move_yx(p, 1, 1);
-  ncplane_rounded_box(p, 0, channels, 3, 3, 0);
-  return 3;
+  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  cell_set_bg(&c, 0x008040);
+  ncplane_set_default(p, &c);
+  cell_release(p, &c);
+  return 3 > maxy - begy ? maxy - begy : 3;
 }
 
 int main(void){
