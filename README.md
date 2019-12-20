@@ -869,9 +869,9 @@ ncplane_get_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
 int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 
-// Same, but with rgb assembled into a channel (i.e. lower 32 bits).
-void ncplane_set_fg(struct ncplane* n, uint32_t channel);
-void ncplane_set_bg(struct ncplane* n, uint32_t channel);
+// Same, but with rgb assembled into a channel (i.e. lower 24 bits).
+int ncplane_set_fg(struct ncplane* n, unsigned channel);
+int ncplane_set_bg(struct ncplane* n, unsigned channel);
 
 // Use the default color for the foreground/background.
 void ncplane_set_fg_default(struct ncplane* n);

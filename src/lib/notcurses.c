@@ -929,12 +929,12 @@ int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
   return channels_set_fg_rgb(&n->channels, r, g, b);
 }
 
-void ncplane_set_fg(ncplane* n, uint32_t channel){
-  n->channels = ((uint64_t)channel << 32ul) | (n->channels & 0xffffffffull);
+int ncplane_set_fg(ncplane* n, unsigned channel){
+  return channels_set_fg(&n->channels, channel);
 }
 
-void ncplane_set_bg(ncplane* n, uint32_t channel){
-  n->channels = (n->channels & 0xffffffff00000000ull) | channel;
+int ncplane_set_bg(ncplane* n, unsigned channel){
+  return channels_set_bg(&n->channels, channel);
 }
 
 int ncplane_set_fg_alpha(ncplane* n, int alpha){

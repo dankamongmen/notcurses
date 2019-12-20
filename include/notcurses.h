@@ -1088,8 +1088,8 @@ API int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
-API void ncplane_set_fg(struct ncplane* n, uint32_t channel);
-API void ncplane_set_bg(struct ncplane* n, uint32_t channel);
+API int ncplane_set_fg(struct ncplane* n, unsigned channel);
+API int ncplane_set_bg(struct ncplane* n, unsigned channel);
 
 // Use the default color for the foreground/background.
 API void ncplane_set_fg_default(struct ncplane* n);
