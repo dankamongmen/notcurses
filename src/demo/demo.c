@@ -143,11 +143,26 @@ intro(struct notcurses* nc){
   return 0;
 }
 
-static int
+typedef struct demoresult {
+  char selector;
+  struct ncstats stats;
+  uint64_t timens;
+} demoresult;
+
+static demoresult*
 ext_demos(struct notcurses* nc, const char* demos){
-  while(*demos){
-    int ret = 0;
-    switch(*demos){
+  int ret = 0;
+  demoresult* results = malloc(sizeof(*results) * strlen(demos));
+  if(results == NULL){
+    return NULL;
+  }
+  memset(results, 0, sizeof(*results) * strlen(demos));
+  struct timespec start, now;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  uint64_t prevns = timespec_to_ns(&start);
+  for(size_t i = 0 ; i < strlen(demos) ; ++i){
+    results[i].selector = demos[i];
+    switch(demos[i]){
       case 'i': ret = intro(nc); break;
       case 'o': ret = outro(nc); break;
       case 's': ret = sliding_puzzle_demo(nc); break;
@@ -166,11 +181,16 @@ ext_demos(struct notcurses* nc, const char* demos){
         break;
     }
     if(ret){
-      return ret;
+      break;
     }
-    ++demos;
+    notcurses_stats(nc, &results[i].stats);
+    notcurses_reset_stats(nc);
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    uint64_t nowns = timespec_to_ns(&now);
+    results[i].timens = nowns - prevns;
+    prevns = nowns;
   }
-  return 0;
+  return results;
 }
 
 // returns the demos to be run as a string. on error, returns NULL. on no
@@ -217,7 +237,6 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
 
 // just fucking around...for now
 int main(int argc, char** argv){
-  srandom(time(NULL)); // a classic blunder
   struct notcurses* nc;
   notcurses_options nopts;
   struct ncplane* ncp;
@@ -245,12 +264,21 @@ int main(int argc, char** argv){
   }else{
     nanosleep(&demodelay, NULL);
   }
-  if(ext_demos(nc, demos)){
+  demoresult* results = ext_demos(nc, demos);
+  if(results == NULL){
     goto err;
   }
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
+  for(size_t i = 0 ; i < strlen(demos) ; ++i){
+    printf("%2zu|%c|%2lu.%03lus|%4lu|\n", i, results[i].selector,
+           results[i].timens / GIG,
+           (results[i].timens % GIG) / 1000000,
+           results[i].stats.renders);
+    // FIXME
+  }
+  free(results);
   return EXIT_SUCCESS;
 
 err:

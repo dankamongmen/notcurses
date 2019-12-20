@@ -89,6 +89,7 @@ typedef struct notcurses {
   size_t mstrsize;// size of rendering memstream
   int colors;     // number of colors usable for this screen
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
+  ncstats stashstats; // cumulative stats, unaffected by notcurses_reset_stats()
   // We verify that some terminfo capabilities exist. These needn't be checked
   // before further use; just use tiparm() directly.
   char* cup;      // move cursor

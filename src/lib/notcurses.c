@@ -653,11 +653,49 @@ make_nonblocking(FILE* fp){
   return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
+static void
+reset_stats(ncstats* stats){
+  uint64_t fbbytes = stats->fbbytes;
+  memset(stats, 0, sizeof(*stats));
+  stats->render_min_ns = 1ul << 62u;
+  stats->render_min_bytes = 1ul << 62u;
+  stats->fbbytes = fbbytes;
+}
+
+// add the current stats to the cumulative stashed stats, and reset them
+static void
+stash_stats(notcurses* nc){
+  nc->stashstats.renders += nc->stats.renders;
+  nc->stashstats.render_ns += nc->stats.render_ns;
+  nc->stashstats.failed_renders += nc->stats.failed_renders;
+  nc->stashstats.render_bytes += nc->stats.render_bytes;
+  if(nc->stashstats.render_max_bytes < nc->stats.render_max_bytes){
+    nc->stashstats.render_max_bytes = nc->stats.render_max_bytes;
+  }
+  if(nc->stashstats.render_max_ns < nc->stats.render_max_ns){
+    nc->stashstats.render_max_ns = nc->stats.render_max_ns;
+  }
+  if(nc->stashstats.render_min_bytes > nc->stats.render_min_bytes){
+    nc->stashstats.render_min_bytes = nc->stats.render_min_bytes;
+  }
+  if(nc->stashstats.render_min_ns > nc->stats.render_min_ns){
+    nc->stashstats.render_min_ns = nc->stats.render_min_ns;
+  }
+  nc->stashstats.cellelisions += nc->stats.cellelisions;
+  nc->stashstats.cellemissions += nc->stats.cellemissions;
+  nc->stashstats.fgelisions += nc->stats.fgelisions;
+  nc->stashstats.fgemissions += nc->stats.fgemissions;
+  nc->stashstats.bgelisions += nc->stats.bgelisions;
+  nc->stashstats.bgemissions += nc->stats.bgemissions;
+  nc->stashstats.defaultelisions += nc->stats.defaultelisions;
+  nc->stashstats.defaultemissions += nc->stats.defaultemissions;
+  // fbbytes aren't stashed
+  reset_stats(&nc->stats);
+}
+
 void notcurses_reset_stats(notcurses* nc){
   pthread_mutex_lock(&nc->lock);
-  memset(&nc->stats, 0, sizeof(nc->stats));
-  nc->stats.render_min_ns = 1ul << 62u;
-  nc->stats.render_min_bytes = 1ul << 62u;
+  stash_stats(nc);
   pthread_mutex_unlock(&nc->lock);
 }
 
@@ -677,7 +715,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  notcurses_reset_stats(ret);
+  reset_stats(&ret->stats);
+  reset_stats(&ret->stashstats);
   ret->ttyfp = outfp;
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;
@@ -807,43 +846,6 @@ int notcurses_stop(notcurses* nc){
       ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
-    if(!nc->suppress_banners){
-      if(nc->stats.renders){
-        double avg = nc->stats.render_ns / (double)nc->stats.renders;
-        fprintf(stderr, "%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
-                nc->stats.renders, nc->stats.renders == 1 ? "" : "s",
-                nc->stats.render_ns / 1000000000.0,
-                nc->stats.render_min_ns / 1000000000.0,
-                nc->stats.render_max_ns / 1000000000.0,
-                avg / NANOSECS_IN_SEC, NANOSECS_IN_SEC / avg);
-        avg = nc->stats.render_bytes / (double)nc->stats.renders;
-        fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
-                nc->stats.render_bytes / 1024.0,
-                nc->stats.render_min_bytes / 1024.0,
-                nc->stats.render_max_bytes / 1024.0,
-                avg / 1024);
-      }
-      fprintf(stderr, "%ju failed render%s\n", nc->stats.failed_renders,
-              nc->stats.failed_renders == 1 ? "" : "s");
-      fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
-              nc->stats.defaultemissions,
-              nc->stats.defaultelisions,
-              nc->stats.fgemissions,
-              nc->stats.fgelisions,
-              nc->stats.bgemissions,
-              nc->stats.bgelisions);
-      fprintf(stderr, " Elide rates: %.2f%% %.2f%% %.2f%%\n",
-              (nc->stats.defaultemissions + nc->stats.defaultelisions) == 0 ? 0 :
-              (nc->stats.defaultelisions * 100.0) / (nc->stats.defaultemissions + nc->stats.defaultelisions),
-              (nc->stats.fgemissions + nc->stats.fgelisions) == 0 ? 0 :
-              (nc->stats.fgelisions * 100.0) / (nc->stats.fgemissions + nc->stats.fgelisions),
-              (nc->stats.bgemissions + nc->stats.bgelisions) == 0 ? 0 :
-              (nc->stats.bgelisions * 100.0) / (nc->stats.bgemissions + nc->stats.bgelisions));
-      fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
-              nc->stats.cellemissions, nc->stats.cellelisions,
-              (nc->stats.cellemissions + nc->stats.cellelisions) == 0 ? 0 :
-              (nc->stats.cellelisions * 100.0) / (nc->stats.cellemissions + nc->stats.cellelisions));
-    }
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;
@@ -856,6 +858,44 @@ int notcurses_stop(notcurses* nc){
     free(nc->mstream);
     input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);
+    stash_stats(nc);
+    if(!nc->suppress_banners){
+      if(nc->stashstats.renders){
+        double avg = nc->stashstats.render_ns / (double)nc->stashstats.renders;
+        fprintf(stderr, "%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
+                nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
+                nc->stashstats.render_ns / 1000000000.0,
+                nc->stashstats.render_min_ns / 1000000000.0,
+                nc->stashstats.render_max_ns / 1000000000.0,
+                avg / NANOSECS_IN_SEC, NANOSECS_IN_SEC / avg);
+        avg = nc->stashstats.render_bytes / (double)nc->stashstats.renders;
+        fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
+                nc->stashstats.render_bytes / 1024.0,
+                nc->stashstats.render_min_bytes / 1024.0,
+                nc->stashstats.render_max_bytes / 1024.0,
+                avg / 1024);
+      }
+      fprintf(stderr, "%ju failed render%s\n", nc->stashstats.failed_renders,
+              nc->stashstats.failed_renders == 1 ? "" : "s");
+      fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
+              nc->stashstats.defaultemissions,
+              nc->stashstats.defaultelisions,
+              nc->stashstats.fgemissions,
+              nc->stashstats.fgelisions,
+              nc->stashstats.bgemissions,
+              nc->stashstats.bgelisions);
+      fprintf(stderr, " Elide rates: %.2f%% %.2f%% %.2f%%\n",
+              (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions) == 0 ? 0 :
+              (nc->stashstats.defaultelisions * 100.0) / (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions),
+              (nc->stashstats.fgemissions + nc->stashstats.fgelisions) == 0 ? 0 :
+              (nc->stashstats.fgelisions * 100.0) / (nc->stashstats.fgemissions + nc->stashstats.fgelisions),
+              (nc->stashstats.bgemissions + nc->stashstats.bgelisions) == 0 ? 0 :
+              (nc->stashstats.bgelisions * 100.0) / (nc->stashstats.bgemissions + nc->stashstats.bgelisions));
+      fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
+              nc->stashstats.cellemissions, nc->stashstats.cellelisions,
+              (nc->stashstats.cellemissions + nc->stashstats.cellelisions) == 0 ? 0 :
+              (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions));
+    }
     free(nc);
   }
   return ret;
