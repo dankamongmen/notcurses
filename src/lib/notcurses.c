@@ -1628,12 +1628,12 @@ int ncvisual_render(const ncvisual* ncv){
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       if(!rgbbase_up[3] || !rgbbase_down[3]){
-        cell_set_bg_default(&c);
+        cell_set_bg_alpha(&c, CELL_ALPHA_TRANS);
         if(!rgbbase_up[3] && !rgbbase_down[3]){
           if(cell_load(ncv->ncp, &c, " ") <= 0){
             return -1;
           }
-          cell_set_fg_default(&c);
+          cell_set_fg_alpha(&c, CELL_ALPHA_TRANS);
         }else if(!rgbbase_up[3]){ // down has the color
           if(cell_load(ncv->ncp, &c, "\u2584") <= 0){ // lower half block
             return -1;

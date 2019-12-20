@@ -76,47 +76,53 @@ int view_demo(struct notcurses* nc){
     return -1;
   }
   free(pic);
+  struct ncplane* dsplane = notcurses_newplane(nc, dimy, dimx, 0, 0, NULL);
+  if(dsplane == NULL){
+    return -1;
+  }
   pic = find_data("dsscaw-purp.png");
-  struct ncvisual* ncv2 = ncplane_visual_open(ncp, pic, &averr);
+  struct ncvisual* ncv2 = ncplane_visual_open(dsplane, pic, &averr);
   if(ncv2 == NULL){
     free(pic);
     ncvisual_destroy(ncv);
+    ncplane_destroy(dsplane);
     return -1;
   }
   free(pic);
   if(ncvisual_decode(ncv, &averr) == NULL){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
+    ncplane_destroy(dsplane);
     return -1;
   }
   if(ncvisual_decode(ncv2, &averr) == NULL){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
-    return -1;;
-  }
-  if(ncvisual_render(ncv)){
-    ncvisual_destroy(ncv);
-    ncvisual_destroy(ncv2);
+    ncplane_destroy(dsplane);
     return -1;
   }
-  if(notcurses_render(nc)){
-    ncvisual_destroy(ncv);
-    ncvisual_destroy(ncv2);
-    return -1;
-  }
-  nanosleep(&demodelay, NULL);
   if(ncvisual_render(ncv2)){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
+    ncplane_destroy(dsplane);
+    return -1;
+  }
+  notcurses_render(nc);
+  ncplane_move_bottom(dsplane);
+  nanosleep(&demodelay, NULL);
+  if(ncvisual_render(ncv)){
+    ncvisual_destroy(ncv);
+    ncvisual_destroy(ncv2);
+    ncplane_destroy(dsplane);
     return -1;
   }
   ncvisual_destroy(ncv);
   ncvisual_destroy(ncv2);
-  if(notcurses_render(nc)){
-    ncvisual_destroy(ncv);
-    ncvisual_destroy(ncv2);
-    return -1;
-  }
+  notcurses_render(nc);
+  nanosleep(&demodelay, NULL);
+  ncplane_move_top(dsplane);
+  notcurses_render(nc);
+  ncplane_destroy(dsplane);
   nanosleep(&demodelay, NULL);
   struct ncplane* ncpl = legend(nc, dimy, dimx);
   if(ncpl == NULL){
