@@ -76,9 +76,9 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
   ncplane_erase(n);
   int maxx, maxy;
   notcurses_term_dim_yx(nc, &maxy, &maxx);
-  int rs = 256 / maxx;
-  int gs = 256 / (maxx + maxy);
-  int bs = 256 / maxy;
+  int rs = 255 / maxx;
+  int gs = 255 / (maxx + maxy);
+  int bs = 255 / maxy;
   int x = 0;
   int y = 0;
   cell ul, ll, cl, cr, lc, lr, ur, uc, cc;
