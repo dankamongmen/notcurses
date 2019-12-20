@@ -289,10 +289,13 @@ int main(int argc, char** argv){
       printf(" Error running last demo. Did you need provide -p?\n");
       break;
     }
-    printf("%2zu|%c|%2lu.%03lus|%4lu|\n", i, results[i].selector,
+    char totalbuf[BPREFIXSTRLEN + 1];
+    bprefix(results[i].stats.render_bytes, 1, totalbuf, 0),
+    printf("%2zu|%c|%2lu.%03lus|%4lu|%*sB|\n", i, results[i].selector,
            results[i].timens / GIG,
            (results[i].timens % GIG) / 1000000,
-           results[i].stats.renders);
+           results[i].stats.renders,
+           BPREFIXSTRLEN, totalbuf);
     // FIXME
   }
   free(results);

@@ -789,7 +789,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }
   flash_damage_map(ret->damage, ret->stdscr->leny, false);
   // term_emit("clear", ret->clear, ret->ttyfp, false);
-  ret->suppress_banners = opts->suppress_bannner;
+  ret->suppress_banner = opts->suppress_bannner;
   if(!opts->suppress_bannner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     fprintf(ret->ttyfp, "\n"
@@ -859,8 +859,11 @@ int notcurses_stop(notcurses* nc){
     input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);
     stash_stats(nc);
-    if(!nc->suppress_banners){
+    if(!nc->suppress_banner){
       if(nc->stashstats.renders){
+        char totalbuf[BPREFIXSTRLEN + 1];
+        char minbuf[BPREFIXSTRLEN + 1];
+        char maxbuf[BPREFIXSTRLEN + 1];
         double avg = nc->stashstats.render_ns / (double)nc->stashstats.renders;
         fprintf(stderr, "%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
@@ -869,10 +872,11 @@ int notcurses_stop(notcurses* nc){
                 nc->stashstats.render_max_ns / 1000000000.0,
                 avg / NANOSECS_IN_SEC, NANOSECS_IN_SEC / avg);
         avg = nc->stashstats.render_bytes / (double)nc->stashstats.renders;
-        fprintf(stderr, "%.03fKB total (%.03fKB min, %.03fKB max, %.02fKB avg)\n",
-                nc->stashstats.render_bytes / 1024.0,
-                nc->stashstats.render_min_bytes / 1024.0,
-                nc->stashstats.render_max_bytes / 1024.0,
+        bprefix(nc->stashstats.render_bytes, 1, totalbuf, 0),
+        bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 0),
+        bprefix(nc->stashstats.render_max_bytes, 1, maxbuf, 0),
+        fprintf(stderr, "%sB total (%sB min, %sB max, %.02fKiB avg)\n",
+                totalbuf, minbuf, maxbuf,
                 avg / 1024);
       }
       fprintf(stderr, "%ju failed render%s\n", nc->stashstats.failed_renders,

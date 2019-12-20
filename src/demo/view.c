@@ -36,23 +36,25 @@ view_video_demo(struct notcurses* nc){
 
 static struct ncplane*
 legend(struct notcurses* nc, int dimy, int dimx){
-  struct ncplane* n = notcurses_newplane(nc, 3, dimx / 5 + 10, dimy / 8, dimx / 10, NULL);
+  struct ncplane* n = notcurses_newplane(nc, 3, 25, dimy / 8, dimx / 12, NULL);
   ncplane_set_bg_alpha(n, CELL_ALPHA_TRANS);
   uint64_t channels = 0;
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANS);
   cell c = CELL_INITIALIZER(' ', 0, channels);
   ncplane_set_default(n, &c);
+  ncplane_set_fg_rgb(n, 0x0, 0x0, 0x0);
+  ncplane_styles_set(n, CELL_STYLE_BOLD);
+  if(ncplane_putstr_aligned(n, 0, "target launch", NCALIGN_CENTER) <= 0){
+    ncplane_destroy(n);
+    return NULL;
+  }
   ncplane_set_fg_rgb(n, 0, 0, 0);
-  if(ncplane_putstr_aligned(n, 0, "target launch", NCALIGN_LEFT) <= 0){
+  ncplane_styles_off(n, CELL_STYLE_BOLD);
+  if(ncplane_putstr_aligned(n, 1, "2003-12-11 FM-6", NCALIGN_CENTER) <= 0){
     ncplane_destroy(n);
     return NULL;
   }
-  ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
-  if(ncplane_putstr_aligned(n, 1, "2003-12-11 FM-6", NCALIGN_RIGHT) <= 0){
-    ncplane_destroy(n);
-    return NULL;
-  }
-  if(ncplane_putstr_aligned(n, 2, "RIM-161 SM-3 v. Aries TTV", NCALIGN_RIGHT) <= 0){
+  if(ncplane_putstr_aligned(n, 2, "RIM-161 SM-3 v. Aries TTV", NCALIGN_LEFT) <= 0){
     ncplane_destroy(n);
     return NULL;
   }
