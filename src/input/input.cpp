@@ -95,11 +95,16 @@ int main(void){
   }
   struct ncplane* n = notcurses_stdplane(nc);
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  if(ncplane_set_fg_rgb(n, 255, 255, 255)){
+  ncplane_set_fg(n, 0);
+  ncplane_set_bg(n, 0xbb64bb);
+  ncplane_styles_set(n, CELL_STYLE_UNDERLINE);
+  if(ncplane_putstr_aligned(n, 0, "mash some keys, yo", NCALIGN_CENTER) <= 0){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+  ncplane_styles_off(n, CELL_STYLE_UNDERLINE);
   ncplane_set_bg_default(n);
+  notcurses_render(nc);
   int y = 1;
   std::deque<wchar_t> cells;
   wchar_t r;
@@ -111,20 +116,20 @@ int main(void){
       break;
     }
     if(r < 0x80){
-      ncplane_set_fg_rgb(n, 175, 255, 135);
+      ncplane_set_fg_rgb(n, 128, 250, 64);
       if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'\n",
                         r, r, iswprint(r) ? r : printutf8(r)) < 0){
         break;
       }
     }else{
       if(wchar_supppuab_p(r)){
-        ncplane_set_fg_rgb(n, 175, 175, 255);
+        ncplane_set_fg_rgb(n, 250, 64, 128);
         if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'\n",
                           r, r, nckeystr(r)) < 0){
           break;
         }
       }else{
-        ncplane_set_fg_rgb(n, 215, 0, 95);
+        ncplane_set_fg_rgb(n, 64, 128, 250);
         ncplane_printf(n, "Got UTF-8: [0x%08x] '%lc'\n", r, r);
       }
     }
