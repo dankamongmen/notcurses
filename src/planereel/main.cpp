@@ -20,9 +20,25 @@ int main(void){
   if(!nc){
     return EXIT_FAILURE;
   }
+  struct ncplane* nstd = notcurses_stdplane(nc);
+  int dimy, dimx;
+  ncplane_dim_yx(nstd, &dimy, &dimx);
+  struct ncplane* n = notcurses_newplane(nc, dimy - 1, dimx, 1, 0, nullptr);
+  if(!n){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
+  if(ncplane_set_fg(nstd, 0xb11bb1)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
+  if(ncplane_putstr_aligned(nstd, 0, "(a)dd (q)uit", NCALIGN_CENTER) <= 0){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   struct panelreel_options popts{};
-  struct panelreel* pr = panelreel_create(notcurses_stdplane(nc), &popts, -1);
-  if(!pr){
+  struct panelreel* pr = panelreel_create(n, &popts, -1);
+  if(!pr || notcurses_render(nc)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
