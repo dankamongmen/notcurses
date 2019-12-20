@@ -42,12 +42,48 @@ zoom_map(struct notcurses* nc, const char* map){
   struct ncplane* ncp = ncvisual_plane(ncv);
   int vx, vy; // dimensions of unzoomed map
   ncplane_dim_yx(ncp, &vy, &vx);
-fprintf(stderr, "TRUE DIMS: %d/%d\n", vy, vx);
   ncplane_move_yx(ncp, truey - vy, truex - vx);
   if(ncvisual_render(ncv)){
     ncvisual_destroy(ncv);
     return -1;
   }
+  ncplane_move_bottom(ncp);
+  int zoomy = truey;
+  int zoomx = truex;
+  while(zoomy < vy && zoomx < vx){
+    zoomy += 2;
+    zoomx += 2;
+    struct ncplane* zncp = notcurses_newplane(nc, zoomy, zoomx, truey - zoomy, truex - zoomx, NULL);
+    if(zncp == NULL){
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+    struct ncvisual* zncv = ncplane_visual_open(zncp, map, &averr);
+    if(zncv == NULL){
+      ncplane_destroy(zncp);
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+    if(ncvisual_decode(zncv, &averr) == NULL){
+      ncvisual_destroy(zncv);
+      ncplane_destroy(zncp);
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+    if(ncvisual_render(zncv)){
+      ncvisual_destroy(zncv);
+      ncplane_destroy(zncp);
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+    if(notcurses_render(nc)){
+      ncvisual_destroy(zncv);
+      ncplane_destroy(zncp);
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+  }
+  ncplane_move_top(ncp);
   if(notcurses_render(nc)){
     ncvisual_destroy(ncv);
     return -1;
