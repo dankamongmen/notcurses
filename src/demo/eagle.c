@@ -36,7 +36,7 @@ zoom_map(struct notcurses* nc, const char* map){
     ncvisual_destroy(ncv);
     return -1;
   }
-  // we start at the lower right corner of the outzoomed map
+  // we start at the lower left corner of the outzoomed map
   int truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
   struct ncplane* ncp = ncvisual_plane(ncv);
@@ -53,7 +53,7 @@ zoom_map(struct notcurses* nc, const char* map){
   while(zoomy < vy && zoomx < vx){
     zoomy += 2;
     zoomx += 2;
-    struct ncplane* zncp = notcurses_newplane(nc, zoomy, zoomx, truey - zoomy, truex - zoomx, NULL);
+    struct ncplane* zncp = notcurses_newplane(nc, zoomy, zoomx, truey - zoomy, 0, NULL);
     if(zncp == NULL){
       ncvisual_destroy(ncv);
       return -1;
@@ -82,14 +82,10 @@ zoom_map(struct notcurses* nc, const char* map){
       ncvisual_destroy(ncv);
       return -1;
     }
-  }
-  ncplane_move_top(ncp);
-  if(notcurses_render(nc)){
-    ncvisual_destroy(ncv);
-    return -1;
+    ncvisual_destroy(zncv);
+    ncplane_destroy(zncp);
   }
   nanosleep(&demodelay, NULL);
-  ncvisual_destroy(ncv);
   return 0;
 }
 
