@@ -1861,6 +1861,7 @@ Four binaries are built as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
+* `notcurses-planereels`: play around with panelreels
 * `notcurses-tester`: unit testing
 
 ## Differences from NCURSES
