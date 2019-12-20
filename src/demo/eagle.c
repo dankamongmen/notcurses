@@ -86,6 +86,7 @@ zoom_map(struct notcurses* nc, const char* map){
     ncplane_destroy(zncp);
   }
   nanosleep(&demodelay, NULL);
+  ncvisual_destroy(ncv);
   return 0;
 }
 
