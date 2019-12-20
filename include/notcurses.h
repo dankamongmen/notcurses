@@ -304,6 +304,9 @@ typedef struct ncstats {
 // Acquire a snapshot of the notcurses object's stats.
 API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
 
+// Reset all stats.
+API void notcurses_reset_stats(struct notcurses* nc);
+
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
 // unchanged. This may be a section of size 0, though none of these four

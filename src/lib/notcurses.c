@@ -653,6 +653,12 @@ make_nonblocking(FILE* fp){
   return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
+void notcurses_reset_stats(notcurses* nc){
+  memset(&nc->stats, 0, sizeof(nc->stats));
+  nc->stats.render_min_ns = 1ul << 62u;
+  nc->stats.render_min_bytes = 1ul << 62u;
+}
+
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || strcmp(encoding, "UTF-8")){
@@ -669,9 +675,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  memset(&ret->stats, 0, sizeof(ret->stats));
-  ret->stats.render_min_ns = 1ul << 62u;
-  ret->stats.render_min_bytes = 1ul << 62u;
+  notcurses_reset_stats(ret);
   ret->ttyfp = outfp;
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;

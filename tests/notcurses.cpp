@@ -138,3 +138,15 @@ TEST_F(NotcursesTest, ChannelSetBGAlpha){
   EXPECT_TRUE(channels_fg_default_p(channel));
   EXPECT_TRUE(channels_bg_default_p(channel));
 }
+
+TEST_F(NotcursesTest, Stats){
+  struct ncstats stats;
+  notcurses_stats(nc_, &stats);
+  EXPECT_EQ(0, stats.renders);
+  EXPECT_EQ(0, notcurses_render(nc_));
+  notcurses_stats(nc_, &stats);
+  EXPECT_EQ(1, stats.renders);
+  notcurses_reset_stats(nc_);
+  notcurses_stats(nc_, &stats);
+  EXPECT_EQ(0, stats.renders);
+}
