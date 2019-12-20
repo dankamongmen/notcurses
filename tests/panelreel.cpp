@@ -79,12 +79,11 @@ TEST_F(PanelReelTest, MovementWithoutTablets) {
   // EXPECT_EQ(0, panelreel_validate(n_, pr));
 }
 
-int panelcb(struct ncplane* p, int begx, int begy, int maxx, int maxy,
-            bool cliptop, void* curry){
-  EXPECT_NE(nullptr, p);
+int panelcb(struct tablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
+  EXPECT_NE(nullptr, tablet_ncplane(t));
   EXPECT_LT(begx, maxx);
   EXPECT_LT(begy, maxy);
-  EXPECT_EQ(nullptr, curry);
+  EXPECT_EQ(nullptr, tablet_userptr(t));
   EXPECT_FALSE(cliptop);
   // FIXME verify geometry is as expected
   return 0;

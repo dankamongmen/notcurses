@@ -118,10 +118,10 @@ tabletdown(struct ncplane* w, int begx, int begy, int maxx, int maxy,
 }
 
 static int
-tabletdraw(struct ncplane* p, int begx, int begy, int maxx, int maxy,
-           bool cliptop, void* vtabletctx){
+tabletdraw(struct tablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
   int err = 0;
-  tabletctx* tctx = vtabletctx;
+  struct ncplane* p = tablet_ncplane(t);
+  tabletctx* tctx = tablet_userptr(t);
   pthread_mutex_lock(&tctx->lock);
   unsigned rgb = tctx->rgb;
   int ll;
@@ -258,20 +258,20 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     .min_supported_rows = 5,
     .bordermask = NCBOXMASK_BOTTOM | NCBOXMASK_TOP |
                   NCBOXMASK_LEFT | NCBOXMASK_RIGHT,
-    .borderattr = CELL_TRIVIAL_INITIALIZER,
-    .tabletattr = CELL_TRIVIAL_INITIALIZER,
-    .focusedattr = CELL_TRIVIAL_INITIALIZER,
+    .borderchan = 0,
+    .tabletchan = 0,
+    .focusedchan = 0,
     .toff = y,
     .loff = x,
     .roff = x,
     .boff = y,
     .bgchannel = 0,
   };
-  cell_set_fg_rgb(&popts.focusedattr, 58, 150, 221);
-  cell_set_bg_rgb(&popts.focusedattr, 97, 214, 214);
-  cell_set_fg_rgb(&popts.tabletattr, 19, 161, 14);
-  cell_set_fg_rgb(&popts.borderattr, 136, 23, 152);
-  cell_set_bg_rgb(&popts.borderattr, 0, 0, 0);
+  channels_set_fg_rgb(&popts.focusedchan, 58, 150, 221);
+  channels_set_bg_rgb(&popts.focusedchan, 97, 214, 214);
+  channels_set_fg_rgb(&popts.tabletchan, 19, 161, 14);
+  channels_set_fg_rgb(&popts.borderchan, 136, 23, 152);
+  channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
   if(channels_set_bg_alpha(&popts.bgchannel, CELL_ALPHA_TRANS)){
     return NULL;
   }
