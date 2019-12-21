@@ -5,14 +5,25 @@
 // FIXME ought be able to get pr from tablet, methinks?
 static struct panelreel* PR;
 
+class TabletCtx {
+  public:
+    TabletCtx() : lines(rand() % 5 + 3) {}
+    int getLines() const {
+      return lines;
+    }
+  private:
+    int lines;
+};
+
 int tabletfxn(struct tablet* t, int begx, int begy, int maxx, int maxy,
               bool cliptop){
   struct ncplane* p = tablet_ncplane(t);
+  TabletCtx *tctx = (TabletCtx*)tablet_userptr(t);
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_bg(&c, (((uintptr_t)t) % 0x1000000) + cliptop + begx + maxx);
   ncplane_set_default(p, &c);
   cell_release(p, &c);
-  return 3 > maxy - begy ? maxy - begy : 3;
+  return tctx->getLines() > maxy - begy ? maxy - begy : tctx->getLines();
 }
 
 int main(void){
@@ -54,10 +65,11 @@ int main(void){
     switch(key){
       case 'q':
         return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
-      case 'a':
-        panelreel_add(pr, nullptr, nullptr, tabletfxn, nullptr);
+      case 'a':{
+        TabletCtx* tctx = new TabletCtx();
+        panelreel_add(pr, nullptr, nullptr, tabletfxn, tctx);
         break;
-      case NCKEY_UP:
+      }case NCKEY_UP:
         panelreel_prev(pr);
         break;
       case NCKEY_DOWN:
