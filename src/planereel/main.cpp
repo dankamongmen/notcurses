@@ -9,11 +9,7 @@ int tabletfxn(struct tablet* t, int begx, int begy, int maxx, int maxy,
               bool cliptop){
   struct ncplane* p = tablet_ncplane(t);
   cell c = CELL_SIMPLE_INITIALIZER(' ');
-  if(t == panelreel_focused(PR)){ // selected
-    cell_set_bg(&c, 0x400080);
-  }else{
-    cell_set_bg(&c, ((uintptr_t)t) % 0x1000000);
-  }
+  cell_set_bg(&c, ((uintptr_t)t) % 0x1000000);
   ncplane_set_default(p, &c);
   cell_release(p, &c);
   return 3 > maxy - begy ? maxy - begy : 3;

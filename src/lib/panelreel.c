@@ -167,12 +167,12 @@ tablet_columns(const panelreel* pr, int* begx, int* begy, int* lenx, int* leny,
   window_coordinates(pr->p, begy, begx, leny, lenx);
   int maxy = *leny + *begy - 1;
   int begindraw = *begy + !(pr->popts.bordermask & NCBOXMASK_TOP);
-  // FIXME i think this fails to account for an absent panelreel bottom?
   int enddraw = maxy - !(pr->popts.bordermask & NCBOXMASK_TOP);
-  if(direction){
+  if(direction <= 0){
     if(frontiery < begindraw){
       return -1;
     }
+  }else{
     if(frontiery > enddraw){
   // fprintf(stderr, "FRONTIER: %d ENDDRAW: %d\n", frontiery, enddraw);
       return -1;
@@ -222,7 +222,7 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
   int lenx, leny, begy, begx;
   ncplane* fp = t->p;
   if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, direction)){
-//fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
+//fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d dir %d\n", t, fp, begy, begx, leny, lenx, direction);
 //fprintf(stderr, "FRONTIER DONE!!!!!!\n");
     if(fp){
 //fprintf(stderr, "HIDING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
@@ -377,17 +377,22 @@ draw_following_tablets(const panelreel* pr, const tablet* otherend){
   tablet* working = pr->tablets;
   int frontiery;
   // move down past the focused tablet, filling up the reel to the bottom
-  while(working->next != otherend || otherend->p == NULL){
+  do{
+//fprintf(stderr, "following otherend: %p ->p: %p\n", otherend, otherend->p);
+    // modify frontier based off the one we're at
     window_coordinates(working->p, &wbegy, &wbegx, &wleny, &wlenx);
     wmaxy = wbegy + wleny - 1;
     frontiery = wmaxy + 2;
-//fprintf(stderr, "EASTBOUND AND DOWN: %d %d\n", frontiery, wmaxy + 2);
+//fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiery, wmaxy + 2);
     working = working->next;
-    panelreel_draw_tablet(pr, working, frontiery, 1);
-    if(working->p == NULL){ // FIXME might be more to hide
+    if(working == otherend && otherend->p){
       break;
     }
-  }
+    panelreel_draw_tablet(pr, working, frontiery, 1);
+    if(working == otherend){
+      otherend = otherend->next;
+    }
+  }while(working->p); // FIXME might be more to hide
   // FIXME keep going forward, hiding those no longer visible
   return working;
 }
@@ -396,13 +401,15 @@ draw_following_tablets(const panelreel* pr, const tablet* otherend){
 // returns the last tablet drawn.
 static tablet*
 draw_previous_tablets(const panelreel* pr, const tablet* otherend){
+//fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
   int wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
   tablet* upworking = pr->tablets;
   int frontiery;
+  // modify frontier based off the one we're at
+  window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
+  frontiery = wbegy - 2;
   while(upworking->prev != otherend || otherend->p == NULL){
-    window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
-    frontiery = wbegy - 2;
-//fprintf(stderr, "MOVIN' ON UP: %d %d\n", frontiery, wbegy - 2);
+//fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, frontiery, wbegy - 2);
     upworking = upworking->prev;
     panelreel_draw_tablet(pr, upworking, frontiery, -1);
     if(upworking->p){
