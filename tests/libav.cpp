@@ -10,6 +10,7 @@ class LibavTest : public :: testing::Test {
     }
     notcurses_options nopts{};
     nopts.inhibit_alternate_screen = true;
+    nopts.suppress_bannner = true;
     outfp_ = fopen("/dev/tty", "wb");
     ASSERT_NE(nullptr, outfp_);
     nc_ = notcurses_init(&nopts, outfp_);

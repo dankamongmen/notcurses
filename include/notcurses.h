@@ -1441,18 +1441,17 @@ typedef struct panelreel_options {
   // first, and vice versa)? only meaningful when infinitescroll is true. if
   // infinitescroll is false, this must be false.
   bool circular;
-  // outcurses can draw a border around the panelreel, and also around the
+  // notcurses can draw a border around the panelreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
   // appropriate attr and pair values will be used to style the borders.
   // focused and non-focused tablets can have different styles. you can instead
   // draw your own borders, or forgo borders entirely.
   unsigned bordermask; // bitfield; 1s will not be drawn (see bordermaskbits)
-  cell borderattr;     // attributes used for panelreel border
+  uint64_t borderchan; // attributes used for panelreel border
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
-  // FIXME should be attrword + channels, as we don't use gcluster here
-  cell tabletattr;     // attributes used for tablet borders
-  cell focusedattr;    // attributes used for focused tablet borders, no color!
+  uint64_t tabletchan; // tablet border styling channel
+  uint64_t focusedchan;// focused tablet border styling channel
   uint64_t bgchannel;  // background colors
 } panelreel_options;
 
@@ -1473,11 +1472,12 @@ API struct panelreel* panelreel_create(struct ncplane* nc,
 // Returns the ncplane on which this panelreel lives.
 API struct ncplane* panelreel_plane(struct panelreel* pr);
 
-// Tablet draw callback, provided a ncplane the first column that may be used,
-// the first row that may be used, the first column that may not be used, the
-// first row that may not be used, and a bool indicating whether output ought
-// be clipped at the top (true) or bottom (false). Rows and columns are
-// zero-indexed, and both are relative to the panel.
+// Tablet draw callback, provided a tablet (from which the ncplane and userptr
+// may be extracted), the first column that may be used, the first row that may
+// be used, the first column that may not be used, the first row that may not
+// be used, and a bool indicating whether output ought be clipped at the top
+// (true) or bottom (false). Rows and columns are zero-indexed, and both are
+// relative to the tablet's plane.
 //
 // Regarding clipping: it is possible that the tablet is only partially
 // displayed on the screen. If so, it is either partially present on the top of
@@ -1487,8 +1487,8 @@ API struct ncplane* panelreel_plane(struct panelreel* pr);
 //
 // Returns the number of lines of output, which ought be less than or equal to
 // maxy - begy, and non-negative (negative values might be used in the future).
-typedef int (*tabletcb)(struct ncplane* p, int begx, int begy, int maxx,
-                        int maxy, bool cliptop, void* curry);
+typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
+                        int maxy, bool cliptop);
 
 // Add a new tablet to the provided panelreel, having the callback object
 // opaque. Neither, either, or both of after and before may be specified. If
@@ -1539,6 +1539,10 @@ API int panelreel_destroy(struct panelreel* pr);
 
 API void* tablet_userptr(struct tablet* t);
 API const void* tablet_userptr_const(const struct tablet* t);
+
+// Access the ncplane associated with this tablet, if one exists.
+API struct ncplane* tablet_ncplane(struct tablet* t);
+API const struct ncplane* tablet_ncplane_const(const struct tablet* t);
 
 #define PREFIXSTRLEN 7  // Does not include a '\0' (xxx.xxU)
 #define IPREFIXSTRLEN 8 //  Does not include a '\0' (xxxx.xxU)

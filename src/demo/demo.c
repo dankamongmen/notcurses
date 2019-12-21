@@ -14,7 +14,7 @@ static const char DEFAULT_DEMO[] = "iemlubgswvpo";
 static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
 char* find_data(const char* datum){
-  char* path = malloc(strlen(datadir) + 1 + strlen(datum));
+  char* path = malloc(strlen(datadir) + 1 + strlen(datum) + 1);
   strcpy(path, datadir);
   strcat(path, "/");
   strcat(path, datum);

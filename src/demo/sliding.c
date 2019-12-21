@@ -165,7 +165,9 @@ int sliding_puzzle_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
   int averr = 0;
-  struct ncvisual* ncv = ncplane_visual_open(n, "../tests/changes.jpg", &averr);
+  char* path = find_data("changes.jpg");
+  struct ncvisual* ncv = ncplane_visual_open(n, path, &averr);
+  free(path);
   if(ncv == NULL){
     return -1;
   }

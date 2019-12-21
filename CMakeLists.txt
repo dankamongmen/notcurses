@@ -114,6 +114,26 @@ target_compile_definitions(notcurses-input
     FORTIFY_SOURCE=2
 )
 
+file(GLOB PLANEREELSRCS CONFIGURE_DEPENDS src/planereel/*.cpp)
+add_executable(notcurses-planereel ${PLANEREELSRCS})
+target_include_directories(notcurses-planereel
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(notcurses-planereel
+  PRIVATE
+    notcurses
+)
+target_compile_options(notcurses-planereel
+  PRIVATE
+    -Wall -Wextra -W -Wshadow
+)
+target_compile_definitions(notcurses-planereel
+  PRIVATE
+    FORTIFY_SOURCE=2
+)
+
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 add_executable(notcurses-view ${VIEWSRCS})
 target_include_directories(notcurses-view
@@ -192,7 +212,7 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
-file(GLOB TESTDATA CONFIGURE_DEPENDS tests/*.png tests/*.jpg tests/*.mkv)
+file(GLOB TESTDATA CONFIGURE_DEPENDS tests/*.png tests/*.jpg tests/*.mkv tests/*.bmp)
 install(FILES
   ${TESTDATA}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/notcurses
@@ -212,6 +232,7 @@ install(FILES
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-view DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
+install(TARGETS notcurses-planereel DESTINATION bin)
 install(TARGETS notcurses
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
