@@ -165,7 +165,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
   int averr = 0;
-  char* path = find_data("changes.jpg");
+  char* path = find_data("lamepatents.jpg");
   struct ncvisual* ncv = ncplane_visual_open(n, path, &averr);
   free(path);
   if(ncv == NULL){
@@ -175,7 +175,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  if(ncvisual_render(ncv)){
+  if(ncvisual_render(ncv, 0, 0, 0, 0)){
     ncvisual_destroy(ncv);
     return -1;
   }

@@ -66,12 +66,14 @@ struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 // We implement some small alpha compositing. Foreground and background both
 // have two bits of inverted alpha. The actual grapheme written to a cell is
 // the topmost non-zero grapheme. If its alpha is 00, its foreground color is
-// used unchanged. If its alpha is 11, its foreground color is derived entirely
+// used unchanged. If its alpha is 10, its foreground color is derived entirely
 // from cells underneath it. Otherwise, the result will be a composite.
 // Likewise for the background. If the bottom of a coordinate's zbuffer is
 // reached with a cumulative alpha of zero, the default is used. In this way,
 // a terminal configured with transparent background can be supported through
-// multiple occluding ncplanes.
+// multiple occluding ncplanes. A foreground alpha of 11 requests high-contrast
+// text (relative to the computed background). A background alpha of 11 is
+// currently forbidden.
 typedef struct cell {
   // These 32 bits are either a single-byte, single-character grapheme cluster
   // (values 0--0x7f), or an offset into a per-ncplane attached pool of
@@ -671,15 +673,17 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 // excluding the default cell.
 API void ncplane_erase(struct ncplane* n);
 
-#define CELL_WIDEASIAN_MASK    0x8000000080000000ull
-#define CELL_FGDEFAULT_MASK    0x4000000000000000ull
-#define CELL_FG_MASK           0x00ffffff00000000ull
-#define CELL_BGDEFAULT_MASK    0x0000000040000000ull
-#define CELL_BG_MASK           0x0000000000ffffffull
-#define CELL_ALPHA_MASK        0x0000000030000000ull
-#define CELL_ALPHA_SHIFT       28u
-#define CELL_ALPHA_TRANS       3
-#define CELL_ALPHA_OPAQUE      0
+#define CELL_WIDEASIAN_MASK     0x8000000080000000ull
+#define CELL_FGDEFAULT_MASK     0x4000000000000000ull
+#define CELL_FG_MASK            0x00ffffff00000000ull
+#define CELL_BGDEFAULT_MASK     0x0000000040000000ull
+#define CELL_BG_MASK            0x0000000000ffffffull
+#define CELL_ALPHA_MASK         0x0000000030000000ull
+#define CELL_ALPHA_SHIFT        28u
+#define CELL_ALPHA_HIGHCONTRAST 3
+#define CELL_ALPHA_TRANSPARENT  2
+#define CELL_ALPHA_BLEND        1
+#define CELL_ALPHA_OPAQUE       0
 
 // These lowest-level functions manipulate a 64-bit channel encoding directly.
 // Users will typically manipulate ncplane and cell channels through those APIs,
@@ -749,7 +753,7 @@ channel_get_alpha(unsigned channel){
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
 channel_set_alpha(unsigned* channel, int alpha){
-  if(alpha < CELL_ALPHA_OPAQUE || alpha > CELL_ALPHA_TRANS){
+  if(alpha < CELL_ALPHA_OPAQUE || alpha > CELL_ALPHA_HIGHCONTRAST){
     return -1;
   }
   *channel = (alpha << CELL_ALPHA_SHIFT) | (*channel & ~CELL_ALPHA_MASK);
@@ -887,6 +891,9 @@ channels_set_fg_alpha(uint64_t* channels, int alpha){
 // Set the 2-bit alpha component of the background channel.
 static inline int
 channels_set_bg_alpha(uint64_t* channels, int alpha){
+  if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
+    return -1;
+  }
   unsigned channel = channels_get_bchannel(*channels);
   if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
@@ -1382,9 +1389,15 @@ API void ncvisual_destroy(struct ncvisual* ncv);
 // subsequent call to ncvisual_decode(), and should not be freed by the caller.
 API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 
-// render the decoded frame to the associated ncplane. the frame will be scaled
-// to the size of the ncplane at ncplane_visual_open() time.
-API int ncvisual_render(const struct ncvisual* ncv);
+// Render the decoded frame to the associated ncplane. The frame will be scaled
+// to the size of the ncplane per the ncscale_e style. A subregion of the
+// frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
+// the rectangle formed by begy x begx and the lower-right corner, zero can be
+// supplied to 'leny' and 'lenx'. Zero for all four values will thus render the
+// entire visual. Negative values for any of the four parameters are an error.
+// It is an error to specify any region beyond the boundaries of the frame.
+API int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
+                        int leny, int lenx);
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.

@@ -275,6 +275,122 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   return ncv;
 }
 
+int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
+//fprintf(stderr, "render %dx%d+%dx%d\n", begy, begx, leny, lenx);
+  if(begy < 0 || begx < 0 || lenx < 0 || leny < 0){
+    return -1;
+  }
+  const AVFrame* f = ncv->oframe;
+  if(f == NULL){
+    return -1;
+  }
+//fprintf(stderr, "render %d/%d to %dx%d+%dx%d\n", f->height, f->width, begy, begx, leny, lenx);
+  if(begx >= f->width || begy >= f->height){
+    return -1;
+  }
+  if(begx + lenx > f->width || begy + leny > f->height){
+    return -1;
+  }
+  if(lenx == 0){
+    lenx = f->width - begx;
+  }
+  if(leny == 0){
+    leny = f->height - begy;
+  }
+  int x, y;
+  int dimy, dimx;
+  ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
+  ncplane_cursor_move_yx(ncv->ncp, 0, 0);
+  const int linesize = f->linesize[0];
+  const unsigned char* data = f->data[0];
+  // y and x are actual plane coordinates. each row corresponds to two rows of
+  // the input (scaled) frame (columns are 1:1). we track the row of the
+  // visual via visy.
+  int visy = begy;
+//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d -> %dx%d\n", begy, begx, leny, lenx, f->height, f->width, dimy, dimx);
+  for(y = ncv->placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 2){
+    if(ncplane_cursor_move_yx(ncv->ncp, y, ncv->placex)){
+      return -1;
+    }
+    int visx = begx;
+    for(x = ncv->placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
+      int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
+      const unsigned char* rgbbase_up = data + (linesize * visy) + (visx * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_down = data + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+/*fprintf(stderr, "[%04d/%04d] %p bpp: %d lsize: %d %02x %02x %02x %02x\n",
+        y, x, rgbbase, bpp, linesize, rgbbase[0], rgbbase[1], rgbbase[2], rgbbase[3]);*/
+      cell c = CELL_TRIVIAL_INITIALIZER;
+      // use the default for the background, as that's the only way it's
+      // effective in that case anyway
+      if(!rgbbase_up[3] || !rgbbase_down[3]){
+        cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+        if(!rgbbase_up[3] && !rgbbase_down[3]){
+          if(cell_load(ncv->ncp, &c, " ") <= 0){
+            return -1;
+          }
+          cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+        }else if(!rgbbase_up[3]){ // down has the color
+          if(cell_load(ncv->ncp, &c, "\u2584") <= 0){ // lower half block
+            return -1;
+          }
+          cell_set_fg_rgb(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+        }else{ // up has the color
+          if(cell_load(ncv->ncp, &c, "\u2580") <= 0){ // upper half block
+            return -1;
+          }
+          cell_set_fg_rgb(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+        }
+      }else{
+        cell_set_fg_rgb(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+        cell_set_bg_rgb(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+        if(cell_load(ncv->ncp, &c, "\u2580") <= 0){ // upper half block
+          return -1;
+        }
+      }
+      if(ncplane_putc(ncv->ncp, &c) <= 0){
+        cell_release(ncv->ncp, &c);
+        return -1;
+      }
+      cell_release(ncv->ncp, &c);
+    }
+  }
+  flash_damage_map(ncv->ncp->damage + ncv->placey, y - ncv->placey, true);
+  return 0;
+}
+
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr, streamcb streamer){
+  ncplane* n = ncv->ncp;
+  int frame = 1;
+  AVFrame* avf;
+  struct timespec start;
+  // FIXME should keep a start time and cumulative time; this will push things
+  // out on a loaded machine
+  while(clock_gettime(CLOCK_MONOTONIC, &start),
+        (avf = ncvisual_decode(ncv, averr)) ){
+    ncplane_cursor_move_yx(n, 0, 0);
+    if(ncvisual_render(ncv, 0, 0, 0, 0)){
+      return -1;
+    }
+    if(streamer){
+      int r = streamer(nc, ncv);
+      if(r){
+        return r;
+      }
+    }
+    ++frame;
+    uint64_t ns = avf->pkt_duration * 1000000;
+    struct timespec interval = {
+      .tv_sec = start.tv_sec + (long)(ns / 1000000000),
+      .tv_nsec = start.tv_nsec + (long)(ns % 1000000000),
+    };
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
+  }
+  if(*averr == AVERROR_EOF){
+    return 0;
+  }
+  return -1;
+}
+
 int ncvisual_init(void){
   av_log_set_level(AV_LOG_QUIET); // FIXME make this configurable?
   // FIXME could also use av_log_set_callback() and capture the message...

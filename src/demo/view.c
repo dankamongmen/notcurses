@@ -40,9 +40,9 @@ view_video_demo(struct notcurses* nc){
 static struct ncplane*
 legend(struct notcurses* nc, int dimy, int dimx){
   struct ncplane* n = notcurses_newplane(nc, 3, 25, dimy / 8, dimx / 12, NULL);
-  ncplane_set_bg_alpha(n, CELL_ALPHA_TRANS);
+  ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
   uint64_t channels = 0;
-  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANS);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   cell c = CELL_INITIALIZER(' ', 0, channels);
   ncplane_set_default(n, &c);
   ncplane_set_fg_rgb(n, 0x0, 0x0, 0x0);
@@ -101,7 +101,7 @@ int view_demo(struct notcurses* nc){
     ncplane_destroy(dsplane);
     return -1;
   }
-  if(ncvisual_render(ncv2)){
+  if(ncvisual_render(ncv2, 0, 0, 0, 0)){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);
@@ -110,7 +110,7 @@ int view_demo(struct notcurses* nc){
   notcurses_render(nc);
   ncplane_move_bottom(dsplane);
   nanosleep(&demodelay, NULL);
-  if(ncvisual_render(ncv)){
+  if(ncvisual_render(ncv, 0, 0, 0, 0)){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);

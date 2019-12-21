@@ -286,8 +286,8 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, " ");
-  cell_set_fg_alpha(&c, CELL_ALPHA_TRANS);
-  cell_set_bg_alpha(&c, CELL_ALPHA_TRANS);
+  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   ncplane_set_default(n, &c);
   cell_release(n, &c);
   uint64_t channels = 0;

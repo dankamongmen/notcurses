@@ -45,7 +45,7 @@ TEST_F(LibavTest, LoadImage) {
   ASSERT_EQ(0, averr);
   EXPECT_EQ(dimy * 2, frame->height);
   EXPECT_EQ(dimx, frame->width);
-  EXPECT_EQ(0, ncvisual_render(ncv));
+  EXPECT_EQ(0, ncvisual_render(ncv, 0, 0, 0, 0));
   EXPECT_EQ(0, notcurses_render(nc_));
   frame = ncvisual_decode(ncv, &averr);
   ASSERT_EQ(nullptr, frame);
@@ -66,7 +66,7 @@ TEST_F(LibavTest, LoadVideo) {
   EXPECT_EQ(0, averr);
   EXPECT_EQ(dimy * 2, frame->height);
   EXPECT_EQ(dimx, frame->width);
-  EXPECT_EQ(0, ncvisual_render(ncv));
+  EXPECT_EQ(0, ncvisual_render(ncv, 0, 0, 0, 0));
   EXPECT_EQ(0, notcurses_render(nc_));
   ncvisual_destroy(ncv);
 }
@@ -83,7 +83,7 @@ TEST_F(LibavTest, LoadVideoCreatePlane) {
   EXPECT_EQ(0, averr);
   EXPECT_EQ(dimy * 2, frame->height);
   EXPECT_EQ(dimx, frame->width);
-  EXPECT_EQ(0, ncvisual_render(ncv));
+  EXPECT_EQ(0, ncvisual_render(ncv, 0, 0, 0, 0));
   EXPECT_EQ(0, notcurses_render(nc_));
   ncvisual_destroy(ncv);
 }
