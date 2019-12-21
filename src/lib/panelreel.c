@@ -299,7 +299,7 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
         clipfoot = true;
 //fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
       }
-    }else{ // both borders are visible
+    }else if(ll < leny - 1){ // both borders are visible
       ll += !(pr->popts.tabletmask & NCBOXMASK_BOTTOM) +
             !(pr->popts.tabletmask & NCBOXMASK_TOP);
 //fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
@@ -308,6 +308,8 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
 //fprintf(stderr, "MOVEDOWN UNCLIPPED (skip %d)\n", leny - ll);
         ncplane_move_yx(fp, begy + leny - ll, begx);
       }
+    }else{
+      assert(ll == leny); // you fucked up! FIXME
     }
     // The focused tablet will have been resized properly above, but it might
     // be out of position (the focused tablet ought move as little as possible). 

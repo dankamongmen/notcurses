@@ -19,6 +19,7 @@ int tabletfxn(struct tablet* t, int begx, int begy, int maxx, int maxy,
               bool cliptop){
   struct ncplane* p = tablet_ncplane(t);
   TabletCtx *tctx = (TabletCtx*)tablet_userptr(t);
+  ncplane_erase(p);
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_bg(&c, (((uintptr_t)t) % 0x1000000) + cliptop + begx + maxx);
   ncplane_set_default(p, &c);
@@ -47,13 +48,15 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  if(ncplane_putstr_aligned(nstd, 0, "(a)dd (q)uit", NCALIGN_CENTER) <= 0){
+  if(ncplane_putstr_aligned(nstd, 0, "(a)dd (d)el (q)uit", NCALIGN_CENTER) <= 0){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
   struct panelreel_options popts{};
   channels_set_fg(&popts.focusedchan, 0xffffff);
   channels_set_bg(&popts.focusedchan, 0x00c080);
+  popts.bordermask = NCBOXMASK_BOTTOM | NCBOXMASK_TOP |
+                      NCBOXMASK_RIGHT | NCBOXMASK_LEFT;
   struct panelreel* pr = panelreel_create(n, &popts, -1);
   if(!pr || notcurses_render(nc)){
     notcurses_stop(nc);
@@ -69,7 +72,11 @@ int main(void){
         TabletCtx* tctx = new TabletCtx();
         panelreel_add(pr, nullptr, nullptr, tabletfxn, tctx);
         break;
-      }case NCKEY_UP:
+      }
+      case 'd':
+        panelreel_del_focused(pr);
+        break;
+      case NCKEY_UP:
         panelreel_prev(pr);
         break;
       case NCKEY_DOWN:
