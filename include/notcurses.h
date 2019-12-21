@@ -1392,10 +1392,10 @@ API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 // Render the decoded frame to the associated ncplane. The frame will be scaled
 // to the size of the ncplane per the ncscale_e style. A subregion of the
 // frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
-// the entire frame, provide zero for all four arguments. It is an error to
-// otherwise provide zero for either 'lenx' or 'leny', and negative values for
-// any of the four parameters are an error. It is an error to specify any
-// region beyond the boundaries of the frame.
+// the rectangle formed by begy x begx and the lower-right corner, zero can be
+// supplied to 'leny' and 'lenx'. Zero for all four values will thus render the
+// entire visual. Negative values for any of the four parameters are an error.
+// It is an error to specify any region beyond the boundaries of the frame.
 API int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
                         int leny, int lenx);
 
