@@ -91,7 +91,9 @@ int outro(struct notcurses* nc){
   ncplane_erase(ncp);
   ncplane_dim_yx(ncp, &rows, &cols);
   int averr = 0;
-  struct ncvisual* ncv = ncplane_visual_open(ncp, "../tests/changes.jpg", &averr);
+  char* path = find_data("changes.jpg");
+  struct ncvisual* ncv = ncplane_visual_open(ncp, path, &averr);
+  free(path);
   if(ncv == NULL){
     return -1;
   }

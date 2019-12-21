@@ -212,7 +212,7 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
-file(GLOB TESTDATA CONFIGURE_DEPENDS tests/*.png tests/*.jpg tests/*.mkv)
+file(GLOB TESTDATA CONFIGURE_DEPENDS tests/*.png tests/*.jpg tests/*.mkv tests/*.bmp)
 install(FILES
   ${TESTDATA}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/notcurses
