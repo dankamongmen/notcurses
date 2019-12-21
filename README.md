@@ -77,8 +77,8 @@ Why use this non-standard library?
     `static inline` header-only code is used. This facilitates compiler
     optimizations, and reduces loader time.
 
-* All APIs natively suport UTF-8. The `cell` API is based around Unicode's
-  [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
+* All APIs natively (and exclusively) support UTF-8. The `cell` API is based
+  around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
 
 * Visual features including images, fonts, video, high-contrast text, sprites,
   and transparent regions. All APIs natively support 24-bit color, quantized
