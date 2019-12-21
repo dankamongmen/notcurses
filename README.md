@@ -957,15 +957,17 @@ typedef struct cell {
   uint64_t channels;          // + 8b == 16b
 } cell;
 
-#define CELL_WIDEASIAN_MASK    0x8000000080000000ull
-#define CELL_FGDEFAULT_MASK    0x4000000000000000ull
-#define CELL_FG_MASK           0x00ffffff00000000ull
-#define CELL_BGDEFAULT_MASK    0x0000000040000000ull
-#define CELL_BG_MASK           0x0000000000ffffffull
-#define CELL_ALPHA_MASK        0x0000000030000000ull
-#define CELL_ALPHA_SHIFT       28u
-#define CELL_ALPHA_TRANS       3
-#define CELL_ALPHA_OPAQUE      0
+#define CELL_WIDEASIAN_MASK     0x8000000080000000ull
+#define CELL_FGDEFAULT_MASK     0x4000000000000000ull
+#define CELL_FG_MASK            0x00ffffff00000000ull
+#define CELL_BGDEFAULT_MASK     0x0000000040000000ull
+#define CELL_BG_MASK            0x0000000000ffffffull
+#define CELL_ALPHA_MASK         0x0000000030000000ull
+#define CELL_ALPHA_SHIFT        28u
+#define CELL_ALPHA_HIGHCONTRAST 3
+#define CELL_ALPHA_TRANSPARENT  2
+#define CELL_ALPHA_BLEND        1
+#define CELL_ALPHA_OPAQUE       0
 ```
 
 `cell`s must be initialized with an initialization macro or `cell_init()`
@@ -1293,9 +1295,15 @@ struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
 // can be neither decoded nor rendered any further.
 void ncvisual_destroy(struct ncvisual* ncv);
 
-// render the decoded frame to the associated ncplane. the frame will be scaled
-// to the size of the ncplane at ncplane_visual_open() time.
-int ncvisual_render(const struct ncvisual* ncv);
+// Render the decoded frame to the associated ncplane. The frame will be scaled
+// to the size of the ncplane per the ncscale_e style. A subregion of the
+// frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
+// the entire frame, provide zero for all four arguments. It is an error to
+// otherwise provide zero for either 'lenx' or 'leny', and negative values for
+// any of the four parameters are an error. It is an error to specify any
+// region beyond the boundaries of the frame.
+int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
+                    int leny, int lenx);
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
@@ -1888,6 +1896,9 @@ channels_set_fg_alpha(uint64_t* channels, int alpha){
 // Set the 2-bit alpha component of the background channel.
 static inline int
 channels_set_bg_alpha(uint64_t* channels, int alpha){
+  if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
+    return -1;
+  }
   unsigned channel = channels_get_bchannel(*channels);
   if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
@@ -2002,6 +2013,15 @@ Four binaries are built as part of notcurses:
 * `notcurses-input`: decode and print keypresses
 * `notcurses-planereels`: play around with panelreels
 * `notcurses-tester`: unit testing
+
+To run `notcurses-demo` from a checkout, provide the `tests/` directory via
+the `-p` argument. Demos requiring data files will otherwise abort. The base
+delay used in `notcurses-demo` can be changed with `-d`, accepting a
+floating-point multiplier. Values less than 1 will speed up the demo, while
+values greater than 1 will slow it down.
+
+`notcurses-tester` expects `../tests/` to exist, and be populated with the
+necessary data files. It can be run by itself, or via `make test`.
 
 ## Differences from NCURSES
 

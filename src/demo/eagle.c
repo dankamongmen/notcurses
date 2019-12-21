@@ -10,7 +10,7 @@ outzoomed_map(struct notcurses* nc, const char* map){
   if(ncvisual_decode(ncv, &averr) == NULL){
     return NULL;
   }
-  if(ncvisual_render(ncv)){
+  if(ncvisual_render(ncv, 0, 0, 0, 0)){
     return NULL;
   }
   if(notcurses_render(nc)){
@@ -43,7 +43,7 @@ zoom_map(struct notcurses* nc, const char* map){
   int vx, vy; // dimensions of unzoomed map
   ncplane_dim_yx(ncp, &vy, &vx);
   ncplane_move_yx(ncp, truey - vy, truex - vx);
-  if(ncvisual_render(ncv)){
+  if(ncvisual_render(ncv, 0, 0, 0, 0)){
     ncvisual_destroy(ncv);
     return -1;
   }
@@ -70,7 +70,7 @@ zoom_map(struct notcurses* nc, const char* map){
       ncvisual_destroy(ncv);
       return -1;
     }
-    if(ncvisual_render(zncv)){
+    if(ncvisual_render(zncv, 0, 0, 0, 0)){
       ncvisual_destroy(zncv);
       ncplane_destroy(zncp);
       ncvisual_destroy(ncv);

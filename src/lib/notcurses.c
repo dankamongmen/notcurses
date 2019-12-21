@@ -1605,7 +1605,7 @@ void ncplane_erase(ncplane* n){
   ncplane_unlock(n);
 }
 
-int ncvisual_render(const ncvisual* ncv){
+int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
   const AVFrame* f = ncv->oframe;
   if(f == NULL){
     return -1;
@@ -1630,12 +1630,12 @@ int ncvisual_render(const ncvisual* ncv){
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       if(!rgbbase_up[3] || !rgbbase_down[3]){
-        cell_set_bg_alpha(&c, CELL_ALPHA_TRANS);
+        cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
         if(!rgbbase_up[3] && !rgbbase_down[3]){
           if(cell_load(ncv->ncp, &c, " ") <= 0){
             return -1;
           }
-          cell_set_fg_alpha(&c, CELL_ALPHA_TRANS);
+          cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
         }else if(!rgbbase_up[3]){ // down has the color
           if(cell_load(ncv->ncp, &c, "\u2584") <= 0){ // lower half block
             return -1;
@@ -1675,7 +1675,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr, streamcb streamer)
   while(clock_gettime(CLOCK_MONOTONIC, &start),
         (avf = ncvisual_decode(ncv, averr)) ){
     ncplane_cursor_move_yx(n, 0, 0);
-    if(ncvisual_render(ncv)){
+    if(ncvisual_render(ncv, 0, 0, 0, 0)){
       return -1;
     }
     if(streamer){

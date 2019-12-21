@@ -157,13 +157,13 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
           vis = &p->defcell;
         }
         int nalpha;
-        if(falpha > 0 && (nalpha = cell_get_fg_alpha(vis)) < CELL_ALPHA_TRANS){
+        if(falpha > 0 && (nalpha = cell_get_fg_alpha(vis)) < CELL_ALPHA_TRANSPARENT){
           if(c->gcluster == 0){ // never write fully trans glyphs, never replace
             if( (c->gcluster = vis->gcluster) ){ // index copy only
               glyphplane = p; // must return this ncplane for this glyph
               c->attrword = vis->attrword;
               cell_set_fchannel(c, cell_get_fchannel(vis)); // FIXME blend it in
-              falpha -= (CELL_ALPHA_TRANS - nalpha); // FIXME blend it in
+              falpha -= (CELL_ALPHA_TRANSPARENT - nalpha); // FIXME blend it in
               if(p->damage[poffy]){
                 *damage = true;
                 p->damage[poffy] = false;
@@ -171,9 +171,9 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
             }
           }
         }
-        if(balpha > 0 && (nalpha = cell_get_bg_alpha(vis)) < CELL_ALPHA_TRANS){
+        if(balpha > 0 && (nalpha = cell_get_bg_alpha(vis)) < CELL_ALPHA_TRANSPARENT){
           cell_set_bchannel(c, cell_get_bchannel(vis)); // FIXME blend it in
-          balpha -= (CELL_ALPHA_TRANS - nalpha);
+          balpha -= (CELL_ALPHA_TRANSPARENT - nalpha);
           if(p->damage[poffy]){
             *damage = true;
             p->damage[poffy] = false;
@@ -193,7 +193,8 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
 static inline ncplane*
 visible_cell(cell* c, int y, int x, ncplane* n, bool* damage){
   cell_init(c);
-  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANS, CELL_ALPHA_TRANS, damage);
+  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANSPARENT,
+                          CELL_ALPHA_TRANSPARENT, damage);
 }
 
 // write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the

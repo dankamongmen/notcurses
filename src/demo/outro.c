@@ -27,7 +27,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   ncplane_dim_yx(on, rows, cols);
   int ybase = 0;
   // bevel the upper corners
-  if(ncplane_set_bg_alpha(on, CELL_ALPHA_TRANS)){
+  if(ncplane_set_bg_alpha(on, CELL_ALPHA_TRANSPARENT)){
     return NULL;
   }
   if(ncplane_cursor_move_yx(on, ybase, 0)){
@@ -101,7 +101,7 @@ int outro(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  if(ncvisual_render(ncv)){
+  if(ncvisual_render(ncv, 0, 0, 0, 0)){
     ncvisual_destroy(ncv);
     return -1;
   }

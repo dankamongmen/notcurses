@@ -112,7 +112,7 @@ static const char* luigis[] = {
 static int
 draw_luigi(struct ncplane* n, const char* sprite){
   cell bgc = CELL_TRIVIAL_INITIALIZER;
-  cell_set_bg_alpha(&bgc, CELL_ALPHA_TRANS);
+  cell_set_bg_alpha(&bgc, CELL_ALPHA_TRANSPARENT);
   ncplane_set_default(n, &bgc);
   cell_release(n, &bgc);
   size_t s;
@@ -156,7 +156,7 @@ int luigi_demo(struct notcurses* nc){
   if(ncvisual_decode(nv, &averr) == NULL){
     return -1;
   }
-  if(ncvisual_render(nv)){
+  if(ncvisual_render(nv, 0, 0, 0, 0)){
     return -1;
   }
   int rows, cols;
