@@ -240,11 +240,11 @@ snakey(struct notcurses* nc, snake* s, int dimy, int dimx){
 // our colocality (unless they're summary area walls).
 static void *
 snake_thread(void* vnc){
-  const int snakecount = 3; // FIXME base count off area
   struct notcurses* nc = vnc;
   struct ncplane* n = notcurses_stdplane(nc);
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
+  int snakecount = dimy / 15;
   snake snakes[snakecount];
   for(int s = 0 ; s < snakecount ; ++s){
     init_snake(&snakes[s], dimy, dimx);
