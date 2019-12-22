@@ -78,7 +78,9 @@ intro(struct notcurses* nc){
   if((ncp = notcurses_stdplane(nc)) == NULL){
     return -1;
   }
-  ncplane_erase(ncp);
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_set_bg_rgb(&c, 0x20, 0x20, 0x20);
+  ncplane_set_default(ncp, &c);
   if(ncplane_cursor_move_yx(ncp, 0, 0)){
     return -1;
   }
@@ -102,8 +104,6 @@ intro(struct notcurses* nc){
   cell_release(ncp, &ul); cell_release(ncp, &ur);
   cell_release(ncp, &ll); cell_release(ncp, &lr);
   cell_release(ncp, &hl); cell_release(ncp, &vl);
-  cell c;
-  cell_init(&c);
   const char* cstr = "Δ";
   cell_load(ncp, &c, cstr);
   cell_set_fg_rgb(&c, 200, 0, 200);
