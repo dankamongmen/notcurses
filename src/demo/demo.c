@@ -14,7 +14,7 @@
 static const int MIN_SUPPORTED_ROWS = 25;
 static const int MIN_SUPPORTED_COLS = 80;
 
-static const char DEFAULT_DEMO[] = "iemlubgswvpo";
+static const char DEFAULT_DEMO[] = "ixemlubgswvpo";
 static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
 char* find_data(const char* datum){
@@ -69,6 +69,7 @@ usage(const char* exe, int status){
   fprintf(out, " u: run uniblock\n");
   fprintf(out, " v: run view\n");
   fprintf(out, " w: run witherworm\n");
+  fprintf(out, " x: run x-ray\n");
   exit(status);
 }
 
@@ -189,6 +190,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'l': ret = luigi_demo(nc); break;
       case 'v': ret = view_demo(nc); break;
       case 'e': ret = eagle_demo(nc); break;
+      case 'x': ret = xray_demo(nc); break;
       case 'w': ret = witherworm_demo(nc); break;
       case 'p': ret = panelreel_demo(nc); break;
       default:

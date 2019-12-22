@@ -2,6 +2,7 @@
 #define NOTCURSES_DEMO
 
 #include <time.h>
+#include <assert.h>
 #include <limits.h>
 #include <notcurses.h>
 
@@ -24,6 +25,7 @@ int sliding_puzzle_demo(struct notcurses* nc);
 int view_demo(struct notcurses* nc);
 int eagle_demo(struct notcurses* nc);
 int panelreel_demo(struct notcurses* nc);
+int xray_demo(struct notcurses* nc);
 int luigi_demo(struct notcurses* nc);
 int outro(struct notcurses* nc);
 
