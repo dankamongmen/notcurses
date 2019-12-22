@@ -725,6 +725,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->ttyinfp = stdin; // FIXME
   ret->mstream = NULL;
   ret->mstrsize = 0;
+  ret->lastframe = NULL;
+  ret->lfdimy = 0;
+  ret->lfdimx = 0;
   if(make_nonblocking(ret->ttyinfp)){
     free(ret);
     return NULL;
@@ -860,6 +863,7 @@ int notcurses_stop(notcurses* nc){
     if(nc->mstreamfp){
       fclose(nc->mstreamfp);
     }
+    free(nc->lastframe);
     free(nc->mstream);
     input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);

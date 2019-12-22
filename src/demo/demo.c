@@ -10,6 +10,10 @@
 #include <notcurses.h>
 #include "demo.h"
 
+// ansi terminal definition-4-life
+static const int MIN_SUPPORTED_ROWS = 25;
+static const int MIN_SUPPORTED_COLS = 80;
+
 static const char DEFAULT_DEMO[] = "iemlubgswvpo";
 static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
@@ -252,7 +256,6 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
 int main(int argc, char** argv){
   struct notcurses* nc;
   notcurses_options nopts;
-  struct ncplane* ncp;
   if(!setlocale(LC_ALL, "")){
     fprintf(stderr, "Couldn't set locale based on user preferences\n");
     return EXIT_FAILURE;
@@ -267,8 +270,9 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&nopts, stdout)) == NULL){
     return EXIT_FAILURE;
   }
-  if((ncp = notcurses_stdplane(nc)) == NULL){
-    fprintf(stderr, "Couldn't get standard plane\n");
+  int dimx, dimy;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
     goto err;
   }
   // no one cares about the leaderscreen. 1s max.
@@ -306,6 +310,10 @@ int main(int argc, char** argv){
   return EXIT_SUCCESS;
 
 err:
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
   notcurses_stop(nc);
+  if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
+    fprintf(stderr, "At least an 80x25 terminal is required (current: %dx%d)\n", dimx, dimy);
+  }
   return EXIT_FAILURE;
 }
