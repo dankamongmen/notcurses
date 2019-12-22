@@ -194,10 +194,9 @@ snakey_top(struct notcurses* nc, snake* s){
 }
 
 static int
-snakey(struct notcurses* nc, snake* s, int dimy, int dimx, const struct timespec* iterdelay){
+snakey(struct notcurses* nc, snake* s, int dimy, int dimx){
   struct ncplane* n = notcurses_stdplane(nc);
   int oldy, oldx;
-  clock_nanosleep(CLOCK_MONOTONIC, 0, iterdelay, NULL);
   cell c = CELL_TRIVIAL_INITIALIZER;
   do{ // force a move
     oldy = s->y;
@@ -262,10 +261,11 @@ snake_thread(void* vnc){
       return NULL;
     }
     for(int s = 0 ; s < snakecount ; ++s){
-      if(snakey(nc, &snakes[s], dimy, dimx, &iterdelay)){
+      if(snakey(nc, &snakes[s], dimy, dimx)){
         return NULL;
       }
     }
+    nanosleep(&iterdelay, NULL);
   }
   return NULL;
 }
