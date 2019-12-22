@@ -92,11 +92,13 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
       cur = &(*cur)->trie[validate];
     }
   }while(*esc);
+  // it appears that multiple keys can be mapped to the same escape string. as
+  // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
   if((*cur)->special != NCKEY_INVALID){ // already had one here!
-    fprintf(stderr, "Already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
-    return -1;
+    fprintf(stderr, "Warning: already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
+  }else{
+    (*cur)->special = special;
   }
-  (*cur)->special = special;
   return 0;
 }
 
@@ -296,6 +298,7 @@ int prep_special_keys(notcurses* nc){
     }
 //fprintf(stderr, "support for terminfo's %s: %s\n", k->tinfo, seq);
     if(notcurses_add_input_escape(nc, seq, k->key)){
+      fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
       return -1;
     }
   }
