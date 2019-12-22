@@ -103,6 +103,8 @@ typedef struct notcurses {
   // before further use; just use tiparm() directly.
   int colors;     // number of colors terminfo reported usable for this screen
   char* cup;      // move cursor
+  char* cuf;      // move n cells right
+  char* cuf1;     // move 1 cell right
   char* civis;    // hide cursor
   // These might be NULL, and we can more or less work without them. Check!
   char* clearscr; // erase screen and home cursor

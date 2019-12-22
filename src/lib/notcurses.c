@@ -555,6 +555,8 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   term_verify_seq(&nc->clearscr, "clear");
   term_verify_seq(&nc->cleareol, "el");
   term_verify_seq(&nc->clearbol, "el1");
+  term_verify_seq(&nc->cuf, "cuf"); // n non-destructive spaces
+  term_verify_seq(&nc->cuf1, "cuf1"); // non-destructive space
   if(prep_special_keys(nc)){
     return -1;
   }

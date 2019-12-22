@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <limits.h>
 #include <unistd.h>
 #include <sys/poll.h>
 #include "internal.h"
@@ -122,6 +123,7 @@ reshape_shadow_fb(notcurses* nc){
   nc->lfdimy = nc->stdscr->leny;
   nc->lfdimx = nc->stdscr->lenx;
   memset(fb, 0, size);
+  egcpool_dump(&nc->pool);
   return 0;
 }
 
@@ -438,6 +440,8 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
         }else{
           const char* damegc = egcpool_extended_gcluster(dampool, damcell);
           const char* srcegc = extended_gcluster(srcplane, srccell);
+          assert(strcmp(damegc, "三体"));
+          assert(strcmp(srcegc, "三体"));
           if(strcmp(damegc, srcegc) == 0){
             return 0; // EGC match
           }
@@ -472,7 +476,10 @@ notcurses_render_internal(notcurses* nc){
   // if this fails, struggle bravely on. we can live without a lastframe.
   reshape_shadow_fb(nc);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
-    bool needmove = true; // is the physical cursor possibly out of position?
+    // how many characters have we elided? it's not worthwhile to invoke a
+    // cursor movement with cup if we only elided one or two. set to INT_MAX
+    // whenever we're on a new line.
+    int needmove = INT_MAX;
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       ncplane* p;
@@ -483,8 +490,7 @@ notcurses_render_internal(notcurses* nc){
       // we can end up with one due to a resize.
       // FIXME but...print what, exactly, instead?
       if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
-        needmove = true;
-        continue;
+        continue; // needmove will be reset as we restart the line
       }
       // lastframe has already been sized to match the current size, so no need
       // to check whether we're within its bounds. just check the cell.
@@ -494,15 +500,28 @@ notcurses_render_internal(notcurses* nc){
           // no need to emit a cell; what we rendered appears to already be
           // here. no updates are performed to elision state nor lastframe.
           ++nc->stats.cellelisions;
-          needmove = true;
+          if(needmove < INT_MAX){
+            ++needmove;
+          }
+          if(cell_double_wide_p(&c)){
+            if(needmove < INT_MAX){
+              ++needmove;
+            }
+            ++nc->stats.cellelisions;
+            ++x;
+          }
           continue;
         }
       }
       ++nc->stats.cellemissions;
-      if(needmove){
+      if(needmove > 8){ // FIXME cuf and cuf1 aren't guaranteed!
         term_emit("cup", tiparm(nc->cup, y, x), out, false);
-        needmove = false;
+      }else if(needmove > 1){
+        term_emit("cuf", tiparm(nc->cuf, needmove), out, false);
+      }else if(needmove){
+        term_emit("cuf1", tiparm(nc->cuf1), out, false);
       }
+      needmove = 0;
       // set the style. this can change the color back to the default; if it
       // does, we need update our elision possibilities.
       bool normalized;
