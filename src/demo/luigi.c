@@ -182,9 +182,13 @@ int luigi_demo(struct notcurses* nc){
   struct timespec stepdelay;
   ns_to_timespec(timespec_to_ns(&demodelay) / (cols - 16 - 1), &stepdelay);
   for(i = 0 ; i < cols - 16 - 1 ; ++i){
-    ncplane_move_bottom(lastseen); // hide the previous sprite
-    lastseen = lns[i % 3];
-    ncplane_move_top(lastseen);
+    if(i + 16 >= cols - 16 - 1){
+      --yoff;
+    }else{
+      ncplane_move_bottom(lastseen); // hide the previous sprite
+      lastseen = lns[i % 3];
+      ncplane_move_top(lastseen);
+    }
     ncplane_move_yx(lastseen, yoff, i);
     notcurses_render(nc);
     nanosleep(&stepdelay, NULL);
