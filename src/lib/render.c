@@ -303,6 +303,8 @@ term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, int esc,
     return -1;
   }*/
   #define RGBESC1 "\x1b" "["
+  // we'd like to use the proper ITU T.416 colon syntax i.e. "8:2::", but it is
+  // not supported by several terminal emulators :/.
   #define RGBESC2 "8;2;"
                                     // rrr;ggg;bbbm
   char rgbesc[] = RGBESC1 " " RGBESC2 "            ";
