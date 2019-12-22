@@ -2,66 +2,99 @@
 #include <cfenv>
 #include <iostream>
 
-TEST(NotcursesPrefix, CornerInts) {
+class EnmetricTest : public :: testing::Test {
+ protected:
+  void SetUp() override {
+    setlocale(LC_ALL, "");
+    decisep_ = localeconv()->decimal_point;
+    ASSERT_NE(nullptr, decisep_);
+    ASSERT_EQ(1, strlen(decisep_));
+  }
+
+  void TearDown() override {
+  }
+
+  const char* decisep_{};
+
+  char* impericize_enmetric(uintmax_t val, unsigned decimal, char* buf,
+                            int omitdec, unsigned mult, int uprefix);
+};
+
+// run enmetric, and then change any localized decimal separator into our
+// proud imperial yankee capitalist democratic one dot under god period.
+// manifest destiny, bitchhhhhhhezzzz!
+char* EnmetricTest::impericize_enmetric(uintmax_t val, unsigned decimal,
+                                        char* buf, int omitdec, unsigned mult,
+                                        int uprefix) {
+  enmetric(val, decimal, buf, omitdec, mult, uprefix);
+  char* commie = buf;
+  while( (commie = strstr(commie, decisep_)) ){
+    *commie = '.'; // https://dank.qemfd.net/images/16whcc.jpg
+    ++commie;
+  }
+  return buf;
+}
+
+TEST_F(EnmetricTest, CornerInts) {
 	char buf[PREFIXSTRLEN + 1];
-	enmetric(0, 1, buf, 0, 1000, '\0');
+	impericize_enmetric(0, 1, buf, 0, 1000, '\0');
 	EXPECT_STREQ("0.00", buf);
-	enmetric(0, 1, buf, 0, 1024, 'i');
+	impericize_enmetric(0, 1, buf, 0, 1024, 'i');
 	EXPECT_STREQ("0.00", buf); // no suffix on < mult
-	enmetric(1, 1, buf, 0, 1000, '\0');
+	impericize_enmetric(1, 1, buf, 0, 1000, '\0');
 	EXPECT_STREQ("1.00", buf);
-	enmetric(1, 1, buf, 0, 1024, 'i');
+	impericize_enmetric(1, 1, buf, 0, 1024, 'i');
 	EXPECT_STREQ("1.00", buf);
-	enmetric(0, 1, buf, 1, 1000, '\0');
+	impericize_enmetric(0, 1, buf, 1, 1000, '\0');
 	EXPECT_STREQ("0", buf);
-	enmetric(0, 1, buf, 1, 1024, 'i');
+	impericize_enmetric(0, 1, buf, 1, 1024, 'i');
 	EXPECT_STREQ("0", buf); // no suffix on < mult
-	enmetric(1, 1, buf, 1, 1000, '\0');
+	impericize_enmetric(1, 1, buf, 1, 1000, '\0');
 	EXPECT_STREQ("1", buf);
-	enmetric(1, 1, buf, 1, 1024, 'i');
+	impericize_enmetric(1, 1, buf, 1, 1024, 'i');
 	EXPECT_STREQ("1", buf);
-	enmetric(999, 1, buf, 1, 1000, '\0');
+	impericize_enmetric(999, 1, buf, 1, 1000, '\0');
 	EXPECT_STREQ("999", buf);
-	enmetric(1000, 1, buf, 1, 1000, '\0');
+	impericize_enmetric(1000, 1, buf, 1, 1000, '\0');
 	EXPECT_STREQ("1K", buf);
-	enmetric(1000, 1, buf, 1, 1000, 'i');
+	impericize_enmetric(1000, 1, buf, 1, 1000, 'i');
 	EXPECT_STREQ("1Ki", buf);
-	enmetric(1000, 1, buf, 1, 1024, 'i');
+	impericize_enmetric(1000, 1, buf, 1, 1024, 'i');
 	EXPECT_STREQ("1000", buf); // FIXME should be 0.977Ki
-	enmetric(1023, 1, buf, 1, 1000, '\0');
+	impericize_enmetric(1023, 1, buf, 1, 1000, '\0');
 	EXPECT_STREQ("1.02K", buf);
-	enmetric(1023, 1, buf, 1, 1024, 'i');
+	impericize_enmetric(1023, 1, buf, 1, 1024, 'i');
 	EXPECT_STREQ("1023", buf);
-	enmetric(1024, 1, buf, 1, 1000, '\0');
+	impericize_enmetric(1024, 1, buf, 1, 1000, '\0');
 	EXPECT_STREQ("1.02K", buf);
-	enmetric(1024, 1, buf, 1, 1024, 'i');
+	impericize_enmetric(1024, 1, buf, 1, 1024, 'i');
 	EXPECT_STREQ("1Ki", buf);
-	enmetric(1025, 1, buf, 1, 1000, '\0');
+	impericize_enmetric(1025, 1, buf, 1, 1000, '\0');
 	EXPECT_STREQ("1.02K", buf);
-	enmetric(1025, 1, buf, 0, 1024, 'i');
+	impericize_enmetric(1025, 1, buf, 0, 1024, 'i');
 	EXPECT_STREQ("1.00Ki", buf);
-	enmetric(1025, 1, buf, 1, 1024, 'i');
+	impericize_enmetric(1025, 1, buf, 1, 1024, 'i');
 	EXPECT_STREQ("1.00Ki", buf);
-	enmetric(4096, 1, buf, 1, 1000, '\0');
+	impericize_enmetric(4096, 1, buf, 1, 1000, '\0');
 	EXPECT_STREQ("4.09K", buf);
-	enmetric(4096, 1, buf, 1, 1024, 'i');
+	impericize_enmetric(4096, 1, buf, 1, 1024, 'i');
 	EXPECT_STREQ("4Ki", buf);
 }
 
-TEST(NotcursesPrefix, Maxints) {
+TEST_F(EnmetricTest, Maxints) {
 	char buf[PREFIXSTRLEN + 1];
 	// FIXME these will change based on the size of intmax_t and uintmax_t
-	enmetric(INTMAX_MAX - 1, 1, buf, 0, 1000, '\0');
+	impericize_enmetric(INTMAX_MAX - 1, 1, buf, 0, 1000, '\0');
 	EXPECT_STREQ("9.22E", buf);
-	enmetric(INTMAX_MAX, 1, buf, 0, 1000, '\0');
+	impericize_enmetric(INTMAX_MAX, 1, buf, 0, 1000, '\0');
 	EXPECT_STREQ("9.22E", buf);
-	enmetric(UINTMAX_MAX - 1, 1, buf, 0, 1000, '\0');
+	impericize_enmetric(UINTMAX_MAX - 1, 1, buf, 0, 1000, '\0');
 	EXPECT_STREQ("18.44E", buf);
-	enmetric(UINTMAX_MAX, 1, buf, 0, 1000, '\0');
+	impericize_enmetric(UINTMAX_MAX, 1, buf, 0, 1000, '\0');
 	EXPECT_STREQ("18.44E", buf);
 }
 
-TEST(NotcursesPrefix, Maxints1024) {
+TEST_F(EnmetricTest, Maxints1024) {
 	ASSERT_EQ(0, fesetround(FE_TOWARDZERO));
 	char buf[PREFIXSTRLEN + 1], gold[PREFIXSTRLEN + 1];
 	// FIXME these will change based on the size of intmax_t and uintmax_t
@@ -71,9 +104,9 @@ TEST(NotcursesPrefix, Maxints1024) {
 	enmetric(INTMAX_MAX + 1ull, 1, buf, 0, 1024, 'i');
 	sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX + 1ull)) / (1ull << 60));
 	EXPECT_STREQ(gold, buf);
-	enmetric(UINTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
+	impericize_enmetric(UINTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
 	EXPECT_STREQ("15.99Ei", buf);
-	enmetric(UINTMAX_MAX, 1, buf, 0, 1024, 'i');
+	impericize_enmetric(UINTMAX_MAX, 1, buf, 0, 1024, 'i');
 	EXPECT_STREQ("15.99Ei", buf);
 	enmetric(UINTMAX_MAX - (1ull << 53), 1, buf, 0, 1024, 'i');
 	sprintf(gold, "%.2fEi", ((double)UINTMAX_MAX - (1ull << 53)) / (1ull << 60));
@@ -82,7 +115,7 @@ TEST(NotcursesPrefix, Maxints1024) {
 
 const char suffixes[] = "\0KMGTPE";
 
-TEST(NotcursesPrefix, PowersOfTen) {
+TEST_F(EnmetricTest, PowersOfTen) {
 	char gold[PREFIXSTRLEN + 1];
 	char buf[PREFIXSTRLEN + 1];
 	uintmax_t goldval = 1;
@@ -91,7 +124,7 @@ TEST(NotcursesPrefix, PowersOfTen) {
 	do{
 		enmetric(val, 1, buf, 0, 1000, '\0');
 		const int sidx = i / 3;
-		snprintf(gold, sizeof(gold), "%ju.00%c", goldval, suffixes[sidx]);
+		snprintf(gold, sizeof(gold), "%ju%s00%c", goldval, decisep_, suffixes[sidx]);
 		EXPECT_STREQ(gold, buf);
 		if(UINTMAX_MAX / val < 10){
 			break;
@@ -105,7 +138,7 @@ TEST(NotcursesPrefix, PowersOfTen) {
 	EXPECT_GT(sizeof(suffixes) * 3, i);
 }
 
-TEST(NotcursesPrefix, PowersOfTenNoDec) {
+TEST_F(EnmetricTest, PowersOfTenNoDec) {
 	char gold[PREFIXSTRLEN + 1];
 	char buf[PREFIXSTRLEN + 1];
 	uintmax_t goldval = 1;
@@ -128,7 +161,7 @@ TEST(NotcursesPrefix, PowersOfTenNoDec) {
 	EXPECT_GT(sizeof(suffixes) * 3, i);
 }
 
-TEST(NotcursesPrefix, PowersOfTwo) {
+TEST_F(EnmetricTest, PowersOfTwo) {
 	char gold[BPREFIXSTRLEN + 1];
 	char buf[BPREFIXSTRLEN + 1];
 	uintmax_t goldval = 1;
@@ -137,7 +170,7 @@ TEST(NotcursesPrefix, PowersOfTwo) {
 	do{
 		enmetric(val, 1, buf, 0, 1024, 'i');
 		const int sidx = i / 10;
-		snprintf(gold, sizeof(gold), "%ju.00%ci", goldval, suffixes[sidx]);
+		snprintf(gold, sizeof(gold), "%ju%s00%ci", goldval, decisep_, suffixes[sidx]);
 		EXPECT_STREQ(gold, buf);
 		if(UINTMAX_MAX / val < 10){
 			break;
@@ -151,7 +184,7 @@ TEST(NotcursesPrefix, PowersOfTwo) {
 	EXPECT_GT(sizeof(suffixes) * 10, i);
 }
 
-TEST(NotcursesPrefix, PowersOfTwoNoDec) {
+TEST_F(EnmetricTest, PowersOfTwoNoDec) {
 	char gold[BPREFIXSTRLEN + 1];
 	char buf[BPREFIXSTRLEN + 1];
 	uintmax_t goldval = 1;
@@ -174,7 +207,7 @@ TEST(NotcursesPrefix, PowersOfTwoNoDec) {
 	EXPECT_GT(sizeof(suffixes) * 10, i);
 }
 
-TEST(NotcursesPrefix, PowersOfTwoAsTens) {
+TEST_F(EnmetricTest, PowersOfTwoAsTens) {
 	char gold[PREFIXSTRLEN + 1];
 	char buf[PREFIXSTRLEN + 1];
 	uintmax_t vfloor = 1;
@@ -199,7 +232,7 @@ TEST(NotcursesPrefix, PowersOfTwoAsTens) {
 	EXPECT_GT(sizeof(suffixes) * 10, i);
 }
 
-TEST(NotcursesPrefix, PowersOfTenAsTwos) {
+TEST_F(EnmetricTest, PowersOfTenAsTwos) {
 	char gold[BPREFIXSTRLEN + 1];
 	char buf[BPREFIXSTRLEN + 1];
 	uintmax_t vfloor = 1;
@@ -224,7 +257,7 @@ TEST(NotcursesPrefix, PowersOfTenAsTwos) {
 	EXPECT_GT(sizeof(suffixes) * 10, i);
 }
 
-TEST(NotcursesPrefix, PowersOfTenMinusOne) {
+TEST_F(EnmetricTest, PowersOfTenMinusOne) {
 	char gold[PREFIXSTRLEN + 1];
 	char buf[PREFIXSTRLEN + 1];
 	uintmax_t vfloor = 1;
@@ -249,7 +282,7 @@ TEST(NotcursesPrefix, PowersOfTenMinusOne) {
 	EXPECT_GT(sizeof(suffixes) * 3, i);
 }
 
-TEST(NotcursesPrefix, PowersOfTenPlusOne) {
+TEST_F(EnmetricTest, PowersOfTenPlusOne) {
 	char gold[PREFIXSTRLEN + 1];
 	char buf[PREFIXSTRLEN + 1];
 	uintmax_t vfloor = 1;
@@ -274,7 +307,7 @@ TEST(NotcursesPrefix, PowersOfTenPlusOne) {
 	EXPECT_GT(sizeof(suffixes) * 3, i);
 }
 
-TEST(NotcursesPrefix, PowersOfTenMinusOneAsTwos) {
+TEST_F(EnmetricTest, PowersOfTenMinusOneAsTwos) {
 	char gold[BPREFIXSTRLEN + 1];
 	char buf[BPREFIXSTRLEN + 1];
 	uintmax_t vfloor = 1;

@@ -1,5 +1,19 @@
 #include <string.h>
+#include <locale.h>
+#include <pthread.h>
 #include "notcurses.h"
+
+static const char* decisep;
+static pthread_once_t ponce = PTHREAD_ONCE_INIT;
+
+static void
+convinit(void){
+  struct lconv* conv = localeconv();
+  if(conv == NULL){
+    return;
+  }
+  decisep = conv->decimal_point;
+}
 
 const char *enmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
                      unsigned mult, int uprefix){
@@ -7,6 +21,10 @@ const char *enmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
   unsigned consumed = 0;
   uintmax_t dv;
 
+  pthread_once(&ponce, convinit);
+  if(decisep == NULL){
+
+  }
   if(decimal == 0 || mult == 0){
     return NULL;
   }
@@ -39,8 +57,9 @@ const char *enmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
       uintmax_t remain = (dv == mult) ?
                 (val % dv) * 100 / dv :
                 ((val % dv) / mult * 100) / (dv / mult);
-      sprintfed = sprintf(buf, "%ju.%02ju%c",
+      sprintfed = sprintf(buf, "%ju%s%02ju%c",
                           val / dv,
+                          decisep,
                           remain,
                           prefixes[consumed - 1]);
     }
@@ -52,7 +71,7 @@ const char *enmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
     if(omitdec && val % decimal == 0){
       sprintf(buf, "%ju", val / decimal);
     }else{
-      sprintf(buf, "%ju.%02ju", val / decimal, val % decimal);
+      sprintf(buf, "%ju%s%02ju", val / decimal, decisep, val % decimal);
     }
   }
   return buf;
