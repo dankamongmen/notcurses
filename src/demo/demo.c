@@ -78,7 +78,9 @@ intro(struct notcurses* nc){
   if((ncp = notcurses_stdplane(nc)) == NULL){
     return -1;
   }
-  ncplane_erase(ncp);
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_set_bg_rgb(&c, 0x20, 0x20, 0x20);
+  ncplane_set_default(ncp, &c);
   if(ncplane_cursor_move_yx(ncp, 0, 0)){
     return -1;
   }
@@ -102,8 +104,6 @@ intro(struct notcurses* nc){
   cell_release(ncp, &ul); cell_release(ncp, &ur);
   cell_release(ncp, &ll); cell_release(ncp, &lr);
   cell_release(ncp, &hl); cell_release(ncp, &vl);
-  cell c;
-  cell_init(&c);
   const char* cstr = "Δ";
   cell_load(ncp, &c, cstr);
   cell_set_fg_rgb(&c, 200, 0, 200);
@@ -162,6 +162,7 @@ typedef struct demoresult {
   char selector;
   struct ncstats stats;
   uint64_t timens;
+  bool failed;
 } demoresult;
 
 static demoresult*
@@ -196,6 +197,7 @@ ext_demos(struct notcurses* nc, const char* demos){
         break;
     }
     if(ret){
+      results[i].failed = true;
       break;
     }
     notcurses_stats(nc, &results[i].stats);
@@ -304,14 +306,15 @@ int main(int argc, char** argv){
     char totalbuf[BPREFIXSTRLEN + 1];
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
-    printf("%2zu|%c|%2lu.%03lus|%4luf|%*sB|%8juµs|%6.1f FPS|\n", i,
+    printf("%2zu|%c|%2lu.%03lus|%4luf|%*sB|%8juµs|%6.1f FPS|%s\n", i,
            results[i].selector,
            results[i].timens / GIG,
            (results[i].timens % GIG) / 1000000,
            results[i].stats.renders,
            BPREFIXSTRLEN, totalbuf,
            results[i].stats.render_ns / 1000,
-           GIG / avg);
+           GIG / avg,
+           results[i].failed ? "***FAILED" : "");
     // FIXME
   }
   free(results);
