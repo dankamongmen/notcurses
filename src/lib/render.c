@@ -98,24 +98,32 @@ prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   return 0;
 }
 
-/*
 // reshape the shadow framebuffer to match the stdplane's dimensions, throwing
 // away the old one.
 static int
 reshape_shadow_fb(notcurses* nc){
-  const size_t size = sizeof(nc->shadowbuf) * nc->stdscr->leny * nc->stdscr->lenx;
-  cell* fb = malloc(size);
+  if(nc->lfdimx == nc->stdscr->lenx && nc->lfdimy == nc->stdscr->leny){
+    return 0; // no change
+  }
+  const size_t size = sizeof(*nc->lastframe) * nc->stdscr->leny * nc->stdscr->lenx;
+  cell* fb = realloc(nc->lastframe, size);
   if(fb == NULL){
+    free(nc->lastframe);
+    nc->lastframe = NULL;
+    nc->lfdimx = 0;
+    nc->lfdimy = 0;
     return -1;
   }
-  free(nc->shadowbuf);
-  nc->shadowbuf = fb;
-  nc->shadowy = nc->stdscr->leny;
-  nc->shadowx = nc->stdscr->lenx;
+  nc->lastframe = fb;
+  // FIXME more memset()tery than we need, both wasting work and wrecking
+  // damage detection for the upcoming render
+  memset(nc->lastframe, 0, size);
+  nc->lastframe = fb;
+  nc->lfdimy = nc->stdscr->leny;
+  nc->lfdimx = nc->stdscr->lenx;
   memset(fb, 0, size);
   return 0;
 }
-*/
 
 // Find the topmost cell for this coordinate by walking down the z-buffer,
 // looking for an intersecting ncplane. Once we've found one, check it for
@@ -135,9 +143,8 @@ reshape_shadow_fb(notcurses* nc){
 // whichever one occurs at the top with a non-transparent α (α < 3). To effect
 // tail recursion, though, we instead write first, and then recurse, blending
 // as we descend. α <= 0 is opaque. α >= 3 is fully transparent.
-static ncplane*
-dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
-                 bool* damage){
+static inline ncplane*
+dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
   // once we decide on our glyph, it cannot be changed by anything below, so
   // lock in this plane for the actual cell return.
   ncplane* glyphplane = NULL;
@@ -164,20 +171,12 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
               c->attrword = vis->attrword;
               cell_set_fchannel(c, cell_get_fchannel(vis)); // FIXME blend it in
               falpha -= (CELL_ALPHA_TRANSPARENT - nalpha); // FIXME blend it in
-              if(p->damage[poffy]){
-                *damage = true;
-                p->damage[poffy] = false;
-              }
             }
           }
         }
         if(balpha > 0 && (nalpha = cell_get_bg_alpha(vis)) < CELL_ALPHA_TRANSPARENT){
           cell_set_bchannel(c, cell_get_bchannel(vis)); // FIXME blend it in
           balpha -= (CELL_ALPHA_TRANSPARENT - nalpha);
-          if(p->damage[poffy]){
-            *damage = true;
-            p->damage[poffy] = false;
-          }
         }
         if((falpha <= 0 && balpha <= 0) || !p->z){ // done!
           return glyphplane ? glyphplane : p;
@@ -191,10 +190,9 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha,
 }
 
 static inline ncplane*
-visible_cell(cell* c, int y, int x, ncplane* n, bool* damage){
+visible_cell(cell* c, int y, int x, ncplane* n){
   cell_init(c);
-  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANSPARENT,
-                          CELL_ALPHA_TRANSPARENT, damage);
+  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANSPARENT, CELL_ALPHA_TRANSPARENT);
 }
 
 // write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
@@ -385,6 +383,72 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   return 0;
 }
 
+static inline void
+pool_release(egcpool* pool, cell* c){
+  if(!cell_simple_p(c)){
+    egcpool_release(pool, cell_egc_idx(c));
+    c->gcluster = 0; // don't subject ourselves to double-release problems
+  }
+}
+
+void cell_release(ncplane* n, cell* c){
+  pool_release(&n->pool, c);
+}
+
+// Duplicate one cell onto another, possibly crossing ncplanes.
+static inline int
+cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
+  pool_release(tpool, targ);
+  targ->attrword = c->attrword;
+  targ->channels = c->channels;
+  if(cell_simple_p(c)){
+    targ->gcluster = c->gcluster;
+    return !!c->gcluster;
+  }
+  size_t ulen = strlen(extended_gcluster(splane, c));
+// fprintf(stderr, "[%s] (%zu)\n", extended_gcluster(n, c), strlen(extended_gcluster(n, c)));
+  int eoffset = egcpool_stash(tpool, extended_gcluster(splane, c), ulen);
+  if(eoffset < 0){
+    return -1;
+  }
+  targ->gcluster = eoffset + 0x80;
+  return ulen;
+}
+
+// Duplicate one cell onto another when they share a plane. Convenience wrapper.
+int cell_duplicate(ncplane* n, cell* targ, const cell* c){
+  return cell_duplicate_far(&n->pool, targ, n, c);
+}
+
+// the heart of damage detection. compare two cells (from two different planes)
+// for equality. if they are equal, return 0. otherwise, dup the second onto
+// the first and return non-zero.
+static int
+cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
+                   const cell* srccell){
+  if(damcell->attrword == srccell->attrword){
+    if(damcell->channels == srccell->channels){
+      bool damsimple = cell_simple_p(damcell);
+      bool srcsimple = cell_simple_p(srccell);
+      if(damsimple == srcsimple){
+        if(damsimple){
+          if(damcell->gcluster == srccell->gcluster){
+            return 0; // simple match
+          }
+        }else{
+          const char* damegc = egcpool_extended_gcluster(dampool, damcell);
+          const char* srcegc = extended_gcluster(srcplane, srccell);
+          if(strcmp(damegc, srcegc) == 0){
+            return 0; // EGC match
+          }
+        }
+      }
+    }
+  }
+  cell_duplicate_far(dampool, damcell, srcplane, srccell);
+  return 1;
+}
+
 static inline int
 notcurses_render_internal(notcurses* nc){
   int ret = 0;
@@ -405,39 +469,39 @@ notcurses_render_internal(notcurses* nc){
   // cells and the current cell uses no defaults, or if both the current and
   // the last used both defaults.
   bool fgelidable = false, bgelidable = false, defaultelidable = false;
-  /*if(nc->stdscr->leny != nc->shadowy || nc->stdscr->lenx != nc->shadowx){
-    reshape_shadow_fb(nc);
-  }*/
+  // if this fails, struggle bravely on. we can live without a lastframe.
+  reshape_shadow_fb(nc);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
-    bool linedamaged = false; // have we repositioned the cursor to start line?
-    bool newdamage = nc->damage[y];
-// fprintf(stderr, "nc->damage[%d] (%p) = %u\n", y, nc->damage + y, nc->damage[y]);
-    if(newdamage){
-      nc->damage[y] = 0;
-    }
-    // move to the beginning of the line, in case our accounting was befouled
-    // by wider- (or narrower-) than-reported characters
+    bool needmove = true; // is the physical cursor possibly out of position?
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       ncplane* p;
       cell c; // no need to initialize
-      p = visible_cell(&c, y, x, nc->top, &newdamage);
-      assert(p);
+      p = visible_cell(&c, y, x, nc->top);
       // don't try to print a wide character on the last column; it'll instead
       // be printed on the next line. they probably shouldn't be admitted, but
       // we can end up with one due to a resize.
+      // FIXME but...print what, exactly, instead?
       if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
+        needmove = true;
         continue;
       }
-      if(!linedamaged){
-        if(newdamage){
-          term_emit("cup", tiparm(nc->cup, y, x), out, false);
-          nc->stats.cellelisions += x;
-          nc->stats.cellemissions += (nc->stdscr->lenx - x);
-          linedamaged = true;
-        }else{
+      // lastframe has already been sized to match the current size, so no need
+      // to check whether we're within its bounds. just check the cell.
+      if(nc->lastframe){
+        cell* oldcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
+        if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c) == 0){
+          // no need to emit a cell; what we rendered appears to already be
+          // here. no updates are performed to elision state nor lastframe.
+          ++nc->stats.cellelisions;
+          needmove = true;
           continue;
         }
+      }
+      ++nc->stats.cellemissions;
+      if(needmove){
+        term_emit("cup", tiparm(nc->cup, y, x), out, false);
+        needmove = false;
       }
       // set the style. this can change the color back to the default; if it
       // does, we need update our elision possibilities.
@@ -497,9 +561,6 @@ notcurses_render_internal(notcurses* nc){
       if(cell_double_wide_p(&c)){
         ++x;
       }
-    }
-    if(linedamaged == false){
-      nc->stats.cellelisions += x;
     }
   }
   ret |= fflush(out);

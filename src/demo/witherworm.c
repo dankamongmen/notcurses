@@ -306,7 +306,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
 }
 
 // Much of this text comes from http://kermitproject.org/utf8.html
-int bleachworm_demo(struct notcurses* nc){
+int witherworm_demo(struct notcurses* nc){
   static const char* strs[] = {
     "Война и мир",
     "Бра́тья Карама́зовы",
@@ -537,8 +537,8 @@ int bleachworm_demo(struct notcurses* nc){
     NULL
   };
   const char** s;
-  const int steps[] = { 0x100, 0x100, 0x40000, 0x10001, };
-  const int starts[] = { 0x004000, 0x000040, 0x010101, 0x400040, };
+  const int steps[] = { 0x10040, 0x100, 0x100, 0x10001, };
+  const int starts[] = { 0x10101, 0x004000, 0x000040, 0x400040, };
 
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;

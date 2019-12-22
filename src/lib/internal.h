@@ -51,7 +51,6 @@ typedef struct ncplane {
   uint32_t attrword;    // same deal as in a cell
   void* userptr;        // slot for the user to stick some opaque pointer
   cell defcell;         // cell written anywhere that fb[i].gcluster == 0
-  unsigned char* damage;// damage map, one per row
   struct notcurses* nc; // notcurses object of which we are a part
 } ncplane;
 
@@ -85,10 +84,10 @@ typedef struct notcurses {
 
   // we keep a copy of the last rendered frame. this facilitates O(1)
   // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).
-  unsigned char* damage;   // damage map (row granularity)
   cell* lastframe;// last rendered framebuffer, NULL until first render
   int lfdimx;     // dimensions of lastframe, unchanged by screen resize
   int lfdimy;     // lfdimx/lfdimy are 0 until first render
+  egcpool pool;   // duplicate EGCs into this pool
 
   // we assemble the encoded output in a POSIX memstream, and keep it around
   // between uses. this could be a problem if it ever tremendously spiked, but
@@ -174,19 +173,6 @@ fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
 }
 
-// set all elements of a damage map true or false
-static inline void
-flash_damage_map(unsigned char* damage, int count, bool val){
-  if(val){
-    memset(damage, 0xff, sizeof(*damage) * count);
-  }else{
-    memset(damage, 0, sizeof(*damage) * count);
-  }
-}
-
-// mark all lines of the notcurses object touched by this plane as damaged
-void ncplane_updamage(ncplane* n);
-
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
 // ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
 // even semi-portably recover the palette) proceeds via: map each 8-bit to
@@ -236,8 +222,7 @@ term_emit(const char* name __attribute__ ((unused)), const char* seq,
 
 static inline const char*
 extended_gcluster(const ncplane* n, const cell* c){
-  uint32_t idx = cell_egc_idx(c);
-  return n->pool.pool + idx;
+  return egcpool_extended_gcluster(&n->pool, c);
 }
 
 #define NANOSECS_IN_SEC 1000000000
