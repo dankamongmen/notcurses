@@ -70,6 +70,7 @@ int view_demo(struct notcurses* nc){
   ncplane_dim_yx(ncp, &dimy, &dimx);
   int averr = 0;
   char* pic = find_data("PurpleDrank.jpg");
+  ncplane_erase(ncp);
   struct ncvisual* ncv = ncplane_visual_open(ncp, pic, &averr);
   if(ncv == NULL){
     free(pic);

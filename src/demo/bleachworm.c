@@ -549,7 +549,7 @@ int bleachworm_demo(struct notcurses* nc){
     cell c;
     struct timespec screenend;
     clock_gettime(CLOCK_MONOTONIC, &screenend);
-    ns_to_timespec(timespec_to_ns(&screenend) + 2 * timespec_to_ns(&demodelay), &screenend);
+    ns_to_timespec(timespec_to_ns(&screenend) + 5 * timespec_to_ns(&demodelay), &screenend);
     do{ // (re)draw a screen
       const int start = starts[i];
       int step = steps[i];
