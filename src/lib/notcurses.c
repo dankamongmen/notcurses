@@ -1126,6 +1126,7 @@ int ncplane_putc(ncplane* n, const cell* c){
         }
       }
       cell_set_wide(candidate);
+      cell_release(n, candidate);
     }
   }
   n->damage[n->y] = true;

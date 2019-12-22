@@ -63,7 +63,7 @@ usage(const char* exe, int status){
   fprintf(out, " s: run shuffle\n");
   fprintf(out, " u: run uniblock\n");
   fprintf(out, " v: run view\n");
-  fprintf(out, " w: run widechomper\n");
+  fprintf(out, " w: run bleachworm\n");
   exit(status);
 }
 
@@ -183,7 +183,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'l': ret = luigi_demo(nc); break;
       case 'v': ret = view_demo(nc); break;
       case 'e': ret = eagle_demo(nc); break;
-      case 'w': ret = widechomper_demo(nc); break;
+      case 'w': ret = bleachworm_demo(nc); break;
       case 'p': ret = panelreel_demo(nc); break;
       default:
         fprintf(stderr, "Unknown demo specification: %c\n", *demos);
