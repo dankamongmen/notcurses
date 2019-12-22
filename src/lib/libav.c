@@ -354,7 +354,6 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
       cell_release(ncv->ncp, &c);
     }
   }
-  flash_damage_map(ncv->ncp->damage + ncv->placey, y - ncv->placey, true);
   return 0;
 }
 

@@ -16,7 +16,7 @@ extern struct timespec demodelay;
 char* find_data(const char* datum);
 
 int unicodeblocks_demo(struct notcurses* nc);
-int bleachworm_demo(struct notcurses* nc);
+int witherworm_demo(struct notcurses* nc);
 int box_demo(struct notcurses* nc);
 int maxcolor_demo(struct notcurses* nc);
 int grid_demo(struct notcurses* nc);

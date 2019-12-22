@@ -10,6 +10,10 @@
 #include <notcurses.h>
 #include "demo.h"
 
+// ansi terminal definition-4-life
+static const int MIN_SUPPORTED_ROWS = 25;
+static const int MIN_SUPPORTED_COLS = 80;
+
 static const char DEFAULT_DEMO[] = "iemlubgswvpo";
 static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
@@ -46,11 +50,12 @@ struct timespec demodelay = {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -h ] [ -k ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -h ] [ -k ] [ -d mult ] [ -c ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
   fprintf(out, " -d: delay multiplier (float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
+  fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
   fprintf(out, "all demos are run if no specification is provided\n");
   fprintf(out, " b: run box\n");
   fprintf(out, " e: run eagles\n");
@@ -63,7 +68,7 @@ usage(const char* exe, int status){
   fprintf(out, " s: run shuffle\n");
   fprintf(out, " u: run uniblock\n");
   fprintf(out, " v: run view\n");
-  fprintf(out, " w: run bleachworm\n");
+  fprintf(out, " w: run witherworm\n");
   exit(status);
 }
 
@@ -183,7 +188,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'l': ret = luigi_demo(nc); break;
       case 'v': ret = view_demo(nc); break;
       case 'e': ret = eagle_demo(nc); break;
-      case 'w': ret = bleachworm_demo(nc); break;
+      case 'w': ret = witherworm_demo(nc); break;
       case 'p': ret = panelreel_demo(nc); break;
       default:
         fprintf(stderr, "Unknown demo specification: %c\n", *demos);
@@ -208,12 +213,16 @@ ext_demos(struct notcurses* nc, const char* demos){
 // if it's NULL, there were valid options, but no spec.
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts){
+  bool constant_seed = false;
   int c;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "hkd:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "hckd:f:p:")) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
+        break;
+      case 'c':
+        constant_seed = true;
         break;
       case 'k':
         opts->inhibit_alternate_screen = true;
@@ -244,6 +253,9 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
         usage(*argv, EXIT_FAILURE);
     }
   }
+  if(!constant_seed){
+    srand(time(NULL)); // a classic blunder lol
+  }
   const char* demos = argv[optind];
   return demos;
 }
@@ -252,7 +264,6 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
 int main(int argc, char** argv){
   struct notcurses* nc;
   notcurses_options nopts;
-  struct ncplane* ncp;
   if(!setlocale(LC_ALL, "")){
     fprintf(stderr, "Couldn't set locale based on user preferences\n");
     return EXIT_FAILURE;
@@ -267,8 +278,9 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&nopts, stdout)) == NULL){
     return EXIT_FAILURE;
   }
-  if((ncp = notcurses_stdplane(nc)) == NULL){
-    fprintf(stderr, "Couldn't get standard plane\n");
+  int dimx, dimy;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
     goto err;
   }
   // no one cares about the leaderscreen. 1s max.
@@ -306,6 +318,10 @@ int main(int argc, char** argv){
   return EXIT_SUCCESS;
 
 err:
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
   notcurses_stop(nc);
+  if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
+    fprintf(stderr, "At least an 80x25 terminal is required (current: %dx%d)\n", dimx, dimy);
+  }
   return EXIT_FAILURE;
 }

@@ -230,6 +230,12 @@ egcpool_dump(egcpool* pool){
   pool->poolused = 0;
 }
 
+static inline const char*
+egcpool_extended_gcluster(const egcpool* pool, const cell* c){
+  uint32_t idx = cell_egc_idx(c);
+  return pool->pool + idx;
+}
+
 #ifdef __cplusplus
 }
 #endif

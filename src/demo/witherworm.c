@@ -160,81 +160,112 @@ lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
   return 0;
 }
 
+typedef struct snake {
+  cell lightup[13];
+  int x, y;
+  uint64_t channels;
+  int prevx, prevy;
+} snake;
+
+static void
+init_snake(snake* s, int dimy, int dimx){
+  for(size_t i = 0 ; i < sizeof(s->lightup) / sizeof(*s->lightup) ; ++i){
+    cell_init(&s->lightup[i]);
+  }
+  // start it in the lower center of the screen
+  s->x = (random() % (dimx / 2)) + (dimx / 4);
+  s->y = (random() % (dimy * 2 / 3)) + (dimy / 3);
+  s->channels = 0;
+  channels_set_fg_rgb(&s->channels, 255, 255, 255);
+  channels_set_bg_rgb(&s->channels, 20, 20, 20);
+  s->prevx = 0;
+  s->prevy = 0;
+}
+
+static int
+snakey_top(struct notcurses* nc, snake* s){
+  struct ncplane* n = notcurses_stdplane(nc);
+  get_surrounding_cells(n, s->lightup, s->y, s->x);
+  ncplane_cursor_move_yx(n, s->y, s->x);
+  if(lightup_surrounding_cells(n, s->lightup, s->y, s->x)){
+    return -1;
+  }
+  return 0;
+}
+
+static int
+snakey(struct notcurses* nc, snake* s, int dimy, int dimx, const struct timespec* iterdelay){
+  struct ncplane* n = notcurses_stdplane(nc);
+  int oldy, oldx;
+  clock_nanosleep(CLOCK_MONOTONIC, 0, iterdelay, NULL);
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  do{ // force a move
+    oldy = s->y;
+    oldx = s->x;
+    // FIXME he ought be weighted to avoid light; he's a snake after all
+    int direction = random() % 4;
+    switch(direction){
+      case 0: --s->y; break;
+      case 1: ++s->x; break;
+      case 2: ++s->y; break;
+      case 3: --s->x; break;
+    }
+    // keep him away from the sides due to width irregularities
+    if(s->x < (dimx / 4)){
+      s->x = dimx / 4;
+    }else if(s->x >= dimx * 3 / 4){
+      s->x = dimx * 3 / 4;
+    }
+    if(s->y < 0){
+      s->y = 0;
+    }else if(s->y >= dimy){
+      s->y = dimy - 1;
+    }
+    ncplane_cursor_move_yx(n, s->y, s->x);
+    ncplane_at_cursor(n, &c);
+    // don't allow the snake into the summary zone (test for walls)
+    if(wall_p(n, &c)){
+      s->x = oldx;
+      s->y = oldy;
+    }
+  }while((oldx == s->x && oldy == s->y) || (s->x == s->prevx && s->y == s->prevy));
+  s->prevy = oldy;
+  s->prevx = oldx;
+  cell_release(n, &c);
+  return 0;
+}
+
 // each snake wanders around aimlessly, prohibited from entering the summary
 // section. it ought light up the cells around it; to do this, we keep an array
 // of 13 cells with the original colors, which we tune up for the duration of
 // our colocality (unless they're summary area walls).
 static void *
 snake_thread(void* vnc){
+  const int snakecount = 3; // FIXME base count off area
   struct notcurses* nc = vnc;
   struct ncplane* n = notcurses_stdplane(nc);
-  cell lightup[13];
-  size_t i;
-  for(i = 0 ; i < sizeof(lightup) / sizeof(*lightup) ; ++i){
-    cell_init(&lightup[i]);
-  }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  int x, y;
-  // start it in the lower center of the screen
-  x = (random() % (dimx / 2)) + (dimx / 4);
-  y = (random() % (dimy / 2)) + (dimy / 2);
-  cell head = CELL_TRIVIAL_INITIALIZER;
-  uint64_t channels = 0;
-  channels_set_fg_rgb(&channels, 255, 255, 255);
-  channels_set_bg_rgb(&channels, 20, 20, 20);
-  cell_prime(n, &head, "א", 0, channels);
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  snake snakes[snakecount];
+  for(int s = 0 ; s < snakecount ; ++s){
+    init_snake(&snakes[s], dimy, dimx);
+  }
   struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 1000000000ul / 20, };
-  int prevx = 0, prevy = 0;
   while(true){
     pthread_testcancel();
-    get_surrounding_cells(n, lightup, y, x);
-    ncplane_cursor_move_yx(n, y, x);
-    ncplane_at_cursor(n, &c);
-    if(lightup_surrounding_cells(n, lightup, y, x)){
+    for(int s = 0 ; s < snakecount ; ++s){
+      if(snakey_top(nc, &snakes[s])){
+        return NULL;
+      }
+    }
+    if(notcurses_render(nc)){
       return NULL;
     }
-    notcurses_render(nc);
-    int oldy, oldx;
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &iterdelay, NULL);
-    do{ // force a move
-      oldy = y;
-      oldx = x;
-      // FIXME he ought be weighted to avoid light; he's a snake after all
-      int direction = random() % 4;
-      switch(direction){
-        case 0: --y; break;
-        case 1: ++x; break;
-        case 2: ++y; break;
-        case 3: --x; break;
+    for(int s = 0 ; s < snakecount ; ++s){
+      if(snakey(nc, &snakes[s], dimy, dimx, &iterdelay)){
+        return NULL;
       }
-      // keep him away from the sides due to width irregularities
-      if(x < (dimx / 4)){
-        x = dimx / 4;
-      }else if(x >= dimx * 3 / 4){
-        x = dimx * 3 / 4;
-      }
-      if(y < 0){
-        y = 0;
-      }else if(y >= dimy){
-        y = dimy - 1;
-      }
-      ncplane_cursor_move_yx(n, y, x);
-      ncplane_at_cursor(n, &c);
-      // don't allow the snake into the summary zone (test for walls)
-      if(wall_p(n, &c)){
-        x = oldx;
-        y = oldy;
-      }
-    }while((oldx == x && oldy == y) || (x == prevx && y == prevy));
-    prevy = oldy;
-    prevx = oldx;
-  }
-  cell_release(n, &head); // FIXME won't be released when cancelled
-  cell_release(n, &c); // FIXME won't be released when cancelled
-  for(i = 0 ; i < sizeof(lightup) / sizeof(*lightup) ; ++i){
-    cell_release(n, &lightup[i]);
+    }
   }
   return NULL;
 }
@@ -306,7 +337,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
 }
 
 // Much of this text comes from http://kermitproject.org/utf8.html
-int bleachworm_demo(struct notcurses* nc){
+int witherworm_demo(struct notcurses* nc){
   static const char* strs[] = {
     "Война и мир",
     "Бра́тья Карама́зовы",
@@ -537,8 +568,8 @@ int bleachworm_demo(struct notcurses* nc){
     NULL
   };
   const char** s;
-  const int steps[] = { 0x100, 0x100, 0x40000, 0x10001, };
-  const int starts[] = { 0x004000, 0x000040, 0x010101, 0x400040, };
+  const int steps[] = { 0x10040, 0x100, 0x100, 0x10001, };
+  const int starts[] = { 0x10101, 0x004000, 0x000040, 0x400040, };
 
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;

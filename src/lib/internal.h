@@ -51,7 +51,6 @@ typedef struct ncplane {
   uint32_t attrword;    // same deal as in a cell
   void* userptr;        // slot for the user to stick some opaque pointer
   cell defcell;         // cell written anywhere that fb[i].gcluster == 0
-  unsigned char* damage;// damage map, one per row
   struct notcurses* nc; // notcurses object of which we are a part
 } ncplane;
 
@@ -80,20 +79,32 @@ typedef struct ncvisual {
 
 typedef struct notcurses {
   pthread_mutex_t lock;
-  int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
-  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
-  FILE* ttyinfp;  // FILE* for processing input
-  unsigned char* damage;   // damage map (row granularity)
+  ncplane* top;   // the contents of our topmost plane (initially entire screen)
+  ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
+
+  // we keep a copy of the last rendered frame. this facilitates O(1)
+  // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).
+  cell* lastframe;// last rendered framebuffer, NULL until first render
+  int lfdimx;     // dimensions of lastframe, unchanged by screen resize
+  int lfdimy;     // lfdimx/lfdimy are 0 until first render
+  egcpool pool;   // duplicate EGCs into this pool
+
+  // we assemble the encoded output in a POSIX memstream, and keep it around
+  // between uses. this could be a problem if it ever tremendously spiked, but
+  // that's a highly unlikely situation.
   char* mstream;  // buffer for rendering memstream, see open_memstream(3)
   FILE* mstreamfp;// FILE* for rendering memstream
   size_t mstrsize;// size of rendering memstream
-  int colors;     // number of colors usable for this screen
+
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashstats; // cumulative stats, unaffected by notcurses_reset_stats()
+
   // We verify that some terminfo capabilities exist. These needn't be checked
   // before further use; just use tiparm() directly.
+  int colors;     // number of colors terminfo reported usable for this screen
   char* cup;      // move cursor
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  char* cuf;      // move n cells right
+  char* cuf1;     // move 1 cell right
   char* civis;    // hide cursor
   // These might be NULL, and we can more or less work without them. Check!
   char* clearscr; // erase screen and home cursor
@@ -117,12 +128,15 @@ typedef struct notcurses {
   char* italoff;  // CELL_STYLE_ITALIC (disable)
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
+
+  int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
+  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
+  FILE* ttyinfp;  // FILE* for processing input
+  FILE* renderfp; // debugging FILE* to which renderings are written
   struct termios tpreserved; // terminal state upon entry
   bool suppress_banner; // from notcurses_options
-  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
-  ncplane* top;   // the contents of our topmost plane (initially entire screen)
-  ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
-  FILE* renderfp; // debugging FILE* to which renderings are written
   unsigned char inputbuf[BUFSIZ];
   // we keep a wee ringbuffer of input queued up for delivery. if
   // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
@@ -160,19 +174,6 @@ static inline int
 fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
 }
-
-// set all elements of a damage map true or false
-static inline void
-flash_damage_map(unsigned char* damage, int count, bool val){
-  if(val){
-    memset(damage, 0xff, sizeof(*damage) * count);
-  }else{
-    memset(damage, 0, sizeof(*damage) * count);
-  }
-}
-
-// mark all lines of the notcurses object touched by this plane as damaged
-void ncplane_updamage(ncplane* n);
 
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
 // ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
@@ -223,8 +224,7 @@ term_emit(const char* name __attribute__ ((unused)), const char* seq,
 
 static inline const char*
 extended_gcluster(const ncplane* n, const cell* c){
-  uint32_t idx = cell_egc_idx(c);
-  return n->pool.pool + idx;
+  return egcpool_extended_gcluster(&n->pool, c);
 }
 
 #define NANOSECS_IN_SEC 1000000000
