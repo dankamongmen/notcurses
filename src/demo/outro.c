@@ -1,11 +1,52 @@
 #include <pthread.h>
 #include "demo.h"
 
+static int y;
+static int targy;
+static int xstart;
+static struct ncplane* on;
+static struct ncvisual* chncv;
+
+static int
+perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
+  static int three = 3; // move up one every three callbacks
+  notcurses_render(nc);
+  if(y < targy){
+    return 0;
+  }
+  ncplane_move_yx(on, y, xstart);
+  if(--three == 0){
+    --y;
+    three = 3;
+  }
+  return 0;
+}
+
 static void*
-fadethread(void* vncp){
-  struct timespec fade = { .tv_sec = 5, .tv_nsec = 0, };
-  ncplane_fadeout(vncp, &fade);
-  return NULL;
+fadethread(void* vnc){
+  struct notcurses* nc = vnc;
+  struct ncplane* ncp = notcurses_stdplane(nc);
+  struct timespec fade = { .tv_sec = 2, .tv_nsec = 0, };
+  ncplane_fadeout(ncp, &fade);
+  ncvisual_destroy(chncv);
+  int averr;
+  char* path = find_data("samoa.avi");
+  struct ncvisual* ncv = ncplane_visual_open(ncp, path, &averr);
+  free(path);
+  if(ncv == NULL){
+    return NULL;
+  }
+  if(ncvisual_decode(ncv, &averr) == NULL){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
+  ncvisual_stream(nc, ncv, &averr, perframe);
+  ncvisual_destroy(ncv);
+  ncplane_erase(ncp);
+  fade.tv_sec = 2;
+  fade.tv_nsec = 0;
+  nanosleep(&fade, NULL);
+  return vnc;
 }
 
 static struct ncplane*
@@ -13,73 +54,74 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   const char str0[] = " ATL, baby! ATL! ";
   const char str1[] = " throw your hands in the air ";
   const char str2[] = " hack on! —dank❤ ";
-  int xstart = (*cols - (strlen(str1) + 4)) / 2;
+  int xs = (*cols - (strlen(str1) + 4)) / 2;
   int ystart = *rows - 6;
-  struct ncplane* on = notcurses_newplane(nc, 5, strlen(str1) + 4, ystart, xstart, NULL);
-  if(on == NULL){
+  *cols = xs;
+  struct ncplane* non = notcurses_newplane(nc, 5, strlen(str1) + 4, ystart, *cols, NULL);
+  if(non == NULL){
     return NULL;
   }
   cell bgcell = CELL_SIMPLE_INITIALIZER(' ');
   channels_set_bg_rgb(&bgcell.channels, 0x58, 0x36, 0x58);
-  if(ncplane_set_default(on, &bgcell) < 0){
+  if(ncplane_set_default(non, &bgcell) < 0){
     return NULL;
   }
-  ncplane_dim_yx(on, rows, cols);
+  ncplane_dim_yx(non, rows, cols);
   int ybase = 0;
   // bevel the upper corners
-  if(ncplane_set_bg_alpha(on, CELL_ALPHA_TRANSPARENT)){
+  if(ncplane_set_bg_alpha(non, CELL_ALPHA_TRANSPARENT)){
     return NULL;
   }
-  if(ncplane_cursor_move_yx(on, ybase, 0)){
+  if(ncplane_cursor_move_yx(non, ybase, 0)){
     return NULL;
   }
-  if(ncplane_putsimple(on, ' ') < 0 || ncplane_putsimple(on, ' ') < 0){
+  if(ncplane_putsimple(non, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
     return NULL;
   }
-  if(ncplane_cursor_move_yx(on, ybase, *cols - 2)){
+  if(ncplane_cursor_move_yx(non, ybase, *cols - 2)){
     return NULL;
   }
-  if(ncplane_putsimple(on, ' ') < 0 || ncplane_putsimple(on, ' ') < 0){
+  if(ncplane_putsimple(non, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
     return NULL;
   }
   // ...and now the lower corners
-  if(ncplane_cursor_move_yx(on, *rows - 1, 0)){
+  if(ncplane_cursor_move_yx(non, *rows - 1, 0)){
     return NULL;
   }
-  if(ncplane_putsimple(on, ' ') < 0 || ncplane_putsimple(on, ' ') < 0){
+  if(ncplane_putsimple(non, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
     return NULL;
   }
-  if(ncplane_cursor_move_yx(on, *rows - 1, *cols - 2)){
+  if(ncplane_cursor_move_yx(non, *rows - 1, *cols - 2)){
     return NULL;
   }
-  if(ncplane_putsimple(on, ' ') < 0 || ncplane_putsimple(on, ' ') < 0){
+  if(ncplane_putsimple(non, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
     return NULL;
   }
-  if(ncplane_set_fg_rgb(on, 0, 0, 0)){
+  if(ncplane_set_fg_rgb(non, 0, 0, 0)){
     return NULL;
   }
-  if(ncplane_set_bg_rgb(on, 0, 180, 180)){
+  if(ncplane_set_bg_rgb(non, 0, 180, 180)){
     return NULL;
   }
-  if(ncplane_set_bg_alpha(on, CELL_ALPHA_OPAQUE)){ // FIXME use intermediate
+  if(ncplane_set_bg_alpha(non, CELL_ALPHA_OPAQUE)){ // FIXME use intermediate
     return NULL;
   }
-  if(ncplane_putstr_aligned(on, ++ybase, str0, NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(non, ++ybase, str0, NCALIGN_CENTER) < 0){
     return NULL;
   }
-  if(ncplane_putstr_aligned(on, ++ybase, str1, NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(non, ++ybase, str1, NCALIGN_CENTER) < 0){
     return NULL;
   }
-  if(ncplane_putstr_aligned(on, ++ybase, str2, NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(non, ++ybase, str2, NCALIGN_CENTER) < 0){
     return NULL;
   }
   if(notcurses_render(nc)){
     return NULL;
   }
-  cell_release(on, &bgcell);
+  cell_release(non, &bgcell);
   *rows = ystart;
-  *cols = xstart;
-  return on;
+  *cols = xs;
+  return non;
 }
 
 int outro(struct notcurses* nc){
@@ -92,39 +134,36 @@ int outro(struct notcurses* nc){
   ncplane_dim_yx(ncp, &rows, &cols);
   int averr = 0;
   char* path = find_data("changes.jpg");
-  struct ncvisual* ncv = ncplane_visual_open(ncp, path, &averr);
+  chncv = ncplane_visual_open(ncp, path, &averr);
   free(path);
-  if(ncv == NULL){
+  if(chncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(ncv, &averr) == NULL){
-    ncvisual_destroy(ncv);
+  if(ncvisual_decode(chncv, &averr) == NULL){
+    ncvisual_destroy(chncv);
     return -1;
   }
-  if(ncvisual_render(ncv, 0, 0, 0, 0)){
-    ncvisual_destroy(ncv);
+  if(ncvisual_render(chncv, 0, 0, 0, 0)){
+    ncvisual_destroy(chncv);
     return -1;
   }
-  int xstart = cols;
+  xstart = cols;
   int ystart = rows;
-  struct ncplane* on = outro_message(nc, &ystart, &xstart);
+  on = outro_message(nc, &ystart, &xstart);
+  y = ystart - 1;
+  void* ret = NULL; // thread result
   if(on){
+    ncplane_move_top(on);
     pthread_t tid;
-    // will fade across 5s
-    pthread_create(&tid, NULL, fadethread, ncp);
-    struct timespec iterts;
-    int targy = rows / 2 - (rows - ystart);
-    ns_to_timespec(5000000000 / (ystart - targy), &iterts);
-    int y;
-    for(y = ystart - 1 ; y >= targy ; --y){
-      nanosleep(&iterts, NULL);
-      ncplane_move_yx(on, y, xstart);
-      notcurses_render(nc);
-    }
+    // will fade across 2s
+    targy = 3;
+    pthread_create(&tid, NULL, fadethread, nc);
+    pthread_join(tid, &ret);
     ncplane_fadeout(on, &demodelay);
-    pthread_join(tid, NULL);
     ncplane_destroy(on);
   }
-  ncvisual_destroy(ncv);
+  if(ret == NULL){
+    return -1;
+  }
   return on ? 0 : -1;
 }

@@ -244,7 +244,7 @@ snake_thread(void* vnc){
   struct ncplane* n = notcurses_stdplane(nc);
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  int snakecount = dimy / 15;
+  int snakecount = (dimy * dimx) / 800;
   snake snakes[snakecount];
   for(int s = 0 ; s < snakecount ; ++s){
     init_snake(&snakes[s], dimy, dimx);
