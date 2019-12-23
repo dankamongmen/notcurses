@@ -2160,6 +2160,7 @@ up someday **FIXME**.
 
 * [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)
 * [The Xterm FAQ](https://invisible-island.net/xterm/xterm.faq.html)
+  * [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.pdf)
 * [The NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html)
 * [ECMA-35 Character Code Structure and Extension Techniques](https://www.ecma-international.org/publications/standards/Ecma-035.htm) (ISO/IEC 2022)
 * [ECMA-43 8-bit Coded Character Set Structure and Rules](https://www.ecma-international.org/publications/standards/Ecma-043.htm)
@@ -2170,6 +2171,13 @@ up someday **FIXME**.
 * [The TTY demystified](http://www.linusakesson.net/programming/tty/)
 * [Dark Corners of Unicode](https://eev.ee/blog/2015/09/12/dark-corners-of-unicode/)
 * [UTF-8 Decoder Capability and Stress Test](https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt)
+
+#### Useful man pages
+* Linux: [console_codes(4)](http://man7.org/linux/man-pages/man4/console_codes.4.html)
+* Linux: [termios(3)](http://man7.org/linux/man-pages/man3/termios.3.html)
+* Linux: [ioctl_tty(2)](http://man7.org/linux/man-pages/man2/ioctl_tty.2.html)
+* Linux: [ioctl_console(2)](http://man7.org/linux/man-pages/man2/ioctl_console.2.html)
+* Portable: [terminfo(5)](http://man7.org/linux/man-pages/man5/terminfo.5.html)
 
 ### Other TUI libraries of note
 

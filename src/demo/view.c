@@ -39,14 +39,14 @@ view_video_demo(struct notcurses* nc){
 
 static struct ncplane*
 legend(struct notcurses* nc, int dimy, int dimx){
-  struct ncplane* n = notcurses_newplane(nc, 3, 25, dimy / 8, dimx / 12, NULL);
+  struct ncplane* n = notcurses_newplane(nc, 4, 25, dimy * 7 / 8, (dimx - 25) / 2, NULL);
   ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
   uint64_t channels = 0;
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   cell c = CELL_INITIALIZER(' ', 0, channels);
   ncplane_set_default(n, &c);
-  ncplane_set_fg_rgb(n, 0x0, 0x0, 0x0);
   ncplane_styles_set(n, CELL_STYLE_BOLD);
+  ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
   if(ncplane_putstr_aligned(n, 0, "target launch", NCALIGN_CENTER) <= 0){
     ncplane_destroy(n);
     return NULL;
@@ -58,6 +58,11 @@ legend(struct notcurses* nc, int dimy, int dimx){
     return NULL;
   }
   if(ncplane_putstr_aligned(n, 2, "RIM-161 SM-3 v. Aries TTV", NCALIGN_LEFT) <= 0){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  ncplane_set_fg_rgb(n, 0x80, 0xc0, 0x80);
+  if(ncplane_putstr_aligned(n, 3, "exo-atmospheric intercept", NCALIGN_LEFT) <= 0){
     ncplane_destroy(n);
     return NULL;
   }

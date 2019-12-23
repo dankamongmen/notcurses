@@ -141,8 +141,10 @@ tabletdraw(struct tablet* t, int begx, int begy, int maxx, int maxy, bool clipto
       }
     }
     err |= ncplane_cursor_move_yx(p, summaryy, begx);
+    ncplane_styles_on(p, CELL_STYLE_BOLD);
     ncplane_printf(p, "[#%u %d line%s %u/%u] ", tctx->id, tctx->lines,
                           tctx->lines == 1 ? "" : "s", begy, maxy);
+    ncplane_styles_off(p, CELL_STYLE_BOLD);
   }
 /*fprintf(stderr, "  \\--> callback for %d, %d lines (%d/%d -> %d/%d) dir: %s wrote: %d ret: %d\n", tctx->id,
     tctx->lines, begy, begx, maxy, maxx,
@@ -283,10 +285,12 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   }
   // Press a for a new panel above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement. q quits.
+  ncplane_styles_on(w, CELL_STYLE_BOLD | CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(w, 58, 150, 221);
   ncplane_set_bg_default(w);
   ncplane_cursor_move_yx(w, 1, 1);
   ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
+  ncplane_styles_off(w, CELL_STYLE_BOLD | CELL_STYLE_ITALIC);
   // FIXME clrtoeol();
   unsigned id = 0;
   struct timespec deadline;
@@ -308,7 +312,9 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     ncplane_set_fg_rgb(w, 197, 15, 31);
     int count = panelreel_tabletcount(pr);
     ncplane_cursor_move_yx(w, 2, 2);
+    ncplane_styles_on(w, CELL_STYLE_BOLD);
     ncplane_printf(w, "%d tablet%s", count, count == 1 ? "" : "s");
+    ncplane_styles_off(w, CELL_STYLE_BOLD);
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(w, 0, 55, 218);
     wchar_t rw;
