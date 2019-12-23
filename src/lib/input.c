@@ -3,6 +3,12 @@
 #include <sys/poll.h>
 #include "internal.h"
 
+// CSI (Control Sequence Indicators) originate in the terminal itself, and are
+// not reported in their bare form to the user. For our purposes, these usually
+// indicate a mouse event.
+#define CSIPREFIX "\x1b[<"
+static const char32_t NCKEY_CSI = 1;
+
 static const unsigned char ESC = 0x1b; // 27
 
 sig_atomic_t resize_seen = 0;
@@ -30,7 +36,7 @@ unpop_keypress(notcurses* nc, int kpress){
 
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
-  int special;            // composed key terminating here
+  char32_t special;       // composed key terminating here
   struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
 } esctrie;
 
@@ -66,7 +72,7 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
     fprintf(stderr, "Not an escape: %s (0x%x)\n", esc, special);
     return -1;
   }
-  if(!wchar_supppuab_p(special)){
+  if(!wchar_supppuab_p(special) && special != NCKEY_CSI){
     fprintf(stderr, "Not a supplementary-b PUA char: %lc (0x%x)\n", special, special);
     return -1;
   }
@@ -102,6 +108,12 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
   return 0;
 }
 
+// We received the CSI prefix. Extract the data payload.
+static char32_t
+handle_csi(notcurses* nc){
+  return NCKEY_MOUSEEVENT;
+}
+
 // add the keypress we just read to our input queue (assuming there is room).
 // if there is a full UTF8 codepoint or keystroke (composed or otherwise),
 // return it, and pop it from the queue.
@@ -115,7 +127,6 @@ handle_getc(notcurses* nc, int kpress){
     const esctrie* esc = nc->inputescapes;
     while(esc && esc->special == NCKEY_INVALID && nc->inputbuf_occupied){
       int candidate = pop_input_keypress(nc);
-fprintf(stderr, "CANDIDATE: 0x%02x %d '%c'\n", candidate, candidate, candidate);
       if(esc->trie == NULL){
         esc = NULL;
       }else if(candidate >= 0x80 || candidate < 0){
@@ -124,8 +135,10 @@ fprintf(stderr, "CANDIDATE: 0x%02x %d '%c'\n", candidate, candidate, candidate);
         esc = esc->trie[candidate];
       }
     }
-//fprintf(stderr, "esc? %c special: %d\n", esc ? 'y' : 'n', esc ? esc->special : NCKEY_INVALID);
     if(esc && esc->special != NCKEY_INVALID){
+      if(esc->special == NCKEY_CSI){
+        return handle_csi(nc);
+      }
       return esc->special;
     }
     // FIXME ungetc on failure! walk trie backwards or something
@@ -300,6 +313,10 @@ int prep_special_keys(notcurses* nc){
       fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
       return -1;
     }
+  }
+  if(notcurses_add_input_escape(nc, CSIPREFIX, NCKEY_CSI)){
+    fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
+    return -1;
   }
   return 0;
 }

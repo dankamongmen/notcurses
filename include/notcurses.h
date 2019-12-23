@@ -228,6 +228,7 @@ wchar_supppuab_p(char32_t w){
 #define NCKEY_EXIT    suppuabize(133)
 #define NCKEY_PRINT   suppuabize(134)
 #define NCKEY_REFRESH suppuabize(135)
+#define NCKEY_MOUSEEVENT suppuabize(200)
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
