@@ -1,40 +1,40 @@
 ---
-kind: pipeline:
+kind: pipeline
 type: docker
 name: debianunstable
-  prep:
-    image: dankamongmen/unstable_builder
-    docker:
-      tty: true
-    commands:
-      - apt-get update
-      - apt-get -y remove man-db
-      - apt-get -y install devscripts git-buildpackage locales
-      - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
-      - locale-gen
-      - mk-build-deps --install -t'apt-get -y'
-      - mkdir build
-      - cd build
-      - cmake ..
-      - make
-      - LANG="en_US.UTF-8" ./notcurses-tester
+steps:
+- name: prep
+  image: dankamongmen/unstable_builder
+  commands:
+  - apt-get update
+  - apt-get -y remove man-db
+  - apt-get -y install devscripts git-buildpackage locales
+  - echo 'en_US.UTF-8 UTF-8' &gt; /etc/locale.gen
+  - locale-gen
+  - mk-build-deps --install -t'apt-get -y'
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make
+  - LANG="en_US.UTF-8" ./notcurses-tester
 ---
-kind: pipeline:
+kind: pipeline
 type: docker
 name: debianstable
-  prep:
-    image: library/debian:unstable
-    docker:
-      tty: true
-    commands:
-      - apt-get update
-      - apt-get -y remove man-db
-      - apt-get -y install devscripts git-buildpackage locales
-      - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
-      - locale-gen
-      - mk-build-deps --install -t'apt-get -y'
-      - mkdir build
-      - cd build
-      - cmake ..
-      - make
-      - LANG="en_US.UTF-8" ./notcurses-tester
+steps:
+  name: prep
+  image: library/debian:unstable
+  docker:
+    tty: true
+  commands:
+    - apt-get update
+    - apt-get -y remove man-db
+    - apt-get -y install devscripts git-buildpackage locales
+    - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
+    - locale-gen
+    - mk-build-deps --install -t'apt-get -y'
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make
+    - LANG="en_US.UTF-8" ./notcurses-tester

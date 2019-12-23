@@ -135,12 +135,12 @@ int main(void){
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_set_fg(n, 0);
   ncplane_set_bg(n, 0xbb64bb);
-  ncplane_styles_set(n, CELL_STYLE_UNDERLINE);
+  ncplane_styles_on(n, CELL_STYLE_UNDERLINE);
   if(ncplane_putstr_aligned(n, 0, "mash some keys, yo. give that mouse some waggle!", NCALIGN_CENTER) <= 0){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  ncplane_styles_off(n, CELL_STYLE_UNDERLINE);
+  ncplane_styles_set(n, 0);
   ncplane_set_bg_default(n);
   notcurses_render(nc);
   int y = 2;

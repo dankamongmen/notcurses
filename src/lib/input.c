@@ -112,11 +112,10 @@ handle_getc(notcurses* nc, int kpress){
     return -1;
   }
   if(kpress == ESC){
-    // FIXME delay a little waiting for more?
     const esctrie* esc = nc->inputescapes;
     while(esc && esc->special == NCKEY_INVALID && nc->inputbuf_occupied){
       int candidate = pop_input_keypress(nc);
-//fprintf(stderr, "CANDIDATE: %c\n", candidate);
+fprintf(stderr, "CANDIDATE: 0x%02x %d '%c'\n", candidate, candidate, candidate);
       if(esc->trie == NULL){
         esc = NULL;
       }else if(candidate >= 0x80 || candidate < 0){
