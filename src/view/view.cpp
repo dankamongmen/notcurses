@@ -37,7 +37,7 @@ int ncview(struct notcurses* nc, struct ncvisual* ncv, int* averr){
       .tv_sec = start.tv_sec + (long)(ns / 1000000000),
       .tv_nsec = start.tv_nsec + (long)(ns % 1000000000),
     };
-    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, nullptr);
   }
   if(*averr == AVERROR_EOF){
     return 0;
@@ -78,7 +78,7 @@ int main(int argc, char** argv){
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }
-    notcurses_getc_blocking(nc);
+    notcurses_getc_blocking(nc, nullptr);
     ncvisual_destroy(ncv);
   }
   if(notcurses_stop(nc)){

@@ -337,29 +337,56 @@ wchar_supppuab_p(char32_t w){
 #define NCKEY_EXIT    suppuabize(133)
 #define NCKEY_PRINT   suppuabize(134)
 #define NCKEY_REFRESH suppuabize(135)
+// Mouse events. We try to encode some details into the char32_t (i.e. which
+// button was pressed), but some is embedded in the ncinput event.
+#define NCKEY_MOUSEB1 suppuabize(201)
+#define NCKEY_MOUSEB2 suppuabize(202)
+#define NCKEY_MOUSEB3 suppuabize(203)
+
+// An input event. Cell coordinates are currently defined only for mouse events.
+typedef struct ncinput {
+  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
+  int y;           // y cell coordinate of event, -1 for undefined
+  int x;           // x cell coordinate of event, -1 for undefined
+  // FIXME modifiers (alt, etc?)
+} ncinput;
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
 // Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
-// be NULL.
-char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
+// be NULL. Returns 0 on a timeout. If an event is processed, the return value
+// is the 'id' field from that event. 'ni' may be NULL.
+API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
+                            sigset_t* sigmask, ncinput* ni);
 
+// 'ni' may be NULL if the caller is uninterested in event details. If no event
+// is ready, returns 0.
 static inline char32_t
-notcurses_getc_nblock(struct notcurses* n){
+notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
   sigset_t sigmask;
   sigfillset(&sigmask);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-  return notcurses_getc(n, &ts, &sigmask);
+  return notcurses_getc(n, &ts, &sigmask, ni);
 }
 
+// 'ni' may be NULL if the caller is uninterested in event details. Blocks
+// until an event is processed or a signal is received.
 static inline char32_t
-notcurses_getc_blocking(struct notcurses* n){
+notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   sigset_t sigmask;
   sigemptyset(&sigmask);
-  return notcurses_getc(n, NULL, &sigmask);
+  return notcurses_getc(n, NULL, &sigmask, ni);
 }
+
+// Enable the mouse in "button-event tracking" mode with focus detection and
+// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
+// is returned, and mouse events will be published to notcurses_getc().
+API int notcurses_mouse_enable(struct notcurses* n);
+
+// Disable mouse events. Any events in the input queue can still be delivered.
+API int notcurses_mouse_disable(struct notcurses* n);
 ```
 
 ### Mice
@@ -381,7 +408,8 @@ int notcurses_mouse_disable(struct notcurses* n);
 
 "Button-event tracking mode" implies the ability to detect mouse button
 presses, and also mouse movement while holding down a mouse button (i.e. to
-effect drag-and-drop).
+effect drag-and-drop). Mouse events are returned via the `NCKEY_MOUSE*` values,
+with coordinate information in the `ncinput` struct.
 
 ### Planes
 
