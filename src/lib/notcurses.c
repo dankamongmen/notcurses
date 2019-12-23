@@ -713,6 +713,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+  notcurses_mouse_disable(ret);
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
     fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
             ret->ttyfd, strerror(errno));
@@ -822,6 +823,7 @@ int notcurses_stop(notcurses* nc){
     if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
       ret = -1;
     }
+    ret |= notcurses_mouse_disable(nc);
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     while(nc->top){
       ncplane* p = nc->top;
