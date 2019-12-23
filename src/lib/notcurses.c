@@ -1558,6 +1558,8 @@ int notcurses_mouse_enable(notcurses* n){
                    n->ttyfp, true);
 }
 
+// this seems to work (note difference in suffix, 'l' vs 'h'), but what about
+// the sequences 1000 etc?
 int notcurses_mouse_disable(notcurses* n){
   return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
                    SET_FOCUS_EVENT_MOUSE ";" SET_SGR_MODE_MOUSE "l",

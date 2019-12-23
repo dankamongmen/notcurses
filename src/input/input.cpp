@@ -4,13 +4,14 @@
 #include <cstdlib>
 #include <clocale>
 #include <iostream>
+#include <termios.h>
 #include <notcurses.h>
 
 static int dimy, dimx;
 static struct notcurses* nc;
 
 // return the string version of a special composed key
-const char* nckeystr(wchar_t spkey){
+const char* nckeystr(char32_t spkey){
   switch(spkey){ // FIXME
     case NCKEY_RESIZE:
       notcurses_resize(nc, &dimy, &dimx);
@@ -73,14 +74,25 @@ const char* nckeystr(wchar_t spkey){
     case NCKEY_EXIT:    return "exit";
     case NCKEY_PRINT:   return "print";
     case NCKEY_REFRESH: return "refresh";
-    case NCKEY_MOUSEEVENT: return "mouseevent";
+    case NCKEY_BUTTON1: return "mouse (button 1 pressed)";
+    case NCKEY_BUTTON2: return "mouse (button 2 pressed)";
+    case NCKEY_BUTTON3: return "mouse (button 3 pressed)";
+    case NCKEY_BUTTON4: return "mouse (button 4 pressed)";
+    case NCKEY_BUTTON5: return "mouse (button 5 pressed)";
+    case NCKEY_BUTTON6: return "mouse (button 6 pressed)";
+    case NCKEY_BUTTON7: return "mouse (button 7 pressed)";
+    case NCKEY_BUTTON8: return "mouse (button 8 pressed)";
+    case NCKEY_BUTTON9: return "mouse (button 9 pressed)";
+    case NCKEY_BUTTON10: return "mouse (button 10 pressed)";
+    case NCKEY_BUTTON11: return "mouse (button 11 pressed)";
+    case NCKEY_RELEASE: return "mouse (button released)";
     default:            return "unknown";
   }
 }
 
 // Print the utf8 Control Pictures for otherwise unprintable ASCII
-wchar_t printutf8(wchar_t kp){
-  if(kp <= 27 && kp >= 0){
+char32_t printutf8(char32_t kp){
+  if(kp <= 27){
     return 0x2400 + kp;
   }
   return kp;
@@ -137,7 +149,7 @@ int main(void){
   ncplane_set_fg(n, 0);
   ncplane_set_bg(n, 0xbb64bb);
   ncplane_styles_on(n, CELL_STYLE_UNDERLINE);
-  if(ncplane_putstr_aligned(n, 0, "mash some keys, yo. give that mouse some waggle!", NCALIGN_CENTER) <= 0){
+  if(ncplane_putstr_aligned(n, 0, "mash keys, yo. give that mouse some waggle! ctrl+d exits.", NCALIGN_CENTER) <= 0){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
@@ -146,34 +158,44 @@ int main(void){
   notcurses_render(nc);
   int y = 2;
   std::deque<wchar_t> cells;
-  wchar_t r;
+  char32_t r;
   if(notcurses_mouse_enable(nc)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  while(errno = 0, (r = notcurses_getc_blocking(nc)) >= 0){
+  ncinput ni;
+  while(errno = 0, (r = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
       continue;
+    }
+    if(r == CEOT){
+      notcurses_stop(nc);
+      return EXIT_SUCCESS;
     }
     if(ncplane_cursor_move_yx(n, y, 0)){
       break;
     }
     if(r < 0x80){
       ncplane_set_fg_rgb(n, 128, 250, 64);
-      if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'\n",
+      if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'",
                         r, r, iswprint(r) ? r : printutf8(r)) < 0){
         break;
       }
     }else{
       if(wchar_supppuab_p(r)){
         ncplane_set_fg_rgb(n, 250, 64, 128);
-        if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'\n",
+        if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'",
                           r, r, nckeystr(r)) < 0){
           break;
         }
+        if(nckey_mouse_p(r)){
+          if(ncplane_printf(n, " x: %d y: %d", ni.x, ni.y) < 0){
+            break;
+          }
+        }
       }else{
         ncplane_set_fg_rgb(n, 64, 128, 250);
-        ncplane_printf(n, "Got UTF-8: [0x%08x] '%lc'\n", r, r);
+        ncplane_printf(n, "Got UTF-8: [0x%08x] '%lc'", r, r);
       }
     }
     if(dim_rows(n)){
@@ -191,9 +213,8 @@ int main(void){
     cells.push_front(r);
   }
   int e = errno;
-  notcurses_mouse_disable(nc);
   notcurses_stop(nc);
-  if(r < 0 && e){
+  if(r == (char32_t)-1 && e){
     std::cerr << "Error reading from terminal (" << strerror(e) << "?)\n";
   }
   return EXIT_FAILURE;

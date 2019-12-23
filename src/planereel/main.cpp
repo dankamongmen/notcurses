@@ -64,7 +64,7 @@ int main(void){
   }
   PR = pr; // FIXME eliminate
   char32_t key;
-  while((key = notcurses_getc_blocking(nc)) != (char32_t)-1){
+  while((key = notcurses_getc_blocking(nc, nullptr)) != (char32_t)-1){
     switch(key){
       case 'q':
         return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
