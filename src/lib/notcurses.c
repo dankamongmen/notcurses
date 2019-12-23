@@ -763,7 +763,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
-  // term_emit("clear", ret->clear, ret->ttyfp, false);
   ret->suppress_banner = opts->suppress_bannner;
   if(!opts->suppress_bannner){
     char prefixbuf[BPREFIXSTRLEN + 1];
@@ -792,6 +791,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       fprintf(ret->ttyfp, "\nWarning!\nYour colors are subject to https://github.com/dankamongmen/notcurses/issues/4\n");
       fprintf(ret->ttyfp, "Are you specifying a proper DirectColor TERM?\n");
     }
+  }
+  if(opts->clear_screen_start){
+    term_emit("clear", ret->clearscr, ret->ttyfp, false);
   }
   return ret;
 
@@ -1547,15 +1549,15 @@ ncplane* ncplane_below(ncplane* n){
 
 #define SET_BTN_EVENT_MOUSE   "1002"
 #define SET_FOCUS_EVENT_MOUSE "1004"
-#define SET_EXT_MODE_MOUSE    "1005"
+#define SET_SGR_MODE_MOUSE    "1006"
 int notcurses_mouse_enable(notcurses* n){
   return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                   SET_FOCUS_EVENT_MOUSE ";" SET_EXT_MODE_MOUSE "h",
+                   SET_FOCUS_EVENT_MOUSE ";" SET_SGR_MODE_MOUSE "h",
                    n->ttyfp, true);
 }
 
 int notcurses_mouse_disable(notcurses* n){
   return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                   SET_FOCUS_EVENT_MOUSE ";" SET_EXT_MODE_MOUSE "l",
+                   SET_FOCUS_EVENT_MOUSE ";" SET_SGR_MODE_MOUSE "l",
                    n->ttyfp, true);
 }
