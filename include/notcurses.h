@@ -121,6 +121,8 @@ typedef struct notcurses_options {
   // Notcurses typically prints version info in notcurses_init() and performance
   // info in notcurses_stop(). This inhibits that output.
   bool suppress_bannner;
+  // Notcurses does not clear the screen on startup unless thus requested to.
+  bool clear_screen_start;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
