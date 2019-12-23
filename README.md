@@ -360,6 +360,27 @@ notcurses_getc_blocking(struct notcurses* n){
 }
 ```
 
+### Mice
+
+notcurses supports mice, though only through brokers such as X or
+[GPM](https://www.nico.schottelius.org/software/gpm/). It does not speak
+directly to hardware. Mouse events must be explicitly enabled with a
+successful call to `notcurses_mouse_enable()`, and can later be disabled.
+
+```c
+// Enable the mouse in "button-event tracking" mode with focus detection and
+// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
+// is returned, and mouse events will be published to notcurses_getc().
+int notcurses_mouse_enable(struct notcurses* n);
+
+// Disable mouse events. Any events in the input queue can still be delivered.
+int notcurses_mouse_disable(struct notcurses* n);
+```
+
+"Button-event tracking mode" implies the ability to detect mouse button
+presses, and also mouse movement while holding down a mouse button (i.e. to
+effect drag-and-drop).
+
 ### Planes
 
 Fundamental to notcurses is a z-buffer of rectilinear virtual screens, known
@@ -2178,6 +2199,7 @@ up someday **FIXME**.
 * Linux: [ioctl_tty(2)](http://man7.org/linux/man-pages/man2/ioctl_tty.2.html)
 * Linux: [ioctl_console(2)](http://man7.org/linux/man-pages/man2/ioctl_console.2.html)
 * Portable: [terminfo(5)](http://man7.org/linux/man-pages/man5/terminfo.5.html)
+* Portable: [user_caps(5)](http://man7.org/linux/man-pages/man5/user_caps.5.html)
 
 ### Other TUI libraries of note
 

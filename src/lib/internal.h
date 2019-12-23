@@ -128,6 +128,7 @@ typedef struct notcurses {
   char* italoff;  // CELL_STYLE_ITALIC (disable)
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
+  char* getm;     // get mouse events
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
 
