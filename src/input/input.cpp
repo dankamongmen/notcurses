@@ -10,7 +10,7 @@ static int dimy, dimx;
 static struct notcurses* nc;
 
 // return the string version of a special composed key
-const char* nckeystr(wchar_t spkey){
+const char* nckeystr(char32_t spkey){
   switch(spkey){ // FIXME
     case NCKEY_RESIZE:
       notcurses_resize(nc, &dimy, &dimx);
@@ -78,8 +78,8 @@ const char* nckeystr(wchar_t spkey){
 }
 
 // Print the utf8 Control Pictures for otherwise unprintable ASCII
-wchar_t printutf8(wchar_t kp){
-  if(kp <= 27 && kp >= 0){
+char32_t printutf8(char32_t kp){
+  if(kp <= 27 && kp < UINT_LEAST32_MAX){
     return 0x2400 + kp;
   }
   return kp;
@@ -144,13 +144,13 @@ int main(void){
   ncplane_set_bg_default(n);
   notcurses_render(nc);
   int y = 2;
-  std::deque<wchar_t> cells;
-  wchar_t r;
+  std::deque<char32_t> cells;
+  char32_t r;
   if(notcurses_mouse_enable(nc)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  while(errno = 0, (r = notcurses_getc_blocking(nc)) >= 0){
+  while(errno = 0, (r = notcurses_getc_blocking(nc)) < UINT_LEAST32_MAX){
     if(r == 0){ // interrupted by signal
       continue;
     }
@@ -192,7 +192,7 @@ int main(void){
   int e = errno;
   notcurses_mouse_disable(nc);
   notcurses_stop(nc);
-  if(r < 0 && e){
+  if(r == UINT_LEAST32_MAX && e){
     std::cerr << "Error reading from terminal (" << strerror(e) << "?)\n";
   }
   return EXIT_FAILURE;

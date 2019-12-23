@@ -202,7 +202,7 @@ handle_input(notcurses* nc){
   }
   // if there was some error in getc(), we still dole out the existing queue
   if(nc->inputbuf_occupied == 0){
-    return -1;
+    return UINT_LEAST32_MAX;
   }
   r = pop_input_keypress(nc);
   return handle_getc(nc, r);
@@ -212,7 +212,7 @@ handle_input(notcurses* nc){
 char32_t notcurses_getc(notcurses* nc, const struct timespec *ts, sigset_t* sigmask){
   errno = 0;
   char32_t r = handle_input(nc);
-  if(r == (char32_t)-1){
+  if(r == UINT_LEAST32_MAX){
     if(errno == EAGAIN || errno == EWOULDBLOCK){
       block_on_input(nc->ttyinfp, ts, sigmask);
       return handle_input(nc);
