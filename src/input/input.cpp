@@ -73,6 +73,7 @@ const char* nckeystr(wchar_t spkey){
     case NCKEY_EXIT:    return "exit";
     case NCKEY_PRINT:   return "print";
     case NCKEY_REFRESH: return "refresh";
+    case NCKEY_MOUSEEVENT: return "mouseevent";
     default:            return "unknown";
   }
 }
