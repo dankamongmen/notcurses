@@ -4,13 +4,14 @@
 #include <cstdlib>
 #include <clocale>
 #include <iostream>
+#include <termios.h>
 #include <notcurses.h>
 
 static int dimy, dimx;
 static struct notcurses* nc;
 
 // return the string version of a special composed key
-const char* nckeystr(wchar_t spkey){
+const char* nckeystr(char32_t spkey){
   switch(spkey){ // FIXME
     case NCKEY_RESIZE:
       notcurses_resize(nc, &dimy, &dimx);
@@ -73,16 +74,65 @@ const char* nckeystr(wchar_t spkey){
     case NCKEY_EXIT:    return "exit";
     case NCKEY_PRINT:   return "print";
     case NCKEY_REFRESH: return "refresh";
+    case NCKEY_BUTTON1: return "mouse (button 1 pressed)";
+    case NCKEY_BUTTON2: return "mouse (button 2 pressed)";
+    case NCKEY_BUTTON3: return "mouse (button 3 pressed)";
+    case NCKEY_BUTTON4: return "mouse (button 4 pressed)";
+    case NCKEY_BUTTON5: return "mouse (button 5 pressed)";
+    case NCKEY_BUTTON6: return "mouse (button 6 pressed)";
+    case NCKEY_BUTTON7: return "mouse (button 7 pressed)";
+    case NCKEY_BUTTON8: return "mouse (button 8 pressed)";
+    case NCKEY_BUTTON9: return "mouse (button 9 pressed)";
+    case NCKEY_BUTTON10: return "mouse (button 10 pressed)";
+    case NCKEY_BUTTON11: return "mouse (button 11 pressed)";
+    case NCKEY_RELEASE: return "mouse (button released)";
     default:            return "unknown";
   }
 }
 
-// print the utf8 Control Pictures for otherwise unprintable chars
-wchar_t printutf8(wchar_t kp){
-  if(kp <= 27 && kp >= 0){
+// Print the utf8 Control Pictures for otherwise unprintable ASCII
+char32_t printutf8(char32_t kp){
+  if(kp <= 27){
     return 0x2400 + kp;
   }
   return kp;
+}
+
+// Dim all text on the plane by the same amount. This will stack for
+// older text, and thus clearly indicate the current output.
+static int
+dim_rows(struct ncplane* n){
+  int y, x;
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  for(y = 2 ; y < dimy ; ++y){
+    for(x = 0 ; x < dimx ; ++x){
+      if(ncplane_at_yx(n, y, x, &c) < 0){
+        cell_release(n, &c);
+        return -1;
+      }
+      unsigned r, g, b;
+      cell_get_fg_rgb(&c, &r, &g, &b);
+      r -= r / 32;
+      g -= g / 32;
+      b -= b / 32;
+      if(r > 247){ r = 0; }
+      if(g > 247){ g = 0; }
+      if(b > 247){ b = 0; }
+      if(cell_set_fg_rgb(&c, r, g, b)){
+        cell_release(n, &c);
+        return -1;
+      }
+      if(ncplane_putc_yx(n, y, x, &c) < 0){
+        cell_release(n, &c);
+        return -1;
+      }
+      if(cell_double_wide_p(&c)){
+        ++x;
+      }
+    }
+  }
+  cell_release(n, &c);
+  return 0;
 }
 
 int main(void){
@@ -90,6 +140,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   notcurses_options opts{};
+  opts.clear_screen_start = true;
   if((nc = notcurses_init(&opts, stdout)) == nullptr){
     return EXIT_FAILURE;;
   }
@@ -97,48 +148,64 @@ int main(void){
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_set_fg(n, 0);
   ncplane_set_bg(n, 0xbb64bb);
-  ncplane_styles_set(n, CELL_STYLE_UNDERLINE);
-  if(ncplane_putstr_aligned(n, 0, "mash some keys, yo", NCALIGN_CENTER) <= 0){
+  ncplane_styles_on(n, CELL_STYLE_UNDERLINE);
+  if(ncplane_putstr_aligned(n, 0, "mash keys, yo. give that mouse some waggle! ctrl+d exits.", NCALIGN_CENTER) <= 0){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  ncplane_styles_off(n, CELL_STYLE_UNDERLINE);
+  ncplane_styles_set(n, 0);
   ncplane_set_bg_default(n);
   notcurses_render(nc);
-  int y = 1;
+  int y = 2;
   std::deque<wchar_t> cells;
-  wchar_t r;
-  while(errno = 0, (r = notcurses_getc_blocking(nc)) >= 0){
+  char32_t r;
+  if(notcurses_mouse_enable(nc)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
+  ncinput ni;
+  while(errno = 0, (r = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
       continue;
+    }
+    if(r == CEOT){
+      notcurses_stop(nc);
+      return EXIT_SUCCESS;
     }
     if(ncplane_cursor_move_yx(n, y, 0)){
       break;
     }
     if(r < 0x80){
       ncplane_set_fg_rgb(n, 128, 250, 64);
-      if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'\n",
+      if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'",
                         r, r, iswprint(r) ? r : printutf8(r)) < 0){
         break;
       }
     }else{
       if(wchar_supppuab_p(r)){
         ncplane_set_fg_rgb(n, 250, 64, 128);
-        if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'\n",
+        if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'",
                           r, r, nckeystr(r)) < 0){
           break;
         }
+        if(nckey_mouse_p(r)){
+          if(ncplane_printf(n, " x: %d y: %d", ni.x, ni.y) < 0){
+            break;
+          }
+        }
       }else{
         ncplane_set_fg_rgb(n, 64, 128, 250);
-        ncplane_printf(n, "Got UTF-8: [0x%08x] '%lc'\n", r, r);
+        ncplane_printf(n, "Got UTF-8: [0x%08x] '%lc'", r, r);
       }
     }
-    // FIXME reprint all lines, fading older ones
+    if(dim_rows(n)){
+      break;
+    }
     if(notcurses_render(nc)){
       break;
     }
     if(++y >= dimy - 2){ // leave a blank line at the bottom
-      y = 1;             // and at the top
+      y = 2;             // and at the top
     }
     while(cells.size() >= dimy - 3u){
       cells.pop_back();
@@ -147,7 +214,7 @@ int main(void){
   }
   int e = errno;
   notcurses_stop(nc);
-  if(r < 0 && e){
+  if(r == (char32_t)-1 && e){
     std::cerr << "Error reading from terminal (" << strerror(e) << "?)\n";
   }
   return EXIT_FAILURE;

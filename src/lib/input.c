@@ -1,7 +1,14 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <term.h>
+#include <ctype.h>
 #include <sys/poll.h>
 #include "internal.h"
+
+// CSI (Control Sequence Indicators) originate in the terminal itself, and are
+// not reported in their bare form to the user. For our purposes, these usually
+// indicate a mouse event.
+#define CSIPREFIX "\x1b[<"
+static const char32_t NCKEY_CSI = 1;
 
 static const unsigned char ESC = 0x1b; // 27
 
@@ -30,7 +37,7 @@ unpop_keypress(notcurses* nc, int kpress){
 
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
-  int special;            // composed key terminating here
+  char32_t special;       // composed key terminating here
   struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
 } esctrie;
 
@@ -66,7 +73,7 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
     fprintf(stderr, "Not an escape: %s (0x%x)\n", esc, special);
     return -1;
   }
-  if(!wchar_supppuab_p(special)){
+  if(!wchar_supppuab_p(special) && special != NCKEY_CSI){
     fprintf(stderr, "Not a supplementary-b PUA char: %lc (0x%x)\n", special, special);
     return -1;
   }
@@ -102,21 +109,98 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
   return 0;
 }
 
+// We received the CSI prefix. Extract the data payload.
+static char32_t
+handle_csi(notcurses* nc, ncinput* ni){
+  enum {
+    PARAM1,  // reading first param (button + modifiers) plus delimiter
+    PARAM2,  // reading second param (x coordinate) plus delimiter
+    PARAM3,  // reading third param (y coordinate) plus terminator
+  } state = PARAM1;
+  int param = 0; // numeric translation of param thus far
+  char32_t id = (char32_t)-1;
+  while(nc->inputbuf_occupied){
+    int candidate = pop_input_keypress(nc);
+    if(state == PARAM1){
+      if(candidate == ';'){
+        state = PARAM2;
+        // modifiers: 32 (motion) 16 (control) 8 (alt) 4 (shift)
+        // buttons 4, 5, 6, 7: adds 64
+        // buttons 8, 9, 10, 11: adds 128
+        if(param >= 0 && param < 64){
+          if(param % 4 == 3){
+            id = NCKEY_RELEASE;
+          }else{
+            id = NCKEY_BUTTON1 + (param % 4);
+          }
+        }else if(param >= 64 && param < 128){
+          id = NCKEY_BUTTON4 + (param % 4);
+        }else if(param >= 128 && param < 192){
+          id = NCKEY_BUTTON8 + (param % 4);
+        }else{
+          break;
+        }
+        param = 0;
+      }else if(isdigit(candidate)){
+        param *= 10;
+        param += candidate - '0';
+      }else{
+        break;
+      }
+    }else if(state == PARAM2){
+      if(candidate == ';'){
+        state = PARAM3;
+        if(param == 0){
+          break;
+        }
+        if(ni){
+          ni->x = param - 1;
+        }
+        param = 0;
+      }else if(isdigit(candidate)){
+        param *= 10;
+        param += candidate - '0';
+      }else{
+        break;
+      }
+    }else if(state == PARAM3){
+      if(candidate == 'm' || candidate == 'M'){
+        if(candidate == 'm'){
+          id = NCKEY_RELEASE;
+        }
+        if(param == 0){
+          break;
+        }
+        if(ni){
+          ni->y = param - 1;
+          ni->id = id;
+        }
+        return id;
+      }else if(isdigit(candidate)){
+        param *= 10;
+        param += candidate - '0';
+      }else{
+        break;
+      }
+    }
+  }
+  // FIXME ungetc on failure! walk trie backwards or something
+  return (char32_t)-1;
+}
+
 // add the keypress we just read to our input queue (assuming there is room).
 // if there is a full UTF8 codepoint or keystroke (composed or otherwise),
 // return it, and pop it from the queue.
 static char32_t
-handle_getc(notcurses* nc, int kpress){
+handle_getc(notcurses* nc, int kpress, ncinput* ni){
 // fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress < 0){
     return -1;
   }
   if(kpress == ESC){
-    // FIXME delay a little waiting for more?
     const esctrie* esc = nc->inputescapes;
     while(esc && esc->special == NCKEY_INVALID && nc->inputbuf_occupied){
       int candidate = pop_input_keypress(nc);
-//fprintf(stderr, "CANDIDATE: %c\n", candidate);
       if(esc->trie == NULL){
         esc = NULL;
       }else if(candidate >= 0x80 || candidate < 0){
@@ -125,8 +209,10 @@ handle_getc(notcurses* nc, int kpress){
         esc = esc->trie[candidate];
       }
     }
-//fprintf(stderr, "esc? %c special: %d\n", esc ? 'y' : 'n', esc ? esc->special : NCKEY_INVALID);
     if(esc && esc->special != NCKEY_INVALID){
+      if(esc->special == NCKEY_CSI){
+        return handle_csi(nc, ni);
+      }
       return esc->special;
     }
     // FIXME ungetc on failure! walk trie backwards or something
@@ -184,7 +270,7 @@ input_queue_full(const notcurses* nc){
 }
 
 static char32_t
-handle_input(notcurses* nc){
+handle_input(notcurses* nc, ncinput* ni){
   int r;
   // getc() returns unsigned chars cast to ints
   while(!input_queue_full(nc) && (r = getc(nc->ttyinfp)) >= 0){
@@ -205,17 +291,18 @@ handle_input(notcurses* nc){
     return -1;
   }
   r = pop_input_keypress(nc);
-  return handle_getc(nc, r);
+  return handle_getc(nc, r, ni);
 }
 
-// infp has always been set non-blocking
-char32_t notcurses_getc(notcurses* nc, const struct timespec *ts, sigset_t* sigmask){
+// infp has already been set non-blocking
+char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
+                        sigset_t* sigmask, ncinput* ni){
   errno = 0;
-  char32_t r = handle_input(nc);
+  char32_t r = handle_input(nc, ni);
   if(r == (char32_t)-1){
     if(errno == EAGAIN || errno == EWOULDBLOCK){
       block_on_input(nc->ttyinfp, ts, sigmask);
-      return handle_input(nc);
+      return handle_input(nc, ni);
     }
     return r;
   }
@@ -301,6 +388,10 @@ int prep_special_keys(notcurses* nc){
       fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
       return -1;
     }
+  }
+  if(notcurses_add_input_escape(nc, CSIPREFIX, NCKEY_CSI)){
+    fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
+    return -1;
   }
   return 0;
 }

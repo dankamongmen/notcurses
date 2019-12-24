@@ -14,6 +14,7 @@ for more information, see [my wiki](https://nick-black.com/dankwiki/index.php/No
 
 * [Introduction](#introduction)
 * [Requirements](#requirements)
+  * [Building](#building)
 * [Use](#use)
   * [Input](#input)
   * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
@@ -105,6 +106,20 @@ that fine library.
 * From NCURSES: terminfo 6.1+
 * From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 
+### Building
+
+* Create a subdirectory, traditionally `build`. Enter the directory.
+* `cmake ..`. You might want to set e.g. `CMAKE_BUILD_TYPE`.
+* `make`
+* `make test`
+
+If you have unit test failures, *please* file a bug including the output of
+`./notcurses-tester > log 2>&1` (`make test` also runs `notcurses-tester`, but
+hides important output).
+
+To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
+be found on the `notcurses-demo(1)` man page.
+
 ## Use
 
 A program wishing to use notcurses will need to link it, ideally using the
@@ -158,6 +173,8 @@ typedef struct notcurses_options {
   // Notcurses typically prints version info in notcurses_init() and
   // performance info in notcurses_stop(). This inhibits that output.
   bool suppress_bannner;
+  // Notcurses does not clear the screen on startup unless thus requested to.
+  bool clear_screen_start;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
@@ -286,12 +303,6 @@ must be readable without delay for it to be interpreted as such.
 // returned to indicate that no input was available, but only by
 // notcurses_getc(). Otherwise (including on EOF) (char32_t)-1 is returned.
 
-// is this wide character a Supplementary Private Use Area-B codepoint?
-static inline bool
-wchar_supppuab_p(char32_t w){
-  return w >= 0x100000 && w <= 0x10fffd;
-}
-
 #define suppuabize(w) ((w) + 0x100000)
 
 // Special composed key defintions. These values are added to 0x100000.
@@ -319,6 +330,26 @@ wchar_supppuab_p(char32_t w){
 #define NCKEY_F08     suppuabize(28)
 #define NCKEY_F09     suppuabize(29)
 #define NCKEY_F10     suppuabize(30)
+#define NCKEY_F11     suppuabize(31)
+#define NCKEY_F12     suppuabize(32)
+#define NCKEY_F13     suppuabize(33)
+#define NCKEY_F14     suppuabize(34)
+#define NCKEY_F15     suppuabize(35)
+#define NCKEY_F16     suppuabize(36)
+#define NCKEY_F17     suppuabize(37)
+#define NCKEY_F18     suppuabize(38)
+#define NCKEY_F19     suppuabize(39)
+#define NCKEY_F20     suppuabize(40)
+#define NCKEY_F21     suppuabize(41)
+#define NCKEY_F22     suppuabize(42)
+#define NCKEY_F23     suppuabize(43)
+#define NCKEY_F24     suppuabize(44)
+#define NCKEY_F25     suppuabize(45)
+#define NCKEY_F26     suppuabize(46)
+#define NCKEY_F27     suppuabize(47)
+#define NCKEY_F28     suppuabize(48)
+#define NCKEY_F29     suppuabize(49)
+#define NCKEY_F30     suppuabize(50)
 // ... leave room for up to 100 function keys, egads
 #define NCKEY_ENTER   suppuabize(121)
 #define NCKEY_CLS     suppuabize(122) // "clear-screen or erase"
@@ -335,30 +366,101 @@ wchar_supppuab_p(char32_t w){
 #define NCKEY_EXIT    suppuabize(133)
 #define NCKEY_PRINT   suppuabize(134)
 #define NCKEY_REFRESH suppuabize(135)
+// Mouse events. We try to encode some details into the char32_t (i.e. which
+// button was pressed), but some is embedded in the ncinput event. The release
+// event is generic across buttons; callers must maintain state, if they care.
+#define NCKEY_BUTTON1  suppuabize(201)
+#define NCKEY_BUTTON2  suppuabize(202)
+#define NCKEY_BUTTON3  suppuabize(203)
+#define NCKEY_BUTTON4  suppuabize(204)
+#define NCKEY_BUTTON5  suppuabize(205)
+#define NCKEY_BUTTON6  suppuabize(206)
+#define NCKEY_BUTTON7  suppuabize(207)
+#define NCKEY_BUTTON8  suppuabize(208)
+#define NCKEY_BUTTON9  suppuabize(209)
+#define NCKEY_BUTTON10 suppuabize(210)
+#define NCKEY_BUTTON11 suppuabize(211)
+#define NCKEY_RELEASE  suppuabize(212)
+
+// Is this char32_t a Supplementary Private Use Area-B codepoint?
+static inline bool
+wchar_supppuab_p(char32_t w){
+  return w >= 0x100000 && w <= 0x10fffd;
+}
+
+// Is the event a synthesized mouse event?
+static inline bool
+nckey_mouse_p(char32_t r){
+  return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
+}
+
+// An input event. Cell coordinates are currently defined only for mouse events.
+typedef struct ncinput {
+  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
+  int y;           // y cell coordinate of event, -1 for undefined
+  int x;           // x cell coordinate of event, -1 for undefined
+  // FIXME modifiers (alt, etc?)
+} ncinput;
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
 // Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
-// be NULL.
-char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
+// be NULL. Returns 0 on a timeout. If an event is processed, the return value
+// is the 'id' field from that event. 'ni' may be NULL.
+API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
+                            sigset_t* sigmask, ncinput* ni);
 
+// 'ni' may be NULL if the caller is uninterested in event details. If no event
+// is ready, returns 0.
 static inline char32_t
-notcurses_getc_nblock(struct notcurses* n){
+notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
   sigset_t sigmask;
   sigfillset(&sigmask);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-  return notcurses_getc(n, &ts, &sigmask);
+  return notcurses_getc(n, &ts, &sigmask, ni);
 }
 
+// 'ni' may be NULL if the caller is uninterested in event details. Blocks
+// until an event is processed or a signal is received.
 static inline char32_t
-notcurses_getc_blocking(struct notcurses* n){
+notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   sigset_t sigmask;
   sigemptyset(&sigmask);
-  return notcurses_getc(n, NULL, &sigmask);
+  return notcurses_getc(n, NULL, &sigmask, ni);
 }
+
+// Enable the mouse in "button-event tracking" mode with focus detection and
+// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
+// is returned, and mouse events will be published to notcurses_getc().
+API int notcurses_mouse_enable(struct notcurses* n);
+
+// Disable mouse events. Any events in the input queue can still be delivered.
+API int notcurses_mouse_disable(struct notcurses* n);
 ```
+
+### Mice
+
+notcurses supports mice, though only through brokers such as X or
+[GPM](https://www.nico.schottelius.org/software/gpm/). It does not speak
+directly to hardware. Mouse events must be explicitly enabled with a
+successful call to `notcurses_mouse_enable()`, and can later be disabled.
+
+```c
+// Enable the mouse in "button-event tracking" mode with focus detection and
+// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
+// is returned, and mouse events will be published to notcurses_getc().
+int notcurses_mouse_enable(struct notcurses* n);
+
+// Disable mouse events. Any events in the input queue can still be delivered.
+int notcurses_mouse_disable(struct notcurses* n);
+```
+
+"Button-event tracking mode" implies the ability to detect mouse button
+presses, and also mouse movement while holding down a mouse button (i.e. to
+effect drag-and-drop). Mouse events are returned via the `NCKEY_MOUSE*` values,
+with coordinate information in the `ncinput` struct.
 
 ### Planes
 
@@ -2178,6 +2280,7 @@ up someday **FIXME**.
 * Linux: [ioctl_tty(2)](http://man7.org/linux/man-pages/man2/ioctl_tty.2.html)
 * Linux: [ioctl_console(2)](http://man7.org/linux/man-pages/man2/ioctl_console.2.html)
 * Portable: [terminfo(5)](http://man7.org/linux/man-pages/man5/terminfo.5.html)
+* Portable: [user_caps(5)](http://man7.org/linux/man-pages/man5/user_caps.5.html)
 
 ### Other TUI libraries of note
 

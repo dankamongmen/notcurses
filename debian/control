@@ -22,6 +22,7 @@ Description: Development files for notcurses
 Package: libnotcurses0
 Architecture: any
 Multi-Arch: same
+Recommends: ncurses-term (>= 6.1)
 Depends:${shlibs:Depends}, ${misc:Depends}
 Description: Shared libraries for notcurses TUI
  notcurses facilitates the creation of modern TUI programs,
@@ -31,7 +32,7 @@ Description: Shared libraries for notcurses TUI
 Package: notcurses-bin
 Architecture: any
 Multi-Arch: foreign
-Depends:${shlibs:Depends}, ${misc:Depends}
+Depends:${shlibs:Depends}, ${misc:Depends}, ncurses-term (>= 6.1)
 Description: Binaries from libnotcurses
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents

@@ -121,6 +121,8 @@ typedef struct notcurses_options {
   // Notcurses typically prints version info in notcurses_init() and performance
   // info in notcurses_stop(). This inhibits that output.
   bool suppress_bannner;
+  // Notcurses does not clear the screen on startup unless thus requested to.
+  bool clear_screen_start;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
@@ -158,12 +160,6 @@ API struct ncplane* notcurses_top(struct notcurses* n);
 // notcurses_getc(). Otherwise (including on EOF) (char32_t)-1 is returned.
 
 #define suppuabize(w) ((w) + 0x100000)
-
-// is this wide character a Supplementary Private Use Area-B codepoint?
-static inline bool
-wchar_supppuab_p(char32_t w){
-  return w >= 0x100000 && w <= 0x10fffd;
-}
 
 // Special composed key defintions. These values are added to 0x100000.
 #define NCKEY_INVALID suppuabize(0)
@@ -226,29 +222,78 @@ wchar_supppuab_p(char32_t w){
 #define NCKEY_EXIT    suppuabize(133)
 #define NCKEY_PRINT   suppuabize(134)
 #define NCKEY_REFRESH suppuabize(135)
+// Mouse events. We try to encode some details into the char32_t (i.e. which
+// button was pressed), but some is embedded in the ncinput event. The release
+// event is generic across buttons; callers must maintain state, if they care.
+#define NCKEY_BUTTON1  suppuabize(201)
+#define NCKEY_BUTTON2  suppuabize(202)
+#define NCKEY_BUTTON3  suppuabize(203)
+#define NCKEY_BUTTON4  suppuabize(204)
+#define NCKEY_BUTTON5  suppuabize(205)
+#define NCKEY_BUTTON6  suppuabize(206)
+#define NCKEY_BUTTON7  suppuabize(207)
+#define NCKEY_BUTTON8  suppuabize(208)
+#define NCKEY_BUTTON9  suppuabize(209)
+#define NCKEY_BUTTON10 suppuabize(210)
+#define NCKEY_BUTTON11 suppuabize(211)
+#define NCKEY_RELEASE  suppuabize(212)
+
+// Is this char32_t a Supplementary Private Use Area-B codepoint?
+static inline bool
+wchar_supppuab_p(char32_t w){
+  return w >= 0x100000 && w <= 0x10fffd;
+}
+
+// Is the event a synthesized mouse event?
+static inline bool
+nckey_mouse_p(char32_t r){
+  return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
+}
+
+// An input event. Cell coordinates are currently defined only for mouse events.
+typedef struct ncinput {
+  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
+  int y;           // y cell coordinate of event, -1 for undefined
+  int x;           // x cell coordinate of event, -1 for undefined
+  // FIXME modifiers (alt, etc?)
+} ncinput;
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
 // Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
-// be NULL.
-API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask);
+// be NULL. Returns 0 on a timeout. If an event is processed, the return value
+// is the 'id' field from that event. 'ni' may be NULL.
+API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
+                            sigset_t* sigmask, ncinput* ni);
 
+// 'ni' may be NULL if the caller is uninterested in event details. If no event
+// is ready, returns 0.
 static inline char32_t
-notcurses_getc_nblock(struct notcurses* n){
+notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
   sigset_t sigmask;
   sigfillset(&sigmask);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-  return notcurses_getc(n, &ts, &sigmask);
+  return notcurses_getc(n, &ts, &sigmask, ni);
 }
 
+// 'ni' may be NULL if the caller is uninterested in event details. Blocks
+// until an event is processed or a signal is received.
 static inline char32_t
-notcurses_getc_blocking(struct notcurses* n){
+notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   sigset_t sigmask;
   sigemptyset(&sigmask);
-  return notcurses_getc(n, NULL, &sigmask);
+  return notcurses_getc(n, NULL, &sigmask, ni);
 }
+
+// Enable the mouse in "button-event tracking" mode with focus detection and
+// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
+// is returned, and mouse events will be published to notcurses_getc().
+API int notcurses_mouse_enable(struct notcurses* n);
+
+// Disable mouse events. Any events in the input queue can still be delivered.
+API int notcurses_mouse_disable(struct notcurses* n);
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize

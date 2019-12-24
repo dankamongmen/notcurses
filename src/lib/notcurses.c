@@ -23,6 +23,8 @@
 #include "version.h"
 #include "egcpool.h"
 
+#define ESC "\x1b"
+
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
 static notcurses* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh
@@ -575,9 +577,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
   if(nocolor_stylemask > 0){
-    // FIXME this doesn't work if we're using sgr, which we are at the moment!
-    // ncv is defined in terms of curses style bits, which differ from ours
-    if(nocolor_stylemask & WA_STANDOUT){
+    if(nocolor_stylemask & WA_STANDOUT){ // ncv is composed of terminfo bits, not ours
       nc->standout = NULL;
     }
     if(nocolor_stylemask & WA_UNDERLINE){
@@ -599,6 +599,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
       nc->italics = NULL;
     }
   }
+  term_verify_seq(&nc->getm, "getm"); // get mouse events
   // Not all terminals support setting the fore/background independently
   term_verify_seq(&nc->setaf, "setaf");
   term_verify_seq(&nc->setab, "setab");
@@ -716,6 +717,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+  notcurses_mouse_disable(ret);
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
     fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
             ret->ttyfd, strerror(errno));
@@ -766,7 +768,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
-  // term_emit("clear", ret->clear, ret->ttyfp, false);
   ret->suppress_banner = opts->suppress_bannner;
   if(!opts->suppress_bannner){
     char prefixbuf[BPREFIXSTRLEN + 1];
@@ -796,6 +797,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       fprintf(ret->ttyfp, "Are you specifying a proper DirectColor TERM?\n");
     }
   }
+  if(opts->clear_screen_start){
+    term_emit("clear", ret->clearscr, ret->ttyfp, false);
+  }
   return ret;
 
 err:
@@ -823,6 +827,7 @@ int notcurses_stop(notcurses* nc){
     if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
       ret = -1;
     }
+    ret |= notcurses_mouse_disable(nc);
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     while(nc->top){
       ncplane* p = nc->top;
@@ -1546,4 +1551,21 @@ ncplane* notcurses_top(notcurses* n){
 
 ncplane* ncplane_below(ncplane* n){
   return n->z;
+}
+
+#define SET_BTN_EVENT_MOUSE   "1002"
+#define SET_FOCUS_EVENT_MOUSE "1004"
+#define SET_SGR_MODE_MOUSE    "1006"
+int notcurses_mouse_enable(notcurses* n){
+  return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
+                   SET_FOCUS_EVENT_MOUSE ";" SET_SGR_MODE_MOUSE "h",
+                   n->ttyfp, true);
+}
+
+// this seems to work (note difference in suffix, 'l' vs 'h'), but what about
+// the sequences 1000 etc?
+int notcurses_mouse_disable(notcurses* n){
+  return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
+                   SET_FOCUS_EVENT_MOUSE ";" SET_SGR_MODE_MOUSE "l",
+                   n->ttyfp, true);
 }
