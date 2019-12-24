@@ -409,7 +409,7 @@ typedef struct ncinput {
 // Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
 // be NULL. Returns 0 on a timeout. If an event is processed, the return value
 // is the 'id' field from that event. 'ni' may be NULL.
-API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
+char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
                             sigset_t* sigmask, ncinput* ni);
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
@@ -434,10 +434,10 @@ notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
 // Enable the mouse in "button-event tracking" mode with focus detection and
 // UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
 // is returned, and mouse events will be published to notcurses_getc().
-API int notcurses_mouse_enable(struct notcurses* n);
+int notcurses_mouse_enable(struct notcurses* n);
 
 // Disable mouse events. Any events in the input queue can still be delivered.
-API int notcurses_mouse_disable(struct notcurses* n);
+int notcurses_mouse_disable(struct notcurses* n);
 ```
 
 ### Mice
@@ -616,20 +616,32 @@ ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c){
   return ncplane_putc(n, c);
 }
 
-// Replace the cell underneath the cursor with the provided 7-bit char 'c',
-// using the specified 'attr' and 'channels' for styling. Advance the cursor by
-// 1. On success, returns 1. On failure, returns -1. This works whether the
-// underlying char is signed or unsigned.
-int ncplane_putsimple(struct ncplane* n, char c, uint32_t attr, uint64_t channels);
+// Replace the cell underneath the cursor with the provided 7-bit char 'c'.
+// Advance the cursor by 1. On success, returns 1. On failure, returns -1.
+// This works whether the underlying char is signed or unsigned.
+int ncplane_putsimple(struct ncplane* n, char c);
 
 // Call ncplane_simple() after successfully moving to y, x.
 static inline int
-ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c,
-                     uint32_t attr, uint64_t channels){
+ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  return ncplane_putsimple(n, c, attr, channels);
+  return ncplane_putsimple(n, c);
+}
+
+// Replace the cell underneath the cursor with the provided wide char 'w'.
+// Advance the cursor by the character's width as reported by wcwidth(). On
+// success, returns 1. On failure, returns -1.
+int ncplane_putwc(struct ncplane* n, wchar_t w);
+
+// Call ncplane_putwc() after successfully moving to y, x.
+static inline int
+ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
+  if(ncplane_cursor_move_yx(n, y, x)){
+    return -1;
+  }
+  return ncplane_putwc(n, w);
 }
 
 // Replace the cell underneath the cursor with the provided EGC, using the
@@ -638,7 +650,7 @@ ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c,
 // the number of columns the cursor was advanced. On failure, -1 is returned.
 // The number of bytes converted from gclust is written to 'sbytes' if non-NULL.
 int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
-                       uint64_t channels, int* sbytes);
+                   uint64_t channels, int* sbytes);
 
 // Call ncplane_putegc() after successfully moving to y, x.
 static inline int
@@ -682,25 +694,31 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
   return ncplane_putwegc(n, gclust, attr, channels, sbytes);
 }
 
+// Alignment within the ncplane. Left/right-justified, or centered.
+typedef enum {
+  NCALIGN_LEFT,
+  NCALIGN_CENTER,
+  NCALIGN_RIGHT,
+} ncalign_e;
+
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of cells
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of cells
 // which were written before the error.
-int ncplane_putstr(struct ncplane* n, const char* gclustarr);
+int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
 
 static inline int
-ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putstr(n, gclustarr);
+ncplane_putstr(struct ncplane* n, const char* gclustarr){
+  return ncplane_putstr_yx(n, -1, -1, gclustarr);
 }
+
+int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
-ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
+ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
   // maximum of six UTF8-encoded bytes per wchar_t
   const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
@@ -712,34 +730,69 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
     free(mbstr);
     return -1;
   }
-  int ret = ncplane_putstr(n, mbstr);
+  int ret = ncplane_putstr_yx(n, y, x, mbstr);
   free(mbstr);
   return ret;
 }
 
+int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                                const wchar_t* gclustarr);
+
 static inline int
-ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putwstr(n, gclustarr);
+ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
+  return ncplane_putwstr_yx(n, -1, -1, gclustarr);
 }
 
 // The ncplane equivalents of printf(3) and vprintf(3).
-int ncplane_printf(struct ncplane* n, const char* format, ...)
-  __attribute__ ((format (printf, 2, 3)));
+int ncplane_vprintf_aligned(struct ncplane* n, int y, ncalign_e align,
+                                const char* format, va_list ap);
 
-int ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
-  __attribute__ ((format (printf, 4, 5)));
-
-int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
+int ncplane_vprintf_yx(struct ncplane* n, int y, int x,
+                           const char* format, va_list ap);
 
 static inline int
-ncplane_vprintf_yx(struct ncplane* n, int y, int x, const char* format, va_list ap){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_vprintf(n, format, ap);
+ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
+  return ncplane_vprintf_yx(n, -1, -1, format, ap);
+}
+
+static inline int
+ncplane_printf(struct ncplane* n, const char* format, ...)
+  __attribute__ ((format (printf, 2, 3)));
+
+static inline int
+ncplane_printf(struct ncplane* n, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf(n, format, va);
+  va_end(va);
+  return ret;
+}
+
+static inline int
+ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
+                       const char* format, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
+static inline int
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf_yx(n, y, x, format, va);
+  va_end(va);
+  return ret;
+}
+
+static inline int
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
+static inline int
+ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf_aligned(n, y, align, format, va);
+  va_end(va);
+  return ret;
 }
 ```
 
@@ -910,8 +963,8 @@ all implemented in terms of the lower-level [Channels API](#channels).
 
 ```c
 // Get the current channels or attribute word for ncplane 'n'.
-API uint64_t ncplane_get_channels(const struct ncplane* n);
-API uint32_t ncplane_get_attr(const struct ncplane* n);
+uint64_t ncplane_get_channels(const struct ncplane* n);
+uint32_t ncplane_get_attr(const struct ncplane* n);
 
 // Extract the 32-bit working background channel from an ncplane.
 static inline unsigned
