@@ -7,15 +7,22 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <stdatomic.h>
 #include <notcurses.h>
 #include "demo.h"
 
 // ansi terminal definition-4-life
-static const int MIN_SUPPORTED_ROWS = 25;
+static const int MIN_SUPPORTED_ROWS = 24;
 static const int MIN_SUPPORTED_COLS = 80;
+
+static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
 static const char DEFAULT_DEMO[] = "ixemlubgswvpo";
 static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
+
+void interrupt_demo(void){
+  atomic_store(&interrupted, true);
+}
 
 char* find_data(const char* datum){
   char* path = malloc(strlen(datadir) + 1 + strlen(datum) + 1);
@@ -145,10 +152,15 @@ intro(struct notcurses* nc){
   if(ncplane_putstr_aligned(ncp, rows / 2, NCALIGN_CENTER, str) != (int)strlen(str)){
     return -1;
   }
-  ncplane_styles_off(ncp, CELL_STYLE_ITALIC | CELL_STYLE_BOLD);
+  ncplane_styles_off(ncp, CELL_STYLE_ITALIC);
+  ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
+  if(ncplane_putstr_aligned(ncp, rows - 3, NCALIGN_CENTER, "press q at any time to quit") < 0){
+    return -1;;
+  }
+  ncplane_styles_off(ncp, CELL_STYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  if(ncplane_putwstr_aligned(ncp, rows / 2 - 5, NCALIGN_CENTER, wstr) != (int)wcslen(wstr)){
-    // return -1;
+  if(ncplane_putwstr_aligned(ncp, rows / 2 - 5, NCALIGN_CENTER, wstr) < 0){
+    return -1;
   }
   if(notcurses_render(nc)){
     return -1;
@@ -179,6 +191,11 @@ ext_demos(struct notcurses* nc, const char* demos){
   uint64_t prevns = timespec_to_ns(&start);
   for(size_t i = 0 ; i < strlen(demos) ; ++i){
     results[i].selector = demos[i];
+  }
+  for(size_t i = 0 ; i < strlen(demos) ; ++i){
+    if(interrupted){
+      break;
+    }
     switch(demos[i]){
       case 'i': ret = intro(nc); break;
       case 'o': ret = outro(nc); break;
@@ -198,16 +215,16 @@ ext_demos(struct notcurses* nc, const char* demos){
         ret = -1;
         break;
     }
-    if(ret){
-      results[i].failed = true;
-      break;
-    }
     notcurses_stats(nc, &results[i].stats);
     notcurses_reset_stats(nc);
     clock_gettime(CLOCK_MONOTONIC, &now);
     uint64_t nowns = timespec_to_ns(&now);
     results[i].timens = nowns - prevns;
     prevns = nowns;
+    if(ret){
+      results[i].failed = true;
+      break;
+    }
   }
   return results;
 }
@@ -306,11 +323,8 @@ int main(int argc, char** argv){
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
+  bool failed = false;
   for(size_t i = 0 ; i < strlen(demos) ; ++i){
-    if(!results[i].selector){
-      printf(" Error running last demo. Did you need provide -p?\n");
-      break;
-    }
     char totalbuf[BPREFIXSTRLEN + 1];
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
@@ -322,11 +336,16 @@ int main(int argc, char** argv){
            BPREFIXSTRLEN, totalbuf,
            results[i].stats.render_ns / 1000,
            GIG / avg,
-           results[i].failed ? "***FAILED" : "");
-    // FIXME
+           results[i].failed ? "***FAILED" : results[i].stats.renders ? ""  : "***NOT RUN");
+    if(results[i].failed){
+      failed = true;
+    }
   }
   free(results);
-  return EXIT_SUCCESS;
+  if(failed){
+    fprintf(stderr, " Error running demo. Did you need provide -p?\n");
+  }
+  return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:
   notcurses_term_dim_yx(nc, &dimy, &dimx);

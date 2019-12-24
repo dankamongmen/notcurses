@@ -2285,7 +2285,7 @@ These are pretty obvious, implementation-wise.
   left-to-right. Likewise, ultra-wide glyphs will have interesting effects.
   ﷽!
 
-* The unit tests assume dimensions of at least 80x25. They might work in a
+* The unit tests assume dimensions of at least 80x24. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
 
 ### DirectColor detection
