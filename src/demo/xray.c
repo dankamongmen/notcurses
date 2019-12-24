@@ -22,8 +22,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
   int dimx, dimy;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
-  ncplane_putsimple_yx(n, 0, 0, 'a');
-  int y = dimy - sizeof(leg) / sizeof(*leg) - 3;
+  int y = dimy - sizeof(leg) / sizeof(*leg);
   int x = dimx - frameno;
   for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y){
     int r = startr;
@@ -71,7 +70,14 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
 }
 
 int xray_demo(struct notcurses* nc){
-  struct ncplane* n = notcurses_stdplane(nc);
+  int dimx, dimy;
+  struct ncplane* nstd = notcurses_stdplane(nc);
+  ncplane_dim_yx(nstd, &dimy, &dimx);
+  dimy -= sizeof(leg) / sizeof(*leg);
+  struct ncplane* n = notcurses_newplane(nc, dimy, dimx, 0, 0, NULL);
+  if(n == NULL){
+    return -1;
+  }
   char* path = find_data("notcursesI.avi");
   int averr;
   struct ncvisual* ncv = ncplane_visual_open(n, path, &averr);
@@ -83,5 +89,6 @@ int xray_demo(struct notcurses* nc){
   }
   ncvisual_stream(nc, ncv, &averr, perframecb);
   ncvisual_destroy(ncv);
+  ncplane_destroy(n);
   return 0;
 }

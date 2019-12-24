@@ -1586,7 +1586,7 @@ ncplane* ncplane_below(ncplane* n){
 #define SET_SGR_MODE_MOUSE    "1006"
 int notcurses_mouse_enable(notcurses* n){
   return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                   SET_FOCUS_EVENT_MOUSE ";" SET_SGR_MODE_MOUSE "h",
+                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
                    n->ttyfp, true);
 }
 
@@ -1594,6 +1594,6 @@ int notcurses_mouse_enable(notcurses* n){
 // the sequences 1000 etc?
 int notcurses_mouse_disable(notcurses* n){
   return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                   SET_FOCUS_EVENT_MOUSE ";" SET_SGR_MODE_MOUSE "l",
+                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
                    n->ttyfp, true);
 }
