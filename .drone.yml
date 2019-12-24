@@ -18,7 +18,7 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
-    - env LANG="en_US.UTF-8" make check
+    - env LANG="en_US.UTF-8" make test
 ---
 kind: pipeline
 type: docker
@@ -40,4 +40,4 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
-    - env LANG="en_US.UTF-8" make check
+    - env LANG="en_US.UTF-8" make test
