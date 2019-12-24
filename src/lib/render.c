@@ -42,9 +42,9 @@ int notcurses_refresh(notcurses* nc){
   int ret;
   pthread_mutex_lock(&nc->lock);
   pthread_cleanup_push(mutex_unlock, &nc->lock);
-  if(nc->mstream == NULL){
+  if(nc->rstate.mstream == NULL){
     ret = -1; // haven't rendered yet, and thus don't know what should be there
-  }else if(blocking_write(nc->ttyfd, nc->mstream, nc->mstrsize)){
+  }else if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
   }else{
     ret = 0;
@@ -440,8 +440,6 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
         }else{
           const char* damegc = egcpool_extended_gcluster(dampool, damcell);
           const char* srcegc = extended_gcluster(srcplane, srccell);
-          assert(strcmp(damegc, "三体"));
-          assert(strcmp(srcegc, "三体"));
           if(strcmp(damegc, srcegc) == 0){
             return 0; // EGC match
           }
@@ -457,22 +455,12 @@ static inline int
 notcurses_render_internal(notcurses* nc){
   int ret = 0;
   int y, x;
-  FILE* out = nc->mstreamfp;
+  FILE* out = nc->rstate.mstreamfp;
   fseeko(out, 0, SEEK_SET);
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   prep_optimized_palette(nc, out); // FIXME do what on failure?
-  uint32_t curattr = 0; // current attributes set (does not include colors)
-  // FIXME as of at least gcc 9.2.1, we get a false -Wmaybe-uninitialized below
-  // when using these without explicit initializations. for the life of me, i
-  // can't see any such path, and valgrind is cool with it, so what ya gonna do?
-  unsigned lastr = 0, lastg = 0, lastb = 0;
-  unsigned lastbr = 0, lastbg = 0, lastbb = 0;
-  // we can elide a color escape iff the color has not changed between the two
-  // cells and the current cell uses no defaults, or if both the current and
-  // the last used both defaults.
-  bool fgelidable = false, bgelidable = false, defaultelidable = false;
   // if this fails, struggle bravely on. we can live without a lastframe.
   reshape_shadow_fb(nc);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
@@ -525,11 +513,11 @@ notcurses_render_internal(notcurses* nc){
       // set the style. this can change the color back to the default; if it
       // does, we need update our elision possibilities.
       bool normalized;
-      term_setstyles(nc, out, &curattr, &c, &normalized);
+      term_setstyles(nc, out, &nc->rstate.curattr, &c, &normalized);
       if(normalized){
-        defaultelidable = true;
-        bgelidable = false;
-        fgelidable = false;
+        nc->rstate.defaultelidable = true;
+        nc->rstate.bgelidable = false;
+        nc->rstate.fgelidable = false;
       }
       // we allow these to be set distinctly, but terminfo only supports using
       // them both via the 'op' capability. unless we want to generate the 'op'
@@ -538,42 +526,42 @@ notcurses_render_internal(notcurses* nc){
 
       // we can elide the default set iff the previous used both defaults
       if(cell_fg_default_p(&c) || cell_bg_default_p(&c)){
-        if(!defaultelidable){
+        if(!nc->rstate.defaultelidable){
           ++nc->stats.defaultemissions;
           term_emit("op", nc->op, out, false);
         }else{
           ++nc->stats.defaultelisions;
         }
         // if either is not default, this will get turned off
-        defaultelidable = true;
-        fgelidable = false;
-        bgelidable = false;
+        nc->rstate.defaultelidable = true;
+        nc->rstate.fgelidable = false;
+        nc->rstate.bgelidable = false;
       }
 
       // we can elide the foreground set iff the previous used fg and matched
       if(!cell_fg_default_p(&c)){
         cell_get_fg_rgb(&c, &r, &g, &b);
-        if(fgelidable && lastr == r && lastg == g && lastb == b){
+        if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
           ++nc->stats.fgelisions;
         }else{
           term_fg_rgb8(nc, out, r, g, b);
           ++nc->stats.fgemissions;
-          fgelidable = true;
+          nc->rstate.fgelidable = true;
         }
-        lastr = r; lastg = g; lastb = b;
-        defaultelidable = false;
+        nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
+        nc->rstate.defaultelidable = false;
       }
       if(!cell_bg_default_p(&c)){
         cell_get_bg_rgb(&c, &br, &bg, &bb);
-        if(bgelidable && lastbr == br && lastbg == bg && lastbb == bb){
+        if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
           ++nc->stats.bgelisions;
         }else{
           term_bg_rgb8(nc, out, br, bg, bb);
           ++nc->stats.bgemissions;
-          bgelidable = true;
+          nc->rstate.bgelidable = true;
         }
-        lastbr = br; lastbg = bg; lastbb = bb;
-        defaultelidable = false;
+        nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
+        nc->rstate.defaultelidable = false;
       }
 // fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
       term_putc(out, p, &c);
@@ -584,15 +572,15 @@ notcurses_render_internal(notcurses* nc){
   }
   ret |= fflush(out);
   fflush(nc->ttyfp);
-  if(blocking_write(nc->ttyfd, nc->mstream, nc->mstrsize)){
+  if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
   }
 /*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
      fgelisions, fgemissions, bgelisions, bgemissions);*/
   if(nc->renderfp){
-    fprintf(nc->renderfp, "%s\n", nc->mstream);
+    fprintf(nc->renderfp, "%s\n", nc->rstate.mstream);
   }
-  return nc->mstrsize;
+  return nc->rstate.mstrsize;
 }
 
 int notcurses_render(notcurses* nc){

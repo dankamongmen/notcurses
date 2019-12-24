@@ -696,8 +696,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
-  ret->mstream = NULL;
-  ret->mstrsize = 0;
+  memset(&ret->rstate, 0, sizeof(ret->rstate));
   ret->lastframe = NULL;
   ret->lfdimy = 0;
   ret->lfdimx = 0;
@@ -761,7 +760,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
-  if((ret->mstreamfp = open_memstream(&ret->mstream, &ret->mstrsize)) == NULL){
+  if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     free_plane(ret->top);
     goto err;
   }
@@ -831,12 +830,12 @@ int notcurses_stop(notcurses* nc){
       nc->top = p->z;
       free_plane(p);
     }
-    if(nc->mstreamfp){
-      fclose(nc->mstreamfp);
+    if(nc->rstate.mstreamfp){
+      fclose(nc->rstate.mstreamfp);
     }
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
-    free(nc->mstream);
+    free(nc->rstate.mstream);
     input_free_esctrie(&nc->inputescapes);
     ret |= pthread_mutex_destroy(&nc->lock);
     stash_stats(nc);

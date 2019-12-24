@@ -77,10 +77,38 @@ typedef struct ncvisual {
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
 } ncvisual;
 
+// current presentation state of the terminal. it is carried across render
+// instances. initialize everything to 0 on a terminal reset / startup.
+typedef struct renderstate {
+  // we assemble the encoded output in a POSIX memstream, and keep it around
+  // between uses. this could be a problem if it ever tremendously spiked, but
+  // that's a highly unlikely situation.
+  char* mstream;  // buffer for rendering memstream, see open_memstream(3)
+  FILE* mstreamfp;// FILE* for rendering memstream
+  size_t mstrsize;// size of rendering memstream
+
+  uint32_t curattr;// current attributes set (does not include colors)
+  unsigned lastr;  // foreground rgb
+  unsigned lastg;
+  unsigned lastb;
+  unsigned lastbr; // background rgb
+  unsigned lastbg;
+  unsigned lastbb;
+  // we can elide a color escape iff the color has not changed between the two
+  // cells and the current cell uses no defaults, or if both the current and
+  // the last used both defaults.
+  bool fgelidable;
+  bool bgelidable;
+  bool defaultelidable;
+} renderstate;
+
 typedef struct notcurses {
   pthread_mutex_t lock;
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
+
+  // the style state of the terminal is carried across render runs
+  renderstate rstate;
 
   // we keep a copy of the last rendered frame. this facilitates O(1)
   // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).
@@ -88,13 +116,6 @@ typedef struct notcurses {
   int lfdimx;     // dimensions of lastframe, unchanged by screen resize
   int lfdimy;     // lfdimx/lfdimy are 0 until first render
   egcpool pool;   // duplicate EGCs into this pool
-
-  // we assemble the encoded output in a POSIX memstream, and keep it around
-  // between uses. this could be a problem if it ever tremendously spiked, but
-  // that's a highly unlikely situation.
-  char* mstream;  // buffer for rendering memstream, see open_memstream(3)
-  FILE* mstreamfp;// FILE* for rendering memstream
-  size_t mstrsize;// size of rendering memstream
 
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashstats; // cumulative stats, unaffected by notcurses_reset_stats()
