@@ -284,12 +284,12 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     return NULL;
   }
   // Press a for a new panel above the current, c for a new one below the
-  // current, and b for a new block at arbitrary placement. q quits.
+  // current, and b for a new block at arbitrary placement.
   ncplane_styles_on(w, CELL_STYLE_BOLD | CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(w, 58, 150, 221);
   ncplane_set_bg_default(w);
   ncplane_cursor_move_yx(w, 1, 1);
-  ncplane_printf(w, "a, b, c create tablets, DEL deletes, q quits.");
+  ncplane_printf(w, "a, b, c create tablets, DEL deletes.");
   ncplane_styles_off(w, CELL_STYLE_BOLD | CELL_STYLE_ITALIC);
   // FIXME clrtoeol();
   unsigned id = 0;
