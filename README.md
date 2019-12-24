@@ -288,12 +288,6 @@ must be readable without delay for it to be interpreted as such.
 // returned to indicate that no input was available, but only by
 // notcurses_getc(). Otherwise (including on EOF) (char32_t)-1 is returned.
 
-// is this wide character a Supplementary Private Use Area-B codepoint?
-static inline bool
-wchar_supppuab_p(char32_t w){
-  return w >= 0x100000 && w <= 0x10fffd;
-}
-
 #define suppuabize(w) ((w) + 0x100000)
 
 // Special composed key defintions. These values are added to 0x100000.
@@ -321,6 +315,26 @@ wchar_supppuab_p(char32_t w){
 #define NCKEY_F08     suppuabize(28)
 #define NCKEY_F09     suppuabize(29)
 #define NCKEY_F10     suppuabize(30)
+#define NCKEY_F11     suppuabize(31)
+#define NCKEY_F12     suppuabize(32)
+#define NCKEY_F13     suppuabize(33)
+#define NCKEY_F14     suppuabize(34)
+#define NCKEY_F15     suppuabize(35)
+#define NCKEY_F16     suppuabize(36)
+#define NCKEY_F17     suppuabize(37)
+#define NCKEY_F18     suppuabize(38)
+#define NCKEY_F19     suppuabize(39)
+#define NCKEY_F20     suppuabize(40)
+#define NCKEY_F21     suppuabize(41)
+#define NCKEY_F22     suppuabize(42)
+#define NCKEY_F23     suppuabize(43)
+#define NCKEY_F24     suppuabize(44)
+#define NCKEY_F25     suppuabize(45)
+#define NCKEY_F26     suppuabize(46)
+#define NCKEY_F27     suppuabize(47)
+#define NCKEY_F28     suppuabize(48)
+#define NCKEY_F29     suppuabize(49)
+#define NCKEY_F30     suppuabize(50)
 // ... leave room for up to 100 function keys, egads
 #define NCKEY_ENTER   suppuabize(121)
 #define NCKEY_CLS     suppuabize(122) // "clear-screen or erase"
@@ -338,10 +352,32 @@ wchar_supppuab_p(char32_t w){
 #define NCKEY_PRINT   suppuabize(134)
 #define NCKEY_REFRESH suppuabize(135)
 // Mouse events. We try to encode some details into the char32_t (i.e. which
-// button was pressed), but some is embedded in the ncinput event.
-#define NCKEY_MOUSEB1 suppuabize(201)
-#define NCKEY_MOUSEB2 suppuabize(202)
-#define NCKEY_MOUSEB3 suppuabize(203)
+// button was pressed), but some is embedded in the ncinput event. The release
+// event is generic across buttons; callers must maintain state, if they care.
+#define NCKEY_BUTTON1  suppuabize(201)
+#define NCKEY_BUTTON2  suppuabize(202)
+#define NCKEY_BUTTON3  suppuabize(203)
+#define NCKEY_BUTTON4  suppuabize(204)
+#define NCKEY_BUTTON5  suppuabize(205)
+#define NCKEY_BUTTON6  suppuabize(206)
+#define NCKEY_BUTTON7  suppuabize(207)
+#define NCKEY_BUTTON8  suppuabize(208)
+#define NCKEY_BUTTON9  suppuabize(209)
+#define NCKEY_BUTTON10 suppuabize(210)
+#define NCKEY_BUTTON11 suppuabize(211)
+#define NCKEY_RELEASE  suppuabize(212)
+
+// Is this char32_t a Supplementary Private Use Area-B codepoint?
+static inline bool
+wchar_supppuab_p(char32_t w){
+  return w >= 0x100000 && w <= 0x10fffd;
+}
+
+// Is the event a synthesized mouse event?
+static inline bool
+nckey_mouse_p(char32_t r){
+  return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
+}
 
 // An input event. Cell coordinates are currently defined only for mouse events.
 typedef struct ncinput {
