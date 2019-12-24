@@ -122,22 +122,22 @@ wchar_t* wchar_from_utf8(const char* s){
   return dst;
 }
 
-int ncplane_putstr_aligned(ncplane* n, int y, const char* s, ncalign_e atype){
+int ncplane_putstr_aligned(ncplane* n, int y, ncalign_e align, const char* s){
   wchar_t* w = wchar_from_utf8(s);
   if(w == NULL){
     return -1;
   }
-  int r = ncplane_putwstr_aligned(n, y, w, atype);
+  int r = ncplane_putwstr_aligned(n, y, align, w);
   free(w);
   return r;
 }
 
-int ncplane_putwstr_aligned(struct ncplane* n, int y, const wchar_t* gclustarr,
-                            ncalign_e atype){
+int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                            const wchar_t* gclustarr){
   int width = wcswidth(gclustarr, INT_MAX);
   int cols;
   int xpos;
-  switch(atype){
+  switch(align){
     case NCALIGN_LEFT:
       xpos = 0;
       break;
@@ -152,10 +152,7 @@ int ncplane_putwstr_aligned(struct ncplane* n, int y, const wchar_t* gclustarr,
     default:
       return -1;
   }
-  if(ncplane_cursor_move_yx(n, y, xpos)){
-    return -1;
-  }
-  return ncplane_putwstr(n, gclustarr);
+  return ncplane_putwstr_yx(n, y, xpos, gclustarr);
 }
 
 static const char NOTCURSES_VERSION[] =
@@ -213,6 +210,10 @@ int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
     return true;
   }
   return cell_duplicate(n, c, &n->fb[fbcellidx(n, y, x)]);
+}
+
+cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
+  return &n->fb[fbcellidx(n, y, x)];
 }
 
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
@@ -1007,14 +1008,24 @@ int ncplane_move_bottom(ncplane* n){
 }
 
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
-  if(x >= n->lenx || x < 0){
+  if(x >= n->lenx){
     return -1;
+  }else if(x < 0){
+    if(x < -1){
+      return -1;
+    }
+  }else{
+    n->x = x;
   }
-  if(y >= n->leny || y < 0){
+  if(y >= n->leny){
     return -1;
+  }else if(y < 0){
+    if(y < -1){
+      return -1;
+    }
+  }else{
+    n->y = y;
   }
-  n->x = x;
-  n->y = y;
   return 0;
 }
 
@@ -1147,7 +1158,7 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   return bytes;
 }
 
-int ncplane_putstr(ncplane* n, const char* gclusters){
+int ncplane_putstr_yx(ncplane* n, int y, int x, const char* gclusters){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
   while(*gclusters){
@@ -1155,7 +1166,8 @@ int ncplane_putstr(ncplane* n, const char* gclusters){
     cell c;
     memset(&c, 0, sizeof(c));
     int wcs = cell_load(n, &c, gclusters);
-    if(ncplane_putegc(n, gclusters, n->attrword, n->channels, &wcs) < 0){
+    int cols = ncplane_putegc_yx(n, y, x, gclusters, n->attrword, n->channels, &wcs);
+    if(cols < 0){
       if(wcs < 0){
         pthread_mutex_unlock(&n->nc->lock);
         return -ret;
@@ -1165,6 +1177,7 @@ int ncplane_putstr(ncplane* n, const char* gclusters){
     if(wcs == 0){
       break;
     }
+    ncplane_cursor_yx(n, &y, &x);
     gclusters += wcs;
     ret += wcs;
     if(ncplane_cursor_stuck(n)){
@@ -1219,29 +1232,48 @@ unsigned ncplane_styles(const ncplane* n){
   return ret;
 }
 
-int ncplane_printf(ncplane* n, const char* format, ...){
-  int ret;
-  va_list va;
-  va_start(va, format);
-  ret = ncplane_vprintf(n, format, va);
-  va_end(va);
+// i hate the big allocation and two copies here, but eh what you gonna do?
+// well, for one, we don't need the huge allocation FIXME
+char* ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
+  const size_t size = n->lenx + 1; // healthy estimate, can embiggen below
+  char* buf = malloc(size);
+  if(buf == NULL){
+    return NULL;
+  }
+  int ret = vsnprintf(buf, size, format, ap);
+  if(ret < 0){
+    free(buf);
+    return NULL;
+  }
+  if((size_t)ret >= size){
+    char* tmp = realloc(buf, ret + 1);
+    if(tmp == NULL){
+      free(buf);
+      return NULL;
+    }
+    buf = tmp;
+  }
+  return buf;
+}
+
+int ncplane_vprintf_yx(ncplane* n, int y, int x, const char* format, va_list ap){
+  char* r = ncplane_vprintf_prep(n, format, ap);
+  if(r == NULL){
+    return -1;
+  }
+  int ret = ncplane_putstr_yx(n, y, x, r);
+  free(r);
   return ret;
 }
 
-// i hate the big allocation and two copies here, but eh what you gonna do?
-// well, for one, we don't need the huge allocation FIXME
-int ncplane_vprintf(ncplane* n, const char* format, va_list ap){
-  // FIXME technically insufficient to cover area due to EGCs, lol
-  const size_t size = n->leny * n->lenx + 1;
-  char* buf = malloc(size);
-  if(buf == NULL){
+int ncplane_vprintf_aligned(ncplane* n, int y, ncalign_e align,
+                            const char* format, va_list ap){
+  char* r = ncplane_vprintf_prep(n, format, ap);
+  if(r == NULL){
     return -1;
   }
-  int ret = vsnprintf(buf, size, format, ap);
-  if(ret > 0){
-    ret = ncplane_putstr(n, buf); // FIXME handle short writes also!
-  }
-  free(buf);
+  int ret = ncplane_putstr_aligned(n, y, align, r);
+  free(r);
   return ret;
 }
 

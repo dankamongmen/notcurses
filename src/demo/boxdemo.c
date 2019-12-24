@@ -28,25 +28,25 @@ int box_demo(struct notcurses* nc){
   int ytargbase = (ylen - targy) / 2;
   ncplane_set_fg_rgb(n, 180, 40, 180);
   ncplane_set_bg_default(n);
-  if(ncplane_putstr_aligned(n, ytargbase++, "┏━━┳━━┓", NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┏━━┳━━┓") < 0){
     return -1;
   }
-  if(ncplane_putstr_aligned(n, ytargbase++, "┃┌─╂─┐┃", NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┃┌─╂─┐┃") < 0){
     return -1;
   }
-  if(ncplane_putstr_aligned(n, ytargbase++, "┃│╲╿╱│┃", NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┃│╲╿╱│┃") < 0){
     return -1;
   }
-  if(ncplane_putstr_aligned(n, ytargbase++, "┣┿╾╳╼┿┫", NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┣┿╾╳╼┿┫") < 0){
     return -1;
   }
-  if(ncplane_putstr_aligned(n, ytargbase++, "┃│╱╽╲│┃", NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┃│╱╽╲│┃") < 0){
     return -1;
   }
-  if(ncplane_putstr_aligned(n, ytargbase++, "┃└─╂─┘┃", NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┃└─╂─┘┃") < 0){
     return -1;
   }
-  if(ncplane_putstr_aligned(n, ytargbase++, "┗━━┻━━┛", NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┗━━┻━━┛") < 0){
     return -1;
   }
   do{

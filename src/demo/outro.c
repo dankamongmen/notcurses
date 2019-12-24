@@ -45,7 +45,8 @@ fadethread(void* vnc){
   struct ncplane* apiap = notcurses_newplane(nc, 1, cols, rows - 1, 0, NULL);
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
-  ncplane_putstr_aligned(apiap, 0, "Apia🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!", NCALIGN_CENTER);
+  ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
+      "Apia🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
   ncvisual_stream(nc, ncv, &averr, perframe);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
@@ -114,15 +115,15 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
     return NULL;
   }
   ncplane_styles_on(non, CELL_STYLE_BOLD);
-  if(ncplane_putstr_aligned(non, ++ybase, str0, NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(non, ++ybase, NCALIGN_CENTER, str0) < 0){
     return NULL;
   }
   ncplane_styles_off(non, CELL_STYLE_BOLD);
-  if(ncplane_putstr_aligned(non, ++ybase, str1, NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(non, ++ybase, NCALIGN_CENTER, str1) < 0){
     return NULL;
   }
   ncplane_styles_on(non, CELL_STYLE_ITALIC);
-  if(ncplane_putstr_aligned(non, ++ybase, str2, NCALIGN_CENTER) < 0){
+  if(ncplane_putstr_aligned(non, ++ybase, NCALIGN_CENTER, str2) < 0){
     return NULL;
   }
   ncplane_styles_off(non, CELL_STYLE_ITALIC);

@@ -180,10 +180,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     ncplane_set_fg_rgb(n, 0xad, 0xd8, 0xe6);
-    if(ncplane_cursor_move_yx(n, 1, (maxx - 26) / 2)){
-      return -1;
-    }
-    if(ncplane_printf(n, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
+    if(ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
     int xstart = (maxx - ((CHUNKSIZE * 2) + 3)) / 2;
@@ -201,10 +198,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf(n, "%*.*s", maxx, maxx, "") <= 0){
       return -1;
     }
-    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, (maxx - strlen(description)) / 2)){
-      return -1;
-    }
-    if(ncplane_printf(n, "%s", description) <= 0){
+    if(ncplane_printf_aligned(n, 6 + BLOCKSIZE / CHUNKSIZE, NCALIGN_CENTER, "%s", description) <= 0){
       return -1;
     }
     if(fade_block(nn, &subdelay)){ // destroys nn

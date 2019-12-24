@@ -319,39 +319,36 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
       const unsigned char* rgbbase_down = data + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
 /*fprintf(stderr, "[%04d/%04d] %p bpp: %d lsize: %d %02x %02x %02x %02x\n",
         y, x, rgbbase, bpp, linesize, rgbbase[0], rgbbase[1], rgbbase[2], rgbbase[3]);*/
-      cell c = CELL_TRIVIAL_INITIALIZER;
+      cell* c = ncplane_cell_ref_yx(ncv->ncp, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
+      c->channels = 0;
+      c->attrword = 0;
       if(!rgbbase_up[3] || !rgbbase_down[3]){
-        cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+        cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         if(!rgbbase_up[3] && !rgbbase_down[3]){
-          if(cell_load(ncv->ncp, &c, " ") <= 0){
+          if(cell_load(ncv->ncp, c, " ") <= 0){
             return -1;
           }
-          cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+          cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         }else if(!rgbbase_up[3]){ // down has the color
-          if(cell_load(ncv->ncp, &c, "\u2584") <= 0){ // lower half block
+          if(cell_load(ncv->ncp, c, "\u2584") <= 0){ // lower half block
             return -1;
           }
-          cell_set_fg_rgb(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          cell_set_fg_rgb(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
         }else{ // up has the color
-          if(cell_load(ncv->ncp, &c, "\u2580") <= 0){ // upper half block
+          if(cell_load(ncv->ncp, c, "\u2580") <= 0){ // upper half block
             return -1;
           }
-          cell_set_fg_rgb(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+          cell_set_fg_rgb(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
         }
       }else{
-        cell_set_fg_rgb(&c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
-        cell_set_bg_rgb(&c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
-        if(cell_load(ncv->ncp, &c, "\u2580") <= 0){ // upper half block
+        cell_set_fg_rgb(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+        cell_set_bg_rgb(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+        if(cell_load(ncv->ncp, c, "\u2580") <= 0){ // upper half block
           return -1;
         }
       }
-      if(ncplane_putc(ncv->ncp, &c) <= 0){
-        cell_release(ncv->ncp, &c);
-        return -1;
-      }
-      cell_release(ncv->ncp, &c);
     }
   }
   return 0;

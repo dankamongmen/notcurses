@@ -48,7 +48,7 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  if(ncplane_putstr_aligned(nstd, 0, "(a)dd (d)el (q)uit", NCALIGN_CENTER) <= 0){
+  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (q)uit") <= 0){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }

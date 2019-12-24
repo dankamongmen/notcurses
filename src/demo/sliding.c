@@ -111,7 +111,7 @@ fill_chunk(struct ncplane* n, int idx){
   if(maxx >= 4 && maxy >= 3){
     ncplane_set_fg_rgb(n, 0, 0, 0);
     ncplane_set_bg_rgb(n, r, g, b);
-    if(ncplane_putstr_aligned(n, (maxy - 1) / 2, buf, NCALIGN_CENTER) <= 0){
+    if(ncplane_putstr_aligned(n, (maxy - 1) / 2, NCALIGN_CENTER, buf) <= 0){
       return -1;
     }
   }

@@ -96,14 +96,14 @@ TEST_F(NcplaneTest, MoveStdPlaneDimensions) {
 TEST_F(NcplaneTest, MoveBeyondPlaneFails) {
   int cols, rows;
   notcurses_term_dim_yx(nc_, &rows, &cols);
-  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -1, 0));
-  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -1, -1));
-  EXPECT_NE(0, ncplane_cursor_move_yx(n_, 0, -1));
-  EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows - 1, -1));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -2, 0));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -2, -2));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, 0, -2));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows - 1, -2));
   EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows, 0));
   EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows + 1, 0));
   EXPECT_NE(0, ncplane_cursor_move_yx(n_, rows, cols));
-  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -1, cols - 1));
+  EXPECT_NE(0, ncplane_cursor_move_yx(n_, -2, cols - 1));
   EXPECT_NE(0, ncplane_cursor_move_yx(n_, 0, cols));
   EXPECT_NE(0, ncplane_cursor_move_yx(n_, 0, cols + 1));
 }

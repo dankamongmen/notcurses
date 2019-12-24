@@ -149,10 +149,11 @@ int main(void){
   ncplane_set_fg(n, 0);
   ncplane_set_bg(n, 0xbb64bb);
   ncplane_styles_on(n, CELL_STYLE_UNDERLINE);
-  if(ncplane_putstr_aligned(n, 0, "mash keys, yo. give that mouse some waggle! ctrl+d exits.", NCALIGN_CENTER) <= 0){
+  if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+  ncplane_styles_off(n, CELL_STYLE_UNDERLINE);
   ncplane_styles_set(n, 0);
   ncplane_set_bg_default(n);
   notcurses_render(nc);
@@ -189,7 +190,8 @@ int main(void){
           break;
         }
         if(nckey_mouse_p(r)){
-          if(ncplane_printf(n, " x: %d y: %d", ni.x, ni.y) < 0){
+          if(ncplane_printf_aligned(n, -1, NCALIGN_RIGHT, " x: %d y: %d",
+                                    ni.x, ni.y) < 0){
             break;
           }
         }

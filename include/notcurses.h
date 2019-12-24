@@ -556,14 +556,6 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
   return ncplane_putwegc(n, gclust, attr, channels, sbytes);
 }
 
-// Write a series of EGCs to the current location, using the current style.
-// They will be interpreted as a series of columns (according to the definition
-// of ncplane_putc()). Advances the cursor by some positive number of cells
-// (though not beyond the end of the plane); this number is returned on success.
-// On error, a non-positive number is returned, indicating the number of cells
-// which were written before the error.
-API int ncplane_putstr(struct ncplane* n, const char* gclustarr);
-
 // Alignment within the ncplane. Left/right-justified, or centered.
 typedef enum {
   NCALIGN_LEFT,
@@ -571,20 +563,25 @@ typedef enum {
   NCALIGN_RIGHT,
 } ncalign_e;
 
-API int ncplane_putstr_aligned(struct ncplane* n, int y, const char* s,
-                               ncalign_e atype);
+// Write a series of EGCs to the current location, using the current style.
+// They will be interpreted as a series of columns (according to the definition
+// of ncplane_putc()). Advances the cursor by some positive number of cells
+// (though not beyond the end of the plane); this number is returned on success.
+// On error, a non-positive number is returned, indicating the number of cells
+// which were written before the error.
+API int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
 
 static inline int
-ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putstr(n, gclustarr);
+ncplane_putstr(struct ncplane* n, const char* gclustarr){
+  return ncplane_putstr_yx(n, -1, -1, gclustarr);
 }
+
+API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                               const char* s);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
-ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
+ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
   // maximum of six UTF8-encoded bytes per wchar_t
   const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
@@ -596,37 +593,37 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
     free(mbstr);
     return -1;
   }
-  int ret = ncplane_putstr(n, mbstr);
+  int ret = ncplane_putstr_yx(n, y, x, mbstr);
   free(mbstr);
   return ret;
 }
 
-API int ncplane_putwstr_aligned(struct ncplane* n, int y,
-                                const wchar_t* gclustarr, ncalign_e atype);
+API int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                                const wchar_t* gclustarr);
 
 static inline int
-ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putwstr(n, gclustarr);
+ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
+  return ncplane_putwstr_yx(n, -1, -1, gclustarr);
 }
 
 // The ncplane equivalents of printf(3) and vprintf(3).
-API int ncplane_printf(struct ncplane* n, const char* format, ...)
+API int ncplane_vprintf_aligned(struct ncplane* n, int y, ncalign_e align,
+                                const char* format, va_list ap);
+
+API int ncplane_vprintf_yx(struct ncplane* n, int y, int x,
+                           const char* format, va_list ap);
+
+static inline int
+ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
+  return ncplane_vprintf_yx(n, -1, -1, format, ap);
+}
+
+static inline int
+ncplane_printf(struct ncplane* n, const char* format, ...)
   __attribute__ ((format (printf, 2, 3)));
 
 static inline int
-ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
-  __attribute__ ((format (printf, 4, 5)));
-
-API int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);
-
-static inline int
-ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
+ncplane_printf(struct ncplane* n, const char* format, ...){
   va_list va;
   va_start(va, format);
   int ret = ncplane_vprintf(n, format, va);
@@ -635,11 +632,30 @@ ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
 }
 
 static inline int
-ncplane_vprintf_yx(struct ncplane* n, int y, int x, const char* format, va_list ap){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_vprintf(n, format, ap);
+ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
+                       const char* format, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
+static inline int
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf_yx(n, y, x, format, va);
+  va_end(va);
+  return ret;
+}
+
+static inline int
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
+static inline int
+ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf_aligned(n, y, align, format, va);
+  va_end(va);
+  return ret;
 }
 
 // Draw horizontal or vertical lines using the specified cell, starting at the

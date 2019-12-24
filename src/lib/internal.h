@@ -228,6 +228,8 @@ extended_gcluster(const ncplane* n, const cell* c){
   return egcpool_extended_gcluster(&n->pool, c);
 }
 
+cell* ncplane_cell_ref_yx(ncplane* n, int y, int x);
+
 #define NANOSECS_IN_SEC 1000000000
 
 #ifdef __cplusplus

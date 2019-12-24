@@ -138,16 +138,16 @@ intro(struct notcurses* nc){
   if(ncplane_set_bg_rgb(ncp, 0, 40, 0)){
     return -1;
   }
-  if(ncplane_putstr_aligned(ncp, rows / 2 - 2, s1, NCALIGN_CENTER) != (int)strlen(s1)){
+  if(ncplane_putstr_aligned(ncp, rows / 2 - 2, NCALIGN_CENTER, s1) != (int)strlen(s1)){
     return -1;
   }
   ncplane_styles_on(ncp, CELL_STYLE_ITALIC | CELL_STYLE_BOLD);
-  if(ncplane_putstr_aligned(ncp, rows / 2, str, NCALIGN_CENTER) != (int)strlen(str)){
+  if(ncplane_putstr_aligned(ncp, rows / 2, NCALIGN_CENTER, str) != (int)strlen(str)){
     return -1;
   }
   ncplane_styles_off(ncp, CELL_STYLE_ITALIC | CELL_STYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  if(ncplane_putwstr_aligned(ncp, rows / 2 - 5, wstr, NCALIGN_CENTER) != (int)wcslen(wstr)){
+  if(ncplane_putwstr_aligned(ncp, rows / 2 - 5, NCALIGN_CENTER, wstr) != (int)wcslen(wstr)){
     // return -1;
   }
   if(notcurses_render(nc)){
