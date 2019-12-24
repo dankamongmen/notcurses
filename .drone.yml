@@ -22,11 +22,11 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: debian-stable
+name: ubuntu-bionic
 
 steps:
 - name: build
-  image: library/debian:stable
+  image: library/ubuntu:bionic
   commands:
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - apt-get update
