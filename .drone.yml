@@ -4,7 +4,7 @@ type: docker
 name: debian-unstable
 
 steps:
-- name: build
+- name: debian-build
   image: dankamongmen/unstable_builder:2019-12-18
   commands:
     - apt-get update
@@ -24,7 +24,7 @@ type: docker
 name: ubuntu-focal
 
 steps:
-- name: build
+- name: ubuntu-build
   image: library/ubuntu:focal
   commands:
     - apt-get update
