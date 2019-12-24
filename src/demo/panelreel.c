@@ -9,7 +9,7 @@
 #include <sys/eventfd.h>
 #include "demo.h"
 
-#define INITIAL_TABLET_COUNT 2
+#define INITIAL_TABLET_COUNT 4
 
 // FIXME ought just be an unordered_map
 typedef struct tabletctx {

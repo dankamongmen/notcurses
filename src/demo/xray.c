@@ -13,6 +13,8 @@ static const char* leg[] = {
 "                                                                                                                  888P                                          ",
 };
 
+static struct ncplane* killme; // FIXME
+
 static int
 perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
   static struct ncplane* n = NULL;
@@ -30,6 +32,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
     if(n == NULL){
       return -1;
     }
+    killme = n;
   }
   ncplane_dim_yx(n, &dimy, &dimx);
   y = 0;
@@ -106,5 +109,6 @@ int xray_demo(struct notcurses* nc){
   ncvisual_stream(nc, ncv, &averr, perframecb);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
+  ncplane_destroy(killme);
   return 0;
 }
