@@ -27,7 +27,6 @@ steps:
 - name: build
   image: library/ubuntu:focal
   commands:
-    - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - apt-get update
     - apt-get -y dist-upgrade
     - env DEBIAN_FRONTEND=noninteractive apt-get -y install devscripts git-buildpackage equivs locales
