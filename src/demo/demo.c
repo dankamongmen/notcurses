@@ -155,12 +155,21 @@ intro(struct notcurses* nc){
   ncplane_styles_off(ncp, CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
   if(ncplane_putstr_aligned(ncp, rows - 3, NCALIGN_CENTER, "press q at any time to quit") < 0){
-    return -1;;
+    return -1;
   }
   ncplane_styles_off(ncp, CELL_STYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
   if(ncplane_putwstr_aligned(ncp, rows / 2 - 5, NCALIGN_CENTER, wstr) < 0){
     return -1;
+  }
+  if(rows < 45){
+    ncplane_set_fg_rgb(ncp, 0xc0, 0, 0x80);
+    ncplane_set_bg_rgb(ncp, 0x20, 0x20, 0x20);
+    ncplane_styles_on(ncp, CELL_STYLE_BLINK); // heh FIXME replace with pulse
+    if(ncplane_putstr_aligned(ncp, 2, NCALIGN_CENTER, "demo runs best with at least 45 lines") < 0){
+      return -1;
+    }
+    ncplane_styles_off(ncp, CELL_STYLE_BLINK); // heh FIXME replace with pulse
   }
   if(notcurses_render(nc)){
     return -1;
