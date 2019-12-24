@@ -8,7 +8,7 @@ watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((u
   if((w = demo_getc_nblock(NULL)) != (wchar_t)-1){
     if(w == NCKEY_RESIZE){
       // FIXME resize that sumbitch
-    }else{
+    }else if(w){
       return 1;
     }
   }
