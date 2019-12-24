@@ -21,7 +21,7 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: ubuntu-bionic
+name: ubuntu-focal
 
 steps:
 - name: build
