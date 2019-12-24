@@ -14,6 +14,7 @@ for more information, see [my wiki](https://nick-black.com/dankwiki/index.php/No
 
 * [Introduction](#introduction)
 * [Requirements](#requirements)
+  * [Building](#building)
 * [Use](#use)
   * [Input](#input)
   * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
@@ -104,6 +105,20 @@ that fine library.
 * CMake 3.13.0+
 * From NCURSES: terminfo 6.1+
 * From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
+
+### Building
+
+* Create a subdirectory, traditionally `build`. Enter the directory.
+* `cmake ..`. You might want to set e.g. `CMAKE_BUILD_TYPE`.
+* `make`
+* `make test`
+
+If you have unit test failures, *please* file a bug including the output of
+`./notcurses-tester > log 2>&1` (`make test` also runs `notcurses-tester`, but
+hides important output).
+
+To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
+be found on the `notcurses-demo(1)` man page.
 
 ## Use
 
