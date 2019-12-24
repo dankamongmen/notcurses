@@ -33,6 +33,9 @@ int outro(struct notcurses* nc);
 int input_dispatcher(struct notcurses* nc);
 int stop_input(void);
 
+// if 'q' is pressed at any time during the demo, gracefully interrupt/exit
+void interrupt_demo(void);
+
 // demos should not call notcurses_getc() directly, as it's being monitored by
 // the toplevel event listener. instead, call this intermediate API. just
 // replace 'notcurses' with 'demo'.

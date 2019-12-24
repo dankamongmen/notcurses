@@ -67,6 +67,10 @@ ultramegaok_demo(void* vnc){
       continue;
     }
     if(nckey_mouse_p(ni.id)){
+      // FIXME
+    }else if(ni.id == 'q'){
+      interrupt_demo();
+      return NULL;
     }else{
       pass_along(&ni);
     }
