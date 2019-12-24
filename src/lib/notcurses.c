@@ -213,6 +213,10 @@ int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
   return cell_duplicate(n, c, &n->fb[fbcellidx(n, y, x)]);
 }
 
+cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
+  return &n->fb[fbcellidx(n, y, x)];
+}
+
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;
