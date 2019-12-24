@@ -37,7 +37,7 @@ TEST_F(LibavTest, LoadImage) {
   int averr;
   int dimy, dimx;
   ncplane_dim_yx(ncp_, &dimy, &dimx);
-  auto ncv = ncplane_visual_open(ncp_, "../tests/dsscaw-purp.png", &averr);
+  auto ncv = ncplane_visual_open(ncp_, "../data/dsscaw-purp.png", &averr);
   ASSERT_NE(nullptr, ncv);
   ASSERT_EQ(0, averr);
   auto frame = ncvisual_decode(ncv, &averr);
@@ -58,7 +58,7 @@ TEST_F(LibavTest, LoadVideo) {
   int averr;
   int dimy, dimx;
   ncplane_dim_yx(ncp_, &dimy, &dimx);
-  auto ncv = ncplane_visual_open(ncp_, "../tests/fm6.mkv", &averr);
+  auto ncv = ncplane_visual_open(ncp_, "../data/fm6.mkv", &averr);
   ASSERT_NE(nullptr, ncv);
   EXPECT_EQ(0, averr);
   auto frame = ncvisual_decode(ncv, &averr);
@@ -75,7 +75,7 @@ TEST_F(LibavTest, LoadVideoCreatePlane) {
   int averr;
   int dimy, dimx;
   ncplane_dim_yx(ncp_, &dimy, &dimx);
-  auto ncv = ncvisual_open_plane(nc_, "../tests/fm6.mkv", &averr, 0, 0, NCSCALE_STRETCH);
+  auto ncv = ncvisual_open_plane(nc_, "../data/fm6.mkv", &averr, 0, 0, NCSCALE_STRETCH);
   ASSERT_NE(nullptr, ncv);
   EXPECT_EQ(0, averr);
   auto frame = ncvisual_decode(ncv, &averr);
