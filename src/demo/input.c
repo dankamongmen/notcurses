@@ -68,10 +68,12 @@ ultramegaok_demo(void* vnc){
     }
     if(nckey_mouse_p(ni.id)){
       // FIXME
-    }else if(ni.id == 'q'){
-      interrupt_demo();
-      return NULL;
     }else{
+      if(ni.id == 'q'){
+        interrupt_demo();
+      }
+      // go ahead and pass through the keyboard press, even if it was a 'q'
+      // (this might cause the demo to exit immediately, as is desired)
       pass_along(&ni);
     }
   }
