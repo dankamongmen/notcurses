@@ -8,7 +8,6 @@ steps:
   image: dankamongmen/unstable_builder:2019-12-18
   commands:
     - apt-get update
-    - apt-get -y remove man-db
     - apt-get -y dist-upgrade
     - apt-get -y install devscripts git-buildpackage locales
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
@@ -26,13 +25,12 @@ name: ubuntu-bionic
 
 steps:
 - name: build
-  image: library/ubuntu:bionic
+  image: library/ubuntu:focal
   commands:
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - apt-get update
-    - apt-get -y remove man-db
     - apt-get -y dist-upgrade
-    - apt-get -y install devscripts git-buildpackage locales
+    - env DEBIAN_FRONTEND=noninteractive apt-get -y install devscripts git-buildpackage equivs locales
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - locale-gen
     - mk-build-deps --install -t'apt-get -y'
@@ -40,4 +38,4 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
-    - env LANG="en_US.UTF-8" make test
+---
