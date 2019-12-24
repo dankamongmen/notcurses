@@ -294,15 +294,24 @@ handle_input(notcurses* nc, ncinput* ni){
   return handle_getc(nc, r, ni);
 }
 
+static char32_t
+handle_ncinput(notcurses* nc, ncinput* ni){
+  char32_t r = handle_input(nc, ni);
+  if(ni){
+    ni->id = r;
+  }
+  return r;
+}
+
 // infp has already been set non-blocking
 char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
                         sigset_t* sigmask, ncinput* ni){
   errno = 0;
-  char32_t r = handle_input(nc, ni);
+  char32_t r = handle_ncinput(nc, ni);
   if(r == (char32_t)-1){
     if(errno == EAGAIN || errno == EWOULDBLOCK){
       block_on_input(nc->ttyinfp, ts, sigmask);
-      return handle_input(nc, ni);
+      return handle_ncinput(nc, ni);
     }
     return r;
   }

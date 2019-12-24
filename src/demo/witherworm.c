@@ -673,7 +673,7 @@ int witherworm_demo(struct notcurses* nc){
         struct timespec left, cur;
         clock_gettime(CLOCK_MONOTONIC, &cur);
         timespec_subtract(&left, &screenend, &cur);
-        key = notcurses_getc(nc, &left, NULL, NULL);
+        key = demo_getc(&left, NULL);
         clock_gettime(CLOCK_MONOTONIC, &cur);
         int64_t ns = timespec_subtract_ns(&cur, &screenend);
         if(ns > 0){

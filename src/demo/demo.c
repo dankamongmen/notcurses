@@ -282,6 +282,12 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&nopts, stdout)) == NULL){
     return EXIT_FAILURE;
   }
+  if(notcurses_mouse_enable(nc)){
+    goto err;
+  }
+  if(input_dispatcher(nc)){
+    goto err;
+  }
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){

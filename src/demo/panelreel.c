@@ -231,7 +231,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
       return (wchar_t)-1;
     }else{
       if(fds[0].revents & POLLIN){
-        key = notcurses_getc_blocking(nc, NULL);
+        key = demo_getc_blocking(NULL);
         if(key < 0){
           return -1;
         }
