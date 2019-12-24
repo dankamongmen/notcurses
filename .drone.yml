@@ -14,8 +14,9 @@ steps:
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - locale-gen
     - mk-build-deps --install -t'apt-get -y'
-    - autoreconf -fis
-    - ./configure
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
     - env LANG="en_US.UTF-8" make check
 ---
@@ -35,7 +36,8 @@ steps:
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - locale-gen
     - mk-build-deps --install -t'apt-get -y'
-    - autoreconf -fis
-    - ./configure
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
     - env LANG="en_US.UTF-8" make check
