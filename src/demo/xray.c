@@ -15,14 +15,31 @@ static const char* leg[] = {
 
 static int
 perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
+  static struct ncplane* n = NULL;
   static int startr = 0x80;
   static int startg = 0xff;
   static int startb = 0x80;
   static int frameno = 0;
-  int dimx, dimy;
-  struct ncplane* n = notcurses_stdplane(nc);
+  int dimx, dimy, y;
+  if(n == NULL){
+    struct ncplane* nstd = notcurses_stdplane(nc);
+    ncplane_dim_yx(nstd, &dimy, &dimx);
+    y = dimy - sizeof(leg) / sizeof(*leg);
+    // FIXME how will this plane be destroyed?
+    n = notcurses_newplane(nc, sizeof(leg) / sizeof(*leg), dimx, y, 0, NULL);
+    if(n == NULL){
+      return -1;
+    }
+  }
   ncplane_dim_yx(n, &dimy, &dimx);
-  int y = dimy - sizeof(leg) / sizeof(*leg);
+  y = 0;
+  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_default(n, &c);
+  ncplane_set_fg_alpha(n, CELL_ALPHA_BLEND);
+  ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
+  // fg/bg rgbs are set within loop
   int x = dimx - frameno;
   for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y){
     int r = startr;
@@ -73,7 +90,6 @@ int xray_demo(struct notcurses* nc){
   int dimx, dimy;
   struct ncplane* nstd = notcurses_stdplane(nc);
   ncplane_dim_yx(nstd, &dimy, &dimx);
-  dimy -= sizeof(leg) / sizeof(*leg);
   struct ncplane* n = notcurses_newplane(nc, dimy, dimx, 0, 0, NULL);
   if(n == NULL){
     return -1;
