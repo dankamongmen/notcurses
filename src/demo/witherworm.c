@@ -172,9 +172,9 @@ init_snake(snake* s, int dimy, int dimx){
   for(size_t i = 0 ; i < sizeof(s->lightup) / sizeof(*s->lightup) ; ++i){
     cell_init(&s->lightup[i]);
   }
-  // start it in the lower center of the screen
-  s->x = (random() % (dimx / 2)) + (dimx / 4);
-  s->y = (random() % (dimy * 2 / 3)) + (dimy / 3);
+  // start them in the lower 3/4 of the screen
+  s->y = (random() % (dimy * 3 / 4)) + (dimy / 4);
+  s->x = random() % dimx;
   s->channels = 0;
   channels_set_fg_rgb(&s->channels, 255, 255, 255);
   channels_set_bg_rgb(&s->channels, 20, 20, 20);
