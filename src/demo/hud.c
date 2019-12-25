@@ -13,13 +13,13 @@ static int hud_grab_y = -1;
 static int hud_pos_x;
 static int hud_pos_y;
 
-static const int hud_rows = 5;
+static const int hud_rows = 3;
 static const int hud_cols = 54;
 
 static int
 hud_standard_bg(struct ncplane* n){
   cell c = CELL_SIMPLE_INITIALIZER(' ');
-  cell_set_bg_rgb(&c, 0, 0x20, 0);
+  cell_set_bg_rgb(&c, 0xc0, 0xf0, 0xc0);
   ncplane_set_default(n, &c);
   cell_release(n, &c);
   return 0;
