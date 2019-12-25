@@ -19,7 +19,7 @@ static int democount;
 static demoresult* results;
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
-static const char DEFAULT_DEMO[] = "ixetlubgswvpo";
+static const char DEFAULT_DEMO[] = "ixetlucbgswvpo";
 static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
 void interrupt_demo(void){
@@ -77,6 +77,7 @@ usage(const char* exe, int status){
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
   fprintf(out, "all demos are run if no specification is provided\n");
   fprintf(out, " b: run box\n");
+  fprintf(out, " c: run chunli\n");
   fprintf(out, " e: run eagles\n");
   fprintf(out, " g: run grid\n");
   fprintf(out, " i: run intro\n");
@@ -253,6 +254,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'u': ret = unicodeblocks_demo(nc); break;
       case 't': ret = trans_demo(nc); break;
       case 'b': ret = box_demo(nc); break;
+      case 'c': ret = chunli_demo(nc); break;
       case 'g': ret = grid_demo(nc); break;
       case 'l': ret = luigi_demo(nc); break;
       case 'v': ret = view_demo(nc); break;

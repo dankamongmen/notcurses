@@ -20,6 +20,7 @@ int unicodeblocks_demo(struct notcurses* nc);
 int witherworm_demo(struct notcurses* nc);
 int box_demo(struct notcurses* nc);
 int trans_demo(struct notcurses* nc);
+int chunli_demo(struct notcurses* nc);
 int grid_demo(struct notcurses* nc);
 int sliding_puzzle_demo(struct notcurses* nc);
 int view_demo(struct notcurses* nc);
