@@ -13,8 +13,8 @@ static int hud_grab_y = -1;
 static int hud_pos_x;
 static int hud_pos_y;
 
-static const int hud_rows = 3;
-static const int hud_cols = 54;
+static const int HUD_ROWS = 3;
+static const int HUD_COLS = 54;
 
 static int
 hud_standard_bg(struct ncplane* n){
@@ -37,17 +37,17 @@ hud_grabbed_bg(struct ncplane* n){
 struct ncplane* hud_create(struct notcurses* nc){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  int xoffset = (dimx - hud_cols) / 2;
-  //int yoffset = (dimy - hud_rows);
+  int xoffset = (dimx - HUD_COLS) / 2;
+  //int yoffset = (dimy - HUD_ROWS);
   int yoffset = 0;
-  struct ncplane* n = notcurses_newplane(nc, hud_rows, hud_cols, yoffset, xoffset, NULL);
+  struct ncplane* n = notcurses_newplane(nc, HUD_ROWS, HUD_COLS, yoffset, xoffset, NULL);
   if(n == NULL){
     return NULL;
   }
   hud_standard_bg(n);
   uint64_t channels;
   channels_set_fg(&channels, 0xffffff);
-  if(ncplane_putegc_yx(n, 0, hud_cols - 1, "\u274e", 0, channels, NULL) < 0){
+  if(ncplane_putegc_yx(n, 0, HUD_COLS - 1, "\u274e", 0, channels, NULL) < 0){
     ncplane_destroy(n);
     return NULL;
   }
@@ -77,6 +77,9 @@ int hud_grab(int y, int x){
     hud_grab_x = x;
     hud_grab_y = y;
     ncplane_yx(hud, &hud_pos_y, &hud_pos_x);
+    if(x == hud_pos_x + HUD_COLS - 1 && y == hud_pos_y){
+      return hud_destroy(hud);
+    }
     ret = hud_grabbed_bg(hud);
   }
   return ret;
