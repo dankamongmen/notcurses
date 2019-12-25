@@ -104,7 +104,7 @@ timespec_mul(const struct timespec* ts, unsigned multiplier, struct timespec* pr
 /*----------------------------------HUD----------------------------------*/
 extern struct ncplane* hud;
 struct ncplane* hud_create(struct notcurses* nc);
-int hud_destroy(struct ncplane* hud);
+int hud_destroy(void);
 
 // let the HUD know about an upcoming demo
 int hud_schedule(const char* demoname);
@@ -129,7 +129,7 @@ typedef struct demoresult {
 } demoresult;
 
 // let the HUD know that a demo has completed, reporting the stats
-int hud_completion_notify(int idx, const demoresult* result);
+int hud_completion_notify(const demoresult* result);
 
 // HUD retrieves results on demand from core
 const demoresult* demoresult_lookup(int idx);

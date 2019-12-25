@@ -273,7 +273,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       results[i].failed = true;
       break;
     }
-    hud_completion_notify(i, &results[i]);
+    hud_completion_notify(&results[i]);
   }
   return results;
 }
@@ -375,10 +375,10 @@ int main(int argc, char** argv){
   }else{
     nanosleep(&demodelay, NULL);
   }
-  if(ext_demos(nc, demos)){
+  if(ext_demos(nc, demos) == NULL){
     goto err;
   }
-  if(results == NULL){
+  if(hud_destroy()){
     goto err;
   }
   if(notcurses_stop(nc)){
