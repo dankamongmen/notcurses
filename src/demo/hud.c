@@ -14,14 +14,17 @@ static int hud_pos_x;
 static int hud_pos_y;
 
 static const int HUD_ROWS = 3;
-static const int HUD_COLS = 54;
+static const int HUD_COLS = 30;
 
 typedef struct elem {
   char* name;
+  uint64_t startns;
+  uint64_t totalns;
   struct elem* next;
 } elem;
 
 static struct elem* elems;
+static struct elem* running;
 // which line we're writing the next entry to. once this becomes -1, we stop decrementing
 // it, and throw away the oldest entry each time.
 static int writeline = HUD_ROWS - 1;
@@ -107,10 +110,11 @@ int hud_release(void){
   return hud_standard_bg(hud);
 }
 
+// currently running demo is always at y = HUD_ROWS-1
 int hud_completion_notify(int idx, const demoresult* result){
-  (void)idx;
-  (void)result;
-  // FIXME
+  if(running){
+    running->totalns = result->timens;
+  }
   return 0;
 }
 
@@ -141,10 +145,11 @@ int hud_schedule(const char* demoname){
     cure = malloc(sizeof(*cure));
   }
   elem* e = elems;
-  int plen = HUD_COLS - 2;
+  int nslen = 14;
+  int plen = HUD_COLS - 4 - nslen;
   while(e){
     hook = &e->next;
-    if(ncplane_printf_yx(hud, line, 0, "%*.*s", plen, plen, e->name) < 0){
+    if(ncplane_printf_yx(hud, line, 0, "%*luns %*.*s", nslen, e->totalns, plen, plen, e->name) < 0){
       return -1;
     }
     ++line;
@@ -153,7 +158,12 @@ int hud_schedule(const char* demoname){
   *hook = cure;
   cure->name = strdup(demoname);
   cure->next = NULL;
-  if(ncplane_printf_yx(hud, line, 0, "%*.*s", plen, plen, cure->name) < 0){
+  cure->totalns = 0;
+  struct timespec cur;
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  cure->startns = timespec_to_ns(&cur);
+  running = cure;
+  if(ncplane_printf_yx(hud, line, 0, "%*luns %-*.*s", nslen, cure->totalns, plen, plen, cure->name) < 0){
     return -1;
   }
   return 0;
@@ -161,7 +171,16 @@ int hud_schedule(const char* demoname){
 
 int demo_render(struct notcurses* nc){
   if(hud){
+    int nslen = 14;
+    int plen = HUD_COLS - 4 - nslen;
     ncplane_move_top(hud);
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    if(ncplane_printf_yx(hud, HUD_ROWS - 1, 0, "%*luns %-*.*s", nslen,
+                         timespec_to_ns(&ts) - running->startns,
+                         plen, plen, running->name) < 0){
+      return -1;
+    }
   }
   return notcurses_render(nc);
 }
