@@ -36,7 +36,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
   struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 50000000, };
   struct timespec cur;
   do{
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       return -1;
     }
     switch(*direction){
@@ -113,6 +113,7 @@ slidepanel(struct notcurses* nc){
   // underneath to be seen. Our background remains opaque.
   cell_init(&c);
   cell_load_simple(n, &c, '\0');
+  cell_set_fg(&c, 0);
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
   ncplane_set_default(n, &c);
