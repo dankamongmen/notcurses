@@ -244,7 +244,7 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
     int truey, truex;
     ncplane_dim_yx(fp, &truey, &truex);
     if(truey != leny){
-// fprintf(stderr, "RESIZE TRUEY: %d BEGY: %d LENY: %d\n", truey, begy, leny);
+//fprintf(stderr, "RESIZE TRUEY: %d BEGY: %d LENY: %d\n", truey, begy, leny);
       if(wresize(fp, leny, truex)){
         return -1;
       }
@@ -367,7 +367,7 @@ draw_focused_tablet(const panelreel* pr){
     }
   }
 //fprintf(stderr, "PR dims: %d/%d + %d/%d fulcrum: %d\n", pbegy, pbegx, pleny, plenx, fulcrum);
-  panelreel_draw_tablet(pr, pr->tablets, fulcrum, 0);
+  panelreel_draw_tablet(pr, pr->tablets, fulcrum, 0 /* pr->last_traveled_direction*/);
   return 0;
 }
 
@@ -388,6 +388,7 @@ draw_following_tablets(const panelreel* pr, const tablet* otherend){
 //fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiery, wmaxy + 2);
     working = working->next;
     if(working == otherend && otherend->p){
+//fprintf(stderr, "BREAKOUT ON OTHEREND %p:%p\n", working, working->p);
       break;
     }
     panelreel_draw_tablet(pr, working, frontiery, 1);
@@ -536,11 +537,12 @@ int panelreel_redraw(panelreel* pr){
   if(pr->last_traveled_direction >= 0){
     otherend = draw_previous_tablets(pr, otherend);
     otherend = draw_following_tablets(pr, otherend);
+    otherend = draw_previous_tablets(pr, otherend);
   }else{
     otherend = draw_following_tablets(pr, otherend);
     otherend = draw_previous_tablets(pr, otherend);
+    otherend = draw_following_tablets(pr, otherend);
   }
-  // FIXME move them up to plug any holes in original direction?
 //fprintf(stderr, "DONE ARRANGING\n");
   return 0;
 }
