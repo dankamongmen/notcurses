@@ -46,7 +46,7 @@ fadethread(void* vnc){
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
-      "Apia🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
+      "Apia 🡺  Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
   ncvisual_stream(nc, ncv, &averr, perframe);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
