@@ -16,10 +16,21 @@ static int hud_pos_y;
 static const int HUD_ROWS = 3;
 static const int HUD_COLS = 54;
 
+typedef struct elem {
+  char* name;
+  struct elem* next;
+} elem;
+
+static struct elem* elems;
+// which line we're writing the next entry to. once this becomes -1, we stop decrementing
+// it, and throw away the oldest entry each time.
+static int writeline = HUD_ROWS - 1;
+
 static int
 hud_standard_bg(struct ncplane* n){
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_bg_rgb(&c, 0xc0, 0xf0, 0xc0);
+  cell_set_bg_alpha(&c, CELL_ALPHA_BLEND);
   ncplane_set_default(n, &c);
   cell_release(n, &c);
   return 0;
@@ -47,7 +58,9 @@ struct ncplane* hud_create(struct notcurses* nc){
   hud_standard_bg(n);
   uint64_t channels;
   channels_set_fg(&channels, 0xffffff);
-  if(ncplane_putegc_yx(n, 0, HUD_COLS - 1, "\u274e", 0, channels, NULL) < 0){
+  channels_set_fg(&channels, 0xffffff);
+  ncplane_set_bg(n, 0x409040);
+  if(ncplane_putegc_yx(n, 0, HUD_COLS - 1, "\u2612", 0, channels, NULL) < 0){
     ncplane_destroy(n);
     return NULL;
   }
@@ -95,13 +108,54 @@ int hud_release(void){
 }
 
 int hud_completion_notify(int idx, const demoresult* result){
+  (void)idx;
+  (void)result;
   // FIXME
   return 0;
 }
 
 // inform the HUD of an upcoming demo
 int hud_schedule(const char* demoname){
-  // FIXME
+  if(hud == NULL){
+    return -1;
+  }
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  ncplane_default(hud, &c);
+  ncplane_set_bg(hud, cell_get_bg(&c));
+  ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
+  ncplane_set_fg(hud, 0);
+  elem* cure;
+  elem** hook = &elems;
+  int line = writeline;
+  // once we pass through this conditional:
+  //  * cure is ready to write to, and print at y = HUD_ROWS - 1
+  //  * hooks is ready to enqueue cure to
+  //  * reused entries have been printed, if any exist
+  if(line == -1){
+    cure = elems;
+    elems = cure->next;
+    line = 0;
+    free(cure->name);
+  }else{
+    --writeline;
+    cure = malloc(sizeof(*cure));
+  }
+  elem* e = elems;
+  int plen = HUD_COLS - 2;
+  while(e){
+    hook = &e->next;
+    if(ncplane_printf_yx(hud, line, 0, "%*.*s", plen, plen, e->name) < 0){
+      return -1;
+    }
+    ++line;
+    e = e->next;
+  }
+  *hook = cure;
+  cure->name = strdup(demoname);
+  cure->next = NULL;
+  if(ncplane_printf_yx(hud, line, 0, "%*.*s", plen, plen, cure->name) < 0){
+    return -1;
+  }
   return 0;
 }
 

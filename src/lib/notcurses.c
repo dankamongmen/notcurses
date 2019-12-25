@@ -1509,21 +1509,26 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
 }
 
 int ncplane_move_yx(ncplane* n, int y, int x){
+  pthread_mutex_lock(&n->nc->lock);
   if(n == n->nc->stdscr){
+    pthread_mutex_unlock(&n->nc->lock);
     return -1;
   }
   n->absy = y;
   n->absx = x;
+  pthread_mutex_unlock(&n->nc->lock);
   return 0;
 }
 
 void ncplane_yx(const ncplane* n, int* y, int* x){
+  pthread_mutex_lock(&n->nc->lock);
   if(y){
     *y = n->absy;
   }
   if(x){
     *x = n->absx;
   }
+  pthread_mutex_unlock(&n->nc->lock);
 }
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the

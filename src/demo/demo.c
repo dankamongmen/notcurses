@@ -66,8 +66,9 @@ struct timespec demodelay = {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -h ] [ -k ] [ -d mult ] [ -c ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -h ] [ -H ] [ -k ] [ -d mult ] [ -c ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
+  fprintf(out, " -H: deploy the HUD\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
   fprintf(out, " -d: delay multiplier (float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
@@ -189,6 +190,35 @@ intro(struct notcurses* nc){
   return 0;
 }
 
+static const char* demonames[26] = {
+  "",
+  "box",
+  "chunli",
+  "",
+  "eagle",
+  "",
+  "grid",
+  "",
+  "intro",
+  "",
+  "",
+  "luigi",
+  "maxcolor",
+  "",
+  "outro",
+  "",
+  "",
+  "",
+  "sliders",
+  "",
+  "uniblock",
+  "view",
+  "witherworms",
+  "xray",
+  "",
+  ""
+};
+
 static demoresult*
 ext_demos(struct notcurses* nc, const char* demos){
   int ret = 0;
@@ -208,6 +238,12 @@ ext_demos(struct notcurses* nc, const char* demos){
     if(interrupted){
       break;
     }
+    int nameidx = demos[i] - 'a';
+    if(nameidx < 0 || nameidx > 25 || !demonames[nameidx]){
+      fprintf(stderr, "Invalid demo specification: %c\n", demos[i]);
+      ret = -1;
+    }
+    hud_schedule(demonames[nameidx]);
     switch(demos[i]){
       case 'i': ret = intro(nc); break;
       case 'o': ret = outro(nc); break;
@@ -223,7 +259,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'w': ret = witherworm_demo(nc); break;
       case 'p': ret = panelreel_demo(nc); break;
       default:
-        fprintf(stderr, "Unknown demo specification: %c\n", *demos);
+        fprintf(stderr, "Unknown demo specification: %c\n", demos[i]);
         ret = -1;
         break;
     }
@@ -245,12 +281,16 @@ ext_demos(struct notcurses* nc, const char* demos){
 // specification, also returns NULL, heh. determine this by argv[optind];
 // if it's NULL, there were valid options, but no spec.
 static const char*
-handle_opts(int argc, char** argv, notcurses_options* opts){
+handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
   bool constant_seed = false;
   int c;
+  *use_hud = false;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "hckd:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "Hhckd:f:p:")) != EOF){
     switch(c){
+      case 'H':
+        *use_hud = true;
+        break;
       case 'h':
         usage(*argv, EXIT_SUCCESS);
         break;
@@ -295,6 +335,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts){
 
 // just fucking around...for now
 int main(int argc, char** argv){
+  bool use_hud;
   struct notcurses* nc;
   notcurses_options nopts;
   if(!setlocale(LC_ALL, "")){
@@ -302,7 +343,7 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   const char* demos;
-  if((demos = handle_opts(argc, argv, &nopts)) == NULL){
+  if((demos = handle_opts(argc, argv, &nopts, &use_hud)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
@@ -314,8 +355,10 @@ int main(int argc, char** argv){
   if(notcurses_mouse_enable(nc)){
     goto err;
   }
-  if(hud_create(nc) == NULL){
-    goto err;
+  if(use_hud){
+    if(hud_create(nc) == NULL){
+      goto err;
+    }
   }
   if(input_dispatcher(nc)){
     goto err;
