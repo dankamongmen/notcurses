@@ -1289,12 +1289,12 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   br1 = ur; bg1 = ug; bb1 = ub;
   channels_get_bg_rgb(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
-  int deltr = (r2 - r1) / (len + 1);
-  int deltg = (g2 - g1) / (len + 1);
-  int deltb = (b2 - b1) / (len + 1);
-  int deltbr = (br2 - br1) / (len + 1);
-  int deltbg = (bg2 - bg1) / (len + 1);
-  int deltbb = (bb2 - bb1) / (len + 1);
+  int deltr = r2 - r1;
+  int deltg = g2 - g1;
+  int deltb = b2 - b1;
+  int deltbr = br2 - br1;
+  int deltbg = bg2 - bg1;
+  int deltbb = bb2 - bb1;
   int ret;
   cell dupc = CELL_TRIVIAL_INITIALIZER;
   if(cell_duplicate(n, &dupc, c) < 0){
@@ -1308,17 +1308,17 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
-    r1 += deltr;
-    g1 += deltg;
-    b1 += deltb;
-    br1 += deltbr;
-    bg1 += deltbg;
-    bb1 += deltbb;
+    int r = (deltr * ret) / len + r1;
+    int g = (deltg * ret) / len + g1;
+    int b = (deltb * ret) / len + b1;
+    int br = (deltbr * ret) / len + br1;
+    int bg = (deltbg * ret) / len + bg1;
+    int bb = (deltbb * ret) / len + bb1;
     if(!fgdef){
-      cell_set_fg_rgb(&dupc, r1, g1, b1);
+      cell_set_fg_rgb(&dupc, r, g, b);
     }
     if(!bgdef){
-      cell_set_bg_rgb(&dupc, br1, bg1, bb1);
+      cell_set_bg_rgb(&dupc, br, bg, bb);
     }
     if(ncplane_putc(n, &dupc) <= 0){
       break;
