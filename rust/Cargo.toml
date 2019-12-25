@@ -1,0 +1,13 @@
+[package]
+name = "notcurses"
+version = "0.9.2"
+authors = ["nick black <dankamongmen@gmail.com>"]
+edition = "2018"
+license = "Apache-2.0"
+description = "Rust bindings for the notcurses C library."
+repository = "https://github.com/dankamongmen/notcurses"
+homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
