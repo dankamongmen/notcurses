@@ -6,6 +6,12 @@
 #include <iostream>
 #include "notcurses.h"
 
+extern "C" {
+#include <libavutil/pixdesc.h>
+#include <libavutil/avconfig.h>
+#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
+}
+
 static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 

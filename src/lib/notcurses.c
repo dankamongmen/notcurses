@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
+#include <limits.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -12,12 +13,6 @@
 #include <sys/poll.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
-#include <libavutil/error.h>
-#include <libavutil/frame.h>
-#include <libavutil/pixdesc.h>
-#include <libavutil/version.h>
-#include <libswscale/version.h>
-#include <libavformat/version.h>
 #include "notcurses.h"
 #include "internal.h"
 #include "version.h"
@@ -769,20 +764,22 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     char prefixbuf[BPREFIXSTRLEN + 1];
     fprintf(ret->ttyfp, "\n"
           " notcurses %s by nick black\n"
+          " %d rows, %d columns (%sB), %d colors (%s)\n"
           " compiled with gcc-%s\n"
-          " terminfo from %s\n"
-          " avformat %u.%u.%u\n"
-          " avutil %u.%u.%u\n"
-          " swscale %u.%u.%u\n"
-          " %d rows, %d columns (%sB), %d colors (%s)\n",
-          notcurses_version(), __VERSION__,
-          curses_version(), LIBAVFORMAT_VERSION_MAJOR,
-          LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
-          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
-          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
+          " terminfo from %s\n",
+          notcurses_version(),
           ret->stdscr->leny, ret->stdscr->lenx,
           bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
-          ret->colors, ret->RGBflag ? "direct" : "palette");
+          ret->colors, ret->RGBflag ? "direct" : "palette",
+          __VERSION__, curses_version());
+#ifndef DISABLE_FFMPEG
+    fprintf(ret->ttyfp, " avformat %u.%u.%u\navutil %u.%u.%u\nswscale %u.%u.%u\n",
+          LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
+          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
+          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
+#else
+    fprintf(ret->ttyfp, " warning: built without ffmpeg support\n");
+#endif
     if(!ret->RGBflag){ // FIXME
       if(ret->colors >= 16){
         putp(tiparm(ret->setaf, 207));

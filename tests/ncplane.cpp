@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <notcurses.h>
+#include "internal.h"
 #include "main.h"
 
 class NcplaneTest : public :: testing::Test {

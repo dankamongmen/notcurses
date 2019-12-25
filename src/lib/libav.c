@@ -9,18 +9,9 @@ ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
 }
 
-static ncvisual*
-ncvisual_create(void){
-  ncvisual* ret = malloc(sizeof(*ret));
-  if(ret == NULL){
-    return NULL;
-  }
-  memset(ret, 0, sizeof(*ret));
-  return ret;
-}
-
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
+#ifndef DISABLE_FFMPEG
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
@@ -30,11 +21,23 @@ void ncvisual_destroy(ncvisual* ncv){
     av_packet_free(&ncv->packet);
     av_packet_free(&ncv->subtitle);
     avformat_close_input(&ncv->fmtctx);
+#endif
     if(ncv->ncobj && ncv->ncp){
       ncplane_destroy(ncv->ncp);
     }
     free(ncv);
   }
+}
+
+#ifndef DISABLE_FFMPEG
+static ncvisual*
+ncvisual_create(void){
+  ncvisual* ret = malloc(sizeof(*ret));
+  if(ret == NULL){
+    return NULL;
+  }
+  memset(ret, 0, sizeof(*ret));
+  return ret;
 }
 
 /* static void
@@ -75,7 +78,7 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
           f->quality);
 }*/
 
-AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr){
+AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
   bool have_frame = false;
   bool unref = false;
   do{
@@ -392,3 +395,51 @@ int ncvisual_init(void){
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }
+#else
+// built without ffmpeg
+
+AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
+  (void)nc;
+  (void)averr;
+  return NULL;
+}
+
+int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
+  (void)ncv;
+  (void)begy;
+  (void)begx;
+  (void)leny;
+  (void)lenx;
+  return -1;
+}
+
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr, streamcb streamer){
+  (void)nc;
+  (void)ncv;
+  (void)averr;
+  (void)streamer;
+  return -1;
+}
+
+ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, int* averr){
+  (void)nc;
+  (void)filename;
+  (void)averr;
+  return NULL;
+}
+
+ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
+                              int* averr, int y, int x, ncscale_e style){
+  (void)nc;
+  (void)filename;
+  (void)averr;
+  (void)y;
+  (void)x;
+  (void)style;
+  return NULL;
+}
+
+int ncvisual_init(void){
+  return 0;
+}
+#endif

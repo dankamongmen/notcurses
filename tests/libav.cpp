@@ -1,6 +1,11 @@
 #include <notcurses.h>
+#include "version.h"
 #include "main.h"
 
+#ifndef DISABLE_FFMPEG
+#include <libavutil/pixdesc.h>
+#include <libavutil/avconfig.h>
+#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
 class LibavTest : public :: testing::Test {
  protected:
   void SetUp() override {
@@ -87,3 +92,4 @@ TEST_F(LibavTest, LoadVideoCreatePlane) {
   EXPECT_EQ(0, notcurses_render(nc_));
   ncvisual_destroy(ncv);
 }
+#endif

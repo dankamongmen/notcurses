@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 #include <notcurses.h>
 #include <curses.h>
-#include "internal.h"
 
 // GTEST_SKIP only came along in GoogleTest 1.9
 #ifndef GTEST_SKIP

@@ -9,46 +9,66 @@ set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-configure_file(tools/version.h.in include/version.h)
-
 include(GNUInstallDirs)
+
+option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
+
+configure_file(tools/version.h.in include/version.h)
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
+if(NOT "${DISABLE_FFMPEG}")
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
+endif()
 find_library(LIBRT rt)
 
 file(GLOB LIBSRCS CONFIGURE_DEPENDS src/lib/*.c)
 add_library(notcurses SHARED ${LIBSRCS})
-target_include_directories(notcurses
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_INCLUDE_DIR}"
-    "${AVFORMAT_INCLUDE_DIR}"
-    "${SWSCALE_INCLUDE_DIR}"
-)
-target_link_libraries(notcurses
-  PRIVATE
-    "${TERMINFO_LIBRARIES}"
-    "${AVFORMAT_LIBRARIES}"
-    "${SWSCALE_LIBRARIES}"
-    "${LIBRT}"
-)
-target_link_directories(notcurses
-  PRIVATE
-    "${TERMINFO_LIBRARY_DIRS}"
-    "${AVFORMAT_LIBRARY_DIRS}"
-    "${SWSCALE_LIBRARY_DIRS}"
-)
 set_target_properties(notcurses PROPERTIES
   PUBLIC_HEADER "include/notcurses.h"
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
+target_include_directories(notcurses
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIR}"
+)
+target_link_libraries(notcurses
+  PRIVATE
+    "${TERMINFO_LIBRARIES}"
+    "${LIBRT}"
+)
+target_link_directories(notcurses
+  PRIVATE
+    "${TERMINFO_LIBRARY_DIRS}"
+)
+
+if(NOT "${DISABLE_FFMPEG}")
+target_include_directories(notcurses
+  PRIVATE
+    "${AVFORMAT_INCLUDE_DIR}"
+    "${SWSCALE_INCLUDE_DIR}"
+)
+endif()
+if(NOT "${DISABLE_FFMPEG}")
+target_link_libraries(notcurses
+  PRIVATE
+    "${AVFORMAT_LIBRARIES}"
+    "${SWSCALE_LIBRARIES}"
+)
+endif()
+if(NOT "${DISABLE_FFMPEG}")
+target_link_directories(notcurses
+  PRIVATE
+    "${AVFORMAT_LIBRARY_DIRS}"
+    "${SWSCALE_LIBRARY_DIRS}"
+)
+endif()
 
 target_compile_options(notcurses
   PRIVATE
@@ -135,7 +155,9 @@ target_compile_definitions(notcurses-planereel
 )
 
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
+if(NOT "${DISABLE_FFMPEG}")
 add_executable(notcurses-view ${VIEWSRCS})
+endif()
 target_include_directories(notcurses-view
   PRIVATE
     include
@@ -151,6 +173,8 @@ target_link_libraries(notcurses-view
     notcurses
   PRIVATE
     "${AVUTIL_LIBRARIES}"
+    "${AVFORMAT_LIBRARIES}"
+    "${SWSCALE_LIBRARIES}"
 )
 target_compile_options(notcurses-view
   PRIVATE
@@ -167,6 +191,7 @@ find_package(GTest 1.9 REQUIRED)
 target_include_directories(notcurses-tester
   PRIVATE
     include
+    "${PROJECT_BINARY_DIR}/include"
     src/lib
 )
 target_link_libraries(notcurses-tester
@@ -230,7 +255,9 @@ install(FILES
 )
 
 install(TARGETS notcurses-demo DESTINATION bin)
+if(NOT "${DISABLE_FFMPEG}")
 install(TARGETS notcurses-view DESTINATION bin)
+endif()
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-planereel DESTINATION bin)
 install(TARGETS notcurses
