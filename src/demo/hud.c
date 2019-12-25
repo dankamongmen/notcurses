@@ -75,9 +75,13 @@ struct ncplane* hud_create(struct notcurses* nc){
   return (hud = n);
 }
 
-int hud_destroy(struct ncplane* h){
-  hud = NULL;
-  return ncplane_destroy(h);
+int hud_destroy(void){
+  int ret = 0;
+  if(hud){
+    ret = ncplane_destroy(hud);
+    hud = NULL;
+  }
+  return ret;
 }
 
 // mouse has been pressed on the hud. the caller is responsible for rerendering.
@@ -99,7 +103,7 @@ int hud_grab(int y, int x){
     hud_grab_y = y;
     ncplane_yx(hud, &hud_pos_y, &hud_pos_x);
     if(x == hud_pos_x + HUD_COLS - 1 && y == hud_pos_y){
-      return hud_destroy(hud);
+      return hud_destroy();
     }
     ret = hud_grabbed_bg(hud);
   }
@@ -116,7 +120,7 @@ int hud_release(void){
 }
 
 // currently running demo is always at y = HUD_ROWS-1
-int hud_completion_notify(int idx, const demoresult* result){
+int hud_completion_notify(const demoresult* result){
   if(running){
     running->totalns = result->timens;
   }
