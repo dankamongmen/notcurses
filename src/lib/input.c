@@ -1,6 +1,7 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <term.h>
 #include <ctype.h>
+#include <signal.h>
 #include <sys/poll.h>
 #include "internal.h"
 
@@ -74,7 +75,7 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
     return -1;
   }
   if(!wchar_supppuab_p(special) && special != NCKEY_CSI){
-    fprintf(stderr, "Not a supplementary-b PUA char: %lc (0x%x)\n", special, special);
+    fprintf(stderr, "Not a supplementary-b PUA char: %u (0x%x)\n", special, special);
     return -1;
   }
   esctrie** cur = &nc->inputescapes;
@@ -249,7 +250,7 @@ static int
 block_on_input(FILE* fp, const struct timespec* ts, sigset_t* sigmask){
   struct pollfd pfd = {
     .fd = fileno(fp),
-    .events = POLLIN | POLLRDHUP,
+    .events = POLLIN,
     .revents = 0,
   };
   sigset_t scratchmask;
@@ -261,6 +262,9 @@ block_on_input(FILE* fp, const struct timespec* ts, sigset_t* sigmask){
   sigdelset(sigmask, SIGINT);
   sigdelset(sigmask, SIGQUIT);
   sigdelset(sigmask, SIGSEGV);
+#ifdef POLLRDHUP
+  pfd.events |= POLLRDHUP;
+#endif
   return ppoll(&pfd, 1, ts, sigmask);
 }
 
