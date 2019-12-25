@@ -33,7 +33,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_dim_yx(n, &ny, &nx);
   ncplane_yx(n, &yoff, &xoff);
-  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 10000000, };
+  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 50000000, };
   struct timespec cur;
   do{
     if(notcurses_render(nc)){
@@ -91,21 +91,27 @@ slidepanel(struct notcurses* nc){
   int nx = dimx / 3;
   int yoff = random() % (dimy - ny - 2) + 1; // don't start atop a border
   int xoff = random() % (dimx - nx - 2) + 1;
-  // First we'll have one using the default background. This will typically be
-  // either white, black, or transparent (to the console, not other planes).
+  // First we just create a plane with no styling. By default, this will be the
+  // default foreground color -- unused -- and the default background color,
+  // both fully opaque. Thus we'll get a square of the background color (which
+  // might be "transparent", i.e. a copy of the underlying desktop).
   struct ncplane* n = notcurses_newplane(nc, ny, nx, yoff, xoff, NULL);
   struct timespec cur;
+  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  ncplane_set_default(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
-  uint64_t deadlinens = timespec_to_ns(&cur) + 5 * timespec_to_ns(&demodelay);
+  uint64_t deadlinens = timespec_to_ns(&cur) + 3 * timespec_to_ns(&demodelay);
   int direction = random() % 4;
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
     return -1;
   }
 
-  // Now, we use an explicitly black background, but blend it.
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
-  cell_set_bg_alpha(&c, CELL_ALPHA_BLEND);
+  // Next, we set our foreground transparent, allowing the characters
+  // underneath to be seen. Our background remains opaque.
+  cell_load_simple(n, &c, 'x');
+  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg(&c, 0);
   ncplane_set_default(n, &c);
   cell_release(n, &c);

@@ -274,6 +274,9 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   channels_set_fg_rgb(&popts.tabletchan, 19, 161, 14);
   channels_set_fg_rgb(&popts.borderchan, 136, 23, 152);
   channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
+  if(channels_set_fg_alpha(&popts.bgchannel, CELL_ALPHA_TRANSPARENT)){
+    return NULL;
+  }
   if(channels_set_bg_alpha(&popts.bgchannel, CELL_ALPHA_TRANSPARENT)){
     return NULL;
   }
