@@ -31,26 +31,64 @@ int tabletfxn(struct tablet* t, int begx, int begy, int maxx, int maxy,
 }
 
 void usage(const char* argv0, std::ostream& c, int status){
-  c << "usage: " << argv0 << " [ -h ] | [ -b bordermask ] [ -t tabletmask ]\n";
+  c << "usage: " << argv0 << " [ -h ] | options\n";
+  c << " --ot: offset from top\n";
+  c << " --ob: offset from bottom\n";
+  c << " --ol: offset from left\n";
+  c << " --or: offset from right\n";
   c << " -b bordermask: hex panelreel border mask (0x0..0xf)\n";
   c << " -t tabletmask: hex tablet border mask (0x0..0xf)" << std::endl;
   exit(status);
 }
 
+constexpr int OPT_TOPOFF = 100;
+constexpr int OPT_BOTTOMOFF = 101;
+constexpr int OPT_LEFTOFF = 102;
+constexpr int OPT_RIGHTOFF = 103;
+
 void parse_args(int argc, char** argv, struct notcurses_options* opts,
                 struct panelreel_options* popts){
+  const struct option longopts[] = {
+    { .name = "ot", .has_arg = 1, .flag = nullptr, OPT_TOPOFF, },
+    { .name = "ob", .has_arg = 1, .flag = nullptr, OPT_BOTTOMOFF, },
+    { .name = "ol", .has_arg = 1, .flag = nullptr, OPT_LEFTOFF, },
+    { .name = "or", .has_arg = 1, .flag = nullptr, OPT_RIGHTOFF, },
+    { .name = nullptr, .has_arg = 0, .flag = nullptr, 0, },
+  };
   int c;
-  while((c = getopt(argc, argv, "b:t:h")) != -1){
+  while((c = getopt_long(argc, argv, "b:t:h", longopts, nullptr)) != -1){
     switch(c){
-      case 'b':{
+      case OPT_BOTTOMOFF:{
+        std::stringstream ss;
+        ss << optarg;
+        ss >> popts->boff;
+        break;
+      }case OPT_TOPOFF:{
+        std::stringstream ss;
+        ss << optarg;
+        ss >> popts->toff;
+        break;
+      }case OPT_LEFTOFF:{
+        std::stringstream ss;
+        ss << optarg;
+        ss >> popts->loff;
+        break;
+      }case OPT_RIGHTOFF:{
+        std::stringstream ss;
+        ss << optarg;
+        ss >> popts->roff;
+        break;
+      }case 'b':{
         std::stringstream ss;
         ss << std::hex << optarg;
         ss >> popts->bordermask;
         break;
-      }case 't':
-        // FIXME
+      }case 't':{
+        std::stringstream ss;
+        ss << std::hex << optarg;
+        ss >> popts->tabletmask;
         break;
-      case 'h':
+      }case 'h':
         usage(argv[0], std::cout, EXIT_SUCCESS);
         break;
       default:
