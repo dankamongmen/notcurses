@@ -32,8 +32,8 @@ int tabletfxn(struct tablet* t, int begx, int begy, int maxx, int maxy,
 
 void usage(const char* argv0, std::ostream& c, int status){
   c << "usage: " << argv0 << " [ -h ] | [ -b bordermask ] [ -t tabletmask ]\n";
-  c << " -b bordermask: hex panelreel border mask\n";
-  c << " -t tabletmask: hex tablet border mask" << std::endl;
+  c << " -b bordermask: hex panelreel border mask (0x0..0xf)\n";
+  c << " -t tabletmask: hex tablet border mask (0x0..0xf)" << std::endl;
   exit(status);
 }
 
@@ -92,8 +92,6 @@ int main(int argc, char** argv){
   }
   channels_set_fg(&popts.focusedchan, 0xffffff);
   channels_set_bg(&popts.focusedchan, 0x00c080);
-  popts.bordermask = NCBOXMASK_BOTTOM | NCBOXMASK_TOP |
-                      NCBOXMASK_RIGHT | NCBOXMASK_LEFT;
   struct panelreel* pr = panelreel_create(n, &popts, -1);
   if(!pr || notcurses_render(nc)){
     notcurses_stop(nc);
