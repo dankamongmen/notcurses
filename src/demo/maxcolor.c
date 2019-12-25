@@ -91,6 +91,7 @@ slidepanel(struct notcurses* nc){
   int nx = dimx / 3;
   int yoff = random() % (dimy - ny - 2) + 1; // don't start atop a border
   int xoff = random() % (dimx - nx - 2) + 1;
+
   // First we just create a plane with no styling. By default, this will be the
   // default foreground color -- unused -- and the default background color,
   // both fully opaque. Thus we'll get a square of the background color (which
@@ -109,7 +110,23 @@ slidepanel(struct notcurses* nc){
 
   // Next, we set our foreground transparent, allowing the characters
   // underneath to be seen. Our background remains opaque.
-  cell_load_simple(n, &c, 'x');
+  cell_init(&c);
+  cell_load_simple(n, &c, '\0');
+  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
+  ncplane_set_default(n, &c);
+  cell_release(n, &c);
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  deadlinens = timespec_to_ns(&cur) + 5 * timespec_to_ns(&demodelay);
+  if(slideitslideit(nc, n, deadlinens, &direction)){
+    ncplane_destroy(n);
+    return -1;
+  }
+
+  // Now we replace the characters with X's, but draw the foreground and
+  // background color from below us.
+  cell_init(&c);
+  cell_load_simple(n, &c, 'X');
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg(&c, 0);
@@ -121,13 +138,15 @@ slidepanel(struct notcurses* nc){
     ncplane_destroy(n);
     return -1;
   }
-  
+
   // Finally, we populate the plane for the first time with non-transparent
   // characters. We blend, however, to show the underlying color in our glyphs.
+  cell_init(&c);
   cell_load_simple(n, &c, 'X');
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
-  cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
-  cell_set_bg(&c, 0);
+  cell_set_bg_alpha(&c, CELL_ALPHA_BLEND);
+  cell_set_fg(&c, 0xc000c0);
+  cell_set_bg(&c, 0x00c000);
   ncplane_set_default(n, &c);
   cell_release(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
