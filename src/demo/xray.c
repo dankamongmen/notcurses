@@ -84,7 +84,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
     }while(xoff < dimx);
   }
   ++frameno;
-  notcurses_render(nc);
+  demo_render(nc);
   // FIXME we'll need some delay here
   return 0;
 }

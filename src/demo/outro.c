@@ -10,7 +10,7 @@ static struct ncvisual* chncv;
 static int
 perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
   static int three = 3; // move up one every three callbacks
-  notcurses_render(nc);
+  demo_render(nc);
   if(y < targy){
     return 0;
   }
@@ -127,7 +127,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
     return NULL;
   }
   ncplane_styles_off(non, CELL_STYLE_ITALIC);
-  if(notcurses_render(nc)){
+  if(demo_render(nc)){
     return NULL;
   }
   cell_release(non, &bgcell);

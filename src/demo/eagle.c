@@ -38,7 +38,7 @@ outzoomed_map(struct notcurses* nc, const char* map){
   if(ncvisual_render(ncv, 0, 0, 0, 0)){
     return NULL;
   }
-  if(notcurses_render(nc)){
+  if(demo_render(nc)){
     return NULL;
   }
   return ncv;
@@ -100,7 +100,7 @@ zoom_map(struct notcurses* nc, const char* map){
       ncplane_destroy(zncp);
       return NULL;
     }
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       ncvisual_destroy(zncv);
       ncplane_destroy(zncp);
       return NULL;
@@ -173,7 +173,7 @@ eagles(struct notcurses* nc){
   int eaglesmoved;
   do{
     eaglesmoved = 0;
-    notcurses_render(nc);
+    demo_render(nc);
     for(size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i){
       if(e[i].xoff >= truex){
         continue;

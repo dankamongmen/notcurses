@@ -188,6 +188,9 @@ int unicodeblocks_demo(struct notcurses* nc){
     if((nn = notcurses_newplane(nc, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 3, xstart, NULL)) == NULL){
       return -1;
     }
+    if(hud){
+      ncplane_move_below_unsafe(nn, hud);
+    }
     if(draw_block(nn, blockstart)){
       return -1;
     }

@@ -15,6 +15,8 @@
 static const int MIN_SUPPORTED_ROWS = 24;
 static const int MIN_SUPPORTED_COLS = 80;
 
+static int democount;
+static demoresult* results;
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
 static const char DEFAULT_DEMO[] = "ixemlubgswvpo";
@@ -22,6 +24,13 @@ static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
 void interrupt_demo(void){
   atomic_store(&interrupted, true);
+}
+
+const demoresult* demoresult_lookup(int idx){
+  if(idx < 0 || idx >= democount){
+    return NULL;
+  }
+  return &results[idx];
 }
 
 char* find_data(const char* datum){
@@ -171,7 +180,7 @@ intro(struct notcurses* nc){
     }
     ncplane_styles_off(ncp, CELL_STYLE_BLINK); // heh FIXME replace with pulse
   }
-  if(notcurses_render(nc)){
+  if(demo_render(nc)){
     return -1;
   }
   nanosleep(&demodelay, NULL);
@@ -180,21 +189,15 @@ intro(struct notcurses* nc){
   return 0;
 }
 
-typedef struct demoresult {
-  char selector;
-  struct ncstats stats;
-  uint64_t timens;
-  bool failed;
-} demoresult;
-
 static demoresult*
 ext_demos(struct notcurses* nc, const char* demos){
   int ret = 0;
-  demoresult* results = malloc(sizeof(*results) * strlen(demos));
+  results = malloc(sizeof(*results) * strlen(demos));
   if(results == NULL){
     return NULL;
   }
   memset(results, 0, sizeof(*results) * strlen(demos));
+  democount = strlen(demos);
   struct timespec start, now;
   clock_gettime(CLOCK_MONOTONIC, &start);
   uint64_t prevns = timespec_to_ns(&start);
@@ -311,6 +314,9 @@ int main(int argc, char** argv){
   if(notcurses_mouse_enable(nc)){
     goto err;
   }
+  if(hud_create(nc) == NULL){
+    goto err;
+  }
   if(input_dispatcher(nc)){
     goto err;
   }
@@ -325,7 +331,9 @@ int main(int argc, char** argv){
   }else{
     nanosleep(&demodelay, NULL);
   }
-  demoresult* results = ext_demos(nc, demos);
+  if(ext_demos(nc, demos)){
+    goto err;
+  }
   if(results == NULL){
     goto err;
   }

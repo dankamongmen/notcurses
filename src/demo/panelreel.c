@@ -218,7 +218,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
   sigemptyset(&sset);
   wchar_t key = -1;
   int pret;
-  notcurses_render(nc);
+  demo_render(nc);
   do{
     struct timespec pollspec, cur;
     clock_gettime(CLOCK_MONOTONIC, &cur);
@@ -241,7 +241,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
         if(read(efd, &val, sizeof(val)) != sizeof(val)){
           fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno)); }else if(key < 0){
           panelreel_redraw(pr);
-          notcurses_render(nc);
+          demo_render(nc);
         }
       }
     }
@@ -381,7 +381,7 @@ int panelreel_demo(struct notcurses* nc){
     return -1;
   }
   close(efd);
-  if(notcurses_render(nc)){
+  if(demo_render(nc)){
     return -1;
   }
   return 0;

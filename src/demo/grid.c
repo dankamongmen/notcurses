@@ -174,7 +174,7 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
   ncplane_putc(n, &lr);
 
   // render!
-  notcurses_render(nc);
+  demo_render(nc);
   release_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   nanosleep(&demodelay, NULL);
   return ret;
@@ -245,7 +245,7 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
   ncplane_putc(n, &lr);
 
   // render!
-  notcurses_render(nc);
+  demo_render(nc);
   release_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   nanosleep(&demodelay, NULL);
   return gridswitch_demo(nc, n);
@@ -317,7 +317,7 @@ int grid_demo(struct notcurses* nc){
   ncplane_putc(n, &lr);
 
   // render!
-  notcurses_render(nc);
+  demo_render(nc);
   release_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   nanosleep(&demodelay, NULL);
   return gridinv_demo(nc, n);
