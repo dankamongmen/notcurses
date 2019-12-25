@@ -20,10 +20,8 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
   // divide movetime into abs(max(deltay, deltax)) units, and move delta
   int units = abs(deltay) > abs(deltax) ? abs(deltay) : abs(deltax);
   movens /= units;
-  struct timespec movetime = {
-    .tv_sec = (movens / MOVES) / GIG,
-    .tv_nsec = (movens / MOVES) % GIG,
-  };
+  struct timespec movetime;
+  ns_to_timespec(movens, &movetime);
   int i;
   int targy = newholey;
   int targx = newholex;
@@ -44,16 +42,16 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
   return 0;
 }
 
-// we take (MOVES / 5) * demodelay to play MOVES moves
+// we take demodelay * 5 to play MOVES moves
 static int
 play(struct notcurses* nc, struct ncplane** chunks){
-  const uint64_t delayns = demodelay.tv_sec * GIG + demodelay.tv_nsec;
+  const uint64_t delayns = timespec_to_ns(&demodelay);
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct timespec cur;
   clock_gettime(CLOCK_MONOTONIC, &cur);
   // we don't want to spend more than demodelay * 5
   const uint64_t totalns = delayns * 5;
-  const uint64_t deadline_ns = cur.tv_sec * GIG + cur.tv_nsec + totalns;
+  const uint64_t deadline_ns = timespec_to_ns(&cur) + totalns;
   const uint64_t movens = totalns / MOVES;
   int hole = random() % chunkcount;
   int holex, holey;
@@ -99,7 +97,7 @@ fill_chunk(struct ncplane* n, int idx){
   char buf[4];
   int maxy, maxx;
   ncplane_dim_yx(n, &maxy, &maxx);
-  snprintf(buf, sizeof(buf), "%02d", idx);
+  snprintf(buf, sizeof(buf), "%02d", idx + 1); // don't zero-index to viewer
   uint64_t channels = 0;
   int r = 64 + hidx * 10;
   int b = 64 + vidx * 30;
@@ -147,8 +145,6 @@ int sliding_puzzle_demo(struct notcurses* nc){
   notcurses_term_dim_yx(nc, &maxy, &maxx);
   // want at least 2x2 for each sliding chunk
   if(maxy < CHUNKS_VERT * 2 || maxx < CHUNKS_HORZ * 2){
-    fprintf(stderr, "Terminal too small, need at least %dx%d\n",
-            CHUNKS_HORZ, CHUNKS_VERT);
     return -1;
   } 
   // we want an 8x8 grid of chunks with a border. the leftover space will be unused
