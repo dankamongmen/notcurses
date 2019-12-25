@@ -430,14 +430,6 @@ notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   sigemptyset(&sigmask);
   return notcurses_getc(n, NULL, &sigmask, ni);
 }
-
-// Enable the mouse in "button-event tracking" mode with focus detection and
-// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
-// is returned, and mouse events will be published to notcurses_getc().
-int notcurses_mouse_enable(struct notcurses* n);
-
-// Disable mouse events. Any events in the input queue can still be delivered.
-int notcurses_mouse_disable(struct notcurses* n);
 ```
 
 ### Mice
