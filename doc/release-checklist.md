@@ -19,4 +19,5 @@
   * `git commit -a`
 * Upload new Rust crate with `cargo upload`
 * Update Debian changelog with `dch -v $NEXTVERSION-1`
+* Update `doc/FreeBSD-Makefile` version
 * Update CMakeLists.txt with next version
