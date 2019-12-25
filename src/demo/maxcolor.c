@@ -85,6 +85,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
 // run panels atop the display in an exploration of transparency
 static int
 slidepanel(struct notcurses* nc){
+  const int DELAYSCALE = 2;
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int ny = dimy / 4;
@@ -101,7 +102,7 @@ slidepanel(struct notcurses* nc){
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   ncplane_set_default(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
-  uint64_t deadlinens = timespec_to_ns(&cur) + 3 * timespec_to_ns(&demodelay);
+  uint64_t deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   int direction = random() % 4;
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
@@ -117,7 +118,23 @@ slidepanel(struct notcurses* nc){
   ncplane_set_default(n, &c);
   cell_release(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
-  deadlinens = timespec_to_ns(&cur) + 5 * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  if(slideitslideit(nc, n, deadlinens, &direction)){
+    ncplane_destroy(n);
+    return -1;
+  }
+
+  // Now we replace the characters with X's, colored as underneath us.
+  // Our background color remains opaque default.
+  cell_init(&c);
+  cell_load_simple(n, &c, 'X');
+  cell_set_fg(&c, 0xc000c0);
+  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
+  ncplane_set_default(n, &c);
+  cell_release(n, &c);
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
     return -1;
@@ -133,7 +150,7 @@ slidepanel(struct notcurses* nc){
   ncplane_set_default(n, &c);
   cell_release(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
-  deadlinens = timespec_to_ns(&cur) + 5 * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
     return -1;
@@ -150,7 +167,7 @@ slidepanel(struct notcurses* nc){
   ncplane_set_default(n, &c);
   cell_release(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
-  deadlinens = timespec_to_ns(&cur) + 5 * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
     return -1;
