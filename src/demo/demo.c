@@ -206,7 +206,7 @@ static const char* demonames[26] = {
   "maxcolor",
   "",
   "outro",
-  "",
+  "panelreels",
   "",
   "",
   "sliders",
@@ -273,6 +273,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       results[i].failed = true;
       break;
     }
+    hud_completion_notify(i, &results[i]);
   }
   return results;
 }
