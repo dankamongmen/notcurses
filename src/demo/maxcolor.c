@@ -55,7 +55,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
     }else if(xoff == dimx - nx){
       --xoff;
       if(*direction == 1){
-        *direction = 2;
+        *direction = 0;
       }else if(*direction == 2){
         *direction = 3;
       }
