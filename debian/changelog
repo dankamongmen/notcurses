@@ -1,10 +1,10 @@
-notcurses (0.9.3) unstable; urgency=medium
+notcurses (0.9.3-1) unstable; urgency=medium
 
   * notcurses-bin depends on ncurses-term
   * libnotcurses0 recommends ncurses-term
   * New upstream version
 
- -- Nick Black <dankamongmen@gmail.com>  Mon, 23 Dec 2019 00:57:22 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Wed, 25 Dec 2019 11:55:17 -0500
 
 notcurses (0.9.2-1) unstable; urgency=medium
 
