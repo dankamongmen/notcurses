@@ -37,8 +37,7 @@ hud_grabbed_bg(struct ncplane* n){
 struct ncplane* hud_create(struct notcurses* nc){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  //int xoffset = (dimx - hud_cols) / 2;
-  int xoffset = dimx - hud_cols;
+  int xoffset = (dimx - hud_cols) / 2;
   //int yoffset = (dimy - hud_rows);
   int yoffset = 0;
   struct ncplane* n = notcurses_newplane(nc, hud_rows, hud_cols, yoffset, xoffset, NULL);
@@ -46,6 +45,12 @@ struct ncplane* hud_create(struct notcurses* nc){
     return NULL;
   }
   hud_standard_bg(n);
+  uint64_t channels;
+  channels_set_fg(&channels, 0xffffff);
+  if(ncplane_putegc_yx(n, 0, hud_cols - 1, "\u274e", 0, channels, NULL) < 0){
+    ncplane_destroy(n);
+    return NULL;
+  }
   return (hud = n);
 }
 
