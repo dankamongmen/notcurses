@@ -52,6 +52,8 @@ window_coordinates(const ncplane* w, int* begy, int* begx, int* leny, int* lenx)
 
 // FIXME compatability wrapper for libpanel
 int wresize(ncplane* n, int leny, int lenx){
+assert(leny > 0);
+assert(lenx > 0);
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   int keepy = dimy > leny ? leny : dimy;

@@ -335,24 +335,23 @@ static int
 ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
-    fprintf(stderr, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
+//fprintf(stderr, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
-    fprintf(stderr, "Can't achieve negative size %dx%d\n", ylen, xlen);
+//fprintf(stderr, "Can't achieve negative size %dx%d\n", ylen, xlen);
     return -1;
   }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
-    fprintf(stderr, "Can't keep zero dimensions %dx%d\n", keepleny, keeplenx);
+//fprintf(stderr, "Can't keep zero dimensions %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(ylen < keepleny || xlen < keeplenx){ // can't be smaller than our keep
-    fprintf(stderr, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
+//fprintf(stderr, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
     return -1;
   }
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
-  // FIXME make sure we're not trying to keep more than we have?
 /*fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
         ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);*/
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
@@ -428,7 +427,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                    int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(n == n->nc->stdscr){
-    fprintf(stderr, "Can't resize standard plane\n");
+//fprintf(stderr, "Can't resize standard plane\n");
     return -1;
   }
   return ncplane_resize_internal(n, keepy, keepx, keepleny, keeplenx,
