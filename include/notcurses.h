@@ -992,6 +992,17 @@ channels_set_bg_default(uint64_t* channels){
   return *channels;
 }
 
+// Returns the result of blending two channels.
+static inline unsigned
+channels_blend(unsigned c1, unsigned c2){
+  int rsum = (channel_get_r(c1) + channel_get_r(c2)) / 2;
+  int gsum = (channel_get_g(c1) + channel_get_g(c2)) / 2;
+  int bsum = (channel_get_b(c1) + channel_get_b(c2)) / 2;
+  unsigned blend = 0;
+  channel_set_rgb(&blend, rsum, gsum, bsum);
+  return blend;
+}
+
 // Extract the 32-bit background channel from a cell.
 static inline unsigned
 cell_get_bchannel(const cell* cl){
@@ -1014,6 +1025,16 @@ cell_set_bchannel(cell* cl, uint32_t channel){
 static inline uint64_t
 cell_set_fchannel(cell* cl, uint32_t channel){
   return channels_set_fchannel(&cl->channels, channel);
+}
+
+static inline uint64_t
+cell_blend_fchannel(cell* cl, unsigned channel){
+  return cell_set_fchannel(cl, channels_blend(cell_get_fchannel(cl), channel));
+}
+
+static inline uint64_t
+cell_blend_bchannel(cell* cl, unsigned channel){
+  return cell_set_bchannel(cl, channels_blend(cell_get_bchannel(cl), channel));
 }
 
 // Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.

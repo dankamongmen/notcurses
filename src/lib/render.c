@@ -142,9 +142,9 @@ reshape_shadow_fb(notcurses* nc){
 // So, as we go down, we find planes which can have impact on the result. Once
 // we've locked the result in (base case), write the deep values we have to 'c'.
 // Then, as we come back up, blend them as appropriate. The actual glyph is
-// whichever one occurs at the top with a non-transparent α (α < 3). To effect
+// whichever one occurs at the top with a non-transparent α (α < 2). To effect
 // tail recursion, though, we instead write first, and then recurse, blending
-// as we descend. α <= 0 is opaque. α >= 3 is fully transparent.
+// as we descend. α == 0 is opaque. α == 2 is fully transparent.
 static inline ncplane*
 dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
   // once we decide on our glyph, it cannot be changed by anything below, so
@@ -153,7 +153,7 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
   while(p){
     // where in the plane this coordinate would be, based off absy/absx. the
     // true origin is 0,0, so abs=2,2 means coordinate 3,3 would be 1,1, while
-    // abs=-2,-2 would make coordinate 3,3 relative 5, 5.
+    // abs=-2,-2 would make coordinate 3,3 relative 5,5.
     int poffx, poffy;
     poffy = y - p->absy;
     poffx = x - p->absx;
@@ -161,34 +161,55 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
       if(poffx < p->lenx && poffx >= 0){ // p is valid for this y, x
         const cell* vis = &p->fb[fbcellidx(p, poffy, poffx)];
         // if we never loaded any content into the cell (or obliterated it by
-        // writing in a zero), use the plane's background cell.
+        // writing in a zero), use the plane's default cell.
         if(vis->gcluster == 0){
           vis = &p->defcell;
         }
-        int nalpha;
-        if(falpha > 0 && (nalpha = cell_get_fg_alpha(vis)) < CELL_ALPHA_TRANSPARENT){
-          if(c->gcluster == 0){ // never write fully trans glyphs, never replace
-            if( (c->gcluster = vis->gcluster) ){ // index copy only
-              glyphplane = p; // must return this ncplane for this glyph
-              c->attrword = vis->attrword;
-              cell_set_fchannel(c, cell_get_fchannel(vis)); // FIXME blend it in
-              falpha -= (CELL_ALPHA_TRANSPARENT - nalpha); // FIXME blend it in
-            }
+        // if we have no character in this cell, we continune to look for a
+        // character, but our foreground color will still be used unless it's
+        // been set to transparent. if that foreground color is transparent, we
+        // still use a character we find here, but its color will come entirely
+        // from cells underneath us.
+        if(c->gcluster == 0){
+          if( (c->gcluster = vis->gcluster) ){ // index copy only
+            glyphplane = p; // must return this ncplane for this glyph
+            c->attrword = vis->attrword;
           }
         }
-        if(balpha > 0 && (nalpha = cell_get_bg_alpha(vis)) < CELL_ALPHA_TRANSPARENT){
-          cell_set_bchannel(c, cell_get_bchannel(vis)); // FIXME blend it in
-          balpha -= (CELL_ALPHA_TRANSPARENT - nalpha);
+        if(falpha > CELL_ALPHA_OPAQUE && cell_get_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+          if(falpha == CELL_ALPHA_BLEND){
+            cell_blend_fchannel(c, cell_get_fchannel(vis));
+          }else{
+            cell_set_fchannel(c, cell_get_fchannel(vis));
+          }
+          falpha = cell_get_fg_alpha(vis);
         }
-        if((falpha <= 0 && balpha <= 0) || !p->z){ // done!
-          return glyphplane ? glyphplane : p;
+        // Background color takes effect independently of whether we have a
+        // glyph. If we've already locked in the background, it has no effect.
+        // If it's transparent, it has no effect. Otherwise, update the
+        // background channel and balpha.
+        if(balpha > CELL_ALPHA_OPAQUE && cell_get_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+          if(balpha == CELL_ALPHA_BLEND){
+            cell_blend_bchannel(c, cell_get_bchannel(vis));
+          }else{ // balpha == CELL_ALPHA_TRANSPARENT
+            cell_set_bchannel(c, cell_get_bchannel(vis));
+          }
+          balpha = cell_get_bg_alpha(vis);
+        }
+        // if everything's locked in, we're done
+        if((glyphplane && falpha == CELL_ALPHA_OPAQUE && balpha == CELL_ALPHA_OPAQUE)){
+          return glyphplane;
         }
       }
     }
     p = p->z;
   }
-  // should never happen for valid y, x thanks to the stdplane. you fucked up!
-  return NULL;
+  // if we have a background set, but no glyph selected, load a space so that
+  // the background will be printed
+  if(c->gcluster == 0){
+    cell_load_simple(NULL, c, ' ');
+  }
+  return glyphplane;
 }
 
 static inline ncplane*
