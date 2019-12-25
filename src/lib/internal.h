@@ -10,7 +10,17 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include "notcurses.h"
+#include "version.h"
 #include "egcpool.h"
+
+#ifndef DISABLE_FFMPEG
+#include <libavutil/error.h>
+#include <libavutil/frame.h>
+#include <libavutil/pixdesc.h>
+#include <libavutil/version.h>
+#include <libswscale/version.h>
+#include <libavformat/version.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

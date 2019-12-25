@@ -15,9 +15,6 @@
 #ifdef __cplusplus
 extern "C" {
 #define RESTRICT
-#include <libavutil/pixdesc.h>
-#include <libavutil/avconfig.h>
-#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
 #else
 #define RESTRICT restrict
 #endif

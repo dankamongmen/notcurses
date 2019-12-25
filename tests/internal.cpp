@@ -1,6 +1,7 @@
 #include <string>
 #include <cstdlib>
 #include <clocale>
+#include "internal.h"
 #include "main.h"
 
 class InternalsTest : public :: testing::Test {
