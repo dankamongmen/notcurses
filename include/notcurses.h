@@ -1198,17 +1198,22 @@ API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 // Return the current styling for this ncplane.
 API unsigned ncplane_styles(const struct ncplane* n);
 
+// Called for each delta performed in a fade on ncp. If anything but 0 is returned,
+// the fading operation ceases immediately, and that value is propagated out. If provided
+// and not NULL, the faders will not themselves call notcurses_render().
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp);
+
 // Fade the ncplane out over the provided time, calling the specified function
 // when done. Requires a terminal which supports direct color, or at least
 // palette modification (if the terminal uses a palette, our ability to fade
 // planes is limited, and affected by the complexity of the rest of the screen).
 // It is not safe to resize or destroy the plane during the fadeout FIXME.
-API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);
+API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader);
 
 // Fade the ncplane in over the specified time. Load the ncplane with the
 // target cells without rendering, then call this function. When it's done, the
 // ncplane will have reached the target levels, starting from zeroes.
-API int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
+API int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader);
 
 // Working with cells
 

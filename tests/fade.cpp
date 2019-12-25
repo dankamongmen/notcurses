@@ -56,12 +56,12 @@ TEST_F(FadeTest, FadeOut) {
   struct timespec ts;
   ts.tv_sec = 1;
   ts.tv_nsec = 0;
-  ASSERT_EQ(0, ncplane_fadeout(n_, &ts));
+  ASSERT_EQ(0, ncplane_fadeout(n_, &ts, nullptr));
 }
 
 TEST_F(FadeTest, FadeIn) {
   struct timespec ts;
   ts.tv_sec = 1;
   ts.tv_nsec = 0;
-  ASSERT_EQ(0, ncplane_fadein(n_, &ts));
+  ASSERT_EQ(0, ncplane_fadein(n_, &ts, nullptr));
 }

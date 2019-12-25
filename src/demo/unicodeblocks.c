@@ -12,7 +12,7 @@
 
 static int
 fade_block(struct ncplane* nn, const struct timespec* subdelay){
-  int ret = ncplane_fadein(nn, subdelay);
+  int ret = ncplane_fadein(nn, subdelay, demo_fader);
   ncplane_destroy(nn);
   return ret;
 }

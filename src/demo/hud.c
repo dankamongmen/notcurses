@@ -29,6 +29,11 @@ static struct elem* running;
 // it, and throw away the oldest entry each time.
 static int writeline = HUD_ROWS - 1;
 
+int demo_fader(struct notcurses* nc, struct ncplane* ncp){
+  (void)ncp;
+  return demo_render(nc);
+}
+
 static int
 hud_standard_bg(struct ncplane* n){
   cell c = CELL_SIMPLE_INITIALIZER(' ');
