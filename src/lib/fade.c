@@ -79,10 +79,14 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   return 0;
 }
 
-int ncplane_fadein(ncplane* n, const struct timespec* ts){
+int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
   planepalette pp;
   if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
-    notcurses_render(n->nc); // render at the target levels (ought we delay?)
+    if(fader){
+      fader(n->nc, n);
+    }else{
+      notcurses_render(n->nc);
+    }
     return -1;
   }
   if(alloc_ncplane_palette(n, &pp)){
@@ -134,7 +138,11 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts){
         }
       }
     }
-    notcurses_render(n->nc);
+    if(fader){
+      fader(n->nc, n);
+    }else{
+      notcurses_render(n->nc);
+    }
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
     struct timespec sleepspec;
     sleepspec.tv_sec = nextwake / NANOSECS_IN_SEC;
@@ -151,7 +159,7 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts){
   return 0;
 }
 
-int ncplane_fadeout(ncplane* n, const struct timespec* ts){
+int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
   planepalette pp;
   if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
     return -1;
@@ -218,7 +226,11 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts){
       bb = bb * (maxsteps - iter) / maxsteps;
       cell_set_bg_rgb(&n->defcell, br, bg, bb);
     }
-    notcurses_render(n->nc);
+    if(fader){
+      fader(n->nc, n);
+    }else{
+      notcurses_render(n->nc);
+    }
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
     struct timespec sleepspec;
     sleepspec.tv_sec = nextwake / NANOSECS_IN_SEC;

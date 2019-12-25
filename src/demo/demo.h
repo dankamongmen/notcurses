@@ -113,6 +113,8 @@ int hud_schedule(const char* demoname);
 // demo_render(), which will ensure the HUD stays on the top of the z-stack.
 int demo_render(struct notcurses* nc);
 
+int demo_fader(struct notcurses* nc, struct ncplane* ncp);
+
 // grab the hud with the mouse
 int hud_grab(int y, int x);
 
