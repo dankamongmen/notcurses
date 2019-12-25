@@ -1,5 +1,6 @@
 * Verify version in CMakeLists.txt
 * Finalize Debian changelog with `dch -r`
+* Update version in rust/Cargo.toml
 * git commit -a -m v$VERSION
 * Tag with `git tag -a v$VERSION -m "v$VERSION"`
 * `git push && git push origin --tags`
@@ -16,5 +17,6 @@
   * `makepkg --printsrcinfo > .SRCINFO`
   * Test that package builds with `makepkg`
   * `git commit -a`
+* Upload new Rust crate with `cargo upload`
 * Update Debian changelog with `dch -v $NEXTVERSION-1`
 * Update CMakeLists.txt with next version
