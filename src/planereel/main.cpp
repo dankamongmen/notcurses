@@ -1,5 +1,8 @@
 #include <cstdlib>
 #include <clocale>
+#include <sstream>
+#include <getopt.h>
+#include <iostream>
 #include <notcurses.h>
 
 // FIXME ought be able to get pr from tablet, methinks?
@@ -27,11 +30,46 @@ int tabletfxn(struct tablet* t, int begx, int begy, int maxx, int maxy,
   return tctx->getLines() > maxy - begy ? maxy - begy : tctx->getLines();
 }
 
-int main(void){
+void usage(const char* argv0, std::ostream& c, int status){
+  c << "usage: " << argv0 << " [ -h ] | [ -b bordermask ] [ -t tabletmask ]\n";
+  c << " -b bordermask: hex panelreel border mask\n";
+  c << " -t tabletmask: hex tablet border mask" << std::endl;
+  exit(status);
+}
+
+void parse_args(int argc, char** argv, struct notcurses_options* opts,
+                struct panelreel_options* popts){
+  int c;
+  while((c = getopt(argc, argv, "b:t:h")) != -1){
+    switch(c){
+      case 'b':{
+        std::stringstream ss;
+        ss << std::hex << optarg;
+        ss >> popts->bordermask;
+        break;
+      }case 't':
+        // FIXME
+        break;
+      case 'h':
+        usage(argv[0], std::cout, EXIT_SUCCESS);
+        break;
+      default:
+        std::cerr << "Unknown option\n";
+        usage(argv[0], std::cerr, EXIT_FAILURE);
+        break;
+    }
+  }
+  opts->suppress_bannner = true;
+  opts->clear_screen_start = true;
+}
+
+int main(int argc, char** argv){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
   struct notcurses_options opts{};
+  struct panelreel_options popts{};
+  parse_args(argc, argv, &opts, &popts);
   struct notcurses* nc = notcurses_init(&opts, stdout);
   if(!nc){
     return EXIT_FAILURE;
@@ -52,7 +90,6 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  struct panelreel_options popts{};
   channels_set_fg(&popts.focusedchan, 0xffffff);
   channels_set_bg(&popts.focusedchan, 0x00c080);
   popts.bordermask = NCBOXMASK_BOTTOM | NCBOXMASK_TOP |
