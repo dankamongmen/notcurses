@@ -130,6 +130,7 @@ int main(int argc, char** argv){
   }
   channels_set_fg(&popts.focusedchan, 0xffffff);
   channels_set_bg(&popts.focusedchan, 0x00c080);
+  channels_set_fg(&popts.borderchan, 0x00c080);
   struct panelreel* pr = panelreel_create(n, &popts, -1);
   if(!pr || notcurses_render(nc)){
     notcurses_stop(nc);

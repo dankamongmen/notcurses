@@ -320,9 +320,8 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
       if(leny - frontiery + 1 < ll){
 //fprintf(stderr, "frontieryIZING ADJ %d %d %d %d NEW %d\n", cbmaxy, leny,
 //         frontiery, ll, frontiery - ll + 1);
-        int dontcarex;
-        ncplane_yx(pr->p, &frontiery, &dontcarex);
-        frontiery += (leny - ll + 1);
+        ncplane_yx(pr->p, &frontiery, NULL);
+        frontiery += (leny - ll);
       }
       ncplane_move_yx(fp, frontiery, begx);
     }
@@ -347,13 +346,12 @@ draw_focused_tablet(const panelreel* pr){
       fulcrum = pbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
     }
   }else{ // focused was already present. want to stay where we are, if possible
-    int dontcarex;
-    ncplane_yx(pr->tablets->p, &fulcrum, &dontcarex);
+    ncplane_yx(pr->tablets->p, &fulcrum, NULL);
     // FIXME ugh can't we just remember the previous fulcrum?
     if(pr->last_traveled_direction > 0){
       if(pr->tablets->prev->p){
         int prevfulcrum;
-        ncplane_yx(pr->tablets->prev->p, &prevfulcrum, &dontcarex);
+        ncplane_yx(pr->tablets->prev->p, &prevfulcrum, NULL);
         if(fulcrum < prevfulcrum){
           fulcrum = pleny + pbegy - !(pr->popts.bordermask & NCBOXMASK_BOTTOM);
         }
@@ -361,7 +359,7 @@ draw_focused_tablet(const panelreel* pr){
     }else if(pr->last_traveled_direction < 0){
       if(pr->tablets->next->p){
         int nextfulcrum;
-        ncplane_yx(pr->tablets->next->p, &nextfulcrum, &dontcarex);
+        ncplane_yx(pr->tablets->next->p, &nextfulcrum, NULL);
         if(fulcrum > nextfulcrum){
           fulcrum = pbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
         }
@@ -496,9 +494,9 @@ panelreel_arrange_denormalized(panelreel* pr){
       pr->all_visible = false;
       break;
     }
-    int dontcarex, basey;
-    ncplane_dim_yx(t->p, &frontiery, &dontcarex);
-    ncplane_yx(t->p, &basey, &dontcarex);
+    int basey;
+    ncplane_dim_yx(t->p, &frontiery, NULL);
+    ncplane_yx(t->p, &basey, NULL);
     frontiery += basey + 1;
   }while((t = t->next) != topmost);
   return 0;
@@ -559,6 +557,7 @@ validate_panelreel_opts(ncplane* w, const panelreel_options* popts){
       return false; // can't set circular without infinitescroll
     }
   }
+  // there exist higher NCBOX defines, but they're not valid in this context
   const unsigned fullmask = NCBOXMASK_LEFT |
                             NCBOXMASK_RIGHT |
                             NCBOXMASK_TOP |
@@ -664,8 +663,7 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
   }
   // we're not the only tablet, alas.
   // our new window needs to be after our prev
-  int dontcarex;
-  ncplane_yx(t->prev->p, &frontiery, &dontcarex);
+  ncplane_yx(t->prev->p, &frontiery, NULL);
   int dimprevy, dimprevx;
   ncplane_dim_yx(t->prev->p, &dimprevy, &dimprevx);
   frontiery += dimprevy + 2;
