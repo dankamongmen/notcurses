@@ -92,14 +92,14 @@ static int
 bgnext(cell* c, int* r, int* g, int* b){
   int ret = ccell_set_bg_rgb(c, *r, *g, *b);
   if(*g % 2){
-    if((*b)-- == 0){
+    if(--(*b) <= 0){
       ++*g;
       *b = 0;
     }
   }else{
-    if((*b)++ >= 256){
+    if(++(*b) >= 256){
       ++*g;
-      *b = 256;
+      *b = 255;
     }
   }
   return ret;
