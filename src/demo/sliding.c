@@ -32,7 +32,7 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
     targy += deltay;
     targx += deltax;
     ncplane_move_yx(chunk, targy, targx);
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       return -1;
     }
     nanosleep(&movetime, NULL);
@@ -199,7 +199,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   if(draw_bounding_box(n, wastey, wastex, chunky, chunkx)){
     return -1;
   }
-  if(notcurses_render(nc)){
+  if(demo_render(nc)){
     goto done;
   }
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000000000, };
@@ -230,7 +230,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
     chunks[i0] = chunks[i1];
     ncplane_move_yx(chunks[i0], targy0, targx0);
     chunks[i1] = t;
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       goto done;
     }
   }

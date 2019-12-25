@@ -191,7 +191,7 @@ int luigi_demo(struct notcurses* nc){
       ncplane_move_top(lastseen);
     }
     ncplane_move_yx(lastseen, yoff, i);
-    notcurses_render(nc);
+    demo_render(nc);
     nanosleep(&stepdelay, NULL);
   }
   for(i = 0 ; i < 3 ; ++i){

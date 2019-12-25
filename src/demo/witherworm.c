@@ -257,7 +257,7 @@ snake_thread(void* vnc){
         return NULL;
       }
     }
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       return NULL;
     }
     for(int s = 0 ; s < snakecount ; ++s){
@@ -653,7 +653,7 @@ int witherworm_demo(struct notcurses* nc){
                  bytes_out, egcs_out, cols_out)){
         return -1;
       }
-      if(notcurses_render(nc)){
+      if(demo_render(nc)){
         return -1;
       }
       if(i){

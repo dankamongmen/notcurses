@@ -12,7 +12,7 @@ watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((u
       return 1;
     }
   }
-  return notcurses_render(nc);
+  return demo_render(nc);
 }
 
 static int
@@ -113,7 +113,7 @@ int view_demo(struct notcurses* nc){
     ncplane_destroy(dsplane);
     return -1;
   }
-  notcurses_render(nc);
+  demo_render(nc);
   ncplane_move_bottom(dsplane);
   nanosleep(&demodelay, NULL);
   if(ncvisual_render(ncv, 0, 0, 0, 0)){
@@ -124,10 +124,10 @@ int view_demo(struct notcurses* nc){
   }
   ncvisual_destroy(ncv);
   ncvisual_destroy(ncv2);
-  notcurses_render(nc);
+  demo_render(nc);
   nanosleep(&demodelay, NULL);
   ncplane_move_top(dsplane);
-  notcurses_render(nc);
+  demo_render(nc);
   ncplane_destroy(dsplane);
   nanosleep(&demodelay, NULL);
   struct ncplane* ncpl = legend(nc, dimy, dimx);

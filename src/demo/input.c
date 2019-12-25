@@ -57,6 +57,23 @@ pass_along(const ncinput* ni){
   return 0;
 }
 
+static int
+handle_mouse(struct notcurses* nc, const ncinput* ni){
+  if(ni->id != NCKEY_BUTTON1 && ni->id != NCKEY_RELEASE){
+    return 0;
+  }
+  int ret;
+  if(ni->id == NCKEY_RELEASE){
+    ret = hud_release();
+  }else{
+    ret = hud_grab(ni->y, ni->x);
+  }
+  if(ret == 0){
+    ret = demo_render(nc);
+  }
+  return ret;
+}
+
 static void *
 ultramegaok_demo(void* vnc){
   ncinput ni;
@@ -67,7 +84,7 @@ ultramegaok_demo(void* vnc){
       continue;
     }
     if(nckey_mouse_p(ni.id)){
-      // FIXME
+      handle_mouse(nc, &ni);
     }else{
       if(ni.id == 'q'){
         interrupt_demo();

@@ -22,7 +22,7 @@ int main(void){
   r = 0;
   g = 0x80;
   b = 0;
-  ncplane_set_fg_rgb(n, 0x80, 0x80, 0x80);
+  ncplane_set_fg_rgb(n, 0x40, 0x20, 0x40);
   for(y = 0 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
       if(ncplane_set_bg_rgb(n, r, g, b)){
