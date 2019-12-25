@@ -773,11 +773,12 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
           ret->colors, ret->RGBflag ? "direct" : "palette",
           __VERSION__, curses_version());
 #ifndef DISABLE_FFMPEG
-    fprintf(ret->ttyfp, " avformat %u.%u.%u\navutil %u.%u.%u\nswscale %u.%u.%u\n",
+    fprintf(ret->ttyfp, " avformat %u.%u.%u\n avutil %u.%u.%u\n swscale %u.%u.%u\n",
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
           LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
           LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
 #else
+    putp(tiparm(ret->setaf, 3));
     fprintf(ret->ttyfp, " warning: built without ffmpeg support\n");
 #endif
     if(!ret->RGBflag){ // FIXME
