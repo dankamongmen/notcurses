@@ -36,7 +36,7 @@ target_include_directories(notcurses
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_INCLUDE_DIR}"
+    "${TERMINFO_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses
   PRIVATE
@@ -51,18 +51,14 @@ target_link_directories(notcurses
 if(NOT "${DISABLE_FFMPEG}")
 target_include_directories(notcurses
   PRIVATE
-    "${AVFORMAT_INCLUDE_DIR}"
-    "${SWSCALE_INCLUDE_DIR}"
+    "${AVFORMAT_INCLUDE_DIRS}"
+    "${SWSCALE_INCLUDE_DIRS}"
 )
-endif()
-if(NOT "${DISABLE_FFMPEG}")
 target_link_libraries(notcurses
   PRIVATE
     "${AVFORMAT_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
 )
-endif()
-if(NOT "${DISABLE_FFMPEG}")
 target_link_directories(notcurses
   PRIVATE
     "${AVFORMAT_LIBRARY_DIRS}"
@@ -104,7 +100,7 @@ foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
   add_executable(${fe} ${f})
   target_include_directories(${fe}
-    PRIVATE include "${TERMINFO_INCLUDE_DIR}"
+    PRIVATE include "${TERMINFO_INCLUDE_DIRS}"
   )
   target_link_libraries(${fe}
     PRIVATE notcurses "${TERMINFO_LIBRARIES}"
@@ -161,7 +157,7 @@ target_include_directories(notcurses-view
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
-    "${AVUTIL_INCLUDE_DIR}"
+    "${AVUTIL_INCLUDE_DIRS}"
 )
 target_link_directories(notcurses-view
   PRIVATE
