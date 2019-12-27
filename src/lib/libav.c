@@ -1,7 +1,10 @@
+#include "version.h"
+#ifndef DISABLE_FFMPEG
 #include <libavutil/error.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 #include <libavformat/avformat.h>
+#endif
 #include "notcurses.h"
 #include "internal.h"
 
