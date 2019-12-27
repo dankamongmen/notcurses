@@ -252,7 +252,9 @@ typedef struct ncinput {
   char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
   int y;           // y cell coordinate of event, -1 for undefined
   int x;           // x cell coordinate of event, -1 for undefined
-  // FIXME modifiers (alt, etc?)
+  bool alt;        // was alt held?
+  bool shift;      // was shift held?
+  bool ctrl;       // was ctrl held?
 } ncinput;
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'

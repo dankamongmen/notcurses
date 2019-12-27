@@ -141,6 +141,9 @@ handle_csi(notcurses* nc, ncinput* ni){
         }else{
           break;
         }
+        ni->ctrl = param & 0x10;
+        ni->alt = param & 0x08;
+        ni->shift = param & 0x04;
         param = 0;
       }else if(isdigit(candidate)){
         param *= 10;
@@ -194,7 +197,7 @@ handle_csi(notcurses* nc, ncinput* ni){
 // return it, and pop it from the queue.
 static char32_t
 handle_getc(notcurses* nc, int kpress, ncinput* ni){
-// fprintf(stderr, "KEYPRESS: %d\n", kpress);
+//fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress < 0){
     return -1;
   }
@@ -300,6 +303,9 @@ handle_input(notcurses* nc, ncinput* ni){
 
 static char32_t
 handle_ncinput(notcurses* nc, ncinput* ni){
+  if(ni){
+    memset(ni, 0, sizeof(*ni));
+  }
   char32_t r = handle_input(nc, ni);
   if(ni){
     ni->id = r;
