@@ -101,7 +101,7 @@ that fine library.
 
 ## Requirements
 
-* A C11 and a C++14 compiler
+* A C11 and a C++17 compiler
 * CMake 3.13.0+
 * From NCURSES: terminfo 6.1+
 * (OPTIONAL) From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
