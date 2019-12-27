@@ -226,19 +226,31 @@ term_putc(FILE* out, const ncplane* n, const cell* c){
   if(cell_simple_p(c)){
     if(c->gcluster == 0 || iscntrl(c->gcluster)){
 // fprintf(stderr, "[ ]\n");
+#ifdef __USE_GNU
       if(fputc_unlocked(' ', out) == EOF){
+#else
+      if(fputc(' ', out) == EOF){
+#endif
         return -1;
       }
     }else{
 // fprintf(stderr, "[%c]\n", c->gcluster);
+#ifdef __USE_GNU
       if(fputc_unlocked(c->gcluster, out) == EOF){
+#else
+      if(fputc(c->gcluster, out) == EOF){
+#endif
         return -1;
       }
     }
   }else{
     const char* ext = extended_gcluster(n, c);
 // fprintf(stderr, "[%s]\n", ext);
+#ifdef __USE_GNU
     if(fputs_unlocked(ext, out) < 0){ // FIXME check for short write?
+#else
+    if(fputs(ext, out) < 0){
+#endif
       return -1;
     }
   }
@@ -350,7 +362,11 @@ term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, int esc,
   rgbesc[len++] = 'm';
   rgbesc[len] = '\0';
   int w;
+#ifdef __USE_GNU
   if((w = fputs_unlocked(rgbesc, out)) < len){
+#else
+  if((w = fputs(rgbesc, out)) < len){
+#endif
     return -1;
   }
   return 0;
