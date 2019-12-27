@@ -2,6 +2,7 @@
 #define NOTCURSES_INTERNAL
 
 #include <term.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
@@ -262,6 +263,11 @@ extended_gcluster(const ncplane* n, const cell* c){
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x);
 
 #define NANOSECS_IN_SEC 1000000000
+
+// no CLOCK_MONOTONIC_RAW on FreeBSD as of 12.0 :/
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#endif
 
 #ifdef __cplusplus
 }
