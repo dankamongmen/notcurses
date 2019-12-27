@@ -17,7 +17,7 @@ int box_demo(struct notcurses* nc){
     return -1;
   }
   struct timespec start, now;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+  clock_gettime(CLOCK_MONOTONIC, &start);
   int zbonus = 40;
   int zbonusdelta = 20;
   int ylen, xlen;
@@ -86,7 +86,7 @@ int box_demo(struct notcurses* nc){
       return -1;
     }
     nanosleep(&iterdelay, NULL);
-    clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+    clock_gettime(CLOCK_MONOTONIC, &now);
     if((zbonus += zbonusdelta > 255) || zbonus < 0){
       zbonusdelta = -zbonusdelta;
       zbonus += zbonusdelta;
