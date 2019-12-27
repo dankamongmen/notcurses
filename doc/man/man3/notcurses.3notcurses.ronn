@@ -20,11 +20,31 @@ output of `pkg-config --libs notcurses` (see pkg-config(1)). It is advised to
 compile with the output of `pkg-config --cflags notcurses`. If using CMake, a
 support file is provided, and can be accessed as `notcurses` (see cmake(1)).
 
+`notcurses_init(3notcurses)` can then be used to initialize a notcurses
+instance for a given `FILE*` (usually `stdout`), after calling `setlocale(3)`
+to prepare a UTF-8 locale (see [Initialization][]).
+
+### Initialization
+
 Before calling into notcurses—and usually as one of the first calls of the
-program—be sure to call `setlocale(3)` with an appropriate UTF-8 `LC_ALL`
+program—be sure to call `setlocale` with an appropriate UTF-8 `LC_ALL`
 locale. It is usually appropriate to use `setlocale(LC_ALL, "")`, relying on
 the user to properly set the `LANG` environment variable. notcurses will
 refuse to start if `nl_langinfo(3)` doesn't indicate UTF-8.
+
+`notcurses_init` accepts a `struct notcurses_options` allowing fine-grained
+control of notcurses behavior, including signal handlers, alternative screens,
+and overriding the TERM environment variable. A `terminfo` entry appropriate
+for the actual terminal must be available.
+
+### Shutdown
+
+Before exiting, `notcurses_stop(3notcurses)` should be called. In addition to
+freeing up resources, this is necessary to restore the terminal to a state
+useful for the shell. By default, `notcurses_init` installs signal handlers to
+catch all signals which would normally terminate the process. The new handlers
+will try to call `notcurses_stop`, and then propagate the received signal to
+the previous action.
 
 ## AUTHORS
 
