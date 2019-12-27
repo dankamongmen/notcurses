@@ -321,7 +321,7 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
 }
 
 // 3 for foreground, 4 for background, ugh FIXME
-static int
+static inline int
 term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, int esc,
              unsigned r, unsigned g, unsigned b){
   // The correct way to do this is using tiparm+tputs, but doing so (at least
@@ -339,34 +339,7 @@ term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, int esc,
   // we'd like to use the proper ITU T.416 colon syntax i.e. "8:2::", but it is
   // not supported by several terminal emulators :/.
   #define RGBESC2 "8;2;"
-                                    // rrr;ggg;bbbm
-  char rgbesc[] = RGBESC1 " " RGBESC2 "            ";
-  int len = strlen(RGBESC1);
-  rgbesc[len++] = esc;
-  len += strlen(RGBESC2);
-  if(r > 99){
-    rgbesc[len++] = r / 100 + '0';
-  }
-  if(r > 9){
-    rgbesc[len++] = (r % 100) / 10 + '0';
-  }
-  rgbesc[len++] = (r % 10) + '0';
-  rgbesc[len++] = ';';
-  if(g > 99){ rgbesc[len++] = g / 100 + '0'; }
-  if(g > 9){ rgbesc[len++] = (g % 100) / 10 + '0'; }
-  rgbesc[len++] = g % 10 + '0';
-  rgbesc[len++] = ';';
-  if(b > 99){ rgbesc[len++] = b / 100 + '0'; }
-  if(b > 9){ rgbesc[len++] = (b % 100) / 10 + '0'; }
-  rgbesc[len++] = b % 10 + '0';
-  rgbesc[len++] = 'm';
-  rgbesc[len] = '\0';
-  int w;
-#ifdef __USE_GNU
-  if((w = fputs_unlocked(rgbesc, out)) < len){
-#else
-  if((w = fputs(rgbesc, out)) < len){
-#endif
+  if(fprintf(out, RGBESC1"%c"RGBESC2"%d;%d;%dm", esc, r, g, b) < 0){
     return -1;
   }
   return 0;
