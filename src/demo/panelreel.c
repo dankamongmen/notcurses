@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <sys/poll.h>
 #include <notcurses.h>
-#include <sys/eventfd.h>
 #include "demo.h"
 
 #define INITIAL_TABLET_COUNT 4
@@ -362,11 +361,15 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
 
 int panelreel_demo(struct notcurses* nc){
   tabletctx* tctxs = NULL;
+  /* FIXME there's no eventfd on FreeBSD, so until we do a self-pipe
+   * trick here or something, just pass -1. it means higher latency
+   * on our keyboard events in this demo. oh well.
   int efd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
   if(efd < 0){
     fprintf(stderr, "Error creating eventfd (%s)\n", strerror(errno));
     return -1;
-  }
+  }*/
+  int efd = -1;
   struct panelreel* pr;
   if((pr = panelreel_demo_core(nc, efd, &tctxs)) == NULL){
     close(efd);
