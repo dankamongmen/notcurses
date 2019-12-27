@@ -6,7 +6,7 @@ project(notcurses VERSION 0.9.3
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 include(GNUInstallDirs)
@@ -212,16 +212,13 @@ endif()
 # Testing
 file(GLOB TESTSRCS CONFIGURE_DEPENDS dtests/*.cpp)
 add_executable(notcurses-dtester ${TESTSRCS})
-find_package(doctest 2.3.6 REQUIRED)
+find_package(doctest REQUIRED doctest>=1.2.7)
 target_include_directories(notcurses-dtester
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
     src/lib
 )
-target_compile_features(notcurses-dtester
-  PRIVATE
-    cxx_std_17)
 target_link_libraries(notcurses-dtester
   PRIVATE
     doctest::doctest
