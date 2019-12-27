@@ -631,8 +631,7 @@ ncplane_printf(struct ncplane* n, const char* format, ...){
 }
 
 static inline int
-ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
-                       const char* format, ...)
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
   __attribute__ ((format (printf, 4, 5)));
 
 static inline int
@@ -645,7 +644,8 @@ ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
 }
 
 static inline int
-ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
+ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
+                       const char* format, ...)
   __attribute__ ((format (printf, 4, 5)));
 
 static inline int
