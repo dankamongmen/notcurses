@@ -34,7 +34,7 @@ TEST_CASE("Multimedia") {
     int averr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncplane_visual_open(ncp_, "../data/dsscaw-purp.png", &averr);
+    auto ncv = ncplane_visual_open(ncp_, find_data("dsscaw-purp.png"), &averr);
     REQUIRE(ncv);
     REQUIRE(0 == averr);
     auto frame = ncvisual_decode(ncv, &averr);
@@ -55,7 +55,7 @@ TEST_CASE("Multimedia") {
     int averr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncplane_visual_open(ncp_, "../data/fm6.mkv", &averr);
+    auto ncv = ncplane_visual_open(ncp_, find_data("fm6.mkv"), &averr);
     REQUIRE(ncv);
     CHECK(0 == averr);
     auto frame = ncvisual_decode(ncv, &averr);
@@ -72,7 +72,7 @@ TEST_CASE("Multimedia") {
     int averr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_open_plane(nc_, "../data/fm6.mkv", &averr, 0, 0, NCSCALE_STRETCH);
+    auto ncv = ncvisual_open_plane(nc_, find_data("fm6.mkv"), &averr, 0, 0, NCSCALE_STRETCH);
     REQUIRE(ncv);
     CHECK(0 == averr);
     auto frame = ncvisual_decode(ncv, &averr);

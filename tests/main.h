@@ -3,6 +3,7 @@
 
 #include "doctest.h"
 #include <notcurses.h>
-#include <curses.h>
+
+char* find_data(const char* datum);
 
 #endif

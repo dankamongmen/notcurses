@@ -236,7 +236,7 @@ target_compile_definitions(notcurses-tester
 enable_testing()
 add_test(
   NAME notcurses-tester
-  COMMAND notcurses-tester
+  COMMAND notcurses-tester -p ../data
 )
 
 # pkg-config support

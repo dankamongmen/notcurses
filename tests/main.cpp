@@ -1,9 +1,51 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <clocale>
+#include <cstring>
+#include <cstdlib>
 #include <iostream>
+#include <limits.h>
 #include "main.h"
 
-int main(int argc, char **argv){
+static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
+
+char* find_data(const char* datum){
+  char* path = (char*)malloc(strlen(datadir) + 1 + strlen(datum) + 1);
+  strcpy(path, datadir);
+  strcat(path, "/");
+  strcat(path, datum);
+  return path;
+}
+
+static void
+handle_opts(const char** argv){
+  bool inarg = false;
+  while(*argv){
+    if(inarg){
+      strncpy(datadir, *argv, sizeof(datadir));
+      inarg = false;
+    }else if(strcmp(*argv, "-p") == 0){
+      inarg = true;
+    }
+    ++argv;
+  }
+}
+
+// from https://github.com/onqtam/doctest/blob/master/doc/markdown/commandline.md
+class dt_removed {
+  std::vector<const char*> vec;
+public:
+  dt_removed(const char** argv_in) {
+      for(; *argv_in; ++argv_in)
+          if(strncmp(*argv_in, "--dt-", strlen("--dt-")) != 0)
+              vec.push_back(*argv_in);
+      vec.push_back(NULL);
+  }
+
+  int          argc() { return static_cast<int>(vec.size()) - 1; }
+  const char** argv() { return &vec[0]; } // Note: non-const char **:
+};
+
+int main(int argc, const char **argv){
   if(!setlocale(LC_ALL, "")){
     std::cerr << "Coudln't set locale based on user preferences!" << std::endl;
     return EXIT_FAILURE;
@@ -11,14 +53,15 @@ int main(int argc, char **argv){
   doctest::Context context;
 
   // defaults
-  context.addFilter("test-case-exclude", "*math*"); // exclude test cases with "math" in their name
-  context.setOption("abort-after", 5);              // stop test execution after 5 failed assertions
   context.setOption("order-by", "name");            // sort the test cases by their name
 
   context.applyCommandLine(argc, argv);
 
   // overrides
   context.setOption("no-breaks", true);             // don't break in the debugger when assertions fail
+
+  dt_removed args(argv);
+  handle_opts(argv);
 
   int res = context.run(); // run
 
