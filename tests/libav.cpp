@@ -2,10 +2,6 @@
 #include "version.h"
 #include "main.h"
 
-#ifndef DISABLE_FFMPEG
-#include <libavutil/pixdesc.h>
-#include <libavutil/avconfig.h>
-#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
 class LibavTest : public :: testing::Test {
  protected:
   void SetUp() override {
@@ -37,6 +33,19 @@ class LibavTest : public :: testing::Test {
   ncplane* ncp_{};
   FILE* outfp_{};
 };
+
+#ifdef DISABLE_FFMPEG
+TEST_F(LibavTest, LibavDisabled){
+  ASSERT_FALSE(notcurses_canopen(nc_);
+}
+#else
+#include <libavutil/pixdesc.h>
+#include <libavutil/avconfig.h>
+#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
+
+TEST_F(LibavTest, LibavEnabled){
+  ASSERT_TRUE(notcurses_canopen(nc_));
+}
 
 TEST_F(LibavTest, LoadImage) {
   int averr;

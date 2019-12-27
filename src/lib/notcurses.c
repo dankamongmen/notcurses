@@ -1598,3 +1598,7 @@ int notcurses_mouse_disable(notcurses* n){
                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
                    n->ttyfp, true);
 }
+
+bool notcurses_canfade(const notcurses* nc){
+  return nc->CCCflag || nc->RGBflag;
+}

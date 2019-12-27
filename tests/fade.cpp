@@ -15,6 +15,9 @@ class FadeTest : public :: testing::Test {
     ASSERT_NE(nullptr, outfp_);
     nc_ = notcurses_init(&nopts, outfp_);
     ASSERT_NE(nullptr, nc_);
+    if(!notcurses_canfade(nc_)){
+      GTEST_SKIP();
+    }
     n_ = notcurses_stdplane(nc_);
     ASSERT_NE(nullptr, n_);
     ASSERT_EQ(0, ncplane_cursor_move_yx(n_, 0, 0));

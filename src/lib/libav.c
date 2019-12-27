@@ -33,6 +33,10 @@ void ncvisual_destroy(ncvisual* ncv){
 }
 
 #ifndef DISABLE_FFMPEG
+bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
+  return true;
+}
+
 static ncvisual*
 ncvisual_create(void){
   ncvisual* ret = malloc(sizeof(*ret));
@@ -400,6 +404,9 @@ int ncvisual_init(void){
 }
 #else
 // built without ffmpeg
+bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
+  return false;
+}
 
 struct AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
   (void)nc;
