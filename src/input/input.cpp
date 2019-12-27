@@ -176,16 +176,19 @@ int main(void){
     if(ncplane_cursor_move_yx(n, y, 0)){
       break;
     }
+    ncplane_set_fg_rgb(n, 0xd0, 0xd0, 0xd0);
+    ncplane_printf(n, "%c%c%c ", ni.alt ? 'A' : 'a', ni.ctrl ? 'C' : 'c',
+                   ni.shift ? 'S' : 's');
     if(r < 0x80){
       ncplane_set_fg_rgb(n, 128, 250, 64);
-      if(ncplane_printf(n, "Got ASCII: [0x%02x (%03d)] '%lc'",
+      if(ncplane_printf(n, "ASCII: [0x%02x (%03d)] '%lc'",
                         r, r, iswprint(r) ? r : printutf8(r)) < 0){
         break;
       }
     }else{
       if(wchar_supppuab_p(r)){
         ncplane_set_fg_rgb(n, 250, 64, 128);
-        if(ncplane_printf(n, "Got special key: [0x%02x (%02d)] '%s'",
+        if(ncplane_printf(n, "Special: [0x%02x (%02d)] '%s'",
                           r, r, nckeystr(r)) < 0){
           break;
         }
@@ -197,7 +200,7 @@ int main(void){
         }
       }else{
         ncplane_set_fg_rgb(n, 64, 128, 250);
-        ncplane_printf(n, "Got UTF-8: [0x%08x] '%lc'", r, r);
+        ncplane_printf(n, "Unicode: [0x%08x] '%lc'", r, r);
       }
     }
     if(dim_rows(n)){
