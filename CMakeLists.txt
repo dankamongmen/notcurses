@@ -76,7 +76,7 @@ target_compile_options(notcurses
 )
 target_compile_definitions(notcurses
   PUBLIC
-    _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+    _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
   PRIVATE
     FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
 )
