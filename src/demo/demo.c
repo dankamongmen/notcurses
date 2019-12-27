@@ -66,8 +66,9 @@ struct timespec demodelay = {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -h ] [ -H ] [ -k ] [ -d mult ] [ -c ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -hHVkc ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
+  fprintf(out, " -V: print program name and version\n");
   fprintf(out, " -H: deploy the HUD\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
   fprintf(out, " -d: delay multiplier (float)\n");
@@ -82,7 +83,7 @@ usage(const char* exe, int status){
   fprintf(out, " m: run maxcolor\n");
   fprintf(out, " o: run outro\n");
   fprintf(out, " p: run panelreels\n");
-  fprintf(out, " s: run shuffle\n");
+  fprintf(out, " s: run sliders\n");
   fprintf(out, " u: run uniblock\n");
   fprintf(out, " v: run view\n");
   fprintf(out, " w: run witherworm\n");
@@ -287,7 +288,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
   int c;
   *use_hud = false;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "Hhckd:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "HVhckd:f:p:")) != EOF){
     switch(c){
       case 'H':
         *use_hud = true;
@@ -295,6 +296,9 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
         break;
+      case 'V':
+        printf("notcurses-demo version %s\n", notcurses_version());
+        exit(EXIT_SUCCESS);
       case 'c':
         constant_seed = true;
         break;

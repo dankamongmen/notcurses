@@ -113,24 +113,23 @@ foreach(f ${POCSRCS})
 endforeach()
 
 # Documentation
-file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.ronn)
 file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.ronn)
 FIND_PROGRAM(RONN ronn)
 iF(NOT RONN)
   message(WARNING "ronn not found, won't regenerate man pages")
 else()
-foreach(m ${MANSOURCE1} ${MANSOURCE3})
-  get_filename_component(me "${m}" NAME_WLE)
+foreach(m ${MANSOURCE3})
+  get_filename_component(me ${m} NAME_WLE)
   add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${m}
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
     DEPENDS ${m}
     COMMAND ${RONN}
-    ARGS -r --pipe ${me}.ronn > ${CMAKE_CURRENT_BINARY_DIR}/${me}
-    COMMENT "Generating man page with ronn"
+    ARGS -r --pipe ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
+    COMMENT "Building man page ${me}"
   )
   add_custom_target(docs
     ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${m}
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
   )
   endforeach()
 endif()
@@ -271,7 +270,8 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/notcurses
 )
 
-file(GLOB MANPAGES1 CONFIGURE_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/*.1)
+file(GLOB MANPAGES1 CONFIGURE_DEPENDS doc/man/man1/*.1)
+# FIXME -- these won't exist until we've run through once, ack
 file(GLOB MANPAGES3 CONFIGURE_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/*.3notcurses)
 install(FILES
   ${MANPAGES1}
