@@ -157,7 +157,6 @@ target_compile_definitions(notcurses-planereel
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 if(NOT "${DISABLE_FFMPEG}")
 add_executable(notcurses-view ${VIEWSRCS})
-endif()
 target_include_directories(notcurses-view
   PRIVATE
     include
@@ -184,6 +183,7 @@ target_compile_definitions(notcurses-view
   PRIVATE
     FORTIFY_SOURCE=2
 )
+endif()
 
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
