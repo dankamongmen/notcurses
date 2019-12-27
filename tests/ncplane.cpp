@@ -7,8 +7,8 @@
 void BoxPermutationsRounded(struct notcurses* nc, struct ncplane* n, unsigned edges) {
   int dimx, dimy;
   ncplane_dim_yx(n, &dimy, &dimx);
-  REQUIRE(2 >  dimy);
-  REQUIRE(47 >  dimx);
+  REQUIRE(2 < dimy);
+  REQUIRE(47 < dimx);
   // we'll try all 16 boxmasks in 3x3 configurations in a 1x16 map
   unsigned boxmask = edges << NCBOXCORNER_SHIFT;
   for(auto x0 = 0 ; x0 < 16 ; ++x0){
@@ -32,10 +32,6 @@ TEST_CASE("NCPlane") {
   REQUIRE(nc_);
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
-  REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
-
-  CHECK(0 == notcurses_stop(nc_));
-  CHECK(0 == fclose(outfp_));
 
   // Starting position ought be 0, 0 (the origin)
   SUBCASE("StdPlanePosition") {
@@ -101,14 +97,14 @@ TEST_CASE("NCPlane") {
   }
 
   SUBCASE("RejectBadRGB") {
-    CHECK(0 <= ncplane_set_fg_rgb(n_, -1, 0, 0));
-    CHECK(0 <= ncplane_set_fg_rgb(n_, 0, -1, 0));
-    CHECK(0 <= ncplane_set_fg_rgb(n_, 0, 0, -1));
-    CHECK(0 <= ncplane_set_fg_rgb(n_, -1, -1, -1));
-    CHECK(0 <= ncplane_set_fg_rgb(n_, 256, 255, 255));
-    CHECK(0 <= ncplane_set_fg_rgb(n_, 255, 256, 255));
-    CHECK(0 <= ncplane_set_fg_rgb(n_, 255, 255, 256));
-    CHECK(0 <= ncplane_set_fg_rgb(n_, 256, 256, 256));
+    CHECK(0 > ncplane_set_fg_rgb(n_, -1, 0, 0));
+    CHECK(0 > ncplane_set_fg_rgb(n_, 0, -1, 0));
+    CHECK(0 > ncplane_set_fg_rgb(n_, 0, 0, -1));
+    CHECK(0 > ncplane_set_fg_rgb(n_, -1, -1, -1));
+    CHECK(0 > ncplane_set_fg_rgb(n_, 256, 255, 255));
+    CHECK(0 > ncplane_set_fg_rgb(n_, 255, 256, 255));
+    CHECK(0 > ncplane_set_fg_rgb(n_, 255, 255, 256));
+    CHECK(0 > ncplane_set_fg_rgb(n_, 256, 256, 256));
   }
 
   // Verify we can emit a multibyte character, and it advances the cursor
@@ -116,7 +112,7 @@ TEST_CASE("NCPlane") {
     const char cchar[] = "✔";
     cell c{};
     CHECK(strlen(cchar) == cell_load(n_, &c, cchar));
-    CHECK(0 >  ncplane_putc(n_, &c));
+    CHECK(0 < ncplane_putc(n_, &c));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -128,7 +124,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("EmitWchar") {
     const wchar_t* w = L"✔";
     int sbytes = 0;
-    CHECK(0 >  ncplane_putwegc(n_, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putwegc(n_, w, 0, 0, &sbytes));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -152,7 +148,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("EmitWideStr") {
     const wchar_t s[] = L"Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
     int wrote = ncplane_putwstr(n_, s);
-    CHECK(0 >  wrote);
+    CHECK(0 < wrote);
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -166,7 +162,7 @@ TEST_CASE("NCPlane") {
       "🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐫🐬🐭🐮"
       "🐯🐰🐱🐲🐳🐴🐵🐶🐷🐹🐺🐻🐼🦉🐊🦕🦖🐬🐙🦠🦀";
     int wrote = ncplane_putwstr(n_, e);
-    CHECK(0 >  wrote);
+    CHECK(0 < wrote);
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK_LE(0, y);
@@ -177,8 +173,8 @@ TEST_CASE("NCPlane") {
   SUBCASE("HorizontalLines") {
     int x, y;
     ncplane_dim_yx(n_, &y, &x);
-    REQUIRE(0 >  y);
-    REQUIRE(0 >  x);
+    REQUIRE(0 < y);
+    REQUIRE(0 < x);
     cell c{};
     cell_load(n_, &c, "-");
     for(int yidx = 0 ; yidx < y ; ++yidx){
@@ -196,8 +192,8 @@ TEST_CASE("NCPlane") {
   SUBCASE("VerticalLines") {
     int x, y;
     ncplane_dim_yx(n_, &y, &x);
-    REQUIRE(0 >  y);
-    REQUIRE(0 >  x);
+    REQUIRE(0 < y);
+    REQUIRE(0 < x);
     cell c{};
     cell_load(n_, &c, "|");
     for(int xidx = 1 ; xidx < x - 1 ; ++xidx){
@@ -216,8 +212,8 @@ TEST_CASE("NCPlane") {
   SUBCASE("BadlyPlacedBoxen") {
     int x, y;
     ncplane_dim_yx(n_, &y, &x);
-    REQUIRE(2 >  y);
-    REQUIRE(2 >  x);
+    REQUIRE(2 < y);
+    REQUIRE(2 < x);
     cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     REQUIRE(0 == cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
@@ -253,8 +249,8 @@ TEST_CASE("NCPlane") {
   SUBCASE("BoxPermutationsDouble") {
     int dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(2 >  dimx);
-    REQUIRE(47 >  dimx);
+    REQUIRE(2 < dimx);
+    REQUIRE(47 < dimx);
     // we'll try all 16 boxmasks in 3x3 configurations in a 1x16 map
     unsigned boxmask = 0;
     for(auto x0 = 0 ; x0 < 16 ; ++x0){
@@ -268,8 +264,8 @@ TEST_CASE("NCPlane") {
   SUBCASE("PerimeterRoundedBox") {
     int x, y;
     ncplane_dim_yx(n_, &y, &x);
-    REQUIRE(2 >  y);
-    REQUIRE(2 >  x);
+    REQUIRE(2 < y);
+    REQUIRE(2 < x);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     CHECK(0 == ncplane_rounded_box(n_, 0, 0, y - 1, x - 1, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -278,8 +274,8 @@ TEST_CASE("NCPlane") {
   SUBCASE("PerimeterRoundedBoxSized") {
     int x, y;
     ncplane_dim_yx(n_, &y, &x);
-    REQUIRE(2 >  y);
-    REQUIRE(2 >  x);
+    REQUIRE(2 < y);
+    REQUIRE(2 < x);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     CHECK(0 == ncplane_rounded_box_sized(n_, 0, 0, y, x, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -288,8 +284,8 @@ TEST_CASE("NCPlane") {
   SUBCASE("PerimeterDoubleBox") {
     int x, y;
     ncplane_dim_yx(n_, &y, &x);
-    REQUIRE(2 >  y);
-    REQUIRE(2 >  x);
+    REQUIRE(2 < y);
+    REQUIRE(2 < x);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     CHECK(0 == ncplane_double_box(n_, 0, 0, y - 1, x - 1, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -298,8 +294,8 @@ TEST_CASE("NCPlane") {
   SUBCASE("PerimeterDoubleBoxSized") {
     int x, y;
     ncplane_dim_yx(n_, &y, &x);
-    REQUIRE(2 >  y);
-    REQUIRE(2 >  x);
+    REQUIRE(2 < y);
+    REQUIRE(2 < x);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     CHECK(0 == ncplane_double_box_sized(n_, 0, 0, y, x, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -364,8 +360,8 @@ TEST_CASE("NCPlane") {
     cell c2 = CELL_TRIVIAL_INITIALIZER;
     auto u1 = cell_load(n_, &c1, w1);
     auto u2 = cell_load(n_, &c2, w2);
-    REQUIRE(0 >  u1);
-    REQUIRE(0 >  u2);
+    REQUIRE(0 < u1);
+    REQUIRE(0 < u2);
     REQUIRE(strlen(w1) == u1);
     REQUIRE(strlen(w2) == u2);
     CHECK(cell_double_wide_p(&c1));
@@ -492,28 +488,28 @@ TEST_CASE("NCPlane") {
     const char STR3[] = "Pack my box with five dozen liquor jugs";
     ncplane_styles_set(n_, 0);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    REQUIRE(0 >  ncplane_putstr(n_, STR1));
+    REQUIRE(0 < ncplane_putstr(n_, STR1));
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - strlen(STR2)));
-    REQUIRE(0 >  ncplane_putstr(n_, STR2));
+    REQUIRE(0 < ncplane_putstr(n_, STR2));
     int y, x;
     ncplane_cursor_yx(n_, &y, &x);
     REQUIRE(2 == y);
     REQUIRE(0 == x);
-    REQUIRE(0 >  ncplane_putstr(n_, STR3));
+    REQUIRE(0 < ncplane_putstr(n_, STR3));
     cell testcell = CELL_TRIVIAL_INITIALIZER;
     REQUIRE(0 == ncplane_at_cursor(n_, &testcell)); // want nothing at the cursor
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    REQUIRE(0 >  ncplane_at_cursor(n_, &testcell)); // want first char of STR1
+    REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want first char of STR1
     CHECK(STR1[0] == testcell.gcluster);
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - 1));
-    REQUIRE(0 >  ncplane_at_cursor(n_, &testcell)); // want last char of STR2
+    REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want last char of STR2
     CHECK(STR2[strlen(STR2) - 1] == testcell.gcluster);
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
@@ -528,28 +524,28 @@ TEST_CASE("NCPlane") {
     const char STR3[] = "Война и мир"; // just thrown in to complicate things
     ncplane_styles_set(n_, 0);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    REQUIRE(0 >  ncplane_putstr(n_, STR1));
+    REQUIRE(0 < ncplane_putstr(n_, STR1));
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(NULL, STR2, 0)));
-    REQUIRE(0 >  ncplane_putstr(n_, STR2));
+    REQUIRE(0 < ncplane_putstr(n_, STR2));
     int y, x;
     ncplane_cursor_yx(n_, &y, &x);
     REQUIRE(2 == y);
     REQUIRE(0 == x);
-    REQUIRE(0 >  ncplane_putstr(n_, STR3));
+    REQUIRE(0 < ncplane_putstr(n_, STR3));
     cell testcell = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_cursor(n_, &testcell); // should be nothing at the cursor
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    REQUIRE(0 >  ncplane_at_cursor(n_, &testcell)); // want first char of STR1
+    REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want first char of STR1
     CHECK(!strcmp("Σ", cell_extended_gcluster(n_, &testcell)));
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(NULL, STR2, 0)));
-    REQUIRE(0 >  ncplane_at_cursor(n_, &testcell)); // want first char of STR2
+    REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want first char of STR2
     CHECK(!strcmp("α", cell_extended_gcluster(n_, &testcell)));
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
@@ -568,25 +564,25 @@ TEST_CASE("NCPlane") {
     for(auto i = 0u ; i < tcells.size() ; ++i){
       cell_init(&tcells[i]);
     }
-    REQUIRE(1 >  cell_load(n_, &tcells[0], EGC0));
-    REQUIRE(1 >  cell_load(n_, &tcells[1], EGC1));
-    REQUIRE(1 >  cell_load(n_, &tcells[2], EGC2));
-    REQUIRE(1 >  cell_load(n_, &tcells[3], EGC3));
-    REQUIRE(1 >  cell_load(n_, &tcells[4], EGC4));
+    REQUIRE(1 < cell_load(n_, &tcells[0], EGC0));
+    REQUIRE(1 < cell_load(n_, &tcells[1], EGC1));
+    REQUIRE(1 < cell_load(n_, &tcells[2], EGC2));
+    REQUIRE(1 < cell_load(n_, &tcells[3], EGC3));
+    REQUIRE(1 < cell_load(n_, &tcells[4], EGC4));
     for(auto i = 0u ; i < tcells.size() ; ++i){
-      REQUIRE(0 >  ncplane_putc(n_, &tcells[i]));
+      REQUIRE(0 < ncplane_putc(n_, &tcells[i]));
     }
     CHECK(0 == notcurses_render(nc_));
     int x = 0;
     for(auto i = 0u ; i < tcells.size() ; ++i){
       CHECK(0 == ncplane_cursor_move_yx(n_, 0, x));
       cell testcell = CELL_TRIVIAL_INITIALIZER;
-      REQUIRE(0 >  ncplane_at_cursor(n_, &testcell));
+      REQUIRE(0 < ncplane_at_cursor(n_, &testcell));
       CHECK(!strcmp(cell_extended_gcluster(n_, &tcells[i]),
                     cell_extended_gcluster(n_, &testcell)));
       CHECK(0 == testcell.attrword);
       wchar_t w;
-      REQUIRE(0 >  mbtowc(&w, cell_extended_gcluster(n_, &tcells[i]), MB_CUR_MAX));
+      REQUIRE(0 < mbtowc(&w, cell_extended_gcluster(n_, &tcells[i]), MB_CUR_MAX));
       if(wcwidth(w) == 2){
         CHECK(CELL_WIDEASIAN_MASK == testcell.channels);
         ++x;
@@ -603,15 +599,15 @@ TEST_CASE("NCPlane") {
     const char STR2[] = "not to mention dank";
     const char STR3[] = "da chronic lives";
     ncplane_styles_set(n_, CELL_STYLE_BOLD);
-    REQUIRE(0 >  ncplane_putstr(n_, STR1));
+    REQUIRE(0 < ncplane_putstr(n_, STR1));
     int y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == ncplane_cursor_move_yx(n_, y + 1, x - strlen(STR2)));
     ncplane_styles_on(n_, CELL_STYLE_ITALIC);
-    REQUIRE(0 >  ncplane_putstr(n_, STR2));
+    REQUIRE(0 < ncplane_putstr(n_, STR2));
     CHECK(0 == ncplane_cursor_move_yx(n_, y + 2, x - strlen(STR3)));
     ncplane_styles_off(n_, CELL_STYLE_BOLD);
-    REQUIRE(0 >  ncplane_putstr(n_, STR3));
+    REQUIRE(0 < ncplane_putstr(n_, STR3));
     ncplane_styles_off(n_, CELL_STYLE_ITALIC);
     CHECK(0 == notcurses_render(nc_));
     int newx;
@@ -633,8 +629,8 @@ TEST_CASE("NCPlane") {
     const auto sidesz = 5;
     int dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(20 >  dimy);
-    REQUIRE(40 >  dimx);
+    REQUIRE(20 < dimy);
+    REQUIRE(40 < dimx);
     cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     REQUIRE(0 == cells_double_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == channels_set_fg_rgb(&ul.channels, 255, 0, 0));
@@ -671,8 +667,8 @@ TEST_CASE("NCPlane") {
     const auto sidesz = 5;
     int dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(20 >  dimy);
-    REQUIRE(40 >  dimx);
+    REQUIRE(20 < dimy);
+    REQUIRE(40 < dimx);
     cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     REQUIRE(0 == cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     // we'll try all 16 boxmasks in sideszXsidesz configurations in a 4x4 map
@@ -709,14 +705,14 @@ TEST_CASE("NCPlane") {
     // give us some room on both sides
     CHECK(0 == ncplane_cursor_move_yx(n_, 1, 10));
     int sbytes = -1;
-    CHECK(0 >  ncplane_putegc(n_, "־", 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc(n_, "־", 0, 0, &sbytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_cursor_move_yx(n_, 3, 10));
-    CHECK(0 >  ncplane_putstr(n_, "I can write English with מילים בעברית in the same sentence."));
+    CHECK(0 < ncplane_putstr(n_, "I can write English with מילים בעברית in the same sentence."));
     CHECK(0 == ncplane_cursor_move_yx(n_, 5, 10));
-    CHECK(0 >  ncplane_putstr(n_, "|🔥|I have not yet ־ begun to hack|🔥|"));
+    CHECK(0 < ncplane_putstr(n_, "|🔥|I have not yet ־ begun to hack|🔥|"));
     CHECK(0 == ncplane_cursor_move_yx(n_, 7, 10));
-    CHECK(0 >  ncplane_putstr(n_, "㉀㉁㉂㉃㉄㉅㉆㉇㉈㉉㉊㉋㉌㉍㉎㉏㉐㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟"));
+    CHECK(0 < ncplane_putstr(n_, "㉀㉁㉂㉃㉄㉅㉆㉇㉈㉉㉊㉋㉌㉍㉎㉏㉐㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟"));
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -758,14 +754,14 @@ TEST_CASE("NCPlane") {
     const char* wbashed = "\xf0\x9f\xa6\x82"; // U+1F982 SCORPION
     const char bashed = 'X';
     int sbytes = 0;
-    CHECK(0 >  ncplane_putegc_yx(n_, 0, 1, wbashed, 0, 0, &sbytes));
-    CHECK(0 >  ncplane_putsimple_yx(n_, 1, 1, bashed));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 1, wbashed, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putsimple_yx(n_, 1, 1, bashed));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(1 == y);
     CHECK(2 == x);
-    CHECK(0 >  ncplane_putegc_yx(n_, 0, 0, w, 0, 0, &sbytes));
-    CHECK(0 >  ncplane_putegc_yx(n_, 1, 0, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 1, 0, w, 0, 0, &sbytes));
     cell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx(n_, 0, 0, &c);
     const char* wres = extended_gcluster(n_, &c);
@@ -790,8 +786,8 @@ TEST_CASE("NCPlane") {
     const char* w = "\xf0\x9f\x90\x8d";
     const char* wbashed = "\xf0\x9f\xa6\x82";
     int sbytes = 0;
-    CHECK(0 >  ncplane_putegc_yx(n_, 0, 0, wbashed, 0, 0, &sbytes));
-    CHECK(0 >  ncplane_putegc_yx(n_, 0, 1, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashed, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 1, w, 0, 0, &sbytes));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -814,8 +810,8 @@ TEST_CASE("NCPlane") {
     const char* wbashedl = "\xf0\x9f\x90\x8d";
     const char* wbashedr = "\xf0\x9f\xa6\x82";
     int sbytes = 0;
-    CHECK(0 >  ncplane_putegc_yx(n_, 0, 0, wbashedl, 0, 0, &sbytes));
-    CHECK(0 >  ncplane_putegc_yx(n_, 0, 2, wbashedr, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashedl, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, 0, 0, &sbytes));
     CHECK(1 == ncplane_putsimple_yx(n_, 0, 1, cc));
     CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, cc));
     int x, y;
@@ -841,8 +837,8 @@ TEST_CASE("NCPlane") {
     const char* wsafel = "\xf0\x9f\x90\x8d";
     const char* wsafer = "\xf0\x9f\xa6\x82";
     int sbytes = 0;
-    CHECK(0 >  ncplane_putegc_yx(n_, 0, 0, wsafel, 0, 0, &sbytes));
-    CHECK(0 >  ncplane_putegc_yx(n_, 0, 3, wsafer, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, 0, 0, &sbytes));
     CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, cc));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -863,5 +859,8 @@ TEST_CASE("NCPlane") {
     CHECK(cell_double_wide_p(&c)); // should be scorpion
     CHECK(0 == notcurses_render(nc_));
   }
+
+  CHECK(0 == notcurses_stop(nc_));
+  CHECK(0 == fclose(outfp_));
 
 }

@@ -210,7 +210,7 @@ target_compile_definitions(notcurses-view
 endif()
 
 # Testing
-file(GLOB TESTSRCS CONFIGURE_DEPENDS dtests/*.cpp)
+file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 find_package(doctest REQUIRED doctest>=1.2.7)
 target_include_directories(notcurses-tester
@@ -234,6 +234,10 @@ target_compile_definitions(notcurses-tester
 )
 
 enable_testing()
+add_test(
+  NAME notcurses-tester
+  COMMAND notcurses-tester
+)
 
 # pkg-config support
 configure_file(tools/notcurses.pc.in
