@@ -11,13 +11,6 @@
 #define CHUNKSIZE 32  // show this many per line
 
 static int
-fade_block(struct ncplane* nn, const struct timespec* subdelay){
-  int ret = ncplane_fadein(nn, subdelay, demo_fader);
-  ncplane_destroy(nn);
-  return ret;
-}
-
-static int
 draw_block(struct ncplane* nn, uint32_t blockstart){
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
@@ -204,9 +197,9 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf_aligned(n, 6 + BLOCKSIZE / CHUNKSIZE, NCALIGN_CENTER, "%s", description) <= 0){
       return -1;
     }
-    if(fade_block(nn, &subdelay)){ // destroys nn
-      return -1;
-    }
+    notcurses_render(nc);
+    nanosleep(&subdelay, NULL);
+    ncplane_destroy(nn);
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused.
     blockstart += BLOCKSIZE;

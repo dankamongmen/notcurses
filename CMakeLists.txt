@@ -6,7 +6,7 @@ project(notcurses VERSION 0.9.3
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 include(GNUInstallDirs)
@@ -212,7 +212,7 @@ endif()
 # Testing
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
-find_package(GTest 1.9 REQUIRED)
+find_package(doctest REQUIRED doctest>=1.2.7)
 target_include_directories(notcurses-tester
   PRIVATE
     include
@@ -220,19 +220,24 @@ target_include_directories(notcurses-tester
     src/lib
 )
 target_link_libraries(notcurses-tester
-  GTest::GTest
-  notcurses
+  PRIVATE
+    doctest::doctest
+    notcurses
 )
-target_compile_options(notcurses-tester PRIVATE
-  -Wall -Wextra -W -Wshadow
+target_compile_options(notcurses-tester
+  PRIVATE
+    -Wall -Wextra -W -Wshadow
 )
 target_compile_definitions(notcurses-tester
   PRIVATE
     FORTIFY_SOURCE=2
 )
 
-gtest_discover_tests(notcurses-tester)
 enable_testing()
+add_test(
+  NAME notcurses-tester
+  COMMAND notcurses-tester
+)
 
 # pkg-config support
 configure_file(tools/notcurses.pc.in

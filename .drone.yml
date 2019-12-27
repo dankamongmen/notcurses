@@ -37,3 +37,4 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
+    - env LANG="en_US.UTF-8" make test

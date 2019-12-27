@@ -99,10 +99,6 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
   int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
   uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
   uint64_t nanosecs_step = nanosecs_total / maxsteps;
-  while(nanosecs_step < 10000000){ // 10msec
-    nanosecs_step *= 10;
-    maxsteps = nanosecs_total / nanosecs_step;
-  }
   struct timespec times;
   clock_gettime(CLOCK_MONOTONIC, &times);
   // Start time in absolute nanoseconds
@@ -178,10 +174,6 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
   int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
   uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
   uint64_t nanosecs_step = nanosecs_total / maxsteps;
-  while(nanosecs_step < 10000000){ // 10msec
-    nanosecs_step *= 10;
-    maxsteps = nanosecs_total / nanosecs_step;
-  }
   struct timespec times;
   clock_gettime(CLOCK_MONOTONIC, &times);
   // Start time in absolute nanoseconds
