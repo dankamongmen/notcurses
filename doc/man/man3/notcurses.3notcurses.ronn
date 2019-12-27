@@ -1,0 +1,35 @@
+notcurses(3notcurses) -- TUI library for modern terminal emulators
+==================================================================
+
+## SYNOPSIS
+
+`#include <notcurses.h>`
+
+`-lnotcurses`
+
+## DESCRIPTION
+
+notcurses builds atop the terminfo(5) abstraction layer to provide reasonably
+portable vivid character displays. It is an intellectual descendant of
+ncurses(3NCURSES), but goes beyond that library (and the X/Open Curses API it
+implements). notcurses is capable of subregion fades, 24bpp DirectColor,
+transparency, multimedia, and safe multithreaded use.
+
+A program wishing to use notcurses will need to link it, ideally using the
+output of `pkg-config --libs notcurses` (see pkg-config(1)). It is advised to
+compile with the output of `pkg-config --cflags notcurses`. If using CMake, a
+support file is provided, and can be accessed as `notcurses` (see cmake(1)).
+
+Before calling into notcurses—and usually as one of the first calls of the
+program—be sure to call `setlocale(3)` with an appropriate UTF-8 `LC_ALL`
+locale. It is usually appropriate to use `setlocale(LC_ALL, "")`, relying on
+the user to properly set the `LANG` environment variable. notcurses will
+refuse to start if `nl_langinfo(3)` doesn't indicate UTF-8.
+
+## AUTHORS
+
+Nick Black <nickblack@linux.com>
+
+## SEE ALSO
+
+notcurses-demo(1), ncurses(3NCURSES), terminfo(5)

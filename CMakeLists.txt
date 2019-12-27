@@ -25,6 +25,7 @@ pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 endif()
 find_library(LIBRT rt)
 
+# libnotcurses
 file(GLOB LIBSRCS CONFIGURE_DEPENDS src/lib/*.c)
 add_library(notcurses SHARED ${LIBSRCS})
 set_target_properties(notcurses PROPERTIES
@@ -77,6 +78,7 @@ target_compile_definitions(notcurses
     FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
 )
 
+# notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
 add_executable(notcurses-demo ${DEMOSRCS})
 target_include_directories(notcurses-demo PRIVATE include)
@@ -110,6 +112,30 @@ foreach(f ${POCSRCS})
   )
 endforeach()
 
+# Documentation
+file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.ronn)
+file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.ronn)
+FIND_PROGRAM(RONN ronn)
+iF(NOT RONN)
+  message(WARNING "ronn not found, won't regenerate man pages")
+else()
+foreach(m ${MANSOURCE1} ${MANSOURCE3})
+  get_filename_component(me "${m}" NAME_WLE)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${m}
+    DEPENDS ${m}
+    COMMAND ${RONN}
+    ARGS -r --pipe ${me}.ronn > ${CMAKE_CURRENT_BINARY_DIR}/${me}
+    COMMENT "Generating man page with ronn"
+  )
+  add_custom_target(docs
+    ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${m}
+  )
+  endforeach()
+endif()
+
+# notcurses-input
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/*.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
 target_include_directories(notcurses-input
@@ -130,6 +156,7 @@ target_compile_definitions(notcurses-input
     FORTIFY_SOURCE=2
 )
 
+# notcurses-planereel
 file(GLOB PLANEREELSRCS CONFIGURE_DEPENDS src/planereel/*.cpp)
 add_executable(notcurses-planereel ${PLANEREELSRCS})
 target_include_directories(notcurses-planereel
@@ -150,6 +177,7 @@ target_compile_definitions(notcurses-planereel
     FORTIFY_SOURCE=2
 )
 
+# notcurses-view
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 if(NOT "${DISABLE_FFMPEG}")
 add_executable(notcurses-view ${VIEWSRCS})
@@ -181,6 +209,7 @@ target_compile_definitions(notcurses-view
 )
 endif()
 
+# Testing
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 find_package(GTest 1.9 REQUIRED)
@@ -205,11 +234,13 @@ target_compile_definitions(notcurses-tester
 gtest_discover_tests(notcurses-tester)
 enable_testing()
 
+# pkg-config support
 configure_file(tools/notcurses.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
   @ONLY
 )
 
+# CMake support
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(tools/notcursesConfig.cmake.in
@@ -222,6 +253,7 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
+# Installation
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake
@@ -239,8 +271,8 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/notcurses
 )
 
-file(GLOB MANPAGES1 CONFIGURE_DEPENDS doc/man/man1/*)
-file(GLOB MANPAGES3 CONFIGURE_DEPENDS doc/man/man3/*)
+file(GLOB MANPAGES1 CONFIGURE_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/*.1)
+file(GLOB MANPAGES3 CONFIGURE_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/*.3notcurses)
 install(FILES
   ${MANPAGES1}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
