@@ -1,0 +1,18 @@
+notcurses_stop(3notcurses) -- free up notcurses and restore the console
+=======================================================================
+
+## SYNOPSIS
+
+`#include <notcurses.h>`
+
+`int notcurses_stop(struct notcurses* nc);`
+
+## DESCRIPTION
+
+## AUTHORS
+
+Nick Black <nickblack@linux.com>
+
+## SEE ALSO
+
+notcurses(3notcurses), notcurses_init(3notcurses)

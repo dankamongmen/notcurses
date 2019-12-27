@@ -127,7 +127,7 @@ foreach(m ${MANSOURCE3})
     ARGS -r --pipe ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
     COMMENT "Building man page ${me}"
   )
-  add_custom_target(docs
+  add_custom_target(${me}.man
     ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
   )
