@@ -211,31 +211,8 @@ endif()
 
 # Testing
 file(GLOB TESTSRCS CONFIGURE_DEPENDS dtests/*.cpp)
-add_executable(notcurses-dtester ${TESTSRCS})
-find_package(doctest REQUIRED doctest>=1.2.7)
-target_include_directories(notcurses-dtester
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-    src/lib
-)
-target_link_libraries(notcurses-dtester
-  PRIVATE
-    doctest::doctest
-    notcurses
-)
-target_compile_options(notcurses-dtester
-  PRIVATE
-    -Wall -Wextra -W -Wshadow
-)
-target_compile_definitions(notcurses-dtester
-  PRIVATE
-    FORTIFY_SOURCE=2
-)
-
-file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
-find_package(GTest 1.9 REQUIRED)
+find_package(doctest REQUIRED doctest>=1.2.7)
 target_include_directories(notcurses-tester
   PRIVATE
     include
@@ -244,10 +221,10 @@ target_include_directories(notcurses-tester
 )
 target_link_libraries(notcurses-tester
   PRIVATE
-    GTest::GTest
+    doctest::doctest
     notcurses
 )
-target_compile_options(notcurses-tester PRIVATE
+target_compile_options(notcurses-tester
   PRIVATE
     -Wall -Wextra -W -Wshadow
 )
@@ -256,7 +233,6 @@ target_compile_definitions(notcurses-tester
     FORTIFY_SOURCE=2
 )
 
-gtest_discover_tests(notcurses-tester)
 enable_testing()
 
 # pkg-config support
