@@ -1,4 +1,3 @@
-#include <libavutil/frame.h>
 #include "demo.h"
 
 // 0: transparent
@@ -61,14 +60,16 @@ zoom_map(struct notcurses* nc, const char* map){
     ncvisual_destroy(ncv);
     return NULL;
   }
+  int vheight;
+  int vwidth;
+  ncplane_dim_yx(ncvisual_plane(ncv), &vheight, &vwidth);
   ncvisual_destroy(ncv);
   // we start at the lower left corner of the outzoomed map
   int truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
-  int vwidth = frame->width;
   int vx = vwidth;
-  int vheight = frame->height; // dimensions of unzoomed map
-  int vy = vheight / 2;
+  vheight /= 2;
+  int vy = vheight;
   int zoomy = truey;
   int zoomx = truex;
   struct ncplane* zncp = NULL;
