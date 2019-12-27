@@ -173,7 +173,7 @@ int unicodeblocks_demo(struct notcurses* nc){
   // we don't want a full delay period for each one, urk...or do we?
   struct timespec subdelay;
   uint64_t nstotal = timespec_to_ns(&demodelay);
-  ns_to_timespec(nstotal / 5, &subdelay);
+  ns_to_timespec(nstotal / 3, &subdelay);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_set_bg_rgb(n, 0, 0, 0);
     //ncplane_erase(n);
