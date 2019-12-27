@@ -104,7 +104,7 @@ that fine library.
 * A C11 and a C++14 compiler
 * CMake 3.13.0+
 * From NCURSES: terminfo 6.1+
-* From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
+* (OPTIONAL) From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 
 ### Building
 
@@ -1412,7 +1412,8 @@ cell_set_bg_default(cell* c){
 
 Media decoding and scaling is handled by libAV from FFmpeg, resulting in a
 `notcurses_visual` object. This object generates frames, each one corresponding
-to a renderable scene on the associated `ncplane`.
+to a renderable scene on the associated `ncplane`. If notcurses is built without
+FFMpeg support, these functions will all return error.
 
 ```c
 // Open a visual (image or video), associating it with the specified ncplane.
