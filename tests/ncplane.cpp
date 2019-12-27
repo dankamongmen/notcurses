@@ -178,10 +178,9 @@ TEST_F(NcplaneTest, EmitWideStr) {
 
 TEST_F(NcplaneTest, EmitEmojiStr) {
   const wchar_t e[] =
-    L"🍺🚬🌿💉💊🔫💣🤜🤛🐌🐍🐎🐑🐒🐔🐗🐘🐙🐚"
+    L"🍺🚬🌿💉💊🔫💣🤜🤛🐌🐎🐑🐒🐔🐗🐘🐙🐚"
      "🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐫🐬🐭🐮"
-     "🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🦉🐊🐸🦕🦖"
-     "🐬🐙🦂🦠🦀";
+     "🐯🐰🐱🐲🐳🐴🐵🐶🐷🐹🐺🐻🐼🦉🐊🦕🦖🐬🐙🦠🦀";
   int wrote = ncplane_putwstr(n_, e);
   EXPECT_LT(0, wrote);
   int x, y;
@@ -375,12 +374,14 @@ TEST_F(NcplaneTest, CellDuplicateCombining) {
 }
 
 TEST_F(NcplaneTest, CellMultiColumn) {
-  const char* w1 = "👨";
+  const char* w1 = "\xf0\x9f\x91\xa9"; // U+1F469 WOMAN
   const char* w2 = "N";
   cell c1 = CELL_TRIVIAL_INITIALIZER;
   cell c2 = CELL_TRIVIAL_INITIALIZER;
   auto u1 = cell_load(n_, &c1, w1);
   auto u2 = cell_load(n_, &c2, w2);
+  ASSERT_LT(0, u1);
+  ASSERT_LT(0, u2);
   ASSERT_EQ(strlen(w1), u1);
   ASSERT_EQ(strlen(w2), u2);
   EXPECT_TRUE(cell_double_wide_p(&c1));
@@ -769,29 +770,29 @@ TEST_F(NcplaneTest, MoveToLowerRight) {
 // Placing a wide char to the immediate left of any other char ought obliterate
 // that cell.
 TEST_F(NcplaneTest, WideCharAnnihilatesRight) {
-  const wchar_t* w = L"🐸";
-  const wchar_t* wbashed = L"🦂";
+  const char* w = "\xf0\x9f\x90\xb8"; // U+1F438 FROG FACE
+  const char* wbashed = "\xf0\x9f\xa6\x82"; // U+1F982 SCORPION
   const char bashed = 'X';
   int sbytes = 0;
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 1, wbashed, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 0, 1, wbashed, 0, 0, &sbytes));
   EXPECT_LT(0, ncplane_putsimple_yx(n_, 1, 1, bashed));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(1, y);
   EXPECT_EQ(2, x);
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 0, w, 0, 0, &sbytes));
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 1, 0, w, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 0, 0, w, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 1, 0, w, 0, 0, &sbytes));
   cell c = CELL_TRIVIAL_INITIALIZER;
   ncplane_at_yx(n_, 0, 0, &c);
   const char* wres = extended_gcluster(n_, &c);
-  EXPECT_EQ(0, strcmp(wres, "🐸")); // should be frog
+  EXPECT_EQ(0, strcmp(wres, "\xf0\x9f\x90\xb8")); // should be frog
   ncplane_at_yx(n_, 0, 1, &c);
   EXPECT_TRUE(cell_double_wide_p(&c)); // should be wide
   ncplane_at_yx(n_, 0, 2, &c);
   EXPECT_EQ(0, c.gcluster); // should be nothing
   ncplane_at_yx(n_, 1, 0, &c);
   wres = extended_gcluster(n_, &c);
-  EXPECT_EQ(0, strcmp(wres, "🐸")); // should be frog
+  EXPECT_EQ(0, strcmp(wres, "\xf0\x9f\x90\xb8")); // should be frog
   ncplane_at_yx(n_, 1, 1, &c);
   EXPECT_TRUE(cell_double_wide_p(&c)); //should be wide
   ncplane_at_yx(n_, 0, 2, &c);
@@ -802,11 +803,11 @@ TEST_F(NcplaneTest, WideCharAnnihilatesRight) {
 // Placing a wide char on the right half of a wide char ought obliterate the
 // original wide char.
 TEST_F(NcplaneTest, WideCharAnnihilatesWideLeft) {
-  const wchar_t* w = L"🐍";
-  const wchar_t* wbashed = L"🦂";
+  const char* w = "\xf0\x9f\x90\x8d";
+  const char* wbashed = "\xf0\x9f\xa6\x82";
   int sbytes = 0;
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 0, wbashed, 0, 0, &sbytes));
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 1, w, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 0, 0, wbashed, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 0, 1, w, 0, 0, &sbytes));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
   EXPECT_EQ(0, y);
@@ -816,7 +817,7 @@ TEST_F(NcplaneTest, WideCharAnnihilatesWideLeft) {
   EXPECT_EQ(0, c.gcluster); // should be nothing
   ncplane_at_yx(n_, 0, 1, &c);
   const char* wres = extended_gcluster(n_, &c);
-  EXPECT_EQ(0, strcmp(wres, "🐍")); // should be snake
+  EXPECT_EQ(0, strcmp(wres, "\xf0\x9f\x90\x8d")); // should be snake
   ncplane_at_yx(n_, 0, 2, &c);
   EXPECT_TRUE(cell_double_wide_p(&c)); // should be wide
   EXPECT_EQ(0, notcurses_render(nc_));
@@ -826,11 +827,11 @@ TEST_F(NcplaneTest, WideCharAnnihilatesWideLeft) {
 // the original wide char.
 TEST_F(NcplaneTest, WideCharsAnnihilated) {
   const char cc = 'X';
-  const wchar_t* wbashedl = L"🐍";
-  const wchar_t* wbashedr = L"🦂";
+  const char* wbashedl = "\xf0\x9f\x90\x8d";
+  const char* wbashedr = "\xf0\x9f\xa6\x82";
   int sbytes = 0;
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 0, wbashedl, 0, 0, &sbytes));
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 2, wbashedr, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 0, 0, wbashedl, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 0, 2, wbashedr, 0, 0, &sbytes));
   EXPECT_EQ(1, ncplane_putsimple_yx(n_, 0, 1, cc));
   EXPECT_EQ(1, ncplane_putsimple_yx(n_, 0, 2, cc));
   int x, y;
@@ -853,11 +854,11 @@ TEST_F(NcplaneTest, WideCharsAnnihilated) {
 // problem. Ensure it is so.
 TEST_F(NcplaneTest, AdjacentCharsSafe) {
   const char cc = 'X';
-  const wchar_t* wsafel = L"🐍";
-  const wchar_t* wsafer = L"🦂";
+  const char* wsafel = "\xf0\x9f\x90\x8d";
+  const char* wsafer = "\xf0\x9f\xa6\x82";
   int sbytes = 0;
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 0, wsafel, 0, 0, &sbytes));
-  EXPECT_LT(0, ncplane_putwegc_yx(n_, 0, 3, wsafer, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 0, 0, wsafel, 0, 0, &sbytes));
+  EXPECT_LT(0, ncplane_putegc_yx(n_, 0, 3, wsafer, 0, 0, &sbytes));
   EXPECT_EQ(1, ncplane_putsimple_yx(n_, 0, 2, cc));
   int x, y;
   ncplane_cursor_yx(n_, &y, &x);
@@ -866,14 +867,14 @@ TEST_F(NcplaneTest, AdjacentCharsSafe) {
   cell c = CELL_TRIVIAL_INITIALIZER;
   ncplane_at_yx(n_, 0, 0, &c);
   const char* wres = extended_gcluster(n_, &c);
-  EXPECT_EQ(0, strcmp(wres, "🐍")); // should be snake
+  EXPECT_EQ(0, strcmp(wres, "\xf0\x9f\x90\x8d")); // should be snake
   ncplane_at_yx(n_, 0, 1, &c);
   EXPECT_TRUE(cell_double_wide_p(&c)); // should be snake
   ncplane_at_yx(n_, 0, 2, &c);
   EXPECT_EQ(cc, c.gcluster); // should be 'X'
   ncplane_at_yx(n_, 0, 3, &c);
   wres = extended_gcluster(n_, &c);
-  EXPECT_EQ(0, strcmp(wres, "🦂")); // should be scorpion
+  EXPECT_EQ(0, strcmp(wres, "\xf0\x9f\xa6\x82")); // should be scorpion
   ncplane_at_yx(n_, 0, 4, &c);
   EXPECT_TRUE(cell_double_wide_p(&c)); // should be scorpion
   EXPECT_EQ(0, notcurses_render(nc_));
