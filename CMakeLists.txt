@@ -210,6 +210,32 @@ target_compile_definitions(notcurses-view
 endif()
 
 # Testing
+file(GLOB TESTSRCS CONFIGURE_DEPENDS dtests/*.cpp)
+add_executable(notcurses-dtester ${TESTSRCS})
+find_package(doctest 2.3.6 REQUIRED)
+target_include_directories(notcurses-dtester
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+    src/lib
+)
+target_compile_features(notcurses-dtester
+  PRIVATE
+    cxx_std_17)
+target_link_libraries(notcurses-dtester
+  PRIVATE
+    doctest::doctest
+    notcurses
+)
+target_compile_options(notcurses-dtester
+  PRIVATE
+    -Wall -Wextra -W -Wshadow
+)
+target_compile_definitions(notcurses-dtester
+  PRIVATE
+    FORTIFY_SOURCE=2
+)
+
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 find_package(GTest 1.9 REQUIRED)
@@ -220,11 +246,13 @@ target_include_directories(notcurses-tester
     src/lib
 )
 target_link_libraries(notcurses-tester
-  GTest::GTest
-  notcurses
+  PRIVATE
+    GTest::GTest
+    notcurses
 )
 target_compile_options(notcurses-tester PRIVATE
-  -Wall -Wextra -W -Wshadow
+  PRIVATE
+    -Wall -Wextra -W -Wshadow
 )
 target_compile_definitions(notcurses-tester
   PRIVATE
