@@ -131,6 +131,7 @@ foreach(m ${MANSOURCE3})
     ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
   )
+  set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
   endforeach()
 endif()
 
@@ -271,8 +272,6 @@ install(FILES
 )
 
 file(GLOB MANPAGES1 CONFIGURE_DEPENDS doc/man/man1/*.1)
-# FIXME -- these won't exist until we've run through once, ack
-file(GLOB MANPAGES3 CONFIGURE_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/*.3notcurses)
 install(FILES
   ${MANPAGES1}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1

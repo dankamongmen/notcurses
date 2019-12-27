@@ -52,4 +52,5 @@ Nick Black <nickblack@linux.com>
 
 ## SEE ALSO
 
-notcurses-demo(1), ncurses(3NCURSES), terminfo(5)
+notcurses-demo(1), notcurses_init(3notcurses), notcurses_stop(3notcurses),
+ncurses(3NCURSES), terminfo(5)
