@@ -36,7 +36,7 @@ class LibavTest : public :: testing::Test {
 
 #ifdef DISABLE_FFMPEG
 TEST_F(LibavTest, LibavDisabled){
-  ASSERT_FALSE(notcurses_canopen(nc_);
+  ASSERT_FALSE(notcurses_canopen(nc_));
 }
 #else
 #include <libavutil/pixdesc.h>
