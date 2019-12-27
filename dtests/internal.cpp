@@ -1,11 +1,8 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
 #include <string>
 #include <cstdlib>
 #include <clocale>
-#include <notcurses.h>
-#include <curses.h>
 #include "internal.h"
+#include "main.h"
 
 TEST_CASE("RGBtoANSIWhite") {
   unsigned r, g, b;
