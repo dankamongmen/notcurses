@@ -401,7 +401,7 @@ int ncvisual_init(void){
 #else
 // built without ffmpeg
 
-AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
+struct AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
   (void)nc;
   (void)averr;
   return NULL;
