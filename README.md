@@ -2153,13 +2153,7 @@ and style specifications, and moving the cursor over large unchanged areas.
 
 Using the "default color" as only one of the foreground or background requires
 emitting the `op` escape followed by the appropriate escape for changing the
-fore- or background (since `op` changes both at once). If you're printing full
-block characters, it's for this reason better to give them all the same
-meaningless background color than to leave the background on the default. If
-you're printing spaces, you likewise want a meaningless foreground color. For
-a long string of such cells, eliding these ops can be a nice savings. See
-[Issue #131](https://github.com/dankamongmen/notcurses/issues/131), though;
-I'll likely natively handle this within `notcurses_render()` soon.
+fore- or background (since `op` changes both at once).
 
 ## Included tools
 
