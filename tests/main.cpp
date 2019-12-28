@@ -6,7 +6,7 @@
 #include <limits.h>
 #include "main.h"
 
-static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
+static char datadir[PATH_MAX + 1] = "/usr/share/notcurses"; // FIXME
 
 char* find_data(const char* datum){
   char* path = (char*)malloc(strlen(datadir) + 1 + strlen(datum) + 1);
@@ -21,7 +21,7 @@ handle_opts(const char** argv){
   bool inarg = false;
   while(*argv){
     if(inarg){
-      strncpy(datadir, *argv, sizeof(datadir));
+      strncpy(datadir, *argv, sizeof(datadir) - 1);
       inarg = false;
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;
