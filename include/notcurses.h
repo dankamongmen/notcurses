@@ -1339,7 +1339,7 @@ API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 // FIXME do this at cell prep time and set a bit in the channels
 static inline bool
 cell_noforeground_p(const cell* c){
-  return cell_simple_p(c) || isspace(c->gcluster);
+  return cell_simple_p(c) && isspace(c->gcluster);
 }
 
 // True if the cell does not generate background pixels. Only the FULL BLOCK
