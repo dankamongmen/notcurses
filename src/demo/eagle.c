@@ -121,8 +121,6 @@ draw_eagle(struct ncplane* n, const char* sprite){
   size_t s;
   int sbytes;
   uint64_t channels = 0;
-  // optimization so we can elide more color changes, see README's "#perf"
-  channels_set_bg_rgb(&channels, 0x00, 0x00, 0x00);
   ncplane_cursor_move_yx(n, 0, 0);
   for(s = 0 ; sprite[s] ; ++s){
     switch(sprite[s]){

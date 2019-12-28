@@ -3,6 +3,7 @@
 
 #include <time.h>
 #include <uchar.h>
+#include <ctype.h>
 #include <wchar.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -1317,16 +1318,35 @@ cell_set_bg_alpha(cell* c, int alpha){
   return channels_set_bg_alpha(&c->channels, alpha);
 }
 
-// does the cell contain an East Asian Wide codepoint?
+// Does the cell contain an East Asian Wide codepoint?
 static inline bool
 cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
-// is the cell simple (a lone ASCII character, encoded as such)?
+// Is the cell simple (a lone ASCII character, encoded as such)?
 static inline bool
 cell_simple_p(const cell* c){
   return c->gcluster < 0x80;
+}
+
+// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
+// is invalidated by any further operation on the plane 'n', so...watch out!
+API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+
+// True if the cell does not generate foreground pixels (i.e., the cell is
+// entirely whitespace or special characters).
+// FIXME do this at cell prep time and set a bit in the channels
+static inline bool
+cell_noforeground_p(const cell* c){
+  return cell_simple_p(c) || isspace(c->gcluster);
+}
+
+// True if the cell does not generate background pixels. Only the FULL BLOCK
+// glyph has this property, AFAIK.
+static inline bool
+cell_nobackground_p(const struct ncplane* n, const cell* c){
+  return !cell_simple_p(c) && !strcmp(cell_extended_gcluster(n, c), "\xe2\x96\x88");
 }
 
 static inline int
@@ -1346,10 +1366,6 @@ static inline uint32_t
 cell_egc_idx(const cell* c){
   return c->gcluster - 0x80;
 }
-
-// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
-// is invalidated by any further operation on the plane 'n', so...watch out!
-API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might
