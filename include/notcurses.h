@@ -118,7 +118,7 @@ typedef struct notcurses_options {
   bool no_winch_sighandler;
   // Notcurses typically prints version info in notcurses_init() and performance
   // info in notcurses_stop(). This inhibits that output.
-  bool suppress_bannner;
+  bool suppress_banner;
   // Notcurses does not clear the screen on startup unless thus requested to.
   bool clear_screen_start;
   // If non-NULL, notcurses_render() will write each rendered frame to this

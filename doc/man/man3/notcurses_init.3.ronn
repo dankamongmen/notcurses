@@ -1,0 +1,51 @@
+notcurses_init(3notcurses) -- initialize a notcurses instance
+=============================================================
+
+## SYNOPSIS
+
+`#include <notcurses.h>`
+
+<pre>typedef struct notcurses_options {
+  const char* termtype;
+  bool inhibit_alternate_screen;
+  bool retain_cursor;
+  bool no_quit_sighandlers;
+  bool no_winch_sighandler;
+  bool suppress_banner;
+  bool clear_screen_start;
+  FILE* renderfp;
+} notcurses_options;</pre>
+
+`struct notcurses*
+notcurses_init(const struct notcurses_options* opts, FILE* fp);`
+
+## DESCRIPTION
+
+`notcurses_init` prepares the `FILE*` provided as `fp` (which must be attached
+to a terminal) for cursor-addressable (multiline) mode. The `struct
+notcurses_option` passed as `opts` controls behavior. Only one instance should
+be associated with a given terminal at a time, though it is no problem to have
+multiple instances in a given process. On success, a pointer to a valid `struct
+notcurses` is returned. `NULL` is returned on failure. Before the process exits,
+`notcurses_stop(3notcurses)` should be called to reset the terminal and free
+up resources.
+
+An appropriate `terminfo(5)` entry must exist for the terminal. This entry is
+usually selected using the value of the `TERM` environment variable (see
+`getenv(3)`), but a non-`NULL` value for `termtype` will override this. An
+invalid `terminfo` specification will lead to reduced performance, reduced
+display capabilities, or display errors.
+
+## RETURN VALUES
+
+`NULL` is returned on failure. Otherwise, the return value points at a valid
+`struct notcurses`, which can be used until it is provided to `notcurses_stop`.
+
+## AUTHORS
+
+Nick Black <nickblack@linux.com>
+
+## SEE ALSO
+
+getenv(3), termios(3), notcurses(3notcurses), notcurses_stop(3notcurses),
+terminfo(5)

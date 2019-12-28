@@ -758,8 +758,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
-  ret->suppress_banner = opts->suppress_bannner;
-  if(!opts->suppress_bannner){
+  ret->suppress_banner = opts->suppress_banner;
+  if(!opts->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     fprintf(ret->ttyfp, "\n"
           " notcurses %s by nick black\n"

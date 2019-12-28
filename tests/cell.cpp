@@ -12,7 +12,7 @@ TEST_CASE("Cell") {
   REQUIRE(nullptr != outfp_);
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
-  nopts.suppress_bannner = true;
+  nopts.suppress_banner = true;
   struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
   REQUIRE(nullptr != nc_);
   struct ncplane* n_ = notcurses_stdplane(nc_);

@@ -97,7 +97,7 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
         break;
     }
   }
-  opts->suppress_bannner = true;
+  opts->suppress_banner = true;
   opts->clear_screen_start = true;
 }
 

@@ -17,7 +17,7 @@ TEST_CASE("PanelReelTest") {
   }
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
-  nopts.suppress_bannner = true;
+  nopts.suppress_banner = true;
   FILE* outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(outfp_);
   struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
