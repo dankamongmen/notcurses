@@ -540,7 +540,6 @@ notcurses_render_internal(notcurses* nc){
       //  * we are a no-foreground glyph, and the previous was default background, or
       //  * we are a no-background glyph, and the previous was default foreground
 
-      // FIXME move these into the cell bits
       bool noforeground = cell_noforeground_p(&c);
       bool nobackground = cell_nobackground_p(p, &c);
       if((!noforeground && cell_fg_default_p(&c)) || (!nobackground && cell_bg_default_p(&c))){
@@ -560,29 +559,37 @@ notcurses_render_internal(notcurses* nc){
       // foreground set iff either:
       //  * the previous was non-default, and matches what we have now, or
       //  * we are a no-foreground glyph (iswspace() is true)
-      if(/*!noforeground &&*/ !cell_fg_default_p(&c)){
-        cell_get_fg_rgb(&c, &r, &g, &b);
-        if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
+      if(!cell_fg_default_p(&c)){
+        if(!noforeground){
+          cell_get_fg_rgb(&c, &r, &g, &b);
+          if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
+            ++nc->stats.fgelisions;
+          }else{
+            term_fg_rgb8(nc, out, r, g, b);
+            ++nc->stats.fgemissions;
+            nc->rstate.fgelidable = true;
+          }
+          nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
+          nc->rstate.defaultelidable = false;
+        }else{
           ++nc->stats.fgelisions;
-        }else{
-          term_fg_rgb8(nc, out, r, g, b);
-          ++nc->stats.fgemissions;
-          nc->rstate.fgelidable = true;
         }
-        nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
-        nc->rstate.defaultelidable = false;
       }
-      if(!nobackground && !cell_bg_default_p(&c)){
-        cell_get_bg_rgb(&c, &br, &bg, &bb);
-        if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
-          ++nc->stats.bgelisions;
+      if(!cell_bg_default_p(&c)){
+        if(!nobackground){
+          cell_get_bg_rgb(&c, &br, &bg, &bb);
+          if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
+            ++nc->stats.bgelisions;
+          }else{
+            term_bg_rgb8(nc, out, br, bg, bb);
+            ++nc->stats.bgemissions;
+            nc->rstate.bgelidable = true;
+          }
+          nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
+          nc->rstate.defaultelidable = false;
         }else{
-          term_bg_rgb8(nc, out, br, bg, bb);
-          ++nc->stats.bgemissions;
-          nc->rstate.bgelidable = true;
+          ++nc->stats.bgelisions;
         }
-        nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
-        nc->rstate.defaultelidable = false;
       }
 // fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
       term_putc(out, p, &c);
