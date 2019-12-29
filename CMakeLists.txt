@@ -141,7 +141,7 @@ foreach(m ${MANSOURCE3})
   )
   add_custom_target(${me}.html
     ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
   )
   endforeach()
 endif()
