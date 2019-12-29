@@ -46,7 +46,7 @@ via a command-line option.
 
 notcurses furthermore hides the cursor by default, but `retain_cursor` can
 prevent this (the cursor can be dynamically enabled or disabled during
-execution via `notcurses_cursor_enable(3)` and `notcurses_cursor_disable(3)`.
+execution via `notcurses_cursor_enable(3)` and `notcurses_cursor_disable(3)`).
 
 If `clear_screen_start` is set to `true`, the screen will be cleared as part of
 `notcurses_init`. Otherwise, whatever's on the screen at entry will remain

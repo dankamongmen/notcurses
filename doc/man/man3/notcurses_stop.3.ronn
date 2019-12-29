@@ -9,6 +9,15 @@ notcurses_stop(3notcurses) -- free up notcurses and restore the console
 
 ## DESCRIPTION
 
+`notcurses_stop` frees up any resources associated with the `struct notcurses*`
+provided as `nc`, and attempts to restore the terminal to its state prior to
+calling `notcurses_init(3)`. It also unregisters any signal handlers put into
+place by `notcurses_init`. `nc` must not be used following the call.
+
+## RETURN VALUES
+
+On success, 0 is returned. Otherwise, a negative value is returned.
+
 ## AUTHORS
 
 Nick Black <nickblack@linux.com>
