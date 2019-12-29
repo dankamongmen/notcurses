@@ -1,0 +1,19 @@
+notcurses_ncvisual(3) -- notcurses multimedia
+=============================================
+
+## SYNOPSIS
+
+`#include <notcurses.h>`
+
+## DESCRIPTION
+
+
+## RETURN VALUES
+
+## AUTHORS
+
+Nick Black <nickblack@linux.com>
+
+## SEE ALSO
+
+notcurses_ncplane(3)

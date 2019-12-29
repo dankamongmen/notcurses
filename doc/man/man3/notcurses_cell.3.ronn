@@ -1,0 +1,19 @@
+notcurses_cell(3) -- operations on notcurses cells
+==================================================
+
+## SYNOPSIS
+
+`#include <notcurses.h>`
+
+## DESCRIPTION
+
+
+## RETURN VALUES
+
+## AUTHORS
+
+Nick Black <nickblack@linux.com>
+
+## SEE ALSO
+
+notcurses_ncplane(3)

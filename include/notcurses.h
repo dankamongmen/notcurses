@@ -433,9 +433,6 @@ ncplane_move_below(struct ncplane* n, struct ncplane* below){
 // Return the plane above this one, or NULL if this is at the top.
 API struct ncplane* ncplane_below(struct ncplane* n);
 
-// Return the plane below this one, or NULL if this is at the bottom.
-API struct ncplane* ncplane_below(struct ncplane* n);
-
 // Retrieve the cell at the cursor location on the specified plane, returning
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
 API int ncplane_at_cursor(struct ncplane* n, cell* c);

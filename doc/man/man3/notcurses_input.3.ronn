@@ -1,0 +1,19 @@
+notcurses_input(3) -- input via notcurses
+=========================================
+
+## SYNOPSIS
+
+`#include <notcurses.h>`
+
+## DESCRIPTION
+
+
+## RETURN VALUES
+
+## AUTHORS
+
+Nick Black <nickblack@linux.com>
+
+## SEE ALSO
+
+notcurses(3)
