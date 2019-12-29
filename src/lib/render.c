@@ -147,6 +147,8 @@ reshape_shadow_fb(notcurses* nc){
 // as we descend. α == 0 is opaque. α == 2 is fully transparent.
 static inline ncplane*
 dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
+  unsigned fgblends = 1;
+  unsigned bgblends = 1;
   // once we decide on our glyph, it cannot be changed by anything below, so
   // lock in this plane for the actual cell return.
   ncplane* glyphplane = NULL;
@@ -178,7 +180,8 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
         }
         if(falpha > CELL_ALPHA_OPAQUE && cell_get_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
           if(falpha == CELL_ALPHA_BLEND){
-            cell_blend_fchannel(c, cell_get_fchannel(vis));
+            cell_blend_fchannel(c, cell_get_fchannel(vis), fgblends);
+            ++fgblends;
           }else{
             cell_set_fchannel(c, cell_get_fchannel(vis));
           }
@@ -190,7 +193,8 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
         // background channel and balpha.
         if(balpha > CELL_ALPHA_OPAQUE && cell_get_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
           if(balpha == CELL_ALPHA_BLEND){
-            cell_blend_bchannel(c, cell_get_bchannel(vis));
+            cell_blend_bchannel(c, cell_get_bchannel(vis), bgblends);
+            ++bgblends;
           }else{ // balpha == CELL_ALPHA_TRANSPARENT
             cell_set_bchannel(c, cell_get_bchannel(vis));
           }

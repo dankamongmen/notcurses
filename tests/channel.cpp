@@ -66,3 +66,72 @@ TEST_CASE("ChannelSetDefault") {
     CHECK(channel_default_p(channel));
   }
 }
+
+// blend of 0 ought perfectly set
+TEST_CASE("ChannelBlend0") {
+  uint32_t c1 = 0;
+  uint32_t c2 = 0;
+  channel_set_rgb(&c1, 0x80, 0x40, 0x20);
+  channel_set_rgb(&c2, 0x88, 0x44, 0x22);
+  uint32_t c = channels_blend(c1, c2, 0);
+  unsigned r, g, b;
+  channel_get_rgb(c, &r, &g, &b);
+  CHECK(0x88 == r);
+  CHECK(0x44 == g);
+  CHECK(0x22 == b);
+}
+
+// blend of 1 ought perfectly average
+TEST_CASE("ChannelBlend1") {
+  uint32_t c1 = 0;
+  uint32_t c2 = 0;
+  channel_set_rgb(&c1, 0x80, 0x40, 0x20);
+  channel_set_rgb(&c2, 0x0, 0x0, 0x0);
+  uint32_t c = channels_blend(c1, c2, 1);
+  unsigned r, g, b;
+  channel_get_rgb(c, &r, &g, &b);
+  CHECK(0x40 == r);
+  CHECK(0x20 == g);
+  CHECK(0x10 == b);
+}
+
+// you can't blend into a default color, at any number of blends
+TEST_CASE("ChannelBlendDefaultLeft") {
+  uint32_t c1 = 0;
+  uint32_t c2 = 0;
+  channel_set_rgb(&c2, 0x80, 0x40, 0x20);
+  uint32_t c = channels_blend(c1, c2, 0);
+  CHECK(channel_default_p(c));
+  unsigned r, g, b;
+  channel_get_rgb(c, &r, &g, &b);
+  CHECK(0 == r);
+  CHECK(0 == g);
+  CHECK(0 == b);
+  c = channels_blend(c1, c2, 1);
+  CHECK(channel_default_p(c));
+  channel_get_rgb(c, &r, &g, &b);
+  CHECK(0 == r);
+  CHECK(0 == g);
+  CHECK(0 == b);
+}
+
+// you can't blend from a default color, but blend 0 sets it
+TEST_CASE("ChannelBlendDefaultRight") {
+  uint32_t c1 = 0;
+  uint32_t c2 = 0;
+  channel_set_rgb(&c1, 0x80, 0x40, 0x20);
+  CHECK(channel_default_p(c2));
+  uint32_t c = channels_blend(c1, c2, 0);
+  CHECK(channel_default_p(c));
+  unsigned r, g, b;
+  channel_get_rgb(c, &r, &g, &b);
+  CHECK(0x80 == r);
+  CHECK(0x40 == g);
+  CHECK(0x20 == b);
+  c = channels_blend(c1, c2, 1);
+  CHECK(!channel_default_p(c));
+  channel_get_rgb(c, &r, &g, &b);
+  CHECK(0x80 == r);
+  CHECK(0x40 == g);
+  CHECK(0x20 == b);
+}

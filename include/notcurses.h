@@ -1002,13 +1002,19 @@ channels_set_bg_default(uint64_t* channels){
 
 // Returns the result of blending two channels.
 static inline unsigned
-channels_blend(unsigned c1, unsigned c2){
+channels_blend(unsigned c1, unsigned c2, unsigned blends){
   if(channel_default_p(c1)){
     return c1;
   }
-  int rsum = (channel_get_r(c1) + channel_get_r(c2)) / 2;
-  int gsum = (channel_get_g(c1) + channel_get_g(c2)) / 2;
-  int bsum = (channel_get_b(c1) + channel_get_b(c2)) / 2;
+  if(channel_default_p(c2)){
+    if(blends == 0){
+      channel_set_default(&c1);
+    }
+    return c1;
+  }
+  int rsum = (channel_get_r(c1) * blends + channel_get_r(c2)) / (blends + 1);
+  int gsum = (channel_get_g(c1) * blends + channel_get_g(c2)) / (blends + 1);
+  int bsum = (channel_get_b(c1) * blends + channel_get_b(c2)) / (blends + 1);
   unsigned blend = 0;
   channel_set_rgb(&blend, rsum, gsum, bsum);
   return blend;
@@ -1039,13 +1045,13 @@ cell_set_fchannel(cell* cl, uint32_t channel){
 }
 
 static inline uint64_t
-cell_blend_fchannel(cell* cl, unsigned channel){
-  return cell_set_fchannel(cl, channels_blend(cell_get_fchannel(cl), channel));
+cell_blend_fchannel(cell* cl, unsigned channel, unsigned blends){
+  return cell_set_fchannel(cl, channels_blend(cell_get_fchannel(cl), channel, blends));
 }
 
 static inline uint64_t
-cell_blend_bchannel(cell* cl, unsigned channel){
-  return cell_set_bchannel(cl, channels_blend(cell_get_bchannel(cl), channel));
+cell_blend_bchannel(cell* cl, unsigned channel, unsigned blends){
+  return cell_set_bchannel(cl, channels_blend(cell_get_bchannel(cl), channel, blends));
 }
 
 // Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
