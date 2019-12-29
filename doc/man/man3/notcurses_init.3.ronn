@@ -93,10 +93,12 @@ restricted as to what actions they can perform, so minimal work is perfomed in
 the handler proper.
 
 Thus, in the absence of `no_winch_sighandler`, `SIGWINCH` results in:
+
 * interruption of some thread to process the signal
 * a `TIOCGWINSZ` `ioctl` to retrieve the new screen size
 * queuing of a `NCKEY_RESIZE` input event (if there is space in the queue)
 * blanking of the new screen area (if `clear_screen_start` is set)
+
 Upon the next call to `notcurses_render` or `notcurses_resize`, the standard
 plane (see `notcurses_stdplane(3)`) will be resized to the new screen size. The
 next `notcurses_render` call will function as expected across the new screen

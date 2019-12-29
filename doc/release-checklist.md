@@ -18,6 +18,7 @@
   * Test that package builds with `makepkg`
   * `git commit -a`
 * Upload new Rust crate with `cargo upload`
+* Generate and upload new HTML documentation via `make html`
 * Update Debian changelog with `dch -v $NEXTVERSION-1`
 * Update `doc/FreeBSD-Makefile` version
 * Update CMakeLists.txt with next version

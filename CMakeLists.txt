@@ -132,6 +132,17 @@ foreach(m ${MANSOURCE3})
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
   )
   set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+    DEPENDS ${m}
+    COMMAND ${RONN}
+    ARGS -5 --pipe ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+    COMMENT "Building HTML5 ${me}.html"
+  )
+  add_custom_target(${me}.html
+    ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+  )
   endforeach()
 endif()
 
