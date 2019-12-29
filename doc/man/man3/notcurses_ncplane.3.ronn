@@ -6,23 +6,41 @@ notcurses_ncplane(3) -- operations on notcurses planes
 `#include <notcurses.h>`
 
 `int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen);`
+
 `int ncplane_move_yx(struct ncplane* n, int y, int x);`
+
 `void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);`
+
 `int ncplane_set_default(struct ncplane* ncp, const cell* c);`
+
 `int ncplane_default(struct ncplane* ncp, cell* c);`
+
 `int ncplane_destroy(struct ncplane* ncp);`
+
 `int ncplane_move_top(struct ncplane* n);`
+
 `int ncplane_move_bottom(struct ncplane* n);`
+
 `int ncplane_move_above(struct ncplane* n, struct ncplane* above);`
+
 `int ncplane_move_below(struct ncplane* n, struct ncplane* below);`
+
 `struct ncplane* ncplane_below(struct ncplane* n);`
+
 `int ncplane_at_cursor(struct ncplane* n, cell* c);`
+
 `int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);`
+
 `void* ncplane_set_userptr(struct ncplane* n, void* opaque);`
+
 `void* ncplane_userptr(struct ncplane* n);`
+
 `const void* ncplane_userptr_const(const struct ncplane* n);`
+
 `void ncplane_dim_yx(const struct ncplane* n, int* restrict rows, int* restrict cols);`
+
 `int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);`
+
 `void ncplane_cursor_yx(const struct ncplane* n, int* restrict y, int* restrict x);`
 
 ## DESCRIPTION

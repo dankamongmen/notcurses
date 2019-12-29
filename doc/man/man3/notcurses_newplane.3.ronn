@@ -1,0 +1,21 @@
+notcurses_newplane(3) -- create a new ncplane atop the z-buffer
+===============================================================
+
+## SYNOPSIS
+
+`#include <notcurses.h>`
+
+`struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);`
+
+## DESCRIPTION
+
+
+## RETURN VALUES
+
+## AUTHORS
+
+Nick Black <nickblack@linux.com>
+
+## SEE ALSO
+
+notcurses_ncplane(3), notcurses_stdplane(3)
