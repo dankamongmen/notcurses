@@ -1,5 +1,5 @@
-notcurses_stop(3notcurses) -- free up notcurses and restore the console
-=======================================================================
+notcurses_stop(3) -- free up notcurses and restore the console
+==============================================================
 
 ## SYNOPSIS
 
@@ -24,4 +24,4 @@ Nick Black <nickblack@linux.com>
 
 ## SEE ALSO
 
-notcurses(3notcurses), notcurses_init(3notcurses)
+notcurses(3), notcurses_init(3)

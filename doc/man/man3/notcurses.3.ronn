@@ -1,5 +1,5 @@
-notcurses(3notcurses) -- TUI library for modern terminal emulators
-==================================================================
+notcurses(3) -- TUI library for modern terminal emulators
+=========================================================
 
 ## SYNOPSIS
 
@@ -20,9 +20,9 @@ output of `pkg-config --libs notcurses` (see pkg-config(1)). It is advised to
 compile with the output of `pkg-config --cflags notcurses`. If using CMake, a
 support file is provided, and can be accessed as `notcurses` (see cmake(1)).
 
-`notcurses_init(3notcurses)` can then be used to initialize a notcurses
-instance for a given `FILE*` (usually `stdout`), after calling `setlocale(3)`
-to prepare a UTF-8 locale (see [Initialization][]).
+`notcurses_init(3)` can then be used to initialize a notcurses instance for a
+given `FILE*` (usually `stdout`), after calling `setlocale(3)` to prepare a
+UTF-8 locale (see [Initialization][]).
 
 ### Initialization
 
@@ -39,12 +39,12 @@ for the actual terminal must be available.
 
 ### Shutdown
 
-Before exiting, `notcurses_stop(3notcurses)` should be called. In addition to
-freeing up resources, this is necessary to restore the terminal to a state
-useful for the shell. By default, `notcurses_init` installs signal handlers to
-catch all signals which would normally terminate the process. The new handlers
-will try to call `notcurses_stop`, and then propagate the received signal to
-the previous action.
+Before exiting, `notcurses_stop(3)` should be called. In addition to freeing up
+resources, this is necessary to restore the terminal to a state useful for the
+shell. By default, `notcurses_init` installs signal handlers to catch all
+signals which would normally terminate the process. The new handlers will try
+to call `notcurses_stop`, and then propagate the received signal to the
+previous action.
 
 ## AUTHORS
 
@@ -52,5 +52,4 @@ Nick Black <nickblack@linux.com>
 
 ## SEE ALSO
 
-notcurses-demo(1), notcurses_init(3notcurses), notcurses_stop(3notcurses),
-ncurses(3NCURSES), terminfo(5)
+notcurses-demo(1), notcurses_init(3), notcurses_stop(3), ncurses(3NCURSES), terminfo(5)
