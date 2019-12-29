@@ -20,8 +20,8 @@ output of `pkg-config --libs notcurses` (see pkg-config(1)). It is advised to
 compile with the output of `pkg-config --cflags notcurses`. If using CMake, a
 support file is provided, and can be accessed as `notcurses` (see cmake(1)).
 
-`notcurses_init(3)` can then be used to initialize a notcurses instance for a
-given `FILE*` (usually `stdout`), after calling `setlocale(3)` to prepare a
+notcurses_init(3) can then be used to initialize a notcurses instance for a
+given `FILE*` (usually `stdout`), after calling setlocale(3) to prepare a
 UTF-8 locale (see [Construction][]).
 
 ### Construction
@@ -30,24 +30,24 @@ Before calling into notcurses—and usually as one of the first calls of the
 program—be sure to call `setlocale` with an appropriate UTF-8 `LC_ALL`
 locale. It is usually appropriate to use `setlocale(LC_ALL, "")`, relying on
 the user to properly set the `LANG` environment variable. notcurses will
-refuse to start if `nl_langinfo(3)` doesn't indicate UTF-8.
+refuse to start if nl_langinfo(3) doesn't indicate UTF-8.
 
-`notcurses_init` accepts a `struct notcurses_options` allowing fine-grained
+notcurses_init(3) accepts a `struct notcurses_options` allowing fine-grained
 control of notcurses behavior, including signal handlers, alternative screens,
 and overriding the TERM environment variable. A `terminfo` entry appropriate
 for the actual terminal must be available.
 
 ### Output
 
-All output is performed on `struct ncplane*`s (see `notcurses_ncplane(3)`).
+All output is performed on `struct ncplane*`s (see notcurses_ncplane(3)).
 Following initialization, a single ncplane exists, the "standard plane" (see
-`notcurses_stdplane(3)`. This plane cannot be destoyed nor manually resized,
+notcurses_stdplane(3)). This plane cannot be destoyed nor manually resized,
 and is always exactly as large as the screen. Further ncplanes can be created
-with `notcurses_newplane(3)`. A total z-ordering always exists on the set of
+with notcurses_newplane(3). A total z-ordering always exists on the set of
 ncplanes, and new ncplanes are placed at the top of the z-buffer. Information
-on drawing to ncplanes is available at `notcurses_output(3)`.
+on drawing to ncplanes is available at notcurses_output(3).
 
-Output is not visible until explicitly rendered via `notcurses_render(3)`.
+Output is not visible until explicitly rendered via notcurses_render(3).
 
 ### Input
 
@@ -55,16 +55,16 @@ notcurses supports input from keyboards (via `stdin`) and pointing devices (via
 a broker such as GPM, X, or Wayland). Input is delivered as 32-bit Unicode
 code points. Synthesized events such as mouse button presses and arrow keys
 are mapped into Unicode's
-(Supplementary Private Use Area-B)[https://unicode.org/charts/PDF/U100000.pdf].
-Information on input is available at `notcurses_input(3)`.
+[Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U100000.pdf).
+Information on input is available at notcurses_input(3).
 
 ### Destruction
 
-Before exiting, `notcurses_stop(3)` should be called. In addition to freeing up
+Before exiting, notcurses_stop(3) should be called. In addition to freeing up
 resources, this is necessary to restore the terminal to a state useful for the
-shell. By default, `notcurses_init` installs signal handlers to catch all
+shell. By default, notcurses_init(3) installs signal handlers to catch all
 signals which would normally terminate the process. The new handlers will try
-to call `notcurses_stop`, and then propagate the received signal to the
+to call notcurses_stop(3), and then propagate the received signal to the
 previous action.
 
 ## AUTHORS
