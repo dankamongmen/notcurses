@@ -123,6 +123,9 @@ be found on the `notcurses-demo(1)` man page.
 
 ## Use
 
+A full API reference [is available](https://nick-black.com/notcurses/). Manual
+pages ought have been installed along with notcurses.
+
 A program wishing to use notcurses will need to link it, ideally using the
 output of `pkg-config --libs notcurses`. It is advised to compile with the
 output of `pkg-config --cflags notcurses`. If using CMake, a support file is
