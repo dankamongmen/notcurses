@@ -3,7 +3,9 @@ notcurses_init(3)     notcurses_init.3.ronn
 notcurses_stdplane(3) notcurses_stdplane.3.ronn
 notcurses_ncplane(3)  notcurses_ncplane.3.ronn
 notcurses_newplane(3) notcurses_newplane.3.ronn
+notcurses_channels(3) notcurses_channels.3.ronn
 notcurses_cell(3)     notcurses_cell.3.ronn
+notcurses_lines(3)    notcurses_lines.3.ronn
 notcurses_input(3)    notcurses_input.3.ronn
 notcurses_output(3)   notcurses_output.3.ronn
 notcurses_render(3)   notcurses_render.3.ronn
