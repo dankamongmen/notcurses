@@ -5,6 +5,48 @@ notcurses_cell(3) -- operations on notcurses cells
 
 `#include <notcurses.h>`
 
+<pre>typedef struct cell {
+  uint32_t gcluster;
+  uint32_t attrword;
+  uint64_t channels;
+} cell;</pre>
+
+`unsigned cell_get_bchannel(const cell* cl);`
+
+`unsigned cell_get_fchannel(const cell* cl)`
+
+`uint64_t cell_set_bchannel(cell* cl, uint32_t channel)`
+
+`uint64_t cell_set_fchannel(cell* cl, uint32_t channel)`
+
+`uint64_t cell_blend_fchannel(cell* cl, unsigned channel)`
+
+`uint64_t cell_blend_bchannel(cell* cl, unsigned channel)`
+
+`unsigned cell_get_fg(const cell* cl)`
+
+`unsigned cell_get_bg(const cell* cl)`
+
+`unsigned cell_get_fg_alpha(const cell* cl)`
+
+`unsigned cell_get_bg_alpha(const cell* cl)`
+
+`unsigned cell_get_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b)`
+
+`unsigned cell_get_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b)`
+
+`int cell_set_fg_rgb(cell* cl, int r, int g, int b)`
+
+`int cell_set_bg_rgb(cell* cl, int r, int g, int b)`
+
+`int cell_set_fg(cell* c, uint32_t channel)`
+
+`int cell_set_bg(cell* c, uint32_t channel)`
+
+`bool cell_fg_default_p(const cell* cl)`
+
+`bool cell_bg_default_p(const cell* cl)`
+
 ## DESCRIPTION
 
 
