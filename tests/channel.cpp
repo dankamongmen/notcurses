@@ -67,13 +67,14 @@ TEST_CASE("ChannelSetDefault") {
   }
 }
 
-// blend of 0 ought perfectly set
+// blend of 0 ought set c1 to c2
 TEST_CASE("ChannelBlend0") {
   uint32_t c1 = 0;
   uint32_t c2 = 0;
   channel_set_rgb(&c1, 0x80, 0x40, 0x20);
   channel_set_rgb(&c2, 0x88, 0x44, 0x22);
   uint32_t c = channels_blend(c1, c2, 0);
+  CHECK(!channel_default_p(c));
   unsigned r, g, b;
   channel_get_rgb(c, &r, &g, &b);
   CHECK(0x88 == r);
@@ -81,18 +82,34 @@ TEST_CASE("ChannelBlend0") {
   CHECK(0x22 == b);
 }
 
-// blend of 1 ought perfectly average
+// blend of 1 ought perfectly average c1 and c2
 TEST_CASE("ChannelBlend1") {
   uint32_t c1 = 0;
   uint32_t c2 = 0;
   channel_set_rgb(&c1, 0x80, 0x40, 0x20);
   channel_set_rgb(&c2, 0x0, 0x0, 0x0);
   uint32_t c = channels_blend(c1, c2, 1);
+  CHECK(!channel_default_p(c));
   unsigned r, g, b;
   channel_get_rgb(c, &r, &g, &b);
   CHECK(0x40 == r);
   CHECK(0x20 == g);
   CHECK(0x10 == b);
+}
+
+// blend of 2 ought weigh c1 twice as much as c2
+TEST_CASE("ChannelBlend2") {
+  uint32_t c1 = 0;
+  uint32_t c2 = 0;
+  channel_set_rgb(&c1, 0x60, 0x30, 0x0f);
+  channel_set_rgb(&c2, 0x0, 0x0, 0x0);
+  uint32_t c = channels_blend(c1, c2, 2);
+  CHECK(!channel_default_p(c));
+  unsigned r, g, b;
+  channel_get_rgb(c, &r, &g, &b);
+  CHECK(0x40 == r);
+  CHECK(0x20 == g);
+  CHECK(0x0a == b);
 }
 
 // you can't blend into a default color, at any number of blends
