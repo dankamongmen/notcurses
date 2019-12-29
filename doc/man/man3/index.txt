@@ -8,3 +8,11 @@ notcurses_input(3)    notcurses_input.3.ronn
 notcurses_output(3)   notcurses_output.3.ronn
 notcurses_render(3)   notcurses_render.3.ronn
 notcurses_stop(3)     notcurses_stop.3.ronn
+
+poll(2)               http://man7.org/linux/man-pages/man2/poll.2.html
+getenv(3)             http://man7.org/linux/man-pages/man3/getenv.3.html
+termios(3)            http://man7.org/linux/man-pages/man3/termios.3.html
+ncurses(3NCURSES)     http://man7.org/linux/man-pages/man3/ncurses.3x.html
+terminfo(5)           http://man7.org/linux/man-pages/man5/terminfo.5.html
+signal(7)             http://man7.org/linux/man-pages/man7/signal.7.html
+unicode(7)            http://man7.org/linux/man-pages/man7/unicode.7.html
