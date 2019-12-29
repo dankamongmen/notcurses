@@ -12,7 +12,7 @@ notcurses_newplane(3) -- create a new ncplane atop the z-buffer
 
 ## RETURN VALUES
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

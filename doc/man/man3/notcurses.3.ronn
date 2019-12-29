@@ -67,7 +67,7 @@ signals which would normally terminate the process. The new handlers will try
 to call notcurses_stop(3), and then propagate the received signal to the
 previous action.
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

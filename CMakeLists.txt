@@ -139,9 +139,9 @@ foreach(m ${MANSOURCE3})
     ARGS -5 --pipe ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
     COMMENT "Building HTML5 ${me}.html"
   )
-  add_custom_target(${me}.html
+  add_custom_target(${me}.html5
     ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
   )
   endforeach()
 endif()

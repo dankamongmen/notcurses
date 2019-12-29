@@ -359,11 +359,11 @@ typedef struct ncstats {
   uint64_t defaultemissions; // default color was elided
 } ncstats;
 
-// Acquire a snapshot of the notcurses object's stats.
-API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
+// Acquire an atomic snapshot of the notcurses object's stats.
+API void notcurses_stats(struct notcurses* nc, ncstats* stats);
 
-// Reset all stats.
-API void notcurses_reset_stats(struct notcurses* nc);
+// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
+API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
@@ -835,7 +835,7 @@ channel_default_p(unsigned channel){
 // Mark the channel as using its default color, which also marks it opaque.
 static inline unsigned
 channel_set_default(unsigned* channel){
-  return *channel &= (~CELL_BGDEFAULT_MASK | ~CELL_ALPHA_HIGHCONTRAST);
+  return *channel &= ~(CELL_BGDEFAULT_MASK | CELL_ALPHA_HIGHCONTRAST);
 }
 
 // Extract the 32-bit background channel from a channel pair.
@@ -1003,6 +1003,9 @@ channels_set_bg_default(uint64_t* channels){
 // Returns the result of blending two channels.
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2){
+  if(channel_default_p(c1)){
+    return c1;
+  }
   int rsum = (channel_get_r(c1) + channel_get_r(c2)) / 2;
   int gsum = (channel_get_g(c1) + channel_get_g(c2)) / 2;
   int bsum = (channel_get_b(c1) + channel_get_b(c2)) / 2;

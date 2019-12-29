@@ -35,7 +35,7 @@ dependencies between cells.
 Recall that there is a total ordering on the N ncplanes, and that the standard
 plane always exists, with geometry equal to the physical screen. Each cell of
 the physical screen is thus intersected by some totally ordered subset of
-planes `P0`, `P1`…`Pi`, where 0 < `i` ≤ `N`. At each cell, rendering starts at
+planes `P0`, `P1`...`Pi`, where 0 < `i` ≤ `N`. At each cell, rendering starts at
 the topmost intersecting plane `P0`. The algorithm descends until either:
 
 * it has locked in an extended grapheme cluster, and fore/background colors, or
@@ -65,11 +65,11 @@ and "default background color" inherited from the terminal. Since
 notcurses doesn't know what these colors are, they are not considered for
 purposes of color blending.
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 
 ## SEE ALSO
 
-notcurses_cell(3), notcurses_ncplane(3), notcurses_output(3), console_codes(4),
-utf-8(7)
+notcurses_cell(3), notcurses_ncplane(3), notcurses_output(3),
+notcurses_stats(3), console_codes(4), utf-8(7)

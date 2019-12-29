@@ -27,7 +27,7 @@ A resize event does not invalidate this reference; it can be used until
 These functions cannot fail when provided a valid `struct notcurses*`. They
 will always return a valid pointer to the standard plane.
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

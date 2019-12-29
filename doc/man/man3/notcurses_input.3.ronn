@@ -31,7 +31,7 @@ notcurses_input(3) -- input via notcurses
 
 ## RETURN VALUES
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

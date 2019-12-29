@@ -10,7 +10,7 @@ notcurses_cell(3) -- operations on notcurses cells
 
 ## RETURN VALUES
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

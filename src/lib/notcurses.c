@@ -159,10 +159,6 @@ const char* notcurses_version(void){
   return NOTCURSES_VERSION;
 }
 
-void notcurses_stats(const notcurses* nc, ncstats* stats){
-  memcpy(stats, &nc->stats, sizeof(*stats));
-}
-
 void* ncplane_set_userptr(ncplane* n, void* opaque){
   void* ret = n->userptr;
   n->userptr = opaque;
@@ -660,8 +656,15 @@ stash_stats(notcurses* nc){
   reset_stats(&nc->stats);
 }
 
-void notcurses_reset_stats(notcurses* nc){
+void notcurses_stats(notcurses* nc, ncstats* stats){
   pthread_mutex_lock(&nc->lock);
+  memcpy(stats, &nc->stats, sizeof(*stats));
+  pthread_mutex_unlock(&nc->lock);
+}
+
+void notcurses_reset_stats(notcurses* nc, ncstats* stats){
+  pthread_mutex_lock(&nc->lock);
+  memcpy(stats, &nc->stats, sizeof(*stats));
   stash_stats(nc);
   pthread_mutex_unlock(&nc->lock);
 }

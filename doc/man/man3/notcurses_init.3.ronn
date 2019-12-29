@@ -109,7 +109,7 @@ geometry.
 `NULL` is returned on failure. Otherwise, the return value points at a valid
 `struct notcurses`, which can be used until it is provided to notcurses_stop(3).
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

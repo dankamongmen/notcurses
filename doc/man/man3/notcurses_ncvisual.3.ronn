@@ -10,7 +10,7 @@ notcurses_ncvisual(3) -- notcurses multimedia
 
 ## RETURN VALUES
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

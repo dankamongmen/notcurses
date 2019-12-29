@@ -10,7 +10,7 @@ notcurses_output(3) -- output to ncplanes
 
 ## RETURN VALUES
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

@@ -130,7 +130,7 @@ TEST_CASE("NotcursesBase") {
     CHECK(0 == notcurses_render(nc_));
     notcurses_stats(nc_, &stats);
     CHECK(1 == stats.renders);
-    notcurses_reset_stats(nc_);
+    notcurses_reset_stats(nc_, &stats);
     notcurses_stats(nc_, &stats);
     CHECK(0 == stats.renders);
   }

@@ -18,7 +18,7 @@ place by notcurses_init(3). `nc` must not be used following the call.
 
 On success, 0 is returned. Otherwise, a negative value is returned.
 
-## AUTHORS
+## AUTHOR
 
 Nick Black <nickblack@linux.com>
 

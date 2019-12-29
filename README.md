@@ -2133,11 +2133,11 @@ typedef struct ncstats {
   uint64_t defaultemissions; // default color was elided
 } ncstats;
 
-// Acquire a snapshot of the notcurses object's stats.
-void notcurses_stats(const struct notcurses* nc, ncstats* stats);
+// Acquire an atomic snapshot of the notcurses object's stats.
+void notcurses_stats(struct notcurses* nc, ncstats* stats);
 
-// Reset all stats.
-void notcurses_reset_stats(struct notcurses* nc);
+// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
+void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 ```
 
 Timings for renderings are across the breadth of `notcurses_render()`: they

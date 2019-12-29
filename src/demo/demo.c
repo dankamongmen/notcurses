@@ -264,8 +264,7 @@ ext_demos(struct notcurses* nc, const char* demos){
         ret = -1;
         break;
     }
-    notcurses_stats(nc, &results[i].stats);
-    notcurses_reset_stats(nc);
+    notcurses_reset_stats(nc, &results[i].stats);
     clock_gettime(CLOCK_MONOTONIC, &now);
     uint64_t nowns = timespec_to_ns(&now);
     results[i].timens = nowns - prevns;
