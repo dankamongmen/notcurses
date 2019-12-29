@@ -832,10 +832,10 @@ channel_default_p(unsigned channel){
   return !(channel & CELL_BGDEFAULT_MASK);
 }
 
-// Mark the channel as using its default color.
+// Mark the channel as using its default color, which also marks it opaque.
 static inline unsigned
 channel_set_default(unsigned* channel){
-  return *channel &= ~CELL_BGDEFAULT_MASK;
+  return *channel &= (~CELL_BGDEFAULT_MASK | ~CELL_ALPHA_HIGHCONTRAST);
 }
 
 // Extract the 32-bit background channel from a channel pair.
