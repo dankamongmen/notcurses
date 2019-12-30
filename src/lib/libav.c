@@ -3,6 +3,7 @@
 #include <libavutil/error.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
+#include <libavutil/rational.h>
 #include <libavformat/avformat.h>
 #endif
 #include "notcurses.h"
@@ -364,16 +365,25 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   return 0;
 }
 
+// iterative over the decoded frames, calling streamer() with curry for each.
+// frames carry a presentation time relative to the beginning, so we get an
+// initial timestamp, and check each frame against the elapsed time to sync
+// up playback.
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
                     streamcb streamer, void* curry){
   ncplane* n = ncv->ncp;
   int frame = 1;
   AVFrame* avf;
-  struct timespec start;
-  // FIXME should keep a start time and cumulative time; this will push things
-  // out on a loaded machine
-  while(clock_gettime(CLOCK_MONOTONIC, &start),
-        (avf = ncvisual_decode(ncv, averr)) ){
+  struct timespec begin; // time we started
+  clock_gettime(CLOCK_MONOTONIC, &begin);
+  uint64_t nsbegin = timespec_to_ns(&begin);
+  struct timespec now;
+  bool usets = false;
+  while(clock_gettime(CLOCK_MONOTONIC, &now), (avf = ncvisual_decode(ncv, averr)) ){
+    int64_t ts = avf->best_effort_timestamp;
+    if(frame == 1 && ts){
+      usets = true;
+    }
     ncplane_cursor_move_yx(n, 0, 0);
     if(ncvisual_render(ncv, 0, 0, 0, 0)){
       return -1;
@@ -385,12 +395,23 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
       }
     }
     ++frame;
-    uint64_t ns = avf->pkt_duration * 1000000;
-    struct timespec interval = {
-      .tv_sec = start.tv_sec + (long)(ns / 1000000000),
-      .tv_nsec = start.tv_nsec + (long)(ns % 1000000000),
-    };
-    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
+    struct timespec interval;
+    if(usets){
+      double tbase = av_q2d(ncv->codecctx->time_base);
+      if(tbase == 0){
+        tbase = avf->pkt_duration * 1000000;
+      }
+      double schedns = ts * tbase * NANOSECS_IN_SEC + nsbegin;
+      uint64_t nsnow = timespec_to_ns(&now);
+      if(nsnow < schedns){
+        ns_to_timespec(schedns - nsnow, &interval);
+      }
+      nanosleep(&interval, NULL);
+    }else{
+      uint64_t ns = avf->pkt_duration * 1000000;
+      ns_to_timespec(ns, &interval);
+      nanosleep(&interval, NULL);
+    }
   }
   if(*averr == AVERROR_EOF){
     return 0;

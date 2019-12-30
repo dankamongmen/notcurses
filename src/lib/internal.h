@@ -264,6 +264,18 @@ cell* ncplane_cell_ref_yx(ncplane* n, int y, int x);
 
 #define NANOSECS_IN_SEC 1000000000
 
+static inline uint64_t
+timespec_to_ns(const struct timespec* t){
+  return t->tv_sec * NANOSECS_IN_SEC + t->tv_nsec;
+}
+
+static inline struct timespec*
+ns_to_timespec(uint64_t ns, struct timespec* ts){
+  ts->tv_sec = ns / NANOSECS_IN_SEC;
+  ts->tv_nsec = ns % NANOSECS_IN_SEC;
+  return ts;
+}
+
 // no CLOCK_MONOTONIC_RAW on FreeBSD as of 12.0 :/
 #ifndef CLOCK_MONOTONIC_RAW
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
