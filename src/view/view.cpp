@@ -53,7 +53,12 @@ int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
   if(notcurses_render(nc)){
     return -1;
   }
-  return 0;
+  int dimx, dimy, oldx, oldy, keepy, keepx;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  ncplane_dim_yx(ncvisual_plane(ncv), &oldy, &oldx);
+  keepy = oldy > dimy ? dimy : oldy;
+  keepx = oldx > dimx ? dimx : oldx;
+  return ncplane_resize(ncvisual_plane(ncv), 0, 0, keepy, keepx, 0, 0, dimy, dimx);
 }
 
 int main(int argc, char** argv){

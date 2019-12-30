@@ -125,8 +125,8 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
   }while(!have_frame);
 //print_frame_summary(nc->codecctx, nc->frame);
 #define IMGALLOCALIGN 32
+  int rows, cols;
   if(nc->ncp == NULL){ // create plane
-    int rows, cols;
     if(nc->style == NCSCALE_NONE){
       rows = nc->frame->height / 2;
       cols = nc->frame->width;
@@ -144,6 +144,14 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
     if(nc->ncp == NULL){
       *averr = AVERROR(ENOMEM);
       return NULL;
+    }
+  }else{ // check for resize
+    ncplane_dim_yx(nc->ncp, &rows, &cols);
+    if(rows != nc->dstheight / 2 || cols != nc->dstwidth){
+      sws_freeContext(nc->swsctx);
+      nc->swsctx = NULL;
+      nc->dstheight = rows * 2;
+      nc->dstwidth = cols;
     }
   }
   const int targformat = AV_PIX_FMT_RGBA;
