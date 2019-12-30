@@ -1,6 +1,7 @@
 notcurses (1.0.0-1) UNRELEASED; urgency=medium
 
   * Build-depends on ruby-ronn
+  * Drop depends on libgtest-dev
 
  -- Nick Black <dankamongmen@gmail.com>  Mon, 30 Dec 2019 00:28:51 -0500
 
