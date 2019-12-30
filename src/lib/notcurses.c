@@ -528,12 +528,8 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
     fprintf(stderr, "Required terminfo capability not defined\n");
     return -1;
   }
-  if(!opts->retain_cursor){
-    term_verify_seq(&nc->civis, "civis");
-    term_verify_seq(&nc->cnorm, "cnorm");
-  }else{
-    nc->civis = nc->cnorm = NULL;
-  }
+  term_verify_seq(&nc->civis, "civis");
+  term_verify_seq(&nc->cnorm, "cnorm");
   term_verify_seq(&nc->standout, "smso"); // smso / rmso
   term_verify_seq(&nc->uline, "smul");
   term_verify_seq(&nc->reverse, "reverse");
@@ -745,9 +741,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if((ret->stdscr = create_initial_ncplane(ret)) == NULL){
     goto err;
   }
-  if(ret->civis && term_emit("civis", ret->civis, ret->ttyfp, false)){
-    free_plane(ret->top);
-    goto err;
+  if(!opts->retain_cursor){
+    if(ret->civis && term_emit("civis", ret->civis, ret->ttyfp, false)){
+      free_plane(ret->top);
+      goto err;
+    }
   }
   if(ret->smkx && term_emit("smkx", ret->smkx, ret->ttyfp, false)){
     free_plane(ret->top);
@@ -1564,7 +1562,6 @@ void ncplane_erase(ncplane* n){
   ncplane_unlock(n);
 }
 
-// if "retain_cursor" was set, we don't have these definitions FIXME
 void notcurses_cursor_enable(notcurses* nc){
   if(nc->cnorm){
     term_emit("cnorm", nc->cnorm, nc->ttyfp, false);
