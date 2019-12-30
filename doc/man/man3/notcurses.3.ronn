@@ -43,7 +43,7 @@ All output is performed on `struct ncplane*`s (see notcurses_ncplane(3)).
 Following initialization, a single ncplane exists, the "standard plane" (see
 notcurses_stdplane(3)). This plane cannot be destoyed nor manually resized,
 and is always exactly as large as the screen. Further ncplanes can be created
-with notcurses_newplane(3). A total z-ordering always exists on the set of
+with ncplane_new(3). A total z-ordering always exists on the set of
 ncplanes, and new ncplanes are placed at the top of the z-buffer. Information
 on drawing to ncplanes is available at notcurses_output(3).
 
@@ -74,5 +74,5 @@ Nick Black <nickblack@linux.com>
 ## SEE ALSO
 
 notcurses-demo(1), notcurses_init(3), notcurses_input(3),
-notcurses_newplane(3), notcurses_output(3), notcurses_render(3),
+ncplane_new(3), notcurses_output(3), notcurses_render(3),
 notcurses_stdplane(3), notcurses_stop(3), ncurses(3NCURSES), terminfo(5)

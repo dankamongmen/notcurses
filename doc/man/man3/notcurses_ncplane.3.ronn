@@ -5,6 +5,10 @@ notcurses_ncplane(3) -- operations on notcurses planes
 
 `#include <notcurses.h>`
 
+`struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);`
+
+`struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);`
+
 `int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen);`
 
 `int ncplane_move_yx(struct ncplane* n, int y, int x);`
@@ -54,4 +58,4 @@ Nick Black <nickblack@linux.com>
 
 ## SEE ALSO
 
-notcurses_newplane(3), notcurses_stdplane(3)
+ncplane_new(3), notcurses_stdplane(3)

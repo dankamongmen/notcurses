@@ -256,8 +256,11 @@ int notcurses_refresh(struct notcurses* n);
 // and the specified size. The number of rows and columns must both be positive.
 // This plane is initially at the top of the z-buffer, as if ncplane_move_top()
 // had been called on it. The void* 'opaque' can be retrieved (and reset) later.
-API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
-                                int yoff, int xoff, void* opaque);
+struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
+                            int yoff, int xoff, void* opaque);
+
+struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
+                                int yoff, ncalign_e align, void* opaque);
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
