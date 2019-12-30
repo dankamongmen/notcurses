@@ -4,11 +4,6 @@
 #include <sys/poll.h>
 #include "internal.h"
 
-static inline uint64_t
-timespec_to_ns(const struct timespec* t){
-  return t->tv_sec * NANOSECS_IN_SEC + t->tv_nsec;
-}
-
 static void
 mutex_unlock(void* vlock){
   pthread_mutex_unlock(vlock);
