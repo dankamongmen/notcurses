@@ -39,7 +39,7 @@ hud_standard_bg(struct ncplane* n){
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_bg_rgb(&c, 0xc0, 0xf0, 0xc0);
   cell_set_bg_alpha(&c, CELL_ALPHA_BLEND);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   cell_release(n, &c);
   return 0;
 }
@@ -48,7 +48,7 @@ static int
 hud_grabbed_bg(struct ncplane* n){
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_bg_rgb(&c, 0x40, 0x90, 0x40);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   cell_release(n, &c);
   return 0;
 }
@@ -133,7 +133,7 @@ int hud_schedule(const char* demoname){
     return -1;
   }
   cell c = CELL_TRIVIAL_INITIALIZER;
-  ncplane_default(hud, &c);
+  ncplane_base(hud, &c);
   ncplane_set_bg(hud, cell_get_bg(&c));
   ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
   ncplane_set_fg(hud, 0);

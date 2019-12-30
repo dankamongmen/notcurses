@@ -38,7 +38,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   ncplane_set_fg_alpha(n, CELL_ALPHA_BLEND);
   ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
   // fg/bg rgbs are set within loop

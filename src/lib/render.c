@@ -160,7 +160,7 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p){
         // if we never loaded any content into the cell (or obliterated it by
         // writing in a zero), use the plane's default cell.
         if(vis->gcluster == 0){
-          vis = &p->defcell;
+          vis = &p->basecell;
         }
         // if we have no character in this cell, we continune to look for a
         // character, but our foreground color will still be used unless it's

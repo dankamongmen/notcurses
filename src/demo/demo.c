@@ -99,7 +99,7 @@ intro(struct notcurses* nc){
   }
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_bg_rgb(&c, 0x20, 0x20, 0x20);
-  ncplane_set_default(ncp, &c);
+  ncplane_set_base(ncp, &c);
   if(ncplane_cursor_move_yx(ncp, 0, 0)){
     return -1;
   }

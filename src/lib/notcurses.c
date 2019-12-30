@@ -291,7 +291,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->z = nc->top;
   nc->top = p;
   p->nc = nc;
-  cell_init(&p->defcell);
+  cell_init(&p->basecell);
   nc->stats.fbbytes += fbsize;
   return p;
 }
@@ -925,16 +925,16 @@ int ncplane_set_bg_alpha(ncplane *n, int alpha){
   return channels_set_bg_alpha(&n->channels, alpha);
 }
 
-int ncplane_set_default(ncplane* ncp, const cell* c){
-  int ret = cell_duplicate(ncp, &ncp->defcell, c);
+int ncplane_set_base(ncplane* ncp, const cell* c){
+  int ret = cell_duplicate(ncp, &ncp->basecell, c);
   if(ret < 0){
     return -1;
   }
   return ret;
 }
 
-int ncplane_default(ncplane* ncp, cell* c){
-  return cell_duplicate(ncp, c, &ncp->defcell);
+int ncplane_base(ncplane* ncp, cell* c){
+  return cell_duplicate(ncp, c, &ncp->basecell);
 }
 
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
@@ -1555,11 +1555,11 @@ void ncplane_erase(ncplane* n){
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the attrword
   // and channels), and then reload.
-  char* egc = cell_egc_copy(n, &n->defcell);
+  char* egc = cell_egc_copy(n, &n->basecell);
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
-  cell_load(n, &n->defcell, egc);
+  cell_load(n, &n->basecell, egc);
   free(egc);
   ncplane_unlock(n);
 }
