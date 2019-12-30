@@ -8,16 +8,16 @@ static struct ncplane* on;
 static struct ncvisual* chncv;
 
 static int
-perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
-  static int three = 3; // move up one every three callbacks
+perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)), void* vthree){
+  int* three = vthree; // move up one every three callbacks
   demo_render(nc);
   if(y < targy){
     return 0;
   }
   ncplane_move_yx(on, y, xstart);
-  if(--three == 0){
+  if(--*three == 0){
     --y;
-    three = 3;
+    *three = 3;
   }
   return 0;
 }
@@ -47,7 +47,8 @@ fadethread(void* vnc){
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
       "Apia 🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
-  ncvisual_stream(nc, ncv, &averr, perframe);
+  int three = 3;
+  ncvisual_stream(nc, ncv, &averr, perframe, &three);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
   fade.tv_sec = 2;

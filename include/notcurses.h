@@ -1516,11 +1516,12 @@ API int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
-typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv);
+typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 static inline int
-ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
+ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
+                         void* curry __attribute__ ((unused))){
   return notcurses_render(nc);
 }
 
@@ -1528,7 +1529,7 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute_
 // obviously. streamer may be NULL; it is otherwise called for each frame, and
 // its return value handled as outlined for stream cb. Pretty raw; beware.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
-                        int* averr, streamcb streamer);
+                        int* averr, streamcb streamer, void* curry);
 
 // Return the plane to which this ncvisual is bound.
 API struct ncplane* ncvisual_plane(struct ncvisual* ncv);

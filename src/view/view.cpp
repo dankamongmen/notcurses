@@ -21,10 +21,9 @@ void usage(std::ostream& o, const char* name, int exitcode){
 }
 
 // frame count is in the ncplane's user pointer
-int perframe(struct notcurses* nc, struct ncvisual* ncv){
+int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
   struct ncplane* stdn = notcurses_stdplane(nc);
-  struct ncplane* n = ncvisual_plane(ncv);
-  int* framecount = static_cast<int*>(ncplane_userptr(n));
+  int* framecount = static_cast<int*>(vframecount);
   ++*framecount;
   ncplane_set_fg(stdn, 0x80c080);
   ncplane_cursor_move_yx(stdn, 0, 0);
@@ -50,16 +49,15 @@ int main(int argc, char** argv){
   }
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  int frames;
-  auto ncp = notcurses_newplane(nc, dimy - 1, dimx, 1, 0, &frames);
+  auto ncp = notcurses_newplane(nc, dimy - 1, dimx, 1, 0, nullptr);
   if(ncp == nullptr){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
   for(int i = 1 ; i < argc ; ++i){
     std::array<char, 128> errbuf;
+    int frames = 0;
     int averr;
-    frames = 0;
     auto ncv = ncplane_visual_open(ncp, argv[i], &averr);
     if(ncv == nullptr){
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
@@ -67,7 +65,7 @@ int main(int argc, char** argv){
       std::cerr << "Error opening " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }
-    if(ncvisual_stream(nc, ncv, &averr, perframe)){
+    if(ncvisual_stream(nc, ncv, &averr, perframe, &frames)){
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
       notcurses_stop(nc);
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
