@@ -63,13 +63,15 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   const char str0[] = " ATL, baby! ATL! ";
   const char str1[] = " throw your hands in the air ";
   const char str2[] = " hack on! —dank❤ ";
-  int xs = (*cols - (strlen(str1) + 4)) / 2;
   int ystart = *rows - 6;
-  *cols = xs;
-  struct ncplane* non = ncplane_new(nc, 5, strlen(str1) + 4, ystart, *cols, NULL);
+  struct ncplane* non = ncplane_aligned(notcurses_stdplane(nc), 5,
+                                        strlen(str1) + 4, ystart,
+                                        NCALIGN_CENTER, NULL);
   if(non == NULL){
     return NULL;
   }
+  int xs;
+  ncplane_yx(non, NULL, &xs);
   cell bgcell = CELL_SIMPLE_INITIALIZER(' ');
   channels_set_bg_rgb(&bgcell.channels, 0x58, 0x36, 0x58);
   if(ncplane_set_base(non, &bgcell) < 0){

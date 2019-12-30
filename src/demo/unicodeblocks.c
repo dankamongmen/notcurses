@@ -176,9 +176,9 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
-    int xstart = (maxx - ((CHUNKSIZE * 2) + 3)) / 2;
     struct ncplane* nn;
-    if((nn = ncplane_new(nc, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 3, xstart, NULL)) == NULL){
+    if((nn = ncplane_aligned(notcurses_stdplane(nc), BLOCKSIZE / CHUNKSIZE + 2,
+                             (CHUNKSIZE * 2) + 2, 3, NCALIGN_CENTER, NULL)) == NULL){
       return -1;
     }
     if(hud){
