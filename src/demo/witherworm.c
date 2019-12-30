@@ -330,7 +330,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_cursor_move_yx(n, 3, 1);
   ncplane_styles_off(n, CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(n, 224, 128, 224);
-  ncplane_putstr(n, "  🔥 wide chars, multiple colors, resize awareness…🔥  ");
+  ncplane_putstr(n, "  🔥 unicode 13, resize awareness, 24b directcolor…🔥  ");
   ncplane_set_fg_rgb(n, 255, 255, 255);
   return 0;
 }
