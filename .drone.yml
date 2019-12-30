@@ -5,19 +5,20 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2019-12-18
+  image: dankamongmen/unstable_builder:2019-12-30a
   commands:
     - apt-get update
     - apt-get -y dist-upgrade
     - apt-get -y install devscripts git-buildpackage locales
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - locale-gen
+    - export LANG=en_US.UTF-8
     - mk-build-deps --install -t'apt-get -y'
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
-    - env LANG="en_US.UTF-8" make test
+    - make test
 ---
 kind: pipeline
 type: docker
@@ -33,8 +34,9 @@ steps:
     - mk-build-deps --install -t'apt-get -y'
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - locale-gen
+    - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
-    - env LANG="en_US.UTF-8" make test || { env LANG="en_US.UTF-8" ./notcurses-tester -p ../data ; }
+    - make test || ./notcurses-tester -p ../data
