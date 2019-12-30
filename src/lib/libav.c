@@ -364,7 +364,8 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   return 0;
 }
 
-int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr, streamcb streamer){
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
+                    streamcb streamer, void* curry){
   ncplane* n = ncv->ncp;
   int frame = 1;
   AVFrame* avf;
@@ -378,7 +379,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr, streamcb streamer)
       return -1;
     }
     if(streamer){
-      int r = streamer(nc, ncv);
+      int r = streamer(nc, ncv, curry);
       if(r){
         return r;
       }

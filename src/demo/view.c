@@ -2,7 +2,8 @@
 #include "demo.h"
 
 static int
-watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused))){
+watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
+                    void* curry __attribute__ ((unused))){
   wchar_t w;
   // we don't want a keypress, but should handle NCKEY_RESIZE
   if((w = demo_getc_nblock(NULL)) != (wchar_t)-1){
@@ -29,7 +30,7 @@ view_video_demo(struct notcurses* nc){
     return -1;
   }
   free(fm6);
-  if(ncvisual_stream(nc, ncv, &averr, watch_for_keystroke) < 0){
+  if(ncvisual_stream(nc, ncv, &averr, watch_for_keystroke, NULL) < 0){
     ncvisual_destroy(ncv);
     return -1;
   }
