@@ -25,16 +25,16 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: library/ubuntu:focal
+  image: dankamongmen/focal:2019-12-30b
   commands:
     - apt-get update
     - apt-get -y dist-upgrade
     - env DEBIAN_FRONTEND=noninteractive apt-get -y install devscripts git-buildpackage equivs locales
+    - mk-build-deps --install -t'apt-get -y'
     - echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
     - locale-gen
-    - mk-build-deps --install -t'apt-get -y'
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
-    - env LANG="en_US.UTF-8" make test
+    - env LANG="en_US.UTF-8" make test || { env LANG="en_US.UTF-8" ./notcurses-tester -p ../data ; }

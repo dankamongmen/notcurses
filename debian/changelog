@@ -1,3 +1,9 @@
+notcurses (1.0.0-1) UNRELEASED; urgency=medium
+
+  * Build-depends on ruby-ronn
+
+ -- Nick Black <dankamongmen@gmail.com>  Mon, 30 Dec 2019 00:28:51 -0500
+
 notcurses (0.9.3-1) unstable; urgency=medium
 
   * notcurses-bin depends on ncurses-term
