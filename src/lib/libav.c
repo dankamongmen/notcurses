@@ -461,11 +461,13 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   return -1;
 }
 
-int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr, streamcb streamer){
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
+                    streamcb streamer, void* curry){
   (void)nc;
   (void)ncv;
   (void)averr;
   (void)streamer;
+  (void)curry;
   return -1;
 }
 
