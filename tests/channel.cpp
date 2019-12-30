@@ -13,7 +13,7 @@ TEST_CASE("ChannelGetRGB") {
   };
   for(auto i = 0u ; i < sizeof(test) / sizeof(*test) ; ++i){
     unsigned r, g, b;
-    CHECK(test[i].channel == channel_get_rgb(test[i].channel, &r, &g, &b));
+    CHECK(test[i].channel == channel_rgb(test[i].channel, &r, &g, &b));
     CHECK(test[i].r == r);
     CHECK(test[i].g == g);
     CHECK(test[i].b == b);
@@ -33,7 +33,7 @@ TEST_CASE("ChannelGetAlpha") {
     { .channel = 0xffffffff, .a = 3, },
   };
   for(auto i = 0u ; i < sizeof(test) / sizeof(*test) ; ++i){
-    CHECK(test[i].a == channel_get_alpha(test[i].channel));
+    CHECK(test[i].a == channel_alpha(test[i].channel));
   }
 }
 
@@ -76,7 +76,7 @@ TEST_CASE("ChannelBlend0") {
   uint32_t c = channels_blend(c1, c2, 0);
   CHECK(!channel_default_p(c));
   unsigned r, g, b;
-  channel_get_rgb(c, &r, &g, &b);
+  channel_rgb(c, &r, &g, &b);
   CHECK(0x88 == r);
   CHECK(0x44 == g);
   CHECK(0x22 == b);
@@ -91,7 +91,7 @@ TEST_CASE("ChannelBlend1") {
   uint32_t c = channels_blend(c1, c2, 1);
   CHECK(!channel_default_p(c));
   unsigned r, g, b;
-  channel_get_rgb(c, &r, &g, &b);
+  channel_rgb(c, &r, &g, &b);
   CHECK(0x40 == r);
   CHECK(0x20 == g);
   CHECK(0x10 == b);
@@ -106,7 +106,7 @@ TEST_CASE("ChannelBlend2") {
   uint32_t c = channels_blend(c1, c2, 2);
   CHECK(!channel_default_p(c));
   unsigned r, g, b;
-  channel_get_rgb(c, &r, &g, &b);
+  channel_rgb(c, &r, &g, &b);
   CHECK(0x40 == r);
   CHECK(0x20 == g);
   CHECK(0x0a == b);
@@ -120,19 +120,19 @@ TEST_CASE("ChannelBlendDefaultLeft") {
   uint32_t c = channels_blend(c1, c2, 0); // will replace
   CHECK(!channel_default_p(c));
   unsigned r, g, b;
-  channel_get_rgb(c, &r, &g, &b);
+  channel_rgb(c, &r, &g, &b);
   CHECK(0x80 == r);
   CHECK(0x40 == g);
   CHECK(0x20 == b);
   c = channels_blend(c1, c2, 1); // will not replace
   CHECK(channel_default_p(c));
-  channel_get_rgb(c, &r, &g, &b);
+  channel_rgb(c, &r, &g, &b);
   CHECK(0 == r);
   CHECK(0 == g);
   CHECK(0 == b);
   c = channels_blend(c1, c2, 2); // will not replace
   CHECK(channel_default_p(c));
-  channel_get_rgb(c, &r, &g, &b);
+  channel_rgb(c, &r, &g, &b);
   CHECK(0 == r);
   CHECK(0 == g);
   CHECK(0 == b);
@@ -147,13 +147,13 @@ TEST_CASE("ChannelBlendDefaultRight") {
   uint32_t c = channels_blend(c1, c2, 0);
   CHECK(channel_default_p(c));
   unsigned r, g, b;
-  channel_get_rgb(c, &r, &g, &b);
+  channel_rgb(c, &r, &g, &b);
   CHECK(0 == r);
   CHECK(0 == g);
   CHECK(0 == b);
   c = channels_blend(c1, c2, 1);
   CHECK(!channel_default_p(c));
-  channel_get_rgb(c, &r, &g, &b);
+  channel_rgb(c, &r, &g, &b);
   CHECK(0x80 == r);
   CHECK(0x40 == g);
   CHECK(0x20 == b);

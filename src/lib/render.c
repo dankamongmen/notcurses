@@ -173,21 +173,21 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p){
             c->attrword = vis->attrword;
           }
         }
-        if(cell_get_fg_alpha(c) > CELL_ALPHA_OPAQUE && cell_get_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
-          cell_blend_fchannel(c, cell_get_fchannel(vis), fgblends);
+        if(cell_fg_alpha(c) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+          cell_blend_fchannel(c, cell_fchannel(vis), fgblends);
           ++fgblends;
         }
         // Background color takes effect independently of whether we have a
         // glyph. If we've already locked in the background, it has no effect.
         // If it's transparent, it has no effect. Otherwise, update the
         // background channel and balpha.
-        if(cell_get_bg_alpha(c) > CELL_ALPHA_OPAQUE && cell_get_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
-          cell_blend_bchannel(c, cell_get_bchannel(vis), bgblends);
+        if(cell_bg_alpha(c) > CELL_ALPHA_OPAQUE && cell_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+          cell_blend_bchannel(c, cell_bchannel(vis), bgblends);
           ++bgblends;
         }
         // if everything's locked in, we're done
-        if((glyphplane && cell_get_fg_alpha(c) == CELL_ALPHA_OPAQUE &&
-              cell_get_bg_alpha(c) == CELL_ALPHA_OPAQUE)){
+        if((glyphplane && cell_fg_alpha(c) == CELL_ALPHA_OPAQUE &&
+              cell_bg_alpha(c) == CELL_ALPHA_OPAQUE)){
           return glyphplane;
         }
       }
@@ -553,7 +553,7 @@ notcurses_render_internal(notcurses* nc){
       //  * we are a no-foreground glyph (iswspace() is true)
       if(!cell_fg_default_p(&c)){
         if(!noforeground){
-          cell_get_fg_rgb(&c, &r, &g, &b);
+          cell_fg_rgb(&c, &r, &g, &b);
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
           }else{
@@ -569,7 +569,7 @@ notcurses_render_internal(notcurses* nc){
       }
       if(!cell_bg_default_p(&c)){
         if(!nobackground){
-          cell_get_bg_rgb(&c, &br, &bg, &bb);
+          cell_bg_rgb(&c, &br, &bg, &bb);
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
             ++nc->stats.bgelisions;
           }else{
