@@ -137,6 +137,7 @@ typedef struct notcurses {
   char* cup;      // move cursor
   char* cuf;      // move n cells right
   char* cuf1;     // move 1 cell right
+  char* cub1;     // move 1 cell left
   char* civis;    // hide cursor
   // These might be NULL, and we can more or less work without them. Check!
   char* clearscr; // erase screen and home cursor

@@ -528,6 +528,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   term_verify_seq(&nc->clearbol, "el1");
   term_verify_seq(&nc->cuf, "cuf"); // n non-destructive spaces
   term_verify_seq(&nc->cuf1, "cuf1"); // non-destructive space
+  term_verify_seq(&nc->cub1, "cub1");
   term_verify_seq(&nc->smkx, "smkx"); // set application mode
   if(nc->smkx){
     if(putp(tiparm(nc->smkx)) != OK){
