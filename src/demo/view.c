@@ -45,7 +45,7 @@ legend(struct notcurses* nc, int dimy, int dimx){
   uint64_t channels = 0;
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   cell c = CELL_INITIALIZER(' ', 0, channels);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   ncplane_styles_set(n, CELL_STYLE_BOLD);
   ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
   if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "target launch") <= 0){

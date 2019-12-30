@@ -38,7 +38,7 @@ legend(struct notcurses* nc, const char* msg){
   cell_set_fg_rgb(&c, 0, 0, 0); // darken surrounding characters by half
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT); // don't touch background
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   ncplane_set_fg(n, 0xd78700);
   ncplane_set_bg(n, 0);
   if(ncplane_putstr_yx(n, 1, 1, msg) < 0){
@@ -127,7 +127,7 @@ slidepanel(struct notcurses* nc){
   // of the underlying desktop).
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   struct timespec cur;
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   uint64_t deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   int direction = random() % 4;
@@ -140,7 +140,7 @@ slidepanel(struct notcurses* nc){
   ncplane_destroy(l);
 
   cell_load_simple(n, &c, '\0');
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   l = legend(nc, "default background, all opaque, no glyph");
@@ -154,7 +154,7 @@ slidepanel(struct notcurses* nc){
   // Next, we set our foreground transparent, allowing characters underneath to
   // be seen in their natural colors. Our background remains opaque+default.
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   l = legend(nc, "default background, fg transparent, no glyph");
@@ -169,7 +169,7 @@ slidepanel(struct notcurses* nc){
   // glyphs in a blended color, with the default background color.
   cell_set_fg(&c, 0x80c080);
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default background, fg blended, no glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
@@ -184,7 +184,7 @@ slidepanel(struct notcurses* nc){
   // fixed color, with the default background color.
   cell_set_fg(&c, 0x80c080);
   cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default background, fg colored opaque, no glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
@@ -201,7 +201,7 @@ slidepanel(struct notcurses* nc){
   cell_set_fg_default(&c);
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default colors, fg transparent, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
@@ -216,7 +216,7 @@ slidepanel(struct notcurses* nc){
   // background color from below us.
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "all transparent, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
@@ -233,7 +233,7 @@ slidepanel(struct notcurses* nc){
   cell_set_bg_alpha(&c, CELL_ALPHA_BLEND);
   cell_set_fg(&c, 0x80c080);
   cell_set_bg(&c, 0x204080);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "all blended, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);

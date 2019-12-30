@@ -623,7 +623,7 @@ panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd)
   }
   cell bgc = CELL_TRIVIAL_INITIALIZER;
   bgc.channels = popts->bgchannel;
-  ncplane_set_default(pr->p, &bgc);
+  ncplane_set_base(pr->p, &bgc);
   cell_release(pr->p, &bgc);
   if(panelreel_redraw(pr)){
     ncplane_destroy(pr->p);

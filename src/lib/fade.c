@@ -53,7 +53,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
     }
   }
   // FIXME factor this duplication out
-  channels = n->defcell.channels;
+  channels = n->basecell.channels;
   pp->channels[y * pp->cols] = channels;
   channels_get_fg_rgb(channels, &r, &g, &b);
   if(r > pp->maxr){
@@ -211,20 +211,20 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
         }
       }
     }
-    cell* c = &n->defcell;
+    cell* c = &n->basecell;
     if(!cell_fg_default_p(c)){
       channels_get_fg_rgb(pp.channels[pp.cols * y], &r, &g, &b);
       r = r * (maxsteps - iter) / maxsteps;
       g = g * (maxsteps - iter) / maxsteps;
       b = b * (maxsteps - iter) / maxsteps;
-      cell_set_fg_rgb(&n->defcell, r, g, b);
+      cell_set_fg_rgb(&n->basecell, r, g, b);
     }
     if(!cell_bg_default_p(c)){
       channels_get_bg_rgb(pp.channels[pp.cols * y], &br, &bg, &bb);
       br = br * (maxsteps - iter) / maxsteps;
       bg = bg * (maxsteps - iter) / maxsteps;
       bb = bb * (maxsteps - iter) / maxsteps;
-      cell_set_bg_rgb(&n->defcell, br, bg, bb);
+      cell_set_bg_rgb(&n->basecell, br, bg, bb);
     }
     if(fader){
       fader(n->nc, n);

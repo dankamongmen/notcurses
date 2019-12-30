@@ -28,7 +28,7 @@ int box_demo(struct notcurses* nc){
   int ytargbase = (ylen - targy) / 2;
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_bg_default(&c);
-  ncplane_set_default(n, &c);
+  ncplane_set_base(n, &c);
   cell_release(n, &c);
   ncplane_set_fg_rgb(n, 180, 40, 180);
   ncplane_set_bg_default(n);

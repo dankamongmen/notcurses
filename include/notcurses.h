@@ -387,13 +387,14 @@ API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
 // the standard plane.
 API int ncplane_destroy(struct ncplane* ncp);
 
-// Set the ncplane's default cell to this cell. If defined, it will be rendered
+// Set the ncplane's base cell to this cell. If defined, it will be rendered
 // anywhere that the ncplane's gcluster is 0. Erasing the ncplane does not
-// reset the default cell; this function must instead be called with a zero c.
-API int ncplane_set_default(struct ncplane* ncp, const cell* c);
+// reset the base cell; this function must instead be called with a zero c.
+API int ncplane_set_base(struct ncplane* ncp, const cell* c);
 
-// Extract the ncplane's default cell into 'c'.
-API int ncplane_default(struct ncplane* ncp, cell* c);
+// Extract the ncplane's base cell into 'c'. The reference is invalidated if
+// 'ncp' is destroyed.
+API int ncplane_base(struct ncplane* ncp, cell* c);
 
 // Move this plane relative to the standard plane. It is an error to attempt to
 // move the standard plane.
@@ -736,7 +737,7 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane is invalidated, and must not be used after the call,
-// excluding the default cell.
+// excluding the base cell.
 API void ncplane_erase(struct ncplane* n);
 
 #define CELL_WIDEASIAN_MASK     0x8000000080000000ull
