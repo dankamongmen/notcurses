@@ -644,7 +644,7 @@ int witherworm_demo(struct notcurses* nc){
           rgb += step;
         }
       }while(y < maxy && x < maxx);
-      struct ncplane* mess = notcurses_newplane(nc, 7, 57, 1, 4, NULL);
+      struct ncplane* mess = ncplane_new(nc, 7, 57, 1, 4, NULL);
       if(mess == NULL){
         return -1;
       }

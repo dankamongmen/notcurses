@@ -115,7 +115,7 @@ int main(int argc, char** argv){
   struct ncplane* nstd = notcurses_stdplane(nc);
   int dimy, dimx;
   ncplane_dim_yx(nstd, &dimy, &dimx);
-  struct ncplane* n = notcurses_newplane(nc, dimy - 1, dimx, 1, 0, nullptr);
+  struct ncplane* n = ncplane_new(nc, dimy - 1, dimx, 1, 0, nullptr);
   if(!n){
     notcurses_stop(nc);
     return EXIT_FAILURE;

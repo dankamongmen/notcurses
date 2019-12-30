@@ -127,29 +127,6 @@ int ncplane_putstr_aligned(ncplane* n, int y, ncalign_e align, const char* s){
   return r;
 }
 
-int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                            const wchar_t* gclustarr){
-  int width = wcswidth(gclustarr, INT_MAX);
-  int cols;
-  int xpos;
-  switch(align){
-    case NCALIGN_LEFT:
-      xpos = 0;
-      break;
-    case NCALIGN_CENTER:
-      ncplane_dim_yx(n, NULL, &cols);
-      xpos = (cols - width) / 2;
-      break;
-    case NCALIGN_RIGHT:
-      ncplane_dim_yx(n, NULL, &cols);
-      xpos = cols - width;
-      break;
-    default:
-      return -1;
-  }
-  return ncplane_putwstr_yx(n, y, xpos, gclustarr);
-}
-
 static const char NOTCURSES_VERSION[] =
  notcurses_VERSION_MAJOR "."
  notcurses_VERSION_MINOR "."
@@ -316,7 +293,7 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
   return nc->stdscr;
 }
 
-ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
+ncplane* ncplane_new(notcurses* nc, int rows, int cols,
                             int yoff, int xoff, void* opaque){
   ncplane* n = ncplane_create(nc, rows, cols, yoff, xoff);
   if(n == NULL){
@@ -324,6 +301,11 @@ ncplane* notcurses_newplane(notcurses* nc, int rows, int cols,
   }
   n->userptr = opaque;
   return n;
+}
+
+struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
+                                int yoff, ncalign_e align, void* opaque){
+  return ncplane_new(n->nc, rows, cols, yoff, ncplane_align(n, align, cols), opaque);
 }
 
 // can be used on stdscr, unlike ncplane_resize() which prohibits it.

@@ -11,6 +11,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <signal.h>
+#include <limits.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -313,12 +314,22 @@ API int notcurses_refresh(struct notcurses* n);
 API struct ncplane* notcurses_stdplane(struct notcurses* nc);
 API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
+// Alignment within the ncplane. Left/right-justified, or centered.
+typedef enum {
+  NCALIGN_LEFT,
+  NCALIGN_CENTER,
+  NCALIGN_RIGHT,
+} ncalign_e;
+
 // Create a new ncplane at the specified offset (relative to the standard plane)
 // and the specified size. The number of rows and columns must both be positive.
 // This plane is initially at the top of the z-buffer, as if ncplane_move_top()
 // had been called on it. The void* 'opaque' can be retrieved (and reset) later.
-API struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
-                                       int yoff, int xoff, void* opaque);
+API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
+                                int yoff, int xoff, void* opaque);
+
+API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
+                                    int yoff, ncalign_e align, void* opaque);
 
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
@@ -460,6 +471,25 @@ notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
   ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 }
 
+// Return the column at which 'c' cols ought start in order to be aligned
+// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
+// Undefined behavior on negative 'c'.
+// 'align', negative 'c').
+static inline int
+ncplane_align(const struct ncplane* n, ncalign_e align, int c){
+  if(align == NCALIGN_LEFT){
+    return 0;
+  }
+  int cols;
+  ncplane_dim_yx(n, NULL, &cols);
+  if(align == NCALIGN_CENTER){
+    return (cols - c) / 2;
+  }else if(align == NCALIGN_RIGHT){
+    return cols - c;
+  }
+  return INT_MAX;
+}
+
 // Move the cursor to the specified position (the cursor needn't be visible).
 // Returns -1 on error, including negative parameters, or ones exceeding the
 // plane's dimensions.
@@ -562,13 +592,6 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
   return ncplane_putwegc(n, gclust, attr, channels, sbytes);
 }
 
-// Alignment within the ncplane. Left/right-justified, or centered.
-typedef enum {
-  NCALIGN_LEFT,
-  NCALIGN_CENTER,
-  NCALIGN_RIGHT,
-} ncalign_e;
-
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of cells
@@ -604,8 +627,13 @@ ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
   return ret;
 }
 
-API int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                                const wchar_t* gclustarr);
+static inline int
+ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                        const wchar_t* gclustarr){
+  int width = wcswidth(gclustarr, INT_MAX);
+  int xpos = ncplane_align(n, align, width);
+  return ncplane_putwstr_yx(n, y, xpos, gclustarr);
+}
 
 static inline int
 ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){

@@ -27,7 +27,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
     ncplane_dim_yx(nstd, &dimy, &dimx);
     y = dimy - sizeof(leg) / sizeof(*leg);
     // FIXME how will this plane be destroyed?
-    n = notcurses_newplane(nc, sizeof(leg) / sizeof(*leg), dimx, y, 0, NULL);
+    n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), dimx, y, 0, NULL);
     if(n == NULL){
       return -1;
     }
@@ -92,7 +92,7 @@ int xray_demo(struct notcurses* nc){
   int dimx, dimy;
   struct ncplane* nstd = notcurses_stdplane(nc);
   ncplane_dim_yx(nstd, &dimy, &dimx);
-  struct ncplane* n = notcurses_newplane(nc, dimy, dimx, 0, 0, NULL);
+  struct ncplane* n = ncplane_new(nc, dimy, dimx, 0, 0, NULL);
   if(n == NULL){
     return -1;
   }

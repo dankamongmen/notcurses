@@ -42,7 +42,7 @@ fadethread(void* vnc){
   }
   int rows, cols;
   notcurses_term_dim_yx(nc, &rows, &cols);
-  struct ncplane* apiap = notcurses_newplane(nc, 1, cols, rows - 1, 0, NULL);
+  struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
@@ -66,7 +66,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   int xs = (*cols - (strlen(str1) + 4)) / 2;
   int ystart = *rows - 6;
   *cols = xs;
-  struct ncplane* non = notcurses_newplane(nc, 5, strlen(str1) + 4, ystart, *cols, NULL);
+  struct ncplane* non = ncplane_new(nc, 5, strlen(str1) + 4, ystart, *cols, NULL);
   if(non == NULL){
     return NULL;
   }

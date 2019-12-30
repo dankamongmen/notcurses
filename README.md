@@ -16,6 +16,7 @@ for more information, see [my wiki](https://nick-black.com/dankwiki/index.php/No
 * [Requirements](#requirements)
   * [Building](#building)
 * [Use](#use)
+  * [Alignment](#alignment)
   * [Input](#input)
   * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
   * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
@@ -255,8 +256,8 @@ int notcurses_refresh(struct notcurses* n);
 // and the specified size. The number of rows and columns must both be positive.
 // This plane is initially at the top of the z-buffer, as if ncplane_move_top()
 // had been called on it. The void* 'opaque' can be retrieved (and reset) later.
-struct ncplane* notcurses_newplane(struct notcurses* nc, int rows, int cols,
-                                   int yoff, int xoff, void* opaque);
+API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
+                                int yoff, int xoff, void* opaque);
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
@@ -274,6 +275,40 @@ bool notcurses_canfade(const struct notcurses* nc);
 
 // Can we load images/videos? This requires being built against FFmpeg.
 bool notcurses_canopen(const struct notcurses* nc);
+```
+
+### Alignment
+
+Most functions that generate output can be aligned relative to an ncplane.
+Alignment currently comes in three forms: `NCALIGN_LEFT`, `NCALIGN_CENTER`, and
+`NCALIGN_RIGHT`.
+
+```c
+// Alignment within the ncplane. Left/right-justified, or centered.
+typedef enum {
+  NCALIGN_LEFT,
+  NCALIGN_CENTER,
+  NCALIGN_RIGHT,
+} ncalign_e;
+
+// Return the column at which 'c' cols ought start in order to be aligned
+// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
+// Undefined behavior on negative 'c'.
+// 'align', negative 'c').
+static inline int
+ncplane_align(const struct ncplane* n, ncalign_e align, int c){
+  if(align == NCALIGN_LEFT){
+    return 0;
+  }
+  int cols;
+  ncplane_dim_yx(n, NULL, &cols);
+  if(align == NCALIGN_CENTER){
+    return (cols - c) / 2;
+  }else if(align == NCALIGN_RIGHT){
+    return cols - c;
+  }
+  return INT_MAX;
+}
 ```
 
 ### Input
@@ -479,6 +514,10 @@ but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
 
 ```c
+// Create a new ncplane aligned relative to 'n'.
+struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
+                                int yoff, ncalign_e align, void* opaque);
+
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
 // unchanged. This may be a section of size 0, though none of these four
@@ -696,13 +735,6 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
   return ncplane_putwegc(n, gclust, attr, channels, sbytes);
 }
 
-// Alignment within the ncplane. Left/right-justified, or centered.
-typedef enum {
-  NCALIGN_LEFT,
-  NCALIGN_CENTER,
-  NCALIGN_RIGHT,
-} ncalign_e;
-
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of cells
@@ -737,8 +769,13 @@ ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
   return ret;
 }
 
-int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                                const wchar_t* gclustarr);
+static inline int
+ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                        const wchar_t* gclustarr){
+  int width = wcswidth(gclustarr, INT_MAX);
+  int xpos = ncplane_align(n, align, width);
+  return ncplane_putwstr_yx(n, y, xpos, gclustarr);
+}
 
 static inline int
 ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
@@ -938,24 +975,6 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);
 // target cells without rendering, then call this function. When it's done, the
 // ncplane will have reached the target levels, starting from zeroes.
 int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
-```
-
-Aligned forms are available for `ncplane_putstr()` and `ncplane_putwstr()`.
-These forms correctly take double-column glyphs into account.
-
-```c
-// Alignment within the ncplane. Left/right-justified, or centered.
-typedef enum {
-  NCALIGN_LEFT,
-  NCALIGN_CENTER,
-  NCALIGN_RIGHT,
-} ncalign_e;
-
-int ncplane_putstr_aligned(struct ncplane* n, int y, const char* s,
-                           ncalign_e atype);
-
-int ncplane_putwstr_aligned(struct ncplane* n, int y,
-                            const wchar_t* gclustarr, ncalign_e atype);
 ```
 
 #### Plane channels API

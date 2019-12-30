@@ -140,7 +140,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
     }
     nc->dstwidth = cols;
     nc->dstheight = rows * 2;
-    nc->ncp = notcurses_newplane(nc->ncobj, rows, cols, nc->placey, nc->placex, nc);
+    nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, nc);
     if(nc->ncp == NULL){
       *averr = AVERROR(ENOMEM);
       return NULL;

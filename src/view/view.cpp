@@ -74,7 +74,7 @@ int main(int argc, char** argv){
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   struct timespec start;
-  auto ncp = notcurses_newplane(nc, dimy - 1, dimx, 1, 0, &start);
+  auto ncp = ncplane_new(nc, dimy - 1, dimx, 1, 0, &start);
   if(ncp == nullptr){
     notcurses_stop(nc);
     return EXIT_FAILURE;

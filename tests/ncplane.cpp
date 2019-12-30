@@ -377,7 +377,7 @@ TEST_CASE("NCPlane") {
     int x, y;
     void* sentinel = &x;
     notcurses_term_dim_yx(nc_, &y, &x);
-    struct ncplane* ncp = notcurses_newplane(nc_, y, x, 0, 0, sentinel);
+    struct ncplane* ncp = ncplane_new(nc_, y, x, 0, 0, sentinel);
     REQUIRE(ncp);
     CHECK(&x == ncplane_userptr(ncp));
     CHECK(sentinel == ncplane_set_userptr(ncp, nullptr));
@@ -393,7 +393,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("NewPlaneSameSize") {
     int x, y;
     notcurses_term_dim_yx(nc_, &y, &x);
-    struct ncplane* ncp = notcurses_newplane(nc_, y, x, 0, 0, nullptr);
+    struct ncplane* ncp = ncplane_new(nc_, y, x, 0, 0, nullptr);
     REQUIRE(ncp);
     int px, py;
     ncplane_dim_yx(ncp, &py, &px);
@@ -410,7 +410,7 @@ TEST_CASE("NCPlane") {
     int maxx, maxy;
     int x = 0, y = 0;
     notcurses_term_dim_yx(nc_, &maxy, &maxx);
-    struct ncplane* newp = notcurses_newplane(nc_, maxy, maxx, y, x, nullptr);
+    struct ncplane* newp = ncplane_new(nc_, maxy, maxx, y, x, nullptr);
     REQUIRE(newp);
     CHECK(0 == notcurses_render(nc_));
     while(y > 4 && x > 4){
@@ -449,7 +449,7 @@ TEST_CASE("NCPlane") {
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     x = dimx / 2 - 1;
     y = dimy / 2 - 1;
-    struct ncplane* newp = notcurses_newplane(nc_, maxy, maxx, y, x, nullptr);
+    struct ncplane* newp = ncplane_new(nc_, maxy, maxx, y, x, nullptr);
     REQUIRE(newp);
     while(dimx - maxx > 4 && dimy - maxy > 4){
       maxx += 2;
@@ -722,7 +722,7 @@ TEST_CASE("NCPlane") {
     cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     int y, x;
     ncplane_yx(n_, &y, &x);
-    struct ncplane* ncp = notcurses_newplane(nc_, 2, 2, y, ncols - 3, nullptr);
+    struct ncplane* ncp = ncplane_new(nc_, 2, 2, y, ncols - 3, nullptr);
     REQUIRE(ncp);
     REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
@@ -736,7 +736,7 @@ TEST_CASE("NCPlane") {
     cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     int y, x;
     ncplane_yx(n_, &y, &x);
-    struct ncplane* ncp = notcurses_newplane(nc_, 2, 2, y, x, nullptr);
+    struct ncplane* ncp = ncplane_new(nc_, 2, 2, y, x, nullptr);
     REQUIRE(ncp);
     REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));

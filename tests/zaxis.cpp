@@ -34,7 +34,7 @@ TEST_CASE("ZAxisTest") {
 
   // you can't place a plane above or below itself, stdplane or otherwise
   SUBCASE("NoMoveSelf") {
-    struct ncplane* np = notcurses_newplane(nc_, 2, 2, 0, 0, nullptr);
+    struct ncplane* np = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(np);
     CHECK(ncplane_move_below(n_, n_));
     CHECK(ncplane_move_above(n_, n_));
@@ -44,7 +44,7 @@ TEST_CASE("ZAxisTest") {
 
   // new planes ought be on the top
   SUBCASE("NewPlaneOnTop") {
-    struct ncplane* np = notcurses_newplane(nc_, 2, 2, 0, 0, nullptr);
+    struct ncplane* np = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(np);
     struct ncplane* top = notcurses_top(nc_);
     CHECK(np == top);
@@ -54,7 +54,7 @@ TEST_CASE("ZAxisTest") {
 
   // "move" top plane to top. everything ought remain the same.
   SUBCASE("TopToTop") {
-    struct ncplane* np = notcurses_newplane(nc_, 2, 2, 0, 0, nullptr);
+    struct ncplane* np = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(np);
     struct ncplane* top = notcurses_top(nc_);
     CHECK(np == top);
@@ -70,7 +70,7 @@ TEST_CASE("ZAxisTest") {
 
   // move top plane to bottom, and verify enumeration
   SUBCASE("TopToBottom") {
-    struct ncplane* np = notcurses_newplane(nc_, 2, 2, 0, 0, nullptr);
+    struct ncplane* np = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(np);
     struct ncplane* top = notcurses_top(nc_);
     CHECK(np == top);
@@ -95,7 +95,7 @@ TEST_CASE("ZAxisTest") {
     REQUIRE(1 == ncplane_at_cursor(n_, &cat));
     REQUIRE(cell_simple_p(&cat));
     REQUIRE('x' == cat.gcluster);
-    struct ncplane* n2 = notcurses_newplane(nc_, 2, 2, 0, 0, nullptr);
+    struct ncplane* n2 = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(1 == cell_load(n2, &c, "y"));
     REQUIRE(!cell_set_fg_rgb(&c, 0, 0xff, 0));
     REQUIRE(1 == ncplane_putc(n2, &c));
@@ -103,7 +103,7 @@ TEST_CASE("ZAxisTest") {
     REQUIRE(!ncplane_cursor_move_yx(n2, 0, 0));
     REQUIRE(1 == ncplane_at_cursor(n2, &cat));
     REQUIRE('y' == cat.gcluster);
-    struct ncplane* n3 = notcurses_newplane(nc_, 2, 2, 0, 0, nullptr);
+    struct ncplane* n3 = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(1 == cell_load(n3, &c, "z"));
     REQUIRE(!cell_set_fg_rgb(&c, 0, 0, 0xff));
     REQUIRE(1 == ncplane_putc(n3, &c));

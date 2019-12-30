@@ -40,7 +40,7 @@ view_video_demo(struct notcurses* nc){
 
 static struct ncplane*
 legend(struct notcurses* nc, int dimy, int dimx){
-  struct ncplane* n = notcurses_newplane(nc, 4, 25, dimy * 7 / 8, (dimx - 25) / 2, NULL);
+  struct ncplane* n = ncplane_new(nc, 4, 25, dimy * 7 / 8, (dimx - 25) / 2, NULL);
   ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
   uint64_t channels = 0;
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -83,7 +83,7 @@ int view_demo(struct notcurses* nc){
     return -1;
   }
   free(pic);
-  struct ncplane* dsplane = notcurses_newplane(nc, dimy, dimx, 0, 0, NULL);
+  struct ncplane* dsplane = ncplane_new(nc, dimy, dimx, 0, 0, NULL);
   if(dsplane == NULL){
     return -1;
   }

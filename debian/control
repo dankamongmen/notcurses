@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Nick Black <dankamongmen@gmail.com>
 Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config (>= 0.29),
  libncurses-dev (>= 6.1), libavformat-dev (>= 57.0), libswscale-dev (>= 5.0),
- libavutil-dev (>= 56.0), doctest-dev (>= 1.2.7), ruby-ronn (>= 0.7.3)
+ libavutil-dev (>= 56.0), ruby-ronn (>= 0.7.3)
 Standards-Version: 4.4.1.1
 Section: libs
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses

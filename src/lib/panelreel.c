@@ -236,7 +236,7 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
 //fprintf(stderr, "tplacement: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
 //fprintf(stderr, "DRAWING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
   if(fp == NULL){ // create a panel for the tablet
-    t->p = notcurses_newplane(pr->p->nc, leny + 1, lenx, begy, begx, NULL);
+    t->p = ncplane_new(pr->p->nc, leny + 1, lenx, begy, begx, NULL);
     if((fp = t->p) == NULL){
       return -1;
     }
@@ -617,7 +617,7 @@ panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd)
       xlen = 0; // FIXME see above...
     }
   }
-  if((pr->p = notcurses_newplane(w->nc, ylen, xlen, popts->toff + wy, popts->loff + wx, NULL)) == NULL){
+  if((pr->p = ncplane_new(w->nc, ylen, xlen, popts->toff + wy, popts->loff + wx, NULL)) == NULL){
     free(pr);
     return NULL;
   }
@@ -655,7 +655,7 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
       return t;
     }
 // fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
-    if((t->p = notcurses_newplane(nc, leny, lenx, begy, begx, NULL)) == NULL){
+    if((t->p = ncplane_new(nc, leny, lenx, begy, begx, NULL)) == NULL){
       pr->all_visible = false;
       return t;
     }
@@ -673,7 +673,7 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
     return t;
   }
 // fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, 2, lenx);
-  if((t->p = notcurses_newplane(nc, 2, lenx, begy, begx, NULL)) == NULL){
+  if((t->p = ncplane_new(nc, 2, lenx, begy, begx, NULL)) == NULL){
     pr->all_visible = false;
     return t;
   }

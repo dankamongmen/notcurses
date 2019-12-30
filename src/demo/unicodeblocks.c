@@ -178,7 +178,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     }
     int xstart = (maxx - ((CHUNKSIZE * 2) + 3)) / 2;
     struct ncplane* nn;
-    if((nn = notcurses_newplane(nc, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 3, xstart, NULL)) == NULL){
+    if((nn = ncplane_new(nc, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 3, xstart, NULL)) == NULL){
       return -1;
     }
     if(hud){

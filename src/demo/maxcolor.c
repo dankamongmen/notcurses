@@ -28,8 +28,8 @@ static struct ncplane*
 legend(struct notcurses* nc, const char* msg){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  // FIXME replace with notcurses_newplane_aligned()
-  struct ncplane* n = notcurses_newplane(nc, 3, strlen(msg) + 2, dimy - 4,
+  // FIXME replace with ncplane_new_aligned()
+  struct ncplane* n = ncplane_new(nc, 3, strlen(msg) + 2, dimy - 4,
                                          (dimx - ((strlen(msg) + 2))) / 2, NULL);
   if(n == NULL){
     return NULL;
@@ -119,7 +119,7 @@ slidepanel(struct notcurses* nc){
   struct ncplane* l;
 
   // First we just create a plane with no styling and no glyphs.
-  struct ncplane* n = notcurses_newplane(nc, ny, nx, yoff, xoff, NULL);
+  struct ncplane* n = ncplane_new(nc, ny, nx, yoff, xoff, NULL);
 
   // Zero-initialized channels use the default color, opaquely. Since we have
   // no glyph, we should show underlying glyphs in the default colors. The

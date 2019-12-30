@@ -59,7 +59,7 @@ struct ncplane* hud_create(struct notcurses* nc){
   int xoffset = (dimx - HUD_COLS) / 2;
   //int yoffset = (dimy - HUD_ROWS);
   int yoffset = 0;
-  struct ncplane* n = notcurses_newplane(nc, HUD_ROWS, HUD_COLS, yoffset, xoffset, NULL);
+  struct ncplane* n = ncplane_new(nc, HUD_ROWS, HUD_COLS, yoffset, xoffset, NULL);
   if(n == NULL){
     return NULL;
   }
