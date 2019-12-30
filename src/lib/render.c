@@ -146,9 +146,9 @@ reshape_shadow_fb(notcurses* nc){
 // tail recursion, though, we instead write first, and then recurse, blending
 // as we descend. α == 0 is opaque. α == 2 is fully transparent.
 static inline ncplane*
-dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
-  unsigned fgblends = 1;
-  unsigned bgblends = 1;
+dig_visible_cell(cell* c, int y, int x, ncplane* p){
+  unsigned fgblends = 0;
+  unsigned bgblends = 0;
   // once we decide on our glyph, it cannot be changed by anything below, so
   // lock in this plane for the actual cell return.
   ncplane* glyphplane = NULL;
@@ -178,30 +178,21 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
             c->attrword = vis->attrword;
           }
         }
-        if(falpha > CELL_ALPHA_OPAQUE && cell_get_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
-          if(falpha == CELL_ALPHA_BLEND){
-            cell_blend_fchannel(c, cell_get_fchannel(vis), fgblends);
-            ++fgblends;
-          }else{
-            cell_set_fchannel(c, cell_get_fchannel(vis));
-          }
-          falpha = cell_get_fg_alpha(vis);
+        if(cell_get_fg_alpha(c) > CELL_ALPHA_OPAQUE && cell_get_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+          cell_blend_fchannel(c, cell_get_fchannel(vis), fgblends);
+          ++fgblends;
         }
         // Background color takes effect independently of whether we have a
         // glyph. If we've already locked in the background, it has no effect.
         // If it's transparent, it has no effect. Otherwise, update the
         // background channel and balpha.
-        if(balpha > CELL_ALPHA_OPAQUE && cell_get_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
-          if(balpha == CELL_ALPHA_BLEND){
-            cell_blend_bchannel(c, cell_get_bchannel(vis), bgblends);
-            ++bgblends;
-          }else{ // balpha == CELL_ALPHA_TRANSPARENT
-            cell_set_bchannel(c, cell_get_bchannel(vis));
-          }
-          balpha = cell_get_bg_alpha(vis);
+        if(cell_get_bg_alpha(c) > CELL_ALPHA_OPAQUE && cell_get_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+          cell_blend_bchannel(c, cell_get_bchannel(vis), bgblends);
+          ++bgblends;
         }
         // if everything's locked in, we're done
-        if((glyphplane && falpha == CELL_ALPHA_OPAQUE && balpha == CELL_ALPHA_OPAQUE)){
+        if((glyphplane && cell_get_fg_alpha(c) == CELL_ALPHA_OPAQUE &&
+              cell_get_bg_alpha(c) == CELL_ALPHA_OPAQUE)){
           return glyphplane;
         }
       }
@@ -219,7 +210,9 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int falpha, int balpha){
 static inline ncplane*
 visible_cell(cell* c, int y, int x, ncplane* n){
   cell_init(c);
-  return dig_visible_cell(c, y, x, n, CELL_ALPHA_TRANSPARENT, CELL_ALPHA_TRANSPARENT);
+  cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+  return dig_visible_cell(c, y, x, n);
 }
 
 // write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the

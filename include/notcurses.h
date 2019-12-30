@@ -1000,24 +1000,23 @@ channels_set_bg_default(uint64_t* channels){
   return *channels;
 }
 
-// Returns the result of blending two channels.
+// Returns the result of blending two channels. 'blends' indicates how heavily
+// 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
+// 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
+// since we can't blend default colors. Likewise, if 'c2' is a default color,
+// it will not be used (unless 'blends' is 0).
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2, unsigned blends){
-  if(channel_default_p(c1)){
-    return c1;
+  if(blends == 0){
+    return c2;
   }
-  if(channel_default_p(c2)){
-    if(blends == 0){
-      channel_set_default(&c1);
-    }
-    return c1;
+  if(!channel_default_p(c2) && !channel_default_p(c1)){
+    int rsum = (channel_get_r(c1) * blends + channel_get_r(c2)) / (blends + 1);
+    int gsum = (channel_get_g(c1) * blends + channel_get_g(c2)) / (blends + 1);
+    int bsum = (channel_get_b(c1) * blends + channel_get_b(c2)) / (blends + 1);
+    channel_set_rgb(&c1, rsum, gsum, bsum);
   }
-  int rsum = (channel_get_r(c1) * blends + channel_get_r(c2)) / (blends + 1);
-  int gsum = (channel_get_g(c1) * blends + channel_get_g(c2)) / (blends + 1);
-  int bsum = (channel_get_b(c1) * blends + channel_get_b(c2)) / (blends + 1);
-  unsigned blend = 0;
-  channel_set_rgb(&blend, rsum, gsum, bsum);
-  return blend;
+  return c1;
 }
 
 // Extract the 32-bit background channel from a cell.
