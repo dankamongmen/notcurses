@@ -49,9 +49,9 @@ lighten(struct ncplane* n, cell* c, int distance){
   }
   unsigned r, g, b;
   cell_get_fg_rgb(c, &r, &g, &b);
-  r += rand() % (75 - distance * 25);
-  b += rand() % (75 - distance * 25);
-  g += rand() % (75 - distance * 25);
+  r += rand() % ((r + 32) / (3 * distance + 1) + 1);
+  g += rand() % ((g + 32) / (3 * distance + 1) + 1);
+  b += rand() % ((b + 32) / (3 * distance + 1) + 1);
   if(r > 255) r = 255;
   if(g > 255) g = 255;
   if(b > 255) b = 255;
@@ -63,6 +63,7 @@ lighten(struct ncplane* n, cell* c, int distance){
 
 static void
 get_surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
+  // FIXME rewrite all these using ncplane_at_yx()
   if(ncplane_cursor_move_yx(n, y - 1, x - 1) == 0){
     ncplane_at_cursor(n, &cells[0]);
   }
@@ -98,6 +99,9 @@ get_surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
   }
   if(ncplane_cursor_move_yx(n, y, x + 2) == 0){
     ncplane_at_cursor(n, &cells[11]);
+  }
+  if(ncplane_cursor_move_yx(n, y, x) == 0){
+    ncplane_at_cursor(n, &cells[12]);
   }
 }
 
@@ -163,7 +167,6 @@ lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
 typedef struct snake {
   cell lightup[13];
   int x, y;
-  uint64_t channels;
   int prevx, prevy;
 } snake;
 
@@ -175,9 +178,6 @@ init_snake(snake* s, int dimy, int dimx){
   // start them in the lower 3/4 of the screen
   s->y = (random() % (dimy * 3 / 4)) + (dimy / 4);
   s->x = random() % dimx;
-  s->channels = 0;
-  channels_set_fg_rgb(&s->channels, 255, 255, 255);
-  channels_set_bg_rgb(&s->channels, 20, 20, 20);
   s->prevx = 0;
   s->prevy = 0;
 }

@@ -24,6 +24,30 @@ grow_rgb(uint32_t* rgb){
   *rgb = (*rgb & 0xff000000ul) | (r * 65536 + g * 256 + b);
 }
 
+static struct ncplane*
+legend(struct notcurses* nc, const char* msg){
+  int dimx, dimy;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  // FIXME replace with notcurses_newplane_aligned()
+  struct ncplane* n = notcurses_newplane(nc, 3, strlen(msg) + 2, dimy - 4,
+                                         (dimx - ((strlen(msg) + 2))) / 2, NULL);
+  if(n == NULL){
+    return NULL;
+  }
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_rgb(&c, 0, 0, 0); // darken surrounding characters by half
+  cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
+  cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT); // don't touch background
+  ncplane_set_default(n, &c);
+  ncplane_set_fg(n, 0xd78700);
+  ncplane_set_bg(n, 0);
+  if(ncplane_putstr_yx(n, 1, 1, msg) < 0){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  return n;
+}
+
 static int
 slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
                int* direction){
@@ -92,87 +116,133 @@ slidepanel(struct notcurses* nc){
   int nx = dimx / 3;
   int yoff = random() % (dimy - ny - 2) + 1; // don't start atop a border
   int xoff = random() % (dimx - nx - 2) + 1;
+  struct ncplane* l;
 
-  // First we just create a plane with no styling. By default, this will be the
-  // default foreground color -- unused -- and the default background color,
-  // both fully opaque. Thus we'll get a square of the background color (which
-  // might be "transparent", i.e. a copy of the underlying desktop).
+  // First we just create a plane with no styling and no glyphs.
   struct ncplane* n = notcurses_newplane(nc, ny, nx, yoff, xoff, NULL);
-  struct timespec cur;
+
+  // Zero-initialized channels use the default color, opaquely. Since we have
+  // no glyph, we should show underlying glyphs in the default colors. The
+  // background default might be transparent, at the window level (i.e. a copy
+  // of the underlying desktop).
   cell c = CELL_SIMPLE_INITIALIZER(' ');
+  struct timespec cur;
   ncplane_set_default(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   uint64_t deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   int direction = random() % 4;
+  l = legend(nc, "default background, all opaque, whitespace glyph");
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
+    ncplane_destroy(l);
     return -1;
   }
+  ncplane_destroy(l);
 
-  // Next, we set our foreground transparent, allowing the characters
-  // underneath to be seen. Our background remains opaque.
-  cell_init(&c);
   cell_load_simple(n, &c, '\0');
-  cell_set_fg(&c, 0);
-  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
   ncplane_set_default(n, &c);
-  cell_release(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
+  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  l = legend(nc, "default background, all opaque, no glyph");
+  if(slideitslideit(nc, n, deadlinens, &direction)){
+    ncplane_destroy(n);
+    ncplane_destroy(l);
+    return -1;
+  }
+  ncplane_destroy(l);
+
+  // Next, we set our foreground transparent, allowing characters underneath to
+  // be seen in their natural colors. Our background remains opaque+default.
+  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_default(n, &c);
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  l = legend(nc, "default background, fg transparent, no glyph");
+  if(slideitslideit(nc, n, deadlinens, &direction)){
+    ncplane_destroy(n);
+    ncplane_destroy(l);
+    return -1;
+  }
+  ncplane_destroy(l);
+
+  // Set the foreground color, setting it to blend. We should get the underlying
+  // glyphs in a blended color, with the default background color.
+  cell_set_fg(&c, 0x80c080);
+  cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
+  ncplane_set_default(n, &c);
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  l = legend(nc, "default background, fg blended, no glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
+    ncplane_destroy(l);
     return -1;
   }
+  ncplane_destroy(l);
+
+  // Opaque foreground color. This produces underlying glyphs in the specified,
+  // fixed color, with the default background color.
+  cell_set_fg(&c, 0x80c080);
+  cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
+  ncplane_set_default(n, &c);
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  l = legend(nc, "default background, fg colored opaque, no glyph");
+  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  if(slideitslideit(nc, n, deadlinens, &direction)){
+    ncplane_destroy(n);
+    ncplane_destroy(l);
+    return -1;
+  }
+  ncplane_destroy(l);
 
   // Now we replace the characters with X's, colored as underneath us.
   // Our background color remains opaque default.
-  cell_init(&c);
   cell_load_simple(n, &c, 'X');
-  cell_set_fg(&c, 0xc000c0);
+  cell_set_fg_default(&c);
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
   ncplane_set_default(n, &c);
-  cell_release(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
+  l = legend(nc, "default colors, fg transparent, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
+    ncplane_destroy(l);
     return -1;
   }
+  ncplane_destroy(l);
 
   // Now we replace the characters with X's, but draw the foreground and
   // background color from below us.
-  cell_init(&c);
-  cell_load_simple(n, &c, 'X');
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg(&c, 0);
   ncplane_set_default(n, &c);
-  cell_release(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
+  l = legend(nc, "all transparent, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
+    ncplane_destroy(l);
     return -1;
   }
+  ncplane_destroy(l);
 
   // Finally, we populate the plane for the first time with non-transparent
   // characters. We blend, however, to show the underlying color in our glyphs.
-  cell_init(&c);
-  cell_load_simple(n, &c, 'X');
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
   cell_set_bg_alpha(&c, CELL_ALPHA_BLEND);
-  cell_set_fg(&c, 0xc000c0);
-  cell_set_bg(&c, 0x00c000);
+  cell_set_fg(&c, 0x80c080);
+  cell_set_bg(&c, 0x204080);
   ncplane_set_default(n, &c);
-  cell_release(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
+  l = legend(nc, "all blended, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   if(slideitslideit(nc, n, deadlinens, &direction)){
     ncplane_destroy(n);
+    ncplane_destroy(l);
     return -1;
   }
+  ncplane_destroy(l);
 
   return ncplane_destroy(n);
 }
@@ -208,9 +278,11 @@ int maxcolor_demo(struct notcurses* nc){
       ++x;
     }
   }
+  struct ncplane* l = legend(nc, "what say we explore transparency together?");
   if(demo_render(nc)){
     return -1;
   }
   nanosleep(&demodelay, NULL);
+  ncplane_destroy(l);
   return slidepanel(nc);
 }
