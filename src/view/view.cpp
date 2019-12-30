@@ -20,35 +20,22 @@ void usage(std::ostream& o, const char* name, int exitcode){
   exit(exitcode);
 }
 
-int ncview(struct notcurses* nc, struct ncvisual* ncv, int* averr){
-  struct ncplane* n = notcurses_stdplane(nc);
-  int frame = 1;
-  AVFrame* avf;
-  struct timespec start;
-  // FIXME should keep a start time and cumulative time; this will push things
-  // out on a loaded machine
-  while(clock_gettime(CLOCK_MONOTONIC, &start),
-        (avf = ncvisual_decode(ncv, averr)) ){
-    ncplane_cursor_move_yx(n, 0, 0);
-    ncplane_printf(n, "Got frame %05d\u2026", frame);
-    if(ncvisual_render(ncv, 0, 0, 0, 0)){
-      return -1;
-    }
-    if(notcurses_render(nc)){
-      return -1;
-    }
-    ++frame;
-    uint64_t ns = avf->pkt_duration * 1000000;
-    struct timespec interval = {
-      .tv_sec = start.tv_sec + (long)(ns / 1000000000),
-      .tv_nsec = start.tv_nsec + (long)(ns % 1000000000),
-    };
-    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, nullptr);
+// frame count is in the ncplane's user pointer
+int perframe(struct notcurses* nc, struct ncvisual* ncv){
+  struct ncplane* stdn = notcurses_stdplane(nc);
+  struct ncplane* n = ncvisual_plane(ncv);
+  int* framecount = static_cast<int*>(ncplane_userptr(n));
+  ++*framecount;
+  ncplane_set_fg(stdn, 0x80c080);
+  ncplane_cursor_move_yx(stdn, 0, 0);
+  ncplane_printf(stdn, "Got frame %05d\u2026", *framecount);
+  if(ncvisual_render(ncv, 0, 0, 0, 0)){
+    return -1;
   }
-  if(*averr == AVERROR_EOF){
-    return 0;
+  if(notcurses_render(nc)){
+    return -1;
   }
-  return -1;
+  return 0;
 }
 
 int main(int argc, char** argv){
@@ -63,7 +50,8 @@ int main(int argc, char** argv){
   }
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  auto ncp = notcurses_newplane(nc, dimy - 1, dimx, 1, 0, nullptr);
+  int frames;
+  auto ncp = notcurses_newplane(nc, dimy - 1, dimx, 1, 0, &frames);
   if(ncp == nullptr){
     notcurses_stop(nc);
     return EXIT_FAILURE;
@@ -71,6 +59,7 @@ int main(int argc, char** argv){
   for(int i = 1 ; i < argc ; ++i){
     std::array<char, 128> errbuf;
     int averr;
+    frames = 0;
     auto ncv = ncplane_visual_open(ncp, argv[i], &averr);
     if(ncv == nullptr){
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
@@ -78,7 +67,7 @@ int main(int argc, char** argv){
       std::cerr << "Error opening " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }
-    if(ncview(nc, ncv, &averr)){
+    if(ncvisual_stream(nc, ncv, &averr, perframe)){
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
       notcurses_stop(nc);
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
