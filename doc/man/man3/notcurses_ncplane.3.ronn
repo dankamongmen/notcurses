@@ -58,4 +58,4 @@ Nick Black <nickblack@linux.com>
 
 ## SEE ALSO
 
-ncplane_new(3), notcurses_stdplane(3)
+notcurses_cell(3), notcurses_output(3), notcurses_stdplane(3)
