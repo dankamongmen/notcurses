@@ -74,7 +74,7 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
     fprintf(stderr, "Not an escape: %s (0x%x)\n", esc, special);
     return -1;
   }
-  if(!wchar_supppuab_p(special) && special != NCKEY_CSI){
+  if(!nckey_supppuab_p(special) && special != NCKEY_CSI){
     fprintf(stderr, "Not a supplementary-b PUA char: %u (0x%x)\n", special, special);
     return -1;
   }

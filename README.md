@@ -394,7 +394,7 @@ must be readable without delay for it to be interpreted as such.
 
 // Is this char32_t a Supplementary Private Use Area-B codepoint?
 static inline bool
-wchar_supppuab_p(char32_t w){
+nckey_supppuab_p(char32_t w){
   return w >= 0x100000 && w <= 0x10fffd;
 }
 
@@ -965,42 +965,42 @@ all implemented in terms of the lower-level [Channels API](#channels).
 
 ```c
 // Get the current channels or attribute word for ncplane 'n'.
-uint64_t ncplane_get_channels(const struct ncplane* n);
-uint32_t ncplane_get_attr(const struct ncplane* n);
+uint64_t ncplane_channels(const struct ncplane* n);
+uint32_t ncplane_attr(const struct ncplane* n);
 
 // Extract the 32-bit working background channel from an ncplane.
 static inline unsigned
-ncplane_get_bchannel(const struct ncplane* nc){
-  return channels_get_bchannel(ncplane_get_channels(nc));
+ncplane_bchannel(const struct ncplane* nc){
+  return channels_bchannel(ncplane_channels(nc));
 }
 
 // Extract the 32-bit working foreground channel from an ncplane.
 static inline unsigned
-ncplane_get_fchannel(const struct ncplane* nc){
-  return channels_get_fchannel(ncplane_get_channels(nc));
+ncplane_fchannel(const struct ncplane* nc){
+  return channels_fchannel(ncplane_channels(nc));
 }
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline unsigned
-ncplane_get_fg(const struct ncplane* nc){
-  return channels_get_fg(ncplane_get_channels(nc));
+ncplane_fg(const struct ncplane* nc){
+  return channels_fg(ncplane_channels(nc));
 }
 
 // Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 static inline unsigned
-ncplane_get_bg(const struct ncplane* nc){
-  return channels_get_bg(ncplane_get_channels(nc));
+ncplane_bg(const struct ncplane* nc){
+  return channels_bg(ncplane_channels(nc));
 }
 
 // Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
 static inline unsigned
-ncplane_get_fg_alpha(const struct ncplane* nc){
-  return channels_get_fg_alpha(ncplane_get_channels(nc));
+ncplane_fg_alpha(const struct ncplane* nc){
+  return channels_fg_alpha(ncplane_channels(nc));
 }
 / Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 static inline unsigned
-ncplane_get_bg_alpha(const struct ncplane* nc){
-  return channels_get_bg_alpha(ncplane_get_channels(nc));
+ncplane_bg_alpha(const struct ncplane* nc){
+  return channels_bg_alpha(ncplane_channels(nc));
 }
 
 // Set the alpha parameters for ncplane 'n'.
@@ -1009,14 +1009,14 @@ int ncplane_set_bg_alpha(struct ncplane* n, int alpha);
 
 // Extract 24 bits of foreground RGB from 'n', split into subcomponents.
 static inline unsigned
-ncplane_get_fg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
-  return channels_get_fg_rgb(ncplane_get_channels(n), r, g, b);
+ncplane_fg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
+  return channels_fg_rgb(ncplane_channels(n), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'n', split into subcomponents.
 static inline unsigned
-ncplane_get_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
-  return channels_get_bg_rgb(ncplane_get_channels(n), r, g, b);
+ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
+  return channels_bg_rgb(ncplane_channels(n), r, g, b);
 }
 
 // Set the current fore/background color using RGB specifications. If the
@@ -1309,50 +1309,50 @@ implemented in terms of the lower-level [Channels API](#channels).
 ```c
 // Extract the 32-bit background channel from a cell.
 static inline unsigned
-cell_get_bchannel(const cell* cl){
-  return channels_get_bchannel(cl->channels);
+cell_bchannel(const cell* cl){
+  return channels_bchannel(cl->channels);
 }
 
 // Extract the 32-bit foreground channel from a cell.
 static inline unsigned
-cell_get_fchannel(const cell* cl){
-  return channels_get_fchannel(cl->channels);
+cell_fchannel(const cell* cl){
+  return channels_fchannel(cl->channels);
 }
 
 // Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
 static inline unsigned
-cell_get_fg(const cell* cl){
-  return channels_get_fg(cl->channels);
+cell_fg(const cell* cl){
+  return channels_fg(cl->channels);
 }
 
 // Extract 24 bits of background RGB from 'cell', shifted to LSBs.
 static inline unsigned
-cell_get_bg(const cell* cl){
-  return channels_get_bg(cl->channels);
+cell_bg(const cell* cl){
+  return channels_bg(cl->channels);
 }
 
 // Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
 static inline unsigned
-cell_get_fg_alpha(const cell* cl){
-  return channels_get_fg_alpha(cl->channels);
+cell_fg_alpha(const cell* cl){
+  return channels_fg_alpha(cl->channels);
 }
 
 // Extract 2 bits of background alpha from 'cell', shifted to LSBs.
 static inline unsigned
-cell_get_bg_alpha(const cell* cl){
-  return channels_get_bg_alpha(cl->channels);
+cell_bg_alpha(const cell* cl){
+  return channels_bg_alpha(cl->channels);
 }
 
 // Extract 24 bits of foreground RGB from 'cell', split into subcell.
 static inline unsigned
-cell_get_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return channels_get_fg_rgb(cl->channels, r, g, b);
+cell_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return channels_fg_rgb(cl->channels, r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'cell', split into subcell.
 static inline unsigned
-cell_get_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return channels_get_bg_rgb(cl->channels, r, g, b);
+cell_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return channels_bg_rgb(cl->channels, r, g, b);
 }
 
 // Set the r, g, and b cell for the foreground component of this 64-bit
@@ -1869,28 +1869,28 @@ and `cell` functionality is implemented in terms of this API.
 ```c
 // Extract the 8-bit red component from a 32-bit channel.
 static inline unsigned
-channel_get_r(unsigned channel){
+channel_r(unsigned channel){
   return (channel & 0xff0000u) >> 16u;
 }
 
 // Extract the 8-bit green component from a 32-bit channel.
 static inline unsigned
-channel_get_g(unsigned channel){
+channel_g(unsigned channel){
   return (channel & 0x00ff00u) >> 8u;
 }
 
 // Extract the 8-bit blue component from a 32-bit channel.
 static inline unsigned
-channel_get_b(unsigned channel){
+channel_b(unsigned channel){
   return (channel & 0x0000ffu);
 }
 
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 static inline unsigned
-channel_get_rgb(unsigned channel, unsigned* r, unsigned* g, unsigned* b){
-  *r = channel_get_r(channel);
-  *g = channel_get_g(channel);
-  *b = channel_get_b(channel);
+channel_rgb(unsigned channel, unsigned* r, unsigned* g, unsigned* b){
+  *r = channel_r(channel);
+  *g = channel_g(channel);
+  *b = channel_b(channel);
   return channel;
 }
 
@@ -1923,7 +1923,7 @@ channel_set(unsigned* channel, unsigned rgb){
 
 // Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
-channel_get_alpha(unsigned channel){
+channel_alpha(unsigned channel){
   return (channel & CELL_ALPHA_MASK) >> CELL_ALPHA_SHIFT;
 }
 
@@ -1951,57 +1951,57 @@ channel_set_default(unsigned* channel){
 
 // Extract the 32-bit background channel from a channel pair.
 static inline unsigned
-channels_get_bchannel(uint64_t channels){
+channels_bchannel(uint64_t channels){
   return channels & 0xfffffffflu;
 }
 
 // Extract the 32-bit foreground channel from a channel pair.
 static inline unsigned
-channels_get_fchannel(uint64_t channels){
-  return channels_get_bchannel(channels >> 32u);
+channels_fchannel(uint64_t channels){
+  return channels_bchannel(channels >> 32u);
 }
 
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline unsigned
-channels_get_fg(uint64_t channels){
-  return channels_get_fchannel(channels) & CELL_BG_MASK;
+channels_fg(uint64_t channels){
+  return channels_fchannel(channels) & CELL_BG_MASK;
 }
 
 // Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 static inline unsigned
-channels_get_bg(uint64_t channels){
-  return channels_get_bchannel(channels) & CELL_BG_MASK;
+channels_bg(uint64_t channels){
+  return channels_bchannel(channels) & CELL_BG_MASK;
 }
 
 // Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
 static inline unsigned
-channels_get_fg_alpha(uint64_t channels){
-  return channel_get_alpha(channels_get_fchannel(channels));
+channels_fg_alpha(uint64_t channels){
+  return channel_alpha(channels_fchannel(channels));
 }
 
 // Extract 2 bits of background alpha from 'channels', shifted to LSBs.
 static inline unsigned
-channels_get_bg_alpha(uint64_t channels){
-  return channel_get_alpha(channels_get_bchannel(channels));
+channels_bg_alpha(uint64_t channels){
+  return channel_alpha(channels_bchannel(channels));
 }
 
 // Extract 24 bits of foreground RGB from 'channels', split into subchannels.
 static inline unsigned
-channels_get_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_get_rgb(channels_get_fchannel(channels), r, g, b);
+channels_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return channel_rgb(channels_fchannel(channels), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'channels', split into subchannels.
 static inline unsigned
-channels_get_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_get_rgb(channels_get_bchannel(channels), r, g, b);
+channels_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return channel_rgb(channels_bchannel(channels), r, g, b);
 }
 
 // Set the r, g, and b channels for the foreground component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
 channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_get_fchannel(*channels);
+  unsigned channel = channels_fchannel(*channels);
   if(channel_set_rgb(&channel, r, g, b) < 0){
     return -1;
   }
@@ -2013,7 +2013,7 @@ channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
 // 'channels' variable, and mark it as not using the default color.
 static inline int
 channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_get_bchannel(*channels);
+  unsigned channel = channels_bchannel(*channels);
   if(channel_set_rgb(&channel, r, g, b) < 0){
     return -1;
   }
@@ -2024,7 +2024,7 @@ channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
 // Same, but set an assembled 24 bits of rgb at once.
 static inline int
 channels_set_fg(uint64_t* channels, unsigned rgb){
-  unsigned channel = channels_get_fchannel(*channels);
+  unsigned channel = channels_fchannel(*channels);
   if(channel_set(&channel, rgb) < 0){
     return -1;
   }
@@ -2034,7 +2034,7 @@ channels_set_fg(uint64_t* channels, unsigned rgb){
 
 static inline int
 channels_set_bg(uint64_t* channels, unsigned rgb){
-  unsigned channel = channels_get_bchannel(*channels);
+  unsigned channel = channels_bchannel(*channels);
   if(channel_set(&channel, rgb) < 0){
     return -1;
   }
@@ -2045,7 +2045,7 @@ channels_set_bg(uint64_t* channels, unsigned rgb){
 // Set the 2-bit alpha component of the foreground channel.
 static inline int
 channels_set_fg_alpha(uint64_t* channels, int alpha){
-  unsigned channel = channels_get_fchannel(*channels);
+  unsigned channel = channels_fchannel(*channels);
   if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
@@ -2059,7 +2059,7 @@ channels_set_bg_alpha(uint64_t* channels, int alpha){
   if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
     return -1;
   }
-  unsigned channel = channels_get_bchannel(*channels);
+  unsigned channel = channels_bchannel(*channels);
   if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
@@ -2070,7 +2070,7 @@ channels_set_bg_alpha(uint64_t* channels, int alpha){
 // Is the foreground using the "default foreground color"?
 static inline bool
 channels_fg_default_p(uint64_t channels){
-  return channel_default_p(channels_get_fchannel(channels));
+  return channel_default_p(channels_fchannel(channels));
 }
 
 // Is the background using the "default background color"? The "default
@@ -2078,13 +2078,13 @@ channels_fg_default_p(uint64_t channels){
 // terminal-effected transparency.
 static inline bool
 channels_bg_default_p(uint64_t channels){
-  return channel_default_p(channels_get_bchannel(channels));
+  return channel_default_p(channels_bchannel(channels));
 }
 
 // Mark the foreground channel as using its default color.
 static inline uint64_t
 channels_set_fg_default(uint64_t* channels){
-  unsigned channel = channels_get_fchannel(*channels);
+  unsigned channel = channels_fchannel(*channels);
   channel_set_default(&channel);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
   return *channels;
@@ -2093,7 +2093,7 @@ channels_set_fg_default(uint64_t* channels){
 // Mark the foreground channel as using its default color.
 static inline uint64_t
 channels_set_bg_default(uint64_t* channels){
-  unsigned channel = channels_get_bchannel(*channels);
+  unsigned channel = channels_bchannel(*channels);
   channel_set_default(&channel);
   *channels = (*channels & 0xffffffff00000000llu) | channel;
   return *channels;

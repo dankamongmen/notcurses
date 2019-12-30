@@ -30,7 +30,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
     for(x = 0 ; x < pp->cols ; ++x){
       channels = n->fb[fbcellidx(n, y, x)].channels;
       pp->channels[y * pp->cols + x] = channels;
-      channels_get_fg_rgb(channels, &r, &g, &b);
+      channels_fg_rgb(channels, &r, &g, &b);
       if(r > pp->maxr){
         pp->maxr = r;
       }
@@ -40,7 +40,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
       if(b > pp->maxb){
         pp->maxb = b;
       }
-      channels_get_bg_rgb(channels, &br, &bg, &bb);
+      channels_bg_rgb(channels, &br, &bg, &bb);
       if(br > pp->maxbr){
         pp->maxbr = br;
       }
@@ -55,7 +55,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   // FIXME factor this duplication out
   channels = n->basecell.channels;
   pp->channels[y * pp->cols] = channels;
-  channels_get_fg_rgb(channels, &r, &g, &b);
+  channels_fg_rgb(channels, &r, &g, &b);
   if(r > pp->maxr){
     pp->maxr = r;
   }
@@ -65,7 +65,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   if(b > pp->maxb){
     pp->maxb = b;
   }
-  channels_get_bg_rgb(channels, &br, &bg, &bb);
+  channels_bg_rgb(channels, &br, &bg, &bb);
   if(br > pp->maxbr){
     pp->maxbr = br;
   }
@@ -120,9 +120,9 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
     for(y = 0 ; y < pp.rows && y < dimy ; ++y){
       for(x = 0 ; x < pp.cols && x < dimx; ++x){
         unsigned r, g, b;
-        channels_get_fg_rgb(pp.channels[pp.cols * y + x], &r, &g, &b);
+        channels_fg_rgb(pp.channels[pp.cols * y + x], &r, &g, &b);
         unsigned br, bg, bb;
-        channels_get_bg_rgb(pp.channels[pp.cols * y + x], &br, &bg, &bb);
+        channels_bg_rgb(pp.channels[pp.cols * y + x], &br, &bg, &bb);
         cell* c = &n->fb[dimx * y + x];
         if(!cell_fg_default_p(c)){
           r = r * iter / maxsteps;
@@ -196,14 +196,14 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
       for(x = 0 ; x < pp.cols && x < dimx; ++x){
         cell* c = &n->fb[dimx * y + x];
         if(!cell_fg_default_p(c)){
-          channels_get_fg_rgb(pp.channels[pp.cols * y + x], &r, &g, &b);
+          channels_fg_rgb(pp.channels[pp.cols * y + x], &r, &g, &b);
           r = r * (maxsteps - iter) / maxsteps;
           g = g * (maxsteps - iter) / maxsteps;
           b = b * (maxsteps - iter) / maxsteps;
           cell_set_fg_rgb(c, r, g, b);
         }
         if(!cell_bg_default_p(c)){
-          channels_get_bg_rgb(pp.channels[pp.cols * y + x], &br, &bg, &bb);
+          channels_bg_rgb(pp.channels[pp.cols * y + x], &br, &bg, &bb);
           br = br * (maxsteps - iter) / maxsteps;
           bg = bg * (maxsteps - iter) / maxsteps;
           bb = bb * (maxsteps - iter) / maxsteps;
@@ -213,14 +213,14 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
     }
     cell* c = &n->basecell;
     if(!cell_fg_default_p(c)){
-      channels_get_fg_rgb(pp.channels[pp.cols * y], &r, &g, &b);
+      channels_fg_rgb(pp.channels[pp.cols * y], &r, &g, &b);
       r = r * (maxsteps - iter) / maxsteps;
       g = g * (maxsteps - iter) / maxsteps;
       b = b * (maxsteps - iter) / maxsteps;
       cell_set_fg_rgb(&n->basecell, r, g, b);
     }
     if(!cell_bg_default_p(c)){
-      channels_get_bg_rgb(pp.channels[pp.cols * y], &br, &bg, &bb);
+      channels_bg_rgb(pp.channels[pp.cols * y], &br, &bg, &bb);
       br = br * (maxsteps - iter) / maxsteps;
       bg = bg * (maxsteps - iter) / maxsteps;
       bb = bb * (maxsteps - iter) / maxsteps;

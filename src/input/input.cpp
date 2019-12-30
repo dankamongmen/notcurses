@@ -111,7 +111,7 @@ dim_rows(struct ncplane* n){
         return -1;
       }
       unsigned r, g, b;
-      cell_get_fg_rgb(&c, &r, &g, &b);
+      cell_fg_rgb(&c, &r, &g, &b);
       r -= r / 32;
       g -= g / 32;
       b -= b / 32;
@@ -186,7 +186,7 @@ int main(void){
         break;
       }
     }else{
-      if(wchar_supppuab_p(r)){
+      if(nckey_supppuab_p(r)){
         ncplane_set_fg_rgb(n, 250, 64, 128);
         if(ncplane_printf(n, "Special: [0x%02x (%02d)] '%s'",
                           r, r, nckeystr(r)) < 0){

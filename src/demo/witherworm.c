@@ -48,7 +48,7 @@ lighten(struct ncplane* n, cell* c, int distance){
     return 0;
   }
   unsigned r, g, b;
-  cell_get_fg_rgb(c, &r, &g, &b);
+  cell_fg_rgb(c, &r, &g, &b);
   r += rand() % ((r + 32) / (3 * distance + 1) + 1);
   g += rand() % ((g + 32) / (3 * distance + 1) + 1);
   b += rand() % ((b + 32) / (3 * distance + 1) + 1);
@@ -62,7 +62,7 @@ lighten(struct ncplane* n, cell* c, int distance){
 }
 
 static void
-get_surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
+surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
   // FIXME rewrite all these using ncplane_at_yx()
   if(ncplane_cursor_move_yx(n, y - 1, x - 1) == 0){
     ncplane_at_cursor(n, &cells[0]);
@@ -185,7 +185,7 @@ init_snake(snake* s, int dimy, int dimx){
 static int
 snakey_top(struct notcurses* nc, snake* s){
   struct ncplane* n = notcurses_stdplane(nc);
-  get_surrounding_cells(n, s->lightup, s->y, s->x);
+  surrounding_cells(n, s->lightup, s->y, s->x);
   ncplane_cursor_move_yx(n, s->y, s->x);
   if(lightup_surrounding_cells(n, s->lightup, s->y, s->x)){
     return -1;
@@ -604,8 +604,8 @@ int witherworm_demo(struct notcurses* nc){
           ncplane_cursor_yx(n, &y, &x);
 // fprintf(stderr, "%02d %s\n", y, *s);
           while((*s)[idx]){ // each multibyte char of string
-            if(channels_set_fg_rgb(&channels, channel_get_r(rgb),
-                                   channel_get_g(rgb), channel_get_b(rgb))){
+            if(channels_set_fg_rgb(&channels, channel_r(rgb),
+                                   channel_g(rgb), channel_b(rgb))){
               return -1;
             }
             if(y >= maxy || x >= maxx){

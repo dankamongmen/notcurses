@@ -885,11 +885,11 @@ int notcurses_stop(notcurses* nc){
   return ret;
 }
 
-uint64_t ncplane_get_channels(const ncplane* n){
+uint64_t ncplane_channels(const ncplane* n){
   return n->channels;
 }
 
-uint32_t ncplane_get_attr(const ncplane* n){
+uint32_t ncplane_attr(const ncplane* n){
   return n->attrword;
 }
 
@@ -1097,7 +1097,7 @@ int ncplane_putc(ncplane* n, const cell* c){
 }
 
 int ncplane_putsimple(struct ncplane* n, char c){
-  cell ce = CELL_INITIALIZER(c, ncplane_get_attr(n), ncplane_get_channels(n));
+  cell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
   if(!cell_simple_p(&ce)){
     return -1;
   }
@@ -1281,13 +1281,13 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
-  channels_get_fg_rgb(c1, &ur, &ug, &ub);
+  channels_fg_rgb(c1, &ur, &ug, &ub);
   r1 = ur; g1 = ug; b1 = ub;
-  channels_get_fg_rgb(c2, &ur, &ug, &ub);
+  channels_fg_rgb(c2, &ur, &ug, &ub);
   r2 = ur; g2 = ug; b2 = ub;
-  channels_get_bg_rgb(c1, &ur, &ug, &ub);
+  channels_bg_rgb(c1, &ur, &ug, &ub);
   br1 = ur; bg1 = ug; bb1 = ub;
-  channels_get_bg_rgb(c2, &ur, &ug, &ub);
+  channels_bg_rgb(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
   int deltr = r2 - r1;
   int deltg = g2 - g1;
@@ -1333,13 +1333,13 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
-  channels_get_fg_rgb(c1, &ur, &ug, &ub);
+  channels_fg_rgb(c1, &ur, &ug, &ub);
   r1 = ur; g1 = ug; b1 = ub;
-  channels_get_fg_rgb(c2, &ur, &ug, &ub);
+  channels_fg_rgb(c2, &ur, &ug, &ub);
   r2 = ur; g2 = ug; b2 = ub;
-  channels_get_bg_rgb(c1, &ur, &ug, &ub);
+  channels_bg_rgb(c1, &ur, &ug, &ub);
   br1 = ur; bg1 = ug; bb1 = ub;
-  channels_get_bg_rgb(c2, &ur, &ug, &ub);
+  channels_bg_rgb(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
   int deltr = (r2 - r1) / (len + 1);
   int deltg = (g2 - g1) / (len + 1);

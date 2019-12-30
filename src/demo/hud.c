@@ -134,7 +134,7 @@ int hud_schedule(const char* demoname){
   }
   cell c = CELL_TRIVIAL_INITIALIZER;
   ncplane_base(hud, &c);
-  ncplane_set_bg(hud, cell_get_bg(&c));
+  ncplane_set_bg(hud, cell_bg(&c));
   ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
   ncplane_set_fg(hud, 0);
   elem* cure;

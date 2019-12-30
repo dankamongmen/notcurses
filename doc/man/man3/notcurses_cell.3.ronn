@@ -57,9 +57,9 @@ notcurses_cell(3) -- operations on notcurses cells
 
 `uint32_t cell_egc_idx(const cell* c);`
 
-`unsigned cell_get_bchannel(const cell* cl);`
+`unsigned cell_bchannel(const cell* cl);`
 
-`unsigned cell_get_fchannel(const cell* cl);`
+`unsigned cell_fchannel(const cell* cl);`
 
 `uint64_t cell_set_bchannel(cell* cl, uint32_t channel);`
 
@@ -69,17 +69,17 @@ notcurses_cell(3) -- operations on notcurses cells
 
 `uint64_t cell_blend_bchannel(cell* cl, unsigned channel);`
 
-`unsigned cell_get_fg(const cell* cl);`
+`unsigned cell_fg(const cell* cl);`
 
-`unsigned cell_get_bg(const cell* cl);`
+`unsigned cell_bg(const cell* cl);`
 
-`unsigned cell_get_fg_alpha(const cell* cl);`
+`unsigned cell_fg_alpha(const cell* cl);`
 
-`unsigned cell_get_bg_alpha(const cell* cl);`
+`unsigned cell_bg_alpha(const cell* cl);`
 
-`unsigned cell_get_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b);`
+`unsigned cell_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b);`
 
-`unsigned cell_get_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b);`
+`unsigned cell_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b);`
 
 `int cell_set_fg_rgb(cell* cl, int r, int g, int b);`
 

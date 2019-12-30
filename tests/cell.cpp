@@ -83,9 +83,9 @@ SUBCASE("SetItalic") {
     CHECK(0 > cell_set_fg_alpha(&c, -1));
     CHECK(0 > cell_set_fg_alpha(&c, 4));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE));
-    CHECK(CELL_ALPHA_OPAQUE == cell_get_fg_alpha(&c));
+    CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&c));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
-    CHECK(CELL_ALPHA_HIGHCONTRAST == cell_get_fg_alpha(&c));
+    CHECK(CELL_ALPHA_HIGHCONTRAST == cell_fg_alpha(&c));
     CHECK(cell_fg_default_p(&c));
     CHECK(cell_bg_default_p(&c));
   }
@@ -95,10 +95,10 @@ SUBCASE("SetItalic") {
     CHECK(0 > cell_set_bg_alpha(&c, -1));
     CHECK(0 > cell_set_bg_alpha(&c, 4));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
-    CHECK(CELL_ALPHA_OPAQUE == cell_get_bg_alpha(&c));
+    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&c));
     CHECK(0 != cell_set_bg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
-    CHECK(CELL_ALPHA_TRANSPARENT == cell_get_bg_alpha(&c));
+    CHECK(CELL_ALPHA_TRANSPARENT == cell_bg_alpha(&c));
     CHECK(cell_fg_default_p(&c));
     CHECK(cell_bg_default_p(&c));
   }
