@@ -377,9 +377,11 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
   uint64_t nsbegin = timespec_to_ns(&begin);
-  struct timespec now;
   bool usets = false;
-  while(clock_gettime(CLOCK_MONOTONIC, &now), (avf = ncvisual_decode(ncv, averr)) ){
+  // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
+  // we don't have PTS available.
+  uint64_t sum_duration = 0;
+  while( (avf = ncvisual_decode(ncv, averr)) ){
     int64_t ts = avf->best_effort_timestamp;
     if(frame == 1 && ts){
       usets = true;
@@ -395,21 +397,27 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
       }
     }
     ++frame;
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    uint64_t nsnow = timespec_to_ns(&now);
     struct timespec interval;
+    uint64_t duration = avf->pkt_duration * 1000000;
+    sum_duration += duration;
     if(usets){
       double tbase = av_q2d(ncv->codecctx->time_base);
       if(tbase == 0){
-        tbase = avf->pkt_duration * 1000000;
+        tbase = duration;
       }
       double schedns = ts * tbase * NANOSECS_IN_SEC + nsbegin;
-      uint64_t nsnow = timespec_to_ns(&now);
       if(nsnow < schedns){
         ns_to_timespec(schedns - nsnow, &interval);
       }
       nanosleep(&interval, NULL);
     }else{
-      uint64_t ns = avf->pkt_duration * 1000000;
-      ns_to_timespec(ns, &interval);
+      uint64_t schedns = nsbegin + sum_duration;
+      if(nsnow < schedns){
+        ns_to_timespec(schedns - nsnow, &interval);
+      }
       nanosleep(&interval, NULL);
     }
   }
