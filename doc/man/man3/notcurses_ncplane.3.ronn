@@ -49,8 +49,34 @@ notcurses_ncplane(3) -- operations on notcurses planes
 
 ## DESCRIPTION
 
+Ncplanes are the fundamental drawing object of notcurses. All output functions
+take a `struct ncplane*` as an argument. They can be any size, and placed
+anywhere. In addition to its framebuffer--a rectilinear matrix of cells
+(see notcurses_cell(3))--an ncplane is defined by:
+
+* a base cell, used for any cell on the plane without a glyph,
+* the egcpool backing its cells,
+* a current cursor location,
+* a current style, foreground channel, and background channel,
+* its geometry,
+* a configured user pointer,
+* its position relative to the visible plane, and
+* its z-index.
 
 ## RETURN VALUES
+
+ncplane_new(3) and ncplane_aligned(3) both return a new `struct ncplane*`, or
+`NULL` on failure.
+
+ncplane_userptr(3) and ncplane_userptr_const(3) both return the configured user
+pointer for the ncplane. They cannot fail.
+
+ncplane_below(3) returns the plane below the specified ncplane. If the provided
+plane is the bottommost plane, NULL is returned. It cannot fail.
+
+Functions returning `int` return 0 on success, and non-zero on error.
+
+All other functions either cannot fail (and return `void`).
 
 ## AUTHOR
 
