@@ -19,7 +19,7 @@ void ncvisual_destroy(ncvisual* ncv){
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
-    // av_frame_free(&ncv->oframe); FIXME
+    // av_frame_unref(ncv->oframe); FIXME
     avcodec_parameters_free(&ncv->cparams);
     sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
@@ -95,7 +95,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
         break;
       }
       if(unref){
-  // fprintf(stderr, "stream index %d != %d\n", nc->packet->stream_index, nc->stream_index);
+//fprintf(stderr, "stream index %d != %d\n", nc->packet->stream_index, nc->stream_index);
         av_packet_unref(nc->packet);
       }
       if((*averr = av_read_frame(nc->fmtctx, nc->packet)) < 0){
@@ -370,6 +370,8 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
       }
     }
   }
+  av_freep(&ncv->oframe->data[0]);
+  //av_frame_unref(ncv->oframe);
   return 0;
 }
 

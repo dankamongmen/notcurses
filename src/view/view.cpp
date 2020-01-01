@@ -47,9 +47,6 @@ int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
   ns -= s * NANOSECS_IN_SEC;
   ncplane_printf_aligned(stdn, 0, NCALIGN_RIGHT, "%02ld:%02ld:%02ld.%04ld",
                          h, m, s, ns / 1000000);
-  if(ncvisual_render(ncv, 0, 0, 0, 0)){
-    return -1;
-  }
   if(notcurses_render(nc)){
     return -1;
   }
