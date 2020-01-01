@@ -619,3 +619,18 @@ int notcurses_render(notcurses* nc){
   return ret;
 }
 
+char* notcurses_at_yx(notcurses* nc, int y, int x, cell* c){
+  char* egc = NULL;
+  pthread_mutex_lock(&nc->lock);
+  if(nc->lastframe){
+    if(y >= 0 && y < nc->lfdimy){
+      if(x >= 0 || x < nc->lfdimx){
+        const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
+        memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
+        egc = cell_egc_copy(nc->stdscr, srccell);
+      }
+    }
+  }
+  pthread_mutex_unlock(&nc->lock);
+  return egc;
+}
