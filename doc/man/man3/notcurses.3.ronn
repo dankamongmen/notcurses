@@ -39,15 +39,10 @@ for the actual terminal must be available.
 
 ### Output
 
-All output is performed on `struct ncplane*`s (see notcurses_ncplane(3)).
-Following initialization, a single ncplane exists, the "standard plane" (see
-notcurses_stdplane(3)). This plane cannot be destoyed nor manually resized,
-and is always exactly as large as the screen. Further ncplanes can be created
-with notcurses_newplane(3). A total z-ordering always exists on the set of
-ncplanes, and new ncplanes are placed at the top of the z-buffer. Information
-on drawing to ncplanes is available at notcurses_output(3).
-
-Output is not visible until explicitly rendered via notcurses_render(3).
+All output is performed on `struct ncplane*`s (see [Ncplanes][] below). Output
+is not visible until explicitly rendered via notcurses_render(3). It is safe to
+output from multiple threads. Information on drawing functions is available at
+notcurses_output(3).
 
 ### Input
 
@@ -57,6 +52,22 @@ code points. Synthesized events such as mouse button presses and arrow keys
 are mapped into Unicode's
 [Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U100000.pdf).
 Information on input is available at notcurses_input(3).
+
+### Ncplanes
+
+Following initialization, a single ncplane exists, the "standard plane" (see
+notcurses_stdplane(3)). This plane cannot be destoyed nor manually resized,
+and is always exactly as large as the screen. Further ncplanes can be created
+with ncplane_new(3). A total z-ordering always exists on the set of
+ncplanes, and new ncplanes are placed at the top of the z-buffer. Ncplanes can
+be larger, smaller, or the same size as the physical screen, and can be placed
+anywhere relative to it (including entirely off-screen). Ncplanes are made up
+of cells (see [Cells][] below). Information on ncplanes is available at
+notcurses_ncplane(3).
+
+### Cells
+
+Information on cells is available at notcurses_cell(3).
 
 ### Destruction
 
@@ -73,6 +84,6 @@ Nick Black <nickblack@linux.com>
 
 ## SEE ALSO
 
-notcurses-demo(1), notcurses_init(3), notcurses_input(3),
-notcurses_newplane(3), notcurses_output(3), notcurses_render(3),
+notcurses-demo(1), notcurses_cell(3), notcurses_init(3), notcurses_input(3),
+notcurses_ncplane(3), ncplane_new(3), notcurses_output(3), notcurses_render(3),
 notcurses_stdplane(3), notcurses_stop(3), ncurses(3NCURSES), terminfo(5)

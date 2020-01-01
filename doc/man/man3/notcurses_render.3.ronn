@@ -7,6 +7,8 @@ notcurses_render(3) -- sync the physical display to virtual ncplanes
 
 `int notcurses_render(struct notcurses* nc);`
 
+`char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, cell* c);`
+
 ## DESCRIPTION
 
 `notcurses_render` syncs the physical display to the context's prepared

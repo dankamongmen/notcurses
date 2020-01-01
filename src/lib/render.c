@@ -666,10 +666,7 @@ char* notcurses_at_yx(notcurses* nc, int y, int x, cell* c){
       if(x >= 0 || x < nc->lfdimx){
         const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
         memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
-        const char* cegc = pool_egc_copy(&nc->pool, srccell);
-        if(cegc){
-          egc = strdup(cegc);
-        }
+        egc = cell_egc_copy(nc->stdscr, srccell);
       }
     }
   }

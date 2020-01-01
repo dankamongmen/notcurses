@@ -171,13 +171,15 @@ int ncplane_at_cursor(ncplane* n, cell* c){
 }
 
 int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
-  if(y >= n->leny || x >= n->lenx){
-    return true;
+  int ret = -1;
+  pthread_mutex_lock(&n->nc->lock);
+  if(y < n->leny && x < n->lenx){
+    if(y >= 0 && x >= 0){
+      ret = cell_duplicate(n, c, &n->fb[fbcellidx(n, y, x)]);
+    }
   }
-  if(y < 0 || x < 0){
-    return true;
-  }
-  return cell_duplicate(n, c, &n->fb[fbcellidx(n, y, x)]);
+  pthread_mutex_unlock(&n->nc->lock);
+  return ret;
 }
 
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){

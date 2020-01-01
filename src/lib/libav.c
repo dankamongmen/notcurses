@@ -419,14 +419,14 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
       double schedns = ts * tbase * NANOSECS_IN_SEC + nsbegin;
       if(nsnow < schedns){
         ns_to_timespec(schedns - nsnow, &interval);
+        nanosleep(&interval, NULL);
       }
-      nanosleep(&interval, NULL);
     }else{
       uint64_t schedns = nsbegin + sum_duration;
       if(nsnow < schedns){
         ns_to_timespec(schedns - nsnow, &interval);
+        nanosleep(&interval, NULL);
       }
-      nanosleep(&interval, NULL);
     }
   }
   if(*averr == AVERROR_EOF){

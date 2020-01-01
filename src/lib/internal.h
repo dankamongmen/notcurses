@@ -5,6 +5,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <signal.h>
@@ -209,6 +210,8 @@ fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
 }
 
+// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+// result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
 pool_egc_copy(const egcpool* e, const cell* c){
   char* ret;
