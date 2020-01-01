@@ -1,6 +1,6 @@
 [package]
 name = "notcurses"
-version = "0.9.3"
+version = "0.9.9"
 authors = ["nick black <dankamongmen@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"

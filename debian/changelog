@@ -1,9 +1,10 @@
-notcurses (1.0.0-1) UNRELEASED; urgency=medium
+notcurses (0.9.9-1) unstable; urgency=medium
 
   * Build-depends on ruby-ronn
   * Drop depends on libgtest-dev
+  * Penultimate prerelease
 
- -- Nick Black <dankamongmen@gmail.com>  Mon, 30 Dec 2019 00:28:51 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Wed, 01 Jan 2020 07:26:36 -0500
 
 notcurses (0.9.3-1) unstable; urgency=medium
 
