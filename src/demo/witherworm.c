@@ -63,13 +63,9 @@ lighten(struct ncplane* n, cell* c, int distance){
 
 static void
 surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
+  ncplane_at_yx(n, y - 1, x - 1, &cells[0]);
+  ncplane_at_yx(n, y - 1, x, &cells[1]);
   // FIXME rewrite all these using ncplane_at_yx()
-  if(ncplane_cursor_move_yx(n, y - 1, x - 1) == 0){
-    ncplane_at_cursor(n, &cells[0]);
-  }
-  if(ncplane_cursor_move_yx(n, y - 1, x) == 0){
-    ncplane_at_cursor(n, &cells[1]);
-  }
   if(ncplane_cursor_move_yx(n, y - 1, x + 1) == 0){
     ncplane_at_cursor(n, &cells[2]);
   }
@@ -656,7 +652,7 @@ int witherworm_demo(struct notcurses* nc){
         return -1;
       }
       if(i){
-        uint64_t delay = demodelay.tv_sec * 1000000000 + demodelay.tv_nsec;
+        uint64_t delay = timespec_to_ns(&demodelay);
         delay /= screens;
         struct timespec tv;
         if(delay > GIG){

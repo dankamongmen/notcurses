@@ -1026,11 +1026,6 @@ ncplane_cursor_stuck(const ncplane* n){
 }
 
 static inline void
-cell_set_wide(cell* c){
-  c->channels |= CELL_WIDEASIAN_MASK;
-}
-
-static inline void
 cell_obliterate(ncplane* n, cell* c){
   cell_release(n, c);
   cell_init(c);
@@ -1065,7 +1060,14 @@ int ncplane_putc(ncplane* n, const cell* c){
     ncplane_unlock(n);
     return -1;
   }
-  int cols = 1 + wide;
+  int cols = 1;
+  if(wide){
+    ++cols;
+    cell* rtarg = &n->fb[fbcellidx(n, n->y, n->x + 1)];
+    cell_release(n, rtarg);
+    cell_init(rtarg);
+    cell_set_wide(rtarg);
+  }
   if(wide){ // must set our right wide, and check for further damage
     if(n->x < n->lenx - 1){ // check to our right
       cell* candidate = &n->fb[fbcellidx(n, n->y, n->x + 1)];

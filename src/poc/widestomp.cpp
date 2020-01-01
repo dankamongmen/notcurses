@@ -13,18 +13,20 @@ int main(void){
 
   ncplane_set_fg_rgb(n, 0x80, 0xc0, 0x80);
   ncplane_set_bg_rgb(n, 0x00, 0x40, 0x00);
-  ncplane_putstr(n, "\u5168");
-  ncplane_putstr(n, "\u5f62");
+  ncplane_putstr(n, "\xe5\xbd\xa2\xe5\x85\xa8");
+  ncplane_putstr_yx(n, 1, 0, "\xe5\xbd\xa2\xe5\x85\xa8");
   notcurses_render(nc);
-  sleep(1);
+  sleep(2);
   struct ncplane* nn = ncplane_new(nc, 1, 2, 0, 1, nullptr);
   ncplane_set_fg_rgb(nn, 0xc0, 0x80, 0xc0);
   ncplane_set_bg_rgb(nn, 0x20, 0x00, 0x20);
   ncplane_putstr(nn, "AB");
   notcurses_render(nc);
-  sleep(1);
+  sleep(2);
+
   cell c = CELL_TRIVIAL_INITIALIZER;
-  char* egc;
+  char* egc = notcurses_at_yx(nc, 0, 1, &c);
+
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 }

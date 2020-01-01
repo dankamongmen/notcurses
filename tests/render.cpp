@@ -23,15 +23,16 @@ TEST_CASE("RenderTest") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     char* egc;
 
+    // print two wide glyphs on the standard plane
     int y, x;
     ncplane_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(0 == x);
-    CHECK(3 == ncplane_putstr(n_, "\u5168"));
+    CHECK(3 == ncplane_putstr(n_, "\xe5\x85\xa8"));
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(2 == x);
-    CHECK(3 == ncplane_putstr(n_, "\u5f62"));
+    CHECK(3 == ncplane_putstr(n_, "\xe5\xbd\xa2"));
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(4 == x);
@@ -41,12 +42,12 @@ TEST_CASE("RenderTest") {
     REQUIRE(3 == ncplane_at_yx(n_, 0, 0, &c));
     egc = cell_egc_copy(n_, &c);
     REQUIRE(egc);
-    CHECK(!strcmp("\u5168", egc));
+    CHECK(!strcmp("\xe5\x85\xa8", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
     egc = notcurses_at_yx(nc_, 0, 0, &c);
     REQUIRE(egc);
-    CHECK(!strcmp("\u5168", egc));
+    CHECK(!strcmp("\xe5\x85\xa8", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
     cell_init(&c);
@@ -68,17 +69,18 @@ TEST_CASE("RenderTest") {
     REQUIRE(3 == ncplane_at_yx(n_, 0, 2, &c));
     egc = cell_egc_copy(n_, &c);
     REQUIRE(egc);
-    CHECK(!strcmp("\u5f62", egc));
+    CHECK(!strcmp("\xe5\xbd\xa2", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
     egc = notcurses_at_yx(nc_, 0, 2, &c);
     REQUIRE(egc);
-    CHECK(!strcmp("\u5f62", egc));
+fprintf(stderr, "HAVE [%s] WANT \xe5\xbd\xa2\n", egc);
+    CHECK(!strcmp("\xe5\xbd\xa2", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
     cell_init(&c);
     // should be wide char 2 right side
-    CHECK(3 == ncplane_at_yx(n_, 0, 2, &c));
+    CHECK(0 == ncplane_at_yx(n_, 0, 3, &c));
     egc = cell_egc_copy(n_, &c);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
@@ -99,7 +101,7 @@ TEST_CASE("RenderTest") {
     // should be nothing, having been stomped
     egc = notcurses_at_yx(nc_, 0, 0, &c);
     REQUIRE(egc);
-    CHECK(!strcmp("", egc));
+    CHECK(!strcmp(" ", egc));
     free(egc);
     cell_init(&c);
     // should be character from higher plane
@@ -118,7 +120,7 @@ TEST_CASE("RenderTest") {
     // should be nothing, having been stomped
     egc = notcurses_at_yx(nc_, 0, 3, &c);
     REQUIRE(egc);
-    CHECK(!strcmp("", egc));
+    CHECK(!strcmp(" ", egc));
     free(egc);
     cell_init(&c);
 

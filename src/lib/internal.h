@@ -287,6 +287,17 @@ extended_gcluster(const ncplane* n, const cell* c){
 
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x);
 
+static inline void
+cell_set_wide(cell* c){
+  c->channels |= CELL_WIDEASIAN_MASK;
+}
+
+// Is this the right half of a wide character?
+static inline bool
+cell_wide_right_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster == 0;
+}
+
 #define NANOSECS_IN_SEC 1000000000
 
 static inline uint64_t

@@ -151,7 +151,7 @@ reshape_shadow_fb(notcurses* nc){
 // of a single render. 'previousz' must be non-negative on input.
 static inline ncplane*
 dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
-  int depth = 0;
+  int depth = 1;
   unsigned fgblends = 0;
   unsigned bgblends = 0;
   // once we decide on our glyph, it cannot be changed by anything below, so
@@ -214,6 +214,11 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
   // the background will be printed
   if(c->gcluster == 0){
     cell_load_simple(NULL, c, ' ');
+  }
+  if(depth < *previousz){
+    *previousz = depth;
+  }else{
+    *previousz = -depth;
   }
   return glyphplane;
 }
@@ -492,35 +497,44 @@ notcurses_render_internal(notcurses* nc){
     // track the depth of our glyph, to see if we need need to stomp a wide
     // glyph we're following.
     int depth = 0;
+    // are we in the right half of a wide glyph? if so, we don't typically emit
+    // anything, *BUT* we must handle higher planes bisecting our wide glyph.
+    bool inright = false;
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       ncplane* p;
       cell c; // no need to initialize
       p = visible_cell(&c, y, x, nc->top, &depth);
       // don't try to print a wide character on the last column; it'll instead
-      // be printed on the next line. they probably shouldn't be admitted, but
-      // we can end up with one due to a resize.
-      // FIXME but...print what, exactly, instead?
+      // be printed on the next line. they aren't output, but we can end up
+      // with one due to a resize. FIXME but...print what, exactly, instead?
       if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
         continue; // needmove will be reset as we restart the line
       }
+//fprintf(stderr, "%d %d depth: %d %d\n", y, x, depth, inright);
       if(depth > 0){ // we are above the previous source plane
-        // if we're above the previous cell, x - 1 is safe
-        cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
-        if(cell_double_wide_p(prev)){
-fprintf(stderr, "WIDE: %u %d\n", cell_double_wide_p(prev), prev->gcluster);
+        if(inright){ // wipe out the character to the left
+          cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
           pool_release(&nc->pool, prev);
+          cell_init(prev);
+          // FIXME technically we need rerun the visible cell search...? gross
           cell_load_simple(NULL, prev, ' ');
-
-        term_emit("cup", tiparm(nc->cup, y, x - 1), out, false);
-        fprintf(out, "X");
-        //term_putc(out, p, prev);
+          // FIXME this space will be the wrong color, methinks?
+          term_emit("cup", tiparm(nc->cup, y, x - 1), out, false);
+          fputc(' ', out);
+          inright = false;
+// fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
         }
       }
       // lastframe has already been sized to match the current size, so no need
       // to check whether we're within its bounds. just check the cell.
       if(nc->lastframe){
         cell* oldcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
+        if(inright){
+          cell_set_wide(oldcell);
+          inright = false;
+          continue;
+        }
         // check the damage map
         if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c) == 0){
           // no need to emit a cell; what we rendered appears to already be
@@ -534,7 +548,9 @@ fprintf(stderr, "WIDE: %u %d\n", cell_double_wide_p(prev), prev->gcluster);
               ++needmove;
             }
             ++nc->stats.cellelisions;
-            ++x;
+            inright = !inright;
+          }else{
+            inright = false;
           }
           continue;
         }
@@ -618,15 +634,9 @@ fprintf(stderr, "WIDE: %u %d\n", cell_double_wide_p(prev), prev->gcluster);
           ++nc->stats.bgelisions;
         }
       }
-// fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
+//fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
       term_putc(out, p, &c);
-      if(cell_double_wide_p(&c)){
-        ++x;
-        cell* nextcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
-        // FIXME need to release it?
-        nextcell->gcluster = 0;
-        nextcell->channels |= channels_bg(CELL_WIDEASIAN_MASK);
-      }
+      inright = cell_double_wide_p(&c);
     }
   }
   ret |= fflush(out);
@@ -666,7 +676,9 @@ char* notcurses_at_yx(notcurses* nc, int y, int x, cell* c){
       if(x >= 0 || x < nc->lfdimx){
         const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
         memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
-        egc = cell_egc_copy(nc->stdscr, srccell);
+//fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
+        egc = pool_egc_copy(&nc->pool, srccell);
+        c->gcluster = 0; // otherwise cell_release() will blow up
       }
     }
   }
