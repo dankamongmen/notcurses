@@ -19,7 +19,7 @@ void ncvisual_destroy(ncvisual* ncv){
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
-    // av_frame_unref(ncv->oframe); FIXME
+    av_freep(&ncv->oframe);
     avcodec_parameters_free(&ncv->cparams);
     sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
