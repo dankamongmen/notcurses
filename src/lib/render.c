@@ -523,7 +523,7 @@ notcurses_render_internal(notcurses* nc){
           term_emit("cup", tiparm(nc->cup, y, x - 1), out, false);
           fputc(' ', out);
           inright = false;
-// fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
+//fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
         }
       }
       // lastframe has already been sized to match the current size, so no need

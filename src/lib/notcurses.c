@@ -1072,7 +1072,7 @@ int ncplane_putc(ncplane* n, const cell* c){
     if(n->x < n->lenx - 1){ // check to our right
       cell* candidate = &n->fb[fbcellidx(n, n->y, n->x + 1)];
       if(n->x < n->lenx - 2){
-        if(cell_double_wide_p(candidate) && targ->gcluster){ // left half
+        if(cell_wide_left_p(candidate)){
           cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x + 2)]);
         }
       }

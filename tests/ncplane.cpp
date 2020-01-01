@@ -900,11 +900,17 @@ TEST_CASE("NCPlane") {
     CHECK(0 < ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", 0, 0, NULL));
     CHECK(0 == notcurses_render(nc_));
     cell c = CELL_TRIVIAL_INITIALIZER;
+    REQUIRE(0 < ncplane_at_yx(ncp, 1, 0, &c));
+    CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
+    cell_release(ncp, &c);
     char* egc = notcurses_at_yx(nc_, 1, 0, &c);
     REQUIRE(egc);
     CHECK(!strcmp(egc, "│"));
     free(egc);
-    egc = notcurses_at_yx(nc_, 3, 0, &c);
+    REQUIRE(0 < ncplane_at_yx(ncp, 1, 3, &c));
+    CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
+    cell_release(ncp, &c);
+    egc = notcurses_at_yx(nc_, 1, 3, &c);
     REQUIRE(egc);
     CHECK(!strcmp(egc, "│"));
     free(egc);
