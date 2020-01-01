@@ -44,7 +44,7 @@ wall_p(const struct ncplane* n, const cell* c){
 // the closer the coordinate is (lower distance), the more we lighten the cell
 static inline int
 lighten(struct ncplane* n, cell* c, int distance){
-  if(c->gcluster == 0){ // don't blow away wide characters
+  if(cell_double_wide_p(c)){ // don't blow away wide characters
     return 0;
   }
   unsigned r, g, b;
@@ -65,10 +65,8 @@ static void
 surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
   ncplane_at_yx(n, y - 1, x - 1, &cells[0]);
   ncplane_at_yx(n, y - 1, x, &cells[1]);
+  ncplane_at_yx(n, y - 1, x + 1, &cells[2]);
   // FIXME rewrite all these using ncplane_at_yx()
-  if(ncplane_cursor_move_yx(n, y - 1, x + 1) == 0){
-    ncplane_at_cursor(n, &cells[2]);
-  }
   if(ncplane_cursor_move_yx(n, y, x - 1) == 0){
     ncplane_at_cursor(n, &cells[7]);
   }
@@ -182,7 +180,6 @@ static int
 snakey_top(struct notcurses* nc, snake* s){
   struct ncplane* n = notcurses_stdplane(nc);
   surrounding_cells(n, s->lightup, s->y, s->x);
-  ncplane_cursor_move_yx(n, s->y, s->x);
   if(lightup_surrounding_cells(n, s->lightup, s->y, s->x)){
     return -1;
   }
