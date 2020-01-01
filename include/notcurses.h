@@ -314,6 +314,12 @@ API int notcurses_refresh(struct notcurses* n);
 API struct ncplane* notcurses_stdplane(struct notcurses* nc);
 API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
+// Retrieve the contents of the specified cell as last rendered. The EGC is
+// returned, or NULL on error. This EGC must be free()d by the caller. The cell
+// 'c' is not bound to a plane, and thus its gcluster value must not be used--
+// use the return value only.
+API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, cell* c);
+
 // Alignment within the ncplane. Left/right-justified, or centered.
 typedef enum {
   NCALIGN_LEFT,
