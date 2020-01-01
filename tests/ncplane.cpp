@@ -1,4 +1,5 @@
 #include <array>
+#include <unistd.h>
 #include <cstdlib>
 #include <notcurses.h>
 #include "internal.h"
@@ -120,8 +121,8 @@ TEST_CASE("NCPlane") {
     CHECK(0 == notcurses_render(nc_));
   }
 
-  // Verify we can emit a wide character, and it advances the cursor
-  SUBCASE("EmitWchar") {
+  // Verify we can emit a wchar_t, and it advances the cursor
+  SUBCASE("EmitWcharT") {
     const wchar_t* w = L"✔";
     int sbytes = 0;
     CHECK(0 < ncplane_putwegc(n_, w, 0, 0, &sbytes));
@@ -129,6 +130,36 @@ TEST_CASE("NCPlane") {
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(1 == x);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // Verify we can emit a wide character, and it advances the cursor
+  SUBCASE("EmitWideAsian") {
+    const char* w = "\u5168";
+    int sbytes = 0;
+    CHECK(0 < ncplane_putegc(n_, w, 0, 0, &sbytes));
+    int x, y;
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(2 == x);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // Verify a wide character is rejected on the last column
+  SUBCASE("EmitWideAsian") {
+    const char* w = "\u5168";
+    int sbytes = 0;
+    int dimx;
+    ncplane_dim_yx(n_, NULL, &dimx);
+    CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, 0, 0, &sbytes));
+    int x, y;
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(dimx - 1 == x);
+    // now it ought be rejected
+    CHECK(0 > ncplane_putegc(n_, w, 0, 0, &sbytes));
+    CHECK(0 == y);
+    CHECK(dimx - 1 == x);
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -858,6 +889,32 @@ TEST_CASE("NCPlane") {
     ncplane_at_yx(n_, 0, 4, &c);
     CHECK(cell_double_wide_p(&c)); // should be scorpion
     CHECK(0 == notcurses_render(nc_));
+  }
+
+  SUBCASE("BoxedWideGlyph") {
+    struct ncplane* ncp = ncplane_new(nc_, 3, 4, 0, 0, nullptr);
+    REQUIRE(ncp);
+    int dimx, dimy;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    CHECK(0 == ncplane_rounded_box_sized(ncp, 0, 0, 3, 4, 0));
+    CHECK(0 < ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", 0, 0, NULL));
+    CHECK(0 == notcurses_render(nc_));
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    REQUIRE(0 < ncplane_at_yx(ncp, 1, 0, &c));
+    CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
+    cell_release(ncp, &c);
+    char* egc = notcurses_at_yx(nc_, 1, 0, &c);
+    REQUIRE(egc);
+    CHECK(!strcmp(egc, "│"));
+    free(egc);
+    REQUIRE(0 < ncplane_at_yx(ncp, 1, 3, &c));
+    CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
+    cell_release(ncp, &c);
+    egc = notcurses_at_yx(nc_, 1, 3, &c);
+    REQUIRE(egc);
+    CHECK(!strcmp(egc, "│"));
+    free(egc);
+    CHECK(0 == ncplane_destroy(ncp));
   }
 
   CHECK(0 == notcurses_stop(nc_));

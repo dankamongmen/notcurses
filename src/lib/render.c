@@ -140,8 +140,18 @@ reshape_shadow_fb(notcurses* nc){
 // whichever one occurs at the top with a non-transparent α (α < 2). To effect
 // tail recursion, though, we instead write first, and then recurse, blending
 // as we descend. α == 0 is opaque. α == 2 is fully transparent.
+//
+// It is useful to know how deep our glyph came from (the depth of the return
+// value), so it will be recorded in 'previousz'. It is useful to know this
+// value's relation to the previous cell, so the previous value is provided as
+// input to 'previousz', and when we set 'previousz' in this function, we use
+// the positive depth to indicate that the return value was above the previous
+// plane, and a negative depth to indicate that the return value was equal to or
+// below the previous plane. Relative depths are valid only within the context
+// of a single render. 'previousz' must be non-negative on input.
 static inline ncplane*
-dig_visible_cell(cell* c, int y, int x, ncplane* p){
+dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
+  int depth = 1;
   unsigned fgblends = 0;
   unsigned bgblends = 0;
   // once we decide on our glyph, it cannot be changed by anything below, so
@@ -188,26 +198,40 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p){
         // if everything's locked in, we're done
         if((glyphplane && cell_fg_alpha(c) == CELL_ALPHA_OPAQUE &&
               cell_bg_alpha(c) == CELL_ALPHA_OPAQUE)){
+          if(depth < *previousz){
+            *previousz = depth;
+          }else{
+            *previousz = -depth;
+          }
           return glyphplane;
         }
       }
     }
     p = p->z;
+    ++depth;
   }
   // if we have a background set, but no glyph selected, load a space so that
   // the background will be printed
   if(c->gcluster == 0){
     cell_load_simple(NULL, c, ' ');
   }
+  if(depth < *previousz){
+    *previousz = depth;
+  }else{
+    *previousz = -depth;
+  }
   return glyphplane;
 }
 
 static inline ncplane*
-visible_cell(cell* c, int y, int x, ncplane* n){
+visible_cell(cell* c, int y, int x, ncplane* n, int* previousz){
   cell_init(c);
   cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-  return dig_visible_cell(c, y, x, n);
+  if(*previousz < 0){
+    *previousz = -*previousz;
+  }
+  return dig_visible_cell(c, y, x, n, previousz);
 }
 
 // write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
@@ -470,22 +494,48 @@ notcurses_render_internal(notcurses* nc){
     // cursor movement with cup if we only elided one or two. set to INT_MAX
     // whenever we're on a new line.
     int needmove = INT_MAX;
+    // track the depth of our glyph, to see if we need need to stomp a wide
+    // glyph we're following.
+    int depth = 0;
+    // are we in the right half of a wide glyph? if so, we don't typically emit
+    // anything, *BUT* we must handle higher planes bisecting our wide glyph.
+    bool inright = false;
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       ncplane* p;
       cell c; // no need to initialize
-      p = visible_cell(&c, y, x, nc->top);
+      p = visible_cell(&c, y, x, nc->top, &depth);
       // don't try to print a wide character on the last column; it'll instead
-      // be printed on the next line. they probably shouldn't be admitted, but
-      // we can end up with one due to a resize.
-      // FIXME but...print what, exactly, instead?
+      // be printed on the next line. they aren't output, but we can end up
+      // with one due to a resize. FIXME but...print what, exactly, instead?
       if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
         continue; // needmove will be reset as we restart the line
+      }
+//fprintf(stderr, "%d %d depth: %d %d\n", y, x, depth, inright);
+      if(depth > 0){ // we are above the previous source plane
+        if(inright){ // wipe out the character to the left
+          cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
+          pool_release(&nc->pool, prev);
+          cell_init(prev);
+          // FIXME technically we need rerun the visible cell search...? gross
+          cell_load_simple(NULL, prev, ' ');
+          // FIXME this space will be the wrong color, methinks?
+          term_emit("cup", tiparm(nc->cup, y, x - 1), out, false);
+          fputc(' ', out);
+          inright = false;
+//fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
+        }
       }
       // lastframe has already been sized to match the current size, so no need
       // to check whether we're within its bounds. just check the cell.
       if(nc->lastframe){
         cell* oldcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
+        if(inright){
+          cell_set_wide(oldcell);
+          inright = false;
+          continue;
+        }
+        // check the damage map
         if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c) == 0){
           // no need to emit a cell; what we rendered appears to already be
           // here. no updates are performed to elision state nor lastframe.
@@ -498,7 +548,9 @@ notcurses_render_internal(notcurses* nc){
               ++needmove;
             }
             ++nc->stats.cellelisions;
-            ++x;
+            inright = !inright;
+          }else{
+            inright = false;
           }
           continue;
         }
@@ -531,7 +583,6 @@ notcurses_render_internal(notcurses* nc){
       //  * we are a partial glyph, and the previous was default on both, or
       //  * we are a no-foreground glyph, and the previous was default background, or
       //  * we are a no-background glyph, and the previous was default foreground
-
       bool noforeground = cell_noforeground_p(&c);
       bool nobackground = cell_nobackground_p(p, &c);
       if((!noforeground && cell_fg_default_p(&c)) || (!nobackground && cell_bg_default_p(&c))){
@@ -583,11 +634,9 @@ notcurses_render_internal(notcurses* nc){
           ++nc->stats.bgelisions;
         }
       }
-// fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
+//fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
       term_putc(out, p, &c);
-      if(cell_double_wide_p(&c)){
-        ++x;
-      }
+      inright = cell_double_wide_p(&c);
     }
   }
   ret |= fflush(out);
@@ -627,7 +676,9 @@ char* notcurses_at_yx(notcurses* nc, int y, int x, cell* c){
       if(x >= 0 || x < nc->lfdimx){
         const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
         memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
-        egc = cell_egc_copy(nc->stdscr, srccell);
+//fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
+        egc = pool_egc_copy(&nc->pool, srccell);
+        c->gcluster = 0; // otherwise cell_release() will blow up
       }
     }
   }

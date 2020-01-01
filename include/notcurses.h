@@ -382,6 +382,11 @@ API void notcurses_stats(struct notcurses* nc, ncstats* stats);
 // Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
 API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 
+// Retrieve the cell at the specified location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+// Returns the length of the EGC in bytes.
+API char* notcurses_at_yx(struct notcurses* nc, int y, int x, cell* c);
+
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
 // unchanged. This may be a section of size 0, though none of these four
@@ -559,8 +564,8 @@ API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
 
 // Call ncplane_putegc() after successfully moving to y, x.
 static inline int
-ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, uint32_t attr,
-                  uint64_t channels, int* sbytes){
+ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust,
+                  uint32_t attr, uint64_t channels, int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
@@ -1363,6 +1368,18 @@ cell_set_bg_alpha(cell* c, int alpha){
 static inline bool
 cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
+}
+
+// Is this the right half of a wide character?
+static inline bool
+cell_wide_right_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster == 0;
+}
+
+// Is this the left half of a wide character?
+static inline bool
+cell_wide_left_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster;
 }
 
 // Is the cell simple (a lone ASCII character, encoded as such)?

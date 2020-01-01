@@ -1,16 +1,16 @@
 #include "demo.h"
 
 static const char* leg[] = {
-"                               88              88            88           88                          88             88               88                        ",
-"                               \"\"              88            88           88                          88             \"\"               \"\"                 ,d     ",
-"                                               88            88           88                          88                                                 88     ",
-"   ,adPPYYba,     8b,dPPYba,   88   ,adPPYba,  88   ,d8      88,dPPYba,   88  ,adPPYYba,   ,adPPYba,  88   ,d8       88   ,adPPYba,   88  8b,dPPYba,  MM88MMM   ",
-"   \"\"     `Y8     88P'   `\"8a  88  a8\"     \"\"  88 ,a8\"       88P'    \"8a  88  \"\"     `Y8  a8\"     \"\"  88 ,a8\"        88  a8\"     \"8a  88  88P'   `\"8a   88      ",
-"   ,adPPPPP88     88       88  88  8b          8888[         88       d8  88  ,adPPPPP88  8b          8888[          88  8b       d8  88  88       88   88      ",
-"   88,    ,88     88       88  88  \"8a,   ,aa  88`\"Yba,      88b,   ,a8\"  88  88,    ,88  \"8a,   ,aa  88`\"Yba,       88  \"8a,   ,a8\"  88  88       88   88,     ",
-"   `\"8bbdP\"Y8     88       88  88   `\"Ybbd8\"'  88   `Y8a     8Y\"Ybbd8\"'   88  `\"8bbdP\"Y8   `\"Ybbd8\"'  88   `Y8a      88   `\"YbbdP\"'   88  88       88   \"Y888   ",
-"                                                                                                                    ,88                                         ",
-"                                                                                                                  888P                                          ",
+"                            88              88            88           88                          88             88               88                        ",
+"                            \"\"              88            88           88                          88             \"\"               \"\"                 ,d     ",
+"                                            88            88           88                          88                                                 88     ",
+",adPPYYba,     8b,dPPYba,   88   ,adPPYba,  88   ,d8      88,dPPYba,   88  ,adPPYYba,   ,adPPYba,  88   ,d8       88   ,adPPYba,   88  8b,dPPYba,  MM88MMM   ",
+"\"\"     `Y8     88P'   `\"8a  88  a8\"     \"\"  88 ,a8\"       88P'    \"8a  88  \"\"     `Y8  a8\"     \"\"  88 ,a8\"        88  a8\"     \"8a  88  88P'   `\"8a   88      ",
+",adPPPPP88     88       88  88  8b          8888[         88       d8  88  ,adPPPPP88  8b          8888[          88  8b       d8  88  88       88   88      ",
+"88,    ,88     88       88  88  \"8a,   ,aa  88`\"Yba,      88b,   ,a8\"  88  88,    ,88  \"8a,   ,aa  88`\"Yba,       88  \"8a,   ,a8\"  88  88       88   88,     ",
+"`\"8bbdP\"Y8     88       88  88   `\"Ybbd8\"'  88   `Y8a     8Y\"Ybbd8\"'   88  `\"8bbdP\"Y8   `\"Ybbd8\"'  88   `Y8a      88   `\"YbbdP\"'   88  88       88   \"Y888   ",
+"                                                                                                                 ,88                                         ",
+"                                                                                                               888P                                          ",
 };
 
 static int
@@ -34,7 +34,6 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
     *(struct ncplane**)vnewplane = n;
   }
   ncplane_dim_yx(n, &dimy, &dimx);
-  y = 0;
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
@@ -43,48 +42,49 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
   ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
   // fg/bg rgbs are set within loop
   int x = dimx - frameno;
-  for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y){
-    int r = startr;
-    int g = startg - (l * 0x8);
-    int b = startb;
-    ncplane_set_bg_rgb(n, l * 0x4, 0x20, l * 0x4);
-    int xoff = x;
-    while(xoff + (int)strlen(leg[l]) <= 0){
-      xoff += strlen(leg[l]);
-    }
-    do{
-      ncplane_set_fg_rgb(n, r, g, b);
-      int len = dimx - xoff;
-      if(xoff < 0){
-        len = strlen(leg[l]) + xoff;
-      }else if(xoff == 0){
-        int t = startr;
-        startr = startg;
-        startg = startb;
-        startb = t;
+  int r = startr;
+  int g = startg;
+  int b = startb;
+  const size_t llen = strlen(leg[0]);
+  do{
+    if(x + (int)llen <= 0){
+      x += llen;
+    }else{
+      int len = dimx - x;
+      if(x < 0){
+        len = llen + x;
       }
-      if(len > (int)strlen(leg[l])){
-        len = strlen(leg[l]);
+      if(len > (int)llen){
+        len = llen;
       }
       if(len > dimx){
         len = dimx;
       }
       int stroff = 0;
-      if(xoff < 0){
-        stroff = -xoff;
-        xoff = 0;
+      if(x < 0){
+        stroff = -x;
+        x = 0;
       }
-      ncplane_printf_yx(n, y, xoff, "%*.*s", len, len, leg[l] + stroff);
-      xoff += len;
-      int t = r;
-      r = g;
-      g = b;
-      b = t;
-    }while(xoff < dimx);
-  }
+      for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y){
+        if(ncplane_set_fg_rgb(n, r - 0xc * l, g - 0xc * l, b - 0xc * l)){
+          return -1;
+        }
+        if(ncplane_set_bg_rgb(n, (l + 1) * 0x8, 0x20, (l + 1) * 0x8)){
+          return -1;
+        }
+        if(ncplane_printf_yx(n, l, x, "%*.*s", len, len, leg[l] + stroff) != (int)len){
+          return -1;
+        }
+      }
+      x += len;
+    }
+    int t = r;
+    r = g;
+    g = b;
+    b = t;
+  }while(x < dimx);
   ++frameno;
   demo_render(nc);
-  // FIXME we'll need some delay here
   return 0;
 }
 

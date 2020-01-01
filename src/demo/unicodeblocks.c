@@ -28,9 +28,9 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell_set_fg_rgb(&vl, 255, 255, 255);
   cell_set_bg_rgb(&hl, 0, 0, 0);
   cell_set_bg_rgb(&vl, 0, 0, 0);
-  if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl,
-                  BLOCKSIZE / CHUNKSIZE + 2,
-                  (CHUNKSIZE * 2) + 2, 0)){
+  int dimx, dimy;
+  ncplane_dim_yx(nn, &dimy, &dimx);
+  if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, 0)){
     return -1;
   }
   cell_release(nn, &ul); cell_release(nn, &ur); cell_release(nn, &hl);
@@ -59,25 +59,15 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
         }
         utf8arr[bwc] = '\0';
       }else{ // don't dump non-printing codepoints
-        utf8arr[0] = ' ';
-        utf8arr[1] = 0xe2;
-        utf8arr[2] = 0x80;
-        utf8arr[3] = 0x8e;
-        utf8arr[4] = '\0';
-      }
-      if(cell_load(nn, &c, utf8arr) < 0){ // FIXME check full len was eaten?
-        return -1;;
+        strcpy(utf8arr, " ");
       }
       cell_set_fg_rgb(&c, 0xad + z * 2, 0xd8, 0xe6 - z * 2);
       cell_set_bg_rgb(&c, 8 * chunk, 8 * chunk + z, 8 * chunk);
-      if(ncplane_putc(nn, &c) < 0){
+      if(ncplane_putstr(nn, utf8arr) < 0){
         return -1;
       }
       if(wcwidth(w[0]) < 2 || !iswprint(w[0])){
-        if(cell_load(nn, &c, " ") < 0){
-          return -1;
-        }
-        if(ncplane_putc(nn, &c) < 0){
+        if(ncplane_putsimple(nn, ' ') < 0){
           return -1;
         }
       }
