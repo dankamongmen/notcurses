@@ -120,8 +120,8 @@ TEST_CASE("NCPlane") {
     CHECK(0 == notcurses_render(nc_));
   }
 
-  // Verify we can emit a wide character, and it advances the cursor
-  SUBCASE("EmitWchar") {
+  // Verify we can emit a wchar_t, and it advances the cursor
+  SUBCASE("EmitWcharT") {
     const wchar_t* w = L"✔";
     int sbytes = 0;
     CHECK(0 < ncplane_putwegc(n_, w, 0, 0, &sbytes));
@@ -129,6 +129,36 @@ TEST_CASE("NCPlane") {
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(1 == x);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // Verify we can emit a wide character, and it advances the cursor
+  SUBCASE("EmitWideAsian") {
+    const char* w = "\u5168";
+    int sbytes = 0;
+    CHECK(0 < ncplane_putegc(n_, w, 0, 0, &sbytes));
+    int x, y;
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(2 == x);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // Verify a wide character is rejected on the last column
+  SUBCASE("EmitWideAsian") {
+    const char* w = "\u5168";
+    int sbytes = 0;
+    int dimx;
+    ncplane_dim_yx(n_, NULL, &dimx);
+    CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, 0, 0, &sbytes));
+    int x, y;
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(dimx - 1 == x);
+    // now it ought be rejected
+    CHECK(0 > ncplane_putegc(n_, w, 0, 0, &sbytes));
+    CHECK(0 == y);
+    CHECK(dimx - 1 == x);
     CHECK(0 == notcurses_render(nc_));
   }
 

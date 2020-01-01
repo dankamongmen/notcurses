@@ -1041,6 +1041,10 @@ int ncplane_putc(ncplane* n, const cell* c){
     return -1;
   }
   bool wide = cell_double_wide_p(c);
+  if(wide && (n->x + 1 == n->lenx)){
+    ncplane_unlock(n);
+    return -1;
+  }
   // A wide character obliterates anything to its immediate right (and marks
   // that cell as wide). Any character placed atop one half of a wide character
   // obliterates the other half. Note that a wide char can thus obliterate two

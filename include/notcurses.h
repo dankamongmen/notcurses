@@ -557,8 +557,8 @@ API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
 
 // Call ncplane_putegc() after successfully moving to y, x.
 static inline int
-ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, uint32_t attr,
-                  uint64_t channels, int* sbytes){
+ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust,
+                  uint32_t attr, uint64_t channels, int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
