@@ -457,6 +457,7 @@ API int ncplane_at_cursor(struct ncplane* n, cell* c);
 
 // Retrieve the cell at the specified location on the specified plane, returning
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+// Returns the length of the EGC in bytes.
 API int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
 
 // Manipulate the opaque user pointer associated with this plane.

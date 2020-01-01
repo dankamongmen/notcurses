@@ -5,6 +5,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <signal.h>
@@ -207,6 +208,22 @@ ncplane_unlock(const ncplane* n){
 static inline int
 fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
+}
+
+// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+// result is not tied to the ncplane, and persists across erases / destruction.
+static inline char*
+cell_egc_copy(const ncplane* n, const cell* c){
+  char* ret;
+  if(cell_simple_p(c)){
+    if( (ret = (char*)malloc(2)) ){ // cast required for c++ unit tests
+      ret[0] = c->gcluster;
+      ret[1] = '\0';
+    }
+  }else{
+    ret = strdup(cell_extended_gcluster(n, c));
+  }
+  return ret;
 }
 
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
