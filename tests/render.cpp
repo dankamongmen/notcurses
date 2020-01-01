@@ -78,7 +78,7 @@ TEST_CASE("RenderTest") {
     free(egc);
     cell_init(&c);
     // should be wide char 2 right side
-    CHECK(0 == ncplane_at_yx(n_, 0, 2, &c));
+    CHECK(3 == ncplane_at_yx(n_, 0, 2, &c));
     egc = cell_egc_copy(n_, &c);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));

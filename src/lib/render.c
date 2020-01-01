@@ -198,7 +198,7 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
         // if everything's locked in, we're done
         if((glyphplane && cell_fg_alpha(c) == CELL_ALPHA_OPAQUE &&
               cell_bg_alpha(c) == CELL_ALPHA_OPAQUE)){
-          if(depth > *previousz){
+          if(depth < *previousz){
             *previousz = depth;
           }else{
             *previousz = -depth;
