@@ -376,6 +376,8 @@ API void notcurses_stats(struct notcurses* nc, ncstats* stats);
 // Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
 API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 
+API char* notcurses_at_yx(struct notcurses* nc, int y, int x, cell* c);
+
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
 // unchanged. This may be a section of size 0, though none of these four

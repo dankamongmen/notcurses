@@ -1515,22 +1515,6 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
   pthread_mutex_unlock(&n->nc->lock);
 }
 
-// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
-// result is not tied to the ncplane, and persists across erases / destruction.
-static inline char*
-cell_egc_copy(const ncplane* n, const cell* c){
-  char* ret;
-  if(cell_simple_p(c)){
-    if( (ret = malloc(2)) ){
-      ret[0] = c->gcluster;
-      ret[1] = '\0';
-    }
-  }else{
-    ret = strdup(cell_extended_gcluster(n, c));
-  }
-  return ret;
-}
-
 void ncplane_erase(ncplane* n){
   ncplane_lock(n);
   // we must preserve the background, but a pure cell_duplicate() would be

@@ -209,6 +209,22 @@ fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
 }
 
+// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+// result is not tied to the ncplane, and persists across erases / destruction.
+static inline char*
+cell_egc_copy(const ncplane* n, const cell* c){
+  char* ret;
+  if(cell_simple_p(c)){
+    if( (ret = (char*)malloc(2)) ){
+      ret[0] = c->gcluster;
+      ret[1] = '\0';
+    }
+  }else{
+    ret = strdup(cell_extended_gcluster(n, c));
+  }
+  return ret;
+}
+
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
 // ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
 // even semi-portably recover the palette) proceeds via: map each 8-bit to
