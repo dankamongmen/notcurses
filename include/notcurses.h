@@ -376,6 +376,9 @@ API void notcurses_stats(struct notcurses* nc, ncstats* stats);
 // Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
 API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 
+// Retrieve the cell at the specified location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+// Returns the length of the EGC in bytes.
 API char* notcurses_at_yx(struct notcurses* nc, int y, int x, cell* c);
 
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',

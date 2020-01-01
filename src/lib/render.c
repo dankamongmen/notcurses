@@ -662,20 +662,11 @@ char* notcurses_at_yx(notcurses* nc, int y, int x, cell* c){
   char* egc = NULL;
   pthread_mutex_lock(&nc->lock);
   if(nc->lastframe){
-
-for(int i = 0 ; i < nc->lfdimy; ++i){
-  for(int j = 0 ; j < nc->lfdimx; ++j){
-    const cell* srccell = &nc->lastframe[i * nc->lfdimx + j];
-    fprintf(stderr, "%d/%d (%d): %d\n", i, j, i * nc->lfdimx + j, srccell->gcluster);
-    fprintf(stderr, "%s\n", egcpool_extended_gcluster(&nc->pool, &nc->lastframe[i * nc->lfdimx + j]));
-  }
-}
-
     if(y >= 0 && y < nc->lfdimy){
       if(x >= 0 || x < nc->lfdimx){
         const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
         memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
-        const char* cegc = egcpool_extended_gcluster(&nc->pool, srccell);
+        const char* cegc = pool_egc_copy(&nc->pool, srccell);
         if(cegc){
           egc = strdup(cegc);
         }

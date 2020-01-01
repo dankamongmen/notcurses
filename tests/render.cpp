@@ -49,6 +49,7 @@ TEST_CASE("RenderTest") {
     CHECK(!strcmp("\u5168", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
+    cell_init(&c);
     // should be wide char 1 right side
     REQUIRE(0 == ncplane_at_yx(n_, 0, 1, &c));
     egc = cell_egc_copy(n_, &c);
@@ -57,11 +58,11 @@ TEST_CASE("RenderTest") {
     CHECK(cell_double_wide_p(&c));
     free(egc);
     egc = notcurses_at_yx(nc_, 0, 1, &c);
-    /*
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
-    // FIXME CHECK(cell_double_wide_p(&c));
+    CHECK(cell_double_wide_p(&c));
     free(egc);
+    cell_init(&c);
 
     // should be wide char 2
     REQUIRE(3 == ncplane_at_yx(n_, 0, 2, &c));
@@ -75,8 +76,9 @@ TEST_CASE("RenderTest") {
     CHECK(!strcmp("\u5f62", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
+    cell_init(&c);
     // should be wide char 2 right side
-    REQUIRE(0 == ncplane_at_yx(n_, 0, 2, &c));
+    CHECK(0 == ncplane_at_yx(n_, 0, 2, &c));
     egc = cell_egc_copy(n_, &c);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
@@ -87,6 +89,7 @@ TEST_CASE("RenderTest") {
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
+    cell_init(&c);
 
     struct ncplane* n = ncplane_new(nc_, 1, 2, 0, 1, nullptr);
     REQUIRE(n);
@@ -98,25 +101,28 @@ TEST_CASE("RenderTest") {
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
     free(egc);
+    cell_init(&c);
     // should be character from higher plane
     egc = notcurses_at_yx(nc_, 0, 1, &c);
     REQUIRE(egc);
     CHECK(!strcmp("A", egc));
     free(egc);
+    cell_init(&c);
 
     egc = notcurses_at_yx(nc_, 0, 2, &c);
     REQUIRE(egc);
     CHECK(!strcmp("B", egc));
     free(egc);
+    cell_init(&c);
 
     // should be nothing, having been stomped
     egc = notcurses_at_yx(nc_, 0, 3, &c);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
     free(egc);
+    cell_init(&c);
 
     CHECK(!ncplane_destroy(n));
-    */
   }
 
 

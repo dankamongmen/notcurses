@@ -206,6 +206,11 @@ updated to reflect the changes:
 // virtual screen (i.e. most other calls) will not be visible until after a
 // successful call to notcurses_render().
 int notcurses_render(struct notcurses* nc);
+
+// Retrieve the cell at the specified location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+// Returns the length of the EGC in bytes.
+char* notcurses_at_yx(struct notcurses* nc, int y, int x, cell* c);
 ```
 
 One `ncplane` is guaranteed to exist: the "standard plane". The user cannot

@@ -209,10 +209,8 @@ fbcellidx(const ncplane* n, int row, int col){
   return row * n->lenx + col;
 }
 
-// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
-// result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
-cell_egc_copy(const ncplane* n, const cell* c){
+pool_egc_copy(const egcpool* e, const cell* c){
   char* ret;
   if(cell_simple_p(c)){
     if( (ret = (char*)malloc(2)) ){
@@ -220,9 +218,16 @@ cell_egc_copy(const ncplane* n, const cell* c){
       ret[1] = '\0';
     }
   }else{
-    ret = strdup(cell_extended_gcluster(n, c));
+    ret = strdup(egcpool_extended_gcluster(e, c));
   }
   return ret;
+}
+
+// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+// result is not tied to the ncplane, and persists across erases / destruction.
+static inline char*
+cell_egc_copy(const ncplane* n, const cell* c){
+  return pool_egc_copy(&n->pool, c);
 }
 
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
