@@ -44,7 +44,7 @@ wall_p(const struct ncplane* n, const cell* c){
 // the closer the coordinate is (lower distance), the more we lighten the cell
 static inline int
 lighten(struct ncplane* n, cell* c, int distance){
-  if(cell_double_wide_p(c)){ // don't blow away wide characters
+  if(cell_wide_right_p(c)){ // not really a character
     return 0;
   }
   unsigned r, g, b;

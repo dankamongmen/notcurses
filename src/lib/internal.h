@@ -292,17 +292,6 @@ cell_set_wide(cell* c){
   c->channels |= CELL_WIDEASIAN_MASK;
 }
 
-// Is this the right half of a wide character?
-static inline bool
-cell_wide_right_p(const cell* c){
-  return cell_double_wide_p(c) && c->gcluster == 0;
-}
-
-static inline bool
-cell_wide_left_p(const cell* c){
-  return cell_double_wide_p(c) && c->gcluster;
-}
-
 #define NANOSECS_IN_SEC 1000000000
 
 static inline uint64_t
