@@ -1,4 +1,5 @@
 #include <array>
+#include <unistd.h>
 #include <cstdlib>
 #include <notcurses.h>
 #include "internal.h"
@@ -888,6 +889,26 @@ TEST_CASE("NCPlane") {
     ncplane_at_yx(n_, 0, 4, &c);
     CHECK(cell_double_wide_p(&c)); // should be scorpion
     CHECK(0 == notcurses_render(nc_));
+  }
+
+  SUBCASE("BoxedWideGlyph") {
+    struct ncplane* ncp = ncplane_new(nc_, 3, 4, 0, 0, nullptr);
+    REQUIRE(ncp);
+    int dimx, dimy;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    CHECK(0 == ncplane_rounded_box_sized(ncp, 0, 0, 3, 4, 0));
+    CHECK(0 < ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", 0, 0, NULL));
+    CHECK(0 == notcurses_render(nc_));
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    char* egc = notcurses_at_yx(nc_, 1, 0, &c);
+    REQUIRE(egc);
+    CHECK(!strcmp(egc, "│"));
+    free(egc);
+    egc = notcurses_at_yx(nc_, 3, 0, &c);
+    REQUIRE(egc);
+    CHECK(!strcmp(egc, "│"));
+    free(egc);
+    CHECK(0 == ncplane_destroy(ncp));
   }
 
   CHECK(0 == notcurses_stop(nc_));
