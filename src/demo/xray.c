@@ -16,17 +16,17 @@ static const char* leg[] = {
 static int
 perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
            void* vnewplane){
-  static struct ncplane* n = NULL;
   static int startr = 0x80;
   static int startg = 0xff;
   static int startb = 0x80;
   static int frameno = 0;
   int dimx, dimy, y;
+  struct ncplane* n = *(struct ncplane**)vnewplane;
   if(n == NULL){
     struct ncplane* nstd = notcurses_stdplane(nc);
     ncplane_dim_yx(nstd, &dimy, &dimx);
-    y = dimy - sizeof(leg) / sizeof(*leg);
-    // FIXME how will this plane be destroyed?
+    //y = dimy - sizeof(leg) / sizeof(*leg) - 1;
+    y = 0;
     n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), dimx, y, 0, NULL);
     if(n == NULL){
       return -1;
@@ -69,7 +69,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
         if(ncplane_set_fg_rgb(n, r - 0xc * l, g - 0xc * l, b - 0xc * l)){
           return -1;
         }
-        if(ncplane_set_bg_rgb(n, (l + 1) * 0x8, 0x20, (l + 1) * 0x8)){
+        if(ncplane_set_bg_rgb(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
           return -1;
         }
         if(ncplane_printf_yx(n, l, x, "%*.*s", len, len, leg[l] + stroff) != (int)len){
