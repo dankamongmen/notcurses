@@ -95,7 +95,6 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
         break;
       }
       if(unref){
-//fprintf(stderr, "stream index %d != %d\n", nc->packet->stream_index, nc->stream_index);
         av_packet_unref(nc->packet);
       }
       if((*averr = av_read_frame(nc->fmtctx, nc->packet)) < 0){
@@ -113,6 +112,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
       return ncvisual_decode(nc, averr);
     }
     --nc->packet_outstanding;
+    av_packet_unref(nc->packet);
     *averr = avcodec_receive_frame(nc->codecctx, nc->frame);
     if(*averr >= 0){
       have_frame = true;
