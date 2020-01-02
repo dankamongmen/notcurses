@@ -73,7 +73,32 @@ of cells (see [Cells][] below). Information on ncplanes is available at
 
 ## Cells
 
-Information on cells is available at **notcurses_cell(3)**.
+Cells make up the framebuffers backing each ncplane, one cell per coordinate,
+one extended grapheme cluster (see **unicode(7)**) per cell. A cell consists of
+a gcluster (either a directly-encoded 7-bit ASCII character (see **ascii(7)**), or
+a 25-bit index into the ncplane's egcpool), a set of attributes, and two
+channels (one for the foreground, and one for the background—see
+**notcurses_channels(3)**). Information on cells is available at
+**notcurses_cell(3)**.
+
+It is not usually necessary for users to interact directly with cells. They
+are typically encountered when retrieving data from ncplanes or the rendered
+scene (see e.g. **ncplane_at_yx(3)**), or to achieve peak performance when a
+particular EGC is heavily reused within a plane.
+
+## Threads
+
+Notcurses explicitly supports use in multithreaded environments. Most functions
+are safe to call concurrently, with exceptions including those which destroy
+resources (**ncplane_destroy(3)**, **ncvisual_destroy(3)**, **notcurses_stop(3)**,
+etc.). Multiple threads interacting with the same ncplane will block one another,
+but threads operating on distinct ncplanes can run concurrently.
+**notcurses_render(3)** blocks the majority of functions. Input functions only
+block other input functions, not ncplane manipulation.
+
+Since multiple threads can concurrently manipulate distinct ncplanes, peak
+performance sometimes requires dividing the screen into several planes, and
+manipulating them from multiple threads.
 
 ## Destruction
 
@@ -87,6 +112,7 @@ previous action.
 # SEE ALSO
 
 **notcurses-demo(1)**, **notcurses_cell(3)**, **notcurses_init(3)**,
-**notcurses_input(3)**, **notcurses_ncplane(3)**, **ncplane_new(3)**,
-**notcurses_output(3)**, **notcurses_render(3)**, **notcurses_stdplane(3)**,
-**notcurses_stop(3)**, **ncurses(3NCURSES)**, **terminfo(5)**
+**notcurses_channels(3)**, **notcurses_input(3)**, **notcurses_ncplane(3)**,
+**ncplane_new(3)**, **notcurses_output(3)**, **notcurses_render(3)**,
+**notcurses_stdplane(3)**, **notcurses_stop(3)**, **ncurses(3NCURSES)**,
+**terminfo(5)**, **ascii(7)**, **unicode(7)**
