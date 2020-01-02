@@ -66,37 +66,16 @@ surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
   ncplane_at_yx(n, y - 1, x - 1, &cells[0]);
   ncplane_at_yx(n, y - 1, x, &cells[1]);
   ncplane_at_yx(n, y - 1, x + 1, &cells[2]);
-  // FIXME rewrite all these using ncplane_at_yx()
-  if(ncplane_cursor_move_yx(n, y, x - 1) == 0){
-    ncplane_at_cursor(n, &cells[7]);
-  }
-  if(ncplane_cursor_move_yx(n, y, x + 1) == 0){
-    ncplane_at_cursor(n, &cells[3]);
-  }
-  if(ncplane_cursor_move_yx(n, y + 1, x - 1) == 0){
-    ncplane_at_cursor(n, &cells[6]);
-  }
-  if(ncplane_cursor_move_yx(n, y + 1, x) == 0){
-    ncplane_at_cursor(n, &cells[5]);
-  }
-  if(ncplane_cursor_move_yx(n, y + 1, x + 1) == 0){
-    ncplane_at_cursor(n, &cells[4]);
-  }
-  if(ncplane_cursor_move_yx(n, y - 2, x) == 0){
-    ncplane_at_cursor(n, &cells[8]);
-  }
-  if(ncplane_cursor_move_yx(n, y + 2, x) == 0){
-    ncplane_at_cursor(n, &cells[9]);
-  }
-  if(ncplane_cursor_move_yx(n, y, x - 2) == 0){
-    ncplane_at_cursor(n, &cells[10]);
-  }
-  if(ncplane_cursor_move_yx(n, y, x + 2) == 0){
-    ncplane_at_cursor(n, &cells[11]);
-  }
-  if(ncplane_cursor_move_yx(n, y, x) == 0){
-    ncplane_at_cursor(n, &cells[12]);
-  }
+  ncplane_at_yx(n, y, x + 1, &cells[3]);
+  ncplane_at_yx(n, y + 1, x + 1, &cells[4]);
+  ncplane_at_yx(n, y + 1, x, &cells[5]);
+  ncplane_at_yx(n, y + 1, x - 1, &cells[6]);
+  ncplane_at_yx(n, y, x - 1, &cells[7]);
+  ncplane_at_yx(n, y - 2, x, &cells[8]);
+  ncplane_at_yx(n, y + 2, x, &cells[9]);
+  ncplane_at_yx(n, y, x - 2, &cells[10]);
+  ncplane_at_yx(n, y, x + 2, &cells[11]);
+  ncplane_at_yx(n, y, x, &cells[12]);
 }
 
 static int
