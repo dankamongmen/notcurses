@@ -112,18 +112,18 @@ foreach(f ${POCSRCS})
 endforeach()
 
 # Documentation
-file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.ronn)
-FIND_PROGRAM(RONN ronn)
-iF(NOT RONN)
-  message(WARNING "ronn not found, won't regenerate man pages")
+file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
+FIND_PROGRAM(PANDOC pandoc)
+iF(NOT PANDOC)
+  message(WARNING "pandoc not found, won't generate documentation")
 else()
 foreach(m ${MANSOURCE3})
   get_filename_component(me ${m} NAME_WLE)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
     DEPENDS ${m}
-    COMMAND ${RONN}
-    ARGS -r --pipe ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
+    COMMAND ${PANDOC}
+    ARGS --to man --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
     COMMENT "Building man page ${me}"
   )
   add_custom_target(${me}.man
@@ -134,8 +134,8 @@ foreach(m ${MANSOURCE3})
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
     DEPENDS ${m}
-    COMMAND ${RONN}
-    ARGS -5 --pipe ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+    COMMAND ${PANDOC}
+    ARGS --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
     COMMENT "Building HTML5 ${me}.html"
   )
   add_custom_target(${me}.html5

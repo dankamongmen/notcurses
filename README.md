@@ -106,7 +106,7 @@ that fine library.
 * CMake 3.14.0+
 * From NCURSES: terminfo 6.1+
 * (OPTIONAL) From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
-* (man pages) [ronn](https://github.com/rtomayko/ronn) 0.8+
+* (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 
 ### Building
 

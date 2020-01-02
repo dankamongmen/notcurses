@@ -1,11 +1,17 @@
-notcurses_stats(3) -- notcurses runtime statistics
-==================================================
+% notcurses_stats(3)
+% nick black <nickblack@linux.com>
+% v0.9.9
 
-## SYNOPSIS
+# NAME
 
-`#include <notcurses.h>`
+notcurses_stats—notcurses runtime statistics
 
-<pre>typedef struct ncstats {
+# SYNOPSIS
+
+**#include <notcurses.h>**
+
+```c
+typedef struct ncstats {
   uint64_t renders;          // number of successful renders
   uint64_t failed_renders;   // aborted renders, should be 0
   uint64_t render_bytes;     // bytes emitted to ttyfp
@@ -23,27 +29,28 @@ notcurses_stats(3) -- notcurses runtime statistics
   uint64_t bgemissions;      // RGB bg emissions
   uint64_t defaultelisions;  // default color was emitted
   uint64_t defaultemissions; // default color was elided
-} ncstats;</pre>
+} ncstats;
+```
 
-`void notcurses_stats(struct notcurses* nc, ncstats* stats);`
+**void notcurses_stats(struct notcurses* nc, ncstats* stats);**
 
-`void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);`
+**void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);**
 
-## DESCRIPTION
+# DESCRIPTION
 
-`notcurses_stats` acquires an atomic snapshot of statistics, primarily
-related to notcurses_render(3). `notcurses_reset_stats` does the same, but
-also resets all cumulative stats (immediate stats such as `fbbytes` are not
+**notcurses_stats** acquires an atomic snapshot of statistics, primarily
+related to notcurses_render(3). **notcurses_reset_stats** does the same, but
+also resets all cumulative stats (immediate stats such as **fbbytes** are not
 reset).
 
-## RETURN VALUES
+# NOTES
+
+Unsuccessful render operations do not contribute to the render timing stats.
+
+# RETURN VALUES
 
 Neither of these functions can fail. Neither returns any value.
 
-## AUTHOR
+# SEE ALSO
 
-Nick Black <nickblack@linux.com>
-
-## SEE ALSO
-
-notcurses_render(3)
+**notcurses(3)**, **notcurses_render(3)**
