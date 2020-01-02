@@ -103,7 +103,7 @@ that fine library.
 ## Requirements
 
 * A C11 and a C++17 compiler
-* CMake 3.13.0+
+* CMake 3.14.0+
 * From NCURSES: terminfo 6.1+
 * (OPTIONAL) From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (man pages) [ronn](https://github.com/rtomayko/ronn) 0.8+
