@@ -6,6 +6,7 @@ typedef struct nciqueue {
   struct nciqueue *next;
 } nciqueue;
 
+static bool spawned;
 static pthread_t tid;
 static nciqueue* queue;
 static nciqueue** enqueue = &queue;
@@ -35,15 +36,17 @@ char32_t demo_getc(const struct timespec* ts, ncinput* ni){
     }
     pthread_cond_timedwait(&cond, &lock, &abstime);
   }
-  char32_t id = queue->ni.id;
-  if(ni){
-    memcpy(ni, &queue->ni, sizeof(*ni));
-  }
+  nciqueue* q = queue;
   queue = queue->next;
   if(queue == NULL){
     enqueue = &queue;
   }
   pthread_mutex_unlock(&lock);
+  char32_t id = q->ni.id;
+  if(ni){
+    memcpy(ni, &q->ni, sizeof(*ni));
+  }
+  free(q);
   return id;
 }
 
@@ -100,7 +103,9 @@ ultramegaok_demo(void* vnc){
 // listens for events, handling mouse events directly and making other ones
 // available to demos
 int input_dispatcher(struct notcurses* nc){
+  spawned = true;
   if(pthread_create(&tid, NULL, ultramegaok_demo, nc)){
+    spawned = false;
     return -1;
   }
   return 0;
@@ -108,7 +113,10 @@ int input_dispatcher(struct notcurses* nc){
 
 int stop_input(void){
   int ret = 0;
-  ret |= pthread_cancel(tid);
-  ret |= pthread_join(tid, NULL);
+  if(spawned){
+    ret |= pthread_cancel(tid);
+    ret |= pthread_join(tid, NULL);
+    spawned = false;
+  }
   return ret;
 }

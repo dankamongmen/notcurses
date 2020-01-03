@@ -397,6 +397,9 @@ int main(int argc, char** argv){
   if(hud_destroy()){
     goto err;
   }
+  if(stop_input()){
+    goto err;
+  }
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
