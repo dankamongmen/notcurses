@@ -29,9 +29,9 @@ locked while generating the frame. Frame generation requires determining an
 extended grapheme cluster, foreground color, background color, and style for
 each cell of the physical terminal. Writing the scene requires synthesizing
 a set of UTF-8-encoded characters and escape codes appropriate for the terminal
-(relying on terminfo(5)), and writing this sequence to the output **FILE***. If
+(relying on terminfo(5)), and writing this sequence to the output **FILE**. If
 the **renderfp** value was not NULL in the original call to notcurses_init(3),
-the frame will be written to that **FILE*** as well. This write does not affect
+the frame will be written to that **FILE** as well. This write does not affect
 statistics.
 
 Each cell can be rendered in isolation, though synthesis of the stream carries

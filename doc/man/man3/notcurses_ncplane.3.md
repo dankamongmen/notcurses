@@ -55,7 +55,7 @@
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
-take a **struct ncplane*** as an argument. They can be any size, and placed
+take a **struct ncplane** as an argument. They can be any size, and placed
 anywhere. In addition to its framebuffer--a rectilinear matrix of cells
 (see **notcurses_cell(3)**)--an ncplane is defined by:
 
