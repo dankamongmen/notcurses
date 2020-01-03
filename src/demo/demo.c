@@ -66,9 +66,10 @@ struct timespec demodelay = {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -hHVkc ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -hHVkc ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -V: print program name and version\n");
+  fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
   fprintf(out, " -H: deploy the HUD\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
   fprintf(out, " -d: delay multiplier (float)\n");
@@ -287,7 +288,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
   int c;
   *use_hud = false;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "HVhckd:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "HVhckl:d:f:p:")) != EOF){
     switch(c){
       case 'H':
         *use_hud = true;
@@ -295,7 +296,19 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
         break;
-      case 'V':
+      case 'l':{
+        int loglevel;
+        if(sscanf(optarg, "%d", &loglevel) != 1){
+          fprintf(stderr, "Couldn't get an int from %s\n", optarg);
+          usage(*argv, EXIT_FAILURE);
+        }
+        opts->loglevel = loglevel;
+        if(opts->loglevel < NCLOGLEVEL_SILENT || opts->loglevel > NCLOGLEVEL_TRACE){
+          fprintf(stderr, "Invalid log level: %d\n", opts->loglevel);
+          usage(*argv, EXIT_FAILURE);
+        }
+        break;
+      }case 'V':
         printf("notcurses-demo version %s\n", notcurses_version());
         exit(EXIT_SUCCESS);
       case 'c':

@@ -94,7 +94,10 @@ int main(int argc, char** argv){
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }
-    notcurses_getc_blocking(nc, nullptr);
+    char32_t ie = notcurses_getc_blocking(nc, nullptr);
+    if(ie == (char32_t)-1){
+      break;
+    }
     ncvisual_destroy(ncv);
   }
   if(notcurses_stop(nc)){
