@@ -178,7 +178,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){
-    return -1;
+    goto done;
   }
   memset(chunks, 0, sizeof(*chunks) * chunkcount);
   // draw the 72 boxes in a nice color pattern, in order
@@ -197,7 +197,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   }
   // draw a box around the playing area
   if(draw_bounding_box(n, wastey, wastex, chunky, chunkx)){
-    return -1;
+    goto done;
   }
   if(demo_render(nc)){
     goto done;
@@ -240,6 +240,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   ret = 0;
 
 done:
+  ncvisual_destroy(ncv);
   for(z = 0 ; z < chunkcount ; ++z){
     ncplane_destroy(chunks[z]);
   }

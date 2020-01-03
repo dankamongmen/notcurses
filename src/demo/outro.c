@@ -36,10 +36,6 @@ fadethread(void* vnc){
   if(ncv == NULL){
     return NULL;
   }
-  if(ncvisual_decode(ncv, &averr) == NULL){
-    ncvisual_destroy(ncv);
-    return NULL;
-  }
   int rows, cols;
   notcurses_term_dim_yx(nc, &rows, &cols);
   struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);

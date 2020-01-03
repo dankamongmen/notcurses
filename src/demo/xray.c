@@ -103,9 +103,6 @@ int xray_demo(struct notcurses* nc){
   if(ncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(ncv, &averr) == NULL){
-    return -1;
-  }
   struct ncplane* newpanel = NULL;
   ncvisual_stream(nc, ncv, &averr, perframecb, &newpanel);
   ncvisual_destroy(ncv);
