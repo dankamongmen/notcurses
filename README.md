@@ -156,6 +156,23 @@ struct cell;      // a coordinate on an ncplane: an EGC plus styling
 struct ncplane;   // a drawable notcurses surface, composed of cells
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 
+// These log levels consciously map cleanly to those of libav; notcurses itself
+// does not use this full granularity. The log level does not affect the opening
+// and closing banners, which can be disabled via the notcurses_option struct's
+// 'suppress_banner'. Note that if stderr is connected to the same terminal on
+// which we're rendering, any kind of logging will disrupt the output.
+typedef enum {
+  NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
+  NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
+  NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
+  NCLOGLEVEL_ERROR,   // we can't keep doin' this, but we can do other things
+  NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
+  NCLOGLEVEL_INFO,    // "standard information"
+  NCLOGLEVEL_VERBOSE, // "detailed information"
+  NCLOGLEVEL_DEBUG,   // this is honestly a bit much
+  NCLOGLEVEL_TRACE,   // there's probably a better way to do what you want
+} ncloglevel_e;
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -183,6 +200,9 @@ typedef struct notcurses_options {
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
+  // Progressively higher log levels result in more logging to stderr. By
+  // default, nothing is printed to stderr once fullscreen service begins.
+  ncloglevel_e loglevel;
 } notcurses_options;
 
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
@@ -196,6 +216,18 @@ int notcurses_stop(struct notcurses* nc);
 
 `notcurses_stop` should be called before exiting your program to restore the
 terminal settings and free resources.
+
+notcurses does not typically generate diagnostics (aside from the intro banner
+and outro performance summary). When `stderr` is connected to the same terminal
+to which graphics are being printed, printing to stderr will corrupt the output.
+Setting `loglevel` to a value higher than `NCLOGLEVEL_SILENT` will cause
+diagnostics to be printed to `stderr`: you could ensure `stderr` is redirected
+if you make use of this functionality.
+
+It's probably wise to export `inhibit_alternate_screen` to the user (e.g. via
+command line option or environment variable). Developers and motivated users
+might appreciate the ability to manipulate `loglevel` and `renderfp`. The
+remaining options are typically of use only to application authors.
 
 The notcurses API draws almost entirely into the virtual buffers of `ncplane`s.
 Only upon a call to `notcurses_render` will the visible terminal display be
@@ -2407,6 +2439,9 @@ up someday **FIXME**.
     POSIX, eliminating the need for me to cons up something similar.
 * I one night read the entirety of Lexi Summer Hale's [essays](http://xn--rpa.cc/irl/index.html),
     and woke up intending to write notcurses.
+* NES art was lifted from [The Spriters Resource](https://www.spriters-resource.com/nes/),
+    the kind of site that makes the Internet great. It probably violates any
+    number of copyrights. C'est la vie.
 * Finally, the [demoscene](https://en.wikipedia.org/wiki/Demoscene) and general
     l33t scene of the 90s and early twenty-first century endlessly inspired a
     young hax0r. There is great joy in computing; no one will drive us from

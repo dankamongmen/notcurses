@@ -251,7 +251,7 @@ slidepanel(struct notcurses* nc){
 // markers, each a slightly different color. the goal is to make sure we can
 // have a great many colors, that they progress reasonably through the space,
 // and that we can write to every coordinate.
-int maxcolor_demo(struct notcurses* nc){
+int trans_demo(struct notcurses* nc){
   int maxx, maxy;
   notcurses_term_dim_yx(nc, &maxy, &maxx);
   struct ncplane* n = notcurses_stdplane(nc);
