@@ -98,6 +98,23 @@ typedef struct cell {
   uint64_t channels;          // + 8b == 16b
 } cell;
 
+// These log levels consciously map cleanly to those of libav; notcurses itself
+// does not use this full granularity. The log level does not affect the opening
+// and closing banners, which can be disabled via the notcurses_option struct's
+// 'suppress_banner'. Note that if stderr is connected to the same terminal on
+// which we're rendering, any kind of logging will disrupt the output.
+typedef enum {
+  NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
+  NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
+  NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
+  NCLOGLEVEL_ERROR,   // we can't keep doin' this, but we can do other things
+  NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
+  NCLOGLEVEL_INFO,    // "standard information"
+  NCLOGLEVEL_VERBOSE, // "detailed information"
+  NCLOGLEVEL_DEBUG,   // this is honestly a bit much
+  NCLOGLEVEL_TRACE,   // there's probably a better way to do what you want
+} ncloglevel_e;
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -125,6 +142,9 @@ typedef struct notcurses_options {
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
+  // Progressively higher log levels result in more logging to stderr. By
+  // default, nothing is printed to stderr once fullscreen service begins.
+  ncloglevel_e loglevel;
 } notcurses_options;
 
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must

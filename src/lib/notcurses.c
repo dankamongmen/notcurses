@@ -332,8 +332,8 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   }
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
-/*fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
-        ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);*/
+//fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
+//        ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.
@@ -650,6 +650,25 @@ void notcurses_reset_stats(notcurses* nc, ncstats* stats){
   pthread_mutex_unlock(&nc->lock);
 }
 
+// Convert a notcurses log level to its ffmpeg equivalent.
+static int
+ffmpeg_log_level(ncloglevel_e level){
+  switch(level){
+    case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
+    case NCLOGLEVEL_PANIC: return AV_LOG_PANIC;
+    case NCLOGLEVEL_FATAL: return AV_LOG_FATAL;
+    case NCLOGLEVEL_ERROR: return AV_LOG_ERROR;
+    case NCLOGLEVEL_WARNING: return AV_LOG_WARNING;
+    case NCLOGLEVEL_INFO: return AV_LOG_INFO;
+    case NCLOGLEVEL_VERBOSE: return AV_LOG_VERBOSE;
+    case NCLOGLEVEL_DEBUG: return AV_LOG_DEBUG;
+    case NCLOGLEVEL_TRACE: return AV_LOG_TRACE;
+    default: break;
+  }
+  fprintf(stderr, "Invalid log level: %d\n", level);
+  return AV_LOG_TRACE;
+}
+
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || strcmp(encoding, "UTF-8")){
@@ -720,7 +739,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(ret, opts)){
     goto err;
   }
-  if(ncvisual_init()){
+  if(ncvisual_init(ffmpeg_log_level(opts->loglevel))){
     goto err;
   }
   if((ret->stdscr = create_initial_ncplane(ret)) == NULL){

@@ -437,8 +437,8 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
   return -1;
 }
 
-int ncvisual_init(void){
-  av_log_set_level(AV_LOG_QUIET); // FIXME make this configurable?
+int ncvisual_init(int loglevel){
+  av_log_set_level(loglevel);
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }
@@ -491,7 +491,8 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   return NULL;
 }
 
-int ncvisual_init(void){
+int ncvisual_init(int loglevel){
+  (void)loglevel;
   return 0;
 }
 #endif

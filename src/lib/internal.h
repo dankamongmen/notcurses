@@ -193,7 +193,7 @@ int prep_special_keys(notcurses* nc);
 void input_free_esctrie(struct esctrie** trie);
 
 // initialize libav
-int ncvisual_init(void);
+int ncvisual_init(int loglevel);
 
 static inline void
 ncplane_lock(const ncplane* n){
