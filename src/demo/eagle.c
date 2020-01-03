@@ -60,6 +60,8 @@ zoom_map(struct notcurses* nc, const char* map){
     ncvisual_destroy(ncv);
     return NULL;
   }
+  // don't actually display--we only call this to free up the ncvisual internals
+  ncvisual_render(ncv, 0, 0, 0, 0);
   int vheight;
   int vwidth;
   ncplane_dim_yx(ncvisual_plane(ncv), &vheight, &vwidth);
