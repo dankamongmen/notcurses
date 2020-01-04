@@ -45,7 +45,7 @@ typedef struct panelreel {
 // Returns the starting coordinates (relative to the screen) of the specified
 // window, and its length. End is (begx + lenx - 1, begy + leny - 1).
 static inline void
-window_coordinates(const ncplane* w, int* begy, int* begx, int* leny, int* lenx){
+window_coordinates(ncplane* w, int* begy, int* begx, int* leny, int* lenx){
   ncplane_yx(w, begy, begx);
   ncplane_dim_yx(w, leny, lenx);
 }

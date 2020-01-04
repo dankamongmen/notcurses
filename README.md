@@ -337,7 +337,7 @@ typedef enum {
 // Undefined behavior on negative 'c'.
 // 'align', negative 'c').
 static inline int
-ncplane_align(const struct ncplane* n, ncalign_e align, int c){
+ncplane_align(struct ncplane* n, ncalign_e align, int c){
   if(align == NCALIGN_LEFT){
     return 0;
   }
@@ -628,12 +628,24 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
 int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of this ncplane relative to the standard plane.
-void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+void ncplane_yx(struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
 // Return the dimensions of this ncplane.
-void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
-                        int* RESTRICT cols);
+void ncplane_dim_yx(struct ncplane* n, int* RESTRICT rows, int* RESTRICT cols);
 
+static inline int
+ncplane_dim_y(struct ncplane* n){
+  int dimy;
+  ncplane_dim_yx(n, &dimy, NULL);
+  return dimy;
+}
+
+static inline int
+ncplane_dim_x(struct ncplane* n){
+  int dimx;
+  ncplane_dim_yx(n, NULL, &dimx);
+  return dimx;
+}
 ```
 
 If a given cell's glyph is zero, or its foreground channel is fully transparent,
@@ -655,7 +667,7 @@ void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Return the current styling for this ncplane.
-unsigned ncplane_styles(const struct ncplane* n);
+unsigned ncplane_styles(struct ncplane* n);
 
 // Set the ncplane's base cell to this cell. If defined, it will be rendered
 // anywhere that the ncplane's gcluster is 0. Erasing the ncplane does not

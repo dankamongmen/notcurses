@@ -408,14 +408,26 @@ API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 API char* notcurses_at_yx(struct notcurses* nc, int y, int x, cell* c);
 
 // Return the dimensions of this ncplane.
-API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
-                        int* RESTRICT cols);
+API void ncplane_dim_yx(struct ncplane* n, int* RESTRICT rows, int* RESTRICT cols);
+
+static inline int
+ncplane_dim_y(struct ncplane* n){
+  int dimy;
+  ncplane_dim_yx(n, &dimy, NULL);
+  return dimy;
+}
+
+static inline int
+ncplane_dim_x(struct ncplane* n){
+  int dimx;
+  ncplane_dim_yx(n, NULL, &dimx);
+  return dimx;
+}
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
-                      int* RESTRICT cols){
-  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
+notcurses_term_dim_yx(struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
+  ncplane_dim_yx(notcurses_stdplane(n), rows, cols);
 }
 
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
@@ -519,7 +531,7 @@ API const void* ncplane_userptr_const(const struct ncplane* n);
 // Undefined behavior on negative 'c'.
 // 'align', negative 'c').
 static inline int
-ncplane_align(const struct ncplane* n, ncalign_e align, int c){
+ncplane_align(struct ncplane* n, ncalign_e align, int c){
   if(align == NCALIGN_LEFT){
     return 0;
   }
@@ -539,8 +551,7 @@ ncplane_align(const struct ncplane* n, ncalign_e align, int c){
 API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y,
-                           int* RESTRICT x);
+API void ncplane_cursor_yx(struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
 // Replace the cell underneath the cursor with the provided cell 'c', and
 // advance the cursor by the width of the cell (but not past the end of the
@@ -1280,7 +1291,7 @@ API void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Return the current styling for this ncplane.
-API unsigned ncplane_styles(const struct ncplane* n);
+API unsigned ncplane_styles(struct ncplane* n);
 
 // Called for each delta performed in a fade on ncp. If anything but 0 is returned,
 // the fading operation ceases immediately, and that value is propagated out. If provided

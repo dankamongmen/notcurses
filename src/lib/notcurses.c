@@ -186,7 +186,7 @@ cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
   return &n->fb[fbcellidx(n, y, x)];
 }
 
-void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
+void ncplane_dim_yx(ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;
   }
@@ -1030,7 +1030,7 @@ int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   return 0;
 }
 
-void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
+void ncplane_cursor_yx(ncplane* n, int* y, int* x){
   if(y){
     *y = n->y;
   }
@@ -1175,7 +1175,6 @@ int ncplane_putstr_yx(ncplane* n, int y, int x, const char* gclusters){
     int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
     if(cols < 0){
       if(wcs < 0){
-        pthread_mutex_unlock(&n->nc->lock);
         return -ret;
       }
       break;
@@ -1230,7 +1229,7 @@ void ncplane_styles_set(ncplane* n, unsigned stylebits){
   ncplane_unlock(n);
 }
 
-unsigned ncplane_styles(const ncplane* n){
+unsigned ncplane_styles(ncplane* n){
   unsigned ret;
   ncplane_lock(n);
   ret = (n->attrword & CELL_STYLE_MASK);
@@ -1519,26 +1518,26 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
 }
 
 int ncplane_move_yx(ncplane* n, int y, int x){
-  pthread_mutex_lock(&n->nc->lock);
+  ncplane_lock(n);
   if(n == n->nc->stdscr){
-    pthread_mutex_unlock(&n->nc->lock);
+    ncplane_unlock(n);
     return -1;
   }
   n->absy = y;
   n->absx = x;
-  pthread_mutex_unlock(&n->nc->lock);
+  ncplane_unlock(n);
   return 0;
 }
 
 void ncplane_yx(const ncplane* n, int* y, int* x){
-  pthread_mutex_lock(&n->nc->lock);
+  ncplane_lock(n);
   if(y){
     *y = n->absy;
   }
   if(x){
     *x = n->absx;
   }
-  pthread_mutex_unlock(&n->nc->lock);
+  ncplane_unlock(n);
 }
 
 void ncplane_erase(ncplane* n){
