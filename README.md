@@ -1264,7 +1264,7 @@ int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
-cell_prime(struct ncplane* n, cell* c, const char *gcluster,
+cell_prime(struct ncplane* n, cell* c, const char* gcluster,
            uint32_t attr, uint64_t channels){
   c->attrword = attr;
   c->channels = channels;
@@ -1744,7 +1744,7 @@ typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
 struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
-                             struct tablet *before, tabletcb cb, void* opaque);
+                             struct tablet* before, tabletcb cb, void* opaque);
 
 // Return the number of tablets.
 int panelreel_tabletcount(const struct panelreel* pr);

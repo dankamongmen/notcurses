@@ -1,6 +1,6 @@
 % notcurses_output(3)
 % nick black <nickblack@linux.com>
-% v0.9.9
+% v1.0.0
 
 # NAME
 
@@ -72,6 +72,11 @@ ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...);**
 **static inline int
 ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...);**
 
+**int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);**
+
+**void ncplane_cursor_yx(const struct ncplane* n, int* restrict y,
+                           int* restrict x);**
+
 # DESCRIPTION
 
 These functions write EGCs (Extended Grapheme Clusters) to the specified
@@ -106,20 +111,24 @@ Each of these base functions has two additional forms:
 * **ncplane_putc_yx()**, etc.: accepts a row and column
 
 If a positional parameter is -1, no movement will be made along that axis.
-Passing **-1, -1** to a **_yx()** function is equivalent to calling the
+Passing **-1, -1** to e.g. **ncplane_putc_yx()** is equivalent to calling the
 base form. These functions are implemented by moving the cursor, and then
 performing the output. The two steps are *atomic* on success (it is not possible
 for another caller to move the cursor between when it is positioned, and when
 output begins), and thus these functions ought generally be preferred to an
-explicit **ncplane_set_yx()**.
+explicit **ncplane_cursor_move_yx()**.
 
 Upon successful return, the cursor will follow the last cell output.
 
 # RETURN VALUES
 
-A negative return indicates an error with the inputs. Otherwise, the number of
-*screen columns* output is returned. It is entirely possible to get a short
-return, if there was insufficient room to output all EGCs.
+**ncplane_cursor_move_yx()** returns -1 on error (invalid coordinate), or 0
+on success.
+
+For output functions, a negative return indicates an error with the inputs.
+Otherwise, the number of *screen columns* output is returned. It is entirely
+possible to get a short return, if there was insufficient room to output all
+EGCs.
 
 # SEE ALSO
 

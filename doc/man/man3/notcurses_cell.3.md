@@ -1,6 +1,6 @@
 % notcurses_cell(3)
 % nick black <nickblack@linux.com>
-% v0.9.9
+% v1.0.0
 
 # NAME
 
@@ -23,13 +23,26 @@ typedef struct cell {
  { .gcluster = (c), .attrword = 0, .channels = 0, }
 #define CELL_INITIALIZER(c, a, chan) \
  { .gcluster = (c), .attrword = (a), .channels = (chan), }
+
+#define CELL_WIDEASIAN_MASK     0x8000000080000000ull
+#define CELL_FGDEFAULT_MASK     0x4000000000000000ull
+#define CELL_FG_MASK            0x00ffffff00000000ull
+#define CELL_BGDEFAULT_MASK     0x0000000040000000ull
+#define CELL_BG_MASK            0x0000000000ffffffull
+#define CELL_ALPHA_MASK         0x0000000030000000ull
+#define CELL_ALPHA_SHIFT        28u
+#define CELL_ALPHA_HIGHCONTRAST 3
+#define CELL_ALPHA_TRANSPARENT  2
+#define CELL_ALPHA_BLEND        1
+#define CELL_ALPHA_OPAQUE       0
 ```
 
 **void cell_init(cell* c);**
 
 **int cell_load(struct ncplane* n, cell* c, const char* gcluster);**
 
-**int cell_prime(struct ncplane* n, cell* c, const char *gcluster, uint32_t attr, uint64_t channels);**
+**int cell_prime(struct ncplane* n, cell* c, const char* gcluster,
+                 uint32_t attr, uint64_t channels);**
 
 **int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);**
 

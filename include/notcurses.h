@@ -1317,7 +1317,7 @@ API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
-cell_prime(struct ncplane* n, cell* c, const char *gcluster,
+cell_prime(struct ncplane* n, cell* c, const char* gcluster,
            uint32_t attr, uint64_t channels){
   c->attrword = attr;
   c->channels = channels;
@@ -1707,7 +1707,7 @@ typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
 API struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
-                                 struct tablet *before, tabletcb cb,
+                                 struct tablet* before, tabletcb cb,
                                  void* opaque);
 
 // Return the number of tablets.
@@ -1784,18 +1784,18 @@ API const struct ncplane* tablet_ncplane_const(const struct tablet* t);
 // mult: base of suffix system (almost always 1000 or 1024)
 // uprefix: character to print following suffix ('i' for kibibytes basically).
 //   only printed if suffix is actually printed (input >= mult).
-API const char *enmetric(uintmax_t val, unsigned decimal, char *buf,
+API const char* enmetric(uintmax_t val, unsigned decimal, char* buf,
                          int omitdec, unsigned mult, int uprefix);
 
 // Mega, kilo, gigabytes. Use PREFIXSTRLEN + 1.
-static inline const char *
-qprefix(uintmax_t val, unsigned decimal, char *buf, int omitdec){
+static inline const char*
+qprefix(uintmax_t val, unsigned decimal, char* buf, int omitdec){
   return enmetric(val, decimal, buf, omitdec, 1000, '\0');
 }
 
 // Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1.
-static inline const char *
-bprefix(uintmax_t val, unsigned decimal, char *buf, int omitdec){
+static inline const char*
+bprefix(uintmax_t val, unsigned decimal, char* buf, int omitdec){
   return enmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
 
