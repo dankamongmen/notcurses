@@ -46,7 +46,11 @@ notcurses_ncplane - operations on notcurses planes
 
 **const void* ncplane_userptr_const(const struct ncplane* n);**
 
-**void ncplane_dim_yx(const struct ncplane* n, int* restrict rows, int* restrict cols);**
+**void ncplane_dim_yx(struct ncplane* n, int* restrict rows, int* restrict cols);**
+
+**static inline int ncplane_dim_y(struct ncplane* n);**
+
+**static inline int ncplane_dim_x(struct ncplane* n);**
 
 **int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);**
 
@@ -120,6 +124,11 @@ plane is the bottommost plane, NULL is returned. It cannot fail.
 Functions returning **int** return 0 on success, and non-zero on error.
 
 All other functions either cannot fail (and return **void**).
+
+# NOTES
+
+It would be reasonable to expect many of these functions to accept `const struct notcurses`
+parameters. Alas, almost all must manipulate the mutex contained within the object.
 
 # SEE ALSO
 
