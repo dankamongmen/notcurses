@@ -89,6 +89,7 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
 AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
   bool have_frame = false;
   bool unref = false;
+  av_freep(&nc->oframe->data[0]);
   do{
     do{
       if(nc->packet_outstanding){
@@ -370,7 +371,6 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
       }
     }
   }
-  av_freep(&ncv->oframe->data[0]);
   //av_frame_unref(ncv->oframe);
   return 0;
 }
