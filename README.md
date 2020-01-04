@@ -546,11 +546,21 @@ Fundamental to notcurses is a z-buffer of rectilinear virtual screens, known
 as `ncplane`s. An `ncplane` can be larger than the physical screen, or smaller,
 or the same size; it can be entirely contained within the physical screen, or
 overlap in part, or lie wholly beyond the boundaries, never to be rendered.
-Each `ncplane` has a current writing state (cursor position, foreground and
-background color, etc.), a backing array of `cell`s, and a z-index. If
-opaque, a `cell` on a higher `ncplane` completely obstructs a corresponding `cell`
-from a lower `ncplane` from being seen. An `ncplane` corresponds loosely to an
-[NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
+In addition to its framebuffer--a rectilinear matrix of cells
+(see [Cells](#cells))--an `ncplane` is defined by:
+
+* a base cell, used for any cell on the plane without a glyph,
+* the egcpool backing its cells,
+* a current cursor location,
+* a current style, foreground channel, and background channel,
+* its geometry,
+* a configured user curry (a `void*`),
+* its position relative to the visible plane, and
+* its z-index.
+
+If opaque, a `cell` on a higher `ncplane` completely obstructs a corresponding
+`cell` from a lower `ncplane` from being seen. An `ncplane` corresponds loosely
+to an [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
 but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
 
