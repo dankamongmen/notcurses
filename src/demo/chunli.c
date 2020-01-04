@@ -12,8 +12,9 @@ typedef struct chunli {
 int chunli_demo(struct notcurses* nc){
   struct ncplane* stdn = notcurses_stdplane(nc);
   cell c = CELL_SIMPLE_INITIALIZER(' ');
-  cell_set_bg(&c, 0x7f00ff);
   ncplane_set_base(stdn, &c);
+  struct timespec iterdelay;
+  timespec_div(&demodelay, 10, &iterdelay);
   int averr, dimy, dimx;
   /*
   chunli chuns[CHUNS];
@@ -42,38 +43,34 @@ int chunli_demo(struct notcurses* nc){
     if(notcurses_render(nc)){
       return -1;
     }
-    nanosleep(&demodelay, NULL);
+    nanosleep(&iterdelay, NULL);
     ncvisual_destroy(chuns[i].ncv);
     free(chuns[i].path);
   }
   */
-  const int VICTORYPOSES = 18;
-  struct timespec iterdelay;
-  timespec_div(&demodelay, 10, &iterdelay);
-  for(int i = 0 ; i < VICTORYPOSES ; ++i){
+  char* victory = find_data("chunlivictory.png");
+  struct ncvisual* ncv = ncvisual_open_plane(nc, victory, &averr, 0, 0, NCSCALE_NONE);
+  const int offsets[] = {
+    0, 50, 100, 154, 208, 260, 312, 368, 420, 479, 538, 588, 638, 688, 736, 786, 836, 888, 942
+  };
+  if(ncv == NULL){
+    return -1;
+  }
+  if(ncvisual_decode(ncv, &averr) == NULL){
+    return -1;
+  }
+  for(size_t i = 0u ; i < sizeof(offsets) / sizeof(*offsets) - 1 ; ++i){
     notcurses_resize(nc, &dimy, &dimx);
-    char* victory = find_data("chunlivictory.png");
-    struct ncvisual* ncv = ncvisual_open_plane(nc, victory, &averr, 0, 0, NCSCALE_NONE);
-    if(ncv == NULL){
-      return -1;
-    }
-    if(ncvisual_decode(ncv, &averr) == NULL){
-      return -1;
-    }
     //struct ncplane* ncp = ncvisual_plane(ncv);
-    if(ncvisual_render(ncv, 0, i * 50, dimy, (i + 1) * 50)){
+    //ncplane_erase(ncvisual_plane(ncv));
+    if(ncvisual_render(ncv, 0, offsets[i], 0, offsets[i + 1] - offsets[i] + 1)){
       return -1;
     }
-    /*
-    if(ncplane_move_yx(ncp, 0, i * - 50)){
-      return -1;
-    }
-    */
     if(notcurses_render(nc)){
       return -1;
     }
     nanosleep(&iterdelay, NULL);
-    ncvisual_destroy(ncv);
   }
+  ncvisual_destroy(ncv);
   return 0;
 }
