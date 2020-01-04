@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_render—sync the physical display to the virtual ncplanes
+notcurses_render-sync the physical display to the virtual ncplanes
 
 # SYNOPSIS
 

@@ -4,7 +4,7 @@
 
 # NAME
 
-**notcurses_channels(3)**—operations on notcurses channels
+notcurses_channels-operations on notcurses channels
 
 # SYNOPSIS
 

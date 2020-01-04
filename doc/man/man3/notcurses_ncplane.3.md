@@ -4,7 +4,7 @@
 
 # NAME
 
-**notcurses_ncplane**—operations on notcurses planes
+notcurses_ncplane-operations on notcurses planes
 
 # SYNOPSIS
 

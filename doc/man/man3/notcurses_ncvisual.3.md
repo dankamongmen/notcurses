@@ -4,7 +4,7 @@
 
 # NAME
 
-**notcurses_ncvisual**—notcurses multimedia
+notcurses_ncvisual-notcurses multimedia
 
 # SYNOPSIS
 
