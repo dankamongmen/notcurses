@@ -1,9 +1,9 @@
-notcurses (1.0.0-1) UNRELEASED; urgency=medium
+notcurses (1.0.0-1) unstable; urgency=medium
 
   * Let's light this candle. Upstream GA release.
   * Switch from ruby-ronn to pandoc dep (#245).
 
- -- Nick Black <dankamongmen@gmail.com>  Sat, 04 Jan 2020 00:03:16 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Sat, 04 Jan 2020 08:06:42 -0500
 
 notcurses (0.9.9-1) unstable; urgency=medium
 
