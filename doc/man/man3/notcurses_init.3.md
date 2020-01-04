@@ -4,7 +4,7 @@
 
 # NAME
 
-**notcurses_init**—initialize a notcurses instance
+notcurses_init-initialize a notcurses instance
 
 # SYNOPSIS
 

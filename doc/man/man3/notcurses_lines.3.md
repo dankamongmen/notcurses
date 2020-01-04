@@ -4,7 +4,7 @@
 
 # NAME
 
-**notcurses_lines**—operations on lines and boxes
+notcurses_lines-operations on lines and boxes
 
 # SYNOPSIS
 

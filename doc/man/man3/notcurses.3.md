@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses—TUI library for modern terminal emulators
+notcurses-TUI library for modern terminal emulators
 
 # SYNOPSIS
 
