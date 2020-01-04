@@ -14,7 +14,7 @@ int chunli_demo(struct notcurses* nc){
   struct ncplane* stdn = notcurses_stdplane(nc);
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_bg(&c, 0x804080);
-  ncplane_set_default(stdn, &c);
+  ncplane_set_base(stdn, &c);
   chunli chuns[CHUNS];
   char file[PATH_MAX];
   int xoff = 0;
