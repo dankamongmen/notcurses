@@ -1463,7 +1463,7 @@ cell_set_bg_rgb(cell* cl, int r, int g, int b){
   return channels_set_bg_rgb(&cl->channels, r, g, b);
 }
 
-// Same, but with rgb assembled into a channel (i.e. lower 24 bits).
+// Same, but with an assembled 32-bit channel.
 static inline int
 cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
@@ -2115,7 +2115,7 @@ channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
   return 0;
 }
 
-// Same, but set an assembled 24 bits of rgb at once.
+// Same, but set an assembled 32 bit channel at once.
 static inline int
 channels_set_fg(uint64_t* channels, unsigned rgb){
   unsigned channel = channels_fchannel(*channels);
