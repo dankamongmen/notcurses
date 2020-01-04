@@ -407,6 +407,17 @@ API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 // Returns the length of the EGC in bytes.
 API char* notcurses_at_yx(struct notcurses* nc, int y, int x, cell* c);
 
+// Return the dimensions of this ncplane.
+API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
+                        int* RESTRICT cols);
+
+// Return our current idea of the terminal dimensions in rows and cols.
+static inline void
+notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
+                      int* RESTRICT cols){
+  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
+}
+
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
 // unchanged. This may be a section of size 0, though none of these four
@@ -423,6 +434,17 @@ API char* notcurses_at_yx(struct notcurses* nc, int y, int x, cell* c);
 // resized plane. If there is no kept material, the plane can move freely.
 API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
+
+// Resize the plane, retaining what data we can (everything, unless we're
+// shrinking in some dimension). Keep the origin where it is.
+static inline int
+ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
+  int oldy, oldx;
+  ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
+  int keepleny = oldy > ylen ? ylen : oldy;
+  int keeplenx = oldx > xlen ? xlen : oldx;
+  return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
+}
 
 // Destroy the specified ncplane. None of its contents will be visible after
 // the next call to notcurses_render(). It is an error to attempt to destroy
@@ -491,17 +513,6 @@ API int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
 API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 API void* ncplane_userptr(struct ncplane* n);
 API const void* ncplane_userptr_const(const struct ncplane* n);
-
-// Returns the dimensions of this ncplane.
-API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
-                        int* RESTRICT cols);
-
-// Return our current idea of the terminal dimensions in rows and cols.
-static inline void
-notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
-                      int* RESTRICT cols){
-  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
-}
 
 // Return the column at which 'c' cols ought start in order to be aligned
 // according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
