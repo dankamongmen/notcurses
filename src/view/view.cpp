@@ -98,6 +98,17 @@ int main(int argc, char** argv){
     if(ie == (char32_t)-1){
       break;
     }
+    if(ie == NCKEY_RESIZE){
+      --i; // rerun with the new size
+      if(notcurses_resize(nc, &dimy, &dimx)){
+        notcurses_stop(nc);
+        return EXIT_FAILURE;
+      }
+      if(ncplane_resize_simple(ncp, dimy, dimx)){
+        notcurses_stop(nc);
+        return EXIT_FAILURE;
+      }
+    }
     ncvisual_destroy(ncv);
   }
   if(notcurses_stop(nc)){
