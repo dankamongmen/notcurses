@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_stats-notcurses runtime statistics
+notcurses_stats - notcurses runtime statistics
 
 # SYNOPSIS
 

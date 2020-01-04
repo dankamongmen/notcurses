@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_cell-operations on notcurses cells
+notcurses_cell - operations on notcurses cells
 
 # SYNOPSIS
 

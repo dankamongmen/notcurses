@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_stop-free up resources and restore initial terminal state
+notcurses_stop - free up resources and restore initial terminal state
 
 # SYNOPSIS
 

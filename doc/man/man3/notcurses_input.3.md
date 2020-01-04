@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_input-input via notcurses
+notcurses_input - input via notcurses
 
 # SYNOPSIS
 

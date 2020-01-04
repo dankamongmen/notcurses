@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_output-output to ncplanes
+notcurses_output - output to ncplanes
 
 # SYNOPSIS
 

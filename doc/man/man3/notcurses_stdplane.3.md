@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_stdplane-acquire the standard ncplane
+notcurses_stdplane - acquire the standard ncplane
 
 ## SYNOPSIS
 
