@@ -381,7 +381,6 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
 // up playback.
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
                     streamcb streamer, void* curry){
-  ncplane* n = ncv->ncp;
   int frame = 1;
   AVFrame* avf;
   struct timespec begin; // time we started
@@ -396,7 +395,6 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
     if(frame == 1 && ts){
       usets = true;
     }
-    ncplane_cursor_move_yx(n, 0, 0);
     if(ncvisual_render(ncv, 0, 0, 0, 0)){
       return -1;
     }

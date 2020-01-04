@@ -535,8 +535,7 @@ ncplane_align(struct ncplane* n, ncalign_e align, int c){
   if(align == NCALIGN_LEFT){
     return 0;
   }
-  int cols;
-  ncplane_dim_yx(n, NULL, &cols);
+  int cols = ncplane_dim_x(n);
   if(align == NCALIGN_CENTER){
     return (cols - c) / 2;
   }else if(align == NCALIGN_RIGHT){
