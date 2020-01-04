@@ -1,10 +1,10 @@
 % notcurses_stdplane(3)
 % nick black <nickblack@linux.com>
-% v0.9.9
+% v1.0.0
 
 # NAME
 
-**notcurses_stdplane**—acquire the standard ncplane
+notcurses_stdplane - acquire the standard ncplane
 
 ## SYNOPSIS
 

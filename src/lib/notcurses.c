@@ -1112,10 +1112,9 @@ int ncplane_putsimple(struct ncplane* n, char c){
   return ncplane_putc(n, &ce);
 }
 
-int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
-                   uint64_t channels, int* sbytes){
+int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
   cell c = CELL_TRIVIAL_INITIALIZER;
-  int primed = cell_prime(n, &c, gclust, attr, channels);
+  int primed = cell_prime(n, &c, gclust, n->attrword, n->channels);
   if(primed < 0){
     return -1;
   }
@@ -1173,7 +1172,7 @@ int ncplane_putstr_yx(ncplane* n, int y, int x, const char* gclusters){
     cell c;
     memset(&c, 0, sizeof(c));
     int wcs = cell_load(n, &c, gclusters);
-    int cols = ncplane_putegc_yx(n, y, x, gclusters, n->attrword, n->channels, &wcs);
+    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
     if(cols < 0){
       if(wcs < 0){
         pthread_mutex_unlock(&n->nc->lock);

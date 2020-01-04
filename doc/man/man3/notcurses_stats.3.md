@@ -1,10 +1,10 @@
 % notcurses_stats(3)
 % nick black <nickblack@linux.com>
-% v0.9.9
+% v1.0.0
 
 # NAME
 
-notcurses_stats—notcurses runtime statistics
+notcurses_stats - notcurses runtime statistics
 
 # SYNOPSIS
 

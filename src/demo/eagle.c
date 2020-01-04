@@ -122,7 +122,6 @@ draw_eagle(struct ncplane* n, const char* sprite){
   cell_release(n, &bgc);
   size_t s;
   int sbytes;
-  uint64_t channels = 0;
   ncplane_cursor_move_yx(n, 0, 0);
   for(s = 0 ; sprite[s] ; ++s){
     switch(sprite[s]){
@@ -130,17 +129,17 @@ draw_eagle(struct ncplane* n, const char* sprite){
         ncplane_cursor_move_yx(n, (s + 1) / 16, (s + 1) % 16);
         break;
       case '1':
-        channels_set_fg_rgb(&channels, 0xff, 0xff, 0xff);
+        ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
         break;
       case '2':
-        channels_set_fg_rgb(&channels, 0xe3, 0x9d, 0x25);
+        ncplane_set_fg_rgb(n, 0xe3, 0x9d, 0x25);
         break;
       case '3':
-        channels_set_fg_rgb(&channels, 0x3a, 0x84, 0x00);
+        ncplane_set_fg_rgb(n, 0x3a, 0x84, 0x00);
         break;
     }
     if(sprite[s] != '0'){
-      if(ncplane_putegc(n, "\u2588", 0, channels, &sbytes) != 1){
+      if(ncplane_putegc(n, "\u2588", &sbytes) != 1){
         return -1;
       }
     }

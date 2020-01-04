@@ -1,10 +1,10 @@
 % notcurses_stop(3)
 % nick black <nickblack@linux.com>
-% v0.9.9
+% v1.0.0
 
 # NAME
 
-notcurses_stop—free up resources and restore initial terminal state
+notcurses_stop - free up resources and restore initial terminal state
 
 # SYNOPSIS
 

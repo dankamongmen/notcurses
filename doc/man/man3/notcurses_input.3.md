@@ -1,10 +1,10 @@
 % notcurses_input(3)
 % nick black <nickblack@linux.com>
-% v0.9.9
+% v1.0.0
 
 # NAME
 
-**notcurses_input**—input via notcurses
+notcurses_input - input via notcurses
 
 # SYNOPSIS
 

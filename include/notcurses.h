@@ -585,30 +585,26 @@ ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
   return ncplane_putwc(n, w);
 }
 
-// Replace the cell underneath the cursor with the provided EGC, using the
-// specified 'attr' and 'channels' for styling, and advance the cursor by the
+// Replace the cell underneath the cursor with the provided EGC, and advance the cursor by the
 // width of the cluster (but not past the end of the plane). On success, returns
 // the number of columns the cursor was advanced. On failure, -1 is returned.
 // The number of bytes converted from gclust is written to 'sbytes' if non-NULL.
-API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
-                       uint64_t channels, int* sbytes);
+API int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes);
 
 // Call ncplane_putegc() after successfully moving to y, x.
 static inline int
-ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust,
-                  uint32_t attr, uint64_t channels, int* sbytes){
+ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  return ncplane_putegc(n, gclust, attr, channels, sbytes);
+  return ncplane_putegc(n, gclust, sbytes);
 }
 
 #define WCHAR_MAX_UTF8BYTES 6
 
 // ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
-ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
-                uint64_t channels, int* sbytes){
+ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
   // maximum of six UTF8-encoded bytes per wchar_t
   const size_t mbytes = (wcslen(gclust) * WCHAR_MAX_UTF8BYTES) + 1;
   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
@@ -620,7 +616,7 @@ ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
     free(mbstr);
     return -1;
   }
-  int ret = ncplane_putegc(n, mbstr, attr, channels, sbytes);
+  int ret = ncplane_putegc(n, mbstr, sbytes);
   free(mbstr);
   return ret;
 }
@@ -628,11 +624,11 @@ ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
 // Call ncplane_putwegc() after successfully moving to y, x.
 static inline int
 ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
-                   uint32_t attr, uint64_t channels, int* sbytes){
+                   int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  return ncplane_putwegc(n, gclust, attr, channels, sbytes);
+  return ncplane_putwegc(n, gclust, sbytes);
 }
 
 // Write a series of EGCs to the current location, using the current style.
@@ -994,7 +990,7 @@ channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
   return 0;
 }
 
-// Same, but set an assembled 24 bits of rgb at once.
+// Same, but set an assembled 32 bit channel at once.
 static inline int
 channels_set_fg(uint64_t* channels, unsigned rgb){
   unsigned channel = channels_fchannel(*channels);
@@ -1175,7 +1171,7 @@ cell_set_bg_rgb(cell* cl, int r, int g, int b){
   return channels_set_bg_rgb(&cl->channels, r, g, b);
 }
 
-// Same, but with rgb assembled into a channel (i.e. lower 24 bits).
+// Same, but with an assembled 32-bit channel.
 static inline int
 cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
@@ -1321,7 +1317,7 @@ API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
-cell_prime(struct ncplane* n, cell* c, const char *gcluster,
+cell_prime(struct ncplane* n, cell* c, const char* gcluster,
            uint32_t attr, uint64_t channels){
   c->attrword = attr;
   c->channels = channels;
@@ -1711,7 +1707,7 @@ typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
 API struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
-                                 struct tablet *before, tabletcb cb,
+                                 struct tablet* before, tabletcb cb,
                                  void* opaque);
 
 // Return the number of tablets.
@@ -1788,18 +1784,18 @@ API const struct ncplane* tablet_ncplane_const(const struct tablet* t);
 // mult: base of suffix system (almost always 1000 or 1024)
 // uprefix: character to print following suffix ('i' for kibibytes basically).
 //   only printed if suffix is actually printed (input >= mult).
-API const char *enmetric(uintmax_t val, unsigned decimal, char *buf,
+API const char* enmetric(uintmax_t val, unsigned decimal, char* buf,
                          int omitdec, unsigned mult, int uprefix);
 
 // Mega, kilo, gigabytes. Use PREFIXSTRLEN + 1.
-static inline const char *
-qprefix(uintmax_t val, unsigned decimal, char *buf, int omitdec){
+static inline const char*
+qprefix(uintmax_t val, unsigned decimal, char* buf, int omitdec){
   return enmetric(val, decimal, buf, omitdec, 1000, '\0');
 }
 
 // Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1.
-static inline const char *
-bprefix(uintmax_t val, unsigned decimal, char *buf, int omitdec){
+static inline const char*
+bprefix(uintmax_t val, unsigned decimal, char* buf, int omitdec){
   return enmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
 

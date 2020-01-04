@@ -546,19 +546,55 @@ Fundamental to notcurses is a z-buffer of rectilinear virtual screens, known
 as `ncplane`s. An `ncplane` can be larger than the physical screen, or smaller,
 or the same size; it can be entirely contained within the physical screen, or
 overlap in part, or lie wholly beyond the boundaries, never to be rendered.
-Each `ncplane` has a current writing state (cursor position, foreground and
-background color, etc.), a backing array of `cell`s, and a z-index. If
-opaque, a `cell` on a higher `ncplane` completely obstructs a corresponding `cell`
-from a lower `ncplane` from being seen. An `ncplane` corresponds loosely to an
-[NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
+In addition to its framebuffer--a rectilinear matrix of cells
+(see [Cells](#cells))--an `ncplane` is defined by:
+
+* a base cell, used for any cell on the plane without a glyph,
+* the egcpool backing its cells,
+* a current cursor location,
+* a current style, foreground channel, and background channel,
+* its geometry,
+* a configured user curry (a `void*`),
+* its position relative to the visible plane, and
+* its z-index.
+
+If opaque, a `cell` on a higher `ncplane` completely obstructs a corresponding
+`cell` from a lower `ncplane` from being seen. An `ncplane` corresponds loosely
+to an [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
 but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
+
+In addition to `ncplane_new()`, an `ncplane` can be created aligned relative
+to an existing `ncplane` (including the standard plane) using `ncplane_aligned()`.
+When an `ncplane` is no longer needed, free it with `ncplane_destroy()`. To
+quickly reset the `ncplane`, use `ncplane_erase()`.
 
 ```c
 // Create a new ncplane aligned relative to 'n'.
 struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
                                 int yoff, ncalign_e align, void* opaque);
 
+// Destroy the specified ncplane. None of its contents will be visible after
+// the next call to notcurses_render(). It is an error to attempt to destroy
+// the standard plane.
+int ncplane_destroy(struct ncplane* ncp);
+
+// Erase every cell in the ncplane, resetting all attributes to normal, all
+// colors to the default color, and all cells to undrawn. All cells associated
+// with this ncplane are invalidated, and must not be used after the call,
+// excluding the base cell.
+void ncplane_erase(struct ncplane* n);
+```
+
+Planes can be freely resized, though they must retain a positive size in
+both dimensions. The powerful `ncplane_resize()` allows resizing an `ncplane`,
+retaining all or a portion of the plane's existing content, and translating
+the plane in one step. The helper function `ncplane_resize_simple()` allows
+resizing an `ncplane` without movement, retaining all possible data. To move
+the plane without resizing it or changing its content, use `ncplane_move_yx()`.
+It is an error to invoke these functions on the standard plane.
+
+```c
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
 // unchanged. This may be a section of size 0, though none of these four
@@ -576,28 +612,38 @@ struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 
-// Destroy the specified ncplane. None of its contents will be visible after
-// the next call to notcurses_render(). It is an error to attempt to destroy
-// the standard plane.
-int ncplane_destroy(struct ncplane* ncp);
+// Resize the plane, retaining what data we can (everything, unless we're
+// shrinking in some dimension). Keep the origin where it is.
+static inline int
+ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
+  int oldy, oldx;
+  ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
+  int keepleny = oldy > ylen ? ylen : oldy;
+  int keeplenx = oldx > xlen ? xlen : oldx;
+  return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
+}
 
 // Move this plane relative to the standard plane. It is an error to attempt to
 // move the standard plane.
 int ncplane_move_yx(struct ncplane* n, int y, int x);
 
-// Get the origin of this plane relative to the standard plane.
+// Get the origin of this ncplane relative to the standard plane.
 void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
-// Returns the dimensions of this ncplane.
+// Return the dimensions of this ncplane.
 void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
                         int* RESTRICT cols);
 
-// Erase every cell in the ncplane, resetting all attributes to normal, all
-// colors to the default color, and all cells to undrawn. All cells associated
-// with this ncplane are invalidated, and must not be used after the call,
-// excluding the default cell.
-void ncplane_erase(struct ncplane* n);
+```
 
+If a given cell's glyph is zero, or its foreground channel is fully transparent,
+it is considered to have no foreground. A _default_ cell can be chosen for the
+`ncplane`, to be consulted in this case. If the base cell's glyph is likewise
+zero (or its foreground channel fully transparent), the plane's foreground is
+not rendered. Note that the base cell, like every other cell, has its own
+foreground and background channels.
+
+```c
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
 void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
@@ -611,25 +657,14 @@ void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 // Return the current styling for this ncplane.
 unsigned ncplane_styles(const struct ncplane* n);
 
-// Return the ncplane below this one, or NULL if this is at the stack's bottom.
-struct ncplane* ncplane_below(struct ncplane* n);
-```
-
-If a given cell's glyph is zero, or its foreground channel is fully transparent,
-it is considered to have no foreground. A _default_ cell can be chosen for the
-`ncplane`, to be consulted in this case. If the default cell's glyph is likewise
-zero (or its foreground channel fully transparent), the plane's foreground is
-not rendered. Note that the default cell, like every other cell, has its own
-foreground and background channels.
-
-```c
-// Set the ncplane's default cell to this cell. If defined, it will be rendered
+// Set the ncplane's base cell to this cell. If defined, it will be rendered
 // anywhere that the ncplane's gcluster is 0. Erasing the ncplane does not
-// reset the default cell; this function must instead be called with a zero c.
-int ncplane_set_default(struct ncplane* ncp, const cell* c);
+// reset the base cell; this function must instead be called with a zero c.
+int ncplane_set_base(struct ncplane* ncp, const cell* c);
 
-// Extract the ncplane's default cell into 'c'.
-int ncplane_default(struct ncplane* ncp, cell* c);
+// Extract the ncplane's base cell into 'c'. The reference is invalidated if
+// 'ncp' is destroyed.
+int ncplane_base(struct ncplane* ncp, cell* c);
 ```
 
 `ncplane`s are completely ordered along an imaginary z-axis. Newly-created
@@ -645,6 +680,9 @@ int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT belo
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
+
+// Return the ncplane below this one, or NULL if this is at the stack's bottom.
+struct ncplane* ncplane_below(struct ncplane* n);
 ```
 
 Each plane holds a user pointer which can be retrieved and set (or ignored). In
@@ -726,30 +764,27 @@ ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
   return ncplane_putwc(n, w);
 }
 
-// Replace the cell underneath the cursor with the provided EGC, using the
-// specified 'attr' and 'channels' for styling, and advance the cursor by the
-// width of the cluster (but not past the end of the plane). On success, returns
-// the number of columns the cursor was advanced. On failure, -1 is returned.
-// The number of bytes converted from gclust is written to 'sbytes' if non-NULL.
-int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
-                   uint64_t channels, int* sbytes);
+// Replace the cell underneath the cursor with the provided EGC, and advance
+// the cursor by the width of the cluster (but not past the end of the plane).
+// On success, returns the number of columns the cursor was advanced. On
+// failure, -1 is returned. The number of bytes converted from gclust is
+// written to 'sbytes' if non-NULL.
+int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes);
 
 // Call ncplane_putegc() after successfully moving to y, x.
 static inline int
-ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, uint32_t attr,
-                  uint64_t channels, int* sbytes){
+ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  return ncplane_putegc(n, gclust, attr, channels, sbytes);
+  return ncplane_putegc(n, gclust, sbytes);
 }
 
 #define WCHAR_MAX_UTF8BYTES 6
 
 // ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
-ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
-                uint64_t channels, int* sbytes){
+ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
   // maximum of six UTF8-encoded bytes per wchar_t
   const size_t mbytes = (wcslen(gclust) * WCHAR_MAX_UTF8BYTES) + 1;
   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
@@ -761,19 +796,18 @@ ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
     free(mbstr);
     return -1;
   }
-  int ret = ncplane_putegc(n, mbstr, attr, channels, sbytes);
+  int ret = ncplane_putegc(n, mbstr, sbytes);
   free(mbstr);
   return ret;
 }
 
 // Call ncplane_putwegc() after successfully moving to y, x.
 static inline int
-ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
-                   uint32_t attr, uint64_t channels, int* sbytes){
+ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust, int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  return ncplane_putwegc(n, gclust, attr, channels, sbytes);
+  return ncplane_putwegc(n, gclust, sbytes);
 }
 
 // Write a series of EGCs to the current location, using the current style.
@@ -1230,7 +1264,7 @@ int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
-cell_prime(struct ncplane* n, cell* c, const char *gcluster,
+cell_prime(struct ncplane* n, cell* c, const char* gcluster,
            uint32_t attr, uint64_t channels){
   c->attrword = attr;
   c->channels = channels;
@@ -1429,7 +1463,7 @@ cell_set_bg_rgb(cell* cl, int r, int g, int b){
   return channels_set_bg_rgb(&cl->channels, r, g, b);
 }
 
-// Same, but with rgb assembled into a channel (i.e. lower 24 bits).
+// Same, but with an assembled 32-bit channel.
 static inline int
 cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
@@ -1710,7 +1744,7 @@ typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
 struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
-                             struct tablet *before, tabletcb cb, void* opaque);
+                             struct tablet* before, tabletcb cb, void* opaque);
 
 // Return the number of tablets.
 int panelreel_tabletcount(const struct panelreel* pr);
@@ -2081,7 +2115,7 @@ channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
   return 0;
 }
 
-// Same, but set an assembled 24 bits of rgb at once.
+// Same, but set an assembled 32 bit channel at once.
 static inline int
 channels_set_fg(uint64_t* channels, unsigned rgb){
   unsigned channel = channels_fchannel(*channels);

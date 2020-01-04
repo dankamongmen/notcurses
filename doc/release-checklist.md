@@ -1,4 +1,5 @@
 * Verify version in CMakeLists.txt
+* Update versions in man page headers
 * Finalize Debian changelog with `dch -r`
 * Update version in rust/Cargo.toml
 * git commit -a -m v$VERSION

@@ -64,11 +64,9 @@ struct ncplane* hud_create(struct notcurses* nc){
     return NULL;
   }
   hud_standard_bg(n);
-  uint64_t channels = 0;
-  channels_set_fg(&channels, 0xffffff);
-  channels_set_bg(&channels, 0xffffff);
+  ncplane_set_fg(n, 0xffffff);
   ncplane_set_bg(n, 0x409040);
-  if(ncplane_putegc_yx(n, 0, HUD_COLS - 1, "\u2612", 0, channels, NULL) < 0){
+  if(ncplane_putegc_yx(n, 0, HUD_COLS - 1, "\u2612", NULL) < 0){
     ncplane_destroy(n);
     return NULL;
   }
