@@ -19,7 +19,7 @@ static int democount;
 static demoresult* results;
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
-static const char DEFAULT_DEMO[] = "ixetlucbgswvpo";
+static const char DEFAULT_DEMO[] = "ixetclubgswvpo";
 static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
 void interrupt_demo(void){

@@ -67,7 +67,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
       }else{ // don't dump non-printing codepoints
         strcpy(utf8arr, " ");
       }
-      ncplane_set_fg_rgb(nn, 0xad + z * 2, 0xd8, 0xe6 - z * 2);
+      ncplane_set_fg_rgb(nn, 0xad + z * 2, 0xff, 0x2f - z * 2);
       ncplane_set_bg_rgb(nn, 8 * chunk, 8 * chunk + z, 8 * chunk);
       if(ncplane_putstr(nn, utf8arr) < 0){
         return -1;
