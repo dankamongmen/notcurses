@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Nick Black <dankamongmen@gmail.com>
 Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config (>= 0.29),
  libncurses-dev (>= 6.1), libavformat-dev (>= 57.0), libswscale-dev (>= 5.0),
- libavutil-dev (>= 56.0), ruby-ronn (>= 0.7.3)
+ libavutil-dev (>= 56.0), pandoc (>= 1.19.2.4)
 Standards-Version: 4.4.1.1
 Section: libs
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses
@@ -14,16 +14,17 @@ Package: libnotcurses-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libnotcurses0 (= ${binary:Version}), ${misc:Depends}, libavformat-dev,
+Depends: libnotcurses1 (= ${binary:Version}), ${misc:Depends}, libavformat-dev,
  libncurses-dev
 Description: Development files for notcurses
  Files necessary for developing programs using notcurses.
 
-Package: libnotcurses0
+Package: libnotcurses1
 Architecture: any
 Multi-Arch: same
 Recommends: ncurses-term (>= 6.1)
-Depends:${shlibs:Depends}, ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Shared libraries for notcurses TUI
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
@@ -32,7 +33,7 @@ Description: Shared libraries for notcurses TUI
 Package: notcurses-bin
 Architecture: any
 Multi-Arch: foreign
-Depends:${shlibs:Depends}, ${misc:Depends}, ncurses-term (>= 6.1)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ncurses-term (>= 6.1)
 Description: Binaries from libnotcurses
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
