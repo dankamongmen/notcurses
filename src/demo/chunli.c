@@ -10,9 +10,9 @@ typedef struct chunli {
 
 // test of sprites from files
 int chunli_demo(struct notcurses* nc){
-  struct ncplane* stdn = notcurses_stdplane(nc);
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
-  ncplane_set_base(stdn, &c);
+  cell b = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
   int averr, dimy, dimx;
@@ -33,6 +33,7 @@ int chunli_demo(struct notcurses* nc){
       return -1;
     }
     chuns[i].n = ncvisual_plane(chuns[i].ncv);
+    ncplane_set_base(chuns[i].n, &b);
     int thisx, thisy;
     ncplane_dim_yx(chuns[i].n, &thisy, &thisx);
     if(ncplane_move_yx(chuns[i].n, (dimy - thisy) / 2, (dimx - thisx) / 2)){
@@ -55,9 +56,6 @@ int chunli_demo(struct notcurses* nc){
     return -1;
   }
   struct ncplane* ncp = ncvisual_plane(ncv);
-  cell b = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(ncp, &b);
   const int offsets[] = {
     0, 50, 100, 154, 208, 260, 312, 368, 420, 479, 538, 588, 638, 688, 736, 786, 836, 888, 942

@@ -123,6 +123,10 @@ int view_demo(struct notcurses* nc){
     ncplane_destroy(dsplane);
     return -1;
   }
+  cell b = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(ncvisual_plane(ncv2), &b);
   ncvisual_destroy(ncv);
   ncvisual_destroy(ncv2);
   demo_render(nc);

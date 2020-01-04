@@ -347,9 +347,6 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
       if(!rgbbase_up[3] || !rgbbase_down[3]){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         if(!rgbbase_up[3] && !rgbbase_down[3]){
-          if(cell_load(ncv->ncp, c, " ") <= 0){
-            return -1;
-          }
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         }else if(!rgbbase_up[3]){ // down has the color
           if(cell_load(ncv->ncp, c, "\u2584") <= 0){ // lower half block
