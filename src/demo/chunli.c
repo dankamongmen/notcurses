@@ -39,7 +39,7 @@ int chunli_demo(struct notcurses* nc){
       return -1;
     }
     // xoff += thisx;
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       return -1;
     }
     nanosleep(&iterdelay, NULL);
@@ -68,7 +68,7 @@ int chunli_demo(struct notcurses* nc){
     if(ncvisual_render(ncv, 0, offsets[i], 0, offsets[i + 1] - offsets[i] + 1)){
       return -1;
     }
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       return -1;
     }
     nanosleep(&iterdelay, NULL);
