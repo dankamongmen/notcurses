@@ -25,20 +25,16 @@ ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);**
 **static inline int
 ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);**
 
-**int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
-                       uint64_t channels, int* sbytes);**
+**int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes);**
 
 **static inline int
-ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust,
-                  uint32_t attr, uint64_t channels, int* sbytes);**
+ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);**
 
 **static inline int
-ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
-                uint64_t channels, int* sbytes);**
+ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes);**
 
 **static inline int
-ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
-                   uint32_t attr, uint64_t channels, int* sbytes);**
+ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust, int* sbytes);**
 
 **int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);**
 

@@ -125,7 +125,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("EmitWcharT") {
     const wchar_t* w = L"✔";
     int sbytes = 0;
-    CHECK(0 < ncplane_putwegc(n_, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putwegc(n_, w, &sbytes));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -137,7 +137,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("EmitWideAsian") {
     const char* w = "\u5168";
     int sbytes = 0;
-    CHECK(0 < ncplane_putegc(n_, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc(n_, w, &sbytes));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -151,13 +151,13 @@ TEST_CASE("NCPlane") {
     int sbytes = 0;
     int dimx;
     ncplane_dim_yx(n_, NULL, &dimx);
-    CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, &sbytes));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(dimx - 1 == x);
     // now it ought be rejected
-    CHECK(0 > ncplane_putegc(n_, w, 0, 0, &sbytes));
+    CHECK(0 > ncplane_putegc(n_, w, &sbytes));
     CHECK(0 == y);
     CHECK(dimx - 1 == x);
     CHECK(0 == notcurses_render(nc_));
@@ -736,7 +736,7 @@ TEST_CASE("NCPlane") {
     // give us some room on both sides
     CHECK(0 == ncplane_cursor_move_yx(n_, 1, 10));
     int sbytes = -1;
-    CHECK(0 < ncplane_putegc(n_, "־", 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc(n_, "־", &sbytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_cursor_move_yx(n_, 3, 10));
     CHECK(0 < ncplane_putstr(n_, "I can write English with מילים בעברית in the same sentence."));
@@ -785,14 +785,14 @@ TEST_CASE("NCPlane") {
     const char* wbashed = "\xf0\x9f\xa6\x82"; // U+1F982 SCORPION
     const char bashed = 'X';
     int sbytes = 0;
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 1, wbashed, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 1, wbashed, &sbytes));
     CHECK(0 < ncplane_putsimple_yx(n_, 1, 1, bashed));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(1 == y);
     CHECK(2 == x);
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, 0, 0, &sbytes));
-    CHECK(0 < ncplane_putegc_yx(n_, 1, 0, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 1, 0, w, &sbytes));
     cell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx(n_, 0, 0, &c);
     const char* wres = extended_gcluster(n_, &c);
@@ -817,8 +817,8 @@ TEST_CASE("NCPlane") {
     const char* w = "\xf0\x9f\x90\x8d";
     const char* wbashed = "\xf0\x9f\xa6\x82";
     int sbytes = 0;
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashed, 0, 0, &sbytes));
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 1, w, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashed, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 1, w, &sbytes));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -841,8 +841,8 @@ TEST_CASE("NCPlane") {
     const char* wbashedl = "\xf0\x9f\x90\x8d";
     const char* wbashedr = "\xf0\x9f\xa6\x82";
     int sbytes = 0;
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashedl, 0, 0, &sbytes));
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashedl, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, &sbytes));
     CHECK(1 == ncplane_putsimple_yx(n_, 0, 1, cc));
     CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, cc));
     int x, y;
@@ -868,8 +868,8 @@ TEST_CASE("NCPlane") {
     const char* wsafel = "\xf0\x9f\x90\x8d";
     const char* wsafer = "\xf0\x9f\xa6\x82";
     int sbytes = 0;
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, 0, 0, &sbytes));
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, 0, 0, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, &sbytes));
     CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, cc));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -897,7 +897,7 @@ TEST_CASE("NCPlane") {
     int dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
     CHECK(0 == ncplane_rounded_box_sized(ncp, 0, 0, 3, 4, 0));
-    CHECK(0 < ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", 0, 0, NULL));
+    CHECK(0 < ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", NULL));
     CHECK(0 == notcurses_render(nc_));
     cell c = CELL_TRIVIAL_INITIALIZER;
     REQUIRE(0 < ncplane_at_yx(ncp, 1, 0, &c));

@@ -250,9 +250,9 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, &c);
   cell_release(n, &c);
-  uint64_t channels = 0;
-  ncplane_set_fg_rgb(n, 64, 128, 240);
+  ncplane_set_fg_rgb(n, 255, 255, 255);
   ncplane_set_bg_rgb(n, 32, 64, 32);
+  uint64_t channels = 0;
   channels_set_fg_rgb(&channels, 255, 255, 255);
   channels_set_bg_rgb(&channels, 32, 64, 32);
   ncplane_cursor_move_yx(n, 2, 0);
@@ -260,42 +260,43 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
     return -1;
   }
   // bottom handle
-  ncplane_cursor_move_yx(n, 4, 17);
-  ncplane_putegc(n, "┬", 0, channels, NULL);
-  ncplane_cursor_move_yx(n, 5, 17);
-  ncplane_putegc(n, "│", 0, channels, NULL);
-  ncplane_cursor_move_yx(n, 6, 17);
-  ncplane_putegc(n, "╰", 0, channels, NULL);
+  ncplane_putegc_yx(n, 4, 17, "┬", NULL);
+  ncplane_putegc_yx(n, 5, 17, "│", NULL);
+  ncplane_putegc_yx(n, 6, 17, "╰", NULL);
   cell hl = CELL_TRIVIAL_INITIALIZER;
-  cell_prime(n, &hl, "─", 0, channels);
+  cell_load(n, &hl, "─");
+  cell_set_fg_rgb(&hl, 255, 255, 255);
+  cell_set_bg_rgb(&hl, 32, 64, 32);
   ncplane_hline(n, &hl, 57 - 18 - 1);
   ncplane_cursor_move_yx(n, 6, 56);
-  ncplane_putegc(n, "╯", 0, channels, NULL);
+  ncplane_putegc(n, "╯", NULL);
   ncplane_cursor_move_yx(n, 5, 56);
-  ncplane_putegc(n, "│", 0, channels, NULL);
+  ncplane_putegc(n, "│", NULL);
   ncplane_cursor_move_yx(n, 4, 56);
-  ncplane_putegc(n, "┤", 0, channels, NULL);
+  ncplane_putegc(n, "┤", NULL);
   ncplane_cursor_move_yx(n, 5, 18);
-  ncplane_styles_on(n, CELL_STYLE_ITALIC);
-  ncplane_printf(n, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
-  ncplane_styles_off(n, CELL_STYLE_ITALIC);
 
   // top handle
   ncplane_cursor_move_yx(n, 2, 3);
-  ncplane_putegc(n, "╨", 0, channels, NULL);
+  ncplane_putegc(n, "╨", NULL);
   ncplane_cursor_move_yx(n, 1, 3);
-  ncplane_putegc(n, "║", 0, channels, NULL);
+  ncplane_putegc(n, "║", NULL);
   ncplane_cursor_move_yx(n, 0, 3);
-  ncplane_putegc(n, "╔", 0, channels, NULL);
-  cell_prime(n, &hl, "═", 0, channels);
+  ncplane_putegc(n, "╔", NULL);
+  cell_load(n, &hl, "═");
   ncplane_hline(n, &hl, 20 - 4 - 1);
   cell_release(n, &hl);
   ncplane_cursor_move_yx(n, 0, 19);
-  ncplane_putegc(n, "╗", 0, channels, NULL);
+  ncplane_putegc(n, "╗", NULL);
   ncplane_cursor_move_yx(n, 1, 19);
-  ncplane_putegc(n, "║", 0, channels, NULL);
+  ncplane_putegc(n, "║", NULL);
   ncplane_cursor_move_yx(n, 2, 19);
-  ncplane_putegc(n, "╨", 0, channels, NULL);
+  ncplane_putegc(n, "╨", NULL);
+  ncplane_set_fg_rgb(n, 64, 128, 240);
+  ncplane_set_bg_rgb(n, 32, 64, 32);
+  ncplane_styles_on(n, CELL_STYLE_ITALIC);
+  ncplane_printf(n, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
+  ncplane_styles_off(n, CELL_STYLE_ITALIC);
   ncplane_cursor_move_yx(n, 1, 4);
   ncplane_styles_on(n, CELL_STYLE_ITALIC);
   ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
@@ -569,15 +570,13 @@ int witherworm_demo(struct notcurses* nc){
       x = 0;
       do{ // we fill up the entire screen, however large, walking our strtable
         s = strs;
-        uint64_t channels = 0;
-        channels_set_bg_rgb(&channels, 20, 20, 20);
+        ncplane_set_bg_rgb(n, 20, 20, 20);
         for(s = strs ; *s ; ++s){
           size_t idx = 0;
           ncplane_cursor_yx(n, &y, &x);
 // fprintf(stderr, "%02d %s\n", y, *s);
           while((*s)[idx]){ // each multibyte char of string
-            if(channels_set_fg_rgb(&channels, channel_r(rgb),
-                                   channel_g(rgb), channel_b(rgb))){
+            if(ncplane_set_fg_rgb(n, channel_r(rgb), channel_g(rgb), channel_b(rgb))){
               return -1;
             }
             if(y >= maxy || x >= maxx){
@@ -595,17 +594,15 @@ int witherworm_demo(struct notcurses* nc){
             int ulen = 0;
             int r;
             if(wcwidth(wcs) <= maxx - x){
-              if((r = ncplane_putegc(n, &(*s)[idx], 0, channels, &ulen)) < 0){
+              if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) < 0){
                 if(ulen < 0){
                   return -1;
                 }
               }
             }else{
-              cell octo = CELL_INITIALIZER('#', 0, channels);
-              if((r = ncplane_putc(n, &octo)) < 1){
+              if((r = ncplane_putsimple(n, '#')) < 1){
                 return -1;
               }
-              cell_release(n, &octo);
             }
             ncplane_cursor_yx(n, &y, &x);
             idx += ulen;

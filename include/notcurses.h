@@ -585,30 +585,26 @@ ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
   return ncplane_putwc(n, w);
 }
 
-// Replace the cell underneath the cursor with the provided EGC, using the
-// specified 'attr' and 'channels' for styling, and advance the cursor by the
+// Replace the cell underneath the cursor with the provided EGC, and advance the cursor by the
 // width of the cluster (but not past the end of the plane). On success, returns
 // the number of columns the cursor was advanced. On failure, -1 is returned.
 // The number of bytes converted from gclust is written to 'sbytes' if non-NULL.
-API int ncplane_putegc(struct ncplane* n, const char* gclust, uint32_t attr,
-                       uint64_t channels, int* sbytes);
+API int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes);
 
 // Call ncplane_putegc() after successfully moving to y, x.
 static inline int
-ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust,
-                  uint32_t attr, uint64_t channels, int* sbytes){
+ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  return ncplane_putegc(n, gclust, attr, channels, sbytes);
+  return ncplane_putegc(n, gclust, sbytes);
 }
 
 #define WCHAR_MAX_UTF8BYTES 6
 
 // ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
-ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
-                uint64_t channels, int* sbytes){
+ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
   // maximum of six UTF8-encoded bytes per wchar_t
   const size_t mbytes = (wcslen(gclust) * WCHAR_MAX_UTF8BYTES) + 1;
   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
@@ -620,7 +616,7 @@ ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
     free(mbstr);
     return -1;
   }
-  int ret = ncplane_putegc(n, mbstr, attr, channels, sbytes);
+  int ret = ncplane_putegc(n, mbstr, sbytes);
   free(mbstr);
   return ret;
 }
@@ -628,11 +624,11 @@ ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, uint32_t attr,
 // Call ncplane_putwegc() after successfully moving to y, x.
 static inline int
 ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
-                   uint32_t attr, uint64_t channels, int* sbytes){
+                   int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  return ncplane_putwegc(n, gclust, attr, channels, sbytes);
+  return ncplane_putwegc(n, gclust, sbytes);
 }
 
 // Write a series of EGCs to the current location, using the current style.
