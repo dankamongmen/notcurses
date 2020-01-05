@@ -482,7 +482,9 @@ int ncplane_destroy(ncplane* ncp){
 static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   char* longname_term = longname();
-  fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
+  if(!opts->suppress_banner){
+    fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
+  }
   nc->RGBflag = tigetflag("RGB") == 1;
   if (nc->RGBflag == 0) {
     // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not commonly found in

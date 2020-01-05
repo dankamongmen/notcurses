@@ -9,6 +9,7 @@ TEST_CASE("Fade") {
   FILE* outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(outfp_);
   notcurses_options nopts{};
+  nopts.suppress_banner = true;
   nopts.inhibit_alternate_screen = true;
   struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
   REQUIRE(nc_);
