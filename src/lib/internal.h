@@ -264,6 +264,9 @@ rgb_quantize_256(unsigned r, unsigned g, unsigned b){
 static inline int
 term_emit(const char* name __attribute__ ((unused)), const char* seq,
           FILE* out, bool flush){
+  if(!seq){
+    return -1;
+  }
   int ret = fprintf(out, "%s", seq);
   if(ret < 0){
 // fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));

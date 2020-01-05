@@ -556,12 +556,10 @@ notcurses_render_internal(notcurses* nc){
         }
       }
       ++nc->stats.cellemissions;
-      if(needmove > 8){ // FIXME cuf and cuf1 aren't guaranteed!
-        term_emit("cup", tiparm(nc->cup, y, x), out, false);
-      }else if(needmove > 1){
-        term_emit("cuf", tiparm(nc->cuf, needmove), out, false);
+      if(needmove == 1 && nc->cuf1){
+        ret |= term_emit("cuf1", tiparm(nc->cuf1), out, false);
       }else if(needmove){
-        term_emit("cuf1", tiparm(nc->cuf1), out, false);
+        ret |= term_emit("cup", tiparm(nc->cup, y, x), out, false);
       }
       needmove = 0;
       // set the style. this can change the color back to the default; if it
@@ -640,7 +638,7 @@ notcurses_render_internal(notcurses* nc){
     }
   }
   ret |= fflush(out);
-  fflush(nc->ttyfp);
+  //fflush(nc->ttyfp);
   if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
   }
@@ -648,6 +646,9 @@ notcurses_render_internal(notcurses* nc){
      fgelisions, fgemissions, bgelisions, bgemissions);*/
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", nc->rstate.mstream);
+  }
+  if(ret){
+    return ret;
   }
   return nc->rstate.mstrsize;
 }
