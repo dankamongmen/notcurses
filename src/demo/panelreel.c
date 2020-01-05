@@ -74,14 +74,16 @@ tabletup(struct ncplane* w, int begx, int begy, int maxx, int maxy,
 /*fprintf(stderr, "-OFFSET BY %d (%d->%d)\n", maxy - begy - tctx->lines,
         maxy, maxy - (maxy - begy - tctx->lines));*/
   for(y = maxy ; y >= begy ; --y, rgb += 16){
-    ncplane_cursor_move_yx(w, y, begx);
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", idx % 16);
     cell_load(w, &c, cchbuf);
-    cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu);
+    if(cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
+      return -1;
+    }
     int x;
     for(x = begx ; x <= maxx ; ++x){
-      // lower-right corner always returns an error unless scrollok() is used
-      ncplane_putc(w, &c);
+      if(ncplane_putc_yx(w, y, x, &c) <= 0){
+        return -1;
+      }
     }
     cell_release(w, &c);
     if(--idx == 0){
@@ -102,14 +104,16 @@ tabletdown(struct ncplane* w, int begx, int begy, int maxx, int maxy,
     if(y - begy >= tctx->lines){
       break;
     }
-    ncplane_cursor_move_yx(w, y, begx);
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", y % 16);
     cell_load(w, &c, cchbuf);
-    cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu);
+    if(cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
+      return -1;
+    }
     int x;
     for(x = begx ; x <= maxx ; ++x){
-      // lower-right corner always returns an error unless scrollok() is used
-      ncplane_putc(w, &c);
+      if(ncplane_putc_yx(w, y, x, &c) <= 0){
+        return -1;
+      }
     }
     cell_release(w, &c);
   }
@@ -118,7 +122,6 @@ tabletdown(struct ncplane* w, int begx, int begy, int maxx, int maxy,
 
 static int
 tabletdraw(struct tablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
-  int err = 0;
   struct ncplane* p = tablet_ncplane(t);
   tabletctx* tctx = tablet_userptr(t);
   pthread_mutex_lock(&tctx->lock);
@@ -139,17 +142,19 @@ tabletdraw(struct tablet* t, int begx, int begy, int maxx, int maxy, bool clipto
         summaryy = ll;
       }
     }
-    err |= ncplane_cursor_move_yx(p, summaryy, begx);
     ncplane_styles_on(p, CELL_STYLE_BOLD);
-    ncplane_printf(p, "[#%u %d line%s %u/%u] ", tctx->id, tctx->lines,
-                          tctx->lines == 1 ? "" : "s", begy, maxy);
+    if(ncplane_printf_yx(p, summaryy, begx, "[#%u %d line%s %u/%u] ",
+                         tctx->id, tctx->lines, tctx->lines == 1 ? "" : "s",
+                         begy, maxy) < 0){
+      pthread_mutex_unlock(&tctx->lock);
+      return -1;
+    }
     ncplane_styles_off(p, CELL_STYLE_BOLD);
   }
 /*fprintf(stderr, "  \\--> callback for %d, %d lines (%d/%d -> %d/%d) dir: %s wrote: %d ret: %d\n", tctx->id,
     tctx->lines, begy, begx, maxy, maxx,
     cliptop ? "up" : "down", ll, err);*/
   pthread_mutex_unlock(&tctx->lock);
-  assert(0 == err);
   return ll;
 }
 
@@ -289,8 +294,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   ncplane_styles_on(w, CELL_STYLE_BOLD | CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(w, 58, 150, 221);
   ncplane_set_bg_default(w);
-  ncplane_cursor_move_yx(w, 1, 1);
-  ncplane_printf(w, "a, b, c create tablets, DEL deletes.");
+  ncplane_printf_yx(w, 1, 1, "a, b, c create tablets, DEL deletes.");
   ncplane_styles_off(w, CELL_STYLE_BOLD | CELL_STYLE_ITALIC);
   // FIXME clrtoeol();
   struct timespec deadline;
@@ -313,9 +317,8 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     ncplane_styles_set(w, 0);
     ncplane_set_fg_rgb(w, 197, 15, 31);
     int count = panelreel_tabletcount(pr);
-    ncplane_cursor_move_yx(w, 2, 2);
     ncplane_styles_on(w, CELL_STYLE_BOLD);
-    ncplane_printf(w, "%d tablet%s", count, count == 1 ? "" : "s");
+    ncplane_printf_yx(w, 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
     ncplane_styles_off(w, CELL_STYLE_BOLD);
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(w, 0, 55, 218);
@@ -342,8 +345,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
       case NCKEY_DOWN: panelreel_next(pr); break;
       case NCKEY_DEL: kill_active_tablet(pr, tctxs); break;
       default:
-        ncplane_cursor_move_yx(w, 3, 2);
-        ncplane_printf(w, "Unknown keycode (0x%x)\n", rw);
+        ncplane_printf_yx(w, 3, 2, "Unknown keycode (0x%x)\n", rw);
     }
     if(newtablet){
       newtablet->next = *tctxs;

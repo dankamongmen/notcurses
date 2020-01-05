@@ -44,9 +44,6 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell_release(nn, &ll); cell_release(nn, &lr); cell_release(nn, &vl);
   int chunk;
   for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
-    if(ncplane_cursor_move_yx(nn, chunk + 1, 1)){
-      return -1;
-    }
     int z;
     // 16 to a line
     for(z = 0 ; z < CHUNKSIZE ; ++z){
@@ -63,19 +60,17 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
                   blockstart + chunk * CHUNKSIZE + z, w[0], strerror(errno));
           return -1;
         }
-        utf8arr[bwc] = '\0';
+        if(wcwidth(w[0]) < 2){
+          utf8arr[bwc++] = ' ';
+        }
+        utf8arr[bwc++] = '\0';
       }else{ // don't dump non-printing codepoints
-        strcpy(utf8arr, " ");
+        strcpy(utf8arr, "  ");
       }
       ncplane_set_fg_rgb(nn, 0xad + z * 2, 0xff, 0x2f - z * 2);
       ncplane_set_bg_rgb(nn, 8 * chunk, 8 * chunk + z, 8 * chunk);
-      if(ncplane_putstr(nn, utf8arr) < 0){
+      if(ncplane_putstr_yx(nn, chunk + 1, z * 2 + 1, utf8arr) < 0){
         return -1;
-      }
-      if(wcwidth(w[0]) < 2 || !iswprint(w[0])){
-        if(ncplane_putsimple(nn, ' ') < 0){
-          return -1;
-        }
       }
     }
   }

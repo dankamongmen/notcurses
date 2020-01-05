@@ -123,16 +123,13 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
     int bs = 256 / maxy;
     int x = 0;
     int y = 0;
-    if(ncplane_cursor_move_yx(n, y, x)){
-      return -1;
-    }
     int bgr = i;
     int bgg = 0x80;
     int bgb = i;
     // top line
     ret |= ccell_set_fg_rgb(&ul, 255 - rs * y, 255 - gs * (x + y), 255 - bs * y);
     ret |= bgnext(&ul, &bgr, &bgg, &bgb);
-    if(ncplane_putc(n, &ul) <= 0){
+    if(ncplane_putc_yx(n, y, x, &ul) <= 0){
       return -1;
     }
     for(x = 1 ; x < maxx - 1 ; ++x){
@@ -151,12 +148,9 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
     // center
     for(y = 1 ; y < maxy - 1 ; ++y){
       x = 0;
-      if(ncplane_cursor_move_yx(n, y, x)){
-        return -1;
-      }
       ret |= ccell_set_fg_rgb(&cl, 255 - rs * x, 255 - gs * (x + y), 255 - bs * x);
       ret |= bgnext(&cl, &bgr, &bgg, &bgb);
-      ncplane_putc(n, &cl);
+      ncplane_putc_yx(n, y, x, &cl);
       for(x = 1 ; x < maxx - 1 ; ++x){
         ret |= ccell_set_fg_rgb(&cc, 255 - rs * x, 255 - gs * (x + y), 255 - bs * x);
         ret |= bgnext(&cc, &bgr, &bgg, &bgb);
@@ -169,12 +163,9 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
 
     // bottom line
     x = 0;
-    if(ncplane_cursor_move_yx(n, y, x)){
-      return -1;
-    }
     ret |= ccell_set_fg_rgb(&ll, 255 - rs * x, 255 - gs * (x + y), 255 - bs * x);
     ret |= bgnext(&ll, &bgr, &bgg, &bgb);
-    ncplane_putc(n, &ll);
+    ncplane_putc_yx(n, y, x, &ll);
     for(x = 1 ; x < maxx - 1 ; ++x){
       ret |= ccell_set_fg_rgb(&lc, 255 - rs * x, 255 - gs * (x + y), 255 - bs * x);
       ret |= bgnext(&lc, &bgr, &bgg, &bgb);
@@ -204,13 +195,10 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
     int bs = 255 / maxy;
     int x = 0;
     int y = 0;
-    if(ncplane_cursor_move_yx(n, y, x)){
-      return -1;
-    }
     // top line
     ccell_set_fg_rgb(&ul, i / 2, i, i / 2);
     ccell_set_bg_rgb(&ul, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
-    ncplane_putc(n, &ul);
+    ncplane_putc_yx(n, y, x, &ul);
     for(x = 1 ; x < maxx - 1 ; ++x){
       ccell_set_fg_rgb(&uc, i / 2, i, i / 2);
       ccell_set_bg_rgb(&uc, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
@@ -223,12 +211,9 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
     // center
     for(y = 1 ; y < maxy - 1 ; ++y){
       x = 0;
-      if(ncplane_cursor_move_yx(n, y, x)){
-        return -1;
-      }
       ccell_set_fg_rgb(&cl, i / 2, i, i / 2);
       ccell_set_bg_rgb(&cl, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
-      ncplane_putc(n, &cl);
+      ncplane_putc_yx(n, y, x, &cl);
       for(x = 1 ; x < maxx - 1 ; ++x){
         ccell_set_fg_rgb(&cc, i / 2, i, i / 2);
         ccell_set_bg_rgb(&cc, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
@@ -241,12 +226,9 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
 
     // bottom line
     x = 0;
-    if(ncplane_cursor_move_yx(n, y, x)){
-      return -1;
-    }
     ccell_set_fg_rgb(&ll, i / 2, i, i / 2);
     ccell_set_bg_rgb(&ll, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
-    ncplane_putc(n, &ll);
+    ncplane_putc_yx(n, y, x, &ll);
     for(x = 1 ; x < maxx - 1 ; ++x){
       ccell_set_fg_rgb(&lc, i / 2, i, i / 2);
       ccell_set_bg_rgb(&lc, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
@@ -256,7 +238,6 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
     ccell_set_bg_rgb(&lr, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
     ncplane_putc(n, &lr);
 
-    // render!
     demo_render(nc);
   }
   release_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);

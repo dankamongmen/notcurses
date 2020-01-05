@@ -10,16 +10,55 @@
 // Fill up the screen with as much crazy Unicode as we can, and then set a
 // gremlin loose, looking to brighten up the world.
 
-// FIXME throw this in there somehow
-//   ∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),     ⎧⎡⎛┌─────┐⎞⎤⎫
-//                                            ⎪⎢⎜│a²+b³ ⎟⎥⎪
-//  ∀x∈ℝ: ⌈x⌉ = −⌊−x⌋, α ∧ ¬β = ¬(¬α ∨ β),    ⎪⎢⎜│───── ⎟⎥⎪
-//                                            ⎪⎢⎜⎷ c₈   ⎟⎥⎪
-//  ℕ ⊆ ℕ₀ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (z̄ = ℜ(z)−ℑ(z)⋅𝑖), ⎨⎢⎜       ⎟⎥⎬
-//                                            ⎪⎢⎜ ∞     ⎟⎥⎪
-//  ⊥ < a ≠ b ≡ c ≤ d ≪ ⊤ ⇒ (⟦A⟧ ⇔ ⟪B⟫),      ⎪⎢⎜ ⎲     ⎟⎥⎪
-//                                            ⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪
-//  2H₂ + O₂ ⇌ 2H₂O, R = 4.7 kΩ, ⌀ 200 µm     ⎩⎣⎝i=1    ⎠⎦⎭
+static struct ncplane*
+mathplane(struct notcurses* nc){
+  int dimx, dimy;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  const int HEIGHT = 9;
+  const int WIDTH = dimx;
+  struct ncplane* n = ncplane_new(nc, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH - 1, NULL);
+  cell b = CELL_TRIVIAL_INITIALIZER;
+  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(n, &b);
+  cell_release(n, &b);
+  if(n){
+  /* FIXME issue #260
+    struct ncplane* stdn = notcurses_stdplane(nc);
+    ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
+    int snatchy = dimy - HEIGHT - 1;
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    // FIXME reenable the left parts of these strings, issue #260*/
+    //ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, /*∮E⋅da=Q,n→∞,∑f(i)=∏g(i)*/"⎧⎡⎛┌─────┐⎞⎤⎫");
+    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "⎪⎢⎜│a²+b³ ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
+    //ncplane_printf_aligned(n, 2, NCALIGN_RIGHT, /*∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)*/"⎪⎢⎜│───── ⎟⎥⎪");
+    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "⎪⎢⎜⎷ c₈   ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
+    //ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, /*ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ(z̄=ℜ(z)−ℑ(z)⋅𝑖)*/"⎨⎢⎜       ⎟⎥⎬");
+    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 5, NCALIGN_RIGHT, "⎪⎢⎜ ∞     ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
+    //ncplane_printf_aligned(n, 6, NCALIGN_RIGHT, /*⊥<a≠b≡c≤d≪⊤⇒(⟦A⟧⇔⟪B⟫)*/"⎪⎢⎜ ⎲     ⎟⎥⎪");
+    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 7, NCALIGN_RIGHT, "⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
+    //ncplane_printf_aligned(n, 8, NCALIGN_RIGHT, /*2H₂+O₂⇌2H₂O,R=4.7kΩ,⌀200µm*/"⎩⎣⎝i=1    ⎠⎦⎭");
+  }
+  return n;
+}
 
 // get the (up to) eight surrounding cells. they run clockwise, starting from
 // the upper left: 012
@@ -34,7 +73,7 @@ wall_p(const struct ncplane* n, const cell* c){
   const char* egc = cell_extended_gcluster(n, c);
   wchar_t w;
   if(mbtowc(&w, egc, strlen(egc)) > 0){
-    if(w >= 0x2500 && w <= 0x257f){ // no room in the inn, little snake!
+    if(w >= 0x2500 && w <= 0x257f){ // no room in the inn, little worm!
       return true;
     }
   }
@@ -43,22 +82,22 @@ wall_p(const struct ncplane* n, const cell* c){
 
 // the closer the coordinate is (lower distance), the more we lighten the cell
 static inline int
-lighten(struct ncplane* n, cell* c, int distance){
+lighten(struct ncplane* n, cell* c, int distance, int y, int x){
   if(cell_wide_right_p(c)){ // not really a character
     return 0;
   }
   unsigned r, g, b;
   cell_fg_rgb(c, &r, &g, &b);
-  r += rand() % ((r + 32) / (3 * distance + 1) + 1);
-  g += rand() % ((g + 32) / (3 * distance + 1) + 1);
-  b += rand() % ((b + 32) / (3 * distance + 1) + 1);
+  r += rand() % ((r + 16) / (4 * distance + 1) + 1);
+  g += rand() % ((g + 16) / (4 * distance + 1) + 1);
+  b += rand() % ((b + 16) / (4 * distance + 1) + 1);
   if(r > 255) r = 255;
   if(g > 255) g = 255;
   if(b > 255) b = 255;
   if(cell_set_fg_rgb(c, r, g, b)){
     return -1;
   }
-  return ncplane_putc(n, c);
+  return ncplane_putc_yx(n, y, x, c);
 }
 
 static void
@@ -81,82 +120,55 @@ surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
 static int
 lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
   cell c = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_cursor_move_yx(n, y - 1, x - 1) == 0){
-    cell_duplicate(n, &c, &cells[0]);
-    lighten(n, &c, 2);
-  }
-  if(ncplane_cursor_move_yx(n, y - 1, x) == 0){
-    cell_duplicate(n, &c, &cells[1]);
-    lighten(n, &c, 1);
-  }
-  if(ncplane_cursor_move_yx(n, y - 1, x + 1) == 0){
-    cell_duplicate(n, &c, &cells[2]);
-    lighten(n, &c, 2);
-  }
-  if(ncplane_cursor_move_yx(n, y, x - 1) == 0){
-    cell_duplicate(n, &c, &cells[7]);
-    lighten(n, &c, 1);
-  }
-  if(ncplane_cursor_move_yx(n, y, x + 1) == 0){
-    cell_duplicate(n, &c, &cells[3]);
-    lighten(n, &c, 1);
-  }
-  if(ncplane_cursor_move_yx(n, y + 1, x - 1) == 0){
-    cell_duplicate(n, &c, &cells[6]);
-    lighten(n, &c, 2);
-  }
-  if(ncplane_cursor_move_yx(n, y + 1, x) == 0){
-    cell_duplicate(n, &c, &cells[5]);
-    lighten(n, &c, 1);
-  }
-  if(ncplane_cursor_move_yx(n, y + 1, x + 1) == 0){
-    cell_duplicate(n, &c, &cells[4]);
-    lighten(n, &c, 2);
-  }
-  if(ncplane_cursor_move_yx(n, y - 2, x) == 0){
-    cell_duplicate(n, &c, &cells[8]);
-    lighten(n, &c, 2);
-  }
-  if(ncplane_cursor_move_yx(n, y + 2, x) == 0){
-    cell_duplicate(n, &c, &cells[9]);
-    lighten(n, &c, 2);
-  }
-  if(ncplane_cursor_move_yx(n, y, x - 2) == 0){
-    cell_duplicate(n, &c, &cells[10]);
-    lighten(n, &c, 2);
-  }
-  if(ncplane_cursor_move_yx(n, y, x + 2) == 0){
-    cell_duplicate(n, &c, &cells[11]);
-    lighten(n, &c, 2);
-  }
-  if(ncplane_cursor_move_yx(n, y, x) == 0){
-    cell_duplicate(n, &c, &cells[12]);
-    lighten(n, &c, 0);
-  }
+  cell_duplicate(n, &c, &cells[0]);
+  lighten(n, &c, 2, y - 1, x - 1);
+  cell_duplicate(n, &c, &cells[1]);
+  lighten(n, &c, 1, y - 1, x);
+  cell_duplicate(n, &c, &cells[2]);
+  lighten(n, &c, 2, y - 1, x + 1);
+  cell_duplicate(n, &c, &cells[7]);
+  lighten(n, &c, 1, y, x - 1);
+  cell_duplicate(n, &c, &cells[3]);
+  lighten(n, &c, 1, y, x + 1);
+  cell_duplicate(n, &c, &cells[6]);
+  lighten(n, &c, 2, y + 1, x - 1);
+  cell_duplicate(n, &c, &cells[5]);
+  lighten(n, &c, 1, y + 1, x);
+  cell_duplicate(n, &c, &cells[4]);
+  lighten(n, &c, 2, y + 1, x + 1);
+  cell_duplicate(n, &c, &cells[8]);
+  lighten(n, &c, 2, y - 2, x);
+  cell_duplicate(n, &c, &cells[9]);
+  lighten(n, &c, 2, y + 2, x);
+  cell_duplicate(n, &c, &cells[10]);
+  lighten(n, &c, 2, y, x - 2);
+  cell_duplicate(n, &c, &cells[11]);
+  lighten(n, &c, 2, y, x + 2);
+  cell_duplicate(n, &c, &cells[12]);
+  lighten(n, &c, 0, y, x);
   cell_release(n, &c);
   return 0;
 }
 
-typedef struct snake {
+typedef struct worm {
   cell lightup[13];
   int x, y;
   int prevx, prevy;
-} snake;
+} worm;
 
 static void
-init_snake(snake* s, int dimy, int dimx){
+init_worm(worm* s, int dimy, int dimx){
   for(size_t i = 0 ; i < sizeof(s->lightup) / sizeof(*s->lightup) ; ++i){
     cell_init(&s->lightup[i]);
   }
-  // start them in the lower 3/4 of the screen
-  s->y = (random() % (dimy * 3 / 4)) + (dimy / 4);
+  s->y = random() % dimy;
   s->x = random() % dimx;
   s->prevx = 0;
   s->prevy = 0;
 }
 
 static int
-snakey_top(struct notcurses* nc, snake* s){
+wormy_top(struct notcurses* nc, worm* s){
   struct ncplane* n = notcurses_stdplane(nc);
   surrounding_cells(n, s->lightup, s->y, s->x);
   if(lightup_surrounding_cells(n, s->lightup, s->y, s->x)){
@@ -166,14 +178,14 @@ snakey_top(struct notcurses* nc, snake* s){
 }
 
 static int
-snakey(struct notcurses* nc, snake* s, int dimy, int dimx){
+wormy(struct notcurses* nc, worm* s, int dimy, int dimx){
   struct ncplane* n = notcurses_stdplane(nc);
   int oldy, oldx;
   cell c = CELL_TRIVIAL_INITIALIZER;
   do{ // force a move
     oldy = s->y;
     oldx = s->x;
-    // FIXME he ought be weighted to avoid light; he's a snake after all
+    // FIXME he ought be weighted to avoid light; he's a worm after all
     int direction = random() % 4;
     switch(direction){
       case 0: --s->y; break;
@@ -181,20 +193,20 @@ snakey(struct notcurses* nc, snake* s, int dimy, int dimx){
       case 2: ++s->y; break;
       case 3: --s->x; break;
     }
-    // keep him away from the sides due to width irregularities
-    if(s->x < (dimx / 4)){
-      s->x = dimx / 4;
-    }else if(s->x >= dimx * 3 / 4){
-      s->x = dimx * 3 / 4;
-    }
-    if(s->y < 0){
-      s->y = 0;
-    }else if(s->y >= dimy){
+    if(s->y <= 0){
       s->y = dimy - 1;
     }
-    ncplane_cursor_move_yx(n, s->y, s->x);
-    ncplane_at_cursor(n, &c);
-    // don't allow the snake into the summary zone (test for walls)
+    if(s->y >= dimy){
+      s->y = 0;
+    }
+    if(s->x <= 0){
+      s->x = dimx - 1;
+    }
+    if(s->x >= dimx){
+      s->x = 0;
+    }
+    ncplane_at_yx(n, s->y, s->x, &c);
+    // don't allow the worm into the summary zone (test for walls)
     if(wall_p(n, &c)){
       s->x = oldx;
       s->y = oldy;
@@ -206,34 +218,34 @@ snakey(struct notcurses* nc, snake* s, int dimy, int dimx){
   return 0;
 }
 
-// each snake wanders around aimlessly, prohibited from entering the summary
+// each worm wanders around aimlessly, prohibited from entering the summary
 // section. it ought light up the cells around it; to do this, we keep an array
 // of 13 cells with the original colors, which we tune up for the duration of
 // our colocality (unless they're summary area walls).
 static void *
-snake_thread(void* vnc){
+worm_thread(void* vnc){
   struct notcurses* nc = vnc;
   struct ncplane* n = notcurses_stdplane(nc);
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  int snakecount = (dimy * dimx) / 800;
-  snake snakes[snakecount];
-  for(int s = 0 ; s < snakecount ; ++s){
-    init_snake(&snakes[s], dimy, dimx);
+  int wormcount = (dimy * dimx) / 800;
+  worm worms[wormcount];
+  for(int s = 0 ; s < wormcount ; ++s){
+    init_worm(&worms[s], dimy, dimx);
   }
-  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 1000000000ul / 20, };
+  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 100000000ul / 20, };
   while(true){
     pthread_testcancel();
-    for(int s = 0 ; s < snakecount ; ++s){
-      if(snakey_top(nc, &snakes[s])){
+    for(int s = 0 ; s < wormcount ; ++s){
+      if(wormy_top(nc, &worms[s])){
         return NULL;
       }
     }
     if(demo_render(nc)){
       return NULL;
     }
-    for(int s = 0 ; s < snakecount ; ++s){
-      if(snakey(nc, &snakes[s], dimy, dimx)){
+    for(int s = 0 ; s < wormcount ; ++s){
+      if(wormy(nc, &worms[s], dimy, dimx)){
         return NULL;
       }
     }
@@ -285,14 +297,11 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_set_fg_rgb(n, 64, 128, 240);
   ncplane_set_bg_rgb(n, 32, 64, 32);
   ncplane_styles_on(n, CELL_STYLE_ITALIC);
-  ncplane_cursor_move_yx(n, 5, 18);
-  ncplane_printf(n, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
-  ncplane_cursor_move_yx(n, 1, 4);
-  ncplane_printf(n, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
-  ncplane_cursor_move_yx(n, 3, 1);
+  ncplane_printf_yx(n, 5, 18, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
+  ncplane_printf_yx(n, 1, 4, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_styles_off(n, CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(n, 224, 128, 224);
-  ncplane_putstr(n, "  🔥 unicode 13, resize awareness, 24b directcolor…🔥  ");
+  ncplane_putstr_yx(n, 3, 1, "  🔥 unicode 13, resize awareness, 24b directcolor…🔥  ");
   ncplane_set_fg_rgb(n, 255, 255, 255);
   return 0;
 }
@@ -557,9 +566,9 @@ int witherworm_demo(struct notcurses* nc){
       int cols_out = 0;
       y = 0;
       x = 0;
+      ncplane_set_bg_rgb(n, 20, 20, 20);
       do{ // we fill up the entire screen, however large, walking our strtable
         s = strs;
-        ncplane_set_bg_rgb(n, 20, 20, 20);
         for(s = strs ; *s ; ++s){
           size_t idx = 0;
           ncplane_cursor_yx(n, &y, &x);
@@ -602,6 +611,10 @@ int witherworm_demo(struct notcurses* nc){
           rgb += step;
         }
       }while(y < maxy && x < maxx);
+      struct ncplane* math = mathplane(nc);
+      if(math == NULL){
+        return -1;
+      }
       struct ncplane* mess = ncplane_new(nc, 7, 57, 1, 4, NULL);
       if(mess == NULL){
         return -1;
@@ -625,7 +638,7 @@ int witherworm_demo(struct notcurses* nc){
         ncplane_fadein(n, &tv, demo_fader);
       }
       pthread_t tid;
-      pthread_create(&tid, NULL, snake_thread, nc);
+      pthread_create(&tid, NULL, worm_thread, nc);
       do{
         struct timespec left, cur;
         clock_gettime(CLOCK_MONOTONIC, &cur);
@@ -640,6 +653,7 @@ int witherworm_demo(struct notcurses* nc){
       pthread_cancel(tid);
       pthread_join(tid, NULL);
       ncplane_destroy(mess);
+      ncplane_destroy(math);
       if(key == NCKEY_RESIZE){
         notcurses_resize(nc, &maxy, &maxx);
       }
