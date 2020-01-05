@@ -123,7 +123,6 @@ draw_luigi(struct ncplane* n, const char* sprite){
   for(s = 0 ; sprite[s] ; ++s){
     switch(sprite[s]){
       case '0':
-        ncplane_cursor_move_yx(n, (s + 1) / 16, (s + 1) % 16);
         break;
       case '1':
         ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
@@ -136,7 +135,7 @@ draw_luigi(struct ncplane* n, const char* sprite){
         break;
     }
     if(sprite[s] != '0'){
-      if(ncplane_putegc(n, "\u2588", &sbytes) != 1){
+      if(ncplane_putegc_yx(n, s / 16, s % 16, "\u2588", &sbytes) != 1){
         return -1;
       }
     }

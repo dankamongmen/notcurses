@@ -79,29 +79,17 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   if(ncplane_set_bg_alpha(non, CELL_ALPHA_TRANSPARENT)){
     return NULL;
   }
-  if(ncplane_cursor_move_yx(non, ybase, 0)){
+  if(ncplane_putsimple_yx(non, ybase, 0, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
     return NULL;
   }
-  if(ncplane_putsimple(non, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
-    return NULL;
-  }
-  if(ncplane_cursor_move_yx(non, ybase, *cols - 2)){
-    return NULL;
-  }
-  if(ncplane_putsimple(non, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
+  if(ncplane_putsimple_yx(non, ybase, *cols - 2, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
     return NULL;
   }
   // ...and now the lower corners
-  if(ncplane_cursor_move_yx(non, *rows - 1, 0)){
+  if(ncplane_putsimple_yx(non, *rows - 1, 0, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
     return NULL;
   }
-  if(ncplane_putsimple(non, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
-    return NULL;
-  }
-  if(ncplane_cursor_move_yx(non, *rows - 1, *cols - 2)){
-    return NULL;
-  }
-  if(ncplane_putsimple(non, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
+  if(ncplane_putsimple_yx(non, *rows - 1, *cols - 2, ' ') < 0 || ncplane_putsimple(non, ' ') < 0){
     return NULL;
   }
   if(ncplane_set_fg_rgb(non, 0, 0, 0)){

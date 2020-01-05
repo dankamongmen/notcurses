@@ -19,7 +19,7 @@ static int democount;
 static demoresult* results;
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
-static const char DEFAULT_DEMO[] = "ixetclubgswvpo";
+static const char DEFAULT_DEMO[] = "ixetcgswubvlpo";
 static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
 void interrupt_demo(void){
@@ -75,7 +75,7 @@ usage(const char* exe, int status){
   fprintf(out, " -d: delay multiplier (float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
-  fprintf(out, "all demos are run if no specification is provided\n");
+  fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
   fprintf(out, " b: run box\n");
   fprintf(out, " c: run chunli\n");
   fprintf(out, " e: run eagles\n");
@@ -102,14 +102,14 @@ intro(struct notcurses* nc){
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_bg_rgb(&c, 0x20, 0x20, 0x20);
   ncplane_set_base(ncp, &c);
-  if(ncplane_cursor_move_yx(ncp, 0, 0)){
-    return -1;
-  }
   int x, y, rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_cursor_move_yx(ncp, 0, 0)){
+    return -1;
+  }
   if(cells_rounded_box(ncp, CELL_STYLE_BOLD, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
@@ -132,10 +132,7 @@ intro(struct notcurses* nc){
   for(y = 5 ; y < rows - 6 ; ++y){
     cell_set_bg_rgb(&c, 0, y * ys  , 0);
     for(x = 5 ; x < cols - 6 ; ++x){
-      if(ncplane_cursor_move_yx(ncp, y, x)){
-        return -1;
-      }
-      if(ncplane_putc(ncp, &c) <= 0){
+      if(ncplane_putc_yx(ncp, y, x, &c) <= 0){
         return -1;
       }
     }
