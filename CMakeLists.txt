@@ -13,8 +13,6 @@ include(GNUInstallDirs)
 
 option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
 
-configure_file(tools/version.h.in include/version.h)
-
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
@@ -80,7 +78,11 @@ target_compile_definitions(notcurses
 # notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
 add_executable(notcurses-demo ${DEMOSRCS})
-target_include_directories(notcurses-demo PRIVATE include)
+target_include_directories(notcurses-demo
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
@@ -253,8 +255,9 @@ configure_file(tools/notcurses.pc.in
   @ONLY
 )
 
-# CMake support
 include(CMakePackageConfigHelpers)
+
+configure_file(tools/version.h.in include/version.h)
 
 configure_package_config_file(tools/notcursesConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake

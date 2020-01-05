@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdatomic.h>
 #include <notcurses.h>
+#include "version.h"
 #include "demo.h"
 
 // ansi terminal definition-4-life
@@ -17,10 +18,10 @@ static const int MIN_SUPPORTED_COLS = 80;
 
 static int democount;
 static demoresult* results;
+static char datadir[PATH_MAX];
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
 static const char DEFAULT_DEMO[] = "ixetcgswubvlpo";
-static char datadir[PATH_MAX] = "/usr/share/notcurses"; // FIXME
 
 void interrupt_demo(void){
   atomic_store(&interrupted, true);
@@ -164,7 +165,7 @@ intro(struct notcurses* nc){
   }
   ncplane_styles_off(ncp, CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
-  if(ncplane_putstr_aligned(ncp, rows - 3, NCALIGN_CENTER, "press q at any time to quit") < 0){
+  if(ncplane_printf_aligned(ncp, rows - 3, NCALIGN_CENTER, "notcurses %s. press 'q' to quit.", notcurses_version()) < 0){
     return -1;
   }
   ncplane_styles_off(ncp, CELL_STYLE_BOLD);
@@ -283,6 +284,7 @@ ext_demos(struct notcurses* nc, const char* demos){
 // if it's NULL, there were valid options, but no spec.
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
+  strcpy(datadir, CMAKE_INSTALL_SHARE);
   bool constant_seed = false;
   int c;
   *use_hud = false;
@@ -404,7 +406,7 @@ int main(int argc, char** argv){
   }
   bool failed = false;
   printf("\n");
-  printf("       total│frames│output(B)│ rendering│r%%│%6s│\n", "FPS");
+  printf("       total│frames│output(B)│ rendering│%%r│%6s│\n", "FPS");
   printf("══╤═╤═══════╪══════╪═════════╪══════════╪══╪══════╡\n");
   for(size_t i = 0 ; i < strlen(demos) ; ++i){
     char totalbuf[BPREFIXSTRLEN + 1];
@@ -417,7 +419,8 @@ int main(int argc, char** argv){
            results[i].stats.renders,
            BPREFIXSTRLEN, totalbuf,
            results[i].stats.render_ns / 1000,
-           results[i].stats.render_ns * 100 / results[i].timens,
+           results[i].timens ?
+            results[i].stats.render_ns * 100 / results[i].timens : 0,
            GIG / avg,
            results[i].failed ? "***FAILED" : results[i].stats.renders ? ""  : "***NOT RUN");
     if(results[i].failed){
@@ -426,7 +429,7 @@ int main(int argc, char** argv){
   }
   free(results);
   if(failed){
-    fprintf(stderr, " Error running demo. Did you need provide -p?\n");
+    fprintf(stderr, " Error running demo. Is \"%s\" the correct data path?\n", datadir);
   }
   return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
