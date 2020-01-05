@@ -360,6 +360,10 @@ int main(int argc, char** argv){
     fprintf(stderr, "Couldn't set locale based on user preferences\n");
     return EXIT_FAILURE;
   }
+  sigset_t sigmask;
+  sigemptyset(&sigmask);
+  sigaddset(&sigmask, SIGWINCH);
+  pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
   const char* demos;
   if((demos = handle_opts(argc, argv, &nopts, &use_hud)) == NULL){
     if(argv[optind] != NULL){

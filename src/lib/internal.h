@@ -184,7 +184,7 @@ typedef struct notcurses {
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
 } notcurses;
 
-extern sig_atomic_t resize_seen;
+void sigwinch_handler(int signo);
 
 // load all known special keys from terminfo, and build the input sequence trie
 int prep_special_keys(notcurses* nc);

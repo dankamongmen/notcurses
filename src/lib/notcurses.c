@@ -25,11 +25,6 @@
 static notcurses* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh
 static void (*signal_sa_handler)(int); // stashed signal handler we replaced
 
-static void
-sigwinch_handler(int signo){
-  resize_seen = signo;
-}
-
 // this wildly unsafe handler will attempt to restore the screen upon
 // reception of SIG{INT, SEGV, ABRT, QUIT}. godspeed you, black emperor!
 static void

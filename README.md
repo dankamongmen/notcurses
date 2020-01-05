@@ -31,6 +31,7 @@ for more information, see [my wiki](https://nick-black.com/dankwiki/index.php/No
 * [Environment notes](#environment-notes)
   * [DirectColor detection](#DirectColor-detection)
   * [Fonts](#fonts)
+  * [FAQs](#faqs)
 * [Supplemental material](#supplemental-material)
   * [Useful links](#useful-links)
   * [Other TUI libraries](#other-tui-libraries-of-note)
@@ -52,9 +53,8 @@ notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
 terminal functionality such as unindexed 24-bit color ("DirectColor", not to be
 confused with 8-bit indexed 24-bit color, aka "TrueColor" or (by NCURSES) as
-"extended color"). For some necessary
-background, consult Thomas E. Dickey's superb and authoritative [NCURSES
-FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
+"extended color"). For some necessary background, consult Thomas E. Dickey's
+superb and authoritative [NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
 As such, notcurses is not a drop-in Curses replacement. It is almost certainly
 less portable, and definitely tested on less hardware. Sorry about that.
 Ultimately, I hope to properly support all terminals *supporting the features
@@ -136,7 +136,9 @@ Before calling into notcurses—and usually as one of the first calls of the
 program—be sure to call `setlocale(3)` with an appropriate UTF-8 `LC_ALL`
 locale. It is usually appropriate to use `setlocale(LC_ALL, "")`, relying on
 the user to properly set the `LANG` environment variable. notcurses will
-refuse to start if `nl_langinfo(3)` doesn't indicate UTF-8.
+refuse to start if `nl_langinfo(3)` doesn't indicate UTF-8. In addition, it is
+wise to mask most signals early in the program, before any threads are spawned.
+(this is particularly critical for `SIGWINCH`).
 
 notcurses requires an available `terminfo(5)` definition appropriate for the
 terminal. It is usually appropriate to pass `NULL` in the `termtype` field of a
@@ -2408,9 +2410,18 @@ purposes, makes the detection work quite well **today**.
 Fonts end up being a whole thing, little of which is pleasant. I'll write this
 up someday **FIXME**.
 
-### When all else fails...
+### FAQs
 
-...fuck wit' it harder, hax0r.
+* *Q:* Why didn't you just use Sixel?
+* *A:* Many terminal emulators don't support Sixel. Sixel doesn't work well
+       with mouse selection. With that said, I do intend to support Sixel soon,
+       as a backend, when available, for certain types of drawing.
+
+* *Q:* I'm not seeing `NCKEY_RESIZE` until I press some other key.
+* *A:* You've almost certainly failed to mask `SIGWINCH` in some thread, and
+       that thread is receiving the signal instead of the thread which called
+       `notcurses_getc_blocking()`. As a result, the `poll()` is not
+       interrupted. Call `pthread_sigmask()` before spawning any threads.
 
 ## Supplemental material
 

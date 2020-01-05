@@ -13,7 +13,11 @@ static const char32_t NCKEY_CSI = 1;
 
 static const unsigned char ESC = 0x1b; // 27
 
-sig_atomic_t resize_seen = 0;
+static sig_atomic_t resize_seen;
+
+void sigwinch_handler(int signo){
+  resize_seen = signo;
+}
 
 static inline int
 pop_input_keypress(notcurses* nc){
