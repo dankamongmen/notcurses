@@ -264,19 +264,19 @@ int grid_demo(struct notcurses* nc){
     // top line
     x = 0;
     y = 0;
-    ret |= ccell_set_bg_rgb(&ul, i / 2, x, y);
+    ret |= ccell_set_bg_rgb(&ul, i, x * rs, y * bs);
     ret |= ccell_set_fg_rgb(&ul, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
     if(ncplane_putc_yx(n, 0, 0, &ul) <= 0){
       return -1;
     }
     for(x = 1 ; x < maxx - 1 ; ++x){
-      ret |= ccell_set_bg_rgb(&uc, i / 2, x, y);
+      ret |= ccell_set_bg_rgb(&uc, i, x * rs, y * bs);
       ret |= ccell_set_fg_rgb(&uc, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
       if(ncplane_putc(n, &uc) <= 0){
         return -1;
       }
     }
-    ret |= ccell_set_bg_rgb(&ur, i / 2, x, y);
+    ret |= ccell_set_bg_rgb(&ur, i, x * rs, y * bs);
     ret |= ccell_set_fg_rgb(&ur, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
     if(ncplane_putc(n, &ur) <= 0){
       return -1;
@@ -285,19 +285,19 @@ int grid_demo(struct notcurses* nc){
     // center
     for(y = 1 ; y < maxy - 1 ; ++y){
       x = 0;
-      ret |= ccell_set_bg_rgb(&cl, i / 2, x, y);
+      ret |= ccell_set_bg_rgb(&cl, i, x * rs, y * bs);
       ret |= ccell_set_fg_rgb(&cl, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
       if(ncplane_putc_yx(n, y, x, &cl) <= 0){
         return -1;
       }
       for(x = 1 ; x < maxx - 1 ; ++x){
-        ret |= ccell_set_bg_rgb(&cc, i / 2, x, y);
+        ret |= ccell_set_bg_rgb(&cc, i, x * rs, y * bs);
         ret |= ccell_set_fg_rgb(&cc, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
         if(ncplane_putc(n, &cc) <= 0){
           return -1;
         }
       }
-      ret |= ccell_set_bg_rgb(&cr, i / 2, x, y);
+      ret |= ccell_set_bg_rgb(&cr, i, x * rs, y * bs);
       ret |= ccell_set_fg_rgb(&cr, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
       if(ncplane_putc(n, &cr) <= 0){
         return -1;
@@ -306,19 +306,19 @@ int grid_demo(struct notcurses* nc){
 
     // bottom line
     x = 0;
-    ret |= ccell_set_bg_rgb(&ll, i / 2, x, y);
+    ret |= ccell_set_bg_rgb(&ll, i, x * rs, y * bs);
     ret |= ccell_set_fg_rgb(&ll, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
     if(ncplane_putc_yx(n, y, x, &ll) <= 0){
       return -1;
     }
     for(x = 1 ; x < maxx - 1 ; ++x){
-      ret |= ccell_set_bg_rgb(&lc, i / 2, x, y);
+      ret |= ccell_set_bg_rgb(&lc, i, x * rs, y * bs);
       ret |= ccell_set_fg_rgb(&lc, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
       if(ncplane_putc(n, &lc) <= 0){
         return -1;
       }
     }
-    ret |= ccell_set_bg_rgb(&lr, i / 2, x, y);
+    ret |= ccell_set_bg_rgb(&lr, i, x * rs, y * bs);
     ret |= ccell_set_fg_rgb(&lr, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
     if(ncplane_putc(n, &lr) <= 0){
       return -1;
