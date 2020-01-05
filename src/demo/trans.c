@@ -57,7 +57,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_dim_yx(n, &ny, &nx);
   ncplane_yx(n, &yoff, &xoff);
-  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 50000000, };
+  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 25000000, };
   struct timespec cur;
   do{
     if(demo_render(nc)){

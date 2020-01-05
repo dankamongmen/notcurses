@@ -12,7 +12,7 @@
 
 static int
 fade_block(struct ncplane* nn, const struct timespec* subdelay){
-  int ret = ncplane_fadein(nn, subdelay, NULL);
+  int ret = ncplane_fadein(nn, subdelay, demo_fader);
   ncplane_destroy(nn);
   return ret;
 }
@@ -164,7 +164,6 @@ int unicodeblocks_demo(struct notcurses* nc){
   ns_to_timespec(nstotal / 3, &subdelay);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_set_bg_rgb(n, 0, 0, 0);
-    //ncplane_erase(n);
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     ncplane_set_fg_rgb(n, 0xad, 0xd8, 0xe6);
