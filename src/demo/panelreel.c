@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -166,7 +167,7 @@ tablet_thread(void* vtabletctx){
   tabletctx* tctx = vtabletctx;
   while(true){
     struct timespec ts;
-    ts.tv_sec = random() % 3 + MINSECONDS;
+    ts.tv_sec = random() % 2 + MINSECONDS;
     ts.tv_nsec = random() % 1000000000;
     nanosleep(&ts, NULL);
     int action = random() % 5;
@@ -253,8 +254,16 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
   return key;
 }
 
+static int
+close_pipes(int* pipes){
+  if(close(pipes[0]) | close(pipes[1])){ // intentional, avoid short-circuiting
+    return -1;
+  }
+  return 0;
+}
+
 static struct panelreel*
-panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
+panelreel_demo_core(struct notcurses* nc, int efdr, int efdw, tabletctx** tctxs){
   bool done = false;
   int x = 8, y = 4;
   panelreel_options popts = {
@@ -284,7 +293,7 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     return NULL;
   }
   struct ncplane* w = notcurses_stdplane(nc);
-  struct panelreel* pr = panelreel_create(w, &popts, efd);
+  struct panelreel* pr = panelreel_create(w, &popts, efdw);
   if(pr == NULL){
     fprintf(stderr, "Error creating panelreel\n");
     return NULL;
@@ -323,14 +332,13 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(w, 0, 55, 218);
     wchar_t rw;
-    if((rw = handle_input(nc, pr, efd, &deadline)) <= 0){
+    if((rw = handle_input(nc, pr, efdr, &deadline)) <= 0){
       done = true;
       break;
     }
     // FIXME clrtoeol();
     newtablet = NULL;
     switch(rw){
-      case 'p': sleep(60); exit(EXIT_FAILURE); break;
       case 'a': newtablet = new_tabletctx(pr, &id); break;
       case 'b': newtablet = new_tabletctx(pr, &id); break;
       case 'c': newtablet = new_tabletctx(pr, &id); break;
@@ -363,29 +371,25 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
 
 int panelreel_demo(struct notcurses* nc){
   tabletctx* tctxs = NULL;
-  /* FIXME there's no eventfd on FreeBSD, so until we do a self-pipe
-   * trick here or something, just pass -1. it means higher latency
-   * on our keyboard events in this demo. oh well.
-  int efd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
-  if(efd < 0){
-    fprintf(stderr, "Error creating eventfd (%s)\n", strerror(errno));
+  int pipes[2];
+  // freebsd doesn't have eventfd :/
+  if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
+    fprintf(stderr, "Error creating pipe (%s)\n", strerror(errno));
     return -1;
-  }*/
-  int efd = -1;
+  }
   struct panelreel* pr;
-  if((pr = panelreel_demo_core(nc, efd, &tctxs)) == NULL){
-    close(efd);
+  if((pr = panelreel_demo_core(nc, pipes[0], pipes[1], &tctxs)) == NULL){
+    close_pipes(pipes);
     return -1;
   }
   while(tctxs){
     kill_tablet(&tctxs);
   }
-  close(efd);
+  close_pipes(pipes);
   if(panelreel_destroy(pr)){
     fprintf(stderr, "Error destroying panelreel\n");
     return -1;
   }
-  close(efd);
   if(demo_render(nc)){
     return -1;
   }
