@@ -16,9 +16,9 @@ static const char* leg[] = {
 static int
 perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
            void* vnewplane){
-  static int startr = 0x80;
+  static int startr = 0xaf;
   static int startg = 0xff;
-  static int startb = 0x80;
+  static int startb = 0xd4;
   static int frameno = 0;
   int dimx, dimy, y;
   struct ncplane* n = *(struct ncplane**)vnewplane;
@@ -38,7 +38,6 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, &c);
-  ncplane_set_fg_alpha(n, CELL_ALPHA_BLEND);
   ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
   // fg/bg rgbs are set within loop
   int x = dimx - frameno;
@@ -66,7 +65,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
         x = 0;
       }
       for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y){
-        if(ncplane_set_fg_rgb(n, r - 0xc * l, g - 0xc * l, b - 0xc * l)){
+        if(ncplane_set_fg_rgb(n, r - 0xa * l, g - 0xa * l, b - 0xa * l)){
           return -1;
         }
         if(ncplane_set_bg_rgb(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
