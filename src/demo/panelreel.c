@@ -293,14 +293,15 @@ panelreel_demo_core(struct notcurses* nc, int efd, tabletctx** tctxs){
   ncplane_printf(w, "a, b, c create tablets, DEL deletes.");
   ncplane_styles_off(w, CELL_STYLE_BOLD | CELL_STYLE_ITALIC);
   // FIXME clrtoeol();
-  unsigned id = 0;
   struct timespec deadline;
   clock_gettime(CLOCK_MONOTONIC, &deadline);
   ns_to_timespec((timespec_to_ns(&demodelay) * 5) + timespec_to_ns(&deadline),
                  &deadline);
-
+  unsigned id = 0;
   struct tabletctx* newtablet;
-  while(id < INITIAL_TABLET_COUNT){
+  int dimy = ncplane_dim_y(w);
+  // Make an initial number of tablets suitable for the screen's height
+  while(id < dimy / 8u){
     newtablet = new_tabletctx(pr, &id);
     if(newtablet == NULL){
       return NULL;
