@@ -23,7 +23,7 @@ const char *enmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
 
   pthread_once(&ponce, convinit);
   if(decisep == NULL){
-
+    return NULL;
   }
   if(decimal == 0 || mult == 0){
     return NULL;
@@ -68,10 +68,13 @@ const char *enmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
       buf[sprintfed + 1] = '\0';
     }
   }else{ // unscaled output, consumed == 0, dv == mult
+    // val / decimal < dv (or we ran out of prefixes)
     if(omitdec && val % decimal == 0){
       sprintf(buf, "%ju", val / decimal);
     }else{
-      sprintf(buf, "%ju%s%02ju", val / decimal, decisep, val % decimal);
+      uintmax_t divider = (decimal > mult ? decimal / mult : 1) * 10;
+      uintmax_t remain = (val % decimal) / divider;
+      sprintf(buf, "%ju%s%02ju", val / decimal, decisep, remain);
     }
   }
   return buf;

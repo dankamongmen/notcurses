@@ -410,16 +410,17 @@ int main(int argc, char** argv){
   }
   bool failed = false;
   printf("\n");
-  printf("       total│frames│output(B)│ rendering│%%r│%6s│\n", "FPS");
-  printf("══╤═╤═══════╪══════╪═════════╪══════════╪══╪══════╡\n");
+  printf("        total│frames│output(B)│ rendering│%%r│%6s│\n", "FPS");
+  printf("══╤═╤════════╪══════╪═════════╪══════════╪══╪══════╡\n");
   for(size_t i = 0 ; i < strlen(demos) ; ++i){
     char totalbuf[BPREFIXSTRLEN + 1];
+    char timebuf[PREFIXSTRLEN + 1];
+    qprefix(results[i].timens, GIG, timebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
-    printf("%2zu│%c│%2lu.%03lus│%6lu│%*s│%8juµs│%2ld│%6.1f│%s\n", i,
+    printf("%2zu│%c│%*ss│%6lu│%*s│%8juµs│%2ld│%6.1f│%s\n", i,
            results[i].selector,
-           results[i].timens / GIG,
-           (results[i].timens % GIG) / 1000000,
+           PREFIXSTRLEN, timebuf,
            results[i].stats.renders,
            BPREFIXSTRLEN, totalbuf,
            results[i].stats.render_ns / 1000,

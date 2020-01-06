@@ -321,4 +321,17 @@ TEST_CASE("Enmetric") {
     CHECK(sizeof(suffixes) * 10 > i);
   }
 
+  // Output ought be scaled down for output while maintaining precision during
+  // computation of that output. For instance, we might feed a number of
+  // nanoseconds, but want output in seconds.
+  // This requires 'decimal' = 1000000000.
+  SUBCASE("ScaledGig") {
+    char gold[PREFIXSTRLEN + 1] = "9.02";
+    char buf[PREFIXSTRLEN + 1];
+    uintmax_t val = 9027854993;
+    uintmax_t decimal = 1000000000;
+    REQUIRE(qprefix(val, decimal, buf, 0));
+    CHECK(!strcmp(buf, gold));
+  }
+
 }

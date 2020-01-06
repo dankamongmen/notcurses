@@ -74,7 +74,6 @@ TEST_CASE("RenderTest") {
     free(egc);
     egc = notcurses_at_yx(nc_, 0, 2, &c);
     REQUIRE(egc);
-fprintf(stderr, "HAVE [%s] WANT \xe5\xbd\xa2\n", egc);
     CHECK(!strcmp("\xe5\xbd\xa2", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
