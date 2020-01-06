@@ -1595,7 +1595,7 @@ struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 ### Panelreels
 
 Panelreels are a complex UI abstraction offered by notcurses, derived from my
-similar work in [outcurses](https://github.com/dankamongmen/outcurses#Panelreels).
+similar work in [outcurses](https://github.com/dankamongmen/panelreels#Panelreels).
 
 The panelreel is a UI abstraction supported by notcurses in which
 dynamically-created and -destroyed toplevel entities (referred to as tablets)
@@ -2465,11 +2465,11 @@ up someday **FIXME**.
 * 2019-12-05: notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
     the first generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
     and release it on YouTube.
-* November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/outcurses).
+* November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/panelreels).
     Outcurses is a collection of routines atop NCURSES, including Panelreels.
     I study the history of NCURSES, primarily using Thomas E. Dickey's FAQ and
     the mailing list archives.
-    * 2019-11-14: I file [Outcurses issue #56](https://github.com/dankamongmen/outcurses/issues/56)
+    * 2019-11-14: I file [Outcurses issue #56](https://github.com/dankamongmen/panelreels/issues/56)
       regarding use of DirectColor in outcurses. This is partially inspired by
       Lexi Summer Hale's essay [everything you ever wanted to know about terminals](http://xn--rpa.cc/irl/term.html).
       I get into contact with Thomas E. Dickey and confirm that what I'm hoping
