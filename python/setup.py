@@ -11,7 +11,7 @@ setup(
     packages=find_packages('src'),
     author="Nick Black",
     author_email="nickblack@linux.com",
-    description="Blingful TUI construction library",
+    description="Blingful TUI construction library (python bindings)",
     keywords="ncurses curses tui console graphics",
     license='Apache License, Version 2.0',
     url='https://github.com/dankamongmen/notcurses',
@@ -19,8 +19,10 @@ setup(
     platforms=["any"],
     long_description=read('README.md'),
     long_description_content_type="text/markdown",
-    setup_requires=["pytest-runner"],
-    tests_require=["pytest"],
+    setup_requires=["cffi"],
+    cffi_modules=["src/notcurses/build_notcurses.py:ffibuild"],
+    install_requires=["cffi"],
+    py_modules=["notcurses"],
     # see https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Development Status :: 3 - Alpha',
