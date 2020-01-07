@@ -3,10 +3,12 @@
 #include <sstream>
 #include <getopt.h>
 #include <iostream>
-#include <notcurses.h>
+#include <memory>
+#include <ncpp/NotCurses.hh>
+#include <ncpp/PanelReel.hh>
+#include <ncpp/NCKey.hh>
 
-// FIXME ought be able to get pr from tablet, methinks?
-static struct panelreel* PR;
+using namespace ncpp;
 
 class TabletCtx {
   public:
@@ -18,15 +20,16 @@ class TabletCtx {
     int lines;
 };
 
-int tabletfxn(struct tablet* t, int begx, int begy, int maxx, int maxy,
+int tabletfxn(struct tablet* _t, int begx, int begy, int maxx, int maxy,
               bool cliptop){
-  struct ncplane* p = tablet_ncplane(t);
-  TabletCtx *tctx = (TabletCtx*)tablet_userptr(t);
-  ncplane_erase(p);
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
-  cell_set_bg(&c, (((uintptr_t)t) % 0x1000000) + cliptop + begx + maxx);
-  ncplane_set_base(p, &c);
-  cell_release(p, &c);
+  Tablet *t = Tablet::map_tablet (_t);
+  Plane* p = t->get_plane();
+  auto tctx = t->get_userptr<TabletCtx>();
+  p->erase();
+  Cell c(' ');
+  c.set_bg((((uintptr_t)t) % 0x1000000) + cliptop + begx + maxx);
+  p->set_base(c);
+  p->release(c);
   return tctx->getLines() > maxy - begy ? maxy - begy : tctx->getLines();
 }
 
@@ -105,64 +108,53 @@ int main(int argc, char** argv){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
-  struct notcurses_options opts{};
-  struct panelreel_options popts{};
-  parse_args(argc, argv, &opts, &popts);
-  struct notcurses* nc = notcurses_init(&opts, stdout);
-  if(!nc){
-    return EXIT_FAILURE;
-  }
-  struct ncplane* nstd = notcurses_stdplane(nc);
+  parse_args(argc, argv, &NotCurses::default_notcurses_options, &PanelReel::default_options);
+  NotCurses nc;
+  std::unique_ptr<Plane> nstd(nc.get_stdplane());
   int dimy, dimx;
-  ncplane_dim_yx(nstd, &dimy, &dimx);
-  struct ncplane* n = ncplane_new(nc, dimy - 1, dimx, 1, 0, nullptr);
+  nstd->get_dim(&dimy, &dimx);
+  auto n = std::make_shared<Plane>(dimy - 1, dimx, 1, 0);
   if(!n){
-    notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  if(ncplane_set_fg(nstd, 0xb11bb1)){
-    notcurses_stop(nc);
+  if(!nstd->set_fg(0xb11bb1)){
     return EXIT_FAILURE;
   }
-  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (q)uit") <= 0){
-    notcurses_stop(nc);
+  if(nstd->putstr(0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0){
     return EXIT_FAILURE;
   }
-  channels_set_fg(&popts.focusedchan, 0xffffff);
-  channels_set_bg(&popts.focusedchan, 0x00c080);
-  channels_set_fg(&popts.borderchan, 0x00c080);
-  struct panelreel* pr = panelreel_create(n, &popts, -1);
-  if(!pr || notcurses_render(nc)){
-    notcurses_stop(nc);
+  channels_set_fg(&PanelReel::default_options.focusedchan, 0xffffff);
+  channels_set_bg(&PanelReel::default_options.focusedchan, 0x00c080);
+  channels_set_fg(&PanelReel::default_options.borderchan, 0x00c080);
+  std::shared_ptr<PanelReel> pr(n->panelreel_create());
+  if(!pr || !nc.render()){
     return EXIT_FAILURE;
   }
-  PR = pr; // FIXME eliminate
   char32_t key;
-  while((key = notcurses_getc_blocking(nc, nullptr)) != (char32_t)-1){
+  while((key = nc.getc(true)) != (char32_t)-1){
     switch(key){
       case 'q':
-        return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
+        return !nc.stop() ? EXIT_FAILURE : EXIT_SUCCESS;
       case 'a':{
         TabletCtx* tctx = new TabletCtx();
-        panelreel_add(pr, nullptr, nullptr, tabletfxn, tctx);
+        pr->add(nullptr, nullptr, tabletfxn, tctx);
         break;
       }
       case 'd':
-        panelreel_del_focused(pr);
+        pr->del_focused();
         break;
       case NCKEY_UP:
-        panelreel_prev(pr);
+        pr->prev();
         break;
       case NCKEY_DOWN:
-        panelreel_next(pr);
+        pr->next();
         break;
       default:
         break;
     }
-    if(notcurses_render(nc)){
+    if(!nc.render()){
       break;
     }
   }
-  notcurses_stop(nc);
   return EXIT_FAILURE;
 }

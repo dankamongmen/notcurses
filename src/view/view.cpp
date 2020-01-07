@@ -7,13 +7,17 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <iostream>
-#include "notcurses.h"
+#include <memory>
+#include <ncpp/NotCurses.hh>
+#include <ncpp/Visual.hh>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/avconfig.h>
 #include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
 }
+
+using namespace ncpp;
 
 static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
@@ -34,34 +38,35 @@ timespec_to_ns(const struct timespec* ts){
 }
 
 // frame count is in the curry. original time is in the ncplane's userptr.
-int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
+int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void* vframecount){
+  NotCurses &nc = NotCurses::get_instance ();
   struct timespec* start = static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
   if(!start){
     start = new struct timespec;
     clock_gettime(CLOCK_MONOTONIC, start);
     ncplane_set_userptr(ncvisual_plane(ncv), start);
   }
-  struct ncplane* stdn = notcurses_stdplane(nc);
+  std::unique_ptr<Plane> stdn(nc.get_stdplane());
   int* framecount = static_cast<int*>(vframecount);
   ++*framecount;
-  ncplane_set_fg(stdn, 0x80c080);
+  stdn->set_fg(0x80c080);
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   int64_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
-  ncplane_printf_aligned(stdn, 0, NCALIGN_LEFT, "Got frame %05d\u2026", *framecount);
+  stdn->printf(0, NCAlign::Left, "Got frame %05d\u2026", *framecount);
   const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
   const int64_t m = ns / (60 * NANOSECS_IN_SEC);
   ns -= m * (60 * NANOSECS_IN_SEC);
   const int64_t s = ns / NANOSECS_IN_SEC;
   ns -= s * NANOSECS_IN_SEC;
-  ncplane_printf_aligned(stdn, 0, NCALIGN_RIGHT, "%02ld:%02ld:%02ld.%04ld",
-                         h, m, s, ns / 1000000);
-  if(notcurses_render(nc)){
+  stdn->printf(0, NCAlign::Right, "%02ld:%02ld:%02ld.%04ld",
+               h, m, s, ns / 1000000);
+  if(!nc.render()){
     return -1;
   }
   int dimx, dimy, oldx, oldy, keepy, keepx;
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  nc.get_term_dim(&dimy, &dimx);
   ncplane_dim_yx(ncvisual_plane(ncv), &oldy, &oldx);
   keepy = oldy > dimy ? dimy : oldy;
   keepx = oldx > dimx ? dimx : oldx;
@@ -76,10 +81,10 @@ int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
 }
 
 // can exit() directly. returns index in argv of first non-option param.
-int handle_opts(int argc, char** argv, notcurses_options* opts, float* timescale,
-                ncscale_e *scalemode) {
+int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale,
+                NCScale* scalemode) {
   *timescale = 1.0;
-  *scalemode = NCSCALE_SCALE;
+  *scalemode = NCScale::Scale;
   int c;
   while((c = getopt(argc, argv, "hl:d:s:")) != -1){
     switch(c){
@@ -88,11 +93,11 @@ int handle_opts(int argc, char** argv, notcurses_options* opts, float* timescale
         break;
       case 's':
         if(strcmp(optarg, "stretch") == 0){
-          *scalemode = NCSCALE_STRETCH;
+          *scalemode = NCScale::Stretch;
         }else if(strcmp(optarg, "scale") == 0){
-          *scalemode = NCSCALE_SCALE;
+          *scalemode = NCScale::Scale;
         }else if(strcmp(optarg, "none") == 0){
-          *scalemode = NCSCALE_NONE;
+          *scalemode = NCScale::None;
         }
         break;
       case 'd':{
@@ -111,7 +116,7 @@ int handle_opts(int argc, char** argv, notcurses_options* opts, float* timescale
         ss << optarg;
         int ll;
         ss >> ll;
-        if(ll < NCLOGLEVEL_SILENT || ll > NCLOGLEVEL_TRACE){
+        if(ll < NCLogLevel::Silent || ll > NCLogLevel::Trace){
           std::cerr << "Invalid log level [" << optarg << "] (wanted [0..8])\n";
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
@@ -119,7 +124,7 @@ int handle_opts(int argc, char** argv, notcurses_options* opts, float* timescale
           std::cerr << "Invalid log level [" << optarg << "] (wanted [0..8])\n";
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
-        opts->loglevel = static_cast<ncloglevel_e>(ll);
+        opts.loglevel = static_cast<ncloglevel_e>(ll);
         break;
       }default:
         usage(std::cerr, argv[0], EXIT_FAILURE);
@@ -135,55 +140,48 @@ int handle_opts(int argc, char** argv, notcurses_options* opts, float* timescale
 
 int main(int argc, char** argv){
   setlocale(LC_ALL, "");
-  notcurses_options opts{};
   float timescale;
-  ncscale_e stretchmode;
-  auto nonopt = handle_opts(argc, argv, &opts, &timescale, &stretchmode);
-  auto nc = notcurses_init(&opts, stdout);
-  if(nc == nullptr){
-    return EXIT_FAILURE;
-  }
+  NCScale stretchmode;
+  auto nonopt = handle_opts(argc, argv, NotCurses::default_notcurses_options, &timescale, &stretchmode);
+  NotCurses nc;
   int dimy, dimx;
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  nc.get_term_dim(&dimy, &dimx);
   for(auto i = nonopt ; i < argc ; ++i){
     std::array<char, 128> errbuf;
     int frames = 0;
     int averr;
-    auto ncv = ncvisual_open_plane(nc, argv[i], &averr, 1, 0, stretchmode);
-    if(ncv == nullptr){
+    auto ncv = std::make_unique<Visual>(argv[i], &averr, 1, 0, stretchmode);
+    if(!ncv){
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
-      notcurses_stop(nc);
+      nc.stop();
       std::cerr << "Error opening " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }
-    auto r = ncvisual_stream(nc, ncv, &averr, timescale, perframe, &frames);
+    int r = ncv->stream(&averr, timescale, perframe, &frames);
     if(r < 0){ // positive is intentional abort
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
-      notcurses_stop(nc);
+      nc.stop();
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }else if(r == 0){
-      auto ie = notcurses_getc_blocking(nc, nullptr);
+      char32_t ie = nc.getc(true);
       if(ie == (char32_t)-1){
         break;
       }else if(ie == 'q'){
         break;
-      }else if(ie == NCKEY_RESIZE){
+      }else if(ie == NCKey::Resize){
         --i; // rerun with the new size
-        if(notcurses_resize(nc, &dimy, &dimx)){
-          notcurses_stop(nc);
+        if(!nc.resize(&dimy, &dimx)){
           return EXIT_FAILURE;
         }
-        if(ncplane_resize_simple(ncvisual_plane(ncv), dimy, dimx)){
-          notcurses_stop(nc);
+        if(!ncv->get_plane ()->resize(dimy, dimx)){
+          nc.stop();
           return EXIT_FAILURE;
         }
       }
     }
-    delete static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
-    ncvisual_destroy(ncv);
   }
-  if(notcurses_stop(nc)){
+  if(!nc.stop()){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

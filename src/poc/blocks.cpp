@@ -2,52 +2,49 @@
 #include <cstdlib>
 #include <clocale>
 #include <cassert>
+#include <memory>
 #include <unistd.h>
-#include <notcurses.h>
+#include <ncpp/NotCurses.hh>
+
+using namespace ncpp;
 
 int main(int argc, char** argv){
   setlocale(LC_ALL, "");
-  notcurses_options opts{};
-  opts.inhibit_alternate_screen = true;
-  struct notcurses* nc;
-  if((nc = notcurses_init(&opts, stdout)) == nullptr){
-    return EXIT_FAILURE;
-  }
-  struct ncplane* n = notcurses_stdplane(nc);
+  NotCurses::default_notcurses_options.inhibit_alternate_screen = true;
+  NotCurses nc;
+  std::unique_ptr<Plane> n (nc.get_stdplane());
   int dimx, dimy;
-  ncplane_dim_yx(n, &dimy, &dimx);
+  nc.get_term_dim(&dimy, &dimx);
 
   const int HEIGHT = 5;
   const int WIDTH = 20;
-  struct ncplane* na = ncplane_aligned(n, HEIGHT, WIDTH,
-                                       dimy - (HEIGHT + 1),
-                                       NCALIGN_CENTER,
-                                       nullptr);
+  auto na = std::make_unique<Plane>(n.get(), HEIGHT, WIDTH,
+									dimy - (HEIGHT + 1),
+									NCAlign::Center);
   uint64_t channels = 0;
-  if(na == nullptr){
+  if(!na){
     goto err;
   }
-  ncplane_set_fg(n, 0x00ff00);
-  ncplane_set_fg(na, 0x00ff00);
-  if(ncplane_cursor_move_yx(na, 0, 0)){
+  n->set_fg(0x00ff00);
+  na->set_fg(0x00ff00);
+  if(!na->cursor_move(0, 0)){
     goto err;
   }
-  if(ncplane_rounded_box_sized(na, 0, channels, HEIGHT, WIDTH, 0) < 0){
+  if(!na->rounded_box_sized(0, channels, HEIGHT, WIDTH, 0)){
     goto err;
   }
-  if(ncplane_printf_yx(n, 0, 0, "arrrrp?") < 0){
+  if(n->printf(0, 0, "arrrrp?") < 0){
     goto err;
   }
-  if(ncplane_rounded_box_sized(n, 4, channels, HEIGHT, WIDTH, 0) < 0){
+  if(!n->rounded_box_sized(4, channels, HEIGHT, WIDTH, 0)){
     goto err;
   }
-  if(notcurses_render(nc)){
+  if(!nc.render()){
     goto err;
   }
   sleep(1);
-  return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
+  return nc.stop() ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:
-  notcurses_stop(nc);
   return EXIT_FAILURE;
 }
