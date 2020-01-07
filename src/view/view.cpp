@@ -1,6 +1,8 @@
 #include <array>
 #include <cstdlib>
 #include <clocale>
+#include <sstream>
+#include <getopt.h>
 #include <libgen.h>
 #include <unistd.h>
 #include <iostream>
@@ -16,7 +18,7 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -l loglevel(0-9) ] files" << '\n';
   exit(exitcode);
 }
 
@@ -58,12 +60,45 @@ int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
   return ncplane_resize(ncvisual_plane(ncv), 0, 0, keepy, keepx, 0, 0, dimy, dimx);
 }
 
-int main(int argc, char** argv){
-  setlocale(LC_ALL, "");
-  if(argc == 1){
+// can exit() directly. returns index in argv of first non-option param.
+int handle_opts(int argc, char** argv, notcurses_options* opts) {
+  int c;
+  while((c = getopt(argc, argv, "hl:")) != -1){
+    switch(c){
+      case 'h':
+        usage(std::cout, argv[0], EXIT_SUCCESS);
+        break;
+      case 'l':{
+        std::stringstream ss;
+        ss << optarg;
+        int ll;
+        ss >> ll;
+        if(ll < NCLOGLEVEL_SILENT || ll > NCLOGLEVEL_TRACE){
+          std::cerr << "Invalid log level [" << optarg << "] (wanted [0..8])\n";
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        if(ll == 0 && strcmp(optarg, "0")){
+          std::cerr << "Invalid log level [" << optarg << "] (wanted [0..8])\n";
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        opts->loglevel = static_cast<ncloglevel_e>(ll);
+        break;
+      }default:
+        usage(std::cerr, argv[0], EXIT_FAILURE);
+        break;
+    }
+  }
+  // we require at least one free parameter
+  if(argv[optind] == nullptr){
     usage(std::cerr, argv[0], EXIT_FAILURE);
   }
+  return optind;
+}
+
+int main(int argc, char** argv){
+  setlocale(LC_ALL, "");
   notcurses_options opts{};
+  auto nonopt = handle_opts(argc, argv, &opts);
   auto nc = notcurses_init(&opts, stdout);
   if(nc == nullptr){
     return EXIT_FAILURE;
@@ -76,7 +111,7 @@ int main(int argc, char** argv){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  for(int i = 1 ; i < argc ; ++i){
+  for(int i = nonopt ; i < argc ; ++i){
     std::array<char, 128> errbuf;
     int frames = 0;
     int averr;
