@@ -735,63 +735,51 @@ int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 // Get the current position of the cursor within n. y and/or x may be NULL.
 void ncplane_cursor_yx(struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
-// Replace the cell underneath the cursor with the provided cell 'c', and
-// advance the cursor by the width of the cell (but not past the end of the
+// Replace the cell at the specified coordinates with the provided cell 'c',
+// and advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
 // On failure, -1 is returned.
-int ncplane_putc(struct ncplane* n, const cell* c);
+API int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
 
-// Call ncplane_putc() after successfully moving to y, x on the specified plane.
+// Call ncplane_putc_yx() for the current cursor location.
 static inline int
-ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putc(n, c);
+ncplane_putc(struct ncplane* n, const cell* c){
+  return ncplane_putc_yx(n, -1, -1, c);
 }
 
-// Replace the cell underneath the cursor with the provided 7-bit char 'c'.
-// Advance the cursor by 1. On success, returns 1. On failure, returns -1.
+// Replace the cell at the specified coordinates with the provided 7-bit char
+// 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.
-int ncplane_putsimple(struct ncplane* n, char c);
+API int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
 
-// Call ncplane_simple() after successfully moving to y, x.
+// Call ncplane_putsimple_yx() at the current cursor location.
 static inline int
-ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putsimple(n, c);
+ncplane_putsimple(struct ncplane* n, char c){
+  return ncplane_putsimple_yx(n, -1, -1, c);
 }
 
-// Replace the cell underneath the cursor with the provided wide char 'w'.
-// Advance the cursor by the character's width as reported by wcwidth(). On
-// success, returns 1. On failure, returns -1.
-int ncplane_putwc(struct ncplane* n, wchar_t w);
+// Replace the cell at the specified coordinates with the provided wide char
+// 'w'. Advance the cursor by the character's width as reported by wcwidth().
+// On success, returns 1. On failure, returns -1.
+API int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
 
-// Call ncplane_putwc() after successfully moving to y, x.
+// Call ncplane_putwc() at the current cursor position.
 static inline int
-ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putwc(n, w);
+ncplane_putwc(struct ncplane* n, wchar_t w){
+  return ncplane_putwc_yx(n, -1, -1, w);
 }
 
-// Replace the cell underneath the cursor with the provided EGC, and advance
-// the cursor by the width of the cluster (but not past the end of the plane).
-// On success, returns the number of columns the cursor was advanced. On
-// failure, -1 is returned. The number of bytes converted from gclust is
+// Replace the cell at the specified coordinates with the provided EGC, and
+// advance the cursor by the width of the cluster (but not past the end of the
+// plane). On success, returns the number of columns the cursor was advanced.
+// On failure, -1 is returned. The number of bytes converted from gclust is
 // written to 'sbytes' if non-NULL.
-int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes);
+API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
 
-// Call ncplane_putegc() after successfully moving to y, x.
+// Call ncplane_putegc() at the current cursor location.
 static inline int
-ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putegc(n, gclust, sbytes);
+ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
+  return ncplane_putegc_yx(n, -1, -1, gclust, sbytes);
 }
 
 #define WCHAR_MAX_UTF8BYTES 6
@@ -817,7 +805,8 @@ ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
 
 // Call ncplane_putwegc() after successfully moving to y, x.
 static inline int
-ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust, int* sbytes){
+ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
+                   int* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
@@ -830,14 +819,15 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust, int* 
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of cells
 // which were written before the error.
-int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
+API int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
 
 static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr){
   return ncplane_putstr_yx(n, -1, -1, gclustarr);
 }
 
-int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
+API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                               const char* s);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
