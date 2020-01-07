@@ -325,10 +325,55 @@ TEST_CASE("Enmetric") {
   // computation of that output. For instance, we might feed a number of
   // nanoseconds, but want output in seconds.
   // This requires 'decimal' = 1000000000.
-  SUBCASE("ScaledGig") {
+  SUBCASE("ScaledGigSupra") {
     char gold[PREFIXSTRLEN + 1] = "9.02";
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 9027854993;
+    uintmax_t decimal = 1000000000;
+    REQUIRE(qprefix(val, decimal, buf, 0));
+    CHECK(!strcmp(buf, gold));
+  }
+
+  SUBCASE("ScaledGigUnity") {
+    char gold[PREFIXSTRLEN + 1] = "1.00";
+    char buf[PREFIXSTRLEN + 1];
+    uintmax_t decimal = 1000000000;
+    uintmax_t val = decimal;
+    REQUIRE(qprefix(val, decimal, buf, 0));
+    CHECK(!strcmp(buf, gold));
+  }
+
+  SUBCASE("ScaledGigJustAbove") {
+    char gold[PREFIXSTRLEN + 1] = "1.00";
+    char buf[PREFIXSTRLEN + 1];
+    uintmax_t val = 1000000001;
+    uintmax_t decimal = 1000000000;
+    REQUIRE(qprefix(val, decimal, buf, 0));
+    CHECK(!strcmp(buf, gold));
+  }
+
+  SUBCASE("ScaledGigJustBelow") {
+    char gold[PREFIXSTRLEN + 1] = "999.99m";
+    char buf[PREFIXSTRLEN + 1];
+    uintmax_t val = 999999999;
+    uintmax_t decimal = 1000000000;
+    REQUIRE(qprefix(val, decimal, buf, 0));
+    CHECK(!strcmp(buf, gold));
+  }
+
+  SUBCASE("ScaledGigSub") {
+    char gold[PREFIXSTRLEN + 1] = "27.85m";
+    char buf[PREFIXSTRLEN + 1];
+    uintmax_t val = 27854993;
+    uintmax_t decimal = 1000000000;
+    REQUIRE(qprefix(val, decimal, buf, 0));
+    CHECK(!strcmp(buf, gold));
+  }
+
+  SUBCASE("ScaledGigSubSub") {
+    char gold[PREFIXSTRLEN + 1] = "7.85m";
+    char buf[PREFIXSTRLEN + 1];
+    uintmax_t val = 7854993;
     uintmax_t decimal = 1000000000;
     REQUIRE(qprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));

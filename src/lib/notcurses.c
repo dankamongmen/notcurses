@@ -498,11 +498,15 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
   }
   nc->CCCflag = tigetflag("ccc") == 1;
   if((nc->colors = tigetnum("colors")) <= 0){
-    fprintf(stderr, "This terminal doesn't appear to support colors\n");
+    if(!opts->suppress_banner){
+      fprintf(stderr, "This terminal doesn't appear to support colors\n");
+    }
     nc->colors = 1;
   }else if(nc->RGBflag && (unsigned)nc->colors < (1u << 24u)){
-    fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
-            nc->colors);
+    if(!opts->suppress_banner){
+      fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
+              nc->colors);
+    }
   }
   term_verify_seq(&nc->cup, "cup");
   if(nc->cup == NULL){
