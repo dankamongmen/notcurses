@@ -1009,7 +1009,8 @@ int ncplane_move_bottom(ncplane* n){
   return 0;
 }
 
-int ncplane_cursor_move_yx(ncplane* n, int y, int x){
+static inline int
+ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
   if(x >= n->lenx){
     return -1;
   }else if(x < 0){
@@ -1029,6 +1030,13 @@ int ncplane_cursor_move_yx(ncplane* n, int y, int x){
     n->y = y;
   }
   return 0;
+}
+
+int ncplane_cursor_move_yx(ncplane* n, int y, int x){
+  ncplane_lock(n);
+  int ret = ncplane_cursor_move_yx_locked(n, y, x);
+  ncplane_unlock(n);
+  return ret;
 }
 
 void ncplane_cursor_yx(ncplane* n, int* y, int* x){
@@ -1051,9 +1059,9 @@ cell_obliterate(ncplane* n, cell* c){
   cell_init(c);
 }
 
-int ncplane_putc(ncplane* n, const cell* c){
+int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   ncplane_lock(n);
-  if(cursor_invalid_p(n)){
+  if(ncplane_cursor_move_yx_locked(n, y, x)){
     ncplane_unlock(n);
     return -1;
   }
@@ -1105,15 +1113,15 @@ int ncplane_putc(ncplane* n, const cell* c){
   return cols;
 }
 
-int ncplane_putsimple(struct ncplane* n, char c){
+int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
   cell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
   if(!cell_simple_p(&ce)){
     return -1;
   }
-  return ncplane_putc(n, &ce);
+  return ncplane_putc_yx(n, y, x, &ce);
 }
 
-int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
+int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
   cell c = CELL_TRIVIAL_INITIALIZER;
   int primed = cell_prime(n, &c, gclust, n->attrword, n->channels);
   if(primed < 0){
@@ -1122,7 +1130,7 @@ int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
   if(sbytes){
     *sbytes = primed;
   }
-  int ret = ncplane_putc(n, &c);
+  int ret = ncplane_putc_yx(n, y, x, &c);
   cell_release(n, &c);
   return ret;
 }
@@ -1368,7 +1376,7 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
-    if(ncplane_cursor_move_yx(n, ypos + ret, xpos)){
+    if(ncplane_cursor_move_yx_locked(n, ypos + ret, xpos)){
       return -1;
     }
     r1 += deltr;
@@ -1424,7 +1432,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   if(!(ctlword & NCBOXMASK_TOP)){ // draw top border, if called for
     if(xstop - xoff >= 2){
-      if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
+      if(ncplane_cursor_move_yx_locked(n, yoff, xoff + 1)){
         return -1;
       }
       if(!(ctlword & NCBOXGRAD_TOP)){ // cell styling, hl
@@ -1440,7 +1448,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    if(ncplane_cursor_move_yx(n, yoff, xstop)){
+    if(ncplane_cursor_move_yx_locked(n, yoff, xstop)){
       return -1;
     }
     if(ncplane_putc(n, ur) < 0){
@@ -1451,7 +1459,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   // middle rows (vertical lines)
   if(yoff < ystop){
     if(!(ctlword & NCBOXMASK_LEFT)){
-      if(ncplane_cursor_move_yx(n, yoff, xoff)){
+      if(ncplane_cursor_move_yx_locked(n, yoff, xoff)){
         return -1;
       }
       if((ctlword & NCBOXGRAD_LEFT)){ // grad styling, ul->ll
@@ -1465,7 +1473,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       }
     }
     if(!(ctlword & NCBOXMASK_RIGHT)){
-      if(ncplane_cursor_move_yx(n, yoff, xstop)){
+      if(ncplane_cursor_move_yx_locked(n, yoff, xstop)){
         return -1;
       }
       if((ctlword & NCBOXGRAD_RIGHT)){ // grad styling, ur->lr
@@ -1483,7 +1491,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   yoff = ystop;
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
-    if(ncplane_cursor_move_yx(n, yoff, xoff)){
+    if(ncplane_cursor_move_yx_locked(n, yoff, xoff)){
       return -1;
     }
     if(ncplane_putc(n, ll) < 0){
@@ -1492,7 +1500,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   if(!(ctlword & NCBOXMASK_BOTTOM)){
     if(xstop - xoff >= 2){
-      if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
+      if(ncplane_cursor_move_yx_locked(n, yoff, xoff + 1)){
         return -1;
       }
       if(!(ctlword & NCBOXGRAD_BOTTOM)){ // cell styling, hl
@@ -1508,7 +1516,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    if(ncplane_cursor_move_yx(n, yoff, xstop)){
+    if(ncplane_cursor_move_yx_locked(n, yoff, xstop)){
       return -1;
     }
     if(ncplane_putc(n, lr) < 0){
