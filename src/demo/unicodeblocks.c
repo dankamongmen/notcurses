@@ -11,14 +11,18 @@
 #define CHUNKSIZE 32  // show this many per line
 
 static int
-fade_block(struct ncplane* nn, const struct timespec* subdelay){
-  int ret = ncplane_fadein(nn, subdelay, demo_fader);
+fade_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subdelay){
+  //int ret = ncplane_fadein(nn, subdelay, demo_fader);
+  int ret = notcurses_render(nc);
+  nanosleep(subdelay, NULL);
   ncplane_destroy(nn);
   return ret;
 }
 
 static int
 draw_block(struct ncplane* nn, uint32_t blockstart){
+  int dimx, dimy;
+  ncplane_dim_yx(nn, &dimy, &dimx);
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
@@ -35,8 +39,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell_set_fg_rgb(&vl, 255, 255, 255);
   cell_set_bg_rgb(&hl, 0, 0, 0);
   cell_set_bg_rgb(&vl, 0, 0, 0);
-  int dimx, dimy;
-  ncplane_dim_yx(nn, &dimy, &dimx);
+  ncplane_cursor_move_yx(nn, 0, 0);
   if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, 0)){
     return -1;
   }
@@ -45,11 +48,10 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   int chunk;
   for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
     int z;
-    // 16 to a line
     for(z = 0 ; z < CHUNKSIZE ; ++z){
-      wchar_t w[3] = { blockstart + chunk * CHUNKSIZE + z, L'\u200e', L'\0' };
+      wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\0' };
       char utf8arr[MB_CUR_MAX * 2 + 1];
-      if(wcswidth(w, 3) >= 1 && iswprint(w[0])){
+      if(wcswidth(w, sizeof(w) / sizeof(*w)) >= 1 && iswgraph(w[0])){
         mbstate_t ps;
         memset(&ps, 0, sizeof(ps));
         const wchar_t *wptr = w;
@@ -68,7 +70,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
         strcpy(utf8arr, "  ");
       }
       ncplane_set_fg_rgb(nn, 0xad + z * 2, 0xff, 0x2f - z * 2);
-      ncplane_set_bg_rgb(nn, 8 * chunk, 8 * chunk + z, 8 * chunk);
+      ncplane_set_bg_rgb(nn, 8 * chunk, 8 * chunk, 8 * chunk);
       if(ncplane_putstr_yx(nn, chunk + 1, z * 2 + 1, utf8arr) < 0){
         return -1;
       }
@@ -186,7 +188,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf_aligned(n, 6 + BLOCKSIZE / CHUNKSIZE, NCALIGN_CENTER, "%s", description) <= 0){
       return -1;
     }
-    if(fade_block(nn, &subdelay)){ // destroys nn
+    if(fade_block(nc, nn, &subdelay)){ // destroys nn
       return -1;
     }
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
