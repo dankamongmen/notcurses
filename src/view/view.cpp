@@ -130,25 +130,27 @@ int main(int argc, char** argv){
       return EXIT_FAILURE;
     }
     clock_gettime(CLOCK_MONOTONIC, &start);
-    if(ncvisual_stream(nc, ncv, &averr, perframe, &frames)){
+    int r = ncvisual_stream(nc, ncv, &averr, perframe, &frames);
+    if(r < 0){ // positive is intentional abort
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
       notcurses_stop(nc);
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
-    }
-    char32_t ie = notcurses_getc_blocking(nc, nullptr);
-    if(ie == (char32_t)-1){
-      break;
-    }
-    if(ie == NCKEY_RESIZE){
-      --i; // rerun with the new size
-      if(notcurses_resize(nc, &dimy, &dimx)){
-        notcurses_stop(nc);
-        return EXIT_FAILURE;
+    }else if(r == 0){
+      char32_t ie = notcurses_getc_blocking(nc, nullptr);
+      if(ie == (char32_t)-1){
+        break;
       }
-      if(ncplane_resize_simple(ncp, dimy, dimx)){
-        notcurses_stop(nc);
-        return EXIT_FAILURE;
+      if(ie == NCKEY_RESIZE){
+        --i; // rerun with the new size
+        if(notcurses_resize(nc, &dimy, &dimx)){
+          notcurses_stop(nc);
+          return EXIT_FAILURE;
+        }
+        if(ncplane_resize_simple(ncp, dimy, dimx)){
+          notcurses_stop(nc);
+          return EXIT_FAILURE;
+        }
       }
     }
     ncvisual_destroy(ncv);
