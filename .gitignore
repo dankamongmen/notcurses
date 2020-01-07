@@ -1,6 +1,9 @@
 debian
 obj-x86_64-linux-gnu
 python/.eggs/
+python/build/
 python/dist/
 python/src/notcurses.egg-info/
+python/src/_notcurses.so
 rust/target
+*.pyc
