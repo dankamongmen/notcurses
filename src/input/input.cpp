@@ -144,6 +144,10 @@ int main(void){
   if((nc = notcurses_init(&opts, stdout)) == nullptr){
     return EXIT_FAILURE;;
   }
+  if(notcurses_mouse_enable(nc)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   struct ncplane* n = notcurses_stdplane(nc);
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_set_fg(n, 0);
@@ -153,17 +157,12 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  ncplane_styles_off(n, CELL_STYLE_UNDERLINE);
   ncplane_styles_set(n, 0);
   ncplane_set_bg_default(n);
   notcurses_render(nc);
   int y = 2;
   std::deque<wchar_t> cells;
   char32_t r;
-  if(notcurses_mouse_enable(nc)){
-    notcurses_stop(nc);
-    return EXIT_FAILURE;
-  }
   ncinput ni;
   while(errno = 0, (r = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
