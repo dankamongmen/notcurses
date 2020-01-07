@@ -360,6 +360,8 @@ int main(int argc, char** argv){
     fprintf(stderr, "Couldn't set locale based on user preferences\n");
     return EXIT_FAILURE;
   }
+  struct timespec starttime;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &starttime);
   sigset_t sigmask;
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGWINCH);
@@ -409,13 +411,16 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   bool failed = false;
+  uint64_t totalbytes = 0;
+  long unsigned totalframes = 0;
+  uint64_t totalrenderns = 0;
   printf("\n");
   printf("        total│frames│output(B)│rendering│%%r│%6s│\n", "FPS");
   printf("══╤═╤════════╪══════╪═════════╪═════════╪══╪══════╡\n");
+  char timebuf[PREFIXSTRLEN + 1];
+  char totalbuf[BPREFIXSTRLEN + 1];
+  char rtimebuf[PREFIXSTRLEN + 1];
   for(size_t i = 0 ; i < strlen(demos) ; ++i){
-    char totalbuf[BPREFIXSTRLEN + 1];
-    char rtimebuf[PREFIXSTRLEN + 1];
-    char timebuf[PREFIXSTRLEN + 1];
     qprefix(results[i].timens, GIG, timebuf, 0);
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
@@ -433,8 +438,20 @@ int main(int argc, char** argv){
     if(results[i].failed){
       failed = true;
     }
+    totalframes += results[i].stats.renders;
+    totalbytes += results[i].stats.render_bytes;
+    totalrenderns += results[i].stats.render_ns;
   }
   free(results);
+  struct timespec endtime;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &endtime);
+  uint64_t nsdelta = timespec_to_ns(&endtime) - timespec_to_ns(&starttime);
+  qprefix(nsdelta, GIG, timebuf, 0);
+  bprefix(totalbytes, 1, totalbuf, 0);
+  qprefix(totalrenderns, GIG, rtimebuf, 0);
+  printf("══╧═╧════════╪══════╪═════════╪═════════╪══╧══════╛\n");
+  printf("     %*ss│%6lu│%*s│ %*ss│\n", PREFIXSTRLEN, timebuf,
+         totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf);
   if(failed){
     fprintf(stderr, " Error running demo. Is \"%s\" the correct data path?\n", datadir);
   }
