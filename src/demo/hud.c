@@ -13,6 +13,8 @@ static int hud_grab_y = -1;
 static int hud_pos_x;
 static int hud_pos_y;
 
+// how many columns for runtime?
+static const int NSLEN = 9;
 static const int HUD_ROWS = 3;
 static const int HUD_COLS = 30;
 
@@ -20,6 +22,7 @@ typedef struct elem {
   char* name;
   uint64_t startns;
   uint64_t totalns;
+  unsigned frames;
   struct elem* next;
 } elem;
 
@@ -121,6 +124,7 @@ int hud_release(void){
 int hud_completion_notify(const demoresult* result){
   if(running){
     running->totalns = result->timens;
+    running->frames = result->stats.renders;
   }
   return 0;
 }
@@ -152,11 +156,13 @@ int hud_schedule(const char* demoname){
     cure = malloc(sizeof(*cure));
   }
   elem* e = elems;
-  int nslen = 14;
-  int plen = HUD_COLS - 4 - nslen;
+  int plen = HUD_COLS - 4 - NSLEN;
   while(e){
     hook = &e->next;
-    if(ncplane_printf_yx(hud, line, 0, "%*luns %*.*s", nslen, e->totalns, plen, plen, e->name) < 0){
+    if(ncplane_printf_yx(hud, line, 0, "%-5d %*ju.%02jus %-*.*s", e->frames,
+                          NSLEN - 3, e->totalns / GIG,
+                          (e->totalns % GIG) / (GIG / 100),
+                          plen, plen, e->name) < 0){
       return -1;
     }
     ++line;
@@ -166,11 +172,15 @@ int hud_schedule(const char* demoname){
   cure->name = strdup(demoname);
   cure->next = NULL;
   cure->totalns = 0;
+  cure->frames = 0;
   struct timespec cur;
   clock_gettime(CLOCK_MONOTONIC, &cur);
   cure->startns = timespec_to_ns(&cur);
   running = cure;
-  if(ncplane_printf_yx(hud, line, 0, "%*luns %-*.*s", nslen, cure->totalns, plen, plen, cure->name) < 0){
+  if(ncplane_printf_yx(hud, line, 0, "%-5d %*ju.%02jus %-*.*s", cure->frames,
+                        NSLEN - 3, cure->totalns / GIG,
+                        (cure->totalns % GIG) / (GIG / 100),
+                        plen, plen, cure->name) < 0){
     return -1;
   }
   return 0;
@@ -178,13 +188,15 @@ int hud_schedule(const char* demoname){
 
 int demo_render(struct notcurses* nc){
   if(hud){
-    int nslen = 14;
-    int plen = HUD_COLS - 4 - nslen;
+    int plen = HUD_COLS - 4 - NSLEN;
     ncplane_move_top(hud);
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    if(ncplane_printf_yx(hud, HUD_ROWS - 1, 0, "%*luns %-*.*s", nslen,
-                         timespec_to_ns(&ts) - running->startns,
+    uint64_t ns = timespec_to_ns(&ts) - running->startns;
+    ++running->frames;
+    if(ncplane_printf_yx(hud, HUD_ROWS - 1, 0, "%-5d %*ju.%02jus %-*.*s",
+                         running->frames,
+                         NSLEN - 3, ns / GIG, (ns % GIG) / (GIG / 100),
                          plen, plen, running->name) < 0){
       return -1;
     }
