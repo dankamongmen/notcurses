@@ -269,6 +269,10 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
+# Python bindings
+find_package(Python3 COMPONENTS Development REQUIRED)
+# FIXME
+
 # Installation
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake
