@@ -1,0 +1,4 @@
+usr/include/ncpp
+usr/lib/*/libnotcurses++.so
+usr/lib/*/libnotcurses++.a
+usr/lib/*/pkgconfig/notcurses++.pc

@@ -65,9 +65,15 @@ target_link_directories(notcurses
 )
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  set(DEBUG_OPTIONS -g -O0)
+else()
+  set(DEBUG_OPTIONS -O2)
+endif()
+
 target_compile_options(notcurses
   PRIVATE
-    -Wall -Wextra -W -Wshadow
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses
   PUBLIC
@@ -75,6 +81,140 @@ target_compile_definitions(notcurses
   PRIVATE
     FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
 )
+
+# libnotcurses++
+set(NCPP_SOURCES
+  src/libcpp/NotCurses.cc
+  src/libcpp/PanelReel.cc
+  src/libcpp/Plane.cc
+  src/libcpp/Root.cc
+  src/libcpp/Tablet.cc
+  src/libcpp/Visual.cc
+  )
+
+add_library(
+  notcurses++
+  SHARED
+  ${NCPP_SOURCES}
+  )
+
+add_library(
+  notcurses++-static
+  STATIC
+  ${NCPP_SOURCES}
+  )
+set_target_properties(
+  notcurses++-static PROPERTIES
+  OUTPUT_NAME notcurses++
+  )
+
+set_target_properties(
+  notcurses++ PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  OUTPUT_NAME "notcurses++")
+
+set(NCPP_INCLUDE_DIRS
+  include
+    "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
+  )
+
+target_include_directories(notcurses++
+  PRIVATE ${NCPP_INCLUDE_DIRS}
+  )
+
+target_include_directories(notcurses++-static
+  PRIVATE ${NCPP_INCLUDE_DIRS}
+  )
+
+target_link_libraries(notcurses++
+  PRIVATE
+  notcurses)
+
+set(NCPP_COMPILE_OPTIONS
+  -Wall
+  -Wextra
+  -W
+  -Wshadow
+  -Wformat
+  -Werror=format-security
+  -Wnull-dereference
+  -Wmisleading-indentation
+  -Wunused
+  -Wpedantic
+  -Wsuggest-override
+  -Wno-c99-extensions
+  -fno-strict-aliasing
+  -ffunction-sections
+  -funswitch-loops
+  -finline-limit=300
+  -fstack-protector
+  -fno-rtti
+  -fno-exceptions
+  -fpic
+  ${DEBUG_OPTIONS}
+  )
+
+set(NCPP_COMPILE_DEFINITIONS_PUBLIC
+  FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
+  )
+set(NCPP_COMPILE_DEFINITIONS_PRIVATE
+  _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  )
+
+target_compile_options(notcurses++
+  PRIVATE
+  ${NCPP_COMPILLE_OPTIONS}
+  )
+
+target_compile_options(notcurses++-static
+  PRIVATE
+  ${NCPP_COMPILLE_OPTIONS}
+  )
+
+target_compile_definitions(notcurses++
+  PUBLIC
+    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
+  PRIVATE
+    ${NCPP_COMPILE_DEFINITIONS_PRIVATE}
+  )
+
+target_compile_definitions(notcurses++-static
+  PUBLIC
+    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
+  PRIVATE
+    ${NCPP_COMPILE_DEFINITIONS_PRIVATE}
+  )
+
+file(GLOB NCPP_HEADERS
+  CONFIGURE_DEPENDS
+  LIST_DIRECTORIES false
+  ${CMAKE_SOURCE_DIR}/include/ncpp/*.hh)
+
+file(GLOB NCPP_INTERNAL_HEADERS
+  CONFIGURE_DEPENDS
+  LIST_DIRECTORIES false
+  ${CMAKE_SOURCE_DIR}/include/ncpp/internal/*.hh)
+
+install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
+install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
+
+install(
+  TARGETS notcurses++
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT Libraries
+    NAMELINK_COMPONENT Development
+)
+
+install(
+  TARGETS notcurses++-static
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT Libraries
+    NAMELINK_COMPONENT Development
+	)
 
 # notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
@@ -91,7 +231,7 @@ target_link_libraries(notcurses-demo
 )
 target_compile_options(notcurses-demo
   PRIVATE
-    -Wall -Wextra -W -Wshadow
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-demo
   PRIVATE
@@ -107,7 +247,7 @@ foreach(f ${POCSRCS})
     PRIVATE include "${TERMINFO_INCLUDE_DIRS}"
   )
   target_link_libraries(${fe}
-    PRIVATE notcurses "${TERMINFO_LIBRARIES}"
+    PRIVATE notcurses notcurses++ "${TERMINFO_LIBRARIES}"
   )
   target_link_directories(${fe}
     PRIVATE "${TERMINFO_LIBRARY_DIRS}"
@@ -167,11 +307,11 @@ target_include_directories(notcurses-input
 )
 target_link_libraries(notcurses-input
   PRIVATE
-    notcurses
+    notcurses notcurses++
 )
 target_compile_options(notcurses-input
   PRIVATE
-    -Wall -Wextra -W -Wshadow
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-input
   PRIVATE
@@ -188,11 +328,11 @@ target_include_directories(notcurses-planereel
 )
 target_link_libraries(notcurses-planereel
   PRIVATE
-    notcurses
+    notcurses notcurses++
 )
 target_compile_options(notcurses-planereel
   PRIVATE
-    -Wall -Wextra -W -Wshadow
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-planereel
   PRIVATE
@@ -215,7 +355,7 @@ target_link_directories(notcurses-view
 )
 target_link_libraries(notcurses-view
   PRIVATE
-    notcurses
+    notcurses notcurses++
   PRIVATE
     "${AVUTIL_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
@@ -223,7 +363,7 @@ target_link_libraries(notcurses-view
 )
 target_compile_options(notcurses-view
   PRIVATE
-    -Wall -Wextra -W -Wshadow
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-view
   PRIVATE
@@ -246,7 +386,7 @@ target_link_libraries(notcurses-tester
 )
 target_compile_options(notcurses-tester
   PRIVATE
-    -Wall -Wextra -W -Wshadow
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-tester
   PRIVATE
@@ -264,6 +404,15 @@ configure_file(tools/notcurses.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
   @ONLY
 )
+
+configure_file(tools/notcurses++.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
+  @ONLY
+  )
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+  )
 
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)

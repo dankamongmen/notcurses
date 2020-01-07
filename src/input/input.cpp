@@ -5,16 +5,20 @@
 #include <clocale>
 #include <iostream>
 #include <termios.h>
-#include <notcurses.h>
+
+#include <memory>
+#include <ncpp/NotCurses.hh>
+#include <ncpp/Plane.hh>
+
+using namespace ncpp;
 
 static int dimy, dimx;
-static struct notcurses* nc;
 
 // return the string version of a special composed key
 const char* nckeystr(char32_t spkey){
   switch(spkey){ // FIXME
     case NCKEY_RESIZE:
-      notcurses_resize(nc, &dimy, &dimx);
+      NotCurses::get_instance ().resize(&dimy, &dimx);
       return "resize event";
     case NCKEY_INVALID: return "invalid";
     case NCKEY_LEFT:    return "left";
@@ -129,112 +133,107 @@ char32_t printutf8(char32_t kp){
 
 // Dim all text on the plane by the same amount. This will stack for
 // older text, and thus clearly indicate the current output.
-static int
-dim_rows(struct ncplane* n){
+static bool
+dim_rows(std::shared_ptr<Plane> n){
   int y, x;
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  Cell c;
   for(y = 2 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
-      if(ncplane_at_yx(n, y, x, &c) < 0){
-        cell_release(n, &c);
-        return -1;
+      if(n->get_at(y, x, &c) < 0){
+        n->release(c);
+        return false;
       }
       unsigned r, g, b;
-      cell_fg_rgb(&c, &r, &g, &b);
+      c.get_fg_rgb(&r, &g, &b);
       r -= r / 32;
       g -= g / 32;
       b -= b / 32;
       if(r > 247){ r = 0; }
       if(g > 247){ g = 0; }
       if(b > 247){ b = 0; }
-      if(cell_set_fg_rgb(&c, r, g, b)){
-        cell_release(n, &c);
-        return -1;
+      if(!c.set_fg_rgb(r, g, b)){
+        n->release(c);
+        return false;
       }
-      if(ncplane_putc_yx(n, y, x, &c) < 0){
-        cell_release(n, &c);
-        return -1;
+      if(n->putc(y, x, c) < 0){
+        n->release(c);
+        return false;
       }
-      if(cell_double_wide_p(&c)){
+      if(c.is_double_wide()){
         ++x;
       }
     }
   }
-  cell_release(n, &c);
-  return 0;
+  n->release(c);
+  return true;
 }
 
 int main(void){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
-  notcurses_options opts{};
-  opts.clear_screen_start = true;
-  if((nc = notcurses_init(&opts, stdout)) == nullptr){
-    return EXIT_FAILURE;;
-  }
-  if(notcurses_mouse_enable(nc)){
-    notcurses_stop(nc);
+  NotCurses::default_notcurses_options.clear_screen_start = true;
+  NotCurses nc;
+  if(!nc.mouse_enable ()){
     return EXIT_FAILURE;
   }
-  struct ncplane* n = notcurses_stdplane(nc);
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
-  ncplane_set_fg(n, 0);
-  ncplane_set_bg(n, 0xbb64bb);
-  ncplane_styles_on(n, CELL_STYLE_UNDERLINE);
-  if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
-    notcurses_stop(nc);
+  std::shared_ptr<Plane> n(nc.get_stdplane ());
+  nc.get_term_dim(&dimy, &dimx);
+  n->set_fg(0);
+  n->set_bg(0xbb64bb);
+  n->styles_on(CellStyle::Underline);
+  if(n->putstr(0, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
     return EXIT_FAILURE;
   }
-  ncplane_styles_set(n, 0);
-  ncplane_set_bg_default(n);
-  notcurses_render(nc);
+  n->styles_set(CellStyle::None);
+  n->set_bg_default();
+  nc.render();
   int y = 2;
   std::deque<wchar_t> cells;
   char32_t r;
   ncinput ni;
-  while(errno = 0, (r = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
+  while(errno = 0, (r = nc.getc(true, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
       continue;
     }
+
     if((r == 'D' || r == 'd') && ni.ctrl){
-      notcurses_stop(nc);
       return EXIT_SUCCESS;
     }
-    if(ncplane_cursor_move_yx(n, y, 0)){
+    if(!n->cursor_move(y, 0)){
       break;
     }
-    ncplane_set_fg_rgb(n, 0xd0, 0xd0, 0xd0);
-    ncplane_printf(n, "%c%c%c ", ni.alt ? 'A' : 'a', ni.ctrl ? 'C' : 'c',
-                   ni.shift ? 'S' : 's');
+    n->set_fg_rgb(0xd0, 0xd0, 0xd0);
+    n->printf("%c%c%c ", ni.alt ? 'A' : 'a', ni.ctrl ? 'C' : 'c',
+              ni.shift ? 'S' : 's');
     if(r < 0x80){
-      ncplane_set_fg_rgb(n, 128, 250, 64);
-      if(ncplane_printf(n, "ASCII: [0x%02x (%03d)] '%lc'",
-                        r, r, iswprint(r) ? r : printutf8(r)) < 0){
+      n->set_fg_rgb(128, 250, 64);
+      if(n->printf("ASCII: [0x%02x (%03d)] '%lc'",
+                   r, r, iswprint(r) ? r : printutf8(r)) < 0){
         break;
       }
     }else{
       if(nckey_supppuab_p(r)){
-        ncplane_set_fg_rgb(n, 250, 64, 128);
-        if(ncplane_printf(n, "Special: [0x%02x (%02d)] '%s'",
-                          r, r, nckeystr(r)) < 0){
+        n->set_fg_rgb(250, 64, 128);
+        if(n->printf("Special: [0x%02x (%02d)] '%s'",
+                     r, r, nckeystr(r)) < 0){
           break;
         }
-        if(nckey_mouse_p(r)){
-          if(ncplane_printf_aligned(n, -1, NCALIGN_RIGHT, " x: %d y: %d",
-                                    ni.x, ni.y) < 0){
+        if(NCKey::IsMouse(r)){
+          if(n->printf(-1, NCAlign::Right, " x: %d y: %d",
+                       ni.x, ni.y) < 0){
             break;
           }
         }
       }else{
-        ncplane_set_fg_rgb(n, 64, 128, 250);
-        ncplane_printf(n, "Unicode: [0x%08x] '%lc'", r, r);
+        n->set_fg_rgb(64, 128, 250);
+        n->printf("Unicode: [0x%08x] '%lc'", r, r);
       }
     }
-    if(dim_rows(n)){
+    if(!dim_rows(n)){
       break;
     }
-    if(notcurses_render(nc)){
+    if(!nc.render()){
       break;
     }
     if(++y >= dimy - 2){ // leave a blank line at the bottom
@@ -246,7 +245,7 @@ int main(void){
     cells.push_front(r);
   }
   int e = errno;
-  notcurses_stop(nc);
+  nc.stop();
   if(r == (char32_t)-1 && e){
     std::cerr << "Error reading from terminal (" << strerror(e) << "?)\n";
   }

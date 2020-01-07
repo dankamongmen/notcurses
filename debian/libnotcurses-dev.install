@@ -1,5 +1,5 @@
-usr/include
-usr/lib/*/*.so
-usr/lib/*/pkgconfig/*.pc
+usr/include/notcurses.h
+usr/lib/*/libnotcurses.so
+usr/lib/*/pkgconfig/notcurses.pc
 usr/lib/*/cmake/*
 usr/share/man/man3/*
