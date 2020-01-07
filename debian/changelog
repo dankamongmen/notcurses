@@ -1,3 +1,9 @@
+notcurses (1.1.0-1) UNRELEASED; urgency=medium
+
+  * Add python3-all-dev build-dep (#149)
+
+ -- Nick Black <dankamongmen@gmail.com>  Tue, 07 Jan 2020 16:06:56 -0500
+
 notcurses (1.0.0-1) unstable; urgency=medium
 
   * Let's light this candle. Upstream GA release.
