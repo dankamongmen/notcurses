@@ -1618,6 +1618,9 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute_
 // Stream the entirety of the media, according to its own timing. Blocking,
 // obviously. streamer may be NULL; it is otherwise called for each frame, and
 // its return value handled as outlined for stream cb. Pretty raw; beware.
+// If streamer() returns non-zero, the stream is aborted, and that value is
+// returned. By convention, return a positive number to indicate intentional
+// abort from within streamer().
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         int* averr, streamcb streamer, void* curry);
 

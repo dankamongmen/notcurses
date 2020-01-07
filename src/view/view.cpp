@@ -57,7 +57,14 @@ int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
   ncplane_dim_yx(ncvisual_plane(ncv), &oldy, &oldx);
   keepy = oldy > dimy ? dimy : oldy;
   keepx = oldx > dimx ? dimx : oldx;
-  return ncplane_resize(ncvisual_plane(ncv), 0, 0, keepy, keepx, 0, 0, dimy, dimx);
+  char32_t keyp;
+  while((keyp = notcurses_getc_nblock(nc, nullptr)) != (char32_t)-1){
+    if(keyp == NCKEY_RESIZE){
+      return ncplane_resize(ncvisual_plane(ncv), 0, 0, keepy, keepx, 0, 0, dimy, dimx);
+    }
+    return 1;
+  }
+  return 0;
 }
 
 // can exit() directly. returns index in argv of first non-option param.

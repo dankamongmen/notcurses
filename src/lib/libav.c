@@ -20,7 +20,7 @@ void ncvisual_destroy(ncvisual* ncv){
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
     av_freep(&ncv->oframe);
-    avcodec_parameters_free(&ncv->cparams);
+    //avcodec_parameters_free(&ncv->cparams);
     sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
     av_packet_free(&ncv->subtitle);
@@ -234,16 +234,20 @@ ncvisual_open(const char* filename, int* averr){
     //fprintf(stderr, "Couldn't find decoder for %s\n", filename);
     goto err;
   }
+  AVStream* st = ncv->fmtctx->streams[ncv->stream_index];
   if((ncv->codecctx = avcodec_alloc_context3(ncv->codec)) == NULL){
     //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
     *averr = AVERROR(ENOMEM);
+    goto err;
+  }
+  if(avcodec_parameters_to_context(ncv->codecctx, st->codecpar) < 0){
     goto err;
   }
   if((*averr = avcodec_open2(ncv->codecctx, ncv->codec, NULL)) < 0){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
     goto err;
   }
-  if((ncv->cparams = avcodec_parameters_alloc()) == NULL){
+  /*if((ncv->cparams = avcodec_parameters_alloc()) == NULL){
     //fprintf(stderr, "Couldn't allocate codec params for %s\n", filename);
     *averr = AVERROR(ENOMEM);
     goto err;
@@ -251,7 +255,7 @@ ncvisual_open(const char* filename, int* averr){
   if((*averr = avcodec_parameters_from_context(ncv->cparams, ncv->codecctx)) < 0){
     //fprintf(stderr, "Couldn't get codec params for %s (%s)\n", filename, av_err2str(*averr));
     goto err;
-  }
+  }*/
   if((ncv->frame = av_frame_alloc()) == NULL){
     // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
     *averr = AVERROR(ENOMEM);
