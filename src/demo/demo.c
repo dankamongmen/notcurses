@@ -449,9 +449,10 @@ int main(int argc, char** argv){
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  printf("══╧═╧════════╪══════╪═════════╪═════════╪══╧══════╛\n");
-  printf("     %*ss│%6lu│%*s│ %*ss│\n", PREFIXSTRLEN, timebuf,
-         totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf);
+  printf("══╧═╧════════╪══════╪═════════╪═════════╪══╪══════╛\n");
+  printf("     %*ss│%6lu│%*s│ %*ss│%2ld│\n", PREFIXSTRLEN, timebuf,
+         totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf,
+         nsdelta ? totalrenderns * 100 / nsdelta : 0);
   if(failed){
     fprintf(stderr, " Error running demo. Is \"%s\" the correct data path?\n", datadir);
   }
