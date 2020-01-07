@@ -1,6 +1,6 @@
 % notcurses_output(3)
 % nick black <nickblack@linux.com>
-% v1.0.0
+% v1.1.0
 
 # NAME
 
@@ -10,25 +10,25 @@ notcurses_output - output to ncplanes
 
 **#include <notcurses.h>**
 
-**int ncplane_putc(struct ncplane* n, const cell* c);**
+**static inline int
+ncplane_putc(struct ncplane* n, const cell* c);**
+
+**int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);**
 
 **static inline int
-ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);**
+ncplane_putsimple(struct ncplane* n, char c);**
 
-**int ncplane_putsimple(struct ncplane* n, char c);**
-
-**static inline int
-ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);**
-
-**int ncplane_putwc(struct ncplane* n, wchar_t w);**
+**int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);**
 
 **static inline int
-ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);**
+ncplane_putwc(struct ncplane* n, wchar_t w);**
 
-**int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes);**
+**int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);**
 
 **static inline int
-ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);**
+ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes);**
+
+**int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);**
 
 **static inline int
 ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes);**
@@ -44,8 +44,7 @@ ncplane_putstr(struct ncplane* n, const char* gclustarr);**
 **int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
                                const char* s);**
 
-**static inline int
-ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr);**
+**int ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr);**
 
 **static inline int
 ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
