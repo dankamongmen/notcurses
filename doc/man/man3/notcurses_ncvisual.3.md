@@ -1,6 +1,6 @@
 % notcurses_ncvisual(3)
 % nick black <nickblack@linux.com>
-% v1.1.0
+% v1.0.1
 
 # NAME
 notcurses_ncvisual - notcurses multimedia

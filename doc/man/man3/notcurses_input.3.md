@@ -1,6 +1,6 @@
 % notcurses_input(3)
 % nick black <nickblack@linux.com>
-% v1.1.0
+% v1.0.1
 
 # NAME
 
@@ -39,7 +39,7 @@ notcurses supports input from keyboards and mice, and any device that looks
 like them. Mouse support requires a broker such as GPM, Wayland, or Xorg, and
 must be explicitly enabled via **notcurses_mouse_enable(3)**. The full 32-bit
 range of Unicode is supported (see **unicode(7)**), with synthesized events
-mapped into the [Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U1.1.00.pdf).
+mapped into the [Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U1.0.10.pdf).
 Unicode characters are returned directly as UCS-32, one codepoint at a time.
 
 notcurses takes its keyboard input from **stdin**, which will be placed into

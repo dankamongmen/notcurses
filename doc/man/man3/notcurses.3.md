@@ -1,6 +1,6 @@
 % notcurses(3)
 % nick black <nickblack@linux.com>
-% v1.1.0
+% v1.0.1
 
 # NAME
 
@@ -56,7 +56,7 @@ notcurses supports input from keyboards (via **stdin**) and pointing devices (vi
 a broker such as GPM, X, or Wayland). Input is delivered as 32-bit Unicode
 code points. Synthesized events such as mouse button presses and arrow keys
 are mapped into Unicode's
-[Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U1.1.00.pdf).
+[Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U1.0.10.pdf).
 Information on input is available at **notcurses_input(3)**.
 
 ## Ncplanes

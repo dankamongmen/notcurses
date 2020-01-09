@@ -1,4 +1,4 @@
-notcurses (1.1.0-1) UNRELEASED; urgency=medium
+notcurses (1.0.1-1) unstable; urgency=medium
 
   * Add python3-all-dev build-dep (#149)
 
