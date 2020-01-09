@@ -392,6 +392,9 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
   // we don't have PTS available.
   uint64_t sum_duration = 0;
   while( (avf = ncvisual_decode(ncv, averr)) ){
+    // codecctx seems to be off by a factor of 2 regularly. instead, go with
+    // the time_base from the avformatctx.
+    double tbase = av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base);
     int64_t ts = avf->best_effort_timestamp;
     if(frame == 1 && ts){
       usets = true;
@@ -410,24 +413,21 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
     clock_gettime(CLOCK_MONOTONIC, &now);
     uint64_t nsnow = timespec_to_ns(&now);
     struct timespec interval;
-    uint64_t duration = avf->pkt_duration * 1000000;
+    uint64_t duration = avf->pkt_duration * tbase * NANOSECS_IN_SEC;
+//fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->codecctx->time_base), av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base));
     sum_duration += duration;
+    double schedns = nsbegin;
     if(usets){
-      double tbase = av_q2d(ncv->codecctx->time_base);
       if(tbase == 0){
         tbase = duration;
       }
-      double schedns = ts * tbase * NANOSECS_IN_SEC + nsbegin;
-      if(nsnow < schedns){
-        ns_to_timespec(schedns - nsnow, &interval);
-        nanosleep(&interval, NULL);
-      }
+      schedns += ts * tbase * NANOSECS_IN_SEC;
     }else{
-      uint64_t schedns = nsbegin + sum_duration;
-      if(nsnow < schedns){
-        ns_to_timespec(schedns - nsnow, &interval);
-        nanosleep(&interval, NULL);
-      }
+      schedns += sum_duration;
+    }
+    if(nsnow < schedns){
+      ns_to_timespec(schedns - nsnow, &interval);
+      nanosleep(&interval, NULL);
     }
   }
   if(*averr == AVERROR_EOF){
