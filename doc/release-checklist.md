@@ -18,8 +18,12 @@
   * `makepkg --printsrcinfo > .SRCINFO`
   * Test that package builds with `makepkg`
   * `git commit -a`
-* Upload new Rust crate with `cargo upload`
+* Upload new Rust crate with `cargo publish`
+* Upload new Python pip with
+  * `python3 setup.py sdist`
+  * `twine upload dist/*`
 * Generate and upload new HTML documentation via `make html`
+  * `scp *.html qemfd.net:/var/www/notcurses/`
 * Update Debian changelog with `dch -v $NEXTVERSION-1`
 * Update `doc/FreeBSD-Makefile` version
 * Update CMakeLists.txt with next version
