@@ -2259,7 +2259,7 @@ fore- or background (since `op` changes both at once).
 
 ## Included tools
 
-Four binaries are built as part of notcurses:
+Five binaries are built as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
@@ -2352,12 +2352,9 @@ a shim layer, e.g. `compat_mvwprintw` for NCURSES's `mvwprintw`:
 ```c
 static int
 compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
-  if(ncplane_cursor_move_yx(nc, y, x)){
-    return ERR;
-  }
   va_list va;
   va_start(va, fmt);
-  if(ncplane_vprintf(nc, fmt, va) < 0){
+  if(ncplane_vprintf_yx(nc, y, x, fmt, va) < 0){
     va_end(va);
     return ERR;
   }
