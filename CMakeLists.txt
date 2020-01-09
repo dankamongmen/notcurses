@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 include(GNUInstallDirs)
+set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
 option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
 
@@ -256,7 +257,6 @@ configure_file(tools/notcurses.pc.in
 )
 
 include(CMakePackageConfigHelpers)
-
 configure_file(tools/version.h.in include/version.h)
 
 configure_package_config_file(tools/notcursesConfig.cmake.in
@@ -288,17 +288,17 @@ install(FILES
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
 install(FILES
   ${TESTDATA}
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/notcurses
+    DESTINATION ${NOTCURSES_SHARE}
 )
 
 file(GLOB MANPAGES1 CONFIGURE_DEPENDS doc/man/man1/*.1)
 install(FILES
   ${MANPAGES1}
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 )
 install(FILES
   ${MANPAGES3}
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3
 )
 
 install(TARGETS notcurses-demo DESTINATION bin)

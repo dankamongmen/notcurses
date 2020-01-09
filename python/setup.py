@@ -19,9 +19,9 @@ setup(
     platforms=["any"],
     long_description=read('README.md'),
     long_description_content_type="text/markdown",
-    setup_requires=["cffi"],
+    install_requires=["cffi>=1.0.0"],
+    setup_requires=["cffi>=1.0.0"],
     cffi_modules=["src/notcurses/build_notcurses.py:ffibuild"],
-    install_requires=["cffi"],
     py_modules=["notcurses"],
     # see https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[

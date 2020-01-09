@@ -284,7 +284,7 @@ ext_demos(struct notcurses* nc, const char* demos){
 // if it's NULL, there were valid options, but no spec.
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
-  strcpy(datadir, CMAKE_INSTALL_SHARE);
+  strcpy(datadir, NOTCURSES_SHARE);
   bool constant_seed = false;
   int c;
   *use_hud = false;
