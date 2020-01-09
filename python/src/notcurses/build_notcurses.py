@@ -54,6 +54,7 @@ typedef struct notcurses_options {
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
+struct ncplane* notcurses_stdplane(struct notcurses*);
 """)
 
 if __name__ == "__main__":
