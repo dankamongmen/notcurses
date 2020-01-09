@@ -27,9 +27,9 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_move_top@Base 1.0.0
  ncplane_move_yx@Base 1.0.0
  ncplane_new@Base 1.0.0
- ncplane_putc@Base 1.0.0
- ncplane_putegc@Base 1.0.0
- ncplane_putsimple@Base 1.0.0
+ ncplane_putc_yx@Base 1.0.1
+ ncplane_putegc_yx@Base 1.0.1
+ ncplane_putsimple_yx@Base 1.0.1
  ncplane_putstr_aligned@Base 1.0.0
  ncplane_putstr_yx@Base 1.0.0
  ncplane_resize@Base 1.0.0
