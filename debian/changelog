@@ -1,3 +1,10 @@
+notcurses (1.0.2-1) unstable; urgency=medium
+
+  * New upstream version
+  * Update debian symbol list
+
+ -- Nick Black <dankamongmen@gmail.com>  Thu, 09 Jan 2020 05:50:04 -0500
+
 notcurses (1.0.1-1) unstable; urgency=medium
 
   * Add python3-all-dev build-dep (#149)
