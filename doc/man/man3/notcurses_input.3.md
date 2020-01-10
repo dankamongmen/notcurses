@@ -8,7 +8,7 @@ notcurses_input - input via notcurses
 
 # SYNOPSIS
 
-#include <notcurses.h>**
+**#include <notcurses.h>**
 
 ```c
 typedef struct ncinput {
