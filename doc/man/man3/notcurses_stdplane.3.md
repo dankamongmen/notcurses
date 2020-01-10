@@ -10,11 +10,9 @@ notcurses_stdplane - acquire the standard ncplane
 
 **#include <notcurses.h>**
 
-**struct ncplane*
-notcurses_stdplane(struct notcurses* nc);**
+**struct ncplane* notcurses_stdplane(struct notcurses* nc);**
 
-**const struct ncplane*
-notcurses_const_stdplane(const struct notcurses* nc);**
+**const struct ncplane* notcurses_const_stdplane(const struct notcurses* nc);**
 
 # DESCRIPTION
 

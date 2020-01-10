@@ -23,8 +23,7 @@ typedef struct notcurses_options {
 } notcurses_options;
 ```
 
-**struct notcurses*
-notcurses_init(const struct notcurses_options* opts, FILE* fp);**
+**struct notcurses* notcurses_init(const struct notcurses_options* opts, FILE* fp);**
 
 # DESCRIPTION
 
