@@ -67,7 +67,7 @@ struct timespec demodelay = {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -hHVkc ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -hHVkc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -V: print program name and version\n");
   fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
@@ -76,6 +76,7 @@ usage(const char* exe, int status){
   fprintf(out, " -d: delay multiplier (float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
+  fprintf(out, " -p: data file path\n");
   fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
   fprintf(out, " b: run box\n");
   fprintf(out, " c: run chunli\n");
