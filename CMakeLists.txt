@@ -115,12 +115,13 @@ foreach(f ${POCSRCS})
 endforeach()
 
 # Documentation
+file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
 file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
 FIND_PROGRAM(PANDOC pandoc)
 iF(NOT PANDOC)
   message(WARNING "pandoc not found, won't generate documentation")
 else()
-foreach(m ${MANSOURCE3})
+  foreach(m ${MANSOURCE3} ${MANSOURCE1})
   get_filename_component(me ${m} NAME_WLE)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
@@ -134,6 +135,7 @@ foreach(m ${MANSOURCE3})
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
   )
   set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+  set(MANPAGES1 ${MANPAGES1} ${CMAKE_CURRENT_BINARY_DIR}/${me})
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
     DEPENDS ${m}
