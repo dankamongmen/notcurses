@@ -71,18 +71,13 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
   r += rand() % ((r + 16) / (5 * distance + 1) + 1);
   g += rand() % ((g + 16) / (5 * distance + 1) + 1);
   b += rand() % ((b + 16) / (5 * distance + 1) + 1);
-  if(r > 255) r = 255;
-  if(g > 255) g = 255;
-  if(b > 255) b = 255;
-  if(cell_set_fg_rgb(c, r, g, b)){
-    return -1;
-  }
+  cell_set_fg_rgb_clipped(c, r, g, b);
   return ncplane_putc_yx(n, y, x, c);
 }
 
 static void
 surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
-  ncplane_at_yx(n, y - 1, x - 1, &cells[0]);
+  /*ncplane_at_yx(n, y - 1, x - 1, &cells[0]);
   ncplane_at_yx(n, y - 1, x, &cells[1]);
   ncplane_at_yx(n, y - 1, x + 1, &cells[2]);
   ncplane_at_yx(n, y, x + 1, &cells[3]);
@@ -93,13 +88,14 @@ surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
   ncplane_at_yx(n, y - 2, x, &cells[8]);
   ncplane_at_yx(n, y + 2, x, &cells[9]);
   ncplane_at_yx(n, y, x - 2, &cells[10]);
-  ncplane_at_yx(n, y, x + 2, &cells[11]);
+  ncplane_at_yx(n, y, x + 2, &cells[11]);*/
   ncplane_at_yx(n, y, x, &cells[12]);
 }
 
 static int
 lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
   cell c = CELL_TRIVIAL_INITIALIZER;
+  /*
   cell_duplicate(n, &c, &cells[0]);
   lighten(n, &c, 2, y - 1, x - 1);
   cell_duplicate(n, &c, &cells[1]);
@@ -124,6 +120,7 @@ lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
   lighten(n, &c, 2, y, x - 2);
   cell_duplicate(n, &c, &cells[11]);
   lighten(n, &c, 2, y, x + 2);
+  */
   cell_duplicate(n, &c, &cells[12]);
   lighten(n, &c, 0, y, x);
   cell_release(n, &c);
