@@ -902,15 +902,31 @@ uint32_t ncplane_attr(const ncplane* n){
 }
 
 void ncplane_set_fg_default(struct ncplane* n){
+  ncplane_lock(n);
   channels_set_fg_default(&n->channels);
+  ncplane_unlock(n);
 }
 
 void ncplane_set_bg_default(struct ncplane* n){
+  ncplane_lock(n);
   channels_set_bg_default(&n->channels);
+  ncplane_unlock(n);
+}
+
+void ncplane_set_bg_rgb_clipped(ncplane* n, int r, int g, int b){
+  ncplane_lock(n);
+  channels_set_bg_rgb_clipped(&n->channels, r, g, b);
+  ncplane_unlock(n);
 }
 
 int ncplane_set_bg_rgb(ncplane* n, int r, int g, int b){
   return channels_set_bg_rgb(&n->channels, r, g, b);
+}
+
+void ncplane_set_fg_rgb_clipped(ncplane* n, int r, int g, int b){
+  ncplane_lock(n);
+  channels_set_fg_rgb_clipped(&n->channels, r, g, b);
+  ncplane_unlock(n);
 }
 
 int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
@@ -1058,7 +1074,7 @@ void ncplane_cursor_yx(ncplane* n, int* y, int* x){
 
 static inline bool
 ncplane_cursor_stuck(const ncplane* n){
-  return (n->x == n->lenx && n->y == n->leny);
+  return (n->x >= n->lenx && n->y >= n->leny);
 }
 
 static inline void
