@@ -97,6 +97,9 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
   int maxbsteps = pp.maxbg > pp.maxbr ? (pp.maxbb > pp.maxbg ? pp.maxbb : pp.maxbg) :
                   (pp.maxbb > pp.maxbr ? pp.maxbb : pp.maxbr);
   int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
+  if(maxsteps == 0){
+    maxsteps = 1;
+  }
   uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
   uint64_t nanosecs_step = nanosecs_total / maxsteps;
   struct timespec times;
@@ -172,6 +175,9 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
   int maxbsteps = pp.maxbg > pp.maxbr ? (pp.maxbb > pp.maxbg ? pp.maxbb : pp.maxbg) :
                   (pp.maxbb > pp.maxbr ? pp.maxbb : pp.maxbr);
   int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
+  if(maxsteps == 0){
+    maxsteps = 1;
+  }
   uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
   uint64_t nanosecs_step = nanosecs_total / maxsteps;
   struct timespec times;

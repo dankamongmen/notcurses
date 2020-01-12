@@ -67,7 +67,7 @@ struct timespec demodelay = {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -hHVkc ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -hHVkc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -V: print program name and version\n");
   fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
@@ -76,6 +76,7 @@ usage(const char* exe, int status){
   fprintf(out, " -d: delay multiplier (float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
+  fprintf(out, " -p: data file path\n");
   fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
   fprintf(out, " b: run box\n");
   fprintf(out, " c: run chunli\n");
@@ -270,8 +271,8 @@ ext_demos(struct notcurses* nc, const char* demos){
     uint64_t nowns = timespec_to_ns(&now);
     results[i].timens = nowns - prevns;
     prevns = nowns;
+    results[i].result = ret;
     if(ret){
-      results[i].failed = true;
       break;
     }
     hud_completion_notify(&results[i]);
@@ -285,11 +286,12 @@ ext_demos(struct notcurses* nc, const char* demos){
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
   strcpy(datadir, NOTCURSES_SHARE);
+  char renderfile[PATH_MAX] = "";
   bool constant_seed = false;
   int c;
   *use_hud = false;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "HVhckl:d:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "HVhckl:r:d:f:p:")) != EOF){
     switch(c){
       case 'H':
         *use_hud = true;
@@ -330,10 +332,17 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
       case 'p':
         strcpy(datadir, optarg);
         break;
+      case 'r':
+        strcpy(renderfile, optarg);
+        break;
       case 'd':{
         float f;
         if(sscanf(optarg, "%f", &f) != 1){
           fprintf(stderr, "Couldn't get a float from %s\n", optarg);
+          usage(*argv, EXIT_FAILURE);
+        }
+        if(f <= 0){
+          fprintf(stderr, "Invalid multiplier: %f\n", f);
           usage(*argv, EXIT_FAILURE);
         }
         uint64_t ns = f * GIG;
@@ -346,6 +355,13 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
   }
   if(!constant_seed){
     srand(time(NULL)); // a classic blunder lol
+  }
+  if(strlen(renderfile)){
+    opts->renderfp = fopen(renderfile, "wb");
+    if(opts->renderfp == NULL){
+      fprintf(stderr, "Error opening %s for write\n", renderfile);
+      usage(*argv, EXIT_FAILURE);
+    }
   }
   const char* demos = argv[optind];
   return demos;
@@ -410,6 +426,11 @@ int main(int argc, char** argv){
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
+  if(nopts.renderfp){
+    if(fclose(nopts.renderfp)){
+      fprintf(stderr, "Warning: error closing renderfile\n");
+    }
+  }
   bool failed = false;
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
@@ -434,8 +455,10 @@ int main(int argc, char** argv){
            results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0,
            GIG / avg,
-           results[i].failed ? "***FAILED" : results[i].stats.renders ? ""  : "***NOT RUN");
-    if(results[i].failed){
+           results[i].result < 0 ? "***FAILED" :
+            results[i].result > 0 ? "***ABORTED" :
+             results[i].stats.renders ? ""  : "***NOT RUN");
+    if(results[i].result < 0){
       failed = true;
     }
     totalframes += results[i].stats.renders;
@@ -462,7 +485,8 @@ err:
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   notcurses_stop(nc);
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
-    fprintf(stderr, "At least an 80x25 terminal is required (current: %dx%d)\n", dimx, dimy);
+    fprintf(stderr, "At least an %dx%d terminal is required (current: %dx%d)\n",
+            MIN_SUPPORTED_COLS, MIN_SUPPORTED_ROWS, dimx, dimy);
   }
   return EXIT_FAILURE;
 }

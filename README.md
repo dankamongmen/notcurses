@@ -123,6 +123,10 @@ hides important output).
 To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
 be found on the `notcurses-demo(1)` man page.
 
+<p align="center">
+<img width="640" height="112" src="doc/widechars.png" alt="notcurses 1.0.2 wide banner"/>
+</p>
+
 ## Use
 
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
@@ -1126,6 +1130,10 @@ ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
 int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 
+// Same, but clipped to [0..255].
+void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);
+void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
+
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
 int ncplane_set_fg(struct ncplane* n, unsigned channel);
 int ncplane_set_bg(struct ncplane* n, unsigned channel);
@@ -1460,11 +1468,10 @@ cell_set_fg_rgb(cell* cl, int r, int g, int b){
   return channels_set_fg_rgb(&cl->channels, r, g, b);
 }
 
-// Set the r, g, and b cell for the background component of this 64-bit
-// 'cell' variable, and mark it as not using the default color.
-static inline int
-cell_set_bg_rgb(cell* cl, int r, int g, int b){
-  return channels_set_bg_rgb(&cl->channels, r, g, b);
+// Same, but clipped to [0..255].
+static inline void
+cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
+  channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 32-bit channel.
@@ -1473,6 +1480,20 @@ cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
 }
 
+// Set the r, g, and b cell for the background component of this 64-bit
+// 'cell' variable, and mark it as not using the default color.
+static inline int
+cell_set_bg_rgb(cell* cl, int r, int g, int b){
+  return channels_set_bg_rgb(&cl->channels, r, g, b);
+}
+
+// Same, but clipped to [0..255].
+static inline void
+cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
+  channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
+}
+
+// Same, but with an assembled 32-bit channel.
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);

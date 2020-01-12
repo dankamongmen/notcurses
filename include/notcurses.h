@@ -862,6 +862,35 @@ channel_set_rgb(unsigned* channel, int r, int g, int b){
   return 0;
 }
 
+// Set the three 8-bit components of a 32-bit channel, and mark it as not using
+// the default color. Retain the other bits unchanged. r, g, and b will be
+// clipped to the range [0..255].
+static inline void
+channel_set_rgb_clipped(unsigned* channel, int r, int g, int b){
+  if(r >= 256){
+    r = 255;
+  }
+  if(g >= 256){
+    g = 255;
+  }
+  if(b >= 256){
+    b = 255;
+  }
+  if(r <= -1){
+    r = 0;
+  }
+  if(g <= -1){
+    g = 0;
+  }
+  if(b <= -1){
+    b = 0;
+  }
+  unsigned c = (r << 16u) | (g << 8u) | b;
+  c |= CELL_BGDEFAULT_MASK;
+  const uint64_t mask = CELL_BGDEFAULT_MASK | CELL_BG_MASK;
+  *channel = (*channel & ~mask) | c;
+}
+
 // Same, but provide an assembled, packed 24 bits of rgb.
 static inline int
 channel_set(unsigned* channel, unsigned rgb){
@@ -972,6 +1001,14 @@ channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
   return 0;
 }
 
+// Same, but clips to [0..255].
+static inline void
+channels_set_fg_rgb_clipped(uint64_t* channels, int r, int g, int b){
+  unsigned channel = channels_fchannel(*channels);
+  channel_set_rgb_clipped(&channel, r, g, b);
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+}
+
 // Set the r, g, and b channels for the background component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
@@ -982,6 +1019,14 @@ channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
   }
   *channels = (*channels & 0xffffffff00000000llu) | channel;
   return 0;
+}
+
+// Same, but clips to [0..255].
+static inline void
+channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
+  unsigned channel = channels_bchannel(*channels);
+  channel_set_rgb_clipped(&channel, r, g, b);
+  *channels = (*channels & 0xffffffff00000000llu) | channel;
 }
 
 // Same, but set an assembled 32 bit channel at once.
@@ -1069,14 +1114,22 @@ channels_set_bg_default(uint64_t* channels){
 // it will not be used (unless 'blends' is 0).
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2, unsigned blends){
+  unsigned rsum, gsum, bsum;
   if(blends == 0){
-    return c2;
-  }
-  if(!channel_default_p(c2) && !channel_default_p(c1)){
-    int rsum = (channel_r(c1) * blends + channel_r(c2)) / (blends + 1);
-    int gsum = (channel_g(c1) * blends + channel_g(c2)) / (blends + 1);
-    int bsum = (channel_b(c1) * blends + channel_b(c2)) / (blends + 1);
+    // don't just return c2, or you set wide status and all kinds of crap
+    if(channel_default_p(c2)){
+      channel_set_default(&c1);
+    }else{
+      channel_rgb(c2, &rsum, &gsum, &bsum);
+      channel_set_rgb(&c1, rsum, gsum, bsum);
+    }
+    channel_set_alpha(&c1, channel_alpha(c2));
+  }else if(!channel_default_p(c2) && !channel_default_p(c1)){
+    rsum = (channel_r(c1) * blends + channel_r(c2)) / (blends + 1);
+    gsum = (channel_g(c1) * blends + channel_g(c2)) / (blends + 1);
+    bsum = (channel_b(c1) * blends + channel_b(c2)) / (blends + 1);
     channel_set_rgb(&c1, rsum, gsum, bsum);
+    channel_set_alpha(&c1, channel_alpha(c2));
   }
   return c1;
 }
@@ -1158,11 +1211,10 @@ cell_set_fg_rgb(cell* cl, int r, int g, int b){
   return channels_set_fg_rgb(&cl->channels, r, g, b);
 }
 
-// Set the r, g, and b cell for the background component of this 64-bit
-// 'cell' variable, and mark it as not using the default color.
-static inline int
-cell_set_bg_rgb(cell* cl, int r, int g, int b){
-  return channels_set_bg_rgb(&cl->channels, r, g, b);
+// Same, but clipped to [0..255].
+static inline void
+cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
+  channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 32-bit channel.
@@ -1171,6 +1223,20 @@ cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
 }
 
+// Set the r, g, and b cell for the background component of this 64-bit
+// 'cell' variable, and mark it as not using the default color.
+static inline int
+cell_set_bg_rgb(cell* cl, int r, int g, int b){
+  return channels_set_bg_rgb(&cl->channels, r, g, b);
+}
+
+// Same, but clipped to [0..255].
+static inline void
+cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
+  channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
+}
+
+// Same, but with an assembled 32-bit channel.
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);
@@ -1250,6 +1316,10 @@ ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
 // time using "color pairs"; notcurses will manage color pairs transparently.
 API int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
+
+// Same, but clipped to [0..255].
+API void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);
+API void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
 
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
 API int ncplane_set_fg(struct ncplane* n, unsigned channel);

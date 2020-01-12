@@ -126,7 +126,7 @@ typedef struct demoresult {
   char selector;
   struct ncstats stats;
   uint64_t timens;
-  bool failed;
+  int result; // positive == aborted, negative == failed
 } demoresult;
 
 // let the HUD know that a demo has completed, reporting the stats

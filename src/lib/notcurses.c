@@ -671,6 +671,11 @@ ffmpeg_log_level(ncloglevel_e level){
 }
 
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
+  notcurses_options defaultopts;
+  memset(&defaultopts, 0, sizeof(defaultopts));
+  if(!opts){
+    opts = &defaultopts;
+  }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || strcmp(encoding, "UTF-8")){
     fprintf(stderr, "Encoding (\"%s\") wasn't UTF-8, refusing to start\n",
@@ -848,7 +853,7 @@ int notcurses_stop(notcurses* nc){
         char minbuf[BPREFIXSTRLEN + 1];
         char maxbuf[BPREFIXSTRLEN + 1];
         double avg = nc->stashstats.render_ns / (double)nc->stashstats.renders;
-        fprintf(stderr, "\n%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
+        fprintf(stderr, "\n%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.03gs avg %.1f fps)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
                 nc->stashstats.render_ns / 1000000000.0,
                 nc->stashstats.render_min_ns / 1000000000.0,
@@ -858,7 +863,7 @@ int notcurses_stop(notcurses* nc){
         bprefix(nc->stashstats.render_bytes, 1, totalbuf, 0),
         bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 0),
         bprefix(nc->stashstats.render_max_bytes, 1, maxbuf, 0),
-        fprintf(stderr, "%sB total (%sB min, %sB max, %.02fKiB avg)\n",
+        fprintf(stderr, "%sB total (%sB min, %sB max, %.03gKiB avg)\n",
                 totalbuf, minbuf, maxbuf,
                 avg / 1024);
       }
@@ -897,15 +902,31 @@ uint32_t ncplane_attr(const ncplane* n){
 }
 
 void ncplane_set_fg_default(struct ncplane* n){
+  ncplane_lock(n);
   channels_set_fg_default(&n->channels);
+  ncplane_unlock(n);
 }
 
 void ncplane_set_bg_default(struct ncplane* n){
+  ncplane_lock(n);
   channels_set_bg_default(&n->channels);
+  ncplane_unlock(n);
+}
+
+void ncplane_set_bg_rgb_clipped(ncplane* n, int r, int g, int b){
+  ncplane_lock(n);
+  channels_set_bg_rgb_clipped(&n->channels, r, g, b);
+  ncplane_unlock(n);
 }
 
 int ncplane_set_bg_rgb(ncplane* n, int r, int g, int b){
   return channels_set_bg_rgb(&n->channels, r, g, b);
+}
+
+void ncplane_set_fg_rgb_clipped(ncplane* n, int r, int g, int b){
+  ncplane_lock(n);
+  channels_set_fg_rgb_clipped(&n->channels, r, g, b);
+  ncplane_unlock(n);
 }
 
 int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
@@ -1029,6 +1050,9 @@ ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
   }else{
     n->y = y;
   }
+  if(cursor_invalid_p(n)){
+    return -1;
+  }
   return 0;
 }
 
@@ -1050,7 +1074,7 @@ void ncplane_cursor_yx(ncplane* n, int* y, int* x){
 
 static inline bool
 ncplane_cursor_stuck(const ncplane* n){
-  return (n->x == n->lenx && n->y == n->leny);
+  return (n->x >= n->lenx && n->y >= n->leny);
 }
 
 static inline void
@@ -1248,25 +1272,32 @@ unsigned ncplane_styles(ncplane* n){
 
 // i hate the big allocation and two copies here, but eh what you gonna do?
 // well, for one, we don't need the huge allocation FIXME
-char* ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
+static char*
+ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
   const size_t size = n->lenx + 1; // healthy estimate, can embiggen below
   char* buf = malloc(size);
   if(buf == NULL){
     return NULL;
   }
+  va_list vacopy;
+  va_copy(vacopy, ap);
   int ret = vsnprintf(buf, size, format, ap);
   if(ret < 0){
     free(buf);
+    va_end(vacopy);
     return NULL;
   }
   if((size_t)ret >= size){
     char* tmp = realloc(buf, ret + 1);
     if(tmp == NULL){
       free(buf);
+      va_end(vacopy);
       return NULL;
     }
     buf = tmp;
+    vsprintf(buf, format, vacopy);
   }
+  va_end(vacopy);
   return buf;
 }
 

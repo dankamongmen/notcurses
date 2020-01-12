@@ -19,8 +19,10 @@ char32_t demo_getc(const struct timespec* ts, ncinput* ni){
   struct timespec now;
   uint64_t ns;
   struct timespec abstime;
+  // yes, i'd like CLOCK_MONOTONIC too, but pthread_cond_timedwait() is based off
+  // of crappy CLOCK_REALTIME :/
   if(ts){
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    clock_gettime(CLOCK_REALTIME, &now);
     ns = timespec_to_ns(&now) + timespec_to_ns(ts);
     ns_to_timespec(ns, &abstime);
   }else{
@@ -29,7 +31,7 @@ char32_t demo_getc(const struct timespec* ts, ncinput* ni){
   }
   pthread_mutex_lock(&lock);
   while(!queue){
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    clock_gettime(CLOCK_REALTIME, &now);
     if(timespec_to_ns(&now) > timespec_to_ns(&abstime)){
       pthread_mutex_unlock(&lock);
       return 0;
@@ -52,11 +54,14 @@ char32_t demo_getc(const struct timespec* ts, ncinput* ni){
 
 static int
 pass_along(const ncinput* ni){
+  pthread_mutex_lock(&lock);
   nciqueue *nq = malloc(sizeof(*nq));
   memcpy(&nq->ni, ni, sizeof(*ni));
   nq->next = NULL;
   *enqueue = nq;
   enqueue = &nq->next;
+  pthread_mutex_unlock(&lock);
+  pthread_cond_signal(&cond);
   return 0;
 }
 
