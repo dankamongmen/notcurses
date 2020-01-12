@@ -309,6 +309,17 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
   return ts;
 }
 
+static inline void
+cell_debug(const ncplane* p, const cell* c){
+	if(cell_simple_p(c)){
+		fprintf(stderr, "gcluster: %u %c attr: 0x%08x chan: 0x%016lx\n",
+				    c->gcluster, c->gcluster, c->attrword, c->channels);
+	}else{
+		fprintf(stderr, "gcluster: %u %s attr: 0x%08x chan: 0x%016lx\n",
+				    c->gcluster, extended_gcluster(p, c), c->attrword, c->channels);
+	}
+}
+
 // no CLOCK_MONOTONIC_RAW on FreeBSD as of 12.0 :/
 #ifndef CLOCK_MONOTONIC_RAW
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
