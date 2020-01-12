@@ -671,6 +671,11 @@ ffmpeg_log_level(ncloglevel_e level){
 }
 
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
+  notcurses_options defaultopts;
+  memset(&defaultopts, 0, sizeof(defaultopts));
+  if(!opts){
+    opts = &defaultopts;
+  }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || strcmp(encoding, "UTF-8")){
     fprintf(stderr, "Encoding (\"%s\") wasn't UTF-8, refusing to start\n",
@@ -1248,7 +1253,8 @@ unsigned ncplane_styles(ncplane* n){
 
 // i hate the big allocation and two copies here, but eh what you gonna do?
 // well, for one, we don't need the huge allocation FIXME
-char* ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
+static char*
+ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
   const size_t size = n->lenx + 1; // healthy estimate, can embiggen below
   char* buf = malloc(size);
   if(buf == NULL){
@@ -1266,6 +1272,7 @@ char* ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
       return NULL;
     }
     buf = tmp;
+    vsprintf(buf, format, ap);
   }
   return buf;
 }
