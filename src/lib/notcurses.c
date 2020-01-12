@@ -853,7 +853,7 @@ int notcurses_stop(notcurses* nc){
         char minbuf[BPREFIXSTRLEN + 1];
         char maxbuf[BPREFIXSTRLEN + 1];
         double avg = nc->stashstats.render_ns / (double)nc->stashstats.renders;
-        fprintf(stderr, "\n%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.02gs avg %.1f fps)\n",
+        fprintf(stderr, "\n%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.03gs avg %.1f fps)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
                 nc->stashstats.render_ns / 1000000000.0,
                 nc->stashstats.render_min_ns / 1000000000.0,
@@ -863,7 +863,7 @@ int notcurses_stop(notcurses* nc){
         bprefix(nc->stashstats.render_bytes, 1, totalbuf, 0),
         bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 0),
         bprefix(nc->stashstats.render_max_bytes, 1, maxbuf, 0),
-        fprintf(stderr, "%sB total (%sB min, %sB max, %.02fKiB avg)\n",
+        fprintf(stderr, "%sB total (%sB min, %sB max, %.03gKiB avg)\n",
                 totalbuf, minbuf, maxbuf,
                 avg / 1024);
       }
