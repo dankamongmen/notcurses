@@ -172,7 +172,7 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
         if(vis->gcluster == 0){
           vis = &p->basecell;
         }
-        // if we have no character in this cell, we continune to look for a
+        // if we have no character in this cell, we continue to look for a
         // character, but our foreground color will still be used unless it's
         // been set to transparent. if that foreground color is transparent, we
         // still use a character we find here, but its color will come entirely
@@ -181,6 +181,9 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
           if( (c->gcluster = vis->gcluster) ){ // index copy only
             glyphplane = p; // must return this ncplane for this glyph
             c->attrword = vis->attrword;
+            if(cell_double_wide_p(vis)){
+              cell_set_wide(c);
+            }
           }
         }
         if(cell_fg_alpha(c) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
@@ -511,7 +514,6 @@ notcurses_render_internal(notcurses* nc){
       if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
         continue; // needmove will be reset as we restart the line
       }
-//fprintf(stderr, "%d %d depth: %d %d\n", y, x, depth, inright);
       if(depth > 0){ // we are above the previous source plane
         if(inright){ // wipe out the character to the left
           cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
