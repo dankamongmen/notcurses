@@ -54,42 +54,52 @@ notcurses_ncplane - operations on notcurses planes
 
 **int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);**
 
-**void ncplane_cursor_yx(const struct ncplane* n, int* restrict y, int* restrict x);**
+**void ncplane_cursor_yx(struct ncplane* n, int* restrict y, int* restrict x);**
 
-**uint64_t ncplane_channels(const struct ncplane* n);**
+**uint64_t ncplane_channels(struct ncplane* n);**
 
-**uint32_t ncplane_attr(const struct ncplane* n);**
+**uint32_t ncplane_attr(struct ncplane* n);**
 
-**static inline unsigned ncplane_bchannel(const struct ncplane* nc);**
+**static inline unsigned ncplane_bchannel(struct ncplane* nc);**
 
-**static inline unsigned ncplane_fchannel(const struct ncplane* nc);**
+**static inline unsigned ncplane_fchannel(struct ncplane* nc);**
 
-**static inline unsigned ncplane_fg(const struct ncplane* nc);**
+**static inline unsigned ncplane_fg(struct ncplane* nc);**
 
-**static inline unsigned ncplane_bg(const struct ncplane* nc);**
+**static inline unsigned ncplane_bg(struct ncplane* nc);**
 
-**static inline unsigned ncplane_fg_alpha(const struct ncplane* nc);**
+**static inline unsigned ncplane_fg_alpha(struct ncplane* nc);**
 
-**static inline unsigned ncplane_bg_alpha(const struct ncplane* nc);**
+**static inline unsigned ncplane_bg_alpha(struct ncplane* nc);**
 
-**static inline unsigned ncplane_fg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
+**static inline unsigned ncplane_fg_rgb(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
 
-**static inline unsigned ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
+**static inline unsigned ncplane_bg_rgb(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
 
-**int ncplane_set_fg_rgb(struct ncplane* n, **int r, **int g, **int b);**
-**int ncplane_set_bg_rgb(struct ncplane* n, **int r, **int g, **int b);**
+**int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);**
+
+**int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);**
+
+**void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);**
+
+**void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);**
 
 **int ncplane_set_fg(struct ncplane* n, unsigned channel);**
+
 **int ncplane_set_bg(struct ncplane* n, unsigned channel);**
 
 **void ncplane_set_fg_default(struct ncplane* n);**
+
 **void ncplane_set_bg_default(struct ncplane* n);**
 
-**int ncplane_set_fg_alpha(struct ncplane* n, **int alpha);**
-**int ncplane_set_bg_alpha(struct ncplane* n, **int alpha);**
+**int ncplane_set_fg_alpha(struct ncplane* n, int alpha);**
+
+**int ncplane_set_bg_alpha(struct ncplane* n, int alpha);**
 
 **void ncplane_styles_set(struct ncplane* n, unsigned stylebits);**
+
 **void ncplane_styles_on(struct ncplane* n, unsigned stylebits);**
+
 **void ncplane_styles_off(struct ncplane* n, unsigned stylebits);**
 
 **unsigned ncplane_styles(struct ncplane* n);**
