@@ -271,8 +271,8 @@ ext_demos(struct notcurses* nc, const char* demos){
     uint64_t nowns = timespec_to_ns(&now);
     results[i].timens = nowns - prevns;
     prevns = nowns;
+    results[i].result = ret;
     if(ret){
-      results[i].failed = true;
       break;
     }
     hud_completion_notify(&results[i]);
@@ -451,8 +451,10 @@ int main(int argc, char** argv){
            results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0,
            GIG / avg,
-           results[i].failed ? "***FAILED" : results[i].stats.renders ? ""  : "***NOT RUN");
-    if(results[i].failed){
+           results[i].result < 0 ? "***FAILED" :
+            results[i].result > 0 ? "***ABORTED" :
+             results[i].stats.renders ? ""  : "***NOT RUN");
+    if(results[i].result < 0){
       failed = true;
     }
     totalframes += results[i].stats.renders;
@@ -479,7 +481,8 @@ err:
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   notcurses_stop(nc);
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
-    fprintf(stderr, "At least an 80x25 terminal is required (current: %dx%d)\n", dimx, dimy);
+    fprintf(stderr, "At least an %dx%d terminal is required (current: %dx%d)\n",
+            MIN_SUPPORTED_COLS, MIN_SUPPORTED_ROWS, dimx, dimy);
   }
   return EXIT_FAILURE;
 }
