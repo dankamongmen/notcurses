@@ -1114,13 +1114,15 @@ channels_set_bg_default(uint64_t* channels){
 // it will not be used (unless 'blends' is 0).
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2, unsigned blends){
+  unsigned rsum, gsum, bsum;
   if(blends == 0){
-    return c2;
-  }
-  if(!channel_default_p(c2) && !channel_default_p(c1)){
-    int rsum = (channel_r(c1) * blends + channel_r(c2)) / (blends + 1);
-    int gsum = (channel_g(c1) * blends + channel_g(c2)) / (blends + 1);
-    int bsum = (channel_b(c1) * blends + channel_b(c2)) / (blends + 1);
+    // don't just return c2, or you set wide status and all kinds of crap
+    channel_rgb(c2, &rsum, &gsum, &bsum);
+    channel_set_rgb(&c1, rsum, gsum, bsum);
+  }else if(!channel_default_p(c2) && !channel_default_p(c1)){
+    rsum = (channel_r(c1) * blends + channel_r(c2)) / (blends + 1);
+    gsum = (channel_g(c1) * blends + channel_g(c2)) / (blends + 1);
+    bsum = (channel_b(c1) * blends + channel_b(c2)) / (blends + 1);
     channel_set_rgb(&c1, rsum, gsum, bsum);
   }
   return c1;
