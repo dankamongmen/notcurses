@@ -335,7 +335,6 @@ panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     ncplane_set_fg_rgb(w, 0, 55, 218);
     wchar_t rw;
     if((rw = handle_input(nc, pr, efdr, &deadline)) <= 0){
-      done = true;
       break;
     }
     // FIXME clrtoeol();
