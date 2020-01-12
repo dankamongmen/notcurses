@@ -11,6 +11,7 @@ mutex_unlock(void* vlock){
 
 static int
 blocking_write(int fd, const char* buf, size_t buflen){
+//fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
   size_t written = 0;
   do{
     ssize_t w = write(fd, buf + written, buflen - written);
@@ -82,7 +83,7 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
 // 256 colors, this is the 16 normal ones, 6x6x6 color cubes, and 32 greys.
 // it's probably better to sample the darker regions rather than cover so much
 // chroma, but whatever....FIXME
-static inline int
+/*static inline int
 prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   if(nc->RGBflag){
     return 0; // DirectColor, no need to write palette
@@ -92,7 +93,7 @@ prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
   }
   // FIXME
   return 0;
-}
+}*/
 
 // reshape the shadow framebuffer to match the stdplane's dimensions, throwing
 // away the old one.
@@ -244,7 +245,7 @@ visible_cell(cell* c, int y, int x, ncplane* n, int* previousz){
 // number of columns occupied by this EGC (only an approximation; it's actually
 // a property of the font being used).
 static int
-term_putc(FILE* out, const ncplane* n, const cell* c){
+term_putc(FILE* out, const egcpool* e, const cell* c){
   if(cell_simple_p(c)){
     if(c->gcluster == 0 || iscntrl(c->gcluster)){
 // fprintf(stderr, "[ ]\n");
@@ -266,7 +267,7 @@ term_putc(FILE* out, const ncplane* n, const cell* c){
       }
     }
   }else{
-    const char* ext = extended_gcluster(n, c);
+    const char* ext = egcpool_extended_gcluster(e, c);
 // fprintf(stderr, "[%s]\n", ext);
 #ifdef __USE_GNU
     if(fputs_unlocked(ext, out) < 0){ // FIXME check for short write?
@@ -483,173 +484,136 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
   return 1;
 }
 
+// Producing the frame requires three steps:
+//  * render -- build up a flat framebuffer from a set of ncplanes
+//  * rasterize -- build up a UTF-8 stream of escapes and EGCs
+//  * refresh -- write the stream to the emulator
 static inline int
-notcurses_render_internal(notcurses* nc){
+notcurses_rasterize(notcurses* nc, unsigned char* damagemap){
+  FILE* out = nc->rstate.mstreamfp;
   int ret = 0;
   int y, x;
-  FILE* out = nc->rstate.mstreamfp;
   fseeko(out, 0, SEEK_SET);
+  // we only need to emit a coordinate if it was damaged. the damagemap is a
+  // bit per coordinate, rows by rows, column by column within a row, with the
+  // MSB being the first coordinate.
+  size_t damageidx = 0;
+  unsigned char damagemask = 0x80;
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
-  prep_optimized_palette(nc, out); // FIXME do what on failure?
-  // if this fails, struggle bravely on. we can live without a lastframe.
-  reshape_shadow_fb(nc);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // how many characters have we elided? it's not worthwhile to invoke a
     // cursor movement with cup if we only elided one or two. set to INT_MAX
     // whenever we're on a new line.
     int needmove = INT_MAX;
-    // track the depth of our glyph, to see if we need need to stomp a wide
-    // glyph we're following.
-    int depth = 0;
-    // are we in the right half of a wide glyph? if so, we don't typically emit
-    // anything, *BUT* we must handle higher planes bisecting our wide glyph.
-    bool inright = false;
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
-      ncplane* p;
-      cell c; // no need to initialize
-      p = visible_cell(&c, y, x, nc->top, &depth);
-      // don't try to print a wide character on the last column; it'll instead
-      // be printed on the next line. they aren't output, but we can end up
-      // with one due to a resize. FIXME but...print what, exactly, instead?
-      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
-        continue; // needmove will be reset as we restart the line
-      }
-      bool damaged = false;
-      if(depth > 0){ // we are above the previous source plane
-        if(inright){ // wipe out the character to the left
-          // FIXME do this by keeping an offset for the memstream, and
-          // truncating it (via lseek()), methinks
-          cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
-          pool_release(&nc->pool, prev);
-          cell_init(prev);
-          // FIXME technically we need rerun the visible cell search...? gross
-          cell_load_simple(NULL, prev, ' ');
-          // FIXME this space will be the wrong color, methinks?
-          term_emit("cup", tiparm(nc->cup, y, x - 1), out, false);
-          fputc(' ', out);
-          inright = false;
-//if(cell_simple_p(&c)){
-//fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
-//}else{
-//fprintf(stderr, "WENT BACK NOW FOR %s\n", extended_gcluster(p, &c));
-//}
-          damaged = true;
+      const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
+//      cell c;
+//      memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
+//fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
+//      const char* egc = pool_egc_copy(&nc->pool, srccell);
+//      c->gcluster = 0; // otherwise cell_release() will blow up
+//fprintf(stderr, "idx: %zu word: 0x%02x\n", damageidx, damagemap[damageidx]);
+      if((damagemap[damageidx] & damagemask) == 0){
+        // no need to emit a cell; what we rendered appears to already be
+        // here. no updates are performed to elision state nor lastframe.
+        ++nc->stats.cellelisions;
+        if(needmove < INT_MAX){
+          ++needmove;
         }
-      }
-      // lastframe has already been sized to match the current size, so no need
-      // to check whether we're within its bounds. just check the cell.
-      if(nc->lastframe){
-        cell* oldcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
-        if(inright){
-          cell_set_wide(oldcell);
-          inright = false;
-          continue;
+        if(cell_double_wide_p(srccell)){
+          if(needmove < INT_MAX){
+            ++needmove;
+          }
+          ++nc->stats.cellelisions;
         }
-        // check the damage map, unless we must repair damage done
-        if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c) == 0){
-          if(!damaged){
-            // no need to emit a cell; what we rendered appears to already be
-            // here. no updates are performed to elision state nor lastframe.
-            ++nc->stats.cellelisions;
-            if(needmove < INT_MAX){
-              ++needmove;
-            }
-            if(cell_double_wide_p(&c)){
-              if(needmove < INT_MAX){
-                ++needmove;
-              }
-              ++nc->stats.cellelisions;
-              inright = !inright;
+      }else{
+        ++nc->stats.cellemissions;
+        if(needmove == 1 && nc->cuf1){
+          ret |= term_emit("cuf1", tiparm(nc->cuf1), out, false);
+        }else if(needmove){
+          ret |= term_emit("cup", tiparm(nc->cup, y, x), out, false);
+        }
+        needmove = 0;
+        // set the style. this can change the color back to the default; if it
+        // does, we need update our elision possibilities.
+        bool normalized;
+        ret |= term_setstyles(nc, out, &nc->rstate.curattr, srccell, &normalized);
+        if(normalized){
+          nc->rstate.defaultelidable = true;
+          nc->rstate.bgelidable = false;
+          nc->rstate.fgelidable = false;
+        }
+        // we allow these to be set distinctly, but terminfo only supports using
+        // them both via the 'op' capability. unless we want to generate the 'op'
+        // escapes ourselves, if either is set to default, we first send op, and
+        // then a turnon for whichever aren't default.
+
+        // if our cell has a default foreground *or* background, we can elide the
+        // default set iff one of:
+        //  * we are a partial glyph, and the previous was default on both, or
+        //  * we are a no-foreground glyph, and the previous was default background, or
+        //  * we are a no-background glyph, and the previous was default foreground
+        bool noforeground = cell_noforeground_p(srccell);
+        bool nobackground = cell_nobackground_p(&nc->pool, srccell);
+        if((!noforeground && cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
+          if(!nc->rstate.defaultelidable){
+            ++nc->stats.defaultemissions;
+            ret |= term_emit("op", nc->op, out, false);
+          }else{
+            ++nc->stats.defaultelisions;
+          }
+          // if either is not default, this will get turned off
+          nc->rstate.defaultelidable = true;
+          nc->rstate.fgelidable = false;
+          nc->rstate.bgelidable = false;
+        }
+
+        // if our cell has a non-default foreground, we can elide the non-default
+        // foreground set iff either:
+        //  * the previous was non-default, and matches what we have now, or
+        //  * we are a no-foreground glyph (iswspace() is true)
+        if(!cell_fg_default_p(srccell)){
+          if(!noforeground){
+            cell_fg_rgb(srccell, &r, &g, &b);
+            if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
+              ++nc->stats.fgelisions;
             }else{
-              inright = false;
+              ret |= term_fg_rgb8(nc, out, r, g, b);
+              ++nc->stats.fgemissions;
+              nc->rstate.fgelidable = true;
             }
-            continue;
-          }
-        }
-      }
-      ++nc->stats.cellemissions;
-      if(needmove == 1 && nc->cuf1){
-        ret |= term_emit("cuf1", tiparm(nc->cuf1), out, false);
-      }else if(needmove){
-        ret |= term_emit("cup", tiparm(nc->cup, y, x), out, false);
-      }
-      needmove = 0;
-      // set the style. this can change the color back to the default; if it
-      // does, we need update our elision possibilities.
-      bool normalized;
-      term_setstyles(nc, out, &nc->rstate.curattr, &c, &normalized);
-      if(normalized){
-        nc->rstate.defaultelidable = true;
-        nc->rstate.bgelidable = false;
-        nc->rstate.fgelidable = false;
-      }
-      // we allow these to be set distinctly, but terminfo only supports using
-      // them both via the 'op' capability. unless we want to generate the 'op'
-      // escapes ourselves, if either is set to default, we first send op, and
-      // then a turnon for whichever aren't default.
-
-      // if our cell has a default foreground *or* background, we can elide the
-      // default set iff one of:
-      //  * we are a partial glyph, and the previous was default on both, or
-      //  * we are a no-foreground glyph, and the previous was default background, or
-      //  * we are a no-background glyph, and the previous was default foreground
-      bool noforeground = cell_noforeground_p(&c);
-      bool nobackground = cell_nobackground_p(p, &c);
-      if((!noforeground && cell_fg_default_p(&c)) || (!nobackground && cell_bg_default_p(&c))){
-        if(!nc->rstate.defaultelidable){
-          ++nc->stats.defaultemissions;
-          term_emit("op", nc->op, out, false);
-        }else{
-          ++nc->stats.defaultelisions;
-        }
-        // if either is not default, this will get turned off
-        nc->rstate.defaultelidable = true;
-        nc->rstate.fgelidable = false;
-        nc->rstate.bgelidable = false;
-      }
-
-      // if our cell has a non-default foreground, we can elide the non-default
-      // foreground set iff either:
-      //  * the previous was non-default, and matches what we have now, or
-      //  * we are a no-foreground glyph (iswspace() is true)
-      if(!cell_fg_default_p(&c)){
-        if(!noforeground){
-          cell_fg_rgb(&c, &r, &g, &b);
-          if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
+            nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
+            nc->rstate.defaultelidable = false;
+          }else{
             ++nc->stats.fgelisions;
-          }else{
-            term_fg_rgb8(nc, out, r, g, b);
-            ++nc->stats.fgemissions;
-            nc->rstate.fgelidable = true;
           }
-          nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
-          nc->rstate.defaultelidable = false;
-        }else{
-          ++nc->stats.fgelisions;
         }
-      }
-      if(!cell_bg_default_p(&c)){
-        if(!nobackground){
-          cell_bg_rgb(&c, &br, &bg, &bb);
-          if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
+        if(!cell_bg_default_p(srccell)){
+          if(!nobackground){
+            cell_bg_rgb(srccell, &br, &bg, &bb);
+            if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
+              ++nc->stats.bgelisions;
+            }else{
+              ret |= term_bg_rgb8(nc, out, br, bg, bb);
+              ++nc->stats.bgemissions;
+              nc->rstate.bgelidable = true;
+            }
+            nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
+            nc->rstate.defaultelidable = false;
+          }else{
             ++nc->stats.bgelisions;
-          }else{
-            term_bg_rgb8(nc, out, br, bg, bb);
-            ++nc->stats.bgemissions;
-            nc->rstate.bgelidable = true;
           }
-          nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
-          nc->rstate.defaultelidable = false;
-        }else{
-          ++nc->stats.bgelisions;
         }
+//fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x\n", y, x, r, g, b);
+        ret |= term_putc(out, &nc->pool, srccell);
       }
-//fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x %p\n", y, x, r, g, b, p);
-      term_putc(out, p, &c);
-      inright = cell_double_wide_p(&c);
+      if((damagemask >>= 1u) == 0){
+        damagemask = 0x80;
+        ++damageidx;
+      }
     }
   }
   ret |= fflush(out);
@@ -661,6 +625,71 @@ notcurses_render_internal(notcurses* nc){
      fgelisions, fgemissions, bgelisions, bgemissions);*/
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", nc->rstate.mstream);
+  }
+  if(ret < 0){
+    return ret;
+  }
+  return nc->rstate.mstrsize;
+}
+
+static inline int
+notcurses_render_internal(notcurses* nc, unsigned char* damagevec){
+  int ret = 0;
+  int y, x;
+  // if this fails, struggle bravely on. we can live without a lastframe.
+  reshape_shadow_fb(nc);
+  for(y = 0 ; y < nc->stdscr->leny ; ++y){
+    // track the depth of our glyph, to see if we need need to stomp a wide
+    // glyph we're following.
+    int depth = 0;
+    // are we in the right half of a wide glyph? if so, we don't typically emit
+    // anything, *BUT* we must handle higher planes bisecting our wide glyph.
+    bool inright = false;
+    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
+      ncplane* p;
+      cell c; // no need to initialize
+      p = visible_cell(&c, y, x, nc->top, &depth);
+      // don't try to print a wide character on the last column; it'll instead
+      // be printed on the next line. they aren't output, but we can end up
+      // with one due to a resize. FIXME but...print what, exactly, instead?
+      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
+        continue; // needmove will be reset as we restart the line
+      }
+      if(depth > 0){ // we are above the previous source plane
+        if(inright){ // wipe out the character to the left
+          // FIXME do this by keeping an offset for the memstream, and
+          // truncating it (via lseek()), methinks
+          cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
+          pool_release(&nc->pool, prev);
+          cell_init(prev);
+          // FIXME technically we need rerun the visible cell search...? gross
+          cell_load_simple(NULL, prev, ' ');
+          inright = false;
+//if(cell_simple_p(&c)){
+//fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
+//}else{
+//fprintf(stderr, "WENT BACK NOW FOR %s\n", extended_gcluster(p, &c));
+//}
+        }
+      }
+      // lastframe has already been sized to match the current size, so no need
+      // to check whether we're within its bounds. just check the cell.
+      if(nc->lastframe){
+        cell* oldcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
+        if(inright){
+          cell_set_wide(oldcell);
+          inright = false;
+          continue;
+        }
+        // check the damage map
+        if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c)){
+//fprintf(stderr, "setting damagevec idx %d mask %u\n", (y * nc->stdscr->lenx + x) / CHAR_BIT, (0x80 >> ((y * nc->stdscr->lenx + x) % CHAR_BIT)));
+          damagevec[(y * nc->stdscr->lenx + x) / CHAR_BIT] |=
+            (0x80 >> ((y * nc->stdscr->lenx + x) % CHAR_BIT));
+        }
+      }
+      inright = cell_double_wide_p(&c);
+    }
   }
   if(ret){
     return ret;
@@ -674,7 +703,15 @@ int notcurses_render(notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   pthread_mutex_lock(&nc->lock);
   pthread_cleanup_push(mutex_unlock, &nc->lock);
-  int bytes = notcurses_render_internal(nc);
+  int bytes = -1;
+  size_t damagevecsize = nc->stdscr->leny * nc->stdscr->lenx / CHAR_BIT +
+                         !!(nc->stdscr->leny * nc->stdscr->lenx % CHAR_BIT);
+  unsigned char* damagevec = malloc(damagevecsize);
+  memset(damagevec, 0, damagevecsize);
+  if(notcurses_render_internal(nc, damagevec) >= 0){
+    bytes = notcurses_rasterize(nc, damagevec);
+  }
+  free(damagevec);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
   clock_gettime(CLOCK_MONOTONIC_RAW, &done);

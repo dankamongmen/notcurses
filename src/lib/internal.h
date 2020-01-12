@@ -320,6 +320,14 @@ cell_debug(const ncplane* p, const cell* c){
 	}
 }
 
+// True if the cell does not generate background pixels. Only the FULL BLOCK
+// glyph has this property, AFAIK.
+// FIXME set a bit, doing this at load time
+static inline bool
+cell_nobackground_p(const egcpool* e, const cell* c){
+  return !cell_simple_p(c) && !strcmp(egcpool_extended_gcluster(e, c), "\xe2\x96\x88");
+}
+
 // no CLOCK_MONOTONIC_RAW on FreeBSD as of 12.0 :/
 #ifndef CLOCK_MONOTONIC_RAW
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC

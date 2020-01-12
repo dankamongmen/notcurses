@@ -1491,13 +1491,6 @@ cell_noforeground_p(const cell* c){
   return cell_simple_p(c) && isspace(c->gcluster);
 }
 
-// True if the cell does not generate background pixels. Only the FULL BLOCK
-// glyph has this property, AFAIK.
-static inline bool
-cell_nobackground_p(const struct ncplane* n, const cell* c){
-  return !cell_simple_p(c) && !strcmp(cell_extended_gcluster(n, c), "\xe2\x96\x88");
-}
-
 static inline int
 cell_load_simple(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
