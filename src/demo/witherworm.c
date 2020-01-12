@@ -16,47 +16,19 @@ mathplane(struct notcurses* nc){
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   const int HEIGHT = 9;
   const int WIDTH = dimx;
-  struct ncplane* n = ncplane_new(nc, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH - 1, NULL);
-  cell b = CELL_TRIVIAL_INITIALIZER;
-  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, &b);
-  cell_release(n, &b);
-  /*
+  struct ncplane* n = ncplane_new(nc, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH, NULL);
+  ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
   if(n){
-    struct ncplane* stdn = notcurses_stdplane(nc);
-    ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
-    int snatchy = dimy - HEIGHT - 1;
-    cell c = CELL_TRIVIAL_INITIALIZER;
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)⎧⎡⎛┌─────┐⎞⎤⎫");
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "⎪⎢⎜│a²+b³ ⎟⎥⎪");
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 2, NCALIGN_RIGHT, "∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)⎪⎢⎜│───── ⎟⎥⎪");
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "⎪⎢⎜⎷ c₈   ⎟⎥⎪");
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ(z̄=ℜ(z)−ℑ(z)⋅𝑖)⎨⎢⎜       ⎟⎥⎬");
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 5, NCALIGN_RIGHT, "⎪⎢⎜ ∞     ⎟⎥⎪");
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 6, NCALIGN_RIGHT, "⊥<a≠b≡c≤d≪⊤⇒(⟦A⟧⇔⟪B⟫)⎪⎢⎜ ⎲     ⎟⎥⎪");
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 7, NCALIGN_RIGHT, "⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪");
-    ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 8, NCALIGN_RIGHT, "2H₂+O₂⇌2H₂O,R=4.7kΩ,⌀200µm⎩⎣⎝i=1    ⎠⎦⎭");
   }
-  */
   return n;
 }
 
@@ -68,16 +40,16 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
   }
   unsigned r, g, b;
   cell_fg_rgb(c, &r, &g, &b);
-  r += rand() % ((r + 16) / (5 * distance + 1) + 1);
-  g += rand() % ((g + 16) / (5 * distance + 1) + 1);
-  b += rand() % ((b + 16) / (5 * distance + 1) + 1);
+  r += rand() % (20 / (5 * distance + 1) + 1);
+  g += rand() % (20 / (5 * distance + 1) + 1);
+  b += rand() % (20 / (5 * distance + 1) + 1);
   cell_set_fg_rgb_clipped(c, r, g, b);
   return ncplane_putc_yx(n, y, x, c);
 }
 
 static void
 surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
-  /*ncplane_at_yx(n, y - 1, x - 1, &cells[0]);
+  ncplane_at_yx(n, y - 1, x - 1, &cells[0]);
   ncplane_at_yx(n, y - 1, x, &cells[1]);
   ncplane_at_yx(n, y - 1, x + 1, &cells[2]);
   ncplane_at_yx(n, y, x + 1, &cells[3]);
@@ -88,14 +60,13 @@ surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
   ncplane_at_yx(n, y - 2, x, &cells[8]);
   ncplane_at_yx(n, y + 2, x, &cells[9]);
   ncplane_at_yx(n, y, x - 2, &cells[10]);
-  ncplane_at_yx(n, y, x + 2, &cells[11]);*/
+  ncplane_at_yx(n, y, x + 2, &cells[11]);
   ncplane_at_yx(n, y, x, &cells[12]);
 }
 
 static int
 lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
   cell c = CELL_TRIVIAL_INITIALIZER;
-  /*
   cell_duplicate(n, &c, &cells[0]);
   lighten(n, &c, 2, y - 1, x - 1);
   cell_duplicate(n, &c, &cells[1]);
@@ -120,7 +91,6 @@ lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
   lighten(n, &c, 2, y, x - 2);
   cell_duplicate(n, &c, &cells[11]);
   lighten(n, &c, 2, y, x + 2);
-  */
   cell_duplicate(n, &c, &cells[12]);
   lighten(n, &c, 0, y, x);
   cell_release(n, &c);
@@ -155,13 +125,13 @@ wormy_top(struct notcurses* nc, worm* s){
 }
 
 static int
-wormy(struct notcurses* nc, worm* s, int dimy, int dimx){
-  struct ncplane* n = notcurses_stdplane(nc);
+wormy(worm* s, int dimy, int dimx){
   int oldy, oldx;
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  oldy = s->y;
+  oldx = s->x;
   do{ // force a move
-    oldy = s->y;
-    oldx = s->x;
+    s->y = oldy;
+    s->x = oldx;
     // FIXME he ought be weighted to avoid light; he's a worm after all
     int direction = random() % 4;
     switch(direction){
@@ -182,19 +152,14 @@ wormy(struct notcurses* nc, worm* s, int dimy, int dimx){
     if(s->x >= dimx){
       s->x = 0;
     }
-    ncplane_at_yx(n, s->y, s->x, &c);
-    // don't allow the worm into the summary zone (test for walls)
   }while((oldx == s->x && oldy == s->y) || (s->x == s->prevx && s->y == s->prevy));
   s->prevy = oldy;
   s->prevx = oldx;
-  cell_release(n, &c);
   return 0;
 }
 
-// each worm wanders around aimlessly, prohibited from entering the summary
-// section. it ought light up the cells around it; to do this, we keep an array
-// of 13 cells with the original colors, which we tune up for the duration of
-// our colocality (unless they're summary area walls).
+// each worm wanders around aimlessly. it lights up the cells around it; to do
+// this, we keep an array of 13 cells with the original colors, which we tune up.
 static void *
 worm_thread(void* vnc){
   struct notcurses* nc = vnc;
@@ -206,7 +171,6 @@ worm_thread(void* vnc){
   for(int s = 0 ; s < wormcount ; ++s){
     init_worm(&worms[s], dimy, dimx);
   }
-  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 100000000ul / 20, };
   while(true){
     pthread_testcancel();
     for(int s = 0 ; s < wormcount ; ++s){
@@ -218,11 +182,10 @@ worm_thread(void* vnc){
       return NULL;
     }
     for(int s = 0 ; s < wormcount ; ++s){
-      if(wormy(nc, &worms[s], dimy, dimx)){
+      if(wormy(&worms[s], dimy, dimx)){
         return NULL;
       }
     }
-    nanosleep(&iterdelay, NULL);
   }
   return NULL;
 }
