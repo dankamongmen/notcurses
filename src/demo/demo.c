@@ -341,6 +341,10 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
           fprintf(stderr, "Couldn't get a float from %s\n", optarg);
           usage(*argv, EXIT_FAILURE);
         }
+        if(f <= 0){
+          fprintf(stderr, "Invalid multiplier: %f\n", f);
+          usage(*argv, EXIT_FAILURE);
+        }
         uint64_t ns = f * GIG;
         demodelay.tv_sec = ns / GIG;
         demodelay.tv_nsec = ns % GIG;
