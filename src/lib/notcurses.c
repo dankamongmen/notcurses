@@ -1263,20 +1263,25 @@ ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
   if(buf == NULL){
     return NULL;
   }
+  va_list vacopy;
+  va_copy(vacopy, ap);
   int ret = vsnprintf(buf, size, format, ap);
   if(ret < 0){
     free(buf);
+    va_end(vacopy);
     return NULL;
   }
   if((size_t)ret >= size){
     char* tmp = realloc(buf, ret + 1);
     if(tmp == NULL){
       free(buf);
+      va_end(vacopy);
       return NULL;
     }
     buf = tmp;
-    vsprintf(buf, format, ap);
+    vsprintf(buf, format, vacopy);
   }
+  va_end(vacopy);
   return buf;
 }
 
