@@ -177,13 +177,16 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
         // been set to transparent. if that foreground color is transparent, we
         // still use a character we find here, but its color will come entirely
         // from cells underneath us.
-        if(c->gcluster == 0){
+        if(!glyphplane){
           if( (c->gcluster = vis->gcluster) ){ // index copy only
-            glyphplane = p; // must return this ncplane for this glyph
+            glyphplane = p;
+          }
+          if(cell_double_wide_p(vis)){
+            cell_set_wide(c);
+            glyphplane = p;
+          }
+          if(glyphplane){
             c->attrword = vis->attrword;
-            if(cell_double_wide_p(vis)){
-              cell_set_wide(c);
-            }
           }
         }
         if(cell_fg_alpha(c) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
@@ -215,7 +218,7 @@ dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
   }
   // if we have a background set, but no glyph selected, load a space so that
   // the background will be printed
-  if(c->gcluster == 0){
+  if(!glyphplane){
     cell_load_simple(NULL, c, ' ');
   }
   if(depth < *previousz){
@@ -514,6 +517,7 @@ notcurses_render_internal(notcurses* nc){
       if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
         continue; // needmove will be reset as we restart the line
       }
+      bool damaged = false;
       if(depth > 0){ // we are above the previous source plane
         if(inright){ // wipe out the character to the left
           // FIXME do this by keeping an offset for the memstream, and
@@ -527,7 +531,12 @@ notcurses_render_internal(notcurses* nc){
           term_emit("cup", tiparm(nc->cup, y, x - 1), out, false);
           fputc(' ', out);
           inright = false;
+//if(cell_simple_p(&c)){
 //fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
+//}else{
+//fprintf(stderr, "WENT BACK NOW FOR %s\n", extended_gcluster(p, &c));
+//}
+          damaged = true;
         }
       }
       // lastframe has already been sized to match the current size, so no need
@@ -539,24 +548,26 @@ notcurses_render_internal(notcurses* nc){
           inright = false;
           continue;
         }
-        // check the damage map
+        // check the damage map, unless we must repair damage done
         if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c) == 0){
-          // no need to emit a cell; what we rendered appears to already be
-          // here. no updates are performed to elision state nor lastframe.
-          ++nc->stats.cellelisions;
-          if(needmove < INT_MAX){
-            ++needmove;
-          }
-          if(cell_double_wide_p(&c)){
+          if(!damaged){
+            // no need to emit a cell; what we rendered appears to already be
+            // here. no updates are performed to elision state nor lastframe.
+            ++nc->stats.cellelisions;
             if(needmove < INT_MAX){
               ++needmove;
             }
-            ++nc->stats.cellelisions;
-            inright = !inright;
-          }else{
-            inright = false;
+            if(cell_double_wide_p(&c)){
+              if(needmove < INT_MAX){
+                ++needmove;
+              }
+              ++nc->stats.cellelisions;
+              inright = !inright;
+            }else{
+              inright = false;
+            }
+            continue;
           }
-          continue;
         }
       }
       ++nc->stats.cellemissions;
