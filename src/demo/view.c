@@ -5,11 +5,10 @@ static int
 watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
                     void* curry __attribute__ ((unused))){
   wchar_t w;
-  // we don't want a keypress, but should handle NCKEY_RESIZE
+  // we don't want a keypress, but allow the ncvisual to handle
+  // NCKEY_RESIZE for us
   if((w = demo_getc_nblock(NULL)) != (wchar_t)-1){
-    if(w == NCKEY_RESIZE){
-      // FIXME resize that sumbitch
-    }else if(w){
+    if(w == 'q'){
       return 1;
     }
   }
@@ -30,12 +29,9 @@ view_video_demo(struct notcurses* nc){
     return -1;
   }
   free(fm6);
-  if(ncvisual_stream(nc, ncv, &averr, watch_for_keystroke, NULL) < 0){
-    ncvisual_destroy(ncv);
-    return -1;
-  }
+  int ret = ncvisual_stream(nc, ncv, &averr, watch_for_keystroke, NULL);
   ncvisual_destroy(ncv);
-  return 0;
+  return ret;
 }
 
 static struct ncplane*
@@ -139,9 +135,7 @@ int view_demo(struct notcurses* nc){
   if(ncpl == NULL){
     return -1;
   }
-  if(view_video_demo(nc)){
-    return -1;
-  }
+  int ret = view_video_demo(nc);
   ncplane_destroy(ncpl);
-  return 0;
+  return ret;
 }
