@@ -516,6 +516,8 @@ notcurses_render_internal(notcurses* nc){
       }
       if(depth > 0){ // we are above the previous source plane
         if(inright){ // wipe out the character to the left
+          // FIXME do this by keeping an offset for the memstream, and
+          // truncating it (via lseek()), methinks
           cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
           pool_release(&nc->pool, prev);
           cell_init(prev);
