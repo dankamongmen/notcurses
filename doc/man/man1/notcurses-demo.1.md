@@ -25,7 +25,7 @@ The demonstrations include:
 * (c)hunli—the strongest woman in the world
 * (g)rid—a gradient of color lain atop a great grid
 * (s)liders—a missing-piece puzzle made up of colorful blocks
-* (w)hiteworm—a great Nothing slowly robs the world of color
+* (w)itherworm—a great Nothing slowly robs the world of color
 * (u)niblocks—a series of blocks detailing Unicode pages
 * (b)oxes—pulsating boxes with a transparent center
 * (v)iew—images and a video are rendered as text
@@ -55,6 +55,7 @@ demospec: Select which demos to run, and what order to run them in. The default 
 
 # NOTES
 Proper display requires:
+
 * A terminal advertising the **rgb** terminfo(5) capability, or that the environment variable **COLORTERM** is defined to **24bit** (and that the terminal honors this variable),
 * A monospaced font, and
 * Good Unicode support in your libc, font, and terminal emulator.
