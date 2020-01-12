@@ -22,62 +22,42 @@ mathplane(struct notcurses* nc){
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, &b);
   cell_release(n, &b);
+  /*
   if(n){
-  /* FIXME issue #260
     struct ncplane* stdn = notcurses_stdplane(nc);
     ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
     int snatchy = dimy - HEIGHT - 1;
     cell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx(stdn, snatchy++, 0, &c);
     ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
-    // FIXME reenable the left parts of these strings, issue #260*/
-    //ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, /*∮E⋅da=Q,n→∞,∑f(i)=∏g(i)*/"⎧⎡⎛┌─────┐⎞⎤⎫");
-    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)⎧⎡⎛┌─────┐⎞⎤⎫");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
     ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "⎪⎢⎜│a²+b³ ⎟⎥⎪");
     ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
-    //ncplane_printf_aligned(n, 2, NCALIGN_RIGHT, /*∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)*/"⎪⎢⎜│───── ⎟⎥⎪");
-    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 2, NCALIGN_RIGHT, "∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)⎪⎢⎜│───── ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
     ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "⎪⎢⎜⎷ c₈   ⎟⎥⎪");
     ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
-    //ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, /*ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ(z̄=ℜ(z)−ℑ(z)⋅𝑖)*/"⎨⎢⎜       ⎟⎥⎬");
-    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ(z̄=ℜ(z)−ℑ(z)⋅𝑖)⎨⎢⎜       ⎟⎥⎬");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
     ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 5, NCALIGN_RIGHT, "⎪⎢⎜ ∞     ⎟⎥⎪");
     ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
-    //ncplane_printf_aligned(n, 6, NCALIGN_RIGHT, /*⊥<a≠b≡c≤d≪⊤⇒(⟦A⟧⇔⟪B⟫)*/"⎪⎢⎜ ⎲     ⎟⎥⎪");
-    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 6, NCALIGN_RIGHT, "⊥<a≠b≡c≤d≪⊤⇒(⟦A⟧⇔⟪B⟫)⎪⎢⎜ ⎲     ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
     ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
     ncplane_printf_aligned(n, 7, NCALIGN_RIGHT, "⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪");
     ncplane_at_yx(stdn, snatchy++, 0, &c);
-    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
-    //ncplane_printf_aligned(n, 8, NCALIGN_RIGHT, /*2H₂+O₂⇌2H₂O,R=4.7kΩ,⌀200µm*/"⎩⎣⎝i=1    ⎠⎦⎭");
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 8, NCALIGN_RIGHT, "2H₂+O₂⇌2H₂O,R=4.7kΩ,⌀200µm⎩⎣⎝i=1    ⎠⎦⎭");
   }
+  */
   return n;
-}
-
-// get the (up to) eight surrounding cells. they run clockwise, starting from
-// the upper left: 012
-//                 7 3
-//                 654
-// is the provided cell part of the wall (i.e. a box-drawing character)?
-static bool
-wall_p(const struct ncplane* n, const cell* c){
-  if(cell_simple_p(c)){ // any simple cell is fine to consume
-    return false;
-  }
-  const char* egc = cell_extended_gcluster(n, c);
-  wchar_t w;
-  if(mbtowc(&w, egc, strlen(egc)) > 0){
-    if(w >= 0x2500 && w <= 0x257f){ // no room in the inn, little worm!
-      return true;
-    }
-  }
-  return false;
 }
 
 // the closer the coordinate is (lower distance), the more we lighten the cell
@@ -88,9 +68,9 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
   }
   unsigned r, g, b;
   cell_fg_rgb(c, &r, &g, &b);
-  r += rand() % ((r + 16) / (4 * distance + 1) + 1);
-  g += rand() % ((g + 16) / (4 * distance + 1) + 1);
-  b += rand() % ((b + 16) / (4 * distance + 1) + 1);
+  r += rand() % ((r + 16) / (5 * distance + 1) + 1);
+  g += rand() % ((g + 16) / (5 * distance + 1) + 1);
+  b += rand() % ((b + 16) / (5 * distance + 1) + 1);
   if(r > 255) r = 255;
   if(g > 255) g = 255;
   if(b > 255) b = 255;
@@ -207,10 +187,6 @@ wormy(struct notcurses* nc, worm* s, int dimy, int dimx){
     }
     ncplane_at_yx(n, s->y, s->x, &c);
     // don't allow the worm into the summary zone (test for walls)
-    if(wall_p(n, &c)){
-      s->x = oldx;
-      s->y = oldy;
-    }
   }while((oldx == s->x && oldy == s->y) || (s->x == s->prevx && s->y == s->prevy));
   s->prevy = oldy;
   s->prevx = oldx;
@@ -446,7 +422,7 @@ int witherworm_demo(struct notcurses* nc){
     "𝐸 = 𝑚𝑐²",
     "Jag kan äta glas utan att skada mig",
     "Jeg kan spise glas, det gør ikke ondt på mig",
-    "㎚ ㎛ ㎜ ㎝ ㎞ ㎟ ㎠ ㎡ ㎢ ㎣ ㎤ ㎥ ㎦ ㎕ ㎖ ㎗ ㎘ ㏄ ㎰ ㎱ ㎲ ㎳ ㎍ ㎎ ㎏ ㎅ ㎆ ㏔ ㎇ ㎐ ㎑ ㎒ ㎓ ㎔㎮ ㎯",
+    "㎚㎛㎜㎝㎞㎟㎠㎡㎢㎣㎤㎥㎦㎕㎖㎗㎘㏄㎰㎱㎲㎳㎍㎎㎏㎅㎆㏔㎇㎐㎑㎒㎓㎔㎮㎯",
     "Æ ka æe glass uhen at det go mæ naue",
     "က္ယ္ဝန္တော္၊က္ယ္ဝန္မ မ္ယက္စားနုိင္သည္။ ၎က္ရောင္ ထိခုိက္မ္ဟု မရ္ဟိပာ။",
     "ကျွန်တော် ကျွန်မ မှန်စားနိုင်တယ်။ ၎င်းကြောင့် ထိခိုက်မှုမရှိပါ။ ",
@@ -538,8 +514,8 @@ int witherworm_demo(struct notcurses* nc){
     NULL
   };
   const char** s;
-  const int steps[] = { 0x10040, 0x100, 0x100, 0x10001, };
-  const int starts[] = { 0x10101, 0x004000, 0x000040, 0x400040, };
+  const int steps[] = { 0, 0x10040, 0x100, 0x100, 0x10001, };
+  const int starts[] = { 0, 0x10101, 0x004000, 0x000040, 0x400040, };
 
   struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
@@ -658,6 +634,9 @@ int witherworm_demo(struct notcurses* nc){
         notcurses_resize(nc, &maxy, &maxx);
       }
     }while(key == NCKEY_RESIZE);
+    if(key == 'q'){
+      return 1;
+    }
   }
   return 0;
 }
