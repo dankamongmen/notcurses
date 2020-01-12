@@ -1464,11 +1464,10 @@ cell_set_fg_rgb(cell* cl, int r, int g, int b){
   return channels_set_fg_rgb(&cl->channels, r, g, b);
 }
 
-// Set the r, g, and b cell for the background component of this 64-bit
-// 'cell' variable, and mark it as not using the default color.
-static inline int
-cell_set_bg_rgb(cell* cl, int r, int g, int b){
-  return channels_set_bg_rgb(&cl->channels, r, g, b);
+// Same, but clipped to [0..255].
+static inline void
+cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
+  channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 32-bit channel.
@@ -1477,6 +1476,20 @@ cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
 }
 
+// Set the r, g, and b cell for the background component of this 64-bit
+// 'cell' variable, and mark it as not using the default color.
+static inline int
+cell_set_bg_rgb(cell* cl, int r, int g, int b){
+  return channels_set_bg_rgb(&cl->channels, r, g, b);
+}
+
+// Same, but clipped to [0..255].
+static inline void
+cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
+  channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
+}
+
+// Same, but with an assembled 32-bit channel.
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);
