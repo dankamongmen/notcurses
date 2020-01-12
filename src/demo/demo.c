@@ -286,11 +286,12 @@ ext_demos(struct notcurses* nc, const char* demos){
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
   strcpy(datadir, NOTCURSES_SHARE);
+  char renderfile[PATH_MAX] = "";
   bool constant_seed = false;
   int c;
   *use_hud = false;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "HVhckl:d:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "HVhckl:r:d:f:p:")) != EOF){
     switch(c){
       case 'H':
         *use_hud = true;
@@ -331,6 +332,9 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
       case 'p':
         strcpy(datadir, optarg);
         break;
+      case 'r':
+        strcpy(renderfile, optarg);
+        break;
       case 'd':{
         float f;
         if(sscanf(optarg, "%f", &f) != 1){
@@ -347,6 +351,13 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
   }
   if(!constant_seed){
     srand(time(NULL)); // a classic blunder lol
+  }
+  if(strlen(renderfile)){
+    opts->renderfp = fopen(renderfile, "wb");
+    if(opts->renderfp == NULL){
+      fprintf(stderr, "Error opening %s for write\n", renderfile);
+      usage(*argv, EXIT_FAILURE);
+    }
   }
   const char* demos = argv[optind];
   return demos;
@@ -410,6 +421,11 @@ int main(int argc, char** argv){
   }
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
+  }
+  if(nopts.renderfp){
+    if(fclose(nopts.renderfp)){
+      fprintf(stderr, "Warning: error closing renderfile\n");
+    }
   }
   bool failed = false;
   uint64_t totalbytes = 0;
