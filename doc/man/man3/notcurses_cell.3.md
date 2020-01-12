@@ -106,6 +106,10 @@ typedef struct cell {
 
 **int cell_set_bg_rgb(cell* cl, int r, int g, int b);**
 
+**void cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b);**
+
+**void cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b);**
+
 **int cell_set_fg(cell* c, uint32_t channel);**
 
 **int cell_set_bg(cell* c, uint32_t channel);**
@@ -116,8 +120,33 @@ typedef struct cell {
 
 # DESCRIPTION
 
+Cells make up the framebuffer associated with each plane, with one cell per
+addressable coordinate. You should not usually need to interact directly
+with cells.
+
+Each **cell** contains exactly one extended grapheme cluster. If the EGC happens
+to be a single ASCII character, i.e. a single character with a value less than
+128, it is encoded directly into the **cell**'s **gcluster** field, and no
+additional storage is necessary. In this case, **cell_simple_p()** is **true**.
+Otherwise, the EGC is stored as a UTF-8 string in some backing egcpool. Egcpools
+are associated with **ncplane**s, so **cell**s must be considered associated
+with **ncplane**s. Indeed, **ncplane_erase()** destroys the backing storage for
+all a plane's cells, invalidating them. This association is formed at the time
+of **cell_load()**, **cell_prime()**, or **cell_duplicate()**. All of these
+functions first call **cell_release()**, as does **cell_load_simple()**. When
+done using a **cell** entirely, call **cell_release()**. **ncplane_destroy()**
+will free up the memory used by the **cell**, but the backing egcpool has a
+maximum size of 16MiB, and failure to release **cell**s can eventually block new
+output.
 
 # RETURN VALUES
+
+**cell_load()** and similar functions return the number of bytes loaded from the
+EGC, or -1 on failure. They can fail due to either an invalid UTF-8 input, or the
+backing egcpool reaching its maximum size.
+
+**cell_set_fg_rgb()** and similar functions will return -1 if provided invalid
+inputs, and 0 otherwise.
 
 # SEE ALSO
 
