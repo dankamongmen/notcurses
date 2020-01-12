@@ -66,9 +66,12 @@ int main(void){
 "Ekoʻanaekaiitekarahimeaʻāʻaʻehauhau"
 "ᐊᓕᒍᖅᓂᕆᔭᕌᖓᒃᑯᓱᕋᙱᑦᑐᓐᓇᖅᑐ";
   struct ncplane* n = notcurses_stdplane(nc);
-  for(int i = 0 ; i < 25 ; ++i){
+  int y, dimy;
+  notcurses_term_dim_yx(nc, &dimy, nullptr);
+  do{
     ncplane_putstr(n, c);
-  }
+    ncplane_cursor_yx(n, &y, nullptr);
+  }while(y < dimy);
   if(mathtext(nc)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
