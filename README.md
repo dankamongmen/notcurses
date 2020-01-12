@@ -1126,6 +1126,10 @@ ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
 int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 
+// Same, but clipped to [0..255].
+void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);
+void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
+
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
 int ncplane_set_fg(struct ncplane* n, unsigned channel);
 int ncplane_set_bg(struct ncplane* n, unsigned channel);

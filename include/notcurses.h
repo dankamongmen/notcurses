@@ -862,6 +862,35 @@ channel_set_rgb(unsigned* channel, int r, int g, int b){
   return 0;
 }
 
+// Set the three 8-bit components of a 32-bit channel, and mark it as not using
+// the default color. Retain the other bits unchanged. r, g, and b will be
+// clipped to the range [0..255].
+static inline void
+channel_set_rgb_clipped(unsigned* channel, int r, int g, int b){
+  if(r >= 256){
+    r = 255;
+  }
+  if(g >= 256){
+    g = 255;
+  }
+  if(b >= 256){
+    b = 255;
+  }
+  if(r <= -1){
+    r = 0;
+  }
+  if(g <= -1){
+    g = 0;
+  }
+  if(b <= -1){
+    b = 0;
+  }
+  unsigned c = (r << 16u) | (g << 8u) | b;
+  c |= CELL_BGDEFAULT_MASK;
+  const uint64_t mask = CELL_BGDEFAULT_MASK | CELL_BG_MASK;
+  *channel = (*channel & ~mask) | c;
+}
+
 // Same, but provide an assembled, packed 24 bits of rgb.
 static inline int
 channel_set(unsigned* channel, unsigned rgb){
@@ -972,6 +1001,14 @@ channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
   return 0;
 }
 
+// Same, but clips to [0..255].
+static inline void
+channels_set_fg_rgb_clipped(uint64_t* channels, int r, int g, int b){
+  unsigned channel = channels_fchannel(*channels);
+  channel_set_rgb_clipped(&channel, r, g, b);
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+}
+
 // Set the r, g, and b channels for the background component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
@@ -982,6 +1019,14 @@ channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
   }
   *channels = (*channels & 0xffffffff00000000llu) | channel;
   return 0;
+}
+
+// Same, but clips to [0..255].
+static inline void
+channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
+  unsigned channel = channels_bchannel(*channels);
+  channel_set_rgb_clipped(&channel, r, g, b);
+  *channels = (*channels & 0xffffffff00000000llu) | channel;
 }
 
 // Same, but set an assembled 32 bit channel at once.
@@ -1250,6 +1295,10 @@ ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
 // time using "color pairs"; notcurses will manage color pairs transparently.
 API int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
+
+// Same, but clipped to [0..255].
+API void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);
+API void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
 
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
 API int ncplane_set_fg(struct ncplane* n, unsigned channel);
