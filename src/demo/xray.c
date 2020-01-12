@@ -14,11 +14,22 @@ static const char* leg[] = {
 };
 
 static int
+watch_for_keystroke(struct notcurses* nc){
+  wchar_t w;
+  if((w = demo_getc_nblock(NULL)) != (wchar_t)-1){
+    if(w == 'q'){
+      return 1;
+    }
+  }
+  return demo_render(nc);
+}
+
+static int
 perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
            void* vnewplane){
-  static int startr = 0xaf;
-  static int startg = 0xff;
-  static int startb = 0xd4;
+  static int startr = 0x5f;
+  static int startg = 0xaf;
+  static int startb = 0x84;
   static int frameno = 0;
   int dimx, dimy, y;
   struct ncplane* n = *(struct ncplane**)vnewplane;
@@ -64,10 +75,9 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
         stroff = -x;
         x = 0;
       }
+      ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
       for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y){
-        if(ncplane_set_fg_rgb(n, r - 0xa * l, g - 0xa * l, b - 0xa * l)){
-          return -1;
-        }
+        ncplane_set_fg_rgb_clipped(n, r + 0x8 * l, g + 0x8 * l, b + 0x8 * l);
         if(ncplane_set_bg_rgb(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
           return -1;
         }
@@ -83,8 +93,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
     b = t;
   }while(x < dimx);
   ++frameno;
-  demo_render(nc);
-  return 0;
+  return watch_for_keystroke(nc);
 }
 
 int xray_demo(struct notcurses* nc){
@@ -103,9 +112,9 @@ int xray_demo(struct notcurses* nc){
     return -1;
   }
   struct ncplane* newpanel = NULL;
-  ncvisual_stream(nc, ncv, &averr, perframecb, &newpanel);
+  int ret = ncvisual_stream(nc, ncv, &averr, perframecb, &newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);
-  return 0;
+  return ret;
 }
