@@ -8,19 +8,17 @@ typedef struct chunli {
   struct ncplane* n;
 } chunli;
 
-// test of sprites from files
-int chunli_demo(struct notcurses* nc){
-  cell b = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  struct timespec iterdelay;
-  timespec_div(&demodelay, 10, &iterdelay);
-  int averr, dimy, dimx;
+static int
+chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
   chunli chuns[CHUNS];
   char file[PATH_MAX];
-  for(int i = 0 ; i < CHUNS ; ++i){
+  int dimx, dimy;
+  struct timespec iterdelay;
+  timespec_div(&demodelay, 10, &iterdelay);
+  for(int i = 0 ; i < count ; ++i){
+    int averr;
     notcurses_resize(nc, &dimy, &dimx);
-    snprintf(file, sizeof(file), "chunli%d.bmp", i + 1);
+    snprintf(file, sizeof(file), "chunli%d.%s", i + 1, ext);
     chuns[i].path = find_data(file);
     chuns[i].ncv = ncvisual_open_plane(nc, chuns[i].path, &averr, 0, 0, NCSCALE_NONE);
     if(chuns[i].ncv == NULL){
@@ -33,7 +31,7 @@ int chunli_demo(struct notcurses* nc){
       return -1;
     }
     chuns[i].n = ncvisual_plane(chuns[i].ncv);
-    ncplane_set_base(chuns[i].n, &b);
+    ncplane_set_base(chuns[i].n, b);
     int thisx, thisy;
     ncplane_dim_yx(chuns[i].n, &thisy, &thisx);
     if(ncplane_move_yx(chuns[i].n, (dimy - thisy) / 2, (dimx - thisx) / 2)){
@@ -47,6 +45,19 @@ int chunli_demo(struct notcurses* nc){
     ncvisual_destroy(chuns[i].ncv);
     free(chuns[i].path);
   }
+  return 0;
+}
+
+// test of sprites from files
+int chunli_demo(struct notcurses* nc){
+  struct timespec iterdelay;
+  timespec_div(&demodelay, 10, &iterdelay);
+  int averr, dimy, dimx;
+  cell b = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  chunli_draw(nc, "bmp", CHUNS, &b);
+  chunli_draw(nc, "png", 7, &b);
   char* victory = find_data("chunlivictory.png");
   struct ncvisual* ncv = ncvisual_open_plane(nc, victory, &averr, 0, 0, NCSCALE_NONE);
   if(ncv == NULL){
