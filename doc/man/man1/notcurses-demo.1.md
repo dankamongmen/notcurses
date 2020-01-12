@@ -14,7 +14,9 @@ notcurses-demo - Show off some notcurses features
 
 **notcurses-demo** demonstrates the capabilities of the notcurses library. It
 can be run in any terminal emulator or console with a correct terminfo(5)
-database, but is at is best in a "DirectColor" 24bpp RGB environment.
+database, but is at is best in a "DirectColor" 24bpp RGB environment. If
+**notcurses-demo** seems to generate garbage, something is likely configured in
+a way that is going to prevent notcurses from working.
 
 The demonstrations include:
 
