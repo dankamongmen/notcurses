@@ -17,6 +17,12 @@ mathplane(struct notcurses* nc){
   const int HEIGHT = 9;
   const int WIDTH = dimx;
   struct ncplane* n = ncplane_new(nc, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH, NULL);
+  cell b = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_rgb(&b, 0xff, 0xff, 0xff);
+  cell_set_fg_alpha(&b, CELL_ALPHA_BLEND);
+  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(n, &b);
+  cell_release(n, &b);
   ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
   if(n){
     ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)⎧⎡⎛┌─────┐⎞⎤⎫");
@@ -67,6 +73,7 @@ surrounding_cells(struct ncplane* n, cell* cells, int y, int x){
 static int
 lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
   cell c = CELL_TRIVIAL_INITIALIZER;
+  /*
   cell_duplicate(n, &c, &cells[0]);
   lighten(n, &c, 2, y - 1, x - 1);
   cell_duplicate(n, &c, &cells[1]);
@@ -91,6 +98,7 @@ lightup_surrounding_cells(struct ncplane* n, const cell* cells, int y, int x){
   lighten(n, &c, 2, y, x - 2);
   cell_duplicate(n, &c, &cells[11]);
   lighten(n, &c, 2, y, x + 2);
+  */
   cell_duplicate(n, &c, &cells[12]);
   lighten(n, &c, 0, y, x);
   cell_release(n, &c);
