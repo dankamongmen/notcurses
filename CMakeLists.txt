@@ -134,11 +134,12 @@ foreach(m ${MANSOURCE3})
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
   )
   set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+  file(GLOB ANALHTML doc/analytics-header.html)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-    DEPENDS ${m}
+    DEPENDS ${m} ${ANALHTML}
     COMMAND ${PANDOC}
-    ARGS --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+    ARGS -H ${ANALHTML} --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
     COMMENT "Building HTML5 ${me}.html"
   )
   add_custom_target(${me}.html5
