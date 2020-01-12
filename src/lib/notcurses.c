@@ -1034,6 +1034,9 @@ ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
   }else{
     n->y = y;
   }
+  if(cursor_invalid_p(n)){
+    return -1;
+  }
   return 0;
 }
 
