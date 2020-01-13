@@ -1047,6 +1047,11 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 My 14 year-old self would never forgive me if we didn't have sweet palette fades.
 
 ```c
+// Called for each delta performed in a fade on ncp. If anything but 0 is returned,
+// the fading operation ceases immediately, and that value is propagated out. If provided
+// and not NULL, the faders will not themselves call notcurses_render().
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp);
+
 // Fade the ncplane out over the provided time, calling the specified function
 // when done. Requires a terminal which supports direct color, or at least
 // palette modification (if the terminal uses a palette, our ability to fade
@@ -1058,6 +1063,13 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);
 // target cells without rendering, then call this function. When it's done, the
 // ncplane will have reached the target levels, starting from zeroes.
 int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
+
+// Pulse the plane in and out until the callback returns non-zero, relying on
+// the callback 'fader' to initiate rendering. 'ts' defines the half-period
+// (i.e. the transition from black to full brightness, or back again). Proper
+// use involves preparing (but not rendering) an ncplane, then calling
+// ncplane_pulse(), which will fade in from black to the specified colors.
+int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader);
 ```
 
 #### Plane channels API
