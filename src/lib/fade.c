@@ -79,23 +79,13 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   return 0;
 }
 
-int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
-  planepalette pp;
-  if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
-    if(fader){
-      fader(n->nc, n);
-    }else{
-      notcurses_render(n->nc);
-    }
-    return -1;
-  }
-  if(alloc_ncplane_palette(n, &pp)){
-    return -1;
-  }
-  int maxfsteps = pp.maxg > pp.maxr ? (pp.maxb > pp.maxg ? pp.maxb : pp.maxg) :
-                  (pp.maxb > pp.maxr ? pp.maxb : pp.maxr);
-  int maxbsteps = pp.maxbg > pp.maxbr ? (pp.maxbb > pp.maxbg ? pp.maxbb : pp.maxbg) :
-                  (pp.maxbb > pp.maxbr ? pp.maxbb : pp.maxbr);
+static int
+ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
+                        fadecb fader, planepalette* pp){
+  int maxfsteps = pp->maxg > pp->maxr ? (pp->maxb > pp->maxg ? pp->maxb : pp->maxg) :
+                  (pp->maxb > pp->maxr ? pp->maxb : pp->maxr);
+  int maxbsteps = pp->maxbg > pp->maxbr ? (pp->maxbb > pp->maxbg ? pp->maxbb : pp->maxbg) :
+                  (pp->maxbb > pp->maxbr ? pp->maxbb : pp->maxbr);
   int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
   if(maxsteps == 0){
     maxsteps = 1;
@@ -121,12 +111,12 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
     // possibility of a resize event :/
     int dimy, dimx;
     ncplane_dim_yx(n, &dimy, &dimx);
-    for(y = 0 ; y < pp.rows && y < dimy ; ++y){
-      for(x = 0 ; x < pp.cols && x < dimx; ++x){
+    for(y = 0 ; y < pp->rows && y < dimy ; ++y){
+      for(x = 0 ; x < pp->cols && x < dimx; ++x){
         unsigned r, g, b;
-        channels_fg_rgb(pp.channels[pp.cols * y + x], &r, &g, &b);
+        channels_fg_rgb(pp->channels[pp->cols * y + x], &r, &g, &b);
         unsigned br, bg, bb;
-        channels_bg_rgb(pp.channels[pp.cols * y + x], &br, &bg, &bb);
+        channels_bg_rgb(pp->channels[pp->cols * y + x], &br, &bg, &bb);
         cell* c = &n->fb[dimx * y + x];
         if(!cell_fg_default_p(c)){
           r = r * iter / maxsteps;
@@ -162,7 +152,6 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
       break;
     }
   }while(true);
-  free(pp.channels);
   return ret;
 }
 
@@ -261,10 +250,35 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader){
   return ret;
 }
 
+int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
+  planepalette pp;
+  if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
+    if(fader){
+      fader(n->nc, n);
+    }else{
+      notcurses_render(n->nc);
+    }
+    return -1;
+  }
+  if(alloc_ncplane_palette(n, &pp)){
+    return -1;
+  }
+  int ret = ncplane_fadein_internal(n, ts, fader, &pp);
+  free(pp.channels);
+  return ret;
+}
+
 int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader){
+  planepalette pp;
   int ret;
+  if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
+    return -1;
+  }
+  if(alloc_ncplane_palette(n, &pp)){
+    return -1;
+  }
   for(;;){
-    ret = ncplane_fadein(n, ts, fader);
+    ret = ncplane_fadein_internal(n, ts, fader, &pp);
     if(ret){
       break;
     }
@@ -273,5 +287,6 @@ int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader){
       break;
     }
   }
+  free(pp.channels);
   return ret;
 }

@@ -18,7 +18,7 @@ notcurses_stop - free up resources and restore initial terminal state
 **struct notcurses** provided as **nc**, and attempts to restore the terminal to its
 state prior to calling notcurses_init(3). It also unregisters any signal
 handlers put into place by notcurses_init(3). **nc** must not be used following
-the call.
+the call, and all references to ncplanes, cells, etc. are invalidated.
 
 # NOTES
 
