@@ -108,6 +108,7 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
   uint64_t startns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
   // Current time, sampled each iteration
   uint64_t curns;
+  int ret = 0;
   do{
     clock_gettime(CLOCK_MONOTONIC, &times);
     curns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
@@ -142,9 +143,12 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
       }
     }
     if(fader){
-      fader(n->nc, n);
+      ret |= fader(n->nc, n);
     }else{
-      notcurses_render(n->nc);
+      ret |= notcurses_render(n->nc);
+    }
+    if(ret){
+      break;
     }
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
     struct timespec sleepspec;
@@ -159,10 +163,10 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
     }
   }while(true);
   free(pp.channels);
-  return 0;
+  return ret;
 }
 
-int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
+int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader){
   planepalette pp;
   if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
     return -1;
@@ -184,6 +188,7 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
   clock_gettime(CLOCK_MONOTONIC, &times);
   // Start time in absolute nanoseconds
   uint64_t startns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
+  int ret = 0;
   do{
     unsigned br, bg, bb;
     unsigned r, g, b;
@@ -233,9 +238,12 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
       cell_set_bg_rgb(&n->basecell, br, bg, bb);
     }
     if(fader){
-      fader(n->nc, n);
+      ret = fader(n->nc, n);
     }else{
-      notcurses_render(n->nc);
+      ret = notcurses_render(n->nc);
+    }
+    if(ret){
+      break;
     }
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
     struct timespec sleepspec;
@@ -250,6 +258,20 @@ int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader){
     }
   }while(true);
   free(pp.channels);
-  return 0;
+  return ret;
 }
 
+int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader){
+  int ret;
+  for(;;){
+    ret = ncplane_fadein(n, ts, fader);
+    if(ret){
+      break;
+    }
+    ret = ncplane_fadeout(n, ts, fader);
+    if(ret){
+      break;
+    }
+  }
+  return ret;
+}
