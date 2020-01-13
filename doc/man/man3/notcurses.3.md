@@ -111,8 +111,8 @@ previous action.
 
 # SEE ALSO
 
-**notcurses-demo(1)**, **notcurses_cell(3)**, **notcurses_init(3)**,
-**notcurses_channels(3)**, **notcurses_input(3)**, **notcurses_ncplane(3)**,
-**ncplane_new(3)**, **notcurses_output(3)**, **notcurses_render(3)**,
-**notcurses_stdplane(3)**, **notcurses_stop(3)**, **ncurses(3NCURSES)**,
-**terminfo(5)**, **ascii(7)**, **unicode(7)**
+**notcurses-demo(1)**, **notcurses_cell(3)**, **notcurses_channels(3)**,
+**notcurses_fade(3)**, **notcurses_init(3)**, **notcurses_input(3)**,
+**notcurses_lines(3)**, **notcurses_ncplane(3)**, **notcurses_output(3)**,
+**notcurses_render(3)**, **notcurses_stdplane(3)**, **notcurses_stop(3)**,
+**ncurses(3NCURSES)**, **terminfo(5)**, **ascii(7)**, **unicode(7)**

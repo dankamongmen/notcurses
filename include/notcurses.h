@@ -1363,6 +1363,13 @@ API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fad
 // ncplane will have reached the target levels, starting from zeroes.
 API int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader);
 
+// Pulse the plane in and out until the callback returns non-zero, relying on
+// the callback 'fader' to initiate rendering. 'ts' defines the half-period
+// (i.e. the transition from black to full brightness, or back again). Proper
+// use involves preparing (but not rendering) an ncplane, then calling
+// ncplane_pulse(), which will fade in from black to the specified colors.
+API int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader);
+
 // Working with cells
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
