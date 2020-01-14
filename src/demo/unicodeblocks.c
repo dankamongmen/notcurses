@@ -22,7 +22,7 @@ fade_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subd
 static int
 draw_block(struct ncplane* nn, uint32_t blockstart, bool rtl){
   if(rtl){
-    return 0;
+    //return 0;
   }
   int dimx, dimy;
   ncplane_dim_yx(nn, &dimy, &dimx);
