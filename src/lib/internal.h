@@ -80,6 +80,7 @@ typedef struct ncvisual {
   int packet_outstanding;
   int dstwidth, dstheight;
   int stream_index;        // match against this following av_read_frame()
+  float timescale;         // scale frame duration by this value
   ncplane* ncp;
   // if we're creating the plane based off the first frame's dimensions, these
   // describe where the plane ought be placed, and how it ought be sized. this

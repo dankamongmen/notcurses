@@ -39,12 +39,13 @@ bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
 }
 
 static ncvisual*
-ncvisual_create(void){
+ncvisual_create(float timescale){
   ncvisual* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return NULL;
   }
   memset(ret, 0, sizeof(*ret));
+  ret->timescale = timescale;
   return ret;
 }
 
@@ -195,7 +196,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
 
 static ncvisual*
 ncvisual_open(const char* filename, int* averr){
-  ncvisual* ncv = ncvisual_create();
+  ncvisual* ncv = ncvisual_create(1);
   if(ncv == NULL){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     *averr = AVERROR(ENOMEM);
@@ -383,6 +384,7 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
                     float timescale, streamcb streamer, void* curry){
   int frame = 1;
+  ncv->timescale = timescale;
   AVFrame* avf;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -415,13 +417,13 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
     struct timespec interval;
     uint64_t duration = avf->pkt_duration * tbase * NANOSECS_IN_SEC;
 //fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->codecctx->time_base), av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base));
-    sum_duration += duration;
+    sum_duration += (duration * ncv->timescale);
     double schedns = nsbegin;
     if(usets){
       if(tbase == 0){
         tbase = duration;
       }
-      schedns += ts * tbase * NANOSECS_IN_SEC;
+      schedns += ts * (tbase * ncv->timescale) * NANOSECS_IN_SEC;
     }else{
       schedns += sum_duration;
     }
