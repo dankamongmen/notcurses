@@ -21,6 +21,7 @@ TEST_CASE("Multimedia") {
   ncplane* ncp_ = notcurses_stdplane(nc_);
   REQUIRE(ncp_);
 
+  /*
 #ifdef DISABLE_FFMPEG
   SUBCASE("LibavDisabled"){
     REQUIRE(!notcurses_canopen(nc_));
@@ -85,6 +86,7 @@ TEST_CASE("Multimedia") {
     ncvisual_destroy(ncv);
   }
 #endif
+*/
 
   CHECK(!notcurses_stop(nc_));
   CHECK(!fclose(outfp_));

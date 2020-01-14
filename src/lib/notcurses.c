@@ -162,7 +162,7 @@ int ncplane_at_cursor(ncplane* n, cell* c){
   if(cursor_invalid_p(n)){
     return -1;
   }
-  return cell_duplicate(n, c, &n->fb[fbcellidx(n, n->y, n->x)]);
+  return cell_duplicate(n, c, &n->fb[nfbcellidx(n, n->y, n->x)]);
 }
 
 int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
@@ -170,7 +170,7 @@ int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
   pthread_mutex_lock(&n->nc->lock);
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
-      ret = cell_duplicate(n, c, &n->fb[fbcellidx(n, y, x)]);
+      ret = cell_duplicate(n, c, &n->fb[nfbcellidx(n, y, x)]);
     }
   }
   pthread_mutex_unlock(&n->nc->lock);
@@ -178,7 +178,7 @@ int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
 }
 
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
-  return &n->fb[fbcellidx(n, y, x)];
+  return &n->fb[nfbcellidx(n, y, x)];
 }
 
 void ncplane_dim_yx(ncplane* n, int* rows, int* cols){
@@ -384,7 +384,7 @@ ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
       copyoff += -xoff;
       copied += -xoff;
     }
-    const int sourceidx = fbcellidx(n, sourceline, keepx);
+    const int sourceidx = nfbcellidx(n, sourceline, keepx);
     memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
     copyoff += keeplenx;
     copied += keeplenx;
@@ -1098,13 +1098,13 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   // that cell as wide). Any character placed atop one half of a wide character
   // obliterates the other half. Note that a wide char can thus obliterate two
   // wide chars, totalling four columns.
-  cell* targ = &n->fb[fbcellidx(n, n->y, n->x)];
+  cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   if(n->x > 0){
     if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
       if(targ->gcluster == 0){ // we're the right half
-        cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x - 1)]);
+        cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x - 1)]);
       }else{
-        cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x + 1)]);
+        cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
       }
     }
   }
@@ -1115,17 +1115,17 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   int cols = 1;
   if(wide){
     ++cols;
-    cell* rtarg = &n->fb[fbcellidx(n, n->y, n->x + 1)];
+    cell* rtarg = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
     cell_release(n, rtarg);
     cell_init(rtarg);
     cell_set_wide(rtarg);
   }
   if(wide){ // must set our right wide, and check for further damage
     if(n->x < n->lenx - 1){ // check to our right
-      cell* candidate = &n->fb[fbcellidx(n, n->y, n->x + 1)];
+      cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
       if(n->x < n->lenx - 2){
         if(cell_wide_left_p(candidate)){
-          cell_obliterate(n, &n->fb[fbcellidx(n, n->y, n->x + 2)]);
+          cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 2)]);
         }
       }
       cell_set_wide(candidate);
@@ -1163,7 +1163,7 @@ int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
   if(n->y == n->leny && n->x == n->lenx){
     return -1;
   }
-  const cell* src = &n->fb[fbcellidx(n, n->y, n->x)];
+  const cell* src = &n->fb[nfbcellidx(n, n->y, n->x)];
   memcpy(c, src, sizeof(*src));
   *gclust = NULL;
   if(!cell_simple_p(src)){
