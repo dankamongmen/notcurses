@@ -122,32 +122,38 @@ iF(NOT PANDOC)
   message(WARNING "pandoc not found, won't generate documentation")
 else()
   foreach(m ${MANSOURCE3} ${MANSOURCE1})
-  get_filename_component(me ${m} NAME_WLE)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
-    DEPENDS ${m}
-    COMMAND ${PANDOC}
-    ARGS --to man --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
-    COMMENT "Building man page ${me}"
-  )
-  add_custom_target(${me}.man
-    ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
-  )
-  file(GLOB ANALHTML doc/analytics-header.html)
-  set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
-  set(MANPAGES1 ${MANPAGES1} ${CMAKE_CURRENT_BINARY_DIR}/${me})
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-    DEPENDS ${m} ${ANALHTML}
-    COMMAND ${PANDOC}
-    ARGS -H ${ANALHTML} --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-    COMMENT "Building HTML5 ${me}.html"
-  )
-  add_custom_target(${me}.html5
-    ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-  )
+    get_filename_component(me ${m} NAME_WLE)
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
+      DEPENDS ${m}
+      COMMAND ${PANDOC}
+      ARGS --to man --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
+      COMMENT "Building man page ${me}"
+    )
+    add_custom_target(${me}.man
+      ALL
+      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
+    )
+    file(GLOB ANALHTML doc/analytics-header.html)
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+      DEPENDS ${m} ${ANALHTML}
+      COMMAND ${PANDOC}
+      ARGS -H ${ANALHTML} --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+      COMMENT "Building HTML5 ${me}.html"
+    )
+    add_custom_target(${me}.html5
+      ALL
+      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+    )
+  endforeach()
+  foreach(m ${MANSOURCE3})
+    get_filename_component(me ${m} NAME_WLE)
+    set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+  endforeach()
+  foreach(m ${MANSOURCE1})
+    get_filename_component(me ${m} NAME_WLE)
+    set(MANPAGES1 ${MANPAGES1} ${CMAKE_CURRENT_BINARY_DIR}/${me})
   endforeach()
 endif()
 
@@ -294,7 +300,6 @@ install(FILES
     DESTINATION ${NOTCURSES_SHARE}
 )
 
-file(GLOB MANPAGES1 CONFIGURE_DEPENDS doc/man/man1/*.1)
 install(FILES
   ${MANPAGES1}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
