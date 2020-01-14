@@ -28,7 +28,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   int y, x;
   for(y = 0 ; y < pp->rows ; ++y){
     for(x = 0 ; x < pp->cols ; ++x){
-      channels = n->fb[fbcellidx(n, y, x)].channels;
+      channels = n->fb[nfbcellidx(n, y, x)].channels;
       pp->channels[y * pp->cols + x] = channels;
       channels_fg_rgb(channels, &r, &g, &b);
       if(r > pp->maxr){

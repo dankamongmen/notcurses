@@ -123,6 +123,72 @@ reshape_shadow_fb(notcurses* nc){
   return 0;
 }
 
+static inline void
+pool_release(egcpool* pool, cell* c){
+  if(!cell_simple_p(c)){
+    egcpool_release(pool, cell_egc_idx(c));
+    c->gcluster = 0; // don't subject ourselves to double-release problems
+  }
+}
+
+void cell_release(ncplane* n, cell* c){
+  pool_release(&n->pool, c);
+}
+
+// Duplicate one cell onto another, possibly crossing ncplanes.
+static inline int
+cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
+  pool_release(tpool, targ);
+  targ->attrword = c->attrword;
+  targ->channels = c->channels;
+  if(cell_simple_p(c)){
+    targ->gcluster = c->gcluster;
+    return !!c->gcluster;
+  }
+  size_t ulen = strlen(extended_gcluster(splane, c));
+//fprintf(stderr, "[%s] (%zu)\n", egcpool_extended_gcluster(&splane->pool, c), strlen(egcpool_extended_gcluster(&splane->pool, c)));
+  int eoffset = egcpool_stash(tpool, extended_gcluster(splane, c), ulen);
+  if(eoffset < 0){
+    return -1;
+  }
+  targ->gcluster = eoffset + 0x80;
+  return ulen;
+}
+
+// Duplicate one cell onto another when they share a plane. Convenience wrapper.
+int cell_duplicate(ncplane* n, cell* targ, const cell* c){
+  return cell_duplicate_far(&n->pool, targ, n, c);
+}
+
+// the heart of damage detection. compare two cells (from two different planes)
+// for equality. if they are equal, return 0. otherwise, dup the second onto
+// the first and return non-zero.
+static int
+cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
+                   const cell* srccell){
+  if(damcell->attrword == srccell->attrword){
+    if(damcell->channels == srccell->channels){
+      bool damsimple = cell_simple_p(damcell);
+      bool srcsimple = cell_simple_p(srccell);
+      if(damsimple == srcsimple){
+        if(damsimple){
+          if(damcell->gcluster == srccell->gcluster){
+            return 0; // simple match
+          }
+        }else{
+          const char* damegc = egcpool_extended_gcluster(dampool, damcell);
+          const char* srcegc = extended_gcluster(srcplane, srccell);
+          if(strcmp(damegc, srcegc) == 0){
+            return 0; // EGC match
+          }
+        }
+      }
+    }
+  }
+  cell_duplicate_far(dampool, damcell, srcplane, srccell);
+  return 1;
+}
+
 // Find the topmost cell for this coordinate by walking down the z-buffer,
 // looking for an intersecting ncplane. Once we've found one, check it for
 // transparency in either the back- or foreground. If the alpha channel is
@@ -150,95 +216,217 @@ reshape_shadow_fb(notcurses* nc){
 // plane, and a negative depth to indicate that the return value was equal to or
 // below the previous plane. Relative depths are valid only within the context
 // of a single render. 'previousz' must be non-negative on input.
-static inline ncplane*
-dig_visible_cell(cell* c, int y, int x, ncplane* p, int* previousz){
-  int depth = 1;
-  unsigned fgblends = 0;
-  unsigned bgblends = 0;
-  // once we decide on our glyph, it cannot be changed by anything below, so
-  // lock in this plane for the actual cell return.
-  ncplane* glyphplane = NULL;
-  while(p){
-    // where in the plane this coordinate would be, based off absy/absx. the
-    // true origin is 0,0, so abs=2,2 means coordinate 3,3 would be 1,1, while
-    // abs=-2,-2 would make coordinate 3,3 relative 5,5.
-    int poffx, poffy;
-    poffy = y - p->absy;
-    poffx = x - p->absx;
-    if(poffy < p->leny && poffy >= 0){
-      if(poffx < p->lenx && poffx >= 0){ // p is valid for this y, x
-        const cell* vis = &p->fb[fbcellidx(p, poffy, poffx)];
-        // if we never loaded any content into the cell (or obliterated it by
-        // writing in a zero), use the plane's default cell.
-        if(vis->gcluster == 0){
-          vis = &p->basecell;
+
+/*
+  for(y = 0 ; y < nc->stdscr->leny ; ++y){
+    // track the depth of our glyph, to see if we need need to stomp a wide
+    // glyph we're following.
+    int depth = 0;
+    // are we in the right half of a wide glyph? if so, we don't typically emit
+    // anything, *BUT* we must handle higher planes bisecting our wide glyph.
+    bool inright = false;
+    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
+      ncplane* p;
+      cell c; // no need to initialize
+      p = visible_cell(&c, y, x, nc->top, &depth);
+      // don't try to print a wide character on the last column; it'll instead
+      // be printed on the next line. they aren't output, but we can end up
+      // with one due to a resize. FIXME but...print what, exactly, instead?
+      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
+        continue; // needmove will be reset as we restart the line
+      }
+      if(depth > 0){ // we are above the previous source plane
+        if(inright){ // wipe out the character to the left
+          // FIXME do this by keeping an offset for the memstream, and
+          // truncating it (via lseek()), methinks
+          cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
+          pool_release(&nc->pool, prev);
+          cell_init(prev);
+          // FIXME technically we need rerun the visible cell search...? gross
+          cell_load_simple(NULL, prev, ' ');
+          inright = false;
+//if(cell_simple_p(&c)){
+//fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
+//}else{
+//fprintf(stderr, "WENT BACK NOW FOR %s\n", extended_gcluster(p, &c));
+//}
         }
-        // if we have no character in this cell, we continue to look for a
-        // character, but our foreground color will still be used unless it's
-        // been set to transparent. if that foreground color is transparent, we
-        // still use a character we find here, but its color will come entirely
-        // from cells underneath us.
-        if(!glyphplane){
-          if( (c->gcluster = vis->gcluster) ){ // index copy only
-            glyphplane = p;
-          }
+      }
+      // lastframe has already been sized to match the current size, so no need
+      // to check whether we're within its bounds. just check the cell.
+      if(nc->lastframe){
+        cell* oldcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
+        if(inright){
+          cell_set_wide(oldcell);
+          inright = false;
+          continue;
+        }
+        // check the damage map
+        if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c)){
+//fprintf(stderr, "setting damagevec idx %d mask %u\n", (y * nc->stdscr->lenx + x) / CHAR_BIT, (0x80 >> ((y * nc->stdscr->lenx + x) % CHAR_BIT)));
+          damagevec[(y * nc->stdscr->lenx + x) / CHAR_BIT] |=
+            (0x80 >> ((y * nc->stdscr->lenx + x) % CHAR_BIT));
+        }
+      }
+      inright = cell_double_wide_p(&c);
+    }
+  }
+  if(ret){
+    return ret;
+  }
+  */
+
+// Is this cell locked in? I.e. does it have all three of:
+//  * a selected EGC
+//  * CELL_ALPHA_OPAQUE foreground channel
+//  * CELL_ALPHA_OPAQUE background channel
+static inline bool
+cell_locked_p(const cell* p){
+  if(p->gcluster || cell_double_wide_p(p)){
+    if(cell_fg_alpha(p) == CELL_ALPHA_OPAQUE){
+      if(cell_bg_alpha(p) == CELL_ALPHA_OPAQUE){
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+// Extracellular state for a cell during the render process
+struct crender {
+  int fgblends;
+  int bgblends;
+  ncplane *p;
+  bool damaged;
+};
+
+// Paints a single ncplane into the provided framebuffer 'fb'. Whenever a cell
+// is locked in, it is compared against the last frame. If it is different, the
+// 'damagevec' bitmap is updated with a 1.
+static int
+paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
+  int y, x, dimy, dimx, offy, offx;
+  // don't use ncplane_dim_yx()/ncplane_yx() here, lest we deadlock
+  dimy = p->leny;
+  dimx = p->lenx;
+  offy = p->absy;
+  offx = p->absx;
+  for(y = 0 ; y < dimy ; ++y){
+    for(x = 0 ; x < dimx ; ++x){
+      int absy = y + offy;
+      int absx = x + offx;
+      if(absy < 0 || absy >= nc->stdscr->leny){
+        continue;
+      }
+      if(absx < 0 || absx >= nc->stdscr->lenx){
+        continue;
+      }
+      cell* targc = &fb[fbcellidx(absy, nc->stdscr->lenx, absx)];
+      if(cell_locked_p(targc)){
+        continue;
+      }
+      struct crender* crender = &rvec[fbcellidx(absy, nc->stdscr->lenx, absx)];
+      const cell* vis = &p->fb[nfbcellidx(p, y, x)];
+      // if we never loaded any content into the cell (or obliterated it by
+      // writing in a zero), use the plane's default cell.
+      if(vis->gcluster == 0){
+        vis = &p->basecell;
+      }
+      // if we have no character in this cell, we continue to look for a
+      // character, but our foreground color will still be used unless it's
+      // been set to transparent. if that foreground color is transparent, we
+      // still use a character we find here, but its color will come entirely
+      // from cells underneath us.
+      if(!crender->p){
+        // if the following is true, we're a real glyph, and not the right-h
+        // hand side of a wide glyph (or the null codepoint).
+        if( (targc->gcluster = vis->gcluster) ){ // index copy only
+          // we can't plop down a wide glyph if the next cell is beyond the
+          // screen, nor if we're bisected by a higher plane.
           if(cell_double_wide_p(vis)){
-            cell_set_wide(c);
-            glyphplane = p;
+            // are we on the last column of the real screen? if so, 0x20 us
+            if(absx >= nc->stdscr->lenx - 1){
+              targc->gcluster = ' ';
+            // is the next cell occupied? if so, 0x20 us
+            }else if(targc[1].gcluster){
+fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, targc[1].gcluster);
+              targc->gcluster = ' ';
+            }else{
+              cell_set_wide(targc);
+            }
           }
-          if(glyphplane){
-            c->attrword = vis->attrword;
-          }
+          crender->p = p;
+          targc->attrword = vis->attrword;
+        }else if(cell_double_wide_p(vis)){
+          cell_set_wide(targc);
         }
-        if(cell_fg_alpha(c) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
-          cell_blend_fchannel(c, cell_fchannel(vis), fgblends);
-          ++fgblends;
-        }
-        // Background color takes effect independently of whether we have a
-        // glyph. If we've already locked in the background, it has no effect.
-        // If it's transparent, it has no effect. Otherwise, update the
-        // background channel and balpha.
-        if(cell_bg_alpha(c) > CELL_ALPHA_OPAQUE && cell_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
-          cell_blend_bchannel(c, cell_bchannel(vis), bgblends);
-          ++bgblends;
-        }
-        // if everything's locked in, we're done
-        if((glyphplane && cell_fg_alpha(c) == CELL_ALPHA_OPAQUE &&
-              cell_bg_alpha(c) == CELL_ALPHA_OPAQUE)){
-          if(depth < *previousz){
-            *previousz = depth;
-          }else{
-            *previousz = -depth;
-          }
-          return glyphplane;
+      }
+      if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+        cell_blend_fchannel(targc, cell_fchannel(vis), crender->fgblends);
+        ++crender->fgblends;
+      }
+      // Background color takes effect independently of whether we have a
+      // glyph. If we've already locked in the background, it has no effect.
+      // If it's transparent, it has no effect. Otherwise, update the
+      // background channel and balpha.
+      if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+        cell_blend_bchannel(targc, cell_bchannel(vis), crender->bgblends);
+        ++crender->bgblends;
+      }
+
+      if(cell_locked_p(targc)){
+        cell* prevcell = &nc->lastframe[fbcellidx(y, nc->stdscr->lenx, x)];
+        if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
+fprintf(stderr, "WROTE %u to %d/%d (%d/%d)\n", targc->gcluster, y, x, absy, absx);
+          crender->damaged = true;
         }
       }
     }
-    p = p->z;
-    ++depth;
   }
-  // if we have a background set, but no glyph selected, load a space so that
-  // the background will be printed
-  if(!glyphplane){
-    cell_load_simple(NULL, c, ' ');
-  }
-  if(depth < *previousz){
-    *previousz = depth;
-  }else{
-    *previousz = -depth;
-  }
-  return glyphplane;
+  return 0;
 }
 
-static inline ncplane*
-visible_cell(cell* c, int y, int x, ncplane* n, int* previousz){
-  cell_init(c);
-  cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-  if(*previousz < 0){
-    *previousz = -*previousz;
+// We execute the painter's algorithm, starting from our topmost plane. The
+// damagevector should be all zeros on input. On success, it will reflect
+// which cells were changed.
+static inline int
+notcurses_render_internal(notcurses* nc, struct crender* rvec){
+  // if this fails, struggle bravely on. we can live without a lastframe.
+  reshape_shadow_fb(nc);
+  int dimy, dimx;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  cell* fb = malloc(sizeof(*fb) * dimy * dimx);
+  for(int y = 0 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      cell* c = &fb[fbcellidx(y, dimx, x)];
+      cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+    }
   }
-  return dig_visible_cell(c, y, x, n, previousz);
+  ncplane* p = nc->top;
+  while(p){
+    if(paint(nc, p, rvec, fb)){
+      return -1;
+    }
+    p = p->z;
+  }
+  for(int y = 0 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      cell* targc = &fb[fbcellidx(y, dimx, x)];
+      if(!cell_locked_p(targc)){
+        cell* prevcell = &nc->lastframe[fbcellidx(y, dimx, x)];
+        if(targc->gcluster == 0){
+          targc->gcluster = ' ';
+        }
+        if(cellcmp_and_dupfar(&nc->pool, prevcell, rvec->p, targc)){
+          struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
+          crender->damaged = true;
+        }
+      }
+    }
+  }
+  free(fb);
+  return 0;
 }
 
 // write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
@@ -418,78 +606,12 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   return 0;
 }
 
-static inline void
-pool_release(egcpool* pool, cell* c){
-  if(!cell_simple_p(c)){
-    egcpool_release(pool, cell_egc_idx(c));
-    c->gcluster = 0; // don't subject ourselves to double-release problems
-  }
-}
-
-void cell_release(ncplane* n, cell* c){
-  pool_release(&n->pool, c);
-}
-
-// Duplicate one cell onto another, possibly crossing ncplanes.
-static inline int
-cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
-  pool_release(tpool, targ);
-  targ->attrword = c->attrword;
-  targ->channels = c->channels;
-  if(cell_simple_p(c)){
-    targ->gcluster = c->gcluster;
-    return !!c->gcluster;
-  }
-  size_t ulen = strlen(extended_gcluster(splane, c));
-// fprintf(stderr, "[%s] (%zu)\n", extended_gcluster(n, c), strlen(extended_gcluster(n, c)));
-  int eoffset = egcpool_stash(tpool, extended_gcluster(splane, c), ulen);
-  if(eoffset < 0){
-    return -1;
-  }
-  targ->gcluster = eoffset + 0x80;
-  return ulen;
-}
-
-// Duplicate one cell onto another when they share a plane. Convenience wrapper.
-int cell_duplicate(ncplane* n, cell* targ, const cell* c){
-  return cell_duplicate_far(&n->pool, targ, n, c);
-}
-
-// the heart of damage detection. compare two cells (from two different planes)
-// for equality. if they are equal, return 0. otherwise, dup the second onto
-// the first and return non-zero.
-static int
-cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
-                   const cell* srccell){
-  if(damcell->attrword == srccell->attrword){
-    if(damcell->channels == srccell->channels){
-      bool damsimple = cell_simple_p(damcell);
-      bool srcsimple = cell_simple_p(srccell);
-      if(damsimple == srcsimple){
-        if(damsimple){
-          if(damcell->gcluster == srccell->gcluster){
-            return 0; // simple match
-          }
-        }else{
-          const char* damegc = egcpool_extended_gcluster(dampool, damcell);
-          const char* srcegc = extended_gcluster(srcplane, srccell);
-          if(strcmp(damegc, srcegc) == 0){
-            return 0; // EGC match
-          }
-        }
-      }
-    }
-  }
-  cell_duplicate_far(dampool, damcell, srcplane, srccell);
-  return 1;
-}
-
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8 stream of escapes and EGCs
 //  * refresh -- write the stream to the emulator
 static inline int
-notcurses_rasterize(notcurses* nc, unsigned char* damagemap){
+notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   FILE* out = nc->rstate.mstreamfp;
   int ret = 0;
   int y, x;
@@ -498,7 +620,6 @@ notcurses_rasterize(notcurses* nc, unsigned char* damagemap){
   // bit per coordinate, rows by rows, column by column within a row, with the
   // MSB being the first coordinate.
   size_t damageidx = 0;
-  unsigned char damagemask = 0x80;
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
@@ -516,7 +637,7 @@ notcurses_rasterize(notcurses* nc, unsigned char* damagemap){
 //      const char* egc = pool_egc_copy(&nc->pool, srccell);
 //      c->gcluster = 0; // otherwise cell_release() will blow up
 //fprintf(stderr, "idx: %zu word: 0x%02x\n", damageidx, damagemap[damageidx]);
-      if((damagemap[damageidx] & damagemask) == 0){
+      if(!rvec[damageidx].damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
         ++nc->stats.cellelisions;
@@ -610,10 +731,11 @@ notcurses_rasterize(notcurses* nc, unsigned char* damagemap){
 //fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x\n", y, x, r, g, b);
         ret |= term_putc(out, &nc->pool, srccell);
       }
-      if((damagemask >>= 1u) == 0){
-        damagemask = 0x80;
+      if(cell_double_wide_p(srccell)){
+        ++x;
         ++damageidx;
       }
+      ++damageidx;
     }
   }
   ret |= fflush(out);
@@ -632,71 +754,6 @@ notcurses_rasterize(notcurses* nc, unsigned char* damagemap){
   return nc->rstate.mstrsize;
 }
 
-static inline int
-notcurses_render_internal(notcurses* nc, unsigned char* damagevec){
-  int ret = 0;
-  int y, x;
-  // if this fails, struggle bravely on. we can live without a lastframe.
-  reshape_shadow_fb(nc);
-  for(y = 0 ; y < nc->stdscr->leny ; ++y){
-    // track the depth of our glyph, to see if we need need to stomp a wide
-    // glyph we're following.
-    int depth = 0;
-    // are we in the right half of a wide glyph? if so, we don't typically emit
-    // anything, *BUT* we must handle higher planes bisecting our wide glyph.
-    bool inright = false;
-    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
-      ncplane* p;
-      cell c; // no need to initialize
-      p = visible_cell(&c, y, x, nc->top, &depth);
-      // don't try to print a wide character on the last column; it'll instead
-      // be printed on the next line. they aren't output, but we can end up
-      // with one due to a resize. FIXME but...print what, exactly, instead?
-      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
-        continue; // needmove will be reset as we restart the line
-      }
-      if(depth > 0){ // we are above the previous source plane
-        if(inright){ // wipe out the character to the left
-          // FIXME do this by keeping an offset for the memstream, and
-          // truncating it (via lseek()), methinks
-          cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
-          pool_release(&nc->pool, prev);
-          cell_init(prev);
-          // FIXME technically we need rerun the visible cell search...? gross
-          cell_load_simple(NULL, prev, ' ');
-          inright = false;
-//if(cell_simple_p(&c)){
-//fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
-//}else{
-//fprintf(stderr, "WENT BACK NOW FOR %s\n", extended_gcluster(p, &c));
-//}
-        }
-      }
-      // lastframe has already been sized to match the current size, so no need
-      // to check whether we're within its bounds. just check the cell.
-      if(nc->lastframe){
-        cell* oldcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
-        if(inright){
-          cell_set_wide(oldcell);
-          inright = false;
-          continue;
-        }
-        // check the damage map
-        if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c)){
-//fprintf(stderr, "setting damagevec idx %d mask %u\n", (y * nc->stdscr->lenx + x) / CHAR_BIT, (0x80 >> ((y * nc->stdscr->lenx + x) % CHAR_BIT)));
-          damagevec[(y * nc->stdscr->lenx + x) / CHAR_BIT] |=
-            (0x80 >> ((y * nc->stdscr->lenx + x) % CHAR_BIT));
-        }
-      }
-      inright = cell_double_wide_p(&c);
-    }
-  }
-  if(ret){
-    return ret;
-  }
-  return nc->rstate.mstrsize;
-}
-
 int notcurses_render(notcurses* nc){
   struct timespec start, done;
   int ret;
@@ -704,14 +761,13 @@ int notcurses_render(notcurses* nc){
   pthread_mutex_lock(&nc->lock);
   pthread_cleanup_push(mutex_unlock, &nc->lock);
   int bytes = -1;
-  size_t damagevecsize = nc->stdscr->leny * nc->stdscr->lenx / CHAR_BIT +
-                         !!(nc->stdscr->leny * nc->stdscr->lenx % CHAR_BIT);
-  unsigned char* damagevec = malloc(damagevecsize);
-  memset(damagevec, 0, damagevecsize);
-  if(notcurses_render_internal(nc, damagevec) >= 0){
-    bytes = notcurses_rasterize(nc, damagevec);
+  size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
+  struct crender* crender = malloc(crenderlen);
+  memset(crender, 0, crenderlen);
+  if(notcurses_render_internal(nc, crender) == 0){
+    bytes = notcurses_rasterize(nc, crender);
   }
-  free(damagevec);
+  free(crender);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
   clock_gettime(CLOCK_MONOTONIC_RAW, &done);

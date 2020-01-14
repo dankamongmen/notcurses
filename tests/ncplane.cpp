@@ -917,6 +917,32 @@ TEST_CASE("NCPlane") {
     CHECK(0 == ncplane_destroy(ncp));
   }
 
+  SUBCASE("RenderWides") {
+    CHECK(0 <= ncplane_putstr(n_, "\xe5\xbd\xa2\xe5\x85\xa8"));
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    ncplane_at_yx(n_, 0, 0, &c);
+    CHECK(cell_double_wide_p(&c));
+    ncplane_at_yx(n_, 0, 1, &c);
+    CHECK(cell_double_wide_p(&c));
+    ncplane_at_yx(n_, 0, 2, &c);
+    CHECK(cell_double_wide_p(&c));
+    ncplane_at_yx(n_, 0, 3, &c);
+    CHECK(cell_double_wide_p(&c));
+    ncplane_at_yx(n_, 0, 4, &c);
+    CHECK(!cell_double_wide_p(&c));
+    REQUIRE(0 == notcurses_render(nc_));
+    notcurses_at_yx(nc_, 0, 0, &c);
+    CHECK(cell_double_wide_p(&c));
+    notcurses_at_yx(nc_, 0, 1, &c);
+    CHECK(cell_double_wide_p(&c));
+    notcurses_at_yx(nc_, 0, 2, &c);
+    CHECK(cell_double_wide_p(&c));
+    notcurses_at_yx(nc_, 0, 3, &c);
+    CHECK(cell_double_wide_p(&c));
+    notcurses_at_yx(nc_, 0, 4, &c);
+    CHECK(!cell_double_wide_p(&c));
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 

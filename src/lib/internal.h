@@ -206,8 +206,13 @@ ncplane_unlock(const ncplane* n){
 }
 
 static inline int
-fbcellidx(const ncplane* n, int row, int col){
-  return row * n->lenx + col;
+fbcellidx(int row, int rowlen, int col){
+  return row * rowlen + col;
+}
+
+static inline int
+nfbcellidx(const ncplane* n, int row, int col){
+  return fbcellidx(row, n->lenx, col);
 }
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
