@@ -18,8 +18,6 @@ typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp);
 
 **int ncplane_fadein(struct ncplane* n, const struct timespec* ts);**
 
-**int notcurses_pulsing_yx(struct ncplane* n, int y, int x, const char* s, uint32_t attr, uint64_t channels, fadecb fader);**
-
 **int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader);**
 
 # DESCRIPTION

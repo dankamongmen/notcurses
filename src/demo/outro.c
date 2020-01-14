@@ -44,7 +44,7 @@ fadethread(void* vnc){
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
       "Apia 🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
   int three = 3;
-  ncvisual_stream(nc, ncv, &averr, perframe, &three);
+  ncvisual_stream(nc, ncv, &averr, 1, perframe, &three);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
   fade.tv_sec = 2;

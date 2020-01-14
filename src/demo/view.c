@@ -29,7 +29,7 @@ view_video_demo(struct notcurses* nc){
     return -1;
   }
   free(fm6);
-  int ret = ncvisual_stream(nc, ncv, &averr, watch_for_keystroke, NULL);
+  int ret = ncvisual_stream(nc, ncv, &averr, 1, watch_for_keystroke, NULL);
   ncvisual_destroy(ncv);
   return ret;
 }

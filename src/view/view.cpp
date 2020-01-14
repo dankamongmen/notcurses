@@ -18,7 +18,7 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -l loglevel(0-9) ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] files" << '\n';
   exit(exitcode);
 }
 
@@ -68,14 +68,26 @@ int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
 }
 
 // can exit() directly. returns index in argv of first non-option param.
-int handle_opts(int argc, char** argv, notcurses_options* opts) {
+int handle_opts(int argc, char** argv, notcurses_options* opts, float* timescale) {
+  *timescale = 1.0;
   int c;
-  while((c = getopt(argc, argv, "hl:")) != -1){
+  while((c = getopt(argc, argv, "hl:d:")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
         break;
-      case 'l':{
+      case 'd':{
+        std::stringstream ss;
+        ss << optarg;
+        float ts;
+        ss >> ts;
+        if(ts <= 0){
+          std::cerr << "Invalid timescale [" << optarg << "] (wanted (0..))\n";
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        *timescale = ts;
+        break;
+      }case 'l':{
         std::stringstream ss;
         ss << optarg;
         int ll;
@@ -105,7 +117,8 @@ int handle_opts(int argc, char** argv, notcurses_options* opts) {
 int main(int argc, char** argv){
   setlocale(LC_ALL, "");
   notcurses_options opts{};
-  auto nonopt = handle_opts(argc, argv, &opts);
+  float timescale;
+  auto nonopt = handle_opts(argc, argv, &opts, &timescale);
   auto nc = notcurses_init(&opts, stdout);
   if(nc == nullptr){
     return EXIT_FAILURE;
@@ -130,7 +143,7 @@ int main(int argc, char** argv){
       return EXIT_FAILURE;
     }
     clock_gettime(CLOCK_MONOTONIC, &start);
-    int r = ncvisual_stream(nc, ncv, &averr, perframe, &frames);
+    int r = ncvisual_stream(nc, ncv, &averr, timescale, perframe, &frames);
     if(r < 0){ // positive is intentional abort
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
       notcurses_stop(nc);

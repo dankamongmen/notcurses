@@ -381,7 +381,7 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
 // initial timestamp, and check each frame against the elapsed time to sync
 // up playback.
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
-                    streamcb streamer, void* curry){
+                    float timescale, streamcb streamer, void* curry){
   int frame = 1;
   AVFrame* avf;
   struct timespec begin; // time we started

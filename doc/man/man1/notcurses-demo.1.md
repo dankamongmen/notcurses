@@ -43,6 +43,8 @@ At any time, press 'q' to quit. The demo is best run in at least a 80x45 termina
 
 **-d delaymult**: Apply a rational multiplier to the standard delay of 1s.
 
+**-l loglevel**: Log everything (high log level) or nothing (log level 0) to stderr.
+
 **-H**: Launch a HUD with running timers for each demo. This HUD can be moved or closed with the mouse.
 
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
