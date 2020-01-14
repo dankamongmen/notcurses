@@ -349,7 +349,7 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
               targc->gcluster = ' ';
             // is the next cell occupied? if so, 0x20 us
             }else if(targc[1].gcluster){
-fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, targc[1].gcluster);
+//fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, targc[1].gcluster);
               targc->gcluster = ' ';
             }else{
               cell_set_wide(targc);
@@ -377,7 +377,7 @@ fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, targc
       if(cell_locked_p(targc)){
         cell* prevcell = &nc->lastframe[fbcellidx(y, nc->lfdimx, x)];
         if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
-fprintf(stderr, "WROTE %u to %d/%d (%d/%d)\n", targc->gcluster, y, x, absy, absx);
+//fprintf(stderr, "WROTE %u to %d/%d (%d/%d)\n", targc->gcluster, y, x, absy, absx);
           crender->damaged = true;
         }
       }
@@ -694,7 +694,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         if(!cell_fg_default_p(srccell)){
           if(!noforeground){
             cell_fg_rgb(srccell, &r, &g, &b);
-fprintf(stderr, "[%03d/%03d] %02x %02x %02x\n", y, x, r, g, b);
+//fprintf(stderr, "[%03d/%03d] %02x %02x %02x\n", y, x, r, g, b);
             if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
               ++nc->stats.fgelisions;
             }else{
@@ -724,7 +724,7 @@ fprintf(stderr, "[%03d/%03d] %02x %02x %02x\n", y, x, r, g, b);
             ++nc->stats.bgelisions;
           }
         }
-fprintf(stderr, "[%03d/%03d] [%u] 0x%02x 0x%02x 0x%02x\n", y, x, srccell->gcluster, r, g, b);
+//fprintf(stderr, "[%03d/%03d] [%u] 0x%02x 0x%02x 0x%02x\n", y, x, srccell->gcluster, r, g, b);
         ret |= term_putc(out, &nc->pool, srccell);
       }
       if(cell_double_wide_p(srccell)){
