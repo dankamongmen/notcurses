@@ -1,6 +1,6 @@
 % notcurses_ncplane(3)
 % nick black <nickblack@linux.com>
-% v1.0.2
+% v1.1.0
 
 # NAME
 
