@@ -18,12 +18,12 @@ mathplane(struct notcurses* nc){
   const int WIDTH = dimx;
   struct ncplane* n = ncplane_new(nc, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH, NULL);
   cell b = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_rgb(&b, 0xff, 0xff, 0xff);
+  cell_set_fg(&b, 0x2b50c8); // metallic gold, inverted
   cell_set_fg_alpha(&b, CELL_ALPHA_BLEND);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, &b);
   cell_release(n, &b);
-  ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
+  ncplane_set_fg(n, 0xd4af37); // metallic gold
   if(n){
     ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)⎧⎡⎛┌─────┐⎞⎤⎫");
     ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "⎪⎢⎜│a²+b³ ⎟⎥⎪");
@@ -454,7 +454,7 @@ int witherworm_demo(struct notcurses* nc){
     cell c;
     struct timespec screenend;
     clock_gettime(CLOCK_MONOTONIC, &screenend);
-    ns_to_timespec(timespec_to_ns(&screenend) + 5 * timespec_to_ns(&demodelay), &screenend);
+    ns_to_timespec(timespec_to_ns(&screenend) + 4 * timespec_to_ns(&demodelay), &screenend);
     do{ // (re)draw a screen
       const int start = starts[i];
       int step = steps[i];
