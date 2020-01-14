@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_panelreels - high-level widget for hierarchal data
+notcurses_panelreels - high-level widget for hierarchical data
 
 # SYNOPSIS
 
