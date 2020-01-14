@@ -163,12 +163,22 @@ int unicodeblocks_demo(struct notcurses* nc){
   struct timespec subdelay;
   uint64_t nstotal = timespec_to_ns(&demodelay);
   ns_to_timespec(nstotal / 3, &subdelay);
+  struct ncplane* header = ncplane_aligned(notcurses_stdplane(nc), 2,
+                                           (CHUNKSIZE * 2) - 2, 1,
+                                           NCALIGN_CENTER, NULL);
+  if(header == NULL){
+    return -1;
+  }
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
+  cell_set_fg(&c, 0x004000);
+  ncplane_set_base(header, &c);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_set_bg_rgb(n, 0, 0, 0);
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
-    ncplane_set_fg_rgb(n, 0xad, 0xd8, 0xe6);
-    if(ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
+    ncplane_set_fg_rgb(header, 0xbd, 0xe8, 0xf6);
+    if(ncplane_printf_aligned(header, 1, NCALIGN_CENTER, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
     struct ncplane* nn;
@@ -199,5 +209,6 @@ int unicodeblocks_demo(struct notcurses* nc){
     // really, the vast majority of space is unused.
     blockstart += BLOCKSIZE;
   }
+  ncplane_destroy(header);
   return 0;
 }
