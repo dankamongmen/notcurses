@@ -375,7 +375,7 @@ fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, targc
       }
 
       if(cell_locked_p(targc)){
-        cell* prevcell = &nc->lastframe[fbcellidx(y, nc->stdscr->lenx, x)];
+        cell* prevcell = &nc->lastframe[fbcellidx(y, nc->lfdimx, x)];
         if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
 fprintf(stderr, "WROTE %u to %d/%d (%d/%d)\n", targc->gcluster, y, x, absy, absx);
           crender->damaged = true;
@@ -626,8 +626,8 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // how many characters have we elided? it's not worthwhile to invoke a
     // cursor movement with cup if we only elided one or two. set to INT_MAX
-    // whenever we're on a new line.
-    int needmove = INT_MAX;
+    // whenever we're on a new line. leave room to avoid overflow.
+    int needmove = INT_MAX - nc->stdscr->lenx;
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb;
       const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
@@ -636,18 +636,13 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
 //fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
 //      const char* egc = pool_egc_copy(&nc->pool, srccell);
 //      c->gcluster = 0; // otherwise cell_release() will blow up
-//fprintf(stderr, "idx: %zu word: 0x%02x\n", damageidx, damagemap[damageidx]);
       if(!rvec[damageidx].damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
         ++nc->stats.cellelisions;
-        if(needmove < INT_MAX){
-          ++needmove;
-        }
+        ++needmove;
         if(cell_double_wide_p(srccell)){
-          if(needmove < INT_MAX){
-            ++needmove;
-          }
+          ++needmove;
           ++nc->stats.cellelisions;
         }
       }else{
@@ -699,6 +694,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         if(!cell_fg_default_p(srccell)){
           if(!noforeground){
             cell_fg_rgb(srccell, &r, &g, &b);
+fprintf(stderr, "[%03d/%03d] %02x %02x %02x\n", y, x, r, g, b);
             if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
               ++nc->stats.fgelisions;
             }else{
@@ -728,7 +724,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
             ++nc->stats.bgelisions;
           }
         }
-//fprintf(stderr, "[%02d/%02d] 0x%02x 0x%02x 0x%02x\n", y, x, r, g, b);
+fprintf(stderr, "[%03d/%03d] [%u] 0x%02x 0x%02x 0x%02x\n", y, x, srccell->gcluster, r, g, b);
         ret |= term_putc(out, &nc->pool, srccell);
       }
       if(cell_double_wide_p(srccell)){
