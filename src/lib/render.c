@@ -317,6 +317,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
     }
     p = p->z;
   }
+  /*
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       cell* targc = &fb[fbcellidx(y, dimx, x)];
@@ -332,6 +333,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
       }
     }
   }
+  */
   free(fb);
   return 0;
 }
