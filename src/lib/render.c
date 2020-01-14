@@ -78,23 +78,6 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
   }
 }
 
-// determine the best palette for the current frame, and write the necessary
-// escape sequences to 'out'. for now, we just assume the ANSI palettes. at
-// 256 colors, this is the 16 normal ones, 6x6x6 color cubes, and 32 greys.
-// it's probably better to sample the darker regions rather than cover so much
-// chroma, but whatever....FIXME
-/*static inline int
-prep_optimized_palette(notcurses* nc, FILE* out __attribute__ ((unused))){
-  if(nc->RGBflag){
-    return 0; // DirectColor, no need to write palette
-  }
-  if(!nc->CCCflag){
-    return 0; // can't change palette
-  }
-  // FIXME
-  return 0;
-}*/
-
 // reshape the shadow framebuffer to match the stdplane's dimensions, throwing
 // away the old one.
 static int
@@ -189,93 +172,6 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
   return 1;
 }
 
-// Find the topmost cell for this coordinate by walking down the z-buffer,
-// looking for an intersecting ncplane. Once we've found one, check it for
-// transparency in either the back- or foreground. If the alpha channel is
-// active, keep descending and blending until we hit opacity, or bedrock. We
-// recurse to find opacity, and blend the result into what we have. The
-// 'findfore' and 'findback' bools control our recursion--there's no point in
-// going further down when a color is locked in, so don't (for instance) recurse
-// further when we have a transparent foreground and opaque background atop an
-// opaque foreground and transparent background. The cell we ultimately return
-// (a const ref to 'c') is backed by '*retp' via rawdog copy; the caller must
-// not call cell_release() upon it, nor use it beyond the scope of the render.
-//
-// So, as we go down, we find planes which can have impact on the result. Once
-// we've locked the result in (base case), write the deep values we have to 'c'.
-// Then, as we come back up, blend them as appropriate. The actual glyph is
-// whichever one occurs at the top with a non-transparent α (α < 2). To effect
-// tail recursion, though, we instead write first, and then recurse, blending
-// as we descend. α == 0 is opaque. α == 2 is fully transparent.
-//
-// It is useful to know how deep our glyph came from (the depth of the return
-// value), so it will be recorded in 'previousz'. It is useful to know this
-// value's relation to the previous cell, so the previous value is provided as
-// input to 'previousz', and when we set 'previousz' in this function, we use
-// the positive depth to indicate that the return value was above the previous
-// plane, and a negative depth to indicate that the return value was equal to or
-// below the previous plane. Relative depths are valid only within the context
-// of a single render. 'previousz' must be non-negative on input.
-
-/*
-  for(y = 0 ; y < nc->stdscr->leny ; ++y){
-    // track the depth of our glyph, to see if we need need to stomp a wide
-    // glyph we're following.
-    int depth = 0;
-    // are we in the right half of a wide glyph? if so, we don't typically emit
-    // anything, *BUT* we must handle higher planes bisecting our wide glyph.
-    bool inright = false;
-    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
-      ncplane* p;
-      cell c; // no need to initialize
-      p = visible_cell(&c, y, x, nc->top, &depth);
-      // don't try to print a wide character on the last column; it'll instead
-      // be printed on the next line. they aren't output, but we can end up
-      // with one due to a resize. FIXME but...print what, exactly, instead?
-      if((x + 1 >= nc->stdscr->lenx && cell_double_wide_p(&c))){
-        continue; // needmove will be reset as we restart the line
-      }
-      if(depth > 0){ // we are above the previous source plane
-        if(inright){ // wipe out the character to the left
-          // FIXME do this by keeping an offset for the memstream, and
-          // truncating it (via lseek()), methinks
-          cell* prev = &nc->lastframe[fbcellidx(nc->stdscr, y, x - 1)];
-          pool_release(&nc->pool, prev);
-          cell_init(prev);
-          // FIXME technically we need rerun the visible cell search...? gross
-          cell_load_simple(NULL, prev, ' ');
-          inright = false;
-//if(cell_simple_p(&c)){
-//fprintf(stderr, "WENT BACK NOW FOR %c\n", c.gcluster);
-//}else{
-//fprintf(stderr, "WENT BACK NOW FOR %s\n", extended_gcluster(p, &c));
-//}
-        }
-      }
-      // lastframe has already been sized to match the current size, so no need
-      // to check whether we're within its bounds. just check the cell.
-      if(nc->lastframe){
-        cell* oldcell = &nc->lastframe[fbcellidx(nc->stdscr, y, x)];
-        if(inright){
-          cell_set_wide(oldcell);
-          inright = false;
-          continue;
-        }
-        // check the damage map
-        if(cellcmp_and_dupfar(&nc->pool, oldcell, p, &c)){
-//fprintf(stderr, "setting damagevec idx %d mask %u\n", (y * nc->stdscr->lenx + x) / CHAR_BIT, (0x80 >> ((y * nc->stdscr->lenx + x) % CHAR_BIT)));
-          damagevec[(y * nc->stdscr->lenx + x) / CHAR_BIT] |=
-            (0x80 >> ((y * nc->stdscr->lenx + x) % CHAR_BIT));
-        }
-      }
-      inright = cell_double_wide_p(&c);
-    }
-  }
-  if(ret){
-    return ret;
-  }
-  */
-
 // Is this cell locked in? I.e. does it have all three of:
 //  * a selected EGC
 //  * CELL_ALPHA_OPAQUE foreground channel
@@ -311,6 +207,7 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
   dimx = p->lenx;
   offy = p->absy;
   offx = p->absx;
+//fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, nc->stdscr->leny, nc->stdscr->lenx);
   for(y = 0 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
       int absy = y + offy;
@@ -375,9 +272,13 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
       }
 
       if(cell_locked_p(targc)){
-        cell* prevcell = &nc->lastframe[fbcellidx(y, nc->lfdimx, x)];
+        cell* prevcell = &nc->lastframe[fbcellidx(absy, nc->lfdimx, absx)];
         if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
-//fprintf(stderr, "WROTE %u to %d/%d (%d/%d)\n", targc->gcluster, y, x, absy, absx);
+/*if(cell_simple_p(prevcell)){
+fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", prevcell->gcluster, prevcell->gcluster, y, x, absy, absx);
+}else{
+fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", prevcell->gcluster, egcpool_extended_gcluster(&nc->pool, prevcell), y, x, absy, absx);
+}*/
           crender->damaged = true;
         }
       }
@@ -388,17 +289,23 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
 
 // We execute the painter's algorithm, starting from our topmost plane. The
 // damagevector should be all zeros on input. On success, it will reflect
-// which cells were changed.
+// which cells were changed. We solve for each coordinate's cell by walking
+// down the z-buffer, looking at intersections with ncplanes. This implies
+// locking down the EGC, the attributes, and the channels for each cell.
 static inline int
 notcurses_render_internal(notcurses* nc, struct crender* rvec){
-  // if this fails, struggle bravely on. we can live without a lastframe.
-  reshape_shadow_fb(nc);
+  if(reshape_shadow_fb(nc)){
+    return -1;
+  }
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   cell* fb = malloc(sizeof(*fb) * dimy * dimx);
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       cell* c = &fb[fbcellidx(y, dimx, x)];
+      c->gcluster = 0;
+      c->channels = 0;
+      c->attrword = 0;
       cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
       cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
     }
@@ -724,7 +631,11 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
             ++nc->stats.bgelisions;
           }
         }
-//fprintf(stderr, "[%03d/%03d] [%u] 0x%02x 0x%02x 0x%02x\n", y, x, srccell->gcluster, r, g, b);
+/*if(cell_simple_p(srccell)){
+fprintf(stderr, "RAST %u [%c] to %d/%d\n", srccell->gcluster, srccell->gcluster, y, x);
+}else{
+fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_gcluster(&nc->pool, srccell), y, x);
+}*/
         ret |= term_putc(out, &nc->pool, srccell);
       }
       if(cell_double_wide_p(srccell)){
