@@ -31,6 +31,8 @@ struct ncplane;   // a drawable notcurses surface, composed of cells
 struct ncvisual;  // a visual bit of multimedia opened with LibAV
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 
+#define NCPALETTESIZE 256
+
 // A cell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
 // possible combining characters, which might span multiple columns). At any
@@ -873,9 +875,7 @@ channel_set_rgb(unsigned* channel, int r, int g, int b){
     return -1;
   }
   unsigned c = (r << 16u) | (g << 8u) | b;
-  c |= CELL_BGDEFAULT_MASK;
-  const uint64_t mask = CELL_BGDEFAULT_MASK | CELL_BG_MASK;
-  *channel = (*channel & ~mask) | c;
+  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | c;
   return 0;
 }
 
@@ -903,9 +903,7 @@ channel_set_rgb_clipped(unsigned* channel, int r, int g, int b){
     b = 0;
   }
   unsigned c = (r << 16u) | (g << 8u) | b;
-  c |= CELL_BGDEFAULT_MASK;
-  const uint64_t mask = CELL_BGDEFAULT_MASK | CELL_BG_MASK;
-  *channel = (*channel & ~mask) | c;
+  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | c;
 }
 
 // Same, but provide an assembled, packed 24 bits of rgb.
@@ -1240,6 +1238,25 @@ cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
 }
 
+// Set the cell's foreground palette index, set the foreground palette index
+// bit, and clear the foreground default color bit.
+static inline int
+cell_set_fg_palindex(cell* cl, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  cl->channels |= CELL_FGDEFAULT_MASK;
+  cl->channels |= CELL_FG_PALETTE;
+  cl->attrword &= 0xffff00ff;
+  cl->attrword |= (idx << 8u);
+  return 0;
+}
+
+static inline unsigned
+cell_fg_palindex(const cell* cl){
+  return (cl->attrword & 0x0000ff00) >> 8u;
+}
+
 // Set the r, g, and b cell for the background component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
@@ -1257,6 +1274,25 @@ cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);
+}
+
+// Set the cell's background palette index, set the background palette index
+// bit, and clear the background default color bit.
+static inline int
+cell_set_bg_palindex(cell* cl, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  cl->channels |= CELL_BGDEFAULT_MASK;
+  cl->channels |= CELL_BG_PALETTE;
+  cl->attrword &= 0xffffff00;
+  cl->attrword |= idx;
+  return 0;
+}
+
+static inline unsigned
+cell_bg_palindex(const cell* cl){
+  return cl->attrword & 0x000000ff;
 }
 
 // Is the foreground using the "default foreground color"?
@@ -1897,7 +1933,7 @@ API void notcurses_cursor_disable(struct notcurses* nc);
 
 typedef struct palette256 {
   // We store the RGB values as a regular ol' channel
-  uint32_t chans[256];
+  uint32_t chans[NCPALETTESIZE];
 } palette256;
 
 // Create a new palette store. It will be initialized with notcurses's best
