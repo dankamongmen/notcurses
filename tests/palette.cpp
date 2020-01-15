@@ -47,6 +47,15 @@ TEST_CASE("Palette256") {
     palette256_free(p);
   }
 
+  // when we set a palette index, it ought change us from using default
+  SUBCASE("Attributes") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(cell_fg_default_p(&c));
+    CHECK(0 == cell_set_fg_palindex(&c, 0x20));
+    CHECK(!cell_fg_default_p(&c));
+    CHECK(0x20 == cell_fg_palindex(&c));
+  }
+
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
