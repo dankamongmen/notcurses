@@ -441,7 +441,9 @@ int main(int argc, char** argv){
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
+  uint64_t nsdelta = 0;
   for(size_t i = 0 ; i < strlen(demos) ; ++i){
+    nsdelta += results[i].timens;
     qprefix(results[i].timens, GIG, timebuf, 0);
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
@@ -466,9 +468,6 @@ int main(int argc, char** argv){
     totalrenderns += results[i].stats.render_ns;
   }
   free(results);
-  struct timespec endtime;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &endtime);
-  uint64_t nsdelta = timespec_to_ns(&endtime) - timespec_to_ns(&starttime);
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
