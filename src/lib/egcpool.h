@@ -236,6 +236,22 @@ egcpool_extended_gcluster(const egcpool* pool, const cell* c){
   return pool->pool + idx;
 }
 
+// Duplicate the contents of EGCpool 'src' onto another, wiping out any prior
+// contents in 'dst'.
+static inline int
+egcpool_dup(egcpool* dst, const egcpool* src){
+  char* tmp;
+  if((tmp = (char*)realloc(dst->pool, src->poolsize)) == NULL){
+    return -1;
+  }
+  dst->pool = tmp;
+  dst->poolsize = src->poolsize;
+  dst->poolused = src->poolused;
+  dst->poolwrite = src->poolwrite;
+  memcpy(dst->pool, src->pool, src->poolsize);
+  return 0;
+}
+
 #ifdef __cplusplus
 }
 #endif

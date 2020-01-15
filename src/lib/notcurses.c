@@ -300,9 +300,61 @@ ncplane* ncplane_new(notcurses* nc, int rows, int cols,
   return n;
 }
 
-struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
-                                int yoff, ncalign_e align, void* opaque){
+ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int yoff,
+                         ncalign_e align, void* opaque){
   return ncplane_new(n->nc, rows, cols, yoff, ncplane_align(n, align, cols), opaque);
+}
+
+static inline int
+ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
+  if(x >= n->lenx){
+    return -1;
+  }else if(x < 0){
+    if(x < -1){
+      return -1;
+    }
+  }else{
+    n->x = x;
+  }
+  if(y >= n->leny){
+    return -1;
+  }else if(y < 0){
+    if(y < -1){
+      return -1;
+    }
+  }else{
+    n->y = y;
+  }
+  if(cursor_invalid_p(n)){
+    return -1;
+  }
+  return 0;
+}
+
+ncplane* ncplane_dup(ncplane* n, void* opaque){
+  ncplane_lock(n);
+  int dimy = n->leny;
+  int dimx = n->lenx;
+  int aty = n->absy;
+  int atx = n->absx;
+  int y = n->y;
+  int x = n->x;
+  uint32_t attr = ncplane_attr(n);
+  uint64_t chan = ncplane_channels(n);
+  ncplane* newn = ncplane_new(n->nc, dimy, dimx, aty, atx, opaque);
+  if(newn){
+    if(egcpool_dup(&newn->pool, &n->pool)){
+      ncplane_destroy(newn);
+    }else{
+      ncplane_cursor_move_yx_locked(newn, y, x); // FIXME what about error?
+      n->attrword = attr;
+      n->channels = chan;
+      ncplane_move_above_unsafe(newn, n);
+      memcpy(newn->fb, n->fb, sizeof(*n->fb) * dimy * dimy);
+    }
+  }
+  ncplane_unlock(n);
+  return newn;
 }
 
 // can be used on stdscr, unlike ncplane_resize() which prohibits it.
@@ -1034,32 +1086,6 @@ int ncplane_move_bottom(ncplane* n){
   }
   *an = n;
   n->z = NULL;
-  return 0;
-}
-
-static inline int
-ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
-  if(x >= n->lenx){
-    return -1;
-  }else if(x < 0){
-    if(x < -1){
-      return -1;
-    }
-  }else{
-    n->x = x;
-  }
-  if(y >= n->leny){
-    return -1;
-  }else if(y < 0){
-    if(y < -1){
-      return -1;
-    }
-  }else{
-    n->y = y;
-  }
-  if(cursor_invalid_p(n)){
-    return -1;
-  }
   return 0;
 }
 

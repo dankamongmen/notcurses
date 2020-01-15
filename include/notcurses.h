@@ -370,6 +370,11 @@ API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
 API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
                                     int yoff, ncalign_e align, void* opaque);
 
+// Duplicate an existing ncplane. The new plane will have the same geometry,
+// will duplicate all content, and will start with the same rendering state.
+// The new plane will be immediately above the old one on the z axis.
+API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
+
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.

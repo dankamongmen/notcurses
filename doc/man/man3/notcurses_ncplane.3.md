@@ -14,6 +14,8 @@ notcurses_ncplane - operations on notcurses planes
 
 **struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);**
 
+**struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);**
+
 **int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen);**
 
 **int ncplane_move_yx(struct ncplane* n, int y, int x);**
@@ -122,8 +124,8 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of cells
 
 # RETURN VALUES
 
-**ncplane_new(3)** and **ncplane_aligned(3)** both return a new **struct ncplane**, or
-**NULL** on failure.
+**ncplane_new(3)**, **ncplane_aligned(3)**, and **ncplane_dup(3)** all return a
+new **struct ncplane** on success, or **NULL** on failure.
 
 **ncplane_userptr(3)** and **ncplane_userptr_const(3)** both return the configured user
 pointer for the ncplane. They cannot fail.

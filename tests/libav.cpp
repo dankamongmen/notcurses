@@ -70,21 +70,52 @@ TEST_CASE("Multimedia") {
     ncvisual_destroy(ncv);
   }
 
-  // FIXME ought run through full video, not just first frame
+  SUBCASE("PlaneDuplicate") {
+    int averr;
+    int dimy, dimx;
+    ncplane_dim_yx(ncp_, &dimy, &dimx);
+    auto ncv = ncplane_visual_open(ncp_, find_data("dsscaw-purp.png"), &averr);
+    REQUIRE(ncv);
+    REQUIRE(0 == averr);
+    auto frame = ncvisual_decode(ncv, &averr);
+    REQUIRE(frame);
+    REQUIRE(0 == averr);
+    CHECK(dimy * 2 == frame->height);
+    CHECK(dimx == frame->width);
+    CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
+    void* needle = malloc(1);
+    REQUIRE(nullptr != needle);
+    struct ncplane* newn = ncplane_dup(ncvisual_plane(ncv), needle);
+    int ndimx, ndimy;
+    REQUIRE(nullptr != newn);
+    ncvisual_destroy(ncv);
+    ncplane_erase(ncp_);
+    // should still have the image
+    CHECK(0 == notcurses_render(nc_));
+    ncplane_dim_yx(newn, &ndimy, &ndimx);
+    CHECK(ndimy == dimy);
+    CHECK(ndimx == dimx);
+  }
+
   SUBCASE("LoadVideo") {
     int averr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncplane_visual_open(ncp_, find_data("fm6.mkv"), &averr);
+    auto ncv = ncplane_visual_open(ncp_, find_data("samoa.avi"), &averr);
     REQUIRE(ncv);
     CHECK(0 == averr);
-    auto frame = ncvisual_decode(ncv, &averr);
-    REQUIRE(frame);
-    CHECK(0 == averr);
-    CHECK(dimy * 2 == frame->height);
-    CHECK(dimx == frame->width);
-    CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
-    CHECK(0 == notcurses_render(nc_));
+    for(;;){ // run at the highest speed we can
+      auto frame = ncvisual_decode(ncv, &averr);
+      if(!frame){
+        CHECK(AVERROR_EOF == averr);
+        break;
+      }
+      CHECK(0 == averr);
+      CHECK(dimy * 2 == frame->height);
+      CHECK(dimx == frame->width);
+      CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
+      CHECK(0 == notcurses_render(nc_));
+    }
     ncvisual_destroy(ncv);
   }
 

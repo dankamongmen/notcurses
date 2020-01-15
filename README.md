@@ -579,6 +579,11 @@ struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
 struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
                                 int yoff, ncalign_e align, void* opaque);
 
+// Duplicate an existing ncplane. The new plane will have the same geometry,
+// will duplicate all content, and will start with the same rendering state.
+// The new plane will be immediately above the old one on the z axis.
+struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
+
 // Destroy the specified ncplane. None of its contents will be visible after
 // the next call to notcurses_render(). It is an error to attempt to destroy
 // the standard plane.
