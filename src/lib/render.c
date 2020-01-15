@@ -318,7 +318,6 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
     }
     p = p->z;
   }
-  /*
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       cell* targc = &fb[fbcellidx(y, dimx, x)];
@@ -334,7 +333,6 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
       }
     }
   }
-  */
   free(fb);
   return 0;
 }
@@ -678,12 +676,12 @@ int notcurses_render(notcurses* nc){
     bytes = notcurses_rasterize(nc, crender);
   }
   free(crender);
+  int dimy, dimx;
+  notcurses_resize(nc, &dimy, &dimx);
   clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
   ret = bytes >= 0 ? 0 : -1;
   pthread_cleanup_pop(1);
-  int dimy, dimx;
-  notcurses_resize(nc, &dimy, &dimx);
   return ret;
 }
 
