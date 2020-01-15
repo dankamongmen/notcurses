@@ -79,19 +79,57 @@ struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
 struct ncplane* notcurses_stdplane(struct notcurses*);
+typedef struct ncinput {
+  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
+  int y;           // y cell coordinate of event, -1 for undefined
+  int x;           // x cell coordinate of event, -1 for undefined
+  // FIXME modifiers (alt, etc?)
+} ncinput;
 int ncplane_set_base(struct ncplane* ncp, const cell* c);
 int ncplane_base(struct ncplane* ncp, cell* c);
-void ncplane_erase(struct ncplane* n);
-void cell_release(struct ncplane* n, cell* c);
+struct ncplane* notcurses_top(struct notcurses* n);
+int notcurses_refresh(struct notcurses* n);
+int notcurses_resize(struct notcurses* n, int* y, int* x);
+struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);
 typedef enum {
   NCALIGN_LEFT,
   NCALIGN_CENTER,
   NCALIGN_RIGHT,
 } ncalign_e;
+struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);
+unsigned notcurses_supported_styles(const struct notcurses* nc);
+int notcurses_palette_size(const struct notcurses* nc);
+bool notcurses_canfade(const struct notcurses* nc);
+int notcurses_mouse_enable(struct notcurses* n);
+int notcurses_mouse_disable(struct notcurses* n);
+int ncplane_destroy(struct ncplane* ncp);
+bool notcurses_canopen(const struct notcurses* nc);
+void ncplane_erase(struct ncplane* n);
+void cell_release(struct ncplane* n, cell* c);
 int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 void ncplane_cursor_yx(struct ncplane* n, int* y, int* x);
+int ncplane_move_yx(struct ncplane* n, int y, int x);
+void ncplane_yx(struct ncplane* n, int* y, int* x);
+void ncplane_dim_yx(struct ncplane* n, int* rows, int* cols);
+void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
 int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
 int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
+void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
+void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
+unsigned ncplane_styles(struct ncplane* n);
+int ncplane_move_top(struct ncplane* n);
+int ncplane_move_bottom(struct ncplane* n);
+int ncplane_move_below(struct ncplane* n, struct ncplane* below);
+int ncplane_move_above(struct ncplane* n, struct ncplane* above);
+struct ncplane* ncplane_below(struct ncplane* n);
+char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, cell* c);
+int ncplane_at_cursor(struct ncplane* n, cell* c);
+int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
+void* ncplane_set_userptr(struct ncplane* n, void* opaque);
+void* ncplane_userptr(struct ncplane* n);
+int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
+                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
+const void* ncplane_userptr_const(const struct ncplane* n);
 typedef struct ncstats {
   uint64_t renders;          // number of successful notcurses_render() runs
   uint64_t failed_renders;   // number of aborted renders, should be 0
@@ -113,7 +151,18 @@ typedef struct ncstats {
 } ncstats;
 void notcurses_stats(struct notcurses* nc, ncstats* stats);
 void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
-void ncplane_dim_yx(struct ncplane* n, int* rows, int* cols);
+int ncplane_hline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);
+int ncplane_vline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);
+int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur, const cell* ll, const cell* lr, const cell* hline, const cell* vline, int ystop, int xstop, unsigned ctlword);
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp);
+int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader);
+int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader);
+int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader);
+int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
+int ncplane_putwc(struct ncplane* n, wchar_t w);
+int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
+int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
+int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
 """)
 
 if __name__ == "__main__":
