@@ -112,7 +112,7 @@ int xray_demo(struct notcurses* nc){
     return -1;
   }
   struct ncplane* newpanel = NULL;
-  int ret = ncvisual_stream(nc, ncv, &averr, 0.5, perframecb, &newpanel);
+  int ret = ncvisual_stream(nc, ncv, &averr, 0.5 * delaymultiplier, perframecb, &newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);
