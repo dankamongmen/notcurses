@@ -1,5 +1,4 @@
 #include <array>
-#include <unistd.h>
 #include <cstdlib>
 #include <notcurses.h>
 #include "internal.h"
