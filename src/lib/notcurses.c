@@ -496,7 +496,12 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
     const char* cterm = getenv("COLORTERM");
     nc->RGBflag = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
   }
-  nc->CCCflag = tigetflag("ccc") == 1;
+  term_verify_seq(&nc->initc, "initc");
+  if(nc->initc == NULL){
+    nc->CCCflag = tigetflag("ccc") == 1;
+  }else{
+    nc->CCCflag = false;
+  }
   if((nc->colors = tigetnum("colors")) <= 0){
     if(!opts->suppress_banner){
       fprintf(stderr, "This terminal doesn't appear to support colors\n");
@@ -700,6 +705,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
   memset(&ret->rstate, 0, sizeof(ret->rstate));
+  memset(&ret->palette_damage, 0, sizeof(ret->palette_damage));
+  memset(&ret->palette, 0, sizeof(ret->palette));
   ret->lastframe = NULL;
   ret->lfdimy = 0;
   ret->lfdimx = 0;
