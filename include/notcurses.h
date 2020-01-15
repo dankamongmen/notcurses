@@ -1877,6 +1877,52 @@ bprefix(uintmax_t val, unsigned decimal, char* buf, int omitdec){
 API void notcurses_cursor_enable(struct notcurses* nc);
 API void notcurses_cursor_disable(struct notcurses* nc);
 
+// Palette API. Some terminals only support 256 colors, but allow the full
+// palette to be specified with arbitrary RGB colors. In all cases, it's more
+// performant to use indexed colors, since it's much less data to write to the
+// terminal. If you can limit yourself to 256 colors, that' probably best.
+
+typedef struct palette256 {
+  // We store the RGB values as a regular ol' channel
+  uint32_t chans[256];
+} palette256;
+
+// Create a new palette store. It will be initialized with notcurses's best
+// knowledge of the currently configured palette.
+API palette256* palette256_new(void);
+
+// Attempt to configure the terminal with the provided palette 'p'. Does not
+// transfer ownership of 'p'; palette256_free() can still be called.
+API int palette256_use(struct notcurses* nc, const palette256* p);
+
+// Manipulate entries in the palette store 'p'. These are *not* locked.
+static inline int
+palette256_set_rgb(palette256* p, int idx, int r, int g, int b){
+  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
+    return -1;
+  }
+  return channel_set_rgb(&p->chans[idx], r, g, b);
+}
+
+static inline int
+palette256_set(palette256* p, int idx, unsigned rgb){
+  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
+    return -1;
+  }
+  return channel_set(&p->chans[idx], rgb);
+}
+
+static inline int
+palette256_get(const palette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
+  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
+    return -1;
+  }
+  return channel_rgb(p->chans[idx], r, g, b);
+}
+
+// Free the palette store 'p'.
+API void palette256_free(palette256* p);
+
 #undef API
 
 #ifdef __cplusplus
