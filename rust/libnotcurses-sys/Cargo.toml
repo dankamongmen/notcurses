@@ -1,6 +1,11 @@
 [package]
 name = "libnotcurses-sys"
-version = "1.1.0"
+authors = ["nick black <dankamongmen@gmail.com>"]
+license = "Apache-2.0"
+description = "Low-level rust bindings for the notcurses C library."
+repository = "https://github.com/dankamongmen/notcurses"
+homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
+version = "1.0.2"
 links = "notcurses"
 build = "build.rs"
 edition = "2018"
