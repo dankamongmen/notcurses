@@ -293,6 +293,20 @@ fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", prevcell->gcluster, prevcell
 fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", prevcell->gcluster, egcpool_extended_gcluster(&nc->pool, prevcell), y, x, absy, absx);
 }*/
           crender->damaged = true;
+          if(cell_double_wide_p(targc)){
+            ncplane* tmpp = crender->p;
+            ++crender;
+            crender->p = tmpp;
+            ++x;
+            ++prevcell;
+            ++targc;
+            targc->gcluster = 0;
+            targc->channels = targc[-1].channels;
+            targc->attrword = targc[-1].attrword;
+            if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
+              crender->damaged = true;
+            }
+          }
         }
       }
     }
