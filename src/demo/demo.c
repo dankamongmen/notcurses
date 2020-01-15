@@ -21,7 +21,7 @@ static demoresult* results;
 static char datadir[PATH_MAX];
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
-static const char DEFAULT_DEMO[] = "ixetcgswubvlpo";
+static const char DEFAULT_DEMO[] = "ixetcgpwubvlfso";
 
 void interrupt_demo(void){
   atomic_store(&interrupted, true);
@@ -201,7 +201,7 @@ static const char* demonames[26] = {
   "chunli",
   "",
   "eagle",
-  "",
+  "fallin",
   "grid",
   "",
   "intro",
@@ -259,6 +259,7 @@ ext_demos(struct notcurses* nc, const char* demos){
       case 'c': ret = chunli_demo(nc); break;
       case 'g': ret = grid_demo(nc); break;
       case 'l': ret = luigi_demo(nc); break;
+      case 'f': ret = fallin_demo(nc); break;
       case 'v': ret = view_demo(nc); break;
       case 'e': ret = eagle_demo(nc); break;
       case 'x': ret = xray_demo(nc); break;
