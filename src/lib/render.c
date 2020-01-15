@@ -208,15 +208,28 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
   offy = p->absy;
   offx = p->absx;
 //fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, nc->stdscr->leny, nc->stdscr->lenx);
-  for(y = 0 ; y < dimy ; ++y){
-    for(x = 0 ; x < dimx ; ++x){
-      int absy = y + offy;
-      int absx = x + offx;
-      if(absy < 0 || absy >= nc->stdscr->leny){
-        continue;
-      }
-      if(absx < 0 || absx >= nc->stdscr->lenx){
-        continue;
+  // skip content above or to the left of the physical screen
+  int starty, startx;
+  if(offy < 0){
+    starty = -offy;
+  }else{
+    starty = 0;
+  }
+  if(offx < 0){
+    startx = -offx;
+  }else{
+    startx = 0;
+  }
+  for(y = starty ; y < dimy ; ++y){
+    const int absy = y + offy;
+    // once we've passed the physical screen's bottom, we're done
+    if(absy >= nc->stdscr->leny){
+      break;
+    }
+    for(x = startx ; x < dimx ; ++x){
+      const int absx = x + offx;
+      if(absx >= nc->stdscr->lenx){
+        break;
       }
       cell* targc = &fb[fbcellidx(absy, nc->stdscr->lenx, absx)];
       if(cell_locked_p(targc)){
