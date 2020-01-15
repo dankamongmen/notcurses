@@ -12,6 +12,7 @@ extern "C" {
 
 // configured via command line option -- the base number of ns between demos
 extern struct timespec demodelay;
+extern float delaymultiplier; // scales demodelay (applied internally)
 
 // heap-allocated, caller must free. locates data files per command line args.
 char* find_data(const char* datum);
