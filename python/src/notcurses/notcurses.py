@@ -2,6 +2,14 @@ import sys
 import locale
 from _notcurses import lib, ffi
 
+def checkRGB(r, g, b):
+    if r < 0 or r > 255:
+        raise ValueError("Bad red value")
+    if g < 0 or g > 255:
+        raise ValueError("Bad green value")
+    if b < 0 or b > 255:
+        raise ValueError("Bad blue value")
+
 class Cell:
     def __init__(self, ncplane):
         self.c = ffi.new("cell *")
@@ -20,7 +28,7 @@ class Cell:
             raise ValueError("Bad green value")
         if b < 0 or b > 255:
             raise ValueError("Bad blue value")
-        self.c.channels = r * 65536 + g * 256 + b # FIXME
+        lib.cell_set_bg_rgb(self.c, r, g, b)
 
     def getNccell(self):
         return self.c
@@ -43,6 +51,10 @@ class Ncplane:
         x = ffi.new("int *")
         lib.ncplane_dim_yx(self.n, y, x)
         return (y[0], x[0])
+
+    def setFgRGB(self, r, g, b):
+        checkRGB(r, g, b)
+        lib.ncplane_set_fg_rgb(self.n, r, g, b)
 
 class Notcurses:
     def __init__(self):
@@ -67,7 +79,18 @@ if __name__ == '__main__':
     c.setBgRGB(0x80, 0xc0, 0x80)
     nc.stdplane().setBase(c)
     dims = nc.stdplane().getDimensions()
+    r = 0x80
+    g = 0x80
+    b = 0x80
     for y in range(dims[0]):
         for x in range(dims[1]):
+            nc.stdplane().setFgRGB(r, g, b)
             nc.stdplane().putSimpleYX(y, x, b'X')
+            b = b + 2
+            if b == 256:
+                b = 0
+                g = g + 2
+                if g == 256:
+                    g = 0
+                    r = r + 2
     nc.render()
