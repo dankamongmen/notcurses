@@ -25,10 +25,12 @@ typedef struct cell {
  { .gcluster = (c), .attrword = (a), .channels = (chan), }
 
 #define CELL_WIDEASIAN_MASK     0x8000000080000000ull
-#define CELL_FGDEFAULT_MASK     0x4000000000000000ull
-#define CELL_FG_MASK            0x00ffffff00000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
+#define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
 #define CELL_BG_MASK            0x0000000000ffffffull
+#define CELL_FG_MASK            (CELL_BG_MASK << 32u)
+#define CELL_BG_PALETTE         0x0000000008000000ull
+#define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
 #define CELL_ALPHA_MASK         0x0000000030000000ull
 #define CELL_ALPHA_SHIFT        28u
 #define CELL_ALPHA_HIGHCONTRAST 3
