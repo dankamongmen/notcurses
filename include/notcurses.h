@@ -932,10 +932,16 @@ channel_set_alpha(unsigned* channel, int alpha){
   return 0;
 }
 
-// Is this channel using the "default color" rather than its RGB?
+// Is this channel using the "default color" rather than RGB/palette-indexed?
 static inline bool
 channel_default_p(unsigned channel){
   return !(channel & CELL_BGDEFAULT_MASK);
+}
+
+// Is this channel using palette-indexed color rather than RGB?
+static inline bool
+channel_palindex_p(unsigned channel){
+  return !channel_default_p(channel) && (channel & CELL_BG_PALETTE);
 }
 
 // Mark the channel as using its default color, which also marks it opaque.
@@ -1096,12 +1102,24 @@ channels_fg_default_p(uint64_t channels){
   return channel_default_p(channels_fchannel(channels));
 }
 
+// Is the foreground using indexed palette color?
+static inline bool
+channels_fg_palindex_p(uint64_t channels){
+  return channel_palindex_p(channels_fchannel(channels));
+}
+
 // Is the background using the "default background color"? The "default
 // background color" must generally be used to take advantage of
 // terminal-effected transparency.
 static inline bool
 channels_bg_default_p(uint64_t channels){
   return channel_default_p(channels_bchannel(channels));
+}
+
+// Is the background using indexed palette color?
+static inline bool
+channels_bg_palindex_p(uint64_t channels){
+  return channel_palindex_p(channels_bchannel(channels));
 }
 
 // Mark the foreground channel as using its default color.
@@ -1301,12 +1319,22 @@ cell_fg_default_p(const cell* cl){
   return channels_fg_default_p(cl->channels);
 }
 
+static inline bool
+cell_fg_palindex_p(const cell* cl){
+  return channels_fg_palindex_p(cl->channels);
+}
+
 // Is the background using the "default background color"? The "default
 // background color" must generally be used to take advantage of
 // terminal-effected transparency.
 static inline bool
 cell_bg_default_p(const cell* cl){
   return channels_bg_default_p(cl->channels);
+}
+
+static inline bool
+cell_bg_palindex_p(const cell* cl){
+  return channels_bg_palindex_p(cl->channels);
 }
 
 // Get the current channels or attribute word for ncplane 'n'.
