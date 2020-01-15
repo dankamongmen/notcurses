@@ -300,6 +300,15 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   return ncv;
 }
 
+// alpha comes to us 0--255, but we have only 3 alpha values to map them to
+static inline bool
+ffmpeg_trans_p(unsigned char alpha){
+  if(alpha < 128){
+    return true;
+  }
+  return false;
+}
+
 int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
 //fprintf(stderr, "render %dx%d+%dx%d\n", begy, begx, leny, lenx);
   if(begy < 0 || begx < 0 || lenx < 0 || leny < 0){
@@ -349,11 +358,11 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
       // effective in that case anyway
       c->channels = 0;
       c->attrword = 0;
-      if(!rgbbase_up[3] || !rgbbase_down[3]){
+      if(ffmpeg_trans_p(rgbbase_up[3]) || ffmpeg_trans_p(rgbbase_down[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        if(!rgbbase_up[3] && !rgbbase_down[3]){
+        if(ffmpeg_trans_p(rgbbase_up[3]) && ffmpeg_trans_p(rgbbase_down[3])){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        }else if(!rgbbase_up[3]){ // down has the color
+        }else if(ffmpeg_trans_p(rgbbase_up[3])){ // down has the color
           if(cell_load(ncv->ncp, c, "\u2584") <= 0){ // lower half block
             return -1;
           }
