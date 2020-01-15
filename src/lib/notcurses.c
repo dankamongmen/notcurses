@@ -504,7 +504,7 @@ find_above_ncplane(ncplane* n){
     if(*above == n){
       return above;
     }
-    above = &(*above)->z;
+    above = &((*above)->z);
   }
   return NULL;
 }
@@ -517,13 +517,12 @@ int ncplane_destroy(ncplane* ncp){
     return -1;
   }
   ncplane** above = find_above_ncplane(ncp);
-  if(*above){
-    *above = ncp->z; // splice it out of the list
-    free_plane(ncp);
-    return 0;
+  if(above == NULL){
+    return -1;
   }
-  // couldn't find it in our stack. don't try to free this interloper.
-  return -1;
+  *above = ncp->z; // splice it out of the list
+  free_plane(ncp);
+  return 0;
 }
 
 static int
@@ -1037,6 +1036,9 @@ advance_cursor(ncplane* n, int cols){
 
 // 'n' ends up above 'above'
 int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
+  if(n->z == above){
+    return 0;
+  }
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
@@ -1053,6 +1055,9 @@ int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
 
 // 'n' ends up below 'below'
 int ncplane_move_below_unsafe(ncplane* restrict n, ncplane* restrict below){
+  if(below->z == n){
+    return 0;
+  }
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
     return -1;
