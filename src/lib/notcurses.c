@@ -1646,8 +1646,16 @@ palette256* palette256_new(void){
 
 int palette256_use(notcurses* nc, const palette256* p){
   int ret = -1;
+  if(!nc->CCCflag){
+    return -1;
+  }
   pthread_mutex_lock(&nc->lock);
-  // FIXME load it
+  for(size_t z = 0 ; z < sizeof(p->chans) / sizeof(*p->chans) ; ++z){
+    if(nc->palette.chans[z] != p->chans[z]){
+      nc->palette.chans[z] = p->chans[z];
+      // FIXME write it to terminal using initc, need another damage map
+    }
+  }
   pthread_mutex_unlock(&nc->lock);
   return ret;
 }
