@@ -365,10 +365,17 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
           cell_set_fg_rgb(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
         }
       }else{
-        cell_set_fg_rgb(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
-        cell_set_bg_rgb(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
-        if(cell_load(ncv->ncp, c, "\u2580") <= 0){ // upper half block
-          return -1;
+        if(memcmp(rgbbase_up, rgbbase_down, 3) == 0){
+          cell_set_bg_rgb(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          if(cell_load(ncv->ncp, c, " ") <= 0){ // only want the background
+            return -1;
+          }
+        }else{
+          cell_set_fg_rgb(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+          cell_set_bg_rgb(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          if(cell_load(ncv->ncp, c, "\u2580") <= 0){ // upper half block
+            return -1;
+          }
         }
       }
     }
