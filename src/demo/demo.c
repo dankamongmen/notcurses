@@ -59,6 +59,9 @@ int timespec_subtract(struct timespec *result, const struct timespec *time0,
   return time0->tv_sec < time1->tv_sec;
 }
 
+float delaymultiplier = 1;
+
+// scaled in getopt() by delaymultiplier
 struct timespec demodelay = {
   .tv_sec = 1,
   .tv_nsec = 0,
@@ -345,6 +348,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
           fprintf(stderr, "Invalid multiplier: %f\n", f);
           usage(*argv, EXIT_FAILURE);
         }
+        delaymultiplier = f;
         uint64_t ns = f * GIG;
         demodelay.tv_sec = ns / GIG;
         demodelay.tv_nsec = ns % GIG;
@@ -436,8 +440,8 @@ int main(int argc, char** argv){
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   printf("\n");
-  printf("        total│frames│output(B)│rendering│%%r│%7s│\n", "FPS");
-  printf("══╤═╤════════╪══════╪═════════╪═════════╪══╪═══════╡\n");
+  printf("        total│frames│output(B)│rendering│%%r│%7s║\n", "FPS");
+  printf("══╤═╤════════╪══════╪═════════╪═════════╪══╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
@@ -448,7 +452,7 @@ int main(int argc, char** argv){
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
-    printf("%2zu│%c│%*ss│%6lu│%*s│ %*ss│%2ld│%7.1f│%s\n", i,
+    printf("%2zu│%c│%*ss│%6lu│%*s│ %*ss│%2ld│%7.1f║%s\n", i,
            results[i].selector,
            PREFIXSTRLEN, timebuf,
            results[i].stats.renders,
@@ -471,7 +475,7 @@ int main(int argc, char** argv){
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  printf("══╧═╧════════╪══════╪═════════╪═════════╪══╪═══════╛\n");
+  printf("══╧═╧════════╪══════╪═════════╪═════════╪══╪═══════╝\n");
   printf("     %*ss│%6lu│%*s│ %*ss│%2ld│\n", PREFIXSTRLEN, timebuf,
          totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf,
          nsdelta ? totalrenderns * 100 / nsdelta : 0);
