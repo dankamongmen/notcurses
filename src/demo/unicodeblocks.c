@@ -34,16 +34,17 @@ draw_block(struct ncplane* nn, uint32_t blockstart, bool rtl){
   cell_set_bg_alpha(&ur, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&ll, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&lr, CELL_ALPHA_TRANSPARENT);
-  cell_set_fg_rgb(&ll, 255, 255, 255);
-  cell_set_fg_rgb(&lr, 255, 255, 255);
-  cell_set_fg_rgb(&ul, 255, 255, 255);
-  cell_set_fg_rgb(&ur, 255, 255, 255);
+  cell_set_fg_rgb(&ul, 0xea, 0xaa, 0x00);
+  cell_set_fg_rgb(&ur, 0x00, 0x30, 0x57);
+  cell_set_fg_rgb(&ll, 0x00, 0x30, 0x57);
+  cell_set_fg_rgb(&lr, 0xea, 0xaa, 0x00);
   cell_set_fg_rgb(&hl, 255, 255, 255);
   cell_set_fg_rgb(&vl, 255, 255, 255);
   cell_set_bg_rgb(&hl, 0, 0, 0);
   cell_set_bg_rgb(&vl, 0, 0, 0);
   ncplane_cursor_move_yx(nn, 0, 0);
-  if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, 0)){
+  unsigned control = NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM | NCBOXGRAD_LEFT | NCBOXGRAD_RIGHT;
+  if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, control)){
     return -1;
   }
   cell_release(nn, &ul); cell_release(nn, &ur); cell_release(nn, &hl);
