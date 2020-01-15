@@ -22,7 +22,7 @@ fade_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subd
 static int
 draw_block(struct ncplane* nn, uint32_t blockstart, bool rtl){
   if(rtl){
-    return 0;
+    //return 0;
   }
   int dimx, dimy;
   ncplane_dim_yx(nn, &dimy, &dimx);
@@ -178,7 +178,9 @@ int unicodeblocks_demo(struct notcurses* nc){
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
     ncplane_set_fg_rgb(header, 0xbd, 0xe8, 0xf6);
-    if(ncplane_printf_aligned(header, 1, NCALIGN_CENTER, "Unicode points %05x–%05x", blockstart, blockstart + BLOCKSIZE) <= 0){
+    if(ncplane_printf_aligned(header, 1, NCALIGN_CENTER, "Unicode points 0x%05x—0x%05x (%u—%u)",
+                              blockstart, blockstart + BLOCKSIZE,
+                              blockstart, blockstart + BLOCKSIZE) <= 0){
       return -1;
     }
     struct ncplane* nn;
