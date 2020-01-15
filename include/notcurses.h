@@ -570,17 +570,6 @@ ncplane_putsimple(struct ncplane* n, char c){
   return ncplane_putsimple_yx(n, -1, -1, c);
 }
 
-// Replace the cell at the specified coordinates with the provided wide char
-// 'w'. Advance the cursor by the character's width as reported by wcwidth().
-// On success, returns 1. On failure, returns -1.
-API int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
-
-// Call ncplane_putwc() at the current cursor position.
-static inline int
-ncplane_putwc(struct ncplane* n, wchar_t w){
-  return ncplane_putwc_yx(n, -1, -1, w);
-}
-
 // Replace the cell at the specified coordinates with the provided EGC, and
 // advance the cursor by the width of the cluster (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
@@ -671,6 +660,21 @@ ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
 static inline int
 ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
   return ncplane_putwstr_yx(n, -1, -1, gclustarr);
+}
+
+// Replace the cell at the specified coordinates with the provided wide char
+// 'w'. Advance the cursor by the character's width as reported by wcwidth().
+// On success, returns 1. On failure, returns -1.
+static inline int
+ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
+  wchar_t warr[2] = { w, L'\0' };
+  return ncplane_putwstr_yx(n, y, x, warr);
+}
+
+// Call ncplane_putwc() at the current cursor position.
+static inline int
+ncplane_putwc(struct ncplane* n, wchar_t w){
+  return ncplane_putwc_yx(n, -1, -1, w);
 }
 
 // The ncplane equivalents of printf(3) and vprintf(3).
