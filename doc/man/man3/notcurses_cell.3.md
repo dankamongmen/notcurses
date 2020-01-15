@@ -72,8 +72,6 @@ typedef struct cell {
 
 **bool cell_noforeground_p(const cell* c);**
 
-**bool cell_nobackground_p(const struct ncplane* n, const cell* c);**
-
 **int cell_load_simple(struct ncplane* n, cell* c, char ch);**
 
 **uint32_t cell_egc_idx(const cell* c);**
@@ -86,9 +84,9 @@ typedef struct cell {
 
 **uint64_t cell_set_fchannel(cell* cl, uint32_t channel);**
 
-**uint64_t cell_blend_fchannel(cell* cl, unsigned channel);**
+**uint64_t cell_blend_fchannel(cell* cl, unsigned channel, unsigned blends)**
 
-**uint64_t cell_blend_bchannel(cell* cl, unsigned channel);**
+**uint64_t cell_blend_bchannel(cell* cl, unsigned channel, unsigned blends)**
 
 **unsigned cell_fg(const cell* cl);**
 
