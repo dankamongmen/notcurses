@@ -21,7 +21,6 @@ TEST_CASE("Multimedia") {
   ncplane* ncp_ = notcurses_stdplane(nc_);
   REQUIRE(ncp_);
 
-  /*
 #ifdef DISABLE_FFMPEG
   SUBCASE("LibavDisabled"){
     REQUIRE(!notcurses_canopen(nc_));
@@ -29,6 +28,26 @@ TEST_CASE("Multimedia") {
 #else
   SUBCASE("LibavEnabled"){
     REQUIRE(notcurses_canopen(nc_));
+  }
+
+  SUBCASE("LoadImageCreatePlane") {
+    int averr;
+    int dimy, dimx;
+    ncplane_dim_yx(ncp_, &dimy, &dimx);
+    auto ncv = ncvisual_open_plane(nc_, find_data("dsscaw-purp.png"), &averr, 0, 0, NCSCALE_STRETCH);
+    REQUIRE(ncv);
+    REQUIRE(0 == averr);
+    auto frame = ncvisual_decode(ncv, &averr);
+    REQUIRE(frame);
+    REQUIRE(0 == averr);
+    CHECK(dimy * 2 == frame->height);
+    CHECK(dimx == frame->width);
+    CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
+    CHECK(0 == notcurses_render(nc_));
+    frame = ncvisual_decode(ncv, &averr);
+    REQUIRE_EQ(nullptr, frame);
+    CHECK(AVERROR_EOF == averr);
+    ncvisual_destroy(ncv);
   }
 
   SUBCASE("LoadImage") {
@@ -86,7 +105,6 @@ TEST_CASE("Multimedia") {
     ncvisual_destroy(ncv);
   }
 #endif
-*/
 
   CHECK(!notcurses_stop(nc_));
   CHECK(!fclose(outfp_));

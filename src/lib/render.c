@@ -287,12 +287,13 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
 
       if(cell_locked_p(targc)){
         cell* prevcell = &nc->lastframe[fbcellidx(absy, nc->lfdimx, absx)];
-        if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
-/*if(cell_simple_p(prevcell)){
-fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", prevcell->gcluster, prevcell->gcluster, y, x, absy, absx);
+/*if(cell_simple_p(targc)){
+fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, prevcell->gcluster, y, x, absy, absx);
 }else{
-fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", prevcell->gcluster, egcpool_extended_gcluster(&nc->pool, prevcell), y, x, absy, absx);
-}*/
+fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
+}
+fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
+        if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
           crender->damaged = true;
           if(cell_double_wide_p(targc)){
             ncplane* tmpp = crender->p;
@@ -354,7 +355,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
         if(targc->gcluster == 0){
           targc->gcluster = ' ';
         }
-        if(cellcmp_and_dupfar(&nc->pool, prevcell, rvec->p, targc)){
+        if(cellcmp_and_dupfar(&nc->pool, prevcell, rvec[fbcellidx(y, dimx, x)].p, targc)){
           struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
           crender->damaged = true;
         }
