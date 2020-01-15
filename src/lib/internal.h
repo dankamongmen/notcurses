@@ -164,6 +164,7 @@ typedef struct notcurses {
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
   char* getm;     // get mouse events
+  char* initc;    // set a palette entry's RGB value
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
 
@@ -183,6 +184,7 @@ typedef struct notcurses {
   unsigned inputbuf_valid_starts;
   unsigned inputbuf_write_at;
   palette256 palette; // 256-indexed palette can be used instead of RGB
+  bool palette_damage[256]; // FIXME derive this value somehow
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
 } notcurses;
 

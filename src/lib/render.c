@@ -594,6 +594,21 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   return 0;
 }
 
+static inline int
+update_palette(notcurses* nc, FILE* out){
+  if(nc->CCCflag){
+    for(size_t damageidx = 0 ; damageidx < sizeof(nc->palette.chans) / sizeof(*nc->palette.chans) ; ++damageidx){
+      unsigned r, g, b;
+      if(nc->palette_damage[damageidx]){
+        channel_rgb(nc->palette.chans[damageidx], &r, &g, &b);
+        term_emit("initc", tiparm(nc->initc, damageidx, r, g, b), out, false);
+        nc->palette_damage[damageidx] = false;
+      }
+    }
+  }
+  return 0;
+}
+
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8 stream of escapes and EGCs
@@ -611,6 +626,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
+  update_palette(nc, out);
   for(y = 0 ; y < nc->stdscr->leny ; ++y){
     // how many characters have we elided? it's not worthwhile to invoke a
     // cursor movement with cup if we only elided one or two. set to INT_MAX
