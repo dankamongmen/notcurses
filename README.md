@@ -298,16 +298,6 @@ notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
 // primarily useful if the screen is externally corrupted.
 int notcurses_refresh(struct notcurses* n);
 
-// Create a new ncplane at the specified offset (relative to the standard plane)
-// and the specified size. The number of rows and columns must both be positive.
-// This plane is initially at the top of the z-buffer, as if ncplane_move_top()
-// had been called on it. The void* 'opaque' can be retrieved (and reset) later.
-struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
-                            int yoff, int xoff, void* opaque);
-
-struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
-                                int yoff, ncalign_e align, void* opaque);
-
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
@@ -578,6 +568,13 @@ When an `ncplane` is no longer needed, free it with `ncplane_destroy()`. To
 quickly reset the `ncplane`, use `ncplane_erase()`.
 
 ```c
+// Create a new ncplane at the specified offset (relative to the standard plane)
+// and the specified size. The number of rows and columns must both be positive.
+// This plane is initially at the top of the z-buffer, as if ncplane_move_top()
+// had been called on it. The void* 'opaque' can be retrieved (and reset) later.
+struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
+                            int yoff, int xoff, void* opaque);
+
 // Create a new ncplane aligned relative to 'n'.
 struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
                                 int yoff, ncalign_e align, void* opaque);
@@ -766,7 +763,11 @@ ncplane_putsimple(struct ncplane* n, char c){
 // Replace the cell at the specified coordinates with the provided wide char
 // 'w'. Advance the cursor by the character's width as reported by wcwidth().
 // On success, returns 1. On failure, returns -1.
-API int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
+static inline int
+ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
+  wchar_t warr[2] = { w, L'\0' };
+  return ncplane_putwstr_yx(n, y, x, warr);
+}
 
 // Call ncplane_putwc() at the current cursor position.
 static inline int
@@ -779,7 +780,7 @@ ncplane_putwc(struct ncplane* n, wchar_t w){
 // plane). On success, returns the number of columns the cursor was advanced.
 // On failure, -1 is returned. The number of bytes converted from gclust is
 // written to 'sbytes' if non-NULL.
-API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
+int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
 
 // Call ncplane_putegc() at the current cursor location.
 static inline int
@@ -824,15 +825,14 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of cells
 // which were written before the error.
-API int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
+int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
 
 static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr){
   return ncplane_putstr_yx(n, -1, -1, gclustarr);
 }
 
-API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                               const char* s);
+int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
@@ -1057,13 +1057,14 @@ typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp);
 // when done. Requires a terminal which supports direct color, or at least
 // palette modification (if the terminal uses a palette, our ability to fade
 // planes is limited, and affected by the complexity of the rest of the screen).
-// It is not safe to resize or destroy the plane during the fadeout FIXME.
-int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);
+// It is not safe to resize or destroy the plane during the fadeout.
+int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader);
 
 // Fade the ncplane in over the specified time. Load the ncplane with the
 // target cells without rendering, then call this function. When it's done, the
 // ncplane will have reached the target levels, starting from zeroes.
-int ncplane_fadein(struct ncplane* n, const struct timespec* ts);
+// It is not safe to resize or destroy the plane during the fadein.
+int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader);
 
 // Pulse the plane in and out until the callback returns non-zero, relying on
 // the callback 'fader' to initiate rendering. 'ts' defines the half-period
