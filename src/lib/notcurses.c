@@ -1635,3 +1635,23 @@ int notcurses_mouse_disable(notcurses* n){
 bool notcurses_canfade(const notcurses* nc){
   return nc->CCCflag || nc->RGBflag;
 }
+
+palette256* palette256_new(void){
+  palette256* p = malloc(sizeof(*p));
+  if(p){
+    memset(p, 0, sizeof(*p));
+  }
+  return p;
+}
+
+int palette256_use(notcurses* nc, const palette256* p){
+  int ret = -1;
+  pthread_mutex_lock(&nc->lock);
+  // FIXME load it
+  pthread_mutex_unlock(&nc->lock);
+  return ret;
+}
+
+void palette256_free(palette256* p){
+  free(p);
+}

@@ -221,6 +221,16 @@ int cell_set_fg(cell* c, uint32_t channel);
 int cell_set_bg(cell* c, uint32_t channel);
 bool cell_fg_default_p(const cell* cl);
 bool cell_bg_default_p(const cell* cl);
+typedef struct palette256 {
+  // We store the RGB values as a regular ol' channel
+  uint32_t chans[256];
+} palette256;
+palette256* palette256_new(void);
+int palette256_use(const palette256* p);
+int palette256_set_rgb(palette256* p, int idx, int r, int g, int b);
+int palette256_set(palette256* p, int idx, unsigned rgb);
+int palette256_get(const palette256* p, int idx, int* r, int* g, int* b);
+void palette256_free(palette256* p);
 """)
 
 if __name__ == "__main__":
