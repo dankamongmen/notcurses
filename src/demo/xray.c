@@ -51,7 +51,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
   ncplane_set_base(n, &c);
   ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
   // fg/bg rgbs are set within loop
-  int x = dimx - frameno;
+  int x = dimx - (frameno * 2);
   int r = startr;
   int g = startg;
   int b = startb;
