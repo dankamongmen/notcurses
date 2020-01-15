@@ -337,6 +337,24 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   return 0;
 }
 
+static inline int
+ncfputs(const char* ext, FILE* out){
+#ifdef __USE_GNU
+    return fputs_unlocked(ext, out);
+#else
+    return fputs(ext, out);
+#endif
+}
+
+static inline int
+ncfputc(char c, FILE* out){
+#ifdef __USE_GNU
+      return fputc_unlocked(c, out);
+#else
+      return fputc(c, out);
+#endif
+}
+
 // write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
 // number of columns occupied by this EGC (only an approximation; it's actually
 // a property of the font being used).
@@ -345,31 +363,19 @@ term_putc(FILE* out, const egcpool* e, const cell* c){
   if(cell_simple_p(c)){
     if(c->gcluster == 0 || iscntrl(c->gcluster)){
 // fprintf(stderr, "[ ]\n");
-#ifdef __USE_GNU
-      if(fputc_unlocked(' ', out) == EOF){
-#else
-      if(fputc(' ', out) == EOF){
-#endif
+      if(ncfputc(' ', out) == EOF){
         return -1;
       }
     }else{
 // fprintf(stderr, "[%c]\n", c->gcluster);
-#ifdef __USE_GNU
-      if(fputc_unlocked(c->gcluster, out) == EOF){
-#else
-      if(fputc(c->gcluster, out) == EOF){
-#endif
+      if(ncfputc(c->gcluster, out) == EOF){
         return -1;
       }
     }
   }else{
     const char* ext = egcpool_extended_gcluster(e, c);
 // fprintf(stderr, "[%s]\n", ext);
-#ifdef __USE_GNU
-    if(fputs_unlocked(ext, out) < 0){ // FIXME check for short write?
-#else
-    if(fputs(ext, out) < 0){
-#endif
+    if(ncfputs(ext, out) < 0){
       return -1;
     }
   }
@@ -439,9 +445,27 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
   return ret;
 }
 
-// 3 for foreground, 4 for background, ugh FIXME
+// u8->str lookup table used in term_esc_rgb below
+static const char* NUMBERS[] = {
+"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
+"17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32",
+"33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48",
+"49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64",
+"65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80",
+"81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96",
+"97", "98", "99", "100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "111", "112",
+"113", "114", "115", "116", "117", "118", "119", "120", "121", "122", "123", "124", "125", "126", "127", "128",
+"129", "130", "131", "132", "133", "134", "135", "136", "137", "138", "139", "140", "141", "142", "143", "144",
+"145", "146", "147", "148", "149", "150", "151", "152", "153", "154", "155", "156", "157", "158", "159", "160",
+"161", "162", "163", "164", "165", "166", "167", "168", "169", "170", "171", "172", "173", "174", "175", "176",
+"177", "178", "179", "180", "181", "182", "183", "184", "185", "186", "187", "188", "189", "190", "191", "192",
+"193", "194", "195", "196", "197", "198", "199", "200", "201", "202", "203", "204", "205", "206", "207", "208",
+"209", "210", "211", "212", "213", "214", "215", "216", "217", "218", "219", "220", "221", "222", "223", "224",
+"225", "226", "227", "228", "229", "230", "231", "232", "233", "234", "235", "236", "237", "238", "239", "240",
+"241", "242", "243", "244", "245", "246", "247", "248", "249", "250", "251", "252", "253", "254", "255", };
+
 static inline int
-term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, int esc,
+term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, bool foreground,
              unsigned r, unsigned g, unsigned b){
   // The correct way to do this is using tiparm+tputs, but doing so (at least
   // as of terminfo 6.1.20191019) both emits ~3% more bytes for a run of 'rgb'
@@ -458,7 +482,36 @@ term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, int esc,
   // we'd like to use the proper ITU T.416 colon syntax i.e. "8:2::", but it is
   // not supported by several terminal emulators :/.
   #define RGBESC2 "8;2;"
-  if(fprintf(out, RGBESC1"%c"RGBESC2"%d;%d;%dm", esc, r, g, b) < 0){
+  // fprintf() was sitting atop our profiles, so we put the effort into a fast solution
+  // here. assemble a buffer using constants and a lookup table. we can use 20
+  // bytes in the worst case.
+  char rgbbuf[20] = RGBESC1 " " RGBESC2;
+  if(foreground){
+    rgbbuf[2] = '3';
+  }else{
+    rgbbuf[2] = '4';
+  }
+  size_t offset = 7;
+  const char* s = NUMBERS[r];
+  while( (rgbbuf[offset] = *s) ){
+    ++offset;
+    ++s;
+  }
+  rgbbuf[offset++] = ';';
+  s = NUMBERS[g];
+  while( (rgbbuf[offset] = *s) ){
+    ++offset;
+    ++s;
+  }
+  rgbbuf[offset++] = ';';
+  s = NUMBERS[b];
+  while( (rgbbuf[offset] = *s) ){
+    ++offset;
+    ++s;
+  }
+  rgbbuf[offset++] = 'm';
+  rgbbuf[offset] = '\0';
+  if(ncfputs(rgbbuf, out) < 0){
     return -1;
   }
   return 0;
@@ -472,7 +525,7 @@ term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(nc->RGBflag){
-    return term_esc_rgb(nc, out, '4', r, g, b);
+    return term_esc_rgb(nc, out, false, r, g, b);
   }else{
     if(nc->setab == NULL){
       return -1;
@@ -497,7 +550,7 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(nc->RGBflag){
-    return term_esc_rgb(nc, out, '3', r, g, b);
+    return term_esc_rgb(nc, out, true, r, g, b);
   }else{
     if(nc->setaf == NULL){
       return -1;
