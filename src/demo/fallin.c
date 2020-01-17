@@ -11,11 +11,11 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   struct timespec iterdelay;
   // 5 * demodelay total
   ns_to_timespec(timespec_to_ns(&demodelay) / arrcount / 2, &iterdelay);
-  // we've got a range of up to 10 total blocks falling at any given time. they
+  // we've got a range of up to 10% total blocks falling at any given time. they
   // accelerate as they fall. [ranges, reange) covers the active range.
   int ranges = 0;
   int rangee = 0;
-  const int FALLINGMAX = 10;
+  const int FALLINGMAX = arrcount / 10;
   int speeds[FALLINGMAX];
   while(ranges < arrcount){
     // if we don't have a full set active, and there is another available, go
@@ -144,8 +144,14 @@ int fallin_demo(struct notcurses* nc){
             c.gcluster = 0;
             cell_load(n, &c, cons);
           }
-          if(ncplane_putc_yx(n, usey - y, usex - x, &c) < 0){
-            return -1;
+          if(c.gcluster){
+            if(ncplane_putc_yx(n, usey - y, usex - x, &c) < 0){
+              // allow a fail if we were printing a wide char to the
+              // last column of our plane
+              if(!cell_double_wide_p(&c) || usex + 1 < x + newx){
+                return -1;
+              }
+            }
           }
           usemap[usey * dimx + usex] = true;
           cell_release(n, &c);
