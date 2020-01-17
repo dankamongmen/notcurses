@@ -173,12 +173,14 @@ int unicodeblocks_demo(struct notcurses* nc){
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
   cell_set_fg(&c, 0x004000);
+  cell_set_bg(&c, 0x0);
   ncplane_set_base(header, &c);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_set_bg_rgb(n, 0, 0, 0);
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
-    ncplane_set_fg_rgb(header, 0xbd, 0xe8, 0xf6);
+    ncplane_set_bg(header, 0);
+    ncplane_set_fg(header, 0xbde8f6);
     if(ncplane_printf_aligned(header, 1, NCALIGN_CENTER, "Unicode points 0x%05x—0x%05x (%u—%u)",
                               blockstart, blockstart + BLOCKSIZE,
                               blockstart, blockstart + BLOCKSIZE) <= 0){
