@@ -1,5 +1,30 @@
 #include "demo.h"
 
+static int
+drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
+  if(arrcount == 0 || arr == NULL){
+    return -1;
+  }
+  // an erase+render cycle ought not change the screen, as we duplicated it
+  struct timespec iterdelay;
+  // 5 * demodelay total
+  ns_to_timespec(timespec_to_ns(&demodelay) * 5 / arrcount, &iterdelay);
+  ncplane_erase(notcurses_stdplane(nc));
+  for(int n = 0 ; n < arrcount ; ++n){
+fprintf(stderr, "PLANE %d: %p\n", n, arr[n]);
+    ncplane_erase(arr[n]);
+    if(notcurses_render(nc)){
+      return -1;
+    }
+    if(ncplane_destroy(arr[n])){
+      return -1;
+    }
+    nanosleep(&iterdelay, NULL);
+  }
+  free(arr);
+  return 0;
+}
+
 // Shuffle a new ncplane into the array of ncplanes having 'count' elements.
 static struct ncplane**
 shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
@@ -10,9 +35,10 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
   arr = tmp;
   // location of new element
   int pos = random() % (count + 1);
+fprintf(stderr, "pos %d count %d moving %d\n", pos, count, count - pos);
   if(pos < count){
     // move everything, starting at our new location, one spot right
-    memmove(arr + pos, arr + pos + 1, sizeof(*arr) * (count - pos));
+    memmove(arr + pos + 1, arr + pos, sizeof(*arr) * (count - pos));
   }
   arr[pos] = n;
   return arr;
@@ -24,24 +50,30 @@ int fallin_demo(struct notcurses* nc){
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;
   bool* usemap = malloc(usesize);
-  memset(usemap,0, sizeof(*usemap));
-  // bricks are bounded in size according to the screen size.
-  const int maxx = dimx / 20;
-  const int maxy = dimy / 20;
+  memset(usemap, 0, usesize);
+  // brick size is relative to the screen size
+  const int maxx = dimx > 39 ? dimx / 20 : 2;
+  const int maxy = dimy > 19 ? dimy / 10 : 2;
   // proceed from top to bottom, left to right, and partition the existing
-  // content into 'atotal' copies into small ncplanes.
-  // make a copy of the standard plane so that we don't need rederive the
-  // world in the event of a resize event
+  // content into 'arrcount' copies into small ncplanes in 'arr'.
   struct ncplane** arr = NULL;
   int arrcount = 0;
+  // There are a lot of y/x pairs at this point:
+  //  * dimx/dimy: geometry of standard plane
+  //  * y/x: iterators through standard plane
+  //  * maxy/maxx: maximum geometry of randomly-generated bricks
+  //  * newy/newx: actual geometry of current brick
+  //  * usey/usex: 
   for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
-      if(usemap[y * dimx + x]){
+    int x = 0;
+    while(x < dimx){
+      if(usemap[y * dimx + x]){ // skip if we've already been copied
+        ++x;
         continue;
       }
       int newy, newx;
-      newy = (random() % maxy) + 1;
-      newx = (random() % maxx) + 1;
+      newy = random() % (maxy - 1) + 2;
+      newx = random() % (maxx - 1) + 2;
       if(x + newx >= dimx){
         newx = dimx - x;
       }
@@ -52,6 +84,7 @@ int fallin_demo(struct notcurses* nc){
       if(n == NULL){
         return -1;
       }
+      // copy the old content into this new ncplane
       for(int usey = y ; usey < y + newy ; ++usey){
         for(int usex = x ; usex < x + newx ; ++usex){
           assert(!usemap[usey * dimx + usex]);
@@ -60,7 +93,9 @@ int fallin_demo(struct notcurses* nc){
             return -1;
           }
           if(!cell_simple_p(&c)){
-            cell_load(n, &c, cell_extended_gcluster(notcurses_stdplane(nc), &c));
+            const char* cons = cell_extended_gcluster(notcurses_stdplane(nc), &c);
+            c.gcluster = 0;
+            cell_load(n, &c, cons);
           }
           if(ncplane_putc_yx(n, usey - y, usex - x, &c) < 0){
             return -1;
@@ -69,6 +104,7 @@ int fallin_demo(struct notcurses* nc){
           cell_release(n, &c);
         }
       }
+      // shuffle the new ncplane into the array
       struct ncplane **tmp;
       tmp = shuffle_in(arr, arrcount, n);
       if(tmp == NULL){
@@ -76,15 +112,9 @@ int fallin_demo(struct notcurses* nc){
       }
       arr = tmp;
       ++arrcount;
-fprintf(stderr, "box %d/%d -> %d/%d\n", y, x, y + newy - 1, x + newx - 1);
+      x += newx;
     }
   }
-  ncplane_erase(notcurses_stdplane(nc));
-  if(notcurses_render(nc)){
-    return -1;
-  }
-  // FIXME shuffle up a list of all coordinates, then walk through them. each
-  // one ought be turned into its own small ncplane, erased from ndup, and the
-  // plane set falling.
-  return 0;
+  free(usemap);
+  return drop_bricks(nc, arr, arrcount);
 }
