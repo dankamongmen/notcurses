@@ -167,6 +167,7 @@ int main(int argc, char** argv){
       }
     }
     ncvisual_destroy(ncv);
+    ncplane_erase(ncp);
   }
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
