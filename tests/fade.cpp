@@ -3,15 +3,14 @@
 #include <iostream>
 #include "internal.h"
 
-struct timespec pulsestart;
-
-int pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused))){
+int pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), void* curry){
+  struct timespec* pulsestart = static_cast<struct timespec*>(curry);
   if(notcurses_render(nc)){
     return -1;
   }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC_RAW, &now);
-  auto delta = timespec_to_ns(&now) - timespec_to_ns(&pulsestart);
+  auto delta = timespec_to_ns(&now) - timespec_to_ns(pulsestart);
   if(delta > 1000000000){
     return 1;
   }
@@ -53,19 +52,20 @@ TEST_CASE("Fade") {
     }
   }
 
+
   SUBCASE("FadeOut") {
     CHECK(0 == notcurses_render(nc_));
     struct timespec ts;
     ts.tv_sec = 1;
     ts.tv_nsec = 0;
-    CHECK(0 == ncplane_fadeout(n_, &ts, nullptr));
+    CHECK(0 == ncplane_fadeout(n_, &ts, nullptr, nullptr));
   }
 
   SUBCASE("FadeIn") {
     struct timespec ts;
     ts.tv_sec = 1;
     ts.tv_nsec = 0;
-    CHECK(0 == ncplane_fadein(n_, &ts, nullptr));
+    CHECK(0 == ncplane_fadein(n_, &ts, nullptr, nullptr));
   }
 
   SUBCASE("Pulse") {
@@ -75,8 +75,9 @@ TEST_CASE("Fade") {
     ncplane_erase(n_);
     ncplane_set_fg(n_, 0xffd700);
     CHECK(0 < ncplane_printf_aligned(n_, dimy - 1, NCALIGN_CENTER, "pulllllllse"));
+    struct timespec pulsestart;
     clock_gettime(CLOCK_MONOTONIC_RAW, &pulsestart);
-    CHECK(0 < ncplane_pulse(n_, &ts, pulser));
+    CHECK(0 < ncplane_pulse(n_, &ts, pulser, &pulsestart));
   }
 
   CHECK(0 == notcurses_stop(nc_));

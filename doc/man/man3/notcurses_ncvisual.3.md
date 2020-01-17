@@ -9,9 +9,6 @@ notcurses_ncvisual - notcurses multimedia
 
 **#include <notcurses.h>**
 
-**struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                         int* averr);**
-
 ```c
 typedef enum {
   NCSCALE_NONE,
@@ -21,6 +18,11 @@ typedef enum {
 
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 ```
+
+**bool notcurses_canopen(const struct notcurses* nc);**
+
+**struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
+                                         int* averr);**
 
 **struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
                                          int* averr, int y, int x,

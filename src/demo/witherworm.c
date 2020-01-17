@@ -538,7 +538,7 @@ int witherworm_demo(struct notcurses* nc){
         }else{
           ns_to_timespec(delay, &tv);
         }
-        ncplane_fadein(n, &tv, demo_fader);
+        ncplane_fadein(n, &tv, demo_fader, NULL);
       }
       pthread_t tid;
       pthread_create(&tid, NULL, worm_thread, nc);

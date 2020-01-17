@@ -11,14 +11,20 @@ notcurses_fade - fade ncplanes in and out
 **#include <notcurses.h>**
 
 ```c
+// Called for each delta performed in a fade on ncp. If anything but 0 is
+// returned, the fading operation ceases immediately, and that value is
+// propagated out. If provided and not NULL, the faders will not themselves
+// call notcurses_render().
 typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp);
 ```
 
-**int ncplane_fadeout(struct ncplane* n, const struct timespec* ts);**
+**bool notcurses_canfade(const struct notcurses* nc);**
 
-**int ncplane_fadein(struct ncplane* n, const struct timespec* ts);**
+**int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);**
 
-**int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader);**
+**int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);**
+
+**int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);**
 
 # DESCRIPTION
 

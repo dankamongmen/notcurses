@@ -264,7 +264,9 @@ int trans_demo(struct notcurses* nc){
   if(demo_render(nc)){
     return -1;
   }
-  ncplane_pulse(l, &demodelay, pulser);
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+  ncplane_pulse(l, &demodelay, pulser, &now);
   ncplane_destroy(l);
   return slidepanel(nc);
 }

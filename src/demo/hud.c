@@ -32,8 +32,9 @@ static struct elem* running;
 // it, and throw away the oldest entry each time.
 static int writeline = HUD_ROWS - 1;
 
-int demo_fader(struct notcurses* nc, struct ncplane* ncp){
+int demo_fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   (void)ncp;
+  (void)curry;
   return demo_render(nc);
 }
 

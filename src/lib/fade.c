@@ -81,7 +81,7 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
 
 static int
 ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
-                        fadecb fader, planepalette* pp){
+                        fadecb fader, planepalette* pp, void* curry){
   int maxfsteps = pp->maxg > pp->maxr ? (pp->maxb > pp->maxg ? pp->maxb : pp->maxg) :
                   (pp->maxb > pp->maxr ? pp->maxb : pp->maxr);
   int maxbsteps = pp->maxbg > pp->maxbr ? (pp->maxbb > pp->maxbg ? pp->maxbb : pp->maxbg) :
@@ -133,7 +133,7 @@ ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
       }
     }
     if(fader){
-      ret |= fader(n->nc, n);
+      ret |= fader(n->nc, n, curry);
     }else{
       ret |= notcurses_render(n->nc);
     }
@@ -155,7 +155,7 @@ ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
   return ret;
 }
 
-int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader){
+int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
   planepalette pp;
   if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
     return -1;
@@ -227,7 +227,7 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader){
       cell_set_bg_rgb(&n->basecell, br, bg, bb);
     }
     if(fader){
-      ret = fader(n->nc, n);
+      ret = fader(n->nc, n, curry);
     }else{
       ret = notcurses_render(n->nc);
     }
@@ -250,11 +250,11 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader){
   return ret;
 }
 
-int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
+int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
   planepalette pp;
   if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
     if(fader){
-      fader(n->nc, n);
+      fader(n->nc, n, curry);
     }else{
       notcurses_render(n->nc);
     }
@@ -263,12 +263,12 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader){
   if(alloc_ncplane_palette(n, &pp)){
     return -1;
   }
-  int ret = ncplane_fadein_internal(n, ts, fader, &pp);
+  int ret = ncplane_fadein_internal(n, ts, fader, &pp, curry);
   free(pp.channels);
   return ret;
 }
 
-int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader){
+int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
   planepalette pp;
   int ret;
   if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
@@ -278,11 +278,11 @@ int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader){
     return -1;
   }
   for(;;){
-    ret = ncplane_fadein_internal(n, ts, fader, &pp);
+    ret = ncplane_fadein_internal(n, ts, fader, &pp, curry);
     if(ret){
       break;
     }
-    ret = ncplane_fadeout(n, ts, fader);
+    ret = ncplane_fadeout(n, ts, fader, curry);
     if(ret){
       break;
     }

@@ -27,7 +27,7 @@ fadethread(void* vnc){
   struct notcurses* nc = vnc;
   struct ncplane* ncp = notcurses_stdplane(nc);
   struct timespec fade = { .tv_sec = 2, .tv_nsec = 0, };
-  ncplane_fadeout(ncp, &fade, demo_fader);
+  ncplane_fadeout(ncp, &fade, demo_fader, NULL);
   ncvisual_destroy(chncv);
   int averr;
   char* path = find_data("samoa.avi");
@@ -158,7 +158,7 @@ int outro(struct notcurses* nc){
     targy = 3;
     pthread_create(&tid, NULL, fadethread, nc);
     pthread_join(tid, &ret);
-    ncplane_fadeout(on, &demodelay, demo_fader);
+    ncplane_fadeout(on, &demodelay, demo_fader, NULL);
     ncplane_destroy(on);
   }
   if(ret == NULL){

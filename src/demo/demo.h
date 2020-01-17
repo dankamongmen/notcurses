@@ -123,7 +123,7 @@ int hud_schedule(const char* demoname);
 // demo_render(), which will ensure the HUD stays on the top of the z-stack.
 int demo_render(struct notcurses* nc);
 
-int demo_fader(struct notcurses* nc, struct ncplane* ncp);
+int demo_fader(struct notcurses* nc, struct ncplane* ncp, void* curry);
 
 // grab the hud with the mouse
 int hud_grab(int y, int x);
@@ -146,16 +146,12 @@ const demoresult* demoresult_lookup(int idx);
 /*----------------------------------HUD----------------------------------*/
 
 static inline int
-pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused))){
-  static struct timespec first = { .tv_sec = 0, .tv_nsec = 0, };
+pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), void* curry){
+  struct timespec* start = curry;
   struct timespec now;
-  if(timespec_to_ns(&first) == 0){
-    clock_gettime(CLOCK_MONOTONIC, &first);
-  }else{
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    if(timespec_to_ns(&now) - timespec_to_ns(&first) >= timespec_to_ns(&demodelay) * 4 / 3){
-      return 1;
-    }
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  if(timespec_to_ns(&now) - timespec_to_ns(start) >= timespec_to_ns(&demodelay) * 4 / 3){
+    return 1;
   }
   return demo_render(nc);
 }

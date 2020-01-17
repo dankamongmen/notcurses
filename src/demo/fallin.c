@@ -1,4 +1,32 @@
 #include "demo.h"
+#include <pthread.h>
+
+static bool done = false;
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+static int
+patentpulser(struct notcurses* nc, struct ncplane* ncp, void* curry){
+  (void)ncp;
+  (void)curry;
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  bool donecheck;
+  pthread_mutex_lock(&lock);
+  donecheck = done;
+  pthread_mutex_unlock(&lock);
+  if(donecheck){
+    return 1;
+  }
+  return 0;
+}
+
+static void*
+patentpulsar(void* n){
+  struct notcurses* nc = n;
+  ncplane_pulse(notcurses_stdplane(nc), &demodelay, patentpulser, NULL);
+  return NULL;
+}
 
 static int
 drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
@@ -184,11 +212,20 @@ int fallin_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  notcurses_render(nc);
+  pthread_t tid;
+  if(pthread_create(&tid, NULL, patentpulsar, nc)){
+    return -1;
+  }
   int ret = drop_bricks(nc, arr, arrcount);
+  sleep(1);
+  pthread_mutex_lock(&lock);
+  done = true;
+  pthread_mutex_unlock(&lock);
+  if(pthread_join(tid, NULL)){
+    return -1;
+  }
   assert(ncvisual_decode(ncv, &averr) == NULL);
   assert(averr == AVERROR_EOF);
   ncvisual_destroy(ncv);
-  ncplane_pulse(notcurses_stdplane(nc), &demodelay, pulser);
   return ret;
 }
