@@ -153,8 +153,9 @@ int main(int argc, char** argv){
       char32_t ie = notcurses_getc_blocking(nc, nullptr);
       if(ie == (char32_t)-1){
         break;
-      }
-      if(ie == NCKEY_RESIZE){
+      }else if(ie == 'q'){
+        break;
+      }else if(ie == NCKEY_RESIZE){
         --i; // rerun with the new size
         if(notcurses_resize(nc, &dimy, &dimx)){
           notcurses_stop(nc);
