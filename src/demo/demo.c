@@ -195,81 +195,60 @@ intro(struct notcurses* nc){
   return 0;
 }
 
-static const char* demonames[26] = {
-  "",
-  "box",
-  "chunli",
-  "",
-  "eagle",
-  "fallin",
-  "grid",
-  "",
-  "intro",
-  "",
-  "",
-  "luigi",
-  "",
-  "",
-  "outro",
-  "panelreels",
-  "",
-  "",
-  "sliders",
-  "trans",
-  "uniblock",
-  "view",
-  "witherworms",
-  "xray",
-  "",
-  ""
+static struct {
+  const char* name;
+  int (*fxn)(struct notcurses*);
+} demos[26] = {
+  { NULL, NULL, },
+  { "box", box_demo, },
+  { "chunli", chunli_demo, },
+  { NULL, NULL, },
+  { "eagle", eagle_demo, },
+  { "fallin", fallin_demo, },
+  { "grid", grid_demo, },
+  { NULL, NULL, },
+  { "intro", intro, },
+  { NULL, NULL, },
+  { NULL, NULL, },
+  { "luigi", luigi_demo, },
+  { NULL, NULL, },
+  { NULL, NULL, },
+  { "outro", outro, },
+  { "panelreels", panelreel_demo, },
+  { NULL, NULL, },
+  { NULL, NULL, },
+  { "sliders", sliding_puzzle_demo, },
+  { "trans", trans_demo, },
+  { "uniblock", unicodeblocks_demo, },
+  { "view", view_demo, },
+  { "witherworms", witherworm_demo, },
+  { "xray", xray_demo, },
+  { NULL, NULL, },
+  { NULL, NULL, },
 };
 
 static demoresult*
-ext_demos(struct notcurses* nc, const char* demos){
+ext_demos(struct notcurses* nc, const char* spec){
   int ret = 0;
-  results = malloc(sizeof(*results) * strlen(demos));
+  results = malloc(sizeof(*results) * strlen(spec));
   if(results == NULL){
     return NULL;
   }
-  memset(results, 0, sizeof(*results) * strlen(demos));
-  democount = strlen(demos);
+  memset(results, 0, sizeof(*results) * strlen(spec));
+  democount = strlen(spec);
   struct timespec start, now;
   clock_gettime(CLOCK_MONOTONIC, &start);
   uint64_t prevns = timespec_to_ns(&start);
-  for(size_t i = 0 ; i < strlen(demos) ; ++i){
-    results[i].selector = demos[i];
+  for(size_t i = 0 ; i < strlen(spec) ; ++i){
+    results[i].selector = spec[i];
   }
-  for(size_t i = 0 ; i < strlen(demos) ; ++i){
+  for(size_t i = 0 ; i < strlen(spec) ; ++i){
     if(interrupted){
       break;
     }
-    int nameidx = demos[i] - 'a';
-    if(nameidx < 0 || nameidx > 25 || !demonames[nameidx]){
-      fprintf(stderr, "Invalid demo specification: %c\n", demos[i]);
-      ret = -1;
-    }
-    hud_schedule(demonames[nameidx]);
-    switch(demos[i]){
-      case 'i': ret = intro(nc); break;
-      case 'o': ret = outro(nc); break;
-      case 's': ret = sliding_puzzle_demo(nc); break;
-      case 'u': ret = unicodeblocks_demo(nc); break;
-      case 't': ret = trans_demo(nc); break;
-      case 'b': ret = box_demo(nc); break;
-      case 'c': ret = chunli_demo(nc); break;
-      case 'g': ret = grid_demo(nc); break;
-      case 'l': ret = luigi_demo(nc); break;
-      case 'f': ret = fallin_demo(nc); break;
-      case 'v': ret = view_demo(nc); break;
-      case 'e': ret = eagle_demo(nc); break;
-      case 'x': ret = xray_demo(nc); break;
-      case 'w': ret = witherworm_demo(nc); break;
-      case 'p': ret = panelreel_demo(nc); break;
-      default:
-        fprintf(stderr, "Unknown demo specification: %c\n", demos[i]);
-        ret = -1;
-        break;
-    }
+    int idx = spec[i] - 'a';
+    hud_schedule(demos[idx].name);
+    ret = demos[idx].fxn(nc);
     notcurses_reset_stats(nc, &results[i].stats);
     clock_gettime(CLOCK_MONOTONIC, &now);
     uint64_t nowns = timespec_to_ns(&now);
@@ -368,8 +347,8 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
       usage(*argv, EXIT_FAILURE);
     }
   }
-  const char* demos = argv[optind];
-  return demos;
+  const char* spec = argv[optind];
+  return spec;
 }
 
 // just fucking around...for now
@@ -387,12 +366,19 @@ int main(int argc, char** argv){
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
-  const char* demos;
-  if((demos = handle_opts(argc, argv, &nopts, &use_hud)) == NULL){
+  const char* spec;
+  if((spec = handle_opts(argc, argv, &nopts, &use_hud)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
-    demos = DEFAULT_DEMO;
+    spec = DEFAULT_DEMO;
+  }
+  for(size_t i = 0 ; i < strlen(spec) ; ++i){
+    int nameidx = spec[i] - 'a';
+    if(nameidx < 0 || nameidx > 25 || !demos[nameidx].name){
+      fprintf(stderr, "Invalid demo specification: %c\n", spec[i]);
+      return EXIT_FAILURE;
+    }
   }
   if((nc = notcurses_init(&nopts, stdout)) == NULL){
     return EXIT_FAILURE;
@@ -419,7 +405,7 @@ int main(int argc, char** argv){
   }else{
     nanosleep(&demodelay, NULL);
   }
-  if(ext_demos(nc, demos) == NULL){
+  if(ext_demos(nc, spec) == NULL){
     goto err;
   }
   if(hud_destroy()){
@@ -441,13 +427,13 @@ int main(int argc, char** argv){
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   printf("\n");
-  printf("        total│frames│output(B)│rendering│%%r│%7s║\n", "FPS");
+  printf("      runtime│frames│output(B)│rendering│%%r│%7s║\n", "FPS");
   printf("══╤═╤════════╪══════╪═════════╪═════════╪══╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
   uint64_t nsdelta = 0;
-  for(size_t i = 0 ; i < strlen(demos) ; ++i){
+  for(size_t i = 0 ; i < strlen(spec) ; ++i){
     nsdelta += results[i].timens;
     qprefix(results[i].timens, GIG, timebuf, 0);
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
