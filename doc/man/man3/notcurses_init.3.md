@@ -118,5 +118,5 @@ geometry.
 # SEE ALSO
 
 **getenv(3)**, **termios(3)**, **notcurses(3)**, **notcurses_input(3)**,
-**notcurses_ncplane(3)**, **notcurses_render(3)**, **notcurses_stop(3)**,
-**terminfo(5)**, **signal(7)**
+**notcurses_ncplane(3)**, **notcurses_render(3)**, **notcurses_resize(3)**,
+**notcurses_stop(3)**, **terminfo(5)**, **signal(7)**

@@ -116,5 +116,5 @@ ESC (ASCII 0x1b) will be seen by the application.
 
 # SEE ALSO
 
-**notcurses(3)**, **poll(2)**, **unicode(7)**, **cfmakeraw(3)**, **terminfo(5)**,
-**ascii(7)**, **signal(7)**, **termios(3)**
+**poll(2)**, **cfmakeraw(3)**, **notcurses(3)**, **notcurses_resize(3)**,
+**termios(3)**, **terminfo(5)**, **ascii(7)**, **signal(7)**,  **unicode(7)**

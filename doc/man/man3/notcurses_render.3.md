@@ -20,7 +20,8 @@ notcurses_render - sync the physical display to the virtual ncplanes
 ncplanes. It is necessary to call **notcurses_render** to generate any visible
 output; the various notcurses_output(3) calls only draw to the virtual
 ncplanes. Most of the notcurses statistics are updated as a result of a
-render (see notcurses_stats(3)).
+render (see notcurses_stats(3)), and **notcurses_resize(3)** is called
+internally *following* the render.
 
 A render operation consists of two logical phases: generation of the rendered
 scene, and blitting this scene to the terminal (these two phases might actually
@@ -75,5 +76,5 @@ purposes of color blending.
 # SEE ALSO
 
 **notcurses(3)**, **notcurses_cell(3)**, **notcurses_ncplane(3)**,
-**notcurses_output(3)**, **notcurses_stats(3)**, **console_codes(4)**,
-**utf-8(7)**
+**notcurses_output(3)**, **notcurses_resize(3)**, **notcurses_stats(3)**,
+**console_codes(4)**, **utf-8(7)**
