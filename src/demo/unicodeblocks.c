@@ -159,6 +159,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     { .rtl = false, .name = "Supplemental Arrows-C, Supplemental Symbols", .start = 0x1f800, },
     { .rtl = false, .name = "Chess Symbols, Symbols and Pictographs Extended-A", .start = 0x1fa00, },
   };
+  ncplane_greyscale(notcurses_stdplane(nc));
   size_t sindex;
   // we don't want a full delay period for each one, urk...or do we?
   struct timespec subdelay;
