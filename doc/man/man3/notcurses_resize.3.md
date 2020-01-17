@@ -22,7 +22,7 @@ populated by the standard plane's base cell. Other planes are unaffected.
 **notcurses_resize** does *not* result in a rendering operation.
 
 **notcurses_render(3)** calls this function following a render+raster cycle. It
-is thus not generally necessary to call it yourself both of the following are
+is thus not necessary to call it yourself unless both of the following are
 true:
 
 * Your program is in an event loop rather than a rendering loop (i.e. it calls **notcurses_render(3)** only based on external events), and
@@ -36,6 +36,21 @@ more or less now visible), it is sufficient to simply call **notcurses_render(3)
 
 If **rows** and/or **cols** is not NULL, they receive the new geometry.
 
+# NOTES
+
+If your program **is** in a render loop (i.e. rendering as quickly as
+possible, or at least at the refresh rate), there's not much point in
+erecting the machinery to trigger **notcurses_resize** based off
+**NCKEY_RESIZE**. The latter is generated based upon receipt of the **SIGWINCH**
+signal, which is fundamentally racy with regards to the rest of the program.
+If your program truly relies on timely invocation of **notcurses_resize()**,
+it's a broken program. If you don't rely on it in a causal fashion, then just
+wait for the upcoming render.
+
+Highest performance in a rendering loop would actually call for disabling
+notcurses SIGWINCH handling in the call to **notcurses_init(3)**, so that no
+time is spent handling a signal you're not going to use.
+
 # RETURN VALUES
 
 Returns 0 on success, and -1 on failure. The causes for failure include system
@@ -45,5 +60,5 @@ of these are particularly good things, and the most reasonable response to a
 
 # SEE ALSO
 
-**notcurses_input(3)**, **notcurses_ncplane(3)**, **notcurses_render(3)**,
-**termios(3)**, **signal(7)**
+**notcurses_init(3)**, **notcurses_input(3)**, **notcurses_ncplane(3)**,
+**notcurses_render(3)**, **termios(3)**, **signal(7)**
