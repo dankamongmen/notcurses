@@ -443,7 +443,7 @@ int witherworm_demo(struct notcurses* nc){
     NULL
   };
   const char** s;
-  const int steps[] = { 0, 0x10040, 0x100, 0x100, 0x10001, };
+  const int steps[] = { 0, 0x10040, 0x20110, 0x120, 0x12020, };
   const int starts[] = { 0, 0x10101, 0x004000, 0x000040, 0x400040, };
 
   struct ncplane* n = notcurses_stdplane(nc);
@@ -472,49 +472,47 @@ int witherworm_demo(struct notcurses* nc){
       y = 0;
       x = 0;
       ncplane_set_bg_rgb(n, 20, 20, 20);
-      do{ // we fill up the entire screen, however large, walking our strtable
-        s = strs;
-        for(s = strs ; *s ; ++s){
-          size_t idx = 0;
-          ncplane_cursor_yx(n, &y, &x);
+      do{ // we fill up the screen, however large, bouncing around our strtable
+        s = strs + random() % ((sizeof(strs) / sizeof(*strs)) - 1);
+        size_t idx = 0;
+        ncplane_cursor_yx(n, &y, &x);
 // fprintf(stderr, "%02d %s\n", y, *s);
-          while((*s)[idx]){ // each multibyte char of string
-            if(ncplane_set_fg_rgb(n, channel_r(rgb), channel_g(rgb), channel_b(rgb))){
-              return -1;
-            }
-            if(y >= maxy || x >= maxx){
-              break;
-            }
-            wchar_t wcs;
-            int eaten = mbtowc(&wcs, &(*s)[idx], MB_CUR_MAX + 1);
-            if(eaten < 0){
-              return -1;
-            }
-            if(iswspace(wcs)){
-              idx += eaten;
-              continue;
-            }
-            int ulen = 0;
-            int r;
-            if(wcwidth(wcs) <= maxx - x){
-              if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) < 0){
-                if(ulen < 0){
-                  return -1;
-                }
-              }
-            }else{
-              if((r = ncplane_putsimple(n, '#')) < 1){
+        while((*s)[idx]){ // each multibyte char of string
+          if(ncplane_set_fg_rgb(n, channel_r(rgb), channel_g(rgb), channel_b(rgb))){
+            return -1;
+          }
+          if(y >= maxy || x >= maxx){
+            break;
+          }
+          wchar_t wcs;
+          int eaten = mbtowc(&wcs, &(*s)[idx], MB_CUR_MAX + 1);
+          if(eaten < 0){
+            return -1;
+          }
+          if(iswspace(wcs)){
+            idx += eaten;
+            continue;
+          }
+          int ulen = 0;
+          int r;
+          if(wcwidth(wcs) <= maxx - x){
+            if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) < 0){
+              if(ulen < 0){
                 return -1;
               }
             }
-            ncplane_cursor_yx(n, &y, &x);
-            idx += ulen;
-            bytes_out += ulen;
-            cols_out += r;
-            ++egcs_out;
+          }else{
+            if((r = ncplane_putsimple(n, '#')) < 1){
+              return -1;
+            }
           }
-          rgb += step;
+          ncplane_cursor_yx(n, &y, &x);
+          idx += ulen;
+          bytes_out += ulen;
+          cols_out += r;
+          ++egcs_out;
         }
+        rgb += step;
       }while(y < maxy && x < maxx);
       struct ncplane* math = mathplane(nc);
       if(math == NULL){
@@ -525,7 +523,7 @@ int witherworm_demo(struct notcurses* nc){
         return -1;
       }
       if(message(mess, maxy, maxx, i, sizeof(steps) / sizeof(*steps),
-                 bytes_out, egcs_out, cols_out)){
+                  bytes_out, egcs_out, cols_out)){
         return -1;
       }
       if(demo_render(nc)){
