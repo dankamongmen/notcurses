@@ -59,9 +59,9 @@ int fallin_demo(struct notcurses* nc){
           if(ncplane_at_yx(notcurses_stdplane(nc), usey, usex, &c) < 0){
             return -1;
           }
-          const char* con = cell_extended_gcluster(notcurses_stdplane(nc), &c);
-          fprintf(stderr, "%s\n", con);
-          cell_load(n, &c, con);
+          if(!cell_simple_p(&c)){
+            cell_load(n, &c, cell_extended_gcluster(notcurses_stdplane(nc), &c));
+          }
           if(ncplane_putc_yx(n, usey - y, usex - x, &c) < 0){
             return -1;
           }
