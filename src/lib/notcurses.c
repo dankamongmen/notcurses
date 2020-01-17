@@ -273,12 +273,8 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
 // create an ncplane of the specified dimensions, but do not yet place it in
 // the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
-create_initial_ncplane(notcurses* nc){
-  int rows, cols;
-  if(update_term_dimensions(nc, &rows, &cols)){
-    return NULL;
-  }
-  nc->stdscr = ncplane_create(nc, rows, cols, 0, 0);
+create_initial_ncplane(notcurses* nc, int dimy, int dimx){
+  nc->stdscr = ncplane_create(nc, dimy, dimx, 0, 0);
   return nc->stdscr;
 }
 
@@ -526,10 +522,15 @@ int ncplane_destroy(ncplane* ncp){
 }
 
 static int
-interrogate_terminfo(notcurses* nc, const notcurses_options* opts){
+interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
+                     int* dimy, int* dimx){
+  update_term_dimensions(nc, dimy, dimx);
+  char* shortname_term = termname();
   char* longname_term = longname();
   if(!opts->suppress_banner){
-    fprintf(stderr, "Term: %s\n", longname_term ? longname_term : "?");
+    fprintf(stderr, "Term: %dx%d %s (%s)\n", *dimx, *dimy,
+            shortname_term ? shortname_term : "?",
+            longname_term ? longname_term : "?");
   }
   nc->RGBflag = tigetflag("RGB") == 1;
   if (nc->RGBflag == 0) {
@@ -800,13 +801,14 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
-  if(interrogate_terminfo(ret, opts)){
+  int dimy, dimx;
+  if(interrogate_terminfo(ret, opts, &dimy, &dimx)){
     goto err;
   }
   if(ncvisual_init(ffmpeg_log_level(opts->loglevel))){
     goto err;
   }
-  if((ret->stdscr = create_initial_ncplane(ret)) == NULL){
+  if((ret->stdscr = create_initial_ncplane(ret, dimy, dimx)) == NULL){
     goto err;
   }
   if(!opts->retain_cursor){
