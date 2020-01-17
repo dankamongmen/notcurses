@@ -35,16 +35,20 @@ timespec_to_ns(const struct timespec* ts){
 
 // frame count is in the curry. original time is in the ncplane's userptr.
 int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
-  const struct timespec* start = static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
+  struct timespec* start = static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
+  if(!start){
+    start = new struct timespec;
+    clock_gettime(CLOCK_MONOTONIC, start);
+    ncplane_set_userptr(ncvisual_plane(ncv), start);
+  }
   struct ncplane* stdn = notcurses_stdplane(nc);
   int* framecount = static_cast<int*>(vframecount);
   ++*framecount;
   ncplane_set_fg(stdn, 0x80c080);
-  ncplane_cursor_move_yx(stdn, 0, 0);
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   int64_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
-  ncplane_printf(stdn, "Got frame %05d\u2026", *framecount);
+  ncplane_printf_aligned(stdn, 0, NCALIGN_LEFT, "Got frame %05d\u2026", *framecount);
   const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
   const int64_t m = ns / (60 * NANOSECS_IN_SEC);
@@ -141,33 +145,25 @@ int main(int argc, char** argv){
   }
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  struct timespec start;
-  auto ncp = ncplane_new(nc, dimy - 1, dimx, 1, 0, &start);
-  if(ncp == nullptr){
-    notcurses_stop(nc);
-    return EXIT_FAILURE;
-  }
-  for(int i = nonopt ; i < argc ; ++i){
+  for(auto i = nonopt ; i < argc ; ++i){
     std::array<char, 128> errbuf;
     int frames = 0;
     int averr;
-    auto ncv = ncvisual_open_plane(nc, argv[i], &averr,
-                                   0, 0, stretchmode);
+    auto ncv = ncvisual_open_plane(nc, argv[i], &averr, 1, 0, stretchmode);
     if(ncv == nullptr){
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
       notcurses_stop(nc);
       std::cerr << "Error opening " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    int r = ncvisual_stream(nc, ncv, &averr, timescale, perframe, &frames);
+    auto r = ncvisual_stream(nc, ncv, &averr, timescale, perframe, &frames);
     if(r < 0){ // positive is intentional abort
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
       notcurses_stop(nc);
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }else if(r == 0){
-      char32_t ie = notcurses_getc_blocking(nc, nullptr);
+      auto ie = notcurses_getc_blocking(nc, nullptr);
       if(ie == (char32_t)-1){
         break;
       }else if(ie == 'q'){
@@ -184,8 +180,8 @@ int main(int argc, char** argv){
         }
       }
     }
+    delete static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
     ncvisual_destroy(ncv);
-    ncplane_erase(ncp);
   }
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
