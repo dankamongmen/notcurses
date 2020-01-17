@@ -11,7 +11,6 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   struct timespec iterdelay;
   // 5 * demodelay total
   ns_to_timespec(timespec_to_ns(&demodelay) / arrcount / 2, &iterdelay);
-  ncplane_erase(notcurses_stdplane(nc));
   // we've got a range of up to 10 total blocks falling at any given time. they
   // accelerate as they fall. [ranges, reange) covers the active range.
   int ranges = 0;
@@ -23,7 +22,6 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
     // ahead and get it kicked off
     if(rangee - ranges + 1 < FALLINGMAX){
       if(rangee < arrcount){
-        ncplane_greyscale(arr[rangee]);
         speeds[rangee - ranges] = 1;
         ++rangee;
       }
@@ -108,6 +106,7 @@ int fallin_demo(struct notcurses* nc){
   //  * maxy/maxx: maximum geometry of randomly-generated bricks
   //  * newy/newx: actual geometry of current brick
   //  * usey/usex: 
+  ncplane_greyscale(notcurses_stdplane(nc));
   for(int y = 0 ; y < dimy ; ++y){
     int x = 0;
     while(x < dimx){
@@ -164,5 +163,26 @@ int fallin_demo(struct notcurses* nc){
     }
   }
   free(usemap);
-  return drop_bricks(nc, arr, arrcount);
+  int averr = 0;
+  char* path = find_data("lamepatents.jpg");
+  struct ncvisual* ncv = ncplane_visual_open(notcurses_stdplane(nc), path, &averr);
+  free(path);
+  if(ncv == NULL){
+    return -1;
+  }
+  if(ncvisual_decode(ncv, &averr) == NULL){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  if(ncvisual_render(ncv, 0, 0, 0, 0)){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  notcurses_render(nc);
+  int ret = drop_bricks(nc, arr, arrcount);
+  assert(ncvisual_decode(ncv, &averr) == NULL);
+  assert(averr == AVERROR_EOF);
+  ncvisual_destroy(ncv);
+  ncplane_pulse(notcurses_stdplane(ncv), &demodelay, pulser);
+  return ret;
 }

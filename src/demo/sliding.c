@@ -160,21 +160,6 @@ int sliding_puzzle_demo(struct notcurses* nc){
   int wastex = ((maxx - 2) - (CHUNKS_HORZ * chunkx)) / 2;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
-  int averr = 0;
-  char* path = find_data("lamepatents.jpg");
-  struct ncvisual* ncv = ncplane_visual_open(n, path, &averr);
-  free(path);
-  if(ncv == NULL){
-    return -1;
-  }
-  if(ncvisual_decode(ncv, &averr) == NULL){
-    ncvisual_destroy(ncv);
-    return -1;
-  }
-  if(ncvisual_render(ncv, 0, 0, 0, 0)){
-    ncvisual_destroy(ncv);
-    return -1;
-  }
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){
@@ -240,7 +225,6 @@ int sliding_puzzle_demo(struct notcurses* nc){
   ret = 0;
 
 done:
-  ncvisual_destroy(ncv);
   for(z = 0 ; z < chunkcount ; ++z){
     ncplane_destroy(chunks[z]);
   }

@@ -65,5 +65,10 @@ Proper display requires:
 * A monospaced font, and
 * Good Unicode support in your libc, font, and terminal emulator.
 
+# BUGS
+
+If notcurses is built without FFmpeg, the following demos will fail immedaitely when specified: **xray**,
+**eagle**, **chunli**, **fallin**, **view**, **outro**.
+
 # SEE ALSO
 notcurses(3notcurses), ncurses(3ncurses), terminfo(5)
