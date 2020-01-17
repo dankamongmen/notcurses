@@ -29,8 +29,9 @@ legend(struct notcurses* nc, const char* msg){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   // FIXME replace with ncplane_new_aligned()
-  struct ncplane* n = ncplane_new(nc, 3, strlen(msg) + 2, dimy - 4,
-                                         (dimx - ((strlen(msg) + 2))) / 2, NULL);
+  struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), 3,
+                                      strlen(msg) + 4, dimy - 4,
+                                      NCALIGN_CENTER, NULL);
   if(n == NULL){
     return NULL;
   }
@@ -41,7 +42,7 @@ legend(struct notcurses* nc, const char* msg){
   ncplane_set_base(n, &c);
   ncplane_set_fg(n, 0xd78700);
   ncplane_set_bg(n, 0);
-  if(ncplane_putstr_yx(n, 1, 1, msg) < 0){
+  if(ncplane_putstr_aligned(n, 1, NCALIGN_CENTER, msg) < 0){
     ncplane_destroy(n);
     return NULL;
   }

@@ -24,6 +24,7 @@ mathplane(struct notcurses* nc){
   ncplane_set_base(n, &b);
   cell_release(n, &b);
   ncplane_set_fg(n, 0xd4af37); // metallic gold
+  ncplane_set_bg(n, 0x0);
   if(n){
     ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)⎧⎡⎛┌─────┐⎞⎤⎫");
     ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "⎪⎢⎜│a²+b³ ⎟⎥⎪");

@@ -11,7 +11,6 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   ns_to_timespec(timespec_to_ns(&demodelay) * 5 / arrcount, &iterdelay);
   ncplane_erase(notcurses_stdplane(nc));
   for(int n = 0 ; n < arrcount ; ++n){
-fprintf(stderr, "PLANE %d: %p\n", n, arr[n]);
     ncplane_erase(arr[n]);
     if(notcurses_render(nc)){
       return -1;
@@ -35,7 +34,6 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
   arr = tmp;
   // location of new element
   int pos = random() % (count + 1);
-fprintf(stderr, "pos %d count %d moving %d\n", pos, count, count - pos);
   if(pos < count){
     // move everything, starting at our new location, one spot right
     memmove(arr + pos + 1, arr + pos, sizeof(*arr) * (count - pos));

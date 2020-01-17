@@ -31,6 +31,7 @@ int eagle_demo(struct notcurses* nc);
 int panelreel_demo(struct notcurses* nc);
 int xray_demo(struct notcurses* nc);
 int luigi_demo(struct notcurses* nc);
+int intro(struct notcurses* nc);
 int outro(struct notcurses* nc);
 
 /*------------------------------- demo input API --------------------------*/

@@ -19,10 +19,14 @@ int intro(struct notcurses* nc){
   if(cells_rounded_box(ncp, CELL_STYLE_BOLD, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  channels_set_fg_rgb(&ul.channels, 0xff, 0, 0);
-  channels_set_fg_rgb(&ur.channels, 0, 0xff, 0);
-  channels_set_fg_rgb(&ll.channels, 0, 0, 0xff);
-  channels_set_fg_rgb(&lr.channels, 0xff, 0xff, 0xff);
+  cell_set_fg(&ul, 0xff0000);
+  cell_set_bg(&ul, 0x002000);
+  cell_set_fg(&ur, 0x00ff00);
+  cell_set_bg(&ur, 0x002000);
+  cell_set_fg(&ll, 0x0000ff);
+  cell_set_bg(&ll, 0x002000);
+  cell_set_fg(&lr, 0xffffff);
+  cell_set_bg(&lr, 0x002000);
   if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows, cols,
                        NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM |
                         NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
