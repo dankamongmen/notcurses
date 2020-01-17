@@ -2005,6 +2005,9 @@ palette256_get(const palette256* p, int idx, unsigned* RESTRICT r, unsigned* RES
 // Free the palette store 'p'.
 API void palette256_free(palette256* p);
 
+// Convert the plane's content to greyscale.
+API void ncplane_greyscale(struct ncplane* n);
+
 #undef API
 
 #ifdef __cplusplus

@@ -1703,3 +1703,39 @@ int palette256_use(notcurses* nc, const palette256* p){
 void palette256_free(palette256* p){
   free(p);
 }
+
+// Given r, g, and b values 0..255, do a weighted average per Rec. 601, and
+// return the 8-bit greyscale value (this value will be the r, g, and b value
+// for the new color).
+static inline int
+rgb_greyscale(int r, int g, int b){
+  if(r < 0 || r > 255){
+    return -1;
+  }
+  if(g < 0 || g > 255){
+    return -1;
+  }
+  if(b < 0 || b > 255){
+    return -1;
+  }
+  float fg = (0.2126 * (r / 255.0) + 0.7152 * (g / 255.0) + 0.0722 * (b / 255.0));
+  return fg * 255;
+}
+
+void ncplane_greyscale(ncplane *n){
+  ncplane_lock(n);
+  for(int y = 0 ; y < n->leny ; ++y){
+    for(int x = 0 ; x < n->lenx ; ++x){
+      cell* c = &n->fb[nfbcellidx(n, y, x)];
+      unsigned r, g, b;
+      cell_fg_rgb(c, &r, &g, &b);
+      // Use Rec. 601 scaling
+      int gy = rgb_greyscale(r, g, b);
+      cell_set_fg_rgb(c, gy, gy, gy);
+      cell_bg_rgb(c, &r, &g, &b);
+      gy = rgb_greyscale(r, g, b);
+      cell_set_bg_rgb(c, gy, gy, gy);
+    }
+  }
+  ncplane_unlock(n);
+}
