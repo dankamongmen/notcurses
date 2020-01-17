@@ -53,6 +53,7 @@ TEST_CASE("Palette256") {
     CHECK(cell_fg_default_p(&c));
     CHECK(0 == cell_set_fg_palindex(&c, 0x20));
     CHECK(!cell_fg_default_p(&c));
+    CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&c));
     CHECK(0x20 == cell_fg_palindex(&c));
   }
 

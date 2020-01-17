@@ -238,7 +238,7 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
       struct crender* crender = &rvec[fbcellidx(absy, nc->stdscr->lenx, absx)];
       const cell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
-      // writing in a zero), use the plane's default cell.
+      // writing in a zero), use the plane's base cell.
       if(vis->gcluster == 0){
         vis = &p->basecell;
       }
@@ -280,7 +280,11 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
       // glyph. If we've already locked in the background, it has no effect.
       // If it's transparent, it has no effect. Otherwise, update the
       // background channel and balpha.
-      if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+      if(cell_bg_palindex_p(vis)){
+        if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+          cell_set_bg_palindex(targc, cell_bg_palindex(vis));
+        }
+      }else if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
         cell_blend_bchannel(targc, cell_bchannel(vis), crender->bgblends);
         ++crender->bgblends;
       }
@@ -703,6 +707,8 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
           nc->rstate.defaultelidable = true;
           nc->rstate.fgelidable = false;
           nc->rstate.bgelidable = false;
+          nc->rstate.fgpalelidable = false;
+          nc->rstate.bgpalelidable = false;
         }
 
         // if our cell has a non-default foreground, we can elide the non-default

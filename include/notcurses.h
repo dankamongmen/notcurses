@@ -1150,6 +1150,10 @@ channels_set_bg_default(uint64_t* channels){
 // 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
 // since we can't blend default colors. Likewise, if 'c2' is a default color,
 // it will not be used (unless 'blends' is 0).
+//
+// Palette-indexed colors do not blend, and since we need the attrword to store
+// them, we just don't fuck wit' 'em here. Do not pass me palette-indexed
+// channels! I will eat them.
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2, unsigned blends){
   unsigned rsum, gsum, bsum;
@@ -1196,6 +1200,7 @@ cell_set_fchannel(cell* cl, uint32_t channel){
   return channels_set_fchannel(&cl->channels, channel);
 }
 
+// do not pass palette-indexed channels!
 static inline uint64_t
 cell_blend_fchannel(cell* cl, unsigned channel, unsigned blends){
   return cell_set_fchannel(cl, channels_blend(cell_fchannel(cl), channel, blends));
@@ -1262,7 +1267,7 @@ cell_set_fg(cell* c, uint32_t channel){
 }
 
 // Set the cell's foreground palette index, set the foreground palette index
-// bit, and clear the foreground default color bit.
+// bit, set it foreground-opaque, and clear the foreground default color bit.
 static inline int
 cell_set_fg_palindex(cell* cl, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
@@ -1270,6 +1275,7 @@ cell_set_fg_palindex(cell* cl, int idx){
   }
   cl->channels |= CELL_FGDEFAULT_MASK;
   cl->channels |= CELL_FG_PALETTE;
+  cl->channels &= ~(CELL_ALPHA_MASK << 32u);
   cl->attrword &= 0xffff00ff;
   cl->attrword |= (idx << 8u);
   return 0;
@@ -1300,7 +1306,7 @@ cell_set_bg(cell* c, uint32_t channel){
 }
 
 // Set the cell's background palette index, set the background palette index
-// bit, and clear the background default color bit.
+// bit, set it background-opaque, and clear the background default color bit.
 static inline int
 cell_set_bg_palindex(cell* cl, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
@@ -1308,6 +1314,7 @@ cell_set_bg_palindex(cell* cl, int idx){
   }
   cl->channels |= CELL_BGDEFAULT_MASK;
   cl->channels |= CELL_BG_PALETTE;
+  cl->channels &= ~CELL_ALPHA_MASK;
   cl->attrword &= 0xffffff00;
   cl->attrword |= idx;
   return 0;
