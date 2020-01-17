@@ -101,10 +101,10 @@ typedef struct renderstate {
   size_t mstrsize;// size of rendering memstream
 
   uint32_t curattr;// current attributes set (does not include colors)
-  unsigned lastr;  // foreground rgb
+  unsigned lastr;  // foreground rgb, overloaded for palindexed fg
   unsigned lastg;
   unsigned lastb;
-  unsigned lastbr; // background rgb
+  unsigned lastbr; // background rgb, overloaded for palindexed bg
   unsigned lastbg;
   unsigned lastbb;
   // we can elide a color escape iff the color has not changed between the two
@@ -112,6 +112,8 @@ typedef struct renderstate {
   // the last used both defaults.
   bool fgelidable;
   bool bgelidable;
+  bool fgpalelidable;
+  bool bgpalelidable;
   bool defaultelidable;
 } renderstate;
 

@@ -546,7 +546,7 @@ term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, bool foreground,
   return 0;
 }
 
-static int
+static inline int
 term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
@@ -571,7 +571,17 @@ term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   return 0;
 }
 
-static int
+static inline int
+term_bg_palindex(notcurses* nc, FILE* out, unsigned pal){
+  return term_emit("setab", tiparm(nc->setab, pal), out, false);
+}
+
+static inline int
+term_fg_palindex(notcurses* nc, FILE* out, unsigned pal){
+  return term_emit("setaf", tiparm(nc->setaf, pal), out, false);
+}
+
+static inline int
 term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
@@ -635,7 +645,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
     // whenever we're on a new line. leave room to avoid overflow.
     int needmove = INT_MAX - nc->stdscr->lenx;
     for(x = 0 ; x < nc->stdscr->lenx ; ++x){
-      unsigned r, g, b, br, bg, bb;
+      unsigned r, g, b, br, bg, bb, palfg, palbg;
       const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
 //      cell c;
 //      memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
@@ -667,6 +677,8 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
           nc->rstate.defaultelidable = true;
           nc->rstate.bgelidable = false;
           nc->rstate.fgelidable = false;
+          nc->rstate.bgpalelidable = false;
+          nc->rstate.fgpalelidable = false;
         }
         // we allow these to be set distinctly, but terminfo only supports using
         // them both via the 'op' capability. unless we want to generate the 'op'
@@ -697,24 +709,50 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         // foreground set iff either:
         //  * the previous was non-default, and matches what we have now, or
         //  * we are a no-foreground glyph (iswspace() is true)
-        if(!cell_fg_default_p(srccell)){
-          if(!noforeground){
-            cell_fg_rgb(srccell, &r, &g, &b);
-//fprintf(stderr, "[%03d/%03d] %02x %02x %02x\n", y, x, r, g, b);
-            if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
-              ++nc->stats.fgelisions;
-            }else{
-              ret |= term_fg_rgb8(nc, out, r, g, b);
-              ++nc->stats.fgemissions;
-              nc->rstate.fgelidable = true;
-            }
-            nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
-            nc->rstate.defaultelidable = false;
-          }else{
+        if(noforeground){
+          ++nc->stats.fgelisions;
+        }else if(cell_fg_palindex_p(srccell)){ // palette-indexed foreground
+          palfg = cell_fg_palindex(srccell);
+          // we overload lastr for the palette index; both are 8 bits
+          if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
             ++nc->stats.fgelisions;
+          }else{
+            ret |= term_fg_palindex(nc, out, palfg);
+            ++nc->stats.fgemissions;
+            nc->rstate.fgpalelidable = true;
           }
+          nc->rstate.lastr = palfg;
+          nc->rstate.defaultelidable = false;
+          nc->rstate.fgelidable = false;
+        }else if(!cell_fg_default_p(srccell)){ // rgb foreground
+          cell_fg_rgb(srccell, &r, &g, &b);
+//fprintf(stderr, "[%03d/%03d] %02x %02x %02x\n", y, x, r, g, b);
+          if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
+            ++nc->stats.fgelisions;
+          }else{
+            ret |= term_fg_rgb8(nc, out, r, g, b);
+            ++nc->stats.fgemissions;
+            nc->rstate.fgelidable = true;
+          }
+          nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
+          nc->rstate.defaultelidable = false;
+          nc->rstate.fgpalelidable = false;
         }
-        if(!cell_bg_default_p(srccell)){
+        if(nobackground){
+          ++nc->stats.bgelisions;
+        }else if(cell_bg_palindex_p(srccell)){ // palette-indexed background
+          palbg = cell_bg_palindex(srccell);
+          if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
+            ++nc->stats.bgelisions;
+          }else{
+            ret |= term_bg_palindex(nc, out, palbg);
+            ++nc->stats.bgemissions;
+            nc->rstate.bgpalelidable = true;
+          }
+          nc->rstate.lastr = palbg;
+          nc->rstate.defaultelidable = false;
+          nc->rstate.bgelidable = false;
+        }else if(!cell_bg_default_p(srccell)){ // rgb background
           if(!nobackground){
             cell_bg_rgb(srccell, &br, &bg, &bb);
             if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
@@ -726,8 +764,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
             }
             nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
             nc->rstate.defaultelidable = false;
-          }else{
-            ++nc->stats.bgelisions;
+            nc->rstate.bgpalelidable = false;
           }
         }
 /*if(cell_simple_p(srccell)){
