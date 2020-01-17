@@ -57,7 +57,8 @@ a broker such as GPM, X, or Wayland). Input is delivered as 32-bit Unicode
 code points. Synthesized events such as mouse button presses and arrow keys
 are mapped into Unicode's
 [Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U1.0.10.pdf).
-Information on input is available at **notcurses_input(3)**.
+Information on input is available at **notcurses_input(3)**. The included tool
+**notcurses-input(1)** can be used to test input decoding.
 
 ## Ncplanes
 
@@ -111,8 +112,19 @@ previous action.
 
 # SEE ALSO
 
-**notcurses-demo(1)**, **notcurses_cell(3)**, **notcurses_channels(3)**,
+**ncurses(3NCURSES)**,
+**notcurses-demo(1)**,
+**notcurses-input(1)**,
+**notcurses_cell(3)**, **notcurses_channels(3)**,
 **notcurses_fade(3)**, **notcurses_init(3)**, **notcurses_input(3)**,
-**notcurses_lines(3)**, **notcurses_ncplane(3)**, **notcurses_output(3)**,
-**notcurses_render(3)**, **notcurses_stdplane(3)**, **notcurses_stop(3)**,
-**ncurses(3NCURSES)**, **terminfo(5)**, **ascii(7)**, **unicode(7)**
+**notcurses_lines(3)**,
+**notcurses_ncplane(3)**,
+**notcurses_ncvisual(3)**,
+**notcurses_output(3)**,
+**notcurses_palette(3)**,
+**notcurses_panelreel(3)**,
+**notcurses_render(3)**, **notcurses_resize(3)**,
+**notcurses_stats(3)**,
+**notcurses_stdplane(3)**, **notcurses_stop(3)**,
+**terminfo(5)**, **ascii(7)**, **utf-8(7)**,
+**unicode(7)**
