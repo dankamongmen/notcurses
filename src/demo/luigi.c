@@ -158,6 +158,8 @@ int luigi_demo(struct notcurses* nc){
   if(ncvisual_render(nv, 0, 0, 0, 0)){
     return -1;
   }
+  assert(ncvisual_decode(nv, &averr) == NULL);
+  assert(averr == AVERROR_EOF);
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
   // he should be walking on the platform ~4/5 of the way down
