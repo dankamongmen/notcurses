@@ -1718,7 +1718,8 @@ rgb_greyscale(int r, int g, int b){
   if(b < 0 || b > 255){
     return -1;
   }
-  float fg = (0.2126 * (r / 255.0) + 0.7152 * (g / 255.0) + 0.0722 * (b / 255.0));
+  // Use Rec. 601 scaling plus linear approximation of gamma decompression
+  float fg = (0.299 * (r / 255.0) + 0.587 * (g / 255.0) + 0.114 * (b / 255.0));
   return fg * 255;
 }
 
@@ -1729,7 +1730,6 @@ void ncplane_greyscale(ncplane *n){
       cell* c = &n->fb[nfbcellidx(n, y, x)];
       unsigned r, g, b;
       cell_fg_rgb(c, &r, &g, &b);
-      // Use Rec. 601 scaling
       int gy = rgb_greyscale(r, g, b);
       cell_set_fg_rgb(c, gy, gy, gy);
       cell_bg_rgb(c, &r, &g, &b);

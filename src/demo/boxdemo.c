@@ -18,8 +18,8 @@ int box_demo(struct notcurses* nc){
   }
   struct timespec start, now;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  int zbonus = 0;
-  int zbonusdelta = 16;
+  int zbonus = 40;
+  int zbonusdelta = 20;
   int ylen, xlen;
   ncplane_dim_yx(n, &ylen, &xlen);
   // target grid is 7x7
