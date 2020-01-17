@@ -228,22 +228,6 @@ slidepanel(struct notcurses* nc){
   return ncplane_destroy(n);
 }
 
-static int
-pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused))){
-  static struct timespec first = { .tv_sec = 0, .tv_nsec = 0, };
-  struct timespec now;
-  if(timespec_to_ns(&first) == 0){
-    clock_gettime(CLOCK_MONOTONIC, &first);
-  }else{
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    if(timespec_to_ns(&now) - timespec_to_ns(&first) >= timespec_to_ns(&demodelay) * 4 / 3){
-      return 1;
-    }
-    fprintf(stderr, "TIMES: %ju %ju\n", timespec_to_ns(&now), timespec_to_ns(&first));
-  }
-  return demo_render(nc);
-}
-
 // draws a border along the perimeter, then fills the inside with position
 // markers, each a slightly different color. the goal is to make sure we can
 // have a great many colors, that they progress reasonably through the space,

@@ -137,6 +137,21 @@ int hud_completion_notify(const demoresult* result);
 const demoresult* demoresult_lookup(int idx);
 /*----------------------------------HUD----------------------------------*/
 
+static inline int
+pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused))){
+  static struct timespec first = { .tv_sec = 0, .tv_nsec = 0, };
+  struct timespec now;
+  if(timespec_to_ns(&first) == 0){
+    clock_gettime(CLOCK_MONOTONIC, &first);
+  }else{
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    if(timespec_to_ns(&now) - timespec_to_ns(&first) >= timespec_to_ns(&demodelay) * 4 / 3){
+      return 1;
+    }
+  }
+  return demo_render(nc);
+}
+
 #ifdef __cplusplus
 }
 #endif
