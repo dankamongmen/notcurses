@@ -285,6 +285,7 @@ panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   channels_set_fg_rgb(&popts.focusedchan, 58, 150, 221);
   channels_set_bg_rgb(&popts.focusedchan, 97, 214, 214);
   channels_set_fg_rgb(&popts.tabletchan, 19, 161, 14);
+  channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
   channels_set_fg_rgb(&popts.borderchan, 136, 23, 152);
   channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
   if(channels_set_fg_alpha(&popts.bgchannel, CELL_ALPHA_TRANSPARENT)){
