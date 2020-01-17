@@ -380,6 +380,7 @@ panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
 
 int panelreel_demo(struct notcurses* nc){
   int pipes[2];
+  ncplane_greyscale(notcurses_stdplane(nc));
   // freebsd doesn't have eventfd :/
   if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
     fprintf(stderr, "Error creating pipe (%s)\n", strerror(errno));
