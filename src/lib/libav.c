@@ -300,10 +300,11 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   return ncv;
 }
 
-// alpha comes to us 0--255, but we have only 3 alpha values to map them to
+// alpha comes to us 0--255, but we have only 3 alpha values to map them to.
+// settled on experimentally.
 static inline bool
 ffmpeg_trans_p(unsigned char alpha){
-  if(alpha < 128){
+  if(alpha < 192){
     return true;
   }
   return false;
