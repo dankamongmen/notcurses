@@ -183,6 +183,6 @@ int fallin_demo(struct notcurses* nc){
   assert(ncvisual_decode(ncv, &averr) == NULL);
   assert(averr == AVERROR_EOF);
   ncvisual_destroy(ncv);
-  ncplane_pulse(notcurses_stdplane(ncv), &demodelay, pulser);
+  ncplane_pulse(notcurses_stdplane(nc), &demodelay, pulser);
   return ret;
 }

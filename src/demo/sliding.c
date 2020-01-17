@@ -159,7 +159,6 @@ int sliding_puzzle_demo(struct notcurses* nc){
   int wastey = ((maxy - 2) - (CHUNKS_VERT * chunky)) / 2;
   int wastex = ((maxx - 2) - (CHUNKS_HORZ * chunkx)) / 2;
   struct ncplane* n = notcurses_stdplane(nc);
-  ncplane_erase(n);
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){
