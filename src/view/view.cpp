@@ -1,4 +1,5 @@
 #include <array>
+#include <cstring>
 #include <cstdlib>
 #include <clocale>
 #include <sstream>
@@ -18,7 +19,10 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] files" << '\n';
+  o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
+  o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
+  o << " -d mult: positive floating point scale for frame time" << std::endl;
   exit(exitcode);
 }
 
@@ -68,13 +72,24 @@ int perframe(struct notcurses* nc, struct ncvisual* ncv, void* vframecount){
 }
 
 // can exit() directly. returns index in argv of first non-option param.
-int handle_opts(int argc, char** argv, notcurses_options* opts, float* timescale) {
+int handle_opts(int argc, char** argv, notcurses_options* opts, float* timescale,
+                ncscale_e *scalemode) {
   *timescale = 1.0;
+  *scalemode = NCSCALE_SCALE;
   int c;
-  while((c = getopt(argc, argv, "hl:d:")) != -1){
+  while((c = getopt(argc, argv, "hl:d:s:")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
+        break;
+      case 's':
+        if(strcmp(optarg, "stretch") == 0){
+          *scalemode = NCSCALE_STRETCH;
+        }else if(strcmp(optarg, "scale") == 0){
+          *scalemode = NCSCALE_SCALE;
+        }else if(strcmp(optarg, "none") == 0){
+          *scalemode = NCSCALE_NONE;
+        }
         break;
       case 'd':{
         std::stringstream ss;
@@ -118,7 +133,8 @@ int main(int argc, char** argv){
   setlocale(LC_ALL, "");
   notcurses_options opts{};
   float timescale;
-  auto nonopt = handle_opts(argc, argv, &opts, &timescale);
+  ncscale_e stretchmode;
+  auto nonopt = handle_opts(argc, argv, &opts, &timescale, &stretchmode);
   auto nc = notcurses_init(&opts, stdout);
   if(nc == nullptr){
     return EXIT_FAILURE;
@@ -135,7 +151,8 @@ int main(int argc, char** argv){
     std::array<char, 128> errbuf;
     int frames = 0;
     int averr;
-    auto ncv = ncplane_visual_open(ncp, argv[i], &averr);
+    auto ncv = ncvisual_open_plane(nc, argv[i], &averr,
+                                   0, 0, stretchmode);
     if(ncv == nullptr){
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
       notcurses_stop(nc);
@@ -161,7 +178,7 @@ int main(int argc, char** argv){
           notcurses_stop(nc);
           return EXIT_FAILURE;
         }
-        if(ncplane_resize_simple(ncp, dimy, dimx)){
+        if(ncplane_resize_simple(ncvisual_plane(ncv), dimy, dimx)){
           notcurses_stop(nc);
           return EXIT_FAILURE;
         }

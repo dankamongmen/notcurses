@@ -106,6 +106,8 @@ notcurses_ncplane - operations on notcurses planes
 
 **unsigned ncplane_styles(struct ncplane* n);**
 
+**void ncplane_greyscale(struct ncplane* n);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
