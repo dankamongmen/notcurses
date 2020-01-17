@@ -6,6 +6,11 @@
 #include <unistd.h>
 #include <limits.h>
 #include <notcurses.h>
+#ifndef DISABLE_FFMPEG
+#include <libavutil/pixdesc.h>
+#include <libavutil/avconfig.h>
+#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
+#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -5,20 +5,66 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   if(arrcount == 0 || arr == NULL){
     return -1;
   }
+  int stdy, stdx;
+  notcurses_term_dim_yx(nc, &stdy, &stdx);
   // an erase+render cycle ought not change the screen, as we duplicated it
   struct timespec iterdelay;
   // 5 * demodelay total
-  ns_to_timespec(timespec_to_ns(&demodelay) * 5 / arrcount, &iterdelay);
+  ns_to_timespec(timespec_to_ns(&demodelay) / arrcount / 2, &iterdelay);
   ncplane_erase(notcurses_stdplane(nc));
-  for(int n = 0 ; n < arrcount ; ++n){
-    ncplane_erase(arr[n]);
-    if(notcurses_render(nc)){
-      return -1;
+  // we've got a range of up to 10 total blocks falling at any given time. they
+  // accelerate as they fall. [ranges, reange) covers the active range.
+  int ranges = 0;
+  int rangee = 0;
+  const int FALLINGMAX = 10;
+  int speeds[FALLINGMAX];
+  while(ranges < arrcount){
+    // if we don't have a full set active, and there is another available, go
+    // ahead and get it kicked off
+    if(rangee - ranges + 1 < FALLINGMAX){
+      if(rangee < arrcount){
+        ncplane_greyscale(arr[rangee]);
+        speeds[rangee - ranges] = 1;
+        ++rangee;
+      }
     }
-    if(ncplane_destroy(arr[n])){
-      return -1;
-    }
-    nanosleep(&iterdelay, NULL);
+    do{
+      if(demo_render(nc)){
+        return -1;
+      }
+      // don't allow gaps in the active range. so long as felloff is true, we've only handled
+      // planes which have fallen off the screen, and can be collected.
+      bool felloff = true;
+      for(int i = 0 ; i < rangee - ranges ; ++i){
+        struct ncplane* ncp = arr[ranges + i];
+        int x, y;
+        ncplane_yx(ncp, &y, &x);
+        if(felloff){
+          if(y + speeds[i] >= stdy){
+            ncplane_destroy(ncp);
+            arr[ranges + i] = NULL;
+            if(ranges + i + 1 == arrcount){
+              ranges += i + 1;
+              break;
+            }
+          }else{ // transition point
+            if(i){
+              if(rangee - ranges - i){
+                memmove(speeds, speeds + i, (rangee - ranges - i) * sizeof(*speeds));
+              }
+              ranges += i;
+              i = 0;
+            }
+            felloff = false;
+          }
+        }
+        if(!felloff){
+          ncplane_move_yx(ncp, y + speeds[i], x);
+          ++speeds[i];
+        }
+        nanosleep(&iterdelay, NULL);
+      }
+    }while(rangee - ranges + 1 >= FALLINGMAX);
   }
   free(arr);
   return 0;
@@ -85,7 +131,11 @@ int fallin_demo(struct notcurses* nc){
       // copy the old content into this new ncplane
       for(int usey = y ; usey < y + newy ; ++usey){
         for(int usex = x ; usex < x + newx ; ++usex){
-          assert(!usemap[usey * dimx + usex]);
+          if(usemap[usey * dimx + usex]){
+            newx = usex - x;
+            ncplane_resize_simple(n, newy, newx);
+            continue;
+          }
           cell c = CELL_TRIVIAL_INITIALIZER;
           if(ncplane_at_yx(notcurses_stdplane(nc), usey, usex, &c) < 0){
             return -1;
