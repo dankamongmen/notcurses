@@ -2481,6 +2481,9 @@ up someday **FIXME**.
        `notcurses_getc_blocking()`. As a result, the `poll()` is not
        interrupted. Call `pthread_sigmask()` before spawning any threads.
 
+* *Q:* One of the demos claimed to spend more than 100% of its runtime rendering. Do you know how to count?
+* *A:* Runtime is wall clock time. A multithreaded demo can spend more than the wall-clock time rendering if the threads contend.
+
 ## Supplemental material
 
 ### Useful links
