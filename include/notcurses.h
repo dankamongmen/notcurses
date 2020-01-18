@@ -1978,7 +1978,7 @@ typedef struct palette256 {
 
 // Create a new palette store. It will be initialized with notcurses's best
 // knowledge of the currently configured palette.
-API palette256* palette256_new(void);
+API palette256* palette256_new(struct notcurses* nc);
 
 // Attempt to configure the terminal with the provided palette 'p'. Does not
 // transfer ownership of 'p'; palette256_free() can still be called.

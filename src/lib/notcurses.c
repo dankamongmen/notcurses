@@ -1680,11 +1680,13 @@ bool notcurses_canfade(const notcurses* nc){
   return nc->CCCflag || nc->RGBflag;
 }
 
-palette256* palette256_new(void){
+palette256* palette256_new(notcurses* nc){
   palette256* p = malloc(sizeof(*p));
+  pthread_mutex_lock(&nc->lock);
   if(p){
-    memset(p, 0, sizeof(*p));
+    memcpy(p, &nc->palette, sizeof(*p));
   }
+  pthread_mutex_unlock(&nc->lock);
   return p;
 }
 

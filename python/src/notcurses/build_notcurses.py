@@ -225,7 +225,7 @@ typedef struct palette256 {
   // We store the RGB values as a regular ol' channel
   uint32_t chans[256];
 } palette256;
-palette256* palette256_new(void);
+palette256* palette256_new(struct notcurses* nc);
 int palette256_use(struct notcurses* nc, const palette256* p);
 int palette256_set_rgb(palette256* p, int idx, int r, int g, int b);
 int palette256_set(palette256* p, int idx, unsigned rgb);

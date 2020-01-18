@@ -18,13 +18,13 @@ TEST_CASE("Palette256") {
   REQUIRE(nullptr != n_);
 
   SUBCASE("AllocAndFree") {
-    palette256* p = palette256_new();
+    palette256* p = palette256_new(nc_);
     REQUIRE(nullptr != p);
     palette256_free(p);
   }
 
   SUBCASE("SetIndexZero") {
-    palette256* p = palette256_new();
+    palette256* p = palette256_new(nc_);
     REQUIRE(nullptr != p);
     palette256_set_rgb(p, 0, 0x80, 0x90, 0xa0);
     unsigned r, g, b;
@@ -36,7 +36,7 @@ TEST_CASE("Palette256") {
   }
 
   SUBCASE("SetIndex255") {
-    palette256* p = palette256_new();
+    palette256* p = palette256_new(nc_);
     REQUIRE(nullptr != p);
     palette256_set_rgb(p, 255, 0xa0, 0x70, 0x50);
     unsigned r, g, b;
