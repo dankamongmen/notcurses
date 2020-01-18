@@ -1693,7 +1693,7 @@ int palette256_use(notcurses* nc, const palette256* p){
   for(size_t z = 0 ; z < sizeof(p->chans) / sizeof(*p->chans) ; ++z){
     if(nc->palette.chans[z] != p->chans[z]){
       nc->palette.chans[z] = p->chans[z];
-      // FIXME write it to terminal using initc, need another damage map
+      nc->palette_damage[z] = true;
     }
   }
   ret = 0;

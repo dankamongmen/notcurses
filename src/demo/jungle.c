@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <assert.h>
 
 // unpacked data from original LBM file
 const unsigned char palette[] = 
@@ -26492,7 +26491,10 @@ const size_t ORIGWIDTH = 640;
 // this last byte ought indeed be a zero (for checking), but zeros may occur
 // earlier (unlike a proper c string).
 static palette256*
-load_palette(struct notcurses* nc, const unsigned char* pal){
+load_palette(struct notcurses* nc, const unsigned char* pal, size_t size){
+  if(size != NCPALETTESIZE * 3 + 1){
+    return NULL;
+  }
   palette256* p256 = palette256_new();
   for(int idx = 0 ; idx < NCPALETTESIZE ; ++idx){
     if(palette256_set_rgb(p256, idx, pal[idx * 3], pal[idx * 3 + 1], pal[idx * 3 + 2])){
@@ -26514,8 +26516,7 @@ load_palette(struct notcurses* nc, const unsigned char* pal){
 int jungle_demo(struct notcurses* nc){
   size_t have = 0, out = 0;
   palette256* pal;
-  assert(769 == sizeof(palette));
-  if((pal = load_palette(nc, palette)) == NULL){
+  if((pal = load_palette(nc, palette, sizeof(palette))) == NULL){
     return -1;
   }
   // decode LBM data
@@ -26568,13 +26569,13 @@ int jungle_demo(struct notcurses* nc){
   h1.res = 0;
   h1.colors = 256;
   h1.imcolors = 0;
-  assert(fwrite(&h1, sizeof(h1), 1, stdout) == 1);
+  fwrite(&h1, sizeof(h1), 1, stdout);
   for(size_t i = 0 ; i < sizeof(palette) ; i += 3){
-    assert(fwrite(palette + i + 2, 1, 1, stdout) == 1);
-    assert(fwrite(palette + i + 1, 1, 1, stdout) == 1);
-    assert(fwrite(palette + i, 1, 1, stdout) == 1);
+    fwrite(palette + i + 2, 1, 1, stdout);
+    fwrite(palette + i + 1, 1, 1, stdout);
+    fwrite(palette + i, 1, 1, stdout);
     unsigned char erp = 0;
-    assert(fwrite(&erp, 1, 1, stdout) == 1);
+    fwrite(&erp, 1, 1, stdout);
   }
   //fwrite(buf, 480 * 640, 1, stdout);
   for(int y = 0 ; y < 480 ; ++y){

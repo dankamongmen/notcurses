@@ -185,7 +185,7 @@ typedef struct notcurses {
   unsigned inputbuf_occupied;
   unsigned inputbuf_valid_starts;
   unsigned inputbuf_write_at;
-  palette256 palette; // 256-indexed palette can be used instead of RGB
+  palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
 } notcurses;
