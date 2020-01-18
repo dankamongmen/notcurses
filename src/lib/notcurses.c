@@ -583,6 +583,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
   term_verify_seq(&nc->sgr, "sgr");
   term_verify_seq(&nc->sgr0, "sgr0");
   term_verify_seq(&nc->op, "op");
+  term_verify_seq(&nc->oc, "oc");
   term_verify_seq(&nc->clearscr, "clear");
   term_verify_seq(&nc->cleareol, "el");
   term_verify_seq(&nc->clearbol, "el1");
@@ -889,6 +890,9 @@ int notcurses_stop(notcurses* nc){
       ret = -1;
     }
     if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
+      ret = -1;
+    }
+    if(nc->oc && term_emit("oc", nc->oc, nc->ttyfp, true)){
       ret = -1;
     }
     ret |= notcurses_mouse_disable(nc);

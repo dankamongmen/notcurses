@@ -167,6 +167,7 @@ typedef struct notcurses {
   char* rmkx;     // leave keypad transmit mode (keypad_local)
   char* getm;     // get mouse events
   char* initc;    // set a palette entry's RGB value
+  char* oc;       // restore original colors
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
 
