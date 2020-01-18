@@ -21,7 +21,7 @@ static demoresult* results;
 static char datadir[PATH_MAX];
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
-static const char DEFAULT_DEMO[] = "ixetcgpwubvlfso";
+static const char DEFAULT_DEMO[] = "ixetcgpwubvlfsjo";
 
 void interrupt_demo(void){
   atomic_store(&interrupted, true);
@@ -111,7 +111,7 @@ static struct {
   { "grid", grid_demo, },
   { NULL, NULL, },
   { "intro", intro, },
-  { NULL, NULL, },
+  { "jungle", jungle_demo, },
   { NULL, NULL, },
   { "luigi", luigi_demo, },
   { NULL, NULL, },
@@ -330,8 +330,8 @@ int main(int argc, char** argv){
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   printf("\n");
-  printf("      runtime│frames│output(B)│rendering│%%r│%7s║\n", "FPS");
-  printf("══╤═╤════════╪══════╪═════════╪═════════╪══╪═══════╣\n");
+  printf("      runtime│frames│output(B)│rendering│ %%r│%7s║\n", "FPS");
+  printf("══╤═╤════════╪══════╪═════════╪═════════╪═══╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
@@ -342,7 +342,7 @@ int main(int argc, char** argv){
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
-    printf("%2zu│%c│%*ss│%6lu│%*s│ %*ss│%2ld│%7.1f║%s\n", i,
+    printf("%2zu│%c│%*ss│%6lu│%*s│ %*ss│%3ld│%7.1f║%s\n", i,
            results[i].selector,
            PREFIXSTRLEN, timebuf,
            results[i].stats.renders,
@@ -353,7 +353,7 @@ int main(int argc, char** argv){
            GIG / avg,
            results[i].result < 0 ? "***FAILED" :
             results[i].result > 0 ? "***ABORTED" :
-             results[i].stats.renders ? ""  : "***NOT RUN");
+             (results[i].stats.renders || !failed) ? ""  : "***NOT RUN");
     if(results[i].result < 0){
       failed = true;
     }
@@ -365,8 +365,8 @@ int main(int argc, char** argv){
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  printf("══╧═╧════════╪══════╪═════════╪═════════╪══╪═══════╝\n");
-  printf("     %*ss│%6lu│%*s│ %*ss│%2ld│\n", PREFIXSTRLEN, timebuf,
+  printf("══╧═╧════════╪══════╪═════════╪═════════╪═══╪═══════╝\n");
+  printf("     %*ss│%6lu│%*s│ %*ss│%3ld│\n", PREFIXSTRLEN, timebuf,
          totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf,
          nsdelta ? totalrenderns * 100 / nsdelta : 0);
   if(failed){
