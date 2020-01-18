@@ -21,19 +21,20 @@ a way that is going to prevent notcurses from working.
 The demonstrations include:
 
 * (i)ntro—a setting of tone
-* (x)ray—stimulate a logo with energy
-* (e)agle—they took some time off my life, back in the day
-* (t)rans—an exploration of various transparencies
-* (c)hunli—the strongest woman in the world
-* (g)rid—a gradient of color lain atop a great grid
-* (f)allin—the screen falls apart under heavy blows
-* (s)liders—a missing-piece puzzle made up of colorful blocks
-* (w)itherworm—a great Nothing slowly robs the world of color
-* (u)niblocks—a series of blocks detailing Unicode pages
 * (b)oxes—pulsating boxes with a transparent center
-* (v)iew—images and a video are rendered as text
+* (c)hunli—the strongest woman in the world
+* (e)agle—they took some time off my life, back in the day
+* (f)allin—the screen falls apart under heavy blows
+* (g)rid—a gradient of color lain atop a great grid
+* (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi-a dashing Apennine plumber in a world of fire
 * (p)anelreels—demonstration of the panelreel high-level widget
+* (s)liders—a missing-piece puzzle made up of colorful blocks
+* (t)rans—an exploration of various transparencies
+* (u)niblocks—a series of blocks detailing Unicode pages
+* (v)iew—images and a video are rendered as text
+* (w)itherworm—a great Nothing slowly robs the world of color
+* (x)ray—stimulate a logo with energy
 * (o)utro—a message of hope from the library's author
 
 At any time, press 'q' to quit. The demo is best run in at least a 80x45 terminal.
@@ -56,7 +57,7 @@ At any time, press 'q' to quit. The demo is best run in at least a 80x45 termina
 
 **-V**: Print the program name and version, and exit with success.
 
-demospec: Select which demos to run, and what order to run them in. The default is **ixetcgpwubvlfso**. See above for a list of demos.
+demospec: Select which demos to run, and what order to run them in. The default is **ixetcgpwubvlfsjo**. See above for a list of demos.
 
 # NOTES
 Proper display requires:
@@ -69,6 +70,14 @@ Proper display requires:
 
 If notcurses is built without FFmpeg, the following demos will fail immedaitely when specified: **xray**,
 **eagle**, **chunli**, **fallin**, **view**, **outro**.
+
+# AUTHORS
+
+* All code and design copyright Nick Black.
+* Images from Street Fighter II and Mega Man 2 copyright Capcom of America.
+* Images from Super Mario Bros. copyright Nintendo of America.
+* Images from Ninja Gaiden copyright Koei Tecmo America.
+* "Jungle with Rain" and "Ruins with Rain" copyright Mark Ferrari.
 
 # SEE ALSO
 notcurses(3notcurses), ncurses(3ncurses), terminfo(5)
