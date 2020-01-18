@@ -14,9 +14,10 @@
 
             **THIS DOCUMENT MUST BE COPIED IN TRIPLICATE**
 
-* One copy must be posted in a place visible to all workers
-* One copy must be locked in a safe of at least TRTL30x6/European Grade 5
-    safe or strongroom at the EN 1143-1 level. No one may see this copy.
-* One copy must be sent to that place of which we must not speak.
+* One copy shall be posted in a place visible to all workers.
+* One copy shall be locked in a safe of at least TRTL30x6/European Grade 5
+    strength, or a strongroom at the EN 1143-1 level.
+    No one may see this copy.
+* One copy shall be sent to that place of which we must not speak.
 
           **THE HOLDER OF THIS DOCUMENT IS A LICENSED POPE**
