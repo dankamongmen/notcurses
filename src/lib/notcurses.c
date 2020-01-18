@@ -549,7 +549,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
     nc->RGBflag = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
   }
   term_verify_seq(&nc->initc, "initc");
-  if(nc->initc == NULL){
+  if(nc->initc){
     nc->CCCflag = tigetflag("ccc") == 1;
   }else{
     nc->CCCflag = false;
@@ -1696,6 +1696,7 @@ int palette256_use(notcurses* nc, const palette256* p){
       // FIXME write it to terminal using initc, need another damage map
     }
   }
+  ret = 0;
   pthread_mutex_unlock(&nc->lock);
   return ret;
 }
