@@ -173,10 +173,10 @@ void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 int ncplane_hline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);
 int ncplane_vline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);
 int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur, const cell* ll, const cell* lr, const cell* hline, const cell* vline, int ystop, int xstop, unsigned ctlword);
-typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp);
-int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader);
-int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader);
-int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader);
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, void* curry);
+int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
 int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
 int ncplane_putwc(struct ncplane* n, wchar_t w);
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
@@ -226,10 +226,10 @@ typedef struct palette256 {
   uint32_t chans[256];
 } palette256;
 palette256* palette256_new(void);
-int palette256_use(const palette256* p);
+int palette256_use(struct notcurses* nc, const palette256* p);
 int palette256_set_rgb(palette256* p, int idx, int r, int g, int b);
 int palette256_set(palette256* p, int idx, unsigned rgb);
-int palette256_get(const palette256* p, int idx, int* r, int* g, int* b);
+int palette256_get(const palette256* p, int idx, unsigned* r, unsigned* g, unsigned* b);
 void palette256_free(palette256* p);
 """)
 
