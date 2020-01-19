@@ -26569,7 +26569,7 @@ show_copyright(struct notcurses* nc){
     if(ncplane_set_fg(n, 0xffffff) < 0){
       return NULL;
     }
-    if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "Image copyright Mark Ferrari. Used with permission.") < 0){
+    if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "Image copyright Mark Ferrari/Living Worlds. Used with permission.") < 0){
       return NULL;
     }
   }
