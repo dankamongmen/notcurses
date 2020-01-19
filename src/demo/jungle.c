@@ -26559,8 +26559,26 @@ cycle_palettes(struct notcurses* nc, palette256* p){
   return 0;
 }
 
+static struct ncplane*
+show_copyright(struct notcurses* nc){
+  int dimx, dimy;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), 1, dimx,
+                                      dimy - 1, NCALIGN_RIGHT, NULL);
+  if(n){
+    if(ncplane_set_fg(n, 0xffffff) < 0){
+      return NULL;
+    }
+    if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "Image copyright Mark Ferrari. Used with permission.") < 0){
+      return NULL;
+    }
+  }
+  return n;
+}
+
 int jungle_demo(struct notcurses* nc){
   size_t have = 0, out = 0;
+  struct ncplane* copyplane;
   palette256* pal;
   if((pal = load_palette(nc, palette, sizeof(palette))) == NULL){
     return -1;
@@ -26597,6 +26615,11 @@ int jungle_demo(struct notcurses* nc){
   const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
   const int yoff = (dimy - ORIGHEIGHT / yiter) / 4;
   ncplane_erase(n);
+  if((copyplane = show_copyright(nc)) == NULL){
+    palette256_free(pal);
+    free(buf);
+    return -1;
+  }
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, "\xe2\x96\x80"); // upper half block
   for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
@@ -26640,5 +26663,6 @@ int jungle_demo(struct notcurses* nc){
     cycle_palettes(nc, pal);
   }while(nsrunning > 0 && (uint64_t)nsrunning < 5 * timespec_to_ns(&demodelay));
   palette256_free(pal);
+  ncplane_destroy(copyplane);
   return 0;
 }

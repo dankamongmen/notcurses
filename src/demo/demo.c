@@ -21,7 +21,7 @@ static demoresult* results;
 static char datadir[PATH_MAX];
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
-static const char DEFAULT_DEMO[] = "ixetcgpwubvlfsjo";
+static const char DEFAULT_DEMO[] = "ixetbcgpwuvlfsjo";
 
 void interrupt_demo(void){
   atomic_store(&interrupted, true);
