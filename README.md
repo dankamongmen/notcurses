@@ -2524,6 +2524,8 @@ up someday **FIXME**.
 
 ### History
 
+* 2019-01-19: notcurses [1.1.0 "all the hustlas they love it just to see one of us make it"](https://github.com/dankamongmen/notcurses/releases/tag/v1.1.0).
+    Much better video support, pulsing planes, palette256.
 * 2019-01-04: notcurses [1.0.0 "track team, crack fiend, dying to geek"](https://github.com/dankamongmen/notcurses/releases/tag/v1.0.0)
     is released, six days ahead of schedule. 147 issues closed. 702 commits.
 * 2019-12-18: notcurses [0.9.0 "You dig in! You dig out! You get out!"](https://github.com/dankamongmen/notcurses/releases/tag/v0.9.0),
