@@ -1159,6 +1159,9 @@ int ncplane_set_bg(struct ncplane* n, unsigned channel);
 // Use the default color for the foreground/background.
 void ncplane_set_fg_default(struct ncplane* n);
 void ncplane_set_bg_default(struct ncplane* n);
+
+int ncplane_set_fg_palindex(struct ncplane* n, int idx);
+int ncplane_set_bg_palindex(struct ncplane* n, int idx);
 ```
 
 #### Wide chars

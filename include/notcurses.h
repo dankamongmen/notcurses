@@ -1422,6 +1422,11 @@ API int ncplane_set_bg(struct ncplane* n, unsigned channel);
 API void ncplane_set_fg_default(struct ncplane* n);
 API void ncplane_set_bg_default(struct ncplane* n);
 
+// Set the ncplane's foreground palette index, set the foreground palette index
+// bit, set it foreground-opaque, and clear the foreground default color bit.
+API int ncplane_set_fg_palindex(struct ncplane* n, int idx);
+API int ncplane_set_bg_palindex(struct ncplane* n, int idx);
+
 // Set the alpha parameters for ncplane 'n'.
 API int ncplane_set_fg_alpha(struct ncplane* n, int alpha);
 API int ncplane_set_bg_alpha(struct ncplane* n, int alpha);
