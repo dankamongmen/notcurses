@@ -52,7 +52,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
 int chunli_demo(struct notcurses* nc){
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
-  int averr, dimy, dimx;
+  int averr;
   cell b = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
@@ -66,38 +66,20 @@ int chunli_demo(struct notcurses* nc){
       break;
     }
     free(path);
-    if(ncvisual_stream(nc, ncv, &averr, 1, ncvisual_simple_streamer, NULL) < 0){
-      ncvisual_destroy(ncv);
+    if(ncvisual_decode(ncv, &averr) == NULL){
+      return -1;
+    }
+    struct ncplane* ncp = ncvisual_plane(ncv);
+    ncplane_set_base(ncp, &b);
+    if(ncvisual_render(ncv, 0, 0, 0, 0)){
+      return -1;
+    }
+    if(demo_render(nc)){
       return -1;
     }
     demo_nanosleep(nc, &iterdelay);
     ncvisual_destroy(ncv);
   }
   chunli_draw(nc, "bmp", CHUNS, &b);
-  char* victory = find_data("chunlivictory.png");
-  struct ncvisual* ncv = ncvisual_open_plane(nc, victory, &averr, 0, 0, NCSCALE_NONE);
-  if(ncv == NULL){
-    return -1;
-  }
-  if(ncvisual_decode(ncv, &averr) == NULL){
-    return -1;
-  }
-  struct ncplane* ncp = ncvisual_plane(ncv);
-  ncplane_set_base(ncp, &b);
-  const int offsets[] = {
-    0, 50, 100, 154, 208, 260, 312, 368, 420, 479, 538, 588, 638, 688, 736, 786, 836, 888, 942
-  };
-  for(size_t i = 0u ; i < sizeof(offsets) / sizeof(*offsets) - 1 ; ++i){
-    notcurses_resize(nc, &dimy, &dimx);
-    ncplane_erase(ncvisual_plane(ncv));
-    if(ncvisual_render(ncv, 0, offsets[i], 0, offsets[i + 1] - offsets[i] + 1)){
-      return -1;
-    }
-    if(demo_render(nc)){
-      return -1;
-    }
-    nanosleep(&iterdelay, NULL);
-  }
-  ncvisual_destroy(ncv);
   return 0;
 }
