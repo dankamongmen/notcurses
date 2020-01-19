@@ -52,10 +52,12 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
 int chunli_demo(struct notcurses* nc){
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
-  int averr;
+  int averr, dimx, dimy;
+  notcurses_resize(nc, &dimy, &dimx);
   cell b = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  chunli_draw(nc, "bmp", CHUNS, &b);
   char file[PATH_MAX];
   for(int i = 1 ; i < 100 ; ++i){
     snprintf(file, sizeof(file), "chunli%02d.png", i);
@@ -74,12 +76,16 @@ int chunli_demo(struct notcurses* nc){
     if(ncvisual_render(ncv, 0, 0, 0, 0)){
       return -1;
     }
+    int thisx, thisy;
+    ncplane_dim_yx(ncp, &thisy, &thisx);
+    if(ncplane_move_yx(ncp, (dimy - thisy) / 2, (dimx - thisx) / 2)){
+      return -1;
+    }
     if(demo_render(nc)){
       return -1;
     }
     demo_nanosleep(nc, &iterdelay);
     ncvisual_destroy(ncv);
   }
-  chunli_draw(nc, "bmp", CHUNS, &b);
   return 0;
 }

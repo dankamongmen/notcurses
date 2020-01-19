@@ -57,7 +57,7 @@ At any time, press 'q' to quit. The demo is best run in at least a 80x45 termina
 
 **-V**: Print the program name and version, and exit with success.
 
-demospec: Select which demos to run, and what order to run them in. The default is **ixetcgpwubvlfsjo**. See above for a list of demos.
+demospec: Select which demos to run, and what order to run them in. The default is **ixetbcgpwuvlfsjo**. See above for a list of demos.
 
 # NOTES
 Proper display requires:
