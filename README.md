@@ -336,7 +336,6 @@ typedef enum {
 // Return the column at which 'c' cols ought start in order to be aligned
 // according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
 // Undefined behavior on negative 'c'.
-// 'align', negative 'c').
 static inline int
 ncplane_align(struct ncplane* n, ncalign_e align, int c){
   if(align == NCALIGN_LEFT){
