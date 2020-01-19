@@ -26537,10 +26537,14 @@ cycle_palettes(struct notcurses* nc, palette256* p){
   for(s = sets ; s->l ; ++s){
     unsigned tr, tg, tb;
     // we're cycling left, so first grab the first rgbs
-    palette256_get_rgb(p, s->l, &tr, &tg, &tb);
+    if(palette256_get_rgb(p, s->l, &tr, &tg, &tb) < 0){
+      return -1;
+    }
     for(int i = s->u ; i >= s->l ; --i){
       unsigned r, g, b;
-      palette256_get_rgb(p, i, &r, &g, &b);
+      if(palette256_get_rgb(p, i, &r, &g, &b) < 0){
+        return -1;
+      }
       if(palette256_set_rgb(p, i, tr, tg, tb)){
         return -1;
       }
@@ -26590,11 +26594,13 @@ int jungle_demo(struct notcurses* nc){
   dimy *= 2; // use half blocks
   const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
   const int yiter = ORIGHEIGHT / dimy + !!(ORIGHEIGHT % dimy);
+  const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
+  const int yoff = (dimy - ORIGHEIGHT / yiter) / 4;
   ncplane_erase(n);
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, "\xe2\x96\x80"); // upper half block
   for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
-    if(ncplane_cursor_move_yx(n, y / (yiter * 2), 0)){
+    if(ncplane_cursor_move_yx(n, yoff + y / (yiter * 2), xoff)){
       return -1;
     }
     for(size_t x = 0 ; x < ORIGWIDTH ; x += xiter){
@@ -26620,7 +26626,7 @@ int jungle_demo(struct notcurses* nc){
   int64_t iterns = GIG / 140;
   int64_t nsrunning;
   do{
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       return -1;
     }
     ++iter;
