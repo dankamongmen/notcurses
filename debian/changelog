@@ -1,8 +1,9 @@
-notcurses (1.1.0-1) UNRELEASED; urgency=medium
+notcurses (1.1.0-1) unstable; urgency=medium
 
   * Add python-cffi build-dep
+  * New upstream version
 
- -- Nick Black <dankamongmen@gmail.com>  Wed, 15 Jan 2020 00:35:19 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Sun, 19 Jan 2020 10:08:22 -0500
 
 notcurses (1.0.2-1) unstable; urgency=medium
 
