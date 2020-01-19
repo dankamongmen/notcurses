@@ -24,7 +24,7 @@ The demonstrations include:
 * (b)oxes—pulsating boxes with a transparent center
 * (c)hunli—the strongest woman in the world
 * (e)agle—they took some time off my life, back in the day
-* (f)allin—the screen falls apart under heavy blows
+* (f)allin'—the screen falls apart under heavy blows
 * (g)rid—a gradient of color lain atop a great grid
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi-a dashing Apennine plumber in a world of fire
@@ -69,7 +69,7 @@ Proper display requires:
 # BUGS
 
 If notcurses is built without FFmpeg, the following demos will fail immedaitely when specified: **xray**,
-**eagle**, **chunli**, **fallin**, **view**, **outro**.
+**eagle**, **chunli**, **fallin'**, **view**, **outro**.
 
 # AUTHORS
 

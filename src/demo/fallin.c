@@ -8,7 +8,7 @@ static int
 patentpulser(struct notcurses* nc, struct ncplane* ncp, void* curry){
   (void)ncp;
   (void)curry;
-  if(notcurses_render(nc)){
+  if(demo_render(nc)){
     return -1;
   }
   bool donecheck;

@@ -13,7 +13,7 @@
 static int
 fade_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subdelay){
   //int ret = ncplane_fadein(nn, subdelay, demo_fader);
-  int ret = notcurses_render(nc);
+  int ret = demo_render(nc);
   nanosleep(subdelay, NULL);
   ncplane_destroy(nn);
   return ret;

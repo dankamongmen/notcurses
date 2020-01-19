@@ -107,7 +107,7 @@ static struct {
   { "chunli", chunli_demo, },
   { NULL, NULL, },
   { "eagle", eagle_demo, },
-  { "fallin", fallin_demo, },
+  { "fallin'", fallin_demo, },
   { "grid", grid_demo, },
   { NULL, NULL, },
   { "intro", intro, },
