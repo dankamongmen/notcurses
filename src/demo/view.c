@@ -111,8 +111,8 @@ int view_demo(struct notcurses* nc){
     return -1;
   }
   demo_render(nc);
+  demo_nanosleep(nc, &demodelay);
   ncplane_move_bottom(dsplane);
-  nanosleep(&demodelay, NULL);
   if(ncvisual_render(ncv, 0, 0, 0, 0)){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
@@ -123,14 +123,14 @@ int view_demo(struct notcurses* nc){
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(ncvisual_plane(ncv2), &b);
+  demo_render(nc);
+  demo_nanosleep(nc, &demodelay);
   ncvisual_destroy(ncv);
   ncvisual_destroy(ncv2);
-  demo_render(nc);
-  nanosleep(&demodelay, NULL);
   ncplane_move_top(dsplane);
   demo_render(nc);
+  demo_nanosleep(nc, &demodelay);
   ncplane_destroy(dsplane);
-  nanosleep(&demodelay, NULL);
   struct ncplane* ncpl = legend(nc, dimy, dimx);
   if(ncpl == NULL){
     return -1;

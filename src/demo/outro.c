@@ -49,7 +49,7 @@ fadethread(void* vnc){
   ncplane_erase(ncp);
   fade.tv_sec = 2;
   fade.tv_nsec = 0;
-  nanosleep(&fade, NULL);
+  demo_nanosleep(nc, &fade);
   ncplane_destroy(apiap);
   return vnc;
 }

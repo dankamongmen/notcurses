@@ -124,6 +124,10 @@ int hud_schedule(const char* demoname);
 // demo_render(), which will ensure the HUD stays on the top of the z-stack.
 int demo_render(struct notcurses* nc);
 
+// if you won't be doing things, and it's a long sleep, consider using
+// demo_nanosleep(). it updates the HUD, which looks better to the user.
+int demo_nanosleep(struct notcurses* nc, const struct timespec *ts);
+
 int demo_fader(struct notcurses* nc, struct ncplane* ncp, void* curry);
 
 // grab the hud with the mouse
