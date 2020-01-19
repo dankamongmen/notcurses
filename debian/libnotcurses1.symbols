@@ -17,9 +17,11 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_cursor_yx@Base 1.0.0
  ncplane_destroy@Base 1.0.0
  ncplane_dim_yx@Base 1.0.0
+ ncplane_dup@Base 1.1.0
  ncplane_erase@Base 1.0.0
  ncplane_fadein@Base 1.0.0
  ncplane_fadeout@Base 1.0.0
+ ncplane_greyscale@Base 1.1.0
  ncplane_hline_interp@Base 1.0.0
  ncplane_move_above_unsafe@Base 1.0.0
  ncplane_move_below_unsafe@Base 1.0.0
@@ -27,6 +29,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_move_top@Base 1.0.0
  ncplane_move_yx@Base 1.0.0
  ncplane_new@Base 1.0.0
+ ncplane_pulse@Base 1.1.0
  ncplane_putc_yx@Base 1.0.1
  ncplane_putegc_yx@Base 1.0.1
  ncplane_putsimple_yx@Base 1.0.1
@@ -37,11 +40,15 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_set_bg@Base 1.0.0
  ncplane_set_bg_alpha@Base 1.0.0
  ncplane_set_bg_default@Base 1.0.0
+ ncplane_set_bg_palindex@Base 1.1.0
  ncplane_set_bg_rgb@Base 1.0.0
+ ncplane_set_bg_rgb_clipped@Base 1.1.0
  ncplane_set_fg@Base 1.0.0
  ncplane_set_fg_alpha@Base 1.0.0
  ncplane_set_fg_default@Base 1.0.0
+ ncplane_set_fg_palindex@Base 1.1.0
  ncplane_set_fg_rgb@Base 1.0.0
+ ncplane_set_fg_rgb_clipped@Base 1.1.0
  ncplane_set_userptr@Base 1.0.0
  ncplane_styles@Base 1.0.0
  ncplane_styles_off@Base 1.0.0
@@ -61,6 +68,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncvisual_render@Base 1.0.0
  ncvisual_stream@Base 1.0.0
  notcurses_at_yx@Base 1.0.0
+ notcurses_canchangecolor@Base 1.1.0
  notcurses_canfade@Base 1.0.0
  notcurses_canopen@Base 1.0.0
  notcurses_cursor_disable@Base 1.0.0
@@ -81,6 +89,9 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  notcurses_supported_styles@Base 1.0.0
  notcurses_top@Base 1.0.0
  notcurses_version@Base 1.0.0
+ palette256_free@Base 1.1.0
+ palette256_new@Base 1.1.0
+ palette256_use@Base 1.1.0
  panelreel_add@Base 1.0.0
  panelreel_create@Base 1.0.0
  panelreel_del@Base 1.0.0
