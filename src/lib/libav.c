@@ -352,8 +352,8 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
       int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
       const unsigned char* rgbbase_up = data + (linesize * visy) + (visx * bpp / CHAR_BIT);
       const unsigned char* rgbbase_down = data + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
-/*fprintf(stderr, "[%04d/%04d] %p bpp: %d lsize: %d %02x %02x %02x %02x\n",
-        y, x, rgbbase, bpp, linesize, rgbbase[0], rgbbase[1], rgbbase[2], rgbbase[3]);*/
+/*fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n",
+        y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);*/
       cell* c = ncplane_cell_ref_yx(ncv->ncp, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway

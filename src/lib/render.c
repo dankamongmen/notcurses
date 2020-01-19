@@ -271,8 +271,11 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
           cell_set_wide(targc);
         }
       }
-      // FIXME blend in palette-indexed colors?
-      if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+      if(cell_fg_palindex_p(vis)){
+        if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+          cell_set_fg_palindex(targc, cell_fg_palindex(vis));
+        }
+      }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
         cell_blend_fchannel(targc, cell_fchannel(vis), crender->fgblends);
         ++crender->fgblends;
       }

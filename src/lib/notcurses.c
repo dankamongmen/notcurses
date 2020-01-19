@@ -1013,6 +1013,30 @@ int ncplane_set_bg_alpha(ncplane *n, int alpha){
   return channels_set_bg_alpha(&n->channels, alpha);
 }
 
+int ncplane_set_fg_palindex(ncplane* n, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  n->channels |= CELL_FGDEFAULT_MASK;
+  n->channels |= CELL_FG_PALETTE;
+  n->channels &= ~(CELL_ALPHA_MASK << 32u);
+  n->attrword &= 0xffff00ff;
+  n->attrword |= (idx << 8u);
+  return 0;
+}
+
+int ncplane_set_bg_palindex(ncplane* n, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  n->channels |= CELL_BGDEFAULT_MASK;
+  n->channels |= CELL_BG_PALETTE;
+  n->channels &= ~CELL_ALPHA_MASK;
+  n->attrword &= 0xffffff00;
+  n->attrword |= idx;
+  return 0;
+}
+
 int ncplane_set_base(ncplane* ncp, const cell* c){
   int ret = cell_duplicate(ncp, &ncp->basecell, c);
   if(ret < 0){

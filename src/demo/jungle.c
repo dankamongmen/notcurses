@@ -26519,9 +26519,10 @@ int jungle_demo(struct notcurses* nc){
   if((pal = load_palette(nc, palette, sizeof(palette))) == NULL){
     return -1;
   }
-  // decode LBM data
+  // decode LBM data to flat plane, 1B palette index per pixel
   unsigned char* buf = malloc(ORIGWIDTH * ORIGHEIGHT);
-  while(out < ORIGWIDTH * ORIGHEIGHT){
+  while(out < ORIGWIDTH * ORIGHEIGHT && have < sizeof(junglerain)){
+    // compression algorithm courtesy Commodore Amiga 1985 lol
     if(junglerain[have] > 128){
       for(int i = 0 ; i < 257 - junglerain[have] ; ++i){
         buf[out] = junglerain[have + 1];
@@ -26538,51 +26539,36 @@ int jungle_demo(struct notcurses* nc){
       have += junglerain[have] + 2;
     }
   }
-  // write bitmap
-  struct hdr1 {
-    uint16_t magic;
-    uint32_t size;
-    uint32_t reserved;
-    uint32_t offset;
-    uint32_t dumbsize;
-    uint32_t width;
-    uint32_t height;
-    uint16_t planes; 
-    uint16_t bpp;
-    uint32_t comp;
-    uint32_t padsize;
-    uint64_t res;
-    uint32_t colors;
-    uint32_t imcolors;
-  } __attribute__ ((packed)) h1;
-  h1.magic = 0x4d42;
-  h1.size = ORIGHEIGHT * ORIGWIDTH + 1024 + 54;
-  h1.reserved = 0;
-  h1.offset = 54 + 1024;
-  h1.dumbsize = 40;
-  h1.width = ORIGWIDTH;
-  h1.height = ORIGHEIGHT;
-  h1.planes = 1;
-  h1.bpp = 8;
-  h1.comp = 0;
-  h1.padsize = ORIGWIDTH * ORIGHEIGHT + 1024;
-  h1.res = 0;
-  h1.colors = 256;
-  h1.imcolors = 0;
-  fwrite(&h1, sizeof(h1), 1, stdout);
-  for(size_t i = 0 ; i < sizeof(palette) ; i += 3){
-    fwrite(palette + i + 2, 1, 1, stdout);
-    fwrite(palette + i + 1, 1, 1, stdout);
-    fwrite(palette + i, 1, 1, stdout);
-    unsigned char erp = 0;
-    fwrite(&erp, 1, 1, stdout);
+  if(out < ORIGWIDTH * ORIGHEIGHT){ // uh-oh
+    return -1;
   }
-  //fwrite(buf, 480 * 640, 1, stdout);
-  for(int y = 0 ; y < 480 ; ++y){
-    //for(int x = 0 ; x < 640 ; ++x){
-      fwrite(buf + (480 - y) * 640, 640, 1, stdout);
-    //}
+  struct ncplane* n = notcurses_stdplane(nc);
+  int dimx, dimy;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
+  const int yiter = ORIGHEIGHT / dimy + !!(ORIGHEIGHT % dimy);
+  ncplane_erase(n);
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_load(n, &c, "\xe2\x96\x88");
+  for(size_t y = 0 ; y < ORIGHEIGHT ; y += yiter){
+    if(ncplane_cursor_move_yx(n, y / yiter, 0)){
+      return -1;
+    }
+    for(size_t x = 0 ; x < ORIGWIDTH ; x += xiter){
+      int idx = y * ORIGWIDTH + x;
+      if(cell_set_fg_palindex(&c, buf[idx])){
+        return -1;
+      }
+      if(ncplane_putc(n, &c) < 0){
+        return -1;
+      }
+    }
   }
-  palette256_free(pal);
+  cell_release(n, &c);
+  free(buf);
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  sleep(1);
   return 0;
 }
