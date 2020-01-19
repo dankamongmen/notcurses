@@ -17,7 +17,7 @@ typedef struct palette256 {
 } palette256;
 ```
 
-**palette256* palette256_new(void);**
+**palette256* palette256_new(struct notcurses* nc);**
 
 **int palette256_use(struct notcurses* nc, const palette256* p);**
 

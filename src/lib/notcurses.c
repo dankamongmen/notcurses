@@ -583,6 +583,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
   term_verify_seq(&nc->sgr, "sgr");
   term_verify_seq(&nc->sgr0, "sgr0");
   term_verify_seq(&nc->op, "op");
+  term_verify_seq(&nc->oc, "oc");
   term_verify_seq(&nc->clearscr, "clear");
   term_verify_seq(&nc->cleareol, "el");
   term_verify_seq(&nc->clearbol, "el1");
@@ -891,6 +892,9 @@ int notcurses_stop(notcurses* nc){
     if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
       ret = -1;
     }
+    if(nc->oc && term_emit("oc", nc->oc, nc->ttyfp, true)){
+      ret = -1;
+    }
     ret |= notcurses_mouse_disable(nc);
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
     while(nc->top){
@@ -1007,6 +1011,30 @@ int ncplane_set_fg_alpha(ncplane* n, int alpha){
 
 int ncplane_set_bg_alpha(ncplane *n, int alpha){
   return channels_set_bg_alpha(&n->channels, alpha);
+}
+
+int ncplane_set_fg_palindex(ncplane* n, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  n->channels |= CELL_FGDEFAULT_MASK;
+  n->channels |= CELL_FG_PALETTE;
+  n->channels &= ~(CELL_ALPHA_MASK << 32u);
+  n->attrword &= 0xffff00ff;
+  n->attrword |= (idx << 8u);
+  return 0;
+}
+
+int ncplane_set_bg_palindex(ncplane* n, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  n->channels |= CELL_BGDEFAULT_MASK;
+  n->channels |= CELL_BG_PALETTE;
+  n->channels &= ~CELL_ALPHA_MASK;
+  n->attrword &= 0xffffff00;
+  n->attrword |= idx;
+  return 0;
 }
 
 int ncplane_set_base(ncplane* ncp, const cell* c){
@@ -1676,11 +1704,13 @@ bool notcurses_canfade(const notcurses* nc){
   return nc->CCCflag || nc->RGBflag;
 }
 
-palette256* palette256_new(void){
+palette256* palette256_new(notcurses* nc){
   palette256* p = malloc(sizeof(*p));
+  pthread_mutex_lock(&nc->lock);
   if(p){
-    memset(p, 0, sizeof(*p));
+    memcpy(p, &nc->palette, sizeof(*p));
   }
+  pthread_mutex_unlock(&nc->lock);
   return p;
 }
 
@@ -1693,7 +1723,7 @@ int palette256_use(notcurses* nc, const palette256* p){
   for(size_t z = 0 ; z < sizeof(p->chans) / sizeof(*p->chans) ; ++z){
     if(nc->palette.chans[z] != p->chans[z]){
       nc->palette.chans[z] = p->chans[z];
-      // FIXME write it to terminal using initc, need another damage map
+      nc->palette_damage[z] = true;
     }
   }
   ret = 0;

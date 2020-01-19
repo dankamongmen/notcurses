@@ -21,13 +21,12 @@ class Cell:
     def __del__(self):
         lib.cell_release(self.ncp.getNcplane(), self.c)
 
+    def setFgRGB(self, r, g, b):
+        checkRGB(r, g, b)
+        lib.cell_set_fg_rgb(self.c, r, g, b)
+
     def setBgRGB(self, r, g, b):
-        if r < 0 or r > 255:
-            raise ValueError("Bad red value")
-        if g < 0 or g > 255:
-            raise ValueError("Bad green value")
-        if b < 0 or b > 255:
-            raise ValueError("Bad blue value")
+        checkRGB(r, g, b)
         lib.cell_set_bg_rgb(self.c, r, g, b)
 
     def getNccell(self):
@@ -55,6 +54,10 @@ class Ncplane:
     def setFgRGB(self, r, g, b):
         checkRGB(r, g, b)
         lib.ncplane_set_fg_rgb(self.n, r, g, b)
+
+    def setBgRGB(self, r, g, b):
+        checkRGB(r, g, b)
+        lib.ncplane_set_bg_rgb(self.n, r, g, b)
 
 class Notcurses:
     def __init__(self):
@@ -85,6 +88,7 @@ if __name__ == '__main__':
     for y in range(dims[0]):
         for x in range(dims[1]):
             nc.stdplane().setFgRGB(r, g, b)
+            nc.stdplane().setBgRGB(b, r, g)
             nc.stdplane().putSimpleYX(y, x, b'X')
             b = b + 2
             if b == 256:

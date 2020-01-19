@@ -271,8 +271,11 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
           cell_set_wide(targc);
         }
       }
-      // FIXME blend in palette-indexed colors?
-      if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
+      if(cell_fg_palindex_p(vis)){
+        if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+          cell_set_fg_palindex(targc, cell_fg_palindex(vis));
+        }
+      }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
         cell_blend_fchannel(targc, cell_fchannel(vis), crender->fgblends);
         ++crender->fgblends;
       }
@@ -617,6 +620,11 @@ update_palette(notcurses* nc, FILE* out){
       unsigned r, g, b;
       if(nc->palette_damage[damageidx]){
         channel_rgb(nc->palette.chans[damageidx], &r, &g, &b);
+        // Need convert RGB values [0..256) to [0..1000], ugh
+        // FIXME need handle HSL case also
+        r = r * 1000 / 255;
+        g = g * 1000 / 255;
+        b = b * 1000 / 255;
         term_emit("initc", tiparm(nc->initc, damageidx, r, g, b), out, false);
         nc->palette_damage[damageidx] = false;
       }

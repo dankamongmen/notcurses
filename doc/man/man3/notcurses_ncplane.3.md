@@ -98,6 +98,10 @@ notcurses_ncplane - operations on notcurses planes
 
 **int ncplane_set_bg_alpha(struct ncplane* n, int alpha);**
 
+**int ncplane_set_fg_palindex(struct ncplane* n, int idx);**
+
+**int ncplane_set_bg_palindex(struct ncplane* n, int idx);**
+
 **void ncplane_styles_set(struct ncplane* n, unsigned stylebits);**
 
 **void ncplane_styles_on(struct ncplane* n, unsigned stylebits);**

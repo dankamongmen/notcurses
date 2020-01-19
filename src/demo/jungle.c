@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <assert.h>
 
 // unpacked data from original LBM file
 const unsigned char palette[] = 
@@ -26492,8 +26491,11 @@ const size_t ORIGWIDTH = 640;
 // this last byte ought indeed be a zero (for checking), but zeros may occur
 // earlier (unlike a proper c string).
 static palette256*
-load_palette(struct notcurses* nc, const unsigned char* pal){
-  palette256* p256 = palette256_new();
+load_palette(struct notcurses* nc, const unsigned char* pal, size_t size){
+  if(size != NCPALETTESIZE * 3 + 1){
+    return NULL;
+  }
+  palette256* p256 = palette256_new(nc);
   for(int idx = 0 ; idx < NCPALETTESIZE ; ++idx){
     if(palette256_set_rgb(p256, idx, pal[idx * 3], pal[idx * 3 + 1], pal[idx * 3 + 2])){
       palette256_free(p256);
@@ -26511,16 +26513,58 @@ load_palette(struct notcurses* nc, const unsigned char* pal){
   return p256;
 }
 
+static int
+cycle_palettes(struct notcurses* nc, palette256* p){
+  // these ranges are cycling amongst themselves
+  static const struct {
+    int l, u;
+  } sets[] = {
+    { 0x8d, 0x91, },
+    { 0x92, 0x96, },
+    { 0x97, 0x9b, },
+    { 0x9c, 0xa0, },
+    { 0xa1, 0xa5, },
+    { 0xa6, 0xaa, },
+    { 0xab, 0xaf, },
+    { 0xbe, 0xc2, },
+    { 0xc3, 0xc7, },
+    { 0xc8, 0xcc, },
+    { 0xcd, 0xd1, },
+    { 0xd2, 0xd6, },
+    { 0xd7, 0xdb, },
+    { 0, 0, },
+  }, *s;
+  for(s = sets ; s->l ; ++s){
+    unsigned tr, tg, tb;
+    // we're cycling left, so first grab the first rgbs
+    palette256_get_rgb(p, s->l, &tr, &tg, &tb);
+    for(int i = s->u ; i >= s->l ; --i){
+      unsigned r, g, b;
+      palette256_get_rgb(p, i, &r, &g, &b);
+      if(palette256_set_rgb(p, i, tr, tg, tb)){
+        return -1;
+      }
+      tr = r;
+      tg = g;
+      tb = b;
+    }
+  }
+  if(palette256_use(nc, p)){
+    return -1;
+  }
+  return 0;
+}
+
 int jungle_demo(struct notcurses* nc){
   size_t have = 0, out = 0;
   palette256* pal;
-  assert(769 == sizeof(palette));
-  if((pal = load_palette(nc, palette)) == NULL){
+  if((pal = load_palette(nc, palette, sizeof(palette))) == NULL){
     return -1;
   }
-  // decode LBM data
+  // decode LBM data to flat plane, 1B palette index per pixel
   unsigned char* buf = malloc(ORIGWIDTH * ORIGHEIGHT);
-  while(out < ORIGWIDTH * ORIGHEIGHT){
+  while(out < ORIGWIDTH * ORIGHEIGHT && have < sizeof(junglerain)){
+    // compression algorithm courtesy Commodore Amiga 1985 lol
     if(junglerain[have] > 128){
       for(int i = 0 ; i < 257 - junglerain[have] ; ++i){
         buf[out] = junglerain[have + 1];
@@ -26537,51 +26581,58 @@ int jungle_demo(struct notcurses* nc){
       have += junglerain[have] + 2;
     }
   }
-  // write bitmap
-  struct hdr1 {
-    uint16_t magic;
-    uint32_t size;
-    uint32_t reserved;
-    uint32_t offset;
-    uint32_t dumbsize;
-    uint32_t width;
-    uint32_t height;
-    uint16_t planes; 
-    uint16_t bpp;
-    uint32_t comp;
-    uint32_t padsize;
-    uint64_t res;
-    uint32_t colors;
-    uint32_t imcolors;
-  } __attribute__ ((packed)) h1;
-  h1.magic = 0x4d42;
-  h1.size = ORIGHEIGHT * ORIGWIDTH + 1024 + 54;
-  h1.reserved = 0;
-  h1.offset = 54 + 1024;
-  h1.dumbsize = 40;
-  h1.width = ORIGWIDTH;
-  h1.height = ORIGHEIGHT;
-  h1.planes = 1;
-  h1.bpp = 8;
-  h1.comp = 0;
-  h1.padsize = ORIGWIDTH * ORIGHEIGHT + 1024;
-  h1.res = 0;
-  h1.colors = 256;
-  h1.imcolors = 0;
-  assert(fwrite(&h1, sizeof(h1), 1, stdout) == 1);
-  for(size_t i = 0 ; i < sizeof(palette) ; i += 3){
-    assert(fwrite(palette + i + 2, 1, 1, stdout) == 1);
-    assert(fwrite(palette + i + 1, 1, 1, stdout) == 1);
-    assert(fwrite(palette + i, 1, 1, stdout) == 1);
-    unsigned char erp = 0;
-    assert(fwrite(&erp, 1, 1, stdout) == 1);
+  if(out < ORIGWIDTH * ORIGHEIGHT){ // uh-oh
+    return -1;
   }
-  //fwrite(buf, 480 * 640, 1, stdout);
-  for(int y = 0 ; y < 480 ; ++y){
-    //for(int x = 0 ; x < 640 ; ++x){
-      fwrite(buf + (480 - y) * 640, 640, 1, stdout);
-    //}
+  struct ncplane* n = notcurses_stdplane(nc);
+  int dimx, dimy;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  dimy *= 2; // use half blocks
+  const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
+  const int yiter = ORIGHEIGHT / dimy + !!(ORIGHEIGHT % dimy);
+  ncplane_erase(n);
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_load(n, &c, "\xe2\x96\x80"); // upper half block
+  for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
+    if(ncplane_cursor_move_yx(n, y / (yiter * 2), 0)){
+      return -1;
+    }
+    for(size_t x = 0 ; x < ORIGWIDTH ; x += xiter){
+      int idx = y * ORIGWIDTH + x;
+      int idx2 = (y + yiter) * ORIGWIDTH + x;
+      if(cell_set_fg_palindex(&c, buf[idx])){
+        return -1;
+      }
+      if(cell_set_bg_palindex(&c, buf[idx2])){
+        return -1;
+      }
+      if(ncplane_putc(n, &c) < 0){
+        return -1;
+      }
+    }
   }
+  cell_release(n, &c);
+  free(buf);
+  struct timespec start, now;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+  int iter = 0;
+  // don't try to run faster than, eh, 140Hz
+  int64_t iterns = GIG / 140;
+  int64_t nsrunning;
+  do{
+    if(notcurses_render(nc)){
+      return -1;
+    }
+    ++iter;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+    nsrunning = timespec_to_ns(&now) - timespec_to_ns(&start);
+    if(nsrunning < iter * iterns){
+      struct timespec sleepts;
+      ns_to_timespec(iter * iterns - nsrunning, &sleepts);
+      nanosleep(&sleepts, NULL);
+    }
+    cycle_palettes(nc, pal);
+  }while(nsrunning > 0 && (uint64_t)nsrunning < 5 * timespec_to_ns(&demodelay));
   palette256_free(pal);
   return 0;
 }

@@ -1422,6 +1422,11 @@ API int ncplane_set_bg(struct ncplane* n, unsigned channel);
 API void ncplane_set_fg_default(struct ncplane* n);
 API void ncplane_set_bg_default(struct ncplane* n);
 
+// Set the ncplane's foreground palette index, set the foreground palette index
+// bit, set it foreground-opaque, and clear the foreground default color bit.
+API int ncplane_set_fg_palindex(struct ncplane* n, int idx);
+API int ncplane_set_bg_palindex(struct ncplane* n, int idx);
+
 // Set the alpha parameters for ncplane 'n'.
 API int ncplane_set_fg_alpha(struct ncplane* n, int alpha);
 API int ncplane_set_bg_alpha(struct ncplane* n, int alpha);
@@ -1978,7 +1983,7 @@ typedef struct palette256 {
 
 // Create a new palette store. It will be initialized with notcurses's best
 // knowledge of the currently configured palette.
-API palette256* palette256_new(void);
+API palette256* palette256_new(struct notcurses* nc);
 
 // Attempt to configure the terminal with the provided palette 'p'. Does not
 // transfer ownership of 'p'; palette256_free() can still be called.
@@ -2002,7 +2007,7 @@ palette256_set(palette256* p, int idx, unsigned rgb){
 }
 
 static inline int
-palette256_get(const palette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
+palette256_get_rgb(const palette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }

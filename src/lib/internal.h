@@ -167,6 +167,7 @@ typedef struct notcurses {
   char* rmkx;     // leave keypad transmit mode (keypad_local)
   char* getm;     // get mouse events
   char* initc;    // set a palette entry's RGB value
+  char* oc;       // restore original colors
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
 
@@ -185,7 +186,7 @@ typedef struct notcurses {
   unsigned inputbuf_occupied;
   unsigned inputbuf_valid_starts;
   unsigned inputbuf_write_at;
-  palette256 palette; // 256-indexed palette can be used instead of RGB
+  palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
 } notcurses;
