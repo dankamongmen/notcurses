@@ -2007,7 +2007,7 @@ palette256_set(palette256* p, int idx, unsigned rgb){
 }
 
 static inline int
-palette256_get(const palette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
+palette256_get_rgb(const palette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }

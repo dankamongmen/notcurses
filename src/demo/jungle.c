@@ -26513,6 +26513,48 @@ load_palette(struct notcurses* nc, const unsigned char* pal, size_t size){
   return p256;
 }
 
+static int
+cycle_palettes(struct notcurses* nc, palette256* p){
+  // these ranges are cycling amongst themselves
+  static const struct {
+    int l, u;
+  } sets[] = {
+    { 0x8d, 0x91, },
+    { 0x92, 0x96, },
+    { 0x97, 0x9b, },
+    { 0x9c, 0xa0, },
+    { 0xa1, 0xa5, },
+    { 0xa6, 0xaa, },
+    { 0xab, 0xaf, },
+    { 0xbe, 0xc2, },
+    { 0xc3, 0xc7, },
+    { 0xc8, 0xcc, },
+    { 0xcd, 0xd1, },
+    { 0xd2, 0xd6, },
+    { 0xd7, 0xdb, },
+    { 0, 0, },
+  }, *s;
+  for(s = sets ; s->l ; ++s){
+    unsigned tr, tg, tb;
+    // we're cycling left, so first grab the first rgbs
+    palette256_get_rgb(p, s->l, &tr, &tg, &tb);
+    for(int i = s->u ; i >= s->l ; --i){
+      unsigned r, g, b;
+      palette256_get_rgb(p, i, &r, &g, &b);
+      if(palette256_set_rgb(p, i, tr, tg, tb)){
+        return -1;
+      }
+      tr = r;
+      tg = g;
+      tb = b;
+    }
+  }
+  if(palette256_use(nc, p)){
+    return -1;
+  }
+  return 0;
+}
+
 int jungle_demo(struct notcurses* nc){
   size_t have = 0, out = 0;
   palette256* pal;
@@ -26571,7 +26613,6 @@ int jungle_demo(struct notcurses* nc){
   }
   cell_release(n, &c);
   free(buf);
-  // FIXME cycle through palettes
   struct timespec start, now;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   int iter = 0;
@@ -26583,7 +26624,6 @@ int jungle_demo(struct notcurses* nc){
       return -1;
     }
     ++iter;
-    // FIXME sleep a little
     clock_gettime(CLOCK_MONOTONIC_RAW, &now);
     nsrunning = timespec_to_ns(&now) - timespec_to_ns(&start);
     if(nsrunning < iter * iterns){
@@ -26591,6 +26631,8 @@ int jungle_demo(struct notcurses* nc){
       ns_to_timespec(iter * iterns - nsrunning, &sleepts);
       nanosleep(&sleepts, NULL);
     }
-  }while(nsrunning > 0 && (uint64_t)nsrunning < timespec_to_ns(&demodelay));
+    cycle_palettes(nc, pal);
+  }while(nsrunning > 0 && (uint64_t)nsrunning < 5 * timespec_to_ns(&demodelay));
+  palette256_free(pal);
   return 0;
 }
