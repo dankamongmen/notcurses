@@ -25,7 +25,7 @@ typedef struct palette256 {
 
 **int palette256_set(palette256* p, int idx, unsigned rgb);**
 
-**int palette256_get(const palette256* p, int idx, int* restrict r, int* restrict g, int* restrict b);**
+**int palette256_get_rgb(const palette256* p, int idx, int* restrict r, int* restrict g, int* restrict b);**
 
 **void palette256_free(palette256* p);**
 
