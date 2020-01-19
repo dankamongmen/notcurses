@@ -48,15 +48,56 @@ TEST_CASE("Palette256") {
   }
 
   // when we set a palette index, it ought change us from using default
-  SUBCASE("Attributes") {
+  SUBCASE("FAttributes") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(cell_fg_default_p(&c));
+    cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
     CHECK(0 == cell_set_fg_palindex(&c, 0x20));
     CHECK(!cell_fg_default_p(&c));
+    CHECK(cell_fg_palindex_p(&c));
     CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&c));
     CHECK(0x20 == cell_fg_palindex(&c));
   }
 
+  SUBCASE("BAttributes") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(cell_bg_default_p(&c));
+    cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+    CHECK(0 == cell_set_bg_palindex(&c, 0x20));
+    CHECK(!cell_bg_default_p(&c));
+    CHECK(cell_bg_palindex_p(&c));
+    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&c));
+    CHECK(0x20 == cell_bg_palindex(&c));
+  }
+
+  // write it to an ncplane, and verify attributes via reflection
+  SUBCASE("PutCAttrs") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 == cell_set_fg_palindex(&c, 0x20));
+    CHECK(0 == cell_set_bg_palindex(&c, 0x40));
+    CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
+    cell_release(n_, &c);
+    cell r = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 == ncplane_at_yx(n_, 0, 0, &r));
+    CHECK(cell_fg_palindex_p(&r));
+    CHECK(cell_bg_palindex_p(&r));
+    CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&r));
+    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&r));
+    CHECK(0x20 == cell_fg_palindex(&r));
+    CHECK(0x40 == cell_bg_palindex(&r));
+    cell_release(n_, &r);
+  }
+
+  SUBCASE("BAttributes") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(cell_bg_default_p(&c));
+    cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+    CHECK(0 == cell_set_bg_palindex(&c, 0x20));
+    CHECK(!cell_bg_default_p(&c));
+    CHECK(cell_bg_palindex_p(&c));
+    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&c));
+    CHECK(0x20 == cell_bg_palindex(&c));
+  }
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
