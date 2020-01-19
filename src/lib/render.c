@@ -620,6 +620,11 @@ update_palette(notcurses* nc, FILE* out){
       unsigned r, g, b;
       if(nc->palette_damage[damageidx]){
         channel_rgb(nc->palette.chans[damageidx], &r, &g, &b);
+        // Need convert RGB values [0..256) to [0..1000], ugh
+        // FIXME need handle HSL case also
+        r = r * 1000 / 255;
+        g = g * 1000 / 255;
+        b = b * 1000 / 255;
         term_emit("initc", tiparm(nc->initc, damageidx, r, g, b), out, false);
         nc->palette_damage[damageidx] = false;
       }
