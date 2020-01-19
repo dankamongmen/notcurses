@@ -41,7 +41,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
     if(demo_render(nc)){
       return -1;
     }
-    nanosleep(&iterdelay, NULL);
+    demo_nanosleep(nc, &iterdelay);
     ncvisual_destroy(chuns[i].ncv);
     free(chuns[i].path);
   }
@@ -56,8 +56,24 @@ int chunli_demo(struct notcurses* nc){
   cell b = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  char file[PATH_MAX];
+  for(int i = 1 ; i < 100 ; ++i){
+    snprintf(file, sizeof(file), "chunli%02d.png", i);
+    char* path = find_data(file);
+    struct ncvisual* ncv = ncvisual_open_plane(nc, path, &averr, 0, 0, NCSCALE_NONE);
+    if(ncv == NULL){
+      free(path);
+      break;
+    }
+    free(path);
+    if(ncvisual_stream(nc, ncv, &averr, 1, ncvisual_simple_streamer, NULL) < 0){
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+    demo_nanosleep(nc, &iterdelay);
+    ncvisual_destroy(ncv);
+  }
   chunli_draw(nc, "bmp", CHUNS, &b);
-  chunli_draw(nc, "png", 7, &b);
   char* victory = find_data("chunlivictory.png");
   struct ncvisual* ncv = ncvisual_open_plane(nc, victory, &averr, 0, 0, NCSCALE_NONE);
   if(ncv == NULL){
