@@ -2561,9 +2561,9 @@ up someday **FIXME**.
     POSIX, eliminating the need for me to cons up something similar.
 * I one night read the entirety of Lexi Summer Hale's [essays](http://xn--rpa.cc/irl/index.html),
     and woke up intending to write notcurses.
-* NES art was lifted from [The Spriters Resource](https://www.spriters-resource.com/nes/),
-    the kind of site that makes the Internet great. It probably violates any
-    number of copyrights. C'est la vie.
+* NES art was lifted from [The Spriters Resource](https://www.spriters-resource.com/nes/)
+    and [NES Sprite](http://nes-sprite.resampled.ru/), the kind of sites that
+    make the Internet great. It probably violates any number of copyrights. C'est la vie.
 * Mark Ferrari, master of the pixel, for no good reason allowed me to reproduce
     his incredible and groundbreaking color-cycling artwork. Thanks Mark!
 * Finally, the [demoscene](https://en.wikipedia.org/wiki/Demoscene) and general

@@ -182,7 +182,29 @@ int luigi_demo(struct notcurses* nc){
   }
   struct timespec stepdelay;
   ns_to_timespec(timespec_to_ns(&demodelay) / (cols - 16 - 1), &stepdelay);
-  for(i = 0 ; i < cols - 16 - 1 ; ++i){
+  struct ncvisual* wmncv = NULL;
+  char* fname = find_data("warmech.bmp");
+  if(fname == NULL){
+    return -1;
+  }
+  wmncv = ncvisual_open_plane(nc, fname, &averr, 0, 0, NCSCALE_NONE);
+  free(fname);
+  if(wmncv == NULL){
+    return -1;
+  }
+  if(ncvisual_decode(wmncv, &averr) == NULL){
+    ncvisual_destroy(wmncv);
+    return -1;
+  }
+  cell b = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(ncvisual_plane(wmncv), &b);
+  if(ncvisual_render(wmncv, 0, 0, 0, 0)){
+    ncvisual_destroy(wmncv);
+    return -1;
+  }
+  for(i = 0 ; i < cols - 16 - 1 + 50 ; ++i){
     if(i + 16 >= cols - 16 - 1){
       --yoff;
     }else{
@@ -191,6 +213,8 @@ int luigi_demo(struct notcurses* nc){
       ncplane_move_top(lastseen);
     }
     ncplane_move_yx(lastseen, yoff, i);
+    int dimy = ncplane_dim_y(ncvisual_plane(wmncv));
+    ncplane_move_yx(ncvisual_plane(wmncv), rows * 4 / 5 - dimy + 1 + (i % 2), i - 60);
     demo_render(nc);
     nanosleep(&stepdelay, NULL);
   }
@@ -198,5 +222,6 @@ int luigi_demo(struct notcurses* nc){
     ncplane_destroy(lns[i]);
   }
   ncvisual_destroy(nv);
+  ncvisual_destroy(wmncv);
   return 0;
 }
