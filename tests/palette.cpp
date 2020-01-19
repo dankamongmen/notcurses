@@ -88,16 +88,24 @@ TEST_CASE("Palette256") {
     cell_release(n_, &r);
   }
 
-  SUBCASE("BAttributes") {
+  SUBCASE("RenderCAttrs") {
     cell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(cell_bg_default_p(&c));
-    cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-    CHECK(0 == cell_set_bg_palindex(&c, 0x20));
-    CHECK(!cell_bg_default_p(&c));
-    CHECK(cell_bg_palindex_p(&c));
-    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&c));
-    CHECK(0x20 == cell_bg_palindex(&c));
+    CHECK(0 == cell_set_fg_palindex(&c, 0x20));
+    CHECK(0 == cell_set_bg_palindex(&c, 0x40));
+    CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
+    cell_release(n_, &c);
+    CHECK(0 == notcurses_render(nc_));
+    cell r = CELL_TRIVIAL_INITIALIZER;
+    CHECK(nullptr != notcurses_at_yx(nc_, 0, 0, &r));
+    CHECK(cell_fg_palindex_p(&r));
+    CHECK(cell_bg_palindex_p(&r));
+    CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&r));
+    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&r));
+    CHECK(0x20 == cell_fg_palindex(&r));
+    CHECK(0x40 == cell_bg_palindex(&r));
+    cell_release(n_, &r);
   }
+
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
