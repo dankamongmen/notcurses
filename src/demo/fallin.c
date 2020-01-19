@@ -116,6 +116,9 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
 
 // ya playin' yourself
 int fallin_demo(struct notcurses* nc){
+  if(!notcurses_canopen(nc)){
+    return 0;
+  }
   int dimx, dimy;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;

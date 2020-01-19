@@ -295,6 +295,16 @@ term_emit(const char* name __attribute__ ((unused)), const char* seq,
   return 0;
 }
 
+static inline int
+term_bg_palindex(notcurses* nc, FILE* out, unsigned pal){
+  return term_emit("setab", tiparm(nc->setab, pal), out, false);
+}
+
+static inline int
+term_fg_palindex(notcurses* nc, FILE* out, unsigned pal){
+  return term_emit("setaf", tiparm(nc->setaf, pal), out, false);
+}
+
 static inline const char*
 extended_gcluster(const ncplane* n, const cell* c){
   return egcpool_extended_gcluster(&n->pool, c);

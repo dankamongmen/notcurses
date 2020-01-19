@@ -144,6 +144,9 @@ draw_luigi(struct ncplane* n, const char* sprite){
 }
 
 int luigi_demo(struct notcurses* nc){
+  if(!notcurses_canopen(nc)){
+    return 0;
+  }
   struct ncplane* n = notcurses_stdplane(nc);
   int averr = 0;
   char* map = find_data("megaman2.bmp");

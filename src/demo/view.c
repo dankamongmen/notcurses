@@ -67,6 +67,9 @@ legend(struct notcurses* nc, int dimy, int dimx){
 }
 
 int view_demo(struct notcurses* nc){
+  if(!notcurses_canopen(nc)){
+    return 0;
+  }
   struct ncplane* ncp = notcurses_stdplane(nc);
   int dimy, dimx;
   ncplane_dim_yx(ncp, &dimy, &dimx);

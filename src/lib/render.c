@@ -573,19 +573,8 @@ term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
     if(nc->colors >= 256){
       term_emit("setab", tiparm(nc->setab, rgb_quantize_256(r, g, b)), out, false);
     }
-    return -1;
   }
   return 0;
-}
-
-static inline int
-term_bg_palindex(notcurses* nc, FILE* out, unsigned pal){
-  return term_emit("setab", tiparm(nc->setab, pal), out, false);
-}
-
-static inline int
-term_fg_palindex(notcurses* nc, FILE* out, unsigned pal){
-  return term_emit("setaf", tiparm(nc->setaf, pal), out, false);
 }
 
 static inline int
@@ -601,14 +590,13 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
     if(nc->setaf == NULL){
       return -1;
     }
-    if(nc->colors >= 256){
-      term_emit("setaf", tiparm(nc->setaf, rgb_quantize_256(r, g, b)), out, false);
-    }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
-    return -1;
+    if(nc->colors >= 256){
+      return term_emit("setaf", tiparm(nc->setaf, rgb_quantize_256(r, g, b)), out, false);
+    }
   }
   return 0;
 }
@@ -718,7 +706,6 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
           nc->rstate.fgpalelidable = false;
           nc->rstate.bgpalelidable = false;
         }
-
         // if our cell has a non-default foreground, we can elide the non-default
         // foreground set iff either:
         //  * the previous was non-default, and matches what we have now, or
@@ -740,7 +727,6 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
           nc->rstate.fgelidable = false;
         }else if(!cell_fg_default_p(srccell)){ // rgb foreground
           cell_fg_rgb(srccell, &r, &g, &b);
-//fprintf(stderr, "[%03d/%03d] %02x %02x %02x\n", y, x, r, g, b);
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
           }else{
@@ -800,8 +786,7 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
   if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
   }
-/*fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu\n", defaultelisions, defaultemissions,
-     fgelisions, fgemissions, bgelisions, bgemissions);*/
+//fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu %d\n", nc->stats.defaultelisions, nc->stats.defaultemissions, nc->stats.fgelisions, nc->stats.fgemissions, nc->stats.bgelisions, nc->stats.bgemissions, ret);
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", nc->rstate.mstream);
   }

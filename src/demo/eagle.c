@@ -196,6 +196,9 @@ eagles(struct notcurses* nc){
 
 // motherfucking eagles!
 int eagle_demo(struct notcurses* nc){
+  if(!notcurses_canopen(nc)){
+    return 0;
+  }
   char* map = find_data("eagles.png");
   struct ncvisual* zo;
   if((zo = outzoomed_map(nc, map)) == NULL){

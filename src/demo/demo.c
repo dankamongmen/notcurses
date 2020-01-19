@@ -353,7 +353,7 @@ int main(int argc, char** argv){
            GIG / avg,
            results[i].result < 0 ? "***FAILED" :
             results[i].result > 0 ? "***ABORTED" :
-             (results[i].stats.renders || !failed) ? ""  : "***NOT RUN");
+             !results[i].stats.renders ? "***SKIPPED"  : "");
     if(results[i].result < 0){
       failed = true;
     }

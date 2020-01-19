@@ -124,6 +124,9 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
 }
 
 int outro(struct notcurses* nc){
+  if(!notcurses_canopen(nc)){
+    return 0;
+  }
   struct ncplane* ncp;
   if((ncp = notcurses_stdplane(nc)) == NULL){
     return -1;

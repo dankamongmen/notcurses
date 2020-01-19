@@ -548,21 +548,20 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
     const char* cterm = getenv("COLORTERM");
     nc->RGBflag = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
   }
-  term_verify_seq(&nc->initc, "initc");
-  if(nc->initc){
-    nc->CCCflag = tigetflag("ccc") == 1;
-  }else{
-    nc->CCCflag = false;
-  }
   if((nc->colors = tigetnum("colors")) <= 0){
     if(!opts->suppress_banner){
       fprintf(stderr, "This terminal doesn't appear to support colors\n");
     }
     nc->colors = 1;
-  }else if(nc->RGBflag && (unsigned)nc->colors < (1u << 24u)){
-    if(!opts->suppress_banner){
-      fprintf(stderr, "Warning: advertised RGB flag but only %d colors\n",
-              nc->colors);
+    nc->CCCflag = false;
+    nc->RGBflag = false;
+    nc->initc = NULL;
+  }else{
+    term_verify_seq(&nc->initc, "initc");
+    if(nc->initc){
+      nc->CCCflag = tigetflag("ccc") == 1;
+    }else{
+      nc->CCCflag = false;
     }
   }
   term_verify_seq(&nc->cup, "cup");
@@ -833,33 +832,36 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->suppress_banner = opts->suppress_banner;
   if(!opts->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
-    fprintf(ret->ttyfp, "\n"
-          " notcurses %s by nick black\n"
-          " %d rows, %d columns (%sB), %d colors (%s)\n"
-          " compiled with gcc-%s\n"
-          " terminfo from %s\n",
-          notcurses_version(),
+    term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 50 % ret->colors : 0x20e080);
+    fprintf(ret->ttyfp, "\n notcurses %s by nick black", notcurses_version());
+    term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 12 % ret->colors : 0x2080e0);
+    fprintf(ret->ttyfp, "\n  %d rows, %d columns (%sB), %d colors (%s)\n"
+          "  compiled with gcc-%s\n"
+          "  terminfo from %s\n",
           ret->stdscr->leny, ret->stdscr->lenx,
           bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
           ret->colors, ret->RGBflag ? "direct" : "palette",
           __VERSION__, curses_version());
 #ifndef DISABLE_FFMPEG
-    fprintf(ret->ttyfp, " avformat %u.%u.%u\n avutil %u.%u.%u\n swscale %u.%u.%u\n",
+    fprintf(ret->ttyfp, "  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
           LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
           LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
 #else
     putp(tiparm(ret->setaf, 3));
-    fprintf(ret->ttyfp, " warning: built without ffmpeg support\n");
+    fprintf(ret->ttyfp, "  Warning! Built without ffmpeg support\n");
 #endif
+    term_fg_palindex(ret, ret->ttyfp, ret->RGBflag ? 0xe02080 : 3);
     if(!ret->RGBflag){ // FIXME
-      if(ret->colors >= 16){
-        putp(tiparm(ret->setaf, 207));
-      }else{
-        putp(tiparm(ret->setaf, 3));
+      fprintf(ret->ttyfp, "\n Warning!\n  Your colors are subject to https://github.com/dankamongmen/notcurses/issues/4");
+      fprintf(ret->ttyfp, "\n  Are you specifying a proper DirectColor TERM?\n");
+    }else{
+      /*if((unsigned)ret->colors < (1u << 24u)){
+        fprintf(ret->ttyfp, "\n Warning!\n  Advertised DirectColor but only %d colors\n", ret->colors);
+      }*/
+      if(!ret->CCCflag){
+        fprintf(ret->ttyfp, "\n Warning!\n  Advertised DirectColor but no 'ccc' flag\n");
       }
-      fprintf(ret->ttyfp, "\nWarning!\nYour colors are subject to https://github.com/dankamongmen/notcurses/issues/4\n");
-      fprintf(ret->ttyfp, "Are you specifying a proper DirectColor TERM?\n");
     }
   }
   if(opts->clear_screen_start){
@@ -1702,6 +1704,10 @@ int notcurses_mouse_disable(notcurses* n){
 
 bool notcurses_canfade(const notcurses* nc){
   return nc->CCCflag || nc->RGBflag;
+}
+
+bool notcurses_canchangecolor(const notcurses* nc){
+  return nc->CCCflag;
 }
 
 palette256* palette256_new(notcurses* nc){

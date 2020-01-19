@@ -26577,6 +26577,9 @@ show_copyright(struct notcurses* nc){
 }
 
 int jungle_demo(struct notcurses* nc){
+  if(!notcurses_canchangecolor(nc)){
+    return 0; // skip
+  }
   size_t have = 0, out = 0;
   struct ncplane* copyplane;
   palette256* pal;

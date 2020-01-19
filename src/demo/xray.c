@@ -97,6 +97,9 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
 }
 
 int xray_demo(struct notcurses* nc){
+  if(!notcurses_canopen(nc)){
+    return 0;
+  }
   int dimx, dimy;
   struct ncplane* nstd = notcurses_stdplane(nc);
   ncplane_dim_yx(nstd, &dimy, &dimx);
