@@ -29,6 +29,8 @@ typedef struct palette256 {
 
 **void palette256_free(palette256* p);**
 
+**bool notcurses_canchangecolors(const struct notcurses* nc);**
+
 # DESCRIPTION
 
 Some terminals only support 256 colors, but allow the full palette to be

@@ -314,6 +314,9 @@ bool notcurses_canfade(const struct notcurses* nc);
 
 // Can we load images/videos? This requires being built against FFmpeg.
 bool notcurses_canopen(const struct notcurses* nc);
+
+// Can we change colors in the hardware palette? Requires "ccc" and "initc".
+bool notcurses_canchangecolors(const struct notcurses* nc);
 ```
 
 ### Alignment
