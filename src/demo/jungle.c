@@ -26545,18 +26545,23 @@ int jungle_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   int dimx, dimy;
   ncplane_dim_yx(n, &dimy, &dimx);
+  dimy *= 2; // use half blocks
   const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
   const int yiter = ORIGHEIGHT / dimy + !!(ORIGHEIGHT % dimy);
   ncplane_erase(n);
   cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_load(n, &c, "\xe2\x96\x88");
-  for(size_t y = 0 ; y < ORIGHEIGHT ; y += yiter){
-    if(ncplane_cursor_move_yx(n, y / yiter, 0)){
+  cell_load(n, &c, "\xe2\x96\x80"); // upper half block
+  for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
+    if(ncplane_cursor_move_yx(n, y / (yiter * 2), 0)){
       return -1;
     }
     for(size_t x = 0 ; x < ORIGWIDTH ; x += xiter){
       int idx = y * ORIGWIDTH + x;
+      int idx2 = (y + yiter) * ORIGWIDTH + x;
       if(cell_set_fg_palindex(&c, buf[idx])){
+        return -1;
+      }
+      if(cell_set_bg_palindex(&c, buf[idx2])){
         return -1;
       }
       if(ncplane_putc(n, &c) < 0){
@@ -26566,9 +26571,26 @@ int jungle_demo(struct notcurses* nc){
   }
   cell_release(n, &c);
   free(buf);
-  if(notcurses_render(nc)){
-    return -1;
-  }
-  sleep(1);
+  // FIXME cycle through palettes
+  struct timespec start, now;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+  int iter = 0;
+  // don't try to run faster than, eh, 140Hz
+  int64_t iterns = GIG / 140;
+  int64_t nsrunning;
+  do{
+    if(notcurses_render(nc)){
+      return -1;
+    }
+    ++iter;
+    // FIXME sleep a little
+    clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+    nsrunning = timespec_to_ns(&now) - timespec_to_ns(&start);
+    if(nsrunning < iter * iterns){
+      struct timespec sleepts;
+      ns_to_timespec(iter * iterns - nsrunning, &sleepts);
+      nanosleep(&sleepts, NULL);
+    }
+  }while(nsrunning > 0 && (uint64_t)nsrunning < timespec_to_ns(&demodelay));
   return 0;
 }
