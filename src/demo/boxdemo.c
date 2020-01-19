@@ -2,12 +2,9 @@
 #include <unistd.h>
 #include "demo.h"
 
-#define ITERATIONS 10
-
 int box_demo(struct notcurses* nc){
-  const int64_t totalns = timespec_to_ns(&demodelay);
   struct timespec iterdelay;
-  timespec_div(&demodelay, ITERATIONS, &iterdelay);
+  timespec_div(&demodelay, 256, &iterdelay);
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
   cell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
@@ -53,29 +50,29 @@ int box_demo(struct notcurses* nc){
   if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┗━━┻━━┛") < 0){
     return -1;
   }
-  do{
+  for(int idx = 0 ; idx < 256 ; ++idx){
     int y = 0, x = 0;
     ncplane_dim_yx(n, &ylen, &xlen);
     while(ylen - y >= targy && xlen - x >= targx){
-      if(cell_set_fg_rgb(&ul, zbonus, 255 - (y * 2), zbonus)){
+      if(cell_set_fg_rgb(&ul, idx, 255 - (y * 2), 255 - idx)){
         return -1;
       }
       if(cell_set_bg_rgb(&ul, 20, zbonus, 20)){
         return -1;
       }
-      if(cell_set_fg_rgb(&ur, 255 - (y * 2), zbonus, 255 - (y * 2))){
+      if(cell_set_fg_rgb(&ur, idx / 2, zbonus, (255 - idx) / 2)){
         return -1;
       }
       if(cell_set_bg_rgb(&ur, 20, zbonus, 20)){
         return -1;
       }
-      if(cell_set_fg_rgb(&ll, 255 - (y * 2), zbonus, 255 - (y * 2))){
+      if(cell_set_fg_rgb(&ll, idx / 2, zbonus, (255 - idx) / 2)){
         return -1;
       }
       if(cell_set_bg_rgb(&ll, 20, zbonus, 20)){
         return -1;
       }
-      if(cell_set_fg_rgb(&lr, zbonus, 255 - (y * 2), zbonus)){
+      if(cell_set_fg_rgb(&lr, 255 - idx, 255 - (y * 2), zbonus)){
         return -1;
       }
       if(cell_set_bg_rgb(&lr, 20, zbonus, 20)){
@@ -103,7 +100,7 @@ int box_demo(struct notcurses* nc){
       zbonusdelta = -zbonusdelta;
       zbonus += zbonusdelta;
     }
-  }while(timespec_subtract_ns(&now, &start) <= totalns);
+  }
   cell_release(n, &ul);
   cell_release(n, &ur);
   cell_release(n, &ll);
