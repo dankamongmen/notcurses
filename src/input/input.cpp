@@ -58,6 +58,35 @@ const char* nckeystr(char32_t spkey){
     case NCKEY_F28:     return "F28";
     case NCKEY_F29:     return "F29";
     case NCKEY_F30:     return "F30";
+    case NCKEY_F31:     return "F31";
+    case NCKEY_F32:     return "F32";
+    case NCKEY_F33:     return "F33";
+    case NCKEY_F34:     return "F34";
+    case NCKEY_F35:     return "F35";
+    case NCKEY_F36:     return "F36";
+    case NCKEY_F37:     return "F37";
+    case NCKEY_F38:     return "F38";
+    case NCKEY_F39:     return "F39";
+    case NCKEY_F40:     return "F40";
+    case NCKEY_F41:     return "F41";
+    case NCKEY_F42:     return "F42";
+    case NCKEY_F43:     return "F43";
+    case NCKEY_F44:     return "F44";
+    case NCKEY_F45:     return "F45";
+    case NCKEY_F46:     return "F46";
+    case NCKEY_F47:     return "F47";
+    case NCKEY_F48:     return "F48";
+    case NCKEY_F49:     return "F49";
+    case NCKEY_F50:     return "F50";
+    case NCKEY_F51:     return "F51";
+    case NCKEY_F52:     return "F52";
+    case NCKEY_F53:     return "F53";
+    case NCKEY_F54:     return "F54";
+    case NCKEY_F55:     return "F55";
+    case NCKEY_F56:     return "F56";
+    case NCKEY_F57:     return "F57";
+    case NCKEY_F58:     return "F58";
+    case NCKEY_F59:     return "F59";
     case NCKEY_BACKSPACE: return "backspace";
     case NCKEY_CENTER:  return "center";
     case NCKEY_ENTER:   return "enter";
@@ -168,7 +197,7 @@ int main(void){
     if(r == 0){ // interrupted by signal
       continue;
     }
-    if(r == CEOT){
+    if((r == 'D' || r == 'd') && ni.ctrl){
       notcurses_stop(nc);
       return EXIT_SUCCESS;
     }

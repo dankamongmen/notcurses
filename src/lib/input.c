@@ -207,8 +207,9 @@ handle_getc(notcurses* nc, int kpress, ncinput* ni){
   }
   if(kpress == ESC){
     const esctrie* esc = nc->inputescapes;
+    int candidate = 0;
     while(esc && esc->special == NCKEY_INVALID && nc->inputbuf_occupied){
-      int candidate = pop_input_keypress(nc);
+      candidate = pop_input_keypress(nc);
       if(esc->trie == NULL){
         esc = NULL;
       }else if(candidate >= 0x80 || candidate < 0){
@@ -222,6 +223,12 @@ handle_getc(notcurses* nc, int kpress, ncinput* ni){
         return handle_csi(nc, ni);
       }
       return esc->special;
+    }
+    // interpret it as alt + candidate FIXME broken for first char matching
+    // trie, second char not -- will read as alt+second char...
+    if(candidate > 0 && candidate < 0x80){
+      ni->alt = true;
+      return candidate;
     }
     // FIXME ungetc on failure! walk trie backwards or something
   }
@@ -321,6 +328,7 @@ handle_ncinput(notcurses* nc, ncinput* ni){
     if(ctrl){
       ni->ctrl = true;
     }
+    // FIXME set shift
   }
   return r;
 }
