@@ -311,8 +311,16 @@ handle_ncinput(notcurses* nc, ncinput* ni){
     memset(ni, 0, sizeof(*ni));
   }
   char32_t r = handle_input(nc, ni);
+  // ctrl (*without* alt) + letter maps to [1..26], and is independent of shift
+  bool ctrl = r > 0 && r <= 26;
+  if(ctrl){
+    r += 'A' - 1;
+  }
   if(ni){
     ni->id = r;
+    if(ctrl){
+      ni->ctrl = true;
+    }
   }
   return r;
 }
