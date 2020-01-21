@@ -572,6 +572,8 @@ term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
     // interpolation. I have no idea what to do for 88 colors. FIXME
     if(nc->colors >= 256){
       term_emit("setab", tiparm(nc->setab, rgb_quantize_256(r, g, b)), out, false);
+    }else if(nc->colors >= 8){
+      return term_emit("setab", tiparm(nc->setab, rgb_quantize_8(r, g, b)), out, false);
     }
   }
   return 0;
@@ -596,6 +598,8 @@ term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
     // interpolation. I have no idea what to do for 88 colors. FIXME
     if(nc->colors >= 256){
       return term_emit("setaf", tiparm(nc->setaf, rgb_quantize_256(r, g, b)), out, false);
+    }else if(nc->colors >= 8){
+      return term_emit("setaf", tiparm(nc->setaf, rgb_quantize_8(r, g, b)), out, false);
     }
   }
   return 0;

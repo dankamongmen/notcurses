@@ -249,8 +249,7 @@ cell_egc_copy(const ncplane* n, const cell* c){
 // ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
 // even semi-portably recover the palette) proceeds via: map each 8-bit to
 // a 5-bit target grey. if all 3 components match, select that grey.
-// otherwise, c / 42.7 to map to 6 values. this never generates pure black
-// nor white, though, lame...FIXME
+// otherwise, c / 42.7 to map to 6 values.
 static inline int
 rgb_quantize_256(unsigned r, unsigned g, unsigned b){
   const unsigned GREYMASK = 0xf8;
@@ -271,6 +270,40 @@ rgb_quantize_256(unsigned r, unsigned g, unsigned b){
   g /= 43;
   b /= 43;
   return r * 36 + g * 6 + b + 16;
+}
+
+// We get black, red, green, yellow, blue, magenta, cyan, and white. Ugh. Under
+// an additive model: G + R -> Y, G + B -> C, R + B -> M, R + G + B -> W
+static inline int
+rgb_quantize_8(unsigned r, unsigned g, unsigned b){
+  static const int BLACK = 0;
+  static const int RED = 1;
+  static const int GREEN = 2;
+  static const int YELLOW = 3;
+  static const int BLUE = 4;
+  static const int MAGENTA = 5;
+  static const int CYAN = 6;
+  static const int WHITE = 7;
+  if(r < 128){ // we have no red
+    if(g < 128){ // we have no green
+      if(b < 128){
+        return BLACK;
+      }
+      return BLUE;
+    } // we have green
+    if(b < 128){
+      return GREEN;
+    }
+    return CYAN;
+  }else if(g < 128){ // we have red, but not green
+    if(b < 128){
+      return RED;
+    }
+    return MAGENTA;
+  }else if(b < 128){ // we have red and green
+    return YELLOW;
+  }
+  return WHITE;
 }
 
 static inline int
