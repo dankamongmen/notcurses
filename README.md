@@ -2,8 +2,9 @@
 blingful TUI library for modern terminal emulators. definitely not curses.
 
 by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
+* C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 
-for more information, see [my wiki](https://nick-black.com/dankwiki/index.php/Notcurses)
+for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://nick-black.com/notcurses).
 
 <p align="center">
