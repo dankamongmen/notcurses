@@ -918,13 +918,15 @@ int notcurses_stop(notcurses* nc){
         char totalbuf[BPREFIXSTRLEN + 1];
         char minbuf[BPREFIXSTRLEN + 1];
         char maxbuf[BPREFIXSTRLEN + 1];
+        char avgbuf[BPREFIXSTRLEN + 1];
         double avg = nc->stashstats.render_ns / (double)nc->stashstats.renders;
-        fprintf(stderr, "\n%ju render%s, %.03gs total (%.03gs min, %.03gs max, %.03gs avg %.1f fps)\n",
+        qprefix(nc->stashstats.render_ns, NANOSECS_IN_SEC, totalbuf, 0);
+        qprefix(nc->stashstats.render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+        qprefix(nc->stashstats.render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+        qprefix(nc->stashstats.render_ns / nc->stashstats.renders, NANOSECS_IN_SEC, avgbuf, 0);
+        fprintf(stderr, "\n%ju render%s, %ss total (%ss min, %ss max, %ss avg %.1f fps)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
-                nc->stashstats.render_ns / 1000000000.0,
-                nc->stashstats.render_min_ns / 1000000000.0,
-                nc->stashstats.render_max_ns / 1000000000.0,
-                avg / NANOSECS_IN_SEC, NANOSECS_IN_SEC / avg);
+                totalbuf, minbuf, maxbuf, avgbuf, NANOSECS_IN_SEC / avg);
         avg = nc->stashstats.render_bytes / (double)nc->stashstats.renders;
         bprefix(nc->stashstats.render_bytes, 1, totalbuf, 0),
         bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 0),

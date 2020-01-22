@@ -1988,7 +1988,7 @@ API const struct ncplane* tablet_ncplane_const(const struct tablet* t);
 API const char* enmetric(uintmax_t val, unsigned decimal, char* buf,
                          int omitdec, unsigned mult, int uprefix);
 
-// Mega, kilo, gigabytes. Use PREFIXSTRLEN + 1.
+// Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1.
 static inline const char*
 qprefix(uintmax_t val, unsigned decimal, char* buf, int omitdec){
   return enmetric(val, decimal, buf, omitdec, 1000, '\0');
