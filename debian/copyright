@@ -3,7 +3,7 @@ Upstream-Name: notcurses
 Source: https://nick-black.com/dankwiki/index.php/notcurses
 
 Files: *
-Copyright: 2019 Nick Black <dankamongmen@gmail.com>
+Copyright: 2019-2020 Nick Black <dankamongmen@gmail.com>
 License: Apache-2.0
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ License: Apache-2.0
  can be found in "/usr/share/common-licenses/Apache-2.0".
 
 Files: debian/*
-Copyright: 2019 Nick Black <dankamongmen@gmail.com>
+Copyright: 2019-2020 Nick Black <dankamongmen@gmail.com>
 License: GPL-2+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

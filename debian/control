@@ -56,4 +56,4 @@ Description: Binaries from libnotcurses
  an API similar to that of Curses, and rides atop libtinfo.
  .
  These utilities from the notcurses project include notcurses-demo,
- notcurses-view, and notcurses-input.
+ notcurses-view, notcurses-planereel, and notcurses-input.
