@@ -1,3 +1,9 @@
+notcurses (1.1.0-2) UNRELEASED; urgency=medium
+
+  * Debian policy 4.5.0.0
+
+ -- Nick Black <dankamongmen@gmail.com>  Wed, 22 Jan 2020 22:38:12 -0500
+
 notcurses (1.1.0-1) unstable; urgency=medium
 
   * Add python-cffi build-dep
