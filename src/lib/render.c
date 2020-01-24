@@ -553,8 +553,7 @@ term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, bool foreground,
   return 0;
 }
 
-static inline int
-term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
+inline int term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
@@ -579,8 +578,7 @@ term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   return 0;
 }
 
-static inline int
-term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
+inline int term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but

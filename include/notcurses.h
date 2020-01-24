@@ -2050,6 +2050,12 @@ API void palette256_free(palette256* p);
 // Convert the plane's content to greyscale.
 API void ncplane_greyscale(struct ncplane* n);
 
+// Direct mode. This API can be used to colorize and stylize output generated
+// outside of notcurses, without ever calling notcurses_render(). These should
+// not be intermixed with standard notcurses rendering.
+API int term_bg_rgb8(struct notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b);
+API int term_fg_rgb8(struct notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b);
+
 #undef API
 
 #ifdef __cplusplus
