@@ -26569,7 +26569,10 @@ show_copyright(struct notcurses* nc){
     if(ncplane_set_fg(n, 0xffffff) < 0){
       return NULL;
     }
-    if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "Image copyright Mark Ferrari/Living Worlds. Used with permission.") < 0){
+    if(ncplane_set_bg(n, 0x002000) < 0){
+      return NULL;
+    }
+    if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "Image copyright Mark Ferrari/Living Worlds. Used with permission.") < 0){
       return NULL;
     }
   }
@@ -26580,6 +26583,8 @@ int jungle_demo(struct notcurses* nc){
   if(!notcurses_canchangecolor(nc)){
     return 0; // skip
   }
+  struct timespec start, now;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   size_t have = 0, out = 0;
   struct ncplane* copyplane;
   palette256* pal;
@@ -26629,7 +26634,8 @@ int jungle_demo(struct notcurses* nc){
     if(ncplane_cursor_move_yx(n, yoff + y / (yiter * 2), xoff)){
       return -1;
     }
-    for(size_t x = 0 ; x < ORIGWIDTH ; x += xiter){
+    // starting at 1 happens to give much better rain coverage on 80 columns
+    for(size_t x = 1 ; x < ORIGWIDTH ; x += xiter){
       int idx = y * ORIGWIDTH + x;
       int idx2 = (y + yiter) * ORIGWIDTH + x;
       if(cell_set_fg_palindex(&c, buf[idx])){
@@ -26645,8 +26651,6 @@ int jungle_demo(struct notcurses* nc){
   }
   cell_release(n, &c);
   free(buf);
-  struct timespec start, now;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   int iter = 0;
   // don't try to run faster than, eh, 140Hz
   int64_t iterns = GIG / 140;
