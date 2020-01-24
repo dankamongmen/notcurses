@@ -42,7 +42,7 @@ legend(struct notcurses* nc, const char* msg){
   ncplane_set_base(n, &c);
   ncplane_set_fg(n, 0xd78700);
   ncplane_set_bg(n, 0);
-  if(ncplane_putstr_aligned(n, 1, NCALIGN_CENTER, msg) < 0){
+  if(ncplane_printf_aligned(n, 1, NCALIGN_CENTER, " %s ", msg) < 0){
     ncplane_destroy(n);
     return NULL;
   }

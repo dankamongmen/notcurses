@@ -261,8 +261,8 @@ summary_table(const char* spec){
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   printf("\n");
-  printf("      runtime│frames│output(B)│rendering│ %%r│%7s║\n", "FPS");
-  printf("══╤═╤════════╪══════╪═════════╪═════════╪═══╪═══════╣\n");
+  printf("      runtime│frames│output(B)│rendering│ %%r│%7s│%7s║\n", "FPS", "TFPS");
+  printf("══╤═╤════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
@@ -273,7 +273,7 @@ summary_table(const char* spec){
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
-    printf("%2zu│%c│%*ss│%6lu│%*s│ %*ss│%3ld│%7.1f║%s\n", i,
+    printf("%2zu│%c│%*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│%7.1f║%s\n", i,
            results[i].selector,
            PREFIXSTRLEN, timebuf,
            results[i].stats.renders,
@@ -281,6 +281,7 @@ summary_table(const char* spec){
            PREFIXSTRLEN, rtimebuf,
            results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0,
+           results[i].stats.renders / ((double)results[i].timens / GIG),
            GIG / avg,
            results[i].result < 0 ? "***FAILED" :
             results[i].result > 0 ? "***ABORTED" :
@@ -296,10 +297,11 @@ summary_table(const char* spec){
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  printf("══╧═╧════════╪══════╪═════════╪═════════╪═══╪═══════╝\n");
-  printf("     %*ss│%6lu│%*s│ %*ss│%3ld│\n", PREFIXSTRLEN, timebuf,
+  printf("══╧═╧════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
+  printf("     %*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│\n", PREFIXSTRLEN, timebuf,
          totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf,
-         nsdelta ? totalrenderns * 100 / nsdelta : 0);
+         nsdelta ? totalrenderns * 100 / nsdelta : 0,
+         nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
   if(failed){
     fprintf(stderr, " Error running demo. Is \"%s\" the correct data path?\n", datadir);
   }

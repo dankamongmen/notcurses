@@ -5,7 +5,7 @@ Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config (>= 0.29),
  libncurses-dev (>= 6.1), libavformat-dev (>= 57.0), libswscale-dev (>= 5.0),
  libavutil-dev (>= 56.0), pandoc (>= 1.19.2.4), python3-all-dev (>= 3.2),
  python-cffi, g++ (>= 4:7.0.0-0)
-Standards-Version: 4.5.0.0
+Standards-Version: 4.5.0
 Section: libs
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses
 Vcs-Browser: https://github.com/dankamongmen/notcurses

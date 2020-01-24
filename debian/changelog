@@ -1,6 +1,6 @@
 notcurses (1.1.0-2) UNRELEASED; urgency=medium
 
-  * Debian policy 4.5.0.0
+  * Debian policy 4.5.0
 
  -- Nick Black <dankamongmen@gmail.com>  Wed, 22 Jan 2020 22:38:12 -0500
 
