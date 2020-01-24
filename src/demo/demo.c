@@ -254,77 +254,8 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
   return spec;
 }
 
-// just fucking around...for now
-int main(int argc, char** argv){
-  bool use_hud;
-  struct notcurses* nc;
-  notcurses_options nopts;
-  if(!setlocale(LC_ALL, "")){
-    fprintf(stderr, "Couldn't set locale based on user preferences\n");
-    return EXIT_FAILURE;
-  }
-  struct timespec starttime;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &starttime);
-  sigset_t sigmask;
-  sigemptyset(&sigmask);
-  sigaddset(&sigmask, SIGWINCH);
-  pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
-  const char* spec;
-  if((spec = handle_opts(argc, argv, &nopts, &use_hud)) == NULL){
-    if(argv[optind] != NULL){
-      usage(*argv, EXIT_FAILURE);
-    }
-    spec = DEFAULT_DEMO;
-  }
-  for(size_t i = 0 ; i < strlen(spec) ; ++i){
-    int nameidx = spec[i] - 'a';
-    if(nameidx < 0 || nameidx > 25 || !demos[nameidx].name){
-      fprintf(stderr, "Invalid demo specification: %c\n", spec[i]);
-      return EXIT_FAILURE;
-    }
-  }
-  if((nc = notcurses_init(&nopts, stdout)) == NULL){
-    return EXIT_FAILURE;
-  }
-  if(notcurses_mouse_enable(nc)){
-    goto err;
-  }
-  if(use_hud){
-    if(hud_create(nc) == NULL){
-      goto err;
-    }
-  }
-  if(input_dispatcher(nc)){
-    goto err;
-  }
-  int dimx, dimy;
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
-  if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
-    goto err;
-  }
-  // no one cares about the leaderscreen. 1s max.
-  if(demodelay.tv_sec >= 1){
-    sleep(1);
-  }else{
-    nanosleep(&demodelay, NULL);
-  }
-  if(ext_demos(nc, spec) == NULL){
-    goto err;
-  }
-  if(hud_destroy()){
-    goto err;
-  }
-  if(stop_input()){
-    goto err;
-  }
-  if(notcurses_stop(nc)){
-    return EXIT_FAILURE;
-  }
-  if(nopts.renderfp){
-    if(fclose(nopts.renderfp)){
-      fprintf(stderr, "Warning: error closing renderfile\n");
-    }
-  }
+static int
+summary_table(const char* spec){
   bool failed = false;
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
@@ -372,7 +303,83 @@ int main(int argc, char** argv){
   if(failed){
     fprintf(stderr, " Error running demo. Is \"%s\" the correct data path?\n", datadir);
   }
-  return failed ? EXIT_FAILURE : EXIT_SUCCESS;
+  return failed;
+}
+
+int main(int argc, char** argv){
+  if(!setlocale(LC_ALL, "")){
+    fprintf(stderr, "Couldn't set locale based on user preferences\n");
+    return EXIT_FAILURE;
+  }
+  sigset_t sigmask;
+  sigemptyset(&sigmask);
+  sigaddset(&sigmask, SIGWINCH);
+  pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
+  notcurses_options nopts;
+  bool use_hud;
+  const char* spec;
+  if((spec = handle_opts(argc, argv, &nopts, &use_hud)) == NULL){
+    if(argv[optind] != NULL){
+      usage(*argv, EXIT_FAILURE);
+    }
+    spec = DEFAULT_DEMO;
+  }
+  for(size_t i = 0 ; i < strlen(spec) ; ++i){
+    int nameidx = spec[i] - 'a';
+    if(nameidx < 0 || nameidx > 25 || !demos[nameidx].name){
+      fprintf(stderr, "Invalid demo specification: %c\n", spec[i]);
+      return EXIT_FAILURE;
+    }
+  }
+  struct timespec starttime;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &starttime);
+  struct notcurses* nc;
+  if((nc = notcurses_init(&nopts, stdout)) == NULL){
+    return EXIT_FAILURE;
+  }
+  if(notcurses_mouse_enable(nc)){
+    goto err;
+  }
+  if(use_hud){
+    if(hud_create(nc) == NULL){
+      goto err;
+    }
+  }
+  if(input_dispatcher(nc)){
+    goto err;
+  }
+  int dimx, dimy;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
+    goto err;
+  }
+  // no one cares about the leaderscreen. 1s max.
+  if(demodelay.tv_sec >= 1){
+    sleep(1);
+  }else{
+    nanosleep(&demodelay, NULL);
+  }
+  if(ext_demos(nc, spec) == NULL){
+    goto err;
+  }
+  if(hud_destroy()){
+    goto err;
+  }
+  if(stop_input()){
+    goto err;
+  }
+  if(notcurses_stop(nc)){
+    return EXIT_FAILURE;
+  }
+  if(nopts.renderfp){
+    if(fclose(nopts.renderfp)){
+      fprintf(stderr, "Warning: error closing renderfile\n");
+    }
+  }
+  if(summary_table(spec)){
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 
 err:
   notcurses_term_dim_yx(nc, &dimy, &dimx);

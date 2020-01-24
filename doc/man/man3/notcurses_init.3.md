@@ -15,7 +15,6 @@ typedef struct notcurses_options {
   const char* termtype;
   bool inhibit_alternate_screen;
   bool retain_cursor;
-  bool clear_screen_start;
   bool suppress_banner;
   bool no_quit_sighandlers;
   bool no_winch_sighandler;
@@ -54,10 +53,6 @@ notcurses furthermore hides the cursor by default, but **retain_cursor** can
 prevent this (the cursor can be dynamically enabled or disabled during
 execution via **notcurses_cursor_enable(3)** and **notcurses_cursor_disable(3)**).
 
-If **clear_screen_start** is set to **true**, the screen will be cleared as part of
-**notcurses_init**. Otherwise, whatever's on the screen at entry will remain
-there until changed.
-
 **notcurses_init** typically emits some diagnostics at startup, including version
 information and some details of the configured terminal. This can be inhibited
 with **suppress_banner**. This will also inhibit the performance summary normally
@@ -91,8 +86,7 @@ upon its receipt.
 
 A resize event does not invalidate any references returned earlier by
 notcurses. The content of any new screen area is undefined until the next call
-to notcurses_render(3), unless **clear_screen_start** is set **true**, in which
-case new area is cleared. This is true even if an existing **struct ncplane**
+to notcurses_render(3). This is true even if an existing **struct ncplane**
 (see **notcurses_ncplane(3)**) overlaps the new area, since the signal could
 arrive while the ncplanes are being modified. Signal handlers are quite
 restricted as to what actions they can perform, so minimal work is performed in
@@ -103,17 +97,17 @@ Thus, in the absence of **no_winch_sighandler**, **SIGWINCH** results in:
 * interruption of some thread to process the signal
 * a **TIOCGWINSZ** **ioctl** to retrieve the new screen size
 * queuing of a **NCKEY_RESIZE** input event (if there is space in the queue)
-* blanking of the new screen area (if **clear_screen_start** is set)
 
-Upon the next call to **notcurses_render(3)** or **notcurses_resize(3)**, the standard
-plane (see **notcurses_stdplane(3)**) will be resized to the new screen size. The
-next **notcurses_render(3)** call will function as expected across the new screen
-geometry.
+Upon the next call to **notcurses_render(3)** or **notcurses_resize(3)**, the
+standard plane (see **notcurses_stdplane(3)**) will be resized to the new
+screen size. The next **notcurses_render(3)** call will function as expected
+across the new screen geometry.
 
 # RETURN VALUES
 
 **NULL** is returned on failure. Otherwise, the return value points at a valid
-**struct notcurses**, which can be used until it is provided to **notcurses_stop(3)**.
+**struct notcurses**, which can be used until it is provided to
+**notcurses_stop(3)**.
 
 # SEE ALSO
 

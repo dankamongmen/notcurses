@@ -140,8 +140,6 @@ typedef struct notcurses_options {
   // By default, we hide the cursor if possible. This flag inhibits use of
   // the civis capability, retaining the cursor.
   bool retain_cursor;
-  // Notcurses does not clear the screen on startup unless thus requested to.
-  bool clear_screen_start;
   // Notcurses typically prints version info in notcurses_init() and performance
   // info in notcurses_stop(). This inhibits that output.
   bool suppress_banner;
