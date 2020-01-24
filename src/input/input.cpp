@@ -172,7 +172,6 @@ int main(void){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
-  NotCurses::default_notcurses_options.clear_screen_start = true;
   NotCurses nc;
   if(!nc.mouse_enable ()){
     return EXIT_FAILURE;

@@ -864,9 +864,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       }
     }
   }
-  if(opts->clear_screen_start){
-    term_emit("clear", ret->clearscr, ret->ttyfp, false);
-  }
   return ret;
 
 err:

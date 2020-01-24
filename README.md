@@ -204,8 +204,6 @@ typedef struct notcurses_options {
   // Notcurses typically prints version info in notcurses_init() and
   // performance info in notcurses_stop(). This inhibits that output.
   bool suppress_banner;
-  // Notcurses does not clear the screen on startup unless thus requested to.
-  bool clear_screen_start;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
@@ -2321,13 +2319,14 @@ output (including any sleeping while waiting on the terminal).
 
 The notcurses rendering algorithm starts by moving the physical cursor to the
 upper left corner of the visible screen (it does *not* clear the screen
-beforehand). At each coordinate, it finds the topmost visible `ncplane`. There
-will always be at least one `ncplane` visible at each coordinate, due to the
-default plane. Once the plane is determined, the damage map is consulted to see
-whether the cell need be redrawn. If so, it will be redrawn, and the virtual
-cursor is updated based on the width of the output. Along the way, notcurses
-attempts to minimize total amount of data written by eliding unnecessary color
-and style specifications, and moving the cursor over large unchanged areas.
+beforehand, though any existing contents will be destroyed by the first render).
+At each coordinate, it finds the topmost visible `ncplane`. There will always
+be at least one `ncplane` visible at each coordinate, due to the default plane.
+Once the plane is determined, the damage map is consulted to see whether the
+cell need be redrawn. If so, it will be redrawn, and the virtual cursor is
+updated based on the width of the output. Along the way, notcurses attempts to
+minimize total amount of data written by eliding unnecessary color and style
+specifications, and moving the cursor over large unchanged areas.
 
 Using the "default color" as only one of the foreground or background requires
 emitting the `op` escape followed by the appropriate escape for changing the
@@ -2357,10 +2356,9 @@ The biggest difference, of course, is that notcurses is not an implementation
 of X/Open (aka XSI) Curses, nor part of SUS4-2018.
 
 The detailed differences between notcurses and NCURSES probably can't be fully
-enumerated, and if they could, no one would want to read it. With that said,
+enumerated, and if they could, no one would want to read them. With that said,
 some design decisions might surprise NCURSES programmers:
 
-* The screen is not cleared on entry.
 * There is no distinct `PANEL` type. The z-buffer is a fundamental property,
   and all drawable surfaces are ordered along the z axis. There is no
   equivalent to `update_panels()`.

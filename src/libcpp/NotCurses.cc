@@ -7,7 +7,6 @@ notcurses_options NotCurses::default_notcurses_options = {
 	/* termtype */                 nullptr,
 	/* inhibit_alternate_screen */ false,
 	/* retain_cursor */            false,
-	/* clear_screen_start */       false,
 	/* suppress_bannner */         false,
 	/* no_quit_sighandlers */      false,
 	/* no_winch_sighandler */      false,
