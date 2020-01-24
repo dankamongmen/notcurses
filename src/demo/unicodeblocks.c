@@ -20,10 +20,7 @@ fade_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subd
 }
 
 static int
-draw_block(struct ncplane* nn, uint32_t blockstart, bool rtl){
-  if(rtl){
-    //return 0;
-  }
+draw_block(struct ncplane* nn, uint32_t blockstart){
   int dimx, dimy;
   ncplane_dim_yx(nn, &dimy, &dimx);
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
@@ -91,73 +88,79 @@ int unicodeblocks_demo(struct notcurses* nc){
   // marginally covered by mainstream fonts, some not at all. we explicitly
   // list the ones we want.
   const struct {
-    bool rtl; // are there right-to-left chars?
     const char* name;
     uint32_t start;
   } blocks[] = {
-    { .rtl = false, .name = "Basic Latin, Latin 1 Supplement, Latin Extended", .start = 0, },
-    { .rtl = false, .name = "IPA Extensions, Spacing Modifiers, Greek and Coptic", .start = 0x200, },
-    { .rtl = true, .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
-    { .rtl = true, .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
-    { .rtl = true, .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
-    { .rtl = false, .name = "Gurmukhi, Gujarati, Oriya, Tamil", .start = 0xa00, },
-    { .rtl = false, .name = "Telugu, Kannada, Malayalam, Sinhala", .start = 0xc00, },
-    { .rtl = false, .name = "Thai, Lao, Tibetan", .start = 0xe00, },
-    { .rtl = false, .name = "Myanmar, Georgian, Hangul Jamo", .start = 0x1000, },
-    { .rtl = false, .name = "Ethiopic, Ethiopic Supplement, Cherokee", .start = 0x1200, },
-    { .rtl = false, .name = "Canadian", .start = 0x1400, },
-    { .rtl = false, .name = "Runic, Tagalog, Hanunoo, Buhid, Tagbanwa, Khmer", .start = 0x1600, },
-    { .rtl = false, .name = "Mongolian, Canadian Extended, Limbu, Tai Le", .start = 0x1800, },
-    { .rtl = false, .name = "Buginese, Tai Tham, Balinese, Sundanese, Batak", .start = 0x1a00, },
-    { .rtl = false, .name = "Lepcha, Ol Chiki, Vedic Extensions, Phonetic Extensions", .start = 0x1c00, },
-    { .rtl = false, .name = "Latin Extended Additional, Greek Extended", .start = 0x1e00, },
-    { .rtl = false, .name = "General Punctuation, Letterlike Symbols, Arrows", .start = 0x2000, },
-    { .rtl = false, .name = "Mathematical Operators, Miscellaneous Technical", .start = 0x2200, },
-    { .rtl = false, .name = "Control Pictures, Box Drawing, Block Elements", .start = 0x2400, },
-    { .rtl = false, .name = "Miscellaneous Symbols, Dingbats", .start = 0x2600, },
-    { .rtl = false, .name = "Braille Patterns, Supplemental Arrows", .start = 0x2800, },
-    { .rtl = false, .name = "Supplemental Mathematical Operators", .start = 0x2a00, },
-    { .rtl = false, .name = "Glagolitic, Georgian Supplement, Tifinagh", .start = 0x2c00, },
-    { .rtl = false, .name = "Supplemental Punctuation, CJK Radicals", .start = 0x2e00, },
-    { .rtl = false, .name = "CJK Symbols and Punctuation", .start = 0x3000, },
-    { .rtl = false, .name = "Enclosed CJK Letters and Months", .start = 0x3200, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A", .start = 0x3400, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3600, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3800, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3a00, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3c00, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3e00, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4000, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4200, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4400, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4600, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4800, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4a00, },
-    { .rtl = false, .name = "CJK Unified Ideographs Extension A, Yijang Hexagram", .start = 0x4c00, },
-    { .rtl = false, .name = "CJK Unified Ideographs", .start = 0x4e00, },
-    { .rtl = false, .name = "Yi Syllables", .start = 0xa000, },
-    { .rtl = false, .name = "Yi Syllables", .start = 0xa200, },
-    { .rtl = false, .name = "Yi Syllables, Yi Radicals, Lisu, Vai", .start = 0xa400, },
-    { .rtl = false, .name = "Vai, Cyrillic Extended-B, Bamum, Tone Letters, Latin Extended-D", .start = 0xa600, },
-    { .rtl = false, .name = "Halfwidth and Fullwidth Forms", .start = 0xff00, },
-    { .rtl = false, .name = "Linear B Syllabary, Linear B Ideograms, Aegean Numbers, Phaistos Disc", .start = 0x10000, },
-    { .rtl = false, .name = "Lycian, Carian, Coptic Epact Numbers, Old Italic, Gothic, Old Permic", .start = 0x10200, },
-    { .rtl = false, .name = "Cuneiform", .start = 0x12000, },
-    { .rtl = false, .name = "Cuneiform (cont.)", .start = 0x12200, },
-    { .rtl = false, .name = "Byzantine Musical Symbols, Musical Symbols", .start = 0x1d000, },
-    { .rtl = false, .name = "Ancient Greek Musical Notation, Mayan Numerals, Tai Xuan Jing, Counting Rods", .start = 0x1d200, },
-    { .rtl = false, .name = "Mathematical Alphanumeric Symbols", .start = 0x1d400, },
-    { .rtl = false, .name = "Mathematical Alphanumeric Symbols (cont.)", .start = 0x1d600, },
-    { .rtl = false, .name = "Sutton SignWriting", .start = 0x1d800, },
-    { .rtl = false, .name = "Glagolitic Supplement, Nyiakeng Puachue Hmong", .start = 0x1e000, },
-    { .rtl = false, .name = "Ottoman Siyaq Numbers", .start = 0x1ed00, },
-    { .rtl = false, .name = "Arabic Mathematical Alphabetic Symbols", .start = 0x1ee00, },
-    { .rtl = false, .name = "Mahjong Tiles, Domino Tiles, Playing Cards", .start = 0x1f000, },
-    { .rtl = false, .name = "Enclosed Ideographic Supplement, Miscellaneous Symbols", .start = 0x1f200, },
-    { .rtl = false, .name = "Miscellaneous Symbols and Pictographs (cont.)", .start = 0x1f400, },
-    { .rtl = false, .name = "Emoticons, Ornamental Dingbats, Transport and Map Symbols", .start = 0x1f600, },
-    { .rtl = false, .name = "Supplemental Arrows-C, Supplemental Symbols", .start = 0x1f800, },
-    { .rtl = false, .name = "Chess Symbols, Symbols and Pictographs Extended-A", .start = 0x1fa00, },
+    { .name = "Basic Latin, Latin 1 Supplement, Latin Extended", .start = 0, },
+    { .name = "IPA Extensions, Spacing Modifiers, Greek and Coptic", .start = 0x200, },
+    { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
+    { .name = "Arabic, Syriac, Arabic Supplement", .start = 0x600, },
+    { .name = "Samaritan, Mandaic, Devanagari, Bengali", .start = 0x800, },
+    { .name = "Gurmukhi, Gujarati, Oriya, Tamil", .start = 0xa00, },
+    { .name = "Telugu, Kannada, Malayalam, Sinhala", .start = 0xc00, },
+    { .name = "Thai, Lao, Tibetan", .start = 0xe00, },
+    { .name = "Myanmar, Georgian, Hangul Jamo", .start = 0x1000, },
+    { .name = "Ethiopic, Ethiopic Supplement, Cherokee", .start = 0x1200, },
+    { .name = "Canadian", .start = 0x1400, },
+    { .name = "Runic, Tagalog, Hanunoo, Buhid, Tagbanwa, Khmer", .start = 0x1600, },
+    { .name = "Mongolian, Canadian Extended, Limbu, Tai Le", .start = 0x1800, },
+    { .name = "Buginese, Tai Tham, Balinese, Sundanese, Batak", .start = 0x1a00, },
+    { .name = "Lepcha, Ol Chiki, Vedic Extensions, Phonetic Extensions", .start = 0x1c00, },
+    { .name = "Latin Extended Additional, Greek Extended", .start = 0x1e00, },
+    { .name = "General Punctuation, Letterlike Symbols, Arrows", .start = 0x2000, },
+    { .name = "Mathematical Operators, Miscellaneous Technical", .start = 0x2200, },
+    { .name = "Control Pictures, Box Drawing, Block Elements", .start = 0x2400, },
+    { .name = "Miscellaneous Symbols, Dingbats", .start = 0x2600, },
+    { .name = "Braille Patterns, Supplemental Arrows", .start = 0x2800, },
+    { .name = "Supplemental Mathematical Operators", .start = 0x2a00, },
+    { .name = "Glagolitic, Georgian Supplement, Tifinagh", .start = 0x2c00, },
+    { .name = "Supplemental Punctuation, CJK Radicals", .start = 0x2e00, },
+    { .name = "CJK Symbols and Punctuation", .start = 0x3000, },
+    { .name = "Enclosed CJK Letters and Months", .start = 0x3200, },
+    { .name = "CJK Unified Ideographs Extension A", .start = 0x3400, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3600, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3800, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3a00, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3c00, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x3e00, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4000, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4200, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4400, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4600, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4800, },
+    { .name = "CJK Unified Ideographs Extension A (cont.)", .start = 0x4a00, },
+    { .name = "CJK Unified Ideographs Extension A, Yijang Hexagram", .start = 0x4c00, },
+    { .name = "CJK Unified Ideographs", .start = 0x4e00, },
+    { .name = "Yi Syllables", .start = 0xa000, },
+    { .name = "Yi Syllables", .start = 0xa200, },
+    { .name = "Yi Syllables, Yi Radicals, Lisu, Vai", .start = 0xa400, },
+    { .name = "Vai, Cyrillic Extended-B, Bamum, Tone Letters, Latin Extended-D", .start = 0xa600, },
+    { .name = "Syloti Nagri, Phags-pa, Kayah Li, Javanese", .start = 0xa800, },
+    { .name = "Cham, Tai Viet, Cherokee Supplement", .start = 0xaa00, },
+    { .name = "Hangul Syllables", .start = 0xac00, },
+    { .name = "Hangul Syllables", .start = 0xae00, },
+    { .name = "CJK Compatability Ideographs", .start = 0xf800, },
+    { .name = "CJK Compatability Ideographs, Alphabetic Presentation Forms", .start = 0xfa00, },
+    { .name = "Arabic Presentation Forms-A", .start = 0xfc00, },
+    { .name = "Halfwidth and Fullwidth Forms", .start = 0xfe00, },
+    { .name = "Linear B Syllabary, Linear B Ideograms, Aegean Numbers, Phaistos Disc", .start = 0x10000, },
+    { .name = "Lycian, Carian, Coptic Epact Numbers, Old Italic, Gothic, Old Permic", .start = 0x10200, },
+    { .name = "Cuneiform", .start = 0x12000, },
+    { .name = "Cuneiform (cont.)", .start = 0x12200, },
+    { .name = "Byzantine Musical Symbols, Musical Symbols", .start = 0x1d000, },
+    { .name = "Ancient Greek Musical Notation, Mayan Numerals, Tai Xuan Jing, Counting Rods", .start = 0x1d200, },
+    { .name = "Mathematical Alphanumeric Symbols", .start = 0x1d400, },
+    { .name = "Mathematical Alphanumeric Symbols (cont.)", .start = 0x1d600, },
+    { .name = "Sutton SignWriting", .start = 0x1d800, },
+    { .name = "Glagolitic Supplement, Nyiakeng Puachue Hmong", .start = 0x1e000, },
+    { .name = "Ottoman Siyaq Numbers", .start = 0x1ed00, },
+    { .name = "Arabic Mathematical Alphabetic Symbols", .start = 0x1ee00, },
+    { .name = "Mahjong Tiles, Domino Tiles, Playing Cards", .start = 0x1f000, },
+    { .name = "Enclosed Ideographic Supplement, Miscellaneous Symbols", .start = 0x1f200, },
+    { .name = "Miscellaneous Symbols and Pictographs (cont.)", .start = 0x1f400, },
+    { .name = "Emoticons, Ornamental Dingbats, Transport and Map Symbols", .start = 0x1f600, },
+    { .name = "Supplemental Arrows-C, Supplemental Symbols", .start = 0x1f800, },
+    { .name = "Chess Symbols, Symbols and Pictographs Extended-A", .start = 0x1fa00, },
   };
   ncplane_greyscale(notcurses_stdplane(nc));
   size_t sindex;
@@ -195,10 +198,12 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(hud){
       ncplane_move_below_unsafe(nn, hud);
     }
-    if(draw_block(nn, blockstart, blocks[sindex].rtl)){
+    if(draw_block(nn, blockstart)){
       return -1;
     }
-    ncplane_set_fg_rgb(n, 0x40, 0xc0, 0x40);
+    if(ncplane_set_fg_rgb(n, 0x40, 0xc0, 0x40)){
+      return -1;
+    }
     if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 0)){
       return -1;
     }
