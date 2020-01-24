@@ -255,14 +255,28 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
 }
 
 static int
-summary_table(const char* spec){
+table_segment(struct notcurses* nc, const char* str, const char* delim){
+  term_fg_rgb8(nc, stdout, 255, 255, 255);
+  fputs(str, stdout);
+  term_fg_rgb8(nc, stdout, 178, 102, 255);
+  fputs(delim, stdout);
+  return 0;
+}
+
+static int
+summary_table(struct notcurses* nc, const char* spec){
   bool failed = false;
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   printf("\n");
-  printf("      runtime│frames│output(B)│rendering│ %%r│%7s│%7s║\n", "FPS", "TheoFPS");
-  printf("══╤═╤════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
+  table_segment(nc, "      runtime", "│");
+  table_segment(nc, "frames", "│");
+  table_segment(nc, "output(B)", "│");
+  table_segment(nc, "rendering", "│");
+  table_segment(nc, " %r", "│");
+  table_segment(nc, "    FPS", "│");
+  table_segment(nc, "TheoFPS", "║\n══╤═╤════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
@@ -297,7 +311,7 @@ summary_table(const char* spec){
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  printf("══╧═╧════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
+  table_segment(nc, "", "══╧═╧════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
   printf("     %*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│\n", PREFIXSTRLEN, timebuf,
          totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf,
          nsdelta ? totalrenderns * 100 / nsdelta : 0,
@@ -378,9 +392,17 @@ int main(int argc, char** argv){
       fprintf(stderr, "Warning: error closing renderfile\n");
     }
   }
-  if(summary_table(spec)){
+  nopts.suppress_banner = true;
+  nopts.inhibit_alternate_screen = true;
+  // reinitialize without alternate screen to do some coloring
+  if((nc = notcurses_init(&nopts, stdout)) == NULL){
     return EXIT_FAILURE;
   }
+  if(summary_table(nc, spec)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
+  notcurses_stop(nc);
   return EXIT_SUCCESS;
 
 err:
