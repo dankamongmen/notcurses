@@ -185,22 +185,27 @@ int hud_schedule(const char* demoname){
   return 0;
 }
 
-// wake up every 100ms and render a frame so the HUD doesn't look locked up
+// wake up every 100ms and render a frame so the HUD doesn't appear locked up
 int demo_nanosleep(struct notcurses* nc, const struct timespec *ts){
-  uint64_t nstotal = timespec_to_ns(ts);
-  uint64_t deadline;
-  struct timespec fsleep, now;
+  struct timespec fsleep;
+  if(hud){
+    uint64_t nstotal = timespec_to_ns(ts);
+    uint64_t deadline;
+    struct timespec now;
 
-  clock_gettime(CLOCK_MONOTONIC_RAW, &now);
-  deadline = timespec_to_ns(&now) + nstotal;
-  while(deadline - timespec_to_ns(&now) > GIG / 10){
-    fsleep.tv_sec = 0;
-    fsleep.tv_nsec = GIG / 10;
-    nanosleep(&fsleep, NULL);
-    demo_render(nc);
     clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+    deadline = timespec_to_ns(&now) + nstotal;
+    while(deadline - timespec_to_ns(&now) > GIG / 10){
+      fsleep.tv_sec = 0;
+      fsleep.tv_nsec = GIG / 10;
+      nanosleep(&fsleep, NULL);
+      demo_render(nc);
+      clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+    }
+    ns_to_timespec(deadline - timespec_to_ns(&now), &fsleep);
+  }else{
+    fsleep = *ts;
   }
-  ns_to_timespec(deadline - timespec_to_ns(&now), &fsleep);
   nanosleep(&fsleep, NULL);
   return 0;
 }

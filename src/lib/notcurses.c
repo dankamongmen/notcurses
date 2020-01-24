@@ -932,8 +932,6 @@ int notcurses_stop(notcurses* nc){
                 totalbuf, minbuf, maxbuf,
                 avg / 1024);
       }
-      fprintf(stderr, "%ju failed render%s\n", nc->stashstats.failed_renders,
-              nc->stashstats.failed_renders == 1 ? "" : "s");
       fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
               nc->stashstats.defaultemissions,
               nc->stashstats.defaultelisions,
@@ -952,6 +950,8 @@ int notcurses_stop(notcurses* nc){
               nc->stashstats.cellemissions, nc->stashstats.cellelisions,
               (nc->stashstats.cellemissions + nc->stashstats.cellelisions) == 0 ? 0 :
               (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions));
+      fprintf(stderr, "%ju failed render%s\n", nc->stashstats.failed_renders,
+              nc->stashstats.failed_renders == 1 ? "" : "s");
     }
     free(nc);
   }
