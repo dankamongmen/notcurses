@@ -261,7 +261,7 @@ summary_table(const char* spec){
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   printf("\n");
-  printf("      runtime│frames│output(B)│rendering│ %%r│%7s│%7s║\n", "FPS", "TFPS");
+  printf("      runtime│frames│output(B)│rendering│ %%r│%7s│%7s║\n", "FPS", "TheoFPS");
   printf("══╤═╤════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
