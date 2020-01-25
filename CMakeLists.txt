@@ -428,7 +428,8 @@ write_basic_package_version_file(
 )
 
 # Python bindings
-find_package(Python3 COMPONENTS Development REQUIRED)
+find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
+file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
 set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.py.in")
 set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/python/setup.py")
 configure_file(${SETUP_PY_IN} ${SETUP_PY})
@@ -436,13 +437,18 @@ add_custom_command(
   OUTPUT
     "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp"
   COMMAND
-    "${Python_EXECUTABLE}" ${SETUP_PY} build_ext
-  COMMAND
-    ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp"
+    ${Python3_EXECUTABLE} ${SETUP_PY} build &&
+     "${Python3_EXECUTABLE}" ${SETUP_PY} --include-dirs ${CMAKE_SOURCE_DIR}/include build_ext &&
+     mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/build" &&
+     ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp"
   DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/python/src/notcurses/__init__.py"
+    ${PYSRC} ${SETUP_PY}
+  COMMENT "Building Python wrappers"
 )
-add_custom_target(target ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
+add_custom_target(pymod
+  ALL
+  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp"
+)
 install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
 
 # Installation
