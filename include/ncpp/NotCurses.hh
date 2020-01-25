@@ -31,17 +31,10 @@ namespace ncpp
 		explicit NotCurses (const notcurses_options &nc_opts, FILE *fp = nullptr);
 
 		// Must not move or copy a NotCurses instance because we have no way to guarantee validity of any other copy
-		// when even a single instance is destructed as that operation would close not curses.
+		// when even a single instance is destructed as that operation would close notcurses.
 		NotCurses (const NotCurses &other) = delete;
 		NotCurses (NotCurses &&other) = delete;
-
-		~NotCurses ()
-		{
-			if (nc == nullptr)
-				return;
-
-			notcurses_stop (nc);
-		}
+		~NotCurses ();
 
 		operator notcurses* () noexcept
 		{
