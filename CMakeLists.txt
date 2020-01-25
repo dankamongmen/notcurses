@@ -442,7 +442,7 @@ add_custom_command(
      mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/build" &&
      ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp"
   DEPENDS
-    ${PYSRC} ${SETUP_PY}
+    ${PYSRC} ${SETUP_PY} notcurses
   COMMENT "Building Python wrappers"
 )
 add_custom_target(pymod
