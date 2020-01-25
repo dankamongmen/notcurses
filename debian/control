@@ -4,7 +4,7 @@ Maintainer: Nick Black <dankamongmen@gmail.com>
 Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config (>= 0.29),
  libncurses-dev (>= 6.1), libavformat-dev (>= 57.0), libswscale-dev (>= 5.0),
  libavutil-dev (>= 56.0), pandoc (>= 1.19.2.4), python3-all-dev (>= 3.2),
- python-cffi, g++ (>= 4:7.0.0-0)
+ python3-cffi (>= 1.13.2), g++ (>= 4:7.0.0-0), python3-setuptools (>= 44.0.0)
 Standards-Version: 4.5.0
 Section: libs
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses
@@ -42,6 +42,7 @@ Description: Development files for notcurses++
 Package: libnotcurses++1
 Architecture: any
 Multi-Arch: same
+Recommends: ncurses-term (>= 6.1)
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Shared libraries for notcurses++
  notcurses++ is a C++ binding for the notcurses TUI library
