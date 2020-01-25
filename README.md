@@ -2519,6 +2519,9 @@ up someday **FIXME**.
 * *Q:* One of the demos claimed to spend more than 100% of its runtime rendering. Do you know how to count?
 * *A:* Runtime is wall clock time. A multithreaded demo can spend more than the wall-clock time rendering if the threads contend.
 
+* *Q:* Using the C++ wrapper, how can I ensure that the `NotCurses` destructor is run when I return from `main()`?
+* *A:* As noted in the [C++ FAQ](https://isocpp.org/wiki/faq/dtors#artificial-block-to-control-lifetimes), wrap it in an artificial scope (this assumes your `NotCurses` is scoped to `main()`).
+
 ## Supplemental material
 
 ### Useful links

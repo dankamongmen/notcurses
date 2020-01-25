@@ -877,10 +877,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
-  if(ret->smcup && term_emit("smcup", ret->smcup, ret->ttyfp, false)){
-    free_plane(ret->top);
-    goto err;
-  }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     free_plane(ret->top);
     goto err;
@@ -889,7 +885,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(!opts->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 50 % ret->colors : 0x20e080);
-    fprintf(ret->ttyfp, "\n notcurses %s by nick black", notcurses_version());
+    fprintf(ret->ttyfp, "\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 12 % ret->colors : 0x2080e0);
     fprintf(ret->ttyfp, "\n  %d rows, %d columns (%sB), %d colors (%s)\n"
           "  compiled with gcc-%s\n"
@@ -919,6 +915,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
         fprintf(ret->ttyfp, "\n Warning!\n  Advertised DirectColor but no 'ccc' flag\n");
       }
     }
+  }
+  if(ret->smcup && term_emit("smcup", ret->smcup, ret->ttyfp, false)){
+    free_plane(ret->top);
+    goto err;
   }
   return ret;
 
