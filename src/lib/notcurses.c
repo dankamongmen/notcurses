@@ -918,6 +918,15 @@ err:
 int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
+    if(nc->op && term_emit("op", nc->op, nc->ttyfp, true)){
+      ret = -1;
+    }
+    if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
+      ret = -1;
+    }
+    if(nc->oc && term_emit("oc", nc->oc, nc->ttyfp, true)){
+      ret = -1;
+    }
     free(nc);
   }
   return ret;

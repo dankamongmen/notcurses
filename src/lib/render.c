@@ -609,10 +609,16 @@ term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
 }
 
 int ncdirect_bg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
+  if(r > 255 || g > 255 || b > 255){
+    return -1;
+  }
   return term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp, r, g, b);
 }
 
 int ncdirect_fg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
+  if(r > 255 || g > 255 || b > 255){
+    return -1;
+  }
   return term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp, r, g, b);
 }
 
