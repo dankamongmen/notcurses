@@ -5,18 +5,18 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-01-18a
+  image: dankamongmen/unstable_builder:2020-01-25b
   commands:
     - apt-get update
     - apt-get -y dist-upgrade
-    - apt-get -y install devscripts git-buildpackage
-    - export LANG=en_US.UTF-8
+    - apt-get -y install git-buildpackage
     - mk-build-deps --install -t'apt-get -y'
+    - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
-    - make test
+    - make test || ./notcurses-tester -p ../data
 ---
 kind: pipeline
 type: docker
@@ -24,11 +24,11 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/focal:2020-01-25a
+  image: dankamongmen/focal:2020-01-25b
   commands:
     - apt-get update
     - apt-get -y dist-upgrade
-    - env DEBIAN_FRONTEND=noninteractive apt-get -y install devscripts git-buildpackage equivs
+    - apt-get -y install git-buildpackage
     - mk-build-deps --install -t'apt-get -y'
     - export LANG=en_US.UTF-8
     - mkdir build
