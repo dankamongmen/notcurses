@@ -255,16 +255,16 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
 }
 
 static int
-table_segment(struct notcurses* nc, const char* str, const char* delim){
-  term_fg_rgb8(nc, stdout, 255, 255, 255);
+table_segment(struct ncdirect* nc, const char* str, const char* delim){
+  ncdirect_fg_rgb8(nc, 255, 255, 255);
   fputs(str, stdout);
-  term_fg_rgb8(nc, stdout, 178, 102, 255);
+  ncdirect_fg_rgb8(nc, 178, 102, 255);
   fputs(delim, stdout);
   return 0;
 }
 
 static int
-summary_table(struct notcurses* nc, const char* spec){
+summary_table(struct ncdirect* nc, const char* spec){
   bool failed = false;
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
@@ -392,17 +392,16 @@ int main(int argc, char** argv){
       fprintf(stderr, "Warning: error closing renderfile\n");
     }
   }
-  nopts.suppress_banner = true;
-  nopts.inhibit_alternate_screen = true;
+  struct ncdirect* ncd = notcurses_directmode(NULL, stdout);
   // reinitialize without alternate screen to do some coloring
-  if((nc = notcurses_init(&nopts, stdout)) == NULL){
+  if(!ncd){
     return EXIT_FAILURE;
   }
-  if(summary_table(nc, spec)){
-    notcurses_stop(nc);
+  if(summary_table(ncd, spec)){
+    ncdirect_stop(ncd);
     return EXIT_FAILURE;
   }
-  notcurses_stop(nc);
+  ncdirect_stop(ncd);
   return EXIT_SUCCESS;
 
 err:

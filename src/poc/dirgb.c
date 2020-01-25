@@ -10,19 +10,16 @@ int main(void){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
   }
-  notcurses_options nopts;
-  memset(&nopts, 0, sizeof(nopts));
-  nopts.inhibit_alternate_screen = true;
-  struct notcurses* nc = notcurses_init(&nopts, stdout);
+  struct ncdirect* nc = notcurses_directmode(NULL, stdout);
   if(!nc){
     return EXIT_FAILURE;
   }
   for(int r = 0 ; r < 256 ; r += 16){
     for(int g = 0 ; g < 256 ; g += 16){
       for(int b = 0 ; b < 256 ; b += 16){
-        int ret = term_fg_rgb8(nc, stdout, r, g, b);
+        int ret = ncdirect_fg_rgb8(nc, r, g, b);
         if(ret){
-          notcurses_stop(nc);
+          ncdirect_stop(nc);
           return EXIT_FAILURE;
         }
         printf("X");
@@ -34,7 +31,7 @@ int main(void){
     }
   }
   printf("\n");
-  if(notcurses_stop(nc)){
+  if(ncdirect_stop(nc)){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

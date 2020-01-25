@@ -18,6 +18,7 @@ and the [man pages](https://nick-black.com/notcurses).
 * [Requirements](#requirements)
   * [Building](#building)
 * [Use](#use)
+  * [Direct Mode](#direct-mode)
   * [Alignment](#alignment)
   * [Input](#input)
   * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
@@ -214,7 +215,7 @@ typedef struct notcurses_options {
 
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
 // be a tty. You'll usually want stdout. Returns NULL on error, including any
-// failure to initialize terminfo.
+// failure initializing terminfo.
 struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 
 // Destroy a notcurses context.
@@ -316,6 +317,36 @@ bool notcurses_canopen(const struct notcurses* nc);
 
 // Can we change colors in the hardware palette? Requires "ccc" and "initc".
 bool notcurses_canchangecolors(const struct notcurses* nc);
+```
+
+### Direct mode
+
+"Direct mode" makes a limited subset of notcurses is available for manipulating
+typical scrolling or file-backed output. These functions output directly and
+immediately to the provided `FILE*`, and `notcurses_render()` is neither
+supported nor necessary for such an instance. Use `notcurses_directmode()` to
+create a direct mode context:
+
+```c
+struct ncdirect; // minimal state for a terminal
+
+// Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
+// 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
+// limited subset of notcurses routines which directly affect 'fp', and neither
+// supports nor requires notcurses_render(). This can be used to add color and
+// styling to text in the standard output paradigm. Returns NULL on error,
+// including any failure initializing terminfo.
+struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
+
+int ncdirect_stop(struct ncdirect* nc);
+```
+
+This context must be destroyed using `ncdirect_stop()`. The following functions
+are available for direct mode:
+
+```c
+int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
+int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 ```
 
 ### Alignment

@@ -160,8 +160,16 @@ typedef struct notcurses_options {
 
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
 // be a tty. You'll usually want stdout. Returns NULL on error, including any
-// failure to initialize terminfo.
+// failure initializing terminfo.
 API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
+
+// Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
+// 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
+// limited subset of notcurses routines which directly affect 'fp', and neither
+// supports nor requires notcurses_render(). This can be used to add color and
+// styling to text in the standard output paradigm. Returns NULL on error,
+// including any failure initializing terminfo.
+API struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
 
 // Destroy a notcurses context.
 API int notcurses_stop(struct notcurses* nc);
@@ -2053,8 +2061,9 @@ API void ncplane_greyscale(struct ncplane* n);
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should
 // not be intermixed with standard notcurses rendering.
-API int term_bg_rgb8(struct notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b);
-API int term_fg_rgb8(struct notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b);
+API int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
+API int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
+API int ncdirect_stop(struct ncdirect* nc);
 
 #undef API
 

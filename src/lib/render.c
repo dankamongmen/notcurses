@@ -375,11 +375,13 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
 
 static inline int
 ncfputs(const char* ext, FILE* out){
+  int r;
 #ifdef __USE_GNU
-    return fputs_unlocked(ext, out);
+  r = fputs_unlocked(ext, out);
 #else
-    return fputs(ext, out);
+  r = fputs(ext, out);
 #endif
+  return r;
 }
 
 static inline int
@@ -411,7 +413,7 @@ term_putc(FILE* out, const egcpool* e, const cell* c){
   }else{
     const char* ext = egcpool_extended_gcluster(e, c);
 // fprintf(stderr, "[%s]\n", ext);
-    if(ncfputs(ext, out) < 0){
+    if(ncfputs(ext, out) == EOF){
       return -1;
     }
   }
@@ -501,8 +503,7 @@ static const char* NUMBERS[] = {
 "241", "242", "243", "244", "245", "246", "247", "248", "249", "250", "251", "252", "253", "254", "255", };
 
 static inline int
-term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, bool foreground,
-             unsigned r, unsigned g, unsigned b){
+term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
   // The correct way to do this is using tiparm+tputs, but doing so (at least
   // as of terminfo 6.1.20191019) both emits ~3% more bytes for a run of 'rgb'
   // and gives rise to some corrupted cells (possibly due to special handling of
@@ -547,60 +548,72 @@ term_esc_rgb(notcurses* nc __attribute__ ((unused)), FILE* out, bool foreground,
   }
   rgbbuf[offset++] = 'm';
   rgbbuf[offset] = '\0';
-  if(ncfputs(rgbbuf, out) < 0){
+  if(ncfputs(rgbbuf, out) == EOF){
     return -1;
   }
   return 0;
 }
 
-inline int term_bg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
+static inline int
+term_bg_rgb8(bool RGBflag, const char* setab, int colors, FILE* out,
+             unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  if(nc->RGBflag){
-    return term_esc_rgb(nc, out, false, r, g, b);
+  if(RGBflag){
+    return term_esc_rgb(out, false, r, g, b);
   }else{
-    if(nc->setab == NULL){
+    if(setab == NULL){
       return -1;
     }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
-    if(nc->colors >= 256){
-      term_emit("setab", tiparm(nc->setab, rgb_quantize_256(r, g, b)), out, false);
-    }else if(nc->colors >= 8){
-      return term_emit("setab", tiparm(nc->setab, rgb_quantize_8(r, g, b)), out, false);
+    if(colors >= 256){
+      return term_emit("setab", tiparm(setab, rgb_quantize_256(r, g, b)), out, false);
+    }else if(colors >= 8){
+      return term_emit("setab", tiparm(setab, rgb_quantize_8(r, g, b)), out, false);
     }
   }
   return 0;
 }
 
-inline int term_fg_rgb8(notcurses* nc, FILE* out, unsigned r, unsigned g, unsigned b){
+static inline int
+term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
+             unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  if(nc->RGBflag){
-    return term_esc_rgb(nc, out, true, r, g, b);
+  if(RGBflag){
+    return term_esc_rgb(out, true, r, g, b);
   }else{
-    if(nc->setaf == NULL){
+    if(setaf == NULL){
       return -1;
     }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
-    if(nc->colors >= 256){
-      return term_emit("setaf", tiparm(nc->setaf, rgb_quantize_256(r, g, b)), out, false);
-    }else if(nc->colors >= 8){
-      return term_emit("setaf", tiparm(nc->setaf, rgb_quantize_8(r, g, b)), out, false);
+    if(colors >= 256){
+      return term_emit("setaf", tiparm(setaf, rgb_quantize_256(r, g, b)), out, false);
+    }else if(colors >= 8){
+      return term_emit("setaf", tiparm(setaf, rgb_quantize_8(r, g, b)), out, false);
     }
   }
   return 0;
+}
+
+int ncdirect_bg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
+  return term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp, r, g, b);
+}
+
+int ncdirect_fg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
+  return term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp, r, g, b);
 }
 
 static inline int
@@ -732,7 +745,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
           }else{
-            ret |= term_fg_rgb8(nc, out, r, g, b);
+            ret |= term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, out, r, g, b);
             ++nc->stats.fgemissions;
             nc->rstate.fgelidable = true;
           }
@@ -760,7 +773,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
             if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
               ++nc->stats.bgelisions;
             }else{
-              ret |= term_bg_rgb8(nc, out, br, bg, bb);
+              ret |= term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, out, br, bg, bb);
               ++nc->stats.bgemissions;
               nc->rstate.bgelidable = true;
             }

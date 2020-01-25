@@ -125,7 +125,7 @@ int fallin_demo(struct notcurses* nc){
   bool* usemap = malloc(usesize);
   memset(usemap, 0, usesize);
   // brick size is relative to the screen size
-  const int maxx = dimx > 39 ? dimx / 20 : 2;
+  const int maxx = dimx > 39 ? dimx / 10 : 2;
   const int maxy = dimy > 19 ? dimy / 10 : 2;
   // proceed from top to bottom, left to right, and partition the existing
   // content into 'arrcount' copies into small ncplanes in 'arr'.

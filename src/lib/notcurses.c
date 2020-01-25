@@ -521,19 +521,10 @@ int ncplane_destroy(ncplane* ncp){
   return 0;
 }
 
-static int
-interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
-                     int* dimy, int* dimx){
-  update_term_dimensions(nc, dimy, dimx);
-  char* shortname_term = termname();
-  char* longname_term = longname();
-  if(!opts->suppress_banner){
-    fprintf(stderr, "Term: %dx%d %s (%s)\n", *dimx, *dimy,
-            shortname_term ? shortname_term : "?",
-            longname_term ? longname_term : "?");
-  }
-  nc->RGBflag = tigetflag("RGB") == 1;
-  if (nc->RGBflag == 0) {
+static bool
+query_rgb(void){
+  bool rgb = tigetflag("RGB") == 1;
+  if(!rgb){
     // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not commonly found in
     // terminal entries today. COLORTERM, however, is a de-facto (if imperfect/kludgy) standard way
     // of indicating DirectColor support for a terminal. The variable takes one of two case-sensitive
@@ -546,8 +537,23 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
     // the topic
     //
     const char* cterm = getenv("COLORTERM");
-    nc->RGBflag = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
+    rgb = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
   }
+  return rgb;
+}
+
+static int
+interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
+                     int* dimy, int* dimx){
+  update_term_dimensions(nc, dimy, dimx);
+  char* shortname_term = termname();
+  char* longname_term = longname();
+  if(!opts->suppress_banner){
+    fprintf(stderr, "Term: %dx%d %s (%s)\n", *dimx, *dimy,
+            shortname_term ? shortname_term : "?",
+            longname_term ? longname_term : "?");
+  }
+  nc->RGBflag = query_rgb();
   if((nc->colors = tigetnum("colors")) <= 0){
     if(!opts->suppress_banner){
       fprintf(stderr, "This terminal doesn't appear to support colors\n");
@@ -727,6 +733,42 @@ ffmpeg_log_level(ncloglevel_e level){
   return AV_LOG_TRACE;
 }
 
+ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
+  ncdirect* ret = malloc(sizeof(*ret));
+  if(ret == NULL){
+    return ret;
+  }
+  ret->ttyfp = outfp;
+  memset(&ret->palette, 0, sizeof(ret->palette));
+  int ttyfd = fileno(ret->ttyfp);
+  if(ttyfd < 0){
+    fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
+    free(ret);
+    return NULL;
+  }
+  int termerr;
+  if(setupterm(termtype, ttyfd, &termerr) != OK){
+    fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
+    free(ret);
+    return NULL;
+  }
+  ret->RGBflag = query_rgb();
+  if((ret->colors = tigetnum("colors")) <= 0){
+    ret->colors = 1;
+    ret->CCCflag = false;
+    ret->RGBflag = false;
+    ret->initc = NULL;
+  }else{
+    term_verify_seq(&ret->initc, "initc");
+    if(ret->initc){
+      ret->CCCflag = tigetflag("ccc") == 1;
+    }else{
+      ret->CCCflag = false;
+    }
+  }
+  return ret;
+}
+
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
@@ -873,6 +915,14 @@ err:
   return NULL;
 }
 
+int ncdirect_stop(ncdirect* nc){
+  int ret = 0;
+  if(nc){
+    free(nc);
+  }
+  return ret;
+}
+
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
@@ -911,19 +961,20 @@ int notcurses_stop(notcurses* nc){
     ret |= pthread_mutex_destroy(&nc->lock);
     stash_stats(nc);
     if(!nc->suppress_banner){
+      double avg = 0;
       if(nc->stashstats.renders){
         char totalbuf[BPREFIXSTRLEN + 1];
         char minbuf[BPREFIXSTRLEN + 1];
         char maxbuf[BPREFIXSTRLEN + 1];
         char avgbuf[BPREFIXSTRLEN + 1];
-        double avg = nc->stashstats.render_ns / (double)nc->stashstats.renders;
+        avg = nc->stashstats.render_ns / (double)nc->stashstats.renders;
         qprefix(nc->stashstats.render_ns, NANOSECS_IN_SEC, totalbuf, 0);
         qprefix(nc->stashstats.render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
         qprefix(nc->stashstats.render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
         qprefix(nc->stashstats.render_ns / nc->stashstats.renders, NANOSECS_IN_SEC, avgbuf, 0);
-        fprintf(stderr, "\n%ju render%s, %ss total (%ss min, %ss max, %ss avg %.1f fps)\n",
+        fprintf(stderr, "\n%ju render%s, %ss total (%ss min, %ss max, %ss avg)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
-                totalbuf, minbuf, maxbuf, avgbuf, NANOSECS_IN_SEC / avg);
+                totalbuf, minbuf, maxbuf, avgbuf);
         avg = nc->stashstats.render_bytes / (double)nc->stashstats.renders;
         bprefix(nc->stashstats.render_bytes, 1, totalbuf, 0),
         bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 0),
@@ -932,26 +983,31 @@ int notcurses_stop(notcurses* nc){
                 totalbuf, minbuf, maxbuf,
                 avg / 1024);
       }
-      fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
-              nc->stashstats.defaultemissions,
-              nc->stashstats.defaultelisions,
-              nc->stashstats.fgemissions,
-              nc->stashstats.fgelisions,
-              nc->stashstats.bgemissions,
-              nc->stashstats.bgelisions);
-      fprintf(stderr, " Elide rates: %.2f%% %.2f%% %.2f%%\n",
-              (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions) == 0 ? 0 :
-              (nc->stashstats.defaultelisions * 100.0) / (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions),
-              (nc->stashstats.fgemissions + nc->stashstats.fgelisions) == 0 ? 0 :
-              (nc->stashstats.fgelisions * 100.0) / (nc->stashstats.fgemissions + nc->stashstats.fgelisions),
-              (nc->stashstats.bgemissions + nc->stashstats.bgelisions) == 0 ? 0 :
-              (nc->stashstats.bgelisions * 100.0) / (nc->stashstats.bgemissions + nc->stashstats.bgelisions));
-      fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
-              nc->stashstats.cellemissions, nc->stashstats.cellelisions,
-              (nc->stashstats.cellemissions + nc->stashstats.cellelisions) == 0 ? 0 :
-              (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions));
-      fprintf(stderr, "%ju failed render%s\n", nc->stashstats.failed_renders,
-              nc->stashstats.failed_renders == 1 ? "" : "s");
+      if(nc->stashstats.renders || nc->stashstats.failed_renders){
+        fprintf(stderr, "%.1f theoretical FPS, %ju failed render%s\n",
+                nc->stashstats.renders ?
+                  NANOSECS_IN_SEC * (double)nc->stashstats.renders / nc->stashstats.render_ns : 0.0,
+                nc->stashstats.failed_renders,
+                nc->stashstats.failed_renders == 1 ? "" : "s");
+        fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
+                nc->stashstats.defaultemissions,
+                nc->stashstats.defaultelisions,
+                nc->stashstats.fgemissions,
+                nc->stashstats.fgelisions,
+                nc->stashstats.bgemissions,
+                nc->stashstats.bgelisions);
+        fprintf(stderr, " Elide rates: %.2f%% %.2f%% %.2f%%\n",
+                (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions) == 0 ? 0 :
+                (nc->stashstats.defaultelisions * 100.0) / (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions),
+                (nc->stashstats.fgemissions + nc->stashstats.fgelisions) == 0 ? 0 :
+                (nc->stashstats.fgelisions * 100.0) / (nc->stashstats.fgemissions + nc->stashstats.fgelisions),
+                (nc->stashstats.bgemissions + nc->stashstats.bgelisions) == 0 ? 0 :
+                (nc->stashstats.bgelisions * 100.0) / (nc->stashstats.bgemissions + nc->stashstats.bgelisions));
+        fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
+                nc->stashstats.cellemissions, nc->stashstats.cellelisions,
+                (nc->stashstats.cellemissions + nc->stashstats.cellelisions) == 0 ? 0 :
+                (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions));
+      }
     }
     free(nc);
   }

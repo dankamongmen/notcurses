@@ -117,6 +117,29 @@ typedef struct renderstate {
   bool defaultelidable;
 } renderstate;
 
+typedef struct ncdirect {
+  int colors;     // number of colors terminfo reported usable for this screen
+  char* sgr;      // set many graphics properties at once
+  char* sgr0;     // restore default presentation properties
+  char* setaf;    // set foreground color (ANSI)
+  char* setab;    // set background color (ANSI)
+  char* op;       // set foreground and background color to default
+  char* standout; // CELL_STYLE_STANDOUT
+  char* uline;    // CELL_STYLE_UNDERLINK
+  char* reverse;  // CELL_STYLE_REVERSE
+  char* blink;    // CELL_STYLE_BLINK
+  char* dim;      // CELL_STYLE_DIM
+  char* bold;     // CELL_STYLE_BOLD
+  char* italics;  // CELL_STYLE_ITALIC
+  char* italoff;  // CELL_STYLE_ITALIC (disable)
+  char* initc;    // set a palette entry's RGB value
+  char* oc;       // restore original colors
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
+  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
+  palette256 palette; // 256-indexed palette can be used instead of/with RGB
+} ncdirect;
+
 typedef struct notcurses {
   pthread_mutex_t lock;
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
@@ -135,8 +158,6 @@ typedef struct notcurses {
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashstats; // cumulative stats, unaffected by notcurses_reset_stats()
 
-  // We verify that some terminfo capabilities exist. These needn't be checked
-  // before further use; just use tiparm() directly.
   int colors;     // number of colors terminfo reported usable for this screen
   char* cup;      // move cursor
   char* cuf;      // move n cells right
