@@ -42,6 +42,7 @@ Description: Development files for notcurses++
 Package: libnotcurses++1
 Architecture: any
 Multi-Arch: same
+Recommends: ncurses-term (>= 6.1)
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Shared libraries for notcurses++
  notcurses++ is a C++ binding for the notcurses TUI library

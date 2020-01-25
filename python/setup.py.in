@@ -11,6 +11,5 @@ if __name__ == '__main__':
     packages=find_packages('${CMAKE_CURRENT_SOURCE_DIR}'),
     cffi_modules=['${CMAKE_CURRENT_SOURCE_DIR}/python/src/notcurses/build_notcurses.py:ffibuild'],
     py_modules=["notcurses"],
-    include_dirs=['${CMAKE_CURRENT_SOURCE_DIR}/include'],
-    library_dirs=['${CMAKE_CURRENT_BINARY_DIR}']
+    include_dirs=['${CMAKE_CURRENT_SOURCE_DIR}/include']
 )
