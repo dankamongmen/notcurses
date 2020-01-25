@@ -752,6 +752,20 @@ ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
     free(ret);
     return NULL;
   }
+  term_verify_seq(&ret->standout, "smso"); // smso / rmso
+  term_verify_seq(&ret->uline, "smul");
+  term_verify_seq(&ret->reverse, "reverse");
+  term_verify_seq(&ret->blink, "blink");
+  term_verify_seq(&ret->dim, "dim");
+  term_verify_seq(&ret->bold, "bold");
+  term_verify_seq(&ret->italics, "sitm");
+  term_verify_seq(&ret->italoff, "ritm");
+  term_verify_seq(&ret->sgr, "sgr");
+  term_verify_seq(&ret->sgr0, "sgr0");
+  term_verify_seq(&ret->op, "op");
+  term_verify_seq(&ret->oc, "oc");
+  term_verify_seq(&ret->setaf, "setaf");
+  term_verify_seq(&ret->setab, "setab");
   ret->RGBflag = query_rgb();
   if((ret->colors = tigetnum("colors")) <= 0){
     ret->colors = 1;
