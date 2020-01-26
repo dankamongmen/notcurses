@@ -28,12 +28,10 @@ int main(void){
   struct timespec delay = { .tv_sec = 0, .tv_nsec = 250000000, };
   while(true){
     for(int i = xl ; i <= xr ; ++i){
+      wchar_t w;
       if(ncplane_putwc_yx(n, 0, i, i % 2 == flipmode % 2 ? L'◪' : L'◩') <= 0){
         goto err;
       }
-    }
-    for(int i = xl ; i <= xr ; ++i){
-      wchar_t w;
       switch(flipmode % 6){
         case 0: w = L'🞯'; break;
         case 1: w = L'🞰'; break;
@@ -46,9 +44,6 @@ int main(void){
       if(ncplane_putwc_yx(n, 1, i, w) <= 0){
         goto err;
       }
-    }
-    for(int i = xl ; i <= xr ; ++i){
-      wchar_t w;
       switch((i + flipmode) % 5){
         case 0: w = L'🞅'; break;
         case 1: w = L'🞆'; break;
@@ -60,9 +55,6 @@ int main(void){
       if(ncplane_putwc_yx(n, 2, i, w) <= 0){
         goto err;
       }
-    }
-    for(int i = xl ; i <= xr ; ++i){
-      wchar_t w;
       switch((flipmode + 5) % 6){
         case 0: w = L'🞵'; break;
         case 1: w = L'🞶'; break;
@@ -75,9 +67,6 @@ int main(void){
       if(ncplane_putwc_yx(n, 3, i, w) <= 0){
         goto err;
       }
-    }
-    for(int i = xl ; i <= xr ; ++i){
-      wchar_t w;
       switch(flipmode % 11){
         case 0: w = L'🞌'; break;
         case 1: w = L'🞍'; break;
@@ -95,9 +84,6 @@ int main(void){
       if(ncplane_putwc_yx(n, 4, i, w) <= 0){
         goto err;
       }
-    }
-    for(int i = xl ; i <= xr ; ++i){
-      wchar_t w;
       if(i % 2){
         switch(flipmode % 4){
           case 0: w = L'◴'; break;
@@ -116,6 +102,19 @@ int main(void){
         }
       }
       if(ncplane_putwc_yx(n, 5, i, w) <= 0){
+        goto err;
+      }
+      if(ncplane_putwc_yx(n, 6, i, i % 2 == flipmode % 2 ? L'▱' : L'▰') <= 0){
+        goto err;
+      }
+      switch(flipmode % 4){
+        case 0: w = L'▤'; break;
+        case 1: w = L'▨'; break;
+        case 2: w = L'▥'; break;
+        case 3: w = L'▧'; break;
+        default: goto err;
+      }
+      if(ncplane_putwc_yx(n, 7, i, w) <= 0){
         goto err;
       }
     }
