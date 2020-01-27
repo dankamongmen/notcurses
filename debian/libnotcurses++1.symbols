@@ -26,6 +26,8 @@ libnotcurses++.so.1 libnotcurses++1 #MINVER#
  _ZN4ncpp9NotCurses9_instanceE@Base 1.1.0
  _ZN4ncpp9NotCursesC1ERK17notcurses_optionsP8_IO_FILE@Base 1.1.0
  _ZN4ncpp9NotCursesC2ERK17notcurses_optionsP8_IO_FILE@Base 1.1.0
+ _ZN4ncpp9NotCursesD1Ev@Base 1.1.1
+ _ZN4ncpp9NotCursesD2Ev@Base 1.1.1
  _ZN4ncpp9PanelReel15default_optionsE@Base 1.1.0
  _ZNK4ncpp4Root13get_notcursesEv@Base 1.1.0
  _ZNK4ncpp4Root20is_notcurses_stoppedEv@Base 1.1.0
