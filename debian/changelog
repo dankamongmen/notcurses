@@ -1,10 +1,11 @@
-notcurses (1.1.0-2) UNRELEASED; urgency=medium
+notcurses (1.1.1-1) unstable; urgency=medium
 
   * Debian policy 4.5.0
   * Dep on python3-cffi, not python-cffi
   * Add dep on python3-setuptools
+  * New C++ packages courtesy Marek Habersack
 
- -- Nick Black <dankamongmen@gmail.com>  Wed, 22 Jan 2020 22:38:12 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Mon, 27 Jan 2020 02:12:01 -0500
 
 notcurses (1.1.0-1) unstable; urgency=medium
 
