@@ -5,7 +5,26 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-01-25b
+  image: dankamongmen/unstable_builder:2020-01-27a
+  commands:
+    - apt-get update
+    - apt-get -y dist-upgrade
+    - apt-get -y install git-buildpackage
+    - mk-build-deps --install -t'apt-get -y'
+    - export LANG=en_US.UTF-8
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - make
+    - make test || ./notcurses-tester -p ../data
+---
+kind: pipeline
+type: docker
+name: debian-buster
+
+steps:
+- name: buster-build
+  image: dankamongmen/buster_builder:2020-01-27a
   commands:
     - apt-get update
     - apt-get -y dist-upgrade
