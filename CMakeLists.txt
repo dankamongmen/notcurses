@@ -372,6 +372,9 @@ target_compile_definitions(notcurses-view
 endif()
 
 # Testing
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  include(CTest)
+endif()
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 target_include_directories(notcurses-tester
