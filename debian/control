@@ -9,6 +9,7 @@ Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config (>= 0.29),
 Standards-Version: 4.5.0
 Section: libs
 X-Python3-Version: >= 3.7
+Testsuite: autopkgtest-pkg-python
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses
 Vcs-Browser: https://github.com/dankamongmen/notcurses
 Vcs-Git: https://github.com/dankamongmen/notcurses.git
