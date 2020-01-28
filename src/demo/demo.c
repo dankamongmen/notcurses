@@ -286,7 +286,6 @@ summary_table(struct ncdirect* nc, const char* spec){
     qprefix(results[i].timens, GIG, timebuf, 0);
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
-    double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
     printf("%2zu│%c│%*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│%7.1f║%s\n", i,
            results[i].selector,
            PREFIXSTRLEN, timebuf,
@@ -295,8 +294,10 @@ summary_table(struct ncdirect* nc, const char* spec){
            PREFIXSTRLEN, rtimebuf,
            results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0,
-           results[i].stats.renders / ((double)results[i].timens / GIG),
-           GIG / avg,
+           results[i].timens ?
+            results[i].stats.renders / ((double)results[i].timens / GIG) : 0.0,
+           results[i].stats.renders ?
+            GIG * (double)results[i].stats.renders / results[i].stats.render_ns : 0.0,
            results[i].result < 0 ? "***FAILED" :
             results[i].result > 0 ? "***ABORTED" :
              !results[i].stats.renders ? "***SKIPPED"  : "");
@@ -316,8 +317,10 @@ summary_table(struct ncdirect* nc, const char* spec){
          totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf,
          nsdelta ? totalrenderns * 100 / nsdelta : 0,
          nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
+  ncdirect_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
+  fflush(stdout); // in case we print to stderr below, we want color from above
   if(failed){
-    fprintf(stderr, " Error running demo. Is \"%s\" the correct data path?\n", datadir);
+    fprintf(stderr, "\nError running demo. Is \"%s\" the correct data path?\n", datadir);
   }
   return failed;
 }

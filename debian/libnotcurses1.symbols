@@ -5,6 +5,9 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  cell_load@Base 1.0.0
  cell_release@Base 1.0.0
  enmetric@Base 1.0.0
+ ncdirect_bg_rgb8@Base 1.1.1
+ ncdirect_fg_rgb8@Base 1.1.1
+ ncdirect_stop@Base 1.1.1
  ncplane_aligned@Base 1.0.0
  ncplane_at_cursor@Base 1.0.0
  ncplane_at_yx@Base 1.0.0
@@ -73,6 +76,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  notcurses_canopen@Base 1.0.0
  notcurses_cursor_disable@Base 1.0.0
  notcurses_cursor_enable@Base 1.0.0
+ notcurses_directmode@Base 1.1.1
  notcurses_getc@Base 1.0.0
  notcurses_init@Base 1.0.0
  notcurses_mouse_disable@Base 1.0.0

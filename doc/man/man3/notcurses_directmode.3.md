@@ -1,6 +1,6 @@
 % notcurses_directmode(3)
 % nick black <nickblack@linux.com>
-% v1.1.0
+% v1.1.1
 
 # NAME
 

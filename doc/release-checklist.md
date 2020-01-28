@@ -3,6 +3,10 @@
 * Finalize Debian changelog with `dch -r`
 * Update version in rust/Cargo.toml
 * git commit -a -m v$VERSION
+* Verify that Debian package builds properly
+  * git clean -d -f -x
+  * `tar -cJf ../notcurses_$VERSION.orig.tar.xz --exclude=.git --exclude=debian -C.. notcurses-$VERSION`
+  * debuild
 * Tag with `git tag -a v$VERSION -m "v$VERSION"`
 * `git push && git push origin --tags`
 * Draft new release at https://github.com/dankamongmen/notcurses/releases

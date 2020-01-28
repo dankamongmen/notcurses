@@ -158,7 +158,7 @@ int hud_schedule(const char* demoname){
   int plen = HUD_COLS - 4 - NSLEN;
   while(e){
     hook = &e->next;
-    if(ncplane_printf_yx(hud, line, 0, "%-5d %*ju.%02jus %-*.*s", e->frames,
+    if(ncplane_printf_yx(hud, line, 0, "%-6d %*ju.%02jus %-*.*s", e->frames,
                           NSLEN - 3, e->totalns / GIG,
                           (e->totalns % GIG) / (GIG / 100),
                           plen, plen, e->name) < 0){
@@ -176,7 +176,7 @@ int hud_schedule(const char* demoname){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   cure->startns = timespec_to_ns(&cur);
   running = cure;
-  if(ncplane_printf_yx(hud, line, 0, "%-5d %*ju.%02jus %-*.*s", cure->frames,
+  if(ncplane_printf_yx(hud, line, 0, "%-6d %*ju.%02jus %-*.*s", cure->frames,
                         NSLEN - 3, cure->totalns / GIG,
                         (cure->totalns % GIG) / (GIG / 100),
                         plen, plen, cure->name) < 0){
@@ -218,7 +218,7 @@ int demo_render(struct notcurses* nc){
     clock_gettime(CLOCK_MONOTONIC, &ts);
     uint64_t ns = timespec_to_ns(&ts) - running->startns;
     ++running->frames;
-    if(ncplane_printf_yx(hud, HUD_ROWS - 1, 0, "%-5d %*ju.%02jus %-*.*s",
+    if(ncplane_printf_yx(hud, HUD_ROWS - 1, 0, "%-6d %*ju.%02jus %-*.*s",
                          running->frames,
                          NSLEN - 3, ns / GIG, (ns % GIG) / (GIG / 100),
                          plen, plen, running->name) < 0){

@@ -17,6 +17,17 @@ notcurses_options NotCurses::default_notcurses_options = {
 NotCurses *NotCurses::_instance = nullptr;
 std::mutex NotCurses::init_mutex;
 
+NotCurses::~NotCurses ()
+{
+	const std::lock_guard<std::mutex> lock (init_mutex);
+
+	if (nc == nullptr)
+		return;
+
+	notcurses_stop (nc);
+	_instance = nullptr;
+}
+
 NotCurses::NotCurses (const notcurses_options &nc_opts, FILE *fp)
 {
 	const std::lock_guard<std::mutex> lock (init_mutex);
