@@ -92,6 +92,13 @@ are typically encountered when retrieving data from ncplanes or the rendered
 scene (see e.g. **ncplane_at_yx(3)**), or to achieve peak performance when a
 particular EGC is heavily reused within a plane.
 
+## Widgets
+
+A few high-level widgets are included, all built atop ncplanes:
+
+* **notcurses_panelreel(3)** for hierarchal display of data
+* **notcurses_selector(3)** for selecting one item from a set
+
 ## Threads
 
 Notcurses explicitly supports use in multithreaded environments. Most functions
@@ -129,7 +136,9 @@ previous action.
 **notcurses_output(3)**,
 **notcurses_palette(3)**,
 **notcurses_panelreel(3)**,
-**notcurses_render(3)**, **notcurses_resize(3)**,
+**notcurses_render(3)**,
+**notcurses_resize(3)**,
+**notcurses_selector(3)**,
 **notcurses_stats(3)**,
 **notcurses_stdplane(3)**, **notcurses_stop(3)**,
 **terminfo(5)**, **ascii(7)**, **utf-8(7)**,

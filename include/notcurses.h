@@ -2065,6 +2065,62 @@ API int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b
 API int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 API int ncdirect_stop(struct ncdirect* nc);
 
+// selection widget -- an ncplane with a title header and a body section. the
+// body section supports infinite scrolling up and down. the supplied width must
+// be large enough to display the header and footer, plus two columns worth of
+// borders for both. the supplied body height must be at least 3 rows; four more
+// rows will be used in the default configuration. the widget
+// looks like:                     ╭──────────────────────────╮
+//                                 │This is the primary header│
+//   ╭──────────────────────this is the secondary header──────╮
+//   │                                                        │
+//   │ option1   Long text #1                                 │
+//   │ option2   Long text #2                                 │
+//   │ option3   Long text #3                                 │
+//   │ option4   Long text #4                                 │
+//   │ option5   Long text #5                                 │
+//   │ option6   Long text #6                                 │
+//   │                                                        │
+//   ╰────────────────────────────────────here's the footer───╯
+//
+// At all times, exactly one item is selected.
+
+struct selector_item {
+  char* option;
+  char* desc;
+};
+
+struct selector_options {
+  char* title; // title may be NULL, inhibiting riser, saving two rows.
+  char* secondary; // secondary may be NULL
+  char* footer; // footer may be NULL
+  struct selector_item* items; // initial items and descriptions
+  unsigned itemcount; // number of initial items and descriptions
+  int ylen; // number of options shown at any given time
+  int xlen; // number of columns in the body (plus 2 margin + 2 border)
+};
+
+struct ncselector;
+
+API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
+                                         const struct selector_options* opts);
+
+API struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e align,
+                                          const struct selector_options* opts);
+
+API int ncselector_additem(struct ncselector* n, struct selector_item* item);
+API int ncselector_delitem(struct ncselector* n, struct selector_item* item);
+
+// Move up or down in the list. If 'newitem' is not NULL, the newly-selected
+// option will be strdup()ed and assigned to '*newitem' (and must be free()d by
+// the caller).
+API void ncselector_previtem(struct ncselector* n, char** newitem);
+API void ncselector_nextitem(struct ncselector* n, char** newitem);
+
+// Destroy the ncselector. If 'item' is not NULL, the last selected option will
+// be strdup()ed and assigned to '*item' (and must be free()d by the caller).
+API void ncselector_destroy(struct ncselector* n, char** item);
+
 #undef API
 
 #ifdef __cplusplus
