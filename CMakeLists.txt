@@ -431,8 +431,30 @@ write_basic_package_version_file(
 )
 
 # Python bindings
-find_package(Python3 COMPONENTS Development REQUIRED)
-# FIXME
+find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
+file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
+set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.py.in")
+set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/python/setup.py")
+set(SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.cfg.in")
+set(SETUP_CFG "${CMAKE_CURRENT_BINARY_DIR}/setup.cfg")
+configure_file(${SETUP_PY_IN} ${SETUP_PY})
+configure_file(${SETUP_CFG_IN} ${SETUP_CFG})
+add_custom_command(
+  OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+  COMMAND
+    "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
+     mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/build" &&
+     ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+  DEPENDS
+    ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
+  COMMENT "Building Python wrappers"
+)
+add_custom_target(pymod
+  ALL
+  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+)
+install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
 
 # Installation
 install(FILES
@@ -476,3 +498,6 @@ install(TARGETS notcurses
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT Development
 )
+install(
+  CODE
+    "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")

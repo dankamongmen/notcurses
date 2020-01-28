@@ -5,6 +5,8 @@ DEB_HOST_MULTIARCH?=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 # see FEATURE AREAS in dpkg-buildflags(1)
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+export PYBUILD_NAME=notcurses
+
 %:
 	dh $@ --buildsystem=cmake
 
@@ -14,3 +16,7 @@ override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	cd obj-x86_64-linux-gnu && env -u TERM make test
 endif
+
+# support building a Python debugging package
+override_dh_strip:
+	dh_strip -ppython3-foo --dbg-package=python3-foo-dbg

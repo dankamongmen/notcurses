@@ -25,7 +25,7 @@ setup(
     py_modules=["notcurses"],
     # see https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
