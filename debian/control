@@ -4,9 +4,11 @@ Maintainer: Nick Black <dankamongmen@gmail.com>
 Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config (>= 0.29),
  libncurses-dev (>= 6.1), libavformat-dev (>= 57.0), libswscale-dev (>= 5.0),
  libavutil-dev (>= 56.0), pandoc (>= 1.19.2.4), python3-all-dev (>= 3.2),
- python3-cffi (>= 1.13.2), g++ (>= 4:7.0.0-0), python3-setuptools (>= 44.0.0)
+ python3-cffi (>= 1.13.2), g++ (>= 4:7.0.0-0), python3-setuptools (>= 44.0.0),
+ dh-python
 Standards-Version: 4.5.0
 Section: libs
+X-Python3-Version: >= 3.7
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses
 Vcs-Browser: https://github.com/dankamongmen/notcurses
 Vcs-Git: https://github.com/dankamongmen/notcurses.git
@@ -58,3 +60,11 @@ Description: Binaries from libnotcurses
  .
  These utilities from the notcurses project include notcurses-demo,
  notcurses-view, notcurses-planereel, and notcurses-input.
+
+Package: python3-notcurses
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Description: Python wrappers for notcurses (Python 3)
+ Python wrappers for the notcurses TUI library.
+ .
+ This package installs the library for Python 3.
