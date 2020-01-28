@@ -495,3 +495,6 @@ install(TARGETS notcurses
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT Development
 )
+install(
+  CODE
+    "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")
