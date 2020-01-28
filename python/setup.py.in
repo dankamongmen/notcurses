@@ -7,8 +7,8 @@ def read(fname):
 if __name__ == '__main__':
   setup(name='notcurses',
     version='${PROJECT_VERSION}',
-    package_dir={ '': '${CMAKE_CURRENT_SOURCE_DIR}/python' },
-    packages=find_packages('${CMAKE_CURRENT_SOURCE_DIR}'),
+    package_dir={ '': '${CMAKE_CURRENT_SOURCE_DIR}/python/src/notcurses' },
+    packages=find_packages('${CMAKE_CURRENT_SOURCE_DIR}/python/src/notcurses'),
     cffi_modules=['${CMAKE_CURRENT_SOURCE_DIR}/python/src/notcurses/build_notcurses.py:ffibuild'],
     py_modules=["notcurses"],
     include_dirs=['${CMAKE_CURRENT_SOURCE_DIR}/include']

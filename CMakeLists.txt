@@ -438,18 +438,18 @@ configure_file(${SETUP_PY_IN} ${SETUP_PY})
 configure_file(${SETUP_CFG_IN} ${SETUP_CFG})
 add_custom_command(
   OUTPUT
-    "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp"
+    "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
   COMMAND
     "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
      mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/build" &&
-     ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp"
+     ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
   DEPENDS
     ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
   COMMENT "Building Python wrappers"
 )
 add_custom_target(pymod
   ALL
-  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp"
+  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
 )
 install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
 
