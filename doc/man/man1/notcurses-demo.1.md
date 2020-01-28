@@ -8,7 +8,8 @@ notcurses-demo - Show off some notcurses features
 
 # SYNOPSIS
 
-**notcurses-demo** [**-h|--help**] [**-p path**] [**-d delaymult**] [**-l loglevel**] [**-kHVc**] demospec
+**notcurses-demo** [**-h|--help**] [**-p path**] [**-d delaymult**]
+ [**-l loglevel**] [**-kHVc**] demospec
 
 # DESCRIPTION
 
