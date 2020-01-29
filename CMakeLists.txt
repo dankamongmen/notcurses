@@ -26,7 +26,8 @@ endif()
 find_library(LIBRT rt)
 
 # libnotcurses
-add_library(notcurses SHARED src/lib/enmetric.c src/lib/fade.c src/lib/input.c src/lib/libav.c src/lib/notcurses.c src/lib/panelreel.c src/lib/render.c)
+file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c)
+add_library(notcurses SHARED ${NCSRCS})
 set_target_properties(notcurses PROPERTIES
   PUBLIC_HEADER "include/notcurses.h"
   VERSION ${PROJECT_VERSION}

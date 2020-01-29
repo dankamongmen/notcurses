@@ -124,6 +124,9 @@ typedef struct ncselector {
   size_t longop;               // length of longest option
   struct selector_item* items; // list of items and descriptions, heap-copied
   unsigned itemcount;          // number of pairs in 'items'
+  char* title;                 // can be NULL, in which case there's no riser
+  char* secondary;             // can be NULL
+  char* footer;                // can be NULL
 } ncselector;
 
 typedef struct ncdirect {
