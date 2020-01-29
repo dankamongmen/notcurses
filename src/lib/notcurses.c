@@ -905,18 +905,19 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
 #endif
     term_fg_palindex(ret, ret->ttyfp, ret->RGBflag ? 0xe02080 : 3);
     if(!ret->RGBflag){ // FIXME
-      fprintf(ret->ttyfp, "\n Warning!\n  Your colors are subject to https://github.com/dankamongmen/notcurses/issues/4");
+      fprintf(ret->ttyfp, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
       fprintf(ret->ttyfp, "\n  Are you specifying a proper DirectColor TERM?\n");
     }else{
       /*if((unsigned)ret->colors < (1u << 24u)){
-        fprintf(ret->ttyfp, "\n Warning!\n  Advertised DirectColor but only %d colors\n", ret->colors);
+        fprintf(ret->ttyfp, "\n Warning! Advertised DirectColor but only %d colors\n", ret->colors);
       }*/
       if(!ret->CCCflag){
-        fprintf(ret->ttyfp, "\n Warning!\n  Advertised DirectColor but no 'ccc' flag\n");
+        fprintf(ret->ttyfp, "\n Warning! Advertised DirectColor but no 'ccc' flag\n");
       }
     }
   }
-  if(ret->smcup && term_emit("smcup", ret->smcup, ret->ttyfp, false)){
+  // flush on the switch to alternate screen, lest initial output be swept away
+  if(ret->smcup && term_emit("smcup", ret->smcup, ret->ttyfp, true)){
     free_plane(ret->top);
     goto err;
   }

@@ -372,11 +372,12 @@ int main(int argc, char** argv){
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
     goto err;
   }
-  // no one cares about the leaderscreen. 1s max.
-  if(demodelay.tv_sec >= 1){
-    sleep(1);
-  }else{
-    nanosleep(&demodelay, NULL);
+  if(nopts.inhibit_alternate_screen){ // no one cares. 1s max.
+    if(demodelay.tv_sec >= 1){
+      sleep(1);
+    }else{
+      nanosleep(&demodelay, NULL);
+    }
   }
   if(ext_demos(nc, spec) == NULL){
     goto err;
