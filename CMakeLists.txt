@@ -444,6 +444,7 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
   COMMAND
     "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
+     "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext &&
      mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/build" &&
      ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
   DEPENDS
