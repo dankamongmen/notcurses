@@ -5,7 +5,7 @@ Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config (>= 0.29),
  libncurses-dev (>= 6.1), libavformat-dev (>= 57.0), libswscale-dev (>= 5.0),
  libavutil-dev (>= 56.0), pandoc (>= 1.19.2.4), python3-all-dev (>= 3.2),
  python3-cffi (>= 1.13.2), g++ (>= 4:7.0.0-0), python3-setuptools (>= 44.0.0),
- dh-python
+ dh-python (>= 4.20191017)
 Standards-Version: 4.5.0
 Section: libs
 X-Python3-Version: >= 3.7
