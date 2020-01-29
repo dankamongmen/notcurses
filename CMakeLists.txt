@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(notcurses VERSION 1.1.1
+project(notcurses VERSION 1.1.2
   DESCRIPTION "UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)
@@ -13,6 +13,7 @@ include(GNUInstallDirs)
 set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
 option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
+option(BUILD_PYTHON "Build Python wrappers" OFF)
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
@@ -431,31 +432,32 @@ write_basic_package_version_file(
 )
 
 # Python bindings
-find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
-file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
-set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.py.in")
-set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/python/setup.py")
-set(SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.cfg.in")
-set(SETUP_CFG "${CMAKE_CURRENT_BINARY_DIR}/setup.cfg")
-configure_file(${SETUP_PY_IN} ${SETUP_PY})
-configure_file(${SETUP_CFG_IN} ${SETUP_CFG})
-add_custom_command(
-  OUTPUT
-    "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
-  COMMAND
-    "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
-     "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext &&
-     mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/build" &&
-     ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
-  DEPENDS
-    ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
-  COMMENT "Building Python wrappers"
-)
-add_custom_target(pymod
-  ALL
-  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
-)
-install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
+if(${BUILD_PYTHON})
+  find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
+  file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
+  set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.py.in")
+  set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/python/setup.py")
+  set(SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.cfg.in")
+  set(SETUP_CFG "${CMAKE_CURRENT_BINARY_DIR}/setup.cfg")
+  configure_file(${SETUP_PY_IN} ${SETUP_PY})
+  configure_file(${SETUP_CFG_IN} ${SETUP_CFG})
+  add_custom_command(
+    OUTPUT
+      "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+    COMMAND
+      "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
+      "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext
+    DEPENDS
+      ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
+    COMMENT "Building Python wrappers"
+  )
+  # build/pytimestamp isn't actually generated, and thus this runs each time.
+  # python does its own dep tracking, so it "works" out like recursive make.
+  add_custom_target(pymod
+    ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+  )
+endif()
 
 # Installation
 install(FILES
@@ -499,6 +501,10 @@ install(TARGETS notcurses
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT Development
 )
-install(
-  CODE
-  "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")
+if(${BUILD_PYTHON})
+  if(DEFINED $ENV{DEB_VENDOR})
+  install(
+    CODE
+    "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")
+  endif()
+endif()
