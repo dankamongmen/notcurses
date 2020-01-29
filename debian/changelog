@@ -1,3 +1,10 @@
+notcurses (1.1.2-1) unstable; urgency=medium
+
+  * New upstream
+  * Build Python packages
+
+ -- Nick Black <dankamongmen@gmail.com>  Wed, 29 Jan 2020 01:06:43 -0500
+
 notcurses (1.1.1-1) unstable; urgency=medium
 
   * Debian policy 4.5.0
