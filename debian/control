@@ -64,7 +64,7 @@ Description: Binaries from libnotcurses
 
 Package: python3-notcurses
 Architecture: any
-Depends: ${python3:Depends}, ${misc:Depends}
+Depends: ${python3:Depends}, ${misc:Depends}, ${shlibs:Depends}
 Description: Python wrappers for notcurses (Python 3)
  Python wrappers for the notcurses TUI library.
  .
