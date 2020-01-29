@@ -117,6 +117,15 @@ typedef struct renderstate {
   bool defaultelidable;
 } renderstate;
 
+typedef struct ncselector {
+  ncplane* ncp;                // backing ncplane
+  unsigned selected;           // index of selection
+  unsigned startdisp;          // index of first option displayed
+  size_t longop;               // length of longest option
+  struct selector_item* items; // list of items and descriptions, heap-copied
+  unsigned itemcount;          // number of pairs in 'items'
+} ncselector;
+
 typedef struct ncdirect {
   int colors;     // number of colors terminfo reported usable for this screen
   char* sgr;      // set many graphics properties at once
