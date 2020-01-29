@@ -69,13 +69,3 @@ Description: Python wrappers for notcurses (Python 3)
  Python wrappers for the notcurses TUI library.
  .
  This package installs the library for Python 3.
-
-Package: python3-notcurses-dbg
-Architecture: any
-Section: debug
-Recommends: python3-dbg
-Depends: ${python3:Depends}, ${misc:Depends}, python3-notcurses (= ${binary:Version})
-Description: Python wrappers for notcurses (Python 3 debug)
- Python wrappers for the notcurses TUI library.
- .
- This package installs the debug-enabled library for Python 3.

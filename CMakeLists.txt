@@ -500,4 +500,4 @@ install(TARGETS notcurses
 )
 install(
   CODE
-    "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")
+  "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")
