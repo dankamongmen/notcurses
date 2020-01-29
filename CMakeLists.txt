@@ -444,13 +444,13 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
   COMMAND
     "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
-     "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext &&
-     mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/build" &&
-     ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+     "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext
   DEPENDS
     ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
   COMMENT "Building Python wrappers"
 )
+# build/pytimestamp isn't actually generated, and thus this runs each time.
+# python does its own dep tracking, so it "works" out like recursive make.
 add_custom_target(pymod
   ALL
   DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
@@ -499,6 +499,12 @@ install(TARGETS notcurses
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT Development
 )
+if(DEFINED $ENV{DEB_VENDOR})
 install(
   CODE
   "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")
+else()
+install(
+  CODE
+  "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install WORKING_DIRECTORY ../python)")
+endif()
