@@ -26,6 +26,23 @@ TEST_CASE("SelectorTest") {
     ncselector_destroy(ncs, nullptr);
   }
 
+  SUBCASE("LifecyclePopulatedSelector") {
+    selector_item items[] = {
+      { strdup("op1"), strdup("this is option 1"), },
+      { strdup("2ndop"), strdup("this is option #2"), },
+      { strdup("tres"), strdup("option the third"), },
+    };
+    struct selector_options opts{};
+    opts.ylen = 1;
+    opts.xlen = 1;
+    opts.items = items;
+    opts.itemcount = sizeof(items) / sizeof(*items);
+    struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
+    REQUIRE(nullptr != ncs);
+    CHECK(0 == notcurses_render(nc_));
+    ncselector_destroy(ncs, nullptr);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 }
