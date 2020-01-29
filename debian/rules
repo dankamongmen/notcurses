@@ -8,7 +8,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 export PYBUILD_NAME=notcurses
 
 %:
-	dh $@ --buildsystem=cmake
+	dh $@ --with python3 --buildsystem=cmake
 
 # dh_auto_test -O--buildsystem=cmake -O--no-parallel
 # Don't try to run ncurses tests
@@ -17,6 +17,5 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	cd obj-x86_64-linux-gnu && env -u TERM make test
 endif
 
-# support building a Python debugging package
-override_dh_strip:
-	dh_strip -ppython3-foo --dbg-package=python3-foo-dbg
+override_dh_auto_install:
+	dh_auto_install -B $(BUILDDIR)

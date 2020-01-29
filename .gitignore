@@ -7,3 +7,4 @@ python/src/_notcurses.so
 rust/*/target
 *.pyc
 *.so
+debian/python3-notcurses
