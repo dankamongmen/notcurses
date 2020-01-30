@@ -1,4 +1,5 @@
 #include "main.h"
+#include <cstring>
 #include <iostream>
 
 TEST_CASE("SelectorTest") {
@@ -16,25 +17,48 @@ TEST_CASE("SelectorTest") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
-  SUBCASE("LifecycleEmptySelector") {
+  SUBCASE("EmptySelector") {
     struct selector_options opts{};
-    opts.ylen = 1;
-    opts.xlen = 1;
     struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     ncselector_destroy(ncs, nullptr);
   }
 
-  SUBCASE("LifecyclePopulatedSelector") {
+  SUBCASE("TitledSelector") {
+    struct selector_options opts{};
+    opts.title = strdup("hey hey whaddya say");
+    struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
+    REQUIRE(nullptr != ncs);
+    CHECK(0 == notcurses_render(nc_));
+    ncselector_destroy(ncs, nullptr);
+  }
+
+  SUBCASE("SecondarySelector") {
+    struct selector_options opts{};
+    opts.secondary = strdup("this is not a title, but it's not *not* a title");
+    struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
+    REQUIRE(nullptr != ncs);
+    CHECK(0 == notcurses_render(nc_));
+    ncselector_destroy(ncs, nullptr);
+  }
+
+  SUBCASE("FooterSelector") {
+    struct selector_options opts{};
+    opts.secondary = strdup("i am a lone footer, little old footer");
+    struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
+    REQUIRE(nullptr != ncs);
+    CHECK(0 == notcurses_render(nc_));
+    ncselector_destroy(ncs, nullptr);
+  }
+
+  SUBCASE("PopulatedSelector") {
     selector_item items[] = {
       { strdup("op1"), strdup("this is option 1"), },
       { strdup("2ndop"), strdup("this is option #2"), },
       { strdup("tres"), strdup("option the third"), },
     };
     struct selector_options opts{};
-    opts.ylen = 1;
-    opts.xlen = 1;
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);
     struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
