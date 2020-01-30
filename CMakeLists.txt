@@ -436,6 +436,7 @@ write_basic_package_version_file(
 if(${BUILD_PYTHON})
   find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
   file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
+  file(COPY python/src/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python/)
   set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.py.in")
   set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/python/setup.py")
   set(SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.cfg.in")
@@ -446,7 +447,9 @@ if(${BUILD_PYTHON})
     OUTPUT
       "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
     COMMAND
-      "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python
+      "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -R${CMAKE_INSTALL_LIBDIR} -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python &&
+       "${Python3_EXECUTABLE}" ${SETUP_PY} build_py &&
+       "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info -b ${CMAKE_CURRENT_BINARY_DIR}/python
     DEPENDS
       ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
     COMMENT "Building Python wrappers"
