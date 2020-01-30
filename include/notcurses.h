@@ -2090,7 +2090,7 @@ struct selector_item {
   char* desc;
 };
 
-struct selector_options {
+typedef struct selector_options {
   char* title; // title may be NULL, inhibiting riser, saving two rows.
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
@@ -2098,15 +2098,15 @@ struct selector_options {
   unsigned itemcount; // number of initial items and descriptions
   int ylen; // number of options shown at any given time
   int xlen; // number of columns in the body (plus 2 margin + 2 border)
-};
+} selector_options;
 
 struct ncselector;
 
 API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
-                                         const struct selector_options* opts);
+                                         const selector_options* opts);
 
 API struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e align,
-                                          const struct selector_options* opts);
+                                          const selector_options* opts);
 
 API int ncselector_additem(struct ncselector* n, const struct selector_item* item);
 API int ncselector_delitem(struct ncselector* n, const char* item);

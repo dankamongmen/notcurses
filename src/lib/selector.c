@@ -1,22 +1,70 @@
 #include "notcurses.h"
 #include "internal.h"
 
-ncselector* ncselector_create(ncplane* n, int y, int x, const struct selector_options* opts){
+// redraw the selector widget in its entirety
+static int
+ncselector_draw(ncselector* n){
+  ncplane_erase(n->ncp);
+  // FIXME
+  return notcurses_render(n->ncp->nc);
+}
+
+// calculate the necessary dimensions based off properties of the selector and
+// the containing screen FIXME should be based on containing ncplane
+static int
+ncselector_dim_yx(notcurses* nc, ncselector* n, int* ncdimy, int* ncdimx){
+  int rows = 0, cols = 0; // desired dimensions
+  int dimy, dimx; // dimensions of containing screen
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  if(n->title){ // header adds two rows for riser
+    rows += 2;
+  }
+  // we have a top line, a bottom line, two lines of margin, and must be able
+  // to display at least one row beyond that, so require five more
+  rows += 5;
+  if(rows > dimy){ // insufficient height to display selector
+    return -1;
+  }
+  rows += n->itemcount - 1; // rows necessary to display all options
+  if(rows > dimy){ // claw excess back
+    rows = dimy;
+  }
+  // columns are simpler. the body is the maximum of
+  //  * longop + longdesc + 5
+  //  * secondary + 2
+  //  * footer + 2
+  // the riser, if it exists, is header + 4. the cols are the max of these two.
+  if(n->title){
+    cols = strlen(n->title) + 4;
+  }
+  if(n->footer && strlen(n->footer) + 2 > (size_t)cols){
+    cols = strlen(n->footer) + 2;
+  }
+  if(n->secondary && strlen(n->secondary) + 2 > (size_t)cols){
+    cols = strlen(n->secondary) + 2;
+  }
+  if(n->longop + n->longdesc + 5 > (size_t)cols){
+    cols = n->longop + n->longdesc + 5;
+  }
+  if(cols > dimx){ // insufficient width to display selector
+    return -1;
+  }
+  *ncdimy = rows;
+  *ncdimx = cols;
+  return 0;
+}
+
+ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* opts){
   ncselector* ns = malloc(sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
   ns->footer = opts->footer ? strdup(opts->footer) : NULL;
-  if(!(ns->ncp = ncplane_new(n->nc, opts->ylen, opts->xlen, y, x, NULL))){
-    free(ns->title); free(ns->secondary); free(ns->footer);
-    free(n);
-    return NULL;
-  }
   ns->selected = 0;
   ns->startdisp = 0;
   ns->longop = 0;
+  ns->longdesc = 0;
   if(opts->itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
-      ncplane_destroy(ns->ncp);
       free(ns->title); free(ns->secondary); free(ns->footer);
       free(n);
       return NULL;
@@ -29,24 +77,39 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const struct selector_op
     if(strlen(src->option) > ns->longop){
       ns->longop = strlen(src->option);
     }
+    if(strlen(src->desc) > ns->longdesc){
+      ns->longdesc = strlen(src->desc);
+    }
     ns->items[ns->itemcount].option = strdup(src->option);
     ns->items[ns->itemcount].desc = strdup(src->desc);
     if(!(ns->items[ns->itemcount].desc && ns->items[ns->itemcount].option)){
-      do{
-        free(ns->items[ns->itemcount].option);
-        free(ns->items[ns->itemcount].desc);
-      }while(ns->itemcount-- >= 1);
-      free(ns->items);
-      ncplane_destroy(ns->ncp);
-      free(ns->title); free(ns->secondary); free(ns->footer);
-      free(ns);
-      return NULL;
+      free(ns->items[ns->itemcount].option);
+      free(ns->items[ns->itemcount].desc);
+      goto freeitems;
     }
   }
+  int dimy, dimx;
+  if(ncselector_dim_yx(n->nc, ns, &dimy, &dimx)){
+    goto freeitems;
+  }
+  if(!(ns->ncp = ncplane_new(n->nc, dimy, dimx, y, x, NULL))){
+    goto freeitems;
+  }
+  ncselector_draw(ns); // deal with error here?
   return ns;
+
+freeitems:
+  while(ns->itemcount--){
+    free(ns->items[ns->itemcount].option);
+    free(ns->items[ns->itemcount].desc);
+  }
+  free(ns->items);
+  free(ns->title); free(ns->secondary); free(ns->footer);
+  free(ns);
+  return NULL;
 }
 
-ncselector* ncselector_aligned(ncplane* n, int y, ncalign_e align, const struct selector_options* opts);
+ncselector* ncselector_aligned(ncplane* n, int y, ncalign_e align, const selector_options* opts);
 
 int ncselector_additem(ncselector* n, const struct selector_item* item){
   size_t newsize = sizeof(*n->items) * (n->itemcount + 1);
@@ -58,7 +121,7 @@ int ncselector_additem(ncselector* n, const struct selector_item* item){
   n->items[n->itemcount].option = strdup(item->option);
   n->items[n->itemcount].desc = strdup(item->desc);
   ++n->itemcount;
-  return 0;
+  return ncselector_draw(n);
 }
 
 int ncselector_delitem(ncselector* n, const char* item){
@@ -74,11 +137,32 @@ int ncselector_delitem(ncselector* n, const char* item){
         }
       }
       --n->itemcount;
-      // FIXME redraw
-      return 0;
+      return ncselector_draw(n);
     }
   }
   return -1; // wasn't found
+}
+
+void ncselector_previtem(ncselector* n, char** newitem){
+  if(n->selected == 0){
+    n->selected = n->itemcount;
+  }
+  --n->selected;
+  if(newitem){
+    *newitem = strdup(n->items[n->selected].option);
+  }
+  ncselector_draw(n);
+}
+
+void ncselector_nextitem(ncselector* n, char** newitem){
+  ++n->selected;
+  if(n->selected == n->itemcount){
+    n->selected = 0;
+  }
+  if(newitem){
+    *newitem = strdup(n->items[n->selected].option);
+  }
+  ncselector_draw(n);
 }
 
 void ncselector_destroy(ncselector* n, char** item){

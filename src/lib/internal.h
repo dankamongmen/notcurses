@@ -122,6 +122,7 @@ typedef struct ncselector {
   unsigned selected;           // index of selection
   unsigned startdisp;          // index of first option displayed
   size_t longop;               // length of longest option
+  size_t longdesc;             // length of longest description
   struct selector_item* items; // list of items and descriptions, heap-copied
   unsigned itemcount;          // number of pairs in 'items'
   char* title;                 // can be NULL, in which case there's no riser
