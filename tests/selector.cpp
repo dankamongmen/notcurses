@@ -22,6 +22,7 @@ TEST_CASE("SelectorTest") {
     struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
+    CHECK(nullptr == ncselector_selected(ncs));
     ncselector_destroy(ncs, nullptr);
   }
 
@@ -64,6 +65,59 @@ TEST_CASE("SelectorTest") {
     struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
+    ncselector_destroy(ncs, nullptr);
+  }
+
+  SUBCASE("EmptySelectorMovement") {
+    struct selector_options opts{};
+    struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
+    REQUIRE(nullptr != ncs);
+    CHECK(0 == notcurses_render(nc_));
+    auto sel = ncselector_selected(ncs);
+    REQUIRE(nullptr == sel);
+    ncselector_nextitem(ncs, &sel);
+    REQUIRE(nullptr == sel);
+    CHECK(0 == notcurses_render(nc_));
+    ncselector_previtem(ncs, &sel);
+    REQUIRE(nullptr == sel);
+    CHECK(0 == notcurses_render(nc_));
+    ncselector_destroy(ncs, nullptr);
+  }
+
+  SUBCASE("SelectorMovement") {
+    selector_item items[] = {
+      { strdup("op1"), strdup("this is option 1"), },
+      { strdup("2ndop"), strdup("this is option #2"), },
+      { strdup("tres"), strdup("option the third"), },
+    };
+    struct selector_options opts{};
+    opts.items = items;
+    opts.itemcount = sizeof(items) / sizeof(*items);
+    struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
+    REQUIRE(nullptr != ncs);
+    CHECK(0 == notcurses_render(nc_));
+    auto sel = ncselector_selected(ncs);
+    REQUIRE(nullptr != sel);
+    CHECK(0 == strcmp(sel, items[0].option));
+    free(sel);
+    ncselector_nextitem(ncs, &sel);
+    REQUIRE(nullptr != sel);
+    CHECK(0 == strcmp(sel, items[1].option));
+    free(sel);
+    ncselector_previtem(ncs, &sel);
+    REQUIRE(nullptr != sel);
+    CHECK(0 == strcmp(sel, items[0].option));
+    free(sel);
+    // wrap around from the top to bottom...
+    ncselector_previtem(ncs, &sel);
+    REQUIRE(nullptr != sel);
+    CHECK(0 == strcmp(sel, items[2].option));
+    free(sel);
+    // ...and back to the top
+    ncselector_nextitem(ncs, &sel);
+    REQUIRE(nullptr != sel);
+    CHECK(0 == strcmp(sel, items[0].option));
+    free(sel);
     ncselector_destroy(ncs, nullptr);
   }
 

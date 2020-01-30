@@ -185,12 +185,19 @@ int ncselector_delitem(ncselector* n, const char* item){
   return -1; // wasn't found
 }
 
+char* ncselector_selected(const ncselector* n){
+  if(n->itemcount == 0){
+    return NULL;
+  }
+  return strdup(n->items[n->selected].option);
+}
+
 void ncselector_previtem(ncselector* n, char** newitem){
   if(n->selected == 0){
     n->selected = n->itemcount;
   }
   --n->selected;
-  if(newitem){
+  if(newitem && n->itemcount){
     *newitem = strdup(n->items[n->selected].option);
   }
   ncselector_draw(n);
@@ -201,7 +208,7 @@ void ncselector_nextitem(ncselector* n, char** newitem){
   if(n->selected == n->itemcount){
     n->selected = 0;
   }
-  if(newitem){
+  if(newitem && n->itemcount){
     *newitem = strdup(n->items[n->selected].option);
   }
   ncselector_draw(n);

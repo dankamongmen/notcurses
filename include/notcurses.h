@@ -2138,6 +2138,9 @@ API struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e al
 API int ncselector_additem(struct ncselector* n, const struct selector_item* item);
 API int ncselector_delitem(struct ncselector* n, const char* item);
 
+// Return a copy of the currently-selected option. NULL if there are no items.
+API char* ncselector_selected(const struct ncselector* n);
+
 // Move up or down in the list. If 'newitem' is not NULL, the newly-selected
 // option will be strdup()ed and assigned to '*newitem' (and must be free()d by
 // the caller).
