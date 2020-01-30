@@ -26,7 +26,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] files" << '\n';
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
-  o << " -d mult: positive floating point scale for frame time" << std::endl;
+  o << " -d mult: non-negative floating point scale for frame time" << std::endl;
   exit(exitcode);
 }
 
@@ -37,7 +37,10 @@ timespec_to_ns(const struct timespec* ts){
   return ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
 }
 
-// frame count is in the curry. original time is in the ncplane's userptr.
+// FIXME internalize this via complex curry
+static struct ncplane* subtitle_plane = nullptr;
+
+// frame count is in the curry. original time is in the ncvisual's ncplane's userptr.
 int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void* vframecount){
   NotCurses &nc = NotCurses::get_instance ();
   struct timespec* start = static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
@@ -53,7 +56,25 @@ int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void*
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   int64_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
-  stdn->printf(0, NCAlign::Left, "Got frame %05d\u2026", *framecount);
+  stdn->printf(0, NCAlign::Left, "frame %06d\u2026", *framecount);
+  char* subtitle = ncvisual_subtitle(ncv);
+  if(subtitle){
+    if(!subtitle_plane){
+      int dimx, dimy;
+      notcurses_term_dim_yx(_nc, &dimy, &dimx);
+      subtitle_plane = ncplane_new(_nc, 1, dimx, dimy - 1, 0, nullptr);
+      uint64_t channels = 0;
+      channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+      channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+      ncplane_set_base(subtitle_plane, channels, 0, "");
+      ncplane_set_fg(subtitle_plane, 0x00ffff);
+      ncplane_set_bg_alpha(subtitle_plane, CELL_ALPHA_TRANSPARENT);
+    }else{
+      ncplane_erase(subtitle_plane);
+    }
+    ncplane_printf_yx(subtitle_plane, 0, 0, "%s", subtitle);
+    free(subtitle);
+  }
   const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
   const int64_t m = ns / (60 * NANOSECS_IN_SEC);
@@ -105,7 +126,7 @@ int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale
         ss << optarg;
         float ts;
         ss >> ts;
-        if(ts <= 0){
+        if(ts < 0){
           std::cerr << "Invalid timescale [" << optarg << "] (wanted (0..))\n";
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
@@ -164,6 +185,9 @@ int main(int argc, char** argv){
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;
     }else if(r == 0){
+      std::unique_ptr<Plane> stdn(nc.get_stdplane());
+      stdn->printf(0, NCAlign::Center, "press any key to advance");
+      nc.render();
       char32_t ie = nc.getc(true);
       if(ie == (char32_t)-1){
         break;

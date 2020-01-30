@@ -76,7 +76,7 @@ usage(const char* exe, int status){
   fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
   fprintf(out, " -H: deploy the HUD\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
-  fprintf(out, " -d: delay multiplier (float)\n");
+  fprintf(out, " -d: delay multiplier (non-negative float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
   fprintf(out, " -p: data file path\n");
@@ -227,7 +227,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
           fprintf(stderr, "Couldn't get a float from %s\n", optarg);
           usage(*argv, EXIT_FAILURE);
         }
-        if(f <= 0){
+        if(f < 0){
           fprintf(stderr, "Invalid multiplier: %f\n", f);
           usage(*argv, EXIT_FAILURE);
         }

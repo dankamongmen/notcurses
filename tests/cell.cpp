@@ -32,7 +32,7 @@ SUBCASE("SetItalic") {
     cell_styles_set(&c, CELL_STYLE_ITALIC);
     REQUIRE(1 == cell_load(n_, &c, "i"));
     cell_set_fg_rgb(&c, 255, 255, 255);
-    ncplane_set_base(n_, &c);
+    ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     cell_styles_off(&c, CELL_STYLE_ITALIC);
@@ -45,7 +45,7 @@ SUBCASE("SetItalic") {
     cell_styles_set(&c, CELL_STYLE_BOLD);
     REQUIRE(1 == cell_load(n_, &c, "b"));
     cell_set_fg_rgb(&c, 255, 255, 255);
-    ncplane_set_base(n_, &c);
+    ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     cell_styles_off(&c, CELL_STYLE_BOLD);
@@ -58,7 +58,7 @@ SUBCASE("SetItalic") {
     cell_styles_set(&c, CELL_STYLE_UNDERLINE);
     REQUIRE(1 == cell_load(n_, &c, "u"));
     cell_set_fg_rgb(&c, 255, 255, 255);
-    ncplane_set_base(n_, &c);
+    ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     cell_styles_off(&c, CELL_STYLE_UNDERLINE);

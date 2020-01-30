@@ -66,6 +66,11 @@ namespace ncpp
 			return ncvisual_stream (get_notcurses (), visual, averr, timescale, streamer, curry);
 		}
 
+    char* subtitle () const noexcept
+    {
+      return ncvisual_subtitle (visual);
+    }
+
 		Plane* get_plane () const noexcept;
 
 	private:

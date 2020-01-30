@@ -92,6 +92,9 @@ ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
   }
   uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
   uint64_t nanosecs_step = nanosecs_total / maxsteps;
+  if(nanosecs_step == 0){
+    nanosecs_step = 1;
+  }
   struct timespec times;
   clock_gettime(CLOCK_MONOTONIC, &times);
   // Start time in absolute nanoseconds
@@ -171,17 +174,19 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
   if(maxsteps == 0){
     maxsteps = 1;
   }
-  uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
+  uint64_t nanosecs_total = timespec_to_ns(ts);
   uint64_t nanosecs_step = nanosecs_total / maxsteps;
+  if(nanosecs_step == 0){
+    nanosecs_step = 1;
+  }
   struct timespec times;
   clock_gettime(CLOCK_MONOTONIC, &times);
   // Start time in absolute nanoseconds
-  uint64_t startns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
+  uint64_t startns = timespec_to_ns(&times);
   int ret = 0;
   do{
     unsigned br, bg, bb;
     unsigned r, g, b;
-    clock_gettime(CLOCK_MONOTONIC, &times);
     uint64_t curns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
     int iter = (curns - startns) / nanosecs_step + 1;
     if(iter > maxsteps){
@@ -245,6 +250,7 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
     if(rsleep){
       break;
     }
+    clock_gettime(CLOCK_MONOTONIC, &times);
   }while(true);
   free(pp.channels);
   return ret;

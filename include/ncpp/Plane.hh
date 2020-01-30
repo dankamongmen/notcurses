@@ -644,9 +644,14 @@ namespace ncpp
 			return map_plane (ncplane_below (plane));
 		}
 
-		bool set_base (Cell &c) const noexcept
+		bool set_base_cell (Cell &c) const noexcept
 		{
-			return ncplane_set_base (plane, c) >= 0;
+			return ncplane_set_base_cell (plane, c) >= 0;
+		}
+
+		bool set_base (uint64_t channels, uint32_t attrword, const char *egc) const noexcept
+		{
+			return ncplane_set_base (plane, channels, attrword, egc) >= 0;
 		}
 
 		bool get_base (Cell &c) const noexcept

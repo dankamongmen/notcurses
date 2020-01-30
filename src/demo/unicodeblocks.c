@@ -52,7 +52,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
     for(z = 0 ; z < CHUNKSIZE ; ++z){
       wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\0' };
       char utf8arr[MB_CUR_MAX * 3 + 1];
-      if(wcswidth(w, sizeof(w) / sizeof(*w)) >= 1 && iswgraph(w[0])){
+      if(wcswidth(w, INT_MAX) >= 1 && iswgraph(w[0])){
         mbstate_t ps;
         memset(&ps, 0, sizeof(ps));
         const wchar_t *wptr = w;
@@ -174,11 +174,11 @@ int unicodeblocks_demo(struct notcurses* nc){
   if(header == NULL){
     return -1;
   }
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
-  cell_set_fg(&c, 0x004000);
-  cell_set_bg(&c, 0x0);
-  ncplane_set_base(header, &c);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  channels_set_fg(&channels, 0x004000);
+  channels_set_bg(&channels, 0x0);
+  ncplane_set_base(header, channels, 0, "");
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_set_bg_rgb(n, 0, 0, 0);
     uint32_t blockstart = blocks[sindex].start;

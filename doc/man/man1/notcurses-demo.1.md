@@ -44,7 +44,7 @@ At any time, press 'q' to quit. The demo is best run in at least a 80x45 termina
 
 **-p path**: Look in the specified **path** for data files.
 
-**-d delaymult**: Apply a rational multiplier to the standard delay of 1s.
+**-d delaymult**: Apply a non-negative rational multiplier to the standard delay of 1s.
 
 **-l loglevel**: Log everything (high log level) or nothing (log level 0) to stderr.
 

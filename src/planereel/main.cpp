@@ -28,7 +28,7 @@ int tabletfxn(struct tablet* _t, int begx, int begy, int maxx, int maxy,
   p->erase();
   Cell c(' ');
   c.set_bg((((uintptr_t)t) % 0x1000000) + cliptop + begx + maxx);
-  p->set_base(c);
+  p->set_base_cell(c);
   p->release(c);
   return tctx->getLines() > maxy - begy ? maxy - begy : tctx->getLines();
 }

@@ -22,9 +22,11 @@ notcurses_ncplane - operations on notcurses planes
 
 **void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);**
 
-**int ncplane_set_default(struct ncplane* ncp, const cell* c);**
+**int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);**
 
-**int ncplane_default(struct ncplane* ncp, cell* c);**
+**int ncplane_set_base(struct ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc);**
+
+**int ncplane_base(struct ncplane* ncp, cell* c);**
 
 **int ncplane_destroy(struct ncplane* ncp);**
 

@@ -515,10 +515,17 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
 // the standard plane.
 API int ncplane_destroy(struct ncplane* ncp);
 
-// Set the ncplane's base cell to this cell. If defined, it will be rendered
-// anywhere that the ncplane's gcluster is 0. Erasing the ncplane does not
-// reset the base cell; this function must instead be called with a zero c.
-API int ncplane_set_base(struct ncplane* ncp, const cell* c);
+// Set the ncplane's base cell to this cell. It will be used for purposes of
+// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
+// does not reset the base cell; this function must be called with a zero 'c'.
+API int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
+
+// Set the ncplane's base cell to this cell. It will be used for purposes of
+// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
+// does not reset the base cell; this function must be called with an empty
+// 'egc'. 'egc' must be a single extended grapheme cluster.
+API int ncplane_set_base(struct ncplane* ncp, uint64_t channels,
+                         uint32_t attrword, const char* egc);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
@@ -1774,6 +1781,9 @@ API struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
                                          int* averr, int y, int x,
                                          ncscale_e style);
 
+// Return the plane to which this ncvisual is bound.
+API struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
 API void ncvisual_destroy(struct ncvisual* ncv);
@@ -1794,15 +1804,35 @@ API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 API int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
                         int leny, int lenx);
 
+// If a subtitle ought be displayed at this time, return a heap-allocated copy
+// of the UTF8 text.
+API char* ncvisual_subtitle(const struct ncvisual* ncv);
+
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
 typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
+// If you'd like subtitles to be decoded, provide a ncplane as the curry. If the
+// curry is NULL, subtitles will not be displayed.
 static inline int
-ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
-                         void* curry __attribute__ ((unused))){
-  return notcurses_render(nc);
+ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry){
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  int ret = 0;
+  if(curry){
+    // need a cast for C++ callers
+    struct ncplane* subncp = (struct ncplane*)curry;
+    char* subtitle = ncvisual_subtitle(ncv);
+    if(subtitle){
+      if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
+        ret = -1;
+      }
+      free(subtitle);
+    }
+  }
+  return ret;
 }
 
 // Stream the entirety of the media, according to its own timing. Blocking,
@@ -1817,9 +1847,6 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute_
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         int* averr, float timescale, streamcb streamer,
                         void* curry);
-
-// Return the plane to which this ncvisual is bound.
-API struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 
 // A panelreel is an notcurses region devoted to displaying zero or more
 // line-oriented, contained panels between which the user may navigate. If at
@@ -2064,6 +2091,62 @@ API void ncplane_greyscale(struct ncplane* n);
 API int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 API int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 API int ncdirect_stop(struct ncdirect* nc);
+
+// selection widget -- an ncplane with a title header and a body section. the
+// body section supports infinite scrolling up and down. the supplied width must
+// be large enough to display the header and footer, plus two columns worth of
+// borders for both. the supplied body height must be at least 3 rows; four more
+// rows will be used in the default configuration. the widget
+// looks like:                     ╭──────────────────────────╮
+//                                 │This is the primary header│
+//   ╭──────────────────────this is the secondary header──────╮
+//   │                                                        │
+//   │ option1   Long text #1                                 │
+//   │ option2   Long text #2                                 │
+//   │ option3   Long text #3                                 │
+//   │ option4   Long text #4                                 │
+//   │ option5   Long text #5                                 │
+//   │ option6   Long text #6                                 │
+//   │                                                        │
+//   ╰────────────────────────────────────here's the footer───╯
+//
+// At all times, exactly one item is selected.
+
+struct selector_item {
+  char* option;
+  char* desc;
+};
+
+typedef struct selector_options {
+  char* title; // title may be NULL, inhibiting riser, saving two rows.
+  char* secondary; // secondary may be NULL
+  char* footer; // footer may be NULL
+  struct selector_item* items; // initial items and descriptions
+  unsigned itemcount; // number of initial items and descriptions
+  // maximum number of options to display at once, 0 to use all available space
+  unsigned maxdisplay;
+} selector_options;
+
+struct ncselector;
+
+API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
+                                         const selector_options* opts);
+
+API struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e align,
+                                          const selector_options* opts);
+
+API int ncselector_additem(struct ncselector* n, const struct selector_item* item);
+API int ncselector_delitem(struct ncselector* n, const char* item);
+
+// Move up or down in the list. If 'newitem' is not NULL, the newly-selected
+// option will be strdup()ed and assigned to '*newitem' (and must be free()d by
+// the caller).
+API void ncselector_previtem(struct ncselector* n, char** newitem);
+API void ncselector_nextitem(struct ncselector* n, char** newitem);
+
+// Destroy the ncselector. If 'item' is not NULL, the last selected option will
+// be strdup()ed and assigned to '*item' (and must be free()d by the caller).
+API void ncselector_destroy(struct ncselector* n, char** item);
 
 #undef API
 

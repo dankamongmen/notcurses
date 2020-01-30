@@ -17,12 +17,11 @@ mathplane(struct notcurses* nc){
   const int HEIGHT = 9;
   const int WIDTH = dimx;
   struct ncplane* n = ncplane_new(nc, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH, NULL);
-  cell b = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg(&b, 0x2b50c8); // metallic gold, inverted
-  cell_set_fg_alpha(&b, CELL_ALPHA_BLEND);
-  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, &b);
-  cell_release(n, &b);
+  uint64_t channels = 0;
+  channels_set_fg(&channels, 0x2b50c8); // metallic gold, inverted
+  channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(n, channels, 0, "");
   ncplane_set_fg(n, 0xd4af37); // metallic gold
   ncplane_set_bg(n, 0x0);
   if(n){
@@ -47,9 +46,9 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
   }
   unsigned r, g, b;
   cell_fg_rgb(c, &r, &g, &b);
-  r += rand() % (20 / (5 * distance + 1) + 1);
-  g += rand() % (20 / (5 * distance + 1) + 1);
-  b += rand() % (20 / (5 * distance + 1) + 1);
+  r += rand() % (64 / (2 * distance + 1) + 1);
+  g += rand() % (64 / (2 * distance + 1) + 1);
+  b += rand() % (64 / (2 * distance + 1) + 1);
   cell_set_fg_rgb_clipped(c, r, g, b);
   return ncplane_putc_yx(n, y, x, c);
 }
@@ -162,14 +161,13 @@ worm_thread(void* vnc){
 static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, &c);
-  cell_release(n, &c);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(n, channels, 0, "");
   ncplane_set_fg_rgb(n, 255, 255, 255);
   ncplane_set_bg_rgb(n, 32, 64, 32);
-  uint64_t channels = 0;
+  channels = 0;
   channels_set_fg_rgb(&channels, 255, 255, 255);
   channels_set_bg_rgb(&channels, 32, 64, 32);
   ncplane_cursor_move_yx(n, 2, 0);

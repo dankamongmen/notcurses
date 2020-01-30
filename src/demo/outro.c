@@ -68,9 +68,9 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   }
   int xs;
   ncplane_yx(non, NULL, &xs);
-  cell bgcell = CELL_SIMPLE_INITIALIZER(' ');
-  channels_set_bg_rgb(&bgcell.channels, 0x58, 0x36, 0x58);
-  if(ncplane_set_base(non, &bgcell) < 0){
+  uint64_t channels = 0;
+  channels_set_bg_rgb(&channels, 0x58, 0x36, 0x58);
+  if(ncplane_set_base(non, channels, 0, " ") < 0){
     return NULL;
   }
   ncplane_dim_yx(non, rows, cols);
@@ -117,7 +117,6 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   if(demo_render(nc)){
     return NULL;
   }
-  cell_release(non, &bgcell);
   *rows = ystart;
   *cols = xs;
   return non;

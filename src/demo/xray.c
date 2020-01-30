@@ -45,10 +45,10 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
     *(struct ncplane**)vnewplane = n;
   }
   ncplane_dim_yx(n, &dimy, &dimx);
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
-  cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, &c);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(n, channels, 0, " ");
   ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
   // fg/bg rgbs are set within loop
   int x = dimx - (frameno * 2);

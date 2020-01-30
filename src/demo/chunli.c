@@ -31,7 +31,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
       return -1;
     }
     chuns[i].n = ncvisual_plane(chuns[i].ncv);
-    ncplane_set_base(chuns[i].n, b);
+    ncplane_set_base_cell(chuns[i].n, b);
     int thisx, thisy;
     ncplane_dim_yx(chuns[i].n, &thisy, &thisx);
     if(ncplane_move_yx(chuns[i].n, (dimy - thisy) / 2, (dimx - thisx) / 2)){
@@ -75,7 +75,7 @@ int chunli_demo(struct notcurses* nc){
       return -1;
     }
     struct ncplane* ncp = ncvisual_plane(ncv);
-    ncplane_set_base(ncp, &b);
+    ncplane_set_base_cell(ncp, &b);
     if(ncvisual_render(ncv, 0, 0, 0, 0)){
       return -1;
     }
