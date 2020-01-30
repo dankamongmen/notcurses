@@ -2096,8 +2096,6 @@ typedef struct selector_options {
   char* footer; // footer may be NULL
   struct selector_item* items; // initial items and descriptions
   unsigned itemcount; // number of initial items and descriptions
-  int ylen; // number of options shown at any given time
-  int xlen; // number of columns in the body (plus 2 margin + 2 border)
 } selector_options;
 
 struct ncselector;

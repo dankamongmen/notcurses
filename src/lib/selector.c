@@ -1,10 +1,54 @@
 #include "notcurses.h"
 #include "internal.h"
 
+// ideal body width given the ncselector's items and secondary/footer
+static size_t
+ncselector_body_width(const ncselector* n){
+  size_t cols = 0;
+  // the body is the maximum of
+  //  * longop + longdesc + 5
+  //  * secondary + 2
+  //  * footer + 2
+  // the riser, if it exists, is header + 4. the cols are the max of these two.
+  if(n->title){
+    cols = strlen(n->title) + 4;
+  }
+  if(n->footer && strlen(n->footer) + 2 > cols){
+    cols = strlen(n->footer) + 2;
+  }
+  if(n->secondary && strlen(n->secondary) + 2 > cols){
+    cols = strlen(n->secondary) + 2;
+  }
+  if(n->longop + n->longdesc + 5 > cols){
+    cols = n->longop + n->longdesc + 5;
+  }
+  return cols;
+}
+
 // redraw the selector widget in its entirety
 static int
 ncselector_draw(ncselector* n){
   ncplane_erase(n->ncp);
+  uint64_t channels = 0;
+  channels_set_fg(&channels, 0x4040f0); // FIXME allow configuration
+  // if we have a title, we'll draw a riser. the riser is two rows tall, and
+  // exactly four columns longer than the title, and aligned to the right. we
+  // draw a rounded box. the body will blow part or all of the bottom away.
+  int yoff = 0;
+  if(n->title){
+    size_t riserwidth = strlen(n->title) + 4;
+    int offx = ncplane_align(n->ncp, NCALIGN_RIGHT, riserwidth);
+    ncplane_cursor_move_yx(n->ncp, 0, offx);
+    ncplane_rounded_box_sized(n->ncp, 0, channels, 3, riserwidth, 0);
+    ncplane_cursor_move_yx(n->ncp, 1, offx + 2);
+    ncplane_putstr(n->ncp, n->title); // FIXME allow styling configuration
+    yoff += 2;
+  }
+  size_t bodywidth = ncselector_body_width(n);
+  int xoff = ncplane_align(n->ncp, NCALIGN_RIGHT, bodywidth);
+  ncplane_cursor_move_yx(n->ncp, yoff, xoff);
+  int dimy = ncplane_dim_y(n->ncp);
+  ncplane_rounded_box_sized(n->ncp, 0, channels, dimy - yoff, bodywidth, 0);
   // FIXME
   return notcurses_render(n->ncp->nc);
 }
@@ -12,7 +56,7 @@ ncselector_draw(ncselector* n){
 // calculate the necessary dimensions based off properties of the selector and
 // the containing screen FIXME should be based on containing ncplane
 static int
-ncselector_dim_yx(notcurses* nc, ncselector* n, int* ncdimy, int* ncdimx){
+ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   int rows = 0, cols = 0; // desired dimensions
   int dimy, dimx; // dimensions of containing screen
   notcurses_term_dim_yx(nc, &dimy, &dimx);
@@ -29,27 +73,11 @@ ncselector_dim_yx(notcurses* nc, ncselector* n, int* ncdimy, int* ncdimx){
   if(rows > dimy){ // claw excess back
     rows = dimy;
   }
-  // columns are simpler. the body is the maximum of
-  //  * longop + longdesc + 5
-  //  * secondary + 2
-  //  * footer + 2
-  // the riser, if it exists, is header + 4. the cols are the max of these two.
-  if(n->title){
-    cols = strlen(n->title) + 4;
-  }
-  if(n->footer && strlen(n->footer) + 2 > (size_t)cols){
-    cols = strlen(n->footer) + 2;
-  }
-  if(n->secondary && strlen(n->secondary) + 2 > (size_t)cols){
-    cols = strlen(n->secondary) + 2;
-  }
-  if(n->longop + n->longdesc + 5 > (size_t)cols){
-    cols = n->longop + n->longdesc + 5;
-  }
+  *ncdimy = rows;
+  cols = ncselector_body_width(n);
   if(cols > dimx){ // insufficient width to display selector
     return -1;
   }
-  *ncdimy = rows;
   *ncdimx = cols;
   return 0;
 }
