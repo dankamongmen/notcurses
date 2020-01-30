@@ -47,9 +47,9 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
   }
   unsigned r, g, b;
   cell_fg_rgb(c, &r, &g, &b);
-  r += rand() % (20 / (5 * distance + 1) + 1);
-  g += rand() % (20 / (5 * distance + 1) + 1);
-  b += rand() % (20 / (5 * distance + 1) + 1);
+  r += rand() % (64 / (2 * distance + 1) + 1);
+  g += rand() % (64 / (2 * distance + 1) + 1);
+  b += rand() % (64 / (2 * distance + 1) + 1);
   cell_set_fg_rgb_clipped(c, r, g, b);
   return ncplane_putc_yx(n, y, x, c);
 }

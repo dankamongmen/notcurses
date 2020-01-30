@@ -52,8 +52,9 @@ ncselector_draw(ncselector* n){
     if(printidx == n->selected){
       ncplane_styles_on(n->ncp, CELL_STYLE_REVERSE);
     }
-    ncplane_putstr_yx(n->ncp, yoff, bodyoffset, n->items[printidx].option);
-    ncplane_putstr_yx(n->ncp, yoff, bodyoffset + n->longop + 1, n->items[printidx].desc);
+    ncplane_printf_yx(n->ncp, yoff, bodyoffset, "%*.*s %s", (int)n->longop,
+                      (int)n->longop, n->items[printidx].option,
+                      n->items[printidx].desc);
     if(printidx == n->selected){
       ncplane_styles_off(n->ncp, CELL_STYLE_REVERSE);
     }

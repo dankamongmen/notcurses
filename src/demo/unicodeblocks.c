@@ -52,7 +52,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
     for(z = 0 ; z < CHUNKSIZE ; ++z){
       wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\0' };
       char utf8arr[MB_CUR_MAX * 3 + 1];
-      if(wcswidth(w, sizeof(w) / sizeof(*w)) >= 1 && iswgraph(w[0])){
+      if(wcswidth(w, INT_MAX) >= 1 && iswgraph(w[0])){
         mbstate_t ps;
         memset(&ps, 0, sizeof(ps));
         const wchar_t *wptr = w;
