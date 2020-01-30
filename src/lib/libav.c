@@ -1,3 +1,4 @@
+#include <string.h>
 #include "version.h"
 #include "notcurses.h"
 #include "internal.h"
@@ -80,6 +81,51 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
           f->quality);
 }*/
 
+static char*
+deass(const char* ass){
+  // SSA/ASS formats:
+  // Dialogue: Marked=0,0:02:40.65,0:02:41.79,Wolf main,Cher,0000,0000,0000,,Et les enregistrements de ses ondes delta ?
+  // FIXME more
+  if(strncmp(ass, "Dialogue:", strlen("Dialogue:"))){
+    return NULL;
+  }
+  const char* delim = strchr(ass, ',');
+  int commas = 0; // we want 8
+  while(delim && commas < 8){
+    delim = strchr(delim + 1, ',');
+    ++commas;
+  }
+  if(!delim){
+    return NULL;
+  }
+  // handle ASS syntax...\i0, \b0, etc.
+  char* dup = strdup(delim + 1);
+  char* c = dup;
+  while(*c){
+    if(*c == '\\'){
+      *c = ' ';
+      ++c;
+      if(*c){
+        *c = ' ';;
+      }
+    }
+    ++c;
+  }
+  return dup;
+}
+
+char* ncvisual_subtitle(const ncvisual* ncv){
+  for(unsigned i = 0 ; i < ncv->subtitle.num_rects ; ++i){
+    const AVSubtitleRect* rect = ncv->subtitle.rects[i];
+    if(rect->type == SUBTITLE_ASS){
+      return deass(rect->ass);
+    }else if(rect->type == SUBTITLE_TEXT) {;
+      return strdup(rect->text);
+    }
+  }
+  return NULL;
+}
+
 AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
   bool have_frame = false;
   bool unref = false;
@@ -103,15 +149,6 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
         int result = 0, ret;
         ret = avcodec_decode_subtitle2(nc->subtcodecctx, &nc->subtitle, &result, nc->packet);
         if(ret >= 0 && result){
-          for(unsigned i = 0 ; i < nc->subtitle.num_rects ; ++i){
-            const AVSubtitleRect* rect = nc->subtitle.rects[i];
-            // FIXME do...what, exactly...with subtitles?
-            if(rect->type == SUBTITLE_ASS){
-              // fprintf(stderr, "ASS %s", rect->ass);
-            }else if(rect->type == SUBTITLE_TEXT) {;
-              //fprintf(stderr, "TEXT %s", rect->text);
-            }
-          }
         }
       }
     }while(nc->packet->stream_index != nc->stream_index);
@@ -151,6 +188,8 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
     nc->dstwidth = cols;
     nc->dstheight = rows * 2;
     nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, NULL);
+    nc->placey = 0;
+    nc->placex = 0;
     if(nc->ncp == NULL){
       *averr = AVERROR(ENOMEM);
       return NULL;
@@ -391,8 +430,9 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
         }
       }else{
         if(memcmp(rgbbase_up, rgbbase_down, 3) == 0){
+          cell_set_fg_rgb(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           cell_set_bg_rgb(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
-          if(cell_load(ncv->ncp, c, " ") <= 0){ // only want the background
+          if(cell_load(ncv->ncp, c, " ") <= 0){ // only need the background
             return -1;
           }
         }else{
@@ -521,6 +561,11 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   (void)y;
   (void)x;
   (void)style;
+  return NULL;
+}
+
+char* ncvisual_subtitle(const ncvisual* ncv){
+  (void)ncv;
   return NULL;
 }
 
