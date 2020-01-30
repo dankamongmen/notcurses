@@ -40,6 +40,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_putstr_yx@Base 1.0.0
  ncplane_resize@Base 1.0.0
  ncplane_set_base@Base 1.0.0
+ ncplane_set_base_cell@Base 1.1.3
  ncplane_set_bg@Base 1.0.0
  ncplane_set_bg_alpha@Base 1.0.0
  ncplane_set_bg_default@Base 1.0.0
@@ -64,12 +65,19 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_vprintf_aligned@Base 1.0.0
  ncplane_vprintf_yx@Base 1.0.0
  ncplane_yx@Base 1.0.0
+ ncselector_additem@Base 1.1.3
+ ncselector_create@Base 1.1.3
+ ncselector_delitem@Base 1.1.3
+ ncselector_destroy@Base 1.1.3
+ ncselector_nextitem@Base 1.1.3
+ ncselector_previtem@Base 1.1.3
  ncvisual_decode@Base 1.0.0
  ncvisual_destroy@Base 1.0.0
  ncvisual_open_plane@Base 1.0.0
  ncvisual_plane@Base 1.0.0
  ncvisual_render@Base 1.0.0
  ncvisual_stream@Base 1.0.0
+ ncvisual_subtitle@Base 1.1.3
  notcurses_at_yx@Base 1.0.0
  notcurses_canchangecolor@Base 1.1.0
  notcurses_canfade@Base 1.0.0
