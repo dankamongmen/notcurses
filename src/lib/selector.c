@@ -9,10 +9,6 @@ ncselector_body_width(const ncselector* n){
   //  * longop + longdesc + 5
   //  * secondary + 2
   //  * footer + 2
-  // the riser, if it exists, is header + 4. the cols are the max of these two.
-  if(n->title){
-    cols = strlen(n->title) + 4;
-  }
   if(n->footer && strlen(n->footer) + 2 > cols){
     cols = strlen(n->footer) + 2;
   }
@@ -47,9 +43,16 @@ ncselector_draw(ncselector* n){
   size_t bodywidth = ncselector_body_width(n);
   int xoff = ncplane_align(n->ncp, NCALIGN_RIGHT, bodywidth);
   ncplane_cursor_move_yx(n->ncp, yoff, xoff);
-  int dimy = ncplane_dim_y(n->ncp);
+  int dimy, dimx;
+  ncplane_dim_yx(n->ncp, &dimy, &dimx);
   ncplane_rounded_box_sized(n->ncp, 0, channels, dimy - yoff, bodywidth, 0);
-  // FIXME
+  int printidx = n->startdisp;
+  int bodyoffset = dimx - bodywidth + 2;
+  for(yoff += 2 ; yoff < dimy - 2 ; ++yoff){
+    ncplane_putstr_yx(n->ncp, yoff, bodyoffset, n->items[printidx].option);
+    ncplane_putstr_yx(n->ncp, yoff, bodyoffset + n->longop + 1, n->items[printidx].desc);
+    ++printidx;
+  }
   return notcurses_render(n->ncp->nc);
 }
 
@@ -75,6 +78,10 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   }
   *ncdimy = rows;
   cols = ncselector_body_width(n);
+  // the riser, if it exists, is header + 4. the cols are the max of these two.
+  if(n->title && strlen(n->title) + 4 > (size_t)cols){
+    cols = strlen(n->title) + 4;
+  }
   if(cols > dimx){ // insufficient width to display selector
     return -1;
   }
