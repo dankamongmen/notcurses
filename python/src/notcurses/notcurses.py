@@ -36,8 +36,8 @@ class Ncplane:
     def __init__(self, plane):
         self.n = plane
 
-    def setBase(self, cell):
-        return lib.ncplane_set_base(self.n, cell.getNccell())
+    def setBaseCell(self, cell):
+        return lib.ncplane_set_base_cell(self.n, cell.getNccell())
 
     def getNcplane(self):
         return self.n
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     nc = Notcurses()
     c = Cell(nc.stdplane())
     c.setBgRGB(0x80, 0xc0, 0x80)
-    nc.stdplane().setBase(c)
+    nc.stdplane().setBaseCell(c)
     dims = nc.stdplane().getDimensions()
     r = 0x80
     g = 0x80

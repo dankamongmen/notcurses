@@ -83,7 +83,8 @@ typedef struct ncinput {
   int x;           // x cell coordinate of event, -1 for undefined
   // FIXME modifiers (alt, etc?)
 } ncinput;
-int ncplane_set_base(struct ncplane* ncp, const cell* c);
+int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
+int ncplane_set_base(struct ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc);
 int ncplane_base(struct ncplane* ncp, cell* c);
 struct ncplane* notcurses_top(struct notcurses* n);
 int notcurses_refresh(struct notcurses* n);
@@ -236,6 +237,20 @@ struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
 int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 int ncdirect_stop(struct ncdirect* nc);
+struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, int* averr);
+typedef enum {
+  NCSCALE_NONE,
+  NCSCALE_SCALE,
+  NCSCALE_STRETCH,
+} ncscale_e;
+struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file, int* averr, int y, int x, ncscale_e style);
+struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+void ncvisual_destroy(struct ncvisual* ncv);
+struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
+int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
+char* ncvisual_subtitle(const struct ncvisual* ncv);
+typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr, float timescale, streamcb streamer, void* curry);
 """)
 
 if __name__ == "__main__":
