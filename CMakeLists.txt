@@ -13,7 +13,7 @@ include(GNUInstallDirs)
 set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
 option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
-option(BUILD_PYTHON "Build Python wrappers" OFF)
+option(BUILD_PYTHON "Build Python wrappers" ON)
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
@@ -446,8 +446,7 @@ if(${BUILD_PYTHON})
     OUTPUT
       "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
     COMMAND
-      "${Python3_EXECUTABLE}" ${SETUP_PY} build -b ${CMAKE_CURRENT_BINARY_DIR}/python &&
-       "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python
+      "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python
     DEPENDS
       ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
     COMMENT "Building Python wrappers"
@@ -503,7 +502,13 @@ install(TARGETS notcurses
     COMPONENT Development
 )
 if(${BUILD_PYTHON})
-  install(
-    CODE
-    "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")
+  if(DEFINED $ENV{DEB_VENDOR})
+    install(
+      CODE
+      "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ../python)")
+  else()
+    install(
+      CODE
+      "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")
+  endif()
 endif()
