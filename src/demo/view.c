@@ -40,8 +40,7 @@ legend(struct notcurses* nc, int dimy, int dimx){
   ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
   uint64_t channels = 0;
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  cell c = CELL_INITIALIZER(' ', 0, channels);
-  ncplane_set_base(n, &c);
+  ncplane_set_base(n, channels, 0, " ");
   ncplane_styles_set(n, CELL_STYLE_BOLD);
   ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
   if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "target launch") <= 0){
@@ -122,10 +121,10 @@ int view_demo(struct notcurses* nc){
     ncplane_destroy(dsplane);
     return -1;
   }
-  cell b = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(ncvisual_plane(ncv2), &b);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(ncvisual_plane(ncv2), channels, 0, "");
   demo_render(nc);
   demo_nanosleep(nc, &demodelay);
   ncvisual_destroy(ncv);
