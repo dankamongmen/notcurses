@@ -1,3 +1,6 @@
+#include "version.h"
+#include "egcpool.h"
+#include "internal.h"
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <time.h>
 #include <term.h>
@@ -13,10 +16,6 @@
 #include <sys/poll.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
-#include "notcurses.h"
-#include "internal.h"
-#include "version.h"
-#include "egcpool.h"
 
 #define ESC "\x1b"
 
@@ -505,6 +504,7 @@ find_above_ncplane(ncplane* n){
 }
 
 int ncplane_destroy(ncplane* ncp){
+fprintf(stderr, "DESTROYING %p %p\n", ncp, ncp->nc);
   if(ncp == NULL){
     return 0;
   }

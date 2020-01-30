@@ -1,11 +1,4 @@
 #include "version.h"
-#ifndef DISABLE_FFMPEG
-#include <libavutil/error.h>
-#include <libavutil/imgutils.h>
-#include <libswscale/swscale.h>
-#include <libavutil/rational.h>
-#include <libavformat/avformat.h>
-#endif
 #include "notcurses.h"
 #include "internal.h"
 
@@ -23,8 +16,8 @@ void ncvisual_destroy(ncvisual* ncv){
     //avcodec_parameters_free(&ncv->cparams);
     sws_freeContext(ncv->swsctx);
     av_packet_free(&ncv->packet);
-    av_packet_free(&ncv->subtitle);
     avformat_close_input(&ncv->fmtctx);
+    avsubtitle_free(&ncv->subtitle);
 #endif
     if(ncv->ncobj && ncv->ncp){
       ncplane_destroy(ncv->ncp);
@@ -106,6 +99,21 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
         return NULL;
       }
       unref = true;
+      if(nc->packet->stream_index == nc->sub_stream_index){
+        int result = 0, ret;
+        ret = avcodec_decode_subtitle2(nc->subtcodecctx, &nc->subtitle, &result, nc->packet);
+        if(ret >= 0 && result){
+          for(unsigned i = 0 ; i < nc->subtitle.num_rects ; ++i){
+            const AVSubtitleRect* rect = nc->subtitle.rects[i];
+            // FIXME do...what, exactly...with subtitles?
+            if(rect->type == SUBTITLE_ASS){
+              // fprintf(stderr, "ASS %s", rect->ass);
+            }else if(rect->type == SUBTITLE_TEXT) {;
+              //fprintf(stderr, "TEXT %s", rect->text);
+            }
+          }
+        }
+      }
     }while(nc->packet->stream_index != nc->stream_index);
     ++nc->packet_outstanding;
     *averr = avcodec_send_packet(nc->codecctx, nc->packet);
@@ -215,11 +223,19 @@ ncvisual_open(const char* filename, int* averr){
   }
 //av_dump_format(ncv->fmtctx, 0, filename, false);
   if((*averr = av_find_best_stream(ncv->fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, &ncv->subtcodec, 0)) >= 0){
-    if((ncv->subtitle = av_packet_alloc()) == NULL){
-      // fprintf(stderr, "Couldn't allocate subtitles for %s\n", filename);
+    ncv->sub_stream_index = *averr;
+    if((ncv->subtcodecctx = avcodec_alloc_context3(ncv->subtcodec)) == NULL){
+      //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
       *averr = AVERROR(ENOMEM);
       goto err;
     }
+    // FIXME do we need avcodec_parameters_to_context() here?
+    if((*averr = avcodec_open2(ncv->subtcodecctx, ncv->subtcodec, NULL)) < 0){
+      //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
+      goto err;
+    }
+  }else{
+    ncv->sub_stream_index = -1;
   }
   if((ncv->packet = av_packet_alloc()) == NULL){
     // fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
