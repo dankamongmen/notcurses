@@ -6,6 +6,9 @@
 
 static struct selector_item items[] = {
   { "first", "this is the first option", },
+  { "2nd", "this is the second option", },
+  { "3", "third, third, third option am i", },
+  { "fourth", "i have another option here", },
 };
 
 int main(void){

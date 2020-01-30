@@ -46,11 +46,17 @@ ncselector_draw(ncselector* n){
   int dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
   ncplane_rounded_box_sized(n->ncp, 0, channels, dimy - yoff, bodywidth, 0);
-  int printidx = n->startdisp;
+  unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
   for(yoff += 2 ; yoff < dimy - 2 ; ++yoff){
+    if(printidx == n->selected){
+      ncplane_styles_on(n->ncp, CELL_STYLE_REVERSE);
+    }
     ncplane_putstr_yx(n->ncp, yoff, bodyoffset, n->items[printidx].option);
     ncplane_putstr_yx(n->ncp, yoff, bodyoffset + n->longop + 1, n->items[printidx].desc);
+    if(printidx == n->selected){
+      ncplane_styles_off(n->ncp, CELL_STYLE_REVERSE);
+    }
     ++printidx;
   }
   return notcurses_render(n->ncp->nc);
