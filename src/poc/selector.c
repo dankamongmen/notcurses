@@ -9,6 +9,12 @@ static struct selector_item items[] = {
   { "2nd", "this is the second option", },
   { "3", "third, third, third option am i", },
   { "fourth", "i have another option here", },
+  { "five", "golden rings", },
+  { "666", "now it is time for me to REIGN IN BLOOD", },
+  { "7seven7", "this monkey's gone to heaven", },
+  { "8 8 8", "the chinese love me, i'm told", },
+  { "nine", "nine, nine, nine 'cause you left me", },
+  { "ten", "stunning and brave", },
 };
 
 int main(void){
@@ -23,6 +29,7 @@ int main(void){
   }
   selector_options sopts;
   memset(&sopts, 0, sizeof(sopts));
+  sopts.maxdisplay = 4;
   sopts.items = items;
   sopts.itemcount = sizeof(items) / sizeof(*items);
   sopts.title = "this is an awfully long example of a selector title";

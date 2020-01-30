@@ -904,7 +904,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     term_fg_palindex(ret, ret->ttyfp, ret->RGBflag ? 0xe02080 : 3);
     if(!ret->RGBflag){ // FIXME
       fprintf(ret->ttyfp, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
-      fprintf(ret->ttyfp, "\n  Are you specifying a proper DirectColor TERM?\n");
+      fprintf(ret->ttyfp, "\n  Specify a (correct) DirectColor TERM, or COLORTERM.\n");
     }else{
       /*if((unsigned)ret->colors < (1u << 24u)){
         fprintf(ret->ttyfp, "\n Warning! Advertised DirectColor but only %d colors\n", ret->colors);
@@ -1116,12 +1116,16 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   return 0;
 }
 
-int ncplane_set_base(ncplane* ncp, const cell* c){
+int ncplane_set_base_cell(ncplane* ncp, const cell* c){
   int ret = cell_duplicate(ncp, &ncp->basecell, c);
   if(ret < 0){
     return -1;
   }
   return ret;
+}
+
+int ncplane_set_base(ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc){
+  return cell_prime(ncp, &ncp->basecell, egc, attrword, channels);
 }
 
 int ncplane_base(ncplane* ncp, cell* c){
