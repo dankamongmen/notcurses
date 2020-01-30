@@ -113,12 +113,7 @@ fill_chunk(struct ncplane* n, int idx){
       return -1;
     }
   }
-  cell style;
-  cell_init(&style);
-  cell_set_fg_rgb(&style, r, g, b);
-  cell_prime(n, &style, "█", 0, channels);
-  ncplane_set_base(n, &style);
-  cell_release(n, &style);
+  ncplane_set_base(n, channels, 0, "█");
   return 0;
 }
 

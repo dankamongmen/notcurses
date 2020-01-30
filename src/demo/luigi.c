@@ -111,11 +111,10 @@ static const char* luigis[] = {
 
 static int
 draw_luigi(struct ncplane* n, const char* sprite){
-  cell bgc = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&bgc, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&bgc, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, &bgc);
-  cell_release(n, &bgc);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(n, channels, 0, "");
   size_t s;
   int sbytes;
   // optimization so we can elide more color changes, see README's "#perf"
@@ -199,10 +198,10 @@ int luigi_demo(struct notcurses* nc){
     ncvisual_destroy(wmncv);
     return -1;
   }
-  cell b = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(ncvisual_plane(wmncv), &b);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(ncvisual_plane(wmncv), channels, 0, "");
   if(ncvisual_render(wmncv, 0, 0, 0, 0)){
     ncvisual_destroy(wmncv);
     return -1;

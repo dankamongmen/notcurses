@@ -25,7 +25,7 @@ int intro(struct notcurses* nc){
   }
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_bg_rgb(&c, 0x20, 0x20, 0x20);
-  ncplane_set_base(ncp, &c);
+  ncplane_set_base_cell(ncp, &c);
   int x, y, rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
