@@ -36,7 +36,6 @@ namespace ncpp
 
 		~Visual () noexcept
 		{
-			destroy_plane (get_plane ());
 			if (!is_notcurses_stopped ())
 				ncvisual_destroy (visual);
 		}
@@ -72,9 +71,6 @@ namespace ncpp
     }
 
 		Plane* get_plane () const noexcept;
-
-	private:
-		static void destroy_plane (Plane *plane) noexcept;
 
 	private:
 		ncvisual *visual = nullptr;
