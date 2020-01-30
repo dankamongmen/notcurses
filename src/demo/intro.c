@@ -1,5 +1,23 @@
 #include "demo.h"
 
+static int
+fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
+  int* flipmode = curry;
+  int rows, cols;
+  ncplane_dim_yx(ncp, &rows, &cols);
+  for(int x = 5 ; x < cols - 6 ; ++x){
+    ncplane_set_fg_rgb(ncp, 0xd0, 0xf0, 0xd0);
+    if(ncplane_putwc_yx(ncp, rows - 3, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
+      return -1;
+    }
+  }
+  ++*flipmode;
+  if(demo_render(nc)){
+    return -1;
+  }
+  return 0;
+}
+
 int intro(struct notcurses* nc){
   struct ncplane* ncp;
   if((ncp = notcurses_stdplane(nc)) == NULL){
@@ -39,7 +57,7 @@ int intro(struct notcurses* nc){
   cell_load(ncp, &c, cstr);
   cell_set_fg_rgb(&c, 200, 0, 200);
   int ys = 200 / (rows - 2);
-  for(y = 5 ; y < rows - 6 ; ++y){
+  for(y = 5 ; y < rows - 7 ; ++y){
     cell_set_bg_rgb(&c, 0, y * ys  , 0);
     for(x = 5 ; x < cols - 6 ; ++x){
       if(ncplane_putc_yx(ncp, y, x, &c) <= 0){
@@ -54,7 +72,7 @@ int intro(struct notcurses* nc){
   if(ncplane_cursor_move_yx(ncp, 4, 4)){
     return -1;
   }
-  if(ncplane_rounded_box(ncp, 0, channels, rows - 6, cols - 6, 0)){
+  if(ncplane_rounded_box(ncp, 0, channels, rows - 7, cols - 6, 0)){
     return -1;
   }
   const char s1[] = " Die Welt ist alles, was der Fall ist. ";
@@ -74,7 +92,7 @@ int intro(struct notcurses* nc){
   }
   ncplane_styles_off(ncp, CELL_STYLE_ITALIC);
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
-  if(ncplane_printf_aligned(ncp, rows - 3, NCALIGN_CENTER, "notcurses %s. press 'q' to quit.", notcurses_version()) < 0){
+  if(ncplane_printf_aligned(ncp, rows - 5, NCALIGN_CENTER, "notcurses %s. press 'q' to quit.", notcurses_version()) < 0){
     return -1;
   }
   ncplane_styles_off(ncp, CELL_STYLE_BOLD);
@@ -91,11 +109,17 @@ int intro(struct notcurses* nc){
     }
     ncplane_styles_off(ncp, CELL_STYLE_BLINK); // heh FIXME replace with pulse
   }
-  if(demo_render(nc)){
-    return -1;
-  }
-  demo_nanosleep(nc, &demodelay);
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+  uint64_t deadline = timespec_to_ns(&now) + timespec_to_ns(&demodelay) * 2;
+  int flipmode = 0;
+  do{
+    fader(nc, ncp, &flipmode);
+    const struct timespec iter = { .tv_sec = 0, .tv_nsec = 100000000, };
+    demo_nanosleep(nc, &iter);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+  }while(timespec_to_ns(&now) < deadline);
   struct timespec fade = demodelay;
-  ncplane_fadeout(ncp, &fade, demo_fader, NULL);
+  ncplane_fadeout(ncp, &fade, fader, &flipmode);
   return 0;
 }

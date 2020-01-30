@@ -504,7 +504,6 @@ find_above_ncplane(ncplane* n){
 }
 
 int ncplane_destroy(ncplane* ncp){
-fprintf(stderr, "DESTROYING %p %p\n", ncp, ncp->nc);
   if(ncp == NULL){
     return 0;
   }
