@@ -135,6 +135,11 @@ typedef struct ncselector {
   char* title;                 // can be NULL, in which case there's no riser
   char* secondary;             // can be NULL
   char* footer;                // can be NULL
+  uint64_t opchannels;         // option channels
+  uint64_t descchannels;       // description channels
+  uint64_t titlechannels;      // title channels
+  uint64_t footchannels;       // secondary and footer channels
+  uint64_t boxchannels;        // border channels
 } ncselector;
 
 typedef struct ncdirect {

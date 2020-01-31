@@ -33,6 +33,17 @@ int main(void){
   sopts.items = items;
   sopts.itemcount = sizeof(items) / sizeof(*items);
   sopts.title = "this is an awfully long example of a selector title";
+  sopts.secondary = "pick one (you will die regardless)";
+  sopts.footer = "press q to exit (there is no exit)";
+  channels_set_fg(&sopts.boxchannels, 0x20e040);
+  channels_set_fg(&sopts.opchannels, 0xe08040);
+  channels_set_fg(&sopts.descchannels, 0x80e040);
+  channels_set_fg(&sopts.footchannels, 0xe00040);
+  channels_set_fg(&sopts.titlechannels, 0xffff80);
+  channels_set_fg(&sopts.bgchannels, 0x002000);
+  channels_set_bg(&sopts.bgchannels, 0x002000);
+  channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
+  channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   ncplane_set_fg(notcurses_stdplane(nc), 0x40f040);
   ncplane_putstr_aligned(notcurses_stdplane(nc), 0, NCALIGN_RIGHT, "selector widget demo");
   struct ncselector* ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);

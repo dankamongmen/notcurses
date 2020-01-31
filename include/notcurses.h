@@ -2125,6 +2125,14 @@ typedef struct selector_options {
   unsigned itemcount; // number of initial items and descriptions
   // maximum number of options to display at once, 0 to use all available space
   unsigned maxdisplay;
+  // exhaustive styling options
+  uint64_t opchannels;   // option channels
+  uint64_t descchannels; // description channels
+  uint64_t titlechannels;// title channels
+  uint64_t footchannels; // secondary and footer channels
+  uint64_t boxchannels;  // border channels
+  uint64_t bgchannels;   // base cell channels
+  const char* base_egc;  // base EGC, NULL is interpreted as "" for convenience
 } selector_options;
 
 struct ncselector;

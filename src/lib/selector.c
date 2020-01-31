@@ -35,8 +35,9 @@ ncselector_draw(ncselector* n){
     size_t riserwidth = strlen(n->title) + 4;
     int offx = ncplane_align(n->ncp, NCALIGN_RIGHT, riserwidth);
     ncplane_cursor_move_yx(n->ncp, 0, offx);
-    ncplane_rounded_box_sized(n->ncp, 0, channels, 3, riserwidth, 0);
+    ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, 3, riserwidth, 0);
     ncplane_cursor_move_yx(n->ncp, 1, offx + 2);
+    n->ncp->channels = n->titlechannels;
     ncplane_putstr(n->ncp, n->title); // FIXME allow styling configuration
     yoff += 2;
   }
@@ -45,7 +46,19 @@ ncselector_draw(ncselector* n){
   ncplane_cursor_move_yx(n->ncp, yoff, xoff);
   int dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
-  ncplane_rounded_box_sized(n->ncp, 0, channels, dimy - yoff, bodywidth, 0);
+  ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, dimy - yoff, bodywidth, 0);
+  if(n->secondary){
+    // FIXME move it to the left a bit *iff* there's room to do so
+    int xloc = ncplane_align(n->ncp, NCALIGN_RIGHT, strlen(n->secondary) + 1);
+    n->ncp->channels = n->footchannels;
+    ncplane_putstr_yx(n->ncp, yoff, xloc, n->secondary);
+  }
+  if(n->footer){
+    // FIXME move it to the left a bit *iff* there's room to do so
+    int xloc = ncplane_align(n->ncp, NCALIGN_RIGHT, strlen(n->footer) + 2);
+    n->ncp->channels = n->footchannels;
+    ncplane_putstr_yx(n->ncp, dimy - 1, xloc, n->footer);
+  }
   unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
   unsigned printed = 0;
@@ -56,9 +69,11 @@ ncselector_draw(ncselector* n){
     if(printidx == n->selected){
       ncplane_styles_on(n->ncp, CELL_STYLE_REVERSE);
     }
-    ncplane_printf_yx(n->ncp, yoff, bodyoffset, "%*.*s %s", (int)n->longop,
-                      (int)n->longop, n->items[printidx].option,
-                      n->items[printidx].desc);
+    n->ncp->channels = n->opchannels;
+    ncplane_printf_yx(n->ncp, yoff, bodyoffset, "%*.*s", (int)n->longop,
+                      (int)n->longop, n->items[printidx].option);
+    n->ncp->channels = n->descchannels;
+    ncplane_printf_yx(n->ncp, yoff, bodyoffset + n->longop, " %s", n->items[printidx].desc);
     if(printidx == n->selected){
       ncplane_styles_off(n->ncp, CELL_STYLE_REVERSE);
     }
@@ -113,6 +128,12 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   ns->longop = 0;
   ns->maxdisplay = opts->maxdisplay;
   ns->longdesc = 0;
+  ns->opchannels = opts->opchannels;
+  ns->boxchannels = opts->boxchannels;
+  ns->descchannels = opts->descchannels;
+  ns->titlechannels = opts->titlechannels;
+  ns->footchannels = opts->footchannels;
+  ns->boxchannels = opts->boxchannels;
   if(opts->itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
       free(ns->title); free(ns->secondary); free(ns->footer);
@@ -143,6 +164,11 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
     goto freeitems;
   }
   if(!(ns->ncp = ncplane_new(n->nc, dimy, dimx, y, x, NULL))){
+    goto freeitems;
+  }
+  if(ncplane_set_base(ns->ncp, opts->bgchannels, 0,
+                      opts->base_egc ? opts->base_egc : "")){
+    ncplane_destroy(ns->ncp);
     goto freeitems;
   }
   ncselector_draw(ns); // deal with error here?
@@ -205,7 +231,6 @@ char* ncselector_selected(const ncselector* n){
 }
 
 void ncselector_previtem(ncselector* n, char** newitem){
-fprintf(stderr, "MAX: %u COUNT: %u SELECTED: %u START: %u\n", n->maxdisplay, n->itemcount, n->selected, n->startdisp);
   if(n->selected == n->startdisp && n->maxdisplay && n->maxdisplay < n->itemcount){
     if(n->startdisp-- == 0){
       n->startdisp = n->itemcount - 1;
