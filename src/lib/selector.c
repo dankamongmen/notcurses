@@ -66,17 +66,17 @@ ncselector_draw(ncselector* n){
     if(n->maxdisplay && printed == n->maxdisplay){
       break;
     }
-    if(printidx == n->selected){
-      ncplane_styles_on(n->ncp, CELL_STYLE_REVERSE);
-    }
     n->ncp->channels = n->opchannels;
+    if(printidx == n->selected){
+      n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
+    }
     ncplane_printf_yx(n->ncp, yoff, bodyoffset, "%*.*s", (int)n->longop,
                       (int)n->longop, n->items[printidx].option);
     n->ncp->channels = n->descchannels;
-    ncplane_printf_yx(n->ncp, yoff, bodyoffset + n->longop, " %s", n->items[printidx].desc);
     if(printidx == n->selected){
-      ncplane_styles_off(n->ncp, CELL_STYLE_REVERSE);
+      n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
     }
+    ncplane_printf_yx(n->ncp, yoff, bodyoffset + n->longop, " %s", n->items[printidx].desc);
     if(++printidx == n->itemcount){
       printidx = 0;
     }
