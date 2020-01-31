@@ -279,6 +279,7 @@ void ncselector_destroy(ncselector* n, char** item){
       free(n->items[n->itemcount].option);
       free(n->items[n->itemcount].desc);
     }
+    ncplane_destroy(n->ncp);
     free(n->items);
     free(n->title);
     free(n->secondary);
