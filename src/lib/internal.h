@@ -127,6 +127,7 @@ typedef struct ncselector {
   ncplane* ncp;                // backing ncplane
   unsigned selected;           // index of selection
   unsigned startdisp;          // index of first option displayed
+  unsigned maxdisplay;         // max number of items to display, 0 -> no limit
   size_t longop;               // length of longest option
   size_t longdesc;             // length of longest description
   struct selector_item* items; // list of items and descriptions, heap-copied

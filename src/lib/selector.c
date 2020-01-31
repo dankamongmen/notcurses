@@ -48,7 +48,11 @@ ncselector_draw(ncselector* n){
   ncplane_rounded_box_sized(n->ncp, 0, channels, dimy - yoff, bodywidth, 0);
   unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
+  unsigned printed = 0;
   for(yoff += 2 ; yoff < dimy - 2 ; ++yoff){
+    if(n->maxdisplay && printed == n->maxdisplay){
+      break;
+    }
     if(printidx == n->selected){
       ncplane_styles_on(n->ncp, CELL_STYLE_REVERSE);
     }
@@ -59,6 +63,7 @@ ncselector_draw(ncselector* n){
       ncplane_styles_off(n->ncp, CELL_STYLE_REVERSE);
     }
     ++printidx;
+    ++printed;
   }
   return notcurses_render(n->ncp->nc);
 }
@@ -79,7 +84,7 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   if(rows > dimy){ // insufficient height to display selector
     return -1;
   }
-  rows += n->itemcount - 1; // rows necessary to display all options
+  rows += (!n->maxdisplay || n->maxdisplay > n->itemcount ? n->itemcount : n->maxdisplay) - 1; // rows necessary to display all options
   if(rows > dimy){ // claw excess back
     rows = dimy;
   }
@@ -104,6 +109,7 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   ns->selected = 0;
   ns->startdisp = 0;
   ns->longop = 0;
+  ns->maxdisplay = opts->maxdisplay;
   ns->longdesc = 0;
   if(opts->itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
@@ -183,6 +189,10 @@ int ncselector_delitem(ncselector* n, const char* item){
     }
   }
   return -1; // wasn't found
+}
+
+ncplane* ncselector_plane(ncselector* n){
+  return n->ncp;
 }
 
 char* ncselector_selected(const ncselector* n){
