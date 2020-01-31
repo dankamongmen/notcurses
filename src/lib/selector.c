@@ -62,7 +62,9 @@ ncselector_draw(ncselector* n){
     if(printidx == n->selected){
       ncplane_styles_off(n->ncp, CELL_STYLE_REVERSE);
     }
-    ++printidx;
+    if(++printidx == n->itemcount){
+      printidx = 0;
+    }
     ++printed;
   }
   return notcurses_render(n->ncp->nc);
@@ -203,6 +205,12 @@ char* ncselector_selected(const ncselector* n){
 }
 
 void ncselector_previtem(ncselector* n, char** newitem){
+fprintf(stderr, "MAX: %u COUNT: %u SELECTED: %u START: %u\n", n->maxdisplay, n->itemcount, n->selected, n->startdisp);
+  if(n->selected == n->startdisp && n->maxdisplay && n->maxdisplay < n->itemcount){
+    if(n->startdisp-- == 0){
+      n->startdisp = n->itemcount - 1;
+    }
+  }
   if(n->selected == 0){
     n->selected = n->itemcount;
   }
@@ -215,6 +223,13 @@ void ncselector_previtem(ncselector* n, char** newitem){
 
 void ncselector_nextitem(ncselector* n, char** newitem){
   ++n->selected;
+  if(n->maxdisplay && n->maxdisplay < n->itemcount){
+    if((n->startdisp + n->maxdisplay) % n->itemcount == (n->selected % n->itemcount)){
+      if(++n->startdisp == n->itemcount){
+        n->startdisp = 0;
+      }
+    }
+  }
   if(n->selected == n->itemcount){
     n->selected = 0;
   }
