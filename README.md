@@ -2081,6 +2081,85 @@ push C entirely off-screen (B would then have four lines of text), and then
 push A off-screen. B would then have eight lines of text, the maximum on a
 12-line screen with both types of borders.
 
+### Selectors
+
+The selector widget provides an ncplane with a title riser and a body section.
+The body section is populated with options and descriptions, and supports
+infinite scrolling up and down. The widgets looks like:
+
+```
+                              ╭──────────────────────────╮
+                              │This is the primary header│
+╭──────────────────────this is the secondary header──────╮
+│                                                        │
+│ option1   Long text #1                                 │
+│ option2   Long text #2                                 │
+│ option3   Long text #3                                 │
+│ option4   Long text #4                                 │
+│ option5   Long text #5                                 │
+│ option6   Long text #6                                 │
+│                                                        │
+╰────────────────────────────────────here's the footer───╯
+```
+
+At all times, exactly one item is selected (unless there are no items). A
+selector is created with `ncselector_create` and destroyed with
+`ncselector_destroy`.
+
+```c
+struct selector_item {
+  char* option;
+  char* desc;
+};
+
+typedef struct selector_options {
+  char* title; // title may be NULL, inhibiting riser, saving two rows.
+  char* secondary; // secondary may be NULL
+  char* footer; // footer may be NULL
+  struct selector_item* items; // initial items and descriptions
+  unsigned itemcount; // number of initial items and descriptions
+  // default item (selected at start), must be < itemcount unless 'itemcount'
+  // is 0, in which case 'defidx' must also be 0
+  unsigned defidx;
+  // maximum number of options to display at once, 0 to use all available space
+  unsigned maxdisplay;
+  // exhaustive styling options
+  uint64_t opchannels;   // option channels
+  uint64_t descchannels; // description channels
+  uint64_t titlechannels;// title channels
+  uint64_t footchannels; // secondary and footer channels
+  uint64_t boxchannels;  // border channels
+  uint64_t bgchannels;   // base cell channels
+  const char* base_egc;  // base EGC, NULL is interpreted as "" for convenience
+} selector_options;
+
+struct ncselector;
+
+struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
+                                     const selector_options* opts);
+
+struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e align,
+                                      const selector_options* opts);
+
+int ncselector_additem(struct ncselector* n, const struct selector_item* item);
+int ncselector_delitem(struct ncselector* n, const char* item);
+
+// Return a copy of the currently-selected option. NULL if there are no items.
+char* ncselector_selected(const struct ncselector* n);
+
+struct ncplane* ncselector_plane(struct ncselector* n);
+
+// Move up or down in the list. If 'newitem' is not NULL, the newly-selected
+// option will be strdup()ed and assigned to '*newitem' (and must be free()d by
+// the caller).
+void ncselector_previtem(struct ncselector* n, char** newitem);
+void ncselector_nextitem(struct ncselector* n, char** newitem);
+
+// Destroy the ncselector. If 'item' is not NULL, the last selected option will
+// be strdup()ed and assigned to '*item' (and must be free()d by the caller).
+void ncselector_destroy(struct ncselector* n, char** item);
+```
+
 ### Channels
 
 A channel encodes 24 bits of RGB color, using 8 bits for each component. It

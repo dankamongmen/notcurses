@@ -2093,11 +2093,8 @@ API int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b
 API int ncdirect_stop(struct ncdirect* nc);
 
 // selection widget -- an ncplane with a title header and a body section. the
-// body section supports infinite scrolling up and down. the supplied width must
-// be large enough to display the header and footer, plus two columns worth of
-// borders for both. the supplied body height must be at least 3 rows; four more
-// rows will be used in the default configuration. the widget
-// looks like:                     ╭──────────────────────────╮
+// body section supports infinite scrolling up and down. the widget looks like:
+//                                 ╭──────────────────────────╮
 //                                 │This is the primary header│
 //   ╭──────────────────────this is the secondary header──────╮
 //   │                                                        │
