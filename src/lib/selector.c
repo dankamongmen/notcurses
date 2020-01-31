@@ -119,12 +119,15 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
 }
 
 ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* opts){
+  if(opts->defidx && opts->defidx >= opts->itemcount){
+    return NULL;
+  }
   ncselector* ns = malloc(sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
   ns->footer = opts->footer ? strdup(opts->footer) : NULL;
-  ns->selected = 0;
-  ns->startdisp = 0;
+  ns->selected = opts->defidx;
+  ns->startdisp = opts->defidx >= opts->maxdisplay ? opts->defidx - opts->maxdisplay + 1 : 0;
   ns->longop = 0;
   ns->maxdisplay = opts->maxdisplay;
   ns->longdesc = 0;

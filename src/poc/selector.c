@@ -35,6 +35,7 @@ int main(void){
   sopts.title = "this is an awfully long example of a selector title";
   sopts.secondary = "pick one (you will die regardless)";
   sopts.footer = "press q to exit (there is no exit)";
+  sopts.defidx = 5;
   channels_set_fg(&sopts.boxchannels, 0x20e040);
   channels_set_fg(&sopts.opchannels, 0xe08040);
   channels_set_fg(&sopts.descchannels, 0x80e040);
