@@ -170,7 +170,7 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
     goto freeitems;
   }
   if(ncplane_set_base(ns->ncp, opts->bgchannels, 0,
-                      opts->base_egc ? opts->base_egc : "")){
+                      opts->base_egc ? opts->base_egc : "") < 0){
     ncplane_destroy(ns->ncp);
     goto freeitems;
   }
