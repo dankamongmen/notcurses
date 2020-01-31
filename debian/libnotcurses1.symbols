@@ -70,7 +70,9 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncselector_delitem@Base 1.1.3
  ncselector_destroy@Base 1.1.3
  ncselector_nextitem@Base 1.1.3
+ ncselector_plane@Base 1.1.3
  ncselector_previtem@Base 1.1.3
+ ncselector_selected@Base 1.1.3
  ncvisual_decode@Base 1.0.0
  ncvisual_destroy@Base 1.0.0
  ncvisual_open_plane@Base 1.0.0
