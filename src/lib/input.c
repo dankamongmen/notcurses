@@ -319,6 +319,9 @@ handle_ncinput(notcurses* nc, ncinput* ni){
   }
   char32_t r = handle_input(nc, ni);
   // ctrl (*without* alt) + letter maps to [1..26], and is independent of shift
+  // FIXME need to distinguish between:
+  //  - Enter and ^J
+  //  - Tab and ^I
   bool ctrl = r > 0 && r <= 26;
   if(ctrl){
     r += 'A' - 1;

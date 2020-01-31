@@ -840,8 +840,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   // see termios(3). disabling ECHO and ICANON means input will not be echoed
   // to the screen, input is made available without enter-based buffering, and
   // line editing is disabled. since we have not gone into raw mode, ctrl+c
-  // etc. still have their typical effects.
+  // etc. still have their typical effects. ICRNL maps return to 13 (Ctrl+M)
+  // instead of 10 (Ctrl+J).
   modtermios.c_lflag &= (~ECHO & ~ICANON);
+  modtermios.c_iflag &= (~ICRNL);
   if(tcsetattr(ret->ttyfd, TCSANOW, &modtermios)){
     fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n",
             ret->ttyfd, strerror(errno));
