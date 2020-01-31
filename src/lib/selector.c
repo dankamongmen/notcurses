@@ -234,6 +234,9 @@ char* ncselector_selected(const ncselector* n){
 }
 
 void ncselector_previtem(ncselector* n, char** newitem){
+  if(n->itemcount == 0){
+    return;
+  }
   if(n->selected == n->startdisp){
     if(n->startdisp-- == 0){
       n->startdisp = n->itemcount - 1;
@@ -250,6 +253,9 @@ void ncselector_previtem(ncselector* n, char** newitem){
 }
 
 void ncselector_nextitem(ncselector* n, char** newitem){
+  if(n->itemcount == 0){
+    return;
+  }
   unsigned lastdisp = n->startdisp;
   lastdisp += n->maxdisplay && n->maxdisplay < n->itemcount ? n->maxdisplay : n->itemcount;
   --lastdisp;
