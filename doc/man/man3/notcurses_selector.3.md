@@ -50,11 +50,11 @@ typedef struct selector_options {
 
 **struct ncplane* ncselector_plane(struct ncselector* n);**
 
-**void ncselector_previtem(struct ncselector* n, char** newitem);**
+**void ncselector_previtem(struct ncselector* n, char\*\* newitem);**
 
-**void ncselector_nextitem(struct ncselector* n, char** newitem);**
+**void ncselector_nextitem(struct ncselector* n, char\*\* newitem);**
 
-**void ncselector_destroy(struct ncselector* n, char** item);**
+**void ncselector_destroy(struct ncselector* n, char\*\* item);**
 
 # DESCRIPTION
 
