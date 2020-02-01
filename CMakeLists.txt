@@ -51,8 +51,9 @@ target_link_directories(notcurses
 
 if(NOT "${DISABLE_FFMPEG}")
 target_include_directories(notcurses
-  PRIVATE
+  PUBLIC
     "${AVFORMAT_INCLUDE_DIRS}"
+    "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses
@@ -225,6 +226,10 @@ target_include_directories(notcurses-demo
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
+  PUBLIC
+    "${AVFORMAT_INCLUDE_DIRS}"
+    "${AVUTIL_INCLUDE_DIRS}"
+    "${SWSCALE_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-demo
   PRIVATE

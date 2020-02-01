@@ -16,6 +16,10 @@
 extern "C" {
 #endif
 
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#endif
+
 // configured via command line option -- the base number of ns between demos
 extern struct timespec demodelay;
 extern float delaymultiplier; // scales demodelay (applied internally)
