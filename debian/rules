@@ -8,7 +8,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 export PYBUILD_NAME=notcurses
 
 %:
-	dh $@ --with python3 --buildsystem=cmake
+	dh $@ --buildsystem=cmake
 
 # dh_auto_test -O--buildsystem=cmake -O--no-parallel
 # Don't try to run ncurses tests
