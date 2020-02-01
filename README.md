@@ -2184,6 +2184,50 @@ void ncselector_nextitem(struct ncselector* n, char** newitem);
 void ncselector_destroy(struct ncselector* n, char** item);
 ```
 
+### Menus
+
+Horizontal menu bars are supported, on the top and/or bottom rows of the
+screen (menus are bound to a `notcurses` object, not particular `ncplane`s).
+If the menu bar is longer than the screen, it will be only partially visible.
+Menus may be either visible or invisible by default; set the `hiding` option
+to get an invisible menu. In the event of a screen resize, menus will be
+automatically moved/resized.
+
+```c
+typedef struct menu_options {
+  bool bottom;              // on the bottom row, as opposed to top row
+  bool hiding;              // hide the menu when not being used
+  struct {
+    char* name;             // utf-8 c string
+    struct {
+      char* desc;           // utf-8 menu item, NULL for horizontal separator
+      ncinput shortcut;     // shortcut, all should be distinct
+    }* items;
+    int itemcount;
+  }* sections;              // array of menu sections
+  int headercount;          // must be positive
+  uint64_t headerchannels;  // styling for header
+  uint64_t sectionchannels; // styling for sections
+} menu_options;
+
+struct ncmenu;
+
+// Create a menu with the specified options. Menus are currently bound to an
+// overall notcurses object (as opposed to a particular plane), and are
+// implemented as ncplanes kept atop other ncplanes.
+struct ncmenu* ncmenu_create(struct notcurses* nc, const menu_options* opts);
+
+// Unroll the specified menu section, making the menu visible if it was
+// invisible, and rolling up any menu section that is already unrolled.
+int ncmenu_unroll(struct ncmenu* n, int sectionidx);
+
+// Roll up any unrolled menu section, and hide the menu if using hiding.
+int ncmenu_rollup(struct ncmenu* n);
+
+// Destroy a menu created with ncmenu_create().
+int ncmenu_destroy(struct ncmenu* n);
+```
+
 ### Channels
 
 A channel encodes 24 bits of RGB color, using 8 bits for each component. It

@@ -264,6 +264,18 @@ table_segment(struct ncdirect* nc, const char* str, const char* delim){
 }
 
 static int
+table_printf(struct ncdirect* nc, const char* delim, const char* fmt, ...){
+  ncdirect_fg_rgb8(nc, 0xD4, 0xAF, 0x37);
+  va_list va;
+  va_start(va, fmt);
+  vfprintf(stdout, fmt, va);
+  va_end(va);
+  ncdirect_fg_rgb8(nc, 178, 102, 255);
+  fputs(delim, stdout);
+  return 0;
+}
+
+static int
 summary_table(struct ncdirect* nc, const char* spec){
   bool failed = false;
   uint64_t totalbytes = 0;
@@ -313,10 +325,13 @@ summary_table(struct ncdirect* nc, const char* spec){
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
   table_segment(nc, "", "══╧═╧════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
-  printf("     %*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│\n", PREFIXSTRLEN, timebuf,
-         totalframes, BPREFIXSTRLEN, totalbuf, PREFIXSTRLEN, rtimebuf,
-         nsdelta ? totalrenderns * 100 / nsdelta : 0,
-         nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
+  table_printf(nc, "│", "     %*ss", PREFIXSTRLEN, timebuf);
+  table_printf(nc, "│", "%6lu", totalframes);
+  table_printf(nc, "│", "%*s", BPREFIXSTRLEN, totalbuf);
+  table_printf(nc, "│", " %*ss", PREFIXSTRLEN, rtimebuf);
+  table_printf(nc, "│", "%3ld", nsdelta ? totalrenderns * 100 / nsdelta : 0);
+  table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
+  printf("\n");
   ncdirect_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
   fflush(stdout); // in case we print to stderr below, we want color from above
   if(failed){
