@@ -10,7 +10,7 @@ notcurses_menu - operations on menus
 
 **#include <notcurses.h>**
 
-```
+```c
 struct ncmenu;
 
 typedef struct menu_options {
