@@ -128,13 +128,16 @@ typedef struct ncselector {
   unsigned selected;           // index of selection
   unsigned startdisp;          // index of first option displayed
   unsigned maxdisplay;         // max number of items to display, 0 -> no limit
-  size_t longop;               // length of longest option
-  size_t longdesc;             // length of longest description
+  int longop;                  // columns occupied by longest option
+  int longdesc;                // columns occupied by longest description
   struct selector_item* items; // list of items and descriptions, heap-copied
   unsigned itemcount;          // number of pairs in 'items'
   char* title;                 // can be NULL, in which case there's no riser
+  int titlecols;               // columns occupied by title
   char* secondary;             // can be NULL
+  int secondarycols;           // columns occupied by secondary
   char* footer;                // can be NULL
+  int footercols;              // columns occupied by footer
   uint64_t opchannels;         // option channels
   uint64_t descchannels;       // description channels
   uint64_t titlechannels;      // title channels

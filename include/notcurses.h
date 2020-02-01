@@ -2136,6 +2136,8 @@ API int ncdirect_stop(struct ncdirect* nc);
 struct selector_item {
   char* option;
   char* desc;
+  size_t opcolumns;   // filled in by library
+  size_t desccolumns; // filled in by library
 };
 
 typedef struct selector_options {

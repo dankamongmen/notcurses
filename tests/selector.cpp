@@ -79,9 +79,9 @@ TEST_CASE("SelectorTest") {
 
   SUBCASE("PopulatedSelector") {
     selector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
+      { strdup("op1"), strdup("this is option 1"), 0, 0, },
+      { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
+      { strdup("tres"), strdup("option the third"), 0, 0, },
     };
     struct selector_options opts{};
     opts.items = items;
@@ -116,9 +116,9 @@ TEST_CASE("SelectorTest") {
 
   SUBCASE("SelectorMovement") {
     selector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
+      { strdup("op1"), strdup("this is option 1"), 0, 0, },
+      { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
+      { strdup("tres"), strdup("option the third"), 0, 0, },
     };
     struct selector_options opts{};
     opts.items = items;
@@ -158,9 +158,9 @@ TEST_CASE("SelectorTest") {
   // Provide three items, limited to 1 shown at a time
   SUBCASE("ScrollingSelectorOne") {
     selector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
+      { strdup("op1"), strdup("this is option 1"), 0, 0, },
+      { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
+      { strdup("tres"), strdup("option the third"), 0, 0, },
     };
     struct selector_options opts{};
     opts.maxdisplay = 1;
@@ -206,9 +206,9 @@ TEST_CASE("SelectorTest") {
   // Provide three items, limited to 2 shown at a time
   SUBCASE("ScrollingSelectorTwo") {
     selector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
+      { strdup("op1"), strdup("this is option 1"), 0, 0, },
+      { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
+      { strdup("tres"), strdup("option the third"), 0, 0, },
     };
     struct selector_options opts{};
     opts.maxdisplay = 2;

@@ -12,7 +12,7 @@ static struct selector_item items[] = {
   { "five", "golden rings", },
   { "666", "now it is time for me to REIGN IN BLOOD", },
   { "7seven7", "this monkey's gone to heaven", },
-  { "8 8 8", "the chinese love me, i'm told", },
+  { "8 8 8", "the chinese 平仮名平平仮名仮名love me, i'm told", },
   { "nine", "nine, nine, nine 'cause you left me", },
   { "ten", "stunning and brave", },
 };

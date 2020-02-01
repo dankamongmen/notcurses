@@ -4,16 +4,16 @@
 // ideal body width given the ncselector's items and secondary/footer
 static size_t
 ncselector_body_width(const ncselector* n){
-  size_t cols = 0;
+  int cols = 0;
   // the body is the maximum of
   //  * longop + longdesc + 5
   //  * secondary + 2
   //  * footer + 2
-  if(n->footer && strlen(n->footer) + 2 > cols){
-    cols = strlen(n->footer) + 2;
+  if(n->footercols + 2 > cols){
+    cols = n->footercols + 2;
   }
-  if(n->secondary && strlen(n->secondary) + 2 > cols){
-    cols = strlen(n->secondary) + 2;
+  if(n->secondarycols + 2 > cols){
+    cols = n->secondarycols + 2;
   }
   if(n->longop + n->longdesc + 5 > cols){
     cols = n->longop + n->longdesc + 5;
@@ -32,7 +32,7 @@ ncselector_draw(ncselector* n){
   // draw a rounded box. the body will blow part or all of the bottom away.
   int yoff = 0;
   if(n->title){
-    size_t riserwidth = strlen(n->title) + 4;
+    size_t riserwidth = n->titlecols + 4;
     int offx = ncplane_align(n->ncp, NCALIGN_RIGHT, riserwidth);
     ncplane_cursor_move_yx(n->ncp, 0, offx);
     ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, 3, riserwidth, 0);
@@ -49,13 +49,13 @@ ncselector_draw(ncselector* n){
   ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, dimy - yoff, bodywidth, 0);
   if(n->secondary){
     // FIXME move it to the left a bit *iff* there's room to do so
-    int xloc = ncplane_align(n->ncp, NCALIGN_RIGHT, strlen(n->secondary) + 1);
+    int xloc = ncplane_align(n->ncp, NCALIGN_RIGHT, n->secondarycols + 1);
     n->ncp->channels = n->footchannels;
     ncplane_putstr_yx(n->ncp, yoff, xloc, n->secondary);
   }
   if(n->footer){
     // FIXME move it to the left a bit *iff* there's room to do so
-    int xloc = ncplane_align(n->ncp, NCALIGN_RIGHT, strlen(n->footer) + 2);
+    int xloc = ncplane_align(n->ncp, NCALIGN_RIGHT, n->footercols + 2);
     n->ncp->channels = n->footchannels;
     ncplane_putstr_yx(n->ncp, dimy - 1, xloc, n->footer);
   }
@@ -108,8 +108,8 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   *ncdimy = rows;
   cols = ncselector_body_width(n);
   // the riser, if it exists, is header + 4. the cols are the max of these two.
-  if(n->title && strlen(n->title) + 4 > (size_t)cols){
-    cols = strlen(n->title) + 4;
+  if(n->titlecols + 4 > cols){
+    cols = n->titlecols + 4;
   }
   if(cols > dimx){ // insufficient width to display selector
     return -1;
@@ -124,8 +124,11 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   }
   ncselector* ns = malloc(sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
+  ns->titlecols = opts->title ? mbswidth(opts->title) : 0;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
+  ns->secondarycols = opts->secondary ? mbswidth(opts->secondary) : 0;
   ns->footer = opts->footer ? strdup(opts->footer) : NULL;
+  ns->footercols = opts->footer ? mbswidth(opts->footer) : 0;
   ns->selected = opts->defidx;
   ns->startdisp = opts->defidx >= opts->maxdisplay ? opts->defidx - opts->maxdisplay + 1 : 0;
   ns->longop = 0;
@@ -148,11 +151,11 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   }
   for(ns->itemcount = 0 ; ns->itemcount < opts->itemcount ; ++ns->itemcount){
     const struct selector_item* src = &opts->items[ns->itemcount];
-    if(strlen(src->option) > ns->longop){
-      ns->longop = strlen(src->option);
+    if(mbswidth(src->option) > ns->longop){
+      ns->longop = mbswidth(src->option);
     }
-    if(strlen(src->desc) > ns->longdesc){
-      ns->longdesc = strlen(src->desc);
+    if(mbswidth(src->desc) > ns->longdesc){
+      ns->longdesc = mbswidth(src->desc);
     }
     ns->items[ns->itemcount].option = strdup(src->option);
     ns->items[ns->itemcount].desc = strdup(src->desc);
