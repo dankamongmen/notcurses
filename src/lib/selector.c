@@ -59,10 +59,12 @@ ncselector_draw(ncselector* n){
     n->ncp->channels = n->footchannels;
     ncplane_putstr_yx(n->ncp, dimy - 1, xloc, n->footer);
   }
+  n->ncp->channels = n->descchannels;
+  ncplane_putegc_yx(n->ncp, ++yoff, bodywidth - (n->longdesc + 3), "↑", NULL);
   unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
   unsigned printed = 0;
-  for(yoff += 2 ; yoff < dimy - 2 ; ++yoff){
+  for(yoff += 1 ; yoff < dimy - 2 ; ++yoff){
     if(n->maxdisplay && printed == n->maxdisplay){
       break;
     }
@@ -82,6 +84,8 @@ ncselector_draw(ncselector* n){
     }
     ++printed;
   }
+  n->ncp->channels = n->descchannels;
+  ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3), "↓", NULL);
   return notcurses_render(n->ncp->nc);
 }
 
