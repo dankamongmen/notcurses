@@ -32,7 +32,7 @@ int main(void){
   sopts.maxdisplay = 4;
   sopts.items = items;
   sopts.itemcount = sizeof(items) / sizeof(*items);
-  sopts.title = "this is an awfully long example of a selector title";
+  sopts.title = "this is truly, absolutely an awfully long example of a selector title";
   sopts.secondary = "pick one (you will die regardless)";
   sopts.footer = "press q to exit (there is no exit)";
   sopts.defidx = 5;

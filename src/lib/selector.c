@@ -47,20 +47,19 @@ ncselector_draw(ncselector* n){
   int dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
   ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, dimy - yoff, bodywidth, 0);
+  // There is always at least one space available on the right for the
+  // secondary title and footer, but we'd prefer to use a few more if we can.
   if(n->secondary){
-    // FIXME move it to the left a bit *iff* there's room to do so
-    int xloc = ncplane_align(n->ncp, NCALIGN_RIGHT, n->secondarycols + 1);
     n->ncp->channels = n->footchannels;
-    ncplane_putstr_yx(n->ncp, yoff, xloc, n->secondary);
+    ncplane_putstr_yx(n->ncp, yoff, xoff + 1, n->secondary);
   }
   if(n->footer){
-    // FIXME move it to the left a bit *iff* there's room to do so
-    int xloc = ncplane_align(n->ncp, NCALIGN_RIGHT, n->footercols + 2);
+    int xloc = bodywidth - (n->footercols + 1) + xoff;
     n->ncp->channels = n->footchannels;
     ncplane_putstr_yx(n->ncp, dimy - 1, xloc, n->footer);
   }
   n->ncp->channels = n->descchannels;
-  ncplane_putegc_yx(n->ncp, ++yoff, bodywidth - (n->longdesc + 3), "↑", NULL);
+  ncplane_putegc_yx(n->ncp, ++yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
   unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
   unsigned printed = 0;
@@ -85,7 +84,7 @@ ncselector_draw(ncselector* n){
     ++printed;
   }
   n->ncp->channels = n->descchannels;
-  ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3), "↓", NULL);
+  ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↓", NULL);
   return notcurses_render(n->ncp->nc);
 }
 
