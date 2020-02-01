@@ -802,6 +802,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+  ret->topmenu = NULL;
+  ret->bottommenu = NULL;
   ret->stats.fbbytes = 0;
   ret->stashstats.fbbytes = 0;
   reset_stats(&ret->stats);

@@ -123,6 +123,22 @@ typedef struct renderstate {
   bool defaultelidable;
 } renderstate;
 
+typedef struct ncmenu {
+  ncplane* ncp;
+  struct {
+    char* name;             // utf-8 c string
+    struct {
+      char* desc;           // utf-8 menu item, NULL for horizontal separator
+      ncinput shortcut;     // shortcut, all should be distinct
+    }* items;
+    int itemcount;
+  }* sections;              // array of menu sections
+  int sectioncount;         // must be positive
+  int unrolledsection;      // currently unrolled section, -1 if none
+  uint64_t headerchannels;  // styling for header
+  uint64_t sectionchannels; // styling for sections
+} ncmenu;
+
 typedef struct ncselector {
   ncplane* ncp;                // backing ncplane
   unsigned selected;           // index of selection
@@ -236,6 +252,11 @@ typedef struct notcurses {
   unsigned inputbuf_occupied;
   unsigned inputbuf_valid_starts;
   unsigned inputbuf_write_at;
+
+  // we can have up to two menus, one each on the top and bottom
+  ncmenu* topmenu;
+  ncmenu* bottommenu;
+
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
