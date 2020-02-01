@@ -2,7 +2,7 @@
 #include "internal.h"
 
 // ideal body width given the ncselector's items and secondary/footer
-static size_t
+static int
 ncselector_body_width(const ncselector* n){
   int cols = 0;
   // the body is the maximum of
@@ -25,8 +25,6 @@ ncselector_body_width(const ncselector* n){
 static int
 ncselector_draw(ncselector* n){
   ncplane_erase(n->ncp);
-  uint64_t channels = 0;
-  channels_set_fg(&channels, 0x4040f0); // FIXME allow configuration
   // if we have a title, we'll draw a riser. the riser is two rows tall, and
   // exactly four columns longer than the title, and aligned to the right. we
   // draw a rounded box. the body will blow part or all of the bottom away.
@@ -36,12 +34,11 @@ ncselector_draw(ncselector* n){
     int offx = ncplane_align(n->ncp, NCALIGN_RIGHT, riserwidth);
     ncplane_cursor_move_yx(n->ncp, 0, offx);
     ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, 3, riserwidth, 0);
-    ncplane_cursor_move_yx(n->ncp, 1, offx + 2);
     n->ncp->channels = n->titlechannels;
-    ncplane_putstr(n->ncp, n->title); // FIXME allow styling configuration
+    ncplane_printf_yx(n->ncp, 1, offx + 1, " %s ", n->title);
     yoff += 2;
   }
-  size_t bodywidth = ncselector_body_width(n);
+  int bodywidth = ncselector_body_width(n);
   int xoff = ncplane_align(n->ncp, NCALIGN_RIGHT, bodywidth);
   ncplane_cursor_move_yx(n->ncp, yoff, xoff);
   int dimy, dimx;
@@ -50,11 +47,18 @@ ncselector_draw(ncselector* n){
   // There is always at least one space available on the right for the
   // secondary title and footer, but we'd prefer to use a few more if we can.
   if(n->secondary){
+    int xloc = bodywidth - (n->secondarycols + 1) + xoff;
+    if(n->secondarycols < bodywidth - 2){
+      --xloc;
+    }
     n->ncp->channels = n->footchannels;
-    ncplane_putstr_yx(n->ncp, yoff, xoff + 1, n->secondary);
+    ncplane_putstr_yx(n->ncp, yoff, xloc, n->secondary);
   }
   if(n->footer){
     int xloc = bodywidth - (n->footercols + 1) + xoff;
+    if(n->footercols < bodywidth - 2){
+      --xloc;
+    }
     n->ncp->channels = n->footchannels;
     ncplane_putstr_yx(n->ncp, dimy - 1, xloc, n->footer);
   }
@@ -64,8 +68,10 @@ ncselector_draw(ncselector* n){
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
     ncplane_putc(n->ncp, &n->background);
   }
-  n->ncp->channels = n->descchannels;
-  ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
+  if(n->maxdisplay && n->maxdisplay < n->itemcount){
+    n->ncp->channels = n->descchannels;
+    ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
+  }
   unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
   unsigned printed = 0;
@@ -97,8 +103,10 @@ ncselector_draw(ncselector* n){
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
     ncplane_putc(n->ncp, &n->background);
   }
-  n->ncp->channels = n->descchannels;
-  ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↓", NULL);
+  if(n->maxdisplay && n->maxdisplay < n->itemcount){
+    n->ncp->channels = n->descchannels;
+    ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↓", NULL);
+  }
   return notcurses_render(n->ncp->nc);
 }
 
@@ -193,6 +201,7 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   if(!(ns->ncp = ncplane_new(n->nc, dimy, dimx, y, x, NULL))){
     goto freeitems;
   }
+  cell_init(&ns->background);
   if(cell_prime(ns->ncp, &ns->background, " ", 0, opts->bgchannels) < 0){
     ncplane_destroy(ns->ncp);
     goto freeitems;
