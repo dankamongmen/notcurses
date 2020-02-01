@@ -31,6 +31,30 @@ struct ncplane;   // a drawable notcurses surface, composed of cells
 struct ncvisual;  // a visual bit of multimedia opened with LibAV
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 
+// Returns the number of columns occupied by a multibyte (UTF-8) string, or
+// -1 if a non-printable/illegal character is encountered.
+static inline int
+mbswidth(const char* mbs){
+  int offset = 0; // offset into mbs
+  int cols = 0;   // number of columns consumed thus far
+  mbstate_t ps;
+  memset(&ps, 0, sizeof(ps));
+  do{
+    wchar_t wcs;
+    size_t r = mbrtowc(&wcs, mbs + offset, SIZE_MAX, &ps);
+    if(r == (size_t)-1 || r == (size_t)-2){
+      return -1;
+    }
+    int w = wcwidth(wcs);
+    if(w < 0){
+      return -1;
+    }
+    cols += w;
+    offset += r;
+  }while(mbs[offset]);
+  return cols;
+}
+
 #define NCPALETTESIZE 256
 
 // A cell corresponds to a single character cell on some plane, which can be

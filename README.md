@@ -1229,6 +1229,11 @@ The planes are placed at offsets [0..n - 2]. Each plane is above the plane to
 its left, and each plane contains a single wide character. Were this to be
 rendered, only the rightmost plane (and its single glyph) would be rendered!
 
+```c
+// Calculate the size in columns of the provided UTF8 multibyte string.
+int mbswidth(const char* mbs);
+```
+
 ### Cells
 
 Unlike the `notcurses` or `ncplane` objects, the definition of `cell` is
