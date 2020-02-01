@@ -32,8 +32,7 @@ typedef struct selector_options {
   uint64_t titlechannels;// title channels
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
-  uint64_t bgchannels;   // base cell channels
-  const char* base_egc;  // base EGC or NULL
+  uint64_t bgchannels;   // background channels for body
 } selector_options;
 ```
 

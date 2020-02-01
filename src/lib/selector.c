@@ -58,8 +58,14 @@ ncselector_draw(ncselector* n){
     n->ncp->channels = n->footchannels;
     ncplane_putstr_yx(n->ncp, dimy - 1, xloc, n->footer);
   }
+  // Top line of body (background and possibly up arrow)
+  ++yoff;
+  ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
+  for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+    ncplane_putc(n->ncp, &n->background);
+  }
   n->ncp->channels = n->descchannels;
-  ncplane_putegc_yx(n->ncp, ++yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
+  ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
   unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
   unsigned printed = 0;
@@ -67,12 +73,15 @@ ncselector_draw(ncselector* n){
     if(n->maxdisplay && printed == n->maxdisplay){
       break;
     }
+    ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
+    for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+      ncplane_putc(n->ncp, &n->background);
+    }
     n->ncp->channels = n->opchannels;
     if(printidx == n->selected){
       n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
     }
-    ncplane_printf_yx(n->ncp, yoff, bodyoffset, "%*.*s", (int)n->longop,
-                      (int)n->longop, n->items[printidx].option);
+    ncplane_printf_yx(n->ncp, yoff, bodyoffset + (n->longop - n->items[printidx].opcolumns), "%s", n->items[printidx].option);
     n->ncp->channels = n->descchannels;
     if(printidx == n->selected){
       n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
@@ -82,6 +91,11 @@ ncselector_draw(ncselector* n){
       printidx = 0;
     }
     ++printed;
+  }
+  // Bottom line of body (background and possibly down arrow)
+  ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
+  for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+    ncplane_putc(n->ncp, &n->background);
   }
   n->ncp->channels = n->descchannels;
   ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↓", NULL);
@@ -154,11 +168,15 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   }
   for(ns->itemcount = 0 ; ns->itemcount < opts->itemcount ; ++ns->itemcount){
     const struct selector_item* src = &opts->items[ns->itemcount];
-    if(mbswidth(src->option) > ns->longop){
-      ns->longop = mbswidth(src->option);
+    int cols = mbswidth(src->option);
+    ns->items[ns->itemcount].opcolumns = cols;
+    if(cols > ns->longop){
+      ns->longop = cols;
     }
-    if(mbswidth(src->desc) > ns->longdesc){
-      ns->longdesc = mbswidth(src->desc);
+    cols = mbswidth(src->desc);
+    ns->items[ns->itemcount].desccolumns = cols;
+    if(cols > ns->longdesc){
+      ns->longdesc = cols;
     }
     ns->items[ns->itemcount].option = strdup(src->option);
     ns->items[ns->itemcount].desc = strdup(src->desc);
@@ -175,8 +193,7 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   if(!(ns->ncp = ncplane_new(n->nc, dimy, dimx, y, x, NULL))){
     goto freeitems;
   }
-  if(ncplane_set_base(ns->ncp, opts->bgchannels, 0,
-                      opts->base_egc ? opts->base_egc : "") < 0){
+  if(cell_prime(ns->ncp, &ns->background, " ", 0, opts->bgchannels) < 0){
     ncplane_destroy(ns->ncp);
     goto freeitems;
   }
@@ -291,6 +308,7 @@ void ncselector_destroy(ncselector* n, char** item){
       free(n->items[n->itemcount].option);
       free(n->items[n->itemcount].desc);
     }
+    cell_release(n->ncp, &n->background);
     ncplane_destroy(n->ncp);
     free(n->items);
     free(n->title);

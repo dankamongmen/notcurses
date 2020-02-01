@@ -138,6 +138,7 @@ typedef struct ncselector {
   int secondarycols;           // columns occupied by secondary
   char* footer;                // can be NULL
   int footercols;              // columns occupied by footer
+  cell background;             // background, used in body only
   uint64_t opchannels;         // option channels
   uint64_t descchannels;       // description channels
   uint64_t titlechannels;      // title channels
