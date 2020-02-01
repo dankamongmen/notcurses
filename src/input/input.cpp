@@ -207,8 +207,8 @@ int main(void){
               ni.shift ? 'S' : 's');
     if(r < 0x80){
       n->set_fg_rgb(128, 250, 64);
-      if(n->printf("ASCII: [0x%02x (%03d)] '%lc'",
-                   r, r, iswprint(r) ? r : printutf8(r)) < 0){
+      if(n->printf("ASCII: [0x%02x (%03d)] '%lc'", r, r,
+                   (wchar_t)(iswprint(r) ? r : printutf8(r))) < 0){
         break;
       }
     }else{
@@ -226,7 +226,7 @@ int main(void){
         }
       }else{
         n->set_fg_rgb(64, 128, 250);
-        n->printf("Unicode: [0x%08x] '%lc'", r, r);
+        n->printf("Unicode: [0x%08x] '%lc'", r, (wchar_t)r);
       }
     }
     if(!dim_rows(n)){
