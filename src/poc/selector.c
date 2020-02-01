@@ -19,18 +19,29 @@ static struct selector_item items[] = {
 
 static void
 run_selector(struct notcurses* nc, struct ncselector* ns){
+  static int item = 0;
+  ++item;
+  if(ns == NULL){
+    notcurses_stop(nc);
+    fprintf(stderr, "Error creating selector %d\n", item);
+    exit(EXIT_FAILURE);
+  }
   notcurses_render(nc);
   char32_t keypress;
-  while((keypress = notcurses_getc_blocking(nc, NULL)) != (char32_t)-1){
+  ncinput ni;
+  while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     switch(keypress){
       case NCKEY_UP: case 'k': ncselector_previtem(ns, NULL); break;
       case NCKEY_DOWN: case 'j': ncselector_nextitem(ns, NULL); break;
+      case NCKEY_ENTER: ncselector_destroy(ns, NULL); return;
+      case 'M': case 'J': if(ni.ctrl){ ncselector_destroy(ns, NULL); return; }
     }
     if(keypress == 'q'){
       break;
     }
     notcurses_render(nc);
   }
+  ncselector_destroy(ns, NULL);
 }
 
 int main(void){
@@ -64,16 +75,29 @@ int main(void){
   ncplane_set_fg(notcurses_stdplane(nc), 0x40f040);
   ncplane_putstr_aligned(notcurses_stdplane(nc), 0, NCALIGN_RIGHT, "selector widget demo");
   struct ncselector* ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
-  if(ns == NULL){
-    notcurses_stop(nc);
-    return EXIT_FAILURE;
-  }
   run_selector(nc, ns);
-  ncselector_destroy(ns, NULL);
+
   sopts.title = "short round title";
   ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
   run_selector(nc, ns);
-  ncselector_destroy(ns, NULL);
+
+  sopts.title = "short round title";
+  sopts.secondary = "now this secondary is also very, very, very outlandishly long, you see";
+  ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  run_selector(nc, ns);
+
+  sopts.title = "the whole world is watching";
+  sopts.secondary = NULL;
+  sopts.footer = "now this FOOTERFOOTER is also very, very, very outlandishly long, you see";
+  ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  run_selector(nc, ns);
+
+  sopts.title = "chomps";
+  sopts.secondary = NULL;
+  sopts.footer = NULL;
+  ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  run_selector(nc, ns);
+
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }

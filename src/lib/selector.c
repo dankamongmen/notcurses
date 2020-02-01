@@ -50,6 +50,9 @@ ncselector_draw(ncselector* n){
     if(bodywidth < dimx){
       ncplane_putegc_yx(n->ncp, 2, dimx - bodywidth, "┬", NULL);
     }
+    if((n->titlecols + 4 != dimx) && n->titlecols > n->secondarycols){
+      ncplane_putegc_yx(n->ncp, 2, dimx - (n->titlecols + 4), "┴", NULL);
+    }
   }
   // There is always at least one space available on the right for the
   // secondary title and footer, but we'd prefer to use a few more if we can.
