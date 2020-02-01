@@ -44,6 +44,13 @@ ncselector_draw(ncselector* n){
   int dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
   ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, dimy - yoff, bodywidth, 0);
+  if(n->title){
+    n->ncp->channels = n->boxchannels;
+    ncplane_putegc_yx(n->ncp, 2, dimx - 1, "┤", NULL);
+    if(bodywidth < dimx){
+      ncplane_putegc_yx(n->ncp, 2, dimx - bodywidth, "┬", NULL);
+    }
+  }
   // There is always at least one space available on the right for the
   // secondary title and footer, but we'd prefer to use a few more if we can.
   if(n->secondary){

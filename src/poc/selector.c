@@ -17,6 +17,22 @@ static struct selector_item items[] = {
   { "ten", "stunning and brave", },
 };
 
+static void
+run_selector(struct notcurses* nc, struct ncselector* ns){
+  notcurses_render(nc);
+  char32_t keypress;
+  while((keypress = notcurses_getc_blocking(nc, NULL)) != (char32_t)-1){
+    switch(keypress){
+      case NCKEY_UP: case 'k': ncselector_previtem(ns, NULL); break;
+      case NCKEY_DOWN: case 'j': ncselector_nextitem(ns, NULL); break;
+    }
+    if(keypress == 'q'){
+      break;
+    }
+    notcurses_render(nc);
+  }
+}
+
 int main(void){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
@@ -52,18 +68,12 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  notcurses_render(nc);
-  char32_t keypress;
-  while((keypress = notcurses_getc_blocking(nc, NULL)) != (char32_t)-1){
-    switch(keypress){
-      case NCKEY_UP: case 'k': ncselector_previtem(ns, NULL); break;
-      case NCKEY_DOWN: case 'j': ncselector_nextitem(ns, NULL); break;
-    }
-    if(keypress == 'q'){
-      break;
-    }
-    notcurses_render(nc);
-  }
+  run_selector(nc, ns);
+  ncselector_destroy(ns, NULL);
+  sopts.title = "short round title";
+  ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  run_selector(nc, ns);
+  ncselector_destroy(ns, NULL);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
