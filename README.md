@@ -25,6 +25,8 @@ and the [man pages](https://nick-black.com/notcurses).
   * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
   * [Multimedia](#multimedia)
   * [Panelreels](#panelreels)
+  * [Selectors](#selectors)
+  * [Menus](#menus)
   * [Channels](#channels)
   * [Perf](#perf)
 * [Included tools](#included-tools)
