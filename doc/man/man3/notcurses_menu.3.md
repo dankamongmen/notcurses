@@ -24,7 +24,7 @@ typedef struct menu_options {
     }* items;
     int itemcount;
   }* sections;   // array of menu sections
-  int headercount;  // must be positive
+  int sectioncount;  // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
 } menu_options;
