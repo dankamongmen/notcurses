@@ -59,7 +59,7 @@ egcpool_grow(egcpool* pool, size_t len){
 }
 
 // Eat an EGC from the UTF-8 string input. This consists of extracting a
-// multibyte via mbtowc, then continuing to extract any which have zero
+// multibyte via mbrtowc, then continuing to extract any which have zero
 // width until hitting another spacing character or a NUL terminator. Writes
 // the number of columns occupied to '*colcount'. Returns the number of bytes
 // consumed, not including any NUL terminator. Note that neither the number
@@ -193,9 +193,11 @@ egcpool_check_validity(const egcpool* pool, int offset){
     fprintf(stderr, "Bad offset 0x%06x: empty\n", offset);
     return false;
   }
+  mbstate_t mbstate;
+  memset(&mbstate, 0, sizeof(mbstate));
   do{
     wchar_t wcs;
-    int r = mbtowc(&wcs, egc, strlen(egc));
+    int r = mbrtowc(&wcs, egc, strlen(egc), &mbstate);
     if(r < 0){
       fprintf(stderr, "Invalid UTF8 at offset 0x%06x, len %zu [%s]\n",
               offset, strlen(egc), strerror(errno));

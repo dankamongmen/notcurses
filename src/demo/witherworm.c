@@ -483,7 +483,9 @@ int witherworm_demo(struct notcurses* nc){
             break;
           }
           wchar_t wcs;
-          int eaten = mbtowc(&wcs, &(*s)[idx], MB_CUR_MAX + 1);
+          mbstate_t mbstate;
+          memset(&mbstate, 0, sizeof(mbstate));
+          int eaten = mbrtowc(&wcs, &(*s)[idx], MB_CUR_MAX + 1, &mbstate);
           if(eaten < 0){
             return -1;
           }

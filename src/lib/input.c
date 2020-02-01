@@ -251,8 +251,12 @@ handle_getc(notcurses* nc, int kpress, ncinput* ni){
   }
   cpoint[cpointlen] = '\0';
   wchar_t w;
+  mbstate_t mbstate;
+  memset(&mbstate, 0, sizeof(mbstate));
   // FIXME how the hell does this work with 16-bit wchar_t?
-  if(mbtowc(&w, cpoint, cpointlen) < 0){
+  size_t r;
+  if((r = mbrtowc(&w, cpoint, cpointlen, &mbstate)) == (size_t)-1 ||
+      r == (size_t)-2){
     return (wchar_t)-1;
   }
   return w;
