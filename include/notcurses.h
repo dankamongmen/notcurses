@@ -2202,6 +2202,23 @@ API void ncselector_nextitem(struct ncselector* n, char** newitem);
 // be strdup()ed and assigned to '*item' (and must be free()d by the caller).
 API void ncselector_destroy(struct ncselector* n, char** item);
 
+// Menus. Horizontal menu bars are supported, on the top and/or bottom rows.
+// If the menu bar is longer than the screen, it will be only partially
+// visible. Menus may be either visible or invisible by default. In the event of
+// a screen resize, menus will be automatically moved/resized. Elements can be
+// dynamically enabled or disabled at all levels (menu, section, and item),
+
+typedef struct menu_options {
+  bool bottom;              // on the bottom row, as opposed to top row
+  struct {
+    char* name;             // utf-8 c string
+    char** items;           // argv-style list of UTF8 c strings
+  }* sections;              // array of menu sections
+  int headercount;          // must be positive
+  uint64_t headerchannels;  // styling for header
+  uint64_t sectionchannels; // styling for sections
+} menu_options;
+
 #undef API
 
 #ifdef __cplusplus
