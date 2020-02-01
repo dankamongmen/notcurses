@@ -2210,14 +2210,34 @@ API void ncselector_destroy(struct ncselector* n, char** item);
 
 typedef struct menu_options {
   bool bottom;              // on the bottom row, as opposed to top row
+  bool hiding;              // hide the menu when not being used
   struct {
     char* name;             // utf-8 c string
-    char** items;           // argv-style list of UTF8 c strings
+    struct {
+      char* desc;           // utf-8 menu item, NULL for horizontal separator
+      ncinput shortcut;     // shortcut, all should be distinct
+    }* items;
+    int itemcount;
   }* sections;              // array of menu sections
   int headercount;          // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
 } menu_options;
+
+// Create a menu with the specified options. Menus are currently bound to an
+// overall notcurses object (as opposed to a particular plane), and are
+// implemented as ncplanes kept atop other ncplanes.
+API struct ncmenu* ncmenu_create(struct notcurses* nc, const menu_options* opts);
+
+// Unroll the specified menu section, making the menu visible if it was
+// invisible, and rolling up any menu section that is already unrolled.
+API int ncmenu_unroll(struct ncmenu* n, int sectionidx);
+
+// Roll up any unrolled menu section, and hide the menu if using hiding.
+API int ncmenu_rollup(struct ncmenu* n);
+
+// Destroy a menu created with ncmenu_create().
+API int ncmenu_destroy(struct ncmenu* n);
 
 #undef API
 

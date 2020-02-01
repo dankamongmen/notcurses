@@ -11,6 +11,7 @@ notcurses_cell - operations on notcurses cells
 **#include <notcurses.h>**
 
 ```c
+// See DESCRIPTION below for information on EGC encoding
 typedef struct cell {
   uint32_t gcluster;
   uint32_t attrword;

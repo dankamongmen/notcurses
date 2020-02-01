@@ -1013,7 +1013,7 @@ int notcurses_stop(notcurses* nc){
                   NANOSECS_IN_SEC * (double)nc->stashstats.renders / nc->stashstats.render_ns : 0.0,
                 nc->stashstats.failed_renders,
                 nc->stashstats.failed_renders == 1 ? "" : "s");
-        fprintf(stderr, "Emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
+        fprintf(stderr, "RGB emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
                 nc->stashstats.defaultemissions,
                 nc->stashstats.defaultelisions,
                 nc->stashstats.fgemissions,
@@ -1027,7 +1027,7 @@ int notcurses_stop(notcurses* nc){
                 (nc->stashstats.fgelisions * 100.0) / (nc->stashstats.fgemissions + nc->stashstats.fgelisions),
                 (nc->stashstats.bgemissions + nc->stashstats.bgelisions) == 0 ? 0 :
                 (nc->stashstats.bgelisions * 100.0) / (nc->stashstats.bgemissions + nc->stashstats.bgelisions));
-        fprintf(stderr, "Cells emitted: %ju elided: %ju (%.2f%%)\n",
+        fprintf(stderr, "Cell emits/elides: %ju/%ju (%.2f%%)\n",
                 nc->stashstats.cellemissions, nc->stashstats.cellelisions,
                 (nc->stashstats.cellemissions + nc->stashstats.cellelisions) == 0 ? 0 :
                 (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions));

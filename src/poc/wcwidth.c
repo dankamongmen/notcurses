@@ -10,6 +10,9 @@ int main(void){
   for(int i = 0 ; i < 128 ; ++i){
     wchar_t w = i;
     printf("width('%02x'): %d\t", i, wcwidth(w));
+    if(i % 4 == 3){
+      printf("\n");
+    }
   }
   printf("\n");
   return EXIT_SUCCESS;
