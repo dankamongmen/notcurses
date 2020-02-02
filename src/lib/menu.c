@@ -36,28 +36,47 @@ dup_menu_section(struct menu_section* dst, const struct menu_section* src){
   return 0;
 }
 
+// Duplicates all menu sections in opts, adding their length to '*totalwidth'.
 static int
-dup_menu_items(ncmenu* ncm, const menu_options* opts){
+dup_menu_items(ncmenu* ncm, const menu_options* opts, int* totalwidth){
   ncm->sections = NULL;
-  if(opts->sectioncount){
-    ncm->sections = malloc(sizeof(*ncm->sections) * opts->sectioncount);
-    if(ncm->sections == NULL){
+  if((ncm->sectioncount = opts->sectioncount) == 0){
+    ++*totalwidth; // one character margin on right
+    return 0;
+  }
+  ncm->sections = malloc(sizeof(*ncm->sections) * opts->sectioncount);
+  if(ncm->sections == NULL){
+    return -1;
+  }
+  for(int i = 0 ; i < opts->sectioncount ; ++i){
+    int cols = mbswidth(opts->sections[i].name);
+    if(cols < 0 || (ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
+      while(--i){
+        free_menu_section(&ncm->sections[i]);
+      }
+    }
+    *totalwidth += cols + 1;
+    if(dup_menu_section(&opts->sections[i], &ncm->sections[i])){
+      free(ncm->sections[i].name);
+      while(--i){
+        free_menu_section(&ncm->sections[i]);
+      }
       return -1;
     }
-    for(int i = 0 ; i < opts->sectioncount ; ++i){
-      if((ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
-        while(--i){
-          free_menu_section(&ncm->sections[i]);
-        }
-      }
-      if(dup_menu_section(&opts->sections[i], &ncm->sections[i])){
-        free(ncm->sections[i].name);
-        while(--i){
-          free_menu_section(&ncm->sections[i]);
-        }
-        return -1;
-      }
+  }
+  return 0;
+}
+
+static int
+write_header(ncmenu* ncm){
+  ncm->ncp->channels = ncm->headerchannels;
+  ncplane_set_base(ncm->ncp, ncm->headerchannels, 0, " ");
+  int xoff = 1; // 1 character margin on left
+  for(int i = 0 ; i < ncm->sectioncount ; ++i){
+    if(ncplane_putstr_yx(ncm->ncp, 0, xoff, ncm->sections[i].name) < 0){
+      return -1;
     }
+    xoff += mbswidth(ncm->sections[i].name) + 1;
   }
   return 0;
 }
@@ -71,7 +90,7 @@ ncmenu* ncmenu_create(notcurses* nc, const menu_options* opts){
     return NULL;
   }
   int totalheight = 1;
-  int totalwidth = 2;
+  int totalwidth = 1; // start with one character margin on the left
   // FIXME calaculate maximum dimensions
   ncmenu* ret = malloc(sizeof(*ret));
   ret->sectioncount = opts->sectioncount;
@@ -79,12 +98,13 @@ ncmenu* ncmenu_create(notcurses* nc, const menu_options* opts){
   int dimy = ncplane_dim_y(notcurses_stdplane(nc));
   int ypos = opts->bottom ? dimy - 1 : 0;
   if(ret){
-    if(dup_menu_items(ret, opts) == 0){
+    if(dup_menu_items(ret, opts, &totalwidth) == 0){
       ret->ncp = ncplane_new(nc, totalheight, totalwidth, ypos, 0, NULL);
       if(ret->ncp){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
         ret->sectionchannels = opts->sectionchannels;
+        write_header(ret);
         return ret;
       }
       free_menu_sections(ret);
@@ -117,6 +137,8 @@ int ncmenu_destroy(ncmenu* n){
   int ret = 0;
   if(n){
     free_menu_sections(n);
+    ncplane_destroy(n->ncp);
+    free(n);
   }
   return ret;
 }

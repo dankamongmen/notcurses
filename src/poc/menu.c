@@ -4,6 +4,25 @@
 #include <stdlib.h>
 #include <notcurses.h>
 
+static int
+run_menu(struct notcurses* nc, struct ncmenu* ncm){
+  char32_t keypress;
+  ncinput ni;
+  notcurses_render(nc);
+  while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
+    switch(keypress){
+      // FIXME
+    }
+    if(keypress == 'q'){
+      ncmenu_destroy(ncm);
+      return 0;
+    }
+    notcurses_render(nc);
+  }
+  ncmenu_destroy(ncm);
+  return -1;
+}
+
 int main(void){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
@@ -14,43 +33,49 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  struct menu_item items[] = {
+  struct menu_item demo_items[] = {
     { .desc = "Restart", },
   };
-  struct menu_section sections[] = {
-    { .name = "Demo", .items = items, },
+  struct menu_item file_items[] = {
+    { .desc = "New", },
+    { .desc = "Open", },
+    { .desc = "Close", },
+    { .desc = NULL, },
+    { .desc = "Quit", },
   };
-  sections[0].itemcount = sizeof(items) / sizeof(*items);
+  struct menu_section sections[] = {
+    { .name = "Demo", .items = demo_items, },
+    { .name = "File", .items = file_items, },
+  };
+  sections[0].itemcount = sizeof(demo_items) / sizeof(*demo_items);
+  sections[1].itemcount = sizeof(file_items) / sizeof(*file_items);
   menu_options mopts;
   memset(&mopts, 0, sizeof(mopts));
   mopts.sections = sections;
   mopts.sectioncount = sizeof(sections) / sizeof(*sections);
+  channels_set_fg(&mopts.headerchannels, 0x000000);
+  channels_set_bg(&mopts.headerchannels, 0xff0000);
   struct ncmenu* top = ncmenu_create(nc, &mopts);
-  mopts.bottom = true;
-  struct ncmenu* bottom = ncmenu_create(nc, &mopts);
 
   notcurses_render(nc);
-  char32_t keypress;
-  ncinput ni;
   int dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
   ncplane_styles_on(n, NCSTYLE_REVERSE);
-  if(ncplane_putstr_aligned(n, dimy - 1, NCALIGN_RIGHT, "menu poc. press q to exit") < 0){
+  if(ncplane_putstr_aligned(n, dimy - 1, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=- ") < 0){
 	  return EXIT_FAILURE;
   }
-  notcurses_render(nc);
-  while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
-    switch(keypress){
-      // FIXME
-    }
-    if(keypress == 'q'){
-      break;
-    }
-    notcurses_render(nc);
+  run_menu(nc, top);
+
+  ncplane_erase(n);
+  mopts.bottom = true;
+  struct ncmenu* bottom = ncmenu_create(nc, &mopts);
+  ncplane_styles_on(n, NCSTYLE_REVERSE);
+  if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=- ") < 0){
+	  return EXIT_FAILURE;
   }
-  ncmenu_destroy(top);
-  ncmenu_destroy(bottom);
+  run_menu(nc, top);
+
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
