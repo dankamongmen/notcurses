@@ -461,24 +461,24 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
   if((cellattr ^ *curattr) & 0x00ff0000ul){
     *normalized = true; // FIXME this is pretty conservative
     // if everything's 0, emit the shorter sgr0
-    if(nc->sgr0 && ((cellattr & CELL_STYLE_MASK) == 0)){
+    if(nc->sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
       if(term_emit("sgr0", nc->sgr0, out, false) < 0){
         ret = -1;
       }
-    }else if(term_emit("sgr", tiparm(nc->sgr, cellattr & CELL_STYLE_STANDOUT,
-                                        cellattr & CELL_STYLE_UNDERLINE,
-                                        cellattr & CELL_STYLE_REVERSE,
-                                        cellattr & CELL_STYLE_BLINK,
-                                        cellattr & CELL_STYLE_DIM,
-                                        cellattr & CELL_STYLE_BOLD,
-                                        cellattr & CELL_STYLE_INVIS,
-                                        cellattr & CELL_STYLE_PROTECT, 0),
+    }else if(term_emit("sgr", tiparm(nc->sgr, cellattr & NCSTYLE_STANDOUT,
+                                        cellattr & NCSTYLE_UNDERLINE,
+                                        cellattr & NCSTYLE_REVERSE,
+                                        cellattr & NCSTYLE_BLINK,
+                                        cellattr & NCSTYLE_DIM,
+                                        cellattr & NCSTYLE_BOLD,
+                                        cellattr & NCSTYLE_INVIS,
+                                        cellattr & NCSTYLE_PROTECT, 0),
                                         out, false) < 0){
       ret = -1;
     }
   }
   // sgr will blow away italics if they were set beforehand
-  ret |= term_setstyle(out, *curattr, cellattr, CELL_STYLE_ITALIC, nc->italics, nc->italoff);
+  ret |= term_setstyle(out, *curattr, cellattr, NCSTYLE_ITALIC, nc->italics, nc->italoff);
   *curattr = cellattr;
   return ret;
 }

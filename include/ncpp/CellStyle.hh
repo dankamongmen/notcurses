@@ -1,5 +1,5 @@
-#ifndef __NCPP_CELL_STYLE_HH
-#define __NCPP_CELL_STYLE_HH
+#ifndef __NCPP_NCSTYLE_HH
+#define __NCPP_NCSTYLE_HH
 
 #include <cstdint>
 
@@ -12,15 +12,15 @@ namespace ncpp
 	enum class CellStyle : uint32_t
 	{
 		None      = 0,
-		Standout  = CELL_STYLE_STANDOUT,
-		Underline = CELL_STYLE_UNDERLINE,
-		Reverse   = CELL_STYLE_REVERSE,
-		Blink     = CELL_STYLE_BLINK,
-		Dim       = CELL_STYLE_DIM,
-		Bold      = CELL_STYLE_BOLD,
-		Invis     = CELL_STYLE_INVIS,
-		Protect   = CELL_STYLE_PROTECT,
-		Italic    = CELL_STYLE_ITALIC,
+		Standout  = NCSTYLE_STANDOUT,
+		Underline = NCSTYLE_UNDERLINE,
+		Reverse   = NCSTYLE_REVERSE,
+		Blink     = NCSTYLE_BLINK,
+		Dim       = NCSTYLE_DIM,
+		Bold      = NCSTYLE_BOLD,
+		Invis     = NCSTYLE_INVIS,
+		Protect   = NCSTYLE_PROTECT,
+		Italic    = NCSTYLE_ITALIC,
 	};
 
 	DECLARE_ENUM_FLAG_OPERATORS (CellStyle)

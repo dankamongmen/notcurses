@@ -23,6 +23,14 @@ int main(void){
   notcurses_render(nc);
   char32_t keypress;
   ncinput ni;
+  int dimy, dimx;
+  struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_dim_yx(n, &dimy, &dimx);
+  ncplane_styles_on(n, NCSTYLE_REVERSE);
+  if(ncplane_putstr_aligned(n, dimy - 1, NCALIGN_RIGHT, "menu poc. press q to exit") < 0){
+	  return EXIT_FAILURE;
+  }
+  notcurses_render(nc);
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     switch(keypress){
       // FIXME

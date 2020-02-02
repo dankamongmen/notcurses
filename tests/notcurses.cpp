@@ -49,10 +49,10 @@ TEST_CASE("NotcursesBase") {
     CHECK(newy == y);
   }
 
-  // we should at least have CELL_STYLE_BOLD everywhere, i should think?
+  // we should at least have NCSTYLE_BOLD everywhere, i should think?
   SUBCASE("CursesStyles") {
     unsigned attrs = notcurses_supported_styles(nc_);
-    CHECK(1 == !!(CELL_STYLE_BOLD & attrs));
+    CHECK(1 == !!(NCSTYLE_BOLD & attrs));
   }
 
   // it is an error to attempt to destroy the standard plane

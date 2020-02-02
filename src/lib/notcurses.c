@@ -1382,13 +1382,13 @@ int ncplane_putstr_yx(ncplane* n, int y, int x, const char* gclusters){
 
 unsigned notcurses_supported_styles(const notcurses* nc){
   unsigned styles = 0;
-  styles |= nc->standout ? CELL_STYLE_STANDOUT : 0;
-  styles |= nc->uline ? CELL_STYLE_UNDERLINE : 0;
-  styles |= nc->reverse ? CELL_STYLE_REVERSE : 0;
-  styles |= nc->blink ? CELL_STYLE_BLINK : 0;
-  styles |= nc->dim ? CELL_STYLE_DIM : 0;
-  styles |= nc->bold ? CELL_STYLE_BOLD : 0;
-  styles |= nc->italics ? CELL_STYLE_ITALIC : 0;
+  styles |= nc->standout ? NCSTYLE_STANDOUT : 0;
+  styles |= nc->uline ? NCSTYLE_UNDERLINE : 0;
+  styles |= nc->reverse ? NCSTYLE_REVERSE : 0;
+  styles |= nc->blink ? NCSTYLE_BLINK : 0;
+  styles |= nc->dim ? NCSTYLE_DIM : 0;
+  styles |= nc->bold ? NCSTYLE_BOLD : 0;
+  styles |= nc->italics ? NCSTYLE_ITALIC : 0;
   return styles;
 }
 
@@ -1399,28 +1399,28 @@ int notcurses_palette_size(const notcurses* nc){
 // turn on any specified stylebits
 void ncplane_styles_on(ncplane* n, unsigned stylebits){
   ncplane_lock(n);
-  n->attrword |= (stylebits & CELL_STYLE_MASK);
+  n->attrword |= (stylebits & NCSTYLE_MASK);
   ncplane_unlock(n);
 }
 
 // turn off any specified stylebits
 void ncplane_styles_off(ncplane* n, unsigned stylebits){
   ncplane_lock(n);
-  n->attrword &= ~(stylebits & CELL_STYLE_MASK);
+  n->attrword &= ~(stylebits & NCSTYLE_MASK);
   ncplane_unlock(n);
 }
 
 // set the current stylebits to exactly those provided
 void ncplane_styles_set(ncplane* n, unsigned stylebits){
   ncplane_lock(n);
-  n->attrword = (n->attrword & ~CELL_STYLE_MASK) | ((stylebits & CELL_STYLE_MASK));
+  n->attrword = (n->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
   ncplane_unlock(n);
 }
 
 unsigned ncplane_styles(ncplane* n){
   unsigned ret;
   ncplane_lock(n);
-  ret = (n->attrword & CELL_STYLE_MASK);
+  ret = (n->attrword & NCSTYLE_MASK);
   ncplane_unlock(n);
   return ret;
 }

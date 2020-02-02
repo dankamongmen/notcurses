@@ -301,7 +301,7 @@ notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
 int notcurses_refresh(struct notcurses* n);
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
-// (CELL_STYLE_UNDERLINE, CELL_STYLE_BOLD, etc.) The attribute is only
+// (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
 unsigned notcurses_supported_styles(const struct notcurses* nc);
@@ -1307,7 +1307,7 @@ typedef struct cell {
   // (values 0--0x7f), or an offset into a per-ncplane attached pool of
   // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
   uint32_t gcluster;          // 4B -> 4B
-  // CELL_STYLE_* attributes (16 bits) + 8 foreground palette index bits + 8
+  // NCSTYLE_* attributes (16 bits) + 8 foreground palette index bits + 8
   // background palette index bits. palette index bits are used only if the
   // corresponding default color bit *is not* set, and the corresponding
   // palette index bit *is* set.
@@ -1403,42 +1403,42 @@ int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 void cell_release(struct ncplane* n, cell* c);
 
-#define CELL_STYLE_MASK      0xffff0000ul
-#define CELL_STYLE_STANDOUT  0x00800000ul
-#define CELL_STYLE_UNDERLINE 0x00400000ul
-#define CELL_STYLE_REVERSE   0x00200000ul
-#define CELL_STYLE_BLINK     0x00100000ul
-#define CELL_STYLE_DIM       0x00080000ul
-#define CELL_STYLE_BOLD      0x00040000ul
-#define CELL_STYLE_INVIS     0x00020000ul
-#define CELL_STYLE_PROTECT   0x00010000ul
-#define CELL_STYLE_ITALIC    0x01000000ul
+#define NCSTYLE_MASK      0xffff0000ul
+#define NCSTYLE_STANDOUT  0x00800000ul
+#define NCSTYLE_UNDERLINE 0x00400000ul
+#define NCSTYLE_REVERSE   0x00200000ul
+#define NCSTYLE_BLINK     0x00100000ul
+#define NCSTYLE_DIM       0x00080000ul
+#define NCSTYLE_BOLD      0x00040000ul
+#define NCSTYLE_INVIS     0x00020000ul
+#define NCSTYLE_PROTECT   0x00010000ul
+#define NCSTYLE_ITALIC    0x01000000ul
 
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not.
 static inline void
 cell_styles_set(cell* c, unsigned stylebits){
-  c->attrword = (c->attrword & ~CELL_STYLE_MASK) | ((stylebits & CELL_STYLE_MASK));
+  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
 }
 
 // Extract the style bits from the cell's attrword.
 static inline unsigned
 cell_styles(const cell* c){
-  return c->attrword & CELL_STYLE_MASK;
+  return c->attrword & NCSTYLE_MASK;
 }
 
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
 cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= (stylebits & CELL_STYLE_MASK;
+  c->attrword |= (stylebits & NCSTYLE_MASK;
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
 cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~(stylebits & CELL_STYLE_MASK);
+  c->attrword &= ~(stylebits & NCSTYLE_MASK);
 }
 
 // does the cell contain an East Asian Wide codepoint?

@@ -40,39 +40,39 @@ SUBCASE("SetItalic") {
   cell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
-    cell_styles_set(&c, CELL_STYLE_ITALIC);
+    cell_styles_set(&c, NCSTYLE_ITALIC);
     REQUIRE(1 == cell_load(n_, &c, "i"));
     cell_set_fg_rgb(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
-    cell_styles_off(&c, CELL_STYLE_ITALIC);
+    cell_styles_off(&c, NCSTYLE_ITALIC);
   }
 
   SUBCASE("SetBold") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
-    cell_styles_set(&c, CELL_STYLE_BOLD);
+    cell_styles_set(&c, NCSTYLE_BOLD);
     REQUIRE(1 == cell_load(n_, &c, "b"));
     cell_set_fg_rgb(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
-    cell_styles_off(&c, CELL_STYLE_BOLD);
+    cell_styles_off(&c, NCSTYLE_BOLD);
   }
 
   SUBCASE("SetUnderline") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
-    cell_styles_set(&c, CELL_STYLE_UNDERLINE);
+    cell_styles_set(&c, NCSTYLE_UNDERLINE);
     REQUIRE(1 == cell_load(n_, &c, "u"));
     cell_set_fg_rgb(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
-    cell_styles_off(&c, CELL_STYLE_UNDERLINE);
+    cell_styles_off(&c, NCSTYLE_UNDERLINE);
   }
 
 /*  SUBCASE("CellLoadTamil") {
