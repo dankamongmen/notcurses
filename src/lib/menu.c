@@ -19,6 +19,7 @@ free_menu_sections(ncmenu* ncm){
 
 static int
 dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
+  dst->bodycols = 0;
   dst->items = NULL;
   if( (dst->itemcount = src->itemcount) ){
     dst->items = malloc(sizeof(*dst->items) * src->itemcount);
@@ -34,6 +35,10 @@ dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
           free(dst->items);
           return -1;
         }
+        const int cols = mbswidth(dst->items[i].desc);
+        if(cols > dst->bodycols){
+          dst->bodycols = cols;
+        }
       }else{
         dst->items[i].desc = NULL;
       }
@@ -44,7 +49,7 @@ dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
 
 // Duplicates all menu sections in opts, adding their length to '*totalwidth'.
 static int
-dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* totalheight){
+dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* totalheight){
   ncm->sections = NULL;
   if((ncm->sectioncount = opts->sectioncount) == 0){
     ++*totalwidth; // one character margin on right
@@ -55,6 +60,7 @@ dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* to
     return -1;
   }
   int maxheight = 0;
+  int maxwidth = *totalwidth;
   for(int i = 0 ; i < opts->sectioncount ; ++i){
     int cols = mbswidth(opts->sections[i].name);
     if(cols < 0 || (ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
@@ -62,7 +68,6 @@ dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* to
         free_menu_section(&ncm->sections[i]);
       }
     }
-    *totalwidth += cols + 2;
     if(dup_menu_section(&ncm->sections[i], &opts->sections[i])){
       free(ncm->sections[i].name);
       while(--i){
@@ -73,7 +78,15 @@ dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* to
     if(ncm->sections[i].itemcount > maxheight){
       maxheight = ncm->sections[i].itemcount;
     }
+    if(*totalwidth + cols + 2 > maxwidth){
+      maxwidth = *totalwidth + cols + 2;
+    }
+    if(*totalwidth + ncm->sections[i].bodycols + 2 > maxwidth){
+      maxwidth = *totalwidth + ncm->sections[i].bodycols + 2;
+    }
+    *totalwidth += cols + 2;
   }
+  *totalwidth = maxwidth;
   *totalheight += maxheight + 2; // two rows of border
   return 0;
 }
@@ -97,7 +110,6 @@ write_header(ncmenu* ncm){
   }
   for(int i = 0 ; i < ncm->sectioncount ; ++i){
     ncm->sections[i].xoff = xoff;
-    ncm->sections[i].bodycols = 10; // FIXME
     if(ncplane_putstr(ncm->ncp, ncm->sections[i].name) < 0){
       return -1;
     }
@@ -127,7 +139,6 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
   }
   int totalheight = 1;
   int totalwidth = 1; // start with one character margin on the left
-  // FIXME calculate maximum dimensions
   ncmenu* ret = malloc(sizeof(*ret));
   ret->sectioncount = opts->sectioncount;
   ret->sections = NULL;
@@ -135,8 +146,7 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   if(ret){
     ret->bottom = opts->bottom;
-    // FIXME maximum width could be more than section headers, due to items!
-    if(dup_menu_items(ret, opts, &totalwidth, &totalheight) == 0){
+    if(dup_menu_sections(ret, opts, &totalwidth, &totalheight) == 0){
       ret->headerwidth = totalwidth;
       if(totalwidth < dimx){
         totalwidth = dimx;
