@@ -1872,6 +1872,22 @@ API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         int* averr, float timescale, streamcb streamer,
                         void* curry);
 
+// Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset
+// from the upper left by 'placey' and 'placex'. Each row ought occupy
+// 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
+// subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
+API int bgrx_blit(struct ncplane* nc, int placey, int placex, int linesize,
+                  const unsigned char* data, int begy, int begx,
+                  int leny, int lenx);
+
+// Blit a flat array 'data' of RGBA 32-bit values to the ncplane 'nc', offset
+// from the upper left by 'placey' and 'placex'. Each row ought occupy
+// 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
+// subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
+API int rgba_blit(struct ncplane* nc, int placey, int placex, int linesize,
+                  const unsigned char* data, int begy, int begx,
+		  int leny, int lenx);
+
 // A panelreel is an notcurses region devoted to displaying zero or more
 // line-oriented, contained panels between which the user may navigate. If at
 // least one panel exists, there is an active panel. As much of the active

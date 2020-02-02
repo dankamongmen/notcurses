@@ -114,6 +114,10 @@ notcurses_ncplane - operations on notcurses planes
 
 **void ncplane_greyscale(struct ncplane* n);**
 
+**int bgrx_blit(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
+
+**int rgba_blit(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions

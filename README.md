@@ -1117,6 +1117,26 @@ int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader, v
 int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
 ```
 
+Finally, a raw stream of RGBA or BGRx data can be blitted directly to an ncplane:
+
+```c
+// Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset
+// from the upper left by 'placey' and 'placex'. Each row ought occupy
+// 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
+// subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
+int bgrx_blit(struct ncplane* nc, int placey, int placex, int linesize,
+              const unsigned char* data, int begy, int begx,
+              int leny, int lenx);
+
+// Blit a flat array 'data' of RGBA 32-bit values to the ncplane 'nc', offset
+// from the upper left by 'placey' and 'placex'. Each row ought occupy
+// 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
+// subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
+int rgba_blit(struct ncplane* nc, int placey, int placex, int linesize,
+              const unsigned char* data, int begy, int begx,
+              int leny, int lenx);
+```
+
 #### Plane channels API
 
 Helpers are provided to manipulate an `ncplane`'s `channels` member. They are
