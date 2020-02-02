@@ -23,9 +23,9 @@ struct ncmenu_section {
 };
 
 typedef struct ncmenu_options {
-  bool bottom;              // on the bottom row, as opposed to top row
-  bool hiding;              // hide the menu when not being used
-  struct ncmenu_section* sections; // array of 'sectioncount' menu_sections
+  bool bottom;  // on the bottom row, as opposed to top row
+  bool hiding;  // hide the menu when not being used
+  struct ncmenu_section* sections; // 'sectioncount' menu_sections
   int sectioncount;         // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
@@ -42,9 +42,21 @@ typedef struct ncmenu_options {
 
 # DESCRIPTION
 
+A notcurses instance supports up to two menu bars, with one on the top and/or
+bottom rows of the true screen. They are logically above other ncplanes on the
+z-axis. Attempting to create a menu where one already exists is an error.
+
+A menu is composed of sections, which are in turn composed of items. Either no
+sections are visible, and the menu is *rolled up*, or exactly one section is
+*unrolled*. **ncmenu_rollup** places an ncmenu in the rolled up state.
+**ncmenu_unroll** rolls up any unrolled section, and unrolls the specified one.
+**ncmenu_destroy** removes a menu bar, and frees all associated resources.
 
 # RETURN VALUES
 
+**ncmenu_create** returns NULL on error, or a pointer to a valid new ncmenu.
+Other functions return non-zero on error, or zero on success. Almost all errors
+are due to invalid parameters.
 
 # SEE ALSO
 
