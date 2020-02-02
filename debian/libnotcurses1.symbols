@@ -1,5 +1,6 @@
 Build-Depends-Package: libnotcurses-dev
 libnotcurses.so.1 libnotcurses1 #MINVER#
+ bgrx_blit@Base 1.1.4
  cell_duplicate@Base 1.0.0
  cell_extended_gcluster@Base 1.0.0
  cell_load@Base 1.0.0
@@ -119,6 +120,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  panelreel_redraw@Base 1.0.0
  panelreel_tabletcount@Base 1.0.0
  panelreel_touch@Base 1.0.0
+ rgba_blit@Base 1.1.4
  tablet_ncplane@Base 1.0.0
  tablet_ncplane_const@Base 1.0.0
  tablet_userptr@Base 1.0.0
