@@ -406,7 +406,7 @@ target_compile_definitions(notcurses-tester
 enable_testing()
 add_test(
   NAME notcurses-tester
-  COMMAND notcurses-tester -p ../data
+  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
 
 # pkg-config support
