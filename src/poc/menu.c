@@ -14,8 +14,17 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  menu_options mopts = {
+  struct menu_item items[] = {
+    { .desc = "Restart", },
   };
+  struct menu_section sections[] = {
+    { .name = "Demo", .items = items, },
+  };
+  sections[0].itemcount = sizeof(items) / sizeof(*items);
+  menu_options mopts;
+  memset(&mopts, 0, sizeof(mopts));
+  mopts.sections = sections;
+  mopts.sectioncount = sizeof(sections) / sizeof(*sections);
   struct ncmenu* top = ncmenu_create(nc, &mopts);
   mopts.bottom = true;
   struct ncmenu* bottom = ncmenu_create(nc, &mopts);

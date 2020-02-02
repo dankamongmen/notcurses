@@ -349,6 +349,8 @@ are available for direct mode:
 ```c
 int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
+int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
+int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
 ```
 
 ### Alignment
