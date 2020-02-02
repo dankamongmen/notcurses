@@ -251,6 +251,42 @@ int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, in
 char* ncvisual_subtitle(const struct ncvisual* ncv);
 typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr, float timescale, streamcb streamer, void* curry);
+int bgrx_blit(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
+int rgba_blit(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
+struct selector_item {
+  char* option;
+  char* desc;
+  size_t opcolumns;   // filled in by library
+  size_t desccolumns; // filled in by library
+};
+typedef struct selector_options {
+  char* title; // title may be NULL, inhibiting riser, saving two rows.
+  char* secondary; // secondary may be NULL
+  char* footer; // footer may be NULL
+  struct selector_item* items; // initial items and descriptions
+  unsigned itemcount; // number of initial items and descriptions
+  // default item (selected at start), must be < itemcount unless 'itemcount'
+  // is 0, in which case 'defidx' must also be 0
+  unsigned defidx;
+  // maximum number of options to display at once, 0 to use all available space
+  unsigned maxdisplay;
+  // exhaustive styling options
+  uint64_t opchannels;   // option channels
+  uint64_t descchannels; // description channels
+  uint64_t titlechannels;// title channels
+  uint64_t footchannels; // secondary and footer channels
+  uint64_t boxchannels;  // border channels
+  uint64_t bgchannels;   // background channels, used only in body
+} selector_options;
+struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const selector_options* opts);
+struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e align, const selector_options* opts);
+int ncselector_additem(struct ncselector* n, const struct selector_item* item);
+int ncselector_delitem(struct ncselector* n, const char* item);
+char* ncselector_selected(const struct ncselector* n);
+struct ncplane* ncselector_plane(struct ncselector* n);
+void ncselector_previtem(struct ncselector* n, char** newitem);
+void ncselector_nextitem(struct ncselector* n, char** newitem);
+void ncselector_destroy(struct ncselector* n, char** item);
 """)
 
 if __name__ == "__main__":
