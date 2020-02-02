@@ -101,19 +101,19 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   if(ncplane_set_bg_alpha(non, CELL_ALPHA_OPAQUE)){ // FIXME use intermediate
     return NULL;
   }
-  ncplane_styles_on(non, CELL_STYLE_BOLD);
+  ncplane_styles_on(non, NCSTYLE_BOLD);
   if(ncplane_putstr_aligned(non, ++ybase, NCALIGN_CENTER, str0) < 0){
     return NULL;
   }
-  ncplane_styles_off(non, CELL_STYLE_BOLD);
+  ncplane_styles_off(non, NCSTYLE_BOLD);
   if(ncplane_putstr_aligned(non, ++ybase, NCALIGN_CENTER, str1) < 0){
     return NULL;
   }
-  ncplane_styles_on(non, CELL_STYLE_ITALIC);
+  ncplane_styles_on(non, NCSTYLE_ITALIC);
   if(ncplane_putstr_aligned(non, ++ybase, NCALIGN_CENTER, str2) < 0){
     return NULL;
   }
-  ncplane_styles_off(non, CELL_STYLE_ITALIC);
+  ncplane_styles_off(non, NCSTYLE_ITALIC);
   if(demo_render(nc)){
     return NULL;
   }

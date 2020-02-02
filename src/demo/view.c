@@ -41,7 +41,7 @@ legend(struct notcurses* nc, int dimy, int dimx){
   uint64_t channels = 0;
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, channels, 0, " ");
-  ncplane_styles_set(n, CELL_STYLE_BOLD);
+  ncplane_styles_set(n, NCSTYLE_BOLD);
   ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
   if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "target launch") <= 0){
     ncplane_destroy(n);
@@ -61,7 +61,7 @@ legend(struct notcurses* nc, int dimy, int dimx){
     ncplane_destroy(n);
     return NULL;
   }
-  ncplane_styles_off(n, CELL_STYLE_BOLD);
+  ncplane_styles_off(n, NCSTYLE_BOLD);
   return n;
 }
 
