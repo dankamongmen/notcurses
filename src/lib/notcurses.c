@@ -24,13 +24,50 @@
 static notcurses* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh
 static void (*signal_sa_handler)(int); // stashed signal handler we replaced
 
+static int
+drop_signals(notcurses* nc){
+  notcurses* old = nc;
+  if(!atomic_compare_exchange_strong(&signal_nc, &old, NULL)){
+    fprintf(stderr, "Couldn't drop signals: %p != %p\n", old, nc);
+    return -1;
+  }
+  return 0;
+}
+
+// Do the minimum necessary stuff to restore the terminal, then return. This is
+// the end of the line for fatal signal handlers. notcurses_stop() will go on
+// to tear down and account for internal structures.
+static int
+notcurses_stop_minimal(notcurses* nc){
+  int ret = 0;
+  drop_signals(nc);
+  if(nc->rmcup && term_emit("rmcup", nc->rmcup, nc->ttyfp, true)){
+    ret = -1;
+  }
+  if(nc->cnorm && term_emit("cnorm", nc->cnorm, nc->ttyfp, true)){
+    ret = -1;
+  }
+  if(nc->op && term_emit("op", nc->op, nc->ttyfp, true)){
+    ret = -1;
+  }
+  if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
+    ret = -1;
+  }
+  if(nc->oc && term_emit("oc", nc->oc, nc->ttyfp, true)){
+    ret = -1;
+  }
+  ret |= notcurses_mouse_disable(nc);
+  ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
+  return ret;
+}
+
 // this wildly unsafe handler will attempt to restore the screen upon
 // reception of SIG{INT, SEGV, ABRT, QUIT}. godspeed you, black emperor!
 static void
 fatal_handler(int signo){
   notcurses* nc = atomic_load(&signal_nc);
   if(nc){
-    notcurses_stop(nc);
+    notcurses_stop_minimal(nc);
     if(signal_sa_handler){
       signal_sa_handler(signo);
     }
@@ -78,16 +115,6 @@ setup_signals(notcurses* nc, bool no_quit_sigs, bool no_winch_sig){
       return -1;
     }
     signal_sa_handler = oldact.sa_handler;
-  }
-  return 0;
-}
-
-static int
-drop_signals(notcurses* nc){
-  notcurses* old = nc;
-  if(!atomic_compare_exchange_strong(&signal_nc, &old, NULL)){
-    fprintf(stderr, "Can't drop signals: %p != %p\n", old, nc);
-    return -1;
   }
   return 0;
 }
@@ -952,26 +979,7 @@ int ncdirect_stop(ncdirect* nc){
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
-    drop_signals(nc);
-    // FIXME these can fail if we stop in the middle of a rendering operation.
-    // turn the fd back to blocking, perhaps?
-    if(nc->rmcup && term_emit("rmcup", nc->rmcup, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->cnorm && term_emit("cnorm", nc->cnorm, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->op && term_emit("op", nc->op, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->oc && term_emit("oc", nc->oc, nc->ttyfp, true)){
-      ret = -1;
-    }
-    ret |= notcurses_mouse_disable(nc);
-    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
+    ret |= notcurses_stop_minimal(nc);
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;
