@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(notcurses VERSION 1.1.3
+project(notcurses VERSION 1.1.4
   DESCRIPTION "UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)

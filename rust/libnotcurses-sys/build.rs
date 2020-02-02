@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 fn main() {
     pkg_config::Config::new()
-        .atleast_version("1.1.3")
+        .atleast_version("1.1.4")
         .probe("notcurses")
         .unwrap();
 
