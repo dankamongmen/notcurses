@@ -1,3 +1,10 @@
+notcurses (1.1.5-1) UNRELEASED; urgency=medium
+
+  * Use dh-sequence-python3 in Build-Deps rather than
+     --with-python3 in debian/rules
+
+ -- Nick Black <dankamongmen@gmail.com>  Sun, 02 Feb 2020 05:12:17 -0500
+
 notcurses (1.1.4-1) unstable; urgency=medium
 
   * New upstream
