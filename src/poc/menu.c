@@ -10,8 +10,15 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   ncinput ni;
   notcurses_render(nc);
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
-    switch(keypress){
-      // FIXME
+    if(ni.alt){
+      switch(keypress){
+        case 'd': case 'D':
+          ncmenu_unroll(ncm, 0);
+          break;
+        case 'f': case 'F':
+          ncmenu_unroll(ncm, 1);
+          break;
+      }
     }
     if(keypress == 'q'){
       ncmenu_destroy(ncm);
@@ -54,7 +61,7 @@ int main(void){
   mopts.sections = sections;
   mopts.sectioncount = sizeof(sections) / sizeof(*sections);
   channels_set_fg(&mopts.headerchannels, 0x00ff00);
-  channels_set_bg(&mopts.headerchannels, 0x880000);
+  channels_set_bg(&mopts.headerchannels, 0x440000);
   struct ncmenu* top = ncmenu_create(nc, &mopts);
 
   notcurses_render(nc);

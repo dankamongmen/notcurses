@@ -126,6 +126,7 @@ typedef struct renderstate {
 typedef struct ncmenu {
   ncplane* ncp;
   struct ncmenu_section* sections;
+  bool bottom;              // are we on the bottom (vs top)?
   int sectioncount;         // must be positive
   int unrolledsection;      // currently unrolled section, -1 if none
   int headerwidth;          // minimum space necessary to display all sections

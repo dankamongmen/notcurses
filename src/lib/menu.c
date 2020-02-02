@@ -38,7 +38,7 @@ dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
 
 // Duplicates all menu sections in opts, adding their length to '*totalwidth'.
 static int
-dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth){
+dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* totalheight){
   ncm->sections = NULL;
   if((ncm->sectioncount = opts->sectioncount) == 0){
     ++*totalwidth; // one character margin on right
@@ -48,6 +48,7 @@ dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth){
   if(ncm->sections == NULL){
     return -1;
   }
+  int maxheight = 0;
   for(int i = 0 ; i < opts->sectioncount ; ++i){
     int cols = mbswidth(opts->sections[i].name);
     if(cols < 0 || (ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
@@ -63,7 +64,11 @@ dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth){
       }
       return -1;
     }
+    if(ncm->sections[i].itemcount > maxheight){
+      maxheight = ncm->sections[i].itemcount;
+    }
   }
+  *totalheight += maxheight + 2; // two rows of border
   return 0;
 }
 
@@ -71,9 +76,11 @@ static int
 write_header(ncmenu* ncm){
   ncm->ncp->channels = ncm->headerchannels;
   ncplane_set_base(ncm->ncp, ncm->headerchannels, 0, " ");
+  int dimy = ncplane_dim_y(ncm->ncp);
   int xoff = 1; // 1 character margin on left
+  int ypos = ncm->bottom ? dimy - 1 : 0;
   for(int i = 0 ; i < ncm->sectioncount ; ++i){
-    if(ncplane_putstr_yx(ncm->ncp, 0, xoff, ncm->sections[i].name) < 0){
+    if(ncplane_putstr_yx(ncm->ncp, ypos, xoff, ncm->sections[i].name) < 0){
       return -1;
     }
     xoff += mbswidth(ncm->sections[i].name) + 2;
@@ -97,14 +104,15 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
   ret->sections = NULL;
   int dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
-  int ypos = opts->bottom ? dimy - 1 : 0;
   if(ret){
+    ret->bottom = opts->bottom;
     // FIXME maximum width could be more than section headers, due to items!
-    if(dup_menu_items(ret, opts, &totalwidth) == 0){
+    if(dup_menu_items(ret, opts, &totalwidth, &totalheight) == 0){
       ret->headerwidth = totalwidth;
       if(totalwidth < dimx){
         totalwidth = dimx;
       }
+      int ypos = opts->bottom ? dimy - totalheight : 0;
       ret->ncp = ncplane_new(nc, totalheight, totalwidth, ypos, 0, NULL);
       if(ret->ncp){
         ret->unrolledsection = -1;
@@ -124,9 +132,10 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
   if(sectionidx < 0 || sectionidx >= n->sectioncount){
     return -1;
   }
-  if(ncmenu_rollup(n)){ // roll up any unroled section
+  if(ncmenu_rollup(n)){ // roll up any unrolled section
     return -1;
   }
+  n->unrolledsection = sectionidx;
   // FIXME
   return 0;
 }
