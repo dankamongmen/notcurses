@@ -371,8 +371,8 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
               const unsigned char* data, int begy, int begx,
               int leny, int lenx, bool bgr){
   const int bpp = 32;
-  const int rpos = bgr ? 0 : 2;
-  const int bpos = bgr ? 2 : 0;
+  const int rpos = bgr ? 2 : 0;
+  const int bpos = bgr ? 0 : 2;
   int dimy, dimx, x, y;
   int visy = begy;
   ncplane_dim_yx(nc, &dimy, &dimx);
