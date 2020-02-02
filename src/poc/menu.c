@@ -33,35 +33,35 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  struct menu_item demo_items[] = {
+  struct ncmenu_item demo_items[] = {
     { .desc = "Restart", },
   };
-  struct menu_item file_items[] = {
+  struct ncmenu_item file_items[] = {
     { .desc = "New", },
     { .desc = "Open", },
     { .desc = "Close", },
     { .desc = NULL, },
     { .desc = "Quit", },
   };
-  struct menu_section sections[] = {
+  struct ncmenu_section sections[] = {
     { .name = "Demo", .items = demo_items, },
     { .name = "File", .items = file_items, },
   };
   sections[0].itemcount = sizeof(demo_items) / sizeof(*demo_items);
   sections[1].itemcount = sizeof(file_items) / sizeof(*file_items);
-  menu_options mopts;
+  ncmenu_options mopts;
   memset(&mopts, 0, sizeof(mopts));
   mopts.sections = sections;
   mopts.sectioncount = sizeof(sections) / sizeof(*sections);
-  channels_set_fg(&mopts.headerchannels, 0x000000);
-  channels_set_bg(&mopts.headerchannels, 0xff0000);
+  channels_set_fg(&mopts.headerchannels, 0x00ff00);
+  channels_set_bg(&mopts.headerchannels, 0x880000);
   struct ncmenu* top = ncmenu_create(nc, &mopts);
 
   notcurses_render(nc);
   int dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
-  ncplane_styles_on(n, NCSTYLE_REVERSE);
+  ncplane_set_fg(n, 0x00dddd);
   if(ncplane_putstr_aligned(n, dimy - 1, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=- ") < 0){
 	  return EXIT_FAILURE;
   }
@@ -70,7 +70,6 @@ int main(void){
   ncplane_erase(n);
   mopts.bottom = true;
   struct ncmenu* bottom = ncmenu_create(nc, &mopts);
-  ncplane_styles_on(n, NCSTYLE_REVERSE);
   if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=- ") < 0){
 	  return EXIT_FAILURE;
   }

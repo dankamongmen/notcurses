@@ -18,7 +18,7 @@ TEST_CASE("MenuTest") {
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
   SUBCASE("EmptyMenuTop") {
-    struct menu_options opts{};
+    struct ncmenu_options opts{};
     struct ncmenu* ncm = ncmenu_create(nc_, &opts);
     REQUIRE(nullptr != ncm);
     CHECK(0 == notcurses_render(nc_));
@@ -26,7 +26,7 @@ TEST_CASE("MenuTest") {
   }
 
   SUBCASE("EmptyMenuBottom") {
-    struct menu_options opts{};
+    struct ncmenu_options opts{};
     opts.bottom = true;
     struct ncmenu* ncm = ncmenu_create(nc_, &opts);
     REQUIRE(nullptr != ncm);

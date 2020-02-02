@@ -2210,28 +2210,28 @@ API void ncselector_destroy(struct ncselector* n, char** item);
 // a screen resize, menus will be automatically moved/resized. Elements can be
 // dynamically enabled or disabled at all levels (menu, section, and item),
 
-struct menu_section {
+struct ncmenu_section {
   char* name;             // utf-8 c string
-  struct menu_item {
+  struct ncmenu_item {
     char* desc;           // utf-8 menu item, NULL for horizontal separator
     ncinput shortcut;     // shortcut, all should be distinct
   }* items;
   int itemcount;
 };
 
-typedef struct menu_options {
+typedef struct ncmenu_options {
   bool bottom;              // on the bottom row, as opposed to top row
   bool hiding;              // hide the menu when not being used
-  struct menu_section* sections; // array of 'sectioncount' menu_sections
+  struct ncmenu_section* sections; // array of 'sectioncount' menu_sections
   int sectioncount;         // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
-} menu_options;
+} ncmenu_options;
 
 // Create a menu with the specified options. Menus are currently bound to an
 // overall notcurses object (as opposed to a particular plane), and are
 // implemented as ncplanes kept atop other ncplanes.
-API struct ncmenu* ncmenu_create(struct notcurses* nc, const menu_options* opts);
+API struct ncmenu* ncmenu_create(struct notcurses* nc, const ncmenu_options* opts);
 
 // Unroll the specified menu section, making the menu visible if it was
 // invisible, and rolling up any menu section that is already unrolled.

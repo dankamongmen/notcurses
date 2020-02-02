@@ -1,7 +1,7 @@
 #include "internal.h"
 
 static void
-free_menu_section(struct menu_section* ms){
+free_menu_section(struct ncmenu_section* ms){
   for(int i = 0 ; i < ms->itemcount ; ++i){
     free(ms->items[i].desc);
   }
@@ -18,7 +18,7 @@ free_menu_sections(ncmenu* ncm){
 }
 
 static int
-dup_menu_section(struct menu_section* dst, const struct menu_section* src){
+dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
   dst->items = NULL;
   if(src->itemcount){
     dst->items = malloc(sizeof(*dst->items) * src->itemcount);
@@ -38,7 +38,7 @@ dup_menu_section(struct menu_section* dst, const struct menu_section* src){
 
 // Duplicates all menu sections in opts, adding their length to '*totalwidth'.
 static int
-dup_menu_items(ncmenu* ncm, const menu_options* opts, int* totalwidth){
+dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth){
   ncm->sections = NULL;
   if((ncm->sectioncount = opts->sectioncount) == 0){
     ++*totalwidth; // one character margin on right
@@ -76,12 +76,12 @@ write_header(ncmenu* ncm){
     if(ncplane_putstr_yx(ncm->ncp, 0, xoff, ncm->sections[i].name) < 0){
       return -1;
     }
-    xoff += mbswidth(ncm->sections[i].name) + 1;
+    xoff += mbswidth(ncm->sections[i].name) + 2;
   }
   return 0;
 }
 
-ncmenu* ncmenu_create(notcurses* nc, const menu_options* opts){
+ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
   if(opts->sectioncount < 0){
     return NULL;
   }else if(opts->sectioncount == 0 && opts->sections){
@@ -91,14 +91,20 @@ ncmenu* ncmenu_create(notcurses* nc, const menu_options* opts){
   }
   int totalheight = 1;
   int totalwidth = 1; // start with one character margin on the left
-  // FIXME calaculate maximum dimensions
+  // FIXME calculate maximum dimensions
   ncmenu* ret = malloc(sizeof(*ret));
   ret->sectioncount = opts->sectioncount;
   ret->sections = NULL;
-  int dimy = ncplane_dim_y(notcurses_stdplane(nc));
+  int dimy, dimx;
+  ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   int ypos = opts->bottom ? dimy - 1 : 0;
   if(ret){
+    // FIXME maximum width could be more than section headers, due to items!
     if(dup_menu_items(ret, opts, &totalwidth) == 0){
+      ret->headerwidth = totalwidth;
+      if(totalwidth < dimx){
+        totalwidth = dimx;
+      }
       ret->ncp = ncplane_new(nc, totalheight, totalwidth, ypos, 0, NULL);
       if(ret->ncp){
         ret->unrolledsection = -1;
