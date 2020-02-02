@@ -2217,6 +2217,8 @@ struct ncmenu_section {
     ncinput shortcut;     // shortcut, all should be distinct
   }* items;
   int itemcount;
+  int xoff;               // used only in library copy, ignored in request
+  int bodycols;           // used only in library copy, ignored in request
 };
 
 typedef struct ncmenu_options {
