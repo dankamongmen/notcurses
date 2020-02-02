@@ -191,15 +191,43 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
   const int height = section_height(n, sectionidx);
   const int width = section_width(n, sectionidx);
-  const int ypos = n->bottom ? dimy - height - 1 : 1;
   const int xpos = n->sections[sectionidx].xoff;
+  int ypos = n->bottom ? dimy - height - 1 : 1;
   if(ncplane_cursor_move_yx(n->ncp, ypos, xpos)){
     return -1;
   }
   if(ncplane_rounded_box_sized(n->ncp, 0, n->headerchannels, height, width, 0)){
     return -1;
   }
-  // FIXME
+  const struct ncmenu_section* sec = &n->sections[sectionidx];
+  for(int i = 0 ; i < sec->itemcount ; ++i){
+    ++ypos;
+    if(sec->items[i].desc){
+      n->ncp->channels = n->sectionchannels;
+      int cols = ncplane_putstr_yx(n->ncp, ypos, xpos + 1, sec->items[i].desc);
+      if(cols < 0){
+        return -1;
+      }
+      for(int j = cols + 1 ; j < width - 1 ; ++j){
+        if(ncplane_putsimple(n->ncp, ' ') < 0){
+          return -1;
+        }
+      }
+    }else{
+      n->ncp->channels = n->headerchannels;
+      if(ncplane_putegc_yx(n->ncp, ypos, xpos, "├", NULL) < 0){
+        return -1;
+      }
+      for(int j = 1 ; j < width - 1 ; ++j){
+        if(ncplane_putegc(n->ncp, "─", NULL) < 0){
+          return -1;
+        }
+      }
+      if(ncplane_putegc(n->ncp, "┤", NULL) < 0){
+        return -1;
+      }
+    }
+  }
   return 0;
 }
 
