@@ -2130,6 +2130,8 @@ API void ncplane_greyscale(struct ncplane* n);
 // not be intermixed with standard notcurses rendering.
 API int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 API int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
+API int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
+API int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
 API int ncdirect_stop(struct ncdirect* nc);
 
 // selection widget -- an ncplane with a title header and a body section. the
@@ -2208,17 +2210,19 @@ API void ncselector_destroy(struct ncselector* n, char** item);
 // a screen resize, menus will be automatically moved/resized. Elements can be
 // dynamically enabled or disabled at all levels (menu, section, and item),
 
+struct menu_section {
+  char* name;             // utf-8 c string
+  struct menu_item {
+    char* desc;           // utf-8 menu item, NULL for horizontal separator
+    ncinput shortcut;     // shortcut, all should be distinct
+  }* items;
+  int itemcount;
+};
+
 typedef struct menu_options {
   bool bottom;              // on the bottom row, as opposed to top row
   bool hiding;              // hide the menu when not being used
-  struct {
-    char* name;             // utf-8 c string
-    struct {
-      char* desc;           // utf-8 menu item, NULL for horizontal separator
-      ncinput shortcut;     // shortcut, all should be distinct
-    }* items;
-    int itemcount;
-  }* sections;              // array of menu sections
+  struct menu_section* sections; // array of 'sectioncount' menu_sections
   int sectioncount;         // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections

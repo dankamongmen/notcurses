@@ -298,7 +298,16 @@ summary_table(struct ncdirect* nc, const char* spec){
     qprefix(results[i].timens, GIG, timebuf, 0);
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
-    printf("%2zu│%c│%*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│%7.1f║%s\n", i,
+    if(results[i].result != 0){
+      ncdirect_fg(nc, 0xd8000c);
+    }else if(!results[i].stats.renders){
+      ncdirect_fg(nc, 0xbbbbbb);
+    }else{
+      ncdirect_fg(nc, 0x32CD32);
+    }
+    printf("%2zu", i);
+    ncdirect_fg_rgb8(nc, 178, 102, 255);
+    printf("│%c│%*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│%7.1f║%s\n",
            results[i].selector,
            PREFIXSTRLEN, timebuf,
            results[i].stats.renders,

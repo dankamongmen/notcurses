@@ -12,11 +12,15 @@ notcurses_directmode - minimal notcurses instances for styling text
 
 **struct ncdirect* notcurses_directmode(const char *termtype, FILE* fp);**
 
+**int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
+
+**int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
+
+**int ncdirect_fg(struct ncdirect* nc, unsigned rgb);**
+
+**int ncdirect_bg(struct ncdirect* nc, unsigned rgb);**
+
 **int ncdirect_stop(struct ncdirect* nc);**
-
-**int term_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
-
-**int term_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
 
 # DESCRIPTION
 

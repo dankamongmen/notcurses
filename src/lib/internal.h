@@ -125,14 +125,7 @@ typedef struct renderstate {
 
 typedef struct ncmenu {
   ncplane* ncp;
-  struct {
-    char* name;             // utf-8 c string
-    struct {
-      char* desc;           // utf-8 menu item, NULL for horizontal separator
-      ncinput shortcut;     // shortcut, all should be distinct
-    }* items;
-    int itemcount;
-  }* sections;              // array of menu sections
+  struct menu_section* sections;
   int sectioncount;         // must be positive
   int unrolledsection;      // currently unrolled section, -1 if none
   uint64_t headerchannels;  // styling for header
