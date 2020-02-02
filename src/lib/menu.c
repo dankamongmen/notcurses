@@ -20,16 +20,22 @@ free_menu_sections(ncmenu* ncm){
 static int
 dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
   dst->items = NULL;
-  if(src->itemcount){
+  if( (dst->itemcount = src->itemcount) ){
     dst->items = malloc(sizeof(*dst->items) * src->itemcount);
     if(dst->items == NULL){
       return -1;
     }
     for(int i = 0 ; i < src->itemcount ; ++i){
-      if((dst->items[i].desc = strdup(src->items[i].desc)) == NULL){
-        while(--i){
-          free(&dst->items[i].desc);
+      if(src->items[i].desc){
+        if((dst->items[i].desc = strdup(src->items[i].desc)) == NULL){
+          while(--i){
+            free(&dst->items[i].desc);
+          }
+          free(dst->items);
+          return -1;
         }
+      }else{
+        dst->items[i].desc = NULL;
       }
     }
   }
@@ -57,7 +63,7 @@ dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* to
       }
     }
     *totalwidth += cols + 2;
-    if(dup_menu_section(&opts->sections[i], &ncm->sections[i])){
+    if(dup_menu_section(&ncm->sections[i], &opts->sections[i])){
       free(ncm->sections[i].name);
       while(--i){
         free_menu_section(&ncm->sections[i]);
@@ -151,6 +157,11 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
   return NULL;
 }
 
+static int
+section_height(const ncmenu* n, int sectionidx){
+  return n->sections[sectionidx].itemcount + 2;
+}
+
 int ncmenu_unroll(ncmenu* n, int sectionidx){
   if(sectionidx < 0 || sectionidx >= n->sectioncount){
     return -1;
@@ -159,6 +170,17 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     return -1;
   }
   n->unrolledsection = sectionidx;
+  int dimy, dimx;
+  ncplane_dim_yx(n->ncp, &dimy, &dimx);
+  int height = section_height(n, sectionidx);
+  int width = 10; // FIXME
+  int ypos = n->bottom ? dimy - height - 1 : 1;
+  if(ncplane_cursor_move_yx(n->ncp, ypos, 1)){
+    return -1;
+  }
+  if(ncplane_rounded_box_sized(n->ncp, 0, n->sectionchannels, height, width, 0)){
+    return -1;
+  }
   // FIXME
   return 0;
 }
@@ -167,8 +189,9 @@ int ncmenu_rollup(ncmenu* n){
   if(n->unrolledsection < 0){
     return 0;
   }
-  // FIXME
-  return 0;
+  n->unrolledsection = -1;
+  ncplane_erase(n->ncp);
+  return write_header(n);
 }
 
 int ncmenu_destroy(ncmenu* n){

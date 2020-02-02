@@ -13,10 +13,14 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
     if(ni.alt){
       switch(keypress){
         case 'd': case 'D':
-          ncmenu_unroll(ncm, 0);
+          if(ncmenu_unroll(ncm, 0)){
+            return -1;
+          }
           break;
         case 'f': case 'F':
-          ncmenu_unroll(ncm, 1);
+          if(ncmenu_unroll(ncm, 1)){
+            return -1;
+          }
           break;
       }
     }
