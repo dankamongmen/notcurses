@@ -96,6 +96,8 @@ write_header(ncmenu* ncm){
     return -1;
   }
   for(int i = 0 ; i < ncm->sectioncount ; ++i){
+    ncm->sections[i].xoff = xoff;
+    ncm->sections[i].bodycols = 10; // FIXME
     if(ncplane_putstr(ncm->ncp, ncm->sections[i].name) < 0){
       return -1;
     }
@@ -157,9 +159,14 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
   return NULL;
 }
 
-static int
+static inline int
 section_height(const ncmenu* n, int sectionidx){
   return n->sections[sectionidx].itemcount + 2;
+}
+
+static inline int
+section_width(const ncmenu* n, int sectionidx){
+  return n->sections[sectionidx].bodycols + 2;
 }
 
 int ncmenu_unroll(ncmenu* n, int sectionidx){
@@ -172,13 +179,14 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
   n->unrolledsection = sectionidx;
   int dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
-  int height = section_height(n, sectionidx);
-  int width = 10; // FIXME
-  int ypos = n->bottom ? dimy - height - 1 : 1;
-  if(ncplane_cursor_move_yx(n->ncp, ypos, 1)){
+  const int height = section_height(n, sectionidx);
+  const int width = section_width(n, sectionidx);
+  const int ypos = n->bottom ? dimy - height - 1 : 1;
+  const int xpos = n->sections[sectionidx].xoff;
+  if(ncplane_cursor_move_yx(n->ncp, ypos, xpos)){
     return -1;
   }
-  if(ncplane_rounded_box_sized(n->ncp, 0, n->sectionchannels, height, width, 0)){
+  if(ncplane_rounded_box_sized(n->ncp, 0, n->headerchannels, height, width, 0)){
     return -1;
   }
   // FIXME
