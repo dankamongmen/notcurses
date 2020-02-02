@@ -56,7 +56,7 @@ dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* to
         free_menu_section(&ncm->sections[i]);
       }
     }
-    *totalwidth += cols + 1;
+    *totalwidth += cols + 2;
     if(dup_menu_section(&opts->sections[i], &ncm->sections[i])){
       free(ncm->sections[i].name);
       while(--i){
@@ -75,15 +75,36 @@ dup_menu_items(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* to
 static int
 write_header(ncmenu* ncm){
   ncm->ncp->channels = ncm->headerchannels;
-  ncplane_set_base(ncm->ncp, ncm->headerchannels, 0, " ");
-  int dimy = ncplane_dim_y(ncm->ncp);
-  int xoff = 1; // 1 character margin on left
+  int dimy, dimx;
+  ncplane_dim_yx(ncm->ncp, &dimy, &dimx);
+  int xoff = 2; // 2-column margin on left
   int ypos = ncm->bottom ? dimy - 1 : 0;
+  if(ncplane_cursor_move_yx(ncm->ncp, ypos, 0)){
+    return -1;
+  }
+  cell c = CELL_INITIALIZER(' ', 0, ncm->headerchannels);
+  if(ncplane_putc(ncm->ncp, &c) < 0){
+    return -1;
+  }
+  if(ncplane_putc(ncm->ncp, &c) < 0){
+    return -1;
+  }
   for(int i = 0 ; i < ncm->sectioncount ; ++i){
-    if(ncplane_putstr_yx(ncm->ncp, ypos, xoff, ncm->sections[i].name) < 0){
+    if(ncplane_putstr(ncm->ncp, ncm->sections[i].name) < 0){
+      return -1;
+    }
+    if(ncplane_putc(ncm->ncp, &c) < 0){
+      return -1;
+    }
+    if(ncplane_putc(ncm->ncp, &c) < 0){
       return -1;
     }
     xoff += mbswidth(ncm->sections[i].name) + 2;
+  }
+  while(xoff++ < dimx){
+    if(ncplane_putc(ncm->ncp, &c) < 0){
+      return -1;
+    }
   }
   return 0;
 }
@@ -118,8 +139,10 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
         ret->sectionchannels = opts->sectionchannels;
-        write_header(ret);
-        return ret;
+        if(write_header(ret) == 0){
+          return ret;
+        }
+        ncplane_destroy(ret->ncp);
       }
       free_menu_sections(ret);
     }

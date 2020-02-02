@@ -63,6 +63,9 @@ int main(void){
   channels_set_fg(&mopts.headerchannels, 0x00ff00);
   channels_set_bg(&mopts.headerchannels, 0x440000);
   struct ncmenu* top = ncmenu_create(nc, &mopts);
+  if(top == NULL){
+    goto err;
+  }
 
   notcurses_render(nc);
   int dimy, dimx;
@@ -77,6 +80,9 @@ int main(void){
   ncplane_erase(n);
   mopts.bottom = true;
   struct ncmenu* bottom = ncmenu_create(nc, &mopts);
+  if(bottom == NULL){
+    goto err;
+  }
   if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=- ") < 0){
 	  return EXIT_FAILURE;
   }
@@ -86,4 +92,8 @@ int main(void){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
+
+err:
+  notcurses_stop(nc);
+  return EXIT_FAILURE;
 }
