@@ -20,6 +20,7 @@ free_menu_sections(ncmenu* ncm){
 static int
 dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
   dst->bodycols = 0;
+  dst->itemselected = 0;
   dst->items = NULL;
   if( (dst->itemcount = src->itemcount) ){
     dst->items = malloc(sizeof(*dst->items) * src->itemcount);
@@ -92,8 +93,7 @@ dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int*
 }
 
 static int
-write_header(ncmenu* ncm){
-  ncm->ncp->channels = ncm->headerchannels;
+write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
   int dimy, dimx;
   ncplane_dim_yx(ncm->ncp, &dimy, &dimx);
   int xoff = 2; // 2-column margin on left
@@ -102,6 +102,7 @@ write_header(ncmenu* ncm){
     return -1;
   }
   cell c = CELL_INITIALIZER(' ', 0, ncm->headerchannels);
+  ncplane_styles_set(ncm->ncp, 0);
   if(ncplane_putc(ncm->ncp, &c) < 0){
     return -1;
   }
@@ -204,6 +205,11 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     ++ypos;
     if(sec->items[i].desc){
       n->ncp->channels = n->sectionchannels;
+      if(i == sec->itemselected){
+        ncplane_styles_set(n->ncp, NCSTYLE_REVERSE);
+      }else{
+        ncplane_styles_set(n->ncp, 0);
+      }
       int cols = ncplane_putstr_yx(n->ncp, ypos, xpos + 1, sec->items[i].desc);
       if(cols < 0){
         return -1;
@@ -215,6 +221,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
       }
     }else{
       n->ncp->channels = n->headerchannels;
+      ncplane_styles_set(n->ncp, 0);
       if(ncplane_putegc_yx(n->ncp, ypos, xpos, "├", NULL) < 0){
         return -1;
       }
@@ -265,13 +272,27 @@ int ncmenu_prevsection(ncmenu* n){
 }
 
 int ncmenu_nextitem(ncmenu* n){
-  // FIXME
-  return 0;
+  if(n->unrolledsection == -1){
+    if(ncmenu_unroll(n, 0)){
+      return -1;
+    }
+  }
+  if(++n->sections[n->unrolledsection].itemselected == n->sections[n->unrolledsection].itemcount){
+    n->sections[n->unrolledsection].itemselected = 0;
+  }
+  return ncmenu_unroll(n, n->unrolledsection);
 }
 
 int ncmenu_previtem(ncmenu* n){
-  // FIXME
-  return 0;
+  if(n->unrolledsection == -1){
+    if(ncmenu_unroll(n, 0)){
+      return -1;
+    }
+  }
+  if(n->sections[n->unrolledsection].itemselected-- == 0){
+    n->sections[n->unrolledsection].itemselected = n->sections[n->unrolledsection].itemcount - 1;
+  }
+  return ncmenu_unroll(n, n->unrolledsection);
 }
 
 int ncmenu_destroy(ncmenu* n){

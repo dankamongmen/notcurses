@@ -2219,6 +2219,7 @@ struct ncmenu_section {
   int itemcount;
   int xoff;               // used only in library copy, ignored in request
   int bodycols;           // used only in library copy, ignored in request
+  int itemselected;       // used only in library copy, ignored in request
 };
 
 typedef struct ncmenu_options {

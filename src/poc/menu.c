@@ -18,6 +18,14 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
       if(ncmenu_nextsection(ncm)){
         return -1;
       }
+    }else if(keypress == NCKEY_UP){
+      if(ncmenu_previtem(ncm)){
+        return -1;
+      }
+    }else if(keypress == NCKEY_DOWN){
+      if(ncmenu_nextitem(ncm)){
+        return -1;
+      }
     }else if(keypress == '\x1b'){
       if(ncmenu_unroll(ncm, 1)){
         return -1;
