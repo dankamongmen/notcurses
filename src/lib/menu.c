@@ -277,9 +277,12 @@ int ncmenu_nextitem(ncmenu* n){
       return -1;
     }
   }
-  if(++n->sections[n->unrolledsection].itemselected == n->sections[n->unrolledsection].itemcount){
-    n->sections[n->unrolledsection].itemselected = 0;
-  }
+  // FIXME can't allow any section to be all NULLs or we'll infintitely loop
+  do{
+    if(++n->sections[n->unrolledsection].itemselected == n->sections[n->unrolledsection].itemcount){
+      n->sections[n->unrolledsection].itemselected = 0;
+    }
+  }while(!n->sections[n->unrolledsection].items[n->sections[n->unrolledsection].itemselected].desc);
   return ncmenu_unroll(n, n->unrolledsection);
 }
 
@@ -289,9 +292,11 @@ int ncmenu_previtem(ncmenu* n){
       return -1;
     }
   }
-  if(n->sections[n->unrolledsection].itemselected-- == 0){
-    n->sections[n->unrolledsection].itemselected = n->sections[n->unrolledsection].itemcount - 1;
-  }
+  do{
+    if(n->sections[n->unrolledsection].itemselected-- == 0){
+      n->sections[n->unrolledsection].itemselected = n->sections[n->unrolledsection].itemcount - 1;
+    }
+  }while(!n->sections[n->unrolledsection].items[n->sections[n->unrolledsection].itemselected].desc);
   return ncmenu_unroll(n, n->unrolledsection);
 }
 
