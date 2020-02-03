@@ -85,6 +85,31 @@ TEST_CASE("MenuTest") {
     ncmenu_destroy(ncm);
   }
 
+  SUBCASE("VeryLongMenu") {
+    struct ncmenu_item items[] = {
+      { .desc = strdup("Generic menu entry"), .shortcut = {}, },
+    };
+    struct ncmenu_section sections[] = {
+      { .name = strdup("antidisestablishmentarianism"), .itemcount = sizeof(items) / sizeof(*items), .items = items,
+        .xoff = -1, .bodycols = -1, .itemselected = -1, },
+      { .name = strdup("floccinaucinihilipilification"), .itemcount = sizeof(items) / sizeof(*items), .items = items,
+        .xoff = -1, .bodycols = -1, .itemselected = -1, },
+      { .name = strdup("pneumonoultramicroscopicsilicovolcanoconiosis"), .itemcount = sizeof(items) / sizeof(*items), .items = items,
+        .xoff = -1, .bodycols = -1, .itemselected = -1, },
+      { .name = strdup("supercalifragilisticexpialidocious"), .itemcount = sizeof(items) / sizeof(*items), .items = items,
+        .xoff = -1, .bodycols = -1, .itemselected = -1, },
+      { .name = strdup("Incomprehensibilities"), .itemcount = sizeof(items) / sizeof(*items), .items = items,
+        .xoff = -1, .bodycols = -1, .itemselected = -1, },
+    };
+    struct ncmenu_options opts{};
+    opts.sections = sections;
+    opts.sectioncount = sizeof(sections) / sizeof(*sections);
+    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    REQUIRE(nullptr != ncm);
+    CHECK(0 == notcurses_render(nc_));
+    ncmenu_destroy(ncm);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 }
