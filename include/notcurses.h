@@ -2242,6 +2242,16 @@ API int ncmenu_unroll(struct ncmenu* n, int sectionidx);
 // Roll up any unrolled menu section, and hide the menu if using hiding.
 API int ncmenu_rollup(struct ncmenu* n);
 
+// Unroll the previous/next section (relative to current unrolled). If no
+// section is unrolled, the first section will be unrolled.
+API int ncmenu_nextsection(struct ncmenu* n);
+API int ncmenu_prevsection(struct ncmenu* n);
+
+// Move to the previous/next item within the currently unrolled section. If no
+// section is unrolled, the first section will be unrolled.
+API int ncmenu_nextitem(struct ncmenu* n);
+API int ncmenu_previtem(struct ncmenu* n);
+
 // Destroy a menu created with ncmenu_create().
 API int ncmenu_destroy(struct ncmenu* n);
 

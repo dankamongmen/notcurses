@@ -240,6 +240,40 @@ int ncmenu_rollup(ncmenu* n){
   return write_header(n);
 }
 
+int ncmenu_nextsection(ncmenu* n){
+  int nextsection = n->unrolledsection + 1;
+  if(nextsection){
+    ncmenu_rollup(n);
+    if(nextsection == n->sectioncount){
+      nextsection = 0;
+    }
+  }
+  return ncmenu_unroll(n, nextsection);
+}
+
+int ncmenu_prevsection(ncmenu* n){
+  int prevsection = n->unrolledsection;
+  if(n->unrolledsection < 0){
+    prevsection = 1;
+  }else{
+    ncmenu_rollup(n);
+  }
+  if(--prevsection == -1){
+    prevsection = n->sectioncount - 1;
+  }
+  return ncmenu_unroll(n, prevsection);
+}
+
+int ncmenu_nextitem(ncmenu* n){
+  // FIXME
+  return 0;
+}
+
+int ncmenu_previtem(ncmenu* n){
+  // FIXME
+  return 0;
+}
+
 int ncmenu_destroy(ncmenu* n){
   int ret = 0;
   if(n){

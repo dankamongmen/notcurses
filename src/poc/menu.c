@@ -10,7 +10,19 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   ncinput ni;
   notcurses_render(nc);
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
-    if(ni.alt){
+    if(keypress == NCKEY_LEFT){
+      if(ncmenu_prevsection(ncm)){
+        return -1;
+      }
+    }else if(keypress == NCKEY_RIGHT){
+      if(ncmenu_nextsection(ncm)){
+        return -1;
+      }
+    }else if(keypress == '\x1b'){
+      if(ncmenu_unroll(ncm, 1)){
+        return -1;
+      }
+    }else if(ni.alt){
       switch(keypress){
         case 'd': case 'D':
           if(ncmenu_unroll(ncm, 0)){
@@ -23,8 +35,7 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
           }
           break;
       }
-    }
-    if(keypress == 'q'){
+    }else if(keypress == 'q'){
       ncmenu_destroy(ncm);
       return 0;
     }
