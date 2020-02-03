@@ -34,6 +34,23 @@ TEST_CASE("MenuTest") {
     ncmenu_destroy(ncm);
   }
 
+  SUBCASE("MenuOneSection") {
+    struct ncmenu_item file_items[] = {
+      { .desc = strdup("I would like a new file"), .shortcut = {}, },
+    };
+    struct ncmenu_section sections[] = {
+      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items,
+        .xoff = -1, .bodycols = -1, .itemselected = -1, },
+    };
+    struct ncmenu_options opts{};
+    opts.sections = sections;
+    opts.sectioncount = sizeof(sections) / sizeof(*sections);
+    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    REQUIRE(nullptr != ncm);
+    CHECK(0 == notcurses_render(nc_));
+    ncmenu_destroy(ncm);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 }

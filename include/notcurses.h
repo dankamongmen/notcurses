@@ -2210,13 +2210,15 @@ API void ncselector_destroy(struct ncselector* n, char** item);
 // a screen resize, menus will be automatically moved/resized. Elements can be
 // dynamically enabled or disabled at all levels (menu, section, and item),
 
+struct ncmenu_item {
+  char* desc;           // utf-8 menu item, NULL for horizontal separator
+  ncinput shortcut;     // shortcut, all should be distinct
+};
+
 struct ncmenu_section {
   char* name;             // utf-8 c string
-  struct ncmenu_item {
-    char* desc;           // utf-8 menu item, NULL for horizontal separator
-    ncinput shortcut;     // shortcut, all should be distinct
-  }* items;
   int itemcount;
+  struct ncmenu_item* items;
   int xoff;               // used only in library copy, ignored in request
   int bodycols;           // used only in library copy, ignored in request
   int itemselected;       // used only in library copy, ignored in request
