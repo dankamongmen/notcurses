@@ -7,6 +7,9 @@ by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@l
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://nick-black.com/notcurses).
 
+notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/).
+Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
+
 <p align="center">
 <img width="640" height="242" src="doc/0.4.0-sheet.png" alt="notcurses 0.4.0 contact sheet"/>
 </p>
