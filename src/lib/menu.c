@@ -19,31 +19,44 @@ free_menu_sections(ncmenu* ncm){
 
 static int
 dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
+  // we must reject any empty section
+  if(src->itemcount == 0 || src->items == NULL){
+    return -1;
+  }
   dst->bodycols = 0;
   dst->itemselected = 0;
   dst->items = NULL;
-  if( (dst->itemcount = src->itemcount) ){
-    dst->items = malloc(sizeof(*dst->items) * src->itemcount);
-    if(dst->items == NULL){
-      return -1;
-    }
-    for(int i = 0 ; i < src->itemcount ; ++i){
-      if(src->items[i].desc){
-        if((dst->items[i].desc = strdup(src->items[i].desc)) == NULL){
-          while(--i){
-            free(&dst->items[i].desc);
-          }
-          free(dst->items);
-          return -1;
+  // we must reject any section which is entirely separators
+  bool gotitem = false;
+  dst->itemcount = src->itemcount;
+  dst->items = malloc(sizeof(*dst->items) * src->itemcount);
+  if(dst->items == NULL){
+    return -1;
+  }
+  for(int i = 0 ; i < src->itemcount ; ++i){
+    if(src->items[i].desc){
+      if((dst->items[i].desc = strdup(src->items[i].desc)) == NULL){
+        while(i--){
+          free(&dst->items[i].desc);
         }
-        const int cols = mbswidth(dst->items[i].desc);
-        if(cols > dst->bodycols){
-          dst->bodycols = cols;
-        }
-      }else{
-        dst->items[i].desc = NULL;
+        free(dst->items);
+        return -1;
       }
+      gotitem = true;
+      const int cols = mbswidth(dst->items[i].desc);
+      if(cols > dst->bodycols){
+        dst->bodycols = cols;
+      }
+    }else{
+      dst->items[i].desc = NULL;
     }
+  }
+  if(!gotitem){
+    while(--dst->itemcount){
+      free(&dst->items[dst->itemcount].desc);
+    }
+    free(dst->items);
+    return -1;
   }
   return 0;
 }
@@ -51,11 +64,6 @@ dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
 // Duplicates all menu sections in opts, adding their length to '*totalwidth'.
 static int
 dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* totalheight){
-  ncm->sections = NULL;
-  if((ncm->sectioncount = opts->sectioncount) == 0){
-    ++*totalwidth; // one character margin on right
-    return 0;
-  }
   ncm->sections = malloc(sizeof(*ncm->sections) * opts->sectioncount);
   if(ncm->sections == NULL){
     return -1;
@@ -65,13 +73,14 @@ dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int*
   for(int i = 0 ; i < opts->sectioncount ; ++i){
     int cols = mbswidth(opts->sections[i].name);
     if(cols < 0 || (ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
-      while(--i){
+      while(i--){
         free_menu_section(&ncm->sections[i]);
       }
+      return -1;
     }
     if(dup_menu_section(&ncm->sections[i], &opts->sections[i])){
       free(ncm->sections[i].name);
-      while(--i){
+      while(i--){
         free_menu_section(&ncm->sections[i]);
       }
       return -1;
@@ -131,11 +140,7 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
 }
 
 ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
-  if(opts->sectioncount < 0){
-    return NULL;
-  }else if(opts->sectioncount == 0 && opts->sections){
-    return NULL;
-  }else if(opts->sectioncount && !opts->sections){
+  if(opts->sectioncount <= 0 || !opts->sections){
     return NULL;
   }
   int totalheight = 1;
