@@ -1,7 +1,7 @@
 #include "internal.h"
 
 static void
-free_menu_section(struct ncmenu_section* ms){
+free_menu_section(ncmenu_int_section* ms){
   for(int i = 0 ; i < ms->itemcount ; ++i){
     free(ms->items[i].desc);
   }
@@ -18,7 +18,7 @@ free_menu_sections(ncmenu* ncm){
 }
 
 static int
-dup_menu_section(struct ncmenu_section* dst, const struct ncmenu_section* src){
+dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
   // we must reject any empty section
   if(src->itemcount == 0 || src->items == NULL){
     return -1;
@@ -70,8 +70,10 @@ dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int*
   }
   int maxheight = 0;
   int maxwidth = *totalwidth;
+  int xoff = 2;
   for(int i = 0 ; i < opts->sectioncount ; ++i){
     int cols = mbswidth(opts->sections[i].name);
+    ncm->sections[i].xoff = xoff;
     if(cols < 0 || (ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
       while(i--){
         free_menu_section(&ncm->sections[i]);
@@ -95,6 +97,13 @@ dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int*
       maxwidth = *totalwidth + ncm->sections[i].bodycols + 2;
     }
     *totalwidth += cols + 2;
+    memcpy(&ncm->sections[i].shortcut, &opts->sections[i].shortcut, sizeof(ncm->sections[i].shortcut));
+    if(mbstr_find_codepoint(ncm->sections[i].name,
+                            ncm->sections[i].shortcut.id,
+                            &ncm->sections[i].shortcut_offset) < 0){
+      ncm->sections[i].shortcut_offset = -1;
+    }
+    xoff += cols + 2;
   }
   *totalwidth = maxwidth;
   *totalheight += maxheight + 2; // two rows of border
@@ -119,8 +128,7 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
     return -1;
   }
   for(int i = 0 ; i < ncm->sectioncount ; ++i){
-    ncm->sections[i].xoff = xoff;
-    if(ncplane_putstr(ncm->ncp, ncm->sections[i].name) < 0){
+    if(ncplane_putstr_yx(ncm->ncp, ypos, xoff, ncm->sections[i].name) < 0){
       return -1;
     }
     if(ncplane_putc(ncm->ncp, &c) < 0){
@@ -128,13 +136,25 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
     }
     if(ncplane_putc(ncm->ncp, &c) < 0){
       return -1;
+    }
+    if(ncm->sections[i].shortcut_offset >= 0){
+      cell cl = CELL_TRIVIAL_INITIALIZER;
+      if(ncplane_at_yx(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
+        return -1;
+      }
+      cell_styles_on(&cl, NCSTYLE_UNDERLINE|NCSTYLE_BOLD);
+      if(ncplane_putc_yx(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
+        return -1;
+      }
+      cell_release(ncm->ncp, &cl);
     }
     xoff += mbswidth(ncm->sections[i].name) + 2;
   }
-  while(xoff++ < dimx){
-    if(ncplane_putc(ncm->ncp, &c) < 0){
+  while(xoff < dimx){
+    if(ncplane_putc_yx(ncm->ncp, ypos, xoff, &c) < 0){
       return -1;
     }
+    ++xoff;
   }
   return 0;
 }
@@ -144,7 +164,7 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
     return NULL;
   }
   int totalheight = 1;
-  int totalwidth = 1; // start with one character margin on the left
+  int totalwidth = 2; // start with two-character margin on the left
   ncmenu* ret = malloc(sizeof(*ret));
   ret->sectioncount = opts->sectioncount;
   ret->sections = NULL;
@@ -205,7 +225,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
   if(ncplane_rounded_box_sized(n->ncp, 0, n->headerchannels, height, width, 0)){
     return -1;
   }
-  const struct ncmenu_section* sec = &n->sections[sectionidx];
+  const ncmenu_int_section* sec = &n->sections[sectionidx];
   for(int i = 0 ; i < sec->itemcount ; ++i){
     ++ypos;
     if(sec->items[i].desc){
@@ -282,7 +302,6 @@ int ncmenu_nextitem(ncmenu* n){
       return -1;
     }
   }
-  // FIXME can't allow any section to be all NULLs or we'll infintitely loop
   do{
     if(++n->sections[n->unrolledsection].itemselected == n->sections[n->unrolledsection].itemcount){
       n->sections[n->unrolledsection].itemselected = 0;

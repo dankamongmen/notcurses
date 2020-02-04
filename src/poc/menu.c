@@ -67,15 +67,15 @@ int main(void){
     { .desc = "Restart", },
   };
   struct ncmenu_item file_items[] = {
-    { .desc = "New", },
+    { .desc = "New", .shortcut = { .id = 'n', .ctrl = true, }, },
     { .desc = "Open", },
     { .desc = "Close", },
     { .desc = NULL, },
     { .desc = "Quit", },
   };
   struct ncmenu_section sections[] = {
-    { .name = "Demo", .items = demo_items, },
-    { .name = "File", .items = file_items, },
+    { .name = "Demo", .items = demo_items, .shortcut = { .id = 'd', .alt = true, }, },
+    { .name = "File", .items = file_items, .shortcut = { .id = 'f', .alt = true, }, },
   };
   sections[0].itemcount = sizeof(demo_items) / sizeof(*demo_items);
   sections[1].itemcount = sizeof(file_items) / sizeof(*file_items);

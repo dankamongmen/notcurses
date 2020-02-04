@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <signal.h>
+#include <wctype.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include "notcurses.h"
@@ -123,9 +124,20 @@ typedef struct renderstate {
   bool defaultelidable;
 } renderstate;
 
+typedef struct ncmenu_int_section {
+  char* name;             // utf-8 c string
+  int itemcount;
+  struct ncmenu_item* items;
+  ncinput shortcut;       // shortcut, will be underlined if present in name
+  int xoff;               // column offset from beginning of menu bar
+  int bodycols;           // column width of longest item
+  int itemselected;       // current item selected, -1 for no selection
+  int shortcut_offset;    // column offset within name of shortcut EGC
+} ncmenu_int_section;
+
 typedef struct ncmenu {
   ncplane* ncp;
-  struct ncmenu_section* sections;
+  ncmenu_int_section* sections;
   bool bottom;              // are we on the bottom (vs top)?
   int sectioncount;         // must be positive
   int unrolledsection;      // currently unrolled section, -1 if none
@@ -258,6 +270,31 @@ typedef struct notcurses {
 } notcurses;
 
 void sigwinch_handler(int signo);
+
+// Search the provided multibyte (UTF8) string 's' for the provided unicode
+// codepoint 'cp'. If found, return the column offset of the EGC in which the
+// codepoint appears in 'col', and the byte offset as the return value. If not
+// found, -1 is returned, and 'col' is meaningless.
+static inline int
+mbstr_find_codepoint(const char* s, char32_t cp, int* col){
+  mbstate_t ps;
+  memset(&ps, 0, sizeof(ps));
+  size_t bytes = 0;
+  size_t r;
+  wchar_t w;
+  *col = 0;
+  while((r = mbrtowc(&w, s + bytes, MB_CUR_MAX, &ps)) != (size_t)-1 && r != (size_t)-2){
+    if(r == 0){
+      break;
+    }
+    if(towlower(cp) == (char32_t)towlower(w)){
+      return bytes;
+    }
+    *col += wcwidth(w);
+    bytes += r;
+  }
+  return -1;
+}
 
 // load all known special keys from terminfo, and build the input sequence trie
 int prep_special_keys(notcurses* nc);

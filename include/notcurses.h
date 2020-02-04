@@ -2219,9 +2219,7 @@ struct ncmenu_section {
   char* name;             // utf-8 c string
   int itemcount;
   struct ncmenu_item* items;
-  int xoff;               // used only in library copy, ignored in request
-  int bodycols;           // used only in library copy, ignored in request
-  int itemselected;       // used only in library copy, ignored in request
+  ncinput shortcut;       // shortcut, will be underlined if present in name
 };
 
 typedef struct ncmenu_options {
