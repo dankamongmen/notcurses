@@ -1,11 +1,21 @@
 Source: notcurses
 Priority: optional
 Maintainer: Nick Black <dankamongmen@gmail.com>
-Build-Depends: debhelper-compat (= 12), cmake (>= 3.13), pkg-config (>= 0.29),
- libncurses-dev (>= 6.1), libavformat-dev (>= 57.0), libswscale-dev (>= 5.0),
- libavutil-dev (>= 56.0), pandoc (>= 1.19.2.4), python3-all-dev (>= 3.2),
- python3-cffi (>= 1.13.2), g++ (>= 4:7.0.0-0), python3-setuptools (>= 44.0.0),
- dh-python (>= 4.20191017), dh-sequence-python3
+Build-Depends:
+ cmake (>= 3.13),
+ debhelper-compat (= 12),
+ dh-python (>= 4.20191017),
+ dh-sequence-python3,
+ g++ (>= 4:7.0.0-0),
+ libavformat-dev (>= 57.0),
+ libavutil-dev (>= 56.0),
+ libncurses-dev (>= 6.1),
+ libswscale-dev (>= 5.0),
+ pandoc (>= 1.19.2.4),
+ pkg-config (>= 0.29),
+ python3-all-dev (>= 3.2),
+ python3-cffi (>= 1.13.2),
+ python3-setuptools (>= 44.0.0),
 Standards-Version: 4.5.0
 Section: libs
 X-Python3-Version: >= 3.7
@@ -14,12 +24,34 @@ Homepage: https://nick-black.com/dankwiki/index.php/notcurses
 Vcs-Browser: https://github.com/dankamongmen/notcurses
 Vcs-Git: https://github.com/dankamongmen/notcurses.git
 
+Package: libnotcurses++-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends:
+ libnotcurses++1 (= ${binary:Version}),
+ libnotcurses-dev (>= 1.0.0-1),
+ ${misc:Depends},
+Description: Development files for notcurses++
+ Files necessary for development using notcurses++, a C++ wrapper for notcurses
+
+Package: libnotcurses++1
+Architecture: any
+Multi-Arch: same
+Recommends: ncurses-term (>= 6.1)
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Shared libraries for notcurses++
+ notcurses++ is a C++ binding for the notcurses TUI library
+
 Package: libnotcurses-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libnotcurses1 (= ${binary:Version}), ${misc:Depends}, libavformat-dev,
- libncurses-dev
+Depends:
+ libavformat-dev,
+ libncurses-dev,
+ libnotcurses1 (= ${binary:Version}),
+ ${misc:Depends},
 Description: Development files for notcurses
  Files necessary for developing programs using notcurses.
 
@@ -28,32 +60,16 @@ Architecture: any
 Multi-Arch: same
 Recommends: ncurses-term (>= 6.1)
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Shared libraries for notcurses TUI
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
  an API similar to that of Curses, and rides atop libtinfo.
 
-Package: libnotcurses++-dev
-Section: libdevel
-Architecture: any
-Multi-Arch: same
-Depends: libnotcurses-dev (>= 1.0.0-1), libnotcurses++1 (= ${binary:Version}), ${misc:Depends}
-Description: Development files for notcurses++
- Files necessary for development using notcurses++, a C++ wrapper for notcurses
-
-Package: libnotcurses++1
-Architecture: any
-Multi-Arch: same
-Recommends: ncurses-term (>= 6.1)
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Shared libraries for notcurses++
- notcurses++ is a C++ binding for the notcurses TUI library
-
 Package: notcurses-bin
 Architecture: any
 Multi-Arch: foreign
-Depends: ${shlibs:Depends}, ${misc:Depends}, ncurses-term (>= 6.1)
+Depends: ncurses-term (>= 6.1), ${misc:Depends}, ${shlibs:Depends}
 Description: Binaries from libnotcurses
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
@@ -64,7 +80,7 @@ Description: Binaries from libnotcurses
 
 Package: python3-notcurses
 Architecture: any
-Depends: ${python3:Depends}, ${misc:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
 Description: Python wrappers for notcurses (Python 3)
  Python wrappers for the notcurses TUI library.
  .
