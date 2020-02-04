@@ -67,37 +67,6 @@ struct timespec demodelay = {
   .tv_nsec = 0,
 };
 
-static void
-usage(const char* exe, int status){
-  FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -hHVkc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
-  fprintf(out, " -h: this message\n");
-  fprintf(out, " -V: print program name and version\n");
-  fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
-  fprintf(out, " -H: deploy the HUD\n");
-  fprintf(out, " -k: keep screen; do not switch to alternate\n");
-  fprintf(out, " -d: delay multiplier (non-negative float)\n");
-  fprintf(out, " -f: render to file in addition to stdout\n");
-  fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
-  fprintf(out, " -p: data file path\n");
-  fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
-  fprintf(out, " b: run box\n");
-  fprintf(out, " c: run chunli\n");
-  fprintf(out, " e: run eagles\n");
-  fprintf(out, " g: run grid\n");
-  fprintf(out, " i: run intro\n");
-  fprintf(out, " l: run luigi\n");
-  fprintf(out, " o: run outro\n");
-  fprintf(out, " p: run panelreels\n");
-  fprintf(out, " s: run sliders\n");
-  fprintf(out, " t: run trans\n");
-  fprintf(out, " u: run uniblock\n");
-  fprintf(out, " v: run view\n");
-  fprintf(out, " w: run witherworm\n");
-  fprintf(out, " x: run x-ray\n");
-  exit(status);
-}
-
 static struct {
   const char* name;
   int (*fxn)(struct notcurses*);
@@ -117,18 +86,40 @@ static struct {
   { NULL, NULL, },
   { NULL, NULL, },
   { "outro", outro, },
-  { "panelreels", panelreel_demo, },
+  { "panelreel", panelreel_demo, },
   { NULL, NULL, },
   { NULL, NULL, },
   { "sliders", sliding_puzzle_demo, },
   { "trans", trans_demo, },
   { "uniblock", unicodeblocks_demo, },
   { "view", view_demo, },
-  { "witherworms", witherworm_demo, },
+  { "whiteout", witherworm_demo, },
   { "xray", xray_demo, },
   { NULL, NULL, },
   { NULL, NULL, },
 };
+
+static void
+usage(const char* exe, int status){
+  FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
+  fprintf(out, "usage: %s [ -hHVkc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, " -h: this message\n");
+  fprintf(out, " -V: print program name and version\n");
+  fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
+  fprintf(out, " -H: deploy the HUD\n");
+  fprintf(out, " -k: keep screen; do not switch to alternate\n");
+  fprintf(out, " -d: delay multiplier (non-negative float)\n");
+  fprintf(out, " -f: render to file in addition to stdout\n");
+  fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
+  fprintf(out, " -p: data file path\n");
+  fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
+  for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
+    if(demos[i].name){
+      fprintf(out, " %c: run %s\n", (unsigned char)i + 'a', demos[i].name);
+    }
+  }
+  exit(status);
+}
 
 static demoresult*
 ext_demos(struct notcurses* nc, const char* spec){
@@ -255,12 +246,17 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
 }
 
 static int
-table_segment(struct ncdirect* nc, const char* str, const char* delim){
-  ncdirect_fg_rgb8(nc, 255, 255, 255);
+table_segment_color(struct ncdirect* nc, const char* str, const char* delim, unsigned color){
+  ncdirect_fg(nc, color);
   fputs(str, stdout);
   ncdirect_fg_rgb8(nc, 178, 102, 255);
   fputs(delim, stdout);
   return 0;
+}
+
+static int
+table_segment(struct ncdirect* nc, const char* str, const char* delim){
+  return table_segment_color(nc, str, delim, 0xffffff);
 }
 
 static int
@@ -282,13 +278,13 @@ summary_table(struct ncdirect* nc, const char* spec){
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   printf("\n");
-  table_segment(nc, "      runtime", "│");
+  table_segment(nc, "              runtime", "│");
   table_segment(nc, "frames", "│");
   table_segment(nc, "output(B)", "│");
   table_segment(nc, "rendering", "│");
   table_segment(nc, " %r", "│");
   table_segment(nc, "    FPS", "│");
-  table_segment(nc, "TheoFPS", "║\n══╤═╤════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
+  table_segment(nc, "TheoFPS", "║\n══╤═════════╤════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
@@ -298,17 +294,22 @@ summary_table(struct ncdirect* nc, const char* spec){
     qprefix(results[i].timens, GIG, timebuf, 0);
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
+    uint32_t rescolor;
     if(results[i].result != 0){
-      ncdirect_fg(nc, 0xd8000c);
+      rescolor = 0xd8000c;
     }else if(!results[i].stats.renders){
-      ncdirect_fg(nc, 0xbbbbbb);
+      rescolor = 0xbbbbbb;
     }else{
-      ncdirect_fg(nc, 0x32CD32);
+      rescolor = 0x32CD32;
     }
+    ncdirect_fg(nc, rescolor);
     printf("%2zu", i);
     ncdirect_fg_rgb8(nc, 178, 102, 255);
-    printf("│%c│%*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│%7.1f║%s\n",
-           results[i].selector,
+    printf("│");
+    ncdirect_fg(nc, rescolor);
+    printf("%9s", demos[results[i].selector - 'a'].name);
+    ncdirect_fg_rgb8(nc, 178, 102, 255);
+    printf("│%*ss│%6lu│%*s│ %*ss│%3ld│%7.1f│%7.1f║",
            PREFIXSTRLEN, timebuf,
            results[i].stats.renders,
            BPREFIXSTRLEN, totalbuf,
@@ -318,10 +319,11 @@ summary_table(struct ncdirect* nc, const char* spec){
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / GIG) : 0.0,
            results[i].stats.renders ?
-            GIG * (double)results[i].stats.renders / results[i].stats.render_ns : 0.0,
-           results[i].result < 0 ? "***FAILED" :
-            results[i].result > 0 ? "***ABORTED" :
-             !results[i].stats.renders ? "***SKIPPED"  : "");
+            GIG * (double)results[i].stats.renders / results[i].stats.render_ns : 0.0);
+    ncdirect_fg(nc, rescolor);
+    printf("%s\n", results[i].result < 0 ? "FAILED" :
+            results[i].result > 0 ? "ABORTED" :
+             !results[i].stats.renders ? "SKIPPED"  : "");
     if(results[i].result < 0){
       failed = true;
     }
@@ -333,8 +335,8 @@ summary_table(struct ncdirect* nc, const char* spec){
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  table_segment(nc, "", "══╧═╧════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
-  table_printf(nc, "│", "     %*ss", PREFIXSTRLEN, timebuf);
+  table_segment(nc, "", "══╧═════════╧════════╪══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
+  table_printf(nc, "│", "             %*ss", PREFIXSTRLEN, timebuf);
   table_printf(nc, "│", "%6lu", totalframes);
   table_printf(nc, "│", "%*s", BPREFIXSTRLEN, totalbuf);
   table_printf(nc, "│", " %*ss", PREFIXSTRLEN, rtimebuf);

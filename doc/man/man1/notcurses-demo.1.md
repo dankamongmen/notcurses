@@ -29,12 +29,12 @@ The demonstrations include:
 * (g)rid—a gradient of color lain atop a great grid
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi-a dashing Apennine plumber in a world of fire
-* (p)anelreels—demonstration of the panelreel high-level widget
+* (p)anelreel—demonstration of the panelreel high-level widget
 * (s)liders—a missing-piece puzzle made up of colorful blocks
 * (t)rans—an exploration of various transparencies
 * (u)niblocks—a series of blocks detailing Unicode pages
 * (v)iew—images and a video are rendered as text
-* (w)itherworm—a great Nothing slowly robs the world of color
+* (w)hiteout—a great Nothing slowly robs the world of color
 * (x)ray—stimulate a logo with energy
 * (o)utro—a message of hope from the library's author
 
