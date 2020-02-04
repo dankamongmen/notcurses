@@ -236,6 +236,8 @@ bool notcurses_canchangecolor(const struct notcurses* nc);
 struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
 int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
+int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
+int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
 int ncdirect_stop(struct ncdirect* nc);
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, int* averr);
 typedef enum {

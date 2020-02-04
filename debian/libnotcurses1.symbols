@@ -6,9 +6,20 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  cell_load@Base 1.0.0
  cell_release@Base 1.0.0
  enmetric@Base 1.0.0
+ ncdirect_bg@Base 1.1.5
  ncdirect_bg_rgb8@Base 1.1.1
+ ncdirect_fg@Base 1.1.5
  ncdirect_fg_rgb8@Base 1.1.1
  ncdirect_stop@Base 1.1.1
+ ncmenu_create@Base 1.1.5
+ ncmenu_destroy@Base 1.1.5
+ ncmenu_nextitem@Base 1.1.5
+ ncmenu_nextsection@Base 1.1.5
+ ncmenu_previtem@Base 1.1.5
+ ncmenu_prevsection@Base 1.1.5
+ ncmenu_rollup@Base 1.1.5
+ ncmenu_selected@Base 1.1.5
+ ncmenu_unroll@Base 1.1.5
  ncplane_aligned@Base 1.0.0
  ncplane_at_cursor@Base 1.0.0
  ncplane_at_yx@Base 1.0.0
