@@ -44,12 +44,12 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
           break;
       }
     }else if(keypress == 'q'){
-      ncmenu_destroy(ncm);
+      ncmenu_destroy(nc, ncm);
       return 0;
     }
     notcurses_render(nc);
   }
-  ncmenu_destroy(ncm);
+  ncmenu_destroy(nc, ncm);
   return -1;
 }
 

@@ -38,7 +38,7 @@ typedef struct ncmenu_options {
 
 **int ncmenu_rollup(struct ncmenu* n);**
 
-**int ncmenu_destroy(struct ncmenu* n);**
+**int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);**
 
 # DESCRIPTION
 

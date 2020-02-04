@@ -213,6 +213,27 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
   return 0;
 }
 
+// lock the notcurses object, and try to set up the new menu. return -1 if a
+// menu already exists in this position.
+static int
+set_menu(notcurses* nc, ncmenu* ncm){
+  int ret = -1;
+  pthread_mutex_lock(&nc->lock);
+  if(ncm->bottom){
+    if(!nc->bottommenu){
+      nc->bottommenu = ncm;
+      ret = 0;
+    }
+  }else{
+    if(!nc->topmenu){
+      nc->topmenu = ncm;
+      ret = 0;
+    }
+  }
+  pthread_mutex_unlock(&nc->lock);
+  return ret;
+}
+
 ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
   if(opts->sectioncount <= 0 || !opts->sections){
     return NULL;
@@ -238,7 +259,9 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
         ret->headerchannels = opts->headerchannels;
         ret->sectionchannels = opts->sectionchannels;
         if(write_header(ret) == 0){
-          return ret;
+          if(set_menu(nc, ret) == 0){
+            return ret;
+          }
         }
         ncplane_destroy(ret->ncp);
       }
@@ -402,12 +425,20 @@ int ncmenu_previtem(ncmenu* n){
   return ncmenu_unroll(n, n->unrolledsection);
 }
 
-int ncmenu_destroy(ncmenu* n){
+int ncmenu_destroy(notcurses* nc, ncmenu* n){
   int ret = 0;
   if(n){
     free_menu_sections(n);
     ncplane_destroy(n->ncp);
     free(n);
+    pthread_mutex_lock(&nc->lock);
+    if(nc->topmenu == n){
+      nc->topmenu = NULL;
+    }
+    if(nc->bottommenu == n){
+      nc->bottommenu = NULL;
+    }
+    pthread_mutex_unlock(&nc->lock);
   }
   return ret;
 }

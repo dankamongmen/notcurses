@@ -2254,7 +2254,7 @@ API int ncmenu_nextitem(struct ncmenu* n);
 API int ncmenu_previtem(struct ncmenu* n);
 
 // Destroy a menu created with ncmenu_create().
-API int ncmenu_destroy(struct ncmenu* n);
+API int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);
 
 #undef API
 

@@ -980,6 +980,12 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     ret |= notcurses_stop_minimal(nc);
+    if(nc->topmenu){
+      ncmenu_destroy(nc, nc->topmenu);
+    }
+    if(nc->bottommenu){
+      ncmenu_destroy(nc, nc->bottommenu);
+    }
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;

@@ -2232,7 +2232,7 @@ int ncmenu_unroll(struct ncmenu* n, int sectionidx);
 int ncmenu_rollup(struct ncmenu* n);
 
 // Destroy a menu created with ncmenu_create().
-int ncmenu_destroy(struct ncmenu* n);
+int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);
 ```
 
 ### Channels
