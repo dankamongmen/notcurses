@@ -18,6 +18,50 @@ free_menu_sections(ncmenu* ncm){
 }
 
 static int
+dup_menu_item(ncmenu_int_item* dst, const struct ncmenu_item* src){
+#define ALTMOD "Alt+"
+#define CTLMOD "Ctrl+"
+  if((dst->desc = strdup(src->desc)) == NULL){
+    return -1;
+  }
+  if(!src->shortcut.id){
+    dst->shortdesccols = 0;
+    dst->shortdesc = NULL;
+    return 0;
+  }
+  size_t bytes = 1; // NUL terminator
+  if(src->shortcut.alt){
+    bytes += strlen(ALTMOD);
+  }
+  if(src->shortcut.ctrl){
+    bytes += strlen(CTLMOD);
+  }
+  mbstate_t ps;
+  memset(&ps, 0, sizeof(ps));
+  size_t shortsize = wcrtomb(NULL, src->shortcut.id, &ps);
+  if(shortsize == (size_t)-1){
+    free(dst->desc);
+    return -1;
+  }
+  bytes += shortsize;
+  char* sdup = malloc(bytes);
+  int n = snprintf(sdup, bytes, "%s%s", src->shortcut.alt ? ALTMOD : "",
+                   src->shortcut.ctrl ? CTLMOD : "");
+  if(n < 0 || (size_t)n >= bytes){
+    free(sdup);
+    free(dst->desc);
+    return -1;
+  }
+  memset(&ps, 0, sizeof(ps));
+  wcrtomb(sdup + n, src->shortcut.id, &ps);
+  dst->shortdesc = sdup;
+  dst->shortdesccols = mbswidth(dst->shortdesc);
+  return 0;
+#undef CTLMOD
+#undef ALTMOD
+}
+
+static int
 dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
   // we must reject any empty section
   if(src->itemcount == 0 || src->items == NULL){
@@ -35,7 +79,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
   }
   for(int i = 0 ; i < src->itemcount ; ++i){
     if(src->items[i].desc){
-      if((dst->items[i].desc = strdup(src->items[i].desc)) == NULL){
+      if(dup_menu_item(&dst->items[i], &src->items[i])){
         while(i--){
           free(&dst->items[i].desc);
         }
@@ -43,7 +87,10 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
         return -1;
       }
       gotitem = true;
-      const int cols = mbswidth(dst->items[i].desc);
+      int cols = mbswidth(dst->items[i].desc);
+      if(dst->items[i].shortdesc){
+        cols += 2 + dst->items[i].shortdesccols; // two spaces minimum
+      }
       if(cols > dst->bodycols){
         dst->bodycols = cols;
       }
@@ -55,6 +102,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
       }
     }else{
       dst->items[i].desc = NULL;
+      dst->items[i].shortdesc = NULL;
     }
   }
   if(!gotitem){
@@ -245,8 +293,21 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
       if(cols < 0){
         return -1;
       }
-      for(int j = cols + 1 ; j < width - 1 ; ++j){
+      // we need pad out the remaining columns of this line with spaces. if
+      // there's a shortcut description, we align it to the right, printing
+      // spaces only through the start of the aligned description.
+      int thiswidth = width;
+      if(sec->items[i].shortdesc){
+        thiswidth -= sec->items[i].shortdesccols;
+      }
+      // print any necessary padding spaces
+      for(int j = cols + 1 ; j < thiswidth - 1 ; ++j){
         if(ncplane_putsimple(n->ncp, ' ') < 0){
+          return -1;
+        }
+      }
+      if(sec->items[i].shortdesc){
+        if(ncplane_putstr(n->ncp, sec->items[i].shortdesc) < 0){
           return -1;
         }
       }

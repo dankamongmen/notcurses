@@ -124,10 +124,19 @@ typedef struct renderstate {
   bool defaultelidable;
 } renderstate;
 
+// ncmenu_item and ncmenu_section have internal and (minimal) external forms
+typedef struct ncmenu_int_item {
+  char* desc;           // utf-8 menu item, NULL for horizontal separator
+  ncinput shortcut;     // shortcut, all should be distinct
+  int shortcut_offset;  // column offset with desc of shortcut EGC
+  char* shortdesc;      // description of shortcut, can be NULL
+  int shortdesccols;    // columns occupied by shortcut description
+} ncmenu_int_item;
+
 typedef struct ncmenu_int_section {
   char* name;             // utf-8 c string
   int itemcount;
-  struct ncmenu_item* items;
+  ncmenu_int_item* items; // items, NULL iff itemcount == 0
   ncinput shortcut;       // shortcut, will be underlined if present in name
   int xoff;               // column offset from beginning of menu bar
   int bodycols;           // column width of longest item
@@ -137,13 +146,13 @@ typedef struct ncmenu_int_section {
 
 typedef struct ncmenu {
   ncplane* ncp;
-  ncmenu_int_section* sections;
-  bool bottom;              // are we on the bottom (vs top)?
   int sectioncount;         // must be positive
+  ncmenu_int_section* sections; // NULL iff sectioncount == 0
   int unrolledsection;      // currently unrolled section, -1 if none
   int headerwidth;          // minimum space necessary to display all sections
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
+  bool bottom;              // are we on the bottom (vs top)?
 } ncmenu;
 
 typedef struct ncselector {
