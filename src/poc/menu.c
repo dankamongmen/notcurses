@@ -6,50 +6,61 @@
 
 static int
 run_menu(struct notcurses* nc, struct ncmenu* ncm){
+  struct ncplane* selplane = ncplane_aligned(notcurses_stdplane(nc), 1, 40, 10, NCALIGN_CENTER, NULL);
+  if(selplane == NULL){
+    return -1;
+  }
   char32_t keypress;
   ncinput ni;
   notcurses_render(nc);
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     if(keypress == NCKEY_LEFT){
       if(ncmenu_prevsection(ncm)){
-        return -1;
+        goto err;
       }
     }else if(keypress == NCKEY_RIGHT){
       if(ncmenu_nextsection(ncm)){
-        return -1;
+        goto err;
       }
     }else if(keypress == NCKEY_UP){
       if(ncmenu_previtem(ncm)){
-        return -1;
+        goto err;
       }
     }else if(keypress == NCKEY_DOWN){
       if(ncmenu_nextitem(ncm)){
-        return -1;
+        goto err;
       }
     }else if(keypress == '\x1b'){
-      if(ncmenu_unroll(ncm, 1)){
-        return -1;
+      if(ncmenu_rollup(ncm)){
+        goto err;
       }
     }else if(ni.alt){
       switch(keypress){
         case 'a': case 'A': case 0x00e4:
           if(ncmenu_unroll(ncm, 0)){
-            return -1;
+            goto err;
           }
           break;
         case 'f': case 'F':
           if(ncmenu_unroll(ncm, 1)){
-            return -1;
+            goto err;
           }
           break;
       }
     }else if(keypress == 'q'){
       ncmenu_destroy(nc, ncm);
+      ncplane_destroy(selplane);
       return 0;
     }
+    ncplane_erase(selplane);
+    const char* selitem = ncmenu_selected(ncm);
+    ncplane_putstr_yx(selplane, 0, 0, selitem ? selitem : "");
     notcurses_render(nc);
   }
   ncmenu_destroy(nc, ncm);
+
+err:
+  ncplane_destroy(selplane);
   return -1;
 }
 

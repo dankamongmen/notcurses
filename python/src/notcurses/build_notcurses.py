@@ -287,6 +287,33 @@ struct ncplane* ncselector_plane(struct ncselector* n);
 void ncselector_previtem(struct ncselector* n, char** newitem);
 void ncselector_nextitem(struct ncselector* n, char** newitem);
 void ncselector_destroy(struct ncselector* n, char** item);
+struct ncmenu_item {
+  char* desc;           // utf-8 menu item, NULL for horizontal separator
+  ncinput shortcut;     // shortcut, all should be distinct
+};
+struct ncmenu_section {
+  char* name;             // utf-8 c string
+  int itemcount;
+  struct ncmenu_item* items;
+  ncinput shortcut;       // shortcut, will be underlined if present in name
+};
+typedef struct ncmenu_options {
+  bool bottom;              // on the bottom row, as opposed to top row
+  bool hiding;              // hide the menu when not being used
+  struct ncmenu_section* sections; // array of 'sectioncount' menu_sections
+  int sectioncount;         // must be positive
+  uint64_t headerchannels;  // styling for header
+  uint64_t sectionchannels; // styling for sections
+} ncmenu_options;
+struct ncmenu* ncmenu_create(struct notcurses* nc, const ncmenu_options* opts);
+int ncmenu_unroll(struct ncmenu* n, int sectionidx);
+int ncmenu_rollup(struct ncmenu* n);
+int ncmenu_nextsection(struct ncmenu* n);
+int ncmenu_prevsection(struct ncmenu* n);
+int ncmenu_nextitem(struct ncmenu* n);
+int ncmenu_previtem(struct ncmenu* n);
+const char* ncmenu_selected(const struct ncmenu* n);
+int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);
 """)
 
 if __name__ == "__main__":

@@ -2231,6 +2231,9 @@ int ncmenu_unroll(struct ncmenu* n, int sectionidx);
 // Roll up any unrolled menu section, and hide the menu if using hiding.
 int ncmenu_rollup(struct ncmenu* n);
 
+// Return the selected item description, or NULL if no section is unrolled.
+const char* ncmenu_selected(const struct ncmenu* n);
+
 // Destroy a menu created with ncmenu_create().
 int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);
 ```

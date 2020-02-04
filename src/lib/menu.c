@@ -418,6 +418,13 @@ int ncmenu_previtem(ncmenu* n){
   return ncmenu_unroll(n, n->unrolledsection);
 }
 
+const char* ncmenu_selected(const ncmenu* n){
+  if(n->unrolledsection < 0){
+    return NULL;
+  }
+  return n->sections[n->unrolledsection].items[n->sections[n->unrolledsection].itemselected].desc;
+}
+
 int ncmenu_destroy(notcurses* nc, ncmenu* n){
   int ret = 0;
   if(n){

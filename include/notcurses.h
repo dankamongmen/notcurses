@@ -2253,6 +2253,9 @@ API int ncmenu_prevsection(struct ncmenu* n);
 API int ncmenu_nextitem(struct ncmenu* n);
 API int ncmenu_previtem(struct ncmenu* n);
 
+// Return the selected item description, or NULL if no section is unrolled.
+API const char* ncmenu_selected(const struct ncmenu* n);
+
 // Destroy a menu created with ncmenu_create().
 API int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);
 

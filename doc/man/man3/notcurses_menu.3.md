@@ -38,6 +38,8 @@ typedef struct ncmenu_options {
 
 **int ncmenu_rollup(struct ncmenu* n);**
 
+**const char* ncmenu_selected(const struct ncmenu* n);**
+
 **int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);**
 
 # DESCRIPTION
@@ -51,6 +53,9 @@ sections are visible, and the menu is *rolled up*, or exactly one section is
 *unrolled*. **ncmenu_rollup** places an ncmenu in the rolled up state.
 **ncmenu_unroll** rolls up any unrolled section, and unrolls the specified one.
 **ncmenu_destroy** removes a menu bar, and frees all associated resources.
+
+**ncmenu_selected** return the selected item description,
+or NULL if no section is unrolled.
 
 # RETURN VALUES
 
