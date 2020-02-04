@@ -32,7 +32,7 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
       }
     }else if(ni.alt){
       switch(keypress){
-        case 'd': case 'D':
+        case 'a': case 'A': case 0x00e4:
           if(ncmenu_unroll(ncm, 0)){
             return -1;
           }
@@ -74,7 +74,7 @@ int main(void){
     { .desc = "Quit", },
   };
   struct ncmenu_section sections[] = {
-    { .name = "Demo", .items = demo_items, .shortcut = { .id = 'd', .alt = true, }, },
+    { .name = "Schwarzgerät", .items = demo_items, .shortcut = { .id = 0x00e4, .alt = true, }, },
     { .name = "File", .items = file_items, .shortcut = { .id = 'f', .alt = true, }, },
   };
   sections[0].itemcount = sizeof(demo_items) / sizeof(*demo_items);
