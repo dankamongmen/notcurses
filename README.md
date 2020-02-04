@@ -2193,12 +2193,12 @@ void ncselector_destroy(struct ncselector* n, char** item);
 
 ### Menus
 
-Horizontal menu bars are supported, on the top and/or bottom rows of the
-screen (menus are bound to a `notcurses` object, not particular `ncplane`s).
-If the menu bar is longer than the screen, it will be only partially visible.
-Menus may be either visible or invisible by default; set the `hiding` option
-to get an invisible menu. In the event of a screen resize, menus will be
-automatically moved/resized.
+Horizontal menu bars are supported, on the top or bottom rows of the screen
+(menus are bound to a `notcurses` object, not particular `ncplane`s). If the
+menu bar is longer than the screen, it will be only partially visible, but any
+unrolled section will be visible. Menus may be either visible or invisible by
+default; set the `hiding` option to get an invisible menu. In the event of a
+screen resize, menus will be automatically moved/resized.
 
 ```c
 typedef struct menu_options {

@@ -42,9 +42,9 @@ typedef struct ncmenu_options {
 
 # DESCRIPTION
 
-A notcurses instance supports up to two menu bars, with one on the top and/or
-bottom rows of the true screen. They are logically above other ncplanes on the
-z-axis. Attempting to create a menu where one already exists is an error.
+A notcurses instance supports a single menu bar, on the top or bottom row of
+the true screen. It will be kept logically above other ncplanes on the z-axis.
+Attempting to create a menu when one already exists is an error.
 
 A menu is composed of sections, which are in turn composed of items. Either no
 sections are visible, and the menu is *rolled up*, or exactly one section is

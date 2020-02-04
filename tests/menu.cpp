@@ -82,7 +82,8 @@ TEST_CASE("MenuTest") {
     ncmenu_destroy(nc_, ncm);
   }
 
-  SUBCASE("RejectDoubleTopMenu") {
+  // only one menu at a time per notcurses object
+  SUBCASE("RejectDoubleMenu") {
     struct ncmenu_item file_items[] = {
       { .desc = strdup("I would like a new file"), .shortcut = {}, },
     };
@@ -96,24 +97,8 @@ TEST_CASE("MenuTest") {
     REQUIRE(nullptr != ncm);
     struct ncmenu* ncmdup = ncmenu_create(nc_, &opts);
     REQUIRE(nullptr == ncmdup);
-    CHECK(0 == notcurses_render(nc_));
-    ncmenu_destroy(nc_, ncm);
-  }
-
-  SUBCASE("RejectDoubleBottomMenu") {
-    struct ncmenu_item file_items[] = {
-      { .desc = strdup("I would like a new file"), .shortcut = {}, },
-    };
-    struct ncmenu_section sections[] = {
-      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut{}, },
-    };
-    struct ncmenu_options opts{};
     opts.bottom = true;
-    opts.sections = sections;
-    opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
-    REQUIRE(nullptr != ncm);
-    struct ncmenu* ncmdup = ncmenu_create(nc_, &opts);
+    ncmdup = ncmenu_create(nc_, &opts);
     REQUIRE(nullptr == ncmdup);
     CHECK(0 == notcurses_render(nc_));
     ncmenu_destroy(nc_, ncm);

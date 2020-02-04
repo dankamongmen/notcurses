@@ -269,9 +269,8 @@ typedef struct notcurses {
   unsigned inputbuf_valid_starts;
   unsigned inputbuf_write_at;
 
-  // we can have up to two menus, one each on the top and bottom
-  ncmenu* topmenu;
-  ncmenu* bottommenu;
+  // we can have one menu bar at a time, on either the top or bottom
+  ncmenu* menu;
 
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];

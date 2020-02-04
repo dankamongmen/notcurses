@@ -214,21 +214,14 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
 }
 
 // lock the notcurses object, and try to set up the new menu. return -1 if a
-// menu already exists in this position.
+// menu is already associated with this instance.
 static int
 set_menu(notcurses* nc, ncmenu* ncm){
   int ret = -1;
   pthread_mutex_lock(&nc->lock);
-  if(ncm->bottom){
-    if(!nc->bottommenu){
-      nc->bottommenu = ncm;
-      ret = 0;
-    }
-  }else{
-    if(!nc->topmenu){
-      nc->topmenu = ncm;
-      ret = 0;
-    }
+  if(!nc->menu){
+    nc->menu = ncm;
+    ret = 0;
   }
   pthread_mutex_unlock(&nc->lock);
   return ret;
@@ -432,11 +425,8 @@ int ncmenu_destroy(notcurses* nc, ncmenu* n){
     ncplane_destroy(n->ncp);
     free(n);
     pthread_mutex_lock(&nc->lock);
-    if(nc->topmenu == n){
-      nc->topmenu = NULL;
-    }
-    if(nc->bottommenu == n){
-      nc->bottommenu = NULL;
+    if(nc->menu == n){
+      nc->menu = NULL;
     }
     pthread_mutex_unlock(&nc->lock);
   }
