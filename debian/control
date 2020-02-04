@@ -79,6 +79,7 @@ Description: Binaries from libnotcurses
  notcurses-view, notcurses-planereel, and notcurses-input.
 
 Package: python3-notcurses
+Section: python
 Architecture: any
 Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
 Description: Python wrappers for notcurses (Python 3)
