@@ -20,6 +20,9 @@ notcurses_directmode - minimal notcurses instances for styling text
 
 **int ncdirect_bg(struct ncdirect* nc, unsigned rgb);**
 
+**int ncdirect_dim_x(const struct ncdirect* nc);**
+**int ncdirect_dim_y(const struct ncdirect* nc);**
+
 **int ncdirect_stop(struct ncdirect* nc);**
 
 # DESCRIPTION
@@ -37,6 +40,10 @@ invalid terminfo specification can lead to reduced performance, reduced
 display capabilities, and/or display errors. notcurses natively targets
 24bpp/8bpc RGB color, and it is thus desirable to use a terminal with the
 **rgb** capability (e.g. xterm's **xterm-direct**).
+
+**ncdirect_dim_x** returns the current number of columns, and **ncdirect_dim_y**
+the current number of rows.
+
 
 # RETURN VALUES
 

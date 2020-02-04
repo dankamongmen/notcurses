@@ -354,6 +354,8 @@ int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
 int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
+int ncdirect_dim_x(const struct ncdirect* nc);
+int ncdirect_dim_y(const struct ncdirect* nc);
 ```
 
 ### Alignment
@@ -2168,9 +2170,6 @@ struct ncselector;
 
 struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
                                      const selector_options* opts);
-
-struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e align,
-                                      const selector_options* opts);
 
 int ncselector_additem(struct ncselector* n, const struct selector_item* item);
 int ncselector_delitem(struct ncselector* n, const char* item);

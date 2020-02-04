@@ -40,8 +40,6 @@ typedef struct selector_options {
 
 **struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const selector_options* opts);**
 
-**struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e align, const selector_options* opts);**
-
 **int ncselector_additem(struct ncselector* n, const struct selector_item* item);**
 
 **int ncselector_delitem(struct ncselector* n, const char* item);**

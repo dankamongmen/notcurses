@@ -195,6 +195,10 @@ API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 // including any failure initializing terminfo.
 API struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
 
+// Get the current number of columns/rows.
+API int ncdirect_dim_x(const struct ncdirect* nc);
+API int ncdirect_dim_y(const struct ncdirect* nc);
+
 // Destroy a notcurses context.
 API int notcurses_stop(struct notcurses* nc);
 
@@ -2182,9 +2186,6 @@ struct ncselector;
 
 API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
                                          const selector_options* opts);
-
-API struct ncselector* ncselector_aligned(struct ncplane* n, int y, ncalign_e align,
-                                          const selector_options* opts);
 
 API int ncselector_additem(struct ncselector* n, const struct selector_item* item);
 API int ncselector_delitem(struct ncselector* n, const char* item);
