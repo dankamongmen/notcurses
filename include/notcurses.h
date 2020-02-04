@@ -2213,6 +2213,7 @@ API void ncselector_destroy(struct ncselector* n, char** item);
 struct ncmenu_item {
   char* desc;           // utf-8 menu item, NULL for horizontal separator
   ncinput shortcut;     // shortcut, all should be distinct
+  int shortcut_offset;  // used only by library
 };
 
 struct ncmenu_section {

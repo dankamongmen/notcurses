@@ -52,7 +52,7 @@ TEST_CASE("MenuTest") {
   // a section with only separators ought be rejected
   SUBCASE("SeparatorSectionReject") {
     struct ncmenu_item empty_items[] = {
-      { .desc = nullptr, .shortcut = {}, },
+      { .desc = nullptr, .shortcut = {}, .shortcut_offset = -1, },
     };
     struct ncmenu_section sections[] = {
       { .name = strdup("Empty"), .itemcount = 1, .items = empty_items, .shortcut{}, },
@@ -68,7 +68,7 @@ TEST_CASE("MenuTest") {
 
   SUBCASE("MenuOneSection") {
     struct ncmenu_item file_items[] = {
-      { .desc = strdup("I would like a new file"), .shortcut = {}, },
+      { .desc = strdup("I would like a new file"), .shortcut = {}, .shortcut_offset = -1, },
     };
     struct ncmenu_section sections[] = {
       { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut{}, },
@@ -84,7 +84,7 @@ TEST_CASE("MenuTest") {
 
   SUBCASE("VeryLongMenu") {
     struct ncmenu_item items[] = {
-      { .desc = strdup("Generic menu entry"), .shortcut = {}, },
+      { .desc = strdup("Generic menu entry"), .shortcut = {}, .shortcut_offset = -1, },
     };
     struct ncmenu_section sections[] = {
       { .name = strdup("antidisestablishmentarianism"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut{}, },

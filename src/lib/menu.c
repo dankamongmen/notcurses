@@ -47,6 +47,12 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
       if(cols > dst->bodycols){
         dst->bodycols = cols;
       }
+      memcpy(&dst->items[i].shortcut, &src->items[i].shortcut, sizeof(dst->items[i].shortcut));
+      if(mbstr_find_codepoint(dst->items[i].desc,
+                              dst->items[i].shortcut.id,
+                              &dst->items[i].shortcut_offset) < 0){
+        dst->items[i].shortcut_offset = -1;
+      }
     }else{
       dst->items[i].desc = NULL;
     }
@@ -243,6 +249,17 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
         if(ncplane_putsimple(n->ncp, ' ') < 0){
           return -1;
         }
+      }
+      if(sec->items[i].shortcut_offset >= 0){
+        cell cl = CELL_TRIVIAL_INITIALIZER;
+        if(ncplane_at_yx(n->ncp, ypos, xpos + 1 + sec->items[i].shortcut_offset, &cl) < 0){
+          return -1;
+        }
+        cell_styles_on(&cl, NCSTYLE_UNDERLINE|NCSTYLE_BOLD);
+        if(ncplane_putc_yx(n->ncp, ypos, xpos + 1 + sec->items[i].shortcut_offset, &cl) < 0){
+          return -1;
+        }
+        cell_release(n->ncp, &cl);
       }
     }else{
       n->ncp->channels = n->headerchannels;

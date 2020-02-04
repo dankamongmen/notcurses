@@ -64,14 +64,14 @@ int main(void){
     return EXIT_FAILURE;
   }
   struct ncmenu_item demo_items[] = {
-    { .desc = "Restart", },
+    { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
   };
   struct ncmenu_item file_items[] = {
     { .desc = "New", .shortcut = { .id = 'n', .ctrl = true, }, },
-    { .desc = "Open", },
-    { .desc = "Close", },
+    { .desc = "Open", .shortcut = { .id = 'o', .ctrl = true, }, },
+    { .desc = "Close", .shortcut = { .id = 'c', .ctrl = true, }, },
     { .desc = NULL, },
-    { .desc = "Quit", },
+    { .desc = "Quit", .shortcut = { .id = 'q', .ctrl = true, }, },
   };
   struct ncmenu_section sections[] = {
     { .name = "Schwarzgerät", .items = demo_items, .shortcut = { .id = 0x00e4, .alt = true, }, },
