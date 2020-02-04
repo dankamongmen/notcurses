@@ -60,7 +60,9 @@ int chunli_demo(struct notcurses* nc){
   cell b = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  chunli_draw(nc, "bmp", CHUNS, &b);
+  if(chunli_draw(nc, "bmp", CHUNS, &b)){
+    return -1;
+  }
   char file[PATH_MAX];
   for(int i = 1 ; i < 100 ; ++i){
     snprintf(file, sizeof(file), "chunli%02d.png", i);
