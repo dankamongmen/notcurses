@@ -230,8 +230,6 @@ freeitems:
   return NULL;
 }
 
-ncselector* ncselector_aligned(ncplane* n, int y, ncalign_e align, const selector_options* opts);
-
 int ncselector_additem(ncselector* n, const struct selector_item* item){
   size_t newsize = sizeof(*n->items) * (n->itemcount + 1);
   struct selector_item* items = realloc(n->items, newsize);

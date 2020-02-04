@@ -613,30 +613,42 @@ int ncdirect_bg(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  return term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp,
-                      (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu);
+  if(term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp,
+                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+    return -1;
+  }
+  return fflush(stdout);
 }
 
 int ncdirect_fg(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  return term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp,
-                      (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu);
+  if(term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp,
+                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+    return -1;
+  }
+  return fflush(stdout);
 }
 
 int ncdirect_bg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
-  return term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp, r, g, b);
+  if(term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp, r, g, b)){
+    return -1;
+  }
+  return fflush(stdout);
 }
 
 int ncdirect_fg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
-  return term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp, r, g, b);
+  if(term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp, r, g, b)){
+    return -1;
+  }
+  return fflush(stdout);
 }
 
 static inline int

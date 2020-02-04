@@ -516,10 +516,11 @@ if(${BUILD_PYTHON})
         "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} --skip-build
       WORKING_DIRECTORY
         ../python)"
-  )
+    )
   else()
     install(
       CODE
-      "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")
+      "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})"
+    )
   endif()
 endif()

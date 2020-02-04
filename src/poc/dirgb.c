@@ -21,7 +21,7 @@ print_b(struct ncdirect* nc, int r, int g, int total){
 
 static int
 print_gb(struct ncdirect* nc, int r, int total){
-  for(int g = 0xf ; g <= total - r && g < 256 ; g += 16){
+  for(int g = 0 ; g <= total - r && g < 256 ; g += 4){
     if(print_b(nc, r, g, total)){
       return -1;
     }
@@ -31,7 +31,7 @@ print_gb(struct ncdirect* nc, int r, int total){
 
 static int
 print_rgb(struct ncdirect* nc, int total){
-  for(int r = 0xf ; r <= total && r < 256 ; r += 16){
+  for(int r = 0 ; r <= total && r < 256 ; r += 4){
     if(print_gb(nc, r, total)){
       return -1;
     }
@@ -48,7 +48,7 @@ int main(void){
   if(!nc){
     return EXIT_FAILURE;
   }
-  for(int t = 0xf ; t < 768 ; t += 16){
+  for(int t = 0 ; t < 768 ; t += 4){
     if(print_rgb(nc, t)){
       ncdirect_stop(nc);
       return EXIT_FAILURE;

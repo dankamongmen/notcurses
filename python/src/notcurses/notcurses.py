@@ -75,6 +75,30 @@ class Notcurses:
     def stdplane(self):
         return self.stdncplane
 
+class Ncdirect:
+    def __init__(self):
+        self.nc = lib.notcurses_directmode(ffi.NULL, sys.stdout)
+
+    def __del__(self):
+        lib.ncdirect_stop(self.nc)
+
+    # FIXME ought be checking for errors on the actual library calls, also
+    def setFgRGB8(self, r, g, b):
+        checkRGB8(r, g, b)
+        lib.ncdirect_fg_rgb8(self.nc, r, g, b)
+
+    def setBgRGB8(self, r, g, b):
+        checkRGB8(r, g, b)
+        lib.ncdirect_bg_rgb8(self.nc, r, g, b)
+
+    def setFg(self, rgb):
+        checkRGB(rgb)
+        lib.ncdirect_fg(self.nc, rgb)
+
+    def setBg(self, rgb):
+        checkRGB(rgb)
+        lib.ncdirect_bg(self.nc, rgb)
+
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, "")
     nc = Notcurses()
