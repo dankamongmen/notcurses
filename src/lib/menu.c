@@ -53,7 +53,11 @@ dup_menu_item(ncmenu_int_item* dst, const struct ncmenu_item* src){
     return -1;
   }
   memset(&ps, 0, sizeof(ps));
-  wcrtomb(sdup + n, src->shortcut.id, &ps);
+  if(wcrtomb(sdup + n, src->shortcut.id, &ps) == (size_t)-1){ // shouldn't happen
+    free(sdup);
+    free(dst->desc);
+    return -1;
+  }
   dst->shortdesc = sdup;
   dst->shortdesccols = mbswidth(dst->shortdesc);
   return 0;
@@ -246,7 +250,7 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
         totalwidth = dimx;
       }
       int ypos = opts->bottom ? dimy - totalheight : 0;
-      ret->ncp = ncplane_new(nc, totalheight, totalwidth, ypos, 0, NULL);
+      ret->ncp = ncplane_new_uncoupled(nc, totalheight, totalwidth, ypos, 0, NULL);
       if(ret->ncp){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;

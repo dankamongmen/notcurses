@@ -279,6 +279,20 @@ typedef struct notcurses {
 
 void sigwinch_handler(int signo);
 
+// create a new ncplane, and remove it from the z-axis. used for menus. gross.
+static inline ncplane*
+ncplane_new_uncoupled(notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque){
+  ncplane* n = ncplane_new(nc, rows, cols, yoff, xoff, opaque);
+  if(n == NULL){
+    return n;
+  }
+  assert(nc->top == n);
+  nc->top = n->z;
+  assert(nc->top != n);
+  n->z = NULL;
+  return n;
+}
+
 // Search the provided multibyte (UTF8) string 's' for the provided unicode
 // codepoint 'cp'. If found, return the column offset of the EGC in which the
 // codepoint appears in 'col', and the byte offset as the return value. If not

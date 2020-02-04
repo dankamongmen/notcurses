@@ -328,8 +328,9 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
 // which cells were changed. We solve for each coordinate's cell by walking
 // down the z-buffer, looking at intersections with ncplanes. This implies
 // locking down the EGC, the attributes, and the channels for each cell.
+// 'top' is accepted so that a menu can override other planes...kinda gross :/.
 static inline int
-notcurses_render_internal(notcurses* nc, struct crender* rvec){
+notcurses_render_internal(notcurses* nc, ncplane* top, struct crender* rvec){
   if(reshape_shadow_fb(nc)){
     return -1;
   }
@@ -347,7 +348,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
       cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
     }
   }
-  ncplane* p = nc->top;
+  ncplane* p = top;
   while(p){
     if(paint(nc, p, rvec, fb)){
       return -1;
@@ -843,7 +844,12 @@ int notcurses_render(notcurses* nc){
   size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
   memset(crender, 0, crenderlen);
-  if(notcurses_render_internal(nc, crender) == 0){
+  ncplane* top = nc->top;
+  if(nc->menu){
+    top = nc->menu->ncp;
+    nc->menu->ncp->z = nc->top;
+  }
+  if(notcurses_render_internal(nc, top, crender) == 0){
     bytes = notcurses_rasterize(nc, crender);
   }
   free(crender);
