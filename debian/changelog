@@ -1,9 +1,15 @@
-notcurses (1.1.5-1) UNRELEASED; urgency=medium
+notcurses (1.1.5-1) unstable; urgency=medium
 
   * Use dh-sequence-python3 in Build-Deps rather than
      --with-python3 in debian/rules
+  * Define DFSG_BUILD=ON for CMake to elide dfsg non-free
+     demos (well, free demos using non-free multimedia)
+  * Debian packages will now be built using the DFSG tarballs,
+     available on GitHub alongside standard source tarballs.
+  * Initial submission for actual Debian ITP (#950492).
+     Thanks, sponsor Robert Edmonds (edmonds@debian.org)!
 
- -- Nick Black <dankamongmen@gmail.com>  Sun, 02 Feb 2020 05:12:17 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Tue, 04 Feb 2020 23:26:45 -0500
 
 notcurses (1.1.4-1) unstable; urgency=medium
 
