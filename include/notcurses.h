@@ -199,6 +199,11 @@ API struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
 API int ncdirect_dim_x(const struct ncdirect* nc);
 API int ncdirect_dim_y(const struct ncdirect* nc);
 
+// ncplane_styles_*() analogues
+API void ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
+API void ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
+API void ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
+
 // Destroy a notcurses context.
 API int notcurses_stop(struct notcurses* nc);
 

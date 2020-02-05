@@ -609,6 +609,20 @@ term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
   return 0;
 }
 
+void ncdirect_styles_on(ncdirect* n, unsigned stylebits){
+  // FIXME
+}
+
+// turn off any specified stylebits
+void ncdirect_styles_off(ncdirect* n, unsigned stylebits){
+  // FIXME
+}
+
+// set the current stylebits to exactly those provided
+void ncdirect_styles_set(ncdirect* n, unsigned stylebits){
+  // FIXME
+}
+
 int ncdirect_bg(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;

@@ -179,6 +179,7 @@ typedef struct ncselector {
 } ncselector;
 
 typedef struct ncdirect {
+  int attrword;   // current styles
   int colors;     // number of colors terminfo reported usable for this screen
   char* sgr;      // set many graphics properties at once
   char* sgr0;     // restore default presentation properties
