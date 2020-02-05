@@ -2531,16 +2531,23 @@ Timings for renderings are across the breadth of `notcurses_render()`: they
 include all per-render preprocessing, output generation, and dumping of the
 output (including any sleeping while waiting on the terminal).
 
-The notcurses rendering algorithm starts by moving the physical cursor to the
-upper left corner of the visible screen (it does *not* clear the screen
-beforehand, though any existing contents will be destroyed by the first render).
-At each coordinate, it finds the topmost visible `ncplane`. There will always
-be at least one `ncplane` visible at each coordinate, due to the default plane.
-Once the plane is determined, the damage map is consulted to see whether the
-cell need be redrawn. If so, it will be redrawn, and the virtual cursor is
-updated based on the width of the output. Along the way, notcurses attempts to
-minimize total amount of data written by eliding unnecessary color and style
-specifications, and moving the cursor over large unchanged areas.
+The notcurses drawing algorithm logically starts by zeroing out a _solutions array_
+of booleans. When this array is all true, we've solved for each cell of
+the output, and can stop. It then walks down the z-axis. For each plane
+encountered, any unsolved cells with which that plane interacts are adjusted,
+and the solution array updated if appropriate. Note that there will always
+be at least one `ncplane` interacting with each visible coordinate, due to the
+default plane. The process of filling a solutions matrix is referred to as
+rendering.
+
+The next step is _rasterization_. Rather than moving down the z-axis, we now
+move to the right and down on the screen, starting from the upper left corner.
+At each cell, we examine the solutions matrix and the previous contents of the
+cell. If they are the same, no output is emitted. If they are different, the
+new glyph is written to the output, following any necessary cursor movements
+and styling codes. notcurses attempts to minimize the total amount of data
+written by eliding unnecessary color and style specifications, and moving the
+cursor over large unchanged areas.
 
 Using the "default color" as only one of the foreground or background requires
 emitting the `op` escape followed by the appropriate escape for changing the
