@@ -1,6 +1,6 @@
 % notcurses_directmode(3)
 % nick black <nickblack@linux.com>
-% v1.1.5
+% v1.1.6
 
 # NAME
 
@@ -24,11 +24,11 @@ notcurses_directmode - minimal notcurses instances for styling text
 
 **int ncdirect_dim_y(const struct ncdirect* nc);**
 
-**void ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);**
+**int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);**
 
-**void ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);**
+**int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);**
 
-**void ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);**
+**int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);**
 
 **int ncdirect_stop(struct ncdirect* nc);**
 
