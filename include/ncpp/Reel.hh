@@ -1,5 +1,5 @@
-#ifndef __NCPP_PANEL_REEL_HH
-#define __NCPP_PANEL_REEL_HH
+#ifndef __NCPP_REEL_HH
+#define __NCPP_REEL_HH
 
 #include <memory>
 #include <notcurses.h>
@@ -11,12 +11,12 @@ namespace ncpp
 {
 	class Plane;
 
-	class NCPP_API_EXPORT PanelReel : public Root
+	class NCPP_API_EXPORT NcReel : public Root
 	{
 	public:
-		static panelreel_options default_options;
+		static ncreel_options default_options;
 
-		explicit PanelReel (Plane *plane, const panelreel_options *popts, int efd)
+		explicit NcReel (Plane *plane, const ncreel_options *popts, int efd)
 		{
 			if (plane == nullptr)
 				throw new invalid_argument ("'plane' must be a valid pointer");
@@ -24,7 +24,7 @@ namespace ncpp
 			create_reel (reinterpret_cast<ncplane*>(plane), popts, efd);
 		}
 
-		explicit PanelReel (ncplane *plane, const panelreel_options *popts, int efd)
+		explicit NcReel (ncplane *plane, const ncreel_options *popts, int efd)
 		{
 			if (plane == nullptr)
 				throw new invalid_argument ("'plane' must be a valid pointer");
@@ -32,18 +32,18 @@ namespace ncpp
 			create_reel (plane, popts, efd);
 		}
 
-		~PanelReel ()
+		~NcReel ()
 		{
 			if (!is_notcurses_stopped ())
-				panelreel_destroy (reel);
+				ncreel_destroy (reel);
 		}
 
-		operator panelreel* () const noexcept
+		operator ncreel* () const noexcept
 		{
 			return reel;
 		}
 
-		operator panelreel const* () const noexcept
+		operator ncreel const* () const noexcept
 		{
 			return reel;
 		}
@@ -51,7 +51,7 @@ namespace ncpp
 		// TODO: add an overload using callback that takes Tablet instance instead of struct tablet
 		Tablet* add (Tablet *after, Tablet *before, tabletcb cb, void *opaque = nullptr) const
 		{
-			tablet *t = panelreel_add (reel, get_tablet (after), get_tablet (before), cb, opaque);
+			tablet *t = ncreel_add (reel, get_tablet (after), get_tablet (before), cb, opaque);
 			if (t == nullptr)
 				throw new init_error ("notcurses failed to create a new tablet");
 
@@ -65,12 +65,12 @@ namespace ncpp
 
 		int get_tabletcount () const noexcept
 		{
-			return panelreel_tabletcount (reel);
+			return ncreel_tabletcount (reel);
 		}
 
 		bool touch (Tablet *t) const noexcept
 		{
-			return panelreel_touch (reel, get_tablet (t)) != -1;
+			return ncreel_touch (reel, get_tablet (t)) != -1;
 		}
 
 		bool touch (Tablet &t) const noexcept
@@ -80,7 +80,7 @@ namespace ncpp
 
 		bool del (Tablet *t) const noexcept
 		{
-			return panelreel_del (reel, get_tablet (t)) != -1;
+			return ncreel_del (reel, get_tablet (t)) != -1;
 		}
 
 		bool del (Tablet &t) const noexcept
@@ -90,22 +90,22 @@ namespace ncpp
 
 		bool del_focused () const noexcept
 		{
-			return panelreel_del_focused (reel) != -1;
+			return ncreel_del_focused (reel) != -1;
 		}
 
 		bool move (int x, int y) const noexcept
 		{
-			return panelreel_move (reel, x, y) != -1;
+			return ncreel_move (reel, x, y) != -1;
 		}
 
 		bool redraw () const noexcept
 		{
-			return panelreel_redraw (reel) != -1;
+			return ncreel_redraw (reel) != -1;
 		}
 
 		Tablet* get_focused () const noexcept
 		{
-			tablet *t = panelreel_focused (reel);
+			tablet *t = ncreel_focused (reel);
 			if (t == nullptr)
 				return nullptr;
 
@@ -114,7 +114,7 @@ namespace ncpp
 
 		Tablet* next () const noexcept
 		{
-			tablet *t = panelreel_next (reel);
+			tablet *t = ncreel_next (reel);
 			if (t == nullptr)
 				return nullptr;
 
@@ -123,7 +123,7 @@ namespace ncpp
 
 		Tablet* prev () const noexcept
 		{
-			tablet *t = panelreel_prev (reel);
+			tablet *t = ncreel_prev (reel);
 			if (t == nullptr)
 				return nullptr;
 
@@ -141,15 +141,15 @@ namespace ncpp
 			return t->get_tablet ();
 		}
 
-		void create_reel (ncplane *plane, const panelreel_options *popts, int efd)
+		void create_reel (ncplane *plane, const ncreel_options *popts, int efd)
 		{
-			reel = panelreel_create (plane, popts == nullptr ? &default_options : popts, efd);
+			reel = ncreel_create (plane, popts == nullptr ? &default_options : popts, efd);
 			if (reel == nullptr)
-				throw new init_error ("notcurses failed to create a new panelreel");
+				throw new init_error ("notcurses failed to create a new ncreel");
 		}
 
 	private:
-		panelreel *reel = nullptr;
+		ncreel *reel = nullptr;
 
 		friend class Plane;
 	};

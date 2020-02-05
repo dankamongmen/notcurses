@@ -1,22 +1,22 @@
-% notcurses_panelreels(3)
+% notcurses_ncreels(3)
 % nick black <nickblack@linux.com>
 % v1.1.6
 
 # NAME
 
-notcurses_panelreels - high-level widget for hierarchical data
+notcurses_ncreels - high-level widget for hierarchical data
 
 # SYNOPSIS
 
 **#include <notcurses.h>**
 
 ```c
-typedef struct panelreel_options {
+typedef struct ncreel_options {
   // require this many rows and columns (including borders).
   // otherwise, a message will be displayed stating that a
   // larger terminal is necessary, and input will be queued.
   // if 0, no minimum will be enforced. may not be negative.
-  // note that panelreel_create() does not return error if
+  // note that ncreel_create() does not return error if
   // given a WINDOW smaller than these minima; it instead
   // patiently waits for the screen to get bigger.
   int min_supported_cols;
@@ -29,7 +29,7 @@ typedef struct panelreel_options {
   int max_supported_rows;
 
   // desired offsets within the surrounding WINDOW (top right
-  // bottom left) upon creation / resize. a panelreel_move()
+  // bottom left) upon creation / resize. a ncreel_move()
   // operation updates these.
   int toff, roff, boff, loff;
   // is scrolling infinite (can one move down or up forever, or is
@@ -41,7 +41,7 @@ typedef struct panelreel_options {
   // infinitescroll is true. if infinitescroll is false, this must
   // be false.
   bool circular;
-  // notcurses can draw a border around the panelreel, and also
+  // notcurses can draw a border around the ncreel, and also
   // around the component tablets. inhibit borders by setting all
   // valid bits in the masks. partially inhibit borders by setting
   // individual bits in the masks. the appropriate attr and pair
@@ -49,46 +49,46 @@ typedef struct panelreel_options {
   // non-focused tablets can have different styles. you can instead
   // draw your own borders, or forgo borders entirely.
   unsigned bordermask; // bitfield; 1s will not be drawn
-  uint64_t borderchan; // attributes used for panelreel border
+  uint64_t borderchan; // attributes used for ncreel border
   unsigned tabletmask; // bitfield for tablet borders
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
   uint64_t bgchannel;  // background colors
-} panelreel_options;
+} ncreel_options;
 ```
 
-**struct panelreel* panelreel_create(struct ncplane* nc,
-                                       const panelreel_options* popts,
+**struct ncreel* ncreel_create(struct ncplane* nc,
+                                       const ncreel_options* popts,
                                        int efd);**
 
-**struct ncplane* panelreel_plane(struct panelreel* pr);**
+**struct ncplane* ncreel_plane(struct ncreel* nr);**
 
 **typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
                         int maxy, bool cliptop);**
 
-**struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
+**struct tablet* ncreel_add(struct ncreel* nr, struct tablet* after,
                                  struct tablet* before, tabletcb cb,
                                  void* opaque);**
 
-**int panelreel_tabletcount(const struct panelreel* pr);**
+**int ncreel_tabletcount(const struct ncreel* nr);**
 
-**int panelreel_touch(struct panelreel* pr, struct tablet* t);**
+**int ncreel_touch(struct ncreel* nr, struct tablet* t);**
 
-**int panelreel_del(struct panelreel* pr, struct tablet* t);**
+**int ncreel_del(struct ncreel* nr, struct tablet* t);**
 
-**int panelreel_del_focused(struct panelreel* pr);**
+**int ncreel_del_focused(struct ncreel* nr);**
 
-**int panelreel_move(struct panelreel* pr, int x, int y);**
+**int ncreel_move(struct ncreel* nr, int x, int y);**
 
-**int panelreel_redraw(struct panelreel* pr);**
+**int ncreel_redraw(struct ncreel* nr);**
 
-**struct tablet* panelreel_focused(struct panelreel* pr);**
+**struct tablet* ncreel_focused(struct ncreel* nr);**
 
-**struct tablet* panelreel_next(struct panelreel* pr);**
+**struct tablet* ncreel_next(struct ncreel* nr);**
 
-**struct tablet* panelreel_prev(struct panelreel* pr);**
+**struct tablet* ncreel_prev(struct ncreel* nr);**
 
-**int panelreel_destroy(struct panelreel* pr);**
+**int ncreel_destroy(struct ncreel* nr);**
 
 **void* tablet_userptr(struct tablet* t);**
 

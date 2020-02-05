@@ -1897,7 +1897,7 @@ API int rgba_blit(struct ncplane* nc, int placey, int placex, int linesize,
                   const unsigned char* data, int begy, int begx,
 		  int leny, int lenx);
 
-// A panelreel is an notcurses region devoted to displaying zero or more
+// An ncreel is an notcurses region devoted to displaying zero or more
 // line-oriented, contained panels between which the user may navigate. If at
 // least one panel exists, there is an active panel. As much of the active
 // panel as is possible is always displayed. If there is space left over, other
@@ -1907,11 +1907,11 @@ API int rgba_blit(struct ncplane* nc, int placey, int placex, int linesize,
 // This structure is amenable to line- and page-based navigation via keystrokes,
 // scrolling gestures, trackballs, scrollwheels, touchpads, and verbal commands.
 
-typedef struct panelreel_options {
+typedef struct ncreel_options {
   // require this many rows and columns (including borders). otherwise, a
   // message will be displayed stating that a larger terminal is necessary, and
   // input will be queued. if 0, no minimum will be enforced. may not be
-  // negative. note that panelreel_create() does not return error if given a
+  // negative. note that ncreel_create() does not return error if given a
   // WINDOW smaller than these minima; it instead patiently waits for the
   // screen to get bigger.
   int min_supported_cols;
@@ -1923,7 +1923,7 @@ typedef struct panelreel_options {
   int max_supported_rows;
 
   // desired offsets within the surrounding WINDOW (top right bottom left) upon
-  // creation / resize. a panelreel_move() operation updates these.
+  // creation / resize. an ncreel_move() operation updates these.
   int toff, roff, boff, loff;
   // is scrolling infinite (can one move down or up forever, or is an end
   // reached?). if true, 'circular' specifies how to handle the special case of
@@ -1933,36 +1933,36 @@ typedef struct panelreel_options {
   // first, and vice versa)? only meaningful when infinitescroll is true. if
   // infinitescroll is false, this must be false.
   bool circular;
-  // notcurses can draw a border around the panelreel, and also around the
+  // notcurses can draw a border around the ncreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
   // appropriate attr and pair values will be used to style the borders.
   // focused and non-focused tablets can have different styles. you can instead
   // draw your own borders, or forgo borders entirely.
   unsigned bordermask; // bitfield; 1s will not be drawn (see bordermaskbits)
-  uint64_t borderchan; // attributes used for panelreel border
+  uint64_t borderchan; // attributes used for ncreel border
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
   uint64_t bgchannel;  // background colors
-} panelreel_options;
+} ncreel_options;
 
 struct tablet;
-struct panelreel;
+struct ncreel;
 
-// Create a panelreel according to the provided specifications. Returns NULL on
+// Create an ncreel according to the provided specifications. Returns NULL on
 // failure. w must be a valid WINDOW*, to which offsets are relative. Note that
 // there might not be enough room for the specified offsets, in which case the
-// panelreel will be clipped on the bottom and right. A minimum number of rows
+// ncreel will be clipped on the bottom and right. A minimum number of rows
 // and columns can be enforced via popts. efd, if non-negative, is an eventfd
-// that ought be written to whenever panelreel_touch() updates a tablet (this
+// that ought be written to whenever ncreel_touch() updates a tablet (this
 // is useful in the case of nonblocking input).
-API struct panelreel* panelreel_create(struct ncplane* nc,
-                                       const panelreel_options* popts,
+API struct ncreel* ncreel_create(struct ncplane* nc,
+                                       const ncreel_options* popts,
                                        int efd);
 
-// Returns the ncplane on which this panelreel lives.
-API struct ncplane* panelreel_plane(struct panelreel* pr);
+// Returns the ncplane on which this ncreel lives.
+API struct ncplane* ncreel_plane(struct ncreel* pr);
 
 // Tablet draw callback, provided a tablet (from which the ncplane and userptr
 // may be extracted), the first column that may be used, the first row that may
@@ -1982,52 +1982,52 @@ API struct ncplane* panelreel_plane(struct panelreel* pr);
 typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
                         int maxy, bool cliptop);
 
-// Add a new tablet to the provided panelreel, having the callback object
+// Add a new tablet to the provided ncreel, having the callback object
 // opaque. Neither, either, or both of after and before may be specified. If
 // neither is specified, the new tablet can be added anywhere on the reel. If
 // one or the other is specified, the tablet will be added before or after the
 // specified tablet. If both are specifid, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
-API struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
+API struct tablet* ncreel_add(struct ncreel* pr, struct tablet* after,
                                  struct tablet* before, tabletcb cb,
                                  void* opaque);
 
 // Return the number of tablets.
-API int panelreel_tabletcount(const struct panelreel* pr);
+API int ncreel_tabletcount(const struct ncreel* pr);
 
 // Indicate that the specified tablet has been updated in a way that would
 // change its display. This will trigger some non-negative number of callbacks
 // (though not in the caller's context).
-API int panelreel_touch(struct panelreel* pr, struct tablet* t);
+API int ncreel_touch(struct ncreel* pr, struct tablet* t);
 
-// Delete the tablet specified by t from the panelreel specified by pr. Returns
+// Delete the tablet specified by t from the ncreel specified by pr. Returns
 // -1 if the tablet cannot be found.
-API int panelreel_del(struct panelreel* pr, struct tablet* t);
+API int ncreel_del(struct ncreel* pr, struct tablet* t);
 
 // Delete the active tablet. Returns -1 if there are no tablets.
-API int panelreel_del_focused(struct panelreel* pr);
+API int ncreel_del_focused(struct ncreel* pr);
 
 // Move to the specified location within the containing WINDOW.
-API int panelreel_move(struct panelreel* pr, int x, int y);
+API int ncreel_move(struct ncreel* pr, int x, int y);
 
-// Redraw the panelreel in its entirety, for instance after
+// Redraw the ncreel in its entirety, for instance after
 // clearing the screen due to external corruption, or a SIGWINCH.
-API int panelreel_redraw(struct panelreel* pr);
+API int ncreel_redraw(struct ncreel* pr);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
-API struct tablet* panelreel_focused(struct panelreel* pr);
+API struct tablet* ncreel_focused(struct ncreel* pr);
 
 // Change focus to the next tablet, if one exists
-API struct tablet* panelreel_next(struct panelreel* pr);
+API struct tablet* ncreel_next(struct ncreel* pr);
 
 // Change focus to the previous tablet, if one exists
-API struct tablet* panelreel_prev(struct panelreel* pr);
+API struct tablet* ncreel_prev(struct ncreel* pr);
 
-// Destroy a panelreel allocated with panelreel_create(). Does not destroy the
+// Destroy an ncreel allocated with ncreel_create(). Does not destroy the
 // underlying WINDOW. Returns non-zero on failure.
-API int panelreel_destroy(struct panelreel* pr);
+API int ncreel_destroy(struct ncreel* pr);
 
 API void* tablet_userptr(struct tablet* t);
 API const void* tablet_userptr_const(const struct tablet* t);

@@ -22,12 +22,12 @@ static char datadir[PATH_MAX];
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
 #ifdef DISABLE_FFMPEG
-static const char DEFAULT_DEMO[] = "itbgpwus";
+static const char DEFAULT_DEMO[] = "itbgrwus";
 #else
 #ifdef DFSG_BUILD
-static const char DEFAULT_DEMO[] = "ixtbgpwuso";
+static const char DEFAULT_DEMO[] = "ixtbgrwuso";
 #else
-static const char DEFAULT_DEMO[] = "ixetbcgpwuvlfsjo";
+static const char DEFAULT_DEMO[] = "ixetbcgrwuvlfsjo";
 #endif
 #endif
 
@@ -113,9 +113,9 @@ static struct {
   { NULL, NULL, },
   { NULL, NULL, },
   FREEFFMPEG("outro", outro),
-  { "panelreel", panelreel_demo, },
   { NULL, NULL, },
   { NULL, NULL, },
+  { "reel", reel_demo, },
   { "sliders", sliding_puzzle_demo, },
   { "trans", trans_demo, },
   { "uniblock", unicodeblocks_demo, },

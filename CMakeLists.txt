@@ -89,8 +89,8 @@ target_compile_definitions(notcurses
 # libnotcurses++
 set(NCPP_SOURCES
   src/libcpp/NotCurses.cc
-  src/libcpp/PanelReel.cc
   src/libcpp/Plane.cc
+  src/libcpp/Reel.cc
   src/libcpp/Root.cc
   src/libcpp/Tablet.cc
   src/libcpp/Visual.cc

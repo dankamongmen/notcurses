@@ -29,7 +29,7 @@ The demonstrations include (see NOTES below):
 * (g)rid—a gradient of color lain atop a great grid
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi-a dashing Apennine plumber in a world of fire
-* (p)anelreel—demonstration of the panelreel high-level widget
+* (r)eel—demonstration of the ncreel high-level widget
 * (s)liders—a missing-piece puzzle made up of colorful blocks
 * (t)rans—an exploration of various transparencies
 * (u)niblocks—a series of blocks detailing Unicode pages
@@ -58,7 +58,7 @@ At any time, press 'q' to quit. The demo is best run in at least a 80x45 termina
 
 **-V**: Print the program name and version, and exit with success.
 
-demospec: Select which demos to run, and what order to run them in. The default is **ixetbcgpwuvlfsjo**. See above for a list of demos.
+demospec: Select which demos to run, and what order to run them in. The default is **ixetbcgrwuvlfsjo**. See above for a list of demos.
 
 # NOTES
 

@@ -55,7 +55,7 @@ namespace ncpp
 		static std::map<tablet*,Tablet*> *tablet_map;
 		static std::mutex tablet_map_mutex;
 
-		friend class PanelReel;
+		friend class NcReel;
 	};
 }
 #endif

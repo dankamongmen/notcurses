@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses-planereel - Experiment with panelreels
+notcurses-planereel - Experiment with ncreels
 
 # SYNOPSIS
 
@@ -12,7 +12,7 @@ notcurses-planereel - Experiment with panelreels
 
 # DESCRIPTION
 
-**notcurses-planereel** generates a panelreel to experiment with. With the
+**notcurses-planereel** generates a ncreel to experiment with. With the
 program open, press 'a' to create a new tablet, or 'd' to delete the focused
 tablet (if one exists). 'q' quits at any time.
 
@@ -25,4 +25,4 @@ capability, or that the environment variable **COLORTERM** is defined to
 monospaced font supporting the Unicode Block Drawing Characters.
 
 # SEE ALSO
-notcurses(3notcurses), notcurses_panelreel(3), terminfo(5)
+notcurses(3notcurses), notcurses_ncreel(3), terminfo(5)

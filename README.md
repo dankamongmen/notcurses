@@ -27,7 +27,7 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
   * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
   * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
   * [Multimedia](#multimedia)
-  * [Panelreels](#panelreels)
+  * [Reels](#reels)
   * [Selectors](#selectors)
   * [Menus](#menus)
   * [Channels](#channels)
@@ -1752,26 +1752,26 @@ int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr,
                     float timescale, streamcb streamer, void* curry);
 ```
 
-### Panelreels
+### Reels
 
-Panelreels are a complex UI abstraction offered by notcurses, derived from my
-similar work in [outcurses](https://github.com/dankamongmen/panelreels#Panelreels).
+ncreels are a complex UI abstraction offered by notcurses, derived from my
+similar work in [outcurses](https://github.com/dankamongmen/ncreels#ncreels).
 
-The panelreel is a UI abstraction supported by notcurses in which
+The ncreel is a UI abstraction supported by notcurses in which
 dynamically-created and -destroyed toplevel entities (referred to as tablets)
 are arranged in a torus (circular loop), allowing for infinite scrolling
 (infinite scrolling can be disabled, resulting in a line segment rather than a
 torus). This works naturally with keyboard navigation, mouse scrolling wheels,
 and touchpads (including the capacitive touchscreens of modern cell phones).
 The "panel" comes from the underlying ncurses objects (each entity corresponds
-to a single panel) and the "reel" from slot machines. A panelreel initially has
+to a single panel) and the "reel" from slot machines. An ncreel initially has
 no tablets; at any given time thereafter, it has zero or more tablets, and if
 there is at least one tablet, one tablet is focused (and on-screen). If the
 last tablet is removed, no tablet is focused. A tablet can support navigation
 within the tablet, in which case there is an in-tablet focus for the focused
 tablet, which can also move among elements within the tablet.
 
-The panelreel object tracks the size of the screen, the size, number,
+The ncreel object tracks the size of the screen, the size, number,
 information depth, and order of tablets, and the focuses. It also draws the
 optional borders around tablets and the optional border of the reel itself. It
 knows nothing about the actual content of a tablet, save the number of lines it
@@ -1803,7 +1803,7 @@ The controlling application can, at any time,
   * Remove content from a tablet, possibly resizing it, and possibly changing focus within the tablet
   * Add content to the tablet, possibly resizing it, and possibly creating focus within the tablet
 * Navigate within the focused tablet
-* Create or destroy new panels atop the panelreel
+* Create or destroy new panels atop the ncreel
 * Indicate that the screen has been resized or needs be redrawn
 
 A special case arises when moving among the tablets of a reel having multiple
@@ -1825,7 +1825,7 @@ not fill it). If it is not desired, however, scrolling of focus can be
 configured instead.
 
 ```c
-// A panelreel is an notcurses region devoted to displaying zero or more
+// An ncreel is an notcurses region devoted to displaying zero or more
 // line-oriented, contained panels between which the user may navigate. If at
 // least one panel exists, there is an active panel. As much of the active
 // panel as is possible is always displayed. If there is space left over, other
@@ -1835,11 +1835,11 @@ configured instead.
 // This structure is amenable to line- and page-based navigation via keystrokes,
 // scrolling gestures, trackballs, scrollwheels, touchpads, and verbal commands.
 
-typedef struct panelreel_options {
+typedef struct ncreel_options {
   // require this many rows and columns (including borders). otherwise, a
   // message will be displayed stating that a larger terminal is necessary, and
   // input will be queued. if 0, no minimum will be enforced. may not be
-  // negative. note that panelreel_create() does not return error if given a
+  // negative. note that ncreel_create() does not return error if given a
   // WINDOW smaller than these minima; it instead patiently waits for the
   // screen to get bigger.
   int min_supported_cols;
@@ -1851,7 +1851,7 @@ typedef struct panelreel_options {
   int max_supported_rows;
 
   // desired offsets within the surrounding WINDOW (top right bottom left) upon
-  // creation / resize. a panelreel_move() operation updates these.
+  // creation / resize. an ncreel_move() operation updates these.
   int toff, roff, boff, loff;
   // is scrolling infinite (can one move down or up forever, or is an end
   // reached?). if true, 'circular' specifies how to handle the special case of
@@ -1861,35 +1861,35 @@ typedef struct panelreel_options {
   // first, and vice versa)? only meaningful when infinitescroll is true. if
   // infinitescroll is false, this must be false.
   bool circular;
-  // notcurses can draw a border around the panelreel, and also around the
+  // notcurses can draw a border around the ncreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
   // appropriate attr and pair values will be used to style the borders.
   // focused and non-focused tablets can have different styles. you can instead
   // draw your own borders, or forgo borders entirely.
   unsigned bordermask; // bitfield; 1s will not be drawn (see bordermaskbits)
-  uint64_t borderchan; // attributes used for panelreel border
+  uint64_t borderchan; // attributes used for ncreel border
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
   uint64_t bgchannel;  // background colors
-} panelreel_options;
+} ncreel_options;
 
 struct tablet;
-struct panelreel;
+struct ncreel;
 
-// Create a panelreel according to the provided specifications. Returns NULL on
+// Create an ncreel according to the provided specifications. Returns NULL on
 // failure. w must be a valid WINDOW*, to which offsets are relative. Note that
 // there might not be enough room for the specified offsets, in which case the
-// panelreel will be clipped on the bottom and right. A minimum number of rows
+// ncreel will be clipped on the bottom and right. A minimum number of rows
 // and columns can be enforced via popts. efd, if non-negative, is an eventfd
-// that ought be written to whenever panelreel_touch() updates a tablet (this
+// that ought be written to whenever ncreel_touch() updates a tablet (this
 // is useful in the case of nonblocking input).
-struct panelreel* panelreel_create(struct ncplane* nc,
-                                   const panelreel_options* popts, int efd);
+struct ncreel* ncreel_create(struct ncplane* nc,
+                                   const ncreel_options* popts, int efd);
 
-// Returns the ncplane on which this panelreel lives.
-struct ncplane* panelreel_plane(struct panelreel* pr);
+// Returns the ncplane on which this ncreel lives.
+struct ncplane* ncreel_plane(struct ncreel* pr);
 
 // Tablet draw callback, provided a tablet (from which the ncplane and userptr
 // may be extracted), the first column that may be used, the first row that may
@@ -1909,51 +1909,51 @@ struct ncplane* panelreel_plane(struct panelreel* pr);
 typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
                         int maxy, bool cliptop);
 
-// Add a new tablet to the provided panelreel, having the callback object
+// Add a new tablet to the provided ncreel, having the callback object
 // opaque. Neither, either, or both of after and before may be specified. If
 // neither is specified, the new tablet can be added anywhere on the reel. If
 // one or the other is specified, the tablet will be added before or after the
 // specified tablet. If both are specifid, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
-struct tablet* panelreel_add(struct panelreel* pr, struct tablet* after,
+struct tablet* ncreel_add(struct ncreel* pr, struct tablet* after,
                              struct tablet* before, tabletcb cb, void* opaque);
 
 // Return the number of tablets.
-int panelreel_tabletcount(const struct panelreel* pr);
+int ncreel_tabletcount(const struct ncreel* pr);
 
 // Indicate that the specified tablet has been updated in a way that would
 // change its display. This will trigger some non-negative number of callbacks
 // (though not in the caller's context).
-int panelreel_touch(struct panelreel* pr, struct tablet* t);
+int ncreel_touch(struct ncreel* pr, struct tablet* t);
 
-// Delete the tablet specified by t from the panelreel specified by pr. Returns
+// Delete the tablet specified by t from the ncreel specified by pr. Returns
 // -1 if the tablet cannot be found.
-int panelreel_del(struct panelreel* pr, struct tablet* t);
+int ncreel_del(struct ncreel* pr, struct tablet* t);
 
 // Delete the active tablet. Returns -1 if there are no tablets.
-int panelreel_del_focused(struct panelreel* pr);
+int ncreel_del_focused(struct ncreel* pr);
 
 // Move to the specified location within the containing WINDOW.
-int panelreel_move(struct panelreel* pr, int x, int y);
+int ncreel_move(struct ncreel* pr, int x, int y);
 
-// Redraw the panelreel in its entirety, for instance after
+// Redraw the ncreel in its entirety, for instance after
 // clearing the screen due to external corruption, or a SIGWINCH.
-int panelreel_redraw(struct panelreel* pr);
+int ncreel_redraw(struct ncreel* pr);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
-struct tablet* panelreel_focused(struct panelreel* pr);
+struct tablet* ncreel_focused(struct ncreel* pr);
 
 // Change focus to the next tablet, if one exists
-struct tablet* panelreel_next(struct panelreel* pr);
+struct tablet* ncreel_next(struct ncreel* pr);
 
 // Change focus to the previous tablet, if one exists
-struct tablet* panelreel_prev(struct panelreel* pr);
+struct tablet* ncreel_prev(struct ncreel* pr);
 
-// Destroy a panelreel allocated with panelreel_create(). Does not destroy the
+// Destroy an ncreel allocated with ncreel_create(). Does not destroy the
 // underlying WINDOW. Returns non-zero on failure.
-int panelreel_destroy(struct panelreel* pr);
+int ncreel_destroy(struct ncreel* pr);
 
 void* tablet_userptr(struct tablet* t);
 const void* tablet_userptr_const(const struct tablet* t);
@@ -1963,7 +1963,7 @@ struct ncplane* tablet_ncplane(struct tablet* t);
 const struct ncplane* tablet_ncplane_const(const struct tablet* t);
 ```
 
-#### Panelreel examples
+#### ncreel examples
 
 Let's say we have a screen of 11 lines, and 3 tablets of one line each. Both
 a screen border and tablet borders are in use. The tablets are A, B, and C.
@@ -2562,7 +2562,7 @@ Five binaries are built as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
-* `notcurses-planereels`: play around with panelreels
+* `notcurses-planereels`: play around with ncreels
 * `notcurses-tester`: unit testing
 
 To run `notcurses-demo` from a checkout, provide the `tests/` directory via
@@ -2759,11 +2759,11 @@ up someday **FIXME**.
 * 2019-12-05: notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
     the first generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
     and release it on YouTube.
-* November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/panelreels).
-    Outcurses is a collection of routines atop NCURSES, including Panelreels.
+* November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/ncreels).
+    Outcurses is a collection of routines atop NCURSES, including ncreels.
     I study the history of NCURSES, primarily using Thomas E. Dickey's FAQ and
     the mailing list archives.
-    * 2019-11-14: I file [Outcurses issue #56](https://github.com/dankamongmen/panelreels/issues/56)
+    * 2019-11-14: I file [Outcurses issue #56](https://github.com/dankamongmen/ncreels/issues/56)
       regarding use of DirectColor in outcurses. This is partially inspired by
       Lexi Summer Hale's essay [everything you ever wanted to know about terminals](http://xn--rpa.cc/irl/term.html).
       I get into contact with Thomas E. Dickey and confirm that what I'm hoping
@@ -2772,7 +2772,7 @@ up someday **FIXME**.
       to notcurses.
 * September 2019: I extracted fade routines from Growlight and Omphalos, and
     offered them to NCURSES as extensions. They are not accepted, which is
-    understandable. I mention that I intend to extract Panelreels, and offer to
+    understandable. I mention that I intend to extract ncreels, and offer to
     include them in the CDK (Curses Development Kit). [Growlight issue #43](https://github.com/dankamongmen/growlight/issues/43)
     is created regarding this extraction. A few minor patches go into NCURSES.
 * 2011, 2013: I develop [Growlight](https://github.com/dankamongmen/growlight)

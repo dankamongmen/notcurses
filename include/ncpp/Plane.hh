@@ -11,7 +11,7 @@
 #include "Root.hh"
 #include "Cell.hh"
 #include "Visual.hh"
-#include "PanelReel.hh"
+#include "Reel.hh"
 #include "CellStyle.hh"
 #include "NCAlign.hh"
 #include "NCBox.hh"
@@ -712,9 +712,9 @@ namespace ncpp
 			return new Visual (plane, file, averr);
 		}
 
-		PanelReel* panelreel_create (const panelreel_options *popts = nullptr, int efd = -1) const
+		NcReel* ncreel_create (const ncreel_options *popts = nullptr, int efd = -1) const
 		{
-			return new PanelReel (plane, popts, efd);
+			return new NcReel (plane, popts, efd);
 		}
 
 		// Some Cell APIs go here since they act on individual panels even though it may seem weird at points (e.g.
@@ -859,7 +859,7 @@ namespace ncpp
 
 		friend class NotCurses;
 		friend class Visual;
-		friend class PanelReel;
+		friend class NcReel;
 		friend class Tablet;
 	};
 }

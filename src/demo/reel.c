@@ -14,7 +14,7 @@
 // FIXME ought just be an unordered_map
 typedef struct tabletctx {
   pthread_t tid;
-  struct panelreel* pr;
+  struct ncreel* pr;
   struct tablet* t;
   int lines;
   unsigned rgb;
@@ -33,7 +33,7 @@ kill_tablet(tabletctx** tctx){
     if(pthread_join(t->tid, NULL)){
       fprintf(stderr, "Warning: error joining pthread (%s)\n", strerror(errno));
     }
-    panelreel_del(t->pr, t->t);
+    ncreel_del(t->pr, t->t);
     *tctx = t->next;
     pthread_mutex_destroy(&t->lock);
     free(t);
@@ -41,8 +41,8 @@ kill_tablet(tabletctx** tctx){
 }
 
 static int
-kill_active_tablet(struct panelreel* pr, tabletctx** tctx){
-  struct tablet* focused = panelreel_focused(pr);
+kill_active_tablet(struct ncreel* pr, tabletctx** tctx){
+  struct tablet* focused = ncreel_focused(pr);
   tabletctx* t;
   while( (t = *tctx) ){
     if(t->t == focused){
@@ -176,12 +176,12 @@ tablet_thread(void* vtabletctx){
       if((tctx->lines -= (action + 1)) < 1){
         tctx->lines = 1;
       }
-      panelreel_touch(tctx->pr, tctx->t);
+      ncreel_touch(tctx->pr, tctx->t);
     }else if(action > 2){
       if((tctx->lines += (action - 2)) < 1){
         tctx->lines = 1;
       }
-      panelreel_touch(tctx->pr, tctx->t);
+      ncreel_touch(tctx->pr, tctx->t);
     }
     pthread_mutex_unlock(&tctx->lock);
   }
@@ -189,7 +189,7 @@ tablet_thread(void* vtabletctx){
 }
 
 static tabletctx*
-new_tabletctx(struct panelreel* pr, unsigned *id){
+new_tabletctx(struct ncreel* pr, unsigned *id){
   tabletctx* tctx = malloc(sizeof(*tctx));
   if(tctx == NULL){
     return NULL;
@@ -199,7 +199,7 @@ new_tabletctx(struct panelreel* pr, unsigned *id){
   tctx->lines = random() % 10 + 1; // FIXME a nice gaussian would be swell
   tctx->rgb = random() % (1u << 24u);
   tctx->id = ++*id;
-  if((tctx->t = panelreel_add(pr, NULL, NULL, tabletdraw, tctx)) == NULL){
+  if((tctx->t = ncreel_add(pr, NULL, NULL, tabletdraw, tctx)) == NULL){
     pthread_mutex_destroy(&tctx->lock);
     free(tctx);
     return NULL;
@@ -213,7 +213,7 @@ new_tabletctx(struct panelreel* pr, unsigned *id){
 }
 
 static wchar_t
-handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
+handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
              const struct timespec* deadline){
   struct pollfd fds[2] = {
     { .fd = STDIN_FILENO, .events = POLLIN, .revents = 0, },
@@ -245,7 +245,7 @@ handle_input(struct notcurses* nc, struct panelreel* pr, int efd,
         uint64_t val;
         if(read(efd, &val, sizeof(val)) != sizeof(val)){
           fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno)); }else if(key < 0){
-          panelreel_redraw(pr);
+          ncreel_redraw(pr);
           demo_render(nc);
         }
       }
@@ -263,11 +263,11 @@ close_pipes(int* pipes){
 }
 
 static int
-panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
+ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   tabletctx* tctxs = NULL;
   bool done = false;
   int x = 8, y = 4;
-  panelreel_options popts = {
+  ncreel_options popts = {
     .infinitescroll = true,
     .circular = true,
     .min_supported_cols = 8,
@@ -295,12 +295,12 @@ panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     return -1;
   }
   struct ncplane* w = notcurses_stdplane(nc);
-  struct panelreel* pr = panelreel_create(w, &popts, efdw);
+  struct ncreel* pr = ncreel_create(w, &popts, efdw);
   if(pr == NULL){
-    fprintf(stderr, "Error creating panelreel\n");
+    fprintf(stderr, "Error creating ncreel\n");
     return -1;
   }
-  // Press a for a new panel above the current, c for a new one below the
+  // Press a for a new nc above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement.
   ncplane_styles_on(w, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   ncplane_set_fg_rgb(w, 58, 150, 221);
@@ -319,7 +319,7 @@ panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   while(id < dimy / 8u){
     newtablet = new_tabletctx(pr, &id);
     if(newtablet == NULL){
-      panelreel_destroy(pr);
+      ncreel_destroy(pr);
       return -1;
     }
     newtablet->next = tctxs;
@@ -328,7 +328,7 @@ panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   do{
     ncplane_styles_set(w, 0);
     ncplane_set_fg_rgb(w, 197, 15, 31);
-    int count = panelreel_tabletcount(pr);
+    int count = ncreel_tabletcount(pr);
     ncplane_styles_on(w, NCSTYLE_BOLD);
     ncplane_printf_yx(w, 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
     ncplane_styles_off(w, NCSTYLE_BOLD);
@@ -344,15 +344,15 @@ panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
       case 'a': newtablet = new_tabletctx(pr, &id); break;
       case 'b': newtablet = new_tabletctx(pr, &id); break;
       case 'c': newtablet = new_tabletctx(pr, &id); break;
-      case 'h': --x; if(panelreel_move(pr, x, y)){ ++x; } break;
-      case 'l': ++x; if(panelreel_move(pr, x, y)){ --x; } break;
-      case 'k': panelreel_prev(pr); break;
-      case 'j': panelreel_next(pr); break;
+      case 'h': --x; if(ncreel_move(pr, x, y)){ ++x; } break;
+      case 'l': ++x; if(ncreel_move(pr, x, y)){ --x; } break;
+      case 'k': ncreel_prev(pr); break;
+      case 'j': ncreel_next(pr); break;
       case 'q': done = true; break;
-      case NCKEY_LEFT: --x; if(panelreel_move(pr, x, y)){ ++x; } break;
-      case NCKEY_RIGHT: ++x; if(panelreel_move(pr, x, y)){ --x; } break;
-      case NCKEY_UP: panelreel_prev(pr); break;
-      case NCKEY_DOWN: panelreel_next(pr); break;
+      case NCKEY_LEFT: --x; if(ncreel_move(pr, x, y)){ ++x; } break;
+      case NCKEY_RIGHT: ++x; if(ncreel_move(pr, x, y)){ --x; } break;
+      case NCKEY_UP: ncreel_prev(pr); break;
+      case NCKEY_DOWN: ncreel_next(pr); break;
       case NCKEY_DEL: kill_active_tablet(pr, &tctxs); break;
       default:
         ncplane_printf_yx(w, 3, 2, "Unknown keycode (0x%x)\n", rw);
@@ -366,19 +366,19 @@ panelreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     if(timespec_subtract_ns(&cur, &deadline) >= 0){
       break;
     }
-    //panelreel_validate(w, pr); // do what, if not assert()ing? FIXME
+    //ncreel_validate(w, pr); // do what, if not assert()ing? FIXME
   }while(!done);
   while(tctxs){
     kill_tablet(&tctxs);
   }
-  if(panelreel_destroy(pr)){
-    fprintf(stderr, "Error destroying panelreel\n");
+  if(ncreel_destroy(pr)){
+    fprintf(stderr, "Error destroying ncreel\n");
     return -1;
   }
   return done ? 1 : 0;
 }
 
-int panelreel_demo(struct notcurses* nc){
+int reel_demo(struct notcurses* nc){
   int pipes[2];
   ncplane_greyscale(notcurses_stdplane(nc));
   // freebsd doesn't have eventfd :/
@@ -386,7 +386,7 @@ int panelreel_demo(struct notcurses* nc){
     fprintf(stderr, "Error creating pipe (%s)\n", strerror(errno));
     return -1;
   }
-  int ret = panelreel_demo_core(nc, pipes[0], pipes[1]);
+  int ret = ncreel_demo_core(nc, pipes[0], pipes[1]);
   close_pipes(pipes);
   if(demo_render(nc)){
     return -1;

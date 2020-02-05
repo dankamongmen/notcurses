@@ -1,10 +1,10 @@
 #include <ncpp/Plane.hh>
-#include <ncpp/PanelReel.hh>
+#include <ncpp/Reel.hh>
 #include <ncpp/NCBox.hh>
 
 using namespace ncpp;
 
-panelreel_options PanelReel::default_options = {
+ncreel_options NcReel::default_options = {
 	/* min_supported_cols */ 0,
 	/* min_supported_rows */ 0,
 	/* max_supported_cols */ 0,
@@ -23,7 +23,7 @@ panelreel_options PanelReel::default_options = {
 	/* bgchannel          */ 0,
 };
 
-Plane* PanelReel::get_plane () const noexcept
+Plane* NcReel::get_plane () const noexcept
 {
-	return Plane::map_plane (panelreel_plane (reel));
+	return Plane::map_plane (ncreel_plane (reel));
 }

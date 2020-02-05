@@ -6,7 +6,7 @@
 #include "notcurses.h"
 #include "internal.h"
 
-// Tablets are the toplevel entitites within a panelreel. Each corresponds to
+// Tablets are the toplevel entitites within an ncreel. Each corresponds to
 // a single, distinct ncplane.
 typedef struct tablet {
   ncplane* p;                    // visible panel, NULL when offscreen
@@ -20,10 +20,10 @@ typedef struct tablet {
 //  * which tablet is focused (pointed at by tablets)
 //  * which row the focused tablet starts at (derived from focused window)
 //  * the list of tablets (available from the focused tablet)
-typedef struct panelreel {
-  ncplane* p;              // ncplane this panelreel occupies, under tablets
-  panelreel_options popts; // copied in panelreel_create()
-  int efd;                 // eventfd/pipe, signaled in panelreel_touch()
+typedef struct ncreel {
+  ncplane* p;              // ncplane this ncreel occupies, under tablets
+  ncreel_options ropts; // copied in ncreel_create()
+  int efd;                 // eventfd/pipe, signaled in ncreel_touch()
   // doubly-linked list, a circular one when infinity scrolling is in effect.
   // points at the focused tablet (when at least one tablet exists, one must be
   // focused), which might be anywhere on the screen (but is always visible).
@@ -40,7 +40,7 @@ typedef struct panelreel {
   // differently when the reel is not completely filled. ideally we'd unite the
   // two modes, but for now, check this bool and take one of two paths.
   bool all_visible;
-} panelreel;
+} ncreel;
 
 // Returns the starting coordinates (relative to the screen) of the specified
 // window, and its length. End is (begx + lenx - 1, begy + leny - 1).
@@ -139,37 +139,37 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel,
   return ret;
 }
 
-// Draws the border (if one should be drawn) around the panelreel, and enforces
+// Draws the border (if one should be drawn) around the ncreel, and enforces
 // any provided restrictions on visible window size.
 static int
-draw_panelreel_borders(const panelreel* pr){
+draw_ncreel_borders(const ncreel* nr){
   int begx, begy;
   int maxx, maxy;
-  window_coordinates(pr->p, &begy, &begx, &maxy, &maxx);
+  window_coordinates(nr->p, &begy, &begx, &maxy, &maxx);
   assert(maxy >= 0 && maxx >= 0);
   --maxx; // last column we can safely write to
   --maxy; // last line we can safely write to
-  if(begx >= maxx || maxx - begx + 1 < pr->popts.min_supported_rows){
+  if(begx >= maxx || maxx - begx + 1 < nr->ropts.min_supported_rows){
     return 0; // no room
   }
-  if(begy >= maxy || maxy - begy + 1 < pr->popts.min_supported_cols){
+  if(begy >= maxy || maxy - begy + 1 < nr->ropts.min_supported_cols){
     return 0; // no room
   }
-  return draw_borders(pr->p, pr->popts.bordermask, pr->popts.borderchan, false, false);
+  return draw_borders(nr->p, nr->ropts.bordermask, nr->ropts.borderchan, false, false);
 }
 
 // Calculate the starting and ending coordinates available for occupation by
-// the tablet, relative to the panelreel's ncplane. Returns non-zero if the
+// the tablet, relative to the ncreel's ncplane. Returns non-zero if the
 // tablet cannot be made visible as specified. If this is the focused tablet
 // (direction == 0), it can take the entire reel -- frontiery is only a
 // suggestion in this case -- so give it the full breadth.
 static int
-tablet_columns(const panelreel* pr, int* begx, int* begy, int* lenx, int* leny,
+tablet_columns(const ncreel* nr, int* begx, int* begy, int* lenx, int* leny,
                int frontiery, int direction){
-  window_coordinates(pr->p, begy, begx, leny, lenx);
+  window_coordinates(nr->p, begy, begx, leny, lenx);
   int maxy = *leny + *begy - 1;
-  int begindraw = *begy + !(pr->popts.bordermask & NCBOXMASK_TOP);
-  int enddraw = maxy - !(pr->popts.bordermask & NCBOXMASK_TOP);
+  int begindraw = *begy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
+  int enddraw = maxy - !(nr->ropts.bordermask & NCBOXMASK_TOP);
   if(direction <= 0){
     if(frontiery < begindraw){
       return -1;
@@ -180,23 +180,23 @@ tablet_columns(const panelreel* pr, int* begx, int* begy, int* lenx, int* leny,
       return -1;
     }
   }
-  // account for the panelreel borders
-  if(direction <= 0 && !(pr->popts.bordermask & NCBOXMASK_TOP)){
+  // account for the ncreel borders
+  if(direction <= 0 && !(nr->ropts.bordermask & NCBOXMASK_TOP)){
     ++*begy;
     --*leny;
   }
-  if(direction >= 0 && !(pr->popts.bordermask & NCBOXMASK_BOTTOM)){
+  if(direction >= 0 && !(nr->ropts.bordermask & NCBOXMASK_BOTTOM)){
     --*leny;
   }
-  if(!(pr->popts.bordermask & NCBOXMASK_LEFT)){
+  if(!(nr->ropts.bordermask & NCBOXMASK_LEFT)){
     ++*begx;
     --*lenx;
   }
-  if(!(pr->popts.bordermask & NCBOXMASK_RIGHT)){
+  if(!(nr->ropts.bordermask & NCBOXMASK_RIGHT)){
     --*lenx;
   }
   // at this point, our coordinates describe the largest possible tablet for
-  // this panelreel. this is the correct solution for the focused tablet. other
+  // this ncreel. this is the correct solution for the focused tablet. other
   // tablets can only grow in one of two directions, so tighten them up.
   if(direction > 0){
     *leny -= (frontiery - *begy);
@@ -219,11 +219,11 @@ tablet_columns(const panelreel* pr, int* begx, int* begy, int* lenx, int* leny,
 // down before displaying it. Destroys any panel if it ought be hidden.
 // Returns 0 if the tablet was able to be wholly rendered, non-zero otherwise.
 static int
-panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
+ncreel_draw_tablet(const ncreel* nr, tablet* t, int frontiery,
                       int direction){
   int lenx, leny, begy, begx;
   ncplane* fp = t->p;
-  if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, direction)){
+  if(tablet_columns(nr, &begx, &begy, &lenx, &leny, frontiery, direction)){
 //fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d dir %d\n", t, fp, begy, begx, leny, lenx, direction);
 //fprintf(stderr, "FRONTIER DONE!!!!!!\n");
     if(fp){
@@ -236,7 +236,7 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
 //fprintf(stderr, "tplacement: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
 //fprintf(stderr, "DRAWING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
   if(fp == NULL){ // create a panel for the tablet
-    t->p = ncplane_new(pr->p->nc, leny + 1, lenx, begy, begx, NULL);
+    t->p = ncplane_new(nr->p->nc, leny + 1, lenx, begy, begx, NULL);
     if((fp = t->p) == NULL){
       return -1;
     }
@@ -269,16 +269,16 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
   --cbmaxy;
   --cbmaxx;
   // If we're drawing up, we'll always have a bottom border unless it's masked
-  if(direction < 0 && !(pr->popts.tabletmask & NCBOXMASK_BOTTOM)){
+  if(direction < 0 && !(nr->ropts.tabletmask & NCBOXMASK_BOTTOM)){
     --cbmaxy;
   }
   // If we're drawing down, we'll always have a top border unless it's masked
-  if(direction >= 0 && !(pr->popts.tabletmask & NCBOXMASK_TOP)){
+  if(direction >= 0 && !(nr->ropts.tabletmask & NCBOXMASK_TOP)){
     ++cby;
   }
   // Adjust the x-bounds for side borders, which we always have if unmasked
-  cbmaxx -= !(pr->popts.tabletmask & NCBOXMASK_RIGHT);
-  cbx += !(pr->popts.tabletmask & NCBOXMASK_LEFT);
+  cbmaxx -= !(nr->ropts.tabletmask & NCBOXMASK_RIGHT);
+  cbx += !(nr->ropts.tabletmask & NCBOXMASK_LEFT);
   bool cbdir = direction < 0 ? true : false;
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cbmaxx/cbmaxy: %d/%d dir: %d\n",
 //    lenx, leny, cbx, cby, cbmaxx, cbmaxy, direction);
@@ -288,9 +288,9 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
   if(ll != leny){
     if(ll == leny - 1){ // only has one border visible (partially off-screen)
       if(cbdir){
-        ll += !(pr->popts.tabletmask & NCBOXMASK_BOTTOM);
+        ll += !(nr->ropts.tabletmask & NCBOXMASK_BOTTOM);
       }else{
-        ll += !(pr->popts.tabletmask & NCBOXMASK_TOP);
+        ll += !(nr->ropts.tabletmask & NCBOXMASK_TOP);
       }
       wresize(fp, ll, lenx);
       if(direction < 0){
@@ -302,8 +302,8 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
 //fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
       }
     }else if(ll < leny - 1){ // both borders are visible
-      ll += !(pr->popts.tabletmask & NCBOXMASK_BOTTOM) +
-            !(pr->popts.tabletmask & NCBOXMASK_TOP);
+      ll += !(nr->ropts.tabletmask & NCBOXMASK_BOTTOM) +
+            !(nr->ropts.tabletmask & NCBOXMASK_TOP);
 //fprintf(stderr, "RESIZING (-2) from %d to %d\n", leny, ll);
       wresize(fp, ll, lenx);
       if(direction < 0){
@@ -320,63 +320,63 @@ panelreel_draw_tablet(const panelreel* pr, tablet* t, int frontiery,
       if(leny - frontiery + 1 < ll){
 //fprintf(stderr, "frontieryIZING ADJ %d %d %d %d NEW %d\n", cbmaxy, leny,
 //         frontiery, ll, frontiery - ll + 1);
-        ncplane_yx(pr->p, &frontiery, NULL);
+        ncplane_yx(nr->p, &frontiery, NULL);
         frontiery += (leny - ll);
       }
       ncplane_move_yx(fp, frontiery, begx);
     }
   }
-  draw_borders(fp, pr->popts.tabletmask,
-               direction == 0 ? pr->popts.focusedchan : pr->popts.tabletchan,
+  draw_borders(fp, nr->ropts.tabletmask,
+               direction == 0 ? nr->ropts.focusedchan : nr->ropts.tabletchan,
                cliphead, clipfoot);
   return cliphead || clipfoot;
 }
 
-// draw and size the focused tablet, which must exist (pr->tablets may not be
-// NULL). it can occupy the entire panelreel.
+// draw and size the focused tablet, which must exist (nr->tablets may not be
+// NULL). it can occupy the entire ncreel.
 static int
-draw_focused_tablet(const panelreel* pr){
-  int pbegy, pbegx, plenx, pleny; // panelreel window coordinates
-  window_coordinates(pr->p, &pbegy, &pbegx, &pleny, &plenx);
+draw_focused_tablet(const ncreel* nr){
+  int pbegy, pbegx, plenx, pleny; // ncreel window coordinates
+  window_coordinates(nr->p, &pbegy, &pbegx, &pleny, &plenx);
   int fulcrum;
-  if(pr->tablets->p == NULL){
-    if(pr->last_traveled_direction >= 0){
-      fulcrum = pleny + pbegy - !(pr->popts.bordermask & NCBOXMASK_BOTTOM);
+  if(nr->tablets->p == NULL){
+    if(nr->last_traveled_direction >= 0){
+      fulcrum = pleny + pbegy - !(nr->ropts.bordermask & NCBOXMASK_BOTTOM);
     }else{
-      fulcrum = pbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
+      fulcrum = pbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
     }
   }else{ // focused was already present. want to stay where we are, if possible
-    ncplane_yx(pr->tablets->p, &fulcrum, NULL);
+    ncplane_yx(nr->tablets->p, &fulcrum, NULL);
     // FIXME ugh can't we just remember the previous fulcrum?
-    if(pr->last_traveled_direction > 0){
-      if(pr->tablets->prev->p){
+    if(nr->last_traveled_direction > 0){
+      if(nr->tablets->prev->p){
         int prevfulcrum;
-        ncplane_yx(pr->tablets->prev->p, &prevfulcrum, NULL);
+        ncplane_yx(nr->tablets->prev->p, &prevfulcrum, NULL);
         if(fulcrum < prevfulcrum){
-          fulcrum = pleny + pbegy - !(pr->popts.bordermask & NCBOXMASK_BOTTOM);
+          fulcrum = pleny + pbegy - !(nr->ropts.bordermask & NCBOXMASK_BOTTOM);
         }
       }
-    }else if(pr->last_traveled_direction < 0){
-      if(pr->tablets->next->p){
+    }else if(nr->last_traveled_direction < 0){
+      if(nr->tablets->next->p){
         int nextfulcrum;
-        ncplane_yx(pr->tablets->next->p, &nextfulcrum, NULL);
+        ncplane_yx(nr->tablets->next->p, &nextfulcrum, NULL);
         if(fulcrum > nextfulcrum){
-          fulcrum = pbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
+          fulcrum = pbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
         }
       }
     }
   }
 //fprintf(stderr, "PR dims: %d/%d + %d/%d fulcrum: %d\n", pbegy, pbegx, pleny, plenx, fulcrum);
-  panelreel_draw_tablet(pr, pr->tablets, fulcrum, 0 /* pr->last_traveled_direction*/);
+  ncreel_draw_tablet(nr, nr->tablets, fulcrum, 0 /* nr->last_traveled_direction*/);
   return 0;
 }
 
 // move down below the focused tablet, filling up the reel to the bottom.
 // returns the last tablet drawn.
 static tablet*
-draw_following_tablets(const panelreel* pr, const tablet* otherend){
+draw_following_tablets(const ncreel* nr, const tablet* otherend){
   int wmaxy, wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
-  tablet* working = pr->tablets;
+  tablet* working = nr->tablets;
   int frontiery;
   // move down past the focused tablet, filling up the reel to the bottom
   do{
@@ -391,7 +391,7 @@ draw_following_tablets(const panelreel* pr, const tablet* otherend){
 //fprintf(stderr, "BREAKOUT ON OTHEREND %p:%p\n", working, working->p);
       break;
     }
-    panelreel_draw_tablet(pr, working, frontiery, 1);
+    ncreel_draw_tablet(nr, working, frontiery, 1);
     if(working == otherend){
       otherend = otherend->next;
     }
@@ -403,10 +403,10 @@ draw_following_tablets(const panelreel* pr, const tablet* otherend){
 // move up above the focused tablet, filling up the reel to the top.
 // returns the last tablet drawn.
 static tablet*
-draw_previous_tablets(const panelreel* pr, const tablet* otherend){
+draw_previous_tablets(const ncreel* nr, const tablet* otherend){
 //fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
   int wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
-  tablet* upworking = pr->tablets;
+  tablet* upworking = nr->tablets;
   int frontiery;
   // modify frontier based off the one we're at
   window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
@@ -414,7 +414,7 @@ draw_previous_tablets(const panelreel* pr, const tablet* otherend){
   while(upworking->prev != otherend || otherend->p == NULL){
 //fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, frontiery, wbegy - 2);
     upworking = upworking->prev;
-    panelreel_draw_tablet(pr, upworking, frontiery, -1);
+    ncreel_draw_tablet(nr, upworking, frontiery, -1);
     if(upworking->p){
       window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
 //fprintf(stderr, "new up coords: %d/%d + %d/%d, %d\n", wbegy, wbegx, wleny, wlenx, frontiery);
@@ -432,8 +432,8 @@ draw_previous_tablets(const panelreel* pr, const tablet* otherend){
 
 // all tablets must be visible (valid ->p), and at least one tablet must exist
 static tablet*
-find_topmost(panelreel* pr){
-  tablet* t = pr->tablets;
+find_topmost(ncreel* nr){
+  tablet* t = nr->tablets;
   int curline;
   ncplane_yx(t->p, &curline, NULL);
   int trialline;
@@ -454,29 +454,29 @@ find_topmost(panelreel* pr){
 // as a result of this function, we might not longer all be wholly visible.
 // good god almighty, this is some fucking garbage.
 static int
-panelreel_arrange_denormalized(panelreel* pr){
+ncreel_arrange_denormalized(ncreel* nr){
 //fprintf(stderr, "denormalized devolution (are we men?)\n");
   // we'll need the starting line of the tablet which just lost focus, and the
   // starting line of the tablet which just gained focus.
   int fromline, nowline;
-  ncplane_yx(pr->tablets->p, &nowline, NULL);
+  ncplane_yx(nr->tablets->p, &nowline, NULL);
   // we've moved to the next or previous tablet. either we were not at the end,
   // in which case we can just move the focus, or we were at the end, in which
   // case we need bring the target tablet to our end, and draw in the direction
   // opposite travel (a single tablet is a trivial case of the latter case).
   // how do we know whether we were at the end? if the new line is not in the
   // direction of movement relative to the old one, of course!
-  tablet* topmost = find_topmost(pr);
+  tablet* topmost = find_topmost(nr);
   int wbegy, wbegx, wleny, wlenx;
-  window_coordinates(pr->p, &wbegy, &wbegx, &wleny, &wlenx);
-  int frontiery = wbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
-  if(pr->last_traveled_direction >= 0){
-    ncplane_yx(pr->tablets->prev->p, &fromline, NULL);
+  window_coordinates(nr->p, &wbegy, &wbegx, &wleny, &wlenx);
+  int frontiery = wbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
+  if(nr->last_traveled_direction >= 0){
+    ncplane_yx(nr->tablets->prev->p, &fromline, NULL);
     if(fromline > nowline){ // keep the order we had
       topmost = topmost->next;
     }
   }else{
-    ncplane_yx(pr->tablets->next->p, &fromline, NULL);
+    ncplane_yx(nr->tablets->next->p, &fromline, NULL);
     if(fromline < nowline){ // keep the order we had
       topmost = topmost->prev;
     }
@@ -485,13 +485,13 @@ panelreel_arrange_denormalized(panelreel* pr){
   tablet* t = topmost;
   do{
     int broken;
-    if(t == pr->tablets){
-      broken = panelreel_draw_tablet(pr, t, frontiery, 0);
+    if(t == nr->tablets){
+      broken = ncreel_draw_tablet(nr, t, frontiery, 0);
     }else{
-      broken = panelreel_draw_tablet(pr, t, frontiery, 1);
+      broken = ncreel_draw_tablet(nr, t, frontiery, 1);
     }
     if(t->p == NULL || broken){
-      pr->all_visible = false;
+      nr->all_visible = false;
       break;
     }
     int basey;
@@ -511,12 +511,12 @@ panelreel_arrange_denormalized(panelreel* pr){
 // focus, if we're not filling out the reel.
 //
 // This can still leave a gap plus a partially-onscreen tablet FIXME
-int panelreel_redraw(panelreel* pr){
+int ncreel_redraw(ncreel* nr){
 //fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
-  if(draw_panelreel_borders(pr)){
+  if(draw_ncreel_borders(nr)){
     return -1; // enforces specified dimensional minima
   }
-  tablet* focused = pr->tablets;
+  tablet* focused = nr->tablets;
   if(focused == NULL){
 //fprintf(stderr, "no focus!\n");
     return 0; // if none are focused, none exist
@@ -526,34 +526,34 @@ int panelreel_redraw(panelreel* pr){
   // elegant way to do this. we keep 'all_visible' as boolean state to avoid
   // having to do an o(n) iteration each round, but this is still grotesque, and
   // feels fragile...
-  if(pr->all_visible){
+  if(nr->all_visible){
 //fprintf(stderr, "all are visible!\n");
-    return panelreel_arrange_denormalized(pr);
+    return ncreel_arrange_denormalized(nr);
   }
-//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, pr->last_traveled_direction);
-  draw_focused_tablet(pr);
-//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, pr->last_traveled_direction);
+//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
+  draw_focused_tablet(nr);
+//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
   tablet* otherend = focused;
-  if(pr->last_traveled_direction >= 0){
-    otherend = draw_previous_tablets(pr, otherend);
-    otherend = draw_following_tablets(pr, otherend);
-    otherend = draw_previous_tablets(pr, otherend);
+  if(nr->last_traveled_direction >= 0){
+    otherend = draw_previous_tablets(nr, otherend);
+    otherend = draw_following_tablets(nr, otherend);
+    otherend = draw_previous_tablets(nr, otherend);
   }else{
-    otherend = draw_following_tablets(pr, otherend);
-    otherend = draw_previous_tablets(pr, otherend);
-    otherend = draw_following_tablets(pr, otherend);
+    otherend = draw_following_tablets(nr, otherend);
+    otherend = draw_previous_tablets(nr, otherend);
+    otherend = draw_following_tablets(nr, otherend);
   }
 //fprintf(stderr, "DONE ARRANGING\n");
   return 0;
 }
 
 static bool
-validate_panelreel_opts(ncplane* w, const panelreel_options* popts){
+validate_ncreel_opts(ncplane* w, const ncreel_options* ropts){
   if(w == NULL){
     return false;
   }
-  if(!popts->infinitescroll){
-    if(popts->circular){
+  if(!ropts->infinitescroll){
+    if(ropts->circular){
       return false; // can't set circular without infinitescroll
     }
   }
@@ -562,10 +562,10 @@ validate_panelreel_opts(ncplane* w, const panelreel_options* popts){
                             NCBOXMASK_RIGHT |
                             NCBOXMASK_TOP |
                             NCBOXMASK_BOTTOM;
-  if(popts->bordermask > fullmask){
+  if(ropts->bordermask > fullmask){
     return false;
   }
-  if(popts->tabletmask > fullmask){
+  if(ropts->tabletmask > fullmask){
     return false;
   }
   return true;
@@ -579,81 +579,81 @@ const ncplane* tablet_ncplane_const(const tablet* t){
   return t->p;
 }
 
-ncplane* panelreel_plane(panelreel* pr){
-  return pr->p;
+ncplane* ncreel_plane(ncreel* nr){
+  return nr->p;
 }
 
-panelreel* panelreel_create(ncplane* w, const panelreel_options* popts, int efd){
-  panelreel* pr;
+ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts, int efd){
+  ncreel* nr;
 
-  if(!validate_panelreel_opts(w, popts)){
+  if(!validate_ncreel_opts(w, ropts)){
     return NULL;
   }
-  if((pr = malloc(sizeof(*pr))) == NULL){
+  if((nr = malloc(sizeof(*nr))) == NULL){
     return NULL;
   }
-  pr->efd = efd;
-  pr->tablets = NULL;
-  pr->tabletcount = 0;
-  pr->all_visible = true;
-  pr->last_traveled_direction = -1; // draw down after the initial tablet
-  memcpy(&pr->popts, popts, sizeof(*popts));
+  nr->efd = efd;
+  nr->tablets = NULL;
+  nr->tabletcount = 0;
+  nr->all_visible = true;
+  nr->last_traveled_direction = -1; // draw down after the initial tablet
+  memcpy(&nr->ropts, ropts, sizeof(*ropts));
   int maxx, maxy, wx, wy;
   window_coordinates(w, &wy, &wx, &maxy, &maxx);
   --maxy;
   --maxx;
   int ylen, xlen;
-  ylen = maxy - popts->boff - popts->toff + 1;
+  ylen = maxy - ropts->boff - ropts->toff + 1;
   if(ylen < 0){
-    ylen = maxy - popts->toff;
+    ylen = maxy - ropts->toff;
     if(ylen < 0){
       ylen = 0; // but this translates to a full-screen window...FIXME
     }
   }
-  xlen = maxx - popts->roff - popts->loff + 1;
+  xlen = maxx - ropts->roff - ropts->loff + 1;
   if(xlen < 0){
-    xlen = maxx - popts->loff;
+    xlen = maxx - ropts->loff;
     if(xlen < 0){
       xlen = 0; // FIXME see above...
     }
   }
-  if((pr->p = ncplane_new(w->nc, ylen, xlen, popts->toff + wy, popts->loff + wx, NULL)) == NULL){
-    free(pr);
+  if((nr->p = ncplane_new(w->nc, ylen, xlen, ropts->toff + wy, ropts->loff + wx, NULL)) == NULL){
+    free(nr);
     return NULL;
   }
-  ncplane_set_base(pr->p, popts->bgchannel, 0, "");
-  if(panelreel_redraw(pr)){
-    ncplane_destroy(pr->p);
-    free(pr);
+  ncplane_set_base(nr->p, ropts->bgchannel, 0, "");
+  if(ncreel_redraw(nr)){
+    ncplane_destroy(nr->p);
+    free(nr);
     return NULL;
   }
-  return pr;
+  return nr;
 }
 
 // we've just added a new tablet. it needs be inserted at the correct place in
-// the reel. this will naturally fall out of things if the panelreel is full; we
-// can just call panelreel_redraw(). otherwise, we need make ourselves at least
+// the reel. this will naturally fall out of things if the ncreel is full; we
+// can just call ncreel_redraw(). otherwise, we need make ourselves at least
 // minimally visible, to satisfy the preconditions of
-// panelreel_arrange_denormalized(). this function, and approach, is shit.
+// ncreel_arrange_denormalized(). this function, and approach, is shit.
 // FIXME get rid of nc param here
 static tablet*
-insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
-  if(!pr->all_visible){
+insert_new_panel(struct notcurses* nc, ncreel* nr, tablet* t){
+  if(!nr->all_visible){
     return t;
   }
   int wbegy, wbegx, wleny, wlenx; // params of PR
-  window_coordinates(pr->p, &wbegy, &wbegx, &wleny, &wlenx);
+  window_coordinates(nr->p, &wbegy, &wbegx, &wleny, &wlenx);
   // are we the only tablet?
   int begx, begy, lenx, leny, frontiery;
   if(t->prev == t){
-    frontiery = wbegy + !(pr->popts.bordermask & NCBOXMASK_TOP);
-    if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, 1)){
-      pr->all_visible = false;
+    frontiery = wbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
+    if(tablet_columns(nr, &begx, &begy, &lenx, &leny, frontiery, 1)){
+      nr->all_visible = false;
       return t;
     }
 // fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
     if((t->p = ncplane_new(nc, leny, lenx, begy, begx, NULL)) == NULL){
-      pr->all_visible = false;
+      nr->all_visible = false;
       return t;
     }
     return t;
@@ -665,20 +665,20 @@ insert_new_panel(struct notcurses* nc, panelreel* pr, tablet* t){
   ncplane_dim_yx(t->prev->p, &dimprevy, &dimprevx);
   frontiery += dimprevy + 2;
   frontiery += 2;
-  if(tablet_columns(pr, &begx, &begy, &lenx, &leny, frontiery, 1)){
-    pr->all_visible = false;
+  if(tablet_columns(nr, &begx, &begy, &lenx, &leny, frontiery, 1)){
+    nr->all_visible = false;
     return t;
   }
 // fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, 2, lenx);
   if((t->p = ncplane_new(nc, 2, lenx, begy, begx, NULL)) == NULL){
-    pr->all_visible = false;
+    nr->all_visible = false;
     return t;
   }
   // FIXME push the other ones down by 4
   return t;
 }
 
-tablet* panelreel_add(panelreel* pr, tablet* after, tablet *before,
+tablet* ncreel_add(ncreel* nr, tablet* after, tablet *before,
                       tabletcb cbfxn, void* opaque){
   tablet* t;
   if(after && before){
@@ -690,7 +690,7 @@ tablet* panelreel_add(panelreel* pr, tablet* after, tablet *before,
     // inserted at the "end" relative to the focus. The first one to be added
     // gets and keeps the focus. New ones will go on the bottom, until we run
     // out of space. New tablets are then created off-screen.
-    before = pr->tablets;
+    before = nr->tablets;
   }
   if((t = malloc(sizeof(*t))) == NULL){
     return NULL;
@@ -708,31 +708,31 @@ tablet* panelreel_add(panelreel* pr, tablet* after, tablet *before,
     t->prev->next = t;
   }else{ // we're the first tablet
     t->prev = t->next = t;
-    pr->tablets = t;
+    nr->tablets = t;
   }
   t->cbfxn = cbfxn;
   t->curry = opaque;
-  ++pr->tabletcount;
+  ++nr->tabletcount;
   t->p = NULL;
   // if we have room, it needs become visible immediately, in the proper place,
-  // lest we invalidate the preconditions of panelreel_arrange_denormalized().
-  insert_new_panel(pr->p->nc, pr, t);
-  panelreel_redraw(pr); // don't return failure; tablet was still created...
+  // lest we invalidate the preconditions of ncreel_arrange_denormalized().
+  insert_new_panel(nr->p->nc, nr, t);
+  ncreel_redraw(nr); // don't return failure; tablet was still created...
   return t;
 }
 
-int panelreel_del_focused(panelreel* pr){
-  return panelreel_del(pr, pr->tablets);
+int ncreel_del_focused(ncreel* nr){
+  return ncreel_del(nr, nr->tablets);
 }
 
-int panelreel_del(panelreel* pr, struct tablet* t){
-  if(pr == NULL || t == NULL){
+int ncreel_del(ncreel* nr, struct tablet* t){
+  if(nr == NULL || t == NULL){
     return -1;
   }
   t->prev->next = t->next;
-  if(pr->tablets == t){
-    if((pr->tablets = t->next) == t){
-      pr->tablets = NULL;
+  if(nr->tablets == t){
+    if((nr->tablets = t->next) == t){
+      nr->tablets = NULL;
     }
   }
   t->next->prev = t->prev;
@@ -740,23 +740,23 @@ int panelreel_del(panelreel* pr, struct tablet* t){
     ncplane_destroy(t->p);
   }
   free(t);
-  --pr->tabletcount;
-  panelreel_redraw(pr);
+  --nr->tabletcount;
+  ncreel_redraw(nr);
   return 0;
 }
 
-int panelreel_destroy(panelreel* preel){
+int ncreel_destroy(ncreel* nreel){
   int ret = 0;
-  if(preel){
-    tablet* t = preel->tablets;
+  if(nreel){
+    tablet* t = nreel->tablets;
     while(t){
       t->prev->next = NULL;
       tablet* tmp = t->next;
-      panelreel_del(preel, t);
+      ncreel_del(nreel, t);
       t = tmp;
     }
-    ncplane_destroy(preel->p);
-    free(preel);
+    ncplane_destroy(nreel->p);
+    free(nreel);
   }
   return ret;
 }
@@ -769,17 +769,17 @@ const void* tablet_userptr_const(const tablet* t){
   return t->curry;
 }
 
-int panelreel_tabletcount(const panelreel* preel){
-  return preel->tabletcount;
+int ncreel_tabletcount(const ncreel* nreel){
+  return nreel->tabletcount;
 }
 
-int panelreel_touch(panelreel* pr, tablet* t){
+int ncreel_touch(ncreel* nr, tablet* t){
   (void)t; // FIXME make these more granular eventually
   int ret = 0;
-  if(pr->efd >= 0){
+  if(nr->efd >= 0){
     uint64_t val = 1;
-    if(write(pr->efd, &val, sizeof(val)) != sizeof(val)){
-// fprintf(stderr, "Error writing to eventfd %d (%s)\n", pr->efd, strerror(errno));
+    if(write(nr->efd, &val, sizeof(val)) != sizeof(val)){
+// fprintf(stderr, "Error writing to eventfd %d (%s)\n", nr->efd, strerror(errno));
       ret = -1;
     }
   }
@@ -797,31 +797,31 @@ move_tablet(ncplane* p, int deltax, int deltay){
   return 0;
 }
 
-tablet* panelreel_focused(panelreel* pr){
-  return pr->tablets;
+tablet* ncreel_focused(ncreel* nr){
+  return nr->tablets;
 }
 
-int panelreel_move(panelreel* preel, int x, int y){
-  ncplane* w = preel->p;
+int ncreel_move(ncreel* nreel, int x, int y){
+  ncplane* w = nreel->p;
   int oldx, oldy;
   ncplane_yx(w, &oldy, &oldx);
   const int deltax = x - oldx;
   const int deltay = y - oldy;
-  if(move_tablet(preel->p, deltax, deltay)){
-    ncplane_move_yx(preel->p, oldy, oldx);
-    panelreel_redraw(preel);
+  if(move_tablet(nreel->p, deltax, deltay)){
+    ncplane_move_yx(nreel->p, oldy, oldx);
+    ncreel_redraw(nreel);
     return -1;
   }
-  if(preel->tablets){
-    tablet* t = preel->tablets;
+  if(nreel->tablets){
+    tablet* t = nreel->tablets;
     do{
       if(t->p == NULL){
         break;
       }
       move_tablet(t->p, deltax, deltay);
-    }while((t = t->prev) != preel->tablets);
-    if(t != preel->tablets){ // don't repeat if we covered all tablets
-      for(t = preel->tablets->next ; t != preel->tablets ; t = t->next){
+    }while((t = t->prev) != nreel->tablets);
+    if(t != nreel->tablets){ // don't repeat if we covered all tablets
+      for(t = nreel->tablets->next ; t != nreel->tablets ; t = t->next){
         if(t->p == NULL){
           break;
         }
@@ -829,28 +829,28 @@ int panelreel_move(panelreel* preel, int x, int y){
       }
     }
   }
-  panelreel_redraw(preel);
+  ncreel_redraw(nreel);
   return 0;
 }
 
-tablet* panelreel_next(panelreel* pr){
-  if(pr->tablets){
-    pr->tablets = pr->tablets->next;
+tablet* ncreel_next(ncreel* nr){
+  if(nr->tablets){
+    nr->tablets = nr->tablets->next;
 //fprintf(stderr, "---------------> moved to next, %p to %p <----------\n",
-//        pr->tablets->prev, pr->tablets);
-    pr->last_traveled_direction = 1;
+//        nr->tablets->prev, nr->tablets);
+    nr->last_traveled_direction = 1;
   }
-  panelreel_redraw(pr);
-  return pr->tablets;
+  ncreel_redraw(nr);
+  return nr->tablets;
 }
 
-tablet* panelreel_prev(panelreel* pr){
-  if(pr->tablets){
-    pr->tablets = pr->tablets->prev;
+tablet* ncreel_prev(ncreel* nr){
+  if(nr->tablets){
+    nr->tablets = nr->tablets->prev;
 //fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n",
-//        pr->tablets->next, pr->tablets);
-    pr->last_traveled_direction = -1;
+//        nr->tablets->next, nr->tablets);
+    nr->last_traveled_direction = -1;
   }
-  panelreel_redraw(pr);
-  return pr->tablets;
+  ncreel_redraw(nr);
+  return nr->tablets;
 }

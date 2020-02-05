@@ -38,7 +38,7 @@ int jungle_demo(struct notcurses* nc);
 int sliding_puzzle_demo(struct notcurses* nc);
 int view_demo(struct notcurses* nc);
 int eagle_demo(struct notcurses* nc);
-int panelreel_demo(struct notcurses* nc);
+int reel_demo(struct notcurses* nc);
 int xray_demo(struct notcurses* nc);
 int luigi_demo(struct notcurses* nc);
 int intro(struct notcurses* nc);
