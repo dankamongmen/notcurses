@@ -288,11 +288,15 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->attrword = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
+  cell_init(&p->basecell);
+  // FIXME we ought lock the notcurses struct here, but that breaks inside of
+  // e.g. ncplane_dup(). the latter ought be purely ncplane-based locking!
+  //pthread_mutex_lock(&nc->lock);
   p->z = nc->top;
   nc->top = p;
   p->nc = nc;
-  cell_init(&p->basecell);
   nc->stats.fbbytes += fbsize;
+  //pthread_mutex_unlock(&nc->lock);
   return p;
 }
 
@@ -1091,30 +1095,48 @@ int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
 }
 
 int ncplane_set_fg(ncplane* n, unsigned channel){
-  return channels_set_fg(&n->channels, channel);
+  int ret;
+  ncplane_lock(n);
+  ret = channels_set_fg(&n->channels, channel);
+  ncplane_unlock(n);
+  return ret;
 }
 
 int ncplane_set_bg(ncplane* n, unsigned channel){
-  return channels_set_bg(&n->channels, channel);
+  int ret;
+  ncplane_lock(n);
+  ret = channels_set_bg(&n->channels, channel);
+  ncplane_unlock(n);
+  return ret;
 }
 
 int ncplane_set_fg_alpha(ncplane* n, int alpha){
-  return channels_set_fg_alpha(&n->channels, alpha);
+  int ret;
+  ncplane_lock(n);
+  ret = channels_set_fg_alpha(&n->channels, alpha);
+  ncplane_unlock(n);
+  return ret;
 }
 
 int ncplane_set_bg_alpha(ncplane *n, int alpha){
-  return channels_set_bg_alpha(&n->channels, alpha);
+  int ret;
+  ncplane_lock(n);
+  ret = channels_set_bg_alpha(&n->channels, alpha);
+  ncplane_unlock(n);
+  return ret;
 }
 
 int ncplane_set_fg_palindex(ncplane* n, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
     return -1;
   }
+  ncplane_lock(n);
   n->channels |= CELL_FGDEFAULT_MASK;
   n->channels |= CELL_FG_PALETTE;
   n->channels &= ~(CELL_ALPHA_MASK << 32u);
   n->attrword &= 0xffff00ff;
   n->attrword |= (idx << 8u);
+  ncplane_unlock(n);
   return 0;
 }
 
@@ -1122,16 +1144,20 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
     return -1;
   }
+  ncplane_lock(n);
   n->channels |= CELL_BGDEFAULT_MASK;
   n->channels |= CELL_BG_PALETTE;
   n->channels &= ~CELL_ALPHA_MASK;
   n->attrword &= 0xffffff00;
   n->attrword |= idx;
+  ncplane_unlock(n);
   return 0;
 }
 
 int ncplane_set_base_cell(ncplane* ncp, const cell* c){
+  ncplane_lock(ncp);
   int ret = cell_duplicate(ncp, &ncp->basecell, c);
+  ncplane_unlock(ncp);
   if(ret < 0){
     return -1;
   }
@@ -1139,11 +1165,19 @@ int ncplane_set_base_cell(ncplane* ncp, const cell* c){
 }
 
 int ncplane_set_base(ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc){
-  return cell_prime(ncp, &ncp->basecell, egc, attrword, channels);
+  int ret;
+  ncplane_lock(ncp);
+  ret = cell_prime(ncp, &ncp->basecell, egc, attrword, channels);
+  ncplane_unlock(ncp);
+  return ret;
 }
 
 int ncplane_base(ncplane* ncp, cell* c){
-  return cell_duplicate(ncp, c, &ncp->basecell);
+  int ret;
+  ncplane_lock(ncp);
+  ret = cell_duplicate(ncp, c, &ncp->basecell);
+  ncplane_unlock(ncp);
+  return ret;
 }
 
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
