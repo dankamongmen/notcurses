@@ -56,6 +56,7 @@ int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void*
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   int64_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
+  stdn->erase();
   stdn->printf(0, NCAlign::Left, "frame %06d\u2026", *framecount);
   char* subtitle = ncvisual_subtitle(ncv);
   if(subtitle){
