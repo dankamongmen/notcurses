@@ -289,14 +289,12 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->channels = 0;
   egcpool_init(&p->pool);
   cell_init(&p->basecell);
-  // FIXME we ought lock the notcurses struct here, but that breaks inside of
-  // e.g. ncplane_dup(). the latter ought be purely ncplane-based locking!
-  //pthread_mutex_lock(&nc->lock);
+  pthread_mutex_lock(&nc->lock);
   p->z = nc->top;
   nc->top = p;
   p->nc = nc;
   nc->stats.fbbytes += fbsize;
-  //pthread_mutex_unlock(&nc->lock);
+  pthread_mutex_unlock(&nc->lock);
   return p;
 }
 
@@ -357,7 +355,8 @@ ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
 }
 
 ncplane* ncplane_dup(ncplane* n, void* opaque){
-  ncplane_lock(n);
+  // FIXME need ncplane-level locking around n; notcurses-level locking breaks
+  // on calls to ncplane_destroy()/ncplane_new()
   int dimy = n->leny;
   int dimx = n->lenx;
   int aty = n->absy;
@@ -378,7 +377,6 @@ ncplane* ncplane_dup(ncplane* n, void* opaque){
       memcpy(newn->fb, n->fb, sizeof(*n->fb) * dimy * dimy);
     }
   }
-  ncplane_unlock(n);
   return newn;
 }
 
@@ -1197,52 +1195,66 @@ advance_cursor(ncplane* n, int cols){
 
 // 'n' ends up above 'above'
 int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
+  ncplane_lock(n);
   if(n->z == above){
+    ncplane_unlock(n);
     return 0;
   }
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
+    ncplane_unlock(n);
     return -1;
   }
   ncplane** aa = find_above_ncplane(above);
   if(aa == NULL){
+    ncplane_unlock(n);
     return -1;
   }
   *an = n->z; // splice n out
   n->z = above; // attach above below n
   *aa = n; // spline n in above
+  ncplane_unlock(n);
   return 0;
 }
 
 // 'n' ends up below 'below'
 int ncplane_move_below_unsafe(ncplane* restrict n, ncplane* restrict below){
+  ncplane_lock(n);
   if(below->z == n){
+    ncplane_unlock(n);
     return 0;
   }
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
+    ncplane_unlock(n);
     return -1;
   }
   *an = n->z; // splice n out
   n->z = below->z; // reattach subbelow list to n
   below->z = n; // splice n in below
+  ncplane_unlock(n);
   return 0;
 }
 
 int ncplane_move_top(ncplane* n){
+  ncplane_lock(n);
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
+    ncplane_unlock(n);
     return -1;
   }
   *an = n->z; // splice n out
   n->z = n->nc->top;
   n->nc->top = n;
+  ncplane_unlock(n);
   return 0;
 }
 
 int ncplane_move_bottom(ncplane* n){
+  ncplane_lock(n);
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
+    ncplane_unlock(n);
     return -1;
   }
   *an = n->z; // splice n out
@@ -1252,6 +1264,7 @@ int ncplane_move_bottom(ncplane* n){
   }
   *an = n;
   n->z = NULL;
+  ncplane_unlock(n);
   return 0;
 }
 

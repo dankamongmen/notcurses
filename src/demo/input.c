@@ -66,7 +66,7 @@ pass_along(const ncinput* ni){
 }
 
 static int
-handle_mouse(struct notcurses* nc, const ncinput* ni){
+handle_mouse(const ncinput* ni){
   if(ni->id != NCKEY_BUTTON1 && ni->id != NCKEY_RELEASE){
     return 0;
   }
@@ -76,9 +76,9 @@ handle_mouse(struct notcurses* nc, const ncinput* ni){
   }else{
     ret = hud_grab(ni->y, ni->x);
   }
-  if(ret == 0){
-    ret = demo_render(nc);
-  }
+  // do not render here. the demos, if coded properly, will be regularly
+  // rendering (if via demo_nanosleep() if nothing else). rendering based off
+  // HUD movements can cause disruptions due to the main thread being unready.
   return ret;
 }
 
@@ -92,7 +92,7 @@ ultramegaok_demo(void* vnc){
       continue;
     }
     if(nckey_mouse_p(ni.id)){
-      handle_mouse(nc, &ni);
+      handle_mouse(&ni);
     }else{
       if(ni.id == 'q'){
         interrupt_demo();
