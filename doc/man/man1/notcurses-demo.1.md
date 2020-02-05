@@ -68,9 +68,9 @@ Proper display requires:
 * Good Unicode support in your libc, font, and terminal emulator.
 
 The Debian version of notcurses leaves out certain multimedia considered
-non-free under the Debian Free Software Guidelines. As a result, the chunli,
-eagle, fallin', jungle, luigi, and view demos are unavailable through the
-Debian package.
+non-free under the Debian Free Software Guidelines. As a result, the
+**chunli**, **eagle**, **fallin'**, **jungle**, **luigi**, and **view** demos
+are unavailable through the Debian package.
 
 # BUGS
 
