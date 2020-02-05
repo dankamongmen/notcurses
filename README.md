@@ -2617,9 +2617,6 @@ some design decisions might surprise NCURSES programmers:
 This isn't "features currently missing", but rather "features I do not intend
 to implement".
 
-* There is no immediate-output mode (`immedok()`, `echochar()` etc.).
-  `ncplane_putc()` followed by `notcurses_render()` ought be just as fast as
-  `echochar()`.
 * There is no support for soft labels (`slk_init()`, etc.).
 * There is no concept of subwindows which share memory with their parents.
 * There is no tracing functionality ala `trace(3NCURSES)`. Superior external
