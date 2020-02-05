@@ -7,6 +7,6 @@
 version=4
 
 # GitHub hosted projects
-opts="filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.tar\.gz%notcurses-$1.tar.gz%" \
+opts="filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.dfsg\.tar\.gz%notcurses-$1.tar.gz%" \
    https://github.com/dankamongmen/notcurses/tags \
    (?:.*?/)?v?(\d[\d.]*)\.tar\.gz debian uupdate
