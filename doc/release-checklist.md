@@ -10,9 +10,13 @@
 * Draft new release at https://github.com/dankamongmen/notcurses/releases
   * Title is "v$VERSION—some quip"
   * That's an em dash (U+2014, UTF-8 e2 80 94), get it right
+* Repack DFSG-safe tarball, upload to github
+  * download github-spun tarball
+  * remove nonfree multimedia
+  * `tar -cJf ../v$VERSION.dfsg.tar.xz -C.. notcurses-$VERSION`
+  * upload to github
 * Build new Debian package
-  * git clean -d -f -x
-  * `tar -cJf ../notcurses_$VERSION.orig.tar.xz --exclude=.git --exclude=debian -C.. notcurses-$VERSION`
+  * download DFSG tarball, unpack
   * debuild
 * Copy `../*notcurses*$VERSION*` to apt repo, import with `reprepro`
 * Upload new AUR information
