@@ -238,6 +238,9 @@ int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
 int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
+void ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
+void ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
+void ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
 int ncdirect_stop(struct ncdirect* nc);
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, int* averr);
 typedef enum {
