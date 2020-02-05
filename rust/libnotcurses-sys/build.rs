@@ -3,6 +3,7 @@ extern crate bindgen;
 use std::env;
 use std::path::PathBuf;
 
+// largely taken from https://rust-lang.github.io/rust-bindgen/tutorial-3.html
 fn main() {
     pkg_config::Config::new()
         .atleast_version("1.1.6")
@@ -11,6 +12,10 @@ fn main() {
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
     println!("cargo:rerun-if-changed=wrapper.h");
+
+    cc::Build::new()
+        .file("stdout.c")
+        .compile("stdout");
 
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
