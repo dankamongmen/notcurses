@@ -21,7 +21,11 @@ static demoresult* results;
 static char datadir[PATH_MAX];
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
+#ifndef DFSG_BUILD
 static const char DEFAULT_DEMO[] = "ixetbcgpwuvlfsjo";
+#else
+static const char DEFAULT_DEMO[] = "ixtbgpwuso";
+#endif
 
 void interrupt_demo(void){
   atomic_store(&interrupted, true);
@@ -67,22 +71,28 @@ struct timespec demodelay = {
   .tv_nsec = 0,
 };
 
+#ifndef DFSG_BUILD
+#define NONFREE(name, fxn) { name, fxn, },
+#else
+#define NONFREE(name, fxn) { NULL, NULL, },
+#endif
+
 static struct {
   const char* name;
   int (*fxn)(struct notcurses*);
 } demos[26] = {
   { NULL, NULL, },
   { "box", box_demo, },
-  { "chunli", chunli_demo, },
+  NONFREE("chunli", chunli_demo)
   { NULL, NULL, },
-  { "eagle", eagle_demo, },
-  { "fallin'", fallin_demo, },
+  NONFREE("eagle", eagle_demo)
+  NONFREE("fallin'", fallin_demo)
   { "grid", grid_demo, },
   { NULL, NULL, },
   { "intro", intro, },
-  { "jungle", jungle_demo, },
+  NONFREE("jungle", jungle_demo)
   { NULL, NULL, },
-  { "luigi", luigi_demo, },
+  NONFREE("luigi", luigi_demo)
   { NULL, NULL, },
   { NULL, NULL, },
   { "outro", outro, },
@@ -92,7 +102,7 @@ static struct {
   { "sliders", sliding_puzzle_demo, },
   { "trans", trans_demo, },
   { "uniblock", unicodeblocks_demo, },
-  { "view", view_demo, },
+  NONFREE("view", view_demo)
   { "whiteout", witherworm_demo, },
   { "xray", xray_demo, },
   { NULL, NULL, },
@@ -348,6 +358,9 @@ summary_table(struct ncdirect* nc, const char* spec){
   if(failed){
     fprintf(stderr, "\nError running demo. Is \"%s\" the correct data path?\n", datadir);
   }
+#ifdef DFSG_BUILD
+  fprintf(stderr, "DFSG version. Some demos are missing.\n");
+#endif
   return failed;
 }
 
