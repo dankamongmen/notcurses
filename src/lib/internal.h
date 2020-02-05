@@ -94,7 +94,9 @@ typedef struct ncvisual {
   int placex, placey;
   ncscale_e style;         // none, scale, or stretch
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
+#ifndef DISABLE_FFMPEG
   AVSubtitle subtitle;
+#endif
 } ncvisual;
 
 // current presentation state of the terminal. it is carried across render

@@ -744,6 +744,7 @@ void notcurses_reset_stats(notcurses* nc, ncstats* stats){
 // Convert a notcurses log level to its ffmpeg equivalent.
 static int
 ffmpeg_log_level(ncloglevel_e level){
+#ifndef DISABLE_FFMPEG
   switch(level){
     case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
     case NCLOGLEVEL_PANIC: return AV_LOG_PANIC;
@@ -758,6 +759,9 @@ ffmpeg_log_level(ncloglevel_e level){
   }
   fprintf(stderr, "Invalid log level: %d\n", level);
   return AV_LOG_TRACE;
+#else
+  return level;
+#endif
 }
 
 ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){

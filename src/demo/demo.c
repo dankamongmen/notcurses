@@ -21,10 +21,14 @@ static demoresult* results;
 static char datadir[PATH_MAX];
 static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
-#ifndef DFSG_BUILD
-static const char DEFAULT_DEMO[] = "ixetbcgpwuvlfsjo";
+#ifdef DISABLE_FFMPEG
+static const char DEFAULT_DEMO[] = "itbgpwus";
 #else
+#ifdef DFSG_BUILD
 static const char DEFAULT_DEMO[] = "ixtbgpwuso";
+#else
+static const char DEFAULT_DEMO[] = "ixetbcgpwuvlfsjo";
+#endif
 #endif
 
 void interrupt_demo(void){
@@ -71,40 +75,53 @@ struct timespec demodelay = {
   .tv_nsec = 0,
 };
 
+// anything that's dfsg non-free requires ncvisual (i.e. it's all multimedia),
+// so also check for FFMPEG_DISABLE here in DFSG_BUILD
 #ifndef DFSG_BUILD
-#define NONFREE(name, fxn) { name, fxn, },
-#else
-#define NONFREE(name, fxn) { NULL, NULL, },
+#ifndef DISABLE_FFMPEG
+#define NONFREE(name, fxn) { name, fxn, }
+#endif
+#endif
+#ifndef NONFREE
+#define NONFREE(name, fxn) { NULL, NULL, }
 #endif
 
+#ifndef DISABLE_FFMPEG
+#define FREEFFMPEG(name, fxn) { name, fxn, }
+#else
+#define FREEFFMPEG(name, fxn) { NULL, NULL, }
+#endif
+
+// define with NONFREE() to exempt from any DFSG or non-FFmpeg build. define
+// with FREEFFMPEG() to exempt from any non-FFmpeg build.
 static struct {
   const char* name;
   int (*fxn)(struct notcurses*);
 } demos[26] = {
   { NULL, NULL, },
   { "box", box_demo, },
-  NONFREE("chunli", chunli_demo)
+  NONFREE("chunli", chunli_demo),
   { NULL, NULL, },
-  NONFREE("eagle", eagle_demo)
-  NONFREE("fallin'", fallin_demo)
+  NONFREE("eagle", eagle_demo),
+  NONFREE("fallin'", fallin_demo),
   { "grid", grid_demo, },
   { NULL, NULL, },
   { "intro", intro, },
-  NONFREE("jungle", jungle_demo)
+  NONFREE("jungle", jungle_demo),
   { NULL, NULL, },
-  NONFREE("luigi", luigi_demo)
+  NONFREE("luigi", luigi_demo),
   { NULL, NULL, },
   { NULL, NULL, },
-  { "outro", outro, },
+  FREEFFMPEG("outro", outro),
   { "panelreel", panelreel_demo, },
   { NULL, NULL, },
   { NULL, NULL, },
   { "sliders", sliding_puzzle_demo, },
   { "trans", trans_demo, },
   { "uniblock", unicodeblocks_demo, },
-  NONFREE("view", view_demo)
+  NONFREE("view", view_demo),
   { "whiteout", witherworm_demo, },
-  { "xray", xray_demo, },
+  FREEFFMPEG("xray", xray_demo),
   { NULL, NULL, },
   { NULL, NULL, },
 };
@@ -359,7 +376,9 @@ summary_table(struct ncdirect* nc, const char* spec){
     fprintf(stderr, "\nError running demo. Is \"%s\" the correct data path?\n", datadir);
   }
 #ifdef DFSG_BUILD
-  fprintf(stderr, "DFSG version. Some demos are missing.\n");
+  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
+  fflush(stdout); // in case we print to stderr below, we want color from above
+  fprintf(stderr, "\nDFSG version. Some demos are missing.\n");
 #endif
   return failed;
 }

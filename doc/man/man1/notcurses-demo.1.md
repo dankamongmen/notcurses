@@ -61,6 +61,7 @@ At any time, press 'q' to quit. The demo is best run in at least a 80x45 termina
 demospec: Select which demos to run, and what order to run them in. The default is **ixetbcgpwuvlfsjo**. See above for a list of demos.
 
 # NOTES
+
 Proper display requires:
 
 * A terminal advertising the **rgb** terminfo(5) capability, or that the environment variable **COLORTERM** is defined to **24bit** (and that the terminal honors this variable),
@@ -72,10 +73,10 @@ non-free under the Debian Free Software Guidelines. As a result, the
 **chunli**, **eagle**, **fallin'**, **jungle**, **luigi**, and **view** demos
 are unavailable through the Debian package.
 
-# BUGS
+If notcurses is built without FFmpeg, the **chunli**, **eagle**, **fallin'**,
+**outro**, **view**, and **xray** demos will be unavailable.
 
-If notcurses is built without FFmpeg, the following demos will fail immedaitely when specified: **xray**,
-**eagle**, **chunli**, **fallin'**, **view**, **outro**.
+# BUGS
 
 # AUTHORS
 
@@ -83,7 +84,8 @@ If notcurses is built without FFmpeg, the following demos will fail immedaitely 
 * Images from Street Fighter II and Mega Man 2 copyright Capcom of America.
 * Images from Super Mario Bros. copyright Nintendo of America.
 * Images from Ninja Gaiden copyright Koei Tecmo America.
-* "Jungle with Rain" and "Ruins with Rain" copyright Mark Ferrari.
+* Images from Final Fantasy copyright Square Enix Co Ltd.
+* "Jungle with Rain" and "Ruins with Rain" copyright Mark Ferrari/Living Worlds.
 
 # SEE ALSO
 notcurses(3notcurses), ncurses(3ncurses), terminfo(5)
