@@ -14,6 +14,7 @@ set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
 option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
 option(BUILD_PYTHON "Build Python wrappers" ON)
+option(DFSG_BUILD "DFSG build (no non-free media)" OFF)
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
@@ -510,7 +511,8 @@ install(TARGETS notcurses
     COMPONENT Development
 )
 if(${BUILD_PYTHON})
-  if(DEFINED ENV{DEB_BUILD_ARCH})
+  # if DFSG_BUILD has been selected, assume we're building debs
+  if("${DFSG_BUILD}")
     install(
       CODE
         "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} --skip-build
