@@ -138,7 +138,7 @@ usage(const char* exe, int status){
   fprintf(out, " -d: delay multiplier (non-negative float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
-  fprintf(out, " -p: data file path\n");
+  fprintf(out, " -p: data file path (default: %s)\n", NOTCURSES_SHARE);
   fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
   for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
     if(demos[i].name){
