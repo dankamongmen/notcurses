@@ -19,7 +19,7 @@ database, but is at is best in a "DirectColor" 24bpp RGB environment. If
 **notcurses-demo** seems to generate garbage, something is likely configured in
 a way that is going to prevent notcurses from working.
 
-The demonstrations include:
+The demonstrations include (see NOTES below):
 
 * (i)ntro—a setting of tone
 * (b)oxes—pulsating boxes with a transparent center
@@ -66,6 +66,11 @@ Proper display requires:
 * A terminal advertising the **rgb** terminfo(5) capability, or that the environment variable **COLORTERM** is defined to **24bit** (and that the terminal honors this variable),
 * A monospaced font, and
 * Good Unicode support in your libc, font, and terminal emulator.
+
+The Debian version of notcurses leaves out certain multimedia considered
+non-free under the Debian Free Software Guidelines. As a result, the chunli,
+eagle, fallin', jungle, luigi, and view demos are unavailable through the
+Debian package.
 
 # BUGS
 
