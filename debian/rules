@@ -10,6 +10,9 @@ export PYBUILD_NAME=notcurses
 %:
 	dh $@ --buildsystem=cmake
 
+override_dh_auto_configure:
+	dh_auto_configure -- -DDFSG_BUILD=ON
+
 # dh_auto_test -O--buildsystem=cmake -O--no-parallel
 # Don't try to run ncurses tests
 override_dh_auto_test:

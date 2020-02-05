@@ -2,4 +2,5 @@
 #define notcurses_VERSION_MINOR "@notcurses_VERSION_MINOR@"
 #define notcurses_VERSION_PATCH "@notcurses_VERSION_PATCH@"
 #cmakedefine DISABLE_FFMPEG
+#cmakedefine DFSG_BUILD
 #define NOTCURSES_SHARE "@NOTCURSES_SHARE@"
