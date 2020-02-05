@@ -1,3 +1,9 @@
+notcurses (1.1.6-1) UNRELEASED; urgency=medium
+
+  * Update watchfile to grab dfsg version of source
+
+ -- Nick Black <dankamongmen@gmail.com>  Tue, 04 Feb 2020 23:47:28 -0500
+
 notcurses (1.1.5-1) unstable; urgency=medium
 
   * Use dh-sequence-python3 in Build-Deps rather than
