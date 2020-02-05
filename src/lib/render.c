@@ -448,9 +448,10 @@ term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 }
 
 // write any escape sequences necessary to set the desired style
-static int
-term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
-               bool* normalized){
+static inline int
+term_setstyles(FILE* out, uint32_t* curattr, const cell* c, bool* normalized,
+               const char* sgr0, const char* sgr, const char* italics,
+               const char* italoff){
   *normalized = false;
   uint32_t cellattr = cell_styles(c);
   if(cellattr == *curattr){
@@ -462,24 +463,24 @@ term_setstyles(const notcurses* nc, FILE* out, uint32_t* curattr, const cell* c,
   if((cellattr ^ *curattr) & 0x00ff0000ul){
     *normalized = true; // FIXME this is pretty conservative
     // if everything's 0, emit the shorter sgr0
-    if(nc->sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
-      if(term_emit("sgr0", nc->sgr0, out, false) < 0){
+    if(sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
+      if(term_emit("sgr0", sgr0, out, false) < 0){
         ret = -1;
       }
-    }else if(term_emit("sgr", tiparm(nc->sgr, cellattr & NCSTYLE_STANDOUT,
-                                        cellattr & NCSTYLE_UNDERLINE,
-                                        cellattr & NCSTYLE_REVERSE,
-                                        cellattr & NCSTYLE_BLINK,
-                                        cellattr & NCSTYLE_DIM,
-                                        cellattr & NCSTYLE_BOLD,
-                                        cellattr & NCSTYLE_INVIS,
-                                        cellattr & NCSTYLE_PROTECT, 0),
-                                        out, false) < 0){
+    }else if(term_emit("sgr", tiparm(sgr, cellattr & NCSTYLE_STANDOUT,
+                                     cellattr & NCSTYLE_UNDERLINE,
+                                     cellattr & NCSTYLE_REVERSE,
+                                     cellattr & NCSTYLE_BLINK,
+                                     cellattr & NCSTYLE_DIM,
+                                     cellattr & NCSTYLE_BOLD,
+                                     cellattr & NCSTYLE_INVIS,
+                                     cellattr & NCSTYLE_PROTECT, 0),
+                                     out, false) < 0){
       ret = -1;
     }
   }
   // sgr will blow away italics if they were set beforehand
-  ret |= term_setstyle(out, *curattr, cellattr, NCSTYLE_ITALIC, nc->italics, nc->italoff);
+  ret |= term_setstyle(out, *curattr, cellattr, NCSTYLE_ITALIC, italics, italoff);
   *curattr = cellattr;
   return ret;
 }
@@ -609,18 +610,42 @@ term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
   return 0;
 }
 
-void ncdirect_styles_on(ncdirect* n, unsigned stylebits){
-  // FIXME
+static inline int
+ncdirect_style_emit(const char* sgr, unsigned stylebits, FILE* out){
+  return term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
+                                 stylebits & NCSTYLE_UNDERLINE,
+                                 stylebits & NCSTYLE_REVERSE,
+                                 stylebits & NCSTYLE_BLINK,
+                                 stylebits & NCSTYLE_DIM,
+                                 stylebits & NCSTYLE_BOLD,
+                                 stylebits & NCSTYLE_INVIS,
+                                 stylebits & NCSTYLE_PROTECT, 0), out, false);
+}
+
+int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
+  n->attrword |= stylebits;
+  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+    return 0;
+  }
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
 }
 
 // turn off any specified stylebits
-void ncdirect_styles_off(ncdirect* n, unsigned stylebits){
-  // FIXME
+int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
+  n->attrword &= ~stylebits;
+  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+    return 0;
+  }
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
 }
 
 // set the current stylebits to exactly those provided
-void ncdirect_styles_set(ncdirect* n, unsigned stylebits){
-  // FIXME
+int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
+  n->attrword = stylebits;
+  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+    return 0;
+  }
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
 }
 
 int ncdirect_bg(ncdirect* nc, unsigned rgb){
@@ -631,7 +656,7 @@ int ncdirect_bg(ncdirect* nc, unsigned rgb){
                   (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
-  return fflush(stdout);
+  return 0;
 }
 
 int ncdirect_fg(ncdirect* nc, unsigned rgb){
@@ -642,7 +667,7 @@ int ncdirect_fg(ncdirect* nc, unsigned rgb){
                   (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
-  return fflush(stdout);
+  return 0;
 }
 
 int ncdirect_bg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
@@ -652,7 +677,7 @@ int ncdirect_bg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp, r, g, b)){
     return -1;
   }
-  return fflush(stdout);
+  return 0;
 }
 
 int ncdirect_fg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
@@ -662,7 +687,7 @@ int ncdirect_fg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp, r, g, b)){
     return -1;
   }
-  return fflush(stdout);
+  return 0;
 }
 
 static inline int
@@ -736,7 +761,8 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         // set the style. this can change the color back to the default; if it
         // does, we need update our elision possibilities.
         bool normalized;
-        ret |= term_setstyles(nc, out, &nc->rstate.curattr, srccell, &normalized);
+        ret |= term_setstyles(out, &nc->rstate.curattr, srccell, &normalized,
+                              nc->sgr0, nc->sgr, nc->italics, nc->italoff);
         if(normalized){
           nc->rstate.defaultelidable = true;
           nc->rstate.bgelidable = false;

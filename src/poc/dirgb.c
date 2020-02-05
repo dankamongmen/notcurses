@@ -55,6 +55,43 @@ int main(void){
     }
   }
   printf("\n");
+
+  if(ncdirect_styles_set(nc, NCSTYLE_BOLD)){
+    ncdirect_stop(nc);
+    return EXIT_FAILURE;
+  }
+  for(int t = 768 ; t ; t -= 4){
+    if(print_rgb(nc, t)){
+      ncdirect_stop(nc);
+      return EXIT_FAILURE;
+    }
+  }
+  printf("\n");
+
+  if(ncdirect_styles_set(nc, NCSTYLE_UNDERLINE)){
+    ncdirect_stop(nc);
+    return EXIT_FAILURE;
+  }
+  for(int t = 0 ; t < 768 ; t += 4){
+    if(print_rgb(nc, t)){
+      ncdirect_stop(nc);
+      return EXIT_FAILURE;
+    }
+  }
+  printf("\n");
+
+  if(ncdirect_styles_set(nc, NCSTYLE_ITALIC)){
+    ncdirect_stop(nc);
+    return EXIT_FAILURE;
+  }
+  for(int t = 768 ; t ; t -= 4){
+    if(print_rgb(nc, t)){
+      ncdirect_stop(nc);
+      return EXIT_FAILURE;
+    }
+  }
+  printf("\n");
+
   if(ncdirect_stop(nc)){
     return EXIT_FAILURE;
   }
