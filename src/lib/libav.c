@@ -429,16 +429,16 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
 // from the upper left by 'placey' and 'placex'. Each row ought occupy
 // 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
 // subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
-int bgrx_blit(ncplane* nc, int placey, int placex, int linesize,
-              const unsigned char* data, int begy, int begx,
-              int leny, int lenx){
+int ncblit_bgrx(ncplane* nc, int placey, int placex, int linesize,
+                const unsigned char* data, int begy, int begx,
+                int leny, int lenx){
 	return tria_blit(nc, placey, placex, linesize, data,
 			 begy, begx, leny, lenx, true);
 }
 
-int rgba_blit(ncplane* nc, int placey, int placex, int linesize,
-              const unsigned char* data, int begy, int begx,
-              int leny, int lenx){
+int ncblit_rgba(ncplane* nc, int placey, int placex, int linesize,
+                const unsigned char* data, int begy, int begx,
+                int leny, int lenx){
 	return tria_blit(nc, placey, placex, linesize, data,
 			 begy, begx, leny, lenx, false);
 }
@@ -478,7 +478,7 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   if(bpp != 32){
 	  return -1;
   }
-  rgba_blit(ncv->ncp, ncv->placey, ncv->placex, linesize, data, begy, begx, leny, lenx);
+  ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, linesize, data, begy, begx, leny, lenx);
   //av_frame_unref(ncv->oframe);
   return 0;
 }
