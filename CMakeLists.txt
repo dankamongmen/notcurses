@@ -326,23 +326,23 @@ target_compile_definitions(notcurses-input
     FORTIFY_SOURCE=2
 )
 
-# notcurses-planereel
-file(GLOB PLANEREELSRCS CONFIGURE_DEPENDS src/planereel/*.cpp)
-add_executable(notcurses-planereel ${PLANEREELSRCS})
-target_include_directories(notcurses-planereel
+# notcurses-ncreel
+file(GLOB ncreelSRCS CONFIGURE_DEPENDS src/ncreel/*.cpp)
+add_executable(notcurses-ncreel ${ncreelSRCS})
+target_include_directories(notcurses-ncreel
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
 )
-target_link_libraries(notcurses-planereel
+target_link_libraries(notcurses-ncreel
   PRIVATE
     notcurses notcurses++
 )
-target_compile_options(notcurses-planereel
+target_compile_options(notcurses-ncreel
   PRIVATE
     -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
-target_compile_definitions(notcurses-planereel
+target_compile_definitions(notcurses-ncreel
   PRIVATE
     FORTIFY_SOURCE=2
 )
@@ -500,7 +500,7 @@ if(NOT "${DISABLE_FFMPEG}")
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
 install(TARGETS notcurses-input DESTINATION bin)
-install(TARGETS notcurses-planereel DESTINATION bin)
+install(TARGETS notcurses-ncreel DESTINATION bin)
 install(TARGETS notcurses
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}

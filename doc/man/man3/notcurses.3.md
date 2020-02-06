@@ -96,7 +96,8 @@ particular EGC is heavily reused within a plane.
 
 A few high-level widgets are included, all built atop ncplanes:
 
-* **notcurses_ncreel(3)** for hierarchal display of data
+* **notcurses_menu(3)** for menu bars at the top or bottom of the screen
+* **notcurses_reel(3)** for hierarchal display of data
 * **notcurses_selector(3)** for selecting one item from a set
 
 ## Threads
@@ -131,11 +132,12 @@ previous action.
 **notcurses_fade(3)**, **notcurses_init(3)**, **notcurses_input(3)**,
 **notcurses_directmode(3)**,
 **notcurses_lines(3)**,
+**notcurses_menu(3)**,
 **notcurses_ncplane(3)**,
 **notcurses_ncvisual(3)**,
 **notcurses_output(3)**,
 **notcurses_palette(3)**,
-**notcurses_ncreel(3)**,
+**notcurses_reel(3)**,
 **notcurses_render(3)**,
 **notcurses_resize(3)**,
 **notcurses_selector(3)**,

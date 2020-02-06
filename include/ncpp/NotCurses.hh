@@ -61,9 +61,9 @@ namespace ncpp
 			return *_instance == nullptr || _instance->nc == nullptr;
 		}
 
-		static const char* enmetric (uintmax_t val, unsigned decimal, char *buf, int omitdec, unsigned mult, int uprefix) noexcept
+		static const char* ncmetric (uintmax_t val, unsigned decimal, char *buf, int omitdec, unsigned mult, int uprefix) noexcept
 		{
-			return ::enmetric (val, decimal, buf, omitdec, mult, uprefix);
+			return ::ncmetric (val, decimal, buf, omitdec, mult, uprefix);
 		}
 
 		static const char* qprefix (uintmax_t val, unsigned decimal, char *buf, int omitdec) noexcept

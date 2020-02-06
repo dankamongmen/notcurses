@@ -2067,19 +2067,19 @@ API const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);
 // mult: base of suffix system (almost always 1000 or 1024)
 // uprefix: character to print following suffix ('i' for kibibytes basically).
 //   only printed if suffix is actually printed (input >= mult).
-API const char* enmetric(uintmax_t val, unsigned decimal, char* buf,
+API const char* ncmetric(uintmax_t val, unsigned decimal, char* buf,
                          int omitdec, unsigned mult, int uprefix);
 
 // Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1.
 static inline const char*
 qprefix(uintmax_t val, unsigned decimal, char* buf, int omitdec){
-  return enmetric(val, decimal, buf, omitdec, 1000, '\0');
+  return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
 }
 
 // Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1.
 static inline const char*
 bprefix(uintmax_t val, unsigned decimal, char* buf, int omitdec){
-  return enmetric(val, decimal, buf, omitdec, 1024, 'i');
+  return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
 
 API void notcurses_cursor_enable(struct notcurses* nc);
