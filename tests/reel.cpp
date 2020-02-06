@@ -1,11 +1,11 @@
 #include "main.h"
 #include <iostream>
 
-int panelcb(struct tablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
-  CHECK(tablet_ncplane(t));
+int panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
+  CHECK(nctablet_ncplane(t));
   CHECK(begx < maxx);
   CHECK(begy < maxy);
-  CHECK(!tablet_userptr(t));
+  CHECK(!nctablet_userptr(t));
   CHECK(!cliptop);
   // FIXME verify geometry is as expected
   return 0;
@@ -75,7 +75,7 @@ TEST_CASE("NcReelTest") {
     r.infinitescroll = false;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
-    struct tablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
+    struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     // CHECK_EQ(0, ncreel_validate(n_, pr));
     CHECK(0 == ncreel_del(nr, t));
@@ -87,7 +87,7 @@ TEST_CASE("NcReelTest") {
     r.infinitescroll = false;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
-    struct tablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
+    struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     // CHECK_EQ(0, ncreel_validate(n_, pr));
     CHECK(ncreel_next(nr));
@@ -103,7 +103,7 @@ TEST_CASE("NcReelTest") {
     r.infinitescroll = false;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
-    struct tablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
+    struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK(0 == ncreel_del_focused(nr));
   }

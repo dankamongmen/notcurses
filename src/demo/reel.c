@@ -15,7 +15,7 @@
 typedef struct tabletctx {
   pthread_t tid;
   struct ncreel* pr;
-  struct tablet* t;
+  struct nctablet* t;
   int lines;
   unsigned rgb;
   unsigned id;
@@ -42,7 +42,7 @@ kill_tablet(tabletctx** tctx){
 
 static int
 kill_active_tablet(struct ncreel* pr, tabletctx** tctx){
-  struct tablet* focused = ncreel_focused(pr);
+  struct nctablet* focused = ncreel_focused(pr);
   tabletctx* t;
   while( (t = *tctx) ){
     if(t->t == focused){
@@ -122,9 +122,9 @@ tabletdown(struct ncplane* w, int begx, int begy, int maxx, int maxy,
 }
 
 static int
-tabletdraw(struct tablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
-  struct ncplane* p = tablet_ncplane(t);
-  tabletctx* tctx = tablet_userptr(t);
+tabletdraw(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
+  struct ncplane* p = nctablet_ncplane(t);
+  tabletctx* tctx = nctablet_userptr(t);
   pthread_mutex_lock(&tctx->lock);
   unsigned rgb = tctx->rgb;
   int ll;

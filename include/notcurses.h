@@ -1947,7 +1947,7 @@ typedef struct ncreel_options {
   uint64_t bgchannel;  // background colors
 } ncreel_options;
 
-struct tablet;
+struct nctablet;
 struct ncreel;
 
 // Create an ncreel according to the provided specifications. Returns NULL on
@@ -1979,31 +1979,31 @@ API struct ncplane* ncreel_plane(struct ncreel* pr);
 //
 // Returns the number of lines of output, which ought be less than or equal to
 // maxy - begy, and non-negative (negative values might be used in the future).
-typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
+typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx,
                         int maxy, bool cliptop);
 
-// Add a new tablet to the provided ncreel, having the callback object
+// Add a new nctablet to the provided ncreel, having the callback object
 // opaque. Neither, either, or both of after and before may be specified. If
 // neither is specified, the new tablet can be added anywhere on the reel. If
 // one or the other is specified, the tablet will be added before or after the
 // specified tablet. If both are specifid, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
-API struct tablet* ncreel_add(struct ncreel* pr, struct tablet* after,
-                                 struct tablet* before, tabletcb cb,
+API struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after,
+                                 struct nctablet* before, tabletcb cb,
                                  void* opaque);
 
-// Return the number of tablets.
+// Return the number of nctablets in the ncreel.
 API int ncreel_tabletcount(const struct ncreel* pr);
 
-// Indicate that the specified tablet has been updated in a way that would
+// Indicate that the specified nctablet has been updated in a way that would
 // change its display. This will trigger some non-negative number of callbacks
 // (though not in the caller's context).
-API int ncreel_touch(struct ncreel* pr, struct tablet* t);
+API int ncreel_touch(struct ncreel* pr, struct nctablet* t);
 
 // Delete the tablet specified by t from the ncreel specified by pr. Returns
 // -1 if the tablet cannot be found.
-API int ncreel_del(struct ncreel* pr, struct tablet* t);
+API int ncreel_del(struct ncreel* pr, struct nctablet* t);
 
 // Delete the active tablet. Returns -1 if there are no tablets.
 API int ncreel_del_focused(struct ncreel* pr);
@@ -2017,24 +2017,24 @@ API int ncreel_redraw(struct ncreel* pr);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
-API struct tablet* ncreel_focused(struct ncreel* pr);
+API struct nctablet* ncreel_focused(struct ncreel* pr);
 
 // Change focus to the next tablet, if one exists
-API struct tablet* ncreel_next(struct ncreel* pr);
+API struct nctablet* ncreel_next(struct ncreel* pr);
 
 // Change focus to the previous tablet, if one exists
-API struct tablet* ncreel_prev(struct ncreel* pr);
+API struct nctablet* ncreel_prev(struct ncreel* pr);
 
 // Destroy an ncreel allocated with ncreel_create(). Does not destroy the
 // underlying WINDOW. Returns non-zero on failure.
 API int ncreel_destroy(struct ncreel* pr);
 
-API void* tablet_userptr(struct tablet* t);
-API const void* tablet_userptr_const(const struct tablet* t);
+API void* nctablet_userptr(struct nctablet* t);
+API const void* nctablet_userptr_const(const struct nctablet* t);
 
-// Access the ncplane associated with this tablet, if one exists.
-API struct ncplane* tablet_ncplane(struct tablet* t);
-API const struct ncplane* tablet_ncplane_const(const struct tablet* t);
+// Access the ncplane associated with this nctablet, if one exists.
+API struct ncplane* nctablet_ncplane(struct nctablet* t);
+API const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);
 
 #define PREFIXSTRLEN 7  // Does not include a '\0' (xxx.xxU)
 #define IPREFIXSTRLEN 8 //  Does not include a '\0' (xxxx.xxU)

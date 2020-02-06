@@ -57,24 +57,19 @@ typedef struct ncreel_options {
 } ncreel_options;
 ```
 
-**struct ncreel* ncreel_create(struct ncplane* nc,
-                                       const ncreel_options* popts,
-                                       int efd);**
+**struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);**
 
 **struct ncplane* ncreel_plane(struct ncreel* nr);**
 
-**typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
-                        int maxy, bool cliptop);**
+**typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop);**
 
-**struct tablet* ncreel_add(struct ncreel* nr, struct tablet* after,
-                                 struct tablet* before, tabletcb cb,
-                                 void* opaque);**
+**struct nctablet* ncreel_add(struct ncreel* nr, struct nctablet* after, struct nctablet* before, tabletcb cb, void* opaque);**
 
 **int ncreel_tabletcount(const struct ncreel* nr);**
 
-**int ncreel_touch(struct ncreel* nr, struct tablet* t);**
+**int ncreel_touch(struct ncreel* nr, struct nctablet* t);**
 
-**int ncreel_del(struct ncreel* nr, struct tablet* t);**
+**int ncreel_del(struct ncreel* nr, struct nctablet* t);**
 
 **int ncreel_del_focused(struct ncreel* nr);**
 
@@ -82,21 +77,21 @@ typedef struct ncreel_options {
 
 **int ncreel_redraw(struct ncreel* nr);**
 
-**struct tablet* ncreel_focused(struct ncreel* nr);**
+**struct nctablet* ncreel_focused(struct ncreel* nr);**
 
-**struct tablet* ncreel_next(struct ncreel* nr);**
+**struct nctablet* ncreel_next(struct ncreel* nr);**
 
-**struct tablet* ncreel_prev(struct ncreel* nr);**
+**struct nctablet* ncreel_prev(struct ncreel* nr);**
 
 **int ncreel_destroy(struct ncreel* nr);**
 
-**void* tablet_userptr(struct tablet* t);**
+**void* nctablet_userptr(struct nctablet* t);**
 
-**const void* tablet_userptr_const(const struct tablet* t);**
+**const void* nctablet_userptr_const(const struct nctablet* t);**
 
-**struct ncplane* tablet_ncplane(struct tablet* t);**
+**struct ncplane* nctablet_ncplane(struct nctablet* t);**
 
-**const struct ncplane* tablet_ncplane_const(const struct tablet* t);**
+**const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);**
 
 # DESCRIPTION
 

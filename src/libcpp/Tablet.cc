@@ -4,25 +4,25 @@
 
 using namespace ncpp;
 
-std::map<tablet*,Tablet*> *Tablet::tablet_map = nullptr;
-std::mutex Tablet::tablet_map_mutex;
+std::map<nctablet*,NcTablet*> *NcTablet::tablet_map = nullptr;
+std::mutex NcTablet::tablet_map_mutex;
 
-Tablet* Tablet::map_tablet (tablet *t) noexcept
+NcTablet* NcTablet::map_tablet (nctablet *t) noexcept
 {
 	if (t == nullptr)
 		return nullptr;
 
-	return internal::Helpers::lookup_map_entry <tablet*, Tablet*> (
+	return internal::Helpers::lookup_map_entry <nctablet*, NcTablet*> (
 		tablet_map,
 		tablet_map_mutex,
 		t,
-		[&] (tablet *_t) -> Tablet* {
-			return new Tablet (_t);
+		[&] (nctablet *_t) -> NcTablet* {
+			return new NcTablet (_t);
 		}
 	);
 }
 
-void Tablet::unmap_tablet (Tablet *p) noexcept
+void NcTablet::unmap_tablet (NcTablet *p) noexcept
 {
 	if (p == nullptr)
 		return;
@@ -30,7 +30,7 @@ void Tablet::unmap_tablet (Tablet *p) noexcept
 	internal::Helpers::remove_map_entry (tablet_map, tablet_map_mutex, p->_tablet);
 }
 
-Plane* Tablet::get_plane () const noexcept
+Plane* NcTablet::get_plane () const noexcept
 {
-	return Plane::map_plane (tablet_ncplane (_tablet));
+	return Plane::map_plane (nctablet_ncplane (_tablet));
 }

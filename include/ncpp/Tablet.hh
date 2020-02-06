@@ -12,10 +12,10 @@ namespace ncpp
 {
 	class Plane;
 
-	class NCPP_API_EXPORT Tablet : public Root
+	class NCPP_API_EXPORT NcTablet : public Root
 	{
 	protected:
-		explicit Tablet (tablet *t)
+		explicit NcTablet (nctablet *t)
 			: _tablet (t)
 		{
 			if (t == nullptr)
@@ -26,33 +26,33 @@ namespace ncpp
 		template<typename T>
 		T* get_userptr () const noexcept
 		{
-			return static_cast<T*>(tablet_userptr (_tablet));
+			return static_cast<T*>(nctablet_userptr (_tablet));
 		}
 
-		operator tablet* () const noexcept
+		operator nctablet* () const noexcept
 		{
 			return _tablet;
 		}
 
-		operator tablet const* () const noexcept
+		operator nctablet const* () const noexcept
 		{
 			return _tablet;
 		}
 
 		Plane* get_plane () const noexcept;
-		static Tablet* map_tablet (tablet *t) noexcept;
+		static NcTablet* map_tablet (nctablet *t) noexcept;
 
 	protected:
-		static void unmap_tablet (Tablet *p) noexcept;
+		static void unmap_tablet (NcTablet *p) noexcept;
 
-		tablet* get_tablet () const noexcept
+		nctablet* get_tablet () const noexcept
 		{
 			return _tablet;
 		}
 
 	private:
-		tablet *_tablet = nullptr;
-		static std::map<tablet*,Tablet*> *tablet_map;
+		nctablet *_tablet = nullptr;
+		static std::map<nctablet*,NcTablet*> *tablet_map;
 		static std::mutex tablet_map_mutex;
 
 		friend class NcReel;

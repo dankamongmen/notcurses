@@ -48,17 +48,17 @@ namespace ncpp
 			return reel;
 		}
 
-		// TODO: add an overload using callback that takes Tablet instance instead of struct tablet
-		Tablet* add (Tablet *after, Tablet *before, tabletcb cb, void *opaque = nullptr) const
+		// TODO: add an overload using callback that takes NcTablet instance instead of struct tablet
+		NcTablet* add (NcTablet *after, NcTablet *before, tabletcb cb, void *opaque = nullptr) const
 		{
-			tablet *t = ncreel_add (reel, get_tablet (after), get_tablet (before), cb, opaque);
+			nctablet *t = ncreel_add (reel, get_tablet (after), get_tablet (before), cb, opaque);
 			if (t == nullptr)
 				throw new init_error ("notcurses failed to create a new tablet");
 
-			return Tablet::map_tablet (t);
+			return NcTablet::map_tablet (t);
 		}
 
-		Tablet* add (Tablet &after, Tablet &before, tabletcb cb, void *opaque = nullptr) const noexcept
+		NcTablet* add (NcTablet &after, NcTablet &before, tabletcb cb, void *opaque = nullptr) const noexcept
 		{
 			return add (&after, &before, cb, opaque);
 		}
@@ -68,22 +68,22 @@ namespace ncpp
 			return ncreel_tabletcount (reel);
 		}
 
-		bool touch (Tablet *t) const noexcept
+		bool touch (NcTablet *t) const noexcept
 		{
 			return ncreel_touch (reel, get_tablet (t)) != -1;
 		}
 
-		bool touch (Tablet &t) const noexcept
+		bool touch (NcTablet &t) const noexcept
 		{
 			return touch (&t);
 		}
 
-		bool del (Tablet *t) const noexcept
+		bool del (NcTablet *t) const noexcept
 		{
 			return ncreel_del (reel, get_tablet (t)) != -1;
 		}
 
-		bool del (Tablet &t) const noexcept
+		bool del (NcTablet &t) const noexcept
 		{
 			return del (&t);
 		}
@@ -103,37 +103,37 @@ namespace ncpp
 			return ncreel_redraw (reel) != -1;
 		}
 
-		Tablet* get_focused () const noexcept
+		NcTablet* get_focused () const noexcept
 		{
-			tablet *t = ncreel_focused (reel);
+			nctablet *t = ncreel_focused (reel);
 			if (t == nullptr)
 				return nullptr;
 
-			return Tablet::map_tablet (t);
+			return NcTablet::map_tablet (t);
 		}
 
-		Tablet* next () const noexcept
+		NcTablet* next () const noexcept
 		{
-			tablet *t = ncreel_next (reel);
+			nctablet *t = ncreel_next (reel);
 			if (t == nullptr)
 				return nullptr;
 
-			return Tablet::map_tablet (t);
+			return NcTablet::map_tablet (t);
 		}
 
-		Tablet* prev () const noexcept
+		NcTablet* prev () const noexcept
 		{
-			tablet *t = ncreel_prev (reel);
+			nctablet *t = ncreel_prev (reel);
 			if (t == nullptr)
 				return nullptr;
 
-			return Tablet::map_tablet (t);
+			return NcTablet::map_tablet (t);
 		}
 
 		Plane* get_plane () const noexcept;
 
 	private:
-		tablet* get_tablet (Tablet *t) const noexcept
+		nctablet* get_tablet (NcTablet *t) const noexcept
 		{
 			if (t == nullptr)
 				return nullptr;

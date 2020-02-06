@@ -20,9 +20,9 @@ class TabletCtx {
     int lines;
 };
 
-int tabletfxn(struct tablet* _t, int begx, int begy, int maxx, int maxy,
+int tabletfxn(struct nctablet* _t, int begx, int begy, int maxx, int maxy,
               bool cliptop){
-  Tablet *t = Tablet::map_tablet (_t);
+  NcTablet *t = NcTablet::map_tablet (_t);
   Plane* p = t->get_plane();
   auto tctx = t->get_userptr<TabletCtx>();
   p->erase();

@@ -1875,7 +1875,7 @@ typedef struct ncreel_options {
   uint64_t bgchannel;  // background colors
 } ncreel_options;
 
-struct tablet;
+struct nctablet;
 struct ncreel;
 
 // Create an ncreel according to the provided specifications. Returns NULL on
@@ -1885,8 +1885,7 @@ struct ncreel;
 // and columns can be enforced via popts. efd, if non-negative, is an eventfd
 // that ought be written to whenever ncreel_touch() updates a tablet (this
 // is useful in the case of nonblocking input).
-struct ncreel* ncreel_create(struct ncplane* nc,
-                                   const ncreel_options* popts, int efd);
+struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);
 
 // Returns the ncplane on which this ncreel lives.
 struct ncplane* ncreel_plane(struct ncreel* pr);
@@ -1906,7 +1905,7 @@ struct ncplane* ncreel_plane(struct ncreel* pr);
 //
 // Returns the number of lines of output, which ought be less than or equal to
 // maxy - begy, and non-negative (negative values might be used in the future).
-typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
+typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx,
                         int maxy, bool cliptop);
 
 // Add a new tablet to the provided ncreel, having the callback object
@@ -1916,8 +1915,8 @@ typedef int (*tabletcb)(struct tablet* t, int begx, int begy, int maxx,
 // specified tablet. If both are specifid, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
-struct tablet* ncreel_add(struct ncreel* pr, struct tablet* after,
-                             struct tablet* before, tabletcb cb, void* opaque);
+struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after,
+                            struct nctablet* before, tabletcb cb, void* opaque);
 
 // Return the number of tablets.
 int ncreel_tabletcount(const struct ncreel* pr);
@@ -1925,11 +1924,11 @@ int ncreel_tabletcount(const struct ncreel* pr);
 // Indicate that the specified tablet has been updated in a way that would
 // change its display. This will trigger some non-negative number of callbacks
 // (though not in the caller's context).
-int ncreel_touch(struct ncreel* pr, struct tablet* t);
+int ncreel_touch(struct ncreel* pr, struct nctablet* t);
 
 // Delete the tablet specified by t from the ncreel specified by pr. Returns
 // -1 if the tablet cannot be found.
-int ncreel_del(struct ncreel* pr, struct tablet* t);
+int ncreel_del(struct ncreel* pr, struct nctablet* t);
 
 // Delete the active tablet. Returns -1 if there are no tablets.
 int ncreel_del_focused(struct ncreel* pr);
@@ -1943,24 +1942,24 @@ int ncreel_redraw(struct ncreel* pr);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
-struct tablet* ncreel_focused(struct ncreel* pr);
+struct nctablet* ncreel_focused(struct ncreel* pr);
 
 // Change focus to the next tablet, if one exists
-struct tablet* ncreel_next(struct ncreel* pr);
+struct nctablet* ncreel_next(struct ncreel* pr);
 
 // Change focus to the previous tablet, if one exists
-struct tablet* ncreel_prev(struct ncreel* pr);
+struct nctablet* ncreel_prev(struct ncreel* pr);
 
 // Destroy an ncreel allocated with ncreel_create(). Does not destroy the
 // underlying WINDOW. Returns non-zero on failure.
 int ncreel_destroy(struct ncreel* pr);
 
-void* tablet_userptr(struct tablet* t);
-const void* tablet_userptr_const(const struct tablet* t);
+void* nctablet_userptr(struct nctablet* t);
+const void* nctablet_userptr_const(const struct nctablet* t);
 
 // Access the ncplane associated with this tablet, if one exists.
-struct ncplane* tablet_ncplane(struct tablet* t);
-const struct ncplane* tablet_ncplane_const(const struct tablet* t);
+struct ncplane* nctablet_ncplane(struct nctablet* t);
+const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);
 ```
 
 #### ncreel examples

@@ -8,13 +8,13 @@
 
 // Tablets are the toplevel entitites within an ncreel. Each corresponds to
 // a single, distinct ncplane.
-typedef struct tablet {
+typedef struct nctablet {
   ncplane* p;                    // visible panel, NULL when offscreen
-  struct tablet* next;
-  struct tablet* prev;
+  struct nctablet* next;
+  struct nctablet* prev;
   tabletcb cbfxn;              // application callback to draw tablet
   void* curry;                 // application data provided to cbfxn
-} tablet;
+} nctablet;
 
 // The visible screen can be reconstructed from three things:
 //  * which tablet is focused (pointed at by tablets)
@@ -27,7 +27,7 @@ typedef struct ncreel {
   // doubly-linked list, a circular one when infinity scrolling is in effect.
   // points at the focused tablet (when at least one tablet exists, one must be
   // focused), which might be anywhere on the screen (but is always visible).
-  tablet* tablets;
+  nctablet* tablets;
   // these values could all be derived at any time, but keeping them computed
   // makes other things easier, or saves us time (at the cost of complexity).
   int tabletcount;         // could be derived, but we keep it o(1)
@@ -219,7 +219,7 @@ tablet_columns(const ncreel* nr, int* begx, int* begy, int* lenx, int* leny,
 // down before displaying it. Destroys any panel if it ought be hidden.
 // Returns 0 if the tablet was able to be wholly rendered, non-zero otherwise.
 static int
-ncreel_draw_tablet(const ncreel* nr, tablet* t, int frontiery,
+ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
                       int direction){
   int lenx, leny, begy, begx;
   ncplane* fp = t->p;
@@ -373,10 +373,10 @@ draw_focused_tablet(const ncreel* nr){
 
 // move down below the focused tablet, filling up the reel to the bottom.
 // returns the last tablet drawn.
-static tablet*
-draw_following_tablets(const ncreel* nr, const tablet* otherend){
+static nctablet*
+draw_following_tablets(const ncreel* nr, const nctablet* otherend){
   int wmaxy, wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
-  tablet* working = nr->tablets;
+  nctablet* working = nr->tablets;
   int frontiery;
   // move down past the focused tablet, filling up the reel to the bottom
   do{
@@ -402,11 +402,11 @@ draw_following_tablets(const ncreel* nr, const tablet* otherend){
 
 // move up above the focused tablet, filling up the reel to the top.
 // returns the last tablet drawn.
-static tablet*
-draw_previous_tablets(const ncreel* nr, const tablet* otherend){
+static nctablet*
+draw_previous_tablets(const ncreel* nr, const nctablet* otherend){
 //fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
   int wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
-  tablet* upworking = nr->tablets;
+  nctablet* upworking = nr->tablets;
   int frontiery;
   // modify frontier based off the one we're at
   window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
@@ -431,9 +431,9 @@ draw_previous_tablets(const ncreel* nr, const tablet* otherend){
 }
 
 // all tablets must be visible (valid ->p), and at least one tablet must exist
-static tablet*
+static nctablet*
 find_topmost(ncreel* nr){
-  tablet* t = nr->tablets;
+  nctablet* t = nr->tablets;
   int curline;
   ncplane_yx(t->p, &curline, NULL);
   int trialline;
@@ -466,7 +466,7 @@ ncreel_arrange_denormalized(ncreel* nr){
   // opposite travel (a single tablet is a trivial case of the latter case).
   // how do we know whether we were at the end? if the new line is not in the
   // direction of movement relative to the old one, of course!
-  tablet* topmost = find_topmost(nr);
+  nctablet* topmost = find_topmost(nr);
   int wbegy, wbegx, wleny, wlenx;
   window_coordinates(nr->p, &wbegy, &wbegx, &wleny, &wlenx);
   int frontiery = wbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
@@ -482,7 +482,7 @@ ncreel_arrange_denormalized(ncreel* nr){
     }
   }
 //fprintf(stderr, "gotta draw 'em all FROM: %d NOW: %d!\n", fromline, nowline);
-  tablet* t = topmost;
+  nctablet* t = topmost;
   do{
     int broken;
     if(t == nr->tablets){
@@ -516,7 +516,7 @@ int ncreel_redraw(ncreel* nr){
   if(draw_ncreel_borders(nr)){
     return -1; // enforces specified dimensional minima
   }
-  tablet* focused = nr->tablets;
+  nctablet* focused = nr->tablets;
   if(focused == NULL){
 //fprintf(stderr, "no focus!\n");
     return 0; // if none are focused, none exist
@@ -533,7 +533,7 @@ int ncreel_redraw(ncreel* nr){
 //fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
   draw_focused_tablet(nr);
 //fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
-  tablet* otherend = focused;
+  nctablet* otherend = focused;
   if(nr->last_traveled_direction >= 0){
     otherend = draw_previous_tablets(nr, otherend);
     otherend = draw_following_tablets(nr, otherend);
@@ -571,11 +571,11 @@ validate_ncreel_opts(ncplane* w, const ncreel_options* ropts){
   return true;
 }
 
-ncplane* tablet_ncplane(tablet* t){
+ncplane* nctablet_ncplane(nctablet* t){
   return t->p;
 }
 
-const ncplane* tablet_ncplane_const(const tablet* t){
+const ncplane* nctablet_ncplane_const(const nctablet* t){
   return t->p;
 }
 
@@ -636,8 +636,8 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts, int efd){
 // minimally visible, to satisfy the preconditions of
 // ncreel_arrange_denormalized(). this function, and approach, is shit.
 // FIXME get rid of nc param here
-static tablet*
-insert_new_panel(struct notcurses* nc, ncreel* nr, tablet* t){
+static nctablet*
+insert_new_panel(struct notcurses* nc, ncreel* nr, nctablet* t){
   if(!nr->all_visible){
     return t;
   }
@@ -678,9 +678,9 @@ insert_new_panel(struct notcurses* nc, ncreel* nr, tablet* t){
   return t;
 }
 
-tablet* ncreel_add(ncreel* nr, tablet* after, tablet *before,
-                      tabletcb cbfxn, void* opaque){
-  tablet* t;
+nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
+                     tabletcb cbfxn, void* opaque){
+  nctablet* t;
   if(after && before){
     if(after->prev != before || before->next != after){
       return NULL;
@@ -725,7 +725,7 @@ int ncreel_del_focused(ncreel* nr){
   return ncreel_del(nr, nr->tablets);
 }
 
-int ncreel_del(ncreel* nr, struct tablet* t){
+int ncreel_del(ncreel* nr, struct nctablet* t){
   if(nr == NULL || t == NULL){
     return -1;
   }
@@ -748,10 +748,10 @@ int ncreel_del(ncreel* nr, struct tablet* t){
 int ncreel_destroy(ncreel* nreel){
   int ret = 0;
   if(nreel){
-    tablet* t = nreel->tablets;
+    nctablet* t = nreel->tablets;
     while(t){
       t->prev->next = NULL;
-      tablet* tmp = t->next;
+      nctablet* tmp = t->next;
       ncreel_del(nreel, t);
       t = tmp;
     }
@@ -761,11 +761,11 @@ int ncreel_destroy(ncreel* nreel){
   return ret;
 }
 
-void* tablet_userptr(tablet* t){
+void* nctablet_userptr(nctablet* t){
   return t->curry;
 }
 
-const void* tablet_userptr_const(const tablet* t){
+const void* nctablet_userptr_const(const nctablet* t){
   return t->curry;
 }
 
@@ -773,7 +773,7 @@ int ncreel_tabletcount(const ncreel* nreel){
   return nreel->tabletcount;
 }
 
-int ncreel_touch(ncreel* nr, tablet* t){
+int ncreel_touch(ncreel* nr, nctablet* t){
   (void)t; // FIXME make these more granular eventually
   int ret = 0;
   if(nr->efd >= 0){
@@ -797,7 +797,7 @@ move_tablet(ncplane* p, int deltax, int deltay){
   return 0;
 }
 
-tablet* ncreel_focused(ncreel* nr){
+nctablet* ncreel_focused(ncreel* nr){
   return nr->tablets;
 }
 
@@ -813,7 +813,7 @@ int ncreel_move(ncreel* nreel, int x, int y){
     return -1;
   }
   if(nreel->tablets){
-    tablet* t = nreel->tablets;
+    nctablet* t = nreel->tablets;
     do{
       if(t->p == NULL){
         break;
@@ -833,7 +833,7 @@ int ncreel_move(ncreel* nreel, int x, int y){
   return 0;
 }
 
-tablet* ncreel_next(ncreel* nr){
+nctablet* ncreel_next(ncreel* nr){
   if(nr->tablets){
     nr->tablets = nr->tablets->next;
 //fprintf(stderr, "---------------> moved to next, %p to %p <----------\n",
@@ -844,7 +844,7 @@ tablet* ncreel_next(ncreel* nr){
   return nr->tablets;
 }
 
-tablet* ncreel_prev(ncreel* nr){
+nctablet* ncreel_prev(ncreel* nr){
   if(nr->tablets){
     nr->tablets = nr->tablets->prev;
 //fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n",

@@ -318,6 +318,24 @@ int ncmenu_nextitem(struct ncmenu* n);
 int ncmenu_previtem(struct ncmenu* n);
 const char* ncmenu_selected(const struct ncmenu* n);
 int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);
+struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);
+struct ncplane* ncreel_plane(struct ncreel* pr);
+typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop);
+struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after, struct nctablet* before, tabletcb cb, void* opaque);
+int ncreel_tabletcount(const struct ncreel* pr);
+int ncreel_touch(struct ncreel* pr, struct nctablet* t);
+int ncreel_del(struct ncreel* pr, struct nctablet* t);
+int ncreel_del_focused(struct ncreel* pr);
+int ncreel_move(struct ncreel* pr, int x, int y);
+int ncreel_redraw(struct ncreel* pr);
+struct nctablet* ncreel_focused(struct ncreel* pr);
+struct nctablet* ncreel_next(struct ncreel* pr);
+struct nctablet* ncreel_prev(struct ncreel* pr);
+int ncreel_destroy(struct ncreel* pr);
+void* nctablet_userptr(struct nctablet* t);
+const void* nctablet_userptr_const(const struct nctablet* t);
+struct ncplane* nctablet_ncplane(struct nctablet* t);
+const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);
 """)
 
 if __name__ == "__main__":
