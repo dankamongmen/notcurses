@@ -12,6 +12,7 @@ notcurses_stats - notcurses runtime statistics
 
 ```c
 typedef struct ncstats {
+  // purely increasing stats
   uint64_t renders;          // number of successful renders
   uint64_t failed_renders;   // aborted renders, should be 0
   uint64_t render_bytes;     // bytes emitted to ttyfp
@@ -22,13 +23,16 @@ typedef struct ncstats {
   int64_t render_min_ns;     // min ns spent rendering
   uint64_t cellelisions;     // cells elided entirely
   uint64_t cellemissions;    // cells emitted
-  uint64_t fbbytes;          // bytes devoted to framebuffers
   uint64_t fgelisions;       // RGB fg elision count
   uint64_t fgemissions;      // RGB fg emissions
   uint64_t bgelisions;       // RGB bg elision count
   uint64_t bgemissions;      // RGB bg emissions
   uint64_t defaultelisions;  // default color was emitted
   uint64_t defaultemissions; // default color was elided
+
+  // current state -- these can decrease
+  uint64_t fbbytes;          // bytes devoted to framebuffers
+  unsigned planes;           // planes currently in existence
 } ncstats;
 ```
 

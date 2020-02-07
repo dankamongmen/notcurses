@@ -256,6 +256,10 @@ term_verify_seq(char** gseq, const char* name){
 static void
 free_plane(ncplane* p){
   if(p){
+    ncplane_lock(p);
+    --p->nc->stats.planes;
+    p->nc->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
+    ncplane_unlock(p);
     egcpool_dump(&p->pool);
     free(p->fb);
     free(p);
@@ -294,6 +298,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   nc->top = p;
   p->nc = nc;
   nc->stats.fbbytes += fbsize;
+  ++nc->stats.planes;
   pthread_mutex_unlock(&nc->lock);
   return p;
 }
