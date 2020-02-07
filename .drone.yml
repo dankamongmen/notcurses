@@ -24,7 +24,7 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/focal:2020-02-05a
+  image: dankamongmen/focal:2020-02-07a
   commands:
     - apt-get update
     - apt-get -y dist-upgrade
