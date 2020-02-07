@@ -67,7 +67,7 @@ target_link_libraries(notcurses
     "${SWSCALE_LIBRARIES}"
 )
 target_link_directories(notcurses
-  PRIVATE
+  PUBLIC
     "${AVCODEC_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
     "${AVUTIL_INCLUDE_DIRS}"
