@@ -1367,11 +1367,11 @@ int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
   cell c = CELL_TRIVIAL_INITIALIZER;
   int primed = cell_prime(n, &c, gclust, n->attrword, n->channels);
-  if(primed < 0){
-    return -1;
-  }
   if(sbytes){
     *sbytes = primed;
+  }
+  if(primed < 0){
+    return -1;
   }
   int ret = ncplane_putc_yx(n, y, x, &c);
   cell_release(n, &c);
