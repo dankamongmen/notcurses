@@ -176,7 +176,7 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
     results[i].timens = nowns - prevns;
     prevns = nowns;
     results[i].result = ret;
-    if(!ignore_failures){
+    if(ret && !ignore_failures){
       break;
     }
     hud_completion_notify(&results[i]);
