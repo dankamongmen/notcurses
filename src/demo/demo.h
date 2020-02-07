@@ -120,6 +120,7 @@ timespec_mul(const struct timespec* ts, unsigned multiplier, struct timespec* pr
 /*----------------------------------HUD----------------------------------*/
 extern struct ncplane* hud;
 struct ncplane* hud_create(struct notcurses* nc);
+struct ncmenu* menu_create(struct notcurses* nc);
 int hud_destroy(void);
 
 // let the HUD know about an upcoming demo

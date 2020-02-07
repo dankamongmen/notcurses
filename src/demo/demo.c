@@ -396,9 +396,10 @@ int main(int argc, char** argv){
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
-  notcurses_options nopts;
+  const bool use_menu = false;
   const char* spec;
   bool use_hud, ignore_failures;
+  notcurses_options nopts;
   if((spec = handle_opts(argc, argv, &nopts, &use_hud, &ignore_failures)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
@@ -423,6 +424,11 @@ int main(int argc, char** argv){
   }
   if(use_hud){
     if(hud_create(nc) == NULL){
+      goto err;
+    }
+  }
+  if(use_menu){
+    if(menu_create(nc) == NULL){
       goto err;
     }
   }

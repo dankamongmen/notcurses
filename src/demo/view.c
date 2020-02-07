@@ -43,6 +43,7 @@ legend(struct notcurses* nc, int dimy, int dimx){
   ncplane_set_base(n, channels, 0, " ");
   ncplane_styles_set(n, NCSTYLE_BOLD);
   ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
+  ncplane_set_fg_alpha(n, CELL_ALPHA_HIGHCONTRAST);
   if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "target launch") <= 0){
     ncplane_destroy(n);
     return NULL;

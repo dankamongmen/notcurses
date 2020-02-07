@@ -85,11 +85,13 @@ int main(void){
     { .desc = "Quit", .shortcut = { .id = 'q', .ctrl = true, }, },
   };
   struct ncmenu_section sections[] = {
-    { .name = "Schwarzgerät", .items = demo_items, .shortcut = { .id = 0x00e4, .alt = true, }, },
-    { .name = "File", .items = file_items, .shortcut = { .id = 'f', .alt = true, }, },
+    { .name = "Schwarzgerät", .items = demo_items,
+      .itemcount = sizeof(demo_items) / sizeof(*demo_items),
+      .shortcut = { .id = 0x00e4, .alt = true, }, },
+    { .name = "File", .items = file_items,
+      .itemcount = sizeof(file_items) / sizeof(*file_items),
+      .shortcut = { .id = 'f', .alt = true, }, },
   };
-  sections[0].itemcount = sizeof(demo_items) / sizeof(*demo_items);
-  sections[1].itemcount = sizeof(file_items) / sizeof(*file_items);
   ncmenu_options mopts;
   memset(&mopts, 0, sizeof(mopts));
   mopts.sections = sections;
