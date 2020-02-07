@@ -6,6 +6,9 @@ TEST_CASE("Palette256") {
   if(getenv("TERM") == nullptr){
     return;
   }
+  if(!enforce_utf8()){
+    return;
+  }
   FILE* outfp_{};
   outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(nullptr != outfp_);

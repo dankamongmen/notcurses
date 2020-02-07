@@ -109,6 +109,9 @@ TEST_CASE("NCPlane") {
 
   // Verify we can emit a multibyte character, and it advances the cursor
   SUBCASE("EmitCell") {
+    if(!enforce_utf8()){
+      return;
+    }
     const char cchar[] = "✔";
     cell c{};
     CHECK(strlen(cchar) == cell_load(n_, &c, cchar));
@@ -122,6 +125,9 @@ TEST_CASE("NCPlane") {
 
   // Verify we can emit a wchar_t, and it advances the cursor
   SUBCASE("EmitWcharT") {
+    if(!enforce_utf8()){
+      return;
+    }
     const wchar_t* w = L"✔";
     int sbytes = 0;
     CHECK(0 < ncplane_putwegc(n_, w, &sbytes));
@@ -134,6 +140,9 @@ TEST_CASE("NCPlane") {
 
   // Verify we can emit a wide character, and it advances the cursor
   SUBCASE("EmitWideAsian") {
+    if(!enforce_utf8()){
+      return;
+    }
     const char* w = "\u5168";
     int sbytes = 0;
     CHECK(0 < ncplane_putegc(n_, w, &sbytes));
@@ -146,6 +155,9 @@ TEST_CASE("NCPlane") {
 
   // Verify a wide character is rejected on the last column
   SUBCASE("EmitWideAsian") {
+    if(!enforce_utf8()){
+      return;
+    }
     const char* w = "\u5168";
     int sbytes = 0;
     int dimx;
@@ -164,6 +176,9 @@ TEST_CASE("NCPlane") {
 
   // Verify we can emit a multibyte string, and it advances the cursor
   SUBCASE("EmitStr") {
+    if(!enforce_utf8()){
+      return;
+    }
     const char s[] = "Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
     int wrote = ncplane_putstr(n_, s);
     CHECK(strlen(s) == wrote);
@@ -176,6 +191,9 @@ TEST_CASE("NCPlane") {
 
   // Verify we can emit a wide string, and it advances the cursor
   SUBCASE("EmitWideStr") {
+    if(!enforce_utf8()){
+      return;
+    }
     const wchar_t s[] = L"Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
     int wrote = ncplane_putwstr(n_, s);
     CHECK(0 < wrote);
@@ -187,6 +205,9 @@ TEST_CASE("NCPlane") {
   }
 
   SUBCASE("EmitEmojiStr") {
+    if(!enforce_utf8()){
+      return;
+    }
     const wchar_t e[] =
       L"🍺🚬🌿💉💊🔫💣🤜🤛🐌🐎🐑🐒🐔🐗🐘🐙🐚"
       "🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐫🐬🐭🐮"

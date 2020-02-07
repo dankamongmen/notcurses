@@ -13,6 +13,7 @@ libnotcurses++.so.1 libnotcurses++1 #MINVER#
  _ZN4ncpp5Plane15plane_map_mutexE@Base 1.1.0
  _ZN4ncpp5Plane9map_planeEP7ncplanePS0_@Base 1.1.0
  _ZN4ncpp5Plane9plane_mapE@Base 1.1.0
+ _ZN4ncpp6NcReel15default_optionsE@Base 1.1.6
  _ZN4ncpp8NcTablet10map_tabletEP8nctablet@Base 1.1.6
  _ZN4ncpp8NcTablet10tablet_mapE@Base 1.1.6
  _ZN4ncpp8NcTablet12unmap_tabletEPS0_@Base 1.1.6

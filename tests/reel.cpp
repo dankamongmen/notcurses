@@ -12,6 +12,9 @@ int panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cli
 }
 
 TEST_CASE("NcReelTest") {
+  if(!enforce_utf8()){
+    return;
+  }
   if(getenv("TERM") == nullptr){
     return;
   }

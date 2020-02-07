@@ -5,6 +5,10 @@
 
 TEST_CASE("EGCpool") {
 
+  if(!enforce_utf8()){
+    return;
+  }
+
   egcpool pool_{};
 
   SUBCASE("Initialized") {

@@ -4,9 +4,21 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits.h>
+#include <langinfo.h>
 #include "main.h"
 
 static char datadir[PATH_MAX + 1] = "/usr/share/notcurses"; // FIXME
+
+bool enforce_utf8(){
+  char* enc = nl_langinfo(CODESET);
+  if(!enc){
+    return false;
+  }
+  if(strcmp(enc, "UTF-8")){
+    return false;
+  }
+  return true;
+}
 
 char* find_data(const char* datum){
   char* path = (char*)malloc(strlen(datadir) + 1 + strlen(datum) + 1);

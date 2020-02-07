@@ -6,6 +6,9 @@ TEST_CASE("SelectorTest") {
   if(getenv("TERM") == nullptr){
     return;
   }
+  if(!enforce_utf8()){
+    return;
+  }
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;

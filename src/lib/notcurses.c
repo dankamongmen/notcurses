@@ -821,8 +821,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     opts = &defaultopts;
   }
   const char* encoding = nl_langinfo(CODESET);
-  if(encoding == NULL || strcmp(encoding, "UTF-8")){
-    fprintf(stderr, "Encoding (\"%s\") wasn't UTF-8, refusing to start\n",
+  if(encoding == NULL || (strcmp(encoding, "ANSI_X3.4-1968") && strcmp(encoding, "UTF-8"))){
+    fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n",
             encoding ? encoding : "none found");
     return NULL;
   }
@@ -948,6 +948,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       if(!ret->CCCflag){
         fprintf(ret->ttyfp, "\n Warning! Advertised DirectColor but no 'ccc' flag\n");
       }
+    }
+    if(strcmp(encoding, "UTF-8")){
+      fprintf(ret->ttyfp, "\n Warning! Encoding is not UTF-8.\n");
     }
   }
   // flush on the switch to alternate screen, lest initial output be swept away

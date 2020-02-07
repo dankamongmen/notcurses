@@ -7,6 +7,9 @@
 
 TEST_CASE("NotcursesBase") {
 
+  if(!enforce_utf8()){
+    return;
+  }
   if(getenv("TERM") == nullptr){
     return;
   }

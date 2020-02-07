@@ -4,6 +4,9 @@
 #include "main.h"
 
 TEST_CASE("RenderTest") {
+  if(!enforce_utf8()){
+    return;
+  }
   if(getenv("TERM") == nullptr){
     return;
   }
