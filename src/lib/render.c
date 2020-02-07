@@ -221,7 +221,7 @@ highcontrast(uint32_t bchannel){
     channel_set(&rchannel, 0x0);
   }
   */
-  if(r + g + b < 384){
+  if(r + g + b < 512){
     channel_set(&rchannel, 0xffffff);
   }else{
     channel_set(&rchannel, 0x0);
