@@ -508,11 +508,12 @@ install(FILES
 )
 
 install(TARGETS notcurses-demo DESTINATION bin)
+install(TARGETS notcurses-input DESTINATION bin)
+install(TARGETS notcurses-ncreel DESTINATION bin)
+install(TARGETS notcurses-tester DESTINATION bin)
 if(NOT "${DISABLE_FFMPEG}")
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
-install(TARGETS notcurses-input DESTINATION bin)
-install(TARGETS notcurses-ncreel DESTINATION bin)
 install(TARGETS notcurses
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
