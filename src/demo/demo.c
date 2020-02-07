@@ -149,7 +149,7 @@ usage(const char* exe, int status){
 }
 
 static demoresult*
-ext_demos(struct notcurses* nc, const char* spec){
+ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
   int ret = 0;
   results = malloc(sizeof(*results) * strlen(spec));
   if(results == NULL){
@@ -176,7 +176,7 @@ ext_demos(struct notcurses* nc, const char* spec){
     results[i].timens = nowns - prevns;
     prevns = nowns;
     results[i].result = ret;
-    if(ret){
+    if(!ignore_failures){
       break;
     }
     hud_completion_notify(&results[i]);
@@ -188,14 +188,15 @@ ext_demos(struct notcurses* nc, const char* spec){
 // specification, also returns NULL, heh. determine this by argv[optind];
 // if it's NULL, there were valid options, but no spec.
 static const char*
-handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
+handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud,
+            bool* ignore_failures){
   strcpy(datadir, NOTCURSES_SHARE);
   char renderfile[PATH_MAX] = "";
   bool constant_seed = false;
   int c;
   *use_hud = false;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "HVhckl:r:d:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "HVhickl:r:d:f:p:")) != EOF){
     switch(c){
       case 'H':
         *use_hud = true;
@@ -220,6 +221,9 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud){
         exit(EXIT_SUCCESS);
       case 'c':
         constant_seed = true;
+        break;
+      case 'i':
+        *ignore_failures = true;
         break;
       case 'k':
         opts->inhibit_alternate_screen = true;
@@ -393,9 +397,9 @@ int main(int argc, char** argv){
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
   notcurses_options nopts;
-  bool use_hud;
   const char* spec;
-  if((spec = handle_opts(argc, argv, &nopts, &use_hud)) == NULL){
+  bool use_hud, ignore_failures;
+  if((spec = handle_opts(argc, argv, &nopts, &use_hud, &ignore_failures)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
@@ -437,7 +441,7 @@ int main(int argc, char** argv){
       nanosleep(&demodelay, NULL);
     }
   }
-  if(ext_demos(nc, spec) == NULL){
+  if(ext_demos(nc, spec, ignore_failures) == NULL){
     goto err;
   }
   if(hud_destroy()){
