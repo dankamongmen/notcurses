@@ -6,7 +6,6 @@ Build-Depends:
  debhelper-compat (= 12),
  dh-python (>= 4.20191017),
  dh-sequence-python3,
- g++,
  libavformat-dev (>= 7:4.2.1),
  libavutil-dev (>= 7:4.2.1),
  libncurses-dev,
@@ -30,7 +29,7 @@ Architecture: any
 Multi-Arch: same
 Depends:
  libnotcurses++1 (= ${binary:Version}),
- libnotcurses-dev (>= 1.0.0-1),
+ libnotcurses-dev (>= 1.1.6-1),
  ${misc:Depends},
 Description: Development files for notcurses++
  Files necessary for development using notcurses++, a C++ wrapper for notcurses
@@ -38,7 +37,7 @@ Description: Development files for notcurses++
 Package: libnotcurses++1
 Architecture: any
 Multi-Arch: same
-Recommends: ncurses-term (>= 6.1)
+Recommends: ncurses-term
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Shared libraries for notcurses++
  notcurses++ is a C++ binding for the notcurses TUI library
@@ -58,7 +57,7 @@ Description: Development files for notcurses
 Package: libnotcurses1
 Architecture: any
 Multi-Arch: same
-Recommends: ncurses-term (>= 6.1)
+Recommends: ncurses-term
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Shared libraries for notcurses TUI
@@ -69,7 +68,11 @@ Description: Shared libraries for notcurses TUI
 Package: notcurses-bin
 Architecture: any
 Multi-Arch: foreign
-Depends: ncurses-term (>= 6.1), ${misc:Depends}, ${shlibs:Depends}
+Depends:
+ ncurses-term,
+ notcurses-data (= ${binary:Version}),
+ ${misc:Depends},
+ ${shlibs:Depends},
 Description: Binaries from libnotcurses
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
@@ -77,6 +80,17 @@ Description: Binaries from libnotcurses
  .
  These utilities from the notcurses project include notcurses-demo,
  notcurses-view, notcurses-planereel, and notcurses-input.
+
+Package: notcurses-data
+Architecture: all
+Multi-Arch: foreign
+Depends: ncurses-term, ${misc:Depends}, ${shlibs:Depends}
+Description: Multimedia used by notcurses-demo
+ notcurses facilitates the creation of modern TUI programs,
+ making full use of Unicode and 24-bit direct color. It presents
+ an API similar to that of Curses, and rides atop libtinfo.
+ .
+ This package contains multimedia used by notcurss-demo.
 
 Package: python3-notcurses
 Section: python
