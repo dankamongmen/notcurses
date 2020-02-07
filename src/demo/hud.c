@@ -181,7 +181,7 @@ int hud_schedule(const char* demoname){
     cure = malloc(sizeof(*cure));
   }
   elem* e = elems;
-  int plen = HUD_COLS - 4 - NSLEN;
+  int plen = HUD_COLS - 10 - NSLEN;
   while(e){
     hook = &e->next;
     if(ncplane_printf_yx(hud, line, 0, "%-6d %*ju.%02jus %-*.*s", e->frames,

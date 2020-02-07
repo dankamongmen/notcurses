@@ -84,7 +84,7 @@ int highcontrast_demo(struct notcurses* nc){
   // right. start at the upper left, from the logical beginning of the array.
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
-  const char motto[] = "high contrast text ";
+  const char motto[] = " high contrast text ";
   do{
     unsigned idx = iter % totcells; // first color for upper-left
     for(int yx = 0 ; yx < dimy * dimx ; ++yx){
