@@ -13,10 +13,10 @@ libnotcurses++.so.1 libnotcurses++1 #MINVER#
  _ZN4ncpp5Plane15plane_map_mutexE@Base 1.1.0
  _ZN4ncpp5Plane9map_planeEP7ncplanePS0_@Base 1.1.0
  _ZN4ncpp5Plane9plane_mapE@Base 1.1.0
- _ZN4ncpp6Tablet10map_tabletEP6tablet@Base 1.1.0
- _ZN4ncpp6Tablet10tablet_mapE@Base 1.1.0
- _ZN4ncpp6Tablet12unmap_tabletEPS0_@Base 1.1.0
- _ZN4ncpp6Tablet16tablet_map_mutexE@Base 1.1.0
+ _ZN4ncpp8NcTablet10map_tabletEP8nctablet@Base 1.1.6
+ _ZN4ncpp8NcTablet10tablet_mapE@Base 1.1.6
+ _ZN4ncpp8NcTablet12unmap_tabletEPS0_@Base 1.1.6
+ _ZN4ncpp8NcTablet16tablet_map_mutexE@Base 1.1.6
  _ZN4ncpp9NotCurses10init_mutexE@Base 1.1.0
  _ZN4ncpp9NotCurses25default_notcurses_optionsE@Base 1.1.0
  _ZN4ncpp9NotCurses7get_topEv@Base 1.1.0
@@ -25,12 +25,11 @@ libnotcurses++.so.1 libnotcurses++1 #MINVER#
  _ZN4ncpp9NotCursesC2ERK17notcurses_optionsP8_IO_FILE@Base 1.1.0
  _ZN4ncpp9NotCursesD1Ev@Base 1.1.1
  _ZN4ncpp9NotCursesD2Ev@Base 1.1.1
- _ZN4ncpp9PanelReel15default_optionsE@Base 1.1.0
  _ZNK4ncpp4Root13get_notcursesEv@Base 1.1.0
  _ZNK4ncpp4Root20is_notcurses_stoppedEv@Base 1.1.0
- _ZNK4ncpp6Tablet9get_planeEv@Base 1.1.0
+ _ZNK4ncpp6NcReel9get_planeEv@Base 1.1.6
  _ZNK4ncpp6Visual9get_planeEv@Base 1.1.0
- _ZNK4ncpp9PanelReel9get_planeEv@Base 1.1.0
+ _ZNK4ncpp8NcTablet9get_planeEv@Base 1.1.6
  _ZTIN4ncpp10init_errorE@Base 1.1.0
  _ZTIN4ncpp16invalid_argumentE@Base 1.1.0
  _ZTIN4ncpp19invalid_state_errorE@Base 1.1.0
