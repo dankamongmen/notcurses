@@ -12,7 +12,8 @@
   * That's an em dash (U+2014, UTF-8 e2 80 94), get it right
 * Repack DFSG-safe tarball, upload to github
   * download github-spun tarball
-  * remove nonfree multimedia
+  * remove nonfree multimedia:
+    * rm data/chun* data/[deflmPw]* doc/0.4.0-sheet.png, src/poc/jungle.c, CODE_OF_CONDUCT.md
   * `tar -cJf ../v$VERSION.dfsg.tar.xz -C.. notcurses-$VERSION`
   * upload to github
 * Build new Debian package
