@@ -1,6 +1,7 @@
-notcurses (1.1.6-1) UNRELEASED; urgency=medium
+notcurses (1.1.6-1) unstable; urgency=medium
 
   * Update watchfile to grab dfsg version of source
+  * Remove a few more DFSG-questionable files
 
  -- Nick Black <dankamongmen@gmail.com>  Tue, 04 Feb 2020 23:47:28 -0500
 
