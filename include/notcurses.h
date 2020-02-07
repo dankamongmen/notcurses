@@ -1012,6 +1012,9 @@ channel_set_alpha(unsigned* channel, int alpha){
     return -1;
   }
   *channel = (alpha << CELL_ALPHA_SHIFT) | (*channel & ~CELL_ALPHA_MASK);
+  if(alpha == CELL_ALPHA_HIGHCONTRAST){
+    *channel |= CELL_BGDEFAULT_MASK;
+  }
   return 0;
 }
 
@@ -1034,13 +1037,13 @@ channel_set_default(unsigned* channel){
 }
 
 // Extract the 32-bit background channel from a channel pair.
-static inline unsigned
+static inline uint32_t
 channels_bchannel(uint64_t channels){
   return channels & 0xfffffffflu;
 }
 
 // Extract the 32-bit foreground channel from a channel pair.
-static inline unsigned
+static inline uint32_t
 channels_fchannel(uint64_t channels){
   return channels_bchannel(channels >> 32u);
 }
@@ -1121,7 +1124,7 @@ channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
   if(channel_set_rgb(&channel, r, g, b) < 0){
     return -1;
   }
-  *channels = (*channels & 0xffffffff00000000llu) | channel;
+  channels_set_bchannel(channels, channel);
   return 0;
 }
 
@@ -1130,7 +1133,7 @@ static inline void
 channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
   unsigned channel = channels_bchannel(*channels);
   channel_set_rgb_clipped(&channel, r, g, b);
-  *channels = (*channels & 0xffffffff00000000llu) | channel;
+  channels_set_bchannel(channels, channel);
 }
 
 // Same, but set an assembled 32 bit channel at once.
@@ -1150,7 +1153,7 @@ channels_set_bg(uint64_t* channels, unsigned rgb){
   if(channel_set(&channel, rgb) < 0){
     return -1;
   }
-  *channels = (*channels & 0xffffffff00000000llu) | channel;
+  channels_set_bchannel(channels, channel);
   return 0;
 }
 
@@ -1175,7 +1178,7 @@ channels_set_bg_alpha(uint64_t* channels, int alpha){
   if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
-  *channels = (*channels & 0xffffffff00000000llu) | channel;
+  channels_set_bchannel(channels, channel);
   return 0;
 }
 
@@ -1219,7 +1222,7 @@ static inline uint64_t
 channels_set_bg_default(uint64_t* channels){
   unsigned channel = channels_bchannel(*channels);
   channel_set_default(&channel);
-  *channels = (*channels & 0xffffffff00000000llu) | channel;
+  channels_set_bchannel(channels, channel);
   return *channels;
 }
 
