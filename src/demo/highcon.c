@@ -3,9 +3,8 @@
 // assign to r/g/b the minimum permutation summing to total, inc total by step
 static void
 minimize(unsigned *total, unsigned *r, unsigned *g, unsigned *b, unsigned step){
-  *total += step;
   *b = *r >= 256 ? 256 : *r + step;
-  *r = *total - (*b + *g);
+  *r = (*total += step) - (*b + *g);
 }
 
 // derive the next color based on current state. *'total' ranges from 0 to 768
@@ -14,7 +13,7 @@ minimize(unsigned *total, unsigned *r, unsigned *g, unsigned *b, unsigned step){
 // to 256, the encoded values top out at 255 ({255, 256} -> 255). at all times,
 // *'r' + *'g' + *'b' must sum to *'total'. on input, rgb specifies the return
 // value. on output, rgb specifies the next return value, and total might be
-// changed. if total was changed, r is miminimized, and g is then minimized,
+// changed. if total was changed, r is minimized, and g is then minimized,
 // subject to the total. thus we twist and shout through rgb space by 'step'.
 static unsigned
 generate_next_color(unsigned *total, unsigned *r, unsigned *g, unsigned *b,
@@ -48,13 +47,15 @@ generate_next_color(unsigned *total, unsigned *r, unsigned *g, unsigned *b,
   }else{
     if(*r == 256 && *g == 256){
       minimize(total, r, g, b, step);
-    }else if(*g == 256){
-      *r += step;
-      *b = 256;
     }else{
-      *b -= step;
+      if(*g == 256){
+        *r += step;
+        *b = 256;
+      }else{
+        *b -= step;
+      }
+      *g = *total - (*r + *b);
     }
-    *g = *total - (*r + *b);
   }
   return ret;
 }
@@ -83,7 +84,7 @@ int highcontrast_demo(struct notcurses* nc){
   // right. start at the upper left, from the logical beginning of the array.
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
-  const char motto[] = "is this the high-test? it's that WMD. it *will* mass-destruct your ass. ";
+  const char motto[] = "high contrast text ";
   do{
     unsigned idx = iter % totcells; // first color for upper-left
     for(int yx = 0 ; yx < dimy * dimx ; ++yx){
@@ -95,7 +96,7 @@ int highcontrast_demo(struct notcurses* nc){
       idx = (idx + 1) % totcells;
     }
     scrcolors[iter++ % totcells] = generate_next_color(&total, &r, &g, &b, STEP);
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       goto err;
     }
   }while(total <= 768);

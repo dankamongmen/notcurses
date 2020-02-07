@@ -190,11 +190,44 @@ cell_locked_p(const cell* p){
 
 // Extracellular state for a cell during the render process
 struct crender {
-  int fgblends;
-  int bgblends;
+  unsigned fgblends;
+  unsigned bgblends;
   ncplane *p;
   bool damaged;
 };
+
+// Emit fchannel with RGB changed to contrast effectively against bchannel.
+static uint32_t
+highcontrast(uint32_t bchannel){
+  uint32_t rchannel = 0;
+  unsigned r = channel_r(bchannel);
+  unsigned g = channel_g(bchannel);
+  unsigned b = channel_b(bchannel);
+  //float lumi = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  /*
+  unsigned max = r > g ? r > b ? r : b : g > b ? g : b;
+  unsigned min = r < g ? r < b ? r : b : g < b ? g : b;
+  float rrgb = r / 255.0;
+  float grgb = g / 255.0;
+  float brgb = b / 255.0;
+  float rrel = rrgb <= 0.03928 ? rrgb / 12.92 : pow(((rrgb + 0.055) / 1.055), 2.4);
+  float grel = grgb <= 0.03928 ? grgb / 12.92 : pow(((grgb + 0.055) / 1.055), 2.4);
+  float brel = brgb <= 0.03928 ? brgb / 12.92 : pow(((brgb + 0.055) / 1.055), 2.4);
+  max = !max ? 1 : max;
+  unsigned sat = 10 * (max - min) / max;
+  if(sat < 3){
+    channel_set(&rchannel, 0xffffff);
+  }else{
+    channel_set(&rchannel, 0x0);
+  }
+  */
+  if(r + g + b < 384){
+    channel_set(&rchannel, 0xffffff);
+  }else{
+    channel_set(&rchannel, 0x0);
+  }
+  return rchannel;
+}
 
 // Paints a single ncplane into the provided framebuffer 'fb'. Whenever a cell
 // is locked in, it is compared against the last frame. If it is different, the
@@ -248,8 +281,8 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
       // still use a character we find here, but its color will come entirely
       // from cells underneath us.
       if(!crender->p){
-        // if the following is true, we're a real glyph, and not the right-h
-        // hand side of a wide glyph (or the null codepoint).
+        // if the following is true, we're a real glyph, and not the right-hand
+        // side of a wide glyph (or the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
           // we can't plop down a wide glyph if the next cell is beyond the
           // screen, nor if we're bisected by a higher plane.
@@ -271,14 +304,7 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
           cell_set_wide(targc);
         }
       }
-      if(cell_fg_palindex_p(vis)){
-        if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-          cell_set_fg_palindex(targc, cell_fg_palindex(vis));
-        }
-      }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_fg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
-        cell_blend_fchannel(targc, cell_fchannel(vis), crender->fgblends);
-        ++crender->fgblends;
-      }
+
       // Background color takes effect independently of whether we have a
       // glyph. If we've already locked in the background, it has no effect.
       // If it's transparent, it has no effect. Otherwise, update the
@@ -287,9 +313,20 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
         if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
           cell_set_bg_palindex(targc, cell_bg_palindex(vis));
         }
-      }else if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE && cell_bg_alpha(vis) < CELL_ALPHA_TRANSPARENT){
-        cell_blend_bchannel(targc, cell_bchannel(vis), crender->bgblends);
-        ++crender->bgblends;
+      }else if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
+        cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
+      }
+      // Evaluate the background first, in case this is HIGHCONTRAST fg text.
+      if(cell_fg_palindex_p(vis)){
+        if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+          cell_set_fg_palindex(targc, cell_fg_palindex(vis));
+        }
+      }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
+        uint32_t vchannel = cell_fchannel(vis);
+        if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
+          vchannel = highcontrast(cell_bchannel(targc));
+        }
+        cell_blend_fchannel(targc, vchannel, &crender->fgblends);
       }
 
       if(cell_locked_p(targc)){
