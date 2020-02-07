@@ -63,12 +63,14 @@ target_link_libraries(notcurses
   PRIVATE
     "${AVCODEC_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
+    "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_LIBRARIES}"
 )
 target_link_directories(notcurses
   PRIVATE
     "${AVCODEC_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
+    "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_LIBRARY_DIRS}"
 )
 endif()
@@ -232,6 +234,7 @@ target_include_directories(notcurses-demo
     include
     "${PROJECT_BINARY_DIR}/include"
   PUBLIC
+    "${AVCODEC_INCLUDE_DIRS}"
     "${AVFORMAT_INCLUDE_DIRS}"
     "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_INCLUDE_DIRS}"
