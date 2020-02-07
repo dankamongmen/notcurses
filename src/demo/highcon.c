@@ -4,7 +4,6 @@
 static void
 minimize(unsigned *total, unsigned *r, unsigned *g, unsigned *b, unsigned step){
   *total += step;
-  *b = *total;
   *r = *total > 512 ? *total - 512 : 0;
   *g = *total > 256 ? *total - 256 - *r : 0;
   *b = *total - (*r + *g);
