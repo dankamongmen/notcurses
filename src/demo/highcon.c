@@ -4,9 +4,8 @@
 static void
 minimize(unsigned *total, unsigned *r, unsigned *g, unsigned *b, unsigned step){
   *total += step;
-  *r = *total > 512 ? *total - 512 : 0;
-  *g = *total > 256 ? *total - 256 - *r : 0;
-  *b = *total - (*r + *g);
+  *b = *r >= 256 ? 256 : *r + step;
+  *r = *total - (*b + *g);
 }
 
 // derive the next color based on current state. *'total' ranges from 0 to 768
@@ -61,7 +60,7 @@ generate_next_color(unsigned *total, unsigned *r, unsigned *g, unsigned *b,
 }
 
 int highcontrast_demo(struct notcurses* nc){
-  const int STEP = 4;
+  const int STEP = 16;
   int dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
