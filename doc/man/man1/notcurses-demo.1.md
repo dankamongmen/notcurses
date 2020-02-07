@@ -27,6 +27,7 @@ The demonstrations include (see NOTES below):
 * (e)agle—they took some time off my life, back in the day
 * (f)allin'—the screen falls apart under heavy blows
 * (g)rid—a gradient of color lain atop a great grid
+* (h)ighcon—high contrast text atop various colors
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi-a dashing Apennine plumber in a world of fire
 * (r)eel—demonstration of the ncreel high-level widget
@@ -62,7 +63,7 @@ At any time, press 'q' to quit. The demo is best run in at least a 80x45 termina
 
 **-V**: Print the program name and version, and exit with success.
 
-demospec: Select which demos to run, and what order to run them in. The default is **ixetbcgrwuvlfsjo**. See above for a list of demos.
+demospec: Select which demos to run, and what order to run them in. The default is **ixethbcgrwuvlfsjo**. See above for a list of demos.
 
 # NOTES
 
