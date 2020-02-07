@@ -61,6 +61,7 @@ generate_next_color(unsigned *total, unsigned *r, unsigned *g, unsigned *b,
 
 int highcontrast_demo(struct notcurses* nc){
   const int STEP = 16;
+  int ret = -1;
   int dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
@@ -71,7 +72,6 @@ int highcontrast_demo(struct notcurses* nc){
   if(scrcolors == NULL){
     return -1;
   }
-  // FIXME fill screen with a matrix of text, all CELL_ALPHA_HIGHCONTRAST
   unsigned total = 0, r = 0, g = 0, b = 0;
   for(int out = 0 ; out < totcells ; ++out){ // build up the initial screen
     scrcolors[out] = generate_next_color(&total, &r, &g, &b, STEP);
@@ -81,10 +81,13 @@ int highcontrast_demo(struct notcurses* nc){
   }
   // each iteration, generate the next color, and introduce it at the lower
   // right. start at the upper left, from the logical beginning of the array.
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
+  const char motto[] = "is this the high-test? it's that WMD. it *will* mass-destruct your ass. ";
   do{
     unsigned idx = iter % totcells; // first color for upper-left
     for(int yx = 0 ; yx < dimy * dimx ; ++yx){
+      cell_load_simple(n, &c, motto[idx % strlen(motto)]);
       cell_set_bg(&c, scrcolors[idx]);
       if(ncplane_putc_yx(n, yx / dimx, yx % dimx, &c) < 0){
         goto err;
@@ -96,12 +99,10 @@ int highcontrast_demo(struct notcurses* nc){
       goto err;
     }
   }while(total <= 768);
-  cell_release(n, &c);
-  free(scrcolors);
-  return 0;
+  ret = 0;
 
 err:
   cell_release(n, &c);
   free(scrcolors);
-  return -1;
+  return ret;
 }
