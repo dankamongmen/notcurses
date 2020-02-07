@@ -6,9 +6,17 @@
 
 static int
 run_menu(struct notcurses* nc, struct ncmenu* ncm){
-  struct ncplane* selplane = ncplane_aligned(notcurses_stdplane(nc), 1, 40, 10, NCALIGN_CENTER, NULL);
+  struct ncplane* selplane = ncplane_aligned(notcurses_stdplane(nc), 3, 40, 10, NCALIGN_CENTER, NULL);
   if(selplane == NULL){
     return -1;
+  }
+  ncplane_set_fg(selplane, 0x0);
+  ncplane_set_bg(selplane, 0xdddddd);
+  uint64_t channels = 0;
+  channels_set_fg(&channels, 0x000088);
+  channels_set_bg(&channels, 0x88aa00);
+  if(ncplane_set_base(selplane, channels, 0, " ") < 0){
+    goto err;
   }
   char32_t keypress;
   ncinput ni;
@@ -54,7 +62,7 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
     }
     ncplane_erase(selplane);
     const char* selitem = ncmenu_selected(ncm);
-    ncplane_putstr_yx(selplane, 0, 0, selitem ? selitem : "");
+    ncplane_putstr_aligned(selplane, 1, NCALIGN_CENTER, selitem ? selitem : "");
     notcurses_render(nc);
   }
   ncmenu_destroy(nc, ncm);
@@ -103,10 +111,17 @@ int main(void){
     goto err;
   }
 
-  notcurses_render(nc);
-  int dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
+  int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
+  uint64_t channels = 0;
+  channels_set_fg(&channels, 0x88aa00);
+  channels_set_bg(&channels, 0x000088);
+  if(ncplane_set_base(n, channels, 0, "x") < 0){
+    return EXIT_FAILURE;
+  }
+
+  notcurses_render(nc);
   ncplane_set_fg(n, 0x00dddd);
   if(ncplane_putstr_aligned(n, dimy - 1, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=- ") < 0){
 	  return EXIT_FAILURE;
