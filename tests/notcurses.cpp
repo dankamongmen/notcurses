@@ -107,9 +107,11 @@ TEST_CASE("NotcursesBase") {
     CHECK(0 > channels_set_fg_alpha(&channel, 4));
     CHECK(0 == channels_set_fg_alpha(&channel, CELL_ALPHA_OPAQUE));
     CHECK(CELL_ALPHA_OPAQUE == channels_fg_alpha(channel));
+    CHECK(channels_fg_default_p(channel));
+    CHECK(channels_bg_default_p(channel));
     CHECK(0 == channels_set_fg_alpha(&channel, CELL_ALPHA_HIGHCONTRAST));
     CHECK(CELL_ALPHA_HIGHCONTRAST == channels_fg_alpha(channel));
-    CHECK(channels_fg_default_p(channel));
+    CHECK(!channels_fg_default_p(channel));
     CHECK(channels_bg_default_p(channel));
   }
 

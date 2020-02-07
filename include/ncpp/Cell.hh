@@ -66,7 +66,7 @@ namespace ncpp
 			return cell_set_fchannel (&_cell, channel);
 		}
 
-		uint64_t blend_fchannel (unsigned channel, unsigned blends) noexcept
+		uint64_t blend_fchannel (unsigned channel, unsigned* blends) noexcept
 		{
 			return cell_blend_fchannel (&_cell, channel, blends);
 		}
@@ -76,7 +76,7 @@ namespace ncpp
 			return cell_set_bchannel (&_cell, channel);
 		}
 
-		uint64_t blend_bchannel (unsigned channel, unsigned blends) noexcept
+		uint64_t blend_bchannel (unsigned channel, unsigned* blends) noexcept
 		{
 			return cell_blend_bchannel (&_cell, channel, blends);
 		}
