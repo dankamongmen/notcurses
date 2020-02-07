@@ -61,7 +61,7 @@ struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
     { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
   };
-  const struct ncmenu_section sections[] = {
+  struct ncmenu_section sections[] = {
     { .name = "notcurses-demo", .items = demo_items,
       .itemcount = sizeof(demo_items) / sizeof(*demo_items),
       .shortcut = { .id = 'o', .alt = true, }, },
