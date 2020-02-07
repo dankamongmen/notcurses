@@ -20,8 +20,9 @@ find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
 if(NOT "${DISABLE_FFMPEG}")
-pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
+pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
+pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 endif()
 find_library(LIBRT rt)
@@ -53,17 +54,20 @@ target_link_directories(notcurses
 if(NOT "${DISABLE_FFMPEG}")
 target_include_directories(notcurses
   PUBLIC
+    "${AVCODEC_INCLUDE_DIRS}"
     "${AVFORMAT_INCLUDE_DIRS}"
     "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses
   PRIVATE
+    "${AVCODEC_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
 )
 target_link_directories(notcurses
   PRIVATE
+    "${AVCODEC_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
     "${SWSCALE_LIBRARY_DIRS}"
 )
