@@ -85,7 +85,7 @@ Description: Binaries from libnotcurses
 Package: notcurses-data
 Architecture: all
 Multi-Arch: foreign
-Depends: ncurses-term, ${misc:Depends}, ${shlibs:Depends}
+Depends: ncurses-term, ${misc:Depends}
 Description: Multimedia used by notcurses-demo
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
@@ -96,7 +96,7 @@ Description: Multimedia used by notcurses-demo
 Package: python3-notcurses
 Section: python
 Architecture: any
-Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends}, ${python3:Depends}
 Description: Python wrappers for notcurses (Python 3)
  Python wrappers for the notcurses TUI library.
  .
