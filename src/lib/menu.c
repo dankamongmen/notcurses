@@ -137,7 +137,11 @@ dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int*
   for(i = 0 ; i < opts->sectioncount ; ++i){
     if(opts->sections[i].name){
       int cols = mbswidth(opts->sections[i].name);
-      ncm->sections[i].xoff = xoff;
+      if(rightaligned){ // FIXME handle more than one right-aligned section
+        ncm->sections[i].xoff = -(cols + 2);
+      }else{
+        ncm->sections[i].xoff = xoff;
+      }
       if(cols < 0 || (ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
         goto err;
       }
@@ -194,7 +198,7 @@ static int
 write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
   int dimy, dimx;
   ncplane_dim_yx(ncm->ncp, &dimy, &dimx);
-  int xoff = 2; // 2-column margin on left
+  int xoff = 0; // 2-column margin on left
   int ypos = ncm->bottom ? dimy - 1 : 0;
   if(ncplane_cursor_move_yx(ncm->ncp, ypos, 0)){
     return -1;
@@ -209,13 +213,21 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
   }
   for(int i = 0 ; i < ncm->sectioncount ; ++i){
     if(ncm->sections[i].name){
+      ncplane_cursor_move_yx(ncm->ncp, ypos, xoff);
+      int spaces = ncm->sections[i].xoff - xoff;
+      if(ncm->sections[i].xoff < 0){ // right-aligned
+        spaces = dimx + ncm->sections[i].xoff - xoff;
+        if(spaces < 0){
+          spaces = 0;
+        }
+      }
+      xoff += spaces;
+      while(spaces--){
+        if(ncplane_putc(ncm->ncp, &c) < 0){
+          return -1;
+        }
+      }
       if(ncplane_putstr_yx(ncm->ncp, ypos, xoff, ncm->sections[i].name) < 0){
-        return -1;
-      }
-      if(ncplane_putc(ncm->ncp, &c) < 0){
-        return -1;
-      }
-      if(ncplane_putc(ncm->ncp, &c) < 0){
         return -1;
       }
       if(ncm->sections[i].shortcut_offset >= 0){
@@ -229,7 +241,7 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
         }
         cell_release(ncm->ncp, &cl);
       }
-      xoff += mbswidth(ncm->sections[i].name) + 2;
+      xoff += mbswidth(ncm->sections[i].name);
     }
   }
   while(xoff < dimx){
@@ -323,7 +335,11 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
   const int height = section_height(n, sectionidx);
   const int width = section_width(n, sectionidx);
-  const int xpos = n->sections[sectionidx].xoff;
+  int xpos = n->sections[sectionidx].xoff < 0 ?
+    dimx + (n->sections[sectionidx].xoff - 2) : n->sections[sectionidx].xoff;
+  if(xpos + width >= dimx){
+    xpos = dimx - (width + 2);
+  }
   int ypos = n->bottom ? dimy - height - 1 : 1;
   if(ncplane_cursor_move_yx(n->ncp, ypos, xpos)){
     return -1;
