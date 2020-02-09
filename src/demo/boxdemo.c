@@ -51,8 +51,9 @@ int box_demo(struct notcurses* nc){
     return -1;
   }
   for(int idx = 0 ; idx < 256 ; ++idx){
-    int y = 0, x = 0;
+    int y = 1, x = 0;
     ncplane_dim_yx(n, &ylen, &xlen);
+    --ylen;
     while(ylen - y >= targy && xlen - x >= targx){
       if(cell_set_fg_rgb(&ul, idx, 255 - (y * 2), 255 - idx)){
         return -1;
