@@ -592,15 +592,19 @@ if(${BUILD_PYTHON})
     install(
       CODE "execute_process(
         COMMAND
-          ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/tmp --install-layout=deb --prefix=/usr --skip-build
+          ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=/usr --skip-build --root=${CMAKE_SOURCE_DIR}/debian/tmp --install-layout=deb
         WORKING_DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/python
       )"
     )
   else()
     install(
-      CODE
-      "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})"
+      CODE "execute_process(
+        COMMAND
+          ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX} --skip-build
+        WORKING_DIRECTORY
+          ${CMAKE_CURRENT_BINARY_DIR}/python
+      )"
     )
   endif()
 endif()
