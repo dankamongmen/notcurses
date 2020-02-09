@@ -255,6 +255,11 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
         ret->sectionchannels = opts->sectionchannels;
+        cell c = CELL_SIMPLE_INITIALIZER('\0');
+        cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+        cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+        ncplane_set_base_cell(ret->ncp, &c);
+        cell_release(ret->ncp, &c);
         if(write_header(ret) == 0){
           if(set_menu(nc, ret) == 0){
             return ret;
