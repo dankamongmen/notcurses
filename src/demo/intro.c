@@ -31,7 +31,7 @@ int intro(struct notcurses* nc){
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_cursor_move_yx(ncp, 0, 0)){
+  if(ncplane_cursor_move_yx(ncp, 1, 0)){
     return -1;
   }
   if(cells_rounded_box(ncp, NCSTYLE_BOLD, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
@@ -45,7 +45,7 @@ int intro(struct notcurses* nc){
   cell_set_bg(&ll, 0x002000);
   cell_set_fg(&lr, 0xffffff);
   cell_set_bg(&lr, 0x002000);
-  if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows, cols,
+  if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 1, cols,
                        NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM |
                         NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
     return -1;
