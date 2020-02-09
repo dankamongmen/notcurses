@@ -30,7 +30,18 @@ find_library(LIBRT rt)
 # libnotcurses
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c)
 add_library(notcurses SHARED ${NCSRCS})
+add_library(notcurses-static STATIC ${NCSRCS})
+set_target_properties(
+  notcurses-static PROPERTIES
+  OUTPUT_NAME notcurses
+)
+
 set_target_properties(notcurses PROPERTIES
+  PUBLIC_HEADER "include/notcurses.h"
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+set_target_properties(notcurses-static PROPERTIES
   PUBLIC_HEADER "include/notcurses.h"
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
@@ -41,12 +52,27 @@ target_include_directories(notcurses
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
+target_include_directories(notcurses-static
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
+)
 target_link_libraries(notcurses
   PRIVATE
     "${TERMINFO_LIBRARIES}"
     "${LIBRT}"
 )
+target_link_libraries(notcurses-static
+  PRIVATE
+    "${TERMINFO_LIBRARIES}"
+    "${LIBRT}"
+)
 target_link_directories(notcurses
+  PRIVATE
+    "${TERMINFO_LIBRARY_DIRS}"
+)
+target_link_directories(notcurses-static
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
 )
@@ -59,14 +85,37 @@ target_include_directories(notcurses
     "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_INCLUDE_DIRS}"
 )
+target_include_directories(notcurses-static
+  PUBLIC
+    "${AVCODEC_INCLUDE_DIRS}"
+    "${AVFORMAT_INCLUDE_DIRS}"
+    "${AVUTIL_INCLUDE_DIRS}"
+    "${SWSCALE_INCLUDE_DIRS}"
+)
 target_link_libraries(notcurses
   PRIVATE
     "${AVCODEC_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
     "${AVUTIL_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
+    Threads::Threads
+)
+target_link_libraries(notcurses-static
+  PRIVATE
+    "${AVCODEC_LIBRARIES}"
+    "${AVFORMAT_LIBRARIES}"
+    "${AVUTIL_LIBRARIES}"
+    "${SWSCALE_LIBRARIES}"
+    Threads::Threads
 )
 target_link_directories(notcurses
+  PUBLIC
+    "${AVCODEC_LIBRARY_DIRS}"
+    "${AVFORMAT_LIBRARY_DIRS}"
+    "${AVUTIL_LIBRARY_DIRS}"
+    "${SWSCALE_LIBRARY_DIRS}"
+)
+target_link_directories(notcurses-static
   PUBLIC
     "${AVCODEC_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
@@ -85,7 +134,17 @@ target_compile_options(notcurses
   PRIVATE
     -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
+target_compile_options(notcurses-static
+  PRIVATE
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
+)
 target_compile_definitions(notcurses
+  PUBLIC
+    _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  PRIVATE
+    FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
+)
+target_compile_definitions(notcurses-static
   PUBLIC
     _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
   PRIVATE
@@ -465,18 +524,22 @@ if(${BUILD_PYTHON})
     OUTPUT
       "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
     COMMAND
-      "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -R${CMAKE_INSTALL_LIBDIR} -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python &&
-       "${Python3_EXECUTABLE}" ${SETUP_PY} build_py &&
-       "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info -b ${CMAKE_CURRENT_BINARY_DIR}/python
+      "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python -t${CMAKE_CURRENT_BINARY_DIR}/python &&
+      "${Python3_EXECUTABLE}" ${SETUP_PY} build_py &&
+      "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info -b ${CMAKE_CURRENT_BINARY_DIR}/python
     DEPENDS
       ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
     COMMENT "Building Python wrappers"
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR}/python
   )
   # build/pytimestamp isn't actually generated, and thus this runs each time.
   # python does its own dep tracking, so it "works" out like recursive make.
-  add_custom_target(pymod
-    ALL
-    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+  add_custom_target(pymod ALL
+    DEPENDS
+      "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR}/python
   )
 endif()
 
@@ -514,7 +577,7 @@ install(TARGETS notcurses-tester DESTINATION bin)
 if(NOT "${DISABLE_FFMPEG}")
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
-install(TARGETS notcurses
+install(TARGETS notcurses notcurses-static
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT Libraries
@@ -527,10 +590,12 @@ if(${BUILD_PYTHON})
   # if DFSG_BUILD has been selected, assume we're building debs
   if("${DFSG_BUILD}")
     install(
-      CODE
-        "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/python3-notcurses --install-layout=deb --prefix=${CMAKE_INSTALL_PREFIX} --skip-build
-      WORKING_DIRECTORY
-        ../python)"
+      CODE "execute_process(
+        COMMAND
+          ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${CMAKE_SOURCE_DIR}/debian/tmp --install-layout=deb --prefix=/usr --skip-build
+        WORKING_DIRECTORY
+          ${CMAKE_CURRENT_BINARY_DIR}/python
+      )"
     )
   else()
     install(
