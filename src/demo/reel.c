@@ -300,12 +300,13 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     fprintf(stderr, "Error creating ncreel\n");
     return -1;
   }
+  int dimy = ncplane_dim_y(w);
   // Press a for a new nc above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement.
   ncplane_styles_on(w, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   ncplane_set_fg_rgb(w, 58, 150, 221);
   ncplane_set_bg_default(w);
-  ncplane_printf_yx(w, 1, 1, "a, b, c create tablets, DEL deletes.");
+  ncplane_printf_yx(w, dimy - 1, 1, "a, b, c create tablets, DEL deletes.");
   ncplane_styles_off(w, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   // FIXME clrtoeol();
   struct timespec deadline;
@@ -314,7 +315,6 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
                  &deadline);
   unsigned id = 0;
   struct tabletctx* newtablet;
-  int dimy = ncplane_dim_y(w);
   // Make an initial number of tablets suitable for the screen's height
   while(id < dimy / 8u){
     newtablet = new_tabletctx(pr, &id);
@@ -330,7 +330,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     ncplane_set_fg_rgb(w, 197, 15, 31);
     int count = ncreel_tabletcount(pr);
     ncplane_styles_on(w, NCSTYLE_BOLD);
-    ncplane_printf_yx(w, 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
+    ncplane_printf_yx(w, dimy - 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
     ncplane_styles_off(w, NCSTYLE_BOLD);
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(w, 0, 55, 218);
