@@ -16,9 +16,9 @@ TEST_CASE("Palette256") {
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
   struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nullptr != nc_);
+  REQUIRE(nc_);
   struct ncplane* n_ = notcurses_stdplane(nc_);
-  REQUIRE(nullptr != n_);
+  REQUIRE(n_);
 
   SUBCASE("AllocAndFree") {
     palette256* p = palette256_new(nc_);

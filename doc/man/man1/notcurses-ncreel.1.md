@@ -1,18 +1,18 @@
-% notcurses-planereel(1)
+% notcurses-ncreel(1)
 % nick black <nickblack@linux.com>
 % v1.1.6
 
 # NAME
 
-notcurses-planereel - Experiment with ncreels
+notcurses-ncreel - Experiment with ncreels
 
 # SYNOPSIS
 
-**notcurses-planereel** [**-t tabletbordermask**] [**-b bordermask**] [**-ob bottomoffset**] [**-ot topoffset**] [**-ol leftoffset**] [**-or rightoffset**]
+**notcurses-ncreel** [**-t tabletbordermask**] [**-b bordermask**] [**-ob bottomoffset**] [**-ot topoffset**] [**-ol leftoffset**] [**-or rightoffset**]
 
 # DESCRIPTION
 
-**notcurses-planereel** generates a ncreel to experiment with. With the
+**notcurses-ncreel** generates a ncreel to experiment with. With the
 program open, press 'a' to create a new tablet, or 'd' to delete the focused
 tablet (if one exists). 'q' quits at any time.
 
