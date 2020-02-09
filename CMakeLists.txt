@@ -513,11 +513,12 @@ write_basic_package_version_file(
 if(${BUILD_PYTHON})
   find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
   file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
-  file(COPY python/src/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python/)
-  set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.py.in")
+  file(COPY python/src/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python/src)
+  file(COPY python/README.md DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python)
+  set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/tools/setup.py.in")
   set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/python/setup.py")
-  set(SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/setup.cfg.in")
-  set(SETUP_CFG "${CMAKE_CURRENT_BINARY_DIR}/setup.cfg")
+  set(SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/tools/setup.cfg.in")
+  set(SETUP_CFG "${CMAKE_CURRENT_BINARY_DIR}/python/setup.cfg")
   configure_file(${SETUP_PY_IN} ${SETUP_PY})
   configure_file(${SETUP_CFG_IN} ${SETUP_CFG})
   add_custom_command(
@@ -526,7 +527,6 @@ if(${BUILD_PYTHON})
     COMMAND
       "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python -t${CMAKE_CURRENT_BINARY_DIR}/python &&
       "${Python3_EXECUTABLE}" ${SETUP_PY} build_py &&
-      "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info -b ${CMAKE_CURRENT_BINARY_DIR}/python &&
       "${Python3_EXECUTABLE}" ${SETUP_PY} sdist
     DEPENDS
       ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
