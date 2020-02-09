@@ -2,7 +2,6 @@
 
 DEB_HOST_MULTIARCH?=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
-# see FEATURE AREAS in dpkg-buildflags(1)
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 export PYBUILD_NAME=notcurses
@@ -13,12 +12,6 @@ export PYBUILD_NAME=notcurses
 override_dh_auto_configure:
 	dh_auto_configure -- -DDFSG_BUILD=ON
 
-# dh_auto_test -O--buildsystem=cmake -O--no-parallel
-# Don't try to run ncurses tests
-override_dh_auto_test:
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-	cd obj-x86_64-linux-gnu && env -u TERM make test
-endif
-
 override_dh_auto_install:
 	dh_auto_install -B $(BUILDDIR)
+	rm -rf debian/tmp/usr/lib/python3/dist-packages/__pycache__
