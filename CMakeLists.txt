@@ -526,7 +526,8 @@ if(${BUILD_PYTHON})
     COMMAND
       "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python -t${CMAKE_CURRENT_BINARY_DIR}/python &&
       "${Python3_EXECUTABLE}" ${SETUP_PY} build_py &&
-      "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info -b ${CMAKE_CURRENT_BINARY_DIR}/python
+      "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info -b ${CMAKE_CURRENT_BINARY_DIR}/python &&
+      "${Python3_EXECUTABLE}" ${SETUP_PY} sdist
     DEPENDS
       ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
     COMMENT "Building Python wrappers"
@@ -587,17 +588,10 @@ install(TARGETS notcurses notcurses-static
     COMPONENT Development
 )
 if(${BUILD_PYTHON})
-  # if DFSG_BUILD has been selected, assume we're building debs
-  if("${DFSG_BUILD}")
-    install(
-      CODE "execute_process(
-        COMMAND
-          ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=/usr --skip-build --root=${CMAKE_SOURCE_DIR}/debian/tmp --install-layout=deb
-        WORKING_DIRECTORY
-          ${CMAKE_CURRENT_BINARY_DIR}/python
-      )"
-    )
-  else()
+  # if DFSG_BUILD has been selected, assume we're building debs. debian/rules
+  # has its own python install logic after many hours wasted, so we don't
+  # install from here for a deb build.
+  if(NOT "${DFSG_BUILD}")
     install(
       CODE "execute_process(
         COMMAND
