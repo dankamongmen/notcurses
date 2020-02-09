@@ -73,8 +73,8 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
       xoff = dimx - nx - 1;
       *velx = -*velx;
     }
-    if(yoff <= 0){
-      yoff = 0;
+    if(yoff <= 2){
+      yoff = 2;
       *vely = -*vely;
     }else if(yoff >= dimy - ny){
       yoff = dimy - ny - 1;
