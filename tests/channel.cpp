@@ -155,9 +155,10 @@ TEST_CASE("ChannelBlendDefaultRight") {
   channel_set_rgb(&c1, 0x80, 0x40, 0x20);
   CHECK(!channel_default_p(c1));
   CHECK(channel_default_p(c2));
-  unsigned blends;
+  unsigned blends = 0;
   uint32_t c = channels_blend(c1, c2, &blends);
   CHECK(channel_default_p(c));
+  CHECK(1 == blends);
   c = channels_blend(c1, c2, &blends);
   CHECK(!channel_default_p(c));
   unsigned r, g, b;
