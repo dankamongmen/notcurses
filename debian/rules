@@ -14,7 +14,7 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	dh_auto_build
-	cd python && python3 setup.py build_ext -L../obj-x86_64-linux-gnu -I../include
+	cd python && python3 setup.py build_ext -L../obj-$(DEB_HOST_MULTIARCH) -I../include
 	cd python && python3 setup.py sdist
 
 override_dh_auto_install:
