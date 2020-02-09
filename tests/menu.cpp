@@ -39,7 +39,7 @@ TEST_CASE("MenuTest") {
   SUBCASE("EmptySectionReject") {
     struct ncmenu_options opts{};
     struct ncmenu_section sections[] = {
-      { .name = strdup("Empty"), .itemcount = 0, .items = nullptr, .shortcut{}, },
+      { .name = strdup("Empty"), .itemcount = 0, .items = nullptr, .shortcut = ncinput(), },
     };
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
@@ -52,10 +52,10 @@ TEST_CASE("MenuTest") {
   // a section with only separators ought be rejected
   SUBCASE("SeparatorSectionReject") {
     struct ncmenu_item empty_items[] = {
-      { .desc = nullptr, .shortcut = {}, },
+      { .desc = nullptr, .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("Empty"), .itemcount = 1, .items = empty_items, .shortcut{}, },
+      { .name = strdup("Empty"), .itemcount = 1, .items = empty_items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
@@ -68,10 +68,10 @@ TEST_CASE("MenuTest") {
 
   SUBCASE("MenuOneSection") {
     struct ncmenu_item file_items[] = {
-      { .desc = strdup("I would like a new file"), .shortcut = {}, },
+      { .desc = strdup("I would like a new file"), .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut{}, },
+      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
@@ -85,10 +85,10 @@ TEST_CASE("MenuTest") {
   // only one menu at a time per notcurses object
   SUBCASE("RejectDoubleMenu") {
     struct ncmenu_item file_items[] = {
-      { .desc = strdup("I would like a new file"), .shortcut = {}, },
+      { .desc = strdup("I would like a new file"), .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut{}, },
+      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
@@ -107,10 +107,10 @@ TEST_CASE("MenuTest") {
   // don't call ncmenu_destroy(), invoking destruction in notcurses_stop()
   SUBCASE("MenuNoFree") {
     struct ncmenu_item file_items[] = {
-      { .desc = strdup("I would like a new file"), .shortcut = {}, },
+      { .desc = strdup("I would like a new file"), .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut{}, },
+      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
@@ -122,14 +122,14 @@ TEST_CASE("MenuTest") {
 
   SUBCASE("VeryLongMenu") {
     struct ncmenu_item items[] = {
-      { .desc = strdup("Generic menu entry"), .shortcut = {}, },
+      { .desc = strdup("Generic menu entry"), .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("antidisestablishmentarianism"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut{}, },
-      { .name = strdup("floccinaucinihilipilification"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut{}, },
-      { .name = strdup("pneumonoultramicroscopicsilicovolcanoconiosis"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut{}, },
-      { .name = strdup("supercalifragilisticexpialidocious"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut{}, },
-      { .name = strdup("Incomprehensibilities"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut{}, },
+      { .name = strdup("antidisestablishmentarianism"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = strdup("floccinaucinihilipilification"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = strdup("pneumonoultramicroscopicsilicovolcanoconiosis"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = strdup("supercalifragilisticexpialidocious"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = strdup("Incomprehensibilities"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
