@@ -56,7 +56,7 @@ target_include_directories(notcurses-static
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_INCLUDE_DIRS}"
+    "${TERMINFO_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses
   PRIVATE
@@ -65,7 +65,7 @@ target_link_libraries(notcurses
 )
 target_link_libraries(notcurses-static
   PRIVATE
-    "${TERMINFO_LIBRARIES}"
+    "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBRT}"
 )
 target_link_directories(notcurses
@@ -74,7 +74,7 @@ target_link_directories(notcurses
 )
 target_link_directories(notcurses-static
   PRIVATE
-    "${TERMINFO_LIBRARY_DIRS}"
+    "${TERMINFO_STATIC_LIBRARY_DIRS}"
 )
 
 if(NOT "${DISABLE_FFMPEG}")
@@ -87,10 +87,10 @@ target_include_directories(notcurses
 )
 target_include_directories(notcurses-static
   PUBLIC
-    "${AVCODEC_INCLUDE_DIRS}"
-    "${AVFORMAT_INCLUDE_DIRS}"
-    "${AVUTIL_INCLUDE_DIRS}"
-    "${SWSCALE_INCLUDE_DIRS}"
+    "${AVCODEC_STATIC_INCLUDE_DIRS}"
+    "${AVFORMAT_STATIC_INCLUDE_DIRS}"
+    "${AVUTIL_STATIC_INCLUDE_DIRS}"
+    "${SWSCALE_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses
   PRIVATE
@@ -102,10 +102,10 @@ target_link_libraries(notcurses
 )
 target_link_libraries(notcurses-static
   PRIVATE
-    "${AVCODEC_LIBRARIES}"
-    "${AVFORMAT_LIBRARIES}"
-    "${AVUTIL_LIBRARIES}"
-    "${SWSCALE_LIBRARIES}"
+    "${AVCODEC_STATIC_LIBRARIES}"
+    "${AVFORMAT_STATIC_LIBRARIES}"
+    "${AVUTIL_STATIC_LIBRARIES}"
+    "${SWSCALE_STATIC_LIBRARIES}"
     Threads::Threads
 )
 target_link_directories(notcurses
@@ -117,10 +117,10 @@ target_link_directories(notcurses
 )
 target_link_directories(notcurses-static
   PUBLIC
-    "${AVCODEC_LIBRARY_DIRS}"
-    "${AVFORMAT_LIBRARY_DIRS}"
-    "${AVUTIL_LIBRARY_DIRS}"
-    "${SWSCALE_LIBRARY_DIRS}"
+    "${AVCODEC_STATIC_LIBRARY_DIRS}"
+    "${AVFORMAT_STATIC_LIBRARY_DIRS}"
+    "${AVUTIL_STATIC_LIBRARY_DIRS}"
+    "${SWSCALE_STATIC_LIBRARY_DIRS}"
 )
 endif()
 
