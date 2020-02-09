@@ -396,7 +396,7 @@ int main(int argc, char** argv){
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
-  const bool use_menu = false;
+  const bool use_menu = true;
   const char* spec;
   bool use_hud, ignore_failures;
   notcurses_options nopts;

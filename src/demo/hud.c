@@ -61,10 +61,17 @@ struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
     { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
   };
+  struct ncmenu_item help_items[] = {
+    { .desc = "About", .shortcut = { .id = 'u', .ctrl = true, }, },
+  };
   struct ncmenu_section sections[] = {
     { .name = "notcurses-demo", .items = demo_items,
       .itemcount = sizeof(demo_items) / sizeof(*demo_items),
       .shortcut = { .id = 'o', .alt = true, }, },
+    { .name = NULL, .items = NULL, .itemcount = 0, },
+    { .name = "help", .items = help_items,
+      .itemcount = sizeof(help_items) / sizeof(*help_items),
+      .shortcut = { .id = 'h', .alt = true, }, },
   };
   uint64_t headerchannels = 0;
   uint64_t sectionchannels = 0;

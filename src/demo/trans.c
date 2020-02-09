@@ -241,13 +241,13 @@ int trans_demo(struct notcurses* nc){
   uint64_t channels = 0;
   channels_set_fg_rgb(&channels, 0, 128, 128);
   channels_set_bg_rgb(&channels, 90, 0, 90);
-  int y = 0, x = 0;
+  int y = 1, x = 0;
   ncplane_cursor_move_yx(n, y, x);
-  if(ncplane_rounded_box_sized(n, 0, channels, maxy, maxx, 0)){
+  if(ncplane_rounded_box_sized(n, 0, channels, maxy - 1, maxx, 0)){
     return -1;
   }
   uint32_t rgb = 0;
-  for(y = 1 ; y < maxy - 1 ; ++y){
+  while(++y < maxy - 1){
     x = 1;
     if(ncplane_cursor_move_yx(n, y, x)){
       return -1;

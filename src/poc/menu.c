@@ -54,6 +54,11 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
             goto err;
           }
           break;
+        case 'h': case 'H':
+          if(ncmenu_unroll(ncm, 3)){
+            goto err;
+          }
+          break;
       }
     }else if(keypress == 'q'){
       ncmenu_destroy(nc, ncm);
@@ -92,6 +97,9 @@ int main(void){
     { .desc = NULL, },
     { .desc = "Quit", .shortcut = { .id = 'q', .ctrl = true, }, },
   };
+  struct ncmenu_item help_items[] = {
+    { .desc = "About", .shortcut = { .id = 'a', .ctrl = true, }, },
+  };
   struct ncmenu_section sections[] = {
     { .name = "Schwarzgerät", .items = demo_items,
       .itemcount = sizeof(demo_items) / sizeof(*demo_items),
@@ -99,6 +107,10 @@ int main(void){
     { .name = "File", .items = file_items,
       .itemcount = sizeof(file_items) / sizeof(*file_items),
       .shortcut = { .id = 'f', .alt = true, }, },
+    { .name = NULL, .items = NULL, .itemcount = 0, },
+    { .name = "Help", .items = help_items,
+      .itemcount = sizeof(help_items) / sizeof(*help_items),
+      .shortcut = { .id = 'h', .alt = true, }, },
   };
   ncmenu_options mopts;
   memset(&mopts, 0, sizeof(mopts));

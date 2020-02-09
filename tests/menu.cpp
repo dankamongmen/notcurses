@@ -120,6 +120,60 @@ TEST_CASE("MenuTest") {
     CHECK(0 == notcurses_render(nc_));
   }
 
+  SUBCASE("RightAlignedSection") {
+    struct ncmenu_item items[] = {
+      { .desc = strdup("Yet another crappy item"), .shortcut = {}, },
+    };
+    struct ncmenu_section sections[] = {
+      { .name = strdup("Left section"), .itemcount = sizeof(items) / sizeof(*items),
+        .items = items, .shortcut = {}, },
+      { .name = nullptr, .itemcount = sizeof(items) / sizeof(*items),
+        .items = items, .shortcut = {}, },
+      { .name = strdup("Right section"), .itemcount = sizeof(items) / sizeof(*items),
+        .items = items, .shortcut = {}, },
+    };
+    struct ncmenu_options opts{};
+    opts.sections = sections;
+    opts.sectioncount = sizeof(sections) / sizeof(*sections);
+    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    REQUIRE(nullptr != ncm);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // you must have sections, not just an alignment NULL section
+  SUBCASE("OnlyAlignRejected") {
+    struct ncmenu_section sections[] = {
+      { .name = nullptr, .itemcount = 0, .items = nullptr, .shortcut = {}, },
+    };
+    struct ncmenu_options opts{};
+    opts.sections = sections;
+    opts.sectioncount = sizeof(sections) / sizeof(*sections);
+    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    REQUIRE(nullptr == ncm);
+  }
+
+  // you can only shift to right alignment once in a menu
+  SUBCASE("DoubleAlignRejected") {
+    struct ncmenu_item items[] = {
+      { .desc = strdup("Yet another crappy item"), .shortcut = {}, },
+    };
+    struct ncmenu_section sections[] = {
+      { .name = strdup("Left section"), .itemcount = sizeof(items) / sizeof(*items),
+        .items = items, .shortcut = {}, },
+      { .name = nullptr, .itemcount = sizeof(items) / sizeof(*items),
+        .items = items, .shortcut = {}, },
+      { .name = nullptr, .itemcount = sizeof(items) / sizeof(*items),
+        .items = items, .shortcut = {}, },
+      { .name = strdup("Right section"), .itemcount = sizeof(items) / sizeof(*items),
+        .items = items, .shortcut = {}, },
+    };
+    struct ncmenu_options opts{};
+    opts.sections = sections;
+    opts.sectioncount = sizeof(sections) / sizeof(*sections);
+    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    REQUIRE(nullptr == ncm);
+  }
+
   SUBCASE("VeryLongMenu") {
     struct ncmenu_item items[] = {
       { .desc = strdup("Generic menu entry"), .shortcut = {}, },

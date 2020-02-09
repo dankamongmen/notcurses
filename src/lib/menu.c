@@ -122,50 +122,72 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
 // Duplicates all menu sections in opts, adding their length to '*totalwidth'.
 static int
 dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* totalheight){
+  if(opts->sectioncount == 0){
+    return -1;
+  }
   ncm->sections = malloc(sizeof(*ncm->sections) * opts->sectioncount);
   if(ncm->sections == NULL){
     return -1;
   }
+  bool rightaligned = false; // can only right-align once. twice is error.
   int maxheight = 0;
   int maxwidth = *totalwidth;
   int xoff = 2;
-  for(int i = 0 ; i < opts->sectioncount ; ++i){
-    int cols = mbswidth(opts->sections[i].name);
-    ncm->sections[i].xoff = xoff;
-    if(cols < 0 || (ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
-      while(i--){
-        free_menu_section(&ncm->sections[i]);
+  int i;
+  for(i = 0 ; i < opts->sectioncount ; ++i){
+    if(opts->sections[i].name){
+      int cols = mbswidth(opts->sections[i].name);
+      ncm->sections[i].xoff = xoff;
+      if(cols < 0 || (ncm->sections[i].name = strdup(opts->sections[i].name)) == NULL){
+        goto err;
       }
-      return -1;
-    }
-    if(dup_menu_section(&ncm->sections[i], &opts->sections[i])){
-      free(ncm->sections[i].name);
-      while(i--){
-        free_menu_section(&ncm->sections[i]);
+      if(dup_menu_section(&ncm->sections[i], &opts->sections[i])){
+        free(ncm->sections[i].name);
+        goto err;
       }
-      return -1;
-    }
-    if(ncm->sections[i].itemcount > maxheight){
-      maxheight = ncm->sections[i].itemcount;
-    }
-    if(*totalwidth + cols + 2 > maxwidth){
-      maxwidth = *totalwidth + cols + 2;
-    }
-    if(*totalwidth + ncm->sections[i].bodycols + 2 > maxwidth){
-      maxwidth = *totalwidth + ncm->sections[i].bodycols + 2;
-    }
-    *totalwidth += cols + 2;
-    memcpy(&ncm->sections[i].shortcut, &opts->sections[i].shortcut, sizeof(ncm->sections[i].shortcut));
-    if(mbstr_find_codepoint(ncm->sections[i].name,
-                            ncm->sections[i].shortcut.id,
-                            &ncm->sections[i].shortcut_offset) < 0){
+      if(ncm->sections[i].itemcount > maxheight){
+        maxheight = ncm->sections[i].itemcount;
+      }
+      if(*totalwidth + cols + 2 > maxwidth){
+        maxwidth = *totalwidth + cols + 2;
+      }
+      if(*totalwidth + ncm->sections[i].bodycols + 2 > maxwidth){
+        maxwidth = *totalwidth + ncm->sections[i].bodycols + 2;
+      }
+      *totalwidth += cols + 2;
+      memcpy(&ncm->sections[i].shortcut, &opts->sections[i].shortcut, sizeof(ncm->sections[i].shortcut));
+      if(mbstr_find_codepoint(ncm->sections[i].name,
+                              ncm->sections[i].shortcut.id,
+                              &ncm->sections[i].shortcut_offset) < 0){
+        ncm->sections[i].shortcut_offset = -1;
+      }
+      xoff += cols + 2;
+    }else{ // divider; remaining sections are right-aligned
+      if(rightaligned){
+        goto err;
+      }
+      rightaligned = true;
+      ncm->sections[i].name = NULL;
+      ncm->sections[i].items = NULL;
+      ncm->sections[i].itemcount = 0;
+      ncm->sections[i].xoff = -1;
+      ncm->sections[i].bodycols = 0;
+      ncm->sections[i].itemselected = -1;
       ncm->sections[i].shortcut_offset = -1;
     }
-    xoff += cols + 2;
+  }
+  if(ncm->sectioncount == 1 && rightaligned){
+    goto err;
   }
   *totalwidth = maxwidth;
   *totalheight += maxheight + 2; // two rows of border
   return 0;
+
+err:
+  while(i--){
+    free_menu_section(&ncm->sections[i]);
+  }
+  return -1;
 }
 
 static int
@@ -186,27 +208,29 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
     return -1;
   }
   for(int i = 0 ; i < ncm->sectioncount ; ++i){
-    if(ncplane_putstr_yx(ncm->ncp, ypos, xoff, ncm->sections[i].name) < 0){
-      return -1;
-    }
-    if(ncplane_putc(ncm->ncp, &c) < 0){
-      return -1;
-    }
-    if(ncplane_putc(ncm->ncp, &c) < 0){
-      return -1;
-    }
-    if(ncm->sections[i].shortcut_offset >= 0){
-      cell cl = CELL_TRIVIAL_INITIALIZER;
-      if(ncplane_at_yx(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
+    if(ncm->sections[i].name){
+      if(ncplane_putstr_yx(ncm->ncp, ypos, xoff, ncm->sections[i].name) < 0){
         return -1;
       }
-      cell_styles_on(&cl, NCSTYLE_UNDERLINE|NCSTYLE_BOLD);
-      if(ncplane_putc_yx(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
+      if(ncplane_putc(ncm->ncp, &c) < 0){
         return -1;
       }
-      cell_release(ncm->ncp, &cl);
+      if(ncplane_putc(ncm->ncp, &c) < 0){
+        return -1;
+      }
+      if(ncm->sections[i].shortcut_offset >= 0){
+        cell cl = CELL_TRIVIAL_INITIALIZER;
+        if(ncplane_at_yx(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
+          return -1;
+        }
+        cell_styles_on(&cl, NCSTYLE_UNDERLINE|NCSTYLE_BOLD);
+        if(ncplane_putc_yx(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
+          return -1;
+        }
+        cell_release(ncm->ncp, &cl);
+      }
+      xoff += mbswidth(ncm->sections[i].name) + 2;
     }
-    xoff += mbswidth(ncm->sections[i].name) + 2;
   }
   while(xoff < dimx){
     if(ncplane_putc_yx(ncm->ncp, ypos, xoff, &c) < 0){
@@ -289,6 +313,9 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     return -1;
   }
   if(ncmenu_rollup(n)){ // roll up any unrolled section
+    return -1;
+  }
+  if(n->sections[sectionidx].name == NULL){
     return -1;
   }
   n->unrolledsection = sectionidx;
@@ -383,6 +410,11 @@ int ncmenu_nextsection(ncmenu* n){
       nextsection = 0;
     }
   }
+  if(n->sections[nextsection].name == NULL){
+    if(++nextsection == n->sectioncount){
+      nextsection = 0;
+    }
+  }
   return ncmenu_unroll(n, nextsection);
 }
 
@@ -395,6 +427,11 @@ int ncmenu_prevsection(ncmenu* n){
   }
   if(--prevsection == -1){
     prevsection = n->sectioncount - 1;
+  }
+  if(n->sections[prevsection].name == NULL){
+    if(--prevsection < 0){
+      prevsection = n->sectioncount - 1;
+    }
   }
   return ncmenu_unroll(n, prevsection);
 }
