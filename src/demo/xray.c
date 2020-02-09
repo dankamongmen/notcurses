@@ -36,8 +36,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
   if(n == NULL){
     struct ncplane* nstd = notcurses_stdplane(nc);
     ncplane_dim_yx(nstd, &dimy, &dimx);
-    //y = dimy - sizeof(leg) / sizeof(*leg) - 1;
-    y = 1;
+    y = dimy - sizeof(leg) / sizeof(*leg);
     n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), dimx, y, 0, NULL);
     if(n == NULL){
       return -1;
