@@ -177,8 +177,8 @@ eagles(struct notcurses* nc){
         continue;
       }
       e[i].yoff += random() % (2 + i) - 1;
-      if(e[i].yoff < 0){
-        e[i].yoff = 0;
+      if(e[i].yoff < 1){
+        e[i].yoff = 1;
       }else if(e[i].yoff + height >= truey){
         e[i].yoff = truey - height - 1;
       }

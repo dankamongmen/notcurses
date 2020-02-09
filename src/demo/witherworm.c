@@ -518,7 +518,7 @@ int witherworm_demo(struct notcurses* nc){
       if(math == NULL){
         return -1;
       }
-      struct ncplane* mess = ncplane_new(nc, 7, 57, 1, 4, NULL);
+      struct ncplane* mess = ncplane_new(nc, 7, 57, 2, 4, NULL);
       if(mess == NULL){
         return -1;
       }
