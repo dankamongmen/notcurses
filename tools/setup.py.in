@@ -1,14 +1,15 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 import os
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 if __name__ == '__main__':
-  setup(name='notcurses',
+  setup(
+    name='notcurses',
     version='${PROJECT_VERSION}',
-    package_dir={ '': '${CMAKE_CURRENT_BINARY_DIR}/python/src/notcurses' },
-    packages=find_packages('${CMAKE_CURRENT_BINARY_DIR}/python/src/notcurses'),
+    packages=['notcurses'],
+    package_dir={ '': '${CMAKE_CURRENT_BINARY_DIR}/python/src' },
     cffi_modules=['${CMAKE_CURRENT_BINARY_DIR}/python/src/notcurses/build_notcurses.py:ffibuild'],
     py_modules=["notcurses"],
     include_dirs=['${CMAKE_CURRENT_SOURCE_DIR}/include'],
