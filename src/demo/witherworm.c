@@ -461,14 +461,14 @@ int witherworm_demo(struct notcurses* nc){
       int y, x, maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx);
       int rgb = start;
-      if(ncplane_cursor_move_yx(n, 0, 0)){
-        return -1;
-      }
       int bytes_out = 0;
       int egcs_out = 0;
       int cols_out = 0;
-      y = 0;
+      y = 1;
       x = 0;
+      if(ncplane_cursor_move_yx(n, y, x)){
+        return -1;
+      }
       ncplane_set_bg_rgb(n, 20, 20, 20);
       do{ // we fill up the screen, however large, bouncing around our strtable
         s = strs + random() % ((sizeof(strs) / sizeof(*strs)) - 1);

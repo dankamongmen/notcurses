@@ -156,6 +156,9 @@ int hud_completion_notify(const demoresult* result);
 const demoresult* demoresult_lookup(int idx);
 /*----------------------------------HUD----------------------------------*/
 
+// returns true if the input was handled by the menu/HUD
+bool menu_or_hud_key(const struct ncinput *ni);
+
 static inline int
 pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), void* curry){
   struct timespec* start = curry;

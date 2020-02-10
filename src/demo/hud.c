@@ -26,6 +26,9 @@ typedef struct elem {
   struct elem* next;
 } elem;
 
+static bool menu_unrolled;
+static struct ncmenu* menu;
+
 static struct elem* elems;
 static struct elem* running;
 // which line we're writing the next entry to. once this becomes -1, we stop decrementing
@@ -55,6 +58,44 @@ hud_grabbed_bg(struct ncplane* n){
   ncplane_set_base_cell(n, &c);
   cell_release(n, &c);
   return 0;
+}
+
+// returns true if the input was handled by the menu/HUD
+bool menu_or_hud_key(const struct ncinput *ni){
+  if(!menu){
+    return false;
+  }
+  if((ni->id == 'o' || ni->id == 'O') && ni->alt && !ni->ctrl){
+    if(ncmenu_unroll(menu, 0) == 0){
+      menu_unrolled = true;
+    }
+    return true;
+  }else if(ni->id == NCKEY_UP){
+    if(!menu_unrolled){
+      return false;
+    }
+    ncmenu_previtem(menu);
+    return true;
+  }else if(ni->id == NCKEY_DOWN){
+    if(!menu_unrolled){
+      return false;
+    }
+    ncmenu_nextitem(menu);
+    return true;
+  }else if(ni->id == NCKEY_LEFT){
+    if(!menu_unrolled){
+      return false;
+    }
+    ncmenu_prevsection(menu);
+    return true;
+  }else if(ni->id == NCKEY_RIGHT){
+    if(!menu_unrolled){
+      return false;
+    }
+    ncmenu_nextsection(menu);
+    return true;
+  }
+  return false;
 }
 
 struct ncmenu* menu_create(struct notcurses* nc){
@@ -89,7 +130,8 @@ struct ncmenu* menu_create(struct notcurses* nc){
     .headerchannels = headerchannels,
     .sectionchannels = sectionchannels,
   };
-  return ncmenu_create(nc, &mopts);
+  menu = ncmenu_create(nc, &mopts);
+  return menu;
 }
 
 struct ncplane* hud_create(struct notcurses* nc){

@@ -95,13 +95,7 @@ ultramegaok_demo(void* vnc){
       handle_mouse(&ni);
     }else{
       // if this was about the menu or HUD, pass to them, and continue
-      if(ni.id == NCKEY_UP){
-        continue;
-      }else if(ni.id == NCKEY_DOWN){
-        continue;
-      }else if(ni.id == NCKEY_LEFT){
-        continue;
-      }else if(ni.id == NCKEY_RIGHT){
+      if(menu_or_hud_key(&ni)){
         continue;
       }
       if(ni.id == 'q'){
