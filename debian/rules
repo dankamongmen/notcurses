@@ -15,9 +15,9 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	dh_auto_build
 	cd python && python3 setup.py build_ext -L../obj-$(DEB_HOST_MULTIARCH) -I../include
-	cd python && python3 setup.py sdist
+	cd python && python3 setup.py build
 
 override_dh_auto_install:
 	dh_auto_install -B $(BUILDDIR)
-	cd python && python3 setup.py install --prefix=/usr --skip-build --root=../debian/tmp --install-layout=deb
+	cd python && python3 setup.py install --prefix=/usr --skip-build --root=../debian/tmp --install-layout=deb --single-version-externally-managed
 	rm -rf debian/tmp/usr/lib/python3/dist-packages/__pycache__

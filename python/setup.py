@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 import os
 
 def read(fname):
@@ -7,8 +7,9 @@ def read(fname):
 setup(
     name="notcurses",
     version="1.1.6",
+    packages=['notcurses'],
     package_dir={'': 'src'},
-    packages=find_packages('src'),
+    py_modules=['notcurses'],
     author="Nick Black",
     author_email="nickblack@linux.com",
     description="Blingful TUI construction library (python bindings)",
@@ -22,7 +23,6 @@ setup(
     install_requires=["cffi>=1.0.0"],
     setup_requires=["cffi>=1.0.0"],
     cffi_modules=["src/notcurses/build_notcurses.py:ffibuild"],
-    py_modules=["notcurses"],
     # see https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Development Status :: 4 - Beta',

@@ -1,5 +1,6 @@
 import sys
 import locale
+import _cffi_backend
 from _notcurses import lib, ffi
 
 def checkRGB(r, g, b):
