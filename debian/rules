@@ -2,7 +2,7 @@
 
 DEB_HOST_MULTIARCH?=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
-export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
 export PYBUILD_NAME=notcurses
 

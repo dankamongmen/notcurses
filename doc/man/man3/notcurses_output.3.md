@@ -106,7 +106,7 @@ possible.
 
 Each of these base functions has two additional forms:
 
-* **ncplane_putc_aligned()**, etc.: accepts a row and an alignement type
+* **ncplane_putc_aligned()**, etc.: accepts a row and an alignment type
 * **ncplane_putc_yx()**, etc.: accepts a row and column
 
 If a positional parameter is -1, no movement will be made along that axis.
