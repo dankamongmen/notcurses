@@ -526,7 +526,7 @@ if(${BUILD_PYTHON})
       "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
     COMMAND
       "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python -t${CMAKE_CURRENT_BINARY_DIR}/python &&
-      "${Python3_EXECUTABLE}" ${SETUP_PY} build
+      "${Python3_EXECUTABLE}" ${SETUP_PY} build_py
     DEPENDS
       ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
     COMMENT "Building Python wrappers"
