@@ -43,7 +43,7 @@ dup_menu_item(ncmenu_int_item* dst, const struct ncmenu_item* src){
     free(dst->desc);
     return -1;
   }
-  bytes += shortsize;
+  bytes += shortsize + 1;
   char* sdup = malloc(bytes);
   int n = snprintf(sdup, bytes, "%s%s", src->shortcut.alt ? ALTMOD : "",
                    src->shortcut.ctrl ? CTLMOD : "");
@@ -53,11 +53,13 @@ dup_menu_item(ncmenu_int_item* dst, const struct ncmenu_item* src){
     return -1;
   }
   memset(&ps, 0, sizeof(ps));
-  if(wcrtomb(sdup + n, src->shortcut.id, &ps) == (size_t)-1){ // shouldn't happen
+  size_t mbbytes = wcrtomb(sdup + n, src->shortcut.id, &ps);
+  if(mbbytes == (size_t)-1){ // shouldn't happen
     free(sdup);
     free(dst->desc);
     return -1;
   }
+  sdup[n + mbbytes] = '\0';
   dst->shortdesc = sdup;
   dst->shortdesccols = mbswidth(dst->shortdesc);
   return 0;
