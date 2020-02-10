@@ -194,15 +194,18 @@ struct crender {
   unsigned bgblends;
   ncplane *p;
   bool damaged;
+  // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
+  // background is locked in. set highcontrast to indicate this.
+  bool highcontrast;
 };
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
 static uint32_t
 highcontrast(uint32_t bchannel){
-  uint32_t rchannel = 0;
   unsigned r = channel_r(bchannel);
   unsigned g = channel_g(bchannel);
   unsigned b = channel_b(bchannel);
+  uint32_t conrgb;
   //float lumi = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   /*
   unsigned max = r > g ? r > b ? r : b : g > b ? g : b;
@@ -221,12 +224,12 @@ highcontrast(uint32_t bchannel){
     channel_set(&rchannel, 0x0);
   }
   */
-  if(r + g + b < 512){
-    channel_set(&rchannel, 0xffffff);
+  if(r + g + b < 320){
+    conrgb = 0xffffff;
   }else{
-    channel_set(&rchannel, 0x0);
+    conrgb = 0;
   }
-  return rchannel;
+  return conrgb;
 }
 
 // Paints a single ncplane into the provided framebuffer 'fb'. Whenever a cell
@@ -322,14 +325,20 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
           cell_set_fg_palindex(targc, cell_fg_palindex(vis));
         }
       }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        uint32_t vchannel = cell_fchannel(vis);
         if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
-          vchannel = highcontrast(cell_bchannel(targc));
+          crender->highcontrast = true;
+          cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
+        }else{
+          cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
         }
-        cell_blend_fchannel(targc, vchannel, &crender->fgblends);
       }
 
+      // have we locked this coordinate in as a result of this plane (cells
+      // which were already locked in were skipped at the top of the loop)?
       if(cell_locked_p(targc)){
+        if(crender->highcontrast){
+          cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
+        }
         cell* prevcell = &nc->lastframe[fbcellidx(absy, nc->lfdimx, absx)];
 /*if(cell_simple_p(targc)){
 fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, prevcell->gcluster, y, x, absy, absx);
@@ -365,9 +374,8 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
 // which cells were changed. We solve for each coordinate's cell by walking
 // down the z-buffer, looking at intersections with ncplanes. This implies
 // locking down the EGC, the attributes, and the channels for each cell.
-// 'top' is accepted so that a menu can override other planes...kinda gross :/.
-static inline int
-notcurses_render_internal(notcurses* nc, ncplane* top, struct crender* rvec){
+static int
+notcurses_render_internal(notcurses* nc, struct crender* rvec){
   if(reshape_shadow_fb(nc)){
     return -1;
   }
@@ -385,7 +393,7 @@ notcurses_render_internal(notcurses* nc, ncplane* top, struct crender* rvec){
       cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
     }
   }
-  ncplane* p = top;
+  ncplane* p = nc->top;
   while(p){
     if(paint(nc, p, rvec, fb)){
       return -1;
@@ -396,12 +404,15 @@ notcurses_render_internal(notcurses* nc, ncplane* top, struct crender* rvec){
     for(int x = 0 ; x < dimx ; ++x){
       cell* targc = &fb[fbcellidx(y, dimx, x)];
       if(!cell_locked_p(targc)){
+        struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
+        if(crender->highcontrast){
+          cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
+        }
         cell* prevcell = &nc->lastframe[fbcellidx(y, dimx, x)];
         if(targc->gcluster == 0){
           targc->gcluster = ' ';
         }
-        if(cellcmp_and_dupfar(&nc->pool, prevcell, rvec[fbcellidx(y, dimx, x)].p, targc)){
-          struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
+        if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
           crender->damaged = true;
         }
       }
@@ -751,7 +762,7 @@ update_palette(notcurses* nc, FILE* out){
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8 stream of escapes and EGCs
 //  * refresh -- write the stream to the emulator
-static inline int
+static int
 notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   FILE* out = nc->rstate.mstreamfp;
   int ret = 0;
@@ -933,12 +944,7 @@ int notcurses_render(notcurses* nc){
   size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
   memset(crender, 0, crenderlen);
-  ncplane* top = nc->top;
-  if(nc->menu){
-    top = nc->menu->ncp;
-    nc->menu->ncp->z = nc->top;
-  }
-  if(notcurses_render_internal(nc, top, crender) == 0){
+  if(notcurses_render_internal(nc, crender) == 0){
     bytes = notcurses_rasterize(nc, crender);
   }
   free(crender);
