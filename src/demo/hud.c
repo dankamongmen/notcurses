@@ -129,8 +129,8 @@ struct ncmenu* menu_create(struct notcurses* nc){
   };
   uint64_t headerchannels = 0;
   uint64_t sectionchannels = 0;
-  channels_set_fg(&headerchannels, 0x00ff00);
-  channels_set_bg(&headerchannels, 0x440000);
+  channels_set_fg(&headerchannels, 0xaf64af);
+  channels_set_bg(&headerchannels, 0x103010);
   const ncmenu_options mopts = {
     .bottom = false,
     .hiding = false,
