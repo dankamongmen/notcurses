@@ -2039,6 +2039,7 @@ API struct nctablet* ncreel_prev(struct ncreel* pr);
 // underlying WINDOW. Returns non-zero on failure.
 API int ncreel_destroy(struct ncreel* pr);
 
+// Returns a pointer to an user pointer associated with this nctablet.
 API void* nctablet_userptr(struct nctablet* t);
 
 // Access the ncplane associated with this nctablet, if one exists.
