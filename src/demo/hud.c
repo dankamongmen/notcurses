@@ -120,8 +120,6 @@ struct ncmenu* menu_create(struct notcurses* nc){
   uint64_t sectionchannels = 0;
   channels_set_fg(&headerchannels, 0x00ff00);
   channels_set_bg(&headerchannels, 0x440000);
-  channels_set_fg_alpha(&sectionchannels, CELL_ALPHA_TRANSPARENT);
-  channels_set_bg_alpha(&sectionchannels, CELL_ALPHA_TRANSPARENT);
   const ncmenu_options mopts = {
     .bottom = false,
     .hiding = false,
