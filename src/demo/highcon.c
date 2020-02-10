@@ -88,7 +88,7 @@ int highcontrast_demo(struct notcurses* nc){
   do{
     unsigned idx = iter % totcells; // first color for upper-left
     for(int yx = 0 ; yx < dimy * dimx ; ++yx){
-      cell_load_simple(n, &c, motto[idx % strlen(motto)]);
+      cell_load_simple(n, &c, motto[yx % strlen(motto)]);
       cell_set_bg(&c, scrcolors[idx]);
       if(ncplane_putc_yx(n, yx / dimx, yx % dimx, &c) < 0){
         goto err;
