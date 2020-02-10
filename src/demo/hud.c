@@ -65,11 +65,22 @@ bool menu_or_hud_key(const struct ncinput *ni){
   if(!menu){
     return false;
   }
-  if((ni->id == 'o' || ni->id == 'O') && ni->alt && !ni->ctrl){
+  if(ni->id == 'o' && ni->alt && !ni->ctrl){
     if(ncmenu_unroll(menu, 0) == 0){
       menu_unrolled = true;
     }
     return true;
+  }else if(ni->id == 'h' && ni->alt && !ni->ctrl){
+    if(ncmenu_unroll(menu, 2) == 0){
+      menu_unrolled = true;
+    }
+    return true;
+  }else if(ni->id == '\x1b'){
+    if(menu_unrolled){
+      ncmenu_rollup(menu);
+      menu_unrolled = false;
+      return true;
+    }
   }else if(ni->id == NCKEY_UP){
     if(!menu_unrolled){
       return false;
