@@ -59,6 +59,8 @@ hud_grabbed_bg(struct ncplane* n){
 
 struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
+    { .desc = "Toggle HUD", .shortcut = { .id = 'H', .ctrl = true, }, },
+    { .desc = NULL, },
     { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
   };
   struct ncmenu_item help_items[] = {

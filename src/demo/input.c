@@ -94,10 +94,20 @@ ultramegaok_demo(void* vnc){
     if(nckey_mouse_p(ni.id)){
       handle_mouse(&ni);
     }else{
+      // if this was about the menu or HUD, pass to them, and continue
+      if(ni.id == NCKEY_UP){
+        continue;
+      }else if(ni.id == NCKEY_DOWN){
+        continue;
+      }else if(ni.id == NCKEY_LEFT){
+        continue;
+      }else if(ni.id == NCKEY_RIGHT){
+        continue;
+      }
       if(ni.id == 'q'){
         interrupt_demo();
       }
-      // go ahead and pass through the keyboard press, even if it was a 'q'
+      // go ahead and pass keyboard through to demo, even if it was a 'q'
       // (this might cause the demo to exit immediately, as is desired)
       pass_along(&ni);
     }
