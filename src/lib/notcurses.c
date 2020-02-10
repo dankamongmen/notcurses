@@ -315,10 +315,6 @@ ncplane* notcurses_stdplane(notcurses* nc){
   return nc->stdscr;
 }
 
-const ncplane* notcurses_stdplane_const(const notcurses* nc){
-  return nc->stdscr;
-}
-
 ncplane* ncplane_new(notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque){
   ncplane* n = ncplane_create(nc, rows, cols, yoff, xoff);
   if(n == NULL){
@@ -840,7 +836,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  ret->menu = NULL;
   ret->stats.fbbytes = 0;
   ret->stashstats.fbbytes = 0;
   reset_stats(&ret->stats);
@@ -993,9 +988,6 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     ret |= notcurses_stop_minimal(nc);
-    if(nc->menu){
-      ncmenu_destroy(nc, nc->menu);
-    }
     while(nc->top){
       ncplane* p = nc->top;
       nc->top = p->z;

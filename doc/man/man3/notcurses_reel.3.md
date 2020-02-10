@@ -87,11 +87,7 @@ typedef struct ncreel_options {
 
 **void* nctablet_userptr(struct nctablet* t);**
 
-**const void* nctablet_userptr_const(const struct nctablet* t);**
-
 **struct ncplane* nctablet_ncplane(struct nctablet* t);**
-
-**const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);**
 
 # DESCRIPTION
 

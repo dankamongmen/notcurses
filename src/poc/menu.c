@@ -61,7 +61,7 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
           break;
       }
     }else if(keypress == 'q'){
-      ncmenu_destroy(nc, ncm);
+      ncmenu_destroy(ncm);
       ncplane_destroy(selplane);
       return 0;
     }
@@ -70,7 +70,7 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
     ncplane_putstr_aligned(selplane, 1, NCALIGN_CENTER, selitem ? selitem : "");
     notcurses_render(nc);
   }
-  ncmenu_destroy(nc, ncm);
+  ncmenu_destroy(ncm);
 
 err:
   ncplane_destroy(selplane);

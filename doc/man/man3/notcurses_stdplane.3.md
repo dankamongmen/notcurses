@@ -12,8 +12,6 @@ notcurses_stdplane - acquire the standard ncplane
 
 **struct ncplane* notcurses_stdplane(struct notcurses* nc);**
 
-**const struct ncplane* notcurses_const_stdplane(const struct notcurses* nc);**
-
 # DESCRIPTION
 
 **notcurses_stdplane** returns a handle to the standard ncplane for the context

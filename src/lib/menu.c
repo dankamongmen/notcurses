@@ -253,20 +253,6 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
   return 0;
 }
 
-// lock the notcurses object, and try to set up the new menu. return -1 if a
-// menu is already associated with this instance.
-static int
-set_menu(notcurses* nc, ncmenu* ncm){
-  int ret = -1;
-  pthread_mutex_lock(&nc->lock);
-  if(!nc->menu){
-    nc->menu = ncm;
-    ret = 0;
-  }
-  pthread_mutex_unlock(&nc->lock);
-  return ret;
-}
-
 ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
   if(opts->sectioncount <= 0 || !opts->sections){
     return NULL;
@@ -286,7 +272,7 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
         totalwidth = dimx;
       }
       int ypos = opts->bottom ? dimy - totalheight : 0;
-      ret->ncp = ncplane_new_uncoupled(nc, totalheight, totalwidth, ypos, 0, NULL);
+      ret->ncp = ncplane_new(nc, totalheight, totalwidth, ypos, 0, NULL);
       if(ret->ncp){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
@@ -297,9 +283,7 @@ ncmenu* ncmenu_create(notcurses* nc, const ncmenu_options* opts){
         ncplane_set_base_cell(ret->ncp, &c);
         cell_release(ret->ncp, &c);
         if(write_header(ret) == 0){
-          if(set_menu(nc, ret) == 0){
-            return ret;
-          }
+          return ret;
         }
         ncplane_destroy(ret->ncp);
       }
@@ -487,17 +471,16 @@ const char* ncmenu_selected(const ncmenu* n){
   return n->sections[n->unrolledsection].items[n->sections[n->unrolledsection].itemselected].desc;
 }
 
-int ncmenu_destroy(notcurses* nc, ncmenu* n){
+ncplane* ncmenu_plane(ncmenu* menu){
+  return menu->ncp;
+}
+
+int ncmenu_destroy(ncmenu* n){
   int ret = 0;
   if(n){
     free_menu_sections(n);
     ncplane_destroy(n->ncp);
     free(n);
-    pthread_mutex_lock(&nc->lock);
-    if(nc->menu == n){
-      nc->menu = NULL;
-    }
-    pthread_mutex_unlock(&nc->lock);
   }
   return ret;
 }

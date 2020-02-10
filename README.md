@@ -269,7 +269,6 @@ handle on the standard plane can be acquired with two top-level functions:
 // terminal size) for this terminal. The standard plane always exists, and its
 // origin is always at the uppermost, leftmost cell of the screen.
 struct ncplane* notcurses_stdplane(struct notcurses* nc);
-const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 ```
 
 A reference to the standard plane *is* persistent across a screen resize, as are
@@ -293,9 +292,8 @@ int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
-                      int* RESTRICT cols){
-  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
+notcurses_term_dim_yx(struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
+  ncplane_dim_yx(notcurses_stdplane(n), rows, cols);
 }
 
 // Refresh the physical screen to match what was last rendered (i.e., without
@@ -776,7 +774,6 @@ int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
 // it with 'opaque'. the others simply return the userptr.
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);
-const void* ncplane_userptr_const(const struct ncplane* n);
 ```
 
 All output is to `ncplane`s. There is no cost in moving the cursor around the
@@ -1955,11 +1952,9 @@ struct nctablet* ncreel_prev(struct ncreel* pr);
 int ncreel_destroy(struct ncreel* pr);
 
 void* nctablet_userptr(struct nctablet* t);
-const void* nctablet_userptr_const(const struct nctablet* t);
 
 // Access the ncplane associated with this tablet, if one exists.
 struct ncplane* nctablet_ncplane(struct nctablet* t);
-const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);
 ```
 
 #### ncreel examples
@@ -2194,11 +2189,10 @@ void ncselector_destroy(struct ncselector* n, char** item);
 
 ### Menus
 
-Horizontal menu bars are supported, on the top or bottom rows of the screen
-(menus are bound to a `notcurses` object, not particular `ncplane`s). If the
-menu bar is longer than the screen, it will be only partially visible, but any
-unrolled section will be visible. Menus may be either visible or invisible by
-default; set the `hiding` option to get an invisible menu. In the event of a
+Horizontal menu bars are supported, on the top or bottom rows of the screen. If
+the menu bar is longer than the screen, it will be only partially visible, but
+any unrolled section will be visible. Menus may be either visible or invisible
+by default; set the `hiding` option to get an invisible menu. In the event of a
 screen resize, menus will be automatically moved/resized.
 
 ```c
@@ -2235,8 +2229,11 @@ int ncmenu_rollup(struct ncmenu* n);
 // Return the selected item description, or NULL if no section is unrolled.
 const char* ncmenu_selected(const struct ncmenu* n);
 
+// Return the ncplane backing this ncmenu.
+struct ncplane* ncmenu_plane(struct ncmenu* n);
+
 // Destroy a menu created with ncmenu_create().
-int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);
+int ncmenu_destroy(struct ncmenu* n);
 ```
 
 ### Channels

@@ -129,8 +129,8 @@ struct ncmenu* menu_create(struct notcurses* nc){
   };
   uint64_t headerchannels = 0;
   uint64_t sectionchannels = 0;
-  channels_set_fg(&headerchannels, 0xaf64af);
-  channels_set_bg(&headerchannels, 0x103010);
+  channels_set_fg(&headerchannels, 0xffffff);
+  channels_set_bg(&headerchannels, 0xaf64af);
   const ncmenu_options mopts = {
     .bottom = false,
     .hiding = false,
@@ -310,6 +310,9 @@ int demo_render(struct notcurses* nc){
                          plen, plen, running->name) < 0){
       return -1;
     }
+  }
+  if(menu){
+    ncplane_move_top(ncmenu_plane(menu));
   }
   return notcurses_render(nc);
 }

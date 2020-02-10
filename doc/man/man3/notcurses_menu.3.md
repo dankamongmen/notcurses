@@ -40,19 +40,19 @@ typedef struct ncmenu_options {
 
 **const char* ncmenu_selected(const struct ncmenu* n);**
 
-**int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);**
+**struct ncplane* ncmenu_plane(struct ncmenu* n);**
+
+**int ncmenu_destroy(struct ncmenu* n);**
 
 # DESCRIPTION
 
-A notcurses instance supports a single menu bar, on the top or bottom row of
-the true screen. It will be kept logically above other ncplanes on the z-axis.
-Attempting to create a menu when one already exists is an error.
-
-A menu is composed of sections, which are in turn composed of items. Either no
-sections are visible, and the menu is *rolled up*, or exactly one section is
-*unrolled*. **ncmenu_rollup** places an ncmenu in the rolled up state.
-**ncmenu_unroll** rolls up any unrolled section, and unrolls the specified one.
-**ncmenu_destroy** removes a menu bar, and frees all associated resources.
+A notcurses instance supports menu bars on the top or bottom row of the true
+screen. A menu is composed of sections, which are in turn composed of items.
+Either no sections are visible, and the menu is *rolled up*, or exactly one
+section is *unrolled*. **ncmenu_rollup** places an ncmenu in the rolled up
+state. **ncmenu_unroll** rolls up any unrolled section, and unrolls the
+specified one. **ncmenu_destroy** removes a menu bar, and frees all associated
+resources.
 
 **ncmenu_selected** return the selected item description,
 or NULL if no section is unrolled.

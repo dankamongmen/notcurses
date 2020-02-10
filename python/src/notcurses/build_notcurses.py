@@ -123,7 +123,6 @@ void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
-const void* ncplane_userptr_const(const struct ncplane* n);
 uint64_t ncplane_channels(struct ncplane* n);
 uint32_t ncplane_attr(struct ncplane* n);
 unsigned ncplane_bchannel(struct ncplane* nc);
@@ -349,9 +348,7 @@ struct nctablet* ncreel_next(struct ncreel* pr);
 struct nctablet* ncreel_prev(struct ncreel* pr);
 int ncreel_destroy(struct ncreel* pr);
 void* nctablet_userptr(struct nctablet* t);
-const void* nctablet_userptr_const(const struct nctablet* t);
 struct ncplane* nctablet_ncplane(struct nctablet* t);
-const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);
 """)
 
 if __name__ == "__main__":

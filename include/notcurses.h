@@ -414,7 +414,6 @@ API int notcurses_refresh(struct notcurses* n);
 // terminal size) for this terminal. The standard plane always exists, and its
 // origin is always at the uppermost, leftmost cell of the screen.
 API struct ncplane* notcurses_stdplane(struct notcurses* nc);
-API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
 // Retrieve the contents of the specified cell as last rendered. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The cell
@@ -620,7 +619,6 @@ API int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
 // it with 'opaque'. the others simply return the userptr.
 API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 API void* ncplane_userptr(struct ncplane* n);
-API const void* ncplane_userptr_const(const struct ncplane* n);
 
 // Return the column at which 'c' cols ought start in order to be aligned
 // according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
@@ -2042,11 +2040,9 @@ API struct nctablet* ncreel_prev(struct ncreel* pr);
 API int ncreel_destroy(struct ncreel* pr);
 
 API void* nctablet_userptr(struct nctablet* t);
-API const void* nctablet_userptr_const(const struct nctablet* t);
 
 // Access the ncplane associated with this nctablet, if one exists.
 API struct ncplane* nctablet_ncplane(struct nctablet* t);
-API const struct ncplane* nctablet_ncplane_const(const struct nctablet* t);
 
 #define PREFIXSTRLEN 7  // Does not include a '\0' (xxx.xxU)
 #define IPREFIXSTRLEN 8 //  Does not include a '\0' (xxxx.xxU)
@@ -2274,8 +2270,11 @@ API int ncmenu_previtem(struct ncmenu* n);
 // Return the selected item description, or NULL if no section is unrolled.
 API const char* ncmenu_selected(const struct ncmenu* n);
 
+// Return the ncplane backing this ncmenu.
+API struct ncplane* ncmenu_plane(struct ncmenu* n);
+
 // Destroy a menu created with ncmenu_create().
-API int ncmenu_destroy(struct notcurses* nc, struct ncmenu* n);
+API int ncmenu_destroy(struct ncmenu* n);
 
 #undef API
 

@@ -48,8 +48,6 @@ notcurses_ncplane - operations on notcurses planes
 
 **void* ncplane_userptr(struct ncplane* n);**
 
-**const void* ncplane_userptr_const(const struct ncplane* n);**
-
 **void ncplane_dim_yx(struct ncplane* n, int* restrict rows, int* restrict cols);**
 
 **static inline int ncplane_dim_y(struct ncplane* n);**
@@ -139,8 +137,8 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of cells
 **ncplane_new(3)**, **ncplane_aligned(3)**, and **ncplane_dup(3)** all return a
 new **struct ncplane** on success, or **NULL** on failure.
 
-**ncplane_userptr(3)** and **ncplane_userptr_const(3)** both return the configured user
-pointer for the ncplane. They cannot fail.
+**ncplane_userptr(3)** returns the configured user pointer for the ncplane, and
+cannot fail.
 
 **ncplane_below(3)** returns the plane below the specified ncplane. If the provided
 plane is the bottommost plane, NULL is returned. It cannot fail.
