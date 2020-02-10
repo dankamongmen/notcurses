@@ -2232,6 +2232,17 @@ const char* ncmenu_selected(const struct ncmenu* n);
 // Return the ncplane backing this ncmenu.
 struct ncplane* ncmenu_plane(struct ncmenu* n);
 
+// Offer the input to the ncmenu. If it's relevant, this function returns true,
+// and the input ought not be processed further. If it's irrelevant to the
+// menu, false is returned. Relevant inputs include:
+//  * mouse movement over a hidden menu
+//  * a mouse click on a menu section (the section is unrolled)
+//  * a mouse click outside of an unrolled menu (the menu is rolled up)
+//  * left or right on an unrolled menu (navigates among sections)
+//  * up or down on an unrolled menu (navigates among items)
+//  * escape on an unrolled menu (the menu is rolled up)
+bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
+
 // Destroy a menu created with ncmenu_create().
 int ncmenu_destroy(struct ncmenu* n);
 ```
