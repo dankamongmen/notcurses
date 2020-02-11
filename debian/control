@@ -12,9 +12,8 @@ Build-Depends:
  libswscale-dev (>= 7:4.2.1),
  pandoc (>= 1.19.2.4),
  pkg-config,
- python3-all-dbg,
- python3-all-dev,
  python3-cffi (>= 1.13.2),
+ python3-dev,
  python3-setuptools (>= 44.0.0),
 Standards-Version: 4.5.0
 Section: libs
