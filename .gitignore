@@ -1,3 +1,4 @@
+debian/files
 obj-x86_64-linux-gnu
 python/.eggs/
 python/build/
@@ -7,4 +8,3 @@ python/src/_notcurses.so
 rust/*/target
 *.pyc
 *.so
-debian/python3-notcurses
