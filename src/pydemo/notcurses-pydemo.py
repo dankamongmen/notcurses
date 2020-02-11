@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import locale
 from notcurses import notcurses
 

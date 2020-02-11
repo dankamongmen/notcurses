@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import sys
 import locale
 import _cffi_backend
