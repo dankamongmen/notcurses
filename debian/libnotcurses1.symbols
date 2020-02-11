@@ -18,6 +18,8 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncmenu_destroy@Base 1.1.6
  ncmenu_nextitem@Base 1.1.6
  ncmenu_nextsection@Base 1.1.6
+ ncmenu_offer_input@Base 1.1.6
+ ncmenu_plane@Base 1.1.6
  ncmenu_previtem@Base 1.1.6
  ncmenu_prevsection@Base 1.1.6
  ncmenu_rollup@Base 1.1.6
@@ -75,7 +77,6 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_styles_on@Base 1.1.6
  ncplane_styles_set@Base 1.1.6
  ncplane_userptr@Base 1.1.6
- ncplane_userptr_const@Base 1.1.6
  ncplane_visual_open@Base 1.1.6
  ncplane_vline_interp@Base 1.1.6
  ncplane_vprintf_aligned@Base 1.1.6
@@ -99,13 +100,12 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncselector_delitem@Base 1.1.6
  ncselector_destroy@Base 1.1.6
  ncselector_nextitem@Base 1.1.6
+ ncselector_offer_input@Base 1.1.6
  ncselector_plane@Base 1.1.6
  ncselector_previtem@Base 1.1.6
  ncselector_selected@Base 1.1.6
  nctablet_ncplane@Base 1.1.6
- nctablet_ncplane_const@Base 1.1.6
  nctablet_userptr@Base 1.1.6
- nctablet_userptr_const@Base 1.1.6
  ncvisual_decode@Base 1.1.6
  ncvisual_destroy@Base 1.1.6
  ncvisual_open_plane@Base 1.1.6
@@ -131,7 +131,6 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  notcurses_resize@Base 1.1.6
  notcurses_stats@Base 1.1.6
  notcurses_stdplane@Base 1.1.6
- notcurses_stdplane_const@Base 1.1.6
  notcurses_stop@Base 1.1.6
  notcurses_supported_styles@Base 1.1.6
  notcurses_top@Base 1.1.6
