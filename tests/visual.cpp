@@ -4,7 +4,7 @@
 #ifndef DISABLE_FFMPEG
 #include <libavutil/pixdesc.h>
 #include <libavutil/avconfig.h>
-#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
+#include <libavcodec/avcodec.h>
 #endif
 
 TEST_CASE("Multimedia") {
