@@ -30,14 +30,14 @@ run_selector(struct notcurses* nc, struct ncselector* ns){
   char32_t keypress;
   ncinput ni;
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
-    switch(keypress){
-      case NCKEY_UP: case 'k': ncselector_previtem(ns, NULL); break;
-      case NCKEY_DOWN: case 'j': ncselector_nextitem(ns, NULL); break;
-      case NCKEY_ENTER: ncselector_destroy(ns, NULL); return;
-      case 'M': case 'J': if(ni.ctrl){ ncselector_destroy(ns, NULL); return; }
-    }
-    if(keypress == 'q'){
-      break;
+    if(!ncselector_offer_input(ns, &ni)){
+      switch(keypress){
+        case NCKEY_ENTER: ncselector_destroy(ns, NULL); return;
+        case 'M': case 'J': if(ni.ctrl){ ncselector_destroy(ns, NULL); return; }
+      }
+      if(keypress == 'q'){
+        break;
+      }
     }
     notcurses_render(nc);
   }

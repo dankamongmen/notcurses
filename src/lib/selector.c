@@ -315,6 +315,17 @@ void ncselector_nextitem(ncselector* n, char** newitem){
   ncselector_draw(n);
 }
 
+bool ncselector_offer_input(ncselector* n, const ncinput* nc){
+  if(nc->id == NCKEY_UP){
+    ncselector_previtem(n, NULL);
+    return true;
+  }else if(nc->id == NCKEY_DOWN){
+    ncselector_nextitem(n, NULL);
+    return true;
+  }
+  return false;
+}
+
 void ncselector_destroy(ncselector* n, char** item){
   if(n){
     if(item){
