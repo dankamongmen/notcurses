@@ -1,4 +1,5 @@
 import sys
+import locale
 import _cffi_backend
 from _notcurses import lib, ffi
 
@@ -101,7 +102,7 @@ class Ncdirect:
 
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, "")
-    nc = notcurses.Notcurses()
+    nc = Notcurses()
     c = Cell(nc.stdplane())
     c.setBgRGB(0x80, 0xc0, 0x80)
     nc.stdplane().setBaseCell(c)
