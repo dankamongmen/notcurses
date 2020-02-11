@@ -289,6 +289,7 @@ char* ncselector_selected(const struct ncselector* n);
 struct ncplane* ncselector_plane(struct ncselector* n);
 void ncselector_previtem(struct ncselector* n, char** newitem);
 void ncselector_nextitem(struct ncselector* n, char** newitem);
+bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 void ncselector_destroy(struct ncselector* n, char** item);
 struct ncmenu_item {
   char* desc;           // utf-8 menu item, NULL for horizontal separator

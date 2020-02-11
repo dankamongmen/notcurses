@@ -22,48 +22,34 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   ncinput ni;
   notcurses_render(nc);
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
-    if(keypress == NCKEY_LEFT){
-      if(ncmenu_prevsection(ncm)){
-        goto err;
+    if(!ncmenu_offer_input(ncm, &ni)){
+      if(keypress == '\x1b'){
+        if(ncmenu_rollup(ncm)){
+          goto err;
+        }
+      }else if(ni.alt){
+        switch(keypress){
+          case 'a': case 'A': case 0x00e4:
+            if(ncmenu_unroll(ncm, 0)){
+              goto err;
+            }
+            break;
+          case 'f': case 'F':
+            if(ncmenu_unroll(ncm, 1)){
+              goto err;
+            }
+            break;
+          case 'h': case 'H':
+            if(ncmenu_unroll(ncm, 3)){
+              goto err;
+            }
+            break;
+        }
+      }else if(keypress == 'q'){
+        ncmenu_destroy(ncm);
+        ncplane_destroy(selplane);
+        return 0;
       }
-    }else if(keypress == NCKEY_RIGHT){
-      if(ncmenu_nextsection(ncm)){
-        goto err;
-      }
-    }else if(keypress == NCKEY_UP){
-      if(ncmenu_previtem(ncm)){
-        goto err;
-      }
-    }else if(keypress == NCKEY_DOWN){
-      if(ncmenu_nextitem(ncm)){
-        goto err;
-      }
-    }else if(keypress == '\x1b'){
-      if(ncmenu_rollup(ncm)){
-        goto err;
-      }
-    }else if(ni.alt){
-      switch(keypress){
-        case 'a': case 'A': case 0x00e4:
-          if(ncmenu_unroll(ncm, 0)){
-            goto err;
-          }
-          break;
-        case 'f': case 'F':
-          if(ncmenu_unroll(ncm, 1)){
-            goto err;
-          }
-          break;
-        case 'h': case 'H':
-          if(ncmenu_unroll(ncm, 3)){
-            goto err;
-          }
-          break;
-      }
-    }else if(keypress == 'q'){
-      ncmenu_destroy(ncm);
-      ncplane_destroy(selplane);
-      return 0;
     }
     ncplane_erase(selplane);
     const char* selitem = ncmenu_selected(ncm);

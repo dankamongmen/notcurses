@@ -2183,6 +2183,16 @@ struct ncplane* ncselector_plane(struct ncselector* n);
 void ncselector_previtem(struct ncselector* n, char** newitem);
 void ncselector_nextitem(struct ncselector* n, char** newitem);
 
+// Offer the input to the ncselector. If it's relevant, this function returns
+// true, and the input ought not be processed further. If it's irrelevant to
+// the selector, false is returned. Relevant inputs include:
+//  * a mouse click on an item
+//  * a mouse scrollwheel event
+//  * a mouse click on the scrolling arrows
+//  * a mouse click outside of an unrolled menu (the menu is rolled up)
+//  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
+bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
+
 // Destroy the ncselector. If 'item' is not NULL, the last selected option will
 // be strdup()ed and assigned to '*item' (and must be free()d by the caller).
 void ncselector_destroy(struct ncselector* n, char** item);

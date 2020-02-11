@@ -65,7 +65,9 @@ bool menu_or_hud_key(const struct ncinput *ni){
   if(!menu){
     return false;
   }
-  if(ni->id == 'o' && ni->alt && !ni->ctrl){
+  if(ncmenu_offer_input(menu, ni)){
+    return true;
+  }else if(ni->id == 'o' && ni->alt && !ni->ctrl){
     if(ncmenu_unroll(menu, 0) == 0){
       menu_unrolled = true;
     }
@@ -81,30 +83,6 @@ bool menu_or_hud_key(const struct ncinput *ni){
       menu_unrolled = false;
       return true;
     }
-  }else if(ni->id == NCKEY_UP){
-    if(!menu_unrolled){
-      return false;
-    }
-    ncmenu_previtem(menu);
-    return true;
-  }else if(ni->id == NCKEY_DOWN){
-    if(!menu_unrolled){
-      return false;
-    }
-    ncmenu_nextitem(menu);
-    return true;
-  }else if(ni->id == NCKEY_LEFT){
-    if(!menu_unrolled){
-      return false;
-    }
-    ncmenu_prevsection(menu);
-    return true;
-  }else if(ni->id == NCKEY_RIGHT){
-    if(!menu_unrolled){
-      return false;
-    }
-    ncmenu_nextsection(menu);
-    return true;
   }
   return false;
 }

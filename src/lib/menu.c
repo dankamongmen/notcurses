@@ -473,6 +473,34 @@ const char* ncmenu_selected(const ncmenu* n){
   return n->sections[n->unrolledsection].items[n->sections[n->unrolledsection].itemselected].desc;
 }
 
+bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
+  if(n->unrolledsection < 0){
+    return false;
+  }
+  if(nc->id == NCKEY_LEFT){
+    if(ncmenu_prevsection(n)){
+      return false;
+    }
+    return true;
+  }else if(nc->id == NCKEY_RIGHT){
+    if(ncmenu_nextsection(n)){
+      return false;
+    }
+    return true;
+  }else if(nc->id == NCKEY_UP){
+    if(ncmenu_previtem(n)){
+      return false;
+    }
+    return true;
+  }else if(nc->id == NCKEY_DOWN){
+    if(ncmenu_nextitem(n)){
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 ncplane* ncmenu_plane(ncmenu* menu){
   return menu->ncp;
 }

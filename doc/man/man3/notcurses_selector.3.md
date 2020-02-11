@@ -11,6 +11,11 @@ notcurses_selector - high level widget for selecting from a set
 **#include <notcurses.h>**
 
 ```c
+**struct ncinput;**
+**struct ncplane;**
+**struct notcurses;**
+**struct ncselector;**
+
 struct selector_item {
   char* option;
   char* desc;
@@ -36,8 +41,6 @@ typedef struct selector_options {
 } selector_options;
 ```
 
-**struct ncselector;**
-
 **struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const selector_options* opts);**
 
 **int ncselector_additem(struct ncselector* n, const struct selector_item* item);**
@@ -52,6 +55,8 @@ typedef struct selector_options {
 
 **void ncselector_nextitem(struct ncselector* n, char\*\* newitem);**
 
+**bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);**
+
 **void ncselector_destroy(struct ncselector* n, char\*\* item);**
 
 # DESCRIPTION
@@ -62,4 +67,6 @@ typedef struct selector_options {
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_ncplane(3)**
+**notcurses(3)**,
+**notcurses_input(3)**,
+**notcurses_ncplane(3)**
