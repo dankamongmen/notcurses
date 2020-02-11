@@ -6,6 +6,8 @@ export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
 export PYBUILD_NAME=notcurses
 
+CFLAGS += -ffile-prefix-map=$(CURDIR)=/
+
 %:
 	dh $@ --buildsystem=cmake
 
