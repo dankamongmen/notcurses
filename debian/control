@@ -18,6 +18,7 @@ Build-Depends:
 Standards-Version: 4.5.0
 Section: libs
 X-Python3-Version: >= 3.7
+Rules-Requires-Root: no
 Testsuite: autopkgtest-pkg-python
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses
 Vcs-Browser: https://github.com/dankamongmen/notcurses
