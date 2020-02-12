@@ -266,7 +266,7 @@ int grid_demo(struct notcurses* nc){
     y = 1;
     ret |= ccell_set_bg_rgb(&ul, i, x * rs, y * bs);
     ret |= ccell_set_fg_rgb(&ul, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
-    if(ncplane_putc_yx(n, 0, 0, &ul) <= 0){
+    if(ncplane_putc_yx(n, y, 0, &ul) <= 0){
       return -1;
     }
     for(x = 1 ; x < maxx - 1 ; ++x){

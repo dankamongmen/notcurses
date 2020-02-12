@@ -166,7 +166,7 @@ const demoresult* demoresult_lookup(int idx);
 /*----------------------------------HUD----------------------------------*/
 
 // returns true if the input was handled by the menu/HUD
-bool menu_or_hud_key(const struct ncinput *ni);
+bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni);
 
 // returns 2 if we've successfully passed the deadline, 1 if we've been aborted
 // (as returned by demo_render(), 0 if we ought keep going, or -1 if there was

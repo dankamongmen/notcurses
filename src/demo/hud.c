@@ -17,6 +17,7 @@ static int hud_pos_y;
 static const int NSLEN = 9;
 static const int HUD_ROWS = 3;
 static const int HUD_COLS = 30;
+static const int PLEN = HUD_COLS - 9 - NSLEN;
 
 typedef struct elem {
   char* name;
@@ -61,7 +62,19 @@ hud_grabbed_bg(struct ncplane* n){
 }
 
 // returns true if the input was handled by the menu/HUD
-bool menu_or_hud_key(const struct ncinput *ni){
+bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
+  // toggle the HUD
+  if(ni->id == 'H' && !ni->alt && !ni->ctrl){
+    if(menu){
+      ncmenu_rollup(menu);
+    }
+    if(hud){
+      hud_destroy();
+    }else{
+      hud_create(nc);
+    }
+    return true;
+  }
   if(!menu){
     return false;
   }
@@ -89,7 +102,7 @@ bool menu_or_hud_key(const struct ncinput *ni){
 
 struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
-    { .desc = "Toggle HUD", .shortcut = { .id = 'H', .ctrl = true, }, },
+    { .desc = "Toggle HUD", .shortcut = { .id = 'H', }, },
     { .desc = NULL, },
     { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
   };
@@ -108,7 +121,8 @@ struct ncmenu* menu_create(struct notcurses* nc){
   uint64_t headerchannels = 0;
   uint64_t sectionchannels = 0;
   channels_set_fg(&headerchannels, 0xffffff);
-  channels_set_bg(&headerchannels, 0xaf64af);
+  channels_set_bg(&headerchannels, 0x7f347f);
+  channels_set_bg_alpha(&headerchannels, CELL_ALPHA_BLEND);
   const ncmenu_options mopts = {
     .bottom = false,
     .hiding = false,
@@ -121,7 +135,36 @@ struct ncmenu* menu_create(struct notcurses* nc){
   return menu;
 }
 
+static elem**
+hud_print_finished(int* line){
+  elem** hook = &elems;
+  elem* e = elems;
+  while(e){
+    hook = &e->next;
+    if(hud){
+      cell c = CELL_TRIVIAL_INITIALIZER;
+      ncplane_base(hud, &c);
+      ncplane_set_bg(hud, cell_bg(&c));
+      ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
+      ncplane_set_fg(hud, 0);
+      cell_release(hud, &c);
+      if(ncplane_printf_yx(hud, *line, 0, "%-6d %*ju.%02jus %-*.*s", e->frames,
+                          NSLEN - 3, e->totalns / GIG,
+                          (e->totalns % GIG) / (GIG / 100),
+                          PLEN, PLEN, e->name) < 0){
+        return NULL;
+      }
+    }
+    ++*line;
+    e = e->next;
+  }
+  return hook;
+}
+
 struct ncplane* hud_create(struct notcurses* nc){
+  if(hud){
+    return NULL;
+  }
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int yoffset = dimy - HUD_ROWS - 1;
@@ -132,10 +175,6 @@ struct ncplane* hud_create(struct notcurses* nc){
   hud_standard_bg(n);
   ncplane_set_fg(n, 0xffffff);
   ncplane_set_bg(n, 0x409040);
-  if(ncplane_putegc_yx(n, 0, HUD_COLS - 1, "\u2612", NULL) < 0){
-    ncplane_destroy(n);
-    return NULL;
-  }
   return (hud = n);
 }
 
@@ -194,16 +233,7 @@ int hud_completion_notify(const demoresult* result){
 
 // inform the HUD of an upcoming demo
 int hud_schedule(const char* demoname){
-  if(hud == NULL){
-    return -1;
-  }
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  ncplane_base(hud, &c);
-  ncplane_set_bg(hud, cell_bg(&c));
-  ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
-  ncplane_set_fg(hud, 0);
   elem* cure;
-  elem** hook = &elems;
   int line = writeline;
   // once we pass through this conditional:
   //  * cure is ready to write to, and print at y = HUD_ROWS - 1
@@ -218,18 +248,9 @@ int hud_schedule(const char* demoname){
     --writeline;
     cure = malloc(sizeof(*cure));
   }
-  elem* e = elems;
-  int plen = HUD_COLS - 10 - NSLEN;
-  while(e){
-    hook = &e->next;
-    if(ncplane_printf_yx(hud, line, 0, "%-6d %*ju.%02jus %-*.*s", e->frames,
-                          NSLEN - 3, e->totalns / GIG,
-                          (e->totalns % GIG) / (GIG / 100),
-                          plen, plen, e->name) < 0){
-      return -1;
-    }
-    ++line;
-    e = e->next;
+  elem** hook = hud_print_finished(&line);
+  if(hook == NULL){
+    return -1;
   }
   *hook = cure;
   cure->name = strdup(demoname);
@@ -240,11 +261,13 @@ int hud_schedule(const char* demoname){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   cure->startns = timespec_to_ns(&cur);
   running = cure;
-  if(ncplane_printf_yx(hud, line, 0, "%-6d %*ju.%02jus %-*.*s", cure->frames,
+  if(hud){
+    if(ncplane_printf_yx(hud, line, 0, "%-6d %*ju.%02jus %-*.*s", cure->frames,
                         NSLEN - 3, cure->totalns / GIG,
                         (cure->totalns % GIG) / (GIG / 100),
-                        plen, plen, cure->name) < 0){
-    return -1;
+                        PLEN, PLEN, cure->name) < 0){
+      return -1;
+    }
   }
   return 0;
 }
@@ -278,6 +301,9 @@ int demo_render(struct notcurses* nc){
   if(interrupted){
     return 1;
   }
+  if(menu){
+    ncplane_move_top(ncmenu_plane(menu));
+  }
   if(hud){
     int plen = HUD_COLS - 4 - NSLEN;
     ncplane_move_top(hud);
@@ -285,15 +311,21 @@ int demo_render(struct notcurses* nc){
     clock_gettime(CLOCK_MONOTONIC, &ts);
     uint64_t ns = timespec_to_ns(&ts) - running->startns;
     ++running->frames;
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    ncplane_base(hud, &c);
+    ncplane_set_bg(hud, cell_bg(&c));
+    ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
+    ncplane_set_fg(hud, 0);
+    cell_release(hud, &c);
     if(ncplane_printf_yx(hud, HUD_ROWS - 1, 0, "%-6d %*ju.%02jus %-*.*s",
                          running->frames,
                          NSLEN - 3, ns / GIG, (ns % GIG) / (GIG / 100),
                          plen, plen, running->name) < 0){
       return -1;
     }
-  }
-  if(menu){
-    ncplane_move_top(ncmenu_plane(menu));
+    if(ncplane_putegc_yx(hud, 0, HUD_COLS - 1, "\u2a02", NULL) < 0){
+      return -1;
+    }
   }
   return notcurses_render(nc);
 }

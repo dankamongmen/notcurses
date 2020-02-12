@@ -95,7 +95,7 @@ ultramegaok_demo(void* vnc){
       handle_mouse(&ni);
     }else{
       // if this was about the menu or HUD, pass to them, and continue
-      if(menu_or_hud_key(&ni)){
+      if(menu_or_hud_key(nc, &ni)){
         continue;
       }
       if(ni.id == 'q'){
