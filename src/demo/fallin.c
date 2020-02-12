@@ -8,15 +8,13 @@ static int
 patentpulser(struct notcurses* nc, struct ncplane* ncp, void* curry){
   (void)ncp;
   (void)curry;
-  if(demo_render(nc)){
-    return -1;
-  }
+  DEMO_RENDER(nc);
   bool donecheck;
   pthread_mutex_lock(&lock);
   donecheck = done;
   pthread_mutex_unlock(&lock);
   if(donecheck){
-    return 1;
+    return 2;
   }
   return 0;
 }
@@ -38,7 +36,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   // an erase+render cycle ought not change the screen, as we duplicated it
   struct timespec iterdelay;
   // 5 * demodelay total
-  ns_to_timespec(timespec_to_ns(&demodelay) / arrcount / 2, &iterdelay);
+  timespec_div(&demodelay, 2, &iterdelay);
   // we've got a range of up to 10% total blocks falling at any given time. they
   // accelerate as they fall. [ranges, reange) covers the active range.
   int ranges = 0;
@@ -55,9 +53,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
       }
     }
     do{
-      if(demo_render(nc)){
-        return -1;
-      }
+      DEMO_RENDER(nc);
       // don't allow gaps in the active range. so long as felloff is true, we've only handled
       // planes which have fallen off the screen, and can be collected.
       bool felloff = true;
@@ -220,7 +216,6 @@ int fallin_demo(struct notcurses* nc){
     return -1;
   }
   int ret = drop_bricks(nc, arr, arrcount);
-  sleep(1);
   pthread_mutex_lock(&lock);
   done = true;
   pthread_mutex_unlock(&lock);

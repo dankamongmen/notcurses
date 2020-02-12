@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <limits.h>
+#include <stdatomic.h>
 #include <notcurses.h>
 #ifndef DISABLE_FFMPEG
 #include <libavutil/pixdesc.h>
@@ -23,6 +24,9 @@ extern "C" {
 // configured via command line option -- the base number of ns between demos
 extern struct timespec demodelay;
 extern float delaymultiplier; // scales demodelay (applied internally)
+
+// checked in demo_render() and between demos
+extern atomic_bool interrupted;
 
 // heap-allocated, caller must free. locates data files per command line args.
 char* find_data(const char* datum);
@@ -128,7 +132,12 @@ int hud_schedule(const char* demoname);
 
 // demos should not call notcurses_render() themselves, but instead call
 // demo_render(), which will ensure the HUD stays on the top of the z-stack.
+// returns -1 on error, 1 if the demo has been aborted, and 0 on success.
+// this result ought be propagated out so that the demo is reported as having
+// been aborted, rather than having failed.
 int demo_render(struct notcurses* nc);
+
+#define DEMO_RENDER(nc) { int demo_render_err = demo_render(nc); if(demo_render_err){ return demo_render_err; }}
 
 // if you won't be doing things, and it's a long sleep, consider using
 // demo_nanosleep(). it updates the HUD, which looks better to the user.
@@ -159,13 +168,17 @@ const demoresult* demoresult_lookup(int idx);
 // returns true if the input was handled by the menu/HUD
 bool menu_or_hud_key(const struct ncinput *ni);
 
+// returns 2 if we've successfully passed the deadline, 1 if we've been aborted
+// (as returned by demo_render(), 0 if we ought keep going, or -1 if there was
+// an error. in general, propagate out -1 or 1, keep going on 2, and don't
+// expect to ever see 0.
 static inline int
 pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), void* curry){
   struct timespec* start = curry;
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   if(timespec_to_ns(&now) - timespec_to_ns(start) >= timespec_to_ns(&demodelay) * 10 / 3){
-    return 1;
+    return 2;
   }
   return demo_render(nc);
 }

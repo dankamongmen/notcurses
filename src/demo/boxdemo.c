@@ -92,9 +92,7 @@ int box_demo(struct notcurses* nc){
       ++y;
       ++x;
     }
-    if(demo_render(nc)){
-      return -1;
-    }
+    DEMO_RENDER(nc);
     nanosleep(&iterdelay, NULL);
     clock_gettime(CLOCK_MONOTONIC, &now);
     if((zbonus += zbonusdelta > 255) || zbonus < 0){

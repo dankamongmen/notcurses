@@ -19,7 +19,6 @@ static const int MIN_SUPPORTED_COLS = 80;
 static int democount;
 static demoresult* results;
 static char datadir[PATH_MAX];
-static atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
 #ifdef DISABLE_FFMPEG
 static const char DEFAULT_DEMO[] = "ithbgrwus";
@@ -30,6 +29,8 @@ static const char DEFAULT_DEMO[] = "ixthbgrwuso";
 static const char DEFAULT_DEMO[] = "ixethbcgrwuvlfsjo";
 #endif
 #endif
+
+atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 
 void interrupt_demo(void){
   atomic_store(&interrupted, true);

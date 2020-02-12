@@ -26656,9 +26656,7 @@ int jungle_demo(struct notcurses* nc){
   int64_t iterns = GIG / 140;
   int64_t nsrunning;
   do{
-    if(demo_render(nc)){
-      return -1;
-    }
+    DEMO_RENDER(nc);
     ++iter;
     clock_gettime(CLOCK_MONOTONIC_RAW, &now);
     nsrunning = timespec_to_ns(&now) - timespec_to_ns(&start);

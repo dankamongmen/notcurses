@@ -10,7 +10,7 @@ static struct ncvisual* chncv;
 static int
 perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)), void* vthree){
   int* three = vthree; // move up one every three callbacks
-  demo_render(nc);
+  DEMO_RENDER(nc);
   if(y < targy){
     return 0;
   }
@@ -26,7 +26,8 @@ static void*
 fadethread(void* vnc){
   struct notcurses* nc = vnc;
   struct ncplane* ncp = notcurses_stdplane(nc);
-  struct timespec fade = { .tv_sec = 2, .tv_nsec = 0, };
+  struct timespec fade;
+  timespec_mul(&demodelay, 2, &fade);
   ncplane_fadeout(ncp, &fade, demo_fader, NULL);
   ncvisual_destroy(chncv);
   int averr;
@@ -44,13 +45,15 @@ fadethread(void* vnc){
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
       "Apia 🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
   int three = 3;
-  ncvisual_stream(nc, ncv, &averr, delaymultiplier, perframe, &three);
+  int canceled = ncvisual_stream(nc, ncv, &averr, delaymultiplier, perframe, &three);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
-  fade.tv_sec = 2;
-  fade.tv_nsec = 0;
+  timespec_mul(&demodelay, 2, &fade);
   demo_nanosleep(nc, &fade);
   ncplane_destroy(apiap);
+  if(canceled == 1){
+    return PTHREAD_CANCELED;
+  }
   return vnc;
 }
 
@@ -114,9 +117,6 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
     return NULL;
   }
   ncplane_styles_off(non, NCSTYLE_ITALIC);
-  if(demo_render(nc)){
-    return NULL;
-  }
   *rows = ystart;
   *cols = xs;
   return non;
@@ -151,20 +151,22 @@ int outro(struct notcurses* nc){
   xstart = cols;
   int ystart = rows;
   on = outro_message(nc, &ystart, &xstart);
-  y = ystart - 1;
-  void* ret = NULL; // thread result
-  if(on){
-    ncplane_move_top(on);
-    pthread_t tid;
-    // will fade across 2s
-    targy = 3;
-    pthread_create(&tid, NULL, fadethread, nc);
-    pthread_join(tid, &ret);
-    ncplane_fadeout(on, &demodelay, demo_fader, NULL);
-    ncplane_destroy(on);
-  }
-  if(ret == NULL){
+  if(on == NULL){
     return -1;
   }
+  y = ystart - 1;
+  DEMO_RENDER(nc);
+  ncplane_move_top(on);
+  pthread_t tid;
+  // will fade across 2 * demodelay
+  targy = 3;
+  pthread_create(&tid, NULL, fadethread, nc);
+  void* ret;
+  pthread_join(tid, &ret);
+  if(ret == PTHREAD_CANCELED){
+    return 1;
+  }
+  ncplane_fadeout(on, &demodelay, demo_fader, NULL);
+  ncplane_destroy(on);
   return on ? 0 : -1;
 }

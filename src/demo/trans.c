@@ -58,12 +58,11 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_dim_yx(n, &ny, &nx);
   ncplane_yx(n, &yoff, &xoff);
-  struct timespec iterdelay = { .tv_sec = 0, .tv_nsec = 25000000, };
+  struct timespec iterdelay;
+  timespec_div(&demodelay, 40, &iterdelay);
   struct timespec cur;
   do{
-    if(demo_render(nc)){
-      return -1;
-    }
+    DEMO_RENDER(nc);
     yoff += *vely;
     xoff += *velx;
     if(xoff <= 1){
@@ -114,10 +113,11 @@ slidepanel(struct notcurses* nc){
   int velx = random() % 4 + 1;
   int vely = random() % 4 + 1;
   l = legend(nc, "default background, all opaque, whitespace glyph");
-  if(slideitslideit(nc, n, deadlinens, &vely, &velx)){
+  int err = slideitslideit(nc, n, deadlinens, &vely, &velx);
+  if(err){
     ncplane_destroy(n);
     ncplane_destroy(l);
-    return -1;
+    return err;
   }
   ncplane_destroy(l);
 
@@ -126,10 +126,10 @@ slidepanel(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   l = legend(nc, "default background, all opaque, no glyph");
-  if(slideitslideit(nc, n, deadlinens, &vely, &velx)){
+  if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
-    return -1;
+    return err;
   }
   ncplane_destroy(l);
 
@@ -140,10 +140,10 @@ slidepanel(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
   l = legend(nc, "default background, fg transparent, no glyph");
-  if(slideitslideit(nc, n, deadlinens, &vely, &velx)){
+  if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
-    return -1;
+    return err;
   }
   ncplane_destroy(l);
 
@@ -155,10 +155,10 @@ slidepanel(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default background, fg blended, no glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
-  if(slideitslideit(nc, n, deadlinens, &vely, &velx)){
+  if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
-    return -1;
+    return err;
   }
   ncplane_destroy(l);
 
@@ -170,10 +170,10 @@ slidepanel(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default background, fg colored opaque, no glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
-  if(slideitslideit(nc, n, deadlinens, &vely, &velx)){
+  if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
-    return -1;
+    return err;
   }
   ncplane_destroy(l);
 
@@ -187,10 +187,10 @@ slidepanel(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default colors, fg transparent, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
-  if(slideitslideit(nc, n, deadlinens, &vely, &velx)){
+  if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
-    return -1;
+    return err;
   }
   ncplane_destroy(l);
 
@@ -202,10 +202,10 @@ slidepanel(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "all transparent, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
-  if(slideitslideit(nc, n, deadlinens, &vely, &velx)){
+  if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
-    return -1;
+    return err;
   }
   ncplane_destroy(l);
 
@@ -219,10 +219,10 @@ slidepanel(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "all blended, print glyph");
   deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
-  if(slideitslideit(nc, n, deadlinens, &vely, &velx)){
+  if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
-    return -1;
+    return err;
   }
   ncplane_destroy(l);
 
@@ -261,12 +261,13 @@ int trans_demo(struct notcurses* nc){
     }
   }
   struct ncplane* l = legend(nc, "what say we explore transparency together?");
-  if(demo_render(nc)){
-    return -1;
-  }
+  DEMO_RENDER(nc);
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC_RAW, &now);
-  ncplane_pulse(l, &demodelay, pulser, &now);
+  int err;
+  if( (err = ncplane_pulse(l, &demodelay, pulser, &now)) != 2){
+    return err;
+  }
   ncplane_destroy(l);
   return slidepanel(nc);
 }

@@ -213,8 +213,9 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_printf_aligned(n, 6 + BLOCKSIZE / CHUNKSIZE, NCALIGN_CENTER, "%s", description) <= 0){
       return -1;
     }
-    if(fade_block(nc, nn, &subdelay)){ // destroys nn
-      return -1;
+    int err;
+    if( (err = fade_block(nc, nn, &subdelay)) ){ // destroys nn
+      return err;
     }
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused.

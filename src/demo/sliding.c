@@ -32,9 +32,7 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
     targy += deltay;
     targx += deltax;
     ncplane_move_yx(chunk, targy, targx);
-    if(demo_render(nc)){
-      return -1;
-    }
+    DEMO_RENDER(nc);
     nanosleep(&movetime, NULL);
   }
   *holey = newholey;
@@ -82,7 +80,10 @@ play(struct notcurses* nc, struct ncplane** chunks){
       }
     }while(mover == chunkcount);
     lastdir = direction;
-    move_square(nc, chunks[mover], &holey, &holex, movens);
+    int err = move_square(nc, chunks[mover], &holey, &holex, movens);
+    if(err){
+      return err;
+    }
     chunks[hole] = chunks[mover];
     chunks[mover] = NULL;
     hole = mover;
@@ -178,9 +179,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   if(draw_bounding_box(n, wastey, wastex, chunky, chunkx)){
     goto done;
   }
-  if(demo_render(nc)){
-    goto done;
-  }
+  DEMO_RENDER(nc);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000000000, };
   // fade out each of the chunks in succession
   /*for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
@@ -209,14 +208,9 @@ int sliding_puzzle_demo(struct notcurses* nc){
     chunks[i0] = chunks[i1];
     ncplane_move_yx(chunks[i0], targy0, targx0);
     chunks[i1] = t;
-    if(demo_render(nc)){
-      goto done;
-    }
+    DEMO_RENDER(nc);
   }
-  if(play(nc, chunks)){
-    goto done;
-  }
-  ret = 0;
+  ret = play(nc, chunks);
 
 done:
   for(z = 0 ; z < chunkcount ; ++z){

@@ -275,6 +275,9 @@ int demo_nanosleep(struct notcurses* nc, const struct timespec *ts){
 }
 
 int demo_render(struct notcurses* nc){
+  if(interrupted){
+    return 1;
+  }
   if(hud){
     int plen = HUD_COLS - 4 - NSLEN;
     ncplane_move_top(hud);

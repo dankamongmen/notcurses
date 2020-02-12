@@ -38,9 +38,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
       return -1;
     }
     // xoff += thisx;
-    if(demo_render(nc)){
-      return -1;
-    }
+    DEMO_RENDER(nc);
     demo_nanosleep(nc, &iterdelay);
     ncvisual_destroy(chuns[i].ncv);
     free(chuns[i].path);
@@ -60,8 +58,8 @@ int chunli_demo(struct notcurses* nc){
   cell b = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  if(chunli_draw(nc, "bmp", CHUNS, &b)){
-    return -1;
+  if( (averr = chunli_draw(nc, "bmp", CHUNS, &b)) ){
+    return averr;
   }
   char file[PATH_MAX];
   for(int i = 1 ; i < 100 ; ++i){
@@ -86,9 +84,7 @@ int chunli_demo(struct notcurses* nc){
     if(ncplane_move_yx(ncp, (dimy - thisy) / 2, (dimx - thisx) / 2)){
       return -1;
     }
-    if(demo_render(nc)){
-      return -1;
-    }
+    DEMO_RENDER(nc);
     demo_nanosleep(nc, &iterdelay);
     ncvisual_destroy(ncv);
   }

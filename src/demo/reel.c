@@ -223,7 +223,7 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
   sigemptyset(&sset);
   wchar_t key = -1;
   int pret;
-  demo_render(nc);
+  DEMO_RENDER(nc);
   do{
     struct timespec pollspec, cur;
     clock_gettime(CLOCK_MONOTONIC, &cur);
@@ -246,7 +246,7 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
         if(read(efd, &val, sizeof(val)) != sizeof(val)){
           fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno)); }else if(key < 0){
           ncreel_redraw(pr);
-          demo_render(nc);
+          DEMO_RENDER(nc);
         }
       }
     }
@@ -388,8 +388,6 @@ int reel_demo(struct notcurses* nc){
   }
   int ret = ncreel_demo_core(nc, pipes[0], pipes[1]);
   close_pipes(pipes);
-  if(demo_render(nc)){
-    return -1;
-  }
+  DEMO_RENDER(nc);
   return ret;
 }

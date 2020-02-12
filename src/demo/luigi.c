@@ -217,7 +217,7 @@ int luigi_demo(struct notcurses* nc){
     ncplane_move_yx(lastseen, yoff, i);
     int dimy = ncplane_dim_y(ncvisual_plane(wmncv));
     ncplane_move_yx(ncvisual_plane(wmncv), rows * 4 / 5 - dimy + 1 + (i % 2), i - 60);
-    demo_render(nc);
+    DEMO_RENDER(nc);
     nanosleep(&stepdelay, NULL);
   }
   for(i = 0 ; i < 3 ; ++i){

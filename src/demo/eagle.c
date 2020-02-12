@@ -24,23 +24,22 @@ const char eagle1[] =
 ;
 
 // display the level map scaled to fit entirely within the visual area
-static struct ncvisual*
+static int
 outzoomed_map(struct notcurses* nc, const char* map){
   int averr;
   struct ncvisual* ncv = ncvisual_open_plane(nc, map, &averr, 0, 0, NCSCALE_SCALE);
   if(ncv == NULL){
-    return NULL;
+    return -1;
   }
   if(ncvisual_decode(ncv, &averr) == NULL){
-    return NULL;
+    return -1;
   }
   if(ncvisual_render(ncv, 0, 0, 0, 0)){
-    return NULL;
+    return -1;
   }
-  if(demo_render(nc)){
-    return NULL;
-  }
-  return ncv;
+  DEMO_RENDER(nc);
+  ncvisual_destroy(ncv);
+  return 0;
 }
 
 static struct ncplane*
@@ -200,12 +199,12 @@ int eagle_demo(struct notcurses* nc){
     return 0;
   }
   char* map = find_data("eagles.png");
-  struct ncvisual* zo;
-  if((zo = outzoomed_map(nc, map)) == NULL){
+  int err;
+  if( (err = outzoomed_map(nc, map)) ){
     free(map);
-    return -1;
+    return err;
   }
-  ncvisual_destroy(zo);
+  // FIXME propagate out err vs abort
   struct ncplane* zncp = zoom_map(nc, map);
   if(zncp == NULL){
     free(map);

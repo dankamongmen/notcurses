@@ -96,9 +96,7 @@ int highcontrast_demo(struct notcurses* nc){
       idx = (idx + 1) % totcells;
     }
     scrcolors[iter++ % totcells] = generate_next_color(&total, &r, &g, &b, STEP);
-    if(demo_render(nc)){
-      goto err;
-    }
+    DEMO_RENDER(nc);
   }while(total <= 768);
   ret = 0;
 

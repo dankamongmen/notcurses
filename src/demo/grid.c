@@ -165,7 +165,7 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
     ccell_set_bg_rgb(&lr, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
     ncplane_putc(n, &lr);
 
-    demo_render(nc);
+    DEMO_RENDER(nc);
   }
   release_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   return 0;
@@ -238,7 +238,7 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
     ncplane_putc(n, &lr);
 
     // render!
-    demo_render(nc);
+    DEMO_RENDER(nc);
   }
   release_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   return gridinv_demo(nc, n);
@@ -323,9 +323,10 @@ int grid_demo(struct notcurses* nc){
     if(ncplane_putc(n, &lr) <= 0){
       return -1;
     }
-    if(ret || demo_render(nc)){
+    if(ret){
       return -1;
     }
+    DEMO_RENDER(nc);
   }
   release_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   return gridswitch_demo(nc, n);

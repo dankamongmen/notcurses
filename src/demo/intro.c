@@ -12,8 +12,9 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
     }
   }
   ++*flipmode;
-  if(demo_render(nc)){
-    return -1;
+  int err;
+  if( (err = demo_render(nc)) ){
+    return err;
   }
   return 0;
 }
@@ -121,12 +122,15 @@ int intro(struct notcurses* nc){
   uint64_t deadline = timespec_to_ns(&now) + timespec_to_ns(&demodelay) * 2;
   int flipmode = 0;
   do{
-    fader(nc, ncp, &flipmode);
-    const struct timespec iter = { .tv_sec = 0, .tv_nsec = 100000000, };
+    int err;
+    if( (err = fader(nc, ncp, &flipmode)) ){
+      return err;
+    }
+    const struct timespec iter;
+    timespec_div(&demodelay, 10, &iter);
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC_RAW, &now);
   }while(timespec_to_ns(&now) < deadline);
   struct timespec fade = demodelay;
-  ncplane_fadeout(ncp, &fade, fader, &flipmode);
-  return 0;
+  return ncplane_fadeout(ncp, &fade, fader, &flipmode);
 }
