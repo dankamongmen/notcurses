@@ -363,6 +363,9 @@ int demo_render(struct notcurses* nc){
   if(interrupted){
     return 1;
   }
+  if(about){
+    ncplane_move_top(about);
+  }
   if(menu){
     ncplane_move_top(ncmenu_plane(menu));
   }
