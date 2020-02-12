@@ -98,9 +98,6 @@ ultramegaok_demo(void* vnc){
       if(menu_or_hud_key(nc, &ni)){
         continue;
       }
-      if(ni.id == 'q'){
-        interrupt_demo();
-      }
       // go ahead and pass keyboard through to demo, even if it was a 'q'
       // (this might cause the demo to exit immediately, as is desired)
       pass_along(&ni);

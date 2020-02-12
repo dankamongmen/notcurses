@@ -40,6 +40,7 @@ static int writeline = HUD_ROWS - 1;
 #define MENUSTR_TOGGLE_HUD "Toggle HUD"
 #define MENUSTR_RESTART "Restart"
 #define MENUSTR_ABOUT "About"
+#define MENUSTR_QUIT "Quit"
 
 int demo_fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   (void)ncp;
@@ -111,38 +112,35 @@ about_toggle(struct notcurses* nc){
 
 // returns true if the input was handled by the menu/HUD
 bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
+  struct ncinput tmpni;
+  if(menu && ni->id == NCKEY_ENTER){
+    const char* sel = ncmenu_selected(menu, &tmpni);
+    if(sel == NULL){
+      return false;
+    }
+  }else{
+    memcpy(&tmpni, ni, sizeof(tmpni));
+  }
   // toggle the HUD
-  if(ni->id == 'H' && !ni->alt && !ni->ctrl){
+  if(tmpni.id == 'H' && !tmpni.alt && !tmpni.ctrl){
     hud_toggle(nc);
     return true;
   }
-  if(ni->id == 'U' && !ni->alt && ni->ctrl){
+  if(tmpni.id == 'U' && !tmpni.alt && tmpni.ctrl){
     about_toggle(nc);
     return true;
   }
-  if(ni->id == 'R' && !ni->alt && ni->ctrl){
+  if(tmpni.id == 'R' && !tmpni.alt && tmpni.ctrl){
+    ncmenu_rollup(menu);
     interrupt_and_restart_demos();
     return true;
   }
-  if(!menu){
-    return false;
+  if(tmpni.id == 'q' && !tmpni.alt && !tmpni.ctrl){
+    ncmenu_rollup(menu);
+    interrupt_demo();
+    return true;
   }
-  if(ni->id == NCKEY_ENTER){
-    ncinput selni;
-    const char* sel = ncmenu_selected(menu, &selni);
-    if(sel){
-      if(strcmp(sel, MENUSTR_TOGGLE_HUD) == 0){
-        hud_toggle(nc);
-        return true;
-      }else if(strcmp(sel, MENUSTR_ABOUT) == 0){
-        about_toggle(nc);
-        ncmenu_rollup(menu);
-        return true;
-      }else if(strcmp(sel, MENUSTR_RESTART) == 0){
-        interrupt_and_restart_demos();
-        return true;
-      }
-    }
+  if(!menu){
     return false;
   }
   if(ncmenu_offer_input(menu, ni)){
@@ -171,10 +169,11 @@ struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
     { .desc = MENUSTR_TOGGLE_HUD, .shortcut = { .id = 'H', }, },
     { .desc = NULL, },
-    { .desc = MENUSTR_RESTART, .shortcut = { .id = 'r', .ctrl = true, }, },
+    { .desc = MENUSTR_RESTART, .shortcut = { .id = 'R', .ctrl = true, }, },
+    { .desc = MENUSTR_QUIT, .shortcut = { .id = 'q', }, },
   };
   struct ncmenu_item help_items[] = {
-    { .desc = MENUSTR_ABOUT, .shortcut = { .id = 'u', .ctrl = true, }, },
+    { .desc = MENUSTR_ABOUT, .shortcut = { .id = 'U', .ctrl = true, }, },
   };
   struct ncmenu_section sections[] = {
     { .name = "notcurses-demo", .items = demo_items,
