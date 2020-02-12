@@ -55,6 +55,7 @@ int stop_input(void);
 
 // if 'q' is pressed at any time during the demo, gracefully interrupt/exit
 void interrupt_demo(void);
+void interrupt_and_restart_demos(void);
 
 // demos should not call notcurses_getc() directly, as it's being monitored by
 // the toplevel event listener. instead, call this intermediate API. just

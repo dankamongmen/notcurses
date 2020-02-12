@@ -31,8 +31,15 @@ static const char DEFAULT_DEMO[] = "ixethbcgrwuvlfsjo";
 #endif
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
+// checked following demos, whether aborted, failed, or otherwise
+static atomic_bool restart_demos = ATOMIC_VAR_INIT(false);
 
 void interrupt_demo(void){
+  atomic_store(&interrupted, true);
+}
+
+void interrupt_and_restart_demos(void){
+  atomic_store(&restart_demos, true);
   atomic_store(&interrupted, true);
 }
 
@@ -448,9 +455,13 @@ int main(int argc, char** argv){
       nanosleep(&demodelay, NULL);
     }
   }
-  if(ext_demos(nc, spec, ignore_failures) == NULL){
-    goto err;
-  }
+  do{
+    restart_demos = false;
+    interrupted = false;
+    if(ext_demos(nc, spec, ignore_failures) == NULL){
+      goto err;
+    }
+  }while(restart_demos);
   if(hud_destroy()){
     goto err;
   }

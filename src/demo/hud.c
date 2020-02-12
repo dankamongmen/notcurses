@@ -120,6 +120,10 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     about_toggle(nc);
     return true;
   }
+  if(ni->id == 'R' && !ni->alt && ni->ctrl){
+    interrupt_and_restart_demos();
+    return true;
+  }
   if(!menu){
     return false;
   }
@@ -135,7 +139,8 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
         ncmenu_rollup(menu);
         return true;
       }else if(strcmp(sel, MENUSTR_RESTART) == 0){
-        // FIXME
+        interrupt_and_restart_demos();
+        return true;
       }
     }
     return false;
