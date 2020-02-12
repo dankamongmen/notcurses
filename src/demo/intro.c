@@ -126,7 +126,7 @@ int intro(struct notcurses* nc){
     if( (err = fader(nc, ncp, &flipmode)) ){
       return err;
     }
-    const struct timespec iter;
+    struct timespec iter;
     timespec_div(&demodelay, 10, &iter);
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC_RAW, &now);

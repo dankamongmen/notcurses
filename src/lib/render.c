@@ -205,7 +205,7 @@ highcontrast(uint32_t bchannel){
   unsigned r = channel_r(bchannel);
   unsigned g = channel_g(bchannel);
   unsigned b = channel_b(bchannel);
-  uint32_t conrgb;
+  uint32_t conrgb = 0;
   /*
   float lumi = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   unsigned max = r > g ? r > b ? r : b : g > b ? g : b;
@@ -225,11 +225,29 @@ highcontrast(uint32_t bchannel){
   }
   */
   if(r + g + b < 320){
-    conrgb = 0xffffff;
+    channel_set(&conrgb, 0xffffff);
   }else{
-    conrgb = 0;
+    channel_set(&conrgb, 0);
   }
   return conrgb;
+}
+
+// adjust an otherwise locked-in cell if highcontrast has been requested. this
+// should be done at the end of rendering the cell, so that contrast is solved
+// against the real background.
+static inline void
+lock_in_highcontrast(cell* targc, struct crender* crender){
+  if(crender->highcontrast){
+    // highcontrast weighs the original at 1/4 and the contrast at 3/4
+    if(!cell_fg_default_p(targc)){
+      crender->fgblends = 3;
+      uint32_t fchan = cell_fchannel(targc);
+      uint32_t bchan = cell_bchannel(targc);
+      cell_set_fchannel(targc, channels_blend(highcontrast(bchan), fchan, &crender->fgblends));
+    }else{
+      cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
+    }
+  }
 }
 
 // Paints a single ncplane into the provided framebuffer 'fb'. Whenever a cell
@@ -327,18 +345,20 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
       }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
         if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
           crender->highcontrast = true;
+        }
+        cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
+        // crender->highcontrast can only be true if we just set it, since we're
+        // about to set targc opaque based on crender->highcontrast (and this
+        // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
+        if(crender->highcontrast){
           cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
-        }else{
-          cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
         }
       }
 
       // have we locked this coordinate in as a result of this plane (cells
       // which were already locked in were skipped at the top of the loop)?
       if(cell_locked_p(targc)){
-        if(crender->highcontrast){
-          cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
-        }
+        lock_in_highcontrast(targc, crender);
         cell* prevcell = &nc->lastframe[fbcellidx(absy, nc->lfdimx, absx)];
 /*if(cell_simple_p(targc)){
 fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, prevcell->gcluster, y, x, absy, absx);
@@ -405,9 +425,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
       cell* targc = &fb[fbcellidx(y, dimx, x)];
       if(!cell_locked_p(targc)){
         struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-        if(crender->highcontrast){
-          cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
-        }
+        lock_in_highcontrast(targc, crender);
         cell* prevcell = &nc->lastframe[fbcellidx(y, dimx, x)];
         if(targc->gcluster == 0){
           targc->gcluster = ' ';

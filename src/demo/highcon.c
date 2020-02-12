@@ -66,9 +66,7 @@ int highcontrast_demo(struct notcurses* nc){
   int dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
-  int totcells = dimy * dimx;
-  unsigned iter = 0;
-  // circarray of current background colors, logical start at iter % totcells.
+  int totcells = (dimy - 1) * dimx;
   unsigned* scrcolors = malloc(sizeof(*scrcolors) * totcells);
   if(scrcolors == NULL){
     return -1;
@@ -80,24 +78,40 @@ int highcontrast_demo(struct notcurses* nc){
       total = r = g = b = 0;
     }
   }
-  // each iteration, generate the next color, and introduce it at the lower
-  // right. start at the upper left, from the logical beginning of the array.
   cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
   const char motto[] = " high contrast text ";
+  // each iteration, "draw the background in" one cell from the top left and
+  // bottom right.
+  int offset = 0;
   do{
-    unsigned idx = iter % totcells; // first color for upper-left
-    for(int yx = 0 ; yx < dimy * dimx ; ++yx){
+    unsigned idx = offset % totcells; // first color for upper-left
+    if(offset){
+      cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
+      const int f = offset - 1 + dimx;
+      const int l = totcells - (offset + 1) + dimx;
+      cell_load_simple(n, &c, motto[f % strlen(motto)]);
+      cell_set_fg(&c, 0x004000 + (16 * offset));
+      cell_set_bg(&c, 0);
+      if(ncplane_putc_yx(n, f / dimx, f % dimx, &c) < 0){
+        goto err;
+      }
+      cell_load_simple(n, &c, motto[l % strlen(motto)]);
+      if(ncplane_putc_yx(n, l / dimx, l % dimx, &c) < 0){
+        goto err;
+      }
+    }
+    cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
+    for(int yx = offset + dimx ; yx < totcells - offset - 1 ; ++yx){
       cell_load_simple(n, &c, motto[yx % strlen(motto)]);
+      cell_set_fg_rgb(&c, (random() % 2) * 0xff, (random() % 2) * 0xff, (random() % 2) * 0xff);
       cell_set_bg(&c, scrcolors[idx]);
-      if(ncplane_putc_yx(n, yx / dimx, yx % dimx, &c) < 0){
+      if(ncplane_putc_yx(n, (yx + dimx) / dimx, yx % dimx, &c) < 0){
         goto err;
       }
       idx = (idx + 1) % totcells;
     }
-    scrcolors[iter++ % totcells] = generate_next_color(&total, &r, &g, &b, STEP);
     DEMO_RENDER(nc);
-  }while(total <= 768);
+  }while(++offset < totcells / 2);
   ret = 0;
 
 err:
