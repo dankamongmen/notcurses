@@ -3,8 +3,9 @@
 DEB_HOST_MULTIARCH?=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
-
 export PYBUILD_NAME=notcurses
+export PYBUILD_DIR=python
+export PYBUILD_DESTDIR=debian/python3-notcurses
 
 CFLAGS += -ffile-prefix-map=$(CURDIR)=/
 
@@ -16,10 +17,9 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	dh_auto_build
-	cd python && python3 setup.py build_ext -L../obj-$(DEB_HOST_MULTIARCH) -I../include
-	cd python && python3 setup.py build_py
+	CFLAGS="$(CFLAGS) -I$(CURDIR)/include" LDFLAGS="$(LDFLAGS) \
+		-L$(CURDIR)/obj-$(DEB_HOST_MULTIARCH)" pybuild --build
 
 override_dh_auto_install:
 	dh_auto_install -B $(BUILDDIR)
-	cd python && python3 setup.py install --prefix=/usr --skip-build --root=../debian/tmp --install-layout=deb --single-version-externally-managed
-	rm -rf debian/tmp/usr/lib/python3/dist-packages/__pycache__
+	pybuild --install
