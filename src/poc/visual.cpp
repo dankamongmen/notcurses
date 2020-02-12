@@ -18,7 +18,7 @@ int main(int argc, char** argv){
   ncplane_dim_yx(n, &dimy, &dimx);
 
   int averr;
-  auto ncv = ncplane_visual_open(n, "../data/dsscaw-purp.png", &averr);
+  auto ncv = ncplane_visual_open(n, "../data/changes.jpg", &averr);
   if(!ncv){
     goto err;
   }
