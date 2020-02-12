@@ -255,6 +255,7 @@ typedef struct notcurses {
   char* oc;       // restore original colors
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
+  bool AMflag;    // ti-reported "AM" flag for automatic movement to next line
 
   int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp

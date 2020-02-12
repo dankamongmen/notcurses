@@ -36,6 +36,10 @@ static struct elem* running;
 // it, and throw away the oldest entry each time.
 static int writeline = HUD_ROWS - 1;
 
+#define MENUSTR_TOGGLE_HUD "Toggle HUD"
+#define MENUSTR_RESTART "Restart"
+#define MENUSTR_ABOUT "About"
+
 int demo_fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   (void)ncp;
   (void)curry;
@@ -61,21 +65,37 @@ hud_grabbed_bg(struct ncplane* n){
   return 0;
 }
 
+static void
+hud_toggle(struct notcurses* nc){
+  if(menu){
+    ncmenu_rollup(menu);
+  }
+  if(hud){
+    hud_destroy();
+  }else{
+    hud_create(nc);
+  }
+}
+
 // returns true if the input was handled by the menu/HUD
 bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
   // toggle the HUD
   if(ni->id == 'H' && !ni->alt && !ni->ctrl){
-    if(menu){
-      ncmenu_rollup(menu);
-    }
-    if(hud){
-      hud_destroy();
-    }else{
-      hud_create(nc);
-    }
+    hud_toggle(nc);
     return true;
   }
   if(!menu){
+    return false;
+  }
+  if(ni->id == NCKEY_ENTER){
+    const char* sel = ncmenu_selected(menu);
+    if(sel){
+      if(strcmp(sel, MENUSTR_TOGGLE_HUD) == 0){
+        hud_toggle(nc);
+        return true;
+      }
+      // FIXME handle other MENUSTR_ options
+    }
     return false;
   }
   if(ncmenu_offer_input(menu, ni)){
@@ -102,12 +122,12 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
 
 struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
-    { .desc = "Toggle HUD", .shortcut = { .id = 'H', }, },
+    { .desc = MENUSTR_TOGGLE_HUD, .shortcut = { .id = 'H', }, },
     { .desc = NULL, },
-    { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
+    { .desc = MENUSTR_RESTART, .shortcut = { .id = 'r', .ctrl = true, }, },
   };
   struct ncmenu_item help_items[] = {
-    { .desc = "About", .shortcut = { .id = 'u', .ctrl = true, }, },
+    { .desc = MENUSTR_ABOUT, .shortcut = { .id = 'u', .ctrl = true, }, },
   };
   struct ncmenu_section sections[] = {
     { .name = "notcurses-demo", .items = demo_items,
