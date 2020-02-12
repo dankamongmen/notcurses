@@ -32,7 +32,11 @@ Depends:
  libnotcurses-dev (>= 1.1.6-1),
  ${misc:Depends},
 Description: Development files for notcurses++
- Files necessary for development using notcurses++, a C++ wrapper for notcurses
+ notcurses facilitates the creation of modern TUI programs,
+ making full use of Unicode and 24-bit direct color. It presents
+ an API similar to that of Curses, and rides atop libtinfo.
+ .
+ These files are necessary for C++ development using notcurses.
 
 Package: libnotcurses++1
 Architecture: any
@@ -40,7 +44,11 @@ Multi-Arch: same
 Recommends: ncurses-term
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Shared libraries for notcurses++
- notcurses++ is a C++ binding for the notcurses TUI library
+ notcurses facilitates the creation of modern TUI programs,
+ making full use of Unicode and 24-bit direct color. It presents
+ an API similar to that of Curses, and rides atop libtinfo.
+ .
+ These files underlie the C++ wrappers for notcurses.
 
 Package: libnotcurses-dev
 Section: libdevel
@@ -52,7 +60,11 @@ Depends:
  libnotcurses1 (= ${binary:Version}),
  ${misc:Depends},
 Description: Development files for notcurses
- Files necessary for developing programs using notcurses.
+ notcurses facilitates the creation of modern TUI programs,
+ making full use of Unicode and 24-bit direct color. It presents
+ an API similar to that of Curses, and rides atop libtinfo.
+ .
+ These files are necessary for C development using notcurses.
 
 Package: libnotcurses1
 Architecture: any
@@ -91,7 +103,7 @@ Description: Multimedia used by notcurses-demo
  making full use of Unicode and 24-bit direct color. It presents
  an API similar to that of Curses, and rides atop libtinfo.
  .
- This package contains multimedia used by notcurss-demo.
+ This package contains multimedia used by notcurses-demo.
 
 Package: python3-notcurses
 Section: python
@@ -99,6 +111,8 @@ Architecture: any
 Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
 Provides: ${python3:Provides}
 Description: Python wrappers for notcurses (Python 3)
- Python wrappers for the notcurses TUI library.
+ notcurses facilitates the creation of modern TUI programs,
+ making full use of Unicode and 24-bit direct color. It presents
+ an API similar to that of Curses, and rides atop libtinfo.
  .
- This package installs the library for Python 3.
+ These files are necessary for Python development using notcurses.
