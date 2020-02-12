@@ -285,10 +285,10 @@ typedef struct selector_options {
 struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const selector_options* opts);
 int ncselector_additem(struct ncselector* n, const struct selector_item* item);
 int ncselector_delitem(struct ncselector* n, const char* item);
-char* ncselector_selected(const struct ncselector* n);
+const char* ncselector_selected(const struct ncselector* n);
 struct ncplane* ncselector_plane(struct ncselector* n);
-void ncselector_previtem(struct ncselector* n, char** newitem);
-void ncselector_nextitem(struct ncselector* n, char** newitem);
+const char* ncselector_previtem(struct ncselector* n);
+const char* ncselector_nextitem(struct ncselector* n);
 bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 void ncselector_destroy(struct ncselector* n, char** item);
 struct ncmenu_item {
