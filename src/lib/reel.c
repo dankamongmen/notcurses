@@ -575,10 +575,6 @@ ncplane* nctablet_ncplane(nctablet* t){
   return t->p;
 }
 
-const ncplane* nctablet_ncplane_const(const nctablet* t){
-  return t->p;
-}
-
 ncplane* ncreel_plane(ncreel* nr){
   return nr->p;
 }
@@ -762,10 +758,6 @@ int ncreel_destroy(ncreel* nreel){
 }
 
 void* nctablet_userptr(nctablet* t){
-  return t->curry;
-}
-
-const void* nctablet_userptr_const(const nctablet* t){
   return t->curry;
 }
 

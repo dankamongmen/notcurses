@@ -6,7 +6,6 @@
 
 notcurses-input - Read and display input events
 
-
 # SYNOPSIS
 
 **notcurses-input**
@@ -21,4 +20,6 @@ synthesized events and mouse events. To exit, generate EOF (usually Ctrl+'d').
 # NOTES
 
 # SEE ALSO
-notcurses(3notcurses), notcurses_input(3)
+
+**notcurses(3)**,
+**notcurses_input(3)**

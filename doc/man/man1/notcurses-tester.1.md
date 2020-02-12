@@ -23,4 +23,5 @@ Valid **TERM** and **LANG** environment variables are necessary for
 **notcurses-tester**'s correct operation.
 
 # SEE ALSO
-notcurses(3notcurses)
+
+**notcurses(3)**

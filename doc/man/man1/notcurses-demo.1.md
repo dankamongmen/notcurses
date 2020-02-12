@@ -93,4 +93,7 @@ If notcurses is built without FFmpeg, the **chunli**, **eagle**, **fallin'**,
 * "Jungle with Rain" and "Ruins with Rain" copyright Mark Ferrari/Living Worlds.
 
 # SEE ALSO
-notcurses(3notcurses), ncurses(3ncurses), terminfo(5)
+
+**notcurses(3)**,
+**ncurses(3NCURSES)**,
+**terminfo(5)**
