@@ -84,11 +84,10 @@ int highcontrast_demo(struct notcurses* nc){
   // bottom right.
   int offset = 0;
   do{
-    unsigned idx = offset % totcells; // first color for upper-left
     if(offset){
       cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
       const int f = offset - 1 + dimx;
-      const int l = totcells - (offset + 1) + dimx;
+      const int l = totcells + dimx - offset;
       cell_load_simple(n, &c, motto[f % strlen(motto)]);
       cell_set_fg(&c, 0x004000 + (16 * offset));
       cell_set_bg(&c, 0);
@@ -101,14 +100,13 @@ int highcontrast_demo(struct notcurses* nc){
       }
     }
     cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
-    for(int yx = offset + dimx ; yx < totcells - offset - 1 ; ++yx){
+    for(int yx = offset + dimx ; yx < totcells - offset ; ++yx){
       cell_load_simple(n, &c, motto[yx % strlen(motto)]);
       cell_set_fg_rgb(&c, (random() % 2) * 0xff, (random() % 2) * 0xff, (random() % 2) * 0xff);
-      cell_set_bg(&c, scrcolors[idx]);
+      cell_set_bg(&c, scrcolors[yx % totcells]);
       if(ncplane_putc_yx(n, (yx + dimx) / dimx, yx % dimx, &c) < 0){
         goto err;
       }
-      idx = (idx + 1) % totcells;
     }
     DEMO_RENDER(nc);
   }while(++offset < totcells / 2);

@@ -108,7 +108,7 @@ wormy(worm* s, int dimy, int dimx){
       case 2: ++s->y; break;
       case 3: --s->x; break;
     }
-    if(s->y <= 0){
+    if(s->y <= 1){
       s->y = dimy - 1;
     }
     if(s->y >= dimy){
