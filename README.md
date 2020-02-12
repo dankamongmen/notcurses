@@ -2808,6 +2808,7 @@ up someday **FIXME**.
     engineering history. He exemplifies documentation excellence and
     conservative, thoughtful stewardship. The free software community owes
     Mr. Dickey a great debt.
+* Robert Edmonds provided tremendous assistance Debianizing the package.
 * Justine Tunney, one of my first friends at Google NYC, was always present
     with support, and pointed out the useful memstream functionality of
     POSIX, eliminating the need for me to cons up something similar.
