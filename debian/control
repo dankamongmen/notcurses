@@ -80,6 +80,7 @@ Description: Shared libraries for notcurses TUI
 Package: notcurses-bin
 Architecture: any
 Multi-Arch: foreign
+Section: graphics
 Depends:
  ncurses-term,
  notcurses-data (= ${source:Version}),
@@ -97,6 +98,7 @@ Description: Binaries from libnotcurses
 Package: notcurses-data
 Architecture: all
 Multi-Arch: foreign
+Section: graphics
 Depends: ncurses-term, ${misc:Depends}
 Description: Multimedia used by notcurses-demo
  notcurses facilitates the creation of modern TUI programs,
