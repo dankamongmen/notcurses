@@ -5,7 +5,7 @@
   * git clean -d -f -x
   * `tar -cJf ../notcurses_$VERSION.orig.tar.xz --exclude=.git --exclude=debian -C.. notcurses-$VERSION`
   * debuild
-* Tag with `git tag -a v$VERSION -m "v$VERSION"`
+* Tag with `git tag -a v$VERSION -m "v$VERSION -s"`
 * `git push && git push origin --tags`
 * Draft new release at https://github.com/dankamongmen/notcurses/releases
   * Title is "v$VERSION—some quip"
