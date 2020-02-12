@@ -1048,6 +1048,18 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 }
 
 static inline int
+ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
+                  const cell* ll, const cell* lr, const cell* hline,
+                  const cell* vline, unsigned ctlword){
+  if(ncplane_cursor_move_yx(n, 0, 0)){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  return ncplane_box_sized(n, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword);
+}
+
+static inline int
 ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                     int ystop, int xstop, unsigned ctlword){
   int ret = 0;
@@ -2738,6 +2750,9 @@ up someday **FIXME**.
 
 * *Q:* How do I hide a plane I want to make visible later?
 * *A:* Either move it above and to the left of the screen (preventing resizes from making it visible), or place it underneath another (opaque) plane.
+
+* *Q:* Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard?
+* *A:* `ncplane_box()` and friends already have far too many arguments, you monster.
 
 ## Supplemental material
 

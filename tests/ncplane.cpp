@@ -963,6 +963,12 @@ TEST_CASE("NCPlane") {
     CHECK(!cell_double_wide_p(&c));
   }
 
+  SUBCASE("Perimeter") {
+    cell c = CELL_SIMPLE_INITIALIZER('X');
+    CHECK(0 == ncplane_perimeter(n_, &c, &c, &c, &c, &c, &c, 0));
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 

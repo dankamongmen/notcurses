@@ -897,6 +897,18 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
                      x + xlen - 1, ctlword);
 }
 
+static inline int
+ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
+                  const cell* ll, const cell* lr, const cell* hline,
+                  const cell* vline, unsigned ctlword){
+  if(ncplane_cursor_move_yx(n, 0, 0)){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  return ncplane_box_sized(n, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword);
+}
+
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane is invalidated, and must not be used after the call,

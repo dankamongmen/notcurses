@@ -10,17 +10,13 @@ notcurses_lines - operations on lines and boxes
 
 **#include <notcurses.h>**
 
-**int ncplane_hline_interp(struct ncplane* n, const cell* c, int len,
-                             uint64_t c1, uint64_t c2);**
+**int ncplane_hline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);**
 
-**static inline int
-ncplane_hline(struct ncplane* n, const cell* c, int len);**
+**static inline int ncplane_hline(struct ncplane* n, const cell* c, int len);**
 
-**int ncplane_vline_interp(struct ncplane* n, const cell* c, int len,
-                             uint64_t c1, uint64_t c2);**
+**int ncplane_vline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);**
 
-**static inline int
-ncplane_vline(struct ncplane* n, const cell* c, int len);**
+**static inline int ncplane_vline(struct ncplane* n, const cell* c, int len);**
 
 ```c
 #define NCBOXMASK_TOP    0x0001
@@ -45,34 +41,21 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
                   const cell* ll, const cell* lr, const cell* hline,
                   const cell* vline, int ylen, int xlen, unsigned ctlword);**
 
-**static inline int
-cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
-               cell* ul, cell* ur, cell* ll, cell* lr,
-               cell* hl, cell* vl, const char* gclusters);**
+**static inline int ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur, const cell* ll, const cell* lr, const cell* hline, const cell* vline, unsigned ctlword)**
 
-**static inline int
-cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                  cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl);**
+**static inline int cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels, cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl, const char* gclusters);**
 
-**static inline int
-ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                    int ystop, int xstop, unsigned ctlword);**
+**static inline int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels, cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl);**
 
-**static inline int
-ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
-                          int ylen, int xlen, unsigned ctlword);**
+**static inline int ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels, int ystop, int xstop, unsigned ctlword);**
 
-**static inline int
-cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                 cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl);**
+**static inline int ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels, int ylen, int xlen, unsigned ctlword);**
 
-**static inline int
-ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                   int ystop, int xstop, unsigned ctlword);**
+**static inline int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels, cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl);**
 
-**static inline int
-ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
-                         int ylen, int xlen, unsigned ctlword);**
+**static inline int ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels, int ystop, int xstop, unsigned ctlword);**
+
+**static inline int ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels, int ylen, int xlen, unsigned ctlword);**
 
 # DESCRIPTION
 
@@ -82,4 +65,6 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_cell(3)**, **notcurses_ncplane(3)**
+**notcurses(3)**,
+**notcurses_cell(3)**,
+**notcurses_ncplane(3)**
