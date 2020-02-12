@@ -1,5 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: notcurses
+Upstream-Contact: Nick Black <dankamongmen@gmail.com>
 Source: https://nick-black.com/dankwiki/index.php/notcurses
 
 Files: *
