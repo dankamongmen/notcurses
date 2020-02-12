@@ -600,7 +600,12 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
   }
   term_verify_seq(&nc->cup, "cup");
   if(nc->cup == NULL){
-    fprintf(stderr, "Required terminfo capability not defined\n");
+    fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
+    return -1;
+  }
+  nc->AMflag = tigetflag("am") == 1;
+  if(!nc->AMflag){
+    fprintf(stderr, "Required terminfo capability 'am' not defined\n");
     return -1;
   }
   term_verify_seq(&nc->civis, "civis");
