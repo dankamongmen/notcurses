@@ -328,7 +328,12 @@ handle_ncinput(notcurses* nc, ncinput* ni){
   //  - Tab and ^I
   bool ctrl = r > 0 && r <= 26;
   if(ctrl){
-    r += 'A' - 1;
+    if(r == '\n' || r == '\r'){
+      r = NCKEY_ENTER;
+      ctrl = false;
+    }else{
+      r += 'A' - 1;
+    }
   }
   if(ni){
     ni->id = r;
