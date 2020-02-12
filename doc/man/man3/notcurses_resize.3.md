@@ -1,6 +1,6 @@
 % notcurses_resize(3)
 % nick black <nickblack@linux.com>
-% v1.1.7
+% v1.1.8
 
 # NAME
 

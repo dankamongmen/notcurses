@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name="notcurses",
-    version="1.1.7",
+    version="1.1.8",
     packages=['notcurses'],
     package_dir={'': 'src'},
     py_modules=['notcurses'],

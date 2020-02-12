@@ -1,7 +1,7 @@
-notcurses (1.1.7-1) unstable; urgency=medium
+notcurses (1.1.8-1) unstable; urgency=medium
 
   * Update watchfile to grab DFSG source tarball
   * Remove a few DFSG-questionable files
   * Initial release (Closes: #950492)
 
- -- Nick Black <dankamongmen@gmail.com>  Mon, 10 Feb 2020 21:11:47 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Tue, 11 Feb 2020 19:10:24 -0500
