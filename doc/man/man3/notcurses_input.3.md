@@ -11,6 +11,9 @@ notcurses_input - input via notcurses
 **#include <notcurses.h>**
 
 ```c
+struct timespec;
+struct notcurses;
+
 typedef struct ncinput {
   char32_t id;     // Unicode codepoint
   int y;           // Y cell coordinate of event, -1 for undefined
@@ -114,7 +117,18 @@ on blocking input, it can be tricky to guarantee that this doesn't happen.
 Failed escape sequences are not yet played back in their entirety; only an
 ESC (ASCII 0x1b) will be seen by the application.
 
+The shift key is only indicated in conjunction with mouse button presses. If
+e.g. shift is used to generate a capital letter 'A', **id** will equal 'A', and
+shift will be **false**. This should be fixed in the future.
+
 # SEE ALSO
 
-**poll(2)**, **cfmakeraw(3)**, **notcurses(3)**, **notcurses_resize(3)**,
-**termios(3)**, **terminfo(5)**, **ascii(7)**, **signal(7)**,  **unicode(7)**
+**poll(2)**,
+**cfmakeraw(3)**,
+**notcurses(3)**,
+**notcurses_resize(3)**,
+**termios(3)**,
+**terminfo(5)**,
+**ascii(7)**,
+**signal(7)**,
+**unicode(7)**

@@ -19,6 +19,9 @@ synthesized events and mouse events. To exit, generate EOF (usually Ctrl+'d').
 
 # NOTES
 
+Mouse events are only generated for button presses, and for movement while a
+button is held down.
+
 # SEE ALSO
 
 **notcurses(3)**,

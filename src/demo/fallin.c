@@ -36,7 +36,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   // an erase+render cycle ought not change the screen, as we duplicated it
   struct timespec iterdelay;
   // 5 * demodelay total
-  timespec_div(&demodelay, 2, &iterdelay);
+  ns_to_timespec(timespec_to_ns(&demodelay) / arrcount / 2, &iterdelay);
   // we've got a range of up to 10% total blocks falling at any given time. they
   // accelerate as they fall. [ranges, reange) covers the active range.
   int ranges = 0;
