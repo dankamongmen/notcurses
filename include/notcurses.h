@@ -2204,16 +2204,16 @@ API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
 API int ncselector_additem(struct ncselector* n, const struct selector_item* item);
 API int ncselector_delitem(struct ncselector* n, const char* item);
 
-// Return a copy of the currently-selected option. NULL if there are no items.
-API char* ncselector_selected(const struct ncselector* n);
+// Return reference to the selected option, or NULL if there are no items.
+API const char* ncselector_selected(const struct ncselector* n);
 
+// Return a reference to the ncselector's underlying ncplane.
 API struct ncplane* ncselector_plane(struct ncselector* n);
 
-// Move up or down in the list. If 'newitem' is not NULL, the newly-selected
-// option will be strdup()ed and assigned to '*newitem' (and must be free()d by
-// the caller).
-API void ncselector_previtem(struct ncselector* n, char** newitem);
-API void ncselector_nextitem(struct ncselector* n, char** newitem);
+// Move up or down in the list. A reference to the newly-selected item is
+// returned, or NULL if there are no items in the list.
+API const char* ncselector_previtem(struct ncselector* n);
+API const char* ncselector_nextitem(struct ncselector* n);
 
 // Offer the input to the ncselector. If it's relevant, this function returns
 // true, and the input ought not be processed further. If it's irrelevant to
@@ -2278,8 +2278,10 @@ API int ncmenu_prevsection(struct ncmenu* n);
 API int ncmenu_nextitem(struct ncmenu* n);
 API int ncmenu_previtem(struct ncmenu* n);
 
-// Return the selected item description, or NULL if no section is unrolled.
-API const char* ncmenu_selected(const struct ncmenu* n);
+// Return the selected item description, or NULL if no section is unrolled. If
+// 'ni' is not NULL, and the selected item has a shortcut, 'ni' will be filled
+// in with that shortcut--this can allow faster matching.
+API const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);
 
 // Return the ncplane backing this ncmenu.
 API struct ncplane* ncmenu_plane(struct ncmenu* n);

@@ -1,6 +1,6 @@
 % notcurses_menu(3)
 % nick black <nickblack@linux.com>
-% v1.1.3
+% v1.1.8
 
 # NAME
 
@@ -49,7 +49,7 @@ typedef struct ncmenu_options {
 
 **int ncmenu_previtem(struct ncmenu* n);**
 
-**const char* ncmenu_selected(const struct ncmenu* n);**
+**const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);**
 
 **struct ncplane* ncmenu_plane(struct ncmenu* n);**
 

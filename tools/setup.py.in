@@ -4,14 +4,18 @@ import os
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-if __name__ == '__main__':
-  setup(
-    name='notcurses',
-    version='${PROJECT_VERSION}',
+setup(
+    name="notcurses",
+    version="${PROJECT_VERSION}",
     packages=['notcurses'],
     package_dir={ '': '${CMAKE_CURRENT_BINARY_DIR}/python/src' },
-    cffi_modules=['${CMAKE_CURRENT_BINARY_DIR}/python/src/notcurses/build_notcurses.py:ffibuild'],
-    py_modules=["notcurses"],
+    py_modules=['notcurses'],
+    author="Nick Black",
+    author_email="nickblack@linux.com",
+    description="Blingful TUI construction library (python bindings)",
+    keywords="ncurses curses tui console graphics",
+    license='Apache License, Version 2.0',
+    url='https://github.com/dankamongmen/notcurses'
     include_dirs=['${CMAKE_CURRENT_SOURCE_DIR}/include'],
     long_description=read('${CMAKE_CURRENT_SOURCE_DIR}/README.md'),
     zip_safe=True,
@@ -19,6 +23,7 @@ if __name__ == '__main__':
     long_description_content_type="text/markdown",
     install_requires=["cffi>=1.0.0"],
     setup_requires=["cffi>=1.0.0"],
+    cffi_modules=['${CMAKE_CURRENT_BINARY_DIR}/python/src/notcurses/build_notcurses.py:ffibuild'],
     # see https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -27,10 +32,4 @@ if __name__ == '__main__':
         'Natural Language :: English',
         'Programming Language :: Python',
     ],
-    author="Nick Black",
-    author_email="nickblack@linux.com",
-    description="Blingful TUI construction library (python bindings)",
-    keywords="ncurses curses tui console graphics",
-    license='Apache License, Version 2.0',
-    url='https://github.com/dankamongmen/notcurses'
 )

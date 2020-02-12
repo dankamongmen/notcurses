@@ -108,10 +108,10 @@ TEST_CASE("SelectorTest") {
     CHECK(0 == notcurses_render(nc_));
     auto sel = ncselector_selected(ncs);
     REQUIRE(nullptr == sel);
-    ncselector_nextitem(ncs, &sel);
+    sel = ncselector_nextitem(ncs);
     REQUIRE(nullptr == sel);
     CHECK(0 == notcurses_render(nc_));
-    ncselector_previtem(ncs, &sel);
+    sel = ncselector_previtem(ncs);
     REQUIRE(nullptr == sel);
     CHECK(0 == notcurses_render(nc_));
     ncselector_destroy(ncs, nullptr);
@@ -131,29 +131,24 @@ TEST_CASE("SelectorTest") {
     auto sel = ncselector_selected(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
-    ncselector_nextitem(ncs, &sel);
+    sel = ncselector_nextitem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[1].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
-    ncselector_previtem(ncs, &sel);
+    sel = ncselector_previtem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
     // wrap around from the top to bottom...
-    ncselector_previtem(ncs, &sel);
+    sel = ncselector_previtem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[2].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
     // ...and back to the top
-    ncselector_nextitem(ncs, &sel);
+    sel = ncselector_nextitem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
     ncselector_destroy(ncs, nullptr);
   }
@@ -175,29 +170,24 @@ TEST_CASE("SelectorTest") {
     auto sel = ncselector_selected(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
-    ncselector_nextitem(ncs, &sel);
+    sel = ncselector_nextitem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[1].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
-    ncselector_previtem(ncs, &sel);
+    sel = ncselector_previtem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
     // wrap around from the top to bottom...
-    ncselector_previtem(ncs, &sel);
+    sel = ncselector_previtem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[2].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
     // ...and back to the top
-    ncselector_nextitem(ncs, &sel);
+    sel = ncselector_nextitem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
     int dimy, dimx;
@@ -220,31 +210,26 @@ TEST_CASE("SelectorTest") {
     struct ncselector* ncs = ncselector_create(notcurses_stdplane(nc_), 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
-    auto sel = ncselector_selected(ncs);
+    const char* sel = ncselector_selected(ncs);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
-    ncselector_nextitem(ncs, &sel);
+    sel = ncselector_nextitem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[1].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
-    ncselector_previtem(ncs, &sel);
+    sel = ncselector_previtem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
     // wrap around from the top to bottom...
-    ncselector_previtem(ncs, &sel);
+    sel = ncselector_previtem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[2].option));
-    free(sel);
     CHECK(0 == notcurses_render(nc_));
     // ...and back to the top
-    ncselector_nextitem(ncs, &sel);
+    sel = ncselector_nextitem(ncs);
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
-    free(sel);
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
     int dimy, dimx;

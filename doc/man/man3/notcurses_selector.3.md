@@ -47,13 +47,13 @@ typedef struct selector_options {
 
 **int ncselector_delitem(struct ncselector* n, const char* item);**
 
-**char* ncselector_selected(const struct ncselector* n);**
+**const char* ncselector_selected(const struct ncselector* n);**
 
 **struct ncplane* ncselector_plane(struct ncselector* n);**
 
-**void ncselector_previtem(struct ncselector* n, char\*\* newitem);**
+**const char* ncselector_previtem(struct ncselector* n);**
 
-**void ncselector_nextitem(struct ncselector* n, char\*\* newitem);**
+**const char* ncselector_nextitem(struct ncselector* n);**
 
 **bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);**
 

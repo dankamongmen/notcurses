@@ -466,11 +466,16 @@ int ncmenu_previtem(ncmenu* n){
   return ncmenu_unroll(n, n->unrolledsection);
 }
 
-const char* ncmenu_selected(const ncmenu* n){
+const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
   if(n->unrolledsection < 0){
     return NULL;
   }
-  return n->sections[n->unrolledsection].items[n->sections[n->unrolledsection].itemselected].desc;
+  const struct ncmenu_int_section* sec = &n->sections[n->unrolledsection];
+  const int itemidx = sec->itemselected;
+  if(ni){
+    memcpy(ni, &sec->items[itemidx].shortcut, sizeof(*ni));
+  }
+  return sec->items[itemidx].desc;
 }
 
 bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){

@@ -52,7 +52,8 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
       }
     }
     ncplane_erase(selplane);
-    const char* selitem = ncmenu_selected(ncm);
+    ncinput selni;
+    const char* selitem = ncmenu_selected(ncm, &selni);
     ncplane_putstr_aligned(selplane, 1, NCALIGN_CENTER, selitem ? selitem : "");
     notcurses_render(nc);
   }

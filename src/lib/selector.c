@@ -266,16 +266,17 @@ ncplane* ncselector_plane(ncselector* n){
   return n->ncp;
 }
 
-char* ncselector_selected(const ncselector* n){
+const char* ncselector_selected(const ncselector* n){
   if(n->itemcount == 0){
     return NULL;
   }
-  return strdup(n->items[n->selected].option);
+  return n->items[n->selected].option;
 }
 
-void ncselector_previtem(ncselector* n, char** newitem){
+const char* ncselector_previtem(ncselector* n){
+  const char* ret = NULL;
   if(n->itemcount == 0){
-    return;
+    return ret;
   }
   if(n->selected == n->startdisp){
     if(n->startdisp-- == 0){
@@ -286,15 +287,15 @@ void ncselector_previtem(ncselector* n, char** newitem){
     n->selected = n->itemcount;
   }
   --n->selected;
-  if(newitem && n->itemcount){
-    *newitem = strdup(n->items[n->selected].option);
-  }
+  ret = n->items[n->selected].option;
   ncselector_draw(n);
+  return ret;
 }
 
-void ncselector_nextitem(ncselector* n, char** newitem){
+const char* ncselector_nextitem(ncselector* n){
+  const char* ret = NULL;
   if(n->itemcount == 0){
-    return;
+    return NULL;
   }
   unsigned lastdisp = n->startdisp;
   lastdisp += n->maxdisplay && n->maxdisplay < n->itemcount ? n->maxdisplay : n->itemcount;
@@ -309,18 +310,17 @@ void ncselector_nextitem(ncselector* n, char** newitem){
   if(n->selected == n->itemcount){
     n->selected = 0;
   }
-  if(newitem && n->itemcount){
-    *newitem = strdup(n->items[n->selected].option);
-  }
+  ret = n->items[n->selected].option;
   ncselector_draw(n);
+  return ret;
 }
 
 bool ncselector_offer_input(ncselector* n, const ncinput* nc){
   if(nc->id == NCKEY_UP){
-    ncselector_previtem(n, NULL);
+    ncselector_previtem(n);
     return true;
   }else if(nc->id == NCKEY_DOWN){
-    ncselector_nextitem(n, NULL);
+    ncselector_nextitem(n);
     return true;
   }
   return false;

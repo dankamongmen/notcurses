@@ -316,7 +316,7 @@ int ncmenu_nextsection(struct ncmenu* n);
 int ncmenu_prevsection(struct ncmenu* n);
 int ncmenu_nextitem(struct ncmenu* n);
 int ncmenu_previtem(struct ncmenu* n);
-const char* ncmenu_selected(const struct ncmenu* n);
+const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);
 bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
 int ncmenu_destroy(struct ncmenu* n);
 const char* ncmetric(uintmax_t val, unsigned decimal, char* buf, int omitdec, unsigned mult, int uprefix);

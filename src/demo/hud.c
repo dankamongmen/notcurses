@@ -88,7 +88,8 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     return false;
   }
   if(ni->id == NCKEY_ENTER){
-    const char* sel = ncmenu_selected(menu);
+    ncinput selni;
+    const char* sel = ncmenu_selected(menu, &selni);
     if(sel){
       if(strcmp(sel, MENUSTR_TOGGLE_HUD) == 0){
         hud_toggle(nc);
