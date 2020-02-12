@@ -29,6 +29,7 @@ typedef struct elem {
 
 static bool menu_unrolled;
 static struct ncmenu* menu;
+static struct ncplane* about; // "about" modal popup
 
 static struct elem* elems;
 static struct elem* running;
@@ -67,9 +68,7 @@ hud_grabbed_bg(struct ncplane* n){
 
 static void
 hud_toggle(struct notcurses* nc){
-  if(menu){
-    ncmenu_rollup(menu);
-  }
+  ncmenu_rollup(menu);
   if(hud){
     hud_destroy();
   }else{
@@ -77,11 +76,48 @@ hud_toggle(struct notcurses* nc){
   }
 }
 
+static void
+about_toggle(struct notcurses* nc){
+  ncmenu_rollup(menu);
+  if(about){
+    ncplane_destroy(about);
+    about = NULL;
+    return;
+  }
+  const int ABOUT_ROWS = 5;
+  const int ABOUT_COLS = 40;
+  struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc),
+                                      ABOUT_ROWS, ABOUT_COLS,
+                                      3, NCALIGN_CENTER, NULL);
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
+    if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
+      cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
+      cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+      if(ncplane_set_base(n, 0, 0, " ") > 0){
+        ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "notcurses-demo %s", notcurses_version());
+        ncplane_putstr_aligned(n, 3, NCALIGN_CENTER, "\u00a9 nick black <nickblack@linux.com>");
+        about = n;
+        return;
+      }
+      cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
+      cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+    }
+  }
+  ncplane_destroy(n);
+}
+
 // returns true if the input was handled by the menu/HUD
 bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
   // toggle the HUD
   if(ni->id == 'H' && !ni->alt && !ni->ctrl){
     hud_toggle(nc);
+    return true;
+  }
+  if(ni->id == 'U' && !ni->alt && ni->ctrl){
+    about_toggle(nc);
     return true;
   }
   if(!menu){
@@ -94,8 +130,13 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
       if(strcmp(sel, MENUSTR_TOGGLE_HUD) == 0){
         hud_toggle(nc);
         return true;
+      }else if(strcmp(sel, MENUSTR_ABOUT) == 0){
+        about_toggle(nc);
+        ncmenu_rollup(menu);
+        return true;
+      }else if(strcmp(sel, MENUSTR_RESTART) == 0){
+        // FIXME
       }
-      // FIXME handle other MENUSTR_ options
     }
     return false;
   }

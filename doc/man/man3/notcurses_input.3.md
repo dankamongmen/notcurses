@@ -117,9 +117,17 @@ on blocking input, it can be tricky to guarantee that this doesn't happen.
 Failed escape sequences are not yet played back in their entirety; only an
 ESC (ASCII 0x1b) will be seen by the application.
 
-The shift key is only indicated in conjunction with mouse button presses. If
-e.g. shift is used to generate a capital letter 'A', **id** will equal 'A', and
-shift will be **false**. This should be fixed in the future.
+The Shift key is only indicated in conjunction with mouse button presses. If
+e.g. Shift is used to generate a capital letter 'A', **id** will equal 'A', and
+**shift** will be **false**. This should be fixed in the future.
+
+When Ctrl is pressed along with a letter, the letter will currently always be
+reported in its uppercase form. E.g., if Shift, Ctrl, and 'a' are all pressed,
+this is indistinguishable from Ctrl and 'a' without Shift. This should be fixed
+in the future.
+
+Ctrl pressed along with 'J' or 'M', whether Shift is pressed or not, currently
+registers as **NCKEY_ENTER**. This will likely change in the future.
 
 # SEE ALSO
 
