@@ -85,21 +85,35 @@ about_toggle(struct notcurses* nc){
     about = NULL;
     return;
   }
-  const int ABOUT_ROWS = 5;
+  const int ABOUT_ROWS = 9;
   const int ABOUT_COLS = 40;
-  struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc),
-                                      ABOUT_ROWS, ABOUT_COLS,
-                                      3, NCALIGN_CENTER, NULL);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
-    if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
-      cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-      cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
-      if(ncplane_set_base(n, 0, 0, " ") > 0){
-        ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "notcurses-demo %s", notcurses_version());
-        ncplane_putstr_aligned(n, 3, NCALIGN_CENTER, "\u00a9 nick black <nickblack@linux.com>");
+  int dimy;
+  notcurses_term_dim_yx(nc, &dimy, NULL);
+  struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), ABOUT_ROWS, ABOUT_COLS,
+                                      dimy - (ABOUT_ROWS + 2), NCALIGN_CENTER, NULL);
+  // let the glyphs below show through, but only dimly
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  channels_set_fg_rgb(&channels, 0x0, 0x0, 0x0);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
+  channels_set_bg_rgb(&channels, 0x0, 0x0, 0x0);
+  if(ncplane_set_base(n, channels, 0, "") >= 0){
+    ncplane_set_fg(n, 0xc0f0c0);
+    ncplane_set_bg(n, 0);
+    ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
+    ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "notcurses-demo %s", notcurses_version());
+    ncplane_printf_aligned(n, 3, NCALIGN_LEFT, "  Q quit");
+    ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "restart Ctrl+R  ");
+    ncplane_printf_aligned(n, 4, NCALIGN_LEFT, "  H toggle HUD");
+    ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "toggle help Ctrl+U  ");
+    ncplane_putstr_aligned(n, 7, NCALIGN_CENTER, "\u00a9 nick black <nickblack@linux.com>");
+    cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+    cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
+    cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+    if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
+      if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
+        cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
+        cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
         about = n;
         return;
       }
