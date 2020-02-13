@@ -31,6 +31,34 @@ struct ncplane;   // a drawable notcurses surface, composed of cells
 struct ncvisual;  // a visual bit of multimedia opened with LibAV
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 
+// Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
+// 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
+// limited subset of notcurses routines which directly affect 'fp', and neither
+// supports nor requires notcurses_render(). This can be used to add color and
+// styling to text in the standard output paradigm. Returns NULL on error,
+// including any failure initializing terminfo.
+API struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
+
+// Direct mode. This API can be used to colorize and stylize output generated
+// outside of notcurses, without ever calling notcurses_render(). These should
+// not be intermixed with standard notcurses rendering.
+API int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
+API int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
+API int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
+API int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
+
+// Get the current number of columns/rows.
+API int ncdirect_dim_x(const struct ncdirect* nc);
+API int ncdirect_dim_y(const struct ncdirect* nc);
+
+// ncplane_styles_*() analogues
+API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
+API int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
+API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
+
+// Release 'nc' and any associated resources. 0 on success, non-0 on failure.
+API int ncdirect_stop(struct ncdirect* nc);
+
 // Returns the number of columns occupied by a multibyte (UTF-8) string, or
 // -1 if a non-printable/illegal character is encountered.
 static inline int
@@ -186,23 +214,6 @@ typedef struct notcurses_options {
 // be a tty. You'll usually want stdout. Returns NULL on error, including any
 // failure initializing terminfo.
 API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
-
-// Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
-// 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
-// limited subset of notcurses routines which directly affect 'fp', and neither
-// supports nor requires notcurses_render(). This can be used to add color and
-// styling to text in the standard output paradigm. Returns NULL on error,
-// including any failure initializing terminfo.
-API struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
-
-// Get the current number of columns/rows.
-API int ncdirect_dim_x(const struct ncdirect* nc);
-API int ncdirect_dim_y(const struct ncdirect* nc);
-
-// ncplane_styles_*() analogues
-API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
-API int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
-API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
 
 // Destroy a notcurses context.
 API int notcurses_stop(struct notcurses* nc);
@@ -2154,15 +2165,6 @@ API void palette256_free(palette256* p);
 
 // Convert the plane's content to greyscale.
 API void ncplane_greyscale(struct ncplane* n);
-
-// Direct mode. This API can be used to colorize and stylize output generated
-// outside of notcurses, without ever calling notcurses_render(). These should
-// not be intermixed with standard notcurses rendering.
-API int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
-API int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
-API int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
-API int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
-API int ncdirect_stop(struct ncdirect* nc);
 
 // selection widget -- an ncplane with a title header and a body section. the
 // body section supports infinite scrolling up and down. the widget looks like:

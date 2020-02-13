@@ -341,6 +341,7 @@ struct ncdirect; // minimal state for a terminal
 // including any failure initializing terminfo.
 struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
 
+// Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 int ncdirect_stop(struct ncdirect* nc);
 ```
 
