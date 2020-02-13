@@ -9,7 +9,7 @@ notcurses-demo - Show off some notcurses features
 # SYNOPSIS
 
 **notcurses-demo** [**-h|--help**] [**-p path**] [**-d delaymult**]
- [**-l loglevel**] [**-f renderfile**] [**-ikHVc**] demospec
+ [**-l loglevel**] [**-f renderfile**] [**-ikVc**] demospec
 
 # DESCRIPTION
 
@@ -50,8 +50,6 @@ At any time, press 'q' to quit. The demo is best run in at least a 80x45 termina
 **-l loglevel**: Log everything (high log level) or nothing (log level 0) to stderr.
 
 **-f renderfile**: Render each frame to **renderfile** in addition to the screen.
-
-**-H**: Launch a HUD with running timers for each demo. This HUD can be moved or closed with the mouse.
 
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
 

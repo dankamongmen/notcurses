@@ -137,11 +137,10 @@ static struct {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -hHVkc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -hVkc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -V: print program name and version\n");
   fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
-  fprintf(out, " -H: deploy the HUD\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
   fprintf(out, " -d: delay multiplier (non-negative float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
@@ -196,19 +195,14 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
 // specification, also returns NULL, heh. determine this by argv[optind];
 // if it's NULL, there were valid options, but no spec.
 static const char*
-handle_opts(int argc, char** argv, notcurses_options* opts, bool* use_hud,
-            bool* ignore_failures){
+handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failures){
   strcpy(datadir, NOTCURSES_SHARE);
   char renderfile[PATH_MAX] = "";
   bool constant_seed = false;
   int c;
-  *use_hud = false;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "HVhickl:r:d:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "Vhickl:r:d:f:p:")) != EOF){
     switch(c){
-      case 'H':
-        *use_hud = true;
-        break;
       case 'h':
         usage(*argv, EXIT_SUCCESS);
         break;
@@ -404,11 +398,10 @@ int main(int argc, char** argv){
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
-  const bool use_menu = true;
   const char* spec;
-  bool use_hud, ignore_failures;
+  bool ignore_failures;
   notcurses_options nopts;
-  if((spec = handle_opts(argc, argv, &nopts, &use_hud, &ignore_failures)) == NULL){
+  if((spec = handle_opts(argc, argv, &nopts, &ignore_failures)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
@@ -430,15 +423,8 @@ int main(int argc, char** argv){
   if(notcurses_mouse_enable(nc)){
     goto err;
   }
-  if(use_hud){
-    if(hud_create(nc) == NULL){
-      goto err;
-    }
-  }
-  if(use_menu){
-    if(menu_create(nc) == NULL){
-      goto err;
-    }
+  if(menu_create(nc) == NULL){
+    goto err;
   }
   if(input_dispatcher(nc)){
     goto err;
