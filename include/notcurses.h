@@ -2312,6 +2312,40 @@ API bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
 // Destroy a menu created with ncmenu_create().
 API int ncmenu_destroy(struct ncmenu* n);
 
+// Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
+// There is some underlying independent variable--this could be measurement
+// number, or measurement time. Samples are tagged with this variable, which
+// should never fall, but may grow non-monotonically. The desired range in terms
+// of the underlying independent variable is provided at creation time. The
+// desired domain can be specified, or can be autosolved. Granularity of the
+// dependent variable depends on glyph selection.
+//
+// For instance, perhaps we're sampling load as a time series. We want to
+// display an hour's worth of samples in 40 columns and 5 rows. We define the
+// x-axis to be the independent variable, time. We'll stamp at second
+// granularity. In this case, there are 60 * 60 == 3600 total elements in the
+// range. Each column will thus cover a 90s span. Using vertical blocks (the
+// most granular glyph), we have 8 * 5 == 40 levels of domain. If we report the
+// following samples, starting at 0, using autosolving, we will observe:
+//
+// 60   -- 1%       |domain:   1--1, 0: 20 levels
+// 120  -- 50%      |domain:  1--50, 0: 0 levels, 1: 40 levels
+// 180  -- 50%      |domain:  1--50, 0: 0 levels, 1: 40 levels, 2: 40 levels
+// 240  -- 100%     |domain:  1--75, 0: 1, 1: 27, 2: 40
+// 271  -- 100%     |domain: 1--100, 0: 0, 1: 20, 2: 30, 3: 40
+// 300  -- 25%      |domain:  1--75, 0: 0, 1: 27, 2: 40, 3: 33
+//
+// At the end, we have data in 4 90s spans: [0--89], [90--179], [180--269], and
+// [270--359]. The first two spans have one sample each, while the second two
+// have two samples each. Samples within a span are averaged (FIXME we could
+// probably do better), so the results are 0, 50, 75, and 62.5. Scaling each of
+// these out of 90 and multiplying by 40 gets our resulting levels. The final
+// domain is 75 rather than 100 due to the averaging of 100+25/2->62.5 in the
+// third span, at which point the maximum span value is once again 75.
+//
+// The 20 levels at first is a special case. When the domain is only 1 unit,
+// and autoscaling is in play, assign 50%.
+
 #undef API
 
 #ifdef __cplusplus
