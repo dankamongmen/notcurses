@@ -2345,6 +2345,14 @@ API int ncmenu_destroy(struct ncmenu* n);
 //
 // The 20 levels at first is a special case. When the domain is only 1 unit,
 // and autoscaling is in play, assign 50%.
+typedef struct ncplot_options {
+  // styling of the maximum and minimum levels. linear interpolation will be
+  // applied across the domain between these two.
+  uint64_t maxchannel;
+  uint64_t minchannel;
+  // FIXME select braille, block, etc
+  // FIXME give parameters for variables
+} ncplot_options;
 
 #undef API
 
