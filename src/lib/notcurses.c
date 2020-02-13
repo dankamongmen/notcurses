@@ -942,14 +942,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     putp(tiparm(ret->setaf, 3));
     fprintf(ret->ttyfp, "  Warning! Built without ffmpeg support\n");
 #endif
-    term_fg_palindex(ret, ret->ttyfp, ret->RGBflag ? 0xe02080 : 3);
+    term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 1 % ret->colors : 0xd0a0a0);
     if(!ret->RGBflag){ // FIXME
       fprintf(ret->ttyfp, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
       fprintf(ret->ttyfp, "\n  Specify a (correct) DirectColor TERM, or COLORTERM.\n");
     }else{
-      /*if((unsigned)ret->colors < (1u << 24u)){
-        fprintf(ret->ttyfp, "\n Warning! Advertised DirectColor but only %d colors\n", ret->colors);
-      }*/
       if(!ret->CCCflag){
         fprintf(ret->ttyfp, "\n Warning! Advertised DirectColor but no 'ccc' flag\n");
       }

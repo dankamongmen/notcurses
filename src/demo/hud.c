@@ -102,7 +102,7 @@ about_toggle(struct notcurses* nc){
     ncplane_set_bg(n, 0);
     ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
     ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "notcurses-demo %s", notcurses_version());
-    ncplane_printf_aligned(n, 3, NCALIGN_LEFT, "  Q quit");
+    ncplane_printf_aligned(n, 3, NCALIGN_LEFT, "  q quit");
     ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "restart Ctrl+R  ");
     ncplane_printf_aligned(n, 4, NCALIGN_LEFT, "  H toggle HUD");
     ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "toggle help Ctrl+U  ");
