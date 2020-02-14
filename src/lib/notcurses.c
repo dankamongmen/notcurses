@@ -191,14 +191,21 @@ int ncplane_at_cursor(ncplane* n, cell* c){
   return cell_duplicate(n, c, &n->fb[nfbcellidx(n, n->y, n->x)]);
 }
 
-int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
+static inline int
+ncplane_at_yx_locked(ncplane* n, int y, int x, cell* c){
   int ret = -1;
-  pthread_mutex_lock(&n->nc->lock);
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
       ret = cell_duplicate(n, c, &n->fb[nfbcellidx(n, y, x)]);
     }
   }
+  return ret;
+}
+
+int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
+  int ret = -1;
+  pthread_mutex_lock(&n->nc->lock);
+  ret = ncplane_at_yx_locked(n, y, x, c);
   pthread_mutex_unlock(&n->nc->lock);
   return ret;
 }
@@ -1933,4 +1940,59 @@ void ncplane_greyscale(ncplane *n){
     }
   }
   ncplane_unlock(n);
+}
+
+// if this is not polyfillable cell, we return 0. if it is, we attempt to fill
+// it, then recurse out. return -1 on error, or number of cells filled on
+// success. so a return of 0 means there's no work to be done here, and N means
+// we did some work here, filling everything we could reach. out-of-plane is 0.
+static int
+ncplane_polyfill_locked(ncplane* n, int y, int x, const cell* c){
+fprintf(stderr, "%d %d\n", y, x);
+  if(y >= n->leny || x >= n->lenx){
+    return 0; // not fillable
+  }
+  if(y < 0 || x < 0){
+    return 0; // not fillable
+  }
+fprintf(stderr, "%d %d\n", y, x);
+  cell* cur = &n->fb[nfbcellidx(n, y, x)];
+  if(cur->gcluster){
+    return 0; // glyph, not polyfillable
+  }
+fprintf(stderr, "%c\n", c->gcluster);
+  if(cell_duplicate(n, cur, c) < 0){
+    return -1;
+  }
+  int r, ret = 1;
+  if((r = ncplane_polyfill_locked(n, y - 1, x, c)) < 0){
+    return -1;
+  }
+  ret += r;
+  if((r = ncplane_polyfill_locked(n, y + 1, x, c)) < 0){
+    return -1;
+  }
+  ret += r;
+  if((r = ncplane_polyfill_locked(n, y, x - 1, c)) < 0){
+    return -1;
+  }
+  ret += r;
+  if((r = ncplane_polyfill_locked(n, y, x + 1, c)) < 0){
+    return -1;
+  }
+  ret += r;
+  return ret;
+}
+
+// at the initial step only, invalid y, x is an error, so explicitly check.
+int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
+  int ret = -1;
+  ncplane_lock(n);
+  if(y < n->leny && x < n->lenx){
+    if(y >= 0 && x >= 0){
+      ret = ncplane_polyfill_locked(n, y, x, c);
+    }
+  }
+  ncplane_unlock(n);
+  return ret;
 }

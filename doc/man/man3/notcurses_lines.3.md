@@ -57,6 +57,8 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 
 **static inline int ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels, int ylen, int xlen, unsigned ctlword);**
 
+**int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);**
+
 # DESCRIPTION
 
 

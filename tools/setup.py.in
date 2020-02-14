@@ -9,7 +9,6 @@ setup(
     version="${PROJECT_VERSION}",
     packages=['notcurses'],
     package_dir={ '': '${CMAKE_CURRENT_BINARY_DIR}/python/src' },
-    py_modules=['notcurses'],
     author="Nick Black",
     author_email="nickblack@linux.com",
     description="Blingful TUI construction library (python bindings)",

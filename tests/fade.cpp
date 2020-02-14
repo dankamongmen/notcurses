@@ -52,7 +52,6 @@ TEST_CASE("Fade") {
     }
   }
 
-
   SUBCASE("FadeOut") {
     CHECK(0 == notcurses_render(nc_));
     struct timespec ts;

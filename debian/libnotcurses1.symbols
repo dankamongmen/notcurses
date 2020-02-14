@@ -8,6 +8,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncblit_rgba@Base 1.1.8
  ncdirect_bg@Base 1.1.8
  ncdirect_bg_rgb8@Base 1.1.8
+ ncdirect_clear@Base 1.1.9
  ncdirect_fg@Base 1.1.8
  ncdirect_fg_rgb8@Base 1.1.8
  ncdirect_stop@Base 1.1.8

@@ -1129,6 +1129,15 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 ```
 
+Similarly, areas can be filled with a cell.
+
+```c
+// The specified coordinate must not currently have a glyph, or it is an error.
+// Otherwise, that coordinate, and all cardinally-connected glyphless cells,
+// will have 'c' written to them.
+int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
+```
+
 My 14 year-old self would never forgive me if we didn't have sweet palette fades.
 
 ```c
