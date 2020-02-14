@@ -2220,6 +2220,17 @@ void ncselector_destroy(struct ncselector* n, char** item);
 
 ### Menus
 
+```
+  Schwarzgerät  File                                    Help
+xxxxxxxxxxxxxxxx╭─────────────╮xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx│New    Ctrl+n│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx│Open   Ctrl+o│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx│Close  Ctrl+c│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx├─────────────┤xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx│Quit   Ctrl+q│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx╰─────────────╯xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
 Horizontal menu bars are supported, on the top or bottom rows of the screen. If
 the menu bar is longer than the screen, it will be only partially visible, but
 any unrolled section will be visible. Menus may be either visible or invisible

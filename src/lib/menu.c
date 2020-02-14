@@ -475,7 +475,6 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
   if(ni){
     memcpy(ni, &sec->items[itemidx].shortcut, sizeof(*ni));
   }
-fprintf(stderr, "INNIE ID: %c ALT: %u CTRL: %u\n", ni->id, ni->alt, ni->ctrl);
   return sec->items[itemidx].desc;
 }
 
