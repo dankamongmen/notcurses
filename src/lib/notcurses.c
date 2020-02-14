@@ -803,6 +803,7 @@ ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
   term_verify_seq(&ret->oc, "oc");
   term_verify_seq(&ret->setaf, "setaf");
   term_verify_seq(&ret->setab, "setab");
+  term_verify_seq(&ret->clear, "clear");
   ret->RGBflag = query_rgb();
   if((ret->colors = tigetnum("colors")) <= 0){
     ret->colors = 1;
@@ -969,6 +970,13 @@ err:
   pthread_mutex_destroy(&ret->lock);
   free(ret);
   return NULL;
+}
+
+int ncdirect_clear(ncdirect* nc){
+  if(!nc->clear){
+    // FIXME scroll output off the screen
+  }
+  return term_emit("clear", nc->clear, nc->ttyfp, true);
 }
 
 int ncdirect_stop(ncdirect* nc){

@@ -34,6 +34,8 @@ notcurses_directmode - minimal notcurses instances for styling text
 
 **int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);**
 
+**int ncdirect_clear(struct ncdirect* nc)**
+
 **int ncdirect_stop(struct ncdirect* nc);**
 
 # DESCRIPTION
@@ -54,6 +56,9 @@ display capabilities, and/or display errors. notcurses natively targets
 
 **ncdirect_dim_x** returns the current number of columns, and **ncdirect_dim_y**
 the current number of rows.
+
+**ncdirect_clear** clears the screen using a control code if one exists in
+terminfo. Otherwise, it prints successive newlines to scroll everything off.
 
 # RETURN VALUES
 

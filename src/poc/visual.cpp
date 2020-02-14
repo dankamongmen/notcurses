@@ -31,7 +31,6 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
-  sleep(1);
   return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:
