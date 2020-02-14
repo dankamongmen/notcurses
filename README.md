@@ -127,10 +127,6 @@ hides important output).
 To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
 be found on the `notcurses-demo(1)` man page.
 
-<p align="center">
-<img width="640" height="112" src="doc/widechars.png" alt="notcurses 1.0.2 wide banner"/>
-</p>
-
 ## Use
 
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
