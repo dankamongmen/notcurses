@@ -375,6 +375,7 @@ int ncdirect_dim_y(const struct ncdirect* nc);
 int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
+int ncdirect_clear(struct ncdirect* nc); // clear the screen
 ```
 
 ### Alignment

@@ -73,6 +73,9 @@ API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
 API int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
 API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
 
+// Clear the screen.
+API int ncdirect_clear(struct ncdirect* nc);
+
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 API int ncdirect_stop(struct ncdirect* nc);
 

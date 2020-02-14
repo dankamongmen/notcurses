@@ -233,14 +233,15 @@ int palette256_get_rgb(const palette256* p, int idx, unsigned* r, unsigned* g, u
 void palette256_free(palette256* p);
 bool notcurses_canchangecolor(const struct notcurses* nc);
 struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
-int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
-int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);
-int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
-int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
+int ncdirect_bg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
+int ncdirect_fg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
+int ncdirect_fg(struct ncdirect* n, unsigned rgb);
+int ncdirect_bg(struct ncdirect* n, unsigned rgb);
 int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
-int ncdirect_stop(struct ncdirect* nc);
+int ncdirect_clear(struct ncdirect* n);
+int ncdirect_stop(struct ncdirect* n);
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, int* averr);
 typedef enum {
   NCSCALE_NONE,

@@ -198,6 +198,7 @@ typedef struct ncdirect {
   char* italoff;  // CELL_STYLE_ITALIC (disable)
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
+  char* clear;    // clear the screen
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
