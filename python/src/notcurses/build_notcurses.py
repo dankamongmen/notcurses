@@ -353,6 +353,8 @@ int ncreel_destroy(struct ncreel* pr);
 void* nctablet_userptr(struct nctablet* t);
 struct ncplane* nctablet_ncplane(struct nctablet* t);
 int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
+int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop);
+int ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);
 """)
 
 if __name__ == "__main__":

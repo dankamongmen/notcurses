@@ -880,6 +880,17 @@ ncplane_vline(struct ncplane* n, const cell* c, int len){
   return ncplane_vline_interp(n, c, len, c->channels, c->channels);
 }
 
+#define NCBOXMASK_TOP    0x0001
+#define NCBOXMASK_RIGHT  0x0002
+#define NCBOXMASK_BOTTOM 0x0004
+#define NCBOXMASK_LEFT   0x0008
+#define NCBOXGRAD_TOP    0x0010
+#define NCBOXGRAD_RIGHT  0x0020
+#define NCBOXGRAD_BOTTOM 0x0040
+#define NCBOXGRAD_LEFT   0x0080
+#define NCBOXCORNER_MASK 0x0300
+#define NCBOXCORNER_SHIFT 8u
+
 // Draw a box with its upper-left corner at the current cursor position, and its
 // lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the
 // upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
@@ -898,18 +909,6 @@ ncplane_vline(struct ncplane* n, const cell* c, int len){
 // and are interpreted as the number of connecting edges necessary to draw a
 // given corner. At 0 (the default), corners are always drawn. At 3, corners
 // are never drawn (as at most 2 edges can touch a box's corner).
-
-#define NCBOXMASK_TOP    0x0001
-#define NCBOXMASK_RIGHT  0x0002
-#define NCBOXMASK_BOTTOM 0x0004
-#define NCBOXMASK_LEFT   0x0008
-#define NCBOXGRAD_TOP    0x0010
-#define NCBOXGRAD_RIGHT  0x0020
-#define NCBOXGRAD_BOTTOM 0x0040
-#define NCBOXGRAD_LEFT   0x0080
-#define NCBOXCORNER_MASK 0x0300
-#define NCBOXCORNER_SHIFT 8u
-
 API int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
                     const cell* ll, const cell* lr, const cell* hline,
                     const cell* vline, int ystop, int xstop,
@@ -945,6 +944,23 @@ ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
 // everything behind a boundary. Returns the number of cells polyfilled. An
 // invalid initial y, x is an error.
 API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
+
+// Draw a gradient with its upper-left corner at the current cursor position,
+// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'attrword' is
+// used for all cells. The channels specified by 'ul', 'ur', 'll', and 'lr'
+// are composed into foreground and background gradients. To do a vertical
+// gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
+// horizontal gradient, 'ul' ought equal 'll' and 'ur' ought equal 'ul'. To
+// color everything the same, all four channels should be equivalent.
+API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
+                         uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
+                         int ystop, int xstop);
+
+// Draw a gradient with its upper-left corner at the current cursor position,
+// having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
+API int ncplane_gradient_sized(struct ncplane* n, const char* egc,
+                               uint32_t attrword, uint64_t ul, uint64_t ur,
+                               uint64_t ll, uint64_t lr, int ylen, int xlen);
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated

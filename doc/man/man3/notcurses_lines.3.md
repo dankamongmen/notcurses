@@ -59,6 +59,10 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 
 **int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);**
 
+**int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop);**
+
+**int ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);**
+
 # DESCRIPTION
 
 

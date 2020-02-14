@@ -1136,6 +1136,23 @@ Similarly, areas can be filled with a cell.
 // Otherwise, that coordinate, and all cardinally-connected glyphless cells,
 // will have 'c' written to them.
 int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
+
+// Draw a gradient with its upper-left corner at the current cursor position,
+// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'attrword' is
+// used for all cells. The channels specified by 'ul', 'ur', 'll', and 'lr'
+// are composed into foreground and background gradients. To do a vertical
+// gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
+// horizontal gradient, 'ul' ought equal 'll' and 'ur' ought equal 'ul'. To
+// color everything the same, all four channels should be equivalent.
+int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
+                     uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
+                     int ystop, int xstop);
+
+// Draw a gradient with its upper-left corner at the current cursor position,
+// having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
+int ncplane_gradient_sized(struct ncplane* n, const char* egc,
+                           uint32_t attrword, uint64_t ul, uint64_t ur,
+                           uint64_t ll, uint64_t lr, int ylen, int xlen);
 ```
 
 My 14 year-old self would never forgive me if we didn't have sweet palette fades.
