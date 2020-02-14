@@ -817,6 +817,8 @@ ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
       ret->CCCflag = false;
     }
   }
+  ret->fgdefault = ret->bgdefault = true;
+  ret->fgrgb = ret->bgrgb = 0;
   return ret;
 }
 

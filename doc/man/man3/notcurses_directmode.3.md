@@ -20,6 +20,10 @@ notcurses_directmode - minimal notcurses instances for styling text
 
 **int ncdirect_bg(struct ncdirect* nc, unsigned rgb);**
 
+**int ncdirect_fg_default(struct ncdirect* nc);**
+
+**int ncdirect_bg_default(struct ncdirect* nc);**
+
 **int ncdirect_dim_x(const struct ncdirect* nc);**
 
 **int ncdirect_dim_y(const struct ncdirect* nc);**
@@ -51,7 +55,6 @@ display capabilities, and/or display errors. notcurses natively targets
 **ncdirect_dim_x** returns the current number of columns, and **ncdirect_dim_y**
 the current number of rows.
 
-
 # RETURN VALUES
 
 **notcurses_directmode** returns **NULL** on failure. Otherwise, the return
@@ -60,4 +63,8 @@ provided to **ncdirect_stop**.
 
 # SEE ALSO
 
-**getenv(3)**, **termios(3)**, **notcurses(3)**, **terminfo(5)**
+**getenv(3)**,
+**termios(3)**,
+**notcurses(3)**,
+**notcurses_ncplane(3)**,
+**terminfo(5)**

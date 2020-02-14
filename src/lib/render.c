@@ -714,6 +714,28 @@ int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
   return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
 }
 
+int ncdirect_fg_default(ncdirect* nc){
+  if(term_emit("op", nc->op, nc->ttyfp, false) == 0){
+    nc->fgdefault = true;
+    if(nc->bgdefault){
+      return 0;
+    }
+    return ncdirect_bg(nc, nc->fgrgb);
+  }
+  return -1;
+}
+
+int ncdirect_bg_default(ncdirect* nc){
+  if(term_emit("op", nc->op, nc->ttyfp, false) == 0){
+    nc->bgdefault = true;
+    if(nc->fgdefault){
+      return 0;
+    }
+    return ncdirect_fg(nc, nc->bgrgb);
+  }
+  return -1;
+}
+
 int ncdirect_bg(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
@@ -722,6 +744,8 @@ int ncdirect_bg(ncdirect* nc, unsigned rgb){
                   (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
+  nc->bgdefault = false;
+  nc->bgrgb = rgb;
   return 0;
 }
 
@@ -733,26 +757,8 @@ int ncdirect_fg(ncdirect* nc, unsigned rgb){
                   (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
-  return 0;
-}
-
-int ncdirect_bg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
-  if(r > 255 || g > 255 || b > 255){
-    return -1;
-  }
-  if(term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp, r, g, b)){
-    return -1;
-  }
-  return 0;
-}
-
-int ncdirect_fg_rgb8(ncdirect* nc, unsigned r, unsigned g, unsigned b){
-  if(r > 255 || g > 255 || b > 255){
-    return -1;
-  }
-  if(term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp, r, g, b)){
-    return -1;
-  }
+  nc->fgdefault = false;
+  nc->fgrgb = rgb;
   return 0;
 }
 

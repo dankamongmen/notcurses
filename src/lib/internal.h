@@ -202,6 +202,8 @@ typedef struct ncdirect {
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
+  uint16_t fgrgb, bgrgb; // last RGB values of foreground/background
+  bool fgdefault, bgdefault; // are FG/BG currently using default colors?
 } ncdirect;
 
 typedef struct notcurses {
