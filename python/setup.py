@@ -9,7 +9,6 @@ setup(
     version="1.1.8",
     packages=['notcurses'],
     package_dir={'': 'src'},
-    py_modules=['notcurses'],
     author="Nick Black",
     author_email="nickblack@linux.com",
     description="Blingful TUI construction library (python bindings)",
