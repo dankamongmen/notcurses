@@ -275,6 +275,9 @@ Utility functions operating on the toplevel `notcurses` object include:
 // Return the topmost ncplane, of which there is always at least one.
 struct ncplane* notcurses_top(struct notcurses* n);
 
+// Destroy any ncplanes other than the stdplane.
+void notcurses_drop_planes(struct notcurses* nc);
+
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
@@ -1109,9 +1112,14 @@ int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
 
 // Draw a gradient with its upper-left corner at the current cursor position,
 // having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
-int ncplane_gradient_sized(struct ncplane* n, const char* egc,
-                           uint32_t attrword, uint64_t ul, uint64_t ur,
-                           uint64_t ll, uint64_t lr, int ylen, int xlen);
+static inline int
+ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
+                       uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
+                       int ylen, int xlen){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
+}
 ```
 
 My 14 year-old self would never forgive me if we didn't have sweet palette fades.
@@ -1201,7 +1209,8 @@ static inline unsigned
 ncplane_fg_alpha(const struct ncplane* nc){
   return channels_fg_alpha(ncplane_channels(nc));
 }
-/ Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
+
+// Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 static inline unsigned
 ncplane_bg_alpha(const struct ncplane* nc){
   return channels_bg_alpha(ncplane_channels(nc));

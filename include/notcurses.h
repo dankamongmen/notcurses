@@ -246,6 +246,9 @@ API int notcurses_render(struct notcurses* nc);
 // Return the topmost ncplane, of which there is always at least one.
 API struct ncplane* notcurses_top(struct notcurses* n);
 
+// Destroy any ncplanes other than the stdplane.
+API void notcurses_drop_planes(struct notcurses* nc);
+
 // All input is currently taken from stdin, though this will likely change. We
 // attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
 // Extended Grapheme Cluster. It is also possible that we will read a special
@@ -958,9 +961,14 @@ API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
 
 // Draw a gradient with its upper-left corner at the current cursor position,
 // having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
-API int ncplane_gradient_sized(struct ncplane* n, const char* egc,
-                               uint32_t attrword, uint64_t ul, uint64_t ur,
-                               uint64_t ll, uint64_t lr, int ylen, int xlen);
+static inline int
+ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
+                       uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
+                       int ylen, int xlen){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
+}
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated

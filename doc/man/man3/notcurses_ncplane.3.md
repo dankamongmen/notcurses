@@ -116,6 +116,8 @@ notcurses_ncplane - operations on notcurses planes
 
 **int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
 
+**void notcurses_drop_planes(struct notcurses* nc);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
@@ -132,6 +134,9 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of cells
 * its position relative to the visible plane, and
 * its z-index.
 
+**notcurses_drop_planes** destroys all ncplanes other than the stdplane. Any
+references to such planes are, of course, invalidated.
+
 # RETURN VALUES
 
 **ncplane_new(3)**, **ncplane_aligned(3)**, and **ncplane_dup(3)** all return a
@@ -145,7 +150,7 @@ plane is the bottommost plane, NULL is returned. It cannot fail.
 
 Functions returning **int** return 0 on success, and non-zero on error.
 
-All other functions either cannot fail (and return **void**).
+All other functions cannot fail (and return **void**).
 
 # NOTES
 

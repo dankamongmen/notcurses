@@ -29,6 +29,18 @@ TEST_CASE("Fills") {
     CHECK(0 > ncplane_polyfill_yx(n_, -1, 0, &c));
   }
 
+  SUBCASE("PolyfillOnGlyph") {
+    cell c = CELL_SIMPLE_INITIALIZER('+');
+    struct ncplane* pfn = ncplane_new(nc_, 4, 4, 0, 0, nullptr);
+    REQUIRE(nullptr != pfn);
+    CHECK(16 == ncplane_polyfill_yx(pfn, 0, 0, &c));
+    CHECK(0 < ncplane_putc_yx(pfn, 0, 0, &c));
+    // Trying to fill the origin ought fill zero cells
+    CHECK(0 == ncplane_polyfill_yx(pfn, 0, 0, &c));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(pfn));
+  }
+
   SUBCASE("PolyfillEmptyPlane") {
     cell c = CELL_SIMPLE_INITIALIZER('+');
     struct ncplane* pfn = ncplane_new(nc_, 4, 4, 0, 0, nullptr);
@@ -49,6 +61,16 @@ TEST_CASE("Fills") {
     CHECK(1 == ncplane_polyfill_yx(pfn, 0, 0, &c));
     // Beyond the origin, we ought fill 12
     CHECK(12 == ncplane_polyfill_yx(pfn, 2, 2, &c));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(pfn));
+  }
+
+  SUBCASE("GradientMonochromatic") {
+    struct ncplane* pfn = ncplane_new(nc_, 4, 4, 0, 0, nullptr);
+    REQUIRE(nullptr != pfn);
+    uint64_t ul, ur, ll, lr;
+    ul = ur = ll = lr = 0;
+    CHECK(0 == ncplane_gradient(pfn, " ", 0, ul, ur, ll, lr, 3, 3));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(pfn));
   }

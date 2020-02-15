@@ -423,9 +423,6 @@ int main(int argc, char** argv){
   if(notcurses_mouse_enable(nc)){
     goto err;
   }
-  if(menu_create(nc) == NULL){
-    goto err;
-  }
   if(input_dispatcher(nc)){
     goto err;
   }
@@ -444,13 +441,17 @@ int main(int argc, char** argv){
   do{
     restart_demos = false;
     interrupted = false;
+    notcurses_drop_planes(nc);
+    if(menu_create(nc) == NULL){
+      goto err;
+    }
     if(ext_demos(nc, spec, ignore_failures) == NULL){
       goto err;
     }
+    if(hud_destroy()){ // destroy here since notcurses_drop_planes will kill it
+      goto err;
+    }
   }while(restart_demos);
-  if(hud_destroy()){
-    goto err;
-  }
   if(stop_input()){
     goto err;
   }
