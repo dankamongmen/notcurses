@@ -21,6 +21,16 @@ namespace ncpp
 	class NCPP_API_EXPORT Plane : public Root
 	{
 	public:
+		Plane (Plane const& other)
+		{
+			plane = duplicate_plane (other, nullptr);
+		}
+
+		explicit Plane (Plane const& other, void *opaque)
+		{
+			plane = duplicate_plane (other, opaque);
+		}
+
 		explicit Plane (int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
 		{
 			plane = ncplane_new (
@@ -514,6 +524,16 @@ namespace ncpp
 			return ncplane_double_box_sized (plane, attr, channels, ylen, xlen, ctlword) != -1;
 		}
 
+		bool perimeter (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr, const Cell &hline, const Cell &vline, unsigned ctlword) const noexcept
+		{
+			return ncplane_perimeter (plane, ul, ur, ll, lr, hline, vline, ctlword) != -1;
+		}
+
+		bool polyfill (int y, int x, const Cell& c) const noexcept
+		{
+			return ncplane_polyfill_yx (plane, y, x, c) != -1;
+		}
+
 		uint64_t get_channels () const noexcept
 		{
 			return ncplane_channels (plane);
@@ -820,6 +840,18 @@ namespace ncpp
 
 		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
 
+#ifndef DISABLE_FFMPEG
+		bool blit_bgrx (int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx) const noexcept
+		{
+			return ncblit_bgrx (plane, placey, placex, linesize, data, begy, begx, leny, lenx) >= 0;
+		}
+
+		bool blit_rgba (int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx) const noexcept
+		{
+			return ncblit_rgba (plane, placey, placex, linesize, data, begy, begx, leny, lenx) >= 0;
+		}
+#endif
+		
 	protected:
 		explicit Plane (ncplane *_plane, bool _is_stdplane)
 			: plane (_plane),
@@ -848,6 +880,16 @@ namespace ncpp
 
 			map_plane (plane, this);
 
+			return ret;
+		}
+
+		ncplane* duplicate_plane (const Plane &other, void *opaque)
+		{
+			ncplane *ret = ncplane_dup (other.plane, opaque);
+			if (ret == nullptr)
+				throw new init_error ("notcurses failed to duplicate plane");
+
+			is_stdplane = other.is_stdplane;
 			return ret;
 		}
 
