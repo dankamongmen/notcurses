@@ -1003,6 +1003,20 @@ int ncdirect_stop(ncdirect* nc){
   return ret;
 }
 
+void notcurses_drop_planes(notcurses* nc){
+  ncplane* p = nc->top;
+  while(p){
+    ncplane* tmp = p->z;
+    if(nc->stdscr == p){
+      nc->top = p;
+      p->z = NULL;
+    }else{
+      free_plane(p);
+    }
+    p = tmp;
+  }
+}
+
 int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
@@ -1995,4 +2009,61 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
   }
   ncplane_unlock(n);
   return ret;
+}
+
+// calculate one of the channels of a gradient at a particular point.
+static uint32_t
+calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
+                      int y, int x, int ylen, int xlen){
+  return 0;
+}
+
+// calculate both channels of a gradient at a particular point, storing them
+// into `c`->channels. x and y ought be the location within the gradient.
+static void
+calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
+                       uint64_t lr, int y, int x, int ylen, int xlen){
+  cell_set_fchannel(c, calc_gradient_channel(channels_fchannel(ul),
+                                             channels_fchannel(ur),
+                                             channels_fchannel(ll),
+                                             channels_fchannel(lr),
+                                             y, x, ylen, xlen));
+  cell_set_bchannel(c, calc_gradient_channel(channels_fchannel(ul),
+                                             channels_fchannel(ur),
+                                             channels_fchannel(ll),
+                                             channels_fchannel(lr),
+                                             y, x, ylen, xlen));
+}
+
+int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
+                     uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
+                     int ystop, int xstop){
+  int yoff, xoff, ymax, xmax;
+  ncplane_cursor_yx(n, &yoff, &xoff);
+  // must be at least 1x1, with its upper-left corner at the current cursor
+  if(ystop < yoff){
+    return -1;
+  }
+  if(xstop < xoff){
+    return -1;
+  }
+  ncplane_dim_yx(n, &ymax, &xmax);
+  // must be within the ncplane
+  if(xstop >= xmax || ystop >= ymax){
+    return -1;
+  }
+  const int xlen = xstop - xoff + 1;
+  const int ylen = ystop - ylen + 1;
+  for(int y = yoff ; y < ylen ; ++y){
+    for(int x = xoff ; x < xlen ; ++x){
+      cell* targc = ncplane_cell_ref_yx(n, y, x);
+      targc->channels = 0;
+      targc->attrword = 0;
+      if(cell_load(n, targc, egc) < 0){
+        return -1;
+      }
+      calc_gradient_channels(&targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
+    }
+  }
+  return 0;
 }

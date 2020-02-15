@@ -87,6 +87,7 @@ int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 int ncplane_set_base(struct ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc);
 int ncplane_base(struct ncplane* ncp, cell* c);
 struct ncplane* notcurses_top(struct notcurses* n);
+void notcurses_drop_planes(struct notcurses* nc);
 int notcurses_refresh(struct notcurses* n);
 int notcurses_resize(struct notcurses* n, int* y, int* x);
 struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);
