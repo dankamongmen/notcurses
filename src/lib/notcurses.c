@@ -2068,10 +2068,10 @@ calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
                                              channels_fchannel(ll),
                                              channels_fchannel(lr),
                                              y, x, ylen, xlen));
-  cell_set_bchannel(c, calc_gradient_channel(channels_fchannel(ul),
-                                             channels_fchannel(ur),
-                                             channels_fchannel(ll),
-                                             channels_fchannel(lr),
+  cell_set_bchannel(c, calc_gradient_channel(channels_bchannel(ul),
+                                             channels_bchannel(ur),
+                                             channels_bchannel(ll),
+                                             channels_bchannel(lr),
                                              y, x, ylen, xlen));
 }
 
@@ -2094,8 +2094,8 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
   }
   const int xlen = xstop - xoff + 1;
   const int ylen = ystop - yoff + 1;
-  for(int y = yoff ; y < yoff + ystop + 1 ; ++y){
-    for(int x = xoff ; x < xoff + xstop + 1 ; ++x){
+  for(int y = yoff ; y < ystop + 1 ; ++y){
+    for(int x = xoff ; x < xstop + 1 ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->channels = 0;
       if(cell_load(n, targc, egc) < 0){

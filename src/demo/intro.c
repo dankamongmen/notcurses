@@ -27,7 +27,7 @@ int intro(struct notcurses* nc){
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_bg_rgb(&c, 0x20, 0x20, 0x20);
   ncplane_set_base_cell(ncp, &c);
-  int x, y, rows, cols;
+  int rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
@@ -51,19 +51,22 @@ int intro(struct notcurses* nc){
                         NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
     return -1;
   }
-  const char* cstr = "Δ";
-  cell_load(ncp, &c, cstr);
-  cell_set_fg_rgb(&c, 200, 0, 200);
-  int ys = 200 / (rows - 2);
-  for(y = 5 ; y < rows - 7 ; ++y){
-    cell_set_bg_rgb(&c, 0, y * ys  , 0);
-    for(x = 5 ; x < cols - 6 ; ++x){
-      if(ncplane_putc_yx(ncp, y, x, &c) <= 0){
-        return -1;
-      }
-    }
+  uint64_t cul, cur, cll, clr;
+  cul = cur = cll = clr = 0;
+  channels_set_fg_rgb(&cul, 200, 0, 200);
+  channels_set_fg_rgb(&cur, 200, 0, 200);
+  channels_set_fg_rgb(&cll, 200, 0, 200);
+  channels_set_fg_rgb(&clr, 200, 0, 200);
+  channels_set_bg_rgb(&cul, 0, 64, 0);
+  channels_set_bg_rgb(&cur, 0, 64, 0);
+  channels_set_bg_rgb(&cll, 0, 128, 0);
+  channels_set_bg_rgb(&clr, 0, 128, 0);
+  if(ncplane_cursor_move_yx(ncp, 5, 5)){
+    return -1;
   }
-  cell_release(ncp, &c);
+  if(ncplane_gradient(ncp, "Δ", 0, cul, cur, cll, clr, rows - 8, cols - 7)){
+    return -1;
+  }
   if(ncplane_cursor_move_yx(ncp, 4, 4)){
     return -1;
   }
