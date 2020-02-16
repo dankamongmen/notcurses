@@ -1962,19 +1962,16 @@ void ncplane_greyscale(ncplane *n){
 // we did some work here, filling everything we could reach. out-of-plane is 0.
 static int
 ncplane_polyfill_locked(ncplane* n, int y, int x, const cell* c){
-fprintf(stderr, "%d %d\n", y, x);
   if(y >= n->leny || x >= n->lenx){
     return 0; // not fillable
   }
   if(y < 0 || x < 0){
     return 0; // not fillable
   }
-fprintf(stderr, "%d %d\n", y, x);
   cell* cur = &n->fb[nfbcellidx(n, y, x)];
   if(cur->gcluster){
     return 0; // glyph, not polyfillable
   }
-fprintf(stderr, "%c\n", c->gcluster);
   if(cell_duplicate(n, cur, c) < 0){
     return -1;
   }
@@ -2011,11 +2008,32 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
   return ret;
 }
 
+static int
+calc_gradient_component(unsigned ul, unsigned ur, unsigned ll, unsigned lr,
+                        int y, int x, int ylen, int xlen){
+  fprintf(stderr, "%u %u %u %u %d %d %d %d -> %d\n", ul, ur, ll, lr, y, x, ylen, xlen,
+         ((xlen - x)/xlen * ul + x / xlen * ur) * ((ylen - y)/ylen) +
+         ((xlen - x)/xlen * ll + x / xlen * lr) * (y / ylen));
+
+  return (((xlen - x) * ul / xlen + x * ur / xlen) * (ylen - y)) / ylen +
+         (((xlen - x) * ll / xlen + x * lr / xlen) * (y)) / ylen;
+}
+
 // calculate one of the channels of a gradient at a particular point.
 static uint32_t
 calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
                       int y, int x, int ylen, int xlen){
-  return 0;
+  uint32_t chan = 0;
+  channel_set_rgb(&chan, calc_gradient_component(channel_r(ul), channel_r(ur),
+                                                 channel_r(ll), channel_r(lr),
+                                                 y, x, ylen, xlen),
+                         calc_gradient_component(channel_g(ul), channel_g(ur),
+                                                 channel_g(ll), channel_g(lr),
+                                                 y, x, ylen, xlen),
+                         calc_gradient_component(channel_b(ul), channel_b(ur),
+                                                 channel_b(ll), channel_b(lr),
+                                                 y, x, ylen, xlen));
+  return chan;
 }
 
 // calculate both channels of a gradient at a particular point, storing them
@@ -2040,6 +2058,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
                      int ystop, int xstop){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
+fprintf(stderr, "GRADIENT %d.%d -> %d.%d\n", yoff, xoff, ystop, xstop);
   // must be at least 1x1, with its upper-left corner at the current cursor
   if(ystop < yoff){
     return -1;
@@ -2053,16 +2072,17 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
     return -1;
   }
   const int xlen = xstop - xoff + 1;
-  const int ylen = ystop - ylen + 1;
-  for(int y = yoff ; y < ylen ; ++y){
-    for(int x = xoff ; x < xlen ; ++x){
+  const int ylen = ystop - yoff + 1;
+fprintf(stderr, "GRADIENT %d.%d -> %d.%d [%d.%d]\n", yoff, xoff, ystop, xstop, ylen, xlen);
+  for(int y = yoff ; y < yoff + ystop ; ++y){
+    for(int x = xoff ; x < xoff + xstop ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->channels = 0;
-      targc->attrword = 0;
       if(cell_load(n, targc, egc) < 0){
         return -1;
       }
-      calc_gradient_channels(&targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
+      targc->attrword = attrword;
+      calc_gradient_channels(targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
     }
   }
   return 0;
