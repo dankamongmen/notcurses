@@ -70,7 +70,28 @@ TEST_CASE("Fills") {
     REQUIRE(nullptr != pfn);
     uint64_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
+    channels_set_fg(&ul, 0x40f040);
+    channels_set_bg(&ul, 0x40f040);
+    channels_set_fg(&ur, 0x40f040);
+    channels_set_bg(&ur, 0x40f040);
+    channels_set_fg(&ll, 0x40f040);
+    channels_set_bg(&ll, 0x40f040);
+    channels_set_fg(&lr, 0x40f040);
+    channels_set_bg(&lr, 0x40f040);
     CHECK(0 == ncplane_gradient(pfn, " ", 0, ul, ur, ll, lr, 3, 3));
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    uint64_t channels = 0;
+    channels_set_fg(&channels, 0x40f040);
+    channels_set_bg(&channels, 0x40f040);
+    // check all squares 
+    for(int y = 0 ; y < 3 ; ++y){
+      for(int x = 0 ; x < 3 ; ++x){
+        REQUIRE(0 <= ncplane_at_yx(pfn, y, 0, &c));
+        CHECK(' ' == c.gcluster);
+        CHECK(0 == c.attrword);
+        CHECK(channels == c.channels);
+      }
+    }
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(pfn));
   }
