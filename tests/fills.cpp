@@ -146,7 +146,6 @@ TEST_CASE("Fills") {
       }
     }
     CHECK(0 == notcurses_render(nc_));
-sleep(3);
   }
 
   SUBCASE("GradientHorizontal") {
@@ -165,7 +164,6 @@ sleep(3);
     REQUIRE(0 == ncplane_gradient_sized(n_, "H", 0, ul, ur, ll, lr, dimy, dimx));
     // check corners FIXME
     CHECK(0 == notcurses_render(nc_));
-sleep(3);
   }
 
   SUBCASE("GradientX") {
@@ -189,14 +187,14 @@ sleep(3);
   SUBCASE("GradientS") {
     uint64_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
-    channels_set_fg(&ul, 0x000000);
+    channels_set_fg(&ul, 0xffffff);
     channels_set_bg(&ul, 0xffffff);
-    channels_set_fg(&ll, 0x40f040);
-    channels_set_bg(&ll, 0x40f040);
-    channels_set_fg(&ur, 0xf040f0);
-    channels_set_bg(&ur, 0xf040f0);
-    channels_set_fg(&lr, 0xffffff);
+    channels_set_fg(&lr, 0x000000);
     channels_set_bg(&lr, 0x000000);
+    channels_set_fg(&ll, 0x00ffff);
+    channels_set_bg(&ll, 0xff0000);
+    channels_set_fg(&ur, 0xff00ff);
+    channels_set_bg(&ur, 0x00ff00);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_gradient_sized(n_, "S", 0, ul, ur, ll, lr, dimy, dimx));
