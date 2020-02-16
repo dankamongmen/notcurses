@@ -330,7 +330,7 @@ summary_table(struct ncdirect* nc, const char* spec){
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     uint32_t rescolor;
     if(results[i].result != 0){
-      rescolor = 0xd8000c;
+      rescolor = 0xff303c;
     }else if(!results[i].stats.renders){
       rescolor = 0xbbbbbb;
     }else{
