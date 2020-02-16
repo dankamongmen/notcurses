@@ -446,6 +446,7 @@ int main(int argc, char** argv){
     if(menu_create(nc) == NULL){
       goto err;
     }
+fprintf(stderr, "START THEM DEMOS [%s]\n", spec);
     if(ext_demos(nc, spec, ignore_failures) == NULL){
       goto err;
     }

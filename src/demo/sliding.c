@@ -104,17 +104,25 @@ fill_chunk(struct ncplane* n, int idx){
   int b = 64 + vidx * 30;
   int g = 225 - ((hidx + vidx) * 12);
   channels_set_fg_rgb(&channels, r, g, b);
+  uint64_t ul, ur, ll, lr;
+  ul = ur = ll = lr = 0;
+  channels_set_fg_rgb(&ul, r, g, b);
+  channels_set_fg_rgb(&ur, g, b, r);
+  channels_set_fg_rgb(&ll, b, r, g);
+  channels_set_fg_rgb(&lr, r, g, b);
+  if(ncplane_gradient_sized(n, "█", 0, ul, ur, ll, lr, maxy, maxx)){
+    return -1;
+  }
   if(ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0)){
     return -1;
   }
   if(maxx >= 4 && maxy >= 3){
-    ncplane_set_fg_rgb(n, 0, 0, 0);
-    ncplane_set_bg_rgb(n, r, g, b);
+    ncplane_set_fg_rgb(n, r, g, b);
+    ncplane_set_bg_rgb(n, 0, 0, 0);
     if(ncplane_putstr_aligned(n, (maxy - 1) / 2, NCALIGN_CENTER, buf) <= 0){
       return -1;
     }
   }
-  ncplane_set_base(n, channels, 0, "█");
   return 0;
 }
 

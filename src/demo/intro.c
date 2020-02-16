@@ -31,6 +31,9 @@ int intro(struct notcurses* nc){
   channels_set_fg_rgb(&cll, 0xff, 0xff, 0);
   channels_set_fg_rgb(&clr, 0, 0, 0);
   // we use full block rather+fg than space+bg to conflict less with the menu
+  if(ncplane_cursor_move_yx(ncp, 0, 0)){
+    return -1;
+  }
   if(ncplane_gradient_sized(ncp, "█", 0, cul, cur, cll, clr, rows, cols)){
     return -1;
   }
