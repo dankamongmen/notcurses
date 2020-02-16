@@ -147,7 +147,7 @@ worm_thread(void* vnc){
       }
     }
     if(demo_render(nc)){
-      return NULL;
+      return PTHREAD_CANCELED;
     }
     for(int s = 0 ; s < wormcount ; ++s){
       if(wormy(&worms[s], dimy, dimx)){
@@ -520,14 +520,18 @@ int witherworm_demo(struct notcurses* nc){
       }
       struct ncplane* mess = ncplane_new(nc, 7, 57, 2, 4, NULL);
       if(mess == NULL){
+        ncplane_destroy(math);
         return -1;
       }
       if(message(mess, maxy, maxx, i, sizeof(steps) / sizeof(*steps),
                   bytes_out, egcs_out, cols_out)){
+        ncplane_destroy(math); ncplane_destroy(mess);
         return -1;
       }
-      if(demo_render(nc)){
-        return -1;
+      int err;
+      if( (err = demo_render(nc)) ){
+        ncplane_destroy(math); ncplane_destroy(mess);
+        return err;
       }
       if(i){
         uint64_t delay = timespec_to_ns(&demodelay);
@@ -554,9 +558,13 @@ int witherworm_demo(struct notcurses* nc){
         }
       }while(key < 0);
       pthread_cancel(tid);
-      pthread_join(tid, NULL);
+      void* result;
+      pthread_join(tid, &result);
       ncplane_destroy(mess);
       ncplane_destroy(math);
+      if(result == PTHREAD_CANCELED){
+        return 1;
+      }
       if(key == NCKEY_RESIZE){
         notcurses_resize(nc, &maxy, &maxx);
       }
