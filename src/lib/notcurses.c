@@ -2011,12 +2011,34 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
 static int
 calc_gradient_component(unsigned ul, unsigned ur, unsigned ll, unsigned lr,
                         int y, int x, int ylen, int xlen){
-  fprintf(stderr, "%u %u %u %u %d %d %d %d -> %d\n", ul, ur, ll, lr, y, x, ylen, xlen,
-         ((xlen - x)/xlen * ul + x / xlen * ur) * ((ylen - y)/ylen) +
-         ((xlen - x)/xlen * ll + x / xlen * lr) * (y / ylen));
+/*fprintf(stderr, "%08x %08x %08x %08x %d %d %d %d -> %08x\n",
+    ul, ur, ll, lr, y, x, ylen, xlen,
+  (((xlen - x) * ul / xlen + x * ur / xlen) * (ylen - y)) / ylen +
+         (((xlen - x) * ll / xlen + x * lr / xlen) * (y)) / ylen);*/
+  /*unsigned lchuk = xlen * !!((xlen - x) % xlen);
+  unsigned rchuk = xlen * !!(x % (xlen));*/
 
-  return (((xlen - x) * ul / xlen + x * ur / xlen) * (ylen - y)) / ylen +
-         (((xlen - x) * ll / xlen + x * lr / xlen) * (y)) / ylen;
+  const unsigned xchuk = xlen / 2;
+
+  unsigned upchuk = ylen * !!(((((xlen - x) * ul + xchuk) / xlen + (x * ur + xchuk) / xlen) * (ylen - y)) % ylen);
+  unsigned downchuk = ylen * !!(((((xlen - x) * ll + xchuk) / xlen + (x * lr + xchuk) / xlen) * y) % ylen);
+
+  upchuk = downchuk = ylen / 2;
+  //upchuk = 0;
+  //downchuk = 0;
+
+    //fprintf(stderr, "uc: %u dc: %u lc: %u rc: %u\n", upchuk, downchuk, xchuk, xchuk);
+
+  int up = ((((xlen - x) * ul + xchuk) / xlen + (x * ur + xchuk) / xlen) * (ylen - y) + upchuk) / ylen;
+  int down = ((((xlen - x) * ll + xchuk) / xlen + (x * lr + xchuk) / xlen) * y + downchuk) / ylen;
+  /*
+    fprintf(stderr, "UL: (xlen - x) * ul / xlen (%d - %d) * %u / %d (%g)\n", xlen, x, ul, xlen, (((float)xlen - x) * ul + xchuk) / xlen);
+    fprintf(stderr, "UR: x * ur / xlen %d * %u / %d (%g)\n", x, ur, xlen, ((float)x * ur + xchuk) / xlen);
+    fprintf(stderr, "ul: %u ur: %u u: %u\n", (xlen - x) * ul / xlen,
+        x * ur / xlen, up);
+fprintf(stderr, "%u %u %u %u top: %u bottom: %u -> %u\n",
+    ul, ur, ll, lr, up, down, up + down);*/
+  return up + down;
 }
 
 // calculate one of the channels of a gradient at a particular point.
@@ -2058,7 +2080,6 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
                      int ystop, int xstop){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
-fprintf(stderr, "GRADIENT %d.%d -> %d.%d\n", yoff, xoff, ystop, xstop);
   // must be at least 1x1, with its upper-left corner at the current cursor
   if(ystop < yoff){
     return -1;
@@ -2073,9 +2094,8 @@ fprintf(stderr, "GRADIENT %d.%d -> %d.%d\n", yoff, xoff, ystop, xstop);
   }
   const int xlen = xstop - xoff + 1;
   const int ylen = ystop - yoff + 1;
-fprintf(stderr, "GRADIENT %d.%d -> %d.%d [%d.%d]\n", yoff, xoff, ystop, xstop, ylen, xlen);
-  for(int y = yoff ; y < yoff + ystop ; ++y){
-    for(int x = xoff ; x < xoff + xstop ; ++x){
+  for(int y = yoff ; y < yoff + ystop + 1 ; ++y){
+    for(int x = xoff ; x < xoff + xstop + 1 ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->channels = 0;
       if(cell_load(n, targc, egc) < 0){
