@@ -49,9 +49,9 @@ namespace ncpp
 		static NotCurses& get_instance ()
 		{
 			if (_instance == nullptr)
-				throw new invalid_state_error ("NotCurses instance not found.");
+				throw invalid_state_error ("NotCurses instance not found.");
 			if (_instance->nc == nullptr)
-				throw new invalid_state_error (ncpp_invalid_state_message);
+				throw invalid_state_error (ncpp_invalid_state_message);
 
 			return *_instance;
 		}
@@ -88,7 +88,7 @@ namespace ncpp
 		bool stop ()
 		{
 			if (nc == nullptr)
-				throw new invalid_state_error (ncpp_invalid_state_message);
+				throw invalid_state_error (ncpp_invalid_state_message);
 
 			notcurses_stop (nc);
 			nc = nullptr;
@@ -122,7 +122,7 @@ namespace ncpp
 		void reset_stats (ncstats *stats) const
 		{
 			if (stats == nullptr)
-				throw new invalid_argument ("'stats' must be a valid pointer");
+				throw invalid_argument ("'stats' must be a valid pointer");
 
 			notcurses_reset_stats (nc, stats);
 		}
@@ -130,7 +130,7 @@ namespace ncpp
 		bool use (const Palette256 *p) const
 		{
 			if (p == nullptr)
-				throw new invalid_argument ("'p' must be a valid pointer");
+				throw invalid_argument ("'p' must be a valid pointer");
 
 			return use (*p);
 		}
@@ -206,6 +206,11 @@ namespace ncpp
 		char* get_at (int yoff, int xoff, Cell &c) const noexcept
 		{
 			return notcurses_at_yx (nc, yoff, xoff, c);
+		}
+
+		void drop_planes () const noexcept
+		{
+			notcurses_drop_planes (nc);
 		}
 
 		Plane* get_stdplane () noexcept

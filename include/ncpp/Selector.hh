@@ -35,11 +35,11 @@ namespace ncpp
 		explicit Selector (ncplane *plane, int y, int x, const selector_options *opts = nullptr)
 		{
 			if (plane == nullptr)
-				throw new invalid_argument ("'plane' must be a valid pointer");
+				throw invalid_argument ("'plane' must be a valid pointer");
 
 			selector = ncselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
 			if (selector == nullptr)
-				throw new init_error ("notcurses failed to create a new selector");
+				throw init_error ("notcurses failed to create a new selector");
 		}
 
 		~Selector ()
