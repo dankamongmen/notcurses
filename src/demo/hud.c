@@ -124,7 +124,8 @@ about_toggle(struct notcurses* nc){
   ncplane_destroy(n);
 }
 
-// returns true if the input was handled by the menu/HUD
+// returns true if the input was handled by the menu/HUD. 'q' is passed through
+// (we return false) so that it can interrupt a demo blocking on input.
 bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
   struct ncinput tmpni;
   if(menu && ni->id == NCKEY_ENTER){
@@ -156,7 +157,7 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
       ncmenu_rollup(menu);
     }
     interrupt_demo();
-    return true;
+    return false; // see comment above
   }
   if(!menu){
     return false;

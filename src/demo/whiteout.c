@@ -7,6 +7,12 @@
 #include <pthread.h>
 #include "demo.h"
 
+// some random value to differentiate a demo abort, as indicated via
+// demo_render() in worm_thread(). we can't use PTHREAD_CANCELED, since we
+// do actually make use of cancellation.
+static int demo_aborted = 0;
+static void* DEMO_ABORTED = &demo_aborted;
+
 // Fill up the screen with as much crazy Unicode as we can, and then set a
 // gremlin loose, looking to brighten up the world.
 
@@ -146,8 +152,11 @@ worm_thread(void* vnc){
         return NULL;
       }
     }
-    if(demo_render(nc)){
-      return PTHREAD_CANCELED;
+    int err;
+    if( (err = demo_render(nc)) ){
+      if(err > 0){
+        return DEMO_ABORTED;
+      }
     }
     for(int s = 0 ; s < wormcount ; ++s){
       if(wormy(&worms[s], dimy, dimx)){
@@ -562,7 +571,7 @@ int witherworm_demo(struct notcurses* nc){
       pthread_join(tid, &result);
       ncplane_destroy(mess);
       ncplane_destroy(math);
-      if(result == PTHREAD_CANCELED){
+      if(result == DEMO_ABORTED){
         return 1;
       }
       if(key == NCKEY_RESIZE){
