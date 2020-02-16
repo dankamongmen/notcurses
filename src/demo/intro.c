@@ -21,14 +21,22 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
 
 int intro(struct notcurses* nc){
   struct ncplane* ncp;
-  if((ncp = notcurses_stdplane(nc)) == NULL){
+  ncp = notcurses_stdplane(nc);
+  int rows, cols;
+  ncplane_dim_yx(ncp, &rows, &cols);
+  uint64_t cul, cur, cll, clr;
+  cul = cur = cll = clr = 0;
+  channels_set_fg_rgb(&cul, 0x00, 0x00, 0xff);
+  channels_set_fg_rgb(&cur, 0xff, 0, 0xff);
+  channels_set_fg_rgb(&cll, 0xff, 0xff, 0);
+  channels_set_fg_rgb(&clr, 0, 0, 0);
+  // we use full block rather+fg than space+bg to conflict less with the menu
+  if(ncplane_gradient_sized(ncp, "█", 0, cul, cur, cll, clr, rows, cols)){
     return -1;
   }
   cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_bg_rgb(&c, 0x20, 0x20, 0x20);
   ncplane_set_base_cell(ncp, &c);
-  int rows, cols;
-  ncplane_dim_yx(ncp, &rows, &cols);
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
@@ -38,47 +46,34 @@ int intro(struct notcurses* nc){
   if(cells_rounded_box(ncp, NCSTYLE_BOLD, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  cell_set_fg(&ul, 0xff0000);
-  cell_set_bg(&ul, 0x002000);
-  cell_set_fg(&ur, 0x00ff00);
-  cell_set_bg(&ur, 0x002000);
-  cell_set_fg(&ll, 0x0000ff);
-  cell_set_bg(&ll, 0x002000);
-  cell_set_fg(&lr, 0xffffff);
-  cell_set_bg(&lr, 0x002000);
+  cell_set_fg(&ul, 0xff0000); cell_set_bg(&ul, 0x002000);
+  cell_set_fg(&ur, 0x00ff00); cell_set_bg(&ur, 0x002000);
+  cell_set_fg(&ll, 0x0000ff); cell_set_bg(&ll, 0x002000);
+  cell_set_fg(&lr, 0xffffff); cell_set_bg(&lr, 0x002000);
   if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 1, cols,
                        NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM |
                         NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
     return -1;
   }
-  uint64_t cul, cur, cll, clr;
   cul = cur = cll = clr = 0;
-  channels_set_fg_rgb(&cul, 200, 0, 200);
-  channels_set_fg_rgb(&cur, 200, 0, 200);
-  channels_set_fg_rgb(&cll, 200, 0, 200);
-  channels_set_fg_rgb(&clr, 200, 0, 200);
-  channels_set_bg_rgb(&cul, 0, 64, 0);
-  channels_set_bg_rgb(&cur, 0, 64, 0);
-  channels_set_bg_rgb(&cll, 0, 128, 0);
-  channels_set_bg_rgb(&clr, 0, 128, 0);
+  channels_set_fg_rgb(&cul, 200, 0, 200); channels_set_bg_rgb(&cul, 0, 64, 0);
+  channels_set_fg_rgb(&cur, 200, 0, 200); channels_set_bg_rgb(&cur, 0, 64, 0);
+  channels_set_fg_rgb(&cll, 200, 0, 200); channels_set_bg_rgb(&cll, 0, 128, 0);
+  channels_set_fg_rgb(&clr, 200, 0, 200); channels_set_bg_rgb(&clr, 0, 128, 0);
   if(ncplane_cursor_move_yx(ncp, 5, 5)){
     return -1;
   }
-  if(ncplane_gradient(ncp, "Δ", 0, cul, cur, cll, clr, rows - 8, cols - 7)){
+  if(ncplane_gradient(ncp, "Δ", 0, cul, cur, cll, clr, rows - 8, cols - 6)){
     return -1;
   }
   if(ncplane_cursor_move_yx(ncp, 4, 4)){
     return -1;
   }
-  cell_set_fg(&lr, 0xff0000);
-  cell_set_bg(&lr, 0x002000);
-  cell_set_fg(&ll, 0x00ff00);
-  cell_set_bg(&ll, 0x002000);
-  cell_set_fg(&ur, 0x0000ff);
-  cell_set_bg(&ur, 0x002000);
-  cell_set_fg(&ul, 0xffffff);
-  cell_set_bg(&ul, 0x002000);
-  if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 11, cols - 10,
+  cell_set_fg(&lr, 0xff0000); cell_set_bg(&lr, 0x002000);
+  cell_set_fg(&ll, 0x00ff00); cell_set_bg(&ll, 0x002000);
+  cell_set_fg(&ur, 0x0000ff); cell_set_bg(&ur, 0x002000);
+  cell_set_fg(&ul, 0xffffff); cell_set_bg(&ul, 0x002000);
+  if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 11, cols - 8,
                        NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM |
                         NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
     return -1;
