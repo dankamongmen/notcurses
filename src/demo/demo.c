@@ -199,6 +199,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
   strcpy(datadir, NOTCURSES_SHARE);
   char renderfile[PATH_MAX] = "";
   bool constant_seed = false;
+  *ignore_failures = false;
   int c;
   memset(opts, 0, sizeof(*opts));
   while((c = getopt(argc, argv, "Vhickl:r:d:f:p:")) != EOF){

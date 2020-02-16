@@ -145,12 +145,16 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     return true;
   }
   if(tmpni.id == 'R' && !tmpni.alt && tmpni.ctrl){
-    ncmenu_rollup(menu);
+    if(menu){
+      ncmenu_rollup(menu);
+    }
     interrupt_and_restart_demos();
     return true;
   }
   if(tmpni.id == 'q' && !tmpni.alt && !tmpni.ctrl){
-    ncmenu_rollup(menu);
+    if(menu){
+      ncmenu_rollup(menu);
+    }
     interrupt_demo();
     return true;
   }
