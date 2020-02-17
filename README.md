@@ -109,6 +109,7 @@ that fine library.
 * A C11 and a C++17 compiler
 * CMake 3.14.0+
 * From NCURSES: terminfo 6.1+
+* [Doctest](https://github.com/onqtam/doctest) (header file only)
 * (OPTIONAL) From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (Python bindings): Python + CFFI
