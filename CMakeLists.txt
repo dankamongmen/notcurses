@@ -19,6 +19,7 @@ option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(DISABLE_FFMPEG "Disable FFmpeg image/video support, not recommended" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" ON)
+option(USE_NETWORK "Allow cargo to use the network" OFF)
 ############## END (additional) USER-SELECTABLE OPTIONS ##################
 
 find_package(PkgConfig REQUIRED)
@@ -578,8 +579,12 @@ endif()
 # Rust bindings
 if(${BUILD_RUST})
   file(GLOB RUSTSRC CONFIGURE_DEPENDS src/colloquy/*.rs)
+  set(CARGO_ARGS "--verbose")
+  if(NOT ${USE_NETWORK})
+    set(CARGO_ARGS "${CARGO} --frozen")
+  endif()
   add_custom_target(colloquy ALL
-    COMMAND CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust cargo build --offline --verbose
+    COMMAND CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust cargo build ${CARGO_ARGS}
     DEPENDS
       ${COLLOQUYSRC}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy

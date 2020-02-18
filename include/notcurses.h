@@ -446,7 +446,7 @@ API int notcurses_refresh(struct notcurses* n);
 
 // Get a reference to the standard plane (one matching our current idea of the
 // terminal size) for this terminal. The standard plane always exists, and its
-// origin is always at the uppermost, leftmost cell of the screen.
+// origin is always at the uppermost, leftmost cell of the terminal.
 API struct ncplane* notcurses_stdplane(struct notcurses* nc);
 
 // Retrieve the contents of the specified cell as last rendered. The EGC is
