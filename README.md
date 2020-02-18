@@ -116,7 +116,7 @@ that fine library.
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.6+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, CFFI 1.13.2+
-* (OPTIONAL) (rust bindings, colloquy): rust 1.40.0+, cargo 0.40.0+
+* (OPTIONAL) (rust bindings, colloquy): rust 1.40.0+, cargo 0.40.0+, cmake-rs 0.1.42+
 
 ### Building
 
