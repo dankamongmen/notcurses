@@ -581,7 +581,7 @@ if(${USE_RUST})
   file(GLOB RUSTSRC CONFIGURE_DEPENDS src/colloquy/*.rs)
   set(CARGO_ARGS "--verbose")
   if(NOT ${USE_NETWORK})
-    set(CARGO_ARGS "${CARGO} --frozen")
+    set(CARGO_ARGS "${CARGO_ARGS}" --frozen)
   endif()
   add_custom_target(colloquy ALL
     COMMAND CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust cargo build ${CARGO_ARGS}
