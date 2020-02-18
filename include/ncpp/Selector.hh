@@ -1,7 +1,7 @@
 #ifndef __NCPP_SELECTOR_HH
 #define __NCPP_SELECTOR_HH
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "Root.hh"
 #include "NCAlign.hh"

@@ -6,5 +6,6 @@ python/dist/
 python/src/notcurses.egg-info/
 python/src/_notcurses.so
 rust/*/target
+src/colloquy/target/
 *.pyc
 *.so

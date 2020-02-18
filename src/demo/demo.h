@@ -6,8 +6,9 @@
 #include <unistd.h>
 #include <limits.h>
 #include <stdatomic.h>
-#include <notcurses.h>
-#ifndef DISABLE_FFMPEG
+#include <version.h>
+#include <notcurses/notcurses.h>
+#ifdef USE_FFMPEG
 #include <libavutil/pixdesc.h>
 #include <libavutil/avconfig.h>
 #include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself

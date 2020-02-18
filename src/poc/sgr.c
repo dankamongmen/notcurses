@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <assert.h>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #define DISABLE_ALTCHARSET 1
 

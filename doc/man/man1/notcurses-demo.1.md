@@ -79,6 +79,15 @@ are unavailable through the Debian package.
 If notcurses is built without FFmpeg, the **chunli**, **eagle**, **fallin'**,
 **outro**, **view**, and **xray** demos will be unavailable.
 
+The following keypresses are recognized (and are also available from the menu):
+
+* **Ctrl-U**: Toggle the help screen.
+* **H**: Toggle the HUD. The HUD shows the most recent and current demos'
+         runtime and number of rendered frames. It can be grabbed and moved
+         with the mouse.
+* **Ctrl-R**: Restart the demo.
+* **q**: Quit.
+
 # BUGS
 
 # AUTHORS

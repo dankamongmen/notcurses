@@ -5,7 +5,7 @@
 #include <string.h>
 #include <locale.h>
 #include <sys/ioctl.h>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 // can we leave what was already on the screen there? (narrator: it seems not)
 int main(void){

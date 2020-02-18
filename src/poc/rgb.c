@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 int main(void){
   if(!setlocale(LC_ALL, "")){

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "notcurses.h"
+#include "notcurses/notcurses.h"
 
 #ifdef __cplusplus
 extern "C" {

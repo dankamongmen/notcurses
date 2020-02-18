@@ -1,7 +1,5 @@
-#include <notcurses.h>
-#include "version.h"
 #include "main.h"
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
 #include <libavutil/pixdesc.h>
 #include <libavutil/avconfig.h>
 #include <libavcodec/avcodec.h>
@@ -21,7 +19,7 @@ TEST_CASE("Multimedia") {
   ncplane* ncp_ = notcurses_stdplane(nc_);
   REQUIRE(ncp_);
 
-#ifdef DISABLE_FFMPEG
+#ifndef USE_FFMPEG
   SUBCASE("LibavDisabled"){
     REQUIRE(!notcurses_canopen(nc_));
   }

@@ -6,7 +6,7 @@
 #include <ctime>
 #include <map>
 #include <mutex>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "Root.hh"
 #include "Cell.hh"
@@ -850,7 +850,7 @@ namespace ncpp
 
 		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
 
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
 		bool blit_bgrx (int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx) const noexcept
 		{
 			return ncblit_bgrx (plane, placey, placex, linesize, data, begy, begx, leny, lenx) >= 0;

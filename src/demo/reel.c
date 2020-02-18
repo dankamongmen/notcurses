@@ -6,7 +6,6 @@
 #include <string.h>
 #include <pthread.h>
 #include <sys/poll.h>
-#include <notcurses.h>
 #include "demo.h"
 
 #define INITIAL_TABLET_COUNT 4

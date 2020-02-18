@@ -1,4 +1,3 @@
-#include "notcurses.h"
 #include "internal.h"
 
 // ideal body width given the ncselector's items and secondary/footer

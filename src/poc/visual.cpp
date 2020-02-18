@@ -3,7 +3,7 @@
 #include <clocale>
 #include <cassert>
 #include <unistd.h>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 int main(int argc, char** argv){
   setlocale(LC_ALL, "");

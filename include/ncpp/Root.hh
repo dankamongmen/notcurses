@@ -1,7 +1,7 @@
 #ifndef __NCPP_ROOT_HH
 #define __NCPP_ROOT_HH
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "_helpers.hh"
 #include "_exceptions.hh"

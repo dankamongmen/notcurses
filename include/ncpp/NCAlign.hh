@@ -1,7 +1,7 @@
 #ifndef __NCPP_NCALIGN_HH
 #define __NCPP_NCALIGN_HH
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 namespace ncpp
 {

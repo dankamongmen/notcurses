@@ -3,7 +3,7 @@
 
 #include <map>
 #include <mutex>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "Root.hh"
 #include "CellStyle.hh"

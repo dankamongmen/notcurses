@@ -1,7 +1,7 @@
 #ifndef __NCPP_MENU_HH
 #define __NCPP_MENU_HH
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "Root.hh"
 

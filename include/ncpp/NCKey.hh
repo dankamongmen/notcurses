@@ -2,7 +2,7 @@
 #define __NCPP_NCKEY_HH
 
 #include <cstdint>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 namespace ncpp
 {

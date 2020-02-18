@@ -1,4 +1,3 @@
-#include <notcurses.h>
 #include "demo.h"
 
 static int

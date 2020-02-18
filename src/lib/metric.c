@@ -1,7 +1,7 @@
 #include <string.h>
 #include <locale.h>
 #include <pthread.h>
-#include "notcurses.h"
+#include "notcurses/notcurses.h"
 
 static const char* decisep;
 static pthread_once_t ponce = PTHREAD_ONCE_INIT;

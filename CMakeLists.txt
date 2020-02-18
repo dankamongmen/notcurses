@@ -12,21 +12,27 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 include(GNUInstallDirs)
 set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
-option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
-option(BUILD_PYTHON "Build Python wrappers" ON)
-option(DFSG_BUILD "DFSG build (no non-free media)" OFF)
+###################### USER-SELECTABLE OPTIONS ###########################
+option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
+option(USE_DOXYGEN "Build HTML cross reference with doxygen" ON)
+option(USE_FFMPEG "Disable FFmpeg image/video support (recommended)" ON)
+option(USE_NETWORK "Allow cargo to use the network" OFF)
+option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
+option(USE_PYTHON "Build Python wrappers" ON)
+option(USE_RUST "Build Rust wrappers/colloquy (experimental)" OFF)
+############## END (additional) USER-SELECTABLE OPTIONS ##################
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
-if(NOT "${DISABLE_FFMPEG}")
+if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 endif()
 find_library(LIBRT rt)
-find_package(doctest REQUIRED)
+find_package(doctest 2.3.6 REQUIRED)
 
 # libnotcurses
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c)
@@ -78,7 +84,7 @@ target_link_directories(notcurses-static
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
 )
 
-if(NOT "${DISABLE_FFMPEG}")
+if(${USE_FFMPEG})
 target_include_directories(notcurses
   PUBLIC
     "${AVCODEC_INCLUDE_DIRS}"
@@ -312,7 +318,7 @@ target_compile_options(notcurses-demo
 )
 target_compile_definitions(notcurses-demo
   PRIVATE
-  FORTIFY_SOURCE=2 _GNU_SOURCE
+    FORTIFY_SOURCE=2 _GNU_SOURCE
 )
 
 # tiny proofs of concept, one binary per source file
@@ -331,47 +337,71 @@ foreach(f ${POCSRCS})
   )
 endforeach()
 
-# Documentation
-file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
-file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
-FIND_PROGRAM(PANDOC pandoc)
-iF(NOT PANDOC)
-  message(WARNING "pandoc not found, won't generate documentation")
-else()
-  foreach(m ${MANSOURCE3} ${MANSOURCE1})
-    get_filename_component(me ${m} NAME_WLE)
+# Pandoc documentation (man pages, HTML reference)
+if(USE_PANDOC)
+  file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
+  file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
+  find_program(PANDOC pandoc)
+  if(NOT PANDOC)
+    message(FATAL_ERROR "pandoc not found. USE_PANDOC=OFF to disable.")
+  else()
+    foreach(m ${MANSOURCE3} ${MANSOURCE1})
+      get_filename_component(me ${m} NAME_WLE)
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
+        DEPENDS ${m}
+        COMMAND ${PANDOC}
+        ARGS --to man --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
+        COMMENT "Building man page ${me}"
+      )
+      add_custom_target(${me}.man
+        ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
+      )
+      file(GLOB ANALHTML doc/analytics-header.html)
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+        DEPENDS ${m} ${ANALHTML}
+        COMMAND ${PANDOC}
+        ARGS -H ${ANALHTML} --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+        COMMENT "Building HTML5 ${me}.html"
+      )
+      add_custom_target(${me}.html5
+        ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+      )
+    endforeach()
+    foreach(m ${MANSOURCE3})
+      get_filename_component(me ${m} NAME_WLE)
+      set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+    endforeach()
+    foreach(m ${MANSOURCE1})
+      get_filename_component(me ${m} NAME_WLE)
+      set(MANPAGES1 ${MANPAGES1} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+    endforeach()
+  endif()
+endif()
+
+# Doxygen
+if(USE_DOXYGEN)
+  find_package(Doxygen REQUIRED dot dia)
+  if(NOT ${DOXYGEN_FOUND})
+    message(FATAL_ERROR "doxygen not found. USE_DOXYGEN=OFF to disable.")
+  else()
+    set(DOXYFILE ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile)
+    # FIXME should dep on all source, i suppose, yuck
     add_custom_command(
-      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
-      DEPENDS ${m}
-      COMMAND ${PANDOC}
-      ARGS --to man --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
-      COMMENT "Building man page ${me}"
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
+      DEPENDS ${DOXYFILE}
+      COMMAND Doxygen::doxygen
+      ARGS ${DOXYFILE}
+      COMMENT "Running doxygen"
     )
-    add_custom_target(${me}.man
+    add_custom_target(doxygen
       ALL
-      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
+      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
     )
-    file(GLOB ANALHTML doc/analytics-header.html)
-    add_custom_command(
-      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-      DEPENDS ${m} ${ANALHTML}
-      COMMAND ${PANDOC}
-      ARGS -H ${ANALHTML} --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-      COMMENT "Building HTML5 ${me}.html"
-    )
-    add_custom_target(${me}.html5
-      ALL
-      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-    )
-  endforeach()
-  foreach(m ${MANSOURCE3})
-    get_filename_component(me ${m} NAME_WLE)
-    set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
-  endforeach()
-  foreach(m ${MANSOURCE1})
-    get_filename_component(me ${m} NAME_WLE)
-    set(MANPAGES1 ${MANPAGES1} ${CMAKE_CURRENT_BINARY_DIR}/${me})
-  endforeach()
+  endif()
 endif()
 
 # notcurses-input
@@ -418,7 +448,7 @@ target_compile_definitions(notcurses-ncreel
 
 # notcurses-view
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
-if(NOT "${DISABLE_FFMPEG}")
+if(${USE_FFMPEG})
 add_executable(notcurses-view ${VIEWSRCS})
 target_include_directories(notcurses-view
   PRIVATE
@@ -513,7 +543,7 @@ write_basic_package_version_file(
 )
 
 # Python bindings
-if(${BUILD_PYTHON})
+if(${USE_PYTHON})
   find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
   file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
   file(COPY python/src/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python/src)
@@ -543,6 +573,36 @@ if(${BUILD_PYTHON})
       "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
     WORKING_DIRECTORY
       ${CMAKE_CURRENT_BINARY_DIR}/python
+  )
+endif()
+
+# Rust bindings
+if(${USE_RUST})
+  file(GLOB RUSTSRC CONFIGURE_DEPENDS src/colloquy/*.rs)
+  file(GLOB COLLOQUYSRC CONFIGURE_DEPENDS rust/src/*.rs rust/src/*.yaml)
+  set(COLLOQUY ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/colloquy)
+  find_program(CARGO cargo REQUIRED)
+  set(CARGO_ARGS "--verbose")
+  if(NOT ${USE_NETWORK})
+    set(CARGO_ARGS "${CARGO_ARGS}" --frozen)
+  endif()
+  add_custom_command(
+    OUTPUT
+      ${COLLOQUY}
+    COMMAND
+      CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
+    DEPENDS
+      ${COLLOQUYSRC}
+    COMMENT "Building colloquy"
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy
+  )
+  add_custom_target(colloquy ALL
+    DEPENDS
+      ${COLLOQUY}
+  )
+  set_target_properties(colloquy
+    PROPERTIES LOCATION ${CMAKE_CURRENT_BINARY_DIR}
   )
 endif()
 
@@ -577,7 +637,7 @@ install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
 install(TARGETS notcurses-tester DESTINATION bin)
-if(NOT "${DISABLE_FFMPEG}")
+if(${USE_FFMPEG})
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
 install(TARGETS notcurses notcurses-static
@@ -586,10 +646,10 @@ install(TARGETS notcurses notcurses-static
     COMPONENT Libraries
     NAMELINK_COMPONENT Development
   PUBLIC_HEADER
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses
     COMPONENT Development
 )
-if(${BUILD_PYTHON})
+if(${USE_PYTHON})
   # if DFSG_BUILD has been selected, assume we're building debs. debian/rules
   # has its own python install logic after many hours wasted, so we don't
   # install from here for a deb build.

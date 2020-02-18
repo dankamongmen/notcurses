@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <notcurses.h>
 #include "demo.h"
 
 // FIXME do the bigger dimension on the screen's bigger dimension

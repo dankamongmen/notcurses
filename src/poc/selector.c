@@ -2,7 +2,7 @@
 #include <string.h>
 #include <locale.h>
 #include <stdlib.h>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 static struct selector_item items[] = {
   { "first", "this is the first option", },

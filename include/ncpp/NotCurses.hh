@@ -6,7 +6,7 @@
 #include <csignal>
 #include <mutex>
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "CellStyle.hh"
 #include "NCKey.hh"
