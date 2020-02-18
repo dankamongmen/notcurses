@@ -576,16 +576,32 @@ if(${USE_PYTHON})
   )
 endif()
 
-# Rust bindings
+# Rust bindings + colloquy
 if(${USE_RUST})
-  file(GLOB RUSTSRC CONFIGURE_DEPENDS src/colloquy/*.rs)
-  file(GLOB COLLOQUYSRC CONFIGURE_DEPENDS rust/src/*.rs rust/src/*.yaml)
+  file(GLOB LIBNCRSSRC CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys/src/*.rs ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys/src/*.rs)
+  file(GLOB COLLOQUYSRC CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy/src/*.rs ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy/src/*.yml)
+  set(LIBNOTCURSESSYS ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/liblibnotcurses_sys.rlib)
   set(COLLOQUY ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/colloquy)
   find_program(CARGO cargo REQUIRED)
   set(CARGO_ARGS "--verbose")
   if(NOT ${USE_NETWORK})
     set(CARGO_ARGS "${CARGO_ARGS}" --frozen)
   endif()
+  add_custom_command(
+    OUTPUT
+      ${LIBNOTCURSESSYS}
+    COMMAND
+      PKG_CONFIG_PATH=${CMAKE_CURRENT_BINARY_DIR} CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
+    DEPENDS
+      ${COLLOQUYSRC}
+    COMMENT "Building rust crate libnotcurses-sys"
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys
+  )
+  add_custom_target(libnotcurses-sys ALL
+    DEPENDS
+      ${LIBNOTCURSESSYS}
+  )
   add_custom_command(
     OUTPUT
       ${COLLOQUY}

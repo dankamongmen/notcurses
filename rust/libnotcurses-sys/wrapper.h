@@ -1,1 +1,1 @@
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
