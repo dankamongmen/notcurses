@@ -1,31 +1,6 @@
 #include "demo.h"
 #include <pthread.h>
 
-static bool done = false;
-static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-
-static int
-patentpulser(struct notcurses* nc, struct ncplane* ncp, void* curry){
-  (void)ncp;
-  (void)curry;
-  DEMO_RENDER(nc);
-  bool donecheck;
-  pthread_mutex_lock(&lock);
-  donecheck = done;
-  pthread_mutex_unlock(&lock);
-  if(donecheck){
-    return 2;
-  }
-  return 0;
-}
-
-static void*
-patentpulsar(void* n){
-  struct notcurses* nc = n;
-  ncplane_pulse(notcurses_stdplane(nc), &demodelay, patentpulser, NULL);
-  return NULL;
-}
-
 static int
 drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   if(arrcount == 0 || arr == NULL){
@@ -112,9 +87,6 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
 
 // ya playin' yourself
 int fallin_demo(struct notcurses* nc){
-  if(!notcurses_canopen(nc)){
-    return 0;
-  }
   int dimx, dimy;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;
@@ -196,6 +168,7 @@ int fallin_demo(struct notcurses* nc){
     }
   }
   free(usemap);
+#ifdef USE_FFMPEG
   int averr = 0;
   char* path = find_data("lamepatents.jpg");
   struct ncvisual* ncv = ncplane_visual_open(notcurses_stdplane(nc), path, &averr);
@@ -211,19 +184,12 @@ int fallin_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  pthread_t tid;
-  if(pthread_create(&tid, NULL, patentpulsar, nc)){
-    return -1;
-  }
-  int ret = drop_bricks(nc, arr, arrcount);
-  pthread_mutex_lock(&lock);
-  done = true;
-  pthread_mutex_unlock(&lock);
-  if(pthread_join(tid, NULL)){
-    return -1;
-  }
   assert(ncvisual_decode(ncv, &averr) == NULL);
   assert(averr == AVERROR_EOF);
   ncvisual_destroy(ncv);
+#else
+  ncplane_erase(notcurses_stdplane(nc));
+#endif
+  int ret = drop_bricks(nc, arr, arrcount);
   return ret;
 }

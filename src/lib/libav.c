@@ -9,7 +9,7 @@ ncplane* ncvisual_plane(ncvisual* ncv){
 
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
@@ -27,7 +27,7 @@ void ncvisual_destroy(ncvisual* ncv){
   }
 }
 
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
 bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return true;
 }
