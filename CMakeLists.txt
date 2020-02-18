@@ -581,6 +581,7 @@ if(${USE_RUST})
   file(GLOB LIBNCRSSRC CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys/src/*.rs ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys/src/*.rs)
   file(GLOB COLLOQUYSRC CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy/src/*.rs ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy/src/*.yml)
   set(LIBNOTCURSESSYS ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/liblibnotcurses_sys.rlib)
+  set(CRATENOTCURSES ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/libnotcurses.rlib)
   set(COLLOQUY ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/colloquy)
   find_program(CARGO cargo REQUIRED)
   set(CARGO_ARGS "--verbose")
@@ -604,11 +605,26 @@ if(${USE_RUST})
   )
   add_custom_command(
     OUTPUT
+      ${CRATENOTCURSES}
+    COMMAND
+      CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
+    DEPENDS
+      ${CRATENOTCURSESSRC} ${LIBNOTCURSESSYS}
+    COMMENT "Building rust crate notcurses"
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_SOURCE_DIR}/rust/notcurses
+  )
+  add_custom_target(cratenotcurses ALL
+    DEPENDS
+      ${CRATENOTCURSES}
+  )
+  add_custom_command(
+    OUTPUT
       ${COLLOQUY}
     COMMAND
       CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
     DEPENDS
-      ${COLLOQUYSRC}
+      ${COLLOQUYSRC} ${CRATENOTCURSES}
     COMMENT "Building colloquy"
     WORKING_DIRECTORY
       ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy
