@@ -7,10 +7,10 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncblit_bgrx@Base 1.2.0
  ncblit_rgba@Base 1.2.0
  ncdirect_bg@Base 1.2.0
- ncdirect_bg_rgb8@Base 1.2.0
+ ncdirect_bg_default@Base 1.2.0
  ncdirect_clear@Base 1.1.9
  ncdirect_fg@Base 1.2.0
- ncdirect_fg_rgb8@Base 1.2.0
+ ncdirect_fg_default@Base 1.2.0
  ncdirect_stop@Base 1.2.0
  ncdirect_styles_off@Base 1.2.0
  ncdirect_styles_on@Base 1.2.0
@@ -43,6 +43,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_erase@Base 1.2.0
  ncplane_fadein@Base 1.2.0
  ncplane_fadeout@Base 1.2.0
+ ncplane_gradient@Base 1.2.0
  ncplane_greyscale@Base 1.2.0
  ncplane_hline_interp@Base 1.2.0
  ncplane_move_above_unsafe@Base 1.2.0
@@ -51,6 +52,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_move_top@Base 1.2.0
  ncplane_move_yx@Base 1.2.0
  ncplane_new@Base 1.2.0
+ ncplane_polyfill_yx@Base 1.2.0
  ncplane_pulse@Base 1.2.0
  ncplane_putc_yx@Base 1.2.0
  ncplane_putegc_yx@Base 1.2.0
@@ -121,6 +123,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  notcurses_cursor_disable@Base 1.2.0
  notcurses_cursor_enable@Base 1.2.0
  notcurses_directmode@Base 1.2.0
+ notcurses_drop_planes@Base 1.2.0
  notcurses_getc@Base 1.2.0
  notcurses_init@Base 1.2.0
  notcurses_mouse_disable@Base 1.2.0
