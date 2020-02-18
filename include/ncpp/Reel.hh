@@ -2,7 +2,7 @@
 #define __NCPP_REEL_HH
 
 #include <memory>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "Tablet.hh"
 #include "Root.hh"

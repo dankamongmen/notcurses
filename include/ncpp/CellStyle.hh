@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "_flag_enum_operator_helpers.hh"
 

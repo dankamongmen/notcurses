@@ -1,7 +1,7 @@
 #ifndef __NCPP_NCBOX_HH
 #define __NCPP_NCBOX_HH
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 namespace ncpp
 {

@@ -7,7 +7,7 @@
 #include <limits.h>
 #include <stdatomic.h>
 #include <version.h>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 #ifdef USE_FFMPEG
 #include <libavutil/pixdesc.h>
 #include <libavutil/avconfig.h>

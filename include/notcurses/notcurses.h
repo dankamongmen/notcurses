@@ -12,8 +12,8 @@
 #include <string.h>
 #include <signal.h>
 #include <limits.h>
-#include <nckeys.h>
 #include <stdbool.h>
+#include <notcurses/nckeys.h>
 
 #ifdef __cplusplus
 extern "C" {

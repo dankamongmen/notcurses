@@ -1,6 +1,5 @@
-#include <notcurses.h>
-#include "egcpool.h"
 #include "main.h"
+#include "egcpool.h"
 
 TEST_CASE("MultibyteWidth") {
   if(!enforce_utf8()){
