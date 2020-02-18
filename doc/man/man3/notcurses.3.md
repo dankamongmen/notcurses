@@ -102,13 +102,17 @@ A few high-level widgets are included, all built atop ncplanes:
 
 ## Threads
 
-Notcurses explicitly supports use in multithreaded environments. Most functions
-are safe to call concurrently, with exceptions including those which destroy
-resources (**ncplane_destroy(3)**, **ncvisual_destroy(3)**, **notcurses_stop(3)**,
-etc.). Multiple threads interacting with the same ncplane will block one another,
-but threads operating on distinct ncplanes can run concurrently.
-**notcurses_render(3)** blocks the majority of functions. Input functions only
-block other input functions, not ncplane manipulation.
+Notcurses explicitly supports use in multithreaded environments, but it does
+not itself perform any locking. It is safe to output to multiple distinct
+ncplanes at the same time. It is safe to output to ncplanes while adding or
+deleting some other ncplane. It is **not** safe for multiple threads to output to
+the same ncplane. It is **not** safe to add, delete, or reorder ncplanes
+from multiple threads, and it is never safe to invoke **notcurses_render**
+while any other thread is touching that notcurses object (aside from input
+functions; read on).
+
+Only one thread may call **notcurses_getc** or any other input-related thread
+at a time, but it **is** safe to call for input while another thread renders.
 
 Since multiple threads can concurrently manipulate distinct ncplanes, peak
 performance sometimes requires dividing the screen into several planes, and

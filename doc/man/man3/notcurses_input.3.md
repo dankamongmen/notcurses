@@ -112,6 +112,10 @@ Like any other notcurses function, it is an error to call **notcurses_getc(3)**
 during or after a call to **notcurses_stop(3)**. If a thread is always sitting
 on blocking input, it can be tricky to guarantee that this doesn't happen.
 
+Only one thread may call into the input stack at once, but unlike almost every
+other function in notcurses, **notcurses_getc** and friends can be called
+concurrently with **notcurses_render**.
+
 # BUGS
 
 Failed escape sequences are not yet played back in their entirety; only an
@@ -134,6 +138,7 @@ registers as **NCKEY_ENTER**. This will likely change in the future.
 **poll(2)**,
 **cfmakeraw(3)**,
 **notcurses(3)**,
+**notcurses_render(3)**,
 **notcurses_resize(3)**,
 **termios(3)**,
 **terminfo(5)**,
