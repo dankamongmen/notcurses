@@ -579,15 +579,27 @@ endif()
 # Rust bindings
 if(${USE_RUST})
   file(GLOB RUSTSRC CONFIGURE_DEPENDS src/colloquy/*.rs)
+  file(GLOB COLLOQUYSRC CONFIGURE_DEPENDS rust/src/*.rs rust/src/*.yaml)
+  set(COLLOQUY ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/colloquy)
+  find_program(CARGO cargo REQUIRED)
   set(CARGO_ARGS "--verbose")
   if(NOT ${USE_NETWORK})
     set(CARGO_ARGS "${CARGO_ARGS}" --frozen)
   endif()
-  add_custom_target(colloquy ALL
-    COMMAND CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust cargo build ${CARGO_ARGS}
+  add_custom_command(
+    OUTPUT
+      ${COLLOQUY}
+    COMMAND
+      CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
     DEPENDS
       ${COLLOQUYSRC}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy
+    COMMENT "Building colloquy"
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy
+  )
+  add_custom_target(colloquy ALL
+    DEPENDS
+      ${COLLOQUY}
   )
   set_target_properties(colloquy
     PROPERTIES LOCATION ${CMAKE_CURRENT_BINARY_DIR}
