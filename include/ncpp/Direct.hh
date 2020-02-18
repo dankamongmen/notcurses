@@ -2,7 +2,7 @@
 #define __NCPP_DIRECT_HH
 
 #include <cstdio>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "Root.hh"
 #include "Cell.hh"
