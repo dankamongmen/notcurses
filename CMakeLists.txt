@@ -26,6 +26,7 @@ pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 endif()
 find_library(LIBRT rt)
+find_package(doctest REQUIRED)
 
 # libnotcurses
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c)
