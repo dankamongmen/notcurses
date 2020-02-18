@@ -27,7 +27,7 @@
 #include <wctype.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include "notcurses.h"
+#include "notcurses/notcurses.h"
 #include "egcpool.h"
 
 #ifdef __cplusplus

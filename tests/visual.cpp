@@ -1,5 +1,3 @@
-#include <notcurses.h>
-#include "version.h"
 #include "main.h"
 #ifdef USE_FFMPEG
 #include <libavutil/pixdesc.h>

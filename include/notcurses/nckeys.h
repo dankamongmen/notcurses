@@ -1,5 +1,5 @@
-#ifndef NOTCURSES_NOTCURSES
-#define NOTCURSES_NOTCURSES
+#ifndef NOTCURSES_NCKEYS
+#define NOTCURSES_NCKEYS
 
 #ifdef __cplusplus
 extern "C" {

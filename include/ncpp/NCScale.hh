@@ -1,7 +1,7 @@
 #ifndef __NCPP_NCSCALE_HH
 #define __NCPP_NCSCALE_HH
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 namespace ncpp
 {

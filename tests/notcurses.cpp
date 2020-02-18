@@ -1,9 +1,8 @@
 #include <string>
 #include <cstdlib>
 #include <iostream>
-#include <notcurses.h>
-#include "internal.h"
 #include "main.h"
+#include "internal.h"
 
 TEST_CASE("NotcursesBase") {
 

@@ -8,7 +8,6 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdatomic.h>
-#include <notcurses.h>
 #include "demo.h"
 
 // ansi terminal definition-4-life

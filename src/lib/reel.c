@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include "notcurses.h"
 #include "internal.h"
 
 // Tablets are the toplevel entitites within an ncreel. Each corresponds to

@@ -1,4 +1,3 @@
-#include <notcurses.h>
 #include "main.h"
 
 TEST_CASE("Palette256") {

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <unistd.h>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 // fun with the Geometric Shapes
 int main(void){

@@ -1,7 +1,6 @@
 #include <vector>
-#include <notcurses.h>
-#include "egcpool.h"
 #include "main.h"
+#include "egcpool.h"
 
 TEST_CASE("EGCpool") {
 

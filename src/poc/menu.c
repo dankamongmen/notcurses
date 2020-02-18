@@ -2,7 +2,7 @@
 #include <string.h>
 #include <locale.h>
 #include <stdlib.h>
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 static int
 run_menu(struct notcurses* nc, struct ncmenu* ncm){

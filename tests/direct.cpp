@@ -1,5 +1,3 @@
-#include <notcurses.h>
-#include "egcpool.h"
 #include "main.h"
 
 TEST_CASE("DirectMode") {

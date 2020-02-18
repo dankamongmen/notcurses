@@ -1,7 +1,7 @@
 #ifndef __NCPP_VISUAL_HH
 #define __NCPP_VISUAL_HH
 
-#include <notcurses.h>
+#include <notcurses/notcurses.h>
 
 #include "Root.hh"
 #include "NCScale.hh"

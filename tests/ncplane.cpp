@@ -1,8 +1,7 @@
 #include <array>
 #include <cstdlib>
-#include <notcurses.h>
-#include "internal.h"
 #include "main.h"
+#include "internal.h"
 
 void BoxPermutationsRounded(struct notcurses* nc, struct ncplane* n, unsigned edges) {
   int dimx, dimy;

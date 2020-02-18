@@ -1,6 +1,5 @@
 #include <string.h>
 #include "version.h"
-#include "notcurses.h"
 #include "internal.h"
 
 ncplane* ncvisual_plane(ncvisual* ncv){
