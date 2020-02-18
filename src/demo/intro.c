@@ -26,9 +26,9 @@ int intro(struct notcurses* nc){
   ncplane_dim_yx(ncp, &rows, &cols);
   uint64_t cul, cur, cll, clr;
   cul = cur = cll = clr = 0;
-  channels_set_fg_rgb(&cul, 0x00, 0x00, 0xff);
-  channels_set_fg_rgb(&cur, 0xff, 0, 0xff);
-  channels_set_fg_rgb(&cll, 0xff, 0xff, 0);
+  channels_set_fg_rgb(&cul, 0, 0xd0, 0);
+  channels_set_fg_rgb(&cur, 0xff, 0, 0);
+  channels_set_fg_rgb(&cll, 0x88, 0, 0xcc);
   channels_set_fg_rgb(&clr, 0, 0, 0);
   // we use full block rather+fg than space+bg to conflict less with the menu
   if(ncplane_cursor_move_yx(ncp, 0, 0)){
@@ -63,20 +63,21 @@ int intro(struct notcurses* nc){
   channels_set_fg_rgb(&cur, 200, 0, 200); channels_set_bg_rgb(&cur, 0, 64, 0);
   channels_set_fg_rgb(&cll, 200, 0, 200); channels_set_bg_rgb(&cll, 0, 128, 0);
   channels_set_fg_rgb(&clr, 200, 0, 200); channels_set_bg_rgb(&clr, 0, 128, 0);
-  if(ncplane_cursor_move_yx(ncp, 5, 5)){
+  int centercols = cols > 80 ? 72 : cols - 8;
+  if(ncplane_cursor_move_yx(ncp, 5, (cols - centercols) / 2 + 1)){
     return -1;
   }
-  if(ncplane_gradient(ncp, "Δ", 0, cul, cur, cll, clr, rows - 8, cols - 6)){
-    return -1;
-  }
-  if(ncplane_cursor_move_yx(ncp, 4, 4)){
+  if(ncplane_gradient(ncp, "Δ", 0, cul, cur, cll, clr, rows - 8, cols / 2 + centercols / 2 - 1)){
     return -1;
   }
   cell_set_fg(&lr, 0xff0000); cell_set_bg(&lr, 0x002000);
   cell_set_fg(&ll, 0x00ff00); cell_set_bg(&ll, 0x002000);
   cell_set_fg(&ur, 0x0000ff); cell_set_bg(&ur, 0x002000);
   cell_set_fg(&ul, 0xffffff); cell_set_bg(&ul, 0x002000);
-  if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 11, cols - 8,
+  if(ncplane_cursor_move_yx(ncp, 4, (cols - centercols) / 2)){
+    return -1;
+  }
+  if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 11, centercols,
                        NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM |
                         NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
     return -1;
