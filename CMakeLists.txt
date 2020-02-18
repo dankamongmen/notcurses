@@ -14,7 +14,7 @@ set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
 ###################### USER-SELECTABLE OPTIONS ###########################
 option(BUILD_PYTHON "Build Python wrappers" ON)
-option(BUILD_RUST "Build Rust wrappers/colloquy" ON)
+option(BUILD_RUST "Build Rust wrappers/colloquy (experimental)" OFF)
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(DISABLE_FFMPEG "Disable FFmpeg image/video support, not recommended" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
@@ -572,6 +572,20 @@ if(${BUILD_PYTHON})
       "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
     WORKING_DIRECTORY
       ${CMAKE_CURRENT_BINARY_DIR}/python
+  )
+endif()
+
+# Rust bindings
+if(${BUILD_RUST})
+  file(GLOB RUSTSRC CONFIGURE_DEPENDS src/colloquy/*.rs)
+  add_custom_target(colloquy ALL
+    COMMAND CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust cargo build --offline --verbose
+    DEPENDS
+      ${COLLOQUYSRC}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy
+  )
+  set_target_properties(colloquy
+    PROPERTIES LOCATION ${CMAKE_CURRENT_BINARY_DIR}
   )
 endif()
 
