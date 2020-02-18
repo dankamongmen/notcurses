@@ -44,12 +44,14 @@ set_target_properties(
 )
 
 set_target_properties(notcurses PROPERTIES
-  PUBLIC_HEADER "include/notcurses.h"
+  PUBLIC_HEADER
+    "include/notcurses/notcurses.h"
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 set_target_properties(notcurses-static PROPERTIES
-  PUBLIC_HEADER "include/notcurses.h"
+  PUBLIC_HEADER
+    "include/notcurses/notcurses.h"
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
@@ -654,6 +656,12 @@ file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
 install(FILES
   ${TESTDATA}
     DESTINATION ${NOTCURSES_SHARE}
+)
+
+install(DIRECTORY
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+  DESTINATION
+    ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(FILES
