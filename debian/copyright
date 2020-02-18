@@ -5,10 +5,7 @@ Source: https://nick-black.com/dankwiki/index.php/notcurses
 
 Files: *
 Copyright: 2019-2020 Nick Black <dankamongmen@gmail.com>
-License: Apache-2.0
-
-Files: src/libcpp/* include/ncpp/*
-Copyright: 2019-2020 Marek Habersack <grendel@twistedcode.net>
+           2019-2020 Marek Habersack <grendel@twistedcode.net>
 License: Apache-2.0
 
 License: Apache-2.0
