@@ -634,7 +634,7 @@ install(TARGETS notcurses notcurses-static
     COMPONENT Libraries
     NAMELINK_COMPONENT Development
   PUBLIC_HEADER
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses
     COMPONENT Development
 )
 if(${BUILD_PYTHON})
