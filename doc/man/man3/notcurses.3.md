@@ -68,7 +68,7 @@ Information on input is available at **notcurses_input(3)**. The included tool
 ## Ncplanes
 
 Following initialization, a single ncplane exists, the "standard plane" (see
-**notcurses_stdplane(3)**). This plane cannot be destoyed nor manually resized,
+**notcurses_stdplane(3)**). This plane cannot be destroyed nor manually resized,
 and is always exactly as large as the screen. Further ncplanes can be created
 with **ncplane_new(3)**. A total z-ordering always exists on the set of
 ncplanes, and new ncplanes are placed at the top of the z-buffer. Ncplanes can
