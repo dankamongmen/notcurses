@@ -416,7 +416,7 @@ typedef struct ncstats {
 } ncstats;
 
 // Acquire an atomic snapshot of the notcurses object's stats.
-API void notcurses_stats(struct notcurses* nc, ncstats* stats);
+API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
 
 // Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
 API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);

@@ -209,7 +209,6 @@ typedef struct ncdirect {
 } ncdirect;
 
 typedef struct notcurses {
-  pthread_mutex_t lock;
   ncplane* top;   // the contents of our topmost plane (initially entire screen)
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
 
@@ -317,16 +316,6 @@ void input_free_esctrie(struct esctrie** trie);
 
 // initialize libav
 int ncvisual_init(int loglevel);
-
-static inline void
-ncplane_lock(const ncplane* n){
-  pthread_mutex_lock(&n->nc->lock);
-}
-
-static inline void
-ncplane_unlock(const ncplane* n){
-  pthread_mutex_unlock(&n->nc->lock);
-}
 
 static inline int
 fbcellidx(int row, int rowlen, int col){

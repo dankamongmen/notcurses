@@ -203,11 +203,7 @@ ncplane_at_yx_locked(ncplane* n, int y, int x, cell* c){
 }
 
 int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
-  int ret = -1;
-  pthread_mutex_lock(&n->nc->lock);
-  ret = ncplane_at_yx_locked(n, y, x, c);
-  pthread_mutex_unlock(&n->nc->lock);
-  return ret;
+  return ncplane_at_yx_locked(n, y, x, c);
 }
 
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
@@ -263,10 +259,8 @@ term_verify_seq(char** gseq, const char* name){
 static void
 free_plane(ncplane* p){
   if(p){
-    ncplane_lock(p);
     --p->nc->stats.planes;
     p->nc->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
-    ncplane_unlock(p);
     egcpool_dump(&p->pool);
     free(p->fb);
     free(p);
@@ -300,13 +294,11 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->channels = 0;
   egcpool_init(&p->pool);
   cell_init(&p->basecell);
-  pthread_mutex_lock(&nc->lock);
   p->z = nc->top;
   nc->top = p;
   p->nc = nc;
   nc->stats.fbbytes += fbsize;
   ++nc->stats.planes;
-  pthread_mutex_unlock(&nc->lock);
   return p;
 }
 
@@ -741,17 +733,13 @@ stash_stats(notcurses* nc){
   reset_stats(&nc->stats);
 }
 
-void notcurses_stats(notcurses* nc, ncstats* stats){
-  pthread_mutex_lock(&nc->lock);
+void notcurses_stats(const notcurses* nc, ncstats* stats){
   memcpy(stats, &nc->stats, sizeof(*stats));
-  pthread_mutex_unlock(&nc->lock);
 }
 
 void notcurses_reset_stats(notcurses* nc, ncstats* stats){
-  pthread_mutex_lock(&nc->lock);
   memcpy(stats, &nc->stats, sizeof(*stats));
   stash_stats(nc);
-  pthread_mutex_unlock(&nc->lock);
 }
 
 // Convert a notcurses log level to its ffmpeg equivalent.
@@ -846,10 +834,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
-  }
-  if(pthread_mutex_init(&ret->lock, NULL)){
-    free(ret);
-    return NULL;
   }
   ret->stats.fbbytes = 0;
   ret->stashstats.fbbytes = 0;
@@ -973,8 +957,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   return ret;
 
 err:
+  // FIXME looks like we have some memory leaks on this error path?
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
-  pthread_mutex_destroy(&ret->lock);
   free(ret);
   return NULL;
 }
@@ -1033,7 +1017,6 @@ int notcurses_stop(notcurses* nc){
     free(nc->lastframe);
     free(nc->rstate.mstream);
     input_free_esctrie(&nc->inputescapes);
-    ret |= pthread_mutex_destroy(&nc->lock);
     stash_stats(nc);
     if(!nc->suppress_banner){
       double avg = 0;
@@ -1098,21 +1081,15 @@ uint32_t ncplane_attr(const ncplane* n){
 }
 
 void ncplane_set_fg_default(struct ncplane* n){
-  ncplane_lock(n);
   channels_set_fg_default(&n->channels);
-  ncplane_unlock(n);
 }
 
 void ncplane_set_bg_default(struct ncplane* n){
-  ncplane_lock(n);
   channels_set_bg_default(&n->channels);
-  ncplane_unlock(n);
 }
 
 void ncplane_set_bg_rgb_clipped(ncplane* n, int r, int g, int b){
-  ncplane_lock(n);
   channels_set_bg_rgb_clipped(&n->channels, r, g, b);
-  ncplane_unlock(n);
 }
 
 int ncplane_set_bg_rgb(ncplane* n, int r, int g, int b){
@@ -1120,9 +1097,7 @@ int ncplane_set_bg_rgb(ncplane* n, int r, int g, int b){
 }
 
 void ncplane_set_fg_rgb_clipped(ncplane* n, int r, int g, int b){
-  ncplane_lock(n);
   channels_set_fg_rgb_clipped(&n->channels, r, g, b);
-  ncplane_unlock(n);
 }
 
 int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
@@ -1130,48 +1105,30 @@ int ncplane_set_fg_rgb(ncplane* n, int r, int g, int b){
 }
 
 int ncplane_set_fg(ncplane* n, unsigned channel){
-  int ret;
-  ncplane_lock(n);
-  ret = channels_set_fg(&n->channels, channel);
-  ncplane_unlock(n);
-  return ret;
+  return channels_set_fg(&n->channels, channel);
 }
 
 int ncplane_set_bg(ncplane* n, unsigned channel){
-  int ret;
-  ncplane_lock(n);
-  ret = channels_set_bg(&n->channels, channel);
-  ncplane_unlock(n);
-  return ret;
+  return channels_set_bg(&n->channels, channel);
 }
 
 int ncplane_set_fg_alpha(ncplane* n, int alpha){
-  int ret;
-  ncplane_lock(n);
-  ret = channels_set_fg_alpha(&n->channels, alpha);
-  ncplane_unlock(n);
-  return ret;
+  return channels_set_fg_alpha(&n->channels, alpha);
 }
 
 int ncplane_set_bg_alpha(ncplane *n, int alpha){
-  int ret;
-  ncplane_lock(n);
-  ret = channels_set_bg_alpha(&n->channels, alpha);
-  ncplane_unlock(n);
-  return ret;
+  return channels_set_bg_alpha(&n->channels, alpha);
 }
 
 int ncplane_set_fg_palindex(ncplane* n, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
     return -1;
   }
-  ncplane_lock(n);
   n->channels |= CELL_FGDEFAULT_MASK;
   n->channels |= CELL_FG_PALETTE;
   n->channels &= ~(CELL_ALPHA_MASK << 32u);
   n->attrword &= 0xffff00ff;
   n->attrword |= (idx << 8u);
-  ncplane_unlock(n);
   return 0;
 }
 
@@ -1179,40 +1136,24 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
     return -1;
   }
-  ncplane_lock(n);
   n->channels |= CELL_BGDEFAULT_MASK;
   n->channels |= CELL_BG_PALETTE;
   n->channels &= ~CELL_ALPHA_MASK;
   n->attrword &= 0xffffff00;
   n->attrword |= idx;
-  ncplane_unlock(n);
   return 0;
 }
 
 int ncplane_set_base_cell(ncplane* ncp, const cell* c){
-  ncplane_lock(ncp);
-  int ret = cell_duplicate(ncp, &ncp->basecell, c);
-  ncplane_unlock(ncp);
-  if(ret < 0){
-    return -1;
-  }
-  return ret;
+  return cell_duplicate(ncp, &ncp->basecell, c);
 }
 
 int ncplane_set_base(ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc){
-  int ret;
-  ncplane_lock(ncp);
-  ret = cell_prime(ncp, &ncp->basecell, egc, attrword, channels);
-  ncplane_unlock(ncp);
-  return ret;
+  return cell_prime(ncp, &ncp->basecell, egc, attrword, channels);
 }
 
 int ncplane_base(ncplane* ncp, cell* c){
-  int ret;
-  ncplane_lock(ncp);
-  ret = cell_duplicate(ncp, c, &ncp->basecell);
-  ncplane_unlock(ncp);
-  return ret;
+  return cell_duplicate(ncp, c, &ncp->basecell);
 }
 
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
@@ -1232,66 +1173,52 @@ advance_cursor(ncplane* n, int cols){
 
 // 'n' ends up above 'above'
 int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
-  ncplane_lock(n);
   if(n->z == above){
-    ncplane_unlock(n);
     return 0;
   }
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
-    ncplane_unlock(n);
     return -1;
   }
   ncplane** aa = find_above_ncplane(above);
   if(aa == NULL){
-    ncplane_unlock(n);
     return -1;
   }
   *an = n->z; // splice n out
   n->z = above; // attach above below n
   *aa = n; // spline n in above
-  ncplane_unlock(n);
   return 0;
 }
 
 // 'n' ends up below 'below'
 int ncplane_move_below_unsafe(ncplane* restrict n, ncplane* restrict below){
-  ncplane_lock(n);
   if(below->z == n){
-    ncplane_unlock(n);
     return 0;
   }
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
-    ncplane_unlock(n);
     return -1;
   }
   *an = n->z; // splice n out
   n->z = below->z; // reattach subbelow list to n
   below->z = n; // splice n in below
-  ncplane_unlock(n);
   return 0;
 }
 
 int ncplane_move_top(ncplane* n){
-  ncplane_lock(n);
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
-    ncplane_unlock(n);
     return -1;
   }
   *an = n->z; // splice n out
   n->z = n->nc->top;
   n->nc->top = n;
-  ncplane_unlock(n);
   return 0;
 }
 
 int ncplane_move_bottom(ncplane* n){
-  ncplane_lock(n);
   ncplane** an = find_above_ncplane(n);
   if(an == NULL){
-    ncplane_unlock(n);
     return -1;
   }
   *an = n->z; // splice n out
@@ -1301,15 +1228,11 @@ int ncplane_move_bottom(ncplane* n){
   }
   *an = n;
   n->z = NULL;
-  ncplane_unlock(n);
   return 0;
 }
 
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
-  ncplane_lock(n);
-  int ret = ncplane_cursor_move_yx_locked(n, y, x);
-  ncplane_unlock(n);
-  return ret;
+  return ncplane_cursor_move_yx_locked(n, y, x);
 }
 
 void ncplane_cursor_yx(ncplane* n, int* y, int* x){
@@ -1333,14 +1256,11 @@ cell_obliterate(ncplane* n, cell* c){
 }
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
-  ncplane_lock(n);
   if(ncplane_cursor_move_yx_locked(n, y, x)){
-    ncplane_unlock(n);
     return -1;
   }
   bool wide = cell_double_wide_p(c);
   if(wide && (n->x + 1 == n->lenx)){
-    ncplane_unlock(n);
     return -1;
   }
   // A wide character obliterates anything to its immediate right (and marks
@@ -1358,7 +1278,6 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     }
   }
   if(cell_duplicate(n, targ, c) < 0){
-    ncplane_unlock(n);
     return -1;
   }
   int cols = 1;
@@ -1382,7 +1301,6 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     }
   }
   advance_cursor(n, cols);
-  ncplane_unlock(n);
   return cols;
 }
 
@@ -1492,31 +1410,21 @@ int notcurses_palette_size(const notcurses* nc){
 
 // turn on any specified stylebits
 void ncplane_styles_on(ncplane* n, unsigned stylebits){
-  ncplane_lock(n);
   n->attrword |= (stylebits & NCSTYLE_MASK);
-  ncplane_unlock(n);
 }
 
 // turn off any specified stylebits
 void ncplane_styles_off(ncplane* n, unsigned stylebits){
-  ncplane_lock(n);
   n->attrword &= ~(stylebits & NCSTYLE_MASK);
-  ncplane_unlock(n);
 }
 
 // set the current stylebits to exactly those provided
 void ncplane_styles_set(ncplane* n, unsigned stylebits){
-  ncplane_lock(n);
   n->attrword = (n->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
-  ncplane_unlock(n);
 }
 
 unsigned ncplane_styles(ncplane* n){
-  unsigned ret;
-  ncplane_lock(n);
-  ret = (n->attrword & NCSTYLE_MASK);
-  ncplane_unlock(n);
-  return ret;
+  return (n->attrword & NCSTYLE_MASK);
 }
 
 // i hate the big allocation and two copies here, but eh what you gonna do?
@@ -1807,30 +1715,24 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
 }
 
 int ncplane_move_yx(ncplane* n, int y, int x){
-  ncplane_lock(n);
   if(n == n->nc->stdscr){
-    ncplane_unlock(n);
     return -1;
   }
   n->absy = y;
   n->absx = x;
-  ncplane_unlock(n);
   return 0;
 }
 
 void ncplane_yx(const ncplane* n, int* y, int* x){
-  ncplane_lock(n);
   if(y){
     *y = n->absy;
   }
   if(x){
     *x = n->absx;
   }
-  ncplane_unlock(n);
 }
 
 void ncplane_erase(ncplane* n){
-  ncplane_lock(n);
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the attrword
   // and channels), and then reload.
@@ -1840,7 +1742,6 @@ void ncplane_erase(ncplane* n){
   egcpool_init(&n->pool);
   cell_load(n, &n->basecell, egc);
   free(egc);
-  ncplane_unlock(n);
 }
 
 void notcurses_cursor_enable(notcurses* nc){
@@ -1891,11 +1792,9 @@ bool notcurses_canchangecolor(const notcurses* nc){
 
 palette256* palette256_new(notcurses* nc){
   palette256* p = malloc(sizeof(*p));
-  pthread_mutex_lock(&nc->lock);
   if(p){
     memcpy(p, &nc->palette, sizeof(*p));
   }
-  pthread_mutex_unlock(&nc->lock);
   return p;
 }
 
@@ -1904,7 +1803,6 @@ int palette256_use(notcurses* nc, const palette256* p){
   if(!nc->CCCflag){
     return -1;
   }
-  pthread_mutex_lock(&nc->lock);
   for(size_t z = 0 ; z < sizeof(p->chans) / sizeof(*p->chans) ; ++z){
     if(nc->palette.chans[z] != p->chans[z]){
       nc->palette.chans[z] = p->chans[z];
@@ -1912,7 +1810,6 @@ int palette256_use(notcurses* nc, const palette256* p){
     }
   }
   ret = 0;
-  pthread_mutex_unlock(&nc->lock);
   return ret;
 }
 
@@ -1940,7 +1837,6 @@ rgb_greyscale(int r, int g, int b){
 }
 
 void ncplane_greyscale(ncplane *n){
-  ncplane_lock(n);
   for(int y = 0 ; y < n->leny ; ++y){
     for(int x = 0 ; x < n->lenx ; ++x){
       cell* c = &n->fb[nfbcellidx(n, y, x)];
@@ -1953,7 +1849,6 @@ void ncplane_greyscale(ncplane *n){
       cell_set_bg_rgb(c, gy, gy, gy);
     }
   }
-  ncplane_unlock(n);
 }
 
 // if this is not polyfillable cell, we return 0. if it is, we attempt to fill
@@ -1998,13 +1893,11 @@ ncplane_polyfill_locked(ncplane* n, int y, int x, const cell* c){
 // at the initial step only, invalid y, x is an error, so explicitly check.
 int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
   int ret = -1;
-  ncplane_lock(n);
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
       ret = ncplane_polyfill_locked(n, y, x, c);
     }
   }
-  ncplane_unlock(n);
   return ret;
 }
 

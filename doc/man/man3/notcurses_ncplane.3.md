@@ -137,6 +137,10 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of cells
 **notcurses_drop_planes** destroys all ncplanes other than the stdplane. Any
 references to such planes are, of course, invalidated.
 
+It is an error for two threads to concurrently access a single ncplane. So long
+as rendering is not taking place, however, multiple threads may safely output
+to multiple ncplanes.
+
 # RETURN VALUES
 
 **ncplane_new(3)**, **ncplane_aligned(3)**, and **ncplane_dup(3)** all return a
@@ -153,9 +157,6 @@ Functions returning **int** return 0 on success, and non-zero on error.
 All other functions cannot fail (and return **void**).
 
 # NOTES
-
-It would be reasonable to expect many of these functions to accept `const struct notcurses`
-parameters. Alas, almost all must manipulate the mutex contained within the object.
 
 # SEE ALSO
 

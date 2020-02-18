@@ -4,11 +4,6 @@
 #include <sys/poll.h>
 #include "internal.h"
 
-static void
-mutex_unlock(void* vlock){
-  pthread_mutex_unlock(vlock);
-}
-
 static int
 blocking_write(int fd, const char* buf, size_t buflen){
 //fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
@@ -36,8 +31,6 @@ blocking_write(int fd, const char* buf, size_t buflen){
 
 int notcurses_refresh(notcurses* nc){
   int ret;
-  pthread_mutex_lock(&nc->lock);
-  pthread_cleanup_push(mutex_unlock, &nc->lock);
   if(nc->rstate.mstream == NULL){
     ret = -1; // haven't rendered yet, and thus don't know what should be there
   }else if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
@@ -45,7 +38,6 @@ int notcurses_refresh(notcurses* nc){
   }else{
     ret = 0;
   }
-  pthread_cleanup_pop(1);
   return ret;
 }
 
@@ -962,8 +954,6 @@ int notcurses_render(notcurses* nc){
   struct timespec start, done;
   int ret;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-  pthread_mutex_lock(&nc->lock);
-  pthread_cleanup_push(mutex_unlock, &nc->lock);
   int bytes = -1;
   size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
@@ -977,13 +967,11 @@ int notcurses_render(notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC_RAW, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
   ret = bytes >= 0 ? 0 : -1;
-  pthread_cleanup_pop(1);
   return ret;
 }
 
 char* notcurses_at_yx(notcurses* nc, int y, int x, cell* c){
   char* egc = NULL;
-  pthread_mutex_lock(&nc->lock);
   if(nc->lastframe){
     if(y >= 0 && y < nc->lfdimy){
       if(x >= 0 || x < nc->lfdimx){
@@ -995,6 +983,5 @@ char* notcurses_at_yx(notcurses* nc, int y, int x, cell* c){
       }
     }
   }
-  pthread_mutex_unlock(&nc->lock);
   return egc;
 }
