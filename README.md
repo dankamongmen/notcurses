@@ -113,7 +113,7 @@ that fine library.
 * (build) CMake 3.14.0+
 * (build+runtime) From NCURSES: terminfo 6.1+
 * (OPTIONAL) (build+runtime) From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
-* (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.6+
+* (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, CFFI 1.13.2+
 * (OPTIONAL) (rust bindings, colloquy): rust 1.40.0+, cargo 0.40.0+, cmake-rs 0.1.42+
