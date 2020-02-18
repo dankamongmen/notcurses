@@ -757,7 +757,7 @@ void notcurses_reset_stats(notcurses* nc, ncstats* stats){
 // Convert a notcurses log level to its ffmpeg equivalent.
 static int
 ffmpeg_log_level(ncloglevel_e level){
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
   switch(level){
     case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
     case NCLOGLEVEL_PANIC: return AV_LOG_PANIC;
@@ -943,14 +943,14 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
           bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
           ret->colors, ret->RGBflag ? "direct" : "palette",
           __VERSION__, curses_version());
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
     fprintf(ret->ttyfp, "  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
           LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
           LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
 #else
-    putp(tiparm(ret->setaf, 3));
-    fprintf(ret->ttyfp, "  Warning! Built without ffmpeg support\n");
+    term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
+    fprintf(ret->ttyfp, "\n Warning! Notcurses was built without ffmpeg support\n");
 #endif
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
     if(!ret->RGBflag){ // FIXME

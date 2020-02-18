@@ -161,7 +161,9 @@ int luigi_demo(struct notcurses* nc){
     return -1;
   }
   assert(ncvisual_decode(nv, &averr) == NULL);
+#ifdef USE_FFMPEG
   assert(averr == AVERROR_EOF);
+#endif
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
   // he should be walking on the platform ~4/5 of the way down

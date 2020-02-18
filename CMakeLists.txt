@@ -13,19 +13,19 @@ include(GNUInstallDirs)
 set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
 ###################### USER-SELECTABLE OPTIONS ###########################
-option(BUILD_PYTHON "Build Python wrappers" ON)
-option(BUILD_RUST "Build Rust wrappers/colloquy (experimental)" OFF)
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
-option(DISABLE_FFMPEG "Disable FFmpeg image/video support, not recommended" OFF)
-option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" ON)
+option(USE_FFMPEG "Disable FFmpeg image/video support (recommended)" ON)
 option(USE_NETWORK "Allow cargo to use the network" OFF)
+option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
+option(USE_PYTHON "Build Python wrappers" ON)
+option(USE_RUST "Build Rust wrappers/colloquy (experimental)" OFF)
 ############## END (additional) USER-SELECTABLE OPTIONS ##################
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
-if(NOT "${DISABLE_FFMPEG}")
+if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
@@ -84,7 +84,7 @@ target_link_directories(notcurses-static
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
 )
 
-if(NOT "${DISABLE_FFMPEG}")
+if(${USE_FFMPEG})
 target_include_directories(notcurses
   PUBLIC
     "${AVCODEC_INCLUDE_DIRS}"
@@ -318,7 +318,7 @@ target_compile_options(notcurses-demo
 )
 target_compile_definitions(notcurses-demo
   PRIVATE
-  FORTIFY_SOURCE=2 _GNU_SOURCE
+    FORTIFY_SOURCE=2 _GNU_SOURCE
 )
 
 # tiny proofs of concept, one binary per source file
@@ -448,7 +448,7 @@ target_compile_definitions(notcurses-ncreel
 
 # notcurses-view
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
-if(NOT "${DISABLE_FFMPEG}")
+if(${USE_FFMPEG})
 add_executable(notcurses-view ${VIEWSRCS})
 target_include_directories(notcurses-view
   PRIVATE
@@ -543,7 +543,7 @@ write_basic_package_version_file(
 )
 
 # Python bindings
-if(${BUILD_PYTHON})
+if(${USE_PYTHON})
   find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
   file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
   file(COPY python/src/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python/src)
@@ -577,7 +577,7 @@ if(${BUILD_PYTHON})
 endif()
 
 # Rust bindings
-if(${BUILD_RUST})
+if(${USE_RUST})
   file(GLOB RUSTSRC CONFIGURE_DEPENDS src/colloquy/*.rs)
   set(CARGO_ARGS "--verbose")
   if(NOT ${USE_NETWORK})
@@ -625,7 +625,7 @@ install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
 install(TARGETS notcurses-tester DESTINATION bin)
-if(NOT "${DISABLE_FFMPEG}")
+if(${USE_FFMPEG})
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
 install(TARGETS notcurses notcurses-static
@@ -637,7 +637,7 @@ install(TARGETS notcurses notcurses-static
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses
     COMPONENT Development
 )
-if(${BUILD_PYTHON})
+if(${USE_PYTHON})
   # if DFSG_BUILD has been selected, assume we're building debs. debian/rules
   # has its own python install logic after many hours wasted, so we don't
   # install from here for a deb build.

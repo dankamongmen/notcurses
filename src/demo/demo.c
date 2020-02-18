@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <stdatomic.h>
 #include <notcurses.h>
-#include "version.h"
 #include "demo.h"
 
 // ansi terminal definition-4-life
@@ -20,11 +19,13 @@ static int democount;
 static demoresult* results;
 static char datadir[PATH_MAX];
 
-#ifdef DISABLE_FFMPEG
-static const char DEFAULT_DEMO[] = "ithbgrwus";
+// yes, these are in different orders in different configurations on purpose
+// (since some transition into the next)
+#ifndef USE_FFMPEG
+static const char DEFAULT_DEMO[] = "itfhbrgswu";
 #else
 #ifdef DFSG_BUILD
-static const char DEFAULT_DEMO[] = "ixthbgrwuso";
+static const char DEFAULT_DEMO[] = "ixtfhbrgslwuo";
 #else
 static const char DEFAULT_DEMO[] = "ixethbcgrwuvlfsjo";
 #endif
@@ -84,9 +85,9 @@ struct timespec demodelay = {
 };
 
 // anything that's dfsg non-free requires ncvisual (i.e. it's all multimedia),
-// so also check for FFMPEG_DISABLE here in DFSG_BUILD
+// so also check for USE_FFMPEG here in DFSG_BUILD
 #ifndef DFSG_BUILD
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
 #define NONFREE(name, fxn) { name, fxn, }
 #endif
 #endif
@@ -94,7 +95,7 @@ struct timespec demodelay = {
 #define NONFREE(name, fxn) { NULL, NULL, }
 #endif
 
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
 #define FREEFFMPEG(name, fxn) { name, fxn, }
 #else
 #define FREEFFMPEG(name, fxn) { NULL, NULL, }
@@ -111,7 +112,7 @@ static struct {
   NONFREE("chunli", chunli_demo),
   { NULL, NULL, },
   NONFREE("eagle", eagle_demo),
-  NONFREE("fallin'", fallin_demo),
+  { "fallin'", fallin_demo, },
   { "grid", grid_demo, },
   { "highcon", highcontrast_demo, },
   { "intro", intro, },

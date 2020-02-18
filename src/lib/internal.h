@@ -1,7 +1,9 @@
 #ifndef NOTCURSES_INTERNAL
 #define NOTCURSES_INTERNAL
 
-#ifndef DISABLE_FFMPEG
+#include "version.h"
+
+#ifdef USE_FFMPEG
 #include <libavutil/error.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
@@ -26,7 +28,6 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include "notcurses.h"
-#include "version.h"
 #include "egcpool.h"
 
 #ifdef __cplusplus
@@ -94,7 +95,7 @@ typedef struct ncvisual {
   int placex, placey;
   ncscale_e style;         // none, scale, or stretch
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
-#ifndef DISABLE_FFMPEG
+#ifdef USE_FFMPEG
   AVSubtitle subtitle;
 #endif
 } ncvisual;
