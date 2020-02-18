@@ -502,6 +502,8 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
       return false;
     }
     return true;
+  }else if(nc->id == NCKEY_BUTTON1){
+    // FIXME did we clock on the menu? if so, unroll appropriately
   }
   return false;
 }
