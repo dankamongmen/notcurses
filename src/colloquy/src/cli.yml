@@ -1,0 +1,9 @@
+name: colloquy
+version: "0.1.0"
+about: Attractive UI widgets from the shell
+author: Nick Black <dankamongmen@gmail.com>
+args:
+    - verbose:
+        long: verbose
+        short: v
+        help: Verbose mode
