@@ -16,18 +16,22 @@ namespace ncpp
 	public:
 		static ncreel_options default_options;
 
-		explicit NcReel (Plane *plane, const ncreel_options *popts, int efd)
+		explicit NcReel (Plane &plane, const ncreel_options *popts = nullptr, int efd = -1)
+			: NcReel (&plane, popts, efd)
+		{}
+
+		explicit NcReel (Plane *plane, const ncreel_options *popts = nullptr, int efd = -1)
 		{
 			if (plane == nullptr)
-				throw new invalid_argument ("'plane' must be a valid pointer");
+				throw invalid_argument ("'plane' must be a valid pointer");
 
 			create_reel (reinterpret_cast<ncplane*>(plane), popts, efd);
 		}
 
-		explicit NcReel (ncplane *plane, const ncreel_options *popts, int efd)
+		explicit NcReel (ncplane *plane, const ncreel_options *popts = nullptr, int efd = -1)
 		{
 			if (plane == nullptr)
-				throw new invalid_argument ("'plane' must be a valid pointer");
+				throw invalid_argument ("'plane' must be a valid pointer");
 
 			create_reel (plane, popts, efd);
 		}
@@ -53,7 +57,7 @@ namespace ncpp
 		{
 			nctablet *t = ncreel_add (reel, get_tablet (after), get_tablet (before), cb, opaque);
 			if (t == nullptr)
-				throw new init_error ("notcurses failed to create a new tablet");
+				throw init_error ("notcurses failed to create a new tablet");
 
 			return NcTablet::map_tablet (t);
 		}
@@ -145,7 +149,7 @@ namespace ncpp
 		{
 			reel = ncreel_create (plane, popts == nullptr ? &default_options : popts, efd);
 			if (reel == nullptr)
-				throw new init_error ("notcurses failed to create a new ncreel");
+				throw init_error ("notcurses failed to create a new ncreel");
 		}
 
 	private:

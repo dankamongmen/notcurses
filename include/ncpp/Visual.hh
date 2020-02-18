@@ -17,21 +17,33 @@ namespace ncpp
 			: Visual (reinterpret_cast<ncplane*>(plane), file, averr)
 		{}
 
+		explicit Visual (Plane const* plane, const char *file, int *averr)
+			: Visual (const_cast<Plane*>(plane), file, averr)
+		{}
+
+		explicit Visual (Plane &plane, const char *file, int *averr)
+			: Visual (reinterpret_cast<ncplane*>(&plane), file, averr)
+		{}
+
+		explicit Visual (Plane const& plane, const char *file, int *averr)
+			: Visual (const_cast<Plane&>(plane), file, averr)
+		{}
+
 		explicit Visual (ncplane *plane, const char *file, int *averr)
 		{
 			if (plane == nullptr)
-				throw new invalid_argument ("'plane' must be a valid pointer");
+				throw invalid_argument ("'plane' must be a valid pointer");
 
 			visual = ncplane_visual_open (reinterpret_cast<ncplane*>(plane), file, averr);
 			if (visual == nullptr)
-				throw new init_error ("notcurses failed to create a new visual");
+				throw init_error ("notcurses failed to create a new visual");
 		}
 
 		explicit Visual (const char *file, int *averr, int y, int x, NCScale scale)
 		{
 			visual = ncvisual_open_plane (get_notcurses (), file, averr, y, x, static_cast<ncscale_e>(scale));
 			if (visual == nullptr)
-				throw new init_error ("notcurses failed to create a new visual");
+				throw init_error ("notcurses failed to create a new visual");
 		}
 
 		~Visual () noexcept

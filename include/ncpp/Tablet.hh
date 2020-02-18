@@ -19,7 +19,7 @@ namespace ncpp
 			: _tablet (t)
 		{
 			if (t == nullptr)
-				throw new invalid_argument ("'t' must be a valid pointer");
+				throw invalid_argument ("'t' must be a valid pointer");
 		};
 
 	public:

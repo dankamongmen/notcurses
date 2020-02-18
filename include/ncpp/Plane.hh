@@ -43,7 +43,7 @@ namespace ncpp
 			);
 
 			if (plane == nullptr)
-				throw new init_error ("notcurses failed to create a new plane");
+				throw init_error ("notcurses failed to create a new plane");
 
 			map_plane (plane, this);
 		}
@@ -61,7 +61,7 @@ namespace ncpp
 		explicit Plane (Plane *n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
 		{
 			if (n == nullptr)
-				throw new invalid_argument ("'n' must be a valid pointer");
+				throw invalid_argument ("'n' must be a valid pointer");
 
 			plane = create_plane (*n, rows, cols, yoff, align, opaque);
 		}
@@ -69,7 +69,7 @@ namespace ncpp
 		explicit Plane (Plane const* n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
 		{
 			if (n == nullptr)
-				throw new invalid_argument ("'n' must be a valid pointer");
+				throw invalid_argument ("'n' must be a valid pointer");
 
 			plane = create_plane (const_cast<Plane&>(*n), rows, cols, yoff, align, opaque);
 		}
@@ -116,6 +116,16 @@ namespace ncpp
 		bool pulse (const timespec* ts, fadecb fader, void* curry) const noexcept
 		{
 			return ncplane_pulse (plane, ts, fader, curry) != -1;
+		}
+
+		bool gradient (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const noexcept
+		{
+			return ncplane_gradient (plane, egc, attrword, ul, ur, ll, lr, ystop, xstop) != -1;
+		}
+
+		bool gradient_sized (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xstop) const noexcept
+		{
+			return ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xstop) != -1;
 		}
 
 		void greyscale () const noexcept
@@ -231,7 +241,7 @@ namespace ncpp
 		bool move_below (Plane *below) const
 		{
 			if (below == nullptr)
-				throw new invalid_argument ("'below' must be a valid pointer");
+				throw invalid_argument ("'below' must be a valid pointer");
 
 			return move_below (*below);
 		}
@@ -244,7 +254,7 @@ namespace ncpp
 		bool move_below_unsafe (Plane *below) const
 		{
 			if (below == nullptr)
-				throw new invalid_argument ("'below' must be a valid pointer");
+				throw invalid_argument ("'below' must be a valid pointer");
 
 			return move_below_unsafe (*below);
 		}
@@ -257,7 +267,7 @@ namespace ncpp
 		bool move_above (Plane *above) const
 		{
 			if (above == nullptr)
-				throw new invalid_argument ("'above' must be a valid pointer");
+				throw invalid_argument ("'above' must be a valid pointer");
 
 			return move_above (*above);
 		}
@@ -270,7 +280,7 @@ namespace ncpp
 		bool move_above_unsafe (Plane *above) const
 		{
 			if (above == nullptr)
-				throw new invalid_argument ("'above' must be a valid pointer");
+				throw invalid_argument ("'above' must be a valid pointer");
 
 			return move_above (*above);
 		}
@@ -298,7 +308,7 @@ namespace ncpp
 		int putc (const Cell *c) const
 		{
 			if (c == nullptr)
-				throw new invalid_argument ("'c' must be a valid pointer");
+				throw invalid_argument ("'c' must be a valid pointer");
 
 			return putc (*c);
 		}
@@ -773,7 +783,7 @@ namespace ncpp
 		int duplicate (Cell &target, Cell *source) const
 		{
 			if (source == nullptr)
-				throw new invalid_argument ("'source' must be a valid pointer");
+				throw invalid_argument ("'source' must be a valid pointer");
 
 			return duplicate (target, *source);
 		}
@@ -781,7 +791,7 @@ namespace ncpp
 		int duplicate (Cell &target, Cell const* source) const
 		{
 			if (source == nullptr)
-				throw new invalid_argument ("'source' must be a valid pointer");
+				throw invalid_argument ("'source' must be a valid pointer");
 
 			return duplicate (target, *source);
 		}
@@ -789,9 +799,9 @@ namespace ncpp
 		int duplicate (Cell *target, Cell *source) const
 		{
 			if (target == nullptr)
-				throw new invalid_argument ("'target' must be a valid pointer");
+				throw invalid_argument ("'target' must be a valid pointer");
 			if (source == nullptr)
-				throw new invalid_argument ("'source' must be a valid pointer");
+				throw invalid_argument ("'source' must be a valid pointer");
 
 			return duplicate (*target, *source);
 		}
@@ -799,9 +809,9 @@ namespace ncpp
 		int duplicate (Cell *target, Cell const* source) const
 		{
 			if (target == nullptr)
-				throw new invalid_argument ("'target' must be a valid pointer");
+				throw invalid_argument ("'target' must be a valid pointer");
 			if (source == nullptr)
-				throw new invalid_argument ("'source' must be a valid pointer");
+				throw invalid_argument ("'source' must be a valid pointer");
 
 			return duplicate (*target, *source);
 		}
@@ -809,7 +819,7 @@ namespace ncpp
 		int duplicate (Cell *target, Cell &source) const
 		{
 			if (target == nullptr)
-				throw new invalid_argument ("'target' must be a valid pointer");
+				throw invalid_argument ("'target' must be a valid pointer");
 
 			return duplicate (*target, source);
 		}
@@ -817,7 +827,7 @@ namespace ncpp
 		int duplicate (Cell *target, Cell const& source) const
 		{
 			if (target == nullptr)
-				throw new invalid_argument ("'target' must be a valid pointer");
+				throw invalid_argument ("'target' must be a valid pointer");
 
 			return duplicate (*target, source);
 		}
@@ -858,7 +868,7 @@ namespace ncpp
 			  is_stdplane (_is_stdplane)
 		{
 			if (_plane == nullptr)
-				throw new invalid_argument ("_plane must be a valid pointer");
+				throw invalid_argument ("_plane must be a valid pointer");
 		}
 
 		static void unmap_plane (Plane *p) noexcept;
@@ -876,7 +886,7 @@ namespace ncpp
 			);
 
 			if (ret == nullptr)
-				throw new init_error ("notcurses failed to create an aligned plane");
+				throw init_error ("notcurses failed to create an aligned plane");
 
 			map_plane (plane, this);
 
@@ -887,7 +897,7 @@ namespace ncpp
 		{
 			ncplane *ret = ncplane_dup (other.plane, opaque);
 			if (ret == nullptr)
-				throw new init_error ("notcurses failed to duplicate plane");
+				throw init_error ("notcurses failed to duplicate plane");
 
 			is_stdplane = other.is_stdplane;
 			return ret;

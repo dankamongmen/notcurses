@@ -13,7 +13,7 @@ namespace ncpp
 		{
 			palette = palette256_new (get_notcurses ());
 			if (palette == nullptr)
-				throw new init_error ("notcurses failed to create a new palette");
+				throw init_error ("notcurses failed to create a new palette");
 		}
 
 		~Palette256 ()
@@ -44,11 +44,11 @@ namespace ncpp
 		bool get (int idx, unsigned *r, unsigned *g, unsigned *b) const
 		{
 			if (r == nullptr)
-				throw new invalid_argument ("'r' must be a valid pointer");
+				throw invalid_argument ("'r' must be a valid pointer");
 			if (g == nullptr)
-				throw new invalid_argument ("'g' must be a valid pointer");
+				throw invalid_argument ("'g' must be a valid pointer");
 			if (b == nullptr)
-				throw new invalid_argument ("'b' must be a valid pointer");
+				throw invalid_argument ("'b' must be a valid pointer");
 
 			return get (idx, *r, *g, *b);
 		}
