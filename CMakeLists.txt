@@ -12,9 +12,14 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 include(GNUInstallDirs)
 set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
-option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
+###################### USER-SELECTABLE OPTIONS ###########################
 option(BUILD_PYTHON "Build Python wrappers" ON)
-option(DFSG_BUILD "DFSG build (no non-free media)" OFF)
+option(BUILD_RUST "Build Rust wrappers/colloquy" ON)
+option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
+option(DISABLE_FFMPEG "Disable FFmpeg image/video support, not recommended" OFF)
+option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
+option(USE_DOXYGEN "Build HTML cross reference with doxygen" ON)
+############## END (additional) USER-SELECTABLE OPTIONS ##################
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
@@ -26,7 +31,7 @@ pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 endif()
 find_library(LIBRT rt)
-find_package(doctest REQUIRED)
+find_package(doctest 2.3.6 REQUIRED)
 
 # libnotcurses
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c)
@@ -331,47 +336,71 @@ foreach(f ${POCSRCS})
   )
 endforeach()
 
-# Documentation
-file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
-file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
-FIND_PROGRAM(PANDOC pandoc)
-iF(NOT PANDOC)
-  message(WARNING "pandoc not found, won't generate documentation")
-else()
-  foreach(m ${MANSOURCE3} ${MANSOURCE1})
-    get_filename_component(me ${m} NAME_WLE)
+# Pandoc documentation (man pages, HTML reference)
+if(USE_PANDOC)
+  file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
+  file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
+  find_program(PANDOC pandoc)
+  if(NOT PANDOC)
+    message(FATAL_ERROR "pandoc not found. USE_PANDOC=OFF to disable.")
+  else()
+    foreach(m ${MANSOURCE3} ${MANSOURCE1})
+      get_filename_component(me ${m} NAME_WLE)
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
+        DEPENDS ${m}
+        COMMAND ${PANDOC}
+        ARGS --to man --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
+        COMMENT "Building man page ${me}"
+      )
+      add_custom_target(${me}.man
+        ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
+      )
+      file(GLOB ANALHTML doc/analytics-header.html)
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+        DEPENDS ${m} ${ANALHTML}
+        COMMAND ${PANDOC}
+        ARGS -H ${ANALHTML} --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+        COMMENT "Building HTML5 ${me}.html"
+      )
+      add_custom_target(${me}.html5
+        ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+      )
+    endforeach()
+    foreach(m ${MANSOURCE3})
+      get_filename_component(me ${m} NAME_WLE)
+      set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+    endforeach()
+    foreach(m ${MANSOURCE1})
+      get_filename_component(me ${m} NAME_WLE)
+      set(MANPAGES1 ${MANPAGES1} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+    endforeach()
+  endif()
+endif()
+
+# Doxygen
+if(USE_DOXYGEN)
+  find_package(Doxygen REQUIRED dot dia)
+  if(NOT ${DOXYGEN_FOUND})
+    message(FATAL_ERROR "doxygen not found. USE_DOXYGEN=OFF to disable.")
+  else()
+    set(DOXYFILE ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile)
+    # FIXME should dep on all source, i suppose, yuck
     add_custom_command(
-      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
-      DEPENDS ${m}
-      COMMAND ${PANDOC}
-      ARGS --to man --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
-      COMMENT "Building man page ${me}"
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
+      DEPENDS ${DOXYFILE}
+      COMMAND Doxygen::doxygen
+      ARGS ${DOXYFILE}
+      COMMENT "Running doxygen"
     )
-    add_custom_target(${me}.man
+    add_custom_target(doxygen
       ALL
-      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
+      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
     )
-    file(GLOB ANALHTML doc/analytics-header.html)
-    add_custom_command(
-      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-      DEPENDS ${m} ${ANALHTML}
-      COMMAND ${PANDOC}
-      ARGS -H ${ANALHTML} --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-      COMMENT "Building HTML5 ${me}.html"
-    )
-    add_custom_target(${me}.html5
-      ALL
-      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-    )
-  endforeach()
-  foreach(m ${MANSOURCE3})
-    get_filename_component(me ${m} NAME_WLE)
-    set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
-  endforeach()
-  foreach(m ${MANSOURCE1})
-    get_filename_component(me ${m} NAME_WLE)
-    set(MANPAGES1 ${MANPAGES1} ${CMAKE_CURRENT_BINARY_DIR}/${me})
-  endforeach()
+  endif()
 endif()
 
 # notcurses-input
