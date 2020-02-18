@@ -449,9 +449,9 @@ must be readable without delay for it to be interpreted as such.
 
 #define suppuabize(w) ((w) + 0x100000)
 
-// Special composed key defintions. These values are added to 0x100000.
+// Special composed key definitions. These values are added to 0x100000.
 #define NCKEY_INVALID suppuabize(0)
-#define NCKEY_RESIZE  suppuabize(1) // generated interally in response to SIGWINCH
+#define NCKEY_RESIZE  suppuabize(1) // generated internally in response to SIGWINCH
 #define NCKEY_UP      suppuabize(2)
 #define NCKEY_RIGHT   suppuabize(3)
 #define NCKEY_DOWN    suppuabize(4)
@@ -1713,7 +1713,7 @@ typedef enum {
 // suitable for its display at 'y','x'. If there is sufficient room to display
 // the visual in its native size, or if NCSCALE_NONE is passed for 'style', the
 // new plane will be exactly that large. Otherwise, the plane will be as large
-// as possble (given the visible screen), either maintaining aspect ratio
+// as possible (given the visible screen), either maintaining aspect ratio
 // (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
 struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
                                      int* averr, int y, int x, ncscale_e style);
@@ -1743,7 +1743,7 @@ char* ncvisual_subtitle(const struct ncvisual* ncv);
 typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
-// If you'd like subtitles to be decoded, provide a ncplane as the curry. If the
+// If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
 // curry is NULL, subtitles will not be displayed.
 static inline int
 ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry){
@@ -1851,7 +1851,7 @@ not fill it). If it is not desired, however, scrolling of focus can be
 configured instead.
 
 ```c
-// An ncreel is an notcurses region devoted to displaying zero or more
+// An ncreel is a notcurses region devoted to displaying zero or more
 // line-oriented, contained panels between which the user may navigate. If at
 // least one panel exists, there is an active panel. As much of the active
 // panel as is possible is always displayed. If there is space left over, other
@@ -1938,7 +1938,7 @@ typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx,
 // opaque. Neither, either, or both of after and before may be specified. If
 // neither is specified, the new tablet can be added anywhere on the reel. If
 // one or the other is specified, the tablet will be added before or after the
-// specified tablet. If both are specifid, the tablet will be added to the
+// specified tablet. If both are specified, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
 struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after,
@@ -1980,7 +1980,7 @@ struct nctablet* ncreel_prev(struct ncreel* pr);
 // underlying WINDOW. Returns non-zero on failure.
 int ncreel_destroy(struct ncreel* pr);
 
-// Returns a pointer to an user pointer associated with this nctablet.
+// Returns a pointer to a user pointer associated with this nctablet.
 void* nctablet_userptr(struct nctablet* t);
 
 // Access the ncplane associated with this tablet, if one exists.

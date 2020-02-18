@@ -12,7 +12,7 @@ notcurses-ncreel - Experiment with ncreels
 
 # DESCRIPTION
 
-**notcurses-ncreel** generates a ncreel to experiment with. With the
+**notcurses-ncreel** generates an ncreel to experiment with. With the
 program open, press 'a' to create a new tablet, or 'd' to delete the focused
 tablet (if one exists). 'q' quits at any time.
 

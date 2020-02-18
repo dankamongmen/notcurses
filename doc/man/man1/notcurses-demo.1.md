@@ -39,7 +39,7 @@ The demonstrations include (see NOTES below):
 * (x)ray—stimulate a logo with energy
 * (o)utro—a message of hope from the library's author
 
-At any time, press 'q' to quit. The demo is best run in at least a 80x45 terminal.
+At any time, press 'q' to quit. The demo is best run in at least an 80x45 terminal.
 
 # OPTIONS
 
