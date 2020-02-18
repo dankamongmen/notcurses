@@ -1,6 +1,6 @@
 % notcurses_stats(3)
 % nick black <nickblack@linux.com>
-% v1.1.8
+% v1.2.0
 
 # NAME
 

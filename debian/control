@@ -71,7 +71,7 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Depends: libnotcurses++1 (= ${binary:Version}),
-         libnotcurses-dev (>= 1.1.6-1),
+         libnotcurses-dev (>= ${binary:Version}),
          ${misc:Depends}
 Description: Character graphics and TUI library (C++ development)
  notcurses facilitates the creation of modern TUI programs,

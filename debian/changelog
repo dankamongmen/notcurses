@@ -1,4 +1,4 @@
-notcurses (1.1.8-1) unstable; urgency=medium
+notcurses (1.2.0-1) unstable; urgency=medium
 
   * Update watchfile to grab DFSG source tarball
   * Remove a few DFSG-questionable files
