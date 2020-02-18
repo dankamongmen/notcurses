@@ -1,11 +1,12 @@
 # notcurses
 blingful TUI library for modern terminal emulators. definitely not curses.
 
-by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
+* birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
 * C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
-and the [man pages](https://nick-black.com/notcurses).
+and the [man pages](https://nick-black.com/notcurses). I am working on a
+coherent [guidebook](https://nick-black.com/htp-notcurses.pdf).
 
 notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/).
 Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
