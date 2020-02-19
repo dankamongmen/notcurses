@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["nick black <dankamongmen@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/dankamongmen/notcurses"
+license = "Apache-2.0"
+description = "Notcurses-based utility for command-line TUI widgets"
+homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
 
 [dependencies]
 notcurses = ">= 1.2.0"
