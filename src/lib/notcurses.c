@@ -191,8 +191,7 @@ int ncplane_at_cursor(ncplane* n, cell* c){
   return cell_duplicate(n, c, &n->fb[nfbcellidx(n, n->y, n->x)]);
 }
 
-static inline int
-ncplane_at_yx_locked(ncplane* n, int y, int x, cell* c){
+int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
   int ret = -1;
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
@@ -202,15 +201,11 @@ ncplane_at_yx_locked(ncplane* n, int y, int x, cell* c){
   return ret;
 }
 
-int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
-  return ncplane_at_yx_locked(n, y, x, c);
-}
-
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
-void ncplane_dim_yx(ncplane* n, int* rows, int* cols){
+void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;
   }
@@ -1423,7 +1418,7 @@ void ncplane_styles_set(ncplane* n, unsigned stylebits){
   n->attrword = (n->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
 }
 
-unsigned ncplane_styles(ncplane* n){
+unsigned ncplane_styles(const ncplane* n){
   return (n->attrword & NCSTYLE_MASK);
 }
 

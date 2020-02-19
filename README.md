@@ -292,7 +292,8 @@ int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dim_yx(struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
+notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
+                      int* RESTRICT cols){
   ncplane_dim_yx(notcurses_stdplane(n), rows, cols);
 }
 
@@ -396,7 +397,7 @@ typedef enum {
 // according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
 // Undefined behavior on negative 'c'.
 static inline int
-ncplane_align(struct ncplane* n, ncalign_e align, int c){
+ncplane_align(const struct ncplane* n, ncalign_e align, int c){
   if(align == NCALIGN_LEFT){
     return 0;
   }
@@ -672,14 +673,14 @@ void ncplane_yx(struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 void ncplane_dim_yx(struct ncplane* n, int* RESTRICT rows, int* RESTRICT cols);
 
 static inline int
-ncplane_dim_y(struct ncplane* n){
+ncplane_dim_y(const struct ncplane* n){
   int dimy;
   ncplane_dim_yx(n, &dimy, NULL);
   return dimy;
 }
 
 static inline int
-ncplane_dim_x(struct ncplane* n){
+ncplane_dim_x(const struct ncplane* n){
   int dimx;
   ncplane_dim_yx(n, NULL, &dimx);
   return dimx;
@@ -705,7 +706,7 @@ void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Return the current styling for this ncplane.
-unsigned ncplane_styles(struct ncplane* n);
+unsigned ncplane_styles(const struct ncplane* n);
 
 // Set the ncplane's base cell to this cell. It will be used for purposes of
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane

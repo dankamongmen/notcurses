@@ -422,17 +422,18 @@ API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
 API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 
 // Return the dimensions of this ncplane.
-API void ncplane_dim_yx(struct ncplane* n, int* RESTRICT rows, int* RESTRICT cols);
+API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT rows,
+                        int* RESTRICT cols);
 
 static inline int
-ncplane_dim_y(struct ncplane* n){
+ncplane_dim_y(const struct ncplane* n){
   int dimy;
   ncplane_dim_yx(n, &dimy, NULL);
   return dimy;
 }
 
 static inline int
-ncplane_dim_x(struct ncplane* n){
+ncplane_dim_x(const struct ncplane* n){
   int dimx;
   ncplane_dim_yx(n, NULL, &dimx);
   return dimx;
@@ -550,7 +551,7 @@ API void* ncplane_userptr(struct ncplane* n);
 // according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
 // Undefined behavior on negative 'c'.
 static inline int
-ncplane_align(struct ncplane* n, ncalign_e align, int c){
+ncplane_align(const struct ncplane* n, ncalign_e align, int c){
   if(align == NCALIGN_LEFT){
     return 0;
   }
@@ -907,7 +908,7 @@ channel_b(unsigned channel){
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 static inline unsigned
 channel_rgb(unsigned channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
-                unsigned* RESTRICT b){
+            unsigned* RESTRICT b){
   *r = channel_r(channel);
   *g = channel_g(channel);
   *b = channel_b(channel);
@@ -1495,7 +1496,7 @@ API void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Return the current styling for this ncplane.
-API unsigned ncplane_styles(struct ncplane* n);
+API unsigned ncplane_styles(const struct ncplane* n);
 
 // Called for each delta performed in a fade on ncp. If anything but 0 is returned,
 // the fading operation ceases immediately, and that value is propagated out. If provided
