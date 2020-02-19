@@ -13,12 +13,10 @@ typedef struct planepalette {
 // the maxima across each of the six components.
 static int
 alloc_ncplane_palette(ncplane* n, planepalette* pp){
-  ncplane_lock(n);
   ncplane_dim_yx(n, &pp->rows, &pp->cols);
   // add an additional element for the background cell
   int size = pp->rows * pp->cols + 1;
   if((pp->channels = malloc(sizeof(*pp->channels) * size)) == NULL){
-    ncplane_unlock(n);
     return -1;
   }
   pp->maxr = pp->maxg = pp->maxb = 0;
@@ -75,7 +73,6 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   if(bb > pp->maxbb){
     pp->maxbb = bb;
   }
-  ncplane_unlock(n);
   return 0;
 }
 

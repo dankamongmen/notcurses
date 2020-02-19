@@ -23,17 +23,20 @@ ncplanes. Most of the notcurses statistics are updated as a result of a
 render (see notcurses_stats(3)), and **notcurses_resize(3)** is called
 internally *following* the render.
 
+While **notcurses_render** is called, you **must not call any other functions
+on the same notcurses context**, with the one exception of **notcurses_getc**
+(and its input-related helpers).
+
 A render operation consists of two logical phases: generation of the rendered
 scene, and blitting this scene to the terminal (these two phases might actually
-be interleaved, streaming the output as it is rendered). All ncplanes are
-locked while generating the frame. Frame generation requires determining an
-extended grapheme cluster, foreground color, background color, and style for
-each cell of the physical terminal. Writing the scene requires synthesizing
-a set of UTF-8-encoded characters and escape codes appropriate for the terminal
-(relying on terminfo(5)), and writing this sequence to the output **FILE**. If
-the **renderfp** value was not NULL in the original call to notcurses_init(3),
-the frame will be written to that **FILE** as well. This write does not affect
-statistics.
+be interleaved, streaming the output as it is rendered). Frame generation
+requires determining an extended grapheme cluster, foreground color, background
+color, and style for each cell of the physical terminal. Writing the scene
+requires synthesizing a set of UTF-8-encoded characters and escape codes
+appropriate for the terminal (relying on terminfo(5)), and writing this
+sequence to the output **FILE**. If the **renderfp** value was not NULL in the
+original call to notcurses_init(3), the frame will be written to that **FILE**
+as well. This write does not affect statistics.
 
 Each cell can be rendered in isolation, though synthesis of the stream carries
 dependencies between cells.
