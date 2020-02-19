@@ -79,6 +79,9 @@ are unavailable through the Debian package.
 If notcurses is built without FFmpeg, the **chunli**, **eagle**, **fallin'**,
 **outro**, **view**, and **xray** demos will be unavailable.
 
+If **notcurses-demo** is run in a terminal lacking the **can_change** terminfo
+capability, **jungle** will be skipped.
+
 The following keypresses are recognized (and are also available from the menu):
 
 * **Ctrl-U**: Toggle the help screen.
