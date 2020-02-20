@@ -1,6 +1,6 @@
 % notcurses-demo(1)
 % nick black <nickblack@linux.com>
-% v1.2.0
+% v1.2.1
 
 # NAME
 
@@ -73,10 +73,10 @@ Proper display requires:
 
 The Debian version of notcurses leaves out certain multimedia considered
 non-free under the Debian Free Software Guidelines. As a result, the
-**chunli**, **eagle**, **fallin'**, **jungle**, **luigi**, and **view** demos
+**chunli**, **eagle**, **jungle**, **luigi**, and **view** demos
 are unavailable through the Debian package.
 
-If notcurses is built without FFmpeg, the **chunli**, **eagle**, **fallin'**,
+If notcurses is built without FFmpeg, the **chunli**, **eagle**,
 **outro**, **view**, and **xray** demos will be unavailable.
 
 If **notcurses-demo** is run in a terminal lacking the **can_change** terminfo

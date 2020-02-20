@@ -4,4 +4,4 @@ notcurses (1.2.1-1) unstable; urgency=medium
   * Remove a few DFSG-questionable files
   * Initial release (Closes: #950492)
 
- -- Nick Black <dankamongmen@gmail.com>  Tue, 20 Feb 2020 04:44:48 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Thu, 20 Feb 2020 04:46:12 -0500

@@ -21,10 +21,10 @@ static char datadir[PATH_MAX];
 // yes, these are in different orders in different configurations on purpose
 // (since some transition into the next)
 #ifndef USE_FFMPEG
-static const char DEFAULT_DEMO[] = "itfhbrgswu";
+static const char DEFAULT_DEMO[] = "itfhbrgswju";
 #else
 #ifdef DFSG_BUILD
-static const char DEFAULT_DEMO[] = "ixtfhbrgslwuo";
+static const char DEFAULT_DEMO[] = "ixtfhbrgswuo";
 #else
 static const char DEFAULT_DEMO[] = "ixethbcgrwuvlfsjo";
 #endif
