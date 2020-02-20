@@ -968,6 +968,33 @@ TEST_CASE("NCPlane") {
     CHECK(0 == notcurses_render(nc_));
   }
 
+  SUBCASE("EGCStainable") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    int sbytes;
+    CHECK(0 == ncplane_set_fg(n_, 0x444444));
+    CHECK(1 == ncplane_putegc(n_, "A", &sbytes));
+    CHECK(0 == ncplane_set_fg(n_, 0x888888));
+    CHECK(1 == ncplane_putegc(n_, "B", &sbytes));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
+    CHECK(0 == notcurses_render(nc_));
+    // EGC should change, but not the color
+    CHECK(0 == ncplane_set_fg(n_, 0x222222));
+    CHECK(1 == ncplane_putegc_stainable(n_, "C", &sbytes));
+    CHECK(1 == ncplane_putegc_stainable(n_, "D", &sbytes));
+    uint64_t channels = 0;
+    CHECK(1 == ncplane_at_yx(n_, 0, 0, &c));
+    CHECK(cell_simple_p(&c));
+    CHECK('C' == c.gcluster);
+    CHECK(0 == channels_set_fg(&channels, 0x444444));
+    CHECK(channels == c.channels);
+    CHECK(1 == ncplane_at_yx(n_, 0, 1, &c));
+    CHECK(cell_simple_p(&c));
+    CHECK('D' == c.gcluster);
+    CHECK(0 == channels_set_fg(&channels, 0x888888));
+    CHECK(channels == c.channels);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 

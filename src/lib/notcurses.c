@@ -1321,6 +1321,42 @@ int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* 
   return ret;
 }
 
+int ncplane_putsimple_stainable(ncplane* n, char c){
+  uint64_t channels = n->channels;
+  uint32_t attrword = n->attrword;
+  const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
+  n->channels = targ->channels;
+  n->attrword = targ->attrword;
+  int ret = ncplane_putsimple(n, c);
+  n->channels = channels;
+  n->attrword = attrword;
+  return ret;
+}
+
+int ncplane_putwegc_stainable(ncplane* n, const wchar_t* gclust, int* sbytes){
+  uint64_t channels = n->channels;
+  uint32_t attrword = n->attrword;
+  const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
+  n->channels = targ->channels;
+  n->attrword = targ->attrword;
+  int ret = ncplane_putwegc(n, gclust, sbytes);
+  n->channels = channels;
+  n->attrword = attrword;
+  return ret;
+}
+
+int ncplane_putegc_stainable(ncplane* n, const char* gclust, int* sbytes){
+  uint64_t channels = n->channels;
+  uint32_t attrword = n->attrword;
+  const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
+  n->channels = targ->channels;
+  n->attrword = targ->attrword;
+  int ret = ncplane_putegc(n, gclust, sbytes);
+  n->channels = channels;
+  n->attrword = attrword;
+  return ret;
+}
+
 int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
   if(n->y == n->leny && n->x == n->lenx){
     return -1;

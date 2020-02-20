@@ -781,7 +781,7 @@ void ncplane_cursor_yx(struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 // and advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
 // On failure, -1 is returned.
-API int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
+int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
 
 // Call ncplane_putc_yx() for the current cursor location.
 static inline int
@@ -792,13 +792,17 @@ ncplane_putc(struct ncplane* n, const cell* c){
 // Replace the cell at the specified coordinates with the provided 7-bit char
 // 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.
-API int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
+int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
 
 // Call ncplane_putsimple_yx() at the current cursor location.
 static inline int
 ncplane_putsimple(struct ncplane* n, char c){
   return ncplane_putsimple_yx(n, -1, -1, c);
 }
+
+// Replace the EGC underneath us, but retain the styling. The current styling
+// of the plane will not be changed.
+int ncplane_putsimple_stainable(struct ncplane* n, char c);
 
 // Replace the cell at the specified coordinates with the provided wide char
 // 'w'. Advance the cursor by the character's width as reported by wcwidth().
@@ -827,6 +831,10 @@ static inline int
 ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
   return ncplane_putegc_yx(n, -1, -1, gclust, sbytes);
 }
+
+// Replace the EGC underneath us, but retain the styling. The current styling
+// of the plane will not be changed.
+int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
 
 #define WCHAR_MAX_UTF8BYTES 6
 
@@ -858,6 +866,10 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
   }
   return ncplane_putwegc(n, gclust, sbytes);
 }
+
+// Replace the EGC underneath us, but retain the styling. The current styling
+// of the plane will not be changed.
+int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
