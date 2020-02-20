@@ -1,21 +1,22 @@
 Source: notcurses
 Priority: optional
 Maintainer: Nick Black <dankamongmen@gmail.com>
-Build-Depends: cmake,
-               debhelper-compat (= 12),
-               dh-python (>= 4.20191017),
-               dh-sequence-python3,
-               doctest-dev,
-               graphviz (>= 2.42.2),
-               libavformat-dev (>= 7:4.2.1),
-               libavutil-dev (>= 7:4.2.1),
-               libncurses-dev,
-               libswscale-dev (>= 7:4.2.1),
-               pandoc (>= 1.19.2.4),
-               pkg-config,
-               python3-cffi (>= 1.13.2),
-               python3-dev,
-               python3-setuptools (>= 44.0.0)
+Build-Depends:
+ cmake,
+ debhelper-compat (= 12),
+ dh-python (>= 4.20191017),
+ dh-sequence-python3,
+ doctest-dev,
+ graphviz (>= 2.42.2),
+ libavformat-dev (>= 7:4.2.1),
+ libavutil-dev (>= 7:4.2.1),
+ libncurses-dev,
+ libswscale-dev (>= 7:4.2.1),
+ pandoc (>= 1.19.2.4),
+ pkg-config,
+ python3-cffi (>= 1.13.2),
+ python3-dev,
+ python3-setuptools (>= 44.0.0),
 Standards-Version: 4.5.0
 Section: libs
 X-Python3-Version: >= 3.7
@@ -24,6 +25,51 @@ Testsuite: autopkgtest-pkg-python
 Homepage: https://nick-black.com/dankwiki/index.php/notcurses
 Vcs-Browser: https://github.com/dankamongmen/notcurses
 Vcs-Git: https://github.com/dankamongmen/notcurses.git
+
+Package: libnotcurses++-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends:
+ libnotcurses++1 (= ${binary:Version}),
+ libnotcurses-dev (>= ${binary:Version}),
+ ${misc:Depends},
+Description: Character graphics and TUI library (C++ development)
+ notcurses facilitates the creation of modern TUI programs,
+ making full use of Unicode and 24-bit direct color. It presents
+ an API similar to that of Curses, and rides atop libtinfo.
+ .
+ These files are necessary for C++ development using notcurses.
+
+Package: libnotcurses++1
+Architecture: any
+Multi-Arch: same
+Recommends: ncurses-term
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Character graphics and TUI library (C++ wrappers)
+ notcurses facilitates the creation of modern TUI programs,
+ making full use of Unicode and 24-bit direct color. It presents
+ an API similar to that of Curses, and rides atop libtinfo.
+ .
+ These files underlie the C++ wrappers for notcurses.
+
+Package: libnotcurses-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends:
+ libavformat-dev,
+ libncurses-dev,
+ libnotcurses1 (= ${binary:Version}),
+ ${misc:Depends},
+Description: Character graphics and TUI library (development)
+ notcurses facilitates the creation of modern TUI programs, making
+ full use of Unicode and 24-bit direct color. Its API is similar
+ to that of NCURSES, but extends that with z-buffering, rendering
+ of images and video using ffmpeg, alpha blending, widgets, palette
+ fades, resize awareness, and multithreading support.
+ .
+ These files are necessary for C development using notcurses.
 
 Package: libnotcurses1
 Architecture: any
@@ -38,58 +84,16 @@ Description: Character graphics and TUI library
  of images and video using ffmpeg, alpha blending, widgets, palette
  fades, resize awareness, and multithreading support.
 
-Package: libnotcurses-dev
-Section: libdevel
-Architecture: any
-Multi-Arch: same
-Depends: libavformat-dev,
-         libncurses-dev,
-         libnotcurses1 (= ${binary:Version}),
-         ${misc:Depends}
-Description: Character graphics and TUI library (development)
- notcurses facilitates the creation of modern TUI programs, making
- full use of Unicode and 24-bit direct color. Its API is similar
- to that of NCURSES, but extends that with z-buffering, rendering
- of images and video using ffmpeg, alpha blending, widgets, palette
- fades, resize awareness, and multithreading support.
- .
- These files are necessary for C development using notcurses.
-
-Package: libnotcurses++1
-Architecture: any
-Multi-Arch: same
-Recommends: ncurses-term
-Depends: ${misc:Depends}, ${shlibs:Depends}
-Description: Character graphics and TUI library (C++ wrappers)
- notcurses facilitates the creation of modern TUI programs,
- making full use of Unicode and 24-bit direct color. It presents
- an API similar to that of Curses, and rides atop libtinfo.
- .
- These files underlie the C++ wrappers for notcurses.
-
-Package: libnotcurses++-dev
-Section: libdevel
-Architecture: any
-Multi-Arch: same
-Depends: libnotcurses++1 (= ${binary:Version}),
-         libnotcurses-dev (>= ${binary:Version}),
-         ${misc:Depends}
-Description: Character graphics and TUI library (C++ development)
- notcurses facilitates the creation of modern TUI programs,
- making full use of Unicode and 24-bit direct color. It presents
- an API similar to that of Curses, and rides atop libtinfo.
- .
- These files are necessary for C++ development using notcurses.
-
 Package: notcurses-bin
 Architecture: any
 Multi-Arch: foreign
 Section: graphics
-Depends: ncurses-term,
-         notcurses-data (= ${source:Version}),
-         ${misc:Depends},
-         ${python3:Depends},
-         ${shlibs:Depends}
+Depends:
+ ncurses-term,
+ notcurses-data (= ${source:Version}),
+ python3,
+ ${misc:Depends},
+ ${shlibs:Depends},
 Description: Character graphics and TUI library demos
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
