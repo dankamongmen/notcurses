@@ -698,7 +698,7 @@ if(${USE_PYTHON})
     install(
       CODE "execute_process(
         COMMAND
-          ${Python3_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX} --skip-build
+          ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${DESTDIR} --prefix=${CMAKE_INSTALL_PREFIX} --single-version-externally-managed --optimize=1 --skip-build
         WORKING_DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/python
       )"
