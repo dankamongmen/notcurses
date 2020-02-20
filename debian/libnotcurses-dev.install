@@ -1,4 +1,4 @@
-usr/include/notcurses.h
+usr/include/notcurses/*
 usr/lib/*/cmake/*
 usr/lib/*/libnotcurses.a
 usr/lib/*/libnotcurses.so

@@ -40,14 +40,10 @@ libnotcurses++.so.1 libnotcurses++1 #MINVER#
  _ZTIN4ncpp16invalid_argumentE@Base 1.2.0
  _ZTIN4ncpp19invalid_state_errorE@Base 1.2.0
  _ZTIPN4ncpp10init_errorE@Base 1.2.0
- _ZTIPN4ncpp16invalid_argumentE@Base 1.2.0
- _ZTIPN4ncpp19invalid_state_errorE@Base 1.2.0
  _ZTSN4ncpp10init_errorE@Base 1.2.0
  _ZTSN4ncpp16invalid_argumentE@Base 1.2.0
  _ZTSN4ncpp19invalid_state_errorE@Base 1.2.0
  _ZTSPN4ncpp10init_errorE@Base 1.2.0
- _ZTSPN4ncpp16invalid_argumentE@Base 1.2.0
- _ZTSPN4ncpp19invalid_state_errorE@Base 1.2.0
  _ZTVN4ncpp10init_errorE@Base 1.2.0
  _ZTVN4ncpp16invalid_argumentE@Base 1.2.0
  _ZTVN4ncpp19invalid_state_errorE@Base 1.2.0
