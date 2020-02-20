@@ -78,8 +78,7 @@ int intro(struct notcurses* nc){
     return -1;
   }
   if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 11, centercols,
-                       NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM |
-                        NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
+                       NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM | NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
     return -1;
   }
   cell_release(ncp, &ul); cell_release(ncp, &ur);
@@ -134,5 +133,5 @@ int intro(struct notcurses* nc){
     clock_gettime(CLOCK_MONOTONIC_RAW, &now);
   }while(timespec_to_ns(&now) < deadline);
   struct timespec fade = demodelay;
-  return ncplane_fadeout(ncp, &fade, fader, &flipmode);
+  return ncplane_fadeout(ncp, &fade, demo_fader, NULL);
 }
