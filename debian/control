@@ -90,6 +90,7 @@ Section: graphics
 Depends: ncurses-term,
          notcurses-data (= ${source:Version}),
          ${misc:Depends},
+         ${python3:Depends},
          ${shlibs:Depends}
 Description: Character graphics and TUI library demos
  notcurses facilitates the creation of modern TUI programs,
@@ -99,7 +100,8 @@ Description: Character graphics and TUI library demos
  These utilities from the notcurses project include notcurses-demo
  (a demonstration of various libnotcurses capabilities) and
  notcurses-view (a character mode multimedia player), among other
- tools. Unit tests are furthermore bundled as notcurses-tester.
+ tools. Unit tests are furthermore bundled as notcurses-tester,
+ while notcurses-pydemo verifies the notcurses Python wrappers.
 
 Package: notcurses-data
 Architecture: all
@@ -117,6 +119,7 @@ Description: Multimedia used by notcurses-bin
 Package: python3-notcurses
 Section: python
 Architecture: any
+Multi-Arch: no
 Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
 Provides: ${python3:Provides}
 Description: Character graphics and TUI library (Python)

@@ -673,6 +673,7 @@ install(FILES
     DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3
 )
 
+install(FILES src/pydemo/notcurses-pydemo DESTINATION bin)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
