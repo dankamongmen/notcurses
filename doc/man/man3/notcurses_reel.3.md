@@ -1,10 +1,10 @@
-% notcurses_reels(3)
+% notcurses_reel(3)
 % nick black <nickblack@linux.com>
 % v1.2.0
 
 # NAME
 
-notcurses_reels - high-level widget for hierarchical data
+notcurses_reel - high-level widget for hierarchical data
 
 # SYNOPSIS
 

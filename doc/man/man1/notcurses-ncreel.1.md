@@ -28,5 +28,5 @@ monospaced font supporting the Unicode Block Drawing Characters.
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_ncreel(3)**,
+**notcurses_reel(3)**,
 **terminfo(5)**
