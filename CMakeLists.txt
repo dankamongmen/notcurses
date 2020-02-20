@@ -700,8 +700,8 @@ if(${USE_PYTHON})
   # here for a deb build.
   if(NOT "${DFSG_BUILD}")
     # --root both implies, and is required by, --single-external-package-managed
-    # Arch makepkg sets it. if unset, use /
-    set(PYROOT $ENV{DESTDIR})
+    # Arch makepkg exports PYROOT as /usr. if unset, use /.
+    set(PYROOT $ENV{PYROOT})
     if(NOT PYROOT)
       set(PYROOT "/")
     endif()
