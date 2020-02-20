@@ -14,7 +14,7 @@ set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
 
 ###################### USER-SELECTABLE OPTIONS ###########################
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
-option(USE_DOXYGEN "Build HTML cross reference with doxygen" ON)
+option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_FFMPEG "Disable FFmpeg image/video support (recommended)" ON)
 option(USE_NETWORK "Allow cargo to use the network" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
@@ -560,6 +560,7 @@ if(${USE_PYTHON})
     OUTPUT
       "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
     COMMAND
+      "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info &&
       "${Python3_EXECUTABLE}" ${SETUP_PY} build_ext -L ${CMAKE_CURRENT_BINARY_DIR} -b ${CMAKE_CURRENT_BINARY_DIR}/python -t${CMAKE_CURRENT_BINARY_DIR}/python &&
       "${Python3_EXECUTABLE}" ${SETUP_PY} build_py
     DEPENDS
@@ -673,7 +674,7 @@ install(FILES
     DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3
 )
 
-install(FILES src/pydemo/notcurses-pydemo DESTINATION bin)
+install(PROGRAMS src/pydemo/notcurses-pydemo DESTINATION bin)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
@@ -698,7 +699,7 @@ if(${USE_PYTHON})
     install(
       CODE "execute_process(
         COMMAND
-          ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${DESTDIR} --prefix=${CMAKE_INSTALL_PREFIX} --single-version-externally-managed --optimize=1 --skip-build
+        ${Python3_EXECUTABLE} ${SETUP_PY} install --root=/ --prefix=${CMAKE_INSTALL_PREFIX} --optimize=1
         WORKING_DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/python
       )"
