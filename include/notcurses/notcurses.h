@@ -400,6 +400,12 @@ API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
 // The new plane will be immediately above the old one on the z axis.
 API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 
+// provided a coordinate relative to the origin of 'src', map it to the same
+// absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
+// and 'x' may be NULL.
+API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
+                           int* RESTRICT y, int* RESTRICT x);
+
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.

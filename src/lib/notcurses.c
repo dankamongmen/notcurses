@@ -2031,3 +2031,13 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
   }
   return 0;
 }
+
+void ncplane_translate(const ncplane* src, const ncplane* dst,
+                       int* restrict y, int* restrict x){
+  if(y){
+    *y = src->absy - dst->absy + *y;
+  }
+  if(x){
+    *x = src->absx - dst->absx + *x;
+  }
+}

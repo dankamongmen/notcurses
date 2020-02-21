@@ -269,7 +269,7 @@ struct ncplane* notcurses_stdplane(struct notcurses* nc);
 
 // notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
 static inline struct ncplane*
-notcurses_stddim_yx(struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
+notcurses_stddim_yx(struct notcurses* nc, int* restrict y, int* restrict x){
   struct ncplane* s = notcurses_stdplane(nc); // can't fail
   ncplane_dim_yx(s, y, x); // accepts NULL
   return s;
@@ -296,12 +296,12 @@ void notcurses_drop_planes(struct notcurses* nc);
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
 // References to ncplanes (and the egcpools underlying cells) remain valid
 // following a resize operation, but the cursor might have changed position.
-int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
+int notcurses_resize(struct notcurses* n, int* restrict y, int* restrict x);
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows,
-                      int* RESTRICT cols){
+notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
+                      int* restrict cols){
   ncplane_dim_yx(notcurses_stdplane(n), rows, cols);
 }
 
@@ -675,10 +675,10 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
 int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of this ncplane relative to the standard plane.
-void ncplane_yx(struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+void ncplane_yx(struct ncplane* n, int* restrict y, int* restrict x);
 
 // Return the dimensions of this ncplane.
-void ncplane_dim_yx(struct ncplane* n, int* RESTRICT rows, int* RESTRICT cols);
+void ncplane_dim_yx(struct ncplane* n, int* restrict rows, int* restrict cols);
 
 static inline int
 ncplane_dim_y(const struct ncplane* n){
@@ -693,6 +693,12 @@ ncplane_dim_x(const struct ncplane* n){
   ncplane_dim_yx(n, NULL, &dimx);
   return dimx;
 }
+
+// provided a coordinate relative to the origin of 'src', map it to the same
+// absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
+// and 'x' may be NULL.
+void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
+                       int* restrict y, int* restrict x);
 ```
 
 If a given cell's glyph is zero, or its foreground channel is fully transparent,
@@ -742,10 +748,10 @@ int ncplane_move_top(struct ncplane* n);
 int ncplane_move_bottom(struct ncplane* n);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-int ncplane_move_below(struct ncplane* RESTRICT n, struct ncplane* RESTRICT below);
+int ncplane_move_below(struct ncplane* restrict n, struct ncplane* restrict below);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
-int ncplane_move_above(struct ncplane* RESTRICT n, struct ncplane* RESTRICT above);
+int ncplane_move_above(struct ncplane* restrict n, struct ncplane* restrict above);
 
 // Return the ncplane below this one, or NULL if this is at the stack's bottom.
 struct ncplane* ncplane_below(struct ncplane* n);
@@ -783,7 +789,7 @@ memory.
 int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-void ncplane_cursor_yx(struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+void ncplane_cursor_yx(struct ncplane* n, int* restrict y, int* restrict x);
 
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the
