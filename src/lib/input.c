@@ -331,6 +331,8 @@ handle_ncinput(notcurses* nc, ncinput* ni){
     if(r == '\n' || r == '\r'){
       r = NCKEY_ENTER;
       ctrl = false;
+    }else if(r == '\t'){ // FIXME infocmp: ht=^I, use that
+      ctrl = false;
     }else{
       r += 'A' - 1;
     }
