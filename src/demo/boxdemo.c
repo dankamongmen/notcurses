@@ -33,7 +33,8 @@ reload_corners(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr){
 }
 
 int box_demo(struct notcurses* nc){
-  struct ncplane* n = notcurses_stdplane(nc);
+  int ylen, xlen;
+  struct ncplane* n = notcurses_stddim_yx(nc, &ylen, &xlen);
   ncplane_erase(n);
   cell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
   cell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
@@ -41,8 +42,6 @@ int box_demo(struct notcurses* nc){
   if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  int ylen, xlen;
-  ncplane_dim_yx(n, &ylen, &xlen);
   // target grid is 7x7
   const int targx = 7;
   const int targy = 7;

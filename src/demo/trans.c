@@ -235,8 +235,7 @@ slidepanel(struct notcurses* nc){
 // and that we can write to every coordinate.
 int trans_demo(struct notcurses* nc){
   int maxx, maxy;
-  notcurses_term_dim_yx(nc, &maxy, &maxx);
-  struct ncplane* n = notcurses_stdplane(nc);
+  struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
   ncplane_set_fg_rgb(n, 255, 255, 255);
   uint64_t channels = 0;
   channels_set_fg_rgb(&channels, 0, 128, 128);

@@ -20,10 +20,8 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
 }
 
 int intro(struct notcurses* nc){
-  struct ncplane* ncp;
-  ncp = notcurses_stdplane(nc);
   int rows, cols;
-  ncplane_dim_yx(ncp, &rows, &cols);
+  struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   uint64_t cul, cur, cll, clr;
   cul = cur = cll = clr = 0;
   channels_set_fg_rgb(&cul, 0, 0xd0, 0);

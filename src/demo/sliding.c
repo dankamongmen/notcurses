@@ -144,8 +144,8 @@ draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx)
 int sliding_puzzle_demo(struct notcurses* nc){
   int ret = -1, z;
   int maxx, maxy;
+  struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
   int chunky, chunkx;
-  notcurses_term_dim_yx(nc, &maxy, &maxx);
   // want at least 2x2 for each sliding chunk
   if(maxy < CHUNKS_VERT * 2 || maxx < CHUNKS_HORZ * 2){
     return -1;
@@ -161,7 +161,6 @@ int sliding_puzzle_demo(struct notcurses* nc){
   }
   int wastey = ((maxy - 2) - (CHUNKS_VERT * chunky)) / 2;
   int wastex = ((maxx - 2) - (CHUNKS_HORZ * chunkx)) / 2;
-  struct ncplane* n = notcurses_stdplane(nc);
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){

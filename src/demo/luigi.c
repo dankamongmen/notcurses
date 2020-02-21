@@ -146,7 +146,8 @@ int luigi_demo(struct notcurses* nc){
   if(!notcurses_canopen(nc)){
     return 0;
   }
-  struct ncplane* n = notcurses_stdplane(nc);
+  int rows, cols;
+  struct ncplane* n = notcurses_stddim_yx(nc, &rows, &cols);
   int averr = 0;
   char* map = find_data("megaman2.bmp");
   struct ncvisual* nv = ncplane_visual_open(n, map, &averr);
@@ -164,8 +165,6 @@ int luigi_demo(struct notcurses* nc){
 #ifdef USE_FFMPEG
   assert(averr == AVERROR_EOF);
 #endif
-  int rows, cols;
-  ncplane_dim_yx(n, &rows, &cols);
   // he should be walking on the platform ~4/5 of the way down
   const int height = 32;
   int yoff = rows * 4 / 5 - height + 1; // tuned

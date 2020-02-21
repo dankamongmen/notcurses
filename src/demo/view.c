@@ -16,9 +16,8 @@ watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((u
 
 static int
 view_video_demo(struct notcurses* nc){
-  struct ncplane* ncp = notcurses_stdplane(nc);
   int dimy, dimx;
-  ncplane_dim_yx(ncp, &dimy, &dimx);
+  struct ncplane* ncp = notcurses_stddim_yx(nc, &dimy, &dimx);
   int averr;
   struct ncvisual* ncv;
   char* fm6 = find_data("fm6.mkv");
@@ -69,9 +68,8 @@ int view_demo(struct notcurses* nc){
   if(!notcurses_canopen(nc)){
     return 0;
   }
-  struct ncplane* ncp = notcurses_stdplane(nc);
   int dimy, dimx;
-  ncplane_dim_yx(ncp, &dimy, &dimx);
+  struct ncplane* ncp = notcurses_stddim_yx(nc, &dimy, &dimx);
   int averr = 0;
   char* pic = find_data("PurpleDrank.jpg");
   ncplane_erase(ncp);

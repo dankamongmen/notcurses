@@ -25,7 +25,8 @@ perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)), vo
 static void*
 fadethread(void* vnc){
   struct notcurses* nc = vnc;
-  struct ncplane* ncp = notcurses_stdplane(nc);
+  int rows, cols;
+  struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   struct timespec fade;
   timespec_mul(&demodelay, 2, &fade);
   ncplane_fadeout(ncp, &fade, demo_fader, NULL);
@@ -37,8 +38,6 @@ fadethread(void* vnc){
   if(ncv == NULL){
     return NULL;
   }
-  int rows, cols;
-  notcurses_term_dim_yx(nc, &rows, &cols);
   struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
@@ -126,13 +125,9 @@ int outro(struct notcurses* nc){
   if(!notcurses_canopen(nc)){
     return 0;
   }
-  struct ncplane* ncp;
-  if((ncp = notcurses_stdplane(nc)) == NULL){
-    return -1;
-  }
   int rows, cols;
+  struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   ncplane_erase(ncp);
-  ncplane_dim_yx(ncp, &rows, &cols);
   int averr = 0;
   char* path = find_data("changes.jpg");
   chncv = ncplane_visual_open(ncp, path, &averr);

@@ -137,9 +137,8 @@ wormy(worm* s, int dimy, int dimx){
 static void *
 worm_thread(void* vnc){
   struct notcurses* nc = vnc;
-  struct ncplane* n = notcurses_stdplane(nc);
   int dimy, dimx;
-  ncplane_dim_yx(n, &dimy, &dimx);
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
   int wormcount = (dimy * dimx) / 800;
   worm worms[wormcount];
   for(int s = 0 ; s < wormcount ; ++s){
@@ -453,9 +452,9 @@ int witherworm_demo(struct notcurses* nc){
   const int steps[] = { 0, 0x10040, 0x20110, 0x120, 0x12020, };
   const int starts[] = { 0, 0x10101, 0x004000, 0x000040, 0x400040, };
 
-  struct ncplane* n = notcurses_stdplane(nc);
   size_t i;
   const size_t screens = sizeof(steps) / sizeof(*steps);
+  struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
   for(i = 0 ; i < screens ; ++i){
     wchar_t key = NCKEY_INVALID;
@@ -468,7 +467,7 @@ int witherworm_demo(struct notcurses* nc){
       int step = steps[i];
       cell_init(&c);
       int y, x, maxy, maxx;
-      ncplane_dim_yx(n, &maxy, &maxx);
+      ncplane_dim_yx(n, &maxy, &maxx); // might resize
       int rgb = start;
       int bytes_out = 0;
       int egcs_out = 0;

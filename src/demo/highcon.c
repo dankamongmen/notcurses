@@ -64,8 +64,7 @@ int highcontrast_demo(struct notcurses* nc){
   const int STEP = 16;
   int ret = -1;
   int dimy, dimx;
-  struct ncplane* n = notcurses_stdplane(nc);
-  ncplane_dim_yx(n, &dimy, &dimx);
+  struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   int totcells = (dimy - 1) * dimx;
   unsigned* scrcolors = malloc(sizeof(*scrcolors) * totcells);
   if(scrcolors == NULL){

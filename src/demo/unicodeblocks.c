@@ -81,9 +81,8 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
 }
 
 int unicodeblocks_demo(struct notcurses* nc){
-  struct ncplane* n = notcurses_stdplane(nc);
   int maxx, maxy;
-  notcurses_term_dim_yx(nc, &maxy, &maxx);
+  struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
   // some blocks are good for the printing, some less so. some are only
   // marginally covered by mainstream fonts, some not at all. we explicitly
   // list the ones we want.

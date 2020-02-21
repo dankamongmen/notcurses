@@ -26614,9 +26614,8 @@ int jungle_demo(struct notcurses* nc){
   if(out < ORIGWIDTH * ORIGHEIGHT){ // uh-oh
     return -1;
   }
-  struct ncplane* n = notcurses_stdplane(nc);
   int dimx, dimy;
-  ncplane_dim_yx(n, &dimy, &dimx);
+  struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   dimy *= 2; // use half blocks
   const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
   const int yiter = ORIGHEIGHT / dimy + !!(ORIGHEIGHT % dimy);

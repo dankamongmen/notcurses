@@ -293,13 +293,13 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   if(channels_set_bg_alpha(&popts.bgchannel, CELL_ALPHA_TRANSPARENT)){
     return -1;
   }
-  struct ncplane* w = notcurses_stdplane(nc);
+  int dimy;
+  struct ncplane* w = notcurses_stddim_yx(nc, &dimy, NULL);
   struct ncreel* pr = ncreel_create(w, &popts, efdw);
   if(pr == NULL){
     fprintf(stderr, "Error creating ncreel\n");
     return -1;
   }
-  int dimy = ncplane_dim_y(w);
   // Press a for a new nc above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement.
   ncplane_styles_on(w, NCSTYLE_BOLD | NCSTYLE_ITALIC);
