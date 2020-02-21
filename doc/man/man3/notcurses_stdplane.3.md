@@ -12,16 +12,22 @@ notcurses_stdplane - acquire the standard ncplane
 
 **struct ncplane* notcurses_stdplane(struct notcurses* nc);**
 
+**static inline struct ncplane* notcurses_stddim_yx(struct notcurses* nc, int* restrict y, int* restrict x);**
+
 # DESCRIPTION
 
 **notcurses_stdplane** returns a handle to the standard ncplane for the context
 **nc**. The standard plane always exists, and is always the same size as the
 screen. It is an error to call **ncplane_destroy(3)**, **ncplane_resize(3)**,
-or **ncplane_move(3)** on the standard plane, though it can be freely moved
+or **ncplane_move(3)** on the standard plane, bit it can be freely moved
 along the z-axis.
 
-A resize event does not invalidate this reference; it can be used until
-**notcurses_stop(3)** is called on **nc**.
+**notcurses_stddim_yx** provides the same function, but also writes the
+dimensions of the standard plane (and thus the real drawable area) into any
+non-**NULL** parameters among **y** and **x**.
+
+A resize event does not invalidate these references. They can be used until
+**notcurses_stop(3)** is called on the associated **nc**.
 
 # RETURN VALUES
 
@@ -30,4 +36,6 @@ will always return a valid pointer to the standard plane.
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_ncplane(3)**, **notcurses_stop(3)**
+**notcurses(3)**,
+**notcurses_ncplane(3)**,
+**notcurses_stop(3)**

@@ -266,6 +266,14 @@ handle on the standard plane can be acquired with two top-level functions:
 // terminal size) for this terminal. The standard plane always exists, and its
 // origin is always at the uppermost, leftmost cell of the screen.
 struct ncplane* notcurses_stdplane(struct notcurses* nc);
+
+// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
+static inline struct ncplane*
+notcurses_stddim_yx(struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
+  struct ncplane* s = notcurses_stdplane(nc); // can't fail
+  ncplane_dim_yx(s, y, x); // accepts NULL
+  return s;
+}
 ```
 
 A reference to the standard plane *is* persistent across a screen resize, as are

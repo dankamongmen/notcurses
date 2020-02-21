@@ -80,9 +80,6 @@ demo_getc_blocking(ncinput* ni){
 /*----------------------------- end demo input API -------------------------*/
 
 /*-------------------------------time helpers----------------------------*/
-int timespec_subtract(struct timespec *result, const struct timespec *time1,
-                      struct timespec *time0);
-
 #define GIG 1000000000ul
 
 static inline uint64_t
@@ -103,6 +100,14 @@ timespec_subtract_ns(const struct timespec* time1, const struct timespec* time0)
   ns -= timespec_to_ns(time0);
   return ns;
 }
+
+static inline int
+timespec_subtract(struct timespec *result, const struct timespec *time0,
+                  struct timespec *time1){
+  ns_to_timespec(timespec_subtract_ns(time0, time1), result);
+  return timespec_to_ns(time0) < timespec_to_ns(time1);
+}
+
 
 // divide the provided timespec 'ts' by 'divisor' into 'quots'
 static inline void
