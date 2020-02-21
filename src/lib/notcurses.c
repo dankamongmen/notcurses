@@ -1935,6 +1935,10 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
 static int
 calc_gradient_component(unsigned ul, unsigned ur, unsigned ll, unsigned lr,
                         int y, int x, int ylen, int xlen){
+  // FIXME bullshit special case. we're subtly broken below somewhere.
+  if(lr == ll && ll == ul && ul == ur){
+    return lr;
+  }
 /*fprintf(stderr, "%08x %08x %08x %08x %d %d %d %d -> %08x\n",
     ul, ur, ll, lr, y, x, ylen, xlen,
   (((xlen - x) * ul / xlen + x * ur / xlen) * (ylen - y)) / ylen +
@@ -1947,30 +1951,33 @@ calc_gradient_component(unsigned ul, unsigned ur, unsigned ll, unsigned lr,
   unsigned upchuk = ylen * !!(((((xlen - x) * ul + xchuk) / xlen + (x * ur + xchuk) / xlen) * (ylen - y)) % ylen);
   unsigned downchuk = ylen * !!(((((xlen - x) * ll + xchuk) / xlen + (x * lr + xchuk) / xlen) * y) % ylen);
 
+  //fprintf(stderr, "u/d: %u %u t: %u\n", upchuk, downchuk, ylen / 2);
+
   upchuk = downchuk = ylen / 2;
-  //upchuk = 0;
-  //downchuk = 0;
 
     //fprintf(stderr, "uc: %u dc: %u lc: %u rc: %u\n", upchuk, downchuk, xchuk, xchuk);
 
   int up = ((((xlen - x) * ul + xchuk) / xlen + (x * ur + xchuk) / xlen) * (ylen - y) + upchuk) / ylen;
   int down = ((((xlen - x) * ll + xchuk) / xlen + (x * lr + xchuk) / xlen) * y + downchuk) / ylen;
-  /*
-    fprintf(stderr, "UL: (xlen - x) * ul / xlen (%d - %d) * %u / %d (%g)\n", xlen, x, ul, xlen, (((float)xlen - x) * ul + xchuk) / xlen);
+    /*fprintf(stderr, "UL: (xlen - x) * ul / xlen (%d - %d) * %u / %d (%g)\n", xlen, x, ul, xlen, (((float)xlen - x) * ul + xchuk) / xlen);
     fprintf(stderr, "UR: x * ur / xlen %d * %u / %d (%g)\n", x, ur, xlen, ((float)x * ur + xchuk) / xlen);
     fprintf(stderr, "ul: %u ur: %u u: %u\n", (xlen - x) * ul / xlen,
-        x * ur / xlen, up);
-fprintf(stderr, "%u %u %u %u top: %u bottom: %u -> %u\n",
+        x * ur / xlen, up);*/
+/*fprintf(stderr, "%u %u %u %u top: %u bottom: %u -> %u\n",
     ul, ur, ll, lr, up, down, up + down);*/
   return up + down;
 }
 
 // calculate one of the channels of a gradient at a particular point.
-static uint32_t
+static inline uint32_t
 calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
                       int y, int x, int ylen, int xlen){
+  if(channel_default_p(ul) || channel_default_p(ll) || channel_default_p(lr) || channel_default_p(ur)){
+    return ul; // FIXME speed this up
+  }
   uint32_t chan = 0;
-  channel_set_rgb(&chan, calc_gradient_component(channel_r(ul), channel_r(ur),
+  channel_set_rgb_clipped(&chan,
+                         calc_gradient_component(channel_r(ul), channel_r(ur),
                                                  channel_r(ll), channel_r(lr),
                                                  y, x, ylen, xlen),
                          calc_gradient_component(channel_g(ul), channel_g(ur),
@@ -1984,7 +1991,7 @@ calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
 
 // calculate both channels of a gradient at a particular point, storing them
 // into `c`->channels. x and y ought be the location within the gradient.
-static void
+static inline void
 calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
                        uint64_t lr, int y, int x, int ylen, int xlen){
   cell_set_fchannel(c, calc_gradient_channel(channels_fchannel(ul),
