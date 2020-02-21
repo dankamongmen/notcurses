@@ -1152,6 +1152,10 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 }
+
+// Set the given style throughout the specified region, keepying content and
+// channels otherwise unchanged.
+int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
 ```
 
 My 14 year-old self would never forgive me if we didn't have sweet palette fades.

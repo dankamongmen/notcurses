@@ -63,11 +63,18 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 
 **static inline int ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);**
 
+**int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);**
+
 # DESCRIPTION
 
+**ncplane_format** sets the attributes of every cell in the region having its
+upper-left corner at the cursor's current position, and its lower-right corner
+at **ystop**, **xstop**.
 
 # RETURN VALUES
 
+**ncplane_format** returns -1 if either **ystop** or **xstop** is less than the
+current equivalent position, otherwise 0.
 
 # SEE ALSO
 
