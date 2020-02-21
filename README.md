@@ -1156,6 +1156,11 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
 // Set the given style throughout the specified region, keepying content and
 // channels otherwise unchanged.
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
+
+// Set the given channels throughout the specified region, keepying content and
+// attributes otherwise unchanged.
+int ncplane_stain(struct ncplane* n, int ystop, int xstop,
+                  uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
 ```
 
 My 14 year-old self would never forgive me if we didn't have sweet palette fades.

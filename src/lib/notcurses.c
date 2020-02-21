@@ -2032,6 +2032,33 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
   return 0;
 }
 
+int ncplane_stain(struct ncplane* n, int ystop, int xstop,
+                  uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr){
+  int yoff, xoff, ymax, xmax;
+  ncplane_cursor_yx(n, &yoff, &xoff);
+  // must be at least 1x1, with its upper-left corner at the current cursor
+  if(ystop < yoff){
+    return -1;
+  }
+  if(xstop < xoff){
+    return -1;
+  }
+  ncplane_dim_yx(n, &ymax, &xmax);
+  // must be within the ncplane
+  if(xstop >= xmax || ystop >= ymax){
+    return -1;
+  }
+  const int xlen = xstop - xoff + 1;
+  const int ylen = ystop - yoff + 1;
+  for(int y = yoff ; y < ystop + 1 ; ++y){
+    for(int x = xoff ; x < xstop + 1 ; ++x){
+      cell* targc = ncplane_cell_ref_yx(n, y, x);
+      calc_gradient_channels(targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
+    }
+  }
+  return 0;
+}
+
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);

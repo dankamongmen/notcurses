@@ -360,6 +360,7 @@ int ncplane_putsimple_stainable(struct ncplane* n, char c);
 int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
 int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
+int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
 """)
 
 if __name__ == "__main__":

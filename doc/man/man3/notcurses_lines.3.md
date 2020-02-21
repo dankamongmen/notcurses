@@ -65,6 +65,8 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 
 **int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);**
 
+**int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);**
+
 # DESCRIPTION
 
 **ncplane_format** sets the attributes of every cell in the region having its

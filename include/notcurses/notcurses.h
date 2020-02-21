@@ -895,6 +895,11 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
 // channels otherwise unchanged.
 API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
 
+// Set the given channels throughout the specified region, keepying content and
+// attributes otherwise unchanged.
+API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
+                      uint64_t ur, uint64_t ll, uint64_t lr);
+
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane is invalidated, and must not be used after the call,
