@@ -19,7 +19,7 @@ notcurses_stdplane - acquire the standard ncplane
 **notcurses_stdplane** returns a handle to the standard ncplane for the context
 **nc**. The standard plane always exists, and is always the same size as the
 screen. It is an error to call **ncplane_destroy(3)**, **ncplane_resize(3)**,
-or **ncplane_move(3)** on the standard plane, bit it can be freely moved
+or **ncplane_move(3)** on the standard plane, but it can be freely moved
 along the z-axis.
 
 **notcurses_stddim_yx** provides the same function, but also writes the
