@@ -326,8 +326,10 @@ namespace ncpp
 			return putc (y, x, *c);
 		}
 
-		int putc (char c) const noexcept
+		int putc (char c, bool retain_styling = false) const noexcept
 		{
+			if (retain_styling)
+				return ncplane_putsimple_stainable (plane, c);
 			return ncplane_putsimple (plane, c);
 		}
 
@@ -336,8 +338,10 @@ namespace ncpp
 			return ncplane_putsimple_yx (plane, y, x, c);
 		}
 
-		int putc (const char *gclust, int *sbytes = nullptr) const noexcept
+		int putc (const char *gclust, int *sbytes = nullptr, bool retain_styling = false) const noexcept
 		{
+			if (retain_styling)
+				return ncplane_putegc_stainable (plane, gclust, sbytes);
 			return ncplane_putegc (plane, gclust, sbytes);
 		}
 
@@ -346,8 +350,10 @@ namespace ncpp
 			return ncplane_putegc_yx (plane, y, x, gclust, sbytes);
 		}
 
-		int putc (const wchar_t *gclust, int *sbytes = nullptr) const noexcept
+		int putc (const wchar_t *gclust, int *sbytes = nullptr, bool retain_styling = false) const noexcept
 		{
+			if (retain_styling)
+				return ncplane_putwegc_stainable (plane, gclust, sbytes);
 			return ncplane_putwegc (plane, gclust, sbytes);
 		}
 
@@ -669,6 +675,16 @@ namespace ncpp
 			ncplane_styles_off (plane, static_cast<unsigned>(styles));
 		}
 
+		bool format (int ystop, int xstop, uint32_t attrword) const noexcept
+		{
+			return ncplane_format (plane, ystop, xstop, attrword) != -1;
+		}
+
+		bool stain (int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr)
+		{
+			return ncplane_stain (plane, ystop, xstop, ul, ur, ll, lr) != -1;
+		}
+
 		Plane* get_below () const noexcept
 		{
 			return map_plane (ncplane_below (plane));
@@ -830,6 +846,34 @@ namespace ncpp
 				throw invalid_argument ("'target' must be a valid pointer");
 
 			return duplicate (*target, source);
+		}
+
+		void translate (const Plane *dst, int *y = nullptr, int *x = nullptr) const
+		{
+			if (dst == nullptr)
+				throw invalid_argument ("'dst' must be a valid pointer");
+			translate (*this, *dst, y, x);
+		}
+
+		void translate (const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
+		{
+			translate (*this, dst, y, x);
+		}
+
+		static void translate (const Plane *src, const Plane *dst, int *y = nullptr, int *x = nullptr)
+		{
+			if (src == nullptr)
+				throw invalid_argument ("'src' must be a valid pointer");
+
+			if (dst == nullptr)
+				throw invalid_argument ("'dst' must be a valid pointer");
+
+			translate (*src, *dst, y, x);
+		}
+
+		static void translate (const Plane &src, const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
+		{
+			ncplane_translate (src.plane, dst.plane, y, x);
 		}
 
 		// Upstream call doesn't take ncplane* but we put it here for parity with has_no_background below
