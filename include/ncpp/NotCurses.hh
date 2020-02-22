@@ -218,6 +218,21 @@ namespace ncpp
 			return new Plane (notcurses_stdplane (nc), true);
 		}
 
+		Plane* get_stdplane (int *y, int *x)
+		{
+			if (y == nullptr)
+				throw invalid_argument ("'y' must be a valid pointer");
+			if (x == nullptr)
+				throw invalid_argument ("'x' must be a valid pointer");
+
+			return get_stdplane (*y, *x);
+		}
+
+		Plane* get_stdplane (int &y, int &x) noexcept
+		{
+			return new Plane (notcurses_stddim_yx (nc, &y, &x));
+		}
+
 		Plane* get_top () noexcept;
 
 	private:

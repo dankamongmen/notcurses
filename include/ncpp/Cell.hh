@@ -61,6 +61,16 @@ namespace ncpp
 			cell_init (&_cell);
 		}
 
+		uint32_t get_attrword () const noexcept
+		{
+			return _cell.attrword;
+		}
+
+		uint64_t get_channels () const noexcept
+		{
+			return _cell.channels;
+		}
+
 		uint64_t set_fchannel (uint32_t channel) noexcept
 		{
 			return cell_set_fchannel (&_cell, channel);
