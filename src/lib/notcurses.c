@@ -1932,45 +1932,55 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
   return ret;
 }
 
+// Our gradient is a 2d lerp among the four corners of the region. We start
+// with the observation that each corner ought be its exact specified corner,
+// and the middle ought be the exact average of all four corners' components.
+// Another observation is that if all four corners are the same, every cell
+// ought be the exact same color. From this arises the observation that a
+// perimeter element is not affected by the other three sides:
+//
+//  a corner element is defined by itself
+//  a perimeter element is defined by the two points on its side
+//  an internal element is defined by all four points
+//
+// 2D equation of state: solve for each quadrant's contribution (min 2x2):
+//
+//  X' = (xlen - 1) - X
+//  Y' = (ylen - 1) - Y
+//  TLC: X' * Y' * TL
+//  TRC: X * Y' * TR
+//  BLC: X' * Y * BL
+//  BRC: X * Y * BR
+//  steps: (xlen - 1) * (ylen - 1) [maximum steps away from origin]
+//
+// Then add TLC + TRC + BLC + BRC + steps / 2, and divide by steps (the
+//  steps / 2 is to work around truncate-towards-zero).
 static int
-calc_gradient_component(unsigned ul, unsigned ur, unsigned ll, unsigned lr,
+calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
                         int y, int x, int ylen, int xlen){
-/*fprintf(stderr, "%08x %08x %08x %08x %d %d %d %d -> %08x\n",
-    ul, ur, ll, lr, y, x, ylen, xlen,
-  (((xlen - x) * ul / xlen + x * ur / xlen) * (ylen - y)) / ylen +
-         (((xlen - x) * ll / xlen + x * lr / xlen) * (y)) / ylen);*/
-  /*unsigned lchuk = xlen * !!((xlen - x) % xlen);
-  unsigned rchuk = xlen * !!(x % (xlen));*/
-
-  const unsigned xchuk = xlen / 2;
-
-  unsigned upchuk = ylen * !!(((((xlen - x) * ul + xchuk) / xlen + (x * ur + xchuk) / xlen) * (ylen - y)) % ylen);
-  unsigned downchuk = ylen * !!(((((xlen - x) * ll + xchuk) / xlen + (x * lr + xchuk) / xlen) * y) % ylen);
-
-  upchuk = downchuk = ylen / 2;
-  //upchuk = 0;
-  //downchuk = 0;
-
-    //fprintf(stderr, "uc: %u dc: %u lc: %u rc: %u\n", upchuk, downchuk, xchuk, xchuk);
-
-  int up = ((((xlen - x) * ul + xchuk) / xlen + (x * ur + xchuk) / xlen) * (ylen - y) + upchuk) / ylen;
-  int down = ((((xlen - x) * ll + xchuk) / xlen + (x * lr + xchuk) / xlen) * y + downchuk) / ylen;
-  /*
-    fprintf(stderr, "UL: (xlen - x) * ul / xlen (%d - %d) * %u / %d (%g)\n", xlen, x, ul, xlen, (((float)xlen - x) * ul + xchuk) / xlen);
-    fprintf(stderr, "UR: x * ur / xlen %d * %u / %d (%g)\n", x, ur, xlen, ((float)x * ur + xchuk) / xlen);
-    fprintf(stderr, "ul: %u ur: %u u: %u\n", (xlen - x) * ul / xlen,
-        x * ur / xlen, up);
-fprintf(stderr, "%u %u %u %u top: %u bottom: %u -> %u\n",
-    ul, ur, ll, lr, up, down, up + down);*/
-  return up + down;
+  assert(xlen >= 2);
+  assert(ylen >= 2);
+  assert(y >= 0);
+  assert(y < ylen);
+  assert(x >= 0);
+  assert(x < xlen);
+  const int avm = (ylen - 1) - y;
+  const int ahm = (xlen - 1) - x;
+  const int tlc = ahm * avm * tl;
+  const int blc = ahm * y * bl;
+  const int trc = x * avm * tr;
+  const int brc = y * x * br;
+  const int divisor = (ylen - 1) * (xlen - 1);
+  return ((tlc + blc + trc + brc) + divisor / 2) / divisor;
 }
 
 // calculate one of the channels of a gradient at a particular point.
-static uint32_t
+static inline uint32_t
 calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
                       int y, int x, int ylen, int xlen){
   uint32_t chan = 0;
-  channel_set_rgb(&chan, calc_gradient_component(channel_r(ul), channel_r(ur),
+  channel_set_rgb_clipped(&chan,
+                         calc_gradient_component(channel_r(ul), channel_r(ur),
                                                  channel_r(ll), channel_r(lr),
                                                  y, x, ylen, xlen),
                          calc_gradient_component(channel_g(ul), channel_g(ur),
@@ -1984,7 +1994,7 @@ calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
 
 // calculate both channels of a gradient at a particular point, storing them
 // into `c`->channels. x and y ought be the location within the gradient.
-static void
+static inline void
 calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
                        uint64_t lr, int y, int x, int ylen, int xlen){
   cell_set_fchannel(c, calc_gradient_channel(channels_fchannel(ul),
@@ -2002,6 +2012,13 @@ calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
 int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
                      uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                      int ystop, int xstop){
+  // Can't use default or palette-indexed colors in a gradient
+  if(channel_default_p(ul) || channel_default_p(ll) ||
+     channel_default_p(lr) || channel_default_p(ur) ||
+     channel_palindex_p(ul) || channel_palindex_p(ll) ||
+     channel_palindex_p(lr) || channel_palindex_p(ur)){
+    return -1;
+  }
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
@@ -2018,8 +2035,19 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
   }
   const int xlen = xstop - xoff + 1;
   const int ylen = ystop - yoff + 1;
-  for(int y = yoff ; y < ystop + 1 ; ++y){
-    for(int x = xoff ; x < xstop + 1 ; ++x){
+  if(ylen == 1){
+    if(xlen == 1){
+      // single cell FIXME
+    }else{
+      // horizontal 1d FIXME
+    }
+    return 0;
+  }else if(xlen == 1){
+    // vertical 1d FIXME
+    return 0;
+  }
+  for(int y = yoff ; y <= ystop ; ++y){
+    for(int x = xoff ; x <= xstop ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->channels = 0;
       if(cell_load(n, targc, egc) < 0){
@@ -2033,7 +2061,14 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
 }
 
 int ncplane_stain(struct ncplane* n, int ystop, int xstop,
-                  uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr){
+                  uint64_t tl, uint64_t tr, uint64_t bl, uint64_t br){
+  // Can't use default or palette-indexed colors in a gradient
+  if(channel_default_p(tl) || channel_default_p(bl) ||
+     channel_default_p(br) || channel_default_p(tr) ||
+     channel_palindex_p(tl) || channel_palindex_p(bl) ||
+     channel_palindex_p(br) || channel_palindex_p(tr)){
+    return -1;
+  }
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
@@ -2050,10 +2085,10 @@ int ncplane_stain(struct ncplane* n, int ystop, int xstop,
   }
   const int xlen = xstop - xoff + 1;
   const int ylen = ystop - yoff + 1;
-  for(int y = yoff ; y < ystop + 1 ; ++y){
-    for(int x = xoff ; x < xstop + 1 ; ++x){
+  for(int y = yoff ; y <= ystop ; ++y){
+    for(int x = xoff ; x <= xstop ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
-      calc_gradient_channels(targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
+      calc_gradient_channels(targc, tl, tr, bl, br, y - yoff, x - xoff, ylen, xlen);
     }
   }
   return 0;

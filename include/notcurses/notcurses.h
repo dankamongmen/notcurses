@@ -875,7 +875,16 @@ API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 // are composed into foreground and background gradients. To do a vertical
 // gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
 // horizontal gradient, 'ul' ought equal 'll' and 'ur' ought equal 'ul'. To
-// color everything the same, all four channels should be equivalent.
+// color everything the same, all four channels should be equivalent. The
+// resulting alpha values are equal to incoming alpha values.
+//
+// Preconditions for gradient operations (error otherwise):
+//
+//  all: only RGB colors (no defaults, no palette-indexed)
+//  all: all alpha values must be the same
+//  1x1: all four colors must be the same
+//  1xN: both top and both bottom colors must be the same (vertical gradient)
+//  Nx1: both left and both right colors must be the same (horizontal gradient)
 API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
                          uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                          int ystop, int xstop);
@@ -886,6 +895,9 @@ static inline int
 ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
                        uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                        int ylen, int xlen){
+  if(ylen < 1 || xlen < 1){
+    return -1;
+  }
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);

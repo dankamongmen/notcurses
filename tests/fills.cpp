@@ -65,30 +65,23 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("GradientMonochromatic") {
-    uint64_t ul, ur, ll, lr;
-    ul = ur = ll = lr = 0;
-    channels_set_fg(&ul, 0x40f040);
-    channels_set_bg(&ul, 0x40f040);
-    channels_set_fg(&ur, 0x40f040);
-    channels_set_bg(&ur, 0x40f040);
-    channels_set_fg(&ll, 0x40f040);
-    channels_set_bg(&ll, 0x40f040);
-    channels_set_fg(&lr, 0x40f040);
-    channels_set_bg(&lr, 0x40f040);
+    uint64_t c = 0;
+    channels_set_fg(&c, 0x40f040);
+    channels_set_bg(&c, 0x40f040);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(0 == ncplane_gradient_sized(n_, "M", 0, ul, ur, ll, lr, dimy, dimx));
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    REQUIRE(0 == ncplane_gradient_sized(n_, "M", 0, c, c, c, c, dimy, dimx));
+    cell cl = CELL_TRIVIAL_INITIALIZER;
     uint64_t channels = 0;
     channels_set_fg(&channels, 0x40f040);
     channels_set_bg(&channels, 0x40f040);
     // check all squares 
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
-        REQUIRE(0 <= ncplane_at_yx(n_, y, x, &c));
-        CHECK('M' == c.gcluster);
-        CHECK(0 == c.attrword);
-        CHECK(channels == c.channels);
+        REQUIRE(0 <= ncplane_at_yx(n_, y, x, &cl));
+        CHECK('M' == cl.gcluster);
+        CHECK(0 == cl.attrword);
+        CHECK(channels == cl.channels);
       }
     }
     CHECK(0 == notcurses_render(nc_));
@@ -127,8 +120,7 @@ TEST_CASE("Fills") {
             lastyrgb = c.channels;
             CHECK(ul == c.channels);
           }else if(y == dimy - 1){
-/*fprintf(stderr, "HJAVE %016lx, WANT %016lx %d %d\n", c.channels, ll, y, x);
-            CHECK(ll == c.channels);*/
+            CHECK(ll == c.channels);
           }
           lastxrgb = c.channels;
         }else{
@@ -138,8 +130,7 @@ TEST_CASE("Fills") {
           if(y == 0){
             CHECK(ur == c.channels);
           }else if(y == dimy - 1){
-/*fprintf(stderr, "LR %016lx, WANT %016lx %d %d\n", c.channels, lr, y, x);
-            CHECK(lr == c.channels);*/
+            CHECK(lr == c.channels);
           }
         }
       }
@@ -199,6 +190,51 @@ TEST_CASE("Fills") {
     REQUIRE(0 == ncplane_gradient_sized(n_, "S", 0, ul, ur, ll, lr, dimy, dimx));
     // check corners FIXME
     CHECK(0 == notcurses_render(nc_));
+  }
+
+  SUBCASE("Ncplane_Format") {
+    int sbytes;
+    CHECK(0 == ncplane_set_fg(n_, 0x444444));
+    CHECK(1 == ncplane_putegc(n_, "A", &sbytes));
+    CHECK(0 == ncplane_set_fg(n_, 0x888888));
+    CHECK(1 == ncplane_putegc(n_, "B", &sbytes));
+    CHECK(0 == notcurses_render(nc_));
+    // attr should change, but not the EGC/color
+    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    cell_styles_on(&c, NCSTYLE_BOLD);
+    CHECK(0 == ncplane_format(n_, 0, 0, c.attrword));
+    cell d = CELL_TRIVIAL_INITIALIZER;
+    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
+    CHECK(d.attrword == c.attrword);
+    CHECK(0x444444 == cell_fg(&d));
+  }
+
+  SUBCASE("Ncplane_Stain") {
+    int sbytes;
+    CHECK(0 == ncplane_set_fg(n_, 0x444444));
+    for(int y = 0 ; y < 8 ; ++y){
+      for(int x = 0 ; x < 8 ; ++x){
+        CHECK(1 == ncplane_putegc_yx(n_, y, x, "A", &sbytes));
+      }
+    }
+    CHECK(0 == notcurses_render(nc_));
+    // attr should change, but not the EGC/color
+    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
+    uint64_t channels = 0;
+    channels_set_fg_rgb(&channels, 0x88, 0x99, 0x77);
+    channels_set_bg(&channels, 0);
+    REQUIRE(0 == ncplane_stain(n_, 7, 7, channels, channels, channels, channels));
+    CHECK(0 == notcurses_render(nc_));
+    cell d = CELL_TRIVIAL_INITIALIZER;
+    for(int y = 0 ; y < 8 ; ++y){
+      for(int x = 0 ; x < 8 ; ++x){
+        CHECK(1 == ncplane_at_yx(n_, y, x, &d));
+        CHECK(channels == d.channels);
+        REQUIRE(cell_simple_p(&d));
+        CHECK('A' == d.gcluster);
+      }
+    }
   }
 
   CHECK(0 == notcurses_stop(nc_));

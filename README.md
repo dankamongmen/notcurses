@@ -2657,6 +2657,11 @@ Using the "default color" as only one of the foreground or background requires
 emitting the `op` escape followed by the appropriate escape for changing the
 fore- or background (since `op` changes both at once).
 
+Certain EGCs are understood to be all-foreground or all-background. U+2588
+FULL BLOCK is all foreground. U+0020 SPACE is all background. When such a
+character is used, notcurses will emit whichever character can take advantage
+of the current color.
+
 ## Included tools
 
 Five binaries are built as part of notcurses:

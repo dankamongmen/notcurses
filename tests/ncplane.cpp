@@ -968,24 +968,6 @@ TEST_CASE("NCPlane") {
     CHECK(0 == notcurses_render(nc_));
   }
 
-  SUBCASE("Ncplane_Format") {
-    int sbytes;
-    CHECK(0 == ncplane_set_fg(n_, 0x444444));
-    CHECK(1 == ncplane_putegc(n_, "A", &sbytes));
-    CHECK(0 == ncplane_set_fg(n_, 0x888888));
-    CHECK(1 == ncplane_putegc(n_, "B", &sbytes));
-    CHECK(0 == notcurses_render(nc_));
-    // attr should change, but not the EGC/color
-    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    cell c = CELL_TRIVIAL_INITIALIZER;
-    cell_styles_on(&c, NCSTYLE_BOLD);
-    CHECK(0 == ncplane_format(n_, 0, 0, c.attrword));
-    cell d = CELL_TRIVIAL_INITIALIZER;
-    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
-    CHECK(d.attrword == c.attrword);
-    CHECK(0x444444 == cell_fg(&d));
-  }
-
   SUBCASE("EGCStainable") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     int sbytes;

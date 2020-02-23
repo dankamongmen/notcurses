@@ -419,6 +419,9 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
         struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
         lock_in_highcontrast(targc, crender);
         cell* prevcell = &nc->lastframe[fbcellidx(y, dimx, x)];
+        if(targc->gcluster == 0){
+          targc->gcluster = ' ';
+        }
         if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
           crender->damaged = true;
         }
