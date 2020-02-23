@@ -105,24 +105,19 @@ fill_chunk(struct ncplane* n, int idx){
   channels_set_fg_rgb(&channels, r, g, b);
   uint64_t ul, ur, ll, lr;
   ul = ur = ll = lr = 0;
-  channels_set_fg_rgb(&ul, r, g, b); channels_set_bg(&ul, 0);
-  channels_set_fg_rgb(&lr, r, g, b); channels_set_bg(&lr, 0);
-  channels_set_fg_rgb(&ur, g, b, r); channels_set_bg(&ur, 0);
-  channels_set_fg_rgb(&ll, b, r, g); channels_set_bg(&ll, 0);
-  if(ncplane_gradient_sized(n, "█", 0, ul, ur, ll, lr, maxy, maxx)){
-    return -1;
-  }
-  if(ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0)){
-    return -1;
-  }
+  channels_set_bg_rgb(&ul, r, g, b); channels_set_fg(&ul, 0);
+  channels_set_bg_rgb(&lr, r, g, b); channels_set_fg(&lr, 0);
+  channels_set_bg_rgb(&ur, g, b, r); channels_set_fg(&ur, 0);
+  channels_set_bg_rgb(&ll, b, r, g); channels_set_fg(&ll, 0);
+  int ret = 0;
+  ret |= ncplane_gradient_sized(n, " ", 0, ul, ur, ll, lr, maxy, maxx);
+  ret |= ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0);
   if(maxx >= 4 && maxy >= 3){
-    ncplane_set_fg_rgb(n, r, g, b);
-    ncplane_set_bg_rgb(n, 0, 0, 0);
-    if(ncplane_putstr_aligned(n, (maxy - 1) / 2, NCALIGN_CENTER, buf) <= 0){
-      return -1;
-    }
+    ret |= ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 1) / 2);
+    ret |= (ncplane_putegc_stainable(n, buf, NULL) < 0);
+    ret |= (ncplane_putegc_stainable(n, buf + 1, NULL) < 0);
   }
-  return 0;
+  return ret;
 }
 
 static int
