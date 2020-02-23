@@ -35,6 +35,14 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell_set_fg_rgb(&ur, 0x00, 0x30, 0x57);
   cell_set_fg_rgb(&ll, 0x00, 0x30, 0x57);
   cell_set_fg_rgb(&lr, 0xea, 0xaa, 0x00);
+  // see https://github.com/dankamongmen/notcurses/issues/259. we use a random
+  // (but dark) background for the perimeter to force refreshing on the box,
+  // when it might otherwise be molested by RTL text. hacky and gross :( FIXME
+  int rbg = random() % 20;
+  cell_set_bg(&ul, rbg);
+  cell_set_bg(&ur, rbg);
+  cell_set_bg(&ll, rbg);
+  cell_set_bg(&lr, rbg);
   cell_set_fg_rgb(&hl, 255, 255, 255);
   cell_set_fg_rgb(&vl, 255, 255, 255);
   cell_set_bg_rgb(&hl, 0, 0, 0);
@@ -51,7 +59,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
     int z;
     for(z = 0 ; z < CHUNKSIZE ; ++z){
       wchar_t w[2] = { blockstart + chunk * CHUNKSIZE + z, L'\0' };
-      char utf8arr[MB_CUR_MAX * 3 + 1];
+      char utf8arr[MB_CUR_MAX * 3 + 5];
       if(wcswidth(w, INT_MAX) >= 1 && iswgraph(w[0])){
         mbstate_t ps;
         memset(&ps, 0, sizeof(ps));
@@ -66,6 +74,9 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
         if(wcwidth(w[0]) < 2){
           utf8arr[bwc++] = ' ';
         }
+        utf8arr[bwc++] = 0xe2;
+        utf8arr[bwc++] = 0x80;
+        utf8arr[bwc++] = 0x8e;
         utf8arr[bwc++] = '\0';
       }else{ // don't dump non-printing codepoints
         strcpy(utf8arr, "  ");
