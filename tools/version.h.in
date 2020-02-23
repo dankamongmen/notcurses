@@ -3,4 +3,4 @@
 #define notcurses_VERSION_PATCH "@notcurses_VERSION_PATCH@"
 #cmakedefine DFSG_BUILD
 #cmakedefine USE_FFMPEG
-#define NOTCURSES_SHARE "@NOTCURSES_SHARE@"
+#define NOTCURSES_SHARE "@CMAKE_INSTALL_DATADIR/notcurses@"

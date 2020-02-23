@@ -11,14 +11,6 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 include(GNUInstallDirs)
 
-# NOTCURSES_SHARE is exported to the application during build, so that
-# notcurses-demo knows where to find its data. Allow NOTCURSES_SHARE to be
-# specified explicitly, but otherwise derive it from CMAKE_INSTALL_PREFIX. This
-# is for the benfit of Arch, which otherwise packages us up planning to look in
-# some offset from the build directory (which might not even exist anymore,
-# though this would still be undesirable behavior even then).
-set(NOTCURSES_SHARE "${CMAKE_INSTALL_PREFIX}/share/notcurses)" CACHE STRING "Path for installing data files")
-
 ###################### USER-SELECTABLE OPTIONS ###########################
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
@@ -701,24 +693,3 @@ install(TARGETS notcurses notcurses-static
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses
     COMPONENT Development
 )
-if(${USE_PYTHON})
-  # if DFSG_BUILD has been selected, assume we're building debs. debian/rules
-  # has its own python logic after many hours wasted, so we don't install from
-  # here for a deb build.
-  if(NOT "${DFSG_BUILD}")
-    # --root both implies, and is required by, --single-external-package-managed
-    # Arch makepkg exports PYROOT as /usr. if unset, use /.
-    set(PYROOT $ENV{PYROOT})
-    if(NOT PYROOT)
-      set(PYROOT "/")
-    endif()
-    install(
-      CODE "execute_process(
-        COMMAND
-          ${Python3_EXECUTABLE} ${SETUP_PY} install --root=${PYROOT} --prefix=${CMAKE_INSTALL_PREFIX} --optimize=1
-        WORKING_DIRECTORY
-          ${CMAKE_CURRENT_BINARY_DIR}/python
-      )"
-    )
-  endif()
-endif()
