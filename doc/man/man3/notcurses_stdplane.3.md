@@ -12,6 +12,8 @@ notcurses_stdplane - acquire the standard ncplane
 
 **struct ncplane* notcurses_stdplane(struct notcurses* nc);**
 
+**const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);**
+
 **static inline struct ncplane* notcurses_stddim_yx(struct notcurses* nc, int* restrict y, int* restrict x);**
 
 # DESCRIPTION
@@ -25,6 +27,8 @@ along the z-axis.
 **notcurses_stddim_yx** provides the same function, but also writes the
 dimensions of the standard plane (and thus the real drawable area) into any
 non-**NULL** parameters among **y** and **x**.
+
+**notcurses_stdplane_const** allows a **const notcurses** to be safely used.
 
 A resize event does not invalidate these references. They can be used until
 **notcurses_stop(3)** is called on the associated **nc**.

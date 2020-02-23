@@ -477,3 +477,20 @@ int prep_special_keys(notcurses* nc){
   }
   return 0;
 }
+
+bool ncplane_mouseevent_p(const ncplane* n, const ncinput *ni){
+  // incoming coordinates are absolute and 0-indexed
+  int y = ni->y;
+  int x = ni->x;
+  ncplane_translate(ncplane_stdplane_const(n), n, &y, &x);
+  if(y < 0 || x < 0){
+    return false;
+  }
+  if(y >= n->leny){
+    return false;
+  }
+  if(x >= n->lenx){
+    return false;
+  }
+  return true;
+}

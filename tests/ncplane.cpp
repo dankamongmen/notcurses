@@ -995,6 +995,29 @@ TEST_CASE("NCPlane") {
     CHECK(0 == notcurses_render(nc_));
   }
 
+  SUBCASE("MouseEvent") {
+    int dimy, dimx;
+    notcurses_stddim_yx(nc_, &dimy, &dimx);
+    struct ncplane* n = ncplane_new(nc_, 2, 2, 1, 1, nullptr);
+    REQUIRE(nullptr != n);
+    ncinput ni{};
+    ni.id = NCKEY_RELEASE;
+    int total = 0;
+    for(ni.y = 0 ; ni.y < 5 ; ++ni.y){
+      for(ni.x = 0 ; ni.x < 5 ; ++ni.x){
+        bool p = ncplane_mouseevent_p(n, &ni);
+        if(ni.y >= 1 && ni.y <= 2 && ni.x >= 1 && ni.x <= 2){
+          CHECK(p);
+        }else{
+          CHECK(!p);
+        }
+        ++total;
+      }
+    }
+    CHECK(25 == total); // make sure x/y never got changed
+    CHECK(0 == ncplane_destroy(n));
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 

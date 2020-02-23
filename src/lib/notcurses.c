@@ -309,6 +309,10 @@ ncplane* notcurses_stdplane(notcurses* nc){
   return nc->stdscr;
 }
 
+const ncplane* notcurses_stdplane_const(const notcurses* nc){
+  return nc->stdscr;
+}
+
 ncplane* ncplane_new(notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque){
   ncplane* n = ncplane_create(nc, rows, cols, yoff, xoff);
   if(n == NULL){

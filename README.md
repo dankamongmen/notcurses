@@ -266,6 +266,7 @@ handle on the standard plane can be acquired with two top-level functions:
 // terminal size) for this terminal. The standard plane always exists, and its
 // origin is always at the uppermost, leftmost cell of the screen.
 struct ncplane* notcurses_stdplane(struct notcurses* nc);
+const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
 // notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
 static inline struct ncplane*
@@ -568,6 +569,11 @@ int notcurses_mouse_enable(struct notcurses* n);
 
 // Disable mouse events. Any events in the input queue can still be delivered.
 int notcurses_mouse_disable(struct notcurses* n);
+
+// Was the provided mouse event 'ni' within the bounds of the ncplane 'n'? Note
+// that this doesn't necessarily mean the event affected 'n'; there could be a
+// plane above it, this plane could be transparent, etc.
+bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
 ```
 
 "Button-event tracking mode" implies the ability to detect mouse button

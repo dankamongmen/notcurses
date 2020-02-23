@@ -36,6 +36,8 @@ typedef struct ncinput {
 
 **int notcurses_mouse_disable(struct notcurses* n);**
 
+**bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);**
+
 # DESCRIPTION
 
 notcurses supports input from keyboards and mice, and any device that looks

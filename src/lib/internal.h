@@ -60,7 +60,7 @@ struct esctrie;
 // Accesses beyond the borders of a panel, however, are errors.
 typedef struct ncplane {
   cell* fb;             // "framebuffer" of character cells
-  int x, y;             // current location within this plane
+  int x, y;             // current cursor location within this plane
   int absx, absy;       // origin of the plane relative to the screen
   int lenx, leny;       // size of the plane, [0..len{x,y}) is addressable
   struct ncplane* z;    // plane below us
@@ -306,6 +306,16 @@ mbstr_find_codepoint(const char* s, char32_t cp, int* col){
     bytes += r;
   }
   return -1;
+}
+
+static inline struct ncplane*
+ncplane_stdplane(struct ncplane* n){
+  return notcurses_stdplane(n->nc);
+}
+
+static inline const struct ncplane*
+ncplane_stdplane_const(const struct ncplane* n){
+  return notcurses_stdplane_const(n->nc);
 }
 
 // load all known special keys from terminfo, and build the input sequence trie

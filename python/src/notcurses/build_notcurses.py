@@ -77,6 +77,7 @@ struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
 struct ncplane* notcurses_stdplane(struct notcurses*);
+const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 typedef struct ncinput {
   char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
   int y;           // y cell coordinate of event, -1 for undefined
@@ -102,6 +103,7 @@ int notcurses_palette_size(const struct notcurses* nc);
 bool notcurses_canfade(const struct notcurses* nc);
 int notcurses_mouse_enable(struct notcurses* n);
 int notcurses_mouse_disable(struct notcurses* n);
+bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
 int ncplane_destroy(struct ncplane* ncp);
 bool notcurses_canopen(const struct notcurses* nc);
 void ncplane_erase(struct ncplane* n);
