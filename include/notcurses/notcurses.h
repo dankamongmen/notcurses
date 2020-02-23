@@ -324,6 +324,11 @@ API int notcurses_mouse_enable(struct notcurses* n);
 // Disable mouse events. Any events in the input queue can still be delivered.
 API int notcurses_mouse_disable(struct notcurses* n);
 
+// Was the provided mouse event 'ni' within the bounds of the ncplane 'n'? Note
+// that this doesn't necessarily mean the event affected 'n'; there could be a
+// plane above it, this plane could be transparent, etc.
+API bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
+
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary. Without a call to this function following a terminal resize
 // (as signaled via SIGWINCH), notcurses_render() might not function properly.
@@ -343,6 +348,7 @@ API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT 
 // terminal size) for this terminal. The standard plane always exists, and its
 // origin is always at the uppermost, leftmost cell of the terminal.
 API struct ncplane* notcurses_stdplane(struct notcurses* nc);
+API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
 // notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
 static inline struct ncplane*

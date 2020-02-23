@@ -104,8 +104,8 @@ extern "C" {
 #define NCKEY_BUTTON1  suppuabize(201)
 #define NCKEY_BUTTON2  suppuabize(202)
 #define NCKEY_BUTTON3  suppuabize(203)
-#define NCKEY_BUTTON4  suppuabize(204)
-#define NCKEY_BUTTON5  suppuabize(205)
+#define NCKEY_BUTTON4  suppuabize(204) // scrollwheel up
+#define NCKEY_BUTTON5  suppuabize(205) // scrollwheel down
 #define NCKEY_BUTTON6  suppuabize(206)
 #define NCKEY_BUTTON7  suppuabize(207)
 #define NCKEY_BUTTON8  suppuabize(208)
@@ -113,6 +113,11 @@ extern "C" {
 #define NCKEY_BUTTON10 suppuabize(210)
 #define NCKEY_BUTTON11 suppuabize(211)
 #define NCKEY_RELEASE  suppuabize(212)
+
+// Synonyms (so far as we're concerned)
+#define NCKEY_SCROLL_UP   NCKEY_BUTTON4
+#define NCKEY_SCROLL_DOWN NCKEY_BUTTON5
+#define NCKEY_RETURN      NCKEY_ENTER
 
 #ifdef __cplusplus
 } // extern "C"
