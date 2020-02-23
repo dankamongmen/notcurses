@@ -120,7 +120,7 @@ SUBCASE("SetItalic") {
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     CHECK(CELL_ALPHA_TRANSPARENT == cell_bg_alpha(&c));
     CHECK(cell_fg_default_p(&c));
-    CHECK(cell_bg_default_p(&c));
+    CHECK(!cell_bg_default_p(&c));
   }
 
   // common teardown

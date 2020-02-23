@@ -124,7 +124,7 @@ TEST_CASE("NotcursesBase") {
     CHECK(0 > channels_set_bg_alpha(&channel, CELL_ALPHA_HIGHCONTRAST));
     CHECK(CELL_ALPHA_TRANSPARENT == channels_bg_alpha(channel));
     CHECK(channels_fg_default_p(channel));
-    CHECK(channels_bg_default_p(channel));
+    CHECK(!channels_bg_default_p(channel));
   }
 
   SUBCASE("Stats"){
