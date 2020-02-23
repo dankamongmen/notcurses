@@ -106,6 +106,8 @@ int main(void){
   mopts.sectioncount = sizeof(sections) / sizeof(*sections);
   channels_set_fg(&mopts.headerchannels, 0x00ff00);
   channels_set_bg(&mopts.headerchannels, 0x440000);
+  channels_set_fg(&mopts.sectionchannels, 0xb0d700);
+  channels_set_bg(&mopts.sectionchannels, 0x002000);
   struct ncmenu* top = ncmenu_create(nc, &mopts);
   if(top == NULL){
     goto err;
