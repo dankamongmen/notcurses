@@ -1035,7 +1035,7 @@ channel_set_alpha(unsigned* channel, int alpha){
     return -1;
   }
   *channel = (alpha << CELL_ALPHA_SHIFT) | (*channel & ~CELL_ALPHA_MASK);
-  if(alpha == CELL_ALPHA_HIGHCONTRAST){
+  if(alpha != CELL_ALPHA_HIGHCONTRAST){
     *channel |= CELL_BGDEFAULT_MASK;
   }
   return 0;

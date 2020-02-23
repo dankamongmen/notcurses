@@ -217,6 +217,10 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
     goto freeitems;
   }
   cell_init(&ns->background);
+  uint64_t transchan = 0;
+  channels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(ns->ncp, transchan, 0, "");
   if(cell_prime(ns->ncp, &ns->background, " ", 0, opts->bgchannels) < 0){
     ncplane_destroy(ns->ncp);
     goto freeitems;

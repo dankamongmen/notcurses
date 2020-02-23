@@ -70,40 +70,61 @@ int main(void){
   channels_set_fg(&sopts.boxchannels, 0x20e040);
   channels_set_fg(&sopts.opchannels, 0xe08040);
   channels_set_fg(&sopts.descchannels, 0x80e040);
+  channels_set_bg(&sopts.opchannels, 0);
+  channels_set_bg(&sopts.descchannels, 0);
   channels_set_fg(&sopts.footchannels, 0xe00040);
   channels_set_fg(&sopts.titlechannels, 0xffff80);
   channels_set_fg(&sopts.bgchannels, 0x002000);
   channels_set_bg(&sopts.bgchannels, 0x002000);
   channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
-  ncplane_set_fg(notcurses_stdplane(nc), 0x40f040);
-  ncplane_putstr_aligned(notcurses_stdplane(nc), 0, NCALIGN_RIGHT, "selector widget demo");
-  struct ncselector* ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  struct ncplane* n = notcurses_stdplane(nc);
+
+  int averr;
+  struct ncvisual* ncv = ncplane_visual_open(n, "../data/changes.jpg", &averr);
+  if(!ncv){
+    goto err;
+  }
+  if(!ncvisual_decode(ncv, &averr)){
+    goto err;
+  }
+  if(ncvisual_render(ncv, 0, 0, 0, 0)){
+    goto err;
+  }
+
+
+  ncplane_set_fg(n, 0x40f040);
+  ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "selector widget demo");
+  struct ncselector* ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "short round title";
-  ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "short round title";
   sopts.secondary = "now this secondary is also very, very, very outlandishly long, you see";
-  ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "the whole world is watching";
   sopts.secondary = NULL;
   sopts.footer = "now this FOOTERFOOTER is also very, very, very outlandishly long, you see";
-  ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "chomps";
   sopts.secondary = NULL;
   sopts.footer = NULL;
-  ns = ncselector_create(notcurses_stdplane(nc), 3, 0, &sopts);
+  ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
+
+err:
+  notcurses_stop(nc);
+  return EXIT_FAILURE;
 }
