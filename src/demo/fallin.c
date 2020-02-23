@@ -169,6 +169,7 @@ int fallin_demo(struct notcurses* nc){
   }
   free(usemap);
 #ifdef USE_FFMPEG
+#ifndef DFSG_BUILD
   int averr = 0;
   char* path = find_data("lamepatents.jpg");
   struct ncvisual* ncv = ncplane_visual_open(notcurses_stdplane(nc), path, &averr);
@@ -187,6 +188,9 @@ int fallin_demo(struct notcurses* nc){
   assert(ncvisual_decode(ncv, &averr) == NULL);
   assert(averr == AVERROR_EOF);
   ncvisual_destroy(ncv);
+#else
+  ncplane_erase(notcurses_stdplane(nc));
+#endif
 #else
   ncplane_erase(notcurses_stdplane(nc));
 #endif
