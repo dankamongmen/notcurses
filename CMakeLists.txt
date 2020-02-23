@@ -10,7 +10,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 include(GNUInstallDirs)
-set(NOTCURSES_SHARE ${CMAKE_INSTALL_PREFIX}/share/notcurses)
+
+# NOTCURSES_SHARE is exported to the application during build, so that
+# notcurses-demo knows where to find its data. Allow NOTCURSES_SHARE to be
+# specified explicitly, but otherwise derive it from CMAKE_INSTALL_PREFIX. This
+# is for the benfit of Arch, which otherwise packages us up planning to look in
+# some offset from the build directory (which might not even exist anymore,
+# though this would still be undesirable behavior even then).
+set(NOTCURSES_SHARE "${CMAKE_INSTALL_PREFIX}/share/notcurses)" CACHE STRING "Path for installing data files")
 
 ###################### USER-SELECTABLE OPTIONS ###########################
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
