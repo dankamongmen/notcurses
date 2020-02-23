@@ -223,10 +223,15 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
   wchar_t key = -1;
   int pret;
   DEMO_RENDER(nc);
+  int64_t deadlinens = timespec_to_ns(deadline);
   do{
     struct timespec pollspec, cur;
     clock_gettime(CLOCK_MONOTONIC, &cur);
-    timespec_subtract(&pollspec, deadline, &cur);
+    int64_t curns = timespec_to_ns(&cur);
+    if(curns > deadlinens){
+      return 0;
+    }
+    ns_to_timespec(curns - deadlinens, &pollspec);
     pret = ppoll(fds, sizeof(fds) / sizeof(*fds), &pollspec, &sset);
     if(pret == 0){
       return 0;

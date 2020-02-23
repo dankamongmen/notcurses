@@ -352,8 +352,8 @@ summary_table(struct ncdirect* nc, const char* spec){
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  table_segment(nc, "", "══╧═════════╧════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
-  table_printf(nc, "│", "             %*ss", PREFIXSTRLEN, timebuf);
+  table_segment(nc, "", "══╧═════════╪════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
+  table_printf(nc, "│", "            │%*ss", PREFIXSTRLEN, timebuf);
   table_printf(nc, "│", "%7lu", totalframes);
   table_printf(nc, "│", "%*s", BPREFIXSTRLEN, totalbuf);
   table_printf(nc, "│", " %*ss", PREFIXSTRLEN, rtimebuf);
