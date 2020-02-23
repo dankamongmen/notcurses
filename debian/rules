@@ -13,7 +13,7 @@ CFLAGS += -ffile-prefix-map=$(CURDIR)=/
 	dh $@ --buildsystem=cmake
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DDFSG_BUILD=ON
+	dh_auto_configure -- -DDFSG_BUILD=ON -DUSE_PYTHON=OFF
 
 override_dh_auto_build:
 	dh_auto_build
