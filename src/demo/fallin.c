@@ -88,7 +88,7 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
 // ya playin' yourself
 int fallin_demo(struct notcurses* nc){
   int dimx, dimy;
-  ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
+  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;
   bool* usemap = malloc(usesize);
   memset(usemap, 0, usesize);
@@ -105,7 +105,7 @@ int fallin_demo(struct notcurses* nc){
   //  * maxy/maxx: maximum geometry of randomly-generated bricks
   //  * newy/newx: actual geometry of current brick
   //  * usey/usex: 
-  ncplane_greyscale(notcurses_stdplane(nc));
+  ncplane_greyscale(stdn);
   for(int y = 0 ; y < dimy ; ++y){
     int x = 0;
     while(x < dimx){
@@ -135,11 +135,11 @@ int fallin_demo(struct notcurses* nc){
             continue;
           }
           cell c = CELL_TRIVIAL_INITIALIZER;
-          if(ncplane_at_yx(notcurses_stdplane(nc), usey, usex, &c) < 0){
+          if(ncplane_at_yx(stdn, usey, usex, &c) < 0){
             return -1;
           }
           if(!cell_simple_p(&c)){
-            const char* cons = cell_extended_gcluster(notcurses_stdplane(nc), &c);
+            const char* cons = cell_extended_gcluster(stdn, &c);
             c.gcluster = 0;
             cell_load(n, &c, cons);
           }
@@ -172,7 +172,7 @@ int fallin_demo(struct notcurses* nc){
 #ifndef DFSG_BUILD
   int averr = 0;
   char* path = find_data("lamepatents.jpg");
-  struct ncvisual* ncv = ncplane_visual_open(notcurses_stdplane(nc), path, &averr);
+  struct ncvisual* ncv = ncplane_visual_open(stdn, path, &averr);
   free(path);
   if(ncv == NULL){
     return -1;
@@ -189,10 +189,10 @@ int fallin_demo(struct notcurses* nc){
   assert(averr == AVERROR_EOF);
   ncvisual_destroy(ncv);
 #else
-  ncplane_erase(notcurses_stdplane(nc));
+  ncplane_erase(stdn);
 #endif
 #else
-  ncplane_erase(notcurses_stdplane(nc));
+  ncplane_erase(stdn);
 #endif
   int ret = drop_bricks(nc, arr, arrcount);
   return ret;
