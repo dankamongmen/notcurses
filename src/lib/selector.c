@@ -80,6 +80,10 @@ ncselector_draw(ncselector* n){
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
     ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
+    n->uarrowy = yoff;
+    n->arrowx = bodywidth - (n->longdesc + 3) + xoff;
+  }else{
+    n->darrowy = n->uarrowy = n->arrowx = -1;
   }
   unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
@@ -115,6 +119,7 @@ ncselector_draw(ncselector* n){
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
     ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↓", NULL);
+    n->darrowy = yoff;
   }
   return notcurses_render(n->ncp->nc);
 }
@@ -174,6 +179,7 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   ns->titlechannels = opts->titlechannels;
   ns->footchannels = opts->footchannels;
   ns->boxchannels = opts->boxchannels;
+  ns->darrowy = ns->uarrowy = ns->arrowx = -1;
   if(opts->itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
       free(ns->title); free(ns->secondary); free(ns->footer);
@@ -320,6 +326,29 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
     return true;
   }else if(nc->id == NCKEY_DOWN){
     ncselector_nextitem(n);
+    return true;
+  }else if(nc->id == NCKEY_SCROLL_UP){
+    ncselector_previtem(n);
+    return true;
+  }else if(nc->id == NCKEY_SCROLL_DOWN){
+    ncselector_nextitem(n);
+    return true;
+  }else if(nc->id == NCKEY_RELEASE && ncplane_mouseevent_p(n->ncp, nc)){
+    int y = nc->y, x = nc->x;
+    ncplane_translate(ncplane_stdplane(n->ncp), n->ncp, &y, &x);
+    if(y == n->uarrowy && x == n->arrowx){
+      ncselector_previtem(n);
+      return true;
+    }else if(y == n->darrowy && x == n->arrowx){
+      ncselector_nextitem(n);
+      return true;
+    }else{
+      // FIXME we probably only want to consider it a click if both the release
+      // and the depress happened to be on us. for now, just check release.
+      // FIXME verify we're on the right line
+      // FIXME verify we're on the left of the split
+      // FIXME verify that we're on a visible glyph
+    }
     return true;
   }
   return false;

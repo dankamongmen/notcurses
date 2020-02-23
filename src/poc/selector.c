@@ -54,6 +54,10 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
+  if(notcurses_mouse_enable(nc)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   selector_options sopts;
   memset(&sopts, 0, sizeof(sopts));
   sopts.maxdisplay = 4;
