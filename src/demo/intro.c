@@ -24,10 +24,10 @@ int intro(struct notcurses* nc){
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   uint64_t cul, cur, cll, clr;
   cul = cur = cll = clr = 0;
-  channels_set_fg_rgb(&cul, 0, 0xd0, 0);
-  channels_set_fg_rgb(&cur, 0xff, 0, 0);
-  channels_set_fg_rgb(&cll, 0x88, 0, 0xcc);
-  channels_set_fg_rgb(&clr, 0, 0, 0);
+  channels_set_fg_rgb(&cul, 0, 0xd0, 0); channels_set_bg(&cul, 0);
+  channels_set_fg_rgb(&cur, 0xff, 0, 0); channels_set_bg(&cur, 0);
+  channels_set_fg_rgb(&cll, 0x88, 0, 0xcc); channels_set_bg(&cll, 0);
+  channels_set_fg_rgb(&clr, 0, 0, 0); channels_set_bg(&clr, 0);
   // we use full block rather+fg than space+bg to conflict less with the menu
   if(ncplane_cursor_move_yx(ncp, 0, 0)){
     return -1;

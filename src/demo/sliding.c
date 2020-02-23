@@ -105,10 +105,10 @@ fill_chunk(struct ncplane* n, int idx){
   channels_set_fg_rgb(&channels, r, g, b);
   uint64_t ul, ur, ll, lr;
   ul = ur = ll = lr = 0;
-  channels_set_fg_rgb(&ul, r, g, b);
-  channels_set_fg_rgb(&ur, g, b, r);
-  channels_set_fg_rgb(&ll, b, r, g);
-  channels_set_fg_rgb(&lr, r, g, b);
+  channels_set_fg_rgb(&ul, r, g, b); channels_set_bg(&ul, 0);
+  channels_set_fg_rgb(&lr, r, g, b); channels_set_bg(&lr, 0);
+  channels_set_fg_rgb(&ur, g, b, r); channels_set_bg(&ur, 0);
+  channels_set_fg_rgb(&ll, b, r, g); channels_set_bg(&ll, 0);
   if(ncplane_gradient_sized(n, "█", 0, ul, ur, ll, lr, maxy, maxx)){
     return -1;
   }

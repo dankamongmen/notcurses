@@ -120,8 +120,7 @@ TEST_CASE("Fills") {
             lastyrgb = c.channels;
             CHECK(ul == c.channels);
           }else if(y == dimy - 1){
-/*fprintf(stderr, "HJAVE %016lx, WANT %016lx %d %d\n", c.channels, ll, y, x);
-            CHECK(ll == c.channels);*/
+            CHECK(ll == c.channels);
           }
           lastxrgb = c.channels;
         }else{
@@ -131,8 +130,7 @@ TEST_CASE("Fills") {
           if(y == 0){
             CHECK(ur == c.channels);
           }else if(y == dimy - 1){
-/*fprintf(stderr, "LR %016lx, WANT %016lx %d %d\n", c.channels, lr, y, x);
-            CHECK(lr == c.channels);*/
+            CHECK(lr == c.channels);
           }
         }
       }
@@ -224,7 +222,8 @@ TEST_CASE("Fills") {
     // attr should change, but not the EGC/color
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     uint64_t channels = 0;
-    channels_set_fg_rgb_clipped(&channels, 0x88, 0x99, 0x77);
+    channels_set_fg_rgb(&channels, 0x88, 0x99, 0x77);
+    channels_set_bg(&channels, 0);
     REQUIRE(0 == ncplane_stain(n_, 7, 7, channels, channels, channels, channels));
     CHECK(0 == notcurses_render(nc_));
     cell d = CELL_TRIVIAL_INITIALIZER;
