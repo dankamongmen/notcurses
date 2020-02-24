@@ -245,6 +245,9 @@ int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
 int ncdirect_clear(struct ncdirect* n);
 int ncdirect_stop(struct ncdirect* n);
+int ncdirect_dim_x(const struct ncdirect* nc);
+int ncdirect_dim_y(const struct ncdirect* nc);
+int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, int* averr);
 typedef enum {
   NCSCALE_NONE,

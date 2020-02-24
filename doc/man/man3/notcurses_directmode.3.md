@@ -38,6 +38,8 @@ notcurses_directmode - minimal notcurses instances for styling text
 
 **int ncdirect_stop(struct ncdirect* nc);**
 
+**int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);**
+
 # DESCRIPTION
 
 **notcurses_directmode** prepares the **FILE** provided as **fp** (which must
@@ -59,6 +61,9 @@ the current number of rows.
 
 **ncdirect_clear** clears the screen using a control code if one exists in
 terminfo. Otherwise, it prints successive newlines to scroll everything off.
+
+**ncdirect_cursor_move_yx** moves the cursor to the specified coordinate. -1 can
+be specified for either **y** or **x** to leave that axis unchanged.
 
 # RETURN VALUES
 
