@@ -347,17 +347,31 @@ handle_ncinput(notcurses* nc, ncinput* ni){
   return r;
 }
 
-// infp has already been set non-blocking
-char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
-                        sigset_t* sigmask, ncinput* ni){
+// helper so we can do counter increment at a single location
+static inline char32_t
+notcurses_prestamp(notcurses* nc, const struct timespec *ts,
+                            sigset_t* sigmask, ncinput* ni){
   errno = 0;
   char32_t r = handle_ncinput(nc, ni);
   if(r == (char32_t)-1){
     if(errno == EAGAIN || errno == EWOULDBLOCK){
       block_on_input(nc->ttyinfp, ts, sigmask);
-      return handle_ncinput(nc, ni);
+      r = handle_ncinput(nc, ni);
     }
     return r;
+  }
+  return r;
+}
+
+// infp has already been set non-blocking
+char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
+                        sigset_t* sigmask, ncinput* ni){
+  char32_t r = notcurses_prestamp(nc, ts, sigmask, ni);
+  if(r != (char32_t)-1){
+    uint64_t stamp = nc->input_events++; // need increment even if !ni
+    if(ni){
+      ni->seqnum = stamp;
+    }
   }
   return r;
 }

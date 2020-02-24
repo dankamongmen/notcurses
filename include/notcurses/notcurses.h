@@ -288,6 +288,7 @@ typedef struct ncinput {
   bool alt;        // was alt held?
   bool shift;      // was shift held?
   bool ctrl;       // was ctrl held?
+  uint64_t seqnum; // input event number
 } ncinput;
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'

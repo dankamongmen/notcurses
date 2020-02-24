@@ -446,15 +446,13 @@ ncfputs(const char* ext, FILE* out){
 static inline int
 ncfputc(char c, FILE* out){
 #ifdef __USE_GNU
-      return fputc_unlocked(c, out);
+  return fputc_unlocked(c, out);
 #else
-      return fputc(c, out);
+  return fputc(c, out);
 #endif
 }
 
-// write the cell's UTF-8 grapheme cluster to the provided FILE*. returns the
-// number of columns occupied by this EGC (only an approximation; it's actually
-// a property of the font being used).
+// write the cell's UTF-8 extended grapheme cluster to the provided FILE*.
 static int
 term_putc(FILE* out, const egcpool* e, const cell* c){
   if(cell_simple_p(c)){

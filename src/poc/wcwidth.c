@@ -1,7 +1,8 @@
+#include <ctype.h>
+#include <wchar.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
-#include <wchar.h>
 
 int main(void){
   if(!setlocale(LC_ALL, "")){
@@ -9,7 +10,7 @@ int main(void){
   }
   for(int i = 0 ; i < 128 ; ++i){
     wchar_t w = i;
-    printf("width('%02x'): %d\t", i, wcwidth(w));
+    printf("w('%02x'): %d%c\t", i, wcwidth(w), iscntrl(i) ? '!' : ' ');
     if(i % 4 == 3){
       printf("\n");
     }

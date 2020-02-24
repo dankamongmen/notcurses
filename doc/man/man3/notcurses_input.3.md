@@ -21,6 +21,7 @@ typedef struct ncinput {
   bool alt;        // Was Alt held during the event?
   bool shift;      // Was Shift held during the event?
   bool ctrl;       // Was Ctrl held during the event?
+  uint64_t seqnum; // Monotonically increasing input event counter
 } ncinput;
 ```
 

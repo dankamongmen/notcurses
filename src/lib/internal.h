@@ -279,6 +279,9 @@ typedef struct notcurses {
   unsigned inputbuf_occupied;
   unsigned inputbuf_valid_starts;
   unsigned inputbuf_write_at;
+  // number of input events seen. does not belong in ncstats, since it must not
+  // be reset (semantics are relied upon by widgets for mouse click detection).
+  uint64_t input_events;
 
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];

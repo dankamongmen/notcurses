@@ -859,6 +859,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->inputbuf_occupied = 0;
   ret->inputbuf_valid_starts = 0;
   ret->inputbuf_write_at = 0;
+  ret->input_events = 0;
   if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
     fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
     free(ret);

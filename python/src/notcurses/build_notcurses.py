@@ -82,7 +82,10 @@ typedef struct ncinput {
   char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
   int y;           // y cell coordinate of event, -1 for undefined
   int x;           // x cell coordinate of event, -1 for undefined
-  // FIXME modifiers (alt, etc?)
+  bool shift;
+  bool alt;
+  bool ctrl;
+  uint64_t sequm;
 } ncinput;
 int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 int ncplane_set_base(struct ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc);
