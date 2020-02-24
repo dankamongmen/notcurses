@@ -7,7 +7,6 @@ Build-Depends:
  dh-python (>= 4.20191017),
  dh-sequence-python3,
  doctest-dev,
- graphviz (>= 2.42.2),
  libavformat-dev (>= 7:4.2.1),
  libavutil-dev (>= 7:4.2.1),
  libncurses-dev,
