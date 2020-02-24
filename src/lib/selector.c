@@ -80,11 +80,9 @@ ncselector_draw(ncselector* n){
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
     ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
-    n->uarrowy = yoff;
-    n->arrowx = bodywidth - (n->longdesc + 3) + xoff;
-  }else{
-    n->darrowy = n->uarrowy = n->arrowx = -1;
   }
+  n->arrowx = bodywidth - (n->longdesc + 3) + xoff;
+  n->uarrowy = yoff;
   unsigned printidx = n->startdisp;
   int bodyoffset = dimx - bodywidth + 2;
   unsigned printed = 0;
@@ -119,8 +117,8 @@ ncselector_draw(ncselector* n){
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
     ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↓", NULL);
-    n->darrowy = yoff;
   }
+  n->darrowy = yoff;
   return notcurses_render(n->ncp->nc);
 }
 
@@ -346,14 +344,24 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
     }else if(y == n->darrowy && x == n->arrowx){
       ncselector_nextitem(n);
       return true;
-    }else{
+    }else if(n->uarrowy < y && y < n->darrowy){
       // FIXME we probably only want to consider it a click if both the release
       // and the depress happened to be on us. for now, just check release.
-      // FIXME verify we're on the right line
-      // FIXME verify we're on the left of the split
-      // FIXME verify that we're on a visible glyph
+      // FIXME verify that we're within the body walls!
+      // FIXME verify we're on the left of the split?
+      // FIXME verify that we're on a visible glyph?
+      int cury =  (n->selected + n->itemcount - n->startdisp) % n->itemcount;
+      int click = y - n->uarrowy - 1;
+      while(click > cury){
+        ncselector_nextitem(n);
+        ++cury;
+      }
+      while(click < cury){
+        ncselector_previtem(n);
+        --cury;
+      }
+      return true;
     }
-    return true;
   }
   return false;
 }
