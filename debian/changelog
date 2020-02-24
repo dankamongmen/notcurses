@@ -1,8 +1,9 @@
-notcurses (1.2.2-1) UNRELEASED; urgency=medium
+notcurses (1.2.2-1) unstable; urgency=medium
 
-  * 
+  * New upstream
+  * Replace dep on python with ${python3:Depends} subst
 
- -- Nick Black <dankamongmen@gmail.com>  Thu, 20 Feb 2020 22:00:56 -0500
+ -- Nick Black <dankamongmen@gmail.com>  Mon, 24 Feb 2020 00:01:32 -0500
 
 notcurses (1.2.1-1) unstable; urgency=medium
 
