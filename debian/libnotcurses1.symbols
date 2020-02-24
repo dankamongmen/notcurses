@@ -9,6 +9,9 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncdirect_bg@Base 1.2.1
  ncdirect_bg_default@Base 1.2.1
  ncdirect_clear@Base 1.2.1
+ ncdirect_cursor_move_yx@Base 1.2.3
+ ncdirect_dimx@Base 1.2.3
+ ncdirect_dimy@Base 1.2.3
  ncdirect_fg@Base 1.2.1
  ncdirect_fg_default@Base 1.2.1
  ncdirect_stop@Base 1.2.1
