@@ -882,6 +882,11 @@ namespace ncpp
 			return cell.has_no_foreground ();
 		}
 
+		bool is_mouse_event (const ncinput *ni) const noexcept
+		{
+			return ncplane_mouseevent_p (plane, ni);
+		}
+
 		const char* get_extended_gcluster (Cell &cell) const noexcept
 		{
 			return cell_extended_gcluster (plane, cell);
