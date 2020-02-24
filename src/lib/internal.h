@@ -179,7 +179,7 @@ typedef struct ncselector {
   uint64_t titlechannels;      // title channels
   uint64_t footchannels;       // secondary and footer channels
   uint64_t boxchannels;        // border channels
-  int uarrowy, darrowy, arrowx;// location of scrollarrows, -1 if not present
+  int uarrowy, darrowy, arrowx;// location of scrollarrows, even if not present
 } ncselector;
 
 typedef struct ncdirect {
