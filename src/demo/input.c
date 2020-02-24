@@ -97,9 +97,9 @@ ultramegaok_demo(void* vnc){
       }
     }
     if(id == 'L' && ni.ctrl){
-      pthread_mutex_lock(&demo_render_lock);
+      lock_demo_render();
       notcurses_refresh(nc);
-      pthread_mutex_unlock(&demo_render_lock);
+      unlock_demo_render();
       continue;
     }
     // if this was about the menu or HUD, pass to them, and continue

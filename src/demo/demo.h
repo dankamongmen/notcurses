@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <unistd.h>
 #include <limits.h>
-#include <pthread.h>
 #include <stdatomic.h>
 #include <version.h>
 #include <notcurses/notcurses.h>
@@ -148,7 +147,8 @@ int demo_render(struct notcurses* nc);
 #define DEMO_RENDER(nc) { int demo_render_err = demo_render(nc); if(demo_render_err){ return demo_render_err; }}
 
 // locked by callers to notcurses_render() and notcurses_refresh(), all internal
-extern pthread_mutex_t demo_render_lock;
+void lock_demo_render(void);
+void unlock_demo_render(void);
 
 // if you won't be doing things, and it's a long sleep, consider using
 // demo_nanosleep(). it updates the HUD, which looks better to the user.
