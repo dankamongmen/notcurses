@@ -968,7 +968,7 @@ err:
 
 int ncdirect_clear(ncdirect* nc){
   if(!nc->clear){
-    // FIXME scroll output off the screen
+    return -1; // FIXME scroll output off the screen
   }
   return term_emit("clear", nc->clear, nc->ttyfp, true);
 }
