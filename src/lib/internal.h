@@ -190,6 +190,9 @@ typedef struct ncdirect {
   char* setaf;    // set foreground color (ANSI)
   char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
+  char* cup;      // move cursor
+  char* hpa;      // horizontal position adjusment (move cursor on row)
+  char* vpa;      // vertical position adjustment (move cursor on column)
   char* standout; // CELL_STYLE_STANDOUT
   char* uline;    // CELL_STYLE_UNDERLINK
   char* reverse;  // CELL_STYLE_REVERSE

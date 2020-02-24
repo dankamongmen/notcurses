@@ -378,14 +378,19 @@ ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   return ncdirect_fg(nc, (r << 16u) + (g << 8u) + b);
 }
 
-int ncdirect_fg_default(struct ncdirect* nc);
-int ncdirect_bg_default(struct ncdirect* nc);
+// Get the current number of columns/rows.
 int ncdirect_dim_x(const struct ncdirect* nc);
 int ncdirect_dim_y(const struct ncdirect* nc);
+
+int ncdirect_fg_default(struct ncdirect* nc);
+int ncdirect_bg_default(struct ncdirect* nc);
 int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
 int ncdirect_clear(struct ncdirect* nc); // clear the screen
+
+// Move the cursor in direct mode. -1 to retain current location on that axis.
+int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
 ```
 
 ### Alignment

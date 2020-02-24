@@ -217,16 +217,16 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry.
 static int
-update_term_dimensions(notcurses* n, int* rows, int* cols){
+update_term_dimensions(int fd, int* rows, int* cols){
   struct winsize ws;
-  int i = ioctl(n->ttyfd, TIOCGWINSZ, &ws);
+  int i = ioctl(fd, TIOCGWINSZ, &ws);
   if(i < 0){
-    fprintf(stderr, "TIOCGWINSZ failed on %d (%s)\n", n->ttyfd, strerror(errno));
+    fprintf(stderr, "TIOCGWINSZ failed on %d (%s)\n", fd, strerror(errno));
     return -1;
   }
   if(ws.ws_row <= 0 || ws.ws_col <= 0){
     fprintf(stderr, "Bogus return from TIOCGWINSZ on %d (%d/%d)\n",
-            n->ttyfd, ws.ws_row, ws.ws_col);
+            fd, ws.ws_row, ws.ws_col);
     return -1;
   }
   if(rows){
@@ -496,7 +496,7 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   }
   int oldrows = n->stdscr->leny;
   int oldcols = n->stdscr->lenx;
-  if(update_term_dimensions(n, rows, cols)){
+  if(update_term_dimensions(n->ttyfd, rows, cols)){
     return -1;
   }
   if(*rows == oldrows && *cols == oldcols){
@@ -571,7 +571,7 @@ query_rgb(void){
 static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
                      int* dimy, int* dimx){
-  update_term_dimensions(nc, dimy, dimx);
+  update_term_dimensions(nc->ttyfd, dimy, dimx);
   char* shortname_term = termname();
   char* longname_term = longname();
   if(!opts->suppress_banner){
@@ -798,6 +798,9 @@ ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
   term_verify_seq(&ret->setaf, "setaf");
   term_verify_seq(&ret->setab, "setab");
   term_verify_seq(&ret->clear, "clear");
+  term_verify_seq(&ret->cup, "cup");
+  term_verify_seq(&ret->hpa, "hpa");
+  term_verify_seq(&ret->vpa, "vpa");
   ret->RGBflag = query_rgb();
   if((ret->colors = tigetnum("colors")) <= 0){
     ret->colors = 1;
@@ -967,6 +970,45 @@ int ncdirect_clear(ncdirect* nc){
     // FIXME scroll output off the screen
   }
   return term_emit("clear", nc->clear, nc->ttyfp, true);
+}
+
+int ncdirect_dim_x(const ncdirect* nc){
+  int x;
+  if(update_term_dimensions(fileno(nc->ttyfp), NULL, &x) == 0){
+    return x;
+  }
+  return -1;
+}
+
+int ncdirect_dim_y(const ncdirect* nc){
+  int y;
+  if(update_term_dimensions(fileno(nc->ttyfp), &y, NULL) == 0){
+    return y;
+  }
+  return -1;
+}
+
+int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
+  if(y == -1){ // keep row the same, horizontal move only
+    if(!n->hpa){
+      return -1;
+    }
+    return term_emit("hpa", tiparm(n->hpa, x), n->ttyfp, false);
+  }else if(x == -1){ // keep column the same, vertical move only
+    if(!n->vpa){
+      return -1;
+    }
+    return term_emit("vpa", tiparm(n->vpa, y), n->ttyfp, false);
+  }
+  if(n->cup){
+    return term_emit("cup", tiparm(n->cup, y, x), n->ttyfp, false);
+  }else if(n->vpa && n->hpa){
+    if(term_emit("hpa", tiparm(n->hpa, x), n->ttyfp, false) == 0 &&
+       term_emit("vpa", tiparm(n->vpa, y), n->ttyfp, false) == 0){
+      return 0;
+    }
+  }
+  return -1;
 }
 
 int ncdirect_stop(ncdirect* nc){

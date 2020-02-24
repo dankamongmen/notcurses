@@ -74,6 +74,9 @@ API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
 API int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
 API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
 
+// Move the cursor in direct mode. -1 to retain current location on that axis.
+API int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
+
 // Clear the screen.
 API int ncdirect_clear(struct ncdirect* nc);
 
