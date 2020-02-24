@@ -5,6 +5,8 @@
 // their mouse. it should always be on the top of the z-stack.
 struct ncplane* hud = NULL;
 
+pthread_mutex_t demo_render_lock = PTHREAD_MUTEX_INITIALIZER;
+
 // while the HUD is grabbed by the mouse, these are set to the position where
 // the grab started. they are reset once the HUD is released.
 static int hud_grab_x = -1;
@@ -438,5 +440,9 @@ int demo_render(struct notcurses* nc){
       return -1;
     }
   }
-  return notcurses_render(nc);
+  // lock against a possible notcurses_refresh() on Ctrl+L
+  pthread_mutex_lock(&demo_render_lock);
+  int ret = notcurses_render(nc);
+  pthread_mutex_unlock(&demo_render_lock);
+  return ret;
 }

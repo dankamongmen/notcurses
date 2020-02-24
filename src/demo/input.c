@@ -92,16 +92,23 @@ ultramegaok_demo(void* vnc){
       continue;
     }
     if(nckey_mouse_p(ni.id)){
-      handle_mouse(&ni);
-    }else{
-      // if this was about the menu or HUD, pass to them, and continue
-      if(menu_or_hud_key(nc, &ni)){
+      if(handle_mouse(&ni)){
         continue;
       }
-      // go ahead and pass keyboard through to demo, even if it was a 'q'
-      // (this might cause the demo to exit immediately, as is desired)
-      pass_along(&ni);
     }
+    if(id == 'L' && ni.ctrl){
+      pthread_mutex_lock(&demo_render_lock);
+      notcurses_refresh(nc);
+      pthread_mutex_unlock(&demo_render_lock);
+      continue;
+    }
+    // if this was about the menu or HUD, pass to them, and continue
+    if(menu_or_hud_key(nc, &ni)){
+      continue;
+    }
+    // go ahead and pass keyboard through to demo, even if it was a 'q'
+    // (this might cause the demo to exit immediately, as is desired)
+    pass_along(&ni);
   }
   return NULL;
 }
