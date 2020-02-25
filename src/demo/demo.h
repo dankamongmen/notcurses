@@ -41,6 +41,7 @@ int grid_demo(struct notcurses* nc);
 int fallin_demo(struct notcurses* nc);
 int highcontrast_demo(struct notcurses* nc);
 int jungle_demo(struct notcurses* nc);
+int normal_demo(struct notcurses* nc);
 int sliding_puzzle_demo(struct notcurses* nc);
 int view_demo(struct notcurses* nc);
 int eagle_demo(struct notcurses* nc);
