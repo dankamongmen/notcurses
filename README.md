@@ -8,7 +8,9 @@ for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/N
 and the [man pages](https://nick-black.com/notcurses). I am working on a
 coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), though it has
 not yet reached even first draft status. In addition, there is
-[Doxygen](https://nick-black.com/notcurses/html/) output.
+[Doxygen](https://nick-black.com/notcurses/html/) output. There is a
+[mailing list](https://groups.google.com/forum/#!forum/notcurses) which
+can be reached via notcurses@googlegroups.com.
 
 notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/).
 Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
