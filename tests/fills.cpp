@@ -219,7 +219,7 @@ TEST_CASE("Fills") {
       }
     }
     CHECK(0 == notcurses_render(nc_));
-    // attr should change, but not the EGC/color
+    // EGC/color should change, but nothing else
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     uint64_t channels = 0;
     channels_set_fg_rgb(&channels, 0x88, 0x99, 0x77);
@@ -235,6 +235,52 @@ TEST_CASE("Fills") {
         CHECK('A' == d.gcluster);
       }
     }
+  }
+
+  // test the single-cell (1x1) special case
+  SUBCASE("GradientSingleCell") {
+    int sbytes;
+    CHECK(0 == ncplane_set_fg(n_, 0x444444));
+    CHECK(1 == ncplane_putegc_yx(n_, 0, 0, "A", &sbytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
+    uint64_t channels = 0;
+    channels_set_fg_rgb(&channels, 0x88, 0x99, 0x77);
+    channels_set_bg(&channels, 0);
+    REQUIRE(0 == ncplane_gradient(n_, "A", 0, channels, channels, channels, channels, 0, 0));
+    CHECK(0 == notcurses_render(nc_));
+    cell d = CELL_TRIVIAL_INITIALIZER;
+    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
+    CHECK(channels == d.channels);
+    REQUIRE(cell_simple_p(&d));
+    CHECK('A' == d.gcluster);
+  }
+
+  // 1d gradients over multiple cells
+  SUBCASE("Gradient1D") {
+    int sbytes;
+    CHECK(0 == ncplane_set_fg(n_, 0x444444));
+    CHECK(1 == ncplane_putegc_yx(n_, 0, 0, "A", &sbytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
+    uint64_t chan1 = 0, chan2 = 0;
+    channels_set_fg_rgb(&chan1, 0x88, 0x99, 0x77);
+    channels_set_fg_rgb(&chan2, 0x77, 0x99, 0x88);
+    channels_set_bg(&chan1, 0);
+    channels_set_bg(&chan2, 0);
+    REQUIRE(0 == ncplane_gradient(n_, "A", 0, chan1, chan2, chan1, chan2, 0, 3));
+    CHECK(0 == notcurses_render(nc_));
+    cell d = CELL_TRIVIAL_INITIALIZER;
+    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
+    CHECK(chan1 == d.channels);
+    REQUIRE(cell_simple_p(&d));
+    CHECK('A' == d.gcluster);
+    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
+    REQUIRE(0 == ncplane_gradient(n_, "A", 0, chan2, chan1, chan2, chan1, 0, 3));
+    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
+    REQUIRE(cell_simple_p(&d));
+    CHECK('A' == d.gcluster);
+    CHECK(chan2 == d.channels);
   }
 
   CHECK(0 == notcurses_stop(nc_));

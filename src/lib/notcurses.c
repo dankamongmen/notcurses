@@ -2005,14 +2005,21 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
 static int
 calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
                         int y, int x, int ylen, int xlen){
-  assert(xlen >= 2);
-  assert(ylen >= 2);
   assert(y >= 0);
   assert(y < ylen);
   assert(x >= 0);
   assert(x < xlen);
   const int avm = (ylen - 1) - y;
   const int ahm = (xlen - 1) - x;
+  if(xlen < 2){
+    if(ylen < 2){
+      return tl;
+    }
+    return (tl * avm + bl * y) / (ylen - 1);
+  }
+  if(ylen < 2){
+    return (tl * ahm + tr * x) / (xlen - 1);
+  }
   const int tlc = ahm * avm * tl;
   const int blc = ahm * y * bl;
   const int trc = x * avm * tr;
@@ -2066,6 +2073,9 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
      channel_palindex_p(lr) || channel_palindex_p(ur)){
     return -1;
   }
+  if(egc == NULL){
+    return -1;
+  }
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
@@ -2084,14 +2094,18 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
   const int ylen = ystop - yoff + 1;
   if(ylen == 1){
     if(xlen == 1){
-      // single cell FIXME
+      if(ul != ur || ur != lr || lr != ll){
+        return -1;
+      }
     }else{
-      // horizontal 1d FIXME
+      if(ul != ll || ur != lr){
+        return -1;
+      }
     }
-    return 0;
   }else if(xlen == 1){
-    // vertical 1d FIXME
-    return 0;
+    if(ul != ur || ll != lr){
+      return -1;
+    }
   }
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
