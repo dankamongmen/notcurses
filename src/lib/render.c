@@ -947,12 +947,13 @@ int notcurses_refresh(notcurses* nc){
   if(term_emit("clear", nc->clearscr, nc->ttyfp, true)){
     return -1;
   }
-  struct crender* rvec = malloc(sizeof(struct crender) * nc->lfdimx * nc->lfdimy);
+  const size_t size = sizeof(struct crender) * nc->lfdimx * nc->lfdimy;
+  struct crender* rvec = malloc(size);
   if(rvec == NULL){
     return -1;
   }
+  memset(rvec, 0, size);
   for(int i = 0 ; i < nc->lfdimy * nc->lfdimx ; ++i){
-    memset(rvec + i, 0, sizeof(*rvec));
     rvec->damaged = true;
   }
   int ret = notcurses_rasterize(nc, rvec);
