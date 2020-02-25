@@ -106,7 +106,6 @@ wormy(worm* s, int dimy, int dimx){
   do{ // force a move
     s->y = oldy;
     s->x = oldx;
-    // FIXME he ought be weighted to avoid light; he's a worm after all
     int direction = random() % 4;
     switch(direction){
       case 0: --s->y; break;
