@@ -72,6 +72,18 @@ int main(void){
       if(ncplane_putwc_yx(n, 7, i, w) <= 0){
         goto err;
       }
+      w = L'⌌' + flipmode % 4;
+      if(ncplane_putwc_yx(n, 8, i, w) <= 0){
+        goto err;
+      }
+      w = L'░' + flipmode % 3;
+      if(ncplane_putwc_yx(n, 9, i, w) <= 0){
+        goto err;
+      }
+      w = L'⯀' + flipmode % 5;
+      if(ncplane_putwc_yx(n, 10, i, w) <= 0){
+        goto err;
+      }
     }
     if(notcurses_render(nc)){
       notcurses_stop(nc);
