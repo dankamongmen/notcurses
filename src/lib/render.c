@@ -29,18 +29,6 @@ blocking_write(int fd, const char* buf, size_t buflen){
   return 0;
 }
 
-int notcurses_refresh(notcurses* nc){
-  int ret;
-  if(nc->rstate.mstream == NULL){
-    ret = -1; // haven't rendered yet, and thus don't know what should be there
-  }else if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
-    ret = -1;
-  }else{
-    ret = 0;
-  }
-  return ret;
-}
-
 static void
 update_render_stats(const struct timespec* time1, const struct timespec* time0,
                     ncstats* stats, int bytes){
@@ -180,12 +168,13 @@ cell_locked_p(const cell* p){
   return 0;
 }
 
-// Extracellular state for a cell during the render process
+// Extracellular state for a cell during the render process. This array is
+// passed along to rasterization, which uses only the 'damaged' bools.
 struct crender {
+  ncplane *p;
   unsigned fgblends;
   unsigned bgblends;
-  ncplane *p;
-  bool damaged;
+  bool damaged;       // also used in rasterization
   // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
   // background is locked in. set highcontrast to indicate this.
   bool highcontrast;
@@ -776,6 +765,11 @@ update_palette(notcurses* nc, FILE* out){
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8 stream of escapes and EGCs
 //  * refresh -- write the stream to the emulator
+
+// Takes a rendered frame (a flat framebuffer, where each cell has the desired
+// EGC, attribute, and channels) and the previously-rendered frame, and spits
+// out an optimal sequence of terminal-appropriate escapes and EGCs. There
+// should be an rvec entry for each cell; only the 'damaged' field is used.
 static int
 notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   FILE* out = nc->rstate.mstreamfp;
@@ -946,6 +940,33 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
     return ret;
   }
   return nc->rstate.mstrsize;
+}
+
+int notcurses_refresh(notcurses* nc){
+  // FIXME need reflow in the event we've been resized
+  if(term_emit("clear", nc->clearscr, nc->ttyfp, true)){
+    return -1;
+  }
+  struct crender* rvec = malloc(sizeof(struct crender) * nc->lfdimx * nc->lfdimy);
+  if(rvec == NULL){
+    return -1;
+  }
+  for(int i = 0 ; i < nc->lfdimy * nc->lfdimx ; ++i){
+    memset(rvec + i, 0, sizeof(*rvec));
+    rvec->damaged = true;
+  }
+  int ret = notcurses_rasterize(nc, rvec);
+  free(rvec);
+  if(ret < 0){
+    return -1;
+  }
+  if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
+    return -1;
+  }
+  if(fflush(nc->ttyfp)){
+    return -1;
+  }
+  return 0;
 }
 
 int notcurses_render(notcurses* nc){
