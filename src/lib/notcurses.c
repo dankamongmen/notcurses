@@ -2051,30 +2051,59 @@ calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
 static inline void
 calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
                        uint64_t lr, int y, int x, int ylen, int xlen){
-  cell_set_fchannel(c, calc_gradient_channel(channels_fchannel(ul),
-                                             channels_fchannel(ur),
-                                             channels_fchannel(ll),
-                                             channels_fchannel(lr),
-                                             y, x, ylen, xlen));
-  cell_set_bchannel(c, calc_gradient_channel(channels_bchannel(ul),
-                                             channels_bchannel(ur),
-                                             channels_bchannel(ll),
-                                             channels_bchannel(lr),
-                                             y, x, ylen, xlen));
+  if(!channels_fg_default_p(ul)){
+    cell_set_fchannel(c, calc_gradient_channel(channels_fchannel(ul),
+                                              channels_fchannel(ur),
+                                              channels_fchannel(ll),
+                                              channels_fchannel(lr),
+                                              y, x, ylen, xlen));
+  }else{
+    cell_set_fg_default(c);
+  }
+  if(!channels_bg_default_p(ul)){
+    cell_set_bchannel(c, calc_gradient_channel(channels_bchannel(ul),
+                                              channels_bchannel(ur),
+                                              channels_bchannel(ll),
+                                              channels_bchannel(lr),
+                                              y, x, ylen, xlen));
+  }else{
+    cell_set_bg_default(c);
+  }
+}
+
+static bool
+check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
+  // Can't use default or palette-indexed colors in a gradient unless they're
+  // all the same.
+  if(channels_fg_default_p(ul) || channels_fg_default_p(ur) ||
+     channels_fg_default_p(bl) || channels_fg_default_p(br)){
+    if(!(channels_fg_default_p(ul) && channels_fg_default_p(ur) &&
+         channels_fg_default_p(bl) && channels_fg_default_p(br))){
+      return true;
+    }
+  }
+  if(channels_bg_default_p(ul) || channels_bg_default_p(ur) ||
+     channels_bg_default_p(bl) || channels_bg_default_p(br)){
+    if(!(channels_bg_default_p(ul) && channels_bg_default_p(ur) &&
+         channels_bg_default_p(bl) && channels_bg_default_p(br))){
+      return true;
+    }
+  }
+  if(channel_palindex_p(ul) || channel_palindex_p(bl) ||
+     channel_palindex_p(br) || channel_palindex_p(ur)){
+    return true; // FIXME
+  }
+  return false;
 }
 
 int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
-                     uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
+                     uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br,
                      int ystop, int xstop){
-  // Can't use default or palette-indexed colors in a gradient
-  if(channel_default_p(ul) || channel_default_p(ll) ||
-     channel_default_p(lr) || channel_default_p(ur) ||
-     channel_palindex_p(ul) || channel_palindex_p(ll) ||
-     channel_palindex_p(lr) || channel_palindex_p(ur)){
+  if(check_gradient_args(ul, ur, bl, br)){
     return -1;
   }
   if(egc == NULL){
-    return -1;
+    return true;
   }
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
@@ -2094,16 +2123,16 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
   const int ylen = ystop - yoff + 1;
   if(ylen == 1){
     if(xlen == 1){
-      if(ul != ur || ur != lr || lr != ll){
+      if(ul != ur || ur != br || br != bl){
         return -1;
       }
     }else{
-      if(ul != ll || ur != lr){
+      if(ul != bl || ur != br){
         return -1;
       }
     }
   }else if(xlen == 1){
-    if(ul != ur || ll != lr){
+    if(ul != ur || bl != br){
       return -1;
     }
   }
@@ -2115,7 +2144,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
         return -1;
       }
       targc->attrword = attrword;
-      calc_gradient_channels(targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
+      calc_gradient_channels(targc, ul, ur, bl, br, y - yoff, x - xoff, ylen, xlen);
     }
   }
   return 0;
@@ -2124,10 +2153,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
 int ncplane_stain(struct ncplane* n, int ystop, int xstop,
                   uint64_t tl, uint64_t tr, uint64_t bl, uint64_t br){
   // Can't use default or palette-indexed colors in a gradient
-  if(channel_default_p(tl) || channel_default_p(bl) ||
-     channel_default_p(br) || channel_default_p(tr) ||
-     channel_palindex_p(tl) || channel_palindex_p(bl) ||
-     channel_palindex_p(br) || channel_palindex_p(tr)){
+  if(check_gradient_args(tl, tr, bl, br)){
     return -1;
   }
   int yoff, xoff, ymax, xmax;

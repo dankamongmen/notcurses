@@ -188,11 +188,7 @@ int fallin_demo(struct notcurses* nc){
   assert(ncvisual_decode(ncv, &averr) == NULL);
   assert(averr == AVERROR_EOF);
   ncvisual_destroy(ncv);
-#else
-  ncplane_erase(stdn);
 #endif
-#else
-  ncplane_erase(stdn);
 #endif
   int ret = drop_bricks(nc, arr, arrcount);
   return ret;
