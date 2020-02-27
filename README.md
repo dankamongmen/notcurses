@@ -27,7 +27,6 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
   * [Input](#input)
   * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
   * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
-  * [Multimedia](#multimedia)
   * [Reels](#reels)
   * [Selectors](#selectors)
   * [Menus](#menus)
@@ -1704,99 +1703,6 @@ cell_set_bg_default(cell* c){
   channels_set_bg_default(&c->channels);
 }
 
-```
-
-### Multimedia
-
-Media decoding and scaling is handled by libAV from FFmpeg, resulting in a
-`notcurses_visual` object. This object generates frames, each one corresponding
-to a renderable scene on the associated `ncplane`. If notcurses is built without
-FFMpeg support, these functions will all return error.
-
-```c
-// Open a visual (image or video), associating it with the specified ncplane.
-// Returns NULL on any error, writing the AVError to 'averr'.
-struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                     int* averr);
-
-// How to scale the visual in ncvisual_open_plane(). NCSCALE_NONE will open a
-// plane tailored to the visual's exact needs, which is probably larger than the
-// visible screen (but might be smaller). NCSCALE_SCALE scales a visual larger
-// than the visible screen down, maintaining aspect ratio. NCSCALE_STRETCH
-// stretches and scales the image in an attempt to fill the visible screen.
-typedef enum {
-  NCSCALE_NONE,
-  NCSCALE_SCALE,
-  NCSCALE_STRETCH,
-} ncscale_e;
-
-// Open a visual, extract a codec and parameters, and create a new plane
-// suitable for its display at 'y','x'. If there is sufficient room to display
-// the visual in its native size, or if NCSCALE_NONE is passed for 'style', the
-// new plane will be exactly that large. Otherwise, the plane will be as large
-// as possible (given the visible screen), either maintaining aspect ratio
-// (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
-struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
-                                     int* averr, int y, int x, ncscale_e style);
-
-// Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
-// can be neither decoded nor rendered any further.
-void ncvisual_destroy(struct ncvisual* ncv);
-
-// Render the decoded frame to the associated ncplane. The frame will be scaled
-// to the size of the ncplane per the ncscale_e style. A subregion of the
-// frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
-// the rectangle formed by begy x begx and the lower-right corner, zero can be
-// supplied to 'leny' and 'lenx'. Zero for all four values will thus render the
-// entire visual. Negative values for any of the four parameters are an error.
-// It is an error to specify any region beyond the boundaries of the frame.
-int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
-
-// Return the plane to which this ncvisual is bound.
-struct ncplane* ncvisual_plane(struct ncvisual* ncv);
-
-// If a subtitle ought be displayed at this time, return a heap-allocated copy
-// of the UTF8 text.
-char* ncvisual_subtitle(const struct ncvisual* ncv);
-
-// Called for each frame rendered from 'ncv'. If anything but 0 is returned,
-// the streaming operation ceases immediately, and that value is propagated out.
-typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
-
-// Shut up and display my frames! Provide as an argument to ncvisual_stream().
-// If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
-// curry is NULL, subtitles will not be displayed.
-static inline int
-ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry){
-  if(notcurses_render(nc)){
-    return -1;
-  }
-  int ret = 0;
-  if(curry){
-    // need a cast for C++ callers
-    struct ncplane* subncp = (struct ncplane*)curry;
-    char* subtitle = ncvisual_subtitle(ncv);
-    if(subtitle){
-      if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
-        ret = -1;
-      }
-      free(subtitle);
-    }
-  }
-  return ret;
-}
-
-// Stream the entirety of the media, according to its own timing. Blocking,
-// obviously. streamer may be NULL; it is otherwise called for each frame, and
-// its return value handled as outlined for stream cb. Pretty raw; beware.
-// If streamer() returns non-zero, the stream is aborted, and that value is
-// returned. By convention, return a positive number to indicate intentional
-// abort from within streamer(). 'timescale' allows the frame duration time to
-// be scaled. For a visual naturally running at 30FPS, a 'timescale' of 0.1
-// will result in 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an
-// error to supply 'timescale' less than or equal to 0.
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr,
-                    float timescale, streamcb streamer, void* curry);
 ```
 
 ### Reels
