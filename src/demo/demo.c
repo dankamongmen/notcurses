@@ -120,13 +120,15 @@ static struct {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -hVkc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -hVikc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -J jsonfile ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -V: print program name and version\n");
   fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
+  fprintf(out, " -i: ignore failures, keep going\n");
   fprintf(out, " -k: keep screen; do not switch to alternate\n");
   fprintf(out, " -d: delay multiplier (non-negative float)\n");
   fprintf(out, " -f: render to file in addition to stdout\n");
+  fprintf(out, " -J: emit JSON summary to file\n");
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
   fprintf(out, " -p: data file path (default: %s)\n", NOTCURSES_SHARE);
   fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
@@ -178,14 +180,16 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
 // specification, also returns NULL, heh. determine this by argv[optind];
 // if it's NULL, there were valid options, but no spec.
 static const char*
-handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failures){
+handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failures,
+            FILE** json_output){
   strcpy(datadir, NOTCURSES_SHARE);
   char renderfile[PATH_MAX] = "";
   bool constant_seed = false;
   *ignore_failures = false;
+  *json_output = NULL;
   int c;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "Vhickl:r:d:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "VhickJ:l:r:d:f:p:")) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
@@ -205,6 +209,16 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
       }case 'V':
         printf("notcurses-demo version %s\n", notcurses_version());
         exit(EXIT_SUCCESS);
+      case 'J':
+        if(*json_output){
+          fprintf(stderr, "Supplied -J twice: %s\n", optarg);
+          usage(*argv, EXIT_FAILURE);
+        }
+        if((*json_output = fopen(optarg, "wb")) == NULL){
+          fprintf(stderr, "Error opening %s for JSON (%s?)\n", optarg, strerror(errno));
+          usage(*argv, EXIT_FAILURE);
+        }
+        break;
       case 'c':
         constant_seed = true;
         break;
@@ -289,6 +303,23 @@ table_printf(struct ncdirect* nc, const char* delim, const char* fmt, ...){
 }
 
 static int
+summary_json(FILE* f, const char* spec, int rows, int cols){
+  int ret = 0;
+  ret |= (fprintf(f, "{\"notcurses-demo\":{\"spec\":\"%s\",\"TERM\":\"%s\",\"rows\":\"%d\",\"cols\":\"%d\",\"runs\":{",
+                  spec, getenv("TERM"), rows, cols) < 0);
+  for(size_t i = 0 ; i < strlen(spec) ; ++i){
+    if(results[i].result || !results[i].stats.renders){
+      continue;
+    }
+    ret |= (fprintf(f, "\"%s\":{\"bytes\":\"%ju\",\"frames\":\"%ju\",\"ns\":\"%ju\"}",
+                    demos[results[i].selector - 'a'].name, results[i].stats.render_bytes,
+                    results[i].stats.renders, results[i].timens) < 0);
+  }
+  ret |= (fprintf(f, "}}}\n") < 0);
+  return ret;
+}
+
+static int
 summary_table(struct ncdirect* nc, const char* spec){
   bool failed = false;
   uint64_t totalbytes = 0;
@@ -348,7 +379,6 @@ summary_table(struct ncdirect* nc, const char* spec){
     totalbytes += results[i].stats.render_bytes;
     totalrenderns += results[i].stats.render_ns;
   }
-  free(results);
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
@@ -384,9 +414,10 @@ int main(int argc, char** argv){
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
   const char* spec;
-  bool ignore_failures;
+  FILE* json = NULL; // emit JSON summary to this file? (-J)
+  bool ignore_failures; // continue after a failure? (-k)
   notcurses_options nopts;
-  if((spec = handle_opts(argc, argv, &nopts, &ignore_failures)) == NULL){
+  if((spec = handle_opts(argc, argv, &nopts, &ignore_failures, &json)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
@@ -458,14 +489,18 @@ int main(int argc, char** argv){
     }
   }
   struct ncdirect* ncd = notcurses_directmode(NULL, stdout);
-  // reinitialize without alternate screen to do some coloring
   if(!ncd){
     return EXIT_FAILURE;
   }
+  if(json && summary_json(json, spec, ncdirect_dim_y(ncd), ncdirect_dim_x(ncd))){
+    return EXIT_FAILURE;
+  }
+  // reinitialize without alternate screen to do some coloring
   if(summary_table(ncd, spec)){
     ncdirect_stop(ncd);
     return EXIT_FAILURE;
   }
+  free(results);
   ncdirect_stop(ncd);
   return EXIT_SUCCESS;
 
