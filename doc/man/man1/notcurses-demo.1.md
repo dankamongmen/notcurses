@@ -9,7 +9,7 @@ notcurses-demo - Show off some notcurses features
 # SYNOPSIS
 
 **notcurses-demo** [**-h|--help**] [**-p path**] [**-d delaymult**]
- [**-l loglevel**] [**-f renderfile**] [**-ikVc**] demospec
+ [**-l loglevel**] [**-f renderfile**] [**-J jsonfile**] [**-ikVc**] demospec
 
 # DESCRIPTION
 
@@ -51,6 +51,8 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 **-l loglevel**: Log everything (high log level) or nothing (log level 0) to stderr.
 
 **-f renderfile**: Render each frame to **renderfile** in addition to the screen.
+
+**-J jsonfile**: Emit JSON summary of run to **jsonfile**.
 
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
 
