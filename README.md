@@ -25,14 +25,13 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
   * [Direct Mode](#direct-mode)
   * [Alignment](#alignment)
   * [Input](#input)
-  * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
+  * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
   * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
   * [Multimedia](#multimedia)
   * [Reels](#reels)
   * [Selectors](#selectors)
   * [Menus](#menus)
   * [Channels](#channels)
-  * [Perf](#perf)
 * [Included tools](#included-tools)
 * [Differences from NCURSES](#differences-from-ncurses)
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
@@ -1314,37 +1313,6 @@ int ncplane_set_fg_palindex(struct ncplane* n, int idx);
 int ncplane_set_bg_palindex(struct ncplane* n, int idx);
 ```
 
-#### Wide chars
-
-Notcurses assumes that all glyphs occupy widths which are an integral multiple
-of the smallest possible glyph's cell width (aka a "fixed-width font"). Unicode
-introduces characters which generally occupy two such cells, known as wide
-characters (though in the end, width of a glyph is a property of the font). It
-is not possible to print half of such a glyph, nor is it generally possible to
-print a wide glyph on the last column of a terminal.
-
-Notcurses does not consider it an error to place a wide character on the last
-column of a line. It will obliterate any content which was in that cell, but
-will not itself be rendered. The default content will not be reproduced in such
-a cell, either. When any character is placed atop a wide character's left or
-right half, the wide character is obliterated in its entirety. When a wide
-character is placed, any character under its left or right side is annihilated,
-including wide characters. It is thus possible for two wide characters to sit
-at columns 0 and 2, and for both to be obliterated by a single wide character
-placed at column 1.
-
-Likewise, when rendering, a plane which would partially obstruct a wide glyph
-prevents it from being rendered entirely. A pathological case would be that of
-a terminal _n_ columns in width, containing _n-1_ planes, each 2 columns wide.
-The planes are placed at offsets [0..n - 2]. Each plane is above the plane to
-its left, and each plane contains a single wide character. Were this to be
-rendered, only the rightmost plane (and its single glyph) would be rendered!
-
-```c
-// Calculate the size in columns of the provided UTF8 multibyte string.
-int mbswidth(const char* mbs);
-```
-
 ### Cells
 
 Unlike the `notcurses` or `ncplane` objects, the definition of `cell` is
@@ -2601,82 +2569,6 @@ channels_set_bg_default(uint64_t* channels){
   return *channels;
 }
 ```
-
-
-### Perf
-
-Rendering performance can be very roughly categorized as inversely proportional
-to the product of:
-* color changes across the rendered screen,
-* planar depth before an opaque glyph and background are locked in,
-* number of UTF-8 bytes composing the rendered glyphs, and
-* screen geometry
-
-notcurses tracks statistics across its operation, and a snapshot can be
-acquired using the `notcurses_stats()` function. This function cannot fail.
-
-```c
-typedef struct ncstats {
-  // purely increasing stats
-  uint64_t renders;          // number of successful notcurses_render() runs
-  uint64_t failed_renders;   // number of aborted renders, should be 0
-  uint64_t render_bytes;     // bytes emitted to ttyfp
-  int64_t render_max_bytes;  // max bytes emitted for a frame
-  int64_t render_min_bytes;  // min bytes emitted for a frame
-  uint64_t render_ns;        // nanoseconds spent in notcurses_render()
-  int64_t render_max_ns;     // max ns spent in notcurses_render()
-  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
-  uint64_t cellelisions;     // cells we elided entirely thanks to damage maps
-  uint64_t cellemissions;    // cells we emitted due to inferred damage
-  uint64_t fgelisions;       // RGB fg elision count
-  uint64_t fgemissions;      // RGB fg emissions
-  uint64_t bgelisions;       // RGB bg elision count
-  uint64_t bgemissions;      // RGB bg emissions
-  uint64_t defaultelisions;  // default color was emitted
-  uint64_t defaultemissions; // default color was elided
-
-  // current state -- these can decrease
-  uint64_t fbbytes;          // total bytes devoted to all active framebuffers
-  unsigned planes;           // number of planes currently in existence
-} ncstats;
-
-// Acquire an atomic snapshot of the notcurses object's stats.
-void notcurses_stats(struct notcurses* nc, ncstats* stats);
-
-// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
-void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
-```
-
-Timings for renderings are across the breadth of `notcurses_render()`: they
-include all per-render preprocessing, output generation, and dumping of the
-output (including any sleeping while waiting on the terminal).
-
-The notcurses drawing algorithm logically starts by zeroing out a _solutions array_
-of booleans. When this array is all true, we've solved for each cell of
-the output, and can stop. It then walks down the z-axis. For each plane
-encountered, any unsolved cells with which that plane interacts are adjusted,
-and the solution array updated if appropriate. Note that there will always
-be at least one `ncplane` interacting with each visible coordinate, due to the
-default plane. The process of filling a solutions matrix is referred to as
-rendering.
-
-The next step is _rasterization_. Rather than moving down the z-axis, we now
-move to the right and down on the screen, starting from the upper left corner.
-At each cell, we examine the solutions matrix and the previous contents of the
-cell. If they are the same, no output is emitted. If they are different, the
-new glyph is written to the output, following any necessary cursor movements
-and styling codes. notcurses attempts to minimize the total amount of data
-written by eliding unnecessary color and style specifications, and moving the
-cursor over large unchanged areas.
-
-Using the "default color" as only one of the foreground or background requires
-emitting the `op` escape followed by the appropriate escape for changing the
-fore- or background (since `op` changes both at once).
-
-Certain EGCs are understood to be all-foreground or all-background. U+2588
-FULL BLOCK is all foreground. U+0020 SPACE is all background. When such a
-character is used, notcurses will emit whichever character can take advantage
-of the current color.
 
 ## Included tools
 
