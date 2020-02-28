@@ -28,8 +28,7 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
   * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
   * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
   * [Reels](#reels)
-  * [Selectors](#selectors)
-  * [Menus](#menus)
+  * [Widgets](#widgets)
   * [Channels](#channels)
 * [Included tools](#included-tools)
 * [Differences from NCURSES](#differences-from-ncurses)
@@ -2069,11 +2068,9 @@ push C entirely off-screen (B would then have four lines of text), and then
 push A off-screen. B would then have eight lines of text, the maximum on a
 12-line screen with both types of borders.
 
-### Selectors
+### Widgets
 
-The selector widget provides an ncplane with a title riser and a body section.
-The body section is populated with options and descriptions, and supports
-infinite scrolling up and down. The widgets looks like:
+Selectors:
 
 ```
                               ╭──────────────────────────╮
@@ -2090,71 +2087,7 @@ infinite scrolling up and down. The widgets looks like:
 ╰────────────────────────────────────here's the footer───╯
 ```
 
-At all times, exactly one item is selected (unless there are no items). A
-selector is created with `ncselector_create` and destroyed with
-`ncselector_destroy`.
-
-```c
-struct selector_item {
-  char* option;
-  char* desc;
-};
-
-typedef struct selector_options {
-  char* title; // title may be NULL, inhibiting riser, saving two rows.
-  char* secondary; // secondary may be NULL
-  char* footer; // footer may be NULL
-  struct selector_item* items; // initial items and descriptions
-  unsigned itemcount; // number of initial items and descriptions
-  // default item (selected at start), must be < itemcount unless 'itemcount'
-  // is 0, in which case 'defidx' must also be 0
-  unsigned defidx;
-  // maximum number of options to display at once, 0 to use all available space
-  unsigned maxdisplay;
-  // exhaustive styling options
-  uint64_t opchannels;   // option channels
-  uint64_t descchannels; // description channels
-  uint64_t titlechannels;// title channels
-  uint64_t footchannels; // secondary and footer channels
-  uint64_t boxchannels;  // border channels
-  uint64_t bgchannels;   // background channels, used only in body
-} selector_options;
-
-struct ncselector;
-
-struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
-                                     const selector_options* opts);
-
-int ncselector_additem(struct ncselector* n, const struct selector_item* item);
-int ncselector_delitem(struct ncselector* n, const char* item);
-
-// Return a reference to the selected option, or NULL if there are no items.
-const char* ncselector_selected(const struct ncselector* n);
-
-// Return a reference to the ncselector's underlying ncplane.
-struct ncplane* ncselector_plane(struct ncselector* n);
-
-// Move up or down in the list. A reference to the newly-selected item is
-// returned, or NULL if there are no items in the list.
-const char* ncselector_previtem(struct ncselector* n);
-const char* ncselector_nextitem(struct ncselector* n);
-
-// Offer the input to the ncselector. If it's relevant, this function returns
-// true, and the input ought not be processed further. If it's irrelevant to
-// the selector, false is returned. Relevant inputs include:
-//  * a mouse click on an item
-//  * a mouse scrollwheel event
-//  * a mouse click on the scrolling arrows
-//  * a mouse click outside of an unrolled menu (the menu is rolled up)
-//  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
-bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
-
-// Destroy the ncselector. If 'item' is not NULL, the last selected option will
-// be strdup()ed and assigned to '*item' (and must be free()d by the caller).
-void ncselector_destroy(struct ncselector* n, char** item);
-```
-
-### Menus
+Menus:
 
 ```
   Schwarzgerät  File                                    Help
@@ -2165,66 +2098,6 @@ xxxxxxxxxxxxxxxx│Close  Ctrl+c│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx├─────────────┤xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx│Quit   Ctrl+q│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx╰─────────────╯xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Horizontal menu bars are supported, on the top or bottom rows of the screen. If
-the menu bar is longer than the screen, it will be only partially visible, but
-any unrolled section will be visible. Menus may be either visible or invisible
-by default; set the `hiding` option to get an invisible menu. In the event of a
-screen resize, menus will be automatically moved/resized.
-
-```c
-typedef struct menu_options {
-  bool bottom;              // on the bottom row, as opposed to top row
-  bool hiding;              // hide the menu when not being used
-  struct {
-    char* name;             // utf-8 c string
-    struct {
-      char* desc;           // utf-8 menu item, NULL for horizontal separator
-      ncinput shortcut;     // shortcut, all should be distinct
-    }* items;
-    int itemcount;
-  }* sections;              // array of menu sections
-  int sectioncount;         // must be positive
-  uint64_t headerchannels;  // styling for header
-  uint64_t sectionchannels; // styling for sections
-} menu_options;
-
-struct ncmenu;
-
-// Create a menu with the specified options. Menus are currently bound to an
-// overall notcurses object (as opposed to a particular plane), and are
-// implemented as ncplanes kept atop other ncplanes.
-struct ncmenu* ncmenu_create(struct notcurses* nc, const menu_options* opts);
-
-// Unroll the specified menu section, making the menu visible if it was
-// invisible, and rolling up any menu section that is already unrolled.
-int ncmenu_unroll(struct ncmenu* n, int sectionidx);
-
-// Roll up any unrolled menu section, and hide the menu if using hiding.
-int ncmenu_rollup(struct ncmenu* n);
-
-// Return the selected item description, or NULL if no section is unrolled. If
-// 'ni' is not NULL, and the selected item has a shortcut, 'ni' will be filled
-// in with that shortcut--this can allow faster matching.
-const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);
-
-// Return the ncplane backing this ncmenu.
-struct ncplane* ncmenu_plane(struct ncmenu* n);
-
-// Offer the input to the ncmenu. If it's relevant, this function returns true,
-// and the input ought not be processed further. If it's irrelevant to the
-// menu, false is returned. Relevant inputs include:
-//  * mouse movement over a hidden menu
-//  * a mouse click on a menu section (the section is unrolled)
-//  * a mouse click outside of an unrolled menu (the menu is rolled up)
-//  * left or right on an unrolled menu (navigates among sections)
-//  * up or down on an unrolled menu (navigates among items)
-//  * escape on an unrolled menu (the menu is rolled up)
-bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
-
-// Destroy a menu created with ncmenu_create().
-int ncmenu_destroy(struct ncmenu* n);
 ```
 
 ### Channels
