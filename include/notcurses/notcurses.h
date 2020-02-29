@@ -888,9 +888,11 @@ API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 // color everything the same, all four channels should be equivalent. The
 // resulting alpha values are equal to incoming alpha values.
 //
+// Palette-indexed color is not supported.
+//
 // Preconditions for gradient operations (error otherwise):
 //
-//  all: only RGB colors, unless all four channels match
+//  all: only RGB colors, unless all four channels match as default
 //  all: all alpha values must be the same
 //  1x1: all four colors must be the same
 //  1xN: both top and both bottom colors must be the same (vertical gradient)
