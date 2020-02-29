@@ -428,6 +428,25 @@ rgb_quantize_8(unsigned r, unsigned g, unsigned b){
   return WHITE;
 }
 
+// Given r, g, and b values 0..255, do a weighted average per Rec. 601, and
+// return the 8-bit greyscale value (this value will be the r, g, and b value
+// for the new color).
+static inline int
+rgb_greyscale(int r, int g, int b){
+  if(r < 0 || r > 255){
+    return -1;
+  }
+  if(g < 0 || g > 255){
+    return -1;
+  }
+  if(b < 0 || b > 255){
+    return -1;
+  }
+  // Use Rec. 601 scaling plus linear approximation of gamma decompression
+  float fg = (0.299 * (r / 255.0) + 0.587 * (g / 255.0) + 0.114 * (b / 255.0));
+  return fg * 255;
+}
+
 static inline int
 term_emit(const char* name __attribute__ ((unused)), const char* seq,
           FILE* out, bool flush){
