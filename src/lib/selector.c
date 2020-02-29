@@ -77,14 +77,16 @@ ncselector_draw(ncselector* n){
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
     ncplane_putc(n->ncp, &n->background);
   }
+  const int bodyoffset = dimx - bodywidth + 2;
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
-    ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
+    n->arrowx = bodyoffset + n->longop;
+    ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
+  }else{
+    n->arrowx = -1;
   }
-  n->arrowx = bodywidth - (n->longdesc + 3) + xoff;
   n->uarrowy = yoff;
   unsigned printidx = n->startdisp;
-  int bodyoffset = dimx - bodywidth + 2;
   unsigned printed = 0;
   for(yoff += 1 ; yoff < dimy - 2 ; ++yoff){
     if(n->maxdisplay && printed == n->maxdisplay){
@@ -116,7 +118,7 @@ ncselector_draw(ncselector* n){
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
-    ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↓", NULL);
+    ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↓", NULL);
   }
   n->darrowy = yoff;
   return notcurses_render(n->ncp->nc);
