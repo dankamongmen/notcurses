@@ -334,10 +334,8 @@ API int notcurses_mouse_disable(struct notcurses* n);
 API bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
-// if necessary. Without a call to this function following a terminal resize
-// (as signaled via SIGWINCH), notcurses_render() might not function properly.
-// References to ncplanes (and the egcpools underlying cells) remain valid
-// following a resize operation, but the cursor might have changed position.
+// if necessary, without a fresh render. References to ncplanes (and the
+// egcpools underlying cells) remain valid following a resize operation.
 API int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Refresh the physical screen to match what was last rendered (i.e., without
