@@ -248,7 +248,8 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
       if(fds[1].revents & POLLIN){
         uint64_t val;
         if(read(efd, &val, sizeof(val)) != sizeof(val)){
-          fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno)); }else if(key < 0){
+          fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno));
+        }else if(key < 0){
           ncreel_redraw(pr);
           DEMO_RENDER(nc);
         }
