@@ -292,10 +292,8 @@ struct ncplane* notcurses_top(struct notcurses* n);
 void notcurses_drop_planes(struct notcurses* nc);
 
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
-// if necessary. Without a call to this function following a terminal resize
-// (as signaled via SIGWINCH), notcurses_render() might not function properly.
-// References to ncplanes (and the egcpools underlying cells) remain valid
-// following a resize operation, but the cursor might have changed position.
+// if necessary, without a fresh render. References to ncplanes (and the
+// egcpools underlying cells) remain valid following a resize operation.
 int notcurses_resize(struct notcurses* n, int* restrict y, int* restrict x);
 
 // Return our current idea of the terminal dimensions in rows and cols.
