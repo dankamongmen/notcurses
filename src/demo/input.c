@@ -65,8 +65,8 @@ pass_along(const ncinput* ni){
   *enqueue = nq;
   enqueue = &nq->next;
   pthread_mutex_unlock(&lock);
-  const unsigned char eventcount[1] = "\x01";
-  write(input_eventfd, eventcount, sizeof(eventcount));
+  const uint64_t eventcount = 1;
+  write(input_eventfd, &eventcount, sizeof(eventcount));
   pthread_cond_signal(&cond);
   return 0;
 }
