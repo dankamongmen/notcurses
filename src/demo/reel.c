@@ -236,8 +236,10 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
     if(pret == 0){
       return 0;
     }else if(pret < 0){
-      fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
-      return (wchar_t)-1;
+      if(errno != EINTR){
+        fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
+        return (wchar_t)-1;
+      }
     }else{
       if(fds[0].revents & POLLIN){
         uint64_t eventcount;
