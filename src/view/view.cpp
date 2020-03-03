@@ -181,12 +181,6 @@ int main(int argc, char** argv){
       std::cerr << argv[i] << ": " << e.what() << "\n";
       return EXIT_FAILURE;
     }
-    if(!ncv){
-      av_make_error_string(errbuf.data(), errbuf.size(), averr);
-      nc.stop();
-      std::cerr << "Error opening " << argv[i] << ": " << errbuf.data() << std::endl;
-      return EXIT_FAILURE;
-    }
     int r = ncv->stream(&averr, timescale, perframe, &frames);
     if(r < 0){ // positive is intentional abort
       av_make_error_string(errbuf.data(), errbuf.size(), averr);
