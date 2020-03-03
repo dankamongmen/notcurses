@@ -656,20 +656,33 @@ term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
 }
 
 static inline int
-ncdirect_style_emit(const char* sgr, unsigned stylebits, FILE* out){
-  return term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
-                                 stylebits & NCSTYLE_UNDERLINE,
-                                 stylebits & NCSTYLE_REVERSE,
-                                 stylebits & NCSTYLE_BLINK,
-                                 stylebits & NCSTYLE_DIM,
-                                 stylebits & NCSTYLE_BOLD,
-                                 stylebits & NCSTYLE_INVIS,
-                                 stylebits & NCSTYLE_PROTECT, 0), out, false);
+ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out){
+  if(sgr == NULL){
+    return -1;
+  }
+  int r = term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
+                                  stylebits & NCSTYLE_UNDERLINE,
+                                  stylebits & NCSTYLE_REVERSE,
+                                  stylebits & NCSTYLE_BLINK,
+                                  stylebits & NCSTYLE_DIM,
+                                  stylebits & NCSTYLE_BOLD,
+                                  stylebits & NCSTYLE_INVIS,
+                                  stylebits & NCSTYLE_PROTECT, 0), out, false);
+  // sgr resets colors, so set them back up if not defaults
+  if(r == 0){
+    if(!n->fgdefault){
+      r |= ncdirect_fg(n, n->fgrgb);
+    }
+    if(!n->bgdefault){
+      r |= ncdirect_bg(n, n->bgrgb);
+    }
+  }
+  return r;
 }
 
 int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
   n->attrword |= stylebits;
-  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
     return 0;
   }
   return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
@@ -678,7 +691,7 @@ int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
 // turn off any specified stylebits
 int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   n->attrword &= ~stylebits;
-  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
     return 0;
   }
   return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
@@ -687,7 +700,7 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
 // set the current stylebits to exactly those provided
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
   n->attrword = stylebits;
-  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
     return 0;
   }
   return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);

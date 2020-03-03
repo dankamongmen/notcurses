@@ -44,7 +44,7 @@ int main(void){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
   }
-  struct ncdirect* nc = ncdirect_initmode(NULL, stdout);
+  struct ncdirect* nc = ncdirect_init(NULL, stdout);
   if(!nc){
     return EXIT_FAILURE;
   }
