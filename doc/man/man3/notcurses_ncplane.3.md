@@ -60,6 +60,8 @@ notcurses_ncplane - operations on notcurses planes
 
 **void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* restrict y, int* restrict x);**
 
+**bool ncplane_translate_abs(const struct ncplane* n, int* restrict y, int* restrict x);**
+
 **uint64_t ncplane_channels(struct ncplane* n);**
 
 **uint32_t ncplane_attr(struct ncplane* n);**

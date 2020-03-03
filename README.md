@@ -574,11 +574,6 @@ int notcurses_mouse_enable(struct notcurses* n);
 
 // Disable mouse events. Any events in the input queue can still be delivered.
 int notcurses_mouse_disable(struct notcurses* n);
-
-// Was the provided mouse event 'ni' within the bounds of the ncplane 'n'? Note
-// that this doesn't necessarily mean the event affected 'n'; there could be a
-// plane above it, this plane could be transparent, etc.
-bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
 ```
 
 "Button-event tracking mode" implies the ability to detect mouse button
@@ -710,6 +705,12 @@ ncplane_dim_x(const struct ncplane* n){
 // and 'x' may be NULL.
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                        int* restrict y, int* restrict x);
+
+// Fed absolute 'y'/'x' coordinates, determine whether that coordinate is
+// within the ncplane 'n'. If not, return false. If so, return true. Either
+// way, translate the absolute coordinates relative to 'n'. If the point is not
+// within 'n', these coordinates will not be within the dimensions of the plane.
+bool ncplane_translate_abs(const struct ncplane* n, int* restrict y, int* restrict x);
 ```
 
 If a given cell's glyph is zero, or its foreground channel is fully transparent,
