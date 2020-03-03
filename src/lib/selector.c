@@ -337,9 +337,11 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
   }else if(nc->id == NCKEY_SCROLL_DOWN){
     ncselector_nextitem(n);
     return true;
-  }else if(nc->id == NCKEY_RELEASE && ncplane_mouseevent_p(n->ncp, nc)){
+  }else if(nc->id == NCKEY_RELEASE){
     int y = nc->y, x = nc->x;
-    ncplane_translate(ncplane_stdplane(n->ncp), n->ncp, &y, &x);
+    if(!ncplane_translate_abs(n->ncp, &y, &x)){
+      return false;
+    }
     if(y == n->uarrowy && x == n->arrowx){
       ncselector_previtem(n);
       return true;

@@ -1895,6 +1895,27 @@ void palette256_free(palette256* p){
   free(p);
 }
 
+bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){
+  ncplane_translate(ncplane_stdplane_const(n), n, y, x);
+  if(y){
+    if(*y < 0){
+      return false;
+    }
+    if(*y >= n->leny){
+      return false;
+    }
+  }
+  if(x){
+    if(*x < 0){
+      return false;
+    }
+    if(*x >= n->lenx){
+      return false;
+    }
+  }
+  return true;
+}
+
 void ncplane_translate(const ncplane* src, const ncplane* dst,
                        int* restrict y, int* restrict x){
   if(y){

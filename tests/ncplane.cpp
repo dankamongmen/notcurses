@@ -1005,7 +1005,8 @@ TEST_CASE("NCPlane") {
     int total = 0;
     for(ni.y = 0 ; ni.y < 5 ; ++ni.y){
       for(ni.x = 0 ; ni.x < 5 ; ++ni.x){
-        bool p = ncplane_mouseevent_p(n, &ni);
+        int y = ni.y, x = ni.x;
+        bool p = ncplane_translate_abs(n, &y, &x);
         if(ni.y >= 1 && ni.y <= 2 && ni.x >= 1 && ni.x <= 2){
           CHECK(p);
         }else{

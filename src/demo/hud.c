@@ -315,6 +315,11 @@ int hud_grab(int y, int x){
     // new grab. stash point of original grab, and location of HUD at original
     // grab. any delta while grabbed (relative to the original grab point)
     // will see the HUD moved by delta (relative to the original HUD location).
+    int ty = y, tx = x;
+    // first, though, verify that we're clicking within the hud
+    if(!ncplane_translate_abs(hud, &ty, &tx)){
+      return 0;
+    }
     hud_grab_x = x;
     hud_grab_y = y;
     ncplane_yx(hud, &hud_pos_y, &hud_pos_x);

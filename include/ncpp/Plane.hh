@@ -876,15 +876,15 @@ namespace ncpp
 			ncplane_translate (src.plane, dst.plane, y, x);
 		}
 
+		bool translate_abs (int *y = nullptr, int *x = nullptr)
+		{
+			return ncplane_translate_abs (*this, y, x);
+		}
+
 		// Upstream call doesn't take ncplane* but we put it here for parity with has_no_background below
 		bool has_no_foreground (Cell &cell) const noexcept
 		{
 			return cell.has_no_foreground ();
-		}
-
-		bool is_mouse_event (const ncinput *ni) const noexcept
-		{
-			return ncplane_mouseevent_p (plane, ni);
 		}
 
 		const char* get_extended_gcluster (Cell &cell) const noexcept

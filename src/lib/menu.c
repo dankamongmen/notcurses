@@ -508,12 +508,14 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
 }
 
 bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
-  if(nc->id == NCKEY_RELEASE && ncplane_mouseevent_p(n->ncp, nc)){
+  if(nc->id == NCKEY_RELEASE){
     int y, x, dimy, dimx;
     y = nc->y;
     x = nc->x;
     ncplane_dim_yx(n->ncp, &dimy, &dimx);
-    ncplane_translate(ncplane_stdplane(n->ncp), n->ncp, &y, &x);
+    if(!ncplane_translate_abs(n->ncp, &y, &x)){
+      return false;
+    }
     if(y != (n->bottom ? dimy - 1 : 0)){
       return false;
     }

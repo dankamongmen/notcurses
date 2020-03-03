@@ -51,7 +51,6 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_gradient@Base 1.2.1
  ncplane_greyscale@Base 1.2.1
  ncplane_hline_interp@Base 1.2.1
- ncplane_mouseevent_p@Base 1.2.2
  ncplane_move_above_unsafe@Base 1.2.1
  ncplane_move_below_unsafe@Base 1.2.1
  ncplane_move_bottom@Base 1.2.1
@@ -90,6 +89,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_styles_on@Base 1.2.1
  ncplane_styles_set@Base 1.2.1
  ncplane_translate@Base 1.2.2
+ ncplane_translate_abs@Base 1.2.3
  ncplane_userptr@Base 1.2.1
  ncplane_visual_open@Base 1.2.1
  ncplane_vline_interp@Base 1.2.1

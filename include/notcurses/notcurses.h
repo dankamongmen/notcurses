@@ -328,11 +328,6 @@ API int notcurses_mouse_enable(struct notcurses* n);
 // Disable mouse events. Any events in the input queue can still be delivered.
 API int notcurses_mouse_disable(struct notcurses* n);
 
-// Was the provided mouse event 'ni' within the bounds of the ncplane 'n'? Note
-// that this doesn't necessarily mean the event affected 'n'; there could be a
-// plane above it, this plane could be transparent, etc.
-API bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
-
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary, without a fresh render. References to ncplanes (and the
 // egcpools underlying cells) remain valid following a resize operation.
@@ -413,6 +408,12 @@ API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 // and 'x' may be NULL.
 API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                            int* RESTRICT y, int* RESTRICT x);
+
+// Fed absolute 'y'/'x' coordinates, determine whether that coordinate is
+// within the ncplane 'n'. If not, return false. If so, return true. Either
+// way, translate the absolute coordinates relative to 'n'. If the point is not
+// within 'n', these coordinates will not be within the dimensions of the plane.
+API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
