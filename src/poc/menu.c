@@ -75,6 +75,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
+  notcurses_mouse_enable(nc);
   struct ncmenu_item demo_items[] = {
     { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
   };

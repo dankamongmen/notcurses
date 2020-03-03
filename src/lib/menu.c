@@ -479,8 +479,18 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
 }
 
 bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
-fprintf(stderr, "KEY: %lc %u\n", nc->id, nc->id);
-  if(n->unrolledsection < 0){
+  if(nc->id == NCKEY_RELEASE && ncplane_mouseevent_p(n->ncp, nc)){
+    int y, x, dimy, dimx;
+    y = nc->y;
+    x = nc->x;
+    ncplane_dim_yx(n->ncp, &dimy, &dimx);
+    ncplane_translate(ncplane_stdplane(n->ncp), n->ncp, &y, &x);
+    if(y != (n->bottom ? dimy - 1 : 0)){
+      return false;
+    }
+    ncmenu_rollup(n);
+    // FIXME unroll appropriate menu selection
+  }else if(n->unrolledsection < 0){ // all following need an unrolled section
     return false;
   }
   if(nc->id == NCKEY_LEFT){
@@ -503,8 +513,6 @@ fprintf(stderr, "KEY: %lc %u\n", nc->id, nc->id);
       return false;
     }
     return true;
-  }else if(nc->id == NCKEY_BUTTON1){
-    // FIXME did we clock on the menu? if so, unroll appropriately
   }
   return false;
 }
