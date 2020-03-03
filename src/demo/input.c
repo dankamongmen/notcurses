@@ -97,6 +97,10 @@ ultramegaok_demo(void* vnc){
     if(id == 0){
       continue;
     }
+    // if this was about the menu or HUD, pass to them, and continue
+    if(menu_or_hud_key(nc, &ni)){
+      continue;
+    }
     if(nckey_mouse_p(ni.id)){
       if(handle_mouse(&ni)){
         continue;
@@ -106,10 +110,6 @@ ultramegaok_demo(void* vnc){
       lock_demo_render();
       notcurses_refresh(nc);
       unlock_demo_render();
-      continue;
-    }
-    // if this was about the menu or HUD, pass to them, and continue
-    if(menu_or_hud_key(nc, &ni)){
       continue;
     }
     // go ahead and pass keyboard through to demo, even if it was a 'q'
