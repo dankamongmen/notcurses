@@ -479,6 +479,7 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
 }
 
 bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
+fprintf(stderr, "KEY: %lc %u\n", nc->id, nc->id);
   if(n->unrolledsection < 0){
     return false;
   }
@@ -492,12 +493,12 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
       return false;
     }
     return true;
-  }else if(nc->id == NCKEY_UP){
+  }else if(nc->id == NCKEY_UP || nc->id == NCKEY_SCROLL_UP){
     if(ncmenu_previtem(n)){
       return false;
     }
     return true;
-  }else if(nc->id == NCKEY_DOWN){
+  }else if(nc->id == NCKEY_DOWN || nc->id == NCKEY_SCROLL_DOWN){
     if(ncmenu_nextitem(n)){
       return false;
     }

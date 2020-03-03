@@ -14,6 +14,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncdirect_dimy@Base 1.2.3
  ncdirect_fg@Base 1.2.1
  ncdirect_fg_default@Base 1.2.1
+ ncdirect_init@Base 1.2.3
  ncdirect_stop@Base 1.2.1
  ncdirect_styles_off@Base 1.2.1
  ncdirect_styles_on@Base 1.2.1

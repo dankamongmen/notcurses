@@ -238,7 +238,7 @@ int palette256_set(palette256* p, int idx, unsigned rgb);
 int palette256_get_rgb(const palette256* p, int idx, unsigned* r, unsigned* g, unsigned* b);
 void palette256_free(palette256* p);
 bool notcurses_canchangecolor(const struct notcurses* nc);
-struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
+struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 int ncdirect_bg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg(struct ncdirect* n, unsigned rgb);

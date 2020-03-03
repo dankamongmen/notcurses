@@ -764,7 +764,7 @@ ffmpeg_log_level(ncloglevel_e level){
 #endif
 }
 
-ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
+ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   ncdirect* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;

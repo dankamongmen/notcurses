@@ -80,7 +80,7 @@ class Notcurses:
 
 class Ncdirect:
     def __init__(self):
-        self.nc = lib.notcurses_directmode(ffi.NULL, sys.stdout)
+        self.nc = lib.ncdirect_init(ffi.NULL, sys.stdout)
 
     def __del__(self):
         lib.ncdirect_stop(self.nc)

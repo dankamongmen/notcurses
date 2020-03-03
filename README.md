@@ -334,8 +334,8 @@ bool notcurses_canchangecolors(const struct notcurses* nc);
 "Direct mode" makes a limited subset of notcurses is available for manipulating
 typical scrolling or file-backed output. These functions output directly and
 immediately to the provided `FILE*`, and `notcurses_render()` is neither
-supported nor necessary for such an instance. Use `notcurses_directmode()` to
-create a direct mode context:
+supported nor necessary for such an instance. Use `ncdirect_init()` to create a
+direct mode context:
 
 ```c
 struct ncdirect; // minimal state for a terminal
@@ -346,7 +346,7 @@ struct ncdirect; // minimal state for a terminal
 // supports nor requires notcurses_render(). This can be used to add color and
 // styling to text in the standard output paradigm. Returns NULL on error,
 // including any failure initializing terminfo.
-struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
+struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 int ncdirect_stop(struct ncdirect* nc);

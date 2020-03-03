@@ -48,5 +48,8 @@ int main(void){
     fprintf(stderr, "Error stopping notcurses\n");
     return EXIT_FAILURE;
   }
+  struct ncdirect* n;
+  if((n = ncdirect_init()) == NULL){
+  }
   return EXIT_SUCCESS;
 }

@@ -38,7 +38,7 @@ struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 // supports nor requires notcurses_render(). This can be used to add color and
 // styling to text in the standard output paradigm. Returns NULL on error,
 // including any failure initializing terminfo.
-API struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
+API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should
