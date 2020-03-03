@@ -196,6 +196,35 @@ err:
   return -1;
 }
 
+// what section header, if any, is living at the provided x coordinate? solves
+// by replaying the write_header() algorithm. returns -1 if no such section.
+static int
+section_x(const ncmenu* ncm, int x){
+  int dimx = ncplane_dim_x(ncm->ncp);
+  for(int i = 0 ; i < ncm->sectioncount ; ++i){
+    if(!ncm->sections[i].name){
+      continue;
+    }
+    if(ncm->sections[i].xoff < 0){ // right-aligned
+      int pos = dimx + ncm->sections[i].xoff;
+      if(x < pos){
+        break;
+      }
+      if(x < pos + mbswidth(ncm->sections[i].name)){
+        return i;
+      }
+    }else{
+      if(x < ncm->sections[i].xoff){
+        break;
+      }
+      if(x < ncm->sections[i].xoff + mbswidth(ncm->sections[i].name)){
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
 static int
 write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
   int dimy, dimx;
@@ -488,8 +517,12 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
     if(y != (n->bottom ? dimy - 1 : 0)){
       return false;
     }
-    ncmenu_rollup(n);
-    // FIXME unroll appropriate menu selection
+    int i = section_x(n, x);
+    if(i < 0 || i == n->unrolledsection){
+      ncmenu_rollup(n);
+    }else{
+      ncmenu_unroll(n, i);
+    }
   }else if(n->unrolledsection < 0){ // all following need an unrolled section
     return false;
   }
