@@ -76,7 +76,6 @@ handle_mouse(const ncinput* ni){
   if(ni->id != NCKEY_BUTTON1 && ni->id != NCKEY_RELEASE){
     return 0;
   }
-  int y, x;
   int ret;
   if(ni->id == NCKEY_RELEASE){
     ret = hud_release();
