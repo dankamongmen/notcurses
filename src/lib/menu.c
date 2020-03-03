@@ -525,6 +525,7 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
     }else{
       ncmenu_unroll(n, i);
     }
+    return true;
   }else if(n->unrolledsection < 0){ // all following need an unrolled section
     return false;
   }
