@@ -250,7 +250,7 @@ API int notcurses_render(struct notcurses* nc);
 // Return the topmost ncplane, of which there is always at least one.
 API struct ncplane* notcurses_top(struct notcurses* n);
 
-// Destroy any ncplanes other than the stdplane.
+// Destroy all ncplanes other than the stdplane.
 API void notcurses_drop_planes(struct notcurses* nc);
 
 // All input is currently taken from stdin, though this will likely change. We
@@ -415,6 +415,8 @@ API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
 // within 'n', these coordinates will not be within the dimensions of the plane.
 API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
+// Capabilities
+
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
@@ -425,8 +427,6 @@ API unsigned notcurses_supported_styles(const struct notcurses* nc);
 // there is no color support. Note that several terminal emulators advertise
 // more colors than they actually support, downsampling internally.
 API int notcurses_palette_size(const struct notcurses* nc);
-
-// Capabilities
 
 // Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
 API bool notcurses_canfade(const struct notcurses* nc);
@@ -553,6 +553,13 @@ ncplane_move_below(struct ncplane* n, struct ncplane* below){
 
 // Return the plane above this one, or NULL if this is at the top.
 API struct ncplane* ncplane_below(struct ncplane* n);
+
+// Rotate the plane pi/2 radians clockwise or counterclockwise. Note that
+// rotation only applies to geometry and color. Most glyphs cannot be rotated.
+// The resulting plane is thus populated only by null glyphs, spaces, full
+// blocks, and partial blocks.
+API int ncplane_rotate_cw(struct ncplane* n);
+API int ncplane_rotate_ccw(struct ncplane* n);
 
 // Retrieve the cell at the cursor location on the specified plane, returning
 // it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
@@ -1164,7 +1171,7 @@ channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
   channels_set_bchannel(channels, channel);
 }
 
-// Same, but set an assembled 32 bit channel at once.
+// Same, but set an assembled 24 bit channel at once.
 static inline int
 channels_set_fg(uint64_t* channels, unsigned rgb){
   unsigned channel = channels_fchannel(*channels);
@@ -1349,13 +1356,13 @@ cell_bg_alpha(const cell* cl){
   return channels_bg_alpha(cl->channels);
 }
 
-// Extract 24 bits of foreground RGB from 'cell', split into subcell.
+// Extract 24 bits of foreground RGB from 'cell', split into components.
 static inline unsigned
 cell_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb(cl->channels, r, g, b);
 }
 
-// Extract 24 bits of background RGB from 'cell', split into subcell.
+// Extract 24 bits of background RGB from 'cell', split into components.
 static inline unsigned
 cell_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb(cl->channels, r, g, b);
@@ -1374,7 +1381,7 @@ cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
   channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
 }
 
-// Same, but with an assembled 32-bit channel.
+// Same, but with an assembled 24-bit RGB value.
 static inline int
 cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
@@ -1413,7 +1420,7 @@ cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
   channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
 }
 
-// Same, but with an assembled 32-bit channel.
+// Same, but with an assembled 24-bit RGB value.
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);
@@ -1503,13 +1510,13 @@ ncplane_bg_alpha(const struct ncplane* nc){
   return channels_bg_alpha(ncplane_channels(nc));
 }
 
-// Extract 24 bits of foreground RGB from 'n', split into subcomponents.
+// Extract 24 bits of foreground RGB from 'n', split into components.
 static inline unsigned
 ncplane_fg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb(ncplane_channels(n), r, g, b);
 }
 
-// Extract 24 bits of background RGB from 'n', split into subcomponents.
+// Extract 24 bits of background RGB from 'n', split into components.
 static inline unsigned
 ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb(ncplane_channels(n), r, g, b);

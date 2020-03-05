@@ -288,9 +288,6 @@ Utility functions operating on the toplevel `notcurses` object include:
 // Return the topmost ncplane, of which there is always at least one.
 struct ncplane* notcurses_top(struct notcurses* n);
 
-// Destroy any ncplanes other than the stdplane.
-void notcurses_drop_planes(struct notcurses* nc);
-
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
 // if necessary, without a fresh render. References to ncplanes (and the
 // egcpools underlying cells) remain valid following a resize operation.
@@ -626,11 +623,6 @@ struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
 // will duplicate all content, and will start with the same rendering state.
 // The new plane will be immediately above the old one on the z axis.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
-
-// Destroy the specified ncplane. None of its contents will be visible after
-// the next call to notcurses_render(). It is an error to attempt to destroy
-// the standard plane.
-int ncplane_destroy(struct ncplane* ncp);
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
@@ -1640,7 +1632,7 @@ cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
   channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
 }
 
-// Same, but with an assembled 32-bit channel.
+// Same, but with an assembled 24-bit RGB value.
 static inline int
 cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
@@ -1659,7 +1651,7 @@ cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
   channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
 }
 
-// Same, but with an assembled 32-bit channel.
+// Same, but with an assembled 24-bit RGB value.
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);

@@ -28,8 +28,6 @@ notcurses_ncplane - operations on notcurses planes
 
 **int ncplane_base(struct ncplane* ncp, cell* c);**
 
-**int ncplane_destroy(struct ncplane* ncp);**
-
 **int ncplane_move_top(struct ncplane* n);**
 
 **int ncplane_move_bottom(struct ncplane* n);**
@@ -119,6 +117,12 @@ notcurses_ncplane - operations on notcurses planes
 **int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
 
 **int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
+
+**int ncplane_rotate_cw(struct ncplane* n);**
+
+**int ncplane_rotate_ccw(struct ncplane* n);**
+
+**int ncplane_destroy(struct ncplane* ncp);**
 
 **void notcurses_drop_planes(struct notcurses* nc);**
 

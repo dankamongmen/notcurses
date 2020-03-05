@@ -106,7 +106,6 @@ int notcurses_palette_size(const struct notcurses* nc);
 bool notcurses_canfade(const struct notcurses* nc);
 int notcurses_mouse_enable(struct notcurses* n);
 int notcurses_mouse_disable(struct notcurses* n);
-bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
 int ncplane_destroy(struct ncplane* ncp);
 bool notcurses_canopen(const struct notcurses* nc);
 void ncplane_erase(struct ncplane* n);
@@ -369,6 +368,10 @@ int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes)
 int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
 int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
+int ncplane_rotate_cw(struct ncplane* n);
+int ncplane_rotate_ccw(struct ncplane* n);
+void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
+bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 """)
 
 if __name__ == "__main__":
