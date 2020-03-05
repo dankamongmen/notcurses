@@ -1926,3 +1926,41 @@ void ncplane_translate(const ncplane* src, const ncplane* dst,
     *x = src->absx - dst->absx + *x;
   }
 }
+
+// generate a temporary plane that can hold the contents of n, rotated 90°
+static ncplane* rotate_plane(const ncplane* n){
+  int absy, absx;
+  ncplane_yx(n, &absy, &absx);
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  const int newy = dimx / 2;
+  const int newx = dimy * 2;
+  ncplane* newp = ncplane_new(n->nc, newy, newx, absy, absx, n->userptr);
+  return newp;
+}
+
+int ncplane_rotate_cw(ncplane* n){
+  ncplane* newp = rotate_plane(n);
+  if(newp == NULL){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  // FIXME map n to newp
+  // FIXME resize n
+  // FIXME copy newp to n
+  return 0;
+}
+
+int ncplane_rotate_ccw(ncplane* n){
+  ncplane* newp = rotate_plane(n);
+  if(newp == NULL){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  // FIXME map n to newp
+  // FIXME resize n
+  // FIXME copy newp to n
+  return 0;
+}
