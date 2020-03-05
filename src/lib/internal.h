@@ -524,6 +524,34 @@ cell_nobackground_p(const egcpool* e, const cell* c){
   return !cell_simple_p(c) && !strcmp(egcpool_extended_gcluster(e, c), "\xe2\x96\x88");
 }
 
+static inline void
+pool_release(egcpool* pool, cell* c){
+  if(!cell_simple_p(c)){
+    egcpool_release(pool, cell_egc_idx(c));
+  }
+  c->gcluster = 0; // don't subject ourselves to double-release problems
+}
+
+// Duplicate one cell onto another, possibly crossing ncplanes.
+static inline int
+cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
+  pool_release(tpool, targ);
+  targ->attrword = c->attrword;
+  targ->channels = c->channels;
+  if(cell_simple_p(c)){
+    targ->gcluster = c->gcluster;
+    return !!c->gcluster;
+  }
+  size_t ulen = strlen(extended_gcluster(splane, c));
+//fprintf(stderr, "[%s] (%zu)\n", egcpool_extended_gcluster(&splane->pool, c), strlen(egcpool_extended_gcluster(&splane->pool, c)));
+  int eoffset = egcpool_stash(tpool, extended_gcluster(splane, c), ulen);
+  if(eoffset < 0){
+    return -1;
+  }
+  targ->gcluster = eoffset + 0x80;
+  return ulen;
+}
+
 // no CLOCK_MONOTONIC_RAW on FreeBSD as of 12.0 :/
 #ifndef CLOCK_MONOTONIC_RAW
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC

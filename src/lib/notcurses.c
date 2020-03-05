@@ -1939,6 +1939,93 @@ static ncplane* rotate_plane(const ncplane* n){
   return newp;
 }
 
+// rotation works at two levels:
+//  1) each 1x2 block is rotated into a 1x2 block ala
+//      ab   cw    ca   ccw   ab   ccw   bd  ccw   dc  ccw   ca  ccw  ab
+//      cd   -->   db   -->   cd   -->   ac  -->   ba  -->   db  -->  cd
+//  2) each 1x2 block is rotated into its new location
+int rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
+  cell c1 = CELL_TRIVIAL_INITIALIZER;
+  cell c2 = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_at_yx(src, srcy, srcx, &c1) < 0){
+    return -1;
+  }
+  if(ncplane_at_yx(src, srcy, srcx + 1, &c2) < 0){
+    cell_release(src, &c1);
+    return -1;
+  }
+  // FIXME need to look at actual characters lifted
+  unsigned b1 = cell_bg(&c1);
+  unsigned b2 = cell_bg(&c2);
+  unsigned t1 = cell_fg(&c1);
+  unsigned t2 = cell_fg(&c2);
+  cell_release(src, &c1);
+  cell_release(src, &c2);
+  ncplane_set_fg(dst, t1);
+  ncplane_set_bg(dst, b1);
+  if(ncplane_putegc_yx(dst, dsty, dstx, "▀", NULL) < 0){
+    return -1;
+  }
+  ncplane_set_fg(dst, t2);
+  ncplane_set_bg(dst, b2);
+  if(ncplane_putegc_yx(dst, dsty, dstx + 1, "▀", NULL) < 0){
+    return -1;
+  }
+  // FIXME need to set transparencies
+  return 0;
+}
+
+int rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
+  cell c1 = CELL_TRIVIAL_INITIALIZER;
+  cell c2 = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_at_yx(src, srcy, srcx, &c1) < 0){
+    return -1;
+  }
+  if(ncplane_at_yx(src, srcy, srcx + 1, &c2) < 0){
+    cell_release(src, &c1);
+    return -1;
+  }
+  // FIXME need to look at actual characters lifted
+  unsigned b2 = cell_bg(&c1);
+  unsigned b1 = cell_bg(&c2);
+  unsigned t2 = cell_fg(&c1);
+  unsigned t1 = cell_fg(&c2);
+  cell_release(src, &c1);
+  cell_release(src, &c2);
+  ncplane_set_fg(dst, t1);
+  ncplane_set_bg(dst, b1);
+  if(ncplane_putegc_yx(dst, dsty, dstx, "▀", NULL) < 0){
+    return -1;
+  }
+  ncplane_set_fg(dst, t2);
+  ncplane_set_bg(dst, b2);
+  if(ncplane_putegc_yx(dst, dsty, dstx + 1, "▀", NULL) < 0){
+    return -1;
+  }
+  // FIXME need to set transparencies
+  return 0;
+}
+
+// copy 'newp' into 'n' after resizing 'n' to match 'newp'
+static int
+rotate_merge(ncplane* n, ncplane* newp){
+  int dimy, dimx;
+  ncplane_dim_yx(newp, &dimy, &dimx);
+  int ret = ncplane_resize(n, 0, 0, 0, 0, 0, 0, dimy, dimx);
+  if(ret == 0){
+    for(int y = 0 ; y < dimy ; ++y){
+      for(int x = 0 ; x < dimx ; ++x){
+        const cell* src = &newp->fb[fbcellidx(y, dimx, x)];
+        cell* targ = &n->fb[fbcellidx(y, dimx, x)];
+        if(cell_duplicate_far(&n->pool, targ, newp, src) < 0){
+          return -1;
+        }
+      }
+    }
+  }
+  return ret;
+}
+
 int ncplane_rotate_cw(ncplane* n){
   ncplane* newp = rotate_plane(n);
   if(newp == NULL){
@@ -1946,10 +2033,24 @@ int ncplane_rotate_cw(ncplane* n){
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  // FIXME map n to newp
-  // FIXME resize n
-  // FIXME copy newp to n
-  return 0;
+assert(dimy % 2 == 0); assert(dimx % 2 == 0); // FIXME
+  // the topmost row consists of the leftmost two columns. the rightmost column
+  // of the topmost row consists of the top half of the top two leftmost cells.
+  // the penultimate column of the topmost row consists of the bottom half of
+  // the top two leftmost cells. work from the bottom up on the source, so we
+  // can copy to the top row from the left to the right.
+  int targx, targy = 0;
+  for(int x = 0 ; x < dimx ; x += 2){
+    targx = 0;
+    for(int y = dimy - 1 ; y >= 0 ; --y){
+      rotate_2x1_cw(n, newp, y, x, targy, targx);
+      targx += 2;
+    }
+    ++targy;
+  }
+  int ret = rotate_merge(n, newp);
+  ret |= ncplane_destroy(newp);
+  return ret;
 }
 
 int ncplane_rotate_ccw(ncplane* n){
@@ -1959,8 +2060,17 @@ int ncplane_rotate_ccw(ncplane* n){
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  // FIXME map n to newp
-  // FIXME resize n
-  // FIXME copy newp to n
-  return 0;
+assert(dimy % 2 == 0); assert(dimx % 2 == 0); // FIXME
+  int targx, targy = 0;
+  for(int x = 0 ; x < dimx ; x += 2){
+    targx = 0;
+    for(int y = dimy - 1 ; y >= 0 ; --y){
+      rotate_2x1_ccw(n, newp, y, x, targy, targx);
+      targx += 2;
+    }
+    ++targy;
+  }
+  int ret = rotate_merge(n, newp);
+  ret |= ncplane_destroy(newp);
+  return ret;
 }
