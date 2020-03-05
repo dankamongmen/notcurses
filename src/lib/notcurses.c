@@ -817,6 +817,7 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   }
   ret->fgdefault = ret->bgdefault = true;
   ret->fgrgb = ret->bgrgb = 0;
+  ncdirect_styles_set(ret, 0);
   return ret;
 }
 
