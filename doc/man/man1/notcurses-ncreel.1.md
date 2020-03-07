@@ -1,6 +1,6 @@
 % notcurses-ncreel(1)
 % nick black <nickblack@linux.com>
-% v1.2.2
+% v1.2.3
 
 # NAME
 
