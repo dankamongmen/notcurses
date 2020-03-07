@@ -354,8 +354,6 @@ ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
 }
 
 ncplane* ncplane_dup(ncplane* n, void* opaque){
-  // FIXME need ncplane-level locking around n; notcurses-level locking breaks
-  // on calls to ncplane_destroy()/ncplane_new()
   int dimy = n->leny;
   int dimx = n->lenx;
   int aty = n->absy;

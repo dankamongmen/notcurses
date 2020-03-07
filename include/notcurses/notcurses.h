@@ -1095,6 +1095,14 @@ channels_set_fchannel(uint64_t* channels, uint32_t channel){
   return *channels = (*channels & 0xfffffffflu) | ((uint64_t)channel << 32u);
 }
 
+static inline uint64_t
+channels_combine(uint32_t fchan, uint32_t bchan){
+  uint64_t channels = 0;
+  channels_set_fchannel(&channels, fchan);
+  channels_set_bchannel(&channels, bchan);
+  return channels;
+}
+
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline unsigned
 channels_fg(uint64_t channels){
@@ -1714,7 +1722,7 @@ API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 // FIXME do this at cell prep time and set a bit in the channels
 static inline bool
 cell_noforeground_p(const cell* c){
-  return cell_simple_p(c) && isspace(c->gcluster);
+  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
 }
 
 static inline int

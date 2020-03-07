@@ -310,3 +310,219 @@ int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
   }
   return 0;
 }
+
+// generate a temporary plane that can hold the contents of n, rotated 90°
+static ncplane* rotate_plane(const ncplane* n){
+  int absy, absx;
+  ncplane_yx(n, &absy, &absx);
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  if(dimx % 2 != 0){
+    return NULL;
+  }
+  const int newy = dimx / 2;
+  const int newx = dimy * 2;
+  ncplane* newp = ncplane_new(n->nc, newy, newx, absy, absx, n->userptr);
+  return newp;
+}
+
+// if we're a lower block, reverse the channels. if we're a space, set both to
+// the background. if we're a full block, set both to the foreground.
+static void
+rotate_channels(ncplane* src, const cell* c, uint32_t* fchan, uint32_t* bchan){
+  if(cell_simple_p(c)){
+    if(!isgraph(c->gcluster)){
+      *fchan = *bchan;
+    }
+    return;
+  }
+  const char* origc = cell_extended_gcluster(src, c);
+  if(strcmp(origc, "▄") == 0){
+    uint32_t tmp = *fchan;
+    *fchan = *bchan;
+    *bchan = tmp;
+    return;
+  }else if(strcmp(origc, "█") == 0){
+    *bchan = *fchan;
+    return;
+  }
+}
+
+static int
+rotate_output(ncplane* dst, uint32_t tchan, uint32_t bchan){
+  dst->channels = channels_combine(tchan, bchan);
+  if(tchan != bchan){
+    return ncplane_putegc(dst, "▀", NULL);
+  }
+  if(channel_default_p(tchan) && channel_default_p(bchan)){
+    return ncplane_putegc(dst, "", NULL);
+  }else if(channel_default_p(tchan)){
+    return ncplane_putegc(dst, " ", NULL);
+  }
+  return ncplane_putegc(dst, "█", NULL);
+}
+
+// rotation works at two levels:
+//  1) each 1x2 block is rotated into a 1x2 block ala
+//      ab   cw    ca   ccw   ab   ccw   bd  ccw   dc  ccw   ca  ccw  ab
+//      cd   -->   db   -->   cd   -->   ac  -->   ba  -->   db  -->  cd
+//  2) each 1x2 block is rotated into its new location
+//
+// Characters which can be rotated must be RGB, to differentiate full blocks,
+// spaces, and nuls. For clockwise rotations:
+//
+//  nul: converts to two half defaults
+//  space: converts to two half backgrounds
+//  full: converts to two half foregrounds
+//  upper: converts to half background + half foreground
+//  lower: converts to half foreground + half background
+//
+// Fore/background carry full channel, including transparency.
+//
+// Ideally, rotation through 360 degrees will restore the original 2x1 squre.
+// Unfortunately, the case where a half block occupies a cell having the same
+// fore- and background will see it roated into a single full block. In
+// addition, lower blocks eventually become upper blocks with their channels
+// reversed. In general:
+//
+//  if a "row" (the bottom or top halves) are the same forechannel, merge to a
+//    single full block of that color (what is its background?).
+//  if a "row" is two different channels, they become a upper block (why not
+//   lower?) having the two channels as fore- and background.
+static int
+rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
+  cell c1 = CELL_TRIVIAL_INITIALIZER;
+  cell c2 = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_at_yx(src, srcy, srcx, &c1) < 0){
+    return -1;
+  }
+  if(ncplane_at_yx(src, srcy, srcx + 1, &c2) < 0){
+    cell_release(src, &c1);
+    return -1;
+  }
+  // there can be at most 4 colors and 4 transparencies:
+  //  - c1fg, c1bg, c2fg, c2bg, c1ftrans, c2ftrans, c1btrans, c2btrans
+  // but not all are necessarily used:
+  //  - topleft gets lowerleft. if lowerleft is foreground, c1fg c1ftrans.
+  //     otherwise, c1bg c1btrans
+  //  - topright gets upperleft. if upperleft is foreground, c1fg c1ftrans.
+  //     otherwise, c1bg c1btrans
+  //  - botleft get botright. if botright is foreground, c2fg c2ftrans.
+  //     otherwise, c2bg c2btrans
+  //  - botright gets topright. if topright is foreground, c2fg c2ftrans.
+  //     otherwise, c2bg c2btrans
+  uint32_t c1b = cell_bchannel(&c1);
+  uint32_t c2b = cell_bchannel(&c2);
+  uint32_t c1t = cell_fchannel(&c1);
+  uint32_t c2t = cell_fchannel(&c2);
+  rotate_channels(src, &c1, &c1t, &c1b);
+  rotate_channels(src, &c2, &c2t, &c2b);
+  // right char comes from two tops. left char comes from two bottoms. if
+  // they're the same channel, they become a:
+  //
+  //  nul if the channel is default
+  //  space if the fore is default
+  //  full if the back is default
+  ncplane_cursor_move_yx(dst, dsty, dstx);
+  rotate_output(dst, c1b, c2b);
+  rotate_output(dst, c1t, c2t);
+  return 0;
+}
+
+int rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
+  cell c1 = CELL_TRIVIAL_INITIALIZER;
+  cell c2 = CELL_TRIVIAL_INITIALIZER;
+  if(ncplane_at_yx(src, srcy, srcx, &c1) < 0){
+    return -1;
+  }
+  if(ncplane_at_yx(src, srcy, srcx + 1, &c2) < 0){
+    cell_release(src, &c1);
+    return -1;
+  }
+  uint32_t c1b = cell_bchannel(&c1);
+  unsigned c2b = cell_bchannel(&c2);
+  unsigned c1t = cell_fchannel(&c1);
+  unsigned c2t = cell_fchannel(&c2);
+  rotate_channels(src, &c1, &c1t, &c1b);
+  rotate_channels(src, &c2, &c2t, &c2b);
+  ncplane_cursor_move_yx(dst, dsty, dstx);
+  rotate_output(dst, c1t, c2t);
+  rotate_output(dst, c1b, c2b);
+  return 0;
+}
+
+// copy 'newp' into 'n' after resizing 'n' to match 'newp'
+static int
+rotate_merge(ncplane* n, ncplane* newp){
+  int dimy, dimx;
+  ncplane_dim_yx(newp, &dimy, &dimx);
+  int ret = ncplane_resize(n, 0, 0, 0, 0, 0, 0, dimy, dimx);
+  if(ret == 0){
+    for(int y = 0 ; y < dimy ; ++y){
+      for(int x = 0 ; x < dimx ; ++x){
+        const cell* src = &newp->fb[fbcellidx(y, dimx, x)];
+        cell* targ = &n->fb[fbcellidx(y, dimx, x)];
+        if(cell_duplicate_far(&n->pool, targ, newp, src) < 0){
+          return -1;
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+int ncplane_rotate_cw(ncplane* n){
+  ncplane* newp = rotate_plane(n);
+  if(newp == NULL){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  // the topmost row consists of the leftmost two columns. the rightmost column
+  // of the topmost row consists of the top half of the top two leftmost cells.
+  // the penultimate column of the topmost row consists of the bottom half of
+  // the top two leftmost cells. work from the bottom up on the source, so we
+  // can copy to the top row from the left to the right.
+  int targx, targy = 0;
+  for(int x = 0 ; x < dimx ; x += 2){
+    targx = 0;
+    for(int y = dimy - 1 ; y >= 0 ; --y){
+      if(rotate_2x1_cw(n, newp, y, x, targy, targx)){
+        ncplane_destroy(newp);
+        return -1;
+      }
+      targx += 2;
+    }
+    ++targy;
+  }
+  int ret = rotate_merge(n, newp);
+  ret |= ncplane_destroy(newp);
+  return ret;
+}
+
+int ncplane_rotate_ccw(ncplane* n){
+  ncplane* newp = rotate_plane(n);
+  if(newp == NULL){
+    return -1;
+  }
+  int dimy, dimx, targdimy, targdimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  ncplane_dim_yx(newp, &targdimy, &targdimx);
+  int x = dimx - 2, y;
+  // Each row of the target plane is taken from a column of the source plane.
+  // As the target row grows (down), the source column shrinks (moves left).
+  for(int targy = 0 ; targy < targdimy ; ++targy){
+    y = 0;
+    for(int targx = 0 ; targx < targdimx ; targx += 2){
+      if(rotate_2x1_ccw(n, newp, y, x, targy, targx)){
+        ncplane_destroy(newp);
+        return -1;
+      }
+      ++y;
+    }
+    x -= 2;
+  }
+  int ret = rotate_merge(n, newp);
+  ret |= ncplane_destroy(newp);
+  return ret;
+}
