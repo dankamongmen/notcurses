@@ -10,8 +10,8 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncdirect_bg_default@Base 1.2.1
  ncdirect_clear@Base 1.2.1
  ncdirect_cursor_move_yx@Base 1.2.3
- ncdirect_dimx@Base 1.2.3
- ncdirect_dimy@Base 1.2.3
+ ncdirect_dim_x@Base 1.2.3
+ ncdirect_dim_y@Base 1.2.3
  ncdirect_fg@Base 1.2.1
  ncdirect_fg_default@Base 1.2.1
  ncdirect_init@Base 1.2.3
@@ -68,6 +68,8 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_putstr_yx@Base 1.2.1
  ncplane_putwegc_stainable@Base 1.2.1
  ncplane_resize@Base 1.2.1
+ ncplane_rotate_ccw@Base 1.2.3
+ ncplane_rotate_cw@Base 1.2.3
  ncplane_set_base@Base 1.2.1
  ncplane_set_base_cell@Base 1.2.1
  ncplane_set_bg@Base 1.2.1
@@ -133,7 +135,6 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  notcurses_canopen@Base 1.2.1
  notcurses_cursor_disable@Base 1.2.1
  notcurses_cursor_enable@Base 1.2.1
- notcurses_directmode@Base 1.2.1
  notcurses_drop_planes@Base 1.2.1
  notcurses_getc@Base 1.2.1
  notcurses_init@Base 1.2.1
