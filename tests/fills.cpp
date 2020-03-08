@@ -283,6 +283,34 @@ TEST_CASE("Fills") {
     CHECK(chan2 == d.channels);
   }
 
+  // Unlike a typical gradient, a high gradient ought be able to do a vertical
+  // change in a single row.
+  SUBCASE("HighGradient2Colors1Row") {
+    uint32_t ul, ur, ll, lr;
+    ul = ur = ll = lr = 0;
+    channel_set(&ul, 0xffffff);
+    channel_set(&lr, 0x000000);
+    channel_set(&ll, 0x00ffff);
+    channel_set(&ur, 0xff00ff);
+    int dimy, dimx;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    REQUIRE(0 == ncplane_highgradient_sized(n_, ul, ur, ll, lr, dimy, dimx));
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  SUBCASE("HighGradient") {
+    uint32_t ul, ur, ll, lr;
+    ul = ur = ll = lr = 0;
+    channel_set(&ul, 0xffffff);
+    channel_set(&lr, 0x000000);
+    channel_set(&ll, 0x00ffff);
+    channel_set(&ur, 0xff00ff);
+    int dimy, dimx;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    REQUIRE(0 == ncplane_highgradient_sized(n_, ul, ur, ll, lr, dimy, dimx));
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 

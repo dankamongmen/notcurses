@@ -907,6 +907,12 @@ API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
                          uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                          int ystop, int xstop);
 
+// Do a high-resolution gradient using upper blocks and synced backgrounds.
+// This doubles the number of vertical gradations, but restricts you to
+// half blocks (appearing to be full blocks).
+API int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
+                             uint32_t ll, uint32_t lr, int ystop, int xstop);
+
 // Draw a gradient with its upper-left corner at the current cursor position,
 // having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
 static inline int
@@ -919,6 +925,17 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
+}
+
+static inline int
+ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur,
+                           uint64_t ll, uint64_t lr, int ylen, int xlen){
+  if(ylen < 1 || xlen < 1){
+    return -1;
+  }
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 }
 
 // Set the given style throughout the specified region, keepying content and

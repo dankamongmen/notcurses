@@ -158,6 +158,27 @@ calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
   }
 }
 
+static bool
+check_gradient_channel_args(uint32_t ul, uint32_t ur, uint32_t bl, uint32_t br){
+  if(channel_default_p(ul) || channel_default_p(ur) ||
+     channel_default_p(bl) || channel_default_p(br)){
+    if(!(channel_default_p(ul) && channel_default_p(ur) &&
+         channel_default_p(bl) && channel_default_p(br))){
+      return true;
+    }
+  }
+  if(channel_alpha(ul) != channel_alpha(ur) ||
+     channel_alpha(ur) != channel_alpha(bl) ||
+     channel_alpha(bl) != channel_alpha(br)){
+    return true;
+  }
+  if(channel_palindex_p(ul) || channel_palindex_p(bl) ||
+     channel_palindex_p(br) || channel_palindex_p(ur)){
+    return true;
+  }
+  return false;
+}
+
 // Given the four channels arguments, verify that:
 //
 // - if any is default foreground, all are default foreground
@@ -167,39 +188,71 @@ calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
 // - palette-indexed color must not be used
 static bool
 check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
-  if(channels_fg_default_p(ul) || channels_fg_default_p(ur) ||
-     channels_fg_default_p(bl) || channels_fg_default_p(br)){
-    if(!(channels_fg_default_p(ul) && channels_fg_default_p(ur) &&
-         channels_fg_default_p(bl) && channels_fg_default_p(br))){
-      return true;
-    }
-  }
-  if(channels_bg_default_p(ul) || channels_bg_default_p(ur) ||
-     channels_bg_default_p(bl) || channels_bg_default_p(br)){
-    if(!(channels_bg_default_p(ul) && channels_bg_default_p(ur) &&
-         channels_bg_default_p(bl) && channels_bg_default_p(br))){
-      return true;
-    }
-  }
-  if(channels_fg_alpha(ul) != channels_fg_alpha(ur) ||
-     channels_fg_alpha(ur) != channels_fg_alpha(bl) ||
-     channels_fg_alpha(bl) != channels_fg_alpha(br)){
+  if(check_gradient_channel_args(channels_fchannel(ul), channels_fchannel(ur),
+                                 channels_fchannel(bl), channels_fchannel(br))){
     return true;
   }
-  if(channels_bg_alpha(ul) != channels_bg_alpha(ur) ||
-     channels_bg_alpha(ur) != channels_bg_alpha(bl) ||
-     channels_bg_alpha(bl) != channels_bg_alpha(br)){
-    return true;
-  }
-  if(channels_fg_palindex_p(ul) || channels_fg_palindex_p(bl) ||
-     channels_fg_palindex_p(br) || channels_fg_palindex_p(ur)){
-    return true;
-  }
-  if(channels_bg_palindex_p(ul) || channels_bg_palindex_p(bl) ||
-     channels_bg_palindex_p(br) || channels_bg_palindex_p(ur)){
+  if(check_gradient_channel_args(channels_bchannel(ul), channels_bchannel(ur),
+                                 channels_bchannel(bl), channels_bchannel(br))){
     return true;
   }
   return false;
+}
+
+// calculate both channels of a gradient at a particular point, knowing that
+// we're using double halfblocks, into `c`->channels.
+static inline void
+calc_highgradient(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
+                  uint64_t lr, int y, int x, int ylen, int xlen){
+  if(!channel_default_p(ul)){
+    cell_set_fchannel(c, calc_gradient_channel(ul, ur, ll, lr,
+                                               y * 2, x, ylen, xlen));
+    cell_set_bchannel(c, calc_gradient_channel(ul, ur, ll, lr,
+                                               y * 2 + 1, x, ylen, xlen));
+  }else{
+    cell_set_fg_default(c);
+    cell_set_bg_default(c);
+  }
+}
+
+int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
+                         uint32_t ll, uint32_t lr, int ystop, int xstop){
+  if(check_gradient_channel_args(ul, ur, ll, lr)){
+    return -1;
+  }
+  int yoff, xoff, ymax, xmax;
+  ncplane_cursor_yx(n, &yoff, &xoff);
+  // must be at least 1x1, with its upper-left corner at the current cursor
+  if(ystop < yoff){
+    return -1;
+  }
+  if(xstop < xoff){
+    return -1;
+  }
+  ncplane_dim_yx(n, &ymax, &xmax);
+  // must be within the ncplane
+  if(xstop >= xmax || ystop >= ymax){
+    return -1;
+  }
+  const int xlen = xstop - xoff + 1;
+  const int ylen = (ystop - yoff + 1) * 2;
+  if(xlen == 1){
+    if(ul != ur || ll != lr){
+      return -1;
+    }
+  }
+  for(int y = yoff ; y <= ystop ; ++y){
+    for(int x = xoff ; x <= xstop ; ++x){
+      cell* targc = ncplane_cell_ref_yx(n, y, x);
+      targc->channels = 0;
+      if(cell_load(n, targc, "▀") < 0){
+        return -1;
+      }
+      // FIXME do the loop
+      calc_highgradient(targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
+    }
+  }
+  return 0;
 }
 
 int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
