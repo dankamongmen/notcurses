@@ -243,10 +243,11 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
     }else{
       if(fds[0].revents & POLLIN){
         uint64_t eventcount;
-        read(fds[0].fd, &eventcount, sizeof(eventcount)); // drain eventfd
-        key = demo_getc_nblock(NULL);
-        if(key < 0){
-          return -1;
+        if(read(fds[0].fd, &eventcount, sizeof(eventcount)) > 0){
+          key = demo_getc_nblock(NULL);
+          if(key < 0){
+            return -1;
+          }
         }
       }
       if(fds[1].revents & POLLIN){
