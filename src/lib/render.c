@@ -946,12 +946,6 @@ int notcurses_refresh(notcurses* nc){
   if(ret < 0){
     return -1;
   }
-  if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
-    return -1;
-  }
-  if(fflush(nc->ttyfp)){
-    return -1;
-  }
   return 0;
 }
 
