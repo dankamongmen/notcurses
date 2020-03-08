@@ -939,7 +939,7 @@ int notcurses_refresh(notcurses* nc){
   }
   memset(rvec, 0, size);
   for(int i = 0 ; i < nc->lfdimy * nc->lfdimx ; ++i){
-    rvec->damaged = true;
+    rvec[i].damaged = true;
   }
   int ret = notcurses_rasterize(nc, rvec);
   free(rvec);
