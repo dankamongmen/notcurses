@@ -2201,6 +2201,7 @@ API void ncplane_greyscale(struct ncplane* n);
 
 // selection widget -- an ncplane with a title header and a body section. the
 // body section supports infinite scrolling up and down. the widget looks like:
+//
 //                                 ╭──────────────────────────╮
 //                                 │This is the primary header│
 //   ╭──────────────────────this is the secondary header──────╮
@@ -2275,6 +2276,50 @@ API bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 // Destroy the ncselector. If 'item' is not NULL, the last selected option will
 // be strdup()ed and assigned to '*item' (and must be free()d by the caller).
 API void ncselector_destroy(struct ncselector* n, char** item);
+
+// multiselection widget -- a selector supporting multiple selections.
+//
+//                                 ╭──────────────────────────╮
+//                                 │This is the primary header│
+//   ╭──────────────────────this is the secondary header──────╮
+//   │                                                        │
+//   │ [ ] option1   Long text #1                             │
+//   │ [X] option2   Long text #2                             │
+//   │ [ ] option3   Long text #3                             │
+//   │ [ ] option4   Long text #4                             │
+//   │ [X] option5   Long text #5                             │
+//   │ [ ] option6   Long text #6                             │
+//   │                                                        │
+//   ╰────────────────────────────────────here's the footer───╯
+//
+// Unlike the selector widget, zero to all of the items can be selected, but
+// also the widget does not support adding or removing items at runtime.
+typedef struct multiselector_options {
+  char* title; // title may be NULL, inhibiting riser, saving two rows.
+  char* secondary; // secondary may be NULL
+  char* footer; // footer may be NULL
+  struct selector_item* items; // initial items and descriptions
+  unsigned itemcount; // number of items and descriptions, can't be 0
+  // maximum number of options to display at once, 0 to use all available space
+  unsigned maxdisplay;
+  // exhaustive styling options
+  uint64_t opchannels;   // option channels
+  uint64_t descchannels; // description channels
+  uint64_t titlechannels;// title channels
+  uint64_t footchannels; // secondary and footer channels
+  uint64_t boxchannels;  // border channels
+  uint64_t bgchannels;   // background channels, used only in body
+} multiselector_options;
+
+struct ncmultiselector;
+
+API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
+                                                   const selector_options* opts);
+
+// FIXME
+
+// Destroy the ncmultiselector.
+API void ncmultiselector_destroy(struct ncmultiselector* n, char** item);
 
 // Menus. Horizontal menu bars are supported, on the top and/or bottom rows.
 // If the menu bar is longer than the screen, it will be only partially
