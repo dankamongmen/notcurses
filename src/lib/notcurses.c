@@ -497,6 +497,15 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   if(update_term_dimensions(n->ttyfd, rows, cols)){
     return -1;
   }
+  // FIXME can we emerge from the previous call with rows/cols <= 0?
+  *rows -= n->margin_t + n->margin_b;
+  if(*rows <= 0){
+    *rows = 1;
+  }
+  *cols -= n->margin_l + n->margin_r;
+  if(*cols <= 0){
+    *cols = 1;
+  }
   if(*rows == oldrows && *cols == oldcols){
     return 0; // no change
   }
@@ -841,6 +850,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(ret == NULL){
     return ret;
   }
+  ret->margin_t = opts->margin_t;
+  ret->margin_b = opts->margin_b;
+  ret->margin_l = opts->margin_l;
+  ret->margin_r = opts->margin_r;
   ret->stats.fbbytes = 0;
   ret->stashstats.fbbytes = 0;
   reset_stats(&ret->stats);

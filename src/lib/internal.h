@@ -307,6 +307,9 @@ typedef struct notcurses {
   // be reset (semantics are relied upon by widgets for mouse click detection).
   uint64_t input_events;
 
+  // desired margins (best-effort only), copied in from notcurses_options
+  int margin_t, margin_b, margin_r, margin_l;
+
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
