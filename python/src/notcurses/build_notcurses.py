@@ -300,6 +300,31 @@ const char* ncselector_previtem(struct ncselector* n);
 const char* ncselector_nextitem(struct ncselector* n);
 bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 void ncselector_destroy(struct ncselector* n, char** item);
+struct mselector_item {
+  char* option;
+  char* desc;
+  bool selected;
+};
+typedef struct multiselector_options {
+  char* title; // title may be NULL, inhibiting riser, saving two rows.
+  char* secondary; // secondary may be NULL
+  char* footer; // footer may be NULL
+  struct mselector_item* items; // initial items, descriptions, and statuses
+  unsigned itemcount; // number of items and descriptions, can't be 0
+  // maximum number of options to display at once, 0 to use all available space
+  unsigned maxdisplay;
+  // exhaustive styling options
+  uint64_t opchannels;   // option channels
+  uint64_t descchannels; // description channels
+  uint64_t titlechannels;// title channels
+  uint64_t footchannels; // secondary and footer channels
+  uint64_t boxchannels;  // border channels
+  uint64_t bgchannels;   // background channels, used only in body
+} multiselector_options;
+struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const multiselector_options* opts);
+struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
+bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
+void ncmultiselector_destroy(struct ncmultiselector* n, char** item);
 struct ncmenu_item {
   char* desc;           // utf-8 menu item, NULL for horizontal separator
   ncinput shortcut;     // shortcut, all should be distinct

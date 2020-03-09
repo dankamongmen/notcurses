@@ -2325,7 +2325,8 @@ struct ncmultiselector;
 API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
                                                    const multiselector_options* opts);
 
-// FIXME
+// Return a reference to the ncmultiselector's underlying ncplane.
+API struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 
 // Offer the input to the ncmultiselector. If it's relevant, this function
 // returns true, and the input ought not be processed further. If it's
