@@ -390,6 +390,10 @@ void ncselector_destroy(ncselector* n, char** item){
   }
 }
 
+ncplane* ncmultiselector_plane(ncmultiselector* n){
+  return n->ncp;
+}
+
 // ideal body width given the ncselector's items and secondary/footer
 static int
 ncmultiselector_body_width(const ncmultiselector* n){
