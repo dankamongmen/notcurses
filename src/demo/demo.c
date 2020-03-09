@@ -141,13 +141,39 @@ usage(const char* exe, int status){
   exit(status);
 }
 
+// extract a long integer, which must be positive, and followed by either a
+// comma or a NUL terminator.
+static int
+lex_long(const char* op, long* l, char** endptr){
+  errno = 0;
+  *l = strtol(op, endptr, 10);
+  if(*l <= 0 || (*l == LONG_MAX && errno == ERANGE)){
+    fprintf(stderr, "Invalid margin: %s\n", op);
+    return -1;
+  }
+  if(**endptr != ',' && **endptr){
+    fprintf(stderr, "Invalid margin: %s\n", op);
+    return -1;
+  }
+  return 0;
+}
+
 static int
 lex_margins(const char* op, notcurses_options* opts){
   if(opts->margin_t || opts->margin_r || opts->margin_b || opts->margin_l){
     fprintf(stderr, "Provided margins twice!\n");
     return -1;
   }
-  // FIXME lex that fucker
+  char* eptr;
+  long margin_t;
+  if(lex_long(op, &margin_t, &eptr)){
+    return -1;
+  }
+  if(!*eptr){
+    opts->margin_r = opts->margin_l = opts->margin_b = opts->margin_t = margin_t;
+    return 0;
+  }
+  // FIXME lex that fucker starting at eptr, there ought be three more
   return 0;
 }
 
