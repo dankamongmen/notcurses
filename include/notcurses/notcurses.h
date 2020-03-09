@@ -2276,6 +2276,12 @@ API bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 // be strdup()ed and assigned to '*item' (and must be free()d by the caller).
 API void ncselector_destroy(struct ncselector* n, char** item);
 
+struct mselector_item {
+  char* option;
+  char* desc;
+  bool selected;
+};
+
 // multiselection widget -- a selector supporting multiple selections.
 //
 //      ╭────────────────────────────────────────────────────────────────╮
@@ -2301,7 +2307,7 @@ typedef struct multiselector_options {
   char* title; // title may be NULL, inhibiting riser, saving two rows.
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
-  struct selector_item* items; // initial items and descriptions
+  struct mselector_item* items; // initial items, descriptions, and statuses
   unsigned itemcount; // number of items and descriptions, can't be 0
   // maximum number of options to display at once, 0 to use all available space
   unsigned maxdisplay;
