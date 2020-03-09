@@ -69,4 +69,5 @@ typedef struct selector_options {
 
 **notcurses(3)**,
 **notcurses_input(3)**,
+**notcurses_multiselector(3)**
 **notcurses_ncplane(3)**
