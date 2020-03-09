@@ -4,17 +4,19 @@
 #include <stdlib.h>
 #include <notcurses/notcurses.h>
 
+// http://theboomerbible.com/tbb112.html
 static struct selector_item items[] = {
-  { "first", "this is the first option", },
-  { "2nd", "this is the second option", },
-  { "3", "third, third, third option am i", },
-  { "fourth", "i have another option here", },
-  { "five", "golden rings", },
-  { "666", "now it is time for me to REIGN IN BLOOD", },
-  { "7seven7", "this monkey's gone to heaven", },
-  { "8 8 8", "the chinese 平仮名平平仮名仮名love me, i'm told", },
-  { "nine", "nine, nine, nine 'cause you left me", },
-  { "ten", "stunning and brave", },
+  { "1", "Across the Atlantic Ocean, there was a place called North America", },
+  { "2", "Discovered by an Italian in the employ of the queen of Spain", },
+  { "3", "Colonized extensively by the Spanish and the French", },
+  { "4", "Developed into a rich nation by Dutch-supplied African slaves", },
+  { "5", "And thus became the largest English-speaking nation on earth", },
+  { "6", "Namely, the United States of America", },
+  { "7", "The inhabitants of the United States called themselves Yankees", },
+  { "8", "For some reason", },
+  { "9", "And, eventually noticing the rest of the world was there,", },
+  { "10", "Decided to rule it.", },
+  { "11", "This is their story.", },
 };
 
 static void
@@ -63,16 +65,16 @@ int main(void){
   sopts.maxdisplay = 10;
   sopts.items = items;
   sopts.itemcount = sizeof(items) / sizeof(*items);
-  sopts.title = "this is truly, absolutely an awfully long example of a selector title";
+  sopts.title = "this is truly an awfully long example of a MULTISELECTOR title";
   sopts.secondary = "pick one (you will die regardless)";
-  sopts.footer = "press q to exit (there is no exit)";
-  channels_set_fg(&sopts.boxchannels, 0x20e040);
+  sopts.footer = "press q to exit (there is sartrev(\"no exit\")";
+  channels_set_fg(&sopts.boxchannels, 0x20e0e0);
   channels_set_fg(&sopts.opchannels, 0xe08040);
-  channels_set_fg(&sopts.descchannels, 0x80e040);
+  channels_set_fg(&sopts.descchannels, 0xe0e040);
   channels_set_bg(&sopts.opchannels, 0);
   channels_set_bg(&sopts.descchannels, 0);
   channels_set_fg(&sopts.footchannels, 0xe00040);
-  channels_set_fg(&sopts.titlechannels, 0xffff80);
+  channels_set_fg(&sopts.titlechannels, 0x80ffff);
   channels_set_fg(&sopts.bgchannels, 0x002000);
   channels_set_bg(&sopts.bgchannels, 0x002000);
   channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
