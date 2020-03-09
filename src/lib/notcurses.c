@@ -618,6 +618,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
   term_verify_seq(&nc->sgr0, "sgr0");
   term_verify_seq(&nc->op, "op");
   term_verify_seq(&nc->oc, "oc");
+  term_verify_seq(&nc->home, "home");
   term_verify_seq(&nc->clearscr, "clear");
   term_verify_seq(&nc->cleareol, "el");
   term_verify_seq(&nc->clearbol, "el1");

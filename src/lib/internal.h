@@ -239,6 +239,7 @@ typedef struct notcurses {
   char* clearscr; // erase screen and home cursor
   char* cleareol; // clear to end of line
   char* clearbol; // clear to beginning of line
+  char* home;     // home cursor
   char* cnorm;    // restore cursor to default state
   char* sgr;      // set many graphics properties at once
   char* sgr0;     // restore default presentation properties
