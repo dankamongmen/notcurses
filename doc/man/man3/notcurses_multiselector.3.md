@@ -44,6 +44,8 @@ typedef struct multiselector_options {
 
 **struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const multiselector_options* opts);**
 
+**int ncselector_selected(bool* selected, unsigned n);**
+
 **struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);**
 
 **bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);**

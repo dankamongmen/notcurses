@@ -745,3 +745,13 @@ void ncmultiselector_destroy(ncmultiselector* n, char** item){
     free(n);
   }
 }
+
+int ncmultiselector_selected(ncmultiselector* n, bool* selected, unsigned count){
+  if(n->itemcount != count || n->itemcount < 1){
+    return -1;
+  }
+  while(--count){
+    selected[count] = n->items[count].selected;
+  }
+  return 0;
+}

@@ -2325,6 +2325,10 @@ struct ncmultiselector;
 API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
                                                    const multiselector_options* opts);
 
+// Return selected vector. An array of bools must be provided, along with its
+// length. If that length doesn't match the itemcount, it is an error.
+API int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
+
 // Return a reference to the ncmultiselector's underlying ncplane.
 API struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 
