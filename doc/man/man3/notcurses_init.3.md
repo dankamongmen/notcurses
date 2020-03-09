@@ -19,6 +19,7 @@ typedef struct notcurses_options {
   bool no_quit_sighandlers;
   bool no_winch_sighandler;
   FILE* renderfp;
+  int margin_t, margin_r, margin_b, margin_l;
 } notcurses_options;
 ```
 
@@ -57,6 +58,16 @@ execution via **notcurses_cursor_enable(3)** and **notcurses_cursor_disable(3)**
 information and some details of the configured terminal. This can be inhibited
 with **suppress_banner**. This will also inhibit the performance summary normally
 printed by **notcurses_stop(3)**.
+
+Notcurses can render to a subregion of the terminal by specifying desired
+margins on all four sides. By default, all margins are zero, and thus rendering
+will be performed on the entirety of the viewing area. This is orthogonal to
+use of the alternate screen; using the alternate screen plus margins will see
+the full screen cleared, followed by rendering to a subregion. Inhibiting the
+alternate screen plus margins will see rendering to a subregion, with the screen
+outside this region not cleared. This is the only means by which existing
+output can be undisturbed by notcurses. Margins are best-effort. Supplying any
+negative margin is an error.
 
 ## Fatal signals
 
