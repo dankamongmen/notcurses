@@ -13,7 +13,7 @@
 * Repack DFSG-safe tarball, upload to github
   * download github-spun tarball
   * remove nonfree multimedia:
-    * rm data/chun* data/[adeflmPw]* src/demo/jungle.c
+    * rm data/chun* data/covid* data/[adeflmPw]* src/demo/jungle.c
   * `tar -cJf ../v$VERSION.dfsg.tar.xz -C.. notcurses-$VERSION`
   * upload to github
 * Build new Debian package

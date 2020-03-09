@@ -80,7 +80,7 @@ int main(void){
   struct ncplane* n = notcurses_stdplane(nc);
 
   int averr;
-  struct ncvisual* ncv = ncplane_visual_open(n, "../data/changes.jpg", &averr);
+  struct ncvisual* ncv = ncplane_visual_open(n, "../data/covid19.jpg", &averr);
   if(!ncv){
     goto err;
   }
