@@ -9,7 +9,8 @@ notcurses-demo - Show off some notcurses features
 # SYNOPSIS
 
 **notcurses-demo** [**-h|--help**] [**-p path**] [**-d delaymult**]
- [**-l loglevel**] [**-f renderfile**] [**-J jsonfile**] [**-ikVc**] demospec
+ [**-l loglevel**] [**-f renderfile**] [**-J jsonfile**] [**-m margins**]
+ [**-ikVc**] demospec
 
 # DESCRIPTION
 
@@ -53,6 +54,8 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 
 **-J jsonfile**: Emit JSON summary of run to **jsonfile**.
 
+**-m margins**: Define rendering margins (see below).
+
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
 
 **-c**: Do not attempt to seed the PRNG. This is useful when benchmarking.
@@ -64,6 +67,11 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 **-V**: Print the program name and version, and exit with success.
 
 demospec: Select which demos to run, and what order to run them in. The default is **ixethbcgrwuvlfsjo**. See above for a list of demos.
+
+Default margins are all 0, and thus the full screen will be rendered. Using
+**-m**, margins can be supplied. Provide a single number to set all four margins
+to the same value, or four comma-delimited values for the top, right, bottom,
+and left margins respectively. Negative margins are illegal.
 
 # NOTES
 

@@ -826,6 +826,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(!opts){
     opts = &defaultopts;
   }
+  if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
+    fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
+    return NULL;
+  }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || (strcmp(encoding, "ANSI_X3.4-1968") && strcmp(encoding, "UTF-8"))){
     fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n",
