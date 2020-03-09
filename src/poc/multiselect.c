@@ -60,7 +60,7 @@ int main(void){
   }
   multiselector_options sopts;
   memset(&sopts, 0, sizeof(sopts));
-  sopts.maxdisplay = 4;
+  sopts.maxdisplay = 10;
   sopts.items = items;
   sopts.itemcount = sizeof(items) / sizeof(*items);
   sopts.title = "this is truly, absolutely an awfully long example of a selector title";

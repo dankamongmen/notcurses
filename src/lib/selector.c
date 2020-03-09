@@ -470,7 +470,7 @@ ncmultiselector_draw(ncmultiselector* n){
   const int bodyoffset = dimx - bodywidth + 2;
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
-    n->arrowx = bodyoffset + n->longop;
+    n->arrowx = bodyoffset + 3;
     ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
   }else{
     n->arrowx = -1;
@@ -478,6 +478,7 @@ ncmultiselector_draw(ncmultiselector* n){
   n->uarrowy = yoff;
   unsigned printidx = n->startdisp;
   unsigned printed = 0;
+  // visible option lines
   for(yoff += 1 ; yoff < dimy - 2 ; ++yoff){
     if(n->maxdisplay && printed == n->maxdisplay){
       break;
@@ -486,16 +487,21 @@ ncmultiselector_draw(ncmultiselector* n){
     for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
       ncplane_putc(n->ncp, &n->background);
     }
-    n->ncp->channels = n->opchannels;
-    if(printidx == n->current){
-      n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
-    }
-    ncplane_printf_yx(n->ncp, yoff, bodyoffset + (n->longop - n->items[printidx].opcolumns), "%s", n->items[printidx].option);
     n->ncp->channels = n->descchannels;
     if(printidx == n->current){
       n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
     }
-    ncplane_printf_yx(n->ncp, yoff, bodyoffset + n->longop, " %s", n->items[printidx].desc);
+    ncplane_putegc_yx(n->ncp, yoff, bodyoffset, "☐", NULL);
+    n->ncp->channels = n->opchannels;
+    if(printidx == n->current){
+      n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
+    }
+    ncplane_printf(n->ncp, " %s ", n->items[printidx].option);
+    n->ncp->channels = n->descchannels;
+    if(printidx == n->current){
+      n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
+    }
+    ncplane_printf(n->ncp, "%s", n->items[printidx].desc);
     if(++printidx == n->itemcount){
       printidx = 0;
     }
