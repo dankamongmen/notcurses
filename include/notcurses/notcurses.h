@@ -2269,7 +2269,6 @@ API const char* ncselector_nextitem(struct ncselector* n);
 //  * a mouse click on an item
 //  * a mouse scrollwheel event
 //  * a mouse click on the scrolling arrows
-//  * a mouse click outside of an unrolled menu (the menu is rolled up)
 //  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
 API bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 
@@ -2314,9 +2313,18 @@ typedef struct multiselector_options {
 struct ncmultiselector;
 
 API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
-                                                   const selector_options* opts);
+                                                   const multiselector_options* opts);
 
 // FIXME
+
+// Offer the input to the ncmultiselector. If it's relevant, this function
+// returns true, and the input ought not be processed further. If it's
+// irrelevant to the multiselector, false is returned. Relevant inputs include:
+//  * a mouse click on an item
+//  * a mouse scrollwheel event
+//  * a mouse click on the scrolling arrows
+//  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
+API bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
 
 // Destroy the ncmultiselector.
 API void ncmultiselector_destroy(struct ncmultiselector* n, char** item);
