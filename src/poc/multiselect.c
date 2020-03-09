@@ -5,18 +5,18 @@
 #include <notcurses/notcurses.h>
 
 // http://theboomerbible.com/tbb112.html
-static struct selector_item items[] = {
-  { "1", "Across the Atlantic Ocean, there was a place called North America", },
-  { "2", "Discovered by an Italian in the employ of the queen of Spain", },
-  { "3", "Colonized extensively by the Spanish and the French", },
-  { "4", "Developed into a rich nation by Dutch-supplied African slaves", },
-  { "5", "And thus became the largest English-speaking nation on earth", },
-  { "6", "Namely, the United States of America", },
-  { "7", "The inhabitants of the United States called themselves Yankees", },
-  { "8", "For some reason", },
-  { "9", "And, eventually noticing the rest of the world was there,", },
-  { "10", "Decided to rule it.", },
-  { "11", "This is their story.", },
+static struct mselector_item items[] = {
+  { "1", "Across the Atlantic Ocean, there was a place called North America", .selected = false, },
+  { "2", "Discovered by an Italian in the employ of the queen of Spain", .selected = false, },
+  { "3", "Colonized extensively by the Spanish and the French", .selected = false, },
+  { "4", "Developed into a rich nation by Dutch-supplied African slaves", .selected = false, },
+  { "5", "And thus became the largest English-speaking nation on earth", .selected = false, },
+  { "6", "Namely, the United States of America", .selected = false, },
+  { "7", "The inhabitants of the United States called themselves Yankees", .selected = false, },
+  { "8", "For some reason", .selected = false, },
+  { "9", "And, eventually noticing the rest of the world was there,", .selected = false, },
+  { "10", "Decided to rule it.", .selected = false, },
+  { "11", "This is their story.", .selected = false, },
 };
 
 static void

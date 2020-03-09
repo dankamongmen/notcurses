@@ -491,7 +491,7 @@ ncmultiselector_draw(ncmultiselector* n){
     if(printidx == n->current){
       n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
     }
-    ncplane_putegc_yx(n->ncp, yoff, bodyoffset, "☐", NULL);
+    ncplane_putegc_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? "☒" : "☐", NULL);
     n->ncp->channels = n->opchannels;
     if(printidx == n->current){
       n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
@@ -563,8 +563,11 @@ const char* ncmultiselector_nextitem(ncmultiselector* n){
 }
 
 bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
-  // FIXME handle space to toggle selection
-  if(nc->id == NCKEY_UP){
+  if(nc->id == ' '){
+    n->items[n->current].selected = !n->items[n->current].selected;
+    ncmultiselector_draw(n);
+    return true;
+  }else if(nc->id == NCKEY_UP){
     ncmultiselector_previtem(n);
     return true;
   }else if(nc->id == NCKEY_DOWN){
@@ -671,19 +674,18 @@ ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x, const multisel
     ns->items = NULL;
   }
   for(ns->itemcount = 0 ; ns->itemcount < opts->itemcount ; ++ns->itemcount){
-    const struct selector_item* src = &opts->items[ns->itemcount];
+    const struct mselector_item* src = &opts->items[ns->itemcount];
     int cols = mbswidth(src->option);
-    ns->items[ns->itemcount].opcolumns = cols;
     if(cols > ns->longitem){
       ns->longitem = cols;
     }
     int cols2 = mbswidth(src->desc);
-    ns->items[ns->itemcount].desccolumns = cols2;
     if(cols + cols2 > ns->longitem){
       ns->longitem = cols + cols2;
     }
     ns->items[ns->itemcount].option = strdup(src->option);
     ns->items[ns->itemcount].desc = strdup(src->desc);
+    ns->items[ns->itemcount].selected = src->selected;
     if(!(ns->items[ns->itemcount].desc && ns->items[ns->itemcount].option)){
       free(ns->items[ns->itemcount].option);
       free(ns->items[ns->itemcount].desc);
