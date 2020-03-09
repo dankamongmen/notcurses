@@ -2278,18 +2278,22 @@ API void ncselector_destroy(struct ncselector* n, char** item);
 
 // multiselection widget -- a selector supporting multiple selections.
 //
-//                                 ╭──────────────────────────╮
-//                                 │This is the primary header│
-//   ╭──────────────────────this is the secondary header──────╮
-//   │                                                        │
-//   │ [ ] option1   Long text #1                             │
-//   │ [X] option2   Long text #2                             │
-//   │ [ ] option3   Long text #3                             │
-//   │ [ ] option4   Long text #4                             │
-//   │ [X] option5   Long text #5                             │
-//   │ [ ] option6   Long text #6                             │
-//   │                                                        │
-//   ╰────────────────────────────────────here's the footer───╯
+//      ╭────────────────────────────────────────────────────────────────╮
+//      │ this is truly an awfully long example of a MULTISELECTOR title │
+//╭─────┴─────────────────────────────pick one (you will die regardless)─┤
+//│  ↑                                                                   │
+//│ ☐ 1 Across the Atlantic Ocean, there was a place called North America│
+//│ ☐ 2 Discovered by an Italian in the employ of the queen of Spain     │
+//│ ☐ 3 Colonized extensively by the Spanish and the French              │
+//│ ☐ 4 Developed into a rich nation by Dutch-supplied African slaves    │
+//│ ☐ 5 And thus became the largest English-speaking nation on earth     │
+//│ ☐ 6 Namely, the United States of America                             │
+//│ ☐ 7 The inhabitants of the United States called themselves Yankees   │
+//│ ☐ 8 For some reason                                                  │
+//│ ☐ 9 And, eventually noticing the rest of the world was there,        │
+//│ ☐ 10 Decided to rule it.                                             │
+//│  ↓                                                                   │
+//╰─────────────────────────press q to exit (there is sartrev("no exit")─╯
 //
 // Unlike the selector widget, zero to all of the items can be selected, but
 // also the widget does not support adding or removing items at runtime.

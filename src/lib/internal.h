@@ -187,8 +187,7 @@ typedef struct ncmultiselector {
   unsigned current;            // index of highlighted item
   unsigned startdisp;          // index of first option displayed
   unsigned maxdisplay;         // max number of items to display, 0 -> no limit
-  int longop;                  // columns occupied by longest option
-  int longdesc;                // columns occupied by longest description
+  int longitem;                // columns occupied by longest item
   struct selector_item* items; // list of items and descriptions, heap-copied
   unsigned itemcount;          // number of pairs in 'items'
   char* title;                 // can be NULL, in which case there's no riser

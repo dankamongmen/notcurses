@@ -404,8 +404,8 @@ ncmultiselector_body_width(const ncmultiselector* n){
   if(n->secondarycols + 2 > cols){
     cols = n->secondarycols + 2;
   }
-  if(n->longop + n->longdesc + 5 > cols){
-    cols = n->longop + n->longdesc + 5;
+  if(n->longitem + 7 > cols){
+    cols = n->longitem + 7;
   }
   return cols;
 }
@@ -470,7 +470,7 @@ ncmultiselector_draw(ncmultiselector* n){
   const int bodyoffset = dimx - bodywidth + 2;
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
-    n->arrowx = bodyoffset + 3;
+    n->arrowx = bodyoffset + 1;
     ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
   }else{
     n->arrowx = -1;
@@ -652,9 +652,8 @@ ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x, const multisel
   ns->footercols = opts->footer ? mbswidth(opts->footer) : 0;
   ns->current = 0;
   ns->startdisp = 0;
-  ns->longop = 0;
+  ns->longitem = 0;
   ns->maxdisplay = opts->maxdisplay;
-  ns->longdesc = 0;
   ns->opchannels = opts->opchannels;
   ns->boxchannels = opts->boxchannels;
   ns->descchannels = opts->descchannels;
@@ -675,13 +674,13 @@ ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x, const multisel
     const struct selector_item* src = &opts->items[ns->itemcount];
     int cols = mbswidth(src->option);
     ns->items[ns->itemcount].opcolumns = cols;
-    if(cols > ns->longop){
-      ns->longop = cols;
+    if(cols > ns->longitem){
+      ns->longitem = cols;
     }
-    cols = mbswidth(src->desc);
-    ns->items[ns->itemcount].desccolumns = cols;
-    if(cols > ns->longdesc){
-      ns->longdesc = cols;
+    int cols2 = mbswidth(src->desc);
+    ns->items[ns->itemcount].desccolumns = cols2;
+    if(cols + cols2 > ns->longitem){
+      ns->longitem = cols + cols2;
     }
     ns->items[ns->itemcount].option = strdup(src->option);
     ns->items[ns->itemcount].desc = strdup(src->desc);
