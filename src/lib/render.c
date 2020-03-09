@@ -927,9 +927,23 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
   return nc->rstate.mstrsize;
 }
 
+// get the cursor to the upper-left corner by one means or another. will clear
+// the screen if need be.
+static int
+home_cursor(notcurses* nc, bool flush){
+  if(nc->home){
+    return term_emit("home", nc->home, nc->ttyfp, flush);
+  }else if(nc->cup){
+    return term_emit("cup", tiparm(nc->cup, 1, 1), nc->ttyfp, flush);
+  }else if(nc->clearscr){
+    return term_emit("clear", nc->clearscr, nc->ttyfp, flush);
+  }
+  return -1;
+}
+
 int notcurses_refresh(notcurses* nc){
   // FIXME need reflow in the event we've been resized
-  if(term_emit("clear", nc->clearscr, nc->ttyfp, true)){
+  if(home_cursor(nc, true)){
     return -1;
   }
   const size_t size = sizeof(struct crender) * nc->lfdimx * nc->lfdimy;
