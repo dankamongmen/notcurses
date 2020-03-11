@@ -107,8 +107,6 @@ mbswidth(const char* mbs){
   return cols;
 }
 
-#define NCPALETTESIZE 256
-
 // A cell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
 // possible combining characters, which might span multiple columns). At any
@@ -958,6 +956,7 @@ API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
 // excluding the base cell.
 API void ncplane_erase(struct ncplane* n);
 
+#define NCPALETTESIZE 256
 #define CELL_WIDEASIAN_MASK     0x8000000080000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
