@@ -141,17 +141,17 @@ usage(const char* exe, int status){
   exit(status);
 }
 
-// extract an integer, which must be positive, and followed by either a comma
-// or a NUL terminator.
+// extract an integer, which must be non-negative, and followed by either a
+// comma or a NUL terminator.
 static int
 lex_long(const char* op, int* i, char** endptr){
   errno = 0;
   long l = strtol(op, endptr, 10);
-  if(l <= 0 || (l == LONG_MAX && errno == ERANGE) || (l > INT_MAX)){
+  if(l < 0 || (l == LONG_MAX && errno == ERANGE) || (l > INT_MAX)){
     fprintf(stderr, "Invalid margin: %s\n", op);
     return -1;
   }
-  if(**endptr != ',' && **endptr){
+  if((**endptr != ',' && **endptr) || *endptr == op){
     fprintf(stderr, "Invalid margin: %s\n", op);
     return -1;
   }
