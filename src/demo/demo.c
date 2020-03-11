@@ -169,20 +169,20 @@ lex_margins(const char* op, notcurses_options* opts){
   if(lex_long(op, &opts->margin_t, &eptr)){
     return -1;
   }
-  if(!*eptr){
+  if(!*eptr){ // allow a single value to be specified for all four margins
     opts->margin_r = opts->margin_l = opts->margin_b = opts->margin_t;
     return 0;
   }
-  op = eptr;
+  op = ++eptr; // once here, we require four values
   if(lex_long(op, &opts->margin_r, &eptr) || !*eptr){
     return -1;
   }
-  op = eptr;
+  op = ++eptr;
   if(lex_long(op, &opts->margin_b, &eptr) || !*eptr){
     return -1;
   }
-  op = eptr;
-  if(lex_long(op, &opts->margin_l, &eptr) || !*eptr){
+  op = ++eptr;
+  if(lex_long(op, &opts->margin_l, &eptr) || *eptr){ // must end in NUL
     return -1;
   }
   return 0;
