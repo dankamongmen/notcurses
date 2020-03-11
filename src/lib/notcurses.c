@@ -283,8 +283,8 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->leny = rows;
   p->lenx = cols;
   p->x = p->y = 0;
-  p->absx = xoff;
-  p->absy = yoff;
+  p->absx = xoff + nc->margin_l;
+  p->absy = yoff + nc->margin_t;
   p->attrword = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
@@ -301,7 +301,9 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
 // the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
-  nc->stdscr = ncplane_create(nc, dimy, dimx, 0, 0);
+  nc->stdscr = ncplane_create(nc, dimy - (/*nc->margin_t +*/ nc->margin_b),
+                              dimx - (/*nc->margin_l +*/ nc->margin_r),
+                              0, 0/*nc->margin_t, nc->margin_l*/);
   return nc->stdscr;
 }
 
@@ -560,7 +562,7 @@ query_rgb(void){
   if(!rgb){
     // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not commonly found in
     // terminal entries today. COLORTERM, however, is a de-facto (if imperfect/kludgy) standard way
-    // of indicating DirectColor support for a terminal. The variable takes one of two case-sensitive
+    // of indicating TrueColor support for a terminal. The variable takes one of two case-sensitive
     // values:
     //
     //   truecolor
@@ -576,8 +578,7 @@ query_rgb(void){
 }
 
 static int
-interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
-                     int* dimy, int* dimx){
+interrogate_terminfo(notcurses* nc, const notcurses_options* opts, int* dimy, int* dimx){
   update_term_dimensions(nc->ttyfd, dimy, dimx);
   char* shortname_term = termname();
   char* longname_term = longname();
@@ -938,9 +939,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(!opts->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 50 % ret->colors : 0x20e080);
-    fprintf(ret->ttyfp, "\n notcurses %s by nick black et al", notcurses_version());
+    printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 12 % ret->colors : 0x2080e0);
-    fprintf(ret->ttyfp, "\n  %d rows, %d columns (%sB), %d colors (%s)\n"
+    printf("\n  %d rows, %d columns (%sB), %d colors (%s)\n"
           "  compiled with gcc-%s\n"
           "  terminfo from %s\n",
           ret->stdscr->leny, ret->stdscr->lenx,
@@ -948,25 +949,26 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
           ret->colors, ret->RGBflag ? "direct" : "palette",
           __VERSION__, curses_version());
 #ifdef USE_FFMPEG
-    fprintf(ret->ttyfp, "  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
+    printf("  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
           LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
           LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
+    fflush(stdout);
 #else
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
-    fprintf(ret->ttyfp, "\n Warning! Notcurses was built without ffmpeg support\n");
+    fprintf(stderr, "\n Warning! Notcurses was built without ffmpeg support\n");
 #endif
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
     if(!ret->RGBflag){ // FIXME
-      fprintf(ret->ttyfp, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
-      fprintf(ret->ttyfp, "\n  Specify a (correct) DirectColor TERM, or COLORTERM=24bit.\n");
+      fprintf(stderr, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
+      fprintf(stderr, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
     }else{
       if(!ret->CCCflag){
-        fprintf(ret->ttyfp, "\n Warning! Advertised DirectColor but no 'ccc' flag\n");
+        fprintf(stderr, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
       }
     }
-    if(strcmp(encoding, "UTF-8")){
-      fprintf(ret->ttyfp, "\n Warning! Encoding is not UTF-8.\n");
+    if(strcmp(encoding, "UTF-8")){ // it definitely exists, but could be ASCII
+      fprintf(stderr, "\n Warning! Encoding is not UTF-8.\n");
     }
   }
   // flush on the switch to alternate screen, lest initial output be swept away
