@@ -579,11 +579,6 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
   return ulen;
 }
 
-// no CLOCK_MONOTONIC_RAW on FreeBSD as of 12.0 :/
-#ifndef CLOCK_MONOTONIC_RAW
-#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
-#endif
-
 #ifdef __cplusplus
 }
 #endif

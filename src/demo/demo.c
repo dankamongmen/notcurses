@@ -484,7 +484,7 @@ int main(int argc, char** argv){
     }
   }
   struct timespec starttime;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &starttime);
+  clock_gettime(CLOCK_MONOTONIC, &starttime);
   struct notcurses* nc;
   if((nc = notcurses_init(&nopts, stdout)) == NULL){
     return EXIT_FAILURE;
