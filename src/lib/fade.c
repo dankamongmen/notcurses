@@ -146,7 +146,7 @@ ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
     sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
     int r;
     // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
-    // of Glibc 2.29 + Linux 5.3 :/.
+    // of Glibc 2.29 + Linux 5.3 (or FreeBSD 12) :/.
     r = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
     if(r){
       break;
@@ -242,7 +242,7 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
     sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
     int rsleep;
     // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
-    // of Glibc 2.29 + Linux 5.3 :/.
+    // of Glibc 2.29 + Linux 5.3 (or FreeBSD 12) :/.
     rsleep = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
     if(rsleep){
       break;
