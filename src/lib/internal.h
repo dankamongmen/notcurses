@@ -227,7 +227,7 @@ typedef struct ncdirect {
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
   char* clear;    // clear the screen
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc truecolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
@@ -284,7 +284,7 @@ typedef struct notcurses {
   char* getm;     // get mouse events
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc truecolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   bool AMflag;    // ti-reported "AM" flag for automatic movement to next line
 
