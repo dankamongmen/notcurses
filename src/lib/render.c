@@ -969,7 +969,7 @@ int notcurses_refresh(notcurses* nc){
 int notcurses_render(notcurses* nc){
   struct timespec start, done;
   int ret;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+  clock_gettime(CLOCK_MONOTONIC, &start);
   int bytes = -1;
   size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
@@ -980,7 +980,7 @@ int notcurses_render(notcurses* nc){
   free(crender);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
-  clock_gettime(CLOCK_MONOTONIC_RAW, &done);
+  clock_gettime(CLOCK_MONOTONIC, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
   ret = bytes >= 0 ? 0 : -1;
   return ret;
