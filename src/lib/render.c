@@ -764,7 +764,6 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, rows by rows, column by column within a row, with the
   // MSB being the first coordinate.
-  size_t damageidx = 0;
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
@@ -775,6 +774,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
     // whenever we're on a new line. leave room to avoid overflow.
     int needmove = INT_MAX - nc->stdscr->lenx;
     for(x = nc->margin_l ; x < nc->stdscr->lenx ; ++x){
+      const size_t damageidx = y * nc->stdscr->lenx + x;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
       const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
 //      cell c;
@@ -907,9 +907,7 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
       }
       if(cell_double_wide_p(srccell)){
         ++x;
-        ++damageidx;
       }
-      ++damageidx;
     }
   }
   ret |= fflush(out);

@@ -302,8 +302,7 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
   nc->stdscr = ncplane_create(nc, dimy - (nc->margin_t + nc->margin_b),
-                              dimx - (nc->margin_l + nc->margin_r),
-                              0, 0/*nc->margin_t, nc->margin_l*/);
+                              dimx - (nc->margin_l + nc->margin_r), 0, 0);
   return nc->stdscr;
 }
 
