@@ -301,8 +301,8 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
 // the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
-  nc->stdscr = ncplane_create(nc, dimy - (/*nc->margin_t +*/ nc->margin_b),
-                              dimx - (/*nc->margin_l +*/ nc->margin_r),
+  nc->stdscr = ncplane_create(nc, dimy - (nc->margin_t + nc->margin_b),
+                              dimx - (nc->margin_l + nc->margin_r),
                               0, 0/*nc->margin_t, nc->margin_l*/);
   return nc->stdscr;
 }
