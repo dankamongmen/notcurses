@@ -35,7 +35,7 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
   * [Adapting NCURSES programs](#adapting-ncurses-programs)
 * [Environment notes](#environment-notes)
-  * [DirectColor detection](#DirectColor-detection)
+  * [TrueColor detection](#TrueColor-detection)
   * [Fonts](#fonts)
   * [FAQs](#faqs)
 * [Supplemental material](#supplemental-material)
@@ -57,9 +57,9 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
 
 notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
-terminal functionality such as unindexed 24-bit color ("DirectColor", not to be
-confused with 8-bit indexed 24-bit color, aka "TrueColor" or (by NCURSES) as
-"extended color"). For some necessary background, consult Thomas E. Dickey's
+terminal functionality such as unindexed 24-bit color ("TrueColor", not to be
+confused with the 8-bit indexed 24-bit "extended color" of NCURSES).
+For some necessary background, consult Thomas E. Dickey's
 superb and authoritative [NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
 As such, notcurses is not a drop-in Curses replacement. It is almost certainly
 less portable, and definitely tested on less hardware. Sorry about that.
@@ -212,6 +212,11 @@ typedef struct notcurses_options {
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
+  // Desirable margins. If all are 0 (default), we will render to the entirety
+  // of the screen. If the screen is too small, we do what we can--this is
+  // strictly best-effort. Absolute coordinates are relative to the rendering
+  // area ((0, 0) is always the origin of the rendering area).
+  int margin_t, margin_r, margin_b, margin_l;
 } notcurses_options;
 
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
@@ -2498,12 +2503,12 @@ These are pretty obvious, implementation-wise.
 * The unit tests assume dimensions of at least 80x24. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
 
-### DirectColor detection
+### TrueColor detection
 
-notcurses aims to use only information found in the terminal's terminfo entry to detect capabilities, DirectColor
+notcurses aims to use only information found in the terminal's terminfo entry to detect capabilities, TrueColor
 being one of them. Support for this is indicated by terminfo having a flag, added in NCURSES 6.1, named `RGB` set
 to `true`. However, as of today there are few and far between terminfo entries which have the capability in their
-database entry and so DirectColor won't be used in most cases. Terminal emulators have had for years a kludge to
+database entry and so TrueColor won't be used in most cases. Terminal emulators have had for years a kludge to
 work around this limitation of terminfo in the form of the `COLORTERM` environment variable which, if set to either
 `truecolor` or `24bit` does the job of indicating the capability of sending the escapes 48 and 38 together with a
 tripartite RGB (0 ≤ c ≤ 255 for all three components) to specify fore- and background colors.
@@ -2590,7 +2595,7 @@ up someday **FIXME**.
     I study the history of NCURSES, primarily using Thomas E. Dickey's FAQ and
     the mailing list archives.
     * 2019-11-14: I file [Outcurses issue #56](https://github.com/dankamongmen/ncreels/issues/56)
-      regarding use of DirectColor in outcurses. This is partially inspired by
+      regarding use of TrueColor in outcurses. This is partially inspired by
       Lexi Summer Hale's essay [everything you ever wanted to know about terminals](http://xn--rpa.cc/irl/term.html).
       I get into contact with Thomas E. Dickey and confirm that what I'm hoping
       to do doesn't really fit in with the codified Curses API.

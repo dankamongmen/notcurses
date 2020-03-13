@@ -212,8 +212,8 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
   // don't use ncplane_dim_yx()/ncplane_yx() here, lest we deadlock
   dimy = p->leny;
   dimx = p->lenx;
-  offy = p->absy;
-  offx = p->absx;
+  offy = p->absy - nc->stdscr->absy;
+  offx = p->absx - nc->stdscr->absx;
 //fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, nc->stdscr->leny, nc->stdscr->lenx);
   // skip content above or to the left of the physical screen
   int starty, startx;
@@ -764,19 +764,23 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, rows by rows, column by column within a row, with the
   // MSB being the first coordinate.
-  size_t damageidx = 0;
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
-  for(y = 0 ; y < nc->stdscr->leny ; ++y){
+  // FIXME need to track outer{x,y} (position on screen) and inner{x,y}
+  // (position within lastframe/rvec, which is lfdimx-sized)
+  for(y = nc->stdscr->absy ; y < nc->stdscr->leny + nc->stdscr->absy ; ++y){
+    const int innery = y - nc->stdscr->absy;
     // how many characters have we elided? it's not worthwhile to invoke a
     // cursor movement with cup if we only elided one or two. set to INT_MAX
     // whenever we're on a new line. leave room to avoid overflow.
     int needmove = INT_MAX - nc->stdscr->lenx;
-    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
+    for(x = nc->stdscr->absx ; x < nc->stdscr->lenx + nc->stdscr->absx ; ++x){
+      const int innerx = x - nc->stdscr->absx;
+      const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
-      const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
+      const cell* srccell = &nc->lastframe[innery * nc->lfdimx + innerx];
 //      cell c;
 //      memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
 //fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
@@ -907,9 +911,8 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
       }
       if(cell_double_wide_p(srccell)){
         ++x;
-        ++damageidx;
       }
-      ++damageidx;
+//fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
   }
   ret |= fflush(out);

@@ -10,9 +10,9 @@
 #include <stdatomic.h>
 #include "demo.h"
 
-// ansi terminal definition-4-life
+// (non-)ansi terminal definition-4-life
 static const int MIN_SUPPORTED_ROWS = 24;
-static const int MIN_SUPPORTED_COLS = 80;
+static const int MIN_SUPPORTED_COLS = 76; // allow a bit of margin, sigh
 
 static int democount;
 static demoresult* results;
@@ -120,7 +120,7 @@ static struct {
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -hVikc ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -J jsonfile ] [ -f renderfile ] demospec\n", exe);
+  fprintf(out, "usage: %s [ -hVikc ] [ -m margins ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -J jsonfile ] [ -f renderfile ] demospec\n", exe);
   fprintf(out, " -h: this message\n");
   fprintf(out, " -V: print program name and version\n");
   fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
@@ -131,6 +131,7 @@ usage(const char* exe, int status){
   fprintf(out, " -J: emit JSON summary to file\n");
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
   fprintf(out, " -p: data file path (default: %s)\n", NOTCURSES_SHARE);
+  fprintf(out, " -m: margin, or 4 comma-separated margins\n");
   fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
   for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
     if(demos[i].name){
@@ -138,6 +139,53 @@ usage(const char* exe, int status){
     }
   }
   exit(status);
+}
+
+// extract an integer, which must be non-negative, and followed by either a
+// comma or a NUL terminator.
+static int
+lex_long(const char* op, int* i, char** endptr){
+  errno = 0;
+  long l = strtol(op, endptr, 10);
+  if(l < 0 || (l == LONG_MAX && errno == ERANGE) || (l > INT_MAX)){
+    fprintf(stderr, "Invalid margin: %s\n", op);
+    return -1;
+  }
+  if((**endptr != ',' && **endptr) || *endptr == op){
+    fprintf(stderr, "Invalid margin: %s\n", op);
+    return -1;
+  }
+  *i = l;
+  return 0;
+}
+
+static int
+lex_margins(const char* op, notcurses_options* opts){
+  if(opts->margin_t || opts->margin_r || opts->margin_b || opts->margin_l){
+    fprintf(stderr, "Provided margins twice!\n");
+    return -1;
+  }
+  char* eptr;
+  if(lex_long(op, &opts->margin_t, &eptr)){
+    return -1;
+  }
+  if(!*eptr){ // allow a single value to be specified for all four margins
+    opts->margin_r = opts->margin_l = opts->margin_b = opts->margin_t;
+    return 0;
+  }
+  op = ++eptr; // once here, we require four values
+  if(lex_long(op, &opts->margin_r, &eptr) || !*eptr){
+    return -1;
+  }
+  op = ++eptr;
+  if(lex_long(op, &opts->margin_b, &eptr) || !*eptr){
+    return -1;
+  }
+  op = ++eptr;
+  if(lex_long(op, &opts->margin_l, &eptr) || *eptr){ // must end in NUL
+    return -1;
+  }
+  return 0;
 }
 
 static demoresult*
@@ -189,7 +237,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
   *json_output = NULL;
   int c;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "VhickJ:l:r:d:f:p:")) != EOF){
+  while((c = getopt(argc, argv, "VhickJ:l:r:d:f:p:m:")) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
@@ -203,6 +251,11 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
         opts->loglevel = loglevel;
         if(opts->loglevel < NCLOGLEVEL_SILENT || opts->loglevel > NCLOGLEVEL_TRACE){
           fprintf(stderr, "Invalid log level: %d\n", opts->loglevel);
+          usage(*argv, EXIT_FAILURE);
+        }
+        break;
+      }case 'm':{
+        if(lex_margins(optarg, opts)){
           usage(*argv, EXIT_FAILURE);
         }
         break;

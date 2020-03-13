@@ -107,8 +107,6 @@ mbswidth(const char* mbs){
   return cols;
 }
 
-#define NCPALETTESIZE 256
-
 // A cell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
 // possible combining characters, which might span multiple columns). At any
@@ -232,6 +230,11 @@ typedef struct notcurses_options {
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
+  // Desirable margins. If all are 0 (default), we will render to the entirety
+  // of the screen. If the screen is too small, we do what we can--this is
+  // strictly best-effort. Absolute coordinates are relative to the rendering
+  // area ((0, 0) is always the origin of the rendering area).
+  int margin_t, margin_r, margin_b, margin_l;
 } notcurses_options;
 
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
@@ -953,6 +956,7 @@ API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
 // excluding the base cell.
 API void ncplane_erase(struct ncplane* n);
 
+#define NCPALETTESIZE 256
 #define CELL_WIDEASIAN_MASK     0x8000000080000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)

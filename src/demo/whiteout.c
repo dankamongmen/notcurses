@@ -211,7 +211,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_printf_yx(n, 1, 4, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_styles_off(n, NCSTYLE_ITALIC);
   ncplane_set_fg_rgb(n, 224, 128, 224);
-  ncplane_putstr_yx(n, 3, 1, "  🔥 unicode 13, resize awareness, 24b directcolor…🔥  ");
+  ncplane_putstr_yx(n, 3, 1, "   🔥 unicode 13, resize awareness, 24b truecolor…🔥   ");
   ncplane_set_fg_rgb(n, 255, 255, 255);
   return 0;
 }

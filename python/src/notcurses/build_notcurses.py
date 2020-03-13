@@ -72,6 +72,11 @@ typedef struct notcurses_options {
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
+  // Desirable margins. If all are 0 (default), we will render to the entirety
+  // of the screen. If the screen is too small, we do what we can--this is
+  // strictly best-effort. Absolute coordinates are relative to the rendering
+  // area ((0, 0) is always the origin of the rendering area).
+  int margin_t, margin_r, margin_b, margin_l;
 } notcurses_options;
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 int notcurses_stop(struct notcurses*);
@@ -322,7 +327,7 @@ typedef struct multiselector_options {
   uint64_t bgchannels;   // background channels, used only in body
 } multiselector_options;
 struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const multiselector_options* opts);
-int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned n);
+int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
 struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
 void ncmultiselector_destroy(struct ncmultiselector* n, char** item);
