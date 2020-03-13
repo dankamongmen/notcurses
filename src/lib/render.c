@@ -769,12 +769,12 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
-  for(y = 0 ; y < nc->stdscr->leny ; ++y){
+  for(y = nc->margin_t ; y < nc->stdscr->leny ; ++y){
     // how many characters have we elided? it's not worthwhile to invoke a
     // cursor movement with cup if we only elided one or two. set to INT_MAX
     // whenever we're on a new line. leave room to avoid overflow.
     int needmove = INT_MAX - nc->stdscr->lenx;
-    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
+    for(x = nc->margin_l ; x < nc->stdscr->lenx ; ++x){
       unsigned r, g, b, br, bg, bb, palfg, palbg;
       const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
 //      cell c;

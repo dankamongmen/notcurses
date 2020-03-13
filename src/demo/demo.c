@@ -10,9 +10,9 @@
 #include <stdatomic.h>
 #include "demo.h"
 
-// ansi terminal definition-4-life
+// (non-)ansi terminal definition-4-life
 static const int MIN_SUPPORTED_ROWS = 24;
-static const int MIN_SUPPORTED_COLS = 80;
+static const int MIN_SUPPORTED_COLS = 76; // allow a bit of margin, sigh
 
 static int democount;
 static demoresult* results;
