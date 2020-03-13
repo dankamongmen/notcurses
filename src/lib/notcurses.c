@@ -809,6 +809,8 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   term_verify_seq(&ret->cup, "cup");
   term_verify_seq(&ret->hpa, "hpa");
   term_verify_seq(&ret->vpa, "vpa");
+  term_verify_seq(&ret->civis, "civis");
+  term_verify_seq(&ret->cnorm, "cnorm");
   ret->RGBflag = query_rgb();
   if((ret->colors = tigetnum("colors")) <= 0){
     ret->colors = 1;
@@ -1005,6 +1007,20 @@ int ncdirect_dim_y(const ncdirect* nc){
     return y;
   }
   return -1;
+}
+
+int ncdirect_cursor_enable(ncdirect* nc){
+  if(!nc->cnorm){
+    return -1;
+  }
+  return term_emit("cnorm", nc->cnorm, nc->ttyfp, true);
+}
+
+int ncdirect_cursor_disable(ncdirect* nc){
+  if(!nc->civis){
+    return -1;
+  }
+  return term_emit("civis", nc->civis, nc->ttyfp, true);
 }
 
 int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
