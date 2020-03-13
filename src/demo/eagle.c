@@ -181,7 +181,8 @@ eagles(struct notcurses* nc){
       }else if(e[i].yoff + height >= truey){
         e[i].yoff = truey - height - 1;
       }
-      e[i].xoff += (random() % (truex / 80)) + 1;
+      int scale = truex >= 80 ? truex / 80 : 1;
+      e[i].xoff += (random() % scale) + 1;
       ncplane_move_yx(e[i].n, e[i].yoff, e[i].xoff);
       ++eaglesmoved;
     }
