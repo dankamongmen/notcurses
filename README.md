@@ -390,6 +390,8 @@ int ncdirect_clear(struct ncdirect* nc); // clear the screen
 
 // Move the cursor in direct mode. -1 to retain current location on that axis.
 int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
+int ncdirect_cursor_enable(struct ncdirect* nc);
+int ncdirect_cursor_disable(struct ncdirect* nc);
 ```
 
 ### Alignment

@@ -40,6 +40,10 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);**
 
+**int ncdirect_cursor_enable(struct ncdirect* nc);**
+
+**int ncdirect_cursor_disable(struct ncdirect* nc);**
+
 # DESCRIPTION
 
 **ncdirect_init** prepares the **FILE** provided as **fp** (which must
@@ -65,11 +69,16 @@ terminfo. Otherwise, it prints successive newlines to scroll everything off.
 **ncdirect_cursor_move_yx** moves the cursor to the specified coordinate. -1 can
 be specified for either **y** or **x** to leave that axis unchanged.
 
+**ncdirect_enable_cursor** and **ncdirect_disable_cursor** always flush the
+output stream, taking effect immediately.
+
 # RETURN VALUES
 
 **ncdirect_init** returns **NULL** on failure. Otherwise, the return value
 points to a valid **struct ncdirect**, which can be used until it is provided
 to **ncdirect_stop**.
+
+All other functions return 0 on success, and non-zero on error.
 
 # SEE ALSO
 
