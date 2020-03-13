@@ -1814,17 +1814,17 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   if(n == n->nc->stdscr){
     return -1;
   }
-  n->absy = y;
-  n->absx = x;
+  n->absy = y + n->nc->stdscr->absy;
+  n->absx = x + n->nc->stdscr->absx;
   return 0;
 }
 
 void ncplane_yx(const ncplane* n, int* y, int* x){
   if(y){
-    *y = n->absy;
+    *y = n->absy - n->nc->stdscr->absy;
   }
   if(x){
-    *x = n->absx;
+    *x = n->absx - n->nc->stdscr->absx;
   }
 }
 

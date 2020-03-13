@@ -99,6 +99,7 @@ int intro(struct notcurses* nc){
     return -1;
   }
   ncplane_styles_off(ncp, NCSTYLE_ITALIC);
+  // FIXME don't blow away the background color from the gradient. make this a transplane
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
   if(ncplane_printf_aligned(ncp, rows - 5, NCALIGN_CENTER, "notcurses %s. press 'q' to quit.", notcurses_version()) < 0){
     return -1;
