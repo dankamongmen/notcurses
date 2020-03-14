@@ -12,6 +12,10 @@ notcurses_options NotCurses::default_notcurses_options = {
 	/* no_winch_sighandler */      false,
 	/* renderfp */                 nullptr,
 	/* loglevel */                 NCLogLevel::Silent,
+	/* margin_t */                 0,
+	/* margin_r */                 0,
+	/* margin_b */                 0,
+	/* margin_l */                 0,
 };
 
 NotCurses *NotCurses::_instance = nullptr;
