@@ -84,10 +84,20 @@ namespace ncpp
 			ncdirect_styles_off (direct, static_cast<unsigned>(stylebits));
 		}
 
-    int cursor_move_yx (int y, int x) const noexcept
-    {
-      return ncdirect_cursor_move_yx (direct, y, x);
-    }
+		int cursor_move_yx (int y, int x) const noexcept
+		{
+			return ncdirect_cursor_move_yx (direct, y, x);
+		}
+
+		bool cursor_enable () const noexcept
+		{
+			return ncdirect_cursor_enable (direct) != -1;
+		}
+
+		bool cursor_disable () const noexcept
+		{
+			return ncdirect_cursor_disable (direct) != -1;
+		}
 
 	private:
 		ncdirect *direct;

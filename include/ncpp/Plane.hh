@@ -128,6 +128,16 @@ namespace ncpp
 			return ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xstop) != -1;
 		}
 
+		bool high_gradient (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
+		{
+			return ncplane_highgradient (plane, ul, ur, ll, lr, ylen, xlen) != -1;
+		}
+
+		bool high_gradient_sized (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
+		{
+			return ncplane_highgradient_sized (plane, ul, ur, ll, lr, ylen, xlen) != -1;
+		}
+
 		void greyscale () const noexcept
 		{
 			ncplane_greyscale (plane);
@@ -876,9 +886,19 @@ namespace ncpp
 			ncplane_translate (src.plane, dst.plane, y, x);
 		}
 
-		bool translate_abs (int *y = nullptr, int *x = nullptr)
+		bool translate_abs (int *y = nullptr, int *x = nullptr) noexcept
 		{
 			return ncplane_translate_abs (*this, y, x);
+		}
+
+		bool rotate_cw () const noexcept
+		{
+			return ncplane_rotate_cw (plane) != -1;
+		}
+
+		bool rotate_ccw () const noexcept
+		{
+			return ncplane_rotate_ccw (plane) != -1;
 		}
 
 		// Upstream call doesn't take ncplane* but we put it here for parity with has_no_background below
