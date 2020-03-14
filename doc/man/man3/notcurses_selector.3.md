@@ -1,6 +1,6 @@
 % notcurses_selector(3)
 % nick black <nickblack@linux.com>
-% v1.2.2
+% v1.2.3
 
 # NAME
 
@@ -69,4 +69,5 @@ typedef struct selector_options {
 
 **notcurses(3)**,
 **notcurses_input(3)**,
+**notcurses_multiselector(3)**
 **notcurses_ncplane(3)**

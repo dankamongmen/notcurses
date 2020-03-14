@@ -86,36 +86,8 @@ reshape_shadow_fb(notcurses* nc){
   return 0;
 }
 
-static inline void
-pool_release(egcpool* pool, cell* c){
-  if(!cell_simple_p(c)){
-    egcpool_release(pool, cell_egc_idx(c));
-  }
-  c->gcluster = 0; // don't subject ourselves to double-release problems
-}
-
 void cell_release(ncplane* n, cell* c){
   pool_release(&n->pool, c);
-}
-
-// Duplicate one cell onto another, possibly crossing ncplanes.
-static inline int
-cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
-  pool_release(tpool, targ);
-  targ->attrword = c->attrword;
-  targ->channels = c->channels;
-  if(cell_simple_p(c)){
-    targ->gcluster = c->gcluster;
-    return !!c->gcluster;
-  }
-  size_t ulen = strlen(extended_gcluster(splane, c));
-//fprintf(stderr, "[%s] (%zu)\n", egcpool_extended_gcluster(&splane->pool, c), strlen(egcpool_extended_gcluster(&splane->pool, c)));
-  int eoffset = egcpool_stash(tpool, extended_gcluster(splane, c), ulen);
-  if(eoffset < 0){
-    return -1;
-  }
-  targ->gcluster = eoffset + 0x80;
-  return ulen;
 }
 
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
@@ -240,8 +212,8 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
   // don't use ncplane_dim_yx()/ncplane_yx() here, lest we deadlock
   dimy = p->leny;
   dimx = p->lenx;
-  offy = p->absy;
-  offx = p->absx;
+  offy = p->absy - nc->stdscr->absy;
+  offx = p->absx - nc->stdscr->absx;
 //fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, nc->stdscr->leny, nc->stdscr->lenx);
   // skip content above or to the left of the physical screen
   int starty, startx;
@@ -656,20 +628,33 @@ term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
 }
 
 static inline int
-ncdirect_style_emit(const char* sgr, unsigned stylebits, FILE* out){
-  return term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
-                                 stylebits & NCSTYLE_UNDERLINE,
-                                 stylebits & NCSTYLE_REVERSE,
-                                 stylebits & NCSTYLE_BLINK,
-                                 stylebits & NCSTYLE_DIM,
-                                 stylebits & NCSTYLE_BOLD,
-                                 stylebits & NCSTYLE_INVIS,
-                                 stylebits & NCSTYLE_PROTECT, 0), out, false);
+ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out){
+  if(sgr == NULL){
+    return -1;
+  }
+  int r = term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
+                                  stylebits & NCSTYLE_UNDERLINE,
+                                  stylebits & NCSTYLE_REVERSE,
+                                  stylebits & NCSTYLE_BLINK,
+                                  stylebits & NCSTYLE_DIM,
+                                  stylebits & NCSTYLE_BOLD,
+                                  stylebits & NCSTYLE_INVIS,
+                                  stylebits & NCSTYLE_PROTECT, 0), out, false);
+  // sgr resets colors, so set them back up if not defaults
+  if(r == 0){
+    if(!n->fgdefault){
+      r |= ncdirect_fg(n, n->fgrgb);
+    }
+    if(!n->bgdefault){
+      r |= ncdirect_bg(n, n->bgrgb);
+    }
+  }
+  return r;
 }
 
 int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
   n->attrword |= stylebits;
-  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
     return 0;
   }
   return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
@@ -678,7 +663,7 @@ int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
 // turn off any specified stylebits
 int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   n->attrword &= ~stylebits;
-  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
     return 0;
   }
   return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
@@ -687,7 +672,7 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
 // set the current stylebits to exactly those provided
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
   n->attrword = stylebits;
-  if(ncdirect_style_emit(n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
     return 0;
   }
   return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
@@ -779,19 +764,23 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, rows by rows, column by column within a row, with the
   // MSB being the first coordinate.
-  size_t damageidx = 0;
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
-  for(y = 0 ; y < nc->stdscr->leny ; ++y){
+  // FIXME need to track outer{x,y} (position on screen) and inner{x,y}
+  // (position within lastframe/rvec, which is lfdimx-sized)
+  for(y = nc->stdscr->absy ; y < nc->stdscr->leny + nc->stdscr->absy ; ++y){
+    const int innery = y - nc->stdscr->absy;
     // how many characters have we elided? it's not worthwhile to invoke a
     // cursor movement with cup if we only elided one or two. set to INT_MAX
     // whenever we're on a new line. leave room to avoid overflow.
     int needmove = INT_MAX - nc->stdscr->lenx;
-    for(x = 0 ; x < nc->stdscr->lenx ; ++x){
+    for(x = nc->stdscr->absx ; x < nc->stdscr->lenx + nc->stdscr->absx ; ++x){
+      const int innerx = x - nc->stdscr->absx;
+      const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
-      const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
+      const cell* srccell = &nc->lastframe[innery * nc->lfdimx + innerx];
 //      cell c;
 //      memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
 //fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
@@ -922,9 +911,8 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
       }
       if(cell_double_wide_p(srccell)){
         ++x;
-        ++damageidx;
       }
-      ++damageidx;
+//fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
   }
   ret |= fflush(out);
@@ -942,9 +930,23 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
   return nc->rstate.mstrsize;
 }
 
+// get the cursor to the upper-left corner by one means or another. will clear
+// the screen if need be.
+static int
+home_cursor(notcurses* nc, bool flush){
+  if(nc->home){
+    return term_emit("home", nc->home, nc->ttyfp, flush);
+  }else if(nc->cup){
+    return term_emit("cup", tiparm(nc->cup, 1, 1), nc->ttyfp, flush);
+  }else if(nc->clearscr){
+    return term_emit("clear", nc->clearscr, nc->ttyfp, flush);
+  }
+  return -1;
+}
+
 int notcurses_refresh(notcurses* nc){
   // FIXME need reflow in the event we've been resized
-  if(term_emit("clear", nc->clearscr, nc->ttyfp, true)){
+  if(home_cursor(nc, true)){
     return -1;
   }
   const size_t size = sizeof(struct crender) * nc->lfdimx * nc->lfdimy;
@@ -954,17 +956,11 @@ int notcurses_refresh(notcurses* nc){
   }
   memset(rvec, 0, size);
   for(int i = 0 ; i < nc->lfdimy * nc->lfdimx ; ++i){
-    rvec->damaged = true;
+    rvec[i].damaged = true;
   }
   int ret = notcurses_rasterize(nc, rvec);
   free(rvec);
   if(ret < 0){
-    return -1;
-  }
-  if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
-    return -1;
-  }
-  if(fflush(nc->ttyfp)){
     return -1;
   }
   return 0;
@@ -973,7 +969,7 @@ int notcurses_refresh(notcurses* nc){
 int notcurses_render(notcurses* nc){
   struct timespec start, done;
   int ret;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+  clock_gettime(CLOCK_MONOTONIC, &start);
   int bytes = -1;
   size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
@@ -984,7 +980,7 @@ int notcurses_render(notcurses* nc){
   free(crender);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
-  clock_gettime(CLOCK_MONOTONIC_RAW, &done);
+  clock_gettime(CLOCK_MONOTONIC, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
   ret = bytes >= 0 ? 0 : -1;
   return ret;

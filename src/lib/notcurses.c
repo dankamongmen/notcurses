@@ -283,8 +283,8 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
   p->leny = rows;
   p->lenx = cols;
   p->x = p->y = 0;
-  p->absx = xoff;
-  p->absy = yoff;
+  p->absx = xoff + nc->margin_l;
+  p->absy = yoff + nc->margin_t;
   p->attrword = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
@@ -301,7 +301,8 @@ ncplane_create(notcurses* nc, int rows, int cols, int yoff, int xoff){
 // the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
-  nc->stdscr = ncplane_create(nc, dimy, dimx, 0, 0);
+  nc->stdscr = ncplane_create(nc, dimy - (nc->margin_t + nc->margin_b),
+                              dimx - (nc->margin_l + nc->margin_r), 0, 0);
   return nc->stdscr;
 }
 
@@ -354,8 +355,6 @@ ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
 }
 
 ncplane* ncplane_dup(ncplane* n, void* opaque){
-  // FIXME need ncplane-level locking around n; notcurses-level locking breaks
-  // on calls to ncplane_destroy()/ncplane_new()
   int dimy = n->leny;
   int dimx = n->lenx;
   int aty = n->absy;
@@ -499,6 +498,15 @@ int notcurses_resize(notcurses* n, int* rows, int* cols){
   if(update_term_dimensions(n->ttyfd, rows, cols)){
     return -1;
   }
+  // FIXME can we emerge from the previous call with rows/cols <= 0?
+  *rows -= n->margin_t + n->margin_b;
+  if(*rows <= 0){
+    *rows = 1;
+  }
+  *cols -= n->margin_l + n->margin_r;
+  if(*cols <= 0){
+    *cols = 1;
+  }
   if(*rows == oldrows && *cols == oldcols){
     return 0; // no change
   }
@@ -553,7 +561,7 @@ query_rgb(void){
   if(!rgb){
     // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not commonly found in
     // terminal entries today. COLORTERM, however, is a de-facto (if imperfect/kludgy) standard way
-    // of indicating DirectColor support for a terminal. The variable takes one of two case-sensitive
+    // of indicating TrueColor support for a terminal. The variable takes one of two case-sensitive
     // values:
     //
     //   truecolor
@@ -569,8 +577,7 @@ query_rgb(void){
 }
 
 static int
-interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
-                     int* dimy, int* dimx){
+interrogate_terminfo(notcurses* nc, const notcurses_options* opts, int* dimy, int* dimx){
   update_term_dimensions(nc->ttyfd, dimy, dimx);
   char* shortname_term = termname();
   char* longname_term = longname();
@@ -620,6 +627,7 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts,
   term_verify_seq(&nc->sgr0, "sgr0");
   term_verify_seq(&nc->op, "op");
   term_verify_seq(&nc->oc, "oc");
+  term_verify_seq(&nc->home, "home");
   term_verify_seq(&nc->clearscr, "clear");
   term_verify_seq(&nc->cleareol, "el");
   term_verify_seq(&nc->clearbol, "el1");
@@ -764,7 +772,7 @@ ffmpeg_log_level(ncloglevel_e level){
 #endif
 }
 
-ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
+ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   ncdirect* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
@@ -801,6 +809,8 @@ ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
   term_verify_seq(&ret->cup, "cup");
   term_verify_seq(&ret->hpa, "hpa");
   term_verify_seq(&ret->vpa, "vpa");
+  term_verify_seq(&ret->civis, "civis");
+  term_verify_seq(&ret->cnorm, "cnorm");
   ret->RGBflag = query_rgb();
   if((ret->colors = tigetnum("colors")) <= 0){
     ret->colors = 1;
@@ -817,6 +827,7 @@ ncdirect* notcurses_directmode(const char* termtype, FILE* outfp){
   }
   ret->fgdefault = ret->bgdefault = true;
   ret->fgrgb = ret->bgrgb = 0;
+  ncdirect_styles_set(ret, 0);
   return ret;
 }
 
@@ -825,6 +836,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   memset(&defaultopts, 0, sizeof(defaultopts));
   if(!opts){
     opts = &defaultopts;
+  }
+  if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
+    fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
+    return NULL;
   }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || (strcmp(encoding, "ANSI_X3.4-1968") && strcmp(encoding, "UTF-8"))){
@@ -837,6 +852,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(ret == NULL){
     return ret;
   }
+  ret->margin_t = opts->margin_t;
+  ret->margin_b = opts->margin_b;
+  ret->margin_l = opts->margin_l;
+  ret->margin_r = opts->margin_r;
   ret->stats.fbbytes = 0;
   ret->stashstats.fbbytes = 0;
   reset_stats(&ret->stats);
@@ -921,9 +940,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(!opts->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 50 % ret->colors : 0x20e080);
-    fprintf(ret->ttyfp, "\n notcurses %s by nick black et al", notcurses_version());
+    printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 12 % ret->colors : 0x2080e0);
-    fprintf(ret->ttyfp, "\n  %d rows, %d columns (%sB), %d colors (%s)\n"
+    printf("\n  %d rows, %d columns (%sB), %d colors (%s)\n"
           "  compiled with gcc-%s\n"
           "  terminfo from %s\n",
           ret->stdscr->leny, ret->stdscr->lenx,
@@ -931,25 +950,26 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
           ret->colors, ret->RGBflag ? "direct" : "palette",
           __VERSION__, curses_version());
 #ifdef USE_FFMPEG
-    fprintf(ret->ttyfp, "  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
+    printf("  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
           LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
           LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
+    fflush(stdout);
 #else
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
-    fprintf(ret->ttyfp, "\n Warning! Notcurses was built without ffmpeg support\n");
+    fprintf(stderr, "\n Warning! Notcurses was built without ffmpeg support\n");
 #endif
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
     if(!ret->RGBflag){ // FIXME
-      fprintf(ret->ttyfp, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
-      fprintf(ret->ttyfp, "\n  Specify a (correct) DirectColor TERM, or COLORTERM=24bit.\n");
+      fprintf(stderr, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
+      fprintf(stderr, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
     }else{
       if(!ret->CCCflag){
-        fprintf(ret->ttyfp, "\n Warning! Advertised DirectColor but no 'ccc' flag\n");
+        fprintf(stderr, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
       }
     }
-    if(strcmp(encoding, "UTF-8")){
-      fprintf(ret->ttyfp, "\n Warning! Encoding is not UTF-8.\n");
+    if(strcmp(encoding, "UTF-8")){ // it definitely exists, but could be ASCII
+      fprintf(stderr, "\n Warning! Encoding is not UTF-8.\n");
     }
   }
   // flush on the switch to alternate screen, lest initial output be swept away
@@ -987,6 +1007,20 @@ int ncdirect_dim_y(const ncdirect* nc){
     return y;
   }
   return -1;
+}
+
+int ncdirect_cursor_enable(ncdirect* nc){
+  if(!nc->cnorm){
+    return -1;
+  }
+  return term_emit("cnorm", nc->cnorm, nc->ttyfp, true);
+}
+
+int ncdirect_cursor_disable(ncdirect* nc){
+  if(!nc->civis){
+    return -1;
+  }
+  return term_emit("civis", nc->civis, nc->ttyfp, true);
 }
 
 int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
@@ -1796,17 +1830,17 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   if(n == n->nc->stdscr){
     return -1;
   }
-  n->absy = y;
-  n->absx = x;
+  n->absy = y + n->nc->stdscr->absy;
+  n->absx = x + n->nc->stdscr->absx;
   return 0;
 }
 
 void ncplane_yx(const ncplane* n, int* y, int* x){
   if(y){
-    *y = n->absy;
+    *y = n->absy - n->nc->stdscr->absy;
   }
   if(x){
-    *x = n->absx;
+    *x = n->absx - n->nc->stdscr->absx;
   }
 }
 
@@ -1895,314 +1929,25 @@ void palette256_free(palette256* p){
   free(p);
 }
 
-// Given r, g, and b values 0..255, do a weighted average per Rec. 601, and
-// return the 8-bit greyscale value (this value will be the r, g, and b value
-// for the new color).
-static inline int
-rgb_greyscale(int r, int g, int b){
-  if(r < 0 || r > 255){
-    return -1;
-  }
-  if(g < 0 || g > 255){
-    return -1;
-  }
-  if(b < 0 || b > 255){
-    return -1;
-  }
-  // Use Rec. 601 scaling plus linear approximation of gamma decompression
-  float fg = (0.299 * (r / 255.0) + 0.587 * (g / 255.0) + 0.114 * (b / 255.0));
-  return fg * 255;
-}
-
-void ncplane_greyscale(ncplane *n){
-  for(int y = 0 ; y < n->leny ; ++y){
-    for(int x = 0 ; x < n->lenx ; ++x){
-      cell* c = &n->fb[nfbcellidx(n, y, x)];
-      unsigned r, g, b;
-      cell_fg_rgb(c, &r, &g, &b);
-      int gy = rgb_greyscale(r, g, b);
-      cell_set_fg_rgb(c, gy, gy, gy);
-      cell_bg_rgb(c, &r, &g, &b);
-      gy = rgb_greyscale(r, g, b);
-      cell_set_bg_rgb(c, gy, gy, gy);
+bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){
+  ncplane_translate(ncplane_stdplane_const(n), n, y, x);
+  if(y){
+    if(*y < 0){
+      return false;
+    }
+    if(*y >= n->leny){
+      return false;
     }
   }
-}
-
-// if this is not polyfillable cell, we return 0. if it is, we attempt to fill
-// it, then recurse out. return -1 on error, or number of cells filled on
-// success. so a return of 0 means there's no work to be done here, and N means
-// we did some work here, filling everything we could reach. out-of-plane is 0.
-static int
-ncplane_polyfill_locked(ncplane* n, int y, int x, const cell* c){
-  if(y >= n->leny || x >= n->lenx){
-    return 0; // not fillable
-  }
-  if(y < 0 || x < 0){
-    return 0; // not fillable
-  }
-  cell* cur = &n->fb[nfbcellidx(n, y, x)];
-  if(cur->gcluster){
-    return 0; // glyph, not polyfillable
-  }
-  if(cell_duplicate(n, cur, c) < 0){
-    return -1;
-  }
-  int r, ret = 1;
-  if((r = ncplane_polyfill_locked(n, y - 1, x, c)) < 0){
-    return -1;
-  }
-  ret += r;
-  if((r = ncplane_polyfill_locked(n, y + 1, x, c)) < 0){
-    return -1;
-  }
-  ret += r;
-  if((r = ncplane_polyfill_locked(n, y, x - 1, c)) < 0){
-    return -1;
-  }
-  ret += r;
-  if((r = ncplane_polyfill_locked(n, y, x + 1, c)) < 0){
-    return -1;
-  }
-  ret += r;
-  return ret;
-}
-
-// at the initial step only, invalid y, x is an error, so explicitly check.
-int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
-  int ret = -1;
-  if(y < n->leny && x < n->lenx){
-    if(y >= 0 && x >= 0){
-      ret = ncplane_polyfill_locked(n, y, x, c);
+  if(x){
+    if(*x < 0){
+      return false;
+    }
+    if(*x >= n->lenx){
+      return false;
     }
   }
-  return ret;
-}
-
-// Our gradient is a 2d lerp among the four corners of the region. We start
-// with the observation that each corner ought be its exact specified corner,
-// and the middle ought be the exact average of all four corners' components.
-// Another observation is that if all four corners are the same, every cell
-// ought be the exact same color. From this arises the observation that a
-// perimeter element is not affected by the other three sides:
-//
-//  a corner element is defined by itself
-//  a perimeter element is defined by the two points on its side
-//  an internal element is defined by all four points
-//
-// 2D equation of state: solve for each quadrant's contribution (min 2x2):
-//
-//  X' = (xlen - 1) - X
-//  Y' = (ylen - 1) - Y
-//  TLC: X' * Y' * TL
-//  TRC: X * Y' * TR
-//  BLC: X' * Y * BL
-//  BRC: X * Y * BR
-//  steps: (xlen - 1) * (ylen - 1) [maximum steps away from origin]
-//
-// Then add TLC + TRC + BLC + BRC + steps / 2, and divide by steps (the
-//  steps / 2 is to work around truncate-towards-zero).
-static int
-calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
-                        int y, int x, int ylen, int xlen){
-  assert(y >= 0);
-  assert(y < ylen);
-  assert(x >= 0);
-  assert(x < xlen);
-  const int avm = (ylen - 1) - y;
-  const int ahm = (xlen - 1) - x;
-  if(xlen < 2){
-    if(ylen < 2){
-      return tl;
-    }
-    return (tl * avm + bl * y) / (ylen - 1);
-  }
-  if(ylen < 2){
-    return (tl * ahm + tr * x) / (xlen - 1);
-  }
-  const int tlc = ahm * avm * tl;
-  const int blc = ahm * y * bl;
-  const int trc = x * avm * tr;
-  const int brc = y * x * br;
-  const int divisor = (ylen - 1) * (xlen - 1);
-  return ((tlc + blc + trc + brc) + divisor / 2) / divisor;
-}
-
-// calculate one of the channels of a gradient at a particular point.
-static inline uint32_t
-calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
-                      int y, int x, int ylen, int xlen){
-  uint32_t chan = 0;
-  channel_set_rgb_clipped(&chan,
-                         calc_gradient_component(channel_r(ul), channel_r(ur),
-                                                 channel_r(ll), channel_r(lr),
-                                                 y, x, ylen, xlen),
-                         calc_gradient_component(channel_g(ul), channel_g(ur),
-                                                 channel_g(ll), channel_g(lr),
-                                                 y, x, ylen, xlen),
-                         calc_gradient_component(channel_b(ul), channel_b(ur),
-                                                 channel_b(ll), channel_b(lr),
-                                                 y, x, ylen, xlen));
-  return chan;
-}
-
-// calculate both channels of a gradient at a particular point, storing them
-// into `c`->channels. x and y ought be the location within the gradient.
-static inline void
-calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
-                       uint64_t lr, int y, int x, int ylen, int xlen){
-  if(!channels_fg_default_p(ul)){
-    cell_set_fchannel(c, calc_gradient_channel(channels_fchannel(ul),
-                                              channels_fchannel(ur),
-                                              channels_fchannel(ll),
-                                              channels_fchannel(lr),
-                                              y, x, ylen, xlen));
-  }else{
-    cell_set_fg_default(c);
-  }
-  if(!channels_bg_default_p(ul)){
-    cell_set_bchannel(c, calc_gradient_channel(channels_bchannel(ul),
-                                              channels_bchannel(ur),
-                                              channels_bchannel(ll),
-                                              channels_bchannel(lr),
-                                              y, x, ylen, xlen));
-  }else{
-    cell_set_bg_default(c);
-  }
-}
-
-static bool
-check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
-  // Can't use default or palette-indexed colors in a gradient unless they're
-  // all the same.
-  if(channels_fg_default_p(ul) || channels_fg_default_p(ur) ||
-     channels_fg_default_p(bl) || channels_fg_default_p(br)){
-    if(!(channels_fg_default_p(ul) && channels_fg_default_p(ur) &&
-         channels_fg_default_p(bl) && channels_fg_default_p(br))){
-      return true;
-    }
-  }
-  if(channels_bg_default_p(ul) || channels_bg_default_p(ur) ||
-     channels_bg_default_p(bl) || channels_bg_default_p(br)){
-    if(!(channels_bg_default_p(ul) && channels_bg_default_p(ur) &&
-         channels_bg_default_p(bl) && channels_bg_default_p(br))){
-      return true;
-    }
-  }
-  if(channel_palindex_p(ul) || channel_palindex_p(bl) ||
-     channel_palindex_p(br) || channel_palindex_p(ur)){
-    return true; // FIXME
-  }
-  return false;
-}
-
-int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
-                     uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br,
-                     int ystop, int xstop){
-  if(check_gradient_args(ul, ur, bl, br)){
-    return -1;
-  }
-  if(egc == NULL){
-    return true;
-  }
-  int yoff, xoff, ymax, xmax;
-  ncplane_cursor_yx(n, &yoff, &xoff);
-  // must be at least 1x1, with its upper-left corner at the current cursor
-  if(ystop < yoff){
-    return -1;
-  }
-  if(xstop < xoff){
-    return -1;
-  }
-  ncplane_dim_yx(n, &ymax, &xmax);
-  // must be within the ncplane
-  if(xstop >= xmax || ystop >= ymax){
-    return -1;
-  }
-  const int xlen = xstop - xoff + 1;
-  const int ylen = ystop - yoff + 1;
-  if(ylen == 1){
-    if(xlen == 1){
-      if(ul != ur || ur != br || br != bl){
-        return -1;
-      }
-    }else{
-      if(ul != bl || ur != br){
-        return -1;
-      }
-    }
-  }else if(xlen == 1){
-    if(ul != ur || bl != br){
-      return -1;
-    }
-  }
-  for(int y = yoff ; y <= ystop ; ++y){
-    for(int x = xoff ; x <= xstop ; ++x){
-      cell* targc = ncplane_cell_ref_yx(n, y, x);
-      targc->channels = 0;
-      if(cell_load(n, targc, egc) < 0){
-        return -1;
-      }
-      targc->attrword = attrword;
-      calc_gradient_channels(targc, ul, ur, bl, br, y - yoff, x - xoff, ylen, xlen);
-    }
-  }
-  return 0;
-}
-
-int ncplane_stain(struct ncplane* n, int ystop, int xstop,
-                  uint64_t tl, uint64_t tr, uint64_t bl, uint64_t br){
-  // Can't use default or palette-indexed colors in a gradient
-  if(check_gradient_args(tl, tr, bl, br)){
-    return -1;
-  }
-  int yoff, xoff, ymax, xmax;
-  ncplane_cursor_yx(n, &yoff, &xoff);
-  // must be at least 1x1, with its upper-left corner at the current cursor
-  if(ystop < yoff){
-    return -1;
-  }
-  if(xstop < xoff){
-    return -1;
-  }
-  ncplane_dim_yx(n, &ymax, &xmax);
-  // must be within the ncplane
-  if(xstop >= xmax || ystop >= ymax){
-    return -1;
-  }
-  const int xlen = xstop - xoff + 1;
-  const int ylen = ystop - yoff + 1;
-  for(int y = yoff ; y <= ystop ; ++y){
-    for(int x = xoff ; x <= xstop ; ++x){
-      cell* targc = ncplane_cell_ref_yx(n, y, x);
-      calc_gradient_channels(targc, tl, tr, bl, br, y - yoff, x - xoff, ylen, xlen);
-    }
-  }
-  return 0;
-}
-
-int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
-  int yoff, xoff, ymax, xmax;
-  ncplane_cursor_yx(n, &yoff, &xoff);
-  // must be at least 1x1, with its upper-left corner at the current cursor
-  if(ystop < yoff){
-    return -1;
-  }
-  if(xstop < xoff){
-    return -1;
-  }
-  ncplane_dim_yx(n, &ymax, &xmax);
-  // must be within the ncplane
-  if(xstop >= xmax || ystop >= ymax){
-    return -1;
-  }
-  for(int y = yoff ; y < ystop + 1 ; ++y){
-    for(int x = xoff ; x < xstop + 1 ; ++x){
-      cell* targc = ncplane_cell_ref_yx(n, y, x);
-      targc->attrword = attrword;
-    }
-  }
-  return 0;
+  return true;
 }
 
 void ncplane_translate(const ncplane* src, const ncplane* dst,

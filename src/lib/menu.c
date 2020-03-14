@@ -196,6 +196,35 @@ err:
   return -1;
 }
 
+// what section header, if any, is living at the provided x coordinate? solves
+// by replaying the write_header() algorithm. returns -1 if no such section.
+static int
+section_x(const ncmenu* ncm, int x){
+  int dimx = ncplane_dim_x(ncm->ncp);
+  for(int i = 0 ; i < ncm->sectioncount ; ++i){
+    if(!ncm->sections[i].name){
+      continue;
+    }
+    if(ncm->sections[i].xoff < 0){ // right-aligned
+      int pos = dimx + ncm->sections[i].xoff;
+      if(x < pos){
+        break;
+      }
+      if(x < pos + mbswidth(ncm->sections[i].name)){
+        return i;
+      }
+    }else{
+      if(x < ncm->sections[i].xoff){
+        break;
+      }
+      if(x < ncm->sections[i].xoff + mbswidth(ncm->sections[i].name)){
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
 static int
 write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
   int dimy, dimx;
@@ -479,7 +508,25 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
 }
 
 bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
-  if(n->unrolledsection < 0){
+  if(nc->id == NCKEY_RELEASE){
+    int y, x, dimy, dimx;
+    y = nc->y;
+    x = nc->x;
+    ncplane_dim_yx(n->ncp, &dimy, &dimx);
+    if(!ncplane_translate_abs(n->ncp, &y, &x)){
+      return false;
+    }
+    if(y != (n->bottom ? dimy - 1 : 0)){
+      return false;
+    }
+    int i = section_x(n, x);
+    if(i < 0 || i == n->unrolledsection){
+      ncmenu_rollup(n);
+    }else{
+      ncmenu_unroll(n, i);
+    }
+    return true;
+  }else if(n->unrolledsection < 0){ // all following need an unrolled section
     return false;
   }
   if(nc->id == NCKEY_LEFT){
@@ -492,18 +539,16 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
       return false;
     }
     return true;
-  }else if(nc->id == NCKEY_UP){
+  }else if(nc->id == NCKEY_UP || nc->id == NCKEY_SCROLL_UP){
     if(ncmenu_previtem(n)){
       return false;
     }
     return true;
-  }else if(nc->id == NCKEY_DOWN){
+  }else if(nc->id == NCKEY_DOWN || nc->id == NCKEY_SCROLL_DOWN){
     if(ncmenu_nextitem(n)){
       return false;
     }
     return true;
-  }else if(nc->id == NCKEY_BUTTON1){
-    // FIXME did we clock on the menu? if so, unroll appropriately
   }
   return false;
 }

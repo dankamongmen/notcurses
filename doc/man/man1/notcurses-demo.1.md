@@ -1,6 +1,6 @@
 % notcurses-demo(1)
 % nick black <nickblack@linux.com>
-% v1.2.2
+% v1.2.3
 
 # NAME
 
@@ -9,13 +9,14 @@ notcurses-demo - Show off some notcurses features
 # SYNOPSIS
 
 **notcurses-demo** [**-h|--help**] [**-p path**] [**-d delaymult**]
- [**-l loglevel**] [**-f renderfile**] [**-J jsonfile**] [**-ikVc**] demospec
+ [**-l loglevel**] [**-f renderfile**] [**-J jsonfile**] [**-m margins**]
+ [**-ikVc**] demospec
 
 # DESCRIPTION
 
 **notcurses-demo** demonstrates the capabilities of the notcurses library. It
 can be run in any terminal emulator or console with a correct terminfo(5)
-database, but is at is best in a "DirectColor" 24bpp RGB environment. If
+database, but is at is best in a 24bpp TrueColor RGB environment. If
 **notcurses-demo** seems to generate garbage, something is likely configured in
 a way that is going to prevent notcurses from working.
 
@@ -54,6 +55,8 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 
 **-J jsonfile**: Emit JSON summary of run to **jsonfile**.
 
+**-m margins**: Define rendering margins (see below).
+
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
 
 **-c**: Do not attempt to seed the PRNG. This is useful when benchmarking.
@@ -65,6 +68,11 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 **-V**: Print the program name and version, and exit with success.
 
 demospec: Select which demos to run, and what order to run them in. The default is **ixethbcgrwuvlfsjo**. See above for a list of demos.
+
+Default margins are all 0, and thus the full screen will be rendered. Using
+**-m**, margins can be supplied. Provide a single number to set all four margins
+to the same value, or four comma-delimited values for the top, right, bottom,
+and left margins respectively. Negative margins are illegal.
 
 # NOTES
 

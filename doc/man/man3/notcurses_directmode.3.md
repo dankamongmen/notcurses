@@ -1,16 +1,16 @@
-% notcurses_directmode(3)
+% ncdirect_init(3)
 % nick black <nickblack@linux.com>
-% v1.2.2
+% v1.2.3
 
 # NAME
 
-notcurses_directmode - minimal notcurses instances for styling text
+ncdirect_init - minimal notcurses instances for styling text
 
 # SYNOPSIS
 
 **#include <notcurses.h>**
 
-**struct ncdirect* notcurses_directmode(const char *termtype, FILE* fp);**
+**struct ncdirect* ncdirect_init(const char *termtype, FILE* fp);**
 
 **int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
 
@@ -40,9 +40,13 @@ notcurses_directmode - minimal notcurses instances for styling text
 
 **int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);**
 
+**int ncdirect_cursor_enable(struct ncdirect* nc);**
+
+**int ncdirect_cursor_disable(struct ncdirect* nc);**
+
 # DESCRIPTION
 
-**notcurses_directmode** prepares the **FILE** provided as **fp** (which must
+**ncdirect_init** prepares the **FILE** provided as **fp** (which must
 be attached to a terminal) for colorizing and styling. On success, a pointer to
 a valid **struct ncdirect** is returned. **NULL** is returned on failure.
 Before the process exits, **ncdirect_stop(3)** should be called to reset the
@@ -65,11 +69,16 @@ terminfo. Otherwise, it prints successive newlines to scroll everything off.
 **ncdirect_cursor_move_yx** moves the cursor to the specified coordinate. -1 can
 be specified for either **y** or **x** to leave that axis unchanged.
 
+**ncdirect_enable_cursor** and **ncdirect_disable_cursor** always flush the
+output stream, taking effect immediately.
+
 # RETURN VALUES
 
-**notcurses_directmode** returns **NULL** on failure. Otherwise, the return
-value points to a valid **struct ncdirect**, which can be used until it is
-provided to **ncdirect_stop**.
+**ncdirect_init** returns **NULL** on failure. Otherwise, the return value
+points to a valid **struct ncdirect**, which can be used until it is provided
+to **ncdirect_stop**.
+
+All other functions return 0 on success, and non-zero on error.
 
 # SEE ALSO
 

@@ -97,25 +97,25 @@ fill_chunk(struct ncplane* n, int idx){
   char buf[4];
   int maxy, maxx;
   ncplane_dim_yx(n, &maxy, &maxx);
-  snprintf(buf, sizeof(buf), "%02d", idx + 1); // don't zero-index to viewer
   uint64_t channels = 0;
   int r = 64 + hidx * 10;
   int b = 64 + vidx * 30;
   int g = 225 - ((hidx + vidx) * 12);
   channels_set_fg_rgb(&channels, r, g, b);
-  uint64_t ul, ur, ll, lr;
-  ul = ur = ll = lr = 0;
-  channels_set_bg_rgb(&ul, r, g, b); channels_set_fg(&ul, 0);
-  channels_set_bg_rgb(&lr, r, g, b); channels_set_fg(&lr, 0);
-  channels_set_bg_rgb(&ur, g, b, r); channels_set_fg(&ur, 0);
-  channels_set_bg_rgb(&ll, b, r, g); channels_set_fg(&ll, 0);
+  uint32_t ul = 0, ur = 0, ll = 0, lr = 0;
+  channel_set_rgb(&ul, r, g, b);
+  channel_set_rgb(&lr, r, g, b);
+  channel_set_rgb(&ur, g, b, r);
+  channel_set_rgb(&ll, b, r, g);
   int ret = 0;
-  ret |= ncplane_gradient_sized(n, " ", 0, ul, ur, ll, lr, maxy, maxx);
+  ret |= ncplane_highgradient_sized(n, ul, ur, ll, lr, maxy, maxx);
   ret |= ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0);
   if(maxx >= 4 && maxy >= 3){
     ret |= ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 1) / 2);
-    ret |= (ncplane_putegc_stainable(n, buf, NULL) < 0);
-    ret |= (ncplane_putegc_stainable(n, buf + 1, NULL) < 0);
+    snprintf(buf, sizeof(buf), "%d", (idx + 1) / 10); // don't zero-index to viewer
+    ret |= (ncplane_putegc(n, buf, NULL) < 0);
+    snprintf(buf, sizeof(buf), "%d", (idx + 1) % 10);
+    ret |= (ncplane_putegc(n, buf, NULL) < 0);
   }
   return ret;
 }

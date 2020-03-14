@@ -182,6 +182,29 @@ typedef struct ncselector {
   int uarrowy, darrowy, arrowx;// location of scrollarrows, even if not present
 } ncselector;
 
+typedef struct ncmultiselector {
+  ncplane* ncp;                // backing ncplane
+  unsigned current;            // index of highlighted item
+  unsigned startdisp;          // index of first option displayed
+  unsigned maxdisplay;         // max number of items to display, 0 -> no limit
+  int longitem;                // columns occupied by longest item
+  struct mselector_item* items;// items, descriptions, and statuses, heap-copied
+  unsigned itemcount;          // number of pairs in 'items'
+  char* title;                 // can be NULL, in which case there's no riser
+  int titlecols;               // columns occupied by title
+  char* secondary;             // can be NULL
+  int secondarycols;           // columns occupied by secondary
+  char* footer;                // can be NULL
+  int footercols;              // columns occupied by footer
+  cell background;             // background, used in body only
+  uint64_t opchannels;         // option channels
+  uint64_t descchannels;       // description channels
+  uint64_t titlechannels;      // title channels
+  uint64_t footchannels;       // secondary and footer channels
+  uint64_t boxchannels;        // border channels
+  int uarrowy, darrowy, arrowx;// location of scrollarrows, even if not present
+} ncmultiselector;
+
 typedef struct ncdirect {
   int attrword;   // current styles
   int colors;     // number of colors terminfo reported usable for this screen
@@ -191,6 +214,8 @@ typedef struct ncdirect {
   char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
   char* cup;      // move cursor
+  char* civis;    // hide cursor
+  char* cnorm;    // restore cursor to default state
   char* hpa;      // horizontal position adjusment (move cursor on row)
   char* vpa;      // vertical position adjustment (move cursor on column)
   char* standout; // CELL_STYLE_STANDOUT
@@ -204,7 +229,7 @@ typedef struct ncdirect {
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
   char* clear;    // clear the screen
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc truecolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
@@ -239,6 +264,7 @@ typedef struct notcurses {
   char* clearscr; // erase screen and home cursor
   char* cleareol; // clear to end of line
   char* clearbol; // clear to beginning of line
+  char* home;     // home cursor
   char* cnorm;    // restore cursor to default state
   char* sgr;      // set many graphics properties at once
   char* sgr0;     // restore default presentation properties
@@ -260,7 +286,7 @@ typedef struct notcurses {
   char* getm;     // get mouse events
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc directcolor
+  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc truecolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
   bool AMflag;    // ti-reported "AM" flag for automatic movement to next line
 
@@ -282,6 +308,9 @@ typedef struct notcurses {
   // number of input events seen. does not belong in ncstats, since it must not
   // be reset (semantics are relied upon by widgets for mouse click detection).
   uint64_t input_events;
+
+  // desired margins (best-effort only), copied in from notcurses_options
+  int margin_t, margin_b, margin_r, margin_l;
 
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
@@ -428,6 +457,25 @@ rgb_quantize_8(unsigned r, unsigned g, unsigned b){
   return WHITE;
 }
 
+// Given r, g, and b values 0..255, do a weighted average per Rec. 601, and
+// return the 8-bit greyscale value (this value will be the r, g, and b value
+// for the new color).
+static inline int
+rgb_greyscale(int r, int g, int b){
+  if(r < 0 || r > 255){
+    return -1;
+  }
+  if(g < 0 || g > 255){
+    return -1;
+  }
+  if(b < 0 || b > 255){
+    return -1;
+  }
+  // Use Rec. 601 scaling plus linear approximation of gamma decompression
+  float fg = (0.299 * (r / 255.0) + 0.587 * (g / 255.0) + 0.114 * (b / 255.0));
+  return fg * 255;
+}
+
 static inline int
 term_emit(const char* name __attribute__ ((unused)), const char* seq,
           FILE* out, bool flush){
@@ -505,10 +553,33 @@ cell_nobackground_p(const egcpool* e, const cell* c){
   return !cell_simple_p(c) && !strcmp(egcpool_extended_gcluster(e, c), "\xe2\x96\x88");
 }
 
-// no CLOCK_MONOTONIC_RAW on FreeBSD as of 12.0 :/
-#ifndef CLOCK_MONOTONIC_RAW
-#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
-#endif
+static inline void
+pool_release(egcpool* pool, cell* c){
+  if(!cell_simple_p(c)){
+    egcpool_release(pool, cell_egc_idx(c));
+  }
+  c->gcluster = 0; // don't subject ourselves to double-release problems
+}
+
+// Duplicate one cell onto another, possibly crossing ncplanes.
+static inline int
+cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
+  pool_release(tpool, targ);
+  targ->attrword = c->attrword;
+  targ->channels = c->channels;
+  if(cell_simple_p(c)){
+    targ->gcluster = c->gcluster;
+    return !!c->gcluster;
+  }
+  size_t ulen = strlen(extended_gcluster(splane, c));
+//fprintf(stderr, "[%s] (%zu)\n", egcpool_extended_gcluster(&splane->pool, c), strlen(egcpool_extended_gcluster(&splane->pool, c)));
+  int eoffset = egcpool_stash(tpool, extended_gcluster(splane, c), ulen);
+  if(eoffset < 0){
+    return -1;
+  }
+  targ->gcluster = eoffset + 0x80;
+  return ulen;
+}
 
 #ifdef __cplusplus
 }

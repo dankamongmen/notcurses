@@ -1,6 +1,6 @@
 % notcurses_reel(3)
 % nick black <nickblack@linux.com>
-% v1.2.2
+% v1.2.3
 
 # NAME
 

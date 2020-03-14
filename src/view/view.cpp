@@ -173,11 +173,12 @@ int main(int argc, char** argv){
     std::array<char, 128> errbuf;
     int frames = 0;
     int averr;
-    auto ncv = std::make_unique<Visual>(argv[i], &averr, 1, 0, stretchmode);
-    if(!ncv){
-      av_make_error_string(errbuf.data(), errbuf.size(), averr);
+    std::unique_ptr<Visual> ncv;
+    try{
+      ncv = std::make_unique<Visual>(argv[i], &averr, 1, 0, stretchmode);
+    }catch(std::exception& e){
       nc.stop();
-      std::cerr << "Error opening " << argv[i] << ": " << errbuf.data() << std::endl;
+      std::cerr << argv[i] << ": " << e.what() << "\n";
       return EXIT_FAILURE;
     }
     int r = ncv->stream(&averr, timescale, perframe, &frames);

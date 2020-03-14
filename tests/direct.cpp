@@ -8,7 +8,7 @@ TEST_CASE("DirectMode") {
   FILE* outfp_{};
   outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(nullptr != outfp_);
-  struct ncdirect* nc_ = notcurses_directmode(NULL, outfp_);
+  struct ncdirect* nc_ = ncdirect_init(NULL, outfp_);
   REQUIRE(nullptr != nc_);
 
   SUBCASE("SetItalic") {

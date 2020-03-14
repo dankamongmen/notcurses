@@ -6,7 +6,7 @@ use std::path::PathBuf;
 // largely taken from https://rust-lang.github.io/rust-bindgen/tutorial-3.html
 fn main() {
     pkg_config::Config::new()
-        .atleast_version("1.2.2")
+        .atleast_version("1.2.3")
         .probe("notcurses")
         .unwrap();
 
@@ -21,7 +21,7 @@ fn main() {
     // to bindgen, and lets you build up options for
     // the resulting bindings.
     let bindings = bindgen::Builder::default()
-        .clang_arg("-I../../include") // FIXME pass via envvar?
+        .clang_arg("-I../../include -D_XOPEN_SOURCE") // FIXME pass via envvar?
         // The input header we would like to generate
         // bindings for.
         .header("wrapper.h")

@@ -77,14 +77,16 @@ ncselector_draw(ncselector* n){
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
     ncplane_putc(n->ncp, &n->background);
   }
+  const int bodyoffset = dimx - bodywidth + 2;
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
-    ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↑", NULL);
+    n->arrowx = bodyoffset + n->longop;
+    ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
+  }else{
+    n->arrowx = -1;
   }
-  n->arrowx = bodywidth - (n->longdesc + 3) + xoff;
   n->uarrowy = yoff;
   unsigned printidx = n->startdisp;
-  int bodyoffset = dimx - bodywidth + 2;
   unsigned printed = 0;
   for(yoff += 1 ; yoff < dimy - 2 ; ++yoff){
     if(n->maxdisplay && printed == n->maxdisplay){
@@ -116,7 +118,7 @@ ncselector_draw(ncselector* n){
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
-    ncplane_putegc_yx(n->ncp, yoff, bodywidth - (n->longdesc + 3) + xoff, "↓", NULL);
+    ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↓", NULL);
   }
   n->darrowy = yoff;
   return notcurses_render(n->ncp->nc);
@@ -335,9 +337,11 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
   }else if(nc->id == NCKEY_SCROLL_DOWN){
     ncselector_nextitem(n);
     return true;
-  }else if(nc->id == NCKEY_RELEASE && ncplane_mouseevent_p(n->ncp, nc)){
+  }else if(nc->id == NCKEY_RELEASE){
     int y = nc->y, x = nc->x;
-    ncplane_translate(ncplane_stdplane(n->ncp), n->ncp, &y, &x);
+    if(!ncplane_translate_abs(n->ncp, &y, &x)){
+      return false;
+    }
     if(y == n->uarrowy && x == n->arrowx){
       ncselector_previtem(n);
       return true;
@@ -350,7 +354,7 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
       // FIXME verify that we're within the body walls!
       // FIXME verify we're on the left of the split?
       // FIXME verify that we're on a visible glyph?
-      int cury =  (n->selected + n->itemcount - n->startdisp) % n->itemcount;
+      int cury = (n->selected + n->itemcount - n->startdisp) % n->itemcount;
       int click = y - n->uarrowy - 1;
       while(click > cury){
         ncselector_nextitem(n);
@@ -384,4 +388,370 @@ void ncselector_destroy(ncselector* n, char** item){
     free(n->footer);
     free(n);
   }
+}
+
+ncplane* ncmultiselector_plane(ncmultiselector* n){
+  return n->ncp;
+}
+
+// ideal body width given the ncselector's items and secondary/footer
+static int
+ncmultiselector_body_width(const ncmultiselector* n){
+  int cols = 0;
+  // the body is the maximum of
+  //  * longop + longdesc + 5
+  //  * secondary + 2
+  //  * footer + 2
+  if(n->footercols + 2 > cols){
+    cols = n->footercols + 2;
+  }
+  if(n->secondarycols + 2 > cols){
+    cols = n->secondarycols + 2;
+  }
+  if(n->longitem + 7 > cols){
+    cols = n->longitem + 7;
+  }
+  return cols;
+}
+
+// redraw the multiselector widget in its entirety
+static int
+ncmultiselector_draw(ncmultiselector* n){
+  ncplane_erase(n->ncp);
+  // if we have a title, we'll draw a riser. the riser is two rows tall, and
+  // exactly four columns longer than the title, and aligned to the right. we
+  // draw a rounded box. the body will blow part or all of the bottom away.
+  int yoff = 0;
+  if(n->title){
+    size_t riserwidth = n->titlecols + 4;
+    int offx = ncplane_align(n->ncp, NCALIGN_RIGHT, riserwidth);
+    ncplane_cursor_move_yx(n->ncp, 0, offx);
+    ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, 3, riserwidth, 0);
+    n->ncp->channels = n->titlechannels;
+    ncplane_printf_yx(n->ncp, 1, offx + 1, " %s ", n->title);
+    yoff += 2;
+  }
+  int bodywidth = ncmultiselector_body_width(n);
+  int xoff = ncplane_align(n->ncp, NCALIGN_RIGHT, bodywidth);
+  ncplane_cursor_move_yx(n->ncp, yoff, xoff);
+  int dimy, dimx;
+  ncplane_dim_yx(n->ncp, &dimy, &dimx);
+  ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, dimy - yoff, bodywidth, 0);
+  if(n->title){
+    n->ncp->channels = n->boxchannels;
+    ncplane_putegc_yx(n->ncp, 2, dimx - 1, "┤", NULL);
+    if(bodywidth < dimx){
+      ncplane_putegc_yx(n->ncp, 2, dimx - bodywidth, "┬", NULL);
+    }
+    if((n->titlecols + 4 != dimx) && n->titlecols > n->secondarycols){
+      ncplane_putegc_yx(n->ncp, 2, dimx - (n->titlecols + 4), "┴", NULL);
+    }
+  }
+  // There is always at least one space available on the right for the
+  // secondary title and footer, but we'd prefer to use a few more if we can.
+  if(n->secondary){
+    int xloc = bodywidth - (n->secondarycols + 1) + xoff;
+    if(n->secondarycols < bodywidth - 2){
+      --xloc;
+    }
+    n->ncp->channels = n->footchannels;
+    ncplane_putstr_yx(n->ncp, yoff, xloc, n->secondary);
+  }
+  if(n->footer){
+    int xloc = bodywidth - (n->footercols + 1) + xoff;
+    if(n->footercols < bodywidth - 2){
+      --xloc;
+    }
+    n->ncp->channels = n->footchannels;
+    ncplane_putstr_yx(n->ncp, dimy - 1, xloc, n->footer);
+  }
+  // Top line of body (background and possibly up arrow)
+  ++yoff;
+  ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
+  for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+    ncplane_putc(n->ncp, &n->background);
+  }
+  const int bodyoffset = dimx - bodywidth + 2;
+  if(n->maxdisplay && n->maxdisplay < n->itemcount){
+    n->ncp->channels = n->descchannels;
+    n->arrowx = bodyoffset + 1;
+    ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
+  }else{
+    n->arrowx = -1;
+  }
+  n->uarrowy = yoff;
+  unsigned printidx = n->startdisp;
+  unsigned printed = 0;
+  // visible option lines
+  for(yoff += 1 ; yoff < dimy - 2 ; ++yoff){
+    if(n->maxdisplay && printed == n->maxdisplay){
+      break;
+    }
+    ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
+    for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+      ncplane_putc(n->ncp, &n->background);
+    }
+    n->ncp->channels = n->descchannels;
+    if(printidx == n->current){
+      n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
+    }
+    ncplane_putegc_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? "☒" : "☐", NULL);
+    n->ncp->channels = n->opchannels;
+    if(printidx == n->current){
+      n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
+    }
+    ncplane_printf(n->ncp, " %s ", n->items[printidx].option);
+    n->ncp->channels = n->descchannels;
+    if(printidx == n->current){
+      n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
+    }
+    ncplane_printf(n->ncp, "%s", n->items[printidx].desc);
+    if(++printidx == n->itemcount){
+      printidx = 0;
+    }
+    ++printed;
+  }
+  // Bottom line of body (background and possibly down arrow)
+  ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
+  for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+    ncplane_putc(n->ncp, &n->background);
+  }
+  if(n->maxdisplay && n->maxdisplay < n->itemcount){
+    n->ncp->channels = n->descchannels;
+    ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↓", NULL);
+  }
+  n->darrowy = yoff;
+  return notcurses_render(n->ncp->nc);
+}
+
+const char* ncmultiselector_previtem(ncmultiselector* n){
+  const char* ret = NULL;
+  if(n->itemcount == 0){
+    return ret;
+  }
+  if(n->current == n->startdisp){
+    if(n->startdisp-- == 0){
+      n->startdisp = n->itemcount - 1;
+    }
+  }
+  if(n->current == 0){
+    n->current = n->itemcount;
+  }
+  --n->current;
+  ret = n->items[n->current].option;
+  ncmultiselector_draw(n);
+  return ret;
+}
+
+const char* ncmultiselector_nextitem(ncmultiselector* n){
+  const char* ret = NULL;
+  if(n->itemcount == 0){
+    return NULL;
+  }
+  unsigned lastdisp = n->startdisp;
+  lastdisp += n->maxdisplay && n->maxdisplay < n->itemcount ? n->maxdisplay : n->itemcount;
+  --lastdisp;
+  lastdisp %= n->itemcount;
+  if(lastdisp == n->current){
+    if(++n->startdisp == n->itemcount){
+      n->startdisp = 0;
+    }
+  }
+  ++n->current;
+  if(n->current == n->itemcount){
+    n->current = 0;
+  }
+  ret = n->items[n->current].option;
+  ncmultiselector_draw(n);
+  return ret;
+}
+
+bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
+  if(nc->id == ' '){
+    n->items[n->current].selected = !n->items[n->current].selected;
+    ncmultiselector_draw(n);
+    return true;
+  }else if(nc->id == NCKEY_UP){
+    ncmultiselector_previtem(n);
+    return true;
+  }else if(nc->id == NCKEY_DOWN){
+    ncmultiselector_nextitem(n);
+    return true;
+  }else if(nc->id == NCKEY_SCROLL_UP){
+    ncmultiselector_previtem(n);
+    return true;
+  }else if(nc->id == NCKEY_SCROLL_DOWN){
+    ncmultiselector_nextitem(n);
+    return true;
+  }else if(nc->id == NCKEY_RELEASE){
+    int y = nc->y, x = nc->x;
+    if(!ncplane_translate_abs(n->ncp, &y, &x)){
+      return false;
+    }
+    if(y == n->uarrowy && x == n->arrowx){
+      ncmultiselector_previtem(n);
+      return true;
+    }else if(y == n->darrowy && x == n->arrowx){
+      ncmultiselector_nextitem(n);
+      return true;
+    }else if(n->uarrowy < y && y < n->darrowy){
+      // FIXME we probably only want to consider it a click if both the release
+      // and the depress happened to be on us. for now, just check release.
+      // FIXME verify that we're within the body walls!
+      // FIXME verify we're on the left of the split?
+      // FIXME verify that we're on a visible glyph?
+      int cury = (n->current + n->itemcount - n->startdisp) % n->itemcount;
+      int click = y - n->uarrowy - 1;
+      while(click > cury){
+        ncmultiselector_nextitem(n);
+        ++cury;
+      }
+      while(click < cury){
+        ncmultiselector_previtem(n);
+        --cury;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+// calculate the necessary dimensions based off properties of the selector and
+// the containing screen FIXME should be based on containing ncplane
+static int
+ncmultiselector_dim_yx(notcurses* nc, const ncmultiselector* n, int* ncdimy, int* ncdimx){
+  int rows = 0, cols = 0; // desired dimensions
+  int dimy, dimx; // dimensions of containing screen
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  if(n->title){ // header adds two rows for riser
+    rows += 2;
+  }
+  // we have a top line, a bottom line, two lines of margin, and must be able
+  // to display at least one row beyond that, so require five more
+  rows += 5;
+  if(rows > dimy){ // insufficient height to display selector
+    return -1;
+  }
+  rows += (!n->maxdisplay || n->maxdisplay > n->itemcount ? n->itemcount : n->maxdisplay) - 1; // rows necessary to display all options
+  if(rows > dimy){ // claw excess back
+    rows = dimy;
+  }
+  *ncdimy = rows;
+  cols = ncmultiselector_body_width(n);
+  // the riser, if it exists, is header + 4. the cols are the max of these two.
+  if(n->titlecols + 4 > cols){
+    cols = n->titlecols + 4;
+  }
+  if(cols > dimx){ // insufficient width to display selector
+    return -1;
+  }
+  *ncdimx = cols;
+  return 0;
+}
+
+ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x, const multiselector_options* opts){
+  ncmultiselector* ns = malloc(sizeof(*ns));
+  ns->title = opts->title ? strdup(opts->title) : NULL;
+  ns->titlecols = opts->title ? mbswidth(opts->title) : 0;
+  ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
+  ns->secondarycols = opts->secondary ? mbswidth(opts->secondary) : 0;
+  ns->footer = opts->footer ? strdup(opts->footer) : NULL;
+  ns->footercols = opts->footer ? mbswidth(opts->footer) : 0;
+  ns->current = 0;
+  ns->startdisp = 0;
+  ns->longitem = 0;
+  ns->maxdisplay = opts->maxdisplay;
+  ns->opchannels = opts->opchannels;
+  ns->boxchannels = opts->boxchannels;
+  ns->descchannels = opts->descchannels;
+  ns->titlechannels = opts->titlechannels;
+  ns->footchannels = opts->footchannels;
+  ns->boxchannels = opts->boxchannels;
+  ns->darrowy = ns->uarrowy = ns->arrowx = -1;
+  if(opts->itemcount){
+    if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
+      free(ns->title); free(ns->secondary); free(ns->footer);
+      free(n);
+      return NULL;
+    }
+  }else{
+    ns->items = NULL;
+  }
+  for(ns->itemcount = 0 ; ns->itemcount < opts->itemcount ; ++ns->itemcount){
+    const struct mselector_item* src = &opts->items[ns->itemcount];
+    int cols = mbswidth(src->option);
+    if(cols > ns->longitem){
+      ns->longitem = cols;
+    }
+    int cols2 = mbswidth(src->desc);
+    if(cols + cols2 > ns->longitem){
+      ns->longitem = cols + cols2;
+    }
+    ns->items[ns->itemcount].option = strdup(src->option);
+    ns->items[ns->itemcount].desc = strdup(src->desc);
+    ns->items[ns->itemcount].selected = src->selected;
+    if(!(ns->items[ns->itemcount].desc && ns->items[ns->itemcount].option)){
+      free(ns->items[ns->itemcount].option);
+      free(ns->items[ns->itemcount].desc);
+      goto freeitems;
+    }
+  }
+  int dimy, dimx;
+  if(ncmultiselector_dim_yx(n->nc, ns, &dimy, &dimx)){
+    goto freeitems;
+  }
+  if(!(ns->ncp = ncplane_new(n->nc, dimy, dimx, y, x, NULL))){
+    goto freeitems;
+  }
+  cell_init(&ns->background);
+  uint64_t transchan = 0;
+  channels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(ns->ncp, transchan, 0, "");
+  if(cell_prime(ns->ncp, &ns->background, " ", 0, opts->bgchannels) < 0){
+    ncplane_destroy(ns->ncp);
+    goto freeitems;
+  }
+  ncmultiselector_draw(ns); // deal with error here?
+  return ns;
+
+freeitems:
+  while(ns->itemcount--){
+    free(ns->items[ns->itemcount].option);
+    free(ns->items[ns->itemcount].desc);
+  }
+  free(ns->items);
+  free(ns->title); free(ns->secondary); free(ns->footer);
+  free(ns);
+  return NULL;
+}
+
+void ncmultiselector_destroy(ncmultiselector* n, char** item){
+  if(n){
+    if(item){
+      *item = n->items[n->current].option;
+      n->items[n->current].option = NULL;
+    }
+    while(n->itemcount--){
+      free(n->items[n->itemcount].option);
+      free(n->items[n->itemcount].desc);
+    }
+    cell_release(n->ncp, &n->background);
+    ncplane_destroy(n->ncp);
+    free(n->items);
+    free(n->title);
+    free(n->secondary);
+    free(n->footer);
+    free(n);
+  }
+}
+
+int ncmultiselector_selected(ncmultiselector* n, bool* selected, unsigned count){
+  if(n->itemcount != count || n->itemcount < 1){
+    return -1;
+  }
+  while(--count){
+    selected[count] = n->items[count].selected;
+  }
+  return 0;
 }

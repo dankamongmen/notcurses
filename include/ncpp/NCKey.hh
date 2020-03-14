@@ -109,6 +109,9 @@ namespace ncpp
 		static constexpr char32_t Button10  = NCKEY_BUTTON10;
 		static constexpr char32_t Button11  = NCKEY_BUTTON11;
 		static constexpr char32_t Release   = NCKEY_RELEASE;
+		static constexpr char32_t ScrollUp  = NCKEY_SCROLL_UP;
+		static constexpr char32_t ScrollDown = NCKEY_SCROLL_DOWN;
+		static constexpr char32_t Return    = NCKEY_RETURN;
 
 		static bool IsMouse (char32_t ch) noexcept
 		{

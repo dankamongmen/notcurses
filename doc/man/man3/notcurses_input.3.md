@@ -1,6 +1,6 @@
 % notcurses_input(3)
 % nick black <nickblack@linux.com>
-% v1.2.2
+% v1.2.3
 
 # NAME
 
@@ -36,8 +36,6 @@ typedef struct ncinput {
 **int notcurses_mouse_enable(struct notcurses* n);**
 
 **int notcurses_mouse_disable(struct notcurses* n);**
-
-**bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);**
 
 # DESCRIPTION
 

@@ -72,6 +72,10 @@ demo_getc_nblock(ncinput* ni){
   return demo_getc(&ts, ni);
 }
 
+// Get a fd which can be poll()ed to check for outstanding input. Do not close
+// this file descriptor.
+int demo_input_fd(void);
+
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
 static inline char32_t

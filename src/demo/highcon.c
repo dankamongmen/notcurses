@@ -101,7 +101,6 @@ int highcontrast_demo(struct notcurses* nc){
     cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
     for(int yx = offset + dimx ; yx < totcells - offset ; ++yx){
       cell_load_simple(n, &c, motto[yx % strlen(motto)]);
-      cell_set_fg_rgb(&c, (random() % 2) * 0xff, (random() % 2) * 0xff, (random() % 2) * 0xff);
       cell_set_bg(&c, scrcolors[yx % totcells]);
       if(ncplane_putc_yx(n, (yx + dimx) / dimx, yx % dimx, &c) < 0){
         goto err;

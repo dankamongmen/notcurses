@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <sys/eventfd.h>
 #include "demo.h"
 
 typedef struct nciqueue {
@@ -6,7 +7,10 @@ typedef struct nciqueue {
   struct nciqueue *next;
 } nciqueue;
 
-static bool spawned;
+// an eventfd or pipe on which we write upon receipt of input, so that demos
+// can multiplex against other fds.
+static int input_eventfd = -1;
+
 static pthread_t tid;
 static nciqueue* queue;
 static nciqueue** enqueue = &queue;
@@ -61,8 +65,13 @@ pass_along(const ncinput* ni){
   *enqueue = nq;
   enqueue = &nq->next;
   pthread_mutex_unlock(&lock);
+  const uint64_t eventcount = 1;
+  int ret = 0;
+  if(write(input_eventfd, &eventcount, sizeof(eventcount)) < 0){
+    ret = -1;
+  }
   pthread_cond_signal(&cond);
-  return 0;
+  return ret;
 }
 
 static int
@@ -91,6 +100,10 @@ ultramegaok_demo(void* vnc){
     if(id == 0){
       continue;
     }
+    // if this was about the menu or HUD, pass to them, and continue
+    if(menu_or_hud_key(nc, &ni)){
+      continue;
+    }
     if(nckey_mouse_p(ni.id)){
       if(handle_mouse(&ni)){
         continue;
@@ -102,10 +115,6 @@ ultramegaok_demo(void* vnc){
       unlock_demo_render();
       continue;
     }
-    // if this was about the menu or HUD, pass to them, and continue
-    if(menu_or_hud_key(nc, &ni)){
-      continue;
-    }
     // go ahead and pass keyboard through to demo, even if it was a 'q'
     // (this might cause the demo to exit immediately, as is desired)
     pass_along(&ni);
@@ -113,12 +122,22 @@ ultramegaok_demo(void* vnc){
   return NULL;
 }
 
+int demo_input_fd(void){
+  return input_eventfd;
+}
+
 // listens for events, handling mouse events directly and making other ones
-// available to demos
+// available to demos. returns -1 if already spawned or resource failures.
 int input_dispatcher(struct notcurses* nc){
-  spawned = true;
+  if(input_eventfd >= 0){
+    return -1;
+  }
+  if((input_eventfd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK)) < 0){
+    return -1;
+  }
   if(pthread_create(&tid, NULL, ultramegaok_demo, nc)){
-    spawned = false;
+    close(input_eventfd);
+    input_eventfd = -1;
     return -1;
   }
   return 0;
@@ -126,10 +145,11 @@ int input_dispatcher(struct notcurses* nc){
 
 int stop_input(void){
   int ret = 0;
-  if(spawned){
+  if(input_eventfd >= 0){
     ret |= pthread_cancel(tid);
     ret |= pthread_join(tid, NULL);
-    spawned = false;
+    ret |= close(input_eventfd);
+    input_eventfd = -1;
   }
   return ret;
 }

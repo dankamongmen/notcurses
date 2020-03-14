@@ -22,17 +22,17 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
 int intro(struct notcurses* nc){
   int rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
-  uint64_t cul, cur, cll, clr;
-  cul = cur = cll = clr = 0;
-  channels_set_fg_rgb(&cul, 0, 0xd0, 0); channels_set_bg(&cul, 0);
-  channels_set_fg_rgb(&cur, 0xff, 0, 0); channels_set_bg(&cur, 0);
-  channels_set_fg_rgb(&cll, 0x88, 0, 0xcc); channels_set_bg(&cll, 0);
-  channels_set_fg_rgb(&clr, 0, 0, 0); channels_set_bg(&clr, 0);
+  uint32_t ccul, ccur, ccll, cclr;
+  ccul = ccur = ccll = cclr = 0;
+  channel_set_rgb(&ccul, 0, 0xd0, 0);
+  channel_set_rgb(&ccur, 0xff, 0, 0);
+  channel_set_rgb(&ccll, 0x88, 0, 0xcc);
+  channel_set_rgb(&cclr, 0, 0, 0);
   // we use full block rather+fg than space+bg to conflict less with the menu
   if(ncplane_cursor_move_yx(ncp, 0, 0)){
     return -1;
   }
-  if(ncplane_gradient_sized(ncp, "█", 0, cul, cur, cll, clr, rows, cols)){
+  if(ncplane_highgradient_sized(ncp, ccul, ccur, ccll, cclr, rows, cols)){
     return -1;
   }
   cell c = CELL_TRIVIAL_INITIALIZER;
@@ -56,6 +56,7 @@ int intro(struct notcurses* nc){
                         NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
     return -1;
   }
+  uint64_t cul, cur, cll, clr;
   cul = cur = cll = clr = 0;
   channels_set_fg_rgb(&cul, 200, 0, 200); channels_set_bg_rgb(&cul, 0, 64, 0);
   channels_set_fg_rgb(&cur, 200, 0, 200); channels_set_bg_rgb(&cur, 0, 64, 0);
@@ -98,6 +99,7 @@ int intro(struct notcurses* nc){
     return -1;
   }
   ncplane_styles_off(ncp, NCSTYLE_ITALIC);
+  // FIXME don't blow away the background color from the gradient. make this a transplane
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
   if(ncplane_printf_aligned(ncp, rows - 5, NCALIGN_CENTER, "notcurses %s. press 'q' to quit.", notcurses_version()) < 0){
     return -1;

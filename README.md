@@ -25,20 +25,17 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
   * [Direct Mode](#direct-mode)
   * [Alignment](#alignment)
   * [Input](#input)
-  * [Planes](#planes) ([Plane Channels API](#plane-channels-api), [Wide chars](#wide-chars))
+  * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
   * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
-  * [Multimedia](#multimedia)
   * [Reels](#reels)
-  * [Selectors](#selectors)
-  * [Menus](#menus)
+  * [Widgets](#widgets)
   * [Channels](#channels)
-  * [Perf](#perf)
 * [Included tools](#included-tools)
 * [Differences from NCURSES](#differences-from-ncurses)
   * [Features missing relative to NCURSES](#features-missing-relative-to-ncurses)
   * [Adapting NCURSES programs](#adapting-ncurses-programs)
 * [Environment notes](#environment-notes)
-  * [DirectColor detection](#DirectColor-detection)
+  * [TrueColor detection](#TrueColor-detection)
   * [Fonts](#fonts)
   * [FAQs](#faqs)
 * [Supplemental material](#supplemental-material)
@@ -60,9 +57,9 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
 
 notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
-terminal functionality such as unindexed 24-bit color ("DirectColor", not to be
-confused with 8-bit indexed 24-bit color, aka "TrueColor" or (by NCURSES) as
-"extended color"). For some necessary background, consult Thomas E. Dickey's
+terminal functionality such as unindexed 24-bit color ("TrueColor", not to be
+confused with the 8-bit indexed 24-bit "extended color" of NCURSES).
+For some necessary background, consult Thomas E. Dickey's
 superb and authoritative [NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
 As such, notcurses is not a drop-in Curses replacement. It is almost certainly
 less portable, and definitely tested on less hardware. Sorry about that.
@@ -215,6 +212,11 @@ typedef struct notcurses_options {
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
+  // Desirable margins. If all are 0 (default), we will render to the entirety
+  // of the screen. If the screen is too small, we do what we can--this is
+  // strictly best-effort. Absolute coordinates are relative to the rendering
+  // area ((0, 0) is always the origin of the rendering area).
+  int margin_t, margin_r, margin_b, margin_l;
 } notcurses_options;
 
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
@@ -291,14 +293,9 @@ Utility functions operating on the toplevel `notcurses` object include:
 // Return the topmost ncplane, of which there is always at least one.
 struct ncplane* notcurses_top(struct notcurses* n);
 
-// Destroy any ncplanes other than the stdplane.
-void notcurses_drop_planes(struct notcurses* nc);
-
 // Refresh our idea of the terminal's dimensions, reshaping the standard plane
-// if necessary. Without a call to this function following a terminal resize
-// (as signaled via SIGWINCH), notcurses_render() might not function properly.
-// References to ncplanes (and the egcpools underlying cells) remain valid
-// following a resize operation, but the cursor might have changed position.
+// if necessary, without a fresh render. References to ncplanes (and the
+// egcpools underlying cells) remain valid following a resize operation.
 int notcurses_resize(struct notcurses* n, int* restrict y, int* restrict x);
 
 // Return our current idea of the terminal dimensions in rows and cols.
@@ -339,8 +336,8 @@ bool notcurses_canchangecolors(const struct notcurses* nc);
 "Direct mode" makes a limited subset of notcurses is available for manipulating
 typical scrolling or file-backed output. These functions output directly and
 immediately to the provided `FILE*`, and `notcurses_render()` is neither
-supported nor necessary for such an instance. Use `notcurses_directmode()` to
-create a direct mode context:
+supported nor necessary for such an instance. Use `ncdirect_init()` to create a
+direct mode context:
 
 ```c
 struct ncdirect; // minimal state for a terminal
@@ -351,7 +348,7 @@ struct ncdirect; // minimal state for a terminal
 // supports nor requires notcurses_render(). This can be used to add color and
 // styling to text in the standard output paradigm. Returns NULL on error,
 // including any failure initializing terminfo.
-struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
+struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 int ncdirect_stop(struct ncdirect* nc);
@@ -393,6 +390,8 @@ int ncdirect_clear(struct ncdirect* nc); // clear the screen
 
 // Move the cursor in direct mode. -1 to retain current location on that axis.
 int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
+int ncdirect_cursor_enable(struct ncdirect* nc);
+int ncdirect_cursor_disable(struct ncdirect* nc);
 ```
 
 ### Alignment
@@ -579,11 +578,6 @@ int notcurses_mouse_enable(struct notcurses* n);
 
 // Disable mouse events. Any events in the input queue can still be delivered.
 int notcurses_mouse_disable(struct notcurses* n);
-
-// Was the provided mouse event 'ni' within the bounds of the ncplane 'n'? Note
-// that this doesn't necessarily mean the event affected 'n'; there could be a
-// plane above it, this plane could be transparent, etc.
-bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
 ```
 
 "Button-event tracking mode" implies the ability to detect mouse button
@@ -636,11 +630,6 @@ struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
 // will duplicate all content, and will start with the same rendering state.
 // The new plane will be immediately above the old one on the z axis.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
-
-// Destroy the specified ncplane. None of its contents will be visible after
-// the next call to notcurses_render(). It is an error to attempt to destroy
-// the standard plane.
-int ncplane_destroy(struct ncplane* ncp);
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
@@ -715,6 +704,12 @@ ncplane_dim_x(const struct ncplane* n){
 // and 'x' may be NULL.
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                        int* restrict y, int* restrict x);
+
+// Fed absolute 'y'/'x' coordinates, determine whether that coordinate is
+// within the ncplane 'n'. If not, return false. If so, return true. Either
+// way, translate the absolute coordinates relative to 'n'. If the point is not
+// within 'n', these coordinates will not be within the dimensions of the plane.
+bool ncplane_translate_abs(const struct ncplane* n, int* restrict y, int* restrict x);
 ```
 
 If a given cell's glyph is zero, or its foreground channel is fully transparent,
@@ -1169,6 +1164,23 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
   return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 }
 
+// Do a high-resolution gradient using upper blocks and synced backgrounds.
+// This doubles the number of vertical gradations, but restricts you to
+// half blocks (appearing to be full blocks).
+int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
+                         uint32_t ll, uint32_t lr, int ystop, int xstop);
+
+static inline int
+ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur,
+                           uint64_t ll, uint64_t lr, int ylen, int xlen){
+  if(ylen < 1 || xlen < 1){
+    return -1;
+  }
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
+}
+
 // Set the given style throughout the specified region, keepying content and
 // channels otherwise unchanged.
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
@@ -1312,37 +1324,6 @@ void ncplane_set_bg_default(struct ncplane* n);
 
 int ncplane_set_fg_palindex(struct ncplane* n, int idx);
 int ncplane_set_bg_palindex(struct ncplane* n, int idx);
-```
-
-#### Wide chars
-
-Notcurses assumes that all glyphs occupy widths which are an integral multiple
-of the smallest possible glyph's cell width (aka a "fixed-width font"). Unicode
-introduces characters which generally occupy two such cells, known as wide
-characters (though in the end, width of a glyph is a property of the font). It
-is not possible to print half of such a glyph, nor is it generally possible to
-print a wide glyph on the last column of a terminal.
-
-Notcurses does not consider it an error to place a wide character on the last
-column of a line. It will obliterate any content which was in that cell, but
-will not itself be rendered. The default content will not be reproduced in such
-a cell, either. When any character is placed atop a wide character's left or
-right half, the wide character is obliterated in its entirety. When a wide
-character is placed, any character under its left or right side is annihilated,
-including wide characters. It is thus possible for two wide characters to sit
-at columns 0 and 2, and for both to be obliterated by a single wide character
-placed at column 1.
-
-Likewise, when rendering, a plane which would partially obstruct a wide glyph
-prevents it from being rendered entirely. A pathological case would be that of
-a terminal _n_ columns in width, containing _n-1_ planes, each 2 columns wide.
-The planes are placed at offsets [0..n - 2]. Each plane is above the plane to
-its left, and each plane contains a single wide character. Were this to be
-rendered, only the rightmost plane (and its single glyph) would be rendered!
-
-```c
-// Calculate the size in columns of the provided UTF8 multibyte string.
-int mbswidth(const char* mbs);
 ```
 
 ### Cells
@@ -1675,7 +1656,7 @@ cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
   channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
 }
 
-// Same, but with an assembled 32-bit channel.
+// Same, but with an assembled 24-bit RGB value.
 static inline int
 cell_set_fg(cell* c, uint32_t channel){
   return channels_set_fg(&c->channels, channel);
@@ -1694,7 +1675,7 @@ cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
   channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
 }
 
-// Same, but with an assembled 32-bit channel.
+// Same, but with an assembled 24-bit RGB value.
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);
@@ -1736,99 +1717,6 @@ cell_set_bg_default(cell* c){
   channels_set_bg_default(&c->channels);
 }
 
-```
-
-### Multimedia
-
-Media decoding and scaling is handled by libAV from FFmpeg, resulting in a
-`notcurses_visual` object. This object generates frames, each one corresponding
-to a renderable scene on the associated `ncplane`. If notcurses is built without
-FFMpeg support, these functions will all return error.
-
-```c
-// Open a visual (image or video), associating it with the specified ncplane.
-// Returns NULL on any error, writing the AVError to 'averr'.
-struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                     int* averr);
-
-// How to scale the visual in ncvisual_open_plane(). NCSCALE_NONE will open a
-// plane tailored to the visual's exact needs, which is probably larger than the
-// visible screen (but might be smaller). NCSCALE_SCALE scales a visual larger
-// than the visible screen down, maintaining aspect ratio. NCSCALE_STRETCH
-// stretches and scales the image in an attempt to fill the visible screen.
-typedef enum {
-  NCSCALE_NONE,
-  NCSCALE_SCALE,
-  NCSCALE_STRETCH,
-} ncscale_e;
-
-// Open a visual, extract a codec and parameters, and create a new plane
-// suitable for its display at 'y','x'. If there is sufficient room to display
-// the visual in its native size, or if NCSCALE_NONE is passed for 'style', the
-// new plane will be exactly that large. Otherwise, the plane will be as large
-// as possible (given the visible screen), either maintaining aspect ratio
-// (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
-struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
-                                     int* averr, int y, int x, ncscale_e style);
-
-// Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
-// can be neither decoded nor rendered any further.
-void ncvisual_destroy(struct ncvisual* ncv);
-
-// Render the decoded frame to the associated ncplane. The frame will be scaled
-// to the size of the ncplane per the ncscale_e style. A subregion of the
-// frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
-// the rectangle formed by begy x begx and the lower-right corner, zero can be
-// supplied to 'leny' and 'lenx'. Zero for all four values will thus render the
-// entire visual. Negative values for any of the four parameters are an error.
-// It is an error to specify any region beyond the boundaries of the frame.
-int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
-
-// Return the plane to which this ncvisual is bound.
-struct ncplane* ncvisual_plane(struct ncvisual* ncv);
-
-// If a subtitle ought be displayed at this time, return a heap-allocated copy
-// of the UTF8 text.
-char* ncvisual_subtitle(const struct ncvisual* ncv);
-
-// Called for each frame rendered from 'ncv'. If anything but 0 is returned,
-// the streaming operation ceases immediately, and that value is propagated out.
-typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
-
-// Shut up and display my frames! Provide as an argument to ncvisual_stream().
-// If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
-// curry is NULL, subtitles will not be displayed.
-static inline int
-ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry){
-  if(notcurses_render(nc)){
-    return -1;
-  }
-  int ret = 0;
-  if(curry){
-    // need a cast for C++ callers
-    struct ncplane* subncp = (struct ncplane*)curry;
-    char* subtitle = ncvisual_subtitle(ncv);
-    if(subtitle){
-      if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
-        ret = -1;
-      }
-      free(subtitle);
-    }
-  }
-  return ret;
-}
-
-// Stream the entirety of the media, according to its own timing. Blocking,
-// obviously. streamer may be NULL; it is otherwise called for each frame, and
-// its return value handled as outlined for stream cb. Pretty raw; beware.
-// If streamer() returns non-zero, the stream is aborted, and that value is
-// returned. By convention, return a positive number to indicate intentional
-// abort from within streamer(). 'timescale' allows the frame duration time to
-// be scaled. For a visual naturally running at 30FPS, a 'timescale' of 0.1
-// will result in 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an
-// error to supply 'timescale' less than or equal to 0.
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr,
-                    float timescale, streamcb streamer, void* curry);
 ```
 
 ### Reels
@@ -2195,11 +2083,9 @@ push C entirely off-screen (B would then have four lines of text), and then
 push A off-screen. B would then have eight lines of text, the maximum on a
 12-line screen with both types of borders.
 
-### Selectors
+### Widgets
 
-The selector widget provides an ncplane with a title riser and a body section.
-The body section is populated with options and descriptions, and supports
-infinite scrolling up and down. The widgets looks like:
+Selectors:
 
 ```
                               ╭──────────────────────────╮
@@ -2216,71 +2102,28 @@ infinite scrolling up and down. The widgets looks like:
 ╰────────────────────────────────────here's the footer───╯
 ```
 
-At all times, exactly one item is selected (unless there are no items). A
-selector is created with `ncselector_create` and destroyed with
-`ncselector_destroy`.
+Multiselectors:
 
-```c
-struct selector_item {
-  char* option;
-  char* desc;
-};
-
-typedef struct selector_options {
-  char* title; // title may be NULL, inhibiting riser, saving two rows.
-  char* secondary; // secondary may be NULL
-  char* footer; // footer may be NULL
-  struct selector_item* items; // initial items and descriptions
-  unsigned itemcount; // number of initial items and descriptions
-  // default item (selected at start), must be < itemcount unless 'itemcount'
-  // is 0, in which case 'defidx' must also be 0
-  unsigned defidx;
-  // maximum number of options to display at once, 0 to use all available space
-  unsigned maxdisplay;
-  // exhaustive styling options
-  uint64_t opchannels;   // option channels
-  uint64_t descchannels; // description channels
-  uint64_t titlechannels;// title channels
-  uint64_t footchannels; // secondary and footer channels
-  uint64_t boxchannels;  // border channels
-  uint64_t bgchannels;   // background channels, used only in body
-} selector_options;
-
-struct ncselector;
-
-struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
-                                     const selector_options* opts);
-
-int ncselector_additem(struct ncselector* n, const struct selector_item* item);
-int ncselector_delitem(struct ncselector* n, const char* item);
-
-// Return a reference to the selected option, or NULL if there are no items.
-const char* ncselector_selected(const struct ncselector* n);
-
-// Return a reference to the ncselector's underlying ncplane.
-struct ncplane* ncselector_plane(struct ncselector* n);
-
-// Move up or down in the list. A reference to the newly-selected item is
-// returned, or NULL if there are no items in the list.
-const char* ncselector_previtem(struct ncselector* n);
-const char* ncselector_nextitem(struct ncselector* n);
-
-// Offer the input to the ncselector. If it's relevant, this function returns
-// true, and the input ought not be processed further. If it's irrelevant to
-// the selector, false is returned. Relevant inputs include:
-//  * a mouse click on an item
-//  * a mouse scrollwheel event
-//  * a mouse click on the scrolling arrows
-//  * a mouse click outside of an unrolled menu (the menu is rolled up)
-//  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
-bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
-
-// Destroy the ncselector. If 'item' is not NULL, the last selected option will
-// be strdup()ed and assigned to '*item' (and must be free()d by the caller).
-void ncselector_destroy(struct ncselector* n, char** item);
+```
+      ╭────────────────────────────────────────────────────────────────╮
+      │ this is truly an awfully long example of a MULTISELECTOR title │
+╭─────┴─────────────────────────────pick one (you will die regardless)─┤
+│  ↑                                                                   │
+│ ☐ 1 Across the Atlantic Ocean, there was a place called North America│
+│ ☐ 2 Discovered by an Italian in the employ of the queen of Spain     │
+│ ☒ 3 Colonized extensively by the Spanish and the French              │
+│ ☐ 4 Developed into a rich nation by Dutch-supplied African slaves    │
+│ ☐ 5 And thus became the largest English-speaking nation on earth     │
+│ ☐ 6 Namely, the United States of America                             │
+│ ☐ 7 The inhabitants of the United States called themselves Yankees   │
+│ ☒ 8 For some reason                                                  │
+│ ☐ 9 And, eventually noticing the rest of the world was there,        │
+│ ☐ 10 Decided to rule it.                                             │
+│  ↓                                                                   │
+╰─────────────────────────press q to exit (there is sartrev("no exit")─╯
 ```
 
-### Menus
+Menus:
 
 ```
   Schwarzgerät  File                                    Help
@@ -2291,66 +2134,6 @@ xxxxxxxxxxxxxxxx│Close  Ctrl+c│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx├─────────────┤xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx│Quit   Ctrl+q│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx╰─────────────╯xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Horizontal menu bars are supported, on the top or bottom rows of the screen. If
-the menu bar is longer than the screen, it will be only partially visible, but
-any unrolled section will be visible. Menus may be either visible or invisible
-by default; set the `hiding` option to get an invisible menu. In the event of a
-screen resize, menus will be automatically moved/resized.
-
-```c
-typedef struct menu_options {
-  bool bottom;              // on the bottom row, as opposed to top row
-  bool hiding;              // hide the menu when not being used
-  struct {
-    char* name;             // utf-8 c string
-    struct {
-      char* desc;           // utf-8 menu item, NULL for horizontal separator
-      ncinput shortcut;     // shortcut, all should be distinct
-    }* items;
-    int itemcount;
-  }* sections;              // array of menu sections
-  int sectioncount;         // must be positive
-  uint64_t headerchannels;  // styling for header
-  uint64_t sectionchannels; // styling for sections
-} menu_options;
-
-struct ncmenu;
-
-// Create a menu with the specified options. Menus are currently bound to an
-// overall notcurses object (as opposed to a particular plane), and are
-// implemented as ncplanes kept atop other ncplanes.
-struct ncmenu* ncmenu_create(struct notcurses* nc, const menu_options* opts);
-
-// Unroll the specified menu section, making the menu visible if it was
-// invisible, and rolling up any menu section that is already unrolled.
-int ncmenu_unroll(struct ncmenu* n, int sectionidx);
-
-// Roll up any unrolled menu section, and hide the menu if using hiding.
-int ncmenu_rollup(struct ncmenu* n);
-
-// Return the selected item description, or NULL if no section is unrolled. If
-// 'ni' is not NULL, and the selected item has a shortcut, 'ni' will be filled
-// in with that shortcut--this can allow faster matching.
-const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);
-
-// Return the ncplane backing this ncmenu.
-struct ncplane* ncmenu_plane(struct ncmenu* n);
-
-// Offer the input to the ncmenu. If it's relevant, this function returns true,
-// and the input ought not be processed further. If it's irrelevant to the
-// menu, false is returned. Relevant inputs include:
-//  * mouse movement over a hidden menu
-//  * a mouse click on a menu section (the section is unrolled)
-//  * a mouse click outside of an unrolled menu (the menu is rolled up)
-//  * left or right on an unrolled menu (navigates among sections)
-//  * up or down on an unrolled menu (navigates among items)
-//  * escape on an unrolled menu (the menu is rolled up)
-bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
-
-// Destroy a menu created with ncmenu_create().
-int ncmenu_destroy(struct ncmenu* n);
 ```
 
 ### Channels
@@ -2602,82 +2385,6 @@ channels_set_bg_default(uint64_t* channels){
 }
 ```
 
-
-### Perf
-
-Rendering performance can be very roughly categorized as inversely proportional
-to the product of:
-* color changes across the rendered screen,
-* planar depth before an opaque glyph and background are locked in,
-* number of UTF-8 bytes composing the rendered glyphs, and
-* screen geometry
-
-notcurses tracks statistics across its operation, and a snapshot can be
-acquired using the `notcurses_stats()` function. This function cannot fail.
-
-```c
-typedef struct ncstats {
-  // purely increasing stats
-  uint64_t renders;          // number of successful notcurses_render() runs
-  uint64_t failed_renders;   // number of aborted renders, should be 0
-  uint64_t render_bytes;     // bytes emitted to ttyfp
-  int64_t render_max_bytes;  // max bytes emitted for a frame
-  int64_t render_min_bytes;  // min bytes emitted for a frame
-  uint64_t render_ns;        // nanoseconds spent in notcurses_render()
-  int64_t render_max_ns;     // max ns spent in notcurses_render()
-  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
-  uint64_t cellelisions;     // cells we elided entirely thanks to damage maps
-  uint64_t cellemissions;    // cells we emitted due to inferred damage
-  uint64_t fgelisions;       // RGB fg elision count
-  uint64_t fgemissions;      // RGB fg emissions
-  uint64_t bgelisions;       // RGB bg elision count
-  uint64_t bgemissions;      // RGB bg emissions
-  uint64_t defaultelisions;  // default color was emitted
-  uint64_t defaultemissions; // default color was elided
-
-  // current state -- these can decrease
-  uint64_t fbbytes;          // total bytes devoted to all active framebuffers
-  unsigned planes;           // number of planes currently in existence
-} ncstats;
-
-// Acquire an atomic snapshot of the notcurses object's stats.
-void notcurses_stats(struct notcurses* nc, ncstats* stats);
-
-// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
-void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
-```
-
-Timings for renderings are across the breadth of `notcurses_render()`: they
-include all per-render preprocessing, output generation, and dumping of the
-output (including any sleeping while waiting on the terminal).
-
-The notcurses drawing algorithm logically starts by zeroing out a _solutions array_
-of booleans. When this array is all true, we've solved for each cell of
-the output, and can stop. It then walks down the z-axis. For each plane
-encountered, any unsolved cells with which that plane interacts are adjusted,
-and the solution array updated if appropriate. Note that there will always
-be at least one `ncplane` interacting with each visible coordinate, due to the
-default plane. The process of filling a solutions matrix is referred to as
-rendering.
-
-The next step is _rasterization_. Rather than moving down the z-axis, we now
-move to the right and down on the screen, starting from the upper left corner.
-At each cell, we examine the solutions matrix and the previous contents of the
-cell. If they are the same, no output is emitted. If they are different, the
-new glyph is written to the output, following any necessary cursor movements
-and styling codes. notcurses attempts to minimize the total amount of data
-written by eliding unnecessary color and style specifications, and moving the
-cursor over large unchanged areas.
-
-Using the "default color" as only one of the foreground or background requires
-emitting the `op` escape followed by the appropriate escape for changing the
-fore- or background (since `op` changes both at once).
-
-Certain EGCs are understood to be all-foreground or all-background. U+2588
-FULL BLOCK is all foreground. U+0020 SPACE is all background. When such a
-character is used, notcurses will emit whichever character can take advantage
-of the current color.
-
 ## Included tools
 
 Five binaries are built as part of notcurses:
@@ -2798,12 +2505,12 @@ These are pretty obvious, implementation-wise.
 * The unit tests assume dimensions of at least 80x24. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
 
-### DirectColor detection
+### TrueColor detection
 
-notcurses aims to use only information found in the terminal's terminfo entry to detect capabilities, DirectColor
+notcurses aims to use only information found in the terminal's terminfo entry to detect capabilities, TrueColor
 being one of them. Support for this is indicated by terminfo having a flag, added in NCURSES 6.1, named `RGB` set
 to `true`. However, as of today there are few and far between terminfo entries which have the capability in their
-database entry and so DirectColor won't be used in most cases. Terminal emulators have had for years a kludge to
+database entry and so TrueColor won't be used in most cases. Terminal emulators have had for years a kludge to
 work around this limitation of terminfo in the form of the `COLORTERM` environment variable which, if set to either
 `truecolor` or `24bit` does the job of indicating the capability of sending the escapes 48 and 38 together with a
 tripartite RGB (0 ≤ c ≤ 255 for all three components) to specify fore- and background colors.
@@ -2890,7 +2597,7 @@ up someday **FIXME**.
     I study the history of NCURSES, primarily using Thomas E. Dickey's FAQ and
     the mailing list archives.
     * 2019-11-14: I file [Outcurses issue #56](https://github.com/dankamongmen/ncreels/issues/56)
-      regarding use of DirectColor in outcurses. This is partially inspired by
+      regarding use of TrueColor in outcurses. This is partially inspired by
       Lexi Summer Hale's essay [everything you ever wanted to know about terminals](http://xn--rpa.cc/irl/term.html).
       I get into contact with Thomas E. Dickey and confirm that what I'm hoping
       to do doesn't really fit in with the codified Curses API.

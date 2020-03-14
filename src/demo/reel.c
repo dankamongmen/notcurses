@@ -215,8 +215,8 @@ static wchar_t
 handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
              const struct timespec* deadline){
   struct pollfd fds[2] = {
-    { .fd = STDIN_FILENO, .events = POLLIN, .revents = 0, },
-    { .fd = efd,          .events = POLLIN, .revents = 0, },
+    { .fd = demo_input_fd(), .events = POLLIN, .revents = 0, },
+    { .fd = efd,             .events = POLLIN, .revents = 0, },
   };
   sigset_t sset;
   sigemptyset(&sset);
@@ -236,19 +236,25 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
     if(pret == 0){
       return 0;
     }else if(pret < 0){
-      fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
-      return (wchar_t)-1;
+      if(errno != EINTR){
+        fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
+        return (wchar_t)-1;
+      }
     }else{
       if(fds[0].revents & POLLIN){
-        key = demo_getc_nblock(NULL);
-        if(key < 0){
-          return -1;
+        uint64_t eventcount;
+        if(read(fds[0].fd, &eventcount, sizeof(eventcount)) > 0){
+          key = demo_getc_nblock(NULL);
+          if(key < 0){
+            return -1;
+          }
         }
       }
       if(fds[1].revents & POLLIN){
         uint64_t val;
         if(read(efd, &val, sizeof(val)) != sizeof(val)){
-          fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno)); }else if(key < 0){
+          fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno));
+        }else if(key < 0){
           ncreel_redraw(pr);
           DEMO_RENDER(nc);
         }
@@ -269,7 +275,7 @@ close_pipes(int* pipes){
 static int
 ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   tabletctx* tctxs = NULL;
-  bool done = false;
+  bool aborted = false;
   int x = 8, y = 4;
   ncreel_options popts = {
     .infinitescroll = true,
@@ -339,7 +345,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(w, 0, 55, 218);
     wchar_t rw;
-    if((rw = handle_input(nc, pr, efdr, &deadline)) <= 0){
+    if((rw = handle_input(nc, pr, efdr, &deadline)) < 0){
       break;
     }
     // FIXME clrtoeol();
@@ -352,14 +358,14 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
       case 'l': ++x; if(ncreel_move(pr, x, y)){ --x; } break;
       case 'k': ncreel_prev(pr); break;
       case 'j': ncreel_next(pr); break;
-      case 'q': done = true; break;
+      case 'q': aborted = true; break;
       case NCKEY_LEFT: --x; if(ncreel_move(pr, x, y)){ ++x; } break;
       case NCKEY_RIGHT: ++x; if(ncreel_move(pr, x, y)){ --x; } break;
       case NCKEY_UP: ncreel_prev(pr); break;
       case NCKEY_DOWN: ncreel_next(pr); break;
       case NCKEY_DEL: kill_active_tablet(pr, &tctxs); break;
-      default:
-        ncplane_printf_yx(w, 3, 2, "Unknown keycode (0x%x)\n", rw);
+      case NCKEY_RESIZE: notcurses_resize(nc, &dimy, NULL); break;
+      default: ncplane_printf_yx(w, 3, 2, "Unknown keycode (0x%x)\n", rw); break;
     }
     if(newtablet){
       newtablet->next = tctxs;
@@ -370,8 +376,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     if(timespec_subtract_ns(&cur, &deadline) >= 0){
       break;
     }
-    //ncreel_validate(w, pr); // do what, if not assert()ing? FIXME
-  }while(!done);
+  }while(!aborted);
   while(tctxs){
     kill_tablet(&tctxs);
   }
@@ -379,7 +384,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     fprintf(stderr, "Error destroying ncreel\n");
     return -1;
   }
-  return done ? 1 : 0;
+  return aborted ? 1 : 0;
 }
 
 int reel_demo(struct notcurses* nc){

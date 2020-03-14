@@ -1,6 +1,6 @@
 % notcurses_ncplane(3)
 % nick black <nickblack@linux.com>
-% v1.2.2
+% v1.2.3
 
 # NAME
 
@@ -27,8 +27,6 @@ notcurses_ncplane - operations on notcurses planes
 **int ncplane_set_base(struct ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc);**
 
 **int ncplane_base(struct ncplane* ncp, cell* c);**
-
-**int ncplane_destroy(struct ncplane* ncp);**
 
 **int ncplane_move_top(struct ncplane* n);**
 
@@ -59,6 +57,8 @@ notcurses_ncplane - operations on notcurses planes
 **void ncplane_cursor_yx(struct ncplane* n, int* restrict y, int* restrict x);**
 
 **void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* restrict y, int* restrict x);**
+
+**bool ncplane_translate_abs(const struct ncplane* n, int* restrict y, int* restrict x);**
 
 **uint64_t ncplane_channels(struct ncplane* n);**
 
@@ -117,6 +117,12 @@ notcurses_ncplane - operations on notcurses planes
 **int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
 
 **int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
+
+**int ncplane_rotate_cw(struct ncplane* n);**
+
+**int ncplane_rotate_ccw(struct ncplane* n);**
+
+**int ncplane_destroy(struct ncplane* ncp);**
 
 **void notcurses_drop_planes(struct notcurses* nc);**
 

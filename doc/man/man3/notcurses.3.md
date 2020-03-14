@@ -1,6 +1,6 @@
 % notcurses(3)
 % nick black <nickblack@linux.com>
-% v1.2.2
+% v1.2.3
 
 # NAME
 
@@ -17,7 +17,7 @@ notcurses - TUI library for modern terminal emulators
 notcurses builds atop the **terminfo(5)** abstraction layer to provide
 reasonably portable vivid character displays. It is an intellectual descendant
 of **ncurses(3NCURSES)**, but goes beyond that library (and the X/Open Curses
-API it implements). notcurses is capable of subregion fades, 24bpp DirectColor,
+API it implements). notcurses is capable of subregion fades, 24bpp TrueColor,
 transparency, multimedia, and safe multithreaded use.
 
 A program wishing to use notcurses will need to link it, ideally using the
@@ -43,7 +43,7 @@ control of notcurses behavior, including signal handlers, alternative screens,
 and overriding the TERM environment variable. A **terminfo** entry appropriate
 for the actual terminal must be available.
 
-**notcurses_directmode(3)** makes available a very restricted subset of
+**ncdirect_init(3)** makes available a very restricted subset of
 notcurses functionality. This subset is intended to be interleaved with user-
 generated output, and is limited to coloring and styling. Direct mode is
 documented in **notcurses_directmode(3)**

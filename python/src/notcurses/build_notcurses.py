@@ -72,6 +72,11 @@ typedef struct notcurses_options {
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
+  // Desirable margins. If all are 0 (default), we will render to the entirety
+  // of the screen. If the screen is too small, we do what we can--this is
+  // strictly best-effort. Absolute coordinates are relative to the rendering
+  // area ((0, 0) is always the origin of the rendering area).
+  int margin_t, margin_r, margin_b, margin_l;
 } notcurses_options;
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 int notcurses_stop(struct notcurses*);
@@ -106,7 +111,6 @@ int notcurses_palette_size(const struct notcurses* nc);
 bool notcurses_canfade(const struct notcurses* nc);
 int notcurses_mouse_enable(struct notcurses* n);
 int notcurses_mouse_disable(struct notcurses* n);
-bool ncplane_mouseevent_p(const struct ncplane* n, const struct ncinput *ni);
 int ncplane_destroy(struct ncplane* ncp);
 bool notcurses_canopen(const struct notcurses* nc);
 void ncplane_erase(struct ncplane* n);
@@ -238,7 +242,7 @@ int palette256_set(palette256* p, int idx, unsigned rgb);
 int palette256_get_rgb(const palette256* p, int idx, unsigned* r, unsigned* g, unsigned* b);
 void palette256_free(palette256* p);
 bool notcurses_canchangecolor(const struct notcurses* nc);
-struct ncdirect* notcurses_directmode(const char* termtype, FILE* fp);
+struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 int ncdirect_bg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg(struct ncdirect* n, unsigned rgb);
@@ -251,6 +255,8 @@ int ncdirect_stop(struct ncdirect* n);
 int ncdirect_dim_x(const struct ncdirect* nc);
 int ncdirect_dim_y(const struct ncdirect* nc);
 int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
+int ncdirect_cursor_enable(struct ncdirect* nc);
+int ncdirect_cursor_disable(struct ncdirect* nc);
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, int* averr);
 typedef enum {
   NCSCALE_NONE,
@@ -301,6 +307,32 @@ const char* ncselector_previtem(struct ncselector* n);
 const char* ncselector_nextitem(struct ncselector* n);
 bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 void ncselector_destroy(struct ncselector* n, char** item);
+struct mselector_item {
+  char* option;
+  char* desc;
+  bool selected;
+};
+typedef struct multiselector_options {
+  char* title; // title may be NULL, inhibiting riser, saving two rows.
+  char* secondary; // secondary may be NULL
+  char* footer; // footer may be NULL
+  struct mselector_item* items; // initial items, descriptions, and statuses
+  unsigned itemcount; // number of items and descriptions, can't be 0
+  // maximum number of options to display at once, 0 to use all available space
+  unsigned maxdisplay;
+  // exhaustive styling options
+  uint64_t opchannels;   // option channels
+  uint64_t descchannels; // description channels
+  uint64_t titlechannels;// title channels
+  uint64_t footchannels; // secondary and footer channels
+  uint64_t boxchannels;  // border channels
+  uint64_t bgchannels;   // background channels, used only in body
+} multiselector_options;
+struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const multiselector_options* opts);
+int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
+struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
+bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
+void ncmultiselector_destroy(struct ncmultiselector* n, char** item);
 struct ncmenu_item {
   char* desc;           // utf-8 menu item, NULL for horizontal separator
   ncinput shortcut;     // shortcut, all should be distinct
@@ -364,11 +396,17 @@ struct ncplane* nctablet_ncplane(struct nctablet* t);
 int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop);
 int ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);
+int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ystop, int xstop);
+int ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);
 int ncplane_putsimple_stainable(struct ncplane* n, char c);
 int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
 int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
 int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
+int ncplane_rotate_cw(struct ncplane* n);
+int ncplane_rotate_ccw(struct ncplane* n);
+void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
+bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 """)
 
 if __name__ == "__main__":
