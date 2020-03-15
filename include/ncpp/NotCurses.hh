@@ -90,7 +90,7 @@ namespace ncpp
 			if (nc == nullptr)
 				throw invalid_state_error (ncpp_invalid_state_message);
 
-			bool ret = notcurses_stop (nc);
+			bool ret = !notcurses_stop (nc);
 			nc = nullptr;
 
 			return ret;
