@@ -800,7 +800,7 @@ memory.
 int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-void ncplane_cursor_yx(struct ncplane* n, int* restrict y, int* restrict x);
+void ncplane_cursor_yx(const struct ncplane* n, int* restrict y, int* restrict x);
 
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the
