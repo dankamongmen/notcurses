@@ -90,10 +90,10 @@ namespace ncpp
 			if (nc == nullptr)
 				throw invalid_state_error (ncpp_invalid_state_message);
 
-			notcurses_stop (nc);
+			bool ret = notcurses_stop (nc);
 			nc = nullptr;
 
-			return true;
+			return ret;
 		}
 
 		bool can_fade () const noexcept
