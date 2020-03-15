@@ -209,7 +209,7 @@ target_include_directories(notcurses++-static
   )
 
 target_link_libraries(notcurses++
-  PRIVATE
+  PUBLIC
   notcurses)
 
 set(NCPP_COMPILE_OPTIONS
@@ -452,11 +452,12 @@ file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(notcurses-tetris ${TETRISSRC})
 target_include_directories(notcurses-tetris
   PRIVATE
+    include
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-tetris
   PRIVATE
-    notcurses
+    notcurses++
 )
 target_compile_options(notcurses-tetris
   PRIVATE
