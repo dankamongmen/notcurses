@@ -209,7 +209,7 @@ target_include_directories(notcurses++-static
   )
 
 target_link_libraries(notcurses++
-  PRIVATE
+  PUBLIC
   notcurses)
 
 set(NCPP_COMPILE_OPTIONS
