@@ -604,7 +604,7 @@ ncplane_align(const struct ncplane* n, ncalign_e align, int c){
 API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-API void ncplane_cursor_yx(struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the

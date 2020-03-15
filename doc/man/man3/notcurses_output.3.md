@@ -79,9 +79,6 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
 
 **int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);**
 
-**void ncplane_cursor_yx(const struct ncplane* n, int* restrict y,
-                           int* restrict x);**
-
 # DESCRIPTION
 
 These functions write EGCs (Extended Grapheme Clusters) to the specified
