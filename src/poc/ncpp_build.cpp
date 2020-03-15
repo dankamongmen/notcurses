@@ -11,6 +11,7 @@
 #include <ncpp/Menu.hh>
 #include <ncpp/Plane.hh>
 #include <ncpp/Reel.hh>
+#include <ncpp/MultiSelector.hh>
 #include <ncpp/Selector.hh>
 #include <ncpp/Visual.hh>
 #include <ncpp/Direct.hh>

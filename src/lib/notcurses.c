@@ -1311,7 +1311,7 @@ int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   return ncplane_cursor_move_yx_locked(n, y, x);
 }
 
-void ncplane_cursor_yx(ncplane* n, int* y, int* x){
+void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   if(y){
     *y = n->y;
   }

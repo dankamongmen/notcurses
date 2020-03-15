@@ -52,9 +52,7 @@ notcurses_ncplane - operations on notcurses planes
 
 **static inline int ncplane_dim_x(const struct ncplane* n);**
 
-**int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);**
-
-**void ncplane_cursor_yx(struct ncplane* n, int* restrict y, int* restrict x);**
+**void ncplane_cursor_yx(const struct ncplane* n, int* restrict y, int* restrict x);**
 
 **void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* restrict y, int* restrict x);**
 
