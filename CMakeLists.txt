@@ -457,6 +457,7 @@ target_include_directories(notcurses-tetris
 )
 target_link_libraries(notcurses-tetris
   PRIVATE
+    Threads::Threads
     notcurses++
 )
 target_compile_options(notcurses-tetris

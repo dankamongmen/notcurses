@@ -1,3 +1,4 @@
+#include <thread>
 #include <cstdlib>
 #include <clocale>
 #include <ncpp/NotCurses.hh>
@@ -15,6 +16,15 @@ public:
   static constexpr auto BOARD_WIDTH = 10;
   static constexpr auto BOARD_HEIGHT = 20;
 
+  // FIXME ideally this would be called from constructor :/
+  void Ticker(){
+    // FIXME check whether we ought die
+    while(true){
+      // FIXME get value from level
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  }
+
 private:
   ncpp::NotCurses& nc_;
   uint64_t score_;
@@ -28,6 +38,7 @@ int main(void){
   notcurses_options ncopts{};
   ncpp::NotCurses nc(ncopts);
   Tetris t{nc};
-  // FIXME play game
-  return nc.stop() ? EXIT_FAILURE : EXIT_SUCCESS;
+  std::thread tid(&Tetris::Ticker, t);
+  while(true); // FIXME spin on keyboard input, play game
+  return nc.stop() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
