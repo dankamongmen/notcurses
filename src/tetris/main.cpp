@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <clocale>
+//#include <ncpp/Plane.hh>
 #include <ncpp/NotCurses.hh>
 
 using namespace std::chrono_literals;
@@ -13,9 +14,10 @@ public:
   Tetris(ncpp::NotCurses& nc) :
     nc_(nc),
     score_(0),
-    msdelay_(10ms)
+    msdelay_(10ms),
+    curpiece_(nullptr)
   {
-    // FIXME draw board
+    DrawBoard();
   }
 
   // 0.5 cell aspect: One board height == one row. One board width == two columns.
@@ -25,11 +27,15 @@ public:
   // FIXME ideally this would be called from constructor :/
   void Ticker(){
     std::chrono::milliseconds ms;
+    mtx_.lock();
     do{
-      mtx_.lock();
       ms = msdelay_;
       mtx_.unlock();
       std::this_thread::sleep_for(ms);
+      mtx_.lock();
+      if(curpiece_){
+        // FIXME move it down
+      }
     }while(ms != std::chrono::milliseconds::zero());
   }
 
@@ -44,7 +50,14 @@ private:
   uint64_t score_;
   std::mutex mtx_;
   std::chrono::milliseconds msdelay_;
+  ncpp::Plane* curpiece_;
+  ncpp::Plane* stdplane_;
 
+  void DrawBoard(){
+    int y, x;
+    stdplane_ = nc_.get_stdplane(&y, &x);
+    stdplane_->rounded_box(); // FIXME
+  }
 };
 
 int main(void){
