@@ -9,6 +9,17 @@
 
 using namespace std::chrono_literals;
 
+class TetrisNotcursesErr : public std::runtime_error {
+public:
+  TetrisNotcursesErr(char const* const message) throw()
+    : std::runtime_error(message) {
+  }
+
+  virtual char const* what() const throw(){
+    return exception::what();
+  }
+};
+
 class Tetris {
 public:
   Tetris(ncpp::NotCurses& nc) :
@@ -56,7 +67,17 @@ private:
   void DrawBoard(){
     int y, x;
     stdplane_ = nc_.get_stdplane(&y, &x);
-    stdplane_->rounded_box(); // FIXME
+    uint64_t channels = 0;
+    channels_set_fg(&channels, 0x00b040);
+    if(!stdplane_->cursor_move(y - (BOARD_HEIGHT + 1), x / 2 - BOARD_WIDTH)){
+      throw TetrisNotcursesErr("cursor_move()");
+    }
+    if(!stdplane_->rounded_box(0, channels, y - 1, x / 2 + BOARD_WIDTH, NCBOXMASK_TOP)){
+      throw TetrisNotcursesErr("rounded_box()");
+    }
+    if(!nc_.render()){
+      throw TetrisNotcursesErr("render()");
+    }
   }
 };
 
