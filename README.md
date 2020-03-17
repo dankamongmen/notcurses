@@ -1730,8 +1730,7 @@ are arranged in a torus (circular loop), allowing for infinite scrolling
 (infinite scrolling can be disabled, resulting in a line segment rather than a
 torus). This works naturally with keyboard navigation, mouse scrolling wheels,
 and touchpads (including the capacitive touchscreens of modern cell phones).
-The "panel" comes from the underlying ncurses objects (each entity corresponds
-to a single panel) and the "reel" from slot machines. An ncreel initially has
+The term "reel" derives from slot machines. An ncreel initially has
 no tablets; at any given time thereafter, it has zero or more tablets, and if
 there is at least one tablet, one tablet is focused (and on-screen). If the
 last tablet is removed, no tablet is focused. A tablet can support navigation
@@ -1739,7 +1738,7 @@ within the tablet, in which case there is an in-tablet focus for the focused
 tablet, which can also move among elements within the tablet.
 
 The ncreel object tracks the size of the screen, the size, number,
-information depth, and order of tablets, and the focuses. It also draws the
+information depth, and order of tablets, and the foci. It also draws the
 optional borders around tablets and the optional border of the reel itself. It
 knows nothing about the actual content of a tablet, save the number of lines it
 occupies at each information depth. The typical control flow is that an
@@ -1747,7 +1746,7 @@ application receives events (from the UI or other event sources), and calls
 into notcurses saying e.g. "Tablet 2 now has 40 valid lines of information".
 notcurses might then call back into the application, asking it to draw some
 line(s) from some tablet(s) at some particular coordinate of that tablet's
-panel. Finally, control returns to the application, and the cycle starts anew.
+plane. Finally, control returns to the application, and the cycle starts anew.
 
 Each tablet might be wholly, partially, or not on-screen. notcurses always
 places as much of the focused tablet as is possible on-screen (if the focused
@@ -1770,7 +1769,7 @@ The controlling application can, at any time,
   * Remove content from a tablet, possibly resizing it, and possibly changing focus within the tablet
   * Add content to the tablet, possibly resizing it, and possibly creating focus within the tablet
 * Navigate within the focused tablet
-* Create or destroy new panels atop the ncreel
+* Create or destroy new planes atop the ncreel
 * Indicate that the screen has been resized or needs be redrawn
 
 A special case arises when moving among the tablets of a reel having multiple
@@ -1793,11 +1792,11 @@ configured instead.
 
 ```c
 // An ncreel is a notcurses region devoted to displaying zero or more
-// line-oriented, contained panels between which the user may navigate. If at
-// least one panel exists, there is an active panel. As much of the active
-// panel as is possible is always displayed. If there is space left over, other
-// panels are included in the display. Panels can come and go at any time, and
-// can grow or shrink at any time.
+// line-oriented, contained planes ("tablets") between which the user may
+// navigate. If at least one tablet exists, there is an active tablet. As much
+// of the active tablet as is possible is always displayed. If there is space
+// left over, other tablets are included in the display. Tablets can come and go
+// at any time, and can grow or shrink at any time.
 //
 // This structure is amenable to line- and page-based navigation via keystrokes,
 // scrolling gestures, trackballs, scrollwheels, touchpads, and verbal commands.
@@ -1807,7 +1806,7 @@ typedef struct ncreel_options {
   // message will be displayed stating that a larger terminal is necessary, and
   // input will be queued. if 0, no minimum will be enforced. may not be
   // negative. note that ncreel_create() does not return error if given a
-  // WINDOW smaller than these minima; it instead patiently waits for the
+  // plane smaller than these minima; it instead patiently waits for the
   // screen to get bigger.
   int min_supported_cols;
   int min_supported_rows;
@@ -1824,7 +1823,7 @@ typedef struct ncreel_options {
   // reached?). if true, 'circular' specifies how to handle the special case of
   // an incompletely-filled reel.
   bool infinitescroll;
-  // is navigation circular (does moving down from the last panel move to the
+  // is navigation circular (does moving down from the last tablet move to the
   // first, and vice versa)? only meaningful when infinitescroll is true. if
   // infinitescroll is false, this must be false.
   bool circular;
@@ -1846,7 +1845,7 @@ struct nctablet;
 struct ncreel;
 
 // Create an ncreel according to the provided specifications. Returns NULL on
-// failure. w must be a valid WINDOW*, to which offsets are relative. Note that
+// failure. 'nc' must be a valid plane, to which offsets are relative. Note that
 // there might not be enough room for the specified offsets, in which case the
 // ncreel will be clipped on the bottom and right. A minimum number of rows
 // and columns can be enforced via popts. efd, if non-negative, is an eventfd
@@ -1900,7 +1899,7 @@ int ncreel_del(struct ncreel* pr, struct nctablet* t);
 // Delete the active tablet. Returns -1 if there are no tablets.
 int ncreel_del_focused(struct ncreel* pr);
 
-// Move to the specified location within the containing WINDOW.
+// Move to the specified location within the containing plane.
 int ncreel_move(struct ncreel* pr, int x, int y);
 
 // Redraw the ncreel in its entirety, for instance after
@@ -1918,7 +1917,7 @@ struct nctablet* ncreel_next(struct ncreel* pr);
 struct nctablet* ncreel_prev(struct ncreel* pr);
 
 // Destroy an ncreel allocated with ncreel_create(). Does not destroy the
-// underlying WINDOW. Returns non-zero on failure.
+// underlying plane. Returns non-zero on failure.
 int ncreel_destroy(struct ncreel* pr);
 
 // Returns a pointer to a user pointer associated with this nctablet.
