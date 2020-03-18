@@ -9,6 +9,18 @@
 
 using namespace std::chrono_literals;
 
+// "North-facing" tetrimino forms (the form in which they are released from the
+// top) are expressed in terms of two rows having between two and four columns.
+// We map each game column to four columns and each game row to two rows.
+// Each byte of the texture maps to one 4x4 component block (and wastes 7 bits).
+static const struct tetrimino {
+  unsigned color;
+  const char* texture;
+} tetriminos[] = { // OITLJSZ
+  { 0xcbc900, "****"},   { 0x009caa, "    ****"}, { 0x952d98, " * ***"},
+  { 0xcf7900, "  ****"}, { 0x0065bd, "*  ***"},   { 0x69be28, " **** "},
+  { 0xbd2939, "**  **"} };
+
 class TetrisNotcursesErr : public std::runtime_error {
 public:
   TetrisNotcursesErr(char const* const message) throw()
@@ -69,16 +81,47 @@ private:
     stdplane_ = nc_.get_stdplane(&y, &x);
     uint64_t channels = 0;
     channels_set_fg(&channels, 0x00b040);
-    if(!stdplane_->cursor_move(y - (BOARD_HEIGHT + 1), x / 2 - BOARD_WIDTH)){
+    if(!stdplane_->cursor_move(y - (BOARD_HEIGHT + 2), x / 2 - (BOARD_WIDTH + 1))){
       throw TetrisNotcursesErr("cursor_move()");
     }
-    if(!stdplane_->rounded_box(0, channels, y - 1, x / 2 + BOARD_WIDTH, NCBOXMASK_TOP)){
+    if(!stdplane_->rounded_box(0, channels, y - 1, x / 2 + BOARD_WIDTH + 1, NCBOXMASK_TOP)){
       throw TetrisNotcursesErr("rounded_box()");
     }
     if(!nc_.render()){
       throw TetrisNotcursesErr("render()");
     }
   }
+
+  // tidx is an index into tetriminos. yoff and xoff are relative to the
+  // terminal's origin. returns colored north-facing tetrimino on a plane.
+  std::unique_ptr<ncpp::Plane> NewPiece(){
+    const int tidx = random() % 7;
+    const struct tetrimino* t = &tetriminos[tidx];
+    const size_t cols = strlen(t->texture);
+    int y, x;
+    stdplane_->get_dim(&y, &x);
+    const int xoff = x / 2 - BOARD_WIDTH + (random() % BOARD_WIDTH - 3);
+    const int yoff = y - (BOARD_HEIGHT + 2);
+    std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(1, cols, yoff, xoff, nullptr);
+    if(n){
+      uint64_t channels = 0;
+      channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+      channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+      n->set_fg(t->color);
+      n->set_base(channels, 0, "");
+      y = 0;
+      for(size_t i = 0 ; i < strlen(t->texture) ; ++i){
+        if(t->texture[i] == '*'){
+          if(n->putstr(y, x, "██") < 0){
+            return NULL;
+          }
+        }
+        y += ((x = ((x + 2) % cols)) == 0);
+      }
+    }
+    return n;
+  }
+
 };
 
 int main(void){
