@@ -364,9 +364,9 @@ summary_json(FILE* f, const char* spec, int rows, int cols){
     if(results[i].result || !results[i].stats.renders){
       continue;
     }
-    ret |= (fprintf(f, "\"%s\":{\"bytes\":\"%ju\",\"frames\":\"%ju\",\"ns\":\"%ju\"},",
+    ret |= (fprintf(f, "\"%s\":{\"bytes\":\"%ju\",\"frames\":\"%ju\",\"ns\":\"%ju\"}%s",
                     demos[results[i].selector - 'a'].name, results[i].stats.render_bytes,
-                    results[i].stats.renders, results[i].timens) < 0);
+                    results[i].stats.renders, results[i].timens, i < strlen(spec) - 1 ? "," : "") < 0);
   }
   ret |= (fprintf(f, "}}}\n") < 0);
   return ret;
