@@ -208,11 +208,10 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 // 'damagevec' bitmap is updated with a 1. 'pool' is typically nc->pool, but can
 // be whatever's backing fb.
 static int
-paint(notcurses* nc, ncplane* p, cell* lastframe, struct crender* rvec, cell* fb, egcpool* pool){
+paint(notcurses* nc, ncplane* p, cell* lastframe, struct crender* rvec,
+      cell* fb, egcpool* pool){
   int y, x, dimy, dimx, offy, offx;
-  // don't use ncplane_dim_yx()/ncplane_yx() here, lest we deadlock
-  dimy = p->leny;
-  dimx = p->lenx;
+  ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - nc->stdscr->absy;
   offx = p->absx - nc->stdscr->absx;
 //fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, nc->stdscr->leny, nc->stdscr->lenx);
@@ -392,7 +391,12 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   struct crender* rvec = malloc(crenderlen);
   memset(rvec, 0, crenderlen);
   init_fb(fb, dimy, dimx);
-  if(paint(nc, src, dst->fb, rvec, fb, &dst->pool) || paint(nc, dst, dst->fb, rvec, fb, &dst->pool)){
+  if(paint(nc, src, dst->fb, rvec, fb, &dst->pool)){
+    free(rvec);
+    free(fb);
+    return -1;
+  }
+  if(paint(nc, dst, dst->fb, rvec, fb, &dst->pool)){
     free(rvec);
     free(fb);
     return -1;

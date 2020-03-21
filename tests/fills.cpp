@@ -353,12 +353,12 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_mergedown(p1, NULL));
     cell cbase = CELL_TRIVIAL_INITIALIZER;
     cell cp = CELL_TRIVIAL_INITIALIZER;
-    ncplane_destroy(p1);
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
+    ncplane_destroy(p1);
     auto p3 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
     CHECK(0 == ncplane_cursor_move_yx(p3, 0, 0));
     // make sure glyphs replace glyps
@@ -378,6 +378,7 @@ TEST_CASE("Fills") {
       CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
+    ncplane_destroy(p3);
   }
 
   CHECK(0 == notcurses_stop(nc_));
