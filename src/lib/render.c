@@ -205,9 +205,10 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 
 // Paints a single ncplane into the provided framebuffer 'fb'. Whenever a cell
 // is locked in, it is compared against the last frame. If it is different, the
-// 'damagevec' bitmap is updated with a 1.
+// 'damagevec' bitmap is updated with a 1. 'pool' is typically nc->pool, but can
+// be whatever's backing fb.
 static int
-paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
+paint(notcurses* nc, ncplane* p, cell* lastframe, struct crender* rvec, cell* fb, egcpool* pool){
   int y, x, dimy, dimx, offy, offx;
   // don't use ncplane_dim_yx()/ncplane_yx() here, lest we deadlock
   dimy = p->leny;
@@ -312,14 +313,14 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
       // which were already locked in were skipped at the top of the loop)?
       if(cell_locked_p(targc)){
         lock_in_highcontrast(targc, crender);
-        cell* prevcell = &nc->lastframe[fbcellidx(absy, nc->lfdimx, absx)];
+        cell* prevcell = &lastframe[fbcellidx(absy, nc->lfdimx, absx)];
 /*if(cell_simple_p(targc)){
 fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, prevcell->gcluster, y, x, absy, absx);
 }else{
 fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
 }
 fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
-        if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
+        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
           crender->damaged = true;
           if(cell_double_wide_p(targc)){
             ncplane* tmpp = crender->p;
@@ -331,7 +332,7 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
             targc->gcluster = 0;
             targc->channels = targc[-1].channels;
             targc->attrword = targc[-1].attrword;
-            if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
+            if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
               crender->damaged = true;
             }
           }
@@ -339,6 +340,67 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
       }
     }
   }
+  return 0;
+}
+
+static void
+init_fb(cell* fb, int dimy, int dimx){
+  for(int y = 0 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      cell* c = &fb[fbcellidx(y, dimx, x)];
+      c->gcluster = 0;
+      c->channels = 0;
+      c->attrword = 0;
+      cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+    }
+  }
+}
+
+static void
+postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
+          struct crender* rvec, egcpool* pool){
+  for(int y = 0 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      cell* targc = &fb[fbcellidx(y, dimx, x)];
+      if(!cell_locked_p(targc)){
+        struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
+        lock_in_highcontrast(targc, crender);
+        cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
+        if(targc->gcluster == 0){
+          targc->gcluster = ' ';
+        }
+        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+          crender->damaged = true;
+        }
+      }
+    }
+  }
+}
+
+// FIXME need handle a dst that isn't the standard plane! paint() will only
+// paint within the real viewport currently.
+int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
+  notcurses* nc = src->nc;
+  if(dst == NULL){
+    dst = nc->stdscr;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(dst, &dimy, &dimx);
+  cell* fb = malloc(sizeof(*fb) * dimy * dimx);
+  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
+  struct crender* rvec = malloc(crenderlen);
+  memset(rvec, 0, crenderlen);
+  init_fb(fb, dimy, dimx);
+  if(paint(nc, src, dst->fb, rvec, fb, &dst->pool) || paint(nc, dst, dst->fb, rvec, fb, &dst->pool)){
+    free(rvec);
+    free(fb);
+    return -1;
+  }
+  postpaint(fb, dst->fb, dimy, dimx, rvec, &dst->pool);
+  free(dst->fb);
+  dst->fb = fb;
+  free(rvec);
   return 0;
 }
 
@@ -352,43 +414,19 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   if(reshape_shadow_fb(nc)){
     return -1;
   }
-  // don't use ncplane_dim_yx()/ncplane_yx() here, lest we deadlock
-  int dimy = nc->stdscr->leny;
-  int dimx = nc->stdscr->lenx;
+  int dimy, dimx;
+  ncplane_dim_yx(nc->stdscr, &dimy, &dimx);
   cell* fb = malloc(sizeof(*fb) * dimy * dimx);
-  for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
-      cell* c = &fb[fbcellidx(y, dimx, x)];
-      c->gcluster = 0;
-      c->channels = 0;
-      c->attrword = 0;
-      cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-    }
-  }
+  init_fb(fb, dimy, dimx);
   ncplane* p = nc->top;
   while(p){
-    if(paint(nc, p, rvec, fb)){
+    if(paint(nc, p, nc->lastframe, rvec, fb, &nc->pool)){
+      free(fb);
       return -1;
     }
     p = p->z;
   }
-  for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
-      cell* targc = &fb[fbcellidx(y, dimx, x)];
-      if(!cell_locked_p(targc)){
-        struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-        lock_in_highcontrast(targc, crender);
-        cell* prevcell = &nc->lastframe[fbcellidx(y, dimx, x)];
-        if(targc->gcluster == 0){
-          targc->gcluster = ' ';
-        }
-        if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
-          crender->damaged = true;
-        }
-      }
-    }
-  }
+  postpaint(fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
   free(fb);
   return 0;
 }
@@ -971,7 +1009,7 @@ int notcurses_render(notcurses* nc){
   int ret;
   clock_gettime(CLOCK_MONOTONIC, &start);
   int bytes = -1;
-  size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
+  const size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
   memset(crender, 0, crenderlen);
   if(notcurses_render_internal(nc, crender) == 0){

@@ -952,6 +952,15 @@ API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrwor
 API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
                       uint64_t ur, uint64_t ll, uint64_t lr);
 
+// Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
+// defined as "write to 'dst' the frame that would be rendered were the entire
+// stack made up only of 'src' and, below it, 'dst', and 'dst' was the entire
+// rendering region." Merging is independent of the position of 'src' viz 'dst'
+// on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
+// changed, but it is not an error. The source plane still exists following
+// this operation. Do not supply the same plane for both 'src' and 'dst'.
+API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT dst);
+
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane is invalidated, and must not be used after the call,
@@ -1739,6 +1748,28 @@ cell_simple_p(const cell* c){
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // is invalidated by any further operation on the plane 'n', so...watch out!
 API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+
+// Returns true if the two cells are distinct EGCs, attributes, or channels.
+// The actual egcpool index needn't be the same--indeed, the planes needn't even
+// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
+// it would probably be better to test whether they're Unicode-equal FIXME.
+static inline bool
+cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
+        const struct ncplane* n2, const cell* RESTRICT c2){
+  if(c1->attrword != c2->attrword){
+    return true;
+  }
+  if(c1->channels != c2->channels){
+    return true;
+  }
+  if(cell_simple_p(c1) && cell_simple_p(c2)){
+    return c1->gcluster != c2->gcluster;
+  }
+  if(cell_simple_p(c1) || cell_simple_p(c2)){
+    return true;
+  }
+  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
+}
 
 // True if the cell does not generate foreground pixels (i.e., the cell is
 // entirely whitespace or special characters).

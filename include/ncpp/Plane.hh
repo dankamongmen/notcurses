@@ -118,6 +118,14 @@ namespace ncpp
 			return ncplane_pulse (plane, ts, fader, curry) != -1;
 		}
 
+    bool mergedown (Plane* dst = nullptr) {
+      return ncplane_mergedown(*this, dst ? dst->plane : nullptr);
+    }
+
+    bool mergedown (Plane& dst) {
+      return mergedown(&dst);
+    }
+
 		bool gradient (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const noexcept
 		{
 			return ncplane_gradient (plane, egc, attrword, ul, ur, ll, lr, ystop, xstop) != -1;
@@ -860,10 +868,7 @@ namespace ncpp
 
 		void translate (const Plane *dst, int *y = nullptr, int *x = nullptr) const
 		{
-			if (dst == nullptr)
-      	ncplane_translate(*this, nullptr, y, x); // FIXME
-      else
-			  translate (*this, *dst, y, x);
+      ncplane_translate(*this, dst ? dst->plane: nullptr, y, x);
 		}
 
 		void translate (const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
@@ -876,10 +881,7 @@ namespace ncpp
 			if (src == nullptr)
 				throw invalid_argument ("'src' must be a valid pointer");
 
-			if (dst == nullptr)
-	      ncplane_translate(*src, nullptr, y, x); // FIXME
-      else
-			  translate (*src, *dst, y, x);
+      ncplane_translate(*src, dst ? dst->plane : nullptr, y, x);
 		}
 
 		static void translate (const Plane &src, const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
