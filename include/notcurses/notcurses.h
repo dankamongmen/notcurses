@@ -958,7 +958,8 @@ API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
 // rendering region." Merging is independent of the position of 'src' viz 'dst'
 // on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
 // changed, but it is not an error. The source plane still exists following
-// this operation. Do not supply the same plane for both 'src' and 'dst'.
+// this operation. If 'dst' is NULL, it will be interpreted as the standard
+// plane. Do not supply the same plane for both 'src' and 'dst'.
 API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT dst);
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all

@@ -63,6 +63,7 @@ public:
         curpiece_->get_yx(&y, &x);
         ++y;
         if(PieceStuck()){
+          curpiece_->mergedown();
           curpiece_ = NewPiece();
         }else{
           if(!curpiece_->move(y, x) || !nc_.render()){

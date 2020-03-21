@@ -118,6 +118,17 @@ namespace ncpp
 			return ncplane_pulse (plane, ts, fader, curry) != -1;
 		}
 
+    bool mergedown (Plane* dst = nullptr) {
+      if (dst)
+        return ncplane_mergedown(*this, *dst);
+      else
+        return ncplane_mergedown(*this, nullptr);
+    }
+
+    bool mergedown (Plane& dst) {
+      return mergedown(&dst);
+    }
+
 		bool gradient (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const noexcept
 		{
 			return ncplane_gradient (plane, egc, attrword, ul, ur, ll, lr, ystop, xstop) != -1;

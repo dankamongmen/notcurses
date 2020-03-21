@@ -382,6 +382,9 @@ postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
 // paint within the real viewport currently.
 int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   notcurses* nc = src->nc;
+  if(dst == NULL){
+    dst = nc->stdscr;
+  }
   int dimy, dimx;
   ncplane_dim_yx(dst, &dimy, &dimx);
   cell* fb = malloc(sizeof(*fb) * dimy * dimx);
