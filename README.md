@@ -631,6 +631,15 @@ struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
 // The new plane will be immediately above the old one on the z axis.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 
+// Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
+// defined as "write to 'dst' the frame that would be rendered were the entire
+// stack made up only of 'src' and, below it, 'dst', and 'dst' was the entire
+// rendering region." Merging is independent of the position of 'src' viz 'dst'
+// on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
+// changed, but it is not an error. The source plane still exists following
+// this operation. Do not supply the same plane for both 'src' and 'dst'.
+int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst);
+
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane are invalidated, and must not be used after the call,

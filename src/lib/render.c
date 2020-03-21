@@ -342,6 +342,14 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
   return 0;
 }
 
+static int
+ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
+  if(paint(nc, src, rvec, fb)){
+    return -1;
+  }
+  // if src is below dst, dst 
+}
+
 // We execute the painter's algorithm, starting from our topmost plane. The
 // damagevector should be all zeros on input. On success, it will reflect
 // which cells were changed. We solve for each coordinate's cell by walking

@@ -113,6 +113,7 @@ int notcurses_mouse_enable(struct notcurses* n);
 int notcurses_mouse_disable(struct notcurses* n);
 int ncplane_destroy(struct ncplane* ncp);
 bool notcurses_canopen(const struct notcurses* nc);
+int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst);
 void ncplane_erase(struct ncplane* n);
 int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 void ncplane_cursor_yx(struct ncplane* n, int* y, int* x);
