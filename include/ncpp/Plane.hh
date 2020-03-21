@@ -861,8 +861,9 @@ namespace ncpp
 		void translate (const Plane *dst, int *y = nullptr, int *x = nullptr) const
 		{
 			if (dst == nullptr)
-				throw invalid_argument ("'dst' must be a valid pointer");
-			translate (*this, *dst, y, x);
+        ncplane_translate(*this, nullptr, y, x); // FIXME
+      else
+			  translate (*this, *dst, y, x);
 		}
 
 		void translate (const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
@@ -876,9 +877,9 @@ namespace ncpp
 				throw invalid_argument ("'src' must be a valid pointer");
 
 			if (dst == nullptr)
-				throw invalid_argument ("'dst' must be a valid pointer");
-
-			translate (*src, *dst, y, x);
+        ncplane_translate(*src, nullptr, y, x); // FIXME
+      else
+			  translate (*src, *dst, y, x);
 		}
 
 		static void translate (const Plane &src, const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept

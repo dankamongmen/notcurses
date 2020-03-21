@@ -147,6 +147,14 @@ It is an error for two threads to concurrently access a single ncplane. So long
 as rendering is not taking place, however, multiple threads may safely output
 to multiple ncplanes.
 
+**ncplane_translate** translates coordinates expressed relative to the plane
+**src**, and writes the coordinates of that cell relative to **dst**. The cell
+need not intersect with **dst**, though this will yield coordinates which are
+invalid for writing or reading on **dst**. If **dst** is **NULL**, it is taken
+to refer to the standard plane. **ncplane_translate_abs** takes coordinates
+expressed relative to the standard plane, and returns coordinates relative to
+**dst**, returning **false** if the coordinates are invalid for **dst**.
+
 # RETURN VALUES
 
 **ncplane_new(3)**, **ncplane_aligned(3)**, and **ncplane_dup(3)** all return a
