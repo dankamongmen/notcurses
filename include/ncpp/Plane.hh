@@ -985,7 +985,6 @@ namespace ncpp
 			if (ret == nullptr)
 				throw init_error ("notcurses failed to duplicate plane");
 
-			is_stdplane = other.is_stdplane;
 			return ret;
 		}
 
