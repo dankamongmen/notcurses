@@ -124,6 +124,10 @@ notcurses_ncplane - operations on notcurses planes
 
 **void notcurses_drop_planes(struct notcurses* nc);**
 
+**int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst);**
+
+**void ncplane_erase(struct ncplane* n);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
@@ -146,6 +150,11 @@ references to such planes are, of course, invalidated.
 It is an error for two threads to concurrently access a single ncplane. So long
 as rendering is not taking place, however, multiple threads may safely output
 to multiple ncplanes.
+
+**ncplane_mergedown** writes to **dst** the frame that would be rendered if only
+**src** and **dst** existed on the z-axis, ad **dst** represented the entirety
+of the rendering region. Only those cells where **src** intersects with **dst**
+might see changes. It is an error to merge a plane onto itself.
 
 # RETURN VALUES
 
