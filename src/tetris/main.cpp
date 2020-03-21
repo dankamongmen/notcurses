@@ -54,11 +54,21 @@ public:
     mtx_.lock();
     do{
       ms = msdelay_;
+      // FIXME loop and verify we didn't get a spurious wakeup
       mtx_.unlock();
       std::this_thread::sleep_for(ms);
       mtx_.lock();
       if(curpiece_){
-        // FIXME move it down
+        int y, x;
+        curpiece_->get_yx(&y, &x);
+        ++y;
+        if(PieceStuck()){
+          // FIXME lock it into place, get next piece
+        }else{
+          if(!curpiece_->move(y, x) || !nc_.render()){
+            // FIXME
+          }
+        }
       }
     }while(ms != std::chrono::milliseconds::zero());
   }
@@ -91,6 +101,31 @@ private:
     if(!nc_.render()){
       throw TetrisNotcursesErr("render()");
     }
+  }
+
+  bool PieceStuck(){
+    if(!curpiece_){
+      return false;
+    }
+    // check for impact. iterate over bottom row of piece's plane, checking for
+    // presence of glyph. if there, check row below. if row below is occupied,
+    // we're stuck.
+    int y, x;
+    curpiece_->get_dim(&y, &x);
+    --y;
+    while(x--){
+      int cmpy = y + 1, cmpx = x; // need absolute coordinates via translation
+      curpiece_->translate(nullptr, &cmpy, &cmpx);
+      ncpp::Cell c;
+      auto egc = nc_.get_at(cmpy, cmpx, c);
+      if(!egc){
+        return false; // FIXME is this not indicative of an error?
+      }
+      if(*egc && *egc != ' '){
+        return true;
+      }
+    }
+    return false;
   }
 
   // tidx is an index into tetriminos. yoff and xoff are relative to the
