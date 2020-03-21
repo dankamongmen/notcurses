@@ -4,7 +4,6 @@
 #include <chrono>
 #include <cstdlib>
 #include <clocale>
-//#include <ncpp/Plane.hh>
 #include <ncpp/NotCurses.hh>
 
 using namespace std::chrono_literals;
@@ -38,8 +37,10 @@ public:
     nc_(nc),
     score_(0),
     msdelay_(10ms),
-    curpiece_(nullptr)
+    curpiece_(nullptr),
+    stdplane_(nc_.get_stdplane())
   {
+    curpiece_ = NewPiece();
     DrawBoard();
   }
 
@@ -73,12 +74,12 @@ private:
   uint64_t score_;
   std::mutex mtx_;
   std::chrono::milliseconds msdelay_;
-  ncpp::Plane* curpiece_;
+  std::unique_ptr<ncpp::Plane> curpiece_;
   ncpp::Plane* stdplane_;
 
   void DrawBoard(){
     int y, x;
-    stdplane_ = nc_.get_stdplane(&y, &x);
+    stdplane_->get_dim(&y, &x);
     uint64_t channels = 0;
     channels_set_fg(&channels, 0x00b040);
     if(!stdplane_->cursor_move(y - (BOARD_HEIGHT + 2), x / 2 - (BOARD_WIDTH + 1))){
@@ -101,8 +102,8 @@ private:
     int y, x;
     stdplane_->get_dim(&y, &x);
     const int xoff = x / 2 - BOARD_WIDTH + (random() % BOARD_WIDTH - 3);
-    const int yoff = y - (BOARD_HEIGHT + 2);
-    std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(1, cols, yoff, xoff, nullptr);
+    const int yoff = y - (BOARD_HEIGHT + 4);
+    std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(2, cols, yoff, xoff, nullptr);
     if(n){
       uint64_t channels = 0;
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
