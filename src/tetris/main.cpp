@@ -63,10 +63,10 @@ public:
         curpiece_->get_yx(&y, &x);
         ++y;
         if(PieceStuck()){
-          // FIXME lock it into place, get next piece
+          curpiece_ = NewPiece();
         }else{
           if(!curpiece_->move(y, x) || !nc_.render()){
-            // FIXME
+            throw TetrisNotcursesErr("move() or render()");
           }
         }
       }
@@ -119,7 +119,7 @@ private:
       ncpp::Cell c;
       auto egc = nc_.get_at(cmpy, cmpx, c);
       if(!egc){
-        return false; // FIXME is this not indicative of an error?
+        throw TetrisNotcursesErr("get_at()");
       }
       if(*egc && *egc != ' '){
         return true;
