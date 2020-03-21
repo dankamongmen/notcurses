@@ -350,33 +350,34 @@ TEST_CASE("Fills") {
     REQUIRE(p1);
     // make sure glyphs replace nulls
     CHECK(0 < ncplane_putstr(p1, "█▀▄▌▐🞵🞶🞷🞸🞹"));
-    CHECK(0 == ncplane_mergedown(p1, n_));
+    CHECK(0 == ncplane_mergedown(p1, NULL));
     cell cbase = CELL_TRIVIAL_INITIALIZER;
     cell cp = CELL_TRIVIAL_INITIALIZER;
+    ncplane_destroy(p1);
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
-    CHECK(0 == ncplane_cursor_move_yx(p1, 0, 0));
+    auto p3 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
+    CHECK(0 == ncplane_cursor_move_yx(p3, 0, 0));
     // make sure glyphs replace glyps
-    CHECK(0 < ncplane_putstr(p1, "🞵🞶🞷🞸🞹█▀▄▌▐"));
-    CHECK(0 == ncplane_mergedown(p1, n_));
+    CHECK(0 < ncplane_putstr(p3, "🞵🞶🞷🞸🞹█▀▄▌▐"));
+    CHECK(0 == ncplane_mergedown(p3, NULL));
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
-      CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
-      CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
+      CHECK(0 < ncplane_at_yx(p3, 0, i, &cp));
+      CHECK(0 == cellcmp(n_, &cbase, p3, &cp));
     }
     // make sure nulls do not replace glyphs
     auto p2 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
-    CHECK(0 == ncplane_mergedown(p2, n_));
+    CHECK(0 == ncplane_mergedown(p2, NULL));
     ncplane_destroy(p2);
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
-    ncplane_destroy(p1);
   }
 
   CHECK(0 == notcurses_stop(nc_));
