@@ -145,6 +145,7 @@ private:
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       n->set_fg(t->color);
+      n->set_bg_alpha(CELL_ALPHA_TRANSPARENT);
       n->set_base(channels, 0, "");
       y = 0;
       for(size_t i = 0 ; i < strlen(t->texture) ; ++i){
