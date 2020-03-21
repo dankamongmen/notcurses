@@ -124,6 +124,10 @@ notcurses_ncplane - operations on notcurses planes
 
 **void notcurses_drop_planes(struct notcurses* nc);**
 
+**int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst);**
+
+**void ncplane_erase(struct ncplane* n);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
@@ -154,6 +158,11 @@ invalid for writing or reading on **dst**. If **dst** is **NULL**, it is taken
 to refer to the standard plane. **ncplane_translate_abs** takes coordinates
 expressed relative to the standard plane, and returns coordinates relative to
 **dst**, returning **false** if the coordinates are invalid for **dst**.
+
+**ncplane_mergedown** writes to **dst** the frame that would be rendered if only
+**src** and **dst** existed on the z-axis, ad **dst** represented the entirety
+of the rendering region. Only those cells where **src** intersects with **dst**
+might see changes. It is an error to merge a plane onto itself.
 
 # RETURN VALUES
 
