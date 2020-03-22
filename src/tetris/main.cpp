@@ -6,6 +6,8 @@
 #include <clocale>
 #include <ncpp/NotCurses.hh>
 
+const std::string BackgroundFile = "../data/tetris-background.jpeg";
+
 using namespace std::chrono_literals;
 
 // "North-facing" tetrimino forms (the form in which they are released from the
@@ -22,6 +24,9 @@ static const struct tetrimino {
 
 class TetrisNotcursesErr : public std::runtime_error {
 public:
+  TetrisNotcursesErr(const std::string& s) throw()
+    : std::runtime_error(s) {
+  }
   TetrisNotcursesErr(char const* const message) throw()
     : std::runtime_error(message) {
   }
@@ -37,6 +42,8 @@ public:
     score_(0),
     msdelay_(100ms),
     curpiece_(nullptr),
+    board_(nullptr),
+    backg_(nullptr),
     stdplane_(nc_.get_stdplane())
   {
     DrawBoard();
@@ -137,6 +144,8 @@ private:
   std::mutex mtx_;
   std::chrono::milliseconds msdelay_;
   std::unique_ptr<ncpp::Plane> curpiece_;
+  std::unique_ptr<ncpp::Plane> board_;
+  std::unique_ptr<ncpp::Visual> backg_;
   ncpp::Plane* stdplane_;
   int board_top_y_;
 
@@ -149,18 +158,39 @@ private:
     return true;
   }
 
+  // background is drawn to the standard plane, at the bottom.
+  void DrawBackground(const std::string& s) {
+    int averr;
+    try{
+      backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &averr, 0, 0, ncpp::NCScale::Stretch);
+    }catch(std::exception& e){
+      throw TetrisNotcursesErr("visual(): " + s + ": " + e.what());
+    }
+    if(!backg_->decode(&averr)){
+      throw TetrisNotcursesErr("decode(): " + s);
+    }
+    if(!backg_->render(0, 0, 0, 0)){
+      throw TetrisNotcursesErr("render(): " + s);
+    }
+  }
+
+  // draw the background on the standard plane, then create a new plane for
+  // the play area.
   void DrawBoard() {
+    DrawBackground(BackgroundFile);
     int y, x;
     stdplane_->get_dim(&y, &x);
+    board_top_y_ = y - (BOARD_HEIGHT + 2);
+    board_ = std::make_unique<ncpp::Plane>(BOARD_HEIGHT, BOARD_WIDTH * 2,
+                                           board_top_y_, x / 2 - (BOARD_WIDTH + 1));
     uint64_t channels = 0;
     channels_set_fg(&channels, 0x00b040);
-    board_top_y_ = y - (BOARD_HEIGHT + 2);
-    if(!stdplane_->cursor_move(board_top_y_, x / 2 - (BOARD_WIDTH + 1))){
-      throw TetrisNotcursesErr("cursor_move()");
-    }
-    if(!stdplane_->rounded_box(0, channels, y - 1, x / 2 + BOARD_WIDTH + 1, NCBOXMASK_TOP)){
+    if(!board_->rounded_box(0, channels, BOARD_HEIGHT - 1, BOARD_WIDTH * 2 - 1, NCBOXMASK_TOP)){
       throw TetrisNotcursesErr("rounded_box()");
     }
+    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    board_->set_base(channels, 0, "");
     if(!nc_.render()){
       throw TetrisNotcursesErr("render()");
     }
@@ -246,6 +276,7 @@ int main(void) {
       default:
         stdplane->cursor_move(0, 0);
         stdplane->printf("Got unknown input U+%06x", input);
+        nc.render();
         break;
     }
   }
