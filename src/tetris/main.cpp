@@ -40,8 +40,8 @@ public:
     curpiece_(nullptr),
     stdplane_(nc_.get_stdplane())
   {
-    curpiece_ = NewPiece();
     DrawBoard();
+    curpiece_ = NewPiece();
   }
 
   // 0.5 cell aspect: One board height == one row. One board width == two columns.
@@ -61,11 +61,14 @@ public:
       if(curpiece_){
         int y, x;
         curpiece_->get_yx(&y, &x);
-        ++y;
         if(PieceStuck()){
+          if(y <= board_top_y_ - 2){
+            return; // FIXME game is over!
+          }
           curpiece_->mergedown();
           curpiece_ = NewPiece();
         }else{
+          ++y;
           if(!curpiece_->move(y, x) || !nc_.render()){
             throw TetrisNotcursesErr("move() or render()");
           }
@@ -87,13 +90,15 @@ private:
   std::chrono::milliseconds msdelay_;
   std::unique_ptr<ncpp::Plane> curpiece_;
   ncpp::Plane* stdplane_;
+  int board_top_y_;
 
   void DrawBoard(){
     int y, x;
     stdplane_->get_dim(&y, &x);
     uint64_t channels = 0;
     channels_set_fg(&channels, 0x00b040);
-    if(!stdplane_->cursor_move(y - (BOARD_HEIGHT + 2), x / 2 - (BOARD_WIDTH + 1))){
+    board_top_y_ = y - (BOARD_HEIGHT + 2);
+    if(!stdplane_->cursor_move(board_top_y_, x / 2 - (BOARD_WIDTH + 1))){
       throw TetrisNotcursesErr("cursor_move()");
     }
     if(!stdplane_->rounded_box(0, channels, y - 1, x / 2 + BOARD_WIDTH + 1, NCBOXMASK_TOP)){
@@ -138,8 +143,7 @@ private:
     int y, x;
     stdplane_->get_dim(&y, &x);
     const int xoff = x / 2 - BOARD_WIDTH + (random() % BOARD_WIDTH - 1);
-    const int yoff = y - (BOARD_HEIGHT + 4);
-    std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(2, cols, yoff, xoff, nullptr);
+    std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(2, cols, board_top_y_ - 2, xoff, nullptr);
     if(n){
       uint64_t channels = 0;
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
