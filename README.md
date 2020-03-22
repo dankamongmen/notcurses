@@ -5,9 +5,12 @@ blingful TUI library for modern terminal emulators. definitely not curses.
 * C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
-and the [man pages](https://nick-black.com/notcurses). I am working on a
-coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which ought
-be published in April 2020. In addition, there is
+and the [man pages](https://nick-black.com/notcurses).
+
+**I am just about done writing a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which ought
+be published in April 2020.**
+
+In addition, there is
 [Doxygen](https://nick-black.com/notcurses/html/) output. There is a [mailing
 list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
 via notcurses@googlegroups.com.
