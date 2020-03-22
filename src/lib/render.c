@@ -203,9 +203,11 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
   }
 }
 
-// Paints a single ncplane into the provided framebuffer 'fb'. Whenever a cell
-// is locked in, it is compared against the last frame. If it is different, the
-// 'damagevec' bitmap is updated with a 1. 'pool' is typically nc->pool, but can
+// Paints a single ncplane into the provided scratch framebuffer 'fb', and
+// ultimately 'lastframe' (we can't always write directly into 'lastframe',
+// because we need build state to solve certain cells, and need compare their
+// solved result to the last frame). Whenever a cell is locked in, it is
+// compared against the last frame. If it is different, the 'rvec' bitmap is updated with a 1. 'pool' is typically nc->pool, but can
 // be whatever's backing fb.
 static int
 paint(notcurses* nc, ncplane* p, cell* lastframe, struct crender* rvec,
@@ -318,7 +320,8 @@ fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, prevcell->g
 }else{
 fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
 }
-fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
+fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", pool->pool, nc, crender->p);
+}*/
         if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
           crender->damaged = true;
           if(cell_double_wide_p(targc)){
@@ -386,24 +389,28 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   }
   int dimy, dimx;
   ncplane_dim_yx(dst, &dimy, &dimx);
-  cell* fb = malloc(sizeof(*fb) * dimy * dimx);
+  cell* tmpfb = malloc(sizeof(*tmpfb) * dimy * dimx);
+  cell* rendfb = malloc(sizeof(*rendfb) * dimy * dimx);
   const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
   struct crender* rvec = malloc(crenderlen);
   memset(rvec, 0, crenderlen);
-  init_fb(fb, dimy, dimx);
-  if(paint(nc, src, dst->fb, rvec, fb, &dst->pool)){
+  init_fb(tmpfb, dimy, dimx);
+  init_fb(rendfb, dimy, dimx);
+  if(paint(nc, src, rendfb, rvec, tmpfb, &dst->pool)){
     free(rvec);
-    free(fb);
+    free(rendfb);
+    free(tmpfb);
     return -1;
   }
-  if(paint(nc, dst, dst->fb, rvec, fb, &dst->pool)){
+  if(paint(nc, dst, rendfb, rvec, tmpfb, &dst->pool)){
     free(rvec);
-    free(fb);
+    free(rendfb);
+    free(tmpfb);
     return -1;
   }
-  postpaint(fb, dst->fb, dimy, dimx, rvec, &dst->pool);
+  postpaint(tmpfb, rendfb, dimy, dimx, rvec, &dst->pool);
   free(dst->fb);
-  dst->fb = fb;
+  dst->fb = rendfb;
   free(rvec);
   return 0;
 }
@@ -794,9 +801,9 @@ update_palette(notcurses* nc, FILE* out){
 //  * refresh -- write the stream to the emulator
 
 // Takes a rendered frame (a flat framebuffer, where each cell has the desired
-// EGC, attribute, and channels) and the previously-rendered frame, and spits
-// out an optimal sequence of terminal-appropriate escapes and EGCs. There
-// should be an rvec entry for each cell; only the 'damaged' field is used.
+// EGC, attribute, and channels), which has been written to nc->lastframe, and
+// spits out an optimal sequence of terminal-appropriate escapes and EGCs. There
+// should be an rvec entry for each cell, but only the 'damaged' field is used.
 static int
 notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   FILE* out = nc->rstate.mstreamfp;

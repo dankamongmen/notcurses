@@ -137,7 +137,7 @@ private:
     const size_t cols = strlen(t->texture);
     int y, x;
     stdplane_->get_dim(&y, &x);
-    const int xoff = x / 2 - BOARD_WIDTH + (random() % BOARD_WIDTH - 3);
+    const int xoff = x / 2 - BOARD_WIDTH + (random() % BOARD_WIDTH - 1);
     const int yoff = y - (BOARD_HEIGHT + 4);
     std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(2, cols, yoff, xoff, nullptr);
     if(n){
