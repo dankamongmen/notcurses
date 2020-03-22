@@ -40,11 +40,17 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_destroy(pfn));
   }
 
+  SUBCASE("PolyfillStandardPlane") {
+    cell c = CELL_SIMPLE_INITIALIZER('-');
+    CHECK(0 < ncplane_polyfill_yx(n_, 0, 0, &c));
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   SUBCASE("PolyfillEmptyPlane") {
     cell c = CELL_SIMPLE_INITIALIZER('+');
-    struct ncplane* pfn = ncplane_new(nc_, 4, 4, 0, 0, nullptr);
+    struct ncplane* pfn = ncplane_new(nc_, 20, 20, 0, 0, nullptr);
     REQUIRE(nullptr != pfn);
-    CHECK(16 == ncplane_polyfill_yx(pfn, 0, 0, &c));
+    CHECK(400 == ncplane_polyfill_yx(pfn, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(pfn));
   }
@@ -383,6 +389,35 @@ TEST_CASE("Fills") {
     }
     ncplane_destroy(p3);
     CHECK(0 == notcurses_render(nc_));
+  }
+
+  // test merging down one plane to another plane which is smaller than the
+  // standard plane
+  SUBCASE("MergeDownSmallPlane") {
+    constexpr int DIMX = 10;
+    constexpr int DIMY = 10;
+    auto p1 = ncplane_new(nc_, DIMY, DIMX, 2, 2, nullptr);
+    REQUIRE(p1);
+    cell c1 = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 < cell_load(p1, &c1, "█"));
+    CHECK(0 == cell_set_bg(&c1, 0x00ff00));
+    CHECK(0 == cell_set_fg(&c1, 0x0000ff));
+    ncplane_polyfill_yx(p1, 0, 0, &c1);
+    cell_release(p1, &c1);
+    CHECK(0 == notcurses_render(nc_));
+    auto p2 = ncplane_new(nc_, DIMY / 2, DIMX / 2, 3, 3, nullptr);
+    REQUIRE(p2);
+    cell c2 = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 < cell_load(p1, &c1, "🞶"));
+    CHECK(0 == cell_set_bg(&c2, 0x00ffff));
+    CHECK(0 == cell_set_fg(&c2, 0xff00ff));
+    ncplane_polyfill_yx(p2, 0, 0, &c2);
+    cell_release(p2, &c2);
+    CHECK(0 == ncplane_mergedown(p2, p1));
+    CHECK(0 == notcurses_render(nc_));
+    // FIXME check results
+    ncplane_destroy(p1);
+    ncplane_destroy(p2);
   }
 
   CHECK(0 == notcurses_stop(nc_));
