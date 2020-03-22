@@ -26,7 +26,6 @@
 #include <signal.h>
 #include <wctype.h>
 #include <stdbool.h>
-#include <pthread.h>
 #include "notcurses/notcurses.h"
 #include "egcpool.h"
 

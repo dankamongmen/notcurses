@@ -434,7 +434,7 @@ rotate_output(ncplane* dst, uint32_t tchan, uint32_t bchan){
 //
 // Ideally, rotation through 360 degrees will restore the original 2x1 squre.
 // Unfortunately, the case where a half block occupies a cell having the same
-// fore- and background will see it roated into a single full block. In
+// fore- and background will see it rotated into a single full block. In
 // addition, lower blocks eventually become upper blocks with their channels
 // reversed. In general:
 //

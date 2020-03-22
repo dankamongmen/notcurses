@@ -1952,6 +1952,9 @@ bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){
 
 void ncplane_translate(const ncplane* src, const ncplane* dst,
                        int* restrict y, int* restrict x){
+  if(dst == NULL){
+    dst = ncplane_stdplane_const(src);
+  }
   if(y){
     *y = src->absy - dst->absy + *y;
   }

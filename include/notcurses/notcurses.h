@@ -410,7 +410,7 @@ API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
-// and 'x' may be NULL.
+// and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
 API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                            int* RESTRICT y, int* RESTRICT x);
 
