@@ -25,8 +25,7 @@ public:
   TetrisNotcursesErr(char const* const message) throw()
     : std::runtime_error(message) {
   }
-
-  virtual char const* what() const throw(){
+  virtual char const* what() const throw() {
     return exception::what();
   }
 };
@@ -36,7 +35,7 @@ public:
   Tetris(ncpp::NotCurses& nc) :
     nc_(nc),
     score_(0),
-    msdelay_(10ms),
+    msdelay_(100ms),
     curpiece_(nullptr),
     stdplane_(nc_.get_stdplane())
   {
@@ -49,7 +48,7 @@ public:
   static constexpr auto BOARD_HEIGHT = 20;
 
   // FIXME ideally this would be called from constructor :/
-  void Ticker(){
+  void Ticker() {
     std::chrono::milliseconds ms;
     mtx_.lock();
     do{
@@ -77,10 +76,34 @@ public:
     }while(ms != std::chrono::milliseconds::zero());
   }
 
-  void Stop(){
+  void Stop() {
     mtx_.lock();
     msdelay_ = std::chrono::milliseconds::zero(); // FIXME wake it up?
     mtx_.unlock();
+  }
+
+  void MoveLeft() {
+    const std::lock_guard<std::mutex> lock(mtx_);
+    int y, x;
+    if(!PrepForMove(&y, &x)){
+      return;
+    }
+    --x; // FIXME don't allow it off the side
+    if(!curpiece_->move(y, x) || !nc_.render()){ // FIXME needs y?
+      throw TetrisNotcursesErr("move() or render()");
+    }
+  }
+
+  void MoveRight() {
+    const std::lock_guard<std::mutex> lock(mtx_);
+    int y, x;
+    if(!PrepForMove(&y, &x)){
+      return;
+    }
+    ++x; // FIXME don't allow into the side
+    if(!curpiece_->move(y, x) || !nc_.render()){ // FIXME needs y?
+      throw TetrisNotcursesErr("move() or render()");
+    }
   }
 
 private:
@@ -92,7 +115,16 @@ private:
   ncpp::Plane* stdplane_;
   int board_top_y_;
 
-  void DrawBoard(){
+  // Returns true if there's a current piece which can be moved
+  bool PrepForMove(int* y, int* x) {
+    if(!curpiece_){
+      return false;
+    }
+    curpiece_->get_yx(y, x);
+    return true;
+  }
+
+  void DrawBoard() {
     int y, x;
     stdplane_->get_dim(&y, &x);
     uint64_t channels = 0;
@@ -109,7 +141,7 @@ private:
     }
   }
 
-  bool PieceStuck(){
+  bool PieceStuck() {
     if(!curpiece_){
       return false;
     }
@@ -136,7 +168,7 @@ private:
 
   // tidx is an index into tetriminos. yoff and xoff are relative to the
   // terminal's origin. returns colored north-facing tetrimino on a plane.
-  std::unique_ptr<ncpp::Plane> NewPiece(){
+  std::unique_ptr<ncpp::Plane> NewPiece() {
     const int tidx = random() % 7;
     const struct tetrimino* t = &tetriminos[tidx];
     const size_t cols = strlen(t->texture);
@@ -166,7 +198,7 @@ private:
 
 };
 
-int main(void){
+int main(void) {
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
@@ -181,8 +213,8 @@ int main(void){
       break;
     }
     switch(input){
-      case NCKEY_LEFT: break;
-      case NCKEY_RIGHT: break;
+      case NCKEY_LEFT: t.MoveLeft(); break;
+      case NCKEY_RIGHT: t.MoveRight(); break;
     }
   }
   if(input == 'q'){
