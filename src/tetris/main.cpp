@@ -88,7 +88,10 @@ public:
     if(!PrepForMove(&y, &x)){
       return;
     }
-    --x; // FIXME don't allow it off the side
+    if(x <= stdplane_->get_dim_x() / 2 - BOARD_WIDTH){
+      return;
+    }
+    --x;
     if(!curpiece_->move(y, x) || !nc_.render()){ // FIXME needs y?
       throw TetrisNotcursesErr("move() or render()");
     }
@@ -100,10 +103,32 @@ public:
     if(!PrepForMove(&y, &x)){
       return;
     }
-    ++x; // FIXME don't allow into the side
+    // FIXME need account for width of piece plane
+    if(x >= (stdplane_->get_dim_x() + BOARD_WIDTH) / 2){
+      return;
+    }
+    ++x;
     if(!curpiece_->move(y, x) || !nc_.render()){ // FIXME needs y?
       throw TetrisNotcursesErr("move() or render()");
     }
+  }
+
+  void RotateCcw() {
+    const std::lock_guard<std::mutex> lock(mtx_);
+    int y, x;
+    if(!PrepForMove(&y, &x)){
+      return;
+    }
+    // FIXME rotate that fucker ccw
+  }
+
+  void RotateCw() {
+    const std::lock_guard<std::mutex> lock(mtx_);
+    int y, x;
+    if(!PrepForMove(&y, &x)){
+      return;
+    }
+    // FIXME rotate that fucker cw
   }
 
 private:
@@ -206,6 +231,7 @@ int main(void) {
   ncpp::NotCurses nc(ncopts);
   Tetris t{nc};
   std::thread tid(&Tetris::Ticker, &t);
+  ncpp::Plane* stdplane = nc.get_stdplane();
   char32_t input;
   ncinput ni;
   while((input = nc.getc(true, &ni)) != (char32_t)-1){
@@ -215,6 +241,12 @@ int main(void) {
     switch(input){
       case NCKEY_LEFT: t.MoveLeft(); break;
       case NCKEY_RIGHT: t.MoveRight(); break;
+      case 'z': t.RotateCcw(); break;
+      case 'x': t.RotateCw(); break;
+      default:
+        stdplane->cursor_move(0, 0);
+        stdplane->printf("Got unknown input U+%06x", input);
+        break;
     }
   }
   if(input == 'q'){
