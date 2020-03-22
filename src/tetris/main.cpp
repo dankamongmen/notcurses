@@ -208,13 +208,12 @@ private:
     --y;
     while(x--){
       int cmpy = y + 1, cmpx = x; // need absolute coordinates via translation
-      curpiece_->translate(nullptr, &cmpy, &cmpx);
+      curpiece_->translate(*board_, &cmpy, &cmpx);
       ncpp::Cell c;
-      auto egc = nc_.get_at(cmpy, cmpx, c);
-      if(!egc){
+      if(board_->get_at(cmpy, cmpx, &c) < 0){
         throw TetrisNotcursesErr("get_at()");
       }
-      if(*egc && *egc != ' '){
+      if(c.get().gcluster && c.get().gcluster != ' '){
         return true;
       }
     }
