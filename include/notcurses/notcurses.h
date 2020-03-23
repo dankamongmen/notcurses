@@ -556,7 +556,7 @@ ncplane_move_below(struct ncplane* n, struct ncplane* below){
   return ncplane_move_below_unsafe(n, below);
 }
 
-// Return the plane above this one, or NULL if this is at the top.
+// Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n);
 
 // Rotate the plane pi/2 radians clockwise or counterclockwise. Note that
