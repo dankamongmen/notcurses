@@ -71,7 +71,7 @@ public:
           if(y <= board_top_y_ - 2){
             return; // FIXME game is over!
           }
-          curpiece_->mergedown();
+          curpiece_->mergedown(*board_);
           curpiece_ = NewPiece();
         }else{
           ++y;

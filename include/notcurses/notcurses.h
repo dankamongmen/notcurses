@@ -1976,13 +1976,13 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry
 
 // Stream the entirety of the media, according to its own timing. Blocking,
 // obviously. streamer may be NULL; it is otherwise called for each frame, and
-// its return value handled as outlined for stream cb. Pretty raw; beware.
-// If streamer() returns non-zero, the stream is aborted, and that value is
-// returned. By convention, return a positive number to indicate intentional
-// abort from within streamer(). 'timescale' allows the frame duration time to
-// be scaled. For a visual naturally running at 30FPS, a 'timescale' of 0.1
-// will result in 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an
-// error to supply 'timescale' less than or equal to 0.
+// its return value handled as outlined for stream cb. If streamer() returns
+// non-zero, the stream is aborted, and that value is returned. By convention,
+// return a positive number to indicate intentional abort from within
+// streamer(). 'timescale' allows the frame duration time to be scaled. For a
+// visual naturally running at 30FPS, a 'timescale' of 0.1 will result in
+// 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
+// supply 'timescale' less than or equal to 0.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         int* averr, float timescale, streamcb streamer,
                         void* curry);
