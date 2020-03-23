@@ -83,25 +83,32 @@ public:
       // FIXME loop and verify we didn't get a spurious wakeup
       mtx_.unlock();
       std::this_thread::sleep_for(ms);
-      const std::lock_guard<std::mutex> lock(mtx_);
-      if(curpiece_){
-        int y, x;
-        curpiece_->get_yx(&y, &x);
-        if(PieceStuck()){
-          if(y <= board_top_y_ - 2){
-            gameover_ = true;
-            return;
-          }
-          curpiece_->mergedown(*board_);
-          curpiece_ = NewPiece();
-        }else{
-          ++y;
-          if(!curpiece_->move(y, x) || !nc_.render()){
-            throw TetrisNotcursesErr("move() or render()");
-          }
-        }
+      if(MoveDown()){
+        gameover_ = true;
+        return;
       }
     }while(!gameover_);
+  }
+
+  // returns true if the game has ended as a result of this move down
+  bool MoveDown() {
+    const std::lock_guard<std::mutex> lock(mtx_);
+    int y, x;
+    if(PrepForMove(&y, &x)){
+      if(PieceStuck()){
+        if(y <= board_top_y_ - 2){
+          return true;
+        }
+        curpiece_->mergedown(*board_);
+        curpiece_ = NewPiece();
+      }else{
+        ++y;
+        if(!curpiece_->move(y, x) || !nc_.render()){
+          throw TetrisNotcursesErr("move() or render()");
+        }
+      }
+    }
+    return false;
   }
 
   void MoveLeft() {
@@ -329,8 +336,9 @@ int main(void) {
       break;
     }
     switch(input){
-      case NCKEY_LEFT: t.MoveLeft(); break;
-      case NCKEY_RIGHT: t.MoveRight(); break;
+      case NCKEY_LEFT: case 'h': t.MoveLeft(); break;
+      case NCKEY_RIGHT: case 'l': t.MoveRight(); break;
+      case NCKEY_DOWN: case 'j': t.MoveDown(); break;
       case 'z': t.RotateCcw(); break;
       case 'x': t.RotateCw(); break;
       default:
