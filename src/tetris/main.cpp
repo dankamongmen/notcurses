@@ -302,7 +302,7 @@ int main(void) {
   Tetris t{nc, gameover};
   std::thread tid(&Tetris::Ticker, &t);
   ncpp::Plane* stdplane = nc.get_stdplane();
-  char32_t input;
+  char32_t input = 0;
   ncinput ni;
   while(!gameover && (input = nc.getc(true, &ni)) != (char32_t)-1){
     if(input == 'q'){
