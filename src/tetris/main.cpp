@@ -40,12 +40,13 @@ public:
   Tetris(ncpp::NotCurses& nc, std::atomic_bool& gameover) :
     nc_(nc),
     score_(0),
-    msdelay_(100ms),
     curpiece_(nullptr),
     board_(nullptr),
     backg_(nullptr),
     stdplane_(nc_.get_stdplane()),
-    gameover_(gameover)
+    gameover_(gameover),
+    level_(0),
+    msdelay_(Gravity(level_))
   {
     DrawBoard();
     curpiece_ = NewPiece();
@@ -54,6 +55,22 @@ public:
   // 0.5 cell aspect: One board height == one row. One board width == two columns.
   static constexpr auto BOARD_WIDTH = 10;
   static constexpr auto BOARD_HEIGHT = 20;
+
+  // the number of frames before a drop is forced at the given level
+  static constexpr int Gravity(int level) {
+    // The number of frames before a drop is forced, per level
+    constexpr std::array<int, 30> Gravities = {
+      48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5,
+      4, 4, 4, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1
+    };
+    if(level < 0){
+      throw std::out_of_range("Illegal level");
+    }
+    if(static_cast<unsigned long>(level) < Gravities.size()){
+      return Gravities[level];
+    }
+    return 1;
+  }
 
   // FIXME ideally this would be called from constructor :/
   void Ticker() {
@@ -181,13 +198,14 @@ private:
   ncpp::NotCurses& nc_;
   uint64_t score_;
   std::mutex mtx_;
-  std::chrono::milliseconds msdelay_;
   std::unique_ptr<ncpp::Plane> curpiece_;
   std::unique_ptr<ncpp::Plane> board_;
   std::unique_ptr<ncpp::Visual> backg_;
   ncpp::Plane* stdplane_;
   std::atomic_bool& gameover_;
   int board_top_y_;
+  int level_;
+  std::chrono::milliseconds msdelay_;
 
   // Returns true if there's a current piece which can be moved
   bool PrepForMove(int* y, int* x) {
