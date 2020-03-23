@@ -57,9 +57,11 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c){
 // at the initial step only, invalid y, x is an error, so explicitly check.
 int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
   int ret = -1;
-  if(y < n->leny && x < n->lenx){
-    if(y >= 0 && x >= 0){
-      ret = ncplane_polyfill_recurse(n, y, x, c);
+  if(c->gcluster){ // can't polyfill with a null EGC
+    if(y < n->leny && x < n->lenx){
+      if(y >= 0 && x >= 0){
+        ret = ncplane_polyfill_recurse(n, y, x, c);
+      }
     }
   }
   return ret;

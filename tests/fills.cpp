@@ -17,6 +17,14 @@ TEST_CASE("Fills") {
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
+  // can't polyfill with a null glyph
+  SUBCASE("PolyfillNullGlyph") {
+    int dimx, dimy;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 > ncplane_polyfill_yx(n_, dimy, dimx, &c));
+  }
+
   // trying to polyfill an invalid cell ought be an error
   SUBCASE("PolyfillOffplane") {
     int dimx, dimy;
