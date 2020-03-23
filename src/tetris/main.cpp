@@ -56,23 +56,7 @@ public:
   static constexpr auto BOARD_WIDTH = 10;
   static constexpr auto BOARD_HEIGHT = 20;
 
-  // the number of milliseconds before a drop is forced at the given level,
-  // using the NES fps counter of 50ms
-  static constexpr int Gravity(int level) {
-    constexpr int MS_PER_GRAV = 50;
-    // The number of frames before a drop is forced, per level
-    constexpr std::array<int, 30> Gravities = {
-      48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5,
-      4, 4, 4, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1
-    };
-    if(level < 0){
-      throw std::out_of_range("Illegal level");
-    }
-    if(static_cast<unsigned long>(level) < Gravities.size()){
-      return Gravities[level] * MS_PER_GRAV;
-    }
-    return MS_PER_GRAV; // all levels 29+ are a single grav
-  }
+  #include "gravity.h"
 
   // FIXME ideally this would be called from constructor :/
   void Ticker() {
@@ -225,43 +209,7 @@ private:
     return true;
   }
 
-  // background is drawn to the standard plane, at the bottom.
-  void DrawBackground(const std::string& s) {
-    int averr;
-    try{
-      backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &averr, 0, 0, ncpp::NCScale::Stretch);
-    }catch(std::exception& e){
-      throw TetrisNotcursesErr("visual(): " + s + ": " + e.what());
-    }
-    if(!backg_->decode(&averr)){
-      throw TetrisNotcursesErr("decode(): " + s);
-    }
-    if(!backg_->render(0, 0, 0, 0)){
-      throw TetrisNotcursesErr("render(): " + s);
-    }
-  }
-
-  // draw the background on the standard plane, then create a new plane for
-  // the play area.
-  void DrawBoard() {
-    DrawBackground(BackgroundFile);
-    int y, x;
-    stdplane_->get_dim(&y, &x);
-    board_top_y_ = y - (BOARD_HEIGHT + 2);
-    board_ = std::make_unique<ncpp::Plane>(BOARD_HEIGHT, BOARD_WIDTH * 2,
-                                           board_top_y_, x / 2 - (BOARD_WIDTH + 1));
-    uint64_t channels = 0;
-    channels_set_fg(&channels, 0x00b040);
-    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    if(!board_->double_box(0, channels, BOARD_HEIGHT - 1, BOARD_WIDTH * 2 - 1, NCBOXMASK_TOP)){
-      throw TetrisNotcursesErr("rounded_box()");
-    }
-    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    board_->set_base(channels, 0, "");
-    if(!nc_.render()){
-      throw TetrisNotcursesErr("render()");
-    }
-  }
+#include "background.h"
 
   bool PieceStuck() {
     if(!curpiece_){
