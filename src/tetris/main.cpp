@@ -253,7 +253,7 @@ private:
     uint64_t channels = 0;
     channels_set_fg(&channels, 0x00b040);
     channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    if(!board_->rounded_box(0, channels, BOARD_HEIGHT - 1, BOARD_WIDTH * 2 - 1, NCBOXMASK_TOP)){
+    if(!board_->double_box(0, channels, BOARD_HEIGHT - 1, BOARD_WIDTH * 2 - 1, NCBOXMASK_TOP)){
       throw TetrisNotcursesErr("rounded_box()");
     }
     channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
