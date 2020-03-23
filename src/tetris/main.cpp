@@ -185,10 +185,10 @@ private:
                                            board_top_y_, x / 2 - (BOARD_WIDTH + 1));
     uint64_t channels = 0;
     channels_set_fg(&channels, 0x00b040);
+    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     if(!board_->rounded_box(0, channels, BOARD_HEIGHT - 1, BOARD_WIDTH * 2 - 1, NCBOXMASK_TOP)){
       throw TetrisNotcursesErr("rounded_box()");
     }
-    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     board_->set_base(channels, 0, "");
     if(!nc_.render()){
