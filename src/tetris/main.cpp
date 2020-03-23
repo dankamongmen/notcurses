@@ -1,5 +1,5 @@
-#include <iostream>
 #include <mutex>
+#include <atomic>
 #include <thread>
 #include <chrono>
 #include <cstdlib>
@@ -37,14 +37,15 @@ public:
 
 class Tetris {
 public:
-  Tetris(ncpp::NotCurses& nc) :
+  Tetris(ncpp::NotCurses& nc, std::atomic_bool& gameover) :
     nc_(nc),
     score_(0),
     msdelay_(100ms),
     curpiece_(nullptr),
     board_(nullptr),
     backg_(nullptr),
-    stdplane_(nc_.get_stdplane())
+    stdplane_(nc_.get_stdplane()),
+    gameover_(gameover)
   {
     DrawBoard();
     curpiece_ = NewPiece();
@@ -63,13 +64,14 @@ public:
       // FIXME loop and verify we didn't get a spurious wakeup
       mtx_.unlock();
       std::this_thread::sleep_for(ms);
-      mtx_.lock();
+      const std::lock_guard<std::mutex> lock(mtx_);
       if(curpiece_){
         int y, x;
         curpiece_->get_yx(&y, &x);
         if(PieceStuck()){
           if(y <= board_top_y_ - 2){
-            return; // FIXME game is over!
+            gameover_ = true;
+            return;
           }
           curpiece_->mergedown(*board_);
           curpiece_ = NewPiece();
@@ -80,13 +82,7 @@ public:
           }
         }
       }
-    }while(ms != std::chrono::milliseconds::zero());
-  }
-
-  void Stop() {
-    mtx_.lock();
-    msdelay_ = std::chrono::milliseconds::zero(); // FIXME wake it up?
-    mtx_.unlock();
+    }while(!gameover_);
   }
 
   void MoveLeft() {
@@ -95,8 +91,30 @@ public:
     if(!PrepForMove(&y, &x)){
       return;
     }
-    if(x <= stdplane_->get_dim_x() / 2 - BOARD_WIDTH){
-      return;
+    // For each line of the current piece, find the leftmost populated column.
+    // Check the game area to the immediate left. If something's there, we
+    // can't make this move.
+    ncpp::Cell c;
+    for(int ly = 0 ; ly < curpiece_->get_dim_y() ; ++ly){
+      int lx = 0;
+      while(lx < curpiece_->get_dim_x()){
+        if(curpiece_->get_at(ly, lx, &c)){
+          if(c.get().gcluster && c.get().gcluster != ' '){
+            break;
+          }
+        }
+        ++lx;
+      }
+      if(lx < curpiece_->get_dim_x()){ // otherwise, nothing on this row
+        ncpp::Cell b;
+        int cmpy = ly, cmpx = lx - 1;
+        curpiece_->translate(*board_, &cmpy, &cmpx);
+        if(board_->get_at(cmpy, cmpx, &b)){
+          if(b.get().gcluster && b.get().gcluster != ' '){
+            return; // move is blocked
+          }
+        }
+      }
     }
     --x;
     if(!curpiece_->move(y, x) || !nc_.render()){ // FIXME needs y?
@@ -111,7 +129,7 @@ public:
       return;
     }
     // FIXME need account for width of piece plane
-    if(x >= (stdplane_->get_dim_x() + BOARD_WIDTH) / 2){
+    if(x + curpiece_->get_dim_x() > (stdplane_->get_dim_x() + BOARD_WIDTH) / 2 + 2){
       return;
     }
     ++x;
@@ -147,6 +165,7 @@ private:
   std::unique_ptr<ncpp::Plane> board_;
   std::unique_ptr<ncpp::Visual> backg_;
   ncpp::Plane* stdplane_;
+  std::atomic_bool& gameover_;
   int board_top_y_;
 
   // Returns true if there's a current piece which can be moved
@@ -207,7 +226,7 @@ private:
     curpiece_->get_dim(&y, &x);
     --y;
     while(x--){
-      int cmpy = y + 1, cmpx = x; // need absolute coordinates via translation
+      int cmpy = y + 1, cmpx = x; // need game area coordinates via translation
       curpiece_->translate(*board_, &cmpy, &cmpx);
       ncpp::Cell c;
       if(board_->get_at(cmpy, cmpx, &c) < 0){
@@ -256,14 +275,15 @@ int main(void) {
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
+  std::atomic_bool gameover = false;
   notcurses_options ncopts{};
   ncpp::NotCurses nc(ncopts);
-  Tetris t{nc};
+  Tetris t{nc, gameover};
   std::thread tid(&Tetris::Ticker, &t);
   ncpp::Plane* stdplane = nc.get_stdplane();
   char32_t input;
   ncinput ni;
-  while((input = nc.getc(true, &ni)) != (char32_t)-1){
+  while(!gameover && (input = nc.getc(true, &ni)) != (char32_t)-1){
     if(input == 'q'){
       break;
     }
@@ -279,8 +299,8 @@ int main(void) {
         break;
     }
   }
-  if(input == 'q'){
-    t.Stop();
+  if(gameover || input == 'q'){
+    gameover = true;
     tid.join();
   }else{
     return EXIT_FAILURE;
