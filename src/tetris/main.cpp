@@ -56,8 +56,10 @@ public:
   static constexpr auto BOARD_WIDTH = 10;
   static constexpr auto BOARD_HEIGHT = 20;
 
-  // the number of frames before a drop is forced at the given level
+  // the number of milliseconds before a drop is forced at the given level,
+  // using the NES fps counter of 50ms
   static constexpr int Gravity(int level) {
+    constexpr int MS_PER_GRAV = 50;
     // The number of frames before a drop is forced, per level
     constexpr std::array<int, 30> Gravities = {
       48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5,
@@ -67,9 +69,9 @@ public:
       throw std::out_of_range("Illegal level");
     }
     if(static_cast<unsigned long>(level) < Gravities.size()){
-      return Gravities[level];
+      return Gravities[level] * MS_PER_GRAV;
     }
-    return 1;
+    return MS_PER_GRAV; // all levels 29+ are a single grav
   }
 
   // FIXME ideally this would be called from constructor :/
@@ -338,7 +340,7 @@ int main(void) {
         break;
     }
   }
-  if(gameover || input == 'q'){
+  if(gameover || input == 'q'){ // FIXME signal it on 'q'
     gameover = true;
     tid.join();
   }else{
