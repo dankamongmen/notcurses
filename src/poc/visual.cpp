@@ -25,7 +25,7 @@ int main(int argc, char** argv){
   if(!ncvisual_decode(ncv, &averr)){
     goto err;
   }
-  if(ncvisual_render(ncv, 0, 0, 0, 0)){
+  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
     goto err;
   }
   if(notcurses_render(nc)){

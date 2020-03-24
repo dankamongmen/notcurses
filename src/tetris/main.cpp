@@ -209,7 +209,7 @@ private:
     if(!backg_->decode(&averr)){
       throw TetrisNotcursesErr("decode(): " + s);
     }
-    if(!backg_->render(0, 0, 0, 0)){
+    if(!backg_->render(0, 0, -1, -1)){
       throw TetrisNotcursesErr("render(): " + s);
     }
   }

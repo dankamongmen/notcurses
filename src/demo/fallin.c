@@ -187,7 +187,7 @@ int fallin_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  if(ncvisual_render(ncv, 0, 0, 0, 0)){
+  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
     ncvisual_destroy(ncv);
     return -1;
   }

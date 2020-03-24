@@ -139,7 +139,7 @@ int outro(struct notcurses* nc){
     ncvisual_destroy(chncv);
     return -1;
   }
-  if(ncvisual_render(chncv, 0, 0, 0, 0)){
+  if(ncvisual_render(chncv, 0, 0, -1, -1) <= 0){
     ncvisual_destroy(chncv);
     return -1;
   }
