@@ -4,7 +4,9 @@ void RotateCcw() {
   if(!PrepForMove(&y, &x)){
     return;
   }
-  // FIXME rotate that fucker ccw
+  if(!curpiece_->rotate_ccw() || !nc_.render()){
+    throw TetrisNotcursesErr("rotate_ccw() or render()");
+  }
 }
 
 void RotateCw() {
@@ -13,5 +15,7 @@ void RotateCw() {
   if(!PrepForMove(&y, &x)){
     return;
   }
-  // FIXME rotate that fucker cw
+  if(!curpiece_->rotate_cw() || !nc_.render()){
+    throw TetrisNotcursesErr("rotate_cw() or render()");
+  }
 }

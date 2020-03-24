@@ -9,12 +9,14 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncdirect_bg@Base 1.2.1
  ncdirect_bg_default@Base 1.2.1
  ncdirect_clear@Base 1.2.1
- ncdirect_cursor_move_yx@Base 1.2.3
- ncdirect_dim_x@Base 1.2.3
- ncdirect_dim_y@Base 1.2.3
+ ncdirect_cursor_disable@Base 1.2.4
+ ncdirect_cursor_enable@Base 1.2.4
+ ncdirect_cursor_move_yx@Base 1.2.4
+ ncdirect_dim_x@Base 1.2.4
+ ncdirect_dim_y@Base 1.2.4
  ncdirect_fg@Base 1.2.1
  ncdirect_fg_default@Base 1.2.1
- ncdirect_init@Base 1.2.3
+ ncdirect_init@Base 1.2.4
  ncdirect_stop@Base 1.2.1
  ncdirect_styles_off@Base 1.2.1
  ncdirect_styles_on@Base 1.2.1
@@ -31,6 +33,11 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncmenu_selected@Base 1.2.1
  ncmenu_unroll@Base 1.2.1
  ncmetric@Base 1.2.1
+ ncmultiselector_create@Base 1.2.4
+ ncmultiselector_destroy@Base 1.2.4
+ ncmultiselector_offer_input@Base 1.2.4
+ ncmultiselector_plane@Base 1.2.4
+ ncmultiselector_selected@Base 1.2.4
  ncplane_aligned@Base 1.2.1
  ncplane_at_cursor@Base 1.2.1
  ncplane_at_yx@Base 1.2.1
@@ -47,10 +54,12 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_erase@Base 1.2.1
  ncplane_fadein@Base 1.2.1
  ncplane_fadeout@Base 1.2.1
- ncplane_format@Base 1.2.3
+ ncplane_format@Base 1.2.4
  ncplane_gradient@Base 1.2.1
  ncplane_greyscale@Base 1.2.1
+ ncplane_highgradient@Base 1.2.4
  ncplane_hline_interp@Base 1.2.1
+ ncplane_mergedown@Base 1.2.4
  ncplane_move_above_unsafe@Base 1.2.1
  ncplane_move_below_unsafe@Base 1.2.1
  ncplane_move_bottom@Base 1.2.1
@@ -68,8 +77,8 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_putstr_yx@Base 1.2.1
  ncplane_putwegc_stainable@Base 1.2.1
  ncplane_resize@Base 1.2.1
- ncplane_rotate_ccw@Base 1.2.3
- ncplane_rotate_cw@Base 1.2.3
+ ncplane_rotate_ccw@Base 1.2.4
+ ncplane_rotate_cw@Base 1.2.4
  ncplane_set_base@Base 1.2.1
  ncplane_set_base_cell@Base 1.2.1
  ncplane_set_bg@Base 1.2.1
@@ -85,13 +94,13 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_set_fg_rgb@Base 1.2.1
  ncplane_set_fg_rgb_clipped@Base 1.2.1
  ncplane_set_userptr@Base 1.2.1
- ncplane_stain@Base 1.2.3
+ ncplane_stain@Base 1.2.4
  ncplane_styles@Base 1.2.1
  ncplane_styles_off@Base 1.2.1
  ncplane_styles_on@Base 1.2.1
  ncplane_styles_set@Base 1.2.1
- ncplane_translate@Base 1.2.3
- ncplane_translate_abs@Base 1.2.3
+ ncplane_translate@Base 1.2.4
+ ncplane_translate_abs@Base 1.2.4
  ncplane_userptr@Base 1.2.1
  ncplane_visual_open@Base 1.2.1
  ncplane_vline_interp@Base 1.2.1
@@ -147,7 +156,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  notcurses_resize@Base 1.2.1
  notcurses_stats@Base 1.2.1
  notcurses_stdplane@Base 1.2.1
- notcurses_stdplane_const@Base 1.2.3
+ notcurses_stdplane_const@Base 1.2.4
  notcurses_stop@Base 1.2.1
  notcurses_supported_styles@Base 1.2.1
  notcurses_top@Base 1.2.1

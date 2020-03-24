@@ -104,7 +104,7 @@ int view_demo(struct notcurses* nc){
     ncplane_destroy(dsplane);
     return -1;
   }
-  if(ncvisual_render(ncv2, 0, 0, 0, 0)){
+  if(ncvisual_render(ncv2, 0, 0, -1, -1) <= 0){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);
@@ -113,7 +113,7 @@ int view_demo(struct notcurses* nc){
   demo_render(nc);
   demo_nanosleep(nc, &demodelay);
   ncplane_move_bottom(dsplane);
-  if(ncvisual_render(ncv, 0, 0, 0, 0)){
+  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);

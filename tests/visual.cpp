@@ -40,7 +40,7 @@ TEST_CASE("Multimedia") {
     REQUIRE(0 == averr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
-    CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
+    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     frame = ncvisual_decode(ncv, &averr);
     REQUIRE_EQ(nullptr, frame);
@@ -60,7 +60,7 @@ TEST_CASE("Multimedia") {
     REQUIRE(0 == averr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
-    CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
+    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     frame = ncvisual_decode(ncv, &averr);
     REQUIRE_EQ(nullptr, frame);
@@ -80,7 +80,7 @@ TEST_CASE("Multimedia") {
     REQUIRE(0 == averr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
-    CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
+    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     void* needle = malloc(1);
     REQUIRE(nullptr != needle);
     struct ncplane* newn = ncplane_dup(ncvisual_plane(ncv), needle);
@@ -111,7 +111,7 @@ TEST_CASE("Multimedia") {
       CHECK(0 == averr);
       CHECK(dimy * 2 == frame->height);
       CHECK(dimx == frame->width);
-      CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
+      CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
       CHECK(0 == notcurses_render(nc_));
     }
     ncvisual_destroy(ncv);
@@ -129,7 +129,7 @@ TEST_CASE("Multimedia") {
     CHECK(0 == averr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
-    CHECK(0 == ncvisual_render(ncv, 0, 0, 0, 0));
+    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
   }

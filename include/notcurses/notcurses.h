@@ -556,7 +556,7 @@ ncplane_move_below(struct ncplane* n, struct ncplane* below){
   return ncplane_move_below_unsafe(n, below);
 }
 
-// Return the plane above this one, or NULL if this is at the top.
+// Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n);
 
 // Rotate the plane pi/2 radians clockwise or counterclockwise. Note that
@@ -1938,10 +1938,11 @@ API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 // Render the decoded frame to the associated ncplane. The frame will be scaled
 // to the size of the ncplane per the ncscale_e style. A subregion of the
 // frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
-// the rectangle formed by begy x begx and the lower-right corner, zero can be
-// supplied to 'leny' and 'lenx'. Zero for all four values will thus render the
-// entire visual. Negative values for any of the four parameters are an error.
-// It is an error to specify any region beyond the boundaries of the frame.
+// the rectangle formed by begy x begx and the lower-right corner, -1 can be
+// supplied to 'leny' and 'lenx'. {0, 0, -1, -1} will thus render the entire
+// visual. Negative values for 'begy' or 'begx' are an error. It is an error to
+// specify any region beyond the boundaries of the frame. Returns the number of
+// cells written, or -1 on failure.
 API int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
                         int leny, int lenx);
 

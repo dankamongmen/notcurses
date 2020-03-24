@@ -10,18 +10,6 @@ const std::string BackgroundFile = "../data/tetris-background.jpeg";
 
 using namespace std::chrono_literals;
 
-// "North-facing" tetrimino forms (the form in which they are released from the
-// top) are expressed in terms of two rows having between two and four columns.
-// We map each game column to four columns and each game row to two rows.
-// Each byte of the texture maps to one 4x4 component block (and wastes 7 bits).
-static const struct tetrimino {
-  unsigned color;
-  const char* texture;
-} tetriminos[] = { // OITLJSZ
-  { 0xcbc900, "****"},   { 0x009caa, "    ****"}, { 0x952d98, " * ***"},
-  { 0xcf7900, "  ****"}, { 0x0065bd, "*  ***"},   { 0x69be28, " **** "},
-  { 0xbd2939, "**  **"} };
-
 class TetrisNotcursesErr : public std::runtime_error {
 public:
   TetrisNotcursesErr(const std::string& s) throw()
@@ -52,28 +40,12 @@ public:
     curpiece_ = NewPiece();
   }
 
-  // 0.5 cell aspect: One board height == one row. One board width == two columns.
+  // 0.5 cell aspect: 1 board height == one row. 1 board width == two columns.
   static constexpr auto BOARD_WIDTH = 10;
   static constexpr auto BOARD_HEIGHT = 20;
 
-  #include "gravity.h"
-
-  // FIXME ideally this would be called from constructor :/
-  void Ticker() {
-    std::chrono::milliseconds ms;
-    mtx_.lock();
-    do{
-      ms = msdelay_;
-      // FIXME loop and verify we didn't get a spurious wakeup
-      mtx_.unlock();
-      std::this_thread::sleep_for(ms);
-      if(MoveDown()){
-        gameover_ = true;
-        return;
-      }
-    }while(!gameover_);
-  }
-
+#include "gravity.h"
+#include "ticker.h"
 #include "movedown.h"
 #include "moveleft.h"
 #include "moveright.h"
@@ -111,6 +83,7 @@ int main(void) {
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
+  srand(time(NULL));
   std::atomic_bool gameover = false;
   notcurses_options ncopts{};
   ncpp::NotCurses nc(ncopts);

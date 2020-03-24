@@ -9,7 +9,7 @@ void DrawBackground(const std::string& s) {
   if(!backg_->decode(&averr)){
     throw TetrisNotcursesErr("decode(): " + s);
   }
-  if(!backg_->render(0, 0, 0, 0)){
+  if(backg_->render(0, 0, -1, -1) <= 0){
     throw TetrisNotcursesErr("render(): " + s);
   }
 }
