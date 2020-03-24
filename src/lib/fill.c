@@ -57,9 +57,11 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c){
 // at the initial step only, invalid y, x is an error, so explicitly check.
 int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
   int ret = -1;
-  if(y < n->leny && x < n->lenx){
-    if(y >= 0 && x >= 0){
-      ret = ncplane_polyfill_recurse(n, y, x, c);
+  if(c->gcluster){ // can't polyfill with a null EGC
+    if(y < n->leny && x < n->lenx){
+      if(y >= 0 && x >= 0){
+        ret = ncplane_polyfill_recurse(n, y, x, c);
+      }
     }
   }
   return ret;
@@ -434,7 +436,7 @@ rotate_output(ncplane* dst, uint32_t tchan, uint32_t bchan){
 //
 // Ideally, rotation through 360 degrees will restore the original 2x1 squre.
 // Unfortunately, the case where a half block occupies a cell having the same
-// fore- and background will see it roated into a single full block. In
+// fore- and background will see it rotated into a single full block. In
 // addition, lower blocks eventually become upper blocks with their channels
 // reversed. In general:
 //

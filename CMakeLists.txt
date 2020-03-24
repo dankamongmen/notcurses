@@ -448,6 +448,27 @@ target_compile_definitions(notcurses-ncreel
     FORTIFY_SOURCE=2
 )
 
+file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
+add_executable(notcurses-tetris ${TETRISSRC})
+target_include_directories(notcurses-tetris
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(notcurses-tetris
+  PRIVATE
+    Threads::Threads
+    notcurses++
+)
+target_compile_options(notcurses-tetris
+  PRIVATE
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
+)
+target_compile_definitions(notcurses-tetris
+  PRIVATE
+    FORTIFY_SOURCE=2
+)
+
 # notcurses-view
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 if(${USE_FFMPEG})
@@ -682,6 +703,7 @@ install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
 install(TARGETS notcurses-tester DESTINATION bin)
+install(TARGETS notcurses-tetris DESTINATION bin)
 if(${USE_FFMPEG})
 install(TARGETS notcurses-view DESTINATION bin)
 endif()

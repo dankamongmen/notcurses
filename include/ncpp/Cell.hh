@@ -121,7 +121,7 @@ namespace ncpp
 			return cell_simple_p (&_cell);
 		}
 
-		uint32_t get_edc_idx () const noexcept
+		uint32_t get_egc_idx () const noexcept
 		{
 			return cell_egc_idx (&_cell);
 		}

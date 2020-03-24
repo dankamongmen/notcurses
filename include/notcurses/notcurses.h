@@ -410,7 +410,7 @@ API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
-// and 'x' may be NULL.
+// and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
 API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                            int* RESTRICT y, int* RESTRICT x);
 
@@ -556,7 +556,7 @@ ncplane_move_below(struct ncplane* n, struct ncplane* below){
   return ncplane_move_below_unsafe(n, below);
 }
 
-// Return the plane above this one, or NULL if this is at the top.
+// Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n);
 
 // Rotate the plane pi/2 radians clockwise or counterclockwise. Note that
@@ -958,7 +958,8 @@ API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
 // rendering region." Merging is independent of the position of 'src' viz 'dst'
 // on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
 // changed, but it is not an error. The source plane still exists following
-// this operation. Do not supply the same plane for both 'src' and 'dst'.
+// this operation. If 'dst' is NULL, it will be interpreted as the standard
+// plane. Do not supply the same plane for both 'src' and 'dst'.
 API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT dst);
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
@@ -1975,13 +1976,13 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry
 
 // Stream the entirety of the media, according to its own timing. Blocking,
 // obviously. streamer may be NULL; it is otherwise called for each frame, and
-// its return value handled as outlined for stream cb. Pretty raw; beware.
-// If streamer() returns non-zero, the stream is aborted, and that value is
-// returned. By convention, return a positive number to indicate intentional
-// abort from within streamer(). 'timescale' allows the frame duration time to
-// be scaled. For a visual naturally running at 30FPS, a 'timescale' of 0.1
-// will result in 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an
-// error to supply 'timescale' less than or equal to 0.
+// its return value handled as outlined for stream cb. If streamer() returns
+// non-zero, the stream is aborted, and that value is returned. By convention,
+// return a positive number to indicate intentional abort from within
+// streamer(). 'timescale' allows the frame duration time to be scaled. For a
+// visual naturally running at 30FPS, a 'timescale' of 0.1 will result in
+// 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
+// supply 'timescale' less than or equal to 0.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         int* averr, float timescale, streamcb streamer,
                         void* curry);

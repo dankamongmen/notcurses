@@ -17,6 +17,14 @@ TEST_CASE("Fills") {
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
+  // can't polyfill with a null glyph
+  SUBCASE("PolyfillNullGlyph") {
+    int dimx, dimy;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 > ncplane_polyfill_yx(n_, dimy, dimx, &c));
+  }
+
   // trying to polyfill an invalid cell ought be an error
   SUBCASE("PolyfillOffplane") {
     int dimx, dimy;
@@ -40,11 +48,17 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_destroy(pfn));
   }
 
+  SUBCASE("PolyfillStandardPlane") {
+    cell c = CELL_SIMPLE_INITIALIZER('-');
+    CHECK(0 < ncplane_polyfill_yx(n_, 0, 0, &c));
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   SUBCASE("PolyfillEmptyPlane") {
     cell c = CELL_SIMPLE_INITIALIZER('+');
-    struct ncplane* pfn = ncplane_new(nc_, 4, 4, 0, 0, nullptr);
+    struct ncplane* pfn = ncplane_new(nc_, 20, 20, 0, 0, nullptr);
     REQUIRE(nullptr != pfn);
-    CHECK(16 == ncplane_polyfill_yx(pfn, 0, 0, &c));
+    CHECK(400 == ncplane_polyfill_yx(pfn, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(pfn));
   }
@@ -311,7 +325,7 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
   }
 
-  SUBCASE("MergeDown") {
+  SUBCASE("MergeDownASCII") {
     auto p1 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
     REQUIRE(p1);
     // make sure glyphs replace nulls
@@ -343,6 +357,83 @@ TEST_CASE("Fills") {
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
     ncplane_destroy(p1);
+  }
+
+  SUBCASE("MergeDownUni") {
+    auto p1 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
+    REQUIRE(p1);
+    // make sure glyphs replace nulls
+    CHECK(0 < ncplane_putstr(p1, "█▀▄▌▐🞵🞶🞷🞸🞹"));
+    CHECK(0 == ncplane_mergedown(p1, n_));
+    cell cbase = CELL_TRIVIAL_INITIALIZER;
+    cell cp = CELL_TRIVIAL_INITIALIZER;
+    for(int i = 0 ; i < 10 ; ++i){
+      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
+      CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
+    }
+    ncplane_destroy(p1);
+    CHECK(0 == notcurses_render(nc_));
+    auto p3 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
+    CHECK(0 == ncplane_cursor_move_yx(p3, 0, 0));
+    // make sure glyphs replace glyps
+    CHECK(0 < ncplane_putstr(p3, "🞵🞶🞷🞸🞹█▀▄▌▐"));
+    CHECK(0 == ncplane_mergedown(p3, NULL));
+    cell c3 = CELL_TRIVIAL_INITIALIZER;
+    for(int i = 0 ; i < 10 ; ++i){
+      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx(p3, 0, i, &c3));
+      CHECK(0 == cellcmp(n_, &cbase, p3, &c3));
+    }
+    CHECK(0 == notcurses_render(nc_));
+    // make sure nulls do not replace glyphs
+    auto p2 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
+    CHECK(0 == ncplane_mergedown(p2, NULL));
+    ncplane_destroy(p2);
+    for(int i = 0 ; i < 10 ; ++i){
+      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx(p3, 0, i, &c3));
+      CHECK(0 == cellcmp(n_, &cbase, p3, &c3));
+    }
+    ncplane_destroy(p3);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // test merging down one plane to another plane which is smaller than the
+  // standard plane
+  SUBCASE("MergeDownSmallPlane") {
+    constexpr int DIMX = 10;
+    constexpr int DIMY = 10;
+    auto p1 = ncplane_new(nc_, DIMY, DIMX, 2, 2, nullptr);
+    REQUIRE(p1);
+    cell c1 = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 < cell_load(p1, &c1, "█"));
+    CHECK(0 == cell_set_bg(&c1, 0x00ff00));
+    CHECK(0 == cell_set_fg(&c1, 0x0000ff));
+    ncplane_polyfill_yx(p1, 0, 0, &c1);
+    CHECK(0 == notcurses_render(nc_));
+    auto p2 = ncplane_new(nc_, DIMY / 2, DIMX / 2, 3, 3, nullptr);
+    REQUIRE(p2);
+    cell c2 = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 < cell_load(p2, &c2, "🞶"));
+    CHECK(0 == cell_set_bg(&c2, 0x00ffff));
+    CHECK(0 == cell_set_fg(&c2, 0xff00ff));
+    ncplane_polyfill_yx(p2, 0, 0, &c2);
+    CHECK(0 == ncplane_mergedown(p2, p1));
+    CHECK(0 == notcurses_render(nc_));
+    for(int y = 0 ; y < DIMY ; ++y){
+      for(int x = 0 ; x < DIMX ; ++x){
+        CHECK(0 < ncplane_at_yx(p1, y, x, &c1));
+        if(y < 1 || y > 5 || x < 1 || x > 5){
+          CHECK(0 == strcmp(extended_gcluster(p1, &c1), "█"));
+        }else{
+          CHECK(0 < ncplane_at_yx(p2, y - 1, x - 1, &c2));
+          CHECK(0 == cellcmp(p1, &c1, p2, &c2));
+        }
+      }
+    }
+    ncplane_destroy(p1);
+    ncplane_destroy(p2);
   }
 
   CHECK(0 == notcurses_stop(nc_));
