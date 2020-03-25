@@ -158,7 +158,7 @@ int luigi_demo(struct notcurses* nc){
   if(ncvisual_decode(nv, &averr) == NULL){
     return -1;
   }
-  if(ncvisual_render(nv, 0, 0, 0, 0)){
+  if(ncvisual_render(nv, 0, 0, -1, -1) <= 0){
     return -1;
   }
   assert(ncvisual_decode(nv, &averr) == NULL);
@@ -203,7 +203,7 @@ int luigi_demo(struct notcurses* nc){
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(ncvisual_plane(wmncv), channels, 0, "");
-  if(ncvisual_render(wmncv, 0, 0, 0, 0)){
+  if(ncvisual_render(wmncv, 0, 0, -1, -1) <= 0){
     ncvisual_destroy(wmncv);
     return -1;
   }

@@ -410,7 +410,7 @@ API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
-// and 'x' may be NULL.
+// and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
 API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                            int* RESTRICT y, int* RESTRICT x);
 
@@ -556,7 +556,7 @@ ncplane_move_below(struct ncplane* n, struct ncplane* below){
   return ncplane_move_below_unsafe(n, below);
 }
 
-// Return the plane above this one, or NULL if this is at the top.
+// Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n);
 
 // Rotate the plane pi/2 radians clockwise or counterclockwise. Note that
@@ -653,6 +653,8 @@ ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
 // of the plane will not be changed.
 API int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
 
+// 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes...but we aren't
+// yet actively guarding against higher values getting into wcstombs FIXME
 #define WCHAR_MAX_UTF8BYTES 6
 
 // ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
@@ -951,6 +953,16 @@ API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrwor
 // attributes otherwise unchanged.
 API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
                       uint64_t ur, uint64_t ll, uint64_t lr);
+
+// Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
+// defined as "write to 'dst' the frame that would be rendered were the entire
+// stack made up only of 'src' and, below it, 'dst', and 'dst' was the entire
+// rendering region." Merging is independent of the position of 'src' viz 'dst'
+// on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
+// changed, but it is not an error. The source plane still exists following
+// this operation. If 'dst' is NULL, it will be interpreted as the standard
+// plane. Do not supply the same plane for both 'src' and 'dst'.
+API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT dst);
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
@@ -1740,6 +1752,28 @@ cell_simple_p(const cell* c){
 // is invalidated by any further operation on the plane 'n', so...watch out!
 API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 
+// Returns true if the two cells are distinct EGCs, attributes, or channels.
+// The actual egcpool index needn't be the same--indeed, the planes needn't even
+// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
+// it would probably be better to test whether they're Unicode-equal FIXME.
+static inline bool
+cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
+        const struct ncplane* n2, const cell* RESTRICT c2){
+  if(c1->attrword != c2->attrword){
+    return true;
+  }
+  if(c1->channels != c2->channels){
+    return true;
+  }
+  if(cell_simple_p(c1) && cell_simple_p(c2)){
+    return c1->gcluster != c2->gcluster;
+  }
+  if(cell_simple_p(c1) || cell_simple_p(c2)){
+    return true;
+  }
+  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
+}
+
 // True if the cell does not generate foreground pixels (i.e., the cell is
 // entirely whitespace or special characters).
 // FIXME do this at cell prep time and set a bit in the channels
@@ -1904,10 +1938,11 @@ API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
 // Render the decoded frame to the associated ncplane. The frame will be scaled
 // to the size of the ncplane per the ncscale_e style. A subregion of the
 // frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
-// the rectangle formed by begy x begx and the lower-right corner, zero can be
-// supplied to 'leny' and 'lenx'. Zero for all four values will thus render the
-// entire visual. Negative values for any of the four parameters are an error.
-// It is an error to specify any region beyond the boundaries of the frame.
+// the rectangle formed by begy x begx and the lower-right corner, -1 can be
+// supplied to 'leny' and 'lenx'. {0, 0, -1, -1} will thus render the entire
+// visual. Negative values for 'begy' or 'begx' are an error. It is an error to
+// specify any region beyond the boundaries of the frame. Returns the number of
+// cells written, or -1 on failure.
 API int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
                         int leny, int lenx);
 
@@ -1944,13 +1979,13 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry
 
 // Stream the entirety of the media, according to its own timing. Blocking,
 // obviously. streamer may be NULL; it is otherwise called for each frame, and
-// its return value handled as outlined for stream cb. Pretty raw; beware.
-// If streamer() returns non-zero, the stream is aborted, and that value is
-// returned. By convention, return a positive number to indicate intentional
-// abort from within streamer(). 'timescale' allows the frame duration time to
-// be scaled. For a visual naturally running at 30FPS, a 'timescale' of 0.1
-// will result in 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an
-// error to supply 'timescale' less than or equal to 0.
+// its return value handled as outlined for stream cb. If streamer() returns
+// non-zero, the stream is aborted, and that value is returned. By convention,
+// return a positive number to indicate intentional abort from within
+// streamer(). 'timescale' allows the frame duration time to be scaled. For a
+// visual naturally running at 30FPS, a 'timescale' of 0.1 will result in
+// 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
+// supply 'timescale' less than or equal to 0.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         int* averr, float timescale, streamcb streamer,
                         void* curry);

@@ -1,6 +1,6 @@
 % notcurses_ncvisual(3)
 % nick black <nickblack@linux.com>
-% v1.2.3
+% v1.2.4
 
 # NAME
 notcurses_ncvisual - notcurses multimedia
@@ -44,8 +44,27 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 # DESCRIPTION
 
+The frame will be scaled to the size of the ncplane per the ncscale_e style.
+**ncvisual_render** actually blits the decoded frame to its associated plane.
+A subregion of the frame can be specified using **begx**, **begy**, **lenx**,
+and **leny**. To render the rectangle having its origin at **begy**, **begx**
+and the lower-right corner, -1 can be supplied as **leny** and **lenx**.
+{0, 0, -1, -1} will thus render the entire visual. Negative values for **begy**
+or **begx** are an error. It is an error to specify any region beyond the
+boundaries of the frame. Supplying zero for either **leny** or **lenx** will
+result in a zero-area rendering.
 
 # RETURN VALUES
+
+**notcurses_canopen** returns true if this functionality is enabled, or false
+if Notcurses was not built with FFmpeg support. **ncplane_visual_open** and
+**ncvisual_open_plane** return an **ncvisual** object on success, or **NULL**
+on failure. Success from these functions indicates that the specified **file**
+was opened, and enough data was read to make a firm codec identification. It
+does not mean that the entire file is properly-formed. On failure, **averr**
+will be updated. **ncvisual_decode** returns a valid **AVFrame** on success, or
+**NULL** on error. It likewise updates **averr** in the event of an error.
+**ncvisual_render** returns the number of cells emitted, or -1 on error.
 
 # SEE ALSO
 

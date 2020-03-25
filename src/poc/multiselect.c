@@ -89,7 +89,7 @@ int main(void){
   if(!ncvisual_decode(ncv, &averr)){
     goto err;
   }
-  if(ncvisual_render(ncv, 0, 0, 0, 0)){
+  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
     goto err;
   }
 

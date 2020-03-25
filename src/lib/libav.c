@@ -374,6 +374,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
   const int bpos = bgr ? 0 : 2;
   int dimy, dimx, x, y;
   int visy = begy;
+  int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
   for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 2){
     if(ncplane_cursor_move_yx(nc, y, placex)){
@@ -419,9 +420,10 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
           }
         }
       }
+      ++total;
     }
   }
-  return 0;
+  return total;
 }
 
 // Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset
@@ -444,7 +446,7 @@ int ncblit_rgba(ncplane* nc, int placey, int placex, int linesize,
 
 int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
 //fprintf(stderr, "render %dx%d+%dx%d\n", begy, begx, leny, lenx);
-  if(begy < 0 || begx < 0 || lenx < 0 || leny < 0){
+  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
     return -1;
   }
   const AVFrame* f = ncv->oframe;
@@ -455,14 +457,17 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   if(begx >= f->width || begy >= f->height){
     return -1;
   }
-  if(begx + lenx > f->width || begy + leny > f->height){
-    return -1;
-  }
-  if(lenx == 0){
+  if(lenx == -1){ // -1 means "to the end"; use all space available
     lenx = f->width - begx;
   }
-  if(leny == 0){
+  if(leny == -1){
     leny = f->height - begy;
+  }
+  if(lenx == 0 || leny == 0){ // no need to draw zero-size object, exit
+    return 0;
+  }
+  if(begx + lenx > f->width || begy + leny > f->height){
+    return -1;
   }
   int dimy, dimx;
   ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
@@ -477,9 +482,10 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   if(bpp != 32){
 	  return -1;
   }
-  ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, linesize, data, begy, begx, leny, lenx);
+  int ret = ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, linesize, data,
+                        begy, begx, leny, lenx);
   //av_frame_unref(ncv->oframe);
-  return 0;
+  return ret;
 }
 
 // iterative over the decoded frames, calling streamer() with curry for each.
@@ -506,7 +512,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
     if(frame == 1 && ts){
       usets = true;
     }
-    if(ncvisual_render(ncv, 0, 0, 0, 0)){
+    if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
       return -1;
     }
     if(streamer){

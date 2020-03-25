@@ -203,18 +203,21 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
   }
 }
 
-// Paints a single ncplane into the provided framebuffer 'fb'. Whenever a cell
-// is locked in, it is compared against the last frame. If it is different, the
-// 'damagevec' bitmap is updated with a 1.
+// Paints a single ncplane into the provided scratch framebuffer 'fb', and
+// ultimately 'lastframe' (we can't always write directly into 'lastframe',
+// because we need build state to solve certain cells, and need compare their
+// solved result to the last frame). Whenever a cell is locked in, it is
+// compared against the last frame. If it is different, the 'rvec' bitmap is updated with a 1. 'pool' is typically nc->pool, but can
+// be whatever's backing fb.
 static int
-paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
+paint(ncplane* p, cell* lastframe, struct crender* rvec,
+      cell* fb, egcpool* pool, int dstleny, int dstlenx,
+      int dstabsy, int dstabsx, int lfdimx){
   int y, x, dimy, dimx, offy, offx;
-  // don't use ncplane_dim_yx()/ncplane_yx() here, lest we deadlock
-  dimy = p->leny;
-  dimx = p->lenx;
-  offy = p->absy - nc->stdscr->absy;
-  offx = p->absx - nc->stdscr->absx;
-//fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, nc->stdscr->leny, nc->stdscr->lenx);
+  ncplane_dim_yx(p, &dimy, &dimx);
+  offy = p->absy - dstabsy;
+  offx = p->absx - dstabsx;
+//fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, dstleny, dstlenx);
   // skip content above or to the left of the physical screen
   int starty, startx;
   if(offy < 0){
@@ -230,19 +233,19 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
   for(y = starty ; y < dimy ; ++y){
     const int absy = y + offy;
     // once we've passed the physical screen's bottom, we're done
-    if(absy >= nc->stdscr->leny){
+    if(absy >= dstleny){
       break;
     }
     for(x = startx ; x < dimx ; ++x){
       const int absx = x + offx;
-      if(absx >= nc->stdscr->lenx){
+      if(absx >= dstlenx){
         break;
       }
-      cell* targc = &fb[fbcellidx(absy, nc->stdscr->lenx, absx)];
+      cell* targc = &fb[fbcellidx(absy, dstlenx, absx)];
       if(cell_locked_p(targc)){
         continue;
       }
-      struct crender* crender = &rvec[fbcellidx(absy, nc->stdscr->lenx, absx)];
+      struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
       const cell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
       // writing in a zero), use the plane's base cell.
@@ -262,7 +265,7 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
           // screen, nor if we're bisected by a higher plane.
           if(cell_double_wide_p(vis)){
             // are we on the last column of the real screen? if so, 0x20 us
-            if(absx >= nc->stdscr->lenx - 1){
+            if(absx >= dstlenx - 1){
               targc->gcluster = ' ';
             // is the next cell occupied? if so, 0x20 us
             }else if(targc[1].gcluster){
@@ -312,14 +315,15 @@ paint(notcurses* nc, ncplane* p, struct crender* rvec, cell* fb){
       // which were already locked in were skipped at the top of the loop)?
       if(cell_locked_p(targc)){
         lock_in_highcontrast(targc, crender);
-        cell* prevcell = &nc->lastframe[fbcellidx(absy, nc->lfdimx, absx)];
+        cell* prevcell = &lastframe[fbcellidx(absy, lfdimx, absx)];
 /*if(cell_simple_p(targc)){
 fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, prevcell->gcluster, y, x, absy, absx);
 }else{
 fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
 }
-fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
-        if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
+fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", pool->pool, nc, crender->p);
+}*/
+        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
           crender->damaged = true;
           if(cell_double_wide_p(targc)){
             ncplane* tmpp = crender->p;
@@ -331,7 +335,7 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
             targc->gcluster = 0;
             targc->channels = targc[-1].channels;
             targc->attrword = targc[-1].attrword;
-            if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
+            if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
               crender->damaged = true;
             }
           }
@@ -339,6 +343,78 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", nc->pool.pool, nc, crender->p);*/
       }
     }
   }
+  return 0;
+}
+
+static void
+init_fb(cell* fb, int dimy, int dimx){
+  for(int y = 0 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      cell* c = &fb[fbcellidx(y, dimx, x)];
+      c->gcluster = 0;
+      c->channels = 0;
+      c->attrword = 0;
+      cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+    }
+  }
+}
+
+static void
+postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
+          struct crender* rvec, egcpool* pool){
+  for(int y = 0 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      cell* targc = &fb[fbcellidx(y, dimx, x)];
+      if(!cell_locked_p(targc)){
+        struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
+        lock_in_highcontrast(targc, crender);
+        cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
+        if(targc->gcluster == 0){
+          targc->gcluster = ' ';
+        }
+        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+          crender->damaged = true;
+        }
+      }
+    }
+  }
+}
+
+// FIXME need handle a dst that isn't the standard plane! paint() will only
+// paint within the real viewport currently.
+int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
+  notcurses* nc = src->nc;
+  if(dst == NULL){
+    dst = nc->stdscr;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(dst, &dimy, &dimx);
+  cell* tmpfb = malloc(sizeof(*tmpfb) * dimy * dimx);
+  cell* rendfb = malloc(sizeof(*rendfb) * dimy * dimx);
+  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
+  struct crender* rvec = malloc(crenderlen);
+  memset(rvec, 0, crenderlen);
+  init_fb(tmpfb, dimy, dimx);
+  init_fb(rendfb, dimy, dimx);
+  if(paint(src, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
+           dst->absy, dst->absx, dst->lenx)){
+    free(rvec);
+    free(rendfb);
+    free(tmpfb);
+    return -1;
+  }
+  if(paint(dst, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
+           dst->absy, dst->absx, dst->lenx)){
+    free(rvec);
+    free(rendfb);
+    free(tmpfb);
+    return -1;
+  }
+  postpaint(tmpfb, rendfb, dimy, dimx, rvec, &dst->pool);
+  free(dst->fb);
+  dst->fb = rendfb;
+  free(rvec);
   return 0;
 }
 
@@ -352,43 +428,21 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   if(reshape_shadow_fb(nc)){
     return -1;
   }
-  // don't use ncplane_dim_yx()/ncplane_yx() here, lest we deadlock
-  int dimy = nc->stdscr->leny;
-  int dimx = nc->stdscr->lenx;
+  int dimy, dimx;
+  ncplane_dim_yx(nc->stdscr, &dimy, &dimx);
   cell* fb = malloc(sizeof(*fb) * dimy * dimx);
-  for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
-      cell* c = &fb[fbcellidx(y, dimx, x)];
-      c->gcluster = 0;
-      c->channels = 0;
-      c->attrword = 0;
-      cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-    }
-  }
+  init_fb(fb, dimy, dimx);
   ncplane* p = nc->top;
   while(p){
-    if(paint(nc, p, rvec, fb)){
+    if(paint(p, nc->lastframe, rvec, fb, &nc->pool,
+             nc->stdscr->leny, nc->stdscr->lenx,
+             nc->stdscr->absy, nc->stdscr->absx, nc->lfdimx)){
+      free(fb);
       return -1;
     }
     p = p->z;
   }
-  for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
-      cell* targc = &fb[fbcellidx(y, dimx, x)];
-      if(!cell_locked_p(targc)){
-        struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-        lock_in_highcontrast(targc, crender);
-        cell* prevcell = &nc->lastframe[fbcellidx(y, dimx, x)];
-        if(targc->gcluster == 0){
-          targc->gcluster = ' ';
-        }
-        if(cellcmp_and_dupfar(&nc->pool, prevcell, crender->p, targc)){
-          crender->damaged = true;
-        }
-      }
-    }
-  }
+  postpaint(fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
   free(fb);
   return 0;
 }
@@ -752,9 +806,9 @@ update_palette(notcurses* nc, FILE* out){
 //  * refresh -- write the stream to the emulator
 
 // Takes a rendered frame (a flat framebuffer, where each cell has the desired
-// EGC, attribute, and channels) and the previously-rendered frame, and spits
-// out an optimal sequence of terminal-appropriate escapes and EGCs. There
-// should be an rvec entry for each cell; only the 'damaged' field is used.
+// EGC, attribute, and channels), which has been written to nc->lastframe, and
+// spits out an optimal sequence of terminal-appropriate escapes and EGCs. There
+// should be an rvec entry for each cell, but only the 'damaged' field is used.
 static int
 notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   FILE* out = nc->rstate.mstreamfp;
@@ -971,7 +1025,7 @@ int notcurses_render(notcurses* nc){
   int ret;
   clock_gettime(CLOCK_MONOTONIC, &start);
   int bytes = -1;
-  size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
+  const size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
   memset(crender, 0, crenderlen);
   if(notcurses_render_internal(nc, crender) == 0){

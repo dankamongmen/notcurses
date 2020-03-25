@@ -118,6 +118,14 @@ namespace ncpp
 			return ncplane_pulse (plane, ts, fader, curry) != -1;
 		}
 
+    bool mergedown (Plane* dst = nullptr) {
+      return ncplane_mergedown(*this, dst ? dst->plane : nullptr);
+    }
+
+    bool mergedown (Plane& dst) {
+      return mergedown(&dst);
+    }
+
 		bool gradient (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const noexcept
 		{
 			return ncplane_gradient (plane, egc, attrword, ul, ur, ll, lr, ystop, xstop) != -1;
@@ -126,6 +134,16 @@ namespace ncpp
 		bool gradient_sized (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xstop) const noexcept
 		{
 			return ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xstop) != -1;
+		}
+
+		bool high_gradient (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
+		{
+			return ncplane_highgradient (plane, ul, ur, ll, lr, ylen, xlen) != -1;
+		}
+
+		bool high_gradient_sized (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
+		{
+			return ncplane_highgradient_sized (plane, ul, ur, ll, lr, ylen, xlen) != -1;
 		}
 
 		void greyscale () const noexcept
@@ -283,6 +301,20 @@ namespace ncpp
 				throw invalid_argument ("'above' must be a valid pointer");
 
 			return move_above (*above);
+		}
+
+		bool mergedown (Plane &dst) const
+		{
+			if (plane == dst.plane)
+				throw invalid_argument ("'dst' must refer to a differnt plane than the one this method is called on");
+			return ncplane_mergedown (plane, dst.plane) != -1;
+		}
+
+		bool mergedown (Plane *dst) const
+		{
+			if (dst == nullptr)
+				throw invalid_argument ("'dst' must be a valid pointer");
+			return mergedown (*dst);
 		}
 
 		bool cursor_move (int y, int x) const noexcept
@@ -850,9 +882,7 @@ namespace ncpp
 
 		void translate (const Plane *dst, int *y = nullptr, int *x = nullptr) const
 		{
-			if (dst == nullptr)
-				throw invalid_argument ("'dst' must be a valid pointer");
-			translate (*this, *dst, y, x);
+      ncplane_translate(*this, dst ? dst->plane: nullptr, y, x);
 		}
 
 		void translate (const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
@@ -865,10 +895,7 @@ namespace ncpp
 			if (src == nullptr)
 				throw invalid_argument ("'src' must be a valid pointer");
 
-			if (dst == nullptr)
-				throw invalid_argument ("'dst' must be a valid pointer");
-
-			translate (*src, *dst, y, x);
+      ncplane_translate(*src, dst ? dst->plane : nullptr, y, x);
 		}
 
 		static void translate (const Plane &src, const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
@@ -876,9 +903,19 @@ namespace ncpp
 			ncplane_translate (src.plane, dst.plane, y, x);
 		}
 
-		bool translate_abs (int *y = nullptr, int *x = nullptr)
+		bool translate_abs (int *y = nullptr, int *x = nullptr) noexcept
 		{
 			return ncplane_translate_abs (*this, y, x);
+		}
+
+		bool rotate_cw () const noexcept
+		{
+			return ncplane_rotate_cw (plane) != -1;
+		}
+
+		bool rotate_ccw () const noexcept
+		{
+			return ncplane_rotate_ccw (plane) != -1;
 		}
 
 		// Upstream call doesn't take ncplane* but we put it here for parity with has_no_background below
@@ -948,7 +985,6 @@ namespace ncpp
 			if (ret == nullptr)
 				throw init_error ("notcurses failed to duplicate plane");
 
-			is_stdplane = other.is_stdplane;
 			return ret;
 		}
 

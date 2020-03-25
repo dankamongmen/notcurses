@@ -40,7 +40,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
           if(y + speeds[i] >= stdy){
             ncplane_destroy(ncp);
             arr[ranges + i] = NULL;
-            if(ranges + i + 1 == arrcount){
+            if(ranges + i + 1 == rangee){
               ranges += i + 1;
               break;
             }
@@ -58,6 +58,12 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
         if(!felloff){
           ncplane_move_yx(ncp, y + speeds[i], x);
           ++speeds[i];
+        }else if(i){
+          if(rangee - ranges - i){
+            memmove(speeds, speeds + i, (rangee - ranges - i) * sizeof(*speeds));
+          }
+          ranges += i;
+          i = 0;
         }
         nanosleep(&iterdelay, NULL);
       }
@@ -181,7 +187,7 @@ int fallin_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  if(ncvisual_render(ncv, 0, 0, 0, 0)){
+  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
     ncvisual_destroy(ncv);
     return -1;
   }

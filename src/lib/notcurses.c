@@ -843,7 +843,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || (strcmp(encoding, "ANSI_X3.4-1968") && strcmp(encoding, "UTF-8"))){
-    fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n",
+    fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
             encoding ? encoding : "none found");
     return NULL;
   }
@@ -1952,6 +1952,9 @@ bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){
 
 void ncplane_translate(const ncplane* src, const ncplane* dst,
                        int* restrict y, int* restrict x){
+  if(dst == NULL){
+    dst = ncplane_stdplane_const(src);
+  }
   if(y){
     *y = src->absy - dst->absy + *y;
   }

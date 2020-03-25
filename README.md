@@ -5,12 +5,15 @@ blingful TUI library for modern terminal emulators. definitely not curses.
 * C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
-and the [man pages](https://nick-black.com/notcurses). I am working on a
-coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), though it has
-not yet reached even first draft status. In addition, there is
-[Doxygen](https://nick-black.com/notcurses/html/) output. There is a
-[mailing list](https://groups.google.com/forum/#!forum/notcurses) which
-can be reached via notcurses@googlegroups.com.
+and the [man pages](https://nick-black.com/notcurses).
+
+**I am just about done writing a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which ought
+be published in April 2020.**
+
+In addition, there is
+[Doxygen](https://nick-black.com/notcurses/html/) output. There is a [mailing
+list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
+via notcurses@googlegroups.com.
 
 notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/).
 Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
@@ -631,6 +634,15 @@ struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
 // The new plane will be immediately above the old one on the z axis.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 
+// Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
+// defined as "write to 'dst' the frame that would be rendered were the entire
+// stack made up only of 'src' and, below it, 'dst', and 'dst' was the entire
+// rendering region." Merging is independent of the position of 'src' viz 'dst'
+// on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
+// changed, but it is not an error. The source plane still exists following
+// this operation. Do not supply the same plane for both 'src' and 'dst'.
+int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst);
+
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane are invalidated, and must not be used after the call,
@@ -701,7 +713,7 @@ ncplane_dim_x(const struct ncplane* n){
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
-// and 'x' may be NULL.
+// and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                        int* restrict y, int* restrict x);
 
@@ -1730,8 +1742,7 @@ are arranged in a torus (circular loop), allowing for infinite scrolling
 (infinite scrolling can be disabled, resulting in a line segment rather than a
 torus). This works naturally with keyboard navigation, mouse scrolling wheels,
 and touchpads (including the capacitive touchscreens of modern cell phones).
-The "panel" comes from the underlying ncurses objects (each entity corresponds
-to a single panel) and the "reel" from slot machines. An ncreel initially has
+The term "reel" derives from slot machines. An ncreel initially has
 no tablets; at any given time thereafter, it has zero or more tablets, and if
 there is at least one tablet, one tablet is focused (and on-screen). If the
 last tablet is removed, no tablet is focused. A tablet can support navigation
@@ -1739,7 +1750,7 @@ within the tablet, in which case there is an in-tablet focus for the focused
 tablet, which can also move among elements within the tablet.
 
 The ncreel object tracks the size of the screen, the size, number,
-information depth, and order of tablets, and the focuses. It also draws the
+information depth, and order of tablets, and the foci. It also draws the
 optional borders around tablets and the optional border of the reel itself. It
 knows nothing about the actual content of a tablet, save the number of lines it
 occupies at each information depth. The typical control flow is that an
@@ -1747,7 +1758,7 @@ application receives events (from the UI or other event sources), and calls
 into notcurses saying e.g. "Tablet 2 now has 40 valid lines of information".
 notcurses might then call back into the application, asking it to draw some
 line(s) from some tablet(s) at some particular coordinate of that tablet's
-panel. Finally, control returns to the application, and the cycle starts anew.
+plane. Finally, control returns to the application, and the cycle starts anew.
 
 Each tablet might be wholly, partially, or not on-screen. notcurses always
 places as much of the focused tablet as is possible on-screen (if the focused
@@ -1770,7 +1781,7 @@ The controlling application can, at any time,
   * Remove content from a tablet, possibly resizing it, and possibly changing focus within the tablet
   * Add content to the tablet, possibly resizing it, and possibly creating focus within the tablet
 * Navigate within the focused tablet
-* Create or destroy new panels atop the ncreel
+* Create or destroy new planes atop the ncreel
 * Indicate that the screen has been resized or needs be redrawn
 
 A special case arises when moving among the tablets of a reel having multiple
@@ -1793,11 +1804,11 @@ configured instead.
 
 ```c
 // An ncreel is a notcurses region devoted to displaying zero or more
-// line-oriented, contained panels between which the user may navigate. If at
-// least one panel exists, there is an active panel. As much of the active
-// panel as is possible is always displayed. If there is space left over, other
-// panels are included in the display. Panels can come and go at any time, and
-// can grow or shrink at any time.
+// line-oriented, contained planes ("tablets") between which the user may
+// navigate. If at least one tablet exists, there is an active tablet. As much
+// of the active tablet as is possible is always displayed. If there is space
+// left over, other tablets are included in the display. Tablets can come and go
+// at any time, and can grow or shrink at any time.
 //
 // This structure is amenable to line- and page-based navigation via keystrokes,
 // scrolling gestures, trackballs, scrollwheels, touchpads, and verbal commands.
@@ -1807,7 +1818,7 @@ typedef struct ncreel_options {
   // message will be displayed stating that a larger terminal is necessary, and
   // input will be queued. if 0, no minimum will be enforced. may not be
   // negative. note that ncreel_create() does not return error if given a
-  // WINDOW smaller than these minima; it instead patiently waits for the
+  // plane smaller than these minima; it instead patiently waits for the
   // screen to get bigger.
   int min_supported_cols;
   int min_supported_rows;
@@ -1824,7 +1835,7 @@ typedef struct ncreel_options {
   // reached?). if true, 'circular' specifies how to handle the special case of
   // an incompletely-filled reel.
   bool infinitescroll;
-  // is navigation circular (does moving down from the last panel move to the
+  // is navigation circular (does moving down from the last tablet move to the
   // first, and vice versa)? only meaningful when infinitescroll is true. if
   // infinitescroll is false, this must be false.
   bool circular;
@@ -1846,7 +1857,7 @@ struct nctablet;
 struct ncreel;
 
 // Create an ncreel according to the provided specifications. Returns NULL on
-// failure. w must be a valid WINDOW*, to which offsets are relative. Note that
+// failure. 'nc' must be a valid plane, to which offsets are relative. Note that
 // there might not be enough room for the specified offsets, in which case the
 // ncreel will be clipped on the bottom and right. A minimum number of rows
 // and columns can be enforced via popts. efd, if non-negative, is an eventfd
@@ -1900,7 +1911,7 @@ int ncreel_del(struct ncreel* pr, struct nctablet* t);
 // Delete the active tablet. Returns -1 if there are no tablets.
 int ncreel_del_focused(struct ncreel* pr);
 
-// Move to the specified location within the containing WINDOW.
+// Move to the specified location within the containing plane.
 int ncreel_move(struct ncreel* pr, int x, int y);
 
 // Redraw the ncreel in its entirety, for instance after
@@ -1918,7 +1929,7 @@ struct nctablet* ncreel_next(struct ncreel* pr);
 struct nctablet* ncreel_prev(struct ncreel* pr);
 
 // Destroy an ncreel allocated with ncreel_create(). Does not destroy the
-// underlying WINDOW. Returns non-zero on failure.
+// underlying plane. Returns non-zero on failure.
 int ncreel_destroy(struct ncreel* pr);
 
 // Returns a pointer to a user pointer associated with this nctablet.
@@ -2387,12 +2398,13 @@ channels_set_bg_default(uint64_t* channels){
 
 ## Included tools
 
-Five binaries are built as part of notcurses:
+Six binaries are installed as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
 * `notcurses-planereels`: play around with ncreels
 * `notcurses-tester`: unit testing
+* `notcurses-tetris`: a tetris clone
 
 To run `notcurses-demo` from a checkout, provide the `tests/` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base
