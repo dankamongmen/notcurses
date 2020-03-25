@@ -99,6 +99,7 @@ A few high-level widgets are included, all built atop ncplanes:
 * **notcurses_menu(3)** for menu bars at the top or bottom of the screen
 * **notcurses_reel(3)** for hierarchal display of data
 * **notcurses_selector(3)** for selecting one item from a set
+* **notcurses_multiselector(3)** for selecting one or more items from a set
 
 ## Threads
 
@@ -137,6 +138,7 @@ previous action.
 **notcurses_directmode(3)**,
 **notcurses_lines(3)**,
 **notcurses_menu(3)**,
+**notcurses_multiselector(3)**,
 **notcurses_ncplane(3)**,
 **notcurses_ncvisual(3)**,
 **notcurses_output(3)**,
