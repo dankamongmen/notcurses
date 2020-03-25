@@ -653,6 +653,8 @@ ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
 // of the plane will not be changed.
 API int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
 
+// 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes...but we aren't
+// yet actively guarding against higher values getting into wcstombs FIXME
 #define WCHAR_MAX_UTF8BYTES 6
 
 // ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.

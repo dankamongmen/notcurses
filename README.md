@@ -2398,12 +2398,13 @@ channels_set_bg_default(uint64_t* channels){
 
 ## Included tools
 
-Five binaries are built as part of notcurses:
+Six binaries are installed as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
 * `notcurses-planereels`: play around with ncreels
 * `notcurses-tester`: unit testing
+* `notcurses-tetris`: a tetris clone
 
 To run `notcurses-demo` from a checkout, provide the `tests/` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base
