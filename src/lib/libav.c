@@ -366,9 +366,8 @@ ffmpeg_trans_p(bool bgr, unsigned char alpha){
 
 // RGBA/BGRx blitter. For incoming BGRx (no transparency), bgr == true.
 static inline int
-tria_blit(ncplane* nc, int placey, int placex, int linesize,
-              const unsigned char* data, int begy, int begx,
-              int leny, int lenx, bool bgr){
+tria_blit(ncplane* nc, int placey, int placex, int linesize, const void* data,
+          int begy, int begx, int leny, int lenx, bool bgr){
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
@@ -376,14 +375,16 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
   int visy = begy;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
+  // FIXME not going to necessarily be safe on all architectures hrmmm
+  const unsigned char* dat = data;
   for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 2){
     if(ncplane_cursor_move_yx(nc, y, placex)){
       return -1;
     }
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
-      const unsigned char* rgbbase_up = data + (linesize * visy) + (visx * bpp / CHAR_BIT);
-      const unsigned char* rgbbase_down = data + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_down = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
@@ -431,17 +432,15 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
 // 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
 // subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
 int ncblit_bgrx(ncplane* nc, int placey, int placex, int linesize,
-                const unsigned char* data, int begy, int begx,
-                int leny, int lenx){
+                const void* data, int begy, int begx, int leny, int lenx){
 	return tria_blit(nc, placey, placex, linesize, data,
-			 begy, begx, leny, lenx, true);
+			             begy, begx, leny, lenx, true);
 }
 
 int ncblit_rgba(ncplane* nc, int placey, int placex, int linesize,
-                const unsigned char* data, int begy, int begx,
-                int leny, int lenx){
+                const void* data, int begy, int begx, int leny, int lenx){
 	return tria_blit(nc, placey, placex, linesize, data,
-			 begy, begx, leny, lenx, false);
+			             begy, begx, leny, lenx, false);
 }
 
 int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
@@ -473,7 +472,7 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
   ncplane_cursor_move_yx(ncv->ncp, 0, 0);
   const int linesize = f->linesize[0];
-  const unsigned char* data = f->data[0];
+  void* data = f->data[0];
   // y and x are actual plane coordinates. each row corresponds to two rows of
   // the input (scaled) frame (columns are 1:1). we track the row of the
   // visual via visy.
