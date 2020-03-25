@@ -21,12 +21,12 @@ static char datadir[PATH_MAX];
 // yes, these are in different orders in different configurations on purpose
 // (since some transition into the next)
 #ifndef USE_FFMPEG
-static const char DEFAULT_DEMO[] = "itfhbrgswju";
+static const char DEFAULT_DEMO[] = "itfhbrgnswju";
 #else
 #ifdef DFSG_BUILD
-static const char DEFAULT_DEMO[] = "ixtfhbrgswuo";
+static const char DEFAULT_DEMO[] = "ixtfhbrgnswuo";
 #else
-static const char DEFAULT_DEMO[] = "ixethbcgrwuvlfsjo";
+static const char DEFAULT_DEMO[] = "ixethnbcgrwuvlfsjo";
 #endif
 #endif
 
@@ -102,7 +102,7 @@ static struct {
   { NULL, NULL, },
   NONFREE("luigi", luigi_demo),
   { NULL, NULL, },
-  { NULL, NULL, },
+  { "normal", normal_demo, },
   FREEFFMPEG("outro", outro),
   { NULL, NULL, },
   { NULL, NULL, },

@@ -30,7 +30,8 @@ The demonstrations include (see NOTES below):
 * (g)rid—a gradient of color lain atop a great grid
 * (h)ighcon—high contrast text atop various colors
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
-* (l)uigi-a dashing Apennine plumber in a world of fire
+* (l)uigi—a dashing Apennine plumber in a world of fire
+* (n)ormal—a normal map of a friend, with lambert shading
 * (r)eel—demonstration of the ncreel high-level widget
 * (s)liders—a missing-piece puzzle made up of colorful blocks
 * (t)rans—an exploration of various transparencies
