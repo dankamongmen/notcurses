@@ -46,6 +46,8 @@ public:
 
 #include "gravity.h"
 #include "ticker.h"
+#include "clear.h"
+#include "lock.h"
 #include "movedown.h"
 #include "moveleft.h"
 #include "moveright.h"
