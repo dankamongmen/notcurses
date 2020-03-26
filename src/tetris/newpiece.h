@@ -32,11 +32,14 @@ std::unique_ptr<ncpp::Plane> NewPiece() {
     for(size_t i = 0 ; i < strlen(t->texture) ; ++i){
       if(t->texture[i] == '*'){
         if(n->putstr(y, x, "██") < 0){
-          return NULL;
+          throw TetrisNotcursesErr("putstr()");
         }
       }
       y += ((x = ((x + 2) % cols)) == 0);
     }
+  }
+  if(notcurses_render(nc_)){
+    throw TetrisNotcursesErr("render()");
   }
   return n;
 }
