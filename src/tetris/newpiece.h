@@ -18,7 +18,7 @@ std::unique_ptr<ncpp::Plane> NewPiece() {
   const size_t cols = strlen(t->texture);
   int y, x;
   stdplane_->get_dim(&y, &x);
-  const int xoff = x / 2 - BOARD_WIDTH + (random() % BOARD_WIDTH - 1);
+  const int xoff = x / 2 - BOARD_WIDTH + random() % BOARD_WIDTH;
   std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(2, cols, board_top_y_ - 1, xoff, nullptr);
   if(n){
     uint64_t channels = 0;

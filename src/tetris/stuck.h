@@ -12,8 +12,12 @@ bool PieceStuck() {
       if(board_->get_at(cmpy, cmpx, &c) < 0){
         throw TetrisNotcursesErr("get_at()");
       }
-      if(c.get().gcluster && c.get().gcluster != ' '){
-        return true;
+      if(c.get().gcluster){
+        if(c.get().gcluster != ' '){
+          if(strcmp(board_->get_extended_gcluster(c), "▄")){
+            return true;
+          }
+        }
       }
     }
   }
