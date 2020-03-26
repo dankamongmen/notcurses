@@ -31,7 +31,7 @@ void DrawBoard() {
   }
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   board_->set_base(channels, 0, "");
-  scoreplane_ = std::make_unique<ncpp::Plane>(2, 20, y - BOARD_HEIGHT, 2, nullptr);
+  scoreplane_ = std::make_unique<ncpp::Plane>(2, 30, y - BOARD_HEIGHT, 2, nullptr);
   if(!scoreplane_){
     throw TetrisNotcursesErr("Plane()");
   }

@@ -107,6 +107,7 @@ int main(void) {
       case NCKEY_LEFT: case 'h': t.MoveLeft(); break;
       case NCKEY_RIGHT: case 'l': t.MoveRight(); break;
       case NCKEY_DOWN: case 'j': t.MoveDown(); break;
+      case 'L': if(ni.ctrl){ notcurses_refresh(nc); } break;
       case 'z': t.RotateCcw(); break;
       case 'x': t.RotateCw(); break;
       default:
