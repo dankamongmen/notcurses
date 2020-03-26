@@ -45,8 +45,18 @@ void LockPiece(){
           }
         }
       }
-      /*for(int x = 1 ; x < bdimx - 1 ; ++x){
-      }*/
+      linescleared_ += cleared;
+      if(cleared == 4){
+        score_ += (level_ + 1) * 1000;
+      }else if(cleared == 3){
+        score_ += (level_ + 1) * 350;
+      }else if(cleared == 2){
+        score_ += (level_ + 1) * 150;
+      }else{
+        score_ += (level_ + 1) * 50;
+      }
+      level_ = linescleared_ / 10;
+      UpdateScore();
     }
   }while(cleared);
 }

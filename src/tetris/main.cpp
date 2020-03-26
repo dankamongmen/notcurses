@@ -32,8 +32,10 @@ public:
     board_(nullptr),
     backg_(nullptr),
     stdplane_(nc_.get_stdplane()),
+    scoreplane_(nullptr),
     gameover_(gameover),
     level_(0),
+    linescleared_(0),
     msdelay_(Gravity(level_))
   {
     DrawBoard();
@@ -46,6 +48,7 @@ public:
 
 #include "gravity.h"
 #include "ticker.h"
+#include "score.h"
 #include "clear.h"
 #include "lock.h"
 #include "movedown.h"
@@ -61,9 +64,11 @@ private:
   std::unique_ptr<ncpp::Plane> board_;
   std::unique_ptr<ncpp::Visual> backg_;
   ncpp::Plane* stdplane_;
+  std::unique_ptr<ncpp::Plane> scoreplane_;
   std::atomic_bool& gameover_;
   int board_top_y_;
   int level_;
+  int linescleared_;
   std::chrono::milliseconds msdelay_;
 
   // Returns true if there's a current piece which can be moved
