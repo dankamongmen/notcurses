@@ -1,5 +1,4 @@
-// background is drawn to the standard plane, at the bottom.
-void DrawBackground(const std::string& s) {
+void DrawBackground(const std::string& s) { // drawn to the standard plane
   int averr;
   try{
     backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &averr, 0, 0, ncpp::NCScale::Stretch);
@@ -15,8 +14,7 @@ void DrawBackground(const std::string& s) {
   backg_->get_plane()->greyscale();
 }
 
-// draw the background on the standard plane, then create a new plane for the play area.
-void DrawBoard() {
+void DrawBoard() { // draw all fixed components of the game
   DrawBackground(BackgroundFile);
   int y, x;
   stdplane_->get_dim(&y, &x);

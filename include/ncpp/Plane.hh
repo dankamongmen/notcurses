@@ -131,9 +131,9 @@ namespace ncpp
 			return ncplane_gradient (plane, egc, attrword, ul, ur, ll, lr, ystop, xstop) != -1;
 		}
 
-		bool gradient_sized (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xstop) const noexcept
+		bool gradient_sized (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
 		{
-			return ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xstop) != -1;
+			return ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xlen) != -1;
 		}
 
 		bool high_gradient (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
