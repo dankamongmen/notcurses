@@ -14,7 +14,7 @@ bool PieceStuck() {
         continue;
       }
       const char* egc = curpiece_->get_extended_gcluster(piecec);
-      if(strcmp(egc, "▄") && strcmp(egc, "█")){
+      if(strcmp(egc, "█")){
         continue;
       }
       int cmpy = y, cmpx = x; // need game area coordinates via translation
@@ -25,9 +25,7 @@ bool PieceStuck() {
       }
       if(c.get().gcluster){
         if(c.get().gcluster != ' '){
-          if(strcmp(board_->get_extended_gcluster(c), "▄")){
-            return true;
-          }
+          return true;
         }
       }
     }

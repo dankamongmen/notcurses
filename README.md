@@ -2559,6 +2559,9 @@ up someday **FIXME**.
 * *Q:* Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard?
 * *A:* `ncplane_box()` and friends already have far too many arguments, you monster.
 
+* *Q:* You seem a creative guy. Why the least creative name ever?
+* *A:* I really didn't expect this to go anywhere.
+
 ## Supplemental material
 
 ### Useful links
