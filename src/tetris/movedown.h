@@ -4,7 +4,7 @@ bool MoveDown() {
   int y, x;
   if(PrepForMove(&y, &x)){
     if(PieceStuck()){
-      if(y <= board_top_y_ - 2){
+      if(y <= board_top_y_ - 1){
         return true;
       }
       curpiece_->mergedown(*board_);
