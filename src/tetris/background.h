@@ -12,6 +12,7 @@ void DrawBackground(const std::string& s) {
   if(backg_->render(0, 0, -1, -1) <= 0){
     throw TetrisNotcursesErr("render(): " + s);
   }
+  backg_->get_plane()->greyscale();
 }
 
 // draw the background on the standard plane, then create a new plane for the play area.
