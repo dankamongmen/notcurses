@@ -7,16 +7,11 @@ void LockPiece(){
   board_->get_dim(&bdimy, &bdimx);
   int cleared; // how many contiguous lines were cleared
   do{
-    uint64_t tl, tr, bl, br;
-    tl = tr = bl = br = 0;
-    channels_set_bg_alpha(&tl, CELL_ALPHA_TRANSPARENT);
-    channels_set_bg_alpha(&tr, CELL_ALPHA_TRANSPARENT);
-    channels_set_bg_alpha(&bl, CELL_ALPHA_TRANSPARENT);
-    channels_set_bg_alpha(&br, CELL_ALPHA_TRANSPARENT);
-    channels_set_fg(&tl, 0xff0000);
-    channels_set_fg(&tr, 0x00ff00);
-    channels_set_fg(&bl, 0x0000ff);
-    channels_set_fg(&br, 0x00ffff);
+    uint64_t tl = 0, tr = 0, bl = 0, br = 0;
+    channels_set_fg(&tl, 0xff0000); channels_set_bg_alpha(&tl, CELL_ALPHA_TRANSPARENT);
+    channels_set_fg(&tr, 0x00ff00); channels_set_bg_alpha(&tr, CELL_ALPHA_TRANSPARENT);
+    channels_set_fg(&bl, 0x0000ff); channels_set_bg_alpha(&bl, CELL_ALPHA_TRANSPARENT);
+    channels_set_fg(&br, 0x00ffff); channels_set_bg_alpha(&br, CELL_ALPHA_TRANSPARENT);
     if(!board_->stain(bdimy - 2, bdimx - 2, tl, tr, bl, br)){
       throw TetrisNotcursesErr("stain()");
     }
