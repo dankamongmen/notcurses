@@ -20,16 +20,18 @@ void MoveRight() {
     }
     if(lx >= 0){ // otherwise, nothing on this row
       ncpp::Cell b;
-      int cmpy = ly, cmpx = lx + 1;
-      curpiece_->translate(*board_, &cmpy, &cmpx);
-      if(board_->get_at(cmpy, cmpx, &b)){
-        if(b.get().gcluster && b.get().gcluster != ' '){
-          return; // move is blocked
+      for(int xdelt = 1 ; xdelt < 3 ; ++xdelt){
+        int cmpy = ly, cmpx = lx + xdelt;
+        curpiece_->translate(*board_, &cmpy, &cmpx);
+        if(board_->get_at(cmpy, cmpx, &b)){
+          if(b.get().gcluster && b.get().gcluster != ' '){
+            return; // move is blocked
+          }
         }
       }
     }
   }
-  ++x;
+  x += 2;
   if(!curpiece_->move(y, x) || !nc_.render()){ // FIXME needs y?
     throw TetrisNotcursesErr("move() or render()");
   }
