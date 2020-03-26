@@ -21,15 +21,28 @@ void LockPiece(){
       throw TetrisNotcursesErr("stain()");
     }
     cleared = 0;
-    for(int y = bdimy - 2 ; y > 0 ; --y){
+    int y;
+    for(y = bdimy - 2 ; y > 0 ; --y){
       if(LineClear(y)){
         ++cleared;
       }else if(cleared){
         break;
       }
     }
-    if(cleared){
-      // FIXME purge them, augment score
+    if(cleared){ // topmost verified clear is y + 1, bottommost is y + cleared
+      for(int dy = y ; dy >= 0 ; --dy){
+        for(int x = 1 ; x < bdimx - 2 ; ++x){
+          ncpp::Cell c;
+          if(board_->get_at(dy, x, &c) < 0){
+            throw TetrisNotcursesErr("get_at()");
+          }
+          if(board_->putc(dy + 1, x, &c) < 0){
+            throw TetrisNotcursesErr("putc()");
+          }
+        }
+      }
+      /*for(int x = 1 ; x < bdimx - 1 ; ++x){
+      }*/
     }
   }while(cleared);
 }
