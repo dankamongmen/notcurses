@@ -22,7 +22,7 @@ void LockPiece(){
     }
     cleared = 0;
     int y;
-    for(y = bdimy - 2 ; y > 0 ; --y){
+    for(y = bdimy - 2 ; y > 0 ; --y){ // get the lowest cleared area
       if(LineClear(y)){
         ++cleared;
       }else if(cleared){
@@ -36,7 +36,11 @@ void LockPiece(){
           if(board_->get_at(dy, x, &c) < 0){
             throw TetrisNotcursesErr("get_at()");
           }
-          if(board_->putc(dy + 1, x, &c) < 0){
+          if(board_->putc(dy + cleared, x, &c) < 0){
+            throw TetrisNotcursesErr("putc()");
+          }
+          c.get().gcluster = 0;
+          if(board_->putc(dy, x, &c) < 0){
             throw TetrisNotcursesErr("putc()");
           }
         }
