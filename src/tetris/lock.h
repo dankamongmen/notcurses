@@ -46,15 +46,8 @@ void LockPiece(){
         }
       }
       linescleared_ += cleared;
-      if(cleared == 4){
-        score_ += (level_ + 1) * 1000;
-      }else if(cleared == 3){
-        score_ += (level_ + 1) * 350;
-      }else if(cleared == 2){
-        score_ += (level_ + 1) * 150;
-      }else{
-        score_ += (level_ + 1) * 50;
-      }
+      static constexpr int points[] = {50, 150, 350, 1000};
+      score_ += (level_ + 1) * points[cleared - 1];
       level_ = linescleared_ / 10;
       UpdateScore();
     }
