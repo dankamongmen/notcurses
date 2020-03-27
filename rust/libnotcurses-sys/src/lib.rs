@@ -4,7 +4,6 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-use std::str;
 use std::ffi::CStr;
 
 extern {
@@ -41,6 +40,10 @@ mod tests {
                 no_winch_sighandler: false,
                 no_quit_sighandlers: false,
                 renderfp: std::ptr::null_mut(),
+                margin_t: 0,
+                margin_r: 0,
+                margin_b: 0,
+                margin_l: 0,
             };
             let nc = notcurses_init(&opts, libc_stdout());
             notcurses_stop(nc);
