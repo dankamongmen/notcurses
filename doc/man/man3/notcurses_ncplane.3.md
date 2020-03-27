@@ -12,6 +12,10 @@ notcurses_ncplane - operations on notcurses planes
 
 **struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);**
 
+**struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque);**
+
+**struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);**
+
 **struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);**
 
 **struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);**
@@ -144,12 +148,26 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of cells
 * its position relative to the visible plane, and
 * its z-index.
 
-**notcurses_drop_planes** destroys all ncplanes other than the stdplane. Any
-references to such planes are, of course, invalidated.
+New planes can be created with **ncplane_new**, **ncplane_bound**, and
+**ncplane_aligned**. If a plane is bound to another, x and y coordinates are
+relative to the plane to which it is bound, and if that plane moves, all its
+bound planes move along with it. When a plane is destroyed, all planes bound to
+it (directly or transitively) are destroyed. **ncplane_reparent** detaches the
+plane **n** from any plane to which it is bound, and binds it to **newparent**
+if **newparent** is not **NULL**. All planes bound to **n** move along with it
+during a reparenting operation.
 
-It is an error for two threads to concurrently access a single ncplane. So long
+**ncplane_destroy** destroys a particular ncplane, after which it must not be
+used again. **notcurses_drop_planes** destroys all ncplanes other than the
+stdplane. Any references to such planes are, of course, invalidated. It is
+undefined to destroy a plane concurrently with any other operation involving
+that plane, or any operation involving the z-axis.
+
+It is an error for two threads to concurrently mutate a single ncplane. So long
 as rendering is not taking place, however, multiple threads may safely output
-to multiple ncplanes.
+to multiple ncplanes. So long as all threads are readers, multiple threads may
+work with a single ncplane. A reading function is any which accepts a **const
+struct ncplane**.
 
 **ncplane_translate** translates coordinates expressed relative to the plane
 **src**, and writes the coordinates of that cell relative to **dst**. The cell
@@ -166,13 +184,13 @@ might see changes. It is an error to merge a plane onto itself.
 
 # RETURN VALUES
 
-**ncplane_new(3)**, **ncplane_aligned(3)**, and **ncplane_dup(3)** all return a
-new **struct ncplane** on success, or **NULL** on failure.
+**ncplane_new**, **ncplane_bound**, **ncplane_aligned**, and **ncplane_dup**
+all return a new **struct ncplane** on success, or **NULL** on failure.
 
-**ncplane_userptr(3)** returns the configured user pointer for the ncplane, and
+**ncplane_userptr** returns the configured user pointer for the ncplane, and
 cannot fail.
 
-**ncplane_below(3)** returns the plane below the specified ncplane. If the provided
+**ncplane_below** returns the plane below the specified ncplane. If the provided
 plane is the bottommost plane, NULL is returned. It cannot fail.
 
 Functions returning **int** return 0 on success, and non-zero on error.

@@ -403,6 +403,16 @@ API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
 API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
                                     int yoff, ncalign_e align, void* opaque);
 
+// Create a plane bound to plane 'n'. Being bound to 'n' means that 'yoff' and
+// 'xoff' are interpreted relative to that plane's origin, and that if that
+// plane is moved later, this new plane is moved by the same amount.
+API struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols,
+                                  int yoff, int xoff, void* opaque);
+
+// Plane 'n' will be unbound from its parent plane, if it is currently bound,
+// and will be made a bound child of 'newparent', if 'newparent' is not NULL.
+API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
+
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 // The new plane will be immediately above the old one on the z axis.
