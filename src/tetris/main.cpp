@@ -2,6 +2,7 @@
 #include <atomic>
 #include <thread>
 #include <chrono>
+#include <vector>
 #include <cstdlib>
 #include <clocale>
 #include <ncpp/NotCurses.hh>

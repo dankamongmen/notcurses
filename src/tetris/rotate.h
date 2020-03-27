@@ -4,6 +4,7 @@ void RotateCcw() {
   if(!PrepForMove(&y, &x)){
     return;
   }
+  // FIXME need to check game board for validity of rotation in both of these
   if(!curpiece_->rotate_ccw() || !nc_.render()){
     throw TetrisNotcursesErr("rotate_ccw() or render()");
   }
