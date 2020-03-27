@@ -3,7 +3,13 @@ bool MoveDown() {
   const std::lock_guard<std::mutex> lock(mtx_);
   int y, x;
   if(PrepForMove(&y, &x)){
-    if(PieceStuck()){
+    if(!curpiece_->move(y + 1, x)){
+      throw TetrisNotcursesErr("move()");
+    }
+    if(InvalidMove()){
+      if(!curpiece_->move(y, x)){
+        throw TetrisNotcursesErr("move()");
+      }
       if(y <= board_top_y_ - 1){
         return true;
       }
@@ -11,9 +17,6 @@ bool MoveDown() {
       curpiece_ = NewPiece();
     }else{
       ++y;
-      if(!curpiece_->move(y, x)){
-        throw TetrisNotcursesErr("move()");
-      }
     }
     if(!nc_.render()){
       throw TetrisNotcursesErr("render()");

@@ -1,38 +1,29 @@
-bool PieceStuck() {
-  if(curpiece_){
-    // check for impact. iterate over bottom row of piece's plane, checking for
-    // presence of glyph. if there, check row below. if row below is occupied,
-    // we're stuck.
-    int y, dimx, x;
-    curpiece_->get_dim(&y, &dimx);
-    std::vector<bool> columns(dimx, false); // bitmap for column verification
-    int checked = 0;
-    while(y--){
-      x = dimx;
-      while(x--){
-        if(!columns[x]){
-          ncpp::Cell piecec;
-          if(curpiece_->get_at(y, x, &piecec) < 0){
-            throw TetrisNotcursesErr("get_at()");
-          }
-          if(piecec.is_simple()){
-            continue;
-          }
-          int cmpy = y + 1, cmpx = x; // need game area coordinates via translation
-          curpiece_->translate(*board_, &cmpy, &cmpx);
-          ncpp::Cell c;
-          if(board_->get_at(cmpy, cmpx, &c) < 0){
-            throw TetrisNotcursesErr("get_at()");
-          }
-          if(!c.is_simple()){
-            return true;
-          }
-          columns[x] = true;
-          if(++checked == dimx){
-            return false;
-          }
-        }
+bool InvalidMove() { // a bit wasteful, but piece are tiny
+  int dy, dx;
+  curpiece_->get_dim(&dy, &dx);
+  while(dy--){
+    int x = dx;
+    while(x--){
+      ncpp::Cell c, b;
+      if(curpiece_->get_at(dy, x, &c) < 0){
+        throw TetrisNotcursesErr("get_at()");
       }
+      if(c.is_simple()){
+        continue;
+      }
+      curpiece_->release(c);
+      int transy = dy, transx = x; // need game area coordinates via translation
+      curpiece_->translate(*board_, &transy, &transx);
+      if(transy < 0 || transy >= board_->get_dim_y() || transx < 0 || transx >= board_->get_dim_x()){
+        return true;
+      }
+      if(board_->get_at(transy, transx, &b) < 0){
+        throw TetrisNotcursesErr("get_at()");
+      }
+      if(!b.is_simple()){
+        return true;
+      }
+      board_->release(b);
     }
   }
   return false;
