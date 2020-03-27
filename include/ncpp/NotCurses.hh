@@ -203,9 +203,9 @@ namespace ncpp
 			return notcurses_getc_nblock (nc, ni);
 		}
 
-		char* get_at (int yoff, int xoff, Cell &c) const noexcept
+		char* get_at (int yoff, int xoff, uint32_t* attr, uint64_t* channels) const noexcept
 		{
-			return notcurses_at_yx (nc, yoff, xoff, c);
+			return notcurses_at_yx (nc, yoff, xoff, attr, channels);
 		}
 
 		void drop_planes () const noexcept

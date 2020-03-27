@@ -922,14 +922,14 @@ TEST_CASE("NCPlane") {
     REQUIRE(0 < ncplane_at_yx(ncp, 1, 0, &c));
     CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
     cell_release(ncp, &c);
-    char* egc = notcurses_at_yx(nc_, 1, 0, &c);
+    char* egc = notcurses_at_yx(nc_, 1, 0, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp(egc, "│"));
     free(egc);
     REQUIRE(0 < ncplane_at_yx(ncp, 1, 3, &c));
     CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
     cell_release(ncp, &c);
-    egc = notcurses_at_yx(nc_, 1, 3, &c);
+    egc = notcurses_at_yx(nc_, 1, 3, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp(egc, "│"));
     free(egc);
@@ -950,16 +950,16 @@ TEST_CASE("NCPlane") {
     ncplane_at_yx(n_, 0, 4, &c);
     CHECK(!cell_double_wide_p(&c));
     REQUIRE(0 == notcurses_render(nc_));
-    notcurses_at_yx(nc_, 0, 0, &c);
-    CHECK(cell_double_wide_p(&c));
-    notcurses_at_yx(nc_, 0, 1, &c);
-    CHECK(cell_double_wide_p(&c));
-    notcurses_at_yx(nc_, 0, 2, &c);
-    CHECK(cell_double_wide_p(&c));
-    notcurses_at_yx(nc_, 0, 3, &c);
-    CHECK(cell_double_wide_p(&c));
-    notcurses_at_yx(nc_, 0, 4, &c);
-    CHECK(!cell_double_wide_p(&c));
+    notcurses_at_yx(nc_, 0, 0, &c.attrword, &c.channels);
+    CHECK(0 != (c.channels & 0x8000000080000000ull));
+    notcurses_at_yx(nc_, 0, 1, &c.attrword, &c.channels);
+    CHECK(0 != (c.channels & 0x8000000080000000ull));
+    notcurses_at_yx(nc_, 0, 2, &c.attrword, &c.channels);
+    CHECK(0 != (c.channels & 0x8000000080000000ull));
+    notcurses_at_yx(nc_, 0, 3, &c.attrword, &c.channels);
+    CHECK(0 != (c.channels & 0x8000000080000000ull));
+    notcurses_at_yx(nc_, 0, 4, &c.attrword, &c.channels);
+    CHECK(!(c.channels & 0x8000000080000000ull));
   }
 
   SUBCASE("Perimeter") {

@@ -12,7 +12,7 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **int notcurses_render(struct notcurses* nc);**
 
-**char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, cell* c);**
+**char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels);**
 
 # DESCRIPTION
 
@@ -63,11 +63,17 @@ If the algorithm concludes without an EGC, the cell is rendered with no glyph
 and a default background. If the algorithm concludes without a color locked in,
 the color as computed thus far is used.
 
+**notcurses_at_yx** retrieves a call *as rendered*. The EGC in that cell is
+copied and returned; it must be **free(3)**d by the caller.
+
 # RETURN VALUES
 
 On success, 0 is returned. On failure, a non-zero value is returned. A success
 will result in the **renders** stat being increased by 1. A failure will result
 in the **failed_renders** stat being increased by 1.
+
+**notcurses_at_yx** returns a heap-allocated copy of the cell's EGC on success,
+and **NULL** on failure.
 
 # BUGS
 

@@ -7,6 +7,12 @@ rearrangements of Notcurse.
 ** `ncvisual_render()` now interprets length parameters of -1 to mean "to the
    end along this axis", and no longer interprets 0 to mean this. 0 now means
    "a length of 0", resulting in a zero-area rendering.
+** `notcurses_at_yx()` no longer accepts a `cell*` as its last parameter.
+   Instead, it accepts a `uint32_t*` and a `uint64_t*`, and writes the
+   attribute and channels to these parameters. This was done because the
+   `gcluster` field of the `cell*` was always set to 0, which was surprising
+   and a source of blunders. The EGC is returned via the `char*` return
+   value. https://github.com/dankamongmen/notcurses/issues/410
 
 * 1.2.4 2020-03-24
 ** Add ncmultiselector

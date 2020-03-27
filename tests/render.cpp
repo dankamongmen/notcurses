@@ -48,7 +48,7 @@ TEST_CASE("RenderTest") {
     CHECK(!strcmp("\xe5\x85\xa8", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    egc = notcurses_at_yx(nc_, 0, 0, &c);
+    egc = notcurses_at_yx(nc_, 0, 0, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("\xe5\x85\xa8", egc));
     CHECK(cell_double_wide_p(&c));
@@ -61,7 +61,7 @@ TEST_CASE("RenderTest") {
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    egc = notcurses_at_yx(nc_, 0, 1, &c);
+    egc = notcurses_at_yx(nc_, 0, 1, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
@@ -75,7 +75,7 @@ TEST_CASE("RenderTest") {
     CHECK(!strcmp("\xe5\xbd\xa2", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    egc = notcurses_at_yx(nc_, 0, 2, &c);
+    egc = notcurses_at_yx(nc_, 0, 2, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("\xe5\xbd\xa2", egc));
     CHECK(cell_double_wide_p(&c));
@@ -88,7 +88,7 @@ TEST_CASE("RenderTest") {
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    egc = notcurses_at_yx(nc_, 0, 3, &c);
+    egc = notcurses_at_yx(nc_, 0, 3, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
@@ -101,26 +101,26 @@ TEST_CASE("RenderTest") {
     CHECK(!notcurses_render(nc_));
 
     // should be nothing, having been stomped
-    egc = notcurses_at_yx(nc_, 0, 0, &c);
+    egc = notcurses_at_yx(nc_, 0, 0, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp(" ", egc));
     free(egc);
     cell_init(&c);
     // should be character from higher plane
-    egc = notcurses_at_yx(nc_, 0, 1, &c);
+    egc = notcurses_at_yx(nc_, 0, 1, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("A", egc));
     free(egc);
     cell_init(&c);
 
-    egc = notcurses_at_yx(nc_, 0, 2, &c);
+    egc = notcurses_at_yx(nc_, 0, 2, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("B", egc));
     free(egc);
     cell_init(&c);
 
     // should be nothing, having been stomped
-    egc = notcurses_at_yx(nc_, 0, 3, &c);
+    egc = notcurses_at_yx(nc_, 0, 3, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp(" ", egc));
     free(egc);

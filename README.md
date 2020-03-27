@@ -257,10 +257,10 @@ updated to reflect the changes:
 int notcurses_render(struct notcurses* nc);
 
 // Retrieve the contents of the specified cell as last rendered. The EGC is
-// returned, or NULL on error. This EGC must be free()d by the caller. The cell
-// 'c' is not bound to a plane, and thus its gcluster value must not be used--
-// use the return value only.
-char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, cell* c);
+// returned, or NULL on error. This EGC must be free()d by the caller. The
+// attrword and channels are written to 'attrword' and 'channels', respectively.
+char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
+                      uint32_t* attrword, uint64_t* channels);
 ```
 
 One `ncplane` is guaranteed to exist: the "standard plane". The user cannot

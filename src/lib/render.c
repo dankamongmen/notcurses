@@ -1040,16 +1040,16 @@ int notcurses_render(notcurses* nc){
   return ret;
 }
 
-char* notcurses_at_yx(notcurses* nc, int y, int x, cell* c){
+char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels){
   char* egc = NULL;
   if(nc->lastframe){
-    if(y >= 0 && y < nc->lfdimy){
-      if(x >= 0 || x < nc->lfdimx){
-        const cell* srccell = &nc->lastframe[y * nc->lfdimx + x];
-        memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
-//fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
+    if(yoff >= 0 && yoff < nc->lfdimy){
+      if(xoff >= 0 || xoff < nc->lfdimx){
+        const cell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
+        *attrword = srccell->attrword;
+        *channels = srccell->channels;
+//fprintf(stderr, "COPYING: %d from %p\n", srccell->gcluster, &nc->pool);
         egc = pool_egc_copy(&nc->pool, srccell);
-        c->gcluster = 0; // otherwise cell_release() will blow up
       }
     }
   }
