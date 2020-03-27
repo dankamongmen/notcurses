@@ -6,7 +6,7 @@ bool LineClear(int y){
     if(board_->get_at(y, x, &c) < 0){
       throw TetrisNotcursesErr("get_at()");
     }
-    if(!c.get().gcluster || c.get().gcluster == ' '){
+    if(c.is_simple()){
       return false;
     }
   }

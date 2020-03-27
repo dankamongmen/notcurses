@@ -18,12 +18,6 @@ bool PieceStuck() {
           if(piecec.is_simple()){
             continue;
           }
-          ///*
-          const char* egc = curpiece_->get_extended_gcluster(piecec);
-          if(strcmp(egc, "█")){
-            continue;
-          }
-          //*/
           int cmpy = y + 1, cmpx = x; // need game area coordinates via translation
           curpiece_->translate(*board_, &cmpy, &cmpx);
           ncpp::Cell c;

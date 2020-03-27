@@ -40,7 +40,7 @@ void LockPiece(){
             throw TetrisNotcursesErr("putc()");
           }
           c.get().gcluster = 0;
-          if(board_->putc(dy, x, &c) < 0){
+          if(board_->putc(dy, x, &c) < 0){ // could just do this at end...
             throw TetrisNotcursesErr("putc()");
           }
         }
