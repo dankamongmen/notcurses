@@ -9,7 +9,8 @@ description = "Notcurses-based utility for command-line TUI widgets"
 homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
 
 [dependencies]
-notcurses = ">= 1.2.3"
+libc = ">= 0.2.66"
+libnotcurses-sys = ">= 1.2.3"
 
 [dependencies.clap]
 version = ">= 2.33.0"

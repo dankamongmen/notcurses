@@ -12,3 +12,5 @@ homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
 
 [dependencies]
 libnotcurses-sys = "^1.2.4"
+libc = "0.2.66"
+libc-stdhandle = ">= 0.1.0"
