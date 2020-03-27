@@ -51,6 +51,7 @@ public:
 #include "ticker.h"
 #include "score.h"
 #include "clear.h"
+#include "stain.h"
 #include "lock.h"
 #include "movedown.h"
 #include "moveleft.h"

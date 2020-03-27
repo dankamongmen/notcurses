@@ -1222,10 +1222,10 @@ My 14 year-old self would never forgive me if we didn't have sweet palette fades
 typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, void* curry);
 
 // Fade the ncplane out over the provided time, calling the specified function
-// when done. Requires a terminal which supports direct color, or at least
-// palette modification (if the terminal uses a palette, our ability to fade
-// planes is limited, and affected by the complexity of the rest of the screen).
-// It is not safe to resize or destroy the plane during the fadeout FIXME.
+// when done. Requires a terminal which supports truecolor, or at least palette
+// modification (if the terminal uses a palette, our ability to fade planes is
+// limited, and affected by the complexity of the rest of the screen). It is
+// not safe to resize or destroy the plane during the fadeout FIXME.
 int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
 
 // Fade the ncplane in over the specified time. Load the ncplane with the
@@ -1324,9 +1324,9 @@ ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
 }
 
 // Set the current fore/background color using RGB specifications. If the
-// terminal does not support directly-specified 3x8b cells (24-bit "Direct
-// Color", indicated by the "RGB" terminfo capability), the provided values
-// will be interpreted in some lossy fashion. None of r, g, or b may exceed 255.
+// terminal does not support directly-specified 3x8b cells (24-bit "TrueColor",
+// indicated by the "RGB" terminfo capability), the provided values will be
+// interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
 // time using "color pairs"; notcurses will manage color pairs transparently.
 int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
