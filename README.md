@@ -1738,9 +1738,9 @@ similar work in [outcurses](https://github.com/dankamongmen/ncreels#ncreels).
 
 The ncreel is a UI abstraction supported by notcurses in which
 dynamically-created and -destroyed toplevel entities (referred to as tablets)
-are arranged in a torus (circular loop), allowing for infinite scrolling
-(infinite scrolling can be disabled, resulting in a line segment rather than a
-torus). This works naturally with keyboard navigation, mouse scrolling wheels,
+are arranged as if on a cylinder, allowing for infinite scrolling
+(infinite scrolling can be disabled, resulting in a rectangle rather than a
+cylinder). This works naturally with keyboard navigation, mouse scrolling wheels,
 and touchpads (including the capacitive touchscreens of modern cell phones).
 The term "reel" derives from slot machines. An ncreel initially has
 no tablets; at any given time thereafter, it has zero or more tablets, and if
