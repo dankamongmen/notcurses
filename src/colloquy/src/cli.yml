@@ -1,17 +1,17 @@
 name: colloquy
 version: "0.1.0"
-about: Attractive UI widgets from the shell
+about: Attractive Notcurses UI widgets from the shell
 author: Nick Black <dankamongmen@gmail.com>
 args:
     - verbose:
         long: verbose
         short: v
         help: Verbose mode
-    - file:
-        long: file
-        short: f
-        help: Read configuration options from this file
-        takes_value: true
+#   - file:
+#       long: file
+#       short: f
+#       help: Read configuration options from this file
+#       takes_value: true
     - title:
         long: title
         short: t
@@ -19,15 +19,13 @@ args:
     - msgbox:
         long: msgbox
         help: Display arbitrary text with a single button to accept it
+        requires: text
     - text:
         help: The contents of the widget
-        required: true
         index: 1
     - height:
         help: The height of the widget, 0 for screen height
-        required: true
         index: 2
     - width:
         help: The width of the widget, 0 for screen width
-        required: true
         index: 3

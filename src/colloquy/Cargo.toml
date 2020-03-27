@@ -10,4 +10,8 @@ homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
 
 [dependencies]
 notcurses = ">= 1.2.3"
-clap = {version = ">= 2.33.0", features = ["yaml", "color", "suggestions"]}
+
+[dependencies.clap]
+version = ">= 2.33.0"
+default-features = false
+features = ["yaml", "color", "suggestions"]
