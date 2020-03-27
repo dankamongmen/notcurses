@@ -17,9 +17,9 @@ bool MoveDown() {
       curpiece_ = NewPiece();
     }else{
       ++y;
-      if(!nc_.render()){
-        throw TetrisNotcursesErr("render()");
-      }
+    }
+    if(!nc_.render()){
+      throw TetrisNotcursesErr("render()");
     }
   }
   return false;
