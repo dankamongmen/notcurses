@@ -999,7 +999,7 @@ TEST_CASE("NCPlane") {
     int dimy, dimx;
     notcurses_stddim_yx(nc_, &dimy, &dimx);
     struct ncplane* n = ncplane_new(nc_, 2, 2, 1, 1, nullptr);
-    REQUIRE(nullptr != n);
+    REQUIRE(n);
     ncinput ni{};
     ni.id = NCKEY_RELEASE;
     int total = 0;
@@ -1017,6 +1017,62 @@ TEST_CASE("NCPlane") {
     }
     CHECK(25 == total); // make sure x/y never got changed
     CHECK(0 == ncplane_destroy(n));
+  }
+
+  SUBCASE("BoundPlaneMoves") {
+    struct ncplane* ndom = ncplane_new(nc_, 2, 2, 1, 1, nullptr);
+    REQUIRE(ndom);
+    struct ncplane* nsub = ncplane_bound(ndom, 2, 2, 1, 1, nullptr);
+    REQUIRE(nsub);
+    int absy, absx;
+    ncplane_yx(nsub, &absy, &absx);
+    // we ought be at 2,2 despite supplying 1,1
+    CHECK(2 == absy);
+    CHECK(2 == absx);
+    CHECK(0 == ncplane_move_yx(nsub, -1, -1)); // moving to -1, -1 ought be 0, 0
+    ncplane_yx(nsub, &absy, &absx);
+    CHECK(0 == absy);
+    CHECK(0 == absx);
+  }
+
+  SUBCASE("BoundToPlaneMoves") { // bound plane ought move along with plane
+    struct ncplane* ndom = ncplane_new(nc_, 2, 2, 1, 1, nullptr);
+    REQUIRE(ndom);
+    struct ncplane* nsub = ncplane_bound(ndom, 2, 2, 1, 1, nullptr);
+    REQUIRE(nsub);
+    int absy, absx;
+    ncplane_yx(nsub, &absy, &absx);
+    // we ought be at 2,2 despite supplying 1,1
+    CHECK(2 == absy);
+    CHECK(2 == absx);
+    CHECK(0 == ncplane_move_yx(ndom, 0, 0)); // move to 0, 0 places it at 1, 1
+    ncplane_yx(nsub, &absy, &absx);
+    CHECK(1 == absy);
+    CHECK(1 == absx);
+  }
+
+  SUBCASE("UnboundPlaneMoves") { // unbound plane no longer gets pulled along
+    struct ncplane* ndom = ncplane_new(nc_, 2, 2, 1, 1, nullptr);
+    REQUIRE(ndom);
+    struct ncplane* nsub = ncplane_bound(ndom, 2, 2, 1, 1, nullptr);
+    REQUIRE(nsub);
+    int absy, absx;
+    ncplane_yx(nsub, &absy, &absx);
+    // we ought be at 2,2 despite supplying 1,1
+    CHECK(2 == absy);
+    CHECK(2 == absx);
+    ncplane_reparent(nsub, nullptr);
+    CHECK(0 == ncplane_move_yx(ndom, 0, 0)); // move to 0, 0 places it at 1, 1
+    ncplane_yx(nsub, &absy, &absx);
+    CHECK(2 == absy);
+    CHECK(2 == absx);
+  }
+
+  SUBCASE("NoReparentStdPlane") {
+    struct ncplane* ndom = ncplane_new(nc_, 2, 2, 1, 1, nullptr);
+    REQUIRE(ndom);
+    CHECK(!ncplane_reparent(n_, ndom)); // can't reparent standard plane
+    CHECK(ncplane_reparent(ndom, n_)); // *can* reparent *to* standard plane
   }
 
   CHECK(0 == notcurses_stop(nc_));

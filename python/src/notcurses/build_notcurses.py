@@ -100,6 +100,8 @@ void notcurses_drop_planes(struct notcurses* nc);
 int notcurses_refresh(struct notcurses* n);
 int notcurses_resize(struct notcurses* n, int* y, int* x);
 struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);
+struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque);
+struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
 typedef enum {
   NCALIGN_LEFT,
   NCALIGN_CENTER,
