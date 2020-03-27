@@ -7,3 +7,27 @@ args:
         long: verbose
         short: v
         help: Verbose mode
+    - file:
+        long: file
+        short: f
+        help: Read configuration options from this file
+        takes_value: true
+    - title:
+        long: title
+        short: t
+        help: Set the title text
+    - msgbox:
+        long: msgbox
+        help: Display arbitrary text with a single button to accept it
+    - text:
+        help: The contents of the widget
+        required: true
+        index: 1
+    - height:
+        help: The height of the widget, 0 for screen height
+        required: true
+        index: 2
+    - width:
+        help: The width of the widget, 0 for screen width
+        required: true
+        index: 3
