@@ -2509,6 +2509,8 @@ typedef struct ncplot_options {
   // FIXME give parameters for variables
 } ncplot_options;
 
+API struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
+
 #undef API
 
 #ifdef __cplusplus
