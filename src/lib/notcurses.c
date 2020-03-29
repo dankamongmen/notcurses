@@ -384,7 +384,7 @@ ncplane* ncplane_dup(ncplane* n, void* opaque){
       n->attrword = attr;
       n->channels = chan;
       ncplane_move_above_unsafe(newn, n);
-      memcpy(newn->fb, n->fb, sizeof(*n->fb) * dimy * dimy);
+      memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
     }
   }
   return newn;
