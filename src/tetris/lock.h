@@ -1,4 +1,4 @@
-void LockPiece(){
+bool LockPiece(){ // returns true if game has ended by reaching level 16
   curpiece_->mergedown(*board_);
   int bdimy, bdimx;
   board_->get_dim(&bdimy, &bdimx);
@@ -33,10 +33,13 @@ void LockPiece(){
       linescleared_ += cleared;
       static constexpr int points[] = {50, 150, 350, 1000};
       score_ += (level_ + 1) * points[cleared - 1];
-      level_ = linescleared_ / 10;
+      if((level_ = linescleared_ / 10) > 15){
+        return true;
+      }
       msdelay_ = std::chrono::milliseconds(Gravity(level_));
       StainBoard(bdimy, bdimx);
       UpdateScore();
     }
   }while(cleared);
+  return false;
 }

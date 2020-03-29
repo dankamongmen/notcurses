@@ -243,6 +243,7 @@ int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
       return -1;
     }
   }
+  int total = 0;
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
@@ -250,11 +251,11 @@ int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
       if(cell_load(n, targc, "▀") < 0){
         return -1;
       }
-      // FIXME do the loop
       calc_highgradient(targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
+      ++total;
     }
   }
-  return 0;
+  return total;
 }
 
 int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
@@ -297,6 +298,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
       return -1;
     }
   }
+  int total = 0;
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
@@ -306,9 +308,10 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
       }
       targc->attrword = attrword;
       calc_gradient_channels(targc, ul, ur, bl, br, y - yoff, x - xoff, ylen, xlen);
+      ++total;
     }
   }
-  return 0;
+  return total;
 }
 
 int ncplane_stain(struct ncplane* n, int ystop, int xstop,
@@ -333,13 +336,15 @@ int ncplane_stain(struct ncplane* n, int ystop, int xstop,
   }
   const int xlen = xstop - xoff + 1;
   const int ylen = ystop - yoff + 1;
+  int total = 0;
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
       calc_gradient_channels(targc, tl, tr, bl, br, y - yoff, x - xoff, ylen, xlen);
+      ++total;
     }
   }
-  return 0;
+  return total;
 }
 
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
@@ -357,13 +362,15 @@ int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
   if(xstop >= xmax || ystop >= ymax){
     return -1;
   }
+  int total = 0;
   for(int y = yoff ; y < ystop + 1 ; ++y){
     for(int x = xoff ; x < xstop + 1 ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->attrword = attrword;
+      ++total;
     }
   }
-  return 0;
+  return total;
 }
 
 // generate a temporary plane that can hold the contents of n, rotated 90°

@@ -1,5 +1,4 @@
-// returns true if the game has ended as a result of this move down
-bool MoveDown() {
+bool MoveDown() { // returns true if the game has ended as a result of this move
   const std::lock_guard<std::mutex> lock(mtx_);
   int y, x;
   if(PrepForMove(&y, &x)){
@@ -13,7 +12,9 @@ bool MoveDown() {
       if(y <= board_top_y_ - 1){
         return true;
       }
-      LockPiece();
+      if(LockPiece()){
+        return true;
+      }
       curpiece_ = NewPiece();
     }else{
       ++y;

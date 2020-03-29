@@ -79,7 +79,7 @@ TEST_CASE("Rotate") {
   SUBCASE("RotateGradientCW") {
     // should be a square, and should remain a square through rotations
     struct ncplane* testn = ncplane_new(nc_, 8, 16, dimy / 2, dimx / 2, nullptr);
-    REQUIRE(0 == ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
+    REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
     RotateCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
   }
@@ -87,7 +87,7 @@ TEST_CASE("Rotate") {
   SUBCASE("RotateRectangleCW") {
     // should be a square, and should remain a square through rotations
     struct ncplane* testn = ncplane_new(nc_, 8, 32, dimy / 2, dimx / 2, nullptr);
-    REQUIRE(0 == ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
+    REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
     RotateCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
   }
@@ -95,7 +95,7 @@ TEST_CASE("Rotate") {
   SUBCASE("RotateGradientCCW") {
     // should be a square, and should remain a square through rotations
     struct ncplane* testn = ncplane_new(nc_, 8, 16, dimy / 2, dimx / 2, nullptr);
-    REQUIRE(0 == ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
+    REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
     RotateCCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
   }
@@ -103,7 +103,7 @@ TEST_CASE("Rotate") {
   SUBCASE("RotateRectangleCCW") {
     // should be a square, and should remain a square through rotations
     struct ncplane* testn = ncplane_new(nc_, 8, 32, 0, 0, nullptr);
-    REQUIRE(0 == ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
+    REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
     RotateCCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
   }

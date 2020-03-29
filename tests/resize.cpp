@@ -34,7 +34,7 @@ TEST_CASE("Resize") {
     int x = dimx;
     struct ncplane* testn = ncplane_new(nc_, y, x, 0, 0, nullptr);
     REQUIRE(nullptr != testn);
-    REQUIRE(0 == ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
+    REQUIRE(0 < ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
     CHECK(0 == notcurses_render(nc_));
     while(y > 1 || x > 1){
       y = y > 1 ? y - 1 : y;
@@ -51,13 +51,13 @@ TEST_CASE("Resize") {
     int x = 2;
     struct ncplane* testn = ncplane_new(nc_, y, x, 0, 0, nullptr);
     REQUIRE(nullptr != testn);
-    REQUIRE(0 == ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
+    REQUIRE(0 < ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
     CHECK(0 == notcurses_render(nc_));
     while(y < dimy || x < dimx){
       y = y < dimy ? y + 1 : y;
       x = x < dimx ? x + 1 : x;
       CHECK(0 == ncplane_resize(testn, 0, 0, 0, 0, 0, 0, y, x));
-      REQUIRE(0 == ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
+      REQUIRE(0 < ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
       CHECK(0 == notcurses_render(nc_));
     }
     CHECK(0 == ncplane_destroy(testn));

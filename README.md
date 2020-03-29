@@ -1159,9 +1159,11 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 Similarly, areas can be filled with a cell.
 
 ```c
-// The specified coordinate must not currently have a glyph, or it is an error.
-// Otherwise, that coordinate, and all cardinally-connected glyphless cells,
-// will have 'c' written to them.
+// Starting at the specified coordinate, if it has no glyph, 'c' is copied into
+// it. We do the same to all cardinally-connected glyphless cells, filling in
+// everything behind a boundary. Returns the number of cells polyfilled. An
+// invalid initial y, x is an error. Returns the number of cells filled, or
+// -1 on error.
 int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 
 // Draw a gradient with its upper-left corner at the current cursor position,
@@ -1170,7 +1172,9 @@ int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 // are composed into foreground and background gradients. To do a vertical
 // gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
 // horizontal gradient, 'ul' ought equal 'll' and 'ur' ought equal 'ul'. To
-// color everything the same, all four channels should be equivalent.
+// color everything the same, all four channels should be equivalent. The
+// resulting alpha values are equal to incoming alpha values. Returns the
+// number of cells filled on success, or -1 on failure.
 int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
                      uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                      int ystop, int xstop);
@@ -1188,7 +1192,8 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
 
 // Do a high-resolution gradient using upper blocks and synced backgrounds.
 // This doubles the number of vertical gradations, but restricts you to
-// half blocks (appearing to be full blocks).
+// half blocks (appearing to be full blocks). Returns the number of cells
+// filled on success, or -1 on error.
 int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
                          uint32_t ll, uint32_t lr, int ystop, int xstop);
 
@@ -1203,12 +1208,12 @@ ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur,
   return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 }
 
-// Set the given style throughout the specified region, keepying content and
-// channels otherwise unchanged.
+// Set the given style throughout the specified region, keeping content and
+// channels unchanged. Returns the number of cells set, or -1 on failure.
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
 
-// Set the given channels throughout the specified region, keepying content and
-// attributes otherwise unchanged.
+// Set the given channels throughout the specified region, keeping content and
+// attributes unchanged. Returns the number of cells set, or -1 on failure.
 int ncplane_stain(struct ncplane* n, int ystop, int xstop,
                   uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
 ```
