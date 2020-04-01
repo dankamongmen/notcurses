@@ -149,6 +149,12 @@ typedef struct ncmenu_int_section {
   int shortcut_offset;    // column offset within name of shortcut EGC
 } ncmenu_int_section;
 
+typedef struct ncplot {
+  ncplane* ncp;
+  uint64_t maxchannel;
+  uint64_t minchannel;
+} ncplot;
+
 typedef struct ncmenu {
   ncplane* ncp;
   int sectioncount;         // must be positive

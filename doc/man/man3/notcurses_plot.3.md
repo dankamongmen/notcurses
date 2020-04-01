@@ -11,9 +11,18 @@ notcurses_plot - high level widget for selecting from a set
 **#include <notcurses.h>**
 
 ```c
+typedef struct ncplot_options {
+  // styling of the maximum and minimum levels.
+  // linear interpolation will be applied across
+  // the domain between these two.
+  uint64_t maxchannel;
+  uint64_t minchannel;
+} ncplot_options;
 ```
 
-**struct ncplot* ncplot_create(struct ncplane* n, int y, int x, const plot_options* opts);**
+**struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);**
+
+**struct ncplane* ncplot_plane(struct ncplot* n);**
 
 **void ncplot_destroy(struct ncplot* n, char\*\* item);**
 
@@ -22,6 +31,9 @@ notcurses_plot - high level widget for selecting from a set
 # NOTES
 
 # RETURN VALUES
+
+**ncplot_plane** returns the **ncplane** on which the plot is drawn. It cannot
+fail.
 
 # SEE ALSO
 
