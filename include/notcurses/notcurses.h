@@ -2511,6 +2511,11 @@ typedef struct ncplot_options {
 
 API struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
 
+// Return a reference to the ncplot's underlying ncplane.
+API struct ncplane* ncplot_plane(struct ncplot* n);
+
+API void ncplot_destroy(struct ncplot* n);
+
 #undef API
 
 #ifdef __cplusplus
