@@ -2467,6 +2467,24 @@ API bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
 // Destroy a menu created with ncmenu_create().
 API int ncmenu_destroy(struct ncmenu* n);
 
+// each has the empty cell in addition to the product of its dimensions. i.e.
+// NCPLOT_1x1 has two states: empty and full block. NCPLOT_1x1x4 has five
+// states: empty, the three shaded blocks, and the full block.
+typedef enum {
+  NCPLOT_1x1,   // full block                █
+  NCPLOT_1x1x4, // shaded full blocks        █▓▒░
+  NCPLOT_2x1TB, // full/upper blocks         █▀
+  NCPLOT_2x1BT, // full/lower blocks         █▄
+  NCPLOT_1x2LR, // left/full blocks          ▌█
+  NCPLOT_1x2RL, // right/full blocks         █▐
+  NCPLOT_2x2,   // quadrants                 ▖▘▝▗
+  NCPLOT_4x1,   // four vert levels          █▆▄▂
+  NCPLOT_1x4,   // four horizontal levels    ▎▌▊█
+  NCPLOT_8x1,   // eight vert levels         █▇▆▅▄▃▂▁
+  NCPLOT_1x8,   // eight horizontal levels   ▏▎▍▌▋▊▉█
+  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ...etc...
+} ncgridgeom_e;
+
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
 // There is some underlying independent variable--this could be measurement
 // number, or measurement time. Samples are tagged with this variable, which
@@ -2501,11 +2519,14 @@ API int ncmenu_destroy(struct ncmenu* n);
 // The 20 levels at first is a special case. When the domain is only 1 unit,
 // and autoscaling is in play, assign 50%.
 typedef struct ncplot_options {
-  // styling of the maximum and minimum levels. linear interpolation will be
+  // channels for the maximum and minimum levels. linear interpolation will be
   // applied across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
-  // FIXME select braille, block, etc
+  // independent variable is vertical rather than horizontal
+  bool vertical_indep;
+  // number of "pixels" per row x column
+  ncgridgeom_e gridtype;
   // FIXME give parameters for variables
 } ncplot_options;
 
