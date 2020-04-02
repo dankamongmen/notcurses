@@ -7,13 +7,13 @@ blingful TUI library for modern terminal emulators. definitely not curses.
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://nick-black.com/notcurses).
 
-**I am just about done writing a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which ought
-be published in April 2020.**
-
 In addition, there is
 [Doxygen](https://nick-black.com/notcurses/html/) output. There is a [mailing
 list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
 via notcurses@googlegroups.com.
+
+I wrote a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which
+is available for free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
 
 notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/).
 Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
