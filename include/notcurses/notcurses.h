@@ -2527,6 +2527,8 @@ typedef struct ncplot_options {
   bool vertical_indep;
   // number of "pixels" per row x column
   ncgridgeom_e gridtype;
+  // independent variable can either be a contiguous range, or a finite set
+  // of keys.
   // FIXME give parameters for variables
 } ncplot_options;
 
