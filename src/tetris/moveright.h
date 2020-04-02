@@ -15,6 +15,5 @@ void MoveRight() {
         throw TetrisNotcursesErr("render()");
       }
     }
-    return;
   }
 }
