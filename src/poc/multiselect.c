@@ -67,7 +67,7 @@ int main(void){
   sopts.itemcount = sizeof(items) / sizeof(*items);
   sopts.title = "this is truly an awfully long example of a MULTISELECTOR title";
   sopts.secondary = "pick one (you will die regardless)";
-  sopts.footer = "press q to exit (there is sartrev(\"no exit\")";
+  sopts.footer = "press q to exit (there is sartrev(\"no exit\"))";
   channels_set_fg(&sopts.boxchannels, 0x20e0e0);
   channels_set_fg(&sopts.opchannels, 0xe08040);
   channels_set_fg(&sopts.descchannels, 0xe0e040);
