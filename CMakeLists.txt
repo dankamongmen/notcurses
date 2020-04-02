@@ -332,7 +332,7 @@ foreach(f ${POCSRCS})
     PRIVATE include "${TERMINFO_INCLUDE_DIRS}"
   )
   target_link_libraries(${fe}
-    PRIVATE notcurses notcurses++ "${TERMINFO_LIBRARIES}"
+    PRIVATE notcurses++ "${TERMINFO_LIBRARIES}"
   )
   target_link_directories(${fe}
     PRIVATE "${TERMINFO_LIBRARY_DIRS}"
@@ -406,8 +406,8 @@ if(USE_DOXYGEN)
   endif()
 endif()
 
-# notcurses-input
-file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/*.cpp)
+# notcurses-input and notcurses-keyplot
+file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/input.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
 target_include_directories(notcurses-input
   PRIVATE
@@ -416,7 +416,7 @@ target_include_directories(notcurses-input
 )
 target_link_libraries(notcurses-input
   PRIVATE
-    notcurses notcurses++
+    notcurses++
 )
 target_compile_options(notcurses-input
   PRIVATE
@@ -427,9 +427,29 @@ target_compile_definitions(notcurses-input
     FORTIFY_SOURCE=2
 )
 
+file(GLOB KEYPLOTSRCS CONFIGURE_DEPENDS src/input/keyplot.cpp)
+add_executable(notcurses-keyplot ${KEYPLOTSRCS})
+target_include_directories(notcurses-keyplot
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(notcurses-keyplot
+  PRIVATE
+    notcurses++
+)
+target_compile_options(notcurses-keyplot
+  PRIVATE
+    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
+)
+target_compile_definitions(notcurses-keyplot
+  PRIVATE
+    FORTIFY_SOURCE=2
+)
+
 # notcurses-ncreel
-file(GLOB ncreelSRCS CONFIGURE_DEPENDS src/ncreel/*.cpp)
-add_executable(notcurses-ncreel ${ncreelSRCS})
+file(GLOB NCREELSRCS CONFIGURE_DEPENDS src/ncreel/*.cpp)
+add_executable(notcurses-ncreel ${NCREELSRCS})
 target_include_directories(notcurses-ncreel
   PRIVATE
     include
@@ -437,7 +457,7 @@ target_include_directories(notcurses-ncreel
 )
 target_link_libraries(notcurses-ncreel
   PRIVATE
-    notcurses notcurses++
+    notcurses++
 )
 target_compile_options(notcurses-ncreel
   PRIVATE
@@ -489,7 +509,7 @@ target_link_directories(notcurses-view
 )
 target_link_libraries(notcurses-view
   PRIVATE
-    notcurses notcurses++
+    notcurses++
   PRIVATE
     "${AVCODEC_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
@@ -701,6 +721,7 @@ install(FILES
 install(PROGRAMS src/pydemo/notcurses-pydemo DESTINATION bin)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
+install(TARGETS notcurses-keyplot DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
 install(TARGETS notcurses-tester DESTINATION bin)
 install(TARGETS notcurses-tetris DESTINATION bin)

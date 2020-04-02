@@ -2486,8 +2486,8 @@ typedef enum {
 } ncgridgeom_e;
 
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
-// There is some underlying independent variable--this could be measurement
-// number, or measurement time. Samples are tagged with this variable, which
+// There is some underlying independent variable--this could be e.g. measurement
+// sequence number, or measurement time. Samples are tagged with this variable, which
 // should never fall, but may grow non-monotonically. The desired range in terms
 // of the underlying independent variable is provided at creation time. The
 // desired domain can be specified, or can be autosolved. Granularity of the
@@ -2528,8 +2528,9 @@ typedef struct ncplot_options {
   // number of "pixels" per row x column
   ncgridgeom_e gridtype;
   // independent variable can either be a contiguous range, or a finite set
-  // of keys.
-  // FIXME give parameters for variables
+  // of keys. for a time range, say the previous hour sampled with second
+  // resolution, the independent variable would be the range [0..3960).
+  int64_t minx, maxx;
 } ncplot_options;
 
 API struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
