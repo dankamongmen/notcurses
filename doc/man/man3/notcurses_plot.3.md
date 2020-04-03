@@ -12,11 +12,20 @@ notcurses_plot - high level widget for selecting from a set
 
 ```c
 typedef struct ncplot_options {
-  // styling of the maximum and minimum levels.
-  // linear interpolation will be applied across
-  // the domain between these two.
+  // channels for the maximum and minimum levels.
+  // lerp across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
+  // independent variable is vertical, not horizontal
+  bool vertical_indep;
+  // number of "pixels" per row x column
+  ncgridgeom_e gridtype;
+  // independent variable is a contiguous range
+  uint64_t rangex;
+  // y axis min and max. set both equal to 0
+  // for autodiscovery of range.
+  int64_t miny, maxy;
+  bool exponentialy;  // is y-axis exponential?
 } ncplot_options;
 ```
 
@@ -24,7 +33,10 @@ typedef struct ncplot_options {
 
 **struct ncplane* ncplot_plane(struct ncplot* n);**
 
-**void ncplot_destroy(struct ncplot* n, char\*\* item);**
+**int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);**
+**int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);**
+
+**void ncplot_destroy(struct ncplot* n);**
 
 # DESCRIPTION
 

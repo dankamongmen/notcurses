@@ -410,6 +410,20 @@ int ncplane_rotate_cw(struct ncplane* n);
 int ncplane_rotate_ccw(struct ncplane* n);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
+typedef struct ncplot_options {
+  uint64_t maxchannel;
+  uint64_t minchannel;
+  bool vertical_indep;
+  ncgridgeom_e gridtype;
+  uint64_t rangex;
+  int64_t miny, maxy;
+  bool exponentialy;
+} ncplot_options;
+struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
+struct ncplane* ncplot_plane(struct ncplot* n);
+int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);
+int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);
+void ncplot_destroy(struct ncplot* n);
 """)
 
 if __name__ == "__main__":
