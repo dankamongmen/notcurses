@@ -153,6 +153,11 @@ typedef struct ncplot {
   ncplane* ncp;
   uint64_t maxchannel;
   uint64_t minchannel;
+  bool vertical_indep;
+  ncgridgeom_e gridtype;
+  uint64_t rangex;
+  int64_t miny, maxy;
+  bool exponentialy;
 } ncplot;
 
 typedef struct ncmenu {
