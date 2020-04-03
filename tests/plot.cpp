@@ -60,19 +60,19 @@ TEST_CASE("Plot") {
     ncplot* p = ncplot_create(n_, &popts);
     REQUIRE(p);
     CHECK(0 == p->slots[0]);
-    ncplot_add_sample(p, 0, 1);
+    CHECK(0 == ncplot_add_sample(p, 0, 1));
     CHECK(1 == p->slots[0]);
-    ncplot_add_sample(p, 0, 1);
+    CHECK(0 == ncplot_add_sample(p, 0, 1));
     CHECK(2 == p->slots[0]);
     CHECK(0 == p->slots[1]);
     CHECK(0 == p->slots[2]);
-    ncplot_add_sample(p, 2, 3);
+    CHECK(0 == ncplot_add_sample(p, 2, 3));
     CHECK(3 == p->slots[2]);
-    ncplot_set_sample(p, 2, 3);
+    CHECK(0 == ncplot_set_sample(p, 2, 3));
     CHECK(3 == p->slots[2]);
     CHECK(0 == p->slots[3]);
     CHECK(0 == p->slots[4]);
-    ncplot_add_sample(p, 4, 6);
+    CHECK(0 == ncplot_add_sample(p, 4, 6));
     CHECK(6 == p->slots[4]);
     CHECK(2 == p->slots[0]);
     CHECK(0 == p->slotx);
@@ -88,23 +88,58 @@ TEST_CASE("Plot") {
     ncplot* p = ncplot_create(n_, &popts);
     REQUIRE(p);
     CHECK(0 == p->slots[0]);
-    ncplot_add_sample(p, 0, 1);
+    CHECK(0 == ncplot_add_sample(p, 0, 1));
     CHECK(1 == p->slots[0]);
-    ncplot_add_sample(p, 0, 1);
+    CHECK(0 == ncplot_add_sample(p, 0, 1));
     CHECK(2 == p->slots[0]);
-    ncplot_set_sample(p, 1, 5);
+    CHECK(0 == ncplot_set_sample(p, 1, 5));
     CHECK(5 == p->slots[1]);
-    ncplot_set_sample(p, 2, 9);
+    CHECK(0 == ncplot_set_sample(p, 2, 9));
     CHECK(5 == p->slots[1]);
     CHECK(9 == p->slots[0]);
-    ncplot_add_sample(p, 3, 4);
+    CHECK(0 == ncplot_add_sample(p, 3, 4));
     CHECK(9 == p->slots[0]);
     CHECK(4 == p->slots[1]);
     CHECK(2 == p->slotx);
-    ncplot_add_sample(p, 5, 1);
+    CHECK(0 == ncplot_add_sample(p, 5, 1));
     CHECK(0 == p->slots[0]);
     CHECK(1 == p->slots[1]);
     CHECK(4 == p->slotx);
+    ncplot_destroy(p);
+  }
+
+  // augment past the window, ensuring everything gets zeroed
+  SUBCASE("AugmentLong"){
+    ncplot_options popts{};
+    popts.rangex = 5;
+    popts.maxy = 10;
+    popts.miny = 0;
+    ncplot* p = ncplot_create(n_, &popts);
+    REQUIRE(p);
+    for(int x = 0 ; x < 5 ; ++x){
+      CHECK(0 == p->slots[x]);
+    }
+    CHECK(0 == ncplot_add_sample(p, 4, 4));
+    for(int x = 0 ; x < 4 ; ++x){
+      CHECK(0 == p->slots[x]);
+    }
+    CHECK(4 == p->slots[4]);
+    CHECK(0 == ncplot_add_sample(p, 10, 5));
+fprintf(stderr, "SLOT 0: %ju\n", p->slots[0]);
+    CHECK(5 == p->slots[0]);
+    for(int x = 1 ; x < 4 ; ++x){
+fprintf(stderr, "SLOT %d: %ju\n", x, p->slots[x]);
+      CHECK(0 == p->slots[x]);
+    }
+    CHECK(0 == ncplot_add_sample(p, 24, 7));
+    for(int x = 0 ; x < 4 ; ++x){
+      CHECK(0 == p->slots[x]);
+    }
+    CHECK(7 == p->slots[4]);
+    CHECK(0 == ncplot_add_sample(p, 100, 0));
+    for(int x = 0 ; x < 5 ; ++x){
+      CHECK(0 == p->slots[x]);
+    }
     ncplot_destroy(p);
   }
 
