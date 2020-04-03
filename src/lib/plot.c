@@ -92,6 +92,18 @@ window_slide(ncplot* n, uint64_t x){
   return 0;
 }
 
+// x must be within n's window
+static inline void
+update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
+  uint64_t delta = x - n->slotx;
+  uint64_t idx = (n->slotstart + delta) % n->slotcount;
+  if(reset){
+    n->slots[idx] = y;
+  }else{
+    n->slots[idx] += y;
+  }
+}
+
 // Add to or set the value corresponding to this x. If x is beyond the current
 // x window, the x window is advanced to include x, and values passing beyond
 // the window are lost. The first call will place the initial window. The plot
@@ -103,6 +115,8 @@ int ncplot_add_sample(ncplot* n, uint64_t x, int64_t y){
   if(window_slide(n, x)){
     return -1;
   }
+  update_sample(n, x, y, false);
+  // FIXME redraw plot
   return 0;
 }
 
@@ -113,6 +127,8 @@ int ncplot_set_sample(ncplot* n, uint64_t x, int64_t y){
   if(window_slide(n, x)){
     return -1;
   }
+  update_sample(n, x, y, true);
+  // FIXME redraw plot
   return 0;
 }
 
