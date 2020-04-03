@@ -2473,15 +2473,11 @@ API int ncmenu_destroy(struct ncmenu* n);
 typedef enum {
   NCPLOT_1x1,   // full block                █
   NCPLOT_1x1x4, // shaded full blocks        █▓▒░
-  NCPLOT_2x1TB, // full/upper blocks         █▀
-  NCPLOT_2x1BT, // full/lower blocks         █▄
-  NCPLOT_1x2LR, // left/full blocks          ▌█
-  NCPLOT_1x2RL, // right/full blocks         █▐
-  NCPLOT_2x2,   // quadrants                 ▖▘▝▗
-  NCPLOT_4x1,   // four vert levels          █▆▄▂
-  NCPLOT_1x4,   // four horizontal levels    ▎▌▊█
-  NCPLOT_8x1,   // eight vert levels         █▇▆▅▄▃▂▁
-  NCPLOT_1x8,   // eight horizontal levels   ▏▎▍▌▋▊▉█
+  NCPLOT_2x1,   // full/(upper|left) blocks  █▀
+  NCPLOT_2x1INV,// full/(lower|right) blocks █▄
+  NCPLOT_2x2,   // quadrants                 ▖▘▝▗ ▛ ▜ ▟ ▙ ▘▗ ▖▝
+  NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCPLOT_8x1,   // eight vert/horz levels         █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
   NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ...etc...
 } ncgridgeom_e;
 

@@ -411,18 +411,14 @@ int ncplane_rotate_ccw(struct ncplane* n);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 typedef enum {
-  NCPLOT_1x1,
-  NCPLOT_1x1x4,
-  NCPLOT_2x1TB,
-  NCPLOT_2x1BT,
-  NCPLOT_1x2LR,
-  NCPLOT_1x2RL,
-  NCPLOT_2x2,
-  NCPLOT_4x1,
-  NCPLOT_1x4,
-  NCPLOT_8x1,
-  NCPLOT_1x8,
-  NCPLOT_4x2,
+  NCPLOT_1x1,   // full block                █
+  NCPLOT_1x1x4, // shaded full blocks        █▓▒░
+  NCPLOT_2x1,   // full/(upper|left) blocks  █▀
+  NCPLOT_2x1INV,// full/(lower|right) blocks █▄
+  NCPLOT_2x2,   // quadrants                 ▖▘▝▗ ▛ ▜ ▟ ▙ ▘▗ ▖▝
+  NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCPLOT_8x1,   // eight vert/horz levels         █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ...etc...
 } ncgridgeom_e;
 typedef struct ncplot_options {
   uint64_t maxchannel;

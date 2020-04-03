@@ -1,11 +1,36 @@
 #include "internal.h"
 
+static const struct {
+  ncgridgeom_e geom;
+  const wchar_t* egcs;
+} geomdata[] = {
+  { .geom = NCPLOT_1x1,   .egcs = L"█",    },
+  { .geom = NCPLOT_1x1x4, .egcs = L"▒░▓█", },
+  { .geom = NCPLOT_2x1,   .egcs = L"▄█",   },
+};
+
+/* FIXME
+  NCPLOT_2x1TB, // full/upper blocks         █▀
+  NCPLOT_2x1BT, // full/lower blocks
+  NCPLOT_1x2LR, // left/full blocks          ▌█
+  NCPLOT_1x2RL, // right/full blocks         █▐
+  NCPLOT_2x2,   // quadrants                 ▖▘▝▗
+  NCPLOT_4x1,   // four vert levels          █▆▄▂
+  NCPLOT_1x4,   // four horizontal levels    ▎▌▊█
+  NCPLOT_8x1,   // eight vert levels         █▇▆▅▄▃▂▁
+  NCPLOT_1x8,   // eight horizontal levels   ▏▎▍▌▋▊▉█
+  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ...etc...
+*/
+
 ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   // detectdomain requires that miny == maxy
   if(opts->detectdomain && opts->miny != opts->maxy){
     return NULL;
   }
   if(opts->maxy < opts->miny){
+    return NULL;
+  }
+  if(opts->gridtype < 0 || opts->gridtype >= sizeof(geomdata) / sizeof(*geomdata)){
     return NULL;
   }
   int sdimy, sdimx;
@@ -119,23 +144,38 @@ static int
 redraw_plot(ncplot* n){
   ncplane_erase(ncplot_plane(n)); // FIXME shouldn't need this
   const int dimy = ncplane_dim_y(ncplot_plane(n));
-  // each row is worth this much change in value
-  double interval = (n->maxy - n->miny + 1) / (double)dimy;
+  // each transition is worth this much change in value
+  const size_t states = wcslen(geomdata[n->gridtype].egcs);
+  double interval = (n->maxy - n->miny + 1) / ((double)dimy * states);
   int idx = n->slotstart;
   for(uint64_t x = 0 ; x < n->slotcount ; ++x){
-    int64_t gval = n->slots[idx];
+    int64_t gval = n->slots[idx]; // clip the value at the limits of the graph
     if(gval < n->miny){
       gval = n->miny;
     }
     if(gval > n->maxy){
       gval = n->maxy;
     }
+    // starting from the least-significant row, progress in the more significant
+    // direction, drawing egcs from the grid specification, aborting early if
+    // we can't draw anything in a given cell.
     for(int y = 0 ; y < dimy ; ++y){
-      if(n->miny + interval * (y + 1) <= gval){
-        if(ncplane_putegc_yx(ncplot_plane(n), dimy - y - 1, x, "█", NULL) <= 0){
-          return -1;
-        }
-      }else{
+      // if we've got at least one interval's worth on the number of positions
+      // times the number of intervals per position plus the starting offset,
+      // we're going to print *something*
+      if(n->miny + (interval * states) * y + interval > gval){
+        break;
+      }
+      size_t egcidx = (gval - n->miny) - (y * interval * states) - 1;
+      if(egcidx >= states){
+        egcidx = states - 1;
+      }
+      if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, geomdata[n->gridtype].egcs[egcidx]) <= 0){
+        return -1;
+      }
+      // FIXME this ought fall out naturally. that it does not indicates, i
+      // think, an error above...
+      if(egcidx != states - 1){
         break;
       }
     }
