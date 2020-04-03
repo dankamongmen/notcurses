@@ -20,7 +20,7 @@ int main(void){
   ncpp::Plane plotplane{6, 70, 1, 1, nullptr};
   struct ncplot_options popts{};
   popts.rangex = 60;
-  popts.detectrange = true;
+  popts.detectdomain = true;
   struct ncplot* plot = ncplot_create(plotplane, &popts);
   char32_t r;
   ncinput ni;
