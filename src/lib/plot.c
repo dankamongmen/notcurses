@@ -145,6 +145,7 @@ redraw_plot(ncplot* n){
     if(gval > n->maxy){
       gval = n->maxy;
     }
+    ncplane_set_fg(ncplot_plane(n), channels_fg(n->maxchannel)); // FIXME lerp!
     // starting from the least-significant row, progress in the more significant
     // direction, drawing egcs from the grid specification, aborting early if
     // we can't draw anything in a given cell.

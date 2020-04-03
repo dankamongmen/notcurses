@@ -36,6 +36,9 @@ int main(void){
   popts.detectdomain = true;
   std::array<struct ncplot*, 5> plots;
   for(auto i = 0u ; i < plots.size() ; ++i){
+    popts.maxchannel = 0;
+    channels_set_fg_rgb(&popts.maxchannel, random() % 256, random() % 256, random() % 256);
+    channels_set_fg_rgb(&popts.minchannel, random() % 256, random() % 256, random() % 256);
     popts.gridtype = static_cast<ncgridgeom_e>(i);
     plots[i] = ncplot_create(planes[i], &popts);
   }
