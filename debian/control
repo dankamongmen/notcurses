@@ -2,7 +2,8 @@ Source: notcurses
 Priority: optional
 Maintainer: Nick Black <dankamongmen@gmail.com>
 Build-Depends:
- cmake,
+ cargo,
+ cmake (>= 0.40.0),
  debhelper-compat (= 12),
  dh-python (>= 4.20191017),
  dh-sequence-python3,
