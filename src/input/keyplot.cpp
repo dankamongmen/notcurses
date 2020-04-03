@@ -12,7 +12,13 @@ int main(void){
   std::unique_ptr<ncpp::Plane> n(nc.get_stdplane ());
   struct ncplot_options popts{};
   struct ncplot* plot = ncplot_create(*n, &popts);
-  // FIXME
+  char32_t r;
+  ncinput ni;
+  while(errno = 0, (r = nc.getc(true, &ni)) != (char32_t)-1){
+    if(r == 0){ // interrupted by signal
+      continue;
+    }
+  }
   ncplot_destroy(plot);
   return EXIT_SUCCESS;
 }
