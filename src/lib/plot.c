@@ -50,19 +50,25 @@ ncplane* ncplot_plane(ncplot* n){
   return n->ncp;
 }
 
-static inline bool
-invalid_y(ncplot* n, int64_t y){
+// if we're doing domain detection, update the domain to reflect the value we
+// just set. if we're not, check the result against the known ranges, and
+// return -1 if the value is outside of that range.
+static inline int
+update_domain(ncplot* n, uint64_t x){
+  const int64_t val = n->slots[x % n->slotcount];
   if(n->detectdomain){
-    if(y > n->maxy){
-      n->maxy = y;
+    if(val > n->maxy){
+      n->maxy = val;
     }
-    if(y < n->miny){
-      n->miny = y;
+    if(val < n->miny){
+      n->miny = val;
     }
-  }else if(y > n->maxy || y < n->miny){
-    return true;
+    return 0;
   }
-  return false;
+  if(val > n->maxy || val < n->miny){
+    return -1;
+  }
+  return 0;
 }
 
 // if x is less than the window, return -1
@@ -102,7 +108,6 @@ window_slide(ncplot* n, uint64_t x){
 static inline void
 update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
   uint64_t idx = x/*(n->slotstart + delta)*/ % n->slotcount;
-fprintf(stderr, "WRITING %jd to IFX %ju (DELTA: %ju, SLOTX: %ju)\n", y, idx, 0, n->slotx);
   if(reset){
     n->slots[idx] = y;
   }else{
@@ -113,16 +118,28 @@ fprintf(stderr, "WRITING %jd to IFX %ju (DELTA: %ju, SLOTX: %ju)\n", y, idx, 0, 
 static int
 redraw_plot(ncplot* n){
   ncplane_erase(ncplot_plane(n)); // FIXME shouldn't need this
-  for(int y = 0 ; y < 1 ; ++y){ // FIXME use available columns
-    int idx = n->slotstart;
-    for(uint64_t x = 0 ; x < n->slotcount ; ++x){
-      if(n->slots[idx] > n->miny){ // FIXME prorate
-        if(ncplane_putegc_yx(ncplot_plane(n), y, x, "█", NULL) <= 0){
+  const int dimy = ncplane_dim_y(ncplot_plane(n));
+  // each row is worth this much change in value
+  double interval = (n->maxy - n->miny + 1) / (double)dimy;
+  int idx = n->slotstart;
+  for(uint64_t x = 0 ; x < n->slotcount ; ++x){
+    int64_t gval = n->slots[idx];
+    if(gval < n->miny){
+      gval = n->miny;
+    }
+    if(gval > n->maxy){
+      gval = n->maxy;
+    }
+    for(int y = 0 ; y < dimy ; ++y){
+      if(n->miny + interval * (y + 1) <= gval){
+        if(ncplane_putegc_yx(ncplot_plane(n), dimy - y - 1, x, "█", NULL) <= 0){
           return -1;
         }
+      }else{
+        break;
       }
-      idx = (idx + 1) % n->slotcount;
     }
+    idx = (idx + 1) % n->slotcount;
   }
   return 0;
 }
@@ -132,24 +149,24 @@ redraw_plot(ncplot* n){
 // the window are lost. The first call will place the initial window. The plot
 // will be redrawn, but notcurses_render() is not called.
 int ncplot_add_sample(ncplot* n, uint64_t x, int64_t y){
-  if(invalid_y(n, y)){
-    return -1;
-  }
   if(window_slide(n, x)){
     return -1;
   }
   update_sample(n, x, y, false);
+  if(update_domain(n, x)){
+    return -1;
+  }
   return redraw_plot(n);
 }
 
 int ncplot_set_sample(ncplot* n, uint64_t x, int64_t y){
-  if(invalid_y(n, y)){
-    return -1;
-  }
   if(window_slide(n, x)){
     return -1;
   }
   update_sample(n, x, y, true);
+  if(update_domain(n, x)){
+    return -1;
+  }
   return redraw_plot(n);
 }
 
