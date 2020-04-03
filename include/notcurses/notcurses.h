@@ -2530,6 +2530,7 @@ typedef struct ncplot_options {
   // independent variable can either be a contiguous range, or a finite set
   // of keys. for a time range, say the previous hour sampled with second
   // resolution, the independent variable would be the range [0..3600): 3600.
+  // if rangex is 0, it is dynamically set to the number of columns.
   uint64_t rangex;
   // y axis min and max. for autodiscovery, these both must be equal to 0,
   // and detectdomain must be additionally be set.
