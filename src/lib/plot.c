@@ -101,8 +101,8 @@ window_slide(ncplot* n, uint64_t x){
 // x must be within n's window
 static inline void
 update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
-  uint64_t delta = x - n->slotx;
-  uint64_t idx = (n->slotstart + delta) % n->slotcount;
+  uint64_t idx = x/*(n->slotstart + delta)*/ % n->slotcount;
+fprintf(stderr, "WRITING %jd to IFX %ju (DELTA: %ju, SLOTX: %ju)\n", y, idx, 0, n->slotx);
   if(reset){
     n->slots[idx] = y;
   }else{
