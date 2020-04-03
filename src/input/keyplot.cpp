@@ -11,6 +11,8 @@ int main(void){
   }
   std::unique_ptr<ncpp::Plane> n(nc.get_stdplane ());
   struct ncplot_options popts{};
+  popts.rangex = 60;
+  popts.detectrange = true;
   struct ncplot* plot = ncplot_create(*n, &popts);
   char32_t r;
   ncinput ni;
