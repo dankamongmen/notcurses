@@ -1,3 +1,4 @@
+#include <vector>
 #include <cstdlib>
 #include <ncpp/NotCurses.hh>
 
@@ -24,11 +25,18 @@ int main(void){
   if(!n->perimeter(tl, tr, bl, br, hl, vl, 0)){
     return EXIT_FAILURE;
   }
-  ncpp::Plane plotplane{6, 70, 1, 1, nullptr};
+  std::vector<ncpp::Plane> planes;
+  planes.emplace_back(6, 70, 1,  1, nullptr);
+  planes.emplace_back(6, 70, 8,  1, nullptr);
+  planes.emplace_back(6, 70, 15,  1, nullptr);
   struct ncplot_options popts{};
   popts.rangex = 60;
   popts.detectdomain = true;
-  struct ncplot* plot = ncplot_create(plotplane, &popts);
+  std::array<struct ncplot*, 3> plots;
+  for(auto i = 0u ; i < plots.size() ; ++i){
+    popts.gridtype = static_cast<ncgridgeom_e>(i);
+    plots[i] = ncplot_create(planes[i], &popts);
+  }
   char32_t r;
   ncinput ni;
   // FIXME launch ticker thread
@@ -48,13 +56,14 @@ int main(void){
       return EXIT_FAILURE;
     }
     const uint64_t sec = (timespec_to_ns(&now) - timespec_to_ns(&start)) / NANOSECS_IN_SEC;
-    if(ncplot_add_sample(plot, sec, 1)){
-      return EXIT_FAILURE;
+    for(auto i = 0u ; i < plots.size() ; ++i){
+      if(ncplot_add_sample(plots[i], sec, 1)){
+        return EXIT_FAILURE;
+      }
     }
     if(!nc.render()){
       return EXIT_FAILURE;
     }
   }
-  ncplot_destroy(plot);
   return EXIT_SUCCESS;
 }
