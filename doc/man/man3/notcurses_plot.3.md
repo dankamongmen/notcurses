@@ -22,10 +22,11 @@ typedef struct ncplot_options {
   ncgridgeom_e gridtype;
   // independent variable is a contiguous range
   uint64_t rangex;
-  // y axis min and max. set both equal to 0
-  // for autodiscovery of range.
+  // y axis min and max. set both equal to 0 for
+  // use with range autodiscovery.
   int64_t miny, maxy;
   bool exponentialy;  // is y-axis exponential?
+  bool discoverrange;
 } ncplot_options;
 ```
 
@@ -43,6 +44,10 @@ typedef struct ncplot_options {
 # NOTES
 
 # RETURN VALUES
+
+**ncplot_create** will return an error if **discoverrange** is set, and either
+**miny** or **maxy** are non-zero. It will also return an error if
+**maxy** < **miny**.
 
 **ncplot_plane** returns the **ncplane** on which the plot is drawn. It cannot
 fail.

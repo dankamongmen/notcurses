@@ -418,6 +418,7 @@ typedef struct ncplot_options {
   uint64_t rangex;
   int64_t miny, maxy;
   bool exponentialy;
+  bool detectrange;
 } ncplot_options;
 struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
 struct ncplane* ncplot_plane(struct ncplot* n);

@@ -2531,10 +2531,11 @@ typedef struct ncplot_options {
   // of keys. for a time range, say the previous hour sampled with second
   // resolution, the independent variable would be the range [0..3600): 3600.
   uint64_t rangex;
-  // y axis min and max. set the two equal (to any stand-in value; 0 is
-  // recommended) for autodiscovery of range.
+  // y axis min and max. for autodiscovery, these both must be equal to 0,
+  // and detectrange must be additionally be set.
   int64_t miny, maxy;
   bool exponentialy;  // is y-axis exponential?
+  bool detectrange; // if set, miny must == maxy
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.
