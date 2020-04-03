@@ -4,23 +4,12 @@ static const struct {
   ncgridgeom_e geom;
   const wchar_t* egcs;
 } geomdata[] = {
-  { .geom = NCPLOT_1x1,   .egcs = L"█",    },
-  { .geom = NCPLOT_1x1x4, .egcs = L"▒░▓█", },
-  { .geom = NCPLOT_2x1,   .egcs = L"▄█",   },
+  { .geom = NCPLOT_1x1,   .egcs = L"█",        },
+  { .geom = NCPLOT_1x1x4, .egcs = L"▒░▓█",     },
+  { .geom = NCPLOT_2x1,   .egcs = L"▄█",       },
+  { .geom = NCPLOT_4x1,   .egcs = L"▂▄▆█",     },
+  { .geom = NCPLOT_8x1,   .egcs = L"▁▂▃▄▅▆▇█", },
 };
-
-/* FIXME
-  NCPLOT_2x1TB, // full/upper blocks         █▀
-  NCPLOT_2x1BT, // full/lower blocks
-  NCPLOT_1x2LR, // left/full blocks          ▌█
-  NCPLOT_1x2RL, // right/full blocks         █▐
-  NCPLOT_2x2,   // quadrants                 ▖▘▝▗
-  NCPLOT_4x1,   // four vert levels          █▆▄▂
-  NCPLOT_1x4,   // four horizontal levels    ▎▌▊█
-  NCPLOT_8x1,   // eight vert levels         █▇▆▅▄▃▂▁
-  NCPLOT_1x8,   // eight horizontal levels   ▏▎▍▌▋▊▉█
-  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ...etc...
-*/
 
 ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   // detectdomain requires that miny == maxy

@@ -2474,11 +2474,10 @@ typedef enum {
   NCPLOT_1x1,   // full block                █
   NCPLOT_1x1x4, // shaded full blocks        █▓▒░
   NCPLOT_2x1,   // full/(upper|left) blocks  █▀
-  NCPLOT_2x1INV,// full/(lower|right) blocks █▄
-  NCPLOT_2x2,   // quadrants                 ▖▘▝▗ ▛ ▜ ▟ ▙ ▘▗ ▖▝
+  //NCPLOT_2x2,   // quadrants                 ▖▘▝▗ ▛ ▜ ▟ ▙ ▘▗ ▖▝
   NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
   NCPLOT_8x1,   // eight vert/horz levels         █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ...etc...
+  //NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ...etc...
 } ncgridgeom_e;
 
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
@@ -2519,8 +2518,6 @@ typedef struct ncplot_options {
   // applied across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
-  // independent variable is vertical rather than horizontal
-  bool vertical_indep;
   // number of "pixels" per row x column
   ncgridgeom_e gridtype;
   // independent variable can either be a contiguous range, or a finite set
@@ -2531,8 +2528,10 @@ typedef struct ncplot_options {
   // y axis min and max. for autodiscovery, these both must be equal to 0,
   // and detectdomain must be additionally be set.
   int64_t miny, maxy;
-  bool exponentialy;  // is y-axis exponential?
   bool detectdomain; // if set, miny must == maxy
+  bool exponentialy;  // is y-axis exponential? (not yet implemented)
+  // independent variable is vertical rather than horizontal
+  bool vertical_indep;
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.

@@ -29,10 +29,12 @@ int main(void){
   planes.emplace_back(6, 70, 1,  1, nullptr);
   planes.emplace_back(6, 70, 8,  1, nullptr);
   planes.emplace_back(6, 70, 15,  1, nullptr);
+  planes.emplace_back(6, 70, 23,  1, nullptr);
+  planes.emplace_back(6, 70, 31,  1, nullptr);
   struct ncplot_options popts{};
   popts.rangex = 60;
   popts.detectdomain = true;
-  std::array<struct ncplot*, 3> plots;
+  std::array<struct ncplot*, 5> plots;
   for(auto i = 0u ; i < plots.size() ; ++i){
     popts.gridtype = static_cast<ncgridgeom_e>(i);
     plots[i] = ncplot_create(planes[i], &popts);
