@@ -157,9 +157,18 @@ typedef struct ncplot {
   ncgridgeom_e gridtype;
   int64_t windowbase; // first valid x value
   uint64_t rangex; // windowbase + rangex - 1 -> last valid x
+  // domain minimum and maximum. if detectdomain is true, these are
+  // progressively enlarged/shrunk to fit the sample set. if not, samples
+  // outside these bounds are counted, but the displayed range covers only this.
   int64_t miny, maxy;
+  // circular buffer, with the oldest element at slotstart, and slotcount
+  // elements. slotcount is max(columns, rangex).
+  int64_t* slots;
+  unsigned slotstart; // slot index corresponding to slotx
+  uint64_t slotx; // x value corresponding to slots[slotstart]
+  unsigned slotcount;
   bool exponentialy;
-  bool detectrange;
+  bool detectdomain;
 } ncplot;
 
 typedef struct ncmenu {

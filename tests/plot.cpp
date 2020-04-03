@@ -20,10 +20,10 @@ TEST_CASE("Plot") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
-  // setting detectrange with non-zero domain limits is invalid
+  // setting detectdomain with non-zero domain limits is invalid
   SUBCASE("DetectRangeBadY"){
     ncplot_options popts{};
-    popts.detectrange = true;
+    popts.detectdomain = true;
     popts.miny = -1;
     ncplot* p = ncplot_create(n_, &popts);
     CHECK(nullptr == p);

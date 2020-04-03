@@ -26,7 +26,7 @@ typedef struct ncplot_options {
   // use with range autodiscovery.
   int64_t miny, maxy;
   bool exponentialy;  // is y-axis exponential?
-  bool discoverrange;
+  bool detectdomain;
 } ncplot_options;
 ```
 
@@ -45,7 +45,7 @@ typedef struct ncplot_options {
 
 # RETURN VALUES
 
-**ncplot_create** will return an error if **discoverrange** is set, and either
+**ncplot_create** will return an error if **detectdomain** is set, and either
 **miny** or **maxy** are non-zero. It will also return an error if
 **maxy** < **miny**.
 
