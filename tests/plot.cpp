@@ -29,7 +29,7 @@ TEST_CASE("Plot") {
     CHECK(nullptr == p);
     popts.miny = 0;
     popts.maxy = 1;
-    ncplot* p = ncplot_create(n_, &popts);
+    p = ncplot_create(n_, &popts);
     CHECK(nullptr == p);
   }
 
