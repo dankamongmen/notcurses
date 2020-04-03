@@ -134,7 +134,7 @@ char32_t printutf8(char32_t kp){
 // Dim all text on the plane by the same amount. This will stack for
 // older text, and thus clearly indicate the current output.
 static bool
-dim_rows(std::shared_ptr<Plane> n){
+dim_rows(std::unique_ptr<Plane>& n){
   int y, x;
   Cell c;
   for(y = 2 ; y < dimy ; ++y){
@@ -176,7 +176,7 @@ int main(void){
   if(!nc.mouse_enable ()){
     return EXIT_FAILURE;
   }
-  std::shared_ptr<Plane> n(nc.get_stdplane ());
+  std::unique_ptr<Plane> n(nc.get_stdplane ());
   nc.get_term_dim(&dimy, &dimx);
   n->set_fg(0);
   n->set_bg(0xbb64bb);
