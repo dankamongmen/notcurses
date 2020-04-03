@@ -1,6 +1,13 @@
 #include <cstdlib>
 #include <ncpp/NotCurses.hh>
 
+#define NANOSECS_IN_SEC 1000000000
+
+static inline uint64_t
+timespec_to_ns(const struct timespec* t){
+  return t->tv_sec * NANOSECS_IN_SEC + t->tv_nsec;
+}
+
 int main(void){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
@@ -28,9 +35,24 @@ int main(void){
   if(!nc.render()){
     return EXIT_FAILURE;
   }
+  struct timespec start;
+  if(clock_gettime(CLOCK_MONOTONIC, &start)){
+    return EXIT_FAILURE;
+  }
   while(errno = 0, (r = nc.getc(true, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
       continue;
+    }
+    struct timespec now;
+    if(clock_gettime(CLOCK_MONOTONIC, &now)){
+      return EXIT_FAILURE;
+    }
+    const uint64_t sec = (timespec_to_ns(&now) - timespec_to_ns(&start)) / NANOSECS_IN_SEC;
+    if(ncplot_add_sample(plot, sec, 1)){
+      return EXIT_FAILURE;
+    }
+    if(!nc.render()){
+      return EXIT_FAILURE;
     }
   }
   ncplot_destroy(plot);
