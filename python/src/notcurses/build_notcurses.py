@@ -414,21 +414,18 @@ typedef enum {
   NCPLOT_1x1,   // full block                █
   NCPLOT_1x1x4, // shaded full blocks        █▓▒░
   NCPLOT_2x1,   // full/(upper|left) blocks  █▀
-  NCPLOT_2x1INV,// full/(lower|right) blocks █▄
-  NCPLOT_2x2,   // quadrants                 ▖▘▝▗ ▛ ▜ ▟ ▙ ▘▗ ▖▝
   NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
   NCPLOT_8x1,   // eight vert/horz levels         █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ...etc...
 } ncgridgeom_e;
 typedef struct ncplot_options {
   uint64_t maxchannel;
   uint64_t minchannel;
-  bool vertical_indep;
   ncgridgeom_e gridtype;
   uint64_t rangex;
   int64_t miny, maxy;
   bool exponentialy;
   bool detectdomain;
+  bool vertical_indep;
 } ncplot_options;
 struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
 struct ncplane* ncplot_plane(struct ncplot* n);

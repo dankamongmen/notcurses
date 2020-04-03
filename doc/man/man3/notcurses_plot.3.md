@@ -4,29 +4,37 @@
 
 # NAME
 
-notcurses_plot - high level widget for selecting from a set
+notcurses_plot - high level widget for plotting
 
 # SYNOPSIS
 
 **#include <notcurses.h>**
 
 ```c
+typedef enum {
+  NCPLOT_1x1, // full block               █
+  NCPLOT_1x1x4, // shaded full blocks  █▓▒░
+  NCPLOT_2x1, // full/lower blocks       █▄
+  NCPLOT_4x1, // four vert levels      █▆▄▂
+  NCPLOT_8x1, // eight vert levels █▇▆▅▄▃▂▁
+} ncgridgeom_e;
+
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels.
   // lerp across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
-  // independent variable is vertical, not horizontal
-  bool vertical_indep;
   // number of "pixels" per row x column
   ncgridgeom_e gridtype;
   // independent variable is a contiguous range
   uint64_t rangex;
-  // y axis min and max. set both equal to 0 for
-  // use with range autodiscovery.
+  // dependent min and max. set both equal to 0 for
+  // use with domain autodiscovery.
   int64_t miny, maxy;
-  bool exponentialy;  // is y-axis exponential?
   bool detectdomain;
+  bool exponentialy;  // is dependent exponential?
+  // independent variable is vertical, not horizontal
+  bool vertical_indep;
 } ncplot_options;
 ```
 
@@ -42,6 +50,8 @@ typedef struct ncplot_options {
 # DESCRIPTION
 
 # NOTES
+
+**exponentialy** is not yet implemented, nor is **vertical_indep**.
 
 # RETURN VALUES
 
