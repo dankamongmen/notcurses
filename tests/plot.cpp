@@ -20,6 +20,28 @@ TEST_CASE("Plot") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
+  // setting detectrange with non-zero domain limits is invalid
+  SUBCASE("DetectRangeBadY"){
+    ncplot_options popts{};
+    popts.detectrange = true;
+    popts.miny = -1;
+    ncplot* p = ncplot_create(n_, &popts);
+    CHECK(nullptr == p);
+    popts.miny = 0;
+    popts.maxy = 1;
+    ncplot* p = ncplot_create(n_, &popts);
+    CHECK(nullptr == p);
+  }
+
+  // maxy < miny is invalid
+  SUBCASE("RejectMaxyLessMiny"){
+    ncplot_options popts{};
+    popts.miny = 2;
+    popts.maxy = 1;
+    ncplot* p = ncplot_create(n_, &popts);
+    CHECK(nullptr == p);
+  }
+
   SUBCASE("SimplePlot"){
     ncplot_options popts{};
     ncplot* p = ncplot_create(n_, &popts);
