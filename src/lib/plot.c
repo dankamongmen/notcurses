@@ -52,7 +52,14 @@ ncplane* ncplot_plane(ncplot* n){
 
 static inline bool
 invalid_y(ncplot* n, int64_t y){
-  if(y > n->maxy || y < n->miny){
+  if(n->detectdomain){
+    if(y > n->maxy){
+      n->maxy = y;
+    }
+    if(y < n->miny){
+      n->miny = y;
+    }
+  }else if(y > n->maxy || y < n->miny){
     return true;
   }
   return false;
