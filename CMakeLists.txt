@@ -631,9 +631,10 @@ if(${USE_RUST})
   set(CRATENOTCURSES ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/libnotcurses.rlib)
   set(COLLOQUY ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/colloquy)
   find_program(CARGO cargo REQUIRED)
-  set(CARGO_ARGS --verbose --locked --release)
+  # might need --locked here
+  set(CARGO_ARGS --verbose --release)
   if(NOT ${USE_NETWORK})
-    set(CARGO_ARGS "${CARGO_ARGS}" --frozen)
+    set(CARGO_ARGS "${CARGO_ARGS}" --offline) # might want --frozen here
   endif()
   add_custom_command(
     OUTPUT
