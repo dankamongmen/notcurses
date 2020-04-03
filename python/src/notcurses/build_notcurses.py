@@ -410,6 +410,20 @@ int ncplane_rotate_cw(struct ncplane* n);
 int ncplane_rotate_ccw(struct ncplane* n);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
+typedef enum {
+  NCPLOT_1x1,
+  NCPLOT_1x1x4,
+  NCPLOT_2x1TB,
+  NCPLOT_2x1BT,
+  NCPLOT_1x2LR,
+  NCPLOT_1x2RL,
+  NCPLOT_2x2,
+  NCPLOT_4x1,
+  NCPLOT_1x4,
+  NCPLOT_8x1,
+  NCPLOT_1x8,
+  NCPLOT_4x2,
+} ncgridgeom_e;
 typedef struct ncplot_options {
   uint64_t maxchannel;
   uint64_t minchannel;
