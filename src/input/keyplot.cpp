@@ -13,6 +13,7 @@ int main(void){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
+  srand(time(NULL));
   ncpp::NotCurses nc;
   if(!nc.mouse_enable()){
     return EXIT_FAILURE;

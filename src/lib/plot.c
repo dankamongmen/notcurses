@@ -133,6 +133,7 @@ static int
 redraw_plot(ncplot* n){
   ncplane_erase(ncplot_plane(n)); // FIXME shouldn't need this
   const int dimy = ncplane_dim_y(ncplot_plane(n));
+  const int dimx = ncplane_dim_x(ncplot_plane(n));
   // each transition is worth this much change in value
   const size_t states = wcslen(geomdata[n->gridtype].egcs);
   double interval = (n->maxy - n->miny + 1) / ((double)dimy * states);
@@ -145,7 +146,6 @@ redraw_plot(ncplot* n){
     if(gval > n->maxy){
       gval = n->maxy;
     }
-    ncplane_set_fg(ncplot_plane(n), channels_fg(n->maxchannel)); // FIXME lerp!
     // starting from the least-significant row, progress in the more significant
     // direction, drawing egcs from the grid specification, aborting early if
     // we can't draw anything in a given cell.
@@ -170,6 +170,13 @@ redraw_plot(ncplot* n){
       }
     }
     idx = (idx + 1) % n->slotcount;
+  }
+  if(ncplane_cursor_move_yx(ncplot_plane(n), 0, 0)){
+    return -1;
+  }
+  if(ncplane_stain(ncplot_plane(n), dimy - 1, dimx - 1, n->maxchannel,
+                   n->maxchannel, n->minchannel, n->minchannel) <= 0){
+    return -1;
   }
   return 0;
 }
