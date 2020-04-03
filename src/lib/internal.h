@@ -155,9 +155,11 @@ typedef struct ncplot {
   uint64_t minchannel;
   bool vertical_indep;
   ncgridgeom_e gridtype;
-  uint64_t rangex;
+  int64_t windowbase; // first valid x value
+  uint64_t rangex; // windowbase + rangex - 1 -> last valid x
   int64_t miny, maxy;
   bool exponentialy;
+  bool detectrange;
 } ncplot;
 
 typedef struct ncmenu {
