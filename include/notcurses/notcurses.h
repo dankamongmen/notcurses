@@ -2531,6 +2531,10 @@ typedef struct ncplot_options {
   // of keys. for a time range, say the previous hour sampled with second
   // resolution, the independent variable would be the range [0..3960).
   int64_t minx, maxx;
+  // y axis min and max. set the two equal (to any stand-in value; 0 is
+  // recommended) for autodiscovery of range.
+  int64_t miny, maxy;
+  bool exponentialy;  // is y-axis exponential?
 } ncplot_options;
 
 API struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
