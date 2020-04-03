@@ -2417,6 +2417,7 @@ Six binaries are installed as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
+* `notcurses-keyplot`: plots input events of the last minute
 * `notcurses-planereels`: play around with ncreels
 * `notcurses-tester`: unit testing
 * `notcurses-tetris`: a tetris clone
