@@ -75,6 +75,36 @@ TEST_CASE("Plot") {
     ncplot_add_sample(p, 4, 6);
     CHECK(6 == p->slots[4]);
     CHECK(2 == p->slots[0]);
+    CHECK(0 == p->slotx);
+    ncplot_destroy(p);
+  }
+
+  // 2-ary slot space with window movement
+  SUBCASE("AugmentCycle2"){
+    ncplot_options popts{};
+    popts.rangex = 2;
+    popts.maxy = 10;
+    popts.miny = 0;
+    ncplot* p = ncplot_create(n_, &popts);
+    REQUIRE(p);
+    CHECK(0 == p->slots[0]);
+    ncplot_add_sample(p, 0, 1);
+    CHECK(1 == p->slots[0]);
+    ncplot_add_sample(p, 0, 1);
+    CHECK(2 == p->slots[0]);
+    ncplot_set_sample(p, 1, 5);
+    CHECK(5 == p->slots[1]);
+    ncplot_set_sample(p, 2, 9);
+    CHECK(5 == p->slots[1]);
+    CHECK(9 == p->slots[0]);
+    ncplot_add_sample(p, 3, 4);
+    CHECK(9 == p->slots[0]);
+    CHECK(4 == p->slots[1]);
+    CHECK(2 == p->slotx);
+    ncplot_add_sample(p, 5, 1);
+    CHECK(0 == p->slots[0]);
+    CHECK(1 == p->slots[1]);
+    CHECK(4 == p->slotx);
     ncplot_destroy(p);
   }
 
