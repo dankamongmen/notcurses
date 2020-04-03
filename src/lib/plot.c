@@ -110,6 +110,23 @@ update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
   }
 }
 
+static int
+redraw_plot(ncplot* n){
+  ncplane_erase(ncplot_plane(n)); // FIXME shouldn't need this
+  for(int y = 0 ; y < 1 ; ++y){ // FIXME use available columns
+    int idx = n->slotstart;
+    for(uint64_t x = 0 ; x < n->slotcount ; ++x){
+      if(n->slots[idx] > n->miny){ // FIXME prorate
+        if(ncplane_putegc_yx(ncplot_plane(n), y, x, "█", NULL) <= 0){
+          return -1;
+        }
+      }
+      idx = (idx + 1) % n->slotcount;
+    }
+  }
+  return 0;
+}
+
 // Add to or set the value corresponding to this x. If x is beyond the current
 // x window, the x window is advanced to include x, and values passing beyond
 // the window are lost. The first call will place the initial window. The plot
@@ -122,8 +139,7 @@ int ncplot_add_sample(ncplot* n, uint64_t x, int64_t y){
     return -1;
   }
   update_sample(n, x, y, false);
-  // FIXME redraw plot
-  return 0;
+  return redraw_plot(n);
 }
 
 int ncplot_set_sample(ncplot* n, uint64_t x, int64_t y){
@@ -134,8 +150,7 @@ int ncplot_set_sample(ncplot* n, uint64_t x, int64_t y){
     return -1;
   }
   update_sample(n, x, y, true);
-  // FIXME redraw plot
-  return 0;
+  return redraw_plot(n);
 }
 
 void ncplot_destroy(ncplot* n){
