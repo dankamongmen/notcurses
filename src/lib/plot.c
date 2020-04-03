@@ -8,9 +8,6 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   if(opts->maxy < opts->miny){
     return NULL;
   }
-  if(opts->rangex == 0){
-    return NULL;
-  }
   int sdimy, sdimx;
   ncplane_dim_yx(n, &sdimy, &sdimx);
   if(sdimx <= 0){
@@ -19,8 +16,11 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   uint64_t dimx = sdimx;
   ncplot* ret = malloc(sizeof(*ret));
   if(ret){
-    ret->slotcount = opts->rangex;
-    if(dimx < opts->rangex){
+    if((ret->rangex = opts->rangex) == 0){
+      ret->rangex = dimx;
+    }
+    ret->slotcount = ret->rangex;
+    if(dimx < ret->rangex){
       ret->slotcount = dimx;
     }
     size_t slotsize = sizeof(*ret->slots) * ret->slotcount;
@@ -30,7 +30,6 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
       ret->ncp = n;
       ret->maxchannel = opts->maxchannel;
       ret->minchannel = opts->minchannel;
-      ret->rangex = opts->rangex;
       ret->miny = opts->miny;
       ret->maxy = opts->maxy;
       ret->vertical_indep = opts->vertical_indep;

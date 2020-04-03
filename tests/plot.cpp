@@ -1,4 +1,5 @@
 #include "main.h"
+#include "internal.h"
 #include <cstring>
 #include <iostream>
 
@@ -47,6 +48,33 @@ TEST_CASE("Plot") {
     ncplot* p = ncplot_create(n_, &popts);
     REQUIRE(p);
     CHECK(n_ == ncplot_plane(p));
+    ncplot_destroy(p);
+  }
+
+  // 5-ary slot space without any window movement
+  SUBCASE("AugmentSamples5"){
+    ncplot_options popts{};
+    popts.rangex = 5;
+    popts.maxy = 10;
+    popts.miny = 0;
+    ncplot* p = ncplot_create(n_, &popts);
+    REQUIRE(p);
+    CHECK(0 == p->slots[0]);
+    ncplot_add_sample(p, 0, 1);
+    CHECK(1 == p->slots[0]);
+    ncplot_add_sample(p, 0, 1);
+    CHECK(2 == p->slots[0]);
+    CHECK(0 == p->slots[1]);
+    CHECK(0 == p->slots[2]);
+    ncplot_add_sample(p, 2, 3);
+    CHECK(3 == p->slots[2]);
+    ncplot_set_sample(p, 2, 3);
+    CHECK(3 == p->slots[2]);
+    CHECK(0 == p->slots[3]);
+    CHECK(0 == p->slots[4]);
+    ncplot_add_sample(p, 4, 6);
+    CHECK(6 == p->slots[4]);
+    CHECK(2 == p->slots[0]);
     ncplot_destroy(p);
   }
 
