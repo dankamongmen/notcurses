@@ -2529,18 +2529,27 @@ typedef struct ncplot_options {
   ncgridgeom_e gridtype;
   // independent variable can either be a contiguous range, or a finite set
   // of keys. for a time range, say the previous hour sampled with second
-  // resolution, the independent variable would be the range [0..3960).
-  int64_t minx, maxx;
+  // resolution, the independent variable would be the range [0..3600): 3600.
+  uint64_t rangex;
   // y axis min and max. set the two equal (to any stand-in value; 0 is
   // recommended) for autodiscovery of range.
   int64_t miny, maxy;
   bool exponentialy;  // is y-axis exponential?
 } ncplot_options;
 
+// Use the provided plane 'n' for plotting according to the options 'opts'.
+// The plot will make free use of the entirety of the plane.
 API struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
 
 // Return a reference to the ncplot's underlying ncplane.
 API struct ncplane* ncplot_plane(struct ncplot* n);
+
+// Add to or set the value corresponding to this x. If x is beyond the current
+// x window, the x window is advanced to include x, and values passing beyond
+// the window are lost. The first call will place the initial window. The plot
+// will be redrawn, but notcurses_render() is not called.
+API int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);
+API int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);
 
 API void ncplot_destroy(struct ncplot* n);
 

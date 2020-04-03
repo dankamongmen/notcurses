@@ -9,6 +9,10 @@ int main(void){
   if(!nc.mouse_enable()){
     return EXIT_FAILURE;
   }
+  std::unique_ptr<ncpp::Plane> n(nc.get_stdplane ());
+  struct ncplot_options popts{};
+  struct ncplot* plot = ncplot_create(*n, &popts);
   // FIXME
+  ncplot_destroy(plot);
   return EXIT_SUCCESS;
 }
