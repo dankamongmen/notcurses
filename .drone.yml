@@ -14,7 +14,7 @@ steps:
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_RUST=yes -DUSE_NETWORK=yes
+    - cmake .. -DCMAKE_BUILD_TYPE=Release # -DUSE_RUST=yes -DUSE_NETWORK=yes
     - make
     - make test || ./notcurses-tester -p ../data
 ---
