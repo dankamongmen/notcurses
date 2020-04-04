@@ -436,6 +436,7 @@ target_include_directories(notcurses-keyplot
 )
 target_link_libraries(notcurses-keyplot
   PRIVATE
+    Threads::Threads
     notcurses++
 )
 target_compile_options(notcurses-keyplot

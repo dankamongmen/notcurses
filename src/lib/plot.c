@@ -147,7 +147,7 @@ redraw_plot(ncplot* n){
   int idx = n->slotstart;
   const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
   for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
-    if(x >= dimx){
+    if(x >= (unsigned)dimx){
       break;
     }
     int64_t gval = n->slots[idx]; // clip the value at the limits of the graph
