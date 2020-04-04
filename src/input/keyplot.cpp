@@ -18,7 +18,7 @@ int main(void){
   if(!nc.mouse_enable()){
     return EXIT_FAILURE;
   }
-  std::unique_ptr<ncpp::Plane> n(nc.get_stdplane ());
+  std::unique_ptr<ncpp::Plane> n(nc.get_stdplane());
   ncpp::Cell tl, tr, bl, br, hl, vl;
   if(!n->load_double_box(0, 0, tl, tr, bl, br, hl, vl)){
     return EXIT_FAILURE;
@@ -27,13 +27,13 @@ int main(void){
     return EXIT_FAILURE;
   }
   std::vector<ncpp::Plane> planes;
-  planes.emplace_back(6, 70, 1,  1, nullptr);
-  planes.emplace_back(6, 70, 8,  1, nullptr);
-  planes.emplace_back(6, 70, 15,  1, nullptr);
-  planes.emplace_back(6, 70, 23,  1, nullptr);
-  planes.emplace_back(6, 70, 31,  1, nullptr);
+  const int plotlen = n->get_dim_x() - 2;
+  planes.emplace_back(6, plotlen, 1,  1, nullptr);
+  planes.emplace_back(6, plotlen, 8,  1, nullptr);
+  planes.emplace_back(6, plotlen, 15,  1, nullptr);
+  planes.emplace_back(6, plotlen, 23,  1, nullptr);
+  planes.emplace_back(6, plotlen, 31,  1, nullptr);
   struct ncplot_options popts{};
-  popts.rangex = 60;
   popts.detectdomain = true;
   std::array<struct ncplot*, 5> plots;
   for(auto i = 0u ; i < plots.size() ; ++i){
