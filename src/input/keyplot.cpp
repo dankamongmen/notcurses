@@ -34,6 +34,7 @@ int main(void){
   planes.emplace_back(6, plotlen, 23,  1, nullptr);
   planes.emplace_back(6, plotlen, 31,  1, nullptr);
   struct ncplot_options popts{};
+  popts.labelaxisd = true;
   std::array<struct ncplot*, 5> plots;
   for(auto i = 0u ; i < plots.size() ; ++i){
     popts.maxchannel = 0;
