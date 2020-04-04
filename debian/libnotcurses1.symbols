@@ -44,6 +44,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_attr@Base 1.2.1
  ncplane_base@Base 1.2.1
  ncplane_below@Base 1.2.1
+ ncplane_bound@Base 1.2.5
  ncplane_box@Base 1.2.1
  ncplane_channels@Base 1.2.1
  ncplane_cursor_move_yx@Base 1.2.1
@@ -76,6 +77,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_putstr_aligned@Base 1.2.1
  ncplane_putstr_yx@Base 1.2.1
  ncplane_putwegc_stainable@Base 1.2.1
+ ncplane_reparent@Base 1.2.5
  ncplane_resize@Base 1.2.1
  ncplane_rotate_ccw@Base 1.2.4
  ncplane_rotate_cw@Base 1.2.4
@@ -107,6 +109,11 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_vprintf_aligned@Base 1.2.1
  ncplane_vprintf_yx@Base 1.2.1
  ncplane_yx@Base 1.2.1
+ ncplot_add_sample@Base 1.2.5
+ ncplot_create@Base 1.2.5
+ ncplot_destroy@Base 1.2.5
+ ncplot_plane@Base 1.2.5
+ ncplot_set_sample@Base 1.2.5
  ncreel_add@Base 1.2.1
  ncreel_create@Base 1.2.1
  ncreel_del@Base 1.2.1
