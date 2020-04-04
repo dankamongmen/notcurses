@@ -423,8 +423,8 @@ typedef struct ncplot_options {
   ncgridgeom_e gridtype;
   uint64_t rangex;
   int64_t miny, maxy;
+  bool labelaxisd;
   bool exponentialy;
-  bool detectdomain;
   bool vertical_indep;
 } ncplot_options;
 struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
