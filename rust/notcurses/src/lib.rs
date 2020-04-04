@@ -1,12 +1,20 @@
 extern crate libnotcurses_sys as ffi;
 
-extern {
-    fn libc_stdout() -> *mut ffi::_IO_FILE;
+pub fn getc_blocking(_n: *mut ffi::notcurses, _ni: &mut ffi::ncinput) -> u32 {
+    unsafe {
+      let mut sigmask: ffi::sigset_t = std::mem::zeroed();
+      ffi::sigemptyset(&mut sigmask);
+      return ffi::notcurses_getc(_n, std::ptr::null(), &mut sigmask, _ni);
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    extern {
+        static stdout: *mut ffi::_IO_FILE;
+    }
 
     #[test]
     fn create_context() {
@@ -26,7 +34,7 @@ mod tests {
                 margin_b: 0,
                 margin_l: 0,
             };
-            let nc = ffi::notcurses_init(&opts, libc_stdout());
+            let nc = ffi::notcurses_init(&opts, stdout);
             ffi::notcurses_stop(nc);
         }
     }

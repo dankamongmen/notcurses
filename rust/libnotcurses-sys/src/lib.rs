@@ -4,15 +4,13 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-use std::ffi::CStr;
-
-extern {
-    fn libc_stdout() -> *mut _IO_FILE;
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    extern {
+        fn libc_stdout() -> *mut _IO_FILE;
+    }
 
     #[test]
     fn get_notcurses_version() {
@@ -20,7 +18,7 @@ mod tests {
             let c_str = unsafe {
                 let s = notcurses_version();
                 assert!(!s.is_null());
-                CStr::from_ptr(s)
+                std::ffi::CStr::from_ptr(s)
             };
             let r_str = c_str.to_str().unwrap();
             println!("rust-bound notcurses v{}", r_str);
@@ -32,7 +30,7 @@ mod tests {
         unsafe {
             let _ = libc::setlocale(libc::LC_ALL, std::ffi::CString::new("").unwrap().as_ptr());
             let opts: notcurses_options = notcurses_options {
-                inhibit_alternate_screen: false,
+                inhibit_alternate_screen: true,
                 loglevel: 0,
                 termtype: std::ptr::null(),
                 retain_cursor: false,
