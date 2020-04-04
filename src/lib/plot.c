@@ -132,7 +132,6 @@ update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
   if(reset){
     n->slots[idx] = y;
   }else{
-fprintf(stderr, "%jd/%jd\n", n->slots[idx], y);
     n->slots[idx] += y;
   }
 }
@@ -147,7 +146,6 @@ redraw_plot(ncplot* n){
   double interval = (n->maxy - n->miny + 1) / ((double)dimy * states); // FIXME
   int idx = n->slotstart;
   const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
-fprintf(stderr, "startx: %d dimx: %d slotcount: %d slotstart: %d\n", startx, dimx, n->slotcount, n->slotstart);
   for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
     if(x >= dimx){
       break;

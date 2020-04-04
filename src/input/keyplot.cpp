@@ -34,10 +34,12 @@ int main(void){
   planes.emplace_back(6, plotlen, 23,  1, nullptr);
   planes.emplace_back(6, plotlen, 31,  1, nullptr);
   struct ncplot_options popts{};
-  popts.labelaxisd = true;
   std::array<struct ncplot*, 5> plots;
   for(auto i = 0u ; i < plots.size() ; ++i){
-    popts.maxchannel = 0;
+    if(i == plots.size() - 1){
+      popts.labelaxisd = true;
+    }
+    popts.minchannel = popts.maxchannel = 0;
     channels_set_fg_rgb(&popts.maxchannel, random() % 256, random() % 256, random() % 256);
     channels_set_fg_rgb(&popts.minchannel, random() % 256, random() % 256, random() % 256);
     popts.gridtype = static_cast<ncgridgeom_e>(i);
