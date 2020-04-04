@@ -2,6 +2,7 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurse.
 
 * 1.2.5 (not yet released)
+** Add ncplot, with support for sliding-windowed horizontal histograms.
 ** gradient, polyfill, ncplane_format() and ncplane_stain() all now return the
    number of cells written on success. Failure still sees -1 returned.
 ** `ncvisual_render()` now returns the number of cells emitted on success, as
