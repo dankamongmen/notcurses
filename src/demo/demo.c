@@ -1,6 +1,7 @@
 #include <time.h>
 #include <wchar.h>
 #include <stdio.h>
+#include <errno.h>
 #include <limits.h>
 #include <string.h>
 #include <locale.h>
@@ -8,7 +9,6 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdatomic.h>
-#include <errno.h>
 #include "demo.h"
 
 // (non-)ansi terminal definition-4-life

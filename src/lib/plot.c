@@ -30,10 +30,10 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   uint64_t dimx = sdimx;
   ncplot* ret = malloc(sizeof(*ret));
   if(ret){
-    if((ret->rangex = opts->rangex) == 0){
-      ret->rangex = dimx;
+    ret->rangex = opts->rangex;
+    if((ret->slotcount = ret->rangex) == 0){
+      ret->slotcount = dimx;
     }
-    ret->slotcount = ret->rangex;
     if(dimx < ret->rangex){
       ret->slotcount = dimx;
     }
@@ -97,13 +97,13 @@ static inline int
 window_slide(ncplot* n, uint64_t x){
   if(x < n->slotx){ // x is behind window, won't be counted
     return -1;
-  }else if(x < n->slotx + n->rangex){ // x is within window, do nothing
+  }else if(x < n->slotx + n->slotcount){ // x is within window, do nothing
     return 0;
   } // x is beyond window; we might be keeping some, might not
-  uint64_t newslotx = x - n->rangex + 1; // the new value of slotx
+  uint64_t newslotx = x - n->slotcount + 1; // the new value of slotx
   uint64_t slotdiff = newslotx - n->slotx; // the raw amount we're advancing
-  if(slotdiff > n->rangex){
-    slotdiff = n->rangex;
+  if(slotdiff > n->slotcount){
+    slotdiff = n->slotcount;
   } // slotdiff is the number of slots to reset, and amount to advance slotstart
   n->slotx = newslotx;
   // number to reset on the right of the circular buffer. min of (available at
@@ -132,6 +132,7 @@ update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
   if(reset){
     n->slots[idx] = y;
   }else{
+fprintf(stderr, "%jd/%jd\n", n->slots[idx], y);
     n->slots[idx] += y;
   }
 }
@@ -139,13 +140,14 @@ update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
 static int
 redraw_plot(ncplot* n){
   ncplane_erase(ncplot_plane(n)); // FIXME shouldn't need this
-  const int dimy = ncplane_dim_y(ncplot_plane(n));
-  const int dimx = ncplane_dim_x(ncplot_plane(n));
+  int dimy, dimx;
+  ncplane_dim_yx(ncplot_plane(n), &dimy, &dimx);
   // each transition is worth this much change in value
   const size_t states = wcslen(geomdata[n->gridtype].egcs);
-  double interval = (n->maxy - n->miny + 1) / ((double)dimy * states);
+  double interval = (n->maxy - n->miny + 1) / ((double)dimy * states); // FIXME
   int idx = n->slotstart;
   const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
+fprintf(stderr, "startx: %d dimx: %d slotcount: %d slotstart: %d\n", startx, dimx, n->slotcount, n->slotstart);
   for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
     if(x >= dimx){
       break;
