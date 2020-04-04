@@ -37,6 +37,13 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
     if(dimx < ret->rangex){
       ret->slotcount = dimx;
     }
+    if( (ret->labelaxisd = opts->labelaxisd) ){
+      if(ret->slotcount + PREFIXSTRLEN > dimx){
+        if(dimx > PREFIXSTRLEN){
+          ret->slotcount = dimx - PREFIXSTRLEN;
+        }
+      }
+    }
     size_t slotsize = sizeof(*ret->slots) * ret->slotcount;
     ret->slots = malloc(slotsize);
     if(ret->slots){
@@ -48,7 +55,6 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
       ret->maxy = opts->maxy;
       ret->vertical_indep = opts->vertical_indep;
       ret->gridtype = opts->gridtype;
-      ret->labelaxisd = opts->labelaxisd;
       ret->exponentialy = opts->exponentialy;
       ret->detectdomain = opts->miny == opts->maxy;
       ret->windowbase = 0;
@@ -139,7 +145,11 @@ redraw_plot(ncplot* n){
   const size_t states = wcslen(geomdata[n->gridtype].egcs);
   double interval = (n->maxy - n->miny + 1) / ((double)dimy * states);
   int idx = n->slotstart;
-  for(uint64_t x = 0 ; x < n->slotcount ; ++x){
+  const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
+  for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
+    if(x >= dimx){
+      break;
+    }
     int64_t gval = n->slots[idx]; // clip the value at the limits of the graph
     if(gval < n->miny){
       gval = n->miny;
