@@ -5,8 +5,8 @@ static const struct {
   const wchar_t* egcs;
 } geomdata[] = {
   { .geom = NCPLOT_1x1,   .egcs = L"█",        },
-  { .geom = NCPLOT_1x1x4, .egcs = L"▒░▓█",     },
   { .geom = NCPLOT_2x1,   .egcs = L"▄█",       },
+  { .geom = NCPLOT_1x1x4, .egcs = L"▒░▓█",     },
   { .geom = NCPLOT_4x1,   .egcs = L"▂▄▆█",     },
   { .geom = NCPLOT_8x1,   .egcs = L"▁▂▃▄▅▆▇█", },
 };

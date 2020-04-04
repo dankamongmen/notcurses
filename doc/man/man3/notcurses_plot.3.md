@@ -13,8 +13,8 @@ notcurses_plot - high level widget for plotting
 ```c
 typedef enum {
   NCPLOT_1x1, // full block               █
-  NCPLOT_1x1x4, // shaded full blocks  █▓▒░
   NCPLOT_2x1, // full/lower blocks       █▄
+  NCPLOT_1x1x4, // shaded full blocks  █▓▒░
   NCPLOT_4x1, // four vert levels      █▆▄▂
   NCPLOT_8x1, // eight vert levels █▇▆▅▄▃▂▁
 } ncgridgeom_e;

@@ -412,8 +412,8 @@ void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 typedef enum {
   NCPLOT_1x1,   // full block                █
-  NCPLOT_1x1x4, // shaded full blocks        █▓▒░
   NCPLOT_2x1,   // full/(upper|left) blocks  █▀
+  NCPLOT_1x1x4, // shaded full blocks        █▓▒░
   NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
   NCPLOT_8x1,   // eight vert/horz levels         █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
 } ncgridgeom_e;

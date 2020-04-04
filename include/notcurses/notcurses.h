@@ -2472,8 +2472,8 @@ API int ncmenu_destroy(struct ncmenu* n);
 // states: empty, the three shaded blocks, and the full block.
 typedef enum {
   NCPLOT_1x1,   // full block                █
-  NCPLOT_1x1x4, // shaded full blocks        █▓▒░
   NCPLOT_2x1,   // full/(upper|left) blocks  █▀
+  NCPLOT_1x1x4, // shaded full blocks        █▓▒░
   //NCPLOT_2x2,   // quadrants                 ▖▘▝▗ ▛ ▜ ▟ ▙ ▘▗ ▖▝
   NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
   NCPLOT_8x1,   // eight vert/horz levels         █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
