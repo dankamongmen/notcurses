@@ -28,10 +28,9 @@ typedef struct ncplot_options {
   ncgridgeom_e gridtype;
   // independent variable is a contiguous range
   uint64_t rangex;
-  // dependent min and max. set both equal to 0 for
-  // use with domain autodiscovery.
+  // dependent min and max. set both equal to 0 to
+  // use domain autodiscovery.
   int64_t miny, maxy;
-  bool detectdomain;
   bool exponentialy;  // is dependent exponential?
   // independent variable is vertical, not horizontal
   bool vertical_indep;
@@ -51,13 +50,13 @@ typedef struct ncplot_options {
 
 # NOTES
 
-**exponentialy** is not yet implemented, nor is **vertical_indep**.
+Neither **exponentialy** not **vertical_indep** is yet implemented.
 
 # RETURN VALUES
 
-**ncplot_create** will return an error if **detectdomain** is set, and either
-**miny** or **maxy** are non-zero. It will also return an error if
-**maxy** < **miny**.
+**ncplot_create** will return an error if **miny** equals **maxy**, but they
+are non-zero. It will also return an error if **maxy** < **miny**. An invalid
+**gridtype** will result in an error.
 
 **ncplot_plane** returns the **ncplane** on which the plot is drawn. It cannot
 fail.

@@ -12,8 +12,8 @@ static const struct {
 };
 
 ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
-  // detectdomain requires that miny == maxy
-  if(opts->detectdomain && opts->miny != opts->maxy){
+  // if miny == maxy, they both must be equal to 0
+  if(opts->miny == opts->maxy && opts->miny){
     return NULL;
   }
   if(opts->maxy < opts->miny){
@@ -49,8 +49,8 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
       ret->vertical_indep = opts->vertical_indep;
       ret->gridtype = opts->gridtype;
       ret->exponentialy = opts->exponentialy;
+      ret->detectdomain = opts->miny == opts->maxy;
       ret->windowbase = 0;
-      ret->detectdomain = opts->detectdomain;
       ret->slotstart = 0;
       ret->slotx = 0;
       return ret;
