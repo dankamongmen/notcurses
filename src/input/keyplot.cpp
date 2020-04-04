@@ -1,12 +1,45 @@
 #include <vector>
+#include <thread>
+#include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <ncpp/NotCurses.hh>
 
 #define NANOSECS_IN_SEC 1000000000
 
 static inline uint64_t
-timespec_to_ns(const struct timespec* t){
-  return t->tv_sec * NANOSECS_IN_SEC + t->tv_nsec;
+timenow_to_ns(){
+  struct timespec t;
+  if(clock_gettime(CLOCK_MONOTONIC, &t)){
+    throw std::runtime_error("error retrieving time");
+  }
+  return t.tv_sec * NANOSECS_IN_SEC + t.tv_nsec;
+}
+
+std::mutex mtx;
+uint64_t start;
+std::atomic<bool> done;
+std::array<struct ncplot*, 5> plots;
+
+void Tick(ncpp::NotCurses* nc, uint64_t sec) {
+  const std::lock_guard<std::mutex> lock(mtx);
+  for(auto i = 0u ; i < plots.size() ; ++i){
+    if(ncplot_add_sample(plots[i], sec, 0)){
+      throw std::runtime_error("couldn't register timetick");
+    }
+  }
+  if(!nc->render()){
+    throw std::runtime_error("error rendering");
+  }
+  mtx.unlock();
+}
+
+void Ticker(ncpp::NotCurses* nc) {
+  do{
+    std::this_thread::sleep_for(std::chrono::seconds{1});
+    const uint64_t sec = (timenow_to_ns() - start) / NANOSECS_IN_SEC;
+    Tick(nc, sec);
+  }while(!done);
 }
 
 int main(void){
@@ -34,7 +67,6 @@ int main(void){
   planes.emplace_back(6, plotlen, 23,  1, nullptr);
   planes.emplace_back(6, plotlen, 31,  1, nullptr);
   struct ncplot_options popts{};
-  std::array<struct ncplot*, 5> plots;
   for(auto i = 0u ; i < plots.size() ; ++i){
     if(i == plots.size() - 1){
       popts.labelaxisd = true;
@@ -47,23 +79,18 @@ int main(void){
   }
   char32_t r;
   ncinput ni;
-  // FIXME launch ticker thread
   if(!nc.render()){
     return EXIT_FAILURE;
   }
-  struct timespec start;
-  if(clock_gettime(CLOCK_MONOTONIC, &start)){
-    return EXIT_FAILURE;
-  }
+  done = false;
+  start = timenow_to_ns();
+  std::thread tid(Ticker, &nc);
   while(errno = 0, (r = nc.getc(true, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
       continue;
     }
-    struct timespec now;
-    if(clock_gettime(CLOCK_MONOTONIC, &now)){
-      return EXIT_FAILURE;
-    }
-    const uint64_t sec = (timespec_to_ns(&now) - timespec_to_ns(&start)) / NANOSECS_IN_SEC;
+    const uint64_t sec = (timenow_to_ns() - start) / NANOSECS_IN_SEC;
+    mtx.lock();
     for(auto i = 0u ; i < plots.size() ; ++i){
       if(ncplot_add_sample(plots[i], sec, 1)){
         return EXIT_FAILURE;
@@ -72,6 +99,7 @@ int main(void){
     if(!nc.render()){
       return EXIT_FAILURE;
     }
+    mtx.unlock();
   }
   return EXIT_SUCCESS;
 }
