@@ -39,7 +39,7 @@ fn main() {
             std::process::exit(1);
         }
         let mut ni: ffi::ncinput = std::mem::zeroed();
-        notcurses::notcurses_getc_blocking(nc, &mut ni);
+        notcurses::getc_blocking(nc, &mut ni);
         ffi::notcurses_stop(nc);
     }
 }
