@@ -148,9 +148,9 @@ Before calling into notcurses—and usually as one of the first calls of the
 program—be sure to call `setlocale(3)` with an appropriate UTF-8 `LC_ALL`
 locale. It is usually appropriate to use `setlocale(LC_ALL, "")`, relying on
 the user to properly set the `LANG` environment variable. notcurses will
-refuse to start if `nl_langinfo(3)` doesn't indicate UTF-8. In addition, it is
-wise to mask most signals early in the program, before any threads are spawned.
-(this is particularly critical for `SIGWINCH`).
+refuse to start if `nl_langinfo(3)` doesn't indicate `ANSI_X3.4-1968` or
+`UTF-8`. In addition, it is wise to mask most signals early in the program,
+before any threads are spawned (this is particularly critical for `SIGWINCH`).
 
 notcurses requires an available `terminfo(5)` definition appropriate for the
 terminal. It is usually appropriate to pass `NULL` in the `termtype` field of a
@@ -2446,8 +2446,8 @@ some design decisions might surprise NCURSES programmers:
 * Scrolling is disabled by default, and cannot be globally enabled.
 * The Curses `cchar_t` has a fixed-size array of `wchar_t`. The notcurses
   `cell` instead supports a UTF-8 encoded extended grapheme cluster of
-  arbitrary length. The only supported charsets are `C` and `UTF-8`. notcurses
-  does not generally make use of `wchar_t`.
+  arbitrary length. The only supported charsets are `ANSI_X3.4-1968` and
+  `UTF-8`.
 * The hardware cursor is disabled by default, when supported (`civis` capability).
 * Echoing of input is disabled by default, and `cbreak` mode is used by default.
 * Colors are always specified as 24 bits in 3 components (RGB). If necessary,
