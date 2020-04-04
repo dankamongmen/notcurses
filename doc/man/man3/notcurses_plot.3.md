@@ -31,9 +31,9 @@ typedef struct ncplot_options {
   // dependent min and max. set both equal to 0 to
   // use domain autodiscovery.
   int64_t miny, maxy;
-  bool exponentialy;  // is dependent exponential?
-  // independent variable is vertical, not horizontal
-  bool vertical_indep;
+  bool labelaxisd;     // label dependent axis
+  bool exponentialy;   // is dependent exponential?
+  bool vertical_indep; // vertical independent variable
 } ncplot_options;
 ```
 

@@ -48,6 +48,7 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
       ret->maxy = opts->maxy;
       ret->vertical_indep = opts->vertical_indep;
       ret->gridtype = opts->gridtype;
+      ret->labelaxisd = opts->labelaxisd;
       ret->exponentialy = opts->exponentialy;
       ret->detectdomain = opts->miny == opts->maxy;
       ret->windowbase = 0;

@@ -167,6 +167,7 @@ typedef struct ncplot {
   unsigned slotstart; // slot index corresponding to slotx
   uint64_t slotx; // x value corresponding to slots[slotstart]
   unsigned slotcount;
+  bool labelaxisd; // label dependent axis
   bool exponentialy;
   bool detectdomain;
 } ncplot;
