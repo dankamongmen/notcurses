@@ -146,6 +146,13 @@ redraw_plot(ncplot* n){
   double interval = (n->maxy - n->miny + 1) / ((double)dimy * states); // FIXME
   int idx = n->slotstart;
   const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
+  if(n->labelaxisd){
+    for(int y = 0 ; y < dimy ; ++y){
+      char buf[PREFIXSTRLEN + 1];
+      ncmetric(interval * states * y, 1, buf, 0, 1000, '\0');
+      ncplane_putstr_yx(ncplot_plane(n), dimy - y - 1, PREFIXSTRLEN - strlen(buf), buf);
+    }
+  }
   for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
     if(x >= (unsigned)dimx){
       break;
