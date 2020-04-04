@@ -1,7 +1,7 @@
 void Ticker() { // FIXME ideally this would be called from constructor :/
   std::chrono::milliseconds ms;
-  mtx_.lock();
   do{
+    mtx_.lock();
     ms = msdelay_;
     mtx_.unlock();
     std::this_thread::sleep_for(ms);
