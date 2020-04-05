@@ -3,7 +3,7 @@ libnotcurses++.so.1 libnotcurses++1 #MINVER#
  _ZN4ncpp10init_errorD0Ev@Base 1.2.1
  _ZN4ncpp10init_errorD1Ev@Base 1.2.1
  _ZN4ncpp10init_errorD2Ev@Base 1.2.1
- _ZN4ncpp13MultiSelector15default_optionsE@Base 1.2.4
+ _ZN4ncpp13MultiSelector15default_optionsE@Base 1.2.5
  _ZN4ncpp16invalid_argumentD0Ev@Base 1.2.1
  _ZN4ncpp16invalid_argumentD1Ev@Base 1.2.1
  _ZN4ncpp16invalid_argumentD2Ev@Base 1.2.1
@@ -30,7 +30,7 @@ libnotcurses++.so.1 libnotcurses++1 #MINVER#
  _ZN4ncpp9NotCursesC2ERK17notcurses_optionsP8_IO_FILE@Base 1.2.1
  _ZN4ncpp9NotCursesD1Ev@Base 1.2.1
  _ZN4ncpp9NotCursesD2Ev@Base 1.2.1
- _ZNK4ncpp13MultiSelector9get_planeEv@Base 1.2.4
+ _ZNK4ncpp13MultiSelector9get_planeEv@Base 1.2.5
  _ZNK4ncpp4Menu9get_planeEv@Base 1.2.1
  _ZNK4ncpp4Root13get_notcursesEv@Base 1.2.1
  _ZNK4ncpp4Root20is_notcurses_stoppedEv@Base 1.2.1
