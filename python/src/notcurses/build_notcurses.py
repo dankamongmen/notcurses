@@ -123,7 +123,6 @@ int ncplane_move_yx(struct ncplane* n, int y, int x);
 void ncplane_yx(struct ncplane* n, int* y, int* x);
 void ncplane_dim_yx(const struct ncplane* n, int* rows, int* cols);
 int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
-int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
 int ncplane_move_top(struct ncplane* n);
 int ncplane_move_bottom(struct ncplane* n);
 int ncplane_move_below(struct ncplane* n, struct ncplane* below);
