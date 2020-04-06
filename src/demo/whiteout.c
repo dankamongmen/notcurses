@@ -454,6 +454,7 @@ int witherworm_demo(struct notcurses* nc){
   size_t i;
   const size_t screens = sizeof(steps) / sizeof(*steps);
   struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_set_scrolling(n, true);
   ncplane_erase(n);
   for(i = 0 ; i < screens ; ++i){
     wchar_t key = NCKEY_INVALID;
@@ -481,12 +482,15 @@ int witherworm_demo(struct notcurses* nc){
         s = strs + random() % ((sizeof(strs) / sizeof(*strs)) - 1);
         size_t idx = 0;
         ncplane_cursor_yx(n, &y, &x);
-// fprintf(stderr, "%02d %s\n", y, *s);
         while((*s)[idx]){ // each multibyte char of string
           if(ncplane_set_fg_rgb(n, channel_r(rgb), channel_g(rgb), channel_b(rgb))){
             return -1;
           }
-          if(y >= maxy || x >= maxx){
+          if(x >= maxx){
+            x = 0;
+            ++y;
+          }
+          if(y >= maxy){
             break;
           }
           wchar_t wcs;
@@ -503,7 +507,7 @@ int witherworm_demo(struct notcurses* nc){
           int ulen = 0;
           int r;
           if(wcwidth(wcs) <= maxx - x){
-            if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) < 0){
+            if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
               if(ulen < 0){
                 return -1;
               }
@@ -520,7 +524,7 @@ int witherworm_demo(struct notcurses* nc){
           ++egcs_out;
         }
         rgb += step;
-      }while(y < maxy && x < maxx);
+      }while(y < maxy);
       struct ncplane* math = mathplane(nc);
       if(math == NULL){
         return -1;
@@ -565,7 +569,7 @@ int witherworm_demo(struct notcurses* nc){
         }
       }while(key < 0);
       pthread_cancel(tid);
-      void* result;
+      void* result = NULL;
       pthread_join(tid, &result);
       ncplane_destroy(mess);
       ncplane_destroy(math);
@@ -580,5 +584,6 @@ int witherworm_demo(struct notcurses* nc){
       return 1;
     }
   }
+  ncplane_set_scrolling(n, false);
   return 0;
 }
