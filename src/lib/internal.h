@@ -72,6 +72,7 @@ typedef struct ncplane {
   void* userptr;        // slot for the user to stick some opaque pointer
   cell basecell;        // cell written anywhere that fb[i].gcluster == 0
   struct notcurses* nc; // notcurses object of which we are a part
+  bool scrolling;       // is scrolling enabled? always disabled by default
 } ncplane;
 
 typedef struct ncvisual {
