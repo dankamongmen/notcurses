@@ -109,6 +109,339 @@ mbswidth(const char* mbs){
   return cols;
 }
 
+#define CELL_WIDEASIAN_MASK     0x8000000080000000ull
+#define CELL_BGDEFAULT_MASK     0x0000000040000000ull
+#define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
+#define CELL_BG_MASK            0x0000000000ffffffull
+#define CELL_FG_MASK            (CELL_BG_MASK << 32u)
+#define CELL_BG_PALETTE         0x0000000008000000ull
+#define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
+#define CELL_ALPHA_MASK         0x0000000030000000ull
+#define CELL_ALPHA_SHIFT        28u
+#define CELL_ALPHA_HIGHCONTRAST 3
+#define CELL_ALPHA_TRANSPARENT  2
+#define CELL_ALPHA_BLEND        1
+#define CELL_ALPHA_OPAQUE       0
+
+// These lowest-level functions manipulate a 64-bit channel encoding directly.
+// Users will typically manipulate ncplane and cell channels through those APIs,
+// rather than calling these directly.
+
+// Extract the 8-bit red component from a 32-bit channel.
+static inline unsigned
+channel_r(unsigned channel){
+  return (channel & 0xff0000u) >> 16u;
+}
+
+// Extract the 8-bit green component from a 32-bit channel.
+static inline unsigned
+channel_g(unsigned channel){
+  return (channel & 0x00ff00u) >> 8u;
+}
+
+// Extract the 8-bit blue component from a 32-bit channel.
+static inline unsigned
+channel_b(unsigned channel){
+  return (channel & 0x0000ffu);
+}
+
+// Extract the three 8-bit R/G/B components from a 32-bit channel.
+static inline unsigned
+channel_rgb(unsigned channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
+            unsigned* RESTRICT b){
+  *r = channel_r(channel);
+  *g = channel_g(channel);
+  *b = channel_b(channel);
+  return channel;
+}
+
+// Set the three 8-bit components of a 32-bit channel, and mark it as not using
+// the default color. Retain the other bits unchanged.
+static inline int
+channel_set_rgb(unsigned* channel, int r, int g, int b){
+  if(r >= 256 || g >= 256 || b >= 256){
+    return -1;
+  }
+  if(r < 0 || g < 0 || b < 0){
+    return -1;
+  }
+  unsigned c = (r << 16u) | (g << 8u) | b;
+  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | c;
+  return 0;
+}
+
+// Set the three 8-bit components of a 32-bit channel, and mark it as not using
+// the default color. Retain the other bits unchanged. r, g, and b will be
+// clipped to the range [0..255].
+static inline void
+channel_set_rgb_clipped(unsigned* channel, int r, int g, int b){
+  if(r >= 256){
+    r = 255;
+  }
+  if(g >= 256){
+    g = 255;
+  }
+  if(b >= 256){
+    b = 255;
+  }
+  if(r <= -1){
+    r = 0;
+  }
+  if(g <= -1){
+    g = 0;
+  }
+  if(b <= -1){
+    b = 0;
+  }
+  unsigned c = (r << 16u) | (g << 8u) | b;
+  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | c;
+}
+
+// Same, but provide an assembled, packed 24 bits of rgb.
+static inline int
+channel_set(unsigned* channel, unsigned rgb){
+  if(rgb > 0xffffffu){
+    return -1;
+  }
+  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | rgb;
+  return 0;
+}
+
+// Extract the 2-bit alpha component from a 32-bit channel.
+static inline unsigned
+channel_alpha(unsigned channel){
+  return (channel & CELL_ALPHA_MASK) >> CELL_ALPHA_SHIFT;
+}
+
+// Set the 2-bit alpha component of the 32-bit channel.
+static inline int
+channel_set_alpha(unsigned* channel, int alpha){
+  if(alpha < CELL_ALPHA_OPAQUE || alpha > CELL_ALPHA_HIGHCONTRAST){
+    return -1;
+  }
+  *channel = (alpha << CELL_ALPHA_SHIFT) | (*channel & ~CELL_ALPHA_MASK);
+  if(alpha != CELL_ALPHA_OPAQUE){
+    *channel |= CELL_BGDEFAULT_MASK;
+  }
+  return 0;
+}
+
+// Is this channel using the "default color" rather than RGB/palette-indexed?
+static inline bool
+channel_default_p(unsigned channel){
+  return !(channel & CELL_BGDEFAULT_MASK);
+}
+
+// Is this channel using palette-indexed color rather than RGB?
+static inline bool
+channel_palindex_p(unsigned channel){
+  return !channel_default_p(channel) && (channel & CELL_BG_PALETTE);
+}
+
+// Mark the channel as using its default color, which also marks it opaque.
+static inline unsigned
+channel_set_default(unsigned* channel){
+  return *channel &= ~(CELL_BGDEFAULT_MASK | CELL_ALPHA_HIGHCONTRAST);
+}
+
+// Extract the 32-bit background channel from a channel pair.
+static inline uint32_t
+channels_bchannel(uint64_t channels){
+  return channels & 0xfffffffflu;
+}
+
+// Extract the 32-bit foreground channel from a channel pair.
+static inline uint32_t
+channels_fchannel(uint64_t channels){
+  return channels_bchannel(channels >> 32u);
+}
+
+// Set the 32-bit background channel of a channel pair.
+static inline uint64_t
+channels_set_bchannel(uint64_t* channels, uint32_t channel){
+  return *channels = (*channels & 0xffffffff00000000llu) | channel;
+}
+
+// Set the 32-bit foreground channel of a channel pair.
+static inline uint64_t
+channels_set_fchannel(uint64_t* channels, uint32_t channel){
+  return *channels = (*channels & 0xfffffffflu) | ((uint64_t)channel << 32u);
+}
+
+static inline uint64_t
+channels_combine(uint32_t fchan, uint32_t bchan){
+  uint64_t channels = 0;
+  channels_set_fchannel(&channels, fchan);
+  channels_set_bchannel(&channels, bchan);
+  return channels;
+}
+
+// Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
+static inline unsigned
+channels_fg(uint64_t channels){
+  return channels_fchannel(channels) & CELL_BG_MASK;
+}
+
+// Extract 24 bits of background RGB from 'channels', shifted to LSBs.
+static inline unsigned
+channels_bg(uint64_t channels){
+  return channels_bchannel(channels) & CELL_BG_MASK;
+}
+
+// Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
+static inline unsigned
+channels_fg_alpha(uint64_t channels){
+  return channel_alpha(channels_fchannel(channels));
+}
+
+// Extract 2 bits of background alpha from 'channels', shifted to LSBs.
+static inline unsigned
+channels_bg_alpha(uint64_t channels){
+  return channel_alpha(channels_bchannel(channels));
+}
+
+// Extract 24 bits of foreground RGB from 'channels', split into subchannels.
+static inline unsigned
+channels_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return channel_rgb(channels_fchannel(channels), r, g, b);
+}
+
+// Extract 24 bits of background RGB from 'channels', split into subchannels.
+static inline unsigned
+channels_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return channel_rgb(channels_bchannel(channels), r, g, b);
+}
+
+// Set the r, g, and b channels for the foreground component of this 64-bit
+// 'channels' variable, and mark it as not using the default color.
+static inline int
+channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
+  unsigned channel = channels_fchannel(*channels);
+  if(channel_set_rgb(&channel, r, g, b) < 0){
+    return -1;
+  }
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return 0;
+}
+
+// Same, but clips to [0..255].
+static inline void
+channels_set_fg_rgb_clipped(uint64_t* channels, int r, int g, int b){
+  unsigned channel = channels_fchannel(*channels);
+  channel_set_rgb_clipped(&channel, r, g, b);
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+}
+
+// Set the r, g, and b channels for the background component of this 64-bit
+// 'channels' variable, and mark it as not using the default color.
+static inline int
+channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
+  unsigned channel = channels_bchannel(*channels);
+  if(channel_set_rgb(&channel, r, g, b) < 0){
+    return -1;
+  }
+  channels_set_bchannel(channels, channel);
+  return 0;
+}
+
+// Same, but clips to [0..255].
+static inline void
+channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
+  unsigned channel = channels_bchannel(*channels);
+  channel_set_rgb_clipped(&channel, r, g, b);
+  channels_set_bchannel(channels, channel);
+}
+
+// Same, but set an assembled 24 bit channel at once.
+static inline int
+channels_set_fg(uint64_t* channels, unsigned rgb){
+  unsigned channel = channels_fchannel(*channels);
+  if(channel_set(&channel, rgb) < 0){
+    return -1;
+  }
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return 0;
+}
+
+static inline int
+channels_set_bg(uint64_t* channels, unsigned rgb){
+  unsigned channel = channels_bchannel(*channels);
+  if(channel_set(&channel, rgb) < 0){
+    return -1;
+  }
+  channels_set_bchannel(channels, channel);
+  return 0;
+}
+
+// Set the 2-bit alpha component of the foreground channel.
+static inline int
+channels_set_fg_alpha(uint64_t* channels, int alpha){
+  unsigned channel = channels_fchannel(*channels);
+  if(channel_set_alpha(&channel, alpha) < 0){
+    return -1;
+  }
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return 0;
+}
+
+// Set the 2-bit alpha component of the background channel.
+static inline int
+channels_set_bg_alpha(uint64_t* channels, int alpha){
+  if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
+    return -1;
+  }
+  unsigned channel = channels_bchannel(*channels);
+  if(channel_set_alpha(&channel, alpha) < 0){
+    return -1;
+  }
+  channels_set_bchannel(channels, channel);
+  return 0;
+}
+
+// Is the foreground using the "default foreground color"?
+static inline bool
+channels_fg_default_p(uint64_t channels){
+  return channel_default_p(channels_fchannel(channels));
+}
+
+// Is the foreground using indexed palette color?
+static inline bool
+channels_fg_palindex_p(uint64_t channels){
+  return channel_palindex_p(channels_fchannel(channels));
+}
+
+// Is the background using the "default background color"? The "default
+// background color" must generally be used to take advantage of
+// terminal-effected transparency.
+static inline bool
+channels_bg_default_p(uint64_t channels){
+  return channel_default_p(channels_bchannel(channels));
+}
+
+// Is the background using indexed palette color?
+static inline bool
+channels_bg_palindex_p(uint64_t channels){
+  return channel_palindex_p(channels_bchannel(channels));
+}
+
+// Mark the foreground channel as using its default color.
+static inline uint64_t
+channels_set_fg_default(uint64_t* channels){
+  unsigned channel = channels_fchannel(*channels);
+  channel_set_default(&channel);
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return *channels;
+}
+
+// Mark the foreground channel as using its default color.
+static inline uint64_t
+channels_set_bg_default(uint64_t* channels){
+  unsigned channel = channels_bchannel(*channels);
+  channel_set_default(&channel);
+  channels_set_bchannel(channels, channel);
+  return *channels;
+}
+
 // A cell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
 // possible combining characters, which might span multiple columns). At any
@@ -621,6 +954,178 @@ API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 // Get the current position of the cursor within n. y and/or x may be NULL.
 API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
+// Get the current channels or attribute word for ncplane 'n'.
+API uint64_t ncplane_channels(const struct ncplane* n);
+API uint32_t ncplane_attr(const struct ncplane* n);
+
+// Working with cells
+
+#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
+
+static inline void
+cell_init(cell* c){
+  memset(c, 0, sizeof(*c));
+}
+
+// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
+// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
+// of the cell is left untouched, but any resources are released.
+API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+
+// cell_load(), plus blast the styling with 'attr' and 'channels'.
+static inline int
+cell_prime(struct ncplane* n, cell* c, const char* gcluster,
+           uint32_t attr, uint64_t channels){
+  c->attrword = attr;
+  c->channels = channels;
+  int ret = cell_load(n, c, gcluster);
+  return ret;
+}
+
+// Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
+// benefit of unit tests.
+API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
+
+// Release resources held by the cell 'c'.
+API void cell_release(struct ncplane* n, cell* c);
+
+#define NCSTYLE_MASK      0xffff0000ul
+#define NCSTYLE_STANDOUT  0x00800000ul
+#define NCSTYLE_UNDERLINE 0x00400000ul
+#define NCSTYLE_REVERSE   0x00200000ul
+#define NCSTYLE_BLINK     0x00100000ul
+#define NCSTYLE_DIM       0x00080000ul
+#define NCSTYLE_BOLD      0x00040000ul
+#define NCSTYLE_INVIS     0x00020000ul
+#define NCSTYLE_PROTECT   0x00010000ul
+#define NCSTYLE_ITALIC    0x01000000ul
+
+// Set the specified style bits for the cell 'c', whether they're actively
+// supported or not.
+static inline void
+cell_styles_set(cell* c, unsigned stylebits){
+  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
+}
+
+// Extract the style bits from the cell's attrword.
+static inline unsigned
+cell_styles(const cell* c){
+  return c->attrword & NCSTYLE_MASK;
+}
+
+// Add the specified styles (in the LSBs) to the cell's existing spec, whether
+// they're actively supported or not.
+static inline void
+cell_styles_on(cell* c, unsigned stylebits){
+  c->attrword |= (stylebits & NCSTYLE_MASK);
+}
+
+// Remove the specified styles (in the LSBs) from the cell's existing spec.
+static inline void
+cell_styles_off(cell* c, unsigned stylebits){
+  c->attrword &= ~(stylebits & NCSTYLE_MASK);
+}
+
+// Use the default color for the foreground.
+static inline void
+cell_set_fg_default(cell* c){
+  channels_set_fg_default(&c->channels);
+}
+
+// Use the default color for the background.
+static inline void
+cell_set_bg_default(cell* c){
+  channels_set_bg_default(&c->channels);
+}
+
+static inline int
+cell_set_fg_alpha(cell* c, int alpha){
+  return channels_set_fg_alpha(&c->channels, alpha);
+}
+
+static inline int
+cell_set_bg_alpha(cell* c, int alpha){
+  return channels_set_bg_alpha(&c->channels, alpha);
+}
+
+// Does the cell contain an East Asian Wide codepoint?
+static inline bool
+cell_double_wide_p(const cell* c){
+  return (c->channels & CELL_WIDEASIAN_MASK);
+}
+
+// Is this the right half of a wide character?
+static inline bool
+cell_wide_right_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster == 0;
+}
+
+// Is this the left half of a wide character?
+static inline bool
+cell_wide_left_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster;
+}
+
+// Is the cell simple (a lone ASCII character, encoded as such)?
+static inline bool
+cell_simple_p(const cell* c){
+  return c->gcluster < 0x80;
+}
+
+// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
+// is invalidated by any further operation on the plane 'n', so...watch out!
+API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+
+// Returns true if the two cells are distinct EGCs, attributes, or channels.
+// The actual egcpool index needn't be the same--indeed, the planes needn't even
+// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
+// it would probably be better to test whether they're Unicode-equal FIXME.
+static inline bool
+cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
+        const struct ncplane* n2, const cell* RESTRICT c2){
+  if(c1->attrword != c2->attrword){
+    return true;
+  }
+  if(c1->channels != c2->channels){
+    return true;
+  }
+  if(cell_simple_p(c1) && cell_simple_p(c2)){
+    return c1->gcluster != c2->gcluster;
+  }
+  if(cell_simple_p(c1) || cell_simple_p(c2)){
+    return true;
+  }
+  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
+}
+
+// True if the cell does not generate foreground pixels (i.e., the cell is
+// entirely whitespace or special characters).
+// FIXME do this at cell prep time and set a bit in the channels
+static inline bool
+cell_noforeground_p(const cell* c){
+  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
+}
+
+static inline int
+cell_load_simple(struct ncplane* n, cell* c, char ch){
+  cell_release(n, c);
+  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->gcluster = ch;
+  if(cell_simple_p(c)){
+    return 1;
+  }
+  return -1;
+}
+
+// get the offset into the egcpool for this cell's EGC. returns meaningless and
+// unsafe results if called on a simple cell.
+static inline uint32_t
+cell_egc_idx(const cell* c){
+  return c->gcluster - 0x80;
+}
+
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
@@ -639,7 +1144,14 @@ ncplane_putc(struct ncplane* n, const cell* c){
 // Replace the cell at the specified coordinates with the provided 7-bit char
 // 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.
-API int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
+static inline int
+ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
+  cell ce = CELL_INITIALIZER((uint32_t)c, ncplane_attr(n), ncplane_channels(n));
+  if(!cell_simple_p(&ce)){
+    return -1;
+  }
+  return ncplane_putc_yx(n, y, x, &ce);
+}
 
 // Call ncplane_putsimple_yx() at the current cursor location.
 static inline int
@@ -989,338 +1501,6 @@ API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT
 API void ncplane_erase(struct ncplane* n);
 
 #define NCPALETTESIZE 256
-#define CELL_WIDEASIAN_MASK     0x8000000080000000ull
-#define CELL_BGDEFAULT_MASK     0x0000000040000000ull
-#define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
-#define CELL_BG_MASK            0x0000000000ffffffull
-#define CELL_FG_MASK            (CELL_BG_MASK << 32u)
-#define CELL_BG_PALETTE         0x0000000008000000ull
-#define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
-#define CELL_ALPHA_MASK         0x0000000030000000ull
-#define CELL_ALPHA_SHIFT        28u
-#define CELL_ALPHA_HIGHCONTRAST 3
-#define CELL_ALPHA_TRANSPARENT  2
-#define CELL_ALPHA_BLEND        1
-#define CELL_ALPHA_OPAQUE       0
-
-// These lowest-level functions manipulate a 64-bit channel encoding directly.
-// Users will typically manipulate ncplane and cell channels through those APIs,
-// rather than calling these directly.
-
-// Extract the 8-bit red component from a 32-bit channel.
-static inline unsigned
-channel_r(unsigned channel){
-  return (channel & 0xff0000u) >> 16u;
-}
-
-// Extract the 8-bit green component from a 32-bit channel.
-static inline unsigned
-channel_g(unsigned channel){
-  return (channel & 0x00ff00u) >> 8u;
-}
-
-// Extract the 8-bit blue component from a 32-bit channel.
-static inline unsigned
-channel_b(unsigned channel){
-  return (channel & 0x0000ffu);
-}
-
-// Extract the three 8-bit R/G/B components from a 32-bit channel.
-static inline unsigned
-channel_rgb(unsigned channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
-            unsigned* RESTRICT b){
-  *r = channel_r(channel);
-  *g = channel_g(channel);
-  *b = channel_b(channel);
-  return channel;
-}
-
-// Set the three 8-bit components of a 32-bit channel, and mark it as not using
-// the default color. Retain the other bits unchanged.
-static inline int
-channel_set_rgb(unsigned* channel, int r, int g, int b){
-  if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
-    return -1;
-  }
-  unsigned c = (r << 16u) | (g << 8u) | b;
-  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | c;
-  return 0;
-}
-
-// Set the three 8-bit components of a 32-bit channel, and mark it as not using
-// the default color. Retain the other bits unchanged. r, g, and b will be
-// clipped to the range [0..255].
-static inline void
-channel_set_rgb_clipped(unsigned* channel, int r, int g, int b){
-  if(r >= 256){
-    r = 255;
-  }
-  if(g >= 256){
-    g = 255;
-  }
-  if(b >= 256){
-    b = 255;
-  }
-  if(r <= -1){
-    r = 0;
-  }
-  if(g <= -1){
-    g = 0;
-  }
-  if(b <= -1){
-    b = 0;
-  }
-  unsigned c = (r << 16u) | (g << 8u) | b;
-  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | c;
-}
-
-// Same, but provide an assembled, packed 24 bits of rgb.
-static inline int
-channel_set(unsigned* channel, unsigned rgb){
-  if(rgb > 0xffffffu){
-    return -1;
-  }
-  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | rgb;
-  return 0;
-}
-
-// Extract the 2-bit alpha component from a 32-bit channel.
-static inline unsigned
-channel_alpha(unsigned channel){
-  return (channel & CELL_ALPHA_MASK) >> CELL_ALPHA_SHIFT;
-}
-
-// Set the 2-bit alpha component of the 32-bit channel.
-static inline int
-channel_set_alpha(unsigned* channel, int alpha){
-  if(alpha < CELL_ALPHA_OPAQUE || alpha > CELL_ALPHA_HIGHCONTRAST){
-    return -1;
-  }
-  *channel = (alpha << CELL_ALPHA_SHIFT) | (*channel & ~CELL_ALPHA_MASK);
-  if(alpha != CELL_ALPHA_OPAQUE){
-    *channel |= CELL_BGDEFAULT_MASK;
-  }
-  return 0;
-}
-
-// Is this channel using the "default color" rather than RGB/palette-indexed?
-static inline bool
-channel_default_p(unsigned channel){
-  return !(channel & CELL_BGDEFAULT_MASK);
-}
-
-// Is this channel using palette-indexed color rather than RGB?
-static inline bool
-channel_palindex_p(unsigned channel){
-  return !channel_default_p(channel) && (channel & CELL_BG_PALETTE);
-}
-
-// Mark the channel as using its default color, which also marks it opaque.
-static inline unsigned
-channel_set_default(unsigned* channel){
-  return *channel &= ~(CELL_BGDEFAULT_MASK | CELL_ALPHA_HIGHCONTRAST);
-}
-
-// Extract the 32-bit background channel from a channel pair.
-static inline uint32_t
-channels_bchannel(uint64_t channels){
-  return channels & 0xfffffffflu;
-}
-
-// Extract the 32-bit foreground channel from a channel pair.
-static inline uint32_t
-channels_fchannel(uint64_t channels){
-  return channels_bchannel(channels >> 32u);
-}
-
-// Set the 32-bit background channel of a channel pair.
-static inline uint64_t
-channels_set_bchannel(uint64_t* channels, uint32_t channel){
-  return *channels = (*channels & 0xffffffff00000000llu) | channel;
-}
-
-// Set the 32-bit foreground channel of a channel pair.
-static inline uint64_t
-channels_set_fchannel(uint64_t* channels, uint32_t channel){
-  return *channels = (*channels & 0xfffffffflu) | ((uint64_t)channel << 32u);
-}
-
-static inline uint64_t
-channels_combine(uint32_t fchan, uint32_t bchan){
-  uint64_t channels = 0;
-  channels_set_fchannel(&channels, fchan);
-  channels_set_bchannel(&channels, bchan);
-  return channels;
-}
-
-// Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
-static inline unsigned
-channels_fg(uint64_t channels){
-  return channels_fchannel(channels) & CELL_BG_MASK;
-}
-
-// Extract 24 bits of background RGB from 'channels', shifted to LSBs.
-static inline unsigned
-channels_bg(uint64_t channels){
-  return channels_bchannel(channels) & CELL_BG_MASK;
-}
-
-// Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
-static inline unsigned
-channels_fg_alpha(uint64_t channels){
-  return channel_alpha(channels_fchannel(channels));
-}
-
-// Extract 2 bits of background alpha from 'channels', shifted to LSBs.
-static inline unsigned
-channels_bg_alpha(uint64_t channels){
-  return channel_alpha(channels_bchannel(channels));
-}
-
-// Extract 24 bits of foreground RGB from 'channels', split into subchannels.
-static inline unsigned
-channels_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_rgb(channels_fchannel(channels), r, g, b);
-}
-
-// Extract 24 bits of background RGB from 'channels', split into subchannels.
-static inline unsigned
-channels_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_rgb(channels_bchannel(channels), r, g, b);
-}
-
-// Set the r, g, and b channels for the foreground component of this 64-bit
-// 'channels' variable, and mark it as not using the default color.
-static inline int
-channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_fchannel(*channels);
-  if(channel_set_rgb(&channel, r, g, b) < 0){
-    return -1;
-  }
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-  return 0;
-}
-
-// Same, but clips to [0..255].
-static inline void
-channels_set_fg_rgb_clipped(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_fchannel(*channels);
-  channel_set_rgb_clipped(&channel, r, g, b);
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-}
-
-// Set the r, g, and b channels for the background component of this 64-bit
-// 'channels' variable, and mark it as not using the default color.
-static inline int
-channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_bchannel(*channels);
-  if(channel_set_rgb(&channel, r, g, b) < 0){
-    return -1;
-  }
-  channels_set_bchannel(channels, channel);
-  return 0;
-}
-
-// Same, but clips to [0..255].
-static inline void
-channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_bchannel(*channels);
-  channel_set_rgb_clipped(&channel, r, g, b);
-  channels_set_bchannel(channels, channel);
-}
-
-// Same, but set an assembled 24 bit channel at once.
-static inline int
-channels_set_fg(uint64_t* channels, unsigned rgb){
-  unsigned channel = channels_fchannel(*channels);
-  if(channel_set(&channel, rgb) < 0){
-    return -1;
-  }
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-  return 0;
-}
-
-static inline int
-channels_set_bg(uint64_t* channels, unsigned rgb){
-  unsigned channel = channels_bchannel(*channels);
-  if(channel_set(&channel, rgb) < 0){
-    return -1;
-  }
-  channels_set_bchannel(channels, channel);
-  return 0;
-}
-
-// Set the 2-bit alpha component of the foreground channel.
-static inline int
-channels_set_fg_alpha(uint64_t* channels, int alpha){
-  unsigned channel = channels_fchannel(*channels);
-  if(channel_set_alpha(&channel, alpha) < 0){
-    return -1;
-  }
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-  return 0;
-}
-
-// Set the 2-bit alpha component of the background channel.
-static inline int
-channels_set_bg_alpha(uint64_t* channels, int alpha){
-  if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
-    return -1;
-  }
-  unsigned channel = channels_bchannel(*channels);
-  if(channel_set_alpha(&channel, alpha) < 0){
-    return -1;
-  }
-  channels_set_bchannel(channels, channel);
-  return 0;
-}
-
-// Is the foreground using the "default foreground color"?
-static inline bool
-channels_fg_default_p(uint64_t channels){
-  return channel_default_p(channels_fchannel(channels));
-}
-
-// Is the foreground using indexed palette color?
-static inline bool
-channels_fg_palindex_p(uint64_t channels){
-  return channel_palindex_p(channels_fchannel(channels));
-}
-
-// Is the background using the "default background color"? The "default
-// background color" must generally be used to take advantage of
-// terminal-effected transparency.
-static inline bool
-channels_bg_default_p(uint64_t channels){
-  return channel_default_p(channels_bchannel(channels));
-}
-
-// Is the background using indexed palette color?
-static inline bool
-channels_bg_palindex_p(uint64_t channels){
-  return channel_palindex_p(channels_bchannel(channels));
-}
-
-// Mark the foreground channel as using its default color.
-static inline uint64_t
-channels_set_fg_default(uint64_t* channels){
-  unsigned channel = channels_fchannel(*channels);
-  channel_set_default(&channel);
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-  return *channels;
-}
-
-// Mark the foreground channel as using its default color.
-static inline uint64_t
-channels_set_bg_default(uint64_t* channels){
-  unsigned channel = channels_bchannel(*channels);
-  channel_set_default(&channel);
-  channels_set_bchannel(channels, channel);
-  return *channels;
-}
 
 // Returns the result of blending two channels. 'blends' indicates how heavily
 // 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
@@ -1531,10 +1711,6 @@ cell_bg_palindex_p(const cell* cl){
   return channels_bg_palindex_p(cl->channels);
 }
 
-// Get the current channels or attribute word for ncplane 'n'.
-API uint64_t ncplane_channels(const struct ncplane* n);
-API uint32_t ncplane_attr(const struct ncplane* n);
-
 // Extract the 32-bit working background channel from an ncplane.
 static inline unsigned
 ncplane_bchannel(const struct ncplane* nc){
@@ -1649,174 +1825,6 @@ API int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fade
 // use involves preparing (but not rendering) an ncplane, then calling
 // ncplane_pulse(), which will fade in from black to the specified colors.
 API int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
-
-// Working with cells
-
-#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
-
-static inline void
-cell_init(cell* c){
-  memset(c, 0, sizeof(*c));
-}
-
-// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
-// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
-// of the cell is left untouched, but any resources are released.
-API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
-
-// cell_load(), plus blast the styling with 'attr' and 'channels'.
-static inline int
-cell_prime(struct ncplane* n, cell* c, const char* gcluster,
-           uint32_t attr, uint64_t channels){
-  c->attrword = attr;
-  c->channels = channels;
-  int ret = cell_load(n, c, gcluster);
-  return ret;
-}
-
-// Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
-// benefit of unit tests.
-API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
-
-// Release resources held by the cell 'c'.
-API void cell_release(struct ncplane* n, cell* c);
-
-#define NCSTYLE_MASK      0xffff0000ul
-#define NCSTYLE_STANDOUT  0x00800000ul
-#define NCSTYLE_UNDERLINE 0x00400000ul
-#define NCSTYLE_REVERSE   0x00200000ul
-#define NCSTYLE_BLINK     0x00100000ul
-#define NCSTYLE_DIM       0x00080000ul
-#define NCSTYLE_BOLD      0x00040000ul
-#define NCSTYLE_INVIS     0x00020000ul
-#define NCSTYLE_PROTECT   0x00010000ul
-#define NCSTYLE_ITALIC    0x01000000ul
-
-// Set the specified style bits for the cell 'c', whether they're actively
-// supported or not.
-static inline void
-cell_styles_set(cell* c, unsigned stylebits){
-  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
-}
-
-// Extract the style bits from the cell's attrword.
-static inline unsigned
-cell_styles(const cell* c){
-  return c->attrword & NCSTYLE_MASK;
-}
-
-// Add the specified styles (in the LSBs) to the cell's existing spec, whether
-// they're actively supported or not.
-static inline void
-cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= (stylebits & NCSTYLE_MASK);
-}
-
-// Remove the specified styles (in the LSBs) from the cell's existing spec.
-static inline void
-cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~(stylebits & NCSTYLE_MASK);
-}
-
-// Use the default color for the foreground.
-static inline void
-cell_set_fg_default(cell* c){
-  channels_set_fg_default(&c->channels);
-}
-
-// Use the default color for the background.
-static inline void
-cell_set_bg_default(cell* c){
-  channels_set_bg_default(&c->channels);
-}
-
-static inline int
-cell_set_fg_alpha(cell* c, int alpha){
-  return channels_set_fg_alpha(&c->channels, alpha);
-}
-
-static inline int
-cell_set_bg_alpha(cell* c, int alpha){
-  return channels_set_bg_alpha(&c->channels, alpha);
-}
-
-// Does the cell contain an East Asian Wide codepoint?
-static inline bool
-cell_double_wide_p(const cell* c){
-  return (c->channels & CELL_WIDEASIAN_MASK);
-}
-
-// Is this the right half of a wide character?
-static inline bool
-cell_wide_right_p(const cell* c){
-  return cell_double_wide_p(c) && c->gcluster == 0;
-}
-
-// Is this the left half of a wide character?
-static inline bool
-cell_wide_left_p(const cell* c){
-  return cell_double_wide_p(c) && c->gcluster;
-}
-
-// Is the cell simple (a lone ASCII character, encoded as such)?
-static inline bool
-cell_simple_p(const cell* c){
-  return c->gcluster < 0x80;
-}
-
-// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
-// is invalidated by any further operation on the plane 'n', so...watch out!
-API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
-
-// Returns true if the two cells are distinct EGCs, attributes, or channels.
-// The actual egcpool index needn't be the same--indeed, the planes needn't even
-// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
-// it would probably be better to test whether they're Unicode-equal FIXME.
-static inline bool
-cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
-        const struct ncplane* n2, const cell* RESTRICT c2){
-  if(c1->attrword != c2->attrword){
-    return true;
-  }
-  if(c1->channels != c2->channels){
-    return true;
-  }
-  if(cell_simple_p(c1) && cell_simple_p(c2)){
-    return c1->gcluster != c2->gcluster;
-  }
-  if(cell_simple_p(c1) || cell_simple_p(c2)){
-    return true;
-  }
-  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
-}
-
-// True if the cell does not generate foreground pixels (i.e., the cell is
-// entirely whitespace or special characters).
-// FIXME do this at cell prep time and set a bit in the channels
-static inline bool
-cell_noforeground_p(const cell* c){
-  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
-}
-
-static inline int
-cell_load_simple(struct ncplane* n, cell* c, char ch){
-  cell_release(n, c);
-  c->channels &= ~CELL_WIDEASIAN_MASK;
-  c->gcluster = ch;
-  if(cell_simple_p(c)){
-    return 1;
-  }
-  return -1;
-}
-
-// get the offset into the egcpool for this cell's EGC. returns meaningless and
-// unsafe results if called on a simple cell.
-static inline uint32_t
-cell_egc_idx(const cell* c){
-  return c->gcluster - 0x80;
-}
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might

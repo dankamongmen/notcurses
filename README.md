@@ -863,7 +863,14 @@ ncplane_putc(struct ncplane* n, const cell* c){
 // Replace the cell at the specified coordinates with the provided 7-bit char
 // 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.
-int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
+static inline int
+ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
+  cell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
+  if(!cell_simple_p(&ce)){
+    return -1;
+  }
+  return ncplane_putc_yx(n, y, x, &ce);
+}
 
 // Call ncplane_putsimple_yx() at the current cursor location.
 static inline int
