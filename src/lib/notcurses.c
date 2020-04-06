@@ -1336,7 +1336,6 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     // FIXME if new n->y >= n->leny, scroll everything up a line and reset n->y
   }
   if(ncplane_cursor_move_yx(n, y, x)){
-fprintf(stderr, "CAN'T MOVE TO %d/%d (real: %d/%d)\n", y, x, n->y, n->x);
     return -1;
   }
   // A wide character obliterates anything to its immediate right (and marks
@@ -1378,14 +1377,6 @@ fprintf(stderr, "CAN'T MOVE TO %d/%d (real: %d/%d)\n", y, x, n->y, n->x);
   }
   n->x += cols;
   return cols;
-}
-
-int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
-  cell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
-  if(!cell_simple_p(&ce)){
-    return -1;
-  }
-  return ncplane_putc_yx(n, y, x, &ce);
 }
 
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
