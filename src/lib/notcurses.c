@@ -1248,17 +1248,6 @@ const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
   return extended_gcluster(n, c);
 }
 
-static void
-advance_cursor(ncplane* n, int cols){
-  if(cursor_invalid_p(n)){
-    return; // stuck!
-  }
-  if((n->x += cols) >= n->lenx){
-    ++n->y;
-    n->x = 0;
-  }
-}
-
 // 'n' ends up above 'above'
 int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
   if(n->z == above){
@@ -1328,11 +1317,6 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   }
 }
 
-static inline bool
-ncplane_cursor_stuck(const ncplane* n){
-  return (n->x >= n->lenx && n->y >= n->leny);
-}
-
 static inline void
 cell_obliterate(ncplane* n, cell* c){
   cell_release(n, c);
@@ -1340,11 +1324,19 @@ cell_obliterate(ncplane* n, cell* c){
 }
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
+  // if scrolling is enabled, check *before ncplane_cursor_move_yx()* whether
+  // we're past the end of the line, and move to the next line if so.
   bool wide = cell_double_wide_p(c);
-  if(wide && (n->x + 1 == n->lenx)){
+  if(x == -1 && y == -1 && n->x + wide >= n->lenx){
+    if(!n->scrolling){
+      return -1;
+    }
+    n->x = 0;
+    ++n->y;
+    // FIXME if new n->y >= n->leny, scroll everything up a line and reset n->y
+  }
+  if(ncplane_cursor_move_yx(n, y, x)){
+fprintf(stderr, "CAN'T MOVE TO %d/%d (real: %d/%d)\n", y, x, n->y, n->x);
     return -1;
   }
   // A wide character obliterates anything to its immediate right (and marks
@@ -1384,7 +1376,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
       cell_release(n, candidate);
     }
   }
-  advance_cursor(n, cols);
+  n->x += cols;
   return cols;
 }
 
@@ -1491,20 +1483,17 @@ int ncplane_putstr_yx(ncplane* n, int y, int x, const char* gclusters){
     int wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
     if(cols < 0){
-      if(wcs < 0){
-        return -ret;
-      }
-      break;
+      return -ret; // return -ret in case of error
     }
     if(wcs == 0){
       break;
     }
-    ncplane_cursor_yx(n, &y, &x);
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
     gclusters += wcs;
     ret += wcs;
-    if(ncplane_cursor_stuck(n)){
-      break;
-    }
   }
   return ret;
 }
