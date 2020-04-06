@@ -420,15 +420,15 @@ typedef struct ncplot_options {
   uint64_t minchannel;
   ncgridgeom_e gridtype;
   uint64_t rangex;
-  int64_t miny, maxy;
+  uint64_t miny, maxy;
   bool labelaxisd;
   bool exponentialy;
   bool vertical_indep;
 } ncplot_options;
 struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
 struct ncplane* ncplot_plane(struct ncplot* n);
-int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);
-int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);
+int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);
+int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
 void ncplot_destroy(struct ncplot* n);
 bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
 """)

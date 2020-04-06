@@ -161,7 +161,7 @@ typedef struct ncplot {
   // domain minimum and maximum. if detectdomain is true, these are
   // progressively enlarged/shrunk to fit the sample set. if not, samples
   // outside these bounds are counted, but the displayed range covers only this.
-  int64_t miny, maxy;
+  uint64_t miny, maxy;
   // circular buffer, with the oldest element at slotstart, and slotcount
   // elements. slotcount is max(columns, rangex).
   int64_t* slots;

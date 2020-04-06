@@ -18,7 +18,8 @@ redraw_plot(ncplot* n){
   ncplane_dim_yx(ncplot_plane(n), &dimy, &dimx);
   // each transition is worth this much change in value
   const size_t states = wcslen(geomdata[n->gridtype].egcs);
-  double interval = (n->maxy - n->miny + 1) / ((double)dimy * states); // FIXME
+  // FIXME can we not rid ourselves of this meddlesome double?
+  double interval = (n->maxy - n->miny + 1) / ((double)dimy * states);
   int idx = n->slotstart;
   const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
   if(n->labelaxisd){
@@ -28,11 +29,12 @@ redraw_plot(ncplot* n){
       ncplane_putstr_yx(ncplot_plane(n), dimy - y - 1, PREFIXSTRLEN - strlen(buf), buf);
     }
   }
+fprintf(stderr, "min: %ju max: %ju states: %zu interval: %g\n", n->miny, n->maxy, states, interval);
   for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
     if(x >= (unsigned)dimx){
       break;
     }
-    int64_t gval = n->slots[idx]; // clip the value at the limits of the graph
+    uint64_t gval = n->slots[idx]; // clip the value at the limits of the graph
     if(gval < n->miny){
       gval = n->miny;
     }
@@ -140,7 +142,7 @@ ncplane* ncplot_plane(ncplot* n){
 // return -1 if the value is outside of that range.
 static inline int
 update_domain(ncplot* n, uint64_t x){
-  const int64_t val = n->slots[x % n->slotcount];
+  const uint64_t val = n->slots[x % n->slotcount];
   if(n->detectdomain){
     if(val > n->maxy){
       n->maxy = val;
@@ -191,8 +193,8 @@ window_slide(ncplot* n, uint64_t x){
 
 // x must be within n's window
 static inline void
-update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
-  uint64_t idx = x/*(n->slotstart + delta)*/ % n->slotcount;
+update_sample(ncplot* n, uint64_t x, uint64_t y, bool reset){
+  uint64_t idx = x % n->slotcount;
   if(reset){
     n->slots[idx] = y;
   }else{
@@ -204,7 +206,7 @@ update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
 // x window, the x window is advanced to include x, and values passing beyond
 // the window are lost. The first call will place the initial window. The plot
 // will be redrawn, but notcurses_render() is not called.
-int ncplot_add_sample(ncplot* n, uint64_t x, int64_t y){
+int ncplot_add_sample(ncplot* n, uint64_t x, uint64_t y){
   if(window_slide(n, x)){
     return -1;
   }
@@ -215,7 +217,7 @@ int ncplot_add_sample(ncplot* n, uint64_t x, int64_t y){
   return redraw_plot(n);
 }
 
-int ncplot_set_sample(ncplot* n, uint64_t x, int64_t y){
+int ncplot_set_sample(ncplot* n, uint64_t x, uint64_t y){
   if(window_slide(n, x)){
     return -1;
   }

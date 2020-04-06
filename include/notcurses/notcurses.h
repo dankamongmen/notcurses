@@ -2558,7 +2558,7 @@ typedef struct ncplot_options {
   // resolution, the independent variable would be the range [0..3600): 3600.
   // if rangex is 0, it is dynamically set to the number of columns.
   uint64_t rangex;
-  int64_t miny, maxy; // y axis min and max. for autodiscovery, set them equal.
+  uint64_t miny, maxy; // y axis min and max. for autodiscovery, set them equal.
   bool labelaxisd; // generate labels for the dependent axis
   bool exponentialy;  // is y-axis exponential? (not yet implemented)
   // independent variable is vertical rather than horizontal
@@ -2576,8 +2576,8 @@ API struct ncplane* ncplot_plane(struct ncplot* n);
 // x window, the x window is advanced to include x, and values passing beyond
 // the window are lost. The first call will place the initial window. The plot
 // will be redrawn, but notcurses_render() is not called.
-API int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);
-API int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);
+API int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);
+API int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
 
 API void ncplot_destroy(struct ncplot* n);
 
