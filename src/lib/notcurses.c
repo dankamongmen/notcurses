@@ -1488,10 +1488,7 @@ int ncplane_putstr_yx(ncplane* n, int y, int x, const char* gclusters){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
   while(*gclusters){
-    // FIXME can we not dispense with this cell, and print directly in?
-    cell c;
-    memset(&c, 0, sizeof(c));
-    int wcs = cell_load(n, &c, gclusters);
+    int wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
     if(cols < 0){
       if(wcs < 0){
