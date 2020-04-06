@@ -4,67 +4,66 @@ static const struct {
   ncgridgeom_e geom;
   const wchar_t* egcs;
 } geomdata[] = {
-  { .geom = NCPLOT_1x1,   .egcs = L"█",        },
-  { .geom = NCPLOT_2x1,   .egcs = L"▄█",       },
-  { .geom = NCPLOT_1x1x4, .egcs = L"▒░▓█",     },
-  { .geom = NCPLOT_4x1,   .egcs = L"▂▄▆█",     },
-  { .geom = NCPLOT_8x1,   .egcs = L"▁▂▃▄▅▆▇█", },
+  { .geom = NCPLOT_1x1,   .egcs = L" █",        },
+  { .geom = NCPLOT_2x1,   .egcs = L" ▄█",       },
+  { .geom = NCPLOT_1x1x4, .egcs = L" ▒░▓█",     },
+  { .geom = NCPLOT_4x1,   .egcs = L" ▂▄▆█",     },
+  { .geom = NCPLOT_8x1,   .egcs = L" ▁▂▃▄▅▆▇█", },
 };
 
 static int
 redraw_plot(ncplot* n){
-  ncplane_erase(ncplot_plane(n)); // FIXME shouldn't need this
+  ncplane_erase(ncplot_plane(n));
   int dimy, dimx;
   ncplane_dim_yx(ncplot_plane(n), &dimy, &dimx);
   // each transition is worth this much change in value
   const size_t states = wcslen(geomdata[n->gridtype].egcs);
   // FIXME can we not rid ourselves of this meddlesome double?
-  double interval = (n->maxy - n->miny + 1) / ((double)dimy * states);
+  double interval = n->maxy < n->miny ? 0 : (n->maxy - n->miny) / ((double)dimy * states);
   int idx = n->slotstart;
   const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
   if(n->labelaxisd){
+    // show the *top* of each interval range
     for(int y = 0 ; y < dimy ; ++y){
       char buf[PREFIXSTRLEN + 1];
-      ncmetric(interval * states * y, 1, buf, 0, 1000, '\0');
+      ncmetric(interval * states * (y + 1) * 100, 100, buf, 0, 1000, '\0');
       ncplane_putstr_yx(ncplot_plane(n), dimy - y - 1, PREFIXSTRLEN - strlen(buf), buf);
     }
   }
-fprintf(stderr, "min: %ju max: %ju states: %zu interval: %g\n", n->miny, n->maxy, states, interval);
-  for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
-    if(x >= (unsigned)dimx){
-      break;
-    }
-    uint64_t gval = n->slots[idx]; // clip the value at the limits of the graph
-    if(gval < n->miny){
-      gval = n->miny;
-    }
-    if(gval > n->maxy){
-      gval = n->maxy;
-    }
-    // starting from the least-significant row, progress in the more significant
-    // direction, drawing egcs from the grid specification, aborting early if
-    // we can't draw anything in a given cell.
-    for(int y = 0 ; y < dimy ; ++y){
-      // if we've got at least one interval's worth on the number of positions
-      // times the number of intervals per position plus the starting offset,
-      // we're going to print *something*
-      if(n->miny + (interval * states) * y + interval > gval){
+  if(interval){
+    for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
+      if(x >= (unsigned)dimx){
         break;
       }
-      size_t egcidx = (gval - n->miny) - (y * interval * states) - 1;
-      if(egcidx >= states){
-        egcidx = states - 1;
+      uint64_t gval = n->slots[idx]; // clip the value at the limits of the graph
+      if(gval < n->miny){
+        gval = n->miny;
       }
-      if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, geomdata[n->gridtype].egcs[egcidx]) <= 0){
-        return -1;
+      if(gval > n->maxy){
+        gval = n->maxy;
       }
-      // FIXME this ought fall out naturally. that it does not indicates, i
-      // think, an error above...
-      if(egcidx != states - 1){
-        break;
+      // starting from the least-significant row, progress in the more significant
+      // direction, drawing egcs from the grid specification, aborting early if
+      // we can't draw anything in a given cell.
+      double intervalbase = n->miny;
+      for(int y = 0 ; y < dimy ; ++y){
+        // if we've got at least one interval's worth on the number of positions
+        // times the number of intervals per position plus the starting offset,
+        // we're going to print *something*
+        if(intervalbase >= gval){
+          break;
+        }
+        size_t egcidx = (gval - intervalbase) / interval;
+        if(egcidx >= states){
+          egcidx = states - 1;
+        }
+        if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, geomdata[n->gridtype].egcs[egcidx]) <= 0){
+          return -1;
+        }
+        intervalbase += (states * interval);
       }
+      idx = (idx + 1) % n->slotcount;
     }
-    idx = (idx + 1) % n->slotcount;
   }
   if(ncplane_cursor_move_yx(ncplot_plane(n), 0, 0)){
     return -1;
@@ -121,7 +120,10 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
       ret->vertical_indep = opts->vertical_indep;
       ret->gridtype = opts->gridtype;
       ret->exponentialy = opts->exponentialy;
-      ret->detectdomain = opts->miny == opts->maxy;
+      if( (ret->detectdomain = (opts->miny == opts->maxy)) ){
+        ret->maxy = 0;
+        ret->miny = ~(uint64_t)0ull;
+      }
       ret->windowbase = 0;
       ret->slotstart = 0;
       ret->slotx = 0;
