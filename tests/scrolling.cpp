@@ -30,18 +30,37 @@ TEST_CASE("Scrolling") {
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, false));
     // try to write 40 EGCs; it ought fail
-    CHECK(0 > ncplane_putstr(n, "01234567890123456789012345678901234567689"));
+    CHECK(-20 == ncplane_putstr(n, "0123456789012345678901234567890123456789"));
+    int y, x;
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(0 == y);
+    CHECK(20 == x);
     CHECK(0 == ncplane_cursor_move_yx(n, 0, 0));
     CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
     // try to write 40 EGCs; it ought succeed
-    CHECK(40 == ncplane_putstr(n, "01234567890123456789012345678901234567689"));
-    int y, x;
+    CHECK(40 == ncplane_putstr(n, "0123456789012345678901234567890123456789"));
     ncplane_cursor_yx(n, &y, &x);
     CHECK(1 == y);
     CHECK(20 == x);
     CHECK(0 == notcurses_render(nc_));
   }
 
+  // even when scrolling is enabled, you aren't allowed to move the cursor
+  // off-plane, or initiate output there
+  SUBCASE("NoScrollingManually"){
+    struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
+    REQUIRE(n);
+    CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
+    CHECK(0 > ncplane_cursor_move_yx(n, 0, 20));
+    CHECK(0 > ncplane_cursor_move_yx(n, 1, 20));
+    CHECK(0 > ncplane_cursor_move_yx(n, 2, 2));
+    CHECK(0 > ncplane_putsimple_yx(n, 0, 20, 'c'));
+    CHECK(0 > ncplane_putsimple_yx(n, 1, 20, 'c'));
+    CHECK(0 > ncplane_putsimple_yx(n, 2, 0, 'c'));
+  }
+
+  // verify that two strings, each the length of the plane, can be output when
+  // scrolling is enabled (the second ought get an error without scrolling)
   SUBCASE("ScrollingSplitStr"){
     struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
     REQUIRE(n);
@@ -50,17 +69,19 @@ TEST_CASE("Scrolling") {
     ncplane_cursor_yx(n, &y, &x);
     CHECK(0 == y);
     CHECK(20 == x);
-    CHECK(0 > ncplane_putstr(n, "01234567890123456789"));
+    CHECK(0 == ncplane_putstr(n, "01234567890123456789"));
     CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
-    CHECK(20 > ncplane_putstr(n, "01234567890123456789"));
+    CHECK(20 == ncplane_putstr(n, "01234567890123456789"));
     ncplane_cursor_yx(n, &y, &x);
     CHECK(1 == y);
     CHECK(20 == x);
     CHECK(0 == notcurses_render(nc_));
   }
 
+  // verify that a single string the size of the plane can be output when
+  // scrolling is enabled (it ought be an error without scrolling)
   SUBCASE("ScrollingEGC"){
-    const char* out = "01234567890123456789012345678901234567689";
+    const char* out = "0123456789012345678901234567890123456789";
     struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
     REQUIRE(n);
     // verify that the new plane was started without scrolling
