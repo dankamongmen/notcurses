@@ -430,6 +430,11 @@ API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
 // within 'n', these coordinates will not be within the dimensions of the plane.
 API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
+// All planes are created with scrolling disabled. Scrolling can be dynamically
+// controlled with ncplane_set_scrolling(). Returns true if scrolling was
+// previously enabled, or false if it was disabled.
+API bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
+
 // Capabilities
 
 // Returns a 16-bit bitmask of supported curses-style attributes

@@ -132,6 +132,8 @@ notcurses_ncplane - operations on notcurses planes
 
 **void ncplane_erase(struct ncplane* n);**
 
+**bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
@@ -182,6 +184,13 @@ expressed relative to the standard plane, and returns coordinates relative to
 of the rendering region. Only those cells where **src** intersects with **dst**
 might see changes. It is an error to merge a plane onto itself.
 
+All planes (including the standard plane) are created with scrolling disabled.
+Control scrolling on a per-plane basis with **ncplane_set_scrolling**. When
+scrolling is enabled, upon reaching the end of a line, the cursor is moved to
+the first column of the subsequent line. If the end of the last line was
+reached, the first row of the plane is discarded, and all other rows are moved
+up one line.
+
 # RETURN VALUES
 
 **ncplane_new**, **ncplane_bound**, **ncplane_aligned**, and **ncplane_dup**
@@ -192,6 +201,9 @@ cannot fail.
 
 **ncplane_below** returns the plane below the specified ncplane. If the provided
 plane is the bottommost plane, NULL is returned. It cannot fail.
+
+**ncplane_set_scrolling** returns **true** if scrolling was previously enabled,
+and **false** otherwise.
 
 Functions returning **int** return 0 on success, and non-zero on error.
 

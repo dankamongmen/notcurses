@@ -118,13 +118,13 @@ namespace ncpp
 			return ncplane_pulse (plane, ts, fader, curry) != -1;
 		}
 
-    bool mergedown (Plane* dst = nullptr) {
-      return ncplane_mergedown(*this, dst ? dst->plane : nullptr);
-    }
+		bool mergedown (Plane* dst = nullptr) {
+			return ncplane_mergedown(*this, dst ? dst->plane : nullptr);
+		}
 
-    bool mergedown (Plane& dst) {
-      return mergedown(&dst);
-    }
+		bool mergedown (Plane& dst) {
+			return mergedown(&dst);
+		}
 
 		bool gradient (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const noexcept
 		{
@@ -539,8 +539,8 @@ namespace ncpp
 		}
 
 		bool box (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr,
-				  const Cell &hline, const Cell &vline, int ystop, int xstop,
-				  unsigned ctlword) const noexcept
+					const Cell &hline, const Cell &vline, int ystop, int xstop,
+					unsigned ctlword) const noexcept
 		{
 			return ncplane_box (plane, ul, ur, ll, lr, hline, vline, ystop, xstop, ctlword) != -1;
 		}
@@ -690,6 +690,11 @@ namespace ncpp
 		void set_bg_default () const noexcept
 		{
 			ncplane_set_bg_default (plane);
+		}
+
+		bool set_scrolling (bool scrollp) noexcept
+		{
+			return ncplane_set_scrolling (plane, scrollp);
 		}
 
 		void styles_set (CellStyle styles) const noexcept
@@ -882,7 +887,7 @@ namespace ncpp
 
 		void translate (const Plane *dst, int *y = nullptr, int *x = nullptr) const
 		{
-      ncplane_translate(*this, dst ? dst->plane: nullptr, y, x);
+			ncplane_translate(*this, dst ? dst->plane: nullptr, y, x);
 		}
 
 		void translate (const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
@@ -895,7 +900,7 @@ namespace ncpp
 			if (src == nullptr)
 				throw invalid_argument ("'src' must be a valid pointer");
 
-      ncplane_translate(*src, dst ? dst->plane : nullptr, y, x);
+			ncplane_translate(*src, dst ? dst->plane : nullptr, y, x);
 		}
 
 		static void translate (const Plane &src, const Plane &dst, int *y = nullptr, int *x = nullptr) noexcept
@@ -951,7 +956,7 @@ namespace ncpp
 	protected:
 		explicit Plane (ncplane *_plane, bool _is_stdplane)
 			: plane (_plane),
-			  is_stdplane (_is_stdplane)
+				is_stdplane (_is_stdplane)
 		{
 			if (_plane == nullptr)
 				throw invalid_argument ("_plane must be a valid pointer");
