@@ -40,6 +40,7 @@ TEST_CASE("Fade") {
   c.gcluster = '*';
   cell_set_fg_rgb(&c, 0xff, 0xff, 0xff);
   unsigned rgb = 0xffffffu;
+  CHECK(!ncplane_set_scrolling(n_, true));
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       rgb -= 32;
