@@ -282,6 +282,7 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
     return NULL;
   }
   memset(p->fb, 0, fbsize);
+  p->scrolling = false;
   p->userptr = NULL;
   p->leny = rows;
   p->lenx = cols;
@@ -2014,4 +2015,10 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
     newparent->blist = n;
   }
   return n;
+}
+
+bool ncplane_set_scrolling(ncplane* n, bool scrollp){
+  bool old = n->scrolling;
+  n->scrolling = scrollp;
+  return old;
 }
