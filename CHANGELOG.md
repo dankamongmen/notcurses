@@ -2,6 +2,15 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.2.6 (not yet released)
+  * ncplane_putsimple_yx() has been exported as a static inline function.
+  * ncplane_set_scrolling() has been added, allowing control over whether a
+    plane scrolls. All planes, including the standard plane, do not scroll by
+    default. If scrolling is enabled, text output via the `*put*` family of
+    functions continues onto the next line when encountering the end of a row.
+    This does not apply to e.g. boxes or lines.
+  * ncplane_putstr_yx() now always returns the inverse of the number of columns
+    advanced on an error (it used to return the positive short count so long as
+    the error was due to plane geometry, not bad input).
 
 * 1.2.5
   * Add ncplot, with support for sliding-windowed horizontal histograms.
