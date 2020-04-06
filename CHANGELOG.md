@@ -12,6 +12,9 @@ rearrangements of Notcurses.
   * `ncplane_putstr_yx()` now always returns the inverse of the number of
     columns advanced on an error (it used to return the positive short count so
     long as the error was due to plane geometry, not bad input).
+  * `ncplot_add_sample()` and `ncplot_set_sample()` have been changed to accept
+    a `uint64_t` rather than `int64_t`, since negative samples do not
+    currently make sense. Plots were made more accurate in general.
 
 * 1.2.5
   * Add ncplot, with support for sliding-windowed horizontal histograms.
