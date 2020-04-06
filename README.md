@@ -658,6 +658,11 @@ int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst
 // with this ncplane are invalidated, and must not be used after the call,
 // excluding the base cell.
 void ncplane_erase(struct ncplane* n);
+
+// All planes are created with scrolling disabled. Scrolling can be dynamically
+// controlled with ncplane_set_scrolling(). Returns true if scrolling was
+// previously enabled, or false if it was disabled.
+bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
 ```
 
 Planes can be freely resized, though they must retain a positive size in

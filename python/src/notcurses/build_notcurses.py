@@ -432,6 +432,7 @@ struct ncplane* ncplot_plane(struct ncplot* n);
 int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);
 int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);
 void ncplot_destroy(struct ncplot* n);
+bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
 """)
 
 if __name__ == "__main__":
