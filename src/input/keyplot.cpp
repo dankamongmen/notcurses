@@ -74,6 +74,9 @@ int main(void){
     channels_set_fg_rgb(&popts.minchannel, random() % 256, random() % 256, random() % 256);
     popts.gridtype = static_cast<ncgridgeom_e>(i);
     plots[i] = ncplot_create(planes[i], &popts);
+    if(!plots[i]){
+      return EXIT_FAILURE;
+    }
   }
   char32_t r;
   ncinput ni;
