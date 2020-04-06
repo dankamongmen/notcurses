@@ -48,12 +48,12 @@ namespace ncpp
 				ncplot_destroy (plot);
 		}
 
-    int add_sample(uint64_t x, int64_t y)
+    int add_sample(uint64_t x, uint64_t y)
     {
 			return ncplot_add_sample (plot, x, y) >= 0;
     }
 
-    int set_sample(uint64_t x, int64_t y)
+    int set_sample(uint64_t x, uint64_t y)
     {
 			return ncplot_set_sample (plot, x, y) >= 0;
     }
