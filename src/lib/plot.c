@@ -11,6 +11,69 @@ static const struct {
   { .geom = NCPLOT_8x1,   .egcs = L"▁▂▃▄▅▆▇█", },
 };
 
+static int
+redraw_plot(ncplot* n){
+  ncplane_erase(ncplot_plane(n)); // FIXME shouldn't need this
+  int dimy, dimx;
+  ncplane_dim_yx(ncplot_plane(n), &dimy, &dimx);
+  // each transition is worth this much change in value
+  const size_t states = wcslen(geomdata[n->gridtype].egcs);
+  double interval = (n->maxy - n->miny + 1) / ((double)dimy * states); // FIXME
+  int idx = n->slotstart;
+  const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
+  if(n->labelaxisd){
+    for(int y = 0 ; y < dimy ; ++y){
+      char buf[PREFIXSTRLEN + 1];
+      ncmetric(interval * states * y, 1, buf, 0, 1000, '\0');
+      ncplane_putstr_yx(ncplot_plane(n), dimy - y - 1, PREFIXSTRLEN - strlen(buf), buf);
+    }
+  }
+  for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
+    if(x >= (unsigned)dimx){
+      break;
+    }
+    int64_t gval = n->slots[idx]; // clip the value at the limits of the graph
+    if(gval < n->miny){
+      gval = n->miny;
+    }
+    if(gval > n->maxy){
+      gval = n->maxy;
+    }
+    // starting from the least-significant row, progress in the more significant
+    // direction, drawing egcs from the grid specification, aborting early if
+    // we can't draw anything in a given cell.
+    for(int y = 0 ; y < dimy ; ++y){
+      // if we've got at least one interval's worth on the number of positions
+      // times the number of intervals per position plus the starting offset,
+      // we're going to print *something*
+      if(n->miny + (interval * states) * y + interval > gval){
+        break;
+      }
+      size_t egcidx = (gval - n->miny) - (y * interval * states) - 1;
+      if(egcidx >= states){
+        egcidx = states - 1;
+      }
+      if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, geomdata[n->gridtype].egcs[egcidx]) <= 0){
+        return -1;
+      }
+      // FIXME this ought fall out naturally. that it does not indicates, i
+      // think, an error above...
+      if(egcidx != states - 1){
+        break;
+      }
+    }
+    idx = (idx + 1) % n->slotcount;
+  }
+  if(ncplane_cursor_move_yx(ncplot_plane(n), 0, 0)){
+    return -1;
+  }
+  if(ncplane_stain(ncplot_plane(n), dimy - 1, dimx - 1, n->maxchannel,
+                   n->maxchannel, n->minchannel, n->minchannel) <= 0){
+    return -1;
+  }
+  return 0;
+}
+
 ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   // if miny == maxy, they both must be equal to 0
   if(opts->miny == opts->maxy && opts->miny){
@@ -60,6 +123,7 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
       ret->windowbase = 0;
       ret->slotstart = 0;
       ret->slotx = 0;
+      redraw_plot(ret);
       return ret;
     }
     free(ret);
@@ -134,69 +198,6 @@ update_sample(ncplot* n, uint64_t x, int64_t y, bool reset){
   }else{
     n->slots[idx] += y;
   }
-}
-
-static int
-redraw_plot(ncplot* n){
-  ncplane_erase(ncplot_plane(n)); // FIXME shouldn't need this
-  int dimy, dimx;
-  ncplane_dim_yx(ncplot_plane(n), &dimy, &dimx);
-  // each transition is worth this much change in value
-  const size_t states = wcslen(geomdata[n->gridtype].egcs);
-  double interval = (n->maxy - n->miny + 1) / ((double)dimy * states); // FIXME
-  int idx = n->slotstart;
-  const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
-  if(n->labelaxisd){
-    for(int y = 0 ; y < dimy ; ++y){
-      char buf[PREFIXSTRLEN + 1];
-      ncmetric(interval * states * y, 1, buf, 0, 1000, '\0');
-      ncplane_putstr_yx(ncplot_plane(n), dimy - y - 1, PREFIXSTRLEN - strlen(buf), buf);
-    }
-  }
-  for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
-    if(x >= (unsigned)dimx){
-      break;
-    }
-    int64_t gval = n->slots[idx]; // clip the value at the limits of the graph
-    if(gval < n->miny){
-      gval = n->miny;
-    }
-    if(gval > n->maxy){
-      gval = n->maxy;
-    }
-    // starting from the least-significant row, progress in the more significant
-    // direction, drawing egcs from the grid specification, aborting early if
-    // we can't draw anything in a given cell.
-    for(int y = 0 ; y < dimy ; ++y){
-      // if we've got at least one interval's worth on the number of positions
-      // times the number of intervals per position plus the starting offset,
-      // we're going to print *something*
-      if(n->miny + (interval * states) * y + interval > gval){
-        break;
-      }
-      size_t egcidx = (gval - n->miny) - (y * interval * states) - 1;
-      if(egcidx >= states){
-        egcidx = states - 1;
-      }
-      if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, geomdata[n->gridtype].egcs[egcidx]) <= 0){
-        return -1;
-      }
-      // FIXME this ought fall out naturally. that it does not indicates, i
-      // think, an error above...
-      if(egcidx != states - 1){
-        break;
-      }
-    }
-    idx = (idx + 1) % n->slotcount;
-  }
-  if(ncplane_cursor_move_yx(ncplot_plane(n), 0, 0)){
-    return -1;
-  }
-  if(ncplane_stain(ncplot_plane(n), dimy - 1, dimx - 1, n->maxchannel,
-                   n->maxchannel, n->minchannel, n->minchannel) <= 0){
-    return -1;
-  }
-  return 0;
 }
 
 // Add to or set the value corresponding to this x. If x is beyond the current
