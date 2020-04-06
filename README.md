@@ -658,7 +658,26 @@ int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst
 // with this ncplane are invalidated, and must not be used after the call,
 // excluding the base cell.
 void ncplane_erase(struct ncplane* n);
+```
 
+All planes, including the standard plane, are created with scrolling disabled.
+Attempting to print past the end of a line will stop at the plane boundary,
+and indicate an error. On a plane 10 columns wide and two rows high, printing
+"0123456789" at the origin should succeed, but printing "01234567890" will by
+default fail at the eleventh character. In either case, the cursor will be left
+at location 0x10; it must be moved before further printing can take place. If
+scrolling is enabled, the first row will be filled with 01234546789, the second
+row will have 0 written to its first column, and the cursor will end up at 1x1.
+Note that it is still an error to manually attempt to move the cursor off-plane,
+or to specify off-plane output. Boxes do not scroll; attempting to draw a 2x11
+box on our 2x10 plane will result in an error and no output. When scrolling is
+enabled, and output takes place while the cursor is past the end of the last
+row, the first row is discarded, all other rows are moved up, the last row is
+cleared, and output begins at the beginning of the last row. This does not take
+place until output is generated (i.e. it is possible to fill a plane when
+scrolling is enabled).
+
+```c
 // All planes are created with scrolling disabled. Scrolling can be dynamically
 // controlled with ncplane_set_scrolling(). Returns true if scrolling was
 // previously enabled, or false if it was disabled.

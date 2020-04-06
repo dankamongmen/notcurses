@@ -77,6 +77,8 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 upper-left corner at the cursor's current position, and its lower-right corner
 at **ystop**, **xstop**.
 
+Box- and line-drawing is unaffected by a plane's scrolling status.
+
 # RETURN VALUES
 
 **ncplane_format** returns -1 if either **ystop** or **xstop** is less than the
