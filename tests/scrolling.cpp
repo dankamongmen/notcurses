@@ -35,6 +35,27 @@ TEST_CASE("Scrolling") {
     CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
     // try to write 40 EGCs; it ought succeed
     CHECK(40 == ncplane_putstr(n, "01234567890123456789012345678901234567689"));
+    int y, x;
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(1 == y);
+    CHECK(20 == x);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  SUBCASE("ScrollingSplitStr"){
+    struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
+    REQUIRE(n);
+    CHECK(20 == ncplane_putstr(n, "01234567890123456789"));
+    int y, x;
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(0 == y);
+    CHECK(20 == x);
+    CHECK(0 > ncplane_putstr(n, "01234567890123456789"));
+    CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
+    CHECK(20 > ncplane_putstr(n, "01234567890123456789"));
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(1 == y);
+    CHECK(20 == x);
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -53,12 +74,19 @@ TEST_CASE("Scrolling") {
         CHECK(0 > ret);
       }
     }
+    int y, x;
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(0 == y);
+    CHECK(20 == x);
     CHECK(0 == ncplane_cursor_move_yx(n, 0, 0));
     CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
     // try to write 40 EGCs; all ought succeed
     for(const char* c = out ; *c ; ++c){
       CHECK(1 == ncplane_putsimple(n, *c));
     }
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(1 == y);
+    CHECK(20 == x);
     CHECK(0 == notcurses_render(nc_));
   }
 
