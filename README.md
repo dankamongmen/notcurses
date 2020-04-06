@@ -145,12 +145,12 @@ output of `pkg-config --cflags notcurses`. If using CMake, a support file is
 provided, and can be accessed as `notcurses`.
 
 Before calling into notcurses—and usually as one of the first calls of the
-program—be sure to call `setlocale(3)` with an appropriate UTF-8 `LC_ALL`
-locale. It is usually appropriate to use `setlocale(LC_ALL, "")`, relying on
-the user to properly set the `LANG` environment variable. notcurses will
-refuse to start if `nl_langinfo(3)` doesn't indicate `ANSI_X3.4-1968` or
-`UTF-8`. In addition, it is wise to mask most signals early in the program,
-before any threads are spawned (this is particularly critical for `SIGWINCH`).
+program—be sure to call `setlocale(3)` with an appropriate UTF-8 locale. It is
+usually appropriate to use `setlocale(LC_ALL, "")`, relying on the user to
+properly set the `LANG` environment variable. notcurses will refuse to start if
+`nl_langinfo(3)` doesn't indicate `ANSI_X3.4-1968` or `UTF-8`. In addition, it
+is wise to mask most signals early in the program, before any threads are
+spawned (this is particularly critical for `SIGWINCH`).
 
 notcurses requires an available `terminfo(5)` definition appropriate for the
 terminal. It is usually appropriate to pass `NULL` in the `termtype` field of a
@@ -955,7 +955,8 @@ int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sby
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of cells
 // which were written before the error.
-int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
+static inline int
+ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
 
 static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr){

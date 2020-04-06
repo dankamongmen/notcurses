@@ -73,9 +73,7 @@ libnotcurses.so.1 libnotcurses1 #MINVER#
  ncplane_putegc_stainable@Base 1.2.1
  ncplane_putegc_yx@Base 1.2.1
  ncplane_putsimple_stainable@Base 1.2.1
- ncplane_putsimple_yx@Base 1.2.1
  ncplane_putstr_aligned@Base 1.2.1
- ncplane_putstr_yx@Base 1.2.1
  ncplane_putwegc_stainable@Base 1.2.1
  ncplane_reparent@Base 1.2.5
  ncplane_resize@Base 1.2.1

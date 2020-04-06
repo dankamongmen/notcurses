@@ -192,7 +192,6 @@ int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, vo
 int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
 int ncplane_putwc(struct ncplane* n, wchar_t w);
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
-int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
 int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
 void cell_init(cell* c);
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);

@@ -1467,28 +1467,6 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   return bytes;
 }
 
-int ncplane_putstr_yx(ncplane* n, int y, int x, const char* gclusters){
-  int ret = 0;
-  // FIXME speed up this blissfully naive solution
-  while(*gclusters){
-    int wcs;
-    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
-    if(cols < 0){
-      return -ret; // return -ret in case of error
-    }
-    if(wcs == 0){
-      break;
-    }
-    // after the first iteration, just let the cursor code control where we
-    // print, so that scrolling is taken into account
-    y = -1;
-    x = -1;
-    gclusters += wcs;
-    ret += wcs;
-  }
-  return ret;
-}
-
 unsigned notcurses_supported_styles(const notcurses* nc){
   unsigned styles = 0;
   styles |= nc->standout ? NCSTYLE_STANDOUT : 0;
