@@ -68,11 +68,13 @@ target_include_directories(notcurses-static
 )
 target_link_libraries(notcurses
   PRIVATE
+    Threads::Threads
     "${TERMINFO_LIBRARIES}"
     "${LIBRT}"
 )
 target_link_libraries(notcurses-static
   PRIVATE
+    Threads::Threads
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBRT}"
 )
@@ -106,7 +108,6 @@ target_link_libraries(notcurses
     "${AVFORMAT_LIBRARIES}"
     "${AVUTIL_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
-    Threads::Threads
 )
 target_link_libraries(notcurses-static
   PRIVATE
@@ -114,7 +115,6 @@ target_link_libraries(notcurses-static
     "${AVFORMAT_STATIC_LIBRARIES}"
     "${AVUTIL_STATIC_LIBRARIES}"
     "${SWSCALE_STATIC_LIBRARIES}"
-    Threads::Threads
 )
 target_link_directories(notcurses
   PUBLIC
