@@ -63,6 +63,7 @@ int main(void){
   std::unique_ptr<Plane> nstd(nc.get_stdplane());
   int y, dimy, dimx;
   nc.get_term_dim(&dimy, &dimx);
+  nstd->set_scrolling(true);
   do{
     nstd->putstr(c);
     nstd->get_cursor_yx(&y, nullptr);
