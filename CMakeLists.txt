@@ -19,6 +19,7 @@ option(USE_NETWORK "Allow cargo to use the network" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_PYTHON "Build Python wrappers" ON)
 option(USE_RUST "Build Rust wrappers/colloquy (experimental)" OFF)
+option(USE_TESTS "Build doctest unit tests" ON)
 ############## END (additional) USER-SELECTABLE OPTIONS ##################
 
 find_package(PkgConfig REQUIRED)
@@ -31,7 +32,9 @@ pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 endif()
 find_library(LIBRT rt)
+if(${USE_TESTS})
 find_package(doctest 2.3.5 REQUIRED)
+endif()
 
 # libnotcurses
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c)
@@ -528,6 +531,7 @@ target_compile_definitions(notcurses-view
 endif()
 
 # Testing
+if(${USE_TESTS})
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
 endif()
@@ -557,6 +561,7 @@ add_test(
   NAME notcurses-tester
   COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
+endif()
 
 # pkg-config support
 configure_file(tools/notcurses.pc.in
@@ -699,11 +704,13 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
+if(${USE_FFMPEG})
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
 install(FILES
   ${TESTDATA}
     DESTINATION ${CMAKE_INSTALL_DATADIR}/notcurses
 )
+endif()
 
 install(DIRECTORY
   "${CMAKE_CURRENT_SOURCE_DIR}/include/"
@@ -725,7 +732,9 @@ install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-keyplot DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
+if(${USE_TESTS})
 install(TARGETS notcurses-tester DESTINATION bin)
+endif()
 install(TARGETS notcurses-tetris DESTINATION bin)
 if(${USE_FFMPEG})
 install(TARGETS notcurses-view DESTINATION bin)
