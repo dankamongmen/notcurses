@@ -18,7 +18,7 @@ an API similar to that of Curses, and rides atop Terminfo.
 %setup
 
 %build
-%cmake -DUSE_FFMPEG=off -DUSE_TEST=off .
+%cmake -DUSE_FFMPEG=off -DUSE_TESTS=off .
 %make_build
 
 %install
