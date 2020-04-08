@@ -28,7 +28,7 @@ int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   if(*cols <= 0){
     *cols = 1;
   }
-  if(*rows != n->lfdimy || *rows != n->lfdimx){
+  if(*rows != n->lfdimy || *cols != n->lfdimx){
     n->lfdimy = *rows;
     n->lfdimx = *cols;
     const size_t size = sizeof(*n->lastframe) * (n->lfdimy * n->lfdimx);
