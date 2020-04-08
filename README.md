@@ -296,11 +296,6 @@ Utility functions operating on the toplevel `notcurses` object include:
 // Return the topmost ncplane, of which there is always at least one.
 struct ncplane* notcurses_top(struct notcurses* n);
 
-// Refresh our idea of the terminal's dimensions, reshaping the standard plane
-// if necessary, without a fresh render. References to ncplanes (and the
-// egcpools underlying cells) remain valid following a resize operation.
-int notcurses_resize(struct notcurses* n, int* restrict y, int* restrict x);
-
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
 notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
@@ -310,8 +305,9 @@ notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
 
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
-// primarily useful if the screen is externally corrupted.
-int notcurses_refresh(struct notcurses* n);
+// primarily useful if the screen is externally corrupted, or if an
+// NCKEY_RESIZE event has been read and you're not ready to render.
+int notcurses_refresh(struct notcurses* n, int* restrict y, int* restrict x);
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only

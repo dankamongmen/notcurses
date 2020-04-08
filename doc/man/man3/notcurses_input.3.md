@@ -91,7 +91,7 @@ found in **<notcurses.h>**. For more details, consult **terminfo(5)**.
 Unless the **SIGWINCH** handler has been inhibited (see **notcurses_init(3)**),
 notcurses will automatically catch screen resizes, and synthesize an
 **NCKEY_RESIZE** event. Upon receiving this event, the user may call
-**notcurses_resize(3)** to force an immediate reflow, or just wait until the
+**notcurses_refresh(3)** to force an immediate reflow, or just wait until the
 next call to **notcurses_render(3)**, when notcurses will pick up the resize
 itself. If the **SIGWINCH** handler is inhibited, **NCKEY_RESIZE** is never
 generated.
@@ -139,8 +139,8 @@ registers as **NCKEY_ENTER**. This will likely change in the future.
 **poll(2)**,
 **cfmakeraw(3)**,
 **notcurses(3)**,
+**notcurses_refresh(3)**,
 **notcurses_render(3)**,
-**notcurses_resize(3)**,
 **termios(3)**,
 **terminfo(5)**,
 **ascii(7)**,

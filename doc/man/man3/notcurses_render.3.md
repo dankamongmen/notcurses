@@ -20,8 +20,8 @@ notcurses_render - sync the physical display to the virtual ncplanes
 ncplanes. It is necessary to call **notcurses_render** to generate any visible
 output; the various notcurses_output(3) calls only draw to the virtual
 ncplanes. Most of the notcurses statistics are updated as a result of a
-render (see notcurses_stats(3)), and **notcurses_resize(3)** is called
-internally *following* the render.
+render (see notcurses_stats(3)), and screen geometry is refreshed (similarly to
+**notcurses_refresh**) *following* the render.
 
 While **notcurses_render** is called, you **must not call any other functions
 on the same notcurses context**, with the one exception of **notcurses_getc**
@@ -35,7 +35,7 @@ color, and style for each cell of the physical terminal. Writing the scene
 requires synthesizing a set of UTF-8-encoded characters and escape codes
 appropriate for the terminal (relying on terminfo(5)), and writing this
 sequence to the output **FILE**. If the **renderfp** value was not NULL in the
-original call to notcurses_init(3), the frame will be written to that **FILE**
+original call to **notcurses_init**, the frame will be written to that **FILE**
 as well. This write does not affect statistics.
 
 Each cell can be rendered in isolation, though synthesis of the stream carries
@@ -85,5 +85,5 @@ purposes of color blending.
 # SEE ALSO
 
 **notcurses(3)**, **notcurses_cell(3)**, **notcurses_ncplane(3)**,
-**notcurses_output(3)**, **notcurses_resize(3)**, **notcurses_stats(3)**,
+**notcurses_output(3)**, **notcurses_refresh(3)**, **notcurses_stats(3)**,
 **console_codes(4)**, **utf-8(7)**

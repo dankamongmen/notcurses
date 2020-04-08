@@ -666,15 +666,11 @@ API int notcurses_mouse_enable(struct notcurses* n);
 // Disable mouse events. Any events in the input queue can still be delivered.
 API int notcurses_mouse_disable(struct notcurses* n);
 
-// Refresh our idea of the terminal's dimensions, reshaping the standard plane
-// if necessary, without a fresh render. References to ncplanes (and the
-// egcpools underlying cells) remain valid following a resize operation.
-API int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
-
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
-// primarily useful if the screen is externally corrupted.
-API int notcurses_refresh(struct notcurses* n);
+// primarily useful if the screen is externally corrupted, or if an
+// NCKEY_RESIZE event has been read and you're not ready to render.
+API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Return the dimensions of this ncplane.
 API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
