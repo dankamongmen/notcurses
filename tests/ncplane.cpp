@@ -211,6 +211,7 @@ TEST_CASE("NCPlane") {
       L"🍺🚬🌿💉💊🔫💣🤜🤛🐌🐎🐑🐒🐔🐗🐘🐙🐚"
       "🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐫🐬🐭🐮"
       "🐯🐰🐱🐲🐳🐴🐵🐶🐷🐹🐺🐻🐼🦉🐊🦕🦖🐬🐙🦠🦀";
+    CHECK(!ncplane_set_scrolling(n_, true));
     int wrote = ncplane_putwstr(n_, e);
     CHECK(0 < wrote);
     int x, y;
@@ -539,20 +540,20 @@ TEST_CASE("NCPlane") {
     ncplane_styles_set(n_, 0);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
+    cell testcell = CELL_TRIVIAL_INITIALIZER;
+    REQUIRE(0 == ncplane_at_cursor(n_, &testcell)); // want nothing at the cursor
+    CHECK(0 == testcell.gcluster);
+    CHECK(0 == testcell.attrword);
+    CHECK(0 == testcell.channels);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - strlen(STR2)));
     REQUIRE(0 < ncplane_putstr(n_, STR2));
     int y, x;
     ncplane_cursor_yx(n_, &y, &x);
-    REQUIRE(2 == y);
-    REQUIRE(0 == x);
-    REQUIRE(0 < ncplane_putstr(n_, STR3));
-    cell testcell = CELL_TRIVIAL_INITIALIZER;
-    REQUIRE(0 == ncplane_at_cursor(n_, &testcell)); // want nothing at the cursor
-    CHECK(0 == testcell.gcluster);
-    CHECK(0 == testcell.attrword);
-    CHECK(0 == testcell.channels);
+    REQUIRE(1 == y);
+    REQUIRE(dimx == x);
+    REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want first char of STR1
     CHECK(STR1[0] == testcell.gcluster);
@@ -575,20 +576,20 @@ TEST_CASE("NCPlane") {
     ncplane_styles_set(n_, 0);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
+    cell testcell = CELL_TRIVIAL_INITIALIZER;
+    ncplane_at_cursor(n_, &testcell); // should be nothing at the cursor
+    CHECK(0 == testcell.gcluster);
+    CHECK(0 == testcell.attrword);
+    CHECK(0 == testcell.channels);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(NULL, STR2, 0)));
     REQUIRE(0 < ncplane_putstr(n_, STR2));
     int y, x;
     ncplane_cursor_yx(n_, &y, &x);
-    REQUIRE(2 == y);
-    REQUIRE(0 == x);
-    REQUIRE(0 < ncplane_putstr(n_, STR3));
-    cell testcell = CELL_TRIVIAL_INITIALIZER;
-    ncplane_at_cursor(n_, &testcell); // should be nothing at the cursor
-    CHECK(0 == testcell.gcluster);
-    CHECK(0 == testcell.attrword);
-    CHECK(0 == testcell.channels);
+    REQUIRE(1 == y);
+    REQUIRE(dimx == x);
+    REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want first char of STR1
     CHECK(!strcmp("Σ", cell_extended_gcluster(n_, &testcell)));
@@ -916,7 +917,7 @@ TEST_CASE("NCPlane") {
     int dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
     CHECK(0 == ncplane_rounded_box_sized(ncp, 0, 0, 3, 4, 0));
-    CHECK(0 < ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", NULL));
+    CHECK(2 == ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", NULL)); // scorpion
     CHECK(0 == notcurses_render(nc_));
     cell c = CELL_TRIVIAL_INITIALIZER;
     REQUIRE(0 < ncplane_at_yx(ncp, 1, 0, &c));

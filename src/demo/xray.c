@@ -41,13 +41,14 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
       return -1;
     }
     *(struct ncplane**)vnewplane = n;
+    uint64_t channels = 0;
+    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    ncplane_set_base(n, channels, 0, " ");
+    ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
+    ncplane_set_scrolling(n, true);
   }
   ncplane_dim_yx(n, &dimy, &dimx);
-  uint64_t channels = 0;
-  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, channels, 0, " ");
-  ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
   // fg/bg rgbs are set within loop
   int x = dimx - (frameno * 2);
   int r = startr;
@@ -79,7 +80,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
         if(ncplane_set_bg_rgb(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
           return -1;
         }
-        if(ncplane_printf_yx(n, l, x, "%*.*s", len, len, leg[l] + stroff) != (int)len){
+        if(ncplane_printf_yx(n, l, x, "%*.*s", len, len, leg[l] + stroff) != len){
           return -1;
         }
       }

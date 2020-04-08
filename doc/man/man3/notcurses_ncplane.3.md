@@ -132,6 +132,8 @@ notcurses_ncplane - operations on notcurses planes
 
 **void ncplane_erase(struct ncplane* n);**
 
+**bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
@@ -182,6 +184,26 @@ expressed relative to the standard plane, and returns coordinates relative to
 of the rendering region. Only those cells where **src** intersects with **dst**
 might see changes. It is an error to merge a plane onto itself.
 
+## Scrolling
+
+All planes, including the standard plane, are created with scrolling disabled.
+Control scrolling on a per-plane basis with **ncplane_set_scrolling**.
+Attempting to print past the end of a line will stop at the plane boundary, and
+indicate an error. On a plane 10 columns wide and two rows high, printing
+"0123456789" at the origin should succeed, but printing "01234567890" will by
+default fail at the eleventh character. In either case, the cursor will be left
+at location 0x10; it must be moved before further printing can take place. If
+scrolling is enabled, the first row will be filled with 01234546789, the second
+row will have 0 written to its first column, and the cursor will end up at 1x1.
+Note that it is still an error to manually attempt to move the cursor
+off-plane, or to specify off-plane output. Boxes do not scroll; attempting to
+draw a 2x11 box on our 2x10 plane will result in an error and no output. When
+scrolling is enabled, and output takes place while the cursor is past the end
+of the last row, the first row is discarded, all other rows are moved up, the
+last row is cleared, and output begins at the beginning of the last row. This
+does not take place until output is generated (i.e. it is possible to fill a
+plane when scrolling is enabled).
+
 # RETURN VALUES
 
 **ncplane_new**, **ncplane_bound**, **ncplane_aligned**, and **ncplane_dup**
@@ -192,6 +214,9 @@ cannot fail.
 
 **ncplane_below** returns the plane below the specified ncplane. If the provided
 plane is the bottommost plane, NULL is returned. It cannot fail.
+
+**ncplane_set_scrolling** returns **true** if scrolling was previously enabled,
+and **false** otherwise.
 
 Functions returning **int** return 0 on success, and non-zero on error.
 

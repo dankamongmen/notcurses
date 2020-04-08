@@ -282,6 +282,7 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
     return NULL;
   }
   memset(p->fb, 0, fbsize);
+  p->scrolling = false;
   p->userptr = NULL;
   p->leny = rows;
   p->lenx = cols;
@@ -340,8 +341,7 @@ ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int yoff,
   return ncplane_create(n->nc, NULL, rows, cols, yoff, ncplane_align(n, align, cols), opaque);
 }
 
-static inline int
-ncplane_cursor_move_yx_locked(ncplane* n, int y, int x){
+inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x >= n->lenx){
     return -1;
   }else if(x < 0){
@@ -380,7 +380,7 @@ ncplane* ncplane_dup(ncplane* n, void* opaque){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);
     }else{
-      ncplane_cursor_move_yx_locked(newn, y, x); // FIXME what about error?
+      ncplane_cursor_move_yx(newn, y, x);
       n->attrword = attr;
       n->channels = chan;
       ncplane_move_above_unsafe(newn, n);
@@ -1248,17 +1248,6 @@ const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
   return extended_gcluster(n, c);
 }
 
-static void
-advance_cursor(ncplane* n, int cols){
-  if(cursor_invalid_p(n)){
-    return; // stuck!
-  }
-  if((n->x += cols) >= n->lenx){
-    ++n->y;
-    n->x = 0;
-  }
-}
-
 // 'n' ends up above 'above'
 int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
   if(n->z == above){
@@ -1319,10 +1308,6 @@ int ncplane_move_bottom(ncplane* n){
   return 0;
 }
 
-int ncplane_cursor_move_yx(ncplane* n, int y, int x){
-  return ncplane_cursor_move_yx_locked(n, y, x);
-}
-
 void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   if(y){
     *y = n->y;
@@ -1332,11 +1317,6 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   }
 }
 
-static inline bool
-ncplane_cursor_stuck(const ncplane* n){
-  return (n->x >= n->lenx && n->y >= n->leny);
-}
-
 static inline void
 cell_obliterate(ncplane* n, cell* c){
   cell_release(n, c);
@@ -1344,11 +1324,18 @@ cell_obliterate(ncplane* n, cell* c){
 }
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
-  if(ncplane_cursor_move_yx_locked(n, y, x)){
-    return -1;
-  }
+  // if scrolling is enabled, check *before ncplane_cursor_move_yx()* whether
+  // we're past the end of the line, and move to the next line if so.
   bool wide = cell_double_wide_p(c);
-  if(wide && (n->x + 1 == n->lenx)){
+  if(x == -1 && y == -1 && n->x + wide >= n->lenx){
+    if(!n->scrolling){
+      return -1;
+    }
+    n->x = 0;
+    ++n->y;
+    // FIXME if new n->y >= n->leny, scroll everything up a line and reset n->y
+  }
+  if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
   // A wide character obliterates anything to its immediate right (and marks
@@ -1388,16 +1375,8 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
       cell_release(n, candidate);
     }
   }
-  advance_cursor(n, cols);
+  n->x += cols;
   return cols;
-}
-
-int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
-  cell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
-  if(!cell_simple_p(&ce)){
-    return -1;
-  }
-  return ncplane_putc_yx(n, y, x, &ce);
 }
 
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
@@ -1486,34 +1465,6 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   }
   c->gcluster = eoffset + 0x80;
   return bytes;
-}
-
-int ncplane_putstr_yx(ncplane* n, int y, int x, const char* gclusters){
-  int ret = 0;
-  // FIXME speed up this blissfully naive solution
-  while(*gclusters){
-    // FIXME can we not dispense with this cell, and print directly in?
-    cell c;
-    memset(&c, 0, sizeof(c));
-    int wcs = cell_load(n, &c, gclusters);
-    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
-    if(cols < 0){
-      if(wcs < 0){
-        return -ret;
-      }
-      break;
-    }
-    if(wcs == 0){
-      break;
-    }
-    ncplane_cursor_yx(n, &y, &x);
-    gclusters += wcs;
-    ret += wcs;
-    if(ncplane_cursor_stuck(n)){
-      break;
-    }
-  }
-  return ret;
 }
 
 unsigned notcurses_supported_styles(const notcurses* nc){
@@ -1688,7 +1639,7 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
-    if(ncplane_cursor_move_yx_locked(n, ypos + ret, xpos)){
+    if(ncplane_cursor_move_yx(n, ypos + ret, xpos)){
       return -1;
     }
     r1 += deltr;
@@ -1744,7 +1695,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   if(!(ctlword & NCBOXMASK_TOP)){ // draw top border, if called for
     if(xstop - xoff >= 2){
-      if(ncplane_cursor_move_yx_locked(n, yoff, xoff + 1)){
+      if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
         return -1;
       }
       if(!(ctlword & NCBOXGRAD_TOP)){ // cell styling, hl
@@ -1760,7 +1711,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    if(ncplane_cursor_move_yx_locked(n, yoff, xstop)){
+    if(ncplane_cursor_move_yx(n, yoff, xstop)){
       return -1;
     }
     if(ncplane_putc(n, ur) < 0){
@@ -1771,7 +1722,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   // middle rows (vertical lines)
   if(yoff < ystop){
     if(!(ctlword & NCBOXMASK_LEFT)){
-      if(ncplane_cursor_move_yx_locked(n, yoff, xoff)){
+      if(ncplane_cursor_move_yx(n, yoff, xoff)){
         return -1;
       }
       if((ctlword & NCBOXGRAD_LEFT)){ // grad styling, ul->ll
@@ -1785,7 +1736,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
       }
     }
     if(!(ctlword & NCBOXMASK_RIGHT)){
-      if(ncplane_cursor_move_yx_locked(n, yoff, xstop)){
+      if(ncplane_cursor_move_yx(n, yoff, xstop)){
         return -1;
       }
       if((ctlword & NCBOXGRAD_RIGHT)){ // grad styling, ur->lr
@@ -1803,7 +1754,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   yoff = ystop;
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
-    if(ncplane_cursor_move_yx_locked(n, yoff, xoff)){
+    if(ncplane_cursor_move_yx(n, yoff, xoff)){
       return -1;
     }
     if(ncplane_putc(n, ll) < 0){
@@ -1812,7 +1763,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   if(!(ctlword & NCBOXMASK_BOTTOM)){
     if(xstop - xoff >= 2){
-      if(ncplane_cursor_move_yx_locked(n, yoff, xoff + 1)){
+      if(ncplane_cursor_move_yx(n, yoff, xoff + 1)){
         return -1;
       }
       if(!(ctlword & NCBOXGRAD_BOTTOM)){ // cell styling, hl
@@ -1828,7 +1779,7 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   }
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    if(ncplane_cursor_move_yx_locked(n, yoff, xstop)){
+    if(ncplane_cursor_move_yx(n, yoff, xstop)){
       return -1;
     }
     if(ncplane_putc(n, lr) < 0){
@@ -2014,4 +1965,10 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
     newparent->blist = n;
   }
   return n;
+}
+
+bool ncplane_set_scrolling(ncplane* n, bool scrollp){
+  bool old = n->scrolling;
+  n->scrolling = scrollp;
+  return old;
 }

@@ -145,12 +145,12 @@ output of `pkg-config --cflags notcurses`. If using CMake, a support file is
 provided, and can be accessed as `notcurses`.
 
 Before calling into notcurses—and usually as one of the first calls of the
-program—be sure to call `setlocale(3)` with an appropriate UTF-8 `LC_ALL`
-locale. It is usually appropriate to use `setlocale(LC_ALL, "")`, relying on
-the user to properly set the `LANG` environment variable. notcurses will
-refuse to start if `nl_langinfo(3)` doesn't indicate `ANSI_X3.4-1968` or
-`UTF-8`. In addition, it is wise to mask most signals early in the program,
-before any threads are spawned (this is particularly critical for `SIGWINCH`).
+program—be sure to call `setlocale(3)` with an appropriate UTF-8 locale. It is
+usually appropriate to use `setlocale(LC_ALL, "")`, relying on the user to
+properly set the `LANG` environment variable. notcurses will refuse to start if
+`nl_langinfo(3)` doesn't indicate `ANSI_X3.4-1968` or `UTF-8`. In addition, it
+is wise to mask most signals early in the program, before any threads are
+spawned (this is particularly critical for `SIGWINCH`).
 
 notcurses requires an available `terminfo(5)` definition appropriate for the
 terminal. It is usually appropriate to pass `NULL` in the `termtype` field of a
@@ -660,6 +660,30 @@ int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst
 void ncplane_erase(struct ncplane* n);
 ```
 
+All planes, including the standard plane, are created with scrolling disabled.
+Attempting to print past the end of a line will stop at the plane boundary,
+and indicate an error. On a plane 10 columns wide and two rows high, printing
+"0123456789" at the origin should succeed, but printing "01234567890" will by
+default fail at the eleventh character. In either case, the cursor will be left
+at location 0x10; it must be moved before further printing can take place. If
+scrolling is enabled, the first row will be filled with 01234546789, the second
+row will have 0 written to its first column, and the cursor will end up at 1x1.
+Note that it is still an error to manually attempt to move the cursor off-plane,
+or to specify off-plane output. Boxes do not scroll; attempting to draw a 2x11
+box on our 2x10 plane will result in an error and no output. When scrolling is
+enabled, and output takes place while the cursor is past the end of the last
+row, the first row is discarded, all other rows are moved up, the last row is
+cleared, and output begins at the beginning of the last row. This does not take
+place until output is generated (i.e. it is possible to fill a plane when
+scrolling is enabled).
+
+```c
+// All planes are created with scrolling disabled. Scrolling can be dynamically
+// controlled with ncplane_set_scrolling(). Returns true if scrolling was
+// previously enabled, or false if it was disabled.
+bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
+```
+
 Planes can be freely resized, though they must retain a positive size in
 both dimensions. The powerful `ncplane_resize()` allows resizing an `ncplane`,
 retaining all or a portion of the plane's existing content, and translating
@@ -839,7 +863,14 @@ ncplane_putc(struct ncplane* n, const cell* c){
 // Replace the cell at the specified coordinates with the provided 7-bit char
 // 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.
-int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
+static inline int
+ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
+  cell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
+  if(!cell_simple_p(&ce)){
+    return -1;
+  }
+  return ncplane_putc_yx(n, y, x, &ce);
+}
 
 // Call ncplane_putsimple_yx() at the current cursor location.
 static inline int
@@ -924,7 +955,8 @@ int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sby
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of cells
 // which were written before the error.
-int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
+static inline int
+ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
 
 static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr){

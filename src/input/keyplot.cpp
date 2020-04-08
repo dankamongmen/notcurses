@@ -68,14 +68,15 @@ int main(void){
   planes.emplace_back(6, plotlen, 31,  1, nullptr);
   struct ncplot_options popts{};
   for(auto i = 0u ; i < plots.size() ; ++i){
-    if(i == plots.size() - 1){
-      popts.labelaxisd = true;
-    }
+    popts.labelaxisd = (i % 2 == 0);
     popts.minchannel = popts.maxchannel = 0;
     channels_set_fg_rgb(&popts.maxchannel, random() % 256, random() % 256, random() % 256);
     channels_set_fg_rgb(&popts.minchannel, random() % 256, random() % 256, random() % 256);
     popts.gridtype = static_cast<ncgridgeom_e>(i);
     plots[i] = ncplot_create(planes[i], &popts);
+    if(!plots[i]){
+      return EXIT_FAILURE;
+    }
   }
   char32_t r;
   ncinput ni;

@@ -123,7 +123,6 @@ int ncplane_move_yx(struct ncplane* n, int y, int x);
 void ncplane_yx(struct ncplane* n, int* y, int* x);
 void ncplane_dim_yx(const struct ncplane* n, int* rows, int* cols);
 int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
-int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
 int ncplane_move_top(struct ncplane* n);
 int ncplane_move_bottom(struct ncplane* n);
 int ncplane_move_below(struct ncplane* n, struct ncplane* below);
@@ -193,7 +192,6 @@ int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, vo
 int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
 int ncplane_putwc(struct ncplane* n, wchar_t w);
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
-int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
 int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
 void cell_init(cell* c);
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
@@ -422,16 +420,17 @@ typedef struct ncplot_options {
   uint64_t minchannel;
   ncgridgeom_e gridtype;
   uint64_t rangex;
-  int64_t miny, maxy;
+  uint64_t miny, maxy;
   bool labelaxisd;
   bool exponentialy;
   bool vertical_indep;
 } ncplot_options;
 struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
 struct ncplane* ncplot_plane(struct ncplot* n);
-int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);
-int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);
+int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);
+int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
 void ncplot_destroy(struct ncplot* n);
+bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
 """)
 
 if __name__ == "__main__":

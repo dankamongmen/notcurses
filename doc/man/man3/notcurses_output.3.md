@@ -18,7 +18,8 @@ ncplane_putc(struct ncplane* n, const cell* c);**
 **static inline int
 ncplane_putsimple(struct ncplane* n, char c);**
 
-**int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);**
+**static inline int
+ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);**
 
 **int ncplane_putsimple_stainable(struct ncplane* n, char c);**
 
@@ -42,7 +43,8 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust, int* 
 
 **int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);**
 
-**int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);**
+**static inline int
+ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);**
 
 **static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr);**

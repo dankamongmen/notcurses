@@ -54,8 +54,7 @@ public:
 #include "stain.h"
 #include "lock.h"
 #include "movedown.h"
-#include "moveleft.h"
-#include "moveright.h"
+#include "movelateral.h"
 #include "rotate.h"
 
 private:

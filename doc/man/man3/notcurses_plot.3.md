@@ -30,7 +30,7 @@ typedef struct ncplot_options {
   uint64_t rangex;
   // dependent min and max. set both equal to 0 to
   // use domain autodiscovery.
-  int64_t miny, maxy;
+  uint64_t miny, maxy;
   bool labelaxisd;     // label dependent axis
   bool exponentialy;   // is dependent exponential?
   bool vertical_indep; // vertical independent variable
@@ -41,8 +41,8 @@ typedef struct ncplot_options {
 
 **struct ncplane* ncplot_plane(struct ncplot* n);**
 
-**int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);**
-**int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);**
+**int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);**
+**int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);**
 
 **void ncplot_destroy(struct ncplot* n);**
 

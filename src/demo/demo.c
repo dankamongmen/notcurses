@@ -72,7 +72,14 @@ struct timespec demodelay = {
 #ifndef DFSG_BUILD
 #ifdef USE_FFMPEG
 #define NONFREE(name, fxn) { name, fxn, }
+#else
 #endif
+#else
+#define DFSG(name, fxn) { NULL, NULL, }
+#endif
+
+#ifndef DFSG
+#define DFSG(name, fxn) { name, fxn, }
 #endif
 #ifndef NONFREE
 #define NONFREE(name, fxn) { NULL, NULL, }
@@ -99,7 +106,7 @@ static struct {
   { "grid", grid_demo, },
   { "highcon", highcontrast_demo, },
   { "intro", intro, },
-  NONFREE("jungle", jungle_demo),
+  DFSG("jungle", jungle_demo),
   { NULL, NULL, },
   NONFREE("luigi", luigi_demo),
   { NULL, NULL, },

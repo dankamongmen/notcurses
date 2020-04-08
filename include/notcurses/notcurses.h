@@ -109,881 +109,6 @@ mbswidth(const char* mbs){
   return cols;
 }
 
-// A cell corresponds to a single character cell on some plane, which can be
-// occupied by a single grapheme cluster (some root spacing glyph, along with
-// possible combining characters, which might span multiple columns). At any
-// cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground
-// color, a background color, and an attribute set. Valid grapheme cluster
-// contents include:
-//
-//  * A NUL terminator,
-//  * A single control character, followed by a NUL terminator,
-//  * At most one spacing character, followed by zero or more nonspacing
-//    characters, followed by a NUL terminator.
-//
-// Multi-column characters can only have a single style/color throughout.
-// Existence is suffering, and thus wcwidth() is not reliable. It's just
-// quoting whether or not the EGC contains a "Wide Asian" double-width
-// character. This is set for some things, like most emoji, and not set for
-// other things, like cuneiform. Fucccccck. True display width is a *property
-// of the font*. Fuccccccccckkkkk. Among the longest Unicode codepoints is
-//
-//    U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM ﷽
-//
-// wcwidth() rather optimistically claims this suicide bomber of a glyph to
-// occupy a single column, right before it explodes in your diner. BiDi text
-// is too complicated for me to even get into here. It sucks ass. Be assured
-// there are no easy answers. Allah, the All-Powerful, has fucked us again!
-//
-// Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
-// for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
-// Dynamic requirements (the egcpool) can add up to 32MB to an ncplane, but
-// such large pools are unlikely in common use.
-//
-// We implement some small alpha compositing. Foreground and background both
-// have two bits of inverted alpha. The actual grapheme written to a cell is
-// the topmost non-zero grapheme. If its alpha is 00, its foreground color is
-// used unchanged. If its alpha is 10, its foreground color is derived entirely
-// from cells underneath it. Otherwise, the result will be a composite.
-// Likewise for the background. If the bottom of a coordinate's zbuffer is
-// reached with a cumulative alpha of zero, the default is used. In this way,
-// a terminal configured with transparent background can be supported through
-// multiple occluding ncplanes. A foreground alpha of 11 requests high-contrast
-// text (relative to the computed background). A background alpha of 11 is
-// currently forbidden.
-//
-// Default color takes precedence over palette or RGB, and cannot be used with
-// transparency. Indexed palette takes precedence over RGB. It cannot
-// meaningfully set transparency, but it can be mixed into a cascading color.
-// RGB is used if neither default terminal colors nor palette indexing are in
-// play, and fully supports all transparency options.
-typedef struct cell {
-  // These 32 bits are either a single-byte, single-character grapheme cluster
-  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
-  uint32_t gcluster;          // 4B -> 4B
-  // NCSTYLE_* attributes (16 bits) + 8 foreground palette index bits + 8
-  // background palette index bits. palette index bits are used only if the
-  // corresponding default color bit *is not* set, and the corresponding
-  // palette index bit *is* set.
-  uint32_t attrword;          // + 4B -> 8B
-  // (channels & 0x8000000000000000ull): left half of wide character
-  // (channels & 0x4000000000000000ull): foreground is *not* "default color"
-  // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
-  // (channels & 0x0800000000000000ull): foreground uses palette index
-  // (channels & 0x0700000000000000ull): reserved, must be 0
-  // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
-  // (channels & 0x0000000080000000ull): right half of wide character
-  // (channels & 0x0000000040000000ull): background is *not* "default color"
-  // (channels & 0x0000000030000000ull): background alpha (2 bits)
-  // (channels & 0x0000000008000000ull): background uses palette index
-  // (channels & 0x0000000007000000ull): reserved, must be 0
-  // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
-  // At render time, these 24-bit values are quantized down to terminal
-  // capabilities, if necessary. There's a clear path to 10-bit support should
-  // we one day need it, but keep things cagey for now. "default color" is
-  // best explained by color(3NCURSES). ours is the same concept. until the
-  // "not default color" bit is set, any color you load will be ignored.
-  uint64_t channels;          // + 8B == 16B
-} cell;
-
-// These log levels consciously map cleanly to those of libav; notcurses itself
-// does not use this full granularity. The log level does not affect the opening
-// and closing banners, which can be disabled via the notcurses_option struct's
-// 'suppress_banner'. Note that if stderr is connected to the same terminal on
-// which we're rendering, any kind of logging will disrupt the output.
-typedef enum {
-  NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
-  NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
-  NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
-  NCLOGLEVEL_ERROR,   // we can't keep doin' this, but we can do other things
-  NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
-  NCLOGLEVEL_INFO,    // "standard information"
-  NCLOGLEVEL_VERBOSE, // "detailed information"
-  NCLOGLEVEL_DEBUG,   // this is honestly a bit much
-  NCLOGLEVEL_TRACE,   // there's probably a better way to do what you want
-} ncloglevel_e;
-
-// Configuration for notcurses_init().
-typedef struct notcurses_options {
-  // The name of the terminfo database entry describing this terminal. If NULL,
-  // the environment variable TERM is used. Failure to open the terminal
-  // definition will result in failure to initialize notcurses.
-  const char* termtype;
-  // If smcup/rmcup capabilities are indicated, notcurses defaults to making
-  // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
-  bool inhibit_alternate_screen;
-  // By default, we hide the cursor if possible. This flag inhibits use of
-  // the civis capability, retaining the cursor.
-  bool retain_cursor;
-  // Notcurses typically prints version info in notcurses_init() and performance
-  // info in notcurses_stop(). This inhibits that output.
-  bool suppress_banner;
-  // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
-  // restores the screen, and then calls the old signal handler. Set to inhibit
-  // registration of these signal handlers.
-  bool no_quit_sighandlers;
-  // We typically install a signal handler for SIGWINCH that generates a resize
-  // event in the notcurses_getc() queue. Set to inhibit this handler.
-  bool no_winch_sighandler;
-  // If non-NULL, notcurses_render() will write each rendered frame to this
-  // FILE* in addition to outfp. This is used primarily for debugging.
-  FILE* renderfp;
-  // Progressively higher log levels result in more logging to stderr. By
-  // default, nothing is printed to stderr once fullscreen service begins.
-  ncloglevel_e loglevel;
-  // Desirable margins. If all are 0 (default), we will render to the entirety
-  // of the screen. If the screen is too small, we do what we can--this is
-  // strictly best-effort. Absolute coordinates are relative to the rendering
-  // area ((0, 0) is always the origin of the rendering area).
-  int margin_t, margin_r, margin_b, margin_l;
-} notcurses_options;
-
-// Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
-// be a tty. You'll usually want stdout. Returns NULL on error, including any
-// failure initializing terminfo.
-API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
-
-// Destroy a notcurses context.
-API int notcurses_stop(struct notcurses* nc);
-
-// Make the physical screen match the virtual screen. Changes made to the
-// virtual screen (i.e. most other calls) will not be visible until after a
-// successful call to notcurses_render().
-API int notcurses_render(struct notcurses* nc);
-
-// Return the topmost ncplane, of which there is always at least one.
-API struct ncplane* notcurses_top(struct notcurses* n);
-
-// Destroy all ncplanes other than the stdplane.
-API void notcurses_drop_planes(struct notcurses* nc);
-
-// All input is currently taken from stdin, though this will likely change. We
-// attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
-// Extended Grapheme Cluster. It is also possible that we will read a special
-// keypress, i.e. anything that doesn't correspond to a Unicode codepoint (e.g.
-// arrow keys, function keys, screen resize events, etc.). These are mapped
-// into Unicode's Supplementary Private Use Area-B, starting at U+100000.
-//
-// notcurses_getc() and notcurses_getc_nblock() are both nonblocking.
-// notcurses_getc_blocking() blocks until a codepoint or special key is read,
-// or until interrupted by a signal.
-//
-// In the case of a valid read, a 32-bit Unicode codepoint is returned. 0 is
-// returned to indicate that no input was available, but only by
-// notcurses_getc(). Otherwise (including on EOF) (char32_t)-1 is returned.
-
-// Is this char32_t a Supplementary Private Use Area-B codepoint?
-static inline bool
-nckey_supppuab_p(char32_t w){
-  return w >= 0x100000 && w <= 0x10fffd;
-}
-
-// Is the event a synthesized mouse event?
-static inline bool
-nckey_mouse_p(char32_t r){
-  return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
-}
-
-// An input event. Cell coordinates are currently defined only for mouse events.
-typedef struct ncinput {
-  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
-  int y;           // y cell coordinate of event, -1 for undefined
-  int x;           // x cell coordinate of event, -1 for undefined
-  bool alt;        // was alt held?
-  bool shift;      // was shift held?
-  bool ctrl;       // was ctrl held?
-  uint64_t seqnum; // input event number
-} ncinput;
-
-// See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
-// of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
-// Signals in sigmask (less several we handle internally) will be atomically
-// masked and unmasked per ppoll(2). It should generally contain all signals.
-// Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
-// be NULL. Returns 0 on a timeout. If an event is processed, the return value
-// is the 'id' field from that event. 'ni' may be NULL.
-API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                            sigset_t* sigmask, ncinput* ni);
-
-// 'ni' may be NULL if the caller is uninterested in event details. If no event
-// is ready, returns 0.
-static inline char32_t
-notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
-  sigset_t sigmask;
-  sigfillset(&sigmask);
-  struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-  return notcurses_getc(n, &ts, &sigmask, ni);
-}
-
-// 'ni' may be NULL if the caller is uninterested in event details. Blocks
-// until an event is processed or a signal is received.
-static inline char32_t
-notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
-  sigset_t sigmask;
-  sigemptyset(&sigmask);
-  return notcurses_getc(n, NULL, &sigmask, ni);
-}
-
-// Enable the mouse in "button-event tracking" mode with focus detection and
-// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
-// is returned, and mouse events will be published to notcurses_getc().
-API int notcurses_mouse_enable(struct notcurses* n);
-
-// Disable mouse events. Any events in the input queue can still be delivered.
-API int notcurses_mouse_disable(struct notcurses* n);
-
-// Refresh our idea of the terminal's dimensions, reshaping the standard plane
-// if necessary, without a fresh render. References to ncplanes (and the
-// egcpools underlying cells) remain valid following a resize operation.
-API int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
-
-// Refresh the physical screen to match what was last rendered (i.e., without
-// reflecting any changes since the last call to notcurses_render()). This is
-// primarily useful if the screen is externally corrupted.
-API int notcurses_refresh(struct notcurses* n);
-
-// Return the dimensions of this ncplane.
-API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
-
-// Get a reference to the standard plane (one matching our current idea of the
-// terminal size) for this terminal. The standard plane always exists, and its
-// origin is always at the uppermost, leftmost cell of the terminal.
-API struct ncplane* notcurses_stdplane(struct notcurses* nc);
-API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
-
-// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
-static inline struct ncplane*
-notcurses_stddim_yx(struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
-  struct ncplane* s = notcurses_stdplane(nc); // can't fail
-  ncplane_dim_yx(s, y, x); // accepts NULL
-  return s;
-}
-
-static inline int
-ncplane_dim_y(const struct ncplane* n){
-  int dimy;
-  ncplane_dim_yx(n, &dimy, NULL);
-  return dimy;
-}
-
-static inline int
-ncplane_dim_x(const struct ncplane* n){
-  int dimx;
-  ncplane_dim_yx(n, NULL, &dimx);
-  return dimx;
-}
-
-// Return our current idea of the terminal dimensions in rows and cols.
-static inline void
-notcurses_term_dim_yx(struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
-  ncplane_dim_yx(notcurses_stdplane(n), rows, cols);
-}
-
-// Retrieve the contents of the specified cell as last rendered. The EGC is
-// returned, or NULL on error. This EGC must be free()d by the caller. The
-// attrword and channels are written to 'attrword' and 'channels', respectively.
-API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
-                          uint32_t* attrword, uint64_t* channels);
-
-// Alignment within the ncplane. Left/right-justified, or centered.
-typedef enum {
-  NCALIGN_LEFT,
-  NCALIGN_CENTER,
-  NCALIGN_RIGHT,
-} ncalign_e;
-
-// Create a new ncplane at the specified offset (relative to the standard plane)
-// and the specified size. The number of rows and columns must both be positive.
-// This plane is initially at the top of the z-buffer, as if ncplane_move_top()
-// had been called on it. The void* 'opaque' can be retrieved (and reset) later.
-API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
-                                int yoff, int xoff, void* opaque);
-
-API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
-                                    int yoff, ncalign_e align, void* opaque);
-
-// Create a plane bound to plane 'n'. Being bound to 'n' means that 'yoff' and
-// 'xoff' are interpreted relative to that plane's origin, and that if that
-// plane is moved later, this new plane is moved by the same amount.
-API struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols,
-                                  int yoff, int xoff, void* opaque);
-
-// Plane 'n' will be unbound from its parent plane, if it is currently bound,
-// and will be made a bound child of 'newparent', if 'newparent' is not NULL.
-API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
-
-// Duplicate an existing ncplane. The new plane will have the same geometry,
-// will duplicate all content, and will start with the same rendering state.
-// The new plane will be immediately above the old one on the z axis.
-API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
-
-// provided a coordinate relative to the origin of 'src', map it to the same
-// absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
-// and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
-API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
-                           int* RESTRICT y, int* RESTRICT x);
-
-// Fed absolute 'y'/'x' coordinates, determine whether that coordinate is
-// within the ncplane 'n'. If not, return false. If so, return true. Either
-// way, translate the absolute coordinates relative to 'n'. If the point is not
-// within 'n', these coordinates will not be within the dimensions of the plane.
-API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
-
-// Capabilities
-
-// Returns a 16-bit bitmask of supported curses-style attributes
-// (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
-// indicated as supported if the terminal can support it together with color.
-// For more information, see the "ncv" capability in terminfo(5).
-API unsigned notcurses_supported_styles(const struct notcurses* nc);
-
-// Returns the number of simultaneous colors claimed to be supported, or 1 if
-// there is no color support. Note that several terminal emulators advertise
-// more colors than they actually support, downsampling internally.
-API int notcurses_palette_size(const struct notcurses* nc);
-
-// Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
-API bool notcurses_canfade(const struct notcurses* nc);
-
-// Can we set the "hardware" palette? Requires the "ccc" terminfo capability.
-API bool notcurses_canchangecolor(const struct notcurses* nc);
-
-// Can we load images/videos? This requires being built against FFmpeg.
-API bool notcurses_canopen(const struct notcurses* nc);
-
-typedef struct ncstats {
-  // purely increasing stats
-  uint64_t renders;          // number of successful notcurses_render() runs
-  uint64_t failed_renders;   // number of aborted renders, should be 0
-  uint64_t render_bytes;     // bytes emitted to ttyfp
-  int64_t render_max_bytes;  // max bytes emitted for a frame
-  int64_t render_min_bytes;  // min bytes emitted for a frame
-  uint64_t render_ns;        // nanoseconds spent in notcurses_render()
-  int64_t render_max_ns;     // max ns spent in notcurses_render()
-  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
-  uint64_t cellelisions;     // cells we elided entirely thanks to damage maps
-  uint64_t cellemissions;    // cells we emitted due to inferred damage
-  uint64_t fgelisions;       // RGB fg elision count
-  uint64_t fgemissions;      // RGB fg emissions
-  uint64_t bgelisions;       // RGB bg elision count
-  uint64_t bgemissions;      // RGB bg emissions
-  uint64_t defaultelisions;  // default color was emitted
-  uint64_t defaultemissions; // default color was elided
-
-  // current state -- these can decrease
-  uint64_t fbbytes;          // total bytes devoted to all active framebuffers
-  unsigned planes;           // number of planes currently in existence
-} ncstats;
-
-// Acquire an atomic snapshot of the notcurses object's stats.
-API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
-
-// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
-API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
-
-// Resize the specified ncplane. The four parameters 'keepy', 'keepx',
-// 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
-// unchanged. This may be a section of size 0, though none of these four
-// parameters may be negative. 'keepx' and 'keepy' are relative to the ncplane.
-// They must specify a coordinate within the ncplane's totality. 'yoff' and
-// 'xoff' are relative to 'keepy' and 'keepx', and place the upper-left corner
-// of the resized ncplane. Finally, 'ylen' and 'xlen' are the dimensions of the
-// ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
-// and 'xlen' must be greater than or equal to 'keeplenx'. It is an error to
-// attempt to resize the standard plane. If either of 'keepleny' or 'keeplenx'
-// is non-zero, both must be non-zero.
-//
-// Essentially, the kept material does not move. It serves to anchor the
-// resized plane. If there is no kept material, the plane can move freely.
-API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
-                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
-
-// Resize the plane, retaining what data we can (everything, unless we're
-// shrinking in some dimension). Keep the origin where it is.
-static inline int
-ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
-  int oldy, oldx;
-  ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
-  int keepleny = oldy > ylen ? ylen : oldy;
-  int keeplenx = oldx > xlen ? xlen : oldx;
-  return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
-}
-
-// Destroy the specified ncplane. None of its contents will be visible after
-// the next call to notcurses_render(). It is an error to attempt to destroy
-// the standard plane.
-API int ncplane_destroy(struct ncplane* ncp);
-
-// Set the ncplane's base cell to this cell. It will be used for purposes of
-// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
-// does not reset the base cell; this function must be called with a zero 'c'.
-API int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
-
-// Set the ncplane's base cell to this cell. It will be used for purposes of
-// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
-// does not reset the base cell; this function must be called with an empty
-// 'egc'. 'egc' must be a single extended grapheme cluster.
-API int ncplane_set_base(struct ncplane* ncp, uint64_t channels,
-                         uint32_t attrword, const char* egc);
-
-// Extract the ncplane's base cell into 'c'. The reference is invalidated if
-// 'ncp' is destroyed.
-API int ncplane_base(struct ncplane* ncp, cell* c);
-
-// Move this plane relative to the standard plane. It is an error to attempt to
-// move the standard plane.
-API int ncplane_move_yx(struct ncplane* n, int y, int x);
-
-// Get the origin of this plane relative to the standard plane.
-API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
-
-// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-API int ncplane_move_top(struct ncplane* n);
-API int ncplane_move_bottom(struct ncplane* n);
-
-// Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
-API int ncplane_move_above_unsafe(struct ncplane* RESTRICT n,
-                                  struct ncplane* RESTRICT above);
-
-static inline int
-ncplane_move_above(struct ncplane* n, struct ncplane* above){
-  if(n == above){
-    return -1;
-  }
-  return ncplane_move_above_unsafe(n, above);
-}
-
-// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-API int ncplane_move_below_unsafe(struct ncplane* RESTRICT n,
-                                  struct ncplane* RESTRICT below);
-
-static inline int
-ncplane_move_below(struct ncplane* n, struct ncplane* below){
-  if(n == below){
-    return -1;
-  }
-  return ncplane_move_below_unsafe(n, below);
-}
-
-// Return the plane below this one, or NULL if this is at the bottom.
-API struct ncplane* ncplane_below(struct ncplane* n);
-
-// Rotate the plane pi/2 radians clockwise or counterclockwise. Note that
-// rotation only applies to geometry and color. Most glyphs cannot be rotated.
-// The resulting plane is thus populated only by null glyphs, spaces, full
-// blocks, and partial blocks.
-API int ncplane_rotate_cw(struct ncplane* n);
-API int ncplane_rotate_ccw(struct ncplane* n);
-
-// Retrieve the cell at the cursor location on the specified plane, returning
-// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
-API int ncplane_at_cursor(struct ncplane* n, cell* c);
-
-// Retrieve the cell at the specified location on the specified plane, returning
-// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
-// Returns the length of the EGC in bytes.
-API int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
-
-// Manipulate the opaque user pointer associated with this plane.
-// ncplane_set_userptr() returns the previous userptr after replacing
-// it with 'opaque'. the others simply return the userptr.
-API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
-API void* ncplane_userptr(struct ncplane* n);
-
-// Return the column at which 'c' cols ought start in order to be aligned
-// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
-// Undefined behavior on negative 'c'.
-static inline int
-ncplane_align(const struct ncplane* n, ncalign_e align, int c){
-  if(align == NCALIGN_LEFT){
-    return 0;
-  }
-  int cols = ncplane_dim_x(n);
-  if(align == NCALIGN_CENTER){
-    return (cols - c) / 2;
-  }else if(align == NCALIGN_RIGHT){
-    return cols - c;
-  }
-  return INT_MAX;
-}
-
-// Move the cursor to the specified position (the cursor needn't be visible).
-// Returns -1 on error, including negative parameters, or ones exceeding the
-// plane's dimensions.
-API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
-
-// Get the current position of the cursor within n. y and/or x may be NULL.
-API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
-
-// Replace the cell at the specified coordinates with the provided cell 'c',
-// and advance the cursor by the width of the cell (but not past the end of the
-// plane). On success, returns the number of columns the cursor was advanced.
-// On failure, -1 is returned.
-API int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
-
-// Call ncplane_putc_yx() for the current cursor location.
-static inline int
-ncplane_putc(struct ncplane* n, const cell* c){
-  return ncplane_putc_yx(n, -1, -1, c);
-}
-
-// Replace the EGC underneath us, but retain the styling. The current styling
-// of the plane will not be changed.
-//
-// Replace the cell at the specified coordinates with the provided 7-bit char
-// 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
-// This works whether the underlying char is signed or unsigned.
-API int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);
-
-// Call ncplane_putsimple_yx() at the current cursor location.
-static inline int
-ncplane_putsimple(struct ncplane* n, char c){
-  return ncplane_putsimple_yx(n, -1, -1, c);
-}
-
-// Replace the EGC underneath us, but retain the styling. The current styling
-// of the plane will not be changed.
-API int ncplane_putsimple_stainable(struct ncplane* n, char c);
-
-// Replace the cell at the specified coordinates with the provided EGC, and
-// advance the cursor by the width of the cluster (but not past the end of the
-// plane). On success, returns the number of columns the cursor was advanced.
-// On failure, -1 is returned. The number of bytes converted from gclust is
-// written to 'sbytes' if non-NULL.
-API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
-
-// Call ncplane_putegc() at the current cursor location.
-static inline int
-ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
-  return ncplane_putegc_yx(n, -1, -1, gclust, sbytes);
-}
-
-// Replace the EGC underneath us, but retain the styling. The current styling
-// of the plane will not be changed.
-API int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
-
-// 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes...but we aren't
-// yet actively guarding against higher values getting into wcstombs FIXME
-#define WCHAR_MAX_UTF8BYTES 6
-
-// ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
-static inline int
-ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
-  // maximum of six UTF8-encoded bytes per wchar_t
-  const size_t mbytes = (wcslen(gclust) * WCHAR_MAX_UTF8BYTES) + 1;
-  char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
-  if(mbstr == NULL){
-    return -1;
-  }
-  size_t s = wcstombs(mbstr, gclust, mbytes);
-  if(s == (size_t)-1){
-    free(mbstr);
-    return -1;
-  }
-  int ret = ncplane_putegc(n, mbstr, sbytes);
-  free(mbstr);
-  return ret;
-}
-
-// Call ncplane_putwegc() after successfully moving to y, x.
-static inline int
-ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
-                   int* sbytes){
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  return ncplane_putwegc(n, gclust, sbytes);
-}
-
-// Replace the EGC underneath us, but retain the styling. The current styling
-// of the plane will not be changed.
-API int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
-
-// Write a series of EGCs to the current location, using the current style.
-// They will be interpreted as a series of columns (according to the definition
-// of ncplane_putc()). Advances the cursor by some positive number of cells
-// (though not beyond the end of the plane); this number is returned on success.
-// On error, a non-positive number is returned, indicating the number of cells
-// which were written before the error.
-API int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);
-
-static inline int
-ncplane_putstr(struct ncplane* n, const char* gclustarr){
-  return ncplane_putstr_yx(n, -1, -1, gclustarr);
-}
-
-API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                               const char* s);
-
-// ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
-static inline int
-ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
-  // maximum of six UTF8-encoded bytes per wchar_t
-  const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
-  char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
-  if(mbstr == NULL){
-    return -1;
-  }
-  size_t s = wcstombs(mbstr, gclustarr, mbytes);
-  if(s == (size_t)-1){
-    free(mbstr);
-    return -1;
-  }
-  int ret = ncplane_putstr_yx(n, y, x, mbstr);
-  free(mbstr);
-  return ret;
-}
-
-static inline int
-ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                        const wchar_t* gclustarr){
-  int width = wcswidth(gclustarr, INT_MAX);
-  int xpos = ncplane_align(n, align, width);
-  return ncplane_putwstr_yx(n, y, xpos, gclustarr);
-}
-
-static inline int
-ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
-  return ncplane_putwstr_yx(n, -1, -1, gclustarr);
-}
-
-// Replace the cell at the specified coordinates with the provided wide char
-// 'w'. Advance the cursor by the character's width as reported by wcwidth().
-// On success, returns 1. On failure, returns -1.
-static inline int
-ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
-  wchar_t warr[2] = { w, L'\0' };
-  return ncplane_putwstr_yx(n, y, x, warr);
-}
-
-// Call ncplane_putwc() at the current cursor position.
-static inline int
-ncplane_putwc(struct ncplane* n, wchar_t w){
-  return ncplane_putwc_yx(n, -1, -1, w);
-}
-
-// The ncplane equivalents of printf(3) and vprintf(3).
-API int ncplane_vprintf_aligned(struct ncplane* n, int y, ncalign_e align,
-                                const char* format, va_list ap);
-
-API int ncplane_vprintf_yx(struct ncplane* n, int y, int x,
-                           const char* format, va_list ap);
-
-static inline int
-ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
-  return ncplane_vprintf_yx(n, -1, -1, format, ap);
-}
-
-static inline int
-ncplane_printf(struct ncplane* n, const char* format, ...)
-  __attribute__ ((format (printf, 2, 3)));
-
-static inline int
-ncplane_printf(struct ncplane* n, const char* format, ...){
-  va_list va;
-  va_start(va, format);
-  int ret = ncplane_vprintf(n, format, va);
-  va_end(va);
-  return ret;
-}
-
-static inline int
-ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
-  __attribute__ ((format (printf, 4, 5)));
-
-static inline int
-ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
-  va_list va;
-  va_start(va, format);
-  int ret = ncplane_vprintf_yx(n, y, x, format, va);
-  va_end(va);
-  return ret;
-}
-
-static inline int
-ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
-                       const char* format, ...)
-  __attribute__ ((format (printf, 4, 5)));
-
-static inline int
-ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...){
-  va_list va;
-  va_start(va, format);
-  int ret = ncplane_vprintf_aligned(n, y, align, format, va);
-  va_end(va);
-  return ret;
-}
-
-// Draw horizontal or vertical lines using the specified cell, starting at the
-// current cursor position. The cursor will end at the cell following the last
-// cell output (even, perhaps counter-intuitively, when drawing vertical
-// lines), just as if ncplane_putc() was called at that spot. Return the
-// number of cells drawn on success. On error, return the negative number of
-// cells drawn.
-API int ncplane_hline_interp(struct ncplane* n, const cell* c, int len,
-                             uint64_t c1, uint64_t c2);
-
-static inline int
-ncplane_hline(struct ncplane* n, const cell* c, int len){
-  return ncplane_hline_interp(n, c, len, c->channels, c->channels);
-}
-
-API int ncplane_vline_interp(struct ncplane* n, const cell* c, int len,
-                             uint64_t c1, uint64_t c2);
-
-static inline int
-ncplane_vline(struct ncplane* n, const cell* c, int len){
-  return ncplane_vline_interp(n, c, len, c->channels, c->channels);
-}
-
-#define NCBOXMASK_TOP    0x0001
-#define NCBOXMASK_RIGHT  0x0002
-#define NCBOXMASK_BOTTOM 0x0004
-#define NCBOXMASK_LEFT   0x0008
-#define NCBOXGRAD_TOP    0x0010
-#define NCBOXGRAD_RIGHT  0x0020
-#define NCBOXGRAD_BOTTOM 0x0040
-#define NCBOXGRAD_LEFT   0x0080
-#define NCBOXCORNER_MASK 0x0300
-#define NCBOXCORNER_SHIFT 8u
-
-// Draw a box with its upper-left corner at the current cursor position, and its
-// lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the
-// upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
-// 'ctlword' is defined in the least significant byte, where bits [7, 4] are a
-// gradient mask, and [3, 0] are a border mask:
-//  * 7, 3: top
-//  * 6, 2: right
-//  * 5, 1: bottom
-//  * 4, 0: left
-// If the gradient bit is not set, the styling from the hl/vl cells is used for
-// the horizontal and vertical lines, respectively. If the gradient bit is set,
-// the color is linearly interpolated between the two relevant corner cells.
-//
-// By default, vertexes are drawn whether their connecting edges are drawn or
-// not. The value of the bits corresponding to NCBOXCORNER_MASK control this,
-// and are interpreted as the number of connecting edges necessary to draw a
-// given corner. At 0 (the default), corners are always drawn. At 3, corners
-// are never drawn (as at most 2 edges can touch a box's corner).
-API int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
-                    const cell* ll, const cell* lr, const cell* hline,
-                    const cell* vline, int ystop, int xstop,
-                    unsigned ctlword);
-
-// Draw a box with its upper-left corner at the current cursor position, having
-// dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
-// minimum box size is 2x2, and it cannot be drawn off-screen.
-static inline int
-ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
-                  const cell* ll, const cell* lr, const cell* hline,
-                  const cell* vline, int ylen, int xlen, unsigned ctlword){
-  int y, x;
-  ncplane_cursor_yx(n, &y, &x);
-  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1,
-                     x + xlen - 1, ctlword);
-}
-
-static inline int
-ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
-                  const cell* ll, const cell* lr, const cell* hline,
-                  const cell* vline, unsigned ctlword){
-  if(ncplane_cursor_move_yx(n, 0, 0)){
-    return -1;
-  }
-  int dimy, dimx;
-  ncplane_dim_yx(n, &dimy, &dimx);
-  return ncplane_box_sized(n, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword);
-}
-
-// Starting at the specified coordinate, if it has no glyph, 'c' is copied into
-// it. We do the same to all cardinally-connected glyphless cells, filling in
-// everything behind a boundary. Returns the number of cells polyfilled. An
-// invalid initial y, x is an error. Returns the number of cells filled, or
-// -1 on error.
-API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
-
-// Draw a gradient with its upper-left corner at the current cursor position,
-// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'attrword' is
-// used for all cells. The channels specified by 'ul', 'ur', 'll', and 'lr'
-// are composed into foreground and background gradients. To do a vertical
-// gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
-// horizontal gradient, 'ul' ought equal 'll' and 'ur' ought equal 'ul'. To
-// color everything the same, all four channels should be equivalent. The
-// resulting alpha values are equal to incoming alpha values. Returns the
-// number of cells filled on success, or -1 on failure.
-//
-// Palette-indexed color is not supported.
-//
-// Preconditions for gradient operations (error otherwise):
-//
-//  all: only RGB colors, unless all four channels match as default
-//  all: all alpha values must be the same
-//  1x1: all four colors must be the same
-//  1xN: both top and both bottom colors must be the same (vertical gradient)
-//  Nx1: both left and both right colors must be the same (horizontal gradient)
-API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
-                         uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
-                         int ystop, int xstop);
-
-// Do a high-resolution gradient using upper blocks and synced backgrounds.
-// This doubles the number of vertical gradations, but restricts you to
-// half blocks (appearing to be full blocks). Returns the number of cells
-// filled on success, or -1 on error.
-API int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
-                             uint32_t ll, uint32_t lr, int ystop, int xstop);
-
-// Draw a gradient with its upper-left corner at the current cursor position,
-// having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
-static inline int
-ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
-                       uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
-                       int ylen, int xlen){
-  if(ylen < 1 || xlen < 1){
-    return -1;
-  }
-  int y, x;
-  ncplane_cursor_yx(n, &y, &x);
-  return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
-}
-
-static inline int
-ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur,
-                           uint64_t ll, uint64_t lr, int ylen, int xlen){
-  if(ylen < 1 || xlen < 1){
-    return -1;
-  }
-  int y, x;
-  ncplane_cursor_yx(n, &y, &x);
-  return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
-}
-
-// Set the given style throughout the specified region, keeping content and
-// channels unchanged. Returns the number of cells set, or -1 on failure.
-API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
-
-// Set the given channels throughout the specified region, keeping content and
-// attributes unchanged. Returns the number of cells set, or -1 on failure.
-API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
-                      uint64_t ur, uint64_t ll, uint64_t lr);
-
-// Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
-// defined as "write to 'dst' the frame that would be rendered were the entire
-// stack made up only of 'src' and, below it, 'dst', and 'dst' was the entire
-// rendering region." Merging is independent of the position of 'src' viz 'dst'
-// on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
-// changed, but it is not an error. The source plane still exists following
-// this operation. If 'dst' is NULL, it will be interpreted as the standard
-// plane. Do not supply the same plane for both 'src' and 'dst'.
-API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT dst);
-
-// Erase every cell in the ncplane, resetting all attributes to normal, all
-// colors to the default color, and all cells to undrawn. All cells associated
-// with this ncplane is invalidated, and must not be used after the call,
-// excluding the base cell.
-API void ncplane_erase(struct ncplane* n);
-
-#define NCPALETTESIZE 256
 #define CELL_WIDEASIAN_MASK     0x8000000080000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
@@ -1317,6 +442,1087 @@ channels_set_bg_default(uint64_t* channels){
   return *channels;
 }
 
+// A cell corresponds to a single character cell on some plane, which can be
+// occupied by a single grapheme cluster (some root spacing glyph, along with
+// possible combining characters, which might span multiple columns). At any
+// cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground
+// color, a background color, and an attribute set. Valid grapheme cluster
+// contents include:
+//
+//  * A NUL terminator,
+//  * A single control character, followed by a NUL terminator,
+//  * At most one spacing character, followed by zero or more nonspacing
+//    characters, followed by a NUL terminator.
+//
+// Multi-column characters can only have a single style/color throughout.
+// Existence is suffering, and thus wcwidth() is not reliable. It's just
+// quoting whether or not the EGC contains a "Wide Asian" double-width
+// character. This is set for some things, like most emoji, and not set for
+// other things, like cuneiform. Fucccccck. True display width is a *property
+// of the font*. Fuccccccccckkkkk. Among the longest Unicode codepoints is
+//
+//    U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM ﷽
+//
+// wcwidth() rather optimistically claims this suicide bomber of a glyph to
+// occupy a single column, right before it explodes in your diner. BiDi text
+// is too complicated for me to even get into here. It sucks ass. Be assured
+// there are no easy answers. Allah, the All-Powerful, has fucked us again!
+//
+// Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
+// for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
+// Dynamic requirements (the egcpool) can add up to 32MB to an ncplane, but
+// such large pools are unlikely in common use.
+//
+// We implement some small alpha compositing. Foreground and background both
+// have two bits of inverted alpha. The actual grapheme written to a cell is
+// the topmost non-zero grapheme. If its alpha is 00, its foreground color is
+// used unchanged. If its alpha is 10, its foreground color is derived entirely
+// from cells underneath it. Otherwise, the result will be a composite.
+// Likewise for the background. If the bottom of a coordinate's zbuffer is
+// reached with a cumulative alpha of zero, the default is used. In this way,
+// a terminal configured with transparent background can be supported through
+// multiple occluding ncplanes. A foreground alpha of 11 requests high-contrast
+// text (relative to the computed background). A background alpha of 11 is
+// currently forbidden.
+//
+// Default color takes precedence over palette or RGB, and cannot be used with
+// transparency. Indexed palette takes precedence over RGB. It cannot
+// meaningfully set transparency, but it can be mixed into a cascading color.
+// RGB is used if neither default terminal colors nor palette indexing are in
+// play, and fully supports all transparency options.
+typedef struct cell {
+  // These 32 bits are either a single-byte, single-character grapheme cluster
+  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
+  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
+  uint32_t gcluster;          // 4B -> 4B
+  // NCSTYLE_* attributes (16 bits) + 8 foreground palette index bits + 8
+  // background palette index bits. palette index bits are used only if the
+  // corresponding default color bit *is not* set, and the corresponding
+  // palette index bit *is* set.
+  uint32_t attrword;          // + 4B -> 8B
+  // (channels & 0x8000000000000000ull): left half of wide character
+  // (channels & 0x4000000000000000ull): foreground is *not* "default color"
+  // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
+  // (channels & 0x0800000000000000ull): foreground uses palette index
+  // (channels & 0x0700000000000000ull): reserved, must be 0
+  // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
+  // (channels & 0x0000000080000000ull): right half of wide character
+  // (channels & 0x0000000040000000ull): background is *not* "default color"
+  // (channels & 0x0000000030000000ull): background alpha (2 bits)
+  // (channels & 0x0000000008000000ull): background uses palette index
+  // (channels & 0x0000000007000000ull): reserved, must be 0
+  // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
+  // At render time, these 24-bit values are quantized down to terminal
+  // capabilities, if necessary. There's a clear path to 10-bit support should
+  // we one day need it, but keep things cagey for now. "default color" is
+  // best explained by color(3NCURSES). ours is the same concept. until the
+  // "not default color" bit is set, any color you load will be ignored.
+  uint64_t channels;          // + 8B == 16B
+} cell;
+
+// These log levels consciously map cleanly to those of libav; notcurses itself
+// does not use this full granularity. The log level does not affect the opening
+// and closing banners, which can be disabled via the notcurses_option struct's
+// 'suppress_banner'. Note that if stderr is connected to the same terminal on
+// which we're rendering, any kind of logging will disrupt the output.
+typedef enum {
+  NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
+  NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
+  NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
+  NCLOGLEVEL_ERROR,   // we can't keep doin' this, but we can do other things
+  NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
+  NCLOGLEVEL_INFO,    // "standard information"
+  NCLOGLEVEL_VERBOSE, // "detailed information"
+  NCLOGLEVEL_DEBUG,   // this is honestly a bit much
+  NCLOGLEVEL_TRACE,   // there's probably a better way to do what you want
+} ncloglevel_e;
+
+// Configuration for notcurses_init().
+typedef struct notcurses_options {
+  // The name of the terminfo database entry describing this terminal. If NULL,
+  // the environment variable TERM is used. Failure to open the terminal
+  // definition will result in failure to initialize notcurses.
+  const char* termtype;
+  // If smcup/rmcup capabilities are indicated, notcurses defaults to making
+  // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
+  bool inhibit_alternate_screen;
+  // By default, we hide the cursor if possible. This flag inhibits use of
+  // the civis capability, retaining the cursor.
+  bool retain_cursor;
+  // Notcurses typically prints version info in notcurses_init() and performance
+  // info in notcurses_stop(). This inhibits that output.
+  bool suppress_banner;
+  // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
+  // restores the screen, and then calls the old signal handler. Set to inhibit
+  // registration of these signal handlers.
+  bool no_quit_sighandlers;
+  // We typically install a signal handler for SIGWINCH that generates a resize
+  // event in the notcurses_getc() queue. Set to inhibit this handler.
+  bool no_winch_sighandler;
+  // If non-NULL, notcurses_render() will write each rendered frame to this
+  // FILE* in addition to outfp. This is used primarily for debugging.
+  FILE* renderfp;
+  // Progressively higher log levels result in more logging to stderr. By
+  // default, nothing is printed to stderr once fullscreen service begins.
+  ncloglevel_e loglevel;
+  // Desirable margins. If all are 0 (default), we will render to the entirety
+  // of the screen. If the screen is too small, we do what we can--this is
+  // strictly best-effort. Absolute coordinates are relative to the rendering
+  // area ((0, 0) is always the origin of the rendering area).
+  int margin_t, margin_r, margin_b, margin_l;
+} notcurses_options;
+
+// Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
+// be a tty. You'll usually want stdout. Returns NULL on error, including any
+// failure initializing terminfo.
+API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
+
+// Destroy a notcurses context.
+API int notcurses_stop(struct notcurses* nc);
+
+// Make the physical screen match the virtual screen. Changes made to the
+// virtual screen (i.e. most other calls) will not be visible until after a
+// successful call to notcurses_render().
+API int notcurses_render(struct notcurses* nc);
+
+// Return the topmost ncplane, of which there is always at least one.
+API struct ncplane* notcurses_top(struct notcurses* n);
+
+// Destroy all ncplanes other than the stdplane.
+API void notcurses_drop_planes(struct notcurses* nc);
+
+// All input is currently taken from stdin, though this will likely change. We
+// attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
+// Extended Grapheme Cluster. It is also possible that we will read a special
+// keypress, i.e. anything that doesn't correspond to a Unicode codepoint (e.g.
+// arrow keys, function keys, screen resize events, etc.). These are mapped
+// into Unicode's Supplementary Private Use Area-B, starting at U+100000.
+//
+// notcurses_getc() and notcurses_getc_nblock() are both nonblocking.
+// notcurses_getc_blocking() blocks until a codepoint or special key is read,
+// or until interrupted by a signal.
+//
+// In the case of a valid read, a 32-bit Unicode codepoint is returned. 0 is
+// returned to indicate that no input was available, but only by
+// notcurses_getc(). Otherwise (including on EOF) (char32_t)-1 is returned.
+
+// Is this char32_t a Supplementary Private Use Area-B codepoint?
+static inline bool
+nckey_supppuab_p(char32_t w){
+  return w >= 0x100000 && w <= 0x10fffd;
+}
+
+// Is the event a synthesized mouse event?
+static inline bool
+nckey_mouse_p(char32_t r){
+  return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
+}
+
+// An input event. Cell coordinates are currently defined only for mouse events.
+typedef struct ncinput {
+  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
+  int y;           // y cell coordinate of event, -1 for undefined
+  int x;           // x cell coordinate of event, -1 for undefined
+  bool alt;        // was alt held?
+  bool shift;      // was shift held?
+  bool ctrl;       // was ctrl held?
+  uint64_t seqnum; // input event number
+} ncinput;
+
+// See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
+// of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
+// Signals in sigmask (less several we handle internally) will be atomically
+// masked and unmasked per ppoll(2). It should generally contain all signals.
+// Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
+// be NULL. Returns 0 on a timeout. If an event is processed, the return value
+// is the 'id' field from that event. 'ni' may be NULL.
+API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
+                            sigset_t* sigmask, ncinput* ni);
+
+// 'ni' may be NULL if the caller is uninterested in event details. If no event
+// is ready, returns 0.
+static inline char32_t
+notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
+  sigset_t sigmask;
+  sigfillset(&sigmask);
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+  return notcurses_getc(n, &ts, &sigmask, ni);
+}
+
+// 'ni' may be NULL if the caller is uninterested in event details. Blocks
+// until an event is processed or a signal is received.
+static inline char32_t
+notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
+  sigset_t sigmask;
+  sigemptyset(&sigmask);
+  return notcurses_getc(n, NULL, &sigmask, ni);
+}
+
+// Enable the mouse in "button-event tracking" mode with focus detection and
+// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
+// is returned, and mouse events will be published to notcurses_getc().
+API int notcurses_mouse_enable(struct notcurses* n);
+
+// Disable mouse events. Any events in the input queue can still be delivered.
+API int notcurses_mouse_disable(struct notcurses* n);
+
+// Refresh our idea of the terminal's dimensions, reshaping the standard plane
+// if necessary, without a fresh render. References to ncplanes (and the
+// egcpools underlying cells) remain valid following a resize operation.
+API int notcurses_resize(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
+
+// Refresh the physical screen to match what was last rendered (i.e., without
+// reflecting any changes since the last call to notcurses_render()). This is
+// primarily useful if the screen is externally corrupted.
+API int notcurses_refresh(struct notcurses* n);
+
+// Return the dimensions of this ncplane.
+API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+
+// Get a reference to the standard plane (one matching our current idea of the
+// terminal size) for this terminal. The standard plane always exists, and its
+// origin is always at the uppermost, leftmost cell of the terminal.
+API struct ncplane* notcurses_stdplane(struct notcurses* nc);
+API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+
+// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
+static inline struct ncplane*
+notcurses_stddim_yx(struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
+  struct ncplane* s = notcurses_stdplane(nc); // can't fail
+  ncplane_dim_yx(s, y, x); // accepts NULL
+  return s;
+}
+
+static inline int
+ncplane_dim_y(const struct ncplane* n){
+  int dimy;
+  ncplane_dim_yx(n, &dimy, NULL);
+  return dimy;
+}
+
+static inline int
+ncplane_dim_x(const struct ncplane* n){
+  int dimx;
+  ncplane_dim_yx(n, NULL, &dimx);
+  return dimx;
+}
+
+// Return our current idea of the terminal dimensions in rows and cols.
+static inline void
+notcurses_term_dim_yx(struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
+  ncplane_dim_yx(notcurses_stdplane(n), rows, cols);
+}
+
+// Retrieve the contents of the specified cell as last rendered. The EGC is
+// returned, or NULL on error. This EGC must be free()d by the caller. The
+// attrword and channels are written to 'attrword' and 'channels', respectively.
+API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
+                          uint32_t* attrword, uint64_t* channels);
+
+// Alignment within the ncplane. Left/right-justified, or centered.
+typedef enum {
+  NCALIGN_LEFT,
+  NCALIGN_CENTER,
+  NCALIGN_RIGHT,
+} ncalign_e;
+
+// Create a new ncplane at the specified offset (relative to the standard plane)
+// and the specified size. The number of rows and columns must both be positive.
+// This plane is initially at the top of the z-buffer, as if ncplane_move_top()
+// had been called on it. The void* 'opaque' can be retrieved (and reset) later.
+API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
+                                int yoff, int xoff, void* opaque);
+
+API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
+                                    int yoff, ncalign_e align, void* opaque);
+
+// Create a plane bound to plane 'n'. Being bound to 'n' means that 'yoff' and
+// 'xoff' are interpreted relative to that plane's origin, and that if that
+// plane is moved later, this new plane is moved by the same amount.
+API struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols,
+                                  int yoff, int xoff, void* opaque);
+
+// Plane 'n' will be unbound from its parent plane, if it is currently bound,
+// and will be made a bound child of 'newparent', if 'newparent' is not NULL.
+API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
+
+// Duplicate an existing ncplane. The new plane will have the same geometry,
+// will duplicate all content, and will start with the same rendering state.
+// The new plane will be immediately above the old one on the z axis.
+API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
+
+// provided a coordinate relative to the origin of 'src', map it to the same
+// absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
+// and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
+API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
+                           int* RESTRICT y, int* RESTRICT x);
+
+// Fed absolute 'y'/'x' coordinates, determine whether that coordinate is
+// within the ncplane 'n'. If not, return false. If so, return true. Either
+// way, translate the absolute coordinates relative to 'n'. If the point is not
+// within 'n', these coordinates will not be within the dimensions of the plane.
+API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+
+// All planes are created with scrolling disabled. Scrolling can be dynamically
+// controlled with ncplane_set_scrolling(). Returns true if scrolling was
+// previously enabled, or false if it was disabled.
+API bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
+
+// Capabilities
+
+// Returns a 16-bit bitmask of supported curses-style attributes
+// (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
+// indicated as supported if the terminal can support it together with color.
+// For more information, see the "ncv" capability in terminfo(5).
+API unsigned notcurses_supported_styles(const struct notcurses* nc);
+
+// Returns the number of simultaneous colors claimed to be supported, or 1 if
+// there is no color support. Note that several terminal emulators advertise
+// more colors than they actually support, downsampling internally.
+API int notcurses_palette_size(const struct notcurses* nc);
+
+// Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
+API bool notcurses_canfade(const struct notcurses* nc);
+
+// Can we set the "hardware" palette? Requires the "ccc" terminfo capability.
+API bool notcurses_canchangecolor(const struct notcurses* nc);
+
+// Can we load images/videos? This requires being built against FFmpeg.
+API bool notcurses_canopen(const struct notcurses* nc);
+
+typedef struct ncstats {
+  // purely increasing stats
+  uint64_t renders;          // number of successful notcurses_render() runs
+  uint64_t failed_renders;   // number of aborted renders, should be 0
+  uint64_t render_bytes;     // bytes emitted to ttyfp
+  int64_t render_max_bytes;  // max bytes emitted for a frame
+  int64_t render_min_bytes;  // min bytes emitted for a frame
+  uint64_t render_ns;        // nanoseconds spent in notcurses_render()
+  int64_t render_max_ns;     // max ns spent in notcurses_render()
+  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
+  uint64_t cellelisions;     // cells we elided entirely thanks to damage maps
+  uint64_t cellemissions;    // cells we emitted due to inferred damage
+  uint64_t fgelisions;       // RGB fg elision count
+  uint64_t fgemissions;      // RGB fg emissions
+  uint64_t bgelisions;       // RGB bg elision count
+  uint64_t bgemissions;      // RGB bg emissions
+  uint64_t defaultelisions;  // default color was emitted
+  uint64_t defaultemissions; // default color was elided
+
+  // current state -- these can decrease
+  uint64_t fbbytes;          // total bytes devoted to all active framebuffers
+  unsigned planes;           // number of planes currently in existence
+} ncstats;
+
+// Acquire an atomic snapshot of the notcurses object's stats.
+API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
+
+// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
+API void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
+
+// Resize the specified ncplane. The four parameters 'keepy', 'keepx',
+// 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
+// unchanged. This may be a section of size 0, though none of these four
+// parameters may be negative. 'keepx' and 'keepy' are relative to the ncplane.
+// They must specify a coordinate within the ncplane's totality. 'yoff' and
+// 'xoff' are relative to 'keepy' and 'keepx', and place the upper-left corner
+// of the resized ncplane. Finally, 'ylen' and 'xlen' are the dimensions of the
+// ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
+// and 'xlen' must be greater than or equal to 'keeplenx'. It is an error to
+// attempt to resize the standard plane. If either of 'keepleny' or 'keeplenx'
+// is non-zero, both must be non-zero.
+//
+// Essentially, the kept material does not move. It serves to anchor the
+// resized plane. If there is no kept material, the plane can move freely.
+API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
+                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
+
+// Resize the plane, retaining what data we can (everything, unless we're
+// shrinking in some dimension). Keep the origin where it is.
+static inline int
+ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
+  int oldy, oldx;
+  ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
+  int keepleny = oldy > ylen ? ylen : oldy;
+  int keeplenx = oldx > xlen ? xlen : oldx;
+  return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
+}
+
+// Destroy the specified ncplane. None of its contents will be visible after
+// the next call to notcurses_render(). It is an error to attempt to destroy
+// the standard plane.
+API int ncplane_destroy(struct ncplane* ncp);
+
+// Set the ncplane's base cell to this cell. It will be used for purposes of
+// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
+// does not reset the base cell; this function must be called with a zero 'c'.
+API int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
+
+// Set the ncplane's base cell to this cell. It will be used for purposes of
+// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
+// does not reset the base cell; this function must be called with an empty
+// 'egc'. 'egc' must be a single extended grapheme cluster.
+API int ncplane_set_base(struct ncplane* ncp, uint64_t channels,
+                         uint32_t attrword, const char* egc);
+
+// Extract the ncplane's base cell into 'c'. The reference is invalidated if
+// 'ncp' is destroyed.
+API int ncplane_base(struct ncplane* ncp, cell* c);
+
+// Move this plane relative to the standard plane. It is an error to attempt to
+// move the standard plane.
+API int ncplane_move_yx(struct ncplane* n, int y, int x);
+
+// Get the origin of this plane relative to the standard plane.
+API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
+API int ncplane_move_top(struct ncplane* n);
+API int ncplane_move_bottom(struct ncplane* n);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
+API int ncplane_move_above_unsafe(struct ncplane* RESTRICT n,
+                                  struct ncplane* RESTRICT above);
+
+static inline int
+ncplane_move_above(struct ncplane* n, struct ncplane* above){
+  if(n == above){
+    return -1;
+  }
+  return ncplane_move_above_unsafe(n, above);
+}
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+API int ncplane_move_below_unsafe(struct ncplane* RESTRICT n,
+                                  struct ncplane* RESTRICT below);
+
+static inline int
+ncplane_move_below(struct ncplane* n, struct ncplane* below){
+  if(n == below){
+    return -1;
+  }
+  return ncplane_move_below_unsafe(n, below);
+}
+
+// Return the plane below this one, or NULL if this is at the bottom.
+API struct ncplane* ncplane_below(struct ncplane* n);
+
+// Rotate the plane pi/2 radians clockwise or counterclockwise. Note that
+// rotation only applies to geometry and color. Most glyphs cannot be rotated.
+// The resulting plane is thus populated only by null glyphs, spaces, full
+// blocks, and partial blocks.
+API int ncplane_rotate_cw(struct ncplane* n);
+API int ncplane_rotate_ccw(struct ncplane* n);
+
+// Retrieve the cell at the cursor location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+API int ncplane_at_cursor(struct ncplane* n, cell* c);
+
+// Retrieve the cell at the specified location on the specified plane, returning
+// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
+// Returns the length of the EGC in bytes.
+API int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
+
+// Manipulate the opaque user pointer associated with this plane.
+// ncplane_set_userptr() returns the previous userptr after replacing
+// it with 'opaque'. the others simply return the userptr.
+API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
+API void* ncplane_userptr(struct ncplane* n);
+
+// Return the column at which 'c' cols ought start in order to be aligned
+// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
+// Undefined behavior on negative 'c'.
+static inline int
+ncplane_align(const struct ncplane* n, ncalign_e align, int c){
+  if(align == NCALIGN_LEFT){
+    return 0;
+  }
+  int cols = ncplane_dim_x(n);
+  if(align == NCALIGN_CENTER){
+    return (cols - c) / 2;
+  }else if(align == NCALIGN_RIGHT){
+    return cols - c;
+  }
+  return INT_MAX;
+}
+
+// Move the cursor to the specified position (the cursor needn't be visible).
+// Returns -1 on error, including negative parameters, or ones exceeding the
+// plane's dimensions.
+API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
+
+// Get the current position of the cursor within n. y and/or x may be NULL.
+API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+
+// Get the current channels or attribute word for ncplane 'n'.
+API uint64_t ncplane_channels(const struct ncplane* n);
+API uint32_t ncplane_attr(const struct ncplane* n);
+
+// Working with cells
+
+#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
+
+static inline void
+cell_init(cell* c){
+  memset(c, 0, sizeof(*c));
+}
+
+// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
+// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
+// of the cell is left untouched, but any resources are released.
+API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+
+// cell_load(), plus blast the styling with 'attr' and 'channels'.
+static inline int
+cell_prime(struct ncplane* n, cell* c, const char* gcluster,
+           uint32_t attr, uint64_t channels){
+  c->attrword = attr;
+  c->channels = channels;
+  int ret = cell_load(n, c, gcluster);
+  return ret;
+}
+
+// Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
+// benefit of unit tests.
+API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
+
+// Release resources held by the cell 'c'.
+API void cell_release(struct ncplane* n, cell* c);
+
+#define NCSTYLE_MASK      0xffff0000ul
+#define NCSTYLE_STANDOUT  0x00800000ul
+#define NCSTYLE_UNDERLINE 0x00400000ul
+#define NCSTYLE_REVERSE   0x00200000ul
+#define NCSTYLE_BLINK     0x00100000ul
+#define NCSTYLE_DIM       0x00080000ul
+#define NCSTYLE_BOLD      0x00040000ul
+#define NCSTYLE_INVIS     0x00020000ul
+#define NCSTYLE_PROTECT   0x00010000ul
+#define NCSTYLE_ITALIC    0x01000000ul
+
+// Set the specified style bits for the cell 'c', whether they're actively
+// supported or not.
+static inline void
+cell_styles_set(cell* c, unsigned stylebits){
+  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
+}
+
+// Extract the style bits from the cell's attrword.
+static inline unsigned
+cell_styles(const cell* c){
+  return c->attrword & NCSTYLE_MASK;
+}
+
+// Add the specified styles (in the LSBs) to the cell's existing spec, whether
+// they're actively supported or not.
+static inline void
+cell_styles_on(cell* c, unsigned stylebits){
+  c->attrword |= (stylebits & NCSTYLE_MASK);
+}
+
+// Remove the specified styles (in the LSBs) from the cell's existing spec.
+static inline void
+cell_styles_off(cell* c, unsigned stylebits){
+  c->attrword &= ~(stylebits & NCSTYLE_MASK);
+}
+
+// Use the default color for the foreground.
+static inline void
+cell_set_fg_default(cell* c){
+  channels_set_fg_default(&c->channels);
+}
+
+// Use the default color for the background.
+static inline void
+cell_set_bg_default(cell* c){
+  channels_set_bg_default(&c->channels);
+}
+
+static inline int
+cell_set_fg_alpha(cell* c, int alpha){
+  return channels_set_fg_alpha(&c->channels, alpha);
+}
+
+static inline int
+cell_set_bg_alpha(cell* c, int alpha){
+  return channels_set_bg_alpha(&c->channels, alpha);
+}
+
+// Does the cell contain an East Asian Wide codepoint?
+static inline bool
+cell_double_wide_p(const cell* c){
+  return (c->channels & CELL_WIDEASIAN_MASK);
+}
+
+// Is this the right half of a wide character?
+static inline bool
+cell_wide_right_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster == 0;
+}
+
+// Is this the left half of a wide character?
+static inline bool
+cell_wide_left_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster;
+}
+
+// Is the cell simple (a lone ASCII character, encoded as such)?
+static inline bool
+cell_simple_p(const cell* c){
+  return c->gcluster < 0x80;
+}
+
+// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
+// is invalidated by any further operation on the plane 'n', so...watch out!
+API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+
+// Returns true if the two cells are distinct EGCs, attributes, or channels.
+// The actual egcpool index needn't be the same--indeed, the planes needn't even
+// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
+// it would probably be better to test whether they're Unicode-equal FIXME.
+static inline bool
+cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
+        const struct ncplane* n2, const cell* RESTRICT c2){
+  if(c1->attrword != c2->attrword){
+    return true;
+  }
+  if(c1->channels != c2->channels){
+    return true;
+  }
+  if(cell_simple_p(c1) && cell_simple_p(c2)){
+    return c1->gcluster != c2->gcluster;
+  }
+  if(cell_simple_p(c1) || cell_simple_p(c2)){
+    return true;
+  }
+  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
+}
+
+// True if the cell does not generate foreground pixels (i.e., the cell is
+// entirely whitespace or special characters).
+// FIXME do this at cell prep time and set a bit in the channels
+static inline bool
+cell_noforeground_p(const cell* c){
+  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
+}
+
+static inline int
+cell_load_simple(struct ncplane* n, cell* c, char ch){
+  cell_release(n, c);
+  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->gcluster = ch;
+  if(cell_simple_p(c)){
+    return 1;
+  }
+  return -1;
+}
+
+// get the offset into the egcpool for this cell's EGC. returns meaningless and
+// unsafe results if called on a simple cell.
+static inline uint32_t
+cell_egc_idx(const cell* c){
+  return c->gcluster - 0x80;
+}
+
+// Replace the cell at the specified coordinates with the provided cell 'c',
+// and advance the cursor by the width of the cell (but not past the end of the
+// plane). On success, returns the number of columns the cursor was advanced.
+// On failure, -1 is returned.
+API int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
+
+// Call ncplane_putc_yx() for the current cursor location.
+static inline int
+ncplane_putc(struct ncplane* n, const cell* c){
+  return ncplane_putc_yx(n, -1, -1, c);
+}
+
+// Replace the EGC underneath us, but retain the styling. The current styling
+// of the plane will not be changed.
+//
+// Replace the cell at the specified coordinates with the provided 7-bit char
+// 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
+// This works whether the underlying char is signed or unsigned.
+static inline int
+ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
+  cell ce = CELL_INITIALIZER((uint32_t)c, ncplane_attr(n), ncplane_channels(n));
+  if(!cell_simple_p(&ce)){
+    return -1;
+  }
+  return ncplane_putc_yx(n, y, x, &ce);
+}
+
+// Call ncplane_putsimple_yx() at the current cursor location.
+static inline int
+ncplane_putsimple(struct ncplane* n, char c){
+  return ncplane_putsimple_yx(n, -1, -1, c);
+}
+
+// Replace the EGC underneath us, but retain the styling. The current styling
+// of the plane will not be changed.
+API int ncplane_putsimple_stainable(struct ncplane* n, char c);
+
+// Replace the cell at the specified coordinates with the provided EGC, and
+// advance the cursor by the width of the cluster (but not past the end of the
+// plane). On success, returns the number of columns the cursor was advanced.
+// On failure, -1 is returned. The number of bytes converted from gclust is
+// written to 'sbytes' if non-NULL.
+API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
+
+// Call ncplane_putegc() at the current cursor location.
+static inline int
+ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
+  return ncplane_putegc_yx(n, -1, -1, gclust, sbytes);
+}
+
+// Replace the EGC underneath us, but retain the styling. The current styling
+// of the plane will not be changed.
+API int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
+
+// 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes...but we aren't
+// yet actively guarding against higher values getting into wcstombs FIXME
+#define WCHAR_MAX_UTF8BYTES 6
+
+// ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
+static inline int
+ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
+  // maximum of six UTF8-encoded bytes per wchar_t
+  const size_t mbytes = (wcslen(gclust) * WCHAR_MAX_UTF8BYTES) + 1;
+  char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
+  if(mbstr == NULL){
+    return -1;
+  }
+  size_t s = wcstombs(mbstr, gclust, mbytes);
+  if(s == (size_t)-1){
+    free(mbstr);
+    return -1;
+  }
+  int ret = ncplane_putegc(n, mbstr, sbytes);
+  free(mbstr);
+  return ret;
+}
+
+// Call ncplane_putwegc() after successfully moving to y, x.
+static inline int
+ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
+                   int* sbytes){
+  if(ncplane_cursor_move_yx(n, y, x)){
+    return -1;
+  }
+  return ncplane_putwegc(n, gclust, sbytes);
+}
+
+// Replace the EGC underneath us, but retain the styling. The current styling
+// of the plane will not be changed.
+API int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
+
+// Write a series of EGCs to the current location, using the current style.
+// They will be interpreted as a series of columns (according to the definition
+// of ncplane_putc()). Advances the cursor by some positive number of cells
+// (though not beyond the end of the plane); this number is returned on success.
+// On error, a non-positive number is returned, indicating the number of cells
+// which were written before the error.
+static inline int
+ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
+  int ret = 0;
+  // FIXME speed up this blissfully naive solution
+  while(*gclusters){
+    int wcs;
+    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
+    if(cols < 0){
+      return -ret; // return -ret in case of error
+    }
+    if(wcs == 0){
+      break;
+    }
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
+    gclusters += wcs;
+    ret += wcs;
+  }
+  return ret;
+}
+
+static inline int
+ncplane_putstr(struct ncplane* n, const char* gclustarr){
+  return ncplane_putstr_yx(n, -1, -1, gclustarr);
+}
+
+API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                               const char* s);
+
+// ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
+static inline int
+ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
+  // maximum of six UTF8-encoded bytes per wchar_t
+  const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
+  char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
+  if(mbstr == NULL){
+    return -1;
+  }
+  size_t s = wcstombs(mbstr, gclustarr, mbytes);
+  if(s == (size_t)-1){
+    free(mbstr);
+    return -1;
+  }
+  int ret = ncplane_putstr_yx(n, y, x, mbstr);
+  free(mbstr);
+  return ret;
+}
+
+static inline int
+ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                        const wchar_t* gclustarr){
+  int width = wcswidth(gclustarr, INT_MAX);
+  int xpos = ncplane_align(n, align, width);
+  return ncplane_putwstr_yx(n, y, xpos, gclustarr);
+}
+
+static inline int
+ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
+  return ncplane_putwstr_yx(n, -1, -1, gclustarr);
+}
+
+// Replace the cell at the specified coordinates with the provided wide char
+// 'w'. Advance the cursor by the character's width as reported by wcwidth().
+// On success, returns 1. On failure, returns -1.
+static inline int
+ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
+  wchar_t warr[2] = { w, L'\0' };
+  return ncplane_putwstr_yx(n, y, x, warr);
+}
+
+// Call ncplane_putwc() at the current cursor position.
+static inline int
+ncplane_putwc(struct ncplane* n, wchar_t w){
+  return ncplane_putwc_yx(n, -1, -1, w);
+}
+
+// The ncplane equivalents of printf(3) and vprintf(3).
+API int ncplane_vprintf_aligned(struct ncplane* n, int y, ncalign_e align,
+                                const char* format, va_list ap);
+
+API int ncplane_vprintf_yx(struct ncplane* n, int y, int x,
+                           const char* format, va_list ap);
+
+static inline int
+ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
+  return ncplane_vprintf_yx(n, -1, -1, format, ap);
+}
+
+static inline int
+ncplane_printf(struct ncplane* n, const char* format, ...)
+  __attribute__ ((format (printf, 2, 3)));
+
+static inline int
+ncplane_printf(struct ncplane* n, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf(n, format, va);
+  va_end(va);
+  return ret;
+}
+
+static inline int
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
+static inline int
+ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf_yx(n, y, x, format, va);
+  va_end(va);
+  return ret;
+}
+
+static inline int
+ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
+                       const char* format, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
+static inline int
+ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf_aligned(n, y, align, format, va);
+  va_end(va);
+  return ret;
+}
+
+// Draw horizontal or vertical lines using the specified cell, starting at the
+// current cursor position. The cursor will end at the cell following the last
+// cell output (even, perhaps counter-intuitively, when drawing vertical
+// lines), just as if ncplane_putc() was called at that spot. Return the
+// number of cells drawn on success. On error, return the negative number of
+// cells drawn.
+API int ncplane_hline_interp(struct ncplane* n, const cell* c, int len,
+                             uint64_t c1, uint64_t c2);
+
+static inline int
+ncplane_hline(struct ncplane* n, const cell* c, int len){
+  return ncplane_hline_interp(n, c, len, c->channels, c->channels);
+}
+
+API int ncplane_vline_interp(struct ncplane* n, const cell* c, int len,
+                             uint64_t c1, uint64_t c2);
+
+static inline int
+ncplane_vline(struct ncplane* n, const cell* c, int len){
+  return ncplane_vline_interp(n, c, len, c->channels, c->channels);
+}
+
+#define NCBOXMASK_TOP    0x0001
+#define NCBOXMASK_RIGHT  0x0002
+#define NCBOXMASK_BOTTOM 0x0004
+#define NCBOXMASK_LEFT   0x0008
+#define NCBOXGRAD_TOP    0x0010
+#define NCBOXGRAD_RIGHT  0x0020
+#define NCBOXGRAD_BOTTOM 0x0040
+#define NCBOXGRAD_LEFT   0x0080
+#define NCBOXCORNER_MASK 0x0300
+#define NCBOXCORNER_SHIFT 8u
+
+// Draw a box with its upper-left corner at the current cursor position, and its
+// lower-right corner at 'ystop'x'xstop'. The 6 cells provided are used to draw the
+// upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
+// 'ctlword' is defined in the least significant byte, where bits [7, 4] are a
+// gradient mask, and [3, 0] are a border mask:
+//  * 7, 3: top
+//  * 6, 2: right
+//  * 5, 1: bottom
+//  * 4, 0: left
+// If the gradient bit is not set, the styling from the hl/vl cells is used for
+// the horizontal and vertical lines, respectively. If the gradient bit is set,
+// the color is linearly interpolated between the two relevant corner cells.
+//
+// By default, vertexes are drawn whether their connecting edges are drawn or
+// not. The value of the bits corresponding to NCBOXCORNER_MASK control this,
+// and are interpreted as the number of connecting edges necessary to draw a
+// given corner. At 0 (the default), corners are always drawn. At 3, corners
+// are never drawn (as at most 2 edges can touch a box's corner).
+API int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
+                    const cell* ll, const cell* lr, const cell* hline,
+                    const cell* vline, int ystop, int xstop,
+                    unsigned ctlword);
+
+// Draw a box with its upper-left corner at the current cursor position, having
+// dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
+// minimum box size is 2x2, and it cannot be drawn off-screen.
+static inline int
+ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
+                  const cell* ll, const cell* lr, const cell* hline,
+                  const cell* vline, int ylen, int xlen, unsigned ctlword){
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1,
+                     x + xlen - 1, ctlword);
+}
+
+static inline int
+ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
+                  const cell* ll, const cell* lr, const cell* hline,
+                  const cell* vline, unsigned ctlword){
+  if(ncplane_cursor_move_yx(n, 0, 0)){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  return ncplane_box_sized(n, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword);
+}
+
+// Starting at the specified coordinate, if it has no glyph, 'c' is copied into
+// it. We do the same to all cardinally-connected glyphless cells, filling in
+// everything behind a boundary. Returns the number of cells polyfilled. An
+// invalid initial y, x is an error. Returns the number of cells filled, or
+// -1 on error.
+API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
+
+// Draw a gradient with its upper-left corner at the current cursor position,
+// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'attrword' is
+// used for all cells. The channels specified by 'ul', 'ur', 'll', and 'lr'
+// are composed into foreground and background gradients. To do a vertical
+// gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
+// horizontal gradient, 'ul' ought equal 'll' and 'ur' ought equal 'ul'. To
+// color everything the same, all four channels should be equivalent. The
+// resulting alpha values are equal to incoming alpha values. Returns the
+// number of cells filled on success, or -1 on failure.
+//
+// Palette-indexed color is not supported.
+//
+// Preconditions for gradient operations (error otherwise):
+//
+//  all: only RGB colors, unless all four channels match as default
+//  all: all alpha values must be the same
+//  1x1: all four colors must be the same
+//  1xN: both top and both bottom colors must be the same (vertical gradient)
+//  Nx1: both left and both right colors must be the same (horizontal gradient)
+API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
+                         uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
+                         int ystop, int xstop);
+
+// Do a high-resolution gradient using upper blocks and synced backgrounds.
+// This doubles the number of vertical gradations, but restricts you to
+// half blocks (appearing to be full blocks). Returns the number of cells
+// filled on success, or -1 on error.
+API int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
+                             uint32_t ll, uint32_t lr, int ystop, int xstop);
+
+// Draw a gradient with its upper-left corner at the current cursor position,
+// having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
+static inline int
+ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
+                       uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
+                       int ylen, int xlen){
+  if(ylen < 1 || xlen < 1){
+    return -1;
+  }
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
+}
+
+static inline int
+ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur,
+                           uint64_t ll, uint64_t lr, int ylen, int xlen){
+  if(ylen < 1 || xlen < 1){
+    return -1;
+  }
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
+}
+
+// Set the given style throughout the specified region, keeping content and
+// channels unchanged. Returns the number of cells set, or -1 on failure.
+API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
+
+// Set the given channels throughout the specified region, keeping content and
+// attributes unchanged. Returns the number of cells set, or -1 on failure.
+API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
+                      uint64_t ur, uint64_t ll, uint64_t lr);
+
+// Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
+// defined as "write to 'dst' the frame that would be rendered were the entire
+// stack made up only of 'src' and, below it, 'dst', and 'dst' was the entire
+// rendering region." Merging is independent of the position of 'src' viz 'dst'
+// on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
+// changed, but it is not an error. The source plane still exists following
+// this operation. If 'dst' is NULL, it will be interpreted as the standard
+// plane. Do not supply the same plane for both 'src' and 'dst'.
+API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT dst);
+
+// Erase every cell in the ncplane, resetting all attributes to normal, all
+// colors to the default color, and all cells to undrawn. All cells associated
+// with this ncplane is invalidated, and must not be used after the call,
+// excluding the base cell.
+API void ncplane_erase(struct ncplane* n);
+
+#define NCPALETTESIZE 256
+
 // Returns the result of blending two channels. 'blends' indicates how heavily
 // 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
 // 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
@@ -1526,10 +1732,6 @@ cell_bg_palindex_p(const cell* cl){
   return channels_bg_palindex_p(cl->channels);
 }
 
-// Get the current channels or attribute word for ncplane 'n'.
-API uint64_t ncplane_channels(const struct ncplane* n);
-API uint32_t ncplane_attr(const struct ncplane* n);
-
 // Extract the 32-bit working background channel from an ncplane.
 static inline unsigned
 ncplane_bchannel(const struct ncplane* nc){
@@ -1644,174 +1846,6 @@ API int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fade
 // use involves preparing (but not rendering) an ncplane, then calling
 // ncplane_pulse(), which will fade in from black to the specified colors.
 API int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
-
-// Working with cells
-
-#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
-
-static inline void
-cell_init(cell* c){
-  memset(c, 0, sizeof(*c));
-}
-
-// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
-// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
-// of the cell is left untouched, but any resources are released.
-API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
-
-// cell_load(), plus blast the styling with 'attr' and 'channels'.
-static inline int
-cell_prime(struct ncplane* n, cell* c, const char* gcluster,
-           uint32_t attr, uint64_t channels){
-  c->attrword = attr;
-  c->channels = channels;
-  int ret = cell_load(n, c, gcluster);
-  return ret;
-}
-
-// Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
-// benefit of unit tests.
-API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
-
-// Release resources held by the cell 'c'.
-API void cell_release(struct ncplane* n, cell* c);
-
-#define NCSTYLE_MASK      0xffff0000ul
-#define NCSTYLE_STANDOUT  0x00800000ul
-#define NCSTYLE_UNDERLINE 0x00400000ul
-#define NCSTYLE_REVERSE   0x00200000ul
-#define NCSTYLE_BLINK     0x00100000ul
-#define NCSTYLE_DIM       0x00080000ul
-#define NCSTYLE_BOLD      0x00040000ul
-#define NCSTYLE_INVIS     0x00020000ul
-#define NCSTYLE_PROTECT   0x00010000ul
-#define NCSTYLE_ITALIC    0x01000000ul
-
-// Set the specified style bits for the cell 'c', whether they're actively
-// supported or not.
-static inline void
-cell_styles_set(cell* c, unsigned stylebits){
-  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
-}
-
-// Extract the style bits from the cell's attrword.
-static inline unsigned
-cell_styles(const cell* c){
-  return c->attrword & NCSTYLE_MASK;
-}
-
-// Add the specified styles (in the LSBs) to the cell's existing spec, whether
-// they're actively supported or not.
-static inline void
-cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= (stylebits & NCSTYLE_MASK);
-}
-
-// Remove the specified styles (in the LSBs) from the cell's existing spec.
-static inline void
-cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~(stylebits & NCSTYLE_MASK);
-}
-
-// Use the default color for the foreground.
-static inline void
-cell_set_fg_default(cell* c){
-  channels_set_fg_default(&c->channels);
-}
-
-// Use the default color for the background.
-static inline void
-cell_set_bg_default(cell* c){
-  channels_set_bg_default(&c->channels);
-}
-
-static inline int
-cell_set_fg_alpha(cell* c, int alpha){
-  return channels_set_fg_alpha(&c->channels, alpha);
-}
-
-static inline int
-cell_set_bg_alpha(cell* c, int alpha){
-  return channels_set_bg_alpha(&c->channels, alpha);
-}
-
-// Does the cell contain an East Asian Wide codepoint?
-static inline bool
-cell_double_wide_p(const cell* c){
-  return (c->channels & CELL_WIDEASIAN_MASK);
-}
-
-// Is this the right half of a wide character?
-static inline bool
-cell_wide_right_p(const cell* c){
-  return cell_double_wide_p(c) && c->gcluster == 0;
-}
-
-// Is this the left half of a wide character?
-static inline bool
-cell_wide_left_p(const cell* c){
-  return cell_double_wide_p(c) && c->gcluster;
-}
-
-// Is the cell simple (a lone ASCII character, encoded as such)?
-static inline bool
-cell_simple_p(const cell* c){
-  return c->gcluster < 0x80;
-}
-
-// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
-// is invalidated by any further operation on the plane 'n', so...watch out!
-API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
-
-// Returns true if the two cells are distinct EGCs, attributes, or channels.
-// The actual egcpool index needn't be the same--indeed, the planes needn't even
-// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
-// it would probably be better to test whether they're Unicode-equal FIXME.
-static inline bool
-cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
-        const struct ncplane* n2, const cell* RESTRICT c2){
-  if(c1->attrword != c2->attrword){
-    return true;
-  }
-  if(c1->channels != c2->channels){
-    return true;
-  }
-  if(cell_simple_p(c1) && cell_simple_p(c2)){
-    return c1->gcluster != c2->gcluster;
-  }
-  if(cell_simple_p(c1) || cell_simple_p(c2)){
-    return true;
-  }
-  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
-}
-
-// True if the cell does not generate foreground pixels (i.e., the cell is
-// entirely whitespace or special characters).
-// FIXME do this at cell prep time and set a bit in the channels
-static inline bool
-cell_noforeground_p(const cell* c){
-  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
-}
-
-static inline int
-cell_load_simple(struct ncplane* n, cell* c, char ch){
-  cell_release(n, c);
-  c->channels &= ~CELL_WIDEASIAN_MASK;
-  c->gcluster = ch;
-  if(cell_simple_p(c)){
-    return 1;
-  }
-  return -1;
-}
-
-// get the offset into the egcpool for this cell's EGC. returns meaningless and
-// unsafe results if called on a simple cell.
-static inline uint32_t
-cell_egc_idx(const cell* c){
-  return c->gcluster - 0x80;
-}
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might
@@ -2524,7 +2558,7 @@ typedef struct ncplot_options {
   // resolution, the independent variable would be the range [0..3600): 3600.
   // if rangex is 0, it is dynamically set to the number of columns.
   uint64_t rangex;
-  int64_t miny, maxy; // y axis min and max. for autodiscovery, set them equal.
+  uint64_t miny, maxy; // y axis min and max. for autodiscovery, set them equal.
   bool labelaxisd; // generate labels for the dependent axis
   bool exponentialy;  // is y-axis exponential? (not yet implemented)
   // independent variable is vertical rather than horizontal
@@ -2542,8 +2576,8 @@ API struct ncplane* ncplot_plane(struct ncplot* n);
 // x window, the x window is advanced to include x, and values passing beyond
 // the window are lost. The first call will place the initial window. The plot
 // will be redrawn, but notcurses_render() is not called.
-API int ncplot_add_sample(struct ncplot* n, uint64_t x, int64_t y);
-API int ncplot_set_sample(struct ncplot* n, uint64_t x, int64_t y);
+API int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);
+API int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
 
 API void ncplot_destroy(struct ncplot* n);
 
