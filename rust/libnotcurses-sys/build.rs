@@ -6,7 +6,7 @@ use std::path::PathBuf;
 // largely taken from https://rust-lang.github.io/rust-bindgen/tutorial-3.html
 fn main() {
     pkg_config::Config::new()
-        .atleast_version("1.2.5")
+        .atleast_version("1.2.6")
         .probe("notcurses")
         .unwrap();
 

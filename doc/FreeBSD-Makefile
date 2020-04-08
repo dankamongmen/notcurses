@@ -1,7 +1,7 @@
 # $FreeBSD$
 
 PORTNAME=notcurses
-DISTVERSION=1.2.5
+DISTVERSION=1.2.6
 CATEGORIES=graphics
 MASTER_SITES=https://nick-black.com/dankwiki/index.php/Notcurses
 
