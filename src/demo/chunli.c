@@ -17,7 +17,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
   timespec_div(&demodelay, 10, &iterdelay);
   for(int i = 0 ; i < count ; ++i){
     int averr;
-    notcurses_resize(nc, &dimy, &dimx);
+    notcurses_refresh(nc, &dimy, &dimx);
     snprintf(file, sizeof(file), "chunli%d.%s", i + 1, ext);
     chuns[i].path = find_data(file);
     chuns[i].ncv = ncvisual_open_plane(nc, chuns[i].path, &averr, 0, 0, NCSCALE_NONE);
@@ -54,7 +54,7 @@ int chunli_demo(struct notcurses* nc){
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
   int averr, dimx, dimy;
-  notcurses_resize(nc, &dimy, &dimx);
+  notcurses_refresh(nc, &dimy, &dimx);
   cell b = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);

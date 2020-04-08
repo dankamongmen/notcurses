@@ -364,7 +364,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
       case NCKEY_UP: ncreel_prev(pr); break;
       case NCKEY_DOWN: ncreel_next(pr); break;
       case NCKEY_DEL: kill_active_tablet(pr, &tctxs); break;
-      case NCKEY_RESIZE: notcurses_resize(nc, &dimy, NULL); break;
+      case NCKEY_RESIZE: notcurses_render(nc); break;
       default: ncplane_printf_yx(w, 3, 2, "Unknown keycode (0x%x)\n", rw); break;
     }
     if(newtablet){
@@ -376,6 +376,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     if(timespec_subtract_ns(&cur, &deadline) >= 0){
       break;
     }
+    dimy = ncplane_dim_y(w);
   }while(!aborted);
   while(tctxs){
     kill_tablet(&tctxs);

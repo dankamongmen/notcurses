@@ -620,6 +620,12 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
   return ulen;
 }
 
+int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
+                            int keepleny, int keeplenx, int yoff, int xoff,
+                            int ylen, int xlen);
+
+int update_term_dimensions(int fd, int* rows, int* cols);
+
 #ifdef __cplusplus
 }
 #endif

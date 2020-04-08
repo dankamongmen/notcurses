@@ -4,6 +4,47 @@
 #include <sys/poll.h>
 #include "internal.h"
 
+// Check whether the terminal geometry has changed, and if so, copies what can
+// be copied from the old stdscr. Assumes that the screen is always anchored in
+// the same place.
+int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
+  int r, c;
+  if(rows == NULL){
+    rows = &r;
+  }
+  if(cols == NULL){
+    cols = &c;
+  }
+  int oldrows = n->stdscr->leny;
+  int oldcols = n->stdscr->lenx;
+  if(update_term_dimensions(n->ttyfd, rows, cols)){
+    return -1;
+  }
+  *rows -= n->margin_t + n->margin_b;
+  if(*rows <= 0){
+    *rows = 1;
+  }
+  *cols -= n->margin_l + n->margin_r;
+  if(*cols <= 0){
+    *cols = 1;
+  }
+  if(*rows == oldrows && *cols == oldcols){
+    return 0; // no change
+  }
+  int keepy = *rows;
+  if(keepy > oldrows){
+    keepy = oldrows;
+  }
+  int keepx = *cols;
+  if(keepx > oldcols){
+    keepx = oldcols;
+  }
+  if(ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
+    return -1;
+  }
+  return 0;
+}
+
 static int
 blocking_write(int fd, const char* buf, size_t buflen){
 //fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
@@ -998,8 +1039,13 @@ home_cursor(notcurses* nc, bool flush){
   return -1;
 }
 
-int notcurses_refresh(notcurses* nc){
-  // FIXME need reflow in the event we've been resized
+int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
+  if(notcurses_resize(nc, dimy, dimx)){
+    return -1;
+  }
+  if(nc->lfdimx == 0 || nc->lfdimy == 0){
+    return 0;
+  }
   if(home_cursor(nc, true)){
     return -1;
   }
@@ -1024,6 +1070,8 @@ int notcurses_render(notcurses* nc){
   struct timespec start, done;
   int ret;
   clock_gettime(CLOCK_MONOTONIC, &start);
+  int dimy, dimx;
+  notcurses_resize(nc, &dimy, &dimx);
   int bytes = -1;
   const size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
@@ -1032,8 +1080,6 @@ int notcurses_render(notcurses* nc){
     bytes = notcurses_rasterize(nc, crender);
   }
   free(crender);
-  int dimy, dimx;
-  notcurses_resize(nc, &dimy, &dimx);
   clock_gettime(CLOCK_MONOTONIC, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
   ret = bytes >= 0 ? 0 : -1;

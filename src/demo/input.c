@@ -111,7 +111,7 @@ ultramegaok_demo(void* vnc){
     }
     if(id == 'L' && ni.ctrl){
       lock_demo_render();
-      notcurses_refresh(nc);
+      notcurses_refresh(nc, NULL, NULL);
       unlock_demo_render();
       continue;
     }

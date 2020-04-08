@@ -216,8 +216,7 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry.
-static int
-update_term_dimensions(int fd, int* rows, int* cols){
+int update_term_dimensions(int fd, int* rows, int* cols){
   struct winsize ws;
   int i = ioctl(fd, TIOCGWINSZ, &ws);
   if(i < 0){
@@ -391,9 +390,8 @@ ncplane* ncplane_dup(ncplane* n, void* opaque){
 }
 
 // can be used on stdscr, unlike ncplane_resize() which prohibits it.
-static int
-ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
-                       int keeplenx, int yoff, int xoff, int ylen, int xlen){
+int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
+                            int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
 //fprintf(stderr, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
@@ -492,48 +490,6 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
   }
   return ncplane_resize_internal(n, keepy, keepx, keepleny, keeplenx,
                                  yoff, xoff, ylen, xlen);
-}
-
-// Call this when the screen size changes. Acquires the new size, and copies
-// what can be copied from the old stdscr. Assumes that the screen is always
-// anchored in the same place.
-int notcurses_resize(notcurses* n, int* rows, int* cols){
-  int r, c;
-  if(rows == NULL){
-    rows = &r;
-  }
-  if(cols == NULL){
-    cols = &c;
-  }
-  int oldrows = n->stdscr->leny;
-  int oldcols = n->stdscr->lenx;
-  if(update_term_dimensions(n->ttyfd, rows, cols)){
-    return -1;
-  }
-  // FIXME can we emerge from the previous call with rows/cols <= 0?
-  *rows -= n->margin_t + n->margin_b;
-  if(*rows <= 0){
-    *rows = 1;
-  }
-  *cols -= n->margin_l + n->margin_r;
-  if(*cols <= 0){
-    *cols = 1;
-  }
-  if(*rows == oldrows && *cols == oldcols){
-    return 0; // no change
-  }
-  int keepy = *rows;
-  if(keepy > oldrows){
-    keepy = oldrows;
-  }
-  int keepx = *cols;
-  if(keepx > oldcols){
-    keepx = oldcols;
-  }
-  if(ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
-    return -1;
-  }
-  return 0;
 }
 
 // find the pointer on the z-index referencing the specified plane. writing to

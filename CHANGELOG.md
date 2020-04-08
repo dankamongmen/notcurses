@@ -16,6 +16,11 @@ rearrangements of Notcurses.
     a `uint64_t` rather than `int64_t`, since negative samples do not
     currently make sense. Plots were made more accurate in general.
   * `notcurses_term_dim_yx()` now accepts a `const struct notcurses*`.
+  * `notcurses_resize()` is no longer exported. It was never necessary to call
+    this in response to a resize, despite confusing documentation that could
+    have been read to suggest otherwise. If you're in a long block on input, and
+    get an `NCKEY_RESIZE`, just call `notcurses_refresh()` (which now calls
+    `notcurses_resize()` internally, as `notcurses_render()` always has).
 
 * 1.2.5
   * Add ncplot, with support for sliding-windowed horizontal histograms.
