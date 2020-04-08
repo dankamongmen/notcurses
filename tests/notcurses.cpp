@@ -42,11 +42,11 @@ TEST_CASE("NotcursesBase") {
     }
   }
 
-  SUBCASE("ResizeSameSize") {
+  SUBCASE("RefreshSameSize") {
     int x, y;
     notcurses_term_dim_yx(nc_, &y, &x);
     int newx, newy;
-    CHECK(0 == notcurses_resize(nc_, &newy, &newx));
+    CHECK(0 == notcurses_refresh(nc_, &newy, &newx));
     CHECK(newx == x);
     CHECK(newy == y);
   }

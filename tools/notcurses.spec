@@ -11,7 +11,7 @@ BuildRequires: gnupg2 cmake make gcc-c++ ncurses-devel pandoc python3-devel
 %description
 notcurses facilitates the creation of modern TUI programs,
 making full use of Unicode and 24-bit direct color. It presents
-an API similar to that of Curses, and rides atop libtinfo.
+an API similar to that of Curses, and rides atop Terminfo.
 
 %prep
 %{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'

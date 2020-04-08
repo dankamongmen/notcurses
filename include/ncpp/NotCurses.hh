@@ -145,16 +145,6 @@ namespace ncpp
 			return notcurses_render (nc) == 0;
 		}
 
-		bool resize (int *rows, int *cols) const noexcept
-		{
-			return notcurses_resize (nc, rows, cols) == 0;
-		}
-
-		bool resize (int &rows, int &cols) const noexcept
-		{
-			return resize (&rows, &cols) == 0;
-		}
-
 		void get_term_dim (int *rows, int *cols) const noexcept
 		{
 			notcurses_term_dim_yx (nc, rows, cols);
@@ -165,9 +155,14 @@ namespace ncpp
 			get_term_dim (&rows, &cols);
 		}
 
-		bool refresh () const noexcept
+		bool refresh (int* rows, int* cols) const noexcept
 		{
-			return notcurses_refresh (nc) == 0;
+			return notcurses_refresh (nc, rows, cols) == 0;
+		}
+
+		bool refresh (int& rows, int& cols) const noexcept
+		{
+			return refresh (&rows, &cols) == 0;
 		}
 
 		int get_palette_size () const noexcept

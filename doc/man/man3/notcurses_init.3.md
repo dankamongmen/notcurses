@@ -92,8 +92,8 @@ a handler for this signal. The handler causes notcurses to update its idea of
 the terminal's size using **TIOCGWINSZ** (see **ioctl_tty(2)**), and generates an
 **NCKEY_RESIZE** input event (see **notcurses_input(3)**. This signal handler can be
 inhibited by setting **no_winch_sighandler** to **true**. If this is done, the
-caller should probably watch for the signal, and invoke **notcurses_resize()**
-upon its receipt.
+caller should probably watch for the signal, and invoke **notcurses_refresh(3)**
+or **notcurses_render(3)** upon its receipt.
 
 A resize event does not invalidate any references returned earlier by
 notcurses. The content of any new screen area is undefined until the next call
@@ -109,7 +109,7 @@ Thus, in the absence of **no_winch_sighandler**, **SIGWINCH** results in:
 * a **TIOCGWINSZ** **ioctl** to retrieve the new screen size
 * queuing of a **NCKEY_RESIZE** input event (if there is space in the queue)
 
-Upon the next call to **notcurses_render(3)** or **notcurses_resize(3)**, the
+Upon the next call to **notcurses_render(3)** or **notcurses_refresh(3)**, the
 standard plane (see **notcurses_stdplane(3)**) will be resized to the new
 screen size. The next **notcurses_render(3)** call will function as expected
 across the new screen geometry.
@@ -123,5 +123,5 @@ across the new screen geometry.
 # SEE ALSO
 
 **getenv(3)**, **termios(3)**, **notcurses(3)**, **notcurses_input(3)**,
-**notcurses_ncplane(3)**, **notcurses_render(3)**, **notcurses_resize(3)**,
+**notcurses_ncplane(3)**, **notcurses_refresh(3)**, **notcurses_render(3)**,
 **notcurses_stop(3)**, **terminfo(5)**, **signal(7)**

@@ -198,10 +198,10 @@ int main(int argc, char** argv){
         break;
       }else if(ie == NCKey::Resize){
         --i; // rerun with the new size
-        if(!nc.resize(&dimy, &dimx)){
+        if(!nc.refresh(&dimy, &dimx)){
           return EXIT_FAILURE;
         }
-        if(!ncv->get_plane ()->resize(dimy, dimx)){
+        if(!ncv->get_plane()->resize(dimy, dimx)){
           nc.stop();
           return EXIT_FAILURE;
         }

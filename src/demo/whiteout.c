@@ -577,7 +577,7 @@ int witherworm_demo(struct notcurses* nc){
         return 1;
       }
       if(key == NCKEY_RESIZE){
-        notcurses_resize(nc, &maxy, &maxx);
+        DEMO_RENDER(nc);
       }
     }while(key == NCKEY_RESIZE);
     if(key == 'q'){

@@ -2,8 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.2.6 (not yet released)
-  * `ncplane_putsimple_yx()` and `ncplane_putstr_yx()` has been exported as a
-    static inline function.
+  * `ncplane_putsimple_yx()` and `ncplane_putstr_yx()` have been exported as
+    static inline functions.
   * `ncplane_set_scrolling()` has been added, allowing control over whether a
     plane scrolls. All planes, including the standard plane, do not scroll by
     default. If scrolling is enabled, text output via the `*put*` family of
@@ -15,6 +15,12 @@ rearrangements of Notcurses.
   * `ncplot_add_sample()` and `ncplot_set_sample()` have been changed to accept
     a `uint64_t` rather than `int64_t`, since negative samples do not
     currently make sense. Plots were made more accurate in general.
+  * `notcurses_term_dim_yx()` now accepts a `const struct notcurses*`.
+  * `notcurses_resize()` is no longer exported. It was never necessary to call
+    this in response to a resize, despite confusing documentation that could
+    have been read to suggest otherwise. If you're in a long block on input, and
+    get an `NCKEY_RESIZE`, just call `notcurses_refresh()` (which now calls
+    `notcurses_resize()` internally, as `notcurses_render()` always has).
 
 * 1.2.5
   * Add ncplot, with support for sliding-windowed horizontal histograms.

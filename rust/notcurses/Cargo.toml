@@ -14,3 +14,8 @@ homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
 libnotcurses-sys = "^1.2.5"
 libc = "0.2.66"
 libc-stdhandle = ">= 0.1.0"
+
+[dev-dependencies]
+all_asserts = ">= 1.0.0"
+serial_test = "*"
+serial_test_derive = "*"

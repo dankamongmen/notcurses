@@ -18,7 +18,7 @@ static int dimy, dimx;
 const char* nckeystr(char32_t spkey){
   switch(spkey){ // FIXME
     case NCKEY_RESIZE:
-      NotCurses::get_instance ().resize(&dimy, &dimx);
+      NotCurses::get_instance().refresh(&dimy, &dimx);
       return "resize event";
     case NCKEY_INVALID: return "invalid";
     case NCKEY_LEFT:    return "left";
