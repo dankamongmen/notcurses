@@ -40,7 +40,7 @@ Depends:
 Description: Character graphics and TUI library (C++ development)
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
- an API similar to that of Curses, and rides atop libtinfo.
+ an API similar to that of Curses, and rides atop Terminfo.
  .
  These files are necessary for C++ development using notcurses.
 
@@ -52,7 +52,7 @@ Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Character graphics and TUI library (C++ wrappers)
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
- an API similar to that of Curses, and rides atop libtinfo.
+ an API similar to that of Curses, and rides atop Terminfo.
  .
  These files underlie the C++ wrappers for notcurses.
 
@@ -100,7 +100,7 @@ Depends:
 Description: Character graphics and TUI library demos
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
- an API similar to that of Curses, and rides atop libtinfo.
+ an API similar to that of Curses, and rides atop Terminfo.
  .
  These utilities from the notcurses project include notcurses-demo
  (a demonstration of various libnotcurses capabilities) and
@@ -116,7 +116,7 @@ Depends: ncurses-term, ${misc:Depends}
 Description: Multimedia used by notcurses-bin
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
- an API similar to that of Curses, and rides atop libtinfo.
+ an API similar to that of Curses, and rides atop Terminfo.
  .
  This package contains multimedia used by notcurses-demo
  and notcurses-tester from the notcurses-bin package.
@@ -130,6 +130,6 @@ Provides: ${python3:Provides}
 Description: Character graphics and TUI library (Python)
  notcurses facilitates the creation of modern TUI programs,
  making full use of Unicode and 24-bit direct color. It presents
- an API similar to that of Curses, and rides atop libtinfo.
+ an API similar to that of Curses, and rides atop Terminfo.
  .
  These files are necessary for Python development using notcurses.
