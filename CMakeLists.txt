@@ -18,7 +18,7 @@ option(USE_FFMPEG "Disable FFmpeg image/video support (recommended)" ON)
 option(USE_NETWORK "Allow cargo to use the network" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_PYTHON "Build Python wrappers" ON)
-option(USE_RUST "Build Rust wrappers/colloquy (experimental)" OFF)
+option(USE_RUST "Build Rust wrappers (experimental)" OFF)
 option(USE_TESTS "Build doctest unit tests" ON)
 ############## END (additional) USER-SELECTABLE OPTIONS ##################
 
@@ -630,13 +630,11 @@ if(${USE_PYTHON})
   endif()
 endif()
 
-# Rust bindings + colloquy
+# Rust bindings
 if(${USE_RUST})
   file(GLOB LIBNCRSSRC CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys/src/*.rs ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys/src/*.rs)
-  file(GLOB COLLOQUYSRC CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy/src/*.rs ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy/src/*.yml)
   set(LIBNOTCURSESSYS ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/liblibnotcurses_sys.rlib)
   set(CRATENOTCURSES ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/libnotcurses.rlib)
-  set(COLLOQUY ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/colloquy)
   find_program(CARGO cargo REQUIRED)
   # might need --locked here
   set(CARGO_ARGS --verbose --release)
@@ -649,7 +647,7 @@ if(${USE_RUST})
     COMMAND
       PKG_CONFIG_PATH=${CMAKE_CURRENT_BINARY_DIR} CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
     DEPENDS
-      ${COLLOQUYSRC}
+      ${LIBNCRSSRC}
     COMMENT "Building rust crate libnotcurses-sys"
     WORKING_DIRECTORY
       ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys
@@ -672,24 +670,6 @@ if(${USE_RUST})
   add_custom_target(cratenotcurses ALL
     DEPENDS
       ${CRATENOTCURSES}
-  )
-  add_custom_command(
-    OUTPUT
-      ${COLLOQUY}
-    COMMAND
-      CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
-    DEPENDS
-      ${COLLOQUYSRC} ${CRATENOTCURSES}
-    COMMENT "Building colloquy"
-    WORKING_DIRECTORY
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/colloquy
-  )
-  add_custom_target(colloquy ALL
-    DEPENDS
-      ${COLLOQUY}
-  )
-  set_target_properties(colloquy
-    PROPERTIES LOCATION ${CMAKE_CURRENT_BINARY_DIR}
   )
 endif()
 
