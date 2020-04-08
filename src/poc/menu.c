@@ -118,17 +118,6 @@ int main(void){
 
   int averr;
 
-  struct ncvisual* ncv = ncplane_visual_open(n, "../data/ebolavirus_wide-0723bc3f01c644976b4df7e146a1d795aaf9d55e.jpg", &averr);
-  if(!ncv){
-    goto err;
-  }
-  if(!ncvisual_decode(ncv, &averr)){
-    goto err;
-  }
-  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
-    goto err;
-  }
-
   uint64_t channels = 0;
   channels_set_fg(&channels, 0x88aa00);
   channels_set_bg(&channels, 0x000088);
@@ -144,18 +133,6 @@ int main(void){
   run_menu(nc, top);
 
   ncplane_erase(n);
-  ncvisual_destroy(ncv);
-
-  ncv = ncplane_visual_open(n, "../data/aidsrobots.jpeg", &averr);
-  if(!ncv){
-    goto err;
-  }
-  if(!ncvisual_decode(ncv, &averr)){
-    goto err;
-  }
-  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
-    goto err;
-  }
 
   mopts.bottom = true;
   struct ncmenu* bottom = ncmenu_create(nc, &mopts);
@@ -167,7 +144,6 @@ int main(void){
   }
   run_menu(nc, bottom);
 
-  ncvisual_destroy(ncv);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
