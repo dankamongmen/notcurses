@@ -27,7 +27,6 @@ an API similar to that of Curses, and rides atop Terminfo.
 %files
 /usr/bin/notcurses-demo
 /usr/bin/notcurses-input
-/usr/bin/notcurses-keyplot
 /usr/bin/notcurses-ncreel
 /usr/bin/notcurses-pydemo
 /usr/bin/notcurses-tester
