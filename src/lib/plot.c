@@ -124,7 +124,6 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
         ret->maxy = 0;
         ret->miny = ~(uint64_t)0ull;
       }
-      ret->windowbase = 0;
       ret->slotstart = 0;
       ret->slotx = 0;
       redraw_plot(ret);

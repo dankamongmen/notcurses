@@ -156,8 +156,9 @@ typedef struct ncplot {
   uint64_t minchannel;
   bool vertical_indep;
   ncgridgeom_e gridtype;
-  int64_t windowbase; // first valid x value
-  uint64_t rangex; // windowbase + rangex - 1 -> last valid x
+  // requested number of slots. 0 for automatically setting the number of slots
+  // to span the horizontal area.
+  uint64_t rangex;
   // domain minimum and maximum. if detectdomain is true, these are
   // progressively enlarged/shrunk to fit the sample set. if not, samples
   // outside these bounds are counted, but the displayed range covers only this.
