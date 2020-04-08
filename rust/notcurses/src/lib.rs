@@ -24,6 +24,14 @@ pub fn render(_n: *mut ffi::notcurses) -> std::result::Result<(), std::io::Error
     }
 }
 
+pub fn stddim_yx(_n: *mut ffi::notcurses, _dimy: &mut i32, _dimx: &mut i32) -> *mut ffi::ncplane {
+    unsafe {
+        let stdplane = ffi::notcurses_stdplane(_n);
+        ffi::ncplane_dim_yx(stdplane, _dimy, _dimx);
+        return stdplane;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -51,6 +59,17 @@ mod tests {
                 margin_l: 0,
             };
             let nc = ffi::notcurses_init(&opts, stdout);
+            ffi::notcurses_stop(nc);
+        }
+    }
+
+    #[test]
+    fn stdplane_dims() {
+        unsafe {
+            let nc = ffi::notcurses_init(std::ptr::null(), stdout);
+            let mut dimy = 0;
+            let mut dimx = 0;
+            let _stdplane = stddim_yx(nc, &mut dimy, &mut dimx);
             ffi::notcurses_stop(nc);
         }
     }
