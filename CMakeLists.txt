@@ -74,12 +74,15 @@ target_link_libraries(notcurses
     Threads::Threads
     "${TERMINFO_LIBRARIES}"
     "${LIBRT}"
+  PUBLIC
+    Threads::Threads
 )
 target_link_libraries(notcurses-static
   PRIVATE
-    Threads::Threads
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBRT}"
+  PUBLIC
+    Threads::Threads
 )
 target_link_directories(notcurses
   PRIVATE
@@ -315,7 +318,6 @@ target_include_directories(notcurses-demo
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
-    Threads::Threads
 )
 target_compile_options(notcurses-demo
   PRIVATE
@@ -461,7 +463,6 @@ target_include_directories(notcurses-tetris
 )
 target_link_libraries(notcurses-tetris
   PRIVATE
-    Threads::Threads
     notcurses++
 )
 target_compile_options(notcurses-tetris
