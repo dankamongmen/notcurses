@@ -709,8 +709,8 @@ ncplane_dim_x(const struct ncplane* n){
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dim_yx(struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
-  ncplane_dim_yx(notcurses_stdplane(n), rows, cols);
+notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
+  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 }
 
 // Retrieve the contents of the specified cell as last rendered. The EGC is

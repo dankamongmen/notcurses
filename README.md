@@ -305,7 +305,7 @@ int notcurses_resize(struct notcurses* n, int* restrict y, int* restrict x);
 static inline void
 notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
                       int* restrict cols){
-  ncplane_dim_yx(notcurses_stdplane(n), rows, cols);
+  ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 }
 
 // Refresh the physical screen to match what was last rendered (i.e., without
