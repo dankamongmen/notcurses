@@ -1,8 +1,10 @@
-Source0: file
+Source0: https://github.com/dankamongmen/{name}/archive/v{version}.tar.gz
 Source1: signature
 Source2: keyring
 
-BuildRequires: gnupg2 cmake xz make gcc-c++ ncurses-devel pandoc python3-devel
+License: ASL 2.0
+
+BuildRequires: gnupg2 cmake make gcc-c++ ncurses-devel pandoc python3-devel
 
 %prep
 %{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
