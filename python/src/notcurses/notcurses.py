@@ -14,12 +14,12 @@ def checkRGB(r, g, b):
         raise ValueError("Bad blue value")
 
 class Cell:
-    def __init__(self, ncplane):
+    def __init__(self, ncplane, egc):
+        self.ncp = ncplane
         self.c = ffi.new("cell *")
-        self.c.gcluster = 0x20
+        self.c.gcluster = egc
         self.c.channels = 0
         self.c.attrword = 0
-        self.ncp = ncplane
 
     def __del__(self):
         lib.cell_release(self.ncp.getNcplane(), self.c)
@@ -31,6 +31,9 @@ class Cell:
     def setBgRGB(self, r, g, b):
         checkRGB(r, g, b)
         lib.cell_set_bg_rgb(self.c, r, g, b)
+
+    def simpleP(self):
+        return self.c.gcluster < 0x80
 
     def getNccell(self):
         return self.c
@@ -46,7 +49,21 @@ class Ncplane:
         return self.n
 
     def putSimpleYX(self, y, x, ch):
-        return lib.ncplane_putsimple_yx(self.n, y, x, ch)
+        if y < -1:
+            raise ValueError("Bad y position")
+        if x < -1:
+            raise ValueError("Bad x position")
+        c = Cell(self, ch)
+        if not c.simpleP():
+            raise ValueError("Bad simple value")
+        r = ffi.new("unsigned *")
+        g = ffi.new("unsigned *")
+        b = ffi.new("unsigned *")
+        lib.ncplane_fg_rgb(self.n, r, g, b)
+        c.setFgRGB(r[0], g[0], b[0])
+        lib.ncplane_bg_rgb(self.n, r, g, b)
+        c.setBgRGB(r[0], g[0], b[0])
+        return lib.ncplane_putc_yx(self.n, y, x, c.getNccell())
 
     def getDimensions(self):
         y = ffi.new("int *")

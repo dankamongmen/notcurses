@@ -5,7 +5,7 @@ from notcurses import notcurses
 
 def demo():
     nc = notcurses.Notcurses()
-    c = notcurses.Cell(nc.stdplane())
+    c = notcurses.Cell(nc.stdplane(), ord(' '))
     c.setBgRGB(0x80, 0xc0, 0x80)
     nc.stdplane().setBaseCell(c)
     dims = nc.stdplane().getDimensions()
@@ -16,7 +16,7 @@ def demo():
         for x in range(dims[1]):
             nc.stdplane().setFgRGB(r, g, b)
             nc.stdplane().setBgRGB(b, r, g)
-            nc.stdplane().putSimpleYX(y, x, b'X')
+            nc.stdplane().putSimpleYX(y, x, ord('X'))
             b = b + 2
             if b == 256:
                 b = 0
