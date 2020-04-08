@@ -333,6 +333,7 @@ foreach(f ${POCSRCS})
   add_executable(${fe} ${f})
   target_include_directories(${fe}
     PRIVATE include "${TERMINFO_INCLUDE_DIRS}"
+    "${PROJECT_BINARY_DIR}/include"
   )
   target_link_libraries(${fe}
     PRIVATE notcurses++ "${TERMINFO_LIBRARIES}"

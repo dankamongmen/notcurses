@@ -3,6 +3,7 @@
 #include <locale.h>
 #include <stdlib.h>
 #include <notcurses/notcurses.h>
+#include "version.h"
 
 static struct selector_item items[] = {
   { "first", "this is the first option", },
@@ -80,6 +81,7 @@ int main(void){
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   struct ncplane* n = notcurses_stdplane(nc);
 
+#ifdef USE_FFMPEG
   int averr;
   struct ncvisual* ncv = ncplane_visual_open(n, "../data/changes.jpg", &averr);
   if(!ncv){
@@ -91,7 +93,7 @@ int main(void){
   if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
     goto err;
   }
-
+#endif
 
   ncplane_set_fg(n, 0x40f040);
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "selector widget demo");
