@@ -410,7 +410,7 @@ if(USE_DOXYGEN)
   endif()
 endif()
 
-# notcurses-input and notcurses-keyplot
+# notcurses-input
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/input.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
 target_include_directories(notcurses-input
@@ -427,27 +427,6 @@ target_compile_options(notcurses-input
     -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-input
-  PRIVATE
-    FORTIFY_SOURCE=2
-)
-
-file(GLOB KEYPLOTSRCS CONFIGURE_DEPENDS src/input/keyplot.cpp)
-add_executable(notcurses-keyplot ${KEYPLOTSRCS})
-target_include_directories(notcurses-keyplot
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-)
-target_link_libraries(notcurses-keyplot
-  PRIVATE
-    Threads::Threads
-    notcurses++
-)
-target_compile_options(notcurses-keyplot
-  PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
-)
-target_compile_definitions(notcurses-keyplot
   PRIVATE
     FORTIFY_SOURCE=2
 )
@@ -711,7 +690,6 @@ install(FILES
 install(PROGRAMS src/pydemo/notcurses-pydemo DESTINATION bin)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
-install(TARGETS notcurses-keyplot DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
 if(${USE_TESTS})
 install(TARGETS notcurses-tester DESTINATION bin)
