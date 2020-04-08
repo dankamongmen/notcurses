@@ -15,6 +15,7 @@ an API similar to that of Curses, and rides atop libtinfo.
 
 %prep
 %{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%setup
 
 %build
 %cmake -DUSE_FFMPEG=off -DUSE_TEST=off .
@@ -42,3 +43,8 @@ an API similar to that of Curses, and rides atop libtinfo.
 /usr/lib/x86_64-linux-gnu/libnotcurses.a
 /usr/lib/x86_64-linux-gnu/pkgconfig
 /usr/lib/x86_64-linux-gnu/pkgconfig/notcurses.pc
+%license LICENSE
+
+%changelog
+* Tue, Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.2.5-1
+- Initial Fedora packaging
