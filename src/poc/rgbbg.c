@@ -28,6 +28,9 @@ int main(void){
       if(ncplane_set_bg_rgb(n, r, g, b)){
         goto err;
       }
+      if(ncplane_cursor_move_yx(n, y, x)){
+        goto err;
+      }
       if(ncplane_putsimple(n, 'x') <= 0){
         goto err;
       }
