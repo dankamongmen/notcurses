@@ -240,6 +240,10 @@ typedef struct ncdirect {
   char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
   char* cup;      // move cursor
+  char* cuu;      // move N up
+  char* cub;      // move N left
+  char* cuf;      // move N right
+  char* cud;      // move N down
   char* civis;    // hide cursor
   char* cnorm;    // restore cursor to default state
   char* hpa;      // horizontal position adjusment (move cursor on row)

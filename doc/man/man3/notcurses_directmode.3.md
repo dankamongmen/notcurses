@@ -44,6 +44,14 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **int ncdirect_cursor_disable(struct ncdirect* nc);**
 
+**int ncdirect_cursor_up(struct ncdirect* nc, int num);**
+
+**int ncdirect_cursor_left(struct ncdirect* nc, int num);**
+
+**int ncdirect_cursor_right(struct ncdirect* nc, int num);**
+
+**int ncdirect_cursor_down(struct ncdirect* nc, int num);**
+
 # DESCRIPTION
 
 **ncdirect_init** prepares the **FILE** provided as **fp** (which must
@@ -71,6 +79,10 @@ be specified for either **y** or **x** to leave that axis unchanged.
 
 **ncdirect_enable_cursor** and **ncdirect_disable_cursor** always flush the
 output stream, taking effect immediately.
+
+**ncdirect_cursor_up** and friends all move relative to the current position.
+Attempting to e.g. move up while on the top row will return 0, but have no
+effect.
 
 # RETURN VALUES
 

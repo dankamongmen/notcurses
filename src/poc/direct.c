@@ -52,14 +52,18 @@ int main(void){
   if((n = ncdirect_init(NULL, stdout)) == NULL){
     return EXIT_FAILURE;
   }
-  ncdirect_fg(n, 0xff8080);
-  ncdirect_styles_on(n, NCSTYLE_STANDOUT);
+  int ret = 0;
+  ret |= ncdirect_fg(n, 0xff8080);
+  ret |= ncdirect_styles_on(n, NCSTYLE_STANDOUT);
   printf(" erp erp \n");
-  ncdirect_fg(n, 0x80ff80);
+  ret |= ncdirect_fg(n, 0x80ff80);
   printf(" erp erp \n");
-  ncdirect_styles_off(n, NCSTYLE_STANDOUT);
+  ret |= ncdirect_styles_off(n, NCSTYLE_STANDOUT);
   printf(" erp erp \n");
-  ncdirect_fg(n, 0xff8080);
+  ret |= ncdirect_fg(n, 0xff8080);
   printf(" erp erp \n");
-  return EXIT_SUCCESS;
+  ret |= ncdirect_cursor_right(n, geom.ws_col / 2);
+  ret |= ncdirect_cursor_up(n, geom.ws_row / 2);
+  printf(" erperperp! \n");
+  return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }

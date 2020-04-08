@@ -257,6 +257,10 @@ int ncdirect_dim_y(const struct ncdirect* nc);
 int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
 int ncdirect_cursor_enable(struct ncdirect* nc);
 int ncdirect_cursor_disable(struct ncdirect* nc);
+int ncdirect_cursor_up(struct ncdirect* nc, int num);
+int ncdirect_cursor_left(struct ncdirect* nc, int num);
+int ncdirect_cursor_right(struct ncdirect* nc, int num);
+int ncdirect_cursor_down(struct ncdirect* nc, int num);
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, int* averr);
 typedef enum {
   NCSCALE_NONE,

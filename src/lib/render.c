@@ -854,7 +854,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         ++nc->stats.cellemissions;
         if(needmove == 1 && nc->cuf1){
           ret |= term_emit("cuf1", tiparm(nc->cuf1), out, false);
-        }else if(needmove){
+        }else if(needmove){ // FIXME might want to use cufN for horizontal move
           ret |= term_emit("cup", tiparm(nc->cup, y, x), out, false);
         }
         needmove = 0;

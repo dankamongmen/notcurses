@@ -78,6 +78,10 @@ API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
 API int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
 API int ncdirect_cursor_enable(struct ncdirect* nc);
 API int ncdirect_cursor_disable(struct ncdirect* nc);
+API int ncdirect_cursor_up(struct ncdirect* nc, int num);
+API int ncdirect_cursor_left(struct ncdirect* nc, int num);
+API int ncdirect_cursor_right(struct ncdirect* nc, int num);
+API int ncdirect_cursor_down(struct ncdirect* nc, int num);
 
 // Clear the screen.
 API int ncdirect_clear(struct ncdirect* nc);
