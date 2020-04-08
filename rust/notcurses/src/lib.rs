@@ -32,16 +32,18 @@ pub fn stddim_yx(_n: *mut ffi::notcurses, _dimy: &mut i32, _dimx: &mut i32) -> *
     }
 }
 
-// FIXME need to serialize these tests
 #[cfg(test)]
 mod tests {
     use super::*;
+    use all_asserts;
+    use serial_test_derive::serial; // serialize tests w/ ffi::notcurses_init()
 
     extern {
         static stdout: *mut ffi::_IO_FILE;
     }
 
     #[test]
+    #[serial]
     fn create_context() {
         unsafe {
             let _ = libc::setlocale(libc::LC_ALL, std::ffi::CString::new("").unwrap().as_ptr());
@@ -61,11 +63,12 @@ mod tests {
             };
             let nc = ffi::notcurses_init(&opts, stdout);
             assert_ne!(std::ptr::null(), nc);
-            ffi::notcurses_stop(nc);
+            assert_eq!(0, ffi::notcurses_stop(nc));
         }
     }
 
     #[test]
+    #[serial]
     fn stdplane_dims() {
         unsafe {
             let _ = libc::setlocale(libc::LC_ALL, std::ffi::CString::new("").unwrap().as_ptr());
@@ -74,7 +77,9 @@ mod tests {
             let mut dimy = 0;
             let mut dimx = 0;
             let _stdplane = stddim_yx(nc, &mut dimy, &mut dimx);
-            ffi::notcurses_stop(nc);
+            all_asserts::assert_lt!(0, dimy);
+            all_asserts::assert_lt!(0, dimx);
+            assert_eq!(0, ffi::notcurses_stop(nc));
         }
     }
 }
