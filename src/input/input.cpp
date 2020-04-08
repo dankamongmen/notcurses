@@ -1,18 +1,35 @@
 #include <deque>
 #include <cerrno>
+#include <atomic>
+#include <chrono>
+#include <memory>
+#include <thread>
 #include <cstring>
 #include <cstdlib>
 #include <clocale>
 #include <iostream>
 #include <termios.h>
-
-#include <memory>
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
+#define NANOSECS_IN_SEC 1000000000
+
+static inline uint64_t
+timenow_to_ns(){
+  struct timespec t;
+  if(clock_gettime(CLOCK_MONOTONIC, &t)){
+    throw std::runtime_error("error retrieving time");
+  }
+  return t.tv_sec * NANOSECS_IN_SEC + t.tv_nsec;
+}
+
 using namespace ncpp;
 
+std::mutex mtx;
+uint64_t start;
 static int dimy, dimx;
+std::atomic<bool> done;
+static struct ncplot* plot;
 
 // return the string version of a special composed key
 const char* nckeystr(char32_t spkey){
@@ -134,7 +151,7 @@ char32_t printutf8(char32_t kp){
 // Dim all text on the plane by the same amount. This will stack for
 // older text, and thus clearly indicate the current output.
 static bool
-dim_rows(std::unique_ptr<Plane>& n){
+dim_rows(const Plane* n){
   int y, x;
   Cell c;
   for(y = 2 ; y < dimy ; ++y){
@@ -168,16 +185,46 @@ dim_rows(std::unique_ptr<Plane>& n){
   return true;
 }
 
+void Tick(ncpp::NotCurses* nc, uint64_t sec) {
+  const std::lock_guard<std::mutex> lock(mtx);
+  if(ncplot_add_sample(plot, sec, 0)){
+    throw std::runtime_error("couldn't register timetick");
+  }
+  if(!nc->render()){
+    throw std::runtime_error("error rendering");
+  }
+  mtx.unlock();
+}
+
+void Ticker(ncpp::NotCurses* nc) {
+  do{
+    std::this_thread::sleep_for(std::chrono::seconds{1});
+    const uint64_t sec = (timenow_to_ns() - start) / NANOSECS_IN_SEC;
+    Tick(nc, sec);
+  }while(!done);
+}
+
 int main(void){
+  constexpr auto PLOTHEIGHT = 6;
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
   NotCurses nc;
-  if(!nc.mouse_enable ()){
+  if(!nc.mouse_enable()){
     return EXIT_FAILURE;
   }
-  std::unique_ptr<Plane> n(nc.get_stdplane ());
-  nc.get_term_dim(&dimy, &dimx);
+  auto n = nc.get_stdplane(&dimy, &dimx);
+  ncpp::Plane pplane{PLOTHEIGHT, dimx, dimy - PLOTHEIGHT,  0, nullptr};
+  struct ncplot_options popts{};
+  popts.labelaxisd = true;
+  popts.minchannel = popts.maxchannel = 0;
+  channels_set_fg_rgb(&popts.maxchannel, 0xa0, 0x50, 0xb0);
+  channels_set_fg_rgb(&popts.minchannel, 0xa0, 0xff, 0xb0);
+  popts.gridtype = static_cast<ncgridgeom_e>(NCPLOT_8x1);
+  plot = ncplot_create(pplane, &popts);
+  if(!plot){
+    return EXIT_FAILURE;
+  }
   n->set_fg(0);
   n->set_bg(0xbb64bb);
   n->styles_on(CellStyle::Underline);
@@ -190,6 +237,9 @@ int main(void){
   int y = 2;
   std::deque<wchar_t> cells;
   char32_t r;
+  done = false;
+  start = timenow_to_ns();
+  std::thread tid(Ticker, &nc);
   ncinput ni;
   while(errno = 0, (r = nc.getc(true, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
@@ -232,11 +282,19 @@ int main(void){
     if(!dim_rows(n)){
       break;
     }
-    if(!nc.render()){
+    const uint64_t sec = (timenow_to_ns() - start) / NANOSECS_IN_SEC;
+    mtx.lock();
+    if(ncplot_add_sample(plot, sec, 1)){
+      mtx.unlock();
       break;
     }
-    if(++y >= dimy - 2){ // leave a blank line at the bottom
-      y = 2;             // and at the top
+    if(!nc.render()){
+      mtx.unlock();
+      break;
+    }
+    mtx.unlock();
+    if(++y >= dimy - PLOTHEIGHT){ // leave six lines free on the bottom...
+      y = 2;                      // ...and one free on the top.
     }
     while(cells.size() >= dimy - 3u){
       cells.pop_back();
