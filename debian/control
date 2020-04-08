@@ -92,6 +92,7 @@ Architecture: any
 Multi-Arch: foreign
 Section: graphics
 Depends:
+ python3-notcurses (= ${source:Version}),
  ncurses-term,
  notcurses-data (= ${source:Version}),
  ${misc:Depends},
