@@ -4,8 +4,8 @@ Release: 1
 Summary: Character graphics and TUI library
 License: ASL 2.0
 Source0: https://github.com/dankamongmen/{name}/archive/v{version}.tar.gz
-Source1: signature
-Source2: keyring
+Source1: https://github.com/dankamongmen/{name}/archive/v{version}.tar.gz.asc
+Source2: https://dank.qemfd.net/dankamongmen.gpg
 BuildRequires: gnupg2 cmake make gcc-c++ ncurses-devel pandoc python3-devel
 
 %description
