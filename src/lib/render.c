@@ -5,8 +5,8 @@
 #include "internal.h"
 
 // Check whether the terminal geometry has changed, and if so, copies what can
-// be copied from the old stdscr. Assumes that the screen is always anchored in
-// the same place.
+// be copied from the old stdscr. Assumes that the screen is always anchored at
+// the same origin. Also syncs up lastframe.
 int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   int r, c;
   if(rows == NULL){
@@ -27,6 +27,23 @@ int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   *cols -= n->margin_l + n->margin_r;
   if(*cols <= 0){
     *cols = 1;
+  }
+  if(*rows != n->lfdimy || *rows != n->lfdimx){
+    n->lfdimy = *rows;
+    n->lfdimx = *cols;
+    const size_t size = sizeof(*n->lastframe) * (n->lfdimy * n->lfdimx);
+    cell* fb = realloc(n->lastframe, size);
+    if(fb == NULL){
+      abort(); // FIXME
+      return -1;
+    }
+    n->lastframe = fb;
+    // FIXME more memset()tery than we need, both wasting work and wrecking
+    // damage detection for the upcoming render
+    memset(n->lastframe, 0, size);
+    n->lastframe = fb;
+    memset(fb, 0, size);
+    egcpool_dump(&n->pool);
   }
   if(*rows == oldrows && *cols == oldcols){
     return 0; // no change
@@ -97,34 +114,6 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
       stats->render_min_ns = elapsed;
     }
   }
-}
-
-// reshape the shadow framebuffer to match the stdplane's dimensions, throwing
-// away the old one.
-static int
-reshape_shadow_fb(notcurses* nc){
-  if(nc->lfdimx == nc->stdscr->lenx && nc->lfdimy == nc->stdscr->leny){
-    return 0; // no change
-  }
-  const size_t size = sizeof(*nc->lastframe) * nc->stdscr->leny * nc->stdscr->lenx;
-  cell* fb = realloc(nc->lastframe, size);
-  if(fb == NULL){
-    free(nc->lastframe);
-    nc->lastframe = NULL;
-    nc->lfdimx = 0;
-    nc->lfdimy = 0;
-    return -1;
-  }
-  nc->lastframe = fb;
-  // FIXME more memset()tery than we need, both wasting work and wrecking
-  // damage detection for the upcoming render
-  memset(nc->lastframe, 0, size);
-  nc->lastframe = fb;
-  nc->lfdimy = nc->stdscr->leny;
-  nc->lfdimx = nc->stdscr->lenx;
-  memset(fb, 0, size);
-  egcpool_dump(&nc->pool);
-  return 0;
 }
 
 void cell_release(ncplane* n, cell* c){
@@ -456,35 +445,6 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   free(dst->fb);
   dst->fb = rendfb;
   free(rvec);
-  return 0;
-}
-
-// We execute the painter's algorithm, starting from our topmost plane. The
-// damagevector should be all zeros on input. On success, it will reflect
-// which cells were changed. We solve for each coordinate's cell by walking
-// down the z-buffer, looking at intersections with ncplanes. This implies
-// locking down the EGC, the attributes, and the channels for each cell.
-static int
-notcurses_render_internal(notcurses* nc, struct crender* rvec){
-  if(reshape_shadow_fb(nc)){
-    return -1;
-  }
-  int dimy, dimx;
-  ncplane_dim_yx(nc->stdscr, &dimy, &dimx);
-  cell* fb = malloc(sizeof(*fb) * dimy * dimx);
-  init_fb(fb, dimy, dimx);
-  ncplane* p = nc->top;
-  while(p){
-    if(paint(p, nc->lastframe, rvec, fb, &nc->pool,
-             nc->stdscr->leny, nc->stdscr->lenx,
-             nc->stdscr->absy, nc->stdscr->absx, nc->lfdimx)){
-      free(fb);
-      return -1;
-    }
-    p = p->z;
-  }
-  postpaint(fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
-  free(fb);
   return 0;
 }
 
@@ -850,6 +810,8 @@ update_palette(notcurses* nc, FILE* out){
 // EGC, attribute, and channels), which has been written to nc->lastframe, and
 // spits out an optimal sequence of terminal-appropriate escapes and EGCs. There
 // should be an rvec entry for each cell, but only the 'damaged' field is used.
+// lastframe has *not yet been written to the screen*, i.e. it's only about to
+// *become* the last frame rasterized.
 static int
 notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   FILE* out = nc->rstate.mstreamfp;
@@ -863,8 +825,6 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
-  // FIXME need to track outer{x,y} (position on screen) and inner{x,y}
-  // (position within lastframe/rvec, which is lfdimx-sized)
   for(y = nc->stdscr->absy ; y < nc->stdscr->leny + nc->stdscr->absy ; ++y){
     const int innery = y - nc->stdscr->absy;
     // how many characters have we elided? it's not worthwhile to invoke a
@@ -875,7 +835,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
       const int innerx = x - nc->stdscr->absx;
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
-      const cell* srccell = &nc->lastframe[innery * nc->lfdimx + innerx];
+      const cell* srccell = &nc->lastframe[damageidx];
 //      cell c;
 //      memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
 //fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
@@ -1049,13 +1009,14 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(home_cursor(nc, true)){
     return -1;
   }
-  const size_t size = sizeof(struct crender) * nc->lfdimx * nc->lfdimy;
-  struct crender* rvec = malloc(size);
+  const int count = (nc->lfdimx > nc->stdscr->lenx ? nc->lfdimx : nc->stdscr->lenx) *
+                    (nc->lfdimy > nc->stdscr->leny ? nc->lfdimy : nc->stdscr->leny);
+  struct crender* rvec = malloc(count * sizeof(*rvec));
   if(rvec == NULL){
     return -1;
   }
-  memset(rvec, 0, size);
-  for(int i = 0 ; i < nc->lfdimy * nc->lfdimx ; ++i){
+  memset(rvec, 0, count * sizeof(*rvec));
+  for(int i = 0 ; i < count ; ++i){
     rvec[i].damaged = true;
   }
   int ret = notcurses_rasterize(nc, rvec);
@@ -1063,6 +1024,32 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(ret < 0){
     return -1;
   }
+  return 0;
+}
+
+// We execute the painter's algorithm, starting from our topmost plane. The
+// damagevector should be all zeros on input. On success, it will reflect
+// which cells were changed. We solve for each coordinate's cell by walking
+// down the z-buffer, looking at intersections with ncplanes. This implies
+// locking down the EGC, the attributes, and the channels for each cell.
+static int
+notcurses_render_internal(notcurses* nc, struct crender* rvec){
+  int dimy, dimx;
+  ncplane_dim_yx(nc->stdscr, &dimy, &dimx);
+  cell* fb = malloc(sizeof(*fb) * dimy * dimx);
+  init_fb(fb, dimy, dimx);
+  ncplane* p = nc->top;
+  while(p){
+    if(paint(p, nc->lastframe, rvec, fb, &nc->pool,
+             nc->stdscr->leny, nc->stdscr->lenx,
+             nc->stdscr->absy, nc->stdscr->absx, nc->lfdimx)){
+      free(fb);
+      return -1;
+    }
+    p = p->z;
+  }
+  postpaint(fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
+  free(fb);
   return 0;
 }
 
