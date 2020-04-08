@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <clocale>
 #include <ncpp/NotCurses.hh>
+#include "version.h"
 
 const std::string BackgroundFile = "../data/tetris-background.jpeg";
 
