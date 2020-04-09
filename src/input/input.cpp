@@ -217,8 +217,8 @@ int main(void){
   struct ncplot_options popts{};
   popts.labelaxisd = true;
   popts.minchannel = popts.maxchannel = 0;
-  channels_set_fg_rgb(&popts.maxchannel, 0xa0, 0x50, 0xb0);
-  channels_set_fg_rgb(&popts.minchannel, 0xa0, 0xff, 0xb0);
+  channels_set_fg_rgb(&popts.minchannel, 0x40, 0x50, 0xb0);
+  channels_set_fg_rgb(&popts.maxchannel, 0x40, 0xff, 0xd0);
   popts.gridtype = static_cast<ncgridgeom_e>(NCPLOT_8x1);
   plot = ncplot_create(pplane, &popts);
   if(!plot){
