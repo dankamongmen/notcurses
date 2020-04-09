@@ -246,6 +246,8 @@ int main(void){
     }
 
     if((r == 'D' || r == 'd') && ni.ctrl){
+      done = true;
+      tid.join();
       return EXIT_SUCCESS;
     }
     if(!n->cursor_move(y, 0)){
@@ -305,5 +307,7 @@ int main(void){
   if(r == (char32_t)-1 && e){
     std::cerr << "Error reading from terminal (" << strerror(e) << "?)\n";
   }
+  done = true;
+  tid.join();
   return EXIT_FAILURE;
 }
