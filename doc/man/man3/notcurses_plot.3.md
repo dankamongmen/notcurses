@@ -27,7 +27,7 @@ typedef struct ncplot_options {
   // number of "pixels" per row x column
   ncgridgeom_e gridtype;
   // independent variable is a contiguous range
-  uint64_t rangex;
+  int rangex;
   // dependent min and max. set both equal to 0 to
   // use domain autodiscovery.
   uint64_t miny, maxy;

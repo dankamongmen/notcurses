@@ -20,8 +20,10 @@ redraw_plot(ncplot* n){
   const size_t states = wcslen(geomdata[n->gridtype].egcs);
   // FIXME can we not rid ourselves of this meddlesome double?
   double interval = n->maxy < n->miny ? 0 : (n->maxy - n->miny) / ((double)dimy * states);
-  int idx = n->slotstart;
-  const int startx = n->labelaxisd ? PREFIXSTRLEN : 0;
+  const int startx = n->labelaxisd ? PREFIXSTRLEN : 0; // plot cols begin here
+  // if we want fewer slots than there are available columns, our final column
+  // will be other than the plane's final column. most recent x goes here.
+  const int finalx = (n->slotcount < dimx - 1 - startx ? startx + n->slotcount - 1 : dimx - 1);
   if(n->labelaxisd){
     // show the *top* of each interval range
     for(int y = 0 ; y < dimy ; ++y){
@@ -30,39 +32,41 @@ redraw_plot(ncplot* n){
       ncplane_putstr_yx(ncplot_plane(n), dimy - y - 1, PREFIXSTRLEN - strlen(buf), buf);
     }
   }
-  if(interval){
-    for(uint64_t x = startx ; x < n->slotcount + startx ; ++x){
-      if(x >= (unsigned)dimx){
+  // exit on pathologically narrow planes, or sampleless draws
+  if(finalx < startx || !interval){
+    return 0;
+  }
+  int idx = n->slotstart; // idx holds the real slot index; we move backwards
+  for(int x = finalx ; x >= startx ; --x){
+    uint64_t gval = n->slots[idx]; // clip the value at the limits of the graph
+    if(gval < n->miny){
+      gval = n->miny;
+    }
+    if(gval > n->maxy){
+      gval = n->maxy;
+    }
+    // starting from the least-significant row, progress in the more significant
+    // direction, drawing egcs from the grid specification, aborting early if
+    // we can't draw anything in a given cell.
+    double intervalbase = n->miny;
+    for(int y = 0 ; y < dimy ; ++y){
+      // if we've got at least one interval's worth on the number of positions
+      // times the number of intervals per position plus the starting offset,
+      // we're going to print *something*
+      if(intervalbase >= gval){
         break;
       }
-      uint64_t gval = n->slots[idx]; // clip the value at the limits of the graph
-      if(gval < n->miny){
-        gval = n->miny;
+      size_t egcidx = (gval - intervalbase) / interval;
+      if(egcidx >= states){
+        egcidx = states - 1;
       }
-      if(gval > n->maxy){
-        gval = n->maxy;
+      if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, geomdata[n->gridtype].egcs[egcidx]) <= 0){
+        return -1;
       }
-      // starting from the least-significant row, progress in the more significant
-      // direction, drawing egcs from the grid specification, aborting early if
-      // we can't draw anything in a given cell.
-      double intervalbase = n->miny;
-      for(int y = 0 ; y < dimy ; ++y){
-        // if we've got at least one interval's worth on the number of positions
-        // times the number of intervals per position plus the starting offset,
-        // we're going to print *something*
-        if(intervalbase >= gval){
-          break;
-        }
-        size_t egcidx = (gval - intervalbase) / interval;
-        if(egcidx >= states){
-          egcidx = states - 1;
-        }
-        if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, geomdata[n->gridtype].egcs[egcidx]) <= 0){
-          return -1;
-        }
-        intervalbase += (states * interval);
-      }
-      idx = (idx + 1) % n->slotcount;
+      intervalbase += (states * interval);
+    }
+    if(--idx < 0){
+      idx = n->slotcount - 1;
     }
   }
   if(ncplane_cursor_move_yx(ncplot_plane(n), 0, 0)){
@@ -80,6 +84,9 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   if(opts->miny == opts->maxy && opts->miny){
     return NULL;
   }
+  if(opts->rangex < 0){
+    return NULL;
+  }
   if(opts->maxy < opts->miny){
     return NULL;
   }
@@ -91,7 +98,7 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   if(sdimx <= 0){
     return NULL;
   }
-  uint64_t dimx = sdimx;
+  int dimx = sdimx;
   ncplot* ret = malloc(sizeof(*ret));
   if(ret){
     ret->rangex = opts->rangex;
@@ -159,43 +166,48 @@ update_domain(ncplot* n, uint64_t x){
   return 0;
 }
 
-// if x is less than the window, return -1
+// if x is less than the window, return -1, as the sample will be thrown away.
+// if the x is within the current window, find the proper slot and update it.
+// otherwise, the x is the newest sample. if it is obsoletes all existing slots,
+// reset them, and write the new sample anywhere. otherwise, write it to the
+// proper slot based on the current newest slot.
 static inline int
-window_slide(ncplot* n, uint64_t x){
-  if(x < n->slotx){ // x is behind window, won't be counted
+window_slide(ncplot* n, int64_t x){
+  if(x < n->slotx - (n->slotcount - 1)){ // x is behind window, won't be counted
     return -1;
-  }else if(x < n->slotx + n->slotcount){ // x is within window, do nothing
+  }else if(x <= n->slotx){ // x is within window, do nothing
     return 0;
-  } // x is beyond window; we might be keeping some, might not
-  uint64_t newslotx = x - n->slotcount + 1; // the new value of slotx
-  uint64_t slotdiff = newslotx - n->slotx; // the raw amount we're advancing
-  if(slotdiff > n->slotcount){
-    slotdiff = n->slotcount;
-  } // slotdiff is the number of slots to reset, and amount to advance slotstart
-  n->slotx = newslotx;
-  // number to reset on the right of the circular buffer. min of (available at
-  // current or to right, slotdiff)
-  uint64_t slotsreset = n->slotcount - n->slotstart;
-  if(slotsreset > slotdiff){
-    slotsreset = slotdiff;
+  } // x is newest; we might be keeping some, might not
+  int64_t xdiff = x - n->slotx; // the raw amount we're advancing
+  n->slotx = x;
+  if(xdiff >= n->slotcount){ // we're throwing away all old samples, write to 0
+    memset(n->slots, 0, sizeof(*n->slots) * n->slotcount);
+    n->slotstart = 0;
+    return 0;
+  }
+  // we're throwing away only xdiff slots, which is less than n->slotcount.
+  // first, we'll try to clear to the right...number to reset on the right of
+  // the circular buffer. min of (available at current or to right, xdiff)
+  int slotsreset = n->slotcount - n->slotstart - 1;
+  if(slotsreset > xdiff){
+    slotsreset = xdiff;
   }
   if(slotsreset){
-    memset(n->slots + n->slotstart, 0, slotsreset * sizeof(*n->slots));
-    n->slotstart += slotsreset;
-    n->slotstart %= n->slotcount;
-    slotdiff -= slotsreset;
+    memset(n->slots + n->slotstart + 1, 0, slotsreset * sizeof(*n->slots));
   }
-  if(slotdiff){
-    memset(n->slots, 0, slotdiff * sizeof(*n->slots));
-    n->slotstart = slotdiff - 1;
+  n->slotstart = (n->slotstart + xdiff) % n->slotcount;
+  xdiff -= slotsreset;
+  if(xdiff){ // throw away some at the beginning
+    memset(n->slots, 0, xdiff * sizeof(*n->slots));
   }
   return 0;
 }
 
-// x must be within n's window
+// x must be within n's window at this point
 static inline void
-update_sample(ncplot* n, uint64_t x, uint64_t y, bool reset){
-  uint64_t idx = x % n->slotcount;
+update_sample(ncplot* n, int64_t x, uint64_t y, bool reset){
+  const int64_t diff = n->slotx - x; // amount behind
+  const int idx = (n->slotstart + n->slotcount - diff) % n->slotcount;
   if(reset){
     n->slots[idx] = y;
   }else{
