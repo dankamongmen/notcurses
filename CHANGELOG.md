@@ -1,7 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.2.6 (not yet released)
+* 1.2.7 (not yet released)
+  * Plots now always keep the most recent data to their far right (i.e., the
+    gap that is initially filled is on the left, rather than the right).
+
+* 1.2.6
   * `ncplane_putsimple_yx()` and `ncplane_putstr_yx()` have been exported as
     static inline functions.
   * `ncplane_set_scrolling()` has been added, allowing control over whether a
@@ -21,6 +25,7 @@ rearrangements of Notcurses.
     have been read to suggest otherwise. If you're in a long block on input, and
     get an `NCKEY_RESIZE`, just call `notcurses_refresh()` (which now calls
     `notcurses_resize()` internally, as `notcurses_render()` always has).
+  * First Fedora packaging.
 
 * 1.2.5
   * Add ncplot, with support for sliding-windowed horizontal histograms.
