@@ -69,7 +69,6 @@ The notcurses-static package includes the static notcurses library.
 %{_libdir}/cmake/notcurses
 %{_libdir}/pkgconfig/notcurses.pc
 %{_libdir}/pkgconfig/notcurses++.pc
-%{_mandir}/man1/colloquy.1.gz
 %{_mandir}/man1/notcurses-demo.1.gz
 %{_mandir}/man1/notcurses-input.1.gz
 %{_mandir}/man1/notcurses-ncreel.1.gz
