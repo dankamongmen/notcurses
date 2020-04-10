@@ -116,8 +116,6 @@ int main(void){
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
 
-  int averr;
-
   uint64_t channels = 0;
   channels_set_fg(&channels, 0x88aa00);
   channels_set_bg(&channels, 0x000088);
