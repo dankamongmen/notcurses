@@ -1,5 +1,5 @@
 Name:          notcurses
-Version:       1.2.6
+Version:       1.2.7
 Release:       1%{?dist}
 Summary:       Character graphics and TUI library
 License:       ASL 2.0
@@ -105,5 +105,5 @@ The notcurses-static package includes the static notcurses library.
 %{_libdir}/libnotcurses++.a
 
 %changelog
-* Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.2.6-1
+* Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.2.7-1
 - Initial Fedora packaging

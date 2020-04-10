@@ -1,6 +1,6 @@
 % colloquy(1)
 % nick black <nickblack@linux.com>
-% v1.2.6
+% v1.2.7
 
 # NAME
 
