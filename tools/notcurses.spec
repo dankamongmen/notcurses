@@ -17,7 +17,7 @@ BuildRequires: pkgconfig(ncurses)
 
 %description
 notcurses facilitates the creation of modern TUI programs,
-making full use of Unicode and 24-bit direct color. It presents
+making full use of Unicode and 24-bit TrueColor. It presents
 an API similar to that of Curses, and rides atop Terminfo.
 
 %package devel

@@ -39,7 +39,7 @@ Depends:
  ${misc:Depends},
 Description: Character graphics and TUI library (C++ development)
  notcurses facilitates the creation of modern TUI programs,
- making full use of Unicode and 24-bit direct color. It presents
+ making full use of Unicode and 24-bit TrueColor. It presents
  an API similar to that of Curses, and rides atop Terminfo.
  .
  These files are necessary for C++ development using notcurses.
@@ -51,7 +51,7 @@ Recommends: ncurses-term
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Character graphics and TUI library (C++ wrappers)
  notcurses facilitates the creation of modern TUI programs,
- making full use of Unicode and 24-bit direct color. It presents
+ making full use of Unicode and 24-bit TrueColor. It presents
  an API similar to that of Curses, and rides atop Terminfo.
  .
  These files underlie the C++ wrappers for notcurses.
@@ -67,7 +67,7 @@ Depends:
  ${misc:Depends},
 Description: Character graphics and TUI library (development)
  notcurses facilitates the creation of modern TUI programs, making
- full use of Unicode and 24-bit direct color. Its API is similar
+ full use of Unicode and 24-bit TrueColor. Its API is similar
  to that of NCURSES, but extends that with z-buffering, rendering
  of images and video using ffmpeg, alpha blending, widgets, palette
  fades, resize awareness, and multithreading support.
@@ -82,7 +82,7 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Character graphics and TUI library
  notcurses facilitates the creation of modern TUI programs, making
- full use of Unicode and 24-bit direct color. Its API is similar
+ full use of Unicode and 24-bit TrueColor. Its API is similar
  to that of NCURSES, but extends that with z-buffering, rendering
  of images and video using ffmpeg, alpha blending, widgets, palette
  fades, resize awareness, and multithreading support.
@@ -100,7 +100,7 @@ Depends:
  ${shlibs:Depends},
 Description: Character graphics and TUI library demos
  notcurses facilitates the creation of modern TUI programs,
- making full use of Unicode and 24-bit direct color. It presents
+ making full use of Unicode and 24-bit TrueColor. It presents
  an API similar to that of Curses, and rides atop Terminfo.
  .
  These utilities from the notcurses project include notcurses-demo
@@ -116,7 +116,7 @@ Section: graphics
 Depends: ncurses-term, ${misc:Depends}
 Description: Multimedia used by notcurses-bin
  notcurses facilitates the creation of modern TUI programs,
- making full use of Unicode and 24-bit direct color. It presents
+ making full use of Unicode and 24-bit TrueColor. It presents
  an API similar to that of Curses, and rides atop Terminfo.
  .
  This package contains multimedia used by notcurses-demo
@@ -130,7 +130,7 @@ Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
 Provides: ${python3:Provides}
 Description: Character graphics and TUI library (Python)
  notcurses facilitates the creation of modern TUI programs,
- making full use of Unicode and 24-bit direct color. It presents
+ making full use of Unicode and 24-bit TrueColor. It presents
  an API similar to that of Curses, and rides atop Terminfo.
  .
  These files are necessary for Python development using notcurses.
