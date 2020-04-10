@@ -48,12 +48,16 @@ set_target_properties(
 set_target_properties(notcurses PROPERTIES
   PUBLIC_HEADER
     "include/notcurses/notcurses.h"
+  PUBLIC_HEADER
+    "include/notcurses/nckeys.h"
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 set_target_properties(notcurses-static PROPERTIES
   PUBLIC_HEADER
     "include/notcurses/notcurses.h"
+  PUBLIC_HEADER
+    "include/notcurses/nckeys.h"
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
@@ -672,12 +676,6 @@ install(FILES
     DESTINATION ${CMAKE_INSTALL_DATADIR}/notcurses
 )
 endif()
-
-install(DIRECTORY
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/"
-  DESTINATION
-    ${CMAKE_INSTALL_INCLUDEDIR}
-)
 
 install(FILES
   ${MANPAGES1}
