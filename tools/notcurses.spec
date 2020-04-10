@@ -74,7 +74,7 @@ The notcurses-static package includes the static notcurses library.
 %{_mandir}/man1/notcurses-ncreel.1.gz
 %{_mandir}/man1/notcurses-pydemo.1.gz
 %{_mandir}/man1/notcurses-tester.1.gz
-%{_mandir}/man/man1/notcurses-tetris.1.gz
+%{_mandir}/man1/notcurses-tetris.1.gz
 %{_mandir}/man1/notcurses-view.1.gz
 %{_mandir}/man3/notcurses.3.gz
 %{_mandir}/man3/notcurses_cell.3.gz
