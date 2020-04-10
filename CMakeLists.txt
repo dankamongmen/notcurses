@@ -46,18 +46,10 @@ set_target_properties(
 )
 
 set_target_properties(notcurses PROPERTIES
-  PUBLIC_HEADER
-    "include/notcurses/notcurses.h"
-  PUBLIC_HEADER
-    "include/notcurses/nckeys.h"
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 set_target_properties(notcurses-static PROPERTIES
-  PUBLIC_HEADER
-    "include/notcurses/notcurses.h"
-  PUBLIC_HEADER
-    "include/notcurses/nckeys.h"
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
@@ -150,11 +142,11 @@ endif()
 
 target_compile_options(notcurses
   PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
+    -Wall -Wextra -W -Wshadow -Wformat ${DEBUG_OPTIONS}
 )
 target_compile_options(notcurses-static
   PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
+    -Wall -Wextra -W -Wshadow -Wformat ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses
   PUBLIC
@@ -277,6 +269,11 @@ target_compile_definitions(notcurses++-static
     ${NCPP_COMPILE_DEFINITIONS_PRIVATE}
   )
 
+file(GLOB NOTCURSES_HEADERS
+  CONFIGURE_DEPENDS
+  LIST_DIRECTORIES false
+  ${CMAKE_SOURCE_DIR}/include/notcurses/*.h)
+
 file(GLOB NCPP_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
@@ -287,6 +284,7 @@ file(GLOB NCPP_INTERNAL_HEADERS
   LIST_DIRECTORIES false
   ${CMAKE_SOURCE_DIR}/include/ncpp/internal/*.hh)
 
+install(FILES ${NOTCURSES_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses)
 install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
 install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
 
@@ -702,7 +700,4 @@ install(TARGETS notcurses notcurses-static
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT Libraries
     NAMELINK_COMPONENT Development
-  PUBLIC_HEADER
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses
-    COMPONENT Development
 )
