@@ -17,7 +17,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  int y, x, dimy, dimx;
+  int dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
   // leave a 20% total margin on the sides
