@@ -1,13 +1,14 @@
 * Finalize CHANGELOG.md
 * `for i in CMakeLists.txt doc/Doxyfile doc/FreeBSD-Makefile doc/man/man*/* doc/man/index.html python/setup.py rust/*/Cargo.toml rust/libnotcurses-sys/build.rs tools/notcurses.spec ; do sed -i -e "s/$OLDVERSION/$VERSION/g" $i ; done`
 * Finalize Debian changelog with `dch -r`
-* git commit -a -m v$VERSION
 * Verify that Debian package builds properly
   * git clean -d -f -x
   * `tar -cJf ../notcurses_$VERSION.orig.tar.xz --exclude=.git --exclude=debian -C.. notcurses-$VERSION`
   * debuild
+* git commit -a -m v$VERSION
+* `git push`
 * Tag with `git tag -a v$VERSION -m "v$VERSION -s"`
-* `git push && git push origin --tags`
+* `git push origin --tags`
 * Draft new release at https://github.com/dankamongmen/notcurses/releases
   * Title is "v$VERSION—some quip"
   * That's an em dash (U+2014, UTF-8 e2 80 94), get it right
