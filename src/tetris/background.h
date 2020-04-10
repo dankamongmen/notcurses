@@ -19,7 +19,11 @@ void DrawBackground(const std::string& s) { // drawn to the standard plane
 }
 
 void DrawBoard() { // draw all fixed components of the game
-  DrawBackground(BackgroundFile);
+  try{
+    DrawBackground(BackgroundFile);
+  }catch(TetrisNotcursesErr& e){
+    stdplane_->printf(1, 1, "couldn't load %s", BackgroundFile.c_str());
+  }
   int y, x;
   stdplane_->get_dim(&y, &x);
   board_top_y_ = y - (BOARD_HEIGHT + 2);

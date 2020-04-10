@@ -8,7 +8,7 @@
 #include <ncpp/NotCurses.hh>
 #include "version.h"
 
-const std::string BackgroundFile = "../data/tetris-background.jpeg";
+const std::string BackgroundFile = NOTCURSES_SHARE "/tetris-background.jpeg";
 
 using namespace std::chrono_literals;
 
