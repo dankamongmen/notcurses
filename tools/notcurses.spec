@@ -5,7 +5,7 @@ Summary:       Character graphics and TUI library
 License:       ASL 2.0
 URL:           https://nick-black.com/dankwiki/index.php/Notcurses
 Source0:       https://github.com/dankamongmen/%{name}/archive/v%{version}.tar.gz
-Source1:       https://github.com/dankamongmen/%{name}/releases/v%{version}/v%{version}.tar.gz.asc
+Source1:       https://github.com/dankamongmen/%{name}/releases/download/v%{version}/v%{version}.tar.gz.asc
 Source2:       https://dank.qemfd.net/dankamongmen.gpg
 
 BuildRequires: gnupg2
