@@ -127,7 +127,9 @@ int main(void){
   }
   return EXIT_SUCCESS;
 
+#ifdef USE_FFMPEG
 err:
   notcurses_stop(nc);
   return EXIT_FAILURE;
+#endif
 }
