@@ -55,13 +55,20 @@ The notcurses-static package includes the static notcurses library.
 %{_libdir}/libnotcurses.so.1
 %{_libdir}/libnotcurses++.so.1
 %{_libdir}/libnotcurses++.so.%{version}
-
-%files devel
 %{_bindir}/notcurses-demo
 %{_bindir}/notcurses-input
 %{_bindir}/notcurses-ncreel
 %{_bindir}/notcurses-pydemo
 %{_bindir}/notcurses-tetris
+%{_mandir}/man1/notcurses-demo.1.gz
+%{_mandir}/man1/notcurses-input.1.gz
+%{_mandir}/man1/notcurses-ncreel.1.gz
+%{_mandir}/man1/notcurses-pydemo.1.gz
+%{_mandir}/man1/notcurses-tester.1.gz
+%{_mandir}/man1/notcurses-tetris.1.gz
+%{_mandir}/man1/notcurses-view.1.gz
+
+%files devel
 %{_includedir}/notcurses/nckeys.h
 %{_includedir}/notcurses/notcurses.h
 %{_includedir}/ncpp/Cell.hh
@@ -95,13 +102,6 @@ The notcurses-static package includes the static notcurses library.
 %{_libdir}/cmake/notcurses
 %{_libdir}/pkgconfig/notcurses.pc
 %{_libdir}/pkgconfig/notcurses++.pc
-%{_mandir}/man1/notcurses-demo.1.gz
-%{_mandir}/man1/notcurses-input.1.gz
-%{_mandir}/man1/notcurses-ncreel.1.gz
-%{_mandir}/man1/notcurses-pydemo.1.gz
-%{_mandir}/man1/notcurses-tester.1.gz
-%{_mandir}/man1/notcurses-tetris.1.gz
-%{_mandir}/man1/notcurses-view.1.gz
 %{_mandir}/man3/notcurses.3.gz
 %{_mandir}/man3/notcurses_cell.3.gz
 %{_mandir}/man3/notcurses_channels.3.gz
