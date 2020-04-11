@@ -52,16 +52,16 @@ Python wrappers and a demonstration script for the notcurses library.
 
 # Tests have been disabled due to absence of doctest in Fedora (as of F32)
 %build
-%mkdir build
-%cd build
-%cmake -DUSE_FFMPEG=off -DUSE_TESTS=off .
+mkdir build
+cd build
+%cmake -DUSE_FFMPEG=off -DUSE_TESTS=off ..
 %make_build
 
 %install
-%cd build
+cd build
 %make_install
-%cd python
-%python setup.py install --root=%{_prefix} --optimize=1
+cd python
+python setup.py install --root=%{buildroot} --optimize=1
 
 %files
 %doc CHANGELOG.md README.md
