@@ -31,6 +31,23 @@ namespace ncpp
 			plane = duplicate_plane (other, opaque);
 		}
 
+		explicit Plane (Plane *n, int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
+			: Plane (static_cast<const Plane*>(n), rows, cols, yoff, xoff, opaque)
+		{}
+
+		explicit Plane (const Plane *n, int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
+		{
+			if (n == nullptr)
+				throw invalid_argument ("'n' must be a valid pointer");
+
+			plane = create_plane (*n, rows, cols, yoff, xoff, opaque);
+		}
+
+		explicit Plane (const Plane &n, int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
+		{
+			plane = create_plane (n, rows, cols, yoff, xoff, opaque);
+		}
+
 		explicit Plane (int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
 		{
 			plane = ncplane_new (
@@ -126,24 +143,24 @@ namespace ncpp
 			return mergedown(&dst);
 		}
 
-		bool gradient (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const noexcept
+		int gradient (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const noexcept
 		{
-			return ncplane_gradient (plane, egc, attrword, ul, ur, ll, lr, ystop, xstop) != -1;
+			return ncplane_gradient (plane, egc, attrword, ul, ur, ll, lr, ystop, xstop);
 		}
 
-		bool gradient_sized (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
+		int gradient_sized (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
 		{
-			return ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xlen) != -1;
+			return ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xlen);
 		}
 
-		bool high_gradient (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
+		int high_gradient (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
 		{
-			return ncplane_highgradient (plane, ul, ur, ll, lr, ylen, xlen) != -1;
+			return ncplane_highgradient (plane, ul, ur, ll, lr, ylen, xlen);
 		}
 
-		bool high_gradient_sized (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
+		int high_gradient_sized (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const noexcept
 		{
-			return ncplane_highgradient_sized (plane, ul, ur, ll, lr, ylen, xlen) != -1;
+			return ncplane_highgradient_sized (plane, ul, ur, ll, lr, ylen, xlen);
 		}
 
 		void greyscale () const noexcept
@@ -234,6 +251,25 @@ namespace ncpp
 		void get_yx (int &y, int &x) const noexcept
 		{
 			get_yx (&y, &x);
+		}
+
+		Plane* reparent (Plane *newparent = nullptr) const noexcept
+		{
+			ncplane *ret = ncplane_reparent (plane, newparent == nullptr ? nullptr : newparent->plane);
+			if (ret == nullptr)
+				return nullptr;
+
+			return map_plane (ret);
+		}
+
+		Plane* reparent (const Plane *newparent) const noexcept
+		{
+			return reparent (const_cast<Plane*>(newparent));
+		}
+
+		Plane* reparent (const Plane &newparent) const noexcept
+		{
+			return reparent (const_cast<Plane*>(&newparent));
 		}
 
 		bool move (int y, int x) const noexcept
@@ -577,9 +613,9 @@ namespace ncpp
 			return ncplane_perimeter (plane, ul, ur, ll, lr, hline, vline, ctlword) != -1;
 		}
 
-		bool polyfill (int y, int x, const Cell& c) const noexcept
+		int polyfill (int y, int x, const Cell& c) const noexcept
 		{
-			return ncplane_polyfill_yx (plane, y, x, c) != -1;
+			return ncplane_polyfill_yx (plane, y, x, c);
 		}
 
 		uint64_t get_channels () const noexcept
@@ -712,14 +748,14 @@ namespace ncpp
 			ncplane_styles_off (plane, static_cast<unsigned>(styles));
 		}
 
-		bool format (int ystop, int xstop, uint32_t attrword) const noexcept
+		int format (int ystop, int xstop, uint32_t attrword) const noexcept
 		{
-			return ncplane_format (plane, ystop, xstop, attrword) != -1;
+			return ncplane_format (plane, ystop, xstop, attrword);
 		}
 
-		bool stain (int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr)
+		int stain (int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr)
 		{
-			return ncplane_stain (plane, ystop, xstop, ul, ur, ll, lr) != -1;
+			return ncplane_stain (plane, ystop, xstop, ul, ur, ll, lr);
 		}
 
 		Plane* get_below () const noexcept
@@ -942,12 +978,12 @@ namespace ncpp
 		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
 
 #ifdef USE_FFMPEG
-		bool blit_bgrx (int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx) const noexcept
+		bool blit_bgrx (int placey, int placex, int linesize, const void* data, int begy, int begx, int leny, int lenx) const noexcept
 		{
 			return ncblit_bgrx (plane, placey, placex, linesize, data, begy, begx, leny, lenx) >= 0;
 		}
 
-		bool blit_rgba (int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx) const noexcept
+		bool blit_rgba (int placey, int placex, int linesize, const void* data, int begy, int begx, int leny, int lenx) const noexcept
 		{
 			return ncblit_rgba (plane, placey, placex, linesize, data, begy, begx, leny, lenx) >= 0;
 		}
@@ -965,6 +1001,25 @@ namespace ncpp
 		static void unmap_plane (Plane *p) noexcept;
 
 	private:
+		ncplane* create_plane (const Plane &n, int rows, int cols, int yoff, int xoff, void *opaque)
+		{
+			ncplane *ret = ncplane_bound (
+				n.plane,
+				rows,
+				cols,
+				yoff,
+				xoff,
+				opaque
+			);
+
+			if (ret == nullptr)
+				throw init_error ("notcurses failed to create a new plane");
+
+			map_plane (plane, this);
+
+			return ret;
+		}
+
 		ncplane* create_plane (Plane &n, int rows, int cols, int yoff, NCAlign align, void *opaque)
 		{
 			ncplane *ret = ncplane_aligned (

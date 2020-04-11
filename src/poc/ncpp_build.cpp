@@ -15,6 +15,7 @@
 #include <ncpp/Selector.hh>
 #include <ncpp/Visual.hh>
 #include <ncpp/Direct.hh>
+#include <ncpp/Plot.hh>
 
 using namespace ncpp;
 

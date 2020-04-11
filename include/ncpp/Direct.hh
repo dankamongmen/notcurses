@@ -89,6 +89,26 @@ namespace ncpp
 			return ncdirect_cursor_move_yx (direct, y, x);
 		}
 
+		int cursor_up (int num) const noexcept
+		{
+			return ncdirect_cursor_up (direct, num);
+		}
+
+		int cursor_left (int num) const noexcept
+		{
+			return ncdirect_cursor_left (direct, num);
+		}
+
+		int cursor_right (int num) const noexcept
+		{
+			return ncdirect_cursor_right (direct, num);
+		}
+
+		int cursor_down (int num) const noexcept
+		{
+			return ncdirect_cursor_down (direct, num);
+		}
+
 		bool cursor_enable () const noexcept
 		{
 			return ncdirect_cursor_enable (direct) != -1;
