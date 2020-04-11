@@ -24,7 +24,7 @@ an API similar to that of Curses, and rides atop Terminfo.
 %package devel
 Summary:       Development files for the notcurses library
 License:       ASL 2.0
-Requires:      "%{name}%{?_isa} = %{version}-%{release}"
+Requires:      %{name}%{?_isa} = %{version}-%{release}
 
 %description devel
 Development files for the notcurses library.
@@ -40,7 +40,7 @@ A statically-linked version of the notcurses library.
 %package -n python3-%{srcname}
 Summary:       Python wrappers for notcurses
 License:       ASL 2.0
-Requires:      "%{name}%{?_isa} = %{version}-%{release}"
+Requires:      %{name}%{?_isa} = %{version}-%{release}
 %{?python_provide:%python_provide python3-%{srcname}}
 
 %description -n python3-%{srcname}
