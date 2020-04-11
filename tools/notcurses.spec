@@ -24,11 +24,10 @@ an API similar to that of Curses, and rides atop Terminfo.
 %package devel
 Summary:       Development files for the notcurses library
 License:       ASL 2.0
-Requires:      %{name} = %{version}-%{release}
+Requires:      "%{name}%{?_isa} = %{version}-%{release}"
 
 %description devel
-This package contains the development files for the notcurses
-library.
+Development files for the notcurses library.
 
 %package static
 Summary:       Static library for the notcurses library
@@ -36,12 +35,22 @@ License:       ASL 2.0
 Requires:      %{name}-devel = %{version}-%{release}
 
 %description static
-The notcurses-static package includes the static notcurses library.
+A statically-linked version of the notcurses library.
+
+%package -n python3-%{srcname}
+Summary:       Python wrappers for notcurses
+License:       ASL 2.0
+Requires:      "%{name}%{?_isa} = %{version}-%{release}"
+%{?python_provide:%python_provide python3-%{srcname}}
+
+%description -n python3-%{srcname}
+Python wrappers and a demonstration script for the notcurses library.
 
 %prep
 %{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %autosetup
 
+# Tests have been disabled due to absence of doctest in Fedora (as of F32)
 %build
 %cmake -DUSE_FFMPEG=off -DUSE_TESTS=off .
 %make_build
@@ -59,16 +68,13 @@ The notcurses-static package includes the static notcurses library.
 %{_bindir}/notcurses-demo
 %{_bindir}/notcurses-input
 %{_bindir}/notcurses-ncreel
-%{_bindir}/notcurses-pydemo
 %{_bindir}/notcurses-tetris
 %{_mandir}/man1/notcurses-demo.1.gz
 %{_mandir}/man1/notcurses-input.1.gz
 %{_mandir}/man1/notcurses-ncreel.1.gz
-%{_mandir}/man1/notcurses-pydemo.1.gz
 %{_mandir}/man1/notcurses-tester.1.gz
 %{_mandir}/man1/notcurses-tetris.1.gz
 %{_mandir}/man1/notcurses-view.1.gz
-%{python3_sitelib}/*egg-info/
 
 %files devel
 %{_includedir}/notcurses/nckeys.h
@@ -130,6 +136,11 @@ The notcurses-static package includes the static notcurses library.
 %files static
 %{_libdir}/libnotcurses.a
 %{_libdir}/libnotcurses++.a
+
+%files -n python3-%{srcname}
+%{_bindir}/notcurses-pydemo
+%{_mandir}/man1/notcurses-pydemo.1.gz
+%{python3_sitelib}/*egg-info/
 
 %changelog
 * Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.2.8-1
