@@ -78,11 +78,7 @@ Python wrappers and a demonstration script for the notcurses library.
 
 %files devel
 %{_includedir}/notcurses/
-%{_includedir}/notcurses/*.h
 %{_includedir}/ncpp/
-%{_includedir}/ncpp/*.hh
-%{_includedir}/ncpp/internal
-%{_includedir}/ncpp/internal/*.hh
 %{_libdir}/libnotcurses.so
 %{_libdir}/libnotcurses++.so
 %{_libdir}/cmake/notcurses
