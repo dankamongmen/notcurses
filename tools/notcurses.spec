@@ -98,7 +98,9 @@ python setup.py install --root=%{buildroot} --optimize=1
 %files -n python3-%{name}
 %{_bindir}/notcurses-pydemo
 %{_mandir}/man1/notcurses-pydemo.1*
-%{python3_sitelib}/*egg-info/
+%{python3_sitearch}/*egg-info/
+%{python3_sitearch}/notcurses/
+%{python3_sitearch}/*.so
 
 %changelog
 * Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.2.9-1
