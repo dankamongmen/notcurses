@@ -13,6 +13,7 @@ BuildRequires: cmake
 BuildRequires: gcc-c++
 BuildRequires: pandoc
 BuildRequires: python3-devel
+BuildRequires: python3-setuptools
 BuildRequires: pkgconfig(ncurses)
 
 %description
@@ -67,6 +68,7 @@ The notcurses-static package includes the static notcurses library.
 %{_mandir}/man1/notcurses-tester.1.gz
 %{_mandir}/man1/notcurses-tetris.1.gz
 %{_mandir}/man1/notcurses-view.1.gz
+%{python3_sitelib}/*egg-info/
 
 %files devel
 %{_includedir}/notcurses/nckeys.h
