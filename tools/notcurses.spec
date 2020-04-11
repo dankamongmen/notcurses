@@ -37,13 +37,13 @@ Requires:      %{name}-devel = %{version}-%{release}
 %description static
 A statically-linked version of the notcurses library.
 
-%package -n python3-%{srcname}
+%package -n python3-%{name}
 Summary:       Python wrappers for notcurses
 License:       ASL 2.0
 Requires:      %{name}%{?_isa} = %{version}-%{release}
-%{?python_provide:%python_provide python3-%{srcname}}
+%{?python_provide:%python_provide python3-%{name}}
 
-%description -n python3-%{srcname}
+%description -n python3-%{name}
 Python wrappers and a demonstration script for the notcurses library.
 
 %prep
@@ -94,7 +94,7 @@ Python wrappers and a demonstration script for the notcurses library.
 %{_libdir}/libnotcurses.a
 %{_libdir}/libnotcurses++.a
 
-%files -n python3-%{srcname}
+%files -n python3-%{name}
 %{_bindir}/notcurses-pydemo
 %{_mandir}/man1/notcurses-pydemo.1*
 %{python3_sitelib}/*egg-info/
