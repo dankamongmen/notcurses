@@ -1,7 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.2.7 (not yet released)
+* 1.2.8
+  * `notcurses-tetris` now happily continues if it can't load its background.
+
+* 1.2.7
   * Plots now always keep the most recent data to their far right (i.e., the
     gap that is initially filled is on the left, rather than the right).
 

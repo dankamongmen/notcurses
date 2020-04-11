@@ -1,11 +1,11 @@
-notcurses (1.2.8-1) unstable; urgency=medium
+notcurses (1.2.9-1) unstable; urgency=medium
 
   * New upstream
   * Remove unnecessary graphviz builddep
   * Symbols: add new functions
   * Replace dep on python with ${python3:Depends} subst
 
- -- Nick Black <dankamongmen@gmail.com>  Fri, 10 Apr 2020 16:17:55 -0400
+ -- Nick Black <dankamongmen@gmail.com>  Sat, 11 Apr 2020 12:39:37 -0400
 
 notcurses (1.2.1-1) unstable; urgency=medium
 

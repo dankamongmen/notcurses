@@ -1,5 +1,5 @@
 Name:          notcurses
-Version:       1.2.8
+Version:       1.2.9
 Release:       1%{?dist}
 Summary:       Character graphics and TUI library
 License:       ASL 2.0
@@ -96,5 +96,5 @@ Python wrappers and a demonstration script for the notcurses library.
 %{python3_sitelib}/*egg-info/
 
 %changelog
-* Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.2.8-1
+* Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.2.9-1
 - Initial Fedora packaging
