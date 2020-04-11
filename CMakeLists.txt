@@ -577,7 +577,7 @@ write_basic_package_version_file(
 # Python bindings
 if(${USE_PYTHON})
   # when we're building debs, we use pybuild to directly call into setup.py,
-  # so none of this applies.
+  # so none of this applies. arch also doesn't use it. fedora does.
   if(NOT "${DFSG_BUILD}")
     find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
     file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
@@ -609,6 +609,7 @@ if(${USE_PYTHON})
       WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}/python
     )
+  install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} setup.py install --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)")
   endif()
 endif()
 
