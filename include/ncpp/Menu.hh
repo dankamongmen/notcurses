@@ -28,34 +28,34 @@ namespace ncpp
 				ncmenu_destroy (menu);
 		}
 
-		bool unroll (int sectionidx) const noexcept
+		bool unroll (int sectionidx) const NOEXCEPT_MAYBE
 		{
-			return ncmenu_unroll (menu, sectionidx) >= 0;
+			return error_guard (ncmenu_unroll (menu, sectionidx), -1);
 		}
 
-		bool rollup () const noexcept
+		bool rollup () const NOEXCEPT_MAYBE
 		{
-			return ncmenu_rollup (menu) >= 0;
+			return error_guard (ncmenu_rollup (menu), -1);
 		}
 
-		bool nextsection () const noexcept
+		bool nextsection () const NOEXCEPT_MAYBE
 		{
-			return ncmenu_nextsection (menu) >= 0;
+			return error_guard (ncmenu_nextsection (menu), -1);
 		}
 
-		bool prevsection () const noexcept
+		bool prevsection () const NOEXCEPT_MAYBE
 		{
-			return ncmenu_prevsection (menu) >= 0;
+			return error_guard (ncmenu_prevsection (menu), -1);
 		}
 
-		bool nextitem () const noexcept
+		bool nextitem () const NOEXCEPT_MAYBE
 		{
-			return ncmenu_nextitem (menu) >= 0;
+			return error_guard (ncmenu_nextitem (menu), -1);
 		}
 
-		bool previtem () const noexcept
+		bool previtem () const NOEXCEPT_MAYBE
 		{
-			return ncmenu_previtem (menu) >= 0;
+			return error_guard (ncmenu_previtem (menu), -1);
 		}
 
 		const char* get_selected (ncinput *ni = nullptr) const noexcept
