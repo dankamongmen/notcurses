@@ -963,6 +963,38 @@ TEST_CASE("NCPlane") {
     CHECK(!(c.channels & 0x8000000080000000ull));
   }
 
+  // Render a translucent plane atop a wide glyph, and check that the colors
+  // are right on both cells.
+  SUBCASE("OverWide") {
+    struct ncplane* p = ncplane_new(nc_, 3, 4, 0, 0, nullptr);
+    REQUIRE(nullptr != p);
+    cell c = CELL_SIMPLE_INITIALIZER('X');
+    CHECK(0 == ncplane_perimeter(p, &c, &c, &c, &c, &c, &c, 0));
+    int sbytes;
+    ncplane_set_fg_rgb(n_, 0xa0, 0xf0, 0xa0);
+    ncplane_set_bg_rgb(n_, 0x20, 0x20, 0x20);
+    CHECK(2 == ncplane_putegc_yx(n_, 1, 1, "六", &sbytes));
+    uint64_t channels = 0;
+    channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+    channels_set_fg_rgb(&channels, 0x80, 0xf0, 0x10);
+    channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
+    channels_set_bg_rgb(&channels, 0x80, 0xf0, 0x10);
+    CHECK(1 == ncplane_set_base(p, channels, 0, " "));
+    CHECK(0 == notcurses_render(nc_));
+    uint32_t attrword;
+    uint64_t chanleft, chanright;
+    char* egc = notcurses_at_yx(nc_, 1, 1, &attrword, &chanleft);
+    REQUIRE(nullptr != egc);
+    CHECK(0 == strcmp(" ", egc));
+    free(egc);
+    egc = notcurses_at_yx(nc_, 1, 2, &attrword, &chanright);
+    REQUIRE(nullptr != egc);
+    CHECK(0 == strcmp(" ", egc));
+    free(egc);
+    CHECK(chanright == chanleft);
+    ncplane_destroy(p);
+  }
+
   SUBCASE("Perimeter") {
     cell c = CELL_SIMPLE_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(n_, &c, &c, &c, &c, &c, &c, 0));
