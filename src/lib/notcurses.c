@@ -1250,6 +1250,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
       }
       cell_obliterate(n, candidate);
       cell_set_wide(candidate);
+      candidate->channels = c->channels;
     }
   }
   n->x += cols;
