@@ -103,30 +103,30 @@ TEST_CASE("RenderTest") {
     // should be nothing, having been stomped
     egc = notcurses_at_yx(nc_, 0, 0, &c.attrword, &c.channels);
     REQUIRE(egc);
-    CHECK(!strcmp(" ", egc));
+    CHECK(0 == strcmp("", egc));
     free(egc);
     cell_init(&c);
     // should be character from higher plane
     egc = notcurses_at_yx(nc_, 0, 1, &c.attrword, &c.channels);
     REQUIRE(egc);
-    CHECK(!strcmp("A", egc));
+    CHECK(0 == strcmp("A", egc));
     free(egc);
     cell_init(&c);
 
     egc = notcurses_at_yx(nc_, 0, 2, &c.attrword, &c.channels);
     REQUIRE(egc);
-    CHECK(!strcmp("B", egc));
+    CHECK(0 == strcmp("B", egc));
     free(egc);
     cell_init(&c);
 
     // should be nothing, having been stomped
     egc = notcurses_at_yx(nc_, 0, 3, &c.attrword, &c.channels);
     REQUIRE(egc);
-    CHECK(!strcmp(" ", egc));
+    CHECK(0 == strcmp("", egc));
     free(egc);
     cell_init(&c);
 
-    CHECK(!ncplane_destroy(n));
+    CHECK(0 == ncplane_destroy(n));
   }
 
 
