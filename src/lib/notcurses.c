@@ -1239,14 +1239,8 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     return -1;
   }
   int cols = 1;
-  if(wide){
-    ++cols;
-    cell* rtarg = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
-    cell_release(n, rtarg);
-    cell_init(rtarg);
-    cell_set_wide(rtarg);
-  }
   if(wide){ // must set our right wide, and check for further damage
+    ++cols;
     if(n->x < n->lenx - 1){ // check to our right
       cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
       if(n->x < n->lenx - 2){
@@ -1254,8 +1248,8 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
           cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 2)]);
         }
       }
+      cell_obliterate(n, candidate);
       cell_set_wide(candidate);
-      cell_release(n, candidate);
     }
   }
   n->x += cols;
