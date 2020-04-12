@@ -279,7 +279,7 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
       const cell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
       // writing in a zero), use the plane's base cell.
-      if(vis->gcluster == 0){
+      if(vis->gcluster == 0 && !cell_wide_right_p(vis)){
         vis = &p->basecell;
       }
       // if we have no character in this cell, we continue to look for a
