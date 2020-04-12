@@ -48,14 +48,14 @@ namespace ncpp
 				ncselector_destroy (selector, nullptr);
 		}
 
-		bool additem (const selector_item *item) const noexcept
+		int additem (const selector_item *item) const NOEXCEPT_MAYBE
 		{
-			return ncselector_additem (selector, item) >= 0;
+			return error_guard<int> (ncselector_additem (selector, item), -1);
 		}
 
-		bool delitem (const char *item) const noexcept
+		int delitem (const char *item) const NOEXCEPT_MAYBE
 		{
-			return ncselector_delitem (selector, item) >= 0;
+			return error_guard<int> (ncselector_delitem (selector, item), -1);
 		}
 
 		const char* previtem () const noexcept

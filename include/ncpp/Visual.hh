@@ -67,20 +67,20 @@ namespace ncpp
 			return ncvisual_decode (visual, averr);
 		}
 
-		bool render (int begy, int begx, int leny, int lenx) const noexcept
+		bool render (int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
 		{
-			return ncvisual_render (visual, begy, begx, leny, lenx) != -1;
+			return error_guard (ncvisual_render (visual, begy, begx, leny, lenx), -1);
 		}
 
-		int stream (int *averr, float timescale, streamcb streamer, void *curry = nullptr) const noexcept
+		int stream (int *averr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
 		{
-			return ncvisual_stream (get_notcurses (), visual, averr, timescale, streamer, curry);
+			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, averr, timescale, streamer, curry), -1);
 		}
 
-    char* subtitle () const noexcept
-    {
-      return ncvisual_subtitle (visual);
-    }
+		char* subtitle () const noexcept
+		{
+			return ncvisual_subtitle (visual);
+		}
 
 		Plane* get_plane () const noexcept;
 

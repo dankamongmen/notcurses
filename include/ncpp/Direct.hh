@@ -24,49 +24,49 @@ namespace ncpp
 			ncdirect_stop (direct);
 		}
 
-		bool clear () const noexcept
+		bool clear () const NOEXCEPT_MAYBE
 		{
-			return ncdirect_clear (direct) >= 0;
+			return error_guard (ncdirect_clear (direct), -1);
 		}
 
-		bool set_fg_default () const noexcept
+		bool set_fg_default () const NOEXCEPT_MAYBE
 		{
-			return ncdirect_fg_default (direct) >= 0;
+			return error_guard (ncdirect_fg_default (direct), -1);
 		}
 
-		bool set_fg (unsigned rgb) const noexcept
+		bool set_fg (unsigned rgb) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_fg (direct, rgb) >= 0;
+			return error_guard (ncdirect_fg (direct, rgb), -1);
 		}
 
-		bool set_fg (unsigned r, unsigned g, unsigned b) const noexcept
+		bool set_fg (unsigned r, unsigned g, unsigned b) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_fg_rgb8 (direct, r, g, b) >= 0;
+			return error_guard (ncdirect_fg_rgb8 (direct, r, g, b), -1);
 		}
 
-		bool set_bg_default () const noexcept
+		bool set_bg_default () const NOEXCEPT_MAYBE
 		{
-			return ncdirect_bg_default (direct) >= 0;
+			return error_guard (ncdirect_bg_default (direct), -1);
 		}
 
-		bool set_bg (unsigned rgb) const noexcept
+		bool set_bg (unsigned rgb) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_bg (direct, rgb) >= 0;
+			return error_guard (ncdirect_bg (direct, rgb), -1);
 		}
 
-		bool set_bg (unsigned r, unsigned g, unsigned b) const noexcept
+		bool set_bg (unsigned r, unsigned g, unsigned b) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_bg_rgb8 (direct, r, g, b) >= 0;
+			return error_guard (ncdirect_bg_rgb8 (direct, r, g, b), -1);
 		}
 
-		int get_dim_x () const noexcept
+		int get_dim_x () const NOEXCEPT_MAYBE
 		{
-			return ncdirect_dim_x (direct);
+			return error_guard (ncdirect_dim_x (direct), -1);
 		}
 
-		int get_dim_y () const noexcept
+		int get_dim_y () const NOEXCEPT_MAYBE
 		{
-			return ncdirect_dim_y (direct);
+			return error_guard (ncdirect_dim_y (direct), -1);
 		}
 
 		void styles_set (CellStyle stylebits) const noexcept
@@ -84,39 +84,39 @@ namespace ncpp
 			ncdirect_styles_off (direct, static_cast<unsigned>(stylebits));
 		}
 
-		int cursor_move_yx (int y, int x) const noexcept
+		bool cursor_move_yx (int y, int x) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_cursor_move_yx (direct, y, x);
+			return error_guard (ncdirect_cursor_move_yx (direct, y, x), -1);
 		}
 
-		int cursor_up (int num) const noexcept
+		bool cursor_up (int num) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_cursor_up (direct, num);
+			return error_guard (ncdirect_cursor_up (direct, num), -1);
 		}
 
-		int cursor_left (int num) const noexcept
+		bool cursor_left (int num) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_cursor_left (direct, num);
+			return error_guard (ncdirect_cursor_left (direct, num), -1);
 		}
 
-		int cursor_right (int num) const noexcept
+		bool cursor_right (int num) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_cursor_right (direct, num);
+			return error_guard (ncdirect_cursor_right (direct, num), -1);
 		}
 
-		int cursor_down (int num) const noexcept
+		bool cursor_down (int num) const NOEXCEPT_MAYBE
 		{
-			return ncdirect_cursor_down (direct, num);
+			return error_guard (ncdirect_cursor_down (direct, num), -1);
 		}
 
-		bool cursor_enable () const noexcept
+		bool cursor_enable () const NOEXCEPT_MAYBE
 		{
-			return ncdirect_cursor_enable (direct) != -1;
+			return error_guard (ncdirect_cursor_enable (direct), -1);
 		}
 
-		bool cursor_disable () const noexcept
+		bool cursor_disable () const NOEXCEPT_MAYBE
 		{
-			return ncdirect_cursor_disable (direct) != -1;
+			return error_guard (ncdirect_cursor_disable (direct), -1);
 		}
 
 	private:

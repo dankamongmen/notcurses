@@ -135,14 +135,14 @@ namespace ncpp
 			return use (*p);
 		}
 
-		bool use (const Palette256 &p) const noexcept
+		bool use (const Palette256 &p) const NOEXCEPT_MAYBE
 		{
-			return palette256_use (nc, reinterpret_cast<const palette256*>(&p)) != -1;
+			return error_guard (palette256_use (nc, reinterpret_cast<const palette256*>(&p)), -1);
 		}
 
-		bool render () const noexcept
+		int render () const NOEXCEPT_MAYBE
 		{
-			return notcurses_render (nc) == 0;
+			return error_guard<int> (notcurses_render (nc), -1);
 		}
 
 		void get_term_dim (int *rows, int *cols) const noexcept
@@ -155,14 +155,14 @@ namespace ncpp
 			get_term_dim (&rows, &cols);
 		}
 
-		bool refresh (int* rows, int* cols) const noexcept
+		bool refresh (int* rows, int* cols) const NOEXCEPT_MAYBE
 		{
-			return notcurses_refresh (nc, rows, cols) == 0;
+			return error_guard (notcurses_refresh (nc, rows, cols), -1);
 		}
 
-		bool refresh (int& rows, int& cols) const noexcept
+		bool refresh (int& rows, int& cols) const NOEXCEPT_MAYBE
 		{
-			return refresh (&rows, &cols) == 0;
+			return refresh (&rows, &cols);
 		}
 
 		int get_palette_size () const noexcept
@@ -170,14 +170,14 @@ namespace ncpp
 			return notcurses_palette_size (static_cast<const notcurses*> (nc));
 		}
 
-		bool mouse_enable () const noexcept
+		bool mouse_enable () const NOEXCEPT_MAYBE
 		{
-			return notcurses_mouse_enable (nc) != -1;
+			return error_guard (notcurses_mouse_enable (nc), -1);
 		}
 
-		bool mouse_disable () const noexcept
+		bool mouse_disable () const NOEXCEPT_MAYBE
 		{
-			return notcurses_mouse_disable (nc) != -1;
+			return error_guard (notcurses_mouse_disable (nc), -1);
 		}
 
 		CellStyle get_supported_styles () const noexcept

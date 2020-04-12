@@ -31,14 +31,14 @@ namespace ncpp
 			return palette;
 		}
 
-		bool set (int idx, int r, int g, int b) const noexcept
+		bool set (int idx, int r, int g, int b) const NOEXCEPT_MAYBE
 		{
-			return palette256_set_rgb (palette, idx, r, g, b) != -1;
+			return error_guard (palette256_set_rgb (palette, idx, r, g, b), -1);
 		}
 
-		bool set (int idx, unsigned rgb) const noexcept
+		bool set (int idx, unsigned rgb) const NOEXCEPT_MAYBE
 		{
-			return palette256_set (palette, idx, rgb) != -1;
+			return error_guard (palette256_set (palette, idx, rgb), -1);
 		}
 
 		bool get (int idx, unsigned *r, unsigned *g, unsigned *b) const
@@ -53,9 +53,9 @@ namespace ncpp
 			return get (idx, *r, *g, *b);
 		}
 
-		bool get (int idx, unsigned &r, unsigned &g, unsigned &b) const noexcept
+		bool get (int idx, unsigned &r, unsigned &g, unsigned &b) const NOEXCEPT_MAYBE
 		{
-			return palette256_get_rgb (palette, idx, &r, &g, &b) != -1;
+			return error_guard (palette256_get_rgb (palette, idx, &r, &g, &b), -1);
 		}
 
 	private:

@@ -72,39 +72,39 @@ namespace ncpp
 			return ncreel_tabletcount (reel);
 		}
 
-		bool touch (NcTablet *t) const noexcept
+		bool touch (NcTablet *t) const NOEXCEPT_MAYBE
 		{
-			return ncreel_touch (reel, get_tablet (t)) != -1;
+			return error_guard (ncreel_touch (reel, get_tablet (t)), -1);
 		}
 
-		bool touch (NcTablet &t) const noexcept
+		bool touch (NcTablet &t) const NOEXCEPT_MAYBE
 		{
 			return touch (&t);
 		}
 
-		bool del (NcTablet *t) const noexcept
+		bool del (NcTablet *t) const NOEXCEPT_MAYBE
 		{
-			return ncreel_del (reel, get_tablet (t)) != -1;
+			return error_guard (ncreel_del (reel, get_tablet (t)), -1);
 		}
 
-		bool del (NcTablet &t) const noexcept
+		bool del (NcTablet &t) const NOEXCEPT_MAYBE
 		{
 			return del (&t);
 		}
 
-		bool del_focused () const noexcept
+		bool del_focused () const NOEXCEPT_MAYBE
 		{
-			return ncreel_del_focused (reel) != -1;
+			return error_guard (ncreel_del_focused (reel), -1);
 		}
 
-		bool move (int x, int y) const noexcept
+		bool move (int x, int y) const NOEXCEPT_MAYBE
 		{
-			return ncreel_move (reel, x, y) != -1;
+			return error_guard (ncreel_move (reel, x, y), -1);
 		}
 
-		bool redraw () const noexcept
+		bool redraw () const NOEXCEPT_MAYBE
 		{
-			return ncreel_redraw (reel) != -1;
+			return error_guard (ncreel_redraw (reel), -1);
 		}
 
 		NcTablet* get_focused () const noexcept
