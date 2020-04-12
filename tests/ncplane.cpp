@@ -963,20 +963,17 @@ TEST_CASE("NCPlane") {
     CHECK(!(c.channels & 0x8000000080000000ull));
   }
 
-  // Render a translucent plane atop a wide glyph, and check that the colors
-  // are right on both cells.
+  // Render a translucent plane atop a wide glyph, and check the colors on both
+  // cells. See https://github.com/dankamongmen/notcurses/issues/362.
   SUBCASE("OverWide") {
     struct ncplane* p = ncplane_new(nc_, 3, 4, 0, 0, nullptr);
     REQUIRE(nullptr != p);
     cell c = CELL_SIMPLE_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(p, &c, &c, &c, &c, &c, &c, 0));
-    int sbytes;
-    ncplane_set_fg_rgb(n_, 0xa0, 0xf0, 0xa0);
     ncplane_set_bg_rgb(n_, 0x20, 0x20, 0x20);
+    int sbytes;
     CHECK(2 == ncplane_putegc_yx(n_, 1, 1, "六", &sbytes));
     uint64_t channels = 0;
-    channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-    channels_set_fg_rgb(&channels, 0x80, 0xf0, 0x10);
     channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
     channels_set_bg_rgb(&channels, 0x80, 0xf0, 0x10);
     CHECK(1 == ncplane_set_base(p, channels, 0, " "));
@@ -991,6 +988,15 @@ TEST_CASE("NCPlane") {
     REQUIRE(nullptr != egc);
     CHECK(0 == strcmp(" ", egc));
     free(egc);
+    cell cl = CELL_TRIVIAL_INITIALIZER, cr = CELL_TRIVIAL_INITIALIZER;
+    CHECK(3 == ncplane_at_yx(n_, 1, 1, &cl));
+    REQUIRE(cell_extended_gcluster(n_, &cl));
+    CHECK(0 == strcmp("六", extended_gcluster(n_, &cl)));
+    CHECK(0 == ncplane_at_yx(n_, 1, 2, &cr));
+    REQUIRE(cell_simple_p(&cr));
+    CHECK(0 == cr.gcluster);
+    cell_release(n_, &cl);
+    cell_release(n_, &cr);
     CHECK(chanright == chanleft);
     ncplane_destroy(p);
   }
