@@ -2645,6 +2645,7 @@ up someday **FIXME**.
 
 ### History
 
+* 2020-04-12: notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
 * 2020-02-17: notcurses [1.2.0 "check the résumé, my record's impeccable"](https://github.com/dankamongmen/notcurses/releases/tag/v1.2.0).
 * 2019-01-19: notcurses [1.1.0 "all the hustlas they love it just to see one of us make it"](https://github.com/dankamongmen/notcurses/releases/tag/v1.1.0).
     Much better video support, pulsing planes, palette256.
