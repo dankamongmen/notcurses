@@ -70,15 +70,21 @@ int highcontrast_demo(struct notcurses* nc){
   if(scrcolors == NULL){
     return -1;
   }
+  const char motto[] = " high contrast text ";
+  cell c = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
   unsigned total = 0, r = 0, g = 0, b = 0;
   for(int out = 0 ; out < totcells ; ++out){ // build up the initial screen
     scrcolors[out] = generate_next_color(&total, &r, &g, &b, STEP);
     if(total > 768){
       total = r = g = b = 0;
     }
+    cell_load_simple(n, &c, motto[out % strlen(motto)]);
+    cell_set_bg(&c, scrcolors[out % totcells]);
+    if(ncplane_putc_yx(n, (out + dimx) / dimx, out % dimx, &c) < 0){
+      goto err;
+    }
   }
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  const char motto[] = " high contrast text ";
   // each iteration, "draw the background in" one cell from the top left and
   // bottom right.
   int offset = 0;
@@ -95,14 +101,6 @@ int highcontrast_demo(struct notcurses* nc){
       }
       cell_load_simple(n, &c, motto[l % strlen(motto)]);
       if(ncplane_putc_yx(n, l / dimx, l % dimx, &c) < 0){
-        goto err;
-      }
-    }
-    cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
-    for(int yx = offset + dimx ; yx < totcells - offset ; ++yx){
-      cell_load_simple(n, &c, motto[yx % strlen(motto)]);
-      cell_set_bg(&c, scrcolors[yx % totcells]);
-      if(ncplane_putc_yx(n, (yx + dimx) / dimx, yx % dimx, &c) < 0){
         goto err;
       }
     }
