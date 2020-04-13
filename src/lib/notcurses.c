@@ -1018,7 +1018,7 @@ int notcurses_stop(notcurses* nc){
                   NANOSECS_IN_SEC * (double)nc->stashstats.renders / nc->stashstats.render_ns : 0.0,
                 nc->stashstats.failed_renders,
                 nc->stashstats.failed_renders == 1 ? "" : "s");
-        fprintf(stderr, "RGB emits/elides: def %lu/%lu fg %lu/%lu bg %lu/%lu\n",
+        fprintf(stderr, "RGB emits/elides: def %lu:%lu fg %lu:%lu bg %lu:%lu\n",
                 nc->stashstats.defaultemissions,
                 nc->stashstats.defaultelisions,
                 nc->stashstats.fgemissions,
