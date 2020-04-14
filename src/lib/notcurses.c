@@ -1119,7 +1119,7 @@ int ncplane_set_base_cell(ncplane* ncp, const cell* c){
   return cell_duplicate(ncp, &ncp->basecell, c);
 }
 
-int ncplane_set_base(ncplane* ncp, uint32_t attrword, uint64_t channels, const char* egc){
+int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t attrword, uint64_t channels){
   return cell_prime(ncp, &ncp->basecell, egc, attrword, channels);
 }
 

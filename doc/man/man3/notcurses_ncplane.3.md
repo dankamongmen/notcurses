@@ -28,7 +28,7 @@ notcurses_ncplane - operations on notcurses planes
 
 **int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);**
 
-**int ncplane_set_base(struct ncplane* ncp, uint32_t attrword, uint64_t channels, const char* egc);**
+**int ncplane_set_base(struct ncplane* ncp, const char* egc, uint32_t attrword, uint64_t channels);**
 
 **int ncplane_base(struct ncplane* ncp, cell* c);**
 

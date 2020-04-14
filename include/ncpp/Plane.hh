@@ -768,9 +768,9 @@ namespace ncpp
 			return ncplane_set_base_cell (plane, c) >= 0;
 		}
 
-		bool set_base (uint32_t attrword, uint64_t channels, const char *egc) const noexcept
+		bool set_base (const char* egc, uint32_t attrword, uint64_t channels) const noexcept
 		{
-			return ncplane_set_base (plane, attrword, channels, egc) >= 0;
+			return ncplane_set_base (plane, egc, attrword, channels) >= 0;
 		}
 
 		bool get_base (Cell &c) const noexcept

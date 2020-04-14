@@ -72,7 +72,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   ncplane_yx(non, NULL, &xs);
   uint64_t channels = 0;
   channels_set_bg_rgb(&channels, 0x58, 0x36, 0x58);
-  if(ncplane_set_base(non, 0, channels, " ") < 0){
+  if(ncplane_set_base(non, " ", 0, channels) < 0){
     return NULL;
   }
   ncplane_dim_yx(non, rows, cols);

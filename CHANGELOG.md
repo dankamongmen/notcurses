@@ -8,6 +8,10 @@ rearrangements of Notcurses.
     matches `notcurses_at_yx()`, and means they're no longer invalidated if the
     plane in question is destroyed. The previous functionality is available as
     new functions `ncplane_at_yx_cell()` and `ncplane_at_cursor_cell()`.
+  * `ncplane_set_base()` inverted its `uint32_t attrword` and `uint64_t channels`
+    parameters, thus matching every other function with these two parameters.
+    It moved `const char* egc` before either, to force a type error, as the
+    change would otherwise be likely to go overlooked.
 
 * 1.3.0 (2020-04-12)
   * No user-visible changes

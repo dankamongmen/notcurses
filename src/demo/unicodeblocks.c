@@ -188,7 +188,7 @@ int unicodeblocks_demo(struct notcurses* nc){
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_fg(&channels, 0x004000);
   channels_set_bg(&channels, 0x0);
-  ncplane_set_base(header, 0, channels, "");
+  ncplane_set_base(header, "", 0, channels);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_set_bg_rgb(n, 0, 0, 0);
     uint32_t blockstart = blocks[sindex].start;

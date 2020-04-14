@@ -616,7 +616,7 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts, int efd){
     free(nr);
     return NULL;
   }
-  ncplane_set_base(nr->p, 0, ropts->bgchannel, "");
+  ncplane_set_base(nr->p, "", 0, ropts->bgchannel);
   if(ncreel_redraw(nr)){
     ncplane_destroy(nr->p);
     free(nr);
