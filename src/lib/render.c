@@ -307,7 +307,7 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
           }
           crender->p = p;
           targc->attrword = vis->attrword;
-        }else if(cell_double_wide_p(vis)){
+        }else if(cell_wide_left_p(vis)){
           cell_set_wide(targc);
         }
       }
@@ -355,7 +355,7 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", pool->pool, nc, crender->p);
 }*/
         if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
           crender->damaged = true;
-          if(cell_double_wide_p(targc)){
+          if(cell_wide_left_p(targc)){
             ncplane* tmpp = crender->p;
             ++crender;
             crender->p = tmpp;
@@ -846,7 +846,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         // here. no updates are performed to elision state nor lastframe.
         ++nc->stats.cellelisions;
         ++needmove;
-        if(cell_double_wide_p(srccell)){
+        if(cell_wide_left_p(srccell)){
           ++needmove;
           ++nc->stats.cellelisions;
         }
@@ -964,7 +964,7 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
 }*/
         ret |= term_putc(out, &nc->pool, srccell);
       }
-      if(cell_double_wide_p(srccell)){
+      if(cell_wide_left_p(srccell)){
         ++x;
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
