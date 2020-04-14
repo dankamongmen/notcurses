@@ -258,6 +258,115 @@ TEST_CASE("Wide") {
     CHECK(!(c.channels & 0x8000000080000000ull));
   }
 
+  // If an ncplane is moved atop the right half of a wide glyph, the entire
+  // glyph should be oblitrated.
+  SUBCASE("PlaneStompsWideGlyph"){
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    char* egc;
+
+    // print two wide glyphs on the standard plane
+    int y, x;
+    ncplane_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(0 == x);
+    CHECK(3 == ncplane_putstr(n_, "\xe5\x85\xa8"));
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(2 == x);
+    CHECK(3 == ncplane_putstr(n_, "\xe5\xbd\xa2"));
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(4 == x);
+    CHECK(!notcurses_render(nc_));
+
+    // should be wide char 1
+    REQUIRE(3 == ncplane_at_yx(n_, 0, 0, &c));
+    egc = cell_egc_copy(n_, &c);
+    REQUIRE(egc);
+    CHECK(!strcmp("\xe5\x85\xa8", egc));
+    CHECK(cell_double_wide_p(&c));
+    free(egc);
+    egc = notcurses_at_yx(nc_, 0, 0, &c.attrword, &c.channels);
+    REQUIRE(egc);
+    CHECK(!strcmp("\xe5\x85\xa8", egc));
+    CHECK(cell_double_wide_p(&c));
+    free(egc);
+    cell_init(&c);
+    // should be wide char 1 right side
+    REQUIRE(0 == ncplane_at_yx(n_, 0, 1, &c));
+    egc = cell_egc_copy(n_, &c);
+    REQUIRE(egc);
+    CHECK(!strcmp("", egc));
+    CHECK(cell_double_wide_p(&c));
+    free(egc);
+    egc = notcurses_at_yx(nc_, 0, 1, &c.attrword, &c.channels);
+    REQUIRE(egc);
+    CHECK(!strcmp("", egc));
+    CHECK(cell_double_wide_p(&c));
+    free(egc);
+    cell_init(&c);
+
+    // should be wide char 2
+    REQUIRE(3 == ncplane_at_yx(n_, 0, 2, &c));
+    egc = cell_egc_copy(n_, &c);
+    REQUIRE(egc);
+    CHECK(!strcmp("\xe5\xbd\xa2", egc));
+    CHECK(cell_double_wide_p(&c));
+    free(egc);
+    egc = notcurses_at_yx(nc_, 0, 2, &c.attrword, &c.channels);
+    REQUIRE(egc);
+    CHECK(!strcmp("\xe5\xbd\xa2", egc));
+    CHECK(cell_double_wide_p(&c));
+    free(egc);
+    cell_init(&c);
+    // should be wide char 2 right side
+    CHECK(0 == ncplane_at_yx(n_, 0, 3, &c));
+    egc = cell_egc_copy(n_, &c);
+    REQUIRE(egc);
+    CHECK(!strcmp("", egc));
+    CHECK(cell_double_wide_p(&c));
+    free(egc);
+    egc = notcurses_at_yx(nc_, 0, 3, &c.attrword, &c.channels);
+    REQUIRE(egc);
+    CHECK(!strcmp("", egc));
+    CHECK(cell_double_wide_p(&c));
+    free(egc);
+    cell_init(&c);
+
+    struct ncplane* n = ncplane_new(nc_, 1, 2, 0, 1, nullptr);
+    REQUIRE(n);
+    CHECK(0 < ncplane_putstr(n, "AB"));
+    CHECK(!notcurses_render(nc_));
+
+    // should be nothing, having been stomped
+    egc = notcurses_at_yx(nc_, 0, 0, &c.attrword, &c.channels);
+    REQUIRE(egc);
+    CHECK(0 == strcmp(" ", egc));
+    free(egc);
+    cell_init(&c);
+    // should be character from higher plane
+    egc = notcurses_at_yx(nc_, 0, 1, &c.attrword, &c.channels);
+    REQUIRE(egc);
+    CHECK(0 == strcmp("A", egc));
+    free(egc);
+    cell_init(&c);
+
+    egc = notcurses_at_yx(nc_, 0, 2, &c.attrword, &c.channels);
+    REQUIRE(egc);
+    CHECK(0 == strcmp("B", egc));
+    free(egc);
+    cell_init(&c);
+
+    // should be nothing, having been stomped
+    egc = notcurses_at_yx(nc_, 0, 3, &c.attrword, &c.channels);
+    REQUIRE(egc);
+    CHECK(0 == strcmp(" ", egc));
+    free(egc);
+    cell_init(&c);
+
+    CHECK(0 == ncplane_destroy(n));
+  }
+
   // Render a translucent plane atop a wide glyph, and check the colors on both
   // cells. See https://github.com/dankamongmen/notcurses/issues/362.
   SUBCASE("OverWide") {
@@ -340,7 +449,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, ""));
+    CHECK(0 == strcmp(egc, " "));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
     CHECK(0 == strcmp(egc, " "));
@@ -358,7 +467,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "d"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, ""));
+    CHECK(0 == strcmp(egc, " "));
     free(egc);
     CHECK(0 == ncplane_move_yx(topp, 0, 2));
     CHECK(0 == notcurses_render(nc_));
@@ -366,7 +475,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, ""));
+    CHECK(0 == strcmp(egc, " "));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
     CHECK(0 == strcmp(egc, "a"));
@@ -404,13 +513,13 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "d"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, ""));
+    CHECK(0 == strcmp(egc, " "));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, "六")); // FIXME returns -1?!?!
+    CHECK(0 == strcmp(egc, "六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, ""));
+    CHECK(0 == strcmp(egc, " "));
     free(egc);
     CHECK(0 == ncplane_move_yx(topp, 0, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -436,7 +545,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, ""));
+    CHECK(0 == strcmp(egc, " "));
     free(egc);
     ncplane_destroy(topp);
   }
