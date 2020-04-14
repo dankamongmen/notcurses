@@ -15,7 +15,7 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   uint64_t channels = 0;
   channels_set_fg(&channels, 0x000088);
   channels_set_bg(&channels, 0x88aa00);
-  if(ncplane_set_base(selplane, channels, 0, " ") < 0){
+  if(ncplane_set_base(selplane, 0, channels, " ") < 0){
     goto err;
   }
   char32_t keypress;
@@ -119,7 +119,7 @@ int main(void){
   uint64_t channels = 0;
   channels_set_fg(&channels, 0x88aa00);
   channels_set_bg(&channels, 0x000088);
-  if(ncplane_set_base(n, channels, 0, "x") < 0){
+  if(ncplane_set_base(n, 0, channels, "x") < 0){
     return EXIT_FAILURE;
   }
 

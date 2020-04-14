@@ -790,8 +790,8 @@ int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
 // does not reset the base cell; this function must be called with an empty
 // 'egc'. 'egc' must be a single extended grapheme cluster.
-int ncplane_set_base(struct ncplane* ncp, uint64_t channels,
-                     uint32_t attrword, const char* egc);
+int ncplane_set_base(struct ncplane* ncp, uint32_t attrword,
+                     uint64_t channels, const char* egc);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.

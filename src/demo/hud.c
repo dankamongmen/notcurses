@@ -58,7 +58,7 @@ hud_standard_bg(struct ncplane* n){
   channels_set_fg_rgb(&channels, 0x0, 0x0, 0x0);
   channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_bg_rgb(&channels, 0x0, 0x0, 0x0);
-  if(ncplane_set_base(n, channels, 0, "") >= 0){
+  if(ncplane_set_base(n, 0, channels, "") >= 0){
     return -1;
   }
   return 0;
@@ -103,7 +103,7 @@ about_toggle(struct notcurses* nc){
   channels_set_fg_rgb(&channels, 0x0, 0x0, 0x0);
   channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_bg_rgb(&channels, 0x0, 0x0, 0x0);
-  if(ncplane_set_base(n, channels, 0, "") >= 0){
+  if(ncplane_set_base(n, 0, channels, "") >= 0){
     ncplane_set_fg(n, 0xc0f0c0);
     ncplane_set_bg(n, 0);
     ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);

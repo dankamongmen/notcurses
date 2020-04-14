@@ -93,7 +93,7 @@ typedef struct ncinput {
   uint64_t seqnum;
 } ncinput;
 int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
-int ncplane_set_base(struct ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc);
+int ncplane_set_base(struct ncplane* ncp, uint32_t attrword, uint64_t channels, const char* egc);
 int ncplane_base(struct ncplane* ncp, cell* c);
 struct ncplane* notcurses_top(struct notcurses* n);
 void notcurses_drop_planes(struct notcurses* nc);

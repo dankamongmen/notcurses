@@ -67,7 +67,7 @@ int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void*
       uint64_t channels = 0;
       channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-      ncplane_set_base(subtitle_plane, channels, 0, "");
+      ncplane_set_base(subtitle_plane, 0, channels, "");
       ncplane_set_fg(subtitle_plane, 0x00ffff);
       ncplane_set_fg_alpha(subtitle_plane, CELL_ALPHA_HIGHCONTRAST);
       ncplane_set_bg_alpha(subtitle_plane, CELL_ALPHA_TRANSPARENT);
