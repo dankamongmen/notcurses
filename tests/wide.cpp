@@ -296,6 +296,179 @@ TEST_CASE("Wide") {
     ncplane_destroy(p);
   }
 
+  // drag a plane of narrow chars across a plane of wide glyphs
+  SUBCASE("NarrowPlaneAtopWide") {
+    notcurses_cursor_disable(nc_);
+    CHECK(0 == ncplane_set_fg_rgb(n_, 0xff, 0, 0xff));
+    // start the 1x4 top plane at 0, 4
+    struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
+    REQUIRE(nullptr != topp);
+    CHECK(0 == ncplane_set_bg_rgb(topp, 0, 0xff, 0));
+    CHECK(4 == ncplane_putstr(topp, "abcd"));
+    CHECK(12 == ncplane_putstr(n_, "六六六六"));
+    CHECK(0 == notcurses_render(nc_));
+    uint32_t attrword;
+    uint64_t channels;
+    char* egc;
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "六"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "六"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "a"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "b"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "c"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "d"));
+    free(egc);
+    CHECK(0 == ncplane_move_yx(topp, 0, 3));
+    CHECK(0 == notcurses_render(nc_));
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "六"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, " "));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "a"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "b"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "c"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "d"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    CHECK(0 == ncplane_move_yx(topp, 0, 2));
+    CHECK(0 == notcurses_render(nc_));
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "六"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "a"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "b"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "c"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "d"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "六"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    CHECK(0 == ncplane_move_yx(topp, 0, 1));
+    CHECK(0 == notcurses_render(nc_));
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, " "));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "a"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "b"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "c"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "d"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "六")); // FIXME returns -1?!?!
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    CHECK(0 == ncplane_move_yx(topp, 0, 0));
+    CHECK(0 == notcurses_render(nc_));
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "a"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "b"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "c"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "d"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "六"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, "六"));
+    free(egc);
+    REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+    ncplane_destroy(topp);
+  }
+
+  // drag a plane of wide glyphs across a plane of narrow glyphs
+  SUBCASE("WidePlaneAtopNarrow") {
+    CHECK(0 == ncplane_set_fg_rgb(n_, 0xff, 0, 0xff));
+    // start the 1x4 top plane at 0, 4
+    struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
+    REQUIRE(nullptr != topp);
+    CHECK(0 == ncplane_set_bg_rgb(topp, 0, 0xff, 0));
+    CHECK(6 == ncplane_putstr(topp, "次次"));
+    CHECK(9 == ncplane_putstr(n_, "六六六"));
+    CHECK(0 == notcurses_render(nc_));
+    // FIXME
+    ncplane_destroy(topp);
+  }
+
+  // drag a plane of wide glyphs across a plane of wide glyphs
+  SUBCASE("WidePlaneAtopWide") {
+    CHECK(0 == ncplane_set_fg_rgb(n_, 0xff, 0, 0xff));
+    // start the 1x4 top plane at 0, 4
+    struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
+    REQUIRE(nullptr != topp);
+    CHECK(0 == ncplane_set_bg_rgb(topp, 0, 0xff, 0));
+    CHECK(6 == ncplane_putstr(topp, "次次"));
+    CHECK(6 == ncplane_putstr(n_, "abcdef"));
+    CHECK(0 == notcurses_render(nc_));
+    // FIXME
+    ncplane_destroy(topp);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 
