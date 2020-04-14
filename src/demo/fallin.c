@@ -141,7 +141,7 @@ int fallin_demo(struct notcurses* nc){
             continue;
           }
           cell c = CELL_TRIVIAL_INITIALIZER;
-          if(ncplane_at_yx(stdn, usey, usex, &c) < 0){
+          if(ncplane_at_yx_cell(stdn, usey, usex, &c) < 0){
             return -1;
           }
           if(!cell_simple_p(&c)){

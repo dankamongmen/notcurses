@@ -95,7 +95,7 @@ TEST_CASE("ZAxisTest") {
     REQUIRE(1 == ncplane_putc(n_, &c));
     CHECK(!notcurses_render(nc_));
     REQUIRE(!ncplane_cursor_move_yx(n_, 0, 0));
-    REQUIRE(1 == ncplane_at_cursor(n_, &cat));
+    REQUIRE(1 == ncplane_at_cursor_cell(n_, &cat));
     REQUIRE(cell_simple_p(&cat));
     REQUIRE('x' == cat.gcluster);
     struct ncplane* n2 = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
@@ -104,7 +104,7 @@ TEST_CASE("ZAxisTest") {
     REQUIRE(1 == ncplane_putc(n2, &c));
     CHECK_EQ(0, notcurses_render(nc_));
     REQUIRE(!ncplane_cursor_move_yx(n2, 0, 0));
-    REQUIRE(1 == ncplane_at_cursor(n2, &cat));
+    REQUIRE(1 == ncplane_at_cursor_cell(n2, &cat));
     REQUIRE('y' == cat.gcluster);
     struct ncplane* n3 = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(1 == cell_load(n3, &c, "z"));
@@ -112,7 +112,7 @@ TEST_CASE("ZAxisTest") {
     REQUIRE(1 == ncplane_putc(n3, &c));
     CHECK(!notcurses_render(nc_));
     REQUIRE(!ncplane_cursor_move_yx(n3, 0, 0));
-    REQUIRE(1 == ncplane_at_cursor(n3, &cat));
+    REQUIRE(1 == ncplane_at_cursor_cell(n3, &cat));
     REQUIRE('z' == cat.gcluster);
     // FIXME testing damage requires notcurses keeping a copy of the screen....
     // FIXME move y atop z

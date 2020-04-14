@@ -263,7 +263,7 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
       }
       if(ncm->sections[i].shortcut_offset >= 0){
         cell cl = CELL_TRIVIAL_INITIALIZER;
-        if(ncplane_at_yx(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
+        if(ncplane_at_yx_cell(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
           return -1;
         }
         cell_styles_on(&cl, NCSTYLE_UNDERLINE|NCSTYLE_BOLD);
@@ -396,7 +396,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
       }
       if(sec->items[i].shortcut_offset >= 0){
         cell cl = CELL_TRIVIAL_INITIALIZER;
-        if(ncplane_at_yx(n->ncp, ypos, xpos + 1 + sec->items[i].shortcut_offset, &cl) < 0){
+        if(ncplane_at_yx_cell(n->ncp, ypos, xpos + 1 + sec->items[i].shortcut_offset, &cl) < 0){
           return -1;
         }
         cell_styles_on(&cl, NCSTYLE_UNDERLINE|NCSTYLE_BOLD);

@@ -95,7 +95,7 @@ TEST_CASE("Fills") {
     // check all squares 
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
-        REQUIRE(0 <= ncplane_at_yx(n_, y, x, &cl));
+        REQUIRE(0 <= ncplane_at_yx_cell(n_, y, x, &cl));
         CHECK('M' == cl.gcluster);
         CHECK(0 == cl.attrword);
         CHECK(channels == cl.channels);
@@ -129,7 +129,7 @@ TEST_CASE("Fills") {
     for(int y = 0 ; y < dimy ; ++y){
       lastxrgb = -1;
       for(int x = 0 ; x < dimx ; ++x){
-        REQUIRE(0 <= ncplane_at_yx(n_, y, x, &c));
+        REQUIRE(0 <= ncplane_at_yx_cell(n_, y, x, &c));
         CHECK('V' == c.gcluster);
         CHECK(0 == c.attrword);
         if(lastxrgb == (uint64_t)-1){
@@ -222,7 +222,7 @@ TEST_CASE("Fills") {
     cell_styles_on(&c, NCSTYLE_BOLD);
     CHECK(0 < ncplane_format(n_, 0, 0, c.attrword));
     cell d = CELL_TRIVIAL_INITIALIZER;
-    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
+    CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(d.attrword == c.attrword);
     CHECK(0x444444 == cell_fg(&d));
   }
@@ -246,7 +246,7 @@ TEST_CASE("Fills") {
     cell d = CELL_TRIVIAL_INITIALIZER;
     for(int y = 0 ; y < 8 ; ++y){
       for(int x = 0 ; x < 8 ; ++x){
-        CHECK(1 == ncplane_at_yx(n_, y, x, &d));
+        CHECK(1 == ncplane_at_yx_cell(n_, y, x, &d));
         CHECK(channels == d.channels);
         REQUIRE(cell_simple_p(&d));
         CHECK('A' == d.gcluster);
@@ -267,7 +267,7 @@ TEST_CASE("Fills") {
     REQUIRE(0 < ncplane_gradient(n_, "A", 0, channels, channels, channels, channels, 0, 0));
     CHECK(0 == notcurses_render(nc_));
     cell d = CELL_TRIVIAL_INITIALIZER;
-    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
+    CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(channels == d.channels);
     REQUIRE(cell_simple_p(&d));
     CHECK('A' == d.gcluster);
@@ -288,13 +288,13 @@ TEST_CASE("Fills") {
     REQUIRE(0 < ncplane_gradient(n_, "A", 0, chan1, chan2, chan1, chan2, 0, 3));
     CHECK(0 == notcurses_render(nc_));
     cell d = CELL_TRIVIAL_INITIALIZER;
-    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
+    CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(chan1 == d.channels);
     REQUIRE(cell_simple_p(&d));
     CHECK('A' == d.gcluster);
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_gradient(n_, "A", 0, chan2, chan1, chan2, chan1, 0, 3));
-    CHECK(1 == ncplane_at_yx(n_, 0, 0, &d));
+    CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     REQUIRE(cell_simple_p(&d));
     CHECK('A' == d.gcluster);
     CHECK(chan2 == d.channels);
@@ -337,8 +337,8 @@ TEST_CASE("Fills") {
     cell cbase = CELL_TRIVIAL_INITIALIZER;
     cell cp = CELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
-      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
-      CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
+      CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
     CHECK(0 == ncplane_cursor_move_yx(p1, 0, 0));
@@ -346,8 +346,8 @@ TEST_CASE("Fills") {
     CHECK(0 < ncplane_putstr(p1, "9876543210"));
     CHECK(0 == ncplane_mergedown(p1, n_));
     for(int i = 0 ; i < 10 ; ++i){
-      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
-      CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
+      CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
     // make sure nulls do not replace glyphs
@@ -355,8 +355,8 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_mergedown(p2, n_));
     ncplane_destroy(p2);
     for(int i = 0 ; i < 10 ; ++i){
-      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
-      CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
+      CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
     ncplane_destroy(p1);
@@ -371,8 +371,8 @@ TEST_CASE("Fills") {
     cell cbase = CELL_TRIVIAL_INITIALIZER;
     cell cp = CELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
-      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
-      CHECK(0 < ncplane_at_yx(p1, 0, i, &cp));
+      CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
     ncplane_destroy(p1);
@@ -384,8 +384,8 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_mergedown(p3, NULL));
     cell c3 = CELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
-      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
-      CHECK(0 < ncplane_at_yx(p3, 0, i, &c3));
+      CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx_cell(p3, 0, i, &c3));
       CHECK(0 == cellcmp(n_, &cbase, p3, &c3));
     }
     CHECK(0 == notcurses_render(nc_));
@@ -394,8 +394,8 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_mergedown(p2, NULL));
     ncplane_destroy(p2);
     for(int i = 0 ; i < 10 ; ++i){
-      CHECK(0 < ncplane_at_yx(n_, 0, i, &cbase));
-      CHECK(0 < ncplane_at_yx(p3, 0, i, &c3));
+      CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
+      CHECK(0 < ncplane_at_yx_cell(p3, 0, i, &c3));
       CHECK(0 == cellcmp(n_, &cbase, p3, &c3));
     }
     ncplane_destroy(p3);
@@ -426,11 +426,11 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     for(int y = 0 ; y < DIMY ; ++y){
       for(int x = 0 ; x < DIMX ; ++x){
-        CHECK(0 < ncplane_at_yx(p1, y, x, &c1));
+        CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
           CHECK(0 == strcmp(extended_gcluster(p1, &c1), "█"));
         }else{
-          CHECK(0 < ncplane_at_yx(p2, y - 1, x - 1, &c2));
+          CHECK(0 < ncplane_at_yx_cell(p2, y - 1, x - 1, &c2));
           CHECK(0 == cellcmp(p1, &c1, p2, &c2));
         }
       }

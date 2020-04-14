@@ -128,8 +128,10 @@ int ncplane_move_below(struct ncplane* n, struct ncplane* below);
 int ncplane_move_above(struct ncplane* n, struct ncplane* above);
 struct ncplane* ncplane_below(struct ncplane* n);
 char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels);
-int ncplane_at_cursor(struct ncplane* n, cell* c);
-int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
+char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);
+int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
+char* ncplane_at_yx(struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);
+int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,

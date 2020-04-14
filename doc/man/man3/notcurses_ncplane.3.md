@@ -42,9 +42,13 @@ notcurses_ncplane - operations on notcurses planes
 
 **struct ncplane* ncplane_below(struct ncplane* n);**
 
-**int ncplane_at_cursor(struct ncplane* n, cell* c);**
+**char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);**
 
-**int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);**
+**int ncplane_at_cursor_cell(struct ncplane* n, cell* c);**
+
+**char* ncplane_at_yx(struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);**
+
+**int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);**
 
 **void* ncplane_set_userptr(struct ncplane* n, void* opaque);**
 
@@ -217,6 +221,12 @@ plane is the bottommost plane, NULL is returned. It cannot fail.
 
 **ncplane_set_scrolling** returns **true** if scrolling was previously enabled,
 and **false** otherwise.
+
+**ncplane_at_yx** and **ncplane_at_cursor** return a heap-allocated copy of the
+EGC at the relevant cell, or NULL if the cell is invalid. The caller should free
+this result. **ncplane_at_yx_cell** and **ncplane_at_cursor_cell** instead load
+these values into a **cell**, which is invalidated if the associated plane is
+destroyed. The caller should release this cell with **cell_release**.
 
 Functions returning **int** return 0 on success, and non-zero on error.
 

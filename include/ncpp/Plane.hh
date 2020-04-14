@@ -780,7 +780,7 @@ namespace ncpp
 
 		bool at_cursor (Cell &c) const noexcept
 		{
-			return ncplane_at_cursor (plane, c) >= 0;
+			return ncplane_at_cursor_cell (plane, c) >= 0;
 		}
 
 		bool at_cursor (Cell *c) const
@@ -791,9 +791,17 @@ namespace ncpp
 			return at_cursor (*c);
 		}
 
+		char* at_cursor (uint32_t* attrword, uint64_t* channels) const
+		{
+			if (attrword == nullptr || channels == nullptr)
+				return nullptr;
+
+			return ncplane_at_cursor (plane, attrword, channels);
+		}
+
 		int get_at (int y, int x, Cell &c) const noexcept
 		{
-			return ncplane_at_yx (plane, y, x, c);
+			return ncplane_at_yx_cell (plane, y, x, c);
 		}
 
 		int get_at (int y, int x, Cell *c) const
@@ -802,6 +810,14 @@ namespace ncpp
 				return -1;
 
 			return get_at (y, x, *c);
+		}
+
+		char* get_at (int y, int x, uint32_t* attrword, uint64_t* channels) const
+		{
+			if (attrword == nullptr || channels == nullptr)
+				return nullptr;
+
+			return ncplane_at_yx (plane, y, x, attrword, channels);
 		}
 
 		void* set_userptr (void *opaque) const noexcept

@@ -61,7 +61,7 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
 
 static void
 surrounding_cells(struct ncplane* n, cell* lightup, int y, int x){
-  ncplane_at_yx(n, y, x, lightup);
+  ncplane_at_yx_cell(n, y, x, lightup);
 }
 
 static int
