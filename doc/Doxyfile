@@ -46,12 +46,11 @@ PROJECT_NUMBER         = 1.3.0
 
 PROJECT_BRIEF          = "a blingful library for TUIs and character graphics"
 
-# With the PROJECT_LOGO tag one can specify a logo or an icon that is included
-# in the documentation. The maximum height of the logo should not exceed 55
+# With the PROJECT_LOGO tag one can specify a logo or an icon that is included # in the documentation. The maximum height of the logo should not exceed 55
 # pixels and the maximum width should not exceed 200 pixels. Doxygen will copy
 # the logo to the output directory.
 
-PROJECT_LOGO           = ../doc/logo-1280x640.png
+PROJECT_LOGO           = ../doc/logo-200x55.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is
