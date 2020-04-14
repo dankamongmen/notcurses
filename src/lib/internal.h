@@ -57,8 +57,13 @@ struct esctrie;
 // A plane may be partially or wholly offscreen--this might occur if the
 // screen is resized, for example. Offscreen portions will not be rendered.
 // Accesses beyond the borders of a panel, however, are errors.
+//
+// The framebuffer 'fb' is a set of rows. For scrolling, we interpret it as a
+// circular buffer of rows. 'logrow' is the index of the row at the logical top
+// of the plane.
 typedef struct ncplane {
   cell* fb;             // "framebuffer" of character cells
+  int logrow;           // logical top row, starts at 0, add one for each scroll
   int x, y;             // current cursor location within this plane
   int absx, absy;       // origin of the plane relative to the screen
   int lenx, leny;       // size of the plane, [0..len{x,y}) is addressable

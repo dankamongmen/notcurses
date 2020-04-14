@@ -286,6 +286,7 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   p->leny = rows;
   p->lenx = cols;
   p->x = p->y = 0;
+  p->logrow = 0;
   if( (p->bound = n) ){
     p->absx = xoff + n->absx;
     p->absy = yoff + n->absy;
