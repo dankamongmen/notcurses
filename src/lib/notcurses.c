@@ -1324,10 +1324,10 @@ int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
 }
 
 int cell_load(ncplane* n, cell* c, const char* gcluster){
-  cell_release(n, c);
   int bytes;
   int cols;
   if((bytes = utf8_egc_len(gcluster, &cols)) >= 0 && bytes <= 1){
+    cell_release(n, c);
     c->channels &= ~CELL_WIDEASIAN_MASK;
     c->gcluster = *gcluster;
     return !!c->gcluster;
@@ -1336,6 +1336,13 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
     c->channels |= CELL_WIDEASIAN_MASK;
   }else{
     c->channels &= ~CELL_WIDEASIAN_MASK;
+  }
+  if(!cell_simple_p(c)){
+    if(strcmp(gcluster, cell_extended_gcluster(n, c)) == 0){
+      return bytes; // reduce, reuse, recycle
+    }else{
+      cell_release(n, c);
+    }
   }
   int eoffset = egcpool_stash(&n->pool, gcluster, bytes);
   if(eoffset < 0){
