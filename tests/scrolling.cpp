@@ -127,7 +127,19 @@ TEST_CASE("Scrolling") {
     CHECK(0 == notcurses_render(nc_));
   }
 
-  // FIXME add one where we go past the end of the plane and force a new line
+  SUBCASE("ScrollingOffBottom") {
+    const char* out = "0123456789012345678901234567890123456789";
+    const char* onext = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
+    REQUIRE(n);
+    // verify that the new plane was started without scrolling
+    CHECK(!ncplane_set_scrolling(n, true));
+    CHECK(40 == ncplane_putstr(n, out));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(26 == ncplane_putstr(n, onext));
+    CHECK(0 == notcurses_render(nc_));
+sleep(5);
+  }
 
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
