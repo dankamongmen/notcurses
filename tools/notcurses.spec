@@ -77,7 +77,6 @@ python setup.py install --root=%{buildroot} --optimize=1
 %{_mandir}/man1/notcurses-demo.1*
 %{_mandir}/man1/notcurses-input.1*
 %{_mandir}/man1/notcurses-ncreel.1*
-%{_mandir}/man1/notcurses-tester.1*
 %{_mandir}/man1/notcurses-tetris.1*
 %{_mandir}/man1/notcurses-view.1*
 
