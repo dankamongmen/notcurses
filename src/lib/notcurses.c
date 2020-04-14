@@ -1216,8 +1216,11 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
       return -1;
     }
     n->x = 0;
-    ++n->y;
-    // FIXME if new n->y >= n->leny, scroll everything up a line and reset n->y
+    if(++n->y >= n->leny){
+      n->y = n->leny - 1;
+      n->logrow = (n->logrow + 1) % n->leny;
+      // FIXME zero out current row?
+    }
   }
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
