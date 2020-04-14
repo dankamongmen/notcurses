@@ -138,7 +138,18 @@ TEST_CASE("Scrolling") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(26 == ncplane_putstr(n, onext));
     CHECK(0 == notcurses_render(nc_));
-sleep(5);
+    for(int i = 1 ; i < 21 ; ++i){
+      uint32_t attr;
+      uint64_t channels;
+      char* egc = notcurses_at_yx(nc_, 2, i, &attr, &channels);
+      REQUIRE(egc);
+      if(i < 7){
+        CHECK(onext[20 + i - 1] == *egc);
+      }else{
+        CHECK(' ' == *egc);
+      }
+      free(egc);
+    }
   }
 
   CHECK(0 == notcurses_stop(nc_));
