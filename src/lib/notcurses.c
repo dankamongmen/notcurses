@@ -1219,7 +1219,8 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     if(++n->y >= n->leny){
       n->y = n->leny - 1;
       n->logrow = (n->logrow + 1) % n->leny;
-      // FIXME zero out current row?
+      cell* row = n->fb + nfbcellidx(n, n->y, 0);
+      memset(row, 0, sizeof(*row) * n->lenx);
     }
   }
   if(ncplane_cursor_move_yx(n, y, x)){
