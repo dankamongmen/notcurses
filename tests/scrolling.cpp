@@ -19,12 +19,12 @@ TEST_CASE("Scrolling") {
 
   // verify that the standard plane has scrolling disabled initially, and that
   // we can enable it at runtime.
-  SUBCASE("ScollingDisabledStdplane"){
+  SUBCASE("ScollingDisabledStdplane") {
     CHECK(!ncplane_set_scrolling(n_, true));
     CHECK(ncplane_set_scrolling(n_, false));
   }
 
-  SUBCASE("ScrollingStr"){
+  SUBCASE("ScrollingStr") {
     struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
     REQUIRE(n);
     // verify that the new plane was started without scrolling
@@ -47,7 +47,7 @@ TEST_CASE("Scrolling") {
 
   // even when scrolling is enabled, you aren't allowed to move the cursor
   // off-plane, or initiate output there
-  SUBCASE("NoScrollingManually"){
+  SUBCASE("NoScrollingManually") {
     struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
     REQUIRE(n);
     CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
@@ -61,7 +61,7 @@ TEST_CASE("Scrolling") {
 
   // verify that two strings, each the length of the plane, can be output when
   // scrolling is enabled (the second ought get an error without scrolling)
-  SUBCASE("ScrollingSplitStr"){
+  SUBCASE("ScrollingSplitStr") {
     struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
     REQUIRE(n);
     CHECK(20 == ncplane_putstr(n, "01234567890123456789"));
@@ -80,7 +80,7 @@ TEST_CASE("Scrolling") {
 
   // verify that a single string the size of the plane can be output when
   // scrolling is enabled (it ought be an error without scrolling)
-  SUBCASE("ScrollingEGC"){
+  SUBCASE("ScrollingEGC") {
     const char* out = "0123456789012345678901234567890123456789";
     struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
     REQUIRE(n);
@@ -111,8 +111,23 @@ TEST_CASE("Scrolling") {
     CHECK(0 == notcurses_render(nc_));
   }
 
-  // FIXME add one verifying boxes don't exceed the right side
-  // FIXME add one where we go past the end of the plane
+  // ensure that if we draw a box on a scrolling plane, it stops at the right
+  // side, as opposed to scrolling and making a horrible mess
+  SUBCASE("ScrollingBoxen") {
+    struct ncplane* n = ncplane_new(nc_, 4, 20, 1, 1, nullptr);
+    REQUIRE(n);
+    // verify that the new plane was started without scrolling
+    CHECK(!ncplane_set_scrolling(n, true));
+    cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+    cell dl = CELL_TRIVIAL_INITIALIZER, dr = CELL_TRIVIAL_INITIALIZER;
+    cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 == cells_double_box(n, 0, 0, &ul, &ur, &dl, &dr, &hl, &vl));
+    CHECK(0 > ncplane_box_sized(n, &ul, &ur, &dl, &dr, &hl, &vl, 2, 25, 0));
+    CHECK(0 > ncplane_box_sized(n, &ul, &ur, &dl, &dr, &hl, &vl, 2, 21, 0));
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // FIXME add one where we go past the end of the plane and force a new line
 
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
