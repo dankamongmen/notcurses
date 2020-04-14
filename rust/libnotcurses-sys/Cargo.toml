@@ -13,6 +13,6 @@ categories = ["external-ffi-bindings"]
 [dependencies]
 libc = "0.2.66"
 [build-dependencies]
-bindgen = "0.52.0"
+bindgen = ">= 0.52.0"
 cc = "1.0"
 pkg-config = "0.3.17"
