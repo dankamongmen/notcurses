@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.3.1
+  * The C++ `Notcurses::render()` function now returns non-zero on failure,
+  mirroring the behavior of the core C `notcurses_render()`. This is an
+  inversion of its previous behavior.
+
 * 1.2.8
   * `notcurses-tetris` now happily continues if it can't load its background.
 
