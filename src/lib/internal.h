@@ -591,15 +591,17 @@ cell_debug(const egcpool* p, const cell* c){
 }
 
 static inline void
-plane_debug(const ncplane* n){
+plane_debug(const ncplane* n, bool details){
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   fprintf(stderr, "p: %p dim: %d/%d poolsize: %d\n", n, dimy, dimx, n->pool.poolsize);
-  for(int y = 0 ; y < 1 ; ++y){
-    for(int x = 0 ; x < 10 ; ++x){
-      const cell* c = &n->fb[fbcellidx(y, dimx, x)];
-      fprintf(stderr, "[%03d/%03d] ", y, x);
-      cell_debug(&n->pool, c);
+  if(details){
+    for(int y = 0 ; y < 1 ; ++y){
+      for(int x = 0 ; x < 10 ; ++x){
+        const cell* c = &n->fb[fbcellidx(y, dimx, x)];
+        fprintf(stderr, "[%03d/%03d] ", y, x);
+        cell_debug(&n->pool, c);
+      }
     }
   }
 }

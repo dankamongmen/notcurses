@@ -205,6 +205,31 @@ TEST_CASE("EGCpool") {
     CHECK(candidates.size() / 13 > no);
   }
 
+  // ensure that a hard error comes up when we fill the EGCpool
+  SUBCASE("ExhaustPool") {
+    wchar_t wcs = 0x4e00;
+    uint64_t total = 0;
+    while(true){
+      char mb[MB_CUR_MAX + 1];
+      auto r = wctomb(mb, wcs);
+      CHECK(0 < r);
+      REQUIRE(sizeof(mb) >= r);
+      mb[r] = '\0';
+      int loc = egcpool_stash(&pool_, mb, r);
+      if(loc < 0){
+        break;
+      }
+      REQUIRE(loc == total);
+      total += r + 1;
+      CHECK(egcpool_check_validity(&pool_, loc));
+      CHECK((1u << 25) > loc);
+      if(++wcs == 0x9fa5){
+        wcs = 0x4e00;
+      }
+    }
+    CHECK((1u << 25) <= total);
+  }
+
   // common cleanup
   egcpool_dump(&pool_);
 

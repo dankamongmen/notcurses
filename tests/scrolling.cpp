@@ -180,8 +180,8 @@ TEST_CASE("Scrolling") {
   SUBCASE("XYPostScroll") {
     const char* out = "0123456789012345678901234567890123456789";
     const char* onext = "ABCDEFGHIJ";
-    const char* next2 = "KLMNOPQRST";
-    const char* next3 = "UVWXYZ";
+    //const char* next2 = "KLMNOPQRST";
+    //const char* next3 = "UVWXYZ";
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
     REQUIRE(n);

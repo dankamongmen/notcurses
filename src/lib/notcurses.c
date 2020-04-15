@@ -1052,11 +1052,11 @@ uint32_t ncplane_attr(const ncplane* n){
   return n->attrword;
 }
 
-void ncplane_set_fg_default(struct ncplane* n){
+void ncplane_set_fg_default(ncplane* n){
   channels_set_fg_default(&n->channels);
 }
 
-void ncplane_set_bg_default(struct ncplane* n){
+void ncplane_set_bg_default(ncplane* n){
   channels_set_bg_default(&n->channels);
 }
 
@@ -1128,7 +1128,7 @@ int ncplane_base(ncplane* ncp, cell* c){
   return cell_duplicate(ncp, c, &ncp->basecell);
 }
 
-const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
+const char* cell_extended_gcluster(const ncplane* n, const cell* c){
   return extended_gcluster(n, c);
 }
 
@@ -1263,7 +1263,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   return cols;
 }
 
-int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
+int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes){
   cell c = CELL_TRIVIAL_INITIALIZER;
   int primed = cell_prime(n, &c, gclust, n->attrword, n->channels);
   if(sbytes){
