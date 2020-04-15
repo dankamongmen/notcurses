@@ -43,8 +43,7 @@ egcpool_grow(egcpool* pool, size_t len){
   while(len > newsize - pool->poolsize){ // ensure we make enough space
     newsize *= 2;
   }
-  // offsets only have 25 bits available...
-  if(newsize >= 1u << 25u){
+  if(newsize > 1u << 25u){
     return -1;
   }
   // nasty cast here because c++ source might include this header :/
@@ -129,7 +128,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
       if(!duplicated){
         duplicated = strdup(egc);
       }
-      if(egcpool_grow(pool, len)){
+      if(egcpool_grow(pool, len) && searched){
         free(duplicated);
         return -1;
       }
@@ -140,6 +139,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
     // memory. if we find it, write it out, and update used count. if we come
     // back to where we started, force a growth and try again.
     int curpos = pool->poolwrite;
+//fprintf(stderr, "Stashing [%s] %d starting at %d\n", egc, len, curpos);
     do{
       if(curpos == pool->poolsize){
         curpos = 0;
@@ -167,6 +167,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
           pool->poolwrite = curpos + len;
           pool->poolused += len;
           free(duplicated);
+//fprintf(stderr, "Stashing AT %d\n", curpos);
           return curpos;
         }
         if(pool->poolwrite > curpos && pool->poolwrite - (len - need) < curpos){
