@@ -407,9 +407,15 @@ fbcellidx(int row, int rowlen, int col){
   return row * rowlen + col;
 }
 
+// take a logical 'y' and convert it to the virtual 'y'. see HACKING.md.
+static inline int
+logical_to_virtual(const ncplane* n, int y){
+  return (y + n->logrow) % n->leny;
+}
+
 static inline int
 nfbcellidx(const ncplane* n, int row, int col){
-  return fbcellidx(row, n->lenx, col);
+  return fbcellidx(logical_to_virtual(n, row), n->lenx, col);
 }
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
