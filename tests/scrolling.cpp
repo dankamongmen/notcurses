@@ -29,16 +29,15 @@ TEST_CASE("Scrolling") {
     REQUIRE(n);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, false));
-    // try to write 40 EGCs; it ought fail
+    // try to write 40 EGCs; it ought fail after 20
     CHECK(-20 == ncplane_putstr(n, "0123456789012345678901234567890123456789"));
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     CHECK(0 == y);
     CHECK(20 == x);
-    CHECK(0 == ncplane_cursor_move_yx(n, 0, 0));
     CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
-    // try to write 40 EGCs; it ought succeed
-    CHECK(40 == ncplane_putstr(n, "0123456789012345678901234567890123456789"));
+    // try to write 40 EGCs from origin; it ought succeed
+    CHECK(40 == ncplane_putstr_yx(n, 0, 0, "0123456789012345678901234567890123456789"));
     ncplane_cursor_yx(n, &y, &x);
     CHECK(1 == y);
     CHECK(20 == x);
@@ -135,16 +134,17 @@ TEST_CASE("Scrolling") {
     REQUIRE(n);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, true));
-ncplane_set_fg_rgb(n, 0xff, 0, 0xff);
     CHECK(40 == ncplane_putstr(n, out)); // fill up the plane w/ numbers
     CHECK(0 == notcurses_render(nc_));
-    CHECK(20 == ncplane_putstr(n, onext)); // scroll off one line, fill new one
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
-    CHECK(2 == y);
-    CHECK(21 == x);
+    CHECK(1 == y);
+    CHECK(20 == x);
+    CHECK(20 == ncplane_putstr(n, onext)); // scroll off one line, fill new one
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(1 == y);
+    CHECK(20 == x);
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
     for(int i = 1 ; i < 21 ; ++i){
       uint32_t attr;
       uint64_t channels;
@@ -153,9 +153,10 @@ sleep(2);
       CHECK(onext[i - 1] == *egc);
       free(egc);
     }
-    // FIXME check ncplane_at_yx() also
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(1 == y);
+    CHECK(20 == x);
     CHECK(10 == ncplane_putstr(n, next2));
-    // FIXME check cursor location
     CHECK(0 == notcurses_render(nc_));
     for(int i = 1 ; i < 21 ; ++i){
       uint32_t attr;
@@ -169,10 +170,11 @@ sleep(2);
       }
       free(egc);
     }
-    // FIXME check ncplane_at_yx() also
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(1 == y);
+    CHECK(10 == x);
   }
 
-  /*
   // make sure that, after scrolling a line up, our y specifications are
   // correctly adjusted for scrolling.
   SUBCASE("XYPostScroll") {
@@ -183,21 +185,12 @@ sleep(2);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* n = ncplane_new(nc_, 2, 20, 1, 1, nullptr);
     REQUIRE(n);
-int x = -1,y = -1;
-ncplane_cursor_yx(n, &y, &x);
-fprintf(stderr, "cursor: %d/%d\n", y, x);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, true));
     CHECK(40 == ncplane_putstr(n, out));
     CHECK(0 == notcurses_render(nc_));
-sleep(3);
-ncplane_cursor_yx(n, &y, &x);
-fprintf(stderr, "cursor: %d/%d\n", y, x);
     CHECK(10 == ncplane_putstr(n, onext));
     CHECK(0 == notcurses_render(nc_));
-sleep(3);
-ncplane_cursor_yx(n, &y, &x);
-fprintf(stderr, "cursor: %d/%d\n", y, x);
     for(int i = 1 ; i < 21 ; ++i){
       uint32_t attr;
       uint64_t channels;
@@ -212,7 +205,6 @@ fprintf(stderr, "cursor: %d/%d\n", y, x);
     }
     // FIXME
   }
-  */
 
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));

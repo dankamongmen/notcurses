@@ -233,13 +233,6 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
   }
 }
 
-// taking in a desired true row of the plane, find the line within the
-// plane's framebuffer, taking into account the current scrolling state.
-static inline int
-scrolled_row(const ncplane* p, int y){
-  return (y + p->logrow) % p->leny;
-}
-
 // Paints a single ncplane into the provided scratch framebuffer 'fb', and
 // ultimately 'lastframe' (we can't always write directly into 'lastframe',
 // because we need build state to solve certain cells, and need compare their
@@ -283,7 +276,7 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
         continue;
       }
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
-      const cell* vis = &p->fb[nfbcellidx(p, scrolled_row(p, y), x)];
+      const cell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
       // writing in a zero), use the plane's base cell.
       if(vis->gcluster == 0 && !cell_wide_right_p(vis)){

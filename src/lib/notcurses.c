@@ -1216,11 +1216,12 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
       return -1;
     }
     n->x = 0;
-    if(++n->y >= n->leny){
-      n->y = n->leny - 1;
+    if(n->y == n->leny - 1){
       n->logrow = (n->logrow + 1) % n->leny;
       cell* row = n->fb + nfbcellidx(n, n->y, 0);
       memset(row, 0, sizeof(*row) * n->lenx);
+    }else{
+      ++n->y;
     }
   }
   if(ncplane_cursor_move_yx(n, y, x)){
