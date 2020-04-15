@@ -67,7 +67,7 @@ int main(void){
   do{
     nstd->putstr(c);
     nstd->get_cursor_yx(&y, nullptr);
-  }while(y < dimy);
+  }while(y < dimy - 1);
   const int HEIGHT = 9;
   const int WIDTH = dimx;
   std::shared_ptr<Plane> n = std::make_shared<Plane>(HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH - 1);
