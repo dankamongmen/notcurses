@@ -456,6 +456,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   int sourceline = keepy;
   for(itery = 0 ; itery < ylen ; ++itery){
     int copyoff = itery * xlen; // our target at any given time
+    // FIXME in memset()s here of existing text, don't we need cell_release()?
     // if we have nothing copied to this line, zero it out in one go
     if(itery < keepy || itery > keepy + keepleny - 1){
       memset(fb + copyoff, 0, sizeof(*fb) * xlen);
@@ -1219,6 +1220,9 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     if(n->y == n->leny - 1){
       n->logrow = (n->logrow + 1) % n->leny;
       cell* row = n->fb + nfbcellidx(n, n->y, 0);
+      for(int clearx = 0 ; clearx < n->lenx ; ++clearx){
+        cell_release(n, &row[clearx]);
+      }
       memset(row, 0, sizeof(*row) * n->lenx);
     }else{
       ++n->y;
