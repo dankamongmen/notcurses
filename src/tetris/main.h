@@ -15,6 +15,7 @@ int main(void) {
     if(input == 'q'){
       break;
     }
+    ncmtx.lock();
     switch(input){
       case NCKEY_LEFT: case 'h': t.MoveLeft(); break;
       case NCKEY_RIGHT: case 'l': t.MoveRight(); break;
@@ -28,6 +29,7 @@ int main(void) {
         nc.render();
         break;
     }
+    ncmtx.unlock();
   }
   if(gameover || input == 'q'){ // FIXME signal it on 'q'
     gameover = true;

@@ -1,6 +1,5 @@
 void MoveLateral(int direction) { // pass in -1 for left, 1 for right
   int shift = 2 * direction;
-  const std::lock_guard<std::mutex> lock(mtx_);
   int y, x;
   if(PrepForMove(&y, &x)){
     if(!curpiece_->move(y, x + shift)){
@@ -12,7 +11,7 @@ void MoveLateral(int direction) { // pass in -1 for left, 1 for right
       }
     }else{
       x += shift;
-      if(!nc_.render()){
+      if(nc_.render()){
         throw TetrisNotcursesErr("render()");
       }
     }

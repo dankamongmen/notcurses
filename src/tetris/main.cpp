@@ -8,6 +8,7 @@
 #include <ncpp/NotCurses.hh>
 #include "version.h"
 
+std::mutex ncmtx;
 const std::string BackgroundFile = NOTCURSES_SHARE "/tetris-background.jpeg";
 
 using namespace std::chrono_literals;
@@ -61,7 +62,7 @@ public:
 private:
   ncpp::NotCurses& nc_;
   uint64_t score_;
-  std::mutex mtx_;
+  std::mutex mtx_; // guards msdelay_
   std::unique_ptr<ncpp::Plane> curpiece_;
   std::unique_ptr<ncpp::Plane> board_;
   std::unique_ptr<ncpp::Visual> backg_;
