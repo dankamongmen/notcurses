@@ -801,6 +801,40 @@ update_palette(notcurses* nc, FILE* out){
   return 0;
 }
 
+// sync the cursor to the specified location with as little overhead as
+// possible (with nothing, if already at the right location).
+// FIXME fall back to synthesized moves in the absence of capabilities (i.e.
+// textronix lacks cup; fake it with horiz+vert moves)
+static inline int
+stage_cursor(notcurses* nc, FILE* out, int y, int x){
+  int ret;
+  if(nc->rstate.y == y){
+    if(nc->rstate.x == x){
+      return 0;
+    }else if(nc->rstate.x < x){
+      if(nc->rstate.x == x - 1){
+        ret = term_emit("cuf1", tiparm(nc->cuf1), out, false);
+      }else{
+        ret = term_emit("cuf", tiparm(nc->cuf, x - nc->rstate.x), out, false);
+      }
+    }else{
+      if(nc->rstate.x == x + 1){
+        ret = term_emit("cub1", tiparm(nc->cub1), out, false);
+      }else{
+        ret = term_emit("cub", tiparm(nc->cub, nc->rstate.x - x), out, false);
+      }
+    }
+  }else{
+    if((ret = term_emit("cup", tiparm(nc->cup, y, x), out, false)) >= 0){
+      nc->rstate.y = y;
+    }
+  }
+  if(ret >= 0){
+    nc->rstate.x = x;
+  }
+  return ret;
+}
+
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8 stream of escapes and EGCs
@@ -852,12 +886,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         }
       }else{
         ++nc->stats.cellemissions;
-        if(needmove == 1 && nc->cuf1){
-          ret |= term_emit("cuf1", tiparm(nc->cuf1), out, false);
-        }else if(needmove){ // FIXME might want to use cufN for horizontal move
-          ret |= term_emit("cup", tiparm(nc->cup, y, x), out, false);
-        }
-        needmove = 0;
+        ret |= stage_cursor(nc, out, y, x);
         // set the style. this can change the color back to the default; if it
         // does, we need update our elision possibilities.
         bool normalized;
@@ -962,7 +991,11 @@ fprintf(stderr, "RAST %u [%c] to %d/%d\n", srccell->gcluster, srccell->gcluster,
 }else{
 fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_gcluster(&nc->pool, srccell), y, x);
 }*/
-        ret |= term_putc(out, &nc->pool, srccell);
+        if(term_putc(out, &nc->pool, srccell) == 0){
+          nc->rstate.x += 1 + cell_wide_left_p(srccell);
+        }else{
+          ret = -1;
+        }
       }
       if(cell_wide_left_p(srccell)){
         ++x;
@@ -989,14 +1022,19 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
 // the screen if need be.
 static int
 home_cursor(notcurses* nc, bool flush){
+  int ret = -1;
   if(nc->home){
-    return term_emit("home", nc->home, nc->ttyfp, flush);
+    ret = term_emit("home", nc->home, nc->ttyfp, flush);
   }else if(nc->cup){
-    return term_emit("cup", tiparm(nc->cup, 1, 1), nc->ttyfp, flush);
+    ret = term_emit("cup", tiparm(nc->cup, 1, 1), nc->ttyfp, flush);
   }else if(nc->clearscr){
-    return term_emit("clear", nc->clearscr, nc->ttyfp, flush);
+    ret = term_emit("clear", nc->clearscr, nc->ttyfp, flush);
   }
-  return -1;
+  if(ret >= 0){
+    nc->rstate.x = 0;
+    nc->rstate.y = 0;
+  }
+  return ret;
 }
 
 int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
