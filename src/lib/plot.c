@@ -19,6 +19,7 @@ redraw_plot(ncplot* n){
   ncplane_erase(ncplot_plane(n));
   int dimy, dimx;
   ncplane_dim_yx(ncplot_plane(n), &dimy, &dimx);
+  const int scaleddim = dimx * geomdata[n->gridtype].width;
   // each transition is worth this much change in value
   const size_t states = wcslen(geomdata[n->gridtype].egcs);
   // FIXME can we not rid ourselves of this meddlesome double?
@@ -26,7 +27,7 @@ redraw_plot(ncplot* n){
   const int startx = n->labelaxisd ? PREFIXSTRLEN : 0; // plot cols begin here
   // if we want fewer slots than there are available columns, our final column
   // will be other than the plane's final column. most recent x goes here.
-  const int finalx = (n->slotcount < dimx - 1 - startx ? startx + n->slotcount - 1 : dimx - 1);
+  const int finalx = (n->slotcount < scaleddim - 1 - (startx * geomdata[n->gridtype].width) ? startx + (n->slotcount / geomdata[n->gridtype].width) - 1 : dimx - 1);
   if(n->labelaxisd){
     // show the *top* of each interval range
     for(int y = 0 ; y < dimy ; ++y){
@@ -68,7 +69,7 @@ redraw_plot(ncplot* n){
       }
       intervalbase += (states * interval);
     }
-    if(--idx < 0){
+    if((idx -= geomdata[n->gridtype].width) < 0){
       idx = n->slotcount - 1;
     }
   }
@@ -105,16 +106,20 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   ncplot* ret = malloc(sizeof(*ret));
   if(ret){
     ret->rangex = opts->rangex;
+    // if we're sizing the plot based off the plane dimensions, scale it by the
+    // plot geometry's width for all calculations
+    const int scaleddim = dimx * geomdata[opts->gridtype].width;
+    const int scaledprefixlen = PREFIXSTRLEN * geomdata[opts->gridtype].width;
     if((ret->slotcount = ret->rangex) == 0){
-      ret->slotcount = dimx;
+      ret->slotcount = scaleddim;
     }
     if(dimx < ret->rangex){
-      ret->slotcount = dimx;
+      ret->slotcount = scaleddim;
     }
     if( (ret->labelaxisd = opts->labelaxisd) ){
-      if(ret->slotcount + PREFIXSTRLEN > dimx){
-        if(dimx > PREFIXSTRLEN){
-          ret->slotcount = dimx - PREFIXSTRLEN;
+      if(ret->slotcount + scaledprefixlen > scaleddim){
+        if(scaleddim > scaledprefixlen){
+          ret->slotcount = scaleddim - scaledprefixlen;
         }
       }
     }
