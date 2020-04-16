@@ -252,6 +252,14 @@ int main(void){
       tid.join();
       return EXIT_SUCCESS;
     }
+    if((r == 'L' || r == 'l') && ni.ctrl){
+      mtx.lock();
+        if(!nc.refresh(nullptr, nullptr)){
+          mtx.unlock();
+          break;
+        }
+      mtx.unlock();
+    }
     if(!n->cursor_move(y, 0)){
       break;
     }
@@ -305,11 +313,11 @@ int main(void){
     cells.push_front(r);
   }
   int e = errno;
-  nc.stop();
   if(r == (char32_t)-1 && e){
     std::cerr << "Error reading from terminal (" << strerror(e) << "?)\n";
   }
   done = true;
   tid.join();
+  nc.stop();
   return EXIT_FAILURE;
 }
