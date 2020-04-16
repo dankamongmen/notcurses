@@ -205,6 +205,19 @@ TEST_CASE("EGCpool") {
     CHECK(candidates.size() / 13 > no);
   }
 
+  // common cleanup
+  egcpool_dump(&pool_);
+
+}
+
+TEST_CASE("EGCpoolLong" * doctest::skip(true)) {
+
+  if(!enforce_utf8()){
+    return;
+  }
+
+  egcpool pool_{};
+
   // ensure that a hard error comes up when we fill the EGCpool
   SUBCASE("ExhaustPool") {
     wchar_t wcs = 0x4e00;
