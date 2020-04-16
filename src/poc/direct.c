@@ -65,5 +65,11 @@ int main(void){
   ret |= ncdirect_cursor_right(n, geom.ws_col / 2);
   ret |= ncdirect_cursor_up(n, geom.ws_row / 2);
   printf(" erperperp! \n");
+  int y = -420, x = -420;
+  if(ncdirect_cursor_yx(n, &y, &x) == 0){
+    fprintf(stderr, "\n\tRead cursor position: y: %d x: %d\n", y, x);
+  }else{
+    ret = -1;
+  }
   return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }

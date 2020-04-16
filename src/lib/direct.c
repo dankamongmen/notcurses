@@ -100,8 +100,27 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   return -1;
 }
 
+// no terminfo capability for this. dangerous!
 int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
+  if(fprintf(n->ttyfp, "\033[6n") != 4){
+    return -1;
+  }
+  // FIXME read it
+  return 0;
+}
 
+int ncdirect_cursor_push(ncdirect* n){
+  if(n->sc == NULL){
+    return -1;
+  }
+  return term_emit("sc", n->sc, n->ttyfp, false);
+}
+
+int ncdirect_cursor_pop(ncdirect* n){
+  if(n->rc == NULL){
+    return -1;
+  }
+  return term_emit("rc", n->rc, n->ttyfp, false);
 }
 
 int ncdirect_stop(ncdirect* nc){
