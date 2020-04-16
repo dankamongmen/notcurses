@@ -101,11 +101,73 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
 }
 
 // no terminfo capability for this. dangerous!
+// FIXME need to empty input somehow and do other craps. make input available
+// immediately etc...
 int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
-  if(fprintf(n->ttyfp, "\033[6n") != 4){
+  FILE* fin = fopen("/dev/tty", "rb");
+  if(fin == NULL){
     return -1;
   }
-  // FIXME read it
+  if(fprintf(n->ttyfp, "\033[6n") != 4){
+    fclose(fin);
+    return -1;
+  }
+  int in;
+  bool done = false;
+  enum { // what we expect now
+    CURSOR_ESC, // 27 (0x1b)
+    CURSOR_LSQUARE,
+    CURSOR_ROW, // delimited by a semicolon
+    CURSOR_COLUMN,
+    CURSOR_R,
+  } state = CURSOR_ESC;
+  int row = 0, column = 0;
+  while((in = getc(fin)) != EOF){
+    bool valid = false;
+    switch(state){
+      case CURSOR_ESC: valid = (in == '\x1b'); ++state; break;
+      case CURSOR_LSQUARE: valid = (in == '['); ++state; break;
+      case CURSOR_ROW:
+        if(isdigit(in)){
+          row *= 10;
+          row += in - '0';
+          valid = true;
+        }else if(in == ';'){
+          ++state;
+          valid = true;
+        }
+        break;
+      case CURSOR_COLUMN:
+        if(isdigit(in)){
+          column *= 10;
+          column += in - '0';
+          valid = true;
+        }else if(in == 'R'){
+          ++state;
+          valid = true;
+        }
+        break;
+      case CURSOR_R: default: // logical error, whoops
+        break;
+    }
+    if(!valid){
+      break;
+    }
+    if(state == CURSOR_R){
+      done = true;
+      break;
+    }
+  }
+  int fc = fclose(fin);
+  if(fc || !done){
+    return -1;
+  }
+  if(y){
+    *y = row;
+  }
+  if(x){
+    *x = column;
+  }
   return 0;
 }
 
