@@ -585,8 +585,8 @@ namespace ncpp
 		}
 
 		bool box (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr,
-		          const Cell &hline, const Cell &vline, int ystop, int xstop,
-		          unsigned ctlword) const NOEXCEPT_MAYBE
+							const Cell &hline, const Cell &vline, int ystop, int xstop,
+							unsigned ctlword) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_box (plane, ul, ur, ll, lr, hline, vline, ystop, xstop, ctlword), -1);
 		}
@@ -793,7 +793,7 @@ namespace ncpp
 
 		bool at_cursor (Cell &c) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncplane_at_cursor (plane, c) < 0;
+			bool ret = ncplane_at_cursor_cell (plane, c) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
@@ -815,7 +815,7 @@ namespace ncpp
 
 		int get_at (int y, int x, Cell &c) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_at_yx (plane, y, x, c), -1);
+			return error_guard<int> (ncplane_at_yx_cell (plane, y, x, c), -1);
 		}
 
 		int get_at (int y, int x, Cell *c) const
