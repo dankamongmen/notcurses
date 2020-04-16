@@ -805,7 +805,6 @@ namespace ncpp
 			return at_cursor (*c);
 		}
 
-<<<<<<< HEAD
 		char* at_cursor (uint32_t* attrword, uint64_t* channels) const
 		{
 			if (attrword == nullptr || channels == nullptr)
@@ -814,14 +813,9 @@ namespace ncpp
 			return ncplane_at_cursor (plane, attrword, channels);
 		}
 
-		int get_at (int y, int x, Cell &c) const noexcept
-		{
-			return ncplane_at_yx_cell (plane, y, x, c);
-=======
 		int get_at (int y, int x, Cell &c) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_at_yx (plane, y, x, c), -1);
->>>>>>> origin/master
 		}
 
 		int get_at (int y, int x, Cell *c) const
