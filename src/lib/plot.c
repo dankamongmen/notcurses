@@ -2,13 +2,16 @@
 
 static const struct {
   ncgridgeom_e geom;
+  int width;
   const wchar_t* egcs;
 } geomdata[] = {
-  { .geom = NCPLOT_1x1,   .egcs = L" █",        },
-  { .geom = NCPLOT_2x1,   .egcs = L" ▄█",       },
-  { .geom = NCPLOT_1x1x4, .egcs = L" ▒░▓█",     },
-  { .geom = NCPLOT_4x1,   .egcs = L" ▂▄▆█",     },
-  { .geom = NCPLOT_8x1,   .egcs = L" ▁▂▃▄▅▆▇█", },
+  { .geom = NCPLOT_1x1,   .width = 1, .egcs = L" █",                        },
+  { .geom = NCPLOT_2x1,   .width = 1, .egcs = L" ▄█",                       },
+  { .geom = NCPLOT_1x1x4, .width = 1, .egcs = L" ▒░▓█",                     },
+  { .geom = NCPLOT_2x2,   .width = 2, .egcs = L" ▗▐ ▖▄▟▌▙█",                },
+  { .geom = NCPLOT_4x1,   .width = 1, .egcs = L" ▂▄▆█",                     },
+  { .geom = NCPLOT_4x2,   .width = 2, .egcs = L" ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿", },
+  { .geom = NCPLOT_8x1,   .width = 1, .egcs = L" ▁▂▃▄▅▆▇█",                 },
 };
 
 static int
