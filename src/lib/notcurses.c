@@ -549,6 +549,7 @@ query_rgb(void){
 static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts, int* dimy, int* dimx){
   update_term_dimensions(nc->ttyfd, dimy, dimx);
+  nc->truecols = *dimx;
   char* shortname_term = termname();
   char* longname_term = longname();
   if(!opts->suppress_banner){
