@@ -1291,7 +1291,7 @@ ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
     int wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
     if(cols < 0){
-      return -ret; // return -ret in case of error
+      return -ret;
     }
     if(wcs == 0){
       break;

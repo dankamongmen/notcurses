@@ -48,14 +48,14 @@ namespace ncpp
 				ncplot_destroy (plot);
 		}
 
-		bool add_sample(uint64_t x, uint64_t y)
+		bool add_sample(uint64_t x, uint64_t y) const NOEXCEPT_MAYBE
 		{
-			return ncplot_add_sample (plot, x, y) >= 0;
+			return error_guard (ncplot_add_sample (plot, x, y), -1);
 		}
 
-		bool set_sample(uint64_t x, uint64_t y)
+		bool set_sample(uint64_t x, uint64_t y) const NOEXCEPT_MAYBE
 		{
-			return ncplot_set_sample (plot, x, y) >= 0;
+			return error_guard (ncplot_set_sample (plot, x, y), -1);
 		}
 
 		Plane* get_plane () const noexcept;

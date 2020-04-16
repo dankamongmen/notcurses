@@ -53,9 +53,9 @@ namespace ncpp
 			return ncmultiselector_offer_input (multiselector, nc);
 		}
 
-		const int get_selected (bool *selected, unsigned count) const noexcept
+		int get_selected (bool *selected, unsigned count) const NOEXCEPT_MAYBE
 		{
-			return ncmultiselector_selected (multiselector, selected, count);
+			return error_guard<int> (ncmultiselector_selected (multiselector, selected, count), -1);
 		}
 
 		Plane* get_plane () const noexcept;

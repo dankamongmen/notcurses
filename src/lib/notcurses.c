@@ -286,6 +286,7 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   p->leny = rows;
   p->lenx = cols;
   p->x = p->y = 0;
+  p->logrow = 0;
   if( (p->bound = n) ){
     p->absx = xoff + n->absx;
     p->absy = yoff + n->absy;
@@ -455,6 +456,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   int sourceline = keepy;
   for(itery = 0 ; itery < ylen ; ++itery){
     int copyoff = itery * xlen; // our target at any given time
+    // FIXME in memset()s here of existing text, don't we need cell_release()?
     // if we have nothing copied to this line, zero it out in one go
     if(itery < keepy || itery > keepy + keepleny - 1){
       memset(fb + copyoff, 0, sizeof(*fb) * xlen);
@@ -1051,11 +1053,11 @@ uint32_t ncplane_attr(const ncplane* n){
   return n->attrword;
 }
 
-void ncplane_set_fg_default(struct ncplane* n){
+void ncplane_set_fg_default(ncplane* n){
   channels_set_fg_default(&n->channels);
 }
 
-void ncplane_set_bg_default(struct ncplane* n){
+void ncplane_set_bg_default(ncplane* n){
   channels_set_bg_default(&n->channels);
 }
 
@@ -1127,7 +1129,7 @@ int ncplane_base(ncplane* ncp, cell* c){
   return cell_duplicate(ncp, c, &ncp->basecell);
 }
 
-const char* cell_extended_gcluster(const struct ncplane* n, const cell* c){
+const char* cell_extended_gcluster(const ncplane* n, const cell* c){
   return extended_gcluster(n, c);
 }
 
@@ -1215,8 +1217,16 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
       return -1;
     }
     n->x = 0;
-    ++n->y;
-    // FIXME if new n->y >= n->leny, scroll everything up a line and reset n->y
+    if(n->y == n->leny - 1){
+      n->logrow = (n->logrow + 1) % n->leny;
+      cell* row = n->fb + nfbcellidx(n, n->y, 0);
+      for(int clearx = 0 ; clearx < n->lenx ; ++clearx){
+        cell_release(n, &row[clearx]);
+      }
+      memset(row, 0, sizeof(*row) * n->lenx);
+    }else{
+      ++n->y;
+    }
   }
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
@@ -1257,7 +1267,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   return cols;
 }
 
-int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes){
+int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes){
   cell c = CELL_TRIVIAL_INITIALIZER;
   int primed = cell_prime(n, &c, gclust, n->attrword, n->channels);
   if(sbytes){
@@ -1324,10 +1334,10 @@ int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
 }
 
 int cell_load(ncplane* n, cell* c, const char* gcluster){
-  cell_release(n, c);
   int bytes;
   int cols;
   if((bytes = utf8_egc_len(gcluster, &cols)) >= 0 && bytes <= 1){
+    cell_release(n, c);
     c->channels &= ~CELL_WIDEASIAN_MASK;
     c->gcluster = *gcluster;
     return !!c->gcluster;
@@ -1336,6 +1346,13 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
     c->channels |= CELL_WIDEASIAN_MASK;
   }else{
     c->channels &= ~CELL_WIDEASIAN_MASK;
+  }
+  if(!cell_simple_p(c)){
+    if(strcmp(gcluster, cell_extended_gcluster(n, c)) == 0){
+      return bytes; // reduce, reuse, recycle
+    }else{
+      cell_release(n, c);
+    }
   }
   int eoffset = egcpool_stash(&n->pool, gcluster, bytes);
   if(eoffset < 0){

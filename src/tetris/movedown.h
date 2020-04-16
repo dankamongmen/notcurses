@@ -1,5 +1,4 @@
 bool MoveDown() { // returns true if the game has ended as a result of this move
-  const std::lock_guard<std::mutex> lock(mtx_);
   int y, x;
   if(PrepForMove(&y, &x)){
     if(!curpiece_->move(y + 1, x)){
@@ -19,7 +18,7 @@ bool MoveDown() { // returns true if the game has ended as a result of this move
     }else{
       ++y;
     }
-    if(!nc_.render()){
+    if(nc_.render()){
       throw TetrisNotcursesErr("render()");
     }
   }

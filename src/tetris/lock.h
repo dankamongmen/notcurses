@@ -36,7 +36,9 @@ bool LockPiece(){ // returns true if game has ended by reaching level 16
       if((level_ = linescleared_ / 10) > MAX_LEVEL){
         return true;
       }
+      mtx_.lock();
       msdelay_ = std::chrono::milliseconds(Gravity(level_));
+      mtx_.unlock();
       StainBoard(bdimy, bdimx);
       UpdateScore();
     }

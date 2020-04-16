@@ -57,8 +57,13 @@ struct esctrie;
 // A plane may be partially or wholly offscreen--this might occur if the
 // screen is resized, for example. Offscreen portions will not be rendered.
 // Accesses beyond the borders of a panel, however, are errors.
+//
+// The framebuffer 'fb' is a set of rows. For scrolling, we interpret it as a
+// circular buffer of rows. 'logrow' is the index of the row at the logical top
+// of the plane.
 typedef struct ncplane {
   cell* fb;             // "framebuffer" of character cells
+  int logrow;           // logical top row, starts at 0, add one for each scroll
   int x, y;             // current cursor location within this plane
   int absx, absy;       // origin of the plane relative to the screen
   int lenx, leny;       // size of the plane, [0..len{x,y}) is addressable
@@ -402,9 +407,15 @@ fbcellidx(int row, int rowlen, int col){
   return row * rowlen + col;
 }
 
+// take a logical 'y' and convert it to the virtual 'y'. see HACKING.md.
+static inline int
+logical_to_virtual(const ncplane* n, int y){
+  return (y + n->logrow) % n->leny;
+}
+
 static inline int
 nfbcellidx(const ncplane* n, int row, int col){
-  return fbcellidx(row, n->lenx, col);
+  return fbcellidx(logical_to_virtual(n, row), n->lenx, col);
 }
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
@@ -580,15 +591,17 @@ cell_debug(const egcpool* p, const cell* c){
 }
 
 static inline void
-plane_debug(const ncplane* n){
+plane_debug(const ncplane* n, bool details){
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   fprintf(stderr, "p: %p dim: %d/%d poolsize: %d\n", n, dimy, dimx, n->pool.poolsize);
-  for(int y = 0 ; y < 1 ; ++y){
-    for(int x = 0 ; x < 10 ; ++x){
-      const cell* c = &n->fb[fbcellidx(y, dimx, x)];
-      fprintf(stderr, "[%03d/%03d] ", y, x);
-      cell_debug(&n->pool, c);
+  if(details){
+    for(int y = 0 ; y < 1 ; ++y){
+      for(int x = 0 ; x < 10 ; ++x){
+        const cell* c = &n->fb[fbcellidx(y, dimx, x)];
+        fprintf(stderr, "[%03d/%03d] ", y, x);
+        cell_debug(&n->pool, c);
+      }
     }
   }
 }

@@ -12,6 +12,10 @@ rearrangements of Notcurses.
     parameters, thus matching every other function with these two parameters.
     It moved `const char* egc` before either, to force a type error, as the
     change would otherwise be likely to go overlooked.
+  * The C++ `Notcurses::render()` function now returns non-zero on failure,
+    mirroring the behavior of the core C `notcurses_render()`. This is an
+    inversion of its previous behavior.
+
 
 * 1.3.0 (2020-04-12)
   * No user-visible changes

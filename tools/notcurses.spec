@@ -74,6 +74,10 @@ python setup.py install --root=%{buildroot} --optimize=1
 %{_bindir}/notcurses-input
 %{_bindir}/notcurses-ncreel
 %{_bindir}/notcurses-tetris
+# Don't use a wildcard, lest we pull in notcurses-pydemo.1. We install the man
+# pages for notcurses-tester and notcurses-view, binaries we're not yet
+# installing, because we intend to install the binaries Real Soon and it's
+# IMHO not worth mucking with the CMake in the meantime FIXME.
 %{_mandir}/man1/notcurses-demo.1*
 %{_mandir}/man1/notcurses-input.1*
 %{_mandir}/man1/notcurses-ncreel.1*

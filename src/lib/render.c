@@ -66,7 +66,7 @@ static int
 blocking_write(int fd, const char* buf, size_t buflen){
 //fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
   size_t written = 0;
-  do{
+  while(written < buflen){
     ssize_t w = write(fd, buf + written, buflen - written);
     if(w < 0){
       if(errno != EAGAIN && errno != EWOULDBLOCK){
@@ -83,7 +83,7 @@ blocking_write(int fd, const char* buf, size_t buflen){
       };
       poll(&pfd, 1, -1);
     }
-  }while(written < buflen);
+  }
   return 0;
 }
 
