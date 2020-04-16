@@ -20,6 +20,7 @@ int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   if(update_term_dimensions(n->ttyfd, rows, cols)){
     return -1;
   }
+  n->truecols = *cols;
   *rows -= n->margin_t + n->margin_b;
   if(*rows <= 0){
     *rows = 1;
@@ -807,30 +808,26 @@ update_palette(notcurses* nc, FILE* out){
 // textronix lacks cup; fake it with horiz+vert moves)
 static inline int
 stage_cursor(notcurses* nc, FILE* out, int y, int x){
-  int ret;
-  if(nc->rstate.y == y){
-    if(nc->rstate.x == x){
-      return 0;
-    }else if(nc->rstate.x < x){
-      if(nc->rstate.x == x - 1){
+  int ret = 0;
+  if(nc->rstate.y == y){ // only need move x
+    const int xdiff = x - nc->rstate.x;
+    if(xdiff > 0){
+      if(xdiff == 1){
         ret = term_emit("cuf1", tiparm(nc->cuf1), out, false);
       }else{
-        ret = term_emit("cuf", tiparm(nc->cuf, x - nc->rstate.x), out, false);
+        ret = term_emit("cuf", tiparm(nc->cuf, xdiff), out, false);
       }
-    }else{
-      if(nc->rstate.x == x + 1){
-        ret = term_emit("cub1", tiparm(nc->cub1), out, false);
-      }else{
-        ret = term_emit("cub", tiparm(nc->cub, nc->rstate.x - x), out, false);
-      }
+      nc->rstate.x = x;
+      return ret;
+    }else if(xdiff == 0){
+      return 0; // no move needed
     }
-  }else{
-    if((ret = term_emit("cup", tiparm(nc->cup, y, x), out, false)) >= 0){
-      nc->rstate.y = y;
-    }
+    // cub1/cub tend to be destructive in my experiments :/
   }
-  if(ret >= 0){
+  ret = term_emit("cup", tiparm(nc->cup, y, x), out, false);
+  if(ret == 0){
     nc->rstate.x = x;
+    nc->rstate.y = y;
   }
   return ret;
 }
@@ -861,10 +858,6 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   update_palette(nc, out);
   for(y = nc->stdscr->absy ; y < nc->stdscr->leny + nc->stdscr->absy ; ++y){
     const int innery = y - nc->stdscr->absy;
-    // how many characters have we elided? it's not worthwhile to invoke a
-    // cursor movement with cup if we only elided one or two. set to INT_MAX
-    // whenever we're on a new line. leave room to avoid overflow.
-    int needmove = INT_MAX - nc->stdscr->lenx;
     for(x = nc->stdscr->absx ; x < nc->stdscr->lenx + nc->stdscr->absx ; ++x){
       const int innerx = x - nc->stdscr->absx;
       const size_t damageidx = innery * nc->lfdimx + innerx;
@@ -879,10 +872,8 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
         ++nc->stats.cellelisions;
-        ++needmove;
         if(cell_wide_left_p(srccell)){
-          ++needmove;
-          ++nc->stats.cellelisions;
+          ++x;
         }
       }else{
         ++nc->stats.cellemissions;
@@ -992,13 +983,20 @@ fprintf(stderr, "RAST %u [%c] to %d/%d\n", srccell->gcluster, srccell->gcluster,
 fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_gcluster(&nc->pool, srccell), y, x);
 }*/
         if(term_putc(out, &nc->pool, srccell) == 0){
-          nc->rstate.x += 1 + cell_wide_left_p(srccell);
+          ++nc->rstate.x;
+          if(cell_wide_left_p(srccell)){
+            ++nc->rstate.x;
+            ++x;
+          }
+          // if the terminal's own motion carried us down to the next line,
+          // we need update our concept of the cursor's true y
+          /*if(nc->rstate.x >= nc->truecols){
+            ++nc->rstate.y; // FIXME not if on last line, right?
+            nc->rstate.x = 0;
+          }*/
         }else{
           ret = -1;
         }
-      }
-      if(cell_wide_left_p(srccell)){
-        ++x;
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }

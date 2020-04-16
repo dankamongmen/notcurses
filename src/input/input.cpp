@@ -219,7 +219,7 @@ int main(void){
   popts.minchannel = popts.maxchannel = 0;
   channels_set_fg_rgb(&popts.minchannel, 0x40, 0x50, 0xb0);
   channels_set_fg_rgb(&popts.maxchannel, 0x40, 0xff, 0xd0);
-  popts.gridtype = static_cast<ncgridgeom_e>(NCPLOT_2x1);
+  popts.gridtype = static_cast<ncgridgeom_e>(NCPLOT_2x2);
   plot = ncplot_create(pplane, &popts);
   if(!plot){
     return EXIT_FAILURE;

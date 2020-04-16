@@ -3,31 +3,38 @@
 static const struct {
   ncgridgeom_e geom;
   int width;
+  int height;
+  // the EGCs which form the various levels of a given geometry. if the geometry
+  // is wide, things are arranged with the rightmost side increasing most
+  // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
+  // the first five braille EGCs are all 0 on the left, [0..4] on the right.
   const wchar_t* egcs;
+  bool fill;
 } geomdata[] = {
-  { .geom = NCPLOT_1x1,   .width = 1, .egcs = L" █",                        },
-  { .geom = NCPLOT_2x1,   .width = 1, .egcs = L" ▄█",                       },
-  { .geom = NCPLOT_1x1x4, .width = 1, .egcs = L" ▒░▓█",                     },
-  { .geom = NCPLOT_2x2,   .width = 2, .egcs = L" ▗▐ ▖▄▟▌▙█",                },
-  { .geom = NCPLOT_4x1,   .width = 1, .egcs = L" ▂▄▆█",                     },
-  { .geom = NCPLOT_4x2,   .width = 2, .egcs = L" ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿", },
-  { .geom = NCPLOT_8x1,   .width = 1, .egcs = L" ▁▂▃▄▅▆▇█",                 },
+  { .geom = NCPLOT_1x1,   .width = 1, .height = 2, .egcs = L" █",                        .fill = false, },
+  { .geom = NCPLOT_2x1,   .width = 1, .height = 3, .egcs = L" ▄█",                       .fill = false, },
+  { .geom = NCPLOT_1x1x4, .width = 1, .height = 5, .egcs = L" ▒░▓█",                     .fill = false, },
+  { .geom = NCPLOT_2x2,   .width = 2, .height = 3, .egcs = L" ▗▐▖▄▟▌▙█",                 .fill = false, },
+  { .geom = NCPLOT_4x1,   .width = 1, .height = 5, .egcs = L" ▂▄▆█",                     .fill = false, },
+  { .geom = NCPLOT_4x2,   .width = 2, .height = 5, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿", .fill = true,  },
+  { .geom = NCPLOT_8x1,   .width = 1, .height = 9, .egcs = L" ▁▂▃▄▅▆▇█",                 .fill = false, },
 };
 
 static int
 redraw_plot(ncplot* n){
   ncplane_erase(ncplot_plane(n));
+  const int scale = geomdata[n->gridtype].width;
   int dimy, dimx;
   ncplane_dim_yx(ncplot_plane(n), &dimy, &dimx);
-  const int scaleddim = dimx * geomdata[n->gridtype].width;
+  const int scaleddim = dimx * scale;
   // each transition is worth this much change in value
-  const size_t states = wcslen(geomdata[n->gridtype].egcs);
+  const size_t states = geomdata[n->gridtype].height;
   // FIXME can we not rid ourselves of this meddlesome double?
   double interval = n->maxy < n->miny ? 0 : (n->maxy - n->miny) / ((double)dimy * states);
   const int startx = n->labelaxisd ? PREFIXSTRLEN : 0; // plot cols begin here
   // if we want fewer slots than there are available columns, our final column
   // will be other than the plane's final column. most recent x goes here.
-  const int finalx = (n->slotcount < scaleddim - 1 - (startx * geomdata[n->gridtype].width) ? startx + (n->slotcount / geomdata[n->gridtype].width) - 1 : dimx - 1);
+  const int finalx = (n->slotcount < scaleddim - 1 - (startx * scale) ? startx + (n->slotcount / scale) - 1 : dimx - 1);
   if(n->labelaxisd){
     // show the *top* of each interval range
     for(int y = 0 ; y < dimy ; ++y){
@@ -36,41 +43,61 @@ redraw_plot(ncplot* n){
       ncplane_putstr_yx(ncplot_plane(n), dimy - y - 1, PREFIXSTRLEN - strlen(buf), buf);
     }
   }
-  // exit on pathologically narrow planes, or sampleless draws
-  if(finalx < startx || !interval){
+  if(finalx < startx){ // exit on pathologically narrow planes
     return 0;
   }
+  if(!interval){
+    interval = 1;
+  }
+  #define MAXWIDTH 2
   int idx = n->slotstart; // idx holds the real slot index; we move backwards
   for(int x = finalx ; x >= startx ; --x){
-    uint64_t gval = n->slots[idx]; // clip the value at the limits of the graph
-    if(gval < n->miny){
-      gval = n->miny;
-    }
-    if(gval > n->maxy){
-      gval = n->maxy;
+    uint64_t gvals[MAXWIDTH];
+    // load it retaining the same ordering we have in the actual array
+    for(int i = scale - 1 ; i >= 0 ; --i){
+      gvals[i] = n->slots[idx]; // clip the value at the limits of the graph
+      if(gvals[i] < n->miny){
+        gvals[i] = n->miny;
+      }
+      if(gvals[i] > n->maxy){
+        gvals[i] = n->maxy;
+      }
+      // FIXME if there are an odd number, only go up through the valid ones...
+      if(--idx < 0){
+        idx = n->slotcount - 1;
+      }
     }
     // starting from the least-significant row, progress in the more significant
     // direction, drawing egcs from the grid specification, aborting early if
     // we can't draw anything in a given cell.
     double intervalbase = n->miny;
+    const wchar_t* egc = geomdata[n->gridtype].egcs;
     for(int y = 0 ; y < dimy ; ++y){
+      size_t egcidx, sumidx = 0;
       // if we've got at least one interval's worth on the number of positions
       // times the number of intervals per position plus the starting offset,
       // we're going to print *something*
-      if(intervalbase >= gval){
+      bool done = !geomdata[n->gridtype].fill;
+      for(int i = 0 ; i < scale ; ++i){
+        sumidx *= states;
+        if(intervalbase < gvals[i]){
+          egcidx = (gvals[i] - intervalbase) / interval;
+          if(egcidx >= states){
+            egcidx = states - 1;
+          }
+          done = false;
+          sumidx += egcidx;
+        }else{
+          egcidx = 0;
+        }
+      }
+      if(done){
         break;
       }
-      size_t egcidx = (gval - intervalbase) / interval;
-      if(egcidx >= states){
-        egcidx = states - 1;
-      }
-      if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, geomdata[n->gridtype].egcs[egcidx]) <= 0){
+      if(ncplane_putwc_yx(ncplot_plane(n), dimy - y - 1, x, egc[sumidx]) <= 0){
         return -1;
       }
       intervalbase += (states * interval);
-    }
-    if((idx -= geomdata[n->gridtype].width) < 0){
-      idx = n->slotcount - 1;
     }
   }
   if(ncplane_cursor_move_yx(ncplot_plane(n), 0, 0)){
