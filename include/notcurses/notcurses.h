@@ -83,6 +83,16 @@ API int ncdirect_cursor_left(struct ncdirect* nc, int num);
 API int ncdirect_cursor_right(struct ncdirect* nc, int num);
 API int ncdirect_cursor_down(struct ncdirect* nc, int num);
 
+// Get the cursor position, when supported. This requires writing to the
+// terminal, and then reading from it. If the terminal doesn't reply, or
+// doesn't reply in a way we understand, the results might be deleterious.
+API int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x);
+
+// Push or pop the cursor location to the terminal's stack. The depth of this
+// stack, and indeed its existence, is terminal-dependent.
+API int ncdirect_cursor_push(struct ncdirect* n);
+API int ncdirect_cursor_pop(struct ncdirect* n);
+
 // Clear the screen.
 API int ncdirect_clear(struct ncdirect* nc);
 

@@ -100,6 +100,10 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   return -1;
 }
 
+int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
+
+}
+
 int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
@@ -116,4 +120,3 @@ int ncdirect_stop(ncdirect* nc){
   }
   return ret;
 }
-

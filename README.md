@@ -2637,12 +2637,6 @@ up someday **FIXME**.
 * Portable: [terminfo(5)](http://man7.org/linux/man-pages/man5/terminfo.5.html)
 * Portable: [user_caps(5)](http://man7.org/linux/man-pages/man5/user_caps.5.html)
 
-### Other TUI libraries of note
-
-* [tui-rs](https://github.com/fdehau/tui-rs) (Rust)
-* [blessed-contrib](https://github.com/yaronn/blessed-contrib) (Javascript)
-* [FINAL CUT](https://github.com/gansm/finalcut) (C++)
-
 ### History
 
 * 2020-04-12: notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
