@@ -42,23 +42,26 @@ int main(void){
   ret |= ncdirect_cursor_up(n, geom.ws_row / 2);
   printf(" erperperp! \n");
   int y = -420, x = -420;
+  // FIXME try a push/pop
   if(ncdirect_cursor_yx(n, &y, &x) == 0){
-    fprintf(stderr, "\n\tRead cursor position: y: %d x: %d\n", y, x);
-    // FIXME try a push/pop
-    while(y){
-      --y;
-      ret |= ncdirect_cursor_up(n, 1);
+    printf("\n\tRead cursor position: y: %d x: %d\n", y, x);
+    y += 2; // we just went down two lines
+    while(y > 3){
+      const int up = y >= 3 ? 3 : y;
+      ret |= ncdirect_cursor_up(n, up);
+      fflush(stdout);
+      y -= up;
       int newy;
       if(ncdirect_cursor_yx(n, &newy, NULL)){
         ret = -1;
-        break;
+        return EXIT_FAILURE;
       }
       if(newy != y){
-        printf("Expected %d, got %d\n", y, newy);
-        ret = -1;
-        break;
+        fprintf(stderr, "Expected %d, got %d\n", y, newy);
+        return EXIT_FAILURE;
       }
-      fprintf(stderr, "\n\tRead cursor position: y: %d x: %d\n", newy, x);
+      printf("\n\tRead cursor position: y: %d x: %d\n", newy, x);
+      y += 2;
     }
   }else{
     ret = -1;
