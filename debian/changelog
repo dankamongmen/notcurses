@@ -1,7 +1,0 @@
-notcurses (1.3.0+dfsg.1-1) unstable; urgency=medium
-
-  * Updates per FTPMaster review: +dfsg in version, uscan DFSG repack,
-      upstream/metadata, README.source
-  * Initial release (Closes: #950492)
-
- -- Nick Black <dankamongmen@gmail.com>  Fri, 17 Apr 2020 21:59:37 -0400
