@@ -504,7 +504,7 @@ TEST_CASE("NCPlane") {
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
     cell testcell = CELL_TRIVIAL_INITIALIZER;
-    REQUIRE(0 == ncplane_at_cursor(n_, &testcell)); // want nothing at the cursor
+    REQUIRE(0 == ncplane_at_cursor_cell(n_, &testcell)); // want nothing at the cursor
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
@@ -518,12 +518,12 @@ TEST_CASE("NCPlane") {
     REQUIRE(dimx == x);
     REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want first char of STR1
+    REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1
     CHECK(STR1[0] == testcell.gcluster);
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - 1));
-    REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want last char of STR2
+    REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want last char of STR2
     CHECK(STR2[strlen(STR2) - 1] == testcell.gcluster);
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
@@ -540,7 +540,7 @@ TEST_CASE("NCPlane") {
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
     cell testcell = CELL_TRIVIAL_INITIALIZER;
-    ncplane_at_cursor(n_, &testcell); // should be nothing at the cursor
+    ncplane_at_cursor_cell(n_, &testcell); // should be nothing at the cursor
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
@@ -554,12 +554,12 @@ TEST_CASE("NCPlane") {
     REQUIRE(dimx == x);
     REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want first char of STR1
+    REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1
     CHECK(!strcmp("Σ", cell_extended_gcluster(n_, &testcell)));
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(NULL, STR2, 0)));
-    REQUIRE(0 < ncplane_at_cursor(n_, &testcell)); // want first char of STR2
+    REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR2
     CHECK(!strcmp("α", cell_extended_gcluster(n_, &testcell)));
     CHECK(0 == testcell.attrword);
     CHECK(0 == testcell.channels);
@@ -589,13 +589,13 @@ TEST_CASE("NCPlane") {
     CHECK(newx == x);
     cell testcell = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 == ncplane_cursor_move_yx(n_, y - 2, x - 1));
-    REQUIRE(1 == ncplane_at_cursor(n_, &testcell));
+    REQUIRE(1 == ncplane_at_cursor_cell(n_, &testcell));
     CHECK(testcell.gcluster == STR1[strlen(STR1) - 1]);
     CHECK(0 == ncplane_cursor_move_yx(n_, y - 1, x - 1));
-    REQUIRE(1 == ncplane_at_cursor(n_, &testcell));
+    REQUIRE(1 == ncplane_at_cursor_cell(n_, &testcell));
     CHECK(testcell.gcluster == STR2[strlen(STR2) - 1]);
     CHECK(0 == ncplane_cursor_move_yx(n_, y, x - 1));
-    REQUIRE(1 == ncplane_at_cursor(n_, &testcell));
+    REQUIRE(1 == ncplane_at_cursor_cell(n_, &testcell));
     CHECK(testcell.gcluster == STR3[strlen(STR3) - 1]);
   }
 
@@ -701,7 +701,7 @@ TEST_CASE("NCPlane") {
     REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
     CHECK(0 == notcurses_render(nc_));
-    // FIXME verify with ncplane_at_cursor()
+    // FIXME verify with ncplane_at_cursor_cell()
     CHECK(0 == ncplane_destroy(ncp));
   }
   SUBCASE("MoveToLowerRight") {
@@ -718,7 +718,7 @@ TEST_CASE("NCPlane") {
     CHECK(0 == ncplane_move_yx(ncp, nrows - 3, ncols - 3));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(ncp));
-    // FIXME verify with ncplane_at_cursor()
+    // FIXME verify with ncplane_at_cursor_cell()
   }
 
   SUBCASE("Perimeter") {
@@ -741,12 +741,12 @@ TEST_CASE("NCPlane") {
     CHECK(1 == ncplane_putegc_stainable(n_, "C", &sbytes));
     CHECK(1 == ncplane_putegc_stainable(n_, "D", &sbytes));
     uint64_t channels = 0;
-    CHECK(1 == ncplane_at_yx(n_, 0, 0, &c));
+    CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &c));
     CHECK(cell_simple_p(&c));
     CHECK('C' == c.gcluster);
     CHECK(0 == channels_set_fg(&channels, 0x444444));
     CHECK(channels == c.channels);
-    CHECK(1 == ncplane_at_yx(n_, 0, 1, &c));
+    CHECK(1 == ncplane_at_yx_cell(n_, 0, 1, &c));
     CHECK(cell_simple_p(&c));
     CHECK('D' == c.gcluster);
     CHECK(0 == channels_set_fg(&channels, 0x888888));

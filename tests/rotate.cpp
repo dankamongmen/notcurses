@@ -58,7 +58,7 @@ TEST_CASE("Rotate") {
     uint64_t channels = 0;
     CHECK(0 == channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
     CHECK(0 == channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
-    REQUIRE(0 >= ncplane_set_base(testn, channels, 0, ""));
+    REQUIRE(0 >= ncplane_set_base(testn, "", 0, channels));
     cell tl = CELL_TRIVIAL_INITIALIZER; cell tr = CELL_TRIVIAL_INITIALIZER;
     cell bl = CELL_TRIVIAL_INITIALIZER; cell br = CELL_TRIVIAL_INITIALIZER;
     cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;

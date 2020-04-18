@@ -5,30 +5,24 @@
 static int
 reload_corners(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr){
   int dimy, dimx;
-
   ncplane_dim_yx(n, &dimy, &dimx);
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_at_yx(n, 1, dimx - 1, &c) < 0){
-    cell_release(n, &c);
+  char* egc;
+  if( (egc = ncplane_at_yx(n, 1, dimx - 1, NULL, &ul->channels)) == NULL){
     return -1;
   }
-  ul->channels = c.channels;
-  if(ncplane_at_yx(n, dimy - 1, dimx - 1, &c) < 0){
-    cell_release(n, &c);
+  free(egc);
+  if( (egc = ncplane_at_yx(n, dimy - 1, dimx - 1, NULL, &ur->channels)) == NULL){
     return -1;
   }
-  ur->channels = c.channels;
-  if(ncplane_at_yx(n, dimy - 1, 0, &c) < 0){
-    cell_release(n, &c);
+  free(egc);
+  if( (egc = ncplane_at_yx(n, dimy - 1, 0, NULL, &lr->channels)) == NULL){
     return -1;
   }
-  lr->channels = c.channels;
-  if(ncplane_at_yx(n, 1, 0, &c) < 0){
-    cell_release(n, &c);
+  free(egc);
+  if( (egc = ncplane_at_yx(n, 1, 0, NULL, &ll->channels)) == NULL){
     return -1;
   }
-  ll->channels = c.channels;
-  cell_release(n, &c);
+  free(egc);
   return 0;
 }
 

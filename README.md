@@ -789,8 +789,8 @@ int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
 // does not reset the base cell; this function must be called with an empty
 // 'egc'. 'egc' must be a single extended grapheme cluster.
-int ncplane_set_base(struct ncplane* ncp, uint64_t channels,
-                     uint32_t attrword, const char* egc);
+int ncplane_set_base(struct ncplane* ncp, const char* egc,
+                     uint32_t attrword, uint64_t channels);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
@@ -820,13 +820,24 @@ addition, the plane's virtual framebuffer can be accessed (note that this does
 not necessarily reflect anything on the actual screen).
 
 ```c
-// Retrieve the cell at the cursor location on the specified plane, returning
-// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
-int ncplane_at_cursor(struct ncplane* n, cell* c);
+// Retrieve the current contents of the cell under the cursor. The EGC is
+// returned, or NULL on error. This EGC must be free()d by the caller. The
+// attrword and channels are written to 'attrword' and 'channels', respectively.
+char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);
 
-// Retrieve the cell at the specified location on the specified plane, returning
-// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
-int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
+// Retrieve the current contents of the cell under the cursor into 'c'. This
+// cell is invalidated if the associated plane is destroyed.
+int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
+
+// Retrieve the current contents of the specified cell. The EGC is returned, or
+// NULL on error. This EGC must be free()d by the caller. The attrword and
+// channels are written to 'attrword' and 'channels', respectively.
+char* ncplane_at_yx(struct ncplane* n, int y, int x,
+                    uint32_t* attrword, uint64_t* channels);
+
+// Retrieve the current contents of the specified cell into 'c'. This cell is
+// invalidated if the associated plane is destroyed.
+int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing

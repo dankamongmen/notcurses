@@ -13,7 +13,7 @@ int main(void){
   char c = 'A';
   ncplane_set_scrolling(n, true);
   while(true){
-    struct timespec req = { .tv_sec = 0, .tv_nsec = 10000000, };
+    struct timespec req = { .tv_sec = 0, .tv_nsec = 1000000, };
     nanosleep(&req, NULL);
     if(ncplane_putsimple(n, c) != 1){
       break;

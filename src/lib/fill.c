@@ -455,10 +455,10 @@ static int
 rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
   cell c1 = CELL_TRIVIAL_INITIALIZER;
   cell c2 = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_at_yx(src, srcy, srcx, &c1) < 0){
+  if(ncplane_at_yx_cell(src, srcy, srcx, &c1) < 0){
     return -1;
   }
-  if(ncplane_at_yx(src, srcy, srcx + 1, &c2) < 0){
+  if(ncplane_at_yx_cell(src, srcy, srcx + 1, &c2) < 0){
     cell_release(src, &c1);
     return -1;
   }
@@ -494,10 +494,10 @@ rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx
 int rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
   cell c1 = CELL_TRIVIAL_INITIALIZER;
   cell c2 = CELL_TRIVIAL_INITIALIZER;
-  if(ncplane_at_yx(src, srcy, srcx, &c1) < 0){
+  if(ncplane_at_yx_cell(src, srcy, srcx, &c1) < 0){
     return -1;
   }
-  if(ncplane_at_yx(src, srcy, srcx + 1, &c2) < 0){
+  if(ncplane_at_yx_cell(src, srcy, srcx + 1, &c2) < 0){
     cell_release(src, &c1);
     return -1;
   }

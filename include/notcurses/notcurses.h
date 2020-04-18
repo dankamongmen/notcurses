@@ -524,6 +524,198 @@ typedef struct cell {
   uint64_t channels;          // + 8B == 16B
 } cell;
 
+#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
+
+static inline void
+cell_init(cell* c){
+  memset(c, 0, sizeof(*c));
+}
+
+// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
+// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
+// of the cell is left untouched, but any resources are released.
+API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+
+// cell_load(), plus blast the styling with 'attr' and 'channels'.
+static inline int
+cell_prime(struct ncplane* n, cell* c, const char* gcluster,
+           uint32_t attr, uint64_t channels){
+  c->attrword = attr;
+  c->channels = channels;
+  int ret = cell_load(n, c, gcluster);
+  return ret;
+}
+
+// Duplicate 'c' into 'targ'; both must be/will be bound to 'n'.
+API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
+
+// Release resources held by the cell 'c'.
+API void cell_release(struct ncplane* n, cell* c);
+
+#define NCSTYLE_MASK      0xffff0000ul
+#define NCSTYLE_STANDOUT  0x00800000ul
+#define NCSTYLE_UNDERLINE 0x00400000ul
+#define NCSTYLE_REVERSE   0x00200000ul
+#define NCSTYLE_BLINK     0x00100000ul
+#define NCSTYLE_DIM       0x00080000ul
+#define NCSTYLE_BOLD      0x00040000ul
+#define NCSTYLE_INVIS     0x00020000ul
+#define NCSTYLE_PROTECT   0x00010000ul
+#define NCSTYLE_ITALIC    0x01000000ul
+
+// Set the specified style bits for the cell 'c', whether they're actively
+// supported or not.
+static inline void
+cell_styles_set(cell* c, unsigned stylebits){
+  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
+}
+
+// Extract the style bits from the cell's attrword.
+static inline unsigned
+cell_styles(const cell* c){
+  return c->attrword & NCSTYLE_MASK;
+}
+
+// Add the specified styles (in the LSBs) to the cell's existing spec, whether
+// they're actively supported or not.
+static inline void
+cell_styles_on(cell* c, unsigned stylebits){
+  c->attrword |= (stylebits & NCSTYLE_MASK);
+}
+
+// Remove the specified styles (in the LSBs) from the cell's existing spec.
+static inline void
+cell_styles_off(cell* c, unsigned stylebits){
+  c->attrword &= ~(stylebits & NCSTYLE_MASK);
+}
+
+// Use the default color for the foreground.
+static inline void
+cell_set_fg_default(cell* c){
+  channels_set_fg_default(&c->channels);
+}
+
+// Use the default color for the background.
+static inline void
+cell_set_bg_default(cell* c){
+  channels_set_bg_default(&c->channels);
+}
+
+static inline int
+cell_set_fg_alpha(cell* c, int alpha){
+  return channels_set_fg_alpha(&c->channels, alpha);
+}
+
+static inline int
+cell_set_bg_alpha(cell* c, int alpha){
+  return channels_set_bg_alpha(&c->channels, alpha);
+}
+
+// Does the cell contain an East Asian Wide codepoint?
+static inline bool
+cell_double_wide_p(const cell* c){
+  return (c->channels & CELL_WIDEASIAN_MASK);
+}
+
+// Is this the right half of a wide character?
+static inline bool
+cell_wide_right_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster == 0;
+}
+
+// Is this the left half of a wide character?
+static inline bool
+cell_wide_left_p(const cell* c){
+  return cell_double_wide_p(c) && c->gcluster;
+}
+
+// Is the cell simple (a lone ASCII character, encoded as such)?
+static inline bool
+cell_simple_p(const cell* c){
+  return c->gcluster < 0x80;
+}
+
+// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
+// is invalidated by any further operation on the plane 'n', so...watch out!
+API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+
+// Extract the EGC from 'c' as a nul-terminated string.
+static inline char*
+cell_strdup(const struct ncplane* n, const cell* c){
+  char* ret;
+  if(cell_simple_p(c)){
+    if( (ret = (char*)malloc(2)) ){ // cast is here for C++ clients
+      ret[0] = c->gcluster;
+      ret[1] = '\0';
+    }
+  }else{
+    ret = strdup(cell_extended_gcluster(n, c));
+  }
+  return ret;
+}
+
+// Extract the three elements of a cell.
+static inline char*
+cell_extract(const struct ncplane* n, const cell* c, uint32_t* attrword, uint64_t* channels){
+  if(attrword){
+    *attrword = c->attrword;
+  }
+  if(channels){
+    *channels = c->channels;
+  }
+  return cell_strdup(n, c);
+}
+
+// Returns true if the two cells are distinct EGCs, attributes, or channels.
+// The actual egcpool index needn't be the same--indeed, the planes needn't even
+// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
+// it would probably be better to test whether they're Unicode-equal FIXME.
+static inline bool
+cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
+        const struct ncplane* n2, const cell* RESTRICT c2){
+  if(c1->attrword != c2->attrword){
+    return true;
+  }
+  if(c1->channels != c2->channels){
+    return true;
+  }
+  if(cell_simple_p(c1) && cell_simple_p(c2)){
+    return c1->gcluster != c2->gcluster;
+  }
+  if(cell_simple_p(c1) || cell_simple_p(c2)){
+    return true;
+  }
+  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
+}
+
+// True if the cell does not generate foreground pixels (i.e., the cell is
+// entirely whitespace or special characters).
+// FIXME do this at cell prep time and set a bit in the channels
+static inline bool
+cell_noforeground_p(const cell* c){
+  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
+}
+
+static inline int
+cell_load_simple(struct ncplane* n, cell* c, char ch){
+  cell_release(n, c);
+  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->gcluster = ch;
+  if(cell_simple_p(c)){
+    return 1;
+  }
+  return -1;
+}
+
+// get the offset into the egcpool for this cell's EGC. returns meaningless and
+// unsafe results if called on a simple cell.
+static inline uint32_t
+cell_egc_idx(const cell* c){
+  return c->gcluster - 0x80;
+}
+
 // These log levels consciously map cleanly to those of libav; notcurses itself
 // does not use this full granularity. The log level does not affect the opening
 // and closing banners, which can be disabled via the notcurses_option struct's
@@ -862,8 +1054,8 @@ API int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
 // does not reset the base cell; this function must be called with an empty
 // 'egc'. 'egc' must be a single extended grapheme cluster.
-API int ncplane_set_base(struct ncplane* ncp, uint64_t channels,
-                         uint32_t attrword, const char* egc);
+API int ncplane_set_base(struct ncplane* ncp, const char* egc,
+                         uint32_t attrword, uint64_t channels);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
@@ -914,14 +1106,50 @@ API struct ncplane* ncplane_below(struct ncplane* n);
 API int ncplane_rotate_cw(struct ncplane* n);
 API int ncplane_rotate_ccw(struct ncplane* n);
 
-// Retrieve the cell at the cursor location on the specified plane, returning
-// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
-API int ncplane_at_cursor(struct ncplane* n, cell* c);
+// Retrieve the current contents of the cell under the cursor. The EGC is
+// returned, or NULL on error. This EGC must be free()d by the caller. The
+// attrword and channels are written to 'attrword' and 'channels', respectively.
+API char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);
 
-// Retrieve the cell at the specified location on the specified plane, returning
-// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
-// Returns the length of the EGC in bytes.
-API int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
+// Retrieve the current contents of the cell under the cursor into 'c'. This
+// cell is invalidated if the associated plane is destroyed.
+static inline int
+ncplane_at_cursor_cell(struct ncplane* n, cell* c){
+  char* egc = ncplane_at_cursor(n, &c->attrword, &c->channels);
+  if(!egc){
+    return -1;
+  }
+  uint64_t channels = c->channels; // need to preserve wide flag
+  int r = cell_load(n, c, egc);
+  c->channels = channels;
+  if(r < 0){
+    free(egc);
+  }
+  return r;
+}
+
+// Retrieve the current contents of the specified cell. The EGC is returned, or
+// NULL on error. This EGC must be free()d by the caller. The attrword and
+// channels are written to 'attrword' and 'channels', respectively.
+API char* ncplane_at_yx(struct ncplane* n, int y, int x,
+                        uint32_t* attrword, uint64_t* channels);
+
+// Retrieve the current contents of the specified cell into 'c'. This cell is
+// invalidated if the associated plane is destroyed.
+static inline int
+ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c){
+  char* egc = ncplane_at_yx(n, y, x, &c->attrword, &c->channels);
+  if(!egc){
+    return -1;
+  }
+  uint64_t channels = c->channels; // need to preserve wide flag
+  int r = cell_load(n, c, egc);
+  c->channels = channels;
+  if(r < 0){
+    free(egc);
+  }
+  return r;
+}
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
@@ -957,174 +1185,6 @@ API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRI
 // Get the current channels or attribute word for ncplane 'n'.
 API uint64_t ncplane_channels(const struct ncplane* n);
 API uint32_t ncplane_attr(const struct ncplane* n);
-
-// Working with cells
-
-#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
-
-static inline void
-cell_init(cell* c){
-  memset(c, 0, sizeof(*c));
-}
-
-// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
-// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
-// of the cell is left untouched, but any resources are released.
-API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
-
-// cell_load(), plus blast the styling with 'attr' and 'channels'.
-static inline int
-cell_prime(struct ncplane* n, cell* c, const char* gcluster,
-           uint32_t attr, uint64_t channels){
-  c->attrword = attr;
-  c->channels = channels;
-  int ret = cell_load(n, c, gcluster);
-  return ret;
-}
-
-// Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
-// benefit of unit tests.
-API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
-
-// Release resources held by the cell 'c'.
-API void cell_release(struct ncplane* n, cell* c);
-
-#define NCSTYLE_MASK      0xffff0000ul
-#define NCSTYLE_STANDOUT  0x00800000ul
-#define NCSTYLE_UNDERLINE 0x00400000ul
-#define NCSTYLE_REVERSE   0x00200000ul
-#define NCSTYLE_BLINK     0x00100000ul
-#define NCSTYLE_DIM       0x00080000ul
-#define NCSTYLE_BOLD      0x00040000ul
-#define NCSTYLE_INVIS     0x00020000ul
-#define NCSTYLE_PROTECT   0x00010000ul
-#define NCSTYLE_ITALIC    0x01000000ul
-
-// Set the specified style bits for the cell 'c', whether they're actively
-// supported or not.
-static inline void
-cell_styles_set(cell* c, unsigned stylebits){
-  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
-}
-
-// Extract the style bits from the cell's attrword.
-static inline unsigned
-cell_styles(const cell* c){
-  return c->attrword & NCSTYLE_MASK;
-}
-
-// Add the specified styles (in the LSBs) to the cell's existing spec, whether
-// they're actively supported or not.
-static inline void
-cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= (stylebits & NCSTYLE_MASK);
-}
-
-// Remove the specified styles (in the LSBs) from the cell's existing spec.
-static inline void
-cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~(stylebits & NCSTYLE_MASK);
-}
-
-// Use the default color for the foreground.
-static inline void
-cell_set_fg_default(cell* c){
-  channels_set_fg_default(&c->channels);
-}
-
-// Use the default color for the background.
-static inline void
-cell_set_bg_default(cell* c){
-  channels_set_bg_default(&c->channels);
-}
-
-static inline int
-cell_set_fg_alpha(cell* c, int alpha){
-  return channels_set_fg_alpha(&c->channels, alpha);
-}
-
-static inline int
-cell_set_bg_alpha(cell* c, int alpha){
-  return channels_set_bg_alpha(&c->channels, alpha);
-}
-
-// Does the cell contain an East Asian Wide codepoint?
-static inline bool
-cell_double_wide_p(const cell* c){
-  return (c->channels & CELL_WIDEASIAN_MASK);
-}
-
-// Is this the right half of a wide character?
-static inline bool
-cell_wide_right_p(const cell* c){
-  return cell_double_wide_p(c) && c->gcluster == 0;
-}
-
-// Is this the left half of a wide character?
-static inline bool
-cell_wide_left_p(const cell* c){
-  return cell_double_wide_p(c) && c->gcluster;
-}
-
-// Is the cell simple (a lone ASCII character, encoded as such)?
-static inline bool
-cell_simple_p(const cell* c){
-  return c->gcluster < 0x80;
-}
-
-// return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
-// is invalidated by any further operation on the plane 'n', so...watch out!
-API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
-
-// Returns true if the two cells are distinct EGCs, attributes, or channels.
-// The actual egcpool index needn't be the same--indeed, the planes needn't even
-// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
-// it would probably be better to test whether they're Unicode-equal FIXME.
-static inline bool
-cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
-        const struct ncplane* n2, const cell* RESTRICT c2){
-  if(c1->attrword != c2->attrword){
-    return true;
-  }
-  if(c1->channels != c2->channels){
-    return true;
-  }
-  if(cell_simple_p(c1) && cell_simple_p(c2)){
-    return c1->gcluster != c2->gcluster;
-  }
-  if(cell_simple_p(c1) || cell_simple_p(c2)){
-    return true;
-  }
-  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
-}
-
-// True if the cell does not generate foreground pixels (i.e., the cell is
-// entirely whitespace or special characters).
-// FIXME do this at cell prep time and set a bit in the channels
-static inline bool
-cell_noforeground_p(const cell* c){
-  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
-}
-
-static inline int
-cell_load_simple(struct ncplane* n, cell* c, char ch){
-  cell_release(n, c);
-  c->channels &= ~CELL_WIDEASIAN_MASK;
-  c->gcluster = ch;
-  if(cell_simple_p(c)){
-    return 1;
-  }
-  return -1;
-}
-
-// get the offset into the egcpool for this cell's EGC. returns meaningless and
-// unsafe results if called on a simple cell.
-static inline uint32_t
-cell_egc_idx(const cell* c){
-  return c->gcluster - 0x80;
-}
 
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the

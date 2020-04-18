@@ -114,7 +114,7 @@ draw_luigi(struct ncplane* n, const char* sprite){
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, channels, 0, "");
+  ncplane_set_base(n, "", 0, channels);
   size_t s;
   int sbytes;
   // optimization so we can elide more color changes, see README's "#perf"
@@ -202,7 +202,7 @@ int luigi_demo(struct notcurses* nc){
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(ncvisual_plane(wmncv), channels, 0, "");
+  ncplane_set_base(ncvisual_plane(wmncv), "", 0, channels);
   if(ncvisual_render(wmncv, 0, 0, -1, -1) <= 0){
     ncvisual_destroy(wmncv);
     return -1;

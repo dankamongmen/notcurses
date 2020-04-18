@@ -27,7 +27,7 @@ mathplane(struct notcurses* nc){
   channels_set_fg(&channels, 0x2b50c8); // metallic gold, inverted
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, channels, 0, "");
+  ncplane_set_base(n, "", 0, channels);
   ncplane_set_fg(n, 0xd4af37); // metallic gold
   ncplane_set_bg(n, 0x0);
   if(n){
@@ -61,7 +61,7 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
 
 static void
 surrounding_cells(struct ncplane* n, cell* lightup, int y, int x){
-  ncplane_at_yx(n, y, x, lightup);
+  ncplane_at_yx_cell(n, y, x, lightup);
 }
 
 static int
@@ -171,7 +171,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(n, channels, 0, "");
+  ncplane_set_base(n, "", 0, channels);
   ncplane_set_fg_rgb(n, 255, 255, 255);
   ncplane_set_bg_rgb(n, 32, 64, 32);
   channels = 0;

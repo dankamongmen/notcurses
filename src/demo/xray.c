@@ -44,7 +44,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
     uint64_t channels = 0;
     channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    ncplane_set_base(n, channels, 0, " ");
+    ncplane_set_base(n, " ", 0, channels);
     ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
     ncplane_set_scrolling(n, true);
   }
