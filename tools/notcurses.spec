@@ -1,5 +1,5 @@
 Name:          notcurses
-Version:       1.3.0
+Version:       1.3.1
 Release:       1%{?dist}
 Summary:       Character graphics and TUI library
 License:       ASL 2.0
@@ -107,5 +107,5 @@ python setup.py install --root=%{buildroot} --optimize=1
 %{python3_sitearch}/*.so
 
 %changelog
-* Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.3.0-1
+* Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.3.1-1
 - Initial Fedora packaging

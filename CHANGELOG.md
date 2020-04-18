@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.3.1 (not yet released)
+* 1.3.1 (2020-04-18)
   * `ncplane_at_yx()` and `ncplane_at_cursor()` have been changed to return a
     heap-allocated EGC, and write the attributes and channels to value-result
     `uint32_t*` and `uint64_t*` parameters, instead of to a `cell*`. This
@@ -15,7 +15,10 @@ rearrangements of Notcurses.
   * The C++ `Notcurses::render()` function now returns non-zero on failure,
     mirroring the behavior of the core C `notcurses_render()`. This is an
     inversion of its previous behavior.
-
+  * Scrolling is now completely implemented. When a plane has scrolling enabled
+    through use of `ncplane_set_scrolling(true)`, output past the end of the
+    last line will now result in the top line of the plane being lost, all
+    other lines moved up one, and the bottom line cleared.
 
 * 1.3.0 (2020-04-12)
   * No user-visible changes
