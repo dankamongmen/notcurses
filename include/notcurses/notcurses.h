@@ -1155,9 +1155,7 @@ ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c){
   uint64_t channels = c->channels; // need to preserve wide flag
   int r = cell_load(n, c, egc);
   c->channels = channels;
-  if(r < 0){
-    free(egc);
-  }
+  free(egc);
   return r;
 }
 
