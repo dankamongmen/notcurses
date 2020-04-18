@@ -25,8 +25,7 @@ TEST_CASE("Cell") {
   if(getenv("TERM") == nullptr){
     return;
   }
-  FILE* outfp_{};
-  outfp_ = fopen("/dev/tty", "wb");
+  FILE* outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(nullptr != outfp_);
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
