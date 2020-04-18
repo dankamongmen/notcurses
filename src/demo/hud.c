@@ -420,6 +420,7 @@ int demo_nanosleep(struct notcurses* nc, const struct timespec *ts){
   return 0;
 }
 
+// FIXME needs to pass back any ncinput read, if requested...hrmmm
 int demo_render(struct notcurses* nc){
   if(interrupted){
     return 1;
@@ -450,5 +451,15 @@ int demo_render(struct notcurses* nc){
       return -1;
     }
   }
-  return notcurses_render(nc);
+  ncinput ni;
+  char32_t id;
+  id = demo_getc_nblock(nc, &ni);
+  int ret = notcurses_render(nc);
+  if(ret){
+    return ret;
+  }
+  if(id == 'q'){
+    return 1;
+  }
+  return 0;
 }
