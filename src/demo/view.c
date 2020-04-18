@@ -6,7 +6,7 @@ watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((u
   wchar_t w;
   // we don't want a keypress, but allow the ncvisual to handle
   // NCKEY_RESIZE for us
-  if((w = demo_getc_nblock(NULL)) != (wchar_t)-1){
+  if((w = demo_getc_nblock(nc, NULL)) != (wchar_t)-1){
     if(w == 'q'){
       return 1;
     }

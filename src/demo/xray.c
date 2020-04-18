@@ -16,7 +16,7 @@ static const char* leg[] = {
 static int
 watch_for_keystroke(struct notcurses* nc){
   wchar_t w;
-  if((w = demo_getc_nblock(NULL)) != (wchar_t)-1){
+  if((w = demo_getc_nblock(nc, NULL)) != (wchar_t)-1){
     if(w == 'q'){
       return 1;
     }
