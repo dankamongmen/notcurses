@@ -4,6 +4,9 @@
 #include "internal.h"
 
 TEST_CASE("Wide") {
+  if(!enforce_utf8()){
+    return;
+  }
   if(getenv("TERM") == nullptr){
     return;
   }
