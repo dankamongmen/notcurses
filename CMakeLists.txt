@@ -670,6 +670,8 @@ install(FILES
 
 if(${USE_FFMPEG})
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
+# Don't install source materia for self-originated multimedia
+list(FILTER TESTDATA EXCLUDE REGEX ".*xcf$")
 install(FILES
   ${TESTDATA}
     DESTINATION ${CMAKE_INSTALL_DATADIR}/notcurses
