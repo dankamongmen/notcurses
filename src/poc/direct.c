@@ -24,30 +24,6 @@ int main(void){
     }
   }
   fflush(stdout);
-  notcurses_options opts;
-  memset(&opts, 0, sizeof(opts));
-  opts.inhibit_alternate_screen = true;
-  struct notcurses* nc = notcurses_init(&opts, stdout);
-  if(!nc){
-    fprintf(stderr, "Couldn't initialize notcurses\n");
-    return EXIT_FAILURE;
-  }
-  ncplane_set_fg(notcurses_stdplane(nc), 0x00ff00);
-  if(ncplane_putstr_aligned(notcurses_stdplane(nc), geom.ws_row - 2, NCALIGN_CENTER, " erperperp ") <= 0){
-    notcurses_stop(nc);
-    fprintf(stderr, "Error printing\n");
-    return EXIT_FAILURE;
-  }
-  if(notcurses_render(nc)){
-    notcurses_stop(nc);
-    fprintf(stderr, "Error rendering\n");
-    return EXIT_FAILURE;
-  }
-  sleep(2);
-  if(notcurses_stop(nc)){
-    fprintf(stderr, "Error stopping notcurses\n");
-    return EXIT_FAILURE;
-  }
   struct ncdirect* n; // see bug #391
   if((n = ncdirect_init(NULL, stdout)) == NULL){
     return EXIT_FAILURE;
@@ -65,5 +41,30 @@ int main(void){
   ret |= ncdirect_cursor_right(n, geom.ws_col / 2);
   ret |= ncdirect_cursor_up(n, geom.ws_row / 2);
   printf(" erperperp! \n");
+  int y = -420, x = -420;
+  // FIXME try a push/pop
+  if(ncdirect_cursor_yx(n, &y, &x) == 0){
+    printf("\n\tRead cursor position: y: %d x: %d\n", y, x);
+    y += 2; // we just went down two lines
+    while(y > 3){
+      const int up = y >= 3 ? 3 : y;
+      ret |= ncdirect_cursor_up(n, up);
+      fflush(stdout);
+      y -= up;
+      int newy;
+      if(ncdirect_cursor_yx(n, &newy, NULL)){
+        ret = -1;
+        return EXIT_FAILURE;
+      }
+      if(newy != y){
+        fprintf(stderr, "Expected %d, got %d\n", y, newy);
+        return EXIT_FAILURE;
+      }
+      printf("\n\tRead cursor position: y: %d x: %d\n", newy, x);
+      y += 2;
+    }
+  }else{
+    ret = -1;
+  }
   return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }

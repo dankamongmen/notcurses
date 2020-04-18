@@ -273,9 +273,11 @@ typedef struct ncdirect {
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
   char* clear;    // clear the screen
+  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
+  char* sc;       // push the cursor location onto the stack
+  char* rc;       // pop the cursor location off the stack
   bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc truecolor
   bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
-  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   uint16_t fgrgb, bgrgb; // last RGB values of foreground/background
   bool fgdefault, bgdefault; // are FG/BG currently using default colors?

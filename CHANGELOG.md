@@ -1,6 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.3.2 (not yet released)
+  * `ncdirect_cursor_push()`, `notcurses_cursor_pop()`, and
+    `ncdirect_cursor_yx()` have been added. These are not supported on all
+    terminals. `ncdirect_cursor_yx()` ought be considered experimental; it
+    must read a response from the terminal, and this can interact poorly with
+    other uses of standard input.
+
 * 1.3.1 (2020-04-18)
   * `ncplane_at_yx()` and `ncplane_at_cursor()` have been changed to return a
     heap-allocated EGC, and write the attributes and channels to value-result

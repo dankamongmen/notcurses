@@ -1,3 +1,7 @@
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <termios.h>
 #include "internal.h"
 
 int ncdirect_cursor_up(ncdirect* nc, int num){
@@ -100,6 +104,112 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   return -1;
 }
 
+static int
+cursor_yx_get(FILE* outfp, FILE* infp, int* y, int* x){
+  if(fprintf(outfp, "\033[6n") != 4){
+    return -1;
+  }
+  int in;
+  bool done = false;
+  enum { // what we expect now
+    CURSOR_ESC, // 27 (0x1b)
+    CURSOR_LSQUARE,
+    CURSOR_ROW, // delimited by a semicolon
+    CURSOR_COLUMN,
+    CURSOR_R,
+  } state = CURSOR_ESC;
+  int row = 0, column = 0;
+  while((in = getc(infp)) != EOF){
+    bool valid = false;
+    switch(state){
+      case CURSOR_ESC: valid = (in == '\x1b'); ++state; break;
+      case CURSOR_LSQUARE: valid = (in == '['); ++state; break;
+      case CURSOR_ROW:
+        if(isdigit(in)){
+          row *= 10;
+          row += in - '0';
+          valid = true;
+        }else if(in == ';'){
+          ++state;
+          valid = true;
+        }
+        break;
+      case CURSOR_COLUMN:
+        if(isdigit(in)){
+          column *= 10;
+          column += in - '0';
+          valid = true;
+        }else if(in == 'R'){
+          ++state;
+          valid = true;
+        }
+        break;
+      case CURSOR_R: default: // logical error, whoops
+        break;
+    }
+    if(!valid){
+      fprintf(stderr, "Unexpected result from terminal: %d\n", in);
+      break;
+    }
+    if(state == CURSOR_R){
+      done = true;
+      break;
+    }
+  }
+  if(!done){
+    return -1;
+  }
+  if(y){
+    *y = row;
+  }
+  if(x){
+    *x = column;
+  }
+  return 0;
+}
+
+// no terminfo capability for this. dangerous!
+int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
+  int infd = fileno(stdin); // FIXME n->ttyfp?
+  if(infd < 0){
+    fprintf(stderr, "Couldn't get file descriptor from stdin\n");
+    return -1;
+  }
+  // do *not* close infd!
+  struct termios termio, oldtermios;
+  if(tcgetattr(infd, &termio)){
+    fprintf(stderr, "Couldn't get terminal info from %d (%s)\n", infd, strerror(errno));
+    return -1;
+  }
+  memcpy(&oldtermios, &termio, sizeof(termio));
+  termio.c_lflag &= ~(ICANON | ECHO);
+  if(tcsetattr(infd, TCSAFLUSH, &termio)){
+    fprintf(stderr, "Couldn't put terminal into cbreak mode via %d (%s)\n",
+            infd, strerror(errno));
+    return -1;
+  }
+  int ret = cursor_yx_get(n->ttyfp, stdin, y, x);
+  if(tcsetattr(infd, TCSANOW, &oldtermios)){
+    fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
+            infd, strerror(errno)); // don't return error for this
+  }
+  return ret;
+}
+
+int ncdirect_cursor_push(ncdirect* n){
+  if(n->sc == NULL){
+    return -1;
+  }
+  return term_emit("sc", n->sc, n->ttyfp, false);
+}
+
+int ncdirect_cursor_pop(ncdirect* n){
+  if(n->rc == NULL){
+    return -1;
+  }
+  return term_emit("rc", n->rc, n->ttyfp, false);
+}
+
 int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
@@ -116,4 +226,3 @@ int ncdirect_stop(ncdirect* nc){
   }
   return ret;
 }
-
