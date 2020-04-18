@@ -9,7 +9,7 @@ void RotateCcw() {
   if(InvalidMove() && !curpiece_->rotate_cw()){
     throw TetrisNotcursesErr("rotate_cw()");
   }
-  if(nc_.render()){
+  if(!nc_.render()){
     throw TetrisNotcursesErr("render()");
   }
 }
@@ -25,7 +25,7 @@ void RotateCw() {
   if(InvalidMove() && !curpiece_->rotate_ccw()){
     throw TetrisNotcursesErr("rotate_ccw()");
   }
-  if(nc_.render()){
+  if(!nc_.render()){
     throw TetrisNotcursesErr("render()");
   }
 }

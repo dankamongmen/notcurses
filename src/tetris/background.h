@@ -52,7 +52,7 @@ void DrawBoard() { // draw all fixed components of the game
   scoreplane_->printf(0, 1, "%s", cuserid(nullptr));
   scoreplane_->set_fg(0x00d0a0);
   UpdateScore();
-  if(nc_.render()){
+  if(!nc_.render()){
     throw TetrisNotcursesErr("render()");
   }
 }

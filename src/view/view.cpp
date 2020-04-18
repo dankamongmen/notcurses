@@ -85,7 +85,7 @@ int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void*
   ns -= s * NANOSECS_IN_SEC;
   stdn->printf(0, NCAlign::Right, "%02ld:%02ld:%02ld.%04ld",
                h, m, s, ns / 1000000);
-  if(nc.render()){
+  if(!nc.render()){
     return -1;
   }
   int dimx, dimy, oldx, oldy, keepy, keepx;

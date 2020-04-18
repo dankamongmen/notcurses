@@ -11,7 +11,7 @@ void MoveLateral(int direction) { // pass in -1 for left, 1 for right
       }
     }else{
       x += shift;
-      if(nc_.render()){
+      if(!nc_.render()){
         throw TetrisNotcursesErr("render()");
       }
     }

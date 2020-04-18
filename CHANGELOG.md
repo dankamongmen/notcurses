@@ -7,6 +7,8 @@ rearrangements of Notcurses.
     terminals. `ncdirect_cursor_yx()` ought be considered experimental; it
     must read a response from the terminal, and this can interact poorly with
     other uses of standard input.
+  * 1.3.1 unintentionally inverted the C++ `Notcurses::render()` wrapper's
+    return code. The previous semantics have been restored.
 
 * 1.3.1 (2020-04-18)
   * `ncplane_at_yx()` and `ncplane_at_cursor()` have been changed to return a
@@ -19,9 +21,6 @@ rearrangements of Notcurses.
     parameters, thus matching every other function with these two parameters.
     It moved `const char* egc` before either, to force a type error, as the
     change would otherwise be likely to go overlooked.
-  * The C++ `Notcurses::render()` function now returns non-zero on failure,
-    mirroring the behavior of the core C `notcurses_render()`. This is an
-    inversion of its previous behavior.
   * Scrolling is now completely implemented. When a plane has scrolling enabled
     through use of `ncplane_set_scrolling(true)`, output past the end of the
     last line will now result in the top line of the plane being lost, all

@@ -190,7 +190,7 @@ void Tick(ncpp::NotCurses* nc, uint64_t sec) {
   if(ncplot_add_sample(plot, sec, 0)){
     throw std::runtime_error("couldn't register timetick");
   }
-  if(nc->render()){
+  if(!nc->render()){
     throw std::runtime_error("error rendering");
   }
 }
@@ -232,7 +232,7 @@ int main(void){
   }
   n->styles_set(CellStyle::None);
   n->set_bg_default();
-  if(nc.render()){
+  if(!nc.render()){
     throw std::runtime_error("error rendering");
   }
   int y = 2;
@@ -299,7 +299,7 @@ int main(void){
       mtx.unlock();
       break;
     }
-    if(nc.render()){
+    if(!nc.render()){
       mtx.unlock();
       throw std::runtime_error("error rendering");
     }

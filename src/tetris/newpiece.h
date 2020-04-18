@@ -34,7 +34,7 @@ std::unique_ptr<ncpp::Plane> NewPiece() {
       y += ((x = ((x + 2) % cols)) == 0);
     }
   }
-  if(nc_.render()){
+  if(!nc_.render()){
     throw TetrisNotcursesErr("render()");
   }
   return n;
