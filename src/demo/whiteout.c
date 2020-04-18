@@ -556,12 +556,13 @@ int witherworm_demo(struct notcurses* nc){
         ncplane_fadein(n, &tv, demo_fader, NULL);
       }
       pthread_t tid;
+      // FIXME this could just be brought inline, no need for a thread
       pthread_create(&tid, NULL, worm_thread, nc);
       do{
         struct timespec left, cur;
         clock_gettime(CLOCK_MONOTONIC, &cur);
         timespec_subtract(&left, &screenend, &cur);
-        key = demo_getc(&left, NULL);
+        key = demo_getc(nc, &left, NULL);
         clock_gettime(CLOCK_MONOTONIC, &cur);
         int64_t ns = timespec_subtract_ns(&cur, &screenend);
         if(ns > 0){
