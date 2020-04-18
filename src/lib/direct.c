@@ -102,14 +102,9 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
 
 // no terminfo capability for this. dangerous!
 // FIXME need to empty input somehow and do other craps. make input available
-// immediately etc...
+// immediately etc...otherwise we have to press enter lol
 int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
-  FILE* fin = fopen("/dev/tty", "rb");
-  if(fin == NULL){
-    return -1;
-  }
   if(fprintf(n->ttyfp, "\033[6n") != 4){
-    fclose(fin);
     return -1;
   }
   int in;
@@ -122,7 +117,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
     CURSOR_R,
   } state = CURSOR_ESC;
   int row = 0, column = 0;
-  while((in = getc(fin)) != EOF){
+  while((in = getc(stdin)) != EOF){
     bool valid = false;
     switch(state){
       case CURSOR_ESC: valid = (in == '\x1b'); ++state; break;
@@ -158,8 +153,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
       break;
     }
   }
-  int fc = fclose(fin);
-  if(fc || !done){
+  if(!done){
     return -1;
   }
   if(y){

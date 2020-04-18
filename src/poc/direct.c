@@ -24,30 +24,6 @@ int main(void){
     }
   }
   fflush(stdout);
-  notcurses_options opts;
-  memset(&opts, 0, sizeof(opts));
-  opts.inhibit_alternate_screen = true;
-  struct notcurses* nc = notcurses_init(&opts, stdout);
-  if(!nc){
-    fprintf(stderr, "Couldn't initialize notcurses\n");
-    return EXIT_FAILURE;
-  }
-  ncplane_set_fg(notcurses_stdplane(nc), 0x00ff00);
-  if(ncplane_putstr_aligned(notcurses_stdplane(nc), geom.ws_row - 2, NCALIGN_CENTER, " erperperp ") <= 0){
-    notcurses_stop(nc);
-    fprintf(stderr, "Error printing\n");
-    return EXIT_FAILURE;
-  }
-  if(notcurses_render(nc)){
-    notcurses_stop(nc);
-    fprintf(stderr, "Error rendering\n");
-    return EXIT_FAILURE;
-  }
-  sleep(2);
-  if(notcurses_stop(nc)){
-    fprintf(stderr, "Error stopping notcurses\n");
-    return EXIT_FAILURE;
-  }
   struct ncdirect* n; // see bug #391
   if((n = ncdirect_init(NULL, stdout)) == NULL){
     return EXIT_FAILURE;
