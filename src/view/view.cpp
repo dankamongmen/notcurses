@@ -23,7 +23,7 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaling ] files" << '\n';
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
