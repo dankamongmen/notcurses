@@ -140,9 +140,9 @@ namespace ncpp
 			return error_guard (palette256_use (nc, reinterpret_cast<const palette256*>(&p)), -1);
 		}
 
-		int render () const NOEXCEPT_MAYBE
+		bool render () const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (notcurses_render (nc), -1);
+			return error_guard (notcurses_render (nc), -1);
 		}
 
 		void get_term_dim (int *rows, int *cols) const noexcept
