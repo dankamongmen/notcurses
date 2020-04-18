@@ -80,7 +80,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
       *vely = -*vely;
     }
     ncplane_move_yx(n, yoff, xoff);
-    nanosleep(&iterdelay, NULL);
+    demo_nanosleep(nc, &iterdelay);
     clock_gettime(CLOCK_MONOTONIC, &cur);
   }while(timespec_to_ns(&cur) < deadline);
   return 0;

@@ -392,25 +392,31 @@ int hud_schedule(const char* demoname){
 // wake up every 100ms and render a frame so the HUD doesn't appear locked up
 int demo_nanosleep(struct notcurses* nc, const struct timespec *ts){
   struct timespec fsleep;
-  if(hud){
-    uint64_t nstotal = timespec_to_ns(ts);
-    uint64_t deadline;
-    struct timespec now;
+  uint64_t nstotal = timespec_to_ns(ts);
+  uint64_t deadline;
+  struct timespec now;
 
-    clock_gettime(CLOCK_MONOTONIC_RAW, &now);
-    deadline = timespec_to_ns(&now) + nstotal;
-    while(deadline - timespec_to_ns(&now) > GIG / 10){
-      fsleep.tv_sec = 0;
-      fsleep.tv_nsec = GIG / 10;
-      nanosleep(&fsleep, NULL);
-      demo_render(nc);
-      clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  deadline = timespec_to_ns(&now) + nstotal;
+  do{
+    fsleep.tv_sec = 0;
+    fsleep.tv_nsec = GIG / 10;
+    if(deadline - timespec_to_ns(&now) < GIG / 10){
+      fsleep.tv_nsec = deadline - timespec_to_ns(&now);
     }
-    ns_to_timespec(deadline - timespec_to_ns(&now), &fsleep);
-  }else{
-    fsleep = *ts;
-  }
-  nanosleep(&fsleep, NULL);
+    ncinput ni;
+    // throw away any input we receive. if it was for the menu or HUD, it was
+    // already dispatched internally to demo_getc().
+    char32_t id;
+    if((id = demo_getc(nc, &fsleep, &ni)) > 0){
+      return -1;
+    }
+    if(hud){
+      demo_render(nc);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &now);
+  }while(deadline > timespec_to_ns(&now));
+  ns_to_timespec(deadline - timespec_to_ns(&now), &fsleep);
   return 0;
 }
 

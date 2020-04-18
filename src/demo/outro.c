@@ -47,8 +47,6 @@ fadethread(void* vnc){
   int canceled = ncvisual_stream(nc, ncv, &averr, delaymultiplier, perframe, &three);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
-  timespec_mul(&demodelay, 2, &fade);
-  demo_nanosleep(nc, &fade);
   ncplane_destroy(apiap);
   if(canceled == 1){
     return PTHREAD_CANCELED;

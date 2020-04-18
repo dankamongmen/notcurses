@@ -190,7 +190,7 @@ eagles(struct notcurses* nc){
       ncplane_move_yx(e[i].n, e[i].yoff, e[i].xoff);
       ++eaglesmoved;
     }
-    nanosleep(&flapiter, NULL);
+    demo_nanosleep(nc, &flapiter);
   }while(eaglesmoved);
   for(size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i){
     ncplane_destroy(e[i].n);

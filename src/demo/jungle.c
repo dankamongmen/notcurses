@@ -26662,7 +26662,7 @@ int jungle_demo(struct notcurses* nc){
     if(nsrunning < iter * iterns){
       struct timespec sleepts;
       ns_to_timespec(iter * iterns - nsrunning, &sleepts);
-      nanosleep(&sleepts, NULL);
+      demo_nanosleep(nc, &sleepts);
     }
     cycle_palettes(nc, pal);
   }while(nsrunning > 0 && (uint64_t)nsrunning < 5 * timespec_to_ns(&demodelay));

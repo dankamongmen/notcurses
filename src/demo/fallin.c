@@ -65,7 +65,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
           ranges += i;
           i = 0;
         }
-        nanosleep(&iterdelay, NULL);
+        demo_nanosleep(nc, &iterdelay);
       }
     }while(rangee - ranges + 1 >= FALLINGMAX);
   }

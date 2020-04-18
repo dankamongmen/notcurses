@@ -32,7 +32,7 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
     targx += deltax;
     ncplane_move_yx(chunk, targy, targx);
     DEMO_RENDER(nc);
-    nanosleep(&movetime, NULL);
+    demo_nanosleep(nc, &movetime);
   }
   *holey = newholey;
   *holex = newholex;

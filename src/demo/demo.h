@@ -152,7 +152,9 @@ int demo_render(struct notcurses* nc);
 #define DEMO_RENDER(nc) { int demo_render_err = demo_render(nc); if(demo_render_err){ return demo_render_err; }}
 
 // if you won't be doing things, and it's a long sleep, consider using
-// demo_nanosleep(). it updates the HUD, which looks better to the user.
+// demo_nanosleep(). it updates the HUD, which looks better to the user, and
+// dispatches input to the menu/HUD. don't use it if you have other threads
+// rendering or otherwise manipulating state, as it calls notcurses_render().
 int demo_nanosleep(struct notcurses* nc, const struct timespec *ts);
 
 int demo_fader(struct notcurses* nc, struct ncplane* ncp, void* curry);
