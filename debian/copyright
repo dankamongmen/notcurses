@@ -13,6 +13,12 @@ Copyright: 2019-2020 Nick Black <dankamongmen@gmail.com>
            2019-2020 Marek Habersack <grendel@twistedcode.net>
 License: Apache-2.0
 
+# It's not strictly necessary, but common practice makes the Debian packaging
+# author explicit with its own stanza.
+Files: debian/*
+Copyright: 2019-2020 Nick Black <dankamongmen@gmail.com>
+License: Apache-2.0
+
 License: Apache-2.0
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
