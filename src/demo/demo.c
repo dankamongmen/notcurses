@@ -529,6 +529,9 @@ int main(int argc, char** argv){
     if(menu_create(nc) == NULL){
       goto err;
     }
+    if(notcurses_render(nc)){
+      goto err;
+    }
     if(ext_demos(nc, spec, ignore_failures) == NULL){
       goto err;
     }
