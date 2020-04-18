@@ -16,6 +16,7 @@
 * [termui](https://github.com/gizak/termui) (Go)
 * [gocui](https://github.com/jroimartin/gocui) (Go)
 * [tview](https://github.com/rivo/tview) (Go)
+* [blessings](https://github.com/erikrose/blessings) [Python]
 
 ## Declarative
 
