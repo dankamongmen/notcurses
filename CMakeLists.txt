@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(notcurses VERSION 1.3.0
+project(notcurses VERSION 1.3.1
   DESCRIPTION "UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)
@@ -670,6 +670,9 @@ install(FILES
 
 if(${USE_FFMPEG})
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
+# Don't install source materia for self-originated multimedia
+list(FILTER TESTDATA EXCLUDE REGEX ".*xcf$")
+list(FILTER TESTDATA EXCLUDE REGEX ".*osp$")
 install(FILES
   ${TESTDATA}
     DESTINATION ${CMAKE_INSTALL_DATADIR}/notcurses

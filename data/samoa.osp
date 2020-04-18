@@ -1,0 +1,296 @@
+{
+ "id": "XMTS54606Y",
+ "fps": {
+  "num": 60,
+  "den": 1
+ },
+ "display_ratio": {
+  "num": 16,
+  "den": 9
+ },
+ "pixel_ratio": {
+  "num": 1,
+  "den": 1
+ },
+ "width": 1920,
+ "height": 1080,
+ "sample_rate": 44100,
+ "channels": 2,
+ "channel_layout": 3,
+ "settings": {},
+ "clips": [],
+ "effects": [],
+ "export_path": "",
+ "import_path": "",
+ "files": [
+  {
+   "acodec": "",
+   "audio_bit_rate": 0,
+   "audio_stream_index": -1,
+   "audio_timebase": {
+    "den": 1,
+    "num": 1
+   },
+   "channel_layout": 4,
+   "channels": 0,
+   "display_ratio": {
+    "den": 9,
+    "num": 16
+   },
+   "duration": 4,
+   "file_size": "-1",
+   "fps": {
+    "den": 1,
+    "num": 25
+   },
+   "has_audio": false,
+   "has_single_image": false,
+   "has_video": true,
+   "height": 1080,
+   "interlaced_frame": false,
+   "metadata": {},
+   "path": "@assets/blender/1C4P66L0XX/samoa%04d.png",
+   "pixel_format": 26,
+   "pixel_ratio": {
+    "den": 2835,
+    "num": 2835
+   },
+   "sample_rate": 0,
+   "top_field_first": true,
+   "type": "FFmpegReader",
+   "vcodec": "png",
+   "video_bit_rate": 0,
+   "video_length": "100",
+   "video_stream_index": 0,
+   "video_timebase": {
+    "den": 25,
+    "num": 1
+   },
+   "width": 1920,
+   "media_type": "video",
+   "id": "SIXE6FENU7",
+   "image": "@assets/thumbnail/SIXE6FENU7.png"
+  }
+ ],
+ "duration": 300,
+ "scale": 15,
+ "tick_pixels": 100,
+ "playhead_position": 0,
+ "profile": "HD 1080p 60 fps",
+ "layers": [
+  {
+   "id": "L1",
+   "label": "",
+   "number": 1000000,
+   "y": 0,
+   "lock": false
+  },
+  {
+   "id": "L2",
+   "label": "",
+   "number": 2000000,
+   "y": 0,
+   "lock": false
+  },
+  {
+   "id": "L3",
+   "label": "",
+   "number": 3000000,
+   "y": 0,
+   "lock": false
+  },
+  {
+   "id": "L4",
+   "label": "",
+   "number": 4000000,
+   "y": 0,
+   "lock": false
+  },
+  {
+   "id": "L5",
+   "label": "",
+   "number": 5000000,
+   "y": 0,
+   "lock": false
+  }
+ ],
+ "markers": [],
+ "progress": [],
+ "history": {
+  "undo": [
+   {
+    "type": "insert",
+    "key": [
+     "files"
+    ],
+    "value": {
+     "acodec": "",
+     "audio_bit_rate": 0,
+     "audio_stream_index": -1,
+     "audio_timebase": {
+      "den": 1,
+      "num": 1
+     },
+     "channel_layout": 4,
+     "channels": 0,
+     "display_ratio": {
+      "den": 9,
+      "num": 16
+     },
+     "duration": 4,
+     "file_size": "-1",
+     "fps": {
+      "den": 1,
+      "num": 25
+     },
+     "has_audio": false,
+     "has_single_image": false,
+     "has_video": true,
+     "height": 1080,
+     "interlaced_frame": false,
+     "metadata": {},
+     "path": ".openshot_qt/blender/UJAG8TBMSM/samoa%04d.png",
+     "pixel_format": 26,
+     "pixel_ratio": {
+      "den": 2835,
+      "num": 2835
+     },
+     "sample_rate": 0,
+     "top_field_first": true,
+     "type": "FFmpegReader",
+     "vcodec": "png",
+     "video_bit_rate": 0,
+     "video_length": "100",
+     "video_stream_index": 0,
+     "video_timebase": {
+      "den": 25,
+      "num": 1
+     },
+     "width": 1920,
+     "media_type": "video",
+     "id": "NOHS35RJIJ"
+    },
+    "partial": false,
+    "old_values": []
+   },
+   {
+    "type": "delete",
+    "key": [
+     "files",
+     {
+      "id": "NOHS35RJIJ"
+     }
+    ],
+    "value": null,
+    "partial": false,
+    "old_values": {
+     "acodec": "",
+     "audio_bit_rate": 0,
+     "audio_stream_index": -1,
+     "audio_timebase": {
+      "den": 1,
+      "num": 1
+     },
+     "channel_layout": 4,
+     "channels": 0,
+     "display_ratio": {
+      "den": 9,
+      "num": 16
+     },
+     "duration": 4,
+     "file_size": "-1",
+     "fps": {
+      "den": 1,
+      "num": 25
+     },
+     "has_audio": false,
+     "has_single_image": false,
+     "has_video": true,
+     "height": 1080,
+     "interlaced_frame": false,
+     "metadata": {},
+     "path": ".openshot_qt/blender/UJAG8TBMSM/samoa%04d.png",
+     "pixel_format": 26,
+     "pixel_ratio": {
+      "den": 2835,
+      "num": 2835
+     },
+     "sample_rate": 0,
+     "top_field_first": true,
+     "type": "FFmpegReader",
+     "vcodec": "png",
+     "video_bit_rate": 0,
+     "video_length": "100",
+     "video_stream_index": 0,
+     "video_timebase": {
+      "den": 25,
+      "num": 1
+     },
+     "width": 1920,
+     "media_type": "video",
+     "id": "NOHS35RJIJ"
+    }
+   },
+   {
+    "type": "insert",
+    "key": [
+     "files"
+    ],
+    "value": {
+     "acodec": "",
+     "audio_bit_rate": 0,
+     "audio_stream_index": -1,
+     "audio_timebase": {
+      "den": 1,
+      "num": 1
+     },
+     "channel_layout": 4,
+     "channels": 0,
+     "display_ratio": {
+      "den": 9,
+      "num": 16
+     },
+     "duration": 4,
+     "file_size": "-1",
+     "fps": {
+      "den": 1,
+      "num": 25
+     },
+     "has_audio": false,
+     "has_single_image": false,
+     "has_video": true,
+     "height": 1080,
+     "interlaced_frame": false,
+     "metadata": {},
+     "path": ".openshot_qt/blender/1C4P66L0XX/samoa%04d.png",
+     "pixel_format": 26,
+     "pixel_ratio": {
+      "den": 2835,
+      "num": 2835
+     },
+     "sample_rate": 0,
+     "top_field_first": true,
+     "type": "FFmpegReader",
+     "vcodec": "png",
+     "video_bit_rate": 0,
+     "video_length": "100",
+     "video_stream_index": 0,
+     "video_timebase": {
+      "den": 25,
+      "num": 1
+     },
+     "width": 1920,
+     "media_type": "video",
+     "id": "SIXE6FENU7"
+    },
+    "partial": false,
+    "old_values": []
+   }
+  ],
+  "redo": []
+ },
+ "version": {
+  "openshot-qt": "2.5.1-dev2",
+  "libopenshot": "0.2.5-dev2"
+ }
+}

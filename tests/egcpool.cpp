@@ -3,11 +3,6 @@
 #include "egcpool.h"
 
 TEST_CASE("EGCpool") {
-
-  if(!enforce_utf8()){
-    return;
-  }
-
   egcpool pool_{};
 
   SUBCASE("Initialized") {
@@ -211,11 +206,6 @@ TEST_CASE("EGCpool") {
 }
 
 TEST_CASE("EGCpoolLong" * doctest::skip(true)) {
-
-  if(!enforce_utf8()){
-    return;
-  }
-
   egcpool pool_{};
 
   // ensure that a hard error comes up when we fill the EGCpool

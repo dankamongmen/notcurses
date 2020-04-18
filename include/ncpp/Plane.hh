@@ -585,8 +585,8 @@ namespace ncpp
 		}
 
 		bool box (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr,
-		          const Cell &hline, const Cell &vline, int ystop, int xstop,
-		          unsigned ctlword) const NOEXCEPT_MAYBE
+							const Cell &hline, const Cell &vline, int ystop, int xstop,
+							unsigned ctlword) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_box (plane, ul, ur, ll, lr, hline, vline, ystop, xstop, ctlword), -1);
 		}
@@ -779,9 +779,9 @@ namespace ncpp
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
-		bool set_base (uint64_t channels, uint32_t attrword, const char *egc) const NOEXCEPT_MAYBE
+		bool set_base (const char* egc, uint32_t attrword, uint64_t channels) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncplane_set_base (plane, channels, attrword, egc) < 0;
+			bool ret = ncplane_set_base (plane, egc, attrword, channels) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
@@ -793,7 +793,7 @@ namespace ncpp
 
 		bool at_cursor (Cell &c) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncplane_at_cursor (plane, c) < 0;
+			bool ret = ncplane_at_cursor_cell (plane, c) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
@@ -805,9 +805,17 @@ namespace ncpp
 			return at_cursor (*c);
 		}
 
+		char* at_cursor (uint32_t* attrword, uint64_t* channels) const
+		{
+			if (attrword == nullptr || channels == nullptr)
+				return nullptr;
+
+			return ncplane_at_cursor (plane, attrword, channels);
+		}
+
 		int get_at (int y, int x, Cell &c) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_at_yx (plane, y, x, c), -1);
+			return error_guard<int> (ncplane_at_yx_cell (plane, y, x, c), -1);
 		}
 
 		int get_at (int y, int x, Cell *c) const
@@ -816,6 +824,14 @@ namespace ncpp
 				return -1;
 
 			return get_at (y, x, *c);
+		}
+
+		char* get_at (int y, int x, uint32_t* attrword, uint64_t* channels) const
+		{
+			if (attrword == nullptr || channels == nullptr)
+				return nullptr;
+
+			return ncplane_at_yx (plane, y, x, attrword, channels);
 		}
 
 		void* set_userptr (void *opaque) const noexcept

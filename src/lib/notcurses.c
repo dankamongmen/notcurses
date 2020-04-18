@@ -184,18 +184,18 @@ cursor_invalid_p(const ncplane* n){
   return false;
 }
 
-int ncplane_at_cursor(ncplane* n, cell* c){
+char* ncplane_at_cursor(ncplane* n, uint32_t* attrword, uint64_t* channels){
   if(cursor_invalid_p(n)){
-    return -1;
+    return NULL;
   }
-  return cell_duplicate(n, c, &n->fb[nfbcellidx(n, n->y, n->x)]);
+  return cell_extract(n, &n->fb[nfbcellidx(n, n->y, n->x)], attrword, channels);
 }
 
-int ncplane_at_yx(ncplane* n, int y, int x, cell* c){
-  int ret = -1;
+char* ncplane_at_yx(ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels){
+  char* ret = NULL;
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
-      ret = cell_duplicate(n, c, &n->fb[nfbcellidx(n, y, x)]);
+      ret = cell_extract(n, &n->fb[nfbcellidx(n, y, x)], attrword, channels);
     }
   }
   return ret;
@@ -549,6 +549,7 @@ query_rgb(void){
 static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts, int* dimy, int* dimx){
   update_term_dimensions(nc->ttyfd, dimy, dimx);
+  nc->truecols = *dimx;
   char* shortname_term = termname();
   char* longname_term = longname();
   if(!opts->suppress_banner){
@@ -1122,7 +1123,7 @@ int ncplane_set_base_cell(ncplane* ncp, const cell* c){
   return cell_duplicate(ncp, &ncp->basecell, c);
 }
 
-int ncplane_set_base(ncplane* ncp, uint64_t channels, uint32_t attrword, const char* egc){
+int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t attrword, uint64_t channels){
   return cell_prime(ncp, &ncp->basecell, egc, attrword, channels);
 }
 

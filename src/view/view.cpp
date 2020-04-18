@@ -23,7 +23,7 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaling ] files" << '\n';
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
@@ -67,7 +67,7 @@ int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void*
       uint64_t channels = 0;
       channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-      ncplane_set_base(subtitle_plane, channels, 0, "");
+      ncplane_set_base(subtitle_plane, "", 0, channels);
       ncplane_set_fg(subtitle_plane, 0x00ffff);
       ncplane_set_fg_alpha(subtitle_plane, CELL_ALPHA_HIGHCONTRAST);
       ncplane_set_bg_alpha(subtitle_plane, CELL_ALPHA_TRANSPARENT);
@@ -85,7 +85,7 @@ int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void*
   ns -= s * NANOSECS_IN_SEC;
   stdn->printf(0, NCAlign::Right, "%02ld:%02ld:%02ld.%04ld",
                h, m, s, ns / 1000000);
-  if(!nc.render()){
+  if(nc.render()){
     return -1;
   }
   int dimx, dimy, oldx, oldy, keepy, keepx;

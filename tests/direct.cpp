@@ -5,8 +5,7 @@ TEST_CASE("DirectMode") {
   if(getenv("TERM") == nullptr){
     return;
   }
-  FILE* outfp_{};
-  outfp_ = fopen("/dev/tty", "wb");
+  FILE* outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(nullptr != outfp_);
   struct ncdirect* nc_ = ncdirect_init(NULL, outfp_);
   REQUIRE(nullptr != nc_);

@@ -36,7 +36,7 @@ void DrawBoard() { // draw all fixed components of the game
     throw TetrisNotcursesErr("double_box()");
   }
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  board_->set_base(channels, 0, "");
+  board_->set_base("", 0, channels);
   scoreplane_ = std::make_unique<ncpp::Plane>(2, 30, y - BOARD_HEIGHT, 2, nullptr);
   if(!scoreplane_){
     throw TetrisNotcursesErr("Plane()");
@@ -44,7 +44,7 @@ void DrawBoard() { // draw all fixed components of the game
   uint64_t scorechan = 0;
   channels_set_bg_alpha(&scorechan, CELL_ALPHA_TRANSPARENT);
   channels_set_fg_alpha(&scorechan, CELL_ALPHA_TRANSPARENT);
-  if(!scoreplane_->set_base(scorechan, 0, "")){
+  if(!scoreplane_->set_base("", 0, scorechan)){
     throw TetrisNotcursesErr("set_base()");
   }
   scoreplane_->set_bg_alpha(CELL_ALPHA_TRANSPARENT);

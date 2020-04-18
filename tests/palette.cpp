@@ -5,9 +5,6 @@ TEST_CASE("Palette256") {
   if(getenv("TERM") == nullptr){
     return;
   }
-  if(!enforce_utf8()){
-    return;
-  }
   FILE* outfp_{};
   outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(nullptr != outfp_);
@@ -81,7 +78,7 @@ TEST_CASE("Palette256") {
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     cell_release(n_, &c);
     cell r = CELL_TRIVIAL_INITIALIZER;
-    CHECK(0 < ncplane_at_yx(n_, 0, 0, &r));
+    CHECK(0 < ncplane_at_yx_cell(n_, 0, 0, &r));
     CHECK(cell_fg_palindex_p(&r));
     CHECK(cell_bg_palindex_p(&r));
     CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&r));

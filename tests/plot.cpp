@@ -4,9 +4,6 @@
 #include <iostream>
 
 TEST_CASE("Plot") {
-  if(!enforce_utf8()){
-    return;
-  }
   if(getenv("TERM") == nullptr){
     return;
   }
@@ -144,6 +141,8 @@ TEST_CASE("Plot") {
     }
     ncplot_destroy(p);
   }
+
+  //  FIXME need some rendering tests, one for each geometry
 
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));

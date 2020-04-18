@@ -76,8 +76,7 @@ NCURSES, benefiting greatly from its portability and thoroughness.
 
 notcurses opens up advanced functionality for the interactive user on
 workstations, phones, laptops, and tablets, at the expense of e.g.
-industrial and retail terminals (or even the Linux virtual console,
-which offers only eight colors and limited glyphs).
+some industrial and retail terminals.
 
 Why use this non-standard library?
 
@@ -90,8 +89,8 @@ Why use this non-standard library?
     `static inline` header-only code is used. This facilitates compiler
     optimizations, and reduces loader time.
 
-* All APIs natively (and exclusively) support UTF-8. The `cell` API is based
-  around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
+* All APIs natively support the Universal Character Set (Unicode). The `cell`
+* API is based around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
 
 * Visual features including images, fonts, video, high-contrast text, sprites,
   and transparent regions. All APIs natively support 24-bit color, quantized
@@ -790,8 +789,8 @@ int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
 // does not reset the base cell; this function must be called with an empty
 // 'egc'. 'egc' must be a single extended grapheme cluster.
-int ncplane_set_base(struct ncplane* ncp, uint64_t channels,
-                     uint32_t attrword, const char* egc);
+int ncplane_set_base(struct ncplane* ncp, const char* egc,
+                     uint32_t attrword, uint64_t channels);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
@@ -821,13 +820,24 @@ addition, the plane's virtual framebuffer can be accessed (note that this does
 not necessarily reflect anything on the actual screen).
 
 ```c
-// Retrieve the cell at the cursor location on the specified plane, returning
-// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
-int ncplane_at_cursor(struct ncplane* n, cell* c);
+// Retrieve the current contents of the cell under the cursor. The EGC is
+// returned, or NULL on error. This EGC must be free()d by the caller. The
+// attrword and channels are written to 'attrword' and 'channels', respectively.
+char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);
 
-// Retrieve the cell at the specified location on the specified plane, returning
-// it in 'c'. This copy is safe to use until the ncplane is destroyed/erased.
-int ncplane_at_yx(struct ncplane* n, int y, int x, cell* c);
+// Retrieve the current contents of the cell under the cursor into 'c'. This
+// cell is invalidated if the associated plane is destroyed.
+int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
+
+// Retrieve the current contents of the specified cell. The EGC is returned, or
+// NULL on error. This EGC must be free()d by the caller. The attrword and
+// channels are written to 'attrword' and 'channels', respectively.
+char* ncplane_at_yx(struct ncplane* n, int y, int x,
+                    uint32_t* attrword, uint64_t* channels);
+
+// Retrieve the current contents of the specified cell into 'c'. This cell is
+// invalidated if the associated plane is destroyed.
+int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing

@@ -300,6 +300,10 @@ typedef struct notcurses {
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashstats; // cumulative stats, unaffected by notcurses_reset_stats()
 
+  int truecols;   // true number of columns in the physical rendering area.
+                  // used only to see if output motion takes us to the next
+                  // line thanks to terminal action alone.
+
   int colors;     // number of colors terminfo reported usable for this screen
   char* cup;      // move cursor
   char* cuf;      // move n cells right

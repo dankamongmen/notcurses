@@ -3,9 +3,6 @@
 #include <iostream>
 
 TEST_CASE("MenuTest") {
-  if(!enforce_utf8()){
-    return;
-  }
   if(getenv("TERM") == nullptr){
     return;
   }
