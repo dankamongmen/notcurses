@@ -9,8 +9,6 @@ steps:
   commands:
     - apt-get update
     - apt-get -y dist-upgrade
-    - apt-get -y install git-buildpackage
-    - mk-build-deps --install -t'apt-get -y'
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
@@ -28,8 +26,6 @@ steps:
   commands:
     - apt-get update
     - apt-get -y dist-upgrade
-    - apt-get -y install git-buildpackage
-    - mk-build-deps --install -t'apt-get -y'
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
