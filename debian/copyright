@@ -2,6 +2,11 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: notcurses
 Upstream-Contact: Nick Black <dankamongmen@gmail.com>
 Source: https://nick-black.com/dankwiki/index.php/notcurses
+# The following files contain content believed to fall outside the DFSG, and
+# are thus removed for the Debian tarball. So far as I can tell, character
+# classes are not supported (nor newline continuations), hence the rather
+# unreadable listing :/.
+Files-Excluded: data/a* data/chun* data/covid* data/d* data/e* data/f* data/l* data/m* data/P* data/w* src/demo/jungle.c
 
 Files: *
 Copyright: 2019-2020 Nick Black <dankamongmen@gmail.com>

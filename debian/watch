@@ -1,5 +1,5 @@
 version=4
 
-opts="filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.dfsg\.tar\.gz%notcurses-$1.tar.gz%" \
+opts="repacksuffix=+dfsg,filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.tar\.gz%notcurses-$1.tar.gz%" \
    https://github.com/dankamongmen/notcurses/tags \
    (?:.*?/)?v?(\d[\d.]*)\.tar\.gz debian uupdate
