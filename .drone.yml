@@ -5,10 +5,8 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-04-04a
+  image: dankamongmen/unstable_builder:2020-04-18e
   commands:
-    - apt-get update
-    - apt-get -y dist-upgrade
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
@@ -22,10 +20,8 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/focal:2020-04-05a
+  image: dankamongmen/focal:2020-04-18c
   commands:
-    - apt-get update
-    - apt-get -y dist-upgrade
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
