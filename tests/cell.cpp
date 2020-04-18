@@ -2,9 +2,6 @@
 #include "egcpool.h"
 
 TEST_CASE("MultibyteWidth") {
-  if(!enforce_utf8()){
-    return;
-  }
   CHECK(0 == mbswidth(""));       // zero bytes, zero columns
   CHECK(-1 == mbswidth("\x7"));   // single byte, non-printable
   CHECK(1 == mbswidth(" "));      // single byte, one column
@@ -16,11 +13,6 @@ TEST_CASE("MultibyteWidth") {
 }
 
 TEST_CASE("Cell") {
-
-  if(!enforce_utf8()){
-    return;
-  }
-
   // common initialization
   if(getenv("TERM") == nullptr){
     return;

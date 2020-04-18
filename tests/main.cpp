@@ -62,6 +62,9 @@ int main(int argc, const char **argv){
     std::cerr << "Coudln't set locale based on user preferences!" << std::endl;
     return EXIT_FAILURE;
   }
+  if(!enforce_utf8()){
+    return EXIT_SUCCESS; // hrmmm
+  }
   doctest::Context context;
 
   // defaults

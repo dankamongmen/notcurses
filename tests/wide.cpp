@@ -4,9 +4,6 @@
 #include "internal.h"
 
 TEST_CASE("Wide") {
-  if(!enforce_utf8()){
-    return;
-  }
   if(getenv("TERM") == nullptr){
     return;
   }
@@ -22,9 +19,6 @@ TEST_CASE("Wide") {
 
   // Verify we can emit a wide character, and it advances the cursor by 2
   SUBCASE("EmitWideAsian") {
-    if(!enforce_utf8()){
-      return;
-    }
     const char* w = "\u5168";
     int sbytes = 0;
     CHECK(0 < ncplane_putegc(n_, w, &sbytes));
@@ -37,9 +31,6 @@ TEST_CASE("Wide") {
 
   // Verify a wide character is rejected on the last column
   SUBCASE("RejectWideAsian") {
-    if(!enforce_utf8()){
-      return;
-    }
     const char* w = "\u5168";
     int sbytes = 0;
     int dimx;
