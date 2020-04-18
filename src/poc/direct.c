@@ -68,6 +68,22 @@ int main(void){
   int y = -420, x = -420;
   if(ncdirect_cursor_yx(n, &y, &x) == 0){
     fprintf(stderr, "\n\tRead cursor position: y: %d x: %d\n", y, x);
+    // FIXME try a push/pop
+    while(y){
+      --y;
+      ret |= ncdirect_cursor_up(n, 1);
+      int newy;
+      if(ncdirect_cursor_yx(n, &newy, NULL)){
+        ret = -1;
+        break;
+      }
+      if(newy != y){
+        printf("Expected %d, got %d\n", y, newy);
+        ret = -1;
+        break;
+      }
+      fprintf(stderr, "\n\tRead cursor position: y: %d x: %d\n", newy, x);
+    }
   }else{
     ret = -1;
   }
