@@ -28,6 +28,7 @@ typedef struct egcpool {
 } egcpool;
 
 #define POOL_MINIMUM_ALLOC BUFSIZ
+#define POOL_MAXIMUM_BYTES (1u << 30u) // max 1GB
 
 static inline void
 egcpool_init(egcpool* p){
@@ -43,7 +44,7 @@ egcpool_grow(egcpool* pool, size_t len){
   while(len > newsize - pool->poolsize){ // ensure we make enough space
     newsize *= 2;
   }
-  if(newsize > 1u << 25u){ // 32MB
+  if(newsize > POOL_MAXIMUM_BYTES){
     return -1;
   }
   // nasty cast here because c++ source might include this header :/
@@ -107,8 +108,8 @@ egcpool_alloc_justified(const egcpool* pool, int len){
 
 // stash away the provided UTF8, NUL-terminated grapheme cluster. the cluster
 // should not be less than 2 bytes (such a cluster should be directly stored in
-// the cell). returns -1 on error, and otherwise a non-negative 25-bit offset.
-// 'ulen' must be the number of bytes to lift from egc (utf8_egc_len()).
+// the cell). returns -1 on error, and otherwise a non-negative offset. 'ulen'
+// must be the number of bytes to lift from egc (utf8_egc_len()).
 static inline int
 egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
   int len = ulen + 1; // count the NUL terminator

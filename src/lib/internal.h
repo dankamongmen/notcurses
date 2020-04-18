@@ -118,6 +118,11 @@ typedef struct renderstate {
   FILE* mstreamfp;// FILE* for rendering memstream
   size_t mstrsize;// size of rendering memstream
 
+  // the current cursor position. this is independent of whether the cursor is
+  // visible. it is the cell at which the next write will take place. this is
+  // modified by: output, cursor moves, clearing the screen (during refresh)
+  int y, x;
+
   uint32_t curattr;// current attributes set (does not include colors)
   unsigned lastr;  // foreground rgb, overloaded for palindexed fg
   unsigned lastg;
@@ -293,9 +298,14 @@ typedef struct notcurses {
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashstats; // cumulative stats, unaffected by notcurses_reset_stats()
 
+  int truecols;   // true number of columns in the physical rendering area.
+                  // used only to see if output motion takes us to the next
+                  // line thanks to terminal action alone.
+
   int colors;     // number of colors terminfo reported usable for this screen
   char* cup;      // move cursor
   char* cuf;      // move n cells right
+  char* cub;      // move n cells right
   char* cuf1;     // move 1 cell right
   char* cub1;     // move 1 cell left
   char* civis;    // hide cursor

@@ -1007,7 +1007,6 @@ namespace ncpp
 
 		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
 
-#ifdef USE_FFMPEG
 		bool blit_bgrx (int placey, int placex, int linesize, const void* data, int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
 		{
 			bool ret = ncblit_bgrx (plane, placey, placex, linesize, data, begy, begx, leny, lenx) < 0;
@@ -1019,7 +1018,6 @@ namespace ncpp
 			bool ret = ncblit_rgba (plane, placey, placex, linesize, data, begy, begx, leny, lenx) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
-#endif
 		
 	protected:
 		explicit Plane (ncplane *_plane, bool _is_stdplane)

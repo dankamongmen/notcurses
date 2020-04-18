@@ -126,7 +126,7 @@ int main(int argc, char** argv){
   channels_set_bg(&NcReel::default_options.focusedchan, 0x00c080);
   channels_set_fg(&NcReel::default_options.borderchan, 0x00c080);
   std::shared_ptr<NcReel> nr(n->ncreel_create());
-  if(!nr || !nc.render()){
+  if(!nr || nc.render()){
     return EXIT_FAILURE;
   }
   char32_t key;
@@ -151,7 +151,7 @@ int main(int argc, char** argv){
       default:
         break;
     }
-    if(!nc.render()){
+    if(nc.render()){
       break;
     }
   }

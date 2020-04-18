@@ -190,7 +190,7 @@ void Tick(ncpp::NotCurses* nc, uint64_t sec) {
   if(ncplot_add_sample(plot, sec, 0)){
     throw std::runtime_error("couldn't register timetick");
   }
-  if(!nc->render()){
+  if(nc->render()){
     throw std::runtime_error("error rendering");
   }
 }
@@ -219,7 +219,7 @@ int main(void){
   popts.minchannel = popts.maxchannel = 0;
   channels_set_fg_rgb(&popts.minchannel, 0x40, 0x50, 0xb0);
   channels_set_fg_rgb(&popts.maxchannel, 0x40, 0xff, 0xd0);
-  popts.gridtype = static_cast<ncgridgeom_e>(NCPLOT_8x1);
+  popts.gridtype = static_cast<ncgridgeom_e>(NCPLOT_2x2);
   plot = ncplot_create(pplane, &popts);
   if(!plot){
     return EXIT_FAILURE;
@@ -232,7 +232,9 @@ int main(void){
   }
   n->styles_set(CellStyle::None);
   n->set_bg_default();
-  nc.render();
+  if(nc.render()){
+    throw std::runtime_error("error rendering");
+  }
   int y = 2;
   std::deque<wchar_t> cells;
   char32_t r;
@@ -249,6 +251,14 @@ int main(void){
       done = true;
       tid.join();
       return EXIT_SUCCESS;
+    }
+    if((r == 'L' || r == 'l') && ni.ctrl){
+      mtx.lock();
+        if(!nc.refresh(nullptr, nullptr)){
+          mtx.unlock();
+          break;
+        }
+      mtx.unlock();
     }
     if(!n->cursor_move(y, 0)){
       break;
@@ -289,9 +299,9 @@ int main(void){
       mtx.unlock();
       break;
     }
-    if(!nc.render()){
+    if(nc.render()){
       mtx.unlock();
-      break;
+      throw std::runtime_error("error rendering");
     }
     mtx.unlock();
     if(++y >= dimy - PLOTHEIGHT){ // leave six lines free on the bottom...
@@ -303,11 +313,11 @@ int main(void){
     cells.push_front(r);
   }
   int e = errno;
-  nc.stop();
   if(r == (char32_t)-1 && e){
     std::cerr << "Error reading from terminal (" << strerror(e) << "?)\n";
   }
   done = true;
   tid.join();
+  nc.stop();
   return EXIT_FAILURE;
 }

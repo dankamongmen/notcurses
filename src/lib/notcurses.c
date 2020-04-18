@@ -549,6 +549,7 @@ query_rgb(void){
 static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts, int* dimy, int* dimx){
   update_term_dimensions(nc->ttyfd, dimy, dimx);
+  nc->truecols = *dimx;
   char* shortname_term = termname();
   char* longname_term = longname();
   if(!opts->suppress_banner){
@@ -602,8 +603,9 @@ interrogate_terminfo(notcurses* nc, const notcurses_options* opts, int* dimy, in
   term_verify_seq(&nc->cleareol, "el");
   term_verify_seq(&nc->clearbol, "el1");
   term_verify_seq(&nc->cuf, "cuf"); // n non-destructive spaces
+  term_verify_seq(&nc->cub, "cub"); // n non-destructive backspaces
   term_verify_seq(&nc->cuf1, "cuf1"); // non-destructive space
-  term_verify_seq(&nc->cub1, "cub1");
+  term_verify_seq(&nc->cub1, "cub1"); // non-destructive backspace
   term_verify_seq(&nc->smkx, "smkx"); // set application mode
   if(nc->smkx){
     if(putp(tiparm(nc->smkx)) != OK){

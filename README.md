@@ -76,8 +76,7 @@ NCURSES, benefiting greatly from its portability and thoroughness.
 
 notcurses opens up advanced functionality for the interactive user on
 workstations, phones, laptops, and tablets, at the expense of e.g.
-industrial and retail terminals (or even the Linux virtual console,
-which offers only eight colors and limited glyphs).
+some industrial and retail terminals.
 
 Why use this non-standard library?
 
@@ -90,8 +89,8 @@ Why use this non-standard library?
     `static inline` header-only code is used. This facilitates compiler
     optimizations, and reduces loader time.
 
-* All APIs natively (and exclusively) support UTF-8. The `cell` API is based
-  around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
+* All APIs natively support the Universal Character Set (Unicode). The `cell`
+* API is based around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
 
 * Visual features including images, fonts, video, high-contrast text, sprites,
   and transparent regions. All APIs natively support 24-bit color, quantized

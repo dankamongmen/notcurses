@@ -23,9 +23,6 @@ int main(int argc, char** argv){
   if(n->load(c, "🐳") < 0){
     goto err;
   }
-  if(dimy > 5){
-    dimy = 5;
-  }
   for(int i = 0 ; i < dimy ; ++i){
     for(int j = 8 ; j < dimx / 2 ; ++j){ // leave some empty spaces
       if(n->putc(i, j * 2, &c) < 0){
@@ -57,7 +54,6 @@ int main(int argc, char** argv){
   if(!nc.render()){
     goto err;
   }
-  printf("\n");
   return !nc.stop() ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:
