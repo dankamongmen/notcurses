@@ -27,10 +27,15 @@ extern "C" {
 // Get a human-readable string describing the running notcurses version.
 API const char* notcurses_version(void);
 
-struct cell;      // a coordinate on an ncplane: an EGC plus styling
-struct ncplane;   // a drawable notcurses surface, composed of cells
-struct ncvisual;  // a visual bit of multimedia opened with LibAV
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
+struct ncplane;   // a drawable notcurses surface, composed of cells
+struct cell;      // a coordinate on an ncplane: an EGC plus styling
+struct ncvisual;  // a visual bit of multimedia opened with LibAV
+struct ncplot;    // a histogram, bound to a plane
+struct ncfdplane; // i/o wrapper to dump file descriptor to plane
+struct ncsubproc; // ncfdplane wrapper with subprocess management
+struct ncselector;// widget supporting selecting 1 from a list of options
+struct ncmultiselector; // widget supporting selecting 0..n from n options
 
 // Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
@@ -2398,8 +2403,6 @@ typedef struct selector_options {
   uint64_t bgchannels;   // background channels, used only in body
 } selector_options;
 
-struct ncselector;
-
 API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
                                          const selector_options* opts);
 
@@ -2473,8 +2476,6 @@ typedef struct multiselector_options {
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
 } multiselector_options;
-
-struct ncmultiselector;
 
 API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
                                                    const multiselector_options* opts);
@@ -2648,6 +2649,27 @@ API int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);
 API int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
 
 API void ncplot_destroy(struct ncplot* n);
+
+// ncsubproc -- management of a subprocess, whose output will be dumped to the
+// bound plane (possibly invoking a client callback to get there).
+typedef struct ncsubproc_options {
+  // callback invoked each time data is read, may be NULL (in which case the
+  // data will be written with ncplane_putstr()). if a callback is provided,
+  // the callback is necessary for writing (or not writing) the data. The data
+  // is *not* generally nul-terminated, and can carry zeroes.
+  int (*callback)(struct notcurses* nc, const void* buf, size_t s, void* curry);
+  void* curry; // parameter provided to callback
+} ncsubproc_options;
+
+// see exec(2). p-types use $PATH. e-type passes environment vars.
+API struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
+                                        const char* bin,  char* const arg[]);
+API struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
+                                         const char* bin,  char* const arg[]);
+API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
+                       const char* bin,  char* const arg[], char* const env[]);
+
+API int ncsubproc_destroy(struct ncsubproc* n);
 
 #undef API
 
