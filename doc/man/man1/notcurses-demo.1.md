@@ -78,7 +78,7 @@ and left margins respectively. Negative margins are illegal.
 
 Proper display requires:
 
-* A terminal advertising the **rgb** terminfo(5) capability, or that the environment variable **COLORTERM** is defined to **24bit** (and that the terminal honors this variable),
+* A terminal advertising the **rgb** terminfo(5) capability, or that the environment variable **COLORTERM** is defined to **24bit** (and that the terminal honors RGB escapes),
 * A monospaced font, and
 * Good Unicode support in your libc, font, and terminal emulator.
 

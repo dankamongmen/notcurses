@@ -8,9 +8,10 @@
   * Title is "v$VERSION—some quip"
   * That's an em dash (U+2014, UTF-8 e2 80 94), get it right
 * In gbp repository:
+  * Update Debian changelog, if necessary: `dch -v $VERSION+dfsg.1-1`
   * Finalize Debian changelog with `dch -r`
   * Repack DFSG-safe tarball with uscan, upload to github
-    * `uscan --repack --compression xz -v`
+    * `uscan --repack --compression xz --force`
     * upload to github
     * build source package: `dpkg-buildpackage --build=source`
     * build binaries: `cd .. && sudo pbuilder build *dsc`

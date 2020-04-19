@@ -24,7 +24,7 @@ notcurses-tetris - Render images and video to the console
 
 Optimal display requires a terminal advertising the **rgb** terminfo(5)
 capability, or that the environment variable **COLORTERM** is defined to
-**24bit** (and that the terminal honors this variable), along with a
+**24bit** (and that the terminal honors RGB escapes), along with a good
 fixed-width font with good coverage of the Unicode Block Drawing Characters.
 
 # SEE ALSO
