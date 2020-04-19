@@ -36,7 +36,8 @@ Before calling into notcurses—and usually as one of the first calls of the
 program—be sure to call **setlocale** with an appropriate UTF-8 **LC_ALL**
 locale. It is usually appropriate to use **setlocale(LC_ALL, "")**, relying on
 the user to properly set the **LANG** environment variable. notcurses will
-refuse to start if **nl_langinfo(3)** doesn't indicate UTF-8.
+refuse to start if **nl_langinfo(3)** doesn't indicate UTF-8 or ANSI_X3.4-1968
+(aka US-ASCII). Be aware that capabilities are substantially reduced in ASCII.
 
 **notcurses_init(3)** accepts a **struct notcurses_options** allowing fine-grained
 control of notcurses behavior, including signal handlers, alternative screens,
