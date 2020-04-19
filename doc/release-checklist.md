@@ -1,9 +1,9 @@
-* Finalize CHANGELOG.md
-* `for i in CMakeLists.txt doc/Doxyfile doc/FreeBSD-Makefile doc/man/man*/* doc/man/index.html python/setup.py rust/*/Cargo.toml rust/libnotcurses-sys/build.rs tools/notcurses.spec ; do sed -i -e "s/$OLDVERSION/$VERSION/g" $i ; done`
-* git commit -a -m v$VERSION
-* `git push`
-* Tag with `git tag -a v$VERSION -m "v$VERSION -s"`
-* `git push origin --tags`
+* Run tools/release.sh $OLDVERSION $VERSION
+  * Finalize CHANGELOG.md
+  * Bumps version numbers everywhere they need bumping
+  * Commits changes, tags result with v$VERSION, pushes tag
+  * Downloads new tarball and signs it
+  * Upload signature to github
 * Draft new release at https://github.com/dankamongmen/notcurses/releases
   * Title is "v$VERSION—some quip"
   * That's an em dash (U+2014, UTF-8 e2 80 94), get it right
