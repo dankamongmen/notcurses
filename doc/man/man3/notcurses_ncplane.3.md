@@ -8,7 +8,7 @@ notcurses_ncplane - operations on notcurses planes
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);**
 

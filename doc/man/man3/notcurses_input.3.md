@@ -8,7 +8,7 @@ notcurses_input - input via notcurses
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 struct timespec;
@@ -84,7 +84,7 @@ lex aborted, and the sequence thus far played back as independent literal
 keystrokes.
 
 The full list of synthesized keys (there are well over one hundred) can be
-found in **<notcurses.h>**. For more details, consult **terminfo(5)**.
+found in **<notcurses/notcurses.h>**. For more details, consult **terminfo(5)**.
 
 ## **NCKEY_RESIZE**
 

@@ -8,7 +8,7 @@ notcurses_reel - high-level widget for hierarchical data
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 typedef struct ncreel_options {

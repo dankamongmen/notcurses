@@ -7,7 +7,7 @@ notcurses_ncvisual - notcurses multimedia
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 typedef enum {

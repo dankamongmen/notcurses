@@ -8,7 +8,7 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **int notcurses_render(struct notcurses* nc);**
 

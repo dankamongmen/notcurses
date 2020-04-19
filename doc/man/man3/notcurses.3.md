@@ -8,7 +8,7 @@ notcurses - TUI library for modern terminal emulators
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **-lnotcurses**
 

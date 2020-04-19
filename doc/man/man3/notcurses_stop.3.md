@@ -8,7 +8,7 @@ notcurses_stop - free up resources and restore initial terminal state
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **int notcurses_stop(struct notcurses* nc);**
 

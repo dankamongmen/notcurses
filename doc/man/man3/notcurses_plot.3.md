@@ -8,7 +8,7 @@ notcurses_plot - high level widget for plotting
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 typedef enum {

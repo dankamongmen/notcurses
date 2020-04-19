@@ -8,7 +8,7 @@ notcurses_refresh - redraw an externally-damaged display
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **int notcurses_refresh(const struct notcurses* nc, int* restrict rows, int* restrict cols);**
 

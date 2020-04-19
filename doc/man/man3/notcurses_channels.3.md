@@ -8,7 +8,7 @@ notcurses_channels - operations on notcurses channels
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **static inline unsigned
 channel_r(unsigned channel);**

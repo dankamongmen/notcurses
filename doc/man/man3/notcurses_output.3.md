@@ -8,7 +8,7 @@ notcurses_output - output to ncplanes
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **static inline int
 ncplane_putc(struct ncplane* n, const cell* c);**

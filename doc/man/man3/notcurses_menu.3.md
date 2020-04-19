@@ -8,7 +8,7 @@ notcurses_menu - operations on menus
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 struct ncmenu;

@@ -8,7 +8,7 @@ notcurses_init - initialize a notcurses instance
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 typedef struct notcurses_options {

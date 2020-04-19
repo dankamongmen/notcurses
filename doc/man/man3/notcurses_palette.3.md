@@ -8,7 +8,7 @@ notcurses_palette - operations on notcurses palettes
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 typedef struct palette256 {

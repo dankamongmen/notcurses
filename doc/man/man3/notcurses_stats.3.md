@@ -8,7 +8,7 @@ notcurses_stats - notcurses runtime statistics
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 typedef struct ncstats {

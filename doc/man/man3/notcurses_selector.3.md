@@ -8,7 +8,7 @@ notcurses_selector - high level widget for selecting from a set
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 **struct ncinput;**

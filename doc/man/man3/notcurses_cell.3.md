@@ -8,7 +8,7 @@ notcurses_cell - operations on notcurses cells
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 // See DESCRIPTION below for information on EGC encoding

@@ -8,7 +8,7 @@ notcurses_stdplane - acquire the standard ncplane
 
 ## SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **struct ncplane* notcurses_stdplane(struct notcurses* nc);**
 
