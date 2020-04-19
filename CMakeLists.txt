@@ -673,20 +673,13 @@ file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
 # Don't install source materia for self-originated multimedia
 list(FILTER TESTDATA EXCLUDE REGEX ".*xcf$")
 list(FILTER TESTDATA EXCLUDE REGEX ".*osp$")
-install(FILES
-  ${TESTDATA}
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/notcurses
-)
+install(FILES ${TESTDATA} DESTINATION ${CMAKE_INSTALL_DATADIR}/notcurses)
 endif()
 
-install(FILES
-  ${MANPAGES1}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
-)
-install(FILES
-  ${MANPAGES3}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3
-)
+install(FILES ${MANPAGES1} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
+install(FILES ${MANPAGES3} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3)
+file(GLOB MARKDOWN CONFIGURE_DEPENDS *.md)
+install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 install(PROGRAMS src/pydemo/notcurses-pydemo DESTINATION bin)
 install(TARGETS notcurses-demo DESTINATION bin)
