@@ -48,6 +48,7 @@ handle_opts(const char** argv){
 // notcurses_stop()). so just whip up a new one, and free it immediately.
 static void
 reset_terminal(){
+  // FIXME much more robust to just use termios here
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   auto nc = notcurses_init(&nopts, NULL);

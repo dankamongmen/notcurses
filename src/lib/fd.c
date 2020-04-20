@@ -1,5 +1,33 @@
 #include <unistd.h>
+#include <pthread.h>
 #include "internal.h"
+
+// release the memory and fd, but don't join the thread (since we might be
+// getting called within the thread's context, on a callback).
+static int
+ncfdplane_destroy_inner(ncfdplane* n){
+  int ret = close(n->fd);
+  free(n);
+  return ret;
+}
+
+static void *
+ncfdplane_thread(void* vncfp){
+  ncfdplane* ncfp = vncfp;
+  char* buf = malloc(BUFSIZ);
+  ssize_t r;
+  while((r = read(ncfp->fd, buf, BUFSIZ)) >= 0){
+fprintf(stderr, "got input: %s (%zd)\n", buf, r);
+  }
+  if(r < 0){
+    ncfp->donecb(ncfp->ncp->nc, errno, ncfp->curry);
+  }
+  free(buf);
+  if(ncfp->destroyed){
+    ncfdplane_destroy_inner(ncfp);
+  }
+  return NULL;
+}
 
 ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
                             ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
@@ -13,15 +41,20 @@ ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
     ret->follow = opts->follow;
     ret->ncp = n;
     ret->fd = fd;
+    ret->curry = opts->curry;
+    if(pthread_create(&ret->tid, NULL, ncfdplane_thread, ret)){
+      free(ret);
+      return NULL;
+    }
   }
   return ret;
 }
 
+// FIXME join thread, check to see if we're in our own context
 int ncfdplane_destroy(ncfdplane* n){
   int ret = 0;
   if(n){
-    ret = close(n->fd);
-    free(n);
+    ret = ncfdplane_destroy_inner(n);
   }
   return ret;
 }

@@ -190,14 +190,17 @@ typedef struct ncplot {
 typedef struct ncfdplane {
   ncfdplane_callback cb;      // invoked with fresh hot data
   ncfdplane_done_cb  donecb;  // invoked on EOF (if !follow) or error
+  void* curry;                // passed to the callbacks
   int fd;                     // we take ownership of the fd, and close it
   bool follow;                // keep trying to read past the end (event-based)
   ncplane* ncp;               // bound ncplane
+  pthread_t tid;              // thread servicing this i/o
+  bool destroyed;             // set in ncfdplane_destroy() in our own context
 } ncfdplane;
 
 typedef struct ncsubproc {
   ncfdplane* nfp;
-  pid_t pid;
+  pid_t pid;                  // subprocess
 } ncsubproc;
 
 typedef struct ncmenu {
