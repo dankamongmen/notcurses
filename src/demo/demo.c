@@ -454,7 +454,7 @@ summary_table(struct ncdirect* nc, const char* spec){
   ncdirect_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
   fflush(stdout); // in case we print to stderr below, we want color from above
   if(failed){
-    fprintf(stderr, "\nError running demo. Is \"%s\" the correct data path?\n", datadir);
+    fprintf(stderr, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p\n", datadir);
   }
 #ifdef DFSG_BUILD
   ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
