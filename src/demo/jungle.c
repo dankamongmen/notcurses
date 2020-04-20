@@ -26652,7 +26652,7 @@ int jungle_demo(struct notcurses* nc){
   free(buf);
   int iter = 0;
   // don't try to run faster than, eh, 140Hz
-  int64_t iterns = GIG / 140;
+  int64_t iterns = GIG / 100;
   int64_t nsrunning;
   do{
     DEMO_RENDER(nc);
