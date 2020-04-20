@@ -13,7 +13,7 @@ BuildRequires: cmake
 BuildRequires: gcc-c++
 BuildRequires: pandoc
 BuildRequires: python3-devel
-BuildRequires: python3-setuptools
+BuildRequires: python3-cffi
 BuildRequires: pkgconfig(ncurses)
 
 %description
@@ -56,12 +56,14 @@ mkdir build
 cd build
 %cmake -DUSE_FFMPEG=off -DUSE_TESTS=off ..
 %make_build
+cd python
+%py3_build
 
 %install
 cd build
 %make_install
 cd python
-python setup.py install --root=%{buildroot} --optimize=1
+%py3_install
 
 %files
 %doc CHANGELOG.md README.md
