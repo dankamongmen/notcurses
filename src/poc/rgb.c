@@ -25,7 +25,9 @@ int main(void){
   for(y = 0 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
       ncplane_set_fg_rgb(n, r, g, b);
-      ncplane_putsimple(n, 'x');
+      if(ncplane_putsimple(n, 'x') <= 0){
+        break;
+      }
       if(g % 2){
         if(b-- == 0){
           ++g;
