@@ -17,10 +17,15 @@ ncfdplane_thread(void* vncfp){
   char* buf = malloc(BUFSIZ);
   ssize_t r;
   while((r = read(ncfp->fd, buf, BUFSIZ)) >= 0){
-fprintf(stderr, "got input: %s (%zd)\n", buf, r);
+    if(r == 0){
+      break;
+    }
+    if( (r = ncfp->cb(ncfp->ncp->nc, buf, r, ncfp->curry)) ){
+      break;
+    }
   }
-  if(r < 0){
-    ncfp->donecb(ncfp->ncp->nc, errno, ncfp->curry);
+  if(r <= 0){
+    ncfp->donecb(ncfp->ncp->nc, r == 0 ? 0 : errno, ncfp->curry);
   }
   free(buf);
   if(ncfp->destroyed){
