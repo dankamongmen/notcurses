@@ -7,6 +7,7 @@
 static int
 ncfdplane_destroy_inner(ncfdplane* n){
   int ret = close(n->fd);
+fprintf(stderr, "INNER DESTROY %p %d %d\n", n, n->fd, ret);
   free(n);
   return ret;
 }
@@ -20,12 +21,12 @@ ncfdplane_thread(void* vncfp){
     if(r == 0){
       break;
     }
-    if( (r = ncfp->cb(ncfp->ncp->nc, buf, r, ncfp->curry)) ){
+    if( (r = ncfp->cb(ncfp, buf, r, ncfp->curry)) ){
       break;
     }
   }
   if(r <= 0){
-    ncfp->donecb(ncfp->ncp->nc, r == 0 ? 0 : errno, ncfp->curry);
+    ncfp->donecb(ncfp, r == 0 ? 0 : errno, ncfp->curry);
   }
   free(buf);
   if(ncfp->destroyed){
@@ -45,6 +46,7 @@ ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
     ret->donecb = donecbfxn;
     ret->follow = opts->follow;
     ret->ncp = n;
+    ret->destroyed = false;
     ncplane_set_scrolling(ret->ncp, true);
     ret->fd = fd;
     ret->curry = opts->curry;
@@ -56,18 +58,22 @@ ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
   return ret;
 }
 
-// FIXME join thread, check to see if we're in our own context
+ncplane* ncfdplane_plane(ncfdplane* n){
+  return n->ncp;
+}
+
 int ncfdplane_destroy(ncfdplane* n){
   int ret = 0;
   if(n){
-    pthread_t ourtid = pthread_self();
-    if(pthread_equal(&ourtid, n->tid)){
-      n->destroyed = true;
+    if(pthread_equal(pthread_self(), n->tid)){
+fprintf(stderr, "DEFER DESTROY %p %d\n", n, n->fd);
+      n->destroyed = true; // ncfdplane_destroy_inner() is called on thread exit
     }else{
+fprintf(stderr, "HARD DESTROY %p %d\n", n, n->fd);
       void* vret = NULL;
       pthread_cancel(n->tid);
-      pthread_join(n->tid, &vret);
-      ret = ncfdplane_destroy_inner(n);
+      ret |= pthread_join(n->tid, &vret);
+      ret |= ncfdplane_destroy_inner(n);
     }
   }
   return ret;

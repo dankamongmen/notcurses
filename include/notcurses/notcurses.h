@@ -2650,8 +2650,8 @@ API int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
 
 API void ncplot_destroy(struct ncplot* n);
 
-typedef int(*ncfdplane_callback)(struct notcurses* nc, const void* buf, size_t s, void* curry);
-typedef int(*ncfdplane_done_cb)(struct notcurses* nc, int fderrno, void* curry);
+typedef int(*ncfdplane_callback)(struct ncfdplane* n, const void* buf, size_t s, void* curry);
+typedef int(*ncfdplane_done_cb)(struct ncfdplane* n, int fderrno, void* curry);
 
 // read from an fd until EOF (or beyond, if follow is set), invoking the user's
 // callback each time. runs in its own context. on EOF or error, the finalizer
@@ -2667,6 +2667,7 @@ typedef struct ncfdplane_options {
 // ownership of the file descriptor, which will be closed in ncfdplane_destroy().
 API struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* opts,
                           int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+API struct ncplane* ncfdplane_plane(struct ncfdplane* n);
 API int ncfdplane_destroy(struct ncfdplane* n);
 
 typedef struct ncsubproc_options {

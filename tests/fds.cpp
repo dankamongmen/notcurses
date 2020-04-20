@@ -4,25 +4,46 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
+#include <condition_variable>
 
 std::mutex lock;
+std::condition_variable cond;
+bool inline_cancelled = false;
+bool outofline_cancelled = false;
 
-int passwdcb(struct notcurses* nc, const void* buf, size_t s, void* curry){
-  struct ncplane* n_ = static_cast<struct ncplane*>(curry);
+int testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry){
+  struct ncplane* n = ncfdplane_plane(ncfd);
   lock.lock();
-fprintf(stderr, "START HERE WITH %zu\n", s);
-  if(ncplane_putstr(n_, static_cast<const char*>(buf)) <= 0){
-fprintf(stderr, "FAILED HERE WITH %zu\n", s);
+  if(ncplane_putstr(n, static_cast<const char*>(buf)) <= 0){
     lock.unlock();
     return -1;
   }
   lock.unlock();
-fprintf(stderr, "DONE HERE WITH %zu\n", s);
+  (void)curry;
+  (void)s;
   return 0;
 }
 
-int passwdeof(struct notcurses* nc, int fderrno, void* curry){
+int testfdeof(struct ncfdplane* n, int fderrno, void* curry){
+  lock.lock();
+  outofline_cancelled = true;
+  lock.unlock();
+  cond.notify_one();
+  (void)curry;
+  (void)n;
+  (void)fderrno;
   return 0;
+}
+
+int testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry){
+  lock.lock();
+  inline_cancelled = true;
+  int ret = ncfdplane_destroy(n);
+  lock.unlock();
+  cond.notify_one();
+  (void)curry;
+  (void)fderrno;
+  return ret;
 }
 
 // test ncfdplanes and ncsubprocs
@@ -41,16 +62,38 @@ TEST_CASE("FdsAndSubprocs") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
-  SUBCASE("FdPlanePasswd") {
+  // destroy the ncfdplane outside of its own context
+  SUBCASE("FdPlaneDestroyOffline") {
+    REQUIRE(!outofline_cancelled);
+    ncfdplane_options opts{};
+    int fd = open("/etc/sysctl.conf", O_RDONLY|O_CLOEXEC);
+    REQUIRE(0 <= fd);
+    auto ncfdp = ncfdplane_create(n_, &opts, fd, testfdcb, testfdeof);
+    REQUIRE(ncfdp);
+    std::unique_lock<std::mutex> lck(lock);
+    CHECK(0 == notcurses_render(nc_));
+    while(!outofline_cancelled){
+      cond.wait(lck);
+    }
+    CHECK(0 == ncfdplane_destroy(ncfdp));
+    CHECK(0 == notcurses_render(nc_));
+    lock.unlock();
+  }
+
+  // destroy the ncfdplane within its own context, i.e. from the eof callback
+  SUBCASE("FdPlaneDestroyInline") {
+    REQUIRE(!inline_cancelled);
     ncfdplane_options opts{};
     opts.curry = n_;
     int fd = open("/etc/sysctl.conf", O_RDONLY|O_CLOEXEC);
     REQUIRE(0 <= fd);
-    auto ncfdp = ncfdplane_create(n_, &opts, fd, passwdcb, passwdeof);
+    auto ncfdp = ncfdplane_create(n_, &opts, fd, testfdcb, testfdeofdestroys);
     REQUIRE(ncfdp);
-    lock.lock();
+    std::unique_lock<std::mutex> lck(lock);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncfdplane_destroy(ncfdp));
+    while(!inline_cancelled){
+      cond.wait(lck);
+    }
     CHECK(0 == notcurses_render(nc_));
     lock.unlock();
   }
