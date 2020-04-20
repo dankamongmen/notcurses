@@ -43,6 +43,19 @@ handle_opts(const char** argv){
   }
 }
 
+// reset the terminal in the event of early exit (notcurses_init() presumably
+// ran, but we don't have the notcurses struct with which to run
+// notcurses_stop()). so just whip up a new one, and free it immediately.
+static void
+reset_terminal(){
+  notcurses_options nopts{};
+  nopts.inhibit_alternate_screen = true;
+  auto nc = notcurses_init(&nopts, NULL);
+  if(nc){
+    notcurses_stop(nc);
+  }
+}
+
 // from https://github.com/onqtam/doctest/blob/master/doc/markdown/commandline.md
 class dt_removed {
   std::vector<const char*> vec;
@@ -85,8 +98,10 @@ int main(int argc, const char **argv){
     return res;             // propagate the result of the tests
   }
 
-  int client_stuff_return_code = 0;
-  // your program - if the testing framework is integrated in your production code
-
-  return res + client_stuff_return_code; // the result from doctest is propagated here as well
+  // if we exited via REQUIRE(), we likely left the terminal in an invalid
+  // state. go ahead and reset it manually.
+  if(res){
+    reset_terminal();
+  }
+  return res; // the result from doctest is propagated here as well
 }
