@@ -5,9 +5,10 @@
 #include <iostream>
 #include <limits.h>
 #include <langinfo.h>
+#include "version.h"
 #include "main.h"
 
-static char datadir[PATH_MAX + 1] = "/usr/share/notcurses"; // FIXME
+static const char* datadir = NOTCURSES_SHARE;
 
 bool enforce_utf8(){
   char* enc = nl_langinfo(CODESET);
@@ -33,7 +34,7 @@ handle_opts(const char** argv){
   bool inarg = false;
   while(*argv){
     if(inarg){
-      strncpy(datadir, *argv, sizeof(datadir) - 1);
+      datadir = strdup(*argv);
       inarg = false;
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;

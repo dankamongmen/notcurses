@@ -676,8 +676,8 @@ static void
 reset_stats(ncstats* stats){
   uint64_t fbbytes = stats->fbbytes;
   memset(stats, 0, sizeof(*stats));
-  stats->render_min_ns = 1ul << 62u;
-  stats->render_min_bytes = 1ul << 62u;
+  stats->render_min_ns = 1ull << 62u;
+  stats->render_min_bytes = 1ull << 62u;
   stats->fbbytes = fbbytes;
 }
 
@@ -1022,7 +1022,7 @@ int notcurses_stop(notcurses* nc){
                   NANOSECS_IN_SEC * (double)nc->stashstats.renders / nc->stashstats.render_ns : 0.0,
                 nc->stashstats.failed_renders,
                 nc->stashstats.failed_renders == 1 ? "" : "s");
-        fprintf(stderr, "RGB emits:elides: def %lu:%lu fg %lu:%lu bg %lu:%lu\n",
+        fprintf(stderr, "RGB emits:elides: def %ju:%ju fg %ju:%ju bg %ju:%ju\n",
                 nc->stashstats.defaultemissions,
                 nc->stashstats.defaultelisions,
                 nc->stashstats.fgemissions,
