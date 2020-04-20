@@ -2650,24 +2650,40 @@ API int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
 
 API void ncplot_destroy(struct ncplot* n);
 
-// ncsubproc -- management of a subprocess, whose output will be dumped to the
-// bound plane (possibly invoking a client callback to get there).
+typedef int(*ncfdplane_callback)(struct notcurses* nc, const void* buf, size_t s, void* curry);
+typedef int(*ncfdplane_done_cb)(struct notcurses* nc, int fderrno, void* curry);
+
+// read from an fd until EOF (or beyond, if follow is set), invoking the user's
+// callback each time. runs in its own context. on EOF or error, the finalizer
+// callback will be invoked, and the user ought destroy the ncfdplane. the
+// data is *not* guaranteed to be nul-terminated, and may contain arbitrary
+// zeroes.
+typedef struct ncfdplane_options {
+  void* curry; // parameter provided to callbacks
+  bool follow; // keep reading after hitting end? (think tail -f)
+} ncfdplane_options;
+
+// Create an ncfdplane around the fd 'fd'. Consider this function to take
+// ownership of the file descriptor, which will be closed in ncfdplane_destroy().
+API struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* opts,
+                          int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+API int ncfdplane_destroy(struct ncfdplane* n);
+
 typedef struct ncsubproc_options {
-  // callback invoked each time data is read, may be NULL (in which case the
-  // data will be written with ncplane_putstr()). if a callback is provided,
-  // the callback is necessary for writing (or not writing) the data. The data
-  // is *not* generally nul-terminated, and can carry zeroes.
-  int (*callback)(struct notcurses* nc, const void* buf, size_t s, void* curry);
-  void* curry; // parameter provided to callback
+  ncfdplane_options popts;
+  uint64_t restart_period;  // restart this many seconds after an exit (watch)
 } ncsubproc_options;
 
 // see exec(2). p-types use $PATH. e-type passes environment vars.
 API struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
-                                        const char* bin,  char* const arg[]);
+                                        const char* bin,  char* const arg[],
+                                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
 API struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
-                                         const char* bin,  char* const arg[]);
+                                         const char* bin,  char* const arg[],
+                                         ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
 API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
-                       const char* bin,  char* const arg[], char* const env[]);
+                       const char* bin,  char* const arg[], char* const env[],
+                       ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
 
 API int ncsubproc_destroy(struct ncsubproc* n);
 
