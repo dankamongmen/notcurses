@@ -32,6 +32,7 @@ The demonstrations include (see NOTES below):
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi—a dashing Apennine plumber in a world of fire
 * (n)ormal—a normal map of a friend, with lambert shading
+* (q)rcode—quick response codes (from ISO/IEC 18004:2015)
 * (r)eel—demonstration of the ncreel high-level widget
 * (s)liders—a missing-piece puzzle made up of colorful blocks
 * (t)rans—an exploration of various transparencies
@@ -88,7 +89,8 @@ non-free under the Debian Free Software Guidelines. As a result, the
 are unavailable through the Debian package.
 
 If notcurses is built without FFmpeg, the **chunli**, **eagle**,
-**outro**, **view**, and **xray** demos will be unavailable.
+**outro**, **view**, and **xray** demos will be unavailable. If notcurses is
+built without libqrcodegen, the **qrcode** demo will be unavailable.
 
 If **notcurses-demo** is run in a terminal lacking the **can_change** terminfo
 capability, **jungle** will be skipped.
