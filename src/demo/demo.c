@@ -17,7 +17,7 @@ static const int MIN_SUPPORTED_COLS = 76; // allow a bit of margin, sigh
 
 static int democount;
 static demoresult* results;
-static char datadir[PATH_MAX];
+static char *datadir = NOTCURSES_SHARE;
 
 // yes, these are in different orders in different configurations on purpose
 // (since some transition into the next)
@@ -238,10 +238,9 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failures,
             FILE** json_output){
-  strcpy(datadir, NOTCURSES_SHARE);
-  char renderfile[PATH_MAX] = "";
   bool constant_seed = false;
   *ignore_failures = false;
+  char *renderfile = NULL;
   *json_output = NULL;
   int c;
   memset(opts, 0, sizeof(*opts));
@@ -299,10 +298,10 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
         }
         break;
       case 'p':
-        strcpy(datadir, optarg);
+        datadir = optarg;
         break;
       case 'r':
-        strcpy(renderfile, optarg);
+        renderfile = optarg;
         break;
       case 'd':{
         float f;
@@ -326,7 +325,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
   if(!constant_seed){
     srand(time(NULL)); // a classic blunder lol
   }
-  if(strlen(renderfile)){
+  if(renderfile){
     opts->renderfp = fopen(renderfile, "wb");
     if(opts->renderfp == NULL){
       fprintf(stderr, "Error opening %s for write\n", renderfile);
