@@ -45,6 +45,7 @@ ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
     ret->donecb = donecbfxn;
     ret->follow = opts->follow;
     ret->ncp = n;
+    ncplane_set_scrolling(ret->ncp, true);
     ret->fd = fd;
     ret->curry = opts->curry;
     if(pthread_create(&ret->tid, NULL, ncfdplane_thread, ret)){
@@ -59,7 +60,15 @@ ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
 int ncfdplane_destroy(ncfdplane* n){
   int ret = 0;
   if(n){
-    ret = ncfdplane_destroy_inner(n);
+    pthread_t ourtid = pthread_self();
+    if(pthread_equal(&ourtid, n->tid)){
+      n->destroyed = true;
+    }else{
+      void* vret = NULL;
+      pthread_cancel(n->tid);
+      pthread_join(n->tid, &vret);
+      ret = ncfdplane_destroy_inner(n);
+    }
   }
   return ret;
 }
