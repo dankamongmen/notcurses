@@ -1,6 +1,6 @@
 % notcurses_menu(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -8,7 +8,7 @@ notcurses_menu - operations on menus
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 struct ncmenu;

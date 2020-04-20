@@ -5,9 +5,10 @@
 #include <iostream>
 #include <limits.h>
 #include <langinfo.h>
+#include "version.h"
 #include "main.h"
 
-static char datadir[PATH_MAX + 1] = "/usr/share/notcurses"; // FIXME
+static const char* datadir = NOTCURSES_SHARE;
 
 bool enforce_utf8(){
   char* enc = nl_langinfo(CODESET);
@@ -33,12 +34,25 @@ handle_opts(const char** argv){
   bool inarg = false;
   while(*argv){
     if(inarg){
-      strncpy(datadir, *argv, sizeof(datadir) - 1);
+      datadir = strdup(*argv);
       inarg = false;
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;
     }
     ++argv;
+  }
+}
+
+// reset the terminal in the event of early exit (notcurses_init() presumably
+// ran, but we don't have the notcurses struct with which to run
+// notcurses_stop()). so just whip up a new one, and free it immediately.
+static void
+reset_terminal(){
+  notcurses_options nopts{};
+  nopts.inhibit_alternate_screen = true;
+  auto nc = notcurses_init(&nopts, NULL);
+  if(nc){
+    notcurses_stop(nc);
   }
 }
 
@@ -84,8 +98,10 @@ int main(int argc, const char **argv){
     return res;             // propagate the result of the tests
   }
 
-  int client_stuff_return_code = 0;
-  // your program - if the testing framework is integrated in your production code
-
-  return res + client_stuff_return_code; // the result from doctest is propagated here as well
+  // if we exited via REQUIRE(), we likely left the terminal in an invalid
+  // state. go ahead and reset it manually.
+  if(res){
+    reset_terminal();
+  }
+  return res; // the result from doctest is propagated here as well
 }

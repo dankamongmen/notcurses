@@ -1,6 +1,6 @@
 % notcurses_refresh(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -8,7 +8,7 @@ notcurses_refresh - redraw an externally-damaged display
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **int notcurses_refresh(const struct notcurses* nc, int* restrict rows, int* restrict cols);**
 

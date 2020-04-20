@@ -1,6 +1,6 @@
 % notcurses_lines(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -8,7 +8,7 @@ notcurses_lines - operations on lines and boxes
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **int ncplane_hline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);**
 

@@ -1,13 +1,13 @@
 % notcurses_ncvisual(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 notcurses_ncvisual - notcurses multimedia
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 typedef enum {

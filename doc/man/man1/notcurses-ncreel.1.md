@@ -1,6 +1,6 @@
 % notcurses-ncreel(1)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -22,7 +22,7 @@ tablet (if one exists). 'q' quits at any time.
 
 Optimal display requires a terminal advertising the **rgb** terminfo(5)
 capability, or that the environment variable **COLORTERM** is defined to
-**24bit** (and that the terminal honors this variable), along with a good
+**24bit** (and that the terminal honors RGB escapes), along with a good
 monospaced font supporting the Unicode Block Drawing Characters.
 
 # SEE ALSO

@@ -1,6 +1,6 @@
 % ncdirect_init(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -8,7 +8,7 @@ ncdirect_init - minimal notcurses instances for styling text
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **struct ncdirect* ncdirect_init(const char *termtype, FILE* fp);**
 

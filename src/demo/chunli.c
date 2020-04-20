@@ -11,7 +11,7 @@ typedef struct chunli {
 static int
 chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
   chunli chuns[CHUNS];
-  char file[PATH_MAX];
+  char file[20];
   int dimx, dimy;
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
@@ -61,7 +61,7 @@ int chunli_demo(struct notcurses* nc){
   if( (averr = chunli_draw(nc, "bmp", CHUNS, &b)) ){
     return averr;
   }
-  char file[PATH_MAX];
+  char file[20];
   for(int i = 1 ; i < 100 ; ++i){
     snprintf(file, sizeof(file), "chunli%02d.png", i);
     char* path = find_data(file);

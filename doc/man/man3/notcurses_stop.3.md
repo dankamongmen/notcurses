@@ -1,6 +1,6 @@
 % notcurses_stop(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -8,7 +8,7 @@ notcurses_stop - free up resources and restore initial terminal state
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **int notcurses_stop(struct notcurses* nc);**
 

@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.3.2 (not yet released)
+* 1.3.2 (2020-04-19)
   * `ncdirect_cursor_push()`, `notcurses_cursor_pop()`, and
     `ncdirect_cursor_yx()` have been added. These are not supported on all
     terminals. `ncdirect_cursor_yx()` ought be considered experimental; it

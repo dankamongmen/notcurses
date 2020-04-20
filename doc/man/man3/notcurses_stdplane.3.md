@@ -1,6 +1,6 @@
 % notcurses_stdplane(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -8,7 +8,7 @@ notcurses_stdplane - acquire the standard ncplane
 
 ## SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **struct ncplane* notcurses_stdplane(struct notcurses* nc);**
 

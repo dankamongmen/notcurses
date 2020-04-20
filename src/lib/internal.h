@@ -594,10 +594,10 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
 static inline void
 cell_debug(const egcpool* p, const cell* c){
 	if(cell_simple_p(c)){
-		fprintf(stderr, "gcluster: %u %c attr: 0x%08x chan: 0x%016lx\n",
+		fprintf(stderr, "gcluster: %u %c attr: 0x%08x chan: 0x%016jx\n",
 				    c->gcluster, c->gcluster, c->attrword, c->channels);
 	}else{
-		fprintf(stderr, "gcluster: %u %s attr: 0x%08x chan: 0x%016lx\n",
+		fprintf(stderr, "gcluster: %u %s attr: 0x%08x chan: 0x%016jx\n",
 				    c->gcluster, egcpool_extended_gcluster(p, c), c->attrword, c->channels);
 	}
 }

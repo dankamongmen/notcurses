@@ -174,6 +174,7 @@ int fallin_demo(struct notcurses* nc){
     }
   }
   free(usemap);
+  ncplane_erase(stdn);
 #ifdef USE_FFMPEG
 #ifndef DFSG_BUILD
   int averr = 0;

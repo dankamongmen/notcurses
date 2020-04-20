@@ -113,12 +113,12 @@ that fine library.
 * (build) A C11 and a C++17 compiler
 * (build) CMake 3.14.0+
 * (build+runtime) From NCURSES: terminfo 6.1+
-* (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator)
-* (OPTIONAL) (build+runtime) From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
+* (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
+* (OPTIONAL) (build+runtime) From [FFMpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
-* (OPTIONAL) (python bindings): Python 3.7+, CFFI 1.13.2+
-* (OPTIONAL) (rust bindings): rust 1.40.0+, cargo 0.40.0+, cmake-rs 0.1.42+
+* (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+
+* (OPTIONAL) (rust bindings): rust 1.40.0+, cargo 0.40.0+, [bindgen](https://crates.io/crates/bindgen) 0.53.0+
 
 ### Building
 
@@ -2650,6 +2650,7 @@ up someday **FIXME**.
 
 ### History
 
+* 2020-04-19: notcurses is [accepted into Debian](https://bugs.debian.org/950492).
 * 2020-04-12: notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
 * 2020-02-17: notcurses [1.2.0 "check the résumé, my record's impeccable"](https://github.com/dankamongmen/notcurses/releases/tag/v1.2.0).
 * 2019-01-19: notcurses [1.1.0 "all the hustlas they love it just to see one of us make it"](https://github.com/dankamongmen/notcurses/releases/tag/v1.1.0).

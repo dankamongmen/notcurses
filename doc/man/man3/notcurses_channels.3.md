@@ -1,6 +1,6 @@
 % notcurses_channels(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -8,7 +8,7 @@ notcurses_channels - operations on notcurses channels
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 **static inline unsigned
 channel_r(unsigned channel);**

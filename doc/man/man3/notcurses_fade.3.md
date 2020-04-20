@@ -1,6 +1,6 @@
 % notcurses_fade(3)
 % nick black <nickblack@linux.com>
-% v1.3.1
+% v1.3.2
 
 # NAME
 
@@ -8,7 +8,7 @@ notcurses_fade - fade ncplanes in and out
 
 # SYNOPSIS
 
-**#include <notcurses.h>**
+**#include <notcurses/notcurses.h>**
 
 ```c
 // Called for each delta performed in a fade on ncp. If anything but 0 is

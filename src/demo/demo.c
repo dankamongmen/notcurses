@@ -17,7 +17,7 @@ static const int MIN_SUPPORTED_COLS = 76; // allow a bit of margin, sigh
 
 static int democount;
 static demoresult* results;
-static char datadir[PATH_MAX];
+static char *datadir = NOTCURSES_SHARE;
 
 // yes, these are in different orders in different configurations on purpose
 // (since some transition into the next). FIXME handle case sans libqrcodegen.
@@ -238,10 +238,9 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failures,
             FILE** json_output){
-  strcpy(datadir, NOTCURSES_SHARE);
-  char renderfile[PATH_MAX] = "";
   bool constant_seed = false;
   *ignore_failures = false;
+  char *renderfile = NULL;
   *json_output = NULL;
   int c;
   memset(opts, 0, sizeof(*opts));
@@ -299,10 +298,10 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
         }
         break;
       case 'p':
-        strcpy(datadir, optarg);
+        datadir = optarg;
         break;
       case 'r':
-        strcpy(renderfile, optarg);
+        renderfile = optarg;
         break;
       case 'd':{
         float f;
@@ -326,7 +325,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
   if(!constant_seed){
     srand(time(NULL)); // a classic blunder lol
   }
-  if(strlen(renderfile)){
+  if(renderfile){
     opts->renderfp = fopen(renderfile, "wb");
     if(opts->renderfp == NULL){
       fprintf(stderr, "Error opening %s for write\n", renderfile);
@@ -455,7 +454,7 @@ summary_table(struct ncdirect* nc, const char* spec){
   ncdirect_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
   fflush(stdout); // in case we print to stderr below, we want color from above
   if(failed){
-    fprintf(stderr, "\nError running demo. Is \"%s\" the correct data path?\n", datadir);
+    fprintf(stderr, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p\n", datadir);
   }
 #ifdef DFSG_BUILD
   ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
