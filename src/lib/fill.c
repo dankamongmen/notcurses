@@ -612,8 +612,10 @@ int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
   if(len == 0){
     return -1;
   }
-  const int availx = n->lenx - n->x;
-  const int availy = n->leny - n->y;
+  const int starty = n->y;
+  const int startx = n->x;
+  const int availx = n->lenx - startx;
+  const int availy = n->leny - starty;
   if(availy < qrcode_rows(1)){
     return -1;
   }
@@ -642,16 +644,34 @@ int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
     return -1;
   }
   memcpy(src, data, len);
-  int ret = 0;
-  if(!qrcodegen_encodeBinary(src, len, dst, qrcodegen_Ecc_HIGH, 1, maxversion, qrcodegen_Mask_AUTO, true)){
-    ret = -1;
-  }else{
-    ret = (qrcodegen_getSize(dst) - QR_BASE_SIZE) / PER_QR_VERSION;
+  int ret = -1;
+  if(qrcodegen_encodeBinary(src, len, dst, qrcodegen_Ecc_HIGH, 1, maxversion, qrcodegen_Mask_AUTO, true)){
+    ret = qrcodegen_getSize(dst);
+    for(int y = starty ; y < starty + (ret + 1) / 2 ; ++y){
+      for(int x = startx ; x < startx + ret ; ++x){
+        const bool top = qrcodegen_getModule(dst, x, y);
+        const bool bot = qrcodegen_getModule(dst, x, y + 1);
+        const char* egc;
+        if(top && bot){
+          egc = "█";
+        }else if(top){
+          egc = "▀";
+        }else if(bot){
+          egc = "▄";
+        }else{
+          egc = " ";
+        }
+        int sbytes;
+        if(ncplane_putegc_yx(n, y, x, egc, &sbytes) <= 0){
+          ret = -1;
+          break;
+        }
+      }
+    }
   }
   free(src);
-  // FIXME render that fucker
   free(dst);
-  return ret;
+  return ret < 0 ? ret : (ret - QR_BASE_SIZE) / PER_QR_VERSION;
 }
 #else
 int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
