@@ -3,4 +3,5 @@
 #define notcurses_VERSION_PATCH "@notcurses_VERSION_PATCH@"
 #cmakedefine DFSG_BUILD
 #cmakedefine USE_FFMPEG
+#cmakedefine USE_QRCODEGEN
 #define NOTCURSES_SHARE "@CMAKE_INSTALL_FULL_DATADIR@/notcurses"

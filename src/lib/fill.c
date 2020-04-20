@@ -1,4 +1,5 @@
 #include "internal.h"
+#include <qrcodegen/qrcodegen.h>
 
 void ncplane_greyscale(ncplane *n){
   for(int y = 0 ; y < n->leny ; ++y){
@@ -588,3 +589,76 @@ int ncplane_rotate_ccw(ncplane* n){
   ret |= ncplane_destroy(newp);
   return ret;
 }
+
+#ifdef USE_QRCODEGEN
+#define QR_BASE_SIZE 17
+#define PER_QR_VERSION 4
+
+static inline int
+qrcode_rows(int version){
+  return QR_BASE_SIZE + (version * PER_QR_VERSION / 2);
+}
+
+static inline int
+qrcode_cols(int version){
+  return QR_BASE_SIZE + (version * PER_QR_VERSION);
+}
+
+int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
+  const int MAX_QR_VERSION = 40; // QR library only supports up to 40
+  if(maxversion < 0){
+    return -1;
+  }
+  if(len == 0){
+    return -1;
+  }
+  const int availx = n->lenx - n->x;
+  const int availy = n->leny - n->y;
+  if(availy < qrcode_rows(1)){
+    return -1;
+  }
+  if(availx < qrcode_cols(1)){
+    return -1;
+  }
+  const int availsquare = availy * 2 < availx ? availy * 2 : availx;
+  const int roomforver = (availsquare - QR_BASE_SIZE) / 4;
+  if(maxversion == 0){
+    maxversion = roomforver;
+  }else if(maxversion > roomforver){
+    maxversion = roomforver;
+  }
+  if(maxversion > MAX_QR_VERSION){
+    maxversion = MAX_QR_VERSION;
+  }
+  const size_t bsize = qrcodegen_BUFFER_LEN_FOR_VERSION(maxversion);
+  if(bsize < len){
+    return -1;
+  }
+  uint8_t* src = malloc(bsize);
+  uint8_t* dst = malloc(bsize);
+  if(src == NULL || dst == NULL){
+    free(src);
+    free(dst);
+    return -1;
+  }
+  memcpy(src, data, len);
+  int ret = 0;
+  if(!qrcodegen_encodeBinary(src, len, dst, qrcodegen_Ecc_HIGH, 1, maxversion, qrcodegen_Mask_AUTO, true)){
+    ret = -1;
+  }else{
+    ret = (qrcodegen_getSize(dst) - QR_BASE_SIZE) / PER_QR_VERSION;
+  }
+  free(src);
+  // FIXME render that fucker
+  free(dst);
+  return ret;
+}
+#else
+int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
+  (void)n;
+  (void)maxversion;
+  (void)data;
+  (void)len;
+  return -1;
+}
+#endif

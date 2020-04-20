@@ -113,6 +113,7 @@ that fine library.
 * (build) A C11 and a C++17 compiler
 * (build) CMake 3.14.0+
 * (build+runtime) From NCURSES: terminfo 6.1+
+* (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator)
 * (OPTIONAL) (build+runtime) From FFMpeg: libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+

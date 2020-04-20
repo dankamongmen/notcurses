@@ -2671,6 +2671,15 @@ API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_opt
 
 API int ncsubproc_destroy(struct ncsubproc* n);
 
+// Draw a QR code at the current position on the plane. If there is insufficient
+// room to draw the code here, or there is any other error, non-zero will be
+// returned. Otherwise, the QR code "version" (size) is returned. The QR code
+// is (version * 4 + 17) columns wide, and ⌈version * 4 + 17 / 2⌉ rows tall. If
+// maxversion is not zero, it plays a hard limit on the QR code size. Though the
+// max version of current QR codes is 40, greater values are allowed, for
+// future compatability (provide 0 for no artificail bound).
+API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size_t len);
+
 #undef API
 
 #ifdef __cplusplus
