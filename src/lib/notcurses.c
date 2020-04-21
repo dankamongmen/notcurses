@@ -1844,6 +1844,10 @@ void ncplane_translate(const ncplane* src, const ncplane* dst,
   }
 }
 
+notcurses* ncplane_notcurses(ncplane* n){
+  return n->nc;
+}
+
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n == n->nc->stdscr){
     return NULL; // can't reparent standard plane

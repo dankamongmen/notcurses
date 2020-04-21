@@ -7,7 +7,6 @@
 static int
 ncfdplane_destroy_inner(ncfdplane* n){
   int ret = close(n->fd);
-fprintf(stderr, "INNER DESTROY %p %d %d\n", n, n->fd, ret);
   free(n);
   return ret;
 }
@@ -66,10 +65,8 @@ int ncfdplane_destroy(ncfdplane* n){
   int ret = 0;
   if(n){
     if(pthread_equal(pthread_self(), n->tid)){
-fprintf(stderr, "DEFER DESTROY %p %d\n", n, n->fd);
       n->destroyed = true; // ncfdplane_destroy_inner() is called on thread exit
     }else{
-fprintf(stderr, "HARD DESTROY %p %d\n", n, n->fd);
       void* vret = NULL;
       pthread_cancel(n->tid);
       ret |= pthread_join(n->tid, &vret);

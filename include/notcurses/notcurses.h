@@ -883,6 +883,8 @@ API int notcurses_mouse_disable(struct notcurses* n);
 // NCKEY_RESIZE event has been read and you're not ready to render.
 API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
+API struct notcurses* ncplane_notcurses(struct ncplane* n);
+
 // Return the dimensions of this ncplane.
 API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
