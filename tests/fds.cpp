@@ -98,6 +98,22 @@ TEST_CASE("FdsAndSubprocs") {
     lock.unlock();
   }
 
+  SUBCASE("SubprocDestroyOffline") {
+    char * const argv[] = { strdup("/bin/cat"), strdup("/etc/sysctl.conf"), NULL, };
+    REQUIRE(!outofline_cancelled);
+    ncsubproc_options opts{};
+    auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
+    REQUIRE(ncsubp);
+    std::unique_lock<std::mutex> lck(lock);
+    CHECK(0 == notcurses_render(nc_));
+    while(!outofline_cancelled){
+      cond.wait(lck);
+    }
+    CHECK(0 == ncsubproc_destroy(ncsubp));
+    CHECK(0 == notcurses_render(nc_));
+    lock.unlock();
+  }
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 }

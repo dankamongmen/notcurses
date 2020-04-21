@@ -1,9 +1,12 @@
 #define DOCTEST_CONFIG_IMPLEMENT
+#include <term.h>
+#include <fcntl.h>
 #include <clocale>
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
 #include <limits.h>
+#include <termios.h>
 #include <langinfo.h>
 #include "version.h"
 #include "main.h"
@@ -44,16 +47,24 @@ handle_opts(const char** argv){
 }
 
 // reset the terminal in the event of early exit (notcurses_init() presumably
-// ran, but we don't have the notcurses struct with which to run
-// notcurses_stop()). so just whip up a new one, and free it immediately.
+// ran, but we don't have the notcurses struct to destroy. so just do it raw.
 static void
 reset_terminal(){
-  // FIXME much more robust to just use termios here
-  notcurses_options nopts{};
-  nopts.inhibit_alternate_screen = true;
-  auto nc = notcurses_init(&nopts, NULL);
-  if(nc){
-    notcurses_stop(nc);
+  int fd = open("/dev/tty", O_RDWR|O_CLOEXEC);
+  if(fd >= 0){
+    struct termios tios;
+    if(tcgetattr(fd, &tios) == 0){
+      tios.c_iflag |= INLCR;
+      tios.c_lflag |= ISIG | ICANON | ECHO;
+      tcsetattr(fd, TCSADRAIN, &tios);
+    }
+    char* str = tigetstr("sgr0");
+    if(str){
+      printf("%s", str);
+      free(str);
+    }
+    fflush(stdout);
+    close(fd);
   }
 }
 
@@ -82,7 +93,6 @@ int main(int argc, const char **argv){
   }
   doctest::Context context;
 
-  // defaults
   context.setOption("order-by", "name");            // sort the test cases by their name
 
   context.applyCommandLine(argc, argv);
