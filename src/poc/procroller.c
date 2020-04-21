@@ -13,7 +13,7 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static int
 cb(struct ncfdplane* ncfd, const void* data, size_t len, void* curry){
   int ret = -1;
-//fprintf(stderr, "[%zu] %*.*s", len, (int)len, (int)len, data);
+fprintf(stderr, "[%zu] %*.*s", len, (int)len, (int)len, data);
   if(ncplane_putstr(ncfdplane_plane(ncfd), data) >= 0){
     if(!notcurses_render(ncplane_notcurses(ncfdplane_plane(ncfd)))){
       ret = 0;

@@ -114,6 +114,47 @@ kill_and_wait_subproc(pid_t pid){
   return 0;
 }
 
+// need a poll on both main fd and pidfd
+static void *
+ncsubproc_thread(void* vncsp){
+  ncsubproc* ncsp = vncsp;
+  char* buf = malloc(BUFSIZ);
+  ssize_t r;
+  while((r = read(ncsp->nfp->fd, buf, BUFSIZ)) >= 0){
+    if(r == 0){
+      break;
+    }
+    if( (r = ncsp->nfp->cb(ncsp->nfp, buf, r, ncsp->nfp->curry)) ){
+      break;
+    }
+  }
+  // FIXME need to continue reading on pipe/socket
+  if(r <= 0){
+    ncsp->nfp->donecb(ncsp->nfp, r == 0 ? 0 : errno, ncsp->nfp->curry);
+  }
+  free(buf);
+  if(ncsp->nfp->destroyed){
+    ncfdplane_destroy_inner(ncsp->nfp);
+    free(ncsp);
+  }
+  return NULL;
+}
+
+static ncfdplane*
+ncsubproc_launch(ncplane* n, ncsubproc* ret, const ncsubproc_options* opts, int fd,
+                 ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  // FIXME need to pick up pidfd via clone() earlier in launch_pipe_process
+  ret->nfp = ncfdplane_create_internal(n, &opts->popts, fd, cbfxn, donecbfxn, false);
+  if(ret->nfp == NULL){
+    return NULL;
+  }
+  if(pthread_create(&ret->nfp->tid, NULL, ncsubproc_thread, ret)){
+    ncfdplane_destroy_inner(ret->nfp);
+    ret->nfp = NULL;
+  }
+  return ret->nfp;
+}
+
 ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
                              const char* bin,  char* const arg[],
                              ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
@@ -134,7 +175,7 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
     free(ret);
     return NULL;
   }
-  if((ret->nfp = ncfdplane_create_internal(n, &opts->popts, fd, cbfxn, donecbfxn, false)) == NULL){
+  if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
     kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
@@ -162,7 +203,7 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
     free(ret);
     return NULL;
   }
-  if((ret->nfp = ncfdplane_create_internal(n, &opts->popts, fd, cbfxn, donecbfxn, false)) == NULL){
+  if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
     kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
@@ -194,7 +235,7 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
     free(ret);
     return NULL;
   }
-  if((ret->nfp = ncfdplane_create_internal(n, &opts->popts, fd, cbfxn, donecbfxn, false)) == NULL){
+  if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
     kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
