@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
 #include "internal.h"
@@ -24,6 +25,7 @@ ncfdplane_thread(void* vncfp){
       break;
     }
   }
+  // FIXME need to continue reading on pipe/socket
   if(r <= 0){
     ncfp->donecb(ncfp, r == 0 ? 0 : errno, ncfp->curry);
   }
@@ -85,7 +87,16 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
   if(ret){
-    // FIXME launch process, create ncfdplane with pipe
+    // FIXME create ncfdplane with pipe
+    ret->pid = fork();
+    if(ret->pid == 0){
+      execv(bin, arg);
+      fprintf(stderr, "Error execv()ing %s\n", bin);
+      exit(EXIT_FAILURE);
+    }else if(ret->pid < 0){
+      free(ret);
+      return NULL;
+    }
     if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
       // FIXME kill process
       free(ret);
@@ -103,15 +114,47 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
   }
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
-  if(ret){
-    // FIXME launch process, create ncfdplane with pipe
-    if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
-      // FIXME kill process
-      free(ret);
-      return NULL;
-    }
+  if(ret == NULL){
+    return NULL;
+  }
+  int fds[2];
+  if(pipe2(fds, O_CLOEXEC)){
+    free(ret);
+    return NULL;
+  }
+  // FIXME move pipe to stdio fds
+  ret->pid = fork();
+  if(ret->pid == 0){
+    execvp(bin, arg);
+    fprintf(stderr, "Error execv()ing %s\n", bin);
+    exit(EXIT_FAILURE);
+  }else if(ret->pid < 0){
+    free(ret);
+    return NULL;
+  }
+  if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
+    // FIXME kill process
+    free(ret);
+    return NULL;
   }
   return ret;
+}
+
+static pid_t
+launch_pipe_process(int* pipe){
+  int pipes[2];
+  if(pipe2(pipes, O_CLOEXEC)){
+    return -1;
+  }
+  pid_t p = fork();
+  if(p == 0){
+    if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
+      return -1;
+    }
+  }else{
+    *pipe = pipes[0];
+  }
+  return p;
 }
 
 ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
@@ -123,7 +166,15 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
   if(ret){
-    // FIXME launch process, create ncfdplane with pipe
+    ret->pid = launch_pipe_process(&fd);
+    if(ret->pid == 0){
+      execvpe(bin, arg, env);
+      fprintf(stderr, "Error execv()ing %s\n", bin);
+      exit(EXIT_FAILURE);
+    }else if(ret->pid < 0){
+      free(ret);
+      return NULL;
+    }
     if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
       // FIXME kill process
       free(ret);

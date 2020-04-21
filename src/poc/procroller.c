@@ -45,6 +45,9 @@ int main(int argc, char** argv){
   notcurses_options opts = {};
   opts.inhibit_alternate_screen = true;
   struct notcurses* nc = notcurses_init(&opts, stdout);
+  if(nc == NULL){
+    return EXIT_FAILURE;
+  }
   struct ncplane* n = notcurses_stdplane(nc);
   int ret = -1;
   ncsubproc_options nopts = {};

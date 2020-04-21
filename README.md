@@ -15,7 +15,7 @@ via notcurses@googlegroups.com.
 I wrote a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which
 is available for free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
 
-notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/).
+Notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/).
 Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
 
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
@@ -51,30 +51,30 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
     emulators, supporting vivid colors and Unicode to the maximum degree
-    possible. Many tasks delegated to Curses can be achieved using notcurses
+    possible. Many tasks delegated to Curses can be achieved using Notcurses
     (and vice versa).
 
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
     replacement for NCURSES on existing systems, nor a widely-ported and -tested
     bedrock of free software, nor a battle-proven, veteran library.
 
-notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
+Notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
 terminal functionality such as unindexed 24-bit color ("TrueColor", not to be
 confused with the 8-bit indexed 24-bit "extended color" of NCURSES).
 For some necessary background, consult Thomas E. Dickey's
 superb and authoritative [NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
-As such, notcurses is not a drop-in Curses replacement. It is almost certainly
+As such, Notcurses is not a drop-in Curses replacement. It is almost certainly
 less portable, and definitely tested on less hardware. Sorry about that.
 Ultimately, I hope to properly support all terminals *supporting the features
 necessary for complex TUIs*. I would argue that teletypes etc. are
 fundamentally unsuitable. Most operating systems seem reasonable targets, but I
 only have Linux and FreeBSD available for testing.
 
-Whenever possible, notcurses makes use of the Terminfo library shipped with
+Whenever possible, Notcurses makes use of the Terminfo library shipped with
 NCURSES, benefiting greatly from its portability and thoroughness.
 
-notcurses opens up advanced functionality for the interactive user on
+Notcurses opens up advanced functionality for the interactive user on
 workstations, phones, laptops, and tablets, at the expense of e.g.
 some industrial and retail terminals.
 
@@ -103,7 +103,7 @@ Why use this non-standard library?
 
 Much of the above can be had with NCURSES, but they're not what NCURSES was
 *designed* for. The most fundamental advantage in my mind, though, is
-that notcurses is of the multithreaded era. On the other hand, if you're
+that Notcurses is of the multithreaded era. On the other hand, if you're
 targeting industrial or critical applications, or wish to benefit from the
 time-tested reliability and portability of Curses, you should by all means use
 that fine library.
@@ -139,20 +139,20 @@ be found on the `notcurses-demo(1)` man page.
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
 pages ought have been installed along with notcurses.
 
-A program wishing to use notcurses will need to link it, ideally using the
+A program wishing to use Notcurses will need to link it, ideally using the
 output of `pkg-config --libs notcurses`. It is advised to compile with the
 output of `pkg-config --cflags notcurses`. If using CMake, a support file is
 provided, and can be accessed as `notcurses`.
 
-Before calling into notcurses—and usually as one of the first calls of the
+Before calling into Notcurses—and usually as one of the first calls of the
 program—be sure to call `setlocale(3)` with an appropriate UTF-8 locale. It is
 usually appropriate to use `setlocale(LC_ALL, "")`, relying on the user to
-properly set the `LANG` environment variable. notcurses will refuse to start if
+properly set the `LANG` environment variable. Notcurses will refuse to start if
 `nl_langinfo(3)` doesn't indicate `ANSI_X3.4-1968` or `UTF-8`. In addition, it
 is wise to mask most signals early in the program, before any threads are
 spawned (this is particularly critical for `SIGWINCH`).
 
-notcurses requires an available `terminfo(5)` definition appropriate for the
+Notcurses requires an available `terminfo(5)` definition appropriate for the
 terminal. It is usually appropriate to pass `NULL` in the `termtype` field of a
 `notcurses_options` struct, relying on the user to properly set the `TERM`
 environment variable. This variable is usually set by the terminal itself. It
@@ -163,14 +163,14 @@ Each terminal can be prepared via a call to `notcurses_init()`, which is
 supplied a struct of type `notcurses_options`:
 
 ```c
-// Get a human-readable string describing the running notcurses version.
+// Get a human-readable string describing the running Notcurses version.
 const char* notcurses_version(void);
 
 struct cell;      // a coordinate on an ncplane: an EGC plus styling
-struct ncplane;   // a drawable notcurses surface, composed of cells
-struct notcurses; // notcurses state for a given terminal, composed of ncplanes
+struct ncplane;   // a drawable Notcurses surface, composed of cells
+struct notcurses; // Notcurses state for a given terminal, composed of ncplanes
 
-// These log levels consciously map cleanly to those of libav; notcurses itself
+// These log levels consciously map cleanly to those of libav; Notcurses itself
 // does not use this full granularity. The log level does not affect the opening
 // and closing banners, which can be disabled via the notcurses_option struct's
 // 'suppress_banner'. Note that if stderr is connected to the same terminal on
@@ -2650,17 +2650,19 @@ up someday **FIXME**.
 
 ### History
 
-* 2020-04-19: notcurses is [accepted into Debian](https://bugs.debian.org/950492).
-* 2020-04-12: notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
-* 2020-02-17: notcurses [1.2.0 "check the résumé, my record's impeccable"](https://github.com/dankamongmen/notcurses/releases/tag/v1.2.0).
-* 2019-01-19: notcurses [1.1.0 "all the hustlas they love it just to see one of us make it"](https://github.com/dankamongmen/notcurses/releases/tag/v1.1.0).
+* 2020-04-19: Notcurses is [accepted into Debian](https://bugs.debian.org/950492).
+* 2020-04-12: Notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
+* 2020-04-08: The Notcurses book [is published](https://amazon.com/dp/B086PNVNC9).
+* 2020-03-23: Notcurses is featured on [Linux World News](https://lwn.net/Articles/815811/).
+* 2020-02-17: Notcurses [1.2.0 "check the résumé, my record's impeccable"](https://github.com/dankamongmen/notcurses/releases/tag/v1.2.0).
+* 2019-01-19: Notcurses [1.1.0 "all the hustlas they love it just to see one of us make it"](https://github.com/dankamongmen/notcurses/releases/tag/v1.1.0).
     Much better video support, pulsing planes, palette256.
-* 2019-01-04: notcurses [1.0.0 "track team, crack fiend, dying to geek"](https://github.com/dankamongmen/notcurses/releases/tag/v1.0.0)
+* 2019-01-04: Notcurses [1.0.0 "track team, crack fiend, dying to geek"](https://github.com/dankamongmen/notcurses/releases/tag/v1.0.0)
     is released, six days ahead of schedule. 147 issues closed. 702 commits.
-* 2019-12-18: notcurses [0.9.0 "You dig in! You dig out! You get out!"](https://github.com/dankamongmen/notcurses/releases/tag/v0.9.0),
+* 2019-12-18: Notcurses [0.9.0 "You dig in! You dig out! You get out!"](https://github.com/dankamongmen/notcurses/releases/tag/v0.9.0),
     and also the first contributor besides myself (@grendello). Last major
     pre-GA release.
-* 2019-12-05: notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
+* 2019-12-05: Notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
     the first generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
     and release it on YouTube.
 * November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/ncreels).
@@ -2673,7 +2675,7 @@ up someday **FIXME**.
       I get into contact with Thomas E. Dickey and confirm that what I'm hoping
       to do doesn't really fit in with the codified Curses API.
     * 2019-11-16: I make the [first commit](https://github.com/dankamongmen/notcurses/commit/635d7039d79e4f94ba645e8cb601e3a6d82a6b30)
-      to notcurses.
+      to Notcurses.
 * September 2019: I extracted fade routines from Growlight and Omphalos, and
     offered them to NCURSES as extensions. They are not accepted, which is
     understandable. I mention that I intend to extract ncreels, and offer to
@@ -2690,7 +2692,8 @@ up someday **FIXME**.
     engineering history. He exemplifies documentation excellence and
     conservative, thoughtful stewardship. The free software community owes
     Mr. Dickey a great debt.
-* Robert Edmonds provided tremendous assistance Debianizing the package.
+* Robert Edmonds provided tremendous assistance Debianizing the package,
+    and David Cantrell did likewise for Fedora. Both are hella engineers.
 * Justine Tunney, one of my first friends at Google NYC, was always present
     with support, and pointed out the useful memstream functionality of
     POSIX, eliminating the need for me to cons up something similar.

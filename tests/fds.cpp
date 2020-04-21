@@ -64,7 +64,7 @@ TEST_CASE("FdsAndSubprocs") {
 
   // destroy the ncfdplane outside of its own context
   SUBCASE("FdPlaneDestroyOffline") {
-    REQUIRE(!outofline_cancelled);
+    outofline_cancelled = false;
     ncfdplane_options opts{};
     int fd = open("/etc/sysctl.conf", O_RDONLY|O_CLOEXEC);
     REQUIRE(0 <= fd);
@@ -82,7 +82,7 @@ TEST_CASE("FdsAndSubprocs") {
 
   // destroy the ncfdplane within its own context, i.e. from the eof callback
   SUBCASE("FdPlaneDestroyInline") {
-    REQUIRE(!inline_cancelled);
+    inline_cancelled = false;
     ncfdplane_options opts{};
     opts.curry = n_;
     int fd = open("/etc/sysctl.conf", O_RDONLY|O_CLOEXEC);
@@ -100,7 +100,7 @@ TEST_CASE("FdsAndSubprocs") {
 
   SUBCASE("SubprocDestroyOffline") {
     char * const argv[] = { strdup("/bin/cat"), strdup("/etc/sysctl.conf"), NULL, };
-    REQUIRE(!outofline_cancelled);
+    outofline_cancelled = false;
     ncsubproc_options opts{};
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
