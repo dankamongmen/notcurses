@@ -78,68 +78,6 @@ int ncfdplane_destroy(ncfdplane* n){
   return ret;
 }
 
-ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
-                             const char* bin,  char* const arg[],
-                             ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  if(!cbfxn || !donecbfxn){
-    return NULL;
-  }
-  int fd = -1;
-  ncsubproc* ret = malloc(sizeof(*ret));
-  if(ret){
-    // FIXME create ncfdplane with pipe
-    ret->pid = fork();
-    if(ret->pid == 0){
-      execv(bin, arg);
-      fprintf(stderr, "Error execv()ing %s\n", bin);
-      exit(EXIT_FAILURE);
-    }else if(ret->pid < 0){
-      free(ret);
-      return NULL;
-    }
-    if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
-      // FIXME kill process
-      free(ret);
-      return NULL;
-    }
-  }
-  return ret;
-}
-
-ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
-                              const char* bin,  char* const arg[],
-                              ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  if(!cbfxn || !donecbfxn){
-    return NULL;
-  }
-  int fd = -1;
-  ncsubproc* ret = malloc(sizeof(*ret));
-  if(ret == NULL){
-    return NULL;
-  }
-  int fds[2];
-  if(pipe2(fds, O_CLOEXEC)){
-    free(ret);
-    return NULL;
-  }
-  // FIXME move pipe to stdio fds
-  ret->pid = fork();
-  if(ret->pid == 0){
-    execvp(bin, arg);
-    fprintf(stderr, "Error execv()ing %s\n", bin);
-    exit(EXIT_FAILURE);
-  }else if(ret->pid < 0){
-    free(ret);
-    return NULL;
-  }
-  if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
-    // FIXME kill process
-    free(ret);
-    return NULL;
-  }
-  return ret;
-}
-
 static pid_t
 launch_pipe_process(int* pipe){
   int pipes[2];
@@ -157,6 +95,62 @@ launch_pipe_process(int* pipe){
   return p;
 }
 
+ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
+                             const char* bin,  char* const arg[],
+                             ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  if(!cbfxn || !donecbfxn){
+    return NULL;
+  }
+  int fd = -1;
+  ncsubproc* ret = malloc(sizeof(*ret));
+  if(ret == NULL){
+    return NULL;
+  }
+  ret->pid = launch_pipe_process(&fd);
+  if(ret->pid == 0){
+    execv(bin, arg);
+    fprintf(stderr, "Error execv()ing %s\n", bin);
+    exit(EXIT_FAILURE);
+  }else if(ret->pid < 0){
+    free(ret);
+    return NULL;
+  }
+  if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
+    // FIXME kill process
+    free(ret);
+    return NULL;
+  }
+  return ret;
+}
+
+ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
+                              const char* bin,  char* const arg[],
+                              ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  if(!cbfxn || !donecbfxn){
+    return NULL;
+  }
+  int fd = -1;
+  ncsubproc* ret = malloc(sizeof(*ret));
+  if(ret == NULL){
+    return NULL;
+  }
+  ret->pid = launch_pipe_process(&fd);
+  if(ret->pid == 0){
+    execvp(bin, arg);
+    fprintf(stderr, "Error execv()ing %s\n", bin);
+    exit(EXIT_FAILURE);
+  }else if(ret->pid < 0){
+    free(ret);
+    return NULL;
+  }
+  if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
+    // FIXME kill process
+    free(ret);
+    return NULL;
+  }
+  return ret;
+}
+
 ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
                        const char* bin,  char* const arg[], char* const env[],
                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
@@ -165,21 +159,22 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   }
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
-  if(ret){
-    ret->pid = launch_pipe_process(&fd);
-    if(ret->pid == 0){
-      execvpe(bin, arg, env);
-      fprintf(stderr, "Error execv()ing %s\n", bin);
-      exit(EXIT_FAILURE);
-    }else if(ret->pid < 0){
-      free(ret);
-      return NULL;
-    }
-    if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
-      // FIXME kill process
-      free(ret);
-      return NULL;
-    }
+  if(ret == NULL){
+    return NULL;
+  }
+  ret->pid = launch_pipe_process(&fd);
+  if(ret->pid == 0){
+    execvpe(bin, arg, env);
+    fprintf(stderr, "Error execv()ing %s\n", bin);
+    exit(EXIT_FAILURE);
+  }else if(ret->pid < 0){
+    free(ret);
+    return NULL;
+  }
+  if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
+    // FIXME kill process
+    free(ret);
+    return NULL;
   }
   return ret;
 }
