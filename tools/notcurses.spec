@@ -1,10 +1,10 @@
 Name:          notcurses
 Version:       1.3.2
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Character graphics and TUI library
 License:       ASL 2.0
 URL:           https://nick-black.com/dankwiki/index.php/Notcurses
-Source0:       https://github.com/dankamongmen/%{name}/archive/v%{version}.tar.gz
+Source0:       https://github.com/dankamongmen/notcurses/releases/download/v%{version}/notcurses_%{version}+dfsg.1.orig.tar.xz
 Source1:       https://github.com/dankamongmen/%{name}/releases/download/v%{version}/v%{version}.tar.gz.asc
 Source2:       https://dank.qemfd.net/dankamongmen.gpg
 
