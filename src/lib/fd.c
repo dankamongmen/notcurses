@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <asm/unistd.h>
 #include <pthread.h>
+#include <sys/poll.h>
 #include <sys/wait.h>
 #include <linux/sched.h>
 #include "internal.h"
@@ -94,20 +95,20 @@ int ncfdplane_destroy(ncfdplane* n){
 static pid_t
 launch_pipe_process(int* pipe, int* pidfd){
   int pipes[2];
-  if(pipe2(pipes, O_CLOEXEC)){
+  if(pipe2(pipes, O_CLOEXEC)){ // can't use O_NBLOCK here (affects client)
     return -1;
   }
   struct clone_args clargs = {
     .flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD,
     .pidfd = (uintptr_t)pidfd,
-    .child_tid = 0, // FIXME
-    .parent_tid = 0, // FIXME
+    .child_tid = 0,
+    .parent_tid = 0,
     .exit_signal = SIGCHLD,  // FIXME maybe switch it up for doctest?
-    .stack = 0,           // automatically created by clone3()
+    .stack = 0,              // automatically created by clone3()
     .stack_size = 0,         // automatically set by clone3()
-    .tls = 0, // FIXME
-    .set_tid = 0, // FIXME
-    .set_tid_size = 0, // FIXME
+    .tls = 0,
+    .set_tid = 0,
+    .set_tid_size = 0,
   };
   pid_t p = syscall(__NR_clone3, &clargs, sizeof(clargs));
   if(p == 0){
@@ -116,6 +117,14 @@ launch_pipe_process(int* pipe, int* pidfd){
     }
   }else{
     *pipe = pipes[0];
+    int flags = fcntl(*pipe, F_GETFL, 0);
+    if(flags < 0){
+      // FIXME
+    }
+    flags |= O_NONBLOCK;
+    if(fcntl(*pipe, F_SETFL, flags)){
+      // FIXME
+    }
   }
   return p;
 }
@@ -124,7 +133,7 @@ static int
 kill_and_wait_subproc(pid_t pid){
   kill(pid, SIGTERM);
   int status;
-  waitpid(pid, &status, 0); // FIXME rigorurize this up
+  waitpid(pid, &status, 0); // FIXME rigourize this up
   return 0;
 }
 
@@ -132,17 +141,32 @@ kill_and_wait_subproc(pid_t pid){
 static void *
 ncsubproc_thread(void* vncsp){
   ncsubproc* ncsp = vncsp;
+  struct pollfd pfds[2];
+  memset(pfds, 0, sizeof(pfds));
   char* buf = malloc(BUFSIZ);
-  ssize_t r;
-  while((r = read(ncsp->nfp->fd, buf, BUFSIZ)) >= 0){
-    if(r == 0){
-      break;
+  int pevents;
+  pfds[0].fd = ncsp->nfp->fd;
+  pfds[1].fd = ncsp->pidfd;
+  pfds[0].events = POLLIN;
+  pfds[1].events = POLLIN;
+  ssize_t r = 0;
+  while((pevents = poll(pfds, sizeof(pfds) / sizeof(*pfds), -1)) >= 0 || errno == EINTR){
+    if(pfds[0].revents & POLLIN){
+      while((r = read(ncsp->nfp->fd, buf, BUFSIZ)) >= 0){
+        if(r == 0){
+          break;
+        }
+        if( (r = ncsp->nfp->cb(ncsp->nfp, buf, r, ncsp->nfp->curry)) ){
+          break;
+        }
+      }
     }
-    if( (r = ncsp->nfp->cb(ncsp->nfp, buf, r, ncsp->nfp->curry)) ){
+    if(pfds[1].revents & POLLIN){
+      ncsp->nfp->donecb(ncsp->nfp, 0, ncsp->nfp->curry);
+      r = 0;
       break;
     }
   }
-  // FIXME need to continue reading on pipe/socket
   if(r <= 0){
     ncsp->nfp->donecb(ncsp->nfp, r == 0 ? 0 : errno, ncsp->nfp->curry);
   }

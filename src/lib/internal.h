@@ -189,7 +189,7 @@ typedef struct ncplot {
 
 typedef struct ncfdplane {
   ncfdplane_callback cb;      // invoked with fresh hot data
-  ncfdplane_done_cb  donecb;  // invoked on EOF (if !follow) or error
+  ncfdplane_done_cb donecb;   // invoked on EOF (if !follow) or error
   void* curry;                // passed to the callbacks
   int fd;                     // we take ownership of the fd, and close it
   bool follow;                // keep trying to read past the end (event-based)

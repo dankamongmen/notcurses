@@ -13,7 +13,6 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static int
 cb(struct ncfdplane* ncfd, const void* data, size_t len, void* curry){
   int ret = -1;
-fprintf(stderr, "[%zu] %*.*s", len, (int)len, (int)len, data);
   if(ncplane_putstr(ncfdplane_plane(ncfd), data) >= 0){
     if(!notcurses_render(ncplane_notcurses(ncfdplane_plane(ncfd)))){
       ret = 0;
@@ -26,7 +25,6 @@ fprintf(stderr, "[%zu] %*.*s", len, (int)len, (int)len, data);
 
 static int
 eofcb(struct ncfdplane* ncfd, int nerrno, void* curry){
-//fprintf(stderr, "EOF****************\n");
   (void)nerrno;
   (void)curry;
   pthread_mutex_lock(&lock);
@@ -56,10 +54,9 @@ int main(int argc, char** argv){
   while(!fddone){
     pthread_cond_wait(&cond, &lock);
   }
-  fddone = false;
+  ret = 0;
   pthread_mutex_unlock(&lock);
 
-done:
   if(notcurses_stop(nc) || ret){
     return EXIT_FAILURE;
   }
