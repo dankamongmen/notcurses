@@ -402,7 +402,7 @@ mbstr_find_codepoint(const char* s, char32_t cp, int* col){
     if(r == 0){
       break;
     }
-    if(towlower(cp) == (char32_t)towlower(w)){
+    if(towlower(cp) == towlower(w)){
       return bytes;
     }
     *col += wcwidth(w);
