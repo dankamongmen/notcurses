@@ -119,6 +119,7 @@ that fine library.
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+
 * (OPTIONAL) (rust bindings): rust 1.40.0+, cargo 0.40.0+, [bindgen](https://crates.io/crates/bindgen) 0.53.0+
+* (runtime) Linux 5.3+
 
 ### Building
 
