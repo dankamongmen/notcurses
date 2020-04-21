@@ -1,5 +1,4 @@
 #include "internal.h"
-#include <qrcodegen/qrcodegen.h>
 
 void ncplane_greyscale(ncplane *n){
   for(int y = 0 ; y < n->leny ; ++y){
@@ -591,6 +590,7 @@ int ncplane_rotate_ccw(ncplane* n){
 }
 
 #ifdef USE_QRCODEGEN
+#include <qrcodegen/qrcodegen.h>
 #define QR_BASE_SIZE 17
 #define PER_QR_VERSION 4
 
