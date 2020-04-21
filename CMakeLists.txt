@@ -14,10 +14,11 @@ include(GNUInstallDirs)
 ###################### USER-SELECTABLE OPTIONS ###########################
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
-option(USE_FFMPEG "Disable FFmpeg image/video support (recommended)" ON)
+option(USE_FFMPEG "Disable FFmpeg image/video support" ON)
 option(USE_NETWORK "Allow cargo to use the network" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_PYTHON "Build Python wrappers" ON)
+option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
 option(USE_RUST "Build Rust wrappers (experimental)" OFF)
 option(USE_TESTS "Build doctest unit tests" ON)
 ############## END (additional) USER-SELECTABLE OPTIONS ##################
@@ -67,7 +68,6 @@ target_include_directories(notcurses-static
 )
 target_link_libraries(notcurses
   PRIVATE
-    Threads::Threads
     "${TERMINFO_LIBRARIES}"
     "${LIBRT}"
   PUBLIC
@@ -88,6 +88,11 @@ target_link_directories(notcurses-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
 )
+
+if(${USE_QRCODEGEN})
+target_link_libraries(notcurses PRIVATE qrcodegen)
+target_link_libraries(notcurses-static PRIVATE qrcodegen)
+endif()
 
 if(${USE_FFMPEG})
 target_include_directories(notcurses

@@ -1,4 +1,5 @@
 #include "internal.h"
+#include <qrcodegen/qrcodegen.h>
 
 void ncplane_greyscale(ncplane *n){
   for(int y = 0 ; y < n->leny ; ++y){
@@ -588,3 +589,96 @@ int ncplane_rotate_ccw(ncplane* n){
   ret |= ncplane_destroy(newp);
   return ret;
 }
+
+#ifdef USE_QRCODEGEN
+#define QR_BASE_SIZE 17
+#define PER_QR_VERSION 4
+
+static inline int
+qrcode_rows(int version){
+  return QR_BASE_SIZE + (version * PER_QR_VERSION / 2);
+}
+
+static inline int
+qrcode_cols(int version){
+  return QR_BASE_SIZE + (version * PER_QR_VERSION);
+}
+
+int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
+  const int MAX_QR_VERSION = 40; // QR library only supports up to 40
+  if(maxversion < 0){
+    return -1;
+  }
+  if(len == 0){
+    return -1;
+  }
+  const int starty = n->y;
+  const int startx = n->x;
+  const int availx = n->lenx - startx;
+  const int availy = n->leny - starty;
+  if(availy < qrcode_rows(1)){
+    return -1;
+  }
+  if(availx < qrcode_cols(1)){
+    return -1;
+  }
+  const int availsquare = availy * 2 < availx ? availy * 2 : availx;
+  const int roomforver = (availsquare - QR_BASE_SIZE) / 4;
+  if(maxversion == 0){
+    maxversion = roomforver;
+  }else if(maxversion > roomforver){
+    maxversion = roomforver;
+  }
+  if(maxversion > MAX_QR_VERSION){
+    maxversion = MAX_QR_VERSION;
+  }
+  const size_t bsize = qrcodegen_BUFFER_LEN_FOR_VERSION(maxversion);
+  if(bsize < len){
+    return -1;
+  }
+  uint8_t* src = malloc(bsize);
+  uint8_t* dst = malloc(bsize);
+  if(src == NULL || dst == NULL){
+    free(src);
+    free(dst);
+    return -1;
+  }
+  memcpy(src, data, len);
+  int ret = -1;
+  if(qrcodegen_encodeBinary(src, len, dst, qrcodegen_Ecc_HIGH, 1, maxversion, qrcodegen_Mask_AUTO, true)){
+    ret = qrcodegen_getSize(dst);
+    for(int y = starty ; y < starty + (ret + 1) / 2 ; ++y){
+      for(int x = startx ; x < startx + ret ; ++x){
+        const bool top = qrcodegen_getModule(dst, x, y);
+        const bool bot = qrcodegen_getModule(dst, x, y + 1);
+        const char* egc;
+        if(top && bot){
+          egc = "█";
+        }else if(top){
+          egc = "▀";
+        }else if(bot){
+          egc = "▄";
+        }else{
+          egc = " ";
+        }
+        int sbytes;
+        if(ncplane_putegc_yx(n, y, x, egc, &sbytes) <= 0){
+          ret = -1;
+          break;
+        }
+      }
+    }
+  }
+  free(src);
+  free(dst);
+  return ret < 0 ? ret : (ret - QR_BASE_SIZE) / PER_QR_VERSION;
+}
+#else
+int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
+  (void)n;
+  (void)maxversion;
+  (void)data;
+  (void)len;
+  return -1;
+}
+#endif

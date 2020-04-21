@@ -20,14 +20,14 @@ static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
 // yes, these are in different orders in different configurations on purpose
-// (since some transition into the next)
+// (since some transition into the next). FIXME handle case sans libqrcodegen.
 #ifndef USE_FFMPEG
-static const char DEFAULT_DEMO[] = "itfhbrgnswju";
+static const char DEFAULT_DEMO[] = "itfhbrgnswjqu";
 #else
 #ifdef DFSG_BUILD
-static const char DEFAULT_DEMO[] = "ixtfhbrgnswuo";
+static const char DEFAULT_DEMO[] = "ixtfhbrgnswuqo";
 #else
-static const char DEFAULT_DEMO[] = "ixethnbcgrwuvlfsjo";
+static const char DEFAULT_DEMO[] = "ixethnbcgrwuvlfsjqo";
 #endif
 #endif
 
@@ -113,7 +113,7 @@ static struct {
   { "normal", normal_demo, },
   FREEFFMPEG("outro", outro),
   { NULL, NULL, },
-  { NULL, NULL, },
+  { "qrcode", qrcode_demo, }, // is blank without USE_QRCODEGEN
   { "reel", reel_demo, },
   { "sliders", sliding_puzzle_demo, },
   { "trans", trans_demo, },

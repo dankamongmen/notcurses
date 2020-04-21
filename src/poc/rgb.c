@@ -22,19 +22,27 @@ int main(void){
   r = 0;
   g = 0x80;
   b = 0;
+  ncplane_set_bg_rgb(n, 0x40, 0x20, 0x40);
   for(y = 0 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
-      ncplane_set_fg_rgb(n, r, g, b);
-      ncplane_putsimple(n, 'x');
+      if(ncplane_set_fg_rgb(n, r, g, b)){
+        goto err;
+      }
+      if(ncplane_cursor_move_yx(n, y, x)){
+        goto err;
+      }
+      if(ncplane_putsimple(n, 'x') <= 0){
+        goto err;
+      }
       if(g % 2){
-        if(b-- == 0){
+        if(--b <= 0){
           ++g;
           b = 0;
         }
       }else{
-        if(b++ >= 256){
+        if(++b >= 256){
           ++g;
-          b = 256;
+          b = 255;
         }
       }
     }
@@ -45,4 +53,8 @@ int main(void){
   }
   notcurses_stop(nc);
   return EXIT_SUCCESS;
+
+err:
+  notcurses_stop(nc);
+  return EXIT_FAILURE;
 }

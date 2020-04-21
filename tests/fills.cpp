@@ -436,6 +436,14 @@ TEST_CASE("Fills") {
     ncplane_destroy(p2);
   }
 
+#ifdef USE_QRCODEGEN
+  SUBCASE("QRCodes") {
+    const char* qr = "a very simple qr code";
+    CHECK(0 < ncplane_qrcode(n_, 0, qr, strlen(qr)));
+    CHECK(0 == notcurses_render(nc_));
+  }
+#endif
+
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));
 

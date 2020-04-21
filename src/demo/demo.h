@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include <limits.h>
 #include <stdatomic.h>
-#include <version.h>
 #include <notcurses/notcurses.h>
+#include <version.h>
 #ifdef USE_FFMPEG
 #include <libavutil/pixdesc.h>
 #include <libavutil/avconfig.h>
@@ -37,6 +37,7 @@ int witherworm_demo(struct notcurses* nc);
 int box_demo(struct notcurses* nc);
 int trans_demo(struct notcurses* nc);
 int chunli_demo(struct notcurses* nc);
+int qrcode_demo(struct notcurses* nc);
 int grid_demo(struct notcurses* nc);
 int fallin_demo(struct notcurses* nc);
 int highcontrast_demo(struct notcurses* nc);

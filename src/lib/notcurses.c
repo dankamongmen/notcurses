@@ -1210,6 +1210,22 @@ cell_obliterate(ncplane* n, cell* c){
   cell_init(c);
 }
 
+// increment y by 1 and rotate the framebuffer up one line. x moves to 0.
+static inline void
+scroll_down(ncplane* n){
+  n->x = 0;
+  if(n->y == n->leny - 1){
+    n->logrow = (n->logrow + 1) % n->leny;
+    cell* row = n->fb + nfbcellidx(n, n->y, 0);
+    for(int clearx = 0 ; clearx < n->lenx ; ++clearx){
+      cell_release(n, &row[clearx]);
+    }
+    memset(row, 0, sizeof(*row) * n->lenx);
+  }else{
+    ++n->y;
+  }
+}
+
 int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   // if scrolling is enabled, check *before ncplane_cursor_move_yx()* whether
   // we're past the end of the line, and move to the next line if so.
@@ -1218,20 +1234,16 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     if(!n->scrolling){
       return -1;
     }
-    n->x = 0;
-    if(n->y == n->leny - 1){
-      n->logrow = (n->logrow + 1) % n->leny;
-      cell* row = n->fb + nfbcellidx(n, n->y, 0);
-      for(int clearx = 0 ; clearx < n->lenx ; ++clearx){
-        cell_release(n, &row[clearx]);
-      }
-      memset(row, 0, sizeof(*row) * n->lenx);
-    }else{
-      ++n->y;
-    }
+    scroll_down(n);
   }
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
+  }
+  if(c->gcluster == '\n'){
+    if(n->scrolling){
+      scroll_down(n);
+      return 0;
+    }
   }
   // A wide character obliterates anything to its immediate right (and marks
   // that cell as wide). Any character placed atop one half of a wide character
@@ -1842,6 +1854,10 @@ void ncplane_translate(const ncplane* src, const ncplane* dst,
   if(x){
     *x = src->absx - dst->absx + *x;
   }
+}
+
+notcurses* ncplane_notcurses(ncplane* n){
+  return n->nc;
 }
 
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){

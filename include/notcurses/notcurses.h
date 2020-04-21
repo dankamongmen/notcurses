@@ -27,10 +27,15 @@ extern "C" {
 // Get a human-readable string describing the running notcurses version.
 API const char* notcurses_version(void);
 
-struct cell;      // a coordinate on an ncplane: an EGC plus styling
-struct ncplane;   // a drawable notcurses surface, composed of cells
-struct ncvisual;  // a visual bit of multimedia opened with LibAV
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
+struct ncplane;   // a drawable notcurses surface, composed of cells
+struct cell;      // a coordinate on an ncplane: an EGC plus styling
+struct ncvisual;  // a visual bit of multimedia opened with LibAV
+struct ncplot;    // a histogram, bound to a plane
+struct ncfdplane; // i/o wrapper to dump file descriptor to plane
+struct ncsubproc; // ncfdplane wrapper with subprocess management
+struct ncselector;// widget supporting selecting 1 from a list of options
+struct ncmultiselector; // widget supporting selecting 0..n from n options
 
 // Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
@@ -877,6 +882,8 @@ API int notcurses_mouse_disable(struct notcurses* n);
 // primarily useful if the screen is externally corrupted, or if an
 // NCKEY_RESIZE event has been read and you're not ready to render.
 API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
+
+API struct notcurses* ncplane_notcurses(struct ncplane* n);
 
 // Return the dimensions of this ncplane.
 API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
@@ -2398,8 +2405,6 @@ typedef struct selector_options {
   uint64_t bgchannels;   // background channels, used only in body
 } selector_options;
 
-struct ncselector;
-
 API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
                                          const selector_options* opts);
 
@@ -2473,8 +2478,6 @@ typedef struct multiselector_options {
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
 } multiselector_options;
-
-struct ncmultiselector;
 
 API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
                                                    const multiselector_options* opts);
@@ -2648,6 +2651,53 @@ API int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);
 API int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
 
 API void ncplot_destroy(struct ncplot* n);
+
+typedef int(*ncfdplane_callback)(struct ncfdplane* n, const void* buf, size_t s, void* curry);
+typedef int(*ncfdplane_done_cb)(struct ncfdplane* n, int fderrno, void* curry);
+
+// read from an fd until EOF (or beyond, if follow is set), invoking the user's
+// callback each time. runs in its own context. on EOF or error, the finalizer
+// callback will be invoked, and the user ought destroy the ncfdplane. the
+// data is *not* guaranteed to be nul-terminated, and may contain arbitrary
+// zeroes.
+typedef struct ncfdplane_options {
+  void* curry; // parameter provided to callbacks
+  bool follow; // keep reading after hitting end? (think tail -f)
+} ncfdplane_options;
+
+// Create an ncfdplane around the fd 'fd'. Consider this function to take
+// ownership of the file descriptor, which will be closed in ncfdplane_destroy().
+API struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* opts,
+                          int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+API struct ncplane* ncfdplane_plane(struct ncfdplane* n);
+API int ncfdplane_destroy(struct ncfdplane* n);
+
+typedef struct ncsubproc_options {
+  ncfdplane_options popts;
+  uint64_t restart_period;  // restart this many seconds after an exit (watch)
+} ncsubproc_options;
+
+// see exec(2). p-types use $PATH. e-type passes environment vars.
+API struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
+                                        const char* bin,  char* const arg[],
+                                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+API struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
+                                         const char* bin,  char* const arg[],
+                                         ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
+                       const char* bin,  char* const arg[], char* const env[],
+                       ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+
+API int ncsubproc_destroy(struct ncsubproc* n);
+
+// Draw a QR code at the current position on the plane. If there is insufficient
+// room to draw the code here, or there is any other error, non-zero will be
+// returned. Otherwise, the QR code "version" (size) is returned. The QR code
+// is (version * 4 + 17) columns wide, and ⌈version * 4 + 17 / 2⌉ rows tall. If
+// maxversion is not zero, it plays a hard limit on the QR code size. Though the
+// max version of current QR codes is 40, greater values are allowed, for
+// future compatability (provide 0 for no artificail bound).
+API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size_t len);
 
 #undef API
 
