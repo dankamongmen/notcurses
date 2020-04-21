@@ -37,27 +37,37 @@ ncfdplane_thread(void* vncfp){
   return NULL;
 }
 
-ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
-                            ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  if(fd < 0 || !cbfxn || !donecbfxn){
-    return NULL;
-  }
+static ncfdplane*
+ncfdplane_create_internal(ncplane* n, const ncfdplane_options* opts, int fd,
+                          ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn,
+                          bool thread){
   ncfdplane* ret = malloc(sizeof(*ret));
-  if(ret){
-    ret->cb = cbfxn;
-    ret->donecb = donecbfxn;
-    ret->follow = opts->follow;
-    ret->ncp = n;
-    ret->destroyed = false;
-    ncplane_set_scrolling(ret->ncp, true);
-    ret->fd = fd;
-    ret->curry = opts->curry;
+  if(ret == NULL){
+    return ret;
+  }
+  ret->cb = cbfxn;
+  ret->donecb = donecbfxn;
+  ret->follow = opts->follow;
+  ret->ncp = n;
+  ret->destroyed = false;
+  ncplane_set_scrolling(ret->ncp, true);
+  ret->fd = fd;
+  ret->curry = opts->curry;
+  if(thread){
     if(pthread_create(&ret->tid, NULL, ncfdplane_thread, ret)){
       free(ret);
       return NULL;
     }
   }
   return ret;
+}
+
+ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
+                            ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  if(fd < 0 || !cbfxn || !donecbfxn){
+    return NULL;
+  }
+  return ncfdplane_create_internal(n, opts, fd, cbfxn, donecbfxn, true);
 }
 
 ncplane* ncfdplane_plane(ncfdplane* n){
@@ -124,7 +134,7 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
     free(ret);
     return NULL;
   }
-  if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
+  if((ret->nfp = ncfdplane_create_internal(n, &opts->popts, fd, cbfxn, donecbfxn, false)) == NULL){
     kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
@@ -152,7 +162,7 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
     free(ret);
     return NULL;
   }
-  if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
+  if((ret->nfp = ncfdplane_create_internal(n, &opts->popts, fd, cbfxn, donecbfxn, false)) == NULL){
     kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
@@ -173,14 +183,18 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   }
   ret->pid = launch_pipe_process(&fd);
   if(ret->pid == 0){
+#ifdef __FreeBSD__
+    exect(bin, arg, env);
+#else
     execvpe(bin, arg, env);
+#endif
     fprintf(stderr, "Error execv()ing %s\n", bin);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
     return NULL;
   }
-  if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
+  if((ret->nfp = ncfdplane_create_internal(n, &opts->popts, fd, cbfxn, donecbfxn, false)) == NULL){
     kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
