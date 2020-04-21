@@ -8,10 +8,23 @@ pub fn getc_blocking(_n: *mut ffi::notcurses, _ni: &mut ffi::ncinput) -> u32 {
     }
 }
 
-pub fn ncplane_putstr(_n: *mut ffi::ncplane, _str: &str) -> i32 {
-    unsafe {
-        return ffi::ncplane_putstr_yx(_n, -1, -1, std::ffi::CString::new(_str).expect("Bad string").as_ptr());
+pub fn ncplane_putstr_yx(_n: *mut ffi::ncplane, mut _y: i32, mut _x: i32, _str: &str) -> usize {
+    let mut ret = 0;
+    while ret < _str.len() {
+        let mut wcs = 0;
+        unsafe {
+            let col = ffi::ncplane_putegc_yx(_n, -1, -1,  std::ffi::CString::new(_str).expect("Bad string").as_ptr(), &mut wcs);
+            if col < 0 {
+                return ret; // FIXME return error result
+            }
+            ret += col as usize;
+        }
     }
+    return ret;
+}
+
+pub fn ncplane_putstr(_n: *mut ffi::ncplane, _str: &str) -> usize {
+    return ncplane_putstr_yx(_n, -1, -1, _str);
 }
 
 pub fn ncplane_dim_y(_n: *const ffi::ncplane) -> i32 {
