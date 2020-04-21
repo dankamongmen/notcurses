@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/wait.h>
 #include "internal.h"
 
 // release the memory and fd, but don't join the thread (since we might be
@@ -95,6 +96,14 @@ launch_pipe_process(int* pipe){
   return p;
 }
 
+static int
+kill_and_wait_subproc(pid_t pid){
+  kill(pid, SIGTERM);
+  int status;
+  waitpid(pid, &status, 0); // FIXME rigorurize this up
+  return 0;
+}
+
 ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
                              const char* bin,  char* const arg[],
                              ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
@@ -116,7 +125,7 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
-    // FIXME kill process
+    kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
   }
@@ -144,7 +153,7 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
-    // FIXME kill process
+    kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
   }
@@ -172,7 +181,7 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if((ret->nfp = ncfdplane_create(n, &opts->popts, fd, cbfxn, donecbfxn)) == NULL){
-    // FIXME kill process
+    kill_and_wait_subproc(ret->pid);
     free(ret);
     return NULL;
   }
