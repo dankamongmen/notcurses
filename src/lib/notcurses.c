@@ -745,6 +745,9 @@ ffmpeg_log_level(ncloglevel_e level){
 }
 
 ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
+  if(outfp == NULL){
+    outfp = stdout;
+  }
   ncdirect* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
@@ -808,6 +811,9 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
 }
 
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
+  if(outfp == NULL){
+    outfp = stdout;
+  }
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
   if(!opts){
