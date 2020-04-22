@@ -66,7 +66,7 @@ TEST_CASE("FdsAndSubprocs") {
   SUBCASE("FdPlaneDestroyOffline") {
     outofline_cancelled = false;
     ncfdplane_options opts{};
-    int fd = open("/etc/sysctl.conf", O_RDONLY|O_CLOEXEC);
+    int fd = open("/dev/null", O_RDONLY|O_CLOEXEC);
     REQUIRE(0 <= fd);
     auto ncfdp = ncfdplane_create(n_, &opts, fd, testfdcb, testfdeof);
     REQUIRE(ncfdp);
@@ -85,7 +85,7 @@ TEST_CASE("FdsAndSubprocs") {
     inline_cancelled = false;
     ncfdplane_options opts{};
     opts.curry = n_;
-    int fd = open("/etc/sysctl.conf", O_RDONLY|O_CLOEXEC);
+    int fd = open("/dev/null", O_RDONLY|O_CLOEXEC);
     REQUIRE(0 <= fd);
     auto ncfdp = ncfdplane_create(n_, &opts, fd, testfdcb, testfdeofdestroys);
     REQUIRE(ncfdp);
@@ -100,7 +100,39 @@ TEST_CASE("FdsAndSubprocs") {
 
   // FIXME SIGCHLD seems to blow up doctest...
   SUBCASE("SubprocDestroyOffline") {
-    char * const argv[] = { strdup("/bin/cat"), strdup("/etc/sysctl.conf"), NULL, };
+    char * const argv[] = { strdup("/bin/cat"), strdup("/dev/null"), NULL, };
+    outofline_cancelled = false;
+    ncsubproc_options opts{};
+    auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
+    REQUIRE(ncsubp);
+    std::unique_lock<std::mutex> lck(lock);
+    CHECK(0 == notcurses_render(nc_));
+    while(!outofline_cancelled){
+      cond.wait(lck);
+    }
+    CHECK(0 == ncsubproc_destroy(ncsubp));
+    CHECK(0 == notcurses_render(nc_));
+    lock.unlock();
+  }
+
+  SUBCASE("SubprocDestroyCmdExecFails") {
+    char * const argv[] = { strdup("/dev/nope"), NULL, };
+    outofline_cancelled = false;
+    ncsubproc_options opts{};
+    auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
+    REQUIRE(ncsubp);
+    std::unique_lock<std::mutex> lck(lock);
+    CHECK(0 == notcurses_render(nc_));
+    while(!outofline_cancelled){
+      cond.wait(lck);
+    }
+    CHECK(0 == ncsubproc_destroy(ncsubp));
+    CHECK(0 == notcurses_render(nc_));
+    lock.unlock();
+  }
+
+  SUBCASE("SubprocDestroyCmdFailed") {
+    char * const argv[] = { strdup("/bin/cat"), strdup("/dev/nope"), NULL, };
     outofline_cancelled = false;
     ncsubproc_options opts{};
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
