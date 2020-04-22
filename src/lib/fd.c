@@ -92,24 +92,22 @@ int ncfdplane_destroy(ncfdplane* n){
   return ret;
 }
 
+// FIXME introduced in linux 5.5
+#ifndef CLONE_CLEAR_SIGHAND
+#define CLONE_CLEAR_SIGHAND 0x100000000ULL
+#endif
+
 static pid_t
 launch_pipe_process(int* pipe, int* pidfd){
   int pipes[2];
   if(pipe2(pipes, O_CLOEXEC)){ // can't use O_NBLOCK here (affects client)
     return -1;
   }
-  struct clone_args clargs = {
-    .flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD,
-    .pidfd = (uintptr_t)pidfd,
-    .child_tid = 0,
-    .parent_tid = 0,
-    .exit_signal = SIGCHLD,  // FIXME maybe switch it up for doctest?
-    .stack = 0,              // automatically created by clone3()
-    .stack_size = 0,         // automatically set by clone3()
-    .tls = 0,
-    .set_tid = 0,
-    .set_tid_size = 0,
-  };
+  struct clone_args clargs;
+  memset(&clargs, 0, sizeof(clargs));
+  clargs.pidfd = (uintptr_t)pidfd;
+  clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
+  clargs.exit_signal = SIGCHLD;  // FIXME maybe switch it up for doctest?
   pid_t p = syscall(__NR_clone3, &clargs, sizeof(clargs));
   if(p == 0){
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
