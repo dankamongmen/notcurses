@@ -227,7 +227,7 @@ class ncppplot {
    }
    return 0;
  }
- 
+
  // if x is less than the window, return -1, as the sample will be thrown away.
  // if the x is within the current window, find the proper slot and update it.
  // otherwise, the x is the newest sample. if it is obsoletes all existing slots,
