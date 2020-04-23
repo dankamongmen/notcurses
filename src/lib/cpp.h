@@ -1,4 +1,5 @@
 #include "notcurses/notcurses.h"
+#include <limits>
 
 static const struct {
   ncgridgeom_e geom;
@@ -25,15 +26,15 @@ class ncppplot {
  public:
 
  // these were all originally plain C, sorry for the non-idiomatic usage FIXME
- static ncppplot<T>* create(ncplane* n, const ncplot_options* opts){
+ static ncppplot<T>* create(ncplane* n, const ncplot_options* opts, T miny, T maxy){
    // if miny == maxy, they both must be equal to 0
-   if(opts->miny == opts->maxy && opts->miny){
+   if(miny == maxy && miny){
      return NULL;
    }
    if(opts->rangex < 0){
      return NULL;
    }
-   if(opts->maxy < opts->miny){
+   if(maxy < miny){
      return NULL;
    }
    if(opts->gridtype < 0 || opts->gridtype >= sizeof(geomdata) / sizeof(*geomdata)){
@@ -72,14 +73,14 @@ class ncppplot {
        ret->ncp = n;
        ret->maxchannel = opts->maxchannel;
        ret->minchannel = opts->minchannel;
-       ret->miny = opts->miny;
-       ret->maxy = opts->maxy;
+       ret->miny = miny;
+       ret->maxy = maxy;
        ret->vertical_indep = opts->vertical_indep;
        ret->gridtype = opts->gridtype;
-       ret->exponentialy = opts->exponentialy;
-       if( (ret->detectdomain = (opts->miny == opts->maxy)) ){
+       ret->exponentially = opts->exponentially;
+       if( (ret->detectdomain = (miny == maxy)) ){
          ret->maxy = 0;
-         ret->miny = ~(uint64_t)0ull; // FIXME
+         ret->miny = std::numeric_limits<T>::max();
        }
        ret->slotstart = 0;
        ret->slotx = 0;
@@ -301,7 +302,7 @@ class ncppplot {
  int slotstart; // index of most recently-written slot
  int64_t slotx; // x value corresponding to slots[slotstart] (newest x)
  bool labelaxisd; // label dependent axis (consumes PREFIXSTRLEN columns)
- bool exponentialy; // not yet implemented FIXME
+ bool exponentially; // not yet implemented FIXME
  bool detectdomain; // is domain detection in effect (stretch the domain)?
 
 };

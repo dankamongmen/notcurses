@@ -12,11 +12,13 @@ notcurses_plot - high level widget for plotting
 
 ```c
 typedef enum {
-  NCPLOT_1x1, // full block               █
-  NCPLOT_2x1, // full/lower blocks       █▄
-  NCPLOT_1x1x4, // shaded full blocks  █▓▒░
-  NCPLOT_4x1, // four vert levels      █▆▄▂
-  NCPLOT_8x1, // eight vert levels █▇▆▅▄▃▂▁
+  NCPLOT_1x1,   // full block                █
+  NCPLOT_2x1,   // full/(upper|left) blocks  ▄█
+  NCPLOT_1x1x4, // shaded full blocks        ▓▒░█
+  NCPLOT_2x2,   // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCPLOT_4x2,   // 4x2-way braille      ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCPLOT_8x1,   // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
 } ncgridgeom_e;
 
 typedef struct ncplot_options {
@@ -28,38 +30,74 @@ typedef struct ncplot_options {
   ncgridgeom_e gridtype;
   // independent variable is a contiguous range
   int rangex;
-  // dependent min and max. set both equal to 0 to
-  // use domain autodiscovery.
-  uint64_t miny, maxy;
   bool labelaxisd;     // label dependent axis
-  bool exponentialy;   // is dependent exponential?
+  bool exponentially;   // is dependent exponential?
   bool vertical_indep; // vertical independent variable
 } ncplot_options;
 ```
 
-**struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);**
+**struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy);**
+**struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts, double miny, double maxy);**
 
-**struct ncplane* ncplot_plane(struct ncplot* n);**
+**struct ncplane* ncuplot_plane(struct ncuplot* n);**
+**struct ncplane* ncdplot_plane(struct ncdplot* n);**
 
-**int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);**
-**int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);**
+**int ncuplot_add_sample(struct ncuplot* n, uint64_t x, uint64_t y);**
+**int ncdplot_add_sample(struct ncdplot* n, uint64_t x, double y);**
 
-**void ncplot_destroy(struct ncplot* n);**
+**int ncuplot_set_sample(struct ncuplot* n, uint64_t x, uint64_t y);**
+**int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y);**
+
+**void ncuplot_destroy(struct ncuplot* n);**
+**void ncdplot_destroy(struct ncdplot* n);**
 
 # DESCRIPTION
 
+These functions support histograms. The independent variable is always an
+**uint64_t**. The samples are either **uint64_t**s (**ncuplot**) or **double**s
+(**ncdplot**). Only a window over the samples is retained at any given time,
+and this window can only move towards larger values of the independent
+variable. The window is moved forward whenever an **x** larger than the current
+window's maximum is supplied to **add_sample** or **set_sample**.
+
+**add_sample** increments the current value corresponding to this **x** by
+**y**. **set_sample** replaces the current value corresponding to this **x**.
+
+If **rangex** is 0, or larger than the bound plane will support, it is capped
+to the available space. The domain can either be specified as **miny** and
+**maxy**, or domain autodetection can be invoked via setting both to 0. If the
+domain is specified, samples outside the domain are an error, and do not
+contribute to the plot. Supplying an **x** below the current window is an
+error, and has no effect.
+
+The different **ncgridgeom_e** values select from among available glyph sets:
+
+* **NCPLOT_1x1**: Full block (█) or empty glyph
+* **NCPLOT_2x1**: Adds the lower half block (▄) to **NCPLOT_1x1**.
+* **NCPLOT_1x1x4**: Adds three shaded full blocks (▓▒░) to **NCPLOT_1x1**.
+* **NCPLOT_2x2**: Adds left and right half blocks (▌▐) and quadrants (▖▗▟▙) to **NCPLOT_2x1**.
+* **NCPLOT_4x1**: Adds ¼ and ¾ blocks (▂▆) to **NCPLOT_2x1**.
+* **NCPLOT_4x2**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
+* **NCPLOT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCPLOT_4x1**.
+
+More granular block glyphs means more resolution in your plots, but they can
+be difficult to differentiate at small text sizes. Quadrants and braille allow 
+for more resolution on the independent variable. It can be difficult to predict
+how the braille glyphs will look in a given font.
+
+The same **ncplot_options** struct can be used with all ncplot types.
+
 # NOTES
 
-Neither **exponentialy** not **vertical_indep** is yet implemented.
+Neither **exponentially** not **vertical_indep** is yet implemented.
 
 # RETURN VALUES
 
-**ncplot_create** will return an error if **miny** equals **maxy**, but they
-are non-zero. It will also return an error if **maxy** < **miny**. An invalid
+**create** will return an error if **miny** equals **maxy**, but they are
+non-zero. It will also return an error if **maxy** < **miny**. An invalid
 **gridtype** will result in an error.
 
-**ncplot_plane** returns the **ncplane** on which the plot is drawn. It cannot
-fail.
+**plane** returns the **ncplane** on which the plot is drawn. It cannot fail.
 
 # SEE ALSO
 

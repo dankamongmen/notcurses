@@ -10,55 +10,46 @@ TEST_CASE("Plot") {
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  FILE* outfp_ = fopen("/dev/tty", "wb");
+  auto outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(outfp_);
-  struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
+  auto nc_ = notcurses_init(&nopts, outfp_);
   REQUIRE(nc_);
-  struct ncplane* n_ = notcurses_stdplane(nc_);
+  auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
   // setting miny == maxy with non-zero domain limits is invalid
   SUBCASE("DetectRangeBadY"){
     ncplot_options popts{};
-    popts.maxy = popts.miny = -1;
-    ncplot* p = ncplot_create(n_, &popts);
+    auto p = ncuplot_create(n_, &popts, -1, -1);
     CHECK(nullptr == p);
-    popts.miny = 1;
-    popts.maxy = 1;
-    p = ncplot_create(n_, &popts);
+    p = ncuplot_create(n_, &popts, 1, 1);
     CHECK(nullptr == p);
-    popts.miny = 0;
-    popts.maxy = 0;
-    p = ncplot_create(n_, &popts);
+    p = ncuplot_create(n_, &popts, 0, 0);
     REQUIRE(nullptr != p);
-    ncplot_destroy(p);
+    ncuplot_destroy(p);
   }
 
   // maxy < miny is invalid
   SUBCASE("RejectMaxyLessMiny"){
     ncplot_options popts{};
-    popts.miny = 2;
-    popts.maxy = 1;
-    ncplot* p = ncplot_create(n_, &popts);
+    auto p = ncuplot_create(n_, &popts, 2, 1);
     CHECK(nullptr == p);
   }
 
   SUBCASE("SimplePlot"){
     ncplot_options popts{};
-    ncplot* p = ncplot_create(n_, &popts);
+    auto p = ncuplot_create(n_, &popts, 0, 0);
     REQUIRE(p);
-    CHECK(n_ == ncplot_plane(p));
-    ncplot_destroy(p);
+    CHECK(n_ == ncuplot_plane(p));
+    ncuplot_destroy(p);
   }
 
   // 5-ary slot space without any window movement
   SUBCASE("AugmentSamples5"){
     ncplot_options popts{};
     popts.rangex = 5;
-    popts.maxy = 10;
-    popts.miny = 0;
-    ncppplot<uint64_t>* p = ncppplot<uint64_t>::create(n_, &popts);
+    auto p = ncppplot<uint64_t>::create(n_, &popts, 0, 10);
     REQUIRE(p);
     CHECK(0 == p->slots[0]);
     CHECK(0 == p->add_sample((uint64_t)0, (uint64_t)1));
@@ -84,9 +75,7 @@ TEST_CASE("Plot") {
   SUBCASE("AugmentCycle2"){
     ncplot_options popts{};
     popts.rangex = 2;
-    popts.maxy = 10;
-    popts.miny = 0;
-    ncppplot<uint64_t>* p = ncppplot<uint64_t>::create(n_, &popts);
+    auto p = ncppplot<uint64_t>::create(n_, &popts, 0, 10);
     REQUIRE(p);
     CHECK(0 == p->slots[0]);
     CHECK(0 == p->add_sample((uint64_t)0, (uint64_t)1));
@@ -113,9 +102,7 @@ TEST_CASE("Plot") {
   SUBCASE("AugmentLong"){
     ncplot_options popts{};
     popts.rangex = 5;
-    popts.maxy = 10;
-    popts.miny = 0;
-    ncppplot<uint64_t>* p = ncppplot<uint64_t>::create(n_, &popts);
+    auto p = ncppplot<uint64_t>::create(n_, &popts, 0, 10);
     REQUIRE(p);
     for(int x = 0 ; x < 5 ; ++x){
       CHECK(0 == p->slots[x]);
@@ -142,7 +129,15 @@ TEST_CASE("Plot") {
     p->destroy();
   }
 
-  //  FIXME need some rendering tests, one for each geometry
+  //  FIXME need some high-level rendering tests, one for each geometry
+
+  SUBCASE("SimpleFloatPlot"){
+    ncplot_options popts{};
+    auto p = ncdplot_create(n_, &popts, 0, 0);
+    REQUIRE(p);
+    CHECK(n_ == ncdplot_plane(p));
+    ncdplot_destroy(p);
+  }
 
   CHECK(0 == notcurses_stop(nc_));
   CHECK(0 == fclose(outfp_));

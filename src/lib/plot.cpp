@@ -1,15 +1,19 @@
 #include "cpp.h"
 
-typedef struct ncplot {
+typedef struct ncuplot {
   ncppplot<uint64_t>* n;
-} ncplot;
+} ncuplot;
+
+typedef struct ncdplot {
+  ncppplot<double>* n;
+} ncdplot;
 
 extern "C" {
 
-ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
-  auto ret = new ncplot;
+ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy){
+  auto ret = new ncuplot;
   if(ret){
-    if( (ret->n = ncppplot<uint64_t>::create(n, opts)) ){
+    if( (ret->n = ncppplot<uint64_t>::create(n, opts, miny, maxy)) ){
       return ret;
     }
     free(ret);
@@ -17,19 +21,49 @@ ncplot* ncplot_create(ncplane* n, const ncplot_options* opts){
   return nullptr;
 }
 
-ncplane* ncplot_plane(ncplot* n){
+ncplane* ncuplot_plane(ncuplot* n){
   return n->n->ncp;
 }
 
-int ncplot_add_sample(ncplot* n, uint64_t x, uint64_t y){
+int ncuplot_add_sample(ncuplot* n, uint64_t x, uint64_t y){
   return n->n->add_sample(x, y);
 }
 
-int ncplot_set_sample(ncplot* n, uint64_t x, uint64_t y){
+int ncuplot_set_sample(ncuplot* n, uint64_t x, uint64_t y){
   return n->n->set_sample(x, y);
 }
 
-void ncplot_destroy(ncplot* n){
+void ncuplot_destroy(ncuplot* n){
+  if(n){
+    n->n->destroy();
+    delete n;
+  }
+}
+
+ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, double maxy){
+  auto ret = new ncdplot;
+  if(ret){
+    if( (ret->n = ncppplot<double>::create(n, opts, miny, maxy)) ){
+      return ret;
+    }
+    free(ret);
+  }
+  return nullptr;
+}
+
+ncplane* ncdplot_plane(ncdplot* n){
+  return n->n->ncp;
+}
+
+int ncdplot_add_sample(ncdplot* n, uint64_t x, double y){
+  return n->n->add_sample(x, y);
+}
+
+int ncdplot_set_sample(ncdplot* n, uint64_t x, double y){
+  return n->n->set_sample(x, y);
+}
+
+void ncdplot_destroy(ncdplot* n){
   if(n){
     n->n->destroy();
     delete n;
