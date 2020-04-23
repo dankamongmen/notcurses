@@ -2,6 +2,11 @@
 #define notcurses_VERSION_MINOR "@notcurses_VERSION_MINOR@"
 #define notcurses_VERSION_PATCH "@notcurses_VERSION_PATCH@"
 #cmakedefine DFSG_BUILD
-#cmakedefine USE_FFMPEG
 #cmakedefine USE_QRCODEGEN
+// exclusive with USE_OIIO
+#cmakedefine USE_FFMPEG
+// exclusive with USE_FFMPEG
+#cmakedefine USE_OIIO
+// set if either USE_FFMPEG || USE_OIIO
+#cmakedefine USE_MULTIMEDIA
 #define NOTCURSES_SHARE "@CMAKE_INSTALL_FULL_DATADIR@/notcurses"
