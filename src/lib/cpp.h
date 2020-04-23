@@ -26,7 +26,7 @@ class ncppplot {
  public:
 
  // these were all originally plain C, sorry for the non-idiomatic usage FIXME
- static ncppplot<T>* create(ncplane* n, const ncplot_options* opts, T miny, T maxy){
+ static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy){
    // if miny == maxy, they both must be equal to 0
    if(miny == maxy && miny){
      return NULL;
@@ -46,50 +46,46 @@ class ncppplot {
      return NULL;
    }
    int dimx = sdimx;
-   ncppplot<T>* ret = static_cast<ncppplot<T>*>(malloc(sizeof(*ret)));
-   if(ret){
-     ret->rangex = opts->rangex;
-     // if we're sizing the plot based off the plane dimensions, scale it by the
-     // plot geometry's width for all calculations
-     const int scaleddim = dimx * geomdata[opts->gridtype].width;
-     const int scaledprefixlen = PREFIXSTRLEN * geomdata[opts->gridtype].width;
-     if((ret->slotcount = ret->rangex) == 0){
-       ret->slotcount = scaleddim;
-     }
-     if(dimx < ret->rangex){
-       ret->slotcount = scaleddim;
-     }
-     if( (ret->labelaxisd = opts->labelaxisd) ){
-       if(ret->slotcount + scaledprefixlen > scaleddim){
-         if(scaleddim > scaledprefixlen){
-           ret->slotcount = scaleddim - scaledprefixlen;
-         }
-       }
-     }
-     size_t slotsize = sizeof(*ret->slots) * ret->slotcount;
-     ret->slots = static_cast<T*>(malloc(slotsize));
-     if(ret->slots){
-       memset(ret->slots, 0, slotsize);
-       ret->ncp = n;
-       ret->maxchannel = opts->maxchannel;
-       ret->minchannel = opts->minchannel;
-       ret->miny = miny;
-       ret->maxy = maxy;
-       ret->vertical_indep = opts->vertical_indep;
-       ret->gridtype = opts->gridtype;
-       ret->exponentially = opts->exponentially;
-       if( (ret->detectdomain = (miny == maxy)) ){
-         ret->maxy = 0;
-         ret->miny = std::numeric_limits<T>::max();
-       }
-       ret->slotstart = 0;
-       ret->slotx = 0;
-       ret->redraw_plot();
-       return ret;
-     }
-     free(ret);
+   ncpp->rangex = opts->rangex;
+   // if we're sizing the plot based off the plane dimensions, scale it by the
+   // plot geometry's width for all calculations
+   const int scaleddim = dimx * geomdata[opts->gridtype].width;
+   const int scaledprefixlen = PREFIXSTRLEN * geomdata[opts->gridtype].width;
+   if((ncpp->slotcount = ncpp->rangex) == 0){
+     ncpp->slotcount = scaleddim;
    }
-   return NULL;
+   if(dimx < ncpp->rangex){
+     ncpp->slotcount = scaleddim;
+   }
+   if( (ncpp->labelaxisd = opts->labelaxisd) ){
+     if(ncpp->slotcount + scaledprefixlen > scaleddim){
+       if(scaleddim > scaledprefixlen){
+         ncpp->slotcount = scaleddim - scaledprefixlen;
+       }
+     }
+   }
+   size_t slotsize = sizeof(*ncpp->slots) * ncpp->slotcount;
+   ncpp->slots = static_cast<T*>(malloc(slotsize));
+   if(ncpp->slots){
+     memset(ncpp->slots, 0, slotsize);
+     ncpp->ncp = n;
+     ncpp->maxchannel = opts->maxchannel;
+     ncpp->minchannel = opts->minchannel;
+     ncpp->miny = miny;
+     ncpp->maxy = maxy;
+     ncpp->vertical_indep = opts->vertical_indep;
+     ncpp->gridtype = opts->gridtype;
+     ncpp->exponentially = opts->exponentially;
+     if( (ncpp->detectdomain = (miny == maxy)) ){
+       ncpp->maxy = 0;
+       ncpp->miny = std::numeric_limits<T>::max();
+     }
+     ncpp->slotstart = 0;
+     ncpp->slotx = 0;
+     ncpp->redraw_plot();
+     return true;
+   }
+   return false;
  }
 
  // Add to or set the value corresponding to this x. If x is beyond the current
@@ -120,7 +116,6 @@ class ncppplot {
  
  void destroy(){
    free(slots);
-   free(this);
  }
 
  // FIXME everything below here ought be private, but it busts unit tests
