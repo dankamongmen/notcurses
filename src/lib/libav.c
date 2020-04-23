@@ -553,8 +553,8 @@ int ncvisual_init(int loglevel){
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }
-#else
-// built without ffmpeg
+#else // built without ffmpeg
+#ifndef USE_OIIO // built without ffmpeg or oiio
 bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return false;
 }
@@ -612,5 +612,5 @@ int ncvisual_init(int loglevel){
   (void)loglevel;
   return 0; // allow success here
 }
-
+#endif
 #endif

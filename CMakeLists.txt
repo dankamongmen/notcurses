@@ -14,14 +14,23 @@ include(GNUInstallDirs)
 ###################### USER-SELECTABLE OPTIONS ###########################
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
-option(USE_FFMPEG "Disable FFmpeg image/video support" ON)
 option(USE_NETWORK "Allow cargo to use the network" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_PYTHON "Build Python wrappers" ON)
 option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
 option(USE_RUST "Build Rust wrappers (experimental)" OFF)
 option(USE_TESTS "Build doctest unit tests" ON)
+set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
+set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
+message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
 ############## END (additional) USER-SELECTABLE OPTIONS ##################
+set(USE_FFMPEG OFF)
+set(USE_OIIO OFF)
+if(${USE_MULTIMEDIA} STREQUAL "ffmpeg")
+  set(USE_FFMPEG ON)
+elseif(${USE_MULTIMEDIA} STREQUAL "oiio")
+  set(USE_OIIO ON)
+endif()
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
@@ -113,29 +122,33 @@ target_link_libraries(notcurses
   PRIVATE
     "${AVCODEC_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
-    "${AVUTIL_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
+  PUBLIC
+    "${AVUTIL_LIBRARIES}"
 )
 target_link_libraries(notcurses-static
   PRIVATE
     "${AVCODEC_STATIC_LIBRARIES}"
     "${AVFORMAT_STATIC_LIBRARIES}"
-    "${AVUTIL_STATIC_LIBRARIES}"
     "${SWSCALE_STATIC_LIBRARIES}"
+  PUBLIC
+    "${AVUTIL_STATIC_LIBRARIES}"
 )
 target_link_directories(notcurses
-  PUBLIC
+  PRIVATE
     "${AVCODEC_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
-    "${AVUTIL_LIBRARY_DIRS}"
     "${SWSCALE_LIBRARY_DIRS}"
+  PUBLIC
+    "${AVUTIL_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-static
-  PUBLIC
+  PRIVATE
     "${AVCODEC_STATIC_LIBRARY_DIRS}"
     "${AVFORMAT_STATIC_LIBRARY_DIRS}"
-    "${AVUTIL_STATIC_LIBRARY_DIRS}"
     "${SWSCALE_STATIC_LIBRARY_DIRS}"
+  PUBLIC
+    "${AVUTIL_STATIC_LIBRARY_DIRS}"
 )
 endif()
 
@@ -277,17 +290,17 @@ target_compile_definitions(notcurses++-static
 file(GLOB NOTCURSES_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
-  ${CMAKE_SOURCE_DIR}/include/notcurses/*.h)
+  ${PROJECT_SOURCE_DIR}/include/notcurses/*.h)
 
 file(GLOB NCPP_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
-  ${CMAKE_SOURCE_DIR}/include/ncpp/*.hh)
+  ${PROJECT_SOURCE_DIR}/include/ncpp/*.hh)
 
 file(GLOB NCPP_INTERNAL_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
-  ${CMAKE_SOURCE_DIR}/include/ncpp/internal/*.hh)
+  ${PROJECT_SOURCE_DIR}/include/ncpp/internal/*.hh)
 
 install(FILES ${NOTCURSES_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses)
 install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
@@ -388,11 +401,11 @@ if(USE_PANDOC)
     endforeach()
     foreach(m ${MANSOURCE3})
       get_filename_component(me ${m} NAME_WLE)
-      set(MANPAGES3 ${MANPAGES3} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+      LIST(APPEND MANPAGES3 ${CMAKE_CURRENT_BINARY_DIR}/${me})
     endforeach()
     foreach(m ${MANSOURCE1})
       get_filename_component(me ${m} NAME_WLE)
-      set(MANPAGES1 ${MANPAGES1} ${CMAKE_CURRENT_BINARY_DIR}/${me})
+      LIST(APPEND MANPAGES1 ${CMAKE_CURRENT_BINARY_DIR}/${me})
     endforeach()
   endif()
 endif()
