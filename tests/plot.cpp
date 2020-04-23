@@ -1,5 +1,5 @@
 #include "main.h"
-#include "internal.h"
+#include "cpp.h"
 #include <cstring>
 #include <iostream>
 
@@ -58,26 +58,26 @@ TEST_CASE("Plot") {
     popts.rangex = 5;
     popts.maxy = 10;
     popts.miny = 0;
-    ncplot* p = ncplot_create(n_, &popts);
+    ncppplot<uint64_t>* p = ncppplot<uint64_t>::create(n_, &popts);
     REQUIRE(p);
     CHECK(0 == p->slots[0]);
-    CHECK(0 == ncplot_add_sample(p, 0, 1));
+    CHECK(0 == p->add_sample((uint64_t)0, (uint64_t)1));
     CHECK(1 == p->slots[0]);
-    CHECK(0 == ncplot_add_sample(p, 0, 1));
+    CHECK(0 == p->add_sample((uint64_t)0, (uint64_t)1));
     CHECK(2 == p->slots[0]);
     CHECK(0 == p->slots[1]);
     CHECK(0 == p->slots[2]);
-    CHECK(0 == ncplot_add_sample(p, 2, 3));
+    CHECK(0 == p->add_sample((uint64_t)2, (uint64_t)3));
     CHECK(3 == p->slots[2]);
-    CHECK(0 == ncplot_set_sample(p, 2, 3));
+    CHECK(0 == p->set_sample((uint64_t)2, (uint64_t)3));
     CHECK(3 == p->slots[2]);
     CHECK(0 == p->slots[3]);
     CHECK(0 == p->slots[4]);
-    CHECK(0 == ncplot_add_sample(p, 4, 6));
+    CHECK(0 == p->add_sample((uint64_t)4, (uint64_t)6));
     CHECK(6 == p->slots[4]);
     CHECK(2 == p->slots[0]);
     CHECK(4 == p->slotx);
-    ncplot_destroy(p);
+    p->destroy();
   }
 
   // 2-ary slot space with window movement
@@ -86,27 +86,27 @@ TEST_CASE("Plot") {
     popts.rangex = 2;
     popts.maxy = 10;
     popts.miny = 0;
-    ncplot* p = ncplot_create(n_, &popts);
+    ncppplot<uint64_t>* p = ncppplot<uint64_t>::create(n_, &popts);
     REQUIRE(p);
     CHECK(0 == p->slots[0]);
-    CHECK(0 == ncplot_add_sample(p, 0, 1));
+    CHECK(0 == p->add_sample((uint64_t)0, (uint64_t)1));
     CHECK(1 == p->slots[0]);
-    CHECK(0 == ncplot_add_sample(p, 0, 1));
+    CHECK(0 == p->add_sample((uint64_t)0, (uint64_t)1));
     CHECK(2 == p->slots[0]);
-    CHECK(0 == ncplot_set_sample(p, 1, 5));
+    CHECK(0 == p->set_sample((uint64_t)1, (uint64_t)5));
     CHECK(5 == p->slots[1]);
-    CHECK(0 == ncplot_set_sample(p, 2, 9));
+    CHECK(0 == p->set_sample((uint64_t)2, (uint64_t)9));
     CHECK(5 == p->slots[1]);
     CHECK(9 == p->slots[0]);
-    CHECK(0 == ncplot_add_sample(p, 3, 4));
+    CHECK(0 == p->add_sample((uint64_t)3, (uint64_t)4));
     CHECK(9 == p->slots[0]);
     CHECK(4 == p->slots[1]);
     CHECK(3 == p->slotx);
-    CHECK(0 == ncplot_add_sample(p, 5, 1));
+    CHECK(0 == p->add_sample((uint64_t)5, (uint64_t)1));
     CHECK(1 == p->slots[0]);
     CHECK(0 == p->slots[1]);
     CHECK(5 == p->slotx);
-    ncplot_destroy(p);
+    p->destroy();
   }
 
   // augment past the window, ensuring everything gets zeroed
@@ -115,31 +115,31 @@ TEST_CASE("Plot") {
     popts.rangex = 5;
     popts.maxy = 10;
     popts.miny = 0;
-    ncplot* p = ncplot_create(n_, &popts);
+    ncppplot<uint64_t>* p = ncppplot<uint64_t>::create(n_, &popts);
     REQUIRE(p);
     for(int x = 0 ; x < 5 ; ++x){
       CHECK(0 == p->slots[x]);
     }
-    CHECK(0 == ncplot_add_sample(p, 4, 4));
+    CHECK(0 == p->add_sample((uint64_t)4, (uint64_t)4));
     for(int x = 0 ; x < 4 ; ++x){
       CHECK(0 == p->slots[x]);
     }
     CHECK(4 == p->slots[4]);
-    CHECK(0 == ncplot_add_sample(p, 10, 5));
+    CHECK(0 == p->add_sample((uint64_t)10, (uint64_t)5));
     CHECK(5 == p->slots[0]);
     for(int x = 1 ; x < 4 ; ++x){
       CHECK(0 == p->slots[x]);
     }
-    CHECK(0 == ncplot_add_sample(p, 24, 7));
+    CHECK(0 == p->add_sample((uint64_t)24, (uint64_t)7));
     CHECK(7 == p->slots[0]);
     for(int x = 1 ; x < 5 ; ++x){
       CHECK(0 == p->slots[x]);
     }
-    CHECK(0 == ncplot_add_sample(p, 100, 0));
+    CHECK(0 == p->add_sample((uint64_t)100, (uint64_t)0));
     for(int x = 0 ; x < 5 ; ++x){
       CHECK(0 == p->slots[x]);
     }
-    ncplot_destroy(p);
+    p->destroy();
   }
 
   //  FIXME need some rendering tests, one for each geometry

@@ -160,33 +160,6 @@ typedef struct ncmenu_int_section {
   int shortcut_offset;    // column offset within name of shortcut EGC
 } ncmenu_int_section;
 
-typedef struct ncplot {
-  ncplane* ncp;
-  uint64_t maxchannel;
-  uint64_t minchannel;
-  bool vertical_indep; // not yet implemented FIXME
-  ncgridgeom_e gridtype;
-  // requested number of slots. 0 for automatically setting the number of slots
-  // to span the horizontal area. if there are more slots than there are
-  // columns, we prefer showing more recent slots to less recent. if there are
-  // fewer slots than there are columns, they prefer the left side.
-  int rangex;
-  // domain minimum and maximum. if detectdomain is true, these are
-  // progressively enlarged/shrunk to fit the sample set. if not, samples
-  // outside these bounds are counted, but the displayed range covers only this.
-  uint64_t miny, maxy;
-  // sloutcount-element circular buffer of samples. the newest one (rightmost)
-  // is at slots[slotstart]; they get older as you go back (and around).
-  // elements. slotcount is max(columns, rangex), less label room.
-  uint64_t* slots;
-  int slotcount;
-  int slotstart; // index of most recently-written slot
-  int64_t slotx; // x value corresponding to slots[slotstart] (newest x)
-  bool labelaxisd; // label dependent axis (consumes PREFIXSTRLEN columns)
-  bool exponentialy; // not yet implemented FIXME
-  bool detectdomain; // is domain detection in effect (stretch the domain)?
-} ncplot;
-
 typedef struct ncfdplane {
   ncfdplane_callback cb;      // invoked with fresh hot data
   ncfdplane_done_cb donecb;   // invoked on EOF (if !follow) or error
