@@ -1,6 +1,10 @@
 #ifndef NOTCURSES_INTERNAL
 #define NOTCURSES_INTERNAL
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "version.h"
 
 #ifdef USE_FFMPEG
@@ -28,10 +32,6 @@
 #include <stdbool.h>
 #include "notcurses/notcurses.h"
 #include "egcpool.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct AVFormatContext;
 struct AVCodecContext;
