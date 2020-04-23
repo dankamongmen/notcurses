@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.3.3 (not yet released)
+  * The `ncdplot` type has been added for plots based on `double`s rather than
+    `uint64_t`s. The `ncplot` type and all `ncplot_*` functions were renamed
+    `ncuplot` for symmetry.
+
 * 1.3.2 (2020-04-19)
   * `ncdirect_cursor_push()`, `notcurses_cursor_pop()`, and
     `ncdirect_cursor_yx()` have been added. These are not supported on all

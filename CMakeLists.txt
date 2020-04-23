@@ -37,8 +37,8 @@ if(${USE_TESTS})
 find_package(doctest 2.3.5 REQUIRED)
 endif()
 
-# libnotcurses
-file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c)
+# libnotcurses (core shared library and static library)
+file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
 add_library(notcurses SHARED ${NCSRCS})
 add_library(notcurses-static STATIC ${NCSRCS})
 set_target_properties(
@@ -599,7 +599,7 @@ if(${USE_PYTHON})
       OUTPUT
         "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
       COMMAND
-        env LDFLAGS="-L${CMAKE_CURRENT_BINARY_DIR}" "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
+      env LDFLAGS="-Wl,-soname,_notcurses.so.1 -L${CMAKE_CURRENT_BINARY_DIR}" "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
         "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info
       DEPENDS
         ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses

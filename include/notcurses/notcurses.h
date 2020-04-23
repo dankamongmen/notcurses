@@ -31,7 +31,8 @@ struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 struct ncplane;   // a drawable notcurses surface, composed of cells
 struct cell;      // a coordinate on an ncplane: an EGC plus styling
 struct ncvisual;  // a visual bit of multimedia opened with LibAV
-struct ncplot;    // a histogram, bound to a plane
+struct ncuplot;   // a histogram, bound to a plane (uint64_ts)
+struct ncdplot;   // a histogram, bound to a plane (non-negative doubles)
 struct ncfdplane; // i/o wrapper to dump file descriptor to plane
 struct ncsubproc; // ncfdplane wrapper with subprocess management
 struct ncselector;// widget supporting selecting 1 from a list of options
@@ -2618,6 +2619,9 @@ typedef enum {
 //
 // The 20 levels at first is a special case. When the domain is only 1 unit,
 // and autoscaling is in play, assign 50%.
+//
+// This options structure works for both the ncuplot (uint64_t) and ncdplot
+// (double) types.
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear interpolation will be
   // applied across the domain between these two.
@@ -2629,28 +2633,35 @@ typedef struct ncplot_options {
   // resolution, the independent variable would be the range [0..3600): 3600.
   // if rangex is 0, it is dynamically set to the number of columns.
   int rangex;
-  uint64_t miny, maxy; // y axis min and max. for autodiscovery, set them equal.
   bool labelaxisd; // generate labels for the dependent axis
-  bool exponentialy;  // is y-axis exponential? (not yet implemented)
+  bool exponentially;  // is y-axis exponential? (not yet implemented)
   // independent variable is vertical rather than horizontal
   bool vertical_indep;
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.
 // The plot will make free use of the entirety of the plane.
-API struct ncplot* ncplot_create(struct ncplane* n, const ncplot_options* opts);
+// for domain autodiscovery, set miny == maxy == 0.
+API struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts,
+                                  uint64_t miny, uint64_t maxy);
+API struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts,
+                                   double miny, double maxy);
 
 // Return a reference to the ncplot's underlying ncplane.
-API struct ncplane* ncplot_plane(struct ncplot* n);
+API struct ncplane* ncuplot_plane(struct ncuplot* n);
+API struct ncplane* ncdplot_plane(struct ncdplot* n);
 
 // Add to or set the value corresponding to this x. If x is beyond the current
 // x window, the x window is advanced to include x, and values passing beyond
 // the window are lost. The first call will place the initial window. The plot
 // will be redrawn, but notcurses_render() is not called.
-API int ncplot_add_sample(struct ncplot* n, uint64_t x, uint64_t y);
-API int ncplot_set_sample(struct ncplot* n, uint64_t x, uint64_t y);
+API int ncuplot_add_sample(struct ncuplot* n, uint64_t x, uint64_t y);
+API int ncdplot_add_sample(struct ncdplot* n, uint64_t x, double y);
+API int ncuplot_set_sample(struct ncuplot* n, uint64_t x, uint64_t y);
+API int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y);
 
-API void ncplot_destroy(struct ncplot* n);
+API void ncuplot_destroy(struct ncuplot* n);
+API void ncdplot_destroy(struct ncdplot* n);
 
 typedef int(*ncfdplane_callback)(struct ncfdplane* n, const void* buf, size_t s, void* curry);
 typedef int(*ncfdplane_done_cb)(struct ncfdplane* n, int fderrno, void* curry);

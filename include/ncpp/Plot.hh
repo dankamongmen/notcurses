@@ -32,12 +32,13 @@ namespace ncpp
 			: Plot (const_cast<Plane*>(&plane), opts)
 		{}
 
-		explicit Plot (ncplane *plane, const ncplot_options *opts = nullptr)
+		explicit Plot (ncplane *plane, const ncplot_options *opts = nullptr,
+                   uint64_t miny = 0, uint64_t maxy = 0)
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			plot = ncplot_create (plane, opts == nullptr ? &default_options : opts);
+			plot = ncuplot_create (plane, opts == nullptr ? &default_options : opts, miny, maxy);
 			if (plot == nullptr)
 				throw init_error ("notcurses failed to create a new plot");
 		}
@@ -45,23 +46,23 @@ namespace ncpp
 		~Plot ()
 		{
 			if (!is_notcurses_stopped ())
-				ncplot_destroy (plot);
+				ncuplot_destroy (plot);
 		}
 
 		bool add_sample(uint64_t x, uint64_t y) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplot_add_sample (plot, x, y), -1);
+			return error_guard (ncuplot_add_sample (plot, x, y), -1);
 		}
 
 		bool set_sample(uint64_t x, uint64_t y) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplot_set_sample (plot, x, y), -1);
+			return error_guard (ncuplot_set_sample (plot, x, y), -1);
 		}
 
 		Plane* get_plane () const noexcept;
 
 	private:
-		ncplot *plot;
+		ncuplot *plot;
 	};
 }
 #endif
