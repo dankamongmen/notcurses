@@ -80,34 +80,6 @@ typedef struct ncplane {
   bool scrolling;       // is scrolling enabled? always disabled by default
 } ncplane;
 
-typedef struct ncvisual {
-  struct AVFormatContext* fmtctx;
-  struct AVCodecContext* codecctx;       // video codec context
-  struct AVCodecContext* subtcodecctx;   // subtitle codec context
-  struct AVFrame* frame;
-  struct AVFrame* oframe;
-  struct AVCodec* codec;
-  struct AVCodecParameters* cparams;
-  struct AVCodec* subtcodec;
-  struct AVPacket* packet;
-  struct SwsContext* swsctx;
-  int packet_outstanding;
-  int dstwidth, dstheight;
-  int stream_index;        // match against this following av_read_frame()
-  int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
-  float timescale;         // scale frame duration by this value
-  ncplane* ncp;
-  // if we're creating the plane based off the first frame's dimensions, these
-  // describe where the plane ought be placed, and how it ought be sized. this
-  // path sets ncobj. ncvisual_destroy() ought in that case kill the ncplane.
-  int placex, placey;
-  ncscale_e style;         // none, scale, or stretch
-  struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
-#ifdef USE_FFMPEG
-  AVSubtitle subtitle;
-#endif
-} ncvisual;
-
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
 typedef struct renderstate {
