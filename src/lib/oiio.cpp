@@ -4,13 +4,12 @@
 #include <OpenImageIO/imageio.h>
 #include "internal.h"
 
-extern "C" {
-
 typedef struct ncvisual {
   int packet_outstanding;
   int dstwidth, dstheight;
   float timescale;         // scale frame duration by this value
   std::unique_ptr<OIIO::ImageInput> image;  // must be close()d
+  std::unique_ptr<uint32_t[]> frame;
   ncplane* ncp;
   // if we're creating the plane based off the first frame's dimensions, these
   // describe where the plane ought be placed, and how it ought be sized. this
@@ -19,6 +18,8 @@ typedef struct ncvisual {
   ncscale_e style;         // none, scale, or stretch
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
 } ncvisual;
+
+extern "C" {
 
 bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return true;
@@ -38,6 +39,7 @@ ncvisual_create(float timescale){
   ret->placex = ret->placey = 0;
   ret->style = NCSCALE_NONE;
   ret->ncobj = nullptr;
+  ret->frame = nullptr;
   return ret;
 }
 
@@ -85,8 +87,13 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
 }
 
 nc_err_e ncvisual_decode(ncvisual* nc){
-  (void)nc; // FIXME
-  return NCERR_DECODE;
+  const auto &spec = nc->image->spec();
+  auto pixels = spec.width * spec.height;
+  nc->frame = std::make_unique<uint32_t[]>(pixels);
+  if(!nc->image->read_image(OIIO::TypeDesc::UINT32, nc->frame.get())){
+    return NCERR_DECODE;
+  }
+  return NCERR_SUCCESS;
 }
 
 int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
@@ -122,7 +129,7 @@ int ncvisual_init(int loglevel){
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
     ncv->image->close();
-    free(ncv);
+    delete ncv;
   }
 }
 
