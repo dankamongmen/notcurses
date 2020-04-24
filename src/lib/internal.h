@@ -18,6 +18,10 @@ extern "C" {
 #include <libswscale/version.h>
 #include <libavformat/version.h>
 #include <libavformat/avformat.h>
+#else
+#ifdef USE_OIIO
+const char* oiio_version(void);
+#endif
 #endif
 
 #include <term.h>

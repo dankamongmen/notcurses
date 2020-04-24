@@ -1,5 +1,6 @@
 #include "version.h"
 #ifdef USE_OIIO
+#include <OpenImageIO/version.h>
 #include <OpenImageIO/imageio.h>
 #include "internal.h"
 
@@ -123,6 +124,10 @@ void ncvisual_destroy(ncvisual* ncv){
     ncv->image->close();
     free(ncv);
   }
+}
+
+const char* oiio_version(void){
+  return OIIO_VERSION_STRING;
 }
 
 } // extern "C"
