@@ -12,6 +12,7 @@ BuildRequires: gnupg2
 BuildRequires: cmake
 BuildRequires: gcc-c++
 BuildRequires: libqrcodegen-devel
+BuildRequires: OpenEXR-devel
 BuildRequires: OpenImageIO-devel
 BuildRequires: pandoc
 BuildRequires: python3-devel
