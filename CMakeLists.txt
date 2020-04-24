@@ -40,6 +40,8 @@ pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
+elseif(${USE_OIIO})
+pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.0.7)
 endif()
 find_library(LIBRT rt)
 if(${USE_TESTS})
@@ -150,6 +152,13 @@ target_link_directories(notcurses-static
   PUBLIC
     "${AVUTIL_STATIC_LIBRARY_DIRS}"
 )
+elseif(${USE_OIIO})
+target_include_directories(notcurses PUBLIC "${OIIO_INCLUDE_DIRS}")
+target_include_directories(notcurses-static PUBLIC "${OIIO_STATIC_INCLUDE_DIRS}")
+target_link_libraries(notcurses PRIVATE ${OIIO_LIBRARIES})
+target_link_libraries(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARIES})
+target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
+target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
