@@ -76,7 +76,7 @@ ncplanes, and new ncplanes are placed at the top of the z-buffer. Ncplanes can
 be larger, smaller, or the same size as the physical screen, and can be placed
 anywhere relative to it (including entirely off-screen). Ncplanes are made up
 of cells (see [Cells][] below). Information on ncplanes is available at
-**notcurses_ncplane(3)**.
+**notcurses_plane(3)**.
 
 ## Cells
 
@@ -136,16 +136,15 @@ previous action.
 **notcurses-demo(1)**,
 **notcurses-input(1)**,
 **notcurses_cell(3)**, **notcurses_channels(3)**,
-**notcurses_fade(3)**, **notcurses_init(3)**, **notcurses_input(3)**,
 **notcurses_directmode(3)**,
 **notcurses_error(3)**,
+**notcurses_fade(3)**, **notcurses_init(3)**, **notcurses_input(3)**,
 **notcurses_lines(3)**,
 **notcurses_menu(3)**,
 **notcurses_multiselector(3)**,
-**notcurses_ncplane(3)**,
-**notcurses_ncvisual(3)**,
 **notcurses_output(3)**,
 **notcurses_palette(3)**,
+**notcurses_plane(3)**,
 **notcurses_plot(3)**,
 **notcurses_reel(3)**,
 **notcurses_refresh(3)**,
@@ -153,5 +152,6 @@ previous action.
 **notcurses_selector(3)**,
 **notcurses_stats(3)**,
 **notcurses_stdplane(3)**, **notcurses_stop(3)**,
+**notcurses_visual(3)**,
 **terminfo(5)**, **ascii(7)**, **utf-8(7)**,
 **unicode(7)**

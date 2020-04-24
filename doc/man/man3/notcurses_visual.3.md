@@ -30,7 +30,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
-**struct AVFrame* ncvisual_decode(struct ncvisual* nc, nc_err_e* err);**
+**nc_err_e ncvisual_decode(struct ncvisual* nc);**
 
 **int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
                         int leny, int lenx);**
@@ -62,9 +62,16 @@ if Notcurses was not built with FFmpeg support. **ncplane_visual_open** and
 on failure. Success from these functions indicates that the specified **file**
 was opened, and enough data was read to make a firm codec identification. It
 does not mean that the entire file is properly-formed. On failure, **err**
-will be updated. **ncvisual_decode** returns a valid **AVFrame** on success, or
-**NULL** on error. It likewise updates **err** in the event of an error.
-**ncvisual_render** returns the number of cells emitted, or -1 on error.
+will be updated. **ncvisual_decode** returns **NCERR_SUCCESS** on success, or
+**NCERR_EOF** on end of file, or some other **nc_err_e** on failure. It
+likewise updates **err** in the event of an error. **ncvisual_render** returns
+the number of cells emitted, or -1 on error.
+
+# NOTES
+
+Multimedia decoding requires that Notcurses be built with either FFmpeg or
+OpenImageIO support. What formats can be decoded is totally dependent on the
+linked library.
 
 # SEE ALSO
 

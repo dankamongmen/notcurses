@@ -1,10 +1,10 @@
-% notcurses_ncplane(3)
+% notcurses_plane(3)
 % nick black <nickblack@linux.com>
 % v1.3.2
 
 # NAME
 
-notcurses_ncplane - operations on notcurses planes
+notcurses_plane - operations on ncplanes
 
 # SYNOPSIS
 
