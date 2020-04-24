@@ -936,15 +936,15 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
           LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
           LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
-    fflush(stdout);
 #else
 #ifdef USE_OIIO
-    // FIXME
+    printf("  openimageio %s\n", oiio_version());
 #else
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
     fprintf(stderr, "\n Warning! Notcurses was built without multimedia support\n");
 #endif
 #endif
+    fflush(stdout);
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
     if(!ret->RGBflag){ // FIXME
       fprintf(stderr, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
