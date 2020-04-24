@@ -22,22 +22,22 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 **bool notcurses_canopen(const struct notcurses* nc);**
 
 **struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                         int* averr);**
+                                         nc_err_e* err);**
 
 **struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
-                                         int* averr, int y, int x,
+                                         nc_err_e* err, int y, int x,
                                          ncscale_e style);**
 
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
-**struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);**
+**struct AVFrame* ncvisual_decode(struct ncvisual* nc, nc_err_e* err);**
 
 **int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
                         int leny, int lenx);**
 
 **int ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry);**
 
-**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr,
+**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err,
                       float timescale, streamcb streamer, void* curry);**
 
 **struct ncplane* ncvisual_plane(struct ncvisual* ncv);**
@@ -61,9 +61,9 @@ if Notcurses was not built with FFmpeg support. **ncplane_visual_open** and
 **ncvisual_open_plane** return an **ncvisual** object on success, or **NULL**
 on failure. Success from these functions indicates that the specified **file**
 was opened, and enough data was read to make a firm codec identification. It
-does not mean that the entire file is properly-formed. On failure, **averr**
+does not mean that the entire file is properly-formed. On failure, **err**
 will be updated. **ncvisual_decode** returns a valid **AVFrame** on success, or
-**NULL** on error. It likewise updates **averr** in the event of an error.
+**NULL** on error. It likewise updates **err** in the event of an error.
 **ncvisual_render** returns the number of cells emitted, or -1 on error.
 
 # SEE ALSO
