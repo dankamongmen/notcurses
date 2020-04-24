@@ -1,6 +1,6 @@
 Name:          notcurses
 Version:       1.3.2
-Release:       2%{?dist}
+Release:       1%{?dist}
 Summary:       Character graphics and TUI library
 License:       ASL 2.0
 URL:           https://nick-black.com/dankwiki/index.php/Notcurses
