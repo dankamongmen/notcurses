@@ -30,6 +30,8 @@ if(${USE_MULTIMEDIA} STREQUAL "ffmpeg")
   set(USE_FFMPEG ON)
 elseif(${USE_MULTIMEDIA} STREQUAL "oiio")
   set(USE_OIIO ON)
+elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
+  message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}')")
 endif()
 
 find_package(PkgConfig REQUIRED)
