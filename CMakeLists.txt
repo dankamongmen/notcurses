@@ -506,8 +506,8 @@ target_compile_definitions(notcurses-tetris
 )
 
 # notcurses-view
+if(${USE_FFMPEG} OR ${USE_OIIO})
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
-if(${USE_FFMPEG})
 add_executable(notcurses-view ${VIEWSRCS})
 target_include_directories(notcurses-view
   PRIVATE
@@ -623,7 +623,7 @@ if(${USE_PYTHON})
       OUTPUT
         "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
       COMMAND
-      env LDFLAGS="-Wl,-soname,_notcurses.so.1 -L${CMAKE_CURRENT_BINARY_DIR}" "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
+      env LDFLAGS="-L${CMAKE_CURRENT_BINARY_DIR}" "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
         "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info
       DEPENDS
         ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
@@ -698,7 +698,7 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
-if(${USE_FFMPEG})
+if(${USE_FFMPEG} OR ${USE_OIIO})
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
 # Don't install source materia for self-originated multimedia
 list(FILTER TESTDATA EXCLUDE REGEX ".*xcf$")
@@ -719,7 +719,7 @@ if(${USE_TESTS})
 install(TARGETS notcurses-tester DESTINATION bin)
 endif()
 install(TARGETS notcurses-tetris DESTINATION bin)
-if(${USE_FFMPEG})
+if(${USE_FFMPEG} OR ${USE_OIIO})
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
 install(TARGETS notcurses notcurses-static
