@@ -57,8 +57,8 @@ ncvisual_open(const char* filename, nc_err_e* err){
     return nullptr;
   }
   const auto &spec = ncv->image->spec();
-  std::cout << "Opened " << filename << ": " << spec.height << "x" <<
-    spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;
+std::cout << "Opened " << filename << ": " << spec.height << "x" <<
+  spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;
   return ncv;
 }
 
@@ -90,11 +90,51 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
 }
 
 nc_err_e ncvisual_decode(ncvisual* nc){
+  if(nc->frame){
+    return NCERR_EOF; // FIXME
+  }
   const auto &spec = nc->image->spec();
-  auto pixels = spec.width * spec.height * spec.nchannels;
+  auto pixels = spec.width * spec.height;// * spec.nchannels;
   nc->frame = std::make_unique<uint32_t[]>(pixels);
-  if(!nc->image->read_image(0, 0, 0, 4, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->frame.get())){
+  if(!nc->image->read_image(0, 0, 0, 3, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->frame.get(), 4)){
     return NCERR_DECODE;
+  }
+/*for(int i = 0 ; i < pixels ; ++i){
+  //fprintf(stderr, "%06d %02x %02x %02x %02x\n", i,
+  fprintf(stderr, "%06d %d %d %d %d\n", i,
+      (nc->frame[i]) & 0xff,
+      (nc->frame[i] >> 8) & 0xff,
+      (nc->frame[i] >> 16) & 0xff,
+      nc->frame[i] >> 24
+      );
+}*/
+  int rows, cols;
+  if(nc->ncp == NULL){ // create plane
+    if(nc->style == NCSCALE_NONE){
+      rows = spec.height / 2;
+      cols = spec.width;
+    }else{ // FIXME differentiate between scale/stretch
+      notcurses_term_dim_yx(nc->ncobj, &rows, &cols);
+      if(nc->placey >= rows || nc->placex >= cols){
+        return NCERR_DECODE;
+      }
+      rows -= nc->placey;
+      cols -= nc->placex;
+    }
+    nc->dstwidth = cols;
+    nc->dstheight = rows * 2;
+    nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, NULL);
+    nc->placey = 0;
+    nc->placex = 0;
+    if(nc->ncp == NULL){
+      return NCERR_NOMEM;
+    }
+  }else{ // check for resize
+    ncplane_dim_yx(nc->ncp, &rows, &cols);
+    if(rows != nc->dstheight / 2 || cols != nc->dstwidth){
+      nc->dstheight = rows * 2;
+      nc->dstwidth = cols;
+    }
   }
   return NCERR_SUCCESS;
 }
@@ -141,13 +181,58 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
 }
 
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
-                    float timespec, streamcb streamer, void* curry){
-  (void)nc;
-  (void)ncv;
-  (void)ncerr;
-  (void)timespec;
-  (void)streamer;
-  (void)curry;
+                    float timescale, streamcb streamer, void* curry){
+  int frame = 1;
+  ncv->timescale = timescale;
+  struct timespec begin; // time we started
+  clock_gettime(CLOCK_MONOTONIC, &begin);
+  uint64_t nsbegin = timespec_to_ns(&begin);
+  bool usets = false;
+  // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
+  // we don't have PTS available.
+  uint64_t sum_duration = 0;
+  while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
+    /* codecctx seems to be off by a factor of 2 regularly. instead, go with
+    // the time_base from the avformatctx.
+    double tbase = av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base);
+    int64_t ts = ncv->oframe->best_effort_timestamp;
+    if(frame == 1 && ts){
+      usets = true;
+    }*/
+    if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
+      return -1;
+    }
+    if(streamer){
+      int r = streamer(nc, ncv, curry);
+      if(r){
+        return r;
+      }
+    }
+    ++frame;
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    uint64_t nsnow = timespec_to_ns(&now);
+    struct timespec interval;
+    /*uint64_t duration = ncv->oframe->pkt_duration * tbase * NANOSECS_IN_SEC;
+    sum_duration += (duration * ncv->timescale);
+//fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->codecctx->time_base), av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base));
+    double schedns = nsbegin;
+    if(usets){
+      if(tbase == 0){
+        tbase = duration;
+      }
+      schedns += ts * (tbase * ncv->timescale) * NANOSECS_IN_SEC;
+    }else{
+      schedns += sum_duration;
+    }
+    if(nsnow < schedns){
+      ns_to_timespec(schedns - nsnow, &interval);
+      nanosleep(&interval, NULL);
+    }*/
+  }
+  if(*ncerr == NCERR_EOF){
+    return 0;
+  }
   return -1;
 }
 
