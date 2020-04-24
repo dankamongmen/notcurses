@@ -116,6 +116,7 @@ that fine library.
 * (build+runtime) From NCURSES: terminfo 6.1+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFMpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
+* (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.0.7+
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+
@@ -128,6 +129,10 @@ that fine library.
 * `cmake ..`. You might want to set e.g. `CMAKE_BUILD_TYPE`.
 * `make`
 * `make test`
+
+The default multimedia engine is FFmpeg. You can select a different engine
+using `USE_MULTIMEDIA`. Valid values are `ffmpeg`, `oiio` (for OpenImageIO),
+or `none`.
 
 If you have unit test failures, *please* file a bug including the output of
 `./notcurses-tester > log 2>&1` (`make test` also runs `notcurses-tester`, but

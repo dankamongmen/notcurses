@@ -41,9 +41,9 @@ ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
 }
 
+#ifdef USE_FFMPEG
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
-#ifdef USE_FFMPEG
     avcodec_close(ncv->codecctx);
     avcodec_free_context(&ncv->codecctx);
     av_frame_free(&ncv->frame);
@@ -53,7 +53,6 @@ void ncvisual_destroy(ncvisual* ncv){
     av_packet_free(&ncv->packet);
     avformat_close_input(&ncv->fmtctx);
     avsubtitle_free(&ncv->subtitle);
-#endif
     if(ncv->ncobj && ncv->ncp){
       ncplane_destroy(ncv->ncp);
     }
@@ -61,7 +60,6 @@ void ncvisual_destroy(ncvisual* ncv){
   }
 }
 
-#ifdef USE_FFMPEG
 bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return true;
 }
@@ -569,5 +567,11 @@ int ncvisual_init(int loglevel){
   (void)loglevel;
   return 0; // allow success here
 }
+
+void ncvisual_destroy(ncvisual* ncv){
+  assert(!ncv);
+  (void)ncv;
+}
+
 #endif
 #endif

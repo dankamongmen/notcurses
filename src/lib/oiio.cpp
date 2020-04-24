@@ -9,6 +9,7 @@ typedef struct ncvisual {
   int packet_outstanding;
   int dstwidth, dstheight;
   float timescale;         // scale frame duration by this value
+  std::unique_ptr<OIIO::ImageInput> image;  // must be close()d
   ncplane* ncp;
   // if we're creating the plane based off the first frame's dimensions, these
   // describe where the plane ought be placed, and how it ought be sized. this
@@ -28,30 +29,37 @@ ncvisual_create(float timescale){
   if(ret == nullptr){
     return nullptr;
   }
-  memset(ret, 0, sizeof(*ret));
+  ret->packet_outstanding = 0;
+  ret->dstwidth = ret->dstheight = 0;
   ret->timescale = timescale;
+  ret->image = nullptr;
+  ret->ncp = nullptr;
+  ret->placex = ret->placey = 0;
+  ret->style = NCSCALE_NONE;
+  ret->ncobj = nullptr;
   return ret;
 }
 
 static ncvisual*
 ncvisual_open(const char* filename, nc_err_e* err){
-  auto in = OIIO::ImageInput::open(filename);
-  if(!in){
-    return nullptr;
-  }
   ncvisual* ncv = ncvisual_create(1);
   if(ncv == nullptr){
-    // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     *err = NCERR_NOMEM;
     return nullptr;
   }
-  memset(ncv, 0, sizeof(*ncv));
+  ncv->image = OIIO::ImageInput::open(filename);
+  if(!ncv->image){
+    // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
+    *err = NCERR_DECODE;
+    return nullptr;
+  }
   return ncv;
 }
 
 ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr){
   ncvisual* ncv = ncvisual_open(filename, ncerr);
   if(ncv == nullptr){
+    *ncerr = NCERR_NOMEM;
     return nullptr;
   }
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
@@ -108,6 +116,13 @@ char* ncvisual_subtitle(const ncvisual* ncv){ // no support in OIIO
 int ncvisual_init(int loglevel){
   (void)loglevel;
   return 0; // allow success here
+}
+
+void ncvisual_destroy(ncvisual* ncv){
+  if(ncv){
+    ncv->image->close();
+    free(ncv);
+  }
 }
 
 } // extern "C"
