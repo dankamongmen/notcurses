@@ -16,15 +16,15 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
   for(int i = 0 ; i < count ; ++i){
-    int averr;
+    nc_err_e err;
     notcurses_refresh(nc, &dimy, &dimx);
     snprintf(file, sizeof(file), "chunli%d.%s", i + 1, ext);
     chuns[i].path = find_data(file);
-    chuns[i].ncv = ncvisual_open_plane(nc, chuns[i].path, &averr, 0, 0, NCSCALE_NONE);
+    chuns[i].ncv = ncvisual_open_plane(nc, chuns[i].path, &err, 0, 0, NCSCALE_NONE);
     if(chuns[i].ncv == NULL){
       return -1;
     }
-    if(ncvisual_decode(chuns[i].ncv, &averr) == NULL){
+    if(ncvisual_decode(chuns[i].ncv, &err) == NULL){
       return -1;
     }
     if(ncvisual_render(chuns[i].ncv, 0, 0, -1, -1) <= 0){
@@ -53,25 +53,26 @@ int chunli_demo(struct notcurses* nc){
   }
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
-  int averr, dimx, dimy;
+  int ret, dimx, dimy;
   notcurses_refresh(nc, &dimy, &dimx);
   cell b = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  if( (averr = chunli_draw(nc, "bmp", CHUNS, &b)) ){
-    return averr;
+  if( (ret = chunli_draw(nc, "bmp", CHUNS, &b)) ){
+    return ret;
   }
   char file[20];
   for(int i = 1 ; i < 100 ; ++i){
     snprintf(file, sizeof(file), "chunli%02d.png", i);
     char* path = find_data(file);
-    struct ncvisual* ncv = ncvisual_open_plane(nc, path, &averr, 0, 0, NCSCALE_NONE);
+    nc_err_e err;
+    struct ncvisual* ncv = ncvisual_open_plane(nc, path, &err, 0, 0, NCSCALE_NONE);
     if(ncv == NULL){
       free(path);
       break;
     }
     free(path);
-    if(ncvisual_decode(ncv, &averr) == NULL){
+    if(ncvisual_decode(ncv, &err) == NULL){
       return -1;
     }
     struct ncplane* ncp = ncvisual_plane(ncv);
