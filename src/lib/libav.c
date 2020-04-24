@@ -163,6 +163,7 @@ char* ncvisual_subtitle(const ncvisual* ncv){
 static nc_err_e
 averr2ncerr(int averr){
   // FIXME need to map averror codes to ncerrors
+//fprintf(stderr, "AVERR: %d/%x %d/%x\n", averr, averr, -averr, -averr);
   return -averr;
 }
 

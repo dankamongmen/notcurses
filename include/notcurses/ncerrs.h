@@ -13,7 +13,7 @@ extern "C" {
 typedef enum {
   NCERR_SUCCESS = 0,
   NCERR_NOMEM = ENOMEM,
-  NCERR_EOF = 0x464f45, // matches AVERROR_EOF
+  NCERR_EOF = 0x20464f45, // matches AVERROR_EOF
 } nc_err_e;
 
 static inline const char*

@@ -49,12 +49,12 @@ TEST_CASE("Multimedia") {
   }
 
   SUBCASE("LoadImage") {
-    nc_err_e ncerr;
+    nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncplane_visual_open(ncp_, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
-    REQUIRE(0 == ncerr);
+    REQUIRE(NCERR_SUCCESS == ncerr);
     auto frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE(frame);
     REQUIRE(0 == ncerr);
@@ -69,15 +69,15 @@ TEST_CASE("Multimedia") {
   }
 
   SUBCASE("PlaneDuplicate") {
-    nc_err_e ncerr;
+    nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncplane_visual_open(ncp_, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
-    REQUIRE(0 == ncerr);
+    REQUIRE(NCERR_SUCCESS == ncerr);
     auto frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE(frame);
-    REQUIRE(0 == ncerr);
+    REQUIRE(NCERR_SUCCESS == ncerr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
@@ -96,12 +96,12 @@ TEST_CASE("Multimedia") {
   }
 
   SUBCASE("LoadVideo") {
-    nc_err_e ncerr;
+    nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncplane_visual_open(ncp_, find_data("samoa.avi"), &ncerr);
     REQUIRE(ncv);
-    CHECK(0 == ncerr);
+    CHECK(NCERR_SUCCESS == ncerr);
     for(;;){ // run at the highest speed we can
       auto frame = ncvisual_decode(ncv, &ncerr);
       if(!frame){
@@ -118,15 +118,15 @@ TEST_CASE("Multimedia") {
   }
 
   SUBCASE("LoadVideoCreatePlane") {
-    nc_err_e ncerr;
+    nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_open_plane(nc_, find_data("notcursesI.avi"), &ncerr, 0, 0, NCSCALE_STRETCH);
     REQUIRE(ncv);
-    CHECK(0 == ncerr);
+    CHECK(NCERR_SUCCESS == ncerr);
     auto frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE_NE(nullptr, frame);
-    CHECK(0 == ncerr);
+    CHECK(NCERR_SUCCESS == ncerr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
