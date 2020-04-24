@@ -177,14 +177,14 @@ int fallin_demo(struct notcurses* nc){
   ncplane_erase(stdn);
 #ifdef USE_MULTIMEDIA
 #ifndef DFSG_BUILD
-  nc_err_e err = 0;
+  nc_err_e err = NCERR_SUCCESS;
   char* path = find_data("lamepatents.jpg");
   struct ncvisual* ncv = ncplane_visual_open(stdn, path, &err);
   free(path);
   if(ncv == NULL){
     return -1;
   }
-  if((err = ncvisual_decode(ncv)) == NCERR_SUCCESS){
+  if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     ncvisual_destroy(ncv);
     return -1;
   }
