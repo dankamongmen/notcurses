@@ -29,16 +29,11 @@ extern "C" {
 #include <string.h>
 #include <signal.h>
 #include <wctype.h>
+#include <termios.h>
 #include <stdbool.h>
 #include "notcurses/notcurses.h"
 #include "egcpool.h"
 
-struct AVFormatContext;
-struct AVCodecContext;
-struct AVFrame;
-struct AVCodec;
-struct AVCodecParameters;
-struct AVPacket;
 struct SwsContext;
 struct esctrie;
 

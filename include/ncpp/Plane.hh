@@ -856,9 +856,9 @@ namespace ncpp
 			return static_cast<T*>(get_userptr ());
 		}
 
-		Visual* visual_open (const char *file, int *averr) const
+		Visual* visual_open (const char *file, nc_err_e *ncerr) const
 		{
-			return new Visual (plane, file, averr);
+			return new Visual (plane, file, ncerr);
 		}
 
 		NcReel* ncreel_create (const ncreel_options *popts = nullptr, int efd = -1) const

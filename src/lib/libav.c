@@ -2,6 +2,13 @@
 #include "version.h"
 #include "internal.h"
 
+struct AVFormatContext;
+struct AVCodecContext;
+struct AVFrame;
+struct AVCodec;
+struct AVCodecParameters;
+struct AVPacket;
+
 typedef struct ncvisual {
   struct AVFormatContext* fmtctx;
   struct AVCodecContext* codecctx;       // video codec context
