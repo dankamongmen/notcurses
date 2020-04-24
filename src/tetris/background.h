@@ -6,7 +6,7 @@ void DrawBackground(const std::string& s) { // drawn to the standard plane
   }catch(std::exception& e){
     throw TetrisNotcursesErr("visual(): " + s + ": " + e.what());
   }
-  if(!backg_->decode(&err)){
+  if(backg_->decode() != NCERR_SUCCESS){
     throw TetrisNotcursesErr("decode(): " + s);
   }
   if(backg_->render(0, 0, -1, -1) <= 0){

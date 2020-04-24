@@ -167,7 +167,7 @@ averr2ncerr(int averr){
   return -averr;
 }
 
-AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
+nc_err_e ncvisual_decode(ncvisual* nc){
   bool have_frame = false;
   bool unref = false;
   av_freep(&nc->oframe->data[0]);
@@ -184,22 +184,21 @@ AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
         /*if(averr != AVERROR_EOF){
           fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(*averr));
         }*/
-        *ncerr = averr2ncerr(averr);
-        return NULL;
+        return averr2ncerr(averr);
       }
       unref = true;
       if(nc->packet->stream_index == nc->sub_stream_index){
         int result = 0, ret;
         ret = avcodec_decode_subtitle2(nc->subtcodecctx, &nc->subtitle, &result, nc->packet);
         if(ret >= 0 && result){
+          // FIXME?
         }
       }
     }while(nc->packet->stream_index != nc->stream_index);
     ++nc->packet_outstanding;
-    *ncerr = avcodec_send_packet(nc->codecctx, nc->packet);
-    if(*ncerr < 0){
+    if(avcodec_send_packet(nc->codecctx, nc->packet) < 0){
       //fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(*ncerr));
-      return ncvisual_decode(nc, ncerr);
+      return ncvisual_decode(nc);
     }
     --nc->packet_outstanding;
     av_packet_unref(nc->packet);
@@ -210,7 +209,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
       have_frame = false;
     }else if(averr < 0){
       //fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(averr));
-      return NULL;
+      return averr2ncerr(averr);
     }
   }while(!have_frame);
 //print_frame_summary(nc->codecctx, nc->frame);
@@ -223,7 +222,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
     }else{ // FIXME differentiate between scale/stretch
       notcurses_term_dim_yx(nc->ncobj, &rows, &cols);
       if(nc->placey >= rows || nc->placex >= cols){
-        return NULL;
+        return NCERR_DECODE;
       }
       rows -= nc->placey;
       cols -= nc->placex;
@@ -234,8 +233,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
     nc->placey = 0;
     nc->placex = 0;
     if(nc->ncp == NULL){
-      *ncerr = NCERR_NOMEM;
-      return NULL;
+      return NCERR_NOMEM;
     }
   }else{ // check for resize
     ncplane_dim_yx(nc->ncp, &rows, &cols);
@@ -258,7 +256,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
                                     NULL, NULL, NULL);
   if(nc->swsctx == NULL){
     //fprintf(stderr, "Error retrieving swsctx\n");
-    return NULL;
+    return NCERR_DECODE;
   }
   memcpy(nc->oframe, nc->frame, sizeof(*nc->oframe));
   nc->oframe->format = targformat;
@@ -269,19 +267,19 @@ AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
                             nc->oframe->format, IMGALLOCALIGN);
   if(size < 0){
     //fprintf(stderr, "Error allocating visual data (%s)\n", av_err2str(size));
-    return NULL;
+    return NCERR_NOMEM;
   }
   int height = sws_scale(nc->swsctx, (const uint8_t* const*)nc->frame->data,
                          nc->frame->linesize, 0,
                          nc->frame->height, nc->oframe->data, nc->oframe->linesize);
   if(height < 0){
     //fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(height));
-    return NULL;
+    return NCERR_NOMEM;
   }
 //print_frame_summary(nc->codecctx, nc->oframe);
 #undef IMGALLOCALIGN
   av_frame_unref(nc->frame);
-  return nc->oframe;
+  return NCERR_SUCCESS;
 }
 
 static ncvisual*
@@ -456,7 +454,6 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
                     float timescale, streamcb streamer, void* curry){
   int frame = 1;
   ncv->timescale = timescale;
-  AVFrame* avf;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
   uint64_t nsbegin = timespec_to_ns(&begin);
@@ -464,11 +461,11 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
   // we don't have PTS available.
   uint64_t sum_duration = 0;
-  while( (avf = ncvisual_decode(ncv, ncerr)) ){
+  while(ncvisual_decode(ncv) == NCERR_SUCCESS){
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
     double tbase = av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base);
-    int64_t ts = avf->best_effort_timestamp;
+    int64_t ts = ncv->oframe->best_effort_timestamp;
     if(frame == 1 && ts){
       usets = true;
     }
@@ -486,7 +483,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
     clock_gettime(CLOCK_MONOTONIC, &now);
     uint64_t nsnow = timespec_to_ns(&now);
     struct timespec interval;
-    uint64_t duration = avf->pkt_duration * tbase * NANOSECS_IN_SEC;
+    uint64_t duration = ncv->oframe->pkt_duration * tbase * NANOSECS_IN_SEC;
 //fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->codecctx->time_base), av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base));
     sum_duration += (duration * ncv->timescale);
     double schedns = nsbegin;
@@ -520,10 +517,9 @@ bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return false;
 }
 
-struct AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
+nc_err_e ncvisual_decode(ncvisual* nc){
   (void)nc;
-  (void)ncerr;
-  return NULL;
+  return NCERR_UNIMPLEMENTED;
 }
 
 int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){

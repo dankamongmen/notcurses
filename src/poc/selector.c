@@ -87,7 +87,7 @@ int main(void){
   if(!ncv){
     goto err;
   }
-  if(!ncvisual_decode(ncv, &err)){
+  if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     goto err;
   }
   if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){

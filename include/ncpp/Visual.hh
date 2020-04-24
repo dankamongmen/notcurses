@@ -62,9 +62,9 @@ namespace ncpp
 			return visual;
 		}
 
-		AVFrame* decode (nc_err_e* ncerr) const noexcept
+		nc_err_e decode () const noexcept
 		{
-			return ncvisual_decode (visual, ncerr);
+			return ncvisual_decode (visual);
 		}
 
 		bool render (int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE

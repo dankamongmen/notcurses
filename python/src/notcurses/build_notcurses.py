@@ -267,6 +267,8 @@ typedef enum {
   NCERR_SUCCESS,
   NCERR_NOMEM,
   NCERR_EOF,
+  NCERR_DECODE,
+  NCERR_UNIMPLEMENTED,
 } nc_err_e;
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, nc_err_e* err);
 typedef enum {
@@ -277,7 +279,7 @@ typedef enum {
 struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
 struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 void ncvisual_destroy(struct ncvisual* ncv);
-struct AVFrame* ncvisual_decode(struct ncvisual* nc, nc_err_e* err);
+nc_err_e ncvisual_decode(struct ncvisual* nc);
 int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
 char* ncvisual_subtitle(const struct ncvisual* ncv);
 typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);

@@ -92,13 +92,13 @@ int view_demo(struct notcurses* nc){
     return -1;
   }
   free(pic);
-  if(ncvisual_decode(ncv, &err) == NULL){
+  if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);
     return -1;
   }
-  if(ncvisual_decode(ncv2, &err) == NULL){
+  if((err = ncvisual_decode(ncv2)) != NCERR_SUCCESS){
     ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);

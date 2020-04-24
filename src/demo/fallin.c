@@ -184,7 +184,7 @@ int fallin_demo(struct notcurses* nc){
   if(ncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(ncv, &err) == NULL){
+  if((err = ncvisual_decode(ncv)) == NCERR_SUCCESS){
     ncvisual_destroy(ncv);
     return -1;
   }
@@ -192,8 +192,7 @@ int fallin_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  assert(ncvisual_decode(ncv, &err) == NULL);
-  assert(NCERR_EOF == err);
+  assert(ncvisual_decode(ncv) == NCERR_EOF);
   ncvisual_destroy(ncv);
 #endif
 #endif

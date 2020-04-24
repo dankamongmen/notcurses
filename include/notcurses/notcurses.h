@@ -2050,12 +2050,9 @@ API struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 // can be neither decoded nor rendered any further.
 API void ncvisual_destroy(struct ncvisual* ncv);
 
-// extract the next frame from an ncvisual. returns NULL on end of file,
-// writing NCERR_EOF to 'ncerr'. returns NULL on a decoding or allocation
-// error, writing the cause to 'ncerr'. this frame is invalidated by a
-// subsequent call to ncvisual_decode(), and should not be freed by the caller.
-struct AVFrame;
-API struct AVFrame* ncvisual_decode(struct ncvisual* nc, nc_err_e* ncerr);
+// extract the next frame from an ncvisual. returns NCERR_EOF on end of file,
+// and NCERR_SUCCESS on success, otherwise some other NCERR.
+API nc_err_e ncvisual_decode(struct ncvisual* nc);
 
 // Render the decoded frame to the associated ncplane. The frame will be scaled
 // to the size of the ncplane per the ncscale_e style. A subregion of the

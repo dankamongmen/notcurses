@@ -22,7 +22,7 @@ int main(int argc, char** argv){
   if(!ncv){
     goto err;
   }
-  if(!ncvisual_decode(ncv, &ncerr)){
+  if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     goto err;
   }
   if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
