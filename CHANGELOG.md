@@ -5,6 +5,15 @@ rearrangements of Notcurses.
   * The `ncdplot` type has been added for plots based on `double`s rather than
     `uint64_t`s. The `ncplot` type and all `ncplot_*` functions were renamed
     `ncuplot` for symmetry.
+  * FFMpeg types are no longer leaked through the Notcurses API. `AVERROR`
+    is no longer applicable, and `ncvisual_decode()` no longer returns a
+    `struct AVframe*`. Instead, the `nc_err_e` enumeration has been introduced.
+    Functions which once accepted a value-result `AVERROR` now accept a value-
+    result `nc_err_e`. The relevant constants can be found in
+    `notcurses/ncerrs.h`.
+  * CMake no longer uses the `USE_FFMPEG` option. Instead, the `USE_MULTIMEDIA`
+    option can be defined as `ffmpeg`, `oiio`, or `none`. In `cmake-gui`, this
+    item will now appear as an option selector.
 
 * 1.3.2 (2020-04-19)
   * `ncdirect_cursor_push()`, `notcurses_cursor_pop()`, and
