@@ -621,7 +621,7 @@ if(${USE_PYTHON})
       OUTPUT
         "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
       COMMAND
-      env LDFLAGS="-Wl,-soname,_notcurses.so.1 -L${CMAKE_CURRENT_BINARY_DIR}" "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
+      env LDFLAGS="-L${CMAKE_CURRENT_BINARY_DIR}" "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
         "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info
       DEPENDS
         ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
