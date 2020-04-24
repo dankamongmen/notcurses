@@ -1,4 +1,5 @@
 #include <array>
+#include <memory>
 #include <cstring>
 #include <cstdlib>
 #include <clocale>
@@ -7,15 +8,8 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <iostream>
-#include <memory>
-#include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
-
-extern "C" {
-#include <libavutil/pixdesc.h>
-#include <libavutil/avconfig.h>
-#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
-}
+#include <ncpp/NotCurses.hh>
 
 using namespace ncpp;
 
@@ -170,7 +164,6 @@ int main(int argc, char** argv){
   int dimy, dimx;
   nc.get_term_dim(&dimy, &dimx);
   for(auto i = nonopt ; i < argc ; ++i){
-    std::array<char, 128> errbuf;
     int frames = 0;
     nc_err_e err;
     std::unique_ptr<Visual> ncv;
@@ -183,9 +176,8 @@ int main(int argc, char** argv){
     }
     int r = ncv->stream(&err, timescale, perframe, &frames);
     if(r < 0){ // positive is intentional abort
-      av_make_error_string(errbuf.data(), errbuf.size(), err);
       nc.stop();
-      std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
+      std::cerr << "Error decoding " << argv[i] << ": " << nc_strerror(err) << std::endl;
       return EXIT_FAILURE;
     }else if(r == 0){
       std::unique_ptr<Plane> stdn(nc.get_stdplane());
