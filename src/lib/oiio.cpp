@@ -56,6 +56,9 @@ ncvisual_open(const char* filename, nc_err_e* err){
     *err = NCERR_DECODE;
     return nullptr;
   }
+  const auto &spec = ncv->image->spec();
+  std::cout << "Opened " << filename << ": " << spec.height << "x" <<
+    spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;
   return ncv;
 }
 
@@ -88,21 +91,53 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
 
 nc_err_e ncvisual_decode(ncvisual* nc){
   const auto &spec = nc->image->spec();
-  auto pixels = spec.width * spec.height;
+  auto pixels = spec.width * spec.height * spec.nchannels;
   nc->frame = std::make_unique<uint32_t[]>(pixels);
-  if(!nc->image->read_image(OIIO::TypeDesc::UINT32, nc->frame.get())){
+  if(!nc->image->read_image(0, 0, 0, 4, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->frame.get())){
     return NCERR_DECODE;
   }
   return NCERR_SUCCESS;
 }
 
 int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
-  (void)ncv;
-  (void)begy;
-  (void)begx;
-  (void)leny;
-  (void)lenx;
-  return -1;
+//fprintf(stderr, "render %dx%d+%dx%d\n", begy, begx, leny, lenx);
+  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
+    return -1;
+  }
+  if(ncv->frame == nullptr){
+    return -1;
+  }
+  const auto &spec = ncv->image->spec();
+//fprintf(stderr, "render %d/%d to %dx%d+%dx%d\n", f->height, f->width, begy, begx, leny, lenx);
+  if(begx >= spec.width || begy >= spec.height){
+    return -1;
+  }
+  if(lenx == -1){ // -1 means "to the end"; use all space available
+    lenx = spec.width - begx;
+  }
+  if(leny == -1){
+    leny = spec.height - begy;
+  }
+  if(lenx == 0 || leny == 0){ // no need to draw zero-size object, exit
+    return 0;
+  }
+  if(begx + lenx > spec.width || begy + leny > spec.height){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
+  ncplane_cursor_move_yx(ncv->ncp, 0, 0);
+  // y and x are actual plane coordinates. each row corresponds to two rows of
+  // the input (scaled) frame (columns are 1:1). we track the row of the
+  // visual via visy.
+//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d -> %dx%d\n", begy, begx, leny, lenx, f->height, f->width, dimy, dimx);
+  const int linesize = spec.width * 4;
+  int ret = ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, linesize,
+                        ncv->frame.get(), begy, begx, leny, lenx);
+  //av_frame_unref(ncv->oframe);
+  return ret;
+
+  return NCERR_SUCCESS;
 }
 
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
