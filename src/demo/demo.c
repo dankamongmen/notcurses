@@ -21,7 +21,7 @@ static char *datadir = NOTCURSES_SHARE;
 
 // yes, these are in different orders in different configurations on purpose
 // (since some transition into the next). FIXME handle case sans libqrcodegen.
-#ifndef USE_FFMPEG
+#ifndef USE_MULTIMEDIA
 static const char DEFAULT_DEMO[] = "itfhbrgnswjqu";
 #else
 #ifdef DFSG_BUILD
@@ -68,9 +68,9 @@ struct timespec demodelay = {
 };
 
 // anything that's dfsg non-free requires ncvisual (i.e. it's all multimedia),
-// so also check for USE_FFMPEG here in DFSG_BUILD
+// so also check for USE_MULTIMEDIA here in DFSG_BUILD
 #ifndef DFSG_BUILD
-#ifdef USE_FFMPEG
+#ifdef USE_MULTIMEDIA
 #define NONFREE(name, fxn) { name, fxn, }
 #else
 #endif
@@ -85,14 +85,14 @@ struct timespec demodelay = {
 #define NONFREE(name, fxn) { NULL, NULL, }
 #endif
 
-#ifdef USE_FFMPEG
+#ifdef USE_MULTIMEDIA
 #define FREEFFMPEG(name, fxn) { name, fxn, }
 #else
 #define FREEFFMPEG(name, fxn) { NULL, NULL, }
 #endif
 
-// define with NONFREE() to exempt from any DFSG or non-FFmpeg build. define
-// with FREEFFMPEG() to exempt from any non-FFmpeg build.
+// define with NONFREE() to exempt from any DFSG or non-multimedia build.
+// define with FREEFFMPEG() to exempt from any non-multimedia build.
 static struct {
   const char* name;
   int (*fxn)(struct notcurses*);
