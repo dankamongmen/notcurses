@@ -133,7 +133,7 @@ int outro(struct notcurses* nc){
   if(chncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(chncv, &err) == NULL){
+  if((err = ncvisual_decode(chncv)) != NCERR_SUCCESS){
     ncvisual_destroy(chncv);
     return -1;
   }

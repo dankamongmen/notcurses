@@ -14,6 +14,8 @@ typedef enum {
   NCERR_SUCCESS = 0,
   NCERR_NOMEM = ENOMEM,
   NCERR_EOF = 0x20464f45, // matches AVERROR_EOF
+  NCERR_DECODE,
+  NCERR_UNIMPLEMENTED,
 } nc_err_e;
 
 static inline const char*
@@ -22,6 +24,8 @@ nc_strerror(nc_err_e ncerr){
     case NCERR_SUCCESS: return "success";
     case NCERR_NOMEM: return strerror(ENOMEM);
     case NCERR_EOF: return "end of file";
+    case NCERR_DECODE: return "error decoding";
+    case NCERR_UNIMPLEMENTED: return "feature not available";
   };
   return "unknown error";
 }

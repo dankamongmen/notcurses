@@ -155,16 +155,13 @@ int luigi_demo(struct notcurses* nc){
   if(nv == NULL){
     return -1;
   }
-  if(ncvisual_decode(nv, &ncerr) == NULL){
+  if((ncerr = ncvisual_decode(nv)) != NCERR_SUCCESS){
     return -1;
   }
   if(ncvisual_render(nv, 0, 0, -1, -1) <= 0){
     return -1;
   }
-  assert(ncvisual_decode(nv, &ncerr) == NULL);
-#ifdef USE_FFMPEG
-  assert(NCERR_EOF == ncerr);
-#endif
+  assert(NCERR_EOF == ncvisual_decode(nv));
   // he should be walking on the platform ~4/5 of the way down
   const int height = 32;
   int yoff = rows * 4 / 5 - height + 1; // tuned
@@ -195,7 +192,7 @@ int luigi_demo(struct notcurses* nc){
   if(wmncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(wmncv, &ncerr) == NULL){
+  if((ncerr = ncvisual_decode(wmncv)) != NCERR_SUCCESS){
     ncvisual_destroy(wmncv);
     return -1;
   }

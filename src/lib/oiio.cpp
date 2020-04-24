@@ -75,10 +75,9 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   return ncv;
 }
 
-struct AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
-  (void)nc;
-  (void)ncerr;
-  return nullptr;
+nc_err_e ncvisual_decode(ncvisual* nc){
+  (void)nc; // FIXME
+  return NCERR_DECODE;
 }
 
 int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){

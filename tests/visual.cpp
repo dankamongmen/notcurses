@@ -29,21 +29,19 @@ TEST_CASE("Multimedia") {
   }
 
   SUBCASE("LoadImageCreatePlane") {
-    nc_err_e ncerr;
+    nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_open_plane(nc_, find_data("changes.jpg"), &ncerr, 0, 0, NCSCALE_STRETCH);
     REQUIRE(ncv);
-    REQUIRE(0 == ncerr);
-    auto frame = ncvisual_decode(ncv, &ncerr);
-    REQUIRE(frame);
-    REQUIRE(0 == ncerr);
-    CHECK(dimy * 2 == frame->height);
-    CHECK(dimx == frame->width);
+    REQUIRE(NCERR_SUCCESS == ncerr);
+    ncerr = ncvisual_decode(ncv);
+    REQUIRE(NCERR_SUCCESS == ncerr);
+    /*CHECK(dimy * 2 == frame->height);
+    CHECK(dimx == frame->width); FIXME */
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    frame = ncvisual_decode(ncv, &ncerr);
-    REQUIRE_EQ(nullptr, frame);
+    ncerr = ncvisual_decode(ncv);
     CHECK(NCERR_EOF == ncerr);
     ncvisual_destroy(ncv);
   }
@@ -54,16 +52,14 @@ TEST_CASE("Multimedia") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncplane_visual_open(ncp_, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
-    REQUIRE(NCERR_SUCCESS == ncerr);
-    auto frame = ncvisual_decode(ncv, &ncerr);
-    REQUIRE(frame);
     REQUIRE(0 == ncerr);
-    CHECK(dimy * 2 == frame->height);
-    CHECK(dimx == frame->width);
+    ncerr = ncvisual_decode(ncv);
+    REQUIRE(NCERR_SUCCESS == ncerr);
+    /*CHECK(dimy * 2 == frame->height);
+    CHECK(dimx == frame->width); FIXME */
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    frame = ncvisual_decode(ncv, &ncerr);
-    REQUIRE_EQ(nullptr, frame);
+    ncerr = ncvisual_decode(ncv);
     CHECK(NCERR_EOF == ncerr);
     ncvisual_destroy(ncv);
   }
@@ -75,11 +71,10 @@ TEST_CASE("Multimedia") {
     auto ncv = ncplane_visual_open(ncp_, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
-    auto frame = ncvisual_decode(ncv, &ncerr);
-    REQUIRE(frame);
+    ncerr = ncvisual_decode(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
-    CHECK(dimy * 2 == frame->height);
-    CHECK(dimx == frame->width);
+    /*CHECK(dimy * 2 == frame->height);
+    CHECK(dimx == frame->width); FIXME */
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     void* needle = malloc(1);
     REQUIRE(nullptr != needle);
@@ -103,14 +98,13 @@ TEST_CASE("Multimedia") {
     REQUIRE(ncv);
     CHECK(NCERR_SUCCESS == ncerr);
     for(;;){ // run at the highest speed we can
-      auto frame = ncvisual_decode(ncv, &ncerr);
-      if(!frame){
-        CHECK(NCERR_EOF == ncerr);
+      ncerr = ncvisual_decode(ncv);
+      if(NCERR_EOF == ncerr){
         break;
       }
-      CHECK(0 == ncerr);
-      CHECK(dimy * 2 == frame->height);
-      CHECK(dimx == frame->width);
+      CHECK(NCERR_SUCCESS == ncerr);
+      /*CHECK(dimy * 2 == frame->height);
+      CHECK(dimx == frame->width); FIXME */
       CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
       CHECK(0 == notcurses_render(nc_));
     }
@@ -124,11 +118,10 @@ TEST_CASE("Multimedia") {
     auto ncv = ncvisual_open_plane(nc_, find_data("notcursesI.avi"), &ncerr, 0, 0, NCSCALE_STRETCH);
     REQUIRE(ncv);
     CHECK(NCERR_SUCCESS == ncerr);
-    auto frame = ncvisual_decode(ncv, &ncerr);
-    REQUIRE_NE(nullptr, frame);
+    ncerr = ncvisual_decode(ncv);
     CHECK(NCERR_SUCCESS == ncerr);
-    CHECK(dimy * 2 == frame->height);
-    CHECK(dimx == frame->width);
+    /*CHECK(dimy * 2 == frame->height);
+    CHECK(dimx == frame->width); FIXME */
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);

@@ -31,7 +31,7 @@ outzoomed_map(struct notcurses* nc, const char* map){
   if(ncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(ncv, &ncerr) == NULL){
+  if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     return -1;
   }
   if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
@@ -54,8 +54,7 @@ zoom_map(struct notcurses* nc, const char* map){
   if(ncv == NULL){
     return NULL;
   }
-  struct AVFrame* frame;
-  if((frame = ncvisual_decode(ncv, &ncerr)) == NULL){
+  if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     ncvisual_destroy(ncv);
     return NULL;
   }
@@ -92,7 +91,7 @@ zoom_map(struct notcurses* nc, const char* map){
       ncplane_destroy(zncp);
       return NULL;
     }
-    if(ncvisual_decode(zncv, &ncerr) == NULL){
+    if((ncerr = ncvisual_decode(zncv)) != NCERR_SUCCESS){
       ncvisual_destroy(zncv);
       ncplane_destroy(zncp);
       return NULL;
