@@ -44,7 +44,7 @@ outzoomed_map(struct notcurses* nc, const char* map){
 
 static struct ncplane*
 zoom_map(struct notcurses* nc, const char* map){
-  int ncerr;
+  nc_err_e ncerr;
   // determine size that will be represented on screen at once, and how
   // large that section has been rendered in the outzoomed map. take the map
   // and begin opening it on larger and larger planes that fit on the screen

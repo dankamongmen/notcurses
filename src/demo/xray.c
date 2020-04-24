@@ -106,14 +106,14 @@ int xray_demo(struct notcurses* nc){
     return -1;
   }
   char* path = find_data("notcursesI.avi");
-  int averr;
-  struct ncvisual* ncv = ncplane_visual_open(n, path, &averr);
+  nc_err_e err;
+  struct ncvisual* ncv = ncplane_visual_open(n, path, &err);
   free(path);
   if(ncv == NULL){
     return -1;
   }
   struct ncplane* newpanel = NULL;
-  int ret = ncvisual_stream(nc, ncv, &averr, 0.5 * delaymultiplier, perframecb, &newpanel);
+  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, &newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);

@@ -1,12 +1,12 @@
 void DrawBackground(const std::string& s) { // drawn to the standard plane
-#ifdef USE_FFMPEG
-  int averr;
+#ifdef USE_MULTIMEDIA
+  nc_err_e err;
   try{
-    backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &averr, 0, 0, ncpp::NCScale::Stretch);
+    backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &err, 0, 0, ncpp::NCScale::Stretch);
   }catch(std::exception& e){
     throw TetrisNotcursesErr("visual(): " + s + ": " + e.what());
   }
-  if(!backg_->decode(&averr)){
+  if(!backg_->decode(&err)){
     throw TetrisNotcursesErr("decode(): " + s);
   }
   if(backg_->render(0, 0, -1, -1) <= 0){

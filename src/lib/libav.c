@@ -160,7 +160,13 @@ char* ncvisual_subtitle(const ncvisual* ncv){
   return NULL;
 }
 
-AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
+static nc_err_e
+averr2ncerr(int averr){
+  // FIXME need to map averror codes to ncerrors
+  return -averr;
+}
+
+AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
   bool have_frame = false;
   bool unref = false;
   av_freep(&nc->oframe->data[0]);
@@ -172,10 +178,12 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
       if(unref){
         av_packet_unref(nc->packet);
       }
-      if((*averr = av_read_frame(nc->fmtctx, nc->packet)) < 0){
+      int averr;
+      if((averr = av_read_frame(nc->fmtctx, nc->packet)) < 0){
         /*if(averr != AVERROR_EOF){
           fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(*averr));
         }*/
+        *ncerr = averr2ncerr(averr);
         return NULL;
       }
       unref = true;
@@ -187,20 +195,20 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
       }
     }while(nc->packet->stream_index != nc->stream_index);
     ++nc->packet_outstanding;
-    *averr = avcodec_send_packet(nc->codecctx, nc->packet);
-    if(*averr < 0){
-      //fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(*averr));
-      return ncvisual_decode(nc, averr);
+    *ncerr = avcodec_send_packet(nc->codecctx, nc->packet);
+    if(*ncerr < 0){
+      //fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(*ncerr));
+      return ncvisual_decode(nc, ncerr);
     }
     --nc->packet_outstanding;
     av_packet_unref(nc->packet);
-    *averr = avcodec_receive_frame(nc->codecctx, nc->frame);
-    if(*averr >= 0){
+    int averr = avcodec_receive_frame(nc->codecctx, nc->frame);
+    if(averr >= 0){
       have_frame = true;
-    }else if(*averr == AVERROR(EAGAIN) || *averr == AVERROR_EOF){
+    }else if(averr == AVERROR(EAGAIN) || averr == AVERROR_EOF){
       have_frame = false;
-    }else if(*averr < 0){
-      //fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(*averr));
+    }else if(averr < 0){
+      //fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(averr));
       return NULL;
     }
   }while(!have_frame);
@@ -225,7 +233,7 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
     nc->placey = 0;
     nc->placex = 0;
     if(nc->ncp == NULL){
-      *averr = AVERROR(ENOMEM);
+      *ncerr = NCERR_NOMEM;
       return NULL;
     }
   }else{ // check for resize
@@ -276,35 +284,39 @@ AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
 }
 
 static ncvisual*
-ncvisual_open(const char* filename, int* averr){
+ncvisual_open(const char* filename, nc_err_e* ncerr){
   ncvisual* ncv = ncvisual_create(1);
   if(ncv == NULL){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
-    *averr = AVERROR(ENOMEM);
+    *ncerr = NCERR_NOMEM;
     return NULL;
   }
   memset(ncv, 0, sizeof(*ncv));
-  *averr = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
-  if(*averr < 0){
+  int averr = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
+  if(averr < 0){
     // fprintf(stderr, "Couldn't open %s (%s)\n", filename, av_err2str(*averr));
+    *ncerr = averr2ncerr(averr);
     goto err;
   }
-  if((*averr = avformat_find_stream_info(ncv->fmtctx, NULL)) < 0){
+  averr = avformat_find_stream_info(ncv->fmtctx, NULL);
+  if(averr < 0){
     /*fprintf(stderr, "Error extracting stream info from %s (%s)\n", filename,
             av_err2str(*averr));*/
+    *ncerr = averr2ncerr(averr);
     goto err;
   }
 //av_dump_format(ncv->fmtctx, 0, filename, false);
-  if((*averr = av_find_best_stream(ncv->fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, &ncv->subtcodec, 0)) >= 0){
-    ncv->sub_stream_index = *averr;
+  if((averr = av_find_best_stream(ncv->fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, &ncv->subtcodec, 0)) >= 0){
+    ncv->sub_stream_index = averr;
     if((ncv->subtcodecctx = avcodec_alloc_context3(ncv->subtcodec)) == NULL){
       //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
-      *averr = AVERROR(ENOMEM);
+      *ncerr = NCERR_NOMEM;
       goto err;
     }
     // FIXME do we need avcodec_parameters_to_context() here?
-    if((*averr = avcodec_open2(ncv->subtcodecctx, ncv->subtcodec, NULL)) < 0){
+    if((averr = avcodec_open2(ncv->subtcodecctx, ncv->subtcodec, NULL)) < 0){
       //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
+      *ncerr = averr2ncerr(averr);
       goto err;
     }
   }else{
@@ -312,14 +324,15 @@ ncvisual_open(const char* filename, int* averr){
   }
   if((ncv->packet = av_packet_alloc()) == NULL){
     // fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
-    *averr = AVERROR(ENOMEM);
+    *ncerr = NCERR_NOMEM;
     goto err;
   }
-  if((*averr = av_find_best_stream(ncv->fmtctx, AVMEDIA_TYPE_VIDEO, -1, -1, &ncv->codec, 0)) < 0){
+  if((averr = av_find_best_stream(ncv->fmtctx, AVMEDIA_TYPE_VIDEO, -1, -1, &ncv->codec, 0)) < 0){
     // fprintf(stderr, "Couldn't find visuals in %s (%s)\n", filename, av_err2str(*averr));
+    *ncerr = averr2ncerr(averr);
     goto err;
   }
-  ncv->stream_index = *averr;
+  ncv->stream_index = averr;
   if(ncv->codec == NULL){
     //fprintf(stderr, "Couldn't find decoder for %s\n", filename);
     goto err;
@@ -327,19 +340,20 @@ ncvisual_open(const char* filename, int* averr){
   AVStream* st = ncv->fmtctx->streams[ncv->stream_index];
   if((ncv->codecctx = avcodec_alloc_context3(ncv->codec)) == NULL){
     //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
-    *averr = AVERROR(ENOMEM);
+    *ncerr = NCERR_NOMEM;
     goto err;
   }
   if(avcodec_parameters_to_context(ncv->codecctx, st->codecpar) < 0){
     goto err;
   }
-  if((*averr = avcodec_open2(ncv->codecctx, ncv->codec, NULL)) < 0){
+  if((averr = avcodec_open2(ncv->codecctx, ncv->codec, NULL)) < 0){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
+    *ncerr = averr2ncerr(averr);
     goto err;
   }
   /*if((ncv->cparams = avcodec_parameters_alloc()) == NULL){
     //fprintf(stderr, "Couldn't allocate codec params for %s\n", filename);
-    *averr = AVERROR(ENOMEM);
+    *averr = NCERR_NOMEM;
     goto err;
   }
   if((*averr = avcodec_parameters_from_context(ncv->cparams, ncv->codecctx)) < 0){
@@ -348,12 +362,12 @@ ncvisual_open(const char* filename, int* averr){
   }*/
   if((ncv->frame = av_frame_alloc()) == NULL){
     // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
-    *averr = AVERROR(ENOMEM);
+    *ncerr = NCERR_NOMEM;
     goto err;
   }
   if((ncv->oframe = av_frame_alloc()) == NULL){
     // fprintf(stderr, "Couldn't allocate output frame for %s\n", filename);
-    *averr = AVERROR(ENOMEM);
+    *ncerr = NCERR_NOMEM;
     goto err;
   }
   return ncv;
@@ -363,8 +377,8 @@ err:
   return NULL;
 }
 
-ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, int* averr){
-  ncvisual* ncv = ncvisual_open(filename, averr);
+ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr){
+  ncvisual* ncv = ncvisual_open(filename, ncerr);
   if(ncv == NULL){
     return NULL;
   }
@@ -376,8 +390,8 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, int* averr){
 }
 
 ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
-                              int* averr, int y, int x, ncscale_e style){
-  ncvisual* ncv = ncvisual_open(filename, averr);
+                              nc_err_e* ncerr, int y, int x, ncscale_e style){
+  ncvisual* ncv = ncvisual_open(filename, ncerr);
   if(ncv == NULL){
     return NULL;
   }
@@ -437,7 +451,7 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
 // frames carry a presentation time relative to the beginning, so we get an
 // initial timestamp, and check each frame against the elapsed time to sync
 // up playback.
-int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
                     float timescale, streamcb streamer, void* curry){
   int frame = 1;
   ncv->timescale = timescale;
@@ -449,7 +463,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
   // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
   // we don't have PTS available.
   uint64_t sum_duration = 0;
-  while( (avf = ncvisual_decode(ncv, averr)) ){
+  while( (avf = ncvisual_decode(ncv, ncerr)) ){
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
     double tbase = av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base);
@@ -488,7 +502,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, int* averr,
       nanosleep(&interval, NULL);
     }
   }
-  if(*averr == AVERROR_EOF){
+  if(*ncerr == NCERR_EOF){
     return 0;
   }
   return -1;
@@ -505,9 +519,9 @@ bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return false;
 }
 
-struct AVFrame* ncvisual_decode(ncvisual* nc, int* averr){
+struct AVFrame* ncvisual_decode(ncvisual* nc, nc_err_e* ncerr){
   (void)nc;
-  (void)averr;
+  (void)ncerr;
   return NULL;
 }
 
@@ -520,29 +534,29 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   return -1;
 }
 
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr,
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
                     float timespec, streamcb streamer, void* curry){
   (void)nc;
   (void)ncv;
-  (void)averr;
+  (void)ncerr;
   (void)timespec;
   (void)streamer;
   (void)curry;
   return -1;
 }
 
-ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, int* averr){
+ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr){
   (void)nc;
   (void)filename;
-  (void)averr;
+  (void)ncerr;
   return NULL;
 }
 
 ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
-                              int* averr, int y, int x, ncscale_e style){
+                              nc_err_e* ncerr, int y, int x, ncscale_e style){
   (void)nc;
   (void)filename;
-  (void)averr;
+  (void)ncerr;
   (void)y;
   (void)x;
   (void)style;

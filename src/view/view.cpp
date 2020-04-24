@@ -172,18 +172,18 @@ int main(int argc, char** argv){
   for(auto i = nonopt ; i < argc ; ++i){
     std::array<char, 128> errbuf;
     int frames = 0;
-    int averr;
+    nc_err_e err;
     std::unique_ptr<Visual> ncv;
     try{
-      ncv = std::make_unique<Visual>(argv[i], &averr, 1, 0, stretchmode);
+      ncv = std::make_unique<Visual>(argv[i], &err, 1, 0, stretchmode);
     }catch(std::exception& e){
       nc.stop();
       std::cerr << argv[i] << ": " << e.what() << "\n";
       return EXIT_FAILURE;
     }
-    int r = ncv->stream(&averr, timescale, perframe, &frames);
+    int r = ncv->stream(&err, timescale, perframe, &frames);
     if(r < 0){ // positive is intentional abort
-      av_make_error_string(errbuf.data(), errbuf.size(), averr);
+      av_make_error_string(errbuf.data(), errbuf.size(), err);
       nc.stop();
       std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data() << std::endl;
       return EXIT_FAILURE;

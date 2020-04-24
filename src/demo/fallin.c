@@ -175,16 +175,16 @@ int fallin_demo(struct notcurses* nc){
   }
   free(usemap);
   ncplane_erase(stdn);
-#ifdef USE_FFMPEG
+#ifdef USE_MULTIMEDIA
 #ifndef DFSG_BUILD
-  int averr = 0;
+  nc_err_e err = 0;
   char* path = find_data("lamepatents.jpg");
-  struct ncvisual* ncv = ncplane_visual_open(stdn, path, &averr);
+  struct ncvisual* ncv = ncplane_visual_open(stdn, path, &err);
   free(path);
   if(ncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(ncv, &averr) == NULL){
+  if(ncvisual_decode(ncv, &err) == NULL){
     ncvisual_destroy(ncv);
     return -1;
   }
@@ -192,8 +192,8 @@ int fallin_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
-  assert(ncvisual_decode(ncv, &averr) == NULL);
-  assert(averr == AVERROR_EOF);
+  assert(ncvisual_decode(ncv, &err) == NULL);
+  assert(NCERR_EOF == err);
   ncvisual_destroy(ncv);
 #endif
 #endif

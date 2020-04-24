@@ -82,13 +82,13 @@ int main(void){
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   struct ncplane* n = notcurses_stdplane(nc);
 
-#ifdef USE_FFMPEG
-  int averr;
-  struct ncvisual* ncv = ncplane_visual_open(n, "../data/covid19.jpg", &averr);
+#ifdef USE_MULTIMEDIA
+  nc_err_e err;
+  struct ncvisual* ncv = ncplane_visual_open(n, "../data/covid19.jpg", &err);
   if(!ncv){
     goto err;
   }
-  if(!ncvisual_decode(ncv, &averr)){
+  if(!ncvisual_decode(ncv, &err)){
     goto err;
   }
   if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
@@ -127,9 +127,7 @@ int main(void){
   }
   return EXIT_SUCCESS;
 
-#ifdef USE_FFMPEG
 err:
   notcurses_stop(nc);
   return EXIT_FAILURE;
-#endif
 }

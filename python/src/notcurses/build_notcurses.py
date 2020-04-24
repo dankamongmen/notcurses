@@ -263,20 +263,25 @@ int ncdirect_cursor_up(struct ncdirect* nc, int num);
 int ncdirect_cursor_left(struct ncdirect* nc, int num);
 int ncdirect_cursor_right(struct ncdirect* nc, int num);
 int ncdirect_cursor_down(struct ncdirect* nc, int num);
-struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, int* averr);
+typedef enum {
+  NCERR_SUCCESS,
+  NCERR_NOMEM,
+  NCERR_EOF,
+} nc_err_e;
+struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, nc_err_e* err);
 typedef enum {
   NCSCALE_NONE,
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
 } ncscale_e;
-struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file, int* averr, int y, int x, ncscale_e style);
+struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
 struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 void ncvisual_destroy(struct ncvisual* ncv);
-struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
+struct AVFrame* ncvisual_decode(struct ncvisual* nc, nc_err_e* err);
 int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
 char* ncvisual_subtitle(const struct ncvisual* ncv);
 typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, int* averr, float timescale, streamcb streamer, void* curry);
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
 int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
 int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
 struct selector_item {
