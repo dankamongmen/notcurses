@@ -16,6 +16,7 @@ typedef enum {
   NCERR_NOMEM = ENOMEM,
   NCERR_EOF = 0x20464f45, // matches AVERROR_EOF
 } nc_err_e;
+```
 
 # DESCRIPTION
 
