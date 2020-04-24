@@ -459,7 +459,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
   // we don't have PTS available.
   uint64_t sum_duration = 0;
-  while(ncvisual_decode(ncv) == NCERR_SUCCESS){
+  while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
     double tbase = av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base);
