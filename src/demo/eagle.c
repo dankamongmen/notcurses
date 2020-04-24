@@ -26,12 +26,12 @@ const char eagle1[] =
 // display the level map scaled to fit entirely within the visual area
 static int
 outzoomed_map(struct notcurses* nc, const char* map){
-  int averr;
-  struct ncvisual* ncv = ncvisual_open_plane(nc, map, &averr, 0, 0, NCSCALE_SCALE);
+  nc_err_e ncerr;
+  struct ncvisual* ncv = ncvisual_open_plane(nc, map, &ncerr, 0, 0, NCSCALE_SCALE);
   if(ncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(ncv, &averr) == NULL){
+  if(ncvisual_decode(ncv, &ncerr) == NULL){
     return -1;
   }
   if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
@@ -44,18 +44,18 @@ outzoomed_map(struct notcurses* nc, const char* map){
 
 static struct ncplane*
 zoom_map(struct notcurses* nc, const char* map){
-  int averr;
+  int ncerr;
   // determine size that will be represented on screen at once, and how
   // large that section has been rendered in the outzoomed map. take the map
   // and begin opening it on larger and larger planes that fit on the screen
   // less and less. eventually, reach our natural NCSCALE_NONE size and begin
   // scrolling through the map, whooooooooosh.
-  struct ncvisual* ncv = ncvisual_open_plane(nc, map, &averr, 0, 0, NCSCALE_NONE);
+  struct ncvisual* ncv = ncvisual_open_plane(nc, map, &ncerr, 0, 0, NCSCALE_NONE);
   if(ncv == NULL){
     return NULL;
   }
   struct AVFrame* frame;
-  if((frame = ncvisual_decode(ncv, &averr)) == NULL){
+  if((frame = ncvisual_decode(ncv, &ncerr)) == NULL){
     ncvisual_destroy(ncv);
     return NULL;
   }
@@ -86,13 +86,13 @@ zoom_map(struct notcurses* nc, const char* map){
     zoomy += delty;
     zoomx += deltx;
     zncp = ncplane_new(nc, zoomy, zoomx, 0, 0, NULL);
-    struct ncvisual* zncv = ncplane_visual_open(zncp, map, &averr);
+    struct ncvisual* zncv = ncplane_visual_open(zncp, map, &ncerr);
     if(zncv == NULL){
       ncvisual_destroy(ncv);
       ncplane_destroy(zncp);
       return NULL;
     }
-    if(ncvisual_decode(zncv, &averr) == NULL){
+    if(ncvisual_decode(zncv, &ncerr) == NULL){
       ncvisual_destroy(zncv);
       ncplane_destroy(zncp);
       return NULL;

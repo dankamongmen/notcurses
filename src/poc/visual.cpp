@@ -17,12 +17,12 @@ int main(int argc, char** argv){
   int dimx, dimy;
   ncplane_dim_yx(n, &dimy, &dimx);
 
-  int averr;
-  auto ncv = ncplane_visual_open(n, "../data/changes.jpg", &averr);
+  nc_err_e ncerr;
+  auto ncv = ncplane_visual_open(n, "../data/changes.jpg", &ncerr);
   if(!ncv){
     goto err;
   }
-  if(!ncvisual_decode(ncv, &averr)){
+  if(!ncvisual_decode(ncv, &ncerr)){
     goto err;
   }
   if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){

@@ -9,8 +9,8 @@
 #include <clocale>
 #include <iostream>
 #include <termios.h>
-#include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
+#include <ncpp/NotCurses.hh>
 
 #define NANOSECS_IN_SEC 1000000000
 

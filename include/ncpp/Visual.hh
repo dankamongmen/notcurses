@@ -13,35 +13,35 @@ namespace ncpp
 	class NCPP_API_EXPORT Visual : public Root
 	{
 	public:
-		explicit Visual (Plane *plane, const char *file, int *averr)
-			: Visual (reinterpret_cast<ncplane*>(plane), file, averr)
+		explicit Visual (Plane *plane, const char *file, nc_err_e* ncerr)
+			: Visual (reinterpret_cast<ncplane*>(plane), file, ncerr)
 		{}
 
-		explicit Visual (Plane const* plane, const char *file, int *averr)
-			: Visual (const_cast<Plane*>(plane), file, averr)
+		explicit Visual (Plane const* plane, const char *file, nc_err_e* ncerr)
+			: Visual (const_cast<Plane*>(plane), file, ncerr)
 		{}
 
-		explicit Visual (Plane &plane, const char *file, int *averr)
-			: Visual (reinterpret_cast<ncplane*>(&plane), file, averr)
+		explicit Visual (Plane &plane, const char *file, nc_err_e* ncerr)
+			: Visual (reinterpret_cast<ncplane*>(&plane), file, ncerr)
 		{}
 
-		explicit Visual (Plane const& plane, const char *file, int *averr)
-			: Visual (const_cast<Plane&>(plane), file, averr)
+		explicit Visual (Plane const& plane, const char *file, nc_err_e* ncerr)
+			: Visual (const_cast<Plane&>(plane), file, ncerr)
 		{}
 
-		explicit Visual (ncplane *plane, const char *file, int *averr)
+		explicit Visual (ncplane *plane, const char *file, nc_err_e* ncerr)
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			visual = ncplane_visual_open (reinterpret_cast<ncplane*>(plane), file, averr);
+			visual = ncplane_visual_open (reinterpret_cast<ncplane*>(plane), file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("notcurses failed to create a new visual");
 		}
 
-		explicit Visual (const char *file, int *averr, int y, int x, NCScale scale)
+		explicit Visual (const char *file, nc_err_e* ncerr, int y, int x, NCScale scale)
 		{
-			visual = ncvisual_open_plane (get_notcurses (), file, averr, y, x, static_cast<ncscale_e>(scale));
+			visual = ncvisual_open_plane (get_notcurses (), file, ncerr, y, x, static_cast<ncscale_e>(scale));
 			if (visual == nullptr)
 				throw init_error ("notcurses failed to create a new visual");
 		}
@@ -62,9 +62,9 @@ namespace ncpp
 			return visual;
 		}
 
-		AVFrame* decode (int *averr) const noexcept
+		AVFrame* decode (nc_err_e* ncerr) const noexcept
 		{
-			return ncvisual_decode (visual, averr);
+			return ncvisual_decode (visual, ncerr);
 		}
 
 		bool render (int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
@@ -72,9 +72,9 @@ namespace ncpp
 			return error_guard (ncvisual_render (visual, begy, begx, leny, lenx), -1);
 		}
 
-		int stream (int *averr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
+		int stream (nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, averr, timescale, streamer, curry), -1);
+			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, ncerr, timescale, streamer, curry), -1);
 		}
 
 		char* subtitle () const noexcept

@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <notcurses/nckeys.h>
+#include <notcurses/ncerrs.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,7 +31,7 @@ API const char* notcurses_version(void);
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 struct ncplane;   // a drawable notcurses surface, composed of cells
 struct cell;      // a coordinate on an ncplane: an EGC plus styling
-struct ncvisual;  // a visual bit of multimedia opened with LibAV
+struct ncvisual;  // a visual bit of multimedia opened with LibAV|OIIO
 struct ncuplot;   // a histogram, bound to a plane (uint64_ts)
 struct ncdplot;   // a histogram, bound to a plane (non-negative doubles)
 struct ncfdplane; // i/o wrapper to dump file descriptor to plane
@@ -2015,14 +2016,11 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
                             x + xlen - 1, ctlword);
 }
 
-// multimedia functionality
-struct AVFrame;
-
 // Open a visual (image or video), associating it with the specified ncplane.
-// Returns NULL on any error, writing the AVError to 'averr'.
+// Returns NULL on any error, writing the cause to 'ncerr'.
 // FIXME this ought also take an ncscale_e!
 API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                         int* averr);
+                                         nc_err_e* ncerr);
 
 // How to scale the visual in ncvisual_open_plane(). NCSCALE_NONE will open a
 // plane tailored to the visual's exact needs, which is probably larger than the
@@ -2042,7 +2040,7 @@ typedef enum {
 // as possible (given the visible screen), either maintaining aspect ratio
 // (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
 API struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
-                                         int* averr, int y, int x,
+                                         nc_err_e* ncerr, int y, int x,
                                          ncscale_e style);
 
 // Return the plane to which this ncvisual is bound.
@@ -2053,10 +2051,11 @@ API struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 API void ncvisual_destroy(struct ncvisual* ncv);
 
 // extract the next frame from an ncvisual. returns NULL on end of file,
-// writing AVERROR_EOF to 'averr'. returns NULL on a decoding or allocation
-// error, placing the AVError in 'averr'. this frame is invalidated by a
+// writing NCERR_EOF to 'ncerr'. returns NULL on a decoding or allocation
+// error, writing the cause to 'ncerr'. this frame is invalidated by a
 // subsequent call to ncvisual_decode(), and should not be freed by the caller.
-API struct AVFrame* ncvisual_decode(struct ncvisual* nc, int* averr);
+struct AVFrame;
+API struct AVFrame* ncvisual_decode(struct ncvisual* nc, nc_err_e* ncerr);
 
 // Render the decoded frame to the associated ncplane. The frame will be scaled
 // to the size of the ncplane per the ncscale_e style. A subregion of the
@@ -2110,7 +2109,7 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry
 // 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
 // supply 'timescale' less than or equal to 0.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
-                        int* averr, float timescale, streamcb streamer,
+                        nc_err_e* ncerr, float timescale, streamcb streamer,
                         void* curry);
 
 // Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset

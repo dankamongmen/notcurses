@@ -148,22 +148,22 @@ int luigi_demo(struct notcurses* nc){
   }
   int rows, cols;
   struct ncplane* n = notcurses_stddim_yx(nc, &rows, &cols);
-  int averr = 0;
+  nc_err_e ncerr = NCERR_SUCCESS;
   char* map = find_data("megaman2.bmp");
-  struct ncvisual* nv = ncplane_visual_open(n, map, &averr);
+  struct ncvisual* nv = ncplane_visual_open(n, map, &ncerr);
   free(map);
   if(nv == NULL){
     return -1;
   }
-  if(ncvisual_decode(nv, &averr) == NULL){
+  if(ncvisual_decode(nv, &ncerr) == NULL){
     return -1;
   }
   if(ncvisual_render(nv, 0, 0, -1, -1) <= 0){
     return -1;
   }
-  assert(ncvisual_decode(nv, &averr) == NULL);
+  assert(ncvisual_decode(nv, &ncerr) == NULL);
 #ifdef USE_FFMPEG
-  assert(averr == AVERROR_EOF);
+  assert(NCERR_EOF == ncerr);
 #endif
   // he should be walking on the platform ~4/5 of the way down
   const int height = 32;
@@ -190,12 +190,12 @@ int luigi_demo(struct notcurses* nc){
   if(fname == NULL){
     return -1;
   }
-  wmncv = ncvisual_open_plane(nc, fname, &averr, 0, 0, NCSCALE_NONE);
+  wmncv = ncvisual_open_plane(nc, fname, &ncerr, 0, 0, NCSCALE_NONE);
   free(fname);
   if(wmncv == NULL){
     return -1;
   }
-  if(ncvisual_decode(wmncv, &averr) == NULL){
+  if(ncvisual_decode(wmncv, &ncerr) == NULL){
     ncvisual_destroy(wmncv);
     return -1;
   }

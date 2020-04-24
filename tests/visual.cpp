@@ -29,55 +29,55 @@ TEST_CASE("Multimedia") {
   }
 
   SUBCASE("LoadImageCreatePlane") {
-    int averr;
+    nc_err_e ncerr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_open_plane(nc_, find_data("changes.jpg"), &averr, 0, 0, NCSCALE_STRETCH);
+    auto ncv = ncvisual_open_plane(nc_, find_data("changes.jpg"), &ncerr, 0, 0, NCSCALE_STRETCH);
     REQUIRE(ncv);
-    REQUIRE(0 == averr);
-    auto frame = ncvisual_decode(ncv, &averr);
+    REQUIRE(0 == ncerr);
+    auto frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE(frame);
-    REQUIRE(0 == averr);
+    REQUIRE(0 == ncerr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    frame = ncvisual_decode(ncv, &averr);
+    frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE_EQ(nullptr, frame);
-    CHECK(AVERROR_EOF == averr);
+    CHECK(NCERR_EOF == ncerr);
     ncvisual_destroy(ncv);
   }
 
   SUBCASE("LoadImage") {
-    int averr;
+    nc_err_e ncerr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncplane_visual_open(ncp_, find_data("changes.jpg"), &averr);
+    auto ncv = ncplane_visual_open(ncp_, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
-    REQUIRE(0 == averr);
-    auto frame = ncvisual_decode(ncv, &averr);
+    REQUIRE(0 == ncerr);
+    auto frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE(frame);
-    REQUIRE(0 == averr);
+    REQUIRE(0 == ncerr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    frame = ncvisual_decode(ncv, &averr);
+    frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE_EQ(nullptr, frame);
-    CHECK(AVERROR_EOF == averr);
+    CHECK(NCERR_EOF == ncerr);
     ncvisual_destroy(ncv);
   }
 
   SUBCASE("PlaneDuplicate") {
-    int averr;
+    nc_err_e ncerr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncplane_visual_open(ncp_, find_data("changes.jpg"), &averr);
+    auto ncv = ncplane_visual_open(ncp_, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
-    REQUIRE(0 == averr);
-    auto frame = ncvisual_decode(ncv, &averr);
+    REQUIRE(0 == ncerr);
+    auto frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE(frame);
-    REQUIRE(0 == averr);
+    REQUIRE(0 == ncerr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
@@ -96,19 +96,19 @@ TEST_CASE("Multimedia") {
   }
 
   SUBCASE("LoadVideo") {
-    int averr;
+    nc_err_e ncerr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncplane_visual_open(ncp_, find_data("samoa.avi"), &averr);
+    auto ncv = ncplane_visual_open(ncp_, find_data("samoa.avi"), &ncerr);
     REQUIRE(ncv);
-    CHECK(0 == averr);
+    CHECK(0 == ncerr);
     for(;;){ // run at the highest speed we can
-      auto frame = ncvisual_decode(ncv, &averr);
+      auto frame = ncvisual_decode(ncv, &ncerr);
       if(!frame){
-        CHECK(AVERROR_EOF == averr);
+        CHECK(NCERR_EOF == ncerr);
         break;
       }
-      CHECK(0 == averr);
+      CHECK(0 == ncerr);
       CHECK(dimy * 2 == frame->height);
       CHECK(dimx == frame->width);
       CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
@@ -118,15 +118,15 @@ TEST_CASE("Multimedia") {
   }
 
   SUBCASE("LoadVideoCreatePlane") {
-    int averr;
+    nc_err_e ncerr;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_open_plane(nc_, find_data("notcursesI.avi"), &averr, 0, 0, NCSCALE_STRETCH);
+    auto ncv = ncvisual_open_plane(nc_, find_data("notcursesI.avi"), &ncerr, 0, 0, NCSCALE_STRETCH);
     REQUIRE(ncv);
-    CHECK(0 == averr);
-    auto frame = ncvisual_decode(ncv, &averr);
+    CHECK(0 == ncerr);
+    auto frame = ncvisual_decode(ncv, &ncerr);
     REQUIRE_NE(nullptr, frame);
-    CHECK(0 == averr);
+    CHECK(0 == ncerr);
     CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width);
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
