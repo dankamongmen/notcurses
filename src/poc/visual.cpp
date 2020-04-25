@@ -6,7 +6,14 @@
 #include <notcurses/notcurses.h>
 
 int main(int argc, char** argv){
+  const char* file = "../data/changes.jpg";
   setlocale(LC_ALL, "");
+  if(argc > 2){
+    fprintf(stderr, "usage: visual [ file ]\n");
+    return EXIT_FAILURE;
+  }else if(argc == 2){
+    file = argv[1];
+  }
   notcurses_options opts{};
   opts.inhibit_alternate_screen = true;
   struct notcurses* nc;
@@ -18,7 +25,7 @@ int main(int argc, char** argv){
   ncplane_dim_yx(n, &dimy, &dimx);
 
   nc_err_e ncerr;
-  auto ncv = ncplane_visual_open(n, "../data/changes.jpg", &ncerr);
+  auto ncv = ncplane_visual_open(n, file, &ncerr);
   if(!ncv){
     goto err;
   }
