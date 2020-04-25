@@ -115,8 +115,8 @@ cd python
 %{_libdir}/libnotcurses++.a
 
 %files data
-%{_datadir}/*.avi
-%{_datadir}/*.jpg
+%{_datadir}/%{name}/*.avi
+%{_datadir}/%{name}/*.jpg
 
 %files -n python3-%{name}
 %{_bindir}/notcurses-pydemo
