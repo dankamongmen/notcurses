@@ -55,6 +55,7 @@ int main(int argc, char** argv){
     }
     fddone = false;
     pthread_mutex_unlock(&lock);
+    ncfdplane_destroy(ncfp);
   }
 
 done:

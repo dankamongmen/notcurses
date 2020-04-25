@@ -56,7 +56,7 @@ int main(int argc, char** argv){
   }
   ret = 0;
   pthread_mutex_unlock(&lock);
-
+  ncsubproc_destroy(nsproc);
   if(notcurses_stop(nc) || ret){
     return EXIT_FAILURE;
   }
