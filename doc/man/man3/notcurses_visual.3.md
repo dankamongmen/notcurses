@@ -57,7 +57,7 @@ result in a zero-area rendering.
 # RETURN VALUES
 
 **notcurses_canopen** returns true if this functionality is enabled, or false
-if Notcurses was not built with FFmpeg support. **ncplane_visual_open** and
+if Notcurses was not built with multimedia support. **ncplane_visual_open** and
 **ncvisual_open_plane** return an **ncvisual** object on success, or **NULL**
 on failure. Success from these functions indicates that the specified **file**
 was opened, and enough data was read to make a firm codec identification. It
