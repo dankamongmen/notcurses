@@ -5,6 +5,7 @@
 static inline bool
 ffmpeg_trans_p(bool bgr, unsigned char alpha){
   if(!bgr && alpha < 192){
+//fprintf(stderr, "TRANSPARENT!\n");
     return true;
   }
   return false;

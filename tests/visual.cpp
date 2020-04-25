@@ -1,9 +1,4 @@
 #include "main.h"
-#ifdef USE_MULTIMEDIA
-#include <libavutil/pixdesc.h>
-#include <libavutil/avconfig.h>
-#include <libavcodec/avcodec.h>
-#endif
 
 TEST_CASE("Multimedia") {
   if(getenv("TERM") == nullptr){

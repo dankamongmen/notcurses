@@ -11,6 +11,9 @@ Source2:       https://dank.qemfd.net/dankamongmen.gpg
 BuildRequires: gnupg2
 BuildRequires: cmake
 BuildRequires: gcc-c++
+BuildRequires: libqrcodegen-devel
+BuildRequires: OpenEXR-devel
+BuildRequires: OpenImageIO-devel
 BuildRequires: pandoc
 BuildRequires: python3-devel
 BuildRequires: python3-cffi
@@ -53,7 +56,7 @@ Python wrappers and a demonstration script for the notcurses library.
 %build
 mkdir build
 cd build
-%cmake -DUSE_FFMPEG=off -DUSE_TESTS=off ..
+%cmake -DUSE_MULTIMEDIA=oiio -DUSE_TESTS=off ..
 %make_build
 cd python
 %py3_build

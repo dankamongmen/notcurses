@@ -30,6 +30,8 @@ if(${USE_MULTIMEDIA} STREQUAL "ffmpeg")
   set(USE_FFMPEG ON)
 elseif(${USE_MULTIMEDIA} STREQUAL "oiio")
   set(USE_OIIO ON)
+elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
+  message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}')")
 endif()
 
 find_package(PkgConfig REQUIRED)
@@ -504,8 +506,8 @@ target_compile_definitions(notcurses-tetris
 )
 
 # notcurses-view
+if(${USE_FFMPEG} OR ${USE_OIIO})
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
-if(${USE_FFMPEG})
 add_executable(notcurses-view ${VIEWSRCS})
 target_include_directories(notcurses-view
   PRIVATE
@@ -696,7 +698,7 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
-if(${USE_FFMPEG})
+if(${USE_FFMPEG} OR ${USE_OIIO})
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
 # Don't install source materia for self-originated multimedia
 list(FILTER TESTDATA EXCLUDE REGEX ".*xcf$")
@@ -717,7 +719,7 @@ if(${USE_TESTS})
 install(TARGETS notcurses-tester DESTINATION bin)
 endif()
 install(TARGETS notcurses-tetris DESTINATION bin)
-if(${USE_FFMPEG})
+if(${USE_FFMPEG} OR ${USE_OIIO})
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
 install(TARGETS notcurses notcurses-static
