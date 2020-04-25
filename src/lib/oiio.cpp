@@ -99,8 +99,14 @@ nc_err_e ncvisual_decode(ncvisual* nc){
   }
   const auto &spec = nc->image->spec();
   auto pixels = spec.width * spec.height;// * spec.nchannels;
+  if(spec.nchannels < 3 || spec.nchannels > 4){
+    return NCERR_DECODE; // FIXME get some to test with
+  }
   nc->frame = std::make_unique<uint32_t[]>(pixels);
-  if(!nc->image->read_image(0, 0, 0, 3, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->frame.get(), 4)){
+  if(spec.nchannels == 3){
+    std::fill(nc->frame.get(), nc->frame.get() + pixels, 0xfffffffful);
+  }
+  if(!nc->image->read_image(0, 0, 0, spec.nchannels, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->frame.get(), 4)){
     return NCERR_DECODE;
   }
 /*for(int i = 0 ; i < pixels ; ++i){

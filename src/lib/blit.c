@@ -5,6 +5,7 @@
 static inline bool
 ffmpeg_trans_p(bool bgr, unsigned char alpha){
   if(!bgr && alpha < 192){
+//fprintf(stderr, "TRANSPARENT!\n");
     return true;
   }
   return false;
@@ -31,7 +32,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize, const void* data,
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
       const unsigned char* rgbbase_down = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
-fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
+//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway

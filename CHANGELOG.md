@@ -13,7 +13,7 @@ rearrangements of Notcurses.
     `notcurses/ncerrs.h`.
   * CMake no longer uses the `USE_FFMPEG` option. Instead, the `USE_MULTIMEDIA`
     option can be defined as `ffmpeg`, `oiio`, or `none`. In `cmake-gui`, this
-    item will now appear as an option selector.
+    item will now appear as an option selector. `oiio` selects OpenImageIO.
 
 * 1.3.2 (2020-04-19)
   * `ncdirect_cursor_push()`, `notcurses_cursor_pop()`, and
