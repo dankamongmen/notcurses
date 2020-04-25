@@ -604,43 +604,41 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
-# Python bindings
+# Python bindings. When we're building debs, we use pybuild to directly call
+# into setup.py, so none of this applies---debian/rules sets USE_PYTHON=off.
+# arch also doesn't use it. fedora does.
 if(${USE_PYTHON})
-  # when we're building debs, we use pybuild to directly call into setup.py,
-  # so none of this applies. arch also doesn't use it. fedora does.
-  if(NOT "${DFSG_BUILD}")
-    find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
-    file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
-    file(COPY python/src/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python/src)
-    file(COPY python/README.md DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python)
-    set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/tools/setup.py.in")
-    set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/python/setup.py")
-    set(SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/tools/setup.cfg.in")
-    set(SETUP_CFG "${CMAKE_CURRENT_BINARY_DIR}/python/setup.cfg")
-    configure_file(${SETUP_PY_IN} ${SETUP_PY})
-    configure_file(${SETUP_CFG_IN} ${SETUP_CFG})
-    add_custom_command(
-      OUTPUT
-        "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
-      COMMAND
-        env LDFLAGS=\"-Wl,-soname,_notcurses.abi3.so.1 -L${CMAKE_CURRENT_BINARY_DIR}\" "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
-        "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info
-      DEPENDS
-        ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
-      COMMENT "Building Python wrappers"
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/python
-    )
-    # build/pytimestamp isn't actually generated, and thus this runs each time.
-    # python does its own dep tracking, so it "works" out like recursive make.
-    add_custom_target(pymod ALL
-      DEPENDS
-        "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/python
-    )
+  find_package(Python3 COMPONENTS Development Interpreter REQUIRED)
+  file(GLOB PYSRC CONFIGURE_DEPENDS python/src/notcurses/*.py)
+  file(COPY python/src/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python/src)
+  file(COPY python/README.md DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python)
+  set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/tools/setup.py.in")
+  set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/python/setup.py")
+  set(SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/tools/setup.cfg.in")
+  set(SETUP_CFG "${CMAKE_CURRENT_BINARY_DIR}/python/setup.cfg")
+  configure_file(${SETUP_PY_IN} ${SETUP_PY})
+  configure_file(${SETUP_CFG_IN} ${SETUP_CFG})
+  add_custom_command(
+    OUTPUT
+      "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+    COMMAND
+      env LDFLAGS=\"-Wl,-soname,_notcurses.abi3.so.1 -L${CMAKE_CURRENT_BINARY_DIR}\" "${Python3_EXECUTABLE}" ${SETUP_PY} build &&
+      "${Python3_EXECUTABLE}" ${SETUP_PY} egg_info
+    DEPENDS
+      ${PYSRC} ${SETUP_PY} ${SETUP_CFG} notcurses
+    COMMENT "Building Python wrappers"
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR}/python
+  )
+  # build/pytimestamp isn't actually generated, and thus this runs each time.
+  # python does its own dep tracking, so it "works" out like recursive make.
+  add_custom_target(pymod ALL
+    DEPENDS
+      "${CMAKE_CURRENT_BINARY_DIR}/build/pytimestamp"
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR}/python
+  )
   install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} setup.py install --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)")
-  endif()
 endif()
 
 # Rust bindings
