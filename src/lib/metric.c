@@ -19,7 +19,7 @@ const char *ncmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
                      unsigned mult, int uprefix){
   const char prefixes[] = "KMGTPEZY"; // 10^21-1 encompasses 2^64-1
   // FIXME can't use multibyte μ unless we enlarge the target buffer
-  const char subprefixes[] = "munpfazy"; // 10^24-1
+  const char subprefixes[] = "mµnpfazy"; // 10^24-1
   unsigned consumed = 0;
   uintmax_t dv;
 
