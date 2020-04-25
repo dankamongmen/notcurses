@@ -56,7 +56,7 @@ Python wrappers and a demonstration script for the notcurses library.
 %build
 mkdir build
 cd build
-%cmake -DUSE_MULTIMEDIA=oiio -DUSE_TESTS=off ..
+%cmake -DUSE_MULTIMEDIA=oiio -DUSE_TESTS=off -DDFSG_BUILD=on ..
 %make_build
 cd python
 %py3_build
