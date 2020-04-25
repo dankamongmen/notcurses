@@ -68,7 +68,7 @@ cd python
 %py3_install
 
 %files
-%doc CHANGELOG.md README.md
+%doc CHANGELOG.md OTHERS.md README.md
 %license COPYRIGHT LICENSE
 %{_libdir}/libnotcurses.so.%{version}
 %{_libdir}/libnotcurses.so.1
@@ -90,6 +90,7 @@ cd python
 %{_mandir}/man1/notcurses-view.1*
 
 %files devel
+%doc USAGE.md
 %{_includedir}/notcurses/
 %{_includedir}/ncpp/
 %{_libdir}/libnotcurses.so
