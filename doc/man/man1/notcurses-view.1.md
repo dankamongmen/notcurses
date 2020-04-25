@@ -12,7 +12,7 @@ notcurses-view - Render images and video to the console
 
 # DESCRIPTION
 
-**notcurses-view** uses the FFmpeg libraries and notcurses to render images
+**notcurses-view** uses a multimedian-enabled notcurses to render images
 and videos to the terminal. Media will be scaled to the terminal's size.
 
 # OPTIONS

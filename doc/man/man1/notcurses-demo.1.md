@@ -88,7 +88,7 @@ non-free under the Debian Free Software Guidelines. As a result, the
 **chunli**, **eagle**, **jungle**, **luigi**, and **view** demos
 are unavailable through the Debian package.
 
-If notcurses is built without FFmpeg, the **chunli**, **eagle**,
+If notcurses is built without multimedia support, the **chunli**, **eagle**,
 **outro**, **view**, and **xray** demos will be unavailable. If notcurses is
 built without libqrcodegen, the **qrcode** demo will be unavailable.
 
