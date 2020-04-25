@@ -9,7 +9,7 @@
 #include "version.h"
 
 std::mutex ncmtx;
-const std::string BackgroundFile = NOTCURSES_SHARE "/tetris-background.jpeg";
+const std::string BackgroundFile = NOTCURSES_SHARE "/tetris-background.jpg";
 
 using namespace std::chrono_literals;
 
