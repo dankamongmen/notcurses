@@ -18,6 +18,7 @@ BuildRequires: pandoc
 BuildRequires: python3-devel
 BuildRequires: python3-cffi
 BuildRequires: pkgconfig(ncurses)
+Requires:      %{name}-data = %{version}-%{release}
 
 %description
 notcurses facilitates the creation of modern TUI programs,
@@ -39,6 +40,14 @@ Requires:      %{name}%{?_isa} = %{version}-%{release}
 
 %description static
 A statically-linked version of the notcurses library.
+
+%package data
+Summary:       Data files used by notcurses binaries
+License:       ASL 2.0
+BuildArch:     noarch
+
+%description -n python3-%{name}
+Python wrappers and a demonstration script for the notcurses library.
 
 %package -n python3-%{name}
 Summary:       Python wrappers for notcurses
@@ -68,7 +77,7 @@ cd python
 %py3_install
 
 %files
-%doc CHANGELOG.md OTHERS.md README.md
+%doc CHANGELOG.md OTHERS.md README.md USAGE.md
 %license COPYRIGHT LICENSE
 %{_libdir}/libnotcurses.so.%{version}
 %{_libdir}/libnotcurses.so.1
@@ -91,7 +100,6 @@ cd python
 %{_mandir}/man1/notcurses-view.1*
 
 %files devel
-%doc USAGE.md
 %{_includedir}/notcurses/
 %{_includedir}/ncpp/
 %{_libdir}/libnotcurses.so
@@ -105,6 +113,10 @@ cd python
 %{_libdir}/libnotcurses.a
 %{_libdir}/libnotcurses++.a
 
+%files data
+%{_datadir}/*.avi
+%{_datadir}/*.jpg
+
 %files -n python3-%{name}
 %{_bindir}/notcurses-pydemo
 %{_mandir}/man1/notcurses-pydemo.1*
@@ -114,7 +126,7 @@ cd python
 
 %changelog
 * Sat Apr 25 2020 Nick Black <dankamongmen@gmail.com> - 1.3.3-1
-- New upstream version, incorporate review feedback, build against OIIO,
-  install notcurses-view.
+- New upstream version, incorporate review feedback
+- Build against OpenImageIO, install notcurses-view and data.
 * Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.3.2-1
 - Initial Fedora packaging
