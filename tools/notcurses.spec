@@ -114,6 +114,7 @@ cd python
 
 %changelog
 * Sat Apr 25 2020 Nick Black <dankamongmen@gmail.com> - 1.3.3-1
-- New upstream version, incorporate review feedback
+- New upstream version, incorporate review feedback, build against OIIO,
+  install notcurses-view.
 * Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.3.2-1
 - Initial Fedora packaging
