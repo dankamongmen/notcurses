@@ -8,7 +8,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  int dimy, dimx, y, x;
+  int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   char c = 'A';
   ncplane_set_scrolling(n, true);
