@@ -60,9 +60,9 @@ ncvisual_open(const char* filename, nc_err_e* err){
     *err = NCERR_DECODE;
     return nullptr;
   }
-  const auto &spec = ncv->image->spec();
+/*const auto &spec = ncv->image->spec();
 std::cout << "Opened " << filename << ": " << spec.height << "x" <<
-  spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;
+spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*/
   return ncv;
 }
 
@@ -76,6 +76,7 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   ncv->dstheight *= 2;
   ncv->ncp = nc;
   ncv->style = NCSCALE_STRETCH;
+  ncv->ncobj = nullptr;
   return ncv;
 }
 
@@ -90,6 +91,7 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
   ncv->style = style;
   ncv->ncobj = nc;
   ncv->ncp = nullptr;
+  ncv->ncobj = nc;
   return ncv;
 }
 
@@ -119,7 +121,7 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       );
 }*/
   int rows, cols;
-  if(nc->ncp == NULL){ // create plane
+  if(nc->ncp == nullptr){ // create plane
     if(nc->style == NCSCALE_NONE){
       rows = spec.height / 2;
       cols = spec.width;
@@ -133,10 +135,10 @@ nc_err_e ncvisual_decode(ncvisual* nc){
     }
     nc->dstwidth = cols;
     nc->dstheight = rows * 2;
-    nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, NULL);
+    nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, nullptr);
     nc->placey = 0;
     nc->placex = 0;
-    if(nc->ncp == NULL){
+    if(nc->ncp == nullptr){
       return NCERR_NOMEM;
     }
   }else{ // check for resize
@@ -235,7 +237,7 @@ int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
     }
     if(nsnow < schedns){
       ns_to_timespec(schedns - nsnow, &interval);
-      nanosleep(&interval, NULL);
+      nanosleep(&interval, nullptr);
     }*/
   }
   if(*ncerr == NCERR_EOF){
@@ -257,6 +259,9 @@ int ncvisual_init(int loglevel){
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
     ncv->image->close();
+    if(ncv->ncobj){
+      ncplane_destroy(ncv->ncp);
+    }
     delete ncv;
   }
 }
