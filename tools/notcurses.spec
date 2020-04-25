@@ -24,6 +24,7 @@ Requires:      %{name}-data = %{version}-%{release}
 notcurses facilitates the creation of modern TUI programs,
 making full use of Unicode and 24-bit TrueColor. It presents
 an API similar to that of Curses, and rides atop Terminfo.
+This package includes static libraries and example binaries.
 
 %package devel
 Summary:       Development files for the notcurses library
@@ -46,8 +47,8 @@ Summary:       Data files used by notcurses binaries
 License:       ASL 2.0
 BuildArch:     noarch
 
-%description -n python3-%{name}
-Python wrappers and a demonstration script for the notcurses library.
+%description data
+Multimedia content used by the notcurses example binaries.
 
 %package -n python3-%{name}
 Summary:       Python wrappers for notcurses
