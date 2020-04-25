@@ -37,11 +37,11 @@ typedef struct ncvisual {
 #endif
 } ncvisual;
 
+#ifdef USE_FFMPEG
 ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
 }
 
-#ifdef USE_FFMPEG
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
     avcodec_close(ncv->codecctx);

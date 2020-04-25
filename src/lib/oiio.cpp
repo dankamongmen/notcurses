@@ -21,6 +21,10 @@ typedef struct ncvisual {
 
 extern "C" {
 
+ncplane* ncvisual_plane(ncvisual* ncv){
+  return ncv->ncp;
+}
+
 bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return true;
 }
@@ -176,8 +180,6 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
                         ncv->frame.get(), begy, begx, leny, lenx);
   //av_frame_unref(ncv->oframe);
   return ret;
-
-  return NCERR_SUCCESS;
 }
 
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
