@@ -196,11 +196,11 @@ int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
   ncv->timescale = timescale;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
-  uint64_t nsbegin = timespec_to_ns(&begin);
-  bool usets = false;
+  //uint64_t nsbegin = timespec_to_ns(&begin);
+  //bool usets = false;
   // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
   // we don't have PTS available.
-  uint64_t sum_duration = 0;
+  //uint64_t sum_duration = 0;
   while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
     /* codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
@@ -221,9 +221,9 @@ int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
     ++frame;
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
-    uint64_t nsnow = timespec_to_ns(&now);
+    /*uint64_t nsnow = timespec_to_ns(&now);
     struct timespec interval;
-    /*uint64_t duration = ncv->oframe->pkt_duration * tbase * NANOSECS_IN_SEC;
+    uint64_t duration = ncv->oframe->pkt_duration * tbase * NANOSECS_IN_SEC;
     sum_duration += (duration * ncv->timescale);
 //fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->codecctx->time_base), av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base));
     double schedns = nsbegin;
