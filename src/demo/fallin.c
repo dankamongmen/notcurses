@@ -34,6 +34,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
       bool felloff = true;
       for(int i = 0 ; i < rangee - ranges ; ++i){
         struct ncplane* ncp = arr[ranges + i];
+        ncplane_move_top(ncp);
         int x, y;
         ncplane_yx(ncp, &y, &x);
         if(felloff){

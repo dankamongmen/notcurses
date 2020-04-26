@@ -27,7 +27,7 @@ static const char DEFAULT_DEMO[] = "itfhbrgnswjqu";
 #ifdef DFSG_BUILD
 static const char DEFAULT_DEMO[] = "ixtfhbrgnswuqo";
 #else
-static const char DEFAULT_DEMO[] = "ixethnbcgrwuvlfsjqo";
+static const char DEFAULT_DEMO[] = "ixethnbcgrwuvlsfjqo";
 #endif
 #endif
 
