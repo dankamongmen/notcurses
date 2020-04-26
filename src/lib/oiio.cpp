@@ -2,6 +2,7 @@
 #ifdef USE_OIIO
 #include <OpenImageIO/version.h>
 #include <OpenImageIO/imageio.h>
+#include <OpenImageIO/imagebuf.h>
 #include "internal.h"
 
 typedef struct ncvisual {
@@ -9,6 +10,8 @@ typedef struct ncvisual {
   int dstwidth, dstheight;
   float timescale;         // scale frame duration by this value
   std::unique_ptr<OIIO::ImageInput> image;  // must be close()d
+  OIIO::ImageBuf raw;
+  OIIO::ImageBuf scaled;   // in use IFF style == NONE(?)
   std::unique_ptr<uint32_t[]> frame;
   ncplane* ncp;
   // if we're creating the plane based off the first frame's dimensions, these
@@ -120,6 +123,9 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       nc->frame[i] >> 24
       );
 }*/
+  OIIO::ImageSpec rgbaspec = spec;
+  rgbaspec.nchannels = 4;
+  nc->raw.reset(rgbaspec, nc->frame.get());
   int rows, cols;
   if(nc->ncp == nullptr){ // create plane
     if(nc->style == NCSCALE_NONE){
