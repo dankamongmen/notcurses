@@ -1,5 +1,14 @@
 # Usage
 
+* [Direct Mode](#direct-mode)
+* [Alignment](#alignment)
+* [Input](#input)
+* [Planes](#planes) ([Plane Channels API](#plane-channels-api))
+* [Cells](#cells) ([Cell Channels API](#cell-channels-api))
+* [Reels](#reels)
+* [Widgets](#widgets)
+* [Channels](#channels)
+
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
 pages ought have been installed along with notcurses. This document is a
 secondary reference, and should not be considered authoritative. For a more
