@@ -91,7 +91,7 @@ Why use this non-standard library?
     optimizations, and reduces loader time.
 
 * All APIs natively support the Universal Character Set (Unicode). The `cell`
-* API is based around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
+  API is based around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
 
 * Visual features including images, fonts, video, high-contrast text, sprites,
   and transparent regions. All APIs natively support 24-bit color, quantized
@@ -116,7 +116,7 @@ that fine library.
 * (build+runtime) From NCURSES: terminfo 6.1+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFMpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
-* (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.0.7+
+* (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.1+
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+

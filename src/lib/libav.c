@@ -515,6 +515,10 @@ bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return false;
 }
 
+ncplane* ncvisual_plane(ncvisual* ncv){
+  return ncv->ncp;
+}
+
 nc_err_e ncvisual_decode(ncvisual* nc){
   (void)nc;
   return NCERR_UNIMPLEMENTED;
