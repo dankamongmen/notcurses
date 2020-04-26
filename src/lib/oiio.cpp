@@ -1,17 +1,37 @@
 #include "version.h"
 #ifdef USE_OIIO
+#include <OpenImageIO/filter.h>
 #include <OpenImageIO/version.h>
 #include <OpenImageIO/imageio.h>
 #include <OpenImageIO/imagebuf.h>
+#include <OpenImageIO/imagebufalgo.h>
 #include "internal.h"
+
+// this garbage is thanks to https://github.com/dankamongmen/notcurses/issues/541
+// and https://github.com/OpenImageIO/oiio/issues/2566. fml. FIXME kill this.
+namespace OpenImageIO_v2_1::ImageBufAlgo {
+ImageBuf OIIO_API from_IplImage (const struct IplImage *ipl,
+                                 TypeDesc convert){
+  ImageBuf dst;
+  if (!ipl) {
+    dst.errorf("Passed NULL source IplImage");
+    return dst;
+  }
+  return dst;
+  (void)convert;
+}
+}
 
 typedef struct ncvisual {
   int packet_outstanding;
   int dstwidth, dstheight;
   float timescale;         // scale frame duration by this value
   std::unique_ptr<OIIO::ImageInput> image;  // must be close()d
-  OIIO::ImageBuf raw;
-  OIIO::ImageBuf scaled;   // in use IFF style == NONE(?)
+  std::unique_ptr<OIIO::ImageBuf> raw;
+  char* filename;
+  bool did_scaling;
+  uint64_t framenum;
+  OIIO::ImageBuf scaled;   // in use IFF did_scaling;
   std::unique_ptr<uint32_t[]> frame;
   ncplane* ncp;
   // if we're creating the plane based off the first frame's dimensions, these
@@ -22,8 +42,6 @@ typedef struct ncvisual {
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
 } ncvisual;
 
-extern "C" {
-
 ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
 }
@@ -33,13 +51,14 @@ bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
 }
 
 static ncvisual*
-ncvisual_create(float timescale){
+ncvisual_create(const char* filename, float timescale){
   auto ret = new ncvisual;
   if(ret == nullptr){
     return nullptr;
   }
   ret->packet_outstanding = 0;
   ret->dstwidth = ret->dstheight = 0;
+  ret->framenum = 0;
   ret->timescale = timescale;
   ret->image = nullptr;
   ret->ncp = nullptr;
@@ -47,12 +66,14 @@ ncvisual_create(float timescale){
   ret->style = NCSCALE_NONE;
   ret->ncobj = nullptr;
   ret->frame = nullptr;
+  ret->raw = nullptr;
+  ret->filename = strdup(filename);
   return ret;
 }
 
 static ncvisual*
 ncvisual_open(const char* filename, nc_err_e* err){
-  ncvisual* ncv = ncvisual_create(1);
+  ncvisual* ncv = ncvisual_create(filename, 1);
   if(ncv == nullptr){
     *err = NCERR_NOMEM;
     return nullptr;
@@ -63,7 +84,7 @@ ncvisual_open(const char* filename, nc_err_e* err){
     *err = NCERR_DECODE;
     return nullptr;
   }
-/*const auto &spec = ncv->image->spec();
+/*const auto &spec = ncv->image->spec_dimensions();
 std::cout << "Opened " << filename << ": " << spec.height << "x" <<
 spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*/
   return ncv;
@@ -99,21 +120,29 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
 }
 
 nc_err_e ncvisual_decode(ncvisual* nc){
+  const auto &spec = nc->image->spec_dimensions(nc->framenum);
+  OIIO::ImageSpec newspec;
   if(nc->frame){
-    return NCERR_EOF; // FIXME
+    if(!nc->image->seek_subimage(nc->image->current_subimage() + 1, 0, newspec)){
+       return NCERR_EOF;
+    }
+    // FIXME check newspec vis-a-vis image->spec()
   }
-  const auto &spec = nc->image->spec();
+//fprintf(stderr, "SUBIMAGE: %d\n", nc->image->current_subimage());
+  nc->did_scaling = false;
   auto pixels = spec.width * spec.height;// * spec.nchannels;
   if(spec.nchannels < 3 || spec.nchannels > 4){
     return NCERR_DECODE; // FIXME get some to test with
   }
   nc->frame = std::make_unique<uint32_t[]>(pixels);
-  if(spec.nchannels == 3){
+  if(spec.nchannels == 3){ // FIXME replace with channel shuffle
     std::fill(nc->frame.get(), nc->frame.get() + pixels, 0xfffffffful);
   }
-  if(!nc->image->read_image(0, 0, 0, spec.nchannels, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->frame.get(), 4)){
+//fprintf(stderr, "READING: %d %ju\n", nc->image->current_subimage(), nc->framenum);
+  if(!nc->image->read_image(nc->framenum++, 0, 0, spec.nchannels, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->frame.get(), 4)){
     return NCERR_DECODE;
   }
+//fprintf(stderr, "READ: %d %ju\n", nc->image->current_subimage(), nc->framenum);
 /*for(int i = 0 ; i < pixels ; ++i){
   //fprintf(stderr, "%06d %02x %02x %02x %02x\n", i,
   fprintf(stderr, "%06d %d %d %d %d\n", i,
@@ -125,7 +154,8 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 }*/
   OIIO::ImageSpec rgbaspec = spec;
   rgbaspec.nchannels = 4;
-  nc->raw.reset(rgbaspec, nc->frame.get());
+  nc->raw = std::make_unique<OIIO::ImageBuf>(rgbaspec, nc->frame.get());
+//fprintf(stderr, "SUBS: %d\n", nc->raw->nsubimages());
   int rows, cols;
   if(nc->ncp == nullptr){ // create plane
     if(nc->style == NCSCALE_NONE){
@@ -154,6 +184,13 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       nc->dstwidth = cols;
     }
   }
+  if(nc->dstwidth != spec.width || nc->dstheight != spec.height){ // scale it
+    OIIO::ROI roi(0, nc->dstwidth, 0, nc->dstheight, 0, 1, 0, 4);
+    if(!OIIO::ImageBufAlgo::resize(nc->scaled, *nc->raw, "", 0, roi)){
+      // FIXME
+    }
+    nc->did_scaling = true;
+  }
   return NCERR_SUCCESS;
 }
 
@@ -165,7 +202,8 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   if(ncv->frame == nullptr){
     return -1;
   }
-  const auto &spec = ncv->image->spec();
+  const auto &spec = ncv->did_scaling ? ncv->scaled.spec() : ncv->raw->spec();
+  const void* pixels = ncv->did_scaling ? ncv->scaled.localpixels() : ncv->raw->localpixels();
 //fprintf(stderr, "render %d/%d to %dx%d+%dx%d\n", f->height, f->width, begy, begx, leny, lenx);
   if(begx >= spec.width || begy >= spec.height){
     return -1;
@@ -191,7 +229,7 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
 //fprintf(stderr, "render: %dx%d:%d+%d of %d/%d -> %dx%d\n", begy, begx, leny, lenx, f->height, f->width, dimy, dimx);
   const int linesize = spec.width * 4;
   int ret = ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, linesize,
-                        ncv->frame.get(), begy, begx, leny, lenx);
+                        pixels, begy, begx, leny, lenx);
   //av_frame_unref(ncv->oframe);
   return ret;
 }
@@ -268,6 +306,7 @@ void ncvisual_destroy(ncvisual* ncv){
     if(ncv->ncobj){
       ncplane_destroy(ncv->ncp);
     }
+    free(ncv->filename);
     delete ncv;
   }
 }
@@ -275,7 +314,5 @@ void ncvisual_destroy(ncvisual* ncv){
 const char* oiio_version(void){
   return OIIO_VERSION_STRING;
 }
-
-} // extern "C"
 
 #endif
