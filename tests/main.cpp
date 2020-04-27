@@ -61,7 +61,6 @@ reset_terminal(){
     char* str = tigetstr("sgr0");
     if(str){
       printf("%s", str);
-      free(str);
     }
     fflush(stdout);
     close(fd);
