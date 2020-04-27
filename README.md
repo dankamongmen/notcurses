@@ -47,8 +47,7 @@ Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https:
     (and vice versa).
 
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
-    replacement for NCURSES on existing systems, nor a widely-ported and -tested
-    bedrock of free software, nor a battle-proven, veteran library.
+    replacement for NCURSES on existing systems.
 
 Notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
