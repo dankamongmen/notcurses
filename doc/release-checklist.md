@@ -32,5 +32,4 @@
 * Generate and upload new Doxygen documentation via `doxygen ../doc/Doxyfile`
   * `scp -r html qemfd.net:/var/www/notcurses/`
 * Update Debian changelog with `dch -v $NEXTVERSION-1`
-* Update `doc/FreeBSD-Makefile` version
 * Update CMakeLists.txt with next version
