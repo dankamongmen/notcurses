@@ -281,7 +281,9 @@ char* ncvisual_subtitle(const ncvisual* ncv){ // no support in OIIO
 }
 
 int ncvisual_init(int loglevel){
+  // FIXME set OIIO global attribute "debug" based on loglevel
   (void)loglevel;
+  // FIXME check OIIO_VERSION_STRING components against linked openimageio_version()
   return 0; // allow success here
 }
 
@@ -296,6 +298,7 @@ void ncvisual_destroy(ncvisual* ncv){
   }
 }
 
+// FIXME would be nice to have OIIO::attributes("libraries") in here
 const char* oiio_version(void){
   return OIIO_VERSION_STRING;
 }

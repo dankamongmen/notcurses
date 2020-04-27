@@ -11,10 +11,10 @@ notcurses_multiselector - high level widget for selecting from a set
 **#include <notcurses/notcurses.h>**
 
 ```c
-**struct ncinput;**
-**struct ncplane;**
-**struct notcurses;**
-**struct ncmultiselector;**
+struct ncinput;
+struct ncplane;
+struct notcurses;
+struct ncmultiselector;
 
 struct mselector_item {
   char* option;
