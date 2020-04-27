@@ -7,21 +7,6 @@
 #include <OpenImageIO/imagebufalgo.h>
 #include "internal.h"
 
-// this garbage is thanks to https://github.com/dankamongmen/notcurses/issues/541
-// and https://github.com/OpenImageIO/oiio/issues/2566. fml. FIXME kill this.
-namespace OpenImageIO_v2_1::ImageBufAlgo {
-ImageBuf OIIO_API from_IplImage (const struct IplImage *ipl,
-                                 TypeDesc convert){
-  ImageBuf dst;
-  if (!ipl) {
-    dst.errorf("Passed NULL source IplImage");
-    return dst;
-  }
-  return dst;
-  (void)convert;
-}
-}
-
 typedef struct ncvisual {
   int packet_outstanding;
   int dstwidth, dstheight;

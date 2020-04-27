@@ -171,11 +171,11 @@ endif()
 
 target_compile_options(notcurses
   PRIVATE
-    -Wall -Wextra -W -Wshadow -Wformat -fkeep-inline-functions ${DEBUG_OPTIONS}
+    -Wall -Wextra -W -Wshadow -Wformat ${DEBUG_OPTIONS}
 )
 target_compile_options(notcurses-static
   PRIVATE
-    -Wall -Wextra -W -Wshadow -Wformat -fkeep-inline-functions ${DEBUG_OPTIONS}
+    -Wall -Wextra -W -Wshadow -Wformat ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses
   PUBLIC
