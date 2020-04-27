@@ -13,6 +13,8 @@
   * Repack DFSG-safe tarball with uscan, upload to github
     * `uscan --repack --compression xz --force`
     * upload to github
+    * import new version: `gbp import-orig ../../notcurses_$VERSION+dfsg.1.orig.tar.xz`
+    * `git push --tags`
     * build source package: `dpkg-buildpackage --build=source`
     * build binaries: `cd .. && sudo pbuilder build *dsc`
 * Copy `../*notcurses*$VERSION*` to apt repo, import with `reprepro`
