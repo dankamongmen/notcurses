@@ -1,6 +1,6 @@
 % notcurses_error(3)
 % nick black <nickblack@linux.com>
-% v1.3.2
+% v1.3.3
 
 # NAME
 

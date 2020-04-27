@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.3.3 (not yet released)
+* 1.3.3 (2020-04-26)
   * The `ncdplot` type has been added for plots based on `double`s rather than
     `uint64_t`s. The `ncplot` type and all `ncplot_*` functions were renamed
     `ncuplot` for symmetry.
@@ -11,6 +11,8 @@ rearrangements of Notcurses.
     Functions which once accepted a value-result `AVERROR` now accept a value-
     result `nc_err_e`. The relevant constants can be found in
     `notcurses/ncerrs.h`.
+  * OpenImageIO 2.1+ is now supported as an experimental multimedia backend.
+    FFmpeg remains recommended. Video support with OIIO is spotty thus far.
   * CMake no longer uses the `USE_FFMPEG` option. Instead, the `USE_MULTIMEDIA`
     option can be defined as `ffmpeg`, `oiio`, or `none`. In `cmake-gui`, this
     item will now appear as an option selector. `oiio` selects OpenImageIO.
