@@ -14,6 +14,12 @@ notcurses-tetris - Render images and video to the console
 
 **notcurses-tetris** implements Tetris using notcurses.
 
+The goal is to complete horizontal lines, without allowing tetriminos to
+reach the top of the screen. The falling tetrimino can be rotated counter-
+clockwise with the 'z' key, and clockwise with the 'x' key. The tetrimino
+can be moved left and right with 'h' and 'l', respectively. It can be moved
+down with 'j'. The arrow keys can also be used. Quit with 'q'.
+
 # OPTIONS
 
 **-h**: Show help and exit.
