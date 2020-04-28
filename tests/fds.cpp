@@ -4,12 +4,12 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
+#include "internal.h"
 #include <condition_variable>
 
 std::mutex lock;
 std::condition_variable cond;
 bool inline_cancelled = false;
-bool outofline_cancelled = false;
 
 int testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry){
   struct ncplane* n = ncfdplane_plane(ncfd);
@@ -25,11 +25,11 @@ int testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry){
 }
 
 int testfdeof(struct ncfdplane* n, int fderrno, void* curry){
+  bool* outofline_cancelled = static_cast<bool*>(curry);
   lock.lock();
-  outofline_cancelled = true;
+  *outofline_cancelled = true;
   lock.unlock();
   cond.notify_one();
-  (void)curry;
   (void)n;
   (void)fderrno;
   return 0;
@@ -64,8 +64,9 @@ TEST_CASE("FdsAndSubprocs") {
 
   // destroy the ncfdplane outside of its own context
   SUBCASE("FdPlaneDestroyOffline") {
-    outofline_cancelled = false;
+    bool outofline_cancelled = false;
     ncfdplane_options opts{};
+    opts.curry = &outofline_cancelled;
     int fd = open("/dev/null", O_RDONLY|O_CLOEXEC);
     REQUIRE(0 <= fd);
     auto ncfdp = ncfdplane_create(n_, &opts, fd, testfdcb, testfdeof);
@@ -101,8 +102,9 @@ TEST_CASE("FdsAndSubprocs") {
   // FIXME SIGCHLD seems to blow up doctest...
   SUBCASE("SubprocDestroyOffline") {
     char * const argv[] = { strdup("/bin/cat"), strdup("/dev/null"), NULL, };
-    outofline_cancelled = false;
+    bool outofline_cancelled = false;
     ncsubproc_options opts{};
+    opts.popts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
     std::unique_lock<std::mutex> lck(lock);
@@ -117,8 +119,9 @@ TEST_CASE("FdsAndSubprocs") {
 
   SUBCASE("SubprocDestroyCmdExecFails") {
     char * const argv[] = { strdup("/dev/nope"), NULL, };
-    outofline_cancelled = false;
+    bool outofline_cancelled = false;
     ncsubproc_options opts{};
+    opts.popts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
     std::unique_lock<std::mutex> lck(lock);
@@ -133,8 +136,9 @@ TEST_CASE("FdsAndSubprocs") {
 
   SUBCASE("SubprocDestroyCmdFailed") {
     char * const argv[] = { strdup("/bin/cat"), strdup("/dev/nope"), NULL, };
-    outofline_cancelled = false;
+    bool outofline_cancelled = false;
     ncsubproc_options opts{};
+    opts.popts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
     std::unique_lock<std::mutex> lck(lock);
