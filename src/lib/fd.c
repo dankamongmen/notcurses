@@ -109,11 +109,13 @@ launch_pipe_process(int* pipe, int* pidfd){
   clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
   clargs.exit_signal = SIGCHLD;  // FIXME maybe switch it up for doctest?
   pid_t p = syscall(__NR_clone3, &clargs, sizeof(clargs));
-  if(p == 0){
+  if(p == 0){ // child
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
-      return -1;
+      fprintf(stderr, "Couldn't dup() %d (%s)\n", pipes[1], strerror(errno));
+      raise(SIGKILL);
+      exit(EXIT_FAILURE);
     }
-  }else{
+  }else if(p > 0){ // parent
     *pipe = pipes[0];
     int flags = fcntl(*pipe, F_GETFL, 0);
     if(flags < 0){
@@ -233,6 +235,7 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
   if(ret->pid == 0){
     execvp(bin, arg);
     fprintf(stderr, "Error execv()ing %s\n", bin);
+    raise(SIGKILL);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
