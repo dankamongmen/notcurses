@@ -67,62 +67,49 @@ struct timespec demodelay = {
   .tv_nsec = 0,
 };
 
-// anything that's dfsg non-free requires ncvisual (i.e. it's all multimedia),
-// so also check for USE_MULTIMEDIA here in DFSG_BUILD
-#ifndef DFSG_BUILD
-#ifdef USE_MULTIMEDIA
-#define NONFREE(name, fxn) { name, fxn, }
-#else
-#endif
-#else
-#define DFSG(name, fxn) { NULL, NULL, }
+// the "jungle" demo has non-free material embedded into it, and is thus
+// entirely absent (can't just be disabled). supply a stub here.
+#ifdef DFSG_BUILD
+int jungle_demo(struct notcurses* nc){
+  (void)nc;
+  return -1;
+}
 #endif
 
-#ifndef DFSG
-#define DFSG(name, fxn) { name, fxn, }
-#endif
-#ifndef NONFREE
-#define NONFREE(name, fxn) { NULL, NULL, }
-#endif
-
-#ifdef USE_MULTIMEDIA
-#define FREEFFMPEG(name, fxn) { name, fxn, }
-#else
-#define FREEFFMPEG(name, fxn) { NULL, NULL, }
-#endif
-
-// define with NONFREE() to exempt from any DFSG or non-multimedia build.
-// define with FREEFFMPEG() to exempt from any non-multimedia build.
+// Demos can be disabled either due to a DFSG build (any non-free material must
+// be disabled) or a non-multimedia build (all images/videos must be disabled).
 static struct {
   const char* name;
   int (*fxn)(struct notcurses*);
+  bool dfsg_disabled;             // disabled for DFSG builds
+  bool mmeng_disabled;            // disabled for null-multimedia builds
 } demos[26] = {
-  { NULL, NULL, },
-  { "box", box_demo, },
-  NONFREE("chunli", chunli_demo),
-  { NULL, NULL, },
-  NONFREE("eagle", eagle_demo),
-  { "fallin'", fallin_demo, },
-  { "grid", grid_demo, },
-  { "highcon", highcontrast_demo, },
-  { "intro", intro, },
-  DFSG("jungle", jungle_demo),
-  { NULL, NULL, },
-  NONFREE("luigi", luigi_demo),
-  { NULL, NULL, },
-  { "normal", normal_demo, },
-  FREEFFMPEG("outro", outro),
-  { NULL, NULL, },
-  { "qrcode", qrcode_demo, }, // is blank without USE_QRCODEGEN
-  { "reel", reel_demo, },
-  { "sliders", sliding_puzzle_demo, },
-  { "trans", trans_demo, },
-  { "uniblock", unicodeblocks_demo, },
-  NONFREE("view", view_demo),
-  { "whiteout", witherworm_demo, },
-  FREEFFMPEG("xray", xray_demo),
-  { NULL, NULL, },
-  { NULL, NULL, },
+  { NULL, NULL, false, false, },
+  { "box", box_demo, false, false, },
+  {"chunli", chunli_demo, true, true, },
+  { NULL, NULL, false, false, },
+  { "eagle", eagle_demo, true, true, },
+  { "fallin'", fallin_demo, false, false, },
+  { "grid", grid_demo, false, false, },
+  { "highcon", highcontrast_demo, false, false, },
+  { "intro", intro, false, false, },
+  { "jungle", jungle_demo, true, false, },
+  { NULL, NULL, false, false, },
+  { "luigi", luigi_demo, true, true, },
+  { NULL, NULL, false, false, },
+  { "normal", normal_demo, false, false, },
+  { "outro", outro, false, true, },
+  { NULL, NULL, false, false, },
+  { "qrcode", qrcode_demo, false, false, }, // is blank without USE_QRCODEGEN
+  { "reel", reel_demo, false, false, },
+  { "sliders", sliding_puzzle_demo, false, false, },
+  { "trans", trans_demo, false, false, },
+  { "uniblock", unicodeblocks_demo, false, false, },
+  { "view", view_demo, true, true, },
+  { "whiteout", witherworm_demo, false, false, },
+  {"xray", xray_demo, false, true, },
+  { NULL, NULL, false, false, },
+  { NULL, NULL, false, false, },
 };
 
 static void

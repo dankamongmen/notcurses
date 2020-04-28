@@ -941,7 +941,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     printf("  openimageio %s\n", oiio_version());
 #else
     term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
-    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support\n");
+    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
 #endif
 #endif
     fflush(stdout);
