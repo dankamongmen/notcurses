@@ -18,16 +18,15 @@ BuildRequires: pandoc
 BuildRequires: python3-devel
 BuildRequires: python3-cffi
 BuildRequires: pkgconfig(ncurses)
-Requires:      %{name}-data = %{version}-%{release}
 
 %description
-notcurses facilitates the creation of modern TUI programs,
+Notcurses facilitates the creation of modern TUI programs,
 making full use of Unicode and 24-bit TrueColor. It presents
 an API similar to that of Curses, and rides atop Terminfo.
-This package includes static libraries and example binaries.
+This package includes C and C++ shared libraries.
 
 %package devel
-Summary:       Development files for the notcurses library
+Summary:       Development files for the Notcurses library
 License:       ASL 2.0
 Requires:      %{name}%{?_isa} = %{version}-%{release}
 
@@ -35,20 +34,20 @@ Requires:      %{name}%{?_isa} = %{version}-%{release}
 Development files for the notcurses library.
 
 %package static
-Summary:       Static library for the notcurses library
+Summary:       Static library for the Notcurses library
 License:       ASL 2.0
 Requires:      %{name}%{?_isa} = %{version}-%{release}
 
 %description static
 A statically-linked version of the notcurses library.
 
-%package data
-Summary:       Data files used by notcurses binaries
+%package utils
+Summary:       Binaries from the Notcurses project
 License:       ASL 2.0
-BuildArch:     noarch
+Requires:      %{name}%{?_isa} = %{version}-%{release}
 
-%description data
-Multimedia content used by the notcurses example binaries.
+%description utils
+Binaries from Notcurses, and multimedia content used thereby.
 
 %package -n python3-%{name}
 Summary:       Python wrappers for notcurses
@@ -84,21 +83,6 @@ cd python
 %{_libdir}/libnotcurses.so.1
 %{_libdir}/libnotcurses++.so.1
 %{_libdir}/libnotcurses++.so.%{version}
-%{_bindir}/notcurses-demo
-%{_bindir}/notcurses-input
-%{_bindir}/notcurses-ncreel
-%{_bindir}/notcurses-tetris
-%{_bindir}/notcurses-view
-# Don't use a wildcard, lest we pull in notcurses-pydemo.1. We install the man
-# pages for notcurses-tester, which we're not yet installing, because we intend
-# to install it Real Soon and it's IMHO not worth mucking with the CMake in the
-# meantime FIXME.
-%{_mandir}/man1/notcurses-demo.1*
-%{_mandir}/man1/notcurses-input.1*
-%{_mandir}/man1/notcurses-ncreel.1*
-%{_mandir}/man1/notcurses-tester.1*
-%{_mandir}/man1/notcurses-tetris.1*
-%{_mandir}/man1/notcurses-view.1*
 
 %files devel
 %{_includedir}/notcurses/
@@ -114,7 +98,22 @@ cd python
 %{_libdir}/libnotcurses.a
 %{_libdir}/libnotcurses++.a
 
-%files data
+%files utils
+%{_bindir}/notcurses-demo
+%{_bindir}/notcurses-input
+%{_bindir}/notcurses-ncreel
+%{_bindir}/notcurses-tetris
+%{_bindir}/notcurses-view
+# Don't use a wildcard, lest we pull in notcurses-pydemo.1. We install the man
+# pages for notcurses-tester, which we're not yet installing, because we intend
+# to install it Real Soon and it's IMHO not worth mucking with the CMake in the
+# meantime FIXME.
+%{_mandir}/man1/notcurses-demo.1*
+%{_mandir}/man1/notcurses-input.1*
+%{_mandir}/man1/notcurses-ncreel.1*
+%{_mandir}/man1/notcurses-tester.1*
+%{_mandir}/man1/notcurses-tetris.1*
+%{_mandir}/man1/notcurses-view.1*
 %{_datadir}/%{name}/*.avi
 %{_datadir}/%{name}/*.jpg
 
