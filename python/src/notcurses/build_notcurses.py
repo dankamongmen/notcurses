@@ -79,6 +79,7 @@ typedef struct notcurses_options {
   int margin_t, margin_r, margin_b, margin_l;
 } notcurses_options;
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
+int notcurses_lex_margins(const char* op, notcurses_options* opts);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
 struct ncplane* notcurses_stdplane(struct notcurses*);

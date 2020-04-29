@@ -23,7 +23,9 @@ typedef struct notcurses_options {
 } notcurses_options;
 ```
 
-**struct notcurses* notcurses_init(const struct notcurses_options* opts, FILE* fp);**
+**int notcurses_lex_margins(const char* op, notcurses_options* opts);**
+
+**struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);**
 
 # DESCRIPTION
 
@@ -67,7 +69,11 @@ the full screen cleared, followed by rendering to a subregion. Inhibiting the
 alternate screen plus margins will see rendering to a subregion, with the screen
 outside this region not cleared. This is the only means by which existing
 output can be undisturbed by notcurses. Margins are best-effort. Supplying any
-negative margin is an error.
+negative margin is an error. **notcurses_lex_margins** provides lexing a
+margin argument expression in one of two forms:
+
+* a single number, which will be applied to all sides, or
+* four comma-delimited numbers, applied to top, right, bottom, and left.
 
 ## Fatal signals
 

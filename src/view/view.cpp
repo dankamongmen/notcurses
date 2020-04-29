@@ -17,10 +17,11 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] files" << '\n';
   o << " -k: don't use the alternate screen\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
+  o << " -m margins: margin, or 4 comma-separated margins\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
   exit(exitcode);
 }
@@ -104,7 +105,7 @@ int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale
   *timescale = 1.0;
   *scalemode = NCScale::Scale;
   int c;
-  while((c = getopt(argc, argv, "hl:d:s:k")) != -1){
+  while((c = getopt(argc, argv, "hl:d:s:m:k")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -120,6 +121,15 @@ int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale
         break;
       case 'k':{
         opts.inhibit_alternate_screen = true;
+        break;
+      }case 'm':{
+        if(opts.margin_t || opts.margin_r || opts.margin_b || opts.margin_l){
+          std::cerr <<  "Provided margins twice!" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        if(notcurses_lex_margins(optarg, &opts)){
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
         break;
       }case 'd':{
         std::stringstream ss;

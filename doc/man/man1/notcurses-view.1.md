@@ -23,9 +23,16 @@ and videos to the terminal. Media will be scaled to the terminal's size.
 
 **-s scalemode**: Scaling mode, one of **none**, **scale**, or **stretch**.
 
+**-m margins**: Define rendering margins (see below).
+
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
 
 files: Select which files to render, and what order to render them in.
+
+Default margins are all 0, and thus the full screen will be rendered. Using
+**-m**, margins can be supplied. Provide a single number to set all four margins
+to the same value, or four comma-delimited values for the top, right, bottom,
+and left margins respectively. Negative margins are illegal.
 
 # NOTES
 

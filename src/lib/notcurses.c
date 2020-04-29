@@ -1897,3 +1897,45 @@ bool ncplane_set_scrolling(ncplane* n, bool scrollp){
   n->scrolling = scrollp;
   return old;
 }
+
+// extract an integer, which must be non-negative, and followed by either a
+// comma or a NUL terminator.
+static int
+lex_long(const char* op, int* i, char** endptr){
+  errno = 0;
+  long l = strtol(op, endptr, 10);
+  if(l < 0 || (l == LONG_MAX && errno == ERANGE) || (l > INT_MAX)){
+    fprintf(stderr, "Invalid margin: %s\n", op);
+    return -1;
+  }
+  if((**endptr != ',' && **endptr) || *endptr == op){
+    fprintf(stderr, "Invalid margin: %s\n", op);
+    return -1;
+  }
+  *i = l;
+  return 0;
+}
+
+int notcurses_lex_margins(const char* op, notcurses_options* opts){
+  char* eptr;
+  if(lex_long(op, &opts->margin_t, &eptr)){
+    return -1;
+  }
+  if(!*eptr){ // allow a single value to be specified for all four margins
+    opts->margin_r = opts->margin_l = opts->margin_b = opts->margin_t;
+    return 0;
+  }
+  op = ++eptr; // once here, we require four values
+  if(lex_long(op, &opts->margin_r, &eptr) || !*eptr){
+    return -1;
+  }
+  op = ++eptr;
+  if(lex_long(op, &opts->margin_b, &eptr) || !*eptr){
+    return -1;
+  }
+  op = ++eptr;
+  if(lex_long(op, &opts->margin_l, &eptr) || *eptr){ // must end in NUL
+    return -1;
+  }
+  return 0;
+}

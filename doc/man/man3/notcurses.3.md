@@ -97,6 +97,7 @@ particular EGC is heavily reused within a plane.
 
 A few high-level widgets are included, all built atop ncplanes:
 
+* **notcurses_fds(3)** for dumping file descriptors/subprocesses to a plane
 * **notcurses_menu(3)** for menu bars at the top or bottom of the screen
 * **notcurses_multiselector(3)** for selecting one or more items from a set
 * **notcurses_plot(3)** for drawing histograms and lineplots

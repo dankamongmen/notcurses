@@ -785,6 +785,11 @@ typedef struct notcurses_options {
   int margin_t, margin_r, margin_b, margin_l;
 } notcurses_options;
 
+// Lex a margin argument according to the standard notcurses definition. There
+// can be either a single number, which will define all margins equally, or
+// there can be four numbers separated by commas.
+API int notcurses_lex_margins(const char* op, notcurses_options* opts);
+
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
 // be a tty. You'll usually want stdout. Returns NULL on error, including any
 // failure initializing terminfo.
