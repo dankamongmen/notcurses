@@ -107,14 +107,14 @@ ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
 nc_err_e ncvisual_decode(ncvisual* nc){
 //fprintf(stderr, "current subimage: %d frame: %p\n", nc->image->current_subimage(), nc->frame.get());
   const auto &spec = nc->image->spec_dimensions(nc->framenum);
-/*  OIIO::ImageSpec newspec;
   if(nc->frame){
-fprintf(stderr, "seeking subimage: %d\n", nc->image->current_subimage() + 1);
+//fprintf(stderr, "seeking subimage: %d\n", nc->image->current_subimage() + 1);
+    OIIO::ImageSpec newspec;
     if(!nc->image->seek_subimage(nc->image->current_subimage() + 1, 0, newspec)){
        return NCERR_EOF;
     }
-    // FIXME check newspec vis-a-vis image->spec()
-  }*/
+    // FIXME check newspec vis-a-vis image->spec()?
+  }
 //fprintf(stderr, "SUBIMAGE: %d\n", nc->image->current_subimage());
   nc->did_scaling = false;
   auto pixels = spec.width * spec.height;// * spec.nchannels;
