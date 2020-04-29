@@ -522,6 +522,7 @@ int main(int argc, char** argv){
     if(notcurses_render(nc)){
       goto err;
     }
+    notcurses_reset_stats(nc, NULL);
     if(ext_demos(nc, spec, ignore_failures) == NULL){
       goto err;
     }
