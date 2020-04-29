@@ -717,7 +717,9 @@ void notcurses_stats(const notcurses* nc, ncstats* stats){
 }
 
 void notcurses_reset_stats(notcurses* nc, ncstats* stats){
-  memcpy(stats, &nc->stats, sizeof(*stats));
+  if(stats){
+    memcpy(stats, &nc->stats, sizeof(*stats));
+  }
   stash_stats(nc);
 }
 
