@@ -8,7 +8,7 @@ notcurses-view - Render images and video to the console
 
 # SYNOPSIS
 
-**notcurses-view** [**-h|--help**] [**-d delaymult**] [**-l loglevel**] [**-s scalemode**] files
+**notcurses-view** [**-h|--help**] [**-d delaymult**] [**-l loglevel**] [**-s scalemode**] [**-k**] files
 
 # DESCRIPTION
 
@@ -22,6 +22,8 @@ and videos to the terminal. Media will be scaled to the terminal's size.
 **-l loglevel**: Log everything (high log level) or nothing (log level 0) to stderr.
 
 **-s scalemode**: Scaling mode, one of **none**, **scale**, or **stretch**.
+
+**-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
 
 files: Select which files to render, and what order to render them in.
 

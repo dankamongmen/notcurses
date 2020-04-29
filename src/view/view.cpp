@@ -17,7 +17,8 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaling ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] files" << '\n';
+  o << " -k: don't use the alternate screen\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
@@ -103,7 +104,7 @@ int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale
   *timescale = 1.0;
   *scalemode = NCScale::Scale;
   int c;
-  while((c = getopt(argc, argv, "hl:d:s:")) != -1){
+  while((c = getopt(argc, argv, "hl:d:s:k")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -117,7 +118,10 @@ int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale
           *scalemode = NCScale::None;
         }
         break;
-      case 'd':{
+      case 'k':{
+        opts.inhibit_alternate_screen = true;
+        break;
+      }case 'd':{
         std::stringstream ss;
         ss << optarg;
         float ts;
