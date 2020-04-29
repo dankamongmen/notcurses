@@ -128,5 +128,6 @@ cd python
 * Sat Apr 25 2020 Nick Black <dankamongmen@gmail.com> - 1.3.3-1
 - New upstream version, incorporate review feedback
 - Build against OpenImageIO, install notcurses-view and data.
+
 * Tue Apr 07 2020 Nick Black <dankamongmen@gmail.com> - 1.3.3-1
 - Initial Fedora packaging
