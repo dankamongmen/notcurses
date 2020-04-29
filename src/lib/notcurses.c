@@ -1804,7 +1804,14 @@ bool notcurses_canfade(const notcurses* nc){
 }
 
 bool notcurses_canchangecolor(const notcurses* nc){
-  return nc->CCCflag;
+  if(!nc->CCCflag){
+    return false;
+  }
+  palette256* p;
+  if((unsigned)nc->colors < sizeof(p->chans) / sizeof(*p->chans)){
+    return false;
+  }
+  return true;
 }
 
 palette256* palette256_new(notcurses* nc){
@@ -1817,7 +1824,7 @@ palette256* palette256_new(notcurses* nc){
 
 int palette256_use(notcurses* nc, const palette256* p){
   int ret = -1;
-  if(!nc->CCCflag){
+  if(!notcurses_canchangecolor(nc)){
     return -1;
   }
   for(size_t z = 0 ; z < sizeof(p->chans) / sizeof(*p->chans) ; ++z){
