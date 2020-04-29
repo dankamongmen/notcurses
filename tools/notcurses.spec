@@ -122,6 +122,7 @@ cd python
 %{_mandir}/man1/notcurses-pydemo.1*
 %{python3_sitearch}/*egg-info/
 %{python3_sitearch}/notcurses/
+%attr(0755, -, -) %{python3_sitearch}/notcurses/notcurses.py
 %{python3_sitearch}/*.so
 
 %changelog
