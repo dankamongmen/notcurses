@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifndef DFSG_BUILD
+
 // unpacked data from original LBM file
 const unsigned char palette[] = 
         "\x00\x00\x00\xaf\xb7\xdf\xab\xb3\xdb\xa3" 
@@ -26670,3 +26672,4 @@ int jungle_demo(struct notcurses* nc){
   ncplane_destroy(copyplane);
   return 0;
 }
+#endif

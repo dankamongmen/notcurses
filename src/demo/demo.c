@@ -19,17 +19,7 @@ static int democount;
 static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
-// yes, these are in different orders in different configurations on purpose
-// (since some transition into the next). FIXME handle case sans libqrcodegen.
-#ifndef USE_MULTIMEDIA
-static const char DEFAULT_DEMO[] = "itfhbrgnswjqu";
-#else
-#ifdef DFSG_BUILD
-static const char DEFAULT_DEMO[] = "ixtfhbrgnswuqo";
-#else
 static const char DEFAULT_DEMO[] = "ixethnbcgrwuvlsfjqo";
-#endif
-#endif
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
@@ -203,6 +193,16 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
       break;
     }
     int idx = spec[i] - 'a';
+#ifdef DFSG_BUILD
+    if(demos[idx].dfsg_disabled){
+      continue;
+    }
+#endif
+#ifndef USE_MULTIMEDIA
+    if(demos[idx].mmeng_disabled){
+      continue;
+    }
+#endif
     hud_schedule(demos[idx].name);
     ret = demos[idx].fxn(nc);
     notcurses_reset_stats(nc, &results[i].stats);
@@ -441,12 +441,16 @@ summary_table(struct ncdirect* nc, const char* spec){
   ncdirect_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
   fflush(stdout); // in case we print to stderr below, we want color from above
   if(failed){
-    fprintf(stderr, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p\n", datadir);
+    fprintf(stderr, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p.\n", datadir);
   }
 #ifdef DFSG_BUILD
   ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
   fflush(stdout); // in case we print to stderr below, we want color from above
-  fprintf(stderr, "\nDFSG version. Some demos are missing.\n");
+  fprintf(stderr, "\nDFSG version. Some demos are unavailable.\n");
+#elif !defined(USE_MULTIMEDIA) // don't double-print for DFSG
+  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
+  fflush(stdout); // in case we print to stderr below, we want color from above
+  fprintf(stderr, "\nNo multimedia support. Some demos are unavailable.\n");
 #endif
   return failed;
 }
