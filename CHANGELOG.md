@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.3.4 (not yet released)
+  * `notcurses_lex_margins()` has been added to lex margins expressed in either
+     of two canonical formats. Hopefully this will lead to more programs
+     supporting margins.
+
 * 1.3.3 (2020-04-26)
   * The `ncdplot` type has been added for plots based on `double`s rather than
     `uint64_t`s. The `ncplot` type and all `ncplot_*` functions were renamed
