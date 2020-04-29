@@ -99,23 +99,22 @@ cd python
 %{_libdir}/libnotcurses++.a
 
 %files utils
+# Don't use a wildcard, lest we pull in notcurses-pydemo.1. We install the man
+# pages for notcurses-tester, which we're not yet installing, because we intend
+# to install it Real Soon and it's IMHO not worth mucking with the CMake in the
+# meantime FIXME.
 %{_bindir}/notcurses-demo
 %{_bindir}/notcurses-input
 %{_bindir}/notcurses-ncreel
 %{_bindir}/notcurses-tetris
 %{_bindir}/notcurses-view
-# Don't use a wildcard, lest we pull in notcurses-pydemo.1. We install the man
-# pages for notcurses-tester, which we're not yet installing, because we intend
-# to install it Real Soon and it's IMHO not worth mucking with the CMake in the
-# meantime FIXME.
 %{_mandir}/man1/notcurses-demo.1*
 %{_mandir}/man1/notcurses-input.1*
 %{_mandir}/man1/notcurses-ncreel.1*
 %{_mandir}/man1/notcurses-tester.1*
 %{_mandir}/man1/notcurses-tetris.1*
 %{_mandir}/man1/notcurses-view.1*
-%{_datadir}/%{name}/*.avi
-%{_datadir}/%{name}/*.jpg
+%{_datadir}/%{name}
 
 %files -n python3-%{name}
 %{_bindir}/notcurses-pydemo
