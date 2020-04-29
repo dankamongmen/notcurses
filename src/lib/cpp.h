@@ -29,21 +29,21 @@ class ncppplot {
  static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy){
    // if miny == maxy, they both must be equal to 0
    if(miny == maxy && miny){
-     return NULL;
+     return false;
    }
    if(opts->rangex < 0){
-     return NULL;
+     return false;
    }
    if(maxy < miny){
-     return NULL;
+     return false;
    }
    if(opts->gridtype < 0 || opts->gridtype >= sizeof(geomdata) / sizeof(*geomdata)){
-     return NULL;
+     return false;
    }
    int sdimy, sdimx;
    ncplane_dim_yx(n, &sdimy, &sdimx);
    if(sdimx <= 0){
-     return NULL;
+     return false;
    }
    int dimx = sdimx;
    ncpp->rangex = opts->rangex;

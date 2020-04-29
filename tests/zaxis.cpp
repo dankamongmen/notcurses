@@ -9,7 +9,7 @@ TEST_CASE("ZAxisTest") {
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  FILE* outfp_ = fopen("/dev/tty", "wb");
+  FILE* outfp_ = fopen("/dev/tty", "wbe");
   REQUIRE(outfp_);
   struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
   REQUIRE(nc_);
