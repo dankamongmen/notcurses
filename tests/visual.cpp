@@ -89,7 +89,7 @@ TEST_CASE("Multimedia") {
     nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncplane_visual_open(ncp_, find_data("samoa.avi"), &ncerr);
+    auto ncv = ncplane_visual_open(ncp_, find_data("notcursesI.avi"), &ncerr);
     REQUIRE(ncv);
     CHECK(NCERR_SUCCESS == ncerr);
     for(;;){ // run at the highest speed we can
