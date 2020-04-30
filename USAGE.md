@@ -1,5 +1,8 @@
 # Usage
 
+The notcurses API is not yet stable, though it is becoming so. Starting with
+version 2, notcurses will honor Semantic Versioning.
+
 * [Direct Mode](#direct-mode)
 * [Alignment](#alignment)
 * [Input](#input)

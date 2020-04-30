@@ -16,8 +16,9 @@ via notcurses@googlegroups.com.
 I wrote a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which
 is available for free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
 
-Notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/).
-Packages for Debian Unstable and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
+Notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/),
+and from [Debian Unstable](https://packages.debian.org/source/sid/notcurses).
+Packages for Fedora 33 and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
 
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -289,7 +290,7 @@ up someday **FIXME**.
 * *A:* As noted in the [C++ FAQ](https://isocpp.org/wiki/faq/dtors#artificial-block-to-control-lifetimes), wrap it in an artificial scope (this assumes your `NotCurses` is scoped to `main()`).
 
 * *Q:* How do I hide a plane I want to make visible later?
-* *A:* Either move it above and to the left of the screen (preventing resizes from making it visible), or place it underneath another (opaque) plane.
+* *A:* Either move it above and to the left of the screen (preventing resizes from making it visible), or place it underneath another (opaque) plane (the latter performs better).
 
 * *Q:* Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard?
 * *A:* `ncplane_box()` and friends already have far too many arguments, you monster.
