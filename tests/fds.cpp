@@ -99,9 +99,8 @@ TEST_CASE("FdsAndSubprocs") {
     lock.unlock();
   }
 
-  // FIXME SIGCHLD seems to blow up doctest...
-  SUBCASE("SubprocDestroyOffline") {
-    char * const argv[] = { strdup("/bin/cat"), strdup("/dev/null"), NULL, };
+  SUBCASE("SubprocDestroyCmdExecFails") {
+    char * const argv[] = { strdup("/dev/nope"), NULL, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.popts.curry = &outofline_cancelled;
@@ -117,8 +116,9 @@ TEST_CASE("FdsAndSubprocs") {
     lock.unlock();
   }
 
-  SUBCASE("SubprocDestroyCmdExecFails") {
-    char * const argv[] = { strdup("/dev/nope"), NULL, };
+  // FIXME SIGCHLD seems to blow up doctest...
+  SUBCASE("SubprocDestroyCmdSucceeds") {
+    char * const argv[] = { strdup("/bin/cat"), strdup("/dev/null"), NULL, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.popts.curry = &outofline_cancelled;
