@@ -2699,7 +2699,7 @@ API struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_opti
 API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
                        const char* bin,  char* const arg[], char* const env[],
                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
-
+API struct ncplane* ncsubproc_plane(struct ncsubproc* n);
 API int ncsubproc_destroy(struct ncsubproc* n);
 
 // Draw a QR code at the current position on the plane. If there is insufficient

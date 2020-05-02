@@ -296,3 +296,7 @@ int ncsubproc_destroy(ncsubproc* n){
   }
   return ret;
 }
+
+ncplane* ncsubproc_plane(ncsubproc* n){
+  return n->nfp->ncp;
+}

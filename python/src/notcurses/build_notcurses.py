@@ -450,16 +450,24 @@ int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y);
 void ncuplot_destroy(struct ncuplot* n);
 void ncdplot_destroy(struct ncdplot* n);
 bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
-typedef int(ncfdplane_callback)(struct ncfdplane n, const void buf, size_t s, void curry);
-typedef int(ncfdplane_done_cb)(struct ncfdplane n, int fderrno, void curry);
-struct ncfdplane ncfdplane_create(struct ncplane n, const ncfdplane_options opts, int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
-struct ncplane ncfdplane_plane(struct ncfdplane n);
-int ncfdplane_destroy(struct ncfdplane n);
-struct ncsubproc ncsubproc_createv(struct ncplane n, const ncsubproc_options opts, const char bin,  char const arg[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
-struct ncsubproc ncsubproc_createvp(struct ncplane n, const ncsubproc_options opts, const char bin,  char const arg[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
-struct ncsubproc ncsubproc_createvpe(struct ncplane n, const ncsubproc_options opts, const char bin,  char const arg[], char const env[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
-struct ncplane ncsubproc_plane(struct ncsubproc n);
-int ncsubproc_destroy(struct ncsubproc n);
+typedef struct ncfdplane_options {
+  void* curry; // parameter provided to callbacks
+  bool follow; // keep reading after hitting end? (think tail -f)
+} ncfdplane_options;
+typedef int(ncfdplane_callback)(struct ncfdplane* n, const void* buf, size_t s, void* curry);
+typedef int(ncfdplane_done_cb)(struct ncfdplane* n, int fderrno, void* curry);
+struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* opts, int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+struct ncplane* ncfdplane_plane(struct ncfdplane* n);
+int ncfdplane_destroy(struct ncfdplane* n);
+typedef struct ncsubproc_options {
+  ncfdplane_options popts;
+  uint64_t restart_period;  // restart this many seconds after an exit (watch)
+} ncsubproc_options;
+struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts, const char* bin, char* const arg[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts, const char* bin, char* const arg[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts, const char* bin, char* const arg[], char* const env[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+struct ncplane* ncsubproc_plane(struct ncsubproc* n);
+int ncsubproc_destroy(struct ncsubproc* n);
 """)
 
 if __name__ == "__main__":
