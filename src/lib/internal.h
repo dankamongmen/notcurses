@@ -145,7 +145,7 @@ typedef struct ncfdplane {
 typedef struct ncsubproc {
   ncfdplane* nfp;
   pid_t pid;                  // subprocess
-  int pidfd;                  // for signaling/watching the subprocess
+  int pidfd;                  // for signalling/watching the subprocess
 } ncsubproc;
 
 typedef struct ncmenu {

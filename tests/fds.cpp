@@ -112,6 +112,8 @@ TEST_CASE("FdsAndSubprocs") {
       cond.wait(lck);
     }
     CHECK(0 == ncsubproc_destroy(ncsubp));
+    // FIXME we ought get indication of an error here! or via callback...
+    // FIXME should be 0 !=, methinks!
     CHECK(0 == notcurses_render(nc_));
     lock.unlock();
   }
@@ -149,6 +151,17 @@ TEST_CASE("FdsAndSubprocs") {
     CHECK(0 == ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
     lock.unlock();
+  }
+
+  SUBCASE("SubprocDestroyCmdHung") {
+    char * const argv[] = { strdup("/bin/cat"), NULL, };
+    bool outofline_cancelled = false;
+    ncsubproc_options opts{};
+    opts.popts.curry = &outofline_cancelled;
+    auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
+    REQUIRE(ncsubp);
+    CHECK(0 == ncsubproc_destroy(ncsubp));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   CHECK(0 == notcurses_stop(nc_));
