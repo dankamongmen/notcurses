@@ -31,7 +31,7 @@ eofcb(struct ncfdplane* ncfd, int nerrno, void* curry){
   fddone = true;
   pthread_mutex_unlock(&lock);
   pthread_cond_signal(&cond);
-  return ncfdplane_destroy(ncfd);
+  return nerrno;
 }
 
 int main(int argc, char** argv){
@@ -40,7 +40,6 @@ int main(int argc, char** argv){
   opts.inhibit_alternate_screen = true;
   struct notcurses* nc = notcurses_init(&opts, stdout);
   struct ncplane* n = notcurses_stdplane(nc);
-  int ret = -1;
   while(*++argv){
     int fd = open(*argv, O_RDONLY|O_CLOEXEC);
     if(fd < 0){
@@ -59,7 +58,7 @@ int main(int argc, char** argv){
   }
 
 done:
-  if(notcurses_stop(nc) || ret){
+  if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

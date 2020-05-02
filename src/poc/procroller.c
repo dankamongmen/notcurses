@@ -31,7 +31,7 @@ eofcb(struct ncfdplane* ncfd, int nerrno, void* curry){
   fddone = true;
   pthread_mutex_unlock(&lock);
   pthread_cond_signal(&cond);
-  return ncfdplane_destroy(ncfd);
+  return nerrno;
 }
 
 int main(int argc, char** argv){
@@ -47,17 +47,15 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   struct ncplane* n = notcurses_stdplane(nc);
-  int ret = -1;
   ncsubproc_options nopts = {};
   struct ncsubproc* nsproc = ncsubproc_createvp(n, &nopts, *argv, argv, cb, eofcb);
   pthread_mutex_lock(&lock);
   while(!fddone){
     pthread_cond_wait(&cond, &lock);
   }
-  ret = 0;
   pthread_mutex_unlock(&lock);
   ncsubproc_destroy(nsproc);
-  if(notcurses_stop(nc) || ret){
+  if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
