@@ -17,27 +17,49 @@ ncfdplane_destroy_inner(ncfdplane* n){
   return ret;
 }
 
-static void *
-ncfdplane_thread(void* vncfp){
-  ncfdplane* ncfp = vncfp;
+// if pidfd is < 0, it won't be used in the poll()
+static void
+fdthread(ncfdplane* ncfp, int pidfd){
+  struct pollfd pfds[2];
+  memset(pfds, 0, sizeof(pfds));
   char* buf = malloc(BUFSIZ);
-  ssize_t r;
-  while((r = read(ncfp->fd, buf, BUFSIZ)) >= 0){
-    if(r == 0){
-      break;
+  int pevents;
+  pfds[0].fd = ncfp->fd;
+  pfds[0].events = POLLIN;
+  const int fdcount = pidfd < 0 ? 1 : 2;
+  if(fdcount > 1){
+    pfds[1].fd = pidfd;
+    pfds[1].events = POLLIN;
+  }
+  ssize_t r = 0;
+  while((pevents = poll(pfds, fdcount, -1)) >= 0 || errno == EINTR){
+    if(pfds[0].revents & POLLIN){
+      while((r = read(ncfp->fd, buf, BUFSIZ)) >= 0){
+        if(r == 0){
+          break;
+        }
+        if( (r = ncfp->cb(ncfp, buf, r, ncfp->curry)) ){
+          break;
+        }
+        if(ncfp->destroyed){
+          break;
+        }
+      }
     }
-    if( (r = ncfp->cb(ncfp, buf, r, ncfp->curry)) ){
+    if(fdcount > 1 && pfds[1].revents & POLLIN){
+      r = 0;
       break;
     }
   }
-  // FIXME need to continue reading on pipe/socket
-  if(r <= 0){
+  if(r <= 0 && !ncfp->destroyed){
     ncfp->donecb(ncfp, r == 0 ? 0 : errno, ncfp->curry);
   }
   free(buf);
-  if(ncfp->destroyed){
-    ncfdplane_destroy_inner(ncfp);
-  }
+}
+
+static void *
+ncfdplane_thread(void* vncfp){
+  fdthread(vncfp, -1);
   return NULL;
 }
 
@@ -150,38 +172,7 @@ kill_and_wait_subproc(int pidfd){
 static void *
 ncsubproc_thread(void* vncsp){
   ncsubproc* ncsp = vncsp;
-  struct pollfd pfds[2];
-  memset(pfds, 0, sizeof(pfds));
-  char* buf = malloc(BUFSIZ);
-  int pevents;
-  pfds[0].fd = ncsp->nfp->fd;
-  pfds[1].fd = ncsp->pidfd;
-  pfds[0].events = POLLIN;
-  pfds[1].events = POLLIN;
-  ssize_t r = 0;
-  while((pevents = poll(pfds, sizeof(pfds) / sizeof(*pfds), -1)) >= 0 || errno == EINTR){
-    if(pfds[0].revents & POLLIN){
-      while((r = read(ncsp->nfp->fd, buf, BUFSIZ)) >= 0){
-        if(r == 0){
-          break;
-        }
-        if( (r = ncsp->nfp->cb(ncsp->nfp, buf, r, ncsp->nfp->curry)) ){
-          break;
-        }
-        if(ncsp->nfp->destroyed){
-          break;
-        }
-      }
-    }
-    if(pfds[1].revents & POLLIN){
-      r = 0;
-      break;
-    }
-  }
-  if(r <= 0 && !ncsp->nfp->destroyed){
-    ncsp->nfp->donecb(ncsp->nfp, r == 0 ? 0 : errno, ncsp->nfp->curry);
-  }
-  free(buf);
+  fdthread(ncsp->nfp, ncsp->pidfd);
   kill_and_wait_subproc(ncsp->pidfd);
   if(ncsp->nfp->destroyed){
     ncfdplane_destroy_inner(ncsp->nfp);
