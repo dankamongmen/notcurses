@@ -857,6 +857,12 @@ typedef struct ncinput {
 API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
                             sigset_t* sigmask, ncinput* ni);
 
+// Get a file descriptor suitable for input event poll()ing. When this
+// descriptor becomes available, you can call notcureses_getc_nblock(),
+// and input ought be ready. This file descriptor is *not* necessarily
+// the file descriptor associated with stdin (but it might be!).
+API int notcurses_inputready_fd(struct notcurses* n);
+
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.
 static inline char32_t

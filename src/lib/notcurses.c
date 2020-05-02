@@ -1946,3 +1946,7 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts){
   }
   return 0;
 }
+
+int notcurses_inputready_fd(notcurses* n){
+  return fileno(n->ttyinfp);
+}
