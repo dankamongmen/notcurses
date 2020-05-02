@@ -16,6 +16,8 @@
 #include <ncpp/Visual.hh>
 #include <ncpp/Direct.hh>
 #include <ncpp/Plot.hh>
+#include <ncpp/FDPlane.hh>
+#include <ncpp/Subproc.hh>
 
 using namespace ncpp;
 
@@ -25,6 +27,9 @@ int run ()
 
 	const char *ncver = nc.version ();
 	Plane plane (1, 1, 0, 0);
+	Plot plot1 (plane);
+	PlotU plot2 (plane);
+	PlotD plot3 (plane);
 
 	nc.stop ();
 

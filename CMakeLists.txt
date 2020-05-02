@@ -192,13 +192,16 @@ target_compile_definitions(notcurses-static
 
 # libnotcurses++
 set(NCPP_SOURCES
+  src/libcpp/FDPlane.cc
   src/libcpp/Menu.cc
   src/libcpp/MultiSelector.cc
   src/libcpp/NotCurses.cc
   src/libcpp/Plane.cc
+  src/libcpp/Plot.cc
   src/libcpp/Reel.cc
   src/libcpp/Root.cc
   src/libcpp/Selector.cc
+  src/libcpp/Subproc.cc
   src/libcpp/Tablet.cc
   src/libcpp/Visual.cc
   )
