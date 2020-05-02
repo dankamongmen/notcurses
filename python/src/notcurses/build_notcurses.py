@@ -10,6 +10,23 @@ ffibuild.set_source(
 )
 
 ffibuild.cdef("""
+typedef struct ncinput {
+  char32_t id;     // Unicode codepoint
+  int y;           // Y cell coordinate of event, -1 for undefined
+  int x;           // X cell coordinate of event, -1 for undefined
+  bool alt;        // Was Alt held during the event?
+  bool shift;      // Was Shift held during the event?
+  bool ctrl;       // Was Ctrl held during the event?
+  uint64_t seqnum; // Monotonically increasing input event counter
+} ncinput;
+bool nckey_mouse_p(char32_t r);
+typedef struct {
+  unsigned long int __val[(1024 / (8 * 8))]; //sizeof (unsigned long int)))];
+} sigset_t;
+char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask, ncinput* ni);
+char32_t notcurses_getc_nblock(struct notcurses* n, ncinput* ni);
+char32_t notcurses_getc_blocking(struct notcurses* n, ncinput* ni);
+int notcurses_inputready_fd(struct notcurses* n);
 typedef struct cell {
   // These 32 bits are either a single-byte, single-character grapheme cluster
   // (values 0--0x7f), or an offset into a per-ncplane attached pool of
@@ -84,15 +101,6 @@ int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
 struct ncplane* notcurses_stdplane(struct notcurses*);
 const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
-typedef struct ncinput {
-  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
-  int y;           // y cell coordinate of event, -1 for undefined
-  int x;           // x cell coordinate of event, -1 for undefined
-  bool shift;
-  bool alt;
-  bool ctrl;
-  uint64_t seqnum;
-} ncinput;
 int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 int ncplane_set_base(struct ncplane* ncp, const char* egc, uint32_t attrword, uint64_t channels);
 int ncplane_base(struct ncplane* ncp, cell* c);
