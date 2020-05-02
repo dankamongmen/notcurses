@@ -67,6 +67,51 @@ pub fn dim_yx(_n: *const ffi::notcurses, _dimy: &mut i32, _dimx: &mut i32) {
     }
 }
 
+pub fn ncplane_perimeter(_n: *mut ffi::ncplane, _ul: *const ffi::cell,
+                         _ur: *const ffi::cell, _ll: *const ffi::cell,
+                         _lr: *const ffi::cell, _hl: *const ffi::cell,
+                         _vl: *const ffi::cell, _ctlword: u32)
+                         -> std::result::Result<(), std::io::Error> {
+    let r;
+    unsafe {
+        r = ffi::ncplane_cursor_move_yx(_n, 0, 0);
+    }
+    if r != 0 {
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, "error moving cursor"));
+    }
+    Ok(())
+}
+
+pub fn cell_prime(_n: *mut ffi::ncplane, _c: *mut ffi::cell, _egc: &str,
+                  _attr: u32, _channels: u64) -> i32 {
+    unsafe{
+        (*_c).attrword = _attr;
+        (*_c).channels = _channels;
+        return ffi::cell_load(_n, _c, std::ffi::CString::new(_egc).unwrap().as_ptr());
+    }
+}
+
+pub fn cells_load_box(_n: *mut ffi::ncplane, _attrs: u32, _channels: u64,
+                      _ul: *mut ffi::cell, _ur: *mut ffi::cell,
+                      _ll: *mut ffi::cell, _lr: *mut ffi::cell,
+                      _hl: *mut ffi::cell, _vl: *mut ffi::cell, _egcs: &str)
+                      -> std::result::Result<(), std::io::Error> {
+    let rul = cell_prime(_n, _ul, _egcs, _attrs, _channels);
+    if rul <= 0 {
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, "error priming cell"));
+    // FIXME cell_prime()s
+    }
+    Ok(())
+}
+
+pub fn cells_rounded_box(_n: *mut ffi::ncplane, _attr: u32, _channels: u64,
+                         _ul: *mut ffi::cell, _ur: *mut ffi::cell,
+                         _ll: *mut ffi::cell, _lr: *mut ffi::cell,
+                         _hl: *mut ffi::cell, _vl: *mut ffi::cell)
+                         -> std::result::Result<(), std::io::Error> {
+    return cells_load_box(_n, _attr, _channels, _ul, _ur, _ll, _lr, _hl, _vl, "╭╮╰╯─│");
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
