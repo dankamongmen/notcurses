@@ -1261,7 +1261,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   // that cell as wide). Any character placed atop one half of a wide character
   // obliterates the other half. Note that a wide char can thus obliterate two
   // wide chars, totalling four columns.
-  cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
+  cell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
   if(n->x > 0){
     if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
       if(targ->gcluster == 0){ // we're the right half
