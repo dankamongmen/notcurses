@@ -84,8 +84,8 @@ mod tests {
             let _stdplane = stddim_yx(nc, &mut dimsy, &mut dimsx);
             all_asserts::assert_lt!(0, dimsy);
             all_asserts::assert_lt!(0, dimsx);
-            let dimy = ncplane_dim_y(_stdplane);
-            let dimx = ncplane_dim_x(_stdplane);
+            let dimy = ffi::ncplane_dim_y(_stdplane);
+            let dimx = ffi::ncplane_dim_x(_stdplane);
             assert_eq!(dimy, dimsy);
             assert_eq!(dimx, dimsx);
             assert_eq!(0, ffi::notcurses_stop(nc));
