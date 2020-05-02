@@ -177,7 +177,9 @@ launch_pipe_process(int* pipe, int* pidfd){
 static int
 kill_and_wait_subproc(int pidfd){
   syscall(__NR_pidfd_send_signal, pidfd, SIGKILL, NULL, 0);
-  waitid(P_PIDFD, pidfd, NULL, 0);
+  siginfo_t info;
+  memset(&info, 0, sizeof(info));
+  waitid(P_PIDFD, pidfd, &info, 0);
   return 0;
 }
 
