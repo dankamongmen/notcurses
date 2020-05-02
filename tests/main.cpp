@@ -13,7 +13,15 @@
 
 static const char* datadir = NOTCURSES_SHARE;
 
-bool enforce_utf8(){
+char* find_data(const char* datum){
+  char* path = (char*)malloc(strlen(datadir) + 1 + strlen(datum) + 1);
+  strcpy(path, datadir);
+  strcat(path, "/");
+  strcat(path, datum);
+  return path;
+}
+
+bool enforce_utf8(void){
   char* enc = nl_langinfo(CODESET);
   if(!enc){
     return false;
@@ -22,14 +30,6 @@ bool enforce_utf8(){
     return false;
   }
   return true;
-}
-
-char* find_data(const char* datum){
-  char* path = (char*)malloc(strlen(datadir) + 1 + strlen(datum) + 1);
-  strcpy(path, datadir);
-  strcat(path, "/");
-  strcat(path, datum);
-  return path;
 }
 
 static void

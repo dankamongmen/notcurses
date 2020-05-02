@@ -35,6 +35,7 @@ const char* oiio_version(void);
 #include <wctype.h>
 #include <termios.h>
 #include <stdbool.h>
+#include <langinfo.h>
 #include "notcurses/notcurses.h"
 #include "egcpool.h"
 
@@ -619,6 +620,19 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
                             int ylen, int xlen);
 
 int update_term_dimensions(int fd, int* rows, int* cols);
+
+// might not be particularly fast, use sparingly, ideally once
+static inline bool
+enforce_utf8(void){
+  char* enc = nl_langinfo(CODESET);
+  if(!enc){
+    return false;
+  }
+  if(strcmp(enc, "UTF-8")){
+    return false;
+  }
+  return true;
+}
 
 #ifdef __cplusplus
 }
