@@ -42,6 +42,8 @@ typedef struct ncsubproc_options {
 
 **struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts, const char* bin,  char* const arg[], char* const env[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);**
 
+**struct ncplane* ncsubproc_plane(struct ncsubproc* n);**
+
 **int ncsubproc_destroy(struct ncsubproc* n);**
 
 # DESCRIPTION
@@ -57,9 +59,18 @@ If **ncsubproc_destroy** is called before the subprocess has exited, it will
 be sent a SIGKILL. If **ncsubproc_destroy** or **ncfdplane_destroy** is called
 while a callback is being invoked, the destroy function will block until the
 callback is done being invoked. If a user callback returns non-0, the calling
-object will destroy itself.
+object will destroy itself. If a user callback calls the relevant destroy
+function itself, the thread will exit as if non-0 had been returned, and the
+**ncsubproc**'s resources will at that time be reclaimed.
+
+It is essential that the destroy function be called once and only once, whether
+it is from within the thread's context, or external to that context.
 
 # NOTES
+
+**ncsubproc** makes use of pidfds and **pidfd_send_signal(2)**, and thus makes
+reliable use of signals (it will never target a process other than the true
+subprocess).
 
 # RETURN VALUES
 
