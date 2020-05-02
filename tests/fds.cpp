@@ -103,7 +103,7 @@ TEST_CASE("FdsAndSubprocs") {
     char * const argv[] = { strdup("/dev/nope"), NULL, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
-    opts.popts.curry = &outofline_cancelled;
+    opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
     std::unique_lock<std::mutex> lck(lock);
@@ -123,7 +123,7 @@ TEST_CASE("FdsAndSubprocs") {
     char * const argv[] = { strdup("/bin/cat"), strdup("/dev/null"), NULL, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
-    opts.popts.curry = &outofline_cancelled;
+    opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
     std::unique_lock<std::mutex> lck(lock);
@@ -140,7 +140,7 @@ TEST_CASE("FdsAndSubprocs") {
     char * const argv[] = { strdup("/bin/cat"), strdup("/dev/nope"), NULL, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
-    opts.popts.curry = &outofline_cancelled;
+    opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
     std::unique_lock<std::mutex> lck(lock);
@@ -157,7 +157,7 @@ TEST_CASE("FdsAndSubprocs") {
     char * const argv[] = { strdup("/bin/cat"), NULL, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
-    opts.popts.curry = &outofline_cancelled;
+    opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
     CHECK(0 == ncsubproc_destroy(ncsubp));

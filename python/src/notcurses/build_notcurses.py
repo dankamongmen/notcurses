@@ -460,7 +460,7 @@ struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* o
 struct ncplane* ncfdplane_plane(struct ncfdplane* n);
 int ncfdplane_destroy(struct ncfdplane* n);
 typedef struct ncsubproc_options {
-  ncfdplane_options popts;
+  void* curry;
   uint64_t restart_period;  // restart this many seconds after an exit (watch)
 } ncsubproc_options;
 struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts, const char* bin, char* const arg[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);

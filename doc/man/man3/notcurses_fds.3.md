@@ -21,7 +21,7 @@ typedef struct ncfdplane_options {
 } ncfdplane_options;
 
 typedef struct ncsubproc_options {
-  ncfdplane_options popts;
+  void* curry; // parameter provided to callbacks
   uint64_t restart_period;  // restart after exit
 } ncsubproc_options;
 ```

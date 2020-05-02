@@ -2685,7 +2685,7 @@ API struct ncplane* ncfdplane_plane(struct ncfdplane* n);
 API int ncfdplane_destroy(struct ncfdplane* n);
 
 typedef struct ncsubproc_options {
-  ncfdplane_options popts;
+  void* curry;
   uint64_t restart_period;  // restart this many seconds after an exit (watch)
 } ncsubproc_options;
 

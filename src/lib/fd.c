@@ -45,6 +45,10 @@ fdthread(ncfdplane* ncfp, int pidfd){
           break;
         }
       }
+      // if we're not doing follow, break out on a zero-byte read
+      if(r == 0 && !ncfp->follow){
+        break;
+      }
     }
     if(fdcount > 1 && pfds[1].revents & POLLIN){
       r = 0;
@@ -61,6 +65,22 @@ static void *
 ncfdplane_thread(void* vncfp){
   fdthread(vncfp, -1);
   return NULL;
+}
+
+static int
+set_fd_nonblocking(int fd){
+  int flags = fcntl(fd, F_GETFL, 0);
+  if(flags < 0){
+    return -1;
+  }
+  if(flags & O_NONBLOCK){
+    return 0;
+  }
+  flags |= O_NONBLOCK;
+  if(fcntl(fd, F_SETFL, flags)){
+    return -1;
+  }
+  return 0;
 }
 
 static ncfdplane*
@@ -146,14 +166,7 @@ launch_pipe_process(int* pipe, int* pidfd){
     }
   }else if(p > 0){ // parent
     *pipe = pipes[0];
-    int flags = fcntl(*pipe, F_GETFL, 0);
-    if(flags < 0){
-      // FIXME
-    }
-    flags |= O_NONBLOCK;
-    if(fcntl(*pipe, F_SETFL, flags)){
-      // FIXME
-    }
+    set_fd_nonblocking(*pipe);
   }
   return p;
 }
@@ -184,7 +197,11 @@ ncsubproc_thread(void* vncsp){
 static ncfdplane*
 ncsubproc_launch(ncplane* n, ncsubproc* ret, const ncsubproc_options* opts, int fd,
                  ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  ret->nfp = ncfdplane_create_internal(n, &opts->popts, fd, cbfxn, donecbfxn, false);
+  ncfdplane_options popts = {
+    .curry = opts->curry,
+    .follow = true,
+  };
+  ret->nfp = ncfdplane_create_internal(n, &popts, fd, cbfxn, donecbfxn, false);
   if(ret->nfp == NULL){
     return NULL;
   }
