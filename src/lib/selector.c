@@ -495,7 +495,12 @@ ncmultiselector_draw(ncmultiselector* n){
     if(printidx == n->current){
       n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
     }
-    ncplane_putegc_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? "☒" : "☐", NULL);
+    // FIXME this is the wrong place to do this. see https://github.com/dankamongmen/notcurses/issues/451
+    if(enforce_utf8()){
+      ncplane_putegc_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? "☒" : "☐", NULL);
+    }else{
+      ncplane_putsimple_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? 'X' : '-');
+    }
     n->ncp->channels = n->opchannels;
     if(printidx == n->current){
       n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
