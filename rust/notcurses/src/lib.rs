@@ -13,7 +13,7 @@ pub fn ncplane_putstr_yx(_n: *mut ffi::ncplane, mut _y: i32, mut _x: i32, _str: 
     while ret < _str.len() {
         let mut wcs = 0;
         unsafe {
-            let col = ffi::ncplane_putegc_yx(_n, -1, -1,  std::ffi::CString::new(_str).expect("Bad string").as_ptr(), &mut wcs);
+            let col = ffi::ncplane_putegc_yx(_n, -1, -1,  std::ffi::CString::new(&_str[ret..]).expect("Bad string").as_ptr(), &mut wcs);
             if col < 0 {
                 return ret; // FIXME return error result
             }
