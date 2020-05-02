@@ -1018,7 +1018,13 @@ namespace ncpp
 			bool ret = ncblit_rgba (plane, placey, placex, linesize, data, begy, begx, leny, lenx) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
-		
+
+		int qrcode (int maxversion, const void *data, size_t len) const NOEXCEPT_MAYBE
+		{
+			int ret = ncplane_qrcode (plane, maxversion, data, len);
+			return error_guard_cond<int> (ret, ret < 0);
+		}
+
 	protected:
 		explicit Plane (ncplane *_plane, bool _is_stdplane)
 			: plane (_plane),

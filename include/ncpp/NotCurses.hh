@@ -203,6 +203,11 @@ namespace ncpp
 			return notcurses_at_yx (nc, yoff, xoff, attr, channels);
 		}
 
+		int get_inputready_fd () const noexcept
+		{
+			return notcurses_inputready_fd (nc);
+		}
+
 		void drop_planes () const noexcept
 		{
 			notcurses_drop_planes (nc);
