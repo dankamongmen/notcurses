@@ -8,9 +8,10 @@ version 2, notcurses will honor Semantic Versioning.
 * [Input](#input)
 * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
 * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
-* [Reels](#reels)
+* [Reels](#reels) ([ncreel Examples](#ncreel-examples))
 * [Widgets](#widgets)
 * [Channels](#channels)
+* [Media](#media)
 
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
 pages ought have been installed along with notcurses. This document is a
@@ -2340,3 +2341,44 @@ channels_set_bg_default(uint64_t* channels){
 }
 ```
 
+## Media
+
+When compiled against a suitable engine (FFmpeg and OpenImageIO are both
+currently supported), Notcurses can populate a plane with an image or
+video's character graphics equivalent. This is accomplished by decoding
+and appropriately scaling an image, then emitting its pixels as Unicode
+upper- and lower-half blocks (▀ and ▄, respectively). These have the
+unique characteristics of completely filling their relevant areas with a
+single color, and affording roughly a 1:1 aspect ratio.
+
+```c
+typedef enum {
+  NCSCALE_NONE,
+  NCSCALE_SCALE,
+  NCSCALE_STRETCH,
+} ncscale_e;
+
+typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
+
+bool notcurses_canopen(const struct notcurses* nc);
+
+struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, nc_err_e* err);
+
+struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
+
+void ncvisual_destroy(struct ncvisual* ncv);
+
+nc_err_e ncvisual_decode(struct ncvisual* nc);
+
+int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
+
+int ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry);
+
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
+
+struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+
+int ncplane_rotate_cw(struct ncplane* n);
+
+int ncplane_rotate_ccw(struct ncplane* n);
+```
