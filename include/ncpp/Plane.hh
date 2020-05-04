@@ -979,16 +979,6 @@ namespace ncpp
 			return error_guard<bool, bool> (ncplane_translate_abs (plane, y, x), false);
 		}
 
-		bool rotate_cw () const NOEXCEPT_MAYBE
-		{
-			return error_guard (ncplane_rotate_cw (plane), -1);
-		}
-
-		bool rotate_ccw () const noexcept
-		{
-			return error_guard (ncplane_rotate_ccw (plane), -1);
-		}
-
 		// Upstream call doesn't take ncplane* but we put it here for parity with has_no_background below
 		bool has_no_foreground (Cell &cell) const noexcept
 		{

@@ -42,6 +42,11 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncplane* ncvisual_plane(struct ncvisual* ncv);**
 
+**int ncplane_rotate_cw(struct ncplane* n);**
+
+**int ncplane_rotate_ccw(struct ncplane* n);**
+
+
 # DESCRIPTION
 
 The frame will be scaled to the size of the ncplane per the ncscale_e style.
@@ -53,6 +58,9 @@ and the lower-right corner, -1 can be supplied as **leny** and **lenx**.
 or **begx** are an error. It is an error to specify any region beyond the
 boundaries of the frame. Supplying zero for either **leny** or **lenx** will
 result in a zero-area rendering.
+
+Both **ncplane_rotate_cw** and **ncplane_rotate_ccw** execute a rotation of
+π/2 radians, in the clockwise or counterclockwise direction respectively.
 
 # RETURN VALUES
 

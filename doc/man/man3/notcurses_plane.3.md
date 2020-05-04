@@ -124,10 +124,6 @@ notcurses_plane - operations on ncplanes
 
 **int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
 
-**int ncplane_rotate_cw(struct ncplane* n);**
-
-**int ncplane_rotate_ccw(struct ncplane* n);**
-
 **int ncplane_destroy(struct ncplane* ncp);**
 
 **void notcurses_drop_planes(struct notcurses* nc);**
