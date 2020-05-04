@@ -2358,27 +2358,85 @@ typedef enum {
   NCSCALE_STRETCH,
 } ncscale_e;
 
+// Called for each frame rendered from 'ncv'. If anything but 0 is returned,
+// the streaming operation ceases immediately, and that value is propagated out.
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
+// Can we load images/videos? This requires being built against FFmpeg.
 bool notcurses_canopen(const struct notcurses* nc);
 
+// Open a visual (image or video), associating it with the specified ncplane.
+// Returns NULL on any error, writing the cause to 'ncerr'.
 struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, nc_err_e* err);
 
+// Open a visual, extract a codec and parameters, and create a new plane
+// suitable for its display at 'y','x'. If there is sufficient room to display
+// the visual in its native size, or if NCSCALE_NONE is passed for 'style', the
+// new plane will be exactly that large. Otherwise, the plane will be as large
+// as possible (given the visible screen), either maintaining aspect ratio
+// (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
 struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
 
+// Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
+// can be neither decoded nor rendered any further.
 void ncvisual_destroy(struct ncvisual* ncv);
 
+// extract the next frame from an ncvisual. returns NCERR_EOF on end of file,
+// and NCERR_SUCCESS on success, otherwise some other NCERR.
 nc_err_e ncvisual_decode(struct ncvisual* nc);
 
+// Render the decoded frame to the associated ncplane. The frame will be scaled
+// to the size of the ncplane per the ncscale_e style. A subregion of the
+// frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
+// the rectangle formed by begy x begx and the lower-right corner, -1 can be
+// supplied to 'leny' and 'lenx'. {0, 0, -1, -1} will thus render the entire
+// visual. Negative values for 'begy' or 'begx' are an error. It is an error to
+// specify any region beyond the boundaries of the frame. Returns the number of
+// cells written, or -1 on failure.
 int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
 
-int ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry);
+// Shut up and display my frames! Provide as an argument to ncvisual_stream().
+// If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
+// curry is NULL, subtitles will not be displayed.
+static inline int
+ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry){
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  int ret = 0;
+  if(curry){
+    // need a cast for C++ callers
+    struct ncplane* subncp = (struct ncplane*)curry;
+    char* subtitle = ncvisual_subtitle(ncv);
+    if(subtitle){
+      if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
+        ret = -1;
+      }
+      free(subtitle);
+    }
+  }
+  return ret;
+}
 
+// Stream the entirety of the media, according to its own timing. Blocking,
+// obviously. streamer may be NULL; it is otherwise called for each frame, and
+// its return value handled as outlined for stream cb. If streamer() returns
+// non-zero, the stream is aborted, and that value is returned. By convention,
+// return a positive number to indicate intentional abort from within
+// streamer(). 'timescale' allows the frame duration time to be scaled. For a
+// visual naturally running at 30FPS, a 'timescale' of 0.1 will result in
+// 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
+// supply 'timescale' less than or equal to 0.
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
 
+// Return the plane to which this ncvisual is bound.
 struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 
-int ncplane_rotate_cw(struct ncplane* n);
+// If a subtitle ought be displayed at this time, return a heap-allocated copy
+// of the UTF8 text.
+char* ncvisual_subtitle(const struct ncvisual* ncv);
 
+// Rotate the visual π/2 radians clockwise or counterclockwise.
+int ncplane_rotate_cw(struct ncplane* n);
 int ncplane_rotate_ccw(struct ncplane* n);
 ```
