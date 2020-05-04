@@ -84,6 +84,16 @@ namespace ncpp
 
 		Plane* get_plane () const noexcept;
 
+		bool rotate_cw () const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncvisual_rotate_cw (visual), -1);
+		}
+
+		bool rotate_ccw () const noexcept
+		{
+			return error_guard (ncvisual_rotate_ccw (visual), -1);
+		}
+
 	private:
 		ncvisual *visual = nullptr;
 	};

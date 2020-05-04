@@ -1129,12 +1129,10 @@ ncplane_move_below(struct ncplane* n, struct ncplane* below){
 // Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n);
 
-// Rotate the plane pi/2 radians clockwise or counterclockwise. Note that
-// rotation only applies to geometry and color. Most glyphs cannot be rotated.
-// The resulting plane is thus populated only by null glyphs, spaces, full
-// blocks, and partial blocks.
-API int ncplane_rotate_cw(struct ncplane* n);
-API int ncplane_rotate_ccw(struct ncplane* n);
+// Rotate the visual π/2 radians clockwise or counterclockwise. This cannot
+// be performed on arbitrary planes, because glyphs cannot be arbitrarily rotated.
+API int ncvisual_rotate_cw(struct ncvisual* n);
+API int ncvisual_rotate_ccw(struct ncvisual* n);
 
 // Retrieve the current contents of the cell under the cursor. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
