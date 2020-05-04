@@ -117,6 +117,9 @@ int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale
           *scalemode = NCScale::Scale;
         }else if(strcmp(optarg, "none") == 0){
           *scalemode = NCScale::None;
+        }else{
+          std::cerr <<  "Scaling type should be one of stretch, scale, none" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
         }
         break;
       case 'k':{
