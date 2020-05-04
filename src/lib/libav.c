@@ -510,9 +510,33 @@ int ncvisual_init(int loglevel){
 }
 
 ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols){
+  ncvisual* ncv = ncvisual_create(1);
+  ncv->placey = 0;
+  ncv->placex = 0;
+  ncv->ncobj = nc;
+  const int targrows = rows / 2 + rows % 2;
+  ncv->ncp = ncplane_new(nc, targrows, cols, 0, 0, NULL);
+  if(ncv->ncp == NULL){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
+  // FIXME create frame
+  return ncv;
 }
 
 ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows, int rowstride, int cols){
+  ncvisual* ncv = ncvisual_create(1);
+  ncv->placey = 0;
+  ncv->placex = 0;
+  ncv->ncobj = nc;
+  const int targrows = rows / 2 + rows % 2;
+  ncv->ncp = ncplane_new(nc, targrows, cols, 0, 0, NULL);
+  if(ncv->ncp == NULL){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
+  // FIXME create frame
+  return ncv;
 }
 #else // built without ffmpeg
 #ifndef USE_OIIO // built without ffmpeg or oiio
@@ -557,7 +581,7 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
 }
 
 ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
-                              nc_err_e* ncerr, int y, int x, ncscale_e style){
+                             nc_err_e* ncerr, int y, int x, ncscale_e style){
   (void)nc;
   (void)filename;
   (void)ncerr;
