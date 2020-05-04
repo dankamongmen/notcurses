@@ -3,10 +3,18 @@ rearrangements of Notcurses.
 
 * 1.3.4 (not yet released)
   * `notcurses_lex_margins()` has been added to lex margins expressed in either
-     of two canonical formats. Hopefully this will lead to more programs
-     supporting margins.
+    of two canonical formats. Hopefully this will lead to more programs
+    supporting margins.
   * `ncvisual_open_plane()` has been renamed `ncvisual_from_file()`. The former
-     has been retained as a deprecated alias. It will be removed by 1.6/2.0.
+    has been retained as a deprecated alias. It will be removed by 1.6/2.0.
+  * `ncvisual_from_rgba()` and `ncvisual_from_bgra()` have been added to
+    support creation of `ncvisual`s from memory, requiring no file.
+  * `ncvisual_rotate_cw()` and `ncvisual_rotate_ccw()` have been added, having
+    the same semantics as `ncplane_rotate_cw()` and `ncplane_rotate_ccw()`.
+    They will likely be augmented in the future to support arbitrary rotations.
+  * `ncvisual_from_plane()` has been added to support "promotion" of an
+    `ncplane` to an `ncvisual`. The source plane may contain only spaces,
+    half blocks, and full blocks.
 
 * 1.3.3 (2020-04-26)
   * The `ncdplot` type has been added for plots based on `double`s rather than

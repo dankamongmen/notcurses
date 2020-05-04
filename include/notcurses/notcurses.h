@@ -1129,6 +1129,13 @@ ncplane_move_below(struct ncplane* n, struct ncplane* below){
 // Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n);
 
+// Rotate the plane π/2 radians clockwise or counterclockwise. This cannot
+// be performed on arbitrary planes, because glyphs cannot be arbitrarily
+// rotated. The glyphs which can be rotated are limited: line-drawing
+// characters, spaces, half blocks, and full blocks.
+API int ncplane_rotate_cw(struct ncplane* n);
+API int ncplane_rotate_ccw(struct ncplane* n);
+
 // Rotate the visual π/2 radians clockwise or counterclockwise. This cannot
 // be performed on arbitrary planes, because glyphs cannot be arbitrarily rotated.
 API int ncvisual_rotate_cw(struct ncvisual* n);
@@ -2065,10 +2072,10 @@ ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* ncerr,
 
 // Prepare an ncvisual, and its underlying plane, based off RGBA content in
 // memory at 'rgba'. 'rgba' must be a flat array of 32-bit 8bpc RGBA pixels.
-// These must be arranged in 'rowstride' * 4b lines, where the first 'cols'
-// * 4b are actual data. There must be 'rows' lines. The total size of 'rgba'
-// must thus be at least (rows * rowstride * 4) bytes, of which (rows * cols
-// * 4) bytes are actual data. The resulting plane will be 'rows' / 2 x 'cols'.
+// These must be arranged in 'rowstride' lines, where the first 'cols' * 4b
+// are actual data. There must be 'rows' lines. The total size of 'rgba'
+// must thus be at least (rows * rowstride) bytes, of which (rows * cols * 4)
+// bytes are actual data. The resulting plane will be ceil('rows'/2)x'cols'.
 API struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba,
                                         int rows, int rowstride, int cols);
 
@@ -2709,7 +2716,9 @@ typedef struct ncfdplane_options {
 // ownership of the file descriptor, which will be closed in ncfdplane_destroy().
 API struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* opts,
                           int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+
 API struct ncplane* ncfdplane_plane(struct ncfdplane* n);
+
 API int ncfdplane_destroy(struct ncfdplane* n);
 
 typedef struct ncsubproc_options {
@@ -2727,7 +2736,9 @@ API struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_opti
 API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
                        const char* bin,  char* const arg[], char* const env[],
                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+
 API struct ncplane* ncsubproc_plane(struct ncsubproc* n);
+
 API int ncsubproc_destroy(struct ncsubproc* n);
 
 // Draw a QR code at the current position on the plane. If there is insufficient
