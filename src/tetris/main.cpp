@@ -63,7 +63,7 @@ private:
   ncpp::NotCurses& nc_;
   uint64_t score_;
   std::mutex mtx_; // guards msdelay_
-  std::unique_ptr<ncpp::Plane> curpiece_;
+  std::unique_ptr<ncpp::Visual> curpiece_;
   std::unique_ptr<ncpp::Plane> board_;
   std::unique_ptr<ncpp::Visual> backg_;
   ncpp::Plane* stdplane_;
@@ -79,7 +79,7 @@ private:
     if(!curpiece_){
       return false;
     }
-    curpiece_->get_yx(y, x);
+    curpiece_->get_plane()->get_yx(y, x);
     return true;
   }
 
