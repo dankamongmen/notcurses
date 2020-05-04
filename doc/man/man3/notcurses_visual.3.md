@@ -46,6 +46,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncplane_rotate_ccw(struct ncplane* n);**
 
+**char* ncvisual_subtitle(const struct ncvisual* ncv);**
 
 # DESCRIPTION
 
@@ -61,6 +62,10 @@ result in a zero-area rendering.
 
 Both **ncplane_rotate_cw** and **ncplane_rotate_ccw** execute a rotation of
 π/2 radians, in the clockwise or counterclockwise direction respectively.
+
+**ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to
+the current frame if such a subtitle was decoded. Note that a subtitle might
+be returned for multiple frames, or might not.
 
 # RETURN VALUES
 
@@ -79,8 +84,10 @@ the number of cells emitted, or -1 on error.
 
 Multimedia decoding requires that Notcurses be built with either FFmpeg or
 OpenImageIO support. What formats can be decoded is totally dependent on the
-linked library.
+linked library. OpenImageIO does not support subtitles.
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_ncplane(3)**
+**notcurses(3)**,
+**notcurses_ncplane(3)**,
+**utf-8(7)**
