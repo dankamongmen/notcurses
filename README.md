@@ -295,6 +295,9 @@ up someday **FIXME**.
 * *Q:* Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard?
 * *A:* `ncplane_box()` and friends already have far too many arguments, you monster.
 
+* *Q:* Why doesn't Notcurses support 10- or 16-bit color?
+* *A:* Notcurses supports 24 bits of color, spread across three eight-bit channels. You presumably mean 10-bit-per-channel color. Notcurses will support it when a terminal supports it.
+
 * *Q:* You seem a creative guy. Why the least creative name ever?
 * *A:* I really didn't expect this to go anywhere.
 
