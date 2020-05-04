@@ -312,9 +312,33 @@ const char* oiio_version(void){
   return OIIO_VERSION_STRING;
 }
 
-ncvisual* ncvisual_open_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols){
+ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols){
+  ncvisual* ncv = ncvisual_create(1);
+  ncv->placey = 0;
+  ncv->placex = 0;
+  ncv->ncobj = nc;
+  const int targrows = rows / 2 + rows % 2;
+  ncv->ncp = ncplane_new(nc, targrows, cols, 0, 0, NULL);
+  if(ncv->ncp == NULL){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
+  // FIXME create frame
+  return ncv;
 }
 
-ncvisual* ncvisual_open_bgra(notcurses* nc, const void* bgra, int rows, int rowstride, int cols){
+ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows, int rowstride, int cols){
+  ncvisual* ncv = ncvisual_create(1);
+  ncv->placey = 0;
+  ncv->placex = 0;
+  ncv->ncobj = nc;
+  const int targrows = rows / 2 + rows % 2;
+  ncv->ncp = ncplane_new(nc, targrows, cols, 0, 0, NULL);
+  if(ncv->ncp == NULL){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
+  // FIXME create frame
+  return ncv;
 }
 #endif
