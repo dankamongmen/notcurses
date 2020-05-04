@@ -1,4 +1,5 @@
 #include "main.h"
+#include <vector>
 
 TEST_CASE("Multimedia") {
   if(getenv("TERM") == nullptr){
@@ -122,6 +123,30 @@ TEST_CASE("Multimedia") {
     ncvisual_destroy(ncv);
   }
 #endif
+
+  SUBCASE("LoadRGBAFromMemory") {
+    int dimy, dimx;
+    ncplane_dim_yx(ncp_, &dimy, &dimx);
+    std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
+    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), dimy * 2, dimx * 4, dimx);
+    REQUIRE(ncv);
+    CHECK(dimx * dimy == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  SUBCASE("LoadBGRAFromMemory") {
+    int dimy, dimx;
+    ncplane_dim_yx(ncp_, &dimy, &dimx);
+    std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
+    auto ncv = ncvisual_from_bgra(nc_, rgba.data(), dimy * 2, dimx * 4, dimx);
+    REQUIRE(ncv);
+    CHECK(dimx * dimy == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
+  }
 
   CHECK(!notcurses_stop(nc_));
   CHECK(!fclose(outfp_));

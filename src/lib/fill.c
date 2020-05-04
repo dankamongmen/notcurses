@@ -373,21 +373,6 @@ int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
   return total;
 }
 
-// generate a temporary plane that can hold the contents of n, rotated 90°
-static ncplane* rotate_plane(const ncplane* n){
-  int absy, absx;
-  ncplane_yx(n, &absy, &absx);
-  int dimy, dimx;
-  ncplane_dim_yx(n, &dimy, &dimx);
-  if(dimx % 2 != 0){
-    return NULL;
-  }
-  const int newy = dimx / 2;
-  const int newx = dimy * 2;
-  ncplane* newp = ncplane_new(n->nc, newy, newx, absy, absx, n->userptr);
-  return newp;
-}
-
 // if we're a lower block, reverse the channels. if we're a space, set both to
 // the background. if we're a full block, set both to the foreground.
 static void
@@ -491,7 +476,8 @@ rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx
   return 0;
 }
 
-int rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
+static int
+rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
   cell c1 = CELL_TRIVIAL_INITIALIZER;
   cell c2 = CELL_TRIVIAL_INITIALIZER;
   if(ncplane_at_yx_cell(src, srcy, srcx, &c1) < 0){

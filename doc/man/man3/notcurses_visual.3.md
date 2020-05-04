@@ -46,9 +46,9 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncplane* ncvisual_plane(struct ncvisual* ncv);**
 
-**int ncplane_rotate_cw(struct ncplane* n);**
+**int ncvisual_rotate_cw(struct ncvisual* n);**
 
-**int ncplane_rotate_ccw(struct ncplane* n);**
+**int ncvisual_rotate_ccw(struct ncvisual* n);**
 
 **char* ncvisual_subtitle(const struct ncvisual* ncv);**
 
@@ -68,15 +68,15 @@ It is possible to create an **ncvisual** from memory, rather than from a
 disk, but only using raw RGBA/BGRA 8bpc content. For RGBA, use
 **ncvisual_from_rgba**. For BGRA, use **ncvisual_from_bgra**. Both require
 a number of **rows**, a number of image columns **cols**, and a virtual row
-length of **rowstride** columns. The input data must provide 32 bits per
-pixel, and thus must be at least **rowstride** * **rows** * 4 bytes, of
+length of **rowstride** / 4 columns. The input data must provide 32 bits per
+pixel, and thus must be at least **rowstride** * **rows** bytes, of
 which a **cols** * **rows** * 4-byte subset is used. It is not possible to
 **mmap(2)** an image file and use it directly--decompressed, decoded data
-is necessary. The resulting plane will be **rows** / 2 rows, and **cols**
+is necessary. The resulting plane will be ceil(**rows**/2) rows, and **cols**
 columns. It will not be necessary to call **ncvisual_decode**, but it is
 still necessary to call **ncvisual_render**.
 
-Both **ncplane_rotate_cw** and **ncplane_rotate_ccw** execute a rotation of
+Both **ncvisual_rotate_cw** and **ncvisual_rotate_ccw** execute a rotation of
 π/2 radians, in the clockwise or counterclockwise direction respectively.
 
 **ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to

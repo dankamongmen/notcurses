@@ -2437,8 +2437,8 @@ struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 char* ncvisual_subtitle(const struct ncvisual* ncv);
 
 // Rotate the visual π/2 radians clockwise or counterclockwise.
-int ncplane_rotate_cw(struct ncplane* n);
-int ncplane_rotate_ccw(struct ncplane* n);
+int ncvisual_rotate_cw(struct ncvisual* n);
+int ncvisual_rotate_ccw(struct ncvisual* n);
 ```
 
 It is also possible to seed an `ncvisual` directly from memory, without involving
@@ -2447,10 +2447,10 @@ a file. Both RGBA and BGRA 8bpc arrangements can be used.
 ```c
 // Prepare an ncvisual, and its underlying plane, based off RGBA content in
 // memory at 'rgba'. 'rgba' must be a flat array of 32-bit 8bpc RGBA pixels.
-// These must be arranged in 'rowstride' * 4b lines, where the first 'cols'
-// * 4b are actual data. There must be 'rows' lines. The total size of 'rgba'
-// must thus be at least (rows * rowstride * 4) bytes, of which (rows * cols
-// * 4) bytes are actual data. The resulting plane will be 'rows' / 2 x 'cols'.
+// These must be arranged in 'rowstride' lines, where the first 'cols' * 4b
+// are actual data. There must be 'rows' lines. The total size of 'rgba'
+// must thus be at least (rows * rowstride) bytes, of which (rows * cols * 4)
+// bytes are actual data. The resulting plane will be ceil('rows'/2)x'cols'.
 ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols);
 
 // ncvisual_from_rgba(), but for BGRA.

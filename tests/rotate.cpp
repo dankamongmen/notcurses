@@ -1,26 +1,27 @@
 #include "main.h"
+#include <vector>
 
-void RotateCW(struct notcurses* nc, struct ncvisual* n) {
+void RotateCW(struct notcurses* nc, struct ncplane* n) {
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncvisual_rotate_cw(n));
+    CHECK(0 == ncplane_rotate_cw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncvisual_rotate_cw(n));
+    CHECK(0 == ncplane_rotate_cw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncvisual_rotate_cw(n));
+    CHECK(0 == ncplane_rotate_cw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncvisual_rotate_cw(n));
+    CHECK(0 == ncplane_rotate_cw(n));
     CHECK(0 == notcurses_render(nc));
 }
 
-void RotateCCW(struct notcurses* nc, struct ncvisual* n) {
+void RotateCCW(struct notcurses* nc, struct ncplane* n) {
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncvisual_rotate_ccw(n));
+    CHECK(0 == ncplane_rotate_ccw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncvisual_rotate_ccw(n));
+    CHECK(0 == ncplane_rotate_ccw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncvisual_rotate_ccw(n));
+    CHECK(0 == ncplane_rotate_ccw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncvisual_rotate_ccw(n));
+    CHECK(0 == ncplane_rotate_ccw(n));
     CHECK(0 == notcurses_render(nc));
 }
 
@@ -103,6 +104,51 @@ TEST_CASE("Rotate") {
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
     RotateCCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
+  }
+
+  // use half of each dimension
+  SUBCASE("RotateRGBACW") {
+    std::vector<uint32_t> rgba((dimx / 2) * (dimy / 2), 0xffbbccff);
+    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), dimy / 2, dimx * 2, dimx / 2);
+    REQUIRE(ncv);
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_rotate_cw(ncv));
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_rotate_cw(ncv));
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_rotate_cw(ncv));
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_rotate_cw(ncv));
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  SUBCASE("RotateRGBACCW") {
+    std::vector<uint32_t> rgba(dimx * dimy, 0xffbbccff);
+    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), dimy, dimx * 2, dimx / 2);
+    REQUIRE(ncv);
+    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_rotate_ccw(ncv));
+    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_rotate_ccw(ncv));
+    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_rotate_ccw(ncv));
+    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_rotate_ccw(ncv));
+    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
   }
 
   CHECK(0 == notcurses_stop(nc_));

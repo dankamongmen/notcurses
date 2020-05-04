@@ -12,12 +12,8 @@ extern "C" {
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/version.h>
-#include <libavutil/imgutils.h>
-#include <libavutil/rational.h>
-#include <libswscale/swscale.h>
 #include <libswscale/version.h>
 #include <libavformat/version.h>
-#include <libavformat/avformat.h>
 #else
 #ifdef USE_OIIO
 const char* oiio_version(void);
@@ -637,6 +633,20 @@ enforce_utf8(void){
 }
 
 struct ncvisual* ncvisual_create(float timescale);
+
+static inline void*
+memdup(const void* src, size_t len){
+  void* ret = malloc(len);
+  if(ret){
+    memcpy(ret, src, len);
+  }
+  return ret;
+}
+
+// generate a temporary plane that can hold the contents of n, rotated 90°
+ncplane* rotate_plane(const ncplane* n);
+
+void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
 
 #ifdef __cplusplus
 }

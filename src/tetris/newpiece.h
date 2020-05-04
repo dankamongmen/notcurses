@@ -1,6 +1,6 @@
 // tidx is an index into tetriminos. yoff and xoff are relative to the
 // terminal's origin. returns colored north-facing tetrimino on a plane.
-std::unique_ptr<ncpp::Visual> NewPiece() {
+std::unique_ptr<ncpp::Plane> NewPiece() {
   // "North-facing" tetrimino forms (form in which they are released from the top) are expressed in terms of
   // two rows having between 2 and 4 columns. We map each game column to four columns and each game row to two
   // rows. Each byte of the texture maps to one 4x4 component block (and wastes 7 bits).
@@ -16,8 +16,7 @@ std::unique_ptr<ncpp::Visual> NewPiece() {
   int y, x;
   stdplane_->get_dim(&y, &x);
   const int xoff = x / 2 - BOARD_WIDTH + 2 * (random() % (BOARD_WIDTH / 2));
-  /* FIXME
-  std::unique_ptr<ncpp::Visual> n = std::make_unique<ncpp::Visual>(2, cols, board_top_y_ - 1, xoff, nullptr);
+  std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(2, cols, board_top_y_ - 1, xoff, nullptr);
   if(n){
     uint64_t channels = 0;
     channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -39,6 +38,4 @@ std::unique_ptr<ncpp::Visual> NewPiece() {
     throw TetrisNotcursesErr("render()");
   }
   return n;
-  */
-  return nullptr;
 }

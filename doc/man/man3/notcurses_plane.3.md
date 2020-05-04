@@ -134,6 +134,10 @@ notcurses_plane - operations on ncplanes
 
 **bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);**
 
+**int ncplane_rotate_cw(struct ncplane* n);**
+
+**int ncplane_rotate_ccw(struct ncplane* n);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions

@@ -427,6 +427,8 @@ int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes)
 int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
 int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
 int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
+int ncplane_rotate_cw(struct ncplane* n);
+int ncplane_rotate_ccw(struct ncplane* n);
 int ncvisual_rotate_cw(struct ncvisual* n);
 int ncvisual_rotate_ccw(struct ncvisual* n);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
