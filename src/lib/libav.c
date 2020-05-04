@@ -10,16 +10,6 @@ struct AVCodecParameters;
 struct AVPacket;
 
 typedef struct ncvisual {
-  struct AVFormatContext* fmtctx;
-  struct AVCodecContext* codecctx;       // video codec context
-  struct AVCodecContext* subtcodecctx;   // subtitle codec context
-  struct AVFrame* frame;
-  struct AVFrame* oframe;
-  struct AVCodec* codec;
-  struct AVCodecParameters* cparams;
-  struct AVCodec* subtcodec;
-  struct AVPacket* packet;
-  struct SwsContext* swsctx;
   int packet_outstanding;
   int dstwidth, dstheight;
   int stream_index;        // match against this following av_read_frame()
@@ -33,6 +23,16 @@ typedef struct ncvisual {
   ncscale_e style;         // none, scale, or stretch
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
 #ifdef USE_FFMPEG
+  struct AVFormatContext* fmtctx;
+  struct AVCodecContext* codecctx;       // video codec context
+  struct AVCodecContext* subtcodecctx;   // subtitle codec context
+  struct AVFrame* frame;
+  struct AVFrame* oframe;
+  struct AVCodec* codec;
+  struct AVCodecParameters* cparams;
+  struct AVCodec* subtcodec;
+  struct AVPacket* packet;
+  struct SwsContext* swsctx;
   AVSubtitle subtitle;
 #endif
 } ncvisual;
@@ -40,6 +40,16 @@ typedef struct ncvisual {
 #ifdef USE_FFMPEG
 ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
+}
+
+ncvisual* ncvisual_create(float timescale){
+  ncvisual* ret = malloc(sizeof(*ret));
+  if(ret == NULL){
+    return NULL;
+  }
+  memset(ret, 0, sizeof(*ret));
+  ret->timescale = timescale;
+  return ret;
 }
 
 void ncvisual_destroy(ncvisual* ncv){
@@ -62,17 +72,6 @@ void ncvisual_destroy(ncvisual* ncv){
 
 bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return true;
-}
-
-static ncvisual*
-ncvisual_create(float timescale){
-  ncvisual* ret = malloc(sizeof(*ret));
-  if(ret == NULL){
-    return NULL;
-  }
-  memset(ret, 0, sizeof(*ret));
-  ret->timescale = timescale;
-  return ret;
 }
 
 /* static void
@@ -386,7 +385,7 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   return ncv;
 }
 
-ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
+ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
                               nc_err_e* ncerr, int y, int x, ncscale_e style){
   ncvisual* ncv = ncvisual_open(filename, ncerr);
   if(ncv == NULL){
@@ -509,6 +508,12 @@ int ncvisual_init(int loglevel){
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }
+
+ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols){
+}
+
+ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows, int rowstride, int cols){
+}
 #else // built without ffmpeg
 #ifndef USE_OIIO // built without ffmpeg or oiio
 bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
@@ -551,7 +556,7 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   return NULL;
 }
 
-ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
+ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
                               nc_err_e* ncerr, int y, int x, ncscale_e style){
   (void)nc;
   (void)filename;
@@ -577,5 +582,22 @@ void ncvisual_destroy(ncvisual* ncv){
   (void)ncv;
 }
 
+ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols){
+  (void)nc;
+  (void)rgba;
+  (void)rows;
+  (void)rowstride;
+  (void)cols;
+  return NULL;
+}
+
+ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows, int rowstride, int cols){
+  (void)nc;
+  (void)bgra;
+  (void)rows;
+  (void)rowstride;
+  (void)cols;
+  return NULL;
+}
 #endif
 #endif

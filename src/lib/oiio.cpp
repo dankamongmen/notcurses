@@ -35,8 +35,7 @@ bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return true;
 }
 
-static ncvisual*
-ncvisual_create(const char* filename, float timescale){
+ncvisual* ncvisual_create(float timescale){
   auto ret = new ncvisual;
   if(ret == nullptr){
     return nullptr;
@@ -52,7 +51,7 @@ ncvisual_create(const char* filename, float timescale){
   ret->ncobj = nullptr;
   ret->frame = nullptr;
   ret->raw = nullptr;
-  ret->filename = strdup(filename);
+  ret->filename = nullptr;
   return ret;
 }
 
@@ -63,10 +62,16 @@ ncvisual_open(const char* filename, nc_err_e* err){
     *err = NCERR_NOMEM;
     return nullptr;
   }
+  if((ncv->filename = strdup(filename)) == nullptr){
+    *err = NCERR_NOMEM;
+    delete ncv;
+    return nullptr;
+  }
   ncv->image = OIIO::ImageInput::open(filename);
   if(!ncv->image){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     *err = NCERR_DECODE;
+    ncvisual_destroy(ncv);
     return nullptr;
   }
 /*const auto &spec = ncv->image->spec_dimensions();
@@ -89,8 +94,8 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   return ncv;
 }
 
-ncvisual* ncvisual_open_plane(notcurses* nc, const char* filename,
-                              nc_err_e* ncerr, int y, int x, ncscale_e style){
+ncvisual* ncvisual_from_file(notcurses* nc, const char* filename, nc_err_e* ncerr,
+                             int y, int x, ncscale_e style){
   ncvisual* ncv = ncvisual_open(filename, ncerr);
   if(ncv == nullptr){
     return nullptr;
@@ -291,7 +296,9 @@ int ncvisual_init(int loglevel){
 
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
-    ncv->image->close();
+    if(ncv->image){
+      ncv->image->close();
+    }
     if(ncv->ncobj){
       ncplane_destroy(ncv->ncp);
     }
@@ -305,4 +312,9 @@ const char* oiio_version(void){
   return OIIO_VERSION_STRING;
 }
 
+ncvisual* ncvisual_open_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols){
+}
+
+ncvisual* ncvisual_open_bgra(notcurses* nc, const void* bgra, int rows, int rowstride, int cols){
+}
 #endif

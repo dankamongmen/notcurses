@@ -1,26 +1,26 @@
 #include "main.h"
 
-void RotateCW(struct notcurses* nc, struct ncplane* n) {
+void RotateCW(struct notcurses* nc, struct ncvisual* n) {
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncplane_rotate_cw(n));
+    CHECK(0 == ncvisual_rotate_cw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncplane_rotate_cw(n));
+    CHECK(0 == ncvisual_rotate_cw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncplane_rotate_cw(n));
+    CHECK(0 == ncvisual_rotate_cw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncplane_rotate_cw(n));
+    CHECK(0 == ncvisual_rotate_cw(n));
     CHECK(0 == notcurses_render(nc));
 }
 
-void RotateCCW(struct notcurses* nc, struct ncplane* n) {
+void RotateCCW(struct notcurses* nc, struct ncvisual* n) {
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncplane_rotate_ccw(n));
+    CHECK(0 == ncvisual_rotate_ccw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncplane_rotate_ccw(n));
+    CHECK(0 == ncvisual_rotate_ccw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncplane_rotate_ccw(n));
+    CHECK(0 == ncvisual_rotate_ccw(n));
     CHECK(0 == notcurses_render(nc));
-    CHECK(0 == ncplane_rotate_ccw(n));
+    CHECK(0 == ncvisual_rotate_ccw(n));
     CHECK(0 == notcurses_render(nc));
 }
 

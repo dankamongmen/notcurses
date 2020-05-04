@@ -2031,7 +2031,7 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
                                          nc_err_e* ncerr);
 
-// How to scale the visual in ncvisual_open_plane(). NCSCALE_NONE will open a
+// How to scale the visual in ncvisual_from_file(). NCSCALE_NONE will open a
 // plane tailored to the visual's exact needs, which is probably larger than the
 // visible screen (but might be smaller). NCSCALE_SCALE scales a visual larger
 // than the visible screen down, maintaining aspect ratio. NCSCALE_STRETCH
@@ -2048,9 +2048,33 @@ typedef enum {
 // new plane will be exactly that large. Otherwise, the plane will be as large
 // as possible (given the visible screen), either maintaining aspect ratio
 // (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
-API struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
-                                         nc_err_e* ncerr, int y, int x,
-                                         ncscale_e style);
+API struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file,
+                                        nc_err_e* ncerr, int y, int x,
+                                        ncscale_e style);
+
+// Remove by 1.6/2.0 FIXME
+static inline struct ncvisual*
+ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* ncerr,
+                    int y, int x, ncscale_e style) __attribute__ ((deprecated));
+
+static inline struct ncvisual*
+ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* ncerr,
+                    int y, int x, ncscale_e style){
+  return ncvisual_from_file(nc, file, ncerr, y, x, style);
+}
+
+// Prepare an ncvisual, and its underlying plane, based off RGBA content in
+// memory at 'rgba'. 'rgba' must be a flat array of 32-bit 8bpc RGBA pixels.
+// These must be arranged in 'rowstride' * 4b lines, where the first 'cols'
+// * 4b are actual data. There must be 'rows' lines. The total size of 'rgba'
+// must thus be at least (rows * rowstride * 4) bytes, of which (rows * cols
+// * 4) bytes are actual data. The resulting plane will be 'rows' / 2 x 'cols'.
+API struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba,
+                                        int rows, int rowstride, int cols);
+
+// ncvisual_from_rgba(), but 'bgra' is arranged as BGRA.
+API struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra,
+                                        int rows, int rowstride, int cols);
 
 // Return the plane to which this ncvisual is bound.
 API struct ncplane* ncvisual_plane(struct ncvisual* ncv);
@@ -2714,6 +2738,14 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // max version of current QR codes is 40, greater values are allowed, for
 // future compatability (provide 0 for no artificail bound).
 API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size_t len);
+
+// Promote an ncplane 'n' to an ncvisual. The plane should not be associated
+// with an existing ncvisual, and may contain only spaces, half blocks, and
+// full blocks. The latter will be checked, and any other glyph will result
+// in a NULL being returned. This function exists so that planes can be
+// subjected to ncvisual transformations. If possible, it's usually better
+// to create the ncvisual from memory using ncvisual_from_rgba().
+API struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 
 #undef API
 

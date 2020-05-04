@@ -24,9 +24,13 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 **struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
                                          nc_err_e* err);**
 
-**struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file,
+**struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file,
                                          nc_err_e* err, int y, int x,
                                          ncscale_e style);**
+
+**struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba, int rows, int rowstride, int cols);**
+
+**struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra, int rows, int rowstride, int cols);**
 
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
@@ -60,6 +64,18 @@ or **begx** are an error. It is an error to specify any region beyond the
 boundaries of the frame. Supplying zero for either **leny** or **lenx** will
 result in a zero-area rendering.
 
+It is possible to create an **ncvisual** from memory, rather than from a
+disk, but only using raw RGBA/BGRA 8bpc content. For RGBA, use
+**ncvisual_from_rgba**. For BGRA, use **ncvisual_from_bgra**. Both require
+a number of **rows**, a number of image columns **cols**, and a virtual row
+length of **rowstride** columns. The input data must provide 32 bits per
+pixel, and thus must be at least **rowstride** * **rows** * 4 bytes, of
+which a **cols** * **rows** * 4-byte subset is used. It is not possible to
+**mmap(2)** an image file and use it directly--decompressed, decoded data
+is necessary. The resulting plane will be **rows** / 2 rows, and **cols**
+columns. It will not be necessary to call **ncvisual_decode**, but it is
+still necessary to call **ncvisual_render**.
+
 Both **ncplane_rotate_cw** and **ncplane_rotate_ccw** execute a rotation of
 π/2 radians, in the clockwise or counterclockwise direction respectively.
 
@@ -71,7 +87,7 @@ be returned for multiple frames, or might not.
 
 **notcurses_canopen** returns true if this functionality is enabled, or false
 if Notcurses was not built with multimedia support. **ncplane_visual_open** and
-**ncvisual_open_plane** return an **ncvisual** object on success, or **NULL**
+**ncvisual_from_file** return an **ncvisual** object on success, or **NULL**
 on failure. Success from these functions indicates that the specified **file**
 was opened, and enough data was read to make a firm codec identification. It
 does not mean that the entire file is properly-formed. On failure, **err**

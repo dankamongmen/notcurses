@@ -285,7 +285,9 @@ typedef enum {
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
 } ncscale_e;
-struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
+struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
+struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba, int rows, int rowstride, int cols);
+struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra, int rows, int rowstride, int cols);
 struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 void ncvisual_destroy(struct ncvisual* ncv);
 nc_err_e ncvisual_decode(struct ncvisual* nc);

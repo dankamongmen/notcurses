@@ -187,7 +187,7 @@ int luigi_demo(struct notcurses* nc){
   if(fname == NULL){
     return -1;
   }
-  wmncv = ncvisual_open_plane(nc, fname, &ncerr, 0, 0, NCSCALE_NONE);
+  wmncv = ncvisual_from_file(nc, fname, &ncerr, 0, 0, NCSCALE_NONE);
   free(fname);
   if(wmncv == NULL){
     return -1;

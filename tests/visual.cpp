@@ -27,7 +27,7 @@ TEST_CASE("Multimedia") {
     nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_open_plane(nc_, find_data("changes.jpg"), &ncerr, 0, 0, NCSCALE_STRETCH);
+    auto ncv = ncvisual_from_file(nc_, find_data("changes.jpg"), &ncerr, 0, 0, NCSCALE_STRETCH);
     REQUIRE(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     ncerr = ncvisual_decode(ncv);
@@ -110,7 +110,7 @@ TEST_CASE("Multimedia") {
     nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_open_plane(nc_, find_data("notcursesI.avi"), &ncerr, 0, 0, NCSCALE_STRETCH);
+    auto ncv = ncvisual_from_file(nc_, find_data("notcursesI.avi"), &ncerr, 0, 0, NCSCALE_STRETCH);
     REQUIRE(ncv);
     CHECK(NCERR_SUCCESS == ncerr);
     ncerr = ncvisual_decode(ncv);

@@ -5,6 +5,8 @@ rearrangements of Notcurses.
   * `notcurses_lex_margins()` has been added to lex margins expressed in either
      of two canonical formats. Hopefully this will lead to more programs
      supporting margins.
+  * `ncvisual_open_plane()` has been renamed `ncvisual_from_file()`. The former
+     has been retained as a deprecated alias. It will be removed by 1.6/2.0.
 
 * 1.3.3 (2020-04-26)
   * The `ncdplot` type has been added for plots based on `double`s rather than
