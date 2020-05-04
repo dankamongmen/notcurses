@@ -41,7 +41,7 @@ namespace ncpp
 
 		explicit Visual (const char *file, nc_err_e* ncerr, int y, int x, NCScale scale)
 		{
-			visual = ncvisual_open_plane (get_notcurses (), file, ncerr, y, x, static_cast<ncscale_e>(scale));
+			visual = ncvisual_from_file (get_notcurses (), file, ncerr, y, x, static_cast<ncscale_e>(scale));
 			if (visual == nullptr)
 				throw init_error ("notcurses failed to create a new visual");
 		}

@@ -39,8 +39,10 @@ const char* oiio_version(void);
 #include "notcurses/notcurses.h"
 #include "egcpool.h"
 
-struct SwsContext;
 struct esctrie;
+
+// we can't define multipart ncvisual here, because OIIO requires C++ syntax,
+// and we can't go throwing C++ syntax into this header. so it goes.
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
 // state for that window. A notcurses context describes a single terminal, and
@@ -633,6 +635,8 @@ enforce_utf8(void){
   }
   return true;
 }
+
+struct ncvisual* ncvisual_create(float timescale);
 
 #ifdef __cplusplus
 }

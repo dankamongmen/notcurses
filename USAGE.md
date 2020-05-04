@@ -2375,7 +2375,7 @@ struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, nc_er
 // new plane will be exactly that large. Otherwise, the plane will be as large
 // as possible (given the visible screen), either maintaining aspect ratio
 // (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
-struct ncvisual* ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
+struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
@@ -2439,4 +2439,20 @@ char* ncvisual_subtitle(const struct ncvisual* ncv);
 // Rotate the visual π/2 radians clockwise or counterclockwise.
 int ncplane_rotate_cw(struct ncplane* n);
 int ncplane_rotate_ccw(struct ncplane* n);
+```
+
+It is also possible to seed an `ncvisual` directly from memory, without involving
+a file. Both RGBA and BGRA 8bpc arrangements can be used.
+
+```c
+// Prepare an ncvisual, and its underlying plane, based off RGBA content in
+// memory at 'rgba'. 'rgba' must be a flat array of 32-bit 8bpc RGBA pixels.
+// These must be arranged in 'rowstride' * 4b lines, where the first 'cols'
+// * 4b are actual data. There must be 'rows' lines. The total size of 'rgba'
+// must thus be at least (rows * rowstride * 4) bytes, of which (rows * cols
+// * 4) bytes are actual data. The resulting plane will be 'rows' / 2 x 'cols'.
+ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols);
+
+// ncvisual_from_rgba(), but for BGRA.
+ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows, int rowstride, int cols);
 ```
