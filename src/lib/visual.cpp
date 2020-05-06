@@ -780,8 +780,13 @@ int ncvisual_init(int loglevel){
 }
 
 void ncvisual_destroy(ncvisual* ncv){
-  assert(!ncv);
-  (void)ncv;
+  if(ncv){
+    if(ncv->ncobj){
+      ncplane_destroy(ncv->ncp);
+    }
+    free(ncv->data);
+    delete ncv;
+  }
 }
 #else
 #ifdef USE_OIIO
