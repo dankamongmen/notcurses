@@ -47,8 +47,6 @@ typedef struct ncvisual {
   int placex, placey;
   // ffmpeg sometimes pads lines. this many true bytes per row in data.
   int rowstride;
-  // we own data iff frame == NULL
-  uint32_t* data;          // (scaled) RGBA image data, rowstride bytes per row
   ncscale_e style;         // none, scale, or stretch
   uint64_t framenum;
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
@@ -72,7 +70,18 @@ typedef struct ncvisual {
   OIIO::ImageBuf scaled;
 #endif
 #endif
+  uint32_t* data;          // (scaled) RGBA image data, rowstride bytes per row
+  bool owndata;            // we own data iff owndata == true
 } ncvisual;
+
+static void
+ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned){
+  if(ncv->owndata){
+    free(ncv->data);
+  }
+  ncv->data = data;
+  ncv->owndata = owned;
+}
 
 ncvisual* ncvisual_create(float timescale){
   auto ret = new ncvisual{};
@@ -149,12 +158,11 @@ int ncvisual_rotate_cw(struct ncvisual* ncv){
     }
   }
   int ret = ncplane_destroy(n);
-  free(ncv->data);
+  ncvisual_set_data(ncv, data, true);
   int tmp = ncv->dstwidth;
   ncv->dstwidth = ncv->dstheight;
   ncv->dstheight = tmp;
   ncv->rowstride = ncv->dstwidth * 4;
-  ncv->data = data;
   ncv->ncp = newp;
   return ret;
 }
@@ -188,12 +196,11 @@ int ncvisual_rotate_ccw(struct ncvisual* ncv){
     }
   }
   int ret = ncplane_destroy(n);
-  free(ncv->data);
+  ncvisual_set_data(ncv, data, true);
   int tmp = ncv->dstwidth;
   ncv->dstwidth = ncv->dstheight;
   ncv->dstheight = tmp;
   ncv->rowstride = ncv->dstwidth * 4;
-  ncv->data = data;
   ncv->ncp = newp;
   return ret;
 }
@@ -216,11 +223,12 @@ ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
     ncvisual_destroy(ncv);
     return NULL;
   }
-  ncv->data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->dstheight));
-  if(ncv->data == NULL){
+  uint32_t* data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->dstheight));
+  if(data == NULL){
     ncvisual_destroy(ncv);
     return NULL;
   }
+  ncvisual_set_data(ncv, data, true);
   return ncv;
 }
 
@@ -240,11 +248,12 @@ ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
     ncvisual_destroy(ncv);
     return NULL;
   }
-  ncv->data = static_cast<uint32_t*>(bgra_to_rgba(bgra, rows, rowstride, cols));
-  if(ncv->data == NULL){
+  uint32_t* data = static_cast<uint32_t*>(memdup(bgra, rowstride * ncv->dstheight));
+  if(data == NULL){
     ncvisual_destroy(ncv);
     return NULL;
   }
+  ncvisual_set_data(ncv, data, true);
   return ncv;
 }
 
@@ -285,6 +294,19 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   return ret;
 }
 
+// free common ncv material, after any engine-specific resource deallocation
+static void
+ncvisual_destroy_common(ncvisual* ncv){
+  if(ncv->owndata){
+    free(ncv->data);
+  }
+  free(ncv->filename);
+  if(ncv->ncobj && ncv->ncp){
+    ncplane_destroy(ncv->ncp);
+  }
+  delete ncv;
+}
+
 #ifdef USE_FFMPEG
 ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
@@ -301,10 +323,7 @@ void ncvisual_destroy(ncvisual* ncv){
     av_packet_free(&ncv->packet);
     avformat_close_input(&ncv->fmtctx);
     avsubtitle_free(&ncv->subtitle);
-    if(ncv->ncobj && ncv->ncp){
-      ncplane_destroy(ncv->ncp);
-    }
-    delete ncv;
+    ncvisual_destroy_common(ncv);
   }
 }
 
@@ -528,7 +547,7 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 	  return NCERR_DECODE;
   }
   nc->rowstride = f->linesize[0];
-  nc->data = reinterpret_cast<uint32_t*>(f->data[0]);
+  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(f->data[0]), false);
   return NCERR_SUCCESS;
 }
 
@@ -781,11 +800,7 @@ int ncvisual_init(int loglevel){
 
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
-    if(ncv->ncobj){
-      ncplane_destroy(ncv->ncp);
-    }
-    free(ncv->data);
-    delete ncv;
+    ncvisual_destroy_common(ncv);
   }
 }
 #else
@@ -918,14 +933,14 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       nc->dstwidth = cols;
     }
   }
-  nc->data = static_cast<uint32_t*>(nc->raw->localpixels());
+  ncvisual_set_data(nc, nc->raw->localpixels(), false);
   if(nc->dstwidth != spec.width || nc->dstheight != spec.height){ // scale it
     OIIO::ROI roi(0, nc->dstwidth, 0, nc->dstheight, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(nc->scaled, *nc->raw, "", 0, roi)){
       return NCERR_DECODE; // FIXME need we do anything further?
     }
     nc->rowstride = nc->dstwidth * 4;
-    nc->data = static_cast<uint32_t*>(nc->scaled.localpixels());
+    ncvisual_set_data(nc, nc->scaled.localpixels(), false);
   }
   nc->rowstride = nc->dstwidth * 4;
   return NCERR_SUCCESS;
@@ -1004,11 +1019,7 @@ void ncvisual_destroy(ncvisual* ncv){
     if(ncv->image){
       ncv->image->close();
     }
-    if(ncv->ncobj){
-      ncplane_destroy(ncv->ncp);
-    }
-    free(ncv->filename);
-    delete ncv;
+    ncvisual_destroy_common(ncv);
   }
 }
 
