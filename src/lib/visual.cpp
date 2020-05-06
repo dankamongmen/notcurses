@@ -96,7 +96,6 @@ void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols){
     return NULL;
   }
 //fprintf(stderr, "ROWS: %d\n", rows);
-  assert(rows % 2 == 0); // FIXME handle odd number of rows
   uint32_t* ret = static_cast<uint32_t*>(malloc(rowstride * rows));
   if(ret){
     for(int y = 0 ; y < rows ; ++y){
