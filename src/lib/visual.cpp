@@ -210,24 +210,17 @@ ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
   ncv->ncobj = nc;
   ncv->dstwidth = cols;
   ncv->dstheight = rows;
-  if(ncv->dstheight % 2){
-    ++ncv->dstheight;
-  }
-  int disprows = ncv->dstheight / 2;
+  int disprows = ncv->dstheight / 2 + ncv->dstheight % 2;
 //fprintf(stderr, "MADE INITIAL ONE %d/%d\n", disprows, ncv->dstwidth);
   ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, NULL);
   if(ncv->ncp == NULL){
     ncvisual_destroy(ncv);
     return NULL;
   }
-  uint32_t* data = static_cast<uint32_t*>(malloc(rowstride * ncv->dstheight));
+  uint32_t* data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->dstheight));
   if(data == NULL){
     ncvisual_destroy(ncv);
     return NULL;
-  }
-  memcpy(data, rgba, rowstride * rows);
-  if(ncv->dstheight != rows){
-    memset(data + rows * (rowstride / 4), 0, rowstride);
   }
   ncv->data = data;
   return ncv;
@@ -243,10 +236,7 @@ ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
   ncv->ncobj = nc;
   ncv->dstwidth = cols;
   ncv->dstheight = rows;
-  if(ncv->dstheight % 2){
-    ++ncv->dstheight;
-  }
-  int disprows = ncv->dstheight / 2;
+  int disprows = ncv->dstheight / 2 + ncv->dstheight % 2;
   ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, NULL);
   if(ncv->ncp == NULL){
     ncvisual_destroy(ncv);

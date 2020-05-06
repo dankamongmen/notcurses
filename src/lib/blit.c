@@ -19,11 +19,11 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize, const void* data,
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
   int dimy, dimx, x, y;
-  int visy = begy;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
+  int visy = begy;
   for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 2){
     if(ncplane_cursor_move_yx(nc, y, placex)){
       return -1;
@@ -32,6 +32,9 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize, const void* data,
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
       const unsigned char* rgbbase_down = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+      if(visy == begy + leny - 1){
+        rgbbase_down = (const unsigned char*)"\x00\x00\x00\x00";
+      }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
