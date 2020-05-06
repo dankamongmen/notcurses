@@ -1,3 +1,4 @@
+#include <math.h>
 #include <string.h>
 #include "version.h"
 
@@ -131,43 +132,9 @@ int ncvisual_setplane(ncvisual* ncv, ncplane* n){
   return ret;
 }
 
-int ncvisual_rotate_cw(struct ncvisual* ncv){
-  if(ncv->data == NULL){
-    return -1;
-  }
-  ncplane* n = ncvisual_plane(ncv);
-  ncplane* newp = rotate_plane(n);
-  if(newp == NULL){
-    return -1;
-  }
-//fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
-  assert(ncv->rowstride / 4 >= ncv->dstwidth);
-  uint32_t* data = static_cast<uint32_t*>(malloc(ncv->dstheight * ncv->dstwidth * 4));
-  if(data == NULL){
-    ncplane_destroy(newp);
-    return -1;
-  }
-  // targy <- x, targx <- ncv->dstheight - y - 1
-  for(int targy = 0 ; targy < ncv->dstwidth ; ++targy){
-    for(int targx = 0 ; targx < ncv->dstheight ; ++targx){
-      const int x = targy;
-      const int y = ncv->dstheight - 1 - targx;
-//fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
-      data[targy * ncv->dstheight + targx] = ncv->data[y * (ncv->rowstride / 4) + x];
-//fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->dstheight + targx], targy * ncv->dstheight + targx, (targy * ncv->dstheight + targx) * 4);
-    }
-  }
-  int ret = ncplane_destroy(n);
-  ncvisual_set_data(ncv, data, true);
-  int tmp = ncv->dstwidth;
-  ncv->dstwidth = ncv->dstheight;
-  ncv->dstheight = tmp;
-  ncv->rowstride = ncv->dstwidth * 4;
-  ncv->ncp = newp;
-  return ret;
-}
-
-int ncvisual_rotate_ccw(struct ncvisual* ncv){
+// pi/2 rads counterclockwise
+static int
+ncvisual_rotate_ccw(struct ncvisual* ncv){
   if(ncv->data == NULL){
     return -1;
   }
@@ -193,6 +160,48 @@ int ncvisual_rotate_ccw(struct ncvisual* ncv){
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
       data[targy * ncv->dstheight + targx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "CCW: %d/%d -> %d/%d\n", y, x, targy, targx);
+    }
+  }
+  int ret = ncplane_destroy(n);
+  ncvisual_set_data(ncv, data, true);
+  int tmp = ncv->dstwidth;
+  ncv->dstwidth = ncv->dstheight;
+  ncv->dstheight = tmp;
+  ncv->rowstride = ncv->dstwidth * 4;
+  ncv->ncp = newp;
+  return ret;
+}
+
+int ncvisual_rotate(struct ncvisual* ncv, double rads){
+  if(rads == -M_PI / 2){
+    return ncvisual_rotate_ccw(ncv);
+  }
+  if(rads != M_PI / 2){
+    return -1;
+  }
+  if(ncv->data == NULL){
+    return -1;
+  }
+  ncplane* n = ncvisual_plane(ncv);
+  ncplane* newp = rotate_plane(n);
+  if(newp == NULL){
+    return -1;
+  }
+//fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
+  assert(ncv->rowstride / 4 >= ncv->dstwidth);
+  uint32_t* data = static_cast<uint32_t*>(malloc(ncv->dstheight * ncv->dstwidth * 4));
+  if(data == NULL){
+    ncplane_destroy(newp);
+    return -1;
+  }
+  // targy <- x, targx <- ncv->dstheight - y - 1
+  for(int targy = 0 ; targy < ncv->dstwidth ; ++targy){
+    for(int targx = 0 ; targx < ncv->dstheight ; ++targx){
+      const int x = targy;
+      const int y = ncv->dstheight - 1 - targx;
+//fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
+      data[targy * ncv->dstheight + targx] = ncv->data[y * (ncv->rowstride / 4) + x];
+//fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->dstheight + targx], targy * ncv->dstheight + targx, (targy * ncv->dstheight + targx) * 4);
     }
   }
   int ret = ncplane_destroy(n);

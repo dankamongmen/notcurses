@@ -2436,9 +2436,10 @@ struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 // of the UTF8 text.
 char* ncvisual_subtitle(const struct ncvisual* ncv);
 
-// Rotate the visual π/2 radians clockwise or counterclockwise.
-int ncvisual_rotate_cw(struct ncvisual* n);
-int ncvisual_rotate_ccw(struct ncvisual* n);
+// Rotate the visual 'rads' radians. If we own the bound plane, it is resized
+// to fit the rotated visual, if necessary. Only M_PI/2 and -M_PI/2 are
+// supported at the moment, but this will change FIXME.
+int ncvisual_rotate(struct ncvisual* n, double rads);
 ```
 
 It is also possible to seed an `ncvisual` directly from memory, without involving

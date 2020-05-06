@@ -1136,10 +1136,10 @@ API struct ncplane* ncplane_below(struct ncplane* n);
 API int ncplane_rotate_cw(struct ncplane* n);
 API int ncplane_rotate_ccw(struct ncplane* n);
 
-// Rotate the visual π/2 radians clockwise or counterclockwise. This cannot
-// be performed on arbitrary planes, because glyphs cannot be arbitrarily rotated.
-API int ncvisual_rotate_cw(struct ncvisual* n);
-API int ncvisual_rotate_ccw(struct ncvisual* n);
+// Rotate the visual 'rads' radians. If we own the bound plane, it is resized
+// to fit the rotated visual, if necessary. Only M_PI/2 and -M_PI/2 are
+// supported at the moment, but this will change FIXME.
+API int ncvisual_rotate(struct ncvisual* n, double rads);
 
 // Retrieve the current contents of the cell under the cursor. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The

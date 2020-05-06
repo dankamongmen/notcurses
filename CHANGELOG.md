@@ -9,9 +9,8 @@ rearrangements of Notcurses.
     has been retained as a deprecated alias. It will be removed by 1.6/2.0.
   * `ncvisual_from_rgba()` and `ncvisual_from_bgra()` have been added to
     support creation of `ncvisual`s from memory, requiring no file.
-  * `ncvisual_rotate_cw()` and `ncvisual_rotate_ccw()` have been added, having
-    the same semantics as `ncplane_rotate_cw()` and `ncplane_rotate_ccw()`.
-    They will likely be augmented in the future to support arbitrary rotations.
+  * `ncvisual_rotate()` has been added, supporting rotations of arbitrary
+    radians on `ncvisual` objects.
   * `ncvisual_from_plane()` has been added to support "promotion" of an
     `ncplane` to an `ncvisual`. The source plane may contain only spaces,
     half blocks, and full blocks.

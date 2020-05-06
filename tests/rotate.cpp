@@ -1,4 +1,5 @@
 #include "main.h"
+#include <cmath>
 #include <vector>
 
 void RotateCW(struct notcurses* nc, struct ncplane* n) {
@@ -113,16 +114,16 @@ TEST_CASE("Rotate") {
     REQUIRE(ncv);
     CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate_cw(ncv));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
     CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate_cw(ncv));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
     CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate_cw(ncv));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
     CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate_cw(ncv));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
     CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
@@ -135,16 +136,16 @@ TEST_CASE("Rotate") {
     REQUIRE(ncv);
     CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate_ccw(ncv));
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
     CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate_ccw(ncv));
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
     CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate_ccw(ncv));
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
     CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate_ccw(ncv));
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
     CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);

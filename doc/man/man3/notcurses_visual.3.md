@@ -46,9 +46,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncplane* ncvisual_plane(struct ncvisual* ncv);**
 
-**int ncvisual_rotate_cw(struct ncvisual* n);**
-
-**int ncvisual_rotate_ccw(struct ncvisual* n);**
+**int ncvisual_rotate(struct ncvisual* n, double rads);**
 
 **char* ncvisual_subtitle(const struct ncvisual* ncv);**
 
@@ -76,8 +74,10 @@ is necessary. The resulting plane will be ceil(**rows**/2) rows, and **cols**
 columns. It will not be necessary to call **ncvisual_decode**, but it is
 still necessary to call **ncvisual_render**.
 
-Both **ncvisual_rotate_cw** and **ncvisual_rotate_ccw** execute a rotation of
-π/2 radians, in the clockwise or counterclockwise direction respectively.
+**ncvisual_rotate** executes a rotation of **rads** radians, in the clockwise
+(positive) or counterclockwise (negative) direction. If the **ncvisual** owns
+(created) its underlying **ncplane**, that plane will be resized as necessary
+to display the entirety of the rotated visual.
 
 **ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to
 the current frame if such a subtitle was decoded. Note that a subtitle might
@@ -101,6 +101,11 @@ the number of cells emitted, or -1 on error.
 Multimedia decoding requires that Notcurses be built with either FFmpeg or
 OpenImageIO support. What formats can be decoded is totally dependent on the
 linked library. OpenImageIO does not support subtitles.
+
+# BUGS
+
+**ncvisual_rotate** currently supports only **M_PI**/2 and -**M_PI**/2
+radians for **rads**, but this will change soon.
 
 # SEE ALSO
 
