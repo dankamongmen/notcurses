@@ -31,6 +31,7 @@ pivot_on(int pivot, int* sgrs, int sgrcount){
 }
 
 int main(int argc, char** argv){
+  (void)argc;
   setlocale(LC_ALL, "");
   const char* sgr;
   if(setupterm(NULL, -1, NULL)){

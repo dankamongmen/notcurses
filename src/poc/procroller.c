@@ -25,6 +25,7 @@ cb(struct ncfdplane* ncfd, const void* data, size_t len, void* curry){
 
 static int
 eofcb(struct ncfdplane* ncfd, int nerrno, void* curry){
+  (void)ncfd;
   (void)nerrno;
   (void)curry;
   pthread_mutex_lock(&lock);
@@ -35,6 +36,7 @@ eofcb(struct ncfdplane* ncfd, int nerrno, void* curry){
 }
 
 int main(int argc, char** argv){
+  (void)argc;
   setlocale(LC_ALL, "");
   if(*++argv == NULL){
     fprintf(stderr, "usage: procroller binary [ args... ]\n");

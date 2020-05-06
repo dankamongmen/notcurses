@@ -22,7 +22,7 @@ option(USE_RUST "Build Rust wrappers (experimental)" OFF)
 option(USE_TESTS "Build doctest unit tests" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
-message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
 ############## END (additional) USER-SELECTABLE OPTIONS ##################
 set(USE_FFMPEG OFF)
 set(USE_OIIO OFF)
@@ -33,6 +33,20 @@ elseif(${USE_MULTIMEDIA} STREQUAL "oiio")
 elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
   message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}')")
 endif()
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE
+    STRING "Choose the build mode." FORCE)
+endif()
+string(APPEND CMAKE_C_FLAGS_DEBUG " -O0")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -O0")
+
+# global compiler flags
+add_compile_definitions(FORTIFY_SOURCE=2)
+add_compile_options(-Wall -Wextra -W -Wshadow -Wformat)
+
+message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
+message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
@@ -163,20 +177,6 @@ target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
 target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-  set(DEBUG_OPTIONS -g -O0)
-else()
-  set(DEBUG_OPTIONS -O2)
-endif()
-
-target_compile_options(notcurses
-  PRIVATE
-    -Wall -Wextra -W -Wshadow -Wformat ${DEBUG_OPTIONS}
-)
-target_compile_options(notcurses-static
-  PRIVATE
-    -Wall -Wextra -W -Wshadow -Wformat ${DEBUG_OPTIONS}
-)
 target_compile_definitions(notcurses
   PUBLIC
     _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
@@ -247,11 +247,6 @@ target_link_libraries(notcurses++
   notcurses)
 
 set(NCPP_COMPILE_OPTIONS
-  -Wall
-  -Wextra
-  -W
-  -Wshadow
-  -Wformat
   -Werror=format-security
   -Wnull-dereference
   -Wmisleading-indentation
@@ -267,7 +262,6 @@ set(NCPP_COMPILE_OPTIONS
   -fno-rtti
   -fno-exceptions
   -fpic
-  ${DEBUG_OPTIONS}
   )
 
 set(NCPP_COMPILE_DEFINITIONS_PUBLIC
@@ -352,10 +346,6 @@ target_include_directories(notcurses-demo
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
-)
-target_compile_options(notcurses-demo
-  PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-demo
   PRIVATE
@@ -458,10 +448,6 @@ target_link_libraries(notcurses-input
   PRIVATE
     notcurses++
 )
-target_compile_options(notcurses-input
-  PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
-)
 target_compile_definitions(notcurses-input
   PRIVATE
     FORTIFY_SOURCE=2
@@ -479,10 +465,6 @@ target_link_libraries(notcurses-ncreel
   PRIVATE
     notcurses++
 )
-target_compile_options(notcurses-ncreel
-  PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
-)
 target_compile_definitions(notcurses-ncreel
   PRIVATE
     FORTIFY_SOURCE=2
@@ -498,10 +480,6 @@ target_include_directories(notcurses-tetris
 target_link_libraries(notcurses-tetris
   PRIVATE
     notcurses++
-)
-target_compile_options(notcurses-tetris
-  PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-tetris
   PRIVATE
@@ -535,13 +513,8 @@ target_link_libraries(notcurses-view
     "${AVUTIL_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
 )
-target_compile_options(notcurses-view
-  PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
-)
 target_compile_definitions(notcurses-view
   PRIVATE
-    FORTIFY_SOURCE=2
 )
 endif()
 
@@ -562,10 +535,6 @@ target_link_libraries(notcurses-tester
   PRIVATE
     notcurses
     "${TERMINFO_LIBRARIES}"
-)
-target_compile_options(notcurses-tester
-  PRIVATE
-    -Wall -Wextra -W -Wshadow ${DEBUG_OPTIONS}
 )
 target_compile_definitions(notcurses-tester
   PRIVATE

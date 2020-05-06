@@ -6,16 +6,18 @@
 #include "version.h"
 
 static struct selector_item items[] = {
-  { "first", "this is the first option", },
-  { "2nd", "this is the second option", },
-  { "3", "third, third, third option am i", },
-  { "fourth", "i have another option here", },
-  { "five", "golden rings", },
-  { "666", "now it is time for me to REIGN IN BLOOD", },
-  { "7seven7", "this monkey's gone to heaven", },
-  { "8 8 8", "the chinese 平仮名平平仮名仮名love me, i'm told", },
-  { "nine", "nine, nine, nine 'cause you left me", },
-  { "ten", "stunning and brave", },
+#define SITEM(short, long) { short, long, 0, 0, }
+  SITEM("first", "this is the first option"),
+  SITEM("2nd", "this is the second option"),
+  SITEM("3", "third, third, third option am i"),
+  SITEM("fourth", "i have another option here"),
+  SITEM("five", "golden rings"),
+  SITEM("666", "now it is time for me to REIGN IN BLOOD"),
+  SITEM("7seven7", "this monkey's gone to heaven"),
+  SITEM("8 8 8", "the chinese 平仮名平平仮名仮名love me, i'm told"),
+  SITEM("nine", "nine, nine, nine 'cause you left me"),
+  SITEM("ten", "stunning and brave"),
+#undef SITEM
 };
 
 static void
