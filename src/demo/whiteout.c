@@ -569,6 +569,7 @@ int witherworm_demo(struct notcurses* nc){
           break;
         }
       }while(key == 0);
+      free(wctx.worms);
 
       ncplane_destroy(mess);
       ncplane_destroy(math);
