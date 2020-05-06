@@ -47,7 +47,8 @@ typedef struct ncvisual {
   int placex, placey;
   // ffmpeg sometimes pads lines. this many true bytes per row in data.
   int rowstride;
-  const uint32_t* data;    // (scaled) image data, linesize bytes per row
+  // we own data iff frame == NULL
+  uint32_t* data;          // (scaled) RGBA image data, rowstride bytes per row
   ncscale_e style;         // none, scale, or stretch
   uint64_t framenum;
   struct notcurses* ncobj; // set iff this ncvisual "owns" its ncplane
@@ -68,10 +69,9 @@ typedef struct ncvisual {
   std::unique_ptr<OIIO::ImageInput> image;  // must be close()d
   std::unique_ptr<OIIO::ImageBuf> raw;
   std::unique_ptr<uint32_t[]> frame;
-  OIIO::ImageBuf scaled;   // in use IFF did_scaling;
+  OIIO::ImageBuf scaled;
 #endif
 #endif
-  bool did_scaling;
 } ncvisual;
 
 ncvisual* ncvisual_create(float timescale){
@@ -149,7 +149,7 @@ int ncvisual_rotate_cw(struct ncvisual* ncv){
     }
   }
   int ret = ncplane_destroy(n);
-  // free(ncv->data); FIXME
+  free(ncv->data);
   int tmp = ncv->dstwidth;
   ncv->dstwidth = ncv->dstheight;
   ncv->dstheight = tmp;
@@ -188,7 +188,7 @@ int ncvisual_rotate_ccw(struct ncvisual* ncv){
     }
   }
   int ret = ncplane_destroy(n);
-  // free(ncv->data); FIXME
+  free(ncv->data);
   int tmp = ncv->dstwidth;
   ncv->dstwidth = ncv->dstheight;
   ncv->dstheight = tmp;
@@ -216,12 +216,11 @@ ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
     ncvisual_destroy(ncv);
     return NULL;
   }
-  uint32_t* data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->dstheight));
-  if(data == NULL){
+  ncv->data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->dstheight));
+  if(ncv->data == NULL){
     ncvisual_destroy(ncv);
     return NULL;
   }
-  ncv->data = data;
   return ncv;
 }
 
@@ -247,6 +246,43 @@ ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
     return NULL;
   }
   return ncv;
+}
+
+int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
+//fprintf(stderr, "render %dx%d+%dx%d\n", begy, begx, leny, lenx);
+  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
+    return -1;
+  }
+  if(ncv->data == nullptr){
+    return -1;
+  }
+//fprintf(stderr, "render %d/%d to %dx%d+%dx%d\n", ncv->height, ncv->width, begy, begx, leny, lenx);
+  if(begx >= ncv->dstwidth || begy >= ncv->dstheight){
+    return -1;
+  }
+  if(lenx == -1){ // -1 means "to the end"; use all space available
+    lenx = ncv->dstwidth - begx;
+  }
+  if(leny == -1){
+    leny = ncv->dstheight - begy;
+  }
+  if(lenx == 0 || leny == 0){ // no need to draw zero-size object, exit
+    return 0;
+  }
+  if(begx + lenx > ncv->dstwidth || begy + leny > ncv->dstheight){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
+  ncplane_cursor_move_yx(ncv->ncp, 0, 0);
+  // y and x are actual plane coordinates. each row corresponds to two rows of
+  // the input (scaled) frame (columns are 1:1). we track the row of the
+  // visual via visy.
+//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d -> %dx%d\n", begy, begx, leny, lenx, ncv->dstheight, ncv->dstwidth, dimy, dimx);
+  int ret = ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, ncv->rowstride,
+                        ncv->data, begy, begx, leny, lenx);
+  //av_frame_unref(ncv->oframe);
+  return ret;
 }
 
 #ifdef USE_FFMPEG
@@ -370,6 +406,9 @@ averr2ncerr(int averr){
 }
 
 nc_err_e ncvisual_decode(ncvisual* nc){
+  if(nc->fmtctx == NULL){ // not a file-backed ncvisual
+    return NCERR_DECODE;
+  }
   bool have_frame = false;
   bool unref = false;
   // FIXME what if this was set up with e.g. ncvisual_from_rgba()?
@@ -620,40 +659,6 @@ ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
   return ncv;
 }
 
-int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
-//fprintf(stderr, "render %dx%d+%dx%d\n", begy, begx, leny, lenx);
-  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
-    return -1;
-  }
-//fprintf(stderr, "render %d/%d to %dx%d+%dx%d\n", ncv->height, ncv->width, begy, begx, leny, lenx);
-  if(begx >= ncv->dstwidth || begy >= ncv->dstheight){
-    return -1;
-  }
-  if(lenx == -1){ // -1 means "to the end"; use all space available
-    lenx = ncv->dstwidth - begx;
-  }
-  if(leny == -1){
-    leny = ncv->dstheight - begy;
-  }
-  if(lenx == 0 || leny == 0){ // no need to draw zero-size object, exit
-    return 0;
-  }
-  if(begx + lenx > ncv->dstwidth || begy + leny > ncv->dstheight){
-    return -1;
-  }
-  int dimy, dimx;
-  ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
-  ncplane_cursor_move_yx(ncv->ncp, 0, 0);
-  // y and x are actual plane coordinates. each row corresponds to two rows of
-  // the input (scaled) frame (columns are 1:1). we track the row of the
-  // visual via visy.
-//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d -> %dx%d\n", begy, begx, leny, lenx, f->height, f->width, dimy, dimx);
-  int ret = ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, ncv->rowstride,
-                        ncv->data, begy, begx, leny, lenx);
-  //av_frame_unref(ncv->oframe);
-  return ret;
-}
-
 // iterative over the decoded frames, calling streamer() with curry for each.
 // frames carry a presentation time relative to the beginning, so we get an
 // initial timestamp, and check each frame against the elapsed time to sync
@@ -733,15 +738,6 @@ ncplane* ncvisual_plane(ncvisual* ncv){
 nc_err_e ncvisual_decode(ncvisual* nc){
   (void)nc;
   return NCERR_UNIMPLEMENTED;
-}
-
-int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
-  (void)ncv;
-  (void)begy;
-  (void)begx;
-  (void)leny;
-  (void)lenx;
-  return -1;
 }
 
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
@@ -863,7 +859,6 @@ nc_err_e ncvisual_decode(ncvisual* nc){
     // FIXME check newspec vis-a-vis image->spec()?
   }
 //fprintf(stderr, "SUBIMAGE: %d\n", nc->image->current_subimage());
-  nc->did_scaling = false;
   auto pixels = spec.width * spec.height;// * spec.nchannels;
   if(spec.nchannels < 3 || spec.nchannels > 4){
     return NCERR_DECODE; // FIXME get some to test with
@@ -918,54 +913,17 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       nc->dstwidth = cols;
     }
   }
+  nc->data = static_cast<uint32_t*>(nc->raw->localpixels());
   if(nc->dstwidth != spec.width || nc->dstheight != spec.height){ // scale it
     OIIO::ROI roi(0, nc->dstwidth, 0, nc->dstheight, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(nc->scaled, *nc->raw, "", 0, roi)){
-      // FIXME
+      return NCERR_DECODE; // FIXME need we do anything further?
     }
-    nc->did_scaling = true;
+    nc->rowstride = nc->dstwidth * 4;
+    nc->data = static_cast<uint32_t*>(nc->scaled.localpixels());
   }
+  nc->rowstride = nc->dstwidth * 4;
   return NCERR_SUCCESS;
-}
-
-int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
-//fprintf(stderr, "render %dx%d+%dx%d\n", begy, begx, leny, lenx);
-  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
-    return -1;
-  }
-  if(ncv->frame == nullptr){
-    return -1;
-  }
-  const auto &spec = ncv->did_scaling ? ncv->scaled.spec() : ncv->raw->spec();
-  const void* pixels = ncv->did_scaling ? ncv->scaled.localpixels() : ncv->raw->localpixels();
-//fprintf(stderr, "render %d/%d to %dx%d+%dx%d\n", f->height, f->width, begy, begx, leny, lenx);
-  if(begx >= spec.width || begy >= spec.height){
-    return -1;
-  }
-  if(lenx == -1){ // -1 means "to the end"; use all space available
-    lenx = spec.width - begx;
-  }
-  if(leny == -1){
-    leny = spec.height - begy;
-  }
-  if(lenx == 0 || leny == 0){ // no need to draw zero-size object, exit
-    return 0;
-  }
-  if(begx + lenx > spec.width || begy + leny > spec.height){
-    return -1;
-  }
-  int dimy, dimx;
-  ncplane_dim_yx(ncv->ncp, &dimy, &dimx);
-  ncplane_cursor_move_yx(ncv->ncp, 0, 0);
-  // y and x are actual plane coordinates. each row corresponds to two rows of
-  // the input (scaled) frame (columns are 1:1). we track the row of the
-  // visual via visy.
-//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d -> %dx%d\n", begy, begx, leny, lenx, f->height, f->width, dimy, dimx);
-  const int linesize = spec.width * 4;
-  int ret = ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, linesize,
-                        pixels, begy, begx, leny, lenx);
-  //av_frame_unref(ncv->oframe);
-  return ret;
 }
 
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
