@@ -111,7 +111,7 @@ TEST_CASE("FdsAndSubprocs") {
     while(!outofline_cancelled){
       cond.wait(lck);
     }
-    CHECK(0 == ncsubproc_destroy(ncsubp));
+    CHECK(0 != ncsubproc_destroy(ncsubp));
     // FIXME we ought get indication of an error here! or via callback...
     // FIXME should be 0 !=, methinks!
     CHECK(0 == notcurses_render(nc_));
@@ -148,7 +148,7 @@ TEST_CASE("FdsAndSubprocs") {
     while(!outofline_cancelled){
       cond.wait(lck);
     }
-    CHECK(0 == ncsubproc_destroy(ncsubp));
+    CHECK(0 != ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
     lock.unlock();
   }
@@ -160,7 +160,7 @@ TEST_CASE("FdsAndSubprocs") {
     opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
-    CHECK(0 == ncsubproc_destroy(ncsubp));
+    CHECK(0 != ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
   }
 
