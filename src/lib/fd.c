@@ -156,7 +156,6 @@ launch_pipe_process(int* pipe, int* pidfd){
   memset(&clargs, 0, sizeof(clargs));
   clargs.pidfd = (uintptr_t)pidfd;
   clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
-  clargs.exit_signal = SIGCHLD;  // FIXME maybe switch it up for doctest?
   pid_t p = syscall(__NR_clone3, &clargs, sizeof(clargs));
   if(p == 0){ // child
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
@@ -175,25 +174,35 @@ launch_pipe_process(int* pipe, int* pidfd){
 // reader thread is launched (which otherwise reaps the subprocess).
 // FIXME rigourize and port this
 static int
-kill_and_wait_subproc(int pidfd){
+kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
   syscall(__NR_pidfd_send_signal, pidfd, SIGKILL, NULL, 0);
   siginfo_t info;
   memset(&info, 0, sizeof(info));
   waitid(P_PIDFD, pidfd, &info, 0);
+  // process ought be available immediately following waitid(), so supply
+  // WNOHANG to avoid possible lockups due to weirdness
+  if(pid != waitpid(pid, status, WNOHANG)){
+    return -1;
+  }
   return 0;
 }
 
 // need a poll on both main fd and pidfd
 static void *
 ncsubproc_thread(void* vncsp){
-  ncsubproc* ncsp = vncsp;
-  fdthread(ncsp->nfp, ncsp->pidfd);
-  kill_and_wait_subproc(ncsp->pidfd);
-  if(ncsp->nfp->destroyed){
-    ncfdplane_destroy_inner(ncsp->nfp);
-    free(ncsp);
+  int* status = malloc(sizeof(*status));
+  if(status){
+    ncsubproc* ncsp = vncsp;
+    fdthread(ncsp->nfp, ncsp->pidfd);
+    if(kill_and_wait_subproc(ncsp->pid, ncsp->pidfd, status)){
+      *status = -1;
+    }
+    if(ncsp->nfp->destroyed){
+      ncfdplane_destroy_inner(ncsp->nfp);
+      free(ncsp);
+    }
   }
-  return NULL;
+  return status;
 }
 
 static ncfdplane*
@@ -235,7 +244,7 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
-    kill_and_wait_subproc(ret->pidfd);
+    kill_and_wait_subproc(ret->pid, ret->pidfd, NULL);
     free(ret);
     return NULL;
   }
@@ -264,7 +273,7 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
-    kill_and_wait_subproc(ret->pidfd);
+    kill_and_wait_subproc(ret->pid, ret->pidfd, NULL);
     free(ret);
     return NULL;
   }
@@ -296,7 +305,7 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
-    kill_and_wait_subproc(ret->pidfd);
+    kill_and_wait_subproc(ret->pid, ret->pidfd, NULL);
     free(ret);
     return NULL;
   }
@@ -307,11 +316,18 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
 int ncsubproc_destroy(ncsubproc* n){
   int ret = 0;
   if(n){
+    void* vret = NULL;
     ret = syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0);
     // the thread waits on the subprocess via pidfd, and then exits. don't try
     // to cancel the thread; rely on killing the subprocess.
-    pthread_join(n->nfp->tid, NULL);
+    pthread_join(n->nfp->tid, &vret);
     free(n);
+    if(vret == NULL){
+      ret = -1;
+    }else{
+      ret = *(int*)vret;
+      free(vret);
+    }
   }
   return ret;
 }
