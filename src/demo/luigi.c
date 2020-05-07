@@ -171,7 +171,7 @@ int luigi_demo(struct notcurses* nc){
   for(i = 0 ; i < 3 ; ++i){
     lns[i] = ncplane_new(nc, height, 16, yoff, 0, NULL);
     if(lns[i] == NULL){
-      while(--i){
+      while(i--){
         ncplane_destroy(lns[i]);
       }
       return -1;
