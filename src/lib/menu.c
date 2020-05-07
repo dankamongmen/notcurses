@@ -78,7 +78,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
   dst->items = NULL;
   // we must reject any section which is entirely separators
   bool gotitem = false;
-  dst->itemcount = src->itemcount;
+  dst->itemcount = 0;
   dst->items = malloc(sizeof(*dst->items) * src->itemcount);
   if(dst->items == NULL){
     return -1;
@@ -87,7 +87,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
     if(src->items[i].desc){
       if(dup_menu_item(&dst->items[i], &src->items[i])){
         while(i--){
-          free(&dst->items[i].desc);
+          free(dst->items[i].desc);
         }
         free(dst->items);
         return -1;
@@ -110,10 +110,11 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
       dst->items[i].desc = NULL;
       dst->items[i].shortdesc = NULL;
     }
+    ++dst->itemcount;
   }
   if(!gotitem){
-    while(--dst->itemcount){
-      free(&dst->items[dst->itemcount].desc);
+    while(dst->itemcount){
+      free(dst->items[--dst->itemcount].desc);
     }
     free(dst->items);
     return -1;

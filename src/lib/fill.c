@@ -265,7 +265,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
     return -1;
   }
   if(egc == NULL){
-    return true;
+    return -1;
   }
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
