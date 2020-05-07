@@ -183,7 +183,7 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
   if(opts->itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
       free(ns->title); free(ns->secondary); free(ns->footer);
-      free(n);
+      free(ns);
       return NULL;
     }
   }else{
@@ -676,7 +676,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x, const multisel
   if(opts->itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
       free(ns->title); free(ns->secondary); free(ns->footer);
-      free(n);
+      free(ns);
       return NULL;
     }
   }else{
