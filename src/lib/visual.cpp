@@ -952,14 +952,14 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       nc->dstwidth = cols;
     }
   }
-  ncvisual_set_data(nc, nc->raw->localpixels(), false);
+  ncvisual_set_data(nc, static_cast<uint32_t*>(nc->raw->localpixels()), false);
   if(nc->dstwidth != spec.width || nc->dstheight != spec.height){ // scale it
     OIIO::ROI roi(0, nc->dstwidth, 0, nc->dstheight, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(nc->scaled, *nc->raw, "", 0, roi)){
       return NCERR_DECODE; // FIXME need we do anything further?
     }
     nc->rowstride = nc->dstwidth * 4;
-    ncvisual_set_data(nc, nc->scaled.localpixels(), false);
+    ncvisual_set_data(nc, static_cast<uint32_t*>(nc->scaled.localpixels()), false);
   }
   nc->rowstride = nc->dstwidth * 4;
   return NCERR_SUCCESS;

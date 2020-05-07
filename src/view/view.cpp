@@ -178,6 +178,11 @@ int main(int argc, char** argv){
   NCScale stretchmode;
   auto nonopt = handle_opts(argc, argv, NotCurses::default_notcurses_options, &timescale, &stretchmode);
   NotCurses nc;
+  if(!nc.can_open()){
+    nc.stop();
+    std::cerr << "Notcurses was compiled without multimedia support\n";
+    return EXIT_FAILURE;
+  }
   int dimy, dimx;
   nc.get_term_dim(&dimy, &dimx);
   for(auto i = nonopt ; i < argc ; ++i){

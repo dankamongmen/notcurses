@@ -15,8 +15,9 @@
   * Finalize Debian changelog with `dch -r`
   * Repack DFSG-safe tarball with uscan, upload to github
     * `uscan --repack --compression xz --force`
-    * upload to github
-    * import new version: `gbp import-orig ../../notcurses_$VERSION+dfsg.1.orig.tar.xz`
+    * `gpg --sign --armor --detach-sign notcurses_$VERSION+dfsg.1.orig.tar.xz`
+    * sign, upload dfsg+sig to github
+    * import new version: `gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz`
     * `git push --tags`
     * build source package: `dpkg-buildpackage --build=source`
     * build binaries: `cd .. && sudo pbuilder build *dsc`
