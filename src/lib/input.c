@@ -227,7 +227,9 @@ handle_getc(notcurses* nc, int kpress, ncinput* ni){
     // interpret it as alt + candidate FIXME broken for first char matching
     // trie, second char not -- will read as alt+second char...
     if(candidate > 0 && candidate < 0x80){
-      ni->alt = true;
+      if(ni){
+        ni->alt = true;
+      }
       return candidate;
     }
     // FIXME ungetc on failure! walk trie backwards or something
