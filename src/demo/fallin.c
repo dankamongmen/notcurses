@@ -70,7 +70,6 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
       }
     }while(rangee - ranges + 1 >= FALLINGMAX);
   }
-  free(arr);
   return 0;
 }
 
