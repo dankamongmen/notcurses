@@ -1,5 +1,6 @@
-* clang-tidy check:
-  * `cmake "-DCMAKE_CXX_CLANG_TIDY=/usr/bin/clang-tidy-9;-checks=*" ..`
+* clang-tidy check with something like:
+  * `cmake "-DCMAKE_CXX_CLANG_TIDY=/usr/bin/clang-tidy-11;-checks=-*,clang-analyzer-*,modernize-*,performance-*" ..`
+  * `scan-build cmake .. && scan-build make`
 * Run tools/release.sh $OLDVERSION $VERSION
   * Finalize CHANGELOG.md
   * Bumps version numbers everywhere they need bumping

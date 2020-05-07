@@ -317,7 +317,7 @@ int ncsubproc_destroy(ncsubproc* n){
   int ret = 0;
   if(n){
     void* vret = NULL;
-    ret = syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0);
+    syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0);
     // the thread waits on the subprocess via pidfd, and then exits. don't try
     // to cancel the thread; rely on killing the subprocess.
     pthread_join(n->nfp->tid, &vret);
