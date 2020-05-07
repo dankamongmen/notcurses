@@ -1985,10 +1985,10 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
   if(begx + lenx > nc->lenx || begy + leny > nc->leny){
     return NULL;
   }
-  uint32_t* ret = malloc(sizeof(*ret) * lenx * leny);
+  uint32_t* ret = malloc(sizeof(*ret) * lenx * leny * 2);
   if(ret){
-    for(int y = begy ; y < begy + leny ; ++y){
-      for(int x = begx ; x < begx + lenx ; ++x){
+    for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
+      for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
         // FIXME what if there's a wide glyph to the left of the selection?
         uint32_t attrword;
         uint64_t channels;
@@ -1997,20 +1997,29 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
           free(ret);
           return NULL;
         }
+        uint32_t* top = &ret[targy * lenx + targx];
+        uint32_t* bot = &ret[(targy + 1) * lenx + targx];
+        unsigned fr, fg, fb, br, bg, bb;
+        channels_fg_rgb(channels, &fr, &fb, &fg);
+        channels_bg_rgb(channels, &br, &bb, &bg);
+        // FIXME how do we deal with transparency?
+        uint32_t frgba = (fr << 24u) + (fg << 16u) + (fb << 8u) + 0xff;
+        uint32_t brgba = (br << 24u) + (bg << 16u) + (bb << 8u) + 0xff;
         if(strcmp(c, " ") == 0){
-          // FIXME
+          *top = *bot = brgba;
         }else if(strcmp(c, "▄") == 0){
-          // FIXME
+          *top = frgba;
+          *bot = brgba;
         }else if(strcmp(c, "▀") == 0){
-          // FIXME
+          *top = brgba;
+          *bot = frgba;
         }else if(strcmp(c, "█") == 0){
-          // FIXME
+          *top = *bot = frgba;
         }else{
           free(c);
           free(ret);
           return NULL;
         }
-        // valid char, interpret it to two pixels
         free(c);
       }
     }
