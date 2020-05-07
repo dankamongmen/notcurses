@@ -26,5 +26,8 @@ git push origin --tags
 git pull
 wget https://github.com/dankamongmen/notcurses/archive/v$VERSION.tar.gz
 gpg --sign --armor --detach-sign v$VERSION.tar.gz 
+rm v$VERSION.tar.gz
 
-echo "Cut $VERSION. Now upload the GPG signature to https://github.com/dankamongmen/notcurses/releases"
+echo "Cut $VERSION, signed to v$VERSION.tar.gz.asc"
+echo "Now upload the sig to https://github.com/dankamongmen/notcurses/releases"
+echo "The bastards are trying to immanentize the Eschaton"
