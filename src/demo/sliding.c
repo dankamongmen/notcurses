@@ -161,7 +161,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
   struct ncplane** chunks = malloc(sizeof(*chunks) * chunkcount);
   if(chunks == NULL){
-    goto done;
+    return -1;
   }
   memset(chunks, 0, sizeof(*chunks) * chunkcount);
   // draw the 72 boxes in a nice color pattern, in order
