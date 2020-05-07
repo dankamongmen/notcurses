@@ -16,7 +16,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   // accelerate as they fall. [ranges, reange) covers the active range.
   int ranges = 0;
   int rangee = 0;
-  const int FALLINGMAX = arrcount / 10;
+  const int FALLINGMAX = arrcount < 10 ? 1 : arrcount / 10;
   int speeds[FALLINGMAX];
   while(ranges < arrcount){
     // if we don't have a full set active, and there is another available, go
@@ -131,7 +131,7 @@ int fallin_demo(struct notcurses* nc){
       }
       struct ncplane* n = ncplane_new(nc, newy, newx, y, x, NULL);
       if(n == NULL){
-        return -1;
+        goto err;
       }
       // copy the old content into this new ncplane
       for(int usey = y ; usey < y + newy ; ++usey){
@@ -143,7 +143,7 @@ int fallin_demo(struct notcurses* nc){
           }
           cell c = CELL_TRIVIAL_INITIALIZER;
           if(ncplane_at_yx_cell(stdn, usey, usex, &c) < 0){
-            return -1;
+            goto err;
           }
           if(!cell_simple_p(&c)){
             const char* cons = cell_extended_gcluster(stdn, &c);
@@ -155,7 +155,7 @@ int fallin_demo(struct notcurses* nc){
               // allow a fail if we were printing a wide char to the
               // last column of our plane
               if(!cell_double_wide_p(&c) || usex + 1 < x + newx){
-                return -1;
+                goto err;
               }
             }
           }
@@ -167,14 +167,13 @@ int fallin_demo(struct notcurses* nc){
       struct ncplane **tmp;
       tmp = shuffle_in(arr, arrcount, n);
       if(tmp == NULL){
-        return -1;
+        goto err;
       }
       arr = tmp;
       ++arrcount;
       x += newx;
     }
   }
-  free(usemap);
   ncplane_erase(stdn);
 #ifdef USE_MULTIMEDIA
 #ifndef DFSG_BUILD
@@ -183,20 +182,27 @@ int fallin_demo(struct notcurses* nc){
   struct ncvisual* ncv = ncplane_visual_open(stdn, path, &err);
   free(path);
   if(ncv == NULL){
-    return -1;
+    goto err;
   }
   if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     ncvisual_destroy(ncv);
-    return -1;
+    goto err;
   }
   if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
     ncvisual_destroy(ncv);
-    return -1;
+    goto err;
   }
   assert(ncvisual_decode(ncv) == NCERR_EOF);
   ncvisual_destroy(ncv);
 #endif
 #endif
   int ret = drop_bricks(nc, arr, arrcount);
+  free(arr);
+  free(usemap);
   return ret;
+
+err:
+  free(usemap);
+  free(arr);
+  return -1;
 }
