@@ -1,6 +1,6 @@
 % notcurses_refresh(3)
 % nick black <nickblack@linux.com>
-% v1.3.3
+% v1.3.4
 
 # NAME
 

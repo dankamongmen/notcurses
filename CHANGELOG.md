@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.3.4 (2020-05-06)
+* 1.3.4 (2020-05-07)
   * `notcurses_lex_margins()` has been added to lex margins expressed in either
     of two canonical formats. Hopefully this will lead to more programs
     supporting margins.
