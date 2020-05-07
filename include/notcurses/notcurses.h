@@ -2768,14 +2768,16 @@ API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size
 API struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 
 // ncreaders provide freeform input in a (possibly multiline) region,
-// supporting readline keybindings.
-API struct ncreader* ncreader_create(struct ncplane* n);
+// supporting readline keybindings. 'rows' and 'cols' both must be negative.
+// there are no restrictions on 'y' or 'x'. creates its own plane.
+API struct ncreader* ncreader_create(int rows, int cols, int y, int x);
 
 // empty the ncreader of any user input, and home the cursor.
 API int ncreader_clear(struct ncreader* n);
 
 API struct ncplane* ncreader_plane(struct ncreader* n);
 
+// destroy the reader and its bound plane.
 API void ncreader_destroy(struct ncreader* n);
 
 #undef API
