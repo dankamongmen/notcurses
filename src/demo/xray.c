@@ -31,11 +31,11 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
   static int startg = 0xaf;
   static int startb = 0x84;
   static int frameno = 0;
-  int dimx, dimy, y;
+  int dimx, dimy;
   struct ncplane* n = *(struct ncplane**)vnewplane;
   if(n == NULL){
     notcurses_term_dim_yx(nc, &dimy, &dimx);
-    y = dimy - sizeof(leg) / sizeof(*leg);
+    int y = dimy - sizeof(leg) / sizeof(*leg);
     n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), dimx, y, 0, NULL);
     if(n == NULL){
       return -1;
@@ -75,7 +75,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
         x = 0;
       }
       ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
-      for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y){
+      for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l){
         ncplane_set_fg_rgb_clipped(n, r + 0x8 * l, g + 0x8 * l, b + 0x8 * l);
         if(ncplane_set_bg_rgb(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
           return -1;

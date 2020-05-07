@@ -229,7 +229,6 @@ int unicodeblocks_demo(struct notcurses* nc){
     }
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused.
-    blockstart += BLOCKSIZE;
   }
   ncplane_destroy(header);
   return 0;
