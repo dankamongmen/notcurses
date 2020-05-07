@@ -323,7 +323,7 @@ typedef struct selector_options {
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
 } selector_options;
-struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const selector_options* opts);
+struct ncselector* ncselector_create(struct notcurses* n, int y, int x, const selector_options* opts);
 int ncselector_additem(struct ncselector* n, const struct selector_item* item);
 int ncselector_delitem(struct ncselector* n, const char* item);
 const char* ncselector_selected(const struct ncselector* n);
@@ -353,7 +353,7 @@ typedef struct multiselector_options {
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
 } multiselector_options;
-struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const multiselector_options* opts);
+struct ncmultiselector* ncmultiselector_create(struct notcurses* n, int y, int x, const multiselector_options* opts);
 int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
 struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);

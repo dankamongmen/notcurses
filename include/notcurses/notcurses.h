@@ -2451,7 +2451,7 @@ typedef struct selector_options {
   uint64_t bgchannels;   // background channels, used only in body
 } selector_options;
 
-API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
+API struct ncselector* ncselector_create(struct notcurses* n, int y, int x,
                                          const selector_options* opts);
 
 API int ncselector_additem(struct ncselector* n, const struct selector_item* item);
@@ -2525,7 +2525,7 @@ typedef struct multiselector_options {
   uint64_t bgchannels;   // background channels, used only in body
 } multiselector_options;
 
-API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
+API struct ncmultiselector* ncmultiselector_create(struct notcurses* n, int y, int x,
                                                    const multiselector_options* opts);
 
 // Return selected vector. An array of bools must be provided, along with its
@@ -2770,7 +2770,8 @@ API struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 // ncreaders provide freeform input in a (possibly multiline) region,
 // supporting readline keybindings. 'rows' and 'cols' both must be negative.
 // there are no restrictions on 'y' or 'x'. creates its own plane.
-API struct ncreader* ncreader_create(int rows, int cols, int y, int x);
+API struct ncreader* ncreader_create(struct notcurses* nc, int rows, int cols,
+                                     int y, int x);
 
 // empty the ncreader of any user input, and home the cursor.
 API int ncreader_clear(struct ncreader* n);

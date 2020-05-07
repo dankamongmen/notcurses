@@ -11,7 +11,7 @@ auto panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cl
   return 0;
 }
 
-TEST_CASE("NcReelTest") {
+TEST_CASE("Reels") {
   if(getenv("TERM") == nullptr){
     return;
   }

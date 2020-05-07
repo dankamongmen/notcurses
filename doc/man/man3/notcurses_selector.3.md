@@ -41,7 +41,7 @@ typedef struct selector_options {
 } selector_options;
 ```
 
-**struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const selector_options* opts);**
+**struct ncselector* ncselector_create(struct notcrses* n, int y, int x, const selector_options* opts);**
 
 **int ncselector_additem(struct ncselector* n, const struct selector_item* item);**
 
