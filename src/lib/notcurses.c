@@ -191,7 +191,7 @@ char* ncplane_at_cursor(ncplane* n, uint32_t* attrword, uint64_t* channels){
   return cell_extract(n, &n->fb[nfbcellidx(n, n->y, n->x)], attrword, channels);
 }
 
-char* ncplane_at_yx(ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels){
+char* ncplane_at_yx(const ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels){
   char* ret = NULL;
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
@@ -1987,7 +1987,33 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
   }
   uint32_t* ret = malloc(sizeof(*ret) * lenx * leny);
   if(ret){
-    // FIXME populate via traversal
+    for(int y = begy ; y < begy + leny ; ++y){
+      for(int x = begx ; x < begx + lenx ; ++x){
+        // FIXME what if there's a wide glyph to the left of the selection?
+        uint32_t attrword;
+        uint64_t channels;
+        char* c = ncplane_at_yx(nc, y, x, &attrword, &channels);
+        if(c == NULL){
+          free(ret);
+          return NULL;
+        }
+        if(strcmp(c, " ") == 0){
+          // FIXME
+        }else if(strcmp(c, "▄") == 0){
+          // FIXME
+        }else if(strcmp(c, "▀") == 0){
+          // FIXME
+        }else if(strcmp(c, "█") == 0){
+          // FIXME
+        }else{
+          free(c);
+          free(ret);
+          return NULL;
+        }
+        // valid char, interpret it to two pixels
+        free(c);
+      }
+    }
   }
   return ret;
 }
