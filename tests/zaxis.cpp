@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 
-TEST_CASE("ZAxisTest") {
+TEST_CASE("ZAxis") {
   if(getenv("TERM") == nullptr){
     return;
   }

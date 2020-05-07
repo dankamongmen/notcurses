@@ -157,7 +157,7 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   return 0;
 }
 
-ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* opts){
+ncselector* ncselector_create(notcurses* nc, int y, int x, const selector_options* opts){
   if(opts->defidx && opts->defidx >= opts->itemcount){
     return NULL;
   }
@@ -210,10 +210,10 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const selector_options* 
     }
   }
   int dimy, dimx;
-  if(ncselector_dim_yx(n->nc, ns, &dimy, &dimx)){
+  if(ncselector_dim_yx(nc, ns, &dimy, &dimx)){
     goto freeitems;
   }
-  if(!(ns->ncp = ncplane_new(n->nc, dimy, dimx, y, x, NULL))){
+  if(!(ns->ncp = ncplane_new(nc, dimy, dimx, y, x, NULL))){
     goto freeitems;
   }
   cell_init(&ns->background);
@@ -654,7 +654,7 @@ ncmultiselector_dim_yx(notcurses* nc, const ncmultiselector* n, int* ncdimy, int
   return 0;
 }
 
-ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x, const multiselector_options* opts){
+ncmultiselector* ncmultiselector_create(notcurses* nc, int y, int x, const multiselector_options* opts){
   ncmultiselector* ns = malloc(sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
   ns->titlecols = opts->title ? mbswidth(opts->title) : 0;
@@ -702,10 +702,10 @@ ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x, const multisel
     }
   }
   int dimy, dimx;
-  if(ncmultiselector_dim_yx(n->nc, ns, &dimy, &dimx)){
+  if(ncmultiselector_dim_yx(nc, ns, &dimy, &dimx)){
     goto freeitems;
   }
-  if(!(ns->ncp = ncplane_new(n->nc, dimy, dimx, y, x, NULL))){
+  if(!(ns->ncp = ncplane_new(nc, dimy, dimx, y, x, NULL))){
     goto freeitems;
   }
   cell_init(&ns->background);

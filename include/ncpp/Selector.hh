@@ -5,6 +5,7 @@
 
 #include "Root.hh"
 #include "NCAlign.hh"
+#include "NotCurses.hh"
 
 namespace ncpp
 {
@@ -16,28 +17,25 @@ namespace ncpp
 		static selector_options default_options;
 
 	public:
-		explicit Selector (Plane *plane, int y, int x, const selector_options *opts = nullptr)
-			: Selector (reinterpret_cast<ncplane*>(plane), y, x, opts)
+		explicit Selector (NotCurses *nc, int y, int x, const selector_options *opts = nullptr)
+			: Selector (reinterpret_cast<notcurses*>(nc), y, x, opts)
 		{}
 
-		explicit Selector (Plane const* plane, int y, int x, const selector_options *opts = nullptr)
-			: Selector (const_cast<Plane*>(plane), y, x, opts)
+		explicit Selector (NotCurses const* nc, int y, int x, const selector_options *opts = nullptr)
+			: Selector (const_cast<NotCurses*>(nc), y, x, opts)
 		{}
 
-		explicit Selector (Plane &plane, int y, int x, const selector_options *opts = nullptr)
-			: Selector (reinterpret_cast<ncplane*>(&plane), y, x, opts)
+		explicit Selector (NotCurses &nc, int y, int x, const selector_options *opts = nullptr)
+			: Selector (reinterpret_cast<NotCurses*>(&nc), y, x, opts)
 		{}
 
-		explicit Selector (Plane const& plane, int y, int x, const selector_options *opts = nullptr)
-			: Selector (const_cast<Plane*>(&plane), y, x, opts)
+		explicit Selector (NotCurses const& nc, int y, int x, const selector_options *opts = nullptr)
+			: Selector (const_cast<NotCurses*>(&nc), y, x, opts)
 		{}
 
-		explicit Selector (ncplane *plane, int y, int x, const selector_options *opts = nullptr)
+		explicit Selector (notcurses* nc, int y, int x, const selector_options *opts = nullptr)
 		{
-			if (plane == nullptr)
-				throw invalid_argument ("'plane' must be a valid pointer");
-
-			selector = ncselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
+			selector = ncselector_create (nc, y, x, opts == nullptr ? &default_options : opts);
 			if (selector == nullptr)
 				throw init_error ("notcurses failed to create a new selector");
 		}
