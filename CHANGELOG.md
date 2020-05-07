@@ -15,6 +15,7 @@ rearrangements of Notcurses.
     `ncplane` to an `ncvisual`. The source plane may contain only spaces,
     half blocks, and full blocks. This builds atop the new function
     `ncplane_rgba()`, which makes an RGBA flat array from an `ncplane`.
+  * The `ncplane` argument to `ncplane_at_yx()` is now `const`.
 
 * 1.3.3 (2020-04-26)
   * The `ncdplot` type has been added for plots based on `double`s rather than

@@ -139,7 +139,7 @@ struct ncplane* ncplane_below(struct ncplane* n);
 char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels);
 char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);
 int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
-char* ncplane_at_yx(struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);
+char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);
 int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);

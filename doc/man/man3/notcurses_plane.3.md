@@ -46,7 +46,7 @@ notcurses_plane - operations on ncplanes
 
 **int ncplane_at_cursor_cell(struct ncplane* n, cell* c);**
 
-**char* ncplane_at_yx(struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);**
+**char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);**
 
 **int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);**
 

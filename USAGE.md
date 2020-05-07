@@ -718,7 +718,7 @@ int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
 // Retrieve the current contents of the specified cell. The EGC is returned, or
 // NULL on error. This EGC must be free()d by the caller. The attrword and
 // channels are written to 'attrword' and 'channels', respectively.
-char* ncplane_at_yx(struct ncplane* n, int y, int x,
+char* ncplane_at_yx(const struct ncplane* n, int y, int x,
                     uint32_t* attrword, uint64_t* channels);
 
 // Retrieve the current contents of the specified cell into 'c'. This cell is
