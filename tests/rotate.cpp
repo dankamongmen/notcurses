@@ -109,11 +109,20 @@ TEST_CASE("Rotate") {
 
   // use half of each dimension
   SUBCASE("RotateRGBACW") {
-    std::vector<uint32_t> rgba((dimx / 2) * (dimy / 2), 0xffbbccff);
-    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), dimy / 2, dimx * 2, dimx / 2);
+    int height = dimy / 2;
+    int width = dimx / 2;
+    std::vector<uint32_t> rgba(width * height, 0xffbbccff);
+    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
-    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    int rendered = ncvisual_render(ncv, 0, 0, -1, -1);
+    CHECK(dimx * dimy / 8 <= rendered);
     CHECK(0 == notcurses_render(nc_));
+    uint32_t* rgbaret = ncplane_rgba(ncvisual_plane(ncv), 0, 0, -1, -1);
+    REQUIRE(rgbaret);
+    for(int i = 0 ; i < rendered ; ++i){
+      CHECK(rgbaret[i] == rgba[i]);
+    }
+    free(rgbaret);
     CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
     CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
@@ -131,22 +140,31 @@ TEST_CASE("Rotate") {
   }
 
   SUBCASE("RotateRGBACCW") {
-    std::vector<uint32_t> rgba(dimx * dimy, 0xffbbccff);
-    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), dimy, dimx * 2, dimx / 2);
+    int height = dimy / 2;
+    int width = dimx / 2;
+    std::vector<uint32_t> rgba(width * height, 0xffbbccff);
+    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
-    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    int rendered = ncvisual_render(ncv, 0, 0, -1, -1);
+    CHECK(dimx * dimy / 8 <= rendered);
+    CHECK(0 == notcurses_render(nc_));
+    uint32_t* rgbaret = ncplane_rgba(ncvisual_plane(ncv), 0, 0, -1, -1);
+    REQUIRE(rgbaret);
+    for(int i = 0 ; i < rendered ; ++i){
+      CHECK(rgbaret[i] == rgba[i]);
+    }
+    free(rgbaret);
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
-    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
-    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
-    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
-    CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
-    CHECK(dimx * dimy / 4 == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
