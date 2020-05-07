@@ -72,7 +72,7 @@ TEST_CASE("NotcursesBase") {
     int maxx, maxy;
     notcurses_term_dim_yx(nc_, &maxy, &maxx);
     auto total = maxx * maxy;
-    struct ncplane** planes = new struct ncplane*[total];
+    auto planes = new struct ncplane*[total];
     int* planesecrets = new int[total];
     for(int y = 0 ; y < maxy ; ++y){
       for(int x = 0 ; x < maxx ; ++x){

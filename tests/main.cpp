@@ -5,23 +5,22 @@
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
-#include <limits.h>
+#include <climits>
 #include <termios.h>
+#include <filesystem>
 #include <langinfo.h>
 #include "version.h"
 #include "main.h"
 
 static const char* datadir = NOTCURSES_SHARE;
 
-char* find_data(const char* datum){
-  char* path = (char*)malloc(strlen(datadir) + 1 + strlen(datum) + 1);
-  strcpy(path, datadir);
-  strcat(path, "/");
-  strcat(path, datum);
-  return path;
+auto find_data(const char* datum) -> char* {
+  std::filesystem::path p = datadir;
+  p /= datum;
+  return strdup(p.c_str());
 }
 
-bool enforce_utf8(void){
+auto enforce_utf8() -> bool {
   char* enc = nl_langinfo(CODESET);
   if(!enc){
     return false;
@@ -75,14 +74,14 @@ public:
       for(; *argv_in; ++argv_in)
           if(strncmp(*argv_in, "--dt-", strlen("--dt-")) != 0)
               vec.push_back(*argv_in);
-      vec.push_back(NULL);
+      vec.push_back(nullptr);
   }
 
-  int          argc() { return static_cast<int>(vec.size()) - 1; }
-  const char** argv() { return &vec[0]; } // Note: non-const char **:
+  auto argc() -> int { return static_cast<int>(vec.size()) - 1; }
+  auto argv() -> const char** { return &vec[0]; }
 };
 
-int main(int argc, const char **argv){
+auto main(int argc, const char **argv) -> int {
   if(!setlocale(LC_ALL, "")){
     std::cerr << "Coudln't set locale based on user preferences!" << std::endl;
     return EXIT_FAILURE;
