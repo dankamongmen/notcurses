@@ -11,7 +11,7 @@ constexpr auto DELAY = 1;
 
 // dump two wide glyphs, then create a new plane and drop it atop them
 
-int stomper(NotCurses& nc, std::shared_ptr<Plane> nn){
+auto stomper(NotCurses& nc, std::shared_ptr<Plane>& nn) -> int {
   nn->move(0, 1);
 
   nc.render();
@@ -42,7 +42,7 @@ int stomper(NotCurses& nc, std::shared_ptr<Plane> nn){
   return 0;
 }
 
-int main(void){
+auto main() -> int {
   setlocale(LC_ALL, "");
   NotCurses nc;
   std::shared_ptr<Plane> n(nc.get_stdplane());
