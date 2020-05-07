@@ -2767,11 +2767,22 @@ API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size
 // to create the ncvisual from memory using ncvisual_from_rgba().
 API struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 
+typedef struct ncreader_options {
+  uint64_t tchannels; // channels used for input
+  uint64_t echannels; // channels used for empty space
+  uint32_t tattrword; // attributes used for input
+  uint32_t eattrword; // attributes used for empty space
+  char* egc;          // egc used for empty space
+  int physrows;
+  int physcols;
+  bool scroll; // allow more than the physical area's worth of input
+} ncreader_options;
+
 // ncreaders provide freeform input in a (possibly multiline) region,
 // supporting readline keybindings. 'rows' and 'cols' both must be negative.
 // there are no restrictions on 'y' or 'x'. creates its own plane.
-API struct ncreader* ncreader_create(struct notcurses* nc, int rows, int cols,
-                                     int y, int x);
+API struct ncreader* ncreader_create(struct notcurses* nc, int y, int x,
+                                     ncreader_options* opts);
 
 // empty the ncreader of any user input, and home the cursor.
 API int ncreader_clear(struct ncreader* n);

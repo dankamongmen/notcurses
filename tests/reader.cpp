@@ -18,8 +18,24 @@ TEST_CASE("Readers") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
+  SUBCASE("ReaderBadOptions") {
+    ncreader_options opts{};
+    auto nr = ncreader_create(nc_, 0, 0, &opts);
+    CHECK(!nr);
+    opts.physrows = 1;
+    nr = ncreader_create(nc_, 0, 0, &opts);
+    CHECK(!nr);
+    opts.physcols = 1;
+    opts.physrows = 0;
+    nr = ncreader_create(nc_, 0, 0, &opts);
+    CHECK(!nr);
+  }
+
   SUBCASE("ReaderLifecycle") {
-    auto nr = ncreader_create(nc_, 1, 0, 0, 0);
+    ncreader_options opts{};
+    opts.physrows = 1;
+    opts.physcols = dimx / 2;
+    auto nr = ncreader_create(nc_, 0, 0, &opts);
     REQUIRE(nullptr != nr);
     ncreader_destroy(nr);
     CHECK(0 == notcurses_render(nc_));
