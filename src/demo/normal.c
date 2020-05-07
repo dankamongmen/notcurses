@@ -2,7 +2,7 @@
 #include <complex.h>
 
 static const int VSCALE = 2;
-static const int ITERMAX = 256;
+static const int ITERMAX = 255;
 
 static int
 mandelbrot(int y, int x, int dy, int dx){
@@ -23,7 +23,7 @@ mandelbrot(int y, int x, int dy, int dx){
 static int
 mcell(uint32_t* c, int y, int x, int dy, int dx){
   int iter = mandelbrot(y, x, dy, dx);
-  *c = ((256 - iter) << 24u) + ((256 - iter) << 16u) + ((256 - iter) << 8u);
+  *c = ((255 - iter) << 24u) + ((255 - iter) << 16u) + ((255 - iter) << 8u);
   return 0;
 }
 
