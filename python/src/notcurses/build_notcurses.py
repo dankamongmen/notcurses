@@ -431,6 +431,7 @@ int ncplane_rotate_cw(struct ncplane* n);
 int ncplane_rotate_ccw(struct ncplane* n);
 int ncvisual_rotate(struct ncvisual* n, double rads);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
+struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 typedef enum {
   NCPLOT_1x1,   // full block                █

@@ -32,6 +32,8 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra, int rows, int rowstride, int cols);**
 
+**struct ncvisual* ncvisual_from_plane(struct ncplane* n);**
+
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
 **nc_err_e ncvisual_decode(struct ncvisual* nc);**
@@ -74,6 +76,11 @@ is necessary. The resulting plane will be ceil(**rows**/2) rows, and **cols**
 columns. It will not be necessary to call **ncvisual_decode**, but it is
 still necessary to call **ncvisual_render**.
 
+The contents of an **ncplane** can be "promoted" into an **ncvisual** with
+**ncvisual_from_ncplane**. The existing plane will be bound and decoded to a
+new **ncvisual**. Only spaces, half blocks, and full blocks may be present
+in the plane.
+
 **ncvisual_rotate** executes a rotation of **rads** radians, in the clockwise
 (positive) or counterclockwise (negative) direction. If the **ncvisual** owns
 (created) its underlying **ncplane**, that plane will be resized as necessary
@@ -95,6 +102,9 @@ will be updated. **ncvisual_decode** returns **NCERR_SUCCESS** on success, or
 **NCERR_EOF** on end of file, or some other **nc_err_e** on failure. It
 likewise updates **err** in the event of an error. **ncvisual_render** returns
 the number of cells emitted, or -1 on error.
+
+**ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
+and bound. This is usually due to illegal content in the source **ncplane**.
 
 # NOTES
 

@@ -2452,8 +2452,22 @@ a file. Both RGBA and BGRA 8bpc arrangements can be used.
 // are actual data. There must be 'rows' lines. The total size of 'rgba'
 // must thus be at least (rows * rowstride) bytes, of which (rows * cols * 4)
 // bytes are actual data. The resulting plane will be ceil('rows'/2)x'cols'.
-ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows, int rowstride, int cols);
+struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba,
+                                    int rows, int rowstride, int cols);
 
 // ncvisual_from_rgba(), but for BGRA.
-ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows, int rowstride, int cols);
+struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra,
+                                    int rows, int rowstride, int cols);
+```
+
+Finally, an `ncvisual` can be "promoted" from the contents of a plane.
+
+```c
+// Promote an ncplane 'n' to an ncvisual. The plane should not be associated
+// with an existing ncvisual, and may contain only spaces, half blocks, and
+// full blocks. The latter will be checked, and any other glyph will result
+// in a NULL being returned. This function exists so that planes can be
+// subjected to ncvisual transformations. If possible, it's usually better
+// to create the ncvisual from memory using ncvisual_from_rgba().
+struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 ```
