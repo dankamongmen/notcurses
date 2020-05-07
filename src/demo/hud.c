@@ -363,6 +363,7 @@ int hud_schedule(const char* demoname){
   }
   elem** hook = hud_print_finished(&line);
   if(hook == NULL){
+    free(cure);
     return -1;
   }
   *hook = cure;
