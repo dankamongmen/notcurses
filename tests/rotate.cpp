@@ -123,6 +123,16 @@ TEST_CASE("Rotate") {
       CHECK(rgbaret[i] == rgba[i]);
     }
     free(rgbaret);
+    for(int x = 0 ; x < width ; ++x){
+      uint32_t attrword;
+      uint64_t channels;
+      char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
+      REQUIRE(c);
+      CHECK(0 == strcmp(c, " "));
+      CHECK(0xffccbb == (channels_fg(channels) & CELL_BG_MASK));
+      CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
+      free(c);
+    }
     CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
     CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
@@ -154,6 +164,16 @@ TEST_CASE("Rotate") {
       CHECK(rgbaret[i] == rgba[i]);
     }
     free(rgbaret);
+    for(int x = 0 ; x < width ; ++x){
+      uint32_t attrword;
+      uint64_t channels;
+      char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
+      REQUIRE(c);
+      CHECK(0 == strcmp(c, " "));
+      CHECK(0xffccbb == (channels_fg(channels) & CELL_BG_MASK));
+      CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
+      free(c);
+    }
     CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
     CHECK(dimx * dimy / 8 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
