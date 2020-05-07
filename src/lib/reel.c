@@ -536,11 +536,11 @@ int ncreel_redraw(ncreel* nr){
   if(nr->last_traveled_direction >= 0){
     otherend = draw_previous_tablets(nr, otherend);
     otherend = draw_following_tablets(nr, otherend);
-    otherend = draw_previous_tablets(nr, otherend);
+    draw_previous_tablets(nr, otherend);
   }else{
     otherend = draw_following_tablets(nr, otherend);
     otherend = draw_previous_tablets(nr, otherend);
-    otherend = draw_following_tablets(nr, otherend);
+    draw_following_tablets(nr, otherend);
   }
 //fprintf(stderr, "DONE ARRANGING\n");
   return 0;

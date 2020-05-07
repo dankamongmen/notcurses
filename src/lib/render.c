@@ -35,15 +35,12 @@ int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
     const size_t size = sizeof(*n->lastframe) * (n->lfdimy * n->lfdimx);
     cell* fb = realloc(n->lastframe, size);
     if(fb == NULL){
-      abort(); // FIXME
       return -1;
     }
     n->lastframe = fb;
     // FIXME more memset()tery than we need, both wasting work and wrecking
     // damage detection for the upcoming render
     memset(n->lastframe, 0, size);
-    n->lastframe = fb;
-    memset(fb, 0, size);
     egcpool_dump(&n->pool);
   }
   if(*rows == oldrows && *cols == oldcols){
@@ -445,6 +442,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   postpaint(tmpfb, rendfb, dimy, dimx, rvec, &dst->pool);
   free(dst->fb);
   dst->fb = rendfb;
+  free(tmpfb);
   free(rvec);
   return 0;
 }

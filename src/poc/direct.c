@@ -53,7 +53,6 @@ int main(void){
       y -= up;
       int newy;
       if(ncdirect_cursor_yx(n, &newy, NULL)){
-        ret = -1;
         return EXIT_FAILURE;
       }
       if(newy != y){

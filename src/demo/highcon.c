@@ -82,9 +82,11 @@ int highcontrast_demo(struct notcurses* nc){
     cell_load_simple(n, &c, motto[out % strlen(motto)]);
     cell_set_bg(&c, scrcolors[out % totcells]);
     if(ncplane_putc_yx(n, (out + dimx) / dimx, out % dimx, &c) < 0){
+      free(scrcolors);
       goto err;
     }
   }
+  free(scrcolors);
   // each iteration, "draw the background in" one cell from the top left and
   // bottom right.
   int offset = 0;
@@ -110,6 +112,5 @@ int highcontrast_demo(struct notcurses* nc){
 
 err:
   cell_release(n, &c);
-  free(scrcolors);
   return ret;
 }
