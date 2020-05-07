@@ -94,10 +94,20 @@ ncvisual* ncvisual_create(float timescale){
 }
 
 struct ncvisual* ncvisual_from_plane(ncplane* n){
+  uint32_t* rgba = ncplane_rgba(n, 0, 0, -1, -1);
+  if(rgba == NULL){
+    return NULL;
+  }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  struct ncvisual* ncv = ncvisual_create(1);
-  // FIXME populate via ncplane_at_yx() traversal
+  struct ncvisual* ncv = ncvisual_from_rgba(n->nc, rgba, n->leny, n->lenx * 4, n->lenx);
+  if(ncv == NULL){
+    free(rgba);
+    return NULL;
+  }
+  ncplane_destroy(ncv->ncp);
+  ncv->ncp = n;
+  ncv->ncobj = NULL;
   return ncv;
 }
 
@@ -284,7 +294,7 @@ int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx)
   if(leny == -1){
     leny = ncv->dstheight - begy;
   }
-  if(lenx == 0 || leny == 0){ // no need to draw zero-size object, exit
+  if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
     return 0;
   }
   if(begx + lenx > ncv->dstwidth || begy + leny > ncv->dstheight){

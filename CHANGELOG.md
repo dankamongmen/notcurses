@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.3.4 (not yet released)
+* 1.3.4 (2020-05-06)
   * `notcurses_lex_margins()` has been added to lex margins expressed in either
     of two canonical formats. Hopefully this will lead to more programs
     supporting margins.
@@ -13,7 +13,8 @@ rearrangements of Notcurses.
     radians on `ncvisual` objects.
   * `ncvisual_from_plane()` has been added to support "promotion" of an
     `ncplane` to an `ncvisual`. The source plane may contain only spaces,
-    half blocks, and full blocks.
+    half blocks, and full blocks. This builds atop the new function
+    `ncplane_rgba()`, which makes an RGBA flat array from an `ncplane`.
 
 * 1.3.3 (2020-04-26)
   * The `ncdplot` type has been added for plots based on `double`s rather than

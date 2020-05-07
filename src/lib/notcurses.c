@@ -1965,3 +1965,29 @@ ncplane* rotate_plane(const ncplane* n){
   ncplane* newp = ncplane_new(n->nc, newy, newx, absy, absx, n->userptr);
   return newp;
 }
+
+uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx){
+  if(begy < 0 || begx < 0){
+    return NULL;
+  }
+  if(begx >= nc->lenx || begy >= nc->leny){
+    return NULL;
+  }
+  if(lenx == -1){ // -1 means "to the end"; use all space available
+    lenx = nc->lenx - begx;
+  }
+  if(leny == -1){
+    leny = nc->leny - begy;
+  }
+  if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
+    return NULL;
+  }
+  if(begx + lenx > nc->lenx || begy + leny > nc->leny){
+    return NULL;
+  }
+  uint32_t* ret = malloc(sizeof(*ret) * lenx * leny);
+  if(ret){
+    // FIXME populate via traversal
+  }
+  return ret;
+}

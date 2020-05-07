@@ -1184,6 +1184,13 @@ ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c){
   return r;
 }
 
+// Create an RGBA flat array from the selected region of the ncplane 'nc'.
+// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
+// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
+// 'lenx' can be specified as -1 to go through the boundary of the plane.
+API uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx,
+                           int leny, int lenx);
+
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
 // it with 'opaque'. the others simply return the userptr.
