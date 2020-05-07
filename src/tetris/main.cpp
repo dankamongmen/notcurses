@@ -1,4 +1,5 @@
 #include <mutex>
+#include <array>
 #include <atomic>
 #include <thread>
 #include <chrono>
