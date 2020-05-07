@@ -1,7 +1,7 @@
 #include "main.h"
 #include <iostream>
 
-int panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
+auto panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop) -> int {
   CHECK(nctablet_ncplane(t));
   CHECK(begx < maxx);
   CHECK(begy < maxy);
