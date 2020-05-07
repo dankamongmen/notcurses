@@ -10,7 +10,7 @@ using ncdplot = struct ncdplot {
 
 extern "C" {
 
-ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy) {
+auto ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy) -> ncuplot* {
   auto ret = new ncuplot;
   if(ret){
     if(ncppplot<uint64_t>::create(&ret->n, n, opts, miny, maxy)){
@@ -21,15 +21,15 @@ ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, u
   return nullptr;
 }
 
-ncplane* ncuplot_plane(ncuplot* n) {
+auto ncuplot_plane(ncuplot* n) -> ncplane* {
   return n->n.ncp;
 }
 
-int ncuplot_add_sample(ncuplot* n, uint64_t x, uint64_t y) {
+auto ncuplot_add_sample(ncuplot* n, uint64_t x, uint64_t y) -> int {
   return n->n.add_sample(x, y);
 }
 
-int ncuplot_set_sample(ncuplot* n, uint64_t x, uint64_t y) {
+auto ncuplot_set_sample(ncuplot* n, uint64_t x, uint64_t y) -> int {
   return n->n.set_sample(x, y);
 }
 
@@ -40,7 +40,7 @@ void ncuplot_destroy(ncuplot* n) {
   }
 }
 
-ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, double maxy) {
+auto ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, double maxy) -> ncdplot* {
   auto ret = new ncdplot;
   if(ret){
     if(ncppplot<double>::create(&ret->n, n, opts, miny, maxy)){
@@ -51,15 +51,15 @@ ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, dou
   return nullptr;
 }
 
-ncplane* ncdplot_plane(ncdplot* n) {
+auto ncdplot_plane(ncdplot* n) -> ncplane* {
   return n->n.ncp;
 }
 
-int ncdplot_add_sample(ncdplot* n, uint64_t x, double y) {
+auto ncdplot_add_sample(ncdplot* n, uint64_t x, double y) -> int {
   return n->n.add_sample(x, y);
 }
 
-int ncdplot_set_sample(ncdplot* n, uint64_t x, double y) {
+auto ncdplot_set_sample(ncdplot* n, uint64_t x, double y) -> int {
   return n->n.set_sample(x, y);
 }
 
