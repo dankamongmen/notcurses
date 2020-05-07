@@ -379,6 +379,7 @@ ncplane* ncplane_dup(ncplane* n, void* opaque){
   if(newn){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);
+      return NULL;
     }else{
       ncplane_cursor_move_yx(newn, y, x);
       n->attrword = attr;
@@ -548,6 +549,7 @@ query_rgb(void){
 
 static int
 interrogate_terminfo(notcurses* nc, const notcurses_options* opts, int* dimy, int* dimx){
+  *dimy = *dimx = 0;
   update_term_dimensions(nc->ttyfd, dimy, dimx);
   nc->truecols = *dimx;
   char* shortname_term = termname();
@@ -1006,13 +1008,11 @@ int notcurses_stop(notcurses* nc){
     input_free_esctrie(&nc->inputescapes);
     stash_stats(nc);
     if(!nc->suppress_banner){
-      double avg = 0;
       if(nc->stashstats.renders){
         char totalbuf[BPREFIXSTRLEN + 1];
         char minbuf[BPREFIXSTRLEN + 1];
         char maxbuf[BPREFIXSTRLEN + 1];
         char avgbuf[BPREFIXSTRLEN + 1];
-        avg = nc->stashstats.render_ns / (double)nc->stashstats.renders;
         qprefix(nc->stashstats.render_ns, NANOSECS_IN_SEC, totalbuf, 0);
         qprefix(nc->stashstats.render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
         qprefix(nc->stashstats.render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
@@ -1020,13 +1020,12 @@ int notcurses_stop(notcurses* nc){
         fprintf(stderr, "\n%ju render%s, %ss total (%ss min, %ss max, %ss avg)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
                 totalbuf, minbuf, maxbuf, avgbuf);
-        avg = nc->stashstats.render_bytes / (double)nc->stashstats.renders;
         bprefix(nc->stashstats.render_bytes, 1, totalbuf, 0),
         bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 0),
         bprefix(nc->stashstats.render_max_bytes, 1, maxbuf, 0),
         fprintf(stderr, "%sB total (%sB min, %sB max, %.03gKiB avg)\n",
                 totalbuf, minbuf, maxbuf,
-                avg / 1024);
+                nc->stashstats.render_bytes / (double)nc->stashstats.renders / 1024);
       }
       if(nc->stashstats.renders || nc->stashstats.failed_renders){
         fprintf(stderr, "%.1f theoretical FPS, %ju failed render%s\n",
