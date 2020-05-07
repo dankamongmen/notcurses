@@ -147,6 +147,10 @@ typedef struct ncsubproc {
   int pidfd;                  // for signalling/watching the subprocess
 } ncsubproc;
 
+typedef struct ncreader {
+  ncplane* ncp;
+} ncreader;
+
 typedef struct ncmenu {
   ncplane* ncp;
   int sectioncount;         // must be positive

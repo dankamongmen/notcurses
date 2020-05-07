@@ -38,6 +38,7 @@ struct ncfdplane; // i/o wrapper to dump file descriptor to plane
 struct ncsubproc; // ncfdplane wrapper with subprocess management
 struct ncselector;// widget supporting selecting 1 from a list of options
 struct ncmultiselector; // widget supporting selecting 0..n from n options
+struct ncreader;  // widget supporting free string input ala readline
 
 // Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
@@ -2765,6 +2766,17 @@ API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size
 // subjected to ncvisual transformations. If possible, it's usually better
 // to create the ncvisual from memory using ncvisual_from_rgba().
 API struct ncvisual* ncvisual_from_plane(struct ncplane* n);
+
+// ncreaders provide freeform input in a (possibly multiline) region,
+// supporting readline keybindings.
+API struct ncreader* ncreader_create(struct ncplane* n);
+
+// empty the ncreader of any user input, and home the cursor.
+API int ncreader_clear(struct ncreader* n);
+
+API struct ncplane* ncreader_plane(struct ncreader* n);
+
+API void ncreader_destroy(struct ncreader* n);
 
 #undef API
 
