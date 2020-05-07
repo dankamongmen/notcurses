@@ -13,6 +13,8 @@ LICENSE=Apache-2.0
 USE_GITHUB=yes
 GH_ACCOUNT=dankamongmen
 
+LIB_DEPENDS=libqrcodegen.so:graphics/qr-code-generator
+
 # deps: doxygen, dia, doctest (not present?), ffmpeg
 
 .include <bsd.port.mk>
