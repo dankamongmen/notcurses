@@ -34,7 +34,7 @@ TEST_CASE("Wide") {
     const char* w = "\u5168";
     int sbytes = 0;
     int dimx;
-    ncplane_dim_yx(n_, NULL, &dimx);
+    ncplane_dim_yx(n_, nullptr, &dimx);
     CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, &sbytes));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -55,28 +55,28 @@ TEST_CASE("Wide") {
     const char EGC3[] = "\u212b"; // ambiguous angstrom Å
     const char EGC4[] = "\ufdfd"; // neutral yet huge bismillah ﷽
     std::array<cell, 5> tcells;
-    for(auto i = 0u ; i < tcells.size() ; ++i){
-      cell_init(&tcells[i]);
+    for(auto & tcell : tcells){
+      cell_init(&tcell);
     }
     REQUIRE(1 < cell_load(n_, &tcells[0], EGC0));
     REQUIRE(1 < cell_load(n_, &tcells[1], EGC1));
     REQUIRE(1 < cell_load(n_, &tcells[2], EGC2));
     REQUIRE(1 < cell_load(n_, &tcells[3], EGC3));
     REQUIRE(1 < cell_load(n_, &tcells[4], EGC4));
-    for(auto i = 0u ; i < tcells.size() ; ++i){
-      REQUIRE(0 < ncplane_putc(n_, &tcells[i]));
+    for(auto & tcell : tcells){
+      REQUIRE(0 < ncplane_putc(n_, &tcell));
     }
     CHECK(0 == notcurses_render(nc_));
     int x = 0;
-    for(auto i = 0u ; i < tcells.size() ; ++i){
+    for(auto & tcell : tcells){
       CHECK(0 == ncplane_cursor_move_yx(n_, 0, x));
       cell testcell = CELL_TRIVIAL_INITIALIZER;
       REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell));
-      CHECK(!strcmp(cell_extended_gcluster(n_, &tcells[i]),
+      CHECK(!strcmp(cell_extended_gcluster(n_, &tcell),
                     cell_extended_gcluster(n_, &testcell)));
       CHECK(0 == testcell.attrword);
       wchar_t w;
-      REQUIRE(0 < mbtowc(&w, cell_extended_gcluster(n_, &tcells[i]), MB_CUR_MAX));
+      REQUIRE(0 < mbtowc(&w, cell_extended_gcluster(n_, &tcell), MB_CUR_MAX));
       if(wcwidth(w) == 2){
         CHECK(CELL_WIDEASIAN_MASK == testcell.channels);
         ++x;
@@ -206,7 +206,7 @@ TEST_CASE("Wide") {
     int dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
     CHECK(0 == ncplane_rounded_box_sized(ncp, 0, 0, 3, 4, 0));
-    CHECK(2 == ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", NULL)); // scorpion
+    CHECK(2 == ncplane_putegc_yx(ncp, 1, 1, "\xf0\x9f\xa6\x82", nullptr)); // scorpion
     CHECK(0 == notcurses_render(nc_));
     cell c = CELL_TRIVIAL_INITIALIZER;
     REQUIRE(0 < ncplane_at_yx_cell(ncp, 1, 0, &c));
