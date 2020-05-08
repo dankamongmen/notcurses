@@ -7,7 +7,6 @@ TEST_CASE("Readers") {
     return;
   }
   notcurses_options nopts{};
-  nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
   FILE* outfp_ = fopen("/dev/tty", "wb");
   REQUIRE(outfp_);
@@ -33,15 +32,17 @@ TEST_CASE("Readers") {
 
   SUBCASE("ReaderRender") {
     ncreader_options opts{};
-    opts.physrows = 1;
+    opts.physrows = dimy / 2;
     opts.physcols = dimx / 2;
     opts.egc = strdup("▒");
     auto nr = ncreader_create(nc_, 0, 0, &opts);
     REQUIRE(nullptr != nr);
+    channels_set_fg(&opts.echannels, 0xff44ff);
+    ncplane_set_base(n_, opts.egc, opts.eattrword, opts.echannels);
     CHECK(0 == notcurses_render(nc_));
-CHECK(0 < ncplane_set_base(n_, opts.egc, opts.eattrword, opts.echannels));
-sleep(5);
-    ncreader_destroy(nr);
+    char* contents = NULL;
+    ncreader_destroy(nr, &contents);
+    REQUIRE(contents);
     CHECK(0 == notcurses_render(nc_));
   }
 
