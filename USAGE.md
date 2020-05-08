@@ -732,6 +732,10 @@ int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx,
                        int leny, int lenx);
 
+// return a nul-terminated, heap copy of the current (UTF-8) contents.
+API char* ncplane_contents(const struct ncplane* nc, int begy, int begx,
+                           int leny, int lenx);
+
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
 // it with 'opaque'. the others simply return the userptr.
@@ -2131,7 +2135,7 @@ struct ncplane* ncreader_plane(struct ncreader* n);
 // are relevant to an ncreader, save synthesized ones.
 bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
 
-// return a heap-allocated copy of the current (UTF-8) contents.
+// return a nul-terminated heap copy of the current (UTF-8) contents.
 char* ncreader_contents(const struct ncreader* n);
 
 // destroy the reader and its bound plane. if 'contents' is not NULL, the

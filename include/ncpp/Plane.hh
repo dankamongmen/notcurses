@@ -628,6 +628,16 @@ namespace ncpp
 			return error_guard<int> (ncplane_polyfill_yx (plane, y, x, c), -1);
 		}
 
+		uint32_t* rgba(int begy, int begx, int leny, int lenx) const noexcept
+		{
+			return ncplane_rgba (plane, begy, begx, leny, lenx);
+		}
+
+		char* content(int begy, int begx, int leny, int lenx) const noexcept
+		{
+			return ncplane_contents (plane, begy, begx, leny, lenx);
+		}
+
 		uint64_t get_channels () const noexcept
 		{
 			return ncplane_channels (plane);
