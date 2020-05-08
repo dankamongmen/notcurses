@@ -148,7 +148,8 @@ typedef struct ncsubproc {
 } ncsubproc;
 
 typedef struct ncreader {
-  ncplane* ncp;
+  ncplane* ncp;               // always owned by ncreader
+  char* contents;             // UTF-8 encoded, never NULL
 } ncreader;
 
 typedef struct ncmenu {

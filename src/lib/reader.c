@@ -15,9 +15,10 @@ ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* o
       return NULL;
     }
     if(ncplane_set_base(nr->ncp, opts->egc, opts->eattrword, opts->echannels) <= 0){
-      ncreader_destroy(nr);
+      ncreader_destroy(nr, NULL);
       return NULL;
     }
+    nr->contents = strdup("");
     // FIXME
   }
   return nr;
@@ -33,8 +34,16 @@ ncplane* ncreader_plane(ncreader* n){
   return n->ncp;
 }
 
-void ncreader_destroy(ncreader* n){
+char* ncreader_contents(const ncreader* n){
+  return strdup(n->contents);
+}
+
+void ncreader_destroy(ncreader* n, char** contents){
   if(n){
+    if(contents){
+      *contents = strdup(n->contents);
+    }
+    free(n->contents);
     ncplane_destroy(n->ncp);
     free(n);
   }
