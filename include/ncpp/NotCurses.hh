@@ -36,12 +36,7 @@ namespace ncpp
 		NotCurses (NotCurses &&other) = delete;
 		~NotCurses ();
 
-		operator notcurses* () noexcept
-		{
-			return nc;
-		}
-
-		operator notcurses const* () const noexcept
+		notcurses* operator*() noexcept
 		{
 			return nc;
 		}
@@ -58,7 +53,7 @@ namespace ncpp
 
 		static bool is_notcurses_stopped ()
 		{
-			return *_instance == nullptr || _instance->nc == nullptr;
+			return _instance == nullptr || _instance->nc == nullptr;
 		}
 
 		static const char* ncmetric (uintmax_t val, unsigned decimal, char *buf, int omitdec, unsigned mult, int uprefix) noexcept

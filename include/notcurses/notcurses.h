@@ -2789,6 +2789,11 @@ API int ncreader_clear(struct ncreader* n);
 
 API struct ncplane* ncreader_plane(struct ncreader* n);
 
+// Offer the input to the ncreader. If it's relevant, this function returns
+// true, and the input ought not be processed further. Almost all inputs
+// are relevant to an ncreader, save synthesized ones.
+API bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
+
 // return a heap-allocated copy of the current (UTF-8) contents.
 API char* ncreader_contents(const struct ncreader* n);
 

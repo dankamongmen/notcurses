@@ -9,7 +9,7 @@ version 2, notcurses will honor Semantic Versioning.
 * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
 * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
 * [Reels](#reels) ([ncreel Examples](#ncreel-examples))
-* [Widgets](#widgets)
+* [Widgets](#widgets) ([Readers](#readers))
 * [Channels](#channels)
 * [Media](#media)
 
@@ -2099,6 +2099,44 @@ xxxxxxxxxxxxxxxx│Close  Ctrl+c│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx├─────────────┤xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx│Quit   Ctrl+q│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx╰─────────────╯xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### Readers
+
+```c
+typedef struct ncreader_options {
+  uint64_t tchannels; // channels used for input
+  uint64_t echannels; // channels used for empty space
+  uint32_t tattrword; // attributes used for input
+  uint32_t eattrword; // attributes used for empty space
+  char* egc;          // egc used for empty space
+  int physrows;
+  int physcols;
+  bool scroll; // allow more than the physical area's worth of input
+} ncreader_options;
+
+// ncreaders provide freeform input in a (possibly multiline) region,
+// supporting readline keybindings. 'rows' and 'cols' both must be negative.
+// there are no restrictions on 'y' or 'x'. creates its own plane.
+struct ncreader* ncreader_create(struct notcurses* nc, int y, int x,
+                                 const ncreader_options* opts);
+
+// empty the ncreader of any user input, and home the cursor.
+int ncreader_clear(struct ncreader* n);
+
+struct ncplane* ncreader_plane(struct ncreader* n);
+
+// Offer the input to the ncreader. If it's relevant, this function returns
+// true, and the input ought not be processed further. Almost all inputs
+// are relevant to an ncreader, save synthesized ones.
+bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
+
+// return a heap-allocated copy of the current (UTF-8) contents.
+char* ncreader_contents(const struct ncreader* n);
+
+// destroy the reader and its bound plane. if 'contents' is not NULL, the
+// UTF-8 input will be heap-duplicated and written to 'contents'.
+void ncreader_destroy(struct ncreader* n, char** contents);
 ```
 
 ## Channels

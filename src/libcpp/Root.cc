@@ -5,7 +5,7 @@ using namespace ncpp;
 
 notcurses* Root::get_notcurses () const
 {
-	notcurses *ret = NotCurses::get_instance ();
+	notcurses *ret = *NotCurses::get_instance ();
 	if (ret == nullptr)
 		throw new invalid_state_error (ncpp_invalid_state_message);
 	return ret;
