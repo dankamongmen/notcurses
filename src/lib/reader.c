@@ -33,6 +33,14 @@ ncplane* ncreader_plane(ncreader* n){
   return n->ncp;
 }
 
+bool ncreader_offer_input(ncreader* n, const ncinput* ni){
+  if(nckey_supppuab_p(ni->id)){
+    return false;
+  }
+  // FIXME add ni to n->content
+  return true;
+}
+
 char* ncreader_contents(const ncreader* n){
   return strdup(n->contents);
 }
