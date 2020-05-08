@@ -31,12 +31,16 @@ TEST_CASE("Readers") {
     CHECK(!nr);
   }
 
-  SUBCASE("ReaderLifecycle") {
+  SUBCASE("ReaderRender") {
     ncreader_options opts{};
     opts.physrows = 1;
     opts.physcols = dimx / 2;
+    opts.egc = strdup("▒");
     auto nr = ncreader_create(nc_, 0, 0, &opts);
     REQUIRE(nullptr != nr);
+    CHECK(0 == notcurses_render(nc_));
+CHECK(0 < ncplane_set_base(n_, opts.egc, opts.eattrword, opts.echannels));
+sleep(5);
     ncreader_destroy(nr);
     CHECK(0 == notcurses_render(nc_));
   }

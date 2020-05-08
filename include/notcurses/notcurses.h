@@ -2756,7 +2756,7 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // is (version * 4 + 17) columns wide, and ⌈version * 4 + 17 / 2⌉ rows tall. If
 // maxversion is not zero, it plays a hard limit on the QR code size. Though the
 // max version of current QR codes is 40, greater values are allowed, for
-// future compatability (provide 0 for no artificail bound).
+// future compatability (provide 0 for no artificial bound).
 API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size_t len);
 
 // Promote an ncplane 'n' to an ncvisual. The plane should not be associated
@@ -2782,7 +2782,7 @@ typedef struct ncreader_options {
 // supporting readline keybindings. 'rows' and 'cols' both must be negative.
 // there are no restrictions on 'y' or 'x'. creates its own plane.
 API struct ncreader* ncreader_create(struct notcurses* nc, int y, int x,
-                                     ncreader_options* opts);
+                                     const ncreader_options* opts);
 
 // empty the ncreader of any user input, and home the cursor.
 API int ncreader_clear(struct ncreader* n);
