@@ -4,6 +4,9 @@ ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* o
   if(opts->physrows <= 0 || opts->physcols <= 0){
     return NULL;
   }
+  if(opts->scroll){
+    return NULL; // FIXME not yet handled
+  }
   ncreader* nr = malloc(sizeof(*nr));
   if(nr){
     nr->ncp = ncplane_new(nc, opts->physrows, opts->physcols, y, x, NULL);
@@ -16,15 +19,14 @@ ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* o
       ncreader_destroy(nr, NULL);
       return NULL;
     }
-    nr->contents = strdup("");
-    // FIXME
+    nr->tchannels = opts->tchannels;
+    nr->tattrs = opts->tattrword;
   }
   return nr;
 }
 
 // empty the ncreader of any user input, and home the cursor.
 int ncreader_clear(ncreader* n){
-  free(n->contents);
   ncplane_erase(n->ncp);
   return ncplane_cursor_move_yx(n->ncp, 0, 0);
 }
@@ -37,20 +39,28 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   if(nckey_supppuab_p(ni->id)){
     return false;
   }
-  // FIXME add ni to n->content
+  // FIXME handle backspace
+  // FIXME need to collect full EGCs
+  char wbuf[WCHAR_MAX_UTF8BYTES + 1];
+  // FIXME breaks for wchar_t < 32bits
+  if(snprintf(wbuf, sizeof(wbuf), "%lc", (wchar_t)ni->id) >= (int)sizeof(wbuf)){
+    return true;
+  }
+  if(ncplane_putegc(n->ncp, wbuf, NULL) < 0){
+    return true;
+  }
   return true;
 }
 
 char* ncreader_contents(const ncreader* n){
-  return strdup(n->contents);
+  return ncplane_contents(n->ncp, 0, 0, -1, -1);
 }
 
 void ncreader_destroy(ncreader* n, char** contents){
   if(n){
     if(contents){
-      *contents = strdup(n->contents);
+      *contents = ncreader_contents(n);
     }
-    free(n->contents);
     ncplane_destroy(n->ncp);
     free(n);
   }

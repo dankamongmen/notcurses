@@ -2025,3 +2025,28 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
   }
   return ret;
 }
+
+char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx){
+  if(begy < 0 || begx < 0){
+    return NULL;
+  }
+  if(begx >= nc->lenx || begy >= nc->leny){
+    return NULL;
+  }
+  if(lenx == -1){ // -1 means "to the end"; use all space available
+    lenx = nc->lenx - begx;
+  }
+  if(leny == -1){
+    leny = nc->leny - begy;
+  }
+  if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
+    return NULL;
+  }
+  if(begx + lenx > nc->lenx || begy + leny > nc->leny){
+    return NULL;
+  }
+  char* ret = malloc(lenx * leny + 1); // allow a bit of oversize
+  // FIXME traverse that fucker
+  ret[lenx * leny] = '\0';
+  return ret;
+}
