@@ -4,9 +4,6 @@ ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* o
   if(opts->physrows <= 0 || opts->physcols <= 0){
     return NULL;
   }
-  if(opts->egc == NULL){
-    return NULL;
-  }
   ncreader* nr = malloc(sizeof(*nr));
   if(nr){
     nr->ncp = ncplane_new(nc, opts->physrows, opts->physcols, y, x, NULL);
@@ -14,7 +11,8 @@ ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* o
       free(nr);
       return NULL;
     }
-    if(ncplane_set_base(nr->ncp, opts->egc, opts->eattrword, opts->echannels) <= 0){
+    const char* egc = opts->egc ? opts->egc : "_";
+    if(ncplane_set_base(nr->ncp, egc, opts->eattrword, opts->echannels) <= 0){
       ncreader_destroy(nr, NULL);
       return NULL;
     }
@@ -26,6 +24,7 @@ ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* o
 
 // empty the ncreader of any user input, and home the cursor.
 int ncreader_clear(ncreader* n){
+  free(n->contents);
   ncplane_erase(n->ncp);
   return ncplane_cursor_move_yx(n->ncp, 0, 0);
 }
