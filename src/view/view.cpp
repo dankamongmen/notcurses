@@ -90,7 +90,7 @@ int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void*
   keepy = oldy > dimy ? dimy : oldy;
   keepx = oldx > dimx ? dimx : oldx;
   char32_t keyp;
-  while((keyp = notcurses_getc_nblock(nc, nullptr)) != (char32_t)-1){
+  while((keyp = nc.getc(false, nullptr)) != (char32_t)-1){
     if(keyp == NCKEY_RESIZE){
       return ncplane_resize(ncvisual_plane(ncv), 0, 0, keepy, keepx, 0, 0, dimy, dimx);
     }
