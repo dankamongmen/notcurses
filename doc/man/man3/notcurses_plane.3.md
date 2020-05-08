@@ -52,6 +52,8 @@ notcurses_plane - operations on ncplanes
 
 **uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx, int leny, int lenx);**
 
+**char* ncplane_contents(const struct ncplane* nc, int begy, int begx, int leny, int lenx);**
+
 **void* ncplane_set_userptr(struct ncplane* n, void* opaque);**
 
 **void* ncplane_userptr(struct ncplane* n);**

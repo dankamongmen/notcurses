@@ -142,6 +142,7 @@ int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
 char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);
 int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
+char* ncplane_contents(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
