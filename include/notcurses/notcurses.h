@@ -2789,8 +2789,12 @@ API int ncreader_clear(struct ncreader* n);
 
 API struct ncplane* ncreader_plane(struct ncreader* n);
 
-// destroy the reader and its bound plane.
-API void ncreader_destroy(struct ncreader* n);
+// return a heap-allocated copy of the current (UTF-8) contents.
+API char* ncreader_contents(const struct ncreader* n);
+
+// destroy the reader and its bound plane. if 'contents' is not NULL, the
+// UTF-8 input will be heap-duplicated and written to 'contents'.
+API void ncreader_destroy(struct ncreader* n, char** contents);
 
 #undef API
 
