@@ -17,7 +17,9 @@
 * [gocui](https://github.com/jroimartin/gocui) (Go)
 * [tview](https://github.com/rivo/tview) (Go)
 * [blessings](https://github.com/erikrose/blessings) [Python]
+* [urwid](https://github.com/urwid/urwid) [Python]
 
 ## Declarative
 
 * [brick](https://github.com/jtdaugherty/brick) (Haskell, atop vty)
+* [zui](https://github.com/zdharma/zui) [Zsh, atop zdharma]
