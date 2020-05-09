@@ -1854,6 +1854,10 @@ ncplane_fchannel(const struct ncplane* nc){
   return channels_fchannel(ncplane_channels(nc));
 }
 
+API void ncplane_set_channels(struct ncplane* nc, uint64_t channels);
+
+API void ncplane_set_attr(struct ncplane* nc, uint32_t attrword);
+
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline unsigned
 ncplane_fg(const struct ncplane* nc){

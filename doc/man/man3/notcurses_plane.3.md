@@ -70,9 +70,13 @@ notcurses_plane - operations on ncplanes
 
 **bool ncplane_translate_abs(const struct ncplane* n, int* restrict y, int* restrict x);**
 
-**uint64_t ncplane_channels(struct ncplane* n);**
+**uint64_t ncplane_channels(const struct ncplane* n);**
 
-**uint32_t ncplane_attr(struct ncplane* n);**
+**uint32_t ncplane_attr(const struct ncplane* n);**
+
+**void ncplane_set_channels(struct ncplane* nc, uint64_t channels);**
+
+**void ncplane_set_attr(struct ncplane* nc, uint32_t attrword);**
 
 **static inline unsigned ncplane_bchannel(struct ncplane* nc);**
 
