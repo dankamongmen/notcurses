@@ -59,6 +59,7 @@ pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
 endif()
+find_library(MATH_LIBRARIES m)
 check_include_file("qrcodegen/qrcodegen.h" HAVE_QRCODEGEN_H)
 if("${USE_QRCODEGEN}")
 if(NOT "${HAVE_QRCODEGEN_H}")
@@ -352,6 +353,7 @@ target_include_directories(notcurses-demo
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
+    ${MATH_LIBRARIES}
 )
 target_compile_definitions(notcurses-demo
   PRIVATE
