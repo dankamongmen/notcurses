@@ -195,7 +195,11 @@ class ncppplot {
        for(int i = 0 ; i < scale ; ++i){
          sumidx *= states;
          if(intervalbase < gvals[i]){
-           egcidx = (log(gvals[i]) - log(intervalbase)) * states / interval;
+           if(exponentiali){
+             egcidx = (log(gvals[i]) - log(intervalbase)) * states / interval;
+           }else{
+             egcidx = (gvals[i] - intervalbase) / interval;
+           }
 //fprintf(stderr, "egcidx: %zu\n", egcidx);
            if(egcidx >= states){
              egcidx = states - 1;
