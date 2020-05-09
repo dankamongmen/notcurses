@@ -84,7 +84,7 @@ ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned){
   ncv->owndata = owned;
 }
 
-ncvisual* ncvisual_create(float timescale){
+auto ncvisual_create(float timescale) -> ncvisual* {
   auto ret = new ncvisual{};
   if(ret == nullptr){
     return nullptr;
@@ -93,7 +93,7 @@ ncvisual* ncvisual_create(float timescale){
   return ret;
 }
 
-struct ncvisual* ncvisual_from_plane(ncplane* n){
+auto ncvisual_from_plane(ncplane* n) -> ncvisual* {
   uint32_t* rgba = ncplane_rgba(n, 0, 0, -1, -1);
   if(rgba == nullptr){
     return nullptr;
@@ -111,7 +111,7 @@ struct ncvisual* ncvisual_from_plane(ncplane* n){
   return ncv;
 }
 
-void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols){
+auto bgra_to_rgba(const void* data, int rows, int rowstride, int cols) -> void* {
   if(rowstride % 4){ // must be a multiple of 4 bytes
     return nullptr;
   }
@@ -131,7 +131,7 @@ void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols){
   return ret;
 }
 
-int ncvisual_setplane(ncvisual* ncv, ncplane* n){
+auto ncvisual_setplane(ncvisual* ncv, ncplane* n) -> int {
   int ret = 0;
   if(n != ncv->ncp){
     if(ncv->ncp){
@@ -182,7 +182,7 @@ ncvisual_rotate_ccw(struct ncvisual* ncv){
   return ret;
 }
 
-int ncvisual_rotate(struct ncvisual* ncv, double rads){
+auto ncvisual_rotate(struct ncvisual* ncv, double rads) -> int {
   if(rads == -M_PI / 2){
     return ncvisual_rotate_ccw(ncv);
   }
@@ -224,8 +224,8 @@ int ncvisual_rotate(struct ncvisual* ncv, double rads){
   return ret;
 }
 
-ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
-                             int rowstride, int cols){
+auto ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
+                        int rowstride, int cols) -> ncvisual* {
   if(rowstride % 4){
     return nullptr;
   }
@@ -242,7 +242,7 @@ ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
     ncvisual_destroy(ncv);
     return nullptr;
   }
-  uint32_t* data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->dstheight));
+  auto data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->dstheight));
   if(data == nullptr){
     ncvisual_destroy(ncv);
     return nullptr;
@@ -251,8 +251,8 @@ ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
   return ncv;
 }
 
-ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
-                             int rowstride, int cols){
+auto ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
+                        int rowstride, int cols) -> ncvisual* {
   if(rowstride % 4){
     return nullptr;
   }
@@ -276,7 +276,7 @@ ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
   return ncv;
 }
 
-int ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx){
+auto ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx) -> int {
 //fprintf(stderr, "render %dx%d+%dx%d\n", begy, begx, leny, lenx);
   if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
     return -1;
@@ -326,11 +326,11 @@ ncvisual_destroy_common(ncvisual* ncv){
   delete ncv;
 }
 
-#ifdef USE_FFMPEG
 ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
 }
 
+#ifdef USE_FFMPEG
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
     avcodec_close(ncv->codecctx);
@@ -421,7 +421,7 @@ deass(const char* ass){
   return dup;
 }
 
-char* ncvisual_subtitle(const ncvisual* ncv){
+auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
   for(unsigned i = 0 ; i < ncv->subtitle.num_rects ; ++i){
     const AVSubtitleRect* rect = ncv->subtitle.rects[i];
     if(rect->type == SUBTITLE_ASS){
@@ -769,10 +769,6 @@ bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return false;
 }
 
-ncplane* ncvisual_plane(ncvisual* ncv){
-  return ncv->ncp;
-}
-
 nc_err_e ncvisual_decode(ncvisual* nc){
   (void)nc;
   return NCERR_UNIMPLEMENTED;
@@ -824,10 +820,6 @@ void ncvisual_destroy(ncvisual* ncv){
 }
 #else
 #ifdef USE_OIIO
-ncplane* ncvisual_plane(ncvisual* ncv){
-  return ncv->ncp;
-}
-
 bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
   return true;
 }
