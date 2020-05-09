@@ -19,6 +19,12 @@ static int hud_grab_y = -1;
 static int hud_pos_x;
 static int hud_pos_y;
 
+// while the plot is grabbed by the mouse, these are set to the position where
+// the grab started. they are reset once the plot is released.
+static int plot_grab_y = -1;
+// position of the plot *when grab started*
+static int plot_pos_y;
+
 // how many columns for runtime?
 static const int NSLEN = 9;
 static const int HUD_ROWS = 3 + 2; // 2 for borders
@@ -335,7 +341,7 @@ int hud_destroy(void){
 // mouse has been pressed on the hud. the caller is responsible for rerendering.
 int hud_grab(int y, int x){
   int ret;
-  if(hud == NULL){
+  if(hud == NULL || hud_hidden){
     return -1;
   }
   // are we in the middle of a grab?
@@ -350,7 +356,7 @@ int hud_grab(int y, int x){
     int ty = y, tx = x;
     // first, though, verify that we're clicking within the hud
     if(!ncplane_translate_abs(hud, &ty, &tx)){
-      return 0;
+      return -1;
     }
     hud_grab_x = x;
     hud_grab_y = y;
@@ -552,4 +558,30 @@ int fpsgraph_stop(struct notcurses* nc){
     notcurses_render(nc);
   }
   return 0;
+}
+
+// mouse has maybe pressed on the plot. the caller is responsible for rerendering.
+int plot_grab(int y){
+  int ret;
+  if(plot == NULL || plot_hidden){
+    return -1;
+  }
+  // are we in the middle of a grab?
+  if(plot_grab_y >= 0){
+    int delty = y - plot_grab_y;
+    ret = ncplane_move_yx(ncuplot_plane(plot), plot_pos_y + delty, 0);
+  }else{
+    // new grab. stash point of original grab, and location of plot at original
+    // grab. any delta while grabbed (relative to the original grab point)
+    // will see the plot moved by delta (relative to the original plot location).
+    int ty = y;
+    // first, though, verify that we're clicking within the plot
+    if(!ncplane_translate_abs(ncuplot_plane(plot), &ty, NULL)){
+      return -1;
+    }
+    plot_grab_y = y;
+    ncplane_yx(ncuplot_plane(plot), &plot_pos_y, NULL);
+    ret = 0;
+  }
+  return ret;
 }
