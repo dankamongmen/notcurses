@@ -752,6 +752,18 @@ typedef enum {
   NCLOGLEVEL_TRACE,   // there's probably a better way to do what you want
 } ncloglevel_e;
 
+// Bits for notcurses_options->flags.
+
+// notcurses_init() will call setlocale() to inspect the current locale. If
+// that locale is "C" or "POSIX", it will call setlocale(LC_ALL, "") to set
+// the locale according to the LANG environment variable. Ideally, this will
+// result in UTF8 being enabled, even if the client app didn't call
+// setlocale() itself. Unless you're certain that you're invoking setlocale() 
+// prior to notcurses_init(), you should not set this bit. Even if you are
+// invoking setlocale(), this behavior shouldn't be an issue unless you're
+// doing something weird (setting a locale not based on LANG).
+#define NCOPTION_INHIBIT_SETLOCALE 0x0001
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -785,6 +797,10 @@ typedef struct notcurses_options {
   // strictly best-effort. Absolute coordinates are relative to the rendering
   // area ((0, 0) is always the origin of the rendering area).
   int margin_t, margin_r, margin_b, margin_l;
+  // General flags; see NCOPTION_*. This is expressed as a bitfield so that
+  // future options can be added without reshaping the struct. Undefined bits
+  // must be set to 0.
+  unsigned flags;
 } notcurses_options;
 
 // Lex a margin argument according to the standard notcurses definition. There

@@ -11,6 +11,8 @@ notcurses_init - initialize a notcurses instance
 **#include <notcurses/notcurses.h>**
 
 ```c
+#define NCOPTION_INHIBIT_SETLOCALE 0x0001
+
 typedef struct notcurses_options {
   const char* termtype;
   bool inhibit_alternate_screen;
@@ -20,6 +22,7 @@ typedef struct notcurses_options {
   bool no_winch_sighandler;
   FILE* renderfp;
   int margin_t, margin_r, margin_b, margin_l;
+  unsigned flags; // from NCOPTION_* bits
 } notcurses_options;
 ```
 
@@ -77,6 +80,18 @@ margin argument expression in one of two forms:
 * a single number, which will be applied to all sides, or
 * four comma-delimited numbers, applied to top, right, bottom, and left.
 
+To allow future options without requiring redefinition of the structure, the
+**flags** field is only a partially-defined bitfield. Undefined bits must be
+zero. The following flags are defined:
+
+* **NCOPTION_INHIBIT_SETLOCALE**: Unless this flag is set, **notcurses_init**
+    will call **setlocale(LC_ALL, NULL)**. If the result is either "**C**" or
+    "**POSIX**", it will print a diagnostic to **stder**, and then call
+    **setlocale(LC_ALL, "").** This will attempt to set the locale based off
+    the **LANG** environment variable. Your program should call **setlocale(3)**
+    itself, usually as one of the first lines.
+
+
 ## Fatal signals
 
 It is important to reset the terminal before exiting, whether terminating due
@@ -131,6 +146,7 @@ across the new screen geometry.
 # SEE ALSO
 
 **getenv(3)**,
+**setlocale(3)**,
 **termios(3)**,
 **notcurses(3)**,
 **notcurses_input(3)**,

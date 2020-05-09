@@ -16,6 +16,11 @@ rearrangements of Notcurses.
   * `NULL` can now be passed as the `FILE*` argument to `notcurses_init()` and
     `ncdirect_init()`. In this case, a new `FILE*` will be created using
     `/dev/tty`. If the `FILE*` cannot be created, an error will be returned.
+  * A `flags` field has been added to `notcurses_options`. This will allow new
+    boolean options to be added in the future without resizing the structure.
+    Define `NCOPTION_INHIBIT_SETLOCALE` bit. If it's not set, and the "C" or
+    "POSIX" locale is in use, `notcurses_init()` will invoke
+    `setlocale(LC_ALL, "")`.
 
 * 1.3.4 (2020-05-07)
   * `notcurses_lex_margins()` has been added to lex margins expressed in either
