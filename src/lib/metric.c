@@ -1,3 +1,4 @@
+#include <fenv.h>
 #include <string.h>
 #include <locale.h>
 #include <pthread.h>
@@ -13,10 +14,12 @@ convinit(void){
     return;
   }
   decisep = conv->decimal_point;
+  fesetround(FE_TOWARDZERO);
 }
 
 const char *ncmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
-                     unsigned mult, int uprefix){
+                     unsigned mul, int uprefix){
+  const unsigned mult = mul; // FIXME kill
   const char prefixes[] = "KMGTPEZY"; // 10^21-1 encompasses 2^64-1
   // FIXME can't use multibyte μ unless we enlarge the target buffer
   const char subprefixes[] = "munpfazy"; // 10^24-1
@@ -65,11 +68,7 @@ const char *ncmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
     if(omitdec && (val % dv) == 0){
       sprintfed = sprintf(buf, "%ju%c", val / dv, prefixes[consumed - 1]);
     }else{
-      uintmax_t remain = (dv == mult) ?
-                (val % dv) * 100 / dv :
-                ((val % dv) / mult * 100) / (dv / mult);
-      sprintfed = sprintf(buf, "%ju%s%02ju%c", val / dv, decisep, remain,
-                          prefixes[consumed - 1]);
+      sprintfed = sprintf(buf, "%.2f%c", (double)val / dv, prefixes[consumed - 1]);
     }
     if(uprefix){
       buf[sprintfed] = uprefix;
@@ -86,12 +85,10 @@ const char *ncmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
       sprintf(buf, "%ju", val / decimal);
     }
   }else{
-    uintmax_t divider = (decimal > mult ? decimal / mult : 1) * 10;
-    uintmax_t remain = (val % decimal) / divider;
     if(consumed){
-      sprintf(buf, "%ju%s%02ju%c", val / decimal, decisep, remain, subprefixes[consumed - 1]);
+      sprintf(buf, "%.2f%c", (double)val / decimal, subprefixes[consumed - 1]);
     }else{
-      sprintf(buf, "%ju%s%02ju", val / decimal, decisep, remain);
+      sprintf(buf, "%.2f", (double)val / decimal);
     }
   }
   return buf;
