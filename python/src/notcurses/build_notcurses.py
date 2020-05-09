@@ -92,6 +92,10 @@ typedef struct notcurses_options {
   // strictly best-effort. Absolute coordinates are relative to the rendering
   // area ((0, 0) is always the origin of the rendering area).
   int margin_t, margin_r, margin_b, margin_l;
+  // General flags; see NCOPTION_*. This is expressed as a bitfield so that
+  // future options can be added without reshaping the struct. Undefined bits
+  // must be set to 0.
+  unsigned flags;
 } notcurses_options;
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 int notcurses_lex_margins(const char* op, notcurses_options* opts);

@@ -16,6 +16,7 @@ notcurses_options NotCurses::default_notcurses_options = {
 	/* margin_r */                 0,
 	/* margin_b */                 0,
 	/* margin_l */                 0,
+	/* flags */                    0,
 };
 
 NotCurses *NotCurses::_instance = nullptr;

@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <locale.h>
 #include <langinfo.h>
 #include <sys/poll.h>
 #include <stdatomic.h>
@@ -823,6 +824,16 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
     fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
     return NULL;
+  }
+  if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
+    const char* locale = setlocale(LC_ALL, NULL);
+    if(locale && (!strcmp(locale, "C") || !strcmp(locale, "POSIX"))){
+      if(!(locale = setlocale(LC_ALL, ""))){
+        fprintf(stderr, "Couldn't set locale based off LANG\n");
+      }else{
+        fprintf(stderr, "Set locale based off LANG.\n You should call setlocale(2)\n");
+      }
+    }
   }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding == NULL || (strcmp(encoding, "ANSI_X3.4-1968") && strcmp(encoding, "UTF-8"))){
