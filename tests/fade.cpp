@@ -3,8 +3,8 @@
 #include <iostream>
 #include "internal.h"
 
-int pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), void* curry){
-  struct timespec* pulsestart = static_cast<struct timespec*>(curry);
+auto pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), void* curry) -> int {
+  auto pulsestart = static_cast<struct timespec*>(curry);
   if(notcurses_render(nc)){
     return -1;
   }

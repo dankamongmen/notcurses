@@ -76,7 +76,7 @@ private:
   std::chrono::milliseconds msdelay_;
 
   // Returns true if there's a current piece which can be moved
-  bool PrepForMove(int* y, int* x) {
+  auto PrepForMove(int* y, int* x) -> bool {
     if(!curpiece_){
       return false;
     }
