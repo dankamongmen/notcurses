@@ -1,11 +1,13 @@
 #include <fcntl.h>
 #include <unistd.h>
-#include <asm/unistd.h>
 #include <pthread.h>
 #include <sys/poll.h>
 #include <sys/wait.h>
+#ifdef __linux__
 #include <linux/wait.h>
+#include <asm/unistd.h>
 #include <linux/sched.h>
+#endif
 #include "internal.h"
 
 // release the memory and fd, but don't join the thread (since we might be
@@ -141,22 +143,25 @@ int ncfdplane_destroy(ncfdplane* n){
 // ncfdplane around the read end, involving creation of a new thread. the
 // parent then returns.
 
-// FIXME introduced in linux 5.5
-#ifndef CLONE_CLEAR_SIGHAND
-#define CLONE_CLEAR_SIGHAND 0x100000000ULL
-#endif
-
 static pid_t
 launch_pipe_process(int* pipe, int* pidfd){
   int pipes[2];
   if(pipe2(pipes, O_CLOEXEC)){ // can't use O_NBLOCK here (affects client)
     return -1;
   }
+#ifdef __linux__
+// FIXME introduced in linux 5.5
+#ifndef CLONE_CLEAR_SIGHAND
+#define CLONE_CLEAR_SIGHAND 0x100000000ULL
+#endif
   struct clone_args clargs;
   memset(&clargs, 0, sizeof(clargs));
   clargs.pidfd = (uintptr_t)pidfd;
   clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
   pid_t p = syscall(__NR_clone3, &clargs, sizeof(clargs));
+#else
+  pid_t p = fork();
+#endif
   if(p == 0){ // child
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
       fprintf(stderr, "Couldn't dup() %d (%s)\n", pipes[1], strerror(errno));
@@ -175,10 +180,14 @@ launch_pipe_process(int* pipe, int* pidfd){
 // FIXME rigourize and port this
 static int
 kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
+#ifdef __linux__
   syscall(__NR_pidfd_send_signal, pidfd, SIGKILL, NULL, 0);
   siginfo_t info;
   memset(&info, 0, sizeof(info));
   waitid(P_PIDFD, pidfd, &info, 0);
+#else
+  kill(pid, SIGKILL);
+#endif
   // process ought be available immediately following waitid(), so supply
   // WNOHANG to avoid possible lockups due to weirdness
   if(pid != waitpid(pid, status, WNOHANG)){
@@ -317,7 +326,11 @@ int ncsubproc_destroy(ncsubproc* n){
   int ret = 0;
   if(n){
     void* vret = NULL;
+#ifdef __linux__
     syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0);
+#else
+    kill(n->pid, SIGKILL);
+#endif
     // the thread waits on the subprocess via pidfd, and then exits. don't try
     // to cancel the thread; rely on killing the subprocess.
     pthread_join(n->nfp->tid, &vret);
