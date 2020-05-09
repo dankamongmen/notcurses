@@ -29,6 +29,7 @@ auto main() -> int {
     if(!ncreader_offer_input(nr, &ni)){
       break;
     }
+    nc.render();
   }
   nc.render();
   nc.stop();
