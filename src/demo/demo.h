@@ -134,6 +134,10 @@ timespec_mul(const struct timespec* ts, unsigned multiplier, struct timespec* pr
 }
 /*-------------------------------time helpers----------------------------*/
 
+/*---------------------------------FPS plot-------------------------------*/
+int fpsgraph_init(struct notcurses* nc);
+int fpsgraph_stop(struct notcurses* nc);
+
 /*----------------------------------HUD----------------------------------*/
 extern struct ncplane* hud;
 struct ncplane* hud_create(struct notcurses* nc);

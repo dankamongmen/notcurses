@@ -326,7 +326,7 @@ typedef struct ncselector_options {
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
 } ncselector_options;
-struct ncselector* ncselector_create(struct notcurses* n, int y, int x, const ncselector_options* opts);
+struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const ncselector_options* opts);
 int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);
 int ncselector_delitem(struct ncselector* n, const char* item);
 const char* ncselector_selected(const struct ncselector* n);
@@ -356,7 +356,7 @@ typedef struct ncmultiselector_options {
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
 } ncmultiselector_options;
-struct ncmultiselector* ncmultiselector_create(struct notcurses* n, int y, int x, const ncmultiselector_options* opts);
+struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const ncmultiselector_options* opts);
 int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
 struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
@@ -484,6 +484,22 @@ struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options*
 struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts, const char* bin, char* const arg[], char* const env[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
 struct ncplane* ncsubproc_plane(struct ncsubproc* n);
 int ncsubproc_destroy(struct ncsubproc* n);
+typedef struct ncreader_options {
+  uint64_t tchannels; // channels used for input
+  uint64_t echannels; // channels used for empty space
+  uint32_t tattrword; // attributes used for input
+  uint32_t eattrword; // attributes used for empty space
+  char* egc;          // egc used for empty space
+  int physrows;
+  int physcols;
+  bool scroll; // allow more than the physical area's worth of input
+} ncreader_options;
+struct ncreader* ncreader_create(struct notcurses* nc, int y, int x, const ncreader_options* opts);
+int ncreader_clear(struct ncreader* n);
+struct ncplane* ncreader_plane(struct ncreader* n);
+bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
+char* ncreader_contents(const struct ncreader* n);
+void ncreader_destroy(struct ncreader* n, char** contents);
 """)
 
 if __name__ == "__main__":

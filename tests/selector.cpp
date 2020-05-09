@@ -19,7 +19,7 @@ TEST_CASE("Selectors") {
 
   SUBCASE("EmptySelector") {
     struct ncselector_options opts{};
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     CHECK(nullptr == ncselector_selected(ncs));
@@ -35,7 +35,7 @@ TEST_CASE("Selectors") {
   SUBCASE("TitledSelector") {
     struct ncselector_options opts{};
     opts.title = strdup("hey hey whaddya say");
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* ncsp = ncselector_plane(ncs);
@@ -50,7 +50,7 @@ TEST_CASE("Selectors") {
   SUBCASE("SecondarySelector") {
     struct ncselector_options opts{};
     opts.secondary = strdup("this is not a title, but it's not *not* a title");
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* ncsp = ncselector_plane(ncs);
@@ -65,7 +65,7 @@ TEST_CASE("Selectors") {
   SUBCASE("FooterSelector") {
     struct ncselector_options opts{};
     opts.footer = strdup("i am a lone footer, little old footer");
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* ncsp = ncselector_plane(ncs);
@@ -86,7 +86,7 @@ TEST_CASE("Selectors") {
     struct ncselector_options opts{};
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* ncsp = ncselector_plane(ncs);
@@ -100,7 +100,7 @@ TEST_CASE("Selectors") {
 
   SUBCASE("EmptySelectorMovement") {
     struct ncselector_options opts{};
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     auto sel = ncselector_selected(ncs);
@@ -123,7 +123,7 @@ TEST_CASE("Selectors") {
     struct ncselector_options opts{};
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     auto sel = ncselector_selected(ncs);
     REQUIRE(nullptr != sel);
@@ -161,7 +161,7 @@ TEST_CASE("Selectors") {
     opts.maxdisplay = 1;
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     auto sel = ncselector_selected(ncs);
@@ -204,7 +204,7 @@ TEST_CASE("Selectors") {
     opts.maxdisplay = 2;
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);
-    struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
+    struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
     const char* sel = ncselector_selected(ncs);

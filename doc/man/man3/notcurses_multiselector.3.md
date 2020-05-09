@@ -42,7 +42,7 @@ typedef struct ncmultiselector_options {
 } ncmultiselector_options;
 ```
 
-**struct ncmultiselector* ncmultiselector_create(struct notcurses* n, int y, int x, const ncmultiselector_options* opts);**
+**struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const ncmultiselector_options* opts);**
 
 **int ncmultiselector_selected(bool* selected, unsigned n);**
 
@@ -55,6 +55,11 @@ typedef struct ncmultiselector_options {
 # DESCRIPTION
 
 # NOTES
+
+Currently, the **ncplane** **n** provided to **ncmultiselector_create** must
+not be **NULL**, though the **ncmultiselector** will always get its own plane,
+and this plane will not (currently) be bound to **n**.
+
 
 # RETURN VALUES
 

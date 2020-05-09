@@ -41,7 +41,7 @@ typedef struct ncselector_options {
 } ncselector_options;
 ```
 
-**struct ncselector* ncselector_create(struct notcrses* n, int y, int x, const ncselector_options* opts);**
+**struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const ncselector_options* opts);**
 
 **int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);**
 
@@ -62,6 +62,10 @@ typedef struct ncselector_options {
 # DESCRIPTION
 
 # NOTES
+
+Currently, the **ncplane** **n** provided to **ncselector_create** must not be
+**NULL**, though the **ncselector** will always get its own plane, and this
+plane will not (currently) be bound to **n**.
 
 # RETURN VALUES
 

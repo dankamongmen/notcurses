@@ -99,28 +99,28 @@ int main(void){
 
   ncplane_set_fg(n, 0x40f040);
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "selector widget demo");
-  struct ncselector* ns = ncselector_create(nc, 3, 0, &sopts);
+  struct ncselector* ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "short round title";
-  ns = ncselector_create(nc, 3, 0, &sopts);
+  ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "short round title";
   sopts.secondary = "now this secondary is also very, very, very outlandishly long, you see";
-  ns = ncselector_create(nc, 3, 0, &sopts);
+  ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "the whole world is watching";
   sopts.secondary = NULL;
   sopts.footer = "now this FOOTERFOOTER is also very, very, very outlandishly long, you see";
-  ns = ncselector_create(nc, 3, 0, &sopts);
+  ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "chomps";
   sopts.secondary = NULL;
   sopts.footer = NULL;
-  ns = ncselector_create(nc, 3, 0, &sopts);
+  ns = ncselector_create(n, 3, 0, &sopts);
   run_selector(nc, ns);
 
   if(notcurses_stop(nc)){

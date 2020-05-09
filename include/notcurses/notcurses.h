@@ -2480,7 +2480,7 @@ typedef struct ncselector_options {
   uint64_t bgchannels;   // background channels, used only in body
 } ncselector_options;
 
-API struct ncselector* ncselector_create(struct notcurses* n, int y, int x,
+API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
                                          const ncselector_options* opts);
 
 API int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);
@@ -2554,7 +2554,7 @@ typedef struct ncmultiselector_options {
   uint64_t bgchannels;   // background channels, used only in body
 } ncmultiselector_options;
 
-API struct ncmultiselector* ncmultiselector_create(struct notcurses* n, int y, int x,
+API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
                                                    const ncmultiselector_options* opts);
 
 // Return selected vector. An array of bools must be provided, along with its
