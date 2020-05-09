@@ -17,7 +17,8 @@ namespace ncpp
 	public:
 		explicit Menu (const ncmenu_options *opts = nullptr)
 		{
-			menu = ncmenu_create (get_notcurses (), opts == nullptr ? &default_options : opts);
+			menu = ncmenu_create (notcurses_stdplane(get_notcurses ()),
+                            opts == nullptr ? &default_options : opts);
 			if (menu == nullptr)
 				throw init_error ("notcurses failed to create a new menu");
 		}

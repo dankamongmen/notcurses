@@ -19,6 +19,9 @@ rearrangements of Notcurses.
     Define `NCOPTION_INHIBIT_SETLOCALE` bit. If it's not set, and the "C" or
     "POSIX" locale is in use, `notcurses_init()` will invoke
     `setlocale(LC_ALL, "")`.
+  * All widgets now take an `ncplane*` as their first argument (some took
+    `notcurses*` before). All widgets' `options` structs now have an `unsigned
+    flags` bitfield. This future-proofs the widget API, to a degree.
 
 * 1.3.4 (2020-05-07)
   * `notcurses_lex_margins()` has been added to lex margins expressed in either

@@ -2594,19 +2594,21 @@ struct ncmenu_section {
   ncinput shortcut;       // shortcut, will be underlined if present in name
 };
 
+#define NCMENU_OPTIONS_BOTTOM 0x0001 // bottom row (as opposed to top row)
+#define NCMENU_OPTIONS_HIDING 0x0002 // hide the menu when not being used
+
 typedef struct ncmenu_options {
-  bool bottom;              // on the bottom row, as opposed to top row
-  bool hiding;              // hide the menu when not being used
   struct ncmenu_section* sections; // array of 'sectioncount' menu_sections
-  int sectioncount;         // must be positive
-  uint64_t headerchannels;  // styling for header
-  uint64_t sectionchannels; // styling for sections
+  int sectioncount;                // must be positive
+  uint64_t headerchannels;         // styling for header
+  uint64_t sectionchannels;        // styling for sections
+  unsigned flags;                  // flag word of NCMENU_OPTIONS_*
 } ncmenu_options;
 
 // Create a menu with the specified options. Menus are currently bound to an
 // overall notcurses object (as opposed to a particular plane), and are
 // implemented as ncplanes kept atop other ncplanes.
-API struct ncmenu* ncmenu_create(struct notcurses* nc, const ncmenu_options* opts);
+API struct ncmenu* ncmenu_create(struct ncplane* nc, const ncmenu_options* opts);
 
 // Unroll the specified menu section, making the menu visible if it was
 // invisible, and rolling up any menu section that is already unrolled.
@@ -2796,6 +2798,9 @@ API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size
 // to create the ncvisual from memory using ncvisual_from_rgba().
 API struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 
+#define NCREADER_OPTION_HORSCROLL  0x0001
+#define NCREADER_OPTION_VERSCROLL  0x0002
+
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
   uint64_t echannels; // channels used for empty space
@@ -2804,13 +2809,13 @@ typedef struct ncreader_options {
   char* egc;          // egc used for empty space
   int physrows;
   int physcols;
-  bool scroll; // allow more than the physical area's worth of input
+  unsigned flags;     // bitfield of NCREADER_OPTION_*
 } ncreader_options;
 
 // ncreaders provide freeform input in a (possibly multiline) region,
 // supporting readline keybindings. 'rows' and 'cols' both must be negative.
 // there are no restrictions on 'y' or 'x'. creates its own plane.
-API struct ncreader* ncreader_create(struct notcurses* nc, int y, int x,
+API struct ncreader* ncreader_create(struct ncplane* nc, int y, int x,
                                      const ncreader_options* opts);
 
 // empty the ncreader of any user input, and home the cursor.
