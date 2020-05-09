@@ -11,7 +11,7 @@ std::mutex lock;
 std::condition_variable cond;
 bool inline_cancelled = false;
 
-int testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry){
+auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) -> int {
   struct ncplane* n = ncfdplane_plane(ncfd);
   lock.lock();
   if(ncplane_putstr(n, static_cast<const char*>(buf)) <= 0){
@@ -24,7 +24,7 @@ int testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry){
   return 0;
 }
 
-int testfdeof(struct ncfdplane* n, int fderrno, void* curry){
+auto testfdeof(struct ncfdplane* n, int fderrno, void* curry) -> int {
   bool* outofline_cancelled = static_cast<bool*>(curry);
   lock.lock();
   *outofline_cancelled = true;
@@ -35,7 +35,7 @@ int testfdeof(struct ncfdplane* n, int fderrno, void* curry){
   return 0;
 }
 
-int testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry){
+auto testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry) -> int {
   lock.lock();
   inline_cancelled = true;
   int ret = ncfdplane_destroy(n);

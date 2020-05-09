@@ -8,7 +8,7 @@
 
 using namespace ncpp;
 
-int main(void) {
+auto main() -> int {
   setlocale(LC_ALL, "");
   NotCurses::default_notcurses_options.inhibit_alternate_screen = true;
   NotCurses nc;
