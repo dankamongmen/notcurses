@@ -1066,6 +1066,14 @@ uint32_t ncplane_attr(const ncplane* n){
   return n->attrword;
 }
 
+void ncplane_set_channels(ncplane* n, uint64_t channels){
+  n->channels = channels;
+}
+
+void ncplane_set_attr(ncplane* n, uint32_t attrword){
+  n->attrword = attrword;
+}
+
 void ncplane_set_fg_default(ncplane* n){
   channels_set_fg_default(&n->channels);
 }
