@@ -49,7 +49,7 @@ void DrawBoard() { // draw all fixed components of the game
   }
   scoreplane_->set_bg_alpha(CELL_ALPHA_TRANSPARENT);
   scoreplane_->set_fg(0xd040d0);
-  scoreplane_->printf(0, 1, "%s", cuserid(nullptr));
+  scoreplane_->printf(0, 1, "%s", getpwuid(geteuid())->pw_name);
   scoreplane_->set_fg(0x00d0a0);
   UpdateScore();
   if(!nc_.render()){

@@ -1,11 +1,13 @@
 #include <mutex>
 #include <array>
+#include <pwd.h>
 #include <atomic>
 #include <thread>
 #include <chrono>
 #include <vector>
 #include <cstdlib>
 #include <clocale>
+#include <unistd.h>
 #include <ncpp/NotCurses.hh>
 #include "version.h"
 
