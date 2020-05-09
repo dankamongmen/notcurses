@@ -57,7 +57,7 @@ class ncppplot {
    if(dimx < ncpp->rangex){
      ncpp->slotcount = scaleddim;
    }
-   if( (ncpp->labelaxisd = opts->labelaxisd) ){
+   if( (ncpp->labelaxisd = opts->flags & NCPLOT_OPTIONS_LABELAXISD) ){
      if(ncpp->slotcount + scaledprefixlen > scaleddim){
        if(scaleddim > scaledprefixlen){
          ncpp->slotcount = scaleddim - scaledprefixlen;
@@ -73,9 +73,9 @@ class ncppplot {
      ncpp->minchannel = opts->minchannel;
      ncpp->miny = miny;
      ncpp->maxy = maxy;
-     ncpp->vertical_indep = opts->vertical_indep;
+     ncpp->vertical_indep = opts->flags & NCPLOT_OPTIONS_VERINDEP;
      ncpp->gridtype = opts->gridtype;
-     ncpp->exponentially = opts->exponentially;
+     ncpp->exponentially = opts->flags & NCPLOT_OPTIONS_EXPONENTIALY;
      if( (ncpp->detectdomain = (miny == maxy)) ){
        ncpp->maxy = 0;
        ncpp->miny = std::numeric_limits<T>::max();

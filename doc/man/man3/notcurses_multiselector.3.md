@@ -39,6 +39,7 @@ typedef struct ncmultiselector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels for body
+  unsigned flags;        // bitfield over NCMULTISELECTOR_OPTIONS_*
 } ncmultiselector_options;
 ```
 

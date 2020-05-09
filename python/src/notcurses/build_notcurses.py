@@ -450,9 +450,7 @@ typedef struct ncplot_options {
   uint64_t minchannel;
   ncgridgeom_e gridtype;
   uint64_t rangex;
-  bool labelaxisd;
-  bool exponentially;
-  bool vertical_indep;
+  unsigned flags;
 } ncplot_options;
 struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy);
 struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts, double miny, double maxy);

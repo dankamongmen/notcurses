@@ -16,6 +16,9 @@ struct ncplane;
 struct ncreader;
 struct notcurses;
 
+#define NCREADER_OPTION_HORSCROLL  0x0001
+#define NCREADER_OPTION_VERSCROLL  0x0002
+
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
   uint64_t echannels; // channels used for empty space
@@ -24,7 +27,7 @@ typedef struct ncreader_options {
   char* egc;          // egc used for empty space
   int physrows;
   int physcols;
-  bool scroll; // allow more than the physical area's worth of input
+  unsigned flags;     // bitfield over NCREADER_OPTIONS_*
 } ncreader_options;
 ```
 

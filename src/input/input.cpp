@@ -215,7 +215,7 @@ int main(void){
   auto n = nc.get_stdplane(&dimy, &dimx);
   ncpp::Plane pplane{PLOTHEIGHT, dimx, dimy - PLOTHEIGHT,  0, nullptr};
   struct ncplot_options popts{};
-  popts.labelaxisd = true;
+  popts.flags = NCPLOT_OPTIONS_LABELAXISD;
   popts.minchannel = popts.maxchannel = 0;
   channels_set_fg_rgb(&popts.minchannel, 0x40, 0x50, 0xb0);
   channels_set_fg_rgb(&popts.maxchannel, 0x40, 0xff, 0xd0);

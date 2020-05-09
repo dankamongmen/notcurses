@@ -8,9 +8,7 @@ ncplot_options PlotD::default_options = {
 	0, // minchannel
 	ncgridgeom_e::NCPLOT_1x1, // ncgridgeom_e
 	0, // rangex
-	false, // labelaxisd,
-	false, // exponentially
-	false, // verticalindep
+	0, // flags
 };
 
 ncplot_options PlotU::default_options = {
@@ -18,9 +16,7 @@ ncplot_options PlotU::default_options = {
 	0, // minchannel
 	ncgridgeom_e::NCPLOT_1x1, // ncgridgeom_e
 	0, // rangex
-	false, // labelaxisd,
-	false, // exponentially
-	false, // verticalindep
+	0, // flags
 };
 
 Plane* PlotD::get_plane () const noexcept

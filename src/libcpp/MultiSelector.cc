@@ -16,6 +16,7 @@ ncmultiselector_options MultiSelector::default_options = {
 	/* footchannels */ 0,
 	/* boxchannels */ 0,
 	/* bgchannels */ 0,
+	/* flags */ 0,
 };
 
 Plane* MultiSelector::get_plane () const noexcept

@@ -2478,6 +2478,7 @@ typedef struct ncselector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
+  unsigned flags;        // bitfield of NCSELECTOR_OPTION_*
 } ncselector_options;
 
 API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
@@ -2552,6 +2553,7 @@ typedef struct ncmultiselector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
+  unsigned flags;        // bitfield of NCMULTISELECTOR_OPTION_*
 } ncmultiselector_options;
 
 API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
@@ -2698,6 +2700,10 @@ typedef enum {
 //
 // This options structure works for both the ncuplot (uint64_t) and ncdplot
 // (double) types.
+#define NCPLOT_OPTIONS_LABELAXISD    0x0001 // show labels for dependent axis
+#define NCPLOT_OPTIONS_EXPONENTIALY  0x0002 // exponential y-axis
+#define NCPLOT_OPTIONS_VERINDEP      0x0004 // independent variable is vertical
+
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear interpolation will be
   // applied across the domain between these two.
@@ -2709,10 +2715,7 @@ typedef struct ncplot_options {
   // resolution, the independent variable would be the range [0..3600): 3600.
   // if rangex is 0, it is dynamically set to the number of columns.
   int rangex;
-  bool labelaxisd; // generate labels for the dependent axis
-  bool exponentially;  // is y-axis exponential? (not yet implemented)
-  // independent variable is vertical rather than horizontal
-  bool vertical_indep;
+  unsigned flags;      // bitfield over NCPLOT_OPTIONS_*
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.
@@ -2748,8 +2751,9 @@ typedef int(*ncfdplane_done_cb)(struct ncfdplane* n, int fderrno, void* curry);
 // data is *not* guaranteed to be nul-terminated, and may contain arbitrary
 // zeroes.
 typedef struct ncfdplane_options {
-  void* curry; // parameter provided to callbacks
-  bool follow; // keep reading after hitting end? (think tail -f)
+  void* curry;    // parameter provided to callbacks
+  bool follow;    // keep reading after hitting end? (think tail -f)
+  unsigned flags; // bitfield over NCOPTIONS_FDPLANE_*
 } ncfdplane_options;
 
 // Create an ncfdplane around the fd 'fd'. Consider this function to take
@@ -2763,7 +2767,8 @@ API int ncfdplane_destroy(struct ncfdplane* n);
 
 typedef struct ncsubproc_options {
   void* curry;
-  uint64_t restart_period;  // restart this many seconds after an exit (watch)
+  uint64_t restart_period; // restart this many seconds after an exit (watch)
+  unsigned flags;          // bitfield over NCOPTIONS_SUBPROC_*
 } ncsubproc_options;
 
 // see exec(2). p-types use $PATH. e-type passes environment vars.
