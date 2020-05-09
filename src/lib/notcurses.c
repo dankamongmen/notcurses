@@ -1784,7 +1784,9 @@ void ncplane_erase(ncplane* n){
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
-  cell_init(&n->basecell);
+  // we need to zero out the EGC before handing this off to cell_load, but
+  // we don't want to lose the channels/attributes, so explicit gcluster load.
+  n->basecell.gcluster = 0;
   cell_load(n, &n->basecell, egc);
   free(egc);
   n->y = n->x = 0;
