@@ -160,6 +160,7 @@ launch_pipe_process(int* pipe, int* pidfd){
   clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
   pid_t p = syscall(__NR_clone3, &clargs, sizeof(clargs));
 #else
+  (void)pidfd;
   pid_t p = fork();
 #endif
   if(p == 0){ // child
@@ -186,6 +187,7 @@ kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
   memset(&info, 0, sizeof(info));
   waitid(P_PIDFD, pidfd, &info, 0);
 #else
+  (void)pidfd;
   kill(pid, SIGKILL);
 #endif
   // process ought be available immediately following waitid(), so supply
