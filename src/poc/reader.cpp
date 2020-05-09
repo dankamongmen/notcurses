@@ -31,6 +31,11 @@ auto main() -> int {
     nc.render();
   }
   nc.render();
+  char* contents;
+  ncreader_destroy(nr, &contents);
   nc.stop();
+  if(contents){
+    printf("%s\n", contents);
+  }
   return EXIT_SUCCESS;
 }
