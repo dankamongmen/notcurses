@@ -84,6 +84,11 @@ purposes of color blending.
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_cell(3)**, **notcurses_ncplane(3)**,
-**notcurses_output(3)**, **notcurses_refresh(3)**, **notcurses_stats(3)**,
-**console_codes(4)**, **utf-8(7)**
+**notcurses(3)**,
+**notcurses_cell(3)**,
+**notcurses_plane(3)**,
+**notcurses_output(3)**,
+**notcurses_refresh(3)**,
+**notcurses_stats(3)**,
+**console_codes(4)**,
+**utf-8(7)**

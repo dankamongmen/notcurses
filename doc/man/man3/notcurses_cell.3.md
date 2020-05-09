@@ -151,5 +151,7 @@ inputs, and 0 otherwise.
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_channels(3)**, **notcurses_ncplane(3)**,
+**notcurses(3)**,
+**notcurses_channels(3)**,
+**notcurses_plane(3)**,
 **notcurses_output(3)**

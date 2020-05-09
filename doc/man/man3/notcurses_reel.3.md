@@ -95,4 +95,5 @@ typedef struct ncreel_options {
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_ncplane(3)**
+**notcurses(3)**,
+**notcurses_plane(3)**

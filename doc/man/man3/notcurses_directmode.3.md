@@ -97,5 +97,5 @@ All other functions return 0 on success, and non-zero on error.
 **getenv(3)**,
 **termios(3)**,
 **notcurses(3)**,
-**notcurses_ncplane(3)**,
+**notcurses_plane(3)**,
 **terminfo(5)**

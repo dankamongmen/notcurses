@@ -107,4 +107,4 @@ non-zero. It will also return an error if **maxy** < **miny**. An invalid
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_ncplane(3)**
+**notcurses_plane(3)**

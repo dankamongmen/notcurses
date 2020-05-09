@@ -137,7 +137,9 @@ EGCs.
 # SEE ALSO
 
 **fprintf(3)**
-**notcurses(3)**, **notcurses_cell(3)**, **notcurses_ncplane(3)**,
+**notcurses(3)**,
+**notcurses_cell(3)**,
+**notcurses_plane(3)**,
 **stdarg(3)**,
 **ascii(7)**,
 **unicode(7)**,

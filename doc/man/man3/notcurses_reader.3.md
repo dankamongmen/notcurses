@@ -50,4 +50,4 @@ typedef struct ncreader_options {
 
 **notcurses(3)**,
 **notcurses_input(3)**,
-**notcurses_ncplane(3)**
+**notcurses_plane(3)**

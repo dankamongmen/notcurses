@@ -16,16 +16,16 @@ struct ncplane;
 struct notcurses;
 struct ncselector;
 
-struct selector_item {
+struct ncselector_item {
   char* option;
   char* desc;
 };
 
-typedef struct selector_options {
+typedef struct ncselector_options {
   char* title; // title may be NULL, inhibiting riser
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
-  struct selector_item* items; // initial items and descriptions
+  struct ncselector_item* items; // initial items and descriptions
   unsigned itemcount; // number of initial items and descriptions
   // default item (selected at start)
   unsigned defidx;
@@ -38,12 +38,12 @@ typedef struct selector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels for body
-} selector_options;
+} ncselector_options;
 ```
 
-**struct ncselector* ncselector_create(struct notcrses* n, int y, int x, const selector_options* opts);**
+**struct ncselector* ncselector_create(struct notcrses* n, int y, int x, const ncselector_options* opts);**
 
-**int ncselector_additem(struct ncselector* n, const struct selector_item* item);**
+**int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);**
 
 **int ncselector_delitem(struct ncselector* n, const char* item);**
 
@@ -70,4 +70,4 @@ typedef struct selector_options {
 **notcurses(3)**,
 **notcurses_input(3)**,
 **notcurses_multiselector(3)**
-**notcurses_ncplane(3)**
+**notcurses_plane(3)**

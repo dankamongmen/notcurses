@@ -120,5 +120,5 @@ radians for **rads**, but this will change soon.
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_ncplane(3)**,
+**notcurses_plane(3)**,
 **utf-8(7)**
