@@ -29,6 +29,9 @@ handle_mouse(const ncinput* ni){
     ret = hud_release();
   }else{
     ret = hud_grab(ni->y, ni->x);
+    if(ret < 0){
+      ret = plot_grab(ni->y);
+    }
   }
   // do not render here. the demos, if coded properly, will be regularly
   // rendering (if via demo_nanosleep() if nothing else). rendering based off
