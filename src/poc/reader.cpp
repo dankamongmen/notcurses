@@ -18,7 +18,7 @@ auto main() -> int {
   opts.physcols = dimx / 2;
   opts.egc = strdup("░");
   //ncpp::Reader nr(nc, 0, 0, &opts);
-  auto nr = ncreader_create(*nc, 2, 2, &opts);
+  auto nr = ncreader_create(nc, 2, 2, &opts);
   if(nr == nullptr){
     return EXIT_FAILURE;
   }

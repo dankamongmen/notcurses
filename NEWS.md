@@ -9,6 +9,10 @@ rearrangements of Notcurses.
   * `selector_options` has been renamed to `ncselector_options`, and
     `multiselector_options` has been renamed to `ncmultiselector_options`.
     This matches the other widget option struct's nomenclature.
+  * `ncselector_create()` and `ncmultiselector_create()` now take a `struct
+    notcurses*` instead of a `struct ncplane`, as they create their own planes.
+  * `ncplane_set_channels()` and `ncplane_set_attr()` have been added to allow
+    `ncplane` attributes to be set directly and in toto.
 
 * 1.3.4 (2020-05-07)
   * `notcurses_lex_margins()` has been added to lex margins expressed in either
