@@ -38,18 +38,29 @@ ncplane* ncreader_plane(ncreader* n){
 }
 
 bool ncreader_offer_input(ncreader* n, const ncinput* ni){
+  if(ni->id == NCKEY_BACKSPACE){
+    int x = n->ncp->x;
+    int y = n->ncp->y;
+    if(n->ncp->x == 0){
+      if(n->ncp->y){
+        y = n->ncp->y - 1;
+        x = n->ncp->lenx - 1;
+      }
+    }else{
+      --x;
+    }
+    ncplane_putegc_yx(n->ncp, y, x, "", NULL);
+    ncplane_cursor_move_yx(n->ncp, y, x);
+    return true;
+  }
   if(nckey_supppuab_p(ni->id)){
     return false;
   }
-  // FIXME handle backspace
   // FIXME need to collect full EGCs
   char wbuf[WCHAR_MAX_UTF8BYTES + 1];
   // FIXME breaks for wint_t < 32bits
-  if(snprintf(wbuf, sizeof(wbuf), "%lc", (wint_t)ni->id) >= (int)sizeof(wbuf)){
-    return true;
-  }
-  if(ncplane_putegc(n->ncp, wbuf, NULL) < 0){
-    return true;
+  if(snprintf(wbuf, sizeof(wbuf), "%lc", (wint_t)ni->id) < (int)sizeof(wbuf)){
+    ncplane_putegc(n->ncp, wbuf, NULL);
   }
   return true;
 }
