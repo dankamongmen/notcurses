@@ -372,8 +372,6 @@ struct ncmenu_section {
   ncinput shortcut;       // shortcut, will be underlined if present in name
 };
 typedef struct ncmenu_options {
-  bool bottom;              // on the bottom row, as opposed to top row
-  bool hiding;              // hide the menu when not being used
   struct ncmenu_section* sections; // array of 'sectioncount' menu_sections
   int sectioncount;         // must be positive
   uint64_t headerchannels;  // styling for header
@@ -493,9 +491,9 @@ typedef struct ncreader_options {
   char* egc;          // egc used for empty space
   int physrows;
   int physcols;
-  bool scroll; // allow more than the physical area's worth of input
+  unsigned flags;     // bitfield over NCREADER_OPTIONS_*
 } ncreader_options;
-struct ncreader* ncreader_create(struct notcurses* nc, int y, int x, const ncreader_options* opts);
+struct ncreader* ncreader_create(struct ncplane* n, int y, int x, const ncreader_options* opts);
 int ncreader_clear(struct ncreader* n);
 struct ncplane* ncreader_plane(struct ncreader* n);
 bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
