@@ -403,6 +403,7 @@ typedef struct ncreel_options {
   uint64_t tabletchan;
   uint64_t focusedchan;
   uint64_t bgchannel;
+  unsigned flags;      // bitfield over NCREEL_OPTIONS_*
 } ncreel_options;
 struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);
 struct ncplane* ncreel_plane(struct ncreel* pr);

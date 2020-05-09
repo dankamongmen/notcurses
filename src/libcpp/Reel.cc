@@ -13,14 +13,13 @@ ncreel_options NcReel::default_options = {
 	/* roff               */ 0,
 	/* boff               */ 0,
 	/* loff               */ 0,
-	/* infinitescroll     */ false,
-	/* circular           */ false,
 	/* bordermask         */ NCBox::MaskBottom | NCBox::MaskTop | NCBox::MaskRight | NCBox::MaskLeft,
 	/* borderchan         */ 0,
 	/* tabletmask         */ 0,
 	/* tabletchan         */ 0,
 	/* focusedchan        */ 0,
 	/* bgchannel          */ 0,
+  /* flags              */ 0,
 };
 
 Plane* NcReel::get_plane () const noexcept

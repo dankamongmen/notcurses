@@ -551,8 +551,8 @@ validate_ncreel_opts(ncplane* w, const ncreel_options* ropts){
   if(w == NULL){
     return false;
   }
-  if(!ropts->infinitescroll){
-    if(ropts->circular){
+  if(ropts->flags & NCREEL_OPTIONS_CIRCULAR){
+    if(!(ropts->flags & NCREEL_OPTIONS_INFINITESCROLL)){
       return false; // can't set circular without infinitescroll
     }
   }

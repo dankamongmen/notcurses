@@ -2211,6 +2211,15 @@ API int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize,
 // This structure is amenable to line- and page-based navigation via keystrokes,
 // scrolling gestures, trackballs, scrollwheels, touchpads, and verbal commands.
 
+// is scrolling infinite (can one move down or up forever, or is an end
+// reached?). if true, 'circular' specifies how to handle the special case of
+// an incompletely-filled reel.
+#define NCREEL_OPTIONS_INFINITESCROLL 0x0001
+// is navigation circular (does moving down from the last panel move to the
+// first, and vice versa)? only meaningful when infinitescroll is true. if
+// infinitescroll is false, this must be false.
+#define NCREEL_OPTIONS_CIRCULAR       0x0002
+
 typedef struct ncreel_options {
   // require this many rows and columns (including borders). otherwise, a
   // message will be displayed stating that a larger terminal is necessary, and
@@ -2229,14 +2238,6 @@ typedef struct ncreel_options {
   // desired offsets within the surrounding WINDOW (top right bottom left) upon
   // creation / resize. an ncreel_move() operation updates these.
   int toff, roff, boff, loff;
-  // is scrolling infinite (can one move down or up forever, or is an end
-  // reached?). if true, 'circular' specifies how to handle the special case of
-  // an incompletely-filled reel.
-  bool infinitescroll;
-  // is navigation circular (does moving down from the last panel move to the
-  // first, and vice versa)? only meaningful when infinitescroll is true. if
-  // infinitescroll is false, this must be false.
-  bool circular;
   // notcurses can draw a border around the ncreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
@@ -2249,6 +2250,7 @@ typedef struct ncreel_options {
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
   uint64_t bgchannel;  // background colors
+  unsigned flags;      // bitfield over NCREEL_OPTIONS_*
 } ncreel_options;
 
 struct nctablet;

@@ -278,8 +278,6 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   bool aborted = false;
   int x = 8, y = 4;
   ncreel_options popts = {
-    .infinitescroll = true,
-    .circular = true,
     .min_supported_cols = 8,
     .min_supported_rows = 5,
     .bordermask = 0,
@@ -291,6 +289,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     .roff = x,
     .boff = y,
     .bgchannel = 0,
+    .flags = NCREEL_OPTIONS_INFINITESCROLL | NCREEL_OPTIONS_CIRCULAR,
   };
   channels_set_fg_rgb(&popts.focusedchan, 58, 150, 221);
   channels_set_bg_rgb(&popts.focusedchan, 97, 214, 214);

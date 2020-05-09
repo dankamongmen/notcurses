@@ -34,15 +34,14 @@ TEST_CASE("Reels") {
 
   SUBCASE("InitLinearInfinite") {
     ncreel_options r{};
-    r.infinitescroll = true;
+    r.flags = NCREEL_OPTIONS_INFINITESCROLL;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
   }
 
   SUBCASE("InitCircular") {
     ncreel_options r{};
-    r.infinitescroll = true;
-    r.circular = true;
+    r.flags = NCREEL_OPTIONS_INFINITESCROLL | NCREEL_OPTIONS_CIRCULAR;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
     REQUIRE(0 == ncreel_destroy(nr));
@@ -51,8 +50,7 @@ TEST_CASE("Reels") {
   // circular is not allowed to be true when infinitescroll is false
   SUBCASE("FiniteCircleRejected") {
     ncreel_options r{};
-    r.infinitescroll = false;
-    r.circular = true;
+    r.flags = NCREEL_OPTIONS_CIRCULAR;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(!nr);
   }
@@ -61,7 +59,6 @@ TEST_CASE("Reels") {
   // even if there are no tablets. They both ought return nullptr.
   SUBCASE("MovementWithoutTablets") {
     ncreel_options r{};
-    r.infinitescroll = false;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
     CHECK(!ncreel_next(nr));
@@ -72,7 +69,6 @@ TEST_CASE("Reels") {
 
   SUBCASE("OneTablet") {
     ncreel_options r{};
-    r.infinitescroll = false;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
@@ -84,7 +80,6 @@ TEST_CASE("Reels") {
 
   SUBCASE("MovementWithOneTablet") {
     ncreel_options r{};
-    r.infinitescroll = false;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
@@ -100,7 +95,6 @@ TEST_CASE("Reels") {
 
   SUBCASE("DeleteActiveTablet") {
     ncreel_options r{};
-    r.infinitescroll = false;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
