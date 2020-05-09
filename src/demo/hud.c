@@ -6,6 +6,7 @@
 // their mouse. it should always be on the top of the z-stack.
 struct ncplane* hud = NULL;
 
+static bool plot_hidden;
 static struct ncuplot* plot;
 static uint64_t plottimestart;
 
@@ -42,6 +43,7 @@ static struct elem* running;
 static int writeline = HUD_ROWS - 2;
 
 #define MENUSTR_TOGGLE_HUD "Toggle HUD"
+#define MENUSTR_TOGGLE_PLOT "Toggle FPS plot"
 #define MENUSTR_RESTART "Restart"
 #define MENUSTR_ABOUT "About"
 #define MENUSTR_QUIT "Quit"
@@ -131,6 +133,21 @@ about_toggle(struct notcurses* nc){
   ncplane_destroy(n);
 }
 
+static int
+fpsplot_toggle(struct notcurses* nc){
+  ncmenu_rollup(menu);
+  if(!plot){
+    return 0;
+  }
+  plot_hidden = !plot_hidden;
+  if(plot_hidden){
+    ncplane_move_bottom(ncuplot_plane(plot));
+  }else{
+    ncplane_move_top(ncuplot_plane(plot));
+  }
+  return demo_render(nc);
+}
+
 // returns true if the input was handled by the menu/HUD. 'q' is passed through
 // (we return false) so that it can interrupt a demo blocking on input.
 bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
@@ -146,6 +163,10 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
   // toggle the HUD
   if(tmpni.id == 'H' && !tmpni.alt && !tmpni.ctrl){
     hud_toggle(nc);
+    return true;
+  }
+  if(tmpni.id == 'P' && !tmpni.alt && !tmpni.ctrl){
+    fpsplot_toggle(nc);
     return true;
   }
   if(tmpni.id == 'U' && !tmpni.alt && tmpni.ctrl){
@@ -194,6 +215,7 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
 struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
     { .desc = MENUSTR_TOGGLE_HUD, .shortcut = { .id = 'H', }, },
+    { .desc = MENUSTR_TOGGLE_PLOT, .shortcut = { .id = 'P', }, },
     { .desc = NULL, },
     { .desc = MENUSTR_RESTART, .shortcut = { .id = 'R', .ctrl = true, }, },
     { .desc = MENUSTR_QUIT, .shortcut = { .id = 'q', }, },
@@ -434,7 +456,9 @@ int demo_render(struct notcurses* nc){
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   if(plot){
-    ncplane_move_top(ncuplot_plane(plot));
+    if(!plot_hidden){
+      ncplane_move_top(ncuplot_plane(plot));
+    }
     uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / GIG;
     ncuplot_add_sample(plot, ns, 1);
   }
