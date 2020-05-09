@@ -20,10 +20,8 @@ typedef struct ncinput {
   uint64_t seqnum; // Monotonically increasing input event counter
 } ncinput;
 bool nckey_mouse_p(char32_t r);
-typedef struct {
-  unsigned long int __val[(1024 / (8 * 8))]; //sizeof (unsigned long int)))];
-} sigset_t;
-char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask, ncinput* ni);
+// sigset_t differs from system to system, annoying
+// char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask, ncinput* ni);
 char32_t notcurses_getc_nblock(struct notcurses* n, ncinput* ni);
 char32_t notcurses_getc_blocking(struct notcurses* n, ncinput* ni);
 int notcurses_inputready_fd(struct notcurses* n);
