@@ -1,4 +1,5 @@
 #include "notcurses/notcurses.h"
+#include <cmath>
 #include <limits>
 
 static const struct {
@@ -75,7 +76,7 @@ class ncppplot {
      ncpp->maxy = maxy;
      ncpp->vertical_indep = opts->flags & NCPLOT_OPTIONS_VERTICALI;
      ncpp->gridtype = opts->gridtype;
-     ncpp->exponentially = opts->flags & NCPLOT_OPTIONS_EXPONENTIALD;
+     ncpp->exponentiali = opts->flags & NCPLOT_OPTIONS_EXPONENTIALD;
      if( (ncpp->detectdomain = (miny == maxy)) ){
        ncpp->maxy = 0;
        ncpp->miny = std::numeric_limits<T>::max();
@@ -126,9 +127,20 @@ class ncppplot {
    ncplane_dim_yx(ncp, &dimy, &dimx);
    const int scaleddim = dimx * scale;
    // each transition is worth this much change in value
-   const size_t states = geomdata[gridtype].height;
-   // FIXME can we not rid ourselves of this meddlesome double?
-   double interval = maxy < miny ? 0 : (maxy - miny) / ((double)dimy * states);
+   const size_t states = geomdata[gridtype].height - 1;
+   // FIXME can we not rid ourselves of this meddlesome double? either way, the
+   // interval is one row's range (for linear plots), or the log10 of each row's
+   // range (for exponential plots).
+   double interval;
+   if(exponentiali){
+     if(maxy > miny){
+       interval = pow(maxy - miny, (double)1 / (dimy * states));
+     }else{
+       interval = 0;
+     }
+   }else{
+     interval = maxy < miny ? 0 : (maxy - miny) / ((double)dimy * states);
+   }
    const int startx = labelaxisd ? PREFIXSTRLEN : 0; // plot cols begin here
    // if we want fewer slots than there are available columns, our final column
    // will be other than the plane's final column. most recent x goes here.
@@ -137,7 +149,11 @@ class ncppplot {
      // show the *top* of each interval range
      for(int y = 0 ; y < dimy ; ++y){
        char buf[PREFIXSTRLEN + 1];
-       ncmetric(interval * states * (y + 1) * 100, 100, buf, 0, 1000, '\0');
+       if(exponentiali){
+         ncmetric(pow(interval, (y + 1) * states) * 100, 100, buf, 0, 1000, '\0');
+       }else{
+         ncmetric(interval * states * (y + 1) * 100, 100, buf, 0, 1000, '\0');
+       }
        ncplane_printf_yx(ncp, dimy - y - 1, 0, "%*s", PREFIXSTRLEN, buf);
      }
    }
@@ -297,7 +313,7 @@ class ncppplot {
  int slotstart; // index of most recently-written slot
  int64_t slotx; // x value corresponding to slots[slotstart] (newest x)
  bool labelaxisd; // label dependent axis (consumes PREFIXSTRLEN columns)
- bool exponentially; // not yet implemented FIXME
+ bool exponentiali; // exponential independent axis
  bool detectdomain; // is domain detection in effect (stretch the domain)?
 
 };
