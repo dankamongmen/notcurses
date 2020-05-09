@@ -14,30 +14,30 @@ namespace ncpp
 	class NCPP_API_EXPORT MultiSelector : public Root
 	{
 	public:
-		static multiselector_options default_options;
+		static ncmultiselector_options default_options;
 
 	public:
-		explicit MultiSelector (NotCurses *nc, int y, int x, const multiselector_options *opts = nullptr)
+		explicit MultiSelector (NotCurses *nc, int y, int x, const ncmultiselector_options *opts = nullptr)
 			: MultiSelector (reinterpret_cast<notcurses*>(nc), y, x, opts)
 		{}
 
-		explicit MultiSelector (NotCurses const* nc, int y, int x, const multiselector_options *opts = nullptr)
+		explicit MultiSelector (NotCurses const* nc, int y, int x, const ncmultiselector_options *opts = nullptr)
 			: MultiSelector (const_cast<NotCurses*>(nc), y, x, opts)
 		{}
 
-		explicit MultiSelector (NotCurses &nc, int y, int x, const multiselector_options *opts = nullptr)
+		explicit MultiSelector (NotCurses &nc, int y, int x, const ncmultiselector_options *opts = nullptr)
 			: MultiSelector (reinterpret_cast<notcurses*>(&nc), y, x, opts)
 		{}
 
-		explicit MultiSelector (NotCurses const& nc, int y, int x, const multiselector_options *opts = nullptr)
+		explicit MultiSelector (NotCurses const& nc, int y, int x, const ncmultiselector_options *opts = nullptr)
 			: MultiSelector (const_cast<NotCurses*>(&nc), y, x, opts)
 		{}
 
-		explicit MultiSelector (notcurses *nc, int y, int x, const multiselector_options *opts = nullptr)
+		explicit MultiSelector (notcurses *nc, int y, int x, const ncmultiselector_options *opts = nullptr)
 		{
 			multiselector = ncmultiselector_create (nc, y, x, opts == nullptr ? &default_options : opts);
 			if (multiselector == nullptr)
-				throw init_error ("notcurses failed to create a new multiselector");
+				throw init_error ("notcurses failed to create a new ncmultiselector");
 		}
 
 		~MultiSelector ()

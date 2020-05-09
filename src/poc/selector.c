@@ -5,7 +5,7 @@
 #include <notcurses/notcurses.h>
 #include "version.h"
 
-static struct selector_item items[] = {
+static struct ncselector_item items[] = {
 #define SITEM(short, long) { short, long, 0, 0, }
   SITEM("first", "this is the first option"),
   SITEM("2nd", "this is the second option"),
@@ -61,7 +61,7 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  selector_options sopts;
+  ncselector_options sopts;
   memset(&sopts, 0, sizeof(sopts));
   sopts.maxdisplay = 4;
   sopts.items = items;

@@ -299,17 +299,17 @@ typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
 int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
 int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
-struct selector_item {
+struct ncselector_item {
   char* option;
   char* desc;
   size_t opcolumns;   // filled in by library
   size_t desccolumns; // filled in by library
 };
-typedef struct selector_options {
+typedef struct ncselector_options {
   char* title; // title may be NULL, inhibiting riser, saving two rows.
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
-  struct selector_item* items; // initial items and descriptions
+  struct ncselector_item* items; // initial items and descriptions
   unsigned itemcount; // number of initial items and descriptions
   // default item (selected at start), must be < itemcount unless 'itemcount'
   // is 0, in which case 'defidx' must also be 0
@@ -323,9 +323,9 @@ typedef struct selector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
-} selector_options;
-struct ncselector* ncselector_create(struct notcurses* n, int y, int x, const selector_options* opts);
-int ncselector_additem(struct ncselector* n, const struct selector_item* item);
+} ncselector_options;
+struct ncselector* ncselector_create(struct notcurses* n, int y, int x, const ncselector_options* opts);
+int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);
 int ncselector_delitem(struct ncselector* n, const char* item);
 const char* ncselector_selected(const struct ncselector* n);
 struct ncplane* ncselector_plane(struct ncselector* n);
@@ -333,16 +333,16 @@ const char* ncselector_previtem(struct ncselector* n);
 const char* ncselector_nextitem(struct ncselector* n);
 bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 void ncselector_destroy(struct ncselector* n, char** item);
-struct mselector_item {
+struct ncmselector_item {
   char* option;
   char* desc;
   bool selected;
 };
-typedef struct multiselector_options {
+typedef struct ncmultiselector_options {
   char* title; // title may be NULL, inhibiting riser, saving two rows.
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
-  struct mselector_item* items; // initial items, descriptions, and statuses
+  struct ncmselector_item* items; // initial items, descriptions, and statuses
   unsigned itemcount; // number of items and descriptions, can't be 0
   // maximum number of options to display at once, 0 to use all available space
   unsigned maxdisplay;
@@ -353,8 +353,8 @@ typedef struct multiselector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
-} multiselector_options;
-struct ncmultiselector* ncmultiselector_create(struct notcurses* n, int y, int x, const multiselector_options* opts);
+} ncmultiselector_options;
+struct ncmultiselector* ncmultiselector_create(struct notcurses* n, int y, int x, const ncmultiselector_options* opts);
 int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
 struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
