@@ -15,7 +15,7 @@ namespace ncpp
 	{
 	public:
 		explicit Reader (NotCurses *nc, int y, int x, const ncreader_options *opts)
-			: Reader (*nc, y, x, opts)
+			: Reader (reinterpret_cast<notcurses*>(nc), y, x, opts)
 		{}
 
 		explicit Reader (NotCurses const* nc, int y, int x, const ncreader_options *opts)

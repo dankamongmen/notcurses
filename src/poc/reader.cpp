@@ -22,10 +22,9 @@ auto main() -> int {
   if(nr == nullptr){
     return EXIT_FAILURE;
   }
-  char32_t id;
   ncinput ni;
   nc.render();
-  while((id = nc.getc(true, &ni)) != (char32_t)-1){
+  while(nc.getc(true, &ni) != (char32_t)-1){
     if(!ncreader_offer_input(nr, &ni)){
       break;
     }

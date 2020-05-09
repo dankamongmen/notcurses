@@ -10,7 +10,7 @@ using namespace ncpp;
 
 // What happens when we print over half of a wide glyph?
 
-int main(void){
+auto main() -> int {
   setlocale(LC_ALL, "");
   NotCurses::default_notcurses_options.inhibit_alternate_screen = true;
   NotCurses nc;

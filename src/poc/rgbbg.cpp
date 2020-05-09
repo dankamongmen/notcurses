@@ -3,7 +3,7 @@
 #include <clocale>
 #include <notcurses/notcurses.h>
 
-int main(void){
+auto main() -> int {
   if(!setlocale(LC_ALL, "")){
     fprintf(stderr, "Couldn't set locale\n");
     return EXIT_FAILURE;
