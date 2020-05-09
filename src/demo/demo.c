@@ -468,16 +468,12 @@ int main(int argc, char** argv){
       nanosleep(&demodelay, NULL);
     }
   }
-  // if we're restarted with the HUD up, we want it to seamlessly restart
-  bool start_with_hud = false;
   do{
     restart_demos = false;
     interrupted = false;
     notcurses_drop_planes(nc);
-    if(start_with_hud){
-      if(!hud_create(nc)){
-        goto err;
-      }
+    if(!hud_create(nc)){
+      goto err;
     }
     if(fpsgraph_init(nc)){
       goto err;
@@ -492,13 +488,11 @@ int main(int argc, char** argv){
     if(ext_demos(nc, spec, ignore_failures) == NULL){
       goto err;
     }
-    if( (start_with_hud = !!hud) ){
-      if(hud_destroy()){ // destroy here since notcurses_drop_planes will kill it
-        goto err;
-      }
-      if(fpsgraph_stop(nc)){
-        goto err;
-      }
+    if(hud_destroy()){ // destroy here since notcurses_drop_planes will kill it
+      goto err;
+    }
+    if(fpsgraph_stop(nc)){
+      goto err;
     }
   }while(restart_demos);
   if(stop_input()){
