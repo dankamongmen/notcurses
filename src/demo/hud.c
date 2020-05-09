@@ -6,7 +6,7 @@
 // their mouse. it should always be on the top of the z-stack.
 struct ncplane* hud = NULL;
 
-static bool plot_hidden;
+static bool plot_hidden = true;
 static struct ncuplot* plot;
 static uint64_t plottimestart;
 
@@ -115,6 +115,7 @@ about_toggle(struct notcurses* nc){
     ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "restart Ctrl+R  ");
     ncplane_printf_aligned(n, 4, NCALIGN_LEFT, "  H toggle HUD");
     ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "toggle help Ctrl+U  ");
+    ncplane_printf_aligned(n, 5, NCALIGN_LEFT, "  P toggle plot");
     ncplane_putstr_aligned(n, 7, NCALIGN_CENTER, "\u00a9 nick black <nickblack@linux.com>");
     cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
     cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
@@ -527,6 +528,9 @@ int fpsgraph_init(struct notcurses* nc){
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   plottimestart = timespec_to_ns(&ts);
+  if(plot_hidden){
+    ncplane_move_bottom(newp);
+  }
   return 0;
 }
 
