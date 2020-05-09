@@ -53,7 +53,15 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     ncplane_cursor_move_yx(n->ncp, y, x);
     return true;
   }
+  // FIXME handle arrows
   if(nckey_supppuab_p(ni->id)){
+    return false;
+  }
+  if(ni->ctrl){
+    if(ni->id == 'U'){
+      ncplane_erase(n->ncp);
+      return true;
+    }
     return false;
   }
   // FIXME need to collect full EGCs
