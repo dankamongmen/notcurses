@@ -477,14 +477,23 @@ int fpsgraph_init(struct notcurses* nc){
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   struct ncplane* newp = ncplane_new(nc, PLOTHEIGHT, dimx, dimy - PLOTHEIGHT, 0, NULL);
+  uint32_t attrword = 0;
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  channels_set_fg(&channels, 0x104010);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
+  channels_set_bg(&channels, 0x104010);
+  ncplane_set_base(newp, "", attrword, channels);
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTIONS_LABELAXISD;
   opts.gridtype = NCPLOT_8x1;
   channels_set_fg_rgb(&opts.minchannel, 0x40, 0x50, 0xb0);
-  channels_set_bg_alpha(&opts.minchannel, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg(&opts.minchannel, 0x104010);
+  channels_set_bg_alpha(&opts.minchannel, CELL_ALPHA_BLEND);
   channels_set_fg_rgb(&opts.maxchannel, 0x40, 0xff, 0xd0);
-  channels_set_bg_alpha(&opts.maxchannel, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg(&opts.maxchannel, 0x104010);
+  channels_set_bg_alpha(&opts.maxchannel, CELL_ALPHA_BLEND);
   struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);
   if(!fpsplot){
     ncplane_destroy(newp);
