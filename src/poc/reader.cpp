@@ -14,7 +14,7 @@ auto main() -> int {
   int dimy, dimx;
   nc.get_term_dim(&dimy, &dimx);
   ncreader_options opts{};
-  opts.physrows = dimy / 2;
+  opts.physrows = dimy / 8;
   opts.physcols = dimx / 2;
   opts.egc = strdup("░");
   //ncpp::Reader nr(nc, 0, 0, &opts);

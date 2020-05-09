@@ -61,6 +61,9 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   // FIXME breaks for wint_t < 32bits
   if(snprintf(wbuf, sizeof(wbuf), "%lc", (wint_t)ni->id) < (int)sizeof(wbuf)){
     ncplane_putegc(n->ncp, wbuf, NULL);
+    if(n->ncp->x == n->ncp->lenx && n->ncp->y < n->ncp->leny - 1){
+      ncplane_cursor_move_yx(n->ncp, n->ncp->y + 1, 0);
+    }
   }
   return true;
 }
