@@ -3,9 +3,10 @@
 
 // we provide a heads-up display throughout the demo, detailing the demos we're
 // about to run, running, and just runned. the user can move this HUD with
-// their mouse. it should always be on the top of the z-stack.
+// their mouse. it should always be on the top of the z-stack, unless hidden.
 struct ncplane* hud = NULL;
 
+static bool hud_hidden = true;
 static bool plot_hidden = true;
 static struct ncuplot* plot;
 static uint64_t plottimestart;
@@ -77,16 +78,6 @@ hud_grabbed_bg(struct ncplane* n){
 }
 
 static void
-hud_toggle(struct notcurses* nc){
-  ncmenu_rollup(menu);
-  if(hud){
-    hud_destroy();
-  }else{
-    hud_create(nc);
-  }
-}
-
-static void
 about_toggle(struct notcurses* nc){
   ncmenu_rollup(menu);
   if(about){
@@ -132,6 +123,21 @@ about_toggle(struct notcurses* nc){
     }
   }
   ncplane_destroy(n);
+}
+
+static void
+hud_toggle(struct notcurses* nc){
+  ncmenu_rollup(menu);
+  if(!hud){
+    return;
+  }
+  hud_hidden = !hud_hidden;
+  if(hud_hidden){
+    ncplane_move_bottom(hud);
+  }else{
+    ncplane_move_top(hud);
+  }
+  demo_render(nc);
 }
 
 static int
@@ -311,6 +317,9 @@ struct ncplane* hud_create(struct notcurses* nc){
   ncplane_set_fg(n, 0xffffff);
   ncplane_set_bg(n, 0);
   ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
+  if(hud_hidden){
+    ncplane_move_bottom(n);
+  }
   return (hud = n);
 }
 
@@ -468,7 +477,9 @@ int demo_render(struct notcurses* nc){
   }
   if(hud){
     const int plen = HUD_COLS - 12 - NSLEN;
-    ncplane_move_top(hud);
+    if(!hud_hidden){
+      ncplane_move_top(hud);
+    }
     uint64_t ns = timespec_to_ns(&ts) - running->startns;
     ++running->frames;
     cell c = CELL_TRIVIAL_INITIALIZER;
