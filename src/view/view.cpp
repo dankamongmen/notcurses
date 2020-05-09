@@ -28,8 +28,8 @@ void usage(std::ostream& o, const char* name, int exitcode){
 
 constexpr auto NANOSECS_IN_SEC = 1000000000ll;
 
-static inline uint64_t
-timespec_to_ns(const struct timespec* ts){
+static inline auto
+timespec_to_ns(const struct timespec* ts) -> uint64_t {
   return ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
 }
 
@@ -37,9 +37,9 @@ timespec_to_ns(const struct timespec* ts){
 static struct ncplane* subtitle_plane = nullptr;
 
 // frame count is in the curry. original time is in the ncvisual's ncplane's userptr.
-int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void* vframecount){
+auto perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void* vframecount) -> int {
   NotCurses &nc = NotCurses::get_instance ();
-  struct timespec* start = static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
+  auto start = static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
   if(!start){
     start = new struct timespec;
     clock_gettime(CLOCK_MONOTONIC, start);
@@ -100,8 +100,8 @@ int perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void*
 }
 
 // can exit() directly. returns index in argv of first non-option param.
-int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale,
-                NCScale* scalemode) {
+auto handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale,
+                 NCScale* scalemode) -> int {
   *timescale = 1.0;
   *scalemode = NCScale::Scale;
   int c;
@@ -172,7 +172,7 @@ int handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale
   return optind;
 }
 
-int main(int argc, char** argv){
+auto main(int argc, char** argv) -> int {
   setlocale(LC_ALL, "");
   float timescale;
   NCScale stretchmode;
