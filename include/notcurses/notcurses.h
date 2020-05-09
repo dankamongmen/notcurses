@@ -2702,9 +2702,9 @@ typedef enum {
 //
 // This options structure works for both the ncuplot (uint64_t) and ncdplot
 // (double) types.
-#define NCPLOT_OPTIONS_LABELAXISD    0x0001 // show labels for dependent axis
-#define NCPLOT_OPTIONS_EXPONENTIALY  0x0002 // exponential y-axis
-#define NCPLOT_OPTIONS_VERINDEP      0x0004 // independent variable is vertical
+#define NCPLOT_OPTIONS_LABELTICKSD  0x0001 // show labels for dependent axis
+#define NCPLOT_OPTIONS_EXPONENTIALD 0x0002 // exponential dependent axis
+#define NCPLOT_OPTIONS_VERTICALI    0x0004 // independent axis is vertical
 
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear interpolation will be
