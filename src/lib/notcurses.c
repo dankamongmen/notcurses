@@ -2053,8 +2053,32 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
   if(begx + lenx > nc->lenx || begy + leny > nc->leny){
     return NULL;
   }
-  char* ret = malloc(lenx * leny + 1); // allow a bit of oversize
-  // FIXME traverse that fucker
-  ret[lenx * leny] = '\0';
+  size_t retlen = 1;
+  char* ret = malloc(retlen);
+  if(ret){
+    for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
+      for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
+        uint32_t attrword;
+        uint64_t channels;
+        char* c = ncplane_at_yx(nc, y, x, &attrword, &channels);
+        if(!c){
+          free(ret);
+          return NULL;
+        }
+        size_t clen = strlen(c);
+        if(clen){
+          char* tmp = realloc(ret, retlen + clen);
+          if(!tmp){
+            free(ret);
+            return NULL;
+          }
+          tmp = ret;
+          memcpy(ret + retlen - 1, c, clen);
+          retlen += clen;
+        }
+      }
+    }
+    ret[retlen - 1] = '\0';
+  }
   return ret;
 }
