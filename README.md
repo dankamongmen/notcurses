@@ -331,19 +331,21 @@ up someday **FIXME**.
 
 * 2020-04-19: Notcurses is [accepted into Debian](https://bugs.debian.org/950492).
 * 2020-04-12: Notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
+  * A new [hype video](https://vimeo.com/410787965) is never really publicized.
 * 2020-04-08: The Notcurses book [is published](https://amazon.com/dp/B086PNVNC9).
 * 2020-03-23: Notcurses is featured on [Linux World News](https://lwn.net/Articles/815811/).
 * 2020-02-17: Notcurses [1.2.0 "check the résumé, my record's impeccable"](https://github.com/dankamongmen/notcurses/releases/tag/v1.2.0).
 * 2019-01-19: Notcurses [1.1.0 "all the hustlas they love it just to see one of us make it"](https://github.com/dankamongmen/notcurses/releases/tag/v1.1.0).
     Much better video support, pulsing planes, palette256.
+  * The new [hype video](https://www.youtube.com/watch?v=-H1WkopWJNMk) gets a lot of attention.
 * 2019-01-04: Notcurses [1.0.0 "track team, crack fiend, dying to geek"](https://github.com/dankamongmen/notcurses/releases/tag/v1.0.0)
     is released, six days ahead of schedule. 147 issues closed. 702 commits.
 * 2019-12-18: Notcurses [0.9.0 "You dig in! You dig out! You get out!"](https://github.com/dankamongmen/notcurses/releases/tag/v0.9.0),
     and also the first contributor besides myself (@grendello). Last major
     pre-GA release.
 * 2019-12-05: Notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
-    the first generally usable notcurses. I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM),
-    and release it on YouTube.
+    the first generally usable notcurses.
+  * I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM), and release it on YouTube.
 * November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/ncreels).
     Outcurses is a collection of routines atop NCURSES, including ncreels.
     I study the history of NCURSES, primarily using Thomas E. Dickey's FAQ and
