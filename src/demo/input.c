@@ -1,5 +1,6 @@
+#include <fcntl.h>
+#include <unistd.h>
 #include <pthread.h>
-#include <sys/eventfd.h>
 #include "demo.h"
 
 typedef struct nciqueue {
@@ -7,9 +8,10 @@ typedef struct nciqueue {
   struct nciqueue *next;
 } nciqueue;
 
-// an eventfd or pipe on which we write upon receipt of input, so that demos
-// can multiplex against other fds.
-static int input_eventfd = -1;
+// a pipe on which we write upon receipt of input, so that demos
+// can reliably multiplex against other fds. freebsd doesn't have
+// eventfd, alas.
+static int input_pipefds[2] = {-1, -1};
 
 static pthread_t tid;
 static nciqueue* queue;
@@ -104,7 +106,7 @@ pass_along(const ncinput* ni){
   pthread_mutex_unlock(&lock);
   const uint64_t eventcount = 1;
   int ret = 0;
-  if(write(input_eventfd, &eventcount, sizeof(eventcount)) < 0){
+  if(write(input_pipefds[0], &eventcount, sizeof(eventcount)) < 0){
     ret = -1;
   }
   pthread_cond_signal(&cond);
@@ -131,21 +133,24 @@ ultramegaok_demo(void* vnc){
 }
 
 int demo_input_fd(void){
-  return input_eventfd;
+  return input_pipefds[1];
 }
 
 // listens for events, handling mouse events directly and making other ones
 // available to demos. returns -1 if already spawned or resource failures.
 int input_dispatcher(struct notcurses* nc){
-  if(input_eventfd >= 0){
+  if(input_pipefds[0] >= 0){
     return -1;
   }
-  if((input_eventfd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK)) < 0){
+  // freebsd doesn't have eventfd :/
+  if(pipe2(input_pipefds, O_CLOEXEC | O_NONBLOCK)){
+    fprintf(stderr, "Error creating pipe (%s)\n", strerror(errno));
     return -1;
   }
   if(pthread_create(&tid, NULL, ultramegaok_demo, nc)){
-    close(input_eventfd);
-    input_eventfd = -1;
+    close(input_pipefds[0]);
+    close(input_pipefds[1]);
+    input_pipefds[0] = input_pipefds[1] = -1;
     return -1;
   }
   return 0;
@@ -153,11 +158,12 @@ int input_dispatcher(struct notcurses* nc){
 
 int stop_input(void){
   int ret = 0;
-  if(input_eventfd >= 0){
+  if(input_pipefds[0] >= 0){
     ret |= pthread_cancel(tid);
     ret |= pthread_join(tid, NULL);
-    ret |= close(input_eventfd);
-    input_eventfd = -1;
+    ret |= close(input_pipefds[0]);
+    ret |= close(input_pipefds[1]);
+    input_pipefds[0] = input_pipefds[1] = -1;
   }
   return ret;
 }
