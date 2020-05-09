@@ -33,7 +33,7 @@ int qrcode_demo(struct notcurses* nc){
     DEMO_RENDER(nc);
   }
 #endif
-  ncplane_erase(n);
+  ncplane_erase(notcurses_stdplane(nc));
   DEMO_RENDER(nc);
   return 0;
 }
