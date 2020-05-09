@@ -7,7 +7,7 @@
 
 using namespace ncpp;
 
-int mathtext([[maybe_unused]] NotCurses& nc, std::shared_ptr<Plane> n){
+auto mathtext([[maybe_unused]] NotCurses& nc, std::shared_ptr<Plane>& n) -> int {
   if(n){
     n->set_fg(0xffffff);
     n->set_bg(0x008000);
@@ -24,7 +24,7 @@ int mathtext([[maybe_unused]] NotCurses& nc, std::shared_ptr<Plane> n){
   return 0;
 }
 
-int main(void){
+auto main() -> int {
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
