@@ -37,9 +37,23 @@ ncplane* ncreader_plane(ncreader* n){
   return n->ncp;
 }
 
+// we pass along:
+//  * anything with Alt
+//  * anything with Ctrl, except 'U' (which clears all input)
+//  * anything synthesized, save arrow keys and backspace
 bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   int x = n->ncp->x;
   int y = n->ncp->y;
+  if(ni->alt){ // pass on all alts
+    return false;
+  }
+  if(ni->ctrl){
+    if(ni->id == 'U'){
+      ncplane_erase(n->ncp);
+      return true;
+    }
+    return false; // pass on all other ctrls
+  }
   if(ni->id == NCKEY_BACKSPACE){
     if(n->ncp->x == 0){
       if(n->ncp->y){
@@ -53,17 +67,8 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     ncplane_cursor_move_yx(n->ncp, y, x);
     return true;
   }
-  if(ni->alt){ // pass on all alts
-    return false;
-  }
-  if(ni->ctrl){
-    if(ni->id == 'U'){
-      ncplane_erase(n->ncp);
-      return true;
-    }
-    return false; // pass on all other ctrls
-  }
-  // FIXME deal with multicolumn EGCs
+  // FIXME deal with multicolumn EGCs -- probably extract these and make them
+  // general ncplane_cursor_{left, right, up, down}()
   if(ni->id == NCKEY_LEFT){
     if(x == 0){
       if(y){
@@ -102,17 +107,17 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     }
     ncplane_cursor_move_yx(n->ncp, y, x);
     return true;
-  }
-  if(nckey_supppuab_p(ni->id)){
+  }else if(nckey_supppuab_p(ni->id)){
     return false;
   }
   // FIXME need to collect full EGCs
   char wbuf[WCHAR_MAX_UTF8BYTES + 1];
   // FIXME breaks for wint_t < 32bits
   if(snprintf(wbuf, sizeof(wbuf), "%lc", (wint_t)ni->id) < (int)sizeof(wbuf)){
-    ncplane_putegc(n->ncp, wbuf, NULL);
-    if(n->ncp->x == n->ncp->lenx && n->ncp->y < n->ncp->leny - 1){
-      ncplane_cursor_move_yx(n->ncp, n->ncp->y + 1, 0);
+    if(ncplane_putegc(n->ncp, wbuf, NULL) > 0){
+      if(n->ncp->x == n->ncp->lenx && n->ncp->y < n->ncp->leny - 1){
+        ncplane_cursor_move_yx(n->ncp, n->ncp->y + 1, 0);
+      }
     }
   }
   return true;
