@@ -1,6 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <locale.h>
+#include <cstdio>
+#include <cstdlib>
+#include <clocale>
 #include <notcurses/notcurses.h>
 
 int main(void){
@@ -12,7 +12,7 @@ int main(void){
   memset(&opts, 0, sizeof(opts));
   opts.inhibit_alternate_screen = true;
   struct notcurses* nc = notcurses_init(&opts, stdout);
-  if(nc == NULL){
+  if(nc == nullptr){
     return EXIT_FAILURE;
   }
   int y, x, dimy, dimx;
