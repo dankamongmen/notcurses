@@ -40,7 +40,7 @@ TEST_CASE("Readers") {
     channels_set_fg(&opts.echannels, 0xff44ff);
     ncplane_set_base(n_, opts.egc, opts.eattrword, opts.echannels);
     CHECK(0 == notcurses_render(nc_));
-    char* contents = NULL;
+    char* contents = nullptr;
     ncreader_destroy(nr, &contents);
     REQUIRE(contents);
     CHECK(0 == notcurses_render(nc_));

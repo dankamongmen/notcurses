@@ -1,5 +1,5 @@
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "version.h"
 
 #ifdef USE_FFMPEG
@@ -95,28 +95,28 @@ ncvisual* ncvisual_create(float timescale){
 
 struct ncvisual* ncvisual_from_plane(ncplane* n){
   uint32_t* rgba = ncplane_rgba(n, 0, 0, -1, -1);
-  if(rgba == NULL){
-    return NULL;
+  if(rgba == nullptr){
+    return nullptr;
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   struct ncvisual* ncv = ncvisual_from_rgba(n->nc, rgba, n->leny, n->lenx * 4, n->lenx);
-  if(ncv == NULL){
+  if(ncv == nullptr){
     free(rgba);
-    return NULL;
+    return nullptr;
   }
   ncplane_destroy(ncv->ncp);
   ncv->ncp = n;
-  ncv->ncobj = NULL;
+  ncv->ncobj = nullptr;
   return ncv;
 }
 
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols){
   if(rowstride % 4){ // must be a multiple of 4 bytes
-    return NULL;
+    return nullptr;
   }
 //fprintf(stderr, "ROWS: %d\n", rows);
-  uint32_t* ret = static_cast<uint32_t*>(malloc(rowstride * rows));
+  auto ret = static_cast<uint32_t*>(malloc(rowstride * rows));
   if(ret){
     for(int y = 0 ; y < rows ; ++y){
       for(int x = 0 ; x < cols ; ++x){
@@ -145,17 +145,17 @@ int ncvisual_setplane(ncvisual* ncv, ncplane* n){
 // pi/2 rads counterclockwise
 static int
 ncvisual_rotate_ccw(struct ncvisual* ncv){
-  if(ncv->data == NULL){
+  if(ncv->data == nullptr){
     return -1;
   }
   ncplane* n = ncvisual_plane(ncv);
   ncplane* newp = rotate_plane(n);
-  if(newp == NULL){
+  if(newp == nullptr){
     return -1;
   }
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
-  uint32_t* data = static_cast<uint32_t*>(malloc(ncv->dstheight * ncv->dstwidth * 4));
-  if(data == NULL){
+  auto data = static_cast<uint32_t*>(malloc(ncv->dstheight * ncv->dstwidth * 4));
+  if(data == nullptr){
     ncplane_destroy(newp);
     return -1;
   }
@@ -189,18 +189,18 @@ int ncvisual_rotate(struct ncvisual* ncv, double rads){
   if(rads != M_PI / 2){
     return -1;
   }
-  if(ncv->data == NULL){
+  if(ncv->data == nullptr){
     return -1;
   }
   ncplane* n = ncvisual_plane(ncv);
   ncplane* newp = rotate_plane(n);
-  if(newp == NULL){
+  if(newp == nullptr){
     return -1;
   }
 //fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
-  uint32_t* data = static_cast<uint32_t*>(malloc(ncv->dstheight * ncv->dstwidth * 4));
-  if(data == NULL){
+  auto data = static_cast<uint32_t*>(malloc(ncv->dstheight * ncv->dstwidth * 4));
+  if(data == nullptr){
     ncplane_destroy(newp);
     return -1;
   }
@@ -227,7 +227,7 @@ int ncvisual_rotate(struct ncvisual* ncv, double rads){
 ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
                              int rowstride, int cols){
   if(rowstride % 4){
-    return NULL;
+    return nullptr;
   }
   ncvisual* ncv = ncvisual_create(1);
 //fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
@@ -237,15 +237,15 @@ ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
   ncv->dstheight = rows;
   int disprows = ncv->dstheight / 2 + ncv->dstheight % 2;
 //fprintf(stderr, "MADE INITIAL ONE %d/%d\n", disprows, ncv->dstwidth);
-  ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, NULL);
-  if(ncv->ncp == NULL){
+  ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, nullptr);
+  if(ncv->ncp == nullptr){
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
   uint32_t* data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->dstheight));
-  if(data == NULL){
+  if(data == nullptr){
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
   ncvisual_set_data(ncv, data, true);
   return ncv;
@@ -254,7 +254,7 @@ ncvisual* ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
 ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
                              int rowstride, int cols){
   if(rowstride % 4){
-    return NULL;
+    return nullptr;
   }
   ncvisual* ncv = ncvisual_create(1);
   ncv->rowstride = rowstride;
@@ -262,15 +262,15 @@ ncvisual* ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
   ncv->dstwidth = cols;
   ncv->dstheight = rows;
   int disprows = ncv->dstheight / 2 + ncv->dstheight % 2;
-  ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, NULL);
-  if(ncv->ncp == NULL){
+  ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, nullptr);
+  if(ncv->ncp == nullptr){
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
-  uint32_t* data = static_cast<uint32_t*>(memdup(bgra, rowstride * ncv->dstheight));
-  if(data == NULL){
+  auto data = static_cast<uint32_t*>(memdup(bgra, rowstride * ncv->dstheight));
+  if(data == nullptr){
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
   ncvisual_set_data(ncv, data, true);
   return ncv;
@@ -394,7 +394,7 @@ deass(const char* ass){
   // Dialogue: Marked=0,0:02:40.65,0:02:41.79,Wolf main,Cher,0000,0000,0000,,Et les enregistrements de ses ondes delta ?
   // FIXME more
   if(strncmp(ass, "Dialogue:", strlen("Dialogue:"))){
-    return NULL;
+    return nullptr;
   }
   const char* delim = strchr(ass, ',');
   int commas = 0; // we want 8
@@ -403,7 +403,7 @@ deass(const char* ass){
     ++commas;
   }
   if(!delim){
-    return NULL;
+    return nullptr;
   }
   // handle ASS syntax...\i0, \b0, etc.
   char* dup = strdup(delim + 1);
@@ -430,7 +430,7 @@ char* ncvisual_subtitle(const ncvisual* ncv){
       return strdup(rect->text);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static nc_err_e
@@ -444,7 +444,7 @@ averr2ncerr(int averr){
 }
 
 nc_err_e ncvisual_decode(ncvisual* nc){
-  if(nc->fmtctx == NULL){ // not a file-backed ncvisual
+  if(nc->fmtctx == nullptr){ // not a file-backed ncvisual
     return NCERR_DECODE;
   }
   bool have_frame = false;
@@ -495,7 +495,7 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 //print_frame_summary(nc->codecctx, nc->frame);
 #define IMGALLOCALIGN 32
   int rows, cols;
-  if(nc->ncp == NULL){ // create plane
+  if(nc->ncp == nullptr){ // create plane
     if(nc->style == NCSCALE_NONE){
       rows = nc->frame->height / 2;
       cols = nc->frame->width;
@@ -509,17 +509,17 @@ nc_err_e ncvisual_decode(ncvisual* nc){
     }
     nc->dstwidth = cols;
     nc->dstheight = rows * 2;
-    nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, NULL);
+    nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, nullptr);
     nc->placey = 0;
     nc->placex = 0;
-    if(nc->ncp == NULL){
+    if(nc->ncp == nullptr){
       return NCERR_NOMEM;
     }
   }else{ // check for resize
     ncplane_dim_yx(nc->ncp, &rows, &cols);
     if(rows != nc->dstheight / 2 || cols != nc->dstwidth){
       sws_freeContext(nc->swsctx);
-      nc->swsctx = NULL;
+      nc->swsctx = nullptr;
       nc->dstheight = rows * 2;
       nc->dstwidth = cols;
     }
@@ -533,8 +533,8 @@ nc_err_e ncvisual_decode(ncvisual* nc){
                                     nc->dstheight,
                                     static_cast<AVPixelFormat>(targformat),
                                     SWS_LANCZOS,
-                                    NULL, NULL, NULL);
-  if(nc->swsctx == NULL){
+                                    nullptr, nullptr, nullptr);
+  if(nc->swsctx == nullptr){
     //fprintf(stderr, "Error retrieving swsctx\n");
     return NCERR_DECODE;
   }
@@ -573,66 +573,66 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 static ncvisual*
 ncvisual_open(const char* filename, nc_err_e* ncerr){
   ncvisual* ncv = ncvisual_create(1);
-  if(ncv == NULL){
+  if(ncv == nullptr){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     *ncerr = NCERR_NOMEM;
-    return NULL;
+    return nullptr;
   }
   memset(ncv, 0, sizeof(*ncv));
-  int averr = avformat_open_input(&ncv->fmtctx, filename, NULL, NULL);
+  int averr = avformat_open_input(&ncv->fmtctx, filename, nullptr, nullptr);
   if(averr < 0){
     // fprintf(stderr, "Couldn't open %s (%s)\n", filename, av_err2str(*averr));
     *ncerr = averr2ncerr(averr);
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
-  averr = avformat_find_stream_info(ncv->fmtctx, NULL);
+  averr = avformat_find_stream_info(ncv->fmtctx, nullptr);
   if(averr < 0){
     /*fprintf(stderr, "Error extracting stream info from %s (%s)\n", filename,
             av_err2str(*averr));*/
     *ncerr = averr2ncerr(averr);
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
 //av_dump_format(ncv->fmtctx, 0, filename, false);
   if((averr = av_find_best_stream(ncv->fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, &ncv->subtcodec, 0)) >= 0){
     ncv->sub_stream_index = averr;
-    if((ncv->subtcodecctx = avcodec_alloc_context3(ncv->subtcodec)) == NULL){
+    if((ncv->subtcodecctx = avcodec_alloc_context3(ncv->subtcodec)) == nullptr){
       //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
       *ncerr = NCERR_NOMEM;
       ncvisual_destroy(ncv);
-      return NULL;
+      return nullptr;
     }
     // FIXME do we need avcodec_parameters_to_context() here?
-    if((averr = avcodec_open2(ncv->subtcodecctx, ncv->subtcodec, NULL)) < 0){
+    if((averr = avcodec_open2(ncv->subtcodecctx, ncv->subtcodec, nullptr)) < 0){
       //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
       *ncerr = averr2ncerr(averr);
       ncvisual_destroy(ncv);
-      return NULL;
+      return nullptr;
     }
   }else{
     ncv->sub_stream_index = -1;
   }
-  if((ncv->packet = av_packet_alloc()) == NULL){
+  if((ncv->packet = av_packet_alloc()) == nullptr){
     // fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
     *ncerr = NCERR_NOMEM;
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
   if((averr = av_find_best_stream(ncv->fmtctx, AVMEDIA_TYPE_VIDEO, -1, -1, &ncv->codec, 0)) < 0){
     // fprintf(stderr, "Couldn't find visuals in %s (%s)\n", filename, av_err2str(*averr));
     *ncerr = averr2ncerr(averr);
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
   ncv->stream_index = averr;
-  if(ncv->codec == NULL){
+  if(ncv->codec == nullptr){
     //fprintf(stderr, "Couldn't find decoder for %s\n", filename);
     ncvisual_destroy(ncv);
-    return NULL;
+    return nullptr;
   }
   AVStream* st = ncv->fmtctx->streams[ncv->stream_index];
-  if((ncv->codecctx = avcodec_alloc_context3(ncv->codec)) == NULL){
+  if((ncv->codecctx = avcodec_alloc_context3(ncv->codec)) == nullptr){
     //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
     *ncerr = NCERR_NOMEM;
     goto err;
@@ -640,12 +640,12 @@ ncvisual_open(const char* filename, nc_err_e* ncerr){
   if(avcodec_parameters_to_context(ncv->codecctx, st->codecpar) < 0){
     goto err;
   }
-  if((averr = avcodec_open2(ncv->codecctx, ncv->codec, NULL)) < 0){
+  if((averr = avcodec_open2(ncv->codecctx, ncv->codec, nullptr)) < 0){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
     *ncerr = averr2ncerr(averr);
     goto err;
   }
-  /*if((ncv->cparams = avcodec_parameters_alloc()) == NULL){
+  /*if((ncv->cparams = avcodec_parameters_alloc()) == nullptr){
     //fprintf(stderr, "Couldn't allocate codec params for %s\n", filename);
     *averr = NCERR_NOMEM;
     goto err;
@@ -654,12 +654,12 @@ ncvisual_open(const char* filename, nc_err_e* ncerr){
     //fprintf(stderr, "Couldn't get codec params for %s (%s)\n", filename, av_err2str(*averr));
     goto err;
   }*/
-  if((ncv->frame = av_frame_alloc()) == NULL){
+  if((ncv->frame = av_frame_alloc()) == nullptr){
     // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
     *ncerr = NCERR_NOMEM;
     goto err;
   }
-  if((ncv->oframe = av_frame_alloc()) == NULL){
+  if((ncv->oframe = av_frame_alloc()) == nullptr){
     // fprintf(stderr, "Couldn't allocate output frame for %s\n", filename);
     *ncerr = NCERR_NOMEM;
     goto err;
@@ -668,13 +668,13 @@ ncvisual_open(const char* filename, nc_err_e* ncerr){
 
 err:
   ncvisual_destroy(ncv);
-  return NULL;
+  return nullptr;
 }
 
 ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr){
   ncvisual* ncv = ncvisual_open(filename, ncerr);
-  if(ncv == NULL){
-    return NULL;
+  if(ncv == nullptr){
+    return nullptr;
   }
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
   ncv->dstheight *= 2;
@@ -686,14 +686,14 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
 ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
                               nc_err_e* ncerr, int y, int x, ncscale_e style){
   ncvisual* ncv = ncvisual_open(filename, ncerr);
-  if(ncv == NULL){
-    return NULL;
+  if(ncv == nullptr){
+    return nullptr;
   }
   ncv->placey = y;
   ncv->placex = x;
   ncv->style = style;
   ncv->ncobj = nc;
-  ncv->ncp = NULL;
+  ncv->ncp = nullptr;
   return ncv;
 }
 
@@ -748,7 +748,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
     }
     if(nsnow < schedns){
       ns_to_timespec(schedns - nsnow, &interval);
-      nanosleep(&interval, NULL);
+      nanosleep(&interval, nullptr);
     }
   }
   if(*ncerr == NCERR_EOF){
@@ -793,7 +793,7 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   (void)nc;
   (void)filename;
   (void)ncerr;
-  return NULL;
+  return nullptr;
 }
 
 ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
@@ -804,12 +804,12 @@ ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
   (void)y;
   (void)x;
   (void)style;
-  return NULL;
+  return nullptr;
 }
 
 char* ncvisual_subtitle(const ncvisual* ncv){
   (void)ncv;
-  return NULL;
+  return nullptr;
 }
 
 int ncvisual_init(int loglevel){
