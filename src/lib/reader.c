@@ -21,6 +21,8 @@ ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* o
     }
     nr->tchannels = opts->tchannels;
     nr->tattrs = opts->tattrword;
+    ncplane_set_channels(nr->ncp, opts->tchannels);
+    ncplane_set_attr(nr->ncp, opts->tattrword);
   }
   return nr;
 }
