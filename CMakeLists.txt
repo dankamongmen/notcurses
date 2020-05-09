@@ -317,6 +317,8 @@ file(GLOB NCPP_INTERNAL_HEADERS
   LIST_DIRECTORIES false
   ${PROJECT_SOURCE_DIR}/include/ncpp/internal/*.hh)
 
+export(PACKAGE notcurses)
+
 install(FILES ${NOTCURSES_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses)
 install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
 install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
@@ -666,9 +668,9 @@ endif()
 
 # Installation
 install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/notcurses
+  "${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/notcurses"
 )
 
 install(FILES
