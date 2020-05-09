@@ -815,9 +815,6 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
 }
 
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
-  if(outfp == NULL){
-    outfp = stdout;
-  }
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
   if(!opts){
@@ -838,6 +835,14 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(ret == NULL){
     return ret;
   }
+  bool own_outfp = false;
+  if(outfp == NULL){
+    if((outfp = fopen("/dev/tty", "wbe")) == NULL){
+      free(ret);
+      return NULL;
+    }
+    own_outfp = true;
+  }
   ret->margin_t = opts->margin_t;
   ret->margin_b = opts->margin_b;
   ret->margin_l = opts->margin_l;
@@ -847,6 +852,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   reset_stats(&ret->stats);
   reset_stats(&ret->stashstats);
   ret->ttyfp = outfp;
+  ret->ownttyfp = own_outfp;
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
@@ -1007,6 +1013,9 @@ int notcurses_stop(notcurses* nc){
     free(nc->rstate.mstream);
     input_free_esctrie(&nc->inputescapes);
     stash_stats(nc);
+    if(nc->ownttyfp){
+      ret |= fclose(nc->ttyfp);
+    }
     if(!nc->suppress_banner){
       if(nc->stashstats.renders){
         char totalbuf[BPREFIXSTRLEN + 1];

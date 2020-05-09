@@ -447,7 +447,7 @@ int main(int argc, char** argv){
   struct timespec starttime;
   clock_gettime(CLOCK_MONOTONIC, &starttime);
   struct notcurses* nc;
-  if((nc = notcurses_init(&nopts, stdout)) == NULL){
+  if((nc = notcurses_init(&nopts, NULL)) == NULL){
     return EXIT_FAILURE;
   }
   if(notcurses_mouse_enable(nc)){

@@ -29,14 +29,16 @@ typedef struct notcurses_options {
 
 # DESCRIPTION
 
-**notcurses_init** prepares the **FILE** provided as **fp** (which must be
-attached to a terminal) for cursor-addressable (multiline) mode. The
+**notcurses_init** prepares the terminal for cursor-addressable (multiline)
+mode. The **FILE** provided as **fp** must be writable and attached to a
+terminal, or **NULL**. If it is **NULL**, **/dev/tty** will be opened. The
 **struct notcurses_option** passed as **opts** controls behavior. Only one
 instance should be associated with a given terminal at a time, though it is no
-problem to have multiple instances in a given process. On success, a pointer to
-a valid **struct notcurses** is returned. **NULL** is returned on failure.
-Before the process exits, **notcurses_stop(3)** should be called to reset the
-terminal and free up resources.
+problem to have multiple instances in a given process.
+
+On success, a pointer to a valid **struct notcurses** is returned. **NULL** is
+returned on failure. Before the process exits, **notcurses_stop(3)** should be
+called to reset the terminal and free up resources.
 
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see

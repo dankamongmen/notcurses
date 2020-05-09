@@ -332,6 +332,7 @@ typedef struct notcurses {
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
+  bool ownttyfp;  // do we own ttyfp (and thus must close it?)
 } notcurses;
 
 void sigwinch_handler(int signo);

@@ -793,7 +793,8 @@ typedef struct notcurses_options {
 API int notcurses_lex_margins(const char* op, notcurses_options* opts);
 
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
-// be a tty. You'll usually want stdout. Returns NULL on error, including any
+// be a tty. You'll usually want stdout. NULL can be supplied for 'fp', in
+// which case /dev/tty will be opened. Returns NULL on error, including any
 // failure initializing terminfo.
 API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 

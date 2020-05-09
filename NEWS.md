@@ -13,6 +13,9 @@ rearrangements of Notcurses.
     notcurses*` instead of a `struct ncplane`, as they create their own planes.
   * `ncplane_set_channels()` and `ncplane_set_attr()` have been added to allow
     `ncplane` attributes to be set directly and in toto.
+  * `NULL` can now be passed as the `FILE*` argument to `notcurses_init()` and
+    `ncdirect_init()`. In this case, a new `FILE*` will be created using
+    `/dev/tty`. If the `FILE*` cannot be created, an error will be returned.
 
 * 1.3.4 (2020-05-07)
   * `notcurses_lex_margins()` has been added to lex margins expressed in either
