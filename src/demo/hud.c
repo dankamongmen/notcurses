@@ -511,7 +511,7 @@ int fpsgraph_init(struct notcurses* nc){
   ncplane_set_base(newp, "", attrword, channels);
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
-  opts.flags = NCPLOT_OPTIONS_LABELAXISD;
+  opts.flags = NCPLOT_OPTIONS_LABELTICKSD | NCPLOT_OPTIONS_EXPONENTIALD;
   opts.gridtype = NCPLOT_8x1;
   channels_set_fg_rgb(&opts.minchannel, 0x40, 0x50, 0xb0);
   channels_set_bg(&opts.minchannel, 0x104010);

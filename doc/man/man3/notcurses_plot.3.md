@@ -21,6 +21,10 @@ typedef enum {
   NCPLOT_8x1,   // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
 } ncgridgeom_e;
 
+#define NCPLOT_OPTIONS_LABELTICKSD  0x0001
+#define NCPLOT_OPTIONS_EXPONENTIALD 0x0002
+#define NCPLOT_OPTIONS_VERTICALI    0x0004
+
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels.
   // lerp across the domain between these two.
@@ -90,7 +94,12 @@ be difficult to differentiate at small text sizes. Quadrants and braille allow
 for more resolution on the independent variable. It can be difficult to predict
 how the braille glyphs will look in a given font.
 
-The same **ncplot_options** struct can be used with all ncplot types.
+The same **ncplot_options** struct can be used with all ncplot types. The
+**flags** field is a bitmask composed of:
+
+* **NCPLOT_OPTIONS_LABELTICKSD**: Label dependent axis ticks.
+* **NCPLOT_OPTIONS_EXPONENTIALD**: Use an exponential dependent axis.
+* **NCPLOT_OPTIONS_VERTICALI**: Vertical independent axis.
 
 # NOTES
 
