@@ -30,7 +30,7 @@ ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* o
 // empty the ncreader of any user input, and home the cursor.
 int ncreader_clear(ncreader* n){
   ncplane_erase(n->ncp);
-  return ncplane_cursor_move_yx(n->ncp, 0, 0);
+  return 0;
 }
 
 ncplane* ncreader_plane(ncreader* n){
