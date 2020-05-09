@@ -1773,8 +1773,10 @@ void ncplane_erase(ncplane* n){
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
+  cell_init(&n->basecell);
   cell_load(n, &n->basecell, egc);
   free(egc);
+  n->y = n->x = 0;
 }
 
 void notcurses_cursor_enable(notcurses* nc){

@@ -1629,7 +1629,7 @@ API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane is invalidated, and must not be used after the call,
-// excluding the base cell.
+// *excluding* the base cell. The cursor is homed.
 API void ncplane_erase(struct ncplane* n);
 
 #define NCPALETTESIZE 256

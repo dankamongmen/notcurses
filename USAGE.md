@@ -544,7 +544,7 @@ int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane are invalidated, and must not be used after the call,
-// excluding the base cell.
+// excluding the base cell. The cursor is homed.
 void ncplane_erase(struct ncplane* n);
 ```
 

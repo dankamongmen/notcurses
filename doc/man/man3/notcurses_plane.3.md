@@ -196,6 +196,9 @@ expressed relative to the standard plane, and returns coordinates relative to
 of the rendering region. Only those cells where **src** intersects with **dst**
 might see changes. It is an error to merge a plane onto itself.
 
+**ncplane_erase** zeroes out every cell of the plane, dumps the egcpool, and
+homes the cursor. The base cell is preserved.
+
 ## Scrolling
 
 All planes, including the standard plane, are created with scrolling disabled.
