@@ -6,6 +6,9 @@ rearrangements of Notcurses.
     be returned as a nul-terminated, heap-allocated string.
   * `ncreader` was added. This widget allows freeform input to be edited in a
     block, and collected into a string.
+  * `selector_options` has been renamed to `ncselector_options`, and
+    `multiselector_options` has been renamed to `ncmultiselector_options`.
+    This matches the other widget option struct's nomenclature.
 
 * 1.3.4 (2020-05-07)
   * `notcurses_lex_margins()` has been added to lex margins expressed in either

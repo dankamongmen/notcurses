@@ -14,26 +14,26 @@ namespace ncpp
 	class NCPP_API_EXPORT Selector : public Root
 	{
 	public:
-		static selector_options default_options;
+		static ncselector_options default_options;
 
 	public:
-		explicit Selector (NotCurses *nc, int y, int x, const selector_options *opts = nullptr)
+		explicit Selector (NotCurses *nc, int y, int x, const ncselector_options *opts = nullptr)
 			: Selector (reinterpret_cast<notcurses*>(nc), y, x, opts)
 		{}
 
-		explicit Selector (NotCurses const* nc, int y, int x, const selector_options *opts = nullptr)
+		explicit Selector (NotCurses const* nc, int y, int x, const ncselector_options *opts = nullptr)
 			: Selector (const_cast<NotCurses*>(nc), y, x, opts)
 		{}
 
-		explicit Selector (NotCurses &nc, int y, int x, const selector_options *opts = nullptr)
+		explicit Selector (NotCurses &nc, int y, int x, const ncselector_options *opts = nullptr)
 			: Selector (reinterpret_cast<NotCurses*>(&nc), y, x, opts)
 		{}
 
-		explicit Selector (NotCurses const& nc, int y, int x, const selector_options *opts = nullptr)
+		explicit Selector (NotCurses const& nc, int y, int x, const ncselector_options *opts = nullptr)
 			: Selector (const_cast<NotCurses*>(&nc), y, x, opts)
 		{}
 
-		explicit Selector (notcurses* nc, int y, int x, const selector_options *opts = nullptr)
+		explicit Selector (notcurses* nc, int y, int x, const ncselector_options *opts = nullptr)
 		{
 			selector = ncselector_create (nc, y, x, opts == nullptr ? &default_options : opts);
 			if (selector == nullptr)
@@ -46,7 +46,7 @@ namespace ncpp
 				ncselector_destroy (selector, nullptr);
 		}
 
-		int additem (const selector_item *item) const NOEXCEPT_MAYBE
+		int additem (const ncselector_item *item) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncselector_additem (selector, item), -1);
 		}

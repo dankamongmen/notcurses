@@ -3,7 +3,7 @@
 
 using namespace ncpp;
 
-multiselector_options MultiSelector::default_options = {
+ncmultiselector_options MultiSelector::default_options = {
 	/* title */ nullptr,
 	/* secondary */ nullptr,
 	/* footer */ nullptr,

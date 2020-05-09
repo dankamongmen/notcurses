@@ -3,7 +3,7 @@
 
 using namespace ncpp;
 
-selector_options Selector::default_options = {
+ncselector_options Selector::default_options = {
 	/* title */ nullptr,
 	/* secondary */ nullptr,
 	/* footer */ nullptr,

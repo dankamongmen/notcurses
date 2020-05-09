@@ -2436,18 +2436,18 @@ API void ncplane_greyscale(struct ncplane* n);
 //
 // At all times, exactly one item is selected.
 
-struct selector_item {
+struct ncselector_item {
   char* option;
   char* desc;
   size_t opcolumns;   // filled in by library
   size_t desccolumns; // filled in by library
 };
 
-typedef struct selector_options {
+typedef struct ncselector_options {
   char* title; // title may be NULL, inhibiting riser, saving two rows.
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
-  struct selector_item* items; // initial items and descriptions
+  struct ncselector_item* items; // initial items and descriptions
   unsigned itemcount; // number of initial items and descriptions
   // default item (selected at start), must be < itemcount unless 'itemcount'
   // is 0, in which case 'defidx' must also be 0
@@ -2461,12 +2461,12 @@ typedef struct selector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
-} selector_options;
+} ncselector_options;
 
 API struct ncselector* ncselector_create(struct notcurses* n, int y, int x,
-                                         const selector_options* opts);
+                                         const ncselector_options* opts);
 
-API int ncselector_additem(struct ncselector* n, const struct selector_item* item);
+API int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);
 API int ncselector_delitem(struct ncselector* n, const char* item);
 
 // Return reference to the selected option, or NULL if there are no items.
@@ -2493,7 +2493,7 @@ API bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
 // be strdup()ed and assigned to '*item' (and must be free()d by the caller).
 API void ncselector_destroy(struct ncselector* n, char** item);
 
-struct mselector_item {
+struct ncmselector_item {
   char* option;
   char* desc;
   bool selected;
@@ -2520,11 +2520,11 @@ struct mselector_item {
 //
 // Unlike the selector widget, zero to all of the items can be selected, but
 // also the widget does not support adding or removing items at runtime.
-typedef struct multiselector_options {
+typedef struct ncmultiselector_options {
   char* title; // title may be NULL, inhibiting riser, saving two rows.
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
-  struct mselector_item* items; // initial items, descriptions, and statuses
+  struct ncmselector_item* items; // initial items, descriptions, and statuses
   unsigned itemcount; // number of items and descriptions, can't be 0
   // maximum number of options to display at once, 0 to use all available space
   unsigned maxdisplay;
@@ -2535,10 +2535,10 @@ typedef struct multiselector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
-} multiselector_options;
+} ncmultiselector_options;
 
 API struct ncmultiselector* ncmultiselector_create(struct notcurses* n, int y, int x,
-                                                   const multiselector_options* opts);
+                                                   const ncmultiselector_options* opts);
 
 // Return selected vector. An array of bools must be provided, along with its
 // length. If that length doesn't match the itemcount, it is an error.

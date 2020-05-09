@@ -6,7 +6,7 @@
 #include "version.h"
 
 // http://theboomerbible.com/tbb112.html
-static struct mselector_item items[] = {
+static struct ncmselector_item items[] = {
   { "1", "Across the Atlantic Ocean, there was a place called North America", .selected = false, },
   { "2", "Discovered by an Italian in the employ of the queen of Spain", .selected = false, },
   { "3", "Colonized extensively by the Spanish and the French", .selected = false, },
@@ -61,7 +61,7 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  multiselector_options sopts;
+  ncmultiselector_options sopts;
   memset(&sopts, 0, sizeof(sopts));
   sopts.maxdisplay = 10;
   sopts.items = items;

@@ -18,7 +18,7 @@ TEST_CASE("Selectors") {
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
   SUBCASE("EmptySelector") {
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
@@ -33,7 +33,7 @@ TEST_CASE("Selectors") {
   }
 
   SUBCASE("TitledSelector") {
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     opts.title = strdup("hey hey whaddya say");
     struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
@@ -48,7 +48,7 @@ TEST_CASE("Selectors") {
   }
 
   SUBCASE("SecondarySelector") {
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     opts.secondary = strdup("this is not a title, but it's not *not* a title");
     struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
@@ -63,7 +63,7 @@ TEST_CASE("Selectors") {
   }
 
   SUBCASE("FooterSelector") {
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     opts.footer = strdup("i am a lone footer, little old footer");
     struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
@@ -78,12 +78,12 @@ TEST_CASE("Selectors") {
   }
 
   SUBCASE("PopulatedSelector") {
-    selector_item items[] = {
+    ncselector_item items[] = {
       { strdup("op1"), strdup("this is option 1"), 0, 0, },
       { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
       { strdup("tres"), strdup("option the third"), 0, 0, },
     };
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);
     struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
@@ -99,7 +99,7 @@ TEST_CASE("Selectors") {
   }
 
   SUBCASE("EmptySelectorMovement") {
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
@@ -115,12 +115,12 @@ TEST_CASE("Selectors") {
   }
 
   SUBCASE("SelectorMovement") {
-    selector_item items[] = {
+    ncselector_item items[] = {
       { strdup("op1"), strdup("this is option 1"), 0, 0, },
       { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
       { strdup("tres"), strdup("option the third"), 0, 0, },
     };
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);
     struct ncselector* ncs = ncselector_create(nc_, 0, 0, &opts);
@@ -152,12 +152,12 @@ TEST_CASE("Selectors") {
 
   // Provide three items, limited to 1 shown at a time
   SUBCASE("ScrollingSelectorOne") {
-    selector_item items[] = {
+    ncselector_item items[] = {
       { strdup("op1"), strdup("this is option 1"), 0, 0, },
       { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
       { strdup("tres"), strdup("option the third"), 0, 0, },
     };
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     opts.maxdisplay = 1;
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);
@@ -195,12 +195,12 @@ TEST_CASE("Selectors") {
 
   // Provide three items, limited to 2 shown at a time
   SUBCASE("ScrollingSelectorTwo") {
-    selector_item items[] = {
+    ncselector_item items[] = {
       { strdup("op1"), strdup("this is option 1"), 0, 0, },
       { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
       { strdup("tres"), strdup("option the third"), 0, 0, },
     };
-    struct selector_options opts{};
+    struct ncselector_options opts{};
     opts.maxdisplay = 2;
     opts.items = items;
     opts.itemcount = sizeof(items) / sizeof(*items);

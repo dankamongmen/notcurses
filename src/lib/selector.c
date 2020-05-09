@@ -157,7 +157,7 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   return 0;
 }
 
-ncselector* ncselector_create(notcurses* nc, int y, int x, const selector_options* opts){
+ncselector* ncselector_create(notcurses* nc, int y, int x, const ncselector_options* opts){
   if(opts->defidx && opts->defidx >= opts->itemcount){
     return NULL;
   }
@@ -190,7 +190,7 @@ ncselector* ncselector_create(notcurses* nc, int y, int x, const selector_option
     ns->items = NULL;
   }
   for(ns->itemcount = 0 ; ns->itemcount < opts->itemcount ; ++ns->itemcount){
-    const struct selector_item* src = &opts->items[ns->itemcount];
+    const struct ncselector_item* src = &opts->items[ns->itemcount];
     int cols = mbswidth(src->option);
     ns->items[ns->itemcount].opcolumns = cols;
     if(cols > ns->longop){
@@ -239,9 +239,9 @@ freeitems:
   return NULL;
 }
 
-int ncselector_additem(ncselector* n, const struct selector_item* item){
+int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   size_t newsize = sizeof(*n->items) * (n->itemcount + 1);
-  struct selector_item* items = realloc(n->items, newsize);
+  struct ncselector_item* items = realloc(n->items, newsize);
   if(!items){
     return -1;
   }
@@ -654,7 +654,8 @@ ncmultiselector_dim_yx(notcurses* nc, const ncmultiselector* n, int* ncdimy, int
   return 0;
 }
 
-ncmultiselector* ncmultiselector_create(notcurses* nc, int y, int x, const multiselector_options* opts){
+ncmultiselector* ncmultiselector_create(notcurses* nc, int y, int x,
+                                        const ncmultiselector_options* opts){
   ncmultiselector* ns = malloc(sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
   ns->titlecols = opts->title ? mbswidth(opts->title) : 0;
@@ -683,7 +684,7 @@ ncmultiselector* ncmultiselector_create(notcurses* nc, int y, int x, const multi
     ns->items = NULL;
   }
   for(ns->itemcount = 0 ; ns->itemcount < opts->itemcount ; ++ns->itemcount){
-    const struct mselector_item* src = &opts->items[ns->itemcount];
+    const struct ncmselector_item* src = &opts->items[ns->itemcount];
     int cols = mbswidth(src->option);
     if(cols > ns->longitem){
       ns->longitem = cols;
