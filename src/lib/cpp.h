@@ -127,14 +127,14 @@ class ncppplot {
    ncplane_dim_yx(ncp, &dimy, &dimx);
    const int scaleddim = dimx * scale;
    // each transition is worth this much change in value
-   const size_t states = geomdata[gridtype].height - 1;
+   const size_t states = geomdata[gridtype].height;
    // FIXME can we not rid ourselves of this meddlesome double? either way, the
    // interval is one row's range (for linear plots), or the log10 of each row's
    // range (for exponential plots).
    double interval;
    if(exponentiali){
      if(maxy > miny){
-       interval = pow(maxy - miny, (double)1 / (dimy * states));
+       interval = pow(maxy - miny, (double)1 / ((dimy - 1) * states));
      }else{
        interval = 0;
      }
@@ -150,7 +150,7 @@ class ncppplot {
      for(int y = 0 ; y < dimy ; ++y){
        char buf[PREFIXSTRLEN + 1];
        if(exponentiali){
-         ncmetric(pow(interval, (y + 1) * states) * 100, 100, buf, 0, 1000, '\0');
+         ncmetric(pow(interval, y * states) * 100, 100, buf, 0, 1000, '\0');
        }else{
          ncmetric(interval * states * (y + 1) * 100, 100, buf, 0, 1000, '\0');
        }
@@ -195,7 +195,8 @@ class ncppplot {
        for(int i = 0 ; i < scale ; ++i){
          sumidx *= states;
          if(intervalbase < gvals[i]){
-           egcidx = (gvals[i] - intervalbase) / interval;
+           egcidx = (log(gvals[i]) - log(intervalbase)) * states / interval;
+//fprintf(stderr, "egcidx: %zu\n", egcidx);
            if(egcidx >= states){
              egcidx = states - 1;
            }
@@ -211,7 +212,11 @@ class ncppplot {
        if(ncplane_putwc_yx(ncp, dimy - y - 1, x, egc[sumidx]) <= 0){
          return -1;
        }
-       intervalbase += (states * interval);
+       if(exponentiali){
+         intervalbase = miny + pow(interval, y * states);
+       }else{
+         intervalbase += (states * interval);
+       }
      }
    }
    if(ncplane_cursor_move_yx(ncp, 0, 0)){
