@@ -38,9 +38,9 @@ ncplane* ncreader_plane(ncreader* n){
 }
 
 bool ncreader_offer_input(ncreader* n, const ncinput* ni){
+  int x = n->ncp->x;
+  int y = n->ncp->y;
   if(ni->id == NCKEY_BACKSPACE){
-    int x = n->ncp->x;
-    int y = n->ncp->y;
     if(n->ncp->x == 0){
       if(n->ncp->y){
         y = n->ncp->y - 1;
@@ -53,8 +53,7 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     ncplane_cursor_move_yx(n->ncp, y, x);
     return true;
   }
-  // FIXME handle arrows
-  if(nckey_supppuab_p(ni->id)){
+  if(ni->alt){ // pass on all alts
     return false;
   }
   if(ni->ctrl){
@@ -62,6 +61,49 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
       ncplane_erase(n->ncp);
       return true;
     }
+    return false; // pass on all other ctrls
+  }
+  // FIXME deal with multicolumn EGCs
+  if(ni->id == NCKEY_LEFT){
+    if(x == 0){
+      if(y){
+        x = n->ncp->lenx - 1;
+        --y;
+      }
+    }else{
+      --x;
+    }
+    ncplane_cursor_move_yx(n->ncp, y, x);
+    return true;
+  }else if(ni->id == NCKEY_RIGHT){
+    if(x == n->ncp->lenx - 1){
+      if(y < n->ncp->leny - 1){
+        ++y;
+        x = 0;
+      }
+    }else{
+      ++x;
+    }
+    ncplane_cursor_move_yx(n->ncp, y, x);
+    return true;
+  }else if(ni->id == NCKEY_UP){
+    if(y == 0){
+      x = 0;
+    }else{
+      --y;
+    }
+    ncplane_cursor_move_yx(n->ncp, y, x);
+    return true;
+  }else if(ni->id == NCKEY_DOWN){
+    if(y >= n->ncp->leny){
+      x = n->ncp->lenx - 1;
+    }else{
+      ++y;
+    }
+    ncplane_cursor_move_yx(n->ncp, y, x);
+    return true;
+  }
+  if(nckey_supppuab_p(ni->id)){
     return false;
   }
   // FIXME need to collect full EGCs
