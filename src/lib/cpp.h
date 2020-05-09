@@ -138,7 +138,7 @@ class ncppplot {
      for(int y = 0 ; y < dimy ; ++y){
        char buf[PREFIXSTRLEN + 1];
        ncmetric(interval * states * (y + 1) * 100, 100, buf, 0, 1000, '\0');
-       ncplane_putstr_yx(ncp, dimy - y - 1, PREFIXSTRLEN - strlen(buf), buf);
+       ncplane_printf_yx(ncp, dimy - y - 1, 0, "%*s", PREFIXSTRLEN, buf);
      }
    }
    if(finalx < startx){ // exit on pathologically narrow planes
