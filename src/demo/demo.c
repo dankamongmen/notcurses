@@ -479,6 +479,9 @@ int main(int argc, char** argv){
         goto err;
       }
     }
+    if(fpsgraph_init(nc)){
+      goto err;
+    }
     if(menu_create(nc) == NULL){
       goto err;
     }
@@ -491,6 +494,9 @@ int main(int argc, char** argv){
     }
     if( (start_with_hud = !!hud) ){
       if(hud_destroy()){ // destroy here since notcurses_drop_planes will kill it
+        goto err;
+      }
+      if(fpsgraph_stop(nc)){
         goto err;
       }
     }

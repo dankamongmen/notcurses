@@ -6,6 +6,9 @@
 // their mouse. it should always be on the top of the z-stack.
 struct ncplane* hud = NULL;
 
+static struct ncuplot* plot;
+static uint64_t plottimestart;
+
 // while the HUD is grabbed by the mouse, these are set to the position where
 // the grab started. they are reset once the HUD is released.
 static int hud_grab_x = -1;
@@ -428,14 +431,19 @@ int demo_render(struct notcurses* nc){
   if(about){
     ncplane_move_top(about);
   }
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  if(plot){
+    ncplane_move_top(ncuplot_plane(plot));
+    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / GIG;
+    ncuplot_add_sample(plot, ns, 1);
+  }
   if(menu){
     ncplane_move_top(ncmenu_plane(menu));
   }
   if(hud){
     const int plen = HUD_COLS - 12 - NSLEN;
     ncplane_move_top(hud);
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
     uint64_t ns = timespec_to_ns(&ts) - running->startns;
     ++running->frames;
     cell c = CELL_TRIVIAL_INITIALIZER;
@@ -460,6 +468,40 @@ int demo_render(struct notcurses* nc){
   }
   if(id == 'q'){
     return 1;
+  }
+  return 0;
+}
+
+int fpsgraph_init(struct notcurses* nc){
+  const int PLOTHEIGHT = 6;
+  int dimy, dimx;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  struct ncplane* newp = ncplane_new(nc, PLOTHEIGHT, dimx, dimy - PLOTHEIGHT, 0, NULL);
+  ncplot_options opts;
+  memset(&opts, 0, sizeof(opts));
+  opts.flags = NCPLOT_OPTIONS_LABELAXISD;
+  opts.gridtype = NCPLOT_8x1;
+  channels_set_fg_rgb(&opts.minchannel, 0x40, 0x50, 0xb0);
+  channels_set_bg_alpha(&opts.minchannel, CELL_ALPHA_TRANSPARENT);
+  channels_set_fg_rgb(&opts.maxchannel, 0x40, 0xff, 0xd0);
+  channels_set_bg_alpha(&opts.maxchannel, CELL_ALPHA_TRANSPARENT);
+  struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);
+  if(!fpsplot){
+    ncplane_destroy(newp);
+    return EXIT_FAILURE;
+  }
+  plot = fpsplot;
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  plottimestart = timespec_to_ns(&ts);
+  return 0;
+}
+
+int fpsgraph_stop(struct notcurses* nc){
+  if(plot){
+    ncuplot_destroy(plot);
+    plot = NULL;
+    notcurses_render(nc);
   }
   return 0;
 }
