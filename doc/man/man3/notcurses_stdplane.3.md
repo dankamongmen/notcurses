@@ -41,5 +41,5 @@ will always return a valid pointer to the standard plane.
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_ncplane(3)**,
+**notcurses_plane(3)**,
 **notcurses_stop(3)**

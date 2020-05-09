@@ -34,4 +34,5 @@ typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp);
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_ncplane(3)**
+**notcurses(3)**,
+**notcurses_plane(3)**

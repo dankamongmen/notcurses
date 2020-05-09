@@ -89,4 +89,4 @@ found it relevant and took an action. Otherwise, **false** is returned, and the
 
 **notcurses(3)**,
 **notcurses_input(3)**,
-**notcurses_ncplane(3)**
+**notcurses_plane(3)**

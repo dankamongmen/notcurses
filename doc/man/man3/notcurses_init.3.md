@@ -104,7 +104,7 @@ or **notcurses_render(3)** upon its receipt.
 A resize event does not invalidate any references returned earlier by
 notcurses. The content of any new screen area is undefined until the next call
 to notcurses_render(3). This is true even if an existing **struct ncplane**
-(see **notcurses_ncplane(3)**) overlaps the new area, since the signal could
+(see **notcurses_plane(3)**) overlaps the new area, since the signal could
 arrive while the ncplanes are being modified. Signal handlers are quite
 restricted as to what actions they can perform, so minimal work is performed in
 the handler proper.
@@ -128,6 +128,13 @@ across the new screen geometry.
 
 # SEE ALSO
 
-**getenv(3)**, **termios(3)**, **notcurses(3)**, **notcurses_input(3)**,
-**notcurses_ncplane(3)**, **notcurses_refresh(3)**, **notcurses_render(3)**,
-**notcurses_stop(3)**, **terminfo(5)**, **signal(7)**
+**getenv(3)**,
+**termios(3)**,
+**notcurses(3)**,
+**notcurses_input(3)**,
+**notcurses_plane(3)**,
+**notcurses_refresh(3)**,
+**notcurses_render(3)**,
+**notcurses_stop(3)**,
+**terminfo(5)**,
+**signal(7)**
