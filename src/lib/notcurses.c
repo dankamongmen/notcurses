@@ -2069,13 +2069,15 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
         if(clen){
           char* tmp = realloc(ret, retlen + clen);
           if(!tmp){
+            free(c);
             free(ret);
             return NULL;
           }
-          tmp = ret;
+          ret = tmp;
           memcpy(ret + retlen - 1, c, clen);
           retlen += clen;
         }
+        free(c);
       }
     }
     ret[retlen - 1] = '\0';
