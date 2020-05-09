@@ -23,6 +23,7 @@ TEST_CASE("ncmetric") {
   const char* decisep = localeconv()->decimal_point;
   REQUIRE(decisep);
   REQUIRE(1 ==  strlen(decisep));
+  REQUIRE(0 ==  fesetround(FE_TOWARDZERO));
 
   SUBCASE("CornerInts") {
     char buf[PREFIXSTRLEN + 1];
@@ -84,7 +85,6 @@ TEST_CASE("ncmetric") {
   }
 
   SUBCASE("Maxints1024") {
-    REQUIRE(0 ==  fesetround(FE_TOWARDZERO));
     char buf[PREFIXSTRLEN + 1], gold[PREFIXSTRLEN + 1];
     // FIXME these will change based on the size of intmax_t and uintmax_t
     ncmetric(INTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
@@ -202,7 +202,6 @@ TEST_CASE("ncmetric") {
     uintmax_t vfloor = 1;
     uintmax_t val = 1;
     size_t i = 0;
-    REQUIRE(0 ==  fesetround(FE_TOWARDZERO));
     do{
       ncmetric(val, 1, buf, 0, 1000, '\0');
       const int sidx = i / 10;
@@ -227,7 +226,6 @@ TEST_CASE("ncmetric") {
     uintmax_t vfloor = 1;
     uintmax_t val = 1;
     size_t i = 0;
-    REQUIRE(0 ==  fesetround(FE_TOWARDZERO));
     do{
       ncmetric(val, 1, buf, 0, 1024, 'i');
       const int sidx = i ? (i - 1) / 3 : 0;
@@ -252,7 +250,6 @@ TEST_CASE("ncmetric") {
     uintmax_t vfloor = 1;
     uintmax_t val = 1;
     size_t i = 0;
-    REQUIRE(0 ==  fesetround(FE_TOWARDZERO));
     do{
       ncmetric(val - 1, 1, buf, 0, 1000, '\0');
       const int sidx = i ? (i - 1) / 3 : 0;
@@ -277,7 +274,6 @@ TEST_CASE("ncmetric") {
     uintmax_t vfloor = 1;
     uintmax_t val = 1;
     size_t i = 0;
-    REQUIRE(0 == fesetround(FE_TOWARDZERO));
     do{
       ncmetric(val + 1, 1, buf, 0, 1000, '\0');
       const int sidx = i / 3;
@@ -302,7 +298,6 @@ TEST_CASE("ncmetric") {
     uintmax_t vfloor = 1;
     uintmax_t val = 1;
     size_t i = 0;
-    REQUIRE(0 == fesetround(FE_TOWARDZERO));
     do{
       ncmetric(val - 1, 1, buf, 0, 1024, 'i');
       const int sidx = i ? (i - 1) / 3 : 0;
