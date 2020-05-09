@@ -44,8 +44,8 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   // FIXME handle backspace
   // FIXME need to collect full EGCs
   char wbuf[WCHAR_MAX_UTF8BYTES + 1];
-  // FIXME breaks for wchar_t < 32bits
-  if(snprintf(wbuf, sizeof(wbuf), "%lc", (wchar_t)ni->id) >= (int)sizeof(wbuf)){
+  // FIXME breaks for wint_t < 32bits
+  if(snprintf(wbuf, sizeof(wbuf), "%lc", (wint_t)ni->id) >= (int)sizeof(wbuf)){
     return true;
   }
   if(ncplane_putegc(n->ncp, wbuf, NULL) < 0){
