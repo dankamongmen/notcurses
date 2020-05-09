@@ -19,14 +19,14 @@ TEST_CASE("Readers") {
 
   SUBCASE("ReaderBadOptions") {
     ncreader_options opts{};
-    auto nr = ncreader_create(nc_, 0, 0, &opts);
+    auto nr = ncreader_create(n_, 0, 0, &opts);
     CHECK(!nr);
     opts.physrows = 1;
-    nr = ncreader_create(nc_, 0, 0, &opts);
+    nr = ncreader_create(n_, 0, 0, &opts);
     CHECK(!nr);
     opts.physcols = 1;
     opts.physrows = 0;
-    nr = ncreader_create(nc_, 0, 0, &opts);
+    nr = ncreader_create(n_, 0, 0, &opts);
     CHECK(!nr);
   }
 
@@ -35,7 +35,7 @@ TEST_CASE("Readers") {
     opts.physrows = dimy / 2;
     opts.physcols = dimx / 2;
     opts.egc = strdup("▒");
-    auto nr = ncreader_create(nc_, 0, 0, &opts);
+    auto nr = ncreader_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != nr);
     channels_set_fg(&opts.echannels, 0xff44ff);
     ncplane_set_base(n_, opts.egc, opts.eattrword, opts.echannels);

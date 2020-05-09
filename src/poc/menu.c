@@ -109,13 +109,12 @@ int main(void){
   channels_set_bg(&mopts.headerchannels, 0x440000);
   channels_set_fg(&mopts.sectionchannels, 0xb0d700);
   channels_set_bg(&mopts.sectionchannels, 0x002000);
-  struct ncmenu* top = ncmenu_create(nc, &mopts);
+  int dimy, dimx;
+  struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
+  struct ncmenu* top = ncmenu_create(n, &mopts);
   if(top == NULL){
     goto err;
   }
-  int dimy, dimx;
-  struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
-
   uint64_t channels = 0;
   channels_set_fg(&channels, 0x88aa00);
   channels_set_bg(&channels, 0x000088);
@@ -132,8 +131,8 @@ int main(void){
 
   ncplane_erase(n);
 
-  mopts.bottom = true;
-  struct ncmenu* bottom = ncmenu_create(nc, &mopts);
+  mopts.flags |= NCMENU_OPTIONS_BOTTOM;
+  struct ncmenu* bottom = ncmenu_create(n, &mopts);
   if(bottom == NULL){
     goto err;
   }

@@ -14,25 +14,25 @@ namespace ncpp
 	class NCPP_API_EXPORT Reader : public Root
 	{
 	public:
-		explicit Reader (NotCurses *nc, int y, int x, const ncreader_options *opts)
-			: Reader (reinterpret_cast<notcurses*>(nc), y, x, opts)
+		explicit Reader (Plane *p, int y, int x, const ncreader_options *opts)
+			: Reader (reinterpret_cast<ncplane*>(p), y, x, opts)
 		{}
 
-		explicit Reader (NotCurses const* nc, int y, int x, const ncreader_options *opts)
-			: Reader (const_cast<NotCurses*>(nc), y, x, opts)
+		explicit Reader (Plane const* p, int y, int x, const ncreader_options *opts)
+			: Reader (const_cast<Plane*>(p), y, x, opts)
 		{}
 
-		explicit Reader (NotCurses &nc, int y, int x, const ncreader_options *opts)
-			: Reader (reinterpret_cast<NotCurses*>(&nc), y, x, opts)
+		explicit Reader (Plane &p, int y, int x, const ncreader_options *opts)
+			: Reader (reinterpret_cast<Plane*>(&p), y, x, opts)
 		{}
 
-		explicit Reader (NotCurses const& nc, int y, int x, const ncreader_options *opts)
-			: Reader (const_cast<NotCurses*>(&nc), y, x, opts)
+		explicit Reader (Plane const& p, int y, int x, const ncreader_options *opts)
+			: Reader (const_cast<Plane*>(&p), y, x, opts)
 		{}
 
-		explicit Reader (notcurses* nc, int y, int x, const ncreader_options *opts)
+		explicit Reader (ncplane* n, int y, int x, const ncreader_options *opts)
 		{
-			reader = ncreader_create (nc, y, x, opts);
+			reader = ncreader_create (n, y, x, opts);
 			if (reader == nullptr)
 				throw init_error ("notcurses failed to create a new reader");
 		}

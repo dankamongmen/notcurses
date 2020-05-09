@@ -20,7 +20,7 @@ TEST_CASE("MenuTest") {
   // an empty menu ought be rejected
   SUBCASE("EmptyMenuTopReject") {
     struct ncmenu_options opts{};
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr == ncm);
     CHECK(0 == notcurses_render(nc_));
     ncmenu_destroy(ncm);
@@ -28,8 +28,8 @@ TEST_CASE("MenuTest") {
 
   SUBCASE("EmptyMenuBottomReject") {
     struct ncmenu_options opts{};
-    opts.bottom = true;
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    opts.flags = NCMENU_OPTIONS_BOTTOM;
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr == ncm);
     CHECK(0 == notcurses_render(nc_));
     ncmenu_destroy(ncm);
@@ -43,7 +43,7 @@ TEST_CASE("MenuTest") {
     };
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr == ncm);
     CHECK(0 == notcurses_render(nc_));
     ncmenu_destroy(ncm);
@@ -60,7 +60,7 @@ TEST_CASE("MenuTest") {
     struct ncmenu_options opts{};
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr == ncm);
     CHECK(0 == notcurses_render(nc_));
     ncmenu_destroy(ncm);
@@ -76,7 +76,7 @@ TEST_CASE("MenuTest") {
     struct ncmenu_options opts{};
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr != ncm);
     CHECK(0 == notcurses_render(nc_));
     ncmenu_destroy(ncm);
@@ -93,7 +93,7 @@ TEST_CASE("MenuTest") {
     struct ncmenu_options opts{};
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr != ncm);
     CHECK(0 == notcurses_render(nc_));
   }
@@ -113,7 +113,7 @@ TEST_CASE("MenuTest") {
     struct ncmenu_options opts{};
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr != ncm);
     CHECK(0 == notcurses_render(nc_));
     ncmenu_destroy(ncm);
@@ -127,7 +127,7 @@ TEST_CASE("MenuTest") {
     struct ncmenu_options opts{};
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr == ncm);
   }
 
@@ -149,7 +149,7 @@ TEST_CASE("MenuTest") {
     struct ncmenu_options opts{};
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr == ncm);
   }
 
@@ -167,7 +167,7 @@ TEST_CASE("MenuTest") {
     struct ncmenu_options opts{};
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
-    struct ncmenu* ncm = ncmenu_create(nc_, &opts);
+    struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr != ncm);
     CHECK(0 == notcurses_render(nc_));
     ncmenu_destroy(ncm);

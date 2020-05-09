@@ -1,15 +1,15 @@
 #include "internal.h"
 
-ncreader* ncreader_create(notcurses* nc, int y, int x, const ncreader_options* opts){
+ncreader* ncreader_create(ncplane* n, int y, int x, const ncreader_options* opts){
   if(opts->physrows <= 0 || opts->physcols <= 0){
     return NULL;
   }
-  if(opts->scroll){
-    return NULL; // FIXME not yet handled
+  if(opts->flags){
+    return NULL; // FIXME none yet handled
   }
   ncreader* nr = malloc(sizeof(*nr));
   if(nr){
-    nr->ncp = ncplane_new(nc, opts->physrows, opts->physcols, y, x, NULL);
+    nr->ncp = ncplane_new(n->nc, opts->physrows, opts->physcols, y, x, NULL);
     if(!nr->ncp){
       free(nr);
       return NULL;

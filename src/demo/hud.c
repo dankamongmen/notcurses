@@ -213,14 +213,13 @@ struct ncmenu* menu_create(struct notcurses* nc){
   channels_set_bg(&headerchannels, 0x7f347f);
   channels_set_bg_alpha(&headerchannels, CELL_ALPHA_BLEND);
   const ncmenu_options mopts = {
-    .bottom = false,
-    .hiding = false,
     .sections = sections,
     .sectioncount = sizeof(sections) / sizeof(*sections),
     .headerchannels = headerchannels,
     .sectionchannels = sectionchannels,
+    .flags = 0,
   };
-  menu = ncmenu_create(nc, &mopts);
+  menu = ncmenu_create(notcurses_stdplane(nc), &mopts);
   return menu;
 }
 

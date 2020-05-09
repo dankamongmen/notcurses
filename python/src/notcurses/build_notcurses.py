@@ -378,8 +378,9 @@ typedef struct ncmenu_options {
   int sectioncount;         // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
+  unsigned flags;           // bitfield over NCMENU_OPTIONS_*
 } ncmenu_options;
-struct ncmenu* ncmenu_create(struct notcurses* nc, const ncmenu_options* opts);
+struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts);
 int ncmenu_unroll(struct ncmenu* n, int sectionidx);
 int ncmenu_rollup(struct ncmenu* n);
 int ncmenu_nextsection(struct ncmenu* n);
