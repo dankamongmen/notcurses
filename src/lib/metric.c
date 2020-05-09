@@ -4,19 +4,6 @@
 #include <pthread.h>
 #include "notcurses/notcurses.h"
 
-static const char* decisep;
-static pthread_once_t ponce = PTHREAD_ONCE_INIT;
-
-static void
-convinit(void){
-  struct lconv* conv = localeconv();
-  if(conv == NULL){
-    return;
-  }
-  decisep = conv->decimal_point;
-  fesetround(FE_TOWARDZERO);
-}
-
 const char *ncmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
                      unsigned mul, int uprefix){
   const unsigned mult = mul; // FIXME kill
@@ -26,10 +13,7 @@ const char *ncmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
   unsigned consumed = 0;
   uintmax_t dv;
 
-  pthread_once(&ponce, convinit);
-  if(decisep == NULL){
-    return NULL;
-  }
+  fesetround(FE_TOWARDZERO);
   if(decimal == 0 || mult == 0){
     return NULL;
   }
