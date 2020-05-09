@@ -522,19 +522,19 @@ int fpsgraph_init(struct notcurses* nc){
   uint32_t attrword = 0;
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_fg(&channels, 0x104010);
+  channels_set_fg(&channels, 0x201020);
   channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_bg(&channels, 0x104010);
+  channels_set_bg(&channels, 0x201020);
   ncplane_set_base(newp, "", attrword, channels);
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTIONS_LABELTICKSD | NCPLOT_OPTIONS_EXPONENTIALD;
   opts.gridtype = NCPLOT_8x1;
-  channels_set_fg_rgb(&opts.minchannel, 0x40, 0x50, 0xb0);
-  channels_set_bg(&opts.minchannel, 0x104010);
+  channels_set_fg_rgb(&opts.minchannel, 0x40, 0x50, 0x40);
+  channels_set_bg(&opts.minchannel, 0x201020);
   channels_set_bg_alpha(&opts.minchannel, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb(&opts.maxchannel, 0x40, 0xff, 0xd0);
-  channels_set_bg(&opts.maxchannel, 0x104010);
+  channels_set_fg_rgb(&opts.maxchannel, 0xd0, 0xff, 0xd0);
+  channels_set_bg(&opts.maxchannel, 0x201020);
   channels_set_bg_alpha(&opts.maxchannel, CELL_ALPHA_BLEND);
   struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);
   if(!fpsplot){
