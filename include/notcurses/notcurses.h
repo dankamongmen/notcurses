@@ -2842,6 +2842,10 @@ API char* ncreader_contents(const struct ncreader* n);
 // UTF-8 input will be heap-duplicated and written to 'contents'.
 API void ncreader_destroy(struct ncreader* n, char** contents);
 
+// Dump selected notcurses state to the supplied 'debugfp'. Output is freeform,
+// and subject to change. It includes geometry of all planes.
+API void notcurses_debug(struct notcurses* nc, FILE* debugfp);
+
 #undef API
 
 #ifdef __cplusplus
