@@ -418,6 +418,19 @@ summary_table(struct ncdirect* nc, const char* spec){
   return failed;
 }
 
+static int
+scrub_stdplane(struct notcurses* nc){
+  struct ncplane* n = notcurses_stdplane(nc);
+  uint64_t channels = 0;
+  channels_set_fg(&channels, 0); // explicit black + opaque
+  channels_set_bg(&channels, 0);
+  if(ncplane_set_base(n, "", 0, channels)){
+    return -1;
+  }
+  ncplane_erase(n);
+  return 0;
+}
+
 int main(int argc, char** argv){
   if(!setlocale(LC_ALL, "")){
     fprintf(stderr, "Couldn't set locale based on user preferences\n");
@@ -472,6 +485,9 @@ int main(int argc, char** argv){
     restart_demos = false;
     interrupted = false;
     notcurses_drop_planes(nc);
+    if(scrub_stdplane(nc)){
+      goto err;
+    }
     if(!hud_create(nc)){
       goto err;
     }
