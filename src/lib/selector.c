@@ -495,7 +495,7 @@ ncmultiselector_draw(ncmultiselector* n){
     if(printidx == n->current){
       n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
     }
-    if(enforce_utf8(n->ncp->nc)){
+    if(notcurses_canutf8(n->ncp->nc)){
       ncplane_putegc_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? "☒" : "☐", NULL);
     }else{
       ncplane_putsimple_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? 'X' : '-');

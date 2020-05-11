@@ -1031,6 +1031,9 @@ API bool notcurses_canchangecolor(const struct notcurses* nc);
 // Can we load images/videos? This requires being built against FFmpeg.
 API bool notcurses_canopen(const struct notcurses* nc);
 
+// Is our encoding UTF-8?
+API bool notcurses_canutf8(const struct notcurses* nc);
+
 typedef struct ncstats {
   // purely increasing stats
   uint64_t renders;          // number of successful notcurses_render() runs

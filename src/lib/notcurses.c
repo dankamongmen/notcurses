@@ -1844,6 +1844,10 @@ int notcurses_mouse_disable(notcurses* n){
                    n->ttyfp, true);
 }
 
+bool notcurses_canutf8(const notcurses* nc){
+  return nc->utf8;
+}
+
 bool notcurses_canfade(const notcurses* nc){
   return nc->CCCflag || nc->RGBflag;
 }
@@ -2130,7 +2134,7 @@ int cells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 
 int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                      cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
-  if(enforce_utf8(n->nc)){
+  if(notcurses_canutf8(n->nc)){
     return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
   }
   return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
@@ -2138,7 +2142,7 @@ int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 
 int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                       cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
-  if(enforce_utf8(n->nc)){
+  if(notcurses_canutf8(n->nc)){
     return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
   }
   return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);

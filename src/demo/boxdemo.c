@@ -26,26 +26,34 @@ reload_corners(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr){
   return 0;
 }
 
-int box_demo(struct notcurses* nc){
-  int ylen, xlen;
-  struct ncplane* n = notcurses_stddim_yx(nc, &ylen, &xlen);
-  ncplane_erase(n);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-  cell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+static int
+ascii_target(struct ncplane* n, int ytargbase){
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "/-----\\") < 0){
     return -1;
   }
-  // target grid is 7x7
-  const int targx = 7;
-  const int targy = 7;
-  int ytargbase = (ylen - targy) / 2;
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
-  cell_set_bg_default(&c);
-  ncplane_set_base_cell(n, &c);
-  cell_release(n, &c);
-  ncplane_set_fg_rgb(n, 180, 40, 180);
-  ncplane_set_bg_default(n);
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "|/---\\|") < 0){
+    return -1;
+  }
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "||\\|/||") < 0){
+    return -1;
+  }
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "||-X-||") < 0){
+    return -1;
+  }
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "||/|\\||") < 0){
+    return -1;
+  }
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "|\\---/|") < 0){
+    return -1;
+  }
+  if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "\\-----/") < 0){
+    return -1;
+  }
+  return 0;
+}
+
+static int
+utf8_target(struct ncplane* n, int ytargbase){
   if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┏━━┳━━┓") < 0){
     return -1;
   }
@@ -66,6 +74,38 @@ int box_demo(struct notcurses* nc){
   }
   if(ncplane_putstr_aligned(n, ytargbase++, NCALIGN_CENTER, "┗━━┻━━┛") < 0){
     return -1;
+  }
+  return 0;
+}
+
+int box_demo(struct notcurses* nc){
+  int ylen, xlen;
+  struct ncplane* n = notcurses_stddim_yx(nc, &ylen, &xlen);
+  ncplane_erase(n);
+  cell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
+  cell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+  // target grid is 7x7
+  const int targx = 7;
+  const int targy = 7;
+  int ytargbase = (ylen - targy) / 2;
+  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  cell_set_bg_default(&c);
+  ncplane_set_base_cell(n, &c);
+  cell_release(n, &c);
+  ncplane_set_fg_rgb(n, 180, 40, 180);
+  ncplane_set_bg_default(n);
+  if(notcurses_canutf8(nc)){
+    if(utf8_target(n, ytargbase)){
+      return -1;
+    }
+  }else{
+    if(ascii_target(n, ytargbase)){
+      return -1;
+    }
   }
   if(cell_set_fg_rgb(&ul, 0xff, 0, 0)){
     return -1;
