@@ -34,7 +34,11 @@ TEST_CASE("Readers") {
     ncreader_options opts{};
     opts.physrows = dimy / 2;
     opts.physcols = dimx / 2;
-    opts.egc = strdup("▒");
+    if(enforce_utf8()){
+      opts.egc = strdup("▒");
+    }else{
+      opts.egc = strdup("x");
+    }
     auto nr = ncreader_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != nr);
     channels_set_fg(&opts.echannels, 0xff44ff);
