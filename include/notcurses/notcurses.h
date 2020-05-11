@@ -2008,11 +2008,9 @@ cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
   return -1;
 }
 
-static inline int
-cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                  cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
-  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
-}
+API int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                          cell* ul, cell* ur, cell* ll, cell* lr,
+                          cell* hl, cell* vl);
 
 static inline int
 ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
@@ -2039,11 +2037,9 @@ ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
                              x + xlen - 1, ctlword);
 }
 
-static inline int
-cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                 cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
-  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
-}
+API int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                         cell* ul, cell* ur, cell* ll, cell* lr,
+                         cell* hl, cell* vl);
 
 static inline int
 ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
