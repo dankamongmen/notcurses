@@ -19,6 +19,7 @@ is available for free download, or [paperback purchase](https://amazon.com/dp/B0
 Notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/),
 and from [Debian Unstable](https://packages.debian.org/source/sid/notcurses).
 Packages for Fedora 33 and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
+Notcurses is available from the FreeBSD [Ports Collection](https://www.freshports.org/devel/notcurses/).
 
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -112,7 +113,7 @@ that fine library.
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+
 * (OPTIONAL) (rust bindings): rust 1.40.0+, cargo 0.40.0+, [bindgen](https://crates.io/crates/bindgen) 0.53.0+
-* (runtime) Linux 5.3+
+* (runtime) Linux 5.3+ or FreeBSD 12+
 
 ### Building
 
@@ -329,7 +330,8 @@ up someday **FIXME**.
 
 ### History
 
-* 2020-05-10: Notcurses [1.4.0 "the saga continues"](https://github.com/dankamongmen/notcurses/releases/tag/v1.4.0).)
+* 2020-05-10: Notcurses [1.4.0 "the saga continues"](https://github.com/dankamongmen/notcurses/releases/tag/v1.4.0).
+* 2020-05-09: Notcurses is [accepted into FreeBSD](https://github.com/dankamongmen/notcurses/issues/575).
 * 2020-04-19: Notcurses is [accepted into Debian](https://bugs.debian.org/950492).
 * 2020-04-12: Notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
   * A new [hype video](https://vimeo.com/410787965) is never really publicized.
