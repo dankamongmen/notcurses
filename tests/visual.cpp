@@ -1,11 +1,8 @@
 #include "main.h"
 #include <vector>
 
-TEST_CASE("Multimedia") {
+TEST_CASE("Visual") {
   if(getenv("TERM") == nullptr){
-    return;
-  }
-  if(!enforce_utf8()){
     return;
   }
   notcurses_options nopts{};
@@ -133,7 +130,7 @@ TEST_CASE("Multimedia") {
     std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
     auto ncv = ncvisual_from_rgba(nc_, rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
-    CHECK(dimx * dimy == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
@@ -145,7 +142,7 @@ TEST_CASE("Multimedia") {
     std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
     auto ncv = ncvisual_from_bgra(nc_, rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
-    CHECK(dimx * dimy == ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
