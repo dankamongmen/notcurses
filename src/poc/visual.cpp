@@ -21,7 +21,11 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&opts, stdout)) == nullptr){
     return EXIT_FAILURE;
   }
-  struct ncplane* n = notcurses_stdplane(nc);
+  struct ncplane* n = ncplane_dup(notcurses_stdplane(nc), nullptr);
+  if(!n){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   int dimx, dimy;
   ncplane_dim_yx(n, &dimy, &dimx);
   bool failed = false;
