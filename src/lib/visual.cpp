@@ -105,8 +105,9 @@ auto ncvisual_create(float timescale) -> ncvisual* {
   return ret;
 }
 
-auto ncvisual_from_plane(ncplane* n) -> ncvisual* {
-  uint32_t* rgba = ncplane_rgba(n, 0, 0, -1, -1);
+auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int lenx)
+                         -> ncvisual* {
+  uint32_t* rgba = ncplane_rgba(n, begx, begy, leny, lenx);
   if(rgba == nullptr){
     return nullptr;
   }
@@ -118,8 +119,8 @@ auto ncvisual_from_plane(ncplane* n) -> ncvisual* {
     return nullptr;
   }
   ncplane_destroy(ncv->ncp);
-  ncv->ncp = n;
-  ncv->ncobj = nullptr;
+  ncv->ncp = ncplane_dup(n, nullptr);
+  ncv->ncobj = n->nc;
   return ncv;
 }
 

@@ -3,6 +3,13 @@ rearrangements of Notcurses.
 
 * 1.4.2 (not yet released)
   * Added `notcurses_canutf8()`, to verify use of UTF-8 encoding.
+  * Fixed bug in `ncvisual_from_plane()` when invoked on the standard plane.
+  * `ncvisual_from_plane()` now accepts the same four geometric parameters
+    as other plane selectors. To reproduce the old behavior, for `ncv`, call
+    it as `ncvisual_from_plane(ncv, 0, 0, -1, -1)`.
+  * `ncvisual_from_plane()`, `ncplane_move_below_unsafe()`, `ncplane_dup()`,
+    and `ncplane_move_above_unsafe()` now accept `const` arguments where they
+    did not before.
 
 * 1.4.1 (2020-05-11)
   * No user-visible changes (fixed two unit tests).

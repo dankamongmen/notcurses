@@ -990,7 +990,7 @@ API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparen
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 // The new plane will be immediately above the old one on the z axis.
-API struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
+API struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
@@ -1126,7 +1126,7 @@ API int ncplane_move_bottom(struct ncplane* n);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 API int ncplane_move_above_unsafe(struct ncplane* RESTRICT n,
-                                  struct ncplane* RESTRICT above);
+                                  const struct ncplane* RESTRICT above);
 
 static inline int
 ncplane_move_above(struct ncplane* n, struct ncplane* above){
@@ -1138,7 +1138,7 @@ ncplane_move_above(struct ncplane* n, struct ncplane* above){
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
 API int ncplane_move_below_unsafe(struct ncplane* RESTRICT n,
-                                  struct ncplane* RESTRICT below);
+                                  const struct ncplane* RESTRICT below);
 
 static inline int
 ncplane_move_below(struct ncplane* n, struct ncplane* below){
@@ -2802,7 +2802,8 @@ API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size
 // in a NULL being returned. This function exists so that planes can be
 // subjected to ncvisual transformations. If possible, it's usually better
 // to create the ncvisual from memory using ncvisual_from_rgba().
-API struct ncvisual* ncvisual_from_plane(struct ncplane* n);
+API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
+                          int begy, int begx, int leny, int lenx);
 
 #define NCREADER_OPTION_HORSCROLL  0x0001
 #define NCREADER_OPTION_VERSCROLL  0x0002

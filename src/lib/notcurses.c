@@ -367,7 +367,7 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   return 0;
 }
 
-ncplane* ncplane_dup(ncplane* n, void* opaque){
+ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimy = n->leny;
   int dimx = n->lenx;
   int aty = n->absy;
@@ -383,8 +383,8 @@ ncplane* ncplane_dup(ncplane* n, void* opaque){
       return NULL;
     }else{
       ncplane_cursor_move_yx(newn, y, x);
-      n->attrword = attr;
-      n->channels = chan;
+      newn->attrword = attr;
+      newn->channels = chan;
       ncplane_move_above_unsafe(newn, n);
       memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
     }
@@ -499,7 +499,7 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
 // find the pointer on the z-index referencing the specified plane. writing to
 // this pointer will remove the plane (and everything below it) from the stack.
 static ncplane**
-find_above_ncplane(ncplane* n){
+find_above_ncplane(const ncplane* n){
   notcurses* nc = n->nc;
   ncplane** above = &nc->top;
   while(*above){
@@ -1189,7 +1189,7 @@ const char* cell_extended_gcluster(const ncplane* n, const cell* c){
 }
 
 // 'n' ends up above 'above'
-int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
+int ncplane_move_above_unsafe(ncplane* restrict n, const ncplane* restrict above){
   if(n->z == above){
     return 0;
   }
@@ -1201,24 +1201,37 @@ int ncplane_move_above_unsafe(ncplane* restrict n, ncplane* restrict above){
   if(aa == NULL){
     return -1;
   }
+  ncplane* deconst_above = *aa;
   *an = n->z; // splice n out
-  n->z = above; // attach above below n
+  n->z = deconst_above; // attach above below n
   *aa = n; // spline n in above
   return 0;
 }
 
 // 'n' ends up below 'below'
-int ncplane_move_below_unsafe(ncplane* restrict n, ncplane* restrict below){
+int ncplane_move_below_unsafe(ncplane* restrict n, const ncplane* restrict below){
   if(below->z == n){
     return 0;
   }
-  ncplane** an = find_above_ncplane(n);
+  ncplane* deconst_below = NULL;
+  ncplane** an = &n->nc->top;
+  // go down, looking for n and below. if we find below, mark it. if we
+  // find n, break from the loop.
+  while(*an){
+    if(*an == below){
+      deconst_below = *an;
+    }else if(*an == n){
+      *an = n->z; // splice n out
+    }
+  }
   if(an == NULL){
     return -1;
   }
-  *an = n->z; // splice n out
-  n->z = below->z; // reattach subbelow list to n
-  below->z = n; // splice n in below
+  while(deconst_below != below){
+    deconst_below = deconst_below->z;
+  }
+  n->z = deconst_below->z; // reattach subbelow list to n
+  deconst_below->z = n; // splice n in below
   return 0;
 }
 
@@ -2054,7 +2067,7 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
         // FIXME how do we deal with transparency?
         uint32_t frgba = (fr << 24u) + (fg << 16u) + (fb << 8u) + 0xff;
         uint32_t brgba = (br << 24u) + (bg << 16u) + (bb << 8u) + 0xff;
-        if(strcmp(c, " ") == 0){
+        if((strcmp(c, " ") == 0) || (strcmp(c, "") == 0)){
           *top = *bot = brgba;
         }else if(strcmp(c, "▄") == 0){
           *top = frgba;

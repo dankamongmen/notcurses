@@ -36,6 +36,7 @@ offset(uint32_t* rgba, int y, int x, int dx){
 int normal_demo(struct notcurses* nc){
   int dy, dx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dy, &dx);
+  ncplane_erase(n);
   dy *= VSCALE; // double-block trick means both 2x resolution and even linecount yay
   uint32_t* rgba = malloc(sizeof(*rgba) * dy * dx);
   if(!rgba){
@@ -66,5 +67,20 @@ int normal_demo(struct notcurses* nc){
     DEMO_RENDER(nc);
   }
   free(rgba);
+  struct ncvisual* ncv = ncvisual_from_plane(n, 0, 0, -1, -1);
+  if(!ncv){
+    return -1;
+  }
+  // FIXME use smaller rotations once supported
+  for(int i = 1 ; i < 4 ; ++i){
+    if(ncvisual_rotate(ncv, M_PI / 2)){
+      return -1;
+    }
+    if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
+      return -1;
+    }
+    DEMO_RENDER(nc);
+  }
+  ncvisual_destroy(ncv);
   return 0;
 }
