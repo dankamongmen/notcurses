@@ -71,8 +71,7 @@ int normal_demo(struct notcurses* nc){
   if(!ncv){
     return -1;
   }
-  // FIXME use smaller rotations once supported
-  for(int i = 1 ; i < 4 ; ++i){
+  for(int i = 1 ; i < 100 ; ++i){
     if(ncvisual_rotate(ncv, M_PI / 2)){
       return -1;
     }

@@ -113,7 +113,8 @@ auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int len
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  struct ncvisual* ncv = ncvisual_from_rgba(n->nc, rgba, n->leny, n->lenx * 4, n->lenx);
+  // FIXME needs to make use of begy, begx, leny, lenx!
+  auto* ncv = ncvisual_from_rgba(n->nc, rgba, n->leny, n->lenx * 4, n->lenx);
   if(ncv == nullptr){
     free(rgba);
     return nullptr;
@@ -155,83 +156,75 @@ auto ncvisual_setplane(ncvisual* ncv, ncplane* n) -> int {
   return ret;
 }
 
-// pi/2 rads counterclockwise
-static int
-ncvisual_rotate_ccw(struct ncvisual* ncv){
-  if(ncv->data == nullptr){
-    return -1;
-  }
-  ncplane* n = ncvisual_plane(ncv);
-  ncplane* newp = rotate_plane(n);
-  if(newp == nullptr){
-    return -1;
-  }
-  assert(ncv->rowstride / 4 >= ncv->dstwidth);
-  auto data = static_cast<uint32_t*>(malloc(ncv->dstheight * ncv->dstwidth * 4));
-  if(data == nullptr){
-    ncplane_destroy(newp);
-    return -1;
-  }
-  // Each row of the target plane is taken from a column of the source plane.
-  // As the target row grows (down), the source column shrinks (moves left).
-  // work from the top to bottom and left to right of the dest. min y goes to
-  // min x. max y goes to max x. max x goes to min y. min x goes to max y.
-  for(int targy = 0 ; targy < ncv->dstwidth ; ++targy){
-    for(int targx = 0 ; targx < ncv->dstheight ; ++targx){
-      const int x = ncv->dstwidth - 1 - targy;
-      const int y = targx;
-//fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
-      data[targy * ncv->dstheight + targx] = ncv->data[y * (ncv->rowstride / 4) + x];
-//fprintf(stderr, "CCW: %d/%d -> %d/%d\n", y, x, targy, targx);
+// if we're rotating around our center, we can't require any radius greater
+// than our longer length. rotation can thus be held entirely within a square
+// plane having length of our longest length. after one rotation, this decays
+// to the same square throughout any rotations.
+static auto
+rotate_new_geom(ncvisual* ncv, double rads, double *stheta, double *ctheta) -> int {
+  *stheta = sin(rads);
+  *ctheta = cos(rads);
+  const int scaledy = ncv->ncp->leny * encoding_vert_scale(ncv);
+  const int diam = scaledy < ncv->ncp->lenx ? ncv->ncp->lenx : scaledy;
+//fprintf(stderr, "rotating %d -> %d / %d\n", ncv->ncp->leny, scaledy, ncv->ncp->lenx);
+  if(ncv->ncp->lenx != scaledy){
+    if(ncplane_resize_simple(ncv->ncp, diam / encoding_vert_scale(ncv), diam) < 0){
+      return -1;
     }
   }
-  int ret = ncplane_destroy(n);
-  ncvisual_set_data(ncv, data, true);
-  int tmp = ncv->dstwidth;
-  ncv->dstwidth = ncv->dstheight;
-  ncv->dstheight = tmp;
-  ncv->rowstride = ncv->dstwidth * 4;
-  ncv->ncp = newp;
-  return ret;
+  return diam;
 }
 
-auto ncvisual_rotate(struct ncvisual* ncv, double rads) -> int {
-  if(rads == -M_PI / 2){
-    return ncvisual_rotate_ccw(ncv);
-  }
-  if(rads != M_PI / 2){
-    return -1;
-  }
+auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   if(ncv->data == nullptr){
     return -1;
   }
+  double stheta, ctheta; // sine, cosine
+  auto diam = rotate_new_geom(ncv, rads, &stheta, &ctheta);
+  if(diam <= 0){
+    return -1;
+  }
   ncplane* n = ncvisual_plane(ncv);
-  ncplane* newp = rotate_plane(n);
+  ncplane* newp = rotate_plane(n); // FIXME how to resize properly?
   if(newp == nullptr){
     return -1;
   }
+  // pixel diameter
+  int pdiam = ncv->dstheight > ncv->dstwidth ? ncv->dstheight : ncv->dstwidth;
 //fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
-  auto data = static_cast<uint32_t*>(malloc(ncv->dstheight * ncv->dstwidth * 4));
+  auto data = static_cast<uint32_t*>(malloc(pdiam * pdiam * 4));
   if(data == nullptr){
     ncplane_destroy(newp);
     return -1;
   }
   // targy <- x, targx <- ncv->dstheight - y - 1
-  for(int targy = 0 ; targy < ncv->dstwidth ; ++targy){
-    for(int targx = 0 ; targx < ncv->dstheight ; ++targx){
-      const int x = targy;
-      const int y = ncv->dstheight - 1 - targx;
+  int centx = ncv->dstwidth / 2; // pixel center
+  int centy = ncv->dstheight / 2;
+//fprintf(stderr, "DIAM: %d CENTER: %d/%d LEN: %d/%d\n", diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
+  for(int y = 0 ; y < ncv->dstheight ; ++y){
+      for(int x = 0 ; x < ncv->dstwidth ; ++x){
+      const int convy = y - centy; // converted coordinates
+      const int convx = x - centx;
+      const int targy = convx * stheta + convy * ctheta;
+      const int targx = convx * ctheta + convy * stheta;
+      const int deconvy = targy + pdiam / 2;
+      const int deconvx = targx + pdiam / 2;
+//fprintf(stderr, "%d/%d -> %d/%d -> %d/%d -> %d/%d\n", y, x, convy, convx, targy, targx, deconvy, deconvx);
+assert(deconvy >= 0);
+assert(deconvx >= 0);
+assert(deconvy < pdiam);
+assert(deconvx < pdiam);
+      data[deconvy * pdiam + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
-      data[targy * ncv->dstheight + targx] = ncv->data[y * (ncv->rowstride / 4) + x];
+//      data[targy * ncv->dstheight + targx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->dstheight + targx], targy * ncv->dstheight + targx, (targy * ncv->dstheight + targx) * 4);
     }
   }
   int ret = ncplane_destroy(n);
   ncvisual_set_data(ncv, data, true);
-  int tmp = ncv->dstwidth;
-  ncv->dstwidth = ncv->dstheight;
-  ncv->dstheight = tmp;
+  ncv->dstwidth = pdiam;
+  ncv->dstheight = pdiam;
   ncv->rowstride = ncv->dstwidth * 4;
   ncv->ncp = newp;
   return ret;
@@ -243,6 +236,7 @@ auto ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
     return nullptr;
   }
   ncvisual* ncv = ncvisual_create(1);
+  set_encoding_vert_scale(nc, ncv);
 //fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
   ncv->rowstride = rowstride;
   ncv->ncobj = nc;
@@ -800,7 +794,7 @@ nc_err_e ncvisual_decode(ncvisual* nc){
   return NCERR_UNIMPLEMENTED;
 }
 
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
                     float timespec, streamcb streamer, void* curry){
   (void)nc;
   (void)ncv;
@@ -986,7 +980,7 @@ nc_err_e ncvisual_decode(ncvisual* nc){
   return NCERR_SUCCESS;
 }
 
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
                     float timescale, streamcb streamer, void* curry){
   *ncerr = NCERR_SUCCESS;
   int frame = 1;
