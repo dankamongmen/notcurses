@@ -150,6 +150,7 @@ previous action.
 **notcurses_palette(3)**,
 **notcurses_plane(3)**,
 **notcurses_plot(3)**,
+**notcurses_reader(3)**,
 **notcurses_reel(3)**,
 **notcurses_refresh(3)**,
 **notcurses_render(3)**,

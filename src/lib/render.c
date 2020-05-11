@@ -127,12 +127,13 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 // for equality. if they are equal, return 0. otherwise, dup the second onto
 // the first and return non-zero.
 static int
-cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
-                   const cell* srccell){
+cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
+                   const ncplane* srcplane, const cell* srccell){
+
   if(damcell->attrword == srccell->attrword){
     if(damcell->channels == srccell->channels){
-      bool damsimple = cell_simple_p(damcell);
       bool srcsimple = cell_simple_p(srccell);
+      bool damsimple = cell_simple_p(damcell);
       if(damsimple == srcsimple){
         if(damsimple){
           if(damcell->gcluster == srccell->gcluster){
@@ -832,7 +833,7 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
 
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
-//  * rasterize -- build up a UTF-8 stream of escapes and EGCs
+//  * rasterize -- build up a UTF-8/ASCII stream of escapes and EGCs
 //  * refresh -- write the stream to the emulator
 
 // Takes a rendered frame (a flat framebuffer, where each cell has the desired

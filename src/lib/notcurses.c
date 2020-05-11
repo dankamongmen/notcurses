@@ -828,23 +828,36 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
     const char* locale = setlocale(LC_ALL, NULL);
     if(locale && (!strcmp(locale, "C") || !strcmp(locale, "POSIX"))){
-      if(!(locale = setlocale(LC_ALL, ""))){
-        fprintf(stderr, "Couldn't set locale based off LANG\n");
+      const char* lang = getenv("LANG");
+      if(lang){
+        // if LANG was explicitly set to C/POSIX, roll with it
+        if(strcmp(locale, "C") && strcmp(locale, "POSIX")){
+          if(!locale){ // otherwise, generate diagnostic
+            fprintf(stderr, "Couldn't set locale based off LANG %s\n", lang);
+          }else{
+            fprintf(stderr, "Set %s locale from LANG; client should call setlocale(2)!\n",
+                    lang ? lang : "???");
+          }
+        }
       }else{
-        fprintf(stderr, "Set locale based off LANG.\n You should call setlocale(2)\n");
+        fprintf(stderr, "No LANG environment variable was set, ick :/\n");
       }
     }
   }
-  const char* encoding = nl_langinfo(CODESET);
-  if(encoding == NULL || (strcmp(encoding, "ANSI_X3.4-1968") && strcmp(encoding, "UTF-8"))){
-    fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
-            encoding ? encoding : "none found");
-    return NULL;
-  }
-  struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
+  }
+  const char* encoding = nl_langinfo(CODESET);
+  if(encoding && strcmp(encoding, "UTF-8") == 0){
+    ret->utf8 = true;
+  }else if(encoding && strcmp(encoding, "ANSI_X3.4-1968") == 0){
+    ret->utf8 = false;
+  }else{
+    fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
+            encoding ? encoding : "none found");
+    free(ret);
+    return NULL;
   }
   bool own_outfp = false;
   if(outfp == NULL){
@@ -894,6 +907,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+  struct termios modtermios;
   memcpy(&modtermios, &ret->tpreserved, sizeof(modtermios));
   // see termios(3). disabling ECHO and ICANON means input will not be echoed
   // to the screen, input is made available without enter-based buffering, and

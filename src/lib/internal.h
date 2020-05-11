@@ -333,6 +333,7 @@ typedef struct notcurses {
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   bool ownttyfp;  // do we own ttyfp (and thus must close it?)
+  bool utf8;      // are we using utf-8 encoding, as hoped?
 } notcurses;
 
 void sigwinch_handler(int signo);
@@ -626,17 +627,9 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
 
 int update_term_dimensions(int fd, int* rows, int* cols);
 
-// might not be particularly fast, use sparingly, ideally once
 static inline bool
-enforce_utf8(void){
-  char* enc = nl_langinfo(CODESET);
-  if(!enc){
-    return false;
-  }
-  if(strcmp(enc, "UTF-8")){
-    return false;
-  }
-  return true;
+enforce_utf8(const notcurses* nc){
+  return nc->utf8;
 }
 
 struct ncvisual* ncvisual_create(float timescale);
