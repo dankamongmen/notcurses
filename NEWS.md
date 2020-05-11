@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.4.2 (not yet released)
+  * Blending functions are no longer exported (they were never meant to be).
+  * Blending has been substantially sped up.
+
 * 1.4.1 (2020-05-11)
   * No user-visible changes (fixed two unit tests).
 

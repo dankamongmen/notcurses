@@ -78,6 +78,26 @@ typedef struct ncplane {
   bool scrolling;       // is scrolling enabled? always disabled by default
 } ncplane;
 
+// Extracellular state for a cell during the render process. This array is
+// passed along to rasterization, which uses only the 'damaged' bools.
+struct crender {
+  ncplane *p;
+  unsigned fgblends;
+  unsigned bgblends;
+  bool damaged;       // also used in rasterization
+  // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
+  // background is locked in. set highcontrast to indicate this.
+  bool highcontrast;
+  // Keep running sums of blended channels, to avoid doing multiple
+  // multiplications and divisions while rendering (we do one at end)
+  unsigned frsum;      // current sum of r/g/b components when blended
+  unsigned fgsum;      // divide by fgblends to get true values
+  unsigned fbsum;
+  unsigned brsum;      // current sum of r/g/b components when blended
+  unsigned bgsum;      // divide by bgblends to get true values
+  unsigned bbsum;
+};
+
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
 typedef struct renderstate {
@@ -333,6 +353,7 @@ typedef struct notcurses {
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   bool ownttyfp;  // do we own ttyfp (and thus must close it?)
+  bool utf8;      // are we using utf-8 encoding?
 } notcurses;
 
 void sigwinch_handler(int signo);
@@ -626,17 +647,9 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
 
 int update_term_dimensions(int fd, int* rows, int* cols);
 
-// might not be particularly fast, use sparingly, ideally once
 static inline bool
-enforce_utf8(void){
-  char* enc = nl_langinfo(CODESET);
-  if(!enc){
-    return false;
-  }
-  if(strcmp(enc, "UTF-8")){
-    return false;
-  }
-  return true;
+enforce_utf8(const notcurses* nc){
+  return nc->utf8;
 }
 
 struct ncvisual* ncvisual_create(float timescale);
@@ -654,6 +667,53 @@ memdup(const void* src, size_t len){
 ncplane* rotate_plane(const ncplane* n);
 
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
+
+// Returns the result of blending two channels. 'blends' indicates how heavily
+// 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
+// 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
+// since we can't blend default colors. Likewise, if 'c2' is a default color,
+// it will not be used (unless 'blends' is 0).
+//
+// Palette-indexed colors do not blend, and since we need the attrword to store
+// them, we just don't fuck wit' 'em here. Do not pass me palette-indexed
+// channels! I will eat them.
+static inline unsigned
+channels_blend(unsigned c1, unsigned c2, unsigned* blends){
+  if(channel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
+    return c1; // do *not* increment *blends
+  }
+  unsigned rsum, gsum, bsum;
+  channel_rgb(c2, &rsum, &gsum, &bsum);
+  bool c2default = channel_default_p(c2);
+  if(*blends == 0){
+    // don't just return c2, or you set wide status and all kinds of crap
+    if(channel_default_p(c2)){
+      channel_set_default(&c1);
+    }else{
+      channel_set_rgb(&c1, rsum, gsum, bsum);
+    }
+    channel_set_alpha(&c1, channel_alpha(c2));
+  }else if(!c2default && !channel_default_p(c1)){
+    rsum = (channel_r(c1) * *blends + rsum) / (*blends + 1);
+    gsum = (channel_g(c1) * *blends + gsum) / (*blends + 1);
+    bsum = (channel_b(c1) * *blends + bsum) / (*blends + 1);
+    channel_set_rgb(&c1, rsum, gsum, bsum);
+    channel_set_alpha(&c1, channel_alpha(c2));
+  }
+  ++*blends;
+  return c1;
+}
+
+// do not pass palette-indexed channels!
+static inline uint64_t
+cell_blend_fchannel(cell* cl, unsigned channel, unsigned* blends){
+  return cell_set_fchannel(cl, channels_blend(cell_fchannel(cl), channel, blends));
+}
+
+static inline uint64_t
+cell_blend_bchannel(cell* cl, unsigned channel, unsigned* blends){
+  return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
+}
 
 #ifdef __cplusplus
 }

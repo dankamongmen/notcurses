@@ -1,4 +1,5 @@
 #include "main.h"
+#include "internal.h"
 
 TEST_CASE("ChannelGetRGB") {
   const struct t {

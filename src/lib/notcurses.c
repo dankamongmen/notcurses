@@ -835,16 +835,20 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       }
     }
   }
-  const char* encoding = nl_langinfo(CODESET);
-  if(encoding == NULL || (strcmp(encoding, "ANSI_X3.4-1968") && strcmp(encoding, "UTF-8"))){
-    fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
-            encoding ? encoding : "none found");
-    return NULL;
-  }
-  struct termios modtermios;
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
+  }
+  const char* encoding = nl_langinfo(CODESET);
+  if(encoding && strcmp(encoding, "UTF-8") == 0){
+    ret->utf8 = true;
+  }else if(encoding && strcmp(encoding, "ANSI_X3.4-1968") == 0){
+    ret->utf8 = false;
+  }else{
+    fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
+            encoding ? encoding : "none found");
+    free(ret);
+    return NULL;
   }
   bool own_outfp = false;
   if(outfp == NULL){
@@ -894,6 +898,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+  struct termios modtermios;
   memcpy(&modtermios, &ret->tpreserved, sizeof(modtermios));
   // see termios(3). disabling ECHO and ICANON means input will not be echoed
   // to the screen, input is made available without enter-based buffering, and

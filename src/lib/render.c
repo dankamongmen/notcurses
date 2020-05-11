@@ -126,13 +126,20 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 // the heart of damage detection. compare two cells (from two different planes)
 // for equality. if they are equal, return 0. otherwise, dup the second onto
 // the first and return non-zero.
+// since this is the lowest level of glyph preparation, we do a check here for
+// the active encoding (UTF-8 and US-ASCII are supported). if we're in
+// US-ASCII, and the incoming glyph is not, downconvert it. in this case, only
+// US-ASCII can be present (since we downconverted everything we've output).
+// so convert first, and then compare.
 static int
-cellcmp_and_dupfar(egcpool* dampool, cell* damcell, const ncplane* srcplane,
-                   const cell* srccell){
+cellcmp_and_dupfar(const notcurses* nc, egcpool* dampool, cell* damcell,
+                   const ncplane* srcplane, const cell* srccell){
+  bool srcsimple = cell_simple_p(srccell);
+  if(!srcsimple && !enforce_utf8(nc)){
+  }
   if(damcell->attrword == srccell->attrword){
     if(damcell->channels == srccell->channels){
       bool damsimple = cell_simple_p(damcell);
-      bool srcsimple = cell_simple_p(srccell);
       if(damsimple == srcsimple){
         if(damsimple){
           if(damcell->gcluster == srccell->gcluster){
@@ -167,18 +174,6 @@ cell_locked_p(const cell* p){
   }
   return 0;
 }
-
-// Extracellular state for a cell during the render process. This array is
-// passed along to rasterization, which uses only the 'damaged' bools.
-struct crender {
-  ncplane *p;
-  unsigned fgblends;
-  unsigned bgblends;
-  bool damaged;       // also used in rasterization
-  // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
-  // background is locked in. set highcontrast to indicate this.
-  bool highcontrast;
-};
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
 static uint32_t
@@ -238,7 +233,7 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 // compared against the last frame. If it is different, the 'rvec' bitmap is updated with a 1. 'pool' is typically nc->pool, but can
 // be whatever's backing fb.
 static int
-paint(ncplane* p, cell* lastframe, struct crender* rvec,
+paint(notcurses* nc, ncplane* p, cell* lastframe, struct crender* rvec,
       cell* fb, egcpool* pool, int dstleny, int dstlenx,
       int dstabsy, int dstabsx, int lfdimx){
   int y, x, dimy, dimx, offy, offx;
@@ -351,7 +346,7 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
 }
 fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", pool->pool, nc, crender->p);
 }*/
-        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+        if(cellcmp_and_dupfar(nc, pool, prevcell, crender->p, targc)){
           crender->damaged = true;
           if(cell_wide_left_p(targc)){
             ncplane* tmpp = crender->p;
@@ -363,7 +358,7 @@ fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", pool->pool, nc, crender->p);
             targc->gcluster = 0;
             targc->channels = targc[-1].channels;
             targc->attrword = targc[-1].attrword;
-            if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+            if(cellcmp_and_dupfar(nc, pool, prevcell, crender->p, targc)){
               crender->damaged = true;
             }
           }
@@ -389,7 +384,7 @@ init_fb(cell* fb, int dimy, int dimx){
 }
 
 static void
-postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
+postpaint(notcurses* nc, cell* fb, cell* lastframe, int dimy, int dimx,
           struct crender* rvec, egcpool* pool){
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
@@ -401,7 +396,7 @@ postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
         if(targc->gcluster == 0){
           targc->gcluster = ' ';
         }
-        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+        if(cellcmp_and_dupfar(nc, pool, prevcell, crender->p, targc)){
           crender->damaged = true;
         }
       }
@@ -425,21 +420,21 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   memset(rvec, 0, crenderlen);
   init_fb(tmpfb, dimy, dimx);
   init_fb(rendfb, dimy, dimx);
-  if(paint(src, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
+  if(paint(nc, src, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
            dst->absy, dst->absx, dst->lenx)){
     free(rvec);
     free(rendfb);
     free(tmpfb);
     return -1;
   }
-  if(paint(dst, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
+  if(paint(nc, dst, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
            dst->absy, dst->absx, dst->lenx)){
     free(rvec);
     free(rendfb);
     free(tmpfb);
     return -1;
   }
-  postpaint(tmpfb, rendfb, dimy, dimx, rvec, &dst->pool);
+  postpaint(nc, tmpfb, rendfb, dimy, dimx, rvec, &dst->pool);
   free(dst->fb);
   dst->fb = rendfb;
   free(tmpfb);
@@ -832,9 +827,8 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
 
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
-//  * rasterize -- build up a UTF-8 stream of escapes and EGCs
+//  * rasterize -- build up a UTF-8/ASCII stream of escapes and EGCs
 //  * refresh -- write the stream to the emulator
-
 // Takes a rendered frame (a flat framebuffer, where each cell has the desired
 // EGC, attribute, and channels), which has been written to nc->lastframe, and
 // spits out an optimal sequence of terminal-appropriate escapes and EGCs. There
@@ -1074,7 +1068,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   init_fb(fb, dimy, dimx);
   ncplane* p = nc->top;
   while(p){
-    if(paint(p, nc->lastframe, rvec, fb, &nc->pool,
+    if(paint(nc, p, nc->lastframe, rvec, fb, &nc->pool,
              nc->stdscr->leny, nc->stdscr->lenx,
              nc->stdscr->absy, nc->stdscr->absx, nc->lfdimx)){
       free(fb);
@@ -1082,7 +1076,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
     }
     p = p->z;
   }
-  postpaint(fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
+  postpaint(nc, fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
   free(fb);
   return 0;
 }

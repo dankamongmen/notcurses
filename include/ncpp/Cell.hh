@@ -76,19 +76,9 @@ namespace ncpp
 			return cell_set_fchannel (&_cell, channel);
 		}
 
-		uint64_t blend_fchannel (unsigned channel, unsigned* blends) noexcept
-		{
-			return cell_blend_fchannel (&_cell, channel, blends);
-		}
-
 		uint64_t set_bchannel (uint32_t channel) noexcept
 		{
 			return cell_set_bchannel (&_cell, channel);
-		}
-
-		uint64_t blend_bchannel (unsigned channel, unsigned* blends) noexcept
-		{
-			return cell_blend_bchannel (&_cell, channel, blends);
 		}
 
 		void set_styles (CellStyle styles) noexcept
