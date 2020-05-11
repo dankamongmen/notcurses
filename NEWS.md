@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.3.5 (not yet released)
+* 1.4.0 (not yet released)
   * `ncplane_content()` was added. It allows all non-null glyphs of a plane to
     be returned as a nul-terminated, heap-allocated string.
   * `ncreader` was added. This widget allows freeform input to be edited in a
