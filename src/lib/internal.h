@@ -627,11 +627,6 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
 
 int update_term_dimensions(int fd, int* rows, int* cols);
 
-static inline bool
-enforce_utf8(const notcurses* nc){
-  return nc->utf8;
-}
-
 struct ncvisual* ncvisual_create(float timescale);
 
 static inline void*

@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.4.2 (not yet released)
+  * Added `notcurses_canutf8()`, to verify use of UTF-8 encoding.
+
 * 1.4.1 (2020-05-11)
   * No user-visible changes (fixed two unit tests).
 
