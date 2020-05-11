@@ -27,10 +27,13 @@ handle_mouse(const ncinput* ni){
   int ret;
   if(ni->id == NCKEY_RELEASE){
     ret = hud_release();
+    if(ret < 0){
+      ret = fpsplot_release();
+    }
   }else{
     ret = hud_grab(ni->y, ni->x);
     if(ret < 0){
-      ret = plot_grab(ni->y);
+      ret = fpsplot_grab(ni->y);
     }
   }
   // do not render here. the demos, if coded properly, will be regularly

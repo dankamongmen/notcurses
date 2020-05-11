@@ -108,11 +108,11 @@ about_toggle(struct notcurses* nc){
     ncplane_set_bg(n, 0);
     ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
     ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "notcurses-demo %s", notcurses_version());
-    ncplane_printf_aligned(n, 3, NCALIGN_LEFT, "  q quit");
-    ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "restart Ctrl+R  ");
+    ncplane_printf_aligned(n, 3, NCALIGN_LEFT, "  P toggle plot");
+    ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "toggle help Ctrl+U  ");
     ncplane_printf_aligned(n, 4, NCALIGN_LEFT, "  H toggle HUD");
-    ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "toggle help Ctrl+U  ");
-    ncplane_printf_aligned(n, 5, NCALIGN_LEFT, "  P toggle plot");
+    ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "restart Ctrl+R  ");
+    ncplane_printf_aligned(n, 5, NCALIGN_CENTER, "q quit");
     ncplane_putstr_aligned(n, 7, NCALIGN_CENTER, "\u00a9 nick black <nickblack@linux.com>");
     cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
     cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
@@ -370,8 +370,22 @@ int hud_release(void){
   if(hud == NULL){
     return -1;
   }
+  if(hud_grab_x < 0 && hud_grab_y < 0){
+    return -1;
+  }
   hud_grab_x = -1;
   hud_grab_y = -1;
+  return hud_standard_bg(hud);
+}
+
+int fpsplot_release(void){
+  if(plot == NULL){
+    return -1;
+  }
+  if(plot_grab_y < 0){
+    return -1;
+  }
+  plot_grab_y = -1;
   return hud_standard_bg(hud);
 }
 
@@ -530,10 +544,10 @@ int fpsgraph_init(struct notcurses* nc){
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTIONS_LABELTICKSD | NCPLOT_OPTIONS_EXPONENTIALD;
   opts.gridtype = NCPLOT_8x1;
-  channels_set_fg_rgb(&opts.minchannel, 0x40, 0x50, 0x40);
+  channels_set_fg_rgb(&opts.minchannel, 0xff, 0x00, 0xff);
   channels_set_bg(&opts.minchannel, 0x201020);
   channels_set_bg_alpha(&opts.minchannel, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb(&opts.maxchannel, 0xd0, 0xff, 0xd0);
+  channels_set_fg_rgb(&opts.maxchannel, 0x00, 0xff, 0x00);
   channels_set_bg(&opts.maxchannel, 0x201020);
   channels_set_bg_alpha(&opts.maxchannel, CELL_ALPHA_BLEND);
   struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);
@@ -561,7 +575,7 @@ int fpsgraph_stop(struct notcurses* nc){
 }
 
 // mouse has maybe pressed on the plot. the caller is responsible for rerendering.
-int plot_grab(int y){
+int fpsplot_grab(int y){
   int ret;
   if(plot == NULL || plot_hidden){
     return -1;
