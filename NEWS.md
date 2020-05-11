@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.4.1 (2020-05-11)
+  * No user-visible changes (fixed two unit tests).
+
 * 1.4.0 (2020-05-10)
   * `ncplane_content()` was added. It allows all non-null glyphs of a plane to
     be returned as a nul-terminated, heap-allocated string.
