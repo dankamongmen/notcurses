@@ -2122,3 +2122,24 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
   }
   return ret;
 }
+
+int cells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                    cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "/\\\\/-|");
+}
+
+int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                     cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  if(enforce_utf8(n->nc)){
+    return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
+  }
+  return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                      cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+  if(enforce_utf8(n->nc)){
+    return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+  }
+  return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
