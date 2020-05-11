@@ -86,9 +86,6 @@ auto main(int argc, const char **argv) -> int {
     std::cerr << "Coudln't set locale based on user preferences!" << std::endl;
     return EXIT_FAILURE;
   }
-  if(!enforce_utf8()){
-    return EXIT_SUCCESS; // hrmmm
-  }
   doctest::Context context;
 
   context.setOption("order-by", "name");            // sort the test cases by their name

@@ -6,6 +6,7 @@
 #include "version.h"
 #include <notcurses/notcurses.h>
 
-char* find_data(const char* datum);
+auto find_data(const char* datum) -> char*;
+auto enforce_utf8() -> bool;
 
 #endif
