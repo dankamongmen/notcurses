@@ -207,6 +207,7 @@ int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
 int ncplane_putwc(struct ncplane* n, wchar_t w);
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
 int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
+struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
 void cell_init(cell* c);
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 int cell_prime(struct ncplane* n, cell* c, const char* gcluster, uint32_t attr, uint64_t channels);
@@ -433,7 +434,7 @@ int ncplane_rotate_cw(struct ncplane* n);
 int ncplane_rotate_ccw(struct ncplane* n);
 int ncvisual_rotate(struct ncvisual* n, double rads);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
-struct ncvisual* ncvisual_from_plane(struct ncplane* n);
+struct ncvisual* ncvisual_from_plane(const struct ncplane* n, int begy, int begx, int leny, int lenx);
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 typedef enum {
   NCPLOT_1x1,   // full block                █
