@@ -329,6 +329,7 @@ up someday **FIXME**.
 
 ### History
 
+* 2020-05-10: Notcurses [1.4.0 "the saga continues"](https://github.com/dankamongmen/notcurses/releases/tag/v1.4.0).)
 * 2020-04-19: Notcurses is [accepted into Debian](https://bugs.debian.org/950492).
 * 2020-04-12: Notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
   * A new [hype video](https://vimeo.com/410787965) is never really publicized.
