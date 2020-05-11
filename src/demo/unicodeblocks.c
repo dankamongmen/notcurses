@@ -205,9 +205,6 @@ int unicodeblocks_demo(struct notcurses* nc){
                              (CHUNKSIZE * 2) + 2, 4, NCALIGN_CENTER, NULL)) == NULL){
       return -1;
     }
-    if(hud){
-      ncplane_move_below_unsafe(nn, hud);
-    }
     if(draw_block(nn, blockstart)){
       return -1;
     }
