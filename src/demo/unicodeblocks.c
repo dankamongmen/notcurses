@@ -172,6 +172,11 @@ int unicodeblocks_demo(struct notcurses* nc){
     { .name = "Supplemental Arrows-C, Supplemental Symbols", .start = 0x1f800, },
     { .name = "Chess Symbols, Symbols and Pictographs Extended-A", .start = 0x1fa00, },
   };
+
+  // this demo is completely meaningless outside UTF-8 mode
+  if(!notcurses_canutf8(nc)){
+    return 0;
+  }
   ncplane_greyscale(notcurses_stdplane(nc));
   size_t sindex;
   // we don't want a full delay period for each one, urk...or do we?

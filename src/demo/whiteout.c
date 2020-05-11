@@ -449,6 +449,10 @@ int witherworm_demo(struct notcurses* nc){
   const int steps[] = { 0, 0x10040, 0x20110, 0x120, 0x12020, };
   const int starts[] = { 0, 0x10101, 0x004000, 0x000040, 0x400040, };
 
+  // this demo is completely meaningless outside UTF-8 mode
+  if(!notcurses_canutf8(nc)){
+    return 0;
+  }
   size_t i;
   const size_t screens = sizeof(steps) / sizeof(*steps);
   struct ncplane* n = notcurses_stdplane(nc);
