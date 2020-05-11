@@ -11,10 +11,57 @@ ffmpeg_trans_p(bool bgr, unsigned char alpha){
   return false;
 }
 
+// Reatrded RGBA/BGRx blitter (ASCII only).
+// For incoming BGRx (no transparency), bgr == true.
+static inline int
+tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
+                const void* data, int begy, int begx,
+                int leny, int lenx, bool bgr){
+  const int bpp = 32;
+  const int rpos = bgr ? 2 : 0;
+  const int bpos = bgr ? 0 : 2;
+  int dimy, dimx, x, y;
+  int total = 0; // number of cells written
+  ncplane_dim_yx(nc, &dimy, &dimx);
+  // FIXME not going to necessarily be safe on all architectures hrmmm
+  const unsigned char* dat = data;
+  int visy = begy;
+  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, ++visy){
+    if(ncplane_cursor_move_yx(nc, y, placex)){
+      return -1;
+    }
+    int visx = begx;
+    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
+      const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
+//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
+      cell* c = ncplane_cell_ref_yx(nc, y, x);
+      // use the default for the background, as that's the only way it's
+      // effective in that case anyway
+      c->channels = 0;
+      c->attrword = 0;
+      if(ffmpeg_trans_p(bgr, rgbbase_up[3])){
+        cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+        cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+      }else{
+        cell_set_fg_rgb(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+        cell_set_bg_rgb(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+        if(cell_load(nc, c, "X") <= 0){
+          return -1;
+        }
+      }
+      ++total;
+    }
+  }
+  return total;
+}
+
 // RGBA/BGRx blitter. For incoming BGRx (no transparency), bgr == true.
 static inline int
 tria_blit(ncplane* nc, int placey, int placex, int linesize, const void* data,
           int begy, int begx, int leny, int lenx, bool bgr){
+  if(!nc->nc->utf8){
+    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx, leny, lenx, bgr);
+  }
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
