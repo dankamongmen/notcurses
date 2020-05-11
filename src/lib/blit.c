@@ -45,7 +45,7 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
       }else{
         cell_set_fg_rgb(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
         cell_set_bg_rgb(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
-        if(cell_load(nc, c, "X") <= 0){
+        if(cell_load(nc, c, " ") <= 0){
           return -1;
         }
       }

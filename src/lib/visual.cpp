@@ -594,6 +594,7 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 
 static ncvisual*
 ncvisual_open(const char* filename, nc_err_e* ncerr){
+  *ncerr = NCERR_SUCCESS;
   ncvisual* ncv = ncvisual_create(1);
   if(ncv == nullptr){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
@@ -603,15 +604,14 @@ ncvisual_open(const char* filename, nc_err_e* ncerr){
   memset(ncv, 0, sizeof(*ncv));
   int averr = avformat_open_input(&ncv->fmtctx, filename, nullptr, nullptr);
   if(averr < 0){
-    // fprintf(stderr, "Couldn't open %s (%s)\n", filename, av_err2str(*averr));
+//fprintf(stderr, "Couldn't open %s (%d)\n", filename, averr);
     *ncerr = averr2ncerr(averr);
     ncvisual_destroy(ncv);
     return nullptr;
   }
   averr = avformat_find_stream_info(ncv->fmtctx, nullptr);
   if(averr < 0){
-    /*fprintf(stderr, "Error extracting stream info from %s (%s)\n", filename,
-            av_err2str(*averr));*/
+//fprintf(stderr, "Error extracting stream info from %s (%d)\n", filename, averr);
     *ncerr = averr2ncerr(averr);
     ncvisual_destroy(ncv);
     return nullptr;
@@ -707,7 +707,7 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
 }
 
 ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
-                              nc_err_e* ncerr, int y, int x, ncscale_e style){
+                             nc_err_e* ncerr, int y, int x, ncscale_e style){
   ncvisual* ncv = ncvisual_open(filename, ncerr);
   if(ncv == nullptr){
     return nullptr;
@@ -727,6 +727,7 @@ ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
 // up playback.
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
                     float timescale, streamcb streamer, void* curry){
+  *ncerr = NCERR_SUCCESS;
   int frame = 1;
   ncv->timescale = timescale;
   struct timespec begin; // time we started
@@ -850,6 +851,7 @@ bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
 
 static ncvisual*
 ncvisual_open(const char* filename, nc_err_e* err){
+  *ncerr = NCERR_SUCCESS;
   ncvisual* ncv = ncvisual_create(1);
   if(ncv == nullptr){
     *err = NCERR_NOMEM;
@@ -985,6 +987,7 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr,
                     float timescale, streamcb streamer, void* curry){
+  *ncerr = NCERR_SUCCESS;
   int frame = 1;
   ncv->timescale = timescale;
   struct timespec begin; // time we started
