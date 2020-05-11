@@ -69,19 +69,18 @@ TEST_CASE("ChannelSetDefault") {
 
 // blend of 0 ought set c1 to c2
 TEST_CASE("ChannelBlend0") {
+  struct crender cr{};
   uint32_t c1 = 0;
   uint32_t c2 = 0;
   channel_set_rgb(&c1, 0x80, 0x40, 0x20);
   channel_set_rgb(&c2, 0x88, 0x44, 0x22);
-  unsigned blends = 0;
-  uint32_t c = channels_blend(c1, c2, &blends);
+  uint32_t c = channels_blend(c1, c2, &cr.fgblends, &cr.frsum, &cr.fgsum, &cr.fbsum);
   CHECK(!channel_default_p(c));
   unsigned r, g, b;
-  channel_rgb(c, &r, &g, &b);
-  CHECK(0x88 == r);
-  CHECK(0x44 == g);
-  CHECK(0x22 == b);
-  CHECK(1 == blends);
+  CHECK(0x88 == cr.frsum);
+  CHECK(0x44 == cr.fgsum);
+  CHECK(0x22 == cr.fbsum);
+  CHECK(1 == cr.fgblends);
 }
 
 // blend of 1 ought perfectly average c1 and c2

@@ -136,6 +136,7 @@ cellcmp_and_dupfar(const notcurses* nc, egcpool* dampool, cell* damcell,
                    const ncplane* srcplane, const cell* srccell){
   bool srcsimple = cell_simple_p(srccell);
   if(!srcsimple && !enforce_utf8(nc)){
+    // FIXME
   }
   if(damcell->attrword == srccell->attrword){
     if(damcell->channels == srccell->channels){
@@ -208,21 +209,37 @@ highcontrast(uint32_t bchannel){
   return conrgb;
 }
 
-// adjust an otherwise locked-in cell if highcontrast has been requested. this
-// should be done at the end of rendering the cell, so that contrast is solved
-// against the real background.
+// Finalize color of a cell. adjust an otherwise locked-in cell if highcontrast
+// has been requested, and divide down the blended color sums. this should be
+// done at the end of rendering the cell, so that contrast is solved against
+// the real background.
 static inline void
 lock_in_highcontrast(cell* targc, struct crender* crender){
   if(crender->highcontrast){
     // highcontrast weighs the original at 1/4 and the contrast at 3/4
     if(!cell_fg_default_p(targc)){
-      crender->fgblends = 3;
       uint32_t fchan = cell_fchannel(targc);
       uint32_t bchan = cell_bchannel(targc);
-      cell_set_fchannel(targc, channels_blend(highcontrast(bchan), fchan, &crender->fgblends));
+      // give highcontrast-adjusted color the influence of 3 planes
+      // FIXME this ought just be 2/3 or something, independent of plane #
+      for(int i = 0 ; i < 3 ; ++i){
+        cell_set_fchannel(targc, channels_blend(highcontrast(bchan), fchan,
+                                                &crender->fgblends, &crender->frsum,
+                                                &crender->fgsum, &crender->fbsum));
+      }
     }else{
       cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
     }
+  }
+  if(crender->fgblends){
+    cell_set_fg_rgb(targc, crender->frsum / crender->fgblends,
+                    crender->fgsum / crender->fgblends,
+                    crender->fbsum / crender->fgblends);
+  }
+  if(crender->bgblends){
+    cell_set_fg_rgb(targc, crender->frsum / crender->fgblends,
+                    crender->fgsum / crender->fgblends,
+                    crender->fbsum / crender->fgblends);
   }
 }
 
@@ -314,7 +331,7 @@ paint(notcurses* nc, ncplane* p, cell* lastframe, struct crender* rvec,
           cell_set_bg_palindex(targc, cell_bg_palindex(vis));
         }
       }else if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
+        cell_blend_bchannel(targc, cell_bchannel(vis), crender);
       }
       // Evaluate the background first, in case this is HIGHCONTRAST fg text.
       if(cell_fg_palindex_p(vis)){
@@ -325,7 +342,7 @@ paint(notcurses* nc, ncplane* p, cell* lastframe, struct crender* rvec,
         if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
           crender->highcontrast = true;
         }
-        cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
+        cell_blend_fchannel(targc, cell_fchannel(vis), crender);
         // crender->highcontrast can only be true if we just set it, since we're
         // about to set targc opaque based on crender->highcontrast (and this
         // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).

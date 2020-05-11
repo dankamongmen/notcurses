@@ -678,26 +678,24 @@ void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
 // them, we just don't fuck wit' 'em here. Do not pass me palette-indexed
 // channels! I will eat them.
 static inline unsigned
-channels_blend(unsigned c1, unsigned c2, unsigned* blends){
+channels_blend(uint32_t c1, uint32_t c2, unsigned* blends, unsigned* rsum,
+               unsigned* gsum, unsigned* bsum){
   if(channel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
     return c1; // do *not* increment *blends
   }
-  unsigned rsum, gsum, bsum;
-  channel_rgb(c2, &rsum, &gsum, &bsum);
   bool c2default = channel_default_p(c2);
   if(*blends == 0){
     // don't just return c2, or you set wide status and all kinds of crap
     if(channel_default_p(c2)){
       channel_set_default(&c1);
     }else{
-      channel_set_rgb(&c1, rsum, gsum, bsum);
+      channel_rgb(c2, rsum, gsum, bsum);
     }
     channel_set_alpha(&c1, channel_alpha(c2));
   }else if(!c2default && !channel_default_p(c1)){
-    rsum = (channel_r(c1) * *blends + rsum) / (*blends + 1);
-    gsum = (channel_g(c1) * *blends + gsum) / (*blends + 1);
-    bsum = (channel_b(c1) * *blends + bsum) / (*blends + 1);
-    channel_set_rgb(&c1, rsum, gsum, bsum);
+    *rsum += channel_r(c2);
+    *gsum += channel_g(c2);
+    *bsum += channel_b(c2);
     channel_set_alpha(&c1, channel_alpha(c2));
   }
   ++*blends;
@@ -706,13 +704,17 @@ channels_blend(unsigned c1, unsigned c2, unsigned* blends){
 
 // do not pass palette-indexed channels!
 static inline uint64_t
-cell_blend_fchannel(cell* cl, unsigned channel, unsigned* blends){
-  return cell_set_fchannel(cl, channels_blend(cell_fchannel(cl), channel, blends));
+cell_blend_fchannel(cell* cl, unsigned channel, struct crender* cr){
+  return cell_set_fchannel(cl, channels_blend(cell_fchannel(cl), channel,
+                                              &cr->fgblends, &cr->frsum,
+                                              &cr->fgsum, &cr->fbsum));
 }
 
 static inline uint64_t
-cell_blend_bchannel(cell* cl, unsigned channel, unsigned* blends){
-  return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
+cell_blend_bchannel(cell* cl, unsigned channel, struct crender* cr){
+  return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel,
+                                              &cr->bgblends, &cr->brsum,
+                                              &cr->bgsum, &cr->bbsum));
 }
 
 #ifdef __cplusplus
