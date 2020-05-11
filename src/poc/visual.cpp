@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <clocale>
@@ -23,7 +24,7 @@ int main(int argc, char** argv){
   struct ncplane* n = notcurses_stdplane(nc);
   int dimx, dimy;
   ncplane_dim_yx(n, &dimy, &dimx);
-
+  bool failed = false;
   nc_err_e ncerr;
   auto ncv = ncplane_visual_open(n, file, &ncerr);
   if(!ncv){
@@ -38,7 +39,18 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
-  return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
+  for(int i = 0 ; i < 64 ; ++i){
+    if(ncvisual_rotate(ncv, 2 * M_PI / i)){
+      failed = true;
+      break;
+    }
+    if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
+      failed = true;
+      break;
+    }
+sleep(1);
+  }
+  return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:
   notcurses_stop(nc);

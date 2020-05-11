@@ -181,27 +181,22 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   }
   double stheta, ctheta; // sine, cosine
   auto diam = rotate_new_geom(ncv, rads, &stheta, &ctheta);
+fprintf(stderr, "DIAM: %d\n", diam);
   if(diam <= 0){
-    return -1;
-  }
-  ncplane* n = ncvisual_plane(ncv);
-  ncplane* newp = rotate_plane(n); // FIXME how to resize properly?
-  if(newp == nullptr){
     return -1;
   }
   // pixel diameter
   int pdiam = ncv->dstheight > ncv->dstwidth ? ncv->dstheight : ncv->dstwidth;
-//fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
+fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
   auto data = static_cast<uint32_t*>(malloc(pdiam * pdiam * 4));
   if(data == nullptr){
-    ncplane_destroy(newp);
     return -1;
   }
   // targy <- x, targx <- ncv->dstheight - y - 1
   int centx = ncv->dstwidth / 2; // pixel center
   int centy = ncv->dstheight / 2;
-//fprintf(stderr, "DIAM: %d CENTER: %d/%d LEN: %d/%d\n", diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
+fprintf(stderr, "DIAM: %d CENTER: %d/%d LEN: %d/%d\n", diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
   for(int y = 0 ; y < ncv->dstheight ; ++y){
       for(int x = 0 ; x < ncv->dstwidth ; ++x){
       const int convy = y - centy; // converted coordinates
@@ -210,7 +205,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
       const int targx = convx * ctheta + convy * stheta;
       const int deconvy = targy + pdiam / 2;
       const int deconvx = targx + pdiam / 2;
-//fprintf(stderr, "%d/%d -> %d/%d -> %d/%d -> %d/%d\n", y, x, convy, convx, targy, targx, deconvy, deconvx);
+fprintf(stderr, "%d/%d -> %d/%d -> %d/%d -> %d/%d\n", y, x, convy, convx, targy, targx, deconvy, deconvx);
 assert(deconvy >= 0);
 assert(deconvx >= 0);
 assert(deconvy < pdiam);
@@ -221,13 +216,11 @@ assert(deconvx < pdiam);
 //fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->dstheight + targx], targy * ncv->dstheight + targx, (targy * ncv->dstheight + targx) * 4);
     }
   }
-  int ret = ncplane_destroy(n);
   ncvisual_set_data(ncv, data, true);
   ncv->dstwidth = pdiam;
   ncv->dstheight = pdiam;
   ncv->rowstride = ncv->dstwidth * 4;
-  ncv->ncp = newp;
-  return ret;
+  return 0;
 }
 
 auto ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
