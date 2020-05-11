@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name="notcurses",
-    version="1.3.4",
+    version="1.4.0",
     packages=['notcurses'],
     package_dir={'': 'src'},
     author="Nick Black",
