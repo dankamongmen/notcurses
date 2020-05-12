@@ -42,4 +42,6 @@ TEST_CASE("Geometry") {
     }
   }
 
+  CHECK(0 == notcurses_stop(nc_));
+
 }

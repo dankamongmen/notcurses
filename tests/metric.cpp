@@ -19,7 +19,7 @@ char* impericize_ncmetric(uintmax_t val, unsigned decimal, char* buf,
   return buf;
 }
 
-TEST_CASE("ncmetric") {
+TEST_CASE("Metric") {
   const char* decisep = localeconv()->decimal_point;
   REQUIRE(decisep);
   REQUIRE(1 ==  strlen(decisep));
