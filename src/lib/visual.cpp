@@ -160,7 +160,7 @@ auto ncvisual_setplane(ncvisual* ncv, ncplane* n) -> int {
 // than our longer length. rotation can thus be held entirely within a square
 // plane having length of our longest length. after one rotation, this decays
 // to the same square throughout any rotations.
-static auto
+/*static auto
 rotate_new_geom(ncvisual* ncv, double rads, double *stheta, double *ctheta) -> int {
   *stheta = sin(rads);
   *ctheta = cos(rads);
@@ -173,52 +173,57 @@ rotate_new_geom(ncvisual* ncv, double rads, double *stheta, double *ctheta) -> i
     }
   }
   return diam;
-}
+}*/
 
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   if(ncv->data == nullptr){
     return -1;
   }
   double stheta, ctheta; // sine, cosine
-  auto diam = rotate_new_geom(ncv, rads, &stheta, &ctheta);
+  stheta = sin(rads);
+  ctheta = cos(rads);
+//fprintf(stderr, "PREROTATE: %d/%d DST: %d/%d\n", ncv->ncp->leny, ncv->ncp->lenx, ncv->dstheight, ncv->dstwidth);
+  /*auto diam = rotate_new_geom(ncv, rads, &stheta, &ctheta);
 fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, stheta, ctheta);
   if(diam <= 0){
     return -1;
-  }
+  }*/
+  ncplane_erase(ncv->ncp);
+  // targy <- x, targx <- ncv->dstheight - y - 1
+  int centx = ncv->dstwidth / 2; // pixel center
+  int centy = ncv->dstheight / encoding_vert_scale(ncv) / 2;
   // pixel diameter
-  int pdiam = ncv->dstheight > ncv->dstwidth ? ncv->dstheight : ncv->dstwidth;
-fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
+  int prad = sqrt(centx * centx + centy * centy) + 1;
+//fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
+  int pdiam = ncv->dstwidth > ncv->dstheight ? ncv->dstwidth : ncv->dstheight;
   auto data = static_cast<uint32_t*>(malloc(pdiam * pdiam * 4));
   if(data == nullptr){
     return -1;
   }
-  // targy <- x, targx <- ncv->dstheight - y - 1
-  int centx = ncv->dstwidth / 2; // pixel center
-  int centy = ncv->dstheight / encoding_vert_scale(ncv) / 2;
-fprintf(stderr, "PDIAM: %d DIAM: %d CENTER: %d/%d LEN: %d/%d\n", pdiam, diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
+//fprintf(stderr, "prad: %d DIAM: %d CENTER: %d/%d LEN: %d/%d\n", prad, diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
   for(int y = 0 ; y < ncv->dstheight ; ++y){
       for(int x = 0 ; x < ncv->dstwidth ; ++x){
-      const int convy = y - centy; // converted coordinates
       const int convx = x - centx;
+      const int convy = y - centy; // converted coordinates
       const int targx = convx * ctheta - convy * stheta;
       const int targy = convx * stheta + convy * ctheta;
-      const int deconvx = targx + centx;
-      const int deconvy = targy + centy;
-fprintf(stderr, "%d/%d -> %d/%d -> %d/%d -> %d/%d\n", y, x, convy, convx, targy, targx, deconvy, deconvx);
-/*assert(deconvy >= 0);
-assert(deconvx >= 0);
-assert(deconvy < pdiam);
-assert(deconvx < pdiam);*/
-      data[deconvy * pdiam + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
+      const int deconvx = targx + prad;
+      const int deconvy = targy + prad;
+if(deconvy < 0 || deconvx < 0 || deconvy >= pdiam || deconvx >= pdiam){
+//fprintf(stderr, "%d/%d -> %d/%d -> %d/%d -> %d/%d\n", y, x, convy, convx, targy, targx, deconvy, deconvx);
+}else{
+//fprintf(stderr, "%d/%d (%d) <- (%d) %08x\n", deconvy, deconvx, deconvy * ncv->dstwidth + deconvx, y * (ncv->rowstride / 4) + x, ncv->data[y * (ncv->rowstride / 4) + x]);
+      data[deconvy * ncv->dstwidth + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
+}
+ //     data[deconvy * (ncv->dstwidth) + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
-//      data[targy * ncv->dstheight + targx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->dstheight + targx], targy * ncv->dstheight + targx, (targy * ncv->dstheight + targx) * 4);
     }
   }
   ncvisual_set_data(ncv, data, true);
   ncv->dstwidth = pdiam;
-  ncv->dstheight = pdiam / encoding_vert_scale(ncv);
+  ncv->dstheight = pdiam;
   ncv->rowstride = ncv->dstwidth * 4;
   return 0;
 }

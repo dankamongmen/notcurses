@@ -5,6 +5,7 @@ TEST_CASE("Geometry") {
   if(getenv("TERM") == nullptr){
     return;
   }
+
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
@@ -41,5 +42,7 @@ TEST_CASE("Geometry") {
       CHECK(0 == ncplane_destroy(n));
     }
   }
+
+  CHECK(0 == notcurses_stop(nc_));
 
 }
