@@ -643,6 +643,11 @@ ncplane* rotate_plane(const ncplane* n);
 
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
 
+// find the "center" cell of a plane. in the case of even rows/columns, we
+// place the center on the top/left. in such a case there will be one more
+// cell to the bottom/right of the center.
+void ncplane_center(const ncplane* n, int* y, int* x);
+
 #ifdef __cplusplus
 }
 #endif
