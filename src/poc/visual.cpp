@@ -43,8 +43,8 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
-  for(int i = 0 ; i < 64 ; ++i){
-    if(ncvisual_rotate(ncv, 2 * M_PI / i)){
+  for(double i = 0 ; i < 64 ; ++i){
+    if(ncvisual_rotate(ncv, 2.0f * M_PI * i / 64)){
       failed = true;
       break;
     }
