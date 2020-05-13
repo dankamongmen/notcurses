@@ -643,6 +643,9 @@ ncplane* rotate_plane(const ncplane* n);
 
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
 
+// find the "center" cell of two lengths. in the case of even rows/columns, we
+// place the center on the top/left. in such a case there will be one more
+// cell to the bottom/right of the center.
 static inline void
 center_box(int* RESTRICT y, int* RESTRICT x){
   if(y){

@@ -44,7 +44,7 @@ int main(int argc, char** argv){
     goto err;
   }
   for(double i = 0 ; i < 256 ; ++i){
-    if(ncvisual_rotate(ncv, M_PI / 8)){
+    if(ncvisual_rotate(ncv, M_PI / 2)){
       failed = true;
       break;
     }
@@ -56,7 +56,6 @@ int main(int argc, char** argv){
       failed = true;
       break;
     }
-    sleep(1);
   }
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;
 

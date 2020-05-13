@@ -252,6 +252,73 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
   return *leny * *lenx;
 }
 
+// rotate the 0-indexed (origin-indexed) ['y', 'x'] through 'ctheta' and
+// 'stheta' around the centerpoint at ['centy', 'centx']. write the results
+// back to 'y' and 'x'.
+static auto
+rotate_point(int* y, int* x, double stheta, double ctheta, int centy, int centx) -> void {
+  // convert coordinates from origin to left-handed cartesian
+  const int convx = *x - centx;
+  const int convy = *y - centy;
+//fprintf(stderr, "%d, %d -> conv %d, %d\n", *y, *x, convy, convx);
+  *x = round(convx * ctheta - convy * stheta);
+  *y = round(convx * stheta + convy * ctheta);
+}
+
+// rotate the specified bounding box by the specified sine and cosine of some
+// theta radians, enlarging or shrinking it as necessary. returns the area.
+// 'leny', 'lenx', 'offy', and 'offx' describe the bounding box to be rotated,
+// and might all be updated (in either direction).
+static auto
+rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
+                    int* offy, int* offx) -> int {
+//fprintf(stderr, "Incoming bounding box: %dx%d @ %dx%d rotate s(%f) c(%f)\n", *leny, *lenx, *offy, *offx, stheta, ctheta);
+  int xs[4], ys[4]; // x and y locations of rotated coordinates
+  int centy = *leny;
+  int centx = *lenx;
+  center_box(&centy, &centx);
+  ys[0] = 0;
+  xs[0] = 0;
+  rotate_point(ys, xs, stheta, ctheta, centy, centx);
+//fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, 0, ys[0], xs[0]);
+  ys[1] = 0;
+  xs[1] = *lenx - 1;
+  rotate_point(ys + 1, xs + 1, stheta, ctheta, centy, centx);
+//fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, *lenx - 1, ys[1], xs[1]);
+  ys[2] = *leny - 1;
+  xs[2] = *lenx - 1;
+  rotate_point(ys + 2, xs + 2, stheta, ctheta, centy, centx);
+//fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, *lenx - 1, ys[2], xs[2]);
+  ys[3] = *leny - 1;
+  xs[3] = 0;
+  rotate_point(ys + 3, xs + 3, stheta, ctheta, centy, centx);
+//fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, 0, ys[3], xs[3]);
+  int trow = ys[0];
+  int brow = ys[0];
+  int lcol = xs[0];
+  int rcol = xs[0];
+  for(size_t i = 1 ; i < sizeof(xs) / sizeof(*xs) ; ++i){
+    if(xs[i] < lcol){
+      lcol = xs[i];
+    }
+    if(xs[i] > rcol){
+      rcol = xs[i];
+    }
+    if(ys[i] < trow){
+      trow = ys[i];
+    }
+    if(ys[i] > brow){
+      brow = ys[i];
+    }
+  }
+  *offy = trow;
+  *leny = brow - trow + 1;
+  *offx = lcol;
+  *lenx = rcol - lcol + 1;
+//fprintf(stderr, "Rotated bounding box: %dx%d @ %dx%d\n", *leny, *lenx, *offy, *offx);
+  return *leny * *lenx;
+}
+
 // find the "center" cell of a visual. in the case of even rows/columns, we
 // place the center on the top/left. in such a case there will be one more
 // cell to the bottom/right of the center.
@@ -267,11 +334,11 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   if(ncv->data == nullptr){
     return -1;
   }
+  int centy, centx;
+  ncvisual_center(ncv, &centy, &centx); // pixel center (center of 'data')
   double stheta, ctheta; // sine, cosine
   stheta = sin(rads);
   ctheta = cos(rads);
-  int centy, centx;
-  ncvisual_center(ncv, &centy, &centx); // pixel center (center of 'data')
   // bounding box for real data within the ncvisual. we must only resize to
   // accommodate real data, lest we grow without band as we rotate.
   // see https://github.com/dankamongmen/notcurses/issues/599.
@@ -279,9 +346,13 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   int bbx = ncv->dstwidth;
   int bboffy = 0;
   int bboffx = 0;
+  if(ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx) <= 0){
+    return -1;
+  }
   int bbarea;
-  if((bbarea = ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx)) == 0){
-    return 0;
+  bbarea = rotate_bounding_box(stheta, ctheta, &bby, &bbx, &bboffy, &bboffx);
+  if(bbarea <= 0){
+    return -1;
   }
   int bbcentx = bbx, bbcenty = bby;
   center_box(&bbcenty, &bbcentx);
@@ -296,19 +367,16 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
     return -1;
   }
   memset(data, 0, bbarea * 4);
-//fprintf(stderr, "prad: %d DIAM: %d CENTER: %d/%d LEN: %d/%d\n", prad, diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
+//fprintf(stderr, "bbarea: %d bby: %d bbx: %d centy: %d centx: %d\n", bbarea, bby, bbx, centy, centx);
   for(int y = 0 ; y < ncv->dstheight ; ++y){
       for(int x = 0 ; x < ncv->dstwidth ; ++x){
-      const int convx = x - centx;
-      const int convy = y - centy; // converted coordinates
-      const int targx = convx * ctheta - convy * stheta;
-      const int targy = convx * stheta + convy * ctheta;
-      const int deconvx = targx + bbcentx;
-      const int deconvy = targy + bbcenty;
+      int targx = x, targy = y;
+      rotate_point(&targy, &targx, stheta, ctheta, centy, centx);
+      const int deconvx = targx - bboffx/*bbcentx*/;
+      const int deconvy = targy - bboffy/*bbcenty*/;
 if(deconvy < 0 || deconvx < 0 || deconvy >= bby || deconvx >= bbx){
-//fprintf(stderr, "NOCOPY %d/%d -> %d/%d -> %d/%d -> %d/%d (%dx%d + %dx%d)\n", y, x, convy, convx, targy, targx, deconvy, deconvx, bboffy, bboffx, bby, bbx);
+fprintf(stderr, "NOCOPY %d/%d -> %d/%d -> %d/%d (%dx%d + %dx%d)\n", y, x, targy, targx, deconvy, deconvx, bboffy, bboffx, bby, bbx);
 }else{
-//fprintf(stderr, "YESCOPY %d/%d (%d) <- (%d) %08x\n", deconvy, deconvx, deconvy * ncv->dstwidth + deconvx, y * (ncv->rowstride / 4) + x, ncv->data[y * (ncv->rowstride / 4) + x]);
       data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 }
  //     data[deconvy * (ncv->dstwidth) + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
