@@ -83,7 +83,7 @@ int main(void){
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   struct ncplane* n = notcurses_stdplane(nc);
 
-  if(notcurses_canopen(nc)){
+  if(notcurses_canopen_images(nc)){
     nc_err_e err;
     struct ncvisual* ncv = ncplane_visual_open(n, "../data/changes.jpg", &err);
     if(!ncv){

@@ -96,7 +96,7 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
 }
 
 int xray_demo(struct notcurses* nc){
-  if(!notcurses_canopen(nc)){
+  if(!notcurses_canopen_videos(nc)){
     return 0;
   }
   int dimx, dimy;

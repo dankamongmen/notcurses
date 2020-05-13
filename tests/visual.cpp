@@ -16,12 +16,13 @@ TEST_CASE("Visual") {
   REQUIRE(ncp_);
 
 #ifndef USE_MULTIMEDIA
-  SUBCASE("LibavDisabled"){
-    REQUIRE(!notcurses_canopen(nc_));
+  SUBCASE("VisualDisabled"){
+    REQUIRE(!notcurses_canopen_images(nc_));
+    REQUIRE(!notcurses_canopen_videos(nc_));
   }
 #else
-  SUBCASE("LibavEnabled"){
-    REQUIRE(notcurses_canopen(nc_));
+  SUBCASE("ImagesEnabled"){
+    REQUIRE(notcurses_canopen_images(nc_));
   }
 
   SUBCASE("LoadImageCreatePlane") {
@@ -87,40 +88,44 @@ TEST_CASE("Visual") {
   }
 
   SUBCASE("LoadVideo") {
-    nc_err_e ncerr = NCERR_SUCCESS;
-    int dimy, dimx;
-    ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncplane_visual_open(ncp_, find_data("notcursesI.avi"), &ncerr);
-    REQUIRE(ncv);
-    CHECK(NCERR_SUCCESS == ncerr);
-    for(;;){ // run at the highest speed we can
-      ncerr = ncvisual_decode(ncv);
-      if(NCERR_EOF == ncerr){
-        break;
+    if(notcurses_canopen_videos(nc_)){
+      nc_err_e ncerr = NCERR_SUCCESS;
+      int dimy, dimx;
+      ncplane_dim_yx(ncp_, &dimy, &dimx);
+      auto ncv = ncplane_visual_open(ncp_, find_data("notcursesI.avi"), &ncerr);
+      REQUIRE(ncv);
+      CHECK(NCERR_SUCCESS == ncerr);
+      for(;;){ // run at the highest speed we can
+        ncerr = ncvisual_decode(ncv);
+        if(NCERR_EOF == ncerr){
+          break;
+        }
+        CHECK(NCERR_SUCCESS == ncerr);
+        /*CHECK(dimy * 2 == frame->height);
+        CHECK(dimx == frame->width); FIXME */
+        CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
+        CHECK(0 == notcurses_render(nc_));
       }
+      ncvisual_destroy(ncv);
+    }
+  }
+
+  SUBCASE("LoadVideoCreatePlane") {
+    if(notcurses_canopen_videos(nc_)){
+      nc_err_e ncerr = NCERR_SUCCESS;
+      int dimy, dimx;
+      ncplane_dim_yx(ncp_, &dimy, &dimx);
+      auto ncv = ncvisual_from_file(nc_, find_data("notcursesI.avi"), &ncerr, 0, 0, NCSCALE_STRETCH);
+      REQUIRE(ncv);
+      CHECK(NCERR_SUCCESS == ncerr);
+      ncerr = ncvisual_decode(ncv);
       CHECK(NCERR_SUCCESS == ncerr);
       /*CHECK(dimy * 2 == frame->height);
       CHECK(dimx == frame->width); FIXME */
       CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
       CHECK(0 == notcurses_render(nc_));
+      ncvisual_destroy(ncv);
     }
-    ncvisual_destroy(ncv);
-  }
-
-  SUBCASE("LoadVideoCreatePlane") {
-    nc_err_e ncerr = NCERR_SUCCESS;
-    int dimy, dimx;
-    ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_from_file(nc_, find_data("notcursesI.avi"), &ncerr, 0, 0, NCSCALE_STRETCH);
-    REQUIRE(ncv);
-    CHECK(NCERR_SUCCESS == ncerr);
-    ncerr = ncvisual_decode(ncv);
-    CHECK(NCERR_SUCCESS == ncerr);
-    /*CHECK(dimy * 2 == frame->height);
-    CHECK(dimx == frame->width); FIXME */
-    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
-    CHECK(0 == notcurses_render(nc_));
-    ncvisual_destroy(ncv);
   }
 #endif
 

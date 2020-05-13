@@ -101,9 +101,14 @@ namespace ncpp
 			return notcurses_canfade (nc);
 		}
 
-		bool can_open () const noexcept
+		bool can_open_images () const noexcept
 		{
-			return notcurses_canopen (nc);
+			return notcurses_canopen_images (nc);
+		}
+
+		bool can_open_videos () const noexcept
+		{
+			return notcurses_canopen_videos (nc);
 		}
 
 		bool can_change_color () const noexcept

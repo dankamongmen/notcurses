@@ -225,8 +225,11 @@ int notcurses_palette_size(const struct notcurses* nc);
 // Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
 bool notcurses_canfade(const struct notcurses* nc);
 
-// Can we load images/videos? This requires being built against FFmpeg.
-bool notcurses_canopen(const struct notcurses* nc);
+// Can we load images? This requires being built against FFmpeg/OIIO.
+bool notcurses_canopen_images(const struct notcurses* nc);
+
+// Can we load videos? This requires being built against FFmpeg.
+bool notcurses_canopen_videos(const struct notcurses* nc);
 
 // Can we change colors in the hardware palette? Requires "ccc" and "initc".
 bool notcurses_canchangecolors(const struct notcurses* nc);

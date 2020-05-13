@@ -48,7 +48,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
 
 // test of sprites from files
 int chunli_demo(struct notcurses* nc){
-  if(!notcurses_canopen(nc)){
+  if(!notcurses_canopen_images(nc)){
     return 0;
   }
   struct timespec iterdelay;

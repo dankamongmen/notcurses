@@ -65,7 +65,7 @@ legend(struct notcurses* nc, int dimy, int dimx){
 }
 
 int view_demo(struct notcurses* nc){
-  if(!notcurses_canopen(nc)){
+  if(!notcurses_canopen_images(nc)){
     return 0;
   }
   int dimy, dimx;
@@ -135,7 +135,10 @@ int view_demo(struct notcurses* nc){
   if(ncpl == NULL){
     return -1;
   }
-  int ret = view_video_demo(nc);
+  int ret = 0;
+  if(notcurses_canopen_videos(nc)){
+    ret |= view_video_demo(nc);
+  }
   ncplane_destroy(ncpl);
   return ret;
 }

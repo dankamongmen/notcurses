@@ -10,6 +10,8 @@ rearrangements of Notcurses.
   * `ncvisual_from_plane()`, `ncplane_move_below_unsafe()`, `ncplane_dup()`,
     and `ncplane_move_above_unsafe()` now accept `const` arguments where they
     did not before.
+  * `notcurses_canopen()` has been split into `notcurses_canopen_images()` and
+    `notcurses_canopen_videos()`.
 
 * 1.4.1 (2020-05-11)
   * No user-visible changes (fixed two unit tests).
