@@ -44,7 +44,7 @@ int main(int argc, char** argv){
     goto err;
   }
   for(double i = 0 ; i < 256 ; ++i){
-    if(ncvisual_rotate(ncv, M_PI / 2)){
+    if(ncvisual_rotate(ncv, M_PI / 16)){
       failed = true;
       break;
     }

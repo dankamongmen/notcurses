@@ -66,9 +66,8 @@ typedef struct ncvisual {
 #else
 #ifdef USE_OIIO
   std::unique_ptr<OIIO::ImageInput> image;  // must be close()d
-  std::unique_ptr<OIIO::ImageBuf> raw;
+  std::unique_ptr<OIIO::ImageBuf> ibuf;
   std::unique_ptr<uint32_t[]> frame;
-  OIIO::ImageBuf scaled;
 #endif
 #endif
   uint32_t* data;          // (scaled) RGBA image data, rowstride bytes per row
@@ -103,31 +102,6 @@ auto ncvisual_create(float timescale) -> ncvisual* {
   }
   ret->timescale = timescale;
   return ret;
-}
-
-auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int lenx)
-                         -> ncvisual* {
-  uint32_t* rgba = ncplane_rgba(n, begx, begy, leny, lenx);
-  if(rgba == nullptr){
-    return nullptr;
-  }
-  int dimy, dimx;
-  ncplane_dim_yx(n, &dimy, &dimx);
-  if(lenx == -1){
-    lenx = n->lenx - begx;
-  }
-  if(leny == -1){
-    leny = n->leny - begy;
-  }
-  auto* ncv = ncvisual_from_rgba(n->nc, rgba, leny, lenx * 4, lenx);
-  if(ncv == nullptr){
-    free(rgba);
-    return nullptr;
-  }
-  ncplane_destroy(ncv->ncp);
-  ncv->ncp = ncplane_dup(n, nullptr);
-  ncv->ncobj = n->nc;
-  return ncv;
 }
 
 auto bgra_to_rgba(const void* data, int rows, int rowstride, int cols) -> void* {
@@ -258,6 +232,16 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
   return *leny * *lenx;
 }
 
+// find the "center" cell of a visual. in the case of even rows/columns, we
+// place the center on the top/left. in such a case there will be one more
+// cell to the bottom/right of the center.
+static inline void
+ncvisual_center(const ncvisual* n, int* RESTRICT y, int* RESTRICT x){
+  *y = n->dstheight;
+  *x = n->dstwidth;
+  center_box(y, x);
+}
+
 // rotate the 0-indexed (origin-indexed) ['y', 'x'] through 'ctheta' and
 // 'stheta' around the centerpoint at ['centy', 'centx']. write the results
 // back to 'y' and 'x'.
@@ -323,16 +307,6 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
   *lenx = rcol - lcol + 1;
 //fprintf(stderr, "Rotated bounding box: %dx%d @ %dx%d\n", *leny, *lenx, *offy, *offx);
   return *leny * *lenx;
-}
-
-// find the "center" cell of a visual. in the case of even rows/columns, we
-// place the center on the top/left. in such a case there will be one more
-// cell to the bottom/right of the center.
-static inline void
-ncvisual_center(const ncvisual* n, int* RESTRICT y, int* RESTRICT x){
-  *y = n->dstheight;
-  *x = n->dstwidth;
-  center_box(y, x);
 }
 
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
@@ -511,6 +485,31 @@ ncvisual_destroy_common(ncvisual* ncv){
 
 ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
+}
+
+auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int lenx)
+                         -> ncvisual* {
+  uint32_t* rgba = ncplane_rgba(n, begx, begy, leny, lenx);
+  if(rgba == nullptr){
+    return nullptr;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  if(lenx == -1){
+    lenx = n->lenx - begx;
+  }
+  if(leny == -1){
+    leny = n->leny - begy;
+  }
+  auto* ncv = ncvisual_from_rgba(n->nc, rgba, leny, lenx * 4, lenx);
+  if(ncv == nullptr){
+    free(rgba);
+    return nullptr;
+  }
+  ncplane_destroy(ncv->ncp);
+  ncv->ncp = ncplane_dup(n, nullptr);
+  ncv->ncobj = n->nc;
+  return ncv;
 }
 
 #ifdef USE_FFMPEG
@@ -1024,7 +1023,7 @@ bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
 
 static ncvisual*
 ncvisual_open(const char* filename, nc_err_e* err){
-  *ncerr = NCERR_SUCCESS;
+  *err = NCERR_SUCCESS;
   ncvisual* ncv = ncvisual_create(1);
   if(ncv == nullptr){
     *err = NCERR_NOMEM;
@@ -1048,10 +1047,10 @@ spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*
   return ncv;
 }
 
-ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr){
-  ncvisual* ncv = ncvisual_open(filename, ncerr);
+ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* err){
+  ncvisual* ncv = ncvisual_open(filename, err);
   if(ncv == nullptr){
-    *ncerr = NCERR_NOMEM;
+    *err = NCERR_NOMEM;
     return nullptr;
   }
   set_encoding_vert_scale(nc->nc, ncv);
@@ -1063,13 +1062,13 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   return ncv;
 }
 
-ncvisual* ncvisual_from_file(notcurses* nc, const char* filename, nc_err_e* ncerr,
+ncvisual* ncvisual_from_file(notcurses* nc, const char* filename, nc_err_e* err,
                              int y, int x, ncscale_e style){
-  ncvisual* ncv = ncvisual_open(filename, ncerr);
+  ncvisual* ncv = ncvisual_open(filename, err);
   if(ncv == nullptr){
     return nullptr;
   }
-  set_encoding_vert_scale(nc->nc, ncv);
+  set_encoding_vert_scale(nc, ncv);
   ncv->placey = y;
   ncv->placex = x;
   ncv->style = style;
@@ -1115,8 +1114,8 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 }*/
   OIIO::ImageSpec rgbaspec = spec;
   rgbaspec.nchannels = 4;
-  nc->raw = std::make_unique<OIIO::ImageBuf>(rgbaspec, nc->frame.get());
-//fprintf(stderr, "SUBS: %d\n", nc->raw->nsubimages());
+  nc->ibuf = std::make_unique<OIIO::ImageBuf>(rgbaspec, nc->frame.get());
+//fprintf(stderr, "SUBS: %d\n", nc->ibuf->nsubimages());
   int rows, cols;
   if(nc->ncp == nullptr){ // create plane
     if(nc->style == NCSCALE_NONE){
@@ -1145,14 +1144,20 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       nc->dstwidth = cols;
     }
   }
-  ncvisual_set_data(nc, static_cast<uint32_t*>(nc->raw->localpixels()), false);
+  ncvisual_set_data(nc, static_cast<uint32_t*>(nc->ibuf->localpixels()), false);
   if(nc->dstwidth != spec.width || nc->dstheight != spec.height){ // scale it
+    auto tmpibuf = std::move(*nc->ibuf);
+    nc->ibuf = std::make_unique<OIIO::ImageBuf>();
+    OIIO::ImageSpec sp{};
+    sp.width = nc->dstwidth;
+    sp.height = nc->dstheight;
+    nc->ibuf->reset(sp, OIIO::InitializePixels::Yes);
     OIIO::ROI roi(0, nc->dstwidth, 0, nc->dstheight, 0, 1, 0, 4);
-    if(!OIIO::ImageBufAlgo::resize(nc->scaled, *nc->raw, "", 0, roi)){
+    if(!OIIO::ImageBufAlgo::resize(*nc->ibuf, tmpibuf, "", 0, roi)){
       return NCERR_DECODE; // FIXME need we do anything further?
     }
     nc->rowstride = nc->dstwidth * 4;
-    ncvisual_set_data(nc, static_cast<uint32_t*>(nc->scaled.localpixels()), false);
+    ncvisual_set_data(nc, static_cast<uint32_t*>(nc->ibuf->localpixels()), false);
   }
   nc->rowstride = nc->dstwidth * 4;
   return NCERR_SUCCESS;
@@ -1220,6 +1225,26 @@ char* ncvisual_subtitle(const ncvisual* ncv){ // no support in OIIO
   return nullptr;
 }
 
+// FIXME before we can enable this, we need build an OIIO::APPBUFFER-style
+// ImageBuf in ncvisual in ncvisual_from_rgba().
+/*
+auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
+  OIIO::ROI roi(0, ncv->dstwidth, 0, ncv->dstheight, 0, 1, 0, 4);
+  auto tmpibuf = std::move(*ncv->ibuf);
+  ncv->ibuf = std::make_unique<OIIO::ImageBuf>();
+  OIIO::ImageSpec sp{};
+  sp.set_format(OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4));
+  sp.nchannels = 4;
+  ncv->ibuf->reset();
+  if(!OIIO::ImageBufAlgo::rotate(*ncv->ibuf, tmpibuf, rads, "", 0, true, roi)){
+    return NCERR_DECODE; // FIXME need we do anything further?
+  }
+  ncv->rowstride = ncv->dstwidth * 4;
+  ncvisual_set_data(ncv, static_cast<uint32_t*>(ncv->ibuf->localpixels()), false);
+  return NCERR_SUCCESS;
+}
+*/
+
 int ncvisual_init(int loglevel){
   // FIXME set OIIO global attribute "debug" based on loglevel
   (void)loglevel;
@@ -1235,7 +1260,6 @@ void ncvisual_destroy(ncvisual* ncv){
     ncvisual_destroy_common(ncv);
   }
 }
-
 extern "C" {
 // FIXME would be nice to have OIIO::attributes("libraries") in here
 const char* oiio_version(void){

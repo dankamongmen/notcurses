@@ -1,4 +1,5 @@
 #include "demo.h"
+#include <math.h>
 #include <complex.h>
 
 static const int VSCALE = 2;

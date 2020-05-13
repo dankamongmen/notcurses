@@ -5,7 +5,7 @@ blingful TUI library for modern terminal emulators. definitely not curses.
 * C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
-and the [man pages](https://nick-black.com/notcurses). There's also a reference
+and the [man pages](https://notcurses.com/notcurses). There's also a reference
 [in this repo](USAGE.md).
 
 In addition, there is
