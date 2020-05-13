@@ -35,12 +35,17 @@ offset(uint32_t* rgba, int y, int x, int dx){
 // make a pixel array out from the center, blitting it as we go
 int normal_demo(struct notcurses* nc){
   int dy, dx;
-  struct ncplane* n = notcurses_stddim_yx(nc, &dy, &dx);
+  // we can't resize (and thus can't rotate) the standard plane, so dup it
+  struct ncplane* n = ncplane_dup(notcurses_stddim_yx(nc, &dy, &dx), NULL);
+  if(n == NULL){
+    return -1;
+  }
   ncplane_erase(n);
+  struct ncvisual* ncv = NULL;
   dy *= VSCALE; // double-block trick means both 2x resolution and even linecount yay
   uint32_t* rgba = malloc(sizeof(*rgba) * dy * dx);
   if(!rgba){
-    return -1;
+    goto err;
   }
   memset(rgba, 0, sizeof(*rgba) * dy * dx);
   int y;
@@ -48,38 +53,47 @@ int normal_demo(struct notcurses* nc){
     y = dy / VSCALE + 1;
     for(int x = 0 ; x < dx ; ++x){
       if(mcell(offset(rgba, y, x, dx), y, x, dy / VSCALE, dx)){
-        return -1;
+        goto err;
       }
     }
   }
   for(y = 0 ; y < dy / 2 ; ++y){
     for(int x = 0 ; x < dx ; ++x){
       if(mcell(offset(rgba, dy / 2 - y, x, dx), dy / 2 - y, x, dy, dx)){
-        return -1;
+        goto err;
       }
       if(mcell(offset(rgba, dy / 2 + y - 1, x, dx), dy / 2 + y - 1, x, dy, dx)){
-        return -1;
+        goto err;
       }
     }
     if(ncblit_rgba(n, 0, 0, dx * sizeof(*rgba), rgba, 0, 0, dy, dx) < 0){
-      return -1;
+      goto err;
     }
     DEMO_RENDER(nc);
   }
   free(rgba);
-  struct ncvisual* ncv = ncvisual_from_plane(n, 0, 0, -1, -1);
+  rgba = NULL;
+  // FIXME ncvisual_from_plane is failing
+  /*ncv = ncvisual_from_plane(n, 0, 0, -1, -1);
   if(!ncv){
-    return -1;
+    goto err;
   }
   for(int i = 1 ; i < 100 ; ++i){
     if(ncvisual_rotate(ncv, M_PI / 2)){
-      return -1;
+      goto err;
     }
     if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
-      return -1;
+      goto err;
     }
     DEMO_RENDER(nc);
-  }
+  }*/
   ncvisual_destroy(ncv);
+  ncplane_destroy(n);
   return 0;
+
+err:
+  free(rgba);
+  ncvisual_destroy(ncv);
+  ncplane_destroy(n);
+  return -1;
 }

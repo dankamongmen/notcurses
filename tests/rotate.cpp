@@ -136,16 +136,16 @@ TEST_CASE("Rotate") {
       CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
       free(c);
     }
-    CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
     CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
     CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
     CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, M_PI/2));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
     CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
@@ -177,16 +177,16 @@ TEST_CASE("Rotate") {
       CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
       free(c);
     }
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
     CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
     CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
     CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI/2));
+    CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
     CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);

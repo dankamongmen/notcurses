@@ -349,8 +349,6 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
 fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, prevcell->gcluster, y, x, absy, absx);
 }else{
 fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
-}
-fprintf(stderr, "POOL: %p NC: %p SRC: %p\n", pool->pool, nc, crender->p);
 }*/
         if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
           crender->damaged = true;
