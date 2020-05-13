@@ -141,7 +141,7 @@ auto ncvisual_setplane(ncvisual* ncv, ncplane* n) -> int {
 // pixels. Returns the area of the box (0 if there are no pixels).
 auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
                            int* offy, int* offx) -> int {
-  int trow, lcol, rcol;
+  int trow, lcol = -1, rcol = INT_MAX; // FIXME shouldn't need lcol init
   // first, find the topmost row with a real pixel. if there is no such row,
   // there are no such pixels. if we find one, we needn't look in this region
   // for other extrema, so long as we keep the leftmost and rightmost through
@@ -166,7 +166,7 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
         break;
       }
     }
-    if(x < ncv->dstwidth){
+    if(rcol < INT_MAX){
       break;
     }
   }
