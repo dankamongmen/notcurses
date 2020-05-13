@@ -1,5 +1,9 @@
 #include "demo.h"
+#ifdef __linux__
 #include <sys/random.h>
+#else
+#include <sys/libkern.h>
+#endif
 
 int qrcode_demo(struct notcurses* nc){
 #ifdef USE_QRCODEGEN
@@ -9,10 +13,14 @@ int qrcode_demo(struct notcurses* nc){
   for(int i = 0 ; i < 1024 ; ++i){
     ncplane_erase(n);
     size_t len = random() % sizeof(data) + 1;
+#ifdef __linux__
     ssize_t got = getrandom(data, len, 0);
     if(got < 0 || (size_t)got != len){
       return -1;
     }
+#else
+    arc4rand(data, len, 0);
+#endif
     if(ncplane_cursor_move_yx(n, 0, 0)){
       return -1;
     }
