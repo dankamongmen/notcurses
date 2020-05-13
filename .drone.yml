@@ -38,7 +38,7 @@ steps:
   image: dankamongmen/rawhide_builder:2020-05-13a
   commands:
     - export LANG=en_US.UTF-8
-    - sudo dnf -y install make cmake libqrcodegen-devel gcc-c++ OpenImageIO-devel pandoc python3-cffi python3-devel pkgconfig
+    - sudo dnf -y install make cmake libqrcodegen-devel gcc-c++ OpenImageIO-devel pandoc python3-cffi python3-devel pkgconfig ncurses-devel
     - mkdir build
     - cd build
     - ls
