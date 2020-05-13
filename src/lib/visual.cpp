@@ -252,25 +252,6 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
   return *leny * *lenx;
 }
 
-// if we're rotating around our center, we can't require any radius greater
-// than our longer length. rotation can thus be held entirely within a square
-// plane having length of our longest length. after one rotation, this decays
-// to the same square throughout any rotations.
-/*static auto
-rotate_new_geom(ncvisual* ncv, double rads, double *stheta, double *ctheta) -> int {
-  *stheta = sin(rads);
-  *ctheta = cos(rads);
-  const int scaledy = ncv->ncp->leny * encoding_vert_scale(ncv);
-  const int diam = scaledy < ncv->ncp->lenx ? ncv->ncp->lenx : scaledy;
-//fprintf(stderr, "rotating %d -> %d / %d\n", ncv->ncp->leny, scaledy, ncv->ncp->lenx);
-  if(ncv->ncp->lenx != scaledy){
-    if(ncplane_resize_simple(ncv->ncp, diam / encoding_vert_scale(ncv), diam) < 0){
-      return -1;
-    }
-  }
-  return diam;
-}*/
-
 // find the "center" cell of a visual. in the case of even rows/columns, we
 // place the center on the top/left. in such a case there will be one more
 // cell to the bottom/right of the center.
@@ -291,12 +272,6 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   double stheta, ctheta; // sine, cosine
   stheta = sin(rads);
   ctheta = cos(rads);
-//fprintf(stderr, "PREROTATE: %d/%d DST: %d/%d\n", ncv->ncp->leny, ncv->ncp->lenx, ncv->dstheight, ncv->dstwidth);
-  /*auto diam = rotate_new_geom(ncv, rads, &stheta, &ctheta);
-fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, stheta, ctheta);
-  if(diam <= 0){
-    return -1;
-  }*/
   int centy, centx;
   ncvisual_center(ncv, &centy, &centx); // pixel center (center of 'data')
   // bounding box for real data within the ncvisual. we must only resize to
@@ -312,6 +287,10 @@ fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, sthe
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
   auto data = static_cast<uint32_t*>(malloc(bbarea * 4));
   if(data == nullptr){
+    return -1;
+  }
+  if(ncplane_resize_simple(ncv->ncp, bby / encoding_vert_scale(ncv), bbx) < 0){
+    free(data);
     return -1;
   }
   memset(data, 0, bbarea * 4);
