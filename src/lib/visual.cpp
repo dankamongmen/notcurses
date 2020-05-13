@@ -113,6 +113,12 @@ auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int len
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
+  if(lenx == -1){
+    lenx = n->lenx - begx;
+  }
+  if(leny == -1){
+    leny = n->leny - begy;
+  }
   auto* ncv = ncvisual_from_rgba(n->nc, rgba, leny, lenx * 4, lenx);
   if(ncv == nullptr){
     free(rgba);

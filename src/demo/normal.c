@@ -73,8 +73,7 @@ int normal_demo(struct notcurses* nc){
   }
   free(rgba);
   rgba = NULL;
-  // FIXME ncvisual_from_plane is failing
-  /*ncv = ncvisual_from_plane(n, 0, 0, -1, -1);
+  ncv = ncvisual_from_plane(n, 0, 0, -1, -1);
   if(!ncv){
     goto err;
   }
@@ -86,7 +85,7 @@ int normal_demo(struct notcurses* nc){
       goto err;
     }
     DEMO_RENDER(nc);
-  }*/
+  }
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   return 0;
