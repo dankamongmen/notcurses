@@ -113,8 +113,7 @@ auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int len
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  // FIXME needs to make use of begy, begx, leny, lenx!
-  auto* ncv = ncvisual_from_rgba(n->nc, rgba, n->leny, n->lenx * 4, n->lenx);
+  auto* ncv = ncvisual_from_rgba(n->nc, rgba, leny, lenx * 4, lenx);
   if(ncv == nullptr){
     free(rgba);
     return nullptr;
@@ -176,7 +175,11 @@ rotate_new_geom(ncvisual* ncv, double rads, double *stheta, double *ctheta) -> i
 }*/
 
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
+  if(rads < 0){
+    return -1; // FIXME
+  }
   if(ncv->data == nullptr){
+fprintf(stderr, "%f rads no data!\n", rads);
     return -1;
   }
   double stheta, ctheta; // sine, cosine
@@ -189,16 +192,14 @@ fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, sthe
     return -1;
   }*/
   ncplane_erase(ncv->ncp);
-  // targy <- x, targx <- ncv->dstheight - y - 1
-  int centx = ncv->dstwidth / 2; // pixel center
-  int centy = ncv->dstheight / encoding_vert_scale(ncv) / 2;
-  // pixel diameter
-  int prad = sqrt(centx * centx + centy * centy) + 1;
+  int centx = (ncv->dstwidth - 1) / 2;  // pixel center (center of 'data')
+  int centy = (ncv->dstheight - 1) / 2;
+  int pdiam = ceil(hypot(ncv->dstwidth, ncv->dstheight)); // pixel diameter
 //fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
-  int pdiam = ncv->dstwidth > ncv->dstheight ? ncv->dstwidth : ncv->dstheight;
   auto data = static_cast<uint32_t*>(malloc(pdiam * pdiam * 4));
   if(data == nullptr){
+fprintf(stderr, "%f rads alloc failed pdiam: %d!\n", rads, pdiam * pdiam);
     return -1;
   }
 //fprintf(stderr, "prad: %d DIAM: %d CENTER: %d/%d LEN: %d/%d\n", prad, diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
@@ -208,13 +209,13 @@ fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, sthe
       const int convy = y - centy; // converted coordinates
       const int targx = convx * ctheta - convy * stheta;
       const int targy = convx * stheta + convy * ctheta;
-      const int deconvx = targx + prad;
-      const int deconvy = targy + prad;
+      const int deconvx = targx + centx;
+      const int deconvy = targy + centy;
 if(deconvy < 0 || deconvx < 0 || deconvy >= pdiam || deconvx >= pdiam){
 //fprintf(stderr, "%d/%d -> %d/%d -> %d/%d -> %d/%d\n", y, x, convy, convx, targy, targx, deconvy, deconvx);
 }else{
 //fprintf(stderr, "%d/%d (%d) <- (%d) %08x\n", deconvy, deconvx, deconvy * ncv->dstwidth + deconvx, y * (ncv->rowstride / 4) + x, ncv->data[y * (ncv->rowstride / 4) + x]);
-      data[deconvy * ncv->dstwidth + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
+      data[deconvy * pdiam + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 }
  //     data[deconvy * (ncv->dstwidth) + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
