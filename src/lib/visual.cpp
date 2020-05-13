@@ -161,7 +161,7 @@ auto ncvisual_setplane(ncvisual* ncv, ncplane* n) -> int {
 // pixels. Returns the area of the box (0 if there are no pixels).
 auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
                            int* offy, int* offx) -> int {
-  int trow, lcol = 0, rcol = 0; // FIXME shouldn't need initializations...
+  int trow, lcol, rcol;
   // first, find the topmost row with a real pixel. if there is no such row,
   // there are no such pixels. if we find one, we needn't look in this region
   // for other extrema, so long as we keep the leftmost and rightmost through
@@ -196,7 +196,6 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
     *offy = 0;
     *offx = 0;
   }else{
-    assert(trow);
     assert(lcol >= 0);
     assert(rcol < ncv->dstwidth);
     // we now know topmost row, and left/rightmost through said row. now we must
@@ -315,7 +314,7 @@ fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, sthe
   if(data == nullptr){
     return -1;
   }
-  //memset(data, 0, bbarea * 4);
+  memset(data, 0, bbarea * 4);
 //fprintf(stderr, "prad: %d DIAM: %d CENTER: %d/%d LEN: %d/%d\n", prad, diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
   for(int y = 0 ; y < ncv->dstheight ; ++y){
       for(int x = 0 ; x < ncv->dstwidth ; ++x){
@@ -325,7 +324,7 @@ fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, sthe
       const int targy = convx * stheta + convy * ctheta;
       const int deconvx = targx + bbcentx;
       const int deconvy = targy + bbcenty;
-if(deconvy < bboffy || deconvx < bboffx || deconvy >= bboffy + bby || deconvx >= bboffx + bbx){
+if(deconvy < 0 || deconvx < 0 || deconvy >= bby || deconvx >= bbx){
 //fprintf(stderr, "NOCOPY %d/%d -> %d/%d -> %d/%d -> %d/%d (%dx%d + %dx%d)\n", y, x, convy, convx, targy, targx, deconvy, deconvx, bboffy, bboffx, bby, bbx);
 }else{
 //fprintf(stderr, "YESCOPY %d/%d (%d) <- (%d) %08x\n", deconvy, deconvx, deconvy * ncv->dstwidth + deconvx, y * (ncv->rowstride / 4) + x, ncv->data[y * (ncv->rowstride / 4) + x]);
