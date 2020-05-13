@@ -373,18 +373,16 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
     return -1;
   }
   memset(data, 0, bbarea * 4);
-//fprintf(stderr, "bbarea: %d bby: %d bbx: %d centy: %d centx: %d\n", bbarea, bby, bbx, centy, centx);
+//fprintf(stderr, "bbarea: %d bby: %d bbx: %d centy: %d centx: %d bbcenty: %d bbcentx: %d\n", bbarea, bby, bbx, centy, centx, bbcenty, bbcentx);
   for(int y = 0 ; y < ncv->dstheight ; ++y){
       for(int x = 0 ; x < ncv->dstwidth ; ++x){
       int targx = x, targy = y;
       rotate_point(&targy, &targx, stheta, ctheta, centy, centx);
-      const int deconvx = targx - bboffx/*bbcentx*/;
-      const int deconvy = targy - bboffy/*bbcenty*/;
-if(deconvy < 0 || deconvx < 0 || deconvy >= bby || deconvx >= bbx){
-fprintf(stderr, "NOCOPY %d/%d -> %d/%d -> %d/%d (%dx%d + %dx%d)\n", y, x, targy, targx, deconvy, deconvx, bboffy, bboffx, bby, bbx);
-}else{
-      data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
-}
+      const int deconvx = targx - bboffx;
+      const int deconvy = targy - bboffy;
+      if(deconvy >= 0 && deconvx >= 0 && deconvy < bby && deconvx < bbx){
+        data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
+      }
  //     data[deconvy * (ncv->dstwidth) + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
 //fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->dstheight + targx], targy * ncv->dstheight + targx, (targy * ncv->dstheight + targx) * 4);
