@@ -169,7 +169,8 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
   // and rightmost pixel of whichever row has the topmost valid pixel. unlike
   // the topmost, they'll need be further verified.
   for(trow = 0 ; trow < ncv->dstheight ; ++trow){
-    for(int x = 0 ; x < ncv->dstwidth ; ++x){
+    int x;
+    for(x = 0 ; x < ncv->dstwidth ; ++x){
       uint32_t rgba = ncv->data[trow * ncv->rowstride / 4 + x];
       if(rgba){
         lcol = x; // leftmost pixel of topmost row
@@ -182,10 +183,15 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
           }
         }
         rcol = xr;
+        fprintf(stderr, "BREAKING AT %d < %d\n", trow, ncv->dstheight);
         break;
       }
     }
+    if(x < ncv->dstwidth){
+      break;
+    }
   }
+fprintf(stderr, "AFTER TOP: %d %d %d\n", trow, lcol, rcol);
   if(trow == ncv->dstheight){ // no real pixels
     *leny = 0;
     *lenx = 0;
@@ -199,7 +205,8 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
     // find the bottommost row, checking left/rightmost throughout.
     int brow;
     for(brow = ncv->dstheight - 1 ; brow > trow ; --brow){
-      for(int x = 0 ; x < ncv->dstwidth ; ++x){
+      int x;
+      for(x = 0 ; x < ncv->dstwidth ; ++x){
         uint32_t rgba = ncv->data[brow * ncv->rowstride / 4 + x];
         if(rgba){
           if(x < lcol){
@@ -217,6 +224,9 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
           }
           break;
         }
+      }
+      if(x < ncv->dstwidth){
+        break;
       }
     }
     // we now know topmost and bottommost row, and left/rightmost within those
@@ -264,6 +274,16 @@ rotate_new_geom(ncvisual* ncv, double rads, double *stheta, double *ctheta) -> i
   return diam;
 }*/
 
+// find the "center" cell of a visual. in the case of even rows/columns, we
+// place the center on the top/left. in such a case there will be one more
+// cell to the bottom/right of the center.
+static inline void
+ncvisual_center(const ncvisual* n, int* RESTRICT y, int* RESTRICT x){
+  *y = n->dstheight;
+  *x = n->dstwidth;
+  center_box(y, x);
+}
+
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   if(rads < 0){
     return -1; // FIXME
@@ -281,15 +301,23 @@ fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, sthe
   if(diam <= 0){
     return -1;
   }*/
-  ncplane_erase(ncv->ncp);
-  int centx = (ncv->dstwidth - 1) / 2;  // pixel center (center of 'data')
-  int centy = (ncv->dstheight - 1) / 2;
-  int pdiam = ceil(hypot(ncv->dstwidth, ncv->dstheight)); // pixel diameter
+  int centy, centx;
+  ncvisual_center(ncv, &centy, &centx); // pixel center (center of 'data')
+  // bounding box for real data within the ncvisual. we must only resize to
+  // accommodate real data, lest we grow without band as we rotate.
+  // see https://github.com/dankamongmen/notcurses/issues/599.
+  int bby, bbx, bboffy, bboffx, bbarea;
+  if((bbarea = ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx)) == 0){
+fprintf(stderr, "0-area bounding box %d %d %d %d!\n", bby, bbx, bboffy, bboffx);
+    return 0;
+  }
+  int bbcentx = bbx, bbcenty = bby;
+  center_box(&bbcenty, &bbcentx);
 //fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->dstheight, ncv->dstwidth);
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
-  auto data = static_cast<uint32_t*>(malloc(pdiam * pdiam * 4));
+  auto data = static_cast<uint32_t*>(malloc(bbarea * 4));
   if(data == nullptr){
-fprintf(stderr, "%f rads alloc failed pdiam: %d!\n", rads, pdiam * pdiam);
+fprintf(stderr, "%f rads alloc failed area: %d!\n", rads, bbarea);
     return -1;
   }
 //fprintf(stderr, "prad: %d DIAM: %d CENTER: %d/%d LEN: %d/%d\n", prad, diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
@@ -299,13 +327,13 @@ fprintf(stderr, "%f rads alloc failed pdiam: %d!\n", rads, pdiam * pdiam);
       const int convy = y - centy; // converted coordinates
       const int targx = convx * ctheta - convy * stheta;
       const int targy = convx * stheta + convy * ctheta;
-      const int deconvx = targx + centx;
-      const int deconvy = targy + centy;
-if(deconvy < 0 || deconvx < 0 || deconvy >= pdiam || deconvx >= pdiam){
-//fprintf(stderr, "%d/%d -> %d/%d -> %d/%d -> %d/%d\n", y, x, convy, convx, targy, targx, deconvy, deconvx);
+      const int deconvx = targx + bbcentx;
+      const int deconvy = targy + bbcenty;
+if(deconvy < bboffy || deconvx < bboffx || deconvy >= bboffy + bby || deconvx >= bboffx + bbx){
+fprintf(stderr, "NOCOPY %d/%d -> %d/%d -> %d/%d -> %d/%d (%dx%d + %dx%d)\n", y, x, convy, convx, targy, targx, deconvy, deconvx, bboffy, bboffx, bby, bbx);
 }else{
-//fprintf(stderr, "%d/%d (%d) <- (%d) %08x\n", deconvy, deconvx, deconvy * ncv->dstwidth + deconvx, y * (ncv->rowstride / 4) + x, ncv->data[y * (ncv->rowstride / 4) + x]);
-      data[deconvy * pdiam + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
+//fprintf(stderr, "YESCOPY %d/%d (%d) <- (%d) %08x\n", deconvy, deconvx, deconvy * ncv->dstwidth + deconvx, y * (ncv->rowstride / 4) + x, ncv->data[y * (ncv->rowstride / 4) + x]);
+      data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 }
  //     data[deconvy * (ncv->dstwidth) + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
@@ -313,9 +341,10 @@ if(deconvy < 0 || deconvx < 0 || deconvy >= pdiam || deconvx >= pdiam){
     }
   }
   ncvisual_set_data(ncv, data, true);
-  ncv->dstwidth = pdiam;
-  ncv->dstheight = pdiam;
-  ncv->rowstride = ncv->dstwidth * 4;
+  ncv->dstwidth = bbx;
+  ncv->dstheight = bby;
+  ncv->rowstride = bbx * 4;
+  ncplane_erase(ncv->ncp);
   return 0;
 }
 

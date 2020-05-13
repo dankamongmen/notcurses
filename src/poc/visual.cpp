@@ -59,6 +59,7 @@ fprintf(stderr, "render %f failed\n", i);
       failed = true;
       break;
     }
+sleep(1);
   }
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
