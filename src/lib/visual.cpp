@@ -212,12 +212,12 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
           int xr;
           for(xr = ncv->dstwidth - 1 ; xr > x && xr > rcol ; --xr){
             rgba = ncv->data[brow * ncv->rowstride / 4 + xr];
-            if(rgba){ // rightmost pixel of topmost row
+            if(rgba){ // rightmost pixel of bottommost row
+              if(xr > rcol){
+                rcol = xr;
+              }
               break;
             }
-          }
-          if(xr > rcol){
-            rcol = xr;
           }
           break;
         }
@@ -236,7 +236,7 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
           break;
         }
       }
-      for(int x = ncv->dstwidth ; x > rcol ; --x){
+      for(int x = ncv->dstwidth - 1 ; x > rcol ; --x){
         uint32_t rgba = ncv->data[y * ncv->rowstride / 4 + x];
         if(rgba){
           rcol = x;
@@ -275,7 +275,11 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   // bounding box for real data within the ncvisual. we must only resize to
   // accommodate real data, lest we grow without band as we rotate.
   // see https://github.com/dankamongmen/notcurses/issues/599.
-  int bby, bbx, bboffy, bboffx, bbarea;
+  int bby = ncv->dstheight;
+  int bbx = ncv->dstwidth;
+  int bboffy = 0;
+  int bboffx = 0;
+  int bbarea;
   if((bbarea = ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx)) == 0){
     return 0;
   }
