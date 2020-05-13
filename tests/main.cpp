@@ -62,6 +62,11 @@ reset_terminal(){
       printf("%s", str);
     }
     fflush(stdout);
+    str = tigetstr("oc");
+    if(str){
+      printf("%s", str);
+    }
+    fflush(stdout);
     close(fd);
   }
 }

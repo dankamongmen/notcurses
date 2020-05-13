@@ -368,10 +368,10 @@ summary_table(struct ncdirect* nc, const char* spec){
     printf("%9s", demos[results[i].selector - 'a'].name);
     ncdirect_fg_rgb8(nc, 178, 102, 255);
     printf("│%*ss│%7lu│%*s│ %*ss│%3ld│%7.1f│%7.1f║",
-           PREFIXSTRLEN, timebuf,
+           PREFIXCOLUMNS, timebuf,
            results[i].stats.renders,
-           BPREFIXSTRLEN, totalbuf,
-           PREFIXSTRLEN, rtimebuf,
+           BPREFIXCOLUMNS, totalbuf,
+           PREFIXCOLUMNS, rtimebuf,
            results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0,
            results[i].timens ?
@@ -394,10 +394,10 @@ summary_table(struct ncdirect* nc, const char* spec){
   qprefix(totalrenderns, GIG, rtimebuf, 0);
   table_segment(nc, "", "══╧═════════╪════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
   printf("            │");
-  table_printf(nc, "│", "%*ss", PREFIXSTRLEN, timebuf);
+  table_printf(nc, "│", "%*ss", PREFIXCOLUMNS, timebuf);
   table_printf(nc, "│", "%7lu", totalframes);
-  table_printf(nc, "│", "%*s", BPREFIXSTRLEN, totalbuf);
-  table_printf(nc, "│", " %*ss", PREFIXSTRLEN, rtimebuf);
+  table_printf(nc, "│", "%*s", BPREFIXCOLUMNS, totalbuf);
+  table_printf(nc, "│", " %*ss", PREFIXCOLUMNS, rtimebuf);
   table_printf(nc, "│", "%3ld", nsdelta ? totalrenderns * 100 / nsdelta : 0);
   table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
   printf("\n");

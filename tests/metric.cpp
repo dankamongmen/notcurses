@@ -90,7 +90,7 @@ TEST_CASE("Metric") {
     ncmetric(INTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - (1ull << 53))) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
-    ncmetric(INTMAX_MAX + 1ull, 1, buf, 0, 1024, 'i');
+    REQUIRE(ncmetric(INTMAX_MAX + 1ull, 1, buf, 0, 1024, 'i'));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX + 1ull)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
     impericize_ncmetric(UINTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
@@ -103,6 +103,7 @@ TEST_CASE("Metric") {
   }
 
   const char suffixes[] = "\0KMGTPE";
+  //const char smallsuffixes[] = "\0munpfazy";
 
   SUBCASE("PowersOfTen") {
     char gold[PREFIXSTRLEN + 1];

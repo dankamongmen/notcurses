@@ -51,7 +51,7 @@ class ncppplot {
    // if we're sizing the plot based off the plane dimensions, scale it by the
    // plot geometry's width for all calculations
    const int scaleddim = dimx * geomdata[opts->gridtype].width;
-   const int scaledprefixlen = PREFIXSTRLEN * geomdata[opts->gridtype].width;
+   const int scaledprefixlen = PREFIXCOLUMNS * geomdata[opts->gridtype].width;
    if((ncpp->slotcount = ncpp->rangex) == 0){
      ncpp->slotcount = scaleddim;
    }
@@ -141,7 +141,7 @@ class ncppplot {
    }else{
      interval = maxy < miny ? 0 : (maxy - miny) / ((double)dimy * states);
    }
-   const int startx = labelaxisd ? PREFIXSTRLEN : 0; // plot cols begin here
+   const int startx = labelaxisd ? PREFIXCOLUMNS : 0; // plot cols begin here
    // if we want fewer slots than there are available columns, our final column
    // will be other than the plane's final column. most recent x goes here.
    const int finalx = (slotcount < scaleddim - 1 - (startx * scale) ? startx + (slotcount / scale) - 1 : dimx - 1);
@@ -154,7 +154,7 @@ class ncppplot {
        }else{
          ncmetric(interval * states * (y + 1) * 100, 100, buf, 0, 1000, '\0');
        }
-       ncplane_printf_yx(ncp, dimy - y - 1, 0, "%*s", PREFIXSTRLEN, buf);
+       ncplane_printf_yx(ncp, dimy - y - 1, 0, "%*s", PREFIXCOLUMNS, buf);
      }
    }
    if(finalx < startx){ // exit on pathologically narrow planes
@@ -321,7 +321,7 @@ class ncppplot {
  int slotcount;
  int slotstart; // index of most recently-written slot
  int64_t slotx; // x value corresponding to slots[slotstart] (newest x)
- bool labelaxisd; // label dependent axis (consumes PREFIXSTRLEN columns)
+ bool labelaxisd; // label dependent axis (consumes PREFIXCOLUMNS columns)
  bool exponentiali; // exponential independent axis
  bool detectdomain; // is domain detection in effect (stretch the domain)?
 

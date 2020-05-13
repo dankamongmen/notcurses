@@ -4,12 +4,11 @@
 #include <pthread.h>
 #include "notcurses/notcurses.h"
 
-const char *ncmetric(uintmax_t val, unsigned decimal, char *buf, int omitdec,
+const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
                      unsigned mul, int uprefix){
   const unsigned mult = mul; // FIXME kill
   const char prefixes[] = "KMGTPEZY"; // 10^21-1 encompasses 2^64-1
-  // FIXME can't use multibyte μ unless we enlarge the target buffer
-  const char subprefixes[] = "munpfazy"; // 10^24-1
+  const char subprefixes[] = "mµnpfazy"; // 10^24-1
   unsigned consumed = 0;
   uintmax_t dv;
 
