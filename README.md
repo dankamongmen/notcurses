@@ -17,9 +17,11 @@ I wrote a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which
 is available for free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
 
 Notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/),
-and from [Debian Unstable](https://packages.debian.org/source/sid/notcurses).
-Packages for Fedora 33 and Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
-Notcurses is available from the FreeBSD [Ports Collection](https://www.freshports.org/devel/notcurses/).
+from [Debian Unstable](https://packages.debian.org/source/sid/notcurses) and
+[Testing](https://packages.debian.org/testing/graphics/notcurses-data),
+[Fedora Core](https://src.fedoraproject.org/rpms/notcurses),
+and the FreeBSD [Ports Collection](https://www.freshports.org/devel/notcurses/).
+Packages for Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
 
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -330,6 +332,7 @@ up someday **FIXME**.
 
 ### History
 
+* 2020-05-13: Notcurses is [accepted into Fedora Core](https://bugzilla.redhat.com/show_bug.cgi?id=1822971).
 * 2020-05-10: Notcurses [1.4.0 "the saga continues"](https://github.com/dankamongmen/notcurses/releases/tag/v1.4.0).
 * 2020-05-09: Notcurses is [accepted into FreeBSD](https://github.com/dankamongmen/notcurses/issues/575).
 * 2020-04-19: Notcurses is [accepted into Debian](https://bugs.debian.org/950492).
