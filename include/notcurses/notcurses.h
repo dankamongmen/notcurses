@@ -1028,8 +1028,11 @@ API bool notcurses_canfade(const struct notcurses* nc);
 // Can we set the "hardware" palette? Requires the "ccc" terminfo capability.
 API bool notcurses_canchangecolor(const struct notcurses* nc);
 
-// Can we load images/videos? This requires being built against FFmpeg.
-API bool notcurses_canopen(const struct notcurses* nc);
+// Can we load images? This requires being built against FFmpeg/OIIO.
+API bool notcurses_canopen_images(const struct notcurses* nc);
+
+// Can we load videos? This requires being built against FFmpeg.
+API bool notcurses_canopen_videos(const struct notcurses* nc);
 
 // Is our encoding UTF-8?
 API bool notcurses_canutf8(const struct notcurses* nc);

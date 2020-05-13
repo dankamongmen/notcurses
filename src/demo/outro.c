@@ -120,7 +120,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
 }
 
 int outro(struct notcurses* nc){
-  if(!notcurses_canopen(nc)){
+  if(!notcurses_canopen_images(nc)){
     return 0;
   }
   int rows, cols;
@@ -150,14 +150,16 @@ int outro(struct notcurses* nc){
   y = ystart - 1;
   DEMO_RENDER(nc);
   ncplane_move_top(on);
-  pthread_t tid;
-  // will fade across 2 * demodelay
-  targy = 3;
-  pthread_create(&tid, NULL, fadethread, nc);
-  void* ret;
-  pthread_join(tid, &ret);
-  if(ret == PTHREAD_CANCELED){
-    return 1;
+  if(notcurses_canopen_videos(nc)){
+    pthread_t tid;
+    // will fade across 2 * demodelay
+    targy = 3;
+    pthread_create(&tid, NULL, fadethread, nc);
+    void* ret;
+    pthread_join(tid, &ret);
+    if(ret == PTHREAD_CANCELED){
+      return 1;
+    }
   }
   ncplane_fadeout(on, &demodelay, demo_fader, NULL);
   ncplane_destroy(on);

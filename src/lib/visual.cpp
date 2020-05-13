@@ -363,7 +363,11 @@ void ncvisual_destroy(ncvisual* ncv){
   }
 }
 
-bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
+bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))){
+  return true;
+}
+
+bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
   return true;
 }
 
@@ -785,7 +789,11 @@ int ncvisual_init(int loglevel){
 } // extern "C"
 #else // built without ffmpeg
 #ifndef USE_OIIO // built without ffmpeg or oiio
-bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
+bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))){
+  return false;
+}
+
+bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
   return false;
 }
 
@@ -840,8 +848,12 @@ void ncvisual_destroy(ncvisual* ncv){
 }
 #else
 #ifdef USE_OIIO
-bool notcurses_canopen(const notcurses* nc __attribute__ ((unused))){
+bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))){
   return true;
+}
+
+bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
+  return false; // too slow for reliable use at the moment
 }
 
 static ncvisual*

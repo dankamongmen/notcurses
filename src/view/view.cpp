@@ -178,7 +178,7 @@ auto main(int argc, char** argv) -> int {
   NCScale stretchmode;
   auto nonopt = handle_opts(argc, argv, NotCurses::default_notcurses_options, &timescale, &stretchmode);
   NotCurses nc;
-  if(!nc.can_open()){
+  if(!nc.can_open_images()){
     nc.stop();
     std::cerr << "Notcurses was compiled without multimedia support\n";
     return EXIT_FAILURE;

@@ -143,7 +143,7 @@ draw_luigi(struct ncplane* n, const char* sprite){
 }
 
 int luigi_demo(struct notcurses* nc){
-  if(!notcurses_canopen(nc)){
+  if(!notcurses_canopen_images(nc)){
     return 0;
   }
   int rows, cols;

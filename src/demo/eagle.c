@@ -199,7 +199,7 @@ eagles(struct notcurses* nc){
 
 // motherfucking eagles!
 int eagle_demo(struct notcurses* nc){
-  if(!notcurses_canopen(nc)){
+  if(!notcurses_canopen_images(nc)){
     return 0;
   }
   char* map = find_data("eagles.png");
