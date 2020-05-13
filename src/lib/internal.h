@@ -671,6 +671,9 @@ ncplane_center_abs(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
   }
 }
 
+int ncvisual_bounding_box(const struct ncvisual* ncv, int* leny, int* lenx,
+                          int* offy, int* offx);
+
 #ifdef __cplusplus
 }
 #endif

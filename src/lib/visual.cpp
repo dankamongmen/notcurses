@@ -155,6 +155,96 @@ auto ncvisual_setplane(ncvisual* ncv, ncplane* n) -> int {
   return ret;
 }
 
+// Inspects the visual to find the minimum rectangle that can contain all
+// "real" pixels, where "real" pixels are, by convention, all zeroes.
+// Placing this box at offyXoffx relative to the visual will encompass all
+// pixels. Returns the area of the box (0 if there are no pixels).
+auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
+                           int* offy, int* offx) -> int {
+  int trow, lcol = 0, rcol = 0; // FIXME shouldn't need initializations...
+  // first, find the topmost row with a real pixel. if there is no such row,
+  // there are no such pixels. if we find one, we needn't look in this region
+  // for other extrema, so long as we keep the leftmost and rightmost through
+  // this row (from the top). said leftmost and rightmost will be the leftmost
+  // and rightmost pixel of whichever row has the topmost valid pixel. unlike
+  // the topmost, they'll need be further verified.
+  for(trow = 0 ; trow < ncv->dstheight ; ++trow){
+    for(int x = 0 ; x < ncv->dstwidth ; ++x){
+      uint32_t rgba = ncv->data[trow * ncv->rowstride / 4 + x];
+      if(rgba){
+        lcol = x; // leftmost pixel of topmost row
+        // now find rightmost pixel of topmost row
+        int xr;
+        for(xr = ncv->dstwidth - 1 ; xr > x ; --xr){
+          rgba = ncv->data[trow * ncv->rowstride / 4 + xr];
+          if(rgba){ // rightmost pixel of topmost row
+            break;
+          }
+        }
+        rcol = xr;
+        break;
+      }
+    }
+  }
+  if(trow == ncv->dstheight){ // no real pixels
+    *leny = 0;
+    *lenx = 0;
+    *offy = 0;
+    *offx = 0;
+  }else{
+    assert(trow);
+    assert(lcol >= 0);
+    assert(rcol < ncv->dstwidth);
+    // we now know topmost row, and left/rightmost through said row. now we must
+    // find the bottommost row, checking left/rightmost throughout.
+    int brow;
+    for(brow = ncv->dstheight - 1 ; brow > trow ; --brow){
+      for(int x = 0 ; x < ncv->dstwidth ; ++x){
+        uint32_t rgba = ncv->data[brow * ncv->rowstride / 4 + x];
+        if(rgba){
+          if(x < lcol){
+            lcol = x;
+          }
+          int xr;
+          for(xr = ncv->dstwidth - 1 ; xr > x && xr > rcol ; --xr){
+            rgba = ncv->data[brow * ncv->rowstride / 4 + xr];
+            if(rgba){ // rightmost pixel of topmost row
+              break;
+            }
+          }
+          if(xr > rcol){
+            rcol = xr;
+          }
+          break;
+        }
+      }
+    }
+    // we now know topmost and bottommost row, and left/rightmost within those
+    // two sections. now check the rest for left and rightmost.
+    for(int y = trow + 1 ; y < brow ; ++y){
+      for(int x = 0 ; x < lcol ; ++x){
+        uint32_t rgba = ncv->data[y * ncv->rowstride / 4 + x];
+        if(rgba){
+          lcol = x;
+          break;
+        }
+      }
+      for(int x = ncv->dstwidth ; x > rcol ; --x){
+        uint32_t rgba = ncv->data[y * ncv->rowstride / 4 + x];
+        if(rgba){
+          rcol = x;
+          break;
+        }
+      }
+    }
+    *offy = trow;
+    *leny = brow - trow + 1;
+    *offx = lcol;
+    *lenx = rcol - lcol + 1;
+  }
+  return *leny * *lenx;
+}
+
 // if we're rotating around our center, we can't require any radius greater
 // than our longer length. rotation can thus be held entirely within a square
 // plane having length of our longest length. after one rotation, this decays
