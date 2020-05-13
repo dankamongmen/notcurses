@@ -183,7 +183,6 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
           }
         }
         rcol = xr;
-        fprintf(stderr, "BREAKING AT %d < %d\n", trow, ncv->dstheight);
         break;
       }
     }
@@ -191,7 +190,6 @@ auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
       break;
     }
   }
-fprintf(stderr, "AFTER TOP: %d %d %d\n", trow, lcol, rcol);
   if(trow == ncv->dstheight){ // no real pixels
     *leny = 0;
     *lenx = 0;
@@ -289,7 +287,6 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
     return -1; // FIXME
   }
   if(ncv->data == nullptr){
-fprintf(stderr, "%f rads no data!\n", rads);
     return -1;
   }
   double stheta, ctheta; // sine, cosine
@@ -308,7 +305,6 @@ fprintf(stderr, "theta: %f DIAM: %d sinTHETA: %f cTHETA: %f\n", rads, diam, sthe
   // see https://github.com/dankamongmen/notcurses/issues/599.
   int bby, bbx, bboffy, bboffx, bbarea;
   if((bbarea = ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx)) == 0){
-fprintf(stderr, "0-area bounding box %d %d %d %d!\n", bby, bbx, bboffy, bboffx);
     return 0;
   }
   int bbcentx = bbx, bbcenty = bby;
@@ -317,9 +313,9 @@ fprintf(stderr, "0-area bounding box %d %d %d %d!\n", bby, bbx, bboffy, bboffx);
   assert(ncv->rowstride / 4 >= ncv->dstwidth);
   auto data = static_cast<uint32_t*>(malloc(bbarea * 4));
   if(data == nullptr){
-fprintf(stderr, "%f rads alloc failed area: %d!\n", rads, bbarea);
     return -1;
   }
+  //memset(data, 0, bbarea * 4);
 //fprintf(stderr, "prad: %d DIAM: %d CENTER: %d/%d LEN: %d/%d\n", prad, diam, centy, centx, ncv->ncp->leny, ncv->ncp->lenx);
   for(int y = 0 ; y < ncv->dstheight ; ++y){
       for(int x = 0 ; x < ncv->dstwidth ; ++x){
@@ -330,7 +326,7 @@ fprintf(stderr, "%f rads alloc failed area: %d!\n", rads, bbarea);
       const int deconvx = targx + bbcentx;
       const int deconvy = targy + bbcenty;
 if(deconvy < bboffy || deconvx < bboffx || deconvy >= bboffy + bby || deconvx >= bboffx + bbx){
-fprintf(stderr, "NOCOPY %d/%d -> %d/%d -> %d/%d -> %d/%d (%dx%d + %dx%d)\n", y, x, convy, convx, targy, targx, deconvy, deconvx, bboffy, bboffx, bby, bbx);
+//fprintf(stderr, "NOCOPY %d/%d -> %d/%d -> %d/%d -> %d/%d (%dx%d + %dx%d)\n", y, x, convy, convx, targy, targx, deconvy, deconvx, bboffy, bboffx, bby, bbx);
 }else{
 //fprintf(stderr, "YESCOPY %d/%d (%d) <- (%d) %08x\n", deconvy, deconvx, deconvy * ncv->dstwidth + deconvx, y * (ncv->rowstride / 4) + x, ncv->data[y * (ncv->rowstride / 4) + x]);
       data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];

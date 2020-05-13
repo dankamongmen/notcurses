@@ -45,21 +45,17 @@ int main(int argc, char** argv){
   }
   for(double i = 0 ; i < 64 ; ++i){
     if(ncvisual_rotate(ncv, M_PI / 2)){
-fprintf(stderr, "rotation %f failed\n", i);
       failed = true;
       break;
     }
     if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
-fprintf(stderr, "vrender %f failed\n", i);
       failed = true;
       break;
     }
     if(notcurses_render(nc)){
-fprintf(stderr, "render %f failed\n", i);
       failed = true;
       break;
     }
-sleep(1);
   }
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
