@@ -263,9 +263,7 @@ ncvisual_center(const ncvisual* n, int* RESTRICT y, int* RESTRICT x){
 }
 
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
-  if(rads < 0){
-    return -1; // FIXME
-  }
+  rads = -rads; // we're a left-handed Cartesian
   if(ncv->data == nullptr){
     return -1;
   }
