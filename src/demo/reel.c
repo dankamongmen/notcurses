@@ -245,7 +245,7 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
         uint64_t eventcount;
         if(read(fds[0].fd, &eventcount, sizeof(eventcount)) > 0){
           key = demo_getc_nblock(nc, NULL);
-          if(key < 0){
+          if(key == (wchar_t)-1){
             return -1;
           }
         }
@@ -254,13 +254,13 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
         uint64_t val;
         if(read(efd, &val, sizeof(val)) != sizeof(val)){
           fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno));
-        }else if(key < 0){
+        }else if(key == (wchar_t)-1){
           ncreel_redraw(pr);
           DEMO_RENDER(nc);
         }
       }
     }
-  }while(key < 0);
+  }while(key == (wchar_t)-1);
   return key;
 }
 
@@ -344,7 +344,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(w, 0, 55, 218);
     wchar_t rw;
-    if((rw = handle_input(nc, pr, efdr, &deadline)) < 0){
+    if((rw = handle_input(nc, pr, efdr, &deadline)) == (wchar_t)-1){
       break;
     }
     // FIXME clrtoeol();
