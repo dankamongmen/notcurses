@@ -2063,8 +2063,8 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
         channels_fg_rgb(channels, &fr, &fb, &fg);
         channels_bg_rgb(channels, &br, &bb, &bg);
         // FIXME how do we deal with transparency?
-        uint32_t frgba = (fr << 24u) + (fg << 16u) + (fb << 8u) + 0xff;
-        uint32_t brgba = (br << 24u) + (bg << 16u) + (bb << 8u) + 0xff;
+        uint32_t frgba = (fr) + (fg << 8u) + (fb << 16u) + 0xff000000;
+        uint32_t brgba = (br) + (bg << 8u) + (bb << 16u) + 0xff000000;
         if((strcmp(c, " ") == 0) || (strcmp(c, "") == 0)){
           *top = *bot = brgba;
         }else if(strcmp(c, "▄") == 0){
