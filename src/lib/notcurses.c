@@ -370,23 +370,21 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimy = n->leny;
   int dimx = n->lenx;
-  int aty = n->absy;
-  int atx = n->absx;
-  int y = n->y;
-  int x = n->x;
   uint32_t attr = ncplane_attr(n);
   uint64_t chan = ncplane_channels(n);
-  ncplane* newn = ncplane_create(n->nc, n->bound, dimy, dimx, aty, atx, opaque);
+  ncplane* newn = ncplane_create(n->nc, n->bound, dimy, dimx, n->absy, n->absx, opaque);
   if(newn){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);
       return NULL;
     }else{
-      ncplane_cursor_move_yx(newn, y, x);
+      ncplane_cursor_move_yx(newn, n->y, n->x);
       newn->attrword = attr;
       newn->channels = chan;
       ncplane_move_above_unsafe(newn, n);
       memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
+      // we dupd the egcpool, so just dup the goffset
+      newn->basecell = n->basecell;
     }
   }
   return newn;
