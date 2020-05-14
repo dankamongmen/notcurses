@@ -367,13 +367,13 @@ summary_table(struct ncdirect* nc, const char* spec){
     ncdirect_fg(nc, rescolor);
     printf("%9s", demos[results[i].selector - 'a'].name);
     ncdirect_fg_rgb8(nc, 178, 102, 255);
-    printf("│%*ss│%7lu│%*s│ %*ss│%3ld│%7.1f│%7.1f║",
+    printf("│%*ss│%7ju│%*s│ %*ss│%3jd│%7.1f│%7.1f║",
            PREFIXCOLUMNS, timebuf,
-           results[i].stats.renders,
+           (uintmax_t)(results[i].stats.renders),
            BPREFIXCOLUMNS, totalbuf,
            PREFIXCOLUMNS, rtimebuf,
-           results[i].timens ?
-            results[i].stats.render_ns * 100 / results[i].timens : 0,
+           (uintmax_t)(results[i].timens ?
+            results[i].stats.render_ns * 100 / results[i].timens : 0),
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / GIG) : 0.0,
            results[i].stats.renders ?
