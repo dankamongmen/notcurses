@@ -51,7 +51,7 @@ auto perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void
   stdn->set_fg(0x80c080);
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
-  int64_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
+  intmax_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
   stdn->erase();
   stdn->printf(0, NCAlign::Left, "frame %06d\u2026", *framecount);
   char* subtitle = ncvisual_subtitle(ncv);
@@ -73,13 +73,13 @@ auto perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void
     ncplane_printf_yx(subtitle_plane, 0, 0, "%s", subtitle);
     free(subtitle);
   }
-  const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
+  const intmax_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
-  const int64_t m = ns / (60 * NANOSECS_IN_SEC);
+  const intmax_t m = ns / (60 * NANOSECS_IN_SEC);
   ns -= m * (60 * NANOSECS_IN_SEC);
-  const int64_t s = ns / NANOSECS_IN_SEC;
+  const intmax_t s = ns / NANOSECS_IN_SEC;
   ns -= s * NANOSECS_IN_SEC;
-  stdn->printf(0, NCAlign::Right, "%02ld:%02ld:%02ld.%04ld",
+  stdn->printf(0, NCAlign::Right, "%02jd:%02jd:%02jd.%04jd",
                h, m, s, ns / 1000000);
   if(!nc.render()){
     return -1;
