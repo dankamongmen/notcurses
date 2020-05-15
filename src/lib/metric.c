@@ -7,8 +7,9 @@
 const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
                      unsigned mul, int uprefix){
   const unsigned mult = mul; // FIXME kill
-  const char prefixes[] = "KMGTPEZY"; // 10^21-1 encompasses 2^64-1
-  const char subprefixes[] = "mµnpfazy"; // 10^24-1
+  // these two must have the same number of elements
+  const wchar_t prefixes[] =    L"KMGTPEZY"; // 10^21-1 encompasses 2^64-1
+  const wchar_t subprefixes[] = L"mµnpfazy"; // 10^24-1
   unsigned consumed = 0;
   uintmax_t dv;
 
@@ -19,7 +20,7 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
   dv = mult;
   if(decimal <= val || val == 0){
     // FIXME verify that input < 2^89, wish we had static_assert() :/
-    while((val / decimal) >= dv && consumed < strlen(prefixes)){
+    while((val / decimal) >= dv && consumed < sizeof(prefixes) / sizeof(*prefixes)){
       dv *= mult;
       ++consumed;
       if(UINTMAX_MAX / dv < mult){ // near overflow--can't scale dv again
@@ -27,7 +28,7 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
       }
     }
   }else{
-    while(val < decimal && consumed < strlen(subprefixes)){
+    while(val < decimal && consumed < sizeof(subprefixes) / sizeof(*subprefixes)){
       val *= mult;
       ++consumed;
       if(UINTMAX_MAX / dv < mult){ // near overflow--can't scale dv again

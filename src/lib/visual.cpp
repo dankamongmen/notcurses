@@ -270,19 +270,19 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
   ys[0] = 0;
   xs[0] = 0;
   rotate_point(ys, xs, stheta, ctheta, centy, centx);
-//fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, 0, ys[0], xs[0]);
+fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, 0, ys[0], xs[0]);
   ys[1] = 0;
   xs[1] = *lenx - 1;
   rotate_point(ys + 1, xs + 1, stheta, ctheta, centy, centx);
-//fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, *lenx - 1, ys[1], xs[1]);
+fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, *lenx - 1, ys[1], xs[1]);
   ys[2] = *leny - 1;
   xs[2] = *lenx - 1;
   rotate_point(ys + 2, xs + 2, stheta, ctheta, centy, centx);
-//fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, *lenx - 1, ys[2], xs[2]);
+fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, *lenx - 1, ys[2], xs[2]);
   ys[3] = *leny - 1;
   xs[3] = 0;
   rotate_point(ys + 3, xs + 3, stheta, ctheta, centy, centx);
-//fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, 0, ys[3], xs[3]);
+fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, 0, ys[3], xs[3]);
   int trow = ys[0];
   int brow = ys[0];
   int lcol = xs[0];
@@ -305,7 +305,7 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
   *leny = brow - trow + 1;
   *offx = lcol;
   *lenx = rcol - lcol + 1;
-//fprintf(stderr, "Rotated bounding box: %dx%d @ %dx%d\n", *leny, *lenx, *offy, *offx);
+fprintf(stderr, "Rotated bounding box: %dx%d @ %dx%d\n", *leny, *lenx, *offy, *offx);
   return *leny * *lenx;
 }
 
@@ -912,20 +912,9 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
     if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
       return -1;
     }
-    if(streamer){
-      int r = streamer(nc, ncv, curry);
-      if(r){
-        return r;
-      }
-    }
     ++frame;
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    uint64_t nsnow = timespec_to_ns(&now);
-    struct timespec interval;
     uint64_t duration = ncv->oframe->pkt_duration * tbase * NANOSECS_IN_SEC;
 //fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->codecctx->time_base), av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base));
-    sum_duration += (duration * ncv->timescale);
     double schedns = nsbegin;
     if(usets){
       if(tbase == 0){
@@ -933,11 +922,16 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
       }
       schedns += ts * (tbase * ncv->timescale) * NANOSECS_IN_SEC;
     }else{
+      sum_duration += (duration * ncv->timescale);
       schedns += sum_duration;
     }
-    if(nsnow < schedns){
-      ns_to_timespec(schedns - nsnow, &interval);
-      nanosleep(&interval, nullptr);
+    if(streamer){
+      struct timespec abstime;
+      ns_to_timespec(schedns, &abstime);
+      int r = streamer(nc, ncv, &abstime, curry);
+      if(r){
+        return r;
+      }
     }
   }
   if(*ncerr == NCERR_EOF){

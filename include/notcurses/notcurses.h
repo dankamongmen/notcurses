@@ -2151,13 +2151,16 @@ API char* ncvisual_subtitle(const struct ncvisual* ncv);
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
-typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
+// The recommended display time is passed in 'tspec'.
+typedef int (*streamcb)
+ (struct notcurses*, struct ncvisual*, const struct timespec*, void*);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
 // curry is NULL, subtitles will not be displayed.
 static inline int
-ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry){
+ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv,
+                         const struct timespec* tspec, void* curry){
   if(notcurses_render(nc)){
     return -1;
   }
@@ -2173,6 +2176,7 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry
       free(subtitle);
     }
   }
+  nanosleep(tspec, NULL);
   return ret;
 }
 
