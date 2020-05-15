@@ -33,11 +33,19 @@ timespec_to_ns(const struct timespec* ts) -> uint64_t {
   return ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
 }
 
+static inline struct timespec*
+ns_to_timespec(uint64_t ns, struct timespec* ts){
+  ts->tv_sec = ns / NANOSECS_IN_SEC;
+  ts->tv_nsec = ns % NANOSECS_IN_SEC;
+  return ts;
+}
+
 // FIXME internalize this via complex curry
 static struct ncplane* subtitle_plane = nullptr;
 
 // frame count is in the curry. original time is in the ncvisual's ncplane's userptr.
-auto perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void* vframecount) -> int {
+auto perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv,
+              const struct timespec* abstime, void* vframecount) -> int {
   NotCurses &nc = NotCurses::get_instance ();
   auto start = static_cast<struct timespec*>(ncplane_userptr(ncvisual_plane(ncv)));
   if(!start){
@@ -89,12 +97,19 @@ auto perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv, void
   ncplane_dim_yx(ncvisual_plane(ncv), &oldy, &oldx);
   keepy = oldy > dimy ? dimy : oldy;
   keepx = oldx > dimx ? dimx : oldx;
-  char32_t keyp;
-  while((keyp = nc.getc(false, nullptr)) != (char32_t)-1){
-    if(keyp == NCKEY_RESIZE){
-      return ncplane_resize(ncvisual_plane(ncv), 0, 0, keepy, keepx, 0, 0, dimy, dimx);
+  struct timespec interval;
+  clock_gettime(CLOCK_MONOTONIC, &interval);
+  uint64_t nsnow = timespec_to_ns(&interval);
+  uint64_t absnow = timespec_to_ns(abstime);
+  if(absnow > nsnow){
+    ns_to_timespec(absnow - nsnow, &interval);
+    char32_t keyp;
+    while((keyp = nc.getc(&interval, nullptr, nullptr)) != (char32_t)-1){
+      if(keyp == NCKEY_RESIZE){
+        return ncplane_resize(ncvisual_plane(ncv), 0, 0, keepy, keepx, 0, 0, dimy, dimx);
+      }
+      return 1;
     }
-    return 1;
   }
   return 0;
 }

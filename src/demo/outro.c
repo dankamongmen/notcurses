@@ -8,7 +8,8 @@ static struct ncplane* on;
 static struct ncvisual* chncv;
 
 static int
-perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)), void* vthree){
+perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
+         const struct timespec* abstime, void* vthree){
   int* three = vthree; // move up one every three callbacks
   DEMO_RENDER(nc);
   if(y < targy){
@@ -19,6 +20,7 @@ perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)), vo
     --y;
     *three = 3;
   }
+  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, abstime, NULL);
   return 0;
 }
 
