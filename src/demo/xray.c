@@ -1,5 +1,7 @@
 #include "demo.h"
 
+// FIXME turn this into one large plane and move the plane, ratrher than
+// manually redrawing each time
 static const char* leg[] = {
 "                              88              88            88           88                          88             88               88                        ",
 "                              \"\"              88            88           88                          88             \"\"               \"\"                 ,d     ",
@@ -14,19 +16,8 @@ static const char* leg[] = {
 };
 
 static int
-watch_for_keystroke(struct notcurses* nc){
-  wchar_t w;
-  if((w = demo_getc_nblock(nc, NULL)) != (wchar_t)-1){
-    if(w == 'q'){
-      return 1;
-    }
-  }
-  return demo_render(nc);
-}
-
-static int
 perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
-           void* vnewplane){
+           const struct timespec* tspec, void* vnewplane){
   static int startr = 0x5f;
   static int startg = 0xaf;
   static int startb = 0x84;
@@ -92,7 +83,9 @@ perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
     b = t;
   }while(x < dimx);
   ++frameno;
-  return watch_for_keystroke(nc);
+  DEMO_RENDER(nc);
+  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
+  return 0;
 }
 
 int xray_demo(struct notcurses* nc){
