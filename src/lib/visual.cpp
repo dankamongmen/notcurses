@@ -1164,50 +1164,21 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   ncv->timescale = timescale;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
-  //uint64_t nsbegin = timespec_to_ns(&begin);
-  //bool usets = false;
-  // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
-  // we don't have PTS available.
-  //uint64_t sum_duration = 0;
   while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
-    /* codecctx seems to be off by a factor of 2 regularly. instead, go with
-    // the time_base from the avformatctx.
-    double tbase = av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base);
-    int64_t ts = ncv->oframe->best_effort_timestamp;
-    if(frame == 1 && ts){
-      usets = true;
-    }*/
     if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
       return -1;
     }
     if(streamer){
-      int r = streamer(nc, ncv, curry);
+      // currently OIIO is so slow for videos that there's no real point in
+      // any kind of delay FIXME
+      struct timespec now;
+      clock_gettime(CLOCK_MONOTONIC, &now);
+      int r = streamer(nc, ncv, &now, curry);
       if(r){
         return r;
       }
     }
     ++frame;
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    /*uint64_t nsnow = timespec_to_ns(&now);
-    struct timespec interval;
-    uint64_t duration = ncv->oframe->pkt_duration * tbase * NANOSECS_IN_SEC;
-    sum_duration += (duration * ncv->timescale);
-//fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->codecctx->time_base), av_q2d(ncv->fmtctx->streams[ncv->stream_index]->time_base));
-    double schedns = nsbegin;
-    if(usets){
-      if(tbase == 0){
-        tbase = duration;
-      }
-      schedns += ts * (tbase * ncv->timescale) * NANOSECS_IN_SEC;
-    }else{
-      schedns += sum_duration;
-    }
-    if(nsnow < schedns){
-      ns_to_timespec(schedns - nsnow, &interval);
-      nanosleep(&interval, nullptr);
-    }*/
-  }
   if(*ncerr == NCERR_EOF){
     return 0;
   }
