@@ -2432,7 +2432,9 @@ typedef enum {
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
-typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
+// The recommended absolute display time target is passed in 'tspec'.
+typedef int (*streamcb)(struct notcurses*, struct ncvisual*,
+                        const struct timespec* tspec, void*);
 
 // Can we load images/videos? This requires being built against FFmpeg.
 bool notcurses_canopen(const struct notcurses* nc);
@@ -2471,7 +2473,8 @@ int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, in
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
 // curry is NULL, subtitles will not be displayed.
 static inline int
-ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry){
+ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv,
+                         const struct timespec* tspec void* curry){
   if(notcurses_render(nc)){
     return -1;
   }
@@ -2487,6 +2490,7 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry
       free(subtitle);
     }
   }
+  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
   return ret;
 }
 

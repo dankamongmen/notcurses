@@ -2151,9 +2151,9 @@ API char* ncvisual_subtitle(const struct ncvisual* ncv);
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
-// The recommended display time is passed in 'tspec'.
-typedef int (*streamcb)
- (struct notcurses*, struct ncvisual*, const struct timespec*, void*);
+// The recommended absolute display time target is passed in 'tspec'.
+typedef int (*streamcb)(struct notcurses*, struct ncvisual*,
+                        const struct timespec*, void*);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
