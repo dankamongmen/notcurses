@@ -299,7 +299,7 @@ void ncvisual_destroy(struct ncvisual* ncv);
 nc_err_e ncvisual_decode(struct ncvisual* nc);
 int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
 char* ncvisual_subtitle(const struct ncvisual* ncv);
-typedef int (*streamcb)(struct notcurses* nc, struct ncvisual* ncv, void*);
+typedef int (*streamcb)(struct notcurses*, struct ncvisual*, const struct timespec*, void*);
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
 int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
 int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
