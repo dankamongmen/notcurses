@@ -1179,6 +1179,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
       }
     }
     ++frame;
+  }
   if(*ncerr == NCERR_EOF){
     return 0;
   }
