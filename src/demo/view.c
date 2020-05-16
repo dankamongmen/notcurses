@@ -1,20 +1,6 @@
 #include "demo.h"
 
 static int
-watch_for_keystroke(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
-                    const struct timespec* tspec, void* curry __attribute__ ((unused))){
-  wchar_t w;
-  // we don't want a keypress, but allow the ncvisual to handle
-  // NCKEY_RESIZE for us
-  if((w = demo_getc_nblock(nc, NULL)) != (wchar_t)-1){
-    if(w == 'q'){
-      return 1;
-    }
-  }
-  return demo_render(nc);
-}
-
-static int
 view_video_demo(struct notcurses* nc){
   int dimy, dimx;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &dimy, &dimx);
@@ -27,7 +13,8 @@ view_video_demo(struct notcurses* nc){
     return -1;
   }
   free(fm6);
-  int ret = ncvisual_stream(nc, ncv, &err, 2.0/3.0 * delaymultiplier, watch_for_keystroke, NULL);
+  int ret = ncvisual_stream(nc, ncv, &err, 2.0/3.0 * delaymultiplier,
+                            demo_simple_streamer, NULL);
   ncvisual_destroy(ncv);
   return ret;
 }
@@ -64,57 +51,34 @@ legend(struct notcurses* nc, int dimy, int dimx){
   return n;
 }
 
-int view_demo(struct notcurses* nc){
-  if(!notcurses_canopen_images(nc)){
-    return 0;
-  }
-  int dimy, dimx;
-  struct ncplane* ncp = notcurses_stddim_yx(nc, &dimy, &dimx);
-  nc_err_e err = 0;
-  char* pic = find_data("PurpleDrank.jpg");
-  ncplane_erase(ncp);
-  struct ncvisual* ncv = ncplane_visual_open(ncp, pic, &err);
-  if(ncv == NULL){
-    free(pic);
-    return -1;
-  }
-  free(pic);
+// first, images scaled to the rendering area's size. we first put up the
+// DSSCAW logo (opaquely), then the purple drinking menace (opaquely), then
+// the DSSAW logo atop it (transparently). the purple fellow has no
+// transparency, so he's always opaque.
+static int
+view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
+  ncplane_erase(nstd);
+  // standard plane gets PurpleDrank (which will cover the plane), but first
+  // serves as a blocker behind dsplane, which gets the DSSCAW logo.
   struct ncplane* dsplane = ncplane_new(nc, dimy, dimx, 0, 0, NULL);
   if(dsplane == NULL){
     return -1;
   }
-  pic = find_data("dsscaw-purp.png");
+  nc_err_e err = NCERR_SUCCESS;
+  char* pic = find_data("dsscaw-purp.png");
   struct ncvisual* ncv2 = ncplane_visual_open(dsplane, pic, &err);
   if(ncv2 == NULL){
     free(pic);
-    ncvisual_destroy(ncv);
     ncplane_destroy(dsplane);
     return -1;
   }
   free(pic);
-  if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-    ncvisual_destroy(ncv);
-    ncvisual_destroy(ncv2);
-    ncplane_destroy(dsplane);
-    return -1;
-  }
   if((err = ncvisual_decode(ncv2)) != NCERR_SUCCESS){
-    ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);
     return -1;
   }
   if(ncvisual_render(ncv2, 0, 0, -1, -1) <= 0){
-    ncvisual_destroy(ncv);
-    ncvisual_destroy(ncv2);
-    ncplane_destroy(dsplane);
-    return -1;
-  }
-  demo_render(nc);
-  demo_nanosleep(nc, &demodelay);
-  ncplane_move_bottom(dsplane);
-  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
-    ncvisual_destroy(ncv);
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);
     return -1;
@@ -123,19 +87,54 @@ int view_demo(struct notcurses* nc){
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(ncvisual_plane(ncv2), "", 0, channels);
+  ncvisual_destroy(ncv2);
   demo_render(nc);
   demo_nanosleep(nc, &demodelay);
+  // now we open PurpleDrank on the standard plane, and hide DSSAW
+  ncplane_move_bottom(dsplane);
+  pic = find_data("PurpleDrank.jpg");
+  struct ncvisual* ncv = ncplane_visual_open(nstd, pic, &err);
+  if(ncv == NULL){
+    ncplane_destroy(dsplane);
+    free(pic);
+    return -1;
+  }
+  free(pic);
+  if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
+    ncvisual_destroy(ncv);
+    ncplane_destroy(dsplane);
+    return -1;
+  }
+  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
+    ncvisual_destroy(ncv);
+    ncplane_destroy(dsplane);
+    return -1;
+  }
   ncvisual_destroy(ncv);
-  ncvisual_destroy(ncv2);
+  demo_render(nc);
+  demo_nanosleep(nc, &demodelay);
+  // bring DSSCAW back up to the top
   ncplane_move_top(dsplane);
   demo_render(nc);
   demo_nanosleep(nc, &demodelay);
   ncplane_destroy(dsplane);
+  return 0;
+}
+
+int view_demo(struct notcurses* nc){
+  if(!notcurses_canopen_images(nc)){
+    return 0;
+  }
+  int dimy, dimx;
+  struct ncplane* nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
+  int ret = view_images(nc, nstd, dimy, dimx);
+  if(ret){
+    return ret;
+  }
   struct ncplane* ncpl = legend(nc, dimy, dimx);
   if(ncpl == NULL){
     return -1;
   }
-  int ret = 0;
   if(notcurses_canopen_videos(nc)){
     ret |= view_video_demo(nc);
   }

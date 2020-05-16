@@ -2176,7 +2176,7 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv,
       free(subtitle);
     }
   }
-  nanosleep(tspec, NULL);
+  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
   return ret;
 }
 
