@@ -270,19 +270,19 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
   ys[0] = 0;
   xs[0] = 0;
   rotate_point(ys, xs, stheta, ctheta, centy, centx);
-fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, 0, ys[0], xs[0]);
+//fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, 0, ys[0], xs[0]);
   ys[1] = 0;
   xs[1] = *lenx - 1;
   rotate_point(ys + 1, xs + 1, stheta, ctheta, centy, centx);
-fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, *lenx - 1, ys[1], xs[1]);
+//fprintf(stderr, "rotated %d, %d -> %d %d\n", 0, *lenx - 1, ys[1], xs[1]);
   ys[2] = *leny - 1;
   xs[2] = *lenx - 1;
   rotate_point(ys + 2, xs + 2, stheta, ctheta, centy, centx);
-fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, *lenx - 1, ys[2], xs[2]);
+//fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, *lenx - 1, ys[2], xs[2]);
   ys[3] = *leny - 1;
   xs[3] = 0;
   rotate_point(ys + 3, xs + 3, stheta, ctheta, centy, centx);
-fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, 0, ys[3], xs[3]);
+//fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, 0, ys[3], xs[3]);
   int trow = ys[0];
   int brow = ys[0];
   int lcol = xs[0];
@@ -305,7 +305,7 @@ fprintf(stderr, "rotated %d, %d -> %d %d\n", *leny - 1, 0, ys[3], xs[3]);
   *leny = brow - trow + 1;
   *offx = lcol;
   *lenx = rcol - lcol + 1;
-fprintf(stderr, "Rotated bounding box: %dx%d @ %dx%d\n", *leny, *lenx, *offy, *offx);
+//fprintf(stderr, "Rotated bounding box: %dx%d @ %dx%d\n", *leny, *lenx, *offy, *offx);
   return *leny * *lenx;
 }
 
