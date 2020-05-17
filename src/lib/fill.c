@@ -504,9 +504,7 @@ static int
 rotate_merge(ncplane* n, ncplane* newp){
   int dimy, dimx;
   ncplane_dim_yx(newp, &dimy, &dimx);
-fprintf(stderr, "NEWPlen: %d/%d\n", dimy, dimx);
   int ret = ncplane_resize(n, 0, 0, 0, 0, 0, 0, dimy, dimx);
-fprintf(stderr, "nlen: %d/%d\n", ncplane_dim_y(n), ncplane_dim_x(n));
   if(ret == 0){
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){

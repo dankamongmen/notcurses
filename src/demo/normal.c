@@ -44,7 +44,9 @@ int normal_demo(struct notcurses* nc){
   if(!rgba){
     goto err;
   }
-  memset(rgba, 0, sizeof(*rgba) * dy * dx);
+  for(int off = 0 ; off < dy * dx ; ++off){
+    rgba[off] = 0xff000000;
+  }
   int y;
   if(dy / VSCALE % 2){
     y = dy / VSCALE + 1;
@@ -54,6 +56,8 @@ int normal_demo(struct notcurses* nc){
       }
     }
   }
+  struct timespec scaled;
+  timespec_div(&demodelay, dy, &scaled);
   for(y = 0 ; y < dy / 2 ; ++y){
     for(int x = 0 ; x < dx ; ++x){
       if(mcell(offset(rgba, dy / 2 - y, x, dx), dy / 2 - y, x, dy, dx)){
@@ -67,11 +71,11 @@ int normal_demo(struct notcurses* nc){
       goto err;
     }
     DEMO_RENDER(nc);
+    demo_nanosleep(nc, &scaled);
   }
   free(rgba);
   rgba = NULL;
-  struct timespec scaled;
-  timespec_div(&demodelay, 4, &scaled);
+  timespec_div(&demodelay, 8, &scaled);
   // we can't resize (and thus can't rotate) the standard plane, so dup it
   n = ncplane_dup(nstd, NULL);
   if(n == NULL){
