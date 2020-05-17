@@ -1,6 +1,6 @@
 % notcurses-tetris(1)
 % nick black <nickblack@linux.com>
-% v1.4.2.1
+% v1.4.2.2
 
 # NAME
 
