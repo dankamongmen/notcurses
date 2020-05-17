@@ -1,4 +1,4 @@
-#include "cpp.h"
+#include "plot.h"
 
 using ncuplot = struct ncuplot {
   ncppplot<uint64_t> n;

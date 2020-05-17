@@ -1,6 +1,6 @@
-#include "notcurses/notcurses.h"
 #include <cmath>
 #include <limits>
+#include "notcurses/notcurses.h"
 
 static const struct {
   ncgridgeom_e geom;
@@ -200,21 +200,21 @@ class ncppplot {
            }else{
              egcidx = (gvals[i] - intervalbase) / interval;
            }
-//fprintf(stderr, "egcidx: %zu\n", egcidx);
+//fprintf(stderr, "%d/%d ibase: %f egcidx: %zu\n", dimy - y - 1, x, intervalbase, egcidx);
            if(egcidx >= states){
              egcidx = states - 1;
+             done = false;
            }
-           done = false;
            sumidx += egcidx;
          }else{
            egcidx = 0;
          }
        }
-       if(done){
-         break;
-       }
        if(ncplane_putwc_yx(ncp, dimy - y - 1, x, egc[sumidx]) <= 0){
          return -1;
+       }
+       if(done){
+         break;
        }
        if(exponentiali){
          intervalbase = miny + pow(interval, y * states);
