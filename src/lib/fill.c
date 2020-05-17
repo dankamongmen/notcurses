@@ -504,7 +504,9 @@ static int
 rotate_merge(ncplane* n, ncplane* newp){
   int dimy, dimx;
   ncplane_dim_yx(newp, &dimy, &dimx);
+fprintf(stderr, "NEWPlen: %d/%d\n", dimy, dimx);
   int ret = ncplane_resize(n, 0, 0, 0, 0, 0, 0, dimy, dimx);
+fprintf(stderr, "nlen: %d/%d\n", ncplane_dim_y(n), ncplane_dim_x(n));
   if(ret == 0){
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
@@ -526,6 +528,8 @@ int ncplane_rotate_cw(ncplane* n){
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
+  int centy, centx;
+  ncplane_center_abs(n, &centy, &centx);
   // the topmost row consists of the leftmost two columns. the rightmost column
   // of the topmost row consists of the top half of the top two leftmost cells.
   // the penultimate column of the topmost row consists of the bottom half of
@@ -545,6 +549,11 @@ int ncplane_rotate_cw(ncplane* n){
   }
   int ret = rotate_merge(n, newp);
   ret |= ncplane_destroy(newp);
+  int cent2y, cent2x;
+  int absy, absx;
+  ncplane_center_abs(n, &cent2y, &cent2x);
+  ncplane_yx(n, &absy, &absx);
+  ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
   return ret;
 }
 
@@ -555,6 +564,8 @@ int ncplane_rotate_ccw(ncplane* n){
   }
   int dimy, dimx, targdimy, targdimx;
   ncplane_dim_yx(n, &dimy, &dimx);
+  int centy, centx;
+  ncplane_center_abs(n, &centy, &centx);
   ncplane_dim_yx(newp, &targdimy, &targdimx);
   int x = dimx - 2, y;
   // Each row of the target plane is taken from a column of the source plane.
@@ -572,6 +583,11 @@ int ncplane_rotate_ccw(ncplane* n){
   }
   int ret = rotate_merge(n, newp);
   ret |= ncplane_destroy(newp);
+  int cent2y, cent2x;
+  int absy, absx;
+  ncplane_center_abs(n, &cent2y, &cent2x);
+  ncplane_yx(n, &absy, &absx);
+  ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
   return ret;
 }
 

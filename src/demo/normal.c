@@ -24,7 +24,7 @@ mandelbrot(int y, int x, int dy, int dx){
 static int
 mcell(uint32_t* c, int y, int x, int dy, int dx){
   int iter = mandelbrot(y, x, dy, dx);
-  *c = ((255 - iter) << 24u) + ((255 - iter) << 16u) + ((255 - iter) << 8u);
+  *c = (0xff << 24u) + ((255 - iter) << 16u) + ((255 - iter) << 8u) + (255 - iter);
   return 0;
 }
 
@@ -36,13 +36,9 @@ offset(uint32_t* rgba, int y, int x, int dx){
 // make a pixel array out from the center, blitting it as we go
 int normal_demo(struct notcurses* nc){
   int dy, dx;
-  // we can't resize (and thus can't rotate) the standard plane, so dup it
-  struct ncplane* n = ncplane_dup(notcurses_stddim_yx(nc, &dy, &dx), NULL);
-  if(n == NULL){
-    return -1;
-  }
-  ncplane_erase(n);
-  struct ncvisual* ncv = NULL;
+  struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
+  ncplane_erase(nstd);
+  struct ncplane* n = NULL;
   dy *= VSCALE; // double-block trick means both 2x resolution and even linecount yay
   uint32_t* rgba = malloc(sizeof(*rgba) * dy * dx);
   if(!rgba){
@@ -67,37 +63,39 @@ int normal_demo(struct notcurses* nc){
         goto err;
       }
     }
-    if(ncblit_rgba(n, 0, 0, dx * sizeof(*rgba), rgba, 0, 0, dy, dx) < 0){
+    if(ncblit_rgba(nstd, 0, 0, dx * sizeof(*rgba), rgba, 0, 0, dy, dx) < 0){
       goto err;
     }
     DEMO_RENDER(nc);
   }
   free(rgba);
   rgba = NULL;
-  ncv = ncvisual_from_plane(n, 0, 0, -1, -1);
-  if(!ncv){
-    goto err;
-  }
-  ncplane_erase(n);
   struct timespec scaled;
-  timespec_div(&demodelay, 16, &scaled);
-  for(int i = 1 ; i < 16 ; ++i){
+  timespec_div(&demodelay, 4, &scaled);
+  // we can't resize (and thus can't rotate) the standard plane, so dup it
+  n = ncplane_dup(nstd, NULL);
+  if(n == NULL){
+    return -1;
+  }
+  for(int i = 0 ; i < 16 ; ++i){
     demo_nanosleep(nc, &scaled);
-    if(ncvisual_rotate(ncv, M_PI / 2)){
-      goto err;
-    }
-    if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
+    if(ncplane_rotate_cw(n)){
       goto err;
     }
     DEMO_RENDER(nc);
   }
-  ncvisual_destroy(ncv);
+  for(int i = 0 ; i < 16 ; ++i){
+    demo_nanosleep(nc, &scaled);
+    if(ncplane_rotate_ccw(n)){
+      goto err;
+    }
+    DEMO_RENDER(nc);
+  }
   ncplane_destroy(n);
   return 0;
 
 err:
   free(rgba);
-  ncvisual_destroy(ncv);
   ncplane_destroy(n);
   return -1;
 }
