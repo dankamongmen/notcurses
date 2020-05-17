@@ -81,6 +81,12 @@ int normal_demo(struct notcurses* nc){
   if(n == NULL){
     return -1;
   }
+  ncplane_erase(nstd);
+  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  cell_set_fg_rgb(&c, 0xff, 0xff, 0xff);
+  cell_set_bg_rgb(&c, 0xff, 0xff, 0xff);
+  ncplane_polyfill_yx(nstd, 0, 0, &c);
+  cell_release(nstd, &c);
   for(int i = 0 ; i < 16 ; ++i){
     demo_nanosleep(nc, &scaled);
     if(ncplane_rotate_cw(n)){
