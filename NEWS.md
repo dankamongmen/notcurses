@@ -12,6 +12,14 @@ rearrangements of Notcurses.
     did not before.
   * `notcurses_canopen()` has been split into `notcurses_canopen_images()` and
     `notcurses_canopen_videos()`.
+  * `ncmetric()` now uses multibyte suffixes (particularly for the case of
+    'µ', i.e. micro). This has changed the values of `PREFIXSTRLEN` and
+    friends. So long as you were using `PREFIXSTRLEN`, this should require
+    only a recompile. If you were using `PREFIXSTRLEN` in a formatted output
+    context to count columns, you must change to `PREFIXCOLUMNS` etc.
+  * The `streamcb` type definition now accepts a `const struct timespec*` as
+    its third argument. This is the absolute time viz `CLOCK_MONOTONIC` through
+    which the frame ought be displayed. The callback must now effect delay.
 
 * 1.4.1 (2020-05-11)
   * No user-visible changes (fixed two unit tests).
