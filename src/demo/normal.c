@@ -78,7 +78,11 @@ int normal_demo(struct notcurses* nc){
   if(!ncv){
     goto err;
   }
-  for(int i = 1 ; i < 100 ; ++i){
+  ncplane_erase(n);
+  struct timespec scaled;
+  timespec_div(&demodelay, 16, &scaled);
+  for(int i = 1 ; i < 16 ; ++i){
+    demo_nanosleep(nc, &scaled);
     if(ncvisual_rotate(ncv, M_PI / 2)){
       goto err;
     }
