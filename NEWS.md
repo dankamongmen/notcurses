@@ -20,6 +20,7 @@ rearrangements of Notcurses.
   * The `streamcb` type definition now accepts a `const struct timespec*` as
     its third argument. This is the absolute time viz `CLOCK_MONOTONIC` through
     which the frame ought be displayed. The callback must now effect delay.
+  * Mouse coordinates are now properly translated for any margins.
 
 * 1.4.1 (2020-05-11)
   * No user-visible changes (fixed two unit tests).
