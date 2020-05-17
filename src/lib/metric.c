@@ -35,8 +35,8 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
       }
     }
   }
+  int sprintfed;
   if(dv != mult){ // if consumed == 0, dv must equal mult
-    int sprintfed;
     if(val / dv > 0){
       ++consumed;
     }else{
@@ -63,16 +63,20 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
   // val / decimal < dv (or we ran out of prefixes)
   if(omitdec && val % decimal == 0){
     if(consumed){
-      sprintf(buf, "%ju%lc", val / decimal, subprefixes[consumed - 1]);
+      sprintfed = sprintf(buf, "%ju%lc", val / decimal, subprefixes[consumed - 1]);
     }else{
       sprintf(buf, "%ju", val / decimal);
     }
   }else{
     if(consumed){
-      sprintf(buf, "%.2f%lc", (double)val / decimal, subprefixes[consumed - 1]);
+      sprintfed = sprintf(buf, "%.2f%lc", (double)val / decimal, subprefixes[consumed - 1]);
     }else{
       sprintf(buf, "%.2f", (double)val / decimal);
     }
+  }
+  if(consumed && uprefix){
+    buf[sprintfed] = uprefix;
+    buf[sprintfed + 1] = '\0';
   }
   return buf;
 }
