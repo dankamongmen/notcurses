@@ -19,16 +19,13 @@ TEST_CASE("MultibyteWidth") {
 
 TEST_CASE("Cell") {
   // common initialization
-  if(getenv("TERM") == nullptr){
-    return;
-  }
-  FILE* outfp_ = fopen("/dev/tty", "wb");
-  REQUIRE(nullptr != outfp_);
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nullptr != nc_);
+  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  if(!nc_){
+    return;
+  }
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(nullptr != n_);
 
@@ -121,6 +118,4 @@ SUBCASE("SetItalic") {
 
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
-  CHECK(0 == fclose(outfp_));
 }
-

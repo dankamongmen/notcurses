@@ -18,16 +18,13 @@ auto pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), 
 }
 
 TEST_CASE("Fade") {
-  if(getenv("TERM") == nullptr){
-    return;
-  }
-  FILE* outfp_ = fopen("/dev/tty", "wb");
-  REQUIRE(outfp_);
   notcurses_options nopts{};
   nopts.suppress_banner = true;
   nopts.inhibit_alternate_screen = true;
-  struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nc_);
+  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  if(!nc_){
+    return;
+  }
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
   if(!notcurses_canfade(nc_)){
@@ -81,6 +78,5 @@ TEST_CASE("Fade") {
   }
 
   CHECK(0 == notcurses_stop(nc_));
-  CHECK(0 == fclose(outfp_));
 
 }

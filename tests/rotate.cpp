@@ -28,19 +28,16 @@ void RotateCCW(struct notcurses* nc, struct ncplane* n) {
 }
 
 TEST_CASE("Rotate") {
-  if(getenv("TERM") == nullptr){
-    return;
-  }
   if(!enforce_utf8()){
     return;
   }
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  FILE* outfp_ = fopen("/dev/tty", "wb");
-  REQUIRE(outfp_);
-  struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nc_);
+  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  if(!nc_){
+    return;
+  }
   int dimy, dimx;
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(n_);
@@ -195,6 +192,5 @@ TEST_CASE("Rotate") {
   }
 
   CHECK(0 == notcurses_stop(nc_));
-  CHECK(0 == fclose(outfp_));
 
 }

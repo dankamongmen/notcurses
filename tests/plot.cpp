@@ -4,19 +4,16 @@
 #include <iostream>
 
 TEST_CASE("Plot") {
-  if(getenv("TERM") == nullptr){
-    return;
-  }
   if(!enforce_utf8()){
     return;
   }
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  auto outfp_ = fopen("/dev/tty", "wb");
-  REQUIRE(outfp_);
-  auto nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nc_);
+  auto nc_ = notcurses_init(&nopts, nullptr);
+  if(!nc_){
+    return;
+  }
   auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
@@ -143,5 +140,4 @@ TEST_CASE("Plot") {
   }
 
   CHECK(0 == notcurses_stop(nc_));
-  CHECK(0 == fclose(outfp_));
 }

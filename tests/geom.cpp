@@ -2,18 +2,13 @@
 #include "internal.h"
 
 TEST_CASE("Geometry") {
-
-  if(getenv("TERM") == nullptr){
-    return;
-  }
-
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  FILE* outfp_ = fopen("/dev/tty", "wb");
-  REQUIRE(outfp_);
-  notcurses* nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nc_);
+  notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  if(!nc_){
+    return;
+  }
   ncplane* ncp_ = notcurses_stdplane(nc_);
   REQUIRE(ncp_);
 

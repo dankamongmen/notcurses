@@ -5,16 +5,13 @@
 #include "internal.h"
 
 TEST_CASE("NotcursesBase") {
-  if(getenv("TERM") == nullptr){
-    return;
-  }
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  FILE* outfp_ = fopen("/dev/tty", "wb");
-  REQUIRE(outfp_);
-  struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nc_);
+  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  if(!nc_){
+    return;
+  }
 
   SUBCASE("NotcursesVersionString") {
     const char* ver = notcurses_version();
@@ -136,6 +133,5 @@ TEST_CASE("NotcursesBase") {
   }
 
   CHECK(0 == notcurses_stop(nc_));
-  CHECK(0 == fclose(outfp_));
 
 }

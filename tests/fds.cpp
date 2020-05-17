@@ -48,16 +48,13 @@ auto testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry) -> int {
 
 // test ncfdplanes and ncsubprocs
 TEST_CASE("FdsAndSubprocs") {
-  if(getenv("TERM") == nullptr){
-    return;
-  }
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  FILE* outfp_ = fopen("/dev/tty", "wb");
-  REQUIRE(outfp_);
-  struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nc_);
+  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  if(!nc_){
+    return;
+  }
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
@@ -165,5 +162,4 @@ TEST_CASE("FdsAndSubprocs") {
   }
 
   CHECK(0 == notcurses_stop(nc_));
-  CHECK(0 == fclose(outfp_));
 }

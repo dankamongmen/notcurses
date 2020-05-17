@@ -4,19 +4,16 @@
 #include "internal.h"
 
 TEST_CASE("Wide") {
-  if(getenv("TERM") == nullptr){
-    return;
-  }
   if(!enforce_utf8()){
     return;
   }
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
-  FILE* outfp_ = fopen("/dev/tty", "wb");
-  REQUIRE(outfp_);
-  struct notcurses* nc_ = notcurses_init(&nopts, outfp_);
-  REQUIRE(nc_);
+  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  if(!nc_){
+    return;
+  }
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
@@ -866,6 +863,5 @@ TEST_CASE("Wide") {
   }
 
   CHECK(0 == notcurses_stop(nc_));
-  CHECK(0 == fclose(outfp_));
 
 }
