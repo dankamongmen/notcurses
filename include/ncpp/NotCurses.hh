@@ -61,17 +61,17 @@ namespace ncpp
 			return *_instance == nullptr || _instance->nc == nullptr;
 		}
 
-		static const char* ncmetric (uintmax_t val, unsigned decimal, char *buf, int omitdec, unsigned mult, int uprefix) noexcept
+		static const char* ncmetric (uintmax_t val, uintmax_t decimal, char *buf, int omitdec, unsigned mult, int uprefix) noexcept
 		{
 			return ::ncmetric (val, decimal, buf, omitdec, mult, uprefix);
 		}
 
-		static const char* qprefix (uintmax_t val, unsigned decimal, char *buf, int omitdec) noexcept
+		static const char* qprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
 			return ::qprefix (val, decimal, buf, omitdec);
 		}
 
-		static const char* bprefix (uintmax_t val, unsigned decimal, char *buf, int omitdec) noexcept
+		static const char* bprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
 			return ::bprefix (val, decimal, buf, omitdec);
 		}

@@ -21,6 +21,8 @@ rearrangements of Notcurses.
     its third argument. This is the absolute time viz `CLOCK_MONOTONIC` through
     which the frame ought be displayed. The callback must now effect delay.
   * Mouse coordinates are now properly translated for any margins.
+  * `qprefix()` and `bprefix()` now take a `uintmax_t` in place of an
+    `unsigned`, to match `ncprefix`.
 
 * 1.4.1 (2020-05-11)
   * No user-visible changes (fixed two unit tests).

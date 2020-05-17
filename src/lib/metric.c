@@ -5,8 +5,7 @@
 #include "notcurses/notcurses.h"
 
 const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
-                     unsigned mul, int uprefix){
-  const unsigned mult = mul; // FIXME kill
+                     unsigned mult, int uprefix){
   // these two must have the same number of elements
   const wchar_t prefixes[] =    L"KMGTPEZY"; // 10^21-1 encompasses 2^64-1
   const wchar_t subprefixes[] = L"mµnpfazy"; // 10^24-1
