@@ -501,6 +501,7 @@ auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int len
   if(leny == -1){
     leny = n->leny - begy;
   }
+  leny *= 2; // FIXME needn't we use encoding_vert_scale() somehow?
   auto* ncv = ncvisual_from_rgba(n->nc, rgba, leny, lenx * 4, lenx);
   if(ncv == nullptr){
     free(rgba);
