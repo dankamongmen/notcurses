@@ -1,6 +1,6 @@
 % notcurses_palette(3)
 % nick black <nickblack@linux.com>
-% v1.4.2
+% v1.4.2.1
 
 # NAME
 
