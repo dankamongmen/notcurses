@@ -76,14 +76,6 @@ pub fn cells_load_box(_n: *mut ncplane, _attrs: u32, _channels: u64,
     Ok(())
 }
 
-pub fn cells_rounded_box(_n: *mut ncplane, _attr: u32, _channels: u64,
-                         _ul: *mut cell, _ur: *mut cell,
-                         _ll: *mut cell, _lr: *mut cell,
-                         _hl: *mut cell, _vl: *mut cell)
-                         -> std::result::Result<(), std::io::Error> {
-    return cells_load_box(_n, _attr, _channels, _ul, _ur, _ll, _lr, _hl, _vl, "╭╮╰╯─│");
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
