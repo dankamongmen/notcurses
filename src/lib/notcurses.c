@@ -917,7 +917,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(tcsetattr(ret->ttyfd, TCSANOW, &modtermios)){
     fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n",
             ret->ttyfd, strerror(errno));
-    goto err;
+    free(ret);
+    return NULL;
   }
   if(setup_signals(ret, opts->no_quit_sighandlers, opts->no_winch_sighandler)){
     goto err;
@@ -1001,6 +1002,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
 err:
   // FIXME looks like we have some memory leaks on this error path?
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
+  drop_signals(ret);
   free(ret);
   return NULL;
 }
