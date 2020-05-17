@@ -387,15 +387,13 @@ TEST_CASE("Metric") {
     impericize_ncmetric(1, 1000000000000000000ull, buf, 0, 1000, '\0');
     CHECK(!strcmp("1.00a", buf));
 
-    /* FIXME
-    impericize_ncmetric(99, 1000000000000000000ull, buf, 0, 1000, '\0');
-fprintf(stderr, "GOLD: %s buf: %s\n", "99.00a", buf);
-    CHECK(!strcmp("99.00a", buf));
+    impericize_ncmetric(19, 10000000000000000ull, buf, 0, 1000, '\0');
+    CHECK(!strcmp("1.89f", buf));
+    impericize_ncmetric(99, 10000000000000000ull, buf, 0, 1000, '\0');
+    CHECK(!strcmp("9.89f", buf));
 
-    impericize_ncmetric(100, 1000000000000000000ull, buf, 0, 1000, '\0');
-fprintf(stderr, "GOLD: %s buf: %s\n", "100.00a", buf);
-    CHECK(!strcmp("100.00a", buf));
-    */
+    impericize_ncmetric(100, 10000000000000000ull, buf, 0, 1000, '\0');
+    CHECK(!strcmp("10.00f", buf));
 
     impericize_ncmetric(1, 10, buf, 0, 1000, '\0');
     CHECK(!strcmp("100.00m", buf));
@@ -417,7 +415,6 @@ fprintf(stderr, "GOLD: %s buf: %s\n", "100.00a", buf);
     CHECK(!strcmp("100.00p", buf));
   }
 
-  /*
   SUBCASE("NegativePowersOfTen") {
     char gold[PREFIXSTRLEN + 1];
     char buf[PREFIXSTRLEN + 1];
@@ -425,10 +422,9 @@ fprintf(stderr, "GOLD: %s buf: %s\n", "100.00a", buf);
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      qprefix(val, 1000000000000000000ull, buf, '\0');
-      const int sidx = i / 3 + 2;
+      REQUIRE(qprefix(val, 1000000000000000ull, buf, '\0'));
+      const int sidx = i / 3 + 3;
       snprintf(gold, sizeof(gold), "%ju%s00%lc", goldval, decisep, smallsuffixes[sidx]);
-fprintf(stderr, "GOLD: %s buf: %s val: %ju\n", gold, buf, val);
       CHECK(!strcmp(gold, buf));
       if(UINTMAX_MAX / val < 10){
         break;
@@ -437,10 +433,9 @@ fprintf(stderr, "GOLD: %s buf: %s val: %ju\n", gold, buf, val);
       if((goldval *= 10) == 1000){
         goldval = 1;
       }
-    }while(++i < sizeof(smallsuffixes) / sizeof(*smallsuffixes) * 3);
+    }while(++i < (wcslen(smallsuffixes) - 3) * 3);
     // If we ran through all our suffixes, that's a problem
-    CHECK(sizeof(smallsuffixes) / sizeof(*smallsuffixes) * 3 >  i);
+    CHECK(sizeof(smallsuffixes) / sizeof(*smallsuffixes) * 3 > i);
   }
-  */
 
 }

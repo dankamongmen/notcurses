@@ -16,6 +16,9 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
   if(decimal == 0 || mult == 0){
     return NULL;
   }
+  if(decimal > UINTMAX_MAX / 10){
+    return NULL;
+  }
   dv = mult;
   if(decimal <= val || val == 0){
     // FIXME verify that input < 2^89, wish we had static_assert() :/
