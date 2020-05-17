@@ -2013,21 +2013,6 @@ int notcurses_inputready_fd(notcurses* n){
   return fileno(n->ttyinfp);
 }
 
-// generate a temporary plane that can hold the contents of n, rotated 90°
-ncplane* rotate_plane(const ncplane* n){
-  int absy, absx;
-  ncplane_yx(n, &absy, &absx);
-  int dimy, dimx;
-  ncplane_dim_yx(n, &dimy, &dimx);
-  if(dimx % 2 != 0){
-    return NULL;
-  }
-  const int newy = dimx / 2;
-  const int newx = dimy * 2;
-  ncplane* newp = ncplane_new(n->nc, newy, newx, absy, absx, n->userptr);
-  return newp;
-}
-
 uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx){
   if(begy < 0 || begx < 0){
     return NULL;

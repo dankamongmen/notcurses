@@ -1157,7 +1157,9 @@ API struct ncplane* ncplane_below(struct ncplane* n);
 // Rotate the plane π/2 radians clockwise or counterclockwise. This cannot
 // be performed on arbitrary planes, because glyphs cannot be arbitrarily
 // rotated. The glyphs which can be rotated are limited: line-drawing
-// characters, spaces, half blocks, and full blocks.
+// characters, spaces, half blocks, and full blocks. The plane must have
+// an even number of columns. Use the ncvisual rotation for a more
+// flexible approach.
 API int ncplane_rotate_cw(struct ncplane* n);
 API int ncplane_rotate_ccw(struct ncplane* n);
 

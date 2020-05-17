@@ -81,6 +81,13 @@ int normal_demo(struct notcurses* nc){
   if(n == NULL){
     return -1;
   }
+  // we can't rotate a plane unless it has an even number of columns :/
+  int nx;
+  if((nx = ncplane_dim_x(n)) % 2){
+    if(ncplane_resize_simple(n, ncplane_dim_y(n), --nx)){
+      goto err;
+    }
+  }
   ncplane_erase(nstd);
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   cell_set_fg_rgb(&c, 0xff, 0xff, 0xff);

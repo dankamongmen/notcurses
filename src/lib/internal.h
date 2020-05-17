@@ -638,9 +638,6 @@ memdup(const void* src, size_t len){
   return ret;
 }
 
-// generate a temporary plane that can hold the contents of n, rotated 90°
-ncplane* rotate_plane(const ncplane* n);
-
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
 
 // find the "center" cell of two lengths. in the case of even rows/columns, we
