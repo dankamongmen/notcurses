@@ -21,7 +21,7 @@ grep -rF "$OLDVERSION" *
 git commit -a -m v$VERSION
 git push
 git pull
-git tag -a v$VERSION -m "v$VERSION -s"
+git tag -a v$VERSION -m v$VERSION -s
 git push origin --tags
 git pull
 wget https://github.com/dankamongmen/notcurses/archive/v$VERSION.tar.gz
