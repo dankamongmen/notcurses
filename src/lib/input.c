@@ -162,7 +162,7 @@ handle_csi(notcurses* nc, ncinput* ni){
           break;
         }
         if(ni){
-          ni->x = param - 1;
+          ni->x = param - 1 - nc->margin_l;
         }
         param = 0;
       }else if(isdigit(candidate)){
@@ -180,7 +180,7 @@ handle_csi(notcurses* nc, ncinput* ni){
           break;
         }
         if(ni){
-          ni->y = param - 1;
+          ni->y = param - 1 - nc->margin_t;
           ni->id = id;
         }
         return id;
