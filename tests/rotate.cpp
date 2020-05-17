@@ -1,6 +1,7 @@
 #include "main.h"
 #include <cmath>
 #include <vector>
+#include <arpa/inet.h>
 
 void RotateCW(struct notcurses* nc, struct ncplane* n) {
     CHECK(0 == notcurses_render(nc));
@@ -122,8 +123,8 @@ TEST_CASE("Rotate") {
     CHECK(0 == notcurses_render(nc_));
     uint32_t* rgbaret = ncplane_rgba(ncvisual_plane(ncv), 0, 0, -1, -1);
     REQUIRE(rgbaret);
-    for(int i = 0 ; i < rendered ; ++i){
-      CHECK(rgbaret[i] == rgba[i]);
+    for(int i = 0 ; i < rendered / 2 ; ++i){
+      CHECK(rgbaret[i] == htonl(rgba[i]));
     }
     free(rgbaret);
     for(int x = 0 ; x < width ; ++x){
@@ -164,7 +165,7 @@ TEST_CASE("Rotate") {
     uint32_t* rgbaret = ncplane_rgba(ncvisual_plane(ncv), 0, 0, -1, -1);
     REQUIRE(rgbaret);
     for(int i = 0 ; i < rendered ; ++i){
-      CHECK(rgbaret[i] == rgba[i]);
+      CHECK(rgbaret[i] == htonl(rgba[i]));
     }
     free(rgbaret);
     for(int x = 0 ; x < width ; ++x){
