@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.4.2.2 (2020-05-17)
+* 1.4.2.3 (2020-05-17)
   * Added `notcurses_canutf8()`, to verify use of UTF-8 encoding.
   * Fixed bug in `ncvisual_from_plane()` when invoked on the standard plane.
   * `ncvisual_from_plane()` now accepts the same four geometric parameters

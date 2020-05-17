@@ -1,6 +1,6 @@
 [package]
 name = "notcurses"
-version = "1.4.2.2"
+version = "1.4.2.3"
 authors = ["nick black <dankamongmen@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -11,7 +11,7 @@ homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libnotcurses-sys = "^1.4.2.2"
+libnotcurses-sys = "^1.4.2.3"
 libc = "0.2.66"
 libc-stdhandle = ">= 0.1.0"
 

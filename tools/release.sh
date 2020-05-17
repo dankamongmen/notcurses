@@ -17,7 +17,7 @@ for i in $BUMP ; do
   sed -i -e "s/$OLDVERSION/$VERSION/g" $i
 done
 echo "Checking for instances of $OLDVERSION..."
-grep -rF "$OLDVERSION" *
+grep -rF "$OLDVERSION" * || true
 git commit -a -m v$VERSION
 git push
 git pull
