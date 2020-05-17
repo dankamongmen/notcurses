@@ -58,12 +58,12 @@ reset_terminal(){
       tcsetattr(fd, TCSADRAIN, &tios);
     }
     char* str = tigetstr("sgr0");
-    if(str){
+    if(str != (char*)-1){
       printf("%s", str);
     }
     fflush(stdout);
     str = tigetstr("oc");
-    if(str){
+    if(str != (char*)-1){
       printf("%s", str);
     }
     fflush(stdout);
