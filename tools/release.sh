@@ -12,7 +12,7 @@ VERSION="$2"
 vi NEWS.md
 
 git clean -f -d -x
-BUMP="CMakeLists.txt doc/Doxyfile doc/FreeBSD-Makefile doc/man/man*/* doc/man/index.html python/setup.py rust/*/Cargo.toml rust/libnotcurses-sys/build.rs"
+BUMP="CMakeLists.txt doc/Doxyfile doc/man/man*/* doc/man/index.html python/setup.py rust/*/Cargo.toml rust/libnotcurses-sys/build.rs"
 for i in $BUMP ; do
   sed -i -e "s/$OLDVERSION/$VERSION/g" $i
 done
