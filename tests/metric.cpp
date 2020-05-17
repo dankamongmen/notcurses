@@ -5,7 +5,7 @@
 // run ncmetric, and then change any localized decimal separator into our
 // proud imperial yankee capitalist democratic one dot under god period.
 // manifest destiny, bitchhhhhhhezzzz!
-char* impericize_ncmetric(uintmax_t val, unsigned decimal, char* buf,
+char* impericize_ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
                           int omitdec, unsigned mult, int uprefix) {
   const char* decisep = localeconv()->decimal_point;
   REQUIRE(decisep);
@@ -103,7 +103,7 @@ TEST_CASE("Metric") {
   }
 
   const char suffixes[] = "\0KMGTPE";
-  //const char smallsuffixes[] = "\0munpfazy";
+  const wchar_t smallsuffixes[] = L"yzafpnµm";
 
   SUBCASE("PowersOfTen") {
     char gold[PREFIXSTRLEN + 1];
@@ -317,15 +317,17 @@ TEST_CASE("Metric") {
     CHECK(sizeof(suffixes) * 10 > i);
   }
 
+  constexpr auto GIG = 1000000000ull;
+
   // Output ought be scaled down for output while maintaining precision during
   // computation of that output. For instance, we might feed a number of
   // nanoseconds, but want output in seconds.
-  // This requires 'decimal' = 1000000000.
+  // This requires 'decimal' = GIG.
   SUBCASE("ScaledGigSupra") {
     char gold[PREFIXSTRLEN + 1] = "9.02";
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 9027854993;
-    uintmax_t decimal = 1000000000;
+    uintmax_t decimal = GIG;
     REQUIRE(qprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
@@ -333,7 +335,7 @@ TEST_CASE("Metric") {
   SUBCASE("ScaledGigUnity") {
     char gold[PREFIXSTRLEN + 1] = "1.00";
     char buf[PREFIXSTRLEN + 1];
-    uintmax_t decimal = 1000000000;
+    uintmax_t decimal = GIG;
     uintmax_t val = decimal;
     REQUIRE(qprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
@@ -343,7 +345,7 @@ TEST_CASE("Metric") {
     char gold[PREFIXSTRLEN + 1] = "1.00";
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 1000000001;
-    uintmax_t decimal = 1000000000;
+    uintmax_t decimal = GIG;
     REQUIRE(qprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
@@ -352,7 +354,7 @@ TEST_CASE("Metric") {
     char gold[PREFIXSTRLEN + 1] = "999.99m";
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 999999999;
-    uintmax_t decimal = 1000000000;
+    uintmax_t decimal = GIG;
     REQUIRE(qprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
@@ -361,7 +363,7 @@ TEST_CASE("Metric") {
     char gold[PREFIXSTRLEN + 1] = "27.85m";
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 27854993;
-    uintmax_t decimal = 1000000000;
+    uintmax_t decimal = GIG;
     REQUIRE(qprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
@@ -370,9 +372,75 @@ TEST_CASE("Metric") {
     char gold[PREFIXSTRLEN + 1] = "7.85m";
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 7854993;
-    uintmax_t decimal = 1000000000;
+    uintmax_t decimal = GIG;
     REQUIRE(qprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
+
+  SUBCASE("SmallCorners") {
+    char buf[PREFIXSTRLEN + 1];
+    impericize_ncmetric(1, 1000, buf, 0, 1000, '\0');
+    CHECK(!strcmp("1.00m", buf));
+    impericize_ncmetric(1, 1024, buf, 0, 1024, 'i');
+    CHECK(!strcmp("1.00mi", buf));
+
+    impericize_ncmetric(1, 1000000000000000000ull, buf, 0, 1000, '\0');
+    CHECK(!strcmp("1.00a", buf));
+
+    /* FIXME
+    impericize_ncmetric(99, 1000000000000000000ull, buf, 0, 1000, '\0');
+fprintf(stderr, "GOLD: %s buf: %s\n", "99.00a", buf);
+    CHECK(!strcmp("99.00a", buf));
+
+    impericize_ncmetric(100, 1000000000000000000ull, buf, 0, 1000, '\0');
+fprintf(stderr, "GOLD: %s buf: %s\n", "100.00a", buf);
+    CHECK(!strcmp("100.00a", buf));
+    */
+
+    impericize_ncmetric(1, 10, buf, 0, 1000, '\0');
+    CHECK(!strcmp("100.00m", buf));
+    impericize_ncmetric(1, 100, buf, 0, 1000, '\0');
+    CHECK(!strcmp("10.00m", buf));
+    impericize_ncmetric(10, 100, buf, 0, 1000, '\0');
+    CHECK(!strcmp("100.00m", buf));
+    impericize_ncmetric(10, 1000, buf, 0, 1000, '\0');
+    CHECK(!strcmp("10.00m", buf));
+    impericize_ncmetric(100, 1000, buf, 0, 1000, '\0');
+    CHECK(!strcmp("100.00m", buf));
+    impericize_ncmetric(1000, 1000, buf, 0, 1000, '\0');
+    CHECK(!strcmp("1.00", buf));
+
+    impericize_ncmetric(100, 1000000000000000ull, buf, 0, 1000, '\0');
+    CHECK(!strcmp("100.00f", buf));
+
+    impericize_ncmetric(100, 1000000000000ull, buf, 0, 1000, '\0');
+    CHECK(!strcmp("100.00p", buf));
+  }
+
+  /*
+  SUBCASE("NegativePowersOfTen") {
+    char gold[PREFIXSTRLEN + 1];
+    char buf[PREFIXSTRLEN + 1];
+    uintmax_t goldval = 1;
+    uintmax_t val = 1;
+    size_t i = 0;
+    do{
+      qprefix(val, 1000000000000000000ull, buf, '\0');
+      const int sidx = i / 3 + 2;
+      snprintf(gold, sizeof(gold), "%ju%s00%lc", goldval, decisep, smallsuffixes[sidx]);
+fprintf(stderr, "GOLD: %s buf: %s val: %ju\n", gold, buf, val);
+      CHECK(!strcmp(gold, buf));
+      if(UINTMAX_MAX / val < 10){
+        break;
+      }
+      val *= 10;
+      if((goldval *= 10) == 1000){
+        goldval = 1;
+      }
+    }while(++i < sizeof(smallsuffixes) / sizeof(*smallsuffixes) * 3);
+    // If we ran through all our suffixes, that's a problem
+    CHECK(sizeof(smallsuffixes) / sizeof(*smallsuffixes) * 3 >  i);
+  }
+  */
 
 }
