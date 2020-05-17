@@ -15,73 +15,51 @@ static const char* leg[] = {
 "                                                                                                                 888P                                          ",
 };
 
-static int
-perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
-           const struct timespec* tspec, void* vnewplane){
-  static int startr = 0x5f;
-  static int startg = 0xaf;
-  static int startb = 0x84;
-  static int frameno = 0;
-  int dimx, dimy;
-  struct ncplane* n = *(struct ncplane**)vnewplane;
-  if(n == NULL){
-    notcurses_term_dim_yx(nc, &dimy, &dimx);
-    int y = dimy - sizeof(leg) / sizeof(*leg);
-    n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), dimx, y, 0, NULL);
-    if(n == NULL){
-      return -1;
-    }
-    *(struct ncplane**)vnewplane = n;
-    uint64_t channels = 0;
-    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    ncplane_set_base(n, " ", 0, channels);
-    ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
-    ncplane_set_scrolling(n, true);
-  }
-  ncplane_dim_yx(n, &dimy, &dimx);
-  // fg/bg rgbs are set within loop
-  int x = dimx - (frameno * 2);
-  int r = startr;
-  int g = startg;
-  int b = startb;
-  const size_t llen = strlen(leg[0]);
-  do{
-    if(x + (int)llen <= 0){
-      x += llen;
-    }else{
-      int len = dimx - x;
-      if(x < 0){
-        len = llen + x;
+static struct ncplane*
+make_slider(struct notcurses* nc, int dimy){
+  const int REPS = 4;
+  int y = dimy - sizeof(leg) / sizeof(*leg);
+  const int len = strlen(leg[0]);
+  struct ncplane* n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), len * REPS, y, 0, NULL);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(n, " ", 0, channels);
+  ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
+  ncplane_set_scrolling(n, true);
+  int r = 0x5f;
+  int g = 0xaf;
+  int b = 0x84;
+  ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
+  for(int x = 0 ; x < REPS ; ++x){
+    for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l){
+      ncplane_set_fg_rgb_clipped(n, r + 0x8 * l, g + 0x8 * l, b + 0x8 * l);
+      if(ncplane_set_bg_rgb(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
+        ncplane_destroy(n);
+        return NULL;
       }
-      if(len > (int)llen){
-        len = llen;
+      if(ncplane_putstr_yx(n, l, x * len, leg[l]) != len){
+        ncplane_destroy(n);
+        return NULL;
       }
-      if(len > dimx){
-        len = dimx;
-      }
-      int stroff = 0;
-      if(x < 0){
-        stroff = -x;
-        x = 0;
-      }
-      ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
-      for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l){
-        ncplane_set_fg_rgb_clipped(n, r + 0x8 * l, g + 0x8 * l, b + 0x8 * l);
-        if(ncplane_set_bg_rgb(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
-          return -1;
-        }
-        if(ncplane_printf_yx(n, l, x, "%*.*s", len, len, leg[l] + stroff) != len){
-          return -1;
-        }
-      }
-      x += len;
     }
     int t = r;
     r = g;
     g = b;
     b = t;
-  }while(x < dimx);
+  }
+  return n;
+}
+
+static int
+perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
+           const struct timespec* tspec, void* vnewplane){
+  static int frameno = 0;
+  int y, x;
+  struct ncplane* n = vnewplane;
+  assert(n);
+  ncplane_yx(n, &y, &x);
+  ncplane_move_yx(n, y, x - 1);
   ++frameno;
   DEMO_RENDER(nc);
   clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
@@ -105,8 +83,13 @@ int xray_demo(struct notcurses* nc){
   if(ncv == NULL){
     return -1;
   }
-  struct ncplane* newpanel = NULL;
-  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, &newpanel);
+  struct ncplane* newpanel = make_slider(nc, dimy);
+  if(newpanel == NULL){
+    ncvisual_destroy(ncv);
+    ncplane_destroy(n);
+    return -1;
+  }
+  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);
