@@ -129,12 +129,13 @@ class ncppplot {
    // each transition is worth this much change in value
    const size_t states = geomdata[gridtype].height;
    // FIXME can we not rid ourselves of this meddlesome double? either way, the
-   // interval is one row's range (for linear plots), or the log10 of each row's
-   // range (for exponential plots).
+   // interval is one row's range (for linear plots), or the base (base^slots==
+   // maxy-miny) of the range (for exponential plots).
    double interval;
    if(exponentiali){
      if(maxy > miny){
-       interval = pow(maxy - miny, (double)1 / ((dimy - 1) * states));
+       interval = pow(maxy - miny, (double)1 / (dimy * states));
+//fprintf(stderr, "miny: %ju maxy: %ju dimy: %d states: %zu\n", miny, maxy, dimy, states);
      }else{
        interval = 0;
      }
@@ -150,7 +151,7 @@ class ncppplot {
      for(int y = 0 ; y < dimy ; ++y){
        char buf[PREFIXSTRLEN + 1];
        if(exponentiali){
-         ncmetric(pow(interval, y * states) * 100, 100, buf, 0, 1000, '\0');
+         ncmetric(pow(interval, y * states + (states - 1)) * 100, 100, buf, 0, 1000, '\0');
        }else{
          ncmetric(interval * states * (y + 1) * 100, 100, buf, 0, 1000, '\0');
        }
@@ -187,7 +188,7 @@ class ncppplot {
      double intervalbase = miny;
      const wchar_t* egc = geomdata[gridtype].egcs;
      for(int y = 0 ; y < dimy ; ++y){
-       size_t egcidx, sumidx = 0;
+       size_t egcidx = 0, sumidx = 0;
        // if we've got at least one interval's worth on the number of positions
        // times the number of intervals per position plus the starting offset,
        // we're going to print *something*
@@ -196,11 +197,15 @@ class ncppplot {
          sumidx *= states;
          if(intervalbase < gvals[i]){
            if(exponentiali){
-             egcidx = (log(gvals[i]) - log(intervalbase)) * states / interval;
+             // we want the log-base-interval of gvals[i]
+             double scaled = log(gvals[i] - miny) / log(interval);
+             double sival = intervalbase ? log(intervalbase) / log(interval) : 0;
+             egcidx = scaled - sival;
+//fprintf(stderr, "egcidx: %zu gvals: %u interval: %f scaled: %f sival: %f\n", egcidx, gvals[i], interval, scaled, sival);
            }else{
              egcidx = (gvals[i] - intervalbase) / interval;
            }
-//fprintf(stderr, "%d/%d ibase: %f egcidx: %zu\n", dimy - y - 1, x, intervalbase, egcidx);
+//fprintf(stderr, "%d/%d ibase: %f ival: %f egcidx: %zu\n", dimy - y - 1, x, intervalbase, interval, egcidx);
            if(egcidx >= states){
              egcidx = states - 1;
              done = false;
@@ -210,14 +215,16 @@ class ncppplot {
            egcidx = 0;
          }
        }
-       if(ncplane_putwc_yx(ncp, dimy - y - 1, x, egc[sumidx]) <= 0){
-         return -1;
+       if(sumidx){
+         if(ncplane_putwc_yx(ncp, dimy - y - 1, x, egc[sumidx]) <= 0){
+           return -1;
+         }
        }
        if(done){
          break;
        }
        if(exponentiali){
-         intervalbase = miny + pow(interval, y * states);
+         intervalbase = miny + pow(interval, (y + 1) * states - 1);
        }else{
          intervalbase += (states * interval);
        }
