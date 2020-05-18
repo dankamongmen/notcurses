@@ -1477,8 +1477,6 @@ unsigned ncplane_styles(const ncplane* n){
   return (n->attrword & NCSTYLE_MASK);
 }
 
-// i hate the big allocation and two copies here, but eh what you gonna do?
-// well, for one, we don't need the huge allocation FIXME
 static char*
 ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
   const size_t size = n->lenx + 1; // healthy estimate, can embiggen below
