@@ -813,16 +813,62 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   return ret;
 }
 
-notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
-  notcurses_options defaultopts;
-  memset(&defaultopts, 0, sizeof(defaultopts));
-  if(!opts){
-    opts = &defaultopts;
+// unless the suppress_banner flag was set, print some version information and
+// (if applicable) warnings to stdout. we are not yet on the alternate screen.
+static void
+init_banner(const notcurses* nc){
+  if(!nc->suppress_banner){
+    char prefixbuf[BPREFIXSTRLEN + 1];
+    term_fg_palindex(nc, nc->ttyfp, nc->colors <= 256 ? 50 % nc->colors : 0x20e080);
+    printf("\n notcurses %s by nick black et al", notcurses_version());
+    term_fg_palindex(nc, nc->ttyfp, nc->colors <= 256 ? 12 % nc->colors : 0x2080e0);
+    printf("\n  %d rows, %d columns (%sB), %d colors (%s)\n"
+           "  compiled with gcc-%s\n"
+           "  terminfo from %s\n",
+           nc->stdscr->leny, nc->stdscr->lenx,
+           bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
+           nc->colors, nc->RGBflag ? "direct" : "palette",
+           __VERSION__, curses_version());
+#ifdef USE_FFMPEG
+    printf("  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
+          LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
+          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
+          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
+#else
+#ifdef USE_OIIO
+    printf("  openimageio %s\n", oiio_version());
+#else
+    term_fg_palindex(nc, nc->ttyfp, nc->colors <= 88 ? 1 % nc->colors : 0xcb);
+    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
+#endif
+#endif
+    fflush(stdout);
+    term_fg_palindex(nc, nc->ttyfp, nc->colors <= 88 ? 1 % nc->colors : 0xcb);
+    if(!nc->RGBflag){ // FIXME
+      fprintf(stderr, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
+      fprintf(stderr, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
+    }else{
+      if(!nc->CCCflag){
+        fprintf(stderr, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
+      }
+    }
+    if(!notcurses_canutf8(nc)){
+      fprintf(stderr, "\n Warning! Encoding is not UTF-8.\n");
+    }
   }
-  if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
-    fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
-    return NULL;
-  }
+}
+
+// it's critical that we're in a UTF-8 locale if at all possible. since the
+// client might not have called setlocale(2) (if they weren't reading the
+// directions...), go ahead and try calling it ourselves *iff* we're in the
+// default "C" or "POSIX" locale. this still requires the user to have a proper
+// LANG configured. either way, they're going to get a diagnostic (unless the
+// user has explicitly configured a LANG of "C" or "POSIX"). recommended
+// practice is for the client code to have called setlocale() themselves, and
+// set the NCOPTION_INHIBIT_SETLOCALE flag. if that flag is set, we take the
+// locale as we get it.
+static void
+init_lang(const notcurses_options* opts){
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
     const char* locale = setlocale(LC_ALL, NULL);
     if(locale && (!strcmp(locale, "C") || !strcmp(locale, "POSIX"))){
@@ -842,10 +888,23 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       }
     }
   }
+}
+
+notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
+  notcurses_options defaultopts;
+  memset(&defaultopts, 0, sizeof(defaultopts));
+  if(!opts){
+    opts = &defaultopts;
+  }
+  if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
+    fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
+    return NULL;
+  }
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
   }
+  init_lang(opts);
   const char* encoding = nl_langinfo(CODESET);
   if(encoding && strcmp(encoding, "UTF-8") == 0){
     ret->utf8 = true;
@@ -953,45 +1012,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->suppress_banner = opts->suppress_banner;
-  if(!opts->suppress_banner){
-    char prefixbuf[BPREFIXSTRLEN + 1];
-    term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 50 % ret->colors : 0x20e080);
-    printf("\n notcurses %s by nick black et al", notcurses_version());
-    term_fg_palindex(ret, ret->ttyfp, ret->colors <= 256 ? 12 % ret->colors : 0x2080e0);
-    printf("\n  %d rows, %d columns (%sB), %d colors (%s)\n"
-          "  compiled with gcc-%s\n"
-          "  terminfo from %s\n",
-          ret->stdscr->leny, ret->stdscr->lenx,
-          bprefix(ret->stats.fbbytes, 1, prefixbuf, 0),
-          ret->colors, ret->RGBflag ? "direct" : "palette",
-          __VERSION__, curses_version());
-#ifdef USE_FFMPEG
-    printf("  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
-          LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
-          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
-          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
-#else
-#ifdef USE_OIIO
-    printf("  openimageio %s\n", oiio_version());
-#else
-    term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
-    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
-#endif
-#endif
-    fflush(stdout);
-    term_fg_palindex(ret, ret->ttyfp, ret->colors <= 88 ? 1 % ret->colors : 0xcb);
-    if(!ret->RGBflag){ // FIXME
-      fprintf(stderr, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
-      fprintf(stderr, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
-    }else{
-      if(!ret->CCCflag){
-        fprintf(stderr, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
-      }
-    }
-    if(strcmp(encoding, "UTF-8")){ // it definitely exists, but could be ASCII
-      fprintf(stderr, "\n Warning! Encoding is not UTF-8.\n");
-    }
-  }
+  init_banner(ret);
   // flush on the switch to alternate screen, lest initial output be swept away
   if(ret->smcup && term_emit("smcup", ret->smcup, ret->ttyfp, true)){
     free_plane(ret->top);
@@ -1477,6 +1498,8 @@ unsigned ncplane_styles(const ncplane* n){
   return (n->attrword & NCSTYLE_MASK);
 }
 
+// i hate the big allocation and two copies here, but eh what you gonna do?
+// well, for one, we don't need the huge allocation FIXME
 static char*
 ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
   const size_t size = n->lenx + 1; // healthy estimate, can embiggen below
