@@ -116,17 +116,19 @@ int main(int argc, char** argv){
   if(!n){
     return EXIT_FAILURE;
   }
-  if(!nstd->set_fg(0xb11bb1)){
+  if(!n->set_fg_rgb(0xb1, 0x1b, 0xb1)){
     return EXIT_FAILURE;
   }
-  if(nstd->putstr(0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0){
+  if(n->putstr(0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0){
     return EXIT_FAILURE;
   }
-  channels_set_fg(&NcReel::default_options.focusedchan, 0xffffff);
-  channels_set_bg(&NcReel::default_options.focusedchan, 0x00c080);
-  channels_set_fg(&NcReel::default_options.borderchan, 0x00c080);
-  std::shared_ptr<NcReel> nr(n->ncreel_create());
-  if(!nr || nc.render()){
+  ncreel_options nopts{};
+  channels_set_fg(&nopts.focusedchan, 0xffffff);
+  channels_set_bg(&nopts.focusedchan, 0x00c080);
+  channels_set_fg(&nopts.borderchan, 0x00c080);
+  nopts.toff = 3;
+  std::shared_ptr<NcReel> nr(n->ncreel_create(&nopts));
+  if(!nr || !nc.render()){
     return EXIT_FAILURE;
   }
   char32_t key;
@@ -151,7 +153,7 @@ int main(int argc, char** argv){
       default:
         break;
     }
-    if(nc.render()){
+    if(!nc.render()){
       break;
     }
   }
