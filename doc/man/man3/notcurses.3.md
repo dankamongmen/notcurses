@@ -62,7 +62,7 @@ notcurses supports input from keyboards (via **stdin**) and pointing devices (vi
 a broker such as GPM, X, or Wayland). Input is delivered as 32-bit Unicode
 code points. Synthesized events such as mouse button presses and arrow keys
 are mapped into Unicode's
-[Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U1.0.10.pdf).
+[Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U100000.pdf).
 Information on input is available at **notcurses_input(3)**. The included tool
 **notcurses-input(1)** can be used to test input decoding.
 
