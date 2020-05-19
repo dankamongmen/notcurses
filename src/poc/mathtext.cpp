@@ -28,8 +28,10 @@ auto main() -> int {
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
-  NotCurses::default_notcurses_options.inhibit_alternate_screen = true;
-  NotCurses nc;
+  notcurses_options nopts{};
+  nopts.inhibit_alternate_screen = true;
+  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  NotCurses nc(nopts);
 
   const char c[] =
 "Jegkanspiseglassutenåskademeg"

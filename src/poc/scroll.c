@@ -4,7 +4,10 @@
 
 int main(void){
   setlocale(LC_ALL, "");
-  struct notcurses* nc = notcurses_init(NULL, stdout);
+  struct notcurses_options opts = {
+    .flags = NCOPTION_INHIBIT_SETLOCALE,
+  };
+  struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }

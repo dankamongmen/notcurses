@@ -12,8 +12,10 @@ using namespace ncpp;
 
 auto main() -> int {
   setlocale(LC_ALL, "");
-  NotCurses::default_notcurses_options.inhibit_alternate_screen = true;
-  NotCurses nc;
+  notcurses_options nopts{};
+  nopts.inhibit_alternate_screen = true;
+  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  NotCurses nc(nopts);
   std::shared_ptr<Plane> n(nc.get_stdplane());
   int dimx, dimy;
   n->get_dim(&dimy, &dimx);

@@ -8,10 +8,10 @@ auto main() -> int {
     fprintf(stderr, "Couldn't set locale\n");
     return EXIT_FAILURE;
   }
-  struct notcurses_options opts;
-  memset(&opts, 0, sizeof(opts));
+  notcurses_options opts{};
   opts.inhibit_alternate_screen = true;
-  struct notcurses* nc = notcurses_init(&opts, stdout);
+  opts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  struct notcurses* nc = notcurses_init(&opts, nullptr);
   if(nc == nullptr){
     return EXIT_FAILURE;
   }

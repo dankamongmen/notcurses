@@ -107,8 +107,10 @@ int main(int argc, char** argv){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
-  parse_args(argc, argv, &NotCurses::default_notcurses_options, &NcReel::default_options);
-  NotCurses nc;
+  notcurses_options ncopts{};
+  ncreel_options nopts{};
+  parse_args(argc, argv, &ncopts, &nopts);
+  NotCurses nc(ncopts);
   std::unique_ptr<Plane> nstd(nc.get_stdplane());
   int dimy, dimx;
   nstd->get_dim(&dimy, &dimx);
@@ -122,7 +124,6 @@ int main(int argc, char** argv){
   if(n->putstr(0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0){
     return EXIT_FAILURE;
   }
-  ncreel_options nopts{};
   channels_set_fg(&nopts.focusedchan, 0xffffff);
   channels_set_bg(&nopts.focusedchan, 0x00c080);
   channels_set_fg(&nopts.borderchan, 0x00c080);

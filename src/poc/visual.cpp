@@ -17,8 +17,9 @@ int main(int argc, char** argv){
   }
   notcurses_options opts{};
   opts.inhibit_alternate_screen = true;
+  opts.flags = NCOPTION_INHIBIT_SETLOCALE;
   struct notcurses* nc;
-  if((nc = notcurses_init(&opts, stdout)) == nullptr){
+  if((nc = notcurses_init(&opts, nullptr)) == nullptr){
     return EXIT_FAILURE;
   }
   struct ncplane* n = ncplane_dup(notcurses_stdplane(nc), nullptr);

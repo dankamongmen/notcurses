@@ -36,11 +36,16 @@ eofcb(struct ncfdplane* ncfd, int nerrno, void* curry){
 }
 
 int main(int argc, char** argv){
-  (void)argc;
+  if(argc < 2){
+    fprintf(stderr, "usage: fileroller file [ files...]\n");
+    return EXIT_FAILURE;
+  }
   setlocale(LC_ALL, "");
-  notcurses_options opts = {};
-  opts.inhibit_alternate_screen = true;
-  struct notcurses* nc = notcurses_init(&opts, stdout);
+  notcurses_options opts = {
+    .inhibit_alternate_screen = true,
+    .flags = NCOPTION_INHIBIT_SETLOCALE,
+  };
+  struct notcurses* nc = notcurses_init(&opts, NULL);
   struct ncplane* n = notcurses_stdplane(nc);
   while(*++argv){
     int fd = open(*argv, O_RDONLY|O_CLOEXEC);

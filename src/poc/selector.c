@@ -51,9 +51,10 @@ int main(void){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
   }
-  notcurses_options opts;
-  memset(&opts, 0, sizeof(opts));
-  struct notcurses* nc = notcurses_init(&opts, stdout);
+  notcurses_options opts = {
+    .flags = NCOPTION_INHIBIT_SETLOCALE,
+  };
+  struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }

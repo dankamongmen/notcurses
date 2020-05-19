@@ -36,15 +36,16 @@ eofcb(struct ncfdplane* ncfd, int nerrno, void* curry){
 }
 
 int main(int argc, char** argv){
-  (void)argc;
-  setlocale(LC_ALL, "");
-  if(*++argv == NULL){
+  if(argc < 2){
     fprintf(stderr, "usage: procroller binary [ args... ]\n");
     return EXIT_FAILURE;
   }
-  notcurses_options opts = {};
-  opts.inhibit_alternate_screen = true;
-  struct notcurses* nc = notcurses_init(&opts, stdout);
+  setlocale(LC_ALL, "");
+  notcurses_options opts = {
+    .inhibit_alternate_screen = true,
+    .flags = NCOPTION_INHIBIT_SETLOCALE,
+  };
+  struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }

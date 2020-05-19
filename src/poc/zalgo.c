@@ -3,9 +3,11 @@
 
 int main(void){
   setlocale(LC_ALL, "");
-  struct notcurses_options nops = {};
-  nops.inhibit_alternate_screen = true;
-  struct notcurses* nc = notcurses_init(&nops, stdout);
+  struct notcurses_options nops = {
+    .inhibit_alternate_screen = true,
+    .flags = NCOPTION_INHIBIT_SETLOCALE,
+  };
+  struct notcurses* nc = notcurses_init(&nops, NULL);
   struct ncplane* n = notcurses_stdplane(nc);
   const int y = 10;
   ncplane_putstr_aligned(n, y + 0, NCALIGN_CENTER, "Pack my box with five dozen liquor jugs.");

@@ -10,7 +10,9 @@ auto main() -> int {
     std::cout << "Error setting locale\n";
     return EXIT_FAILURE;
   }
-  ncpp::NotCurses nc;
+  notcurses_options nopts{};
+  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  ncpp::NotCurses nc(nopts);
   int dimy, dimx;
   auto n = nc.get_stdplane(&dimy, &dimx);
   nc.get_term_dim(&dimy, &dimx);
