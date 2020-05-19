@@ -208,7 +208,9 @@ int main(void){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
-  NotCurses nc;
+  notcurses_options nopts{};
+  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  NotCurses nc(nopts);
   if(!nc.mouse_enable()){
     return EXIT_FAILURE;
   }

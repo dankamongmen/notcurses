@@ -191,7 +191,9 @@ auto main(int argc, char** argv) -> int {
   setlocale(LC_ALL, "");
   float timescale;
   NCScale stretchmode;
-  auto nonopt = handle_opts(argc, argv, NotCurses::default_notcurses_options, &timescale, &stretchmode);
+  notcurses_options nopts{};
+  auto nonopt = handle_opts(argc, argv, nopts, &timescale, &stretchmode);
+  nopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc;
   if(!nc.can_open_images()){
     nc.stop();

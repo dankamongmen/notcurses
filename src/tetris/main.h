@@ -5,6 +5,7 @@ int main(void) {
   srand(time(nullptr));
   std::atomic_bool gameover = false;
   notcurses_options ncopts{};
+  ncopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   ncpp::NotCurses nc(ncopts);
   Tetris t{nc, gameover};
   std::thread tid(&Tetris::Ticker, &t);

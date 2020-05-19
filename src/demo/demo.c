@@ -282,6 +282,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
       usage(*argv, EXIT_FAILURE);
     }
   }
+  opts->flags |= NCOPTION_INHIBIT_SETLOCALE;
   const char* spec = argv[optind];
   return spec;
 }
