@@ -563,11 +563,6 @@ int ncplane_rotate_cw(ncplane* n){
   }
   int ret = rotate_merge(n, newp);
   ret |= ncplane_destroy(newp);
-  int cent2y, cent2x;
-  int absy, absx;
-  ncplane_center_abs(n, &cent2y, &cent2x);
-  ncplane_yx(n, &absy, &absx);
-  ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
   return ret;
 }
 
@@ -578,8 +573,6 @@ int ncplane_rotate_ccw(ncplane* n){
   }
   int dimy, dimx, targdimy, targdimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  int centy, centx;
-  ncplane_center_abs(n, &centy, &centx);
   ncplane_dim_yx(newp, &targdimy, &targdimx);
   int x = dimx - 2, y;
   // Each row of the target plane is taken from a column of the source plane.
@@ -597,11 +590,6 @@ int ncplane_rotate_ccw(ncplane* n){
   }
   int ret = rotate_merge(n, newp);
   ret |= ncplane_destroy(newp);
-  int cent2y, cent2x;
-  int absy, absx;
-  ncplane_center_abs(n, &cent2y, &cent2x);
-  ncplane_yx(n, &absy, &absx);
-  ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
   return ret;
 }
 

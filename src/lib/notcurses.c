@@ -2003,3 +2003,17 @@ int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   }
   return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
+
+// find the center coordinate of a plane, preferring the top/left in the
+// case of an even number of rows/columns (in such a case, there will be one
+// more cell to the bottom/right of the center than the top/left). the
+// center is then modified relative to the plane's origin.
+void ncplane_center_abs(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
+  ncplane_center(n, y, x);
+  if(y){
+    *y += n->absy;
+  }
+  if(x){
+    *x += n->absx;
+  }
+}

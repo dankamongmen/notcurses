@@ -1232,6 +1232,9 @@ API char* ncplane_contents(const struct ncplane* nc, int begy, int begx,
 API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 API void* ncplane_userptr(struct ncplane* n);
 
+API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
+                            int* RESTRICT x);
+
 // Return the column at which 'c' cols ought start in order to be aligned
 // according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
 // Undefined behavior on negative 'c'.

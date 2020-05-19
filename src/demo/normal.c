@@ -96,16 +96,30 @@ int normal_demo(struct notcurses* nc){
   cell_release(nstd, &c);
   for(int i = 0 ; i < 16 ; ++i){
     demo_nanosleep(nc, &scaled);
+    int centy, centx;
+    ncplane_center_abs(n, &centy, &centx);
     if(ncplane_rotate_cw(n)){
       goto err;
     }
+    int cent2y, cent2x;
+    int absy, absx;
+    ncplane_center_abs(n, &cent2y, &cent2x);
+    ncplane_yx(n, &absy, &absx);
+    ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
     DEMO_RENDER(nc);
   }
   for(int i = 0 ; i < 16 ; ++i){
     demo_nanosleep(nc, &scaled);
+    int centy, centx;
+    ncplane_center_abs(n, &centy, &centx);
     if(ncplane_rotate_ccw(n)){
       goto err;
     }
+    int cent2y, cent2x;
+    int absy, absx;
+    ncplane_center_abs(n, &cent2y, &cent2x);
+    ncplane_yx(n, &absy, &absx);
+    ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
     DEMO_RENDER(nc);
   }
   ncplane_destroy(n);

@@ -648,21 +648,6 @@ ncplane_center(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
   center_box(y, x);
 }
 
-// find the center coordinate of a plane, preferring the top/left in the
-// case of an even number of rows/columns (in such a case, there will be one
-// more cell to the bottom/right of the center than the top/left). the
-// center is then modified relative to the plane's origin.
-static inline void
-ncplane_center_abs(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
-  ncplane_center(n, y, x);
-  if(y){
-    *y += n->absy;
-  }
-  if(x){
-    *x += n->absx;
-  }
-}
-
 int ncvisual_bounding_box(const struct ncvisual* ncv, int* leny, int* lenx,
                           int* offy, int* offx);
 
