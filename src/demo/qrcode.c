@@ -1,10 +1,7 @@
 #include "demo.h"
-#ifdef __linux__
 #include <sys/random.h>
-#else
-#include <sys/libkern.h>
-#endif
 
+#ifdef USE_QRCODEGEN
 // FIXME duplicated--ought these just be exported?
 #define QR_BASE_SIZE 17
 #define PER_QR_VERSION 4
@@ -17,6 +14,7 @@ static inline int
 qrcode_cols(int version){
   return QR_BASE_SIZE + (version * PER_QR_VERSION);
 }
+#endif
 
 int qrcode_demo(struct notcurses* nc){
 #ifdef USE_QRCODEGEN
@@ -35,7 +33,7 @@ int qrcode_demo(struct notcurses* nc){
       return -1;
     }
 #else
-    arc4rand(data, len, 0);
+    read_random(data, len);
 #endif
     if(ncplane_cursor_move_yx(n, 0, 0)){
       ncplane_destroy(n);
@@ -47,7 +45,7 @@ int qrcode_demo(struct notcurses* nc){
       return -1;
     }
     ncplane_move_yx(n, dimy / 2 - qrcode_rows(qlen) / 2,
-                   dimx / 2 - qrcode_cols(qlen) / 2);
+                    dimx / 2 - qrcode_cols(qlen) / 2);
     if(ncplane_cursor_move_yx(n, 0, 0)){
       ncplane_destroy(n);
       return -1;
@@ -63,8 +61,8 @@ int qrcode_demo(struct notcurses* nc){
     }
     DEMO_RENDER(nc);
   }
-#endif
   ncplane_destroy(n);
+#endif
   DEMO_RENDER(nc);
   return 0;
 }
