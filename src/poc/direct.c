@@ -48,7 +48,9 @@ int main(void){
     y += 2; // we just went down two lines
     while(y > 3){
       const int up = y >= 3 ? 3 : y;
-      ret |= ncdirect_cursor_up(n, up);
+      if(ncdirect_cursor_up(n, up)){
+        return EXIT_FAILURE;
+      }
       fflush(stdout);
       y -= up;
       int newy;
