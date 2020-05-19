@@ -9,7 +9,7 @@ auto pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), 
     return -1;
   }
   struct timespec now;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+  clock_gettime(CLOCK_MONOTONIC, &now);
   auto delta = timespec_to_ns(&now) - timespec_to_ns(pulsestart);
   if(delta > 500000000){
     return 1;
@@ -73,7 +73,7 @@ TEST_CASE("Fade") {
     ncplane_set_fg(n_, 0xffd700);
     CHECK(0 < ncplane_printf_aligned(n_, dimy - 1, NCALIGN_CENTER, "pulllllllse"));
     struct timespec pulsestart;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &pulsestart);
+    clock_gettime(CLOCK_MONOTONIC, &pulsestart);
     CHECK(0 < ncplane_pulse(n_, &ts, pulser, &pulsestart));
   }
 
