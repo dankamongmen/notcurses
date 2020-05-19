@@ -157,7 +157,7 @@ ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
 
 int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
   planepalette pp;
-  if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
+  if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
     return -1;
   }
   if(alloc_ncplane_palette(n, &pp)){
@@ -255,7 +255,7 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
 
 int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
   planepalette pp;
-  if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
+  if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
     if(fader){
       fader(n->nc, n, curry);
     }else{
@@ -274,7 +274,7 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* cu
 int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
   planepalette pp;
   int ret;
-  if(!n->nc->RGBflag && !n->nc->CCCflag){ // terminal can't fade
+  if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
     return -1;
   }
   if(alloc_ncplane_palette(n, &pp)){

@@ -707,32 +707,35 @@ ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out)
 
 int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
   n->attrword |= stylebits;
-  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
     return 0;
   }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
+                       n->tcache.italics, n->tcache.italoff);
 }
 
 // turn off any specified stylebits
 int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   n->attrword &= ~stylebits;
-  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
     return 0;
   }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
+                       n->tcache.italics, n->tcache.italoff);
 }
 
 // set the current stylebits to exactly those provided
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
   n->attrword = stylebits;
-  if(ncdirect_style_emit(n, n->sgr, n->attrword, n->ttyfp)){
+  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
     return 0;
   }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC, n->italics, n->italoff);
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
+                       n->tcache.italics, n->tcache.italoff);
 }
 
 int ncdirect_fg_default(ncdirect* nc){
-  if(term_emit("op", nc->op, nc->ttyfp, false) == 0){
+  if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
     nc->fgdefault = true;
     if(nc->bgdefault){
       return 0;
@@ -743,7 +746,7 @@ int ncdirect_fg_default(ncdirect* nc){
 }
 
 int ncdirect_bg_default(ncdirect* nc){
-  if(term_emit("op", nc->op, nc->ttyfp, false) == 0){
+  if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
     nc->bgdefault = true;
     if(nc->fgdefault){
       return 0;
@@ -757,7 +760,7 @@ int ncdirect_bg(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  if(term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, nc->ttyfp,
+  if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, nc->ttyfp,
                   (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
@@ -770,7 +773,7 @@ int ncdirect_fg(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  if(term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, nc->ttyfp,
+  if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, nc->ttyfp,
                   (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
@@ -781,7 +784,7 @@ int ncdirect_fg(ncdirect* nc, unsigned rgb){
 
 static inline int
 update_palette(notcurses* nc, FILE* out){
-  if(nc->CCCflag){
+  if(nc->tcache.CCCflag){
     for(size_t damageidx = 0 ; damageidx < sizeof(nc->palette.chans) / sizeof(*nc->palette.chans) ; ++damageidx){
       unsigned r, g, b;
       if(nc->palette_damage[damageidx]){
@@ -791,7 +794,7 @@ update_palette(notcurses* nc, FILE* out){
         r = r * 1000 / 255;
         g = g * 1000 / 255;
         b = b * 1000 / 255;
-        term_emit("initc", tiparm(nc->initc, damageidx, r, g, b), out, false);
+        term_emit("initc", tiparm(nc->tcache.initc, damageidx, r, g, b), out, false);
         nc->palette_damage[damageidx] = false;
       }
     }
@@ -810,9 +813,9 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
     const int xdiff = x - nc->rstate.x;
     if(xdiff > 0){
       if(xdiff == 1){
-        ret = term_emit("cuf1", tiparm(nc->cuf1), out, false);
+        ret = term_emit("cuf1", tiparm(nc->tcache.cuf1), out, false);
       }else{
-        ret = term_emit("cuf", tiparm(nc->cuf, xdiff), out, false);
+        ret = term_emit("cuf", tiparm(nc->tcache.cuf, xdiff), out, false);
       }
       nc->rstate.x = x;
       return ret;
@@ -821,7 +824,7 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
     }
     // cub1/cub tend to be destructive in my experiments :/
   }
-  ret = term_emit("cup", tiparm(nc->cup, y, x), out, false);
+  ret = term_emit("cup", tiparm(nc->tcache.cup, y, x), out, false);
   if(ret == 0){
     nc->rstate.x = x;
     nc->rstate.y = y;
@@ -879,7 +882,8 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         // does, we need update our elision possibilities.
         bool normalized;
         ret |= term_setstyles(out, &nc->rstate.curattr, srccell, &normalized,
-                              nc->sgr0, nc->sgr, nc->italics, nc->italoff);
+                              nc->tcache.sgr0, nc->tcache.sgr,
+                              nc->tcache.italics, nc->tcache.italoff);
         if(normalized){
           nc->rstate.defaultelidable = true;
           nc->rstate.bgelidable = false;
@@ -902,7 +906,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         if((!noforeground && cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
           if(!nc->rstate.defaultelidable){
             ++nc->stats.defaultemissions;
-            ret |= term_emit("op", nc->op, out, false);
+            ret |= term_emit("op", nc->tcache.op, out, false);
           }else{
             ++nc->stats.defaultelisions;
           }
@@ -937,7 +941,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
           }else{
-            ret |= term_fg_rgb8(nc->RGBflag, nc->setaf, nc->colors, out, r, g, b);
+            ret |= term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, out, r, g, b);
             ++nc->stats.fgemissions;
             nc->rstate.fgelidable = true;
           }
@@ -965,7 +969,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
             if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
               ++nc->stats.bgelisions;
             }else{
-              ret |= term_bg_rgb8(nc->RGBflag, nc->setab, nc->colors, out, br, bg, bb);
+              ret |= term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, out, br, bg, bb);
               ++nc->stats.bgemissions;
               nc->rstate.bgelidable = true;
             }
@@ -1018,12 +1022,12 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
 static int
 home_cursor(notcurses* nc, bool flush){
   int ret = -1;
-  if(nc->home){
-    ret = term_emit("home", nc->home, nc->ttyfp, flush);
-  }else if(nc->cup){
-    ret = term_emit("cup", tiparm(nc->cup, 1, 1), nc->ttyfp, flush);
-  }else if(nc->clearscr){
-    ret = term_emit("clear", nc->clearscr, nc->ttyfp, flush);
+  if(nc->tcache.home){
+    ret = term_emit("home", nc->tcache.home, nc->ttyfp, flush);
+  }else if(nc->tcache.cup){
+    ret = term_emit("cup", tiparm(nc->tcache.cup, 1, 1), nc->ttyfp, flush);
+  }else if(nc->tcache.clearscr){
+    ret = term_emit("clear", nc->tcache.clearscr, nc->ttyfp, flush);
   }
   if(ret >= 0){
     nc->rstate.x = 0;

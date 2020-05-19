@@ -211,8 +211,8 @@ typedef struct ncmultiselector {
   int uarrowy, darrowy, arrowx;   // location of scrollarrows, even if not present
 } ncmultiselector;
 
-typedef struct ncdirect {
-  int attrword;   // current styles
+// terminfo cache
+typedef struct tinfo {
   int colors;     // number of colors terminfo reported usable for this screen
   char* sgr;      // set many graphics properties at once
   char* sgr0;     // restore default presentation properties
@@ -220,10 +220,13 @@ typedef struct ncdirect {
   char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
   char* cup;      // move cursor
-  char* cuu;      // move N up
-  char* cub;      // move N left
-  char* cuf;      // move N right
-  char* cud;      // move N down
+  char* cuu;      // move N cells up
+  char* cub;      // move N cells left
+  char* cuf;      // move N cells right
+  char* cud;      // move N cells down
+  char* cuf1;     // move 1 cell right
+  char* cub1;     // move 1 cell left
+  char* home;     // home cursor
   char* civis;    // hide cursor
   char* cnorm;    // restore cursor to default state
   char* hpa;      // horizontal position adjusment (move cursor on row)
@@ -239,13 +242,27 @@ typedef struct ncdirect {
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
   char* clear;    // clear the screen
-  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
+  char* clearscr; // erase screen and home cursor
+  char* cleareol; // clear to end of line
+  char* clearbol; // clear to beginning of line
   char* sc;       // push the cursor location onto the stack
   char* rc;       // pop the cursor location off the stack
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc truecolor
-  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
-  palette256 palette; // 256-indexed palette can be used instead of/with RGB
-  uint16_t fgrgb, bgrgb; // last RGB values of foreground/background
+  char* smkx;     // enter keypad transmit mode (keypad_xmit)
+  char* rmkx;     // leave keypad transmit mode (keypad_local)
+  char* getm;     // get mouse events
+  bool RGBflag;   // ti-reported "RGB" flag for 24bpc truecolor
+  bool CCCflag;   // ti-reported "CCC" flag for palette set capability
+  bool AMflag;    // ti-reported "AM" flag for automatic movement to next line
+  char* smcup;    // enter alternate mode
+  char* rmcup;    // restore primary mode
+} tinfo;
+
+typedef struct ncdirect {
+  int attrword;              // current styles
+  palette256 palette;        // 256-indexed palette can be used instead of/with RGB
+  FILE* ttyfp;               // FILE* for controlling tty
+  tinfo tcache;              // terminfo cache
+  uint16_t fgrgb, bgrgb;     // last RGB values of foreground/background
   bool fgdefault, bgdefault; // are FG/BG currently using default colors?
 } ncdirect;
 
@@ -270,45 +287,10 @@ typedef struct notcurses {
                   // used only to see if output motion takes us to the next
                   // line thanks to terminal action alone.
 
-  int colors;     // number of colors terminfo reported usable for this screen
-  char* cup;      // move cursor
-  char* cuf;      // move n cells right
-  char* cub;      // move n cells right
-  char* cuf1;     // move 1 cell right
-  char* cub1;     // move 1 cell left
-  char* civis;    // hide cursor
-  // These might be NULL, and we can more or less work without them. Check!
-  char* clearscr; // erase screen and home cursor
-  char* cleareol; // clear to end of line
-  char* clearbol; // clear to beginning of line
-  char* home;     // home cursor
-  char* cnorm;    // restore cursor to default state
-  char* sgr;      // set many graphics properties at once
-  char* sgr0;     // restore default presentation properties
-  char* smcup;    // enter alternate mode
-  char* rmcup;    // restore primary mode
-  char* setaf;    // set foreground color (ANSI)
-  char* setab;    // set background color (ANSI)
-  char* op;       // set foreground and background color to default
-  char* standout; // CELL_STYLE_STANDOUT
-  char* uline;    // CELL_STYLE_UNDERLINK
-  char* reverse;  // CELL_STYLE_REVERSE
-  char* blink;    // CELL_STYLE_BLINK
-  char* dim;      // CELL_STYLE_DIM
-  char* bold;     // CELL_STYLE_BOLD
-  char* italics;  // CELL_STYLE_ITALIC
-  char* italoff;  // CELL_STYLE_ITALIC (disable)
-  char* smkx;     // enter keypad transmit mode (keypad_xmit)
-  char* rmkx;     // leave keypad transmit mode (keypad_local)
-  char* getm;     // get mouse events
-  char* initc;    // set a palette entry's RGB value
-  char* oc;       // restore original colors
-  bool RGBflag;   // terminfo-reported "RGB" flag for 24bpc truecolor
-  bool CCCflag;   // terminfo-reported "CCC" flag for palette set capability
-  bool AMflag;    // ti-reported "AM" flag for automatic movement to next line
+  tinfo tcache;   // terminfo cache
 
-  int ttyfd;      // file descriptor for controlling tty, from opts->ttyfp
-  FILE* ttyfp;    // FILE* for controlling tty, from opts->ttyfp
+  FILE* ttyfp;    // FILE* for controlling tty
+  int ttyfd;      // file descriptor for controlling tty
   FILE* ttyinfp;  // FILE* for processing input
   FILE* renderfp; // debugging FILE* to which renderings are written
   struct termios tpreserved; // terminal state upon entry
@@ -363,13 +345,13 @@ mbstr_find_codepoint(const char* s, char32_t cp, int* col){
   return -1;
 }
 
-static inline struct ncplane*
-ncplane_stdplane(struct ncplane* n){
+static inline ncplane*
+ncplane_stdplane(ncplane* n){
   return notcurses_stdplane(n->nc);
 }
 
-static inline const struct ncplane*
-ncplane_stdplane_const(const struct ncplane* n){
+static inline const ncplane*
+ncplane_stdplane_const(const ncplane* n){
   return notcurses_stdplane_const(n->nc);
 }
 
@@ -525,12 +507,12 @@ term_emit(const char* name __attribute__ ((unused)), const char* seq,
 
 static inline int
 term_bg_palindex(const notcurses* nc, FILE* out, unsigned pal){
-  return term_emit("setab", tiparm(nc->setab, pal), out, false);
+  return term_emit("setab", tiparm(nc->tcache.setab, pal), out, false);
 }
 
 static inline int
 term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
-  return term_emit("setaf", tiparm(nc->setaf, pal), out, false);
+  return term_emit("setaf", tiparm(nc->tcache.setaf, pal), out, false);
 }
 
 static inline const char*

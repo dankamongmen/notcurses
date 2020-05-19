@@ -8,47 +8,47 @@ int ncdirect_cursor_up(ncdirect* nc, int num){
   if(num < 0){
     return -1;
   }
-  if(!nc->cuu){
+  if(!nc->tcache.cuu){
     return -1;
   }
-  return term_emit("cuu", tiparm(nc->cuu, num), nc->ttyfp, false);
+  return term_emit("cuu", tiparm(nc->tcache.cuu, num), nc->ttyfp, false);
 }
 
 int ncdirect_cursor_left(ncdirect* nc, int num){
   if(num < 0){
     return -1;
   }
-  if(!nc->cub){
+  if(!nc->tcache.cub){
     return -1;
   }
-  return term_emit("cub", tiparm(nc->cub, num), nc->ttyfp, false);
+  return term_emit("cub", tiparm(nc->tcache.cub, num), nc->ttyfp, false);
 }
 
 int ncdirect_cursor_right(ncdirect* nc, int num){
   if(num < 0){
     return -1;
   }
-  if(!nc->cuf){ // FIXME fall back to cuf1
+  if(!nc->tcache.cuf){ // FIXME fall back to cuf1
     return -1;
   }
-  return term_emit("cuf", tiparm(nc->cuf, num), nc->ttyfp, false);
+  return term_emit("cuf", tiparm(nc->tcache.cuf, num), nc->ttyfp, false);
 }
 
 int ncdirect_cursor_down(ncdirect* nc, int num){
   if(num < 0){
     return -1;
   }
-  if(!nc->cud){
+  if(!nc->tcache.cud){
     return -1;
   }
-  return term_emit("cud", tiparm(nc->cud, num), nc->ttyfp, false);
+  return term_emit("cud", tiparm(nc->tcache.cud, num), nc->ttyfp, false);
 }
 
 int ncdirect_clear(ncdirect* nc){
-  if(!nc->clear){
+  if(!nc->tcache.clear){
     return -1; // FIXME scroll output off the screen
   }
-  return term_emit("clear", nc->clear, nc->ttyfp, true);
+  return term_emit("clear", nc->tcache.clear, nc->ttyfp, true);
 }
 
 int ncdirect_dim_x(const ncdirect* nc){
@@ -68,36 +68,36 @@ int ncdirect_dim_y(const ncdirect* nc){
 }
 
 int ncdirect_cursor_enable(ncdirect* nc){
-  if(!nc->cnorm){
+  if(!nc->tcache.cnorm){
     return -1;
   }
-  return term_emit("cnorm", nc->cnorm, nc->ttyfp, true);
+  return term_emit("cnorm", nc->tcache.cnorm, nc->ttyfp, true);
 }
 
 int ncdirect_cursor_disable(ncdirect* nc){
-  if(!nc->civis){
+  if(!nc->tcache.civis){
     return -1;
   }
-  return term_emit("civis", nc->civis, nc->ttyfp, true);
+  return term_emit("civis", nc->tcache.civis, nc->ttyfp, true);
 }
 
 int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   if(y == -1){ // keep row the same, horizontal move only
-    if(!n->hpa){
+    if(!n->tcache.hpa){
       return -1;
     }
-    return term_emit("hpa", tiparm(n->hpa, x), n->ttyfp, false);
+    return term_emit("hpa", tiparm(n->tcache.hpa, x), n->ttyfp, false);
   }else if(x == -1){ // keep column the same, vertical move only
-    if(!n->vpa){
+    if(!n->tcache.vpa){
       return -1;
     }
-    return term_emit("vpa", tiparm(n->vpa, y), n->ttyfp, false);
+    return term_emit("vpa", tiparm(n->tcache.vpa, y), n->ttyfp, false);
   }
-  if(n->cup){
-    return term_emit("cup", tiparm(n->cup, y, x), n->ttyfp, false);
-  }else if(n->vpa && n->hpa){
-    if(term_emit("hpa", tiparm(n->hpa, x), n->ttyfp, false) == 0 &&
-       term_emit("vpa", tiparm(n->vpa, y), n->ttyfp, false) == 0){
+  if(n->tcache.cup){
+    return term_emit("cup", tiparm(n->tcache.cup, y, x), n->ttyfp, false);
+  }else if(n->tcache.vpa && n->tcache.hpa){
+    if(term_emit("hpa", tiparm(n->tcache.hpa, x), n->ttyfp, false) == 0 &&
+       term_emit("vpa", tiparm(n->tcache.vpa, y), n->ttyfp, false) == 0){
       return 0;
     }
   }
@@ -197,29 +197,29 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
 }
 
 int ncdirect_cursor_push(ncdirect* n){
-  if(n->sc == NULL){
+  if(n->tcache.sc == NULL){
     return -1;
   }
-  return term_emit("sc", n->sc, n->ttyfp, false);
+  return term_emit("sc", n->tcache.sc, n->ttyfp, false);
 }
 
 int ncdirect_cursor_pop(ncdirect* n){
-  if(n->rc == NULL){
+  if(n->tcache.rc == NULL){
     return -1;
   }
-  return term_emit("rc", n->rc, n->ttyfp, false);
+  return term_emit("rc", n->tcache.rc, n->ttyfp, false);
 }
 
 int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
-    if(nc->op && term_emit("op", nc->op, nc->ttyfp, true)){
+    if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
       ret = -1;
     }
-    if(nc->sgr0 && term_emit("sgr0", nc->sgr0, nc->ttyfp, true)){
+    if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, true)){
       ret = -1;
     }
-    if(nc->oc && term_emit("oc", nc->oc, nc->ttyfp, true)){
+    if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
       ret = -1;
     }
     free(nc);
