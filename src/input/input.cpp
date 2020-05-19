@@ -225,8 +225,8 @@ int main(void){
   if(!plot){
     return EXIT_FAILURE;
   }
-  n->set_fg(0);
-  n->set_bg(0xbb64bb);
+  n->set_fg_rgb(0x00, 0x00, 0x00);
+  n->set_bg_rgb(0xbb, 0x64, 0xbb);
   n->styles_on(CellStyle::Underline);
   if(n->putstr(0, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
     return EXIT_FAILURE;
@@ -234,7 +234,7 @@ int main(void){
   n->styles_set(CellStyle::None);
   n->set_bg_default();
   if(!nc.render()){
-    throw std::runtime_error("error rendering");
+    return EXIT_FAILURE;
   }
   int y = 2;
   std::deque<wchar_t> cells;
@@ -247,7 +247,6 @@ int main(void){
     if(r == 0){ // interrupted by signal
       continue;
     }
-
     if((r == 'D' || r == 'd') && ni.ctrl){
       done = true;
       tid.join();
@@ -276,13 +275,11 @@ int main(void){
     }else{
       if(nckey_supppuab_p(r)){
         n->set_fg_rgb(250, 64, 128);
-        if(n->printf("Special: [0x%02x (%02d)] '%s'",
-                     r, r, nckeystr(r)) < 0){
+        if(n->printf("Special: [0x%02x (%02d)] '%s'", r, r, nckeystr(r)) < 0){
           break;
         }
         if(NCKey::IsMouse(r)){
-          if(n->printf(-1, NCAlign::Right, " x: %d y: %d",
-                       ni.x, ni.y) < 0){
+          if(n->printf(-1, NCAlign::Right, " x: %d y: %d", ni.x, ni.y) < 0){
             break;
           }
         }

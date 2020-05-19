@@ -238,19 +238,6 @@ int update_term_dimensions(int fd, int* rows, int* cols){
   return 0;
 }
 
-static int
-term_verify_seq(char** gseq, const char* name){
-  char* seq;
-  if(gseq == NULL){
-    gseq = &seq;
-  }
-  *gseq = tigetstr(name);
-  if(*gseq == NULL || *gseq == (char*)-1){
-    return -1;
-  }
-  return 0;
-}
-
 static void
 free_plane(ncplane* p){
   if(p){
@@ -525,141 +512,6 @@ int ncplane_destroy(ncplane* ncp){
   return 0;
 }
 
-static bool
-query_rgb(void){
-  bool rgb = tigetflag("RGB") == 1;
-  if(!rgb){
-    // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not commonly found in
-    // terminal entries today. COLORTERM, however, is a de-facto (if imperfect/kludgy) standard way
-    // of indicating TrueColor support for a terminal. The variable takes one of two case-sensitive
-    // values:
-    //
-    //   truecolor
-    //   24bit
-    //
-    // https://gist.github.com/XVilka/8346728#true-color-detection gives some more information about
-    // the topic
-    //
-    const char* cterm = getenv("COLORTERM");
-    rgb = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
-  }
-  return rgb;
-}
-
-static int
-interrogate_terminfo(notcurses* nc, const notcurses_options* opts, int* dimy, int* dimx){
-  *dimy = *dimx = 0;
-  update_term_dimensions(nc->ttyfd, dimy, dimx);
-  nc->truecols = *dimx;
-  char* shortname_term = termname();
-  char* longname_term = longname();
-  if(!opts->suppress_banner){
-    fprintf(stderr, "Term: %dx%d %s (%s)\n", *dimx, *dimy,
-            shortname_term ? shortname_term : "?",
-            longname_term ? longname_term : "?");
-  }
-  nc->tcache.RGBflag = query_rgb();
-  if((nc->tcache.colors = tigetnum("colors")) <= 0){
-    if(!opts->suppress_banner){
-      fprintf(stderr, "This terminal doesn't appear to support colors\n");
-    }
-    nc->tcache.colors = 1;
-    nc->tcache.CCCflag = false;
-    nc->tcache.RGBflag = false;
-    nc->tcache.initc = NULL;
-  }else{
-    term_verify_seq(&nc->tcache.initc, "initc");
-    if(nc->tcache.initc){
-      nc->tcache.CCCflag = tigetflag("ccc") == 1;
-    }else{
-      nc->tcache.CCCflag = false;
-    }
-  }
-  term_verify_seq(&nc->tcache.cup, "cup");
-  if(nc->tcache.cup == NULL){
-    fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
-    return -1;
-  }
-  nc->tcache.AMflag = tigetflag("am") == 1;
-  if(!nc->tcache.AMflag){
-    fprintf(stderr, "Required terminfo capability 'am' not defined\n");
-    return -1;
-  }
-  term_verify_seq(&nc->tcache.civis, "civis");
-  term_verify_seq(&nc->tcache.cnorm, "cnorm");
-  term_verify_seq(&nc->tcache.standout, "smso"); // smso / rmso
-  term_verify_seq(&nc->tcache.uline, "smul");
-  term_verify_seq(&nc->tcache.reverse, "reverse");
-  term_verify_seq(&nc->tcache.blink, "blink");
-  term_verify_seq(&nc->tcache.dim, "dim");
-  term_verify_seq(&nc->tcache.bold, "bold");
-  term_verify_seq(&nc->tcache.italics, "sitm");
-  term_verify_seq(&nc->tcache.italoff, "ritm");
-  term_verify_seq(&nc->tcache.sgr, "sgr");
-  term_verify_seq(&nc->tcache.sgr0, "sgr0");
-  term_verify_seq(&nc->tcache.op, "op");
-  term_verify_seq(&nc->tcache.oc, "oc");
-  term_verify_seq(&nc->tcache.home, "home");
-  term_verify_seq(&nc->tcache.clearscr, "clear");
-  term_verify_seq(&nc->tcache.cleareol, "el");
-  term_verify_seq(&nc->tcache.clearbol, "el1");
-  term_verify_seq(&nc->tcache.cuf, "cuf"); // n non-destructive spaces
-  term_verify_seq(&nc->tcache.cub, "cub"); // n non-destructive backspaces
-  term_verify_seq(&nc->tcache.cuf1, "cuf1"); // non-destructive space
-  term_verify_seq(&nc->tcache.cub1, "cub1"); // non-destructive backspace
-  term_verify_seq(&nc->tcache.smkx, "smkx"); // set application mode
-  if(nc->tcache.smkx){
-    if(putp(tiparm(nc->tcache.smkx)) != OK){
-      fprintf(stderr, "Error entering application mode\n");
-      return -1;
-    }
-  }
-  if(prep_special_keys(nc)){
-    return -1;
-  }
-  // Some terminals cannot combine certain styles with colors. Don't advertise
-  // support for the style in that case.
-  int nocolor_stylemask = tigetnum("ncv");
-  if(nocolor_stylemask > 0){
-    if(nocolor_stylemask & WA_STANDOUT){ // ncv is composed of terminfo bits, not ours
-      nc->tcache.standout = NULL;
-    }
-    if(nocolor_stylemask & WA_UNDERLINE){
-      nc->tcache.uline = NULL;
-    }
-    if(nocolor_stylemask & WA_REVERSE){
-      nc->tcache.reverse = NULL;
-    }
-    if(nocolor_stylemask & WA_BLINK){
-      nc->tcache.blink = NULL;
-    }
-    if(nocolor_stylemask & WA_DIM){
-      nc->tcache.dim = NULL;
-    }
-    if(nocolor_stylemask & WA_BOLD){
-      nc->tcache.bold = NULL;
-    }
-    if(nocolor_stylemask & WA_ITALIC){
-      nc->tcache.italics = NULL;
-    }
-  }
-  term_verify_seq(&nc->tcache.getm, "getm"); // get mouse events
-  // Not all terminals support setting the fore/background independently
-  term_verify_seq(&nc->tcache.setaf, "setaf");
-  term_verify_seq(&nc->tcache.setab, "setab");
-  term_verify_seq(&nc->tcache.smkx, "smkx");
-  term_verify_seq(&nc->tcache.rmkx, "rmkx");
-  // Neither of these is supported on e.g. the "linux" virtual console.
-  if(!opts->inhibit_alternate_screen){
-    term_verify_seq(&nc->tcache.smcup, "smcup");
-    term_verify_seq(&nc->tcache.rmcup, "rmcup");
-  }else{
-    nc->tcache.smcup = nc->tcache.rmcup = NULL;
-  }
-  nc->top = nc->stdscr = NULL;
-  return 0;
-}
-
 static int
 make_nonblocking(FILE* fp){
   int fd = fileno(fp);
@@ -769,43 +621,9 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
     free(ret);
     return NULL;
   }
-  term_verify_seq(&ret->tcache.standout, "smso"); // smso / rmso
-  term_verify_seq(&ret->tcache.uline, "smul");
-  term_verify_seq(&ret->tcache.reverse, "reverse");
-  term_verify_seq(&ret->tcache.blink, "blink");
-  term_verify_seq(&ret->tcache.dim, "dim");
-  term_verify_seq(&ret->tcache.bold, "bold");
-  term_verify_seq(&ret->tcache.italics, "sitm");
-  term_verify_seq(&ret->tcache.italoff, "ritm");
-  term_verify_seq(&ret->tcache.sgr, "sgr");
-  term_verify_seq(&ret->tcache.sgr0, "sgr0");
-  term_verify_seq(&ret->tcache.op, "op");
-  term_verify_seq(&ret->tcache.oc, "oc");
-  term_verify_seq(&ret->tcache.setaf, "setaf");
-  term_verify_seq(&ret->tcache.setab, "setab");
-  term_verify_seq(&ret->tcache.clear, "clear");
-  term_verify_seq(&ret->tcache.cup, "cup");
-  term_verify_seq(&ret->tcache.cuu, "cuu"); // move N up
-  term_verify_seq(&ret->tcache.cuf, "cuf"); // move N right
-  term_verify_seq(&ret->tcache.cud, "cud"); // move N down
-  term_verify_seq(&ret->tcache.cub, "cub"); // move N left
-  term_verify_seq(&ret->tcache.hpa, "hpa");
-  term_verify_seq(&ret->tcache.vpa, "vpa");
-  term_verify_seq(&ret->tcache.civis, "civis");
-  term_verify_seq(&ret->tcache.cnorm, "cnorm");
-  ret->tcache.RGBflag = query_rgb();
-  if((ret->tcache.colors = tigetnum("colors")) <= 0){
-    ret->tcache.colors = 1;
-    ret->tcache.CCCflag = false;
-    ret->tcache.RGBflag = false;
-    ret->tcache.initc = NULL;
-  }else{
-    term_verify_seq(&ret->tcache.initc, "initc");
-    if(ret->tcache.initc){
-      ret->tcache.CCCflag = tigetflag("ccc") == 1;
-    }else{
-      ret->tcache.CCCflag = false;
-    }
+  if(interrogate_terminfo(&ret->tcache)){
+    free(ret);
+    return NULL;
   }
   ret->fgdefault = ret->bgdefault = true;
   ret->fgrgb = ret->bgrgb = 0;
@@ -988,9 +806,27 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   int dimy, dimx;
-  if(interrogate_terminfo(ret, opts, &dimy, &dimx)){
+  update_term_dimensions(ret->ttyfd, &dimy, &dimx);
+  char* shortname_term = termname();
+  char* longname_term = longname();
+  if(!opts->suppress_banner){
+    fprintf(stderr, "Term: %dx%d %s (%s)\n", dimx, dimy,
+            shortname_term ? shortname_term : "?",
+            longname_term ? longname_term : "?");
+  }
+  ret->truecols = dimx;
+  if(interrogate_terminfo(&ret->tcache)){
     goto err;
   }
+  if(prep_special_keys(ret)){
+    goto err;
+  }
+  // Neither of these is supported on e.g. the "linux" virtual console.
+  if(!opts->inhibit_alternate_screen){
+    term_verify_seq(&ret->tcache.smcup, "smcup");
+    term_verify_seq(&ret->tcache.rmcup, "rmcup");
+  }
+  ret->top = ret->stdscr = NULL;
   if(ncvisual_init(ffmpeg_log_level(opts->loglevel))){
     goto err;
   }

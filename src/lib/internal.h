@@ -320,6 +320,9 @@ typedef struct notcurses {
 
 void sigwinch_handler(int signo);
 
+int term_verify_seq(char** gseq, const char* name);
+int interrogate_terminfo(tinfo* ti);
+
 // Search the provided multibyte (UTF8) string 's' for the provided unicode
 // codepoint 'cp'. If found, return the column offset of the EGC in which the
 // codepoint appears in 'col', and the byte offset as the return value. If not
