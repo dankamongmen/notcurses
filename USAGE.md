@@ -12,6 +12,7 @@ version 2, notcurses will honor Semantic Versioning.
 * [Widgets](#widgets) ([Readers](#readers))
 * [Channels](#channels)
 * [Media](#media)
+* [C++](#c++)
 
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
 pages ought have been installed along with notcurses. This document is a
@@ -2547,3 +2548,12 @@ Finally, an `ncvisual` can be "promoted" from the contents of a plane.
 // to create the ncvisual from memory using ncvisual_from_rgba().
 struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 ```
+
+## C++
+
+Marek Habersack has contributed (and maintains) C++ wrappers installed to
+`include/ncpp/`, `libnotcurses++.so`, and `libnotcurses++.a`.
+
+In their default mode, these wrappers never throw exceptions. If
+`NCPP_EXCEPTIONS_PLEASE` is defined prior to including any NCPP headers,
+they will throw exceptions.
