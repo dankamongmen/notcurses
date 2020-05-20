@@ -2,9 +2,11 @@
 #define NOTCURSES_TEST_MAIN
 
 #include <unistd.h>
-#include <doctest/doctest.h>
 #include "version.h"
+#include <doctest/doctest.h>
 #include <notcurses/notcurses.h>
+#include <ncpp/NotCurses.hh>
+#include "internal.h"
 
 auto find_data(const char* datum) -> char*;
 auto enforce_utf8() -> bool;

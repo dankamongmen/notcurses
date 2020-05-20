@@ -1,4 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT
+#include "main.h"
 #include <term.h>
 #include <fcntl.h>
 #include <clocale>
@@ -9,8 +10,6 @@
 #include <termios.h>
 #include <filesystem>
 #include <langinfo.h>
-#include "version.h"
-#include "main.h"
 
 static const char* datadir = NOTCURSES_SHARE;
 

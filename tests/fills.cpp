@@ -1,6 +1,5 @@
 #include <array>
 #include <cstdlib>
-#include "internal.h"
 #include "main.h"
 
 TEST_CASE("Fills") {

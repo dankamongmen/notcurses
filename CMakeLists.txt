@@ -555,7 +555,7 @@ target_include_directories(notcurses-tester
 )
 target_link_libraries(notcurses-tester
   PRIVATE
-    notcurses
+    notcurses++
     "${TERMINFO_LIBRARIES}"
 )
 target_compile_definitions(notcurses-tester
