@@ -52,11 +52,11 @@ constexpr int OPT_RIGHTOFF = 103;
 void parse_args(int argc, char** argv, struct notcurses_options* opts,
                 struct ncreel_options* ropts){
   const struct option longopts[] = {
-    { .name = "ot", .has_arg = 1, .flag = nullptr, OPT_TOPOFF, },
-    { .name = "ob", .has_arg = 1, .flag = nullptr, OPT_BOTTOMOFF, },
-    { .name = "ol", .has_arg = 1, .flag = nullptr, OPT_LEFTOFF, },
-    { .name = "or", .has_arg = 1, .flag = nullptr, OPT_RIGHTOFF, },
-    { .name = nullptr, .has_arg = 0, .flag = nullptr, 0, },
+    { .name = "ot", .has_arg = 1, .flag = nullptr, .val = OPT_TOPOFF, },
+    { .name = "ob", .has_arg = 1, .flag = nullptr, .val = OPT_BOTTOMOFF, },
+    { .name = "ol", .has_arg = 1, .flag = nullptr, .val = OPT_LEFTOFF, },
+    { .name = "or", .has_arg = 1, .flag = nullptr, .val = OPT_RIGHTOFF, },
+    { .name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0, },
   };
   int c;
   while((c = getopt_long(argc, argv, "b:t:h", longopts, nullptr)) != -1){
