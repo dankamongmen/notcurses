@@ -291,7 +291,12 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   cell_init(&p->basecell);
   p->blist = NULL;
   p->userptr = opaque;
-  p->z = nc->top;
+  p->above = NULL;
+  if( (p->below = nc->top) ){ // always happens save initial plane
+    nc->top->above = p;
+  }else{
+    nc->bottom = p;
+  }
   nc->top = p;
   p->nc = nc;
   nc->stats.fbbytes += fbsize;
@@ -368,7 +373,6 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
       ncplane_cursor_move_yx(newn, n->y, n->x);
       newn->attrword = attr;
       newn->channels = chan;
-      ncplane_move_above_unsafe(newn, n);
       memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
       // we dupd the egcpool, so just dup the goffset
       newn->basecell = n->basecell;
@@ -481,21 +485,6 @@ fprintf(stderr, "Can't resize standard plane\n");
                                  yoff, xoff, ylen, xlen);
 }
 
-// find the pointer on the z-index referencing the specified plane. writing to
-// this pointer will remove the plane (and everything below it) from the stack.
-static ncplane**
-find_above_ncplane(const ncplane* n){
-  notcurses* nc = n->nc;
-  ncplane** above = &nc->top;
-  while(*above){
-    if(*above == n){
-      return above;
-    }
-    above = &((*above)->z);
-  }
-  return NULL;
-}
-
 int ncplane_destroy(ncplane* ncp){
   if(ncp == NULL){
     return 0;
@@ -503,11 +492,16 @@ int ncplane_destroy(ncplane* ncp){
   if(ncp->nc->stdscr == ncp){
     return -1;
   }
-  ncplane** above = find_above_ncplane(ncp);
-  if(above == NULL){
-    return -1;
+  if(ncp->above){
+    ncp->above->below = ncp->below;
+  }else{
+    ncp->nc->top = ncp->below;
   }
-  *above = ncp->z; // splice it out of the list
+  if(ncp->below){
+    ncp->below->above = ncp->above;
+  }else{
+    ncp->nc->bottom = ncp->above;
+  }
   free_plane(ncp);
   return 0;
 }
@@ -806,11 +800,13 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   int dimy, dimx;
-  update_term_dimensions(ret->ttyfd, &dimy, &dimx);
+  if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
+    goto err;
+  }
   char* shortname_term = termname();
   char* longname_term = longname();
   if(!opts->suppress_banner){
-    fprintf(stderr, "Term: %dx%d %s (%s)\n", dimx, dimy,
+    fprintf(stderr, "Term: %dx%d %s (%s)\n", dimy, dimx,
             shortname_term ? shortname_term : "?",
             longname_term ? longname_term : "?");
   }
@@ -826,7 +822,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     term_verify_seq(&ret->tcache.smcup, "smcup");
     term_verify_seq(&ret->tcache.rmcup, "rmcup");
   }
-  ret->top = ret->stdscr = NULL;
+  ret->bottom = ret->top = ret->stdscr = NULL;
   if(ncvisual_init(ffmpeg_log_level(opts->loglevel))){
     goto err;
   }
@@ -867,11 +863,8 @@ err:
 void notcurses_drop_planes(notcurses* nc){
   ncplane* p = nc->top;
   while(p){
-    ncplane* tmp = p->z;
-    if(nc->stdscr == p){
-      nc->top = p;
-      p->z = NULL;
-    }else{
+    ncplane* tmp = p->below;
+    if(nc->stdscr != p){
       free_plane(p);
     }
     p = tmp;
@@ -883,9 +876,9 @@ int notcurses_stop(notcurses* nc){
   if(nc){
     ret |= notcurses_stop_minimal(nc);
     while(nc->top){
-      ncplane* p = nc->top;
-      nc->top = p->z;
-      free_plane(p);
+      ncplane* p = nc->top->below;
+      free_plane(nc->top);
+      nc->top = p;
     }
     if(nc->rstate.mstreamfp){
       fclose(nc->rstate.mstreamfp);
@@ -1047,76 +1040,88 @@ const char* cell_extended_gcluster(const ncplane* n, const cell* c){
 }
 
 // 'n' ends up above 'above'
-int ncplane_move_above_unsafe(ncplane* restrict n, const ncplane* restrict above){
-  if(n->z == above){
-    return 0;
-  }
-  ncplane** an = find_above_ncplane(n);
-  if(an == NULL){
+int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
+  if(n == above){
     return -1;
   }
-  ncplane** aa = find_above_ncplane(above);
-  if(aa == NULL){
-    return -1;
+  if(n->below != above){
+    // splice out 'n'
+    if(n->below){
+      n->below->above = n->above;
+    }else{
+      n->nc->bottom = n->above;
+    }
+    if(n->above){
+      n->above->below = n->below;
+    }else{
+      n->nc->top = n->below;
+    }
+    if(above->above){
+      above->above->below = n;
+    }else{
+      n->nc->top = n;
+    }
+    above->above = n;
+    n->below = above;
   }
-  ncplane* deconst_above = *aa;
-  *an = n->z; // splice n out
-  n->z = deconst_above; // attach above below n
-  *aa = n; // spline n in above
   return 0;
 }
 
 // 'n' ends up below 'below'
-int ncplane_move_below_unsafe(ncplane* restrict n, const ncplane* restrict below){
-  if(below->z == n){
-    return 0;
+int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
+  if(n == below){
+    return -1;
   }
-  ncplane* deconst_below = NULL;
-  ncplane** an = &n->nc->top;
-  // go down, looking for n and below. if we find below, mark it. if we
-  // find n, break from the loop.
-  while(*an){
-    if(*an == below){
-      deconst_below = *an;
-    }else if(*an == n){
-      *an = n->z; // splice n out
+  if(n->above != below){
+    if(n->below){
+      n->below->above = n->above;
+    }else{
+      n->nc->bottom = n->above;
     }
+    if(n->above){
+      n->above->below = n->below;
+    }else{
+      n->nc->top = n->below;
+    }
+    if(below->below){
+      below->below->above = n;
+    }else{
+      n->nc->bottom = n;
+    }
+    below->below = n;
+    n->above = below;
   }
-  if(an == NULL){
-    return -1;
-  }
-  while(deconst_below != below){
-    deconst_below = deconst_below->z;
-  }
-  n->z = deconst_below->z; // reattach subbelow list to n
-  deconst_below->z = n; // splice n in below
   return 0;
 }
 
-int ncplane_move_top(ncplane* n){
-  ncplane** an = find_above_ncplane(n);
-  if(an == NULL){
-    return -1;
+void ncplane_move_top(ncplane* n){
+  if(n->above){
+    if( (n->above->below = n->below) ){
+      n->below->above = n->above;
+    }else{
+      n->nc->bottom = n->above;
+    }
+    n->above = NULL;
+    if( (n->below = n->nc->top) ){
+      n->below->above = n;
+    }
+    n->nc->top = n;
   }
-  *an = n->z; // splice n out
-  n->z = n->nc->top;
-  n->nc->top = n;
-  return 0;
 }
 
-int ncplane_move_bottom(ncplane* n){
-  ncplane** an = find_above_ncplane(n);
-  if(an == NULL){
-    return -1;
+void ncplane_move_bottom(ncplane* n){
+  if(n->below){
+    if( (n->below->above = n->above) ){
+      n->above->below = n->below;
+    }else{
+      n->nc->top = n->below;
+    }
+    n->below = NULL;
+    if( (n->above = n->nc->bottom) ){
+      n->above->below = n;
+    }
+    n->nc->bottom = n;
   }
-  *an = n->z; // splice n out
-  an = &n->nc->top;
-  while(*an){
-    an = &(*an)->z;
-  }
-  *an = n;
-  n->z = NULL;
-  return 0;
 }
 
 void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
@@ -1694,7 +1699,7 @@ ncplane* notcurses_top(notcurses* n){
 }
 
 ncplane* ncplane_below(ncplane* n){
-  return n->z;
+  return n->below;
 }
 
 // FIXME this clears the screen for some reason! what's up?

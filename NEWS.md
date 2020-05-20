@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.4.2.4 (2020-05-20)
+  * Removed `ncplane_move_above_unsafe()` and `ncplane_move_below_unsafe()`;
+    all z-axis moves are now safe. Z-axis moves are all now O(1), rather
+    than the previous O(N).
+
 * 1.4.2.3 (2020-05-17)
   * Added `notcurses_canutf8()`, to verify use of UTF-8 encoding.
   * Fixed bug in `ncvisual_from_plane()` when invoked on the standard plane.

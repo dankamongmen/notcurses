@@ -271,14 +271,14 @@ namespace ncpp
 			return error_guard (ncplane_move_yx (plane, y, x), -1);
 		}
 
-		bool move_top () const NOEXCEPT_MAYBE
+		void move_top () noexcept
 		{
-			return error_guard (ncplane_move_top (plane), -1);
+			ncplane_move_top (plane);
 		}
 
-		bool move_bottom () const NOEXCEPT_MAYBE
+		void move_bottom () noexcept
 		{
-			return error_guard (ncplane_move_bottom (plane), -1);
+			ncplane_move_bottom (plane);
 		}
 
 		bool move_below (Plane &below) const NOEXCEPT_MAYBE
@@ -294,38 +294,12 @@ namespace ncpp
 			return move_below (*below);
 		}
 
-		bool move_below_unsafe (Plane &below) const NOEXCEPT_MAYBE
-		{
-			return error_guard (ncplane_move_below_unsafe (plane, below.plane), -1);
-		}
-
-		bool move_below_unsafe (Plane *below) const
-		{
-			if (below == nullptr)
-				throw invalid_argument ("'below' must be a valid pointer");
-
-			return move_below_unsafe (*below);
-		}
-
 		bool move_above (Plane &above) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_move_above (plane, above.plane), -1);
 		}
 
 		bool move_above (Plane *above) const
-		{
-			if (above == nullptr)
-				throw invalid_argument ("'above' must be a valid pointer");
-
-			return move_above (*above);
-		}
-
-		bool move_above_unsafe (Plane &above) const NOEXCEPT_MAYBE
-		{
-			return error_guard (ncplane_move_above_unsafe (plane, above.plane), -1);
-		}
-
-		bool move_above_unsafe (Plane *above) const
 		{
 			if (above == nullptr)
 				throw invalid_argument ("'above' must be a valid pointer");

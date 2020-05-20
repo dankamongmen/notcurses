@@ -36,9 +36,9 @@ notcurses_plane - operations on ncplanes
 
 **int ncplane_move_bottom(struct ncplane* n);**
 
-**int ncplane_move_above(struct ncplane* n, struct ncplane* above);**
+**int ncplane_move_above(struct ncplane* restrict n, struct ncplane* restrict above);**
 
-**int ncplane_move_below(struct ncplane* n, struct ncplane* below);**
+**int ncplane_move_below(struct ncplane* restrict n, struct ncplane* restrict below);**
 
 **struct ncplane* ncplane_below(struct ncplane* n);**
 

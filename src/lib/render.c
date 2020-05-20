@@ -1084,7 +1084,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
       free(fb);
       return -1;
     }
-    p = p->z;
+    p = p->below;
   }
   postpaint(fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
   free(fb);

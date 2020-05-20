@@ -20,6 +20,7 @@ auto main() -> int {
   opts.physrows = dimy / 8;
   opts.physcols = dimx / 2;
   opts.egc = strdup("░");
+  // FIXME c++ is crashing
   //ncpp::Reader nr(nc, 0, 0, &opts);
   auto nr = ncreader_create(*n, 2, 2, &opts);
   if(nr == nullptr){

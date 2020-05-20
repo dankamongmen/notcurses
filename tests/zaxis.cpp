@@ -21,11 +21,11 @@ TEST_CASE("ZAxis") {
 
   // if you want to move the plane which is already top+bottom to either, go ahead
   SUBCASE("StdPlaneOnanism") {
-    CHECK(0 == ncplane_move_top(n_));
+    ncplane_move_top(n_);
     struct ncplane* top = notcurses_top(nc_);
     CHECK(n_ == top);
     CHECK(!ncplane_below(top));
-    CHECK(0 == ncplane_move_bottom(n_));
+    ncplane_move_bottom(n_);
     CHECK(!ncplane_below(n_));
   }
 
@@ -57,7 +57,7 @@ TEST_CASE("ZAxis") {
     CHECK(np == top);
     CHECK(n_ == ncplane_below(top));
     CHECK(!ncplane_below(n_));
-    CHECK(!ncplane_move_top(np));
+    ncplane_move_top(np);
     // verify it
     top = notcurses_top(nc_);
     CHECK(np == top);
@@ -73,7 +73,7 @@ TEST_CASE("ZAxis") {
     CHECK(np == top);
     CHECK(n_ == ncplane_below(top));
     CHECK(!ncplane_below(n_));
-    CHECK(!ncplane_move_bottom(np));
+    ncplane_move_bottom(np);
     top = notcurses_top(nc_);
     CHECK(n_ == top);
     CHECK(np == ncplane_below(top));

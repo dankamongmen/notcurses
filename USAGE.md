@@ -549,7 +549,6 @@ struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
 
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
-// The new plane will be immediately above the old one on the z axis.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 
 // Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
@@ -709,13 +708,17 @@ int ncplane_base(struct ncplane* ncp, cell* c);
 
 ```c
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-int ncplane_move_top(struct ncplane* n);
-int ncplane_move_bottom(struct ncplane* n);
+void ncplane_move_top(struct ncplane* n);
+void ncplane_move_bottom(struct ncplane* n);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+// Returns non-zero if 'n' is already in the desired location. 'n' and
+// 'below' must not be the same plane.
 int ncplane_move_below(struct ncplane* restrict n, struct ncplane* restrict below);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
+// Returns non-zero if 'n' is already in the desired location. 'n' and
+// 'above' must not be the same plane.
 int ncplane_move_above(struct ncplane* restrict n, struct ncplane* restrict above);
 
 // Return the ncplane below this one, or NULL if this is at the stack's bottom.

@@ -65,7 +65,8 @@ typedef struct ncplane {
   int x, y;             // current cursor location within this plane
   int absx, absy;       // origin of the plane relative to the screen
   int lenx, leny;       // size of the plane, [0..len{x,y}) is addressable
-  struct ncplane* z;    // plane below us
+  struct ncplane* above;// plane above us, NULL if we're on top
+  struct ncplane* below;// plane below us, NULL if we're on bottom
   struct ncplane* bnext;// next in the bound list of plane to which we are bound
   struct ncplane* blist;// head of our own bound list, if any
   struct ncplane* bound;// plane to which we are bound, if any
@@ -267,7 +268,8 @@ typedef struct ncdirect {
 } ncdirect;
 
 typedef struct notcurses {
-  ncplane* top;   // the contents of our topmost plane (initially entire screen)
+  ncplane* top;   // topmost plane, never NULL
+  ncplane* bottom;// bottommost plane, never NULL 
   ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
 
   // the style state of the terminal is carried across render runs
