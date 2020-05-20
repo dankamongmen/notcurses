@@ -109,7 +109,7 @@ that fine library.
 * (build) CMake 3.14.0+
 * (build+runtime) From NCURSES: terminfo 6.1+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
-* (OPTIONAL) (build+runtime) From [FFMpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
+* (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.15.0+
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
@@ -126,14 +126,34 @@ that fine library.
 
 The default multimedia engine is FFmpeg. You can select a different engine
 using `USE_MULTIMEDIA`. Valid values are `ffmpeg`, `oiio` (for OpenImageIO),
-or `none`.
+or `none`. Without a multimedia engine, Notcurses will be unable to decode
+images and videos.
 
-If you have unit test failures, *please* file a bug including the output of
-`./notcurses-tester > log 2>&1` (`make test` also runs `notcurses-tester`, but
-hides important output).
+Run unit tests with `make test` following a successful build. If you have unit
+test failures, *please* file a bug including the output of `./notcurses-tester
+> log 2>&1` (`make test` also runs `notcurses-tester`, but hides important
+output). Install with `make install` following a successful build.
 
 To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
 be found on the `notcurses-demo(1)` man page.
+
+#### Build options
+
+To set the C compiler, export `CC`. To set the C++ compiler, export `CXX`. The
+`CMAKE_BUILD_TYPE` CMake variable can be defined to any of its standard values,
+but must be `Debug` for use of `USE_COVERAGE`.
+
+* `DFSG_BUILD`: leave out all content considered non-free under the Debian Free
+                Software Guidelines.
+* `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none.
+* `USE_QRCODEGEN`: build qrcode support via libqrcodegen
+* `USE_TESTS`: build `notcurses-tester` using doctest
+* `USE_PANDOC`: build man pages with pandoc
+* `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
+* `USE_PYTHON`: build the Python wrappers
+* `USE_RUST`: build the Rust wrappers
+* `USE_NETWORK`: allow `cargo` to use the network for building Rust
+* `USE_COVERAGE`: build coverage support (for developers). Requires use of Clang.
 
 ## Included tools
 
