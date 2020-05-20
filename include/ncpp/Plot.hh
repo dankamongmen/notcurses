@@ -67,7 +67,7 @@ namespace ncpp
 			}
 
 			if (plot == nullptr)
-				throw init_error ("notcurses failed to create a new plot");
+				throw init_error ("Notcurses failed to create a new plot");
 		}
 
 		~PlotBase ()

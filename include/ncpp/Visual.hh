@@ -36,14 +36,14 @@ namespace ncpp
 
 			visual = ncplane_visual_open (reinterpret_cast<ncplane*>(plane), file, ncerr);
 			if (visual == nullptr)
-				throw init_error ("notcurses failed to create a new visual");
+				throw init_error ("Notcurses failed to create a new visual");
 		}
 
 		explicit Visual (const char *file, nc_err_e* ncerr, int y, int x, NCScale scale)
 		{
 			visual = ncvisual_from_file (get_notcurses (), file, ncerr, y, x, static_cast<ncscale_e>(scale));
 			if (visual == nullptr)
-				throw init_error ("notcurses failed to create a new visual");
+				throw init_error ("Notcurses failed to create a new visual");
 		}
 
 		~Visual () noexcept

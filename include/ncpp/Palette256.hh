@@ -13,7 +13,7 @@ namespace ncpp
 		{
 			palette = palette256_new (get_notcurses ());
 			if (palette == nullptr)
-				throw init_error ("notcurses failed to create a new palette");
+				throw init_error ("Notcurses failed to create a new palette");
 		}
 
 		~Palette256 ()

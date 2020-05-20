@@ -39,7 +39,7 @@ namespace ncpp
 
 			multiselector = ncmultiselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
 			if (multiselector == nullptr)
-				throw init_error ("notcurses failed to create a new multiselector");
+				throw init_error ("Notcurses failed to create a new multiselector");
 		}
 
 		~MultiSelector ()

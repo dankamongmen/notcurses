@@ -39,7 +39,7 @@ namespace ncpp
 
 			selector = ncselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
 			if (selector == nullptr)
-				throw init_error ("notcurses failed to create a new selector");
+				throw init_error ("Notcurses failed to create a new selector");
 		}
 
 		~Selector ()

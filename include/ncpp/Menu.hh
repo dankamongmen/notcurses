@@ -20,7 +20,7 @@ namespace ncpp
 			menu = ncmenu_create (notcurses_stdplane(get_notcurses ()),
                             opts == nullptr ? &default_options : opts);
 			if (menu == nullptr)
-				throw init_error ("notcurses failed to create a new menu");
+				throw init_error ("Notcurses failed to create a new menu");
 		}
 
 		~Menu ()

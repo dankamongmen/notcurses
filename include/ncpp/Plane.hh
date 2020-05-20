@@ -60,7 +60,7 @@ namespace ncpp
 			);
 
 			if (plane == nullptr)
-				throw init_error ("notcurses failed to create a new plane");
+				throw init_error ("Notcurses failed to create a new plane");
 
 			map_plane (plane, this);
 		}
@@ -1059,7 +1059,7 @@ namespace ncpp
 			);
 
 			if (ret == nullptr)
-				throw init_error ("notcurses failed to create a new plane");
+				throw init_error ("Notcurses failed to create a new plane");
 
 			map_plane (plane, this);
 
@@ -1078,7 +1078,7 @@ namespace ncpp
 			);
 
 			if (ret == nullptr)
-				throw init_error ("notcurses failed to create an aligned plane");
+				throw init_error ("Notcurses failed to create an aligned plane");
 
 			map_plane (plane, this);
 
@@ -1089,7 +1089,7 @@ namespace ncpp
 		{
 			ncplane *ret = ncplane_dup (other.plane, opaque);
 			if (ret == nullptr)
-				throw init_error ("notcurses failed to duplicate plane");
+				throw init_error ("Notcurses failed to duplicate plane");
 
 			return ret;
 		}

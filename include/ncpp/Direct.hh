@@ -16,7 +16,7 @@ namespace ncpp
 		{
 			direct = ncdirect_init (termtype, fp == nullptr ? stdout : fp);
 			if (direct == nullptr)
-				throw init_error ("notcurses failed to initialize direct mode");
+				throw init_error ("Notcurses failed to initialize direct mode");
 		}
 
 		~Direct ()

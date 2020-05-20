@@ -57,7 +57,7 @@ namespace ncpp
 		{
 			nctablet *t = ncreel_add (reel, get_tablet (after), get_tablet (before), cb, opaque);
 			if (t == nullptr)
-				throw init_error ("notcurses failed to create a new tablet");
+				throw init_error ("Notcurses failed to create a new tablet");
 
 			return NcTablet::map_tablet (t);
 		}
@@ -149,7 +149,7 @@ namespace ncpp
 		{
 			reel = ncreel_create (plane, popts == nullptr ? &default_options : popts, efd);
 			if (reel == nullptr)
-				throw init_error ("notcurses failed to create a new ncreel");
+				throw init_error ("Notcurses failed to create a new ncreel");
 		}
 
 	private:

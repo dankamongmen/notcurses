@@ -34,7 +34,7 @@ namespace ncpp
 		{
 			reader = ncreader_create (n, y, x, opts);
 			if (reader == nullptr)
-				throw init_error ("notcurses failed to create a new reader");
+				throw init_error ("Notcurses failed to create a new reader");
 		}
 
 		~Reader ()
