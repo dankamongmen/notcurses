@@ -637,9 +637,9 @@ static void
 init_banner(const notcurses* nc){
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
-    term_fg_palindex(nc, nc->ttyfp, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
+    term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
     printf("\n notcurses %s by nick black et al", notcurses_version());
-    term_fg_palindex(nc, nc->ttyfp, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
+    term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
     printf("\n  %d rows, %d columns (%sB), %d colors (%s)\n"
            "  compiled with gcc-%s\n"
            "  terminfo from %s\n",
@@ -656,12 +656,12 @@ init_banner(const notcurses* nc){
 #ifdef USE_OIIO
     printf("  openimageio %s\n", oiio_version());
 #else
-    term_fg_palindex(nc, nc->ttyfp, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
+    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
     fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
 #endif
 #endif
     fflush(stdout);
-    term_fg_palindex(nc, nc->ttyfp, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
+    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
     if(!nc->tcache.RGBflag){ // FIXME
       fprintf(stderr, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
       fprintf(stderr, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");

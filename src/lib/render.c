@@ -236,8 +236,9 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 // ultimately 'lastframe' (we can't always write directly into 'lastframe',
 // because we need build state to solve certain cells, and need compare their
 // solved result to the last frame). Whenever a cell is locked in, it is
-// compared against the last frame. If it is different, the 'rvec' bitmap is updated with a 1. 'pool' is typically nc->pool, but can
-// be whatever's backing fb.
+// compared against the last frame. If it is different, the 'rvec' bitmap is
+// updated with a 1. 'pool' is typically nc->pool, but should be whatever's
+// backing fb.
 static int
 paint(ncplane* p, cell* lastframe, struct crender* rvec,
       cell* fb, egcpool* pool, int dstleny, int dstlenx,
