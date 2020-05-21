@@ -5,6 +5,8 @@
 #include <ncpp/Reader.hh>
 #include <ncpp/NotCurses.hh>
 
+using namespace ncpp;
+
 auto main() -> int {
   if(!setlocale(LC_ALL, "")){
     std::cout << "Error setting locale\n";
@@ -12,17 +14,17 @@ auto main() -> int {
   }
   notcurses_options nopts{};
   nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
-  ncpp::NotCurses nc(nopts);
+  NotCurses nc(nopts);
   int dimy, dimx;
-  auto n = nc.get_stdplane(&dimy, &dimx);
+  std::unique_ptr<Plane *> n = std::make_unique<Plane *>(nc.get_stdplane(&dimy, &dimx));
   nc.get_term_dim(&dimy, &dimx);
   ncreader_options opts{};
   opts.physrows = dimy / 8;
   opts.physcols = dimx / 2;
   opts.egc = strdup("░");
   // FIXME c++ is crashing
-  //ncpp::Reader nr(nc, 0, 0, &opts);
-  auto nr = ncreader_create(*n, 2, 2, &opts);
+  //Reader nr(nc, 0, 0, &opts);
+  auto nr = ncreader_create(**n, 2, 2, &opts);
   if(nr == nullptr){
     return EXIT_FAILURE;
   }
