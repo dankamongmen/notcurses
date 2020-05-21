@@ -58,7 +58,9 @@ int main(int argc, char** argv){
     cols += printf(" (%02d)", pivot);
     i = putp(tiparm(sgr, sgrs[0], sgrs[1], sgrs[2], sgrs[3], sgrs[4],
                          sgrs[5], sgrs[6], sgrs[7], sgrs[8]));
-    assert(OK == i);
+    if(i != OK){
+      return EXIT_FAILURE;
+    }
     if((i = printf(" %s ", argv[0])) < 0){
       return EXIT_FAILURE;
     }
