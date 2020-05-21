@@ -64,7 +64,9 @@ int main(int argc, char** argv){
     }
     cols += i;
     i = putp(tiparm(sgr, 0, 0, 0, 0, 0, 0, 0, 0, 0));
-    assert(OK == i);
+    if(i != OK){
+      return EXIT_FAILURE;
+    }
     pivot = pivot_on(pivot, sgrs, sgrcount);
     if(cols >= 60){ // FIXME
       printf("\n");
