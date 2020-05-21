@@ -5,9 +5,7 @@ bool InvalidMove() { // a bit wasteful, but piece are tiny
     int x = dx;
     while(x--){
       ncpp::Cell c, b;
-      if(curpiece_->get_at(dy, x, &c) < 0){
-        throw TetrisNotcursesErr("get_at()");
-      }
+      curpiece_->get_at(dy, x, &c);
       if(c.is_simple()){
         continue;
       }
@@ -17,9 +15,7 @@ bool InvalidMove() { // a bit wasteful, but piece are tiny
       if(transy < 0 || transy >= board_->get_dim_y() || transx < 0 || transx >= board_->get_dim_x()){
         return true;
       }
-      if(board_->get_at(transy, transx, &b) < 0){
-        throw TetrisNotcursesErr("get_at()");
-      }
+      board_->get_at(transy, transx, &b);
       if(!b.is_simple()){
         return true;
       }

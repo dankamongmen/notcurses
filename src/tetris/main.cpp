@@ -1,3 +1,4 @@
+#define NCPP_EXCEPTIONS_PLEASE
 #include <mutex>
 #include <array>
 #include <pwd.h>
@@ -15,19 +16,6 @@ std::mutex ncmtx;
 const std::string BackgroundFile = NOTCURSES_SHARE "/tetris-background.jpg";
 
 using namespace std::chrono_literals;
-
-class TetrisNotcursesErr : public std::runtime_error {
-public:
-  TetrisNotcursesErr(const std::string& s) throw()
-    : std::runtime_error(s) {
-  }
-  TetrisNotcursesErr(char const* const message) throw()
-    : std::runtime_error(message) {
-  }
-  virtual char const* what() const throw() {
-    return exception::what();
-  }
-};
 
 class Tetris {
 public:

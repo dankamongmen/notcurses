@@ -3,15 +3,11 @@ void RotateCcw() {
   if(!PrepForMove(&y, &x)){
     return;
   }
-  if(!curpiece_->rotate_ccw()){
-    throw TetrisNotcursesErr("rotate_ccw()");
+  curpiece_->rotate_ccw();
+  if(InvalidMove()){
+    curpiece_->rotate_cw();
   }
-  if(InvalidMove() && !curpiece_->rotate_cw()){
-    throw TetrisNotcursesErr("rotate_cw()");
-  }
-  if(!nc_.render()){
-    throw TetrisNotcursesErr("render()");
-  }
+  nc_.render();
 }
 
 void RotateCw() {
@@ -19,13 +15,9 @@ void RotateCw() {
   if(!PrepForMove(&y, &x)){
     return;
   }
-  if(!curpiece_->rotate_cw()){
-    throw TetrisNotcursesErr("rotate_cw()");
+  curpiece_->rotate_cw();
+  if(InvalidMove()){
+    curpiece_->rotate_ccw();
   }
-  if(InvalidMove() && !curpiece_->rotate_ccw()){
-    throw TetrisNotcursesErr("rotate_ccw()");
-  }
-  if(!nc_.render()){
-    throw TetrisNotcursesErr("render()");
-  }
+  nc_.render();
 }

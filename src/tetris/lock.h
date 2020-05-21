@@ -18,16 +18,10 @@ bool LockPiece(){ // returns true if game has ended by reaching level 16
       for(int dy = y ; dy >= 0 ; --dy){
         for(int x = 1 ; x < bdimx - 1 ; ++x){
           ncpp::Cell c;
-          if(board_->get_at(dy, x, &c) < 0){
-            throw TetrisNotcursesErr("get_at()");
-          }
-          if(board_->putc(dy + cleared, x, &c) < 0){
-            throw TetrisNotcursesErr("putc()");
-          }
+          board_->get_at(dy, x, &c);
+          board_->putc(dy + cleared, x, &c);
           c.get().gcluster = 0;
-          if(board_->putc(dy, x, &c) < 0){ // could just do this at end...
-            throw TetrisNotcursesErr("putc()");
-          }
+          board_->putc(dy, x, &c); // could just do this at end...
         }
       }
       linescleared_ += cleared;

@@ -1,27 +1,15 @@
 void DrawBackground(const std::string& s) { // drawn to the standard plane
-#ifdef USE_MULTIMEDIA
   nc_err_e err;
-  try{
-    backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &err, 0, 0, ncpp::NCScale::Stretch);
-  }catch(std::exception& e){
-    throw TetrisNotcursesErr("visual(): " + s + ": " + e.what());
-  }
-  if(backg_->decode() != NCERR_SUCCESS){
-    throw TetrisNotcursesErr("decode(): " + s);
-  }
-  if(backg_->render(0, 0, -1, -1) <= 0){
-    throw TetrisNotcursesErr("render(): " + s);
-  }
+  backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &err, 0, 0, ncpp::NCScale::Stretch);
+  backg_->decode();
+  backg_->render(0, 0, -1, -1);
   backg_->get_plane()->greyscale();
-#else
-  (void)s;
-#endif
 }
 
 void DrawBoard() { // draw all fixed components of the game
   try{
     DrawBackground(BackgroundFile);
-  }catch(TetrisNotcursesErr& e){
+  }catch(...){
     stdplane_->printf(1, 1, "couldn't load %s", BackgroundFile.c_str());
   }
   int y, x;
@@ -32,27 +20,18 @@ void DrawBoard() { // draw all fixed components of the game
   uint64_t channels = 0;
   channels_set_fg(&channels, 0x00b040);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  if(!board_->double_box(0, channels, BOARD_HEIGHT - 1, BOARD_WIDTH * 2 - 1, NCBOXMASK_TOP)){
-    throw TetrisNotcursesErr("double_box()");
-  }
+  board_->double_box(0, channels, BOARD_HEIGHT - 1, BOARD_WIDTH * 2 - 1, NCBOXMASK_TOP);
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   board_->set_base("", 0, channels);
   scoreplane_ = std::make_unique<ncpp::Plane>(2, 30, y - BOARD_HEIGHT, 2, nullptr);
-  if(!scoreplane_){
-    throw TetrisNotcursesErr("Plane()");
-  }
   uint64_t scorechan = 0;
   channels_set_bg_alpha(&scorechan, CELL_ALPHA_TRANSPARENT);
   channels_set_fg_alpha(&scorechan, CELL_ALPHA_TRANSPARENT);
-  if(!scoreplane_->set_base("", 0, scorechan)){
-    throw TetrisNotcursesErr("set_base()");
-  }
+  scoreplane_->set_base("", 0, scorechan);
   scoreplane_->set_bg_alpha(CELL_ALPHA_TRANSPARENT);
   scoreplane_->set_fg(0xd040d0);
   scoreplane_->printf(0, 1, "%s", getpwuid(geteuid())->pw_name);
   scoreplane_->set_fg(0x00d0a0);
   UpdateScore();
-  if(!nc_.render()){
-    throw TetrisNotcursesErr("render()");
-  }
+  nc_.render();
 }
