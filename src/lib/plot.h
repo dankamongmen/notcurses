@@ -1,34 +1,35 @@
 #include <cmath>
+#include <array>
 #include <limits>
+#include "internal.h"
 #include "notcurses/notcurses.h"
 
-static const struct {
-  ncgridgeom_e geom;
-  int width;
-  int height;
-  // the EGCs which form the various levels of a given geometry. if the geometry
-  // is wide, things are arranged with the rightmost side increasing most
-  // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
-  // the first five braille EGCs are all 0 on the left, [0..4] on the right.
-  const wchar_t* egcs;
-  bool fill;
-} geomdata[] = {
-  // default is NCPLOT_8x1
-  { .geom = NCPLOT_8x1,   .width = 1, .height = 9, .egcs = L" ▁▂▃▄▅▆▇█",                 .fill = false, },
-  { .geom = NCPLOT_1x1,   .width = 1, .height = 2, .egcs = L" █",                        .fill = false, },
-  { .geom = NCPLOT_2x1,   .width = 1, .height = 3, .egcs = L" ▄█",                       .fill = false, },
-  { .geom = NCPLOT_1x1x4, .width = 1, .height = 5, .egcs = L" ▒░▓█",                     .fill = false, },
-  { .geom = NCPLOT_2x2,   .width = 2, .height = 3, .egcs = L" ▗▐▖▄▟▌▙█",                 .fill = false, },
-  { .geom = NCPLOT_4x1,   .width = 1, .height = 5, .egcs = L" ▂▄▆█",                     .fill = false, },
-  { .geom = NCPLOT_4x2,   .width = 2, .height = 5, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿", .fill = true,  },
-};
+static const std::array<struct blitset, 7> geomdata = {{
+   // default is NCPLOT_8x1
+   { .geom = NCPLOT_8x1,   .width = 1, .height = 9, .egcs = L" ▁▂▃▄▅▆▇█",                 .fill = false, },
+   { .geom = NCPLOT_1x1,   .width = 1, .height = 2, .egcs = L" █",                        .fill = false, },
+   { .geom = NCPLOT_2x1,   .width = 1, .height = 3, .egcs = L" ▄█",                       .fill = false, },
+   { .geom = NCPLOT_1x1x4, .width = 1, .height = 5, .egcs = L" ▒░▓█",                     .fill = false, },
+   { .geom = NCPLOT_2x2,   .width = 2, .height = 3, .egcs = L" ▗▐▖▄▟▌▙█",                 .fill = false, },
+   { .geom = NCPLOT_4x1,   .width = 1, .height = 5, .egcs = L" ▂▄▆█",                     .fill = false, },
+   { .geom = NCPLOT_4x2,   .width = 2, .height = 5, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿", .fill = true,  },
+}};
 
 template<typename T>
 class ncppplot {
  public:
 
+ static const struct blitset* lookup_blitset(ncgridgeom_e setid) {
+   for(size_t idx = 0 ; idx < geomdata.size() ; ++idx){
+     if(geomdata[idx].geom == setid){
+       return &geomdata[idx];
+     }
+   }
+   return NULL;
+ }
+
  // these were all originally plain C, sorry for the non-idiomatic usage FIXME
- static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy){
+ static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy) {
    // if miny == maxy, they both must be equal to 0
    if(miny == maxy && miny){
      return false;
@@ -39,7 +40,8 @@ class ncppplot {
    if(maxy < miny){
      return false;
    }
-   if(opts->gridtype < 0 || opts->gridtype >= sizeof(geomdata) / sizeof(*geomdata)){
+   auto bset = lookup_blitset(opts->gridtype);
+   if(bset == nullptr){
      return false;
    }
    int sdimy, sdimx;
@@ -51,8 +53,8 @@ class ncppplot {
    ncpp->rangex = opts->rangex;
    // if we're sizing the plot based off the plane dimensions, scale it by the
    // plot geometry's width for all calculations
-   const int scaleddim = dimx * geomdata[opts->gridtype].width;
-   const int scaledprefixlen = PREFIXCOLUMNS * geomdata[opts->gridtype].width;
+   const int scaleddim = dimx * bset->width;
+   const int scaledprefixlen = PREFIXCOLUMNS * bset->width;
    if((ncpp->slotcount = ncpp->rangex) == 0){
      ncpp->slotcount = scaleddim;
    }
@@ -73,10 +75,10 @@ class ncppplot {
      ncpp->ncp = n;
      ncpp->maxchannel = opts->maxchannel;
      ncpp->minchannel = opts->minchannel;
+     ncpp->bset = bset;
      ncpp->miny = miny;
      ncpp->maxy = maxy;
      ncpp->vertical_indep = opts->flags & NCPLOT_OPTIONS_VERTICALI;
-     ncpp->gridtype = opts->gridtype;
      ncpp->exponentiali = opts->flags & NCPLOT_OPTIONS_EXPONENTIALD;
      if( (ncpp->detectdomain = (miny == maxy)) ){
        ncpp->maxy = 0;
@@ -104,7 +106,7 @@ class ncppplot {
    }
    return redraw_plot();
  }
- 
+
  int set_sample(uint64_t x, T y){
    if(window_slide(x)){
      return -1;
@@ -115,7 +117,7 @@ class ncppplot {
    }
    return redraw_plot();
  }
- 
+
  void destroy(){
    free(slots);
  }
@@ -123,12 +125,12 @@ class ncppplot {
  // FIXME everything below here ought be private, but it busts unit tests
  int redraw_plot(){
    ncplane_erase(ncp);
-   const int scale = geomdata[gridtype].width;
+   const int scale = bset->width;
    int dimy, dimx;
    ncplane_dim_yx(ncp, &dimy, &dimx);
    const int scaleddim = dimx * scale;
    // each transition is worth this much change in value
-   const size_t states = geomdata[gridtype].height;
+   const size_t states = bset->height;
    // FIXME can we not rid ourselves of this meddlesome double? either way, the
    // interval is one row's range (for linear plots), or the base (base^slots==
    // maxy-miny) of the range (for exponential plots).
@@ -187,13 +189,13 @@ class ncppplot {
      // direction, drawing egcs from the grid specification, aborting early if
      // we can't draw anything in a given cell.
      double intervalbase = miny;
-     const wchar_t* egc = geomdata[gridtype].egcs;
+     const wchar_t* egc = bset->egcs;
      for(int y = 0 ; y < dimy ; ++y){
        size_t egcidx = 0, sumidx = 0;
        // if we've got at least one interval's worth on the number of positions
        // times the number of intervals per position plus the starting offset,
        // we're going to print *something*
-       bool done = !geomdata[gridtype].fill;
+       bool done = !bset->fill;
        for(int i = 0 ; i < scale ; ++i){
          sumidx *= states;
          if(intervalbase < gvals[i]){
@@ -309,10 +311,18 @@ class ncppplot {
  }
 
  ncplane* ncp;
+ // sloutcount-element circular buffer of samples. the newest one (rightmost)
+ // is at slots[slotstart]; they get older as you go back (and around).
+ // elements. slotcount is max(columns, rangex), less label room.
+ T* slots;
+ int64_t slotx; // x value corresponding to slots[slotstart] (newest x)
+
+ private:
+
  uint64_t maxchannel;
  uint64_t minchannel;
  bool vertical_indep; // not yet implemented FIXME
- ncgridgeom_e gridtype;
+ const struct blitset* bset;
  // requested number of slots. 0 for automatically setting the number of slots
  // to span the horizontal area. if there are more slots than there are
  // columns, we prefer showing more recent slots to less recent. if there are
@@ -322,15 +332,19 @@ class ncppplot {
  // progressively enlarged/shrunk to fit the sample set. if not, samples
  // outside these bounds are counted, but the displayed range covers only this.
  T miny, maxy;
- // sloutcount-element circular buffer of samples. the newest one (rightmost)
- // is at slots[slotstart]; they get older as you go back (and around).
- // elements. slotcount is max(columns, rangex), less label room.
- T* slots;
  int slotcount;
  int slotstart; // index of most recently-written slot
- int64_t slotx; // x value corresponding to slots[slotstart] (newest x)
  bool labelaxisd; // label dependent axis (consumes PREFIXCOLUMNS columns)
  bool exponentiali; // exponential independent axis
  bool detectdomain; // is domain detection in effect (stretch the domain)?
 
 };
+
+using ncuplot = struct ncuplot {
+  ncppplot<uint64_t> n;
+};
+
+using ncdplot = struct ncdplot {
+  ncppplot<double> n;
+};
+

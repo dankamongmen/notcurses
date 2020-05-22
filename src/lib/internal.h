@@ -79,6 +79,19 @@ typedef struct ncplane {
   bool scrolling;       // is scrolling enabled? always disabled by default
 } ncplane;
 
+// a system for rendering RGBA pixels as text glyphs
+struct blitset {
+  ncgridgeom_e geom;
+  int width;
+  int height;
+  // the EGCs which form the various levels of a given geometry. if the geometry
+  // is wide, things are arranged with the rightmost side increasing most
+  // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
+  // the first five braille EGCs are all 0 on the left, [0..4] on the right.
+  const wchar_t* egcs;
+  bool fill;
+};
+
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
 typedef struct renderstate {
