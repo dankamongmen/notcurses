@@ -2352,9 +2352,9 @@ API struct ncplane* nctablet_ncplane(struct nctablet* t);
 #define PREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + PREFIXCOLUMNS))
 #define IPREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + IPREFIXCOLUMNS))
 #define BPREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + BPREFIXCOLUMNS))
-#define PREFIXFMT(x) PREFIXFWIDTH(x), x
-#define IPREFIXFMT(x) IPREFIXFWIDTH(x), x
-#define BPREFIXFMT(x) BPREFIXFWIDTH(x), x
+#define PREFIXFMT(x) PREFIXFWIDTH(x), (x)
+#define IPREFIXFMT(x) IPREFIXFWIDTH(x), (x)
+#define BPREFIXFMT(x) BPREFIXFWIDTH(x), (x)
 
 // Takes an arbitrarily large number, and prints it into a fixed-size buffer by
 // adding the necessary SI suffix. Usually, pass a |[IB]PREFIXSTRLEN+1|-sized
