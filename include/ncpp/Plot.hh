@@ -7,11 +7,10 @@
 
 #include "Root.hh"
 #include "NCAlign.hh"
+#include "Utilities.hh"
 
 namespace ncpp
 {
-	class Plane;
-
 	template<typename TPlot, typename TCoord>
 	class NCPP_API_EXPORT PlotBase : public Root
 	{
@@ -97,7 +96,7 @@ namespace ncpp
 
 	public:
 		explicit PlotU (Plane *plane, const ncplot_options *opts = nullptr)
-			: PlotU (reinterpret_cast<ncplane*>(plane), opts)
+			: PlotU (Utilities::to_ncplane (plane), opts)
 		{}
 
 		explicit PlotU (Plane const* plane, const ncplot_options *opts = nullptr)
@@ -105,7 +104,7 @@ namespace ncpp
 		{}
 
 		explicit PlotU (Plane &plane, const ncplot_options *opts = nullptr)
-			: PlotU (reinterpret_cast<ncplane*>(&plane), opts)
+			: PlotU (Utilities::to_ncplane (plane), opts)
 		{}
 
 		explicit PlotU (Plane const& plane, const ncplot_options *opts = nullptr)
@@ -127,7 +126,7 @@ namespace ncpp
 
 	public:
 		explicit PlotD (Plane *plane, const ncplot_options *opts = nullptr)
-			: PlotD (reinterpret_cast<ncplane*>(plane), opts)
+			: PlotD (Utilities::to_ncplane (plane), opts)
 		{}
 
 		explicit PlotD (Plane const* plane, const ncplot_options *opts = nullptr)
@@ -135,7 +134,7 @@ namespace ncpp
 		{}
 
 		explicit PlotD (Plane &plane, const ncplot_options *opts = nullptr)
-			: PlotD (reinterpret_cast<ncplane*>(&plane), opts)
+			: PlotD (Utilities::to_ncplane (plane), opts)
 		{}
 
 		explicit PlotD (Plane const& plane, const ncplot_options *opts = nullptr)

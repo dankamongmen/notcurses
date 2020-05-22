@@ -5,6 +5,7 @@
 
 #include "Root.hh"
 #include "NCAlign.hh"
+#include "Utilities.hh"
 
 namespace ncpp
 {
@@ -17,7 +18,7 @@ namespace ncpp
 
 	public:
 		explicit MultiSelector (Plane *plane, int y, int x, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (reinterpret_cast<ncplane*>(plane), y, x, opts)
+			: MultiSelector (Utilities::to_ncplane (plane), y, x, opts)
 		{}
 
 		explicit MultiSelector (Plane const* plane, int y, int x, const ncmultiselector_options *opts = nullptr)
@@ -25,7 +26,7 @@ namespace ncpp
 		{}
 
 		explicit MultiSelector (Plane &plane, int y, int x, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (reinterpret_cast<ncplane*>(&plane), y, x, opts)
+			: MultiSelector (plane.to_ncplane (), y, x, opts)
 		{}
 
 		explicit MultiSelector (Plane const& plane, int y, int x, const ncmultiselector_options *opts = nullptr)

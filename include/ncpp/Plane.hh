@@ -115,6 +115,11 @@ namespace ncpp
 			return plane;
 		}
 
+		ncplane* to_ncplane () noexcept
+		{
+			return plane;
+		}
+
 		bool resize (int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen) const NOEXCEPT_MAYBE
 		{
 			int ret = ncplane_resize (
