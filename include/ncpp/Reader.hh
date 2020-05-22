@@ -6,6 +6,7 @@
 #include "Root.hh"
 #include "NCAlign.hh"
 #include "NotCurses.hh"
+#include "Utilities.hh"
 
 namespace ncpp
 {
@@ -15,7 +16,7 @@ namespace ncpp
 	{
 	public:
 		explicit Reader (Plane *p, int y, int x, const ncreader_options *opts)
-			: Reader (reinterpret_cast<ncplane*>(p), y, x, opts)
+			: Reader (Utilities::to_ncplane (p), y, x, opts)
 		{}
 
 		explicit Reader (Plane const* p, int y, int x, const ncreader_options *opts)

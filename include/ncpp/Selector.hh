@@ -5,11 +5,10 @@
 
 #include "Root.hh"
 #include "NCAlign.hh"
+#include "Utilities.hh"
 
 namespace ncpp
 {
-	class Plane;
-
 	class NCPP_API_EXPORT Selector : public Root
 	{
 	public:
@@ -17,7 +16,7 @@ namespace ncpp
 
 	public:
 		explicit Selector (Plane *plane, int y, int x, const ncselector_options *opts = nullptr)
-			: Selector (reinterpret_cast<ncplane*>(plane), y, x, opts)
+			: Selector (Utilities::to_ncplane (plane), y, x, opts)
 		{}
 
 		explicit Selector (Plane const* plane, int y, int x, const ncselector_options *opts = nullptr)
@@ -25,7 +24,7 @@ namespace ncpp
 		{}
 
 		explicit Selector (Plane &plane, int y, int x, const ncselector_options *opts = nullptr)
-			: Selector (reinterpret_cast<ncplane*>(&plane), y, x, opts)
+			: Selector (plane.to_ncplane (), y, x, opts)
 		{}
 
 		explicit Selector (Plane const& plane, int y, int x, const ncselector_options *opts = nullptr)

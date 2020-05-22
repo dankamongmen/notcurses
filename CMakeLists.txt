@@ -227,6 +227,7 @@ set(NCPP_SOURCES
   src/libcpp/Selector.cc
   src/libcpp/Subproc.cc
   src/libcpp/Tablet.cc
+  src/libcpp/Utilities.cc
   src/libcpp/Visual.cc
   )
 
