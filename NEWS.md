@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.4.2.5 (not yet released)
+* 1.4.3 (2020-05-22)
   * Plot: make 8x1 the default, instead of 1x1.
   * Add `PREFIXFMT`, `BPREFIXFMT`, and `IPREFIXFMT` macros for `ncmetric()`.
     In order to properly use `printf(3)`'s field width capability, these
