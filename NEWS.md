@@ -6,6 +6,8 @@ rearrangements of Notcurses.
   * Add `PREFIXFMT`, `BPREFIXFMT`, and `IPREFIXFMT` macros for `ncmetric()`.
     In order to properly use `printf(3)`'s field width capability, these
     macros must be used. This is necessary to support 'µ' (micro).
+  * C++'s NotCurses constructor now passes a `nullptr` directly through to
+    `notcurses_init()`, rather than replacing it with `stdout`.
   * Added `USE_STATIC` CMake option, defaulting to `ON`. If turned `OFF`,
     static libraries will not be built.
 
