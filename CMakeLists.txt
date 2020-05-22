@@ -335,22 +335,6 @@ install(FILES ${NOTCURSES_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcu
 install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
 install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
 
-install(
-  TARGETS notcurses++
-  LIBRARY
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT Libraries
-    NAMELINK_COMPONENT Development
-)
-
-install(
-  TARGETS notcurses++-static
-  LIBRARY
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT Libraries
-    NAMELINK_COMPONENT Development
-	)
-
 # notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
 add_executable(notcurses-demo ${DEMOSRCS})
@@ -714,9 +698,19 @@ install(TARGETS notcurses-tetris DESTINATION bin)
 if(${USE_FFMPEG} OR ${USE_OIIO})
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
-install(TARGETS notcurses notcurses-static
+
+install(TARGETS notcurses notcurses++
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT Libraries
     NAMELINK_COMPONENT Development
 )
+if(${USE_STATIC})
+install(
+  TARGETS notcurses-static notcurses++-static
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT Libraries
+    NAMELINK_COMPONENT Development
+)
+endif()
