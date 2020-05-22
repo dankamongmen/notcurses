@@ -20,7 +20,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
     notcurses_refresh(nc, &dimy, &dimx);
     snprintf(file, sizeof(file), "chunli%d.%s", i + 1, ext);
     chuns[i].path = find_data(file);
-    chuns[i].ncv = ncvisual_from_file(nc, chuns[i].path, &err, 0, 0, NCSCALE_NONE);
+    chuns[i].ncv = ncvisual_from_file(nc, NULL, chuns[i].path, &err);
     if(chuns[i].ncv == NULL){
       return -1;
     }
@@ -66,7 +66,7 @@ int chunli_demo(struct notcurses* nc){
     snprintf(file, sizeof(file), "chunli%02d.png", i);
     char* path = find_data(file);
     nc_err_e err;
-    struct ncvisual* ncv = ncvisual_from_file(nc, path, &err, 0, 0, NCSCALE_NONE);
+    struct ncvisual* ncv = ncvisual_from_file(nc, NULL, path, &err);
     if(ncv == NULL){
       free(path);
       break;

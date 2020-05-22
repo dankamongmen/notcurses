@@ -12,9 +12,19 @@ rearrangements of Notcurses.
     static libraries will not be built.
 
 * 1.4.2.4 (2020-05-20)
+  * Got the `ncvisual` API ready for API freeze: all `ncvisual_from_*()`
+    functions now take a `struct ncvisual_options`. `ncstyle_e` and a few
+    other parameters have been moved within. All functions now take a
+    `struct notcurses*`, except `ncvisual_from_plane()`, which takes a
+    `struct ncplane*`. The `struct ncvisual_options` includes a `ncgridgeom_e`
+    field, allowing visuals to be mapped to various plotting paradigms
+    including Braille and quadrants.
+  * Deprecated function `ncvisual_open_plane()` has been removed.
   * Removed `ncplane_move_above_unsafe()` and `ncplane_move_below_unsafe()`;
     all z-axis moves are now safe. Z-axis moves are all now O(1), rather
     than the previous O(N).
+  * Added `USE_STATIC` CMake option, defaulting to `ON`. If turned `OFF`,
+    static libraries will not be built.
 
 * 1.4.2.3 (2020-05-17)
   * Added `notcurses_canutf8()`, to verify use of UTF-8 encoding.

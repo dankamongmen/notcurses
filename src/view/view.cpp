@@ -115,10 +115,10 @@ auto perframe([[maybe_unused]] struct notcurses* _nc, struct ncvisual* ncv,
 }
 
 // can exit() directly. returns index in argv of first non-option param.
-auto handle_opts(int argc, char** argv, notcurses_options& opts, float* timescale,
-                 NCScale* scalemode) -> int {
+auto handle_opts(int argc, char** argv, notcurses_options& opts,
+                 float* timescale, ncscale_e* scalemode) -> int {
   *timescale = 1.0;
-  *scalemode = NCScale::Scale;
+  *scalemode = NCSCALE_NONE;
   int c;
   while((c = getopt(argc, argv, "hl:d:s:m:k")) != -1){
     switch(c){
@@ -126,13 +126,7 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, float* timescal
         usage(std::cout, argv[0], EXIT_SUCCESS);
         break;
       case 's':
-        if(strcmp(optarg, "stretch") == 0){
-          *scalemode = NCScale::Stretch;
-        }else if(strcmp(optarg, "scale") == 0){
-          *scalemode = NCScale::Scale;
-        }else if(strcmp(optarg, "none") == 0){
-          *scalemode = NCScale::None;
-        }else{
+        if(notcurses_lex_scalemode(optarg, scalemode)){
           std::cerr <<  "Scaling type should be one of stretch, scale, none" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
@@ -190,9 +184,9 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, float* timescal
 auto main(int argc, char** argv) -> int {
   setlocale(LC_ALL, "");
   float timescale;
-  NCScale stretchmode;
+  ncscale_e scalemode;
   notcurses_options nopts{};
-  auto nonopt = handle_opts(argc, argv, nopts, &timescale, &stretchmode);
+  auto nonopt = handle_opts(argc, argv, nopts, &timescale, &scalemode);
   nopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc;
   if(!nc.can_open_images()){
@@ -207,7 +201,10 @@ auto main(int argc, char** argv) -> int {
     nc_err_e err;
     std::unique_ptr<Visual> ncv;
     try{
-      ncv = std::make_unique<Visual>(argv[i], &err, 1, 0, stretchmode);
+      struct ncvisual_options opts{};
+      opts.style = scalemode;
+      opts.y = 1;
+      ncv = std::make_unique<Visual>(&opts, argv[i], &err);
     }catch(std::exception& e){
       nc.stop();
       std::cerr << argv[i] << ": " << e.what() << "\n";

@@ -1848,6 +1848,19 @@ lex_long(const char* op, int* i, char** endptr){
   return 0;
 }
 
+int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode){
+  if(strcasecmp(op, "stretch") == 0){
+    *scalemode = NCSCALE_STRETCH;
+  }else if(strcasecmp(op, "scale") == 0){
+    *scalemode = NCSCALE_SCALE;
+  }else if(strcasecmp(op, "none") == 0){
+    *scalemode = NCSCALE_NONE;
+  }else{
+    return -1;
+  }
+  return 0;
+}
+
 int notcurses_lex_margins(const char* op, notcurses_options* opts){
   char* eptr;
   if(lex_long(op, &opts->margin_t, &eptr)){

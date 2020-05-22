@@ -113,7 +113,7 @@ TEST_CASE("Rotate") {
     int height = dimy / 2;
     int width = dimx / 2;
     std::vector<uint32_t> rgba(width * height, 0xffbbccff);
-    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), height, width * 4, width);
+    auto ncv = ncvisual_from_rgba(nc_, nullptr, rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
     int rendered = ncvisual_render(ncv, 0, 0, -1, -1);
     CHECK(0 < rendered);
@@ -154,7 +154,7 @@ TEST_CASE("Rotate") {
     int height = dimy / 2;
     int width = dimx / 2;
     std::vector<uint32_t> rgba(width * height, 0xffbbccff);
-    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), height, width * 4, width);
+    auto ncv = ncvisual_from_rgba(nc_, nullptr, rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
     int rendered = ncvisual_render(ncv, 0, 0, -1, -1);
     CHECK(0 < rendered);

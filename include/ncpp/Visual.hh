@@ -18,7 +18,7 @@ namespace ncpp
 			: Visual (Utilities::to_ncplane (plane), file, ncerr)
 		{}
 
-		explicit Visual (Plane const* plane, const char *file, nc_err_e* ncerr)
+		explicit Visual (Plane const* plane, const char *file, nc_err_e *ncerr)
 			: Visual (const_cast<Plane*>(plane), file, ncerr)
 		{}
 
@@ -26,11 +26,11 @@ namespace ncpp
 			: Visual (Utilities::to_ncplane (plane), file, ncerr)
 		{}
 
-		explicit Visual (Plane const& plane, const char *file, nc_err_e* ncerr)
+		explicit Visual (Plane const& plane, const char *file, nc_err_e *ncerr)
 			: Visual (const_cast<Plane&>(plane), file, ncerr)
 		{}
 
-		explicit Visual (ncplane *plane, const char *file, nc_err_e* ncerr)
+		explicit Visual (ncplane *plane, const char *file, nc_err_e *ncerr)
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
@@ -40,9 +40,9 @@ namespace ncpp
 				throw init_error ("Notcurses failed to create a new visual");
 		}
 
-		explicit Visual (const char *file, nc_err_e* ncerr, int y, int x, NCScale scale)
+		explicit Visual (ncvisual_options *opts, const char *file, nc_err_e *ncerr)
 		{
-			visual = ncvisual_from_file (get_notcurses (), file, ncerr, y, x, static_cast<ncscale_e>(scale));
+			visual = ncvisual_from_file (get_notcurses (), opts, file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}
