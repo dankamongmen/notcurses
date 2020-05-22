@@ -28,6 +28,7 @@ TEST_CASE("Fade") {
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
   if(!notcurses_canfade(nc_)){
+    CHECK(0 == notcurses_stop(nc_));
     return;
   }
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));

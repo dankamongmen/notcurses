@@ -54,3 +54,21 @@ Plane* NotCurses::get_top () noexcept
 
 	return Plane::map_plane (top);
 }
+
+// This is potentially dangerous, but alas necessary. It can cause other calls
+// here to fail in a bad way, but we need a way to report errors to
+// std{out,err} in case of failure and that will work only if notcurses is
+// stopped, so...
+bool NotCurses::stop ()
+{
+  if (nc == nullptr)
+    throw invalid_state_error (ncpp_invalid_state_message);
+
+  bool ret = !notcurses_stop (nc);
+  nc = nullptr;
+
+	const std::lock_guard<std::mutex> lock (init_mutex);
+  _instance = nullptr;
+
+  return ret;
+}
