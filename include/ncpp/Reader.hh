@@ -43,6 +43,12 @@ namespace ncpp
 				ncreader_destroy (reader, nullptr);
 		}
 
+		bool clear () const NOEXCEPT_MAYBE
+		{
+			bool ret = ncreader_clear (reader) != 0;
+			return error_guard_cond<bool, bool> (ret, ret);
+		}
+
 		char* get_contents () const noexcept
 		{
 			return ncreader_contents(reader);

@@ -115,6 +115,11 @@ namespace ncpp
 			return plane;
 		}
 
+		void center_abs (int *y, int *x) const noexcept
+		{
+			ncplane_center_abs (plane, y, x);
+		}
+
 		bool resize (int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen) const NOEXCEPT_MAYBE
 		{
 			int ret = ncplane_resize (
@@ -645,6 +650,16 @@ namespace ncpp
 		unsigned get_fg_alpha () const noexcept
 		{
 			return ncplane_fg_alpha (plane);
+		}
+
+		void set_channels (uint64_t channels) const noexcept
+		{
+			ncplane_set_channels (plane, channels);
+		}
+
+		void set_attr (uint32_t attrword) const noexcept
+		{
+			ncplane_set_attr (plane, attrword);
 		}
 
 		bool set_fg_alpha (int alpha) const NOEXCEPT_MAYBE

@@ -96,6 +96,11 @@ namespace ncpp
 			return ret;
 		}
 
+		bool can_utf8 () const noexcept
+		{
+			return notcurses_canutf8 (nc);
+		}
+
 		bool can_fade () const noexcept
 		{
 			return notcurses_canfade (nc);
@@ -216,6 +221,11 @@ namespace ncpp
 		void drop_planes () const noexcept
 		{
 			notcurses_drop_planes (nc);
+		}
+
+		void debug (FILE *debugfp) const noexcept
+		{
+			notcurses_debug (nc, debugfp);
 		}
 
 		Plane* get_stdplane () noexcept
