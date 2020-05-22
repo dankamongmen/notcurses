@@ -1,9 +1,15 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.4.2.4 (2020-05-20)
+* 1.4.2.5 (not yet released)
+  * Plot: make 8x1 the default, instead of 1x1.
+  * Add `PREFIXFMT`, `BPREFIXFMT`, and `IPREFIXFMT` macros for `ncmetric()`.
+    In order to properly use `printf(3)`'s field width capability, these
+    macros must be used. This is necessary to support 'µ' (micro).
   * Added `USE_STATIC` CMake option, defaulting to `ON`. If turned `OFF`,
     static libraries will not be built.
+
+* 1.4.2.4 (2020-05-20)
   * Removed `ncplane_move_above_unsafe()` and `ncplane_move_below_unsafe()`;
     all z-axis moves are now safe. Z-axis moves are all now O(1), rather
     than the previous O(N).
