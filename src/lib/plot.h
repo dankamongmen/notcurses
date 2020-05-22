@@ -13,13 +13,14 @@ static const struct {
   const wchar_t* egcs;
   bool fill;
 } geomdata[] = {
+  // default is NCPLOT_8x1
+  { .geom = NCPLOT_8x1,   .width = 1, .height = 9, .egcs = L" ▁▂▃▄▅▆▇█",                 .fill = false, },
   { .geom = NCPLOT_1x1,   .width = 1, .height = 2, .egcs = L" █",                        .fill = false, },
   { .geom = NCPLOT_2x1,   .width = 1, .height = 3, .egcs = L" ▄█",                       .fill = false, },
   { .geom = NCPLOT_1x1x4, .width = 1, .height = 5, .egcs = L" ▒░▓█",                     .fill = false, },
   { .geom = NCPLOT_2x2,   .width = 2, .height = 3, .egcs = L" ▗▐▖▄▟▌▙█",                 .fill = false, },
   { .geom = NCPLOT_4x1,   .width = 1, .height = 5, .egcs = L" ▂▄▆█",                     .fill = false, },
   { .geom = NCPLOT_4x2,   .width = 2, .height = 5, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿", .fill = true,  },
-  { .geom = NCPLOT_8x1,   .width = 1, .height = 9, .egcs = L" ▁▂▃▄▅▆▇█",                 .fill = false, },
 };
 
 template<typename T>
