@@ -20,6 +20,7 @@ option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_PYTHON "Build Python wrappers" ON)
 option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
 option(USE_RUST "Build Rust wrappers (experimental)" OFF)
+option(USE_STATIC "Build static libraries (in addition to shared)" ON)
 option(USE_TESTS "Build doctest unit tests" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
@@ -86,7 +87,11 @@ endif()
 # libnotcurses (core shared library and static library)
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
 add_library(notcurses SHARED ${NCSRCS})
+if(${USE_STATIC})
 add_library(notcurses-static STATIC ${NCSRCS})
+else()
+add_library(notcurses-static STATIC EXCLUDE_FROM_ALL ${NCSRCS})
+endif()
 set_target_properties(
   notcurses-static PROPERTIES
   OUTPUT_NAME notcurses
@@ -225,17 +230,12 @@ set(NCPP_SOURCES
   src/libcpp/Visual.cc
   )
 
-add_library(
-  notcurses++
-  SHARED
-  ${NCPP_SOURCES}
-  )
-
-add_library(
-  notcurses++-static
-  STATIC
-  ${NCPP_SOURCES}
-  )
+add_library(notcurses++ SHARED ${NCPP_SOURCES})
+if(${USE_STATIC})
+add_library(notcurses++-static STATIC ${NCPP_SOURCES})
+else()
+add_library(notcurses++-static STATIC EXCLUDE_FROM_ALL ${NCPP_SOURCES})
+endif()
 set_target_properties(
   notcurses++-static PROPERTIES
   OUTPUT_NAME notcurses++

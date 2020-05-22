@@ -2,6 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.4.2.4 (2020-05-20)
+  * Added `USE_STATIC` CMake option, defaulting to `ON`. If turned `OFF`,
+    static libraries will not be built.
   * Removed `ncplane_move_above_unsafe()` and `ncplane_move_below_unsafe()`;
     all z-axis moves are now safe. Z-axis moves are all now O(1), rather
     than the previous O(N).
