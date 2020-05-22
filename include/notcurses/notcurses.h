@@ -2339,23 +2339,22 @@ API void* nctablet_userptr(struct nctablet* t);
 // Access the ncplane associated with this nctablet, if one exists.
 API struct ncplane* nctablet_ncplane(struct nctablet* t);
 
-// The number of columns is one fewer, as the expressions here must
-// leave an extra byte open in case “µ” (U+00B5, 0xC2 0xB5) shows up.
+// The number of columns is one fewer, as the STRLEN expressions must
+// leave an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up.
 #define PREFIXCOLUMNS 7
 #define IPREFIXCOLUMNS 8
 #define BPREFIXCOLUMNS 9
-
 #define PREFIXSTRLEN (PREFIXCOLUMNS + 1)  // Does not include a '\0' (xxx.xxU)
 #define IPREFIXSTRLEN (IPREFIXCOLUMNS + 1) //  Does not include a '\0' (xxxx.xxU)
 #define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
-
-// A bit of the nasties here to stringize our preprocessor tokens just now
-// #defined, making them usable as printf(3) specifiers.
-#define STRHACK1(x) #x
-#define STRHACK2(x) STRHACK1(x)
-#define PREFIXFMT "%" STRHACK2(PREFIXCOLUMNS) "s"
-#define IPREFIXFMT "%" STRHACK2(IPREFIXCOLUMNS) "s"
-#define BPREFIXFMT "%" STRHACK2(BPREFIXCOLUMNS) "s"
+// Used as arguments to a variable field width (i.e. "%*s" -- these are the *).
+// We need this convoluted grotesquery to properly handle 'µ'.
+#define PREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + PREFIXCOLUMNS))
+#define IPREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + IPREFIXCOLUMNS))
+#define BPREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + BPREFIXCOLUMNS))
+#define PREFIXFMT(x) PREFIXFWIDTH(x), x
+#define IPREFIXFMT(x) IPREFIXFWIDTH(x), x
+#define BPREFIXFMT(x) BPREFIXFWIDTH(x), x
 
 // Takes an arbitrarily large number, and prints it into a fixed-size buffer by
 // adding the necessary SI suffix. Usually, pass a |[IB]PREFIXSTRLEN+1|-sized
