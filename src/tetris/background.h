@@ -1,6 +1,8 @@
 void DrawBackground(const std::string& s) { // drawn to the standard plane
   nc_err_e err;
-  backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &err, 0, 0, ncpp::NCScale::Stretch);
+  ncvisual_options opts{};
+  opts.style = NCSCALE_STRETCH;
+  backg_ = std::make_unique<ncpp::Visual>(&opts, s.c_str(), &err);
   backg_->decode();
   backg_->render(0, 0, -1, -1);
   backg_->get_plane()->greyscale();

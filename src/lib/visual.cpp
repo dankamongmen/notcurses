@@ -370,8 +370,12 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   return 0;
 }
 
-auto ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
-                        int rowstride, int cols) -> ncvisual* {
+auto ncvisual_from_rgba(notcurses* nc, const struct ncvisual_options* opts,
+                        const void* rgba, int rows, int rowstride, int cols)
+                       -> ncvisual* {
+  if(opts && (opts->style != NCSCALE_NONE || opts->flags)){
+    return nullptr;
+  }
   if(rowstride % 4){
     return nullptr;
   }
@@ -403,8 +407,12 @@ auto ncvisual_from_rgba(notcurses* nc, const void* rgba, int rows,
   return ncv;
 }
 
-auto ncvisual_from_bgra(notcurses* nc, const void* bgra, int rows,
-                        int rowstride, int cols) -> ncvisual* {
+auto ncvisual_from_bgra(notcurses* nc, const struct ncvisual_options* opts,
+                        const void* bgra, int rows, int rowstride, int cols)
+                       -> ncvisual* {
+  if(opts && (opts->style != NCSCALE_NONE || opts->flags)){
+    return nullptr;
+  }
   if(rowstride % 4){
     return nullptr;
   }
@@ -487,8 +495,8 @@ ncplane* ncvisual_plane(ncvisual* ncv){
   return ncv->ncp;
 }
 
-auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int lenx)
-                         -> ncvisual* {
+auto ncvisual_from_plane(const ncplane* n, const struct ncvisual_options* opts,
+                         int begy, int begx, int leny, int lenx) -> ncvisual* {
   uint32_t* rgba = ncplane_rgba(n, begx, begy, leny, lenx);
   if(rgba == nullptr){
     return nullptr;
@@ -502,7 +510,7 @@ auto ncvisual_from_plane(const ncplane* n, int begy, int begx, int leny, int len
     leny = n->leny - begy;
   }
   leny *= 2; // FIXME needn't we use encoding_vert_scale() somehow?
-  auto* ncv = ncvisual_from_rgba(n->nc, rgba, leny, lenx * 4, lenx);
+  auto* ncv = ncvisual_from_rgba(n->nc, opts, rgba, leny, lenx * 4, lenx);
   if(ncv == nullptr){
     free(rgba);
     return nullptr;
@@ -871,16 +879,19 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   return ncv;
 }
 
-ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
-                             nc_err_e* ncerr, int y, int x, ncscale_e style){
+auto ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
+                        const char* filename, nc_err_e* ncerr) -> ncvisual* {
+  if(opts && opts->flags){
+    return nullptr;
+  }
   ncvisual* ncv = ncvisual_open(filename, ncerr);
   if(ncv == nullptr){
     return nullptr;
   }
   set_encoding_vert_scale(nc, ncv);
-  ncv->placey = y;
-  ncv->placex = x;
-  ncv->style = style;
+  ncv->placey = opts ? opts->y : 0;
+  ncv->placex = opts ? opts->x : 0;
+  ncv->style = opts ? opts->style : NCSCALE_NONE;
   ncv->ncobj = nc;
   ncv->ncp = nullptr;
   return ncv;
@@ -980,8 +991,8 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   return nullptr;
 }
 
-ncvisual* ncvisual_from_file(notcurses* nc, const char* filename,
-                             nc_err_e* ncerr, int y, int x, ncscale_e style){
+ncvisual* ncvisual_from_file(notcurses* nc, const struct notcurses_options* opts,
+                             const char* filename, nc_err_e* ncerr){
   (void)nc;
   (void)filename;
   (void)ncerr;
@@ -1057,16 +1068,16 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* err){
   return ncv;
 }
 
-ncvisual* ncvisual_from_file(notcurses* nc, const char* filename, nc_err_e* err,
-                             int y, int x, ncscale_e style){
+ncvisual* ncvisual_from_file(notcurses* nc, const struct notcurses_options* opts,
+                             const char* filename, nc_err_e* err){
   ncvisual* ncv = ncvisual_open(filename, err);
   if(ncv == nullptr){
     return nullptr;
   }
   set_encoding_vert_scale(nc, ncv);
-  ncv->placey = y;
-  ncv->placex = x;
-  ncv->style = style;
+  ncv->placey = opts->y;
+  ncv->placex = opts->x;
+  ncv->style = opts->style;
   ncv->ncobj = nc;
   ncv->ncp = nullptr;
   ncv->ncobj = nc;

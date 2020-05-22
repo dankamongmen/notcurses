@@ -19,26 +19,14 @@ namespace ncpp
 			: Visual (static_cast<const Plane*>(plane), file, ncerr)
 		{}
 
-		explicit Visual (Plane const* plane, const char *file, nc_err_e* ncerr)
-			: Root (Utilities::get_notcurses_cpp (plane))
-		{
-			common_init (Utilities::to_ncplane (plane), file, ncerr);
-		}
 
 		explicit Visual (Plane &plane, const char *file, nc_err_e* ncerr)
 			: Visual (static_cast<Plane const&> (plane), file, ncerr)
 		{}
 
-		explicit Visual (Plane const& plane, const char *file, nc_err_e* ncerr)
-			: Root (Utilities::get_notcurses_cpp (plane))
+		explicit Visual (const char *file, nc_err_e *ncerr)
 		{
-			common_init (Utilities::to_ncplane (plane), file, ncerr);
-		}
-
-		explicit Visual (const char *file, nc_err_e* ncerr, int y, int x, NCScale scale, NotCurses *ncinst = nullptr)
-			: Root (ncinst)
-		{
-			visual = ncvisual_from_file (get_notcurses (), file, ncerr, y, x, static_cast<ncscale_e>(scale));
+			visual = ncvisual_from_file (get_notcurses (), opts, file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}
