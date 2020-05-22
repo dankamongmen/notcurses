@@ -1,7 +1,7 @@
 #include "demo.h"
-#include <sys/random.h>
 
 #ifdef USE_QRCODEGEN
+#include <sys/random.h>
 // FIXME duplicated--ought these just be exported?
 #define QR_BASE_SIZE 17
 #define PER_QR_VERSION 4
@@ -26,15 +26,11 @@ int qrcode_demo(struct notcurses* nc){
   for(int i = 0 ; i < 1024 ; ++i){
     ncplane_erase(n);
     size_t len = random() % sizeof(data) + 1;
-#ifdef __linux__
     ssize_t got = getrandom(data, len, 0);
     if(got < 0 || (size_t)got != len){
       ncplane_destroy(n);
       return -1;
     }
-#else
-    read_random(data, len);
-#endif
     if(ncplane_cursor_move_yx(n, 0, 0)){
       ncplane_destroy(n);
       return -1;

@@ -325,6 +325,9 @@ up someday **FIXME**.
 * *Q:* You seem a creative guy. Why the least creative name ever?
 * *A:* I really didn't expect this to go anywhere.
 
+* *Q:* I'm not finding qrcodegen on FreeBSD, despite having installed `graphics/qr-code-generator`.
+* *A:* Try `cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include`. This is passed by `bsd.port.mk`.
+
 ## Supplemental material
 
 ### Useful links
