@@ -145,6 +145,7 @@ int ncfdplane_destroy(ncfdplane* n){
 
 static pid_t
 launch_pipe_process(int* pipe, int* pidfd){
+  *pidfd = -1;
   int pipes[2];
   if(pipe2(pipes, O_CLOEXEC)){ // can't use O_NBLOCK here (affects client)
     return -1;
@@ -166,7 +167,6 @@ launch_pipe_process(int* pipe, int* pidfd){
   if(p == 0){ // child
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
       fprintf(stderr, "Couldn't dup() %d (%s)\n", pipes[1], strerror(errno));
-      raise(SIGKILL);
       exit(EXIT_FAILURE);
     }
   }else if(p > 0){ // parent
@@ -245,6 +245,7 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
   if(ret == NULL){
     return NULL;
   }
+  memset(ret, 0, sizeof(*ret));
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
     execv(bin, arg);
@@ -273,11 +274,11 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
   if(ret == NULL){
     return NULL;
   }
+  memset(ret, 0, sizeof(*ret));
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
     execvp(bin, arg);
     fprintf(stderr, "Error execv()ing %s\n", bin);
-    raise(SIGKILL);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
@@ -302,6 +303,7 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   if(ret == NULL){
     return NULL;
   }
+  memset(ret, 0, sizeof(*ret));
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
 #ifdef __FreeBSD__

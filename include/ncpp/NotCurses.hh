@@ -81,20 +81,7 @@ namespace ncpp
 			return notcurses_version ();
 		}
 
-		// This is potentially dangerous, but alas necessary. It can cause other calls here to fail in a bad way, but we
-		// need a way to report errors to std{out,err} in case of failure and that will work only if notcurses is
-		// stopped, so...
-		//
-		bool stop ()
-		{
-			if (nc == nullptr)
-				throw invalid_state_error (ncpp_invalid_state_message);
-
-			bool ret = !notcurses_stop (nc);
-			nc = nullptr;
-
-			return ret;
-		}
+		bool stop ();
 
 		bool can_fade () const noexcept
 		{
