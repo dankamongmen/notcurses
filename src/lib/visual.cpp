@@ -991,7 +991,7 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
   return nullptr;
 }
 
-ncvisual* ncvisual_from_file(notcurses* nc, const struct notcurses_options* opts,
+ncvisual* ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
                              const char* filename, nc_err_e* ncerr){
   (void)nc;
   (void)filename;
@@ -1068,16 +1068,19 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* err){
   return ncv;
 }
 
-ncvisual* ncvisual_from_file(notcurses* nc, const struct notcurses_options* opts,
+ncvisual* ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
                              const char* filename, nc_err_e* err){
+  if(opts && opts->flags){
+    return nullptr;
+  }
   ncvisual* ncv = ncvisual_open(filename, err);
   if(ncv == nullptr){
     return nullptr;
   }
   set_encoding_vert_scale(nc, ncv);
-  ncv->placey = opts->y;
-  ncv->placex = opts->x;
-  ncv->style = opts->style;
+  ncv->placey = opts ? opts->y : 0;
+  ncv->placex = opts ? opts->x : 0;
+  ncv->style = opts ? opts->style : NCSCALE_NONE;
   ncv->ncobj = nc;
   ncv->ncp = nullptr;
   ncv->ncobj = nc;
