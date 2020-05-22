@@ -1,13 +1,5 @@
 #include "plot.h"
 
-using ncuplot = struct ncuplot {
-  ncppplot<uint64_t> n;
-};
-
-using ncdplot = struct ncdplot {
-  ncppplot<double> n;
-};
-
 extern "C" {
 
 auto ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy) -> ncuplot* {
