@@ -374,6 +374,7 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
   return 0;
 }
 
+// it's not a pure memset(), because CELL_ALPHA_OPAQUE is the zero value
 static void
 init_fb(cell* fb, int dimy, int dimx){
   for(int y = 0 ; y < dimy ; ++y){

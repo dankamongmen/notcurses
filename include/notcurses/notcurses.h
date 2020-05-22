@@ -554,6 +554,7 @@ cell_init(cell* c){
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
 // the number of bytes copied out of 'gcluster', or -1 on failure. The styling
 // of the cell is left untouched, but any resources are released.
+__attribute__ ((nonnull (1, 2, 3)))
 API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // cell_load(), plus blast the styling with 'attr' and 'channels'.

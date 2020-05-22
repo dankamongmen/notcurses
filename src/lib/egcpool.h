@@ -110,7 +110,7 @@ egcpool_alloc_justified(const egcpool* pool, int len){
 // should not be less than 2 bytes (such a cluster should be directly stored in
 // the cell). returns -1 on error, and otherwise a non-negative offset. 'ulen'
 // must be the number of bytes to lift from egc (utf8_egc_len()).
-static inline int
+__attribute__ ((nonnull (1, 2))) static inline int
 egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
   int len = ulen + 1; // count the NUL terminator
   if(len <= 2){ // should never be empty, nor a single byte + NUL
@@ -236,8 +236,8 @@ egcpool_dump(egcpool* pool){
   pool->poolused = 0;
 }
 
-static inline const char*
-egcpool_extended_gcluster(const egcpool* pool, const cell* c){
+__attribute__ ((__returns_nonnull__)) static inline const char*
+egcpool_extended_gcluster(const egcpool* pool, const cell* c) {
   uint32_t idx = cell_egc_idx(c);
   return pool->pool + idx;
 }
