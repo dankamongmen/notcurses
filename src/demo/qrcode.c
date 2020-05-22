@@ -36,26 +36,23 @@ int qrcode_demo(struct notcurses* nc){
       return -1;
     }
     int qlen = ncplane_qrcode(n, 0, data, len);
-    if(qlen <= 0){
-      ncplane_destroy(n);
-      return -1;
+    // can fail due to being too large for the terminal
+    if(qlen > 0){
+      if(ncplane_cursor_move_yx(n, 0, 0)){
+        ncplane_destroy(n);
+        return -1;
+      }
+      uint64_t tl = 0, bl = 0, br = 0, tr = 0;
+      channels_set_fg_rgb(&tl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
+      channels_set_fg_rgb(&tr, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
+      channels_set_fg_rgb(&bl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
+      channels_set_fg_rgb(&br, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
+      if(ncplane_stain(n, dimy - 1, dimx - 1, tl, tr, bl, br) <= 0){
+        ncplane_destroy(n);
+        return -1;
+      }
+      DEMO_RENDER(nc);
     }
-    ncplane_move_yx(n, dimy / 2 - qrcode_rows(qlen) / 2,
-                    dimx / 2 - qrcode_cols(qlen) / 2);
-    if(ncplane_cursor_move_yx(n, 0, 0)){
-      ncplane_destroy(n);
-      return -1;
-    }
-    uint64_t tl = 0, bl = 0, br = 0, tr = 0;
-    channels_set_fg_rgb(&tl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-    channels_set_fg_rgb(&tr, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-    channels_set_fg_rgb(&bl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-    channels_set_fg_rgb(&br, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-    if(ncplane_stain(n, dimy - 1, dimx - 1, tl, tr, bl, br) <= 0){
-      ncplane_destroy(n);
-      return -1;
-    }
-    DEMO_RENDER(nc);
   }
   ncplane_destroy(n);
 #endif
