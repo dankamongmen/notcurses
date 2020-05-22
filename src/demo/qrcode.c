@@ -7,7 +7,7 @@
 #define PER_QR_VERSION 4
 static inline int
 qrcode_rows(int version){
-  return QR_BASE_SIZE + (version * PER_QR_VERSION / 2);
+  return (QR_BASE_SIZE + (version * PER_QR_VERSION)) / 2;
 }
 
 static inline int
@@ -38,6 +38,8 @@ int qrcode_demo(struct notcurses* nc){
     int qlen = ncplane_qrcode(n, 0, data, len);
     // can fail due to being too large for the terminal
     if(qlen > 0){
+      ncplane_move_yx(n, dimy / 2 - qrcode_rows(qlen) / 2,
+                      dimx / 2 - qrcode_cols(qlen) / 2);
       if(ncplane_cursor_move_yx(n, 0, 0)){
         ncplane_destroy(n);
         return -1;

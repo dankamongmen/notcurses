@@ -600,7 +600,7 @@ int ncplane_rotate_ccw(ncplane* n){
 
 static inline int
 qrcode_rows(int version){
-  return QR_BASE_SIZE + (version * PER_QR_VERSION / 2);
+  return (QR_BASE_SIZE + (version * PER_QR_VERSION)) / 2;
 }
 
 static inline int
