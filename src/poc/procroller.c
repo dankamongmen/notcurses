@@ -37,7 +37,7 @@ eofcb(struct ncfdplane* ncfd, int nerrno, void* curry){
 
 int main(int argc, char** argv){
   if(argc < 2){
-    fprintf(stderr, "usage: procroller binary [ args... ]\n");
+    fprintf(stderr, "usage: %s binary [ args... ]\n", *argv);
     return EXIT_FAILURE;
   }
   setlocale(LC_ALL, "");
@@ -49,6 +49,7 @@ int main(int argc, char** argv){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
+  ++argv;
   struct ncplane* n = notcurses_stdplane(nc);
   ncsubproc_options nopts = {};
   struct ncsubproc* nsproc = ncsubproc_createvp(n, &nopts, *argv, argv, cb, eofcb);
