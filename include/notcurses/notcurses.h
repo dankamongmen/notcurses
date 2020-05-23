@@ -2873,6 +2873,23 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 // and subject to change. It includes geometry of all planes.
 API void notcurses_debug(struct notcurses* nc, FILE* debugfp);
 
+// a system for rendering RGBA pixels as text glyphs
+struct blitset {
+  ncblitter_e geom;
+  int width;
+  int height;
+  // the EGCs which form the various levels of a given geometry. if the geometry
+  // is wide, things are arranged with the rightmost side increasing most
+  // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
+  // the first five braille EGCs are all 0 on the left, [0..4] on the right.
+  const wchar_t* egcs;
+  int (*blit)(struct ncplane* nc, int placey, int placex, int linesize,
+              const void* data, int begy, int begx, int leny, int lenx, bool bgr);
+  bool fill;
+};
+
+API extern const struct blitset geomdata[];
+
 #undef API
 
 #ifdef __cplusplus

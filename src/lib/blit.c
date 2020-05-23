@@ -11,7 +11,7 @@ ffmpeg_trans_p(bool bgr, unsigned char alpha){
   return false;
 }
 
-// Reatrded RGBA/BGRx blitter (ASCII only).
+// Retarded RGBA/BGRx blitter (ASCII only).
 // For incoming BGRx (no transparency), bgr == true.
 static inline int
 tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
@@ -57,11 +57,9 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
 
 // RGBA/BGRx blitter. For incoming BGRx (no transparency), bgr == true.
 static inline int
-tria_blit(ncplane* nc, int placey, int placex, int linesize, const void* data,
-          int begy, int begx, int leny, int lenx, bool bgr){
-  if(!nc->nc->utf8){
-    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx, leny, lenx, bgr);
-  }
+tria_blit(ncplane* nc, int placey, int placex, int linesize,
+          const void* data, int begy, int begx,
+          int leny, int lenx, bool bgr){
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
@@ -124,18 +122,53 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize, const void* data,
   return total;
 }
 
+// NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
+// be replaced with some real blitter implementation.
+const struct blitset geomdata[] = {
+   { .geom = NCBLIT_8x1,     .width = 1, .height = 9, .egcs = L" ▁▂▃▄▅▆▇█",
+     .blit = NULL,           .fill = false, },
+   { .geom = NCBLIT_1x1,     .width = 1, .height = 2, .egcs = L" █",
+     .blit = tria_blit_ascii,.fill = false, },
+   { .geom = NCBLIT_2x1,     .width = 1, .height = 3, .egcs = L" ▄█",
+     .blit = tria_blit,      .fill = false, },
+   { .geom = NCBLIT_1x1x4,   .width = 1, .height = 5, .egcs = L" ▒░▓█",
+     .blit = NULL,           .fill = false, },
+   { .geom = NCBLIT_2x2,     .width = 2, .height = 3, .egcs = L" ▗▐▖▄▟▌▙█",
+     .blit = NULL,           .fill = false, },
+   { .geom = NCBLIT_4x1,     .width = 1, .height = 5, .egcs = L" ▂▄▆█",
+     .blit = NULL,           .fill = false, },
+   { .geom = NCBLIT_BRAILLE, .width = 2, .height = 5, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿",
+     .blit = NULL,           .fill = true,  },
+   { .geom = NCBLIT_SIXEL,   .width = 1, .height = 6, .egcs = L"",
+     .blit = NULL,           .fill = true,  },
+   { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
+     .blit = NULL,           .fill = false,  },
+};
+
 // Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset
 // from the upper left by 'placey' and 'placex'. Each row ought occupy
 // 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
 // subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
-int ncblit_bgrx(ncplane* nc, int placey, int placex, int linesize,
-                const void* data, int begy, int begx, int leny, int lenx){
-	return tria_blit(nc, placey, placex, linesize, data,
-			             begy, begx, leny, lenx, true);
+int ncblit_bgrx(ncplane* nc, int placey, int placex,
+                int linesize, const void* data, int begy, int begx, int leny,
+                int lenx){
+  if(!nc->nc->utf8){
+    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx, leny, lenx, true);
+  }
+  return tria_blit(nc, placey, placex, linesize, data, begy, begx, leny, lenx, true);
 }
 
-int ncblit_rgba(ncplane* nc, int placey, int placex, int linesize,
-                const void* data, int begy, int begx, int leny, int lenx){
-	return tria_blit(nc, placey, placex, linesize, data,
-			             begy, begx, leny, lenx, false);
+int ncblit_rgba(ncplane* nc, int placey, int placex,
+                int linesize, const void* data, int begy, int begx, int leny,
+                int lenx){
+  if(!nc->nc->utf8){
+    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx, leny, lenx, false);
+  }
+  return tria_blit(nc, placey, placex, linesize, data, begy, begx, leny, lenx, false);
+}
+
+int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
+                       int placex, int linesize, const void* data, int begy,
+                       int begx, int leny, int lenx){
+  return bset->blit(nc, placey, placex, linesize, data, begy, begx, leny, lenx, false);
 }
