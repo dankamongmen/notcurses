@@ -81,6 +81,19 @@ encoding_vert_scale(const ncvisual* nc){
   return nc->bset->height - 1;
 }
 
+// RGBA visuals all use NCBLIT_2x1 by default (or NCBLIT_1x1 if not in
+// UTF-8 mode), but an alternative can be specified.
+static const struct blitset*
+rgba_blitter(const notcurses* nc, const struct ncvisual_options* opts){
+  if(opts && opts->glyphs){
+    return lookup_blitset(opts->glyphs);
+  }
+  if(notcurses_canutf8(nc)){
+    return lookup_blitset(NCBLIT_2x1);
+  }
+  return lookup_blitset(NCBLIT_1x1);
+}
+
 static void
 ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned){
   if(ncv->owndata){
@@ -375,8 +388,7 @@ auto ncvisual_from_rgba(notcurses* nc, const struct ncvisual_options* opts,
   if(rowstride % 4){
     return nullptr;
   }
-  // FIXME interdict lookup_blitset() and do ASCII check, overriding if necessary
-  auto bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1);
+  auto bset = rgba_blitter(nc, opts);
 fprintf(stderr, "BSET: %p\n", bset);
   if(!bset){
     return nullptr;
@@ -417,7 +429,7 @@ auto ncvisual_from_bgra(notcurses* nc, const struct ncvisual_options* opts,
   if(rowstride % 4){
     return nullptr;
   }
-  auto bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1);
+  auto bset = rgba_blitter(nc, opts);
   if(!bset){
     return nullptr;
   }
@@ -521,10 +533,6 @@ auto ncvisual_from_plane(const ncplane* n, const struct ncvisual_options* opts,
     return nullptr;
   }
   ncplane_destroy(ncv->ncp);
-  if(!(ncv->bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1))){
-    ncvisual_destroy(ncv);
-    return nullptr;
-  }
   ncv->ncp = ncplane_dup(n, nullptr);
   ncv->ncobj = n->nc;
   return ncv;
@@ -882,7 +890,7 @@ ncvisual* ncplane_visual_open(ncplane* nc, const struct ncvisual_options* opts,
   if(opts && opts->flags){
     return nullptr;
   }
-  auto bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1);
+  auto bset = rgba_blitter(ncplane_notcurses(nc), opts);
   if(!bset){
     return nullptr;
   }
@@ -902,7 +910,7 @@ auto ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
   if(opts && opts->flags){
     return nullptr;
   }
-  auto bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1);
+  auto bset = rgba_blitter(nc, opts);
   if(!bset){
     return nullptr;
   }
@@ -1093,12 +1101,13 @@ ncvisual* ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
   if(opts && opts->flags){
     return nullptr;
   }
-  ncvisual* ncv = ncvisual_open(filename, err);
-  if(ncv == nullptr){
+  auto bset = rgba_blitter(nc, opts);
+fprintf(stderr, "BSET: %p\n", bset);
+  if(!bset){
     return nullptr;
   }
-  if(!(ncv->bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1))){
-    ncvisual_destroy(ncv);
+  ncvisual* ncv = ncvisual_open(bset, filename, err);
+  if(ncv == nullptr){
     return nullptr;
   }
   ncv->placey = opts ? opts->y : 0;

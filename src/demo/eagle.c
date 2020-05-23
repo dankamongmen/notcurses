@@ -88,10 +88,7 @@ zoom_map(struct notcurses* nc, const char* map){
     zoomy += delty;
     zoomx += deltx;
     zncp = ncplane_new(nc, zoomy, zoomx, 0, 0, NULL);
-    struct ncvisual_options opts = {
-      .style = NCPLOT_2x1,
-    };
-    struct ncvisual* zncv = ncplane_visual_open(zncp, &opts, map, &ncerr);
+    struct ncvisual* zncv = ncplane_visual_open(zncp, NULL, map, &ncerr);
     if(zncv == NULL){
       ncvisual_destroy(ncv);
       ncplane_destroy(zncp);

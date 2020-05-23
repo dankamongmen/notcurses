@@ -2075,18 +2075,19 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 // each has the empty cell in addition to the product of its dimensions. i.e.
-// NCPLOT_1x1 has two states: empty and full block. NCPLOT_1x1x4 has five
+// NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
 // states: empty, the three shaded blocks, and the full block.
 typedef enum {
-  NCPLOT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCPLOT_1x1,     // full block                █
-  NCPLOT_2x1,     // full/(upper|left) blocks  ▄█
-  NCPLOT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCPLOT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCPLOT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCPLOT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCPLOT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
-} ncgridgeom_e;
+  NCBLIT_DEFAULT, // let the ncvisual pick
+  NCBLIT_1x1,     // full block                █
+  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
+  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
+  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
+} ncblitter_e;
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created (during ncvisual_decode()),
@@ -2102,7 +2103,7 @@ struct ncvisual_options {
   // rendered on that plane. otherwise, they specify where the created ncplane
   // will be placed.
   int y, x;
-  ncgridgeom_e glyphs; // glyph set to use (maps input to output cells)
+  ncblitter_e glyphs; // glyph set to use (maps input to output cells)
   uint64_t flags; // currently all zero
 };
 
@@ -2745,7 +2746,7 @@ typedef struct ncplot_options {
   // applied across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
-  ncgridgeom_e gridtype; // number of "pixels" per row x column
+  ncblitter_e gridtype; // number of "pixels" per row x column
   // independent variable can either be a contiguous range, or a finite set
   // of keys. for a time range, say the previous hour sampled with second
   // resolution, the independent variable would be the range [0..3600): 3600.
