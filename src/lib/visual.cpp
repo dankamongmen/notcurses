@@ -506,6 +506,9 @@ ncplane* ncvisual_plane(ncvisual* ncv){
 
 auto ncvisual_from_plane(const ncplane* n, const struct ncvisual_options* opts,
                          int begy, int begx, int leny, int lenx) -> ncvisual* {
+  if(opts && (opts->flags || opts->style != NCSCALE_NONE)){
+    return nullptr;
+  }
   uint32_t* rgba = ncplane_rgba(n, begx, begy, leny, lenx);
   if(rgba == nullptr){
     return nullptr;
