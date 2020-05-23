@@ -5,7 +5,7 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-04-20a
+  image: dankamongmen/unstable_builder:2020-05-23a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
@@ -20,7 +20,7 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/focal:2020-04-20a
+  image: dankamongmen/focal:2020-05-23a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
