@@ -1010,7 +1010,9 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   return -1;
 }
 
-ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr){
+ncvisual* ncplane_visual_open(ncplane* nc, const struct ncvisual_options* opts,
+                              const char* filename, nc_err_e* ncerr){
+  (void)opts;
   (void)nc;
   (void)filename;
   (void)ncerr;
@@ -1019,12 +1021,10 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr
 
 ncvisual* ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
                              const char* filename, nc_err_e* ncerr){
+  (void)opts;
   (void)nc;
   (void)filename;
   (void)ncerr;
-  (void)y;
-  (void)x;
-  (void)style;
   return nullptr;
 }
 
@@ -1054,9 +1054,9 @@ bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
 }
 
 static ncvisual*
-ncvisual_open(const char* filename, nc_err_e* err){
+ncvisual_open(const struct blitset* bset, const char* filename, nc_err_e* err){
   *err = NCERR_SUCCESS;
-  ncvisual* ncv = ncvisual_create(1);
+  ncvisual* ncv = ncvisual_create(bset, 1);
   if(ncv == nullptr){
     *err = NCERR_NOMEM;
     return nullptr;
@@ -1079,8 +1079,13 @@ spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*
   return ncv;
 }
 
-ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* err){
-  ncvisual* ncv = ncvisual_open(filename, err);
+ncvisual* ncplane_visual_open(ncplane* nc, const struct ncvisual_options* opts,
+                              const char* filename, nc_err_e* err){
+  auto bset = rgba_blitter(nc->nc, opts);
+  if(!bset){
+    return nullptr;
+  }
+  ncvisual* ncv = ncvisual_open(bset, filename, err);
   if(ncv == nullptr){
     *err = NCERR_NOMEM;
     return nullptr;
@@ -1099,7 +1104,6 @@ ncvisual* ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
     return nullptr;
   }
   auto bset = rgba_blitter(nc, opts);
-fprintf(stderr, "BSET: %p\n", bset);
   if(!bset){
     return nullptr;
   }
