@@ -16,6 +16,18 @@ typedef enum {
   NCSCALE_STRETCH,
 } ncscale_e;
 
+typedef enum {
+  NCBLIT_DEFAULT,// let the ncvisual choose its own blitter
+  NCBLIT_1x1,    // full block                █
+  NCBLIT_2x1,    // full/(upper|left) blocks  ▄█
+  NCBLIT_1x1x4,  // shaded full blocks        ▓▒░█
+  NCBLIT_2x2,    // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCBLIT_4x1,    // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_BRAILLE,// 4x2-way braille      ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,    // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_SIXEL,  // six rows, 1 column (RGB)
+} ncblitter_e;
+
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 ```
 
@@ -89,6 +101,20 @@ to display the entirety of the rotated visual.
 **ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to
 the current frame if such a subtitle was decoded. Note that a subtitle might
 be returned for multiple frames, or might not.
+
+# BLITTERS
+
+The different **ncblitter_e** values select from among available glyph sets:
+
+* **NCBLIT_DEFAULT**: Let the **ncvisual** choose its own blitter.
+* **NCBLIT_1x1**: Full block (█) or empty glyph.
+* **NCBLIT_2x1**: Adds the lower half block (▄) to **NCBLIT_1x1**.
+* **NCBLIT_1x1x4**: Adds three shaded full blocks (▓▒░) to **NCBLIT_1x1**.
+* **NCBLIT_2x2**: Adds left and right half blocks (▌▐) and quadrants (▖▗▟▙) to **NCBLIT_2x1**.
+* **NCBLIT_4x1**: Adds ¼ and ¾ blocks (▂▆) to **NCBLIT_2x1**.
+* **NCBLIT_BRAILLE**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
+* **NCBLIT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCBLIT_4x1**.
+* **NCBLIT_SIXEL**: Sixel, a 6-by-1 RGB pixel arrangement.
 
 # RETURN VALUES
 

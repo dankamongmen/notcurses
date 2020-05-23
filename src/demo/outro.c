@@ -35,10 +35,7 @@ fadethread(void* vnc){
   ncvisual_destroy(chncv);
   nc_err_e err;
   char* path = find_data("samoa.avi");
-  struct ncvisual_options opts = {
-    .style = NCPLOT_2x1,
-  };
-  struct ncvisual* ncv = ncplane_visual_open(ncp, &opts, path, &err);
+  struct ncvisual* ncv = ncplane_visual_open(ncp, NULL, path, &err);
   free(path);
   if(ncv == NULL){
     return NULL;
@@ -136,10 +133,7 @@ int outro(struct notcurses* nc){
   ncplane_erase(ncp);
   nc_err_e err = 0;
   char* path = find_data("changes.jpg");
-  struct ncvisual_options opts = {
-    .style = NCPLOT_2x1,
-  };
-  chncv = ncplane_visual_open(ncp, &opts, path, &err);
+  chncv = ncplane_visual_open(ncp, NULL, path, &err);
   free(path);
   if(chncv == NULL){
     return -1;

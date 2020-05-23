@@ -28,7 +28,6 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     struct ncvisual_options opts{};
     opts.style = NCSCALE_STRETCH;
-    opts.glyphs = NCPLOT_2x1;
     auto ncv = ncvisual_from_file(nc_, &opts, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
@@ -49,7 +48,6 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     struct ncvisual_options opts{};
     opts.style = NCSCALE_STRETCH;
-    opts.glyphs = NCPLOT_2x1;
     auto ncv = ncplane_visual_open(ncp_, &opts, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(0 == ncerr);
@@ -70,7 +68,6 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     struct ncvisual_options opts{};
     opts.style = NCSCALE_STRETCH;
-    opts.glyphs = NCPLOT_2x1;
     auto ncv = ncplane_visual_open(ncp_, &opts, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
@@ -100,7 +97,6 @@ TEST_CASE("Visual") {
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       struct ncvisual_options opts{};
       opts.style = NCSCALE_STRETCH;
-      opts.glyphs = NCPLOT_2x1;
       auto ncv = ncplane_visual_open(ncp_, &opts, find_data("notcursesI.avi"), &ncerr);
       REQUIRE(ncv);
       CHECK(NCERR_SUCCESS == ncerr);
@@ -126,7 +122,6 @@ TEST_CASE("Visual") {
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       struct ncvisual_options opts{};
       opts.style = NCSCALE_STRETCH;
-      opts.glyphs = NCPLOT_2x1;
       auto ncv = ncvisual_from_file(nc_, &opts, find_data("notcursesI.avi"), &ncerr);
       REQUIRE(ncv);
       CHECK(NCERR_SUCCESS == ncerr);
@@ -145,9 +140,7 @@ TEST_CASE("Visual") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
-    struct ncvisual_options opts{};
-    opts.glyphs = NCPLOT_2x1;
-    auto ncv = ncvisual_from_rgba(nc_, &opts, rgba.data(), dimy * 2, dimx * 4, dimx);
+    auto ncv = ncvisual_from_rgba(nc_, nullptr, rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));
@@ -159,9 +152,7 @@ TEST_CASE("Visual") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
-    struct ncvisual_options opts{};
-    opts.glyphs = NCPLOT_2x1;
-    auto ncv = ncvisual_from_bgra(nc_, &opts, rgba.data(), dimy * 2, dimx * 4, dimx);
+    auto ncv = ncvisual_from_bgra(nc_, nullptr, rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
     CHECK(0 == notcurses_render(nc_));

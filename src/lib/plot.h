@@ -13,6 +13,7 @@ class ncppplot {
  public:
 
  // these were all originally plain C, sorry for the non-idiomatic usage FIXME
+ // ought admit nullptr opts FIXME
  static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy) {
    // if miny == maxy, they both must be equal to 0
    if(miny == maxy && miny){
@@ -24,7 +25,7 @@ class ncppplot {
    if(maxy < miny){
      return false;
    }
-   auto bset = lookup_blitset(opts->gridtype);
+   auto bset = lookup_blitset(opts && opts->gridtype ? opts->gridtype : NCBLIT_8x1);
    if(bset == nullptr){
      return false;
    }

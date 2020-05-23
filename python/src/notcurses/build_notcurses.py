@@ -291,19 +291,20 @@ typedef enum {
   NCSCALE_STRETCH,
 } ncscale_e;
 typedef enum {
-  NCPLOT_1x1,   // full block                █
-  NCPLOT_2x1,   // full/(upper|left) blocks  ▄█
-  NCPLOT_1x1x4, // shaded full blocks        ▓▒░█
-  NCPLOT_2x2,   // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCPLOT_8x1,   // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-} ncgridgeom_e;
+  NCBLIT_1x1,     // full block                █
+  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
+  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
+  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
+} ncblitter_e;
 struct ncvisual_options {
   struct ncplane* n;
   ncscale_e style;
   int y, x;
-  ncgridgeom_e glyphs;
+  ncblitter_e glyphs;
   uint64_t flags;
 };
 struct ncvisual* ncvisual_from_file(struct notcurses* nc, const struct ncvisual_options* opts, const char* file, nc_err_e* ncerr);
@@ -455,7 +456,7 @@ bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 typedef struct ncplot_options {
   uint64_t maxchannel;
   uint64_t minchannel;
-  ncgridgeom_e gridtype;
+  ncblitter_e gridtype;
   uint64_t rangex;
   unsigned flags;
 } ncplot_options;

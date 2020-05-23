@@ -32,7 +32,7 @@ int main(int argc, char** argv){
   bool failed = false;
   nc_err_e ncerr;
   struct ncvisual_options vopts{};
-  vopts.glyphs = NCPLOT_2x1;
+  vopts.style = NCSCALE_STRETCH;
   auto ncv = ncplane_visual_open(n, &vopts, file, &ncerr);
   if(!ncv){
     goto err;
