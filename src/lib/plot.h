@@ -5,7 +5,6 @@
 #include <array>
 #include <limits>
 #include "internal.h"
-#include "glyphset.h"
 #include "notcurses/notcurses.h"
 
 template<typename T>
