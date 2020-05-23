@@ -389,7 +389,6 @@ auto ncvisual_from_rgba(notcurses* nc, const struct ncvisual_options* opts,
     return nullptr;
   }
   auto bset = rgba_blitter(nc, opts);
-fprintf(stderr, "BSET: %p\n", bset);
   if(!bset){
     return nullptr;
   }
@@ -399,12 +398,8 @@ fprintf(stderr, "BSET: %p\n", bset);
   ncv->ncobj = nc;
   ncv->dstwidth = cols;
   ncv->dstheight = rows;
-  int disprows;
-  if(nc->utf8){
-    disprows = ncv->dstheight / 2 + ncv->dstheight % 2;
-  }else{
-    disprows = ncv->dstheight;
-  }
+  int disprows = ncv->dstheight / encoding_vert_scale(ncv) +
+                 ncv->dstheight % encoding_vert_scale(ncv);
 //fprintf(stderr, "MADE INITIAL ONE %d/%d\n", disprows, ncv->dstwidth);
   ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, nullptr);
   if(ncv->ncp == nullptr){
@@ -438,12 +433,8 @@ auto ncvisual_from_bgra(notcurses* nc, const struct ncvisual_options* opts,
   ncv->ncobj = nc;
   ncv->dstwidth = cols;
   ncv->dstheight = rows;
-  int disprows;
-  if(nc->utf8){
-    disprows = ncv->dstheight / 2 + ncv->dstheight % 2;
-  }else{
-    disprows = ncv->dstheight;
-  }
+  int disprows = ncv->dstheight / encoding_vert_scale(ncv) +
+                 ncv->dstheight % encoding_vert_scale(ncv);
   ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, nullptr);
   if(ncv->ncp == nullptr){
     ncvisual_destroy(ncv);
@@ -526,10 +517,15 @@ auto ncvisual_from_plane(const ncplane* n, const struct ncvisual_options* opts,
   if(leny == -1){
     leny = n->leny - begy;
   }
-  leny *= 2; // FIXME needn't we use encoding_vert_scale() somehow?
-  auto* ncv = ncvisual_from_rgba(n->nc, opts, rgba, leny, lenx * 4, lenx);
-  if(ncv == nullptr){
+  auto bset = rgba_blitter(n->nc, opts);
+  if(!bset){
     free(rgba);
+    return nullptr;
+  }
+  leny *= (bset->height - 1);
+  auto* ncv = ncvisual_from_rgba(n->nc, opts, rgba, leny, lenx * 4, lenx);
+  free(rgba);
+  if(ncv == nullptr){
     return nullptr;
   }
   ncplane_destroy(ncv->ncp);
