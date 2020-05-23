@@ -85,7 +85,10 @@ int main(void){
 
   if(notcurses_canopen_images(nc)){
     nc_err_e err;
-    struct ncvisual* ncv = ncplane_visual_open(n, "../data/covid19.jpg", &err);
+    struct ncvisual_options vopts = {
+      .style = NCPLOT_2x1,
+    };
+    struct ncvisual* ncv = ncplane_visual_open(n, &vopts, "../data/covid19.jpg", &err);
     if(!ncv){
       goto err;
     }
