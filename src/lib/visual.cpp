@@ -480,8 +480,9 @@ auto ncvisual_render(const ncvisual* ncv, int begy, int begx, int leny, int lenx
   // the input (scaled) frame (columns are 1:1). we track the row of the
   // visual via visy.
 //fprintf(stderr, "render: %dx%d:%d+%d of %d/%d -> %dx%d\n", begy, begx, leny, lenx, ncv->dstheight, ncv->dstwidth, dimy, dimx);
-  int ret = ncblit_rgba(ncv->ncp, ncv->placey, ncv->placex, ncv->rowstride,
-                        ncv->data, begy, begx, leny, lenx);
+  int ret = rgba_blit_dispatch(ncv->ncp, ncv->bset, ncv->placey, ncv->placex,
+                               ncv->rowstride, ncv->data, begy, begx,
+                               leny, lenx);
   //av_frame_unref(ncv->oframe);
   return ret;
 }

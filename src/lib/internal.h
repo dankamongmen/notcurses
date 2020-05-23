@@ -33,7 +33,6 @@ const char* oiio_version(void);
 #include <stdbool.h>
 #include <langinfo.h>
 #include "notcurses/notcurses.h"
-#include "glyphset.h"
 #include "egcpool.h"
 
 struct esctrie;
@@ -79,6 +78,8 @@ typedef struct ncplane {
   struct notcurses* nc; // notcurses object of which we are a part
   bool scrolling;       // is scrolling enabled? always disabled by default
 } ncplane;
+
+#include "blitset.h"
 
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
@@ -628,6 +629,10 @@ memdup(const void* src, size_t len){
 }
 
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
+
+int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
+                       int placex, int linesize, const void* data, int begy,
+                       int begx, int leny, int lenx);
 
 // find the "center" cell of two lengths. in the case of even rows/columns, we
 // place the center on the top/left. in such a case there will be one more
