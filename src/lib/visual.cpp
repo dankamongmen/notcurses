@@ -85,13 +85,18 @@ encoding_vert_scale(const ncvisual* nc){
 // UTF-8 mode), but an alternative can be specified.
 static const struct blitset*
 rgba_blitter(const notcurses* nc, const struct ncvisual_options* opts){
+  const struct blitset* bset;
   if(opts && opts->glyphs){
-    return lookup_blitset(opts->glyphs);
+    bset = lookup_blitset(opts->glyphs);
+  }else if(notcurses_canutf8(nc)){
+    bset = lookup_blitset(NCBLIT_2x1);
+  }else{
+    bset = lookup_blitset(NCBLIT_1x1);
   }
-  if(notcurses_canutf8(nc)){
-    return lookup_blitset(NCBLIT_2x1);
+  if(bset && !bset->blit){ // FIXME remove this once all blitters are enabled
+    bset = NULL;
   }
-  return lookup_blitset(NCBLIT_1x1);
+  return bset;
 }
 
 static void
