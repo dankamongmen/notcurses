@@ -2074,23 +2074,18 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
                             x + xlen - 1, ctlword);
 }
 
-// Open a visual (image or video), associating it with the specified ncplane.
-// Returns NULL on any error, writing the cause to 'ncerr'.
-// FIXME this ought also take an ncscale_e!
-API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                         nc_err_e* ncerr);
-
 // each has the empty cell in addition to the product of its dimensions. i.e.
 // NCPLOT_1x1 has two states: empty and full block. NCPLOT_1x1x4 has five
 // states: empty, the three shaded blocks, and the full block.
 typedef enum {
-  NCPLOT_8x1,   // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCPLOT_1x1,   // full block                █
-  NCPLOT_2x1,   // full/(upper|left) blocks  ▄█
-  NCPLOT_1x1x4, // shaded full blocks        ▓▒░█
-  NCPLOT_2x2,   // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCPLOT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCPLOT_1x1,     // full block                █
+  NCPLOT_2x1,     // full/(upper|left) blocks  ▄█
+  NCPLOT_1x1x4,   // shaded full blocks        ▓▒░█
+  NCPLOT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCPLOT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCPLOT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCPLOT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncgridgeom_e;
 
 struct ncvisual_options {
@@ -2110,6 +2105,12 @@ struct ncvisual_options {
   ncgridgeom_e glyphs; // glyph set to use (maps input to output cells)
   uint64_t flags; // currently all zero
 };
+
+// Open a visual (image or video), associating it with the specified ncplane.
+// Returns NULL on any error, writing the cause to 'ncerr'. Going away soon.
+API struct ncvisual* ncplane_visual_open(struct ncplane* nc,
+                                         const struct ncvisual_options* opts,
+                                         const char* filename, nc_err_e* ncerr);
 
 // Open a visual, extract a codec and parameters, and create a new plane
 // suitable for its display at 'y','x'. If there is sufficient room to display

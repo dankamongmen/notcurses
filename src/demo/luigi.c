@@ -150,7 +150,10 @@ int luigi_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stddim_yx(nc, &rows, &cols);
   nc_err_e ncerr = NCERR_SUCCESS;
   char* map = find_data("megaman2.bmp");
-  struct ncvisual* nv = ncplane_visual_open(n, map, &ncerr);
+  struct ncvisual_options opts = {
+    .style = NCPLOT_2x1,
+  };
+  struct ncvisual* nv = ncplane_visual_open(n, &opts, map, &ncerr);
   free(map);
   if(nv == NULL){
     return -1;
@@ -187,7 +190,7 @@ int luigi_demo(struct notcurses* nc){
   if(fname == NULL){
     return -1;
   }
-  wmncv = ncvisual_from_file(nc, NULL, fname, &ncerr);
+  wmncv = ncvisual_from_file(nc, &opts, fname, &ncerr);
   free(fname);
   if(wmncv == NULL){
     return -1;

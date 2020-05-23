@@ -14,28 +14,28 @@ namespace ncpp
 	class NCPP_API_EXPORT Visual : public Root
 	{
 	public:
-		explicit Visual (Plane *plane, const char *file, nc_err_e* ncerr)
-			: Visual (Utilities::to_ncplane (plane), file, ncerr)
+		explicit Visual (Plane *plane, const ncvisual_options* opts, const char *file, nc_err_e* ncerr)
+			: Visual (Utilities::to_ncplane (plane), opts, file, ncerr)
 		{}
 
-		explicit Visual (Plane const* plane, const char *file, nc_err_e *ncerr)
-			: Visual (const_cast<Plane*>(plane), file, ncerr)
+		explicit Visual (Plane const* plane, const ncvisual_options* opts, const char *file, nc_err_e *ncerr)
+			: Visual (const_cast<Plane*>(plane), opts, file, ncerr)
 		{}
 
-		explicit Visual (Plane &plane, const char *file, nc_err_e* ncerr)
-			: Visual (Utilities::to_ncplane (plane), file, ncerr)
+		explicit Visual (Plane &plane, const ncvisual_options* opts, const char *file, nc_err_e* ncerr)
+			: Visual (Utilities::to_ncplane (plane), opts, file, ncerr)
 		{}
 
-		explicit Visual (Plane const& plane, const char *file, nc_err_e *ncerr)
-			: Visual (const_cast<Plane&>(plane), file, ncerr)
+		explicit Visual (Plane const& plane, const ncvisual_options* opts, const char *file, nc_err_e *ncerr)
+			: Visual (const_cast<Plane&>(plane), opts, file, ncerr)
 		{}
 
-		explicit Visual (ncplane *plane, const char *file, nc_err_e *ncerr)
+		explicit Visual (ncplane *plane, const ncvisual_options* opts, const char *file, nc_err_e *ncerr)
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			visual = ncplane_visual_open (plane, file, ncerr);
+			visual = ncplane_visual_open (plane, opts, file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}

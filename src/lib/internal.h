@@ -33,6 +33,7 @@ const char* oiio_version(void);
 #include <stdbool.h>
 #include <langinfo.h>
 #include "notcurses/notcurses.h"
+#include "glyphset.h"
 #include "egcpool.h"
 
 struct esctrie;
@@ -78,19 +79,6 @@ typedef struct ncplane {
   struct notcurses* nc; // notcurses object of which we are a part
   bool scrolling;       // is scrolling enabled? always disabled by default
 } ncplane;
-
-// a system for rendering RGBA pixels as text glyphs
-struct blitset {
-  ncgridgeom_e geom;
-  int width;
-  int height;
-  // the EGCs which form the various levels of a given geometry. if the geometry
-  // is wide, things are arranged with the rightmost side increasing most
-  // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
-  // the first five braille EGCs are all 0 on the left, [0..4] on the right.
-  const wchar_t* egcs;
-  bool fill;
-};
 
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
@@ -628,7 +616,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
 
 int update_term_dimensions(int fd, int* rows, int* cols);
 
-struct ncvisual* ncvisual_create(float timescale);
+struct ncvisual* ncvisual_create(const struct blitset* bset, float timescale);
 
 static inline void*
 memdup(const void* src, size_t len){

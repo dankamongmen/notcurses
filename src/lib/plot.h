@@ -1,32 +1,16 @@
+#ifndef NOTCURSES_PLOT
+#define NOTCURSES_PLOT
+
 #include <cmath>
 #include <array>
 #include <limits>
 #include "internal.h"
+#include "glyphset.h"
 #include "notcurses/notcurses.h"
-
-static const std::array<struct blitset, 7> geomdata = {{
-   // default is NCPLOT_8x1
-   { .geom = NCPLOT_8x1,   .width = 1, .height = 9, .egcs = L" ▁▂▃▄▅▆▇█",                 .fill = false, },
-   { .geom = NCPLOT_1x1,   .width = 1, .height = 2, .egcs = L" █",                        .fill = false, },
-   { .geom = NCPLOT_2x1,   .width = 1, .height = 3, .egcs = L" ▄█",                       .fill = false, },
-   { .geom = NCPLOT_1x1x4, .width = 1, .height = 5, .egcs = L" ▒░▓█",                     .fill = false, },
-   { .geom = NCPLOT_2x2,   .width = 2, .height = 3, .egcs = L" ▗▐▖▄▟▌▙█",                 .fill = false, },
-   { .geom = NCPLOT_4x1,   .width = 1, .height = 5, .egcs = L" ▂▄▆█",                     .fill = false, },
-   { .geom = NCPLOT_4x2,   .width = 2, .height = 5, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿", .fill = true,  },
-}};
 
 template<typename T>
 class ncppplot {
  public:
-
- static const struct blitset* lookup_blitset(ncgridgeom_e setid) {
-   for(size_t idx = 0 ; idx < geomdata.size() ; ++idx){
-     if(geomdata[idx].geom == setid){
-       return &geomdata[idx];
-     }
-   }
-   return NULL;
- }
 
  // these were all originally plain C, sorry for the non-idiomatic usage FIXME
  static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy) {
@@ -348,3 +332,4 @@ using ncdplot = struct ncdplot {
   ncppplot<double> n;
 };
 
+#endif

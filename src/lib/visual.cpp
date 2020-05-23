@@ -70,20 +70,15 @@ typedef struct ncvisual {
   std::unique_ptr<uint32_t[]> frame;
 #endif
 #endif
+  const struct blitset* bset; // blitting method (glyphs/scales)
   uint32_t* data;          // (scaled) RGBA image data, rowstride bytes per row
   bool owndata;            // we own data iff owndata == true
-  int encode_scale;        // 2 iff notcurses_canutf8(), 1 otherwise
 } ncvisual;
 
 // returns 2 if utf-8 half-blocks are in play, 1 otherwise
 static int
 encoding_vert_scale(const ncvisual* nc){
-  return nc->encode_scale;
-}
-
-static void
-set_encoding_vert_scale(const notcurses* nc, ncvisual* ncv){
-  ncv->encode_scale = 1 + nc->utf8;
+  return nc->bset->height - 1;
 }
 
 static void
@@ -95,12 +90,13 @@ ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned){
   ncv->owndata = owned;
 }
 
-auto ncvisual_create(float timescale) -> ncvisual* {
+auto ncvisual_create(const struct blitset* bset, float timescale) -> ncvisual* {
   auto ret = new ncvisual{};
   if(ret == nullptr){
     return nullptr;
   }
   ret->timescale = timescale;
+  ret->bset = bset;
   return ret;
 }
 
@@ -379,8 +375,13 @@ auto ncvisual_from_rgba(notcurses* nc, const struct ncvisual_options* opts,
   if(rowstride % 4){
     return nullptr;
   }
-  ncvisual* ncv = ncvisual_create(1);
-  set_encoding_vert_scale(nc, ncv);
+  // FIXME interdict lookup_blitset() and do ASCII check, overriding if necessary
+  auto bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1);
+fprintf(stderr, "BSET: %p\n", bset);
+  if(!bset){
+    return nullptr;
+  }
+  ncvisual* ncv = ncvisual_create(bset, 1);
 //fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
   ncv->rowstride = rowstride;
   ncv->ncobj = nc;
@@ -416,7 +417,11 @@ auto ncvisual_from_bgra(notcurses* nc, const struct ncvisual_options* opts,
   if(rowstride % 4){
     return nullptr;
   }
-  ncvisual* ncv = ncvisual_create(1);
+  auto bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1);
+  if(!bset){
+    return nullptr;
+  }
+  ncvisual* ncv = ncvisual_create(bset, 1);
   ncv->rowstride = rowstride;
   ncv->ncobj = nc;
   ncv->dstwidth = cols;
@@ -516,6 +521,10 @@ auto ncvisual_from_plane(const ncplane* n, const struct ncvisual_options* opts,
     return nullptr;
   }
   ncplane_destroy(ncv->ncp);
+  if(!(ncv->bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1))){
+    ncvisual_destroy(ncv);
+    return nullptr;
+  }
   ncv->ncp = ncplane_dup(n, nullptr);
   ncv->ncobj = n->nc;
   return ncv;
@@ -766,15 +775,16 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 }
 
 static ncvisual*
-ncvisual_open(const char* filename, nc_err_e* ncerr){
+ncvisual_open(const struct blitset* bset, const char* filename, nc_err_e* ncerr){
   *ncerr = NCERR_SUCCESS;
-  ncvisual* ncv = ncvisual_create(1);
+  ncvisual* ncv = ncvisual_create(bset, 1);
   if(ncv == nullptr){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     *ncerr = NCERR_NOMEM;
     return nullptr;
   }
   memset(ncv, 0, sizeof(*ncv));
+  ncv->bset = bset;
   int averr = avformat_open_input(&ncv->fmtctx, filename, nullptr, nullptr);
   if(averr < 0){
 //fprintf(stderr, "Couldn't open %s (%d)\n", filename, averr);
@@ -866,12 +876,20 @@ err:
   return nullptr;
 }
 
-ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* ncerr){
-  ncvisual* ncv = ncvisual_open(filename, ncerr);
+// FIXME this ought go away, subcase of ncvisual_from_file()
+ncvisual* ncplane_visual_open(ncplane* nc, const struct ncvisual_options* opts,
+                              const char* filename, nc_err_e* ncerr){
+  if(opts && opts->flags){
+    return nullptr;
+  }
+  auto bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1);
+  if(!bset){
+    return nullptr;
+  }
+  ncvisual* ncv = ncvisual_open(bset, filename, ncerr);
   if(ncv == nullptr){
     return nullptr;
   }
-  set_encoding_vert_scale(nc->nc, ncv);
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
   ncv->dstheight *= encoding_vert_scale(ncv);
   ncv->ncp = nc;
@@ -884,11 +902,14 @@ auto ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
   if(opts && opts->flags){
     return nullptr;
   }
-  ncvisual* ncv = ncvisual_open(filename, ncerr);
+  auto bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1);
+  if(!bset){
+    return nullptr;
+  }
+  ncvisual* ncv = ncvisual_open(bset, filename, ncerr);
   if(ncv == nullptr){
     return nullptr;
   }
-  set_encoding_vert_scale(nc, ncv);
   ncv->placey = opts ? opts->y : 0;
   ncv->placex = opts ? opts->x : 0;
   ncv->style = opts ? opts->style : NCSCALE_NONE;
@@ -1059,7 +1080,6 @@ ncvisual* ncplane_visual_open(ncplane* nc, const char* filename, nc_err_e* err){
     *err = NCERR_NOMEM;
     return nullptr;
   }
-  set_encoding_vert_scale(nc->nc, ncv);
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
   ncv->dstheight *= encoding_vert_scale(ncv);
   ncv->ncp = nc;
@@ -1077,7 +1097,10 @@ ncvisual* ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
   if(ncv == nullptr){
     return nullptr;
   }
-  set_encoding_vert_scale(nc, ncv);
+  if(!(ncv->bset = lookup_blitset(opts ? opts->glyphs : NCPLOT_2x1))){
+    ncvisual_destroy(ncv);
+    return nullptr;
+  }
   ncv->placey = opts ? opts->y : 0;
   ncv->placex = opts ? opts->x : 0;
   ncv->style = opts ? opts->style : NCSCALE_NONE;

@@ -31,7 +31,9 @@ int main(int argc, char** argv){
   ncplane_dim_yx(n, &dimy, &dimx);
   bool failed = false;
   nc_err_e ncerr;
-  auto ncv = ncplane_visual_open(n, file, &ncerr);
+  struct ncvisual_options vopts{};
+  vopts.glyphs = NCPLOT_2x1;
+  auto ncv = ncplane_visual_open(n, &vopts, file, &ncerr);
   if(!ncv){
     goto err;
   }
