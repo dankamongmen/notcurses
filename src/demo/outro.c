@@ -122,6 +122,9 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
 }
 
 int outro(struct notcurses* nc){
+  if(!notcurses_canutf8(nc)){
+    return 0;
+  }
   if(!notcurses_canopen_images(nc)){
     return 0;
   }

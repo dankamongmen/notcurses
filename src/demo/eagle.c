@@ -100,7 +100,7 @@ zoom_map(struct notcurses* nc, const char* map){
     if(rendx == 0){
       rendx = -1;
     }
-    if(ncvisual_render(zncv, (zoomy - truey) * 2, 0, -1, rendx) <= 0){
+    if(ncvisual_render(zncv, (zoomy - truey) * (2 * notcurses_canutf8(nc)), 0, -1, rendx) <= 0){
       ncvisual_destroy(zncv);
       ncplane_destroy(zncp);
       return NULL;
@@ -139,9 +139,16 @@ draw_eagle(struct ncplane* n, const char* sprite){
         break;
     }
     if(sprite[s] != '0'){
-      if(ncplane_putegc_yx(n, s / 16, s % 16, "\u2588", &sbytes) != 1){
+      unsigned f, b;
+      f = ncplane_fg(n);
+      b = ncplane_bg(n);
+      ncplane_set_fg(n, b);
+      ncplane_set_bg(n, f);
+      if(ncplane_putegc_yx(n, s / 16, s % 16, " ", &sbytes) != 1){
         return -1;
       }
+      ncplane_set_fg(n, f);
+      ncplane_set_bg(n, b);
     }
   }
   return 0;
