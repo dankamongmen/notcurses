@@ -241,7 +241,6 @@ set(NCPP_SOURCES
   src/libcpp/Subproc.cc
   src/libcpp/Tablet.cc
   src/libcpp/Utilities.cc
-  src/libcpp/Visual.cc
   )
 
 add_library(notcurses++ SHARED ${NCPP_SOURCES})

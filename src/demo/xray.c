@@ -51,8 +51,9 @@ make_slider(struct notcurses* nc, int dimy){
 }
 
 static int
-perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
+perframecb(struct ncplane* stdn, struct ncvisual* ncv __attribute__ ((unused)),
            const struct timespec* tspec, void* vnewplane){
+  struct notcurses* nc = ncplane_notcurses(stdn);
   static int frameno = 0;
   int y, x;
   struct ncplane* n = vnewplane;
@@ -77,10 +78,7 @@ int xray_demo(struct notcurses* nc){
   }
   char* path = find_data("notcursesI.avi");
   nc_err_e err;
-  struct ncvisual_options vopts = {
-    .n = n,
-  };
-  struct ncvisual* ncv = ncvisual_from_file(nc, &vopts, path, &err);
+  struct ncvisual* ncv = ncvisual_from_file(path, &err);
   free(path);
   if(ncv == NULL){
     return -1;
@@ -91,7 +89,7 @@ int xray_demo(struct notcurses* nc){
     ncplane_destroy(n);
     return -1;
   }
-  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, newpanel);
+  int ret = ncvisual_stream(n, ncv, &err, 0.5 * delaymultiplier, perframecb, newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);

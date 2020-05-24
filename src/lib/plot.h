@@ -114,7 +114,7 @@ class ncppplot {
    ncplane_dim_yx(ncp, &dimy, &dimx);
    const int scaleddim = dimx * scale;
    // each transition is worth this much change in value
-   const size_t states = bset->height;
+   const size_t states = bset->height + 1;
    // FIXME can we not rid ourselves of this meddlesome double? either way, the
    // interval is one row's range (for linear plots), or the base (base^slots==
    // maxy-miny) of the range (for exponential plots).

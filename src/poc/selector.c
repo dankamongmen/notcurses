@@ -86,18 +86,18 @@ int main(void){
 
   if(notcurses_canopen_images(nc)){
     nc_err_e err;
-    struct ncvisual_options vopts = {
-      .style = NCSCALE_STRETCH,
-      .n = n,
-    };
-    struct ncvisual* ncv = ncvisual_from_file(nc, &vopts, "../data/changes.jpg", &err);
+    struct ncvisual* ncv = ncvisual_from_file("../data/changes.jpg", &err);
     if(!ncv){
       goto err;
     }
     if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
       goto err;
     }
-    if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
+    struct ncvisual_options vopts = {
+      .scaling = NCSCALE_STRETCH,
+      .n = n,
+    };
+    if(ncvisual_render(nc, ncv, &vopts) == NULL){
       goto err;
     }
   }

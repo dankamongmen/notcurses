@@ -48,8 +48,7 @@ auto testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry) -> int {
 
 // test ncfdplanes and ncsubprocs
 TEST_CASE("FdsAndSubprocs"
-          * doctest::description("Fdplanes and subprocedures")
-          * doctest::timeout(10)) {
+          * doctest::description("Fdplanes and subprocedures")) {
   notcurses_options nopts{};
   nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
