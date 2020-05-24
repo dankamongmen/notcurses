@@ -26,19 +26,21 @@ TEST_CASE("Visual") {
     nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    struct ncvisual_options opts{};
-    opts.style = NCSCALE_STRETCH;
-    auto ncv = ncvisual_from_file(nc_, &opts, find_data("changes.jpg"), &ncerr);
+    auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     ncerr = ncvisual_decode(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
-    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
+    struct ncvisual_options opts{};
+    opts.scaling = NCSCALE_STRETCH;
+    auto newn = ncvisual_render(nc_, ncv, &opts);
+    CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
     ncerr = ncvisual_decode(ncv);
     CHECK(NCERR_EOF == ncerr);
+    ncplane_destroy(newn);
     ncvisual_destroy(ncv);
   }
 
@@ -46,17 +48,17 @@ TEST_CASE("Visual") {
     nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    struct ncvisual_options opts{};
-    opts.style = NCSCALE_STRETCH;
-    opts.n = ncp_;
-    auto ncv = ncvisual_from_file(nc_, &opts, find_data("changes.jpg"), &ncerr);
+    auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(0 == ncerr);
     ncerr = ncvisual_decode(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
-    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
+    struct ncvisual_options opts{};
+    opts.scaling = NCSCALE_STRETCH;
+    opts.n = ncp_;
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     ncerr = ncvisual_decode(ncv);
     CHECK(NCERR_EOF == ncerr);
@@ -67,20 +69,20 @@ TEST_CASE("Visual") {
     nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    struct ncvisual_options opts{};
-    opts.style = NCSCALE_STRETCH;
-    opts.n = ncp_;
-    auto ncv = ncvisual_from_file(nc_, &opts, find_data("changes.jpg"), &ncerr);
+    auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     ncerr = ncvisual_decode(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
-    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
+    struct ncvisual_options opts{};
+    opts.n = ncp_;
+    opts.scaling = NCSCALE_STRETCH;
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     void* needle = malloc(1);
     REQUIRE(nullptr != needle);
-    struct ncplane* newn = ncplane_dup(ncvisual_plane(ncv), needle);
+    struct ncplane* newn = ncplane_dup(ncp_, needle);
     int ndimx, ndimy;
     REQUIRE(nullptr != newn);
     ncvisual_destroy(ncv);
@@ -97,10 +99,7 @@ TEST_CASE("Visual") {
       nc_err_e ncerr = NCERR_SUCCESS;
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      struct ncvisual_options opts{};
-      opts.style = NCSCALE_STRETCH;
-      opts.n = ncp_;
-      auto ncv = ncvisual_from_file(nc_, &opts, find_data("notcursesI.avi"), &ncerr);
+      auto ncv = ncvisual_from_file(find_data("notcursesI.avi"), &ncerr);
       REQUIRE(ncv);
       CHECK(NCERR_SUCCESS == ncerr);
       for(;;){ // run at the highest speed we can
@@ -111,7 +110,10 @@ TEST_CASE("Visual") {
         CHECK(NCERR_SUCCESS == ncerr);
         /*CHECK(dimy * 2 == frame->height);
         CHECK(dimx == frame->width); FIXME */
-        CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
+        struct ncvisual_options opts{};
+        opts.scaling = NCSCALE_STRETCH;
+        opts.n = ncp_;
+        CHECK(ncvisual_render(nc_, ncv, &opts));
         CHECK(0 == notcurses_render(nc_));
       }
       ncvisual_destroy(ncv);
@@ -123,17 +125,19 @@ TEST_CASE("Visual") {
       nc_err_e ncerr = NCERR_SUCCESS;
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      struct ncvisual_options opts{};
-      opts.style = NCSCALE_STRETCH;
-      auto ncv = ncvisual_from_file(nc_, &opts, find_data("notcursesI.avi"), &ncerr);
+      auto ncv = ncvisual_from_file(find_data("notcursesI.avi"), &ncerr);
       REQUIRE(ncv);
       CHECK(NCERR_SUCCESS == ncerr);
       ncerr = ncvisual_decode(ncv);
       CHECK(NCERR_SUCCESS == ncerr);
       /*CHECK(dimy * 2 == frame->height);
       CHECK(dimx == frame->width); FIXME */
-      CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
+      struct ncvisual_options opts{};
+      opts.scaling = NCSCALE_STRETCH;
+      auto newn = ncvisual_render(nc_, ncv, &opts);
+      CHECK(newn);
       CHECK(0 == notcurses_render(nc_));
+      ncplane_destroy(newn);
       ncvisual_destroy(ncv);
     }
   }
@@ -143,9 +147,11 @@ TEST_CASE("Visual") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
-    auto ncv = ncvisual_from_rgba(nc_, nullptr, rgba.data(), dimy * 2, dimx * 4, dimx);
+    auto ncv = ncvisual_from_rgba(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
-    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
+    struct ncvisual_options opts{};
+    opts.n = ncp_;
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
@@ -155,9 +161,11 @@ TEST_CASE("Visual") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
-    auto ncv = ncvisual_from_bgra(nc_, nullptr, rgba.data(), dimy * 2, dimx * 4, dimx);
+    auto ncv = ncvisual_from_bgra(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
-    CHECK(0 < ncvisual_render(ncv, 0, 0, -1, -1));
+    struct ncvisual_options opts{};
+    opts.n = ncp_;
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));

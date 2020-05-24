@@ -203,6 +203,8 @@ char* ncplane_at_yx(const ncplane* n, int y, int x, uint32_t* attrword, uint64_t
 }
 
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
+  assert(y < n->leny);
+  assert(x < n->lenx);
   return &n->fb[nfbcellidx(n, y, x)];
 }
 

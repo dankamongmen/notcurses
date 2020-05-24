@@ -617,8 +617,6 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
 
 int update_term_dimensions(int fd, int* rows, int* cols);
 
-struct ncvisual* ncvisual_create(const struct blitset* bset, float timescale);
-
 static inline void*
 memdup(const void* src, size_t len){
   void* ret = malloc(len);
@@ -659,6 +657,8 @@ ncplane_center(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
 
 int ncvisual_bounding_box(const struct ncvisual* ncv, int* leny, int* lenx,
                           int* offy, int* offx);
+
+nc_err_e ncvisual_resize(struct ncvisual* ncv, int rows, int cols);
 
 #ifdef __cplusplus
 }

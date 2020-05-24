@@ -1,11 +1,11 @@
 void DrawBackground(const std::string& s) { // drawn to the standard plane
   nc_err_e err;
-  ncvisual_options opts{};
-  opts.style = NCSCALE_STRETCH;
-  backg_ = std::make_unique<ncpp::Visual>(&opts, s.c_str(), &err);
+  backg_ = std::make_unique<ncpp::Visual>(s.c_str(), &err);
   backg_->decode();
-  backg_->render(0, 0, -1, -1);
-  backg_->get_plane()->greyscale();
+  ncvisual_options opts{};
+  opts.scaling = NCSCALE_STRETCH;
+  auto p = backg_->render(&opts);
+  ncplane_greyscale(p);
 }
 
 void DrawBoard() { // draw all fixed components of the game

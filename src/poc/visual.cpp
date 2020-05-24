@@ -27,21 +27,21 @@ int main(int argc, char** argv){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+  struct ncvisual_options vopts{};
   int dimx, dimy;
   ncplane_dim_yx(n, &dimy, &dimx);
   bool failed = false;
   nc_err_e ncerr;
-  struct ncvisual_options vopts{};
-  vopts.style = NCSCALE_STRETCH;
-  vopts.n = n;
-  auto ncv = ncvisual_from_file(nc, &vopts, file, &ncerr);
+  auto ncv = ncvisual_from_file(file, &ncerr);
   if(!ncv){
     goto err;
   }
   if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     goto err;
   }
-  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
+  vopts.scaling = NCSCALE_STRETCH;
+  vopts.n = n;
+  if(ncvisual_render(nc, ncv, &vopts) == nullptr){
     goto err;
   }
   if(notcurses_render(nc)){
@@ -53,7 +53,7 @@ int main(int argc, char** argv){
       failed = true;
       break;
     }
-    if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
+    if(ncvisual_render(nc, ncv, &vopts) == nullptr){
       failed = true;
       break;
     }

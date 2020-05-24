@@ -81,6 +81,7 @@ int normal_demo(struct notcurses* nc){
   if(n == NULL){
     return -1;
   }
+  ncplane_cursor_move_yx(n, 0, 0);
   // we can't rotate a plane unless it has an even number of columns :/
   int nx;
   if((nx = ncplane_dim_x(n)) % 2){
@@ -129,15 +130,16 @@ int normal_demo(struct notcurses* nc){
   channels_set_fg_rgb(&tr, random() % 256, random() % 256, random() % 256);
   channels_set_fg_rgb(&bl, random() % 256, random() % 256, random() % 256);
   channels_set_fg_rgb(&br, random() % 256, random() % 256, random() % 256);
-  if(ncplane_stain(n, (dy / VSCALE) - 1, dx - 1, tl, tr, bl, br) < 0){
+  ncplane_dim_yx(n, &dy, &dx);
+  if(ncplane_stain(n, dy - 1, dx - 1, tl, tr, bl, br) < 0){
     goto err;
   }
   DEMO_RENDER(nc);
   demo_nanosleep(nc, &demodelay);
+  struct ncvisual* ncv = ncvisual_from_plane(n, 0, 0, dy, dx);
   struct ncvisual_options vopts = {
     .n = n,
   };
-  struct ncvisual* ncv = ncvisual_from_plane(n, &vopts, 0, 0, (dy / VSCALE) - 1, dx - 1);
   if(!ncv){
     goto err;
   }
@@ -151,7 +153,7 @@ int normal_demo(struct notcurses* nc){
       failed = true;
       break;
     }
-    if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
+    if(ncvisual_render(nc, ncv, &vopts) == NULL){
       failed = true;
       break;
     }

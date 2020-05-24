@@ -300,25 +300,27 @@ typedef enum {
   NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
 } ncblitter_e;
+struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
+struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);
+struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows, int rowstride, int cols);
+struct ncvisual* ncvisual_from_plane(const struct ncplane* n, int begy, int begx, int leny, int lenx);
+int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, ncblitter_e blitter, int* y, int* x, int* toy, int* tox);
+void ncvisual_destroy(struct ncvisual* ncv);
+nc_err_e ncvisual_decode(struct ncvisual* nc);
+int ncvisual_rotate(struct ncvisual* n, double rads);
+struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);
+char* ncvisual_subtitle(const struct ncvisual* ncv);
+typedef int (*streamcb)(struct ncplane*, struct ncvisual*, const struct timespec*, void*);
+int ncvisual_stream(struct ncplane* n, struct ncvisual* ncv, nc_err_e* ncerr, float timescale, streamcb streamer, void* curry);
 struct ncvisual_options {
   struct ncplane* n;
-  ncscale_e style;
+  ncscale_e scaling;
   int y, x;
+  int begy, begx;
+  int leny, lenx;
   ncblitter_e glyphs;
   uint64_t flags;
 };
-struct ncvisual* ncvisual_from_file(struct notcurses* nc, const struct ncvisual_options* opts, const char* file, nc_err_e* ncerr);
-struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const struct ncvisual_options* opts, const void* rgba, int rows, int rowstride, int cols);
-struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const struct ncvisual_options* opts, const void* rgba, int rows, int rowstride, int cols);
-struct ncvisual* ncvisual_from_plane(const struct ncplane* n, const struct ncvisual_options* opts, int begy, int begx, int leny, int lenx);
-struct ncplane* ncvisual_plane(struct ncvisual* ncv);
-void ncvisual_geom(const struct ncvisual* n, int* y, int* x, int* toy, int* tox);
-void ncvisual_destroy(struct ncvisual* ncv);
-nc_err_e ncvisual_decode(struct ncvisual* nc);
-int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
-char* ncvisual_subtitle(const struct ncvisual* ncv);
-typedef int (*streamcb)(struct notcurses*, struct ncvisual*, const struct timespec*, void*);
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
 int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
 int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
 struct ncselector_item {
@@ -451,7 +453,6 @@ int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
 int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
 int ncplane_rotate_cw(struct ncplane* n);
 int ncplane_rotate_ccw(struct ncplane* n);
-int ncvisual_rotate(struct ncvisual* n, double rads);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 typedef struct ncplot_options {

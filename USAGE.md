@@ -2451,13 +2451,11 @@ bool notcurses_canopen(const struct notcurses* nc);
 // (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
 struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
 
-// Return the plane to which this ncvisual is bound.
-struct ncplane* ncvisual_plane(struct ncvisual* ncv);
-
 // Get the size and ratio of ncvisual pixels to output cells along the y
-// ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
-// ('*y' * '*toy')X('x' * 'tox') cells for full output.
-void ncvisual_geom(const struct ncvisual* n, int* y, int* x, int* toy, int* tox);
+// ('toy') and x ('tox') axes, assuming 'blitter'. A ncvisual of '*y'X'*x'
+// pixels will require ('*y' * '*toy')X('x' * 'tox') cells for full output.
+void ncvisual_geom(const struct ncvisual* n, ncblitter_e blitter,
+                   int* y, int* x, int* toy, int* tox);
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
@@ -2467,15 +2465,15 @@ void ncvisual_destroy(struct ncvisual* ncv);
 // and NCERR_SUCCESS on success, otherwise some other NCERR.
 nc_err_e ncvisual_decode(struct ncvisual* nc);
 
-// Render the decoded frame to the associated ncplane. The frame will be scaled
-// to the size of the ncplane per the ncscale_e style. A subregion of the
-// frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
-// the rectangle formed by begy x begx and the lower-right corner, -1 can be
-// supplied to 'leny' and 'lenx'. {0, 0, -1, -1} will thus render the entire
-// visual. Negative values for 'begy' or 'begx' are an error. It is an error to
-// specify any region beyond the boundaries of the frame. Returns the number of
-// cells written, or -1 on failure.
-int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
+// Render the decoded frame to the specified ncplane (if one is not provided,
+// one will be created, having the exact size necessary to display the visual.
+// In this case, 'style' must be NCSTYLE_NONE). A subregion of the visual can
+// be rendered using 'begx', 'begy', 'lenx', and 'leny'. Negative values for
+// 'begy' or 'begx' are an error. It is an error to specify any region beyond
+// the boundaries of the frame. Returns the plane to which we drew (if ncv->n
+// is NULL, a new plane will be created).
+struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
+                                const struct ncvisual_options* vopts);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
