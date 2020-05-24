@@ -6,10 +6,13 @@
 
 namespace ncpp
 {
+	class NotCurses;
+
 	class NCPP_API_EXPORT Palette256 : public Root
 	{
 	public:
-		Palette256 ()
+		Palette256 (NotCurses *ncinst = nullptr)
+			: Root (ncinst)
 		{
 			palette = palette256_new (get_notcurses ());
 			if (palette == nullptr)

@@ -10,6 +10,8 @@
 
 namespace ncpp
 {
+	class NotCurses;
+
 	class NCPP_API_EXPORT Cell : public Root
 	{
 	public:
@@ -26,17 +28,20 @@ namespace ncpp
 		static constexpr int AlphaOpaque        = CELL_ALPHA_OPAQUE;
 
 	public:
-		Cell () noexcept
+		Cell (NotCurses *ncinst = nullptr) noexcept
+			: Root (ncinst)
 		{
 			init ();
 		}
 
-		explicit Cell (uint32_t c) noexcept
+		explicit Cell (uint32_t c, NotCurses *ncinst = nullptr) noexcept
+			: Root (ncinst)
 		{
 			_cell = CELL_SIMPLE_INITIALIZER (c);
 		}
 
-		explicit Cell (uint32_t c, uint32_t a, uint64_t chan) noexcept
+		explicit Cell (uint32_t c, uint32_t a, uint64_t chan, NotCurses *ncinst = nullptr) noexcept
+			: Root (ncinst)
 		{
 			_cell = CELL_INITIALIZER (c, a, chan);
 		}

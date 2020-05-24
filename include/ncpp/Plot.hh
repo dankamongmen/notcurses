@@ -5,8 +5,8 @@
 
 #include <notcurses/notcurses.h>
 
-#include "Root.hh"
 #include "NCAlign.hh"
+#include "Plane.hh"
 #include "Utilities.hh"
 
 namespace ncpp
@@ -44,7 +44,8 @@ namespace ncpp
 		}
 
 	protected:
-		explicit PlotBase (ncplane *plane, const ncplot_options *opts, TCoord miny = 0, TCoord maxy = 0)
+		explicit PlotBase (Plane *plane, const ncplot_options *opts, TCoord miny = 0, TCoord maxy = 0)
+			: Root (Utilities::get_notcurses_cpp (plane))
 		{
 			static_assert (is_double || is_uint64, "PlotBase must be parameterized with either 'double' or 'uint64_t' types");
 			if constexpr (is_double) {
@@ -60,9 +61,9 @@ namespace ncpp
 				throw invalid_argument ("'opts' must be a valid pointer");
 
 			if constexpr (is_uint64) {
-				plot = ncuplot_create (plane, opts, miny, maxy);
+				plot = ncuplot_create (Utilities::to_ncplane (plane), opts, miny, maxy);
 			} else {
-				plot = ncdplot_create (plane, opts, miny, maxy);
+				plot = ncdplot_create (Utilities::to_ncplane (plane), opts, miny, maxy);
 			}
 
 			if (plot == nullptr)
@@ -96,24 +97,19 @@ namespace ncpp
 
 	public:
 		explicit PlotU (Plane *plane, const ncplot_options *opts = nullptr)
-			: PlotU (Utilities::to_ncplane (plane), opts)
+			: PlotU (static_cast<const Plane*>(plane), opts)
 		{}
 
 		explicit PlotU (Plane const* plane, const ncplot_options *opts = nullptr)
-			: PlotU (const_cast<Plane*>(plane), opts)
+			: PlotBase (const_cast<Plane*>(plane), opts == nullptr ? &default_options : opts)
 		{}
 
 		explicit PlotU (Plane &plane, const ncplot_options *opts = nullptr)
-			: PlotU (Utilities::to_ncplane (plane), opts)
+			: PlotU (static_cast<Plane const&>(plane), opts)
 		{}
 
 		explicit PlotU (Plane const& plane, const ncplot_options *opts = nullptr)
-			: PlotU (const_cast<Plane*>(&plane), opts)
-		{}
-
-		explicit PlotU (ncplane *plane, const ncplot_options *opts = nullptr,
-		                uint64_t miny = 0, uint64_t maxy = 0)
-			: PlotBase (plane, opts == nullptr ? &default_options : opts, miny, maxy)
+			: PlotBase (const_cast<Plane*>(&plane), opts == nullptr ? &default_options : opts)
 		{}
 
 		Plane* get_plane () const noexcept;
@@ -126,24 +122,19 @@ namespace ncpp
 
 	public:
 		explicit PlotD (Plane *plane, const ncplot_options *opts = nullptr)
-			: PlotD (Utilities::to_ncplane (plane), opts)
+			: PlotD (static_cast<const Plane*>(plane), opts)
 		{}
 
 		explicit PlotD (Plane const* plane, const ncplot_options *opts = nullptr)
-			: PlotD (const_cast<Plane*>(plane), opts)
+			: PlotBase (const_cast<Plane*>(plane), opts == nullptr ? &default_options : opts)
 		{}
 
 		explicit PlotD (Plane &plane, const ncplot_options *opts = nullptr)
-			: PlotD (Utilities::to_ncplane (plane), opts)
+			: PlotD (static_cast<Plane const&>(plane), opts)
 		{}
 
 		explicit PlotD (Plane const& plane, const ncplot_options *opts = nullptr)
-			: PlotD (const_cast<Plane*>(&plane), opts)
-		{}
-
-		explicit PlotD (ncplane *plane, const ncplot_options *opts = nullptr,
-		                double miny = 0, double maxy = 0)
-			: PlotBase (plane, opts == nullptr ? &default_options : opts, miny, maxy)
+			: PlotBase (const_cast<Plane*>(&plane), opts == nullptr ? &default_options : opts)
 		{}
 
 		Plane* get_plane () const noexcept;

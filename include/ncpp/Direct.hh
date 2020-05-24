@@ -9,10 +9,13 @@
 
 namespace ncpp
 {
+	class NotCurses;
+
 	class NCPP_API_EXPORT Direct : public Root
 	{
 	public:
-		explicit Direct (const char *termtype = nullptr, FILE *fp = nullptr)
+		explicit Direct (const char *termtype = nullptr, FILE *fp = nullptr, NotCurses *ncinst = nullptr)
+			: Root (ncinst)
 		{
 			direct = ncdirect_init (termtype, fp == nullptr ? stdout : fp);
 			if (direct == nullptr)

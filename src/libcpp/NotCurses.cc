@@ -30,20 +30,20 @@ NotCurses::~NotCurses ()
 		return;
 
 	notcurses_stop (nc);
-	_instance = nullptr;
+	if (_instance == this)
+		_instance = nullptr;
 }
 
 NotCurses::NotCurses (const notcurses_options &nc_opts, FILE *fp)
+	: Root (nullptr)
 {
 	const std::lock_guard<std::mutex> lock (init_mutex);
-
-	if (_instance != nullptr)
-		throw new init_error ("There can be only one instance of the NotCurses class. Use NotCurses::get_instance() to access the existing instance.");
 
 	nc = notcurses_init (&nc_opts, fp);
 	if (nc == nullptr)
 		throw new init_error ("notcurses failed to initialize");
-	_instance = this;
+	if (_instance == nullptr)
+		_instance = this;
 }
 
 Plane* NotCurses::get_top () noexcept
@@ -67,8 +67,9 @@ bool NotCurses::stop ()
   bool ret = !notcurses_stop (nc);
   nc = nullptr;
 
-	const std::lock_guard<std::mutex> lock (init_mutex);
-  _instance = nullptr;
+  const std::lock_guard<std::mutex> lock (init_mutex);
+  if (_instance == this)
+	  _instance = nullptr;
 
   return ret;
 }

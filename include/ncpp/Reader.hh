@@ -3,39 +3,36 @@
 
 #include <notcurses/notcurses.h>
 
-#include "Root.hh"
 #include "NCAlign.hh"
-#include "NotCurses.hh"
+#include "Plane.hh"
 #include "Utilities.hh"
 
 namespace ncpp
 {
-	class Plane;
-
 	class NCPP_API_EXPORT Reader : public Root
 	{
 	public:
 		explicit Reader (Plane *p, int y, int x, const ncreader_options *opts)
-			: Reader (Utilities::to_ncplane (p), y, x, opts)
+			: Reader (static_cast<const Plane*>(p), y, x, opts)
 		{}
 
 		explicit Reader (Plane const* p, int y, int x, const ncreader_options *opts)
-			: Reader (const_cast<Plane*>(p), y, x, opts)
-		{}
+			: Root (Utilities::get_notcurses_cpp (p))
+		{
+			if (p == nullptr)
+				throw invalid_argument ("'plane' must be a valid pointer");
+
+			common_init (Utilities::to_ncplane (p), y, x, opts);
+		}
 
 		explicit Reader (Plane &p, int y, int x, const ncreader_options *opts)
-			: Reader (reinterpret_cast<Plane*>(&p), y, x, opts)
+			: Reader (static_cast<Plane const&>(p), y, x, opts)
 		{}
 
 		explicit Reader (Plane const& p, int y, int x, const ncreader_options *opts)
-			: Reader (const_cast<Plane*>(&p), y, x, opts)
-		{}
-
-		explicit Reader (ncplane* n, int y, int x, const ncreader_options *opts)
+			: Root (Utilities::get_notcurses_cpp (p))
 		{
-			reader = ncreader_create (n, y, x, opts);
-			if (reader == nullptr)
-				throw init_error ("Notcurses failed to create a new reader");
+			common_init (Utilities::to_ncplane (p), y, x, opts);
 		}
 
 		~Reader ()
@@ -58,6 +55,14 @@ namespace ncpp
 		Plane* get_plane () const noexcept
 		{
 			return Plane::map_plane (ncreader_plane (reader));
+		}
+
+	private:
+		void common_init (ncplane *n, int y, int x, const ncreader_options *opts)
+		{
+			reader = ncreader_create (n, y, x, opts);
+			if (reader == nullptr)
+				throw init_error ("Notcurses failed to create a new reader");
 		}
 
 	private:

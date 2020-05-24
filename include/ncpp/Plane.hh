@@ -22,11 +22,13 @@ namespace ncpp
 	{
 	public:
 		Plane (Plane const& other)
+			: Root (nullptr)
 		{
 			plane = duplicate_plane (other, nullptr);
 		}
 
 		explicit Plane (Plane const& other, void *opaque)
+			: Root (nullptr)
 		{
 			plane = duplicate_plane (other, opaque);
 		}
@@ -36,6 +38,7 @@ namespace ncpp
 		{}
 
 		explicit Plane (const Plane *n, int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
+			: Root (nullptr)
 		{
 			if (n == nullptr)
 				throw invalid_argument ("'n' must be a valid pointer");
@@ -44,11 +47,13 @@ namespace ncpp
 		}
 
 		explicit Plane (const Plane &n, int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
+			: Root (nullptr)
 		{
 			plane = create_plane (n, rows, cols, yoff, xoff, opaque);
 		}
 
-		explicit Plane (int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
+		explicit Plane (int rows, int cols, int yoff, int xoff, void *opaque = nullptr, NotCurses *ncinst = nullptr)
+			: Root (ncinst)
 		{
 			plane = ncplane_new (
 				get_notcurses (),
@@ -66,16 +71,19 @@ namespace ncpp
 		}
 
 		explicit Plane (Plane &n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
+			: Root (nullptr)
 		{
 			plane = create_plane (n, rows, cols, yoff, align, opaque);
 		}
 
 		explicit Plane (Plane const& n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
+			: Root (nullptr)
 		{
 			plane = create_plane (const_cast<Plane&>(n), rows, cols, yoff, align, opaque);
 		}
 
 		explicit Plane (Plane *n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
+			: Root (nullptr)
 		{
 			if (n == nullptr)
 				throw invalid_argument ("'n' must be a valid pointer");
@@ -84,6 +92,7 @@ namespace ncpp
 		}
 
 		explicit Plane (Plane const* n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
+			: Root (nullptr)
 		{
 			if (n == nullptr)
 				throw invalid_argument ("'n' must be a valid pointer");
@@ -92,7 +101,8 @@ namespace ncpp
 		}
 
 		explicit Plane (ncplane *_plane) noexcept
-			: plane (_plane)
+			: Root (nullptr),
+			  plane (_plane)
 		{}
 
 		~Plane () noexcept
@@ -118,7 +128,7 @@ namespace ncpp
 		void center_abs (int *y, int *x) const noexcept
 		{
 			ncplane_center_abs (plane, y, x);
-    }
+		}
 
 		ncplane* to_ncplane () noexcept
 		{
@@ -862,12 +872,12 @@ namespace ncpp
 
 		Visual* visual_open (const char *file, nc_err_e *ncerr) const
 		{
-			return new Visual (plane, file, ncerr);
+			return new Visual (this, file, ncerr);
 		}
 
 		NcReel* ncreel_create (const ncreel_options *popts = nullptr, int efd = -1) const
 		{
-			return new NcReel (plane, popts, efd);
+			return new NcReel (this, popts, efd);
 		}
 
 		// Some Cell APIs go here since they act on individual panels even though it may seem weird at points (e.g.
@@ -1031,8 +1041,9 @@ namespace ncpp
 
 	protected:
 		explicit Plane (ncplane *_plane, bool _is_stdplane)
-			: plane (_plane),
-				is_stdplane (_is_stdplane)
+			: Root (nullptr),
+			  plane (_plane),
+			  is_stdplane (_is_stdplane)
 		{
 			if (_plane == nullptr)
 				throw invalid_argument ("_plane must be a valid pointer");

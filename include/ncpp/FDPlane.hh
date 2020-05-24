@@ -3,7 +3,7 @@
 
 #include <notcurses/notcurses.h>
 
-#include "Root.hh"
+#include "Utilities.hh"
 #include "Plane.hh"
 
 namespace ncpp
@@ -18,20 +18,38 @@ namespace ncpp
 			: FDPlane (n, fd, nullptr, cbfxn, donecbfxn)
 		{}
 
+		explicit FDPlane (const Plane* n, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: FDPlane (n, fd, nullptr, cbfxn, donecbfxn)
+		{}
+
 		explicit FDPlane (Plane* n, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: FDPlane (static_cast<const Plane*>(n), fd, opts, cbfxn, donecbfxn)
+		{}
+
+		explicit FDPlane (const Plane* n, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Root (Utilities::get_notcurses_cpp (n))
 		{
 			if (n == nullptr)
 				throw invalid_argument ("'n' must be a valid pointer");
-			create_fdplane (*n, fd, opts, cbfxn, donecbfxn);
+			create_fdplane (const_cast<Plane&>(*n), fd, opts, cbfxn, donecbfxn);
 		}
+
+		explicit FDPlane (const Plane& n, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: FDPlane (n, fd, nullptr, cbfxn, donecbfxn)
+		{}
 
 		explicit FDPlane (Plane& n, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
 			: FDPlane (n, fd, nullptr, cbfxn, donecbfxn)
 		{}
 
 		explicit FDPlane (Plane& n, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: FDPlane (static_cast<Plane const&>(n), fd, opts, cbfxn, donecbfxn)
+		{}
+
+		explicit FDPlane (const Plane& n, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Root (Utilities::get_notcurses_cpp (n))
 		{
-			create_fdplane (n, fd, opts, cbfxn, donecbfxn);
+			create_fdplane (const_cast<Plane&>(n), fd, opts, cbfxn, donecbfxn);
 		}
 
 		~FDPlane ()
