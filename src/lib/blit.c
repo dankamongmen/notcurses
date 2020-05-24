@@ -193,10 +193,10 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
-// Braille blitter. maps 4x2 to each cell. since we only have two colors at
-// our disposal (foreground and background), we lose some fidelity. this is
-// optimal for visuals with only two colors in a given area, as it packs
-// lots of resolution.
+// Braille blitter. maps 4x2 to each cell. since we only have one color at
+// our disposal (foreground), we lose some fidelity. this is optimal for
+// visuals with only two colors in a given area, as it packs lots of
+// resolution. always transparent background.
 static inline int
 braille_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
@@ -253,21 +253,19 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
       c->attrword = 0;
       // FIXME for now, we just sample, color-wise, and always draw crap.
       // more complicated to do optimally than quadrants, for sure. ideally,
-      // we only get two colors.
-      // FIXME for now, we're only transparent if all four are transparent. we ought
-      // match transparent like anything else...
+      // we only get one color in an area.
+      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
       const char* egc = NULL;
       if(ffmpeg_trans_p(bgr, rgbbase_l0[3]) && ffmpeg_trans_p(bgr, rgbbase_r0[3])
           && ffmpeg_trans_p(bgr, rgbbase_l1[3]) && ffmpeg_trans_p(bgr, rgbbase_r1[3])
           && ffmpeg_trans_p(bgr, rgbbase_l2[3]) && ffmpeg_trans_p(bgr, rgbbase_r2[3])
           && ffmpeg_trans_p(bgr, rgbbase_l3[3]) && ffmpeg_trans_p(bgr, rgbbase_r3[3])){
-          cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
           egc = " ";
           // FIXME else look for pairs of transparency!
       }else{
+        // FIXME interpolate into 1
         cell_set_fg_rgb(c, rgbbase_l0[rpos], rgbbase_l0[1], rgbbase_l0[bpos]);
-        cell_set_bg_rgb(c, rgbbase_r3[rpos], rgbbase_r3[1], rgbbase_r3[bpos]);
         egc = "⡜";
       }
       assert(egc);
