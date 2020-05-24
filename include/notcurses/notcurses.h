@@ -2142,7 +2142,7 @@ API struct ncvisual* ncvisual_from_bgra(struct notcurses* nc,
 // planes can be subjected to ncvisual transformations. If possible, it's
 // better to create the ncvisual from memory using ncvisual_from_rgba().
 API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
-                                        const struct ncvisual_options* opts,
+                                         const struct ncvisual_options* opts,
                                          int begy, int begx,
                                          int leny, int lenx);
 

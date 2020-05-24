@@ -33,9 +33,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **bool notcurses_canopen(const struct notcurses* nc);**
 
-**struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file,
-                                         nc_err_e* err, int y, int x,
-                                         ncscale_e style);**
+**struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);**
 
 **struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba, int rows, int rowstride, int cols);**
 

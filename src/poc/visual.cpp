@@ -47,6 +47,7 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
+  sleep(1);
   for(double i = 0 ; i < 256 ; ++i){
     if(ncvisual_rotate(ncv, M_PI / 16)){
       failed = true;
