@@ -1,6 +1,18 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.4.4 (not yet released)
+  * Got the `ncvisual` API ready for API freeze: all `ncvisual_from_*()`
+    functions now take a `struct ncvisual_options`. `ncstyle_e` and a few
+    other parameters have been moved within. All functions now take a
+    `struct notcurses*`, except `ncvisual_from_plane()`, which takes a
+    `struct ncplane*`. The `struct ncvisual_options` includes a `ncgridgeom_e`
+    field, allowing visuals to be mapped to various plotting paradigms
+    including Braille and quadrants.
+  * Deprecated functions `ncvisual_open_plane()` and `ncplane_visual_open()`
+    have been removed. Their functionality is present in
+    `ncvisual_from_file()`.
+
 * 1.4.3 (2020-05-22)
   * Plot: make 8x1 the default, instead of 1x1.
   * Add `PREFIXFMT`, `BPREFIXFMT`, and `IPREFIXFMT` macros for `ncmetric()`.
@@ -12,14 +24,6 @@ rearrangements of Notcurses.
     static libraries will not be built.
 
 * 1.4.2.4 (2020-05-20)
-  * Got the `ncvisual` API ready for API freeze: all `ncvisual_from_*()`
-    functions now take a `struct ncvisual_options`. `ncstyle_e` and a few
-    other parameters have been moved within. All functions now take a
-    `struct notcurses*`, except `ncvisual_from_plane()`, which takes a
-    `struct ncplane*`. The `struct ncvisual_options` includes a `ncgridgeom_e`
-    field, allowing visuals to be mapped to various plotting paradigms
-    including Braille and quadrants.
-  * Deprecated function `ncvisual_open_plane()` has been removed.
   * Removed `ncplane_move_above_unsafe()` and `ncplane_move_below_unsafe()`;
     all z-axis moves are now safe. Z-axis moves are all now O(1), rather
     than the previous O(N).

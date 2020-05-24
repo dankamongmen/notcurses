@@ -889,27 +889,6 @@ err:
   return nullptr;
 }
 
-// FIXME this ought go away, subcase of ncvisual_from_file()
-ncvisual* ncplane_visual_open(ncplane* nc, const struct ncvisual_options* opts,
-                              const char* filename, nc_err_e* ncerr){
-  if(opts && opts->flags){
-    return nullptr;
-  }
-  auto bset = rgba_blitter(ncplane_notcurses(nc), opts);
-  if(!bset){
-    return nullptr;
-  }
-  ncvisual* ncv = ncvisual_open(bset, filename, ncerr);
-  if(ncv == nullptr){
-    return nullptr;
-  }
-  ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
-  ncv->dstheight *= encoding_vert_scale(ncv);
-  ncv->ncp = nc;
-  ncv->style = NCSCALE_STRETCH;
-  return ncv;
-}
-
 auto ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
                         const char* filename, nc_err_e* ncerr) -> ncvisual* {
   if(opts && opts->flags){
@@ -927,7 +906,15 @@ auto ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
   ncv->placex = opts ? opts->x : 0;
   ncv->style = opts ? opts->style : NCSCALE_NONE;
   ncv->ncobj = nc;
-  ncv->ncp = nullptr;
+  if(opts && opts->n){
+    ncv->ncp = opts->n;
+    ncplane_dim_yx(ncv->ncp, &ncv->dstheight, &ncv->dstwidth);
+    ncv->dstheight *= encoding_vert_scale(ncv);
+    // FIXME allow styles other than STRETCH for a preexisting plane!
+    ncv->style = NCSCALE_STRETCH;
+  }else{
+    ncv->ncp = nullptr;
+  }
   return ncv;
 }
 
