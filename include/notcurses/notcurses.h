@@ -2339,8 +2339,14 @@ API void* nctablet_userptr(struct nctablet* t);
 // Access the ncplane associated with this nctablet, if one exists.
 API struct ncplane* nctablet_ncplane(struct nctablet* t);
 
-// The number of columns is one fewer, as the STRLEN expressions must
-// leave an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up.
+// The number of columns is one fewer, as the STRLEN expressions must leave
+// an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. PREFIXCOLUMNS
+// is the maximum number of columns used by a mult == 1000 (standard)
+// ncmetric() call. IPREFIXCOLUMNS is the maximum number of columns used by a
+// mult == 1024 (digital information) ncmetric(). BPREFIXSTRLEN is the maximum
+// number of columns used by a mult == 1024 call making use of the 'i' suffix.
+// This is the true number of columns; to set up a printf()-style maximum
+// field width, you should use [IB]PREFIXFMT (see below).
 #define PREFIXCOLUMNS 7
 #define IPREFIXCOLUMNS 8
 #define BPREFIXCOLUMNS 9
@@ -2349,12 +2355,10 @@ API struct ncplane* nctablet_ncplane(struct nctablet* t);
 #define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
 // Used as arguments to a variable field width (i.e. "%*s" -- these are the *).
 // We need this convoluted grotesquery to properly handle 'µ'.
-#define PREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + PREFIXCOLUMNS))
-#define IPREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + IPREFIXCOLUMNS))
-#define BPREFIXFWIDTH(x) ((int)(strlen(x) - mbswidth(x) + BPREFIXCOLUMNS))
-#define PREFIXFMT(x) PREFIXFWIDTH(x), (x)
-#define IPREFIXFMT(x) IPREFIXFWIDTH(x), (x)
-#define BPREFIXFMT(x) BPREFIXFWIDTH(x), (x)
+#define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - mbswidth(x) + (cols)))
+#define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
+#define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
+#define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)
 
 // Takes an arbitrarily large number, and prints it into a fixed-size buffer by
 // adding the necessary SI suffix. Usually, pass a |[IB]PREFIXSTRLEN+1|-sized
