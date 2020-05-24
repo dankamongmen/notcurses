@@ -40,7 +40,7 @@ NotCurses::NotCurses (const notcurses_options &nc_opts, FILE *fp)
 	if (_instance != nullptr)
 		throw new init_error ("There can be only one instance of the NotCurses class. Use NotCurses::get_instance() to access the existing instance.");
 
-	nc = notcurses_init (&nc_opts, fp == nullptr ? stdout : fp);
+	nc = notcurses_init (&nc_opts, fp);
 	if (nc == nullptr)
 		throw new init_error ("notcurses failed to initialize");
 	_instance = this;
@@ -53,4 +53,22 @@ Plane* NotCurses::get_top () noexcept
 		return nullptr;
 
 	return Plane::map_plane (top);
+}
+
+// This is potentially dangerous, but alas necessary. It can cause other calls
+// here to fail in a bad way, but we need a way to report errors to
+// std{out,err} in case of failure and that will work only if notcurses is
+// stopped, so...
+bool NotCurses::stop ()
+{
+  if (nc == nullptr)
+    throw invalid_state_error (ncpp_invalid_state_message);
+
+  bool ret = !notcurses_stop (nc);
+  nc = nullptr;
+
+	const std::lock_guard<std::mutex> lock (init_mutex);
+  _instance = nullptr;
+
+  return ret;
 }

@@ -6,6 +6,7 @@
 
 #include "Tablet.hh"
 #include "Root.hh"
+#include "Utilities.hh"
 
 namespace ncpp
 {
@@ -25,7 +26,7 @@ namespace ncpp
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			create_reel (reinterpret_cast<ncplane*>(plane), popts, efd);
+			create_reel (Utilities::to_ncplane (plane), popts, efd);
 		}
 
 		explicit NcReel (ncplane *plane, const ncreel_options *popts = nullptr, int efd = -1)

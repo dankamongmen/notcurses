@@ -6,6 +6,7 @@
 #include <doctest/doctest.h>
 #include <notcurses/notcurses.h>
 #include <ncpp/NotCurses.hh>
+#include <ncpp/_exceptions.hh>
 #include "internal.h"
 
 auto find_data(const char* datum) -> char*;

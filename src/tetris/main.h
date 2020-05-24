@@ -1,14 +1,4 @@
-int main(void) {
-  if(setlocale(LC_ALL, "") == nullptr){
-    return EXIT_FAILURE;
-  }
-  srand(time(nullptr));
-  std::atomic_bool gameover = false;
-  notcurses_options ncopts{};
-  ncopts.flags = NCOPTION_INHIBIT_SETLOCALE;
-  ncpp::NotCurses nc(ncopts);
-  Tetris t{nc, gameover};
-  std::thread tid(&Tetris::Ticker, &t);
+bool IOLoop(ncpp::NotCurses& nc, Tetris& t, std::atomic_bool& gameover) {
   ncpp::Plane* stdplane = nc.get_stdplane();
   char32_t input = 0;
   ncinput ni;
@@ -32,11 +22,27 @@ int main(void) {
     }
     ncmtx.unlock();
   }
-  if(gameover || input == 'q'){ // FIXME signal it on 'q'
-    gameover = true;
-    tid.join();
-  }else{
+  return gameover || input == 'q';
+}
+
+int main(void) {
+  if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
+  }
+  srand(time(nullptr));
+  std::atomic_bool gameover = false;
+  notcurses_options ncopts{};
+  ncopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  ncpp::NotCurses nc(ncopts);
+  {
+    Tetris t{nc, gameover};
+    std::thread tid(&Tetris::Ticker, &t);
+    if(IOLoop(nc, t, gameover)){
+      gameover = true; // FIXME signal thread
+      tid.join();
+    }else{
+      return EXIT_FAILURE;
+    }
   }
   return nc.stop() ? EXIT_SUCCESS : EXIT_FAILURE;
 }

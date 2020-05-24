@@ -5,6 +5,7 @@
 
 #include "Root.hh"
 #include "NCScale.hh"
+#include "Utilities.hh"
 
 namespace ncpp
 {
@@ -14,7 +15,7 @@ namespace ncpp
 	{
 	public:
 		explicit Visual (Plane *plane, const char *file, nc_err_e* ncerr)
-			: Visual (reinterpret_cast<ncplane*>(plane), file, ncerr)
+			: Visual (Utilities::to_ncplane (plane), file, ncerr)
 		{}
 
 		explicit Visual (Plane const* plane, const char *file, nc_err_e* ncerr)
@@ -22,7 +23,7 @@ namespace ncpp
 		{}
 
 		explicit Visual (Plane &plane, const char *file, nc_err_e* ncerr)
-			: Visual (reinterpret_cast<ncplane*>(&plane), file, ncerr)
+			: Visual (Utilities::to_ncplane (plane), file, ncerr)
 		{}
 
 		explicit Visual (Plane const& plane, const char *file, nc_err_e* ncerr)
@@ -34,7 +35,7 @@ namespace ncpp
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			visual = ncplane_visual_open (reinterpret_cast<ncplane*>(plane), file, ncerr);
+			visual = ncplane_visual_open (plane, file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}
