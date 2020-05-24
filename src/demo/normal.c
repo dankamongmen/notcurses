@@ -129,10 +129,6 @@ int normal_demo(struct notcurses* nc){
   channels_set_fg_rgb(&tr, random() % 256, random() % 256, random() % 256);
   channels_set_fg_rgb(&bl, random() % 256, random() % 256, random() % 256);
   channels_set_fg_rgb(&br, random() % 256, random() % 256, random() % 256);
-  channels_set_bg_rgb(&tl, random() % 256, random() % 256, random() % 256);
-  channels_set_bg_rgb(&tr, random() % 256, random() % 256, random() % 256);
-  channels_set_bg_rgb(&bl, random() % 256, random() % 256, random() % 256);
-  channels_set_bg_rgb(&br, random() % 256, random() % 256, random() % 256);
   if(ncplane_stain(n, (dy / VSCALE) - 1, dx - 1, tl, tr, bl, br) < 0){
     goto err;
   }
