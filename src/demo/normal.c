@@ -122,8 +122,51 @@ int normal_demo(struct notcurses* nc){
     ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
     DEMO_RENDER(nc);
   }
+  ncplane_cursor_move_yx(n, 0, 0);
+  uint64_t tl, tr, bl, br;
+  tl = tr = bl = br = 0;
+  channels_set_fg_rgb(&tl, random() % 256, random() % 256, random() % 256);
+  channels_set_fg_rgb(&tr, random() % 256, random() % 256, random() % 256);
+  channels_set_fg_rgb(&bl, random() % 256, random() % 256, random() % 256);
+  channels_set_fg_rgb(&br, random() % 256, random() % 256, random() % 256);
+  channels_set_bg_rgb(&tl, random() % 256, random() % 256, random() % 256);
+  channels_set_bg_rgb(&tr, random() % 256, random() % 256, random() % 256);
+  channels_set_bg_rgb(&bl, random() % 256, random() % 256, random() % 256);
+  channels_set_bg_rgb(&br, random() % 256, random() % 256, random() % 256);
+  if(ncplane_stain(n, (dy / VSCALE) - 1, dx - 1, tl, tr, bl, br) < 0){
+    goto err;
+  }
+  DEMO_RENDER(nc);
+  demo_nanosleep(nc, &demodelay);
+  struct ncvisual_options vopts = {
+    .n = n,
+  };
+  struct ncvisual* ncv = ncvisual_from_plane(n, &vopts, 0, 0, (dy / VSCALE) - 1, dx - 1);
+  if(!ncv){
+    goto err;
+  }
+  ncplane_erase(n);
+  bool failed = false;
+  const int ROTATIONS = 128;
+  timespec_div(&demodelay, ROTATIONS, &scaled);
+  for(double i = 0 ; i < ROTATIONS ; ++i){
+    demo_nanosleep(nc, &scaled);
+    if(ncvisual_rotate(ncv, M_PI / 16)){
+      failed = true;
+      break;
+    }
+    if(ncvisual_render(ncv, 0, 0, -1, -1) < 0){
+      failed = true;
+      break;
+    }
+    if(notcurses_render(nc)){
+      failed = true;
+      break;
+    }
+  }
+  ncvisual_destroy(ncv);
   ncplane_destroy(n);
-  return 0;
+  return failed ? -1 : 0;
 
 err:
   free(rgba);
