@@ -7,6 +7,7 @@
 
 namespace ncpp
 {
+	class NotCurses;
 	class Plane;
 
 	class NCPP_API_EXPORT Menu : public Root
@@ -15,10 +16,10 @@ namespace ncpp
 		static ncmenu_options default_options;
 
 	public:
-		explicit Menu (const ncmenu_options *opts = nullptr)
+		explicit Menu (const ncmenu_options *opts = nullptr, NotCurses *ncinst = nullptr)
+			: Root (ncinst)
 		{
-			menu = ncmenu_create (notcurses_stdplane(get_notcurses ()),
-                            opts == nullptr ? &default_options : opts);
+			menu = ncmenu_create (notcurses_stdplane (get_notcurses ()), opts == nullptr ? &default_options : opts);
 			if (menu == nullptr)
 				throw init_error ("Notcurses failed to create a new menu");
 		}
@@ -64,9 +65,9 @@ namespace ncpp
 			return ncmenu_selected (menu, ni);
 		}
 
-		bool offer_input (const struct ncinput* nc) const noexcept
+		bool offer_input (const struct ncinput* ni) const noexcept
 		{
-			return ncmenu_offer_input (menu, nc);
+			return ncmenu_offer_input (menu, ni);
 		}
 
 		Plane* get_plane () const noexcept;

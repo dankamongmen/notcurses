@@ -56,8 +56,11 @@ namespace ncpp
 			return *_instance;
 		}
 
-		static bool is_notcurses_stopped ()
+		static bool is_notcurses_stopped (const NotCurses *ncinst = nullptr)
 		{
+			if (ncinst != nullptr)
+				return ncinst->nc == nullptr;
+
 			return *_instance == nullptr || _instance->nc == nullptr;
 		}
 

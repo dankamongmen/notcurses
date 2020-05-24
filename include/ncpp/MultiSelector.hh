@@ -3,14 +3,12 @@
 
 #include <notcurses/notcurses.h>
 
-#include "Root.hh"
 #include "NCAlign.hh"
+#include "Plane.hh"
 #include "Utilities.hh"
 
 namespace ncpp
 {
-	class Plane;
-
 	class NCPP_API_EXPORT MultiSelector : public Root
 	{
 	public:
@@ -18,29 +16,23 @@ namespace ncpp
 
 	public:
 		explicit MultiSelector (Plane *plane, int y, int x, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (Utilities::to_ncplane (plane), y, x, opts)
+			: MultiSelector (static_cast<const Plane*>(plane), y, x, opts)
 		{}
 
 		explicit MultiSelector (Plane const* plane, int y, int x, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (const_cast<Plane*>(plane), y, x, opts)
-		{}
+			: Root (Utilities::get_notcurses_cpp (plane))
+		{
+			common_init (Utilities::to_ncplane (plane), y, x, opts);
+		}
 
 		explicit MultiSelector (Plane &plane, int y, int x, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (plane.to_ncplane (), y, x, opts)
+			: MultiSelector (static_cast<Plane const&>(plane), y, x, opts)
 		{}
 
 		explicit MultiSelector (Plane const& plane, int y, int x, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (const_cast<Plane*>(&plane), y, x, opts)
-		{}
-
-		explicit MultiSelector (ncplane *plane, int y, int x, const ncmultiselector_options *opts = nullptr)
+			: Root (Utilities::get_notcurses_cpp (plane))
 		{
-			if (plane == nullptr)
-				throw invalid_argument ("'plane' must be a valid pointer");
-
-			multiselector = ncmultiselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
-			if (multiselector == nullptr)
-				throw init_error ("Notcurses failed to create a new multiselector");
+			common_init (Utilities::to_ncplane (plane), y, x, opts);
 		}
 
 		~MultiSelector ()
@@ -49,9 +41,9 @@ namespace ncpp
 				ncmultiselector_destroy (multiselector, nullptr);
 		}
 
-		bool offer_input (const struct ncinput *nc) const noexcept
+		bool offer_input (const struct ncinput *ni) const noexcept
 		{
-			return ncmultiselector_offer_input (multiselector, nc);
+			return ncmultiselector_offer_input (multiselector, ni);
 		}
 
 		int get_selected (bool *selected, unsigned count) const NOEXCEPT_MAYBE
@@ -60,6 +52,17 @@ namespace ncpp
 		}
 
 		Plane* get_plane () const noexcept;
+
+	private:
+		void common_init (ncplane *plane, int y, int x, const ncmultiselector_options *opts)
+		{
+			if (plane == nullptr)
+				throw invalid_argument ("'plane' must be a valid pointer");
+
+			multiselector = ncmultiselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
+			if (multiselector == nullptr)
+				throw init_error ("Notcurses failed to create a new multiselector");
+		}
 
 	private:
 		ncmultiselector *multiselector;

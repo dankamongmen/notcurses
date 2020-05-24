@@ -15,12 +15,26 @@ namespace ncpp {
 #define NOEXCEPT_MAYBE noexcept
 #endif
 
+	class NotCurses;
+
 	class NCPP_API_EXPORT Root
 	{
 	protected:
 		static constexpr char ncpp_invalid_state_message[] = "notcurses++ is in an invalid state (already stopped?)";
 
+	public:
+		notcurses* get_notcurses () const;
+
+		NotCurses* get_notcurses_cpp () const
+		{
+			return nc;
+		}
+
 	protected:
+		explicit Root (NotCurses *ncinst)
+			: nc (ncinst)
+		{}
+
 		template<typename TRet = bool, typename TValue = int>
 		TRet error_guard (TValue ret, TValue error_value) const
 		{
@@ -77,13 +91,14 @@ namespace ncpp {
 #endif
 		}
 
-		notcurses* get_notcurses () const;
-
 		// All the objects which need to destroy notcurses entities (planes, panelreel etc etc) **have to** call this
 		// function before calling to notcurses from their destructor. This is to prevent a segfault when
 		// NotCurses::stop has been called and the app uses smart pointers holding NotCurses objects which may be
 		// destructed **after** notcurses is stopped.
 		bool is_notcurses_stopped () const noexcept;
+
+	private:
+		NotCurses *nc = nullptr;
 	};
 }
 #endif

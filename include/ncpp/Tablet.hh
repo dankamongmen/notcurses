@@ -11,12 +11,14 @@
 namespace ncpp
 {
 	class Plane;
+	class NotCurses;
 
 	class NCPP_API_EXPORT NcTablet : public Root
 	{
 	protected:
-		explicit NcTablet (nctablet *t)
-			: _tablet (t)
+		explicit NcTablet (nctablet *t, NotCurses *ncinst)
+			: Root (ncinst),
+			  _tablet (t)
 		{
 			if (t == nullptr)
 				throw invalid_argument ("'t' must be a valid pointer");
@@ -40,7 +42,7 @@ namespace ncpp
 		}
 
 		Plane* get_plane () const noexcept;
-		static NcTablet* map_tablet (nctablet *t) noexcept;
+		static NcTablet* map_tablet (nctablet *t, NotCurses *ncinst = nullptr) noexcept;
 
 	protected:
 		static void unmap_tablet (NcTablet *p) noexcept;

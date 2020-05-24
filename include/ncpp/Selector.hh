@@ -3,8 +3,8 @@
 
 #include <notcurses/notcurses.h>
 
-#include "Root.hh"
 #include "NCAlign.hh"
+#include "Plane.hh"
 #include "Utilities.hh"
 
 namespace ncpp
@@ -16,29 +16,25 @@ namespace ncpp
 
 	public:
 		explicit Selector (Plane *plane, int y, int x, const ncselector_options *opts = nullptr)
-			: Selector (Utilities::to_ncplane (plane), y, x, opts)
+			: Selector (static_cast<const Plane*>(plane), y, x, opts)
 		{}
 
 		explicit Selector (Plane const* plane, int y, int x, const ncselector_options *opts = nullptr)
-			: Selector (const_cast<Plane*>(plane), y, x, opts)
-		{}
-
-		explicit Selector (Plane &plane, int y, int x, const ncselector_options *opts = nullptr)
-			: Selector (plane.to_ncplane (), y, x, opts)
-		{}
-
-		explicit Selector (Plane const& plane, int y, int x, const ncselector_options *opts = nullptr)
-			: Selector (const_cast<Plane*>(&plane), y, x, opts)
-		{}
-
-		explicit Selector (ncplane *plane, int y, int x, const ncselector_options *opts = nullptr)
+			: Root (Utilities::get_notcurses_cpp (plane))
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
+			common_init (Utilities::to_ncplane (plane), y, x, opts);
+		}
 
-			selector = ncselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
-			if (selector == nullptr)
-				throw init_error ("Notcurses failed to create a new selector");
+		explicit Selector (Plane &plane, int y, int x, const ncselector_options *opts = nullptr)
+			: Selector (static_cast<Plane const&>(plane), y, x, opts)
+		{}
+
+		explicit Selector (Plane const& plane, int y, int x, const ncselector_options *opts = nullptr)
+			: Root (Utilities::get_notcurses_cpp (plane))
+		{
+			common_init (Utilities::to_ncplane (plane), y, x, opts);
 		}
 
 		~Selector ()
@@ -72,12 +68,23 @@ namespace ncpp
 			return ncselector_selected (selector);
 		}
 
-		bool offer_input (const struct ncinput* nc) const noexcept
+		bool offer_input (const struct ncinput* ni) const noexcept
 		{
-			return ncselector_offer_input (selector, nc);
+			return ncselector_offer_input (selector, ni);
 		}
 
 		Plane* get_plane () const noexcept;
+
+	private:
+		void common_init (ncplane *plane, int y, int x, const ncselector_options *opts = nullptr)
+		{
+			if (plane == nullptr)
+				throw invalid_argument ("'plane' must be a valid pointer");
+
+			selector = ncselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
+			if (selector == nullptr)
+				throw init_error ("Notcurses failed to create a new selector");
+		}
 
 	private:
 		ncselector *selector;

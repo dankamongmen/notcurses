@@ -9,38 +9,34 @@
 
 namespace ncpp
 {
+	class NotCurses;
 	class Plane;
 
 	class NCPP_API_EXPORT Visual : public Root
 	{
 	public:
 		explicit Visual (Plane *plane, const char *file, nc_err_e* ncerr)
-			: Visual (Utilities::to_ncplane (plane), file, ncerr)
+			: Visual (static_cast<const Plane*>(plane), file, ncerr)
 		{}
 
 		explicit Visual (Plane const* plane, const char *file, nc_err_e* ncerr)
-			: Visual (const_cast<Plane*>(plane), file, ncerr)
-		{}
+			: Root (Utilities::get_notcurses_cpp (plane))
+		{
+			common_init (Utilities::to_ncplane (plane), file, ncerr);
+		}
 
 		explicit Visual (Plane &plane, const char *file, nc_err_e* ncerr)
-			: Visual (Utilities::to_ncplane (plane), file, ncerr)
+			: Visual (static_cast<Plane const&> (plane), file, ncerr)
 		{}
 
 		explicit Visual (Plane const& plane, const char *file, nc_err_e* ncerr)
-			: Visual (const_cast<Plane&>(plane), file, ncerr)
-		{}
-
-		explicit Visual (ncplane *plane, const char *file, nc_err_e* ncerr)
+			: Root (Utilities::get_notcurses_cpp (plane))
 		{
-			if (plane == nullptr)
-				throw invalid_argument ("'plane' must be a valid pointer");
-
-			visual = ncplane_visual_open (plane, file, ncerr);
-			if (visual == nullptr)
-				throw init_error ("Notcurses failed to create a new visual");
+			common_init (Utilities::to_ncplane (plane), file, ncerr);
 		}
 
-		explicit Visual (const char *file, nc_err_e* ncerr, int y, int x, NCScale scale)
+		explicit Visual (const char *file, nc_err_e* ncerr, int y, int x, NCScale scale, NotCurses *ncinst = nullptr)
+			: Root (ncinst)
 		{
 			visual = ncvisual_from_file (get_notcurses (), file, ncerr, y, x, static_cast<ncscale_e>(scale));
 			if (visual == nullptr)
@@ -88,6 +84,17 @@ namespace ncpp
 		bool rotate (double rads) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncvisual_rotate (visual, rads), -1);
+		}
+
+	private:
+		void common_init (ncplane *plane, const char *file, nc_err_e* ncerr)
+		{
+			if (plane == nullptr)
+				throw invalid_argument ("'plane' must be a valid pointer");
+
+			visual = ncplane_visual_open (plane, file, ncerr);
+			if (visual == nullptr)
+				throw init_error ("Notcurses failed to create a new visual");
 		}
 
 	private:

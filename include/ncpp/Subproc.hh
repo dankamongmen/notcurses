@@ -20,14 +20,33 @@ namespace ncpp
 			: Subproc (n, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
 		{}
 
+		explicit Subproc (const Plane* n, const char* bin, bool use_path = true,
+		                  char* const arg[] = nullptr, char* const env[] = nullptr,
+		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Subproc (n, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
+		{}
+
 		explicit Subproc (Plane* n, const char* bin, const ncsubproc_options* opts, bool use_path = true,
 		                  char* const arg[] = nullptr, char* const env[] = nullptr,
 		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Subproc (static_cast<const Plane*>(n), bin, opts, use_path, arg, env, cbfxn, donecbfxn)
+		{}
+
+		explicit Subproc (const Plane* n, const char* bin, const ncsubproc_options* opts, bool use_path = true,
+		                  char* const arg[] = nullptr, char* const env[] = nullptr,
+		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Root (Utilities::get_notcurses_cpp (n))
 		{
 			if (n == nullptr)
 				throw invalid_argument ("'n' must be a valid pointer");
-			create_subproc (*n, bin, opts, use_path, arg, env, cbfxn, donecbfxn);
+			create_subproc (const_cast<Plane&>(*n), bin, opts, use_path, arg, env, cbfxn, donecbfxn);
 		}
+
+		explicit Subproc (Plane const& n, const char* bin, bool use_path = true,
+		                  char* const arg[] = nullptr, char* const env[] = nullptr,
+		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Subproc (n, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
+		{}
 
 		explicit Subproc (Plane& n, const char* bin, bool use_path = true,
 		                  char* const arg[] = nullptr, char* const env[] = nullptr,
@@ -38,8 +57,15 @@ namespace ncpp
 		explicit Subproc (Plane& n, const char* bin, const ncsubproc_options* opts, bool use_path = true,
 		                  char* const arg[] = nullptr, char* const env[] = nullptr,
 		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Subproc (static_cast<Plane const&>(n), bin, opts, use_path, arg, env, cbfxn, donecbfxn)
+		{}
+
+		explicit Subproc (const Plane& n, const char* bin, const ncsubproc_options* opts, bool use_path = true,
+		                  char* const arg[] = nullptr, char* const env[] = nullptr,
+		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Root (Utilities::get_notcurses_cpp (n))
 		{
-			create_subproc (n, bin, opts, use_path, arg, env, cbfxn, donecbfxn);
+			create_subproc (const_cast<Plane&>(n), bin, opts, use_path, arg, env, cbfxn, donecbfxn);
 		}
 
 		~Subproc ()
