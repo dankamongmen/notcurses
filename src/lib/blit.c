@@ -193,23 +193,110 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+// Braille blitter. maps 4x2 to each cell. since we only have two colors at
+// our disposal (foreground and background), we lose some fidelity. this is
+// optimal for visuals with only two colors in a given area, as it packs
+// lots of resolution.
+static inline int
+braille_blit(ncplane* nc, int placey, int placex, int linesize,
+             const void* data, int begy, int begx,
+             int leny, int lenx, bool bgr){
+  const int bpp = 32;
+  const int rpos = bgr ? 2 : 0;
+  const int bpos = bgr ? 0 : 2;
+  int dimy, dimx, x, y;
+  int total = 0; // number of cells written
+  ncplane_dim_yx(nc, &dimy, &dimx);
+  // FIXME not going to necessarily be safe on all architectures hrmmm
+  const unsigned char* dat = data;
+  int visy = begy;
+  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 4){
+    if(ncplane_cursor_move_yx(nc, y, placex)){
+      return -1;
+    }
+    int visx = begx;
+    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
+      const unsigned char* rgbbase_l0 = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_r0 = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_l1 = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_r1 = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_l2 = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_r2 = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_l3 = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_r3 = (const unsigned char*)"\x00\x00\x00\x00";
+      if(visx < begx + lenx - 1){
+        rgbbase_r0 = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
+        if(visy < begy + leny - 1){
+          rgbbase_r1 = dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT);
+          if(visy < begy + leny - 2){
+            rgbbase_r2 = dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT);
+            if(visy < begy + leny - 3){
+              rgbbase_r3 = dat + (linesize * (visy + 3)) + ((visx + 1) * bpp / CHAR_BIT);
+            }
+          }
+        }
+      }
+      if(visy < begy + leny - 1){
+        rgbbase_l1 = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+        if(visy < begy + leny - 2){
+          rgbbase_l2 = dat + (linesize * (visy + 2)) + (visx * bpp / CHAR_BIT);
+          if(visy < begy + leny - 3){
+            rgbbase_l3 = dat + (linesize * (visy + 3)) + (visx * bpp / CHAR_BIT);
+          }
+        }
+      }
+//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
+      cell* c = ncplane_cell_ref_yx(nc, y, x);
+      // use the default for the background, as that's the only way it's
+      // effective in that case anyway
+      c->channels = 0;
+      c->attrword = 0;
+      // FIXME for now, we just sample, color-wise, and always draw crap.
+      // more complicated to do optimally than quadrants, for sure. ideally,
+      // we only get two colors.
+      // FIXME for now, we're only transparent if all four are transparent. we ought
+      // match transparent like anything else...
+      const char* egc = NULL;
+      if(ffmpeg_trans_p(bgr, rgbbase_l0[3]) && ffmpeg_trans_p(bgr, rgbbase_r0[3])
+          && ffmpeg_trans_p(bgr, rgbbase_l1[3]) && ffmpeg_trans_p(bgr, rgbbase_r1[3])
+          && ffmpeg_trans_p(bgr, rgbbase_l2[3]) && ffmpeg_trans_p(bgr, rgbbase_r2[3])
+          && ffmpeg_trans_p(bgr, rgbbase_l3[3]) && ffmpeg_trans_p(bgr, rgbbase_r3[3])){
+          cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+          cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+          egc = " ";
+          // FIXME else look for pairs of transparency!
+      }else{
+        cell_set_fg_rgb(c, rgbbase_l0[rpos], rgbbase_l0[1], rgbbase_l0[bpos]);
+        cell_set_bg_rgb(c, rgbbase_r3[rpos], rgbbase_r3[1], rgbbase_r3[bpos]);
+        egc = "⡜";
+      }
+      assert(egc);
+      if(cell_load(nc, c, egc) <= 0){
+        return -1;
+      }
+      ++total;
+    }
+  }
+  return total;
+}
+
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation.
 const struct blitset geomdata[] = {
-   { .geom = NCBLIT_8x1,     .width = 1, .height = 9, .egcs = L" ▁▂▃▄▅▆▇█",
+   { .geom = NCBLIT_8x1,     .width = 1, .height = 8, .egcs = L" ▁▂▃▄▅▆▇█",
      .blit = NULL,           .fill = false, },
-   { .geom = NCBLIT_1x1,     .width = 1, .height = 2, .egcs = L" █",
+   { .geom = NCBLIT_1x1,     .width = 1, .height = 1, .egcs = L" █",
      .blit = tria_blit_ascii,.fill = false, },
-   { .geom = NCBLIT_2x1,     .width = 1, .height = 3, .egcs = L" ▄█",
+   { .geom = NCBLIT_2x1,     .width = 1, .height = 2, .egcs = L" ▄█",
      .blit = tria_blit,      .fill = false, },
-   { .geom = NCBLIT_1x1x4,   .width = 1, .height = 5, .egcs = L" ▒░▓█",
+   { .geom = NCBLIT_1x1x4,   .width = 1, .height = 4, .egcs = L" ▒░▓█",
      .blit = NULL,           .fill = false, },
-   { .geom = NCBLIT_2x2,     .width = 2, .height = 3, .egcs = L" ▗▐▖▄▟▌▙█",
+   { .geom = NCBLIT_2x2,     .width = 2, .height = 2, .egcs = L" ▗▐▖▄▟▌▙█",
      .blit = quadrant_blit,  .fill = false, },
-   { .geom = NCBLIT_4x1,     .width = 1, .height = 5, .egcs = L" ▂▄▆█",
+   { .geom = NCBLIT_4x1,     .width = 1, .height = 4, .egcs = L" ▂▄▆█",
      .blit = NULL,           .fill = false, },
-   { .geom = NCBLIT_BRAILLE, .width = 2, .height = 5, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿",
-     .blit = NULL,           .fill = true,  },
+   { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿",
+     .blit = braille_blit,   .fill = true,  },
    { .geom = NCBLIT_SIXEL,   .width = 1, .height = 6, .egcs = L"",
      .blit = NULL,           .fill = true,  },
    { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
