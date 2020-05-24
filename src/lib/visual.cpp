@@ -78,7 +78,7 @@ typedef struct ncvisual {
 // number of ncvisuals that map to a single cell, height-wise
 static inline int
 encoding_y_scale(const ncvisual* nc){
-  return nc->bset->height - 1;
+  return nc->bset->height;
 }
 
 // number of ncvisuals that map to a single cell, width-wise
