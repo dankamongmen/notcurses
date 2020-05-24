@@ -75,10 +75,24 @@ typedef struct ncvisual {
   bool owndata;            // we own data iff owndata == true
 } ncvisual;
 
-// returns 2 if utf-8 half-blocks are in play, 1 otherwise
-static int
-encoding_vert_scale(const ncvisual* nc){
+// number of ncvisuals that map to a single cell, height-wise
+static inline int
+encoding_y_scale(const ncvisual* nc){
   return nc->bset->height - 1;
+}
+
+// number of ncvisuals that map to a single cell, width-wise
+static inline int
+encoding_x_scale(const ncvisual* nc){
+  return nc->bset->width;
+}
+
+void ncvisual_geom(const ncvisual* n, int* y, int* x, int* toy, int* tox){
+  *y = n->dstheight;
+  *x = n->dstwidth;
+  *toy = encoding_y_scale(n);
+  *tox = encoding_x_scale(n);
+  return;
 }
 
 // RGBA visuals all use NCBLIT_2x1 by default (or NCBLIT_1x1 if not in
@@ -356,7 +370,8 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   if(data == nullptr){
     return -1;
   }
-  if(ncplane_resize_simple(ncv->ncp, bby / encoding_vert_scale(ncv), bbx) < 0){
+  if(ncplane_resize_simple(ncv->ncp, bby / encoding_y_scale(ncv),
+                                     bbx / encoding_x_scale(ncv)) < 0){
     free(data);
     return -1;
   }
@@ -403,10 +418,12 @@ auto ncvisual_from_rgba(notcurses* nc, const struct ncvisual_options* opts,
   ncv->ncobj = nc;
   ncv->dstwidth = cols;
   ncv->dstheight = rows;
-  int disprows = ncv->dstheight / encoding_vert_scale(ncv) +
-                 ncv->dstheight % encoding_vert_scale(ncv);
+  int dispcols = ncv->dstwidth / encoding_x_scale(ncv) +
+                 ncv->dstwidth % encoding_x_scale(ncv);
+  int disprows = ncv->dstheight / encoding_y_scale(ncv) +
+                 ncv->dstheight % encoding_y_scale(ncv);
 //fprintf(stderr, "MADE INITIAL ONE %d/%d\n", disprows, ncv->dstwidth);
-  ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, nullptr);
+  ncv->ncp = ncplane_new(nc, disprows, dispcols, 0, 0, nullptr);
   if(ncv->ncp == nullptr){
     ncvisual_destroy(ncv);
     return nullptr;
@@ -438,9 +455,11 @@ auto ncvisual_from_bgra(notcurses* nc, const struct ncvisual_options* opts,
   ncv->ncobj = nc;
   ncv->dstwidth = cols;
   ncv->dstheight = rows;
-  int disprows = ncv->dstheight / encoding_vert_scale(ncv) +
-                 ncv->dstheight % encoding_vert_scale(ncv);
-  ncv->ncp = ncplane_new(nc, disprows, ncv->dstwidth, 0, 0, nullptr);
+  int dispcols = ncv->dstwidth / encoding_x_scale(ncv) +
+                 ncv->dstwidth % encoding_x_scale(ncv);
+  int disprows = ncv->dstheight / encoding_y_scale(ncv) +
+                 ncv->dstheight % encoding_y_scale(ncv);
+  ncv->ncp = ncplane_new(nc, disprows, dispcols, 0, 0, nullptr);
   if(ncv->ncp == nullptr){
     ncvisual_destroy(ncv);
     return nullptr;
@@ -714,8 +733,8 @@ nc_err_e ncvisual_decode(ncvisual* nc){
   int rows, cols;
   if(nc->ncp == nullptr){ // create plane
     if(nc->style == NCSCALE_NONE){
-      rows = nc->frame->height / encoding_vert_scale(nc);
-      cols = nc->frame->width;
+      rows = nc->frame->height / encoding_y_scale(nc);
+      cols = nc->frame->width / encoding_x_scale(nc);
     }else{ // FIXME differentiate between scale/stretch
       notcurses_term_dim_yx(nc->ncobj, &rows, &cols);
       if(nc->placey >= rows || nc->placex >= cols){
@@ -724,8 +743,8 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       rows -= nc->placey;
       cols -= nc->placex;
     }
-    nc->dstwidth = cols;
-    nc->dstheight = rows * encoding_vert_scale(nc);
+    nc->dstwidth = cols * encoding_x_scale(nc);
+    nc->dstheight = rows * encoding_y_scale(nc);
     nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, nullptr);
     nc->placey = 0;
     nc->placex = 0;
@@ -734,11 +753,11 @@ nc_err_e ncvisual_decode(ncvisual* nc){
     }
   }else{ // check for resize
     ncplane_dim_yx(nc->ncp, &rows, &cols);
-    if(rows != nc->dstheight / encoding_vert_scale(nc) || cols != nc->dstwidth){
+    if(rows != nc->dstheight / encoding_y_scale(nc) || cols != nc->dstwidth / encoding_x_scale(nc)){
       sws_freeContext(nc->swsctx);
       nc->swsctx = nullptr;
-      nc->dstheight = rows * encoding_vert_scale(nc);
-      nc->dstwidth = cols;
+      nc->dstheight = rows * encoding_y_scale(nc);
+      nc->dstwidth = cols * encoding_x_scale(nc);
     }
   }
   const int targformat = AV_PIX_FMT_RGBA;
@@ -905,15 +924,17 @@ auto ncvisual_from_file(notcurses* nc, const struct ncvisual_options* opts,
   ncv->placey = opts ? opts->y : 0;
   ncv->placex = opts ? opts->x : 0;
   ncv->style = opts ? opts->style : NCSCALE_NONE;
-  ncv->ncobj = nc;
   if(opts && opts->n){
     ncv->ncp = opts->n;
     ncplane_dim_yx(ncv->ncp, &ncv->dstheight, &ncv->dstwidth);
-    ncv->dstheight *= encoding_vert_scale(ncv);
+    ncv->dstheight *= encoding_y_scale(ncv);
+    ncv->dstwidth *= encoding_x_scale(ncv);
     // FIXME allow styles other than STRETCH for a preexisting plane!
     ncv->style = NCSCALE_STRETCH;
+    ncv->ncobj = nullptr;
   }else{
     ncv->ncp = nullptr;
+    ncv->ncobj = nc;
   }
   return ncv;
 }
@@ -1086,7 +1107,8 @@ ncvisual* ncplane_visual_open(ncplane* nc, const struct ncvisual_options* opts,
     return nullptr;
   }
   ncplane_dim_yx(nc, &ncv->dstheight, &ncv->dstwidth);
-  ncv->dstheight *= encoding_vert_scale(ncv);
+  ncv->dstwidth *= encoding_x_scale(ncv);
+  ncv->dstheight *= encoding_y_scale(ncv);
   ncv->ncp = nc;
   ncv->style = NCSCALE_STRETCH;
   ncv->ncobj = nullptr;
@@ -1156,8 +1178,8 @@ nc_err_e ncvisual_decode(ncvisual* nc){
   int rows, cols;
   if(nc->ncp == nullptr){ // create plane
     if(nc->style == NCSCALE_NONE){
-      rows = spec.height / encoding_vert_scale(nc);
-      cols = spec.width;
+      rows = spec.height / encoding_y_scale(nc);
+      cols = spec.width / encoding_x_scale(nc);
     }else{ // FIXME differentiate between scale/stretch
       notcurses_term_dim_yx(nc->ncobj, &rows, &cols);
       if(nc->placey >= rows || nc->placex >= cols){
@@ -1166,8 +1188,8 @@ nc_err_e ncvisual_decode(ncvisual* nc){
       rows -= nc->placey;
       cols -= nc->placex;
     }
-    nc->dstwidth = cols;
-    nc->dstheight = rows * encoding_vert_scale(nc);
+    nc->dstwidth = cols * encoding_x_scale(nc);
+    nc->dstheight = rows * encoding_y_scale(nc);
     nc->ncp = ncplane_new(nc->ncobj, rows, cols, nc->placey, nc->placex, nullptr);
     nc->placey = 0;
     nc->placex = 0;
@@ -1176,9 +1198,9 @@ nc_err_e ncvisual_decode(ncvisual* nc){
     }
   }else{ // check for resize
     ncplane_dim_yx(nc->ncp, &rows, &cols);
-    if(rows != nc->dstheight / encoding_vert_scale(nc) || cols != nc->dstwidth){
-      nc->dstheight = rows * encoding_vert_scale(nc);
-      nc->dstwidth = cols;
+    if(rows != nc->dstheight / encoding_y_scale(nc) || cols != nc->dstwidth){
+      nc->dstheight = rows * encoding_y_scale(nc);
+      nc->dstwidth = cols * encoding_x_scale(nc);
     }
   }
   ncvisual_set_data(nc, static_cast<uint32_t*>(nc->ibuf->localpixels()), false);

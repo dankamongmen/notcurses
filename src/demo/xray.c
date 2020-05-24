@@ -77,7 +77,10 @@ int xray_demo(struct notcurses* nc){
   }
   char* path = find_data("notcursesI.avi");
   nc_err_e err;
-  struct ncvisual* ncv = ncplane_visual_open(n, NULL, path, &err);
+  struct ncvisual_options vopts = {
+    .n = n,
+  };
+  struct ncvisual* ncv = ncvisual_from_file(nc, &vopts, path, &err);
   free(path);
   if(ncv == NULL){
     return -1;

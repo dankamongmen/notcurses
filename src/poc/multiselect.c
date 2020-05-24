@@ -87,8 +87,9 @@ int main(void){
     nc_err_e err;
     struct ncvisual_options vopts = {
       .style = NCSCALE_STRETCH,
+      .n = n,
     };
-    struct ncvisual* ncv = ncplane_visual_open(n, &vopts, "../data/covid19.jpg", &err);
+    struct ncvisual* ncv = ncvisual_from_file(nc, &vopts, "../data/covid19.jpg", &err);
     if(!ncv){
       goto err;
     }

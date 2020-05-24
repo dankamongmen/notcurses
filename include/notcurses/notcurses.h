@@ -2089,6 +2089,7 @@ typedef enum {
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncblitter_e;
 
+// FIXME almost all of this is only actually necessary at render time...
 struct ncvisual_options {
   // if no ncplane is provided, one will be created (during ncvisual_decode()),
   // using the exact size necessary to render the source with perfect fidelity
@@ -2141,12 +2142,17 @@ API struct ncvisual* ncvisual_from_bgra(struct notcurses* nc,
 // planes can be subjected to ncvisual transformations. If possible, it's
 // better to create the ncvisual from memory using ncvisual_from_rgba().
 API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
-                                         const struct ncvisual_options* opts,
+                                        const struct ncvisual_options* opts,
                                          int begy, int begx,
                                          int leny, int lenx);
 
 // Return the plane to which this ncvisual is bound.
 API struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+
+// Get the size and ratio of ncvisual pixels to output cells along the y
+// ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
+// ('*y' * '*toy')X('x' * 'tox') cells for full output.
+API void ncvisual_geom(const struct ncvisual* n, int* y, int* x, int* toy, int* tox);
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.

@@ -7,7 +7,10 @@ view_video_demo(struct notcurses* nc){
   nc_err_e err;
   struct ncvisual* ncv;
   char* fm6 = find_data("fm6.mkv");
-  ncv = ncplane_visual_open(ncp, NULL, fm6, &err);
+  struct ncvisual_options vopts = {
+    .n = ncp,
+  };
+  ncv = ncvisual_from_file(nc, &vopts, fm6, &err);
   if(!ncv){
     free(fm6);
     return -1;
@@ -66,7 +69,10 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   }
   nc_err_e err = NCERR_SUCCESS;
   char* pic = find_data("dsscaw-purp.png");
-  struct ncvisual* ncv2 = ncplane_visual_open(dsplane, NULL, pic, &err);
+  struct ncvisual_options vopts = {
+    .n = dsplane,
+  };
+  struct ncvisual* ncv2 = ncvisual_from_file(nc, &vopts, pic, &err);
   if(ncv2 == NULL){
     free(pic);
     ncplane_destroy(dsplane);
@@ -93,7 +99,7 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   // now we open PurpleDrank on the standard plane, and hide DSSAW
   ncplane_move_bottom(dsplane);
   pic = find_data("PurpleDrank.jpg");
-  struct ncvisual* ncv = ncplane_visual_open(nstd, NULL, pic, &err);
+  struct ncvisual* ncv = ncvisual_from_file(nc, &vopts, pic, &err);
   if(ncv == NULL){
     ncplane_destroy(dsplane);
     free(pic);

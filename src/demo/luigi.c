@@ -147,10 +147,11 @@ int luigi_demo(struct notcurses* nc){
     return 0;
   }
   int rows, cols;
-  struct ncplane* n = notcurses_stddim_yx(nc, &rows, &cols);
   nc_err_e ncerr = NCERR_SUCCESS;
   char* map = find_data("megaman2.bmp");
-  struct ncvisual* nv = ncplane_visual_open(n, NULL, map, &ncerr);
+  struct ncvisual_options vopts = {};
+  vopts.n = notcurses_stddim_yx(nc, &rows, &cols);
+  struct ncvisual* nv = ncvisual_from_file(nc, &vopts, map, &ncerr);
   free(map);
   if(nv == NULL){
     return -1;
