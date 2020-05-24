@@ -150,6 +150,9 @@ launch_pipe_process(int* pipe, int* pidfd){
   if(pipe2(pipes, O_CLOEXEC)){ // can't use O_NBLOCK here (affects client)
     return -1;
   }
+  pid_t p = -1;
+  // on linux, we try to use the brand-new pidfd capability via clone3(). if
+  // that fails, fall through to fork(), which is all we try to use on freebsd.
 #ifdef __linux__
 // FIXME introduced in linux 5.5
 #ifndef CLONE_CLEAR_SIGHAND
@@ -159,11 +162,12 @@ launch_pipe_process(int* pipe, int* pidfd){
   memset(&clargs, 0, sizeof(clargs));
   clargs.pidfd = (uintptr_t)pidfd;
   clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
-  pid_t p = syscall(__NR_clone3, &clargs, sizeof(clargs));
+  p = syscall(__NR_clone3, &clargs, sizeof(clargs));
 #else
-  (void)pidfd;
-  pid_t p = fork();
 #endif
+  if(p < 0){
+    p = fork();
+  }
   if(p == 0){ // child
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
       fprintf(stderr, "Couldn't dup() %d (%s)\n", pipes[1], strerror(errno));
@@ -181,15 +185,20 @@ launch_pipe_process(int* pipe, int* pidfd){
 // FIXME rigourize and port this
 static int
 kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
+  int ret = -1;
+  // on linux, we try pidfd_send_signal, if the pidfd has been defined.
+  // otherwise, we fall back to regular old kill();
+  if(pidfd >= 0){
 #ifdef __linux__
-  syscall(__NR_pidfd_send_signal, pidfd, SIGKILL, NULL, 0);
-  siginfo_t info;
-  memset(&info, 0, sizeof(info));
-  waitid(P_PIDFD, pidfd, &info, 0);
-#else
-  (void)pidfd;
-  kill(pid, SIGKILL);
+    ret = syscall(__NR_pidfd_send_signal, pidfd, SIGKILL, NULL, 0);
+    siginfo_t info;
+    memset(&info, 0, sizeof(info));
+    waitid(P_PIDFD, pidfd, &info, 0);
 #endif
+  }
+  if(ret < 0){
+    kill(pid, SIGKILL);
+  }
   // process ought be available immediately following waitid(), so supply
   // WNOHANG to avoid possible lockups due to weirdness
   if(pid != waitpid(pid, status, WNOHANG)){
