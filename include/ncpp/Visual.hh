@@ -4,7 +4,6 @@
 #include <notcurses/notcurses.h>
 
 #include "Root.hh"
-#include "NCScale.hh"
 #include "Utilities.hh"
 
 namespace ncpp
