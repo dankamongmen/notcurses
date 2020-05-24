@@ -2557,6 +2557,6 @@ struct ncvisual* ncvisual_from_plane(struct ncplane* n);
 Marek Habersack has contributed (and maintains) C++ wrappers installed to
 `include/ncpp/`, `libnotcurses++.so`, and `libnotcurses++.a`.
 
-In their default mode, these wrappers never throw exceptions. If
-`NCPP_EXCEPTIONS_PLEASE` is defined prior to including any NCPP headers,
-they will throw exceptions.
+In their default mode, these wrappers throw exceptions only from the type 
+constructors (RAII). If `NCPP_EXCEPTIONS_PLEASE` is defined prior to including 
+any NCPP headers, they will throw exceptions.
