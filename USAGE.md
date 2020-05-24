@@ -2443,10 +2443,6 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*,
 // Can we load images/videos? This requires being built against FFmpeg.
 bool notcurses_canopen(const struct notcurses* nc);
 
-// Open a visual (image or video), associating it with the specified ncplane.
-// Returns NULL on any error, writing the cause to 'ncerr'.
-struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, nc_err_e* err);
-
 // Open a visual, extract a codec and parameters, and create a new plane
 // suitable for its display at 'y','x'. If there is sufficient room to display
 // the visual in its native size, or if NCSCALE_NONE is passed for 'style', the
@@ -2454,6 +2450,14 @@ struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, nc_er
 // as possible (given the visible screen), either maintaining aspect ratio
 // (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
 struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
+
+// Return the plane to which this ncvisual is bound.
+struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+
+// Get the size and ratio of ncvisual pixels to output cells along the y
+// ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
+// ('*y' * '*toy')X('x' * 'tox') cells for full output.
+void ncvisual_geom(const struct ncvisual* n, int* y, int* x, int* toy, int* tox);
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
@@ -2508,9 +2512,6 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv,
 // 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
 // supply 'timescale' less than or equal to 0.
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
-
-// Return the plane to which this ncvisual is bound.
-struct ncplane* ncvisual_plane(struct ncvisual* ncv);
 
 // If a subtitle ought be displayed at this time, return a heap-allocated copy
 // of the UTF8 text.

@@ -33,7 +33,8 @@ int main(int argc, char** argv){
   nc_err_e ncerr;
   struct ncvisual_options vopts{};
   vopts.style = NCSCALE_STRETCH;
-  auto ncv = ncplane_visual_open(n, &vopts, file, &ncerr);
+  vopts.n = n;
+  auto ncv = ncvisual_from_file(nc, &vopts, file, &ncerr);
   if(!ncv){
     goto err;
   }

@@ -312,6 +312,7 @@ struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const struct ncvisual_
 struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const struct ncvisual_options* opts, const void* rgba, int rows, int rowstride, int cols);
 struct ncvisual* ncvisual_from_plane(const struct ncplane* n, const struct ncvisual_options* opts, int begy, int begx, int leny, int lenx);
 struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+void ncvisual_geom(const struct ncvisual* n, int* y, int* x, int* toy, int* tox);
 void ncvisual_destroy(struct ncvisual* ncv);
 nc_err_e ncvisual_decode(struct ncvisual* nc);
 int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);

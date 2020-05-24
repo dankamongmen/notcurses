@@ -33,9 +33,6 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **bool notcurses_canopen(const struct notcurses* nc);**
 
-**struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                         nc_err_e* err);**
-
 **struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file,
                                          nc_err_e* err, int y, int x,
                                          ncscale_e style);**
@@ -45,6 +42,10 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 **struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra, int rows, int rowstride, int cols);**
 
 **struct ncvisual* ncvisual_from_plane(struct ncplane* n);**
+
+**struct ncplane* ncvisual_plane(struct ncvisual* ncv);**
+
+**void ncvisual_geom(const struct ncvisual* n, int* y, int* x, int* toy, int* tox);**
 
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
@@ -57,8 +58,6 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err,
                       float timescale, streamcb streamer, void* curry);**
-
-**struct ncplane* ncvisual_plane(struct ncvisual* ncv);**
 
 **int ncvisual_rotate(struct ncvisual* n, double rads);**
 
@@ -119,15 +118,14 @@ The different **ncblitter_e** values select from among available glyph sets:
 # RETURN VALUES
 
 **notcurses_canopen** returns true if this functionality is enabled, or false
-if Notcurses was not built with multimedia support. **ncplane_visual_open** and
-**ncvisual_from_file** return an **ncvisual** object on success, or **NULL**
-on failure. Success from these functions indicates that the specified **file**
-was opened, and enough data was read to make a firm codec identification. It
-does not mean that the entire file is properly-formed. On failure, **err**
-will be updated. **ncvisual_decode** returns **NCERR_SUCCESS** on success, or
-**NCERR_EOF** on end of file, or some other **nc_err_e** on failure. It
-likewise updates **err** in the event of an error. **ncvisual_render** returns
-the number of cells emitted, or -1 on error.
+if Notcurses was not built with multimedia support. **ncvisual_from_file**
+returns an **ncvisual** object on success, or **NULL** on failure. Success
+indicates that the specified **file** was opened, and enough data was read to
+make a firm codec identification. It does not imply that the entire file is
+properly-formed. On failure, **err** will be updated. **ncvisual_decode**
+returns **NCERR_SUCCESS** on success, or **NCERR_EOF** on end of file, or some
+other **nc_err_e** on failure. It likewise updates **err** in the event of an
+error. **ncvisual_render** returns the number of cells emitted, or -1 on error.
 
 **ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
 and bound. This is usually due to illegal content in the source **ncplane**.

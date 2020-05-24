@@ -9,6 +9,8 @@ rearrangements of Notcurses.
     `struct ncplane*`. The `struct ncvisual_options` includes a `ncgridgeom_e`
     field, allowing visuals to be mapped to various plotting paradigms
     including Braille and quadrants.
+  * Added `ncvisual_geom()`, providing access to an `ncvisual` size and
+    its pixel-to-cell blitting ratios.
   * Deprecated functions `ncvisual_open_plane()` and `ncplane_visual_open()`
     have been removed. Their functionality is present in
     `ncvisual_from_file()`.

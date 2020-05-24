@@ -48,7 +48,8 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     struct ncvisual_options opts{};
     opts.style = NCSCALE_STRETCH;
-    auto ncv = ncplane_visual_open(ncp_, &opts, find_data("changes.jpg"), &ncerr);
+    opts.n = ncp_;
+    auto ncv = ncvisual_from_file(nc_, &opts, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(0 == ncerr);
     ncerr = ncvisual_decode(ncv);
@@ -68,7 +69,8 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     struct ncvisual_options opts{};
     opts.style = NCSCALE_STRETCH;
-    auto ncv = ncplane_visual_open(ncp_, &opts, find_data("changes.jpg"), &ncerr);
+    opts.n = ncp_;
+    auto ncv = ncvisual_from_file(nc_, &opts, find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     ncerr = ncvisual_decode(ncv);
@@ -97,7 +99,8 @@ TEST_CASE("Visual") {
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       struct ncvisual_options opts{};
       opts.style = NCSCALE_STRETCH;
-      auto ncv = ncplane_visual_open(ncp_, &opts, find_data("notcursesI.avi"), &ncerr);
+      opts.n = ncp_;
+      auto ncv = ncvisual_from_file(nc_, &opts, find_data("notcursesI.avi"), &ncerr);
       REQUIRE(ncv);
       CHECK(NCERR_SUCCESS == ncerr);
       for(;;){ // run at the highest speed we can
