@@ -2107,12 +2107,6 @@ struct ncvisual_options {
   uint64_t flags; // currently all zero
 };
 
-// Open a visual (image or video), associating it with the specified ncplane.
-// Returns NULL on any error, writing the cause to 'ncerr'. Going away soon.
-API struct ncvisual* ncplane_visual_open(struct ncplane* nc,
-                                         const struct ncvisual_options* opts,
-                                         const char* filename, nc_err_e* ncerr);
-
 // Open a visual, extract a codec and parameters, and create a new plane
 // suitable for its display at 'y','x'. If there is sufficient room to display
 // the visual in its native size, or if NCSCALE_NONE is passed for 'style', the
