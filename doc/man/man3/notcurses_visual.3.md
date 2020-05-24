@@ -41,16 +41,13 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncvisual* ncvisual_from_plane(struct ncplane* n);**
 
-**struct ncplane* ncvisual_plane(struct ncvisual* ncv);**
-
-**void ncvisual_geom(const struct ncvisual* n, int* y, int* x, int* toy, int* tox);**
+**void ncvisual_geom(const struct ncvisual* n, ncblitter_e blitter, int* y, int* x, int* toy, int* tox);**
 
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
 **nc_err_e ncvisual_decode(struct ncvisual* nc);**
 
-**int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
-                        int leny, int lenx);**
+**struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct visual_options* vopts);**
 
 **int ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry);**
 
@@ -123,7 +120,12 @@ make a firm codec identification. It does not imply that the entire file is
 properly-formed. On failure, **err** will be updated. **ncvisual_decode**
 returns **NCERR_SUCCESS** on success, or **NCERR_EOF** on end of file, or some
 other **nc_err_e** on failure. It likewise updates **err** in the event of an
-error. **ncvisual_render** returns the number of cells emitted, or -1 on error.
+error.
+
+**ncvisual_render** returns **NULL** on error, and otherwise the plane to
+which the visual was rendered. If **opts->n** is provided, this will be
+**opts->n**. Otherwise, a plane will be created, perfectly sized for the
+visual and the specified blitter.
 
 **ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
 and bound. This is usually due to illegal content in the source **ncplane**.

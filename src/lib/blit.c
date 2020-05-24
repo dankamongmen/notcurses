@@ -1,5 +1,7 @@
 #include "internal.h"
 
+static const unsigned char zeroes[] = "\x00\x00\x00\x00";
+
 // alpha comes to us 0--255, but we have only 3 alpha values to map them to.
 // settled on experimentally.
 static inline bool
@@ -62,6 +64,7 @@ static inline int
 tria_blit(ncplane* nc, int placey, int placex, int linesize,
           const void* data, int begy, int begx,
           int leny, int lenx, bool bgr){
+//fprintf(stderr, "%d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
@@ -78,7 +81,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
-      const unsigned char* rgbbase_down = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_down = zeroes;
       if(visy < begy + leny - 1){
         rgbbase_down = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
       }
@@ -146,9 +149,9 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
       const unsigned char* rgbbase_tl = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
-      const unsigned char* rgbbase_tr = (const unsigned char*)"\x00\x00\x00\x00";
-      const unsigned char* rgbbase_bl = (const unsigned char*)"\x00\x00\x00\x00";
-      const unsigned char* rgbbase_br = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_tr = zeroes;
+      const unsigned char* rgbbase_bl = zeroes;
+      const unsigned char* rgbbase_br = zeroes;
       if(visx < begx + lenx - 1){
         rgbbase_tr = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
         if(visy < begy + leny - 1){
@@ -217,13 +220,13 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
       const unsigned char* rgbbase_l0 = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
-      const unsigned char* rgbbase_r0 = (const unsigned char*)"\x00\x00\x00\x00";
-      const unsigned char* rgbbase_l1 = (const unsigned char*)"\x00\x00\x00\x00";
-      const unsigned char* rgbbase_r1 = (const unsigned char*)"\x00\x00\x00\x00";
-      const unsigned char* rgbbase_l2 = (const unsigned char*)"\x00\x00\x00\x00";
-      const unsigned char* rgbbase_r2 = (const unsigned char*)"\x00\x00\x00\x00";
-      const unsigned char* rgbbase_l3 = (const unsigned char*)"\x00\x00\x00\x00";
-      const unsigned char* rgbbase_r3 = (const unsigned char*)"\x00\x00\x00\x00";
+      const unsigned char* rgbbase_r0 = zeroes;
+      const unsigned char* rgbbase_l1 = zeroes;
+      const unsigned char* rgbbase_r1 = zeroes;
+      const unsigned char* rgbbase_l2 = zeroes;
+      const unsigned char* rgbbase_r2 = zeroes;
+      const unsigned char* rgbbase_l3 = zeroes;
+      const unsigned char* rgbbase_r3 = zeroes;
       if(visx < begx + lenx - 1){
         rgbbase_r0 = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
         if(visy < begy + leny - 1){

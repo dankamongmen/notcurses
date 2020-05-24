@@ -20,17 +20,16 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
     notcurses_refresh(nc, &dimy, &dimx);
     snprintf(file, sizeof(file), "chunli%d.%s", i + 1, ext);
     chuns[i].path = find_data(file);
-    chuns[i].ncv = ncvisual_from_file(nc, NULL, chuns[i].path, &err);
+    chuns[i].ncv = ncvisual_from_file(chuns[i].path, &err);
     if(chuns[i].ncv == NULL){
       return -1;
     }
     if((err = ncvisual_decode(chuns[i].ncv)) != NCERR_SUCCESS){
       return -1;
     }
-    if(ncvisual_render(chuns[i].ncv, 0, 0, -1, -1) <= 0){
+    if((chuns[i].n = ncvisual_render(nc, chuns[i].ncv, NULL)) == NULL){
       return -1;
     }
-    chuns[i].n = ncvisual_plane(chuns[i].ncv);
     ncplane_set_base_cell(chuns[i].n, b);
     int thisx, thisy;
     ncplane_dim_yx(chuns[i].n, &thisy, &thisx);
@@ -41,6 +40,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &iterdelay);
     ncvisual_destroy(chuns[i].ncv);
+    ncplane_destroy(chuns[i].n);
     free(chuns[i].path);
   }
   return 0;
@@ -66,7 +66,7 @@ int chunli_demo(struct notcurses* nc){
     snprintf(file, sizeof(file), "chunli%02d.png", i);
     char* path = find_data(file);
     nc_err_e err;
-    struct ncvisual* ncv = ncvisual_from_file(nc, NULL, path, &err);
+    struct ncvisual* ncv = ncvisual_from_file(path, &err);
     if(ncv == NULL){
       free(path);
       break;
@@ -75,11 +75,11 @@ int chunli_demo(struct notcurses* nc){
     if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
       return -1;
     }
-    struct ncplane* ncp = ncvisual_plane(ncv);
-    ncplane_set_base_cell(ncp, &b);
-    if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
+    struct ncplane* ncp;
+    if((ncp = ncvisual_render(nc, ncv, NULL)) == NULL){
       return -1;
     }
+    ncplane_set_base_cell(ncp, &b);
     int thisx, thisy;
     ncplane_dim_yx(ncp, &thisy, &thisx);
     if(ncplane_move_yx(ncp, (dimy - thisy) / 2, (dimx - thisx) / 2)){
@@ -88,6 +88,7 @@ int chunli_demo(struct notcurses* nc){
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &iterdelay);
     ncvisual_destroy(ncv);
+    ncplane_destroy(ncp);
   }
   return 0;
 }

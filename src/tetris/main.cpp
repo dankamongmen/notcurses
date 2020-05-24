@@ -10,6 +10,7 @@
 #include <clocale>
 #include <unistd.h>
 #include <ncpp/NotCurses.hh>
+#include <ncpp/Visual.hh>
 #include "version.h"
 
 std::mutex ncmtx;

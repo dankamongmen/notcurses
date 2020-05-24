@@ -4,6 +4,7 @@
 #include <notcurses/notcurses.h>
 
 #include "Root.hh"
+#include "Plane.hh"
 #include "Utilities.hh"
 
 namespace ncpp
@@ -14,9 +15,9 @@ namespace ncpp
 	class NCPP_API_EXPORT Visual : public Root
 	{
 	public:
-		explicit Visual (const ncvisual_options *opts, const char *file, nc_err_e *ncerr)
+		explicit Visual (const char *file, nc_err_e *ncerr)
 		{
-			visual = ncvisual_from_file (get_notcurses (), opts, file, ncerr);
+			visual = ncvisual_from_file (file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}
@@ -42,22 +43,20 @@ namespace ncpp
 			return ncvisual_decode (visual);
 		}
 
-		bool render (int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
+		ncplane* render (const ncvisual_options* vopts) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncvisual_render (visual, begy, begx, leny, lenx), -1);
+			return ncvisual_render (get_notcurses (), visual, vopts); // FIXME error_guard
 		}
 
-		int stream (nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
+		int stream (Plane& p, nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, ncerr, timescale, streamer, curry), -1);
+			return error_guard<int> (ncvisual_stream (p.to_ncplane (), visual, ncerr, timescale, streamer, curry), -1);
 		}
 
 		char* subtitle () const noexcept
 		{
 			return ncvisual_subtitle (visual);
 		}
-
-		Plane* get_plane () const noexcept;
 
 		bool rotate (double rads) const NOEXCEPT_MAYBE
 		{
