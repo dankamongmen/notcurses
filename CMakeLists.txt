@@ -1,8 +1,38 @@
 cmake_minimum_required(VERSION 3.14)
-project(notcurses VERSION 1.4.3
+
+# Shared library versioning is done in the same way as SDL:
+#
+# If the version changes, then:
+#
+#   NOTCURSES_VERSION_MICRO += 1;
+#   NOTCURSES_INTERFACE_AGE += 1;
+#   NOTCURSES_BINARY_AGE += 1;
+# if any functions/classes/methods have been added, set NOTCURSES_INTERFACE_AGE to 0.
+# if backwards compatibility has been broken,
+# set NOTCURSES_BINARY_AGE and NOTCURSES_INTERFACE_AGE to 0.
+
+set(NOTCURSES_VERSION_MAJOR 1)
+set(NOTCURSES_VERSION_MINOR 5)
+set(NOTCURSES_VERSION_MICRO 0)
+
+set(NOTCURSES_INTERFACE_AGE 0)
+set(NOTCURSES_BINARY_AGE 1)
+
+set(NOTCURSES_VERSION "${NOTCURSES_VERSION_MAJOR}.${NOTCURSES_VERSION_MINOR}.${NOTCURSES_VERSION_MICRO}")
+
+# Calculate a libtool-like version number (taken from SDL2 CMakeLists.txt)
+math(EXPR LT_CURRENT "${NOTCURSES_VERSION_MICRO} - ${NOTCURSES_INTERFACE_AGE}")
+math(EXPR LT_AGE "${NOTCURSES_BINARY_AGE} - ${NOTCURSES_INTERFACE_AGE}")
+math(EXPR LT_MAJOR "${LT_CURRENT} - ${LT_AGE}")
+set(LT_REVISION "${NOTCURSES_INTERFACE_AGE}")
+set(LT_RELEASE "${NOTCURSES_VERSION_MAJOR}.${NOTCURSES_VERSION_MINOR}")
+set(LT_VERSION "${LT_MAJOR}.${LT_AGE}.${LT_REVISION}")
+
+project(notcurses VERSION ${NOTCURSES_VERSION_MAJOR}.${NOTCURSES_VERSION_MINOR}.${NOTCURSES_VERSION_MICRO}
   DESCRIPTION "UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)
+
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
@@ -94,17 +124,15 @@ add_library(notcurses-static STATIC EXCLUDE_FROM_ALL ${NCSRCS})
 endif()
 set_target_properties(
   notcurses-static PROPERTIES
-  OUTPUT_NAME notcurses
+  OUTPUT_NAME notcurses-${LT_RELEASE}
 )
 
 set_target_properties(notcurses PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
+  VERSION ${NOTCURSES_VERSION}
+  SOVERSION ${LT_REVISION}
+  OUTPUT_NAME notcurses-${LT_RELEASE}
 )
-set_target_properties(notcurses-static PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
-)
+
 target_include_directories(notcurses
   PRIVATE
     include
@@ -239,14 +267,14 @@ add_library(notcurses++-static STATIC EXCLUDE_FROM_ALL ${NCPP_SOURCES})
 endif()
 set_target_properties(
   notcurses++-static PROPERTIES
-  OUTPUT_NAME notcurses++
+  OUTPUT_NAME notcurses++-${LT_RELEASE}
   )
 
 set_target_properties(
   notcurses++ PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
-  OUTPUT_NAME "notcurses++")
+  VERSION ${NOTCURSES_VERSION}
+  SOVERSION ${LT_REVISION}
+  OUTPUT_NAME notcurses++-${LT_RELEASE})
 
 set(NCPP_INCLUDE_DIRS
   include

@@ -5,8 +5,8 @@ includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: @PROJECT_NAME@
 Description: C++ bindings for notcurses
-Version: @PROJECT_VERSION@
+Version: @NOTCURSES_VERSION@
 
-Requires: notcurses >= @PROJECT_VERSION@
-Libs: -L${libdir} -lnotcurses++
+Requires: notcurses = @NOTCURSES_VERSION@
+Libs: -L${libdir} -lnotcurses++-@LT_RELEASE@
 Cflags: -I${includedir}

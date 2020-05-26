@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name="notcurses",
-    version="${PROJECT_VERSION}",
+    version="${NOTCURSES_VERSION}",
     packages=['notcurses'],
     package_dir={ '': '${CMAKE_CURRENT_BINARY_DIR}/python/src' },
     author="Nick Black",
