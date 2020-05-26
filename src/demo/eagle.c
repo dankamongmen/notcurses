@@ -37,6 +37,7 @@ outzoomed_map(struct notcurses* nc, const char* map){
   struct ncvisual_options opts = {
     .scaling = NCSCALE_SCALE,
     .n = notcurses_stdplane(nc),
+    .y = 1,
   };
   if(ncvisual_render(nc, ncv, &opts) == NULL){
     return -1;
@@ -58,33 +59,37 @@ zoom_map(struct notcurses* nc, const char* map){
   if(ncv == NULL){
     return NULL;
   }
-  int vheight;
-  int vwidth;
+  int vheight, yscale;
+  int vwidth, xscale;
   if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS ||
-     ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vheight, &vwidth, NULL, NULL)){
+     ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vheight, &vwidth, &yscale, &xscale)){
     ncvisual_destroy(ncv);
     return NULL;
   }
+//fprintf(stderr, "VHEIGHT: %d VWIDTH: %d scale: %d/%d\n", vheight, vwidth, yscale, xscale);
   ncvisual_destroy(ncv);
   // we start at the lower left corner of the outzoomed map
   int truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
-  int vx = vwidth;
-  vheight /= 2;
-  int vy = vheight;
-  int zoomy = truey;
-  int zoomx = truex;
+  int zoomy = vheight;
+  int zoomx = vwidth;
   struct ncplane* zncp = notcurses_stdplane(nc);
-  int delty = 2;
-  int deltx = 2;
+  int delty = yscale;
+  int deltx = xscale;
   if(truey > truex){
     ++delty;
   }else if(truex > truey * 2){
     ++deltx;
   }
-  while(zoomy <= vy && zoomx <= vx){
-    zoomy += delty;
-    zoomx += deltx;
+  truey *= yscale;
+  truex *= xscale;
+  while(zoomy > truey && zoomx > truex){
+    if((zoomy -= delty) < truey){
+      zoomy = truey;
+    }
+    if((zoomx -= deltx) < truex){
+      zoomx = truex;
+    }
     struct ncvisual* zncv = ncvisual_from_file(map, &ncerr);
     if(zncv == NULL){
       ncvisual_destroy(ncv);
@@ -94,14 +99,12 @@ zoom_map(struct notcurses* nc, const char* map){
       ncvisual_destroy(zncv);
       return NULL;
     }
-    int rendx = ((float)truex / zoomx) * zoomx;
-    if(rendx == 0){
-      rendx = -1;
-    }
+//fprintf(stderr, "render! begy: %d lenx: %d\n", vheight - zoomy, zoomx);
     struct ncvisual_options vopts = {
-      .begy = (zoomy - truey) * (2 * notcurses_canutf8(nc)),
+      .lenx = zoomx,
       .begx = 0,
-      .lenx = rendx,
+      .begy = vheight - zoomy,
+      .y = 1,
       .n = zncp,
     };
     if(ncvisual_render(nc, zncv, &vopts) == NULL){

@@ -2,8 +2,7 @@
 
 static int
 view_video_demo(struct notcurses* nc){
-  int dimy, dimx;
-  struct ncplane* ncp = notcurses_stddim_yx(nc, &dimy, &dimx);
+  struct ncplane* ncp = notcurses_stdplane(nc);
   nc_err_e err;
   struct ncvisual* ncv;
   char* fm6 = find_data("fm6.mkv");
@@ -13,8 +12,12 @@ view_video_demo(struct notcurses* nc){
     return -1;
   }
   free(fm6);
-  int ret = ncvisual_stream(ncp, ncv, &err, 2.0/3.0 * delaymultiplier,
-                            demo_simple_streamer, NULL);
+  struct ncvisual_options vopts = {
+    .scaling = NCSCALE_STRETCH,
+    .n = ncp,
+  };
+  int ret = ncvisual_stream(nc, ncv, &err, 2.0/3.0 * delaymultiplier,
+                            demo_simple_streamer, &vopts, NULL);
   ncvisual_destroy(ncv);
   return ret;
 }
@@ -109,6 +112,7 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
     ncplane_destroy(dsplane);
     return -1;
   }
+  vopts.n = notcurses_stdplane(nc);
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);
     ncplane_destroy(dsplane);

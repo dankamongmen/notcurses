@@ -4,17 +4,17 @@
 #include "internal.h"
 #include "visual-details.h"
 
-bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))){
+bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) {
   return true;
 }
 
-bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
+bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) {
   return false; // too slow for reliable use at the moment
 }
 
-ncvisual* ncvisual_from_file(const char* filename, nc_err_e* err){
+ncvisual* ncvisual_from_file(const char* filename, nc_err_e* err) {
   *err = NCERR_SUCCESS;
-  ncvisual* ncv = ncvisual_create(1);
+  ncvisual* ncv = ncvisual_create();
   if(ncv == nullptr){
     *err = NCERR_NOMEM;
     return nullptr;
@@ -32,7 +32,7 @@ spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*
   return ncv;
 }
 
-nc_err_e ncvisual_decode(ncvisual* nc){
+nc_err_e ncvisual_decode(ncvisual* nc) {
 //fprintf(stderr, "current subimage: %d frame: %p\n", nc->details.image->current_subimage(), nc->details.frame.get());
   const auto &spec = nc->details.image->spec_dimensions(nc->details.framenum);
   if(nc->details.frame){
@@ -74,42 +74,51 @@ nc_err_e ncvisual_decode(ncvisual* nc){
   nc->details.ibuf = std::make_unique<OIIO::ImageBuf>(rgbaspec, nc->details.frame.get());
 //fprintf(stderr, "SUBS: %d\n", nc->details.ibuf->nsubimages());
   ncvisual_set_data(nc, static_cast<uint32_t*>(nc->details.ibuf->localpixels()), false);
-fprintf(stderr, "POST-DECODE DATA: %d %d %p %p\n", nc->rows, nc->cols, nc->data, nc->details.ibuf->localpixels());
+//fprintf(stderr, "POST-DECODE DATA: %d %d %p %p\n", nc->rows, nc->cols, nc->data, nc->details.ibuf->localpixels());
   return NCERR_SUCCESS;
 }
 
-auto ncvisual_resize(ncvisual* ncv, int rows, int cols) -> nc_err_e {
-fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
-  if(ncv->cols != cols || ncv->rows != rows){ // scale it
-    auto tmpibuf = std::move(*ncv->details.ibuf);
-    ncv->details.ibuf = std::make_unique<OIIO::ImageBuf>();
+nc_err_e ncvisual_resize(const struct ncvisual* ncv, int rows, int cols,
+                         ncplane* n, const struct blitset* bset,
+                         int placey, int placex, int begy, int begx,
+                         int leny, int lenx) {
+//fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
+  void* data = nullptr;
+  int stride = 0;
+  auto ibuf = std::make_unique<OIIO::ImageBuf>();
+  if(ncv->details.ibuf && (ncv->cols != cols || ncv->rows != rows)){ // scale it
     OIIO::ImageSpec sp{};
     sp.width = cols;
     sp.height = rows;
-    ncv->details.ibuf->reset(sp, OIIO::InitializePixels::Yes);
-    OIIO::ROI roi(0, ncv->cols, 0, ncv->rows, 0, 1, 0, 4);
-    if(!OIIO::ImageBufAlgo::resize(*ncv->details.ibuf, tmpibuf, "", 0, roi)){
-      return NCERR_DECODE; // FIXME need we do anything further?
+    ibuf->reset(sp, OIIO::InitializePixels::Yes);
+    OIIO::ROI roi(0, cols, 0, rows, 0, 1, 0, 4);
+    if(!OIIO::ImageBufAlgo::resize(*ibuf, *ncv->details.ibuf, "", 0, roi)){
+      return NCERR_DECODE;
     }
-    ncv->rowstride = ncv->cols * 4;
-fprintf(stderr, "HAVE SOME NEW DATA: %p\n", ncv->details.ibuf->localpixels());
-    ncvisual_set_data(ncv, static_cast<uint32_t*>(ncv->details.ibuf->localpixels()), false);
+    stride = cols * 4;
+    data = ibuf->localpixels();
+//fprintf(stderr, "HAVE SOME NEW DATA: %p\n", ibuf->localpixels());
+  }else{
+    data = ncv->data;
+    stride = ncv->rowstride;
+  }
+  if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx, leny, lenx) <= 0){
+    return NCERR_DECODE;
   }
   return NCERR_SUCCESS;
 }
 
-int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
-                    float timescale, streamcb streamer, void* curry){
+// FIXME might need to destroy created ncplane
+auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timescale,
+                     streamcb streamer, const struct ncvisual_options* vopts, void* curry) -> int {
+  (void)timescale; // FIXME
   *ncerr = NCERR_SUCCESS;
   int frame = 1;
-  ncv->timescale = timescale;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
-  ncvisual_options vopts{};
-  vopts.n = n;
-  vopts.scaling = NCSCALE_STRETCH;
+  ncplane* newn = nullptr;
   while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
-    if(ncvisual_render(ncplane_notcurses(n), ncv, &vopts) == nullptr){
+    if((newn = ncvisual_render(nc, ncv, vopts)) == nullptr){
       return -1;
     }
     if(streamer){
@@ -117,7 +126,7 @@ int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
       // any kind of delay FIXME
       struct timespec now;
       clock_gettime(CLOCK_MONOTONIC, &now);
-      int r = streamer(n, ncv, &now, curry);
+      int r = streamer(newn, ncv, &now, curry);
       if(r){
         return r;
       }
@@ -130,7 +139,7 @@ int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
   return -1;
 }
 
-char* ncvisual_subtitle(const ncvisual* ncv){ // no support in OIIO
+char* ncvisual_subtitle(const ncvisual* ncv) { // no support in OIIO
   (void)ncv;
   return nullptr;
 }
@@ -155,7 +164,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
 }
 */
 
-int ncvisual_init(int loglevel){
+int ncvisual_init(int loglevel) {
   // FIXME set OIIO global attribute "debug" based on loglevel
   (void)loglevel;
   // FIXME check OIIO_VERSION_STRING components against linked openimageio_version()

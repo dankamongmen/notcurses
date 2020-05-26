@@ -2154,7 +2154,7 @@ struct ncvisual_options {
   // these numbers are all in terms of ncvisual pixels.
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
-  ncblitter_e glyphs; // glyph set to use (maps input to output cells)
+  ncblitter_e blitter; // glyph set to use (maps input to output cells)
   uint64_t flags; // currently all zero
 };
 
@@ -2212,9 +2212,9 @@ ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv,
 // visual naturally running at 30FPS, a 'timescale' of 0.1 will result in
 // 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
 // supply 'timescale' less than or equal to 0.
-API int ncvisual_stream(struct ncplane* n, struct ncvisual* ncv,
+API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         nc_err_e* ncerr, float timescale, streamcb streamer,
-                        void* curry);
+                        const struct ncvisual_options* vopts, void* curry);
 
 // Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset
 // from the upper left by 'placey' and 'placex'. Each row ought occupy

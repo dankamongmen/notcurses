@@ -29,10 +29,16 @@ and videos to the terminal. Media will be scaled to the terminal's size.
 
 files: Select which files to render, and what order to render them in.
 
-Default margins are all 0, and thus the full screen will be rendered. Using
-**-m**, margins can be supplied. Provide a single number to set all four margins
-to the same value, or four comma-delimited values for the top, right, bottom,
-and left margins respectively. Negative margins are illegal.
+Default margins are all 0 and default scaling is **stretch**. The full
+rendering area will thus be used. Using **-m**, margins can be supplied.
+Provide a single number to set all four margins to the same value, or four
+comma-delimited values for the top, right, bottom, and left margins
+respectively. Negative margins are illegal.
+
+Scaling mode **stretch** resizes the object to match the target rendering
+area exactly. **scale** resizes the object so that the longer edge of the
+rendering area is matched exactly, and the other edge is changed to
+maintain aspect ratio. **none** uses the original image size.
 
 # NOTES
 

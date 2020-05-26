@@ -46,7 +46,11 @@ fadethread(void* vnc){
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
       "Apia 🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
   int three = 3;
-  int canceled = ncvisual_stream(ncp, ncv, &err, delaymultiplier, perframe, &three);
+  struct ncvisual_options vopts = {
+    .scaling = NCSCALE_STRETCH,
+    .n = ncp,
+  };
+  int canceled = ncvisual_stream(nc, ncv, &err, delaymultiplier, perframe, &vopts, &three);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
   ncplane_destroy(apiap);

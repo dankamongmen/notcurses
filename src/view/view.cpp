@@ -118,7 +118,7 @@ auto perframe(struct ncplane* n, struct ncvisual* ncv,
 auto handle_opts(int argc, char** argv, notcurses_options& opts,
                  float* timescale, ncscale_e* scalemode) -> int {
   *timescale = 1.0;
-  *scalemode = NCSCALE_NONE;
+  *scalemode = NCSCALE_STRETCH;
   int c;
   while((c = getopt(argc, argv, "hl:d:s:m:k")) != -1){
     switch(c){
@@ -182,7 +182,10 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts,
 }
 
 auto main(int argc, char** argv) -> int {
-  setlocale(LC_ALL, "");
+  if(setlocale(LC_ALL, "") == nullptr){
+    std::cerr << "Couldn't set locale based off LANG\n";
+    return EXIT_FAILURE;
+  }
   float timescale;
   ncscale_e scalemode;
   notcurses_options nopts{};
@@ -195,35 +198,44 @@ auto main(int argc, char** argv) -> int {
     return EXIT_FAILURE;
   }
   int dimy, dimx;
-  std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
-  for(auto i = nonopt ; i < argc ; ++i){
-    int frames = 0;
-    nc_err_e err;
-    std::unique_ptr<Visual> ncv;
-    try{
-      ncv = std::make_unique<Visual>(argv[i], &err);
-    }catch(std::exception& e){
-      nc.stop();
-      std::cerr << argv[i] << ": " << e.what() << "\n";
-      return EXIT_FAILURE;
-    }
-    int r = ncv->stream(*stdn, &err, timescale, perframe, &frames);
-    if(r < 0){ // positive is intentional abort
-      nc.stop();
-      std::cerr << "Error decoding " << argv[i] << ": " << nc_strerror(err) << std::endl;
-      return EXIT_FAILURE;
-    }else if(r == 0){
-      stdn->printf(0, NCAlign::Center, "press any key to advance");
-      nc.render();
-      char32_t ie = nc.getc(true);
-      if(ie == (char32_t)-1){
+  bool failed = false;
+  {
+    std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
+    for(auto i = nonopt ; i < argc ; ++i){
+      int frames = 0;
+      nc_err_e err;
+      std::unique_ptr<Visual> ncv;
+      try{
+        ncv = std::make_unique<Visual>(argv[i], &err);
+      }catch(std::exception& e){
+        // FIXME want to stop nc first :/ can't due to stdn, ugh
+        std::cerr << argv[i] << ": " << e.what() << "\n";
+        failed = true;
         break;
-      }else if(ie == 'q'){
+      }
+      struct ncvisual_options vopts{};
+      vopts.n = *stdn;
+      vopts.scaling = scalemode;
+      int r = ncv->stream(&vopts, &err, timescale, perframe, &frames);
+      if(r < 0){ // positive is intentional abort
+        std::cerr << "Error decoding " << argv[i] << ": " << nc_strerror(err) << std::endl;
+        failed = true;
         break;
-      }else if(ie == NCKey::Resize){
-        --i; // rerun with the new size
-        if(!nc.refresh(&dimy, &dimx)){
-          return EXIT_FAILURE;
+      }else if(r == 0){
+        stdn->printf(0, NCAlign::Center, "press any key to advance");
+        nc.render();
+        char32_t ie = nc.getc(true);
+        if(ie == (char32_t)-1){
+          failed = true;
+          break;
+        }else if(ie == 'q'){
+          break;
+        }else if(ie == NCKey::Resize){
+          --i; // rerun with the new size
+          if(!nc.refresh(&dimy, &dimx)){
+            failed = true;
+            break;
+          }
         }
       }
     }
@@ -231,5 +243,5 @@ auto main(int argc, char** argv) -> int {
   if(!nc.stop()){
     return EXIT_FAILURE;
   }
-  return EXIT_SUCCESS;
+  return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 }

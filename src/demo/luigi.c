@@ -217,8 +217,9 @@ int luigi_demo(struct notcurses* nc){
       ncplane_move_top(lastseen);
     }
     ncplane_move_yx(lastseen, yoff, i);
-    int dimy;
-    ncvisual_geom(nc, wmncv, NCBLIT_DEFAULT, &dimy, NULL, NULL, NULL);
+    int dimy, scaley;
+    ncvisual_geom(nc, wmncv, NCBLIT_DEFAULT, &dimy, NULL, &scaley, NULL);
+    dimy /= scaley;
     ncplane_move_yx(wmplane, rows * 4 / 5 - dimy + 1 + (i % 2), i - 60);
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &stepdelay);
