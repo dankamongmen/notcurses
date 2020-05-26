@@ -37,22 +37,22 @@ int main(int argc, char** argv){
   if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
     goto err;
   }
-  vopts.scaling = NCSCALE_STRETCH;
   vopts.n = n;
+  vopts.scaling = NCSCALE_STRETCH;
   if(ncvisual_render(nc, ncv, &vopts) == nullptr){
     goto err;
   }
   if(notcurses_render(nc)){
     goto err;
   }
-  //ncplane_erase(n);
   sleep(1);
   vopts.scaling = NCSCALE_NONE;
   for(double i = 0 ; i < 256 ; ++i){
-    if(ncvisual_rotate(ncv, M_PI / 16)){
+    if(ncvisual_rotate(ncv, M_PI / 2)){
       failed = true;
       break;
     }
+    ncplane_erase(n);
     if(ncvisual_render(nc, ncv, &vopts) == nullptr){
       failed = true;
       break;
@@ -62,6 +62,7 @@ int main(int argc, char** argv){
       break;
     }
   }
+  ncvisual_destroy(ncv);
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:

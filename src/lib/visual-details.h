@@ -29,8 +29,6 @@ struct ncplane;
 
 typedef struct ncvisual {
   int cols, rows;
-  // FIXME should be able to contain this in ncvisual_stream()
-  float timescale; // scale frame duration by this value
   // lines are sometimes padded. this many true bytes per row in data.
   int rowstride;
   ncvisual_details details;// implementation-specific details
@@ -39,12 +37,11 @@ typedef struct ncvisual {
 } ncvisual;
 
 static inline auto
-ncvisual_create(float timescale) -> ncvisual* {
+ncvisual_create(void) -> ncvisual* {
   auto ret = new ncvisual{};
   if(ret == nullptr){
     return nullptr;
   }
-  ret->timescale = timescale;
   ncvisual_details_init(&ret->details);
   return ret;
 }

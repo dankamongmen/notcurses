@@ -6,6 +6,7 @@
 #include "Root.hh"
 #include "Plane.hh"
 #include "Utilities.hh"
+#include "NotCurses.hh"
 
 namespace ncpp
 {
@@ -47,9 +48,9 @@ namespace ncpp
 			return ncvisual_render (get_notcurses (), visual, vopts); // FIXME error_guard
 		}
 
-		int stream (Plane& p, nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
+		int stream (const ncvisual_options* vopts, nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncvisual_stream (p.to_ncplane (), visual, ncerr, timescale, streamer, curry), -1);
+			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, ncerr, timescale, streamer, vopts, curry), -1);
 		}
 
 		char* subtitle () const noexcept

@@ -53,13 +53,13 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n, ncblitter_e blitter,
 static const struct blitset*
 rgba_blitter(const notcurses* nc, const struct ncvisual_options* opts){
   const struct blitset* bset;
-  if(opts && opts->glyphs){
-    bset = lookup_blitset(opts->glyphs);
+  if(opts && opts->blitter){
+    bset = lookup_blitset(opts->blitter);
   }else{
     bset = lookup_blitset(ncvisual_default_blitter(nc));
   }
   if(bset && !bset->blit){ // FIXME remove this once all blitters are enabled
-    bset = NULL;
+    bset = nullptr;
   }
   return bset;
 }
@@ -259,6 +259,7 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
 }
 
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
+  assert(ncv->rowstride / 4 >= ncv->cols);
   rads = -rads; // we're a left-handed Cartesian
   if(ncv->data == nullptr){
     return -1;
@@ -320,7 +321,7 @@ auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
   if(rowstride % 4){
     return nullptr;
   }
-  ncvisual* ncv = ncvisual_create(1);
+  ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = rowstride;
     ncv->cols = cols;
@@ -342,7 +343,7 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
   if(rowstride % 4){
     return nullptr;
   }
-  ncvisual* ncv = ncvisual_create(1);
+  ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = rowstride;
     ncv->cols = cols;
@@ -359,6 +360,9 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
 
 auto ncvisual_render(notcurses* nc, ncvisual* ncv,
                      const struct ncvisual_options* vopts) -> ncplane* {
+  if(vopts && vopts->flags){
+    return nullptr;
+  }
   int lenx = vopts ? vopts->lenx : 0;
   int leny = vopts ? vopts->leny : 0;
   int begy = vopts ? vopts->begy : 0;
@@ -371,7 +375,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   if(ncv->data == nullptr){
     return nullptr;
   }
-//fprintf(stderr, "render %d/%d to %dx%d+%dx%d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx);
+//fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
   if(begx >= ncv->cols || begy >= ncv->rows){
     return nullptr;
   }
@@ -395,7 +399,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   int placey = vopts ? vopts->y : 0;
   int placex = vopts ? vopts->x : 0;
   int disprows, dispcols;
-  ncplane* n = NULL;
+  ncplane* n = nullptr;
 //fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
   if((n = (vopts ? vopts->n : nullptr)) == nullptr){ // create plane
     if(!vopts || vopts->scaling == NCSCALE_NONE){
@@ -423,28 +427,25 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
     placey = 0;
     placex = 0;
   }else{
-    ncplane_dim_yx(n, &disprows, &dispcols);
-    disprows -= placey;
-    dispcols -= placex;
-    // FIXME check for resize, scale, stretch
-  }
-  // FIXME there still might be some change
-  if(vopts && vopts->scaling != NCSCALE_NONE){
-    if(ncvisual_resize(ncv, disprows * encoding_y_scale(bset),
-                      dispcols * encoding_x_scale(bset))){
-      ncplane_destroy(n);
-      return nullptr;
+    if(!vopts || vopts->scaling == NCSCALE_NONE){
+      dispcols = ncv->cols / encoding_x_scale(bset) + ncv->cols % encoding_x_scale(bset);
+      disprows = ncv->rows / encoding_y_scale(bset) + ncv->rows % encoding_y_scale(bset);
+    }else{ // FIXME handle SCALE
+      ncplane_dim_yx(n, &disprows, &dispcols);
+      disprows -= placey;
+      dispcols -= placex;
     }
   }
+  leny = (leny / (double)ncv->rows) * ((double)disprows * encoding_y_scale(bset));
+  lenx = (lenx / (double)ncv->cols) * ((double)dispcols * encoding_x_scale(bset));
 //fprintf(stderr, "render: %dx%d:%d+%d of %d/%d %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->data);
-  int ret = rgba_blit_dispatch(n, bset, placey, placex,
-                               ncv->rowstride, ncv->data, begy, begx,
-                               leny, lenx);
-  if(ret < 0){
+  if(ncvisual_resize(ncv, disprows * encoding_y_scale(bset),
+                     dispcols * encoding_x_scale(bset), n, bset,
+                     placey, placex, begy, begx, leny, lenx)){
     ncplane_destroy(n);
     return nullptr;
   }
-  return n ? n : vopts->n;
+  return n;
 }
 
 auto ncvisual_from_plane(const ncplane* n, int begy, int begx,
@@ -487,38 +488,57 @@ auto ncvisual_from_file(const char* filename, nc_err_e* err) -> ncvisual* {
   return nullptr;
 }
 
-bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))){
+bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) {
   return false;
 }
 
-bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
+bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) {
   return false;
 }
 
-nc_err_e ncvisual_decode(ncvisual* nc){
+nc_err_e ncvisual_decode(ncvisual* nc) {
   (void)nc;
   return NCERR_UNIMPLEMENTED;
 }
 
-int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
-                    float timescale, streamcb streamer, void* curry){
-  (void)n;
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
+                    float timescale, streamcb streamer,
+                    const ncvisual_options* vopts, void* curry) {
+  (void)nc;
   (void)ncv;
   (void)timescale;
   (void)streamer;
+  (void)vopts;
   (void)curry;
   *ncerr = NCERR_UNIMPLEMENTED;
   return -1;
 }
 
-char* ncvisual_subtitle(const ncvisual* ncv){
+char* ncvisual_subtitle(const ncvisual* ncv) {
   (void)ncv;
   return nullptr;
 }
 
-int ncvisual_init(int loglevel){
+int ncvisual_init(int loglevel) {
   (void)loglevel;
   return 0; // allow success here
+}
+
+nc_err_e ncvisual_resize(const ncvisual* ncv, int rows, int cols, ncplane* n,
+                         const struct blitset* bset, int placey, int placex,
+                         int begy, int begx, int leny, int lenx) {
+  (void)ncv;
+  (void)rows;
+  (void)cols;
+  (void)n;
+  (void)bset;
+  (void)placey;
+  (void)placex;
+  (void)begy;
+  (void)begx;
+  (void)leny;
+  (void)lenx;
+  return NCERR_UNIMPLEMENTED;
 }
 #endif
 #endif

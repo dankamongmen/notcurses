@@ -89,7 +89,11 @@ int xray_demo(struct notcurses* nc){
     ncplane_destroy(n);
     return -1;
   }
-  int ret = ncvisual_stream(n, ncv, &err, 0.5 * delaymultiplier, perframecb, newpanel);
+  struct ncvisual_options vopts = {
+    .n = n,
+    .scaling = NCSCALE_STRETCH,
+  };
+  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, &vopts, newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);

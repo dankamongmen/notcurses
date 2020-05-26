@@ -19,6 +19,7 @@ static inline int
 tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
                 const void* data, int begy, int begx,
                 int leny, int lenx, bool bgr){
+//fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
@@ -64,7 +65,7 @@ static inline int
 tria_blit(ncplane* nc, int placey, int placex, int linesize,
           const void* data, int begy, int begx,
           int leny, int lenx, bool bgr){
-//fprintf(stderr, "%d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
+//fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;

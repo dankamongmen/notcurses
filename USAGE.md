@@ -2509,7 +2509,10 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv,
 // visual naturally running at 30FPS, a 'timescale' of 0.1 will result in
 // 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
 // supply 'timescale' less than or equal to 0.
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
+                    nc_err_e* ncerr, float timescale, streamcb streamer,
+                    const struct ncvisual_options* vopts, void* curry);
+
 
 // If a subtitle ought be displayed at this time, return a heap-allocated copy
 // of the UTF8 text.

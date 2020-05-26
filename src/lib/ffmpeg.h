@@ -32,8 +32,7 @@ typedef struct ncvisual_details {
   struct AVCodecContext* codecctx;     // video codec context
   struct AVCodecContext* subtcodecctx; // subtitle codec context
   struct AVFrame* frame;               // frame as read
-  struct AVFrame* oframe;              // scaled frame
-  struct AVFrame* sframe;              // RGBA frame
+  struct AVFrame* oframe;              // RGBA frame
   struct AVCodec* codec;
   struct AVCodecParameters* cparams;
   struct AVCodec* subtcodec;

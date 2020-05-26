@@ -193,10 +193,8 @@ nc_err_e ncvisual_decode(ncvisual* nc){
     //fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(height));
     return NCERR_NOMEM;
   }
-  sws_freeContext(nc->details.swsctx);
-  nc->details.swsctx = nullptr;
 //print_frame_summary(nc->details.codecctx, nc->details.oframe);
-  av_frame_unref(nc->details.frame);
+  //av_frame_unref(nc->details.frame);
   const AVFrame* f = nc->details.oframe;
   int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(static_cast<AVPixelFormat>(f->format)));
   if(bpp != 32){
@@ -211,7 +209,7 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 
 ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
   *ncerr = NCERR_SUCCESS;
-  ncvisual* ncv = ncvisual_create(1);
+  ncvisual* ncv = ncvisual_create();
   if(ncv == nullptr){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     *ncerr = NCERR_NOMEM;
@@ -305,11 +303,6 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
     *ncerr = NCERR_NOMEM;
     goto err;
   }
-  if((ncv->details.sframe = av_frame_alloc()) == nullptr){
-    // fprintf(stderr, "Couldn't allocate output frame for %s\n", filename);
-    *ncerr = NCERR_NOMEM;
-    goto err;
-  }
   return ncv;
 
 err:
@@ -321,11 +314,12 @@ err:
 // frames carry a presentation time relative to the beginning, so we get an
 // initial timestamp, and check each frame against the elapsed time to sync
 // up playback.
-int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
-                    float timescale, streamcb streamer, void* curry) {
+// FIXME might need to destroy created ncplane
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
+                    float timescale, streamcb streamer,
+                    const struct ncvisual_options* vopts, void* curry) {
   *ncerr = NCERR_SUCCESS;
   int frame = 1;
-  ncv->timescale = timescale;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
   uint64_t nsbegin = timespec_to_ns(&begin);
@@ -333,9 +327,7 @@ int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
   // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
   // we don't have PTS available.
   uint64_t sum_duration = 0;
-  struct ncvisual_options vopts{};
-  vopts.n = n;
-  vopts.scaling = NCSCALE_STRETCH;
+  ncplane* newn = NULL;
   while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
@@ -344,7 +336,7 @@ int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
     if(frame == 1 && ts){
       usets = true;
     }
-    if(!ncvisual_render(ncplane_notcurses(n), ncv, &vopts)){
+    if((newn = ncvisual_render(nc, ncv, vopts)) == NULL){
       return -1;
     }
     ++frame;
@@ -355,15 +347,15 @@ int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
       if(tbase == 0){
         tbase = duration;
       }
-      schedns += ts * (tbase * ncv->timescale) * NANOSECS_IN_SEC;
+      schedns += ts * (tbase * timescale) * NANOSECS_IN_SEC;
     }else{
-      sum_duration += (duration * ncv->timescale);
+      sum_duration += (duration * timescale);
       schedns += sum_duration;
     }
     if(streamer){
       struct timespec abstime;
       ns_to_timespec(schedns, &abstime);
-      int r = streamer(n, ncv, &abstime, curry);
+      int r = streamer(newn, ncv, &abstime, curry);
       if(r){
         return r;
       }
@@ -375,48 +367,66 @@ int ncvisual_stream(ncplane* n, ncvisual* ncv, nc_err_e* ncerr,
   return -1;
 }
 
-nc_err_e ncvisual_resize(ncvisual* ncv, int rows, int cols) {
-  if(cols != ncv->cols || rows != ncv->rows){
-    const int targformat = AV_PIX_FMT_RGBA;
-    //fprintf(stderr, "FRAME: %p\n", ncv->details.frame);
-    //fprintf(stderr, "WHN NCV: %d/%d\n", ncv->details.oframe->width, ncv->details.oframe->height);
-    ncv->details.swsctx = sws_getCachedContext(ncv->details.swsctx,
-                                      ncv->cols,
-                                      ncv->rows,
-                                      static_cast<AVPixelFormat>(ncv->details.oframe->format),
-                                      cols, rows,
-                                      static_cast<AVPixelFormat>(targformat),
-                                      SWS_LANCZOS,
-                                      nullptr, nullptr, nullptr);
-    if(ncv->details.swsctx == nullptr){
-      //fprintf(stderr, "Error retrieving details.swsctx\n");
-      return NCERR_DECODE;
-    }
-    memcpy(ncv->details.sframe, ncv->details.oframe, sizeof(*ncv->details.oframe));
-    ncv->details.sframe->format = targformat;
-    ncv->details.sframe->width = cols;
-    ncv->details.sframe->height = rows;
-    int size = av_image_alloc(ncv->details.sframe->data, ncv->details.sframe->linesize,
-                              ncv->details.sframe->width, ncv->details.sframe->height,
-                              static_cast<AVPixelFormat>(ncv->details.sframe->format),
-                              IMGALLOCALIGN);
-    if(size < 0){
-//fprintf(stderr, "Error allocating visual data (%s)\n", av_err2str(size));
+nc_err_e ncvisual_resize(const ncvisual* ncv, int rows, int cols, ncplane* n,
+                         const struct blitset* bset, int placey, int placex,
+                         int begy, int begx, int leny, int lenx) {
+  const AVFrame* inframe = ncv->details.oframe;
+  void* data = nullptr;
+  int stride = 0;
+  AVFrame* sframe = nullptr;
+  if(inframe && (cols != ncv->cols || rows != ncv->rows)){
+//fprintf(stderr, "resize+render: %d/%d->%d/%d (%dX%d @ %dX%d, %d/%d)\n", inframe->height, inframe->width, rows, cols, begy, begx, placey, placex, leny, lenx);
+    sframe = av_frame_alloc();
+    if(sframe == nullptr){
+//fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
       return NCERR_NOMEM;
     }
-    int height = sws_scale(ncv->details.swsctx, (const uint8_t* const*)ncv->details.oframe->data,
-                           ncv->details.oframe->linesize, 0,
-                           ncv->details.oframe->height, ncv->details.sframe->data,
-                           ncv->details.sframe->linesize);
+    const int targformat = AV_PIX_FMT_RGBA;
+    //fprintf(stderr, "WHN NCV: %d/%d\n", inframe->width, inframe->height);
+    auto swsctx = sws_getContext(ncv->cols, ncv->rows,
+                                 static_cast<AVPixelFormat>(inframe->format),
+                                 cols, rows,
+                                 static_cast<AVPixelFormat>(targformat),
+                                 SWS_LANCZOS, nullptr, nullptr, nullptr);
+    if(swsctx == nullptr){
+//fprintf(stderr, "Error retrieving details.swsctx\n");
+      return NCERR_NOMEM;
+    }
+    memcpy(sframe, inframe, sizeof(*inframe));
+    sframe->format = targformat;
+    sframe->width = cols;
+    sframe->height = rows;
+    int size = av_image_alloc(sframe->data, sframe->linesize,
+                              sframe->width, sframe->height,
+                              static_cast<AVPixelFormat>(sframe->format),
+                              IMGALLOCALIGN);
+    if(size < 0){
+//fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
+      return NCERR_NOMEM;
+    }
+    int height = sws_scale(swsctx, (const uint8_t* const*)inframe->data,
+                           inframe->linesize, 0, inframe->height, sframe->data,
+                           sframe->linesize);
     if(height < 0){
-      //fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(height));
+//fprintf(stderr, "Error applying scaling (%d X %d)\n", inframe->height, inframe->width);
       return NCERR_DECODE;
     }
-    sws_freeContext(ncv->details.swsctx);
-    ncv->details.swsctx = nullptr;
-    const AVFrame* f = ncv->details.sframe;
-    ncv->rowstride = f->linesize[0];
-    ncvisual_set_data(ncv, reinterpret_cast<uint32_t*>(f->data[0]), true);
+    sws_freeContext(swsctx);
+    stride = sframe->linesize[0]; // FIXME check for others?
+    data = sframe->data[0];
+//fprintf(stderr, "scaled %d/%d to %d/%d\n", ncv->rows, ncv->cols, rows, cols);
+  }else{
+    stride = ncv->rowstride;
+    data = ncv->data;
+  }
+  if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx, leny, lenx) <= 0){
+    if(sframe){
+      av_freep(sframe->data);
+    }
+    return NCERR_DECODE;
+  }
+  if(sframe){
+    av_freep(sframe->data);
   }
   return NCERR_SUCCESS;
 }
