@@ -403,13 +403,16 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
       disprows = ncv->rows / encoding_y_scale(bset) + ncv->rows % encoding_y_scale(bset);
     }else if(vopts->scaling == NCSCALE_SCALE){
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
-      // FIXME
-      /*
-      if(ncv->rows > ncv->cols){ // rows dominate
-        disprows = ncv->rows;
-      }else{ // cols >= rows, so it dominates
+      // FIXME kill FP?
+      double tmpratio = dispcols * encoding_x_scale(bset) / (double)ncv->cols;
+      if(tmpratio * ncv->rows > disprows * encoding_y_scale(bset)){
+        tmpratio = disprows * encoding_y_scale(bset) / (double)ncv->rows;
+        assert(tmpratio <= 1);
+        dispcols *= tmpratio;
+      }else{
+        assert(tmpratio <= 1);
+        disprows *= tmpratio;
       }
-      */
     }else if(vopts->scaling == NCSCALE_STRETCH){
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
     }
@@ -419,20 +422,11 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
     }
     placey = 0;
     placex = 0;
-  }else{ // check for resize
+  }else{
     ncplane_dim_yx(n, &disprows, &dispcols);
     disprows -= placey;
     dispcols -= placex;
-    // FIXME check for resize
-    /*
-    if(leny != ncv->rows / encoding_y_scale(bset) || lenx != ncv->cols / encoding_x_scale(bset)){
-// FIXME
-#ifdef USE_FFMPEG
-      sws_freeContext(ncv->details.swsctx);
-      ncv->details.swsctx = nullptr;
-#endif
-    }
-    */
+    // FIXME check for resize, scale, stretch
   }
   // FIXME there still might be some change
   if(vopts && vopts->scaling != NCSCALE_NONE){

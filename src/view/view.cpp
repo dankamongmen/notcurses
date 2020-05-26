@@ -195,8 +195,7 @@ auto main(int argc, char** argv) -> int {
     return EXIT_FAILURE;
   }
   int dimy, dimx;
-  nc.get_term_dim(&dimy, &dimx);
-  std::unique_ptr<Plane> stdn(nc.get_stdplane()); // FIXME combine with above
+  std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
   for(auto i = nonopt ; i < argc ; ++i){
     int frames = 0;
     nc_err_e err;

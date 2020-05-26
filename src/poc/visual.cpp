@@ -28,8 +28,6 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   struct ncvisual_options vopts{};
-  int dimx, dimy;
-  ncplane_dim_yx(n, &dimy, &dimx);
   bool failed = false;
   nc_err_e ncerr;
   auto ncv = ncvisual_from_file(file, &ncerr);
@@ -47,7 +45,9 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
+  //ncplane_erase(n);
   sleep(1);
+  vopts.scaling = NCSCALE_NONE;
   for(double i = 0 ; i < 256 ; ++i){
     if(ncvisual_rotate(ncv, M_PI / 16)){
       failed = true;
