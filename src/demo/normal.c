@@ -180,6 +180,7 @@ int normal_demo(struct notcurses* nc){
     goto err;
   }
   DEMO_RENDER(nc);
+  timespec_div(&demodelay, 2, &scaled);
   demo_nanosleep(nc, &scaled);
   cell_set_fg_rgb(&c, 0, 0, 0);
   cell_set_bg_rgb(&c, 0, 0, 0);

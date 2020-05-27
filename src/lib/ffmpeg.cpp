@@ -215,7 +215,6 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
     *ncerr = NCERR_NOMEM;
     return nullptr;
   }
-  memset(ncv, 0, sizeof(*ncv));
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details.frame);
   int averr = avformat_open_input(&ncv->details.fmtctx, filename, nullptr, nullptr);
   if(averr < 0){
@@ -298,11 +297,8 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
     goto err;
   }
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details.frame);
-  if((ncv->details.oframe = av_frame_alloc()) == nullptr){
-    // fprintf(stderr, "Couldn't allocate output frame for %s\n", filename);
-    *ncerr = NCERR_NOMEM;
-    goto err;
-  }
+  // oframe is set up in prep_details(), so that format can be set there, as
+  // is necessary when it is prepared from inputs other than files.
   return ncv;
 
 err:
@@ -367,9 +363,9 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   return -1;
 }
 
-nc_err_e ncvisual_resize(const ncvisual* ncv, int rows, int cols, ncplane* n,
-                         const struct blitset* bset, int placey, int placex,
-                         int begy, int begx, int leny, int lenx) {
+nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
+                       const struct blitset* bset, int placey, int placex,
+                       int begy, int begx, int leny, int lenx) {
   const AVFrame* inframe = ncv->details.oframe;
   void* data = nullptr;
   int stride = 0;

@@ -78,10 +78,10 @@ nc_err_e ncvisual_decode(ncvisual* nc) {
   return NCERR_SUCCESS;
 }
 
-nc_err_e ncvisual_resize(const struct ncvisual* ncv, int rows, int cols,
-                         ncplane* n, const struct blitset* bset,
-                         int placey, int placex, int begy, int begx,
-                         int leny, int lenx) {
+nc_err_e ncvisual_blit(const struct ncvisual* ncv, int rows, int cols,
+                       ncplane* n, const struct blitset* bset,
+                       int placey, int placex, int begy, int begx,
+                       int leny, int lenx) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
   void* data = nullptr;
   int stride = 0;

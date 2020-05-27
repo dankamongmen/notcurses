@@ -4,6 +4,13 @@
 #include "visual-details.h"
 #include "internal.h"
 
+// Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
+// change the internals of the ncvisual. Uses oframe.
+nc_err_e ncvisual_blit(const struct ncvisual* ncv, int rows, int cols,
+                       ncplane* n, const struct blitset* bset,
+                       int placey, int placex, int begy, int begx,
+                       int leny, int lenx);
+
 // number of pixels that map to a single cell, height-wise
 static inline auto
 encoding_y_scale(const struct blitset* bset) -> int {
@@ -439,9 +446,9 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   leny = (leny / (double)ncv->rows) * ((double)disprows * encoding_y_scale(bset));
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols * encoding_x_scale(bset));
 //fprintf(stderr, "render: %dx%d:%d+%d of %d/%d %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->data);
-  if(ncvisual_resize(ncv, disprows * encoding_y_scale(bset),
-                     dispcols * encoding_x_scale(bset), n, bset,
-                     placey, placex, begy, begx, leny, lenx)){
+  if(ncvisual_blit(ncv, disprows * encoding_y_scale(bset),
+                   dispcols * encoding_x_scale(bset), n, bset,
+                   placey, placex, begy, begx, leny, lenx)){
     ncplane_destroy(n);
     return nullptr;
   }
@@ -524,9 +531,9 @@ int ncvisual_init(int loglevel) {
   return 0; // allow success here
 }
 
-nc_err_e ncvisual_resize(const ncvisual* ncv, int rows, int cols, ncplane* n,
-                         const struct blitset* bset, int placey, int placex,
-                         int begy, int begx, int leny, int lenx) {
+nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
+                       const struct blitset* bset, int placey, int placex,
+                       int begy, int begx, int leny, int lenx) {
   (void)rows;
   (void)cols;
   if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,

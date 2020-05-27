@@ -663,14 +663,6 @@ ncplane_center(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
 int ncvisual_bounding_box(const struct ncvisual* ncv, int* leny, int* lenx,
                           int* offy, int* offx);
 
-// Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
-// change the internals of the ncvisual. Caller *must not* free '*data'; it
-// will be released as part of ncvisual management.
-nc_err_e ncvisual_resize(const struct ncvisual* ncv, int rows, int cols,
-                         ncplane* n, const struct blitset* bset,
-                         int placey, int placex, int begy, int begx,
-                         int leny, int lenx);
-
 #ifdef __cplusplus
 }
 #endif

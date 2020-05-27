@@ -4,6 +4,7 @@
 // OpenImageIO implementation of ncvisual_details
 #include "version.h"
 #ifdef USE_OIIO
+#include "notcurses/ncerrs.h"
 #include <OpenImageIO/filter.h>
 #include <OpenImageIO/version.h>
 #include <OpenImageIO/imageio.h>
@@ -18,11 +19,12 @@ typedef struct ncvisual_details {
 } ncvisual_details;
 
 static inline auto
-ncvisual_details_init(ncvisual_details *deets) -> void {
+ncvisual_details_init(ncvisual_details *deets) -> nc_err_e {
   deets->image = nullptr;
   deets->frame = nullptr;
   deets->ibuf = nullptr;
   deets->framenum = 0;
+  return NCERR_SUCCESS;
 }
 
 static inline auto
