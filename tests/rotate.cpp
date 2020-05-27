@@ -117,7 +117,7 @@ TEST_CASE("Rotate") {
     REQUIRE(ncv);
     ncvisual_options opts{};
     auto rendered = ncvisual_render(nc_, ncv, &opts);
-    CHECK(rendered);
+    REQUIRE(rendered);
     CHECK(0 == notcurses_render(nc_));
     uint32_t* rgbaret = ncplane_rgba(rendered, 0, 0, -1, -1);
     REQUIRE(rgbaret);
@@ -162,7 +162,7 @@ TEST_CASE("Rotate") {
     REQUIRE(ncv);
     ncvisual_options opts{};
     auto rendered = ncvisual_render(nc_, ncv, &opts);
-    CHECK(rendered);
+    REQUIRE(rendered);
     CHECK(0 == notcurses_render(nc_));
     uint32_t* rgbaret = ncplane_rgba(rendered, 0, 0, -1, -1);
     REQUIRE(rgbaret);
