@@ -20,6 +20,10 @@ const char* oiio_version(void);
 #endif
 #endif
 
+#ifdef USE_SIXEL
+#include <sixel/sixel.h>
+#endif
+
 #include <term.h>
 #include <time.h>
 #include <stdio.h>
@@ -320,6 +324,7 @@ typedef struct notcurses {
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   bool ownttyfp;  // do we own ttyfp (and thus must close it?)
   bool utf8;      // are we using utf-8 encoding, as hoped?
+  bool libsixel;  // do we have Sixel support?
 } notcurses;
 
 void sigwinch_handler(int signo);

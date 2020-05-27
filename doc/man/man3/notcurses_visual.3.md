@@ -31,7 +31,11 @@ typedef enum {
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 ```
 
-**bool notcurses_canopen(const struct notcurses* nc);**
+**bool notcurses_canopen_images(const struct notcurses* nc);**
+
+**bool notcurses_canopen_videos(const struct notcurses* nc);**
+
+**bool notcurses_cansixel(const struct notcurses* nc);**
 
 **struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);**
 
@@ -112,23 +116,25 @@ The different **ncblitter_e** values select from among available glyph sets:
 
 # RETURN VALUES
 
-**notcurses_canopen** returns true if this functionality is enabled, or false
-if Notcurses was not built with multimedia support. **ncvisual_from_file**
-returns an **ncvisual** object on success, or **NULL** on failure. Success
-indicates that the specified **file** was opened, and enough data was read to
-make a firm codec identification. It does not imply that the entire file is
-properly-formed. On failure, **err** will be updated. **ncvisual_decode**
-returns **NCERR_SUCCESS** on success, or **NCERR_EOF** on end of file, or some
-other **nc_err_e** on failure. It likewise updates **err** in the event of an
-error.
+**notcurses_canopen_images** and **notcurses_canopen_videos** returns true if
+images and videos, respecitvely, can be decoded, or false if Notcurses was
+built with insufficient multimedia support.
+
+**ncvisual_from_file** returns an **ncvisual** object on success, or **NULL**
+on failure. Success indicates that the specified **file** was opened, and
+enough data was read to make a firm codec identification. It does not imply
+that the entire file is properly-formed. On failure, **err** will be updated.
+**ncvisual_decode** returns **NCERR_SUCCESS** on success, or **NCERR_EOF** on
+end of file, or some other **nc_err_e** on failure. It likewise updates **err**
+in the event of an error. It is only necessary for multimedia-based visuals.
+
+**ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
+and bound. This is usually due to illegal content in the source **ncplane**.
 
 **ncvisual_render** returns **NULL** on error, and otherwise the plane to
 which the visual was rendered. If **opts->n** is provided, this will be
 **opts->n**. Otherwise, a plane will be created, perfectly sized for the
 visual and the specified blitter.
-
-**ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
-and bound. This is usually due to illegal content in the source **ncplane**.
 
 # NOTES
 

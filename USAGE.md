@@ -233,7 +233,13 @@ bool notcurses_canopen_images(const struct notcurses* nc);
 bool notcurses_canopen_videos(const struct notcurses* nc);
 
 // Can we change colors in the hardware palette? Requires "ccc" and "initc".
-bool notcurses_canchangecolors(const struct notcurses* nc);
+bool notcurses_canchangecolor(const struct notcurses* nc);
+
+// Is our encoding UTF-8? Requires LANG being set to a UTF-8 locale.
+bool notcurses_canutf8(const struct notcurses* nc);
+
+// Can we blit to Sixel? This requires being built against libsixel.
+bool notcurses_cansixel(const struct notcurses* nc);
 ```
 
 ## Direct mode

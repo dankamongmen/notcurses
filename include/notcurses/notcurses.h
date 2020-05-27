@@ -1048,8 +1048,11 @@ API bool notcurses_canopen_images(const struct notcurses* nc);
 // Can we load videos? This requires being built against FFmpeg.
 API bool notcurses_canopen_videos(const struct notcurses* nc);
 
-// Is our encoding UTF-8?
+// Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 API bool notcurses_canutf8(const struct notcurses* nc);
+
+// Can we blit to Sixel? This requires being built against libsixel.
+API bool notcurses_cansixel(const struct notcurses* nc);
 
 typedef struct ncstats {
   // purely increasing stats
