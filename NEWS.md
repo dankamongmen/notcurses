@@ -2,18 +2,19 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.4.4 (not yet released)
-  * Got the `ncvisual` API ready for API freeze: all `ncvisual_from_*()`
-    functions now take a `struct ncvisual_options`. `ncstyle_e` and a few
-    other parameters have been moved within. All functions now take a
-    `struct notcurses*`, except `ncvisual_from_plane()`, which takes a
-    `struct ncplane*`. The `struct ncvisual_options` includes a `ncgridgeom_e`
-    field, allowing visuals to be mapped to various plotting paradigms
-    including Braille and quadrants.
+  * Got the `ncvisual` API ready for API freeze: `ncvisual_render()` and
+    `ncvisual_stream()` now take a `struct ncvisual_options`. `ncstyle_e`
+    and a few other parameters have been moved within. Both functions now
+    take a `struct notcurses*`. The `struct ncvisual_options` includes a
+    `ncblitter_e` field, allowing visuals to be mapped to various plotting
+    paradigms including Sixel, Braille and quadrants. Not all backends have
+    been implemented, and not all implementations are in their final form.
   * Added `ncvisual_geom()`, providing access to an `ncvisual` size and
     its pixel-to-cell blitting ratios.
   * Deprecated functions `ncvisual_open_plane()` and `ncplane_visual_open()`
     have been removed. Their functionality is present in
-    `ncvisual_from_file()`.
+    `ncvisual_from_file()`. The function `ncvisual_plane()` no longer has
+    any meaning, and has been removed.
 
 * 1.4.3 (2020-05-22)
   * Plot: make 8x1 the default, instead of 1x1.

@@ -37,15 +37,15 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **bool notcurses_cansixel(const struct notcurses* nc);**
 
-**struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);**
+**struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* err);**
 
-**struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba, int rows, int rowstride, int cols);**
+**struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);**
 
-**struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra, int rows, int rowstride, int cols);**
+**struct ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols);**
 
-**struct ncvisual* ncvisual_from_plane(struct ncplane* n);**
+**struct ncvisual* ncvisual_from_plane(struct ncplane* n, int begy, int begx, int leny, int lenx);**
 
-**void ncvisual_geom(const struct ncvisual* n, ncblitter_e blitter, int* y, int* x, int* toy, int* tox);**
+**int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, ncblitter_e blitter, int* y, int* x, int* toy, int* tox);**
 
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
@@ -53,10 +53,9 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct visual_options* vopts);**
 
-**int ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv, void* curry);**
+**int ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv, const struct timespec* disptime, void* curry);**
 
-**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err,
-                      float timescale, streamcb streamer, void* curry);**
+**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, const struct visual_options* vopts, void* curry);**
 
 **int ncvisual_rotate(struct ncvisual* n, double rads);**
 
@@ -135,6 +134,8 @@ and bound. This is usually due to illegal content in the source **ncplane**.
 which the visual was rendered. If **opts->n** is provided, this will be
 **opts->n**. Otherwise, a plane will be created, perfectly sized for the
 visual and the specified blitter.
+
+**ncvisual_geom** returns non-zero if the **blitter** is invalid.
 
 # NOTES
 
