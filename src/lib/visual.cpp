@@ -527,18 +527,13 @@ int ncvisual_init(int loglevel) {
 nc_err_e ncvisual_resize(const ncvisual* ncv, int rows, int cols, ncplane* n,
                          const struct blitset* bset, int placey, int placex,
                          int begy, int begx, int leny, int lenx) {
-  (void)ncv;
   (void)rows;
   (void)cols;
-  (void)n;
-  (void)bset;
-  (void)placey;
-  (void)placex;
-  (void)begy;
-  (void)begx;
-  (void)leny;
-  (void)lenx;
-  return NCERR_UNIMPLEMENTED;
+  if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
+                        begy, begx, leny, lenx) <= 0){
+    return NCERR_DECODE;
+  }
+  return NCERR_SUCCESS;
 }
 #endif
 #endif
