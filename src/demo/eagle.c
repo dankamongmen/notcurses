@@ -24,7 +24,8 @@ const char eagle1[] =
 ;
 
 static struct ncplane*
-zoom_map(struct notcurses* nc, const char* map){
+zoom_map(struct notcurses* nc, const char* map, int* ret){
+  *ret = -1;
   nc_err_e ncerr;
   // determine size that will be represented on screen at once, and how
   // large that section has been rendered in the outzoomed map. take the map
@@ -69,34 +70,35 @@ zoom_map(struct notcurses* nc, const char* map){
     .n = zncp,
     .scaling = NCSCALE_STRETCH,
   };
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_render(nc, ncv, &vopts) == NULL || (*ret = demo_render(nc))){
     ncvisual_destroy(ncv);
     ncplane_destroy(zncp);
     return NULL;
   }
   while(vheight > truey && vwidth > truex){
+    *ret = -1;
+    ncplane_destroy(zncp);
+    if((zncp = ncplane_new(nc, truey, truex, 0, 0, NULL)) == NULL){
+      ncvisual_destroy(ncv);
+      return NULL;
+    }
+    vopts.n = zncp;
     if((truey += delty) > vheight){
       truey = vheight;
     }
     if((truex += deltx) > vwidth){
       truex = vwidth;
     }
-    if(ncplane_resize(zncp, 0, 0, 0, 0, 0, 0, truey, truex)){
-      ncvisual_destroy(ncv);
-      ncplane_destroy(zncp);
-      return NULL;
-    }
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
       ncplane_destroy(zncp);
       return NULL;
     }
-    if(demo_render(nc)){
+    if( (*ret = demo_render(nc)) ){
       ncvisual_destroy(ncv);
       ncplane_destroy(zncp);
       return NULL;
     }
-    ncplane_move_yx(zncp, 0, 0);
   }
   ncvisual_destroy(ncv);
   return zncp;
@@ -143,6 +145,7 @@ draw_eagle(struct ncplane* n, const char* sprite){
 
 static int
 eagles(struct notcurses* nc){
+  int ret = 0;
   int truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
   struct timespec flapiter;
@@ -167,7 +170,9 @@ eagles(struct notcurses* nc){
   int eaglesmoved;
   do{
     eaglesmoved = 0;
-    demo_render(nc);
+    if( (ret = demo_render(nc)) ){
+      break;
+    }
     for(size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i){
       if(e[i].xoff >= truex){
         continue;
@@ -188,7 +193,7 @@ eagles(struct notcurses* nc){
   for(size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i){
     ncplane_destroy(e[i].n);
   }
-  return 0;
+  return ret;
 }
 
 // motherfucking eagles!
@@ -198,16 +203,13 @@ int eagle_demo(struct notcurses* nc){
   }
   char* map = find_data("eagles.png");
   struct ncplane* zncp;
-  // FIXME propagate out err vs abort
-  if((zncp = zoom_map(nc, map)) == NULL){
+  int err;
+  if((zncp = zoom_map(nc, map, &err)) == NULL){
     free(map);
-    return -1;
+    return err;
   }
-  if(eagles(nc)){
-    ncplane_destroy(zncp);
-    return -1;
-  }
+  err = eagles(nc);
   ncplane_destroy(zncp);
   free(map);
-  return 0;
+  return err;
 }
