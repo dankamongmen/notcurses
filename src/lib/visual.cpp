@@ -554,5 +554,12 @@ nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
 
 auto ncvisual_details_seed(struct ncvisual* ncv) -> void {}
 
+auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> nc_err_e {
+  (void)nc;
+  (void)rows;
+  (void)cols;
+  return NCERR_UNIMPLEMENTED;
+}
+
 #endif
 #endif
