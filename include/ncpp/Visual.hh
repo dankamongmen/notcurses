@@ -17,6 +17,7 @@ namespace ncpp
 	{
 	public:
 		explicit Visual (const char *file, nc_err_e *ncerr)
+     : Root(NotCurses::get_instance())
 		{
 			visual = ncvisual_from_file (file, ncerr);
 			if (visual == nullptr)
@@ -70,7 +71,7 @@ namespace ncpp
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			visual = ncplane_visual_open (plane, file, ncerr);
+			visual = ncvisual_from_file (file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}
