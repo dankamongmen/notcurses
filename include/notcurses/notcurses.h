@@ -2136,7 +2136,11 @@ API nc_err_e ncvisual_decode(struct ncvisual* nc);
 // Rotate the visual 'rads' radians. If we own the bound plane, it is resized
 // to fit the rotated visual, if necessary. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.
-API int ncvisual_rotate(struct ncvisual* n, double rads);
+API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
+
+// Resize the visual so that it is 'rows' X 'columns'. This is a lossy
+// transformation, unless the size is unchanged.
+API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size

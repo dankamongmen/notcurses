@@ -114,7 +114,9 @@ nc_err_e ncvisual_decode(ncvisual* nc){
   bool have_frame = false;
   bool unref = false;
   // FIXME what if this was set up with e.g. ncvisual_from_rgba()?
-  av_freep(&nc->details.oframe->data[0]);
+  if(nc->details.oframe){
+    av_freep(&nc->details.oframe->data[0]);
+  }
   do{
     do{
       if(nc->details.packet_outstanding){
@@ -157,26 +159,42 @@ nc_err_e ncvisual_decode(ncvisual* nc){
     }
   }while(!have_frame);
 //print_frame_summary(nc->details.codecctx, nc->details.frame);
-  memcpy(nc->details.oframe, nc->details.frame, sizeof(*nc->details.oframe));
+  const AVFrame* f = nc->details.frame;
+  nc->rowstride = f->linesize[0];
+  nc->cols = nc->details.frame->width;
+  nc->rows = nc->details.frame->height;
+//fprintf(stderr, "good decode! %d/%d %d %p\n", nc->details.frame->height, nc->details.frame->width, nc->rowstride, f->data);
+  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(f->data[0]), false);
+  return NCERR_SUCCESS;
+}
+
+// resize frame to oframe, converting to RGBA (if necessary) along the way
+nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
+  if(nc->details.oframe){
+    return NCERR_SUCCESS;
+  }
   const int targformat = AV_PIX_FMT_RGBA;
-  nc->details.swsctx = sws_getCachedContext(nc->details.swsctx,
+//fprintf(stderr, "got format: %d want format: %d\n", nc->details.frame->format, targformat);
+  auto swsctx = sws_getContext(/*nc->details.swsctx,*/
                                     nc->details.frame->width,
                                     nc->details.frame->height,
                                     static_cast<AVPixelFormat>(nc->details.frame->format),
-                                    nc->details.frame->width,
-                                    nc->details.frame->height,
+                                    cols, rows,
                                     static_cast<AVPixelFormat>(targformat),
-                                    SWS_LANCZOS,
-                                    nullptr, nullptr, nullptr);
-  if(nc->details.swsctx == nullptr){
+                                    SWS_LANCZOS, nullptr, nullptr, nullptr);
+  if(swsctx == nullptr){
     //fprintf(stderr, "Error retrieving swsctx\n");
-    return NCERR_DECODE;
+    return NCERR_NOMEM;
+  }
+  if((nc->details.oframe = av_frame_alloc()) == nullptr){
+    // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
+    return NCERR_NOMEM; // no need to free swsctx
   }
   memcpy(nc->details.oframe, nc->details.frame, sizeof(*nc->details.oframe));
   nc->details.oframe->format = targformat;
-  nc->cols = nc->details.oframe->width = nc->details.frame->width;
-  nc->rows = nc->details.oframe->height = nc->details.frame->height;
-//fprintf(stderr, "SIZE DECODED: %d %d\n", nc->rows, nc->cols);
+  nc->details.oframe->width = cols;
+  nc->details.oframe->height = rows;
+//fprintf(stderr, "SIZE DECODED: %d %d (%d) (want %d %d)\n", nc->rows, nc->cols, nc->details.frame->linesize[0], rows, cols);
   int size = av_image_alloc(nc->details.oframe->data, nc->details.oframe->linesize,
                             nc->details.oframe->width, nc->details.oframe->height,
                             static_cast<AVPixelFormat>(nc->details.oframe->format),
@@ -185,15 +203,14 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 //fprintf(stderr, "Error allocating visual data (%d)\n", size);
     return NCERR_NOMEM;
   }
-  int height = sws_scale(nc->details.swsctx, (const uint8_t* const*)nc->details.frame->data,
+  int height = sws_scale(swsctx, nc->details.frame->data,
                          nc->details.frame->linesize, 0,
                          nc->details.frame->height, nc->details.oframe->data,
                          nc->details.oframe->linesize);
   if(height < 0){
     //fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(height));
-    return NCERR_NOMEM;
+    return NCERR_DECODE;
   }
-//print_frame_summary(nc->details.codecctx, nc->details.oframe);
   //av_frame_unref(nc->details.frame);
   const AVFrame* f = nc->details.oframe;
   int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(static_cast<AVPixelFormat>(f->format)));
@@ -201,9 +218,11 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 //fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
 	  return NCERR_DECODE;
   }
-  nc->rowstride = f->linesize[0];
-//fprintf(stderr, "good decode! %d/%d %p\n", nc->details.frame->height, nc->details.frame->width, f->data);
-  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(f->data[0]), false);
+  nc->rowstride = nc->details.oframe->linesize[0];
+  nc->rows = rows;
+  nc->cols = cols;
+  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(nc->details.oframe->data[0]), false); // FIXME true?
+//fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", nc->details.oframe->height, nc->details.oframe->width, nc->details.oframe->linesize[0]);
   return NCERR_SUCCESS;
 }
 
@@ -291,14 +310,10 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
     //fprintf(stderr, "Couldn't get codec params for %s (%s)\n", filename, av_err2str(*averr));
     goto err;
   }*/
-  if((ncv->details.frame = av_frame_alloc()) == nullptr){
-    // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
-    *ncerr = NCERR_NOMEM;
-    goto err;
-  }
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details.frame);
-  // oframe is set up in prep_details(), so that format can be set there, as
-  // is necessary when it is prepared from inputs other than files.
+  // frame is set up in prep_details(), so that format can be set there, as
+  // is necessary when it is prepared from inputs other than files. oframe
+  // is set up whenever we convert to RGBA.
   return ncv;
 
 err:
@@ -328,7 +343,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
     double tbase = av_q2d(ncv->details.fmtctx->streams[ncv->details.stream_index]->time_base);
-    int64_t ts = ncv->details.oframe->best_effort_timestamp;
+    int64_t ts = ncv->details.frame->best_effort_timestamp;
     if(frame == 1 && ts){
       usets = true;
     }
@@ -336,7 +351,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
       return -1;
     }
     ++frame;
-    uint64_t duration = ncv->details.oframe->pkt_duration * tbase * NANOSECS_IN_SEC;
+    uint64_t duration = ncv->details.frame->pkt_duration * tbase * NANOSECS_IN_SEC;
 //fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->details.codecctx->time_base), av_q2d(ncv->details.fmtctx->streams[ncv->stream_index]->time_base));
     double schedns = nsbegin;
     if(usets){
@@ -366,18 +381,19 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
 nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
                        const struct blitset* bset, int placey, int placex,
                        int begy, int begx, int leny, int lenx) {
-  const AVFrame* inframe = ncv->details.oframe;
+  const AVFrame* inframe = ncv->details.oframe ? ncv->details.oframe : ncv->details.frame;
   void* data = nullptr;
   int stride = 0;
   AVFrame* sframe = nullptr;
-  if(inframe && (cols != ncv->cols || rows != ncv->rows)){
+  const int targformat = AV_PIX_FMT_RGBA;
+//fprintf(stderr, "got format: %d want format: %d\n", inframe->format, targformat);
+  if(inframe && (cols != inframe->width || rows != inframe->height || inframe->format != targformat)){
 //fprintf(stderr, "resize+render: %d/%d->%d/%d (%dX%d @ %dX%d, %d/%d)\n", inframe->height, inframe->width, rows, cols, begy, begx, placey, placex, leny, lenx);
     sframe = av_frame_alloc();
     if(sframe == nullptr){
 //fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
       return NCERR_NOMEM;
     }
-    const int targformat = AV_PIX_FMT_RGBA;
     //fprintf(stderr, "WHN NCV: %d/%d\n", inframe->width, inframe->height);
     auto swsctx = sws_getContext(ncv->cols, ncv->rows,
                                  static_cast<AVPixelFormat>(inframe->format),
@@ -410,7 +426,7 @@ nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
     sws_freeContext(swsctx);
     stride = sframe->linesize[0]; // FIXME check for others?
     data = sframe->data[0];
-//fprintf(stderr, "scaled %d/%d to %d/%d\n", ncv->rows, ncv->cols, rows, cols);
+//fprintf(stderr, "scaled %d/%d to %d/%d (%d/%d)\n", ncv->rows, ncv->cols, rows, cols, sframe->height, sframe->width);
   }else{
     stride = ncv->rowstride;
     data = ncv->data;
@@ -426,6 +442,17 @@ nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
     av_freep(sframe->data);
   }
   return NCERR_SUCCESS;
+}
+
+auto ncvisual_details_seed(ncvisual* ncv) -> void {
+  assert(nullptr == ncv->details.oframe);
+  ncv->details.frame->data[0] = reinterpret_cast<uint8_t*>(ncv->data);
+  ncv->details.frame->data[1] = nullptr;
+  ncv->details.frame->linesize[0] = ncv->rowstride;
+  ncv->details.frame->linesize[1] = 0;
+  ncv->details.frame->width = ncv->cols;
+  ncv->details.frame->height = ncv->rows;
+  ncv->details.frame->format = AV_PIX_FMT_RGBA;
 }
 
 int ncvisual_init(int loglevel) {

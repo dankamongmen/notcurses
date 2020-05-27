@@ -11,6 +11,11 @@ nc_err_e ncvisual_blit(const struct ncvisual* ncv, int rows, int cols,
                        int placey, int placex, int begy, int begx,
                        int leny, int lenx);
 
+// ncv constructors other than ncvisual_from_file() need to set up the
+// AVFrame* 'frame' according to their own data, which is assumed to
+// have been prepared already in 'ncv'.
+auto ncvisual_details_seed(struct ncvisual* ncv) -> void;
+
 // number of pixels that map to a single cell, height-wise
 static inline auto
 encoding_y_scale(const struct blitset* bset) -> int {
@@ -265,11 +270,13 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
   return *leny * *lenx;
 }
 
-auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
+auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
+  ncvisual_resize(ncv, ncv->rows, ncv->cols);
+//fprintf(stderr, "stride: %d cols: %d\n", ncv->rowstride, ncv->cols);
   assert(ncv->rowstride / 4 >= ncv->cols);
   rads = -rads; // we're a left-handed Cartesian
   if(ncv->data == nullptr){
-    return -1;
+    return NCERR_DECODE;
   }
   int centy, centx;
   ncvisual_center(ncv, &centy, &centx); // pixel center (center of 'data')
@@ -284,12 +291,12 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   int bboffy = 0;
   int bboffx = 0;
   if(ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx) <= 0){
-    return -1;
+    return NCERR_DECODE;
   }
   int bbarea;
   bbarea = rotate_bounding_box(stheta, ctheta, &bby, &bbx, &bboffy, &bboffx);
   if(bbarea <= 0){
-    return -1;
+    return NCERR_DECODE;
   }
   int bbcentx = bbx, bbcenty = bby;
   center_box(&bbcenty, &bbcentx);
@@ -297,7 +304,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   assert(ncv->rowstride / 4 >= ncv->cols);
   auto data = static_cast<uint32_t*>(malloc(bbarea * 4));
   if(data == nullptr){
-    return -1;
+    return NCERR_NOMEM;
   }
   memset(data, 0, bbarea * 4);
 //fprintf(stderr, "bbarea: %d bby: %d bbx: %d centy: %d centx: %d bbcenty: %d bbcentx: %d\n", bbarea, bby, bbx, centy, centx, bbcenty, bbcentx);
@@ -320,7 +327,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   ncv->rows = bby;
   ncv->rowstride = bbx * 4;
   //ncplane_erase(ncv->ncp);
-  return 0;
+  return NCERR_SUCCESS;
 }
 
 auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
@@ -341,6 +348,7 @@ auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
     }
 //fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
     ncvisual_set_data(ncv, data, true);
+    ncvisual_details_seed(ncv);
   }
   return ncv;
 }
@@ -392,6 +400,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   if(leny == 0){
     leny = ncv->rows - begy;
   }
+//fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
   if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
     return nullptr;
   }
@@ -445,7 +454,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows * encoding_y_scale(bset));
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols * encoding_x_scale(bset));
-//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->data);
+//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   if(ncvisual_blit(ncv, disprows * encoding_y_scale(bset),
                    dispcols * encoding_x_scale(bset), n, bset,
                    placey, placex, begy, begx, leny, lenx)){
@@ -542,5 +551,8 @@ nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
   }
   return NCERR_SUCCESS;
 }
+
+auto ncvisual_details_seed(struct ncvisual* ncv) -> void {}
+
 #endif
 #endif

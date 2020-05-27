@@ -62,7 +62,7 @@ namespace ncpp
 
 		bool rotate (double rads) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncvisual_rotate (visual, rads), -1);
+			return error_guard (ncvisual_rotate (visual, rads), NCERR_SUCCESS); // FIXME invert case
 		}
 
 	private:

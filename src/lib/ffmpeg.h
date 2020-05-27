@@ -44,24 +44,19 @@ typedef struct ncvisual_details {
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
 } ncvisual_details;
 
-static inline nc_err_e
-ncvisual_details_init(ncvisual_details *deets){
+static inline auto
+ncvisual_details_init(ncvisual_details* deets) -> nc_err_e {
   memset(deets, 0, sizeof(*deets));
   deets->stream_index = -1;
   deets->sub_stream_index = -1;
-  if((deets->oframe = av_frame_alloc()) == nullptr){
-    // fprintf(stderr, "Couldn't allocate output frame for %s\n", filename);
+  if((deets->frame = av_frame_alloc()) == nullptr){
     return NCERR_NOMEM;
   }
-  // we need set this here in case we're prepared from e.g. RGBA input. if
-  // we're prepared from a file, this will be overwritten (though it'll be
-  // RGBA then too, anyway).
-  deets->oframe->format = AV_PIX_FMT_RGBA;
   return NCERR_SUCCESS;
 }
 
-static inline void
-ncvisual_details_destroy(ncvisual_details* deets){
+static inline auto
+ncvisual_details_destroy(ncvisual_details* deets) -> void {
   avcodec_close(deets->codecctx);
   avcodec_free_context(&deets->codecctx);
   av_frame_free(&deets->frame);
