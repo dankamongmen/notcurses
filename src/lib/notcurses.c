@@ -480,7 +480,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                    int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(n == n->nc->stdscr){
-fprintf(stderr, "Can't resize standard plane\n");
+//fprintf(stderr, "Can't resize standard plane\n");
     return -1;
   }
   return ncplane_resize_internal(n, keepy, keepx, keepleny, keeplenx,

@@ -419,7 +419,8 @@ nc_err_e ncvisual_resize(const ncvisual* ncv, int rows, int cols, ncplane* n,
     stride = ncv->rowstride;
     data = ncv->data;
   }
-  if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx, leny, lenx) <= 0){
+//fprintf(stderr, "place: %d/%d rows/cols: %d/%d %d/%d+%d/%d\n", placey, placex, rows, cols, begy, begx, leny, lenx);
+  if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx, rows, cols) <= 0){
     if(sframe){
       av_freep(sframe->data);
     }

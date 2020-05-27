@@ -23,30 +23,6 @@ const char eagle1[] =
 "0000000033003330"
 ;
 
-// display the level map scaled to fit entirely within the visual area
-static int
-outzoomed_map(struct notcurses* nc, const char* map){
-  nc_err_e ncerr;
-  struct ncvisual* ncv = ncvisual_from_file(map, &ncerr);
-  if(ncv == NULL){
-    return -1;
-  }
-  if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-    return -1;
-  }
-  struct ncvisual_options opts = {
-    .scaling = NCSCALE_SCALE,
-    .n = notcurses_stdplane(nc),
-    .y = 1,
-  };
-  if(ncvisual_render(nc, ncv, &opts) == NULL){
-    return -1;
-  }
-  DEMO_RENDER(nc);
-  ncvisual_destroy(ncv);
-  return 0;
-}
-
 static struct ncplane*
 zoom_map(struct notcurses* nc, const char* map){
   nc_err_e ncerr;
@@ -67,13 +43,9 @@ zoom_map(struct notcurses* nc, const char* map){
     return NULL;
   }
 //fprintf(stderr, "VHEIGHT: %d VWIDTH: %d scale: %d/%d\n", vheight, vwidth, yscale, xscale);
-  ncvisual_destroy(ncv);
   // we start at the lower left corner of the outzoomed map
   int truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
-  int zoomy = vheight;
-  int zoomx = vwidth;
-  struct ncplane* zncp = notcurses_stdplane(nc);
   int delty = yscale;
   int deltx = xscale;
   if(truey > truex){
@@ -81,42 +53,53 @@ zoom_map(struct notcurses* nc, const char* map){
   }else if(truex > truey * 2){
     ++deltx;
   }
-  truey *= yscale;
-  truex *= xscale;
-  while(zoomy > truey && zoomx > truex){
-    if((zoomy -= delty) < truey){
-      zoomy = truey;
+  // to zoom in on the map, we're going to scale the full image to a plane
+  // which grows on each iteration. it starts at the standard plane size,
+  // and each time gets bigger (and is moved, so that the same area stays
+  // on the screen, growing.
+  struct ncplane* zncp = ncplane_dup(notcurses_stdplane(nc), NULL);
+  if(zncp == NULL){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
+  vheight /= yscale;
+  vwidth /= xscale;
+  struct ncvisual_options vopts = {
+    .y = 1,
+    .n = zncp,
+    .scaling = NCSCALE_STRETCH,
+  };
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    ncvisual_destroy(ncv);
+    ncplane_destroy(zncp);
+    return NULL;
+  }
+  while(vheight > truey && vwidth > truex){
+    if((truey += delty) > vheight){
+      truey = vheight;
     }
-    if((zoomx -= deltx) < truex){
-      zoomx = truex;
+    if((truex += deltx) > vwidth){
+      truex = vwidth;
     }
-    struct ncvisual* zncv = ncvisual_from_file(map, &ncerr);
-    if(zncv == NULL){
+    if(ncplane_resize(zncp, 0, 0, 0, 0, 0, 0, truey, truex)){
       ncvisual_destroy(ncv);
+      ncplane_destroy(zncp);
       return NULL;
     }
-    if((ncerr = ncvisual_decode(zncv)) != NCERR_SUCCESS){
-      ncvisual_destroy(zncv);
-      return NULL;
-    }
-//fprintf(stderr, "render! begy: %d lenx: %d\n", vheight - zoomy, zoomx);
-    struct ncvisual_options vopts = {
-      .lenx = zoomx,
-      .begx = 0,
-      .begy = vheight - zoomy,
-      .y = 1,
-      .n = zncp,
-    };
-    if(ncvisual_render(nc, zncv, &vopts) == NULL){
-      ncvisual_destroy(zncv);
+fprintf(stderr, "render! begy: %d lenx: %d\n", truey, truex);
+    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+      ncvisual_destroy(ncv);
+      ncplane_destroy(zncp);
       return NULL;
     }
     if(demo_render(nc)){
-      ncvisual_destroy(zncv);
+      ncvisual_destroy(ncv);
+      ncplane_destroy(zncp);
       return NULL;
     }
-    ncvisual_destroy(zncv);
+    ncplane_move_yx(zncp, 0, 0);
   }
+  ncvisual_destroy(ncv);
   return zncp;
 }
 
@@ -215,19 +198,17 @@ int eagle_demo(struct notcurses* nc){
     return 0;
   }
   char* map = find_data("eagles.png");
-  int err;
-  if( (err = outzoomed_map(nc, map)) ){
-    free(map);
-    return err;
-  }
+  struct ncplane* zncp;
   // FIXME propagate out err vs abort
-  if(zoom_map(nc, map) == NULL){
+  if((zncp = zoom_map(nc, map)) == NULL){
     free(map);
     return -1;
   }
   if(eagles(nc)){
+    ncplane_destroy(zncp);
     return -1;
   }
+  ncplane_destroy(zncp);
   free(map);
   return 0;
 }
