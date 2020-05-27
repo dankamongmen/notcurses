@@ -86,7 +86,6 @@ zoom_map(struct notcurses* nc, const char* map){
       ncplane_destroy(zncp);
       return NULL;
     }
-fprintf(stderr, "render! begy: %d lenx: %d\n", truey, truex);
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
       ncplane_destroy(zncp);
