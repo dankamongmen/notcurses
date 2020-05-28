@@ -175,13 +175,12 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
   }
   const int targformat = AV_PIX_FMT_RGBA;
 //fprintf(stderr, "got format: %d want format: %d\n", nc->details.frame->format, targformat);
-  auto swsctx = sws_getContext(/*nc->details.swsctx,*/
-                                    nc->details.frame->width,
-                                    nc->details.frame->height,
-                                    static_cast<AVPixelFormat>(nc->details.frame->format),
-                                    cols, rows,
-                                    static_cast<AVPixelFormat>(targformat),
-                                    SWS_LANCZOS, nullptr, nullptr, nullptr);
+  auto swsctx = sws_getContext(nc->details.frame->width,
+                               nc->details.frame->height,
+                               static_cast<AVPixelFormat>(nc->details.frame->format),
+                               cols, rows,
+                               static_cast<AVPixelFormat>(targformat),
+                               SWS_LANCZOS, nullptr, nullptr, nullptr);
   if(swsctx == nullptr){
     //fprintf(stderr, "Error retrieving swsctx\n");
     return NCERR_NOMEM;
@@ -207,11 +206,11 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
                          nc->details.frame->linesize, 0,
                          nc->details.frame->height, nc->details.oframe->data,
                          nc->details.oframe->linesize);
+  sws_freeContext(swsctx);
   if(height < 0){
     //fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(height));
     return NCERR_DECODE;
   }
-  //av_frame_unref(nc->details.frame);
   const AVFrame* f = nc->details.oframe;
   int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(static_cast<AVPixelFormat>(f->format)));
   if(bpp != 32){
@@ -221,7 +220,7 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
   nc->rowstride = nc->details.oframe->linesize[0];
   nc->rows = rows;
   nc->cols = cols;
-  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(nc->details.oframe->data[0]), false); // FIXME true?
+  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(nc->details.oframe->data[0]), true);
 //fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", nc->details.oframe->height, nc->details.oframe->width, nc->details.oframe->linesize[0]);
   return NCERR_SUCCESS;
 }
