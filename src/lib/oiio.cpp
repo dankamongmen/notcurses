@@ -78,6 +78,28 @@ nc_err_e ncvisual_decode(ncvisual* nc) {
   return NCERR_SUCCESS;
 }
 
+// resize, converting to RGBA (if necessary) along the way
+nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
+//fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
+  auto ibuf = std::make_unique<OIIO::ImageBuf>();
+  if(nc->details.ibuf && (nc->cols != cols || nc->rows != rows)){ // scale it
+    OIIO::ImageSpec sp{};
+    sp.width = cols;
+    sp.height = rows;
+    ibuf->reset(sp, OIIO::InitializePixels::Yes);
+    OIIO::ROI roi(0, cols, 0, rows, 0, 1, 0, 4);
+    if(!OIIO::ImageBufAlgo::resize(*ibuf, *nc->details.ibuf, "", 0, roi)){
+      return NCERR_DECODE;
+    }
+    nc->cols = cols;
+    nc->rows = rows;
+    nc->rowstride = cols * 4;
+    ncvisual_set_data(nc, static_cast<uint32_t*>(ibuf->localpixels()), false);
+//fprintf(stderr, "HAVE SOME NEW DATA: %p\n", ibuf->localpixels());
+  }
+  return NCERR_SUCCESS;
+}
+
 nc_err_e ncvisual_blit(const struct ncvisual* ncv, int rows, int cols,
                        ncplane* n, const struct blitset* bset,
                        int placey, int placex, int begy, int begx,
@@ -163,6 +185,11 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   return NCERR_SUCCESS;
 }
 */
+
+auto ncvisual_details_seed(ncvisual* ncv) -> void {
+  (void)ncv;
+  // FIXME?
+}
 
 int ncvisual_init(int loglevel) {
   // FIXME set OIIO global attribute "debug" based on loglevel

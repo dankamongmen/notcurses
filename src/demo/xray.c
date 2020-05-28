@@ -16,10 +16,11 @@ static const char* leg[] = {
 };
 
 static struct ncplane*
-make_slider(struct notcurses* nc, int dimy){
-  const int REPS = 4;
-  int y = dimy - sizeof(leg) / sizeof(*leg);
+make_slider(struct notcurses* nc, int dimy, int dimx){
+  // 600 frames in the video
   const int len = strlen(leg[0]);
+  const int REPS = 600 / len + dimx / len;
+  int y = dimy - sizeof(leg) / sizeof(*leg);
   struct ncplane* n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), len * REPS, y, 0, NULL);
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -83,7 +84,7 @@ int xray_demo(struct notcurses* nc){
   if(ncv == NULL){
     return -1;
   }
-  struct ncplane* newpanel = make_slider(nc, dimy);
+  struct ncplane* newpanel = make_slider(nc, dimy, dimx);
   if(newpanel == NULL){
     ncvisual_destroy(ncv);
     ncplane_destroy(n);
