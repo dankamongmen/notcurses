@@ -435,11 +435,13 @@ nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
   if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx, leny, lenx) <= 0){
     if(sframe){
       av_freep(sframe->data);
+      av_freep(&sframe);
     }
     return NCERR_DECODE;
   }
   if(sframe){
     av_freep(sframe->data);
+    av_freep(&sframe);
   }
   return NCERR_SUCCESS;
 }
