@@ -369,6 +369,7 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
       return nullptr;
     }
     ncvisual_set_data(ncv, data, true);
+    ncvisual_details_seed(ncv);
   }
   return ncv;
 }
