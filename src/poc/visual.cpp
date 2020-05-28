@@ -43,23 +43,19 @@ int main(int argc, char** argv){
   if(ncvisual_render(nc, ncv, &vopts) == nullptr){
     goto err;
   }
-notcurses_debug(nc, stderr);
   if(notcurses_render(nc)){
     goto err;
   }
-sleep(2);
-ncplane_erase(n);
+  sleep(1);
   ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, nullptr, nullptr, &scaley, &scalex);
   ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
   vopts.n = n;
   if(ncvisual_render(nc, ncv, &vopts) == nullptr){
     goto err;
   }
-notcurses_debug(nc, stderr);
   if(notcurses_render(nc)){
     goto err;
   }
-sleep(2);
   for(double i = 0 ; i < 256 ; ++i){
     sleep(1);
     if(ncvisual_rotate(ncv, M_PI / 2)){
