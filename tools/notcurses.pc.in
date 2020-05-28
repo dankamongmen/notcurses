@@ -5,8 +5,8 @@ includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: @PROJECT_NAME@
 Description: TUI library for modern terminal emulators
-Version: @NOTCURSES_VERSION@
+Version: @PROJECT_VERSION@
 
 Requires:
-Libs: -L${libdir} -lnotcurses-@LT_RELEASE@
+Libs: -L${libdir} -lnotcurses
 Cflags: -I${includedir}
