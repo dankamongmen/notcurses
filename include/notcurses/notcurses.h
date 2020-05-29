@@ -2077,21 +2077,6 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
                             x + xlen - 1, ctlword);
 }
 
-// each has the empty cell in addition to the product of its dimensions. i.e.
-// NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
-// states: empty, the three shaded blocks, and the full block.
-typedef enum {
-  NCBLIT_DEFAULT, // let the ncvisual pick
-  NCBLIT_1x1,     // full block                █
-  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
-  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
-} ncblitter_e;
-
 // Open a visual at 'file', extract a codec and parameters, decode the first
 // image to memory.
 API struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
@@ -2117,6 +2102,21 @@ API struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows,
 API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                          int begy, int begx,
                                          int leny, int lenx);
+
+// each has the empty cell in addition to the product of its dimensions. i.e.
+// NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
+// states: empty, the three shaded blocks, and the full block.
+typedef enum {
+  NCBLIT_DEFAULT, // let the ncvisual pick
+  NCBLIT_1x1,     // full block                █
+  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
+  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
+  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
+} ncblitter_e;
 
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require

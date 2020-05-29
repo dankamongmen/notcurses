@@ -100,7 +100,7 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
   return NCERR_SUCCESS;
 }
 
-nc_err_e ncvisual_blit(const struct ncvisual* ncv, int rows, int cols,
+nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                        ncplane* n, const struct blitset* bset,
                        int placey, int placex, int begy, int begx,
                        int leny, int lenx) {

@@ -6,7 +6,7 @@
 
 // Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
-nc_err_e ncvisual_blit(const struct ncvisual* ncv, int rows, int cols,
+nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                        ncplane* n, const struct blitset* bset,
                        int placey, int placex, int begy, int begx,
                        int leny, int lenx);
@@ -541,7 +541,7 @@ int ncvisual_init(int loglevel) {
   return 0; // allow success here
 }
 
-nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
+nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                        const struct blitset* bset, int placey, int placex,
                        int begy, int begx, int leny, int lenx) {
   (void)rows;

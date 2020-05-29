@@ -377,7 +377,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   return -1;
 }
 
-nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
+nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                        const struct blitset* bset, int placey, int placex,
                        int begy, int begx, int leny, int lenx) {
   const AVFrame* inframe = ncv->details.oframe ? ncv->details.oframe : ncv->details.frame;
@@ -394,12 +394,13 @@ nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
       return NCERR_NOMEM;
     }
     //fprintf(stderr, "WHN NCV: %d/%d\n", inframe->width, inframe->height);
-    auto swsctx = sws_getContext(ncv->cols, ncv->rows,
-                                 static_cast<AVPixelFormat>(inframe->format),
-                                 cols, rows,
-                                 static_cast<AVPixelFormat>(targformat),
-                                 SWS_LANCZOS, nullptr, nullptr, nullptr);
-    if(swsctx == nullptr){
+    ncv->details.swsctx = sws_getCachedContext(ncv->details.swsctx,
+                                               ncv->cols, ncv->rows,
+                                               static_cast<AVPixelFormat>(inframe->format),
+                                               cols, rows,
+                                               static_cast<AVPixelFormat>(targformat),
+                                               SWS_LANCZOS, nullptr, nullptr, nullptr);
+    if(ncv->details.swsctx == nullptr){
 //fprintf(stderr, "Error retrieving details.swsctx\n");
       return NCERR_NOMEM;
     }
@@ -415,14 +416,13 @@ nc_err_e ncvisual_blit(const ncvisual* ncv, int rows, int cols, ncplane* n,
 //fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
       return NCERR_NOMEM;
     }
-    int height = sws_scale(swsctx, (const uint8_t* const*)inframe->data,
+    int height = sws_scale(ncv->details.swsctx, (const uint8_t* const*)inframe->data,
                            inframe->linesize, 0, inframe->height, sframe->data,
                            sframe->linesize);
     if(height < 0){
 //fprintf(stderr, "Error applying scaling (%d X %d)\n", inframe->height, inframe->width);
       return NCERR_DECODE;
     }
-    sws_freeContext(swsctx);
     stride = sframe->linesize[0]; // FIXME check for others?
     data = sframe->data[0];
 //fprintf(stderr, "scaled %d/%d to %d/%d (%d/%d)\n", ncv->rows, ncv->cols, rows, cols, sframe->height, sframe->width);
