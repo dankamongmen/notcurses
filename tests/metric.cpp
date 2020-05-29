@@ -324,16 +324,19 @@ TEST_CASE("Metric") {
   // nanoseconds, but want output in seconds.
   // This requires 'decimal' = GIG.
   SUBCASE("ScaledGigSupra") {
-    char gold[PREFIXSTRLEN + 1] = "9.02";
+    char gold[PREFIXSTRLEN + 1];
+    snprintf(gold, sizeof(gold), "%.2f", 9.029); // 9.02
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 9027854993;
     uintmax_t decimal = GIG;
     REQUIRE(qprefix(val, decimal, buf, 0));
+fprintf(stderr, "%s %s\n", gold, buf);
     CHECK(!strcmp(buf, gold));
   }
 
   SUBCASE("ScaledGigUnity") {
-    char gold[PREFIXSTRLEN + 1] = "1.00";
+    char gold[PREFIXSTRLEN + 1];
+    snprintf(gold, sizeof(gold), "%.2f", 1.0); // 1.00
     char buf[PREFIXSTRLEN + 1];
     uintmax_t decimal = GIG;
     uintmax_t val = decimal;
@@ -342,7 +345,8 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigJustAbove") {
-    char gold[PREFIXSTRLEN + 1] = "1.00";
+    char gold[PREFIXSTRLEN + 1];
+    snprintf(gold, sizeof(gold), "%.2f", 1.0); // 1.00
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 1000000001;
     uintmax_t decimal = GIG;
@@ -351,7 +355,8 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigJustBelow") {
-    char gold[PREFIXSTRLEN + 1] = "999.99m";
+    char gold[PREFIXSTRLEN + 1];
+    snprintf(gold, sizeof(gold), "%.2fm", 999.999); //999.99
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 999999999;
     uintmax_t decimal = GIG;
@@ -360,7 +365,8 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigSub") {
-    char gold[PREFIXSTRLEN + 1] = "27.85m";
+    char gold[PREFIXSTRLEN + 1];
+    snprintf(gold, sizeof(gold), "%.2fm", 27.859); // 27.85
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 27854993;
     uintmax_t decimal = GIG;
@@ -369,7 +375,8 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigSubSub") {
-    char gold[PREFIXSTRLEN + 1] = "7.85m";
+    char gold[PREFIXSTRLEN + 1];
+    snprintf(gold, sizeof(gold), "%.2fm", 7.859); // 7.85
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 7854993;
     uintmax_t decimal = GIG;
