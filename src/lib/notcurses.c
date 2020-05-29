@@ -1065,7 +1065,7 @@ int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
     }else{
       n->nc->top = n->below;
     }
-    if(above->above){
+    if( (n->above = above->above) ){
       above->above->below = n;
     }else{
       n->nc->top = n;
@@ -1092,7 +1092,7 @@ int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
     }else{
       n->nc->top = n->below;
     }
-    if(below->below){
+    if( (n->below = below->below) ){
       below->below->above = n;
     }else{
       n->nc->bottom = n;
