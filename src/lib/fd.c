@@ -258,7 +258,7 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
     execv(bin, arg);
-    fprintf(stderr, "Error execv()ing %s\n", bin);
+//fprintf(stderr, "Error execv()ing %s\n", bin);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
@@ -287,7 +287,7 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
     execvp(bin, arg);
-    fprintf(stderr, "Error execv()ing %s\n", bin);
+//fprintf(stderr, "Error execv()ing %s\n", bin);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
@@ -320,7 +320,7 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
 #else
     execvpe(bin, arg, env);
 #endif
-    fprintf(stderr, "Error execv()ing %s\n", bin);
+//fprintf(stderr, "Error execv()ing %s\n", bin);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
