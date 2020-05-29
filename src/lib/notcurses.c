@@ -672,6 +672,9 @@ init_banner(const notcurses* nc){
     if(!notcurses_canutf8(nc)){
       fprintf(stderr, "\n Warning! Encoding is not UTF-8.\n");
     }
+    if(nc->tcache.sgr0){
+      term_emit("sgr0", nc->tcache.sgr0, stderr, true);
+    }
   }
 }
 
