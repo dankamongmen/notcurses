@@ -24,7 +24,19 @@ class ncppplot {
    if(maxy < miny){
      return false;
    }
-   auto bset = lookup_blitset(opts && opts->gridtype ? opts->gridtype : NCBLIT_8x1);
+   ncblitter_e blitter = opts ? opts->gridtype : NCBLIT_DEFAULT;
+   if(blitter == NCBLIT_DEFAULT){
+     if(notcurses_canutf8(ncplane_notcurses(n))){
+       blitter = NCBLIT_8x1;
+     }else{
+       blitter = NCBLIT_1x1;
+     }
+   }
+   bool degrade_blitter = true;
+   if(opts && !(opts->flags & NCPLOT_OPTIONS_MAYDEGRADE)){
+     degrade_blitter = false;
+   }
+   auto bset = lookup_blitset(ncplane_notcurses(n), blitter, degrade_blitter);
    if(bset == nullptr){
      return false;
    }
@@ -76,38 +88,11 @@ class ncppplot {
    return false;
  }
 
- // Add to or set the value corresponding to this x. If x is beyond the current
- // x window, the x window is advanced to include x, and values passing beyond
- // the window are lost. The first call will place the initial window. The plot
- // will be redrawn, but notcurses_render() is not called.
- int add_sample(uint64_t x, T y){
-   if(window_slide(x)){
-     return -1;
-   }
-   update_sample(x, y, false);
-   if(update_domain(x)){
-     return -1;
-   }
-   return redraw_plot();
- }
-
- int set_sample(uint64_t x, T y){
-   if(window_slide(x)){
-     return -1;
-   }
-   update_sample(x, y, true);
-   if(update_domain(x)){
-     return -1;
-   }
-   return redraw_plot();
- }
-
  void destroy(){
    free(slots);
  }
 
- // FIXME everything below here ought be private, but it busts unit tests
- int redraw_plot(){
+ int redraw_plot() {
    ncplane_erase(ncp);
    const int scale = bset->width;
    int dimy, dimx;
@@ -122,7 +107,7 @@ class ncppplot {
    if(exponentiali){
      if(maxy > miny){
        interval = pow(maxy - miny, (double)1 / (dimy * states));
-//fprintf(stderr, "miny: %ju maxy: %ju dimy: %d states: %zu\n", miny, maxy, dimy, states);
+ //fprintf(stderr, "miny: %ju maxy: %ju dimy: %d states: %zu\n", miny, maxy, dimy, states);
      }else{
        interval = 0;
      }
@@ -158,6 +143,8 @@ class ncppplot {
    #define MAXWIDTH 2
    int idx = slotstart; // idx holds the real slot index; we move backwards
    for(int x = finalx ; x >= startx ; --x){
+     // a single column might correspond to more than 1 ('scale', up to
+     // MAXWIDTH) slot's worth of samples. prepare the working gval set.
      T gvals[MAXWIDTH];
      // load it retaining the same ordering we have in the actual array
      for(int i = scale - 1 ; i >= 0 ; --i){
@@ -179,6 +166,10 @@ class ncppplot {
      double intervalbase = miny;
      const wchar_t* egc = bset->egcs;
      for(int y = 0 ; y < dimy ; ++y){
+       uint64_t channels = 0;
+       calc_gradient_channels(&channels, maxchannel, maxchannel,
+                             minchannel, minchannel, y, x, dimy, dimx);
+       ncplane_set_channels(ncp, channels);
        size_t egcidx = 0, sumidx = 0;
        // if we've got at least one interval's worth on the number of positions
        // times the number of intervals per position plus the starting offset,
@@ -206,10 +197,26 @@ class ncppplot {
            egcidx = 0;
          }
        }
-       if(sumidx){
+       // if we're not UTF8, we can only arrive here via NCBLIT_1x1 (otherwise
+       // we would have errored out during construction). even then, however,
+       // we need handle ASCII differently, since it can't print full block.
+       // in ASCII mode, egcidx != means swap colors and use space.
+       if(notcurses_canutf8(ncplane_notcurses(ncp)) || !sumidx){
          if(ncplane_putwc_yx(ncp, dimy - y - 1, x, egc[sumidx]) <= 0){
            return -1;
          }
+       }else{
+         const uint64_t swapbg = channels_bchannel(channels);
+         const uint64_t swapfg = channels_fchannel(channels);
+         channels_set_bchannel(&channels, swapfg);
+         channels_set_fchannel(&channels, swapbg);
+         ncplane_set_channels(ncp, channels);
+         if(ncplane_putsimple_yx(ncp, dimy - y - 1, x, ' ') <= 0){
+           return -1;
+         }
+         channels_set_bchannel(&channels, swapbg);
+         channels_set_fchannel(&channels, swapfg);
+         ncplane_set_channels(ncp, channels);
        }
        if(done){
          break;
@@ -224,11 +231,33 @@ class ncppplot {
    if(ncplane_cursor_move_yx(ncp, 0, 0)){
      return -1;
    }
-   if(ncplane_stain(ncp, dimy - 1, dimx - 1, maxchannel, maxchannel,
-                    minchannel, minchannel) <= 0){
+   return 0;
+ }
+
+ // Add to or set the value corresponding to this x. If x is beyond the current
+ // x window, the x window is advanced to include x, and values passing beyond
+ // the window are lost. The first call will place the initial window. The plot
+ // will be redrawn, but notcurses_render() is not called.
+ int add_sample(uint64_t x, T y) {
+   if(window_slide(x)){
      return -1;
    }
-   return 0;
+   update_sample(x, y, false);
+   if(update_domain(x)){
+     return -1;
+   }
+   return redraw_plot();
+ }
+
+ int set_sample(uint64_t x, T y) {
+   if(window_slide(x)){
+     return -1;
+   }
+   update_sample(x, y, true);
+   if(update_domain(x)){
+     return -1;
+   }
+   return redraw_plot();
  }
 
  // if we're doing domain detection, update the domain to reflect the value we

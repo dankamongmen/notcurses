@@ -41,7 +41,7 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n, ncblitter_e blitter,
   if(blitter == NCBLIT_DEFAULT){
     blitter = ncvisual_default_blitter(nc);
   }
-  const struct blitset* bset = lookup_blitset(blitter);
+  const struct blitset* bset = lookup_blitset(nc, blitter, false);
   if(!bset){
     return -1;
   }
@@ -65,10 +65,11 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n, ncblitter_e blitter,
 static const struct blitset*
 rgba_blitter(const notcurses* nc, const struct ncvisual_options* opts){
   const struct blitset* bset;
-  if(opts && opts->blitter){
-    bset = lookup_blitset(opts->blitter);
+  const bool maydegrade = !opts || (opts->flags & NCVISUAL_OPTIONS_MAYDEGRADE);
+  if(opts && opts->blitter != NCBLIT_DEFAULT){
+    bset = lookup_blitset(nc, opts->blitter, maydegrade);
   }else{
-    bset = lookup_blitset(ncvisual_default_blitter(nc));
+    bset = lookup_blitset(nc, ncvisual_default_blitter(nc), maydegrade);
   }
   if(bset && !bset->blit){ // FIXME remove this once all blitters are enabled
     bset = nullptr;
@@ -376,7 +377,7 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
 
 auto ncvisual_render(notcurses* nc, ncvisual* ncv,
                      const struct ncvisual_options* vopts) -> ncplane* {
-  if(vopts && vopts->flags){
+  if(vopts && vopts->flags > NCVISUAL_OPTIONS_MAYDEGRADE){
     return nullptr;
   }
   int lenx = vopts ? vopts->lenx : 0;

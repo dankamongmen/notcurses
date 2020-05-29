@@ -2142,6 +2142,8 @@ API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
 // transformation, unless the size is unchanged.
 API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
 
+#define NCVISUAL_OPTIONS_MAYDEGRADE 0x0001 // blitter can be worse than requested
+
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
   // necessary to render the source with perfect fidelity (this might be
@@ -2161,8 +2163,10 @@ struct ncvisual_options {
   // these numbers are all in terms of ncvisual pixels.
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
+  // use NCBLIT_DEFAULT if you don't care, to use NCBLIT_2x2 (assuming
+  // UTF8) or NCBLIT_1x1 (in an ASCII environment)
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
-  uint64_t flags; // currently all zero
+  uint64_t flags; // bitmask over NCVISUAL_OPTIONS_*
 };
 
 // Render the decoded frame to the specified ncplane (if one is not provided,
@@ -2737,12 +2741,15 @@ API int ncmenu_destroy(struct ncmenu* n);
 #define NCPLOT_OPTIONS_LABELTICKSD  0x0001 // show labels for dependent axis
 #define NCPLOT_OPTIONS_EXPONENTIALD 0x0002 // exponential dependent axis
 #define NCPLOT_OPTIONS_VERTICALI    0x0004 // independent axis is vertical
+#define NCPLOT_OPTIONS_MAYDEGRADE   0x0008 // blitter can be worse than requested
 
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear interpolation will be
   // applied across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
+  // if you don't care, pass NCBLIT_DEFAULT and get NCBLIT_8x1 (assuming
+  // UTF8) or NCBLIT_1x1 (in an ASCII environment)
   ncblitter_e gridtype; // number of "pixels" per row x column
   // independent variable can either be a contiguous range, or a finite set
   // of keys. for a time range, say the previous hour sampled with second
@@ -2756,7 +2763,7 @@ typedef struct ncplot_options {
 // The plot will make free use of the entirety of the plane.
 // for domain autodiscovery, set miny == maxy == 0.
 API struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts,
-                                  uint64_t miny, uint64_t maxy);
+                                   uint64_t miny, uint64_t maxy);
 API struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts,
                                    double miny, double maxy);
 

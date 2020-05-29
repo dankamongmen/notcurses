@@ -67,99 +67,6 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
   return ret;
 }
 
-// Our gradient is a 2d lerp among the four corners of the region. We start
-// with the observation that each corner ought be its exact specified corner,
-// and the middle ought be the exact average of all four corners' components.
-// Another observation is that if all four corners are the same, every cell
-// ought be the exact same color. From this arises the observation that a
-// perimeter element is not affected by the other three sides:
-//
-//  a corner element is defined by itself
-//  a perimeter element is defined by the two points on its side
-//  an internal element is defined by all four points
-//
-// 2D equation of state: solve for each quadrant's contribution (min 2x2):
-//
-//  X' = (xlen - 1) - X
-//  Y' = (ylen - 1) - Y
-//  TLC: X' * Y' * TL
-//  TRC: X * Y' * TR
-//  BLC: X' * Y * BL
-//  BRC: X * Y * BR
-//  steps: (xlen - 1) * (ylen - 1) [maximum steps away from origin]
-//
-// Then add TLC + TRC + BLC + BRC + steps / 2, and divide by steps (the
-//  steps / 2 is to work around truncate-towards-zero).
-static int
-calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
-                        int y, int x, int ylen, int xlen){
-  assert(y >= 0);
-  assert(y < ylen);
-  assert(x >= 0);
-  assert(x < xlen);
-  const int avm = (ylen - 1) - y;
-  const int ahm = (xlen - 1) - x;
-  if(xlen < 2){
-    if(ylen < 2){
-      return tl;
-    }
-    return (tl * avm + bl * y) / (ylen - 1);
-  }
-  if(ylen < 2){
-    return (tl * ahm + tr * x) / (xlen - 1);
-  }
-  const int tlc = ahm * avm * tl;
-  const int blc = ahm * y * bl;
-  const int trc = x * avm * tr;
-  const int brc = y * x * br;
-  const int divisor = (ylen - 1) * (xlen - 1);
-  return ((tlc + blc + trc + brc) + divisor / 2) / divisor;
-}
-
-// calculate one of the channels of a gradient at a particular point.
-static inline uint32_t
-calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
-                      int y, int x, int ylen, int xlen){
-  uint32_t chan = 0;
-  channel_set_rgb_clipped(&chan,
-                         calc_gradient_component(channel_r(ul), channel_r(ur),
-                                                 channel_r(ll), channel_r(lr),
-                                                 y, x, ylen, xlen),
-                         calc_gradient_component(channel_g(ul), channel_g(ur),
-                                                 channel_g(ll), channel_g(lr),
-                                                 y, x, ylen, xlen),
-                         calc_gradient_component(channel_b(ul), channel_b(ur),
-                                                 channel_b(ll), channel_b(lr),
-                                                 y, x, ylen, xlen));
-  channel_set_alpha(&chan, channel_alpha(ul)); // precondition: all αs are equal
-  return chan;
-}
-
-// calculate both channels of a gradient at a particular point, storing them
-// into `c`->channels. x and y ought be the location within the gradient.
-static inline void
-calc_gradient_channels(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
-                       uint64_t lr, int y, int x, int ylen, int xlen){
-  if(!channels_fg_default_p(ul)){
-    cell_set_fchannel(c, calc_gradient_channel(channels_fchannel(ul),
-                                               channels_fchannel(ur),
-                                               channels_fchannel(ll),
-                                               channels_fchannel(lr),
-                                               y, x, ylen, xlen));
-  }else{
-    cell_set_fg_default(c);
-  }
-  if(!channels_bg_default_p(ul)){
-    cell_set_bchannel(c, calc_gradient_channel(channels_bchannel(ul),
-                                               channels_bchannel(ur),
-                                               channels_bchannel(ll),
-                                               channels_bchannel(lr),
-                                               y, x, ylen, xlen));
-  }else{
-    cell_set_bg_default(c);
-  }
-}
-
 static bool
 check_gradient_channel_args(uint32_t ul, uint32_t ur, uint32_t bl, uint32_t br){
   if(channel_default_p(ul) || channel_default_p(ur) ||
@@ -307,7 +214,8 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
         return -1;
       }
       targc->attrword = attrword;
-      calc_gradient_channels(targc, ul, ur, bl, br, y - yoff, x - xoff, ylen, xlen);
+      calc_gradient_channels(&targc->channels, ul, ur, bl, br,
+                             y - yoff, x - xoff, ylen, xlen);
       ++total;
     }
   }
@@ -340,7 +248,8 @@ int ncplane_stain(struct ncplane* n, int ystop, int xstop,
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
-      calc_gradient_channels(targc, tl, tr, bl, br, y - yoff, x - xoff, ylen, xlen);
+      calc_gradient_channels(&targc->channels, tl, tr, bl, br,
+                             y - yoff, x - xoff, ylen, xlen);
       ++total;
     }
   }
