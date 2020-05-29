@@ -27,12 +27,6 @@ perframe(struct ncplane* n, struct ncvisual* ncv __attribute__ ((unused)),
 static void*
 fadethread(void* vnc){
   struct notcurses* nc = vnc;
-  int rows, cols;
-  struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
-  struct timespec fade;
-  timespec_mul(&demodelay, 2, &fade);
-  ncplane_fadeout(ncp, &fade, demo_fader, NULL);
-  ncvisual_destroy(chncv);
   nc_err_e err;
   char* path = find_data("samoa.avi");
   struct ncvisual* ncv = ncvisual_from_file(path, &err);
@@ -40,16 +34,31 @@ fadethread(void* vnc){
   if(ncv == NULL){
     return NULL;
   }
+  int rows, cols;
+  struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
+  struct ncvisual_options vopts = {
+    .scaling = NCSCALE_STRETCH,
+  };
+  int three = 3;
+  if(NCERR_SUCCESS != ncvisual_decode(ncv)){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
+  struct ncplane* globeplane;
+  if((globeplane = ncvisual_render(nc, ncv, &vopts)) == NULL){
+    return NULL;
+  }
+  ncplane_move_below(globeplane, ncp);
+  struct timespec fade;
+  timespec_mul(&demodelay, 2, &fade);
+  demo_render(nc);
+  ncplane_fadeout(ncp, &fade, demo_fader, NULL);
+  ncvisual_destroy(chncv);
   struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
       "Apia 🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
-  int three = 3;
-  struct ncvisual_options vopts = {
-    .scaling = NCSCALE_STRETCH,
-    .n = ncp,
-  };
   int canceled = ncvisual_stream(nc, ncv, &err, delaymultiplier, perframe, &vopts, &three);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
