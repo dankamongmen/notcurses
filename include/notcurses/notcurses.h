@@ -2421,7 +2421,7 @@ API struct ncplane* nctablet_ncplane(struct nctablet* t);
 // uprefix: character to print following suffix ('i' for kibibytes basically).
 //   only printed if suffix is actually printed (input >= mult).
 API const char* ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
-                         int omitdec, unsigned mult, int uprefix);
+                         int omitdec, uintmax_t mult, int uprefix);
 
 // Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1.
 static inline const char*

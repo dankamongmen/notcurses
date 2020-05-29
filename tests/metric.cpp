@@ -89,6 +89,7 @@ TEST_CASE("Metric") {
     // FIXME these will change based on the size of intmax_t and uintmax_t
     ncmetric(INTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - (1ull << 53))) / (1ull << 60));
+fprintf(stderr, "%d gold: %s buf: %s value: %ju\n", __LINE__, gold, buf, INTMAX_MAX - 1);
     CHECK(!strcmp(gold, buf));
     REQUIRE(ncmetric(INTMAX_MAX + 1ull, 1, buf, 0, 1024, 'i'));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX + 1ull)) / (1ull << 60));
