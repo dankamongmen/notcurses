@@ -113,40 +113,53 @@ TEST_CASE("Rotate") {
     int height = dimy / 2;
     int width = dimx / 2;
     std::vector<uint32_t> rgba(width * height, 0xffbbccff);
-    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), height, width * 4, width);
+    for(int i = 0 ; i < height * width / 2 ; ++i){
+      CHECK(0xffbbccff == rgba[i]);
+    }
+    auto ncv = ncvisual_from_rgba(rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
-    int rendered = ncvisual_render(ncv, 0, 0, -1, -1);
-    CHECK(0 < rendered);
-    CHECK(0 == notcurses_render(nc_));
-    uint32_t* rgbaret = ncplane_rgba(ncvisual_plane(ncv), 0, 0, -1, -1);
+    ncvisual_options opts{};
+    auto rendered = ncvisual_render(nc_, ncv, &opts);
+    REQUIRE(rendered);
+    uint32_t* rgbaret = ncplane_rgba(rendered, 0, 0, -1, -1);
     REQUIRE(rgbaret);
-    for(int i = 0 ; i < rendered / 2 ; ++i){
-      CHECK(rgbaret[i] == htonl(rgba[i]));
+    for(int i = 0 ; i < height * width / 2 ; ++i){
+      if(rgbaret[i] & CELL_BG_MASK){
+        CHECK(rgbaret[i] == htonl(rgba[i]));
+      }
     }
     free(rgbaret);
+    CHECK(0 == notcurses_render(nc_));
     for(int x = 0 ; x < width ; ++x){
       uint32_t attrword;
       uint64_t channels;
       char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      CHECK(0xffccbb == (channels_fg(channels) & CELL_BG_MASK));
-      CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
+      if(channels_fg(channels) & CELL_BG_MASK){
+        CHECK(0xffccbb == (channels_fg(channels) & CELL_BG_MASK));
+      }
+      if(channels_bg(channels) & CELL_BG_MASK){
+        CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
+      }
       free(c);
     }
+    opts.n = rendered;
+    // FIXME check pixels after all rotations
     CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
+    ncplane_destroy(rendered);
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -154,40 +167,51 @@ TEST_CASE("Rotate") {
     int height = dimy / 2;
     int width = dimx / 2;
     std::vector<uint32_t> rgba(width * height, 0xffbbccff);
-    auto ncv = ncvisual_from_rgba(nc_, rgba.data(), height, width * 4, width);
+    auto ncv = ncvisual_from_rgba(rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
-    int rendered = ncvisual_render(ncv, 0, 0, -1, -1);
-    CHECK(0 < rendered);
-    CHECK(0 == notcurses_render(nc_));
-    uint32_t* rgbaret = ncplane_rgba(ncvisual_plane(ncv), 0, 0, -1, -1);
+    ncvisual_options opts{};
+    auto rendered = ncvisual_render(nc_, ncv, &opts);
+    REQUIRE(rendered);
+    uint32_t* rgbaret = ncplane_rgba(rendered, 0, 0, -1, -1);
     REQUIRE(rgbaret);
-    for(int i = 0 ; i < rendered ; ++i){
-      CHECK(rgbaret[i] == htonl(rgba[i]));
+    for(int i = 0 ; i < height * width / 2 ; ++i){
+      if(rgbaret[i] & CELL_BG_MASK){
+        CHECK(rgbaret[i] == htonl(rgba[i]));
+fprintf(stderr, "%08x %08x\n", rgbaret[i], htonl(rgba[i]));
+      }
     }
     free(rgbaret);
-    for(int x = 0 ; x < width ; ++x){
+    CHECK(0 == notcurses_render(nc_));
+    for(int y = 0 ; y < height ; ++y){
       uint32_t attrword;
       uint64_t channels;
-      char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
+      char* c = notcurses_at_yx(nc_, y, 0, &attrword, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      CHECK(0xffccbb == (channels_fg(channels) & CELL_BG_MASK));
-      CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
+      if(channels_fg(channels) & CELL_BG_MASK){
+        CHECK(0xffccbb == (channels_fg(channels) & CELL_BG_MASK));
+      }
+      if(channels_bg(channels) & CELL_BG_MASK){
+        CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
+      }
       free(c);
     }
+    // FIXME check pixels after all rotations
+    opts.n = rendered;
     CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-    CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-    CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-    CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-    CHECK(0 <= ncvisual_render(ncv, 0, 0, -1, -1));
+    CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
+    ncplane_destroy(rendered);
     CHECK(0 == notcurses_render(nc_));
   }
 

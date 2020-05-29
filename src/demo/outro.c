@@ -8,10 +8,10 @@ static struct ncplane* on;
 static struct ncvisual* chncv;
 
 static int
-perframe(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
+perframe(struct ncplane* n, struct ncvisual* ncv __attribute__ ((unused)),
          const struct timespec* abstime, void* vthree){
   int* three = vthree; // move up one every three callbacks
-  DEMO_RENDER(nc);
+  DEMO_RENDER(ncplane_notcurses(n));
   if(y < targy){
     return 0;
   }
@@ -35,7 +35,7 @@ fadethread(void* vnc){
   ncvisual_destroy(chncv);
   nc_err_e err;
   char* path = find_data("samoa.avi");
-  struct ncvisual* ncv = ncplane_visual_open(ncp, path, &err);
+  struct ncvisual* ncv = ncvisual_from_file(path, &err);
   free(path);
   if(ncv == NULL){
     return NULL;
@@ -46,7 +46,11 @@ fadethread(void* vnc){
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
       "Apia 🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
   int three = 3;
-  int canceled = ncvisual_stream(nc, ncv, &err, delaymultiplier, perframe, &three);
+  struct ncvisual_options vopts = {
+    .scaling = NCSCALE_STRETCH,
+    .n = ncp,
+  };
+  int canceled = ncvisual_stream(nc, ncv, &err, delaymultiplier, perframe, &vopts, &three);
   ncvisual_destroy(ncv);
   ncplane_erase(ncp);
   ncplane_destroy(apiap);
@@ -133,7 +137,7 @@ int outro(struct notcurses* nc){
   ncplane_erase(ncp);
   nc_err_e err = 0;
   char* path = find_data("changes.jpg");
-  chncv = ncplane_visual_open(ncp, path, &err);
+  chncv = ncvisual_from_file(path, &err);
   free(path);
   if(chncv == NULL){
     return -1;
@@ -142,7 +146,11 @@ int outro(struct notcurses* nc){
     ncvisual_destroy(chncv);
     return -1;
   }
-  if(ncvisual_render(chncv, 0, 0, -1, -1) <= 0){
+  struct ncvisual_options vopts = {
+    .n = ncp,
+    .scaling = NCSCALE_STRETCH,
+  };
+  if(ncvisual_render(nc, chncv, &vopts) == NULL){
     ncvisual_destroy(chncv);
     return -1;
   }

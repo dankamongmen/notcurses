@@ -809,6 +809,19 @@ typedef struct notcurses_options {
 // there can be four numbers separated by commas.
 API int notcurses_lex_margins(const char* op, notcurses_options* opts);
 
+// How to scale a visual in ncvisual_decode(). NCSCALE_NONE will apply no
+// scaling. NCSCALE_SCALE scales a visual to the plane's size, maintaining
+// aspect ratio. NCSCALE_STRETCH stretches and scales the image in an attempt
+// to fill the entirety of the plane.
+typedef enum {
+  NCSCALE_NONE,
+  NCSCALE_SCALE,
+  NCSCALE_STRETCH,
+} ncscale_e;
+
+// Lex a visual scaling mode (one of "none", "stretch", or "scale").
+API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
+
 // Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
 // be a tty. You'll usually want stdout. NULL can be supplied for 'fp', in
 // which case /dev/tty will be opened. Returns NULL on error, including any
@@ -1035,8 +1048,11 @@ API bool notcurses_canopen_images(const struct notcurses* nc);
 // Can we load videos? This requires being built against FFmpeg.
 API bool notcurses_canopen_videos(const struct notcurses* nc);
 
-// Is our encoding UTF-8?
+// Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 API bool notcurses_canutf8(const struct notcurses* nc);
+
+// Can we blit to Sixel? This requires being built against libsixel.
+API bool notcurses_cansixel(const struct notcurses* nc);
 
 typedef struct ncstats {
   // purely increasing stats
@@ -1151,11 +1167,6 @@ API struct ncplane* ncplane_below(struct ncplane* n);
 // flexible approach.
 API int ncplane_rotate_cw(struct ncplane* n);
 API int ncplane_rotate_ccw(struct ncplane* n);
-
-// Rotate the visual 'rads' radians. If we own the bound plane, it is resized
-// to fit the rotated visual, if necessary. Only M_PI/2 and -M_PI/2 are
-// supported at the moment, but this will change FIXME.
-API int ncvisual_rotate(struct ncvisual* n, double rads);
 
 // Retrieve the current contents of the cell under the cursor. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
@@ -2066,43 +2077,9 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
                             x + xlen - 1, ctlword);
 }
 
-// Open a visual (image or video), associating it with the specified ncplane.
-// Returns NULL on any error, writing the cause to 'ncerr'.
-// FIXME this ought also take an ncscale_e!
-API struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file,
-                                         nc_err_e* ncerr);
-
-// How to scale the visual in ncvisual_from_file(). NCSCALE_NONE will open a
-// plane tailored to the visual's exact needs, which is probably larger than the
-// visible screen (but might be smaller). NCSCALE_SCALE scales a visual larger
-// than the visible screen down, maintaining aspect ratio. NCSCALE_STRETCH
-// stretches and scales the image in an attempt to fill the visible screen.
-typedef enum {
-  NCSCALE_NONE,
-  NCSCALE_SCALE,
-  NCSCALE_STRETCH,
-} ncscale_e;
-
-// Open a visual, extract a codec and parameters, and create a new plane
-// suitable for its display at 'y','x'. If there is sufficient room to display
-// the visual in its native size, or if NCSCALE_NONE is passed for 'style', the
-// new plane will be exactly that large. Otherwise, the plane will be as large
-// as possible (given the visible screen), either maintaining aspect ratio
-// (NCSCALE_SCALE) or abandoning it (NCSCALE_STRETCH).
-API struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file,
-                                        nc_err_e* ncerr, int y, int x,
-                                        ncscale_e style);
-
-// Remove by 1.6/2.0 FIXME
-static inline struct ncvisual*
-ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* ncerr,
-                    int y, int x, ncscale_e style) __attribute__ ((deprecated));
-
-static inline struct ncvisual*
-ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* ncerr,
-                    int y, int x, ncscale_e style){
-  return ncvisual_from_file(nc, file, ncerr, y, x, style);
-}
+// Open a visual at 'file', extract a codec and parameters, decode the first
+// image to memory.
+API struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
 
 // Prepare an ncvisual, and its underlying plane, based off RGBA content in
 // memory at 'rgba'. 'rgba' must be a flat array of 32-bit 8bpc RGBA pixels.
@@ -2110,15 +2087,43 @@ ncvisual_open_plane(struct notcurses* nc, const char* file, nc_err_e* ncerr,
 // are actual data. There must be 'rows' lines. The total size of 'rgba'
 // must thus be at least (rows * rowstride) bytes, of which (rows * cols * 4)
 // bytes are actual data. The resulting plane will be ceil('rows'/2)x'cols'.
-API struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba,
-                                        int rows, int rowstride, int cols);
+API struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
+                                        int rowstride, int cols);
 
 // ncvisual_from_rgba(), but 'bgra' is arranged as BGRA.
-API struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra,
-                                        int rows, int rowstride, int cols);
+API struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows,
+                                        int rowstride, int cols);
 
-// Return the plane to which this ncvisual is bound.
-API struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+// Promote an ncplane 'n' to an ncvisual. The plane may contain only spaces,
+// half blocks, and full blocks. The latter will be checked, and any other
+// glyph will result in a NULL being returned. This function exists so that
+// planes can be subjected to ncvisual transformations. If possible, it's
+// better to create the ncvisual from memory using ncvisual_from_rgba().
+API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
+                                         int begy, int begx,
+                                         int leny, int lenx);
+
+// each has the empty cell in addition to the product of its dimensions. i.e.
+// NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
+// states: empty, the three shaded blocks, and the full block.
+typedef enum {
+  NCBLIT_DEFAULT, // let the ncvisual pick
+  NCBLIT_1x1,     // full block                █
+  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
+  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
+  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
+} ncblitter_e;
+
+// Get the size and ratio of ncvisual pixels to output cells along the y
+// ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
+// ('*y' * '*toy')X('x' * 'tox') cells for full output. Returns non-zero
+// for an invalid 'blitter'.
+API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+                      ncblitter_e blitter, int* y, int* x, int* toy, int* tox);
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
@@ -2128,16 +2133,47 @@ API void ncvisual_destroy(struct ncvisual* ncv);
 // and NCERR_SUCCESS on success, otherwise some other NCERR.
 API nc_err_e ncvisual_decode(struct ncvisual* nc);
 
-// Render the decoded frame to the associated ncplane. The frame will be scaled
-// to the size of the ncplane per the ncscale_e style. A subregion of the
-// frame can be specified using 'begx', 'begy', 'lenx', and 'leny'. To render
-// the rectangle formed by begy x begx and the lower-right corner, -1 can be
-// supplied to 'leny' and 'lenx'. {0, 0, -1, -1} will thus render the entire
-// visual. Negative values for 'begy' or 'begx' are an error. It is an error to
-// specify any region beyond the boundaries of the frame. Returns the number of
-// cells written, or -1 on failure.
-API int ncvisual_render(const struct ncvisual* ncv, int begy, int begx,
-                        int leny, int lenx);
+// Rotate the visual 'rads' radians. If we own the bound plane, it is resized
+// to fit the rotated visual, if necessary. Only M_PI/2 and -M_PI/2 are
+// supported at the moment, but this will change FIXME.
+API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
+
+// Resize the visual so that it is 'rows' X 'columns'. This is a lossy
+// transformation, unless the size is unchanged.
+API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
+
+struct ncvisual_options {
+  // if no ncplane is provided, one will be created using the exact size
+  // necessary to render the source with perfect fidelity (this might be
+  // smaller or larger than the rendering area). if provided, style is
+  // taken into account, relative to the provided ncplane.
+  struct ncplane* n;
+  // the style is ignored if no ncplane is provided (it ought be NCSCALE_NONE
+  // in this case). otherwise, the source is stretched/scaled relative to the
+  // provided ncplane.
+  ncscale_e scaling;
+  // if an ncplane is provided, y and x specify where the visual will be
+  // rendered on that plane. otherwise, they specify where the created ncplane
+  // will be placed.
+  int y, x;
+  // the section of the visual that ought be rendered. for the entire visual,
+  // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).
+  // these numbers are all in terms of ncvisual pixels.
+  int begy, begx; // origin of rendered section
+  int leny, lenx; // size of rendered section
+  ncblitter_e blitter; // glyph set to use (maps input to output cells)
+  uint64_t flags; // currently all zero
+};
+
+// Render the decoded frame to the specified ncplane (if one is not provided,
+// one will be created, having the exact size necessary to display the visual.
+// In this case, 'style' must be NCSTYLE_NONE). A subregion of the visual can
+// be rendered using 'begx', 'begy', 'lenx', and 'leny'. Negative values for
+// 'begy' or 'begx' are an error. It is an error to specify any region beyond
+// the boundaries of the frame. Returns the plane to which we drew (if ncv->n
+// is NULL, a new plane will be created).
+API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
+                                    const struct ncvisual_options* vopts);
 
 // If a subtitle ought be displayed at this time, return a heap-allocated copy
 // of the UTF8 text.
@@ -2146,16 +2182,16 @@ API char* ncvisual_subtitle(const struct ncvisual* ncv);
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
 // The recommended absolute display time target is passed in 'tspec'.
-typedef int (*streamcb)(struct notcurses*, struct ncvisual*,
+typedef int (*streamcb)(struct ncplane*, struct ncvisual*,
                         const struct timespec*, void*);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
 // curry is NULL, subtitles will not be displayed.
 static inline int
-ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv,
+ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv,
                          const struct timespec* tspec, void* curry){
-  if(notcurses_render(nc)){
+  if(notcurses_render(ncplane_notcurses(n))){
     return -1;
   }
   int ret = 0;
@@ -2185,7 +2221,7 @@ ncvisual_simple_streamer(struct notcurses* nc, struct ncvisual* ncv,
 // supply 'timescale' less than or equal to 0.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         nc_err_e* ncerr, float timescale, streamcb streamer,
-                        void* curry);
+                        const struct ncvisual_options* vopts, void* curry);
 
 // Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset
 // from the upper left by 'placey' and 'placex'. Each row ought occupy
@@ -2662,19 +2698,6 @@ API bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
 // Destroy a menu created with ncmenu_create().
 API int ncmenu_destroy(struct ncmenu* n);
 
-// each has the empty cell in addition to the product of its dimensions. i.e.
-// NCPLOT_1x1 has two states: empty and full block. NCPLOT_1x1x4 has five
-// states: empty, the three shaded blocks, and the full block.
-typedef enum {
-  NCPLOT_8x1,   // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCPLOT_1x1,   // full block                █
-  NCPLOT_2x1,   // full/(upper|left) blocks  ▄█
-  NCPLOT_1x1x4, // shaded full blocks        ▓▒░█
-  NCPLOT_2x2,   // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-} ncgridgeom_e;
-
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
 // There is some underlying independent variable--this could be e.g. measurement
 // sequence number, or measurement time. Samples are tagged with this variable, which
@@ -2720,7 +2743,7 @@ typedef struct ncplot_options {
   // applied across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
-  ncgridgeom_e gridtype; // number of "pixels" per row x column
+  ncblitter_e gridtype; // number of "pixels" per row x column
   // independent variable can either be a contiguous range, or a finite set
   // of keys. for a time range, say the previous hour sampled with second
   // resolution, the independent variable would be the range [0..3600): 3600.
@@ -2806,15 +2829,6 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // future compatability (provide 0 for no artificial bound).
 API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size_t len);
 
-// Promote an ncplane 'n' to an ncvisual. The plane should not be associated
-// with an existing ncvisual, and may contain only spaces, half blocks, and
-// full blocks. The latter will be checked, and any other glyph will result
-// in a NULL being returned. This function exists so that planes can be
-// subjected to ncvisual transformations. If possible, it's usually better
-// to create the ncvisual from memory using ncvisual_from_rgba().
-API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
-                          int begy, int begx, int leny, int lenx);
-
 #define NCREADER_OPTION_HORSCROLL  0x0001
 #define NCREADER_OPTION_VERSCROLL  0x0002
 
@@ -2855,6 +2869,23 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 // Dump selected notcurses state to the supplied 'debugfp'. Output is freeform,
 // and subject to change. It includes geometry of all planes.
 API void notcurses_debug(struct notcurses* nc, FILE* debugfp);
+
+// a system for rendering RGBA pixels as text glyphs
+struct blitset {
+  ncblitter_e geom;
+  int width;
+  int height;
+  // the EGCs which form the various levels of a given geometry. if the geometry
+  // is wide, things are arranged with the rightmost side increasing most
+  // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
+  // the first five braille EGCs are all 0 on the left, [0..4] on the right.
+  const wchar_t* egcs;
+  int (*blit)(struct ncplane* nc, int placey, int placex, int linesize,
+              const void* data, int begy, int begx, int leny, int lenx, bool bgr);
+  bool fill;
+};
+
+API extern const struct blitset geomdata[];
 
 #undef API
 

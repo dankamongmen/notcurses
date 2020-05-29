@@ -20,6 +20,10 @@ const char* oiio_version(void);
 #endif
 #endif
 
+#ifdef USE_SIXEL
+#include <sixel/sixel.h>
+#endif
+
 #include <term.h>
 #include <time.h>
 #include <stdio.h>
@@ -78,6 +82,8 @@ typedef struct ncplane {
   struct notcurses* nc; // notcurses object of which we are a part
   bool scrolling;       // is scrolling enabled? always disabled by default
 } ncplane;
+
+#include "blitset.h"
 
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
@@ -318,6 +324,7 @@ typedef struct notcurses {
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   bool ownttyfp;  // do we own ttyfp (and thus must close it?)
   bool utf8;      // are we using utf-8 encoding, as hoped?
+  bool libsixel;  // do we have Sixel support?
 } notcurses;
 
 void sigwinch_handler(int signo);
@@ -615,8 +622,6 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
 
 int update_term_dimensions(int fd, int* rows, int* cols);
 
-struct ncvisual* ncvisual_create(float timescale);
-
 static inline void*
 memdup(const void* src, size_t len){
   void* ret = malloc(len);
@@ -627,6 +632,10 @@ memdup(const void* src, size_t len){
 }
 
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
+
+int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
+                       int placex, int linesize, const void* data, int begy,
+                       int begx, int leny, int lenx);
 
 // find the "center" cell of two lengths. in the case of even rows/columns, we
 // place the center on the top/left. in such a case there will be one more

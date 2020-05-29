@@ -121,11 +121,14 @@ struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff,
 unsigned notcurses_supported_styles(const struct notcurses* nc);
 int notcurses_palette_size(const struct notcurses* nc);
 bool notcurses_canfade(const struct notcurses* nc);
+bool notcurses_canchangecolor(const struct notcurses* nc);
+bool notcurses_canopen_images(const struct notcurses* nc);
+bool notcurses_canopen_videos(const struct notcurses* nc);
+bool notcurses_canutf8(const struct notcurses* nc);
+bool notcurses_cansixel(const struct notcurses* nc);
 int notcurses_mouse_enable(struct notcurses* n);
 int notcurses_mouse_disable(struct notcurses* n);
 int ncplane_destroy(struct ncplane* ncp);
-bool notcurses_canopen_images(const struct notcurses* nc);
-bool notcurses_canopen_videos(const struct notcurses* nc);
 int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst);
 void ncplane_erase(struct ncplane* n);
 int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
@@ -258,7 +261,6 @@ int palette256_set_rgb(palette256* p, int idx, int r, int g, int b);
 int palette256_set(palette256* p, int idx, unsigned rgb);
 int palette256_get_rgb(const palette256* p, int idx, unsigned* r, unsigned* g, unsigned* b);
 void palette256_free(palette256* p);
-bool notcurses_canchangecolor(const struct notcurses* nc);
 struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 int ncdirect_bg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
@@ -285,22 +287,42 @@ typedef enum {
   NCERR_DECODE,
   NCERR_UNIMPLEMENTED,
 } nc_err_e;
-struct ncvisual* ncplane_visual_open(struct ncplane* nc, const char* file, nc_err_e* err);
 typedef enum {
   NCSCALE_NONE,
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
 } ncscale_e;
-struct ncvisual* ncvisual_from_file(struct notcurses* nc, const char* file, nc_err_e* err, int y, int x, ncscale_e style);
-struct ncvisual* ncvisual_from_rgba(struct notcurses* nc, const void* rgba, int rows, int rowstride, int cols);
-struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra, int rows, int rowstride, int cols);
-struct ncplane* ncvisual_plane(struct ncvisual* ncv);
+typedef enum {
+  NCBLIT_1x1,     // full block                █
+  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
+  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
+  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
+} ncblitter_e;
+struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
+struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);
+struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows, int rowstride, int cols);
+struct ncvisual* ncvisual_from_plane(const struct ncplane* n, int begy, int begx, int leny, int lenx);
+int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, ncblitter_e blitter, int* y, int* x, int* toy, int* tox);
 void ncvisual_destroy(struct ncvisual* ncv);
 nc_err_e ncvisual_decode(struct ncvisual* nc);
-int ncvisual_render(const struct ncvisual* ncv, int begy, int begx, int leny, int lenx);
+int ncvisual_rotate(struct ncvisual* n, double rads);
+struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);
 char* ncvisual_subtitle(const struct ncvisual* ncv);
-typedef int (*streamcb)(struct notcurses*, struct ncvisual*, const struct timespec*, void*);
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, void* curry);
+typedef int (*streamcb)(struct ncplane*, struct ncvisual*, const struct timespec*, void*);
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);
+struct ncvisual_options {
+  struct ncplane* n;
+  ncscale_e scaling;
+  int y, x;
+  int begy, begx;
+  int leny, lenx;
+  ncblitter_e blitter;
+  uint64_t flags;
+};
 int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
 int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
 struct ncselector_item {
@@ -433,23 +455,12 @@ int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
 int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
 int ncplane_rotate_cw(struct ncplane* n);
 int ncplane_rotate_ccw(struct ncplane* n);
-int ncvisual_rotate(struct ncvisual* n, double rads);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
-struct ncvisual* ncvisual_from_plane(const struct ncplane* n, int begy, int begx, int leny, int lenx);
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
-typedef enum {
-  NCPLOT_1x1,   // full block                █
-  NCPLOT_2x1,   // full/(upper|left) blocks  ▄█
-  NCPLOT_1x1x4, // shaded full blocks        ▓▒░█
-  NCPLOT_2x2,   // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCPLOT_4x2,   // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCPLOT_8x1,   // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-} ncgridgeom_e;
 typedef struct ncplot_options {
   uint64_t maxchannel;
   uint64_t minchannel;
-  ncgridgeom_e gridtype;
+  ncblitter_e gridtype;
   uint64_t rangex;
   unsigned flags;
 } ncplot_options;

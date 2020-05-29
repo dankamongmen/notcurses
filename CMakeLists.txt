@@ -20,6 +20,7 @@ option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_PYTHON "Build Python wrappers" ON)
 option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
 option(USE_RUST "Build Rust wrappers (experimental)" OFF)
+option(USE_SIXEL "Build Sixel support" OFF)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
 option(USE_TESTS "Build doctest unit tests" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
@@ -71,6 +72,9 @@ pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
+endif()
+if(${USE_SIXEL})
+pkg_check_modules(SIXEL REQUIRED libsixel>=1.8.5)
 endif()
 find_library(MATH_LIBRARIES m)
 check_include_file("qrcodegen/qrcodegen.h" HAVE_QRCODEGEN_H)
@@ -140,6 +144,15 @@ target_link_directories(notcurses-static
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
 )
 
+if(${USE_SIXEL})
+target_link_libraries(notcurses PRIVATE "${SIXEL_LIBRARIES}")
+target_link_libraries(notcurses-static PRIVATE "${SIXEL_LIBRARIES}")
+target_include_directories(notcurses PRIVATE "${SIXEL_INCLUDE_DIRS}")
+target_include_directories(notcurses-static PRIVATE "${SIXEL_INCLUDE_DIRS}")
+target_link_libraries(notcurses PRIVATE "${SIXEL_LIBRARY_DIRS}")
+target_link_libraries(notcurses-static PRIVATE "${SIXEL_LIBRARY_DIRS}")
+endif()
+
 if(${USE_QRCODEGEN})
 target_link_libraries(notcurses PRIVATE qrcodegen)
 target_link_libraries(notcurses-static PRIVATE qrcodegen)
@@ -205,13 +218,13 @@ target_compile_definitions(notcurses
   PUBLIC
     _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
   PRIVATE
-    FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
+    _GNU_SOURCE SOURCE_DEFAULT
 )
 target_compile_definitions(notcurses-static
   PUBLIC
     _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
   PRIVATE
-    FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
+    _GNU_SOURCE SOURCE_DEFAULT
 )
 
 # libnotcurses++
@@ -228,7 +241,6 @@ set(NCPP_SOURCES
   src/libcpp/Subproc.cc
   src/libcpp/Tablet.cc
   src/libcpp/Utilities.cc
-  src/libcpp/Visual.cc
   )
 
 add_library(notcurses++ SHARED ${NCPP_SOURCES})
@@ -285,7 +297,7 @@ set(NCPP_COMPILE_OPTIONS
   )
 
 set(NCPP_COMPILE_DEFINITIONS_PUBLIC
-  FORTIFY_SOURCE=2 _GNU_SOURCE SOURCE_DEFAULT
+  _GNU_SOURCE SOURCE_DEFAULT
   )
 set(NCPP_COMPILE_DEFINITIONS_PRIVATE
   _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
@@ -356,7 +368,7 @@ target_link_libraries(notcurses-demo
 )
 target_compile_definitions(notcurses-demo
   PRIVATE
-    FORTIFY_SOURCE=2 _GNU_SOURCE
+    _GNU_SOURCE
 )
 
 # tiny proofs of concept, one binary per source file
@@ -455,10 +467,6 @@ target_link_libraries(notcurses-input
   PRIVATE
     notcurses++
 )
-target_compile_definitions(notcurses-input
-  PRIVATE
-    FORTIFY_SOURCE=2
-)
 
 # notcurses-ncreel
 file(GLOB NCREELSRCS CONFIGURE_DEPENDS src/ncreel/*.cpp)
@@ -472,10 +480,6 @@ target_link_libraries(notcurses-ncreel
   PRIVATE
     notcurses++
 )
-target_compile_definitions(notcurses-ncreel
-  PRIVATE
-    FORTIFY_SOURCE=2
-)
 
 file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(notcurses-tetris ${TETRISSRC})
@@ -487,10 +491,6 @@ target_include_directories(notcurses-tetris
 target_link_libraries(notcurses-tetris
   PRIVATE
     notcurses++
-)
-target_compile_definitions(notcurses-tetris
-  PRIVATE
-    FORTIFY_SOURCE=2
 )
 
 # notcurses-view
@@ -542,10 +542,6 @@ target_link_libraries(notcurses-tester
   PRIVATE
     notcurses++
     "${TERMINFO_LIBRARIES}"
-)
-target_compile_definitions(notcurses-tester
-  PRIVATE
-    FORTIFY_SOURCE=2
 )
 
 enable_testing()

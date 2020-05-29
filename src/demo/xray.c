@@ -16,10 +16,11 @@ static const char* leg[] = {
 };
 
 static struct ncplane*
-make_slider(struct notcurses* nc, int dimy){
-  const int REPS = 4;
-  int y = dimy - sizeof(leg) / sizeof(*leg);
+make_slider(struct notcurses* nc, int dimy, int dimx){
+  // 600 frames in the video
   const int len = strlen(leg[0]);
+  const int REPS = 600 / len + dimx / len;
+  int y = dimy - sizeof(leg) / sizeof(*leg);
   struct ncplane* n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), len * REPS, y, 0, NULL);
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -51,8 +52,9 @@ make_slider(struct notcurses* nc, int dimy){
 }
 
 static int
-perframecb(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
+perframecb(struct ncplane* stdn, struct ncvisual* ncv __attribute__ ((unused)),
            const struct timespec* tspec, void* vnewplane){
+  struct notcurses* nc = ncplane_notcurses(stdn);
   static int frameno = 0;
   int y, x;
   struct ncplane* n = vnewplane;
@@ -77,18 +79,22 @@ int xray_demo(struct notcurses* nc){
   }
   char* path = find_data("notcursesI.avi");
   nc_err_e err;
-  struct ncvisual* ncv = ncplane_visual_open(n, path, &err);
+  struct ncvisual* ncv = ncvisual_from_file(path, &err);
   free(path);
   if(ncv == NULL){
     return -1;
   }
-  struct ncplane* newpanel = make_slider(nc, dimy);
+  struct ncplane* newpanel = make_slider(nc, dimy, dimx);
   if(newpanel == NULL){
     ncvisual_destroy(ncv);
     ncplane_destroy(n);
     return -1;
   }
-  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, newpanel);
+  struct ncvisual_options vopts = {
+    .n = n,
+    .scaling = NCSCALE_STRETCH,
+  };
+  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, &vopts, newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);

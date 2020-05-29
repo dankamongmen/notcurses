@@ -293,7 +293,7 @@ struct ncplane* hud_create(struct notcurses* nc){
   }
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  int yoffset = 5;
+  int yoffset = 13;
   struct ncplane* n = ncplane_new(nc, HUD_ROWS, HUD_COLS, yoffset, 1, NULL);
   if(n == NULL){
     return NULL;
@@ -312,6 +312,12 @@ struct ncplane* hud_create(struct notcurses* nc){
   cell_set_fg(&lr, 0xc0f0c0);
   cell_set_fg(&hl, 0xc0f0c0);
   cell_set_fg(&vl, 0xc0f0c0);
+  cell_set_bg(&ul, 0);
+  cell_set_bg(&ur, 0);
+  cell_set_bg(&ll, 0);
+  cell_set_bg(&lr, 0);
+  cell_set_bg(&hl, 0);
+  cell_set_bg(&vl, 0);
   if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0)){
     cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
     cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
@@ -543,7 +549,7 @@ int fpsgraph_init(struct notcurses* nc){
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTIONS_LABELTICKSD | NCPLOT_OPTIONS_EXPONENTIALD;
-  opts.gridtype = NCPLOT_8x1;
+  opts.gridtype = NCBLIT_8x1;
   channels_set_fg_rgb(&opts.minchannel, 0xff, 0x00, 0xff);
   channels_set_bg(&opts.minchannel, 0x201020);
   channels_set_bg_alpha(&opts.minchannel, CELL_ALPHA_BLEND);

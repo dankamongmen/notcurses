@@ -178,7 +178,7 @@ int fallin_demo(struct notcurses* nc){
 #ifndef DFSG_BUILD
   nc_err_e err = NCERR_SUCCESS;
   char* path = find_data("lamepatents.jpg");
-  struct ncvisual* ncv = ncplane_visual_open(stdn, path, &err);
+  struct ncvisual* ncv = ncvisual_from_file(path, &err);
   free(path);
   if(ncv == NULL){
     goto err;
@@ -187,7 +187,11 @@ int fallin_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     goto err;
   }
-  if(ncvisual_render(ncv, 0, 0, -1, -1) <= 0){
+  struct ncvisual_options vopts = {
+    .n = stdn,
+    .scaling = NCSCALE_STRETCH,
+  };
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);
     goto err;
   }

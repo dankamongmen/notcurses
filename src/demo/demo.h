@@ -164,9 +164,9 @@ int demo_render(struct notcurses* nc);
 int demo_nanosleep(struct notcurses* nc, const struct timespec *ts);
 
 static inline int
-demo_simple_streamer(struct notcurses* nc, struct ncvisual* ncv __attribute__ ((unused)),
+demo_simple_streamer(struct ncplane* nc, struct ncvisual* ncv __attribute__ ((unused)),
                      const struct timespec* tspec, void* curry __attribute__ ((unused))){
-  DEMO_RENDER(nc);
+  DEMO_RENDER(ncplane_notcurses(nc));
   clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
   return 0;
 }

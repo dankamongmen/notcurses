@@ -4,8 +4,9 @@
 #include <notcurses/notcurses.h>
 
 #include "Root.hh"
-#include "NCScale.hh"
+#include "Plane.hh"
 #include "Utilities.hh"
+#include "NotCurses.hh"
 
 namespace ncpp
 {
@@ -15,30 +16,10 @@ namespace ncpp
 	class NCPP_API_EXPORT Visual : public Root
 	{
 	public:
-		explicit Visual (Plane *plane, const char *file, nc_err_e* ncerr)
-			: Visual (static_cast<const Plane*>(plane), file, ncerr)
-		{}
-
-		explicit Visual (Plane const* plane, const char *file, nc_err_e* ncerr)
-			: Root (Utilities::get_notcurses_cpp (plane))
+		explicit Visual (const char *file, nc_err_e *ncerr)
+     : Root(NotCurses::get_instance())
 		{
-			common_init (Utilities::to_ncplane (plane), file, ncerr);
-		}
-
-		explicit Visual (Plane &plane, const char *file, nc_err_e* ncerr)
-			: Visual (static_cast<Plane const&> (plane), file, ncerr)
-		{}
-
-		explicit Visual (Plane const& plane, const char *file, nc_err_e* ncerr)
-			: Root (Utilities::get_notcurses_cpp (plane))
-		{
-			common_init (Utilities::to_ncplane (plane), file, ncerr);
-		}
-
-		explicit Visual (const char *file, nc_err_e* ncerr, int y, int x, NCScale scale, NotCurses *ncinst = nullptr)
-			: Root (ncinst)
-		{
-			visual = ncvisual_from_file (get_notcurses (), file, ncerr, y, x, static_cast<ncscale_e>(scale));
+			visual = ncvisual_from_file (file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}
@@ -64,14 +45,14 @@ namespace ncpp
 			return ncvisual_decode (visual);
 		}
 
-		bool render (int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
+		ncplane* render (const ncvisual_options* vopts) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncvisual_render (visual, begy, begx, leny, lenx), -1);
+			return ncvisual_render (get_notcurses (), visual, vopts); // FIXME error_guard
 		}
 
-		int stream (nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
+		int stream (const ncvisual_options* vopts, nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, ncerr, timescale, streamer, curry), -1);
+			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, ncerr, timescale, streamer, vopts, curry), -1);
 		}
 
 		char* subtitle () const noexcept
@@ -79,11 +60,9 @@ namespace ncpp
 			return ncvisual_subtitle (visual);
 		}
 
-		Plane* get_plane () const noexcept;
-
 		bool rotate (double rads) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncvisual_rotate (visual, rads), -1);
+			return error_guard (ncvisual_rotate (visual, rads), NCERR_SUCCESS); // FIXME invert case
 		}
 
 	private:
@@ -92,7 +71,7 @@ namespace ncpp
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			visual = ncplane_visual_open (plane, file, ncerr);
+			visual = ncvisual_from_file (file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}

@@ -147,10 +147,9 @@ int luigi_demo(struct notcurses* nc){
     return 0;
   }
   int rows, cols;
-  struct ncplane* n = notcurses_stddim_yx(nc, &rows, &cols);
   nc_err_e ncerr = NCERR_SUCCESS;
   char* map = find_data("megaman2.bmp");
-  struct ncvisual* nv = ncplane_visual_open(n, map, &ncerr);
+  struct ncvisual* nv = ncvisual_from_file(map, &ncerr);
   free(map);
   if(nv == NULL){
     return -1;
@@ -158,7 +157,11 @@ int luigi_demo(struct notcurses* nc){
   if((ncerr = ncvisual_decode(nv)) != NCERR_SUCCESS){
     return -1;
   }
-  if(ncvisual_render(nv, 0, 0, -1, -1) <= 0){
+  struct ncvisual_options vopts = {
+    .n = notcurses_stddim_yx(nc, &rows, &cols),
+    .scaling = NCSCALE_STRETCH,
+  };
+  if(ncvisual_render(nc, nv, &vopts) == NULL){
     return -1;
   }
   assert(NCERR_EOF == ncvisual_decode(nv));
@@ -187,7 +190,7 @@ int luigi_demo(struct notcurses* nc){
   if(fname == NULL){
     return -1;
   }
-  wmncv = ncvisual_from_file(nc, fname, &ncerr, 0, 0, NCSCALE_NONE);
+  wmncv = ncvisual_from_file(fname, &ncerr);
   free(fname);
   if(wmncv == NULL){
     return -1;
@@ -199,11 +202,12 @@ int luigi_demo(struct notcurses* nc){
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(ncvisual_plane(wmncv), "", 0, channels);
-  if(ncvisual_render(wmncv, 0, 0, -1, -1) <= 0){
+  struct ncplane* wmplane = ncvisual_render(nc, wmncv, NULL);
+  if(wmplane == NULL){
     ncvisual_destroy(wmncv);
     return -1;
   }
+  ncplane_set_base(wmplane, "", 0, channels);
   for(i = 0 ; i < cols - 16 - 1 + 50 ; ++i){
     if(i + 16 >= cols - 16 - 1){
       --yoff;
@@ -213,14 +217,17 @@ int luigi_demo(struct notcurses* nc){
       ncplane_move_top(lastseen);
     }
     ncplane_move_yx(lastseen, yoff, i);
-    int dimy = ncplane_dim_y(ncvisual_plane(wmncv));
-    ncplane_move_yx(ncvisual_plane(wmncv), rows * 4 / 5 - dimy + 1 + (i % 2), i - 60);
+    int dimy, scaley;
+    ncvisual_geom(nc, wmncv, NCBLIT_DEFAULT, &dimy, NULL, &scaley, NULL);
+    dimy /= scaley;
+    ncplane_move_yx(wmplane, rows * 4 / 5 - dimy + 1 + (i % 2), i - 60);
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &stepdelay);
   }
   for(i = 0 ; i < 3 ; ++i){
     ncplane_destroy(lns[i]);
   }
+  ncplane_destroy(wmplane);
   ncvisual_destroy(nv);
   ncvisual_destroy(wmncv);
   return 0;

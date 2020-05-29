@@ -203,6 +203,8 @@ char* ncplane_at_yx(const ncplane* n, int y, int x, uint32_t* attrword, uint64_t
 }
 
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
+  assert(y < n->leny);
+  assert(x < n->lenx);
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
@@ -478,7 +480,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                    int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(n == n->nc->stdscr){
-fprintf(stderr, "Can't resize standard plane\n");
+//fprintf(stderr, "Can't resize standard plane\n");
     return -1;
   }
   return ncplane_resize_internal(n, keepy, keepx, keepleny, keeplenx,
@@ -641,8 +643,11 @@ init_banner(const notcurses* nc){
            bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
            nc->tcache.colors, nc->tcache.RGBflag ? "direct" : "palette",
            __VERSION__, curses_version());
+#ifdef USE_SIXEL
+    printf("  libsixel " LIBSIXEL_VERSION "\n");
+#endif
 #ifdef USE_FFMPEG
-    printf("  avformat %u.%u.%u\n  avutil %u.%u.%u\n  swscale %u.%u.%u\n",
+    printf("  avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
           LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
           LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
@@ -755,6 +760,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->lastframe = NULL;
   ret->lfdimy = 0;
   ret->lfdimx = 0;
+  ret->libsixel = false;
   egcpool_init(&ret->pool);
   if(make_nonblocking(ret->ttyinfp)){
     free(ret);
@@ -1739,6 +1745,10 @@ bool notcurses_canchangecolor(const notcurses* nc){
   return true;
 }
 
+bool notcurses_cansixel(const notcurses* nc){
+  return nc->libsixel;
+}
+
 palette256* palette256_new(notcurses* nc){
   palette256* p = malloc(sizeof(*p));
   if(p){
@@ -1845,6 +1855,19 @@ lex_long(const char* op, int* i, char** endptr){
     return -1;
   }
   *i = l;
+  return 0;
+}
+
+int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode){
+  if(strcasecmp(op, "stretch") == 0){
+    *scalemode = NCSCALE_STRETCH;
+  }else if(strcasecmp(op, "scale") == 0){
+    *scalemode = NCSCALE_SCALE;
+  }else if(strcasecmp(op, "none") == 0){
+    *scalemode = NCSCALE_NONE;
+  }else{
+    return -1;
+  }
   return 0;
 }
 

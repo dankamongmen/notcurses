@@ -244,7 +244,7 @@ handle_getc(notcurses* nc, int kpress, ncinput* ni){
   size_t cpointlen = 0;
   cpoint[cpointlen] = kpress;
   // FIXME need to stop as soon as we have a full codepoint urk
-  while(++cpointlen < MB_CUR_MAX - 1 && nc->inputbuf_occupied){
+  while(++cpointlen < (size_t)MB_CUR_MAX - 1 && nc->inputbuf_occupied){
     int candidate = pop_input_keypress(nc);
     if(candidate < 0x80){
       unpop_keypress(nc, candidate);

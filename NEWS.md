@@ -1,6 +1,21 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.4.4 (not yet released)
+  * Got the `ncvisual` API ready for API freeze: `ncvisual_render()` and
+    `ncvisual_stream()` now take a `struct ncvisual_options`. `ncstyle_e`
+    and a few other parameters have been moved within. Both functions now
+    take a `struct notcurses*`. The `struct ncvisual_options` includes a
+    `ncblitter_e` field, allowing visuals to be mapped to various plotting
+    paradigms including Sixel, Braille and quadrants. Not all backends have
+    been implemented, and not all implementations are in their final form.
+  * Added `ncvisual_geom()`, providing access to an `ncvisual` size and
+    its pixel-to-cell blitting ratios.
+  * Deprecated functions `ncvisual_open_plane()` and `ncplane_visual_open()`
+    have been removed. Their functionality is present in
+    `ncvisual_from_file()`. The function `ncvisual_plane()` no longer has
+    any meaning, and has been removed.
+
 * 1.4.3 (2020-05-22)
   * Plot: make 8x1 the default, instead of 1x1.
   * Add `PREFIXFMT`, `BPREFIXFMT`, and `IPREFIXFMT` macros for `ncmetric()`.
@@ -15,6 +30,8 @@ rearrangements of Notcurses.
   * Removed `ncplane_move_above_unsafe()` and `ncplane_move_below_unsafe()`;
     all z-axis moves are now safe. Z-axis moves are all now O(1), rather
     than the previous O(N).
+  * Added `USE_STATIC` CMake option, defaulting to `ON`. If turned `OFF`,
+    static libraries will not be built.
 
 * 1.4.2.3 (2020-05-17)
   * Added `notcurses_canutf8()`, to verify use of UTF-8 encoding.

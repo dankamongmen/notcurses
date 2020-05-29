@@ -11,16 +11,6 @@ notcurses_plot - high level widget for plotting
 **#include <notcurses/notcurses.h>**
 
 ```c
-typedef enum {
-  NCPLOT_1x1,   // full block                █
-  NCPLOT_2x1,   // full/(upper|left) blocks  ▄█
-  NCPLOT_1x1x4, // shaded full blocks        ▓▒░█
-  NCPLOT_2x2,   // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCPLOT_4x1,   // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCPLOT_4x2,   // 4x2-way braille      ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCPLOT_8x1,   // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-} ncgridgeom_e;
-
 #define NCPLOT_OPTIONS_LABELTICKSD  0x0001
 #define NCPLOT_OPTIONS_EXPONENTIALD 0x0002
 #define NCPLOT_OPTIONS_VERTICALI    0x0004
@@ -31,7 +21,7 @@ typedef struct ncplot_options {
   uint64_t maxchannel;
   uint64_t minchannel;
   // number of "pixels" per row x column
-  ncgridgeom_e gridtype;
+  ncblitter_e gridtype;
   // independent variable is a contiguous range
   int rangex;
   bool labelaxisd;     // label dependent axis
@@ -79,16 +69,6 @@ domain is specified, samples outside the domain are an error, and do not
 contribute to the plot. Supplying an **x** below the current window is an
 error, and has no effect.
 
-The different **ncgridgeom_e** values select from among available glyph sets:
-
-* **NCPLOT_1x1**: Full block (█) or empty glyph
-* **NCPLOT_2x1**: Adds the lower half block (▄) to **NCPLOT_1x1**.
-* **NCPLOT_1x1x4**: Adds three shaded full blocks (▓▒░) to **NCPLOT_1x1**.
-* **NCPLOT_2x2**: Adds left and right half blocks (▌▐) and quadrants (▖▗▟▙) to **NCPLOT_2x1**.
-* **NCPLOT_4x1**: Adds ¼ and ¾ blocks (▂▆) to **NCPLOT_2x1**.
-* **NCPLOT_4x2**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
-* **NCPLOT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCPLOT_4x1**.
-
 More granular block glyphs means more resolution in your plots, but they can
 be difficult to differentiate at small text sizes. Quadrants and braille allow 
 for more resolution on the independent variable. It can be difficult to predict
@@ -116,4 +96,5 @@ non-zero. It will also return an error if **maxy** < **miny**. An invalid
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_plane(3)**
+**notcurses_plane(3)**,
+**notcurses_visual(3)**

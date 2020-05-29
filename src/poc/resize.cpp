@@ -23,11 +23,7 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   int dimy, dimx;
-  struct ncplane* n = ncplane_dup(notcurses_stddim_yx(nc, &dimy, &dimx), nullptr);
-  if(!n){
-    notcurses_stop(nc);
-    return EXIT_FAILURE;
-  }
+  struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncvisual_options vopts{};
   bool failed = false;
   nc_err_e ncerr;
@@ -39,38 +35,15 @@ int main(int argc, char** argv){
     goto err;
   }
   int scaley, scalex;
-  vopts.n = n;
-  if(ncvisual_render(nc, ncv, &vopts) == nullptr){
-    goto err;
-  }
-  if(notcurses_render(nc)){
-    goto err;
-  }
-  sleep(1);
   ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, nullptr, nullptr, &scaley, &scalex);
-  ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
+  //ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
   vopts.n = n;
+  vopts.scaling = NCSCALE_STRETCH;
   if(ncvisual_render(nc, ncv, &vopts) == nullptr){
     goto err;
   }
   if(notcurses_render(nc)){
     goto err;
-  }
-  for(double i = 0 ; i < 256 ; ++i){
-    sleep(1);
-    if(ncvisual_rotate(ncv, M_PI / 2)){
-      failed = true;
-      break;
-    }
-    ncplane_erase(n);
-    if(ncvisual_render(nc, ncv, &vopts) == nullptr){
-      failed = true;
-      break;
-    }
-    if(notcurses_render(nc)){
-      failed = true;
-      break;
-    }
   }
   ncvisual_destroy(ncv);
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;

@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <errno.h>
+#include <string.h>
 
 // Error values for more granular problem indication. We map to POSIX error
 // codes when possible. We need at least the union of POSIX (errno) and FFMpeg

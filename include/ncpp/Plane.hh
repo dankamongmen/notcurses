@@ -10,7 +10,6 @@
 
 #include "Root.hh"
 #include "Cell.hh"
-#include "Visual.hh"
 #include "Reel.hh"
 #include "CellStyle.hh"
 #include "NCAlign.hh"
@@ -870,11 +869,6 @@ namespace ncpp
 			return static_cast<T*>(get_userptr ());
 		}
 
-		Visual* visual_open (const char *file, nc_err_e *ncerr) const
-		{
-			return new Visual (this, file, ncerr);
-		}
-
 		NcReel* ncreel_create (const ncreel_options *popts = nullptr, int efd = -1) const
 		{
 			return new NcReel (this, popts, efd);
@@ -1106,7 +1100,6 @@ namespace ncpp
 		static std::mutex plane_map_mutex;
 
 		friend class NotCurses;
-		friend class Visual;
 		friend class NcReel;
 		friend class Tablet;
 	};
