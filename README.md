@@ -131,9 +131,13 @@ or `none`. Without a multimedia engine, Notcurses will be unable to decode
 images and videos.
 
 Run unit tests with `make test` following a successful build. If you have unit
-test failures, *please* file a bug including the output of `./notcurses-tester
-> log 2>&1` (`make test` also runs `notcurses-tester`, but hides important
-output). Install with `make install` following a successful build.
+test failures, *please* file a bug including the output of
+
+`./notcurses-tester -p ../data`
+
+(`make test` also runs `notcurses-tester`, but hides important output).
+
+Install with `make install` following a successful build.
 
 To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
 be found on the `notcurses-demo(1)` man page.
@@ -144,12 +148,12 @@ To set the C compiler, export `CC`. To set the C++ compiler, export `CXX`. The
 `CMAKE_BUILD_TYPE` CMake variable can be defined to any of its standard values,
 but must be `Debug` for use of `USE_COVERAGE`.
 
+* `BUILD_TESTING`: build `notcurses-tester` using doctest
 * `DFSG_BUILD`: leave out all content considered non-free under the Debian Free
                 Software Guidelines.
 * `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none.
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
 * `USE_SIXEL`: build Sixel support via libsixel
-* `USE_TESTS`: build `notcurses-tester` using doctest
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
 * `USE_PYTHON`: build the Python wrappers

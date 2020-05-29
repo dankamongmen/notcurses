@@ -176,7 +176,6 @@ TEST_CASE("Rotate") {
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_MASK){
         CHECK(rgbaret[i] == htonl(rgba[i]));
-fprintf(stderr, "%08x %08x\n", rgbaret[i], htonl(rgba[i]));
       }
     }
     free(rgbaret);

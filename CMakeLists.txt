@@ -12,6 +12,7 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 include(GNUInstallDirs)
 
 ###################### USER-SELECTABLE OPTIONS ###########################
+# BUILD_TESTING is defined by CTest
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(USE_COVERAGE "Assess code coverage with llvm-cov/lcov" OFF)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
@@ -22,7 +23,6 @@ option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
 option(USE_RUST "Build Rust wrappers (experimental)" OFF)
 option(USE_SIXEL "Build Sixel support" OFF)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
-option(USE_TESTS "Build doctest unit tests" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo Coverage)
@@ -84,7 +84,7 @@ if(NOT "${HAVE_QRCODEGEN_H}")
 endif()
 endif()
 find_library(LIBRT rt)
-if(${USE_TESTS})
+if(${BUILD_TESTING})
 find_package(doctest 2.3.5 REQUIRED)
 endif()
 
@@ -526,10 +526,8 @@ target_compile_definitions(notcurses-view
 endif()
 
 # Testing
-if(${USE_TESTS})
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-  include(CTest)
-endif()
+include(CTest)
+if(${BUILD_TESTING})
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 target_include_directories(notcurses-tester
@@ -543,7 +541,8 @@ target_link_libraries(notcurses-tester
     notcurses++
     "${TERMINFO_LIBRARIES}"
 )
-
+# sadly, this doesn't take effect until CMake 3.17...
+set(CMAKE_CTEST_ARGUMENTS "-V")
 enable_testing()
 add_test(
   NAME notcurses-tester
@@ -688,7 +687,7 @@ install(PROGRAMS src/pydemo/notcurses-pydemo DESTINATION bin)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
-if(${USE_TESTS})
+if(${BUILD_TESTING})
 install(TARGETS notcurses-tester DESTINATION bin)
 endif()
 install(TARGETS notcurses-tetris DESTINATION bin)

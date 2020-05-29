@@ -330,7 +330,6 @@ TEST_CASE("Metric") {
     uintmax_t val = 9027854993;
     uintmax_t decimal = GIG;
     REQUIRE(qprefix(val, decimal, buf, 0));
-fprintf(stderr, "%s %s\n", gold, buf);
     CHECK(!strcmp(buf, gold));
   }
 
