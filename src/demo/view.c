@@ -76,11 +76,6 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
     return -1;
   }
   free(pic);
-  if((err = ncvisual_decode(ncv2)) != NCERR_SUCCESS){
-    ncvisual_destroy(ncv2);
-    ncplane_destroy(dsplane);
-    return -1;
-  }
   struct ncvisual_options vopts = {
     .n = dsplane,
     .scaling = NCSCALE_STRETCH,
@@ -107,11 +102,6 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
     return -1;
   }
   free(pic);
-  if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-    ncvisual_destroy(ncv);
-    ncplane_destroy(dsplane);
-    return -1;
-  }
   vopts.n = notcurses_stdplane(nc);
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);

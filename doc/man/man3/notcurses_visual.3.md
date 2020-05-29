@@ -82,7 +82,7 @@ If Notcurses was built against a multimedia engine (FFMpeg or OpenImageIO),
 image and video files can be loaded into visuals using
 **ncvisual_from_file**. **ncvisual_from_file** discovers the container
 and codecs, but does not verify that the entire file is well-formed.
-**ncvisual_decode** ought be invoked to recover the actual frames, once
+**ncvisual_decode** ought be invoked to recover subsequent frames, once
 per frame.
 
 Once the visual is loaded, it can be transformed using **ncvisual_rotate**

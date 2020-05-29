@@ -154,9 +154,6 @@ int luigi_demo(struct notcurses* nc){
   if(nv == NULL){
     return -1;
   }
-  if((ncerr = ncvisual_decode(nv)) != NCERR_SUCCESS){
-    return -1;
-  }
   struct ncvisual_options vopts = {
     .n = notcurses_stddim_yx(nc, &rows, &cols),
     .scaling = NCSCALE_STRETCH,
@@ -193,10 +190,6 @@ int luigi_demo(struct notcurses* nc){
   wmncv = ncvisual_from_file(fname, &ncerr);
   free(fname);
   if(wmncv == NULL){
-    return -1;
-  }
-  if((ncerr = ncvisual_decode(wmncv)) != NCERR_SUCCESS){
-    ncvisual_destroy(wmncv);
     return -1;
   }
   uint64_t channels = 0;

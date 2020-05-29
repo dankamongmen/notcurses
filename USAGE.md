@@ -2594,9 +2594,9 @@ When compiled against a suitable engine (FFmpeg and OpenImageIO are both
 currently supported), Notcurses can populate a visual with pixels decoded
 from an image or video using `ncvisual_from_file()`. Once opened,
 `ncvisual_decode()` should be used to extract each frame (an image will
-have only one frame):
+have only one frame), until it returns `NCERR_EOF`:
 
-```
+```c
 // Open a visual at 'file', extracting a codec and parameters.
 struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
 

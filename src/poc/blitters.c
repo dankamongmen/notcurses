@@ -41,10 +41,6 @@ int main(int argc, char** argv){
           goto err;
         }
         notcurses_render(nc);
-        if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-          ncvisual_destroy(ncv);
-          goto err;
-        }
         struct ncvisual_options vopts = {
           .n = std,
           .scaling = scaling,

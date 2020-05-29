@@ -24,9 +24,6 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
     if(chuns[i].ncv == NULL){
       return -1;
     }
-    if((err = ncvisual_decode(chuns[i].ncv)) != NCERR_SUCCESS){
-      return -1;
-    }
     if((chuns[i].n = ncvisual_render(nc, chuns[i].ncv, NULL)) == NULL){
       return -1;
     }
@@ -72,9 +69,6 @@ int chunli_demo(struct notcurses* nc){
       break;
     }
     free(path);
-    if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-      return -1;
-    }
     struct ncplane* ncp;
     if((ncp = ncvisual_render(nc, ncv, NULL)) == NULL){
       return -1;

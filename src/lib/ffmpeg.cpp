@@ -226,6 +226,7 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
 }
 
 ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
+  AVStream* st;
   *ncerr = NCERR_SUCCESS;
   ncvisual* ncv = ncvisual_create();
   if(ncv == nullptr){
@@ -238,15 +239,13 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
   if(averr < 0){
 //fprintf(stderr, "Couldn't open %s (%d)\n", filename, averr);
     *ncerr = averr2ncerr(averr);
-    ncvisual_destroy(ncv);
-    return nullptr;
+    goto err;
   }
   averr = avformat_find_stream_info(ncv->details.fmtctx, nullptr);
   if(averr < 0){
 //fprintf(stderr, "Error extracting stream info from %s (%d)\n", filename, averr);
     *ncerr = averr2ncerr(averr);
-    ncvisual_destroy(ncv);
-    return nullptr;
+    goto err;
   }
 //av_dump_format(ncv->details.fmtctx, 0, filename, false);
   if((averr = av_find_best_stream(ncv->details.fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, &ncv->details.subtcodec, 0)) >= 0){
@@ -254,15 +253,13 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
     if((ncv->details.subtcodecctx = avcodec_alloc_context3(ncv->details.subtcodec)) == nullptr){
       //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
       *ncerr = NCERR_NOMEM;
-      ncvisual_destroy(ncv);
-      return nullptr;
+      goto err;
     }
     // FIXME do we need avcodec_parameters_to_context() here?
     if((averr = avcodec_open2(ncv->details.subtcodecctx, ncv->details.subtcodec, nullptr)) < 0){
       //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
       *ncerr = averr2ncerr(averr);
-      ncvisual_destroy(ncv);
-      return nullptr;
+      goto err;
     }
   }else{
     ncv->details.sub_stream_index = -1;
@@ -271,22 +268,20 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
   if((ncv->details.packet = av_packet_alloc()) == nullptr){
     // fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
     *ncerr = NCERR_NOMEM;
-    ncvisual_destroy(ncv);
-    return nullptr;
+    goto err;
   }
   if((averr = av_find_best_stream(ncv->details.fmtctx, AVMEDIA_TYPE_VIDEO, -1, -1, &ncv->details.codec, 0)) < 0){
     // fprintf(stderr, "Couldn't find visuals in %s (%s)\n", filename, av_err2str(*averr));
     *ncerr = averr2ncerr(averr);
-    ncvisual_destroy(ncv);
-    return nullptr;
+    goto err;
   }
   ncv->details.stream_index = averr;
   if(ncv->details.codec == nullptr){
     //fprintf(stderr, "Couldn't find decoder for %s\n", filename);
-    ncvisual_destroy(ncv);
-    return nullptr;
+    *ncerr = NCERR_DECODE;
+    goto err;
   }
-  AVStream* st = ncv->details.fmtctx->streams[ncv->details.stream_index];
+  st = ncv->details.fmtctx->streams[ncv->details.stream_index];
   if((ncv->details.codecctx = avcodec_alloc_context3(ncv->details.codec)) == nullptr){
     //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
     *ncerr = NCERR_NOMEM;
@@ -313,6 +308,9 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
   // frame is set up in prep_details(), so that format can be set there, as
   // is necessary when it is prepared from inputs other than files. oframe
   // is set up whenever we convert to RGBA.
+  if((*ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
+    goto err;
+  }
   return ncv;
 
 err:

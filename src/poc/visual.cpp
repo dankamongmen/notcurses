@@ -35,9 +35,6 @@ int main(int argc, char** argv){
   if(!ncv){
     goto err;
   }
-  if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-    goto err;
-  }
   int scaley, scalex;
   vopts.n = n;
   if(ncvisual_render(nc, ncv, &vopts) == nullptr){

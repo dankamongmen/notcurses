@@ -183,10 +183,6 @@ int fallin_demo(struct notcurses* nc){
   if(ncv == NULL){
     goto err;
   }
-  if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-    ncvisual_destroy(ncv);
-    goto err;
-  }
   struct ncvisual_options vopts = {
     .n = stdn,
     .scaling = NCSCALE_STRETCH,

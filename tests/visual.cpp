@@ -28,8 +28,6 @@ TEST_CASE("Visual") {
     auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
-    ncerr = ncvisual_decode(ncv);
-    REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
     struct ncvisual_options opts{};
@@ -49,8 +47,6 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
-    REQUIRE(0 == ncerr);
-    ncerr = ncvisual_decode(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
@@ -70,8 +66,6 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
     REQUIRE(ncv);
-    REQUIRE(NCERR_SUCCESS == ncerr);
-    ncerr = ncvisual_decode(ncv);
     REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */

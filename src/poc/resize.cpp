@@ -31,9 +31,6 @@ int main(int argc, char** argv){
   if(!ncv){
     goto err;
   }
-  if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-    goto err;
-  }
   int scaley, scalex;
   ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, nullptr, nullptr, &scaley, &scalex);
   //ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
@@ -45,7 +42,6 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
-  ncvisual_destroy(ncv);
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:

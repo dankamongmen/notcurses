@@ -40,10 +40,6 @@ fadethread(void* vnc){
     .scaling = NCSCALE_STRETCH,
   };
   int three = 3;
-  if(NCERR_SUCCESS != ncvisual_decode(ncv)){
-    ncvisual_destroy(ncv);
-    return NULL;
-  }
   struct ncplane* globeplane;
   if((globeplane = ncvisual_render(nc, ncv, &vopts)) == NULL){
     return NULL;
@@ -149,10 +145,6 @@ int outro(struct notcurses* nc){
   chncv = ncvisual_from_file(path, &err);
   free(path);
   if(chncv == NULL){
-    return -1;
-  }
-  if((err = ncvisual_decode(chncv)) != NCERR_SUCCESS){
-    ncvisual_destroy(chncv);
     return -1;
   }
   struct ncvisual_options vopts = {

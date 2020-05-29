@@ -38,8 +38,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   }
   int vheight, yscale;
   int vwidth, xscale;
-  if((ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS ||
-     ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vheight, &vwidth, &yscale, &xscale)){
+  if(ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vheight, &vwidth, &yscale, &xscale)){
     ncvisual_destroy(ncv);
     return NULL;
   }

@@ -89,9 +89,6 @@ int main(void){
     if(!ncv){
       goto err;
     }
-    if((err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
-      goto err;
-    }
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_STRETCH,
       .n = n,
