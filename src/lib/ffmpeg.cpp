@@ -377,7 +377,8 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
 
 nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                        const struct blitset* bset, int placey, int placex,
-                       int begy, int begx, int leny, int lenx) {
+                       int begy, int begx, int leny, int lenx,
+                       bool blendcolors) {
   const AVFrame* inframe = ncv->details.oframe ? ncv->details.oframe : ncv->details.frame;
   void* data = nullptr;
   int stride = 0;
@@ -429,7 +430,8 @@ nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     data = ncv->data;
   }
 //fprintf(stderr, "place: %d/%d rows/cols: %d/%d %d/%d+%d/%d\n", placey, placex, rows, cols, begy, begx, leny, lenx);
-  if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx, leny, lenx) <= 0){
+  if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx,
+                        leny, lenx, blendcolors) <= 0){
     if(sframe){
       av_freep(sframe->data);
       av_freep(&sframe);

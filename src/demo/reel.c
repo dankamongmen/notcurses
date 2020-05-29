@@ -289,7 +289,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     .roff = x,
     .boff = y,
     .bgchannel = 0,
-    .flags = NCREEL_OPTIONS_INFINITESCROLL | NCREEL_OPTIONS_CIRCULAR,
+    .flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR,
   };
   channels_set_fg_rgb(&popts.focusedchan, 58, 150, 221);
   channels_set_bg_rgb(&popts.focusedchan, 97, 214, 214);

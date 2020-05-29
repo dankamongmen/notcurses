@@ -30,14 +30,14 @@ TEST_CASE("Reels") {
 
   SUBCASE("InitLinearInfinite") {
     ncreel_options r{};
-    r.flags = NCREEL_OPTIONS_INFINITESCROLL;
+    r.flags = NCREEL_OPTION_INFINITESCROLL;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
   }
 
   SUBCASE("InitCircular") {
     ncreel_options r{};
-    r.flags = NCREEL_OPTIONS_INFINITESCROLL | NCREEL_OPTIONS_CIRCULAR;
+    r.flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(nr);
     REQUIRE(0 == ncreel_destroy(nr));
@@ -46,7 +46,7 @@ TEST_CASE("Reels") {
   // circular is not allowed to be true when infinitescroll is false
   SUBCASE("FiniteCircleRejected") {
     ncreel_options r{};
-    r.flags = NCREEL_OPTIONS_CIRCULAR;
+    r.flags = NCREEL_OPTION_CIRCULAR;
     struct ncreel* nr = ncreel_create(n_, &r, -1);
     REQUIRE(!nr);
   }

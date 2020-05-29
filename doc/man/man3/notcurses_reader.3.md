@@ -27,7 +27,7 @@ typedef struct ncreader_options {
   char* egc;          // egc used for empty space
   int physrows;
   int physcols;
-  unsigned flags;     // bitfield over NCREADER_OPTIONS_*
+  unsigned flags;     // bitfield over NCREADER_OPTION_*
 } ncreader_options;
 ```
 

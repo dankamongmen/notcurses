@@ -24,7 +24,7 @@ TEST_CASE("MenuTest") {
 
   SUBCASE("EmptyMenuBottomReject") {
     struct ncmenu_options opts{};
-    opts.flags = NCMENU_OPTIONS_BOTTOM;
+    opts.flags = NCMENU_OPTION_BOTTOM;
     struct ncmenu* ncm = ncmenu_create(n_, &opts);
     REQUIRE(nullptr == ncm);
     CHECK(0 == notcurses_render(nc_));

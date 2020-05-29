@@ -2142,7 +2142,8 @@ API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
 // transformation, unless the size is unchanged.
 API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
 
-#define NCVISUAL_OPTIONS_MAYDEGRADE 0x0001 // blitter can be worse than requested
+#define NCVISUAL_OPTION_MAYDEGRADE 0x0001 // blitter can be worse than requested
+#define NCVISUAL_OPTION_BLEND      0x0002 // use CELL_ALPHA_BLEND with visual
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
@@ -2166,7 +2167,7 @@ struct ncvisual_options {
   // use NCBLIT_DEFAULT if you don't care, to use NCBLIT_2x2 (assuming
   // UTF8) or NCBLIT_1x1 (in an ASCII environment)
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
-  uint64_t flags; // bitmask over NCVISUAL_OPTIONS_*
+  uint64_t flags; // bitmask over NCVISUAL_OPTION_*
 };
 
 // Render the decoded frame to the specified ncplane (if one is not provided,
@@ -2254,11 +2255,11 @@ API int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize,
 // is scrolling infinite (can one move down or up forever, or is an end
 // reached?). if true, 'circular' specifies how to handle the special case of
 // an incompletely-filled reel.
-#define NCREEL_OPTIONS_INFINITESCROLL 0x0001
+#define NCREEL_OPTION_INFINITESCROLL 0x0001
 // is navigation circular (does moving down from the last panel move to the
 // first, and vice versa)? only meaningful when infinitescroll is true. if
 // infinitescroll is false, this must be false.
-#define NCREEL_OPTIONS_CIRCULAR       0x0002
+#define NCREEL_OPTION_CIRCULAR       0x0002
 
 typedef struct ncreel_options {
   // require this many rows and columns (including borders). otherwise, a
@@ -2290,7 +2291,7 @@ typedef struct ncreel_options {
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
   uint64_t bgchannel;  // background colors
-  unsigned flags;      // bitfield over NCREEL_OPTIONS_*
+  unsigned flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 
 struct nctablet;
@@ -2647,15 +2648,15 @@ struct ncmenu_section {
   ncinput shortcut;       // shortcut, will be underlined if present in name
 };
 
-#define NCMENU_OPTIONS_BOTTOM 0x0001 // bottom row (as opposed to top row)
-#define NCMENU_OPTIONS_HIDING 0x0002 // hide the menu when not being used
+#define NCMENU_OPTION_BOTTOM 0x0001 // bottom row (as opposed to top row)
+#define NCMENU_OPTION_HIDING 0x0002 // hide the menu when not being used
 
 typedef struct ncmenu_options {
   struct ncmenu_section* sections; // array of 'sectioncount' menu_sections
   int sectioncount;                // must be positive
   uint64_t headerchannels;         // styling for header
   uint64_t sectionchannels;        // styling for sections
-  unsigned flags;                  // flag word of NCMENU_OPTIONS_*
+  unsigned flags;                  // flag word of NCMENU_OPTION_*
 } ncmenu_options;
 
 // Create a menu with the specified options. Menus are currently bound to an
@@ -2738,10 +2739,10 @@ API int ncmenu_destroy(struct ncmenu* n);
 //
 // This options structure works for both the ncuplot (uint64_t) and ncdplot
 // (double) types.
-#define NCPLOT_OPTIONS_LABELTICKSD  0x0001 // show labels for dependent axis
-#define NCPLOT_OPTIONS_EXPONENTIALD 0x0002 // exponential dependent axis
-#define NCPLOT_OPTIONS_VERTICALI    0x0004 // independent axis is vertical
-#define NCPLOT_OPTIONS_MAYDEGRADE   0x0008 // blitter can be worse than requested
+#define NCPLOT_OPTION_LABELTICKSD  0x0001 // show labels for dependent axis
+#define NCPLOT_OPTION_EXPONENTIALD 0x0002 // exponential dependent axis
+#define NCPLOT_OPTION_VERTICALI    0x0004 // independent axis is vertical
+#define NCPLOT_OPTION_MAYDEGRADE   0x0008 // blitter can be worse than requested
 
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear interpolation will be
@@ -2756,7 +2757,7 @@ typedef struct ncplot_options {
   // resolution, the independent variable would be the range [0..3600): 3600.
   // if rangex is 0, it is dynamically set to the number of columns.
   int rangex;
-  unsigned flags;      // bitfield over NCPLOT_OPTIONS_*
+  unsigned flags;      // bitfield over NCPLOT_OPTION_*
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.
@@ -2794,7 +2795,7 @@ typedef int(*ncfdplane_done_cb)(struct ncfdplane* n, int fderrno, void* curry);
 typedef struct ncfdplane_options {
   void* curry;    // parameter provided to callbacks
   bool follow;    // keep reading after hitting end? (think tail -f)
-  unsigned flags; // bitfield over NCOPTIONS_FDPLANE_*
+  unsigned flags; // bitfield over NCOPTION_FDPLANE_*
 } ncfdplane_options;
 
 // Create an ncfdplane around the fd 'fd'. Consider this function to take
@@ -2809,7 +2810,7 @@ API int ncfdplane_destroy(struct ncfdplane* n);
 typedef struct ncsubproc_options {
   void* curry;
   uint64_t restart_period; // restart this many seconds after an exit (watch)
-  unsigned flags;          // bitfield over NCOPTIONS_SUBPROC_*
+  unsigned flags;          // bitfield over NCOPTION_SUBPROC_*
 } ncsubproc_options;
 
 // see exec(2). p-types use $PATH. e-type passes environment vars.
@@ -2888,7 +2889,8 @@ struct blitset {
   // the first five braille EGCs are all 0 on the left, [0..4] on the right.
   const wchar_t* egcs;
   int (*blit)(struct ncplane* nc, int placey, int placex, int linesize,
-              const void* data, int begy, int begx, int leny, int lenx, bool bgr);
+              const void* data, int begy, int begx, int leny, int lenx,
+              bool bgr, bool blendcolors);
   bool fill;
 };
 

@@ -33,7 +33,7 @@ class ncppplot {
      }
    }
    bool degrade_blitter = true;
-   if(opts && !(opts->flags & NCPLOT_OPTIONS_MAYDEGRADE)){
+   if(opts && !(opts->flags & NCPLOT_OPTION_MAYDEGRADE)){
      degrade_blitter = false;
    }
    auto bset = lookup_blitset(ncplane_notcurses(n), blitter, degrade_blitter);
@@ -57,7 +57,7 @@ class ncppplot {
    if(dimx < ncpp->rangex){
      ncpp->slotcount = scaleddim;
    }
-   if( (ncpp->labelaxisd = opts->flags & NCPLOT_OPTIONS_LABELTICKSD) ){
+   if( (ncpp->labelaxisd = opts->flags & NCPLOT_OPTION_LABELTICKSD) ){
      if(ncpp->slotcount + scaledprefixlen > scaleddim){
        if(scaleddim > scaledprefixlen){
          ncpp->slotcount = scaleddim - scaledprefixlen;
@@ -74,8 +74,8 @@ class ncppplot {
      ncpp->bset = bset;
      ncpp->miny = miny;
      ncpp->maxy = maxy;
-     ncpp->vertical_indep = opts->flags & NCPLOT_OPTIONS_VERTICALI;
-     ncpp->exponentiali = opts->flags & NCPLOT_OPTIONS_EXPONENTIALD;
+     ncpp->vertical_indep = opts->flags & NCPLOT_OPTION_VERTICALI;
+     ncpp->exponentiali = opts->flags & NCPLOT_OPTION_EXPONENTIALD;
      if( (ncpp->detectdomain = (miny == maxy)) ){
        ncpp->maxy = 0;
        ncpp->miny = std::numeric_limits<T>::max();

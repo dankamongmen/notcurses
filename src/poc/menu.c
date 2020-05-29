@@ -132,7 +132,7 @@ int main(void){
 
   ncplane_erase(n);
 
-  mopts.flags |= NCMENU_OPTIONS_BOTTOM;
+  mopts.flags |= NCMENU_OPTION_BOTTOM;
   struct ncmenu* bottom = ncmenu_create(n, &mopts);
   if(bottom == NULL){
     goto err;

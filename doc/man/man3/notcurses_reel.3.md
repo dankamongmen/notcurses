@@ -11,8 +11,8 @@ notcurses_reel - high-level widget for hierarchical data
 **#include <notcurses/notcurses.h>**
 
 ```c
-#define NCREEL_OPTIONS_INFINITESCROLL 0x0001
-#define NCREEL_OPTIONS_CIRCULAR       0x0002
+#define NCREEL_OPTION_INFINITESCROLL 0x0001
+#define NCREEL_OPTION_CIRCULAR       0x0002
 
 typedef struct ncreel_options {
   // require this many rows and columns (including borders).
@@ -48,7 +48,7 @@ typedef struct ncreel_options {
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
   uint64_t bgchannel;  // background colors
-  unsigned flags;      // bitfield over NCREEL_OPTIONS_*
+  unsigned flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 ```
 

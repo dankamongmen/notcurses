@@ -150,6 +150,7 @@ int outro(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .n = ncp,
     .scaling = NCSCALE_STRETCH,
+    .flags = NCVISUAL_OPTION_BLEND,
   };
   if(ncvisual_render(nc, chncv, &vopts) == NULL){
     ncvisual_destroy(chncv);

@@ -400,7 +400,7 @@ typedef struct ncmenu_options {
   int sectioncount;         // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
-  unsigned flags;           // bitfield over NCMENU_OPTIONS_*
+  unsigned flags;           // bitfield over NCMENU_OPTION_*
 } ncmenu_options;
 struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts);
 int ncmenu_unroll(struct ncmenu* n, int sectionidx);
@@ -425,7 +425,7 @@ typedef struct ncreel_options {
   uint64_t tabletchan;
   uint64_t focusedchan;
   uint64_t bgchannel;
-  unsigned flags;      // bitfield over NCREEL_OPTIONS_*
+  unsigned flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);
 struct ncplane* ncreel_plane(struct ncreel* pr);
@@ -501,7 +501,7 @@ typedef struct ncreader_options {
   char* egc;          // egc used for empty space
   int physrows;
   int physcols;
-  unsigned flags;     // bitfield over NCREADER_OPTIONS_*
+  unsigned flags;     // bitfield over NCREADER_OPTION_*
 } ncreader_options;
 struct ncreader* ncreader_create(struct ncplane* n, int y, int x, const ncreader_options* opts);
 int ncreader_clear(struct ncreader* n);

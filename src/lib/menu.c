@@ -289,7 +289,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
   if(opts->sectioncount <= 0 || !opts->sections){
     return NULL;
   }
-  if(opts->flags & ~(NCMENU_OPTIONS_BOTTOM)){ // HIDDEN is not yet implemented
+  if(opts->flags & ~(NCMENU_OPTION_BOTTOM)){ // HIDDEN is not yet implemented
     return NULL;
   }
   int totalheight = 1;
@@ -300,7 +300,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
   int dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(n->nc), &dimy, &dimx);
   if(ret){
-    ret->bottom = !!(opts->flags & NCMENU_OPTIONS_BOTTOM);
+    ret->bottom = !!(opts->flags & NCMENU_OPTION_BOTTOM);
     if(dup_menu_sections(ret, opts, &totalwidth, &totalheight) == 0){
       ret->headerwidth = totalwidth;
       if(totalwidth < dimx){

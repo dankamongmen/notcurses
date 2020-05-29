@@ -18,7 +18,7 @@ ffmpeg_trans_p(bool bgr, unsigned char alpha){
 static inline int
 tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
                 const void* data, int begy, int begx,
-                int leny, int lenx, bool bgr){
+                int leny, int lenx, bool bgr, bool blendcolors){
 //fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
@@ -64,7 +64,7 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
 static inline int
 tria_blit(ncplane* nc, int placey, int placex, int linesize,
           const void* data, int begy, int begx,
-          int leny, int lenx, bool bgr){
+          int leny, int lenx, bool bgr, bool blendcolors){
 //fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
@@ -92,6 +92,10 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
       // effective in that case anyway
       c->channels = 0;
       c->attrword = 0;
+      if(blendcolors){
+        cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
+        cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+      }
       if(ffmpeg_trans_p(bgr, rgbbase_up[3]) || ffmpeg_trans_p(bgr, rgbbase_down[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         if(ffmpeg_trans_p(bgr, rgbbase_up[3]) && ffmpeg_trans_p(bgr, rgbbase_down[3])){
@@ -133,7 +137,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
 static inline int
 quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
               const void* data, int begy, int begx,
-              int leny, int lenx, bool bgr){
+              int leny, int lenx, bool bgr, bool blendcolors){
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
@@ -204,7 +208,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 static inline int
 braille_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
-             int leny, int lenx, bool bgr){
+             int leny, int lenx, bool bgr, bool blendcolors){
   const int bpp = 32;
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
@@ -313,22 +317,27 @@ int ncblit_bgrx(ncplane* nc, int placey, int placex,
                 int linesize, const void* data, int begy, int begx, int leny,
                 int lenx){
   if(!nc->nc->utf8){
-    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx, leny, lenx, true);
+    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx,
+                           leny, lenx, true, false);
   }
-  return tria_blit(nc, placey, placex, linesize, data, begy, begx, leny, lenx, true);
+  return tria_blit(nc, placey, placex, linesize, data, begy, begx,
+                   leny, lenx, true, false);
 }
 
 int ncblit_rgba(ncplane* nc, int placey, int placex,
                 int linesize, const void* data, int begy, int begx, int leny,
                 int lenx){
   if(!nc->nc->utf8){
-    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx, leny, lenx, false);
+    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx,
+                           leny, lenx, false, false);
   }
-  return tria_blit(nc, placey, placex, linesize, data, begy, begx, leny, lenx, false);
+  return tria_blit(nc, placey, placex, linesize, data, begy, begx,
+                   leny, lenx, false, false);
 }
 
 int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
                        int placex, int linesize, const void* data, int begy,
-                       int begx, int leny, int lenx){
-  return bset->blit(nc, placey, placex, linesize, data, begy, begx, leny, lenx, false);
+                       int begx, int leny, int lenx, bool blendcolors){
+  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
+                    leny, lenx, false, blendcolors);
 }

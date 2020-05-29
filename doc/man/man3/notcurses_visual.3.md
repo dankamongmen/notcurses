@@ -28,7 +28,8 @@ typedef enum {
   NCBLIT_SIXEL,  // six rows, 1 column (RGB)
 } ncblitter_e;
 
-#define NCVISUAL_OPTIONS_MAYDEGRADE 0x0001
+#define NCVISUAL_OPTION_MAYDEGRADE 0x0001
+#define NCVISUAL_OPTION_BLEND      0x0002
 
 struct ncvisual_options {
   struct ncplane* n;
@@ -37,7 +38,7 @@ struct ncvisual_options {
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
-  uint64_t flags; // bitmask over NCVISUAL_OPTIONS_*
+  uint64_t flags; // bitmask over NCVISUAL_OPTION_*
 };
 
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);

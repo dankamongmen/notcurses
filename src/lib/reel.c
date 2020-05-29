@@ -9,6 +9,7 @@
 // a single, distinct ncplane.
 typedef struct nctablet {
   ncplane* p;                    // visible panel, NULL when offscreen
+  ncplane* border;
   struct nctablet* next;
   struct nctablet* prev;
   tabletcb cbfxn;              // application callback to draw tablet
@@ -551,8 +552,8 @@ validate_ncreel_opts(ncplane* w, const ncreel_options* ropts){
   if(w == NULL){
     return false;
   }
-  if(ropts->flags & NCREEL_OPTIONS_CIRCULAR){
-    if(!(ropts->flags & NCREEL_OPTIONS_INFINITESCROLL)){
+  if(ropts->flags & NCREEL_OPTION_CIRCULAR){
+    if(!(ropts->flags & NCREEL_OPTION_INFINITESCROLL)){
       return false; // can't set circular without infinitescroll
     }
   }

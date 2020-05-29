@@ -9,7 +9,7 @@
 nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                        ncplane* n, const struct blitset* bset,
                        int placey, int placex, int begy, int begx,
-                       int leny, int lenx);
+                       int leny, int lenx, bool blendcolors);
 
 // ncv constructors other than ncvisual_from_file() need to set up the
 // AVFrame* 'frame' according to their own data, which is assumed to
@@ -65,7 +65,7 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n, ncblitter_e blitter,
 static const struct blitset*
 rgba_blitter(const notcurses* nc, const struct ncvisual_options* opts){
   const struct blitset* bset;
-  const bool maydegrade = !opts || (opts->flags & NCVISUAL_OPTIONS_MAYDEGRADE);
+  const bool maydegrade = !opts || (opts->flags & NCVISUAL_OPTION_MAYDEGRADE);
   if(opts && opts->blitter != NCBLIT_DEFAULT){
     bset = lookup_blitset(nc, opts->blitter, maydegrade);
   }else{
@@ -377,7 +377,7 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
 
 auto ncvisual_render(notcurses* nc, ncvisual* ncv,
                      const struct ncvisual_options* vopts) -> ncplane* {
-  if(vopts && vopts->flags > NCVISUAL_OPTIONS_MAYDEGRADE){
+  if(vopts && vopts->flags > NCVISUAL_OPTION_BLEND){
     return nullptr;
   }
   int lenx = vopts ? vopts->lenx : 0;
@@ -459,7 +459,8 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
 //fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   if(ncvisual_blit(ncv, disprows * encoding_y_scale(bset),
                    dispcols * encoding_x_scale(bset), n, bset,
-                   placey, placex, begy, begx, leny, lenx)){
+                   placey, placex, begy, begx, leny, lenx,
+                   vopts && (vopts->flags & NCVISUAL_OPTION_BLEND))){
     ncplane_destroy(n);
     return nullptr;
   }
@@ -544,11 +545,12 @@ int ncvisual_init(int loglevel) {
 
 nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                        const struct blitset* bset, int placey, int placex,
-                       int begy, int begx, int leny, int lenx) {
+                       int begy, int begx, int leny, int lenx,
+                       bool blendcolors) {
   (void)rows;
   (void)cols;
   if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
-                        begy, begx, leny, lenx) <= 0){
+                        begy, begx, leny, lenx, blendcolors) <= 0){
     return NCERR_DECODE;
   }
   return NCERR_SUCCESS;

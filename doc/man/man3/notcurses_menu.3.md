@@ -25,15 +25,15 @@ struct ncmenu_section {
   int itemcount;
 };
 
-#define NCMENU_OPTIONS_BOTTOM 0x0001 // bottom row (as opposed to top row)
-#define NCMENU_OPTIONS_HIDING 0x0002 // hide the menu when not being used
+#define NCMENU_OPTION_BOTTOM 0x0001 // bottom row (as opposed to top row)
+#define NCMENU_OPTION_HIDING 0x0002 // hide the menu when not being used
 
 typedef struct ncmenu_options {
   struct ncmenu_section* sections; // 'sectioncount' menu_sections
   int sectioncount;         // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
-  unsigned flags;           // bitfield on NCMENU_OPTIONS_*
+  unsigned flags;           // bitfield on NCMENU_OPTION_*
 } ncmenu_options;
 ```
 
