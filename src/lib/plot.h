@@ -138,9 +138,13 @@ class ncppplot {
      for(int y = 0 ; y < dimy ; ++y){
        char buf[PREFIXSTRLEN + 1];
        if(exponentiali){
-         ncmetric(pow(interval, y * states + (states - 1)) * 100, 100, buf, 0, 1000, '\0');
+         if(y == dimy - 1){ // we cheat on the top row to exactly match maxy
+           ncmetric(maxy * 100, 100, buf, 0, 1000, '\0');
+         }else{
+           ncmetric(pow(interval, (y + 1) * states) * 100, 100, buf, 0, 1000, '\0');
+         }
        }else{
-         ncmetric(interval * states * (y + 1) * 100, 100, buf, 0, 1000, '\0');
+         ncmetric((maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0');
        }
        ncplane_printf_yx(ncp, dimy - y - 1, 0, "%*s", PREFIXCOLUMNS, buf);
      }
