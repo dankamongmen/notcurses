@@ -553,7 +553,9 @@ nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   return NCERR_SUCCESS;
 }
 
-auto ncvisual_details_seed(struct ncvisual* ncv) -> void {}
+auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
+  (void)ncv;
+}
 
 auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> nc_err_e {
   (void)nc;
