@@ -40,9 +40,7 @@ struct ncvisual_options {
   uint64_t flags; // bitmask over NCVISUAL_OPTIONS_*
 };
 
-
-
- typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
+typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 ```
 
 **bool notcurses_canopen_images(const struct notcurses* nc);**
@@ -77,32 +75,32 @@ struct ncvisual_options {
 
 # DESCRIPTION
 
-The frame will be scaled to the size of the ncplane per the ncscale_e style.
-**ncvisual_render** actually blits the decoded frame to its associated plane.
-A subregion of the frame can be specified using **begx**, **begy**, **lenx**,
-and **leny**. To render the rectangle having its origin at **begy**, **begx**
-and the lower-right corner, -1 can be supplied as **leny** and **lenx**.
-{0, 0, -1, -1} will thus render the entire visual. Negative values for **begy**
-or **begx** are an error. It is an error to specify any region beyond the
-boundaries of the frame. Supplying zero for either **leny** or **lenx** will
-result in a zero-area rendering.
+An **ncvisual** is a virtual pixel framebuffer. They can be created from
+RGBA/BGRA data in memory (**ncvisual_from_rgba**/**ncvisual_from_bgra**),
+or from the content of a suitable **ncplane** (**ncvisual_from_ncplane**).
+If Notcurses was built against a multimedia engine (FFMpeg or OpenImageIO),
+image and video files can be loaded into visuals using
+**ncvisual_from_file**. **ncvisual_from_file** discovers the container
+and codecs, but does not verify that the entire file is well-formed.
+**ncvisual_decode** ought be invoked to recover the actual frames, once
+per frame.
 
-It is possible to create an **ncvisual** from memory, rather than from a
-disk, but only using raw RGBA/BGRA 8bpc content. For RGBA, use
-**ncvisual_from_rgba**. For BGRA, use **ncvisual_from_bgra**. Both require
-a number of **rows**, a number of image columns **cols**, and a virtual row
-length of **rowstride** / 4 columns. The input data must provide 32 bits per
-pixel, and thus must be at least **rowstride** * **rows** bytes, of
-which a **cols** * **rows** * 4-byte subset is used. It is not possible to
-**mmap(2)** an image file and use it directly--decompressed, decoded data
-is necessary. The resulting plane will be ceil(**rows**/2) rows, and **cols**
-columns. It will not be necessary to call **ncvisual_decode**, but it is
-still necessary to call **ncvisual_render**.
+Once the visual is loaded, it can be transformed using **ncvisual_rotate**
+and **ncvisual_resize**. These are persistent operations, unlike any scaling
+that takes place at render time. If a subtitle is associated with the frame,
+it can be acquired with **ncvisual_subtitle**.
 
-The contents of an **ncplane** can be "promoted" into an **ncvisual** with
-**ncvisual_from_ncplane**. The existing plane will be bound and decoded to a
-new **ncvisual**. Only spaces, half blocks, and full blocks may be present
-in the plane.
+**ncvisual_from_rgba** and **ncvisual_from_bgra** both require a number of
+**rows**, a number of image columns **cols**, and a virtual row length of
+**rowstride** / 4 columns. The input data must provide 32 bits per pixel, and
+thus must be at least **rowstride** * **rows** bytes, of which a **cols** *
+**rows** * 4-byte subset is used. It is not possible to **mmap(2)** an image
+file and use it directly--decompressed, decoded data is necessary. The
+resulting plane will be ceil(**rows**/2) rows, and **cols** columns.
+**ncvisual_from_plane** requires specification of a rectangle via **begy**,
+**begx**, **leny**, and **lenx**. The only valid characters within this
+region are those used by the **NCBLIT_2x2** blitter, though this may change
+in the future.
 
 **ncvisual_rotate** executes a rotation of **rads** radians, in the clockwise
 (positive) or counterclockwise (negative) direction. If the **ncvisual** owns
