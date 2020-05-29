@@ -4,7 +4,6 @@
 
 TEST_CASE("Selectors") {
   notcurses_options nopts{};
-  nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
   struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
   if(!nc_){

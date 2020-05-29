@@ -20,7 +20,6 @@ auto pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), 
 TEST_CASE("Fade") {
   notcurses_options nopts{};
   nopts.suppress_banner = true;
-  nopts.inhibit_alternate_screen = true;
   struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
   if(!nc_){
     return;

@@ -87,7 +87,7 @@ public:
 
 auto main(int argc, const char **argv) -> int {
   if(!setlocale(LC_ALL, "")){
-    std::cerr << "Coudln't set locale based on user preferences!" << std::endl;
+    std::cerr << "Couldn't set locale based on user preferences!" << std::endl;
     return EXIT_FAILURE;
   }
   if(getenv("TERM") == NULL){

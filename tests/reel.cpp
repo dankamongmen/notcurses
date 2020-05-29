@@ -13,7 +13,6 @@ auto panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cl
 
 TEST_CASE("Reels") {
   notcurses_options nopts{};
-  nopts.inhibit_alternate_screen = true;
   nopts.suppress_banner = true;
   struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
   if(!nc_){
