@@ -36,15 +36,31 @@ TEST_CASE("Ncpp"
     CHECK(nc.stop());
   }
 
-  /*
   SUBCASE("VisualFromRGBA") {
     NotCurses nc;
+    uint32_t rgba[] = {
+      0x4080c0ff,
+      0x105090ff,
+    };
     {
-      Visual v = Visual.from_rgba("\x40\x80\xc0\xff", 1, 4, 1);
-      CHECK(NCERR_SUCCESS == err);
+      Visual v = Visual(rgba, 1, sizeof(rgba), sizeof(rgba) / sizeof(*rgba));
+      // FIXME check geometry
     }
     CHECK(nc.stop());
   }
-  */
+
+  SUBCASE("VisualFromPlane") {
+    NotCurses nc;
+    {
+      auto n = nc.get_stdplane();
+      REQUIRE(n);
+      // FIXME load something onto standard plane, load it into visual, erase
+      // plane, render visual, check for equivalence...
+      {
+        Visual v = Visual(*n, 0, 0, -1, -1);
+      }
+    }
+    CHECK(nc.stop());
+  }
 
 }
