@@ -24,6 +24,22 @@ namespace ncpp
 				throw init_error ("Notcurses failed to create a new visual");
 		}
 
+    explicit Visual (const uint32_t* rgba, int rows, int rowstride, int cols)
+     : Root(NotCurses::get_instance())
+    {
+			visual = ncvisual_from_rgba (rgba, rows, rowstride, cols);
+			if (visual == nullptr)
+				throw init_error ("Notcurses failed to create a new visual");
+    }
+
+    explicit Visual (const Plane& p, int begy, int begx, int leny, int lenx)
+     : Root(NotCurses::get_instance())
+    {
+			visual = ncvisual_from_plane (p, begy, begx, leny, lenx);
+			if (visual == nullptr)
+				throw init_error ("Notcurses failed to create a new visual");
+    }
+
 		~Visual () noexcept
 		{
 			if (!is_notcurses_stopped ())
