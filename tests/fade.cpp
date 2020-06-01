@@ -104,7 +104,7 @@ TEST_CASE("Fade") {
 
   // drive fadeout with the more flexible api
   SUBCASE("FadeOutFlexible") {
-    auto nctx = ncfadectx_setup(n_, nullptr);
+    auto nctx = ncfadectx_setup(n_);
     REQUIRE(nctx);
     auto maxiter = ncfadectx_iterations(nctx);
     CHECK(0 < maxiter);
@@ -115,7 +115,7 @@ TEST_CASE("Fade") {
   }
 
   SUBCASE("FadeOutFlexibleAbort") {
-    auto nctx = ncfadectx_setup(n_, nullptr);
+    auto nctx = ncfadectx_setup(n_);
     REQUIRE(nctx);
     auto maxiter = ncfadectx_iterations(nctx);
     CHECK(0 < maxiter);
@@ -127,7 +127,7 @@ TEST_CASE("Fade") {
 
   // drive fadein with the more flexible api
   SUBCASE("FadeInFlexible") {
-    auto nctx = ncfadectx_setup(n_, nullptr);
+    auto nctx = ncfadectx_setup(n_);
     REQUIRE(nctx);
     auto maxiter = ncfadectx_iterations(nctx);
     CHECK(0 < maxiter);
@@ -138,7 +138,7 @@ TEST_CASE("Fade") {
   }
 
   SUBCASE("FadeInFlexibleAbort") {
-    auto nctx = ncfadectx_setup(n_, nullptr);
+    auto nctx = ncfadectx_setup(n_);
     REQUIRE(nctx);
     auto maxiter = ncfadectx_iterations(nctx);
     CHECK(0 < maxiter);
