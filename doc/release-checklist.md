@@ -39,3 +39,16 @@
   * `scp -r html qemfd.net:/var/www/notcurses/`
 * Update Debian changelog with `dch -v $NEXTVERSION-1`
 * Update CMakeLists.txt with next version
+
+==FreeBSD==
+
+* Update svn checkout of Ports tree: `cd /usr/ports && svn up`
+* Upgrade ports: `portupgrade -uap`
+* `cd /usr/ports/devel/notcurses`
+* Update `DISTVERSION` in `Makefile
+* `sudo make makesum`
+* `make stage`
+* `make stage-qa`
+* `portlint`
+* `svn diff > ../`make -VPKGNAME`.diff
+* File bug on devel/notcurses, attach diff
