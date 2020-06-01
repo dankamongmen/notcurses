@@ -744,12 +744,9 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
 int ncreel_destroy(ncreel* nreel){
   int ret = 0;
   if(nreel){
-    nctablet* t = nreel->tablets;
-    while(t){
-      t->prev->next = NULL;
-      nctablet* tmp = t->next;
+    nctablet* t;
+    while( (t = nreel->tablets) ){
       ncreel_del(nreel, t);
-      t = tmp;
     }
     ncplane_destroy(nreel->p);
     free(nreel);

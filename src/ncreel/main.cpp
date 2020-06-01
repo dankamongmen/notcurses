@@ -103,26 +103,19 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
   opts->suppress_banner = true;
 }
 
-int main(int argc, char** argv){
-  if(setlocale(LC_ALL, "") == nullptr){
-    return EXIT_FAILURE;
-  }
-  notcurses_options ncopts{};
-  ncreel_options nopts{};
-  parse_args(argc, argv, &ncopts, &nopts);
-  NotCurses nc(ncopts);
+int runreels(NotCurses& nc, ncreel_options& nopts){
   std::unique_ptr<Plane> nstd(nc.get_stdplane());
   int dimy, dimx;
   nstd->get_dim(&dimy, &dimx);
   auto n = std::make_shared<Plane>(dimy - 1, dimx, 1, 0);
   if(!n){
-    return EXIT_FAILURE;
+    return -1;
   }
   if(!n->set_fg_rgb(0xb1, 0x1b, 0xb1)){
-    return EXIT_FAILURE;
+    return -1;
   }
   if(n->putstr(0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0){
-    return EXIT_FAILURE;
+    return -1;
   }
   channels_set_fg(&nopts.focusedchan, 0xffffff);
   channels_set_bg(&nopts.focusedchan, 0x00c080);
@@ -130,13 +123,13 @@ int main(int argc, char** argv){
   nopts.toff = 3;
   std::shared_ptr<NcReel> nr(n->ncreel_create(&nopts));
   if(!nr || !nc.render()){
-    return EXIT_FAILURE;
+    return -1;
   }
   char32_t key;
   while((key = nc.getc(true)) != (char32_t)-1){
     switch(key){
       case 'q':
-        return !nc.stop() ? EXIT_FAILURE : EXIT_SUCCESS;
+        return 0;
       case 'a':{
         TabletCtx* tctx = new TabletCtx();
         nr->add(nullptr, nullptr, tabletfxn, tctx);
@@ -158,5 +151,18 @@ int main(int argc, char** argv){
       break;
     }
   }
-  return EXIT_FAILURE;
+  return -1;
+}
+
+int main(int argc, char** argv){
+  if(setlocale(LC_ALL, "") == nullptr){
+    return EXIT_FAILURE;
+  }
+  notcurses_options ncopts{};
+  ncreel_options nopts{};
+  parse_args(argc, argv, &ncopts, &nopts);
+  NotCurses nc(ncopts);
+  int r = runreels(nc, nopts);
+  nc.stop();
+  return r ? EXIT_FAILURE : EXIT_SUCCESS;
 }
