@@ -163,15 +163,24 @@ int demo_render(struct notcurses* nc);
 // rendering or otherwise manipulating state, as it calls notcurses_render().
 int demo_nanosleep(struct notcurses* nc, const struct timespec *ts);
 
+// the same as demo_nanosleep, but using TIMER_ABSTIME (deadline, not interval)
+int demo_nanosleep_abstime(struct notcurses* nc, const struct timespec* ts);
+
 static inline int
 demo_simple_streamer(struct ncplane* nc, struct ncvisual* ncv __attribute__ ((unused)),
                      const struct timespec* tspec, void* curry __attribute__ ((unused))){
   DEMO_RENDER(ncplane_notcurses(nc));
-  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
-  return 0;
+  return demo_nanosleep_abstime(ncplane_notcurses(nc), tspec);
 }
 
-int demo_fader(struct notcurses* nc, struct ncplane* ncp, void* curry);
+// simple fadecb that makes proper use of demo_render() and demo_nanosleep()
+static inline int
+demo_fader(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)),
+           const struct timespec* abstime, void* curry __attribute__ ((unused))){
+  DEMO_RENDER(nc);
+  return demo_nanosleep_abstime(nc, abstime);
+}
+
 
 // grab the hud with the mouse
 int hud_grab(int y, int x);
@@ -201,7 +210,8 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni);
 // an error. in general, propagate out -1 or 1, keep going on 2, and don't
 // expect to ever see 0.
 static inline int
-pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)), void* curry){
+pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)),
+       const struct timespec* ts __attribute__ ((unused)), void* curry){
   struct timespec* start = curry;
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);

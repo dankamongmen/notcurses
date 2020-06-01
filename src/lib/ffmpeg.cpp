@@ -346,13 +346,13 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
       usets = true;
     }
     if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
-      if(activeopts.n != vopts->n){
-        ncplane_destroy(activeopts.n);
+      if(activevopts.n != vopts->n){
+        ncplane_destroy(activevopts.n);
       }
       return -1;
     }
-    if(activeopts.n != newn){
-      activeopts.n = newn;
+    if(activevopts.n != newn){
+      activevopts.n = newn;
     }
     ++frame;
     uint64_t duration = ncv->details.frame->pkt_duration * tbase * NANOSECS_IN_SEC;
@@ -373,17 +373,17 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
     if(streamer){
       r = streamer(newn, ncv, &abstime, curry);
     }else{
-      ncvisual_simple_streamer(activeopts.n, ncv, &abstime, curry);
+      ncvisual_simple_streamer(activevopts.n, ncv, &abstime, curry);
     }
     if(r){
-      if(activeopts.n != vopts->n){
-        ncplane_destroy(activeopts.n);
+      if(activevopts.n != vopts->n){
+        ncplane_destroy(activevopts.n);
       }
       return r;
     }
   }
-  if(activeopts.n != vopts->n){
-    ncplane_destroy(activeopts.n);
+  if(activevopts.n != vopts->n){
+    ncplane_destroy(activevopts.n);
   }
   if(*ncerr == NCERR_EOF){
     return 0;

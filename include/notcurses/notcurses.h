@@ -1965,22 +1965,25 @@ API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 // Return the current styling for this ncplane.
 API unsigned ncplane_styles(const struct ncplane* n);
 
-// Called for each delta performed in a fade on ncp. If anything but 0 is returned,
-// the fading operation ceases immediately, and that value is propagated out. If provided
-// and not NULL, the faders will not themselves call notcurses_render().
-typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, void* curry);
+// Called for each fade iteration on 'ncp'. If anything but 0 is returned,
+// the fading operation ceases immediately, and that value is propagated out.
+// The recommended absolute display time target is passed in 'tspec'.
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp,
+                      const struct timespec*, void* curry);
 
 // Fade the ncplane out over the provided time, calling the specified function
 // when done. Requires a terminal which supports truecolor, or at least palette
 // modification (if the terminal uses a palette, our ability to fade planes is
 // limited, and affected by the complexity of the rest of the screen). It is
 // not safe to resize or destroy the plane during the fadeout FIXME.
-API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts,
+                        fadecb fader, void* curry);
 
 // Fade the ncplane in over the specified time. Load the ncplane with the
 // target cells without rendering, then call this function. When it's done, the
 // ncplane will have reached the target levels, starting from zeroes.
-API int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+API int ncplane_fadein(struct ncplane* n, const struct timespec* ts,
+                       fadecb fader, void* curry);
 
 // Pulse the plane in and out until the callback returns non-zero, relying on
 // the callback 'fader' to initiate rendering. 'ts' defines the half-period
@@ -2193,31 +2196,12 @@ typedef int (*streamcb)(struct ncplane*, struct ncvisual*,
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
 // curry is NULL, subtitles will not be displayed.
-static inline int
-ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv,
-                         const struct timespec* tspec, void* curry){
-  if(notcurses_render(ncplane_notcurses(n))){
-    return -1;
-  }
-  int ret = 0;
-  if(curry){
-    // need a cast for C++ callers
-    struct ncplane* subncp = (struct ncplane*)curry;
-    char* subtitle = ncvisual_subtitle(ncv);
-    if(subtitle){
-      if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
-        ret = -1;
-      }
-      free(subtitle);
-    }
-  }
-  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
-  return ret;
-}
+int ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv,
+                             const struct timespec* tspec, void* curry);
 
 // Stream the entirety of the media, according to its own timing. Blocking,
 // obviously. streamer may be NULL; it is otherwise called for each frame, and
-// its return value handled as outlined for stream cb. If streamer() returns
+// its return value handled as outlined for streamcb. If streamer() returns
 // non-zero, the stream is aborted, and that value is returned. By convention,
 // return a positive number to indicate intentional abort from within
 // streamer(). 'timescale' allows the frame duration time to be scaled. For a
