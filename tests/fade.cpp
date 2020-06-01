@@ -18,6 +18,15 @@ auto pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)),
   return 0;
 }
 
+auto fadeaborter(struct notcurses* nc, struct ncplane* ncp,
+                 const struct timespec* ts, void* curry) -> int {
+  (void)nc;
+  (void)ncp;
+  (void)ts;
+  (void)curry;
+  return 1;
+}
+
 TEST_CASE("Fade") {
   notcurses_options nopts{};
   nopts.suppress_banner = true;
@@ -66,6 +75,21 @@ TEST_CASE("Fade") {
     CHECK(0 == ncplane_fadein(n_, &ts, nullptr, nullptr));
   }
 
+  SUBCASE("FadeOutAbort") {
+    CHECK(0 == notcurses_render(nc_));
+    struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 500000000;
+    CHECK(0 < ncplane_fadeout(n_, &ts, fadeaborter, nullptr));
+  }
+
+  SUBCASE("FadeInAbort") {
+    struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 500000000;
+    CHECK(0 < ncplane_fadein(n_, &ts, fadeaborter, nullptr));
+  }
+
   SUBCASE("Pulse") {
     struct timespec ts;
     ts.tv_sec = 0;
@@ -78,7 +102,8 @@ TEST_CASE("Fade") {
     CHECK(0 < ncplane_pulse(n_, &ts, pulser, &pulsestart));
   }
 
-  SUBCASE("FadeOutUntimed") {
+  // drive fadeout with the more flexible api
+  SUBCASE("FadeOutFlexible") {
     auto nctx = ncfadectx_setup(n_, nullptr);
     REQUIRE(nctx);
     auto maxiter = ncfadectx_iterations(nctx);
@@ -89,13 +114,36 @@ TEST_CASE("Fade") {
     ncfadectx_free(nctx);
   }
 
-  SUBCASE("FadeInUntimed") {
+  SUBCASE("FadeOutFlexibleAbort") {
+    auto nctx = ncfadectx_setup(n_, nullptr);
+    REQUIRE(nctx);
+    auto maxiter = ncfadectx_iterations(nctx);
+    CHECK(0 < maxiter);
+    for(int i = 0 ; i < maxiter ; ++i){
+      CHECK(0 < ncplane_fadeout_iteration(n_, nctx, i, fadeaborter, nullptr));
+    }
+    ncfadectx_free(nctx);
+  }
+
+  // drive fadein with the more flexible api
+  SUBCASE("FadeInFlexible") {
     auto nctx = ncfadectx_setup(n_, nullptr);
     REQUIRE(nctx);
     auto maxiter = ncfadectx_iterations(nctx);
     CHECK(0 < maxiter);
     for(int i = 0 ; i < maxiter ; ++i){
       CHECK(0 == ncplane_fadein_iteration(n_, nctx, i, nullptr, nullptr));
+    }
+    ncfadectx_free(nctx);
+  }
+
+  SUBCASE("FadeInFlexibleAbort") {
+    auto nctx = ncfadectx_setup(n_, nullptr);
+    REQUIRE(nctx);
+    auto maxiter = ncfadectx_iterations(nctx);
+    CHECK(0 < maxiter);
+    for(int i = 0 ; i < maxiter ; ++i){
+      CHECK(0 < ncplane_fadein_iteration(n_, nctx, i, fadeaborter, nullptr));
     }
     ncfadectx_free(nctx);
   }
