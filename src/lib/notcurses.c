@@ -690,7 +690,7 @@ init_banner(const notcurses* nc){
 static void
 init_lang(const notcurses_options* opts){
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
-    const char* locale = setlocale(LC_ALL, NULL);
+    const char* locale = setlocale(LC_ALL, "");
     if(locale && (!strcmp(locale, "C") || !strcmp(locale, "POSIX"))){
       const char* lang = getenv("LANG");
       if(lang){
