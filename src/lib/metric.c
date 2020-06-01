@@ -12,7 +12,7 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
   unsigned consumed = 0;
   uintmax_t dv;
 
-  fesetround(FE_TOWARDZERO);
+  fesetround(FE_TONEAREST);
   if(decimal == 0 || mult == 0){
     return NULL;
   }

@@ -23,7 +23,7 @@ TEST_CASE("Metric") {
   const char* decisep = localeconv()->decimal_point;
   REQUIRE(decisep);
   REQUIRE(1 ==  strlen(decisep));
-  REQUIRE(0 ==  fesetround(FE_TOWARDZERO));
+  REQUIRE(0 ==  fesetround(FE_TONEAREST));
 
   SUBCASE("CornerInts") {
     char buf[PREFIXSTRLEN + 1];
@@ -66,7 +66,7 @@ TEST_CASE("Metric") {
     impericize_ncmetric(1025, 1, buf, 1, 1024, 'i');
     CHECK(!strcmp("1.00Ki", buf));
     impericize_ncmetric(4096, 1, buf, 1, 1000, '\0');
-    CHECK(!strcmp("4.09K", buf));
+    CHECK(!strcmp("4.10K", buf));
     impericize_ncmetric(4096, 1, buf, 1, 1024, 'i');
     CHECK(!strcmp("4Ki", buf));
   }
@@ -79,24 +79,27 @@ TEST_CASE("Metric") {
     impericize_ncmetric(INTMAX_MAX, 1, buf, 0, 1000, '\0');
     CHECK(!strcmp("9.22E", buf));
     impericize_ncmetric(UINTMAX_MAX - 1, 1, buf, 0, 1000, '\0');
-    CHECK(!strcmp("18.44E", buf));
+    CHECK(!strcmp("18.45E", buf));
     impericize_ncmetric(UINTMAX_MAX, 1, buf, 0, 1000, '\0');
-    CHECK(!strcmp("18.44E", buf));
+    CHECK(!strcmp("18.45E", buf));
   }
 
   SUBCASE("Maxints1024") {
     char buf[PREFIXSTRLEN + 1], gold[PREFIXSTRLEN + 1];
     // FIXME these will change based on the size of intmax_t and uintmax_t
-    ncmetric(INTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
+    REQUIRE(ncmetric(((double)(INTMAX_MAX - 1ull)), 1, buf, 0, 1024, 'i'));
+    sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - 1ull)) / (1ull << 60));
+    CHECK(!strcmp(gold, buf));
+    REQUIRE(ncmetric(((double)(INTMAX_MAX - (1ull << 53))), 1, buf, 0, 1024, 'i'));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - (1ull << 53))) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
     REQUIRE(ncmetric(INTMAX_MAX + 1ull, 1, buf, 0, 1024, 'i'));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX + 1ull)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
     impericize_ncmetric(UINTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
-    CHECK(!strcmp("15.99Ei", buf));
+    CHECK(!strcmp("16.00Ei", buf));
     impericize_ncmetric(UINTMAX_MAX, 1, buf, 0, 1024, 'i');
-    CHECK(!strcmp("15.99Ei", buf));
+    CHECK(!strcmp("16.00Ei", buf));
     ncmetric(UINTMAX_MAX - (1ull << 53), 1, buf, 0, 1024, 'i');
     sprintf(gold, "%.2fEi", ((double)UINTMAX_MAX - (1ull << 53)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
@@ -360,7 +363,7 @@ TEST_CASE("Metric") {
 
   SUBCASE("ScaledGigSub") {
     char gold[PREFIXSTRLEN + 1];
-    snprintf(gold, sizeof(gold), "%.2fm", 27.859); // 27.85
+    snprintf(gold, sizeof(gold), "%.2fm", 27.85); // 27.85
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 27854993;
     uintmax_t decimal = GIG;
@@ -370,7 +373,7 @@ TEST_CASE("Metric") {
 
   SUBCASE("ScaledGigSubSub") {
     char gold[PREFIXSTRLEN + 1];
-    snprintf(gold, sizeof(gold), "%.2fm", 7.859); // 7.85
+    snprintf(gold, sizeof(gold), "%.2fm", 7.85); // 7.85
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 7854993;
     uintmax_t decimal = GIG;
@@ -389,9 +392,9 @@ TEST_CASE("Metric") {
     CHECK(!strcmp("1.00a", buf));
 
     impericize_ncmetric(19, 10000000000000000ull, buf, 0, 1000, '\0');
-    CHECK(!strcmp("1.89f", buf));
+    CHECK(!strcmp("1.90f", buf));
     impericize_ncmetric(99, 10000000000000000ull, buf, 0, 1000, '\0');
-    CHECK(!strcmp("9.89f", buf));
+    CHECK(!strcmp("9.90f", buf));
 
     impericize_ncmetric(100, 10000000000000000ull, buf, 0, 1000, '\0');
     CHECK(!strcmp("10.00f", buf));
