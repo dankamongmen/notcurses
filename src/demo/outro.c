@@ -41,11 +41,10 @@ videothread(void* vnc){
     .scaling = NCSCALE_STRETCH,
   };
   int three = 3;
-  struct ncplane* globeplane;
-  if((globeplane = ncvisual_render(nc, ncv, &vopts)) == NULL){
+  if((vopts.n = ncvisual_render(nc, ncv, &vopts)) == NULL){
     return NULL;
   }
-  ncplane_move_below(globeplane, ncp);
+  ncplane_move_below(vopts.n, ncp);
   struct timespec fade;
   timespec_mul(&demodelay, 2, &fade);
   demo_render(nc);
