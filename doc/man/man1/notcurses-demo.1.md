@@ -31,7 +31,7 @@ The demonstrations include (see NOTES below):
 * (h)ighcon—high contrast text atop various colors
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi—a dashing Apennine plumber in a world of fire
-* (n)ormal—a normal map of a friend, with lambert shading
+* (n)ormal—a normal map of a friend, with effects
 * (q)rcode—quick response codes (from ISO/IEC 18004:2015)
 * (r)eel—demonstration of the ncreel high-level widget
 * (s)liders—a missing-piece puzzle made up of colorful blocks
@@ -68,7 +68,8 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 
 **-V**: Print the program name and version, and exit with success.
 
-demospec: Select which demos to run, and what order to run them in. The default is **ixethnbcgrwuvlsfjqo**. See above for a list of demos.
+demospec: Select which demos to run, and what order to run them in. The
+default is **ixethnbcgrwuvlsfjqo**. See above for a list of demos.
 
 Default margins are all 0, and thus the full screen will be rendered. Using
 **-m**, margins can be supplied. Provide a single number to set all four margins
@@ -89,8 +90,9 @@ non-free under the Debian Free Software Guidelines. As a result, the
 are unavailable through the Debian package.
 
 If notcurses is built without multimedia support, the **chunli**, **eagle**,
-**outro**, **view**, and **xray** demos will be unavailable. If notcurses is
-built without libqrcodegen, the **qrcode** demo will be unavailable.
+**outro**, **view**, and **xray** demos will be partially or wholly
+unavailable. If notcurses is built without libqrcodegen, the **qrcode** demo
+will be unavailable.
 
 If **notcurses-demo** is run in a terminal lacking the **can_change** terminfo
 capability, **jungle** will be skipped.

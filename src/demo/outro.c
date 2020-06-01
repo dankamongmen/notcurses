@@ -7,6 +7,7 @@ static int xstart;
 static struct ncplane* on;
 static struct ncvisual* chncv;
 
+// called in the context of the ncvisual streamer of samoa.avi
 static int
 perframe(struct ncplane* n, struct ncvisual* ncv __attribute__ ((unused)),
          const struct timespec* abstime, void* vthree){
@@ -25,7 +26,7 @@ perframe(struct ncplane* n, struct ncvisual* ncv __attribute__ ((unused)),
 }
 
 static void*
-fadethread(void* vnc){
+videothread(void* vnc){
   struct notcurses* nc = vnc;
   nc_err_e err;
   char* path = find_data("samoa.avi");
@@ -131,30 +132,29 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
 }
 
 int outro(struct notcurses* nc){
-  if(!notcurses_canutf8(nc)){
-    return 0;
-  }
-  if(!notcurses_canopen_images(nc)){
+  if(!notcurses_canutf8(nc)){ // there's UTF8 in the outro message
     return 0;
   }
   int rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   ncplane_erase(ncp);
-  nc_err_e err = 0;
-  char* path = find_data("changes.jpg");
-  chncv = ncvisual_from_file(path, &err);
-  free(path);
-  if(chncv == NULL){
-    return -1;
-  }
-  struct ncvisual_options vopts = {
-    .n = ncp,
-    .scaling = NCSCALE_STRETCH,
-    .flags = NCVISUAL_OPTION_BLEND,
-  };
-  if(ncvisual_render(nc, chncv, &vopts) == NULL){
-    ncvisual_destroy(chncv);
-    return -1;
+  if(notcurses_canopen_images(nc)){
+    nc_err_e err = 0;
+    char* path = find_data("changes.jpg");
+    chncv = ncvisual_from_file(path, &err);
+    free(path);
+    if(chncv == NULL){
+      return -1;
+    }
+    struct ncvisual_options vopts = {
+      .n = ncp,
+      .scaling = NCSCALE_STRETCH,
+      .flags = NCVISUAL_OPTION_BLEND,
+    };
+    if(ncvisual_render(nc, chncv, &vopts) == NULL){
+      ncvisual_destroy(chncv);
+      return -1;
+    }
   }
   xstart = cols;
   int ystart = rows;
@@ -169,13 +169,15 @@ int outro(struct notcurses* nc){
     pthread_t tid;
     // will fade across 2 * demodelay
     targy = 3;
-    pthread_create(&tid, NULL, fadethread, nc);
+    pthread_create(&tid, NULL, videothread, nc);
     void* ret;
     pthread_join(tid, &ret);
     if(ret == PTHREAD_CANCELED){
       return 1;
     }
   }
+  // fade out the closing message, which has reached the top (if we ran the
+  // video) or is sitting at the bottom (if we didn't).
   ncplane_fadeout(on, &demodelay, demo_fader, NULL);
   ncplane_destroy(on);
   return on ? 0 : -1;
