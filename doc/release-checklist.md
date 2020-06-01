@@ -21,6 +21,8 @@
     * `git push --tags`
     * build source package: `dpkg-buildpackage --build=source`
     * build binaries: `cd .. && sudo pbuilder build *dsc`
+        * perform this in xterm with TERM=xterm-256color
+        * beware: freak TERMs won't be present in pbuilder
 * Copy `../*notcurses*$VERSION*` to apt repo, import with `reprepro`
 * Upload new AUR information
   * Update `pkgver` and `sha256sums` entries
