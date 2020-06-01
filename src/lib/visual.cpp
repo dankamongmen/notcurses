@@ -499,6 +499,27 @@ auto ncvisual_destroy(ncvisual* ncv) -> void {
   }
 }
 
+auto ncvisual_simple_streamer(ncplane* n, ncvisual* ncv, const timespec* tspec,
+                              void* curry) -> int {
+  if(notcurses_render(ncplane_notcurses(n))){
+    return -1;
+  }
+  int ret = 0;
+  if(curry){
+    // need a cast for C++ callers
+    ncplane* subncp = static_cast<ncplane*>(curry);
+    char* subtitle = ncvisual_subtitle(ncv);
+    if(subtitle){
+      if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
+        ret = -1;
+      }
+      free(subtitle);
+    }
+  }
+  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
+  return ret;
+}
+
 #ifndef USE_OIIO // built without ffmpeg or oiio
 #ifndef USE_FFMPEG
 auto ncvisual_from_file(const char* filename, nc_err_e* err) -> ncvisual* {
@@ -507,22 +528,22 @@ auto ncvisual_from_file(const char* filename, nc_err_e* err) -> ncvisual* {
   return nullptr;
 }
 
-bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) {
+auto notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) -> bool {
   return false;
 }
 
-bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) {
+auto notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) -> bool {
   return false;
 }
 
-nc_err_e ncvisual_decode(ncvisual* nc) {
+auto ncvisual_decode(ncvisual* nc) -> nc_err_e {
   (void)nc;
   return NCERR_UNIMPLEMENTED;
 }
 
-int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
+auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
                     float timescale, streamcb streamer,
-                    const ncvisual_options* vopts, void* curry) {
+                    const ncvisual_options* vopts, void* curry) -> int {
   (void)nc;
   (void)ncv;
   (void)timescale;
@@ -533,20 +554,20 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   return -1;
 }
 
-char* ncvisual_subtitle(const ncvisual* ncv) {
+auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
   (void)ncv;
   return nullptr;
 }
 
-int ncvisual_init(int loglevel) {
+auto ncvisual_init(int loglevel) -> int {
   (void)loglevel;
   return 0; // allow success here
 }
 
-nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                       const struct blitset* bset, int placey, int placex,
-                       int begy, int begx, int leny, int lenx,
-                       bool blendcolors) {
+auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
+                   const struct blitset* bset, int placey, int placex,
+                   int begy, int begx, int leny, int lenx,
+                   bool blendcolors) -> nc_err_e {
   (void)rows;
   (void)cols;
   if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,

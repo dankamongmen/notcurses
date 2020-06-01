@@ -55,12 +55,6 @@ static int writeline = HUD_ROWS - 2;
 #define MENUSTR_ABOUT "About"
 #define MENUSTR_QUIT "Quit"
 
-int demo_fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
-  (void)ncp;
-  (void)curry;
-  return demo_render(nc);
-}
-
 static int
 hud_standard_bg(struct ncplane* n){
   uint64_t channels = 0;
@@ -450,15 +444,14 @@ int hud_schedule(const char* demoname){
   return 0;
 }
 
-// wake up every 100ms and render a frame so the HUD doesn't appear locked up
-int demo_nanosleep(struct notcurses* nc, const struct timespec *ts){
+// wake up every 100ms and render a frame so the HUD doesn't appear locked up.
+// provide an absolute deadline calculated via CLOCK_MONOTONIC.
+static int
+demo_nanosleep_abstime_ns(struct notcurses* nc, uint64_t deadline){
   struct timespec fsleep;
-  uint64_t nstotal = timespec_to_ns(ts);
-  uint64_t deadline;
   struct timespec now;
 
   clock_gettime(CLOCK_MONOTONIC, &now);
-  deadline = timespec_to_ns(&now) + nstotal;
   do{
     fsleep.tv_sec = 0;
     fsleep.tv_nsec = GIG / 10;
@@ -473,12 +466,27 @@ int demo_nanosleep(struct notcurses* nc, const struct timespec *ts){
       return -1;
     }
     if(hud){
-      demo_render(nc);
+      int r = demo_render(nc);
+      if(r){
+        return r;
+      }
     }
     clock_gettime(CLOCK_MONOTONIC, &now);
   }while(deadline > timespec_to_ns(&now));
-  ns_to_timespec(deadline - timespec_to_ns(&now), &fsleep);
   return 0;
+}
+
+int demo_nanosleep(struct notcurses* nc, const struct timespec *ts){
+  uint64_t deadline;
+  struct timespec now;
+  uint64_t nstotal = timespec_to_ns(ts);
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  deadline = timespec_to_ns(&now) + nstotal;
+  return demo_nanosleep_abstime_ns(nc, deadline);
+}
+
+int demo_nanosleep_abstime(struct notcurses* nc, const struct timespec* abstime){
+  return demo_nanosleep_abstime_ns(nc, timespec_to_ns(abstime));
 }
 
 // FIXME needs to pass back any ncinput read, if requested...hrmmm

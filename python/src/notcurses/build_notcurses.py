@@ -203,7 +203,7 @@ void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
 int ncplane_hline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);
 int ncplane_vline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);
 int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur, const cell* ll, const cell* lr, const cell* hline, const cell* vline, int ystop, int xstop, unsigned ctlword);
-typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, void* curry);
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, const struct timespec* ts, void* curry);
 int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
 int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
 int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
