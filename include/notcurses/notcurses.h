@@ -1987,7 +1987,7 @@ API int ncplane_fadein(struct ncplane* n, const struct timespec* ts,
 
 // Rather than the simple ncplane_fade{in/out}(), ncfadectx_setup() can be
 // paired with a loop over ncplane_fade{in/out}_iteration() + ncfadectx_free().
-API struct ncfadectx* ncfadectx_setup(struct ncplane* n, const struct timespec* ts);
+API struct ncfadectx* ncfadectx_setup(struct ncplane* n);
 
 // Return the number of iterations through which 'nctx' will fade.
 API int ncfadectx_iterations(const struct ncfadectx* nctx);

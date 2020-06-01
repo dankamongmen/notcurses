@@ -1227,7 +1227,7 @@ The more flexible fade API allows for fine control of the process.
 
 ```c
 // paired with a loop over ncplane_fade{in/out}_iteration() + ncfadectx_free().
-struct ncfadectx* ncfadectx_setup(struct ncplane* n, const struct timespec* ts);
+struct ncfadectx* ncfadectx_setup(struct ncplane* n);
 
 // Return the number of iterations through which 'nctx' will fade.
 int ncfadectx_iterations(const struct ncfadectx* nctx);

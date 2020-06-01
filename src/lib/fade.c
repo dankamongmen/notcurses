@@ -228,7 +228,8 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
   return ret;
 }
 
-ncfadectx* ncfadectx_setup(ncplane* n, const struct timespec* ts){
+static ncfadectx* 
+ncfadectx_setup_internal(ncplane* n, const struct timespec* ts){
   if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
     return NULL;
   }
@@ -242,6 +243,10 @@ ncfadectx* ncfadectx_setup(ncplane* n, const struct timespec* ts){
   return NULL;
 }
 
+ncfadectx* ncfadectx_setup(ncplane* n){
+  return ncfadectx_setup_internal(n, NULL);
+}
+
 void ncfadectx_free(ncfadectx* nctx){
   if(nctx){
     free(nctx->channels);
@@ -250,7 +255,7 @@ void ncfadectx_free(ncfadectx* nctx){
 }
 
 int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
-  ncfadectx* pp = ncfadectx_setup(n, ts);
+  ncfadectx* pp = ncfadectx_setup_internal(n, ts);
   if(!pp){
     return -1;
   }
@@ -274,7 +279,7 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
 }
 
 int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
-  ncfadectx* nctx = ncfadectx_setup(n, ts);
+  ncfadectx* nctx = ncfadectx_setup_internal(n, ts);
   if(nctx == NULL){
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
