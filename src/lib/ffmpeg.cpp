@@ -318,11 +318,10 @@ err:
   return nullptr;
 }
 
-// iterative over the decoded frames, calling streamer() with curry for each.
+// iterate over the decoded frames, calling streamer() with curry for each.
 // frames carry a presentation time relative to the beginning, so we get an
 // initial timestamp, and check each frame against the elapsed time to sync
 // up playback.
-// FIXME might need to destroy created ncplane
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
                     float timescale, streamcb streamer,
                     const struct ncvisual_options* vopts, void* curry) {
@@ -336,6 +335,8 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   // we don't have PTS available.
   uint64_t sum_duration = 0;
   ncplane* newn = NULL;
+  ncvisual_options activevopts;
+  memcpy(&activevopts, vopts, sizeof(*vopts));
   while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
@@ -344,8 +345,14 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
     if(frame == 1 && ts){
       usets = true;
     }
-    if((newn = ncvisual_render(nc, ncv, vopts)) == NULL){
+    if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
+      if(activeopts.n != vopts->n){
+        ncplane_destroy(activeopts.n);
+      }
       return -1;
+    }
+    if(activeopts.n != newn){
+      activeopts.n = newn;
     }
     ++frame;
     uint64_t duration = ncv->details.frame->pkt_duration * tbase * NANOSECS_IN_SEC;
@@ -360,14 +367,23 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
       sum_duration += (duration * timescale);
       schedns += sum_duration;
     }
+    struct timespec abstime;
+    ns_to_timespec(schedns, &abstime);
+    int r;
     if(streamer){
-      struct timespec abstime;
-      ns_to_timespec(schedns, &abstime);
-      int r = streamer(newn, ncv, &abstime, curry);
-      if(r){
-        return r;
-      }
+      r = streamer(newn, ncv, &abstime, curry);
+    }else{
+      ncvisual_simple_streamer(activeopts.n, ncv, &abstime, curry);
     }
+    if(r){
+      if(activeopts.n != vopts->n){
+        ncplane_destroy(activeopts.n);
+      }
+      return r;
+    }
+  }
+  if(activeopts.n != vopts->n){
+    ncplane_destroy(activeopts.n);
   }
   if(*ncerr == NCERR_EOF){
     return 0;
