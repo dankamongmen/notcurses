@@ -1,6 +1,6 @@
 % notcurses_plot(3)
 % nick black <nickblack@linux.com>
-% v1.4.3
+% v1.4.4
 
 # NAME
 
