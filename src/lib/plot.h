@@ -121,6 +121,10 @@ class ncppplot {
    if(labelaxisd){
      // show the *top* of each interval range
      for(int y = 0 ; y < dimy ; ++y){
+       uint64_t channels = 0;
+       calc_gradient_channels(&channels, maxchannel, maxchannel,
+                             minchannel, minchannel, y, 0, dimy, dimx);
+       ncplane_set_channels(ncp, channels);
        char buf[PREFIXSTRLEN + 1];
        if(exponentiali){
          if(y == dimy - 1){ // we cheat on the top row to exactly match maxy
