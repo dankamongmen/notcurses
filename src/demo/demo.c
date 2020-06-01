@@ -72,35 +72,33 @@ static struct {
   const char* name;
   int (*fxn)(struct notcurses*);
   bool dfsg_disabled;             // disabled for DFSG builds
-  bool oiio_disabled;             // disabled for OIIO builds (implies mmeng_disabled)
-  bool mmeng_disabled;            // disabled for non-multimedia builds
 } demos[26] = {
-  { NULL, NULL, false, false, false, },
-  { "box", box_demo, false, false, false, },
-  {"chunli", chunli_demo, true, false, true, },
-  { NULL, NULL, false, false, false, },
-  { "eagle", eagle_demo, true, false, false, },
-  { "fallin'", fallin_demo, false, false, false, },
-  { "grid", grid_demo, false, false, false, },
-  { "highcon", highcontrast_demo, false, false, false, },
-  { "intro", intro, false, false, false, },
-  { "jungle", jungle_demo, true, false, false, },
-  { NULL, NULL, false, false, false, },
-  { "luigi", luigi_demo, true, false, true, },
-  { NULL, NULL, false, false, false, },
-  { "normal", normal_demo, false, false, false, },
-  { "outro", outro, false, false, false, },
-  { NULL, NULL, false, false, false, },
-  { "qrcode", qrcode_demo, false, false, false, }, // is blank without USE_QRCODEGEN
-  { "reel", reel_demo, false, false, false, },
-  { "sliders", sliding_puzzle_demo, false, false, false, },
-  { "trans", trans_demo, false, false, false, },
-  { "uniblock", unicodeblocks_demo, false, false, false, },
-  { "view", view_demo, true, true, true, },
-  { "whiteout", witherworm_demo, false, false, false, },
-  {"xray", xray_demo, false, true, true, },
-  { NULL, NULL, false, false, false, },
-  { NULL, NULL, false, false, false, },
+  { NULL, NULL, false, },
+  { "box", box_demo, false, },
+  {"chunli", chunli_demo, true, },
+  { NULL, NULL, false, },
+  { "eagle", eagle_demo, true, },
+  { "fallin'", fallin_demo, false, },
+  { "grid", grid_demo, false, },
+  { "highcon", highcontrast_demo, false, },
+  { "intro", intro, false, },
+  { "jungle", jungle_demo, true, },
+  { NULL, NULL, false, },
+  { "luigi", luigi_demo, true, },
+  { NULL, NULL, false, },
+  { "normal", normal_demo, false, },
+  { "outro", outro, false, },
+  { NULL, NULL, false, },
+  { "qrcode", qrcode_demo, false, }, // is blank without USE_QRCODEGEN
+  { "reel", reel_demo, false, },
+  { "sliders", sliding_puzzle_demo, false, },
+  { "trans", trans_demo, false, },
+  { "uniblock", unicodeblocks_demo, false, },
+  { "view", view_demo, true, },
+  { "whiteout", witherworm_demo, false, },
+  {"xray", xray_demo, false, },
+  { NULL, NULL, false, },
+  { NULL, NULL, false, },
 };
 
 static void
@@ -149,16 +147,6 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
     int idx = spec[i] - 'a';
 #ifdef DFSG_BUILD
     if(demos[idx].dfsg_disabled){
-      continue;
-    }
-#endif
-#ifdef USE_OIIO
-    if(demos[idx].oiio_disabled){
-      continue;
-    }
-#endif
-#ifndef USE_MULTIMEDIA
-    if(demos[idx].mmeng_disabled){
       continue;
     }
 #endif

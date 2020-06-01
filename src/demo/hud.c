@@ -452,7 +452,7 @@ demo_nanosleep_abstime_ns(struct notcurses* nc, uint64_t deadline){
   struct timespec now;
 
   clock_gettime(CLOCK_MONOTONIC, &now);
-  do{
+  while(deadline > timespec_to_ns(&now)){
     fsleep.tv_sec = 0;
     fsleep.tv_nsec = GIG / 10;
     if(deadline - timespec_to_ns(&now) < GIG / 10){
@@ -472,7 +472,7 @@ demo_nanosleep_abstime_ns(struct notcurses* nc, uint64_t deadline){
       }
     }
     clock_gettime(CLOCK_MONOTONIC, &now);
-  }while(deadline > timespec_to_ns(&now));
+  }
   return 0;
 }
 
