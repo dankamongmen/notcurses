@@ -852,6 +852,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
+  ret->rstate.x = ret->rstate.y = -1;
   ret->suppress_banner = opts->suppress_banner;
   init_banner(ret);
   // flush on the switch to alternate screen, lest initial output be swept away

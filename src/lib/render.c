@@ -347,7 +347,7 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
         lock_in_highcontrast(targc, crender);
         cell* prevcell = &lastframe[fbcellidx(absy, lfdimx, absx)];
 /*if(cell_simple_p(targc)){
-fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, prevcell->gcluster, y, x, absy, absx);
+fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, targc->gcluster, y, x, absy, absx);
 }else{
 fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
 }*/
@@ -478,7 +478,7 @@ term_putc(FILE* out, const egcpool* e, const cell* c){
         return -1;
       }
     }else{
-// fprintf(stderr, "[%c]\n", c->gcluster);
+//fprintf(stderr, "[%c]\n", c->gcluster);
       if(ncfputc(c->gcluster, out) == EOF){
         return -1;
       }
