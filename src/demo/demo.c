@@ -79,7 +79,7 @@ static struct {
   { "box", box_demo, false, false, false, },
   {"chunli", chunli_demo, true, false, true, },
   { NULL, NULL, false, false, false, },
-  { "eagle", eagle_demo, true, false, true, },
+  { "eagle", eagle_demo, true, false, false, },
   { "fallin'", fallin_demo, false, false, false, },
   { "grid", grid_demo, false, false, false, },
   { "highcon", highcontrast_demo, false, false, false, },
@@ -89,7 +89,7 @@ static struct {
   { "luigi", luigi_demo, true, false, true, },
   { NULL, NULL, false, false, false, },
   { "normal", normal_demo, false, false, false, },
-  { "outro", outro, false, true, true, },
+  { "outro", outro, false, false, false, },
   { NULL, NULL, false, false, false, },
   { "qrcode", qrcode_demo, false, false, false, }, // is blank without USE_QRCODEGEN
   { "reel", reel_demo, false, false, false, },

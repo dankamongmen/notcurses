@@ -28,10 +28,12 @@ TEST_CASE("Ncpp"
 
   SUBCASE("VisualFromFile") {
     NotCurses nc;
-    nc_err_e err;
-    {
-      Visual v = Visual(find_data("changes.jpg"), &err);
-      CHECK(NCERR_SUCCESS == err);
+    if(nc.can_open_images()){
+      nc_err_e err;
+      {
+        Visual v = Visual(find_data("changes.jpg"), &err);
+        CHECK(NCERR_SUCCESS == err);
+      }
     }
     CHECK(nc.stop());
   }

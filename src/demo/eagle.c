@@ -197,18 +197,17 @@ eagles(struct notcurses* nc){
 
 // motherfucking eagles!
 int eagle_demo(struct notcurses* nc){
-  if(!notcurses_canopen_images(nc)){
-    return 0;
-  }
-  char* map = find_data("eagles.png");
-  struct ncplane* zncp;
+  struct ncplane* zncp = NULL;
   int err;
-  if((zncp = zoom_map(nc, map, &err)) == NULL){
+  if(notcurses_canopen_images(nc)){
+    char* map = find_data("eagles.png");
+    if((zncp = zoom_map(nc, map, &err)) == NULL){
+      free(map);
+      return err;
+    }
     free(map);
-    return err;
   }
   err = eagles(nc);
   ncplane_destroy(zncp);
-  free(map);
   return err;
 }
