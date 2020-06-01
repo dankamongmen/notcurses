@@ -1,18 +1,19 @@
 #include "internal.h"
 
-typedef struct planepalette {
+typedef struct ncfadectx {
   int rows;                     // number of rows when allocated
   int cols;                     // number of columns when allocated
+  int maxsteps;                 // maximum number of iterations
   unsigned maxr, maxg, maxb;    // maxima across foreground channels
   unsigned maxbr, maxbg, maxbb; // maxima across background channels
   uint64_t* channels;           // all channels from the framebuffer
-} planepalette;
+} ncfadectx;
 
 // These arrays are too large to be safely placed on the stack. Get an atomic
 // snapshot of all channels on the plane. While copying the snapshot, determine
 // the maxima across each of the six components.
 static int
-alloc_ncplane_palette(ncplane* n, planepalette* pp){
+alloc_ncplane_palette(ncplane* n, ncfadectx* pp){
   ncplane_dim_yx(n, &pp->rows, &pp->cols);
   // add an additional element for the background cell
   int size = pp->rows * pp->cols + 1;
@@ -73,22 +74,22 @@ alloc_ncplane_palette(ncplane* n, planepalette* pp){
   if(bb > pp->maxbb){
     pp->maxbb = bb;
   }
+  int maxfsteps = pp->maxg > pp->maxr ? (pp->maxb > pp->maxg ? pp->maxb : pp->maxg) :
+                  (pp->maxb > pp->maxr ? pp->maxb : pp->maxr);
+  int maxbsteps = pp->maxbg > pp->maxbr ? (pp->maxbb > pp->maxbg ? pp->maxbb : pp->maxbg) :
+                  (pp->maxbb > pp->maxbr ? pp->maxbb : pp->maxbr);
+  pp->maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
+  if(pp->maxsteps == 0){
+    pp->maxsteps = 1;
+  }
   return 0;
 }
 
 static int
 ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
-                        fadecb fader, planepalette* pp, void* curry){
-  int maxfsteps = pp->maxg > pp->maxr ? (pp->maxb > pp->maxg ? pp->maxb : pp->maxg) :
-                  (pp->maxb > pp->maxr ? pp->maxb : pp->maxr);
-  int maxbsteps = pp->maxbg > pp->maxbr ? (pp->maxbb > pp->maxbg ? pp->maxbb : pp->maxbg) :
-                  (pp->maxbb > pp->maxbr ? pp->maxbb : pp->maxbr);
-  int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
-  if(maxsteps == 0){
-    maxsteps = 1;
-  }
+                        fadecb fader, ncfadectx* pp, void* curry){
   uint64_t nanosecs_total = ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
-  uint64_t nanosecs_step = nanosecs_total / maxsteps;
+  uint64_t nanosecs_step = nanosecs_total / pp->maxsteps;
   if(nanosecs_step == 0){
     nanosecs_step = 1;
   }
@@ -103,7 +104,7 @@ ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
     clock_gettime(CLOCK_MONOTONIC, &times);
     curns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
     int iter = (curns - startns) / nanosecs_step + 1;
-    if(iter > maxsteps){
+    if(iter > pp->maxsteps){
       break;
     }
     int y, x;
@@ -119,15 +120,15 @@ ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
         channels_bg_rgb(pp->channels[pp->cols * y + x], &br, &bg, &bb);
         cell* c = &n->fb[dimx * y + x];
         if(!cell_fg_default_p(c)){
-          r = r * iter / maxsteps;
-          g = g * iter / maxsteps;
-          b = b * iter / maxsteps;
+          r = r * iter / pp->maxsteps;
+          g = g * iter / pp->maxsteps;
+          b = b * iter / pp->maxsteps;
           cell_set_fg_rgb(c, r, g, b);
         }
         if(!cell_bg_default_p(c)){
-          br = br * iter / maxsteps;
-          bg = bg * iter / maxsteps;
-          bb = bb * iter / maxsteps;
+          br = br * iter / pp->maxsteps;
+          bg = bg * iter / pp->maxsteps;
+          bb = bb * iter / pp->maxsteps;
           cell_set_bg_rgb(c, br, bg, bb);
         }
       }
@@ -152,23 +153,15 @@ ncplane_fadein_internal(ncplane* n, const struct timespec* ts,
 }
 
 int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
-  planepalette pp;
+  ncfadectx pp;
   if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
     return -1;
   }
   if(alloc_ncplane_palette(n, &pp)){
     return -1;
   }
-  int maxfsteps = pp.maxg > pp.maxr ? (pp.maxb > pp.maxg ? pp.maxb : pp.maxg) :
-                  (pp.maxb > pp.maxr ? pp.maxb : pp.maxr);
-  int maxbsteps = pp.maxbg > pp.maxbr ? (pp.maxbb > pp.maxbg ? pp.maxbb : pp.maxbg) :
-                  (pp.maxbb > pp.maxbr ? pp.maxbb : pp.maxbr);
-  int maxsteps = maxfsteps > maxbsteps ? maxfsteps : maxbsteps;
-  if(maxsteps == 0){
-    maxsteps = 1;
-  }
   uint64_t nanosecs_total = timespec_to_ns(ts);
-  uint64_t nanosecs_step = nanosecs_total / maxsteps;
+  uint64_t nanosecs_step = nanosecs_total / pp.maxsteps;
   if(nanosecs_step == 0){
     nanosecs_step = 1;
   }
@@ -182,7 +175,7 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
     unsigned r, g, b;
     uint64_t curns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
     int iter = (curns - startns) / nanosecs_step + 1;
-    if(iter > maxsteps){
+    if(iter > pp.maxsteps){
       break;
     }
     int y, x;
@@ -195,16 +188,16 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
         cell* c = &n->fb[dimx * y + x];
         if(!cell_fg_default_p(c)){
           channels_fg_rgb(pp.channels[pp.cols * y + x], &r, &g, &b);
-          r = r * (maxsteps - iter) / maxsteps;
-          g = g * (maxsteps - iter) / maxsteps;
-          b = b * (maxsteps - iter) / maxsteps;
+          r = r * (pp.maxsteps - iter) / pp.maxsteps;
+          g = g * (pp.maxsteps - iter) / pp.maxsteps;
+          b = b * (pp.maxsteps - iter) / pp.maxsteps;
           cell_set_fg_rgb(c, r, g, b);
         }
         if(!cell_bg_default_p(c)){
           channels_bg_rgb(pp.channels[pp.cols * y + x], &br, &bg, &bb);
-          br = br * (maxsteps - iter) / maxsteps;
-          bg = bg * (maxsteps - iter) / maxsteps;
-          bb = bb * (maxsteps - iter) / maxsteps;
+          br = br * (pp.maxsteps - iter) / pp.maxsteps;
+          bg = bg * (pp.maxsteps - iter) / pp.maxsteps;
+          bb = bb * (pp.maxsteps - iter) / pp.maxsteps;
           cell_set_bg_rgb(c, br, bg, bb);
         }
       }
@@ -212,16 +205,16 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
     cell* c = &n->basecell;
     if(!cell_fg_default_p(c)){
       channels_fg_rgb(pp.channels[pp.cols * y], &r, &g, &b);
-      r = r * (maxsteps - iter) / maxsteps;
-      g = g * (maxsteps - iter) / maxsteps;
-      b = b * (maxsteps - iter) / maxsteps;
+      r = r * (pp.maxsteps - iter) / pp.maxsteps;
+      g = g * (pp.maxsteps - iter) / pp.maxsteps;
+      b = b * (pp.maxsteps - iter) / pp.maxsteps;
       cell_set_fg_rgb(&n->basecell, r, g, b);
     }
     if(!cell_bg_default_p(c)){
       channels_bg_rgb(pp.channels[pp.cols * y], &br, &bg, &bb);
-      br = br * (maxsteps - iter) / maxsteps;
-      bg = bg * (maxsteps - iter) / maxsteps;
-      bb = bb * (maxsteps - iter) / maxsteps;
+      br = br * (pp.maxsteps - iter) / pp.maxsteps;
+      bg = bg * (pp.maxsteps - iter) / pp.maxsteps;
+      bb = bb * (pp.maxsteps - iter) / pp.maxsteps;
       cell_set_bg_rgb(&n->basecell, br, bg, bb);
     }
     uint64_t nextwake = (iter + 1) * nanosecs_step + startns;
@@ -250,7 +243,7 @@ int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* c
 }
 
 int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
-  planepalette pp;
+  ncfadectx pp;
   if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
@@ -270,7 +263,7 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* cu
 }
 
 int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
-  planepalette pp;
+  ncfadectx pp;
   int ret;
   if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
     return -1;
