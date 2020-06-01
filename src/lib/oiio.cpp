@@ -26,9 +26,13 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* err) {
     ncvisual_destroy(ncv);
     return nullptr;
   }
-/*const auto &spec = ncv->details.image->spec_dimensions();
+/*const auto &spec = ncv->details.image->spec_dimensions(0);
 std::cout << "Opened " << filename << ": " << spec.height << "x" <<
 spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*/
+  if((*err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
+    ncvisual_destroy(ncv);
+    return nullptr;
+  }
   return ncv;
 }
 
