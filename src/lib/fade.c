@@ -11,6 +11,10 @@ typedef struct ncfadectx {
   uint64_t* channels;           // all channels from the framebuffer
 } ncfadectx;
 
+int ncfadectx_iterations(const ncfadectx* nctx){
+  return nctx->maxsteps;
+}
+
 // These arrays are too large to be safely placed on the stack. Get an atomic
 // snapshot of all channels on the plane. While copying the snapshot, determine
 // the maxima across each of the six components.
@@ -53,7 +57,6 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
       }
     }
   }
-  // FIXME factor this duplication out
   channels = n->basecell.channels;
   pp->channels[y * pp->cols] = channels;
   channels_fg_rgb(channels, &r, &g, &b);
@@ -84,9 +87,14 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
   if(pp->maxsteps == 0){
     pp->maxsteps = 1;
   }
-  uint64_t nanosecs_total = timespec_to_ns(ts);
-  pp->nanosecs_step = nanosecs_total / pp->maxsteps;
-  if(pp->nanosecs_step == 0){
+  uint64_t nanosecs_total;
+  if(ts){
+    nanosecs_total = timespec_to_ns(ts);
+    pp->nanosecs_step = nanosecs_total / pp->maxsteps;
+    if(pp->nanosecs_step == 0){
+      pp->nanosecs_step = 1;
+    }
+  }else{
     pp->nanosecs_step = 1;
   }
   struct timespec times;
@@ -96,11 +104,54 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
   return 0;
 }
 
+int ncplane_fadein_iteration(ncplane* n, ncfadectx* nctx, int iter,
+                             fadecb fader, void* curry){
+  int y, x;
+  // each time through, we need look each cell back up, due to the
+  // possibility of a resize event :/
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  for(y = 0 ; y < nctx->rows && y < dimy ; ++y){
+    for(x = 0 ; x < nctx->cols && x < dimx; ++x){
+      unsigned r, g, b;
+      channels_fg_rgb(nctx->channels[nctx->cols * y + x], &r, &g, &b);
+      unsigned br, bg, bb;
+      channels_bg_rgb(nctx->channels[nctx->cols * y + x], &br, &bg, &bb);
+      cell* c = &n->fb[dimx * y + x];
+      if(!cell_fg_default_p(c)){
+        r = r * iter / nctx->maxsteps;
+        g = g * iter / nctx->maxsteps;
+        b = b * iter / nctx->maxsteps;
+        cell_set_fg_rgb(c, r, g, b);
+      }
+      if(!cell_bg_default_p(c)){
+        br = br * iter / nctx->maxsteps;
+        bg = bg * iter / nctx->maxsteps;
+        bb = bb * iter / nctx->maxsteps;
+        cell_set_bg_rgb(c, br, bg, bb);
+      }
+    }
+  }
+  uint64_t nextwake = (iter + 1) * nctx->nanosecs_step + nctx->startns;
+  struct timespec sleepspec;
+  sleepspec.tv_sec = nextwake / NANOSECS_IN_SEC;
+  sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
+  int ret = 0;
+  if(fader){
+    ret |= fader(n->nc, n, &sleepspec, curry);
+  }else{
+    ret |= notcurses_render(n->nc);
+    // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
+    // of Glibc 2.29 + Linux 5.3 (or FreeBSD 12) :/.
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
+  }
+  return ret;
+}
+
 static int
 ncplane_fadein_internal(ncplane* n, fadecb fader, ncfadectx* pp, void* curry){
   // Current time, sampled each iteration
   uint64_t curns;
-  int ret = 0;
   do{
     struct timespec times;
     clock_gettime(CLOCK_MONOTONIC, &times);
@@ -109,49 +160,13 @@ ncplane_fadein_internal(ncplane* n, fadecb fader, ncfadectx* pp, void* curry){
     if(iter > pp->maxsteps){
       break;
     }
-    int y, x;
-    // each time through, we need look each cell back up, due to the
-    // possibility of a resize event :/
-    int dimy, dimx;
-    ncplane_dim_yx(n, &dimy, &dimx);
-    for(y = 0 ; y < pp->rows && y < dimy ; ++y){
-      for(x = 0 ; x < pp->cols && x < dimx; ++x){
-        unsigned r, g, b;
-        channels_fg_rgb(pp->channels[pp->cols * y + x], &r, &g, &b);
-        unsigned br, bg, bb;
-        channels_bg_rgb(pp->channels[pp->cols * y + x], &br, &bg, &bb);
-        cell* c = &n->fb[dimx * y + x];
-        if(!cell_fg_default_p(c)){
-          r = r * iter / pp->maxsteps;
-          g = g * iter / pp->maxsteps;
-          b = b * iter / pp->maxsteps;
-          cell_set_fg_rgb(c, r, g, b);
-        }
-        if(!cell_bg_default_p(c)){
-          br = br * iter / pp->maxsteps;
-          bg = bg * iter / pp->maxsteps;
-          bb = bb * iter / pp->maxsteps;
-          cell_set_bg_rgb(c, br, bg, bb);
-        }
-      }
+    int r = ncplane_fadein_iteration(n, pp, iter, fader, curry);
+    if(r){
+      return r;
     }
-    uint64_t nextwake = (iter + 1) * pp->nanosecs_step + pp->startns;
-    struct timespec sleepspec;
-    sleepspec.tv_sec = nextwake / NANOSECS_IN_SEC;
-    sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
-    if(fader){
-      ret |= fader(n->nc, n, &sleepspec, curry);
-    }else{
-      ret |= notcurses_render(n->nc);
-      // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
-      // of Glibc 2.29 + Linux 5.3 (or FreeBSD 12) :/.
-      ret |= clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
-    }
-    if(ret){
-      break;
-    }
+    clock_gettime(CLOCK_MONOTONIC, &times);
   }while(true);
-  return ret;
+  return 0;
 }
 
 int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
@@ -213,36 +228,54 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
   return ret;
 }
 
-int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
-  ncfadectx pp;
+ncfadectx* ncfadectx_setup(ncplane* n, const struct timespec* ts){
   if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
+    return NULL;
+  }
+  ncfadectx* nctx = malloc(sizeof(*nctx));
+  if(nctx){
+    if(alloc_ncplane_palette(n, nctx, ts) == 0){
+      return nctx;
+    }
+    free(nctx);
+  }
+  return NULL;
+}
+
+void ncfadectx_free(ncfadectx* nctx){
+  if(nctx){
+    free(nctx->channels);
+    free(nctx);
+  }
+}
+
+int ncplane_fadeout(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
+  ncfadectx* pp = ncfadectx_setup(n, ts);
+  if(!pp){
     return -1;
   }
-  if(alloc_ncplane_palette(n, &pp, ts)){
-    return -1;
-  }
-  int ret = 0;
   struct timespec times;
-  ns_to_timespec(pp.startns, &times);
+  ns_to_timespec(pp->startns, &times);
   do{
     uint64_t curns = times.tv_sec * NANOSECS_IN_SEC + times.tv_nsec;
-    int iter = (curns - pp.startns) / pp.nanosecs_step + 1;
-    if(iter > pp.maxsteps){
+    int iter = (curns - pp->startns) / pp->nanosecs_step + 1;
+    if(iter > pp->maxsteps){
       break;
     }
-    int r = ncplane_fadeout_iteration(n, &pp, iter, fader, curry);
+    int r = ncplane_fadeout_iteration(n, pp, iter, fader, curry);
     if(r){
+      ncfadectx_free(pp);
       return r;
     }
     clock_gettime(CLOCK_MONOTONIC, &times);
   }while(true);
-  free(pp.channels);
-  return ret;
+  ncfadectx_free(pp);
+  return 0;
 }
 
 int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
-  ncfadectx pp;
-  if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
+  ncfadectx* nctx = ncfadectx_setup(n, ts);
+  if(nctx == NULL){
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     if(fader){
@@ -252,11 +285,8 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* cu
     }
     return -1;
   }
-  if(alloc_ncplane_palette(n, &pp, ts)){
-    return -1;
-  }
-  int ret = ncplane_fadein_internal(n, fader, &pp, curry);
-  free(pp.channels);
+  int ret = ncplane_fadein_internal(n, fader, nctx, curry);
+  ncfadectx_free(nctx);
   return ret;
 }
 

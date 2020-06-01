@@ -1189,34 +1189,64 @@ int ncplane_stain(struct ncplane* n, int ystop, int xstop,
                   uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
 ```
 
-My 14 year-old self would never forgive me if we didn't have sweet palette fades.
+My 14 year-old self would never forgive me if we didn't have sweet palette
+fades. The simple fade API runs the operation over a time interval, adapting
+to the actual runtime, invoking a callback at each iteration.
 
 ```c
-// Called for each delta performed in a fade on ncp. If anything but 0 is returned,
-// the fading operation ceases immediately, and that value is propagated out. If provided
-// and not NULL, the faders will not themselves call notcurses_render().
-typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, void* curry);
+// Called for each fade iteration on 'ncp'. If anything but 0 is returned,
+// the fading operation ceases immediately, and that value is propagated out.
+// The recommended absolute display time target is passed in 'tspec'.
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp,
+                      const struct timespec*, void* curry);
 
-// Fade the ncplane out over the provided time, calling the specified function
-// when done. Requires a terminal which supports truecolor, or at least palette
+// Fade the ncplane out over the provided time, calling 'fader' at each
+// iteration. Requires a terminal which supports truecolor, or at least palette
 // modification (if the terminal uses a palette, our ability to fade planes is
 // limited, and affected by the complexity of the rest of the screen).
-int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+int ncplane_fadeout(struct ncplane* n, const struct timespec* ts,
+                        fadecb fader, void* curry);
 
 // Fade the ncplane in over the specified time. Load the ncplane with the
 // target cells without rendering, then call this function. When it's done, the
 // ncplane will have reached the target levels, starting from zeroes.
-int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+int ncplane_fadein(struct ncplane* n, const struct timespec* ts,
+                       fadecb fader, void* curry);
 
+// Rather than the simple ncplane_fade{in/out}(), ncfadectx_setup() can be
 // Pulse the plane in and out until the callback returns non-zero, relying on
 // the callback 'fader' to initiate rendering. 'ts' defines the half-period
 // (i.e. the transition from black to full brightness, or back again). Proper
 // use involves preparing (but not rendering) an ncplane, then calling
 // ncplane_pulse(), which will fade in from black to the specified colors.
 int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+
 ```
 
-Finally, a raw stream of RGBA or BGRx data can be blitted directly to an ncplane:
+The more flexible fade API allows for fine control of the process.
+
+```c
+// paired with a loop over ncplane_fade{in/out}_iteration() + ncfadectx_free().
+struct ncfadectx* ncfadectx_setup(struct ncplane* n, const struct timespec* ts);
+
+// Return the number of iterations through which 'nctx' will fade.
+int ncfadectx_iterations(const struct ncfadectx* nctx);
+
+// Fade out through 'iter' iterations, where
+// 'iter' < 'ncfadectx_iterations(nctx)'.
+int ncplane_fadeout_iteration(struct ncplane* n, struct ncfadectx* nctx,
+                              int iter, fadecb fader, void* curry);
+
+// Fade in through 'iter' iterations, where
+// 'iter' < 'ncfadectx_iterations(nctx)'.
+int ncplane_fadein_iteration(struct ncplane* n, struct ncfadectx* nctx,
+                             int iter, fadecb fader, void* curry);
+
+// Release the resources associated with 'nctx'.
+void ncfadectx_free(struct ncfadectx* nctx);
+```
+
+Raw streams of RGBA or BGRx data can be blitted directly to an ncplane:
 
 ```c
 // Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset

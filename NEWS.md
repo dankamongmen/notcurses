@@ -18,9 +18,9 @@ rearrangements of Notcurses.
     any meaning, and has been removed.
   * The `fadecb` typedef now accepts as its third argument a `const struct
     timespec`. This is the absolute deadline through which the frame ought
-    be displayed. Like the changes to `ncvisual_stream()`, this gives more
-    flexibility to the callback, and allows more precise timing. There will
-    be further changes to the Fade API before API freeze (see #659).
+    be displayed. New functions have been added to the Fade API: like the
+    changes to `ncvisual_stream()`, this gives more flexibility, and allows
+    more precise timing. All old functions remain available.
 
 * 1.4.3 (2020-05-22)
   * Plot: make 8x1 the default, instead of 1x1.
