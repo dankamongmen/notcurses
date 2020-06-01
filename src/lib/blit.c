@@ -299,7 +299,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation by the calling widget.
-const struct blitset geomdata[] = {
+const struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_8x1,     .width = 1, .height = 8, .egcs = L" ▁▂▃▄▅▆▇█",
      .blit = NULL,           .fill = false, },
    { .geom = NCBLIT_1x1,     .width = 1, .height = 1, .egcs = L" █",

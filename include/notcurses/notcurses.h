@@ -2898,7 +2898,7 @@ struct blitset {
   bool fill;
 };
 
-API extern const struct blitset geomdata[];
+API extern const struct blitset notcurses_blitters[];
 
 #undef API
 
