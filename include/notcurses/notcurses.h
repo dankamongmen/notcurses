@@ -39,6 +39,7 @@ struct ncsubproc; // ncfdplane wrapper with subprocess management
 struct ncselector;// widget supporting selecting 1 from a list of options
 struct ncmultiselector; // widget supporting selecting 0..n from n options
 struct ncreader;  // widget supporting free string input ala readline
+struct ncfadectx; // context for a palette fade operation
 
 // Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
@@ -1971,8 +1972,8 @@ API unsigned ncplane_styles(const struct ncplane* n);
 typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp,
                       const struct timespec*, void* curry);
 
-// Fade the ncplane out over the provided time, calling the specified function
-// when done. Requires a terminal which supports truecolor, or at least palette
+// Fade the ncplane out over the provided time, calling 'fader' at each
+// iteration. Requires a terminal which supports truecolor, or at least palette
 // modification (if the terminal uses a palette, our ability to fade planes is
 // limited, and affected by the complexity of the rest of the screen).
 API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts,
@@ -1984,12 +1985,32 @@ API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts,
 API int ncplane_fadein(struct ncplane* n, const struct timespec* ts,
                        fadecb fader, void* curry);
 
+// Rather than the simple ncplane_fade{in/out}(), ncfadectx_setup() can be
+// paired with a loop over ncplane_fade{in/out}_iteration() + ncfadectx_free().
+API struct ncfadectx* ncfadectx_setup(struct ncplane* n, const struct timespec* ts);
+
+// Return the number of iterations through which 'nctx' will fade.
+API int ncfadectx_iterations(const struct ncfadectx* nctx);
+
+// Fade out through 'iter' iterations, where
+// 'iter' < 'ncfadectx_iterations(nctx)'.
+API int ncplane_fadeout_iteration(struct ncplane* n, struct ncfadectx* nctx,
+                                  int iter, fadecb fader, void* curry);
+
+// Fade in through 'iter' iterations, where
+// 'iter' < 'ncfadectx_iterations(nctx)'.
+API int ncplane_fadein_iteration(struct ncplane* n, struct ncfadectx* nctx,
+                                  int iter, fadecb fader, void* curry);
+
 // Pulse the plane in and out until the callback returns non-zero, relying on
 // the callback 'fader' to initiate rendering. 'ts' defines the half-period
 // (i.e. the transition from black to full brightness, or back again). Proper
 // use involves preparing (but not rendering) an ncplane, then calling
 // ncplane_pulse(), which will fade in from black to the specified colors.
 API int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+
+// Release the resources associated with 'nctx'.
+API void ncfadectx_free(struct ncfadectx* nctx);
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might

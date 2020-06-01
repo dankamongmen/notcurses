@@ -78,6 +78,28 @@ TEST_CASE("Fade") {
     CHECK(0 < ncplane_pulse(n_, &ts, pulser, &pulsestart));
   }
 
+  SUBCASE("FadeOutUntimed") {
+    auto nctx = ncfadectx_setup(n_, nullptr);
+    REQUIRE(nctx);
+    auto maxiter = ncfadectx_iterations(nctx);
+    CHECK(0 < maxiter);
+    for(int i = 0 ; i < maxiter ; ++i){
+      CHECK(0 == ncplane_fadeout_iteration(n_, nctx, i, nullptr, nullptr));
+    }
+    ncfadectx_free(nctx);
+  }
+
+  SUBCASE("FadeInUntimed") {
+    auto nctx = ncfadectx_setup(n_, nullptr);
+    REQUIRE(nctx);
+    auto maxiter = ncfadectx_iterations(nctx);
+    CHECK(0 < maxiter);
+    for(int i = 0 ; i < maxiter ; ++i){
+      CHECK(0 == ncplane_fadein_iteration(n_, nctx, i, nullptr, nullptr));
+    }
+    ncfadectx_free(nctx);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
