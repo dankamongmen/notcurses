@@ -180,10 +180,10 @@ TEST_CASE("Rotate") {
     }
     free(rgbaret);
     CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < height ; ++y){
+    for(int x = 0 ; x < width ; ++x){
       uint32_t attrword;
       uint64_t channels;
-      char* c = notcurses_at_yx(nc_, y, 0, &attrword, &channels);
+      char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
       if(channels_fg(channels) & CELL_BG_MASK){

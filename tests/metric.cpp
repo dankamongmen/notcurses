@@ -89,7 +89,6 @@ TEST_CASE("Metric") {
     // FIXME these will change based on the size of intmax_t and uintmax_t
     ncmetric(INTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - (1ull << 53))) / (1ull << 60));
-fprintf(stderr, "%d gold: %s buf: %s value: %ju\n", __LINE__, gold, buf, INTMAX_MAX - 1);
     CHECK(!strcmp(gold, buf));
     REQUIRE(ncmetric(INTMAX_MAX + 1ull, 1, buf, 0, 1024, 'i'));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX + 1ull)) / (1ull << 60));
@@ -207,8 +206,7 @@ fprintf(stderr, "%d gold: %s buf: %s value: %ju\n", __LINE__, gold, buf, INTMAX_
     do{
       ncmetric(val, 1, buf, 0, 1000, '\0');
       const int sidx = i / 10;
-      snprintf(gold, sizeof(gold), "%.2f%c",
-          ((double)val) / vfloor, suffixes[sidx]);
+      snprintf(gold, sizeof(gold), "%.2f%c", ((double)val) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
       if(UINTMAX_MAX / val < 10){
         break;
@@ -231,8 +229,7 @@ fprintf(stderr, "%d gold: %s buf: %s value: %ju\n", __LINE__, gold, buf, INTMAX_
     do{
       ncmetric(val, 1, buf, 0, 1024, 'i');
       const int sidx = i ? (i - 1) / 3 : 0;
-      snprintf(gold, sizeof(gold), "%.2f%ci",
-          ((double)val) / vfloor, suffixes[sidx]);
+      snprintf(gold, sizeof(gold), "%.2f%ci", ((double)val) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
       if(UINTMAX_MAX / val < 10){
         break;
@@ -255,8 +252,7 @@ fprintf(stderr, "%d gold: %s buf: %s value: %ju\n", __LINE__, gold, buf, INTMAX_
     do{
       ncmetric(val - 1, 1, buf, 0, 1000, '\0');
       const int sidx = i ? (i - 1) / 3 : 0;
-      snprintf(gold, sizeof(gold), "%.2f%c",
-          ((double)(val - 1)) / vfloor, suffixes[sidx]);
+      snprintf(gold, sizeof(gold), "%.2f%c", ((double)(val - 1)) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
       if(UINTMAX_MAX / val < 10){
         break;
@@ -279,8 +275,7 @@ fprintf(stderr, "%d gold: %s buf: %s value: %ju\n", __LINE__, gold, buf, INTMAX_
     do{
       ncmetric(val + 1, 1, buf, 0, 1000, '\0');
       const int sidx = i / 3;
-      snprintf(gold, sizeof(gold), "%.2f%c",
-          ((double)(val + 1)) / vfloor, suffixes[sidx]);
+      snprintf(gold, sizeof(gold), "%.2f%c", ((double)(val + 1)) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
       if(UINTMAX_MAX / val < 10){
         break;
@@ -303,8 +298,7 @@ fprintf(stderr, "%d gold: %s buf: %s value: %ju\n", __LINE__, gold, buf, INTMAX_
     do{
       ncmetric(val - 1, 1, buf, 0, 1024, 'i');
       const int sidx = i ? (i - 1) / 3 : 0;
-      snprintf(gold, sizeof(gold), "%.2f%ci",
-          ((double)(val - 1)) / vfloor, suffixes[sidx]);
+      snprintf(gold, sizeof(gold), "%.2f%ci", ((double)(val - 1)) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
       if(UINTMAX_MAX / val < 10){
         break;
