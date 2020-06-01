@@ -131,7 +131,6 @@ nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
   return NCERR_SUCCESS;
 }
 
-// FIXME might need to destroy created ncplane
 auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timescale,
                      streamcb streamer, const struct ncvisual_options* vopts, void* curry) -> int {
   (void)timescale; // FIXME
@@ -140,21 +139,36 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timesc
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
   ncplane* newn = nullptr;
+  ncvisual_options activevopts;
+  memcpy(&activevopts, vopts, sizeof(*vopts));
   while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
-    if((newn = ncvisual_render(nc, ncv, vopts)) == nullptr){
+    if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
+      if(activevopts.n != vopts->n){
+        ncplane_destroy(activevopts.n);
+      }
       return -1;
     }
+    if(activevopts.n != newn){
+      activevopts.n = newn;
+    }
+    // currently OIIO is so slow for videos that there's no real point in
+    // any kind of delay FIXME
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    int r;
     if(streamer){
-      // currently OIIO is so slow for videos that there's no real point in
-      // any kind of delay FIXME
-      struct timespec now;
-      clock_gettime(CLOCK_MONOTONIC, &now);
-      int r = streamer(newn, ncv, &now, curry);
-      if(r){
-        return r;
+      r = streamer(newn, ncv, &now, curry);
+    }
+    if(r){
+      if(activevopts.n != vopts->n){
+        ncplane_destroy(activevopts.n);
       }
+      return r;
     }
     ++frame;
+  }
+  if(activevopts.n != vopts->n){
+    ncplane_destroy(activevopts.n);
   }
   if(*ncerr == NCERR_EOF){
     return 0;
