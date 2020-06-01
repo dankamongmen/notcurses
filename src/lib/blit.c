@@ -42,6 +42,10 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
       // effective in that case anyway
       c->channels = 0;
       c->attrword = 0;
+      if(blendcolors){
+        cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
+        cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+      }
       if(ffmpeg_trans_p(bgr, rgbbase_up[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
@@ -172,6 +176,10 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
       // effective in that case anyway
       c->channels = 0;
       c->attrword = 0;
+      if(blendcolors){
+        cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
+        cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+      }
       // FIXME for now, we just sample, color-wise, and always draw a Panamanian.
       // we ought look for pixels with the same color, and combine them glyph-wise.
       // even a pair helps tremendously. we then ought interpolate the rest. we
@@ -259,6 +267,9 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
       // effective in that case anyway
       c->channels = 0;
       c->attrword = 0;
+      if(blendcolors){
+        cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+      }
       // FIXME for now, we just sample, color-wise, and always draw crap.
       // more complicated to do optimally than quadrants, for sure. ideally,
       // we only get one color in an area.
