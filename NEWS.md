@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.4.4 (2020-06-01)
+* 1.4.4.1 (2020-06-01)
   * Got the `ncvisual` API ready for API freeze: `ncvisual_render()` and
     `ncvisual_stream()` now take a `struct ncvisual_options`. `ncstyle_e`
     and a few other parameters have been moved within. Both functions now
