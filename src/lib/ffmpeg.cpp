@@ -337,7 +337,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   ncplane* newn = NULL;
   ncvisual_options activevopts;
   memcpy(&activevopts, vopts, sizeof(*vopts));
-  while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
+  do{
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
     double tbase = av_q2d(ncv->details.fmtctx->streams[ncv->details.stream_index]->time_base);
@@ -381,7 +381,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
       }
       return r;
     }
-  }
+  }while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS);
   if(activevopts.n != vopts->n){
     ncplane_destroy(activevopts.n);
   }
