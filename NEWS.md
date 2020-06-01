@@ -9,12 +9,18 @@ rearrangements of Notcurses.
     `ncblitter_e` field, allowing visuals to be mapped to various plotting
     paradigms including Sixel, Braille and quadrants. Not all backends have
     been implemented, and not all implementations are in their final form.
+    `CELL_ALPHA_BLEND` can now be used for translucent visuals.
   * Added `ncvisual_geom()`, providing access to an `ncvisual` size and
     its pixel-to-cell blitting ratios.
   * Deprecated functions `ncvisual_open_plane()` and `ncplane_visual_open()`
     have been removed. Their functionality is present in
     `ncvisual_from_file()`. The function `ncvisual_plane()` no longer has
     any meaning, and has been removed.
+  * The `fadecb` typedef now accepts as its third argument a `const struct
+    timespec`. This is the absolute deadline through which the frame ought
+    be displayed. Like the changes to `ncvisual_stream()`, this gives more
+    flexibility to the callback, and allows more precise timing. There will
+    be further changes to the Fade API before API freeze (see #659).
 
 * 1.4.3 (2020-05-22)
   * Plot: make 8x1 the default, instead of 1x1.

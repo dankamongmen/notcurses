@@ -1974,8 +1974,7 @@ typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp,
 // Fade the ncplane out over the provided time, calling the specified function
 // when done. Requires a terminal which supports truecolor, or at least palette
 // modification (if the terminal uses a palette, our ability to fade planes is
-// limited, and affected by the complexity of the rest of the screen). It is
-// not safe to resize or destroy the plane during the fadeout FIXME.
+// limited, and affected by the complexity of the rest of the screen).
 API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts,
                         fadecb fader, void* curry);
 
