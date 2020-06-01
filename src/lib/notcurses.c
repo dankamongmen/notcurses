@@ -878,6 +878,8 @@ void notcurses_drop_planes(notcurses* nc){
     }
     p = tmp;
   }
+  nc->top = nc->bottom = nc->stdscr;
+  nc->stdscr->above = nc->stdscr->below = NULL;
 }
 
 int notcurses_stop(notcurses* nc){
