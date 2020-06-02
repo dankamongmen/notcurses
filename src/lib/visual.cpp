@@ -272,8 +272,10 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
 }
 
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
-  ncvisual_resize(ncv, ncv->rows, ncv->cols);
-//fprintf(stderr, "stride: %d cols: %d\n", ncv->rowstride, ncv->cols);
+  nc_err_e err = ncvisual_resize(ncv, ncv->rows, ncv->cols);
+  if(err != NCERR_SUCCESS){
+    return err;
+  }
   assert(ncv->rowstride / 4 >= ncv->cols);
   rads = -rads; // we're a left-handed Cartesian
   if(ncv->data == nullptr){
@@ -582,9 +584,12 @@ auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
 }
 
 auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> nc_err_e {
-  (void)nc;
-  (void)rows;
-  (void)cols;
+  // we'd need to verify that it's RGBA as well, except that if we've got no
+  // multimedia engine, we've only got memory-assembled ncvisuals, which are
+  // RGBA-native. so we ought be good, but this is undeniably sloppy...
+  if(nc->rows == rows && nc->cols == cols){
+    return NCERR_SUCCESS;
+  }
   return NCERR_UNIMPLEMENTED;
 }
 
