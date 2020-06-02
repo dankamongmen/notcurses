@@ -9,7 +9,7 @@ lerp(uint32_t c0, uint32_t c1){
   unsigned r0, g0, b0, r1, g1, b1;
   channel_rgb(c0, &r0, &g0, &b0);
   channel_rgb(c1, &r1, &g1, &b1);
-  channel_set_rgb(&ret, (r0 + r1) / 2, (g0 + g1) / 2, (b0 + b1) / 2);
+  channel_set_rgb(&ret, (r0 + r1 + 1) / 2, (g0 + g1 + 1) / 2, (b0 + b1 + 1) / 2);
   return ret;
 }
 
