@@ -2,6 +2,17 @@
 
 static const unsigned char zeroes[] = "\x00\x00\x00\x00";
 
+// linearly interpolate a 24-bit RGB value along each 8-bit channel
+static inline uint32_t
+lerp(uint32_t c0, uint32_t c1){
+  uint32_t ret = 0;
+  unsigned r0, g0, b0, r1, g1, b1;
+  channel_rgb(c0, &r0, &g0, &b0);
+  channel_rgb(c1, &r1, &g1, &b1);
+  channel_set_rgb(&ret, (r0 + r1) / 2, (g0 + g1) / 2, (b0 + b1) / 2);
+  return ret;
+}
+
 // alpha comes to us 0--255, but we have only 3 alpha values to map them to.
 // settled on experimentally.
 static inline bool
@@ -136,6 +147,105 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+// get a non-negative "distance" between two rgb values
+static inline uint32_t
+rgb_diff(unsigned r1, unsigned g1, unsigned b1, unsigned r2, unsigned g2, unsigned b2){
+  uint32_t distance = 0;
+  distance += r1 > r2 ? r1 - r2 : r2 - r1;
+  distance += g1 > g2 ? g1 - g2 : g2 - g1;
+  distance += b1 > b2 ? b1 - b2 : b2 - b1;
+  return distance;
+}
+
+// once we find the closest pair of colors, we need look at the other two
+// colors, and determine whether
+static const struct qdriver {
+  int pair[2];      // indices of contributing pair
+  int others[2];    // indices of excluded pair
+  const char* egc;  // EGC corresponding to contributing pair
+  const char* oth0egc; // EGC upon absorbing others[0]
+  const char* oth1egc; // EGC upon absorbing others[1]
+} quadrant_drivers[6] = {
+  { .pair = { 0, 1 }, .others = { 2, 3 }, .egc = "▀", .oth0egc = "▛", .oth1egc = "▜", },
+  { .pair = { 0, 2 }, .others = { 1, 3 }, .egc = "▋", .oth0egc = "▛", .oth1egc = "▙", },
+  { .pair = { 0, 3 }, .others = { 1, 2 }, .egc = "▚", .oth0egc = "▜", .oth1egc = "▙", },
+  { .pair = { 1, 2 }, .others = { 0, 3 }, .egc = "▞", .oth0egc = "▛", .oth1egc = "▟", },
+  { .pair = { 1, 3 }, .others = { 0, 2 }, .egc = "▐", .oth0egc = "▜", .oth1egc = "▟", },
+  { .pair = { 2, 3 }, .others = { 0, 1 }, .egc = "▄", .oth0egc = "▙", .oth1egc = "▟", },
+};
+
+// get the six distances between four colors. diffs must be an array of
+// at least 6 uint32_t values.
+static void
+rgb_4diff(uint32_t* diffs, uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br){
+  struct rgb {
+    unsigned r, g, b;
+  } colors[4];
+  channel_rgb(tl, &colors[0].r, &colors[0].g, &colors[0].b);
+  channel_rgb(tr, &colors[1].r, &colors[1].g, &colors[1].b);
+  channel_rgb(bl, &colors[2].r, &colors[2].g, &colors[2].b);
+  channel_rgb(br, &colors[3].r, &colors[3].g, &colors[3].b);
+  for(size_t idx = 0 ; idx < sizeof(quadrant_drivers) / sizeof(*quadrant_drivers) ; ++idx){
+    const struct qdriver* qd = quadrant_drivers + idx;
+    const struct rgb* rgb0 = colors + qd->pair[0];
+    const struct rgb* rgb1 = colors + qd->pair[1];
+    diffs[idx] = rgb_diff(rgb0->r, rgb0->g, rgb0->b,
+                          rgb1->r, rgb1->g, rgb1->b);
+  }
+}
+
+// solve for the EGC and two colors to best represent four colors at top
+// left, top right, bot left, bot right
+static inline const char*
+quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
+                uint32_t* fore, uint32_t* back){
+  const uint32_t colors[4] = { tl, tr, bl, br };
+  uint32_t diffs[sizeof(quadrant_drivers) / sizeof(*quadrant_drivers)];
+  rgb_4diff(diffs, tl, tr, bl, br);
+  // compiler can't verify that we'll always be less than 769 somewhere,
+  // so fuck it, just go ahead and initialize to 0 / diffs[0]
+  size_t mindiffidx = 0;
+  unsigned mindiff = diffs[0]; // 3 * 256 + 1; // max distance is 256 * 3
+  for(size_t idx = 1 ; idx < sizeof(diffs) / sizeof(*diffs) ; ++idx){
+    if(diffs[idx] < mindiff){
+      mindiffidx = idx;
+      mindiff = diffs[idx];
+    }
+  }
+  // at this point, 0 <= mindiffidx <= 5. foreground color will be the
+  // lerp of this nearest pair. we then check the other two. if they are
+  // closer to one another than either is to our lerp, lerp between them.
+  // otherwise, bring the closer one into our lerped fold.
+  const struct qdriver* qd = &quadrant_drivers[mindiffidx];
+  // the diff of the excluded pair is conveniently located at the inverse
+  // location within diffs[] viz mindiffidx.
+  // const uint32_t otherdiff = diffs[5 - mindiffidx];
+  *fore = lerp(colors[qd->pair[0]], colors[qd->pair[1]]);
+  *back = lerp(colors[qd->others[0]], colors[qd->others[1]]);
+  const char* egc = qd->egc;
+  // break down the excluded pair and lerp
+  unsigned r0, r1, g0, g1, b0, b1;
+  unsigned roth, goth, both, rlerp, glerp, blerp;
+  channel_rgb(qd->others[0], &r0, &g0, &b0);
+  channel_rgb(qd->others[1], &r1, &g1, &b1);
+  channel_rgb(*fore, &rlerp, &glerp, &blerp);
+  channel_rgb(*back, &roth, &goth, &both);
+  diffs[0] = rgb_diff(r0, g0, b0, rlerp, glerp, blerp);
+  diffs[1] = rgb_diff(r0, g0, b0, roth, goth, both);
+  diffs[2] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
+  diffs[3] = rgb_diff(r1, g1, b1, roth, goth, both);
+  if(diffs[0] < diffs[1]){
+    egc = qd->oth0egc;
+    *back = colors[qd->others[1]];
+    // FIXME relerp *fore?
+  }else if(diffs[2] < diffs[3]){
+    egc = qd->oth1egc;
+    *back = colors[qd->others[0]];
+    // FIXME relerp *fore?
+  }
+  return egc;
+}
+
 // quadrant blitter. maps 2x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
@@ -172,19 +282,8 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
       }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
-      // use the default for the background, as that's the only way it's
-      // effective in that case anyway
       c->channels = 0;
       c->attrword = 0;
-      if(blendcolors){
-        cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
-        cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
-      }
-      // FIXME for now, we just sample, color-wise, and always draw a Panamanian.
-      // we ought look for pixels with the same color, and combine them glyph-wise.
-      // even a pair helps tremendously. we then ought interpolate the rest. we
-      // can't have three pairs, or even a triplet plus a pair, so the first pair we
-      // find gets locked in, and then lerp the rest. assign an index into the egcs.
       // FIXME for now, we're only transparent if all four are transparent. we ought
       // match transparent like anything else...
       const char* egc = NULL;
@@ -195,9 +294,19 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           egc = " ";
           // FIXME else look for pairs of transparency!
       }else{
-        cell_set_fg_rgb(c, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
-        cell_set_bg_rgb(c, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
-        egc = "▚";
+        uint32_t tl = 0, tr = 0, bl = 0, br = 0;
+        channel_set_rgb(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
+        channel_set_rgb(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
+        channel_set_rgb(&bl, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
+        channel_set_rgb(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
+        uint32_t bg, fg;
+        egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
+        cell_set_fchannel(c, fg);
+        cell_set_bchannel(c, bg);
+        if(blendcolors){
+          cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
+          cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+        }
       }
       assert(egc);
       if(cell_load(nc, c, egc) <= 0){

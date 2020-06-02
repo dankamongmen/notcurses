@@ -1821,7 +1821,8 @@ cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
   channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
 }
 
-// Same, but with an assembled 24-bit RGB value.
+// Same, but with an assembled 24-bit RGB value. A value over 0xffffff
+// will be rejected, with a non-zero return value.
 static inline int
 cell_set_bg(cell* c, uint32_t channel){
   return channels_set_bg(&c->channels, channel);
