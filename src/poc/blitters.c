@@ -14,6 +14,7 @@ int main(int argc, char** argv){
   }
   struct notcurses_options nopts = {
     .flags = NCOPTION_INHIBIT_SETLOCALE,
+    .inhibit_alternate_screen = true,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   struct ncplane* std = notcurses_stdplane(nc);
@@ -51,7 +52,11 @@ int main(int argc, char** argv){
           goto err;
         }
         notcurses_render(nc);
-sleep(2); // FIXME wait for key
+        struct timespec ts = {
+          .tv_sec = 0,
+          .tv_nsec = 500000000,
+        };
+        clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
         ncvisual_destroy(ncv);
       }
     }
