@@ -92,11 +92,9 @@ auto perframe(struct ncplane* n, struct ncvisual* ncv,
   if(!nc.render()){
     return -1;
   }
-  int dimx, dimy, oldx, oldy, keepy, keepx;
+  int dimx, dimy, oldx, oldy;
   nc.get_term_dim(&dimy, &dimx);
   ncplane_dim_yx(n, &oldy, &oldx);
-  keepy = oldy > dimy ? dimy : oldy;
-  keepx = oldx > dimx ? dimx : oldx;
   struct timespec interval;
   clock_gettime(CLOCK_MONOTONIC, &interval);
   uint64_t nsnow = timespec_to_ns(&interval);
@@ -106,7 +104,7 @@ auto perframe(struct ncplane* n, struct ncvisual* ncv,
     char32_t keyp;
     while((keyp = nc.getc(&interval, nullptr, nullptr)) != (char32_t)-1){
       if(keyp == NCKEY_RESIZE){
-        return ncplane_resize(n, 0, 0, keepy, keepx, 0, 0, dimy, dimx);
+        return 0;
       }
       return 1;
     }
