@@ -2157,8 +2157,7 @@ API void ncvisual_destroy(struct ncvisual* ncv);
 // and NCERR_SUCCESS on success, otherwise some other NCERR.
 API nc_err_e ncvisual_decode(struct ncvisual* nc);
 
-// Rotate the visual 'rads' radians. If we own the bound plane, it is resized
-// to fit the rotated visual, if necessary. Only M_PI/2 and -M_PI/2 are
+// Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.
 API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
 
@@ -2270,8 +2269,8 @@ typedef struct ncreel_options {
   // require this many rows and columns (including borders). otherwise, a
   // message will be displayed stating that a larger terminal is necessary, and
   // input will be queued. if 0, no minimum will be enforced. may not be
-  // negative. note that ncreel_create() does not return error if given a
-  // WINDOW smaller than these minima; it instead patiently waits for the
+  // negative. note that ncreel_create() does not return error if given an
+  // ncplane smaller than these minima; it instead patiently waits for the
   // screen to get bigger.
   int min_supported_cols;
   int min_supported_rows;
@@ -2281,7 +2280,7 @@ typedef struct ncreel_options {
   int max_supported_cols;
   int max_supported_rows;
 
-  // desired offsets within the surrounding WINDOW (top right bottom left) upon
+  // desired offsets within the surrounding ncplane (top right bottom left) upon
   // creation / resize. an ncreel_move() operation updates these.
   int toff, roff, boff, loff;
   // notcurses can draw a border around the ncreel, and also around the
@@ -2303,7 +2302,7 @@ struct nctablet;
 struct ncreel;
 
 // Create an ncreel according to the provided specifications. Returns NULL on
-// failure. w must be a valid WINDOW*, to which offsets are relative. Note that
+// failure. w must be a valid ncplane*, to which offsets are relative. Note that
 // there might not be enough room for the specified offsets, in which case the
 // ncreel will be clipped on the bottom and right. A minimum number of rows
 // and columns can be enforced via popts. efd, if non-negative, is an eventfd
@@ -2361,8 +2360,7 @@ API int ncreel_del_focused(struct ncreel* pr);
 // Move to the specified location.
 API int ncreel_move(struct ncreel* pr, int y, int x);
 
-// Redraw the ncreel in its entirety, for instance after
-// clearing the screen due to external corruption, or a SIGWINCH.
+// Redraw the ncreel in its entirety.
 API int ncreel_redraw(struct ncreel* pr);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
@@ -2375,8 +2373,7 @@ API struct nctablet* ncreel_next(struct ncreel* pr);
 // Change focus to the previous tablet, if one exists
 API struct nctablet* ncreel_prev(struct ncreel* pr);
 
-// Destroy an ncreel allocated with ncreel_create(). Does not destroy the
-// underlying WINDOW. Returns non-zero on failure.
+// Destroy an ncreel allocated with ncreel_create(). Returns non-zero on failure.
 API int ncreel_destroy(struct ncreel* pr);
 
 // Returns a pointer to a user pointer associated with this nctablet.

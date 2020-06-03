@@ -1932,8 +1932,7 @@ int ncreel_del_focused(struct ncreel* pr);
 // Move to the specified location.
 int ncreel_move(struct ncreel* pr, int y, int x);
 
-// Redraw the ncreel in its entirety, for instance after
-// clearing the screen due to external corruption, or a SIGWINCH.
+// Redraw the ncreel in its entirety.
 int ncreel_redraw(struct ncreel* pr);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
@@ -2502,8 +2501,7 @@ Various transformations can be applied to an `ncvisual`, regardless of how
 it was built up:
 
 ```c
-// Rotate the visual 'rads' radians. If we own the bound plane, it is resized
-// to fit the rotated visual, if necessary. Only M_PI/2 and -M_PI/2 are
+// Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.
 nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
 

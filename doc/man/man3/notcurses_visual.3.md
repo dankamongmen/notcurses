@@ -104,9 +104,7 @@ region are those used by the **NCBLIT_2x2** blitter, though this may change
 in the future.
 
 **ncvisual_rotate** executes a rotation of **rads** radians, in the clockwise
-(positive) or counterclockwise (negative) direction. If the **ncvisual** owns
-(created) its underlying **ncplane**, that plane will be resized as necessary
-to display the entirety of the rotated visual.
+(positive) or counterclockwise (negative) direction.
 
 **ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to
 the current frame if such a subtitle was decoded. Note that a subtitle might
