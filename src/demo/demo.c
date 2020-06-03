@@ -116,11 +116,19 @@ usage(const char* exe, int status){
   fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
   fprintf(out, " -p: data file path (default: %s)\n", NOTCURSES_SHARE);
   fprintf(out, " -m: margin, or 4 comma-separated margins\n");
-  fprintf(out, "if no specification is provided, run %s\n", DEFAULT_DEMO);
+  fprintf(out, "\nspecify demos via their first letter. repetitions are allowed.\n");
+  fprintf(out, "default spec: %s\n", DEFAULT_DEMO);
+  int printed = 0;
   for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
     if(demos[i].name){
-      fprintf(out, " %c: run %s\n", (unsigned char)i + 'a', demos[i].name);
+      fprintf(out, "%*.*s", 10, 10, demos[i].name);
+      if(++printed % 6 == 0){
+        fprintf(out, "\n");
+      }
     }
+  }
+  if(printed % 6){
+    fprintf(out, "\n");
   }
   exit(status);
 }
