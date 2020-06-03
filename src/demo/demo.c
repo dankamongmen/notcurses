@@ -19,7 +19,7 @@ static int democount;
 static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
-static const char DEFAULT_DEMO[] = "ixethnbcgrwuvlsfjqo";
+static const char DEFAULT_DEMO[] = "ixeathnbcgrwuvlsfjqo";
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
@@ -73,7 +73,7 @@ static struct {
   int (*fxn)(struct notcurses*);
   bool dfsg_disabled;             // disabled for DFSG builds
 } demos[26] = {
-  { NULL, NULL, false, },
+  { "all", allglyphs_demo, false, },
   { "box", box_demo, false, },
   {"chunli", chunli_demo, true, },
   { NULL, NULL, false, },

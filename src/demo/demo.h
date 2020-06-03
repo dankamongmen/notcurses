@@ -32,6 +32,7 @@ extern atomic_bool interrupted;
 // heap-allocated, caller must free. locates data files per command line args.
 char* find_data(const char* datum);
 
+int allglyphs_demo(struct notcurses* nc);
 int unicodeblocks_demo(struct notcurses* nc);
 int witherworm_demo(struct notcurses* nc);
 int box_demo(struct notcurses* nc);

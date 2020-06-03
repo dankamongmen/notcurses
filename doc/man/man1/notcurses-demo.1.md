@@ -26,6 +26,7 @@ The demonstrations include (see NOTES below):
 * (b)oxes—pulsating boxes with a transparent center
 * (c)hunli—the strongest woman in the world
 * (e)agle—they took some time off my life, back in the day
+* (a)ll—scroll all the glyphs of your font
 * (f)allin'—the screen falls apart under heavy blows
 * (g)rid—a gradient of color lain atop a great grid
 * (h)ighcon—high contrast text atop various colors
@@ -69,7 +70,7 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 **-V**: Print the program name and version, and exit with success.
 
 demospec: Select which demos to run, and what order to run them in. The
-default is **ixethnbcgrwuvlsfjqo**. See above for a list of demos.
+default is **ixeathnbcgrwuvlsfjqo**. See above for a list of demos.
 
 Default margins are all 0, and thus the full screen will be rendered. Using
 **-m**, margins can be supplied. Provide a single number to set all four margins
