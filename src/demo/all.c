@@ -12,21 +12,21 @@
 // works on a scrolling plane
 static int
 allglyphs(struct notcurses* nc, struct ncplane* column){
-  const int PERIOD = 8;
   const int valid_planes[] = {
     0, 1, 2, 3, 14, 15, 16, -1
   };
-  int period = 0;
+  const int dimx = ncplane_dim_x(column);
   for(const int* plane = valid_planes ; *plane >= 0 ; ++plane){
     for(long int c = 0 ; c < 0x10000l ; ++c){
-      wchar_t w[2] = { *plane * 0x10000l + c, L'\0' };
-      if(wcswidth(w, UINT_MAX) >= 1){
+      wchar_t w[2] = { *plane * 0x10000l + c, L'\0', };
+      if(wcwidth(w[0]) >= 1){
+        int x;
         if(ncplane_putwegc(column, w, NULL) < 0){
           return -1;
         }
-        if(++period % PERIOD == 0){
+        ncplane_cursor_yx(column, NULL, &x);
+        if(x >= dimx){
           DEMO_RENDER(nc);
-          period = 0;
         }
       }
     }
