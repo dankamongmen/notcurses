@@ -114,6 +114,7 @@ offset(uint32_t* rgba, int y, int x, int dx){
 // make a pixel array out from the center, blitting it as we go
 int normal_demo(struct notcurses* nc){
   int dy, dx;
+  int r = -1;
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
   ncplane_erase(nstd);
   cell c = CELL_SIMPLE_INITIALIZER(' ');
@@ -153,7 +154,10 @@ int normal_demo(struct notcurses* nc){
     if(ncblit_rgba(nstd, 0, 0, dx * sizeof(*rgba), rgba, 0, 0, dy, dx) < 0){
       goto err;
     }
-    DEMO_RENDER(nc);
+    if( (r = demo_render(nc)) ){
+      goto err;
+    }
+    r = -1;
     demo_nanosleep(nc, &scaled);
   }
   free(rgba);
@@ -161,7 +165,7 @@ int normal_demo(struct notcurses* nc){
   // we can't resize (and thus can't rotate) the standard plane, so dup it
   n = ncplane_dup(nstd, NULL);
   if(n == NULL){
-    return -1;
+    goto err;
   }
   ncplane_erase(nstd);
   ncplane_cursor_move_yx(n, 0, 0);
@@ -193,5 +197,5 @@ int normal_demo(struct notcurses* nc){
 err:
   free(rgba);
   ncplane_destroy(n);
-  return -1;
+  return r;
 }
