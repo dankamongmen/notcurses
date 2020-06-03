@@ -30,7 +30,7 @@ make_slider(struct notcurses* nc, int dimy, int dimx){
   int r = 0x5f;
   int g = 0xaf;
   int b = 0x84;
-  ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
+  ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
   for(int x = 0 ; x < REPS ; ++x){
     for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l){
       ncplane_set_fg_rgb_clipped(n, r + 0x8 * l, g + 0x8 * l, b + 0x8 * l);

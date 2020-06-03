@@ -140,6 +140,8 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
             return 0; // simple match
           }
         }else{
+          assert(srcplane);
+          assert(srcplane->pool.pool);
           const char* damegc = egcpool_extended_gcluster(dampool, damcell);
           const char* srcegc = extended_gcluster(srcplane, srccell);
           if(strcmp(damegc, srcegc) == 0){
