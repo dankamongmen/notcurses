@@ -13,6 +13,20 @@ lerp(uint32_t c0, uint32_t c1){
   return ret;
 }
 
+// linearly interpolate a 24-bit RGB value along each 8-bit channel
+static inline uint32_t
+trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
+  uint32_t ret = 0;
+  unsigned r0, g0, b0, r1, g1, b1, r2, g2, b2;
+  channel_rgb(c0, &r0, &g0, &b0);
+  channel_rgb(c1, &r1, &g1, &b1);
+  channel_rgb(c2, &r2, &g2, &b2);
+  channel_set_rgb(&ret, (r0 + r1 + r2 + 2) / 3,
+                        (g0 + g1 + g2 + 2) / 3,
+                        (b0 + b1 + b2 + 2) / 3);
+  return ret;
+}
+
 // alpha comes to us 0--255, but we have only 3 alpha values to map them to.
 // settled on experimentally.
 static inline bool
@@ -234,14 +248,15 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   diffs[1] = rgb_diff(r0, g0, b0, roth, goth, both);
   diffs[2] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
   diffs[3] = rgb_diff(r1, g1, b1, roth, goth, both);
+  // FIXME pick closer, not first one we find
   if(diffs[0] < diffs[1]){
     egc = qd->oth0egc;
     *back = colors[qd->others[1]];
-    // FIXME relerp *fore?
+    *fore = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[0]]);
   }else if(diffs[2] < diffs[3]){
     egc = qd->oth1egc;
     *back = colors[qd->others[0]];
-    // FIXME relerp *fore?
+    *fore = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[1]]);
   }
   return egc;
 }
