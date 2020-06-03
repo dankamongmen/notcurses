@@ -40,6 +40,10 @@ area exactly. **scale** resizes the object so that the longer edge of the
 rendering area is matched exactly, and the other edge is changed to
 maintain aspect ratio. **none** uses the original image size.
 
+Blitters can be selected by pressing '0' through '8'. **NCBLIT_DEFAULT**
+corresponds to '0'. The various blitters are described in
+**notcurses_visual**.
+
 # NOTES
 
 Optimal display requires a terminal advertising the **rgb** terminfo(5)
@@ -50,6 +54,6 @@ fixed-width font with good coverage of the Unicode Block Drawing Characters.
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_ncvisual(3)**,
+**notcurses_visual(3)**,
 **terminfo(5)**,
 **unicode(7)**

@@ -106,6 +106,9 @@ auto perframe(struct ncplane* n, struct ncvisual* ncv,
       if(keyp == NCKEY_RESIZE){
         return 0;
       }
+      if(keyp >= '0' && keyp <= '8'){ // FIXME eliminate ctrl/alt
+        // FIXME change blitter -- how?
+      }
       return 1;
     }
   }
@@ -195,6 +198,7 @@ auto main(int argc, char** argv) -> int {
     std::cerr << "Notcurses was compiled without multimedia support\n";
     return EXIT_FAILURE;
   }
+  ncblitter_e blitter = NCBLIT_DEFAULT;
   int dimy, dimx;
   bool failed = false;
   {
@@ -214,6 +218,8 @@ auto main(int argc, char** argv) -> int {
       struct ncvisual_options vopts{};
       vopts.n = *stdn;
       vopts.scaling = scalemode;
+      vopts.blitter = blitter;
+      vopts.flags = NCVISUAL_OPTION_MAYDEGRADE;
       int r = ncv->stream(&vopts, &err, timescale, perframe, &frames);
       if(r < 0){ // positive is intentional abort
         std::cerr << "Error decoding " << argv[i] << ": " << nc_strerror(err) << std::endl;
@@ -228,6 +234,9 @@ auto main(int argc, char** argv) -> int {
           break;
         }else if(ie == 'q'){
           break;
+        }else if(ie >= '0' && ie <= '8'){
+          --i; // rerun same input with the new blitter
+          blitter = static_cast<ncblitter_e>(ie - '0');
         }else if(ie == NCKey::Resize){
           --i; // rerun with the new size
           if(!nc.refresh(&dimy, &dimx)){

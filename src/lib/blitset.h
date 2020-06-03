@@ -15,10 +15,14 @@ lookup_blitset(const struct notcurses* nc, ncblitter_e setid, bool may_degrade) 
   }
   const struct blitset* bset = notcurses_blitters;
   while(bset->egcs){
-    if(bset->geom == setid){
+    if(bset->geom == setid && bset->blit){
       return bset;
     }
     ++bset;
+  }
+  // handle other currently-invalid blitters via degrade
+  if(may_degrade){
+    return lookup_blitset(nc, NCBLIT_2x1, true);
   }
   return NULL;
 }
