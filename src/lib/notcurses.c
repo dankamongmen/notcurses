@@ -504,6 +504,13 @@ int ncplane_destroy(ncplane* ncp){
   }else{
     ncp->nc->bottom = ncp->above;
   }
+  if(ncp->bound){
+    ncplane** prev = &ncp->bound->blist;
+    while(*prev != ncp){
+      prev = &(*prev)->bnext;
+    }
+    *prev = (*prev)->bnext;
+  }
   free_plane(ncp);
   return 0;
 }
