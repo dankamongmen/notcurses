@@ -777,7 +777,7 @@ int ncreel_touch(ncreel* nr, nctablet* t){
 
 // Move to some position relative to the current position
 static int
-move_tablet(ncplane* p, int deltax, int deltay){
+move_tablet(ncplane* p, int deltay, int deltax){
   int oldx, oldy;
   ncplane_yx(p, &oldy, &oldx);
   int x = oldx + deltax;
@@ -790,15 +790,13 @@ nctablet* ncreel_focused(ncreel* nr){
   return nr->tablets;
 }
 
-int ncreel_move(ncreel* nreel, int x, int y){
+int ncreel_move(ncreel* nreel, int y, int x){
   ncplane* w = nreel->p;
   int oldx, oldy;
   ncplane_yx(w, &oldy, &oldx);
   const int deltax = x - oldx;
   const int deltay = y - oldy;
-  if(move_tablet(nreel->p, deltax, deltay)){
-    ncplane_move_yx(nreel->p, oldy, oldx);
-    ncreel_redraw(nreel);
+  if(ncplane_move_yx(nreel->p, y, x)){
     return -1;
   }
   if(nreel->tablets){
@@ -807,14 +805,14 @@ int ncreel_move(ncreel* nreel, int x, int y){
       if(t->p == NULL){
         break;
       }
-      move_tablet(t->p, deltax, deltay);
+      move_tablet(t->p, deltay, deltax);
     }while((t = t->prev) != nreel->tablets);
     if(t != nreel->tablets){ // don't repeat if we covered all tablets
       for(t = nreel->tablets->next ; t != nreel->tablets ; t = t->next){
         if(t->p == NULL){
           break;
         }
-        move_tablet(t->p, deltax, deltay);
+        move_tablet(t->p, deltay, deltax);
       }
     }
   }

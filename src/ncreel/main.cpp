@@ -12,22 +12,33 @@ using namespace ncpp;
 
 class TabletCtx {
   public:
-    TabletCtx() : lines(rand() % 5 + 3) {}
+    TabletCtx() :
+      lines(rand() % 5 + 3),
+      rgb(rand() % 0x1000000) {}
     int getLines() const {
       return lines;
     }
+    unsigned getRGB() const {
+      return rgb;
+    }
   private:
     int lines;
+    unsigned rgb;
+    unsigned id;
 };
 
 int tabletfxn(struct nctablet* _t, int begx, int begy, int maxx, int maxy,
               bool cliptop){
+  (void)begx;
+  (void)begy;
+  (void)maxx;
+  (void)cliptop;
   NcTablet *t = NcTablet::map_tablet (_t);
   Plane* p = t->get_plane();
   auto tctx = t->get_userptr<TabletCtx>();
   p->erase();
   Cell c(' ');
-  c.set_bg((((uintptr_t)t) % 0x1000000) + cliptop + begx + maxx);
+  c.set_bg(tctx->getRGB());
   p->set_base_cell(c);
   p->release(c);
   return tctx->getLines() > maxy - begy ? maxy - begy : tctx->getLines();
@@ -125,6 +136,7 @@ int runreels(NotCurses& nc, ncreel_options& nopts){
   if(!nr || !nc.render()){
     return -1;
   }
+  int y, x;
   char32_t key;
   while((key = nc.getc(true)) != (char32_t)-1){
     switch(key){
@@ -137,6 +149,17 @@ int runreels(NotCurses& nc, ncreel_options& nopts){
       }
       case 'd':
         nr->del_focused();
+        break;
+      case '*':
+        notcurses_debug(nc, stderr);
+        break;
+      case NCKEY_LEFT:
+        nr->get_plane()->get_yx(&y, &x);
+        nr->move(y, x - 1);
+        break;
+      case NCKEY_RIGHT:
+        nr->get_plane()->get_yx(&y, &x);
+        nr->move(y, x + 1);
         break;
       case NCKEY_UP:
         nr->prev();

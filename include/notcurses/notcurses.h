@@ -2358,8 +2358,8 @@ API int ncreel_del(struct ncreel* pr, struct nctablet* t);
 // Delete the active tablet. Returns -1 if there are no tablets.
 API int ncreel_del_focused(struct ncreel* pr);
 
-// Move to the specified location within the containing WINDOW.
-API int ncreel_move(struct ncreel* pr, int x, int y);
+// Move to the specified location.
+API int ncreel_move(struct ncreel* pr, int y, int x);
 
 // Redraw the ncreel in its entirety, for instance after
 // clearing the screen due to external corruption, or a SIGWINCH.
