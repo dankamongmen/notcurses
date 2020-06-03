@@ -9,11 +9,11 @@ void notcurses_debug(notcurses* nc, FILE* debugfp){
     fprintf(debugfp, "%04d off y: %3d x: %3d geom y: %3d x: %3d curs y: %3d x: %3d %s %p\n",
             planeidx, n->absy, n->absx, n->leny, n->lenx, n->y, n->x,
             n == notcurses_stdplane_const(nc) ? "std" : "   ", n);
-    if(n->bound || n->bnext || n->bprev){
-      fprintf(debugfp, " bound to %p, next bound %p, bind %p\n",
-              n->bound, n->bnext, n->bprev);
+    if(n->boundto || n->bnext || n->bprev || n->blist){
+      fprintf(debugfp, " bound %p -> %p <- %p binds %p\n",
+              n->boundto, n->bnext, n->bprev, n->blist);
     }
-    if(n->bnext == n || n->bound == n){
+    if(n->bnext == n || n->boundto == n || n->blist == n){
       fprintf(debugfp, "WARNING: bound pointers target self\n");
     }
     if(n->bprev && (*n->bprev != n)){

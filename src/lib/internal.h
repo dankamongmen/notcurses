@@ -72,8 +72,9 @@ typedef struct ncplane {
   struct ncplane* above; // plane above us, NULL if we're on top
   struct ncplane* below; // plane below us, NULL if we're on bottom
   struct ncplane* bnext; // next in the bound list of plane to which we are bound
-  struct ncplane** bprev;// link to us if we're bound
-  struct ncplane* bound; // plane to which we are bound, if any
+  struct ncplane** bprev;// link to us iff we're bound, NULL otherwise
+  struct ncplane* blist; // head of list of bound planes
+  struct ncplane* boundto; // plane to which we are bound, if any
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells
   uint32_t attrword;     // same deal as in a cell

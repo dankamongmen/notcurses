@@ -769,13 +769,13 @@ TEST_CASE("NCPlane") {
     REQUIRE(nsub);
     int absy, absx;
     ncplane_yx(nsub, &absy, &absx);
-    // we ought be at 2,2 despite supplying 1,1
-    CHECK(2 == absy);
-    CHECK(2 == absx);
-    CHECK(0 == ncplane_move_yx(nsub, -1, -1)); // moving to -1, -1 ought be 0, 0
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(1 == absy); // actually at 2, 2
+    CHECK(1 == absx);
+    CHECK(0 == ncplane_move_yx(nsub, -1, -1));
     ncplane_yx(nsub, &absy, &absx);
-    CHECK(0 == absy);
-    CHECK(0 == absx);
+    CHECK(-1 == absy); // actually at 0, 0
+    CHECK(-1 == absx);
   }
 
   SUBCASE("BoundToPlaneMoves") { // bound plane ought move along with plane
@@ -785,10 +785,10 @@ TEST_CASE("NCPlane") {
     REQUIRE(nsub);
     int absy, absx;
     ncplane_yx(nsub, &absy, &absx);
-    // we ought be at 2,2 despite supplying 1,1
-    CHECK(2 == absy);
-    CHECK(2 == absx);
-    CHECK(0 == ncplane_move_yx(ndom, 0, 0)); // move to 0, 0 places it at 1, 1
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(1 == absy); // actually at 2, 2
+    CHECK(1 == absx);
+    CHECK(0 == ncplane_move_yx(ndom, 0, 0));
     ncplane_yx(nsub, &absy, &absx);
     CHECK(1 == absy);
     CHECK(1 == absx);
@@ -800,14 +800,17 @@ TEST_CASE("NCPlane") {
     struct ncplane* nsub = ncplane_bound(ndom, 2, 2, 1, 1, nullptr);
     REQUIRE(nsub);
     int absy, absx;
+    CHECK(0 == notcurses_render(nc_));
     ncplane_yx(nsub, &absy, &absx);
-    // we ought be at 2,2 despite supplying 1,1
-    CHECK(2 == absy);
-    CHECK(2 == absx);
+    CHECK(1 == absy); // actually at 2, 2
+    CHECK(1 == absx);
     ncplane_reparent(nsub, nullptr);
-    CHECK(0 == ncplane_move_yx(ndom, 0, 0)); // move to 0, 0 places it at 1, 1
     ncplane_yx(nsub, &absy, &absx);
-    CHECK(2 == absy);
+    CHECK(2 == absy); // now we recognize 2, 2
+    CHECK(2 == absx);
+    CHECK(0 == ncplane_move_yx(ndom, 0, 0));
+    ncplane_yx(nsub, &absy, &absx);
+    CHECK(2 == absy); // still at 2, 2
     CHECK(2 == absx);
   }
 

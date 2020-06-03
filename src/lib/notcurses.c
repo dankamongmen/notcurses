@@ -277,15 +277,15 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   p->lenx = cols;
   p->x = p->y = 0;
   p->logrow = 0;
-  p->bound = NULL;
-  if(n){
+  p->blist = NULL;
+  if( (p->boundto = n) ){
     p->absx = xoff + n->absx;
     p->absy = yoff + n->absy;
-    if( (p->bnext = n->bound) ){
-      n->bound->bprev = &p->bnext;
+    if( (p->bnext = n->blist) ){
+      n->blist->bprev = &p->bnext;
     }
-    n->bound = p;
-    p->bprev = &n->bound;
+    p->bprev = &n->blist;
+    *p->bprev = p;
   }else{
     p->absx = xoff + nc->margin_l;
     p->absy = yoff + nc->margin_t;
@@ -337,7 +337,7 @@ ncplane* ncplane_bound(ncplane* n, int rows, int cols, int yoff, int xoff, void*
 
 ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int yoff,
                          ncalign_e align, void* opaque){
-  return ncplane_create(n->nc, NULL, rows, cols, yoff, ncplane_align(n, align, cols), opaque);
+  return ncplane_create(n->nc, n, rows, cols, yoff, ncplane_align(n, align, cols), opaque);
 }
 
 inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
@@ -370,7 +370,7 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimx = n->lenx;
   uint32_t attr = ncplane_attr(n);
   uint64_t chan = ncplane_channels(n);
-  ncplane* newn = ncplane_create(n->nc, n->bound, dimy, dimx, n->absy, n->absx, opaque);
+  ncplane* newn = ncplane_create(n->nc, n->boundto, dimy, dimx, n->absy, n->absx, opaque);
   if(newn){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);
@@ -509,10 +509,14 @@ int ncplane_destroy(ncplane* ncp){
     ncp->nc->bottom = ncp->above;
   }
   if(ncp->bprev){
-    *ncp->bprev = ncp->bnext;
+    if( (*ncp->bprev = ncp->bnext) ){
+      ncp->bnext->bprev = ncp->bprev;
+    }
   }
-  if(ncp->bound){
-    ncp->bound->bprev = NULL;
+  if(ncp->blist){
+    // FIXME need unlink all on list
+    ncp->blist->bprev = NULL;
+    ncp->blist->bnext = NULL;
   }
   free_plane(ncp);
   return 0;
@@ -1656,7 +1660,7 @@ move_bound_planes(ncplane* n, int dy, int dx){
   while(n){
     n->absy += dy;
     n->absx += dx;
-    move_bound_planes(n->bound, dy, dx);
+    move_bound_planes(n->blist, dy, dx);
     n = n->bnext;
   }
 }
@@ -1666,25 +1670,33 @@ int ncplane_move_yx(ncplane* n, int y, int x){
     return -1;
   }
   int dy, dx; // amount moved
-  if(n->bound){
-    dy = (n->bound->absy + y) - n->absy;
-    dx = (n->bound->absx + x) - n->absx;
+  if(n->boundto){
+    dy = (n->boundto->absy + y) - n->absy;
+    dx = (n->boundto->absx + x) - n->absx;
   }else{
     dy = (n->nc->stdscr->absy + y) - n->absy;
     dx = (n->nc->stdscr->absx + x) - n->absx;
   }
   n->absx += dx;
   n->absy += dy;
-  move_bound_planes(n->bound, dy, dx);
+  move_bound_planes(n->blist, dy, dx);
   return 0;
 }
 
 void ncplane_yx(const ncplane* n, int* y, int* x){
   if(y){
-    *y = n->absy - n->nc->stdscr->absy;
+    if(n->boundto == NULL){
+      *y = n->absy - n->nc->stdscr->absy;
+    }else{
+      *y = n->absy - n->boundto->absy;
+    }
   }
   if(x){
-    *x = n->absx - n->nc->stdscr->absx;
+    if(n->boundto == NULL){
+      *x = n->absx - n->nc->stdscr->absx;
+    }else{
+      *x = n->absx - n->boundto->absx;
+    }
   }
 }
 
@@ -1834,14 +1846,25 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n == n->nc->stdscr){
     return NULL; // can't reparent standard plane
   }
-  if( (*n->bprev = n->bnext) ){
-    n->bnext->bprev = n->bprev;
+  if(n->boundto == newparent){
+    return n;
   }
-  if( (n->bnext = newparent->bound) ){
+  if(n->bprev){
+    if( (*n->bprev = n->bnext) ){
+      n->bnext->bprev = n->bprev;
+    }
+  }
+  n->boundto = newparent;
+  if(newparent == NULL){
+    n->bnext = NULL;
+    n->bprev = NULL;
+    return n;
+  }
+  if( (n->bnext = newparent->blist) ){
     n->bnext->bprev = &n->bnext;
   }
-  n->bprev = &newparent->bound;
-  newparent->bound = n;
+  n->bprev = &newparent->blist;
+  newparent->blist = n;
   return n;
 }
 
