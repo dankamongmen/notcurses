@@ -606,6 +606,7 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
     targ->gcluster = c->gcluster;
     return !!c->gcluster;
   }
+  assert(splane);
   const char* egc = extended_gcluster(splane, c);
   size_t ulen = strlen(egc);
   int eoffset = egcpool_stash(tpool, egc, ulen);

@@ -1,21 +1,10 @@
 #include "main.h"
 #include "egcpool.h"
 
-TEST_CASE("MultibyteWidth") {
+TEST_CASE("Cell") {
   if(!enforce_utf8()){
     return;
   }
-  CHECK(0 == mbswidth(""));       // zero bytes, zero columns
-  CHECK(-1 == mbswidth("\x7"));   // single byte, non-printable
-  CHECK(1 == mbswidth(" "));      // single byte, one column
-  CHECK(5 == mbswidth("abcde"));  // single byte, one column
-  CHECK(1 == mbswidth("µ"));      // two bytes, one column
-  CHECK(1 <= mbswidth("\xf0\x9f\xa6\xb2"));     // four bytes, two columns
-  CHECK(3 <= mbswidth("平仮名")); // nine bytes, six columns
-  CHECK(1 == mbswidth("\ufdfd")); // three bytes, ? columns, wcwidth() returns 1
-}
-
-TEST_CASE("Cell") {
   // common initialization
   notcurses_options nopts{};
   nopts.suppress_banner = true;
@@ -33,8 +22,19 @@ TEST_CASE("Cell") {
     cell_release(n_, &c);
   }
 
-SUBCASE("SetItalic") {
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  SUBCASE("MultibyteWidth") {
+    CHECK(0 == mbswidth(""));       // zero bytes, zero columns
+    CHECK(-1 == mbswidth("\x7"));   // single byte, non-printable
+    CHECK(1 == mbswidth(" "));      // single byte, one column
+    CHECK(5 == mbswidth("abcde"));  // single byte, one column
+    CHECK(1 == mbswidth("µ"));      // two bytes, one column
+    CHECK(1 <= mbswidth("\xf0\x9f\xa6\xb2"));     // four bytes, two columns
+    CHECK(3 <= mbswidth("平仮名")); // nine bytes, six columns
+    CHECK(1 == mbswidth("\ufdfd")); // three bytes, ? columns, wcwidth() returns 1
+  }
+
+  SUBCASE("SetItalic") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     cell_styles_set(&c, NCSTYLE_ITALIC);

@@ -439,6 +439,8 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
       }
     }else if(vopts->scaling == NCSCALE_STRETCH){
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
+    }else{
+      return nullptr;
     }
     n = ncplane_new(nc, disprows, dispcols, placey, placex, nullptr);
     if(n == nullptr){

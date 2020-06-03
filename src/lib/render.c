@@ -129,7 +129,6 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 static int
 cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
                    const ncplane* srcplane, const cell* srccell){
-
   if(damcell->attrword == srccell->attrword){
     if(damcell->channels == srccell->channels){
       bool srcsimple = cell_simple_p(srccell);
@@ -140,8 +139,6 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
             return 0; // simple match
           }
         }else{
-          assert(srcplane);
-          assert(srcplane->pool.pool);
           const char* damegc = egcpool_extended_gcluster(dampool, damcell);
           const char* srcegc = extended_gcluster(srcplane, srccell);
           if(strcmp(damegc, srcegc) == 0){
