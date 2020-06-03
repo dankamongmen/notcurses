@@ -277,21 +277,25 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   p->lenx = cols;
   p->x = p->y = 0;
   p->logrow = 0;
-  if( (p->bound = n) ){
+  p->bound = NULL;
+  if(n){
     p->absx = xoff + n->absx;
     p->absy = yoff + n->absy;
-    p->bnext = n->blist;
-    n->blist = p;
+    if( (p->bnext = n->bound) ){
+      n->bound->bprev = &p->bnext;
+    }
+    n->bound = p;
+    p->bprev = &n->bound;
   }else{
     p->absx = xoff + nc->margin_l;
     p->absy = yoff + nc->margin_t;
     p->bnext = NULL;
+    p->bprev = NULL;
   }
   p->attrword = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
   cell_init(&p->basecell);
-  p->blist = NULL;
   p->userptr = opaque;
   p->above = NULL;
   if( (p->below = nc->top) ){ // always happens save initial plane
@@ -504,12 +508,11 @@ int ncplane_destroy(ncplane* ncp){
   }else{
     ncp->nc->bottom = ncp->above;
   }
+  if(ncp->bprev){
+    *ncp->bprev = ncp->bnext;
+  }
   if(ncp->bound){
-    ncplane** prev = &ncp->bound->blist;
-    while(*prev != ncp){
-      prev = &(*prev)->bnext;
-    }
-    *prev = (*prev)->bnext;
+    ncp->bound->bprev = NULL;
   }
   free_plane(ncp);
   return 0;
@@ -1653,7 +1656,7 @@ move_bound_planes(ncplane* n, int dy, int dx){
   while(n){
     n->absy += dy;
     n->absx += dx;
-    move_bound_planes(n->blist, dy, dx);
+    move_bound_planes(n->bound, dy, dx);
     n = n->bnext;
   }
 }
@@ -1672,7 +1675,7 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   }
   n->absx += dx;
   n->absy += dy;
-  move_bound_planes(n->blist, dy, dx);
+  move_bound_planes(n->bound, dy, dx);
   return 0;
 }
 
@@ -1831,19 +1834,14 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n == n->nc->stdscr){
     return NULL; // can't reparent standard plane
   }
-  if(n->bound){ // detach it, and extract it from list
-    for(ncplane** prev = &n->bound->blist ; *prev ; prev = &(*prev)->bnext){
-      if(*prev == n){
-        *prev = n->bnext;
-        break;
-      }
-    }
-    n->bnext = NULL;
+  if( (*n->bprev = n->bnext) ){
+    n->bnext->bprev = n->bprev;
   }
-  if( (n->bound = newparent) ){
-    n->bnext = newparent->blist;
-    newparent->blist = n;
+  if( (n->bnext = newparent->bound) ){
+    n->bnext->bprev = &n->bnext;
   }
+  n->bprev = &newparent->bound;
+  newparent->bound = n;
   return n;
 }
 

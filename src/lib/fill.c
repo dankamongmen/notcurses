@@ -126,6 +126,9 @@ calc_highgradient(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
 
 int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
                          uint32_t ll, uint32_t lr, int ystop, int xstop){
+  if(!notcurses_canutf8(n->nc)){
+    return -1;
+  }
   if(check_gradient_channel_args(ul, ur, ll, lr)){
     return -1;
   }

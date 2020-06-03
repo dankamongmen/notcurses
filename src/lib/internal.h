@@ -64,23 +64,23 @@ struct esctrie;
 // circular buffer of rows. 'logrow' is the index of the row at the logical top
 // of the plane.
 typedef struct ncplane {
-  cell* fb;             // "framebuffer" of character cells
-  int logrow;           // logical top row, starts at 0, add one for each scroll
-  int x, y;             // current cursor location within this plane
-  int absx, absy;       // origin of the plane relative to the screen
-  int lenx, leny;       // size of the plane, [0..len{x,y}) is addressable
-  struct ncplane* above;// plane above us, NULL if we're on top
-  struct ncplane* below;// plane below us, NULL if we're on bottom
-  struct ncplane* bnext;// next in the bound list of plane to which we are bound
-  struct ncplane* blist;// head of our own bound list, if any
-  struct ncplane* bound;// plane to which we are bound, if any
-  egcpool pool;         // attached storage pool for UTF-8 EGCs
-  uint64_t channels;    // works the same way as cells
-  uint32_t attrword;    // same deal as in a cell
-  void* userptr;        // slot for the user to stick some opaque pointer
-  cell basecell;        // cell written anywhere that fb[i].gcluster == 0
-  struct notcurses* nc; // notcurses object of which we are a part
-  bool scrolling;       // is scrolling enabled? always disabled by default
+  cell* fb;              // "framebuffer" of character cells
+  int logrow;            // logical top row, starts at 0, add one for each scroll
+  int x, y;              // current cursor location within this plane
+  int absx, absy;        // origin of the plane relative to the screen
+  int lenx, leny;        // size of the plane, [0..len{x,y}) is addressable
+  struct ncplane* above; // plane above us, NULL if we're on top
+  struct ncplane* below; // plane below us, NULL if we're on bottom
+  struct ncplane* bnext; // next in the bound list of plane to which we are bound
+  struct ncplane** bprev;// link to us if we're bound
+  struct ncplane* bound; // plane to which we are bound, if any
+  egcpool pool;          // attached storage pool for UTF-8 EGCs
+  uint64_t channels;     // works the same way as cells
+  uint32_t attrword;     // same deal as in a cell
+  void* userptr;         // slot for the user to stick some opaque pointer
+  cell basecell;         // cell written anywhere that fb[i].gcluster == 0
+  struct notcurses* nc;  // notcurses object of which we are a part
+  bool scrolling;        // is scrolling enabled? always disabled by default
 } ncplane;
 
 #include "blitset.h"

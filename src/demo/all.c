@@ -41,6 +41,9 @@ allglyphs(struct notcurses* nc, struct ncplane* column){
 
 // render all the glyphs worth rendering
 int allglyphs_demo(struct notcurses* nc){
+  if(!notcurses_canutf8(nc)){
+    return 0;
+  }
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_erase(n);
