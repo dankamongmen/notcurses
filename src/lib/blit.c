@@ -248,8 +248,7 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   diffs[1] = rgb_diff(r0, g0, b0, roth, goth, both);
   diffs[2] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
   diffs[3] = rgb_diff(r1, g1, b1, roth, goth, both);
-  // FIXME pick closer, not first one we find
-  if(diffs[0] < diffs[1]){
+  if(diffs[0] < diffs[1] && diffs[0] < diffs[2]){
     egc = qd->oth0egc;
     *back = colors[qd->others[1]];
     *fore = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[0]]);
