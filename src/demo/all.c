@@ -27,6 +27,10 @@ allglyphs(struct notcurses* nc, struct ncplane* column){
         ncplane_cursor_yx(column, NULL, &x);
         if(x >= dimx){
           DEMO_RENDER(nc);
+          ncplane_set_fg_rgb(column,
+                             random() % 192 + 64,
+                             random() % 192 + 64,
+                             random() % 192 + 64);
         }
       }
     }
