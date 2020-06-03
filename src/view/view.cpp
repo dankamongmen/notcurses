@@ -44,14 +44,14 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
 static struct ncplane* subtitle_plane = nullptr;
 
 // frame count is in the curry. original time is kept in n's userptr.
-auto perframe(struct ncplane* n, struct ncvisual* ncv,
+auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
               const struct timespec* abstime, void* vframecount) -> int {
   NotCurses &nc = NotCurses::get_instance ();
-  auto start = static_cast<struct timespec*>(ncplane_userptr(n));
+  auto start = static_cast<struct timespec*>(ncplane_userptr(vopts->n));
   if(!start){
     start = new struct timespec;
     clock_gettime(CLOCK_MONOTONIC, start);
-    ncplane_set_userptr(n, start);
+    ncplane_set_userptr(vopts->n, start);
   }
   std::unique_ptr<Plane> stdn(nc.get_stdplane());
   int* framecount = static_cast<int*>(vframecount);
@@ -66,7 +66,7 @@ auto perframe(struct ncplane* n, struct ncvisual* ncv,
   if(subtitle){
     if(!subtitle_plane){
       int dimx, dimy;
-      ncplane_dim_yx(n, &dimy, &dimx);
+      ncplane_dim_yx(vopts->n, &dimy, &dimx);
       subtitle_plane = ncplane_new(nc, 1, dimx, dimy - 1, 0, nullptr);
       uint64_t channels = 0;
       channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -94,7 +94,7 @@ auto perframe(struct ncplane* n, struct ncvisual* ncv,
   }
   int dimx, dimy, oldx, oldy;
   nc.get_term_dim(&dimy, &dimx);
-  ncplane_dim_yx(n, &oldy, &oldx);
+  ncplane_dim_yx(vopts->n, &oldy, &oldx);
   struct timespec interval;
   clock_gettime(CLOCK_MONOTONIC, &interval);
   uint64_t nsnow = timespec_to_ns(&interval);
@@ -107,7 +107,8 @@ auto perframe(struct ncplane* n, struct ncvisual* ncv,
         return 0;
       }
       if(keyp >= '0' && keyp <= '8'){ // FIXME eliminate ctrl/alt
-        // FIXME change blitter -- how?
+        vopts->blitter = static_cast<ncblitter_e>(keyp - '0');
+        return 0;
       }
       return 1;
     }

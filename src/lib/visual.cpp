@@ -503,9 +503,9 @@ auto ncvisual_destroy(ncvisual* ncv) -> void {
   }
 }
 
-auto ncvisual_simple_streamer(ncplane* n, ncvisual* ncv, const timespec* tspec,
-                              void* curry) -> int {
-  if(notcurses_render(ncplane_notcurses(n))){
+auto ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
+                              const timespec* tspec, void* curry) -> int {
+  if(notcurses_render(ncplane_notcurses(vopts->n))){
     return -1;
   }
   int ret = 0;

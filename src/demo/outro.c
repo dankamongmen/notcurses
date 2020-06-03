@@ -9,10 +9,11 @@ static struct ncvisual* chncv;
 
 // called in the context of the ncvisual streamer of samoa.avi
 static int
-perframe(struct ncplane* n, struct ncvisual* ncv __attribute__ ((unused)),
+perframe(struct ncvisual* ncv __attribute__ ((unused)),
+         struct ncvisual_options* vopts,
          const struct timespec* abstime, void* vthree){
   int* three = vthree; // move up one every three callbacks
-  DEMO_RENDER(ncplane_notcurses(n));
+  DEMO_RENDER(ncplane_notcurses(vopts->n));
   if(y < targy){
     return 0;
   }

@@ -371,9 +371,9 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
     ns_to_timespec(schedns, &abstime);
     int r;
     if(streamer){
-      r = streamer(newn, ncv, &abstime, curry);
+      r = streamer(ncv, &activevopts, &abstime, curry);
     }else{
-      r = ncvisual_simple_streamer(activevopts.n, ncv, &abstime, curry);
+      r = ncvisual_simple_streamer(ncv, &activevopts, &abstime, curry);
     }
     if(r){
       if(activevopts.n != vopts->n){

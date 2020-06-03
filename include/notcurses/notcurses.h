@@ -2210,14 +2210,14 @@ API char* ncvisual_subtitle(const struct ncvisual* ncv);
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
 // The recommended absolute display time target is passed in 'tspec'.
-typedef int (*streamcb)(struct ncplane*, struct ncvisual*,
+typedef int (*streamcb)(struct ncvisual*, struct ncvisual_options*,
                         const struct timespec*, void*);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
 // curry is NULL, subtitles will not be displayed.
-int ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv,
-                             const struct timespec* tspec, void* curry);
+API int ncvisual_simple_streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
+                                 const struct timespec* tspec, void* curry);
 
 // Stream the entirety of the media, according to its own timing. Blocking,
 // obviously. streamer may be NULL; it is otherwise called for each frame, and

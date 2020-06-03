@@ -52,9 +52,10 @@ make_slider(struct notcurses* nc, int dimy, int dimx){
 }
 
 static int
-perframecb(struct ncplane* stdn, struct ncvisual* ncv __attribute__ ((unused)),
+perframecb(struct ncvisual* ncv __attribute__ ((unused)),
+           struct ncvisual_options* vopts,
            const struct timespec* tspec, void* vnewplane){
-  struct notcurses* nc = ncplane_notcurses(stdn);
+  struct notcurses* nc = ncplane_notcurses(vopts->n);
   static int frameno = 0;
   int y, x;
   struct ncplane* n = vnewplane;

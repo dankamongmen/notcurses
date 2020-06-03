@@ -168,10 +168,11 @@ int demo_nanosleep(struct notcurses* nc, const struct timespec *ts);
 int demo_nanosleep_abstime(struct notcurses* nc, const struct timespec* ts);
 
 static inline int
-demo_simple_streamer(struct ncplane* nc, struct ncvisual* ncv __attribute__ ((unused)),
+demo_simple_streamer(struct ncvisual* ncv __attribute__ ((unused)),
+                     struct ncvisual_options* vopts,
                      const struct timespec* tspec, void* curry __attribute__ ((unused))){
-  DEMO_RENDER(ncplane_notcurses(nc));
-  return demo_nanosleep_abstime(ncplane_notcurses(nc), tspec);
+  DEMO_RENDER(ncplane_notcurses(vopts->n));
+  return demo_nanosleep_abstime(ncplane_notcurses(vopts->n), tspec);
 }
 
 // simple fadecb that makes proper use of demo_render() and demo_nanosleep()

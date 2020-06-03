@@ -410,21 +410,21 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
 // be replaced with some real blitter implementation by the calling widget.
 const struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_8x1,     .width = 1, .height = 8, .egcs = L" ▁▂▃▄▅▆▇█",
-     .blit = NULL,           .fill = false, },
+     .blit = tria_blit,       .fill = false, }, // FIXME
    { .geom = NCBLIT_1x1,     .width = 1, .height = 1, .egcs = L" █",
      .blit = tria_blit_ascii,.fill = false, },
    { .geom = NCBLIT_2x1,     .width = 1, .height = 2, .egcs = L" ▄█",
      .blit = tria_blit,      .fill = false, },
    { .geom = NCBLIT_1x1x4,   .width = 1, .height = 4, .egcs = L" ▒░▓█",
-     .blit = NULL,           .fill = false, },
+     .blit = tria_blit,      .fill = false, }, // FIXME
    { .geom = NCBLIT_2x2,     .width = 2, .height = 2, .egcs = L" ▗▐▖▄▟▌▙█",
      .blit = quadrant_blit,  .fill = false, },
    { .geom = NCBLIT_4x1,     .width = 1, .height = 4, .egcs = L" ▂▄▆█",
-     .blit = NULL,           .fill = false, },
+     .blit = tria_blit,      .fill = false, }, // FIXME
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿",
      .blit = braille_blit,   .fill = true,  },
    { .geom = NCBLIT_SIXEL,   .width = 1, .height = 6, .egcs = L"",
-     .blit = NULL,           .fill = true,  },
+     .blit = tria_blit,      .fill = true,  }, // FIXME
    { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
      .blit = NULL,           .fill = false,  },
 };
