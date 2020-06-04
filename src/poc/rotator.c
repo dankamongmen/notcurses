@@ -1,3 +1,4 @@
+#include <math.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <locale.h>
@@ -5,6 +6,10 @@
 
 static int
 rotate(struct notcurses* nc){
+  struct timespec ts = {
+    .tv_sec = 0,
+    .tv_nsec = 250000000,
+  };
   const int XSIZE = 16;
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
@@ -43,7 +48,7 @@ rotate(struct notcurses* nc){
     b -= 15;
   }
   notcurses_render(nc);
-  sleep(1);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
   // we now have 2 rows of 20 cells each, with gradients. load 'em.
   uint32_t* rgba = ncplane_rgba(n, dimy / 2, 0, 2, XSIZE);
@@ -59,7 +64,7 @@ rotate(struct notcurses* nc){
   */
   ncplane_erase(n);
   notcurses_render(nc);
-  sleep(1);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
   if(ncplane_blit_rgba(n, dimy / 2, XSIZE, XSIZE * 4, NCBLIT_DEFAULT,
                        rgba, 0, 0, 4, XSIZE) < 0){
@@ -67,11 +72,11 @@ rotate(struct notcurses* nc){
     return -1;
   }
   notcurses_render(nc);
-  sleep(1);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
   ncplane_erase(n);
   notcurses_render(nc);
-  sleep(1);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
   // now promote it to a visual
   struct ncvisual* v = ncvisual_from_rgba(rgba, 4, XSIZE * 4, XSIZE);
@@ -84,7 +89,18 @@ rotate(struct notcurses* nc){
   };
   ncvisual_render(nc, v, &vopts);
   notcurses_render(nc);
-  sleep(1);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
+
+  if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 2)){
+    return -1;
+  }
+  ncplane_erase(n);
+  notcurses_render(nc);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
+
+  ncvisual_render(nc, v, &vopts);
+  notcurses_render(nc);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
   return 0;
 }
 
