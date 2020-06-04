@@ -86,6 +86,7 @@ rotate(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .x = (dimx - XSIZE) / 2,
     .y = dimy / 2,
+    .n = n,
   };
   ncvisual_render(nc, v, &vopts);
   notcurses_render(nc);
@@ -95,9 +96,14 @@ rotate(struct notcurses* nc){
     return -1;
   }
   ncplane_erase(n);
+  ncvisual_render(nc, v, &vopts);
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
+  if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 4)){
+    return -1;
+  }
+  ncplane_erase(n);
   ncvisual_render(nc, v, &vopts);
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
