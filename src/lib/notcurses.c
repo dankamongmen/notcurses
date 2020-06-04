@@ -852,15 +852,15 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if((ret->stdscr = create_initial_ncplane(ret, dimy, dimx)) == NULL){
     goto err;
   }
-  if(!opts->retain_cursor){
-    if(ret->tcache.civis && term_emit("civis", ret->tcache.civis, ret->ttyfp, false)){
-      free_plane(ret->top);
-      goto err;
-    }
-  }
   if(ret->tcache.smkx && term_emit("smkx", ret->tcache.smkx, ret->ttyfp, false)){
     free_plane(ret->top);
     goto err;
+  }
+  if(!opts->retain_cursor){
+    if(ret->tcache.civis && term_emit("civis", ret->tcache.civis, ret->ttyfp, true)){
+      free_plane(ret->top);
+      goto err;
+    }
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     free_plane(ret->top);
@@ -1718,13 +1718,13 @@ void ncplane_erase(ncplane* n){
 
 void notcurses_cursor_enable(notcurses* nc){
   if(nc->tcache.cnorm){
-    term_emit("cnorm", nc->tcache.cnorm, nc->ttyfp, false);
+    term_emit("cnorm", nc->tcache.cnorm, nc->ttyfp, true);
   }
 }
 
 void notcurses_cursor_disable(notcurses* nc){
   if(nc->tcache.civis){
-    term_emit("civis", nc->tcache.civis, nc->ttyfp, false);
+    term_emit("civis", nc->tcache.civis, nc->ttyfp, true);
   }
 }
 
