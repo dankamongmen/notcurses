@@ -142,7 +142,7 @@ int normal_demo(struct notcurses* nc){
   }
   struct timespec scaled;
   timespec_div(&demodelay, dy, &scaled);
-  for(y = 0 ; y < dy / 2 ; ++y){
+  for(y = 0 ; y <= dy / 2 ; ++y){
     for(int x = 0 ; x < dx ; ++x){
       if(mcell(offset(rgba, dy / 2 - y, x, dx), dy / 2 - y, x, dy, dx)){
         goto err;
