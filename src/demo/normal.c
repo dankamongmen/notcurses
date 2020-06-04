@@ -152,7 +152,7 @@ int normal_demo(struct notcurses* nc){
         goto err;
       }
     }
-    if(ncblit_rgba(nstd, 0, 0, dx * sizeof(*rgba), rgba, 0, 0, dy, dx) < 0){
+    if(ncplane_blit_rgba(nstd, 0, 0, dx * sizeof(*rgba), NCBLIT_DEFAULT, rgba, 0, 0, dy, dx) < 0){
       goto err;
     }
     if( (r = demo_render(nc)) ){
