@@ -21,6 +21,10 @@
 * [blessings](https://github.com/erikrose/blessings) [Python]
 * [urwid](https://github.com/urwid/urwid) [Python]
 
+## Pixel-based
+
+* [termbox](https://github.com/nsf/termbox) (C)
+
 ## Declarative
 
 * [brick](https://github.com/jtdaugherty/brick) (Haskell, atop vty)
