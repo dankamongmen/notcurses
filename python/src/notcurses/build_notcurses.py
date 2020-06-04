@@ -312,7 +312,7 @@ nc_err_e ncvisual_decode(struct ncvisual* nc);
 int ncvisual_rotate(struct ncvisual* n, double rads);
 struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);
 char* ncvisual_subtitle(const struct ncvisual* ncv);
-typedef int (*streamcb)(struct ncplane*, struct ncvisual*, const struct timespec*, void*);
+typedef int (*streamcb)(struct ncvisual*, struct ncvisual_options*, const struct timespec*, void*);
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);
 struct ncvisual_options {
   struct ncplane* n;
