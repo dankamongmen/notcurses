@@ -348,7 +348,7 @@ auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
       ncvisual_destroy(ncv);
       return nullptr;
     }
-fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
+//fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
     ncvisual_set_data(ncv, data, true);
     ncvisual_details_seed(ncv);
   }
@@ -482,7 +482,7 @@ auto ncvisual_from_plane(const ncplane* n, int begy, int begx,
     lenx = n->lenx - begx;
   }
   if(leny == -1){
-    leny = n->leny - begy;
+    leny = (n->leny - begy);
   }
   auto* ncv = ncvisual_from_rgba(rgba, leny * 2, lenx * 4, lenx);
   free(rgba);
