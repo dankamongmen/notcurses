@@ -161,7 +161,7 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timesc
     clock_gettime(CLOCK_MONOTONIC, &now);
     int r;
     if(streamer){
-      r = streamer(newn, ncv, &now, curry);
+      r = streamer(ncv, &activevopts, &now, curry);
     }
     if(r){
       if(activevopts.n != vopts->n){
