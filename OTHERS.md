@@ -3,8 +3,10 @@
 * [NCURSES](https://invisible-island.net/ncurses/) (C)
 * [caca](http://caca.zoy.org/wiki/libcaca) (C)
 * [Newt](https://pagure.io/newt) (C)
+* [libtickit](http://www.leonerd.org.uk/code/libtickit/) (C)
 * [FINAL CUT](https://github.com/gansm/finalcut) (C++)
-* [ImTui](https://github.com/ggerganov/imtui) [C++]
+* [CPPurses](https://github.com/a-n-t-h-o-n-y/CPPurses) (C++)
+* [ImTui](https://github.com/ggerganov/imtui) (C++)
 * [tui-rs](https://github.com/fdehau/tui-rs) (Rust)
 * [crossterm](https://github.com/crossterm-rs/crossterm) (Rust)
 * [termwiz](https://github.com/wez/wezterm/tree/master/termwiz) (Rust)
@@ -18,8 +20,8 @@
 * [termui](https://github.com/gizak/termui) (Go)
 * [gocui](https://github.com/jroimartin/gocui) (Go)
 * [tview](https://github.com/rivo/tview) (Go)
-* [blessings](https://github.com/erikrose/blessings) [Python]
-* [urwid](https://github.com/urwid/urwid) [Python]
+* [blessings](https://github.com/erikrose/blessings) (Python)
+* [urwid](https://github.com/urwid/urwid) (Python)
 
 ## Pixel-based
 
@@ -28,4 +30,4 @@
 ## Declarative
 
 * [brick](https://github.com/jtdaugherty/brick) (Haskell, atop vty)
-* [zui](https://github.com/zdharma/zui) [Zsh, atop zdharma]
+* [zui](https://github.com/zdharma/zui) (Zsh, atop zdharma)
