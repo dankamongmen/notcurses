@@ -59,7 +59,8 @@ rotate(struct notcurses* nc){
   notcurses_render(nc);
   sleep(1);
 
-  if(ncblit_rgba(n, dimy / 2, XSIZE, XSIZE * 4, rgba, 0, 0, 4, XSIZE) < 0){
+  if(ncplane_blit_rgba(n, dimy / 2, XSIZE, XSIZE * 4, NCBLIT_DEFAULT,
+                       rgba, 0, 0, 4, XSIZE) < 0){
     free(rgba);
     return -1;
   }

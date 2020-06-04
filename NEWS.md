@@ -1,6 +1,12 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.5.0 (not yet released)
+  * `ncblit_rgba()` and `ncblit_bgrx()` have been renamed `ncplane_blit_rgba()`
+    and `ncplane_blit_bgrx()`, to match every other existing ncplane function.
+    In addition, they both now accept an `ncblitter_e` to select the blitting
+    method. `NCBLIT_DEFAULT` will use `NCBLITTER_2x1`.
+
 * 1.4.4.1 (2020-06-01)
   * Got the `ncvisual` API ready for API freeze: `ncvisual_render()` and
     `ncvisual_stream()` now take a `struct ncvisual_options`. `ncstyle_e`

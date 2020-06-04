@@ -323,8 +323,8 @@ struct ncvisual_options {
   ncblitter_e blitter;
   uint64_t flags;
 };
-int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
-int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);
+int ncplane_blit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, ncblitter_e blitter, const unsigned char* data, int begy, int begx, int leny, int lenx);
+int ncplane_blit_rgba(struct ncplane* nc, int placey, int placex, int linesize, ncblitter_e blitter, const unsigned char* data, int begy, int begx, int leny, int lenx);
 struct ncselector_item {
   char* option;
   char* desc;
