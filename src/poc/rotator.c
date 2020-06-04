@@ -50,11 +50,13 @@ rotate(struct notcurses* nc){
   if(rgba == NULL){
     return -1;
   }
+  /*
   for(int y = 0 ; y < 4 ; ++y){
     for(int x = 0 ; x < XSIZE ; ++x){
       fprintf(stderr, "rgba %02d/%02d: %08x\n", y, x, rgba[y * XSIZE + x]);
     }
   }
+  */
   ncplane_erase(n);
   notcurses_render(nc);
   sleep(1);
@@ -64,6 +66,23 @@ rotate(struct notcurses* nc){
     free(rgba);
     return -1;
   }
+  notcurses_render(nc);
+  sleep(1);
+
+  ncplane_erase(n);
+  notcurses_render(nc);
+  sleep(1);
+
+  // now promote it to a visual
+  struct ncvisual* v = ncvisual_from_rgba(rgba, 4, XSIZE * 4, XSIZE);
+  if(v == NULL){
+    return -1;
+  }
+  struct ncvisual_options vopts = {
+    .x = (dimx - XSIZE) / 2,
+    .y = dimy / 2,
+  };
+  ncvisual_render(nc, v, &vopts);
   notcurses_render(nc);
   sleep(1);
   return 0;
