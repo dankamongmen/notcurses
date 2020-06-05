@@ -1249,21 +1249,19 @@ void ncfadectx_free(struct ncfadectx* nctx);
 Raw streams of RGBA or BGRx data can be blitted directly to an ncplane:
 
 ```c
-// Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset
-// from the upper left by 'placey' and 'placex'. Each row ought occupy
-// 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
-// subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
-int ncplane_blit_bgrx(struct ncplane* nc, int placey, int placex, int linesize,
-                      ncblitter_e blitter, const unsigned char* data,
-                      int begy, int begx, int leny, int lenx);
+// Blit a flat array 'data' of RGBA 32-bit values to the ncplane 'vopts->n',
+// which mustn't be NULL. the blit begins at 'vopts->y' and 'vopts->x' relative
+// to the specified plane. Each source row ought occupy 'linesize' bytes (this
+// might be greater than 'vopts->lenx' * 4 due to padding or partial blits). A
+// subregion of the input can be specified with the 'begy'x'begx' and
+// 'leny'x'lenx' fields from 'vopts'. Returns the number of pixels blitted, or
+// -1 on error.
+int ncblit_rgba(const void* data, int linesize,
+                const struct ncvisual_options* vopts);
 
-// Blit a flat array 'data' of RGBA 32-bit values to the ncplane 'nc', offset
-// from the upper left by 'placey' and 'placex'. Each row ought occupy
-// 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
-// subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
-int ncplane_blit_rgba(struct ncplane* nc, int placey, int placex, int linesize,
-                      ncblitter_e blitter, const unsigned char* data,
-                      int begy, int begx, int leny, int lenx);
+// Same as ncblit_rgba(), but for BGRx.
+int ncblit_bgrx(const void* data, int linesize,
+                const struct ncvisual_options* vopts);
 ```
 
 

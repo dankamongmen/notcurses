@@ -31,8 +31,12 @@ rotate_grad(struct notcurses* nc){
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
-  if(ncplane_blit_rgba(n, 0, 0, dimx * 4, NCBLIT_DEFAULT,
-                       rgba, 0, 0, dimy * 2, dimx) < 0){
+  struct ncvisual_options vopts = {
+    .n = n,
+    .leny = dimy * 2,
+    .lenx = dimx,
+  };
+  if(ncblit_rgba(rgba, dimx * 4, &vopts) == NULL){
     free(rgba);
     return -1;
   }
@@ -49,9 +53,8 @@ rotate_grad(struct notcurses* nc){
   if(v == NULL){
     return -1;
   }
-  struct ncvisual_options vopts = {
-    .n = n,
-  };
+  vopts.leny = 0;
+  vopts.lenx = 0;
   if(n != ncvisual_render(nc, v, &vopts)){
     ncvisual_destroy(v);
     return -1;
@@ -161,8 +164,14 @@ rotate(struct notcurses* nc){
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
-  if(ncplane_blit_rgba(n, dimy / 2, XSIZE, XSIZE * 4, NCBLIT_DEFAULT,
-                       rgba, 0, 0, 4, XSIZE) < 0){
+  struct ncvisual_options vopts = {
+    .lenx = XSIZE,
+    .leny = 4,
+    .y = dimy / 2,
+    .x = XSIZE,
+    .n = n,
+  };
+  if(ncblit_rgba(rgba, XSIZE * 4, &vopts) == NULL){
     free(rgba);
     return -1;
   }
@@ -179,11 +188,8 @@ rotate(struct notcurses* nc){
   if(v == NULL){
     return -1;
   }
-  struct ncvisual_options vopts = {
-    .x = (dimx - XSIZE) / 2,
-    .y = dimy / 2,
-    .n = n,
-  };
+  vopts.x = (dimx - XSIZE) / 2;
+  vopts.y = dimy / 2;
   ncvisual_render(nc, v, &vopts);
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;

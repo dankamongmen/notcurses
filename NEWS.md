@@ -1,11 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.5.0 (not yet released)
-  * `ncblit_rgba()` and `ncblit_bgrx()` have been renamed `ncplane_blit_rgba()`
-    and `ncplane_blit_bgrx()`, to match every other existing ncplane function.
-    In addition, they both now accept an `ncblitter_e` to select the blitting
-    method. `NCBLIT_DEFAULT` will use `NCBLITTER_2x1`.
+* 1.4.5 (not yet released)
+  * `ncblit_rgba()` and `ncblit_bgrx()` have replaced most of their arguments
+    with a `const struct ncvisual_options*`. `NCBLIT_DEFAULT` will use
+    `NCBLITTER_2x1` (with fallback) in this context. The `->n` field must
+    be non-`NULL`--new planes will not be created.
   * Added `ncplane_notcurses_const()`.
 
 * 1.4.4.1 (2020-06-01)

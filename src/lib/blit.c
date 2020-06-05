@@ -443,30 +443,56 @@ const struct blitset notcurses_blitters[] = {
      .blit = NULL,           .fill = false,  },
 };
 
-// Blit a flat array 'data' of BGRx 32-bit values to the ncplane 'nc', offset
-// from the upper left by 'placey' and 'placex'. Each row ought occupy
-// 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
-// subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
-int ncplane_blit_bgrx(ncplane* nc, int placey, int placex, int linesize,
-                      ncblitter_e blitter, const void* data,
-                      int begy, int begx, int leny, int lenx){
-  const struct blitset* bset = lookup_blitset(ncplane_notcurses(nc), blitter, true);
+int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* vopts){
+  if(vopts->flags > NCVISUAL_OPTION_BLEND){
+    return -1;
+  }
+  struct ncplane* nc = vopts->n;
+  if(nc == NULL){
+    return -1;
+  }
+  int lenx = vopts->lenx;
+  int leny = vopts->leny;
+  int begy = vopts->begy;
+  int begx = vopts->begx;
+//fprintf(stderr, "render %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
+  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
+    return -1;
+  }
+  const bool degrade = (vopts->flags & NCVISUAL_OPTION_MAYDEGRADE);
+  const struct blitset* bset = lookup_blitset(nc->nc, vopts->blitter, degrade);
   if(bset == NULL){
     return -1;
   }
-  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
-                    leny, lenx, true, false);
+  const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
+  return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
+                    leny, lenx, true, blend);
 }
 
-int ncplane_blit_rgba(ncplane* nc, int placey, int placex, int linesize,
-                      ncblitter_e blitter, const void* data,
-                      int begy, int begx, int leny, int lenx){
-  const struct blitset* bset = lookup_blitset(ncplane_notcurses(nc), blitter, true);
+int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
+  if(vopts->flags > NCVISUAL_OPTION_BLEND){
+    return -1;
+  }
+  struct ncplane* nc = vopts->n;
+  if(nc == NULL){
+    return -1;
+  }
+  int lenx = vopts->lenx;
+  int leny = vopts->leny;
+  int begy = vopts->begy;
+  int begx = vopts->begx;
+//fprintf(stderr, "render %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
+  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
+    return -1;
+  }
+  const bool degrade = (vopts->flags & NCVISUAL_OPTION_MAYDEGRADE);
+  const struct blitset* bset = lookup_blitset(nc->nc, vopts->blitter, degrade);
   if(bset == NULL){
     return -1;
   }
-  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
-                    leny, lenx, false, false);
+  const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
+  return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
+                    leny, lenx, false, blend);
 }
 
 int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,

@@ -1015,15 +1015,15 @@ namespace ncpp
 
 		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
 
-		bool blit_bgrx (int placey, int placex, int linesize, const void* data, int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
+		bool blit_bgrx (const void* data, int linesize, const struct ncvisual_options *vopts) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncplane_blit_bgrx (plane, placey, placex, linesize, NCBLIT_DEFAULT, data, begy, begx, leny, lenx) < 0;
+			bool ret = ncblit_bgrx (data, linesize, vopts) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
-		bool blit_rgba (int placey, int placex, int linesize, const void* data, int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
+		bool blit_rgba (const void* data, int linesize, const struct ncvisual_options *vopts) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncplane_blit_rgba (plane, placey, placex, linesize, NCBLIT_DEFAULT, data, begy, begx, leny, lenx) < 0;
+			bool ret = ncblit_rgba (data, linesize, vopts) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 

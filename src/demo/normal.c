@@ -173,7 +173,12 @@ int normal_demo(struct notcurses* nc){
         goto err;
       }
     }
-    if(ncplane_blit_rgba(nstd, 0, 0, dx * sizeof(*rgba), NCBLIT_DEFAULT, rgba, 0, 0, dy, dx) < 0){
+    struct ncvisual_options vopts = {
+      .n = nstd,
+      .leny = dy,
+      .lenx = dx,
+    };
+    if(ncblit_rgba(rgba, dx * sizeof(*rgba), &vopts) < 0){
       goto err;
     }
     if( (r = demo_render(nc)) ){
