@@ -57,14 +57,14 @@ int main(int argc, char** argv){
   ncplane_destroy(n);
   for(double i = 0 ; i < 256 ; ++i){
     sleep(1);
-    if(ncvisual_rotate(ncv, M_PI / 2)){
+    if(ncvisual_rotate(ncv, M_PI / ((i / 32) + 2))){
       failed = true;
       break;
     }
     int vy, vx;
     ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vy, &vx, &scaley, &scalex);
-    vopts.x = (dimx * scalex - vx) / 2;
-    vopts.y = (dimy * scaley - vy) / 2;
+    vopts.x = (dimx - (vx / scalex)) / 2;
+    vopts.y = (dimy - (vy / scaley)) / 2;
     struct ncplane* newn;
     if((newn = ncvisual_render(nc, ncv, &vopts)) == nullptr){
       failed = true;

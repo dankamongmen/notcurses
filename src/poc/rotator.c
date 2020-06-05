@@ -84,8 +84,8 @@ rotate_grad(struct notcurses* nc){
   for(int i = 0 ; i < 8 ; ++i){
     int vy, vx, scaley, scalex;
     ncvisual_geom(nc, v, NCBLIT_DEFAULT, &vy, &vx, &scaley, &scalex);
-    vopts.x = (dimx - vx) / 2;
-    vopts.y = (dimy * 2 - vy) / 2;
+    vopts.x = (dimx - (vx / scalex)) / 2;
+    vopts.y = (dimy - (vy / scaley)) / 2;
     if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 4)){
       return -1;
     }
