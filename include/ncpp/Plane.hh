@@ -166,12 +166,12 @@ namespace ncpp
 			return error_guard<int> (ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xlen), -1);
 		}
 
-		int high_gradient (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
+		int high_gradient (uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_highgradient (plane, ul, ur, ll, lr, ylen, xlen), -1);
 		}
 
-		int high_gradient_sized (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
+		int high_gradient_sized (uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_highgradient_sized (plane, ul, ur, ll, lr, ylen, xlen), -1);
 		}

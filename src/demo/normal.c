@@ -5,7 +5,7 @@
 static int
 rotate_plane(struct notcurses* nc, struct ncplane* n){
   struct timespec scaled;
-  timespec_div(&demodelay, 8, &scaled);
+  timespec_div(&demodelay, 2, &scaled);
   // we can't rotate a plane unless it has an even number of columns :/
   int nx;
   if((nx = ncplane_dim_x(n)) % 2){
@@ -26,7 +26,10 @@ rotate_plane(struct notcurses* nc, struct ncplane* n){
     ncplane_yx(n, &absy, &absx);
     ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
     DEMO_RENDER(nc);
+    timespec_mul(&scaled, 2, &scaled);
+    timespec_div(&scaled, 3, &scaled);
   }
+  timespec_div(&demodelay, 2, &scaled);
   for(int i = 0 ; i < 16 ; ++i){
     demo_nanosleep(nc, &scaled);
     int centy, centx;
@@ -40,6 +43,8 @@ rotate_plane(struct notcurses* nc, struct ncplane* n){
     ncplane_yx(n, &absy, &absx);
     ncplane_move_yx(n, absy + centy - cent2y, absx + centx - cent2x);
     DEMO_RENDER(nc);
+    timespec_mul(&scaled, 2, &scaled);
+    timespec_div(&scaled, 3, &scaled);
   }
   return 0;
 }
@@ -58,13 +63,13 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   n = notcurses_stddim_yx(nc, &dimy, &dimx);
   bool failed = false;
   const int ROTATIONS = 128;
-  timespec_div(&demodelay, ROTATIONS / 8, &scaled);
+  timespec_div(&demodelay, ROTATIONS, &scaled);
   struct ncvisual_options vopts = {
   };
   ncplane_erase(n);
   for(double i = 0 ; i < ROTATIONS ; ++i){
     demo_nanosleep(nc, &scaled);
-    if(ncvisual_rotate(ncv, M_PI / 2)){
+    if(ncvisual_rotate(ncv, -M_PI / 2)){
       failed = true;
       break;
     }

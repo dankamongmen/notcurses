@@ -48,15 +48,11 @@ int allglyphs_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_erase(n);
   ncplane_cursor_move_yx(n, 0, 0);
-  uint64_t tl = 0, tr = 0, bl = 0, br = 0;
-  channels_set_fg_rgb(&tl, 0, 0, 0);
-  channels_set_fg_rgb(&tr, 0, 0xff, 0);
-  channels_set_fg_rgb(&bl, 0, 0, 0xff);
-  channels_set_fg_rgb(&br, 0, 0xff, 0xff);
-  channels_set_bg_rgb(&tl, 0, 0, 0);
-  channels_set_bg_rgb(&tr, 0, 0xff, 0);
-  channels_set_bg_rgb(&bl, 0, 0, 0xff);
-  channels_set_bg_rgb(&br, 0, 0xff, 0xff);
+  uint32_t tl = 0, tr = 0, bl = 0, br = 0;
+  channel_set_rgb(&tl, 0, 0, 0);
+  channel_set_rgb(&tr, 0, 0xff, 0);
+  channel_set_rgb(&bl, 0, 0, 0xff);
+  channel_set_rgb(&br, 0, 0xff, 0xff);
   if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) < 0){
     return -1;
   }

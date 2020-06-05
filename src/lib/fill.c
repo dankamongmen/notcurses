@@ -111,8 +111,8 @@ check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
 // calculate both channels of a gradient at a particular point, knowing that
 // we're using double halfblocks, into `c`->channels.
 static inline void
-calc_highgradient(cell* c, uint64_t ul, uint64_t ur, uint64_t ll,
-                  uint64_t lr, int y, int x, int ylen, int xlen){
+calc_highgradient(cell* c, uint32_t ul, uint32_t ur, uint32_t ll,
+                  uint32_t lr, int y, int x, int ylen, int xlen){
   if(!channel_default_p(ul)){
     cell_set_fchannel(c, calc_gradient_channel(ul, ur, ll, lr,
                                                y * 2, x, ylen, xlen));

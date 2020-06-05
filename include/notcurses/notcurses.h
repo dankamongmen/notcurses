@@ -1625,8 +1625,8 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
 }
 
 static inline int
-ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur,
-                           uint64_t ll, uint64_t lr, int ylen, int xlen){
+ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
+                           uint32_t ll, uint32_t lr, int ylen, int xlen){
   if(ylen < 1 || xlen < 1){
     return -1;
   }
