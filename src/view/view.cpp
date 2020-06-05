@@ -220,7 +220,6 @@ auto main(int argc, char** argv) -> int {
       vopts.n = *stdn;
       vopts.scaling = scalemode;
       vopts.blitter = blitter;
-      vopts.flags = NCVISUAL_OPTION_MAYDEGRADE;
       int r = ncv->stream(&vopts, &err, timescale, perframe, &frames);
       if(r < 0){ // positive is intentional abort
         std::cerr << "Error decoding " << argv[i] << ": " << nc_strerror(err) << std::endl;

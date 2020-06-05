@@ -2166,8 +2166,8 @@ API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
 // transformation, unless the size is unchanged.
 API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
 
-#define NCVISUAL_OPTION_MAYDEGRADE 0x0001 // blitter can be worse than requested
-#define NCVISUAL_OPTION_BLEND      0x0002 // use CELL_ALPHA_BLEND with visual
+#define NCVISUAL_OPTION_NODEGRADE 0x0001 // fail rather than degrading
+#define NCVISUAL_OPTION_BLEND     0x0002 // use CELL_ALPHA_BLEND with visual
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
@@ -2745,7 +2745,7 @@ API int ncmenu_destroy(struct ncmenu* n);
 #define NCPLOT_OPTION_LABELTICKSD  0x0001 // show labels for dependent axis
 #define NCPLOT_OPTION_EXPONENTIALD 0x0002 // exponential dependent axis
 #define NCPLOT_OPTION_VERTICALI    0x0004 // independent axis is vertical
-#define NCPLOT_OPTION_MAYDEGRADE   0x0008 // blitter can be worse than requested
+#define NCPLOT_OPTION_NODEGRADE    0x0008 // fail rather than degrade blitter
 
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear interpolation will be

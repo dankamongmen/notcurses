@@ -38,7 +38,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   }
   int vheight, yscale;
   int vwidth, xscale;
-  if(ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vheight, &vwidth, &yscale, &xscale)){
+  if(ncvisual_geom(nc, ncv, NCBLIT_2x2, &vheight, &vwidth, &yscale, &xscale)){
     ncvisual_destroy(ncv);
     return NULL;
   }
@@ -68,6 +68,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
     .y = 1,
     .n = zncp,
     .scaling = NCSCALE_STRETCH,
+    .blitter = NCBLIT_2x2,
   };
   if(ncvisual_render(nc, ncv, &vopts) == NULL || (*ret = demo_render(nc))){
     ncvisual_destroy(ncv);

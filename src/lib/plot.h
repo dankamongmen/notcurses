@@ -32,10 +32,7 @@ class ncppplot {
        blitter = NCBLIT_1x1;
      }
    }
-   bool degrade_blitter = true;
-   if(opts && !(opts->flags & NCPLOT_OPTION_MAYDEGRADE)){
-     degrade_blitter = false;
-   }
+   bool degrade_blitter = !(opts && (opts->flags & NCPLOT_OPTION_NODEGRADE));
    auto bset = lookup_blitset(ncplane_notcurses(n), blitter, degrade_blitter);
    if(bset == nullptr){
      return false;

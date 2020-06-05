@@ -28,8 +28,8 @@ typedef enum {
   NCBLIT_SIXEL,  // six rows, 1 column (RGB)
 } ncblitter_e;
 
-#define NCVISUAL_OPTION_MAYDEGRADE 0x0001
-#define NCVISUAL_OPTION_BLEND      0x0002
+#define NCVISUAL_OPTION_NODEGRADE 0x0001
+#define NCVISUAL_OPTION_BLEND     0x0002
 
 struct ncvisual_options {
   struct ncplane* n;
@@ -109,6 +109,17 @@ in the future.
 **ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to
 the current frame if such a subtitle was decoded. Note that a subtitle might
 be returned for multiple frames, or might not.
+
+**ncvisual_render** blits the visual to an **ncplane**, based on the contents
+of its **struct ncvisual_options**. If **n** is not **NULL**, it specifies the
+plane on which to render, and **y**/**x** specify a location within that plane.
+Otherwise, a new plane will be created, and placed at **y**/**x** relative to
+the rendering area. **begy**/**begx** specify the upper left corner of a
+subsection of the **ncvisual** to render, while **leny**/**lenx** specify the
+geometry of same. **flags** is a bitfield over:
+
+* **NCVISUAL_OPTION_NODEGRADE** If the specified blitter is not available, fail rather than degrading.
+* **NCVISUAL_OPTION_BLEND**: Render with **CELL_ALPHA_BLEND**.
 
 # BLITTERS
 

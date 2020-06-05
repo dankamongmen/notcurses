@@ -459,7 +459,7 @@ int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* v
   if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
     return -1;
   }
-  const bool degrade = (vopts->flags & NCVISUAL_OPTION_MAYDEGRADE);
+  const bool degrade = !(vopts->flags & NCVISUAL_OPTION_NODEGRADE);
   const struct blitset* bset = lookup_blitset(nc->nc, vopts->blitter, degrade);
   if(bset == NULL){
     return -1;
@@ -485,7 +485,7 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
   if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
     return -1;
   }
-  const bool degrade = (vopts->flags & NCVISUAL_OPTION_MAYDEGRADE);
+  const bool degrade = !(vopts->flags & NCVISUAL_OPTION_NODEGRADE);
   const struct blitset* bset = lookup_blitset(nc->nc, vopts->blitter, degrade);
   if(bset == NULL){
     return -1;

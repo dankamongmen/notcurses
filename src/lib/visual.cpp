@@ -65,7 +65,7 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n, ncblitter_e blitter,
 static const struct blitset*
 rgba_blitter(const notcurses* nc, const struct ncvisual_options* opts){
   const struct blitset* bset;
-  const bool maydegrade = !opts || (opts->flags & NCVISUAL_OPTION_MAYDEGRADE);
+  const bool maydegrade = !(opts && (opts->flags & NCVISUAL_OPTION_NODEGRADE));
   if(opts && opts->blitter != NCBLIT_DEFAULT){
     bset = lookup_blitset(nc, opts->blitter, maydegrade);
   }else{

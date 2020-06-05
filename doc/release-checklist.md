@@ -15,12 +15,12 @@
   * Finalize Debian changelog with `dch -r`
   * Repack DFSG-safe tarball with uscan, upload to github
     * `uscan --repack --compression xz --force`
-    * `gpg --sign --armor --detach-sign notcurses_$VERSION+dfsg.1.orig.tar.xz`
+    * `gpg --sign --armor --detach-sign ../notcurses_$VERSION+dfsg.1.orig.tar.xz`
     * sign, upload dfsg+sig to github
     * import new version: `gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz`
     * `git push --tags`
     * build source package: `dpkg-buildpackage --build=source`
-    * build binaries: `cd .. && sudo pbuilder build *dsc`
+    * build binaries: `cd .. && export TERM=xterm-256color && sudo pbuilder build *dsc`
         * perform this in xterm with TERM=xterm-256color
         * beware: freak TERMs won't be present in pbuilder
 * Copy `../*notcurses*$VERSION*` to apt repo, import with `reprepro`
