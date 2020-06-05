@@ -68,21 +68,21 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
       failed = true;
       break;
     }
-    int vy, vx, vyscale;
-    ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vy, &vx, &vyscale, NULL);
+    int vy, vx, vyscale, vxscale;
+    ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vy, &vx, &vyscale, &vxscale);
+    vopts.x = (dimx - (vx / vxscale)) / 2;
+    vopts.y = (dimy - (vy / vyscale)) / 2;
     struct ncplane* newn;
     if((newn = ncvisual_render(nc, ncv, &vopts)) == NULL){
       failed = true;
       break;
     }
-    ncplane_move_yx(newn, (dimy - (vy / vyscale)) / 2, (dimx - vx) / 2);
-    vopts.n = newn;
     if(notcurses_render(nc)){
       failed = true;
       break;
     }
+    ncplane_destroy(newn);
   }
-  ncplane_destroy(vopts.n);
   ncvisual_destroy(ncv);
   return failed ? -1 : 0;
 }
