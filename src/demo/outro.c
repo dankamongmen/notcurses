@@ -5,15 +5,15 @@ static int y;
 static int targy;
 static int xstart;
 static struct ncplane* on;
-static struct ncvisual* chncv;
+struct ncvisual_options vopts;
 
 // called in the context of the ncvisual streamer of samoa.avi
 static int
 perframe(struct ncvisual* ncv __attribute__ ((unused)),
-         struct ncvisual_options* vopts,
+         struct ncvisual_options* ovopts,
          const struct timespec* abstime, void* vthree){
   int* three = vthree; // move up one every three callbacks
-  DEMO_RENDER(ncplane_notcurses(vopts->n));
+  DEMO_RENDER(ncplane_notcurses(ovopts->n));
   if(y < targy){
     return 0;
   }
@@ -38,27 +38,26 @@ videothread(void* vnc){
   }
   int rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
-  struct ncvisual_options vopts = {
+  struct ncvisual_options ovopts = {
     .scaling = NCSCALE_STRETCH,
+    .n = ncp,
   };
   int three = 3;
-  if((vopts.n = ncvisual_render(nc, ncv, &vopts)) == NULL){
+  if(ncvisual_render(nc, ncv, &ovopts) == NULL){
     return NULL;
   }
-  ncplane_move_below(vopts.n, ncp);
   struct timespec fade;
   timespec_mul(&demodelay, 2, &fade);
   demo_render(nc);
-  ncplane_fadeout(ncp, &fade, demo_fader, NULL);
-  ncvisual_destroy(chncv);
+  ncplane_fadeout(vopts.n, &fade, demo_fader, NULL);
+  ncplane_destroy(vopts.n);
   struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
       "Apia 🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
-  int canceled = ncvisual_stream(nc, ncv, &err, delaymultiplier, perframe, &vopts, &three);
+  int canceled = ncvisual_stream(nc, ncv, &err, delaymultiplier, perframe, &ovopts, &three);
   ncvisual_destroy(ncv);
-  ncplane_erase(ncp);
   ncplane_destroy(apiap);
   if(canceled == 1){
     return PTHREAD_CANCELED;
@@ -110,7 +109,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   if(ncplane_set_bg_rgb(non, 0, 180, 180)){
     return NULL;
   }
-  if(ncplane_set_bg_alpha(non, CELL_ALPHA_OPAQUE)){ // FIXME use intermediate
+  if(ncplane_set_bg_alpha(non, CELL_ALPHA_BLEND)){
     return NULL;
   }
   ncplane_styles_on(non, NCSTYLE_BOLD);
@@ -138,6 +137,7 @@ int outro(struct notcurses* nc){
   int rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   ncplane_erase(ncp);
+  struct ncvisual* chncv = NULL;
   if(notcurses_canopen_images(nc)){
     nc_err_e err = 0;
     char* path = find_data("changes.jpg");
@@ -146,12 +146,9 @@ int outro(struct notcurses* nc){
     if(chncv == NULL){
       return -1;
     }
-    struct ncvisual_options vopts = {
-      .n = ncp,
-      .scaling = NCSCALE_STRETCH,
-      .flags = NCVISUAL_OPTION_BLEND,
-    };
-    if(ncvisual_render(nc, chncv, &vopts) == NULL){
+    vopts.scaling = NCSCALE_STRETCH;
+    vopts.flags = NCVISUAL_OPTION_BLEND;
+    if((vopts.n = ncvisual_render(nc, chncv, &vopts)) == NULL){
       ncvisual_destroy(chncv);
       return -1;
     }
@@ -180,5 +177,6 @@ int outro(struct notcurses* nc){
   // video) or is sitting at the bottom (if we didn't).
   ncplane_fadeout(on, &demodelay, demo_fader, NULL);
   ncplane_destroy(on);
+  ncvisual_destroy(chncv);
   return on ? 0 : -1;
 }
