@@ -272,6 +272,7 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
 }
 
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
+  // done to force conversion into RGBA
   nc_err_e err = ncvisual_resize(ncv, ncv->rows, ncv->cols);
   if(err != NCERR_SUCCESS){
     return err;
@@ -329,7 +330,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
   ncv->cols = bbx;
   ncv->rows = bby;
   ncv->rowstride = bbx * 4;
-  //ncplane_erase(ncv->ncp);
+  ncvisual_details_seed(ncv);
   return NCERR_SUCCESS;
 }
 
