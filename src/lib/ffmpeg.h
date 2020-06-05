@@ -38,7 +38,7 @@ typedef struct ncvisual_details {
   struct AVCodecParameters* cparams;
   struct AVCodec* subtcodec;
   struct AVPacket* packet;
-  //struct SwsContext* swsctx;
+  struct SwsContext* swsctx;
   AVSubtitle subtitle;
   int stream_index;        // match against this following av_read_frame()
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
@@ -62,7 +62,7 @@ ncvisual_details_destroy(ncvisual_details* deets) -> void {
   av_frame_free(&deets->frame);
   av_freep(&deets->oframe);
   //avcodec_parameters_free(&ncv->cparams);
-  //sws_freeContext(deets->swsctx);
+  sws_freeContext(deets->swsctx);
   av_packet_free(&deets->packet);
   avformat_close_input(&deets->fmtctx);
   avsubtitle_free(&deets->subtitle);

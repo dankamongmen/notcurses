@@ -170,14 +170,15 @@ nc_err_e ncvisual_decode(ncvisual* nc){
 
 // resize frame to oframe, converting to RGBA (if necessary) along the way
 nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
-  if(nc->details.oframe){
+  const int targformat = AV_PIX_FMT_RGBA;
+  AVFrame* inf = nc->details.oframe ? nc->details.oframe : nc->details.frame;
+//fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inf->format, nc->rows, nc->cols, targformat, rows, cols);
+  if(inf->format == targformat && nc->rows == rows && nc->cols == cols){
     return NCERR_SUCCESS;
   }
-  const int targformat = AV_PIX_FMT_RGBA;
-//fprintf(stderr, "got format: %d want format: %d\n", nc->details.frame->format, targformat);
-  auto swsctx = sws_getContext(nc->details.frame->width,
-                               nc->details.frame->height,
-                               static_cast<AVPixelFormat>(nc->details.frame->format),
+  auto swsctx = sws_getContext(inf->width,
+                               inf->height,
+                               static_cast<AVPixelFormat>(inf->format),
                                cols, rows,
                                static_cast<AVPixelFormat>(targformat),
                                SWS_LANCZOS, nullptr, nullptr, nullptr);
@@ -185,42 +186,56 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
     //fprintf(stderr, "Error retrieving swsctx\n");
     return NCERR_NOMEM;
   }
-  if((nc->details.oframe = av_frame_alloc()) == nullptr){
+  AVFrame* sframe;
+  if((sframe = av_frame_alloc()) == nullptr){
     // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
+    sws_freeContext(swsctx);
     return NCERR_NOMEM; // no need to free swsctx
   }
-  memcpy(nc->details.oframe, nc->details.frame, sizeof(*nc->details.oframe));
-  nc->details.oframe->format = targformat;
-  nc->details.oframe->width = cols;
-  nc->details.oframe->height = rows;
-//fprintf(stderr, "SIZE DECODED: %d %d (%d) (want %d %d)\n", nc->rows, nc->cols, nc->details.frame->linesize[0], rows, cols);
-  int size = av_image_alloc(nc->details.oframe->data, nc->details.oframe->linesize,
-                            nc->details.oframe->width, nc->details.oframe->height,
-                            static_cast<AVPixelFormat>(nc->details.oframe->format),
+  memcpy(sframe, inf, sizeof(*sframe));
+  sframe->format = targformat;
+  sframe->width = cols;
+  sframe->height = rows;
+//fprintf(stderr, "SIZE DECODED: %d %d (%d) (want %d %d)\n", nc->rows, nc->cols, inf->linesize[0], rows, cols);
+  int size = av_image_alloc(sframe->data, sframe->linesize,
+                            sframe->width, sframe->height,
+                            static_cast<AVPixelFormat>(sframe->format),
                             IMGALLOCALIGN);
   if(size < 0){
 //fprintf(stderr, "Error allocating visual data (%d)\n", size);
+    av_freep(&sframe);
+    sws_freeContext(swsctx);
     return NCERR_NOMEM;
   }
-  int height = sws_scale(swsctx, nc->details.frame->data,
-                         nc->details.frame->linesize, 0,
-                         nc->details.frame->height, nc->details.oframe->data,
-                         nc->details.oframe->linesize);
+  int height = sws_scale(swsctx, inf->data,
+                         inf->linesize, 0,
+                         inf->height, sframe->data,
+                         sframe->linesize);
   sws_freeContext(swsctx);
   if(height < 0){
     //fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(height));
+    av_freep(sframe->data);
+    av_freep(&sframe);
     return NCERR_DECODE;
   }
-  const AVFrame* f = nc->details.oframe;
+  const AVFrame* f = sframe;
   int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(static_cast<AVPixelFormat>(f->format)));
   if(bpp != 32){
 //fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
-	  return NCERR_DECODE;
+    av_freep(sframe->data);
+    av_freep(&sframe);
+    return NCERR_DECODE;
   }
-  nc->rowstride = nc->details.oframe->linesize[0];
+  nc->rowstride = sframe->linesize[0];
   nc->rows = rows;
   nc->cols = cols;
-  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(nc->details.oframe->data[0]), true);
+  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(sframe->data[0]), true);
+  if(nc->details.oframe){
+    //av_freep(nc->details.oframe->data);
+    av_freep(&nc->details.oframe);
+  }
+  nc->details.oframe = sframe;
+
 //fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", nc->details.oframe->height, nc->details.oframe->width, nc->details.oframe->linesize[0]);
   return NCERR_SUCCESS;
 }
@@ -396,6 +411,7 @@ nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                        int begy, int begx, int leny, int lenx,
                        bool blendcolors) {
   const AVFrame* inframe = ncv->details.oframe ? ncv->details.oframe : ncv->details.frame;
+//fprintf(stderr, "inframe: %p oframe: %p frame: %p\n", inframe, ncv->details.oframe, ncv->details.frame);
   void* data = nullptr;
   int stride = 0;
   AVFrame* sframe = nullptr;
