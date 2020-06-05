@@ -99,7 +99,6 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   clock_gettime(CLOCK_MONOTONIC, &interval);
   uint64_t nsnow = timespec_to_ns(&interval);
   uint64_t absnow = timespec_to_ns(abstime);
-  bool paused = false;
   if(absnow > nsnow){
     ns_to_timespec(absnow - nsnow, &interval);
     char32_t keyp;

@@ -40,8 +40,8 @@ TEST_CASE("Fills") {
     REQUIRE(nullptr != pfn);
     CHECK(16 == ncplane_polyfill_yx(pfn, 0, 0, &c));
     CHECK(0 < ncplane_putc_yx(pfn, 0, 0, &c));
-    // Trying to fill the origin ought fill zero cells
-    CHECK(0 == ncplane_polyfill_yx(pfn, 0, 0, &c));
+    // Trying to fill the origin ought now be rejected
+    CHECK(0 > ncplane_polyfill_yx(pfn, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(pfn));
   }

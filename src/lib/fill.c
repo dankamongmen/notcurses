@@ -20,7 +20,7 @@ void ncplane_greyscale(ncplane *n){
 // success. so a return of 0 means there's no work to be done here, and N means
 // we did some work here, filling everything we could reach. out-of-plane is 0.
 static int
-ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c){
+ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c, const char* targ){
   if(y >= n->leny || x >= n->lenx){
     return 0; // not fillable
   }
@@ -28,26 +28,29 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c){
     return 0; // not fillable
   }
   cell* cur = &n->fb[nfbcellidx(n, y, x)];
-  if(cur->gcluster){
-    return 0; // glyph, not polyfillable
+  char* glust = cell_strdup(n, cur);
+  if(strcmp(glust, targ)){
+    free(glust);
+    return 0;
   }
+  free(glust);
   if(cell_duplicate(n, cur, c) < 0){
     return -1;
   }
   int r, ret = 1;
-  if((r = ncplane_polyfill_recurse(n, y - 1, x, c)) < 0){
+  if((r = ncplane_polyfill_recurse(n, y - 1, x, c, targ)) < 0){
     return -1;
   }
   ret += r;
-  if((r = ncplane_polyfill_recurse(n, y + 1, x, c)) < 0){
+  if((r = ncplane_polyfill_recurse(n, y + 1, x, c, targ)) < 0){
     return -1;
   }
   ret += r;
-  if((r = ncplane_polyfill_recurse(n, y, x - 1, c)) < 0){
+  if((r = ncplane_polyfill_recurse(n, y, x - 1, c, targ)) < 0){
     return -1;
   }
   ret += r;
-  if((r = ncplane_polyfill_recurse(n, y, x + 1, c)) < 0){
+  if((r = ncplane_polyfill_recurse(n, y, x + 1, c, targ)) < 0){
     return -1;
   }
   ret += r;
@@ -57,11 +60,25 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c){
 // at the initial step only, invalid y, x is an error, so explicitly check.
 int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
   int ret = -1;
-  if(c->gcluster){ // can't polyfill with a null EGC
-    if(y < n->leny && x < n->lenx){
-      if(y >= 0 && x >= 0){
-        ret = ncplane_polyfill_recurse(n, y, x, c);
+  if(y < n->leny && x < n->lenx){
+    if(y >= 0 && x >= 0){
+      if(y >= n->leny || x >= n->lenx){
+        return -1; // not fillable
       }
+      if(y < 0 || x < 0){
+        return -1; // not fillable
+      }
+      cell* cur = &n->fb[nfbcellidx(n, y, x)];
+      char* targ = cell_strdup(n, cur);
+      char* fillegc = cell_strdup(n, c);
+      if(strcmp(fillegc, targ) == 0){
+        free(targ);
+        free(fillegc);
+        return 0;
+      }
+      free(fillegc);
+      ret = ncplane_polyfill_recurse(n, y, x, c, targ);
+      free(targ);
     }
   }
   return ret;

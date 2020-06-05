@@ -22,17 +22,18 @@ a way that is going to prevent notcurses from working.
 
 The demonstrations include (see NOTES below):
 
-* (i)ntro—a setting of tone
+* (a)ll—scroll all the glyphs of your font
 * (b)oxes—pulsating boxes with a transparent center
 * (c)hunli—the strongest woman in the world
 * (e)agle—they took some time off my life, back in the day
-* (a)ll—scroll all the glyphs of your font
 * (f)allin'—the screen falls apart under heavy blows
 * (g)rid—a gradient of color lain atop a great grid
 * (h)ighcon—high contrast text atop various colors
+* (i)ntro—a setting of tone
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi—a dashing Apennine plumber in a world of fire
 * (n)ormal—a normal map of a friend, with effects
+* (o)utro—a message of hope from the library's author
 * (q)rcode—quick response codes (from ISO/IEC 18004:2015)
 * (r)eel—demonstration of the ncreel high-level widget
 * (s)liders—a missing-piece puzzle made up of colorful blocks
@@ -41,7 +42,7 @@ The demonstrations include (see NOTES below):
 * (v)iew—images and a video are rendered as text
 * (w)hiteout—a great Nothing slowly robs the world of color
 * (x)ray—stimulate a logo with energy
-* (o)utro—a message of hope from the library's author
+* (y)ield—the best laid schemes o' mice an'men gang aft agley
 
 At any time, press 'q' to quit. The demo is best run in at least an 80x45 terminal.
 
@@ -70,7 +71,7 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 **-V**: Print the program name and version, and exit with success.
 
 demospec: Select which demos to run, and what order to run them in. The
-default is **ixeathnbcgrwuvlsfjqo**. See above for a list of demos.
+default is **ixeaythnbcgrwuvlsfjqo**. See above for a list of demos.
 
 Default margins are all 0, and thus the full screen will be rendered. Using
 **-m**, margins can be supplied. Provide a single number to set all four margins
@@ -91,7 +92,7 @@ non-free under the Debian Free Software Guidelines. As a result, the
 are unavailable through the Debian package.
 
 If notcurses is built without multimedia support, the **chunli**, **eagle**,
-**outro**, **view**, and **xray** demos will be partially or wholly
+**outro**, **view**, **xray**, and **yield** demos will be partially or wholly
 unavailable. If notcurses is built without libqrcodegen, the **qrcode** demo
 will be unavailable.
 

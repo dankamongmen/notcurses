@@ -420,6 +420,8 @@ up someday **FIXME**.
     make the Internet great. It probably violates any number of copyrights. C'est la vie.
 * Mark Ferrari, master of the pixel, for no good reason allowed me to reproduce
     his incredible and groundbreaking color-cycling artwork. Thanks Mark!
+* The world map image was made by [Vecteezy](https://www.vecteezy.com/free-vector/world-map),
+    and is used according to the terms of their License.
 * Finally, the [demoscene](https://en.wikipedia.org/wiki/Demoscene) and general
     l33t scene of the 90s and early twenty-first century endlessly inspired a
     young hax0r. There is great joy in computing; no one will drive us from

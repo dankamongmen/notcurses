@@ -1574,11 +1574,11 @@ ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
   return ncplane_box_sized(n, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword);
 }
 
-// Starting at the specified coordinate, if it has no glyph, 'c' is copied into
-// it. We do the same to all cardinally-connected glyphless cells, filling in
-// everything behind a boundary. Returns the number of cells polyfilled. An
-// invalid initial y, x is an error. Returns the number of cells filled, or
-// -1 on error.
+// Starting at the specified coordinate, if its glyph is different from that of
+// 'c', 'c' is copied into it, and the original glyph is considered the fill
+// target. We do the same to all cardinally-connected cells having this same
+// fill target. Returns the number of cells polyfilled. An invalid initial y, x
+// is an error. Returns the number of cells filled, or -1 on error.
 API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 
 // Draw a gradient with its upper-left corner at the current cursor position,
