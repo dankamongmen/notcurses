@@ -99,16 +99,25 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   clock_gettime(CLOCK_MONOTONIC, &interval);
   uint64_t nsnow = timespec_to_ns(&interval);
   uint64_t absnow = timespec_to_ns(abstime);
+  bool paused = false;
   if(absnow > nsnow){
     ns_to_timespec(absnow - nsnow, &interval);
     char32_t keyp;
     while((keyp = nc.getc(&interval, nullptr, nullptr)) != (char32_t)-1){
+      if(keyp == ' '){
+        if((keyp = nc.getc(true)) == (char32_t)-1){
+          return -1;
+        }
+      }
+      // if we just hit a non-space character to unpause, interpret it
+      if(keyp == ' '){ // space for unpause
+        continue;
+      }
       if(keyp == NCKEY_RESIZE){
         return 0;
-      }
-      if(keyp >= '0' && keyp <= '8'){ // FIXME eliminate ctrl/alt
+      }else if(keyp >= '0' && keyp <= '8'){ // FIXME eliminate ctrl/alt
         vopts->blitter = static_cast<ncblitter_e>(keyp - '0');
-        return 0;
+        continue;
       }
       return 1;
     }

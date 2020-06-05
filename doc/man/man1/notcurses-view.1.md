@@ -44,6 +44,9 @@ Blitters can be selected by pressing '0' through '8'. **NCBLIT_DEFAULT**
 corresponds to '0'. The various blitters are described in
 **notcurses_visual**.
 
+A video can be paused with space. Press space (or any other valid control)
+to unpause.
+
 # NOTES
 
 Optimal display requires a terminal advertising the **rgb** terminfo(5)
