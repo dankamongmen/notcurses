@@ -661,9 +661,6 @@ init_banner(const notcurses* nc){
            bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
            nc->tcache.colors, nc->tcache.RGBflag ? "direct" : "palette",
            __VERSION__, curses_version());
-#ifdef USE_SIXEL
-    printf("  libsixel " LIBSIXEL_VERSION "\n");
-#endif
 #ifdef USE_FFMPEG
     printf("  avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,

@@ -20,10 +20,6 @@ const char* oiio_version(void);
 #endif
 #endif
 
-#ifdef USE_SIXEL
-#include <sixel/sixel.h>
-#endif
-
 #include <term.h>
 #include <time.h>
 #include <stdio.h>

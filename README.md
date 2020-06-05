@@ -111,7 +111,6 @@ that fine library.
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.15.0+
-* (OPTIONAL) (build+runtime) [libsixel](https://saitoha.github.io/libsixel/) 1.8.5+
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+
@@ -153,7 +152,6 @@ but must be `Debug` for use of `USE_COVERAGE`.
                 Software Guidelines.
 * `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none.
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
-* `USE_SIXEL`: build Sixel support via libsixel
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
 * `USE_PYTHON`: build the Python wrappers
@@ -305,7 +303,7 @@ up someday **FIXME**.
 * *Q:* Why didn't you just use Sixel?
 * *A:* Many terminal emulators don't support Sixel. Sixel doesn't work well
        with mouse selection. With that said, I do intend to support Sixel soon,
-       as a backend, when available, for certain types of drawing.
+       as a backend, when available, for certain types of drawing (see [issue #200](https://github.com/dankamongmen/notcurses/issues/200)).
 
 * *Q:* I'm not seeing `NCKEY_RESIZE` until I press some other key.
 * *A:* You've almost certainly failed to mask `SIGWINCH` in some thread, and
@@ -351,6 +349,7 @@ up someday **FIXME**.
 * [The TTY demystified](http://www.linusakesson.net/programming/tty/)
 * [Dark Corners of Unicode](https://eev.ee/blog/2015/09/12/dark-corners-of-unicode/)
 * [UTF-8 Decoder Capability and Stress Test](https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt)
+* [Emoji: how do you get from U+1F355 to 🍕?](https://meowni.ca/posts/emoji-emoji-emoji/)
 
 #### Useful man pages
 * Linux: [console_codes(4)](http://man7.org/linux/man-pages/man4/console_codes.4.html)
