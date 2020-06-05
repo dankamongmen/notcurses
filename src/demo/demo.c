@@ -148,6 +148,7 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     results[i].selector = spec[i];
   }
+  struct ncplane* n = notcurses_stdplane(nc);
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     if(interrupted){
       break;
@@ -158,6 +159,15 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
       continue;
     }
 #endif
+    // set the standard plane's base character to an opaque black, but don't
+    // erase the plane (we let one demo bleed through to the next, an effect
+    // we exploit in a few transitions).
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    cell_set_fg_rgb(&c, 0, 0, 0);
+    cell_set_bg_rgb(&c, 0, 0, 0);
+    ncplane_set_base_cell(n, &c);
+    cell_release(n, &c);
+
     hud_schedule(demos[idx].name);
     ret = demos[idx].fxn(nc);
     notcurses_reset_stats(nc, &results[i].stats);
