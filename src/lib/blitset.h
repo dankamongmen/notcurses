@@ -5,6 +5,10 @@
 
 static inline const struct blitset*
 lookup_blitset(const struct notcurses* nc, ncblitter_e setid, bool may_degrade) {
+  if(setid == NCBLIT_DEFAULT){
+    setid = NCBLIT_2x1;
+    may_degrade = true;
+  }
   // the only viable blitter in ASCII is NCBLIT_1x1
   if(!notcurses_canutf8(nc) && setid != NCBLIT_1x1){
     if(may_degrade){

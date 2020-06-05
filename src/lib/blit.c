@@ -447,26 +447,26 @@ const struct blitset notcurses_blitters[] = {
 // from the upper left by 'placey' and 'placex'. Each row ought occupy
 // 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
 // subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
-int ncblit_bgrx(ncplane* nc, int placey, int placex,
-                int linesize, const void* data, int begy, int begx, int leny,
-                int lenx){
-  if(!nc->nc->utf8){
-    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx,
-                           leny, lenx, true, false);
+int ncplane_blit_bgrx(ncplane* nc, int placey, int placex, int linesize,
+                      ncblitter_e blitter, const void* data,
+                      int begy, int begx, int leny, int lenx){
+  const struct blitset* bset = lookup_blitset(ncplane_notcurses(nc), blitter, true);
+  if(bset == NULL){
+    return -1;
   }
-  return tria_blit(nc, placey, placex, linesize, data, begy, begx,
-                   leny, lenx, true, false);
+  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
+                    leny, lenx, true, false);
 }
 
-int ncblit_rgba(ncplane* nc, int placey, int placex,
-                int linesize, const void* data, int begy, int begx, int leny,
-                int lenx){
-  if(!nc->nc->utf8){
-    return tria_blit_ascii(nc, placey, placex, linesize, data, begy, begx,
-                           leny, lenx, false, false);
+int ncplane_blit_rgba(ncplane* nc, int placey, int placex, int linesize,
+                      ncblitter_e blitter, const void* data,
+                      int begy, int begx, int leny, int lenx){
+  const struct blitset* bset = lookup_blitset(ncplane_notcurses(nc), blitter, true);
+  if(bset == NULL){
+    return -1;
   }
-  return tria_blit(nc, placey, placex, linesize, data, begy, begx,
-                   leny, lenx, false, false);
+  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
+                    leny, lenx, false, false);
 }
 
 int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,

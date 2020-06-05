@@ -100,6 +100,7 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
     nc->rowstride = cols * 4;
     ncvisual_set_data(nc, static_cast<uint32_t*>(ibuf->localpixels()), false);
 //fprintf(stderr, "HAVE SOME NEW DATA: %p\n", ibuf->localpixels());
+    nc->details.ibuf = std::move(ibuf);
   }
   return NCERR_SUCCESS;
 }

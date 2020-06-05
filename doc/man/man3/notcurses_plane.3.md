@@ -128,9 +128,9 @@ notcurses_plane - operations on ncplanes
 
 **void ncplane_greyscale(struct ncplane* n);**
 
-**int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
+**int ncplane_blit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, ncblitter_e blitter, const unsigned char* data, int begy, int begx, int leny, int lenx);**
 
-**int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize, const unsigned char* data, int begy, int begx, int leny, int lenx);**
+**int ncplane_blit_rgba(struct ncplane* nc, int placey, int placex, int linesize, ncblitter_e blitter, const unsigned char* data, int begy, int begx, int leny, int lenx);**
 
 **int ncplane_destroy(struct ncplane* ncp);**
 

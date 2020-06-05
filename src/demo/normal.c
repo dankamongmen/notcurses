@@ -53,21 +53,27 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
     ncvisual_destroy(ncv);
     return -1;
   }
-  ncplane_erase(n);
+  ncplane_destroy(n);
+  int dimy, dimx;
+  n = notcurses_stddim_yx(nc, &dimy, &dimx);
   bool failed = false;
   const int ROTATIONS = 128;
-  timespec_div(&demodelay, ROTATIONS, &scaled);
+  timespec_div(&demodelay, ROTATIONS / 8, &scaled);
   struct ncvisual_options vopts = {
-    .n = n,
   };
+  ncplane_erase(n);
   for(double i = 0 ; i < ROTATIONS ; ++i){
     demo_nanosleep(nc, &scaled);
-    if(ncvisual_rotate(ncv, M_PI / 16)){
+    if(ncvisual_rotate(ncv, M_PI / 2)){
       failed = true;
       break;
     }
-    ncplane_cursor_move_yx(n, 0, 0);
-    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    int vy, vx, vyscale, vxscale;
+    ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vy, &vx, &vyscale, &vxscale);
+    vopts.x = (dimx - (vx / vxscale)) / 2;
+    vopts.y = (dimy - (vy / vyscale)) / 2;
+    struct ncplane* newn;
+    if((newn = ncvisual_render(nc, ncv, &vopts)) == NULL){
       failed = true;
       break;
     }
@@ -75,6 +81,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
       failed = true;
       break;
     }
+    ncplane_destroy(newn);
   }
   ncvisual_destroy(ncv);
   return failed ? -1 : 0;
@@ -117,7 +124,7 @@ int normal_demo(struct notcurses* nc){
   int r = -1;
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
   ncplane_erase(nstd);
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  cell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_rgb(&c, 0xff, 0xff, 0xff);
   cell_set_bg_rgb(&c, 0xff, 0xff, 0xff);
   ncplane_set_base_cell(nstd, &c);
@@ -151,7 +158,7 @@ int normal_demo(struct notcurses* nc){
         goto err;
       }
     }
-    if(ncblit_rgba(nstd, 0, 0, dx * sizeof(*rgba), rgba, 0, 0, dy, dx) < 0){
+    if(ncplane_blit_rgba(nstd, 0, 0, dx * sizeof(*rgba), NCBLIT_DEFAULT, rgba, 0, 0, dy, dx) < 0){
       goto err;
     }
     if( (r = demo_render(nc)) ){
@@ -191,7 +198,6 @@ int normal_demo(struct notcurses* nc){
   ncplane_set_base_cell(nstd, &c);
   cell_release(nstd, &c);
   bool failed = rotate_visual(nc, n, dy, dx);
-  ncplane_destroy(n);
   return failed ? -1 : 0;
 
 err:

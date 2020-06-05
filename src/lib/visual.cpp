@@ -272,6 +272,7 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
 }
 
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
+  // done to force conversion into RGBA
   nc_err_e err = ncvisual_resize(ncv, ncv->rows, ncv->cols);
   if(err != NCERR_SUCCESS){
     return err;
@@ -329,7 +330,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
   ncv->cols = bbx;
   ncv->rows = bby;
   ncv->rowstride = bbx * 4;
-  //ncplane_erase(ncv->ncp);
+  ncvisual_details_seed(ncv);
   return NCERR_SUCCESS;
 }
 
@@ -343,8 +344,8 @@ auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
     ncv->rowstride = rowstride;
     ncv->cols = cols;
     ncv->rows = rows;
-//fprintf(stderr, "MADE INITIAL ONE %d/%d\n", disprows, ncv->cols);
     auto data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->rows));
+//fprintf(stderr, "COPY US %zu (%d)\n", rowstride * ncv->rows, ncv->rows);
     if(data == nullptr){
       ncvisual_destroy(ncv);
       return nullptr;
@@ -390,7 +391,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
     return nullptr;
   }
-//fprintf(stderr, "OUR DATA: %p cols/rows: %d/%d\n", ncv->data, ncv->cols, ncv->rows);
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
   if(ncv->data == nullptr){
     return nullptr;
   }
@@ -442,6 +443,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
     }else{
       return nullptr;
     }
+//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
     n = ncplane_new(nc, disprows, dispcols, placey, placex, nullptr);
     if(n == nullptr){
       return nullptr;
@@ -483,9 +485,9 @@ auto ncvisual_from_plane(const ncplane* n, int begy, int begx,
     lenx = n->lenx - begx;
   }
   if(leny == -1){
-    leny = n->leny - begy;
+    leny = (n->leny - begy);
   }
-  auto* ncv = ncvisual_from_rgba(rgba, leny, lenx * 4, lenx);
+  auto* ncv = ncvisual_from_rgba(rgba, leny * 2, lenx * 4, lenx);
   free(rgba);
   if(ncv == nullptr){
     return nullptr;

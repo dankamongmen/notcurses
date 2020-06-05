@@ -7,6 +7,10 @@
 #include <notcurses/notcurses.h>
 
 int main(int argc, char** argv){
+  struct timespec ts = {
+    .tv_sec = 0,
+    .tv_nsec = 250000000,
+  };
   const char* file = "../data/changes.jpg";
   setlocale(LC_ALL, "");
   if(argc > 2){
@@ -17,6 +21,7 @@ int main(int argc, char** argv){
   }
   notcurses_options opts{};
   opts.inhibit_alternate_screen = true;
+  opts.loglevel = NCLOGLEVEL_TRACE;
   opts.flags = NCOPTION_INHIBIT_SETLOCALE;
   struct notcurses* nc;
   if((nc = notcurses_init(&opts, nullptr)) == nullptr){
@@ -43,7 +48,9 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
-  sleep(1);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+
+  ncplane_erase(n);
   ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, nullptr, nullptr, &scaley, &scalex);
   ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
   vopts.n = n;
@@ -53,21 +60,31 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+
+  vopts.n = NULL;
+  ncplane_destroy(n);
   for(double i = 0 ; i < 256 ; ++i){
-    sleep(1);
-    if(ncvisual_rotate(ncv, M_PI / 2)){
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+    if(ncvisual_rotate(ncv, M_PI / ((i / 32) + 2))){
       failed = true;
       break;
     }
-    ncplane_erase(n);
-    if(ncvisual_render(nc, ncv, &vopts) == nullptr){
+    int vy, vx;
+    ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vy, &vx, &scaley, &scalex);
+    vopts.x = (dimx - (vx / scalex)) / 2;
+    vopts.y = (dimy - (vy / scaley)) / 2;
+    struct ncplane* newn;
+    if((newn = ncvisual_render(nc, ncv, &vopts)) == nullptr){
       failed = true;
       break;
     }
     if(notcurses_render(nc)){
+      ncplane_destroy(newn);
       failed = true;
       break;
     }
+    ncplane_destroy(newn);
   }
   ncvisual_destroy(ncv);
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;

@@ -1253,17 +1253,17 @@ Raw streams of RGBA or BGRx data can be blitted directly to an ncplane:
 // from the upper left by 'placey' and 'placex'. Each row ought occupy
 // 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
 // subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
-int ncblit_bgrx(struct ncplane* nc, int placey, int placex, int linesize,
-                const unsigned char* data, int begy, int begx,
-                int leny, int lenx);
+int ncplane_blit_bgrx(struct ncplane* nc, int placey, int placex, int linesize,
+                      ncblitter_e blitter, const unsigned char* data,
+                      int begy, int begx, int leny, int lenx);
 
 // Blit a flat array 'data' of RGBA 32-bit values to the ncplane 'nc', offset
 // from the upper left by 'placey' and 'placex'. Each row ought occupy
 // 'linesize' bytes (this might be greater than lenx * 4 due to padding). A
 // subregion of the input can be specified with 'begy'x'begx' and 'leny'x'lenx'.
-int ncblit_rgba(struct ncplane* nc, int placey, int placex, int linesize,
-                const unsigned char* data, int begy, int begx,
-                int leny, int lenx);
+int ncplane_blit_rgba(struct ncplane* nc, int placey, int placex, int linesize,
+                      ncblitter_e blitter, const unsigned char* data,
+                      int begy, int begx, int leny, int lenx);
 ```
 
 

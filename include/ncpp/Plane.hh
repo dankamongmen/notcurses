@@ -1017,13 +1017,13 @@ namespace ncpp
 
 		bool blit_bgrx (int placey, int placex, int linesize, const void* data, int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncblit_bgrx (plane, placey, placex, linesize, data, begy, begx, leny, lenx) < 0;
+			bool ret = ncplane_blit_bgrx (plane, placey, placex, linesize, NCBLIT_DEFAULT, data, begy, begx, leny, lenx) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
 		bool blit_rgba (int placey, int placex, int linesize, const void* data, int begy, int begx, int leny, int lenx) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncblit_rgba (plane, placey, placex, linesize, data, begy, begx, leny, lenx) < 0;
+			bool ret = ncplane_blit_rgba (plane, placey, placex, linesize, NCBLIT_DEFAULT, data, begy, begx, leny, lenx) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
