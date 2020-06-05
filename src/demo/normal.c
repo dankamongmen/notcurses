@@ -61,8 +61,8 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   timespec_div(&demodelay, ROTATIONS / 8, &scaled);
   struct ncvisual_options vopts = {
   };
+  ncplane_erase(n);
   for(double i = 0 ; i < ROTATIONS ; ++i){
-    ncplane_erase(n);
     demo_nanosleep(nc, &scaled);
     if(ncvisual_rotate(ncv, M_PI / 2)){
       failed = true;
