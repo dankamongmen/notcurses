@@ -11,20 +11,23 @@
 
 // works on a scrolling plane
 static int
-allglyphs(struct notcurses* nc, struct ncplane* column){
+allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
   const int valid_planes[] = {
     0, 1, 2, 3, 14, 15, 16, -1
   };
+  struct ncplane* std = notcurses_stdplane(nc);
   const int dimx = ncplane_dim_x(column);
   for(const int* plane = valid_planes ; *plane >= 0 ; ++plane){
     for(long int c = 0 ; c < 0x10000l ; ++c){
-      wchar_t w[2] = { *plane * 0x10000l + c, L'\0', };
+      const char32_t wc = *plane * 0x10000l + c;
+      wchar_t w[2] = { wc, L'\0', };
       if(wcwidth(w[0]) >= 1){
         int x;
         if(ncplane_putwegc(column, w, NULL) < 0){
           return -1;
         }
         ncplane_cursor_yx(column, NULL, &x);
+        ncplane_printf_aligned(std, legendy, NCALIGN_CENTER, "0x%06x", wc);
         if(x >= dimx){
           DEMO_RENDER(nc);
           ncplane_set_fg_rgb(column,
@@ -68,14 +71,14 @@ int allglyphs_demo(struct notcurses* nc){
       return -1;
     }
   }
-  struct ncplane* column = ncplane_new(nc, height, width,
-                                       (dimy - height) / 2 + 1,
-                                       (dimx - width) / 2, NULL);
+  struct ncplane* column = ncplane_aligned(n, height, width,
+                                           (dimy - height) / 2 + 1,
+                                           NCALIGN_CENTER, NULL);
   if(column == NULL){
     return -1;
   }
   ncplane_set_scrolling(column, true);
-  int r = allglyphs(nc, column);
+  int r = allglyphs(nc, column, (dimy - height) / 2 + height + 2);
   ncplane_destroy(column);
   return r;
 }
