@@ -82,7 +82,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
       failed = true;
       break;
     }
-    if(notcurses_render(nc)){
+    if(demo_render(nc)){
       failed = true;
       break;
     }

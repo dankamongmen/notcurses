@@ -370,7 +370,11 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimx = n->lenx;
   uint32_t attr = ncplane_attr(n);
   uint64_t chan = ncplane_channels(n);
-  ncplane* newn = ncplane_create(n->nc, n->boundto, dimy, dimx, n->absy, n->absx, opaque);
+  // if we're duping the standard plane, we need adjust for marginalia
+  const struct notcurses* nc = ncplane_notcurses_const(n);
+  const int placey = n->absy - nc->margin_t;
+  const int placex = n->absx - nc->margin_l;
+  ncplane* newn = ncplane_create(n->nc, n->boundto, dimy, dimx, placey, placex, opaque);
   if(newn){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);
@@ -1839,6 +1843,10 @@ void ncplane_translate(const ncplane* src, const ncplane* dst,
 }
 
 notcurses* ncplane_notcurses(ncplane* n){
+  return n->nc;
+}
+
+const notcurses* ncplane_notcurses_const(const ncplane* n){
   return n->nc;
 }
 

@@ -6,6 +6,7 @@ rearrangements of Notcurses.
     and `ncplane_blit_bgrx()`, to match every other existing ncplane function.
     In addition, they both now accept an `ncblitter_e` to select the blitting
     method. `NCBLIT_DEFAULT` will use `NCBLITTER_2x1`.
+  * Added `ncplane_notcurses_const()`.
 
 * 1.4.4.1 (2020-06-01)
   * Got the `ncvisual` API ready for API freeze: `ncvisual_render()` and
