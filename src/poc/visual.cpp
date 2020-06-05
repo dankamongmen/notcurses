@@ -53,21 +53,29 @@ int main(int argc, char** argv){
   if(notcurses_render(nc)){
     goto err;
   }
+  vopts.n = NULL;
+  ncplane_destroy(n);
   for(double i = 0 ; i < 256 ; ++i){
     sleep(1);
     if(ncvisual_rotate(ncv, M_PI / 2)){
       failed = true;
       break;
     }
-    ncplane_erase(n);
-    if(ncvisual_render(nc, ncv, &vopts) == nullptr){
+    int vy, vx;
+    ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vy, &vx, &scaley, &scalex);
+    vopts.x = (dimx * scalex - vx) / 2;
+    vopts.y = (dimy * scaley - vy) / 2;
+    struct ncplane* newn;
+    if((newn = ncvisual_render(nc, ncv, &vopts)) == nullptr){
       failed = true;
       break;
     }
     if(notcurses_render(nc)){
+      ncplane_destroy(newn);
       failed = true;
       break;
     }
+    ncplane_destroy(newn);
   }
   ncvisual_destroy(ncv);
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;

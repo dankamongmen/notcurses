@@ -40,10 +40,66 @@ rotate_grad(struct notcurses* nc){
     free(rgba);
     return -1;
   }
-  free(rgba);
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
+  ncplane_erase(n);
+  notcurses_render(nc);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
+
+  // now promote it to a visual
+  struct ncvisual* v = ncvisual_from_rgba(rgba, dimy * 2, dimx * 4, dimx);
+  free(rgba);
+  if(v == NULL){
+    return -1;
+  }
+  struct ncvisual_options vopts = {
+    .n = n,
+  };
+  if(n != ncvisual_render(nc, v, &vopts)){
+    ncvisual_destroy(v);
+    return -1;
+  }
+  notcurses_render(nc);
+  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
+  vopts.n = NULL;
+  ncplane_erase(n);
+  for(int i = 0 ; i < 4 ; ++i){
+    int vy, vx, scaley, scalex;
+    if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 2)){
+      return -1;
+    }
+    ncvisual_geom(nc, v, NCBLIT_DEFAULT, &vy, &vx, &scaley, &scalex);
+    vopts.x = (dimx - (vx / scalex)) / 2;
+    vopts.y = (dimy - (vy / scaley)) / 2;
+    struct ncplane* newn = ncvisual_render(nc, v, &vopts);
+    if(newn == NULL){
+      return -1;
+    }
+    notcurses_render(nc);
+    ncplane_destroy(newn);
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
+  }
+
+  for(int i = 0 ; i < 8 ; ++i){
+    int vy, vx, scaley, scalex;
+    ncvisual_geom(nc, v, NCBLIT_DEFAULT, &vy, &vx, &scaley, &scalex);
+    vopts.x = (dimx - vx) / 2;
+    vopts.y = (dimy * 2 - vy) / 2;
+    if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 4)){
+      return -1;
+    }
+    ncplane_erase(n);
+    struct ncplane* newn = ncvisual_render(nc, v, &vopts);
+    if(newn == NULL){
+      return -1;
+    }
+    notcurses_render(nc);
+    ncplane_destroy(newn);
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
+  }
+
+  ncvisual_destroy(v);
   return 0;
 }
 

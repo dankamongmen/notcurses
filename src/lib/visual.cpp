@@ -344,6 +344,7 @@ auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
     ncv->cols = cols;
     ncv->rows = rows;
     auto data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->rows));
+//fprintf(stderr, "COPY US %zu (%d)\n", rowstride * ncv->rows, ncv->rows);
     if(data == nullptr){
       ncvisual_destroy(ncv);
       return nullptr;
@@ -389,7 +390,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
     return nullptr;
   }
-//fprintf(stderr, "OUR DATA: %p cols/rows: %d/%d\n", ncv->data, ncv->cols, ncv->rows);
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
   if(ncv->data == nullptr){
     return nullptr;
   }
@@ -441,6 +442,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
     }else{
       return nullptr;
     }
+//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
     n = ncplane_new(nc, disprows, dispcols, placey, placex, nullptr);
     if(n == nullptr){
       return nullptr;
