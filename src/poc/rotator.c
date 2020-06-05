@@ -36,7 +36,7 @@ rotate_grad(struct notcurses* nc){
     .leny = dimy * 2,
     .lenx = dimx,
   };
-  if(ncblit_rgba(rgba, dimx * 4, &vopts) == NULL){
+  if(ncblit_rgba(rgba, dimx * 4, &vopts) < 0){
     free(rgba);
     return -1;
   }
@@ -171,7 +171,7 @@ rotate(struct notcurses* nc){
     .x = XSIZE,
     .n = n,
   };
-  if(ncblit_rgba(rgba, XSIZE * 4, &vopts) == NULL){
+  if(ncblit_rgba(rgba, XSIZE * 4, &vopts) < 0){
     free(rgba);
     return -1;
   }

@@ -101,6 +101,7 @@ A few high-level widgets are included, all built atop ncplanes:
 * **notcurses_menu(3)** for menu bars at the top or bottom of the screen
 * **notcurses_multiselector(3)** for selecting one or more items from a set
 * **notcurses_plot(3)** for drawing histograms and lineplots
+* **notcurses_reader(3)** for free-form input data
 * **notcurses_reel(3)** for hierarchal display of data
 * **notcurses_selector(3)** for selecting one item from a set
 

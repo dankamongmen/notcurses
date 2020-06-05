@@ -323,8 +323,8 @@ struct ncvisual_options {
   ncblitter_e blitter;
   uint64_t flags;
 };
-struct ncplane* ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options *vopts);
-struct ncplane* ncblit_rgba(const void* data, int linesize, const struct ncvisual_options *vopts);
+int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options *vopts);
+int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options *vopts);
 struct ncselector_item {
   char* option;
   char* desc;
