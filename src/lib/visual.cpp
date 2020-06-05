@@ -475,7 +475,8 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
 
 auto ncvisual_from_plane(const ncplane* n, int begy, int begx,
                          int leny, int lenx) -> ncvisual* {
-  uint32_t* rgba = ncplane_rgba(n, begx, begy, leny, lenx);
+  uint32_t* rgba = ncplane_rgba(n, begy, begx, leny, lenx);
+//fprintf(stderr, "snarg: %d/%d @ %d/%d (%p)\n", leny, lenx, begy, begx, rgba);
   if(rgba == nullptr){
     return nullptr;
   }

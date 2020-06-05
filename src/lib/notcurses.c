@@ -1957,9 +1957,11 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
   if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
     return NULL;
   }
+//fprintf(stderr, "sum: %d/%d avail: %d/%d\n", begy + leny, begx + lenx, nc->leny, nc->lenx);
   if(begx + lenx > nc->lenx || begy + leny > nc->leny){
     return NULL;
   }
+//fprintf(stderr, "ALLOCATING %zu\n", 4u * lenx * leny * 2);
   uint32_t* ret = malloc(sizeof(*ret) * lenx * leny * 2);
   if(ret){
     for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
