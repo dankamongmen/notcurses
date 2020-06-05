@@ -103,6 +103,7 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   }
   free(pic);
   vopts.n = notcurses_stdplane(nc);
+  vopts.blitter = NCBLIT_2x2;
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);
     ncplane_destroy(dsplane);
