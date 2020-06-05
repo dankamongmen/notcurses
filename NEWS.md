@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.4.5 (not yet released)
+* 1.4.5 (2020-06-04)
   * `ncblit_rgba()` and `ncblit_bgrx()` have replaced most of their arguments
     with a `const struct ncvisual_options*`. `NCBLIT_DEFAULT` will use
     `NCBLITTER_2x1` (with fallback) in this context. The `->n` field must
