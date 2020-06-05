@@ -53,7 +53,17 @@ static int
 rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   struct timespec scaled;
   timespec_div(&demodelay, 8, &scaled);
-  struct ncvisual* ncv = ncvisual_from_plane(n, 0, 0, dy, dx);
+  int fromy = 0, fromx = 0;
+  if(dy * 2 > dx){
+    fromy = (dy * 2 - dx) / 2;
+    dy = dx / 2;
+  }else{
+    fromx = (dx - dy * 2) / 2;
+    dx = dy * 2;
+  }
+//fprintf(stderr, "ASK %d/%d @ %d/%d: %p\n", dy, dx, fromy, fromx);
+  struct ncvisual* ncv = ncvisual_from_plane(n, fromy, fromx, dy, dx);
+//fprintf(stderr, "%d/%d @ %d/%d: %p\n", dy, dx, fromy, fromx, ncv);
   if(!ncv){
     ncvisual_destroy(ncv);
     return -1;
@@ -62,8 +72,8 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   int dimy, dimx;
   n = notcurses_stddim_yx(nc, &dimy, &dimx);
   bool failed = false;
-  const int ROTATIONS = 128;
-  timespec_div(&demodelay, ROTATIONS, &scaled);
+  const int ROTATIONS = 32;
+  timespec_div(&demodelay, ROTATIONS / 4, &scaled);
   struct ncvisual_options vopts = {
   };
   ncplane_erase(n);
@@ -187,10 +197,10 @@ int normal_demo(struct notcurses* nc){
   ncplane_cursor_move_yx(n, 0, 0);
   uint64_t tl, tr, bl, br;
   tl = tr = bl = br = 0;
-  channels_set_fg_rgb(&tl, random() % 256, random() % 256, random() % 256);
-  channels_set_fg_rgb(&tr, random() % 256, random() % 256, random() % 256);
-  channels_set_fg_rgb(&bl, random() % 256, random() % 256, random() % 256);
-  channels_set_fg_rgb(&br, random() % 256, random() % 256, random() % 256);
+  channels_set_fg_rgb(&tl, 0, 0, 0);
+  channels_set_fg_rgb(&tr, 0, 0xff, 0);
+  channels_set_fg_rgb(&bl, 0xff, 0, 0xff);
+  channels_set_fg_rgb(&br, 0, 0, 0);
   ncplane_dim_yx(n, &dy, &dx);
   if(ncplane_stain(n, dy - 1, dx - 1, tl, tr, bl, br) < 0){
     goto err;
