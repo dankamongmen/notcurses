@@ -26568,6 +26568,11 @@ show_copyright(struct notcurses* nc){
   struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), 1, dimx,
                                       dimy - 1, NCALIGN_RIGHT, NULL);
   if(n){
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    cell_set_fg_rgb(&c, 0, 0, 0);
+    cell_set_bg_rgb(&c, 0, 0, 0);
+    ncplane_set_base_cell(n, &c);
+    cell_release(n, &c);
     if(ncplane_set_fg(n, 0xffffff) < 0){
       return NULL;
     }
