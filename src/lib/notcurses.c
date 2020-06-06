@@ -1938,7 +1938,8 @@ int notcurses_inputready_fd(notcurses* n){
   return fileno(n->ttyinfp);
 }
 
-uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx){
+uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
+                       int begy, int begx, int leny, int lenx){
   if(begy < 0 || begx < 0){
     return NULL;
   }
@@ -1979,6 +1980,9 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
         // FIXME how do we deal with transparency?
         uint32_t frgba = (fr) + (fg << 16u) + (fb << 8u) + 0xff000000;
         uint32_t brgba = (br) + (bg << 16u) + (bb << 8u) + 0xff000000;
+        // FIXME integrate 'blit'
+        (void)blit;
+        // FIXME need to be able to pick up quadrants!
         if((strcmp(c, " ") == 0) || (strcmp(c, "") == 0)){
           *top = *bot = brgba;
         }else if(strcmp(c, "▄") == 0){
@@ -1992,6 +1996,7 @@ uint32_t* ncplane_rgba(const ncplane* nc, int begy, int begx, int leny, int lenx
         }else{
           free(c);
           free(ret);
+//fprintf(stderr, "bad rgba character: %s\n", c);
           return NULL;
         }
         free(c);

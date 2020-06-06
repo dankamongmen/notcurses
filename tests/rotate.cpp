@@ -119,7 +119,7 @@ TEST_CASE("Rotate") {
     ncvisual_options opts{};
     auto rendered = ncvisual_render(nc_, ncv, &opts);
     REQUIRE(rendered);
-    uint32_t* rgbaret = ncplane_rgba(rendered, 0, 0, -1, -1);
+    uint32_t* rgbaret = ncplane_rgba(rendered, NCBLIT_DEFAULT, 0, 0, -1, -1);
     REQUIRE(rgbaret);
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_MASK){
@@ -170,7 +170,7 @@ TEST_CASE("Rotate") {
     ncvisual_options opts{};
     auto rendered = ncvisual_render(nc_, ncv, &opts);
     REQUIRE(rendered);
-    uint32_t* rgbaret = ncplane_rgba(rendered, 0, 0, -1, -1);
+    uint32_t* rgbaret = ncplane_rgba(rendered, NCBLIT_DEFAULT, 0, 0, -1, -1);
     REQUIRE(rgbaret);
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_MASK){

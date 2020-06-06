@@ -23,7 +23,7 @@ rotate_grad(struct notcurses* nc){
   }
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
-  uint32_t* rgba = ncplane_rgba(n, 0, 0, dimy, dimx);
+  uint32_t* rgba = ncplane_rgba(n, NCBLIT_DEFAULT, 0, 0, dimy, dimx);
   if(rgba == NULL){
     return -1;
   }
@@ -149,7 +149,7 @@ rotate(struct notcurses* nc){
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
   // we now have 2 rows of 20 cells each, with gradients. load 'em.
-  uint32_t* rgba = ncplane_rgba(n, dimy / 2, 0, 2, XSIZE);
+  uint32_t* rgba = ncplane_rgba(n, NCBLIT_DEFAULT, dimy / 2, 0, 2, XSIZE);
   if(rgba == NULL){
     return -1;
   }

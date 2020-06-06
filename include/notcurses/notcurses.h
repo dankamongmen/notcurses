@@ -1213,14 +1213,6 @@ ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c){
   return r;
 }
 
-// Create an RGBA flat array from the selected region of the ncplane 'nc'.
-// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
-// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
-// Only spaces, half blocks, and full blocks may be present.
-API uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx,
-                           int leny, int lenx);
-
 // Create a flat string from the EGCs of the selected region of the ncplane
 // 'nc'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
@@ -2119,15 +2111,6 @@ API struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
 API struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows,
                                         int rowstride, int cols);
 
-// Promote an ncplane 'n' to an ncvisual. The plane may contain only spaces,
-// half blocks, and full blocks. The latter will be checked, and any other
-// glyph will result in a NULL being returned. This function exists so that
-// planes can be subjected to ncvisual transformations. If possible, it's
-// better to create the ncvisual from memory using ncvisual_from_rgba().
-API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
-                                         int begy, int begx,
-                                         int leny, int lenx);
-
 // each has the empty cell in addition to the product of its dimensions. i.e.
 // NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
 // states: empty, the three shaded blocks, and the full block.
@@ -2142,6 +2125,24 @@ typedef enum {
   NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncblitter_e;
+
+// Promote an ncplane 'n' to an ncvisual. The plane may contain only spaces,
+// half blocks, and full blocks. The latter will be checked, and any other
+// glyph will result in a NULL being returned. This function exists so that
+// planes can be subjected to ncvisual transformations. If possible, it's
+// better to create the ncvisual from memory using ncvisual_from_rgba().
+API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
+                                         ncblitter_e blit,
+                                         int begy, int begx,
+                                         int leny, int lenx);
+
+// Create an RGBA flat array from the selected region of the ncplane 'nc'.
+// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
+// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
+// 'lenx' can be specified as -1 to go through the boundary of the plane.
+// Only glyphs from the specified blitset may be present.
+API uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit,
+                           int begy, int begx, int leny, int lenx);
 
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
@@ -2165,6 +2166,12 @@ API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
 // Resize the visual so that it is 'rows' X 'columns'. This is a lossy
 // transformation, unless the size is unchanged.
 API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
+
+// Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
+API int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
+
+// Get the specified pixel from the specified ncvisual.
+API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
 
 #define NCVISUAL_OPTION_NODEGRADE 0x0001 // fail rather than degrading
 #define NCVISUAL_OPTION_BLEND     0x0002 // use CELL_ALPHA_BLEND with visual

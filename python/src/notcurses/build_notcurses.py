@@ -147,7 +147,17 @@ char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channel
 int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
 char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);
 int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
-uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
+typedef enum {
+  NCBLIT_1x1,     // full block                █
+  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
+  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
+  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
+} ncblitter_e;
+uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit, int begy, int begx, int leny, int lenx);
 char* ncplane_contents(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);
@@ -292,16 +302,6 @@ typedef enum {
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
 } ncscale_e;
-typedef enum {
-  NCBLIT_1x1,     // full block                █
-  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
-  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
-} ncblitter_e;
 struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
 struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);
 struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows, int rowstride, int cols);
@@ -310,6 +310,8 @@ int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, ncblitte
 void ncvisual_destroy(struct ncvisual* ncv);
 nc_err_e ncvisual_decode(struct ncvisual* nc);
 int ncvisual_rotate(struct ncvisual* n, double rads);
+int ncvisual_resize(struct ncvisual* n, int rows, int cols);
+int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
 struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);
 char* ncvisual_subtitle(const struct ncvisual* ncv);
 typedef int (*streamcb)(struct ncvisual*, struct ncvisual_options*, const struct timespec*, void*);

@@ -473,10 +473,11 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   return n;
 }
 
-auto ncvisual_from_plane(const ncplane* n, int begy, int begx,
+auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
                          int leny, int lenx) -> ncvisual* {
-  uint32_t* rgba = ncplane_rgba(n, begy, begx, leny, lenx);
+  uint32_t* rgba = ncplane_rgba(n, blit, begy, begx, leny, lenx);
 //fprintf(stderr, "snarg: %d/%d @ %d/%d (%p)\n", leny, lenx, begy, begx, rgba);
+//fprintf(stderr, "RGBA %p\n", rgba);
   if(rgba == nullptr){
     return nullptr;
   }
@@ -490,9 +491,7 @@ auto ncvisual_from_plane(const ncplane* n, int begy, int begx,
   }
   auto* ncv = ncvisual_from_rgba(rgba, leny * 2, lenx * 4, lenx);
   free(rgba);
-  if(ncv == nullptr){
-    return nullptr;
-  }
+//fprintf(stderr, "RETURNING %p\n", ncv);
   return ncv;
 }
 
@@ -525,6 +524,50 @@ auto ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
   }
   clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
   return ret;
+}
+
+auto ncvisual_polyfill_recurse(ncvisual* n, int y, int x,
+                               uint32_t rgba, uint32_t match) -> int {
+  if(y < 0 || y >= n->rows){
+    return 0;
+  }
+  if(x < 0 || x >= n->cols){
+    return 0;
+  }
+  uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];
+  if(*pixel != match || *pixel == rgba){
+    return 0;
+  }
+//fprintf(stderr, "%d/%d: %08x -> %08x\n", y, x, *pixel, rgba);
+  *pixel = rgba;
+  int ret = 1;
+  ret += ncvisual_polyfill_recurse(n, y - 1, x, rgba, match);
+  ret += ncvisual_polyfill_recurse(n, y + 1, x, rgba, match);
+  ret += ncvisual_polyfill_recurse(n, y, x - 1, rgba, match);
+  ret += ncvisual_polyfill_recurse(n, y, x + 1, rgba, match);
+  return ret;
+}
+
+auto ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel) -> int {
+  if(y >= n->rows || y < 0){
+    return -1;
+  }
+  if(x >= n->cols || x < 0){
+    return -1;
+  }
+  *pixel = n->data[y * (n->rowstride / 4) + x];
+  return 0;
+}
+
+auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
+  if(y >= n->rows || y < 0){
+    return -1;
+  }
+  if(x >= n->cols || x < 0){
+    return -1;
+  }
+  uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];
+  return ncvisual_polyfill_recurse(n, y, x, rgba, *pixel);
 }
 
 #ifndef USE_OIIO // built without ffmpeg or oiio

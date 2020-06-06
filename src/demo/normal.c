@@ -62,7 +62,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
     dx = dy * 2;
   }
 //fprintf(stderr, "ASK %d/%d @ %d/%d: %p\n", dy, dx, fromy, fromx);
-  struct ncvisual* ncv = ncvisual_from_plane(n, fromy, fromx, dy, dx);
+  struct ncvisual* ncv = ncvisual_from_plane(n, NCBLIT_DEFAULT, fromy, fromx, dy, dx);
 //fprintf(stderr, "%d/%d @ %d/%d: %p\n", dy, dx, fromy, fromx, ncv);
   if(!ncv){
     ncvisual_destroy(ncv);

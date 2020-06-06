@@ -759,8 +759,9 @@ int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as -1 to go through the boundary of the plane.
-uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx,
-                       int leny, int lenx);
+// Only glyphs from the specified blitset may be present.
+uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit,
+                       int begy, int begx, int leny, int lenx);
 
 // return a nul-terminated, heap copy of the current (UTF-8) contents.
 char* ncplane_contents(const struct ncplane* nc, int begy, int begx,
@@ -2506,6 +2507,12 @@ nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
 // Resize the visual so that it is 'rows' X 'columns'. This is a lossy
 // transformation, unless the size is unchanged.
 nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
+
+// Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
+int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
+
+// Get the specified pixel from the specified ncvisual.
+int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
 
 // If a subtitle ought be displayed at this time, return a heap-allocated copy
 // of the UTF8 text.
