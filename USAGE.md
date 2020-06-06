@@ -2487,13 +2487,13 @@ struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra,
 `ncvisual`s can also be loaded from the contents of a plane:
 
 ```c
-// Promote an ncplane 'n' to an ncvisual. The plane should not be associated
-// with an existing ncvisual, and may contain only spaces, half blocks, and
-// full blocks. The latter will be checked, and any other glyph will result
-// in a NULL being returned. This function exists so that planes can be
-// subjected to ncvisual transformations. If possible, it's usually better
-// to create the ncvisual from memory using ncvisual_from_rgba().
-struct ncvisual* ncvisual_from_plane(struct ncplane* n);
+// Promote an ncplane 'n' to an ncvisual. The plane may contain only spaces,
+// half blocks, and full blocks. The latter will be checked, and any other
+// glyph will result in a NULL being returned. This function exists so that
+// planes can be subjected to ncvisual transformations. If possible, it's
+// better to create the ncvisual from memory using ncvisual_from_rgba().
+struct ncvisual* ncvisual_from_plane(const struct ncplane* n, ncblitter_e blit,
+                                     int begy, int begx, int leny, int lenx);
 ```
 
 Various transformations can be applied to an `ncvisual`, regardless of how

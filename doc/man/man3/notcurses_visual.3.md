@@ -56,7 +56,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols);**
 
-**struct ncvisual* ncvisual_from_plane(struct ncplane* n, int begy, int begx, int leny, int lenx);**
+**struct ncvisual* ncvisual_from_plane(struct ncplane* n, ncblitter_e blit, int begy, int begx, int leny, int lenx);**
 
 **int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, ncblitter_e blitter, int* y, int* x, int* toy, int* tox);**
 
