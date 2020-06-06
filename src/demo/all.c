@@ -27,7 +27,9 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
           return -1;
         }
         ncplane_cursor_yx(column, NULL, &x);
-        ncplane_printf_aligned(std, legendy, NCALIGN_CENTER, "0x%06x", wc);
+        if(ncplane_printf_aligned(std, legendy, NCALIGN_CENTER, "0x%06x", wc) < 0){
+          return -1;
+        }
         if(x >= dimx){
           DEMO_RENDER(nc);
           ncplane_set_fg_rgb(column,
@@ -66,19 +68,19 @@ int allglyphs_demo(struct notcurses* nc){
     }
   }
   int height = 40;
-  if(height > dimy - 3){
-    if((height = dimy - 3) <= 0){
+  if(height >= dimy - 4){
+    if((height = dimy - 5) <= 0){
       return -1;
     }
   }
   struct ncplane* column = ncplane_aligned(n, height, width,
-                                           (dimy - height) / 2 + 1,
+                                           (dimy - height) / 2,
                                            NCALIGN_CENTER, NULL);
   if(column == NULL){
     return -1;
   }
   ncplane_set_scrolling(column, true);
-  int r = allglyphs(nc, column, (dimy - height) / 2 + height + 2);
+  int r = allglyphs(nc, column, dimy - 2);
   ncplane_destroy(column);
   return r;
 }
