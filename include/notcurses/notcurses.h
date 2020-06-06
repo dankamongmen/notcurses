@@ -193,6 +193,42 @@ channel_set_rgb(unsigned* channel, int r, int g, int b){
   return 0;
 }
 
+static inline int
+pixel_set_r(uint32_t* pixel, int r){
+  if(r > 255 || r < 0){
+    return -1;
+  }
+  *pixel = (*pixel & 0xffffff00ul) | (r);
+  return 0;
+}
+
+static inline int
+pixel_set_g(uint32_t* pixel, int g){
+  if(g > 255 || g < 0){
+    return -1;
+  }
+  *pixel = (*pixel & 0xff00fffful) | (g << 16u);
+  return 0;
+}
+
+static inline int
+pixel_set_b(uint32_t* pixel, int b){
+  if(b > 255 || b < 0){
+    return -1;
+  }
+  *pixel = (*pixel & 0xffff00fful) | (b << 8u);
+  return 0;
+}
+
+// set the RGB values of an RGB pixel
+static inline int
+pixel_set_rgb(uint32_t* pixel, int r, int g, int b){
+  if(pixel_set_r(pixel, r) || pixel_set_g(pixel, g) || pixel_set_b(pixel, b)){
+    return -1;
+  }
+  return 0;
+}
+
 // Set the three 8-bit components of a 32-bit channel, and mark it as not using
 // the default color. Retain the other bits unchanged. r, g, and b will be
 // clipped to the range [0..255].

@@ -6,6 +6,7 @@ rearrangements of Notcurses.
     with a `const struct ncvisual_options*`. `NCBLIT_DEFAULT` will use
     `NCBLITTER_2x1` (with fallback) in this context. The `->n` field must
     be non-`NULL`--new planes will not be created.
+  * Added a Pixel API for working directly with the contents of `ncvisual`s.
   * Added `ncplane_notcurses_const()`.
 
 * 1.4.4.1 (2020-06-01)

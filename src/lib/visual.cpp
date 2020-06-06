@@ -538,7 +538,6 @@ auto ncvisual_polyfill_recurse(ncvisual* n, int y, int x,
   if(*pixel != match || *pixel == rgba){
     return 0;
   }
-//fprintf(stderr, "%d/%d: %08x -> %08x\n", y, x, *pixel, rgba);
   *pixel = rgba;
   int ret = 1;
   ret += ncvisual_polyfill_recurse(n, y - 1, x, rgba, match);
