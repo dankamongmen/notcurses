@@ -39,9 +39,13 @@ TEST_CASE("Fills") {
     struct ncplane* pfn = ncplane_new(nc_, 4, 4, 0, 0, nullptr);
     REQUIRE(nullptr != pfn);
     CHECK(16 == ncplane_polyfill_yx(pfn, 0, 0, &c));
+    CHECK(0 == notcurses_render(nc_));
     CHECK(0 < ncplane_putc_yx(pfn, 0, 0, &c));
-    // Trying to fill the origin ought now be rejected
-    CHECK(0 > ncplane_polyfill_yx(pfn, 0, 0, &c));
+    CHECK(0 < cell_load(pfn, &c, "/"));
+    CHECK(0 < ncplane_polyfill_yx(pfn, 0, 0, &c));
+    char* ncpc = ncplane_at_yx(pfn, 0, 0, NULL, NULL);
+    CHECK(0 == strcmp(ncpc, "/"));
+    free(ncpc);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(pfn));
   }
