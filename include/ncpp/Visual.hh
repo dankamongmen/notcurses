@@ -17,28 +17,28 @@ namespace ncpp
 	{
 	public:
 		explicit Visual (const char *file, nc_err_e *ncerr)
-     : Root(NotCurses::get_instance())
+			: Root (NotCurses::get_instance ())
 		{
 			visual = ncvisual_from_file (file, ncerr);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}
 
-    explicit Visual (const uint32_t* rgba, int rows, int rowstride, int cols)
-     : Root(NotCurses::get_instance())
-    {
+		explicit Visual (const uint32_t* rgba, int rows, int rowstride, int cols)
+			: Root (NotCurses::get_instance ())
+		{
 			visual = ncvisual_from_rgba (rgba, rows, rowstride, cols);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
-    }
+		}
 
-    explicit Visual (const Plane& p, ncblitter_e blit, int begy, int begx, int leny, int lenx)
-     : Root(NotCurses::get_instance())
-    {
+		explicit Visual (const Plane& p, ncblitter_e blit, int begy, int begx, int leny, int lenx)
+			: Root (NotCurses::get_instance ())
+		{
 			visual = ncvisual_from_plane (p, blit, begy, begx, leny, lenx);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
-    }
+		}
 
 		~Visual () noexcept
 		{
@@ -63,7 +63,7 @@ namespace ncpp
 
 		ncplane* render (const ncvisual_options* vopts) const NOEXCEPT_MAYBE
 		{
-			return ncvisual_render (get_notcurses (), visual, vopts); // FIXME error_guard
+			return error_guard<ncplane*, ncplane*> (ncvisual_render (get_notcurses (), visual, vopts), nullptr);
 		}
 
 		int stream (const ncvisual_options* vopts, nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
@@ -78,7 +78,31 @@ namespace ncpp
 
 		bool rotate (double rads) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncvisual_rotate (visual, rads), NCERR_SUCCESS); // FIXME invert case
+			nc_err_e ret = ncvisual_rotate (visual, rads);
+			return error_guard_cond (ret, ret != NCERR_SUCCESS);
+		}
+
+		bool simple_streamer (ncvisual_options* vopts, const timespec* tspec, void* curry = nullptr) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncvisual_simple_streamer (visual, vopts, tspec, curry), -1);
+		}
+
+		int polyfill (int y, int x, uint32_t rgba) const NOEXCEPT_MAYBE
+		{
+			return error_guard<int> (ncvisual_polyfill_yx (visual, y, x, rgba), -1);
+		}
+
+		bool at (int y, int x, uint32_t* pixel) const
+		{
+			if (pixel == nullptr)
+				throw invalid_argument ("'pixel' must be a valid pointer");
+
+			return error_guard (ncvisual_at_yx (visual, y, x, pixel), -1);
+		}
+
+		bool set (int y, int x, uint32_t pixel) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncvisual_set_yx (visual, y, x, pixel), -1);
 		}
 
 	private:
