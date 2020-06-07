@@ -26,6 +26,23 @@ perframe(struct ncvisual* ncv __attribute__ ((unused)),
   return 0;
 }
 
+// vsamoa is samoa fadectx
+static int
+changes_fadeout(struct notcurses* nc, struct ncplane* ncp,
+                const struct timespec* abstime, void* vsamoa){
+  static int iter = 0;
+  struct ncfadectx* samoactx = vsamoa;
+  struct ncplane* samplane = notcurses_stdplane(nc);
+  if(++iter > ncfadectx_iterations(samoactx)){
+    iter = ncfadectx_iterations(samoactx);
+  }
+  int r = ncplane_fadein_iteration(samplane, samoactx, iter, demo_fader, NULL);
+  if(r){
+    return r;
+  }
+  return demo_fader(nc, ncp, abstime, NULL);
+}
+
 static void*
 videothread(void* vnc){
   struct notcurses* nc = vnc;
@@ -49,8 +66,14 @@ videothread(void* vnc){
   struct timespec fade;
   timespec_mul(&demodelay, 2, &fade);
   demo_render(nc);
-  // vopts carries through 'changes.jpg', sitting above the standard plane
-  ncplane_fadeout(vopts.n, &fade, demo_fader, NULL);
+
+  // vopts carries through 'changes.jpg', sitting above the standard plane. it
+  // is faded out as we fade the samoa video (on standard plane ncp) in.
+  struct ncfadectx* samoactx = ncfadectx_setup(ncp);
+  if(samoactx == NULL){
+    return NULL;
+  }
+  ncplane_fadeout(vopts.n, &fade, changes_fadeout, samoactx);
   ncplane_destroy(vopts.n);
   struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
