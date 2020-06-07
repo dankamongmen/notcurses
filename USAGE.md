@@ -80,28 +80,39 @@ typedef enum {
 // doing something weird (setting a locale not based on LANG).
 #define NCOPTION_INHIBIT_SETLOCALE 0x0001
 
+// Checking for Sixel support requires writing an escape, and then reading an
+// inline reply from the terminal. Since this can interact poorly with actual
+// user input, it's not done unless Sixel will actually be used. Set this flag
+// to unconditionally test for Sixel support in notcurses_init().
+#define NCOPTION_VERIFY_SIXEL        0x0002
+
+// We typically install a signal handler for SIGWINCH that generates a resize
+// event in the notcurses_getc() queue. Set to inhibit this handler.
+#define NCOPTION_NO_WINCH_SIGHANDLER 0x0004
+
+// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
+// restores the screen, and then calls the old signal handler. Set to inhibit
+// registration of these signal handlers.
+#define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008
+
+// By default, we hide the cursor if possible. This flag inhibits use of
+// the civis capability, retaining the cursor.
+#define NCOPTION_RETAIN_CURSOR       0x0010
+
+// Notcurses typically prints version info in notcurses_init() and performance
+// info in notcurses_stop(). This inhibits that output.
+#define NCOPTION_SUPPRESS_BANNERS    0x0020
+
+// If smcup/rmcup capabilities are indicated, notcurses defaults to making use
+// of the "alternate screen". This flag inhibits use of smcup/rmcup.
+#define NCOPTION_NO_ALTERNATE_SCREEN 0x0040
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // If smcup/rmcup capabilities are indicated, notcurses defaults to making
-  // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
-  bool inhibit_alternate_screen;
-  // By default, we hide the cursor if possible. This flag inhibits use of
-  // the civis capability, retaining the cursor.
-  bool retain_cursor;
-  // We typically install a signal handler for SIGINT and SIGQUIT that restores
-  // the screen, and then calls the old signal handler. Set this to inhibit
-  // registration of any signal handlers.
-  bool no_quit_sighandlers;
-  // We typically install a signal handler for SIGWINCH that generates a resize
-  // event in the notcurses_getc() queue. Set this to inhibit the handler.
-  bool no_winch_sighandler;
-  // Notcurses typically prints version info in notcurses_init() and
-  // performance info in notcurses_stop(). This inhibits that output.
-  bool suppress_banner;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
@@ -116,7 +127,7 @@ typedef struct notcurses_options {
   // General flags; see NCOPTION_*. This is expressed as a bitfield so that
   // future options can be added without reshaping the struct. Undefined bits
   // must be set to 0.
-  unsigned flags;
+  uint64_t flags;
 } notcurses_options;
 
 // Lex a margin argument according to the standard notcurses definition. There
@@ -144,7 +155,7 @@ Setting `loglevel` to a value higher than `NCLOGLEVEL_SILENT` will cause
 diagnostics to be printed to `stderr`: you could ensure `stderr` is redirected
 if you make use of this functionality.
 
-It's probably wise to export `inhibit_alternate_screen` to the user (e.g. via
+It's probably wise to export `NCOPTION_NO_ALTERNATE_SCREEN` to the user (e.g. via
 command line option or environment variable). Developers and motivated users
 might appreciate the ability to manipulate `loglevel` and `renderfp`. The
 remaining options are typically of use only to application authors.
