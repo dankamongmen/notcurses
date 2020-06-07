@@ -62,18 +62,9 @@ hud_standard_bg(struct ncplane* n){
   channels_set_fg_rgb(&channels, 0x0, 0x0, 0x0);
   channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_bg_rgb(&channels, 0x0, 0x0, 0x0);
-  if(ncplane_set_base(n, "", 0, channels) >= 0){
+  if(ncplane_set_base(n, " ", 0, channels) >= 0){
     return -1;
   }
-  return 0;
-}
-
-static int
-hud_grabbed_bg(struct ncplane* n){
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
-  cell_set_bg_rgb(&c, 0x40, 0x90, 0x40);
-  ncplane_set_base_cell(n, &c);
-  cell_release(n, &c);
   return 0;
 }
 
@@ -361,7 +352,7 @@ int hud_grab(int y, int x){
     hud_grab_x = x;
     hud_grab_y = y;
     ncplane_yx(hud, &hud_pos_y, &hud_pos_x);
-    ret = hud_grabbed_bg(hud);
+    ret = 0;
   }
   return ret;
 }
@@ -431,9 +422,9 @@ int hud_schedule(const char* demoname){
   running = cure;
   if(hud){
     ncplane_set_fg_alpha(hud, CELL_ALPHA_BLEND);
-    ncplane_set_fg_rgb(hud, 0x0, 0x0, 0x0);
+    ncplane_set_fg(hud, 0);
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
-    ncplane_set_bg_rgb(hud, 0x0, 0x0, 0x0);
+    ncplane_set_bg(hud, 0);
     if(ncplane_printf_yx(hud, line, 1, "%-6d %*ju.%02jus %-*.*s", cure->frames,
                         NSLEN - 3, cure->totalns / GIG,
                         (cure->totalns % GIG) / (GIG / 100),
