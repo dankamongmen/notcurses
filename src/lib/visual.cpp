@@ -426,22 +426,16 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
     if(!vopts || vopts->scaling == NCSCALE_NONE){
       dispcols = ncv->cols / encoding_x_scale(bset) + ncv->cols % encoding_x_scale(bset);
       disprows = ncv->rows / encoding_y_scale(bset) + ncv->rows % encoding_y_scale(bset);
-    }else if(vopts->scaling == NCSCALE_SCALE){
-      notcurses_term_dim_yx(nc, &disprows, &dispcols);
-      // FIXME kill FP?
-      double tmpratio = dispcols * encoding_x_scale(bset) / (double)ncv->cols;
-      if(tmpratio * ncv->rows > disprows * encoding_y_scale(bset)){
-        tmpratio = disprows * encoding_y_scale(bset) / (double)ncv->rows;
-        assert(tmpratio <= 1);
-        dispcols *= tmpratio;
-      }else{
-        assert(tmpratio <= 1);
-        disprows *= tmpratio;
-      }
-    }else if(vopts->scaling == NCSCALE_STRETCH){
-      notcurses_term_dim_yx(nc, &disprows, &dispcols);
     }else{
-      return nullptr;
+      notcurses_term_dim_yx(nc, &disprows, &dispcols);
+      if(vopts->scaling == NCSCALE_SCALE){
+        double xratio = (double)(dispcols * encoding_x_scale(bset)) / ncv->cols;
+        if(xratio * ncv->rows > disprows * encoding_y_scale(bset)){
+          xratio = (double)(disprows * encoding_y_scale(bset)) / ncv->rows;
+        }
+        disprows = xratio * (ncv->rows / encoding_y_scale(bset));
+        dispcols = xratio * (ncv->cols / encoding_x_scale(bset));
+      }
     }
 //fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
     n = ncplane_new(nc, disprows, dispcols, placey, placex, nullptr);
@@ -454,10 +448,18 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
     if(!vopts || vopts->scaling == NCSCALE_NONE){
       dispcols = ncv->cols / encoding_x_scale(bset) + ncv->cols % encoding_x_scale(bset);
       disprows = ncv->rows / encoding_y_scale(bset) + ncv->rows % encoding_y_scale(bset);
-    }else{ // FIXME handle SCALE
+    }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
       disprows -= placey;
       dispcols -= placex;
+      if(vopts->scaling == NCSCALE_SCALE){
+        double xratio = (double)(dispcols * encoding_x_scale(bset)) / ncv->cols;
+        if(xratio * ncv->rows > (double)(disprows * encoding_y_scale(bset))){
+          xratio = (double)(disprows * encoding_y_scale(bset)) / ncv->rows;
+        }
+        disprows = xratio * (ncv->rows / encoding_y_scale(bset));
+        dispcols = xratio * (ncv->cols / encoding_x_scale(bset));
+      }
     }
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows * encoding_y_scale(bset));
