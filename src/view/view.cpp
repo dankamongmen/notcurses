@@ -49,7 +49,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   NotCurses &nc = NotCurses::get_instance ();
   auto start = static_cast<struct timespec*>(ncplane_userptr(vopts->n));
   if(!start){
-    start = new struct timespec;
+    start = static_cast<struct timespec*>(malloc(sizeof(struct timespec)));
     clock_gettime(CLOCK_MONOTONIC, start);
     ncplane_set_userptr(vopts->n, start);
   }
@@ -230,6 +230,8 @@ auto main(int argc, char** argv) -> int {
       vopts.scaling = scalemode;
       vopts.blitter = blitter;
       int r = ncv->stream(&vopts, &err, timescale, perframe, &frames);
+      free(stdn->get_userptr());
+      stdn->set_userptr(nullptr);
       if(r < 0){ // positive is intentional abort
         std::cerr << "Error decoding " << argv[i] << ": " << nc_strerror(err) << std::endl;
         failed = true;
