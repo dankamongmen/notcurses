@@ -16,6 +16,9 @@ int main(int argc, char** argv){
     .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
+  if(nc == NULL){
+    return EXIT_FAILURE;
+  }
   struct ncplane* std = notcurses_stdplane(nc);
   // FIXME not all work yet; this subset does
   const int blitters[] = {
