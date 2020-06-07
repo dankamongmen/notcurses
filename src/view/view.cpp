@@ -112,7 +112,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       if(keyp == ' '){ // space for unpause
         continue;
       }
-      if(keyp == NCKEY_RESIZE){
+      if(keyp == NCKey::Resize){
         return 0;
       }else if(keyp >= '0' && keyp <= '8'){ // FIXME eliminate ctrl/alt
         vopts->blitter = static_cast<ncblitter_e>(keyp - '0');
@@ -224,6 +224,7 @@ auto main(int argc, char** argv) -> int {
         failed = true;
         break;
       }
+      stdn->erase();
       struct ncvisual_options vopts{};
       vopts.n = *stdn;
       vopts.scaling = scalemode;
@@ -235,7 +236,10 @@ auto main(int argc, char** argv) -> int {
         break;
       }else if(r == 0){
         stdn->printf(0, NCAlign::Center, "press any key to advance");
-        nc.render();
+        if(!nc.render()){
+          failed = true;
+          break;
+        }
         char32_t ie = nc.getc(true);
         if(ie == (char32_t)-1){
           failed = true;
