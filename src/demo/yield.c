@@ -17,6 +17,7 @@ int yield_demo(struct notcurses* nc){
     .n = std,
     .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_2x2,
+    .y = 1,
   };
   if(ncvisual_render(nc, wmv, &vopts) == NULL){
     ncvisual_destroy(wmv);
