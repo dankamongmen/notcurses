@@ -78,6 +78,8 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);**
 
+**int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);**
+
 **char* ncvisual_subtitle(const struct ncvisual* ncv);**
 
 # DESCRIPTION

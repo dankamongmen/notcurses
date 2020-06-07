@@ -2514,6 +2514,9 @@ int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
 // Get the specified pixel from the specified ncvisual.
 int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
 
+// Set the specified pixel in the specified ncvisual.
+int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
+
 // If a subtitle ought be displayed at this time, return a heap-allocated copy
 // of the UTF8 text.
 char* ncvisual_subtitle(const struct ncvisual* ncv);

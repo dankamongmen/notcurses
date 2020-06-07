@@ -193,6 +193,17 @@ channel_set_rgb(unsigned* channel, int r, int g, int b){
   return 0;
 }
 
+static inline uint32_t
+ncpixel(int r, int g, int b){
+  if(r < 0) r = 0;
+  if(r > 255) r = 255;
+  if(g < 0) g = 0;
+  if(g > 255) g = 255;
+  if(b < 0) b = 0;
+  if(b > 255) b = 255;
+  return 0xff000000ul | r | (b << 8u) | (g << 16u);
+}
+
 static inline int
 pixel_set_r(uint32_t* pixel, int r){
   if(r > 255 || r < 0){
@@ -2208,6 +2219,9 @@ API int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
 
 // Get the specified pixel from the specified ncvisual.
 API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
+
+// Set the specified pixel in the specified ncvisual.
+API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
 
 #define NCVISUAL_OPTION_NODEGRADE 0x0001 // fail rather than degrading
 #define NCVISUAL_OPTION_BLEND     0x0002 // use CELL_ALPHA_BLEND with visual
