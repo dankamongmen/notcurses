@@ -29,6 +29,7 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c, const char* ta
   }
   cell* cur = &n->fb[nfbcellidx(n, y, x)];
   char* glust = cell_strdup(n, cur);
+//fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, glust, targ);
   if(strcmp(glust, targ)){
     free(glust);
     return 0;

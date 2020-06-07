@@ -314,6 +314,8 @@ int ncvisual_resize(struct ncvisual* n, int rows, int cols);
 int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
 struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);
 char* ncvisual_subtitle(const struct ncvisual* ncv);
+int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
+int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
 typedef int (*streamcb)(struct ncvisual*, struct ncvisual_options*, const struct timespec*, void*);
 int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);
 struct ncvisual_options {

@@ -526,6 +526,28 @@ auto ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
   return ret;
 }
 
+auto ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel) -> int {
+  if(y >= n->rows || y < 0){
+    return -1;
+  }
+  if(x >= n->cols || x < 0){
+    return -1;
+  }
+  n->data[y * (n->rowstride / 4) + x] = pixel;
+  return 0;
+}
+
+auto ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel) -> int {
+  if(y >= n->rows || y < 0){
+    return -1;
+  }
+  if(x >= n->cols || x < 0){
+    return -1;
+  }
+  *pixel = n->data[y * (n->rowstride / 4) + x];
+  return 0;
+}
+
 auto ncvisual_polyfill_recurse(ncvisual* n, int y, int x,
                                uint32_t rgba, uint32_t match) -> int {
   if(y < 0 || y >= n->rows){
@@ -538,6 +560,7 @@ auto ncvisual_polyfill_recurse(ncvisual* n, int y, int x,
   if(*pixel != match || *pixel == rgba){
     return 0;
   }
+// fprintf(stderr, "%d/%d: setting %08x to %08x\n", y, x, *pixel, rgba);
   *pixel = rgba;
   int ret = 1;
   ret += ncvisual_polyfill_recurse(n, y - 1, x, rgba, match);
@@ -545,17 +568,6 @@ auto ncvisual_polyfill_recurse(ncvisual* n, int y, int x,
   ret += ncvisual_polyfill_recurse(n, y, x - 1, rgba, match);
   ret += ncvisual_polyfill_recurse(n, y, x + 1, rgba, match);
   return ret;
-}
-
-auto ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel) -> int {
-  if(y >= n->rows || y < 0){
-    return -1;
-  }
-  if(x >= n->cols || x < 0){
-    return -1;
-  }
-  *pixel = n->data[y * (n->rowstride / 4) + x];
-  return 0;
 }
 
 auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
