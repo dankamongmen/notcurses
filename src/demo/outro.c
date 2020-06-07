@@ -58,6 +58,7 @@ videothread(void* vnc){
   struct ncvisual_options ovopts = {
     .scaling = NCSCALE_STRETCH,
     .n = ncp,
+    .y = 1,
   };
   int three = 3;
   if(ncvisual_render(nc, ncv, &ovopts) == NULL){

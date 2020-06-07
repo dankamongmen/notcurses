@@ -307,8 +307,6 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           && ffmpeg_trans_p(bgr, rgbbase_bl[3]) && ffmpeg_trans_p(bgr, rgbbase_br[3])){
           cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-          egc = " ";
-          // FIXME else look for pairs of transparency!
       }else{
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
         channel_set_rgb(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
@@ -317,16 +315,16 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
         channel_set_rgb(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
         uint32_t bg, fg;
         egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
+        assert(egc);
         cell_set_fchannel(c, fg);
         cell_set_bchannel(c, bg);
         if(blendcolors){
           cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
-      }
-      assert(egc);
-      if(cell_load(nc, c, egc) <= 0){
-        return -1;
+        if(cell_load(nc, c, egc) <= 0){
+          return -1;
+        }
       }
       ++total;
     }
