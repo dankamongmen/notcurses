@@ -172,7 +172,9 @@ rgb_diff(unsigned r1, unsigned g1, unsigned b1, unsigned r2, unsigned g2, unsign
 }
 
 // once we find the closest pair of colors, we need look at the other two
-// colors, and determine whether
+// colors, and determine whether either belongs with us rather with them.
+// if so, take the closer, and trilerp it in with us. otherwise, lerp the
+// two excluded pixels (and retain our original lerp).
 static const struct qdriver {
   int pair[2];      // indices of contributing pair
   int others[2];    // indices of excluded pair
