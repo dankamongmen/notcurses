@@ -49,6 +49,7 @@ videothread(void* vnc){
   struct timespec fade;
   timespec_mul(&demodelay, 2, &fade);
   demo_render(nc);
+  // vopts carries through 'changes.jpg', sitting above the standard plane
   ncplane_fadeout(vopts.n, &fade, demo_fader, NULL);
   ncplane_destroy(vopts.n);
   struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);

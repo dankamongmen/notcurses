@@ -2647,7 +2647,7 @@ It is sometimes desirable to modify the pixels of an `ncvisual` directly.
 
 ```c
 static inline int
-pixel_set_r(uint32_t* pixel, int r){
+ncpixel_set_r(uint32_t* pixel, int r){
   if(r > 255 || r < 0){
     return -1;
   }
@@ -2656,7 +2656,7 @@ pixel_set_r(uint32_t* pixel, int r){
 }
 
 static inline int
-pixel_set_g(uint32_t* pixel, int g){
+ncpixel_set_g(uint32_t* pixel, int g){
   if(g > 255 || g < 0){
     return -1;
   }
@@ -2665,7 +2665,7 @@ pixel_set_g(uint32_t* pixel, int g){
 }
 
 static inline int
-pixel_set_b(uint32_t* pixel, int b){
+ncpixel_set_b(uint32_t* pixel, int b){
   if(b > 255 || b < 0){
     return -1;
   }
@@ -2675,7 +2675,7 @@ pixel_set_b(uint32_t* pixel, int b){
 
 // set the RGB values of an RGB pixel
 static inline int
-pixel_set_rgb(uint32_t* pixel, int r, int g, int b){
+ncpixel_set_rgb(uint32_t* pixel, int r, int g, int b){
   if(pixel_set_r(pixel, r) || pixel_set_g(pixel, g) || pixel_set_b(pixel, b)){
     return -1;
   }
