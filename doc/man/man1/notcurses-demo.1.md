@@ -22,7 +22,7 @@ a way that is going to prevent notcurses from working.
 
 The demonstrations include (see NOTES below):
 
-* (a)ll—scroll all the glyphs of your font
+* (a)llglyph—scroll the glyphs of your font
 * (b)oxes—pulsating boxes with a transparent center
 * (c)hunli—the strongest woman in the world
 * (e)agle—they took some time off my life, back in the day

@@ -204,17 +204,46 @@ ncpixel(int r, int g, int b){
   return 0xff000000ul | r | (b << 8u) | (g << 16u);
 }
 
+static inline unsigned
+ncpixel_a(uint32_t pixel){
+  return (pixel & 0xff0000fful) >> 24u;
+}
+
+static inline unsigned
+ncpixel_r(uint32_t pixel){
+  return (pixel & 0x000000fful);
+}
+
 static inline int
-pixel_set_r(uint32_t* pixel, int r){
-  if(r > 255 || r < 0){
+ncpixel_g(uint32_t pixel){
+  return (pixel & 0x00ff0000ul) >> 16u;
+}
+
+static inline int
+ncpixel_b(uint32_t pixel){
+  return (pixel & 0x0000ff00ul) >> 8u;
+}
+
+static inline int
+ncpixel_set_a(uint32_t* pixel, int a){
+  if(a > 255 || a < 0){
     return -1;
   }
-  *pixel = (*pixel & 0xffffff00ul) | (r);
+  *pixel = (*pixel & 0x00fffffful) | (a << 24u);
   return 0;
 }
 
 static inline int
-pixel_set_g(uint32_t* pixel, int g){
+ncpixel_set_r(uint32_t* pixel, int r){
+  if(r > 255 || r < 0){
+    return -1;
+  }
+  *pixel = (*pixel & 0xffffff00ul) | r;
+  return 0;
+}
+
+static inline int
+ncpixel_set_g(uint32_t* pixel, int g){
   if(g > 255 || g < 0){
     return -1;
   }
@@ -223,7 +252,7 @@ pixel_set_g(uint32_t* pixel, int g){
 }
 
 static inline int
-pixel_set_b(uint32_t* pixel, int b){
+ncpixel_set_b(uint32_t* pixel, int b){
   if(b > 255 || b < 0){
     return -1;
   }
@@ -233,8 +262,8 @@ pixel_set_b(uint32_t* pixel, int b){
 
 // set the RGB values of an RGB pixel
 static inline int
-pixel_set_rgb(uint32_t* pixel, int r, int g, int b){
-  if(pixel_set_r(pixel, r) || pixel_set_g(pixel, g) || pixel_set_b(pixel, b)){
+ncpixel_set_rgb(uint32_t* pixel, int r, int g, int b){
+  if(ncpixel_set_r(pixel, r) || ncpixel_set_g(pixel, g) || ncpixel_set_b(pixel, b)){
     return -1;
   }
   return 0;

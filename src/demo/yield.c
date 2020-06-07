@@ -31,17 +31,26 @@ int yield_demo(struct notcurses* nc){
   int vy, vx, vscaley, vscalex;
   ncvisual_geom(nc, wmv, vopts.blitter, &vy, &vx, &vscaley, &vscalex);
   struct timespec scaled;
-  int threshold_painted = vy * vx * vscalex * vscaley / 3;
+  const long total = vy * vx;
+  const long threshold_painted = total * 4 / 5;
   timespec_div(&demodelay, 128, &scaled);
-  int tfilled = 0;
+  long tfilled = 0;
   while(tfilled < threshold_painted){
-    int pfilled;
+//fprintf(stderr, "tfilled: %ld thresh: %ld total: %ld\n", tfilled, threshold_painted, total);
+    int pfilled = 0;
     do{
       int x = random() % (vx);
       int y = random() % (vy);
       uint32_t pixel = 0;
-      ncvisual_at_yx(wmv, y, x, &pixel);
-      pixel_set_rgb(&pixel, channel_g(pixel), 0, 0);
+      if(ncvisual_at_yx(wmv, y, x, &pixel) < 0){
+        ncvisual_destroy(wmv);
+        return -1;
+      }
+      if(ncpixel_a(pixel) != 0xff){
+        continue;
+      }
+      ncpixel_set_a(&pixel, 0xfe);
+      ncpixel_set_rgb(&pixel, random() % 256, 0, ncpixel_b(pixel) / 2);
       pfilled = ncvisual_polyfill_yx(wmv, y, x, pixel);
       if(pfilled < 0){
         ncvisual_destroy(wmv);
