@@ -111,7 +111,7 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
         break;
     }
   }
-  opts->suppress_banner = true;
+  opts->flags |= NCOPTION_SUPPRESS_BANNERS;
 }
 
 int runreels(NotCurses& nc, ncreel_options& nopts){

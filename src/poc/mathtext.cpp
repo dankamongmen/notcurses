@@ -29,8 +29,7 @@ auto main() -> int {
     return EXIT_FAILURE;
   }
   notcurses_options nopts{};
-  nopts.inhibit_alternate_screen = true;
-  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  nopts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN;
   NotCurses nc(nopts);
 
   const char c[] =

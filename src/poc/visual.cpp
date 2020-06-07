@@ -20,9 +20,8 @@ int main(int argc, char** argv){
     file = argv[1];
   }
   notcurses_options opts{};
-  opts.inhibit_alternate_screen = true;
   opts.loglevel = NCLOGLEVEL_TRACE;
-  opts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  opts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN;
   struct notcurses* nc;
   if((nc = notcurses_init(&opts, nullptr)) == nullptr){
     return EXIT_FAILURE;

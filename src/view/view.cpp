@@ -142,7 +142,7 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts,
         }
         break;
       case 'k':{
-        opts.inhibit_alternate_screen = true;
+        opts.flags |= NCOPTION_NO_ALTERNATE_SCREEN;
         break;
       }case 'm':{
         if(opts.margin_t || opts.margin_r || opts.margin_b || opts.margin_l){

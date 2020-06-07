@@ -3,7 +3,6 @@
 
 TEST_CASE("Visual") {
   notcurses_options nopts{};
-  nopts.suppress_banner = true;
   notcurses* nc_ = notcurses_init(&nopts, nullptr);
   if(!nc_){
     return;

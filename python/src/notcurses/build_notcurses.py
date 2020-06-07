@@ -65,22 +65,6 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // If smcup/rmcup capabilities are indicated, notcurses defaults to making
-  // use of the "alternate screen". This flag inhibits use of smcup/rmcup.
-  bool inhibit_alternate_screen;
-  // By default, we hide the cursor if possible. This flag inhibits use of
-  // the civis capability, retaining the cursor.
-  bool retain_cursor;
-  // Notcurses typically prints version info in notcurses_init() and performance
-  // info in notcurses_stop(). This inhibits that output.
-  bool suppress_banner;
-  // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
-  // restores the screen, and then calls the old signal handler. Set to inhibit
-  // registration of these signal handlers.
-  bool no_quit_sighandlers;
-  // We typically install a signal handler for SIGWINCH that generates a resize
-  // event in the notcurses_getc() queue. Set to inhibit this handler.
-  bool no_winch_sighandler;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
@@ -95,7 +79,7 @@ typedef struct notcurses_options {
   // General flags; see NCOPTION_*. This is expressed as a bitfield so that
   // future options can be added without reshaping the struct. Undefined bits
   // must be set to 0.
-  unsigned flags;
+  uint64_t flags;
 } notcurses_options;
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 int notcurses_lex_margins(const char* op, notcurses_options* opts);

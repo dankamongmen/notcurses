@@ -2,6 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.5.0 (not yet released)
+  * The various `bool`s of `struct notcurses_options` have been folded into
+    that `struct`'s `flags` field. Each `bool` has its own `NCOPTION_`.
   * Added a Pixel API for working directly with the contents of `ncvisual`s,
     including `ncvisual_at_yx()` and `ncvisual_set_yx()`.
 

@@ -29,7 +29,6 @@ auto fadeaborter(struct notcurses* nc, struct ncplane* ncp,
 
 TEST_CASE("Fade") {
   notcurses_options nopts{};
-  nopts.suppress_banner = true;
   struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
   if(!nc_){
     return;

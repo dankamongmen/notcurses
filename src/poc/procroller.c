@@ -42,8 +42,7 @@ int main(int argc, char** argv){
   }
   setlocale(LC_ALL, "");
   notcurses_options opts = {
-    .inhibit_alternate_screen = true,
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
+    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){

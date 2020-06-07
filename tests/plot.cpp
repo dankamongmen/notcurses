@@ -8,7 +8,6 @@ TEST_CASE("Plot") {
     return;
   }
   notcurses_options nopts{};
-  nopts.suppress_banner = true;
   auto nc_ = notcurses_init(&nopts, nullptr);
   if(!nc_){
     return;

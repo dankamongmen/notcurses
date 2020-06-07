@@ -4,7 +4,6 @@
 
 TEST_CASE("ZAxis") {
   notcurses_options nopts{};
-  nopts.suppress_banner = true;
   struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
   if(!nc_){
     return;

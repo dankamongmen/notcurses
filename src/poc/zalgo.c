@@ -4,8 +4,7 @@
 int main(void){
   setlocale(LC_ALL, "");
   struct notcurses_options nops = {
-    .inhibit_alternate_screen = true,
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
+    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&nops, NULL);
   struct ncplane* n = notcurses_stdplane(nc);

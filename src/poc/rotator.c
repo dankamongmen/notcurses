@@ -221,8 +221,7 @@ rotate(struct notcurses* nc){
 int main(void){
   setlocale(LC_ALL, "");
   struct notcurses_options nopts = {
-    .inhibit_alternate_screen = true,
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
+    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   int r = 0;

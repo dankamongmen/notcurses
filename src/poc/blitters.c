@@ -13,8 +13,7 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   struct notcurses_options nopts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
-    .inhibit_alternate_screen = true,
+    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   struct ncplane* std = notcurses_stdplane(nc);

@@ -735,6 +735,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
     return NULL;
   }
+  if(opts->flags > NCOPTION_NO_ALTERNATE_SCREEN){
+    fprintf(stderr, "Provided an illegal Notcurses option, refusing to start\n");
+    return NULL;
+  }
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
@@ -815,7 +819,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  if(setup_signals(ret, opts->no_quit_sighandlers, opts->no_winch_sighandler)){
+  if(setup_signals(ret,
+                   (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
+                   (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER))){
     goto err;
   }
   int termerr;
@@ -827,9 +833,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
     goto err;
   }
+  ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
   char* shortname_term = termname();
   char* longname_term = longname();
-  if(!opts->suppress_banner){
+  if(!ret->suppress_banner){
     fprintf(stderr, "Term: %dx%d %s (%s)\n", dimy, dimx,
             shortname_term ? shortname_term : "?",
             longname_term ? longname_term : "?");
@@ -842,7 +849,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
-  if(!opts->inhibit_alternate_screen){
+  if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
     term_verify_seq(&ret->tcache.smcup, "smcup");
     term_verify_seq(&ret->tcache.rmcup, "rmcup");
   }
@@ -857,7 +864,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->top);
     goto err;
   }
-  if(!opts->retain_cursor){
+  if(!(opts->flags & NCOPTION_RETAIN_CURSOR)){
     if(ret->tcache.civis && term_emit("civis", ret->tcache.civis, ret->ttyfp, true)){
       free_plane(ret->top);
       goto err;
@@ -868,7 +875,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->rstate.x = ret->rstate.y = -1;
-  ret->suppress_banner = opts->suppress_banner;
   init_banner(ret);
   // flush on the switch to alternate screen, lest initial output be swept away
   if(ret->tcache.smcup && term_emit("smcup", ret->tcache.smcup, ret->ttyfp, true)){

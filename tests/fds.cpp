@@ -50,7 +50,6 @@ auto testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry) -> int {
 TEST_CASE("FdsAndSubprocs"
           * doctest::description("Fdplanes and subprocedures")) {
   notcurses_options nopts{};
-  nopts.suppress_banner = true;
   struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
   if(!nc_){
     return;

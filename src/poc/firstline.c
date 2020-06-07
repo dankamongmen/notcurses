@@ -3,7 +3,7 @@
 
 int main(void){
   struct notcurses_options nopts = {
-    .inhibit_alternate_screen = true,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){

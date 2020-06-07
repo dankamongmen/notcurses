@@ -12,4 +12,11 @@
 auto find_data(const char* datum) -> char*;
 auto enforce_utf8() -> bool;
 
+class TestOptions : public notcurses_options {
+ public:
+  TestOptions() {
+    flags = NCOPTION_SUPPRESS_BANNERS;
+  }
+};
+
 #endif

@@ -12,8 +12,10 @@
 // works on a scrolling plane
 static int
 allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
+  // some of these cause major problems with Kitty, if not others, due to
+  // heavy duty beating on freetype FIXME reenable when reasonable
   const int valid_planes[] = {
-    0, 1, 2, 3, 14, 15, 16, -1
+    0, 1, /*2,*/ 3, 14, /*15, 16,*/ -1
   };
   struct ncplane* std = notcurses_stdplane(nc);
   const int dimx = ncplane_dim_x(column);
@@ -74,13 +76,13 @@ int allglyphs_demo(struct notcurses* nc){
     }
   }
   struct ncplane* column = ncplane_aligned(n, height, width,
-                                           (dimy - height) / 2,
+                                           (dimy - height) / 2 + 1,
                                            NCALIGN_CENTER, NULL);
   if(column == NULL){
     return -1;
   }
   ncplane_set_scrolling(column, true);
-  int r = allglyphs(nc, column, dimy - 2);
+  int r = allglyphs(nc, column, 2);
   ncplane_destroy(column);
   return r;
 }

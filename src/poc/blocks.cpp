@@ -11,8 +11,7 @@ using namespace ncpp;
 auto main() -> int {
   setlocale(LC_ALL, "");
   notcurses_options nopts{};
-  nopts.inhibit_alternate_screen = true;
-  nopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
+  nopts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN;
   NotCurses nc(nopts);
   std::unique_ptr<Plane> n (nc.get_stdplane());
   int dimx, dimy;

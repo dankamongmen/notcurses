@@ -242,7 +242,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
         *ignore_failures = true;
         break;
       case 'k':
-        opts->inhibit_alternate_screen = true;
+        opts->flags |= NCOPTION_NO_ALTERNATE_SCREEN;
         break;
       case 'f':
         if(opts->renderfp){
@@ -479,7 +479,7 @@ int main(int argc, char** argv){
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
     goto err;
   }
-  if(nopts.inhibit_alternate_screen){ // no one cares. 1s max.
+  if((nopts.flags & NCOPTION_NO_ALTERNATE_SCREEN)){ // no one cares. 1s max.
     if(demodelay.tv_sec >= 1){
       sleep(1);
     }else{

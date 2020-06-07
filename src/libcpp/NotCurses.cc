@@ -5,11 +5,6 @@ using namespace ncpp;
 
 notcurses_options NotCurses::default_notcurses_options = {
 	/* termtype */                 nullptr,
-	/* inhibit_alternate_screen */ false,
-	/* retain_cursor */            false,
-	/* suppress_bannner */         false,
-	/* no_quit_sighandlers */      false,
-	/* no_winch_sighandler */      false,
 	/* renderfp */                 nullptr,
 	/* loglevel */                 NCLogLevel::Silent,
 	/* margin_t */                 0,
