@@ -15,6 +15,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(sp);
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, "this is going to be broken up"));
     CHECK(0 == notcurses_render(nc_));
+    // FIXME inspect layout
     ncplane_destroy(sp);
   }
 
@@ -23,6 +24,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(sp);
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_RIGHT, "this is going to be broken up"));
     CHECK(0 == notcurses_render(nc_));
+    // FIXME inspect layout
     ncplane_destroy(sp);
   }
 
@@ -31,6 +33,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(sp);
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, "this is going to be broken up"));
     CHECK(0 == notcurses_render(nc_));
+    // FIXME inspect layout
     ncplane_destroy(sp);
   }
 

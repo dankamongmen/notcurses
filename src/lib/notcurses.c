@@ -1518,6 +1518,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text){
         verifiedcols = x;
       }
       x += width;
+      text += consumed;
     }
     int carrycols = 0;
     if(x >= dimx){
@@ -1527,10 +1528,14 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text){
     }
     totalcols += verifiedcols;
     const int xpos = ncplane_align(n, align, x);
+    if(breaker == NULL){
+      breaker = text;
+    }
     if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) < 0){ 
       return -1;
     }
     x = carrycols;
+    linestart = breaker + 1;
     ++y; // FIXME scrolling!
   }while(*text);
   return totalcols;
