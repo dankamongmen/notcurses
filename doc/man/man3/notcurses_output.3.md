@@ -36,7 +36,7 @@ notcurses_output - output to ncplanes
 
 **int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);**
 
-**static inline int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);**
+**int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);**
 
 **static inline int ncplane_putstr(struct ncplane* n, const char* gclustarr);**
 
@@ -47,6 +47,12 @@ notcurses_output - output to ncplanes
 **static inline int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align, const wchar_t* gclustarr);**
 
 **static inline int ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr);**
+
+**int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);**
+
+**static inline int ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr);**
+
+**int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* s);**
 
 **int ncplane_vprintf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, va_list ap);**
 
@@ -62,7 +68,7 @@ notcurses_output - output to ncplanes
 
 **int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);**
 
-**int ncplane_puttext(struct ncplane* n, const char* text, ncalign_e align);**
+**int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text);**
 
 # DESCRIPTION
 

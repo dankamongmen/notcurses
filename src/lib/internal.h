@@ -315,7 +315,7 @@ typedef struct notcurses {
 
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
-
+  int loglevel;
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
@@ -756,6 +756,11 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
     channels_set_bg_default(channels);
   }
 }
+
+void nclog(const char* fmt, ...);
+
+// logging
+#define logerror(nc, fmt, ...) do{ if(nc->loglevel >= NCLOGLEVEL_ERROR){ nclog(__FILE__ "%d" fmt, __LINE__, __VA_ARGS__); } }while(0);
 
 #ifdef __cplusplus
 }

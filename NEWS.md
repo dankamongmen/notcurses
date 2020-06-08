@@ -7,6 +7,8 @@ rearrangements of Notcurses.
   * Added a Pixel API for working directly with the contents of `ncvisual`s,
     including `ncvisual_at_yx()` and `ncvisual_set_yx()`.
   * Added `ncplane_puttext()` for writing multiline, line-broken text.
+  * Added `ncplane_putnstr()`, `ncplane_putnstr_yx()`, and
+    `ncplane_putnstr_aligned()` for byte-limited output of UTF-8.
 
 * 1.4.5 (2020-06-04)
   * `ncblit_rgba()` and `ncblit_bgrx()` have replaced most of their arguments
