@@ -203,18 +203,9 @@ void Ticker(ncpp::NotCurses* nc) {
   }while(!done);
 }
 
-int main(void){
+int input_demo(ncpp::NotCurses* nc) {
   constexpr auto PLOTHEIGHT = 6;
-  if(setlocale(LC_ALL, "") == nullptr){
-    return EXIT_FAILURE;
-  }
-  notcurses_options nopts{};
-  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
-  NotCurses nc(nopts);
-  if(!nc.mouse_enable()){
-    return EXIT_FAILURE;
-  }
-  std::unique_ptr<Plane*> n = std::make_unique<Plane*>(nc.get_stdplane(&dimy, &dimx));
+  auto n = std::make_unique<Plane*>(nc->get_stdplane(&dimy, &dimx));
   ncpp::Plane pplane{PLOTHEIGHT, dimx, dimy - PLOTHEIGHT,  0, nullptr};
   struct ncplot_options popts{};
   // FIXME would be nice to switch over to exponential at some level
@@ -231,32 +222,32 @@ int main(void){
   (*n)->set_bg_rgb(0xbb, 0x64, 0xbb);
   (*n)->styles_on(CellStyle::Underline);
   if((*n)->putstr(0, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
-    return EXIT_FAILURE;
+    return -1;
   }
   (*n)->styles_set(CellStyle::None);
   (*n)->set_bg_default();
-  if(!nc.render()){
-    return EXIT_FAILURE;
+  if(!nc->render()){
+    return -1;
   }
   int y = 2;
   std::deque<wchar_t> cells;
   char32_t r;
   done = false;
   start = timenow_to_ns();
-  std::thread tid(Ticker, &nc);
+  std::thread tid(Ticker, nc);
   ncinput ni;
-  while(errno = 0, (r = nc.getc(true, &ni)) != (char32_t)-1){
+  while(errno = 0, (r = nc->getc(true, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
       continue;
     }
     if((r == 'D' || r == 'd') && ni.ctrl){
       done = true;
       tid.join();
-      return EXIT_SUCCESS;
+      return 0;
     }
     if((r == 'L' || r == 'l') && ni.ctrl){
       mtx.lock();
-        if(!nc.refresh(nullptr, nullptr)){
+        if(!nc->refresh(nullptr, nullptr)){
           mtx.unlock();
           break;
         }
@@ -299,7 +290,7 @@ int main(void){
       mtx.unlock();
       break;
     }
-    if(!nc.render()){
+    if(!nc->render()){
       mtx.unlock();
       throw std::runtime_error("error rendering");
     }
@@ -318,6 +309,22 @@ int main(void){
   }
   done = true;
   tid.join();
-  nc.stop();
-  return EXIT_FAILURE;
+  return 0;
+}
+
+int main(void){
+  if(setlocale(LC_ALL, "") == nullptr){
+    return EXIT_FAILURE;
+  }
+  notcurses_options nopts{};
+  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  NotCurses nc(nopts);
+  if(!nc.mouse_enable()){
+    return EXIT_FAILURE;
+  }
+  int ret = input_demo(&nc);
+  if(!nc.stop() || ret){
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 }
