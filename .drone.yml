@@ -25,7 +25,7 @@ steps:
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
     - make
     - ./notcurses-tester -p ../data
 ---
