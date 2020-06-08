@@ -75,14 +75,14 @@ int allglyphs_demo(struct notcurses* nc){
       return -1;
     }
   }
-  struct ncplane* column = ncplane_aligned(n, height, width,
-                                           (dimy - height) / 2 + 1,
+  const int planey = (dimy - height) / 2 + 1;
+  struct ncplane* column = ncplane_aligned(n, height, width, planey,
                                            NCALIGN_CENTER, NULL);
   if(column == NULL){
     return -1;
   }
   ncplane_set_scrolling(column, true);
-  int r = allglyphs(nc, column, 2);
+  int r = allglyphs(nc, column, planey - 2);
   ncplane_destroy(column);
   return r;
 }
