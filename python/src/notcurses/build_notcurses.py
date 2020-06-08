@@ -497,6 +497,9 @@ struct ncplane* ncreader_plane(struct ncreader* n);
 bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
 char* ncreader_contents(const struct ncreader* n);
 void ncreader_destroy(struct ncreader* n, char** contents);
+int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes);
+int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
+int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* gclustarr);
 """)
 
 if __name__ == "__main__":

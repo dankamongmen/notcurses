@@ -854,7 +854,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     term_verify_seq(&ret->tcache.rmcup, "rmcup");
   }
   ret->bottom = ret->top = ret->stdscr = NULL;
-  if(ncvisual_init(ffmpeg_log_level(opts->loglevel))){
+  ret->loglevel = opts->loglevel;
+  if(ncvisual_init(ffmpeg_log_level(ret->loglevel))){
     goto err;
   }
   if((ret->stdscr = create_initial_ncplane(ret, dimy, dimx)) == NULL){
@@ -1477,6 +1478,73 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   return ret;
 }
 
+int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes){
+  int totalcols = 0;
+  // save the beginning for diagnostic
+  const char* beginning = text;
+  // text points to the text we have *not* yet output. at each step, we see
+  // how much space we have available, and begin iterating from text. remember
+  // the most recent linebreaker that we see. when we exhaust our line, print
+  // through the linebreaker, and advance text.
+  // FIXME what about a long word? do we want to leave the big gap?
+  const int dimx = ncplane_dim_x(n);
+  const char* linestart = text;
+  int x = 0; // number of columns consumed for this line
+  do{
+    const char* breaker = NULL;
+    // figure how much text to output on this line
+    mbstate_t mbstate = {};
+    int width;
+    // verified columns thus far (carried, and through breaker)
+    size_t verifiedcols = x;
+    while(*text && x < dimx - 1){
+      wchar_t w;
+      size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
+      if(consumed == (size_t)-2 || consumed == (size_t)-1){
+        logerror(n->nc, "Invalid UTF-8 after %zu bytes\n", text - beginning);
+        *bytes = text - beginning;
+        return -1;
+      }
+      width = wcwidth(w);
+      if(width < 0){
+        logerror(n->nc, "Non-printable UTF-8 after %zu bytes\n", text - beginning);
+        *bytes = text - beginning;
+        return -1;
+      }
+      if(x + width >= dimx){
+        break;
+      }
+      // FIXME use the more advanced unicode functionality to break lines
+      if(iswspace(w)){
+        breaker = text;
+        verifiedcols = x;
+      }
+      x += width;
+      text += consumed;
+    }
+    int carrycols = 0;
+    if(x >= dimx){
+      // the last character was one past the amount we can print. set linestart
+      // back to breaker, set carrycols to the amount since breaker
+      carrycols = x - verifiedcols;
+    }
+    totalcols += verifiedcols;
+    const int xpos = ncplane_align(n, align, x);
+    if(breaker == NULL){
+      breaker = text;
+    }
+    if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) < 0){ 
+      *bytes = linestart - beginning;
+      return -1;
+    }
+    x = carrycols;
+    linestart = breaker + 1;
+    ++y; // FIXME scrolling!
+  }while(*text);
+  *bytes = text - beginning;
+  return totalcols;
+}
+
 int ncplane_vline_interp(ncplane* n, const cell* c, int len,
                          uint64_t c1, uint64_t c2){
   unsigned ur, ug, ub;
@@ -2096,4 +2164,55 @@ void ncplane_center_abs(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
   if(x){
     *x += n->absx;
   }
+}
+
+void nclog(const char* fmt, ...){
+  va_list va;
+  va_start(va, fmt);
+  vfprintf(stderr, fmt, va);
+  va_end(va);
+}
+
+int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
+  int ret = 0;
+  // FIXME speed up this blissfully naive solution
+  while(*gclusters){
+    int wcs;
+    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
+    gclusters += wcs;
+    ret += wcs;
+  }
+  return ret;
+}
+
+int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
+  size_t ret = 0;
+  // FIXME speed up this blissfully naive solution
+  while(ret < s && *gclusters){
+    int wcs;
+    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
+    gclusters += wcs;
+    ret += wcs;
+  }
+  return ret;
 }

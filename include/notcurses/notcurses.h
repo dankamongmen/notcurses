@@ -1438,32 +1438,11 @@ API int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int*
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
-// of ncplane_putc()). Advances the cursor by some positive number of cells
+// of ncplane_putc()). Advances the cursor by some positive number of columns
 // (though not beyond the end of the plane); this number is returned on success.
-// On error, a non-positive number is returned, indicating the number of cells
+// On error, a non-positive number is returned, indicating the number of columns
 // which were written before the error.
-static inline int
-ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
-  int ret = 0;
-  // FIXME speed up this blissfully naive solution
-  while(*gclusters){
-    int wcs;
-    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
-    if(cols < 0){
-      return -ret;
-    }
-    if(wcs == 0){
-      break;
-    }
-    // after the first iteration, just let the cursor code control where we
-    // print, so that scrolling is taken into account
-    y = -1;
-    x = -1;
-    gclusters += wcs;
-    ret += wcs;
-  }
-  return ret;
-}
+API int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
 
 static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr){
@@ -1472,6 +1451,22 @@ ncplane_putstr(struct ncplane* n, const char* gclustarr){
 
 API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
                                const char* s);
+
+// Write a series of EGCs to the current location, using the current style.
+// They will be interpreted as a series of columns (according to the definition
+// of ncplane_putc()). Advances the cursor by some positive number of columns
+// (though not beyond the end of the plane); this number is returned on success.
+// On error, a non-positive number is returned, indicating the number of columns
+// which were written before the error. No more than 's' bytes will be written.
+API int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
+
+static inline int
+ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr){
+  return ncplane_putnstr_yx(n, -1, -1, s, gclustarr);
+}
+
+API int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                                size_t s, const char* gclustarr);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
@@ -1571,6 +1566,17 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
   va_end(va);
   return ret;
 }
+
+// Write the specified text to the plane, breaking lines sensibly, beginning at
+// the specified line. Returns the number of columns written. When breaking a
+// line, the line will be cleared to the end of the plane (the last line will
+// *not* be so cleared). The number of bytes written from the input is written
+// to '*bytes' if it is not NULL. Cleared columns are included in the return
+// value, but *not* included in the number of bytes written. Leaves the cursor
+// at the end of output. A partial write will be accomplished as far as it can;
+// determine whether the write completed by inspecting '*bytes'.
+API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
+                        const char* text, size_t* bytes);
 
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last

@@ -902,12 +902,11 @@ int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sby
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
-// of ncplane_putc()). Advances the cursor by some positive number of cells
+// of ncplane_putc()). Advances the cursor by some positive number of columns
 // (though not beyond the end of the plane); this number is returned on success.
-// On error, a non-positive number is returned, indicating the number of cells
+// On error, a non-positive number is returned, indicating the number of columns
 // which were written before the error.
-static inline int
-ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
+int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
 
 static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr){
@@ -934,6 +933,22 @@ ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
   free(mbstr);
   return ret;
 }
+
+// Write a series of EGCs to the current location, using the current style.
+// They will be interpreted as a series of columns (according to the definition
+// of ncplane_putc()). Advances the cursor by some positive number of columns
+// (though not beyond the end of the plane); this number is returned on success.
+// On error, a non-positive number is returned, indicating the number of columns
+// which were written before the error. No more than 's' bytes will be written.
+int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
+
+static inline int
+ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr){
+  return ncplane_putnstr_yx(n, -1, -1, s, gclustarr);
+}
+
+int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align,
+                            size_t s, const char* s);
 
 static inline int
 ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
@@ -999,6 +1014,24 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
   va_end(va);
   return ret;
 }
+```
+
+Multiline chunks of human-readable text can be written with
+`ncplane_puttext()` even if the plane does not have scrolling enabled. Such
+text will be broken up across lines using the Unicode line-breaking algorithm
+of [Unicode Annex #14](http://www.unicode.org/reports/tr14/tr14-34.html).
+
+```c
+// Write the specified text to the plane, breaking lines sensibly, beginning at
+// the specified line. Returns the number of columns written. When breaking a
+// line, the line will be cleared to the end of the plane (the last line will
+// *not* be so cleared). The number of bytes written from the input is written
+// to '*bytes' if it is not NULL. Cleared columns are included in the return
+// value, but *not* included in the number of bytes written. Leaves the cursor
+// at the end of output. A partial write will be accomplished as far as it can;
+// determine whether the write completed by inspecting '*bytes'.
+int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
+                    const char* text, size_t* bytes);
 ```
 
 Lines and boxes can be drawn, interpolating their colors between their two

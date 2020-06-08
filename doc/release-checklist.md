@@ -1,3 +1,4 @@
+* Review the testing checklist (doc/testing-checklist.md)
 * clang-tidy check with something like:
   * `cmake "-DCMAKE_CXX_CLANG_TIDY=/usr/bin/clang-tidy-11;-checks=-*,clang-analyzer-*,modernize-*,performance-*" ..`
   * `scan-build cmake .. && scan-build make`
