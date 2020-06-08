@@ -74,7 +74,13 @@ videothread(void* vnc){
   if(samoactx == NULL){
     return NULL;
   }
-  ncplane_fadeout(vopts.n, &fade, changes_fadeout, samoactx);
+  if(ncplane_fadeout(vopts.n, &fade, changes_fadeout, samoactx) < 0){
+    ncfadectx_free(samoactx);
+    ncplane_destroy(vopts.n);
+    ncvisual_destroy(ncv);
+    return PTHREAD_CANCELED;
+  }
+  ncfadectx_free(samoactx);
   ncplane_destroy(vopts.n);
   struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
