@@ -760,7 +760,7 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
 void nclog(const char* fmt, ...);
 
 // logging
-#define logerror(nc, fmt, ...) do{ if(nc->loglevel >= NCLOGLEVEL_ERROR){ nclog(__FILE__ "%d" fmt, __LINE__, __VA_ARGS__); } }while(0);
+#define logerror(nc, fmt, ...) do{ if(nc->loglevel >= NCLOGLEVEL_ERROR){ nclog(__FILE__ "%d" fmt, __LINE__, ##__VA_ARGS__); } }while(0);
 
 #ifdef __cplusplus
 }

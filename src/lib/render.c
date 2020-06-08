@@ -120,7 +120,11 @@ void cell_release(ncplane* n, cell* c){
 
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int cell_duplicate(ncplane* n, cell* targ, const cell* c){
-  return cell_duplicate_far(&n->pool, targ, n, c);
+  int r = cell_duplicate_far(&n->pool, targ, n, c);
+  if(r < 0){
+    logerror(n->nc, "Failed duplicating cell");
+  }
+  return r;
 }
 
 // the heart of damage detection. compare two cells (from two different planes)
