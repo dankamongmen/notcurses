@@ -38,9 +38,9 @@ steps:
   image: dankamongmen/fedora33:2020-06-08a
   commands:
     - export LANG=en_US.UTF-8
+    - dnf install -y doctest-devel
     - mkdir build
     - cd build
-    - ls
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make
     - ./notcurses-tester -p ../data
