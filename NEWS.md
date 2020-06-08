@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.5.0 (not yet released)
+* 1.5.0 (2020-07-08)
   * The various `bool`s of `struct notcurses_options` have been folded into
     that `struct`'s `flags` field. Each `bool` has its own `NCOPTION_`.
   * Added a Pixel API for working directly with the contents of `ncvisual`s,
@@ -52,8 +52,6 @@ rearrangements of Notcurses.
   * Removed `ncplane_move_above_unsafe()` and `ncplane_move_below_unsafe()`;
     all z-axis moves are now safe. Z-axis moves are all now O(1), rather
     than the previous O(N).
-  * Added `USE_STATIC` CMake option, defaulting to `ON`. If turned `OFF`,
-    static libraries will not be built.
 
 * 1.4.2.3 (2020-05-17)
   * Added `notcurses_canutf8()`, to verify use of UTF-8 encoding.
