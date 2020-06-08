@@ -403,16 +403,14 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
           && ffmpeg_trans_p(bgr, rgbbase_l2[3]) && ffmpeg_trans_p(bgr, rgbbase_r2[3])
           && ffmpeg_trans_p(bgr, rgbbase_l3[3]) && ffmpeg_trans_p(bgr, rgbbase_r3[3])){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-          egc = " ";
           // FIXME else look for pairs of transparency!
       }else{
         // FIXME interpolate into 1
         cell_set_fg_rgb(c, rgbbase_l0[rpos], rgbbase_l0[1], rgbbase_l0[bpos]);
         egc = "⡜";
-      }
-      assert(egc);
-      if(cell_load(nc, c, egc) <= 0){
-        return -1;
+        if(cell_load(nc, c, egc) <= 0){
+          return -1;
+        }
       }
       ++total;
     }
