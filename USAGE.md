@@ -902,9 +902,9 @@ int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sby
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
-// of ncplane_putc()). Advances the cursor by some positive number of cells
+// of ncplane_putc()). Advances the cursor by some positive number of columns
 // (though not beyond the end of the plane); this number is returned on success.
-// On error, a non-positive number is returned, indicating the number of cells
+// On error, a non-positive number is returned, indicating the number of columns
 // which were written before the error.
 int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
 
@@ -936,10 +936,10 @@ ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
-// of ncplane_putc()). Advances the cursor by some positive number of cells
+// of ncplane_putc()). Advances the cursor by some positive number of columns
 // (though not beyond the end of the plane); this number is returned on success.
-// On error, a non-positive number is returned, indicating the number of cells
-// which were written before the error. No more than n bytes will be written.
+// On error, a non-positive number is returned, indicating the number of columns
+// which were written before the error. No more than 's' bytes will be written.
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
 
 static inline int
@@ -1030,7 +1030,8 @@ of [Unicode Annex #14](http://www.unicode.org/reports/tr14/tr14-34.html).
 // value, but *not* included in the number of bytes written. Leaves the cursor
 // at the end of output. A partial write will be accomplished as far as it can;
 // determine whether the write completed by inspecting '*bytes'.
-API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text);
+int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
+                    const char* text, size_t* bytes);
 ```
 
 Lines and boxes can be drawn, interpolating their colors between their two

@@ -1438,9 +1438,9 @@ API int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int*
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
-// of ncplane_putc()). Advances the cursor by some positive number of cells
+// of ncplane_putc()). Advances the cursor by some positive number of columns
 // (though not beyond the end of the plane); this number is returned on success.
-// On error, a non-positive number is returned, indicating the number of cells
+// On error, a non-positive number is returned, indicating the number of columns
 // which were written before the error.
 API int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
 
@@ -1454,10 +1454,10 @@ API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
-// of ncplane_putc()). Advances the cursor by some positive number of cells
+// of ncplane_putc()). Advances the cursor by some positive number of columns
 // (though not beyond the end of the plane); this number is returned on success.
-// On error, a non-positive number is returned, indicating the number of cells
-// which were written before the error. No more than n bytes will be written.
+// On error, a non-positive number is returned, indicating the number of columns
+// which were written before the error. No more than 's' bytes will be written.
 API int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
 
 static inline int
@@ -1575,7 +1575,8 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
 // value, but *not* included in the number of bytes written. Leaves the cursor
 // at the end of output. A partial write will be accomplished as far as it can;
 // determine whether the write completed by inspecting '*bytes'.
-API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text);
+API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
+                        const char* text, size_t* bytes);
 
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last

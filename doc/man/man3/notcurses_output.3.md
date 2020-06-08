@@ -68,7 +68,7 @@ notcurses_output - output to ncplanes
 
 **int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);**
 
-**int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text);**
+**int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes);**
 
 # DESCRIPTION
 
