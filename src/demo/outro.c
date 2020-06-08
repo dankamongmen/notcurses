@@ -83,6 +83,16 @@ videothread(void* vnc){
   ncfadectx_free(samoactx);
   ncplane_destroy(vopts.n);
   struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);
+  if(apiap == NULL){
+    ncfadectx_free(samoactx);
+    ncplane_destroy(vopts.n);
+    ncvisual_destroy(ncv);
+    return PTHREAD_CANCELED;
+  }
+  uint64_t trans_channel = 0;
+  channels_set_bg_alpha(&trans_channel, CELL_ALPHA_TRANSPARENT);
+  channels_set_fg_alpha(&trans_channel, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(apiap, " ", 0, trans_channel);
   ncplane_set_fg_rgb(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
