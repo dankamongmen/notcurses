@@ -1572,6 +1572,16 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
   return ret;
 }
 
+// Write the specified text to the plane, breaking lines sensibly, beginning at
+// the specified line. Returns the number of columns written. When breaking a
+// line, the line will be cleared to the end of the plane (the last line will
+// *not* be so cleared). The number of bytes written from the input is written
+// to '*bytes' if it is not NULL. Cleared columns are included in the return
+// value, but *not* included in the number of bytes written. Leaves the cursor
+// at the end of output. A partial write will be accomplished as far as it can;
+// determine whether the write completed by inspecting '*bytes'.
+API int ncplane_puttext(struct ncplane* n, const char* text, ncalign_e align);
+
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last
 // cell output (even, perhaps counter-intuitively, when drawing vertical

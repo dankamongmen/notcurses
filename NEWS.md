@@ -6,6 +6,7 @@ rearrangements of Notcurses.
     that `struct`'s `flags` field. Each `bool` has its own `NCOPTION_`.
   * Added a Pixel API for working directly with the contents of `ncvisual`s,
     including `ncvisual_at_yx()` and `ncvisual_set_yx()`.
+  * Added `ncplane_puttext()` for writing multiline, line-broken text.
 
 * 1.4.5 (2020-06-04)
   * `ncblit_rgba()` and `ncblit_bgrx()` have replaced most of their arguments

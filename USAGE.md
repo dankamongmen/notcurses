@@ -1001,6 +1001,23 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
 }
 ```
 
+Multiline chunks of human-readable text can be written with
+`ncplane_puttext()` even if the plane does not have scrolling enabled. Such
+text will be broken up across lines using the Unicode line-breaking algorithm
+of [Unicode Annex #14](http://www.unicode.org/reports/tr14/tr14-34.html).
+
+```c
+// Write the specified text to the plane, breaking lines sensibly, beginning at
+// the specified line. Returns the number of columns written. When breaking a
+// line, the line will be cleared to the end of the plane (the last line will
+// *not* be so cleared). The number of bytes written from the input is written
+// to '*bytes' if it is not NULL. Cleared columns are included in the return
+// value, but *not* included in the number of bytes written. Leaves the cursor
+// at the end of output. A partial write will be accomplished as far as it can;
+// determine whether the write completed by inspecting '*bytes'.
+API int ncplane_puttext(struct ncplane* n, const char* text, ncalign_e align);
+```
+
 Lines and boxes can be drawn, interpolating their colors between their two
 endpoints. For a line of a single color, be sure to specify the same channels
 on both sides. Boxes allow fairly detailed specification of how they're drawn.
