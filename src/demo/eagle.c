@@ -198,11 +198,6 @@ eagles(struct notcurses* nc){
 
 // motherfucking eagles!
 int eagle_demo(struct notcurses* nc){
-  // FIXME we ought be able to run this in ASCII mode, but we need fix up
-  // ncvisual_geom() to accept ncvisual_options #697
-  if(!notcurses_canutf8(nc)){
-    return 0;
-  }
   struct ncplane* zncp = NULL;
   int err;
   if(notcurses_canopen_images(nc)){

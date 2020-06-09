@@ -17,6 +17,9 @@ qrcode_cols(int version){
 #endif
 
 int qrcode_demo(struct notcurses* nc){
+  if(!notcurses_canutf8(nc)){
+    return 0;
+  }
 #ifdef USE_QRCODEGEN
   char data[128];
   int dimy, dimx;
@@ -43,7 +46,7 @@ int qrcode_demo(struct notcurses* nc){
       return -1;
     }
     int qlen = ncplane_qrcode(n, 0, data, len);
-    // can fail due to being too large for the terminal
+    // can fail due to being too large for the terminal (FIXME), or ASCII mode
     if(qlen > 0){
       ncplane_move_yx(n, dimy / 2 - qrcode_rows(qlen) / 2,
                       dimx / 2 - qrcode_cols(qlen) / 2);

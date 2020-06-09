@@ -31,7 +31,7 @@ int main(int argc, char** argv){
     goto err;
   }
   int scaley, scalex;
-  ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, nullptr, nullptr, &scaley, &scalex);
+  ncvisual_geom(nc, ncv, &vopts, nullptr, nullptr, &scaley, &scalex);
   //ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
   vopts.n = n;
   vopts.scaling = NCSCALE_STRETCH;

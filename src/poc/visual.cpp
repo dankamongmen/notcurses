@@ -50,7 +50,7 @@ int main(int argc, char** argv){
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
 
   ncplane_erase(n);
-  ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, nullptr, nullptr, &scaley, &scalex);
+  ncvisual_geom(nc, ncv, &vopts, nullptr, nullptr, &scaley, &scalex);
   ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
   vopts.n = n;
   if(ncvisual_render(nc, ncv, &vopts) == nullptr){
@@ -70,7 +70,7 @@ int main(int argc, char** argv){
       break;
     }
     int vy, vx;
-    ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vy, &vx, &scaley, &scalex);
+    ncvisual_geom(nc, ncv, &vopts, &vy, &vx, &scaley, &scalex);
     vopts.x = (dimx - (vx / scalex)) / 2;
     vopts.y = (dimy - (vy / scaley)) / 2;
     struct ncplane* newn;

@@ -124,17 +124,17 @@ draw_luigi(struct ncplane* n, const char* sprite){
       case '0':
         break;
       case '1':
-        ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
+        ncplane_set_bg_rgb(n, 0xff, 0xff, 0xff);
         break;
       case '2':
-        ncplane_set_fg_rgb(n, 0xe3, 0x9d, 0x25);
+        ncplane_set_bg_rgb(n, 0xe3, 0x9d, 0x25);
         break;
       case '3':
-        ncplane_set_fg_rgb(n, 0x3a, 0x84, 0x00);
+        ncplane_set_bg_rgb(n, 0x3a, 0x84, 0x00);
         break;
     }
     if(sprite[s] != '0'){
-      if(ncplane_putegc_yx(n, s / 16, s % 16, "\u2588", &sbytes) != 1){
+      if(ncplane_putegc_yx(n, s / 16, s % 16, " ", &sbytes) != 1){
         return -1;
       }
     }
