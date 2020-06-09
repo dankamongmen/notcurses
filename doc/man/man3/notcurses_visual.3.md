@@ -58,17 +58,17 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncvisual* ncvisual_from_plane(struct ncplane* n, ncblitter_e blit, int begy, int begx, int leny, int lenx);**
 
-**int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, ncblitter_e blitter, int* y, int* x, int* toy, int* tox);**
+**int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, const struct ncvisual_options* vopts, int* y, int* x, int* toy, int* tox);**
 
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
 **nc_err_e ncvisual_decode(struct ncvisual* nc);**
 
-**struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct visual_options* vopts);**
+**struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);**
 
 **int ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv, const struct timespec* disptime, void* curry);**
 
-**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, const struct visual_options* vopts, void* curry);**
+**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);**
 
 **int ncvisual_rotate(struct ncvisual* n, double rads);**
 

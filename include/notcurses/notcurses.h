@@ -2229,46 +2229,6 @@ API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                          int begy, int begx,
                                          int leny, int lenx);
 
-// Create an RGBA flat array from the selected region of the ncplane 'nc'.
-// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
-// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
-// Only glyphs from the specified blitset may be present.
-API uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit,
-                           int begy, int begx, int leny, int lenx);
-
-// Get the size and ratio of ncvisual pixels to output cells along the y
-// ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
-// ('*y' * '*toy')X('x' * 'tox') cells for full output. Returns non-zero
-// for an invalid 'blitter'.
-API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
-                      ncblitter_e blitter, int* y, int* x, int* toy, int* tox);
-
-// Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
-// can be neither decoded nor rendered any further.
-API void ncvisual_destroy(struct ncvisual* ncv);
-
-// extract the next frame from an ncvisual. returns NCERR_EOF on end of file,
-// and NCERR_SUCCESS on success, otherwise some other NCERR.
-API nc_err_e ncvisual_decode(struct ncvisual* nc);
-
-// Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
-// supported at the moment, but this will change FIXME.
-API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
-
-// Resize the visual so that it is 'rows' X 'columns'. This is a lossy
-// transformation, unless the size is unchanged.
-API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
-
-// Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
-API int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
-
-// Get the specified pixel from the specified ncvisual.
-API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
-
-// Set the specified pixel in the specified ncvisual.
-API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
-
 #define NCVISUAL_OPTION_NODEGRADE 0x0001 // fail rather than degrading
 #define NCVISUAL_OPTION_BLEND     0x0002 // use CELL_ALPHA_BLEND with visual
 
@@ -2296,6 +2256,47 @@ struct ncvisual_options {
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
 };
+
+// Create an RGBA flat array from the selected region of the ncplane 'nc'.
+// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
+// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
+// 'lenx' can be specified as -1 to go through the boundary of the plane.
+// Only glyphs from the specified blitset may be present.
+API uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit,
+                           int begy, int begx, int leny, int lenx);
+
+// Get the size and ratio of ncvisual pixels to output cells along the y
+// ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
+// ('*y' * '*toy')X('x' * 'tox') cells for full output. Returns non-zero
+// for an invalid 'vopts->blitter'.
+API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+                      const struct ncvisual_options* vopts,
+                      int* y, int* x, int* toy, int* tox);
+
+// Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
+// can be neither decoded nor rendered any further.
+API void ncvisual_destroy(struct ncvisual* ncv);
+
+// extract the next frame from an ncvisual. returns NCERR_EOF on end of file,
+// and NCERR_SUCCESS on success, otherwise some other NCERR.
+API nc_err_e ncvisual_decode(struct ncvisual* nc);
+
+// Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
+// supported at the moment, but this will change FIXME.
+API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
+
+// Resize the visual so that it is 'rows' X 'columns'. This is a lossy
+// transformation, unless the size is unchanged.
+API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
+
+// Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
+API int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
+
+// Get the specified pixel from the specified ncvisual.
+API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
+
+// Set the specified pixel in the specified ncvisual.
+API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
 
 // Render the decoded frame to the specified ncplane (if one is not provided,
 // one will be created, having the exact size necessary to display the visual.

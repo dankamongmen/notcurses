@@ -30,7 +30,7 @@ int yield_demo(struct notcurses* nc){
   ncplane_erase(std);
 
   int vy, vx, vscaley, vscalex;
-  ncvisual_geom(nc, wmv, vopts.blitter, &vy, &vx, &vscaley, &vscalex);
+  ncvisual_geom(nc, wmv, &vopts, &vy, &vx, &vscaley, &vscalex);
   struct timespec scaled;
   const long total = vy * vx;
   const long threshold_painted = total * 4 / 5;

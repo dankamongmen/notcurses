@@ -2544,6 +2544,14 @@ Various transformations can be applied to an `ncvisual`, regardless of how
 it was built up:
 
 ```c
+// Get the size and ratio of ncvisual pixels to output cells along the y
+// ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
+// ('*y' * '*toy')X('x' * 'tox') cells for full output. Returns non-zero
+// for an invalid 'vopts->blitter'.
+int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+                  const struct ncvisual_options* vopts,
+                  int* y, int* x, int* toy, int* tox);
+
 // Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.
 nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);

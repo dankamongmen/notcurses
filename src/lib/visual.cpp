@@ -36,12 +36,17 @@ ncvisual_default_blitter(const notcurses* nc) -> ncblitter_e {
   return NCBLIT_1x1;
 }
 
-auto ncvisual_geom(const notcurses* nc, const ncvisual* n, ncblitter_e blitter,
+auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
+                   const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {
-  if(blitter == NCBLIT_DEFAULT){
+  ncblitter_e blitter;
+  if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
     blitter = ncvisual_default_blitter(nc);
+  }else{
+    blitter = vopts->blitter;
   }
-  const struct blitset* bset = lookup_blitset(nc, blitter, false);
+  const bool maydegrade = !(vopts && (vopts->flags & NCVISUAL_OPTION_NODEGRADE));
+  const struct blitset* bset = lookup_blitset(nc, blitter, maydegrade);
   if(!bset){
     return -1;
   }

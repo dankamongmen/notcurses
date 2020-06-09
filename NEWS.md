@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.5.1 (not yet released)
+  * `ncvisual_geom()`'s `ncblitter_e` argument has been replaced with a
+    `const struct ncvisual_options*`, so that `NCVISUAL_OPTIONS_NODEGRADE`
+    can be taken into account (the latter contains a `blitter_e` field).
+
 * 1.5.0 (2020-07-08)
   * The various `bool`s of `struct notcurses_options` have been folded into
     that `struct`'s `flags` field. Each `bool` has its own `NCOPTION_`.
