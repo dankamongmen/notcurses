@@ -12,6 +12,7 @@ Run unit tests (`make && make test`):
 Run, using `valgrind --tool=memcheck --leak-check=full`:
 * `notcurses-demo` in each of the three multimedia configurations
 * `notcurses-demo` with `USE_QRCODEGEN=off`
+* `notcurses-demo` in ASCII mode (`export LANG=C`)
 * `notcurses-ncreel`
 * `notcurses-input`
 * `notcurses-view` with each scaling mode and an image + video, in three

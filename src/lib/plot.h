@@ -202,22 +202,24 @@ class ncppplot {
        // we would have errored out during construction). even then, however,
        // we need handle ASCII differently, since it can't print full block.
        // in ASCII mode, egcidx != means swap colors and use space.
-       if(notcurses_canutf8(ncplane_notcurses(ncp)) || !sumidx){
-         if(ncplane_putwc_yx(ncp, dimy - y - 1, x, egc[sumidx]) <= 0){
-           return -1;
+       if(sumidx){
+         if(notcurses_canutf8(ncplane_notcurses(ncp))){
+           if(ncplane_putwc_yx(ncp, dimy - y - 1, x, egc[sumidx]) <= 0){
+             return -1;
+           }
+         }else{
+           const uint64_t swapbg = channels_bchannel(channels);
+           const uint64_t swapfg = channels_fchannel(channels);
+           channels_set_bchannel(&channels, swapfg);
+           channels_set_fchannel(&channels, swapbg);
+           ncplane_set_channels(ncp, channels);
+           if(ncplane_putsimple_yx(ncp, dimy - y - 1, x, ' ') <= 0){
+             return -1;
+           }
+           channels_set_bchannel(&channels, swapbg);
+           channels_set_fchannel(&channels, swapfg);
+           ncplane_set_channels(ncp, channels);
          }
-       }else{
-         const uint64_t swapbg = channels_bchannel(channels);
-         const uint64_t swapfg = channels_fchannel(channels);
-         channels_set_bchannel(&channels, swapfg);
-         channels_set_fchannel(&channels, swapbg);
-         ncplane_set_channels(ncp, channels);
-         if(ncplane_putsimple_yx(ncp, dimy - y - 1, x, ' ') <= 0){
-           return -1;
-         }
-         channels_set_bchannel(&channels, swapbg);
-         channels_set_fchannel(&channels, swapfg);
-         ncplane_set_channels(ncp, channels);
        }
        if(done){
          break;
