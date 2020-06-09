@@ -13,15 +13,16 @@ class ncppplot {
 
  // these were all originally plain C, sorry for the non-idiomatic usage FIXME
  // ought admit nullptr opts FIXME
+ // reenable logging once #703 is done
  static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy) {
-   struct notcurses* nc = n->nc;
+   //struct notcurses* nc = n->nc;
    // if miny == maxy (enabling domain detection), they both must be equal to 0
    if(miny == maxy && miny){
-     logerror(nc, "Supplied non-zero domain detection param %d\n", miny);
+     //logerror(nc, "Supplied non-zero domain detection param %d\n", miny);
      return false;
    }
    if(opts->rangex < 0){
-     logerror(nc, "Supplied negative independent range %d\n", opts->rangex);
+     //logerror(nc, "Supplied negative independent range %d\n", opts->rangex);
      return false;
    }
    if(maxy < miny){
@@ -29,7 +30,7 @@ class ncppplot {
    }
    // DETECTMAXONLY can't be used without domain detection
    if(opts->flags & NCPLOT_OPTION_DETECTMAXONLY && (miny != maxy)){
-     logerror(nc, "Supplied DETECTMAXONLY without domain detection");
+     //logerror(nc, "Supplied DETECTMAXONLY without domain detection");
      return false;
    }
    ncblitter_e blitter = opts ? opts->gridtype : NCBLIT_DEFAULT;
