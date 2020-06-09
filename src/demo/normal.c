@@ -196,10 +196,12 @@ int normal_demo(struct notcurses* nc){
   if(n == NULL){
     goto err;
   }
-  ncplane_erase(nstd);
-  ncplane_cursor_move_yx(n, 0, 0);
-  if(rotate_plane(nc, n)){
-    goto err;
+  if(notcurses_canutf8(nc)){
+    ncplane_erase(nstd);
+    ncplane_cursor_move_yx(n, 0, 0);
+    if(rotate_plane(nc, n)){
+      goto err;
+    }
   }
   ncplane_cursor_move_yx(n, 0, 0);
   uint64_t tl, tr, bl, br;

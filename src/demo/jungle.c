@@ -26590,6 +26590,11 @@ int jungle_demo(struct notcurses* nc){
   if(!notcurses_canchangecolor(nc)){
     return 0; // skip
   }
+  // FIXME once we rewrite the garbage below using a modern ncvisual, we
+  // can rely on blitter degradation, and run this in ASCII mode.
+  if(!notcurses_canutf8(nc)){
+    return 0;
+  }
   struct timespec start, now;
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   size_t have = 0, out = 0;
@@ -26623,6 +26628,7 @@ int jungle_demo(struct notcurses* nc){
   }
   int dimx, dimy;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
+  // FIXME rewrite all of this using modern ncvisual, sheesh
   dimy *= 2; // use half blocks
   const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
   const int yiter = ORIGHEIGHT / dimy + !!(ORIGHEIGHT % dimy);
