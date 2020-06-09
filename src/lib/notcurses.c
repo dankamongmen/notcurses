@@ -814,7 +814,17 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->inputbuf_valid_starts = 0;
   ret->inputbuf_write_at = 0;
   ret->input_events = 0;
-  ret->ttyfd = get_tty_fd(ret, ret->ttyfp);
+  if((ret->loglevel = opts->loglevel) > NCLOGLEVEL_TRACE || ret->loglevel < 0){
+    fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
+    free(ret);
+    return NULL;
+  }
+  if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
+    fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
+    free(ret);
+    return NULL;
+  }
+  is_linux_console(ret);
   notcurses_mouse_disable(ret);
   if(ret->ttyfd >= 0){
     if(tcgetattr(ret->ttyfd, &ret->tpreserved)){

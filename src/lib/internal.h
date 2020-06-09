@@ -804,6 +804,8 @@ nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
 
 void nclog(const char* fmt, ...);
 
+bool is_linux_console(const notcurses* nc);
+
 // get a file descriptor for the controlling tty device, -1 on error
 int get_controlling_tty(void);
 
