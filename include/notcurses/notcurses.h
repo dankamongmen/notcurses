@@ -2851,14 +2851,15 @@ API int ncmenu_destroy(struct ncmenu* n);
 //
 // This options structure works for both the ncuplot (uint64_t) and ncdplot
 // (double) types.
-#define NCPLOT_OPTION_LABELTICKSD  0x0001ull // show labels for dependent axis
-#define NCPLOT_OPTION_EXPONENTIALD 0x0002ull // exponential dependent axis
-#define NCPLOT_OPTION_VERTICALI    0x0004ull // independent axis is vertical
-#define NCPLOT_OPTION_NODEGRADE    0x0008ull // fail rather than degrade blitter
+#define NCPLOT_OPTION_LABELTICKSD   0x0001ull // show labels for dependent axis
+#define NCPLOT_OPTION_EXPONENTIALD  0x0002ull // exponential dependent axis
+#define NCPLOT_OPTION_VERTICALI     0x0004ull // independent axis is vertical
+#define NCPLOT_OPTION_NODEGRADE     0x0008ull // fail rather than degrade blitter
+#define NCPLOT_OPTION_DETECTMAXONLY 0x0010ull // use domain detection only for max
 
 typedef struct ncplot_options {
-  // channels for the maximum and minimum levels. linear interpolation will be
-  // applied across the domain between these two.
+  // channels for the maximum and minimum levels. linear or exponential
+  // interpolation will be applied across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
   // if you don't care, pass NCBLIT_DEFAULT and get NCBLIT_8x1 (assuming

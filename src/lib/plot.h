@@ -14,14 +14,22 @@ class ncppplot {
  // these were all originally plain C, sorry for the non-idiomatic usage FIXME
  // ought admit nullptr opts FIXME
  static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy) {
-   // if miny == maxy, they both must be equal to 0
+   struct notcurses* nc = n->nc;
+   // if miny == maxy (enabling domain detection), they both must be equal to 0
    if(miny == maxy && miny){
+     logerror(nc, "Supplied non-zero domain detection param %d\n", miny);
      return false;
    }
    if(opts->rangex < 0){
+     logerror(nc, "Supplied negative independent range %d\n", opts->rangex);
      return false;
    }
    if(maxy < miny){
+     return false;
+   }
+   // DETECTMAXONLY can't be used without domain detection
+   if(opts->flags & NCPLOT_OPTION_DETECTMAXONLY && (miny != maxy)){
+     logerror(nc, "Supplied DETECTMAXONLY without domain detection");
      return false;
    }
    ncblitter_e blitter = opts ? opts->gridtype : NCBLIT_DEFAULT;
@@ -272,8 +280,10 @@ class ncppplot {
      if(val > maxy){
        maxy = val;
      }
-     if(val < miny){
-       miny = val;
+     if(!detectonlymax){
+       if(val < miny){
+         miny = val;
+       }
      }
      return 0;
    }
@@ -356,7 +366,8 @@ class ncppplot {
  int slotstart; // index of most recently-written slot
  bool labelaxisd; // label dependent axis (consumes PREFIXCOLUMNS columns)
  bool exponentiali; // exponential independent axis
- bool detectdomain; // is domain detection in effect (stretch the domain)?
+ bool detectdomain;   // is domain detection in effect (stretch the domain)?
+ bool detectonlymax;  // domain detection applies only to max, not min
 
 };
 
