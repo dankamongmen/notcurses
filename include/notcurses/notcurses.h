@@ -840,34 +840,34 @@ typedef enum {
 // prior to notcurses_init(), you should not set this bit. Even if you are
 // invoking setlocale(), this behavior shouldn't be an issue unless you're
 // doing something weird (setting a locale not based on LANG).
-#define NCOPTION_INHIBIT_SETLOCALE   0x0001
+#define NCOPTION_INHIBIT_SETLOCALE   0x0001ull
 
 // Checking for Sixel support requires writing an escape, and then reading an
 // inline reply from the terminal. Since this can interact poorly with actual
 // user input, it's not done unless Sixel will actually be used. Set this flag
 // to unconditionally test for Sixel support in notcurses_init().
-#define NCOPTION_VERIFY_SIXEL        0x0002
+#define NCOPTION_VERIFY_SIXEL        0x0002ull
 
 // We typically install a signal handler for SIGWINCH that generates a resize
 // event in the notcurses_getc() queue. Set to inhibit this handler.
-#define NCOPTION_NO_WINCH_SIGHANDLER 0x0004
+#define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
 
 // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
 // restores the screen, and then calls the old signal handler. Set to inhibit
 // registration of these signal handlers.
-#define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008
+#define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 
 // By default, we hide the cursor if possible. This flag inhibits use of
 // the civis capability, retaining the cursor.
-#define NCOPTION_RETAIN_CURSOR       0x0010
+#define NCOPTION_RETAIN_CURSOR       0x0010ull
 
 // Notcurses typically prints version info in notcurses_init() and performance
 // info in notcurses_stop(). This inhibits that output.
-#define NCOPTION_SUPPRESS_BANNERS    0x0020
+#define NCOPTION_SUPPRESS_BANNERS    0x0020ull
 
 // If smcup/rmcup capabilities are indicated, notcurses defaults to making use
 // of the "alternate screen". This flag inhibits use of smcup/rmcup.
-#define NCOPTION_NO_ALTERNATE_SCREEN 0x0040
+#define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
 
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
@@ -1717,6 +1717,11 @@ ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
     return -1;
   }
   int y, x;
+  if(!notcurses_canutf8(ncplane_notcurses_const(n))){
+    // this works because the uin32_ts we pass in will be promoted to uint64_ts
+    // via extension, and the space will employ the background. mwahh!
+    return ncplane_gradient_sized(n, " ", 0, ul, ur, ll, lr, ylen, xlen);
+  }
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 }
@@ -2229,8 +2234,8 @@ API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                          int begy, int begx,
                                          int leny, int lenx);
 
-#define NCVISUAL_OPTION_NODEGRADE 0x0001 // fail rather than degrading
-#define NCVISUAL_OPTION_BLEND     0x0002 // use CELL_ALPHA_BLEND with visual
+#define NCVISUAL_OPTION_NODEGRADE 0x0001ull // fail rather than degrading
+#define NCVISUAL_OPTION_BLEND     0x0002ull // use CELL_ALPHA_BLEND with visual
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
@@ -2364,11 +2369,11 @@ API int ncblit_bgrx(const void* data, int linesize,
 // is scrolling infinite (can one move down or up forever, or is an end
 // reached?). if true, 'circular' specifies how to handle the special case of
 // an incompletely-filled reel.
-#define NCREEL_OPTION_INFINITESCROLL 0x0001
+#define NCREEL_OPTION_INFINITESCROLL 0x0001ull
 // is navigation circular (does moving down from the last panel move to the
 // first, and vice versa)? only meaningful when infinitescroll is true. if
 // infinitescroll is false, this must be false.
-#define NCREEL_OPTION_CIRCULAR       0x0002
+#define NCREEL_OPTION_CIRCULAR       0x0002ull
 
 typedef struct ncreel_options {
   // require this many rows and columns (including borders). otherwise, a
@@ -2400,7 +2405,7 @@ typedef struct ncreel_options {
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
   uint64_t bgchannel;  // background colors
-  unsigned flags;      // bitfield over NCREEL_OPTION_*
+  uint64_t flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 
 struct nctablet;
@@ -2637,7 +2642,7 @@ typedef struct ncselector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
-  unsigned flags;        // bitfield of NCSELECTOR_OPTION_*
+  uint64_t flags;        // bitfield of NCSELECTOR_OPTION_*
 } ncselector_options;
 
 API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
@@ -2712,7 +2717,7 @@ typedef struct ncmultiselector_options {
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
-  unsigned flags;        // bitfield of NCMULTISELECTOR_OPTION_*
+  uint64_t flags;        // bitfield of NCMULTISELECTOR_OPTION_*
 } ncmultiselector_options;
 
 API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
@@ -2755,15 +2760,15 @@ struct ncmenu_section {
   ncinput shortcut;       // shortcut, will be underlined if present in name
 };
 
-#define NCMENU_OPTION_BOTTOM 0x0001 // bottom row (as opposed to top row)
-#define NCMENU_OPTION_HIDING 0x0002 // hide the menu when not being used
+#define NCMENU_OPTION_BOTTOM 0x0001ull // bottom row (as opposed to top row)
+#define NCMENU_OPTION_HIDING 0x0002ull // hide the menu when not being used
 
 typedef struct ncmenu_options {
   struct ncmenu_section* sections; // array of 'sectioncount' menu_sections
   int sectioncount;                // must be positive
   uint64_t headerchannels;         // styling for header
   uint64_t sectionchannels;        // styling for sections
-  unsigned flags;                  // flag word of NCMENU_OPTION_*
+  uint64_t flags;                  // flag word of NCMENU_OPTION_*
 } ncmenu_options;
 
 // Create a menu with the specified options. Menus are currently bound to an
@@ -2846,10 +2851,10 @@ API int ncmenu_destroy(struct ncmenu* n);
 //
 // This options structure works for both the ncuplot (uint64_t) and ncdplot
 // (double) types.
-#define NCPLOT_OPTION_LABELTICKSD  0x0001 // show labels for dependent axis
-#define NCPLOT_OPTION_EXPONENTIALD 0x0002 // exponential dependent axis
-#define NCPLOT_OPTION_VERTICALI    0x0004 // independent axis is vertical
-#define NCPLOT_OPTION_NODEGRADE    0x0008 // fail rather than degrade blitter
+#define NCPLOT_OPTION_LABELTICKSD  0x0001ull // show labels for dependent axis
+#define NCPLOT_OPTION_EXPONENTIALD 0x0002ull // exponential dependent axis
+#define NCPLOT_OPTION_VERTICALI    0x0004ull // independent axis is vertical
+#define NCPLOT_OPTION_NODEGRADE    0x0008ull // fail rather than degrade blitter
 
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear interpolation will be
@@ -2864,7 +2869,7 @@ typedef struct ncplot_options {
   // resolution, the independent variable would be the range [0..3600): 3600.
   // if rangex is 0, it is dynamically set to the number of columns.
   int rangex;
-  unsigned flags;      // bitfield over NCPLOT_OPTION_*
+  uint64_t flags;      // bitfield over NCPLOT_OPTION_*
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.
@@ -2902,7 +2907,7 @@ typedef int(*ncfdplane_done_cb)(struct ncfdplane* n, int fderrno, void* curry);
 typedef struct ncfdplane_options {
   void* curry;    // parameter provided to callbacks
   bool follow;    // keep reading after hitting end? (think tail -f)
-  unsigned flags; // bitfield over NCOPTION_FDPLANE_*
+  uint64_t flags; // bitfield over NCOPTION_FDPLANE_*
 } ncfdplane_options;
 
 // Create an ncfdplane around the fd 'fd'. Consider this function to take
@@ -2917,7 +2922,7 @@ API int ncfdplane_destroy(struct ncfdplane* n);
 typedef struct ncsubproc_options {
   void* curry;
   uint64_t restart_period; // restart this many seconds after an exit (watch)
-  unsigned flags;          // bitfield over NCOPTION_SUBPROC_*
+  uint64_t flags;          // bitfield over NCOPTION_SUBPROC_*
 } ncsubproc_options;
 
 // see exec(2). p-types use $PATH. e-type passes environment vars.
@@ -2944,8 +2949,8 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // future compatability (provide 0 for no artificial bound).
 API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size_t len);
 
-#define NCREADER_OPTION_HORSCROLL  0x0001
-#define NCREADER_OPTION_VERSCROLL  0x0002
+#define NCREADER_OPTION_HORSCROLL  0x0001ull
+#define NCREADER_OPTION_VERSCROLL  0x0002ull
 
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
@@ -2955,7 +2960,7 @@ typedef struct ncreader_options {
   char* egc;          // egc used for empty space
   int physrows;
   int physcols;
-  unsigned flags;     // bitfield of NCREADER_OPTION_*
+  uint64_t flags;     // bitfield of NCREADER_OPTION_*
 } ncreader_options;
 
 // ncreaders provide freeform input in a (possibly multiline) region,

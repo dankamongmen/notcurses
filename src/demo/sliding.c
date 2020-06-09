@@ -108,7 +108,9 @@ fill_chunk(struct ncplane* n, int idx){
   channel_set_rgb(&ur, g, b, r);
   channel_set_rgb(&ll, b, r, g);
   int ret = 0;
-  ret |= ncplane_highgradient_sized(n, ul, ur, ll, lr, maxy, maxx);
+  if(ncplane_highgradient_sized(n, ul, ur, ll, lr, maxy, maxx) <= 0){
+    ret = -1;
+  }
   ret |= ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0);
   if(maxx >= 4 && maxy >= 3){
     ret |= ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 1) / 2);
@@ -175,7 +177,9 @@ int sliding_puzzle_demo(struct notcurses* nc){
       if(chunks[idx] == NULL){
         goto done;
       }
-      fill_chunk(chunks[idx], idx);
+      if(fill_chunk(chunks[idx], idx)){
+        goto done;
+      }
     }
   }
   // draw a box around the playing area
@@ -183,7 +187,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
     goto done;
   }
   DEMO_RENDER(nc);
-  struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000000000, };
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = GIG, };
   // fade out each of the chunks in succession
   /*for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
     for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){

@@ -102,12 +102,11 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   return failed ? -1 : 0;
 }
 
-static const int VSCALE = 2;
 static const int ITERMAX = 255;
 
 static int
 mandelbrot(int y, int x, int dy, int dx){
-  float complex c = (x - dx/2.0) * 4.0/dx + I * (y - dy/2.0) * 4.0/dx;
+  float complex c = (x - dx / 2.0) * 4.0 / dx + I * (y - dy / 2.0) * 4.0 / dx;
   float fx = 0;
   float fy = 0;
   int iter = 0;
@@ -124,7 +123,7 @@ mandelbrot(int y, int x, int dy, int dx){
 static int
 mcell(uint32_t* c, int y, int x, int dy, int dx){
   int iter = mandelbrot(y, x, dy, dx);
-  *c = (0xff << 24u) + ((255 - iter) << 16u) + ((255 - iter) << 8u) + (255 - iter);
+  *c = ncpixel(255 - iter, 255 - iter, 255 - iter);
   return 0;
 }
 
@@ -145,7 +144,13 @@ int normal_demo(struct notcurses* nc){
   ncplane_set_base_cell(nstd, &c);
   cell_release(nstd, &c);
   struct ncplane* n = NULL;
-  dy *= VSCALE; // double-block trick means both 2x resolution and even linecount yay
+  struct ncvisual_options vopts = {
+    .n = nstd,
+  };
+  int yscale, xscale;
+  ncvisual_geom(nc, NULL, &vopts, NULL, NULL, &yscale, &xscale);
+  dy *= yscale;
+  dx *= xscale;
   uint32_t* rgba = malloc(sizeof(*rgba) * dy * dx);
   if(!rgba){
     goto err;
@@ -154,10 +159,10 @@ int normal_demo(struct notcurses* nc){
     rgba[off] = 0xff000000;
   }
   int y;
-  if(dy / VSCALE % 2){
-    y = dy / VSCALE + 1;
+  if(dy / yscale % 2){
+    y = dy / yscale + 1;
     for(int x = 0 ; x < dx ; ++x){
-      if(mcell(offset(rgba, y, x, dx), y, x, dy / VSCALE, dx)){
+      if(mcell(offset(rgba, y, x, dx), y, x, dy / yscale, dx)){
         goto err;
       }
     }
@@ -173,11 +178,8 @@ int normal_demo(struct notcurses* nc){
         goto err;
       }
     }
-    struct ncvisual_options vopts = {
-      .n = nstd,
-      .leny = dy,
-      .lenx = dx,
-    };
+    vopts.leny = dy;
+    vopts.lenx = dx;
     if(ncblit_rgba(rgba, dx * sizeof(*rgba), &vopts) < 0){
       goto err;
     }

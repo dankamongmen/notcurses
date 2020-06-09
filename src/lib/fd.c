@@ -153,7 +153,8 @@ launch_pipe_process(int* pipe, int* pidfd){
   pid_t p = -1;
   // on linux, we try to use the brand-new pidfd capability via clone3(). if
   // that fails, fall through to fork(), which is all we try to use on freebsd.
-#ifdef __linux__
+  // FIXME clone3 is not yet supported on debian sparc64, as of 2020-06 anyway
+#if (defined(__linux__) && !defined(__sparc__))
 // FIXME introduced in linux 5.5
 #ifndef CLONE_CLEAR_SIGHAND
 #define CLONE_CLEAR_SIGHAND 0x100000000ULL
