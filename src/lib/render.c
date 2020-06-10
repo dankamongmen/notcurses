@@ -323,9 +323,16 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
       if(cell_bg_default_p(vis)){
         vis = &p->basecell;
       }
+      // Checking whether blends is 0 is equivalent to checking for TRANSPARENT
       if(cell_bg_palindex_p(vis)){
-        if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+        if(crender->bgblends == 0){
           cell_set_bg_palindex(targc, cell_bg_palindex(vis));
+          crender->bgblends = 1;
+        }
+      }else if(cell_bg_default_p(vis)){
+        if(crender->bgblends == 0){
+          cell_set_bg_default(targc);
+          crender->bgblends = 1;
         }
       }else if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
         cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
@@ -337,8 +344,17 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
         vis = &p->basecell;
       }
       if(cell_fg_palindex_p(vis)){
-        if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+        if(crender->fgblends == 0){
           cell_set_fg_palindex(targc, cell_fg_palindex(vis));
+          crender->fgblends = 1;
+        }
+      }else if(cell_fg_default_p(vis)){
+        if(crender->fgblends == 0){
+          cell_set_fg_default(targc);
+          crender->fgblends = 1;
+        }
+        if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
+          crender->highcontrast = true;
         }
       }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
         if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){

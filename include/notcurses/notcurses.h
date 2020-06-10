@@ -1756,13 +1756,11 @@ API void ncplane_erase(struct ncplane* n);
 
 // Returns the result of blending two channels. 'blends' indicates how heavily
 // 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
-// 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
-// since we can't blend default colors. Likewise, if 'c2' is a default color,
-// it will not be used (unless 'blends' is 0).
+// 'c2'. It is assumed that c1 is not yet OPAQUE.
 //
 // Palette-indexed colors do not blend, and since we need the attrword to store
 // them, we just don't fuck wit' 'em here. Do not pass me palette-indexed
-// channels! I will eat them.
+// channels! I will eat them. Same goes for default colors. Just don't do it!
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2, unsigned* blends){
   if(channel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
@@ -1770,22 +1768,13 @@ channels_blend(unsigned c1, unsigned c2, unsigned* blends){
   }
   unsigned rsum, gsum, bsum;
   channel_rgb(c2, &rsum, &gsum, &bsum);
-  bool c2default = channel_default_p(c2);
-  if(*blends == 0){
-    // don't just return c2, or you set wide status and all kinds of crap
-    if(channel_default_p(c2)){
-      channel_set_default(&c1);
-    }else{
-      channel_set_rgb(&c1, rsum, gsum, bsum);
-    }
-    channel_set_alpha(&c1, channel_alpha(c2));
-  }else if(!c2default && !channel_default_p(c1)){
+  if(*blends > 0){
     rsum = (channel_r(c1) * *blends + rsum) / (*blends + 1);
     gsum = (channel_g(c1) * *blends + gsum) / (*blends + 1);
     bsum = (channel_b(c1) * *blends + bsum) / (*blends + 1);
-    channel_set_rgb(&c1, rsum, gsum, bsum);
-    channel_set_alpha(&c1, channel_alpha(c2));
   }
+  channel_set_rgb(&c1, rsum, gsum, bsum);
+  channel_set_alpha(&c1, channel_alpha(c2));
   ++*blends;
   return c1;
 }
