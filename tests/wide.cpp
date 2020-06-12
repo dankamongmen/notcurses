@@ -580,6 +580,7 @@ TEST_CASE("Wide") {
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb(topp, 0, 0xff, 0));
     CHECK(6 == ncplane_putstr(topp, "次次"));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     CHECK(12 == ncplane_putstr(n_, "六六六六"));
     CHECK(0 == notcurses_render(nc_));
     uint32_t attrword;

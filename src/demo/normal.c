@@ -84,7 +84,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
       break;
     }
     int vy, vx, vyscale, vxscale;
-    ncvisual_geom(nc, ncv, NCBLIT_DEFAULT, &vy, &vx, &vyscale, &vxscale);
+    ncvisual_geom(nc, ncv, &vopts, &vy, &vx, &vyscale, &vxscale);
     vopts.x = (dimx - (vx / vxscale)) / 2;
     vopts.y = (dimy - (vy / vyscale)) / 2;
     struct ncplane* newn;
