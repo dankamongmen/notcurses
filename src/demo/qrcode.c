@@ -29,17 +29,12 @@ int qrcode_demo(struct notcurses* nc){
   for(int i = 0 ; i < 1024 ; ++i){
     ncplane_erase(n);
     size_t len = random() % sizeof(data) + 1;
-    ssize_t got = getrandom(data, len, 0);
-    size_t done;
+    size_t done = 0;
     // done this tedious way because getrandom() doesn't exist on freebsd 11
-    for(done = 0 ; done < len ; ++done){
+    while(done < len){
       long r = random();
       memcpy(data + done, &r, sizeof(r));
       done += sizeof(r);
-    }
-    if(got < 0 || (size_t)got != len){
-      ncplane_destroy(n);
-      return -1;
     }
     if(ncplane_cursor_move_yx(n, 0, 0)){
       ncplane_destroy(n);
