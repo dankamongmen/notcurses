@@ -205,6 +205,9 @@ int hud_completion_notify(const demoresult* result);
 const demoresult* demoresult_lookup(int idx);
 /*----------------------------------HUD----------------------------------*/
 
+// destroy about popup
+void about_destroy(struct notcurses* nc);
+
 // returns true if the input was handled by the menu/HUD
 bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni);
 

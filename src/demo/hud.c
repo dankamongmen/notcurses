@@ -119,6 +119,12 @@ about_toggle(struct notcurses* nc){
   ncplane_destroy(n);
 }
 
+void about_destroy(struct notcurses* nc){
+  if(about){
+    about_toggle(nc);
+  }
+}
+
 static void
 hud_toggle(struct notcurses* nc){
   ncmenu_rollup(menu);

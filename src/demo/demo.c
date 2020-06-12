@@ -515,6 +515,7 @@ int main(int argc, char** argv){
     if(fpsgraph_stop(nc)){
       goto err;
     }
+    about_destroy(nc);
   }while(restart_demos);
   if(stop_input()){
     goto err;
