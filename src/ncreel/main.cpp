@@ -24,7 +24,6 @@ class TabletCtx {
   private:
     int lines;
     unsigned rgb;
-    unsigned id;
 };
 
 int tabletfxn(struct nctablet* _t, int begx, int begy, int maxx, int maxy,
