@@ -79,7 +79,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   ncplane_erase(n);
   for(double i = 0 ; i < ROTATIONS ; ++i){
     demo_nanosleep(nc, &scaled);
-    if(ncvisual_rotate(ncv, -M_PI / 4)){
+    if(ncvisual_rotate(ncv, -M_PI / (i / 8 + 2))){
       failed = true;
       break;
     }
