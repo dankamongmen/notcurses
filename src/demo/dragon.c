@@ -15,6 +15,9 @@ int dragon_demo(struct notcurses* nc){
   const int ITERATIONS = 10;
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
+  if(n == NULL){
+    return -1;
+  }
   cell c = CELL_TRIVIAL_INITIALIZER;
   if(cell_load(n, &c, "█") <= 0){
     return -1;
@@ -27,30 +30,42 @@ int dragon_demo(struct notcurses* nc){
   }
   cell_release(n, &c);
   DEMO_RENDER(nc);
-  demo_nanosleep(nc, &demodelay);
   for(int iter = 0 ; iter < ITERATIONS ; ++iter){
-    struct ncplane* newn = ncplane_dup(n, n);
-    uint64_t channels = 0;
-    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    ncplane_set_base(newn, " ", 0, channels);
+    struct ncplane* newn = ncplane_dup(n, NULL);
     if(NULL == newn){
       return -1;
     }
-    uint64_t tl = 0, tr = 0, bl = 0, br = 0;
+    uint64_t channels = 0;
+    channels_set_fg(&channels, 0);
+    channels_set_bg(&channels, 0);
+    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    if(ncplane_set_base(newn, "", 0, channels) < 0){
+      return -1;
+    }
+    /*uint64_t tl = 0, tr = 0, bl = 0, br = 0;
     set_colors(&tl, &tr, &bl, &br);
     ncplane_dim_yx(newn, &dimy, &dimx);
     ncplane_cursor_move_yx(newn, 0, 0);
     if(ncplane_stain(newn, dimy - 1, dimx - 1, tl, tr, bl, br) < 0){
       return -1;
-    }
+    }*/
     if(ncplane_rotate_cw(newn)){
       return -1;
     }
-    DEMO_RENDER(nc);
+    if(ncplane_resize_simple(newn, dimy, dimx) < 0){
+      return -1;
+    }
+    int y, x;
+    ncplane_yx(newn, &y, &x);
+    ncplane_move_yx(newn, y - 1, x- 1);
+    if(ncplane_mergedown(newn, n) < 0){
+      return -1;
+    }
+    ncplane_destroy(newn);
     demo_nanosleep(nc, &demodelay);
-    n = newn;
-    notcurses_debug(nc, stderr);
+    DEMO_RENDER(nc);
+notcurses_debug(nc, stderr);
   }
   return 0;
 }
