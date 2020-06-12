@@ -360,8 +360,10 @@ summary_table(struct ncdirect* nc, const char* spec){
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     uint32_t rescolor;
-    if(results[i].result != 0){
+    if(results[i].result < 0){
       rescolor = 0xff303c;
+    }else if(results[i].result > 0){
+      rescolor = 0xffaa22;
     }else if(!results[i].stats.renders){
       rescolor = 0xbbbbbb;
     }else{
