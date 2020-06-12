@@ -314,7 +314,7 @@ rotate_channels(ncplane* src, const cell* c, uint32_t* fchan, uint32_t* bchan){
     return 0;
   }
   const char* origc = cell_extended_gcluster(src, c);
-  if(strcmp(origc, "▄") == 0 || strcmp(origc, "▄")){
+  if(strcmp(origc, "▄") == 0 || strcmp(origc, "▄") == 0){
     uint32_t tmp = *fchan;
     *fchan = *bchan;
     *bchan = tmp;
