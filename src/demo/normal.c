@@ -73,13 +73,13 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   n = notcurses_stddim_yx(nc, &dimy, &dimx);
   bool failed = false;
   const int ROTATIONS = 32;
-  timespec_div(&demodelay, ROTATIONS / 4, &scaled);
+  timespec_div(&demodelay, ROTATIONS / 2, &scaled);
   struct ncvisual_options vopts = {
   };
   ncplane_erase(n);
   for(double i = 0 ; i < ROTATIONS ; ++i){
     demo_nanosleep(nc, &scaled);
-    if(ncvisual_rotate(ncv, -M_PI / 2)){
+    if(ncvisual_rotate(ncv, -M_PI / 4)){
       failed = true;
       break;
     }
