@@ -431,6 +431,17 @@ channels_set_fg_rgb_clipped(uint64_t* channels, int r, int g, int b){
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
 }
 
+// Same, but set an assembled 24 bit channel at once.
+static inline int
+channels_set_fg(uint64_t* channels, unsigned rgb){
+  unsigned channel = channels_fchannel(*channels);
+  if(channel_set(&channel, rgb) < 0){
+    return -1;
+  }
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return 0;
+}
+
 // Set the r, g, and b channels for the background component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
@@ -452,16 +463,6 @@ channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
 }
 
 // Same, but set an assembled 24 bit channel at once.
-static inline int
-channels_set_fg(uint64_t* channels, unsigned rgb){
-  unsigned channel = channels_fchannel(*channels);
-  if(channel_set(&channel, rgb) < 0){
-    return -1;
-  }
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-  return 0;
-}
-
 static inline int
 channels_set_bg(uint64_t* channels, unsigned rgb){
   unsigned channel = channels_bchannel(*channels);

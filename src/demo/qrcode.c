@@ -59,7 +59,7 @@ int qrcode_demo(struct notcurses* nc){
       channels_set_fg_rgb(&tr, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
       channels_set_fg_rgb(&bl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
       channels_set_fg_rgb(&br, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      if(ncplane_stain(n, dimy - 1, dimx - 1, tl, tr, bl, br) <= 0){
+      if(ncplane_stain(n, qrcode_rows(qlen), qrcode_cols(qlen), tl, tr, bl, br) <= 0){
         ncplane_destroy(n);
         return -1;
       }

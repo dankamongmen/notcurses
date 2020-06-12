@@ -319,6 +319,10 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
       // glyph. If we've already locked in the background, it has no effect.
       // If it's transparent, it has no effect. Otherwise, update the
       // background channel and balpha.
+      vis = &p->fb[nfbcellidx(p, y, x)];
+      if(cell_bg_default_p(vis)){
+        vis = &p->basecell;
+      }
       if(cell_bg_palindex_p(vis)){
         if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
           cell_set_bg_palindex(targc, cell_bg_palindex(vis));
@@ -326,7 +330,12 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
       }else if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
         cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
       }
+
       // Evaluate the background first, in case this is HIGHCONTRAST fg text.
+      vis = &p->fb[nfbcellidx(p, y, x)];
+      if(cell_fg_default_p(vis)){
+        vis = &p->basecell;
+      }
       if(cell_fg_palindex_p(vis)){
         if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
           cell_set_fg_palindex(targc, cell_fg_palindex(vis));

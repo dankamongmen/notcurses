@@ -2,6 +2,14 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.5.1 (not yet released)
+  * The semantics of rendering have changed slightly. In 1.5.0 and prior
+    versions, a cell without a glyph was replaced *in toto* by that plane's
+    base cell at rendering time. The replacement is now tripartite: if there
+    is no glyph, the base cell's glyph is used; if there is a default
+    foreground, the base cell's foreground is used; if there is a default
+    background, the base cell's background is used. This will hopefully be
+    more intuitive, and allows a plane to effect overlays of varying colors
+    without needing to override glyphs (#395).
   * `ncvisual_geom()`'s `ncblitter_e` argument has been replaced with a
     `const struct ncvisual_options*`, so that `NCVISUAL_OPTIONS_NODEGRADE`
     can be taken into account (the latter contains a `blitter_e` field).
