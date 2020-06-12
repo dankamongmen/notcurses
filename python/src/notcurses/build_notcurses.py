@@ -460,6 +460,8 @@ int ncuplot_add_sample(struct ncuplot* n, uint64_t x, uint64_t y);
 int ncdplot_add_sample(struct ncdplot* n, uint64_t x, double y);
 int ncuplot_set_sample(struct ncuplot* n, uint64_t x, uint64_t y);
 int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y);
+int ncuplot_sample(const struct ncuplot* n, uint64_t x, uint64_t* y);
+int ncdplot_sample(const struct ncdplot* n, uint64_t x, double* y);
 void ncuplot_destroy(struct ncuplot* n);
 void ncdplot_destroy(struct ncdplot* n);
 bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);

@@ -2894,6 +2894,8 @@ API int ncuplot_add_sample(struct ncuplot* n, uint64_t x, uint64_t y);
 API int ncdplot_add_sample(struct ncdplot* n, uint64_t x, double y);
 API int ncuplot_set_sample(struct ncuplot* n, uint64_t x, uint64_t y);
 API int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y);
+API int ncuplot_sample(const struct ncuplot* n, uint64_t x, uint64_t* y);
+API int ncdplot_sample(const struct ncdplot* n, uint64_t x, double* y);
 
 API void ncuplot_destroy(struct ncuplot* n);
 API void ncdplot_destroy(struct ncdplot* n);

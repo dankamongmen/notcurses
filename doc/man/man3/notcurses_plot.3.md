@@ -46,6 +46,10 @@ typedef struct ncplot_options {
 
 **int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y);**
 
+**int ncuplot_sample(const struct ncuplot* n, uint64_t x, uint64_t* y);**
+
+**int ncdplot_sample(const struct ncdplot* n, uint64_t x, double* y);**
+
 **void ncuplot_destroy(struct ncuplot* n);**
 
 **void ncdplot_destroy(struct ncdplot* n);**

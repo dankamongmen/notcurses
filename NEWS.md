@@ -13,6 +13,8 @@ rearrangements of Notcurses.
   * `ncvisual_geom()`'s `ncblitter_e` argument has been replaced with a
     `const struct ncvisual_options*`, so that `NCVISUAL_OPTIONS_NODEGRADE`
     can be taken into account (the latter contains a `blitter_e` field).
+  * Added `ncuplot_sample()` and `ncdplot_sample()`, allowing retrieval of
+    sample data from `ncuplot`s and `ncdplot`s, respectively.
 
 * 1.5.0 (2020-07-08)
   * The various `bool`s of `struct notcurses_options` have been folded into

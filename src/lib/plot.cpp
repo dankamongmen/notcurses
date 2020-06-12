@@ -55,6 +55,14 @@ auto ncdplot_set_sample(ncdplot* n, uint64_t x, double y) -> int {
   return n->n.set_sample(x, y);
 }
 
+auto ncuplot_sample(const ncuplot* n, uint64_t x, uint64_t* y) -> int {
+  return n->n.sample(x, y);
+}
+
+auto ncdplot_sample(const ncdplot* n, uint64_t x, double* y) -> int {
+  return n->n.sample(x, y);
+}
+
 void ncdplot_destroy(ncdplot* n) {
   if(n){
     n->n.destroy();

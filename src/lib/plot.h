@@ -98,7 +98,7 @@ class ncppplot {
    free(slots);
  }
 
- int redraw_plot() {
+ auto redraw_plot() -> int {
    ncplane_erase(ncp);
    const int scale = bset->width;
    int dimy, dimx;
@@ -250,7 +250,7 @@ class ncppplot {
  // x window, the x window is advanced to include x, and values passing beyond
  // the window are lost. The first call will place the initial window. The plot
  // will be redrawn, but notcurses_render() is not called.
- int add_sample(uint64_t x, T y) {
+ auto add_sample(uint64_t x, T y) -> int {
    if(window_slide(x)){
      return -1;
    }
@@ -261,7 +261,7 @@ class ncppplot {
    return redraw_plot();
  }
 
- int set_sample(uint64_t x, T y) {
+ auto set_sample(uint64_t x, T y) -> int {
    if(window_slide(x)){
      return -1;
    }
@@ -272,11 +272,21 @@ class ncppplot {
    return redraw_plot();
  }
 
+ auto sample(int64_t x, T* y) const -> int {
+   if(x < slotx - (slotcount - 1)){ // x is behind window
+     return -1;
+   }else if(x > slotx){ // x is ahead of window
+     return -1;
+   }
+   *y = slots[x % slotcount];
+   return 0;
+ }
+
  // if we're doing domain detection, update the domain to reflect the value we
  // just set. if we're not, check the result against the known ranges, and
  // return -1 if the value is outside of that range.
- int update_domain(uint64_t x){
-   const uint64_t val = slots[x % slotcount];
+ auto update_domain(uint64_t x) -> int {
+   const T val = slots[x % slotcount];
    if(detectdomain){
      if(val > maxy){
        maxy = val;
@@ -299,7 +309,7 @@ class ncppplot {
  // otherwise, the x is the newest sample. if it is obsoletes all existing slots,
  // reset them, and write the new sample anywhere. otherwise, write it to the
  // proper slot based on the current newest slot.
- int window_slide(int64_t x){
+ auto window_slide(int64_t x) -> int {
    if(x < slotx - (slotcount - 1)){ // x is behind window, won't be counted
      return -1;
    }else if(x <= slotx){ // x is within window, do nothing
