@@ -89,7 +89,7 @@ about_toggle(struct notcurses* nc){
   channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_bg_rgb(&channels, 0x0, 0x0, 0x0);
   if(ncplane_set_base(n, "", 0, channels) >= 0){
-    ncplane_set_fg(n, 0xc0f0c0);
+    ncplane_set_fg(n, 0x11ffff);
     ncplane_set_bg(n, 0);
     ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
     ncplane_printf_aligned(n, 1, NCALIGN_CENTER, "notcurses-demo %s", notcurses_version());
@@ -102,7 +102,10 @@ about_toggle(struct notcurses* nc){
     cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
     cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
     cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-    if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
+    channels = 0;
+    channels_set_fg(&channels, 0xc020c0);
+    channels_set_bg(&channels, 0);
+    if(cells_double_box(n, 0, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
       if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
         cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
         cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
@@ -232,6 +235,10 @@ struct ncmenu* menu_create(struct notcurses* nc){
   };
   uint64_t headerchannels = 0;
   uint64_t sectionchannels = 0;
+  channels_set_fg(&sectionchannels, 0xffffff);
+  channels_set_bg(&sectionchannels, 0x000000);
+  channels_set_fg_alpha(&sectionchannels, CELL_ALPHA_HIGHCONTRAST);
+  channels_set_bg_alpha(&sectionchannels, CELL_ALPHA_BLEND);
   channels_set_fg(&headerchannels, 0xffffff);
   channels_set_bg(&headerchannels, 0x7f347f);
   channels_set_bg_alpha(&headerchannels, CELL_ALPHA_BLEND);
