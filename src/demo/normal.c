@@ -102,7 +102,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   return failed ? -1 : 0;
 }
 
-static const int ITERMAX = 255;
+static const int ITERMAX = 256;
 
 static int
 mandelbrot(int y, int x, int dy, int dx){
@@ -123,7 +123,8 @@ mandelbrot(int y, int x, int dy, int dx){
 static int
 mcell(uint32_t* c, int y, int x, int dy, int dx){
   int iter = mandelbrot(y, x, dy, dx);
-  *c = ncpixel(255 - iter, 255 - iter, 255 - iter);
+  int color = sqrt((double)iter / ITERMAX) * 255;
+  *c = ncpixel(color, color, color);
   return 0;
 }
 
@@ -139,8 +140,8 @@ int normal_demo(struct notcurses* nc){
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
   ncplane_erase(nstd);
   cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_rgb(&c, 0xff, 0xff, 0xff);
-  cell_set_bg_rgb(&c, 0xff, 0xff, 0xff);
+  cell_set_fg_rgb(&c, 0x0, 0x0, 0x0);
+  cell_set_bg_rgb(&c, 0x0, 0x0, 0x0);
   ncplane_set_base_cell(nstd, &c);
   cell_release(nstd, &c);
   struct ncplane* n = NULL;
