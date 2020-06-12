@@ -303,26 +303,28 @@ int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
   return total;
 }
 
-// if we're a lower block, reverse the channels. if we're a space, set both to
+// if we're a half block, reverse the channels. if we're a space, set both to
 // the background. if we're a full block, set both to the foreground.
-static void
+static int
 rotate_channels(ncplane* src, const cell* c, uint32_t* fchan, uint32_t* bchan){
   if(cell_simple_p(c)){
     if(!isgraph(c->gcluster)){
       *fchan = *bchan;
     }
-    return;
+    return 0;
   }
   const char* origc = cell_extended_gcluster(src, c);
-  if(strcmp(origc, "▄") == 0){
+  if(strcmp(origc, "▄") == 0 || strcmp(origc, "▄")){
     uint32_t tmp = *fchan;
     *fchan = *bchan;
     *bchan = tmp;
-    return;
+    return 0;
   }else if(strcmp(origc, "█") == 0){
     *bchan = *fchan;
-    return;
+    return 0;
   }
+  logerror(src->nc, "Invalid EGC for rotation [%s]\n", origc);
+  return -1;
 }
 
 static int
@@ -392,8 +394,9 @@ rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx
   uint32_t c2b = cell_bchannel(&c2);
   uint32_t c1t = cell_fchannel(&c1);
   uint32_t c2t = cell_fchannel(&c2);
-  rotate_channels(src, &c1, &c1t, &c1b);
-  rotate_channels(src, &c2, &c2t, &c2b);
+  int ret = 0;
+  ret |= rotate_channels(src, &c1, &c1t, &c1b);
+  ret |= rotate_channels(src, &c2, &c2t, &c2b);
   // right char comes from two tops. left char comes from two bottoms. if
   // they're the same channel, they become a:
   //
@@ -403,7 +406,7 @@ rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx
   ncplane_cursor_move_yx(dst, dsty, dstx);
   rotate_output(dst, c1b, c2b);
   rotate_output(dst, c1t, c2t);
-  return 0;
+  return ret;
 }
 
 static int
@@ -421,12 +424,13 @@ rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dst
   unsigned c2b = cell_bchannel(&c2);
   unsigned c1t = cell_fchannel(&c1);
   unsigned c2t = cell_fchannel(&c2);
-  rotate_channels(src, &c1, &c1t, &c1b);
-  rotate_channels(src, &c2, &c2t, &c2b);
+  int ret = 0;
+  ret |= rotate_channels(src, &c1, &c1t, &c1b);
+  ret |= rotate_channels(src, &c2, &c2t, &c2b);
   ncplane_cursor_move_yx(dst, dsty, dstx);
   rotate_output(dst, c1t, c2t);
   rotate_output(dst, c1b, c2b);
-  return 0;
+  return ret;
 }
 
 // copy 'newp' into 'n' after resizing 'n' to match 'newp'
