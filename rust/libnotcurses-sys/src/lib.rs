@@ -4,23 +4,10 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-pub fn ncplane_putstr_yx(_n: *mut ncplane, mut _y: i32, mut _x: i32, _str: &str) -> usize {
-    let mut ret = 0;
-    while ret < _str.len() {
-        let mut wcs = 0;
-        unsafe {
-            let col =ncplane_putegc_yx(_n, -1, -1,  std::ffi::CString::new(&_str[ret..]).expect("Bad string").as_ptr(), &mut wcs);
-            if col < 0 {
-                return ret; // FIXME return error result
-            }
-            ret += col as usize;
-        }
+pub fn ncplane_putstr(_n: *mut ncplane, _str: &str) -> i32 {
+    unsafe {
+        return ncplane_putstr_yx(_n, -1, -1, std::ffi::CString::new(_str).expect("Bad string").as_ptr());
     }
-    return ret;
-}
-
-pub fn ncplane_putstr(_n: *mut ncplane, _str: &str) -> usize {
-    return ncplane_putstr_yx(_n, -1, -1, _str);
 }
 
 pub fn ncplane_dim_y(_n: *const ncplane) -> i32 {
@@ -79,12 +66,14 @@ pub fn cells_load_box(_n: *mut ncplane, _attrs: u32, _channels: u64,
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test_derive::serial; // serialize tests w/ ffi::notcurses_init()
 
     extern {
         fn libc_stdout() -> *mut _IO_FILE;
     }
 
     #[test]
+    #[serial]
     fn get_notcurses_version() {
         unsafe {
             let c_str = unsafe {
@@ -98,22 +87,19 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn create_notcurses_context() {
         unsafe {
             let _ = libc::setlocale(libc::LC_ALL, std::ffi::CString::new("").unwrap().as_ptr());
             let opts: notcurses_options = notcurses_options {
-                inhibit_alternate_screen: true,
                 loglevel: 0,
                 termtype: std::ptr::null(),
-                retain_cursor: false,
-                suppress_banner: false,
-                no_winch_sighandler: false,
-                no_quit_sighandlers: false,
                 renderfp: std::ptr::null_mut(),
                 margin_t: 0,
                 margin_r: 0,
                 margin_b: 0,
                 margin_l: 0,
+                flags: NCOPTION_NO_ALTERNATE_SCREEN as u64,
             };
             let nc = notcurses_init(&opts, libc_stdout());
             notcurses_stop(nc);
