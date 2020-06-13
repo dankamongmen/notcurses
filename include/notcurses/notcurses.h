@@ -2001,10 +2001,22 @@ ncplane_fg_alpha(const struct ncplane* nc){
   return channels_fg_alpha(ncplane_channels(nc));
 }
 
+// Is the plane's foreground using the "default foreground color"?
+static inline bool
+ncplane_fg_default_p(const struct ncplane* nc){
+  return channels_fg_default_p(ncplane_channels(nc));
+}
+
 // Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 static inline unsigned
 ncplane_bg_alpha(const struct ncplane* nc){
   return channels_bg_alpha(ncplane_channels(nc));
+}
+
+// Is the plane's background using the "default background color"?
+static inline bool
+ncplane_bg_default_p(const struct ncplane* nc){
+  return channels_bg_default_p(ncplane_channels(nc));
 }
 
 // Extract 24 bits of foreground RGB from 'n', split into components.
