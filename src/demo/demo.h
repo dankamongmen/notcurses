@@ -38,6 +38,7 @@ int witherworm_demo(struct notcurses* nc);
 int box_demo(struct notcurses* nc);
 int trans_demo(struct notcurses* nc);
 int chunli_demo(struct notcurses* nc);
+int dragon_demo(struct notcurses* nc);
 int qrcode_demo(struct notcurses* nc);
 int grid_demo(struct notcurses* nc);
 int fallin_demo(struct notcurses* nc);

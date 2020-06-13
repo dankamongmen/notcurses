@@ -19,7 +19,7 @@ static int democount;
 static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
-static const char DEFAULT_DEMO[] = "ixeaythnbcgrwuvlsfjqo";
+static const char DEFAULT_DEMO[] = "ixeaydthnbcgrwuvlsfjqo";
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
@@ -75,20 +75,20 @@ static struct {
 } demos[26] = {
   { "allglyph", allglyphs_demo, false, },
   { "box", box_demo, false, },
-  {"chunli", chunli_demo, true, },
-  { NULL, NULL, false, },
+  { "chunli", chunli_demo, true, },
+  { "dragon", dragon_demo, false, },
   { "eagle", eagle_demo, true, },
   { "fallin'", fallin_demo, false, },
   { "grid", grid_demo, false, },
   { "highcon", highcontrast_demo, false, },
   { "intro", intro, false, },
   { "jungle", jungle_demo, true, },
-  { NULL, NULL, false, },
+  { NULL, NULL, false, }, // FIXME
   { "luigi", luigi_demo, true, },
-  { NULL, NULL, false, },
+  { NULL, NULL, false, }, // mojibake
   { "normal", normal_demo, false, },
   { "outro", outro, false, },
-  { NULL, NULL, false, },
+  { NULL, NULL, false, }, // pango
   { "qrcode", qrcode_demo, false, }, // is blank without USE_QRCODEGEN
   { "reel", reel_demo, false, },
   { "sliders", sliding_puzzle_demo, false, },
@@ -98,7 +98,7 @@ static struct {
   { "whiteout", witherworm_demo, false, },
   { "xray", xray_demo, false, },
   { "yield", yield_demo, false, },
-  { NULL, NULL, false, },
+  { NULL, NULL, false, }, // zoo
 };
 
 static void
@@ -360,8 +360,10 @@ summary_table(struct ncdirect* nc, const char* spec){
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     uint32_t rescolor;
-    if(results[i].result != 0){
+    if(results[i].result < 0){
       rescolor = 0xff303c;
+    }else if(results[i].result > 0){
+      rescolor = 0xffaa22;
     }else if(!results[i].stats.renders){
       rescolor = 0xbbbbbb;
     }else{

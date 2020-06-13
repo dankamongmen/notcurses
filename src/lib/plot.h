@@ -82,6 +82,7 @@ class ncppplot {
      ncpp->maxy = maxy;
      ncpp->vertical_indep = opts->flags & NCPLOT_OPTION_VERTICALI;
      ncpp->exponentiali = opts->flags & NCPLOT_OPTION_EXPONENTIALD;
+     ncpp->detectonlymax = opts->flags & NCPLOT_OPTION_DETECTMAXONLY;
      if( (ncpp->detectdomain = (miny == maxy)) ){
        ncpp->maxy = 0;
        ncpp->miny = std::numeric_limits<T>::max();
