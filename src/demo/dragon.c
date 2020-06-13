@@ -1,78 +1,81 @@
 #include "demo.h"
 
-static void
-set_colors(uint64_t* tl, uint64_t* tr, uint64_t* bl, uint64_t* br){
-  channels_set_fg_rgb(tl, random() % 256, random() % 256, random() % 256);
-  channels_set_bg_rgb(tl, 0, 0, 0);
-  *tr = *tl;
-  *bl = *tl;
-  *br = *tl;
+// lame as fuck lol
+static bool done;
+static int y, x, dy, dx;
+
+static int
+dragonmayer(struct ncplane* n, const char* str, int iters){
+  char c;
+  int r;
+  while( (c = *str++) ){
+    switch(c){
+      case 'X':
+        if(iters > 1){
+          if( (r = dragonmayer(n, "X+YF+", iters - 1)) ){
+            return r;
+          }
+        }
+        break;
+      case 'Y':
+        if(iters > 1){
+          if( (r = dragonmayer(n, "-FX-Y", iters - 1)) ){
+            return r;
+          }
+        }
+        break;
+      case '+': { int tmp = dy; dy = -dx; dx = tmp; break; }
+      case '-': { int tmp = -dy; dy = dx; dx = tmp; break; }
+      case 'F': // FIXME want a line
+        // FIXME some of these will fail...hella lame, check against dims
+        if(ncplane_putsimple_yx(n, y, x, '@') <= 0){
+          done = true;
+        }
+        x += dx;
+        y += dy;
+        break;
+      default:
+        return -1;
+    }
+  }
+  return 0;
 }
 
-// start with a line. on each iteration, rotate a copy of what we have 90deg
-// cw, and attach it to the end of what we drew. very easy in notcurses!
 int dragon_demo(struct notcurses* nc){
-  const int ITERATIONS = 10;
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
-  if(n == NULL){
-    return -1;
+  // we use a Lindenmayer string rewriting system. the classic dragon curve
+  // system is X -> X+YF+, Y -> -FX-Y, where F is forward, - is turn left, and
+  // + is turn right.
+  const char LINDENSTART[] = "FX";
+  const int SCALE = 1;
+  int dxstart, dystart;
+  if(dimy > dimx){
+    dystart = 0;
+    dxstart = SCALE;
+  }else{
+    dystart = SCALE;
+    dxstart = 0;
   }
-uint64_t crapples = 0;
-channels_set_fg(&crapples, 0);
-channels_set_bg(&crapples, 0);
-channels_set_fg_alpha(&crapples, CELL_ALPHA_TRANSPARENT);
-channels_set_bg_alpha(&crapples, CELL_ALPHA_TRANSPARENT);
-if(ncplane_set_base(n, "", 0, crapples) < 0){
-return -1;
-}
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  if(cell_load(n, &c, "█") <= 0){
-    return -1;
-  }
-  cell_set_fg_rgb(&c, 0, 0xff, 0);
-  ncplane_cursor_move_yx(n, dimy / 2, dimx / 2);
-  if(ncplane_vline(n, &c, 2) < 2){
-    cell_release(n, &c);
-    return -1;
-  }
-  cell_release(n, &c);
-  DEMO_RENDER(nc);
-demo_nanosleep(nc, &demodelay);
-  for(int iter = 0 ; iter < ITERATIONS ; ++iter){
-    struct ncplane* newn = ncplane_dup(n, NULL);
-    if(NULL == newn){
-      return -1;
+  struct timespec scaled;
+  timespec_div(&demodelay, 4, &scaled);
+  int iters = 0;
+  do{
+    ++iters;
+    if(ncplane_set_fg_rgb(n, 0, 0x11 * iters, 0)){
+      break;
     }
-    uint64_t channels = 0;
-    channels_set_fg(&channels, 0);
-    channels_set_bg(&channels, 0);
-    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    if(ncplane_set_base(newn, "", 0, channels) < 0){
-      return -1;
+    dx = dxstart;
+    dy = dystart;
+    x = dimx / 2;
+    y = dimy / 2;
+    int r = dragonmayer(n, LINDENSTART, iters);
+    if(r){
+      return r;
     }
-    uint64_t tl = 0, tr = 0, bl = 0, br = 0;
-    set_colors(&tl, &tr, &bl, &br);
-    ncplane_cursor_move_yx(newn, 0, 0);
-    if(ncplane_rotate_cw(newn)){
-      return -1;
-    }
-    if(ncplane_resize_simple(newn, dimy, dimx) < 0){
-      return -1;
-    }
-    /*if(ncplane_stain(newn, dimy - 1, dimx - 1, tl, tr, bl, br) < 0){
-      return -1;
-    }*/
-int y, x;
-ncplane_yx(newn, &y, &x);
-ncplane_move_yx(newn, y - iter, x - iter);
-    if(ncplane_mergedown(newn, n) < 0){
-      return -1;
-    }
-    ncplane_destroy(newn);
-    demo_nanosleep(nc, &demodelay);
     DEMO_RENDER(nc);
-  }
+    demo_nanosleep(nc, &scaled);
+    ncplane_erase(n);
+  }while(!done);
   return 0;
 }
