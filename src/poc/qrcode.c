@@ -32,11 +32,13 @@ int main(int argc, const char** argv){
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   while(*++argv){
     if(render_qrcode(std, dimy, dimx, *argv)){
+      notcurses_stop(nc);
       return EXIT_FAILURE;
     }
   }
   if(argc < 2){
     if(render_qrcode(std, dimy, dimx, "https://nick-black.com")){
+      notcurses_stop(nc);
       return EXIT_FAILURE;
     }
   }

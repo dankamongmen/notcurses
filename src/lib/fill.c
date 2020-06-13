@@ -584,25 +584,28 @@ int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax,
   memcpy(src, data, len);
   int ret = -1;
   if(qrcodegen_encodeBinary(src, len, dst, qrcodegen_Ecc_HIGH, 1, roomforver, qrcodegen_Mask_AUTO, true)){
-    ret = qrcodegen_getSize(dst);
-    for(int y = starty ; y < starty + (ret + 1) / 2 ; ++y){
-      for(int x = startx ; x < startx + ret ; ++x){
-        const bool top = qrcodegen_getModule(dst, x, y);
-        const bool bot = qrcodegen_getModule(dst, x, y + 1);
-        const char* egc;
-        if(top && bot){
-          egc = "█";
-        }else if(top){
-          egc = "▀";
-        }else if(bot){
-          egc = "▄";
-        }else{
-          egc = " ";
-        }
-        int sbytes;
-        if(ncplane_putegc_yx(n, y, x, egc, &sbytes) <= 0){
-          ret = -1;
-          break;
+    const int square = qrcodegen_getSize(dst);
+    uint32_t* rgba = malloc(square * square * sizeof(uint32_t));
+    if(rgba){
+      ret = square;
+      for(int y = starty ; y < starty + (square + 1) / 2 ; ++y){
+        for(int x = startx ; x < startx + square ; ++x){
+          const bool top = qrcodegen_getModule(dst, x, y);
+          const bool bot = qrcodegen_getModule(dst, x, y + 1);
+          const char* egc;
+          if(top && bot){
+            egc = "█";
+          }else if(top){
+            egc = "▀";
+          }else if(bot){
+            egc = "▄";
+          }else{
+            egc = " ";
+          }
+          if(ncplane_putegc_yx(n, y, x, egc, NULL) <= 0){
+            ret = -1;
+            break;
+          }
         }
       }
     }
