@@ -340,6 +340,11 @@ ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int yoff,
   return ncplane_create(n->nc, n, rows, cols, yoff, ncplane_align(n, align, cols), opaque);
 }
 
+void ncplane_home(ncplane* n){
+  n->x = 0;
+  n->y = 0;
+}
+
 inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x >= n->lenx){
     return -1;

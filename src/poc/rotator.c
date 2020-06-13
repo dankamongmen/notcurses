@@ -12,7 +12,7 @@ rotate_grad(struct notcurses* nc){
   };
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
-  ncplane_cursor_move_yx(n, 0, 0);
+  ncplane_home(n);
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
   channel_set_rgb(&tl, 0xff, 0, 0);
   channel_set_rgb(&tr, 0, 0, 0xff);

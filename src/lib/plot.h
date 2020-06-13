@@ -241,9 +241,7 @@ class ncppplot {
        }
      }
    }
-   if(ncplane_cursor_move_yx(ncp, 0, 0)){
-     return -1;
-   }
+   ncplane_home(ncp);
    return 0;
  }
 

@@ -15,6 +15,11 @@ rearrangements of Notcurses.
     can be taken into account (the latter contains a `blitter_e` field).
   * Added `ncuplot_sample()` and `ncdplot_sample()`, allowing retrieval of
     sample data from `ncuplot`s and `ncdplot`s, respectively.
+  * Added convenience function `ncplane_home()`, which sets the cursor
+    to the plane's origin (and returns `void`, since it cannot fail).
+  * `ncplane_qrcode()` now accepts an `ncblitter_e`, and two value-result
+    `int*`s `ymax` and `xmax`. The actual size of the drawn code is
+    returned in these parameters.
 
 * 1.5.0 (2020-07-08)
   * The various `bool`s of `struct notcurses_options` have been folded into

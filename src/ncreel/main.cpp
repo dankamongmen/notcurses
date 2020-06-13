@@ -142,7 +142,7 @@ int runreels(NotCurses& nc, ncreel_options& nopts){
       case 'q':
         return 0;
       case 'a':{
-        TabletCtx* tctx = new TabletCtx();
+        auto tctx = new TabletCtx();
         nr->add(nullptr, nullptr, tabletfxn, tctx);
         break;
       }

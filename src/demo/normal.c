@@ -199,12 +199,12 @@ int normal_demo(struct notcurses* nc){
   }
   if(notcurses_canutf8(nc)){
     ncplane_erase(nstd);
-    ncplane_cursor_move_yx(n, 0, 0);
+    ncplane_home(n);
     if(rotate_plane(nc, n)){
       goto err;
     }
   }
-  ncplane_cursor_move_yx(n, 0, 0);
+  ncplane_home(n);
   uint64_t tl, tr, bl, br;
   tl = tr = bl = br = 0;
   channels_set_fg_rgb(&tl, 0, 0, 0);
