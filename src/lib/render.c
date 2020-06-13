@@ -864,8 +864,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
   int y, x;
   fseeko(out, 0, SEEK_SET);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
-  // bit per coordinate, rows by rows, column by column within a row, with the
-  // MSB being the first coordinate.
+  // bit per coordinate, one per struct crender.
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
