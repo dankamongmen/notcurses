@@ -27,7 +27,9 @@
 * Generate and upload new Doxygen documentation via `doxygen ../doc/Doxyfile`
   * `scp -r html qemfd.net:/var/www/notcurses/`
 
-## Debian
+## Packaging
+
+### Debian
 
 * In gbp repository:
   * Update Debian changelog, if necessary: `dch -v $VERSION+dfsg.1-1`
@@ -46,7 +48,21 @@
 * Update Debian changelog with `dch -v $NEXTVERSION-1`
 * Update CMakeLists.txt with next version
 
-## Arch
+### Fedora
+
+* In pagure/notcurses master:
+  * Update notcurses.spec, bump version, add changelog entry
+  * clear out any old ersatz detritus
+  * spectool -g notcurses.spec
+  * fedpkg upload *.xz *.asc
+  * fedpkg new-sources *.xz *.asc
+  * fedpkg commit
+  * git push
+  * fedpkg build
+  * fedpkg switch-branch f32
+  * git merge master
+
+### Arch
 
 * Upload new AUR information
   * Update `pkgver` and `sha256sums` entries
@@ -54,7 +70,7 @@
   * Test that package builds with `makepkg`
   * `git commit -a`
 
-## FreeBSD
+### FreeBSD
 
 * Update svn checkout of Ports tree: `cd /usr/ports && svn up`
 * Upgrade ports: `portupgrade -uap`
