@@ -216,6 +216,7 @@ static inline const char*
 quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
                 uint32_t* fore, uint32_t* back){
   const uint32_t colors[4] = { tl, tr, bl, br };
+//fprintf(stderr, "%08x/%08x/%08x/%08x\n", tl, tr, bl, br);
   uint32_t diffs[sizeof(quadrant_drivers) / sizeof(*quadrant_drivers)];
   rgb_4diff(diffs, tl, tr, bl, br);
   // compiler can't verify that we'll always be less than 769 somewhere,
@@ -238,26 +239,31 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   // const uint32_t otherdiff = diffs[5 - mindiffidx];
   *fore = lerp(colors[qd->pair[0]], colors[qd->pair[1]]);
   *back = lerp(colors[qd->others[0]], colors[qd->others[1]]);
+//fprintf(stderr, "mindiff: %u[%zu] fore: %08x back: %08x %d+%d/%d+%d\n", mindiff, mindiffidx, *fore, *back, qd->pair[0], qd->pair[1], qd->others[0], qd->others[1]);
   const char* egc = qd->egc;
   // break down the excluded pair and lerp
   unsigned r0, r1, g0, g1, b0, b1;
   unsigned roth, goth, both, rlerp, glerp, blerp;
-  channel_rgb(qd->others[0], &r0, &g0, &b0);
-  channel_rgb(qd->others[1], &r1, &g1, &b1);
+  channel_rgb(colors[qd->others[0]], &r0, &g0, &b0);
+  channel_rgb(colors[qd->others[1]], &r1, &g1, &b1);
   channel_rgb(*fore, &rlerp, &glerp, &blerp);
   channel_rgb(*back, &roth, &goth, &both);
+//fprintf(stderr, "rgbs: %02x %02x %02x / %02x %02x %02x\n", r0, g0, b0, r1, g1, b1);
   diffs[0] = rgb_diff(r0, g0, b0, rlerp, glerp, blerp);
   diffs[1] = rgb_diff(r0, g0, b0, roth, goth, both);
   diffs[2] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
   diffs[3] = rgb_diff(r1, g1, b1, roth, goth, both);
+//fprintf(stderr, "diffs: %08x %08x %08x %08x\n", diffs[0], diffs[1], diffs[2], diffs[3]);
   if(diffs[0] < diffs[1] && diffs[0] < diffs[2]){
     egc = qd->oth0egc;
     *back = colors[qd->others[1]];
     *fore = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[0]]);
+//fprintf(stderr, "swap 1 %08x %08x\n", *fore, *back);
   }else if(diffs[2] < diffs[3]){
     egc = qd->oth1egc;
     *back = colors[qd->others[0]];
     *fore = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[1]]);
+//fprintf(stderr, "swap 2 %08x %08x\n", *fore, *back);
   }
   return egc;
 }
@@ -316,6 +322,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
         uint32_t bg, fg;
         egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
         assert(egc);
+//fprintf(stderr, "%d/%d %08x/%08x\n", y, x, fg, bg);
         cell_set_fchannel(c, fg);
         cell_set_bchannel(c, bg);
         if(blendcolors){

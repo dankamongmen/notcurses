@@ -597,7 +597,7 @@ int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax,
     if(rgba){
       for(int y = starty ; y < starty + square ; ++y){
         for(int x = startx ; x < startx + square ; ++x){
-          const bool pixel = !qrcodegen_getModule(dst, x, y);
+          const bool pixel = qrcodegen_getModule(dst, x, y);
           ncpixel_set_a(&rgba[y * square + x], 0xff);
           ncpixel_set_rgb(&rgba[y * square + x], r * pixel, g * pixel, b * pixel);
         }
