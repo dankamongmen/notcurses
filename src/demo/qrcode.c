@@ -24,7 +24,7 @@ int qrcode_demo(struct notcurses* nc){
     ncplane_home(n);
     int y = dimy, x = dimx;
     ncplane_home(n);
-    int qlen = ncplane_qrcode(n, NCBLIT_1x1, &y, &x, data, len);
+    int qlen = ncplane_qrcode(n, NCBLIT_DEFAULT, &y, &x, data, len);
     if(qlen > 0){ // FIXME can fail due to being too large for display; distinguish this case
       ncplane_move_yx(n, (dimy - y) / 2, (dimx - x) / 2);
       ncplane_home(n);
@@ -32,6 +32,7 @@ int qrcode_demo(struct notcurses* nc){
       DEMO_RENDER(nc);
     }
   }
+  ncplane_mergedown(n, stdn); // leave the last one on-screen
   ncplane_destroy(n);
 #endif
   return 0;
