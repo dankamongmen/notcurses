@@ -174,9 +174,12 @@ TEST_CASE("Visual") {
       CHECK(0 == ncpixel_set_a(&rgba[i], 0xff));
       if(i % 2){
         CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
+        CHECK(0 == ncpixel_set_r(&rgba[i], 0));
       }else{
         CHECK(0 == ncpixel_set_r(&rgba[i], 0xff));
+        CHECK(0 == ncpixel_set_g(&rgba[i], 0));
       }
+      CHECK(0 == ncpixel_set_b(&rgba[i], 0));
     }
     auto ncv = ncvisual_from_rgba(rgba, DIMY, DIMX * sizeof(uint32_t), DIMX);
     REQUIRE(nullptr != ncv);
@@ -186,7 +189,17 @@ TEST_CASE("Visual") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
-    // FIXME check output
+    for(int y = 0 ; y < DIMY / 2 ; ++y){
+      for(int x = 0 ; x < DIMX ; ++x){
+        uint32_t attrword;
+        uint64_t channels;
+        char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
+        REQUIRE(nullptr != egc);
+        CHECK((rgba[y * 2 * DIMX + x] & 0xffffff) == channels_bg(channels));
+        CHECK((rgba[(y * 2 + 1) * DIMX + x] & 0xffffff) == channels_fg(channels));
+        free(egc);
+      }
+    }
     delete[] rgba;
   }
 
@@ -199,9 +212,12 @@ TEST_CASE("Visual") {
       CHECK(0 == ncpixel_set_a(&rgba[i], 0xff));
       if(i % 2){
         CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
+        CHECK(0 == ncpixel_set_b(&rgba[i], 0));
       }else{
-        CHECK(0 == ncpixel_set_r(&rgba[i], 0xff));
+        CHECK(0 == ncpixel_set_b(&rgba[i], 0xff));
+        CHECK(0 == ncpixel_set_g(&rgba[i], 0));
       }
+      CHECK(0 == ncpixel_set_r(&rgba[i], 0));
     }
     auto ncv = ncvisual_from_rgba(rgba, DIMY, DIMX * sizeof(uint32_t), DIMX);
     REQUIRE(nullptr != ncv);
@@ -211,6 +227,7 @@ TEST_CASE("Visual") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
+sleep(10);
     // FIXME check output
     delete[] rgba;
   }
