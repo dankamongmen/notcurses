@@ -31,6 +31,7 @@ dragonmayer(struct ncvisual* ncv, const char* str, int iters){
       case '+': { int tmp = dy; dy = -dx; dx = tmp; break; }
       case '-': { int tmp = -dy; dy = dx; dx = tmp; break; }
       case 'F': // FIXME want a line
+        ncpixel_set_r(&pixel, 0xb0 - (iters * 0x10));
         if(ncvisual_set_yx(ncv, y, x, pixel) == 0){
           ++total;
         }
@@ -79,7 +80,7 @@ int dragon_demo(struct notcurses* nc){
   }
   free(rgba);
   struct timespec scaled;
-  timespec_div(&demodelay, 4, &scaled);
+  timespec_div(&demodelay, 8, &scaled);
   int lasttotal = 0;
   int iters = 0;
   int r = 0;
