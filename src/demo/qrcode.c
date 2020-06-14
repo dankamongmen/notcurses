@@ -25,23 +25,14 @@ int qrcode_demo(struct notcurses* nc){
     int y = dimy, x = dimx;
     ncplane_home(n);
     int qlen = ncplane_qrcode(n, NCBLIT_1x1, &y, &x, data, len);
-    if(qlen > 0){ // FIXME can fail due to being too large for display; distinguish this
+    if(qlen > 0){ // FIXME can fail due to being too large for display; distinguish this case
       ncplane_move_yx(n, (dimy - y) / 2, (dimx - x) / 2);
       ncplane_home(n);
-      uint64_t tl = 0, bl = 0, br = 0, tr = 0;
-      channels_set_fg_rgb(&tl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      channels_set_fg_rgb(&tr, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      channels_set_fg_rgb(&bl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      channels_set_fg_rgb(&br, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      if(ncplane_stain(n, y, x, tl, tr, bl, br) <= 0){
-        ncplane_destroy(n);
-        return -1;
-      }
+      ncplane_set_fg_rgb(n, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1); 
       DEMO_RENDER(nc);
     }
   }
   ncplane_destroy(n);
 #endif
-  DEMO_RENDER(nc);
   return 0;
 }
