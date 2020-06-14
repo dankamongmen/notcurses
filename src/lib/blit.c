@@ -183,7 +183,7 @@ static const struct qdriver {
   const char* oth1egc; // EGC upon absorbing others[1]
 } quadrant_drivers[6] = {
   { .pair = { 0, 1 }, .others = { 2, 3 }, .egc = "▀", .oth0egc = "▛", .oth1egc = "▜", },
-  { .pair = { 0, 2 }, .others = { 1, 3 }, .egc = "▋", .oth0egc = "▛", .oth1egc = "▙", },
+  { .pair = { 0, 2 }, .others = { 1, 3 }, .egc = "▌", .oth0egc = "▛", .oth1egc = "▙", },
   { .pair = { 0, 3 }, .others = { 1, 2 }, .egc = "▚", .oth0egc = "▜", .oth1egc = "▙", },
   { .pair = { 1, 2 }, .others = { 0, 3 }, .egc = "▞", .oth0egc = "▛", .oth1egc = "▟", },
   { .pair = { 1, 3 }, .others = { 0, 2 }, .egc = "▐", .oth0egc = "▜", .oth1egc = "▟", },
