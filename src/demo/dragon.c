@@ -87,11 +87,11 @@ int dragon_demo(struct notcurses* nc){
     ++iters;
     lasttotal = r;
     pixel = 0xffffffffull;
-    ncpixel_set_rgb(&pixel, 0, 0xa * iters, 0);
+    ncpixel_set_rgb(&pixel, 0, 0xb * iters, 0);
     dx = dxstart;
     dy = dystart;
     x = dimx / 2;
-    y = dimy / 2;
+    y = dimy / 3;
     r = dragonmayer(ncv, LINDENSTART, iters);
     if(r < 0){
       ncvisual_destroy(ncv);
@@ -107,7 +107,6 @@ int dragon_demo(struct notcurses* nc){
     }
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &scaled);
-    ncplane_erase(n);
   }while(lasttotal != r);
   ncvisual_destroy(ncv);
   return 0;
