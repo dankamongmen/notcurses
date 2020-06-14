@@ -59,6 +59,7 @@ videothread(void* vnc){
     .scaling = NCSCALE_STRETCH,
     .n = ncp,
     .y = 1,
+    .blitter = NCBLIT_2x2,
   };
   int three = 3;
   if(ncvisual_render(nc, ncv, &ovopts) == NULL){
@@ -179,6 +180,7 @@ int outro(struct notcurses* nc){
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   ncplane_erase(ncp);
   struct ncvisual* chncv = NULL;
+  memset(&vopts, 0, sizeof(vopts));
   if(notcurses_canopen_images(nc)){
     nc_err_e err = 0;
     char* path = find_data("changes.jpg");
@@ -189,6 +191,7 @@ int outro(struct notcurses* nc){
     }
     vopts.scaling = NCSCALE_STRETCH;
     vopts.flags = NCVISUAL_OPTION_BLEND;
+    vopts.blitter = NCBLIT_2x2;
     if((vopts.n = ncvisual_render(nc, chncv, &vopts)) == NULL){
       ncvisual_destroy(chncv);
       return -1;
