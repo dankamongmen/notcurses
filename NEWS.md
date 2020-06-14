@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.5.1 (not yet released)
+* 1.5.1 (2020-07-15)
   * The semantics of rendering have changed slightly. In 1.5.0 and prior
     versions, a cell without a glyph was replaced *in toto* by that plane's
     base cell at rendering time. The replacement is now tripartite: if there
