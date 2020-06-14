@@ -7,30 +7,32 @@ static int y, x, dy, dx;
 
 static int
 dragonmayer(struct ncvisual* ncv, const char* str, int iters){
+  int total = 0;
   char c;
   int r;
   while( (c = *str++) ){
     switch(c){
       case 'X':
         if(iters > 1){
-          if( (r = dragonmayer(ncv, "X+YF+", iters - 1)) ){
+          if((r = dragonmayer(ncv, "X+YF+", iters - 1)) < 0){
             return r;
           }
+          total += r;
         }
         break;
       case 'Y':
         if(iters > 1){
-          if( (r = dragonmayer(ncv, "-FX-Y", iters - 1)) ){
+          if((r = dragonmayer(ncv, "-FX-Y", iters - 1)) < 0){
             return r;
           }
+          total += r;
         }
         break;
       case '+': { int tmp = dy; dy = -dx; dx = tmp; break; }
       case '-': { int tmp = -dy; dy = dx; dx = tmp; break; }
       case 'F': // FIXME want a line
-        // FIXME some of these will fail...hella lame, check against dims
-        if(ncvisual_set_yx(ncv, y, x, pixel) < 0){
-          done = true;
+        if(ncvisual_set_yx(ncv, y, x, pixel) == 0){
+          ++total;
         }
         x += dx;
         y += dy;
@@ -39,7 +41,7 @@ dragonmayer(struct ncvisual* ncv, const char* str, int iters){
         return -1;
     }
   }
-  return 0;
+  return total;
 }
 
 int dragon_demo(struct notcurses* nc){
@@ -78,17 +80,20 @@ int dragon_demo(struct notcurses* nc){
   free(rgba);
   struct timespec scaled;
   timespec_div(&demodelay, 4, &scaled);
+  int lasttotal = 0;
   int iters = 0;
+  int r = 0;
   do{
     ++iters;
+    lasttotal = r;
     pixel = 0xffffffffull;
-    ncpixel_set_rgb(&pixel, 0, 0x11 * iters, 0);
+    ncpixel_set_rgb(&pixel, 0, 0xa * iters, 0);
     dx = dxstart;
     dy = dystart;
     x = dimx / 2;
     y = dimy / 2;
-    int r = dragonmayer(ncv, LINDENSTART, iters);
-    if(r){
+    r = dragonmayer(ncv, LINDENSTART, iters);
+    if(r < 0){
       ncvisual_destroy(ncv);
       return r;
     }
@@ -103,7 +108,7 @@ int dragon_demo(struct notcurses* nc){
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &scaled);
     ncplane_erase(n);
-  }while(!done);
+  }while(lasttotal != r);
   ncvisual_destroy(ncv);
   return 0;
 }
