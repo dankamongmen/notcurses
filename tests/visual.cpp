@@ -227,8 +227,17 @@ TEST_CASE("Visual") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
-sleep(10);
-    // FIXME check output
+    for(int y = 0 ; y < DIMY / 2 ; ++y){
+      for(int x = 0 ; x < DIMX / 2 ; ++x){
+        uint32_t attrword;
+        uint64_t channels;
+        char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
+        REQUIRE(nullptr != egc);
+        CHECK((rgba[(y * 2 * DIMX) + (x * 2)] & 0xffffff) == channels_fg(channels));
+        CHECK((rgba[(y * 2 + 1) * DIMX + (x * 2) + 1] & 0xffffff) == channels_fg(channels));
+        free(egc);
+      }
+    }
     delete[] rgba;
   }
 
