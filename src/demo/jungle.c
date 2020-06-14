@@ -26596,7 +26596,6 @@ int jungle_demo(struct notcurses* nc){
     return 0;
   }
   struct timespec start, now;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   size_t have = 0, out = 0;
   struct ncplane* copyplane;
   palette256* pal;
@@ -26663,9 +26662,9 @@ int jungle_demo(struct notcurses* nc){
   }
   cell_release(n, &c);
   free(buf);
+  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   int iter = 0;
-  // don't try to run faster than, eh, 140Hz
-  int64_t iterns = GIG / 100;
+  int64_t iterns = GIG / 30;
   int64_t nsrunning;
   do{
     DEMO_RENDER(nc);

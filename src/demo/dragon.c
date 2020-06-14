@@ -87,7 +87,7 @@ int dragon_demo(struct notcurses* nc){
     ++iters;
     lasttotal = r;
     pixel = 0xffffffffull;
-    ncpixel_set_rgb(&pixel, 0, 0xb * iters, 0);
+    ncpixel_set_rgb(&pixel, 0, 0xb * iters, 0xf0 - (4 * iters));
     dx = dxstart;
     dy = dystart;
     x = dimx / 2;
