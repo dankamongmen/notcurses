@@ -167,78 +167,82 @@ TEST_CASE("Visual") {
 
   // write a checkerboard pattern and verify the NCBLIT_2x1 output
   SUBCASE("Dualblitter") {
-    constexpr int DIMY = 10;
-    constexpr int DIMX = 11; // odd number to get checkerboard effect
-    auto rgba = new uint32_t[DIMY * DIMX];
-    for(int i = 0 ; i < DIMY * DIMX ; ++i){
-      CHECK(0 == ncpixel_set_a(&rgba[i], 0xff));
-      if(i % 2){
-        CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
-        CHECK(0 == ncpixel_set_r(&rgba[i], 0));
-      }else{
-        CHECK(0 == ncpixel_set_r(&rgba[i], 0xff));
-        CHECK(0 == ncpixel_set_g(&rgba[i], 0));
+    if(enforce_utf8()){
+      constexpr int DIMY = 10;
+      constexpr int DIMX = 11; // odd number to get checkerboard effect
+      auto rgba = new uint32_t[DIMY * DIMX];
+      for(int i = 0 ; i < DIMY * DIMX ; ++i){
+        CHECK(0 == ncpixel_set_a(&rgba[i], 0xff));
+        if(i % 2){
+          CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
+          CHECK(0 == ncpixel_set_r(&rgba[i], 0));
+        }else{
+          CHECK(0 == ncpixel_set_r(&rgba[i], 0xff));
+          CHECK(0 == ncpixel_set_g(&rgba[i], 0));
+        }
+        CHECK(0 == ncpixel_set_b(&rgba[i], 0));
       }
-      CHECK(0 == ncpixel_set_b(&rgba[i], 0));
-    }
-    auto ncv = ncvisual_from_rgba(rgba, DIMY, DIMX * sizeof(uint32_t), DIMX);
-    REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts{};
-    vopts.n = n_;
-    vopts.blitter = NCBLIT_2x1;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
-    CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < DIMY / 2 ; ++y){
-      for(int x = 0 ; x < DIMX ; ++x){
-        uint32_t attrword;
-        uint64_t channels;
-        char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
-        REQUIRE(nullptr != egc);
-        CHECK((rgba[y * 2 * DIMX + x] & 0xffffff) == channels_bg(channels));
-        CHECK((rgba[(y * 2 + 1) * DIMX + x] & 0xffffff) == channels_fg(channels));
-        free(egc);
+      auto ncv = ncvisual_from_rgba(rgba, DIMY, DIMX * sizeof(uint32_t), DIMX);
+      REQUIRE(nullptr != ncv);
+      struct ncvisual_options vopts{};
+      vopts.n = n_;
+      vopts.blitter = NCBLIT_2x1;
+      vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+      CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+      CHECK(0 == notcurses_render(nc_));
+      for(int y = 0 ; y < DIMY / 2 ; ++y){
+        for(int x = 0 ; x < DIMX ; ++x){
+          uint32_t attrword;
+          uint64_t channels;
+          char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
+          REQUIRE(nullptr != egc);
+          CHECK((rgba[y * 2 * DIMX + x] & 0xffffff) == channels_bg(channels));
+          CHECK((rgba[(y * 2 + 1) * DIMX + x] & 0xffffff) == channels_fg(channels));
+          free(egc);
+        }
       }
+      delete[] rgba;
     }
-    delete[] rgba;
   }
 
   // write a checkerboard pattern and verify the NCBLIT_2x2 output
   SUBCASE("Quadblitter") {
-    constexpr int DIMY = 10;
-    constexpr int DIMX = 11; // odd number to get checkerboard effect
-    auto rgba = new uint32_t[DIMY * DIMX];
-    for(int i = 0 ; i < DIMY * DIMX ; ++i){
-      CHECK(0 == ncpixel_set_a(&rgba[i], 0xff));
-      if(i % 2){
-        CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
-        CHECK(0 == ncpixel_set_b(&rgba[i], 0));
-      }else{
-        CHECK(0 == ncpixel_set_b(&rgba[i], 0xff));
-        CHECK(0 == ncpixel_set_g(&rgba[i], 0));
+    if(enforce_utf8()){
+      constexpr int DIMY = 10;
+      constexpr int DIMX = 11; // odd number to get checkerboard effect
+      auto rgba = new uint32_t[DIMY * DIMX];
+      for(int i = 0 ; i < DIMY * DIMX ; ++i){
+        CHECK(0 == ncpixel_set_a(&rgba[i], 0xff));
+        if(i % 2){
+          CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
+          CHECK(0 == ncpixel_set_b(&rgba[i], 0));
+        }else{
+          CHECK(0 == ncpixel_set_b(&rgba[i], 0xff));
+          CHECK(0 == ncpixel_set_g(&rgba[i], 0));
+        }
+        CHECK(0 == ncpixel_set_r(&rgba[i], 0));
       }
-      CHECK(0 == ncpixel_set_r(&rgba[i], 0));
-    }
-    auto ncv = ncvisual_from_rgba(rgba, DIMY, DIMX * sizeof(uint32_t), DIMX);
-    REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts{};
-    vopts.n = n_;
-    vopts.blitter = NCBLIT_2x2;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
-    CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < DIMY / 2 ; ++y){
-      for(int x = 0 ; x < DIMX / 2 ; ++x){
-        uint32_t attrword;
-        uint64_t channels;
-        char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
-        REQUIRE(nullptr != egc);
-        CHECK((rgba[(y * 2 * DIMX) + (x * 2)] & 0xffffff) == channels_fg(channels));
-        CHECK((rgba[(y * 2 + 1) * DIMX + (x * 2) + 1] & 0xffffff) == channels_fg(channels));
-        free(egc);
+      auto ncv = ncvisual_from_rgba(rgba, DIMY, DIMX * sizeof(uint32_t), DIMX);
+      REQUIRE(nullptr != ncv);
+      struct ncvisual_options vopts{};
+      vopts.n = n_;
+      vopts.blitter = NCBLIT_2x2;
+      vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+      CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+      CHECK(0 == notcurses_render(nc_));
+      for(int y = 0 ; y < DIMY / 2 ; ++y){
+        for(int x = 0 ; x < DIMX / 2 ; ++x){
+          uint32_t attrword;
+          uint64_t channels;
+          char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
+          REQUIRE(nullptr != egc);
+          CHECK((rgba[(y * 2 * DIMX) + (x * 2)] & 0xffffff) == channels_fg(channels));
+          CHECK((rgba[(y * 2 + 1) * DIMX + (x * 2) + 1] & 0xffffff) == channels_fg(channels));
+          free(egc);
+        }
       }
+      delete[] rgba;
     }
-    delete[] rgba;
   }
 
   // close-in verification of each quadblitter output EGC 

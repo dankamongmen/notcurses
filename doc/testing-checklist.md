@@ -4,7 +4,8 @@
 
 Run unit tests (`make && make test`):
 * In each multimedia configuration (`ffmpeg`, `oiio`, `none`)
-* With LANG set to `fr_FR.UTF-8` (to test comma as decimal separator)
+* With `LANG` set to `fr_FR.UTF-8` (to test comma as decimal separator)
+* With `LANG` set to `C` (to test ASCII mode, necessary for debuilder)
 * All must pass
 
 ## Manual tests
