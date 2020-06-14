@@ -502,6 +502,7 @@ void ncreader_destroy(struct ncreader* n, char** contents);
 int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes);
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
 int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* gclustarr);
+int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax, int* xmax, const void* data, size_t len);
 """)
 
 if __name__ == "__main__":

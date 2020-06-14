@@ -534,7 +534,7 @@ int ncplane_rotate_ccw(ncplane* n){
 
 static inline int
 qrcode_rows(int version){
-  return (QR_BASE_SIZE + (version * PER_QR_VERSION)) / 2;
+  return QR_BASE_SIZE + (version * PER_QR_VERSION);
 }
 
 static inline int
@@ -542,9 +542,10 @@ qrcode_cols(int version){
   return QR_BASE_SIZE + (version * PER_QR_VERSION);
 }
 
-int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
+int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax,
+                   int* xmax, const void* data, size_t len){
   const int MAX_QR_VERSION = 40; // QR library only supports up to 40
-  if(maxversion < 0){
+  if(*ymax <= 0 || *xmax <= 0){
     return -1;
   }
   if(len == 0){
@@ -552,25 +553,24 @@ int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
   }
   const int starty = n->y;
   const int startx = n->x;
-  const int availx = n->lenx - startx;
-  const int availy = n->leny - starty;
-  if(availy < qrcode_rows(1)){
+  if(*xmax > n->lenx - startx){
     return -1;
   }
-  if(availx < qrcode_cols(1)){
+  if(*ymax > n->leny - starty){
     return -1;
   }
-  const int availsquare = availy * 2 < availx ? availy * 2 : availx;
-  const int roomforver = (availsquare - QR_BASE_SIZE) / 4;
-  if(maxversion == 0){
-    maxversion = roomforver;
-  }else if(maxversion > roomforver){
-    maxversion = roomforver;
+  if(*ymax < qrcode_rows(1)){
+    return -1;
   }
-  if(maxversion > MAX_QR_VERSION){
-    maxversion = MAX_QR_VERSION;
+  if(*xmax < qrcode_cols(1)){
+    return -1;
   }
-  const size_t bsize = qrcodegen_BUFFER_LEN_FOR_VERSION(maxversion);
+  const int availsquare = *ymax * 2 < *xmax ? *ymax * 2 : *xmax;
+  int roomforver = (availsquare - QR_BASE_SIZE) / PER_QR_VERSION;
+  if(roomforver > MAX_QR_VERSION){
+    roomforver = MAX_QR_VERSION;
+  }
+  const size_t bsize = qrcodegen_BUFFER_LEN_FOR_VERSION(roomforver);
   if(bsize < len){
     return -1;
   }
@@ -581,40 +581,59 @@ int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
     free(dst);
     return -1;
   }
+  unsigned r, g, b;
+  // FIXME default might not be all-white
+  if(ncplane_fg_default_p(n)){
+    r = g = b = 0xff;
+  }else{
+    ncplane_fg_rgb(n, &r, &g, &b);
+  }
   memcpy(src, data, len);
   int ret = -1;
-  if(qrcodegen_encodeBinary(src, len, dst, qrcodegen_Ecc_HIGH, 1, maxversion, qrcodegen_Mask_AUTO, true)){
-    ret = qrcodegen_getSize(dst);
-    for(int y = starty ; y < starty + (ret + 1) / 2 ; ++y){
-      for(int x = startx ; x < startx + ret ; ++x){
-        const bool top = qrcodegen_getModule(dst, x, y);
-        const bool bot = qrcodegen_getModule(dst, x, y + 1);
-        const char* egc;
-        if(top && bot){
-          egc = "█";
-        }else if(top){
-          egc = "▀";
-        }else if(bot){
-          egc = "▄";
-        }else{
-          egc = " ";
+  int yscale, xscale;
+  if(qrcodegen_encodeBinary(src, len, dst, qrcodegen_Ecc_HIGH, 1, roomforver, qrcodegen_Mask_AUTO, true)){
+    const int square = qrcodegen_getSize(dst);
+    uint32_t* rgba = malloc(square * square * sizeof(uint32_t));
+    if(rgba){
+      for(int y = starty ; y < starty + square ; ++y){
+        for(int x = startx ; x < startx + square ; ++x){
+          const bool pixel = qrcodegen_getModule(dst, x, y);
+          ncpixel_set_a(&rgba[y * square + x], 0xff);
+          ncpixel_set_rgb(&rgba[y * square + x], r * pixel, g * pixel, b * pixel);
         }
-        int sbytes;
-        if(ncplane_putegc_yx(n, y, x, egc, &sbytes) <= 0){
-          ret = -1;
-          break;
+      }
+      struct ncvisual* ncv = ncvisual_from_rgba(rgba, square, square * sizeof(uint32_t), square);
+      free(rgba);
+      if(ncv){
+        ret = square;
+        struct ncvisual_options vopts = {
+          .n = n,
+          .blitter = blitter,
+        };
+        if(ncvisual_render(n->nc, ncv, &vopts) == n){
+          ret = square;
         }
+        ncvisual_geom(n->nc, ncv, &vopts, NULL, NULL, &yscale, &xscale);
       }
     }
   }
   free(src);
   free(dst);
-  return ret < 0 ? ret : (ret - QR_BASE_SIZE) / PER_QR_VERSION;
+  if(ret > 0){
+    ret = (ret - QR_BASE_SIZE) / PER_QR_VERSION;
+    *ymax = qrcode_rows(ret) / yscale;
+    *xmax = qrcode_cols(ret) / xscale;
+    return ret;
+  }
+  return -1;
 }
 #else
-int ncplane_qrcode(ncplane* n, int maxversion, const void* data, size_t len){
+int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax, int* xmax,
+                   const void* data, size_t len){
   (void)n;
-  (void)maxversion;
+  (void)blitter;
+  (void)ymax;
+  (void)xmax;
   (void)data;
   (void)len;
   return -1;

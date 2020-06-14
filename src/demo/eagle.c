@@ -51,11 +51,11 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   // we start at the lower left corner of the outzoomed map
   int truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
-  int delty = yscale;
-  int deltx = xscale;
+  int delty = 2;
+  int deltx = 2;
   if(truey > truex){
     ++delty;
-  }else if(truex > truey * 2){
+  }else if(truex > truey){
     ++deltx;
   }
   // to zoom in on the map, we're going to scale the full image to a plane

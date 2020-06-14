@@ -440,7 +440,9 @@ TEST_CASE("Fills") {
 #ifdef USE_QRCODEGEN
   SUBCASE("QRCodes") {
     const char* qr = "a very simple qr code";
-    CHECK(0 < ncplane_qrcode(n_, 0, qr, strlen(qr)));
+    int dimy, dimx;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    CHECK(0 < ncplane_qrcode(n_, NCBLIT_DEFAULT, &dimy, &dimx, qr, strlen(qr)));
     CHECK(0 == notcurses_render(nc_));
   }
 #endif

@@ -1,20 +1,5 @@
 #include "demo.h"
-
-#ifdef USE_QRCODEGEN
 #include <sys/random.h>
-// FIXME duplicated--ought these just be exported?
-#define QR_BASE_SIZE 17
-#define PER_QR_VERSION 4
-static inline int
-qrcode_rows(int version){
-  return (QR_BASE_SIZE + (version * PER_QR_VERSION)) / 2;
-}
-
-static inline int
-qrcode_cols(int version){
-  return QR_BASE_SIZE + (version * PER_QR_VERSION);
-}
-#endif
 
 int qrcode_demo(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
@@ -36,33 +21,19 @@ int qrcode_demo(struct notcurses* nc){
       memcpy(data + done, &r, sizeof(r));
       done += sizeof(r);
     }
-    if(ncplane_cursor_move_yx(n, 0, 0)){
-      ncplane_destroy(n);
-      return -1;
-    }
-    int qlen = ncplane_qrcode(n, 0, data, len);
-    // can fail due to being too large for the terminal (FIXME), or ASCII mode
-    if(qlen > 0){
-      ncplane_move_yx(n, dimy / 2 - qrcode_rows(qlen) / 2,
-                      dimx / 2 - qrcode_cols(qlen) / 2);
-      if(ncplane_cursor_move_yx(n, 0, 0)){
-        ncplane_destroy(n);
-        return -1;
-      }
-      uint64_t tl = 0, bl = 0, br = 0, tr = 0;
-      channels_set_fg_rgb(&tl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      channels_set_fg_rgb(&tr, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      channels_set_fg_rgb(&bl, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      channels_set_fg_rgb(&br, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1);
-      if(ncplane_stain(n, qrcode_rows(qlen), qrcode_cols(qlen), tl, tr, bl, br) <= 0){
-        ncplane_destroy(n);
-        return -1;
-      }
+    ncplane_home(n);
+    int y = dimy, x = dimx;
+    ncplane_home(n);
+    int qlen = ncplane_qrcode(n, NCBLIT_DEFAULT, &y, &x, data, len);
+    if(qlen > 0){ // FIXME can fail due to being too large for display; distinguish this case
+      ncplane_move_yx(n, (dimy - y) / 2, (dimx - x) / 2);
+      ncplane_home(n);
+      ncplane_set_fg_rgb(n, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1); 
       DEMO_RENDER(nc);
     }
   }
+  ncplane_mergedown(n, stdn); // leave the last one on-screen
   ncplane_destroy(n);
 #endif
-  DEMO_RENDER(nc);
   return 0;
 }

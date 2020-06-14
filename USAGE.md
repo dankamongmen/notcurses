@@ -11,7 +11,7 @@ version 2, notcurses will honor Semantic Versioning.
 * [Reels](#reels) ([ncreel Examples](#ncreel-examples))
 * [Widgets](#widgets) ([Readers](#readers))
 * [Channels](#channels)
-* [Visuals](#visuals) ([Multimedia](#multimedia))
+* [Visuals](#visuals) ([QR codes](#qrcodes)) ([Multimedia](#multimedia)) ([Pixels](#pixels))
 * [C++](#c++)
 
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
@@ -2674,6 +2674,22 @@ int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                     nc_err_e* ncerr, float timescale, streamcb streamer,
                     const struct ncvisual_options* vopts, void* curry);
 ```
+
+### QR codes
+
+If build with libqrcodegen support, `ncplane_qrcode()` can be used to draw
+a QR code for arbitrary data.
+
+```c
+// Draw a QR code at the current position on the plane. If there is insufficient
+// room to draw the code here, or there is any other error, non-zero will be
+// returned. Otherwise, the QR code "version" (size) is returned. The QR code
+// is (version * 4 + 17) columns wide, and ⌈version * 4 + 17⌉ rows tall (the
+// properly-scaled values are written back to '*ymax' and '*xmax').
+int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax,
+                   int* xmax, const void* data, size_t len);
+```
+
 
 ### Multimedia
 

@@ -47,7 +47,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell_set_fg_rgb(&vl, 255, 255, 255);
   cell_set_bg_rgb(&hl, 0, 0, 0);
   cell_set_bg_rgb(&vl, 0, 0, 0);
-  ncplane_cursor_move_yx(nn, 0, 0);
+  ncplane_home(nn);
   unsigned control = NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM | NCBOXGRAD_LEFT | NCBOXGRAD_RIGHT;
   if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, control)){
     return -1;

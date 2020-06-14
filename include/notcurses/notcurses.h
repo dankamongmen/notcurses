@@ -1339,6 +1339,9 @@ ncplane_align(const struct ncplane* n, ncalign_e align, int c){
 // plane's dimensions.
 API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
+// Move the cursor to 0, 0. Can't fail.
+API void ncplane_home(struct ncplane* n);
+
 // Get the current position of the cursor within n. y and/or x may be NULL.
 API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
@@ -1998,10 +2001,22 @@ ncplane_fg_alpha(const struct ncplane* nc){
   return channels_fg_alpha(ncplane_channels(nc));
 }
 
+// Is the plane's foreground using the "default foreground color"?
+static inline bool
+ncplane_fg_default_p(const struct ncplane* nc){
+  return channels_fg_default_p(ncplane_channels(nc));
+}
+
 // Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 static inline unsigned
 ncplane_bg_alpha(const struct ncplane* nc){
   return channels_bg_alpha(ncplane_channels(nc));
+}
+
+// Is the plane's background using the "default background color"?
+static inline bool
+ncplane_bg_default_p(const struct ncplane* nc){
+  return channels_bg_default_p(ncplane_channels(nc));
 }
 
 // Extract 24 bits of foreground RGB from 'n', split into components.
@@ -2947,11 +2962,10 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // Draw a QR code at the current position on the plane. If there is insufficient
 // room to draw the code here, or there is any other error, non-zero will be
 // returned. Otherwise, the QR code "version" (size) is returned. The QR code
-// is (version * 4 + 17) columns wide, and ⌈version * 4 + 17 / 2⌉ rows tall. If
-// maxversion is not zero, it plays a hard limit on the QR code size. Though the
-// max version of current QR codes is 40, greater values are allowed, for
-// future compatability (provide 0 for no artificial bound).
-API int ncplane_qrcode(struct ncplane* n, int maxversion, const void* data, size_t len);
+// is (version * 4 + 17) columns wide, and ⌈version * 4 + 17⌉ rows tall (the
+// properly-scaled values are written back to '*ymax' and '*xmax').
+API int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax,
+                       int* xmax, const void* data, size_t len);
 
 #define NCREADER_OPTION_HORSCROLL  0x0001ull
 #define NCREADER_OPTION_VERSCROLL  0x0002ull
