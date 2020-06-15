@@ -1507,13 +1507,17 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
       if(consumed == (size_t)-2 || consumed == (size_t)-1){
         logerror(n->nc, "Invalid UTF-8 after %zu bytes\n", text - beginning);
-        *bytes = text - beginning;
+        if(bytes){
+          *bytes = text - beginning;
+        }
         return -1;
       }
       width = wcwidth(w);
       if(width < 0){
         logerror(n->nc, "Non-printable UTF-8 after %zu bytes\n", text - beginning);
-        *bytes = text - beginning;
+        if(bytes){
+          *bytes = text - beginning;
+        }
         return -1;
       }
       if(x + width >= dimx){
@@ -1539,14 +1543,18 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       breaker = text;
     }
     if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) < 0){ 
-      *bytes = linestart - beginning;
+      if(bytes){
+        *bytes = linestart - beginning;
+      }
       return -1;
     }
     x = carrycols;
     linestart = breaker + 1;
     ++y; // FIXME scrolling!
   }while(*text);
-  *bytes = text - beginning;
+  if(bytes){
+    *bytes = text - beginning;
+  }
   return totalcols;
 }
 

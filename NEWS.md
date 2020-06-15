@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.5.2 (not yet released)
+  * A `NULL` value can now be passed as `sbytes` to `ncplane_puttext()`.
+
 * 1.5.1 (2020-07-15)
   * The semantics of rendering have changed slightly. In 1.5.0 and prior
     versions, a cell without a glyph was replaced *in toto* by that plane's
