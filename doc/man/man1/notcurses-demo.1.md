@@ -33,6 +33,7 @@ The demonstrations include (see NOTES below):
 * (i)ntro—a setting of tone
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (l)uigi—a dashing Apennine plumber in a world of fire
+* (m)ojibake—a selection of market-price emoji
 * (n)ormal—a normal map of a friend, with effects
 * (o)utro—a message of hope from the library's author
 * (q)rcode—quick response codes (from ISO/IEC 18004:2015)
@@ -72,7 +73,7 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 **-V**: Print the program name and version, and exit with success.
 
 demospec: Select which demos to run, and what order to run them in. The
-default is **ixeaydthnbcgrwuvlsfjqo**. See above for a list of demos.
+default is **ixeaydthnbcmgrwuvlsfjqo**. See above for a list of demos.
 
 Default margins are all 0, and thus the full screen will be rendered. Using
 **-m**, margins can be supplied. Provide a single number to set all four margins

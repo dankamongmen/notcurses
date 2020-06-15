@@ -19,7 +19,7 @@ static int democount;
 static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
-static const char DEFAULT_DEMO[] = "ixeaydthnbcgrwuvlsfjqo";
+static const char DEFAULT_DEMO[] = "ixeaydthnbcmgrwuvlsfjqo";
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
@@ -85,7 +85,7 @@ static struct {
   { "jungle", jungle_demo, true, },
   { NULL, NULL, false, }, // FIXME
   { "luigi", luigi_demo, true, },
-  { NULL, NULL, false, }, // mojibake
+  { "mojibake", mojibake_demo, false, },
   { "normal", normal_demo, false, },
   { "outro", outro, false, },
   { NULL, NULL, false, }, // pango
