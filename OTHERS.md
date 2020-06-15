@@ -33,3 +33,4 @@
 * [termbox](https://github.com/nsf/termbox) (C)
 * [chafa](https://hpjansson.org/chafa/) (C)
 * [libsixel](https://github.com/saitoha/libsixel) (C)
+* [viu](https://github.com/atanunq/viu) (Rust)
