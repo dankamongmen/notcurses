@@ -2,8 +2,8 @@
 #include <notcurses/notcurses.h>
 
 typedef struct distro_info {
-  const char* name;
-  const char* logofile;
+  const char* name;            // must match 'lsb_release -i'
+  const char* logofile;        // kept at original aspect ratio, lain atop bg
 } distro_info;
 
 static distro_info distros[] = {
@@ -96,7 +96,7 @@ ncneofetch(struct notcurses* nc){
   return 0;
 }
 
-int main(int argc, const char** argv){
+int main(void){
   if(setlocale(LC_ALL, "") == NULL){
     fprintf(stderr, "Warning: couldn't set locale based off LANG\n");
   }
