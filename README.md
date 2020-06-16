@@ -20,8 +20,10 @@ Notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notc
 from [Debian Unstable](https://packages.debian.org/source/sid/notcurses) and
 [Testing](https://packages.debian.org/testing/graphics/notcurses-data),
 [Fedora Core](https://src.fedoraproject.org/rpms/notcurses),
+[Ubuntu Groovy](https://launchpad.net/ubuntu/+source/notcurses),
 and the FreeBSD [Ports Collection](https://www.freshports.org/devel/notcurses/).
-Packages for Ubuntu Focal are available from [DSSCAW](https://www.dsscaw.com/apt.html).
+**If you're running Notcurses applications in a Docker, please consult
+"[Environment notes](#environment-notes)" below.**
 
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -267,6 +269,19 @@ These are pretty obvious, implementation-wise.
 
 ## Environment notes
 
+* If your `TERM` variable is wrong, or that terminfo definition is out-of-date,
+  you're going to have a very bad time. Use *only* the `TERM` values
+  appropriate for your terminal.
+
+* Ensure your `LANG` environment variable is set to a UTF8-encoded locale, and
+  that this locale has been generated. This usually means
+  `"[language]_[Countrycode].UTF-8"`, i.e. `en_US.UTF-8`. The first part
+  (`en_US`) ought exist as a directory or symlink in `/usr/share/locales`.
+  This usually requires editing `/etc/locale.gen` and running `locale-gen`.
+  On Debian systems, this can be accomplished with `dpkg-reconfigure loclaes`,
+  and enabling the desired locale. The default locale is stored somewhere like
+  `/etc/default/locale`.
+
 * If your terminal has an option about default interpretation of "ambiguous-width
   characters" (this is actually a technical term from Unicode), ensure it is
   set to **Wide**, not narrow. If that doesn't work, ensure it is set to
@@ -361,6 +376,7 @@ up someday **FIXME**.
 
 ### History
 
+* 2020-06-08: Notcurses [1.5.0 "ghetto bird"](https://github.com/dankamongmen/notcurses/releases/tag/v1.5.0).
 * 2020-05-13: Notcurses is [accepted into Fedora Core](https://bugzilla.redhat.com/show_bug.cgi?id=1822971).
 * 2020-05-10: Notcurses [1.4.0 "the saga continues"](https://github.com/dankamongmen/notcurses/releases/tag/v1.4.0).
 * 2020-05-09: Notcurses is [accepted into FreeBSD](https://github.com/dankamongmen/notcurses/issues/575).
