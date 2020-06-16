@@ -510,6 +510,7 @@ int ncplane_destroy(ncplane* ncp){
     return 0;
   }
   if(ncp->nc->stdscr == ncp){
+    logerror(ncp->nc, "Won't destroy standard plane\n");
     return -1;
   }
   if(ncp->above){
@@ -1634,14 +1635,17 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 2x2, with its upper-left corner at the current cursor
   if(ystop < yoff + 1){
+    logerror(n->nc, "Ystop (%d) insufficient for yoff (%d)\n", ystop, yoff);
     return -1;
   }
   if(xstop < xoff + 1){
+    logerror(n->nc, "Xstop (%d) insufficient for xoff (%d)\n", xstop, xoff);
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);
   // must be within the ncplane
   if(xstop >= xmax || ystop >= ymax){
+    logerror(n->nc, "Boundary (%dx%d) beyond plane (%dx%d)\n", ystop, xstop, ymax, xmax);
     return -1;
   }
   unsigned edges;
