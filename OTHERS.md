@@ -23,11 +23,13 @@
 * [blessings](https://github.com/erikrose/blessings) (Python)
 * [urwid](https://github.com/urwid/urwid) (Python)
 
-## Pixel-based
-
-* [termbox](https://github.com/nsf/termbox) (C)
-
 ## Declarative
 
 * [brick](https://github.com/jtdaugherty/brick) (Haskell, atop vty)
 * [zui](https://github.com/zdharma/zui) (Zsh, atop zdharma)
+
+## Graphics
+
+* [termbox](https://github.com/nsf/termbox) (C)
+* [chafa](https://hpjansson.org/chafa/) (C)
+* [libsixel](https://github.com/saitoha/libsixel) (C)
