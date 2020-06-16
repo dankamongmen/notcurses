@@ -73,6 +73,8 @@ elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
 endif()
 find_library(MATH_LIBRARIES m)
+# don't cache this, or installing it requires clearing the cache to be found
+unset(HAVE_QRCODEGEN_H CACHE)
 check_include_file("qrcodegen/qrcodegen.h" HAVE_QRCODEGEN_H)
 if("${USE_QRCODEGEN}")
 if(NOT "${HAVE_QRCODEGEN_H}")
