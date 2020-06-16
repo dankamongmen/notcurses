@@ -2,8 +2,7 @@
 #include "internal.h"
 
 TEST_CASE("Geometry") {
-  notcurses_options nopts{};
-  notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  auto nc_ = testing_notcurses();
   if(!nc_){
     return;
   }

@@ -5,9 +5,7 @@ TEST_CASE("Cell") {
   if(!enforce_utf8()){
     return;
   }
-  // common initialization
-  TestOptions nopts{};
-  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  auto nc_ = testing_notcurses();
   if(!nc_){
     return;
   }

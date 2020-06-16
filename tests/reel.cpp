@@ -12,8 +12,7 @@ auto panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cl
 }
 
 TEST_CASE("Reels") {
-  notcurses_options nopts{};
-  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  auto nc_ = testing_notcurses();
   if(!nc_){
     return;
   }

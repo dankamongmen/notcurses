@@ -2,8 +2,7 @@
 #include "internal.h"
 
 TEST_CASE("TextLayout") {
-  notcurses_options nopts{};
-  notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  auto nc_ = testing_notcurses();
   if(!nc_){
     return;
   }
@@ -19,7 +18,16 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, str, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(str));
-    // FIXME inspect layout
+    char* line = ncplane_contents(sp, 0, 0, 1, 20);
+    REQUIRE(line);
+fprintf(stderr, "**********\n%s\n", line);
+    CHECK(0 == strcmp(line, "this is going to be"));
+    free(line);
+    line = ncplane_contents(sp, 1, 0, 1, 20);
+    REQUIRE(line);
+fprintf(stderr, "**********\n%s\n", line);
+    CHECK(0 == strcmp(line, "broken up"));
+    free(line);
     ncplane_destroy(sp);
   }
 

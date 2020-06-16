@@ -3,8 +3,7 @@
 #include <iostream>
 
 TEST_CASE("Readers") {
-  notcurses_options nopts{};
-  struct notcurses* nc_ = notcurses_init(&nopts, nullptr);
+  auto nc_ = testing_notcurses();
   if(!nc_){
     return;
   }
