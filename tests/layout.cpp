@@ -86,11 +86,45 @@ TEST_CASE("TextLayout") {
   }
 
   // lay out text where a word is longer than the plane
-  SUBCASE("LayoutCrossBoundary") {
+  SUBCASE("LayoutTransPlanar") {
     auto sp = ncplane_new(nc_, 3, 10, 0, 0, nullptr);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "my thermonuclear arms";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    // FIXME i think i'd prefer that this printed what it could of thermo
+    // on the first line, and continued it on the second, since it has to
+    // break the word anyway...then we'd get "my thermonuclear arms"
+    CHECK(0 == strcmp(line, "mythermonuclear arms"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
+  // lay out text where a word is longer than the plane
+  SUBCASE("LayoutTransPlanar") {
+    auto sp = ncplane_new(nc_, 3, 10, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "my thermonuclear arms";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "mythermonuclear arms"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
+  SUBCASE("LayoutLeadingSpaces") {
+    auto sp = ncplane_new(nc_, 3, 10, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "  \t\n my thermonuclear arms";
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));

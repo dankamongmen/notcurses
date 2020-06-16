@@ -1521,14 +1521,6 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         }
         return -1;
       }
-      width = wcwidth(w);
-      if(width < 0){
-        logerror(n->nc, "Non-printable UTF-8 after %zu bytes\n", text - beginning);
-        if(bytes){
-          *bytes = text - beginning;
-        }
-        return -1;
-      }
       // FIXME use the more advanced unicode functionality to break lines
       if(iswspace(w)){
         if(x == 0){
@@ -1538,6 +1530,14 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         }else{
           breaker = text;
         }
+      }
+      width = wcwidth(w);
+      if(width < 0){
+        logerror(n->nc, "Non-printable UTF-8 after %zu bytes\n", text - beginning);
+        if(bytes){
+          *bytes = text - beginning;
+        }
+        return -1;
       }
       if(x + width > dimx){
         break;
