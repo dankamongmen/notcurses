@@ -347,24 +347,29 @@ void ncplane_home(ncplane* n){
 
 inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x >= n->lenx){
+    logerror(n->nc, "Target x %d exceeded length %d\n", x, n->lenx);
     return -1;
   }else if(x < 0){
     if(x < -1){
+      logerror(n->nc, "Negative target x %d\n", x);
       return -1;
     }
   }else{
     n->x = x;
   }
   if(y >= n->leny){
+    logerror(n->nc, "Target y %d exceeded length %d\n", y, n->leny);
     return -1;
   }else if(y < 0){
     if(y < -1){
+      logerror(n->nc, "Negative target y %d\n", y);
       return -1;
     }
   }else{
     n->y = y;
   }
   if(cursor_invalid_p(n)){
+    logerror(n->nc, "Invalid cursor following move (%d/%d)\n", n->y, n->x);
     return -1;
   }
   return 0;
@@ -400,19 +405,19 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
                             int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
-//fprintf(stderr, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
+    logerror(n->nc, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
-//fprintf(stderr, "Can't achieve negative size %dx%d\n", ylen, xlen);
+    logerror(n->nc, "Can't achieve negative size %dx%d\n", ylen, xlen);
     return -1;
   }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
-//fprintf(stderr, "Can't keep zero dimensions %dx%d\n", keepleny, keeplenx);
+    logerror(n->nc, "Can't retain null dimension %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(ylen < keepleny || xlen < keeplenx){ // can't be smaller than our keep
-//fprintf(stderr, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
+    logerror(n->nc, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
     return -1;
   }
   int rows, cols;
