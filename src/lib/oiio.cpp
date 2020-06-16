@@ -146,7 +146,7 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timesc
   ncplane* newn = nullptr;
   ncvisual_options activevopts;
   memcpy(&activevopts, vopts, sizeof(*vopts));
-  while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS){
+  do{
     if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
         ncplane_destroy(activevopts.n);
@@ -163,6 +163,8 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timesc
     int r;
     if(streamer){
       r = streamer(ncv, &activevopts, &now, curry);
+    }else{
+      r = ncvisual_simple_streamer(ncv, &activevopts, &now, curry);
     }
     if(r){
       if(activevopts.n != vopts->n){
@@ -171,7 +173,7 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timesc
       return r;
     }
     ++frame;
-  }
+  }while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS);
   if(activevopts.n != vopts->n){
     ncplane_destroy(activevopts.n);
   }
