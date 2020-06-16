@@ -1506,10 +1506,11 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     // figure how much text to output on this line
     mbstate_t mbstate = {};
     int width;
-    // verified columns thus far (carried, and through breaker)
-    size_t verifiedcols = x;
+    // let it go all the way through to dimx. on that last hit of dimx, we
+    // might catch a space, in which case we want breaker updated. if it's
+    // not a space, it won't be printed, and we carry the word forward.
     // FIXME what ought be done with \n or multiple spaces?
-    while(*text && x < dimx){
+    while(*text && x <= dimx){
       wchar_t w;
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
       if(consumed == (size_t)-2 || consumed == (size_t)-1){
@@ -1530,7 +1531,6 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       // FIXME use the more advanced unicode functionality to break lines
       if(iswspace(w)){
         breaker = text;
-        verifiedcols = x;
       }
       if(x + width > dimx){
         break;
@@ -1539,16 +1539,17 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       text += consumed;
     }
     int carrycols = 0;
-    if(x >= dimx){
-      // the last character was one past the amount we can print. set linestart
-      // back to breaker, set carrycols to the amount since breaker
-      carrycols = x - verifiedcols;
+    if(x > dimx){
+      // the last character was one past the amount we can print.
+      // set carrycols to the amount since breaker.
+      carrycols = text - breaker;
     }
-    totalcols += verifiedcols;
+    totalcols += (breaker - linestart);
     const int xpos = ncplane_align(n, align, x);
     if(!*text || breaker == NULL){
       breaker = text;
     }
+    // blows out if we supply a y beyond leny
     if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) < 0){ 
       if(bytes){
         *bytes = linestart - beginning;
