@@ -1510,6 +1510,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     // might catch a space, in which case we want breaker updated. if it's
     // not a space, it won't be printed, and we carry the word forward.
     // FIXME what ought be done with \n or multiple spaces?
+//fprintf(stderr, "laying out [%s] at %d (%d)\n", linestart, x, dimx);
     while(*text && x <= dimx){
       wchar_t w;
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
@@ -1538,27 +1539,28 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       x += width;
       text += consumed;
     }
-    int carrycols = 0;
-    if(x > dimx){
-      // the last character was one past the amount we can print.
-      // set carrycols to the amount since breaker.
-      carrycols = text - breaker;
-    }
-    totalcols += (breaker - linestart);
-    const int xpos = ncplane_align(n, align, x);
+//fprintf(stderr, "exited at %d (%d) looking at %.*s\n", x, dimx, breaker - linestart, linestart);
+    // if we have no breaker, we got a word that was longer than our line;
+    // print what we can and move along. if *text is nul, we're done.
     if(!*text || breaker == NULL){
       breaker = text;
     }
-    // blows out if we supply a y beyond leny
-    if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) < 0){ 
-      if(bytes){
-        *bytes = linestart - beginning;
+    int carrycols = 0;
+    carrycols = text - breaker;
+    if(breaker != linestart){
+      totalcols += (breaker - linestart);
+      const int xpos = ncplane_align(n, align, x);
+      // blows out if we supply a y beyond leny
+      if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) < 0){ 
+        if(bytes){
+          *bytes = linestart - beginning;
+        }
+        return -1;
       }
-      return -1;
     }
     x = carrycols;
     linestart = breaker + 1;
-    ++y; // FIXME scrolling!
+    ++y; // FIXME scrolling!??!!
   }while(*text);
   if(bytes){
     *bytes = text - beginning;

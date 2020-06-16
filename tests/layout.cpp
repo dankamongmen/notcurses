@@ -85,6 +85,30 @@ TEST_CASE("TextLayout") {
     ncplane_destroy(sp);
   }
 
+  // lay out text where a word crosses the boundary
+  SUBCASE("LayoutCrossBoundary") {
+    auto sp = ncplane_new(nc_, 3, 10, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "my grasping arms";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, 1, 10);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "my"));
+    free(line);
+    line = ncplane_contents(sp, 1, 0, 1, 10);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "grasping"));
+    free(line);
+    line = ncplane_contents(sp, 2, 0, 1, 10);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "arms"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
