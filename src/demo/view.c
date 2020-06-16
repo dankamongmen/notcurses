@@ -16,6 +16,7 @@ view_video_demo(struct notcurses* nc){
     .scaling = NCSCALE_STRETCH,
     .n = ncp,
     .blitter = NCBLIT_2x2,
+    .y = 1,
   };
   int ret = ncvisual_stream(nc, ncv, &err, 2.0/3.0 * delaymultiplier,
                             demo_simple_streamer, &vopts, NULL);
@@ -81,6 +82,7 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
     .n = dsplane,
     .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_2x2,
+    .y = 1,
   };
   if(ncvisual_render(nc, ncv2, &vopts) == NULL){
     ncvisual_destroy(ncv2);

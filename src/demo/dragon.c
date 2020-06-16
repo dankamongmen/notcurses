@@ -49,19 +49,19 @@ int dragon_demo(struct notcurses* nc){
   done = false;
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
+  --dimy; // don't disturb the menu bar
   // we use a Lindenmayer string rewriting system. the classic dragon curve
   // system is X -> X+YF+, Y -> -FX-Y, where F is forward, - is turn left, and
   // + is turn right.
   const char LINDENSTART[] = "FX";
-  const int SCALE = 1;
   dimy *= 2;
   dimx *= 2;
   int dxstart, dystart;
   if(dimy > dimx){
     dystart = 0;
-    dxstart = SCALE;
+    dxstart = 1;
   }else{
-    dystart = SCALE;
+    dystart = 1;
     dxstart = 0;
   }
   size_t fbbytes = sizeof(uint32_t) * dimy * dimx;
@@ -101,6 +101,7 @@ int dragon_demo(struct notcurses* nc){
     struct ncvisual_options vopts = {
       .n = n,
       .blitter = NCBLIT_2x2,
+      .y = 1,
     };
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
@@ -108,6 +109,7 @@ int dragon_demo(struct notcurses* nc){
     }
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &scaled);
+    ncplane_erase(n);
   }while(lasttotal != r);
   ncvisual_destroy(ncv);
   return 0;
