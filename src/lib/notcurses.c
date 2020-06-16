@@ -2095,9 +2095,12 @@ uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
 
 char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx){
   if(begy < 0 || begx < 0){
+    logerror(nc->nc, "Beginning coordinates (%d/%d) below 0\n", begy, begx);
     return NULL;
   }
   if(begx >= nc->lenx || begy >= nc->leny){
+    logerror(nc->nc, "Beginning coordinates (%d/%d) exceeded lengths (%d/%d)\n",
+             begy, begx, nc->leny, nc->lenx);
     return NULL;
   }
   if(lenx == -1){ // -1 means "to the end"; use all space available
@@ -2107,9 +2110,12 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
     leny = nc->leny - begy;
   }
   if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
+    logerror(nc->nc, "Lengths (%d/%d) below 0\n", leny, lenx);
     return NULL;
   }
   if(begx + lenx > nc->lenx || begy + leny > nc->leny){
+    logerror(nc->nc, "Ending coordinates (%d/%d) exceeded lengths (%d/%d)\n",
+             begy + leny, begx + lenx, nc->leny, nc->lenx);
     return NULL;
   }
   size_t retlen = 1;
