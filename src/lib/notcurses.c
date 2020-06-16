@@ -1531,7 +1531,13 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       }
       // FIXME use the more advanced unicode functionality to break lines
       if(iswspace(w)){
-        breaker = text;
+        if(x == 0){
+          text += consumed;
+          linestart = text;
+          continue; // don't emit leading whitespace, or count it
+        }else{
+          breaker = text;
+        }
       }
       if(x + width > dimx){
         break;
@@ -1539,14 +1545,15 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       x += width;
       text += consumed;
     }
-//fprintf(stderr, "exited at %d (%d) looking at %.*s\n", x, dimx, breaker - linestart, linestart);
+    int carrycols = 0;
     // if we have no breaker, we got a word that was longer than our line;
     // print what we can and move along. if *text is nul, we're done.
     if(!*text || breaker == NULL){
-      breaker = text;
+      breaker = text + 1;
+    }else{
+      carrycols = text - breaker;
     }
-    int carrycols = 0;
-    carrycols = text - breaker;
+//fprintf(stderr, "exited at %d (%d) looking at [%.*s]\n", x, dimx, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
       totalcols += (breaker - linestart);
       const int xpos = ncplane_align(n, align, x);
@@ -1559,7 +1566,11 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       }
     }
     x = carrycols;
-    linestart = breaker + 1;
+    if(breaker == text + 1){
+      linestart = breaker;
+    }else{
+      linestart = breaker + 1;
+    }
     ++y; // FIXME scrolling!??!!
   }while(*text);
   if(bytes){

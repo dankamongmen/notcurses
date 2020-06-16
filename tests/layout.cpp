@@ -18,13 +18,9 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, str, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(str));
-    char* line = ncplane_contents(sp, 0, 0, 1, 20);
+    char* line = ncplane_contents(sp, 0, 0, 2, 20);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "this is going to be"));
-    free(line);
-    line = ncplane_contents(sp, 1, 0, 1, 20);
-    REQUIRE(line);
-    CHECK(0 == strcmp(line, "broken up"));
+    CHECK(0 == strcmp(line, "this is going to bebroken up"));
     free(line);
     ncplane_destroy(sp);
   }
@@ -36,13 +32,9 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_RIGHT, str, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(str));
-    char* line = ncplane_contents(sp, 0, 0, 1, 20);
+    char* line = ncplane_contents(sp, 0, 0, 2, 20);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "this is going to be"));
-    free(line);
-    line = ncplane_contents(sp, 1, 0, 1, 20);
-    REQUIRE(line);
-    CHECK(0 == strcmp(line, "broken up"));
+    CHECK(0 == strcmp(line, "this is going to bebroken up"));
     free(line);
     ncplane_destroy(sp);
   }
@@ -54,13 +46,9 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, str, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(str));
-    char* line = ncplane_contents(sp, 0, 0, 1, 20);
+    char* line = ncplane_contents(sp, 0, 0, 2, 20);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "this is going to be"));
-    free(line);
-    line = ncplane_contents(sp, 1, 0, 1, 20);
-    REQUIRE(line);
-    CHECK(0 == strcmp(line, "broken up"));
+    CHECK(0 == strcmp(line, "this is going to bebroken up"));
     free(line);
     ncplane_destroy(sp);
   }
@@ -74,13 +62,9 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, 1, 10);
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "my nuclear"));
-    free(line);
-    line = ncplane_contents(sp, 1, 0, 1, 10);
-    REQUIRE(line);
-    CHECK(0 == strcmp(line, "arms"));
+    CHECK(0 == strcmp(line, "my nucleararms"));
     free(line);
     ncplane_destroy(sp);
   }
@@ -94,17 +78,25 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, 1, 10);
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "my"));
+    CHECK(0 == strcmp(line, "mygraspingarms"));
     free(line);
-    line = ncplane_contents(sp, 1, 0, 1, 10);
+    ncplane_destroy(sp);
+  }
+
+  // lay out text where a word is longer than the plane
+  SUBCASE("LayoutCrossBoundary") {
+    auto sp = ncplane_new(nc_, 3, 10, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "my thermonuclear arms";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "grasping"));
-    free(line);
-    line = ncplane_contents(sp, 2, 0, 1, 10);
-    REQUIRE(line);
-    CHECK(0 == strcmp(line, "arms"));
+    CHECK(0 == strcmp(line, "mythermonuclear arms"));
     free(line);
     ncplane_destroy(sp);
   }
