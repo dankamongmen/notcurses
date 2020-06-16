@@ -272,7 +272,6 @@ set(NCPP_COMPILE_OPTIONS
   -Wnull-dereference
   -Wmisleading-indentation
   -Wunused
-  -Wpedantic
   -Wsuggest-override
   -Wno-c99-extensions
   -fno-strict-aliasing
@@ -281,7 +280,6 @@ set(NCPP_COMPILE_OPTIONS
   -finline-limit=300
   -fstack-protector
   -fno-rtti
-  -fno-exceptions
   -fpic
   )
 
@@ -294,12 +292,12 @@ set(NCPP_COMPILE_DEFINITIONS_PRIVATE
 
 target_compile_options(notcurses++
   PRIVATE
-  ${NCPP_COMPILLE_OPTIONS}
+  ${NCPP_COMPILE_OPTIONS}
   )
 
 target_compile_options(notcurses++-static
   PRIVATE
-  ${NCPP_COMPILLE_OPTIONS}
+  ${NCPP_COMPILE_OPTIONS}
   )
 
 target_compile_definitions(notcurses++
