@@ -205,15 +205,15 @@ endif()
 
 target_compile_definitions(notcurses
   PUBLIC
-    _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+   _POSIX_C_SOURCE=200809L _XOPEN_SOURCE=500 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
   PRIVATE
-    _GNU_SOURCE SOURCE_DEFAULT
+    _GNU_SOURCE _DEFAULT_SOURCE
 )
 target_compile_definitions(notcurses-static
   PUBLIC
-    _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+   _POSIX_C_SOURCE=200809L _XOPEN_SOURCE=500 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
   PRIVATE
-    _GNU_SOURCE SOURCE_DEFAULT
+    _GNU_SOURCE _DEFAULT_SOURCE
 )
 
 # libnotcurses++
@@ -286,10 +286,7 @@ set(NCPP_COMPILE_OPTIONS
   )
 
 set(NCPP_COMPILE_DEFINITIONS_PUBLIC
-  _GNU_SOURCE SOURCE_DEFAULT
-  )
-set(NCPP_COMPILE_DEFINITIONS_PRIVATE
-  _XOPEN_SOURCE # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  _GNU_SOURCE _DEFAULT_SOURCE
   )
 
 target_compile_options(notcurses++
@@ -305,15 +302,11 @@ target_compile_options(notcurses++-static
 target_compile_definitions(notcurses++
   PUBLIC
     ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
-  PRIVATE
-    ${NCPP_COMPILE_DEFINITIONS_PRIVATE}
   )
 
 target_compile_definitions(notcurses++-static
   PUBLIC
     ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
-  PRIVATE
-    ${NCPP_COMPILE_DEFINITIONS_PRIVATE}
   )
 
 file(GLOB NOTCURSES_HEADERS
@@ -340,6 +333,10 @@ install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/n
 # notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
 add_executable(notcurses-demo ${DEMOSRCS})
+target_compile_definitions(notcurses-demo
+  PRIVATE
+    _GNU_SOURCE
+)
 target_include_directories(notcurses-demo
   PRIVATE
     include
@@ -354,10 +351,6 @@ target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
     ${MATH_LIBRARIES}
-)
-target_compile_definitions(notcurses-demo
-  PRIVATE
-    _GNU_SOURCE
 )
 
 # tiny proofs of concept, one binary per source file
@@ -470,6 +463,7 @@ target_link_libraries(notcurses-ncreel
     notcurses++
 )
 
+# notcurses-tetris
 file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(notcurses-tetris ${TETRISSRC})
 target_include_directories(notcurses-tetris
@@ -508,9 +502,6 @@ target_link_libraries(notcurses-view
     "${AVFORMAT_LIBRARIES}"
     "${AVUTIL_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
-)
-target_compile_definitions(notcurses-view
-  PRIVATE
 )
 endif()
 
