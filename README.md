@@ -315,6 +315,9 @@ up someday **FIXME**.
 
 ### FAQs
 
+* *Q:* I installed `libqrcodegen-dev`, but CMake still can't find it.
+* *A:* The negative lookup gets cached. Kill your build directory and run CMake again. Patches to improve this are welcome.
+
 * *Q:* Why didn't you just use Sixel?
 * *A:* Many terminal emulators don't support Sixel. Sixel doesn't work well
        with mouse selection. With that said, I do intend to support Sixel soon,
