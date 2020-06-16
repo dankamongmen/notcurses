@@ -1,4 +1,5 @@
 #include <locale.h>
+#include <sys/utsname.h>
 #include <notcurses/notcurses.h>
 
 typedef struct distro_info {
@@ -67,7 +68,7 @@ done:
 }
 
 static int
-ncneofetch(struct notcurses* nc){
+linux_ncneofetch(struct notcurses* nc){
   const distro_info* dinfo = getdistro();
   if(dinfo == NULL){
     return -1;
@@ -94,6 +95,43 @@ ncneofetch(struct notcurses* nc){
   ncplane_destroy(n);
   ncvisual_destroy(ncv);
   return 0;
+}
+
+typedef enum {
+  NCNEO_LINUX,
+  NCNEO_FREEBSD,
+  NCNEO_UNKNOWN,
+} ncneo_kernel_e;
+
+static ncneo_kernel_e
+get_kernel(void){
+  struct utsname uts;
+  if(uname(&uts)){
+    fprintf(stderr, "Failure invoking uname (%s)\n", strerror(errno));
+    return -1;
+  }
+  if(strcmp(uts.sysname, "Linux") == 0){
+    return NCNEO_LINUX;
+  }else if(strcmp(uts.sysname, "FreeBSD") == 0){
+    return NCNEO_FREEBSD;
+  }
+  fprintf(stderr, "Unknown operating system via uname: %s\n", uts.sysname);
+  return NCNEO_UNKNOWN;
+}
+
+static int
+ncneofetch(struct notcurses* nc){
+  ncneo_kernel_e kern = get_kernel();
+  switch(kern){
+    case NCNEO_LINUX:
+      return linux_ncneofetch(nc);
+    case NCNEO_FREEBSD:
+      // FIXME
+      break;
+    case NCNEO_UNKNOWN:
+      return -1;
+  }
+  return -1;
 }
 
 int main(void){
