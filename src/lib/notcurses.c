@@ -1502,7 +1502,8 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     int width;
     // verified columns thus far (carried, and through breaker)
     size_t verifiedcols = x;
-    while(*text && x < dimx - 1){
+    // FIXME what ought be done with \n or multiple spaces?
+    while(*text && x < dimx){
       wchar_t w;
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
       if(consumed == (size_t)-2 || consumed == (size_t)-1){
@@ -1520,13 +1521,13 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         }
         return -1;
       }
-      if(x + width >= dimx){
-        break;
-      }
       // FIXME use the more advanced unicode functionality to break lines
       if(iswspace(w)){
         breaker = text;
         verifiedcols = x;
+      }
+      if(x + width > dimx){
+        break;
       }
       x += width;
       text += consumed;
@@ -1539,7 +1540,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     }
     totalcols += verifiedcols;
     const int xpos = ncplane_align(n, align, x);
-    if(breaker == NULL){
+    if(!*text || breaker == NULL){
       breaker = text;
     }
     if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) < 0){ 

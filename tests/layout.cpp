@@ -20,12 +20,10 @@ TEST_CASE("TextLayout") {
     CHECK(bytes == strlen(str));
     char* line = ncplane_contents(sp, 0, 0, 1, 20);
     REQUIRE(line);
-fprintf(stderr, "**********\n%s\n", line);
     CHECK(0 == strcmp(line, "this is going to be"));
     free(line);
     line = ncplane_contents(sp, 1, 0, 1, 20);
     REQUIRE(line);
-fprintf(stderr, "**********\n%s\n", line);
     CHECK(0 == strcmp(line, "broken up"));
     free(line);
     ncplane_destroy(sp);
@@ -38,7 +36,14 @@ fprintf(stderr, "**********\n%s\n", line);
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_RIGHT, str, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(str));
-    // FIXME inspect layout
+    char* line = ncplane_contents(sp, 0, 0, 1, 20);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "this is going to be"));
+    free(line);
+    line = ncplane_contents(sp, 1, 0, 1, 20);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "broken up"));
+    free(line);
     ncplane_destroy(sp);
   }
 
@@ -49,7 +54,14 @@ fprintf(stderr, "**********\n%s\n", line);
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, str, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(str));
-    // FIXME inspect layout
+    char* line = ncplane_contents(sp, 0, 0, 1, 20);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "this is going to be"));
+    free(line);
+    line = ncplane_contents(sp, 1, 0, 1, 20);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "broken up"));
+    free(line);
     ncplane_destroy(sp);
   }
 

@@ -16,7 +16,7 @@ static const char* datadir = NOTCURSES_SHARE;
 auto testing_notcurses() -> struct notcurses* {
   notcurses_options nopts{};
   nopts.loglevel = NCLOGLEVEL_DEBUG;
-  nopts.flags = NCOPTION_SUPPRESS_BANNERS;
+  nopts.flags = NCOPTION_SUPPRESS_BANNERS/* | NCOPTION_NO_ALTERNATE_SCREEN*/;
   auto nc = notcurses_init(&nopts, nullptr);
   return nc;
 }
@@ -98,10 +98,12 @@ auto main(int argc, const char **argv) -> int {
     std::cerr << "Couldn't set locale based on user preferences!" << std::endl;
     return EXIT_FAILURE;
   }
-  if(getenv("TERM") == NULL){
+  const char* term = getenv("TERM");
+  if(term == nullptr){
     std::cerr << "TERM wasn't defined, exiting with success" << std::endl;
     return EXIT_SUCCESS;
   }
+  std::cout << "Running with TERM=" << term << std::endl;
   doctest::Context context;
 
   context.setOption("order-by", "name");            // sort the test cases by their name
