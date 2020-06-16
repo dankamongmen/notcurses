@@ -13,6 +13,13 @@
 
 static const char* datadir = NOTCURSES_SHARE;
 
+auto testing_notcurses() -> struct notcurses* {
+  notcurses_options nopts{};
+  nopts.loglevel = NCLOGLEVEL_DEBUG;
+  auto nc = notcurses_init(&nopts, nullptr);
+  return nc;
+}
+
 auto find_data(const char* datum) -> char* {
   std::filesystem::path p = datadir;
   p /= datum;
