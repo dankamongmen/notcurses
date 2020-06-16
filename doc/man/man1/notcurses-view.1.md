@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses-view - Render images and video to the console
+notcurses-view - Render images and video to a terminal
 
 # SYNOPSIS
 
@@ -13,7 +13,7 @@ notcurses-view - Render images and video to the console
 # DESCRIPTION
 
 **notcurses-view** uses a multimedian-enabled notcurses to render images
-and videos to the terminal. Media will be scaled to the terminal's size.
+and videos to a terminal. Media will be scaled to the terminal's size.
 
 # OPTIONS
 

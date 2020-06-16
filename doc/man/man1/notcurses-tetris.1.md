@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses-tetris - Render images and video to the console
+notcurses-tetris - Render images and video to a terminal
 
 # SYNOPSIS
 
