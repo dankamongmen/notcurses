@@ -135,6 +135,70 @@ TEST_CASE("TextLayout") {
     ncplane_destroy(sp);
   }
 
+  // create a plane of a single row, and fill it exactly with one word
+  SUBCASE("LayoutFills1DPlane") {
+    auto sp = ncplane_new(nc_, 1, 14, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "quarkgluonfart";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "quarkgluonfart"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
+  // create a plane of a single row, and fill it exactly with words
+  SUBCASE("LayoutFills1DPlaneWords") {
+    auto sp = ncplane_new(nc_, 1, 16, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "quark gluon fart";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "quark gluon fart"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
+  // create a plane of two rows, and exactly fill the first line
+  SUBCASE("LayoutFillsSingleLine") {
+    auto sp = ncplane_new(nc_, 2, 13, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "quantum balls";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "quantum balls"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
+  // create a plane of two rows, and exactly fill both
+  SUBCASE("LayoutFillsPlane") {
+    auto sp = ncplane_new(nc_, 2, 13, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "quantum balls scratchy?!";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "quantum ballsscratchy?!"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
