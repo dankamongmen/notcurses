@@ -437,6 +437,19 @@ if(USE_DOXYGEN)
   endif()
 endif()
 
+# ncneofetch
+file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
+add_executable(ncneofetch ${FETCHSRCS})
+target_include_directories(ncneofetch
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(ncneofetch
+  PRIVATE
+    notcurses
+)
+
 # notcurses-input
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/input.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
@@ -667,6 +680,7 @@ install(PROGRAMS src/pydemo/notcurses-pydemo DESTINATION bin)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
+install(TARGETS ncneofetch DESTINATION bin)
 if(${BUILD_TESTING})
 install(TARGETS notcurses-tester DESTINATION bin)
 endif()

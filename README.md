@@ -171,6 +171,7 @@ Six binaries are installed as part of notcurses:
 * `notcurses-planereels`: play around with ncreels
 * `notcurses-tester`: unit testing
 * `notcurses-tetris`: a tetris clone
+* `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
 
 To run `notcurses-demo` from a checkout, provide the `tests/` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base
