@@ -67,34 +67,13 @@ done:
   return dinfo;
 }
 
-static int
-linux_ncneofetch(struct notcurses* nc){
+static const distro_info*
+linux_ncneofetch(void){
   const distro_info* dinfo = getdistro();
   if(dinfo == NULL){
-    return -1;
+    return NULL;
   }
-  nc_err_e err;
-  struct ncvisual* ncv = ncvisual_from_file(dinfo->logofile, &err);
-  if(ncv == NULL){
-    fprintf(stderr, "Error opening logo file at %s\n", dinfo->logofile);
-    return -1;
-  }
-  struct ncvisual_options vopts = {
-    .scaling = NCSCALE_SCALE,
-    .blitter = NCBLIT_2x2,
-  };
-  struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
-  if(n == NULL){
-    ncvisual_destroy(ncv);
-    return -1;
-  }
-  if(notcurses_render(nc)){
-    ncvisual_destroy(ncv);
-    return -1;
-  }
-  ncplane_destroy(n);
-  ncvisual_destroy(ncv);
-  return 0;
+  return dinfo;
 }
 
 typedef enum {
@@ -119,19 +98,77 @@ get_kernel(void){
   return NCNEO_UNKNOWN;
 }
 
+static struct ncplane*
+display(struct notcurses* nc, const distro_info* dinfo){
+  if(dinfo->logofile){
+    nc_err_e err;
+    struct ncvisual* ncv = ncvisual_from_file(dinfo->logofile, &err);
+    if(ncv == NULL){
+      fprintf(stderr, "Error opening logo file at %s\n", dinfo->logofile);
+      return NULL;
+    }
+    struct ncvisual_options vopts = {
+      .scaling = NCSCALE_SCALE,
+      .blitter = NCBLIT_2x2,
+      .n = notcurses_stdplane(nc),
+    };
+    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+      ncvisual_destroy(ncv);
+      return NULL;
+    }
+    ncvisual_destroy(ncv);
+  }
+  return 0;
+}
+
+static const distro_info*
+freebsd_ncneofetch(void){
+  static const distro_info fbsd = {
+    .name = "FreeBSD",
+    .logofile = NULL, // FIXME
+  };
+  return &fbsd;
+}
+
+static int
+infoplane(struct notcurses* nc){
+  struct ncplane* infop = ncplane_new(nc, 8, 60, 0, 0, NULL);
+  if(infop == NULL){
+    return -1;
+  }
+  if(ncplane_perimeter_rounded(infop, 0, 0, 0)){
+    return -1;
+  }
+  return 0;
+}
+
 static int
 ncneofetch(struct notcurses* nc){
+  const distro_info* dinfo = NULL;
   ncneo_kernel_e kern = get_kernel();
   switch(kern){
     case NCNEO_LINUX:
-      return linux_ncneofetch(nc);
+      dinfo = linux_ncneofetch();
+      break;
     case NCNEO_FREEBSD:
-      // FIXME
+      dinfo = freebsd_ncneofetch();
       break;
     case NCNEO_UNKNOWN:
-      return -1;
+      break;
   }
-  return -1;
+  if(dinfo == NULL){
+    return -1;
+  }
+  if(display(nc, dinfo)){
+    return -1; // FIXME soldier on, perhaps?
+  }
+  if(infoplane(nc)){
+    return -1;
+  }
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  return 0;
 }
 
 int main(void){

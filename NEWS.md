@@ -2,7 +2,10 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.5.2 (not yet released)
+  * The `ncneofetch` program has been added, of no great consequence.
   * A `NULL` value can now be passed as `sbytes` to `ncplane_puttext()`.
+  * `ncdirect_render_image()` has been added, allowing images to be
+    rendered in direct mode.
 
 * 1.5.1 (2020-07-15)
   * The semantics of rendering have changed slightly. In 1.5.0 and prior

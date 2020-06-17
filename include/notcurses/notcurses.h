@@ -41,6 +41,31 @@ struct ncmultiselector; // widget supporting selecting 0..n from n options
 struct ncreader;  // widget supporting free string input ala readline
 struct ncfadectx; // context for a palette fade operation
 
+// each has the empty cell in addition to the product of its dimensions. i.e.
+// NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
+// states: empty, the three shaded blocks, and the full block.
+typedef enum {
+  NCBLIT_DEFAULT, // let the ncvisual pick
+  NCBLIT_1x1,     // full block                █
+  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
+  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
+  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
+  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
+} ncblitter_e;
+
+// How to scale an ncvisual during rendering. NCSCALE_NONE will apply no
+// scaling. NCSCALE_SCALE scales a visual to the plane's size, maintaining
+// aspect ratio. NCSCALE_STRETCH stretches and scales the image in an
+// attempt to fill the entirety of the plane.
+typedef enum {
+  NCSCALE_NONE,
+  NCSCALE_SCALE,
+  NCSCALE_STRETCH,
+} ncscale_e;
+
 // Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
 // limited subset of notcurses routines which directly affect 'fp', and neither
@@ -101,6 +126,12 @@ API int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x);
 // stack, and indeed its existence, is terminal-dependent.
 API int ncdirect_cursor_push(struct ncdirect* n);
 API int ncdirect_cursor_pop(struct ncdirect* n);
+
+// Display an image using the specified blitter and scaling. The image may
+// // be arbitrarily many rows -- the output will scroll -- but will only occupy
+// // the column of the cursor, and those to the right.
+API nc_err_e ncdirect_render_image(const char* filename, ncblitter_e blitter,
+                                   ncscale_e scale);
 
 // Clear the screen.
 API int ncdirect_clear(struct ncdirect* nc);
@@ -897,16 +928,6 @@ typedef struct notcurses_options {
 // can be either a single number, which will define all margins equally, or
 // there can be four numbers separated by commas.
 API int notcurses_lex_margins(const char* op, notcurses_options* opts);
-
-// How to scale a visual in ncvisual_decode(). NCSCALE_NONE will apply no
-// scaling. NCSCALE_SCALE scales a visual to the plane's size, maintaining
-// aspect ratio. NCSCALE_STRETCH stretches and scales the image in an attempt
-// to fill the entirety of the plane.
-typedef enum {
-  NCSCALE_NONE,
-  NCSCALE_SCALE,
-  NCSCALE_STRETCH,
-} ncscale_e;
 
 // Lex a visual scaling mode (one of "none", "stretch", or "scale").
 API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
@@ -2171,6 +2192,30 @@ ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
+ncplane_perimeter_rounded(struct ncplane* n, uint32_t attrword,
+                          uint64_t channels, unsigned ctlword){
+  if(ncplane_cursor_move_yx(n, 0, 0)){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  cell ul = CELL_TRIVIAL_INITIALIZER;
+  cell ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER;
+  cell lr = CELL_TRIVIAL_INITIALIZER;
+  cell vl = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER;
+  if(cells_rounded_box(n, attrword, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+  int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
+  cell_release(n, &ul); cell_release(n, &ur);
+  cell_release(n, &ll); cell_release(n, &lr);
+  cell_release(n, &hl); cell_release(n, &vl);
+  return r;
+}
+
+static inline int
 ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
                           int ylen, int xlen, unsigned ctlword){
   int y, x;
@@ -2200,6 +2245,30 @@ ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
+ncplane_perimeter_double(struct ncplane* n, uint32_t attrword,
+                         uint64_t channels, unsigned ctlword){
+  if(ncplane_cursor_move_yx(n, 0, 0)){
+    return -1;
+  }
+  int dimy, dimx;
+  ncplane_dim_yx(n, &dimy, &dimx);
+  cell ul = CELL_TRIVIAL_INITIALIZER;
+  cell ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER;
+  cell lr = CELL_TRIVIAL_INITIALIZER;
+  cell vl = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER;
+  if(cells_double_box(n, attrword, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+  int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
+  cell_release(n, &ul); cell_release(n, &ur);
+  cell_release(n, &ll); cell_release(n, &lr);
+  cell_release(n, &hl); cell_release(n, &vl);
+  return r;
+}
+
+static inline int
 ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
                          int ylen, int xlen, unsigned ctlword){
   int y, x;
@@ -2224,21 +2293,6 @@ API struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
 // ncvisual_from_rgba(), but 'bgra' is arranged as BGRA.
 API struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows,
                                         int rowstride, int cols);
-
-// each has the empty cell in addition to the product of its dimensions. i.e.
-// NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
-// states: empty, the three shaded blocks, and the full block.
-typedef enum {
-  NCBLIT_DEFAULT, // let the ncvisual pick
-  NCBLIT_1x1,     // full block                █
-  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
-  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
-} ncblitter_e;
 
 // Promote an ncplane 'n' to an ncvisual. The plane may contain only spaces,
 // half blocks, and full blocks. The latter will be checked, and any other
