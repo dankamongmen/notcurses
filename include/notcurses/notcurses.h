@@ -2343,7 +2343,7 @@ API uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit,
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
 // ('*y' * '*toy')X('x' * 'tox') cells for full output. Returns non-zero
-// for an invalid 'vopts->blitter'.
+// for an invalid 'vopts->blitter'. Scaling is taken into consideration.
 API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
                       const struct ncvisual_options* vopts,
                       int* y, int* x, int* toy, int* tox);

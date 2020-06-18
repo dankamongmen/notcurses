@@ -36,6 +36,15 @@ ncvisual_default_blitter(const notcurses* nc) -> ncblitter_e {
   return NCBLIT_1x1;
 }
 
+void scale_visual(const ncvisual* ncv, int* disprows, int* dispcols) {
+  float xratio = (float)(*dispcols) / ncv->cols;
+  if(xratio * ncv->rows > *disprows){
+    xratio = (float)(*disprows) / ncv->rows;
+  }
+  *disprows = xratio * (ncv->rows);
+  *dispcols = xratio * (ncv->cols);
+}
+
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {
@@ -50,11 +59,27 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
   if(!bset){
     return -1;
   }
-  if(y){
-    *y = n->rows;
+  int fauxy, fauxx;
+  if(!y){
+    y = &fauxy;
   }
-  if(x){
+  if(!x){
+    x = &fauxx;
+  }
+  if(vopts->scaling == NCSCALE_NONE){
+    *y = n->rows;
+  }else{
+    int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdscr);
+    *y = rows * encoding_y_scale(bset);
+  }
+  if(vopts->scaling == NCSCALE_NONE){
     *x = n->cols;
+  }else{
+    int cols = vopts->n ? ncplane_dim_x(vopts->n) : ncplane_dim_x(nc->stdscr);
+    *x = cols * encoding_x_scale(bset);
+  }
+  if(vopts->scaling == NCSCALE_SCALE){
+    scale_visual(n, y, x);
   }
   if(toy){
     *toy = encoding_y_scale(bset);
@@ -436,12 +461,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
       dispcols *= encoding_x_scale(bset);
       disprows *= encoding_y_scale(bset);
       if(vopts->scaling == NCSCALE_SCALE){
-        double xratio = (double)(dispcols) / ncv->cols;
-        if(xratio * ncv->rows > disprows){
-          xratio = (double)(disprows) / ncv->rows;
-        }
-        disprows = xratio * (ncv->rows);
-        dispcols = xratio * (ncv->cols);
+        scale_visual(ncv, &disprows, &dispcols);
       }
     }
 //fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
@@ -463,12 +483,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
       disprows -= placey;
       dispcols -= placex;
       if(vopts->scaling == NCSCALE_SCALE){
-        double xratio = (double)(dispcols) / ncv->cols;
-        if(xratio * ncv->rows > (double)(disprows)){
-          xratio = (double)(disprows) / ncv->rows;
-        }
-        disprows = xratio * (ncv->rows);
-        dispcols = xratio * (ncv->cols);
+        scale_visual(ncv, &disprows, &dispcols);
       }
     }
   }
