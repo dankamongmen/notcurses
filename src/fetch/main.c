@@ -184,16 +184,38 @@ static int
 infoplane(struct notcurses* nc, const fetched_info* fi){
   const int dimy = ncplane_dim_y(notcurses_stdplane(nc));
   const int planeheight = 8;
+  const int planewidth = 60;
   struct ncplane* infop = ncplane_aligned(notcurses_stdplane(nc),
-                                          planeheight, 60,
+                                          planeheight, planewidth,
                                           dimy - (planeheight + 1),
                                           NCALIGN_CENTER, NULL);
   if(infop == NULL){
     return -1;
   }
-  if(ncplane_perimeter_rounded(infop, 0, 0, 0)){
+  cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
+  cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;
+  if(cells_rounded_box(infop, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
+  cell_set_fg_rgb(&ul, 0x90, 0x90, 0x90);
+  cell_set_fg_rgb(&ur, 0x90, 0x90, 0x90);
+  cell_set_fg_rgb(&ll, 0, 0, 0);
+  cell_set_fg_rgb(&lr, 0, 0, 0);
+  unsigned ctrlword = NCBOXGRAD_BOTTOM | NCBOXGRAD_LEFT | NCBOXGRAD_RIGHT;
+  if(ncplane_perimeter(infop, &ul, &ur, &ll, &lr, &hl, &vl, ctrlword)){
+    return -1;
+  }
+  ncplane_home(infop);
+  uint64_t channels = 0;
+  channels_set_fg_rgb(&channels, 0, 0xff, 0);
+  ncplane_hline_interp(infop, &hl, planewidth / 2, ul.channels, channels);
+  ncplane_hline_interp(infop, &hl, planewidth / 2, channels, ur.channels);
+  cell_release(infop, &ul); cell_release(infop, &ur);
+  cell_release(infop, &ll); cell_release(infop, &lr);
+  cell_release(infop, &hl); cell_release(infop, &vl);
+  ncplane_set_fg_rgb(infop, 0xff, 0xff, 0xff);
+  ncplane_set_attr(infop, NCSTYLE_BOLD);
   if(ncplane_printf_aligned(infop, 0, NCALIGN_CENTER, "[ %s@%s ]",
                             fi->username, fi->hostname) < 0){
     return -1;
