@@ -20,7 +20,7 @@ typedef struct fetched_info {
   char* username;              // we borrow a reference
   char hostname[_POSIX_HOST_NAME_MAX];
   const distro_info* distro;
-  char* distro_release;
+  char* distro_pretty;
   char* kernel;                // strdup(uname(2)->name)
   char* kernver;               // strdup(uname(2)->version);
   char* desktop;               // getenv("XDG_CURRENT_DESKTOP")
@@ -39,11 +39,11 @@ fetch_env_vars(fetched_info* fi){
 
 static distro_info distros[] = {
   {
-    .name = "Debian",
+    .name = "debian",
     // from desktop-base package
     .logofile = "/usr/share/desktop-base/debian-logos/logo-text-256.png",
   }, {
-    .name = "Fedora",
+    .name = "fedora",
     // from redhat-lsb-core package
     .logofile = "/usr/share/pixmaps/fedora-logo.png",
   }, {
@@ -56,17 +56,17 @@ static char*
 pipe_getline(const char* cmdline){
   FILE* p = popen(cmdline, "re");
   if(p == NULL){
-    fprintf(stderr, "Error running lsb_release -i (%s)\n", strerror(errno));
+    fprintf(stderr, "Error running %s (%s)\n", cmdline, strerror(errno));
     return NULL;
   }
   char* buf = malloc(BUFSIZ); // gatesv("BUFSIZ bytes is enough for anyone")
   if(fgets(buf, BUFSIZ, p) == NULL){
-    fprintf(stderr, "Error reading from lsb_release -i (%s)\n", strerror(errno));
+    fprintf(stderr, "Error reading from %s (%s)\n", cmdline, strerror(errno));
     fclose(p);
     free(buf);
     return NULL;
   }
-  // FIXME read any remaining junk so as to stave off SIGPIPEs
+  // FIXME read any remaining junk so as to stave off SIGPIPEs?
   if(fclose(p)){
     fprintf(stderr, "Error closing pipe (%s)\n", strerror(errno));
     free(buf);
@@ -94,48 +94,47 @@ fetch_x_props(fetched_info* fi){
   return 0;
 }
 
-static char*
-pipe_lsbrelease(const char* cmdline){
-  char* buf = pipe_getline(cmdline);
-  if(buf == NULL){
-    return NULL;
-  }
-  const char* colon = strchr(buf, ':');
-  if(colon == NULL){
-    free(buf);
-    return NULL;
-  }
-  const char* distro = ++colon;
-  while(*distro && isspace(*distro)){
-    ++distro;
-  }
-  char* nl = strchr(distro, '\n');
-  if(nl == NULL){
-    free(buf);
-    return NULL;
-  }
-  *nl = '\0';
-  char* ret = strdup(distro);
-  free(buf);
-  return ret;
-}
-
 static const distro_info*
-getdistro(void){
-  const distro_info* dinfo = NULL;
-  char* buf = pipe_lsbrelease("lsb_release -i");
-  if(buf == NULL){
+getdistro(fetched_info* fi){
+  FILE* osinfo = fopen("/etc/os-release", "re");
+  if(osinfo == NULL){
     return NULL;
   }
+  char buf[BUFSIZ];
+  char* distro = NULL;
+  while(fgets(buf, sizeof(buf), osinfo)){
+#define PRETTY "PRETTY_NAME=\""
+#define ID "ID=" // no quotes on this one
+    if(strncmp(buf, ID, strlen(ID)) == 0){
+      char* nl = strchr(buf + strlen(ID), '\n');
+      if(nl){
+        *nl = '\0';
+        distro = buf + strlen(ID);
+        break;
+      }
+    }else if(!fi->distro_pretty && strncmp(buf, PRETTY, strlen(PRETTY)) == 0){
+      char* nl = strchr(buf + strlen(PRETTY), '"');
+      if(nl){
+        *nl = '\0';
+        fi->distro_pretty = strdup(buf + strlen(PRETTY));
+      }
+    }
+  }
+#undef ID
+#undef PRETTY
+  fclose(osinfo);
+  if(distro == NULL){
+    return NULL;
+  }
+  const distro_info* dinfo = NULL;
   for(dinfo = distros ; dinfo->name ; ++dinfo){
-    if(strcmp(dinfo->name, buf) == 0){
+    if(strcmp(dinfo->name, distro) == 0){
       break;
     }
   }
   if(dinfo->name == NULL){
     dinfo = NULL;
   }
-  free(buf);
   return dinfo;
 }
 
@@ -169,11 +168,10 @@ unix_gethostname(fetched_info* fi){
 
 static const distro_info*
 linux_ncneofetch(fetched_info* fi){
-  const distro_info* dinfo = getdistro();
+  const distro_info* dinfo = getdistro(fi);
   if(dinfo == NULL){
     return NULL;
   }
-  fi->distro_release = pipe_lsbrelease("lsb_release -r");
   unix_gethostname(fi);
   unix_getusername(fi);
   return dinfo;
@@ -291,8 +289,7 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   ncplane_set_fg_rgb(infop, 0xd0, 0xd0, 0xd0);
   ncplane_set_attr(infop, NCSTYLE_UNDERLINE);
   ncplane_printf_aligned(infop, 1, NCALIGN_LEFT, " %s %s", fi->kernel, fi->kernver);
-  ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s %s ",
-                         fi->distro->name, fi->distro_release);
+  ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
   ncplane_set_attr(infop, NCSTYLE_NONE);
 #ifdef __linux__
   struct sysinfo sinfo;
