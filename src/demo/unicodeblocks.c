@@ -181,7 +181,7 @@ int unicodeblocks_demo(struct notcurses* nc){
   // we don't want a full delay period for each one, urk...or do we?
   struct timespec subdelay;
   uint64_t nstotal = timespec_to_ns(&demodelay);
-  ns_to_timespec(nstotal / 3, &subdelay);
+  ns_to_timespec(nstotal / 5, &subdelay);
   struct ncplane* header = ncplane_aligned(notcurses_stdplane(nc), 2,
                                            (CHUNKSIZE * 2) - 2, 2,
                                            NCALIGN_CENTER, NULL);

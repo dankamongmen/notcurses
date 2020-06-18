@@ -59,7 +59,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
   ncplane_dim_yx(n, &ny, &nx);
   ncplane_yx(n, &yoff, &xoff);
   struct timespec iterdelay;
-  timespec_div(&demodelay, 40, &iterdelay);
+  timespec_div(&demodelay, 60, &iterdelay);
   struct timespec cur;
   do{
     DEMO_RENDER(nc);
@@ -89,7 +89,6 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
 // run panels atop the display in an exploration of transparency
 static int
 slidepanel(struct notcurses* nc){
-  const int DELAYSCALE = 2;
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int ny = dimy / 4;
@@ -109,7 +108,7 @@ slidepanel(struct notcurses* nc){
   struct timespec cur;
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
-  uint64_t deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  uint64_t deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   int velx = random() % 4 + 1;
   int vely = random() % 4 + 1;
   l = legend(nc, "default background, all opaque, whitespace glyph");
@@ -124,7 +123,7 @@ slidepanel(struct notcurses* nc){
   cell_load_simple(n, &c, '\0');
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
-  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   l = legend(nc, "default background, all opaque, no glyph");
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
@@ -138,7 +137,7 @@ slidepanel(struct notcurses* nc){
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
-  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   l = legend(nc, "default background, fg transparent, no glyph");
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
@@ -154,7 +153,7 @@ slidepanel(struct notcurses* nc){
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default background, fg blended, no glyph");
-  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
@@ -169,7 +168,7 @@ slidepanel(struct notcurses* nc){
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default background, fg colored opaque, no glyph");
-  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
@@ -186,7 +185,7 @@ slidepanel(struct notcurses* nc){
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default colors, fg transparent, print glyph");
-  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
@@ -201,7 +200,7 @@ slidepanel(struct notcurses* nc){
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "all transparent, print glyph");
-  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
@@ -218,7 +217,7 @@ slidepanel(struct notcurses* nc){
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "all blended, print glyph");
-  deadlinens = timespec_to_ns(&cur) + DELAYSCALE * timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);

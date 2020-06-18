@@ -18,7 +18,7 @@ view_video_demo(struct notcurses* nc){
     .blitter = NCBLIT_2x2,
     .y = 1,
   };
-  int ret = ncvisual_stream(nc, ncv, &err, 2.0/3.0 * delaymultiplier,
+  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier,
                             demo_simple_streamer, &vopts, NULL);
   ncvisual_destroy(ncv);
   return ret;
