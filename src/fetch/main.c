@@ -23,12 +23,15 @@ typedef struct fetched_info {
   char* kernver;               // strdup(uname(2)->version);
   char* desktop;               // getenv("XDG_CURRENT_DESKTOP")
   char* shell;                 // getenv("SHELL")
+  char* term;                  // getenv("TERM")
+  int dimy, dimx;              // extracted from xrandr
 } fetched_info;
 
 static int
 fetch_env_vars(fetched_info* fi){
   fi->desktop = getenv("XDG_CURRENT_DESKTOP");
   fi->shell = getenv("SHELL");
+  fi->term = getenv("TERM");
   return 0;
 }
 
@@ -61,12 +64,32 @@ pipe_getline(const char* cmdline){
     free(buf);
     return NULL;
   }
+  // FIXME read any remaining junk so as to stave off SIGPIPEs
   if(fclose(p)){
     fprintf(stderr, "Error closing pipe (%s)\n", strerror(errno));
     free(buf);
     return NULL;
   }
   return buf;
+}
+
+static int
+fetch_x_props(fetched_info* fi){
+  char* xrandr = pipe_getline("xrandr --current");
+  if(xrandr == NULL){
+    return -1;
+  }
+  char* randrcurrent = strstr(xrandr, " current ");
+  if(randrcurrent == NULL){
+    free(xrandr);
+    return -1;
+  }
+  randrcurrent += strlen(" current ");
+  if(sscanf(randrcurrent, "%d x %d", &fi->dimx, &fi->dimy) != 2){
+    free(xrandr);
+    return -1;
+  }
+  return 0;
 }
 
 static char*
@@ -245,7 +268,7 @@ drawpalette(struct notcurses* nc){
       ncplane_putc_yx(stdn, y, x, &c);
     }
   }
-  return 0;
+  return notcurses_render(nc);
 }
 
 static int
@@ -278,8 +301,10 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %s/%s\n", usedmet, totalmet);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
 #endif
-  ncplane_printf_aligned(infop, 3, NCALIGN_LEFT, " DM: %s\n", fi->desktop);
+  ncplane_printf_aligned(infop, 3, NCALIGN_LEFT, " DM: %s", fi->desktop);
   ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell);
+  ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
+  ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, "Screen0: %dx%d ", fi->dimx, fi->dimy);
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;
@@ -329,15 +354,17 @@ ncneofetch(struct notcurses* nc){
       break;
   }
   fetch_env_vars(&fi);
+  fetch_x_props(&fi);
   if(fi.distro){
     if(display(nc, fi.distro)){
       return -1; // FIXME soldier on, perhaps?
     }
-  }
-  if(infoplane(nc, &fi)){
-    return -1;
+    notcurses_render(nc);
   }
   if(drawpalette(nc)){
+    return -1;
+  }
+  if(infoplane(nc, &fi)){
     return -1;
   }
   if(notcurses_render(nc)){
