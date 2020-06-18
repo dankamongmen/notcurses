@@ -38,9 +38,9 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   }
   int vheight, yscale;
   int vwidth, xscale;
+  // first we want to get the true size, so don't supply NCSSCALE_STRETCH yet
   struct ncvisual_options vopts = {
     .y = 1,
-    .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_2x2,
   };
   if(ncvisual_geom(nc, ncv, &vopts, &vheight, &vwidth, &yscale, &xscale)){
@@ -61,7 +61,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   // to zoom in on the map, we're going to scale the full image to a plane
   // which grows on each iteration. it starts at the standard plane size,
   // and each time gets bigger (and is moved, so that the same area stays
-  // on the screen, growing.
+  // on the screen, growing).
   struct ncplane* zncp = ncplane_dup(notcurses_stdplane(nc), NULL);
   if(zncp == NULL){
     ncvisual_destroy(ncv);
@@ -70,6 +70,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   vheight /= yscale;
   vwidth /= xscale;
   vopts.n = zncp;
+  vopts.scaling = NCSCALE_STRETCH;
   if(ncvisual_render(nc, ncv, &vopts) == NULL || (*ret = demo_render(nc))){
     ncvisual_destroy(ncv);
     ncplane_destroy(zncp);
