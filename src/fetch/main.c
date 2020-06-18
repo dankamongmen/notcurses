@@ -27,6 +27,10 @@ static distro_info distros[] = {
     // from desktop-base package
     .logofile = "/usr/share/desktop-base/debian-logos/logo-text-256.png",
   }, {
+    .name = "Fedora",
+    // from redhat-lsb-core package
+    .logofile = "/usr/share/pixmaps/fedora-logo.png",
+  }, {
     .name = NULL,
     .logofile = NULL,
   },
@@ -222,6 +226,9 @@ drawpalette(struct notcurses* nc){
   const int yoff = 2;
   for(int y = yoff ; y < yoff + psize / 64 ; ++y){
     for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
+      if((y - yoff) * 64 + x >= psize){
+        break;
+      }
       cell_set_bg_palindex(&c, (y - yoff) * 64 + x);
       ncplane_putc_yx(stdn, y, x, &c);
     }
@@ -277,8 +284,8 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
     return -1;
   }
   channels_set_fg_rgb(&channels, 0, 0, 0);
-  channels_set_bg_rgb(&channels, 0x20, 0x20, 0x20);
-  ncplane_set_base(infop, "", 0, channels);
+  channels_set_bg_rgb(&channels, 0x50, 0x50, 0x50);
+  ncplane_set_base(infop, " ", 0, channels);
   struct sysinfo sinfo;
   sysinfo(&sinfo);
   return 0;
