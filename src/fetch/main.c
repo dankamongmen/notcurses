@@ -252,9 +252,17 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
     return -1;
   }
   ncplane_set_fg_rgb(infop, 0xd0, 0xd0, 0xd0);
+  ncplane_set_attr(infop, NCSTYLE_UNDERLINE);
   ncplane_printf_aligned(infop, 1, NCALIGN_LEFT, " %s %s", fi->kernel, fi->kernver);
   ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s %s ",
                          fi->distro->name, fi->distro_release);
+  ncplane_set_attr(infop, NCSTYLE_NONE);
+  struct sysinfo sinfo;
+  sysinfo(&sinfo);
+  unsigned long totalmib = sinfo.totalram / (1024 * 1024);
+  unsigned long usedmib = totalmib - (sinfo.freeram / 1024 / 1024);
+  ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %lu/%lu\n", usedmib, totalmib);
+  ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;
@@ -286,8 +294,6 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   channels_set_fg_rgb(&channels, 0, 0, 0);
   channels_set_bg_rgb(&channels, 0x50, 0x50, 0x50);
   ncplane_set_base(infop, " ", 0, channels);
-  struct sysinfo sinfo;
-  sysinfo(&sinfo);
   return 0;
 }
 
