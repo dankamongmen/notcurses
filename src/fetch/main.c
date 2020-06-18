@@ -140,6 +140,7 @@ get_kernel(void){
 static struct ncplane*
 display(struct notcurses* nc, const distro_info* dinfo){
   if(dinfo->logofile){
+    int dimy, dimx;
     nc_err_e err;
     struct ncvisual* ncv = ncvisual_from_file(dinfo->logofile, &err);
     if(ncv == NULL){
@@ -149,8 +150,16 @@ display(struct notcurses* nc, const distro_info* dinfo){
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_SCALE,
       .blitter = NCBLIT_2x2,
-      .n = notcurses_stdplane(nc),
+      .n = notcurses_stddim_yx(nc, &dimy, &dimx),
     };
+    int y, x, scaley, scalex;
+    ncvisual_geom(nc, ncv, &vopts, &y, &x, &scaley, &scalex);
+    if(y / scaley < dimy){
+      vopts.y = (dimy - (y + (scaley - 1)) / scaley) / 2;
+    }
+    if(x / scalex < dimx){
+      vopts.x = (dimx - (x + (scalex - 1)) / scalex) / 2;
+    }
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
       return NULL;
