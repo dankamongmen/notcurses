@@ -14,6 +14,10 @@ typedef struct distro_info {
 typedef struct fetched_info {
   char* username;              // we borrow a reference
   char hostname[HOST_NAME_MAX];
+  const distro_info* distro;
+  char* distro_release;
+  char* kernel;                // strdup(uname(2)->name)
+  char* kernver;               // strdup(uname(2)->version);
 } fetched_info;
 
 static distro_info distros[] = {
@@ -27,51 +31,69 @@ static distro_info distros[] = {
   },
 };
 
-static const distro_info*
-getdistro(void){
-  FILE* p = popen("lsb_release -i", "re");
+static char*
+pipe_getline(const char* cmdline){
+  FILE* p = popen(cmdline, "re");
   if(p == NULL){
     fprintf(stderr, "Error running lsb_release -i (%s)\n", strerror(errno));
     return NULL;
   }
-  const distro_info* dinfo = NULL;
   char* buf = malloc(BUFSIZ); // gatesv("BUFSIZ bytes is enough for anyone")
   if(fgets(buf, BUFSIZ, p) == NULL){
     fprintf(stderr, "Error reading from lsb_release -i (%s)\n", strerror(errno));
     fclose(p);
-    goto done;
+    free(buf);
+    return NULL;
   }
   if(fclose(p)){
     fprintf(stderr, "Error closing pipe (%s)\n", strerror(errno));
-    goto done;
+    free(buf);
+    return NULL;
+  }
+  return buf;
+}
+
+static char*
+pipe_lsbrelease(const char* cmdline){
+  char* buf = pipe_getline(cmdline);
+  if(buf == NULL){
+    return NULL;
   }
   const char* colon = strchr(buf, ':');
   if(colon == NULL){
-    goto done;
+    free(buf);
+    return NULL;
   }
   const char* distro = ++colon;
   while(*distro && isspace(*distro)){
     ++distro;
   }
-  const char* nl = strchr(distro, '\n');
+  char* nl = strchr(distro, '\n');
   if(nl == NULL){
-    goto done;
+    free(buf);
+    return NULL;
   }
-  size_t len = nl - distro;
-  if(len){
-    for(dinfo = distros ; dinfo->name ; ++dinfo){
-      if(strncmp(dinfo->name, distro, nl - distro) == 0){
-        if(strlen(dinfo->name) == len){
-          break;
-        }
-      }
+  *nl = '\0';
+  char* ret = strdup(distro);
+  free(buf);
+  return ret;
+}
+
+static const distro_info*
+getdistro(void){
+  const distro_info* dinfo = NULL;
+  char* buf = pipe_lsbrelease("lsb_release -i");
+  if(buf == NULL){
+    return NULL;
+  }
+  for(dinfo = distros ; dinfo->name ; ++dinfo){
+    if(strcmp(dinfo->name, buf) == 0){
+      break;
     }
   }
   if(dinfo->name == NULL){
     dinfo = NULL;
   }
-
-done:
   free(buf);
   return dinfo;
 }
@@ -110,6 +132,7 @@ linux_ncneofetch(fetched_info* fi){
   if(dinfo == NULL){
     return NULL;
   }
+  fi->distro_release = pipe_lsbrelease("lsb_release -r");
   unix_gethostname(fi);
   unix_getusername(fi);
   return dinfo;
@@ -122,12 +145,14 @@ typedef enum {
 } ncneo_kernel_e;
 
 static ncneo_kernel_e
-get_kernel(void){
+get_kernel(fetched_info* fi){
   struct utsname uts;
   if(uname(&uts)){
     fprintf(stderr, "Failure invoking uname (%s)\n", strerror(errno));
     return -1;
   }
+  fi->kernel = strdup(uts.sysname);
+  fi->kernver = strdup(uts.release);
   if(strcmp(uts.sysname, "Linux") == 0){
     return NCNEO_LINUX;
   }else if(strcmp(uts.sysname, "FreeBSD") == 0){
@@ -182,6 +207,9 @@ freebsd_ncneofetch(fetched_info* fi){
 
 static int
 infoplane(struct notcurses* nc, const fetched_info* fi){
+  // FIXME look for an area without background logo in it. pick the one
+  // closest to the center horizontally, and lowest vertically. if none
+  // can be found, just center it on the bottom as we do now
   const int dimy = ncplane_dim_y(notcurses_stdplane(nc));
   const int planeheight = 8;
   const int planewidth = 60;
@@ -192,6 +220,10 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   if(infop == NULL){
     return -1;
   }
+  ncplane_set_fg_rgb(infop, 0xd0, 0xd0, 0xd0);
+  ncplane_printf_aligned(infop, 1, NCALIGN_LEFT, " %s %s", fi->kernel, fi->kernver);
+  ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s %s ",
+                         fi->distro->name, fi->distro_release);
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;
@@ -220,28 +252,30 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
                             fi->username, fi->hostname) < 0){
     return -1;
   }
+  channels_set_fg_rgb(&channels, 0, 0, 0);
+  channels_set_bg_rgb(&channels, 0x20, 0x20, 0x20);
+  ncplane_set_base(infop, "", 0, channels);
   return 0;
 }
 
 static int
 ncneofetch(struct notcurses* nc){
   fetched_info fi = {};
-  const distro_info* dinfo = NULL;
-  ncneo_kernel_e kern = get_kernel();
+  ncneo_kernel_e kern = get_kernel(&fi);
   switch(kern){
     case NCNEO_LINUX:
-      dinfo = linux_ncneofetch(&fi);
+      fi.distro = linux_ncneofetch(&fi);
       break;
     case NCNEO_FREEBSD:
-      dinfo = freebsd_ncneofetch(&fi);
+      fi.distro = freebsd_ncneofetch(&fi);
       break;
     case NCNEO_UNKNOWN:
       break;
   }
-  if(dinfo == NULL){
+  if(fi.distro == NULL){
     return -1;
   }
-  if(display(nc, dinfo)){
+  if(display(nc, fi.distro)){
     return -1; // FIXME soldier on, perhaps?
   }
   if(infoplane(nc, &fi)){
