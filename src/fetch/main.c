@@ -228,10 +228,11 @@ drawpalette(struct notcurses* nc){
   const int yoff = 2;
   for(int y = yoff ; y < yoff + psize / 64 ; ++y){
     for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
-      if((y - yoff) * 64 + x >= psize){
+      const int truex = x - (dimx - 64) / 2;
+      if((y - yoff) * 64 + truex >= psize){
         break;
       }
-      cell_set_bg_palindex(&c, (y - yoff) * 64 + x);
+      cell_set_bg_palindex(&c, (y - yoff) * 64 + truex);
       ncplane_putc_yx(stdn, y, x, &c);
     }
   }
@@ -262,9 +263,10 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
 #ifdef __linux__
   struct sysinfo sinfo;
   sysinfo(&sinfo);
-  unsigned long totalmib = sinfo.totalram / (1024 * 1024);
-  unsigned long usedmib = totalmib - (sinfo.freeram / 1024 / 1024);
-  ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %lu/%lu\n", usedmib, totalmib);
+  char totalmet[BPREFIXSTRLEN + 1], usedmet[BPREFIXSTRLEN + 1];
+  bprefix(sinfo.totalram, 1, totalmet, 1);
+  bprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
+  ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %s/%s\n", usedmet, totalmet);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
 #endif
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
