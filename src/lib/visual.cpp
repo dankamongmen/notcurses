@@ -67,19 +67,19 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
     x = &fauxx;
   }
   if(n){
-    if(vopts->scaling == NCSCALE_NONE){
+    if(!vopts || vopts->scaling == NCSCALE_NONE){
       *y = n->rows;
     }else{
       int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdscr);
       *y = rows * encoding_y_scale(bset);
     }
-    if(vopts->scaling == NCSCALE_NONE){
+    if(!vopts || vopts->scaling == NCSCALE_NONE){
       *x = n->cols;
     }else{
       int cols = vopts->n ? ncplane_dim_x(vopts->n) : ncplane_dim_x(nc->stdscr);
       *x = cols * encoding_x_scale(bset);
     }
-    if(vopts->scaling == NCSCALE_SCALE){
+    if(vopts && vopts->scaling == NCSCALE_SCALE){
       scale_visual(n, y, x);
     }
   }
