@@ -1,7 +1,9 @@
 #include <pwd.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <locale.h>
+#include <semaphore.h>
 #include <sys/types.h>
 #ifdef __linux__
 #include <sys/sysinfo.h>
@@ -268,7 +270,7 @@ drawpalette(struct notcurses* nc){
       ncplane_putc_yx(stdn, y, x, &c);
     }
   }
-  return notcurses_render(nc);
+  return 0;
 }
 
 static int
@@ -339,6 +341,22 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   return 0;
 }
 
+struct marshal {
+  struct notcurses* nc;
+  const distro_info* dinfo;
+  sem_t sem;
+};
+
+static void*
+display_thread(void* vmarshal){
+  struct marshal* m = vmarshal;
+  display(m->nc, m->dinfo);
+  drawpalette(m->nc);
+  sem_post(&m->sem);
+  pthread_detach(pthread_self());
+  return NULL;
+}
+
 static int
 ncneofetch(struct notcurses* nc){
   fetched_info fi = {};
@@ -353,17 +371,24 @@ ncneofetch(struct notcurses* nc){
     case NCNEO_UNKNOWN:
       break;
   }
+  // go ahead and spin the image load + render into its own thread while the
+  // rest of the fetching continues. cuts total runtime.
+  struct marshal display_marshal = {
+    .nc = nc,
+    .dinfo = fi.distro,
+  };
+  sem_init(&display_marshal.sem, 0, 0);
+  if(fi.distro){
+    pthread_t tid;
+    if(pthread_create(&tid, NULL, display_thread, &display_marshal)){
+      sem_post(&display_marshal.sem);
+    }
+  }else{
+    sem_post(&display_marshal.sem);
+  } 
   fetch_env_vars(&fi);
   fetch_x_props(&fi);
-  if(fi.distro){
-    if(display(nc, fi.distro)){
-      return -1; // FIXME soldier on, perhaps?
-    }
-    notcurses_render(nc);
-  }
-  if(drawpalette(nc)){
-    return -1;
-  }
+  sem_wait(&display_marshal.sem);
   if(infoplane(nc, &fi)){
     return -1;
   }
