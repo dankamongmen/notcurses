@@ -21,7 +21,16 @@ typedef struct fetched_info {
   char* distro_release;
   char* kernel;                // strdup(uname(2)->name)
   char* kernver;               // strdup(uname(2)->version);
+  char* desktop;               // getenv("XDG_CURRENT_DESKTOP")
+  char* shell;                 // getenv("SHELL")
 } fetched_info;
+
+static int
+fetch_env_vars(fetched_info* fi){
+  fi->desktop = getenv("XDG_CURRENT_DESKTOP");
+  fi->shell = getenv("SHELL");
+  return 0;
+}
 
 static distro_info distros[] = {
   {
@@ -269,6 +278,8 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %s/%s\n", usedmet, totalmet);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
 #endif
+  ncplane_printf_aligned(infop, 3, NCALIGN_LEFT, " DM: %s\n", fi->desktop);
+  ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell);
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;
@@ -317,11 +328,11 @@ ncneofetch(struct notcurses* nc){
     case NCNEO_UNKNOWN:
       break;
   }
-  if(fi.distro == NULL){
-    return -1;
-  }
-  if(display(nc, fi.distro)){
-    return -1; // FIXME soldier on, perhaps?
+  fetch_env_vars(&fi);
+  if(fi.distro){
+    if(display(nc, fi.distro)){
+      return -1; // FIXME soldier on, perhaps?
+    }
   }
   if(infoplane(nc, &fi)){
     return -1;
