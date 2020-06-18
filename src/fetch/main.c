@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <locale.h>
 #include <sys/types.h>
+#include <sys/sysinfo.h>
 #include <sys/utsname.h>
 #include <notcurses/notcurses.h>
 
@@ -206,6 +207,29 @@ freebsd_ncneofetch(fetched_info* fi){
 }
 
 static int
+drawpalette(struct notcurses* nc){
+  int psize = notcurses_palette_size(nc);
+  if(psize > 256){
+    psize = 256;
+  }
+  int dimy, dimx;
+  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
+  if(dimx < 64){
+    return -1;
+  }
+  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  // FIXME find a better place to put it
+  const int yoff = 2;
+  for(int y = yoff ; y < yoff + psize / 64 ; ++y){
+    for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
+      cell_set_bg_palindex(&c, (y - yoff) * 64 + x);
+      ncplane_putc_yx(stdn, y, x, &c);
+    }
+  }
+  return 0;
+}
+
+static int
 infoplane(struct notcurses* nc, const fetched_info* fi){
   // FIXME look for an area without background logo in it. pick the one
   // closest to the center horizontally, and lowest vertically. if none
@@ -255,6 +279,8 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   channels_set_fg_rgb(&channels, 0, 0, 0);
   channels_set_bg_rgb(&channels, 0x20, 0x20, 0x20);
   ncplane_set_base(infop, "", 0, channels);
+  struct sysinfo sinfo;
+  sysinfo(&sinfo);
   return 0;
 }
 
@@ -279,6 +305,9 @@ ncneofetch(struct notcurses* nc){
     return -1; // FIXME soldier on, perhaps?
   }
   if(infoplane(nc, &fi)){
+    return -1;
+  }
+  if(drawpalette(nc)){
     return -1;
   }
   if(notcurses_render(nc)){
