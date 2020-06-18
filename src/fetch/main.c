@@ -1,4 +1,8 @@
+#include <pwd.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <locale.h>
+#include <sys/types.h>
 #include <sys/utsname.h>
 #include <notcurses/notcurses.h>
 
@@ -6,6 +10,11 @@ typedef struct distro_info {
   const char* name;            // must match 'lsb_release -i'
   const char* logofile;        // kept at original aspect ratio, lain atop bg
 } distro_info;
+
+typedef struct fetched_info {
+  char* username;              // we borrow a reference
+  char hostname[HOST_NAME_MAX];
+} fetched_info;
 
 static distro_info distros[] = {
   {
@@ -67,12 +76,42 @@ done:
   return dinfo;
 }
 
+static int
+unix_getusername(fetched_info* fi){
+  if( (fi->username = getenv("LOGNAME")) ){
+    if( (fi->username = strdup(fi->username)) ){
+      return 0;
+    }
+  }
+  uid_t uid = getuid();
+  struct passwd* p = getpwuid(uid);
+  if(p == NULL){
+    return -1;
+  }
+  fi->username = strdup(p->pw_name);
+  return 0;
+}
+
+static int
+unix_gethostname(fetched_info* fi){
+  if(gethostname(fi->hostname, sizeof(fi->hostname)) == 0){
+    char* fqdn = strchr(fi->hostname, '.');
+    if(fqdn){
+      *fqdn = '\0';
+    }
+    return 0;
+  }
+  return -1;
+}
+
 static const distro_info*
-linux_ncneofetch(void){
+linux_ncneofetch(fetched_info* fi){
   const distro_info* dinfo = getdistro();
   if(dinfo == NULL){
     return NULL;
   }
+  unix_gethostname(fi);
+  unix_getusername(fi);
   return dinfo;
 }
 
@@ -122,16 +161,18 @@ display(struct notcurses* nc, const distro_info* dinfo){
 }
 
 static const distro_info*
-freebsd_ncneofetch(void){
+freebsd_ncneofetch(fetched_info* fi){
   static const distro_info fbsd = {
     .name = "FreeBSD",
     .logofile = NULL, // FIXME
   };
+  unix_gethostname(fi);
+  unix_getusername(fi);
   return &fbsd;
 }
 
 static int
-infoplane(struct notcurses* nc){
+infoplane(struct notcurses* nc, const fetched_info* fi){
   const int dimy = ncplane_dim_y(notcurses_stdplane(nc));
   const int planeheight = 8;
   struct ncplane* infop = ncplane_aligned(notcurses_stdplane(nc),
@@ -144,19 +185,24 @@ infoplane(struct notcurses* nc){
   if(ncplane_perimeter_rounded(infop, 0, 0, 0)){
     return -1;
   }
+  if(ncplane_printf_aligned(infop, 0, NCALIGN_CENTER, "[ %s@%s ]",
+                            fi->username, fi->hostname) < 0){
+    return -1;
+  }
   return 0;
 }
 
 static int
 ncneofetch(struct notcurses* nc){
+  fetched_info fi = {};
   const distro_info* dinfo = NULL;
   ncneo_kernel_e kern = get_kernel();
   switch(kern){
     case NCNEO_LINUX:
-      dinfo = linux_ncneofetch();
+      dinfo = linux_ncneofetch(&fi);
       break;
     case NCNEO_FREEBSD:
-      dinfo = freebsd_ncneofetch();
+      dinfo = freebsd_ncneofetch(&fi);
       break;
     case NCNEO_UNKNOWN:
       break;
@@ -167,7 +213,7 @@ ncneofetch(struct notcurses* nc){
   if(display(nc, dinfo)){
     return -1; // FIXME soldier on, perhaps?
   }
-  if(infoplane(nc)){
+  if(infoplane(nc, &fi)){
     return -1;
   }
   if(notcurses_render(nc)){
