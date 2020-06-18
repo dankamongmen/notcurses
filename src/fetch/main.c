@@ -132,7 +132,12 @@ freebsd_ncneofetch(void){
 
 static int
 infoplane(struct notcurses* nc){
-  struct ncplane* infop = ncplane_new(nc, 8, 60, 0, 0, NULL);
+  const int dimy = ncplane_dim_y(notcurses_stdplane(nc));
+  const int planeheight = 8;
+  struct ncplane* infop = ncplane_aligned(notcurses_stdplane(nc),
+                                          planeheight, 60,
+                                          dimy - (planeheight + 1),
+                                          NCALIGN_CENTER, NULL);
   if(infop == NULL){
     return -1;
   }
@@ -176,7 +181,8 @@ int main(void){
     fprintf(stderr, "Warning: couldn't set locale based off LANG\n");
   }
   struct notcurses_options nopts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN |
+              NCOPTION_SUPPRESS_BANNERS,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){
