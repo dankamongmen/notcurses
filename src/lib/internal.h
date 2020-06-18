@@ -29,6 +29,7 @@ const char* oiio_version(void);
 #include <string.h>
 #include <signal.h>
 #include <wctype.h>
+#include <pthread.h>
 #include <termios.h>
 #include <stdbool.h>
 #include <langinfo.h>

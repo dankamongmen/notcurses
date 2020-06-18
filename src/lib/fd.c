@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include <sys/poll.h>
 #include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/fcntl.h>
 #ifdef __linux__
 #include <linux/wait.h>
 #include <asm/unistd.h>

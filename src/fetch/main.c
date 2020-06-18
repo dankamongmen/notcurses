@@ -3,7 +3,9 @@
 #include <unistd.h>
 #include <locale.h>
 #include <sys/types.h>
+#ifdef __linux__
 #include <sys/sysinfo.h>
+#endif
 #include <sys/utsname.h>
 #include <notcurses/notcurses.h>
 
@@ -14,7 +16,7 @@ typedef struct distro_info {
 
 typedef struct fetched_info {
   char* username;              // we borrow a reference
-  char hostname[HOST_NAME_MAX];
+  char hostname[_POSIX_HOST_NAME_MAX];
   const distro_info* distro;
   char* distro_release;
   char* kernel;                // strdup(uname(2)->name)
@@ -257,12 +259,14 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s %s ",
                          fi->distro->name, fi->distro_release);
   ncplane_set_attr(infop, NCSTYLE_NONE);
+#ifdef __linux__
   struct sysinfo sinfo;
   sysinfo(&sinfo);
   unsigned long totalmib = sinfo.totalram / (1024 * 1024);
   unsigned long usedmib = totalmib - (sinfo.freeram / 1024 / 1024);
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %lu/%lu\n", usedmib, totalmib);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
+#endif
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;

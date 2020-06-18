@@ -203,18 +203,21 @@ target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
 target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
+# don't want these on freebsd
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 target_compile_definitions(notcurses
   PUBLIC
-   _POSIX_C_SOURCE=200809L _XOPEN_SOURCE=500 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
   PRIVATE
-    _GNU_SOURCE _DEFAULT_SOURCE
+   _GNU_SOURCE _DEFAULT_SOURCE
 )
 target_compile_definitions(notcurses-static
   PUBLIC
-   _POSIX_C_SOURCE=200809L _XOPEN_SOURCE=500 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
   PRIVATE
-    _GNU_SOURCE _DEFAULT_SOURCE
+   _GNU_SOURCE _DEFAULT_SOURCE
 )
+endif()
 
 # libnotcurses++
 set(NCPP_SOURCES
