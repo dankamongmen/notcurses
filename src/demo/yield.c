@@ -15,9 +15,9 @@ int yield_demo(struct notcurses* nc){
   }
   struct ncvisual_options vopts = {
     .n = std,
-    .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_2x2,
     .y = 1,
+    .scaling = NCSCALE_STRETCH,
   };
   if(ncvisual_render(nc, wmv, &vopts) == NULL){
     ncvisual_destroy(wmv);
@@ -30,14 +30,16 @@ int yield_demo(struct notcurses* nc){
   ncplane_erase(std);
 
   int vy, vx, vscaley, vscalex;
+  vopts.scaling = NCSCALE_NONE;
   ncvisual_geom(nc, wmv, &vopts, &vy, &vx, &vscaley, &vscalex);
+  vopts.scaling = NCSCALE_STRETCH;
   struct timespec scaled;
   const long total = vy * vx;
   const long threshold_painted = total * 4 / 5;
   timespec_div(&demodelay, 128, &scaled);
   long tfilled = 0;
   while(tfilled < threshold_painted){
-//fprintf(stderr, "tfilled: %ld thresh: %ld total: %ld\n", tfilled, threshold_painted, total);
+//fprintf(stderr, "%d/%d x %d/%d tfilled: %ld thresh: %ld total: %ld\n", vy, vx, vscaley, vscalex, tfilled, threshold_painted, total);
     int pfilled = 0;
     do{
       int x = random() % (vx);
