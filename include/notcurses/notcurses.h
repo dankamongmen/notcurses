@@ -1148,6 +1148,9 @@ API unsigned notcurses_supported_styles(const struct notcurses* nc);
 // more colors than they actually support, downsampling internally.
 API int notcurses_palette_size(const struct notcurses* nc);
 
+// Can we directly specify RGB values per cell, or only use palettes?
+API bool notcurses_cantruecolor(const struct notcurses* nc);
+
 // Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
 API bool notcurses_canfade(const struct notcurses* nc);
 
@@ -1163,7 +1166,7 @@ API bool notcurses_canopen_videos(const struct notcurses* nc);
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 API bool notcurses_canutf8(const struct notcurses* nc);
 
-// Can we blit to Sixel? This requires being built against libsixel.
+// Can we blit to Sixel?
 API bool notcurses_cansixel(const struct notcurses* nc);
 
 typedef struct ncstats {

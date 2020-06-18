@@ -17,6 +17,8 @@ typedef struct palette256 {
 } palette256;
 ```
 
+**bool notcurses_cantruecolor(const struct notcurses* nc);**
+
 **palette256* palette256_new(struct notcurses* nc);**
 
 **int palette256_use(struct notcurses* nc, const palette256* p);**

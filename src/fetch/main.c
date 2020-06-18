@@ -41,6 +41,10 @@ fetch_env_vars(fetched_info* fi){
 
 static distro_info distros[] = {
   {
+    .name = "arch",
+    // from core/filesystem
+    .logofile = "/usr/share/pixmaps/archlinux.png",
+  }, {
     .name = "debian",
     // from desktop-base package
     .logofile = "/usr/share/desktop-base/debian-logos/logo-text-256.png",
@@ -116,7 +120,7 @@ fetch_x_props(fetched_info* fi){
 }
 
 static const distro_info*
-getdistro(fetched_info* fi){
+linux_ncneofetch(fetched_info* fi){
   FILE* osinfo = fopen("/etc/os-release", "re");
   if(osinfo == NULL){
     return NULL;
@@ -187,17 +191,6 @@ unix_gethostname(fetched_info* fi){
   return -1;
 }
 
-static const distro_info*
-linux_ncneofetch(fetched_info* fi){
-  const distro_info* dinfo = getdistro(fi);
-  if(dinfo == NULL){
-    return NULL;
-  }
-  unix_gethostname(fi);
-  unix_getusername(fi);
-  return dinfo;
-}
-
 typedef enum {
   NCNEO_LINUX,
   NCNEO_FREEBSD,
@@ -260,8 +253,7 @@ freebsd_ncneofetch(fetched_info* fi){
     .name = "FreeBSD",
     .logofile = NULL, // FIXME
   };
-  unix_gethostname(fi);
-  unix_getusername(fi);
+  (void)fi; // FIXME set up distro_pretty
   return &fbsd;
 }
 
@@ -370,7 +362,9 @@ struct marshal {
 static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
-  display(m->nc, m->dinfo);
+  if(m->dinfo){
+    display(m->nc, m->dinfo);
+  }
   drawpalette(m->nc);
   sem_post(&m->sem);
   pthread_detach(pthread_self());
@@ -398,14 +392,12 @@ ncneofetch(struct notcurses* nc){
     .dinfo = fi.distro,
   };
   sem_init(&display_marshal.sem, 0, 0);
-  if(fi.distro){
-    pthread_t tid;
-    if(pthread_create(&tid, NULL, display_thread, &display_marshal)){
-      sem_post(&display_marshal.sem);
-    }
-  }else{
+  pthread_t tid;
+  if(pthread_create(&tid, NULL, display_thread, &display_marshal)){
     sem_post(&display_marshal.sem);
-  } 
+  }
+  unix_gethostname(&fi);
+  unix_getusername(&fi);
   fetch_env_vars(&fi);
   fetch_x_props(&fi);
   fetch_cpu_info(&fi);

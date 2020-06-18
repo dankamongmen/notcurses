@@ -1366,6 +1366,10 @@ int notcurses_palette_size(const notcurses* nc){
   return nc->tcache.colors;
 }
 
+bool notcurses_cantruecolor(const notcurses* nc){
+  return nc->tcache.RGBflag;
+}
+
 // turn on any specified stylebits
 void ncplane_styles_on(ncplane* n, unsigned stylebits){
   n->attrword |= (stylebits & NCSTYLE_MASK);

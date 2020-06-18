@@ -104,6 +104,7 @@ typedef enum {
 struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);
 unsigned notcurses_supported_styles(const struct notcurses* nc);
 int notcurses_palette_size(const struct notcurses* nc);
+bool notcurses_cantruecolor(const struct notcurses* nc);
 bool notcurses_canfade(const struct notcurses* nc);
 bool notcurses_canchangecolor(const struct notcurses* nc);
 bool notcurses_canopen_images(const struct notcurses* nc);

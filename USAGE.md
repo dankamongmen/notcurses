@@ -237,6 +237,9 @@ int notcurses_palette_size(const struct notcurses* nc);
 // Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
 bool notcurses_canfade(const struct notcurses* nc);
 
+// Can we directly specify RGB values per cell, or only use palettes?
+bool notcurses_can_truecolor(const struct notcurses* nc);
+
 // Can we load images? This requires being built against FFmpeg/OIIO.
 bool notcurses_canopen_images(const struct notcurses* nc);
 
