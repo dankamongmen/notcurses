@@ -27,6 +27,8 @@ typedef struct fetched_info {
   char* shell;                 // getenv("SHELL")
   char* term;                  // getenv("TERM")
   int dimy, dimx;              // extracted from xrandr
+  char* cpu_model;             // FIXME don't handle hetero setups yet
+  int core_count;
 } fetched_info;
 
 static int
@@ -51,6 +53,25 @@ static distro_info distros[] = {
     .logofile = NULL,
   },
 };
+
+static int
+fetch_cpu_info(fetched_info* fi){
+  FILE* cpuinfo = fopen("/proc/cpuinfo", "re");
+  char buf[BUFSIZ];
+  while(fgets(buf, sizeof(buf), cpuinfo)){
+#define TAG "model name\t:"
+    if(strncmp(buf, TAG, strlen(TAG)) == 0){
+      if(fi->cpu_model == NULL){
+        char* nl = strchr(buf + strlen(TAG), '\n');
+        *nl = '\0';
+        fi->cpu_model = strdup(buf + strlen(TAG));
+      }
+      ++fi->core_count;
+    }
+#undef TAG
+  }
+  return 0;
+}
 
 static char*
 pipe_getline(const char* cmdline){
@@ -304,6 +325,8 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell);
   ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
   ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, "Screen0: %dx%d ", fi->dimx, fi->dimy);
+  ncplane_set_attr(infop, NCSTYLE_ITALIC);
+  ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)", fi->cpu_model, fi->core_count);
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;
@@ -385,6 +408,7 @@ ncneofetch(struct notcurses* nc){
   } 
   fetch_env_vars(&fi);
   fetch_x_props(&fi);
+  fetch_cpu_info(&fi);
   sem_wait(&display_marshal.sem);
   if(infoplane(nc, &fi)){
     return -1;
