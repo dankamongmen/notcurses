@@ -275,6 +275,7 @@ int ncdirect_cursor_up(struct ncdirect* nc, int num);
 int ncdirect_cursor_left(struct ncdirect* nc, int num);
 int ncdirect_cursor_right(struct ncdirect* nc, int num);
 int ncdirect_cursor_down(struct ncdirect* nc, int num);
+nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncblitter_e blitter, ncscale_e scale);
 typedef enum {
   NCERR_SUCCESS,
   NCERR_NOMEM,

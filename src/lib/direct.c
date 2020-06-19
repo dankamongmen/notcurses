@@ -210,6 +210,17 @@ int ncdirect_cursor_pop(ncdirect* n){
   return term_emit("rc", n->tcache.rc, n->ttyfp, false);
 }
 
+nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitter, ncscale_e scale){
+  nc_err_e ret;
+  struct ncvisual* ncv = ncvisual_from_file(file, &ret);
+  if(ncv == NULL){
+    return ret;
+  }
+  // FIXME
+  ncvisual_destroy(ncv);
+  return NCERR_SUCCESS;
+}
+
 int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){

@@ -7,7 +7,7 @@ rearrangements of Notcurses.
   * `ncdirect_render_image()` has been added, allowing images to be
     rendered in direct mode.
   * `ncvisual_geom()` now takes scaling into account.
-  * **notcurses_cantruecolor()** has been added, allowing clients to
+  * `notcurses_cantruecolor()` has been added, allowing clients to
     determine whether the full RGB space is available to us. If not,
     we only have palette-indexed pseudocolor.
 

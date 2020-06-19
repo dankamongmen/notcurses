@@ -327,7 +327,8 @@ int ncdirect_cursor_down(struct ncdirect* nc, int num);
 // Display an image using the specified blitter and scaling. The image may
 // be arbitrarily many rows -- the output will scroll -- but will only occupy
 // the column of the cursor, and those to the right.
-nc_err_e ncdirect_render_image(const char* filename, ncblitter_e blitter, ncscale_e scale);
+nc_err_e ncdirect_render_image(struct ncdirect* nc, const char* filename,
+                               ncblitter_e blitter, ncscale_e scale);
 ```
 
 ## Alignment

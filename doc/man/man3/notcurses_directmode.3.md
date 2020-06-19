@@ -52,6 +52,8 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **int ncdirect_cursor_down(struct ncdirect* nc, int num);**
 
+**nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncblitter_e blitter, ncscale_e scale);**
+
 # DESCRIPTION
 
 **ncdirect_init** prepares the **FILE** provided as **fp** (which must
