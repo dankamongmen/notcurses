@@ -216,9 +216,12 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
   if(ncv == NULL){
     return ret;
   }
+  (void)blitter;
+  (void)scale;
+  (void)n;
   // FIXME
   ncvisual_destroy(ncv);
-  return NCERR_SUCCESS;
+  return NCERR_UNIMPLEMENTED; // FIXME
 }
 
 int ncdirect_stop(ncdirect* nc){

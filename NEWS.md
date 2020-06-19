@@ -4,8 +4,6 @@ rearrangements of Notcurses.
 * 1.5.2 (not yet released)
   * The `ncneofetch` program has been added, of no great consequence.
   * A `NULL` value can now be passed as `sbytes` to `ncplane_puttext()`.
-  * `ncdirect_render_image()` has been added, allowing images to be
-    rendered in direct mode.
   * `ncvisual_geom()` now takes scaling into account.
   * `notcurses_cantruecolor()` has been added, allowing clients to
     determine whether the full RGB space is available to us. If not,
