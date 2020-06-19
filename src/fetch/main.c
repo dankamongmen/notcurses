@@ -26,6 +26,7 @@ typedef struct fetched_info {
   char* desktop;               // getenv("XDG_CURRENT_DESKTOP")
   char* shell;                 // getenv("SHELL")
   char* term;                  // getenv("TERM")
+  char* lang;                  // getenv("LANG")
   int dimy, dimx;              // extracted from xrandr
   char* cpu_model;             // FIXME don't handle hetero setups yet
   int core_count;
@@ -36,6 +37,7 @@ fetch_env_vars(fetched_info* fi){
   fi->desktop = getenv("XDG_CURRENT_DESKTOP");
   fi->shell = getenv("SHELL");
   fi->term = getenv("TERM");
+  fi->lang = getenv("LANG");
   return 0;
 }
 
@@ -315,8 +317,25 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
 #endif
   ncplane_printf_aligned(infop, 3, NCALIGN_LEFT, " DM: %s", fi->desktop);
   ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell);
-  ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
+  if(notcurses_cantruecolor(nc)){
+    ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
+    cell c = CELL_SIMPLE_INITIALIZER('R');
+    cell_styles_set(&c, NCSTYLE_BOLD);
+    cell_set_fg_rgb(&c, 0xd0, 0, 0);
+    ncplane_putc_yx(infop, 4, 1, &c);
+    cell_load_simple(infop, &c, 'G');
+    cell_set_fg_rgb(&c, 0, 0xd0, 0);
+    ncplane_putc_yx(infop, 4, 2, &c);
+    cell_load_simple(infop, &c, 'B');
+    cell_set_fg_rgb(&c, 0, 0, 0xd);
+    ncplane_putc_yx(infop, 4, 3, &c);
+    cell_styles_set(&c, NCSTYLE_NONE);
+  }else{
+    ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
+  }
   ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, "Screen0: %dx%d ", fi->dimx, fi->dimy);
+  ncplane_printf_aligned(infop, 5, NCALIGN_LEFT, " LANG: %s", fi->lang);
+  ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %ju ", (uintmax_t)getuid());
   ncplane_set_attr(infop, NCSTYLE_ITALIC);
   ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)", fi->cpu_model, fi->core_count);
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
