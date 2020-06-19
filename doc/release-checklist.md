@@ -10,7 +10,7 @@
 ## Release
 
 * Run tools/release.sh $OLDVERSION $VERSION
-  * Finalize CHANGELOG.md
+  * Opens an editor to finalize NEWS.md
   * Bumps version numbers everywhere they need bumping
   * Commits changes, tags result with v$VERSION, pushes tag
   * Downloads new tarball and signs it

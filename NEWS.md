@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.5.2 (not yet released)
+* 1.5.2 (2020-06-19)
   * The `ncneofetch` program has been added, of no great consequence.
   * A `NULL` value can now be passed as `sbytes` to `ncplane_puttext()`.
   * `ncvisual_geom()` now takes scaling into account.
@@ -9,7 +9,7 @@ rearrangements of Notcurses.
     determine whether the full RGB space is available to us. If not,
     we only have palette-indexed pseudocolor.
 
-* 1.5.1 (2020-07-15)
+* 1.5.1 (2020-06-15)
   * The semantics of rendering have changed slightly. In 1.5.0 and prior
     versions, a cell without a glyph was replaced *in toto* by that plane's
     base cell at rendering time. The replacement is now tripartite: if there
@@ -29,7 +29,7 @@ rearrangements of Notcurses.
     `int*`s `ymax` and `xmax`. The actual size of the drawn code is
     returned in these parameters.
 
-* 1.5.0 (2020-07-08)
+* 1.5.0 (2020-06-08)
   * The various `bool`s of `struct notcurses_options` have been folded into
     that `struct`'s `flags` field. Each `bool` has its own `NCOPTION_`.
   * Added a Pixel API for working directly with the contents of `ncvisual`s,
