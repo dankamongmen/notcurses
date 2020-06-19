@@ -339,6 +339,17 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+// fold the r, g, and b components of the pixel into *r, *g, and *b, and
+// increment *foldcount
+static inline void
+fold_rgb(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
+         bool bgr, const uint8_t* pixel, unsigned* foldcount){
+  *r += bgr ? pixel[2] : pixel[0];
+  *g += pixel[1];
+  *b += bgr ? pixel[0] : pixel[2];
+  ++*foldcount;
+}
+
 // Braille blitter. maps 4x2 to each cell. since we only have one color at
 // our disposal (foreground), we lose some fidelity. this is optimal for
 // visuals with only two colors in a given area, as it packs lots of
@@ -348,8 +359,6 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
              int leny, int lenx, bool bgr, bool blendcolors){
   const int bpp = 32;
-  const int rpos = bgr ? 2 : 0;
-  const int bpos = bgr ? 0 : 2;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -370,6 +379,9 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
       const unsigned char* rgbbase_r2 = zeroes;
       const unsigned char* rgbbase_l3 = zeroes;
       const unsigned char* rgbbase_r3 = zeroes;
+      unsigned r = 0, g = 0, b = 0;
+      unsigned blends = 0;
+      unsigned egcidx = 0;
       if(visx < begx + lenx - 1){
         rgbbase_r0 = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
         if(visy < begy + leny - 1){
@@ -391,6 +403,39 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
           }
         }
       }
+      // FIXME fold this into the above?
+      if(!ffmpeg_trans_p(bgr, rgbbase_l0[3])){
+        egcidx |= 1u;
+        fold_rgb(&r, &g, &b, bgr, rgbbase_l0, &blends);
+      }
+      if(!ffmpeg_trans_p(bgr, rgbbase_l1[3])){
+        egcidx |= 2u;
+        fold_rgb(&r, &g, &b, bgr, rgbbase_l1, &blends);
+      }
+      if(!ffmpeg_trans_p(bgr, rgbbase_l2[3])){
+        egcidx |= 4u;
+        fold_rgb(&r, &g, &b, bgr, rgbbase_l2, &blends);
+      }
+      if(!ffmpeg_trans_p(bgr, rgbbase_r0[3])){
+        egcidx |= 8u;
+        fold_rgb(&r, &g, &b, bgr, rgbbase_r0, &blends);
+      }
+      if(!ffmpeg_trans_p(bgr, rgbbase_r1[3])){
+        egcidx |= 16u;
+        fold_rgb(&r, &g, &b, bgr, rgbbase_r1, &blends);
+      }
+      if(!ffmpeg_trans_p(bgr, rgbbase_r2[3])){
+        egcidx |= 32u;
+        fold_rgb(&r, &g, &b, bgr, rgbbase_r2, &blends);
+      }
+      if(!ffmpeg_trans_p(bgr, rgbbase_l3[3])){
+        egcidx |= 64u;
+        fold_rgb(&r, &g, &b, bgr, rgbbase_l3, &blends);
+      }
+      if(!ffmpeg_trans_p(bgr, rgbbase_r3[3])){
+        egcidx |= 128u;
+        fold_rgb(&r, &g, &b, bgr, rgbbase_r3, &blends);
+      }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
@@ -404,7 +449,6 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
       // more complicated to do optimally than quadrants, for sure. ideally,
       // we only get one color in an area.
       cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-      const char* egc = NULL;
       if(ffmpeg_trans_p(bgr, rgbbase_l0[3]) && ffmpeg_trans_p(bgr, rgbbase_r0[3])
           && ffmpeg_trans_p(bgr, rgbbase_l1[3]) && ffmpeg_trans_p(bgr, rgbbase_r1[3])
           && ffmpeg_trans_p(bgr, rgbbase_l2[3]) && ffmpeg_trans_p(bgr, rgbbase_r2[3])
@@ -412,9 +456,14 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
           // FIXME else look for pairs of transparency!
       }else{
-        // FIXME interpolate into 1
-        cell_set_fg_rgb(c, rgbbase_l0[rpos], rgbbase_l0[1], rgbbase_l0[bpos]);
-        egc = "⡜";
+        if(blends){
+          cell_set_fg_rgb(c, r / blends, g / blends, b / blends);
+        }
+        // UTF-8 encodings of the Brailler Patterns are always 0xe2 0xaX 0xCC,
+        // where 0 <= X <= 3 and 0x80 <= CC <= 0xbf (4 groups of 64).
+        char egc[4] = { 0xe2, 0xa0, 0x80, 0x00 };
+        egc[2] += egcidx % 64;
+        egc[1] += egcidx / 64;
         if(cell_load(nc, c, egc) <= 0){
           return -1;
         }
