@@ -256,26 +256,6 @@ int palette256_set_rgb(palette256* p, int idx, int r, int g, int b);
 int palette256_set(palette256* p, int idx, unsigned rgb);
 int palette256_get_rgb(const palette256* p, int idx, unsigned* r, unsigned* g, unsigned* b);
 void palette256_free(palette256* p);
-struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
-int ncdirect_bg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
-int ncdirect_fg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
-int ncdirect_fg(struct ncdirect* n, unsigned rgb);
-int ncdirect_bg(struct ncdirect* n, unsigned rgb);
-int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
-int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
-int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
-int ncdirect_clear(struct ncdirect* n);
-int ncdirect_stop(struct ncdirect* n);
-int ncdirect_dim_x(const struct ncdirect* nc);
-int ncdirect_dim_y(const struct ncdirect* nc);
-int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
-int ncdirect_cursor_enable(struct ncdirect* nc);
-int ncdirect_cursor_disable(struct ncdirect* nc);
-int ncdirect_cursor_up(struct ncdirect* nc, int num);
-int ncdirect_cursor_left(struct ncdirect* nc, int num);
-int ncdirect_cursor_right(struct ncdirect* nc, int num);
-int ncdirect_cursor_down(struct ncdirect* nc, int num);
-nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncblitter_e blitter, ncscale_e scale);
 typedef enum {
   NCERR_SUCCESS,
   NCERR_NOMEM,
@@ -505,6 +485,26 @@ int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text,
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
 int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* gclustarr);
 int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax, int* xmax, const void* data, size_t len);
+struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
+int ncdirect_bg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
+int ncdirect_fg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
+int ncdirect_fg(struct ncdirect* n, unsigned rgb);
+int ncdirect_bg(struct ncdirect* n, unsigned rgb);
+int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
+int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
+int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
+int ncdirect_clear(struct ncdirect* n);
+int ncdirect_stop(struct ncdirect* n);
+int ncdirect_dim_x(const struct ncdirect* nc);
+int ncdirect_dim_y(const struct ncdirect* nc);
+int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
+int ncdirect_cursor_enable(struct ncdirect* nc);
+int ncdirect_cursor_disable(struct ncdirect* nc);
+int ncdirect_cursor_up(struct ncdirect* nc, int num);
+int ncdirect_cursor_left(struct ncdirect* nc, int num);
+int ncdirect_cursor_right(struct ncdirect* nc, int num);
+int ncdirect_cursor_down(struct ncdirect* nc, int num);
+nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncblitter_e blitter, ncscale_e scale);
 """)
 
 if __name__ == "__main__":
