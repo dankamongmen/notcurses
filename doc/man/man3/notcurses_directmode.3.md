@@ -10,7 +10,7 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **#include <notcurses/notcurses.h>**
 
-**struct ncdirect* ncdirect_init(const char *termtype, FILE* fp);**
+**struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);**
 
 **int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
 
