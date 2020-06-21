@@ -63,6 +63,10 @@ static distro_info distros[] = {
 static int
 fetch_cpu_info(fetched_info* fi){
   FILE* cpuinfo = fopen("/proc/cpuinfo", "re");
+  if(cpuinfo == NULL){
+    fprintf(stderr, "Error opening /proc/cpuinfo (%s)\n", strerror(errno));
+    return -1;
+  }
   char buf[BUFSIZ];
   while(fgets(buf, sizeof(buf), cpuinfo)){
 #define TAG "model name\t:"
