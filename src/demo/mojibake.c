@@ -46,5 +46,6 @@ int mojibake_demo(struct notcurses* nc){
   struct ncplane* u60 = unicode60(std, 4, dimx);
   DEMO_RENDER(nc);
   demo_nanosleep(nc, &demodelay);
+  ncplane_destroy(u60);
   return 0;
 }
