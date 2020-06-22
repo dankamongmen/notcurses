@@ -92,6 +92,11 @@ namespace ncpp
 			return error_guard<int> (ncvisual_polyfill_yx (visual, y, x, rgba), -1);
 		}
 
+		bool geom (const struct ncvisual_options *vopts, int *y, int *x, int *toy, int *tox) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncvisual_geom (get_notcurses (), visual, vopts, y, x, toy, tox), -1);
+		}
+
 		bool at (int y, int x, uint32_t* pixel) const
 		{
 			if (pixel == nullptr)

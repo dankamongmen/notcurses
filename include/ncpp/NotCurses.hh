@@ -111,6 +111,11 @@ namespace ncpp
 			return notcurses_canchangecolor (nc);
 		}
 
+		bool can_truecolor () const noexcept
+		{
+			return notcurses_cantruecolor (nc);
+		}
+
 		void get_stats (ncstats *stats) const noexcept
 		{
 			if (stats == nullptr)
