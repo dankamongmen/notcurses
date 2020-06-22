@@ -285,6 +285,11 @@ namespace ncpp
 			return reparent (const_cast<Plane*>(&newparent));
 		}
 
+		void home () const noexcept
+		{
+			ncplane_home (plane);
+		}
+
 		bool move (int y, int x) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_move_yx (plane, y, x), -1);
@@ -614,6 +619,16 @@ namespace ncpp
 		bool perimeter (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr, const Cell &hline, const Cell &vline, unsigned ctlword) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_perimeter (plane, ul, ur, ll, lr, hline, vline, ctlword), -1);
+		}
+
+		bool perimeter_rounded (uint32_t attrword, uint64_t channels, unsigned ctlword) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncplane_perimeter_rounded (plane, attrword, channels, ctlword), -1);
+		}
+
+		bool perimeter_double (uint32_t attrword, uint64_t channels, unsigned ctlword) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncplane_perimeter_double (plane, attrword, channels, ctlword), -1);
 		}
 
 		int polyfill (int y, int x, const Cell& c) const NOEXCEPT_MAYBE
@@ -1031,6 +1046,16 @@ namespace ncpp
 		{
 			int ret = ncplane_qrcode (plane, blitter, ymax, xmax, data, len);
 			return error_guard_cond<int> (ret, ret < 0);
+		}
+
+		bool is_fg_default () const noexcept
+		{
+			return ncplane_fg_default_p (plane);
+		}
+
+		bool is_bg_default () const noexcept
+		{
+			return ncplane_bg_default_p (plane);
 		}
 
 	protected:

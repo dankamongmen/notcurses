@@ -18,7 +18,7 @@ namespace ncpp
 		static constexpr bool is_uint64 = std::is_same_v<TCoord,uint64_t>;
 
 	public:
-		bool add_sample(TCoord x, TCoord y) const NOEXCEPT_MAYBE
+		bool add_sample (uint64_t x, TCoord y) const NOEXCEPT_MAYBE
 		{
 			int ret;
 
@@ -31,7 +31,7 @@ namespace ncpp
 			return error_guard (ret, -1);
 		}
 
-		bool set_sample(TCoord x, TCoord y) const NOEXCEPT_MAYBE
+		bool set_sample (uint64_t x, TCoord y) const NOEXCEPT_MAYBE
 		{
 			int ret;
 
@@ -40,6 +40,19 @@ namespace ncpp
 			} else {
 				ret = nduplot_set_sample (plot, x, y);
 			}
+			return error_guard (ret, -1);
+		}
+
+		bool sample (uint64_t x, TCoord* y) const NOEXCEPT_MAYBE
+		{
+			int ret;
+
+			if constexpr (is_double) {
+				ret = ncdplot_sample (plot, x, y);
+			} else {
+				ret = ncuplot_sample (plot, x, y);
+			}
+
 			return error_guard (ret, -1);
 		}
 
