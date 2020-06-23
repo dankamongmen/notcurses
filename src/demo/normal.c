@@ -77,6 +77,27 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   struct ncvisual_options vopts = {
   };
   ncplane_erase(n);
+  struct ncvisual* nncv = NULL;
+  if(notcurses_canopen_images(nc)){
+    char* path = find_data("fractalheight.png");
+    if(path){
+      nc_err_e err;
+      nncv = ncvisual_from_file(path, &err);
+      if(nncv){
+        struct ncvisual_options nvopts = {
+          .n = notcurses_stdplane(nc),
+          .blitter = NCBLIT_2x2,
+          .y = 1,
+          .scaling = NCSCALE_STRETCH,
+        };
+        if(ncvisual_render(nc, nncv, &nvopts) == NULL){
+          return -1;
+        }
+        ncplane_move_below(notcurses_stdplane(nc), n);
+      }
+      free(path);
+    }
+  }
   for(double i = 0 ; i < ROTATIONS ; ++i){
     demo_nanosleep(nc, &scaled);
     if(ncvisual_rotate(ncv, -M_PI / (i / 8 + 2))){
@@ -98,6 +119,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
     }
     ncplane_destroy(newn);
   }
+  ncvisual_destroy(nncv);
   ncvisual_destroy(ncv);
   return failed ? -1 : 0;
 }
