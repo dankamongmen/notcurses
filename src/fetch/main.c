@@ -221,8 +221,9 @@ get_kernel(fetched_info* fi){
   return NCNEO_UNKNOWN;
 }
 
+// writes the first row drawn to |*drawrow|
 static struct ncplane*
-display(struct notcurses* nc, const distro_info* dinfo){
+display(struct notcurses* nc, const distro_info* dinfo, int* drawrow){
   if(dinfo->logofile){
     int dimy, dimx;
     nc_err_e err;
@@ -244,6 +245,7 @@ display(struct notcurses* nc, const distro_info* dinfo){
     if(x / scalex < dimx){
       vopts.x = (dimx - (x + (scalex - 1)) / scalex) / 2;
     }
+    *drawrow = vopts.y;
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
       return NULL;
@@ -264,7 +266,7 @@ freebsd_ncneofetch(fetched_info* fi){
 }
 
 static int
-drawpalette(struct notcurses* nc){
+drawpalette(struct notcurses* nc, int yoff){
   int psize = notcurses_palette_size(nc);
   if(psize > 256){
     psize = 256;
@@ -276,7 +278,6 @@ drawpalette(struct notcurses* nc){
   }
   cell c = CELL_SIMPLE_INITIALIZER(' ');
   // FIXME find a better place to put it
-  const int yoff = 2;
   for(int y = yoff ; y < yoff + psize / 64 ; ++y){
     for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
       const int truex = x - (dimx - 64) / 2;
@@ -385,10 +386,13 @@ struct marshal {
 static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
+  int yoff = 1;
   if(m->dinfo){
-    display(m->nc, m->dinfo);
+    display(m->nc, m->dinfo, &yoff);
   }
-  drawpalette(m->nc);
+  if(yoff >= 5){
+    drawpalette(m->nc, yoff - 5);
+  }
   sem_post(&m->sem);
   pthread_detach(pthread_self());
   return NULL;
