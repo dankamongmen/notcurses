@@ -1,18 +1,37 @@
 #include "demo.h"
 
 static struct ncplane*
-unicode52(struct ncplane* std, int y){
-  const int ROWS = 25;
-  struct ncplane* n = ncplane_aligned(std, ROWS, 64, y, NCALIGN_CENTER, NULL);
+mojiplane(struct ncplane* title, int y, int rows, const char* summary){
+  struct ncplane* n = ncplane_aligned(title, rows, 64, y, NCALIGN_CENTER, NULL);
   if(ncplane_perimeter_rounded(n, 0, 0, 0) < 0){
     ncplane_destroy(n);
     return NULL;
   }
   uint64_t channels = 0;
   channels_set_bg(&channels, 0x0);
-  if(ncplane_set_base(n, " ", 0, channels) < 0 || ncplane_set_fg(n, 0x40d040)
-      || ncplane_set_bg(n, 0)){
+  if(ncplane_set_fg(n, 0x40d0d0) || ncplane_set_bg(n, 0)){
     ncplane_destroy(n);
+    return NULL;
+  }
+  const int x = ncplane_align(n, NCALIGN_RIGHT, strlen(summary) + 2);
+  if(ncplane_putstr_yx(n, rows - 1, x, summary) < 0){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  if(ncplane_set_base(n, " ", 0, channels) < 0 || ncplane_set_fg(n, 0x40d040)){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  ncplane_move_below(n, title);
+  return n;
+}
+
+static struct ncplane*
+unicode52(struct ncplane* title, int y){
+  const char SUMMARY[] = "[Unicode 6.0 (2010), 608 codepoints]";
+  const int ROWS = 25;
+  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
+  if(n == NULL){
     return NULL;
   }
   ncplane_putstr_yx(n,  1, 1, "😃😄😁😆😅😂😉😊😇😍😘😚😋😜😝😐😶😏😒😌😔😪😷😵😎😲😳😨😰😥😢😭");
@@ -38,10 +57,28 @@ unicode52(struct ncplane* std, int y){
   ncplane_putstr_yx(n, 21, 1, "⏭\ufe0f⏮\ufe0f⏫🔽⏬🎦🔅🔆📶📳📴➕➖➗❓❔❕💱💲🔱📛🔰✅❌❎➰➿🔟🔠🔡🔢");
   ncplane_putstr_yx(n, 22, 1, "⏯\ufe0f🔣🔤🅰🆎🅱🆑🆒🆓🆔🆕🆖🅾🆗🆘🆙🆚🈁🈂🈷🈶🉐🈹🈲🉑🈸🈴🈳🈺🈵🔴🔵🔶🔷");
   ncplane_putstr_yx(n, 23, 1, "🔸🔹🔺🔻💠🔘🔳🔲🏁🚩🎌⛧⛤⛢⛦⛥");
-  const char SUMMARY[] = "[Unicode 6.0 (2010), 608 codepoints]";
-  ncplane_set_fg(n, 0x40d0d0);
-  const int x = ncplane_align(n, NCALIGN_RIGHT, strlen(SUMMARY) + 2);
-  ncplane_putstr_yx(n, ROWS - 1, x, SUMMARY);
+  return n;
+}
+
+static struct ncplane*
+unicode13(struct ncplane* title, int y){
+  const char SUMMARY[] = "[Unicode 13.0 (2010), 56 codepoints]";
+  const int ROWS = 4;
+  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
+  if(n == NULL){
+    return NULL;
+  }
+  ncplane_putstr_yx(n, 1, 1, "\xf0\x9f\xa5\xb2\xf0\x9f\xa5\xb8\xf0\x9f\xa4\x8c"
+                             "\xf0\x9f\xab\x80\xf0\x9f\xab\x81\xf0\x9f\xa5\xb7"
+                             "\xf0\x9f\xab\x82\xf0\x9f\xa6\xac\xf0\x9f\xa6\xa3"
+                             "\xf0\x9f\xa6\xab\xf0\x9f\xa6\xa4\xf0\x9f\xaa\xb6"
+                             "\xf0\x9f\xa6\xad\xf0\x9f\xaa\xb2\xf0\x9f\xaa\xb3"
+                             "\xf0\x9f\xaa\xb0\xf0\x9f\xaa\xb1\xf0\x9f\xaa\xb4"
+                             "\xf0\x9f\xab\x90\xf0\x9f\xab\x92\xf0\x9f\xab\x91"
+                             "\xf0\x9f\xab\x93\xf0\x9f\xab\x94\xf0\x9f\xab\x95"
+                             "\xf0\x9f\xab\x96\xf0\x9f\xa7\x8b\xf0\x9f\xaa\xa8"
+                             "\xf0\x9f\xaa\xb5\xf0\x9f\x9b\x96\xf0\x9f\x9b\xbb"
+                             "\xf0\x9f\x9b\xbc\xf0\x9f\xaa\x84");
   return n;
 }
 
@@ -84,7 +121,8 @@ int mojibake_demo(struct notcurses* nc){
     return -1;
   }
   struct ncplane* planes[] = {
-    unicode52(std, dimy - 1),
+    unicode52(title, dimy - 1),
+    unicode13(title, dimy + 1),
   };
   // scroll the various planes up from the bottom. none are onscreen save the
   // first, which starts at the bottom. each time one clears, we bring the
@@ -94,12 +132,14 @@ int mojibake_demo(struct notcurses* nc){
   struct timespec stepdelay;
   // two seconds onscreen per plane at standard (1s) delay
   timespec_div(&demodelay, dimy / 2, &stepdelay);
-  ncplane_move_below(planes[0], title);
   do{
     unsigned u = topmost;
     do{
       int y, x, leny;
       ncplane_yx(planes[u], &y, &x);
+      if(y >= dimy){
+        break;
+      }
       if(ncplane_move_yx(planes[u], y - 1, x)){
         goto err;
       }
@@ -108,7 +148,11 @@ int mojibake_demo(struct notcurses* nc){
         ++topmost;
       }
       if(leny + y + 1 == dimy - 1){
-        // FIXME bring next one on
+        if(u + 1 < sizeof(planes) / sizeof(*planes)){
+          if(ncplane_move_yx(planes[u + 1], dimy - 1, x)){
+            goto err;
+          }
+        }
       }
       ++u;
     }while(u < sizeof(planes) / sizeof(*planes));
