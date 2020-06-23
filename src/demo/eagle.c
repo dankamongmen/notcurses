@@ -49,14 +49,16 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   }
 //fprintf(stderr, "VHEIGHT: %d VWIDTH: %d scale: %d/%d\n", vheight, vwidth, yscale, xscale);
   // we start at the lower left corner of the outzoomed map
-  int truex, truey; // dimensions of true display
-  notcurses_term_dim_yx(nc, &truey, &truex);
-  int delty = 2;
-  int deltx = 2;
+  int placey, placex; // dimensions of true display
+  notcurses_term_dim_yx(nc, &placey, &placex);
+  float delty = 3;
+  float deltx = 3;
+  float truey = placey;
+  float truex = placex;
   if(truey > truex){
-    ++delty;
-  }else if(truex > truey){
-    ++deltx;
+    delty *= truey / truex;
+  }else{
+    deltx *= truex / truey;
   }
   // to zoom in on the map, we're going to scale the full image to a plane
   // which grows on each iteration. it starts at the standard plane size,
@@ -76,7 +78,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
     ncplane_destroy(zncp);
     return NULL;
   }
-  while(vheight > truey && vwidth > truex){
+  while(vheight > truey || vwidth > truex){
     *ret = -1;
     ncplane_destroy(zncp);
     if((zncp = ncplane_new(nc, truey, truex, 0, 0, NULL)) == NULL){
