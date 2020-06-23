@@ -28,7 +28,7 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
 
 static struct ncplane*
 unicode52(struct ncplane* title, int y){
-  const char SUMMARY[] = "[Unicode 6.0 (2010), 608 codepoints]";
+  const char SUMMARY[] = "[Unicode 6.0 (2010), 722 codepoints]";
   const int ROWS = 25;
   struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
   if(n == NULL){
@@ -62,7 +62,7 @@ unicode52(struct ncplane* title, int y){
 
 static struct ncplane*
 unicode13(struct ncplane* title, int y){
-  const char SUMMARY[] = "[Unicode 13.0 (2010), 56 codepoints]";
+  const char SUMMARY[] = "[Unicode 13.0 (2020), 56 codepoints]";
   const int ROWS = 4;
   struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
   if(n == NULL){
@@ -79,6 +79,14 @@ unicode13(struct ncplane* title, int y){
                              "\xf0\x9f\xab\x96\xf0\x9f\xa7\x8b\xf0\x9f\xaa\xa8"
                              "\xf0\x9f\xaa\xb5\xf0\x9f\x9b\x96\xf0\x9f\x9b\xbb"
                              "\xf0\x9f\x9b\xbc\xf0\x9f\xaa\x84");
+  ncplane_putstr_yx(n, 2, 1, "\xf0\x9f\xaa\x85\xf0\x9f\xaa\x86\xf0\x9f\xaa\xa1"
+                             "\xf0\x9f\xaa\xa2\xf0\x9f\xa9\xb4\xf0\x9f\xaa\x96"
+                             "\xf0\x9f\xaa\x97\xf0\x9f\xaa\x98\xf0\x9f\xaa\x99"
+                             "\xf0\x9f\xaa\x83\xf0\x9f\xaa\x9a\xf0\x9f\xaa\x9b"
+                             "\xf0\x9f\xaa\x9d\xf0\x9f\xaa\x9c\xf0\x9f\x9b\x97"
+                             "\xf0\x9f\xaa\x9e\xf0\x9f\xaa\x9f\xf0\x9f\xaa\xa0"
+                             "\xf0\x9f\xaa\xa4\xf0\x9f\xaa\xa3\xf0\x9f\xaa\xa5"
+                             "\xf0\x9f\xaa\xa6\xf0\x9f\xaa\xa7\xe2\x9a\xa7");
   return n;
 }
 
