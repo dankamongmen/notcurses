@@ -79,7 +79,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   ncplane_erase(n);
   struct ncvisual* nncv = NULL;
   if(notcurses_canopen_images(nc)){
-    char* path = find_data("fractalheight.png");
+    char* path = find_data("normal.png");
     if(path){
       nc_err_e err;
       nncv = ncvisual_from_file(path, &err);
