@@ -1,9 +1,16 @@
 #include "demo.h"
 
 static struct ncplane*
-unicode60(struct ncplane* std, int y, int dimx){
-  struct ncplane* n = ncplane_aligned(std, 25, dimx - 8, y, NCALIGN_CENTER, NULL);
+unicode52(struct ncplane* std, int y){
+  struct ncplane* n = ncplane_aligned(std, 25, 72, y, NCALIGN_CENTER, NULL);
   if(ncplane_perimeter_rounded(n, 0, 0, 0) < 0){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  uint64_t channels = 0;
+  channels_set_bg(&channels, 0x0);
+  if(ncplane_set_base(n, " ", 0, channels) < 0 || ncplane_set_fg(n, 0xffffff)
+      || ncplane_set_bg(n, 0)){
     ncplane_destroy(n);
     return NULL;
   }
@@ -30,7 +37,38 @@ unicode60(struct ncplane* std, int y, int dimx){
   ncplane_putstr_yx(n, 21, 1, "🔼⏫🔽⏬🎦🔅🔆📶📳📴➕➖➗❓❔❕💱💲🔱📛🔰✅❌❎➰➿🔟🔠🔡🔢🔣🔤");
   ncplane_putstr_yx(n, 22, 1, "🅰🆎🅱🆑🆒🆓🆔🆕🆖🅾🆗🆘🆙🆚🈁🈂🈷🈶🉐🈹🈲🉑🈸🈴🈳🈺🈵🔴🔵🔶🔷🔸🔹🔺");
   ncplane_putstr_yx(n, 23, 1, "🔻💠🔘🔳🔲🏁🚩🎌⛧⛤⛢⛦⛥");
+  const char SUMMARY[] = "[Unicode 5.2 (2009), 722 codepoints]";
+  const int x = ncplane_align(n, NCALIGN_RIGHT, strlen(SUMMARY) + 2);
+  ncplane_putstr_yx(n, 24, x, SUMMARY);
   return n;
+}
+
+struct ncplane*
+maketitle(struct ncplane* std, int dimx){
+  struct ncplane* title = ncplane_aligned(std, 3, dimx, 1, NCALIGN_CENTER, NULL);
+  if(title == NULL){
+    return NULL;
+  }
+  uint64_t channels = 0;
+  channels_set_bg(&channels, 0x0);
+  if(ncplane_set_base(title, " ", 0, channels) < 0 || ncplane_set_fg(title, 0xffffff)
+      || ncplane_set_bg(title, 0)){
+    ncplane_destroy(title);
+    return NULL;
+  }
+  if(ncplane_putstr_aligned(title, 0, NCALIGN_CENTER, "mojibake 文字化けmodʑibake") < 0){
+    ncplane_destroy(title);
+    return NULL;
+  }
+  if(ncplane_putstr_aligned(title, 1, NCALIGN_CENTER, "the display of emoji depends upon terminal, font, and font rendering engine.") < 0){
+    ncplane_destroy(title);
+    return NULL;
+  }
+  if(ncplane_putstr_aligned(title, 2, NCALIGN_CENTER, "not all symbols are emoji, and not all emoji map to a single code point.") < 0){
+    ncplane_destroy(title);
+    return NULL;
+  }
+  return title;
 }
 
 int mojibake_demo(struct notcurses* nc){
@@ -39,13 +77,52 @@ int mojibake_demo(struct notcurses* nc){
   }
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
-  ncplane_set_fg(std, 0xffffff);
-  if(ncplane_putstr_aligned(std, 2, NCALIGN_CENTER, "mojibake 文字化けmodʑibake") < 0){
+  struct ncplane* title = maketitle(std, dimx);
+  if(title == NULL){
     return -1;
   }
-  struct ncplane* u60 = unicode60(std, 4, dimx);
-  DEMO_RENDER(nc);
-  demo_nanosleep(nc, &demodelay);
-  ncplane_destroy(u60);
+  struct ncplane* planes[] = {
+    unicode52(std, dimy - 1),
+  };
+  // scroll the various planes up from the bottom. none are onscreen save the
+  // first, which starts at the bottom. each time one clears, we bring the
+  // next one onscreen; at each step, we move all onscreen up by one row. when
+  // the last one exits via the top, we're done.
+  unsigned topmost = 0; // index of the topmost visible panel
+  struct timespec stepdelay;
+  // two seconds onscreen per plane at standard (1s) delay
+  timespec_div(&demodelay, dimy / 2, &stepdelay);
+  ncplane_move_below(planes[0], title);
+  do{
+    unsigned u = topmost;
+    do{
+      int y, x, leny;
+      ncplane_yx(planes[u], &y, &x);
+      if(ncplane_move_yx(planes[u], y - 1, x)){
+        goto err;
+      }
+      ncplane_dim_yx(planes[u], &leny, NULL);
+      if(leny + y + 1 == 0){
+        ++topmost;
+      }
+      if(leny + y + 1 == dimy - 1){
+        // FIXME bring next one on
+      }
+      ++u;
+    }while(u < sizeof(planes) / sizeof(*planes));
+    DEMO_RENDER(nc);
+    demo_nanosleep(nc, &stepdelay);
+  }while(topmost < sizeof(planes) / sizeof(*planes));
+  for(unsigned u = 0 ; u < sizeof(planes) / sizeof(*planes) ; ++u){
+    ncplane_destroy(planes[u]);
+  }
+  ncplane_destroy(title);
   return 0;
+
+err:
+  for(unsigned u = 0 ; u < sizeof(planes) / sizeof(*planes) ; ++u){
+    ncplane_destroy(planes[u]);
+  }
+  ncplane_destroy(title);
+  return -1;
 }
