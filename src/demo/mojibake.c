@@ -39,6 +39,7 @@ unicode52(struct ncplane* std, int y){
   ncplane_putstr_yx(n, 22, 1, "⏯\ufe0f🔣🔤🅰🆎🅱🆑🆒🆓🆔🆕🆖🅾🆗🆘🆙🆚🈁🈂🈷🈶🉐🈹🈲🉑🈸🈴🈳🈺🈵🔴🔵🔶🔷");
   ncplane_putstr_yx(n, 23, 1, "🔸🔹🔺🔻💠🔘🔳🔲🏁🚩🎌⛧⛤⛢⛦⛥");
   const char SUMMARY[] = "[Unicode 6.0 (2010), 608 codepoints]";
+  ncplane_set_fg(n, 0x40d0d0);
   const int x = ncplane_align(n, NCALIGN_RIGHT, strlen(SUMMARY) + 2);
   ncplane_putstr_yx(n, ROWS - 1, x, SUMMARY);
   return n;
