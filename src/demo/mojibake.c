@@ -27,6 +27,25 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
 }
 
 static struct ncplane*
+unicode1emoji1(struct ncplane* title, int y){
+  const char SUMMARY[] = "[Unicode 1.1 (1993) / Emoji 1.0 (2015), 16 codepoints]";
+  const int ROWS = 4;
+  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
+  if(n == NULL){
+    return NULL;
+  }
+  ncplane_putstr_yx(n, 1, 1, "\u2764 (\u2764\ufe0f) \u2709 (\u2709\ufe0f)"
+                             "\u270f (\u270f\ufe0f) \u2712 (\u2712\ufe0f)"
+                             "\u2195 (\u2195\ufe0f) \u2194 (\u2194\ufe0f)"
+                             "\u2716 (\u2716\ufe0f) \u2733 (\u2733\ufe0f)"
+                             "\u2734 (\u2734\ufe0f) \u2747 (\u2747\ufe0f)");
+  ncplane_putstr_yx(n, 2, 1, "\u2660 (\u2660\ufe0f) \u2665 (\u2665\ufe0f)"
+                             "\u2666 (\u2666\ufe0f) \u2663 (\u2663\ufe0f)"
+                             "\u260e (\u260e\ufe0f) \u27a1 (\u27a1\ufe0f)");
+  return n;
+}
+
+static struct ncplane*
 unicode52(struct ncplane* title, int y){
   const char SUMMARY[] = "[Unicode 5.2 (2009), Emoji 1.0 (2015), 24 codepoints]";
   const int ROWS = 5;
@@ -82,27 +101,6 @@ unicode60(struct ncplane* title, int y){
   ncplane_putstr_yx(n, 21, 1, "⏭\ufe0f⏮\ufe0f⏫🔽⏬🎦🔅🔆📶📳📴➕➖➗❓❔❕💱💲🔱📛🔰✅❌❎➰➿🔟🔠🔡🔢");
   ncplane_putstr_yx(n, 22, 1, "⏯\ufe0f🔣🔤🅰🆎🅱🆑🆒🆓🆔🆕🆖🅾🆗🆘🆙🆚🈁🈂🈷🈶🉐🈹🈲🉑🈸🈴🈳🈺🈵🔴🔵🔶🔷");
   ncplane_putstr_yx(n, 23, 1, "🔸🔹🔺🔻💠🔘🔳🔲🏁🚩🎌⛧⛤⛢⛦⛥");
-  return n;
-}
-
-static struct ncplane*
-unicode1emoji1(struct ncplane* title, int y){
-  const char SUMMARY[] = "[Unicode 1.1 (1993) / Emoji 1.0 (2015), 16 codepoints]";
-  const int ROWS = 4;
-  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
-  if(n == NULL){
-    return NULL;
-  }
-  ncplane_putstr_yx(n, 1, 1, "\u2764 (\u2764\ufe0f)"
-                             "\u2709 (\u2709\ufe0f)"
-                             "\u270f (\u270f\ufe0f)"
-                             "\u2712 (\u2712\ufe0f)"
-                             "\u2195 (\u2195\ufe0f) \u2194 (\u2194\ufe0f)"
-                             "\u2716 (\u2716\ufe0f) \u2733 (\u2733\ufe0f)"
-                             "\u2734 (\u2734\ufe0f) \u2747 (\u2747\ufe0f)");
-  ncplane_putstr_yx(n, 2, 1, "\u2660 (\u2660\ufe0f) \u2665 (\u2665\ufe0f)"
-                             "\u2666 (\u2666\ufe0f) \u2663 (\u2663\ufe0f)"
-                             "\u260e (\u260e\ufe0f) \u27a1 (\u27a1\ufe0f)");
   return n;
 }
 
