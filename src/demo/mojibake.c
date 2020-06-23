@@ -28,6 +28,31 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
 
 static struct ncplane*
 unicode52(struct ncplane* title, int y){
+  const char SUMMARY[] = "[Unicode 5.2 (2009), Emoji 1.0 (2015), 24 codepoints]";
+  const int ROWS = 5;
+  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
+  if(n == NULL){
+    return NULL;
+  }
+  ncplane_putstr_yx(n, 1, 1, "\u26ea (\u26ea\ufe0f) \u26f2 (\u26f2\ufe0f)"
+                             "\u26fa (\u26fa\ufe0f) \u2668 (\u2668\ufe0f)"
+                             "\u26fd (\u26fd\ufe0f) \u2693 (\u2693\ufe0f)"
+                             "\u26f5 (\u26f5\ufe0f) \u2600 (\u2600\ufe0f)");
+  ncplane_putstr_yx(n, 2, 1, "\u26c5 (\u26c5\ufe0f) \u2614 (\u2614\ufe0f)"
+                             "\u26a1 (\u26a1\ufe0f) \u26c4 (\u26c4\ufe0f)"
+                             "\u26be (\u26b3\ufe0f) \u26d4 (\u26d4\ufe0f)"
+                             "\u2b06 (\u2b06\ufe0f) \u2b07 (\u2b07\ufe0f)");
+  ncplane_putstr_yx(n, 3, 1, "\u2b05 (\u2b05\ufe0f) \u26ce (\u26ce\ufe0f)"
+                             "\u203c (\u203c\ufe0f) \u2049 (\u2049\ufe0f)"
+                             "\xf0\x9f\x85\xbf (\xf0\x9f\x85\xbf\ufe0f)"
+                             "\xf0\x9f\x88\xaf (\xf0\x9f\x88\xaf\ufe0f)"
+                             "\xf0\x9f\x88\x9a (\xf0\x9f\x88\x9a\ufe0f)"
+                             "\u3299 (\u3299\ufe0f)");
+  return n;
+}
+
+static struct ncplane*
+unicode60(struct ncplane* title, int y){
   const char SUMMARY[] = "[Unicode 6.0 (2010), 722 codepoints]";
   const int ROWS = 25;
   struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
@@ -62,13 +87,22 @@ unicode52(struct ncplane* title, int y){
 
 static struct ncplane*
 unicode1emoji1(struct ncplane* title, int y){
-  const char SUMMARY[] = "[Unicode 1.1 (1993) / Emoji 1.0 (2015), 1 codepoint]";
-  const int ROWS = 3;
+  const char SUMMARY[] = "[Unicode 1.1 (1993) / Emoji 1.0 (2015), 16 codepoints]";
+  const int ROWS = 4;
   struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
   if(n == NULL){
     return NULL;
   }
-  ncplane_putstr_yx(n, 1, 1, "\xe2\x9d\xa3 (\xe2\x9d\xa3\ufe0f)");
+  ncplane_putstr_yx(n, 1, 1, "\u2764 (\u2764\ufe0f)"
+                             "\u2709 (\u2709\ufe0f)"
+                             "\u270f (\u270f\ufe0f)"
+                             "\u2712 (\u2712\ufe0f)"
+                             "\u2195 (\u2195\ufe0f) \u2194 (\u2194\ufe0f)"
+                             "\u2716 (\u2716\ufe0f) \u2733 (\u2733\ufe0f)"
+                             "\u2734 (\u2734\ufe0f) \u2747 (\u2747\ufe0f)");
+  ncplane_putstr_yx(n, 2, 1, "\u2660 (\u2660\ufe0f) \u2665 (\u2665\ufe0f)"
+                             "\u2666 (\u2666\ufe0f) \u2663 (\u2663\ufe0f)"
+                             "\u260e (\u260e\ufe0f) \u27a1 (\u27a1\ufe0f)");
   return n;
 }
 
@@ -155,6 +189,7 @@ int mojibake_demo(struct notcurses* nc){
   struct ncplane* planes[] = {
     unicode1emoji1(title, dimy - 1),
     unicode52(title, dimy + 1),
+    unicode60(title, dimy + 1),
     unicode7emoji2(title, dimy + 1),
     unicode13(title, dimy + 1),
   };
