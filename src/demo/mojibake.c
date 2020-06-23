@@ -61,6 +61,18 @@ unicode52(struct ncplane* title, int y){
 }
 
 static struct ncplane*
+unicode7emoji2(struct ncplane* title, int y){
+  const char SUMMARY[] = "[Unicode 7.0 (2014) / Emoji 2.0 (2015), 1 codepoint]";
+  const int ROWS = 3;
+  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
+  if(n == NULL){
+    return NULL;
+  }
+  ncplane_putstr_yx(n, 1, 1, "\xf0\x9f\x97\xa8\xef\xb8\x8f");
+  return n;
+}
+
+static struct ncplane*
 unicode13(struct ncplane* title, int y){
   const char SUMMARY[] = "[Unicode 13.0 (2020), 56 codepoints]";
   const int ROWS = 4;
@@ -130,6 +142,7 @@ int mojibake_demo(struct notcurses* nc){
   }
   struct ncplane* planes[] = {
     unicode52(title, dimy - 1),
+    unicode7emoji2(title, dimy + 1),
     unicode13(title, dimy + 1),
   };
   // scroll the various planes up from the bottom. none are onscreen save the
