@@ -2,14 +2,15 @@
 
 static struct ncplane*
 unicode52(struct ncplane* std, int y){
-  struct ncplane* n = ncplane_aligned(std, 25, 72, y, NCALIGN_CENTER, NULL);
+  const int ROWS = 25;
+  struct ncplane* n = ncplane_aligned(std, ROWS, 64, y, NCALIGN_CENTER, NULL);
   if(ncplane_perimeter_rounded(n, 0, 0, 0) < 0){
     ncplane_destroy(n);
     return NULL;
   }
   uint64_t channels = 0;
   channels_set_bg(&channels, 0x0);
-  if(ncplane_set_base(n, " ", 0, channels) < 0 || ncplane_set_fg(n, 0xffffff)
+  if(ncplane_set_base(n, " ", 0, channels) < 0 || ncplane_set_fg(n, 0x40d040)
       || ncplane_set_bg(n, 0)){
     ncplane_destroy(n);
     return NULL;
@@ -37,9 +38,9 @@ unicode52(struct ncplane* std, int y){
   ncplane_putstr_yx(n, 21, 1, "🔼⏫🔽⏬🎦🔅🔆📶📳📴➕➖➗❓❔❕💱💲🔱📛🔰✅❌❎➰➿🔟🔠🔡🔢🔣🔤");
   ncplane_putstr_yx(n, 22, 1, "🅰🆎🅱🆑🆒🆓🆔🆕🆖🅾🆗🆘🆙🆚🈁🈂🈷🈶🉐🈹🈲🉑🈸🈴🈳🈺🈵🔴🔵🔶🔷🔸🔹🔺");
   ncplane_putstr_yx(n, 23, 1, "🔻💠🔘🔳🔲🏁🚩🎌⛧⛤⛢⛦⛥");
-  const char SUMMARY[] = "[Unicode 5.2 (2009), 722 codepoints]";
+  const char SUMMARY[] = "[Unicode 6.0 (2010), 608 codepoints]";
   const int x = ncplane_align(n, NCALIGN_RIGHT, strlen(SUMMARY) + 2);
-  ncplane_putstr_yx(n, 24, x, SUMMARY);
+  ncplane_putstr_yx(n, ROWS - 1, x, SUMMARY);
   return n;
 }
 
@@ -56,15 +57,15 @@ maketitle(struct ncplane* std, int dimx){
     ncplane_destroy(title);
     return NULL;
   }
-  if(ncplane_putstr_aligned(title, 0, NCALIGN_CENTER, "mojibake 文字化けmodʑibake") < 0){
+  if(ncplane_putstr_aligned(title, 0, NCALIGN_CENTER, "mojibake 文字化けmodʑibake (english: \"garbled\")") < 0){
     ncplane_destroy(title);
     return NULL;
   }
-  if(ncplane_putstr_aligned(title, 1, NCALIGN_CENTER, "the display of emoji depends upon terminal, font, and font rendering engine.") < 0){
+  if(ncplane_putstr_aligned(title, 1, NCALIGN_CENTER, "Display of emoji depends upon terminal, font, and font rendering engine.") < 0){
     ncplane_destroy(title);
     return NULL;
   }
-  if(ncplane_putstr_aligned(title, 2, NCALIGN_CENTER, "not all symbols are emoji, and not all emoji map to a single code point.") < 0){
+  if(ncplane_putstr_aligned(title, 2, NCALIGN_CENTER, "Not all symbols are emoji, and not all emoji map to a single code point.") < 0){
     ncplane_destroy(title);
     return NULL;
   }
