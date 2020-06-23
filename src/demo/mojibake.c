@@ -61,6 +61,18 @@ unicode52(struct ncplane* title, int y){
 }
 
 static struct ncplane*
+unicode1emoji1(struct ncplane* title, int y){
+  const char SUMMARY[] = "[Unicode 1.1 (1993) / Emoji 1.0 (2015), 1 codepoint]";
+  const int ROWS = 3;
+  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
+  if(n == NULL){
+    return NULL;
+  }
+  ncplane_putstr_yx(n, 1, 1, "\xe2\x9d\xa3 (\xe2\x9d\xa3\ufe0f)");
+  return n;
+}
+
+static struct ncplane*
 unicode7emoji2(struct ncplane* title, int y){
   const char SUMMARY[] = "[Unicode 7.0 (2014) / Emoji 2.0 (2015), 1 codepoint]";
   const int ROWS = 3;
@@ -68,7 +80,7 @@ unicode7emoji2(struct ncplane* title, int y){
   if(n == NULL){
     return NULL;
   }
-  ncplane_putstr_yx(n, 1, 1, "\xf0\x9f\x97\xa8\xef\xb8\x8f");
+  ncplane_putstr_yx(n, 1, 1, "\xf0\x9f\x97\xa8 (\xf0\x9f\x97\xa8\ufe0f)");
   return n;
 }
 
@@ -141,7 +153,8 @@ int mojibake_demo(struct notcurses* nc){
     return -1;
   }
   struct ncplane* planes[] = {
-    unicode52(title, dimy - 1),
+    unicode1emoji1(title, dimy - 1),
+    unicode52(title, dimy + 1),
     unicode7emoji2(title, dimy + 1),
     unicode13(title, dimy + 1),
   };
