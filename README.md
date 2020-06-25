@@ -348,6 +348,9 @@ up someday **FIXME**.
 * *Q:* I'm not finding qrcodegen on FreeBSD, despite having installed `graphics/qr-code-generator`.
 * *A:* Try `cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include`. This is passed by `bsd.port.mk`.
 
+* *Q:* Do you support [musl](https://musl.libc.org/)?
+* *A:* I try to! You'll need at least 1.20.
+
 ## Supplemental material
 
 ### Useful links
