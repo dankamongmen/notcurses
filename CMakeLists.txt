@@ -63,7 +63,9 @@ message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
-pkg_check_modules(TERMINFO REQUIRED tinfo>=6.1)
+# some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
+# into ncurses. accept either, and may god have mercy on our souls.
+pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
 if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
