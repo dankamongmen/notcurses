@@ -1,7 +1,7 @@
+#include <poll.h>
 #include <ctype.h>
 #include <limits.h>
 #include <unistd.h>
-#include <sys/poll.h>
 #include "internal.h"
 
 // Check whether the terminal geometry has changed, and if so, copies what can

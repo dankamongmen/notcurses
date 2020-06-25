@@ -1,9 +1,9 @@
 #include "internal.h"
+#include <poll.h>
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <term.h>
 #include <ctype.h>
 #include <signal.h>
-#include <sys/poll.h>
 
 // CSI (Control Sequence Indicators) originate in the terminal itself, and are
 // not reported in their bare form to the user. For our purposes, these usually

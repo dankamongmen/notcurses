@@ -2,6 +2,7 @@
 #include "egcpool.h"
 #include "internal.h"
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <poll.h>
 #include <time.h>
 #include <term.h>
 #include <fcntl.h>
@@ -14,7 +15,6 @@
 #include <signal.h>
 #include <locale.h>
 #include <langinfo.h>
-#include <sys/poll.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
 

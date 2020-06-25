@@ -1,3 +1,4 @@
+#include <poll.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -5,7 +6,6 @@
 #include <assert.h>
 #include <string.h>
 #include <pthread.h>
-#include <sys/poll.h>
 #include "demo.h"
 
 #define INITIAL_TABLET_COUNT 4
