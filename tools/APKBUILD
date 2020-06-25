@@ -1,0 +1,41 @@
+# Contributor: Nick Black <dankamongmen@gmail.com>
+# Maintainer: Nick Black <dankamongmen@gmail.com>
+pkgname=notcurses
+pkgver="1.5.3"
+pkgrel=0
+pkgdesc="Blingful character graphics and TUI library"
+url="https://nick-black.com/dankwiki/index.php/Notcurses"
+arch="all"
+license="Apache-2.0"
+depends="ffmpeg ncurses-terminfo"
+makedepends="cmake ncurses-dev linux-headers ffmpeg-dev"
+install=""
+subpackages="$pkgname-dev $pkgname-doc"
+source="${pkgname}-${pkgver}.tar.gz::https://github.com/dankamongmen/notcurses/archive/v${pkgver}.tar.gz"
+builddir="$srcdir/"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B "build" -S "${pkgname}-${pkgver}" \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=RelWithDebugInfo \
+                -DBUILD_TESTING=off \
+                -DUSE_PANDOC=off \
+                -DUSE_QRCODEGEN=off \
+		${CMAKE_CROSSOPTS}
+	make -C "build"
+}
+
+check() {
+	CTEST_OUTPUT_ON_FAILURE=1 make -C "${pkgname}-${pkgver}/build" check
+}
+
+package() {
+	make -C "${pkgname}-${pkgver}/build" DESTDIR="$pkgdir" install
+}
+
+sha512sums="8f8ed2b9096653d5846c7b2fa372aaf4aa95ab97a3084b192bdf8442d6cbdfe8e11c0210f4b6d06a6d56a44b6c15eb267558cf0025604f456776bb65ccf0bb27  notcurses-1.5.2.tar.gz"
