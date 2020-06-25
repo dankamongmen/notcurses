@@ -316,6 +316,15 @@ up someday **FIXME**.
 
 ### FAQs
 
+If things break or seem otherwise lackluster, **please** consult the
+[Environment Notes](#environment_notes) section! You **need** to have a correct
+`TERM` and `LANG` definition, and probably want `COLORTERM`.
+
+* *Q:* The demo fails in the middle of `intro`.
+* *A:* Check that your `TERM` definitions is correct for your terminal. `intro`
+       does a palette fade, which is prone to breaking under incorrect `TERM`
+       values. If you're not using `xterm`, your `TERM` should not be `xterm`!
+
 * *Q:* Why didn't you just use Sixel?
 * *A:* Many terminal emulators don't support Sixel. Sixel doesn't work well
        with mouse selection. With that said, I do intend to support Sixel soon,
