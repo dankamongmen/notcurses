@@ -86,7 +86,6 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
       if(nncv){
         struct ncvisual_options nvopts = {
           .n = notcurses_stdplane(nc),
-          .blitter = NCBLIT_2x2,
           .y = 1,
           .scaling = NCSCALE_STRETCH,
         };

@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.5.3 (not yet released)
+  * The default blitter when `NCSCALE_STRETCH` is used is now `NCBLIT_2x2`,
+    replacing `NCBLIT_2x1`. It is not the default for `NCSCALE_NONE` and
+    `NCSCALE_SCALE` because it does not preserve aspect ratio.
+
 * 1.5.2 (2020-06-19)
   * The `ncneofetch` program has been added, of no great consequence.
   * A `NULL` value can now be passed as `sbytes` to `ncplane_puttext()`.

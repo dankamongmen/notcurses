@@ -15,7 +15,6 @@ view_video_demo(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .scaling = NCSCALE_STRETCH,
     .n = ncp,
-    .blitter = NCBLIT_2x2,
     .y = 1,
   };
   int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier,
@@ -81,7 +80,6 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   struct ncvisual_options vopts = {
     .n = dsplane,
     .scaling = NCSCALE_STRETCH,
-    .blitter = NCBLIT_2x2,
     .y = 1,
   };
   if(ncvisual_render(nc, ncv2, &vopts) == NULL){
@@ -107,7 +105,6 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   }
   free(pic);
   vopts.n = notcurses_stdplane(nc);
-  vopts.blitter = NCBLIT_2x2;
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);
     ncplane_destroy(dsplane);

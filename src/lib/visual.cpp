@@ -29,8 +29,14 @@ encoding_x_scale(const struct blitset* bset) -> int {
 }
 
 static inline auto
-ncvisual_default_blitter(const notcurses* nc) -> ncblitter_e {
+ncvisual_default_blitter(const notcurses* nc, ncscale_e scale) -> ncblitter_e {
   if(notcurses_canutf8(nc)){
+    // NCBLIT_2x2 is better image quality, especially for large images, but
+    // it's not the general default because it doesn't preserve aspect ratio.
+    // NCSCALE_STRETCH throws away aspect ratio, and can safely use NCBLIT_2x2.
+    if(scale == NCSCALE_STRETCH){
+      return NCBLIT_2x2;
+    }
     return NCBLIT_2x1;
   }
   return NCBLIT_1x1;
@@ -48,9 +54,10 @@ void scale_visual(const ncvisual* ncv, int* disprows, int* dispcols) {
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {
+  const ncscale_e scale = vopts ? vopts->scaling : NCSCALE_NONE;
   ncblitter_e blitter;
   if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitter = ncvisual_default_blitter(nc);
+    blitter = ncvisual_default_blitter(nc, scale);
   }else{
     blitter = vopts->blitter;
   }
@@ -67,19 +74,16 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
     x = &fauxx;
   }
   if(n){
-    if(!vopts || vopts->scaling == NCSCALE_NONE){
+    if(scale == NCSCALE_NONE){
       *y = n->rows;
-    }else{
-      int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdscr);
-      *y = rows * encoding_y_scale(bset);
-    }
-    if(!vopts || vopts->scaling == NCSCALE_NONE){
       *x = n->cols;
     }else{
+      int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdscr);
       int cols = vopts->n ? ncplane_dim_x(vopts->n) : ncplane_dim_x(nc->stdscr);
+      *y = rows * encoding_y_scale(bset);
       *x = cols * encoding_x_scale(bset);
     }
-    if(vopts && vopts->scaling == NCSCALE_SCALE){
+    if(scale == NCSCALE_SCALE){
       scale_visual(n, y, x);
     }
   }
@@ -98,10 +102,11 @@ static const struct blitset*
 rgba_blitter(const notcurses* nc, const struct ncvisual_options* opts){
   const struct blitset* bset;
   const bool maydegrade = !(opts && (opts->flags & NCVISUAL_OPTION_NODEGRADE));
+  const ncscale_e scale = opts ? opts->scaling : NCSCALE_NONE;
   if(opts && opts->blitter != NCBLIT_DEFAULT){
     bset = lookup_blitset(nc, opts->blitter, maydegrade);
   }else{
-    bset = lookup_blitset(nc, ncvisual_default_blitter(nc), maydegrade);
+    bset = lookup_blitset(nc, ncvisual_default_blitter(nc, scale), maydegrade);
   }
   if(bset && !bset->blit){ // FIXME remove this once all blitters are enabled
     bset = nullptr;

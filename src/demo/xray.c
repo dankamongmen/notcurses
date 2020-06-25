@@ -94,6 +94,7 @@ int xray_demo(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .n = n,
     .scaling = NCSCALE_STRETCH,
+    .blitter = NCBLIT_2x1,
   };
   int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, &vopts, newpanel);
   ncvisual_destroy(ncv);
