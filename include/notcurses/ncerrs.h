@@ -16,6 +16,8 @@ typedef enum {
   NCERR_NOMEM = ENOMEM,
   NCERR_EOF = 0x20464f45, // matches AVERROR_EOF
   NCERR_DECODE,
+  NCERR_SYSTEM,
+  NCERR_INVALID_ARG,
   NCERR_UNIMPLEMENTED,
 } nc_err_e;
 
@@ -26,6 +28,8 @@ nc_strerror(nc_err_e ncerr){
     case NCERR_NOMEM: return strerror(ENOMEM);
     case NCERR_EOF: return "end of file";
     case NCERR_DECODE: return "error decoding";
+    case NCERR_SYSTEM: return "system error";
+    case NCERR_INVALID_ARG: return "invalid argument";
     case NCERR_UNIMPLEMENTED: return "feature not available";
   };
   return "unknown error";
