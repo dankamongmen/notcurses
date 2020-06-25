@@ -58,4 +58,14 @@ ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned) -> void {
   ncv->owndata = owned;
 }
 
+static inline void
+scale_visual(const ncvisual* ncv, int* disprows, int* dispcols) {
+  float xratio = (float)(*dispcols) / ncv->cols;
+  if(xratio * ncv->rows > *disprows){
+    xratio = (float)(*disprows) / ncv->rows;
+  }
+  *disprows = xratio * (ncv->rows);
+  *dispcols = xratio * (ncv->cols);
+}
+
 #endif

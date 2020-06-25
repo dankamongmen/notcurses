@@ -1,7 +1,9 @@
 #include <errno.h>
-#include <string.h>
+#include <cstring>
 #include <unistd.h>
 #include <termios.h>
+#include "version.h"
+#include "visual-details.h"
 #include "internal.h"
 
 int ncdirect_cursor_up(ncdirect* nc, int num){
@@ -122,15 +124,15 @@ cursor_yx_get(FILE* outfp, FILE* infp, int* y, int* x){
   while((in = getc(infp)) != EOF){
     bool valid = false;
     switch(state){
-      case CURSOR_ESC: valid = (in == '\x1b'); ++state; break;
-      case CURSOR_LSQUARE: valid = (in == '['); ++state; break;
+      case CURSOR_ESC: valid = (in == '\x1b'); state = CURSOR_LSQUARE; break;
+      case CURSOR_LSQUARE: valid = (in == '['); state = CURSOR_ROW; break;
       case CURSOR_ROW:
         if(isdigit(in)){
           row *= 10;
           row += in - '0';
           valid = true;
         }else if(in == ';'){
-          ++state;
+          state = CURSOR_COLUMN;
           valid = true;
         }
         break;
@@ -140,7 +142,7 @@ cursor_yx_get(FILE* outfp, FILE* infp, int* y, int* x){
           column += in - '0';
           valid = true;
         }else if(in == 'R'){
-          ++state;
+          state = CURSOR_R;
           valid = true;
         }
         break;
@@ -216,12 +218,44 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
   if(ncv == NULL){
     return ret;
   }
-  (void)blitter;
-  (void)scale;
-  (void)n;
-  // FIXME
+  int begy, begx;
+fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
+  int leny = ncv->rows; // we allow it to freely scroll
+  int lenx = ncv->cols - begx;
+  if(leny == 0 || lenx == 0){
+    ncvisual_destroy(ncv);
+    return NCERR_DECODE;
+  }
+  if(ncdirect_cursor_yx(n, &begy, &begx)){
+    ncvisual_destroy(ncv);
+    return NCERR_SYSTEM;
+  }
+fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, scale);
+  auto bset = rgba_blitter(n->utf8, blitter, true);
+  if(!bset){
+    return NCERR_INVALID_ARG;
+  }
+  int disprows, dispcols;
+  dispcols = ncdirect_dim_x(n);
+  disprows = ncdirect_dim_y(n);
+  if(scale != NCSCALE_NONE){
+    dispcols *= encoding_x_scale(bset);
+    disprows *= encoding_y_scale(bset);
+    dispcols -= begx;
+    if(scale == NCSCALE_SCALE){
+      scale_visual(ncv, &disprows, &dispcols);
+    }
+  }
+  leny = (leny / (double)ncv->rows) * ((double)disprows);
+  lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
   ncvisual_destroy(ncv);
-  return NCERR_UNIMPLEMENTED; // FIXME
+//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+  if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
+                   begy, begx, begy, begx, leny, lenx,
+                   false)){
+    return NCERR_SYSTEM;
+  }
+  return NCERR_SUCCESS;
 }
 
 int ncdirect_stop(ncdirect* nc){

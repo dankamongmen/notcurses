@@ -4,13 +4,6 @@
 #include "visual-details.h"
 #include "internal.h"
 
-// Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
-// change the internals of the ncvisual. Uses oframe.
-nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
-                       ncplane* n, const struct blitset* bset,
-                       int placey, int placex, int begy, int begx,
-                       int leny, int lenx, bool blendcolors);
-
 // ncv constructors other than ncvisual_from_file() need to set up the
 // AVFrame* 'frame' according to their own data, which is assumed to
 // have been prepared already in 'ncv'.
@@ -449,7 +442,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   if(begx + lenx > ncv->cols || begy + leny > ncv->rows){
     return nullptr;
   }
-  auto bset = rgba_blitter(nc, vopts);
+  auto bset = rgba_blitter(notcurses_canutf8(nc), vopts);
   if(!bset){
     return nullptr;
   }

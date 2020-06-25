@@ -272,6 +272,7 @@ typedef struct ncdirect {
   tinfo tcache;              // terminfo cache
   uint16_t fgrgb, bgrgb;     // last RGB values of foreground/background
   bool fgdefault, bgdefault; // are FG/BG currently using default colors?
+  bool utf8;                 // are we using utf-8 encoding, as hoped?
 } ncdirect;
 
 typedef struct notcurses {
@@ -760,6 +761,13 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
     channels_set_bg_default(channels);
   }
 }
+
+// Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
+// change the internals of the ncvisual. Uses oframe.
+nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
+                       ncplane* n, const struct blitset* bset,
+                       int placey, int placex, int begy, int begx,
+                       int leny, int lenx, bool blendcolors);
 
 void nclog(const char* fmt, ...);
 
