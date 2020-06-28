@@ -544,6 +544,34 @@ add_test(
   NAME notcurses-tester
   COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
+add_test(
+  NAME ncpp_build
+  COMMAND ncpp_build
+)
+add_test(
+  NAME ncpp_build_exceptions
+  COMMAND ncpp_build_exceptions
+)
+add_test(
+  NAME dirgb
+  COMMAND dirgb
+)
+add_test(
+  NAME sgr
+  COMMAND sgr
+)
+add_test(
+  NAME rgb
+  COMMAND rgb
+)
+add_test(
+  NAME rgbbg
+  COMMAND rgbbg
+)
+add_test(
+  NAME ncneofetch
+  COMMAND ncneofetch
+)
 endif()
 
 # pkg-config support
