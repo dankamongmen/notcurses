@@ -150,6 +150,9 @@ typedef struct ncsubproc {
   ncfdplane* nfp;
   pid_t pid;                  // subprocess
   int pidfd;                  // for signalling/watching the subprocess
+  pthread_t waittid;          // wait()ing thread if pidfd is not available
+  pthread_mutex_t lock;       // guards waited
+  bool waited;                // we've wait()ed on it, don't kill/wait further
 } ncsubproc;
 
 typedef struct ncreader {

@@ -28,7 +28,7 @@ fdthread(ncfdplane* ncfp, int pidfd){
   char* buf = malloc(BUFSIZ);
   int pevents;
   pfds[0].fd = ncfp->fd;
-  pfds[0].events = POLLIN;
+  pfds[0].events = POLLIN | POLLRDHUP;
   const int fdcount = pidfd < 0 ? 1 : 2;
   if(fdcount > 1){
     pfds[1].fd = pidfd;
@@ -143,7 +143,6 @@ int ncfdplane_destroy(ncfdplane* n){
 // descriptors 1 and 2, exec()s, and begins running. the parent creates an
 // ncfdplane around the read end, involving creation of a new thread. the
 // parent then returns.
-
 static pid_t
 launch_pipe_process(int* pipe, int* pidfd){
   *pidfd = -1;
@@ -154,8 +153,8 @@ launch_pipe_process(int* pipe, int* pidfd){
   pid_t p = -1;
   // on linux, we try to use the brand-new pidfd capability via clone3(). if
   // that fails, fall through to fork(), which is all we try to use on freebsd.
-  // FIXME clone3 is not yet supported on debian sparc64, as of 2020-06 anyway
-#if (defined(__linux__) && !defined(__sparc__))
+  // FIXME clone3 is not yet supported on debian sparc64/alpha as of 2020-07
+#if (defined(__linux__) && !defined(__sparc__) && !defined(__alpha__))
 // FIXME introduced in linux 5.5
 #ifndef CLONE_CLEAR_SIGHAND
 #define CLONE_CLEAR_SIGHAND 0x100000000ULL
@@ -184,7 +183,6 @@ launch_pipe_process(int* pipe, int* pidfd){
 
 // nuke the just-spawned process, and reap it. called before the subprocess
 // reader thread is launched (which otherwise reaps the subprocess).
-// FIXME rigourize and port this
 static int
 kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
   int ret = -1;
@@ -227,6 +225,30 @@ ncsubproc_thread(void* vncsp){
   return status;
 }
 
+// this is only used if we don't have a pidfd available for poll()ing. in that
+// case, we want to perform a blocking waitpid() on the pid, calling the
+// completion callback when it exits (since the process exit won't necessarily
+// wake up our poll()ing thread).
+static void *
+ncsubproc_waiter(void* vncsp){
+  ncsubproc* ncsp = vncsp;
+  int* status = malloc(sizeof(*status));
+  pid_t pid;
+  while((pid = waitpid(ncsp->pid, status, 0)) < 0 && errno == EINTR){
+    ;
+  }
+  if(pid != ncsp->pid){
+    return NULL;
+  }
+  pthread_mutex_lock(&ncsp->lock);
+  ncsp->waited = true;
+  pthread_mutex_unlock(&ncsp->lock);
+  if(!ncsp->nfp->destroyed){
+    ncsp->nfp->donecb(ncsp->nfp, *status, ncsp->nfp->curry);
+  }
+  return status;
+}
+
 static ncfdplane*
 ncsubproc_launch(ncplane* n, ncsubproc* ret, const ncsubproc_options* opts, int fd,
                  ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
@@ -241,6 +263,15 @@ ncsubproc_launch(ncplane* n, ncsubproc* ret, const ncsubproc_options* opts, int 
   if(pthread_create(&ret->nfp->tid, NULL, ncsubproc_thread, ret)){
     ncfdplane_destroy_inner(ret->nfp);
     ret->nfp = NULL;
+  }
+  if(ret->pidfd < 0){
+    // if we don't have a pidfd to throw into our poll(), we need spin up a
+    // thread to call waitpid() on our pid
+    if(pthread_create(&ret->waittid, NULL, ncsubproc_waiter, ret)){
+      // FIXME cancel and join thread
+      ncfdplane_destroy_inner(ret->nfp);
+      ret->nfp = NULL;
+    }
   }
   return ret->nfp;
 }
@@ -260,8 +291,6 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
     execv(bin, arg);
-//fprintf(stderr, "Error execv()ing %s\n", bin);
-    raise(SIGKILL);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
@@ -291,7 +320,6 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
   if(ret->pid == 0){
     execvp(bin, arg);
 //fprintf(stderr, "Error execv()ing %s\n", bin);
-    raise(SIGKILL);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
@@ -325,12 +353,12 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
     execvpe(bin, arg, env);
 #endif
 //fprintf(stderr, "Error execv()ing %s\n", bin);
-    raise(SIGKILL);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
     return NULL;
   }
+  pthread_mutex_init(&ret->lock, NULL);
   if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
     kill_and_wait_subproc(ret->pid, ret->pidfd, NULL);
     free(ret);
@@ -339,23 +367,38 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   return ret;
 }
 
-// FIXME rigourize and port
 int ncsubproc_destroy(ncsubproc* n){
   int ret = 0;
   if(n){
     void* vret = NULL;
 #ifdef __linux__
-    syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0);
+    if(n->pidfd >= 0){
+      syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0);
+    }
 #else
-    kill(n->pid, SIGKILL);
+    pthread_mutex_lock(&n->lock);
+    if(!n->waited){
+      kill(n->pid, SIGKILL);
+    }
+    pthread_mutex_unlock(&n->lock);
 #endif
-    // the thread waits on the subprocess via pidfd, and then exits. don't try
-    // to cancel the thread; rely on killing the subprocess.
-    pthread_join(n->nfp->tid, &vret);
+    // the thread waits on the subprocess via pidfd (iff pidfd >= 0), and
+    // then exits. don't try to cancel the thread in that case; rely instead on
+    // killing the subprocess.
+    if(n->pidfd < 0){
+      pthread_cancel(n->nfp->tid);
+      // shouldn't need a cancellation of waittid thanks to SIGKILL
+      pthread_join(n->waittid, &vret);
+    }
+    if(vret == NULL){
+      pthread_join(n->nfp->tid, &vret);
+    }else{
+      pthread_join(n->nfp->tid, NULL);
+    }
     free(n);
     if(vret == NULL){
       ret = -1;
-    }else{
+    }else if(vret != PTHREAD_CANCELED){
       ret = *(int*)vret;
       free(vret);
     }

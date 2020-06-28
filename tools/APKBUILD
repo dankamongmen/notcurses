@@ -23,9 +23,10 @@ build() {
 		-DCMAKE_INSTALL_LIBDIR=lib \
 		-DBUILD_SHARED_LIBS=True \
 		-DCMAKE_BUILD_TYPE=RelWithDebugInfo \
-                -DBUILD_TESTING=off \
-                -DUSE_PANDOC=off \
-                -DUSE_QRCODEGEN=off \
+    -DBUILD_TESTING=off \
+    -DUSE_PANDOC=off \
+    -DUSE_QRCODEGEN=off \
+    -DUSE_PYTHON=off \
 		${CMAKE_CROSSOPTS}
 	make -C "build"
 }
