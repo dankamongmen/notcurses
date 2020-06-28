@@ -347,7 +347,7 @@ void ncplane_home(ncplane* n){
 
 inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x >= n->lenx){
-    logerror(n->nc, "Target x %d exceeded length %d\n", x, n->lenx);
+    logerror(n->nc, "Target x %d >= length %d\n", x, n->lenx);
     return -1;
   }else if(x < 0){
     if(x < -1){
@@ -358,7 +358,7 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
     n->x = x;
   }
   if(y >= n->leny){
-    logerror(n->nc, "Target y %d exceeded length %d\n", y, n->leny);
+    logerror(n->nc, "Target y %d >= length %d\n", y, n->leny);
     return -1;
   }else if(y < 0){
     if(y < -1){
@@ -861,8 +861,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
-    term_verify_seq(&ret->tcache.smcup, "smcup");
-    term_verify_seq(&ret->tcache.rmcup, "rmcup");
+    terminfostr(&ret->tcache.smcup, "smcup");
+    terminfostr(&ret->tcache.rmcup, "rmcup");
   }
   ret->bottom = ret->top = ret->stdscr = NULL;
   ret->loglevel = opts->loglevel;
@@ -1050,7 +1050,7 @@ int ncplane_set_fg_palindex(ncplane* n, int idx){
   }
   n->channels |= CELL_FGDEFAULT_MASK;
   n->channels |= CELL_FG_PALETTE;
-  n->channels &= ~(CELL_ALPHA_MASK << 32u);
+  channels_set_fg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
   n->attrword &= 0xffff00ff;
   n->attrword |= (idx << 8u);
   return 0;
@@ -1062,7 +1062,7 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   }
   n->channels |= CELL_BGDEFAULT_MASK;
   n->channels |= CELL_BG_PALETTE;
-  n->channels &= ~CELL_ALPHA_MASK;
+  channels_set_bg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
   n->attrword &= 0xffffff00;
   n->attrword |= idx;
   return 0;
@@ -1653,11 +1653,11 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 2x2, with its upper-left corner at the current cursor
   if(ystop < yoff + 1){
-    logerror(n->nc, "Ystop (%d) insufficient for yoff (%d)\n", ystop, yoff);
+    logerror(n->nc, "ystop (%d) insufficient for yoff (%d)\n", ystop, yoff);
     return -1;
   }
   if(xstop < xoff + 1){
-    logerror(n->nc, "Xstop (%d) insufficient for xoff (%d)\n", xstop, xoff);
+    logerror(n->nc, "xstop (%d) insufficient for xoff (%d)\n", xstop, xoff);
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);

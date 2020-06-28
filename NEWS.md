@@ -5,6 +5,14 @@ rearrangements of Notcurses.
   * The default blitter when `NCSCALE_STRETCH` is used is now `NCBLIT_2x2`,
     replacing `NCBLIT_2x1`. It is not the default for `NCSCALE_NONE` and
     `NCSCALE_SCALE` because it does not preserve aspect ratio.
+  * The values of `CELL_ALPHA_OPAQUE` and friends have been redefined to
+    match their values within a channel representation. If you've been
+    using the named constants, this should have no effect on you; they sort
+    the same, subtract the same, and a zero initialization remains just as
+    opaque as it ever was. If you weren't using their named constants, now's
+    an excellent time to revise that policy. `CELL_ALPHA_SHIFT` has been
+    eliminated; if you happened to be using this, the redefinition of the
+    other `CELL_*` constants (probably) means you no longer need to.
 
 * 1.5.2 (2020-06-19)
   * The `ncneofetch` program has been added, of no great consequence.

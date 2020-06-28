@@ -3,11 +3,12 @@
 static struct ncplane*
 mojiplane(struct ncplane* title, int y, int rows, const char* summary){
   struct ncplane* n = ncplane_aligned(title, rows, 64, y, NCALIGN_CENTER, NULL);
-  if(ncplane_perimeter_rounded(n, 0, 0, 0) < 0){
+  uint64_t channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xa0, 0xf0, 0x10, 0x10, 0x60);
+  if(ncplane_perimeter_rounded(n, 0, channels, 0) < 0){
     ncplane_destroy(n);
     return NULL;
   }
-  uint64_t channels = 0;
+  channels = 0;
   channels_set_bg(&channels, 0x0);
   if(ncplane_set_fg(n, 0x40d0d0) || ncplane_set_bg(n, 0)){
     ncplane_destroy(n);
@@ -154,19 +155,21 @@ maketitle(struct ncplane* std, int dimx){
   }
   uint64_t channels = 0;
   channels_set_bg(&channels, 0x0);
-  if(ncplane_set_base(title, " ", 0, channels) < 0 || ncplane_set_fg(title, 0xffffff)
-      || ncplane_set_bg(title, 0)){
+  if(ncplane_set_base(title, " ", 0, channels) < 0 || ncplane_set_bg(title, 0)){
     ncplane_destroy(title);
     return NULL;
   }
+  ncplane_set_fg(title, 0x80f0f0);
   if(ncplane_putstr_aligned(title, 0, NCALIGN_CENTER, "mojibake 文字化けmodʑibake (english: \"garbled\")") < 0){
     ncplane_destroy(title);
     return NULL;
   }
+  ncplane_set_fg(title, 0xa0ffff);
   if(ncplane_putstr_aligned(title, 1, NCALIGN_CENTER, "Display of emoji depends upon terminal, font, and font rendering engine.") < 0){
     ncplane_destroy(title);
     return NULL;
   }
+  ncplane_set_fg(title, 0xe0ffff);
   if(ncplane_putstr_aligned(title, 2, NCALIGN_CENTER, "Not all symbols are emoji, and not all emoji map to a single code point.") < 0){
     ncplane_destroy(title);
     return NULL;
@@ -180,6 +183,7 @@ int mojibake_demo(struct notcurses* nc){
   }
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  ncplane_greyscale(std);
   struct ncplane* title = maketitle(std, dimx);
   if(title == NULL){
     return -1;

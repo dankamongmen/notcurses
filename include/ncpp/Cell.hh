@@ -17,11 +17,11 @@ namespace ncpp
 	public:
 		static constexpr uint64_t WideAsianMask = CELL_WIDEASIAN_MASK;
 		static constexpr uint64_t FGDefaultMask = CELL_FGDEFAULT_MASK;
-		static constexpr uint64_t FGMask        = CELL_FG_MASK;
+		static constexpr uint64_t FGRGBMask     = CELL_FG_RGB_MASK;
 		static constexpr uint64_t BGDefaultMask = CELL_BGDEFAULT_MASK;
-		static constexpr uint64_t BGMask        = CELL_BG_MASK;
-		static constexpr uint64_t AlphaMask     = CELL_ALPHA_MASK;
-		static constexpr uint32_t AlphaShift    = CELL_ALPHA_SHIFT;
+		static constexpr uint64_t BGRGBMask     = CELL_BG_RGB_MASK;
+		static constexpr uint64_t BGAlphaMask   = CELL_BG_ALPHA_MASK;
+		static constexpr uint64_t FGAlphaMask   = CELL_FG_ALPHA_MASK;
 		static constexpr int AlphaHighContrast  = CELL_ALPHA_HIGHCONTRAST;
 		static constexpr int AlphaTransparent   = CELL_ALPHA_TRANSPARENT;
 		static constexpr int AlphaBlend         = CELL_ALPHA_BLEND;

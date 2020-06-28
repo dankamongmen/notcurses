@@ -24,12 +24,12 @@ TEST_CASE("ChannelGetAlpha") {
     uint32_t channel;
     int a;
   } test[] = {
-    { .channel = 0x00000000, .a = 0, },
-    { .channel = 0x10808080, .a = 1, },
-    { .channel = 0x20080808, .a = 2, },
-    { .channel = 0xe0080808, .a = 2, },
-    { .channel = 0x3fffffff, .a = 3, },
-    { .channel = 0xffffffff, .a = 3, },
+    { .channel = 0x00000000, .a = CELL_ALPHA_OPAQUE, },
+    { .channel = 0x10808080, .a = CELL_ALPHA_BLEND, },
+    { .channel = 0x20080808, .a = CELL_ALPHA_TRANSPARENT, },
+    { .channel = 0xe0080808, .a = CELL_ALPHA_TRANSPARENT, },
+    { .channel = 0x3fffffff, .a = CELL_ALPHA_HIGHCONTRAST, },
+    { .channel = 0xffffffff, .a = CELL_ALPHA_HIGHCONTRAST, },
   };
   for(auto i = 0u ; i < sizeof(test) / sizeof(*test) ; ++i){
     CHECK(test[i].a == channel_alpha(test[i].channel));

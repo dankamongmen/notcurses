@@ -120,7 +120,7 @@ TEST_CASE("Rotate") {
     uint32_t* rgbaret = ncplane_rgba(rendered, NCBLIT_DEFAULT, 0, 0, -1, -1);
     REQUIRE(rgbaret);
     for(int i = 0 ; i < height * width / 2 ; ++i){
-      if(rgbaret[i] & CELL_BG_MASK){
+      if(rgbaret[i] & CELL_BG_RGB_MASK){
         CHECK(rgbaret[i] == rgba[i]);
       }
     }
@@ -132,11 +132,11 @@ TEST_CASE("Rotate") {
       char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      if(channels_fg(channels) & CELL_BG_MASK){
-        CHECK(0xffccbb == (channels_fg(channels) & CELL_BG_MASK));
+      if(channels_fg(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == channels_fg(channels));
       }
-      if(channels_bg(channels) & CELL_BG_MASK){
-        CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
+      if(channels_bg(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == channels_bg(channels));
       }
       free(c);
     }
@@ -171,7 +171,7 @@ TEST_CASE("Rotate") {
     uint32_t* rgbaret = ncplane_rgba(rendered, NCBLIT_DEFAULT, 0, 0, -1, -1);
     REQUIRE(rgbaret);
     for(int i = 0 ; i < height * width / 2 ; ++i){
-      if(rgbaret[i] & CELL_BG_MASK){
+      if(rgbaret[i] & CELL_BG_RGB_MASK){
         CHECK(rgbaret[i] == rgba[i]);
       }
     }
@@ -183,11 +183,11 @@ TEST_CASE("Rotate") {
       char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      if(channels_fg(channels) & CELL_BG_MASK){
-        CHECK(0xffccbb == (channels_fg(channels) & CELL_BG_MASK));
+      if(channels_fg(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == channels_fg(channels));
       }
-      if(channels_bg(channels) & CELL_BG_MASK){
-        CHECK(0xffccbb == (channels_bg(channels) & CELL_BG_MASK));
+      if(channels_bg(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == channels_bg(channels));
       }
       free(c);
     }

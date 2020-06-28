@@ -327,7 +327,7 @@ typedef struct notcurses {
 
 void sigwinch_handler(int signo);
 
-int term_verify_seq(char** gseq, const char* name);
+int terminfostr(char** gseq, const char* name);
 int interrogate_terminfo(tinfo* ti);
 
 // Search the provided multibyte (UTF8) string 's' for the provided unicode

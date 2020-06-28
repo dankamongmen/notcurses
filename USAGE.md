@@ -1367,8 +1367,8 @@ ncplane_bg_alpha(const struct ncplane* nc){
 }
 
 // Set the alpha parameters for ncplane 'n'.
-int ncplane_set_fg_alpha(struct ncplane* n, int alpha);
-int ncplane_set_bg_alpha(struct ncplane* n, int alpha);
+int ncplane_set_fg_alpha(struct ncplane* n, unsigned alpha);
+int ncplane_set_bg_alpha(struct ncplane* n, unsigned alpha);
 
 // Extract 24 bits of foreground RGB from 'n', split into subcomponents.
 static inline unsigned
@@ -1463,13 +1463,13 @@ typedef struct cell {
   // corresponding default color bit *is not* set, and the corresponding
   // palette index bit *is* set.
   uint32_t attrword;          // + 4B -> 8B
-  // (channels & 0x8000000000000000ull): left half of wide character
+  // (channels & 0x8000000000000000ull): part of a wide glyph
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
   // (channels & 0x0800000000000000ull): foreground uses palette index
   // (channels & 0x0700000000000000ull): reserved, must be 0
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
-  // (channels & 0x0000000080000000ull): right half of wide character
+  // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"
   // (channels & 0x0000000030000000ull): background alpha (2 bits)
   // (channels & 0x0000000008000000ull): background uses palette index
@@ -1483,19 +1483,18 @@ typedef struct cell {
   uint64_t channels;          // + 8B == 16B
 } cell;
 
-#define CELL_WIDEASIAN_MASK     0x8000000080000000ull
+#define CELL_WIDEASIAN_MASK     0x8000000000000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
 #define CELL_BG_MASK            0x0000000000ffffffull
 #define CELL_FG_MASK            (CELL_BG_MASK << 32u)
 #define CELL_BG_PALETTE         0x0000000008000000ull
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
-#define CELL_ALPHA_MASK         0x0000000030000000ull
-#define CELL_ALPHA_SHIFT        28u
-#define CELL_ALPHA_HIGHCONTRAST 3
-#define CELL_ALPHA_TRANSPARENT  2
-#define CELL_ALPHA_BLEND        1
-#define CELL_ALPHA_OPAQUE       0
+#define NCCHANNEL_ALPHA_MASK    0x30000000ull
+#define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
+#define CELL_ALPHA_TRANSPARENT  0x20000000ull
+#define CELL_ALPHA_BLEND        0x10000000ull
+#define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
 
 `cell`s must be initialized with an initialization macro or `cell_init()`
@@ -1763,12 +1762,12 @@ cell_set_bg(cell* c, uint32_t channel){
 }
 
 static inline int
-cell_set_fg_alpha(cell* c, int alpha){
+cell_set_fg_alpha(cell* c, unsigned alpha){
   return channels_set_fg_alpha(&c->channels, alpha);
 }
 
 static inline int
-cell_set_bg_alpha(cell* c, int alpha){
+cell_set_bg_alpha(cell* c, unsigned alpha){
   return channels_set_bg_alpha(&c->channels, alpha);
 }
 
@@ -2332,7 +2331,7 @@ channel_alpha(unsigned channel){
 
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
-channel_set_alpha(unsigned* channel, int alpha){
+channel_set_alpha(unsigned* channel, unsigned alpha){
   if(alpha < CELL_ALPHA_OPAQUE || alpha > CELL_ALPHA_TRANS){
     return -1;
   }
@@ -2447,7 +2446,7 @@ channels_set_bg(uint64_t* channels, unsigned rgb){
 
 // Set the 2-bit alpha component of the foreground channel.
 static inline int
-channels_set_fg_alpha(uint64_t* channels, int alpha){
+channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
   unsigned channel = channels_fchannel(*channels);
   if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
@@ -2458,7 +2457,7 @@ channels_set_fg_alpha(uint64_t* channels, int alpha){
 
 // Set the 2-bit alpha component of the background channel.
 static inline int
-channels_set_bg_alpha(uint64_t* channels, int alpha){
+channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
   if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
     return -1;
   }

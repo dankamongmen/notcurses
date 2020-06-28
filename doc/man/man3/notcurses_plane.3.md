@@ -110,9 +110,9 @@ notcurses_plane - operations on ncplanes
 
 **void ncplane_set_bg_default(struct ncplane* n);**
 
-**int ncplane_set_fg_alpha(struct ncplane* n, int alpha);**
+**int ncplane_set_fg_alpha(struct ncplane* n, unsigned alpha);**
 
-**int ncplane_set_bg_alpha(struct ncplane* n, int alpha);**
+**int ncplane_set_bg_alpha(struct ncplane* n, unsigned alpha);**
 
 **int ncplane_set_fg_palindex(struct ncplane* n, int idx);**
 
