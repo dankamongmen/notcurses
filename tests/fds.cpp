@@ -18,6 +18,7 @@ auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) ->
     lock.unlock();
     return -1;
   }
+  notcurses_render(ncplane_notcurses(ncfdplane_plane(ncfd)));
   lock.unlock();
   (void)curry;
   (void)s;
@@ -95,7 +96,7 @@ TEST_CASE("FdsAndSubprocs"
   }
 
   SUBCASE("SubprocDestroyCmdExecFails") {
-    char * const argv[] = { strdup("/dev/nope"), nullptr, };
+    char * const argv[] = { strdup("/should-not-exist"), nullptr, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.curry = &outofline_cancelled;
@@ -108,12 +109,10 @@ TEST_CASE("FdsAndSubprocs"
     }
     CHECK(0 != ncsubproc_destroy(ncsubp));
     // FIXME we ought get indication of an error here! or via callback...
-    // FIXME should be 0 !=, methinks!
     CHECK(0 == notcurses_render(nc_));
     lock.unlock();
   }
 
-  // FIXME SIGCHLD seems to blow up doctest...
   SUBCASE("SubprocDestroyCmdSucceeds") {
     char * const argv[] = { strdup("/bin/cat"), strdup("/dev/null"), nullptr, };
     bool outofline_cancelled = false;

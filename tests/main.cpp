@@ -16,7 +16,9 @@ static const char* datadir = NOTCURSES_SHARE;
 auto testing_notcurses() -> struct notcurses* {
   notcurses_options nopts{};
   nopts.loglevel = NCLOGLEVEL_DEBUG;
-  nopts.flags = NCOPTION_SUPPRESS_BANNERS/* | NCOPTION_NO_ALTERNATE_SCREEN*/;
+  nopts.flags = NCOPTION_SUPPRESS_BANNERS
+                /* | NCOPTION_NO_ALTERNATE_SCREEN*/
+                | NCOPTION_NO_QUIT_SIGHANDLERS;
   auto nc = notcurses_init(&nopts, nullptr);
   return nc;
 }
