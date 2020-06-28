@@ -13,6 +13,7 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static int
 cb(struct ncfdplane* ncfd, const void* data, size_t len, void* curry){
   int ret = -1;
+  // FIXME unsafe -- input isn't necessarily nul-terminated!
   if(ncplane_putstr(ncfdplane_plane(ncfd), data) >= 0){
     if(!notcurses_render(ncplane_notcurses(ncfdplane_plane(ncfd)))){
       ret = 0;
@@ -50,6 +51,7 @@ int main(int argc, char** argv){
   }
   ++argv;
   struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_set_scrolling(n, true);
   ncsubproc_options nopts = {};
   struct ncsubproc* nsproc = ncsubproc_createvp(n, &nopts, *argv, argv, cb, eofcb);
   pthread_mutex_lock(&lock);
