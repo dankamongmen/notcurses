@@ -28,16 +28,15 @@ typedef struct cell {
 #define CELL_WIDEASIAN_MASK     0x8000000080000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
-#define CELL_BG_MASK            0x0000000000ffffffull
-#define CELL_FG_MASK            (CELL_BG_MASK << 32u)
+#define CELL_BG_RGB_MASK        0x0000000000ffffffull
+#define CELL_FG_RGB_MASK        (CELL_BG_MASK << 32u)
 #define CELL_BG_PALETTE         0x0000000008000000ull
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
-#define CELL_ALPHA_MASK         0x0000000030000000ull
-#define CELL_ALPHA_SHIFT        28u
-#define CELL_ALPHA_HIGHCONTRAST 3
-#define CELL_ALPHA_TRANSPARENT  2
-#define CELL_ALPHA_BLEND        1
-#define CELL_ALPHA_OPAQUE       0
+#define CHANNEL_ALPHA_MASK      0x30000000ull
+#define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
+#define CELL_ALPHA_TRANSPARENT  0x20000000ull
+#define CELL_ALPHA_BLEND        0x10000000ull
+#define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
 
 **void cell_init(cell* c);**
@@ -63,9 +62,9 @@ typedef struct cell {
 
 **void cell_set_bg_default(cell* c);**
 
-**int cell_set_fg_alpha(cell* c, int alpha);**
+**int cell_set_fg_alpha(cell* c, unsigned alpha);**
 
-**int cell_set_bg_alpha(cell* c, int alpha);**
+**int cell_set_bg_alpha(cell* c, unsigned alpha);**
 
 **bool cell_double_wide_p(const cell* c);**
 

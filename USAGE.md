@@ -1486,8 +1486,8 @@ typedef struct cell {
 #define CELL_WIDEASIAN_MASK     0x8000000000000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
-#define CELL_BG_MASK            0x0000000000ffffffull
-#define CELL_FG_MASK            (CELL_BG_MASK << 32u)
+#define CELL_BG_RGB_MASK        0x0000000000ffffffull
+#define CELL_FG_RGB_MASK        (CELL_BG_MASK << 32u)
 #define CELL_BG_PALETTE         0x0000000008000000ull
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
 #define NCCHANNEL_ALPHA_MASK    0x30000000ull
