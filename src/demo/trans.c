@@ -30,7 +30,7 @@ legend(struct notcurses* nc, const char* msg){
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   // FIXME replace with ncplane_new_aligned()
   struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), 3,
-                                      strlen(msg) + 4, dimy - 4,
+                                      strlen(msg) + 4, 3,
                                       NCALIGN_CENTER, NULL);
   if(n == NULL){
     return NULL;
