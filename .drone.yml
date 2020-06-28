@@ -12,7 +12,7 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release # -DUSE_RUST=yes -DUSE_NETWORK=yes
     - make
-    - ./notcurses-tester -p ../data
+    -env TERM=linux ./notcurses-tester -p ../data
 ---
 kind: pipeline
 type: docker
@@ -27,7 +27,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
     - make
-    - ./notcurses-tester -p ../data
+    - env TERM=linux ./notcurses-tester -p ../data
 ---
 kind: pipeline
 type: docker
