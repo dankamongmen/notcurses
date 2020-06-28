@@ -3,7 +3,7 @@
 #include "main.h"
 #include "internal.h"
 
-const char SNAKE[] = "\xf0\x9f\x90\x8d";
+const char SNAKE[] = "\xf0\x9f\x90\x8d"; // U+1F40D SNAKE
 const char SCORPION[] = "\xf0\x9f\xa6\x82"; // U+1F982 SCORPION
 const char FROG[] = "\xf0\x9f\x90\xb8"; // U+1F438 FROG FACE
 
@@ -124,8 +124,8 @@ TEST_CASE("Wide") {
   // Placing a wide char on the right half of a wide char ought obliterate the
   // original wide char.
   SUBCASE("WideCharAnnihilatesWideLeft") {
-    const char* w = "\xf0\x9f\x90\x8d";
-    const char* wbashed = "\xf0\x9f\xa6\x82";
+    const char* w = SNAKE;
+    const char* wbashed = SCORPION;
     int sbytes = 0;
     int cols1 = ncplane_putegc_yx(n_, 0, 0, wbashed, &sbytes);
     CHECK(0 < cols1);
@@ -134,7 +134,7 @@ TEST_CASE("Wide") {
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
-    CHECK((cols1 + cols2) == x);
+    CHECK(1 + cols2 == x);
     cell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
     if(cols1 > 1){
@@ -152,8 +152,8 @@ TEST_CASE("Wide") {
   // the original wide char.
   SUBCASE("WideCharsAnnihilated") {
     const char cc = 'X';
-    const char* wbashedl = "\xf0\x9f\x90\x8d";
-    const char* wbashedr = "\xf0\x9f\xa6\x82";
+    const char* wbashedl = SNAKE;
+    const char* wbashedr = SCORPION;
     int sbytes = 0;
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashedl, &sbytes));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, &sbytes));
@@ -183,8 +183,8 @@ TEST_CASE("Wide") {
   // problem. Ensure it is so.
   SUBCASE("AdjacentCharsSafe") {
     const char cc = 'X';
-    const char* wsafel = "\xf0\x9f\x90\x8d";
-    const char* wsafer = "\xf0\x9f\xa6\x82";
+    const char* wsafel = SNAKE;
+    const char* wsafer = SCORPION;
     int sbytes = 0;
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, &sbytes));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, &sbytes));

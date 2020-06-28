@@ -43,4 +43,4 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make
-    - ./notcurses-tester -p ../data
+    - env TERM=linux ./notcurses-tester -p ../data
