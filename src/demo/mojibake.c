@@ -148,8 +148,8 @@ unicode13(struct ncplane* title, int y){
 }
 
 struct ncplane*
-maketitle(struct ncplane* std, int dimx){
-  struct ncplane* title = ncplane_aligned(std, 3, dimx, 1, NCALIGN_CENTER, NULL);
+maketitle(struct ncplane* std){
+  struct ncplane* title = ncplane_aligned(std, 3, 74, 1, NCALIGN_CENTER, NULL);
   if(title == NULL){
     return NULL;
   }
@@ -159,7 +159,7 @@ maketitle(struct ncplane* std, int dimx){
     ncplane_destroy(title);
     return NULL;
   }
-  ncplane_set_fg(title, 0x80f0f0);
+  ncplane_set_fg(title, 0x808080);
   if(ncplane_putstr_aligned(title, 0, NCALIGN_CENTER, "mojibake 文字化けmodʑibake (english: \"garbled\")") < 0){
     ncplane_destroy(title);
     return NULL;
@@ -169,7 +169,7 @@ maketitle(struct ncplane* std, int dimx){
     ncplane_destroy(title);
     return NULL;
   }
-  ncplane_set_fg(title, 0xe0ffff);
+  ncplane_set_fg(title, 0xe0a0a0);
   if(ncplane_putstr_aligned(title, 2, NCALIGN_CENTER, "Not all symbols are emoji, and not all emoji map to a single code point.") < 0){
     ncplane_destroy(title);
     return NULL;
@@ -181,10 +181,10 @@ int mojibake_demo(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
   }
-  int dimy, dimx;
-  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  int dimy;
+  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
   ncplane_greyscale(std);
-  struct ncplane* title = maketitle(std, dimx);
+  struct ncplane* title = maketitle(std);
   if(title == NULL){
     return -1;
   }
