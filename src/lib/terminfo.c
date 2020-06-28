@@ -22,13 +22,14 @@ query_rgb(void){
   return rgb;
 }
 
-int term_verify_seq(char** gseq, const char* name){
+int terminfostr(char** gseq, const char* name){
   char* seq;
   if(gseq == NULL){
     gseq = &seq;
   }
   *gseq = tigetstr(name);
   if(*gseq == NULL || *gseq == (char*)-1){
+    *gseq = NULL;
     return -1;
   }
   return 0;
@@ -43,56 +44,51 @@ int interrogate_terminfo(tinfo* ti){
     ti->RGBflag = false;
     ti->initc = NULL;
   }else{
-    term_verify_seq(&ti->initc, "initc");
+    terminfostr(&ti->initc, "initc");
     if(ti->initc){
       ti->CCCflag = tigetflag("ccc") == 1;
     }else{
       ti->CCCflag = false;
     }
   }
-  term_verify_seq(&ti->cup, "cup");
+  // check that the terminal provides cursor addressing (absolute movement)
+  terminfostr(&ti->cup, "cup");
   if(ti->cup == NULL){
     fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
     return -1;
   }
+  // check that the terminal provides automatic margins
   ti->AMflag = tigetflag("am") == 1;
   if(!ti->AMflag){
     fprintf(stderr, "Required terminfo capability 'am' not defined\n");
     return -1;
   }
-  term_verify_seq(&ti->civis, "civis");
-  term_verify_seq(&ti->cnorm, "cnorm");
-  term_verify_seq(&ti->standout, "smso"); // smso / rmso
-  term_verify_seq(&ti->uline, "smul");
-  term_verify_seq(&ti->reverse, "reverse");
-  term_verify_seq(&ti->blink, "blink");
-  term_verify_seq(&ti->dim, "dim");
-  term_verify_seq(&ti->bold, "bold");
-  term_verify_seq(&ti->italics, "sitm");
-  term_verify_seq(&ti->italoff, "ritm");
-  term_verify_seq(&ti->sgr, "sgr");
-  term_verify_seq(&ti->sgr0, "sgr0");
-  term_verify_seq(&ti->op, "op");
-  term_verify_seq(&ti->oc, "oc");
-  term_verify_seq(&ti->home, "home");
-  term_verify_seq(&ti->clearscr, "clear");
-  term_verify_seq(&ti->cleareol, "el");
-  term_verify_seq(&ti->clearbol, "el1");
-  term_verify_seq(&ti->cuu, "cuu"); // move N up
-  term_verify_seq(&ti->cud, "cud"); // move N down
-  term_verify_seq(&ti->hpa, "hpa");
-  term_verify_seq(&ti->vpa, "vpa");
-  term_verify_seq(&ti->cuf, "cuf"); // n non-destructive spaces
-  term_verify_seq(&ti->cub, "cub"); // n non-destructive backspaces
-  term_verify_seq(&ti->cuf1, "cuf1"); // non-destructive space
-  term_verify_seq(&ti->cub1, "cub1"); // non-destructive backspace
-  term_verify_seq(&ti->smkx, "smkx"); // set application mode
-  if(ti->smkx){
-    if(putp(tiparm(ti->smkx)) != OK){
-      fprintf(stderr, "Error entering application mode\n");
-      return -1;
-    }
-  }
+  terminfostr(&ti->civis, "civis"); // cursor invisible
+  terminfostr(&ti->cnorm, "cnorm"); // cursor normal (undo civis/cvvis)
+  terminfostr(&ti->standout, "smso"); // begin standout mode
+  terminfostr(&ti->uline, "smul");    // begin underline mode
+  terminfostr(&ti->reverse, "rev");   // begin reverse video mode
+  terminfostr(&ti->blink, "blink");   // turn on blinking
+  terminfostr(&ti->dim, "dim");       // turn on half-bright mode
+  terminfostr(&ti->bold, "bold");     // turn on extra-bright mode
+  terminfostr(&ti->italics, "sitm");  // begin italic mode
+  terminfostr(&ti->italoff, "ritm");  // end italic mode
+  terminfostr(&ti->sgr, "sgr");       // define video attributes
+  terminfostr(&ti->sgr0, "sgr0");     // turn off all video attributes
+  terminfostr(&ti->op, "op");         // restore defaults to default pair
+  terminfostr(&ti->oc, "oc");         // restore defaults to all colors
+  terminfostr(&ti->home, "home");     // home the cursor
+  terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
+  terminfostr(&ti->cleareol, "el");   // clear to end of line
+  terminfostr(&ti->clearbol, "el1");  // clear to beginning of line
+  terminfostr(&ti->cuu, "cuu"); // move N up
+  terminfostr(&ti->cud, "cud"); // move N down
+  terminfostr(&ti->hpa, "hpa"); // set horizontal position
+  terminfostr(&ti->vpa, "vpa"); // set verical position
+  terminfostr(&ti->cuf, "cuf"); // n non-destructive spaces
+  terminfostr(&ti->cub, "cub"); // n non-destructive backspaces
+  terminfostr(&ti->cuf1, "cuf1"); // non-destructive space
+  terminfostr(&ti->cub1, "cub1"); // non-destructive backspace
   // Some terminals cannot combine certain styles with colors. Don't advertise
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
@@ -119,11 +115,18 @@ int interrogate_terminfo(tinfo* ti){
       ti->italics = NULL;
     }
   }
-  term_verify_seq(&ti->getm, "getm"); // get mouse events
+  terminfostr(&ti->getm, "getm"); // get mouse events
   // Not all terminals support setting the fore/background independently
-  term_verify_seq(&ti->setaf, "setaf");
-  term_verify_seq(&ti->setab, "setab");
-  term_verify_seq(&ti->smkx, "smkx");
-  term_verify_seq(&ti->rmkx, "rmkx");
+  terminfostr(&ti->setaf, "setaf"); // set forground color
+  terminfostr(&ti->setab, "setab"); // set background color
+  terminfostr(&ti->smkx, "smkx");   // enable keypad transmit
+  terminfostr(&ti->rmkx, "rmkx");   // disable keypad transmit
+  // if the keypad neen't be explicitly enabled, smkx is not present
+  if(ti->smkx){
+    if(putp(tiparm(ti->smkx)) != OK){
+      fprintf(stderr, "Error entering keypad transmit mode\n");
+      return -1;
+    }
+  }
   return 0;
 }
