@@ -28,7 +28,7 @@ fdthread(ncfdplane* ncfp, int pidfd){
   char* buf = malloc(BUFSIZ);
   int pevents;
   pfds[0].fd = ncfp->fd;
-  pfds[0].events = POLLIN | POLLRDHUP;
+  pfds[0].events = POLLIN;
   const int fdcount = pidfd < 0 ? 1 : 2;
   if(fdcount > 1){
     pfds[1].fd = pidfd;
