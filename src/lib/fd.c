@@ -4,10 +4,17 @@
 #include <pthread.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#ifdef __linux__
+#ifdef USING_PIDFD
+#error "USING_PIDFD was already defined; it should not be."
+#endif
+#if (defined(__linux__) && !defined(__sparc__) && !defined(__alpha__))
 #include <linux/wait.h>
 #include <asm/unistd.h>
 #include <linux/sched.h>
+#ifndef CLONE_CLEAR_SIGHAND // FIXME introduced in linux 5.5
+#define CLONE_CLEAR_SIGHAND 0x100000000ULL
+#endif
+#define USING_PIDFD
 #endif
 #include "internal.h"
 
@@ -154,11 +161,7 @@ launch_pipe_process(int* pipe, int* pidfd){
   // on linux, we try to use the brand-new pidfd capability via clone3(). if
   // that fails, fall through to fork(), which is all we try to use on freebsd.
   // FIXME clone3 is not yet supported on debian sparc64/alpha as of 2020-07
-#if (defined(__linux__) && !defined(__sparc__) && !defined(__alpha__))
-// FIXME introduced in linux 5.5
-#ifndef CLONE_CLEAR_SIGHAND
-#define CLONE_CLEAR_SIGHAND 0x100000000ULL
-#endif
+#ifdef USING_PIDFD
   struct clone_args clargs;
   memset(&clargs, 0, sizeof(clargs));
   clargs.pidfd = (uintptr_t)pidfd;
@@ -189,7 +192,7 @@ kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
   // on linux, we try pidfd_send_signal, if the pidfd has been defined.
   // otherwise, we fall back to regular old kill();
   if(pidfd >= 0){
-#ifdef __linux__
+#ifdef USING_PIDFD
     ret = syscall(__NR_pidfd_send_signal, pidfd, SIGKILL, NULL, 0);
     siginfo_t info;
     memset(&info, 0, sizeof(info));
@@ -371,7 +374,7 @@ int ncsubproc_destroy(ncsubproc* n){
   int ret = 0;
   if(n){
     void* vret = NULL;
-#ifdef __linux__
+#ifdef USING_PIDFD
     if(n->pidfd >= 0){
       syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0);
     }
