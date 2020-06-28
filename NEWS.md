@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.5.3 (not yet released)
+* 1.5.3 (2020-06-28)
   * The default blitter when `NCSCALE_STRETCH` is used is now `NCBLIT_2x2`,
     replacing `NCBLIT_2x1`. It is not the default for `NCSCALE_NONE` and
     `NCSCALE_SCALE` because it does not preserve aspect ratio.
