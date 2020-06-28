@@ -261,7 +261,7 @@ freebsd_ncneofetch(fetched_info* fi){
     .name = "FreeBSD",
     .logofile = NULL, // FIXME
   };
-  (void)fi; // FIXME set up distro_pretty
+  fi->distro_pretty = NULL;
   return &fbsd;
 }
 
@@ -309,7 +309,9 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   ncplane_set_fg_rgb(infop, 0xd0, 0xd0, 0xd0);
   ncplane_set_attr(infop, NCSTYLE_UNDERLINE);
   ncplane_printf_aligned(infop, 1, NCALIGN_LEFT, " %s %s", fi->kernel, fi->kernver);
-  ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
+  if(fi->distro_pretty){
+    ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
+  }
   ncplane_set_attr(infop, NCSTYLE_NONE);
 #ifdef __linux__
   struct sysinfo sinfo;
