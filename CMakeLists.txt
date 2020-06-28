@@ -542,7 +542,7 @@ set(CMAKE_CTEST_ARGUMENTS "-V")
 enable_testing()
 add_test(
   NAME notcurses-tester
-  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
+  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data --tce=Ncpp,Exceptions
 )
 add_test(
   NAME ncpp_build
