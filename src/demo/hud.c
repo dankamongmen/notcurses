@@ -308,12 +308,14 @@ hud_print_finished(int* line){
       if(ncplane_printf_yx(hud, *line, 1, "%d", e->frames) < 0){
         return NULL;
       }
-      if(ncplane_printf_yx(hud, *line, 7, "%*ju.%02jus %s",
+      if(ncplane_printf_yx(hud, *line, 7, "%*ju.%02jus",
                            NSLEN - 3, e->totalns / GIG,
-                           (e->totalns % GIG) / (GIG / 100),
-                           e->name) < 0){
+                           (e->totalns % GIG) / (GIG / 100)) < 0){
         return NULL;
       }
+    }
+    if(ncplane_putstr_yx(hud, *line, 18, e->name) < 0){
+      return -1;
     }
     ++*line;
     e = e->next;
@@ -451,10 +453,12 @@ int hud_schedule(const char* demoname){
     if(ncplane_printf_yx(hud, line, 1, "%d", cure->frames) < 0){
       return -1;
     }
-    if(ncplane_printf_yx(hud, line, 7, "%*ju.%02jus %s",
+    if(ncplane_printf_yx(hud, line, 7, "%*ju.%02jus",
                         NSLEN - 3, cure->totalns / GIG,
-                        (cure->totalns % GIG) / (GIG / 100),
-                        cure->name) < 0){
+                        (cure->totalns % GIG) / (GIG / 100)) < 0){
+      return -1;
+    }
+    if(ncplane_putstr_yx(hud, line, 18, cure->name) < 0){
       return -1;
     }
   }
@@ -541,9 +545,11 @@ int demo_render(struct notcurses* nc){
     if(ncplane_printf_yx(hud, HUD_ROWS - 2, 1, "%d", running->frames) < 0){
       return -1;
     }
-    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 7, "%*ju.%02jus %s",
-                         NSLEN - 3, ns / GIG, (ns % GIG) / (GIG / 100),
-                         running->name) < 0){
+    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 7, "%*ju.%02jus",
+                         NSLEN - 3, ns / GIG, (ns % GIG) / (GIG / 100)) < 0){
+      return -1;
+    }
+    if(ncplane_putstr_yx(hud, HUD_ROWS - 2, 18, running->name) < 0){
       return -1;
     }
   }
