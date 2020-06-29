@@ -305,10 +305,13 @@ hud_print_finished(int* line){
       ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
       ncplane_set_fg(hud, 0xffffff);
       cell_release(hud, &c);
-      if(ncplane_printf_yx(hud, *line, 1, "%-6d %*ju.%02jus %s", e->frames,
-                          NSLEN - 3, e->totalns / GIG,
-                          (e->totalns % GIG) / (GIG / 100),
-                          e->name) < 0){
+      if(ncplane_printf_yx(hud, *line, 1, "%d", e->frames) < 0){
+        return NULL;
+      }
+      if(ncplane_printf_yx(hud, *line, 7, "%*ju.%02jus %s",
+                           NSLEN - 3, e->totalns / GIG,
+                           (e->totalns % GIG) / (GIG / 100),
+                           e->name) < 0){
         return NULL;
       }
     }
@@ -445,7 +448,10 @@ int hud_schedule(const char* demoname){
     ncplane_set_fg(hud, 0);
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
     ncplane_set_bg(hud, 0);
-    if(ncplane_printf_yx(hud, line, 1, "%-6d %*ju.%02jus %s", cure->frames,
+    if(ncplane_printf_yx(hud, line, 1, "%d", cure->frames) < 0){
+      return -1;
+    }
+    if(ncplane_printf_yx(hud, line, 7, "%*ju.%02jus %s",
                         NSLEN - 3, cure->totalns / GIG,
                         (cure->totalns % GIG) / (GIG / 100),
                         cure->name) < 0){
@@ -532,8 +538,10 @@ int demo_render(struct notcurses* nc){
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
     ncplane_set_fg(hud, 0xffffff);
     cell_release(hud, &c);
-    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 1, "%-6d %*ju.%02jus %s",
-                         running->frames,
+    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 1, "%d", running->frames) < 0){
+      return -1;
+    }
+    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 7, "%*ju.%02jus %s",
                          NSLEN - 3, ns / GIG, (ns % GIG) / (GIG / 100),
                          running->name) < 0){
       return -1;
