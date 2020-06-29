@@ -142,7 +142,7 @@ class ncppplot {
        }else{
          ncmetric((maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0');
        }
-       ncplane_printf_yx(ncp, dimy - y - 1, 0, "%*s", PREFIXCOLUMNS, buf);
+       ncplane_printf_yx(ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s", buf);
      }
    }
    if(finalx < startx){ // exit on pathologically narrow planes
