@@ -29,7 +29,6 @@ static int plot_pos_y;
 static const int NSLEN = 9;
 static const int HUD_ROWS = 3 + 2; // 2 for borders
 static const int HUD_COLS = 30 + 2; // 2 for borders
-static const int PLEN = HUD_COLS - 11 - NSLEN;
 
 typedef struct elem {
   char* name;
@@ -62,7 +61,7 @@ hud_standard_bg(struct ncplane* n){
   channels_set_fg_rgb(&channels, 0x0, 0x0, 0x0);
   channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_bg_rgb(&channels, 0x0, 0x0, 0x0);
-  if(ncplane_set_base(n, " ", 0, channels) >= 0){
+  if(ncplane_set_base(n, "", 0, channels) >= 0){
     return -1;
   }
   return 0;
@@ -259,10 +258,44 @@ struct ncmenu* menu_create(struct notcurses* nc){
   return menu;
 }
 
+static int
+hud_refresh(struct ncplane* n){
+  ncplane_erase(n);
+  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
+  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+    return -1;
+  }
+  cell_set_fg(&ul, 0xc0f0c0);
+  cell_set_fg(&ur, 0xc0f0c0);
+  cell_set_fg(&ll, 0xc0f0c0);
+  cell_set_fg(&lr, 0xc0f0c0);
+  cell_set_fg(&hl, 0xc0f0c0);
+  cell_set_fg(&vl, 0xc0f0c0);
+  cell_set_bg(&ul, 0);
+  cell_set_bg(&ur, 0);
+  cell_set_bg(&ll, 0);
+  cell_set_bg(&lr, 0);
+  cell_set_bg(&hl, 0);
+  cell_set_bg(&vl, 0);
+  if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0)){
+    cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
+    cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+    return -1;
+  }
+  cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
+  cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+  return 0;
+}
+
 static elem**
 hud_print_finished(int* line){
   elem** hook = &elems;
   elem* e = elems;
+  if(hud){
+    hud_refresh(hud);
+  }
   while(e){
     hook = &e->next;
     if(hud){
@@ -272,10 +305,10 @@ hud_print_finished(int* line){
       ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
       ncplane_set_fg(hud, 0xffffff);
       cell_release(hud, &c);
-      if(ncplane_printf_yx(hud, *line, 1, "%-6d %*ju.%02jus %-*.*s", e->frames,
+      if(ncplane_printf_yx(hud, *line, 1, "%-6d %*ju.%02jus %s", e->frames,
                           NSLEN - 3, e->totalns / GIG,
                           (e->totalns % GIG) / (GIG / 100),
-                          PLEN, PLEN, e->name) < 0){
+                          e->name) < 0){
         return NULL;
       }
     }
@@ -297,33 +330,7 @@ struct ncplane* hud_create(struct notcurses* nc){
     return NULL;
   }
   hud_standard_bg(n);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
-    ncplane_destroy(n);
-    return NULL;
-  }
-  cell_set_fg(&ul, 0xc0f0c0);
-  cell_set_fg(&ur, 0xc0f0c0);
-  cell_set_fg(&ll, 0xc0f0c0);
-  cell_set_fg(&lr, 0xc0f0c0);
-  cell_set_fg(&hl, 0xc0f0c0);
-  cell_set_fg(&vl, 0xc0f0c0);
-  cell_set_bg(&ul, 0);
-  cell_set_bg(&ur, 0);
-  cell_set_bg(&ll, 0);
-  cell_set_bg(&lr, 0);
-  cell_set_bg(&hl, 0);
-  cell_set_bg(&vl, 0);
-  if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0)){
-    cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-    cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
-    ncplane_destroy(n);
-    return NULL;
-  }
-  cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-  cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+  hud_refresh(n);
   ncplane_set_fg(n, 0xffffff);
   ncplane_set_bg(n, 0);
   ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
@@ -438,10 +445,10 @@ int hud_schedule(const char* demoname){
     ncplane_set_fg(hud, 0);
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
     ncplane_set_bg(hud, 0);
-    if(ncplane_printf_yx(hud, line, 1, "%-6d %*ju.%02jus %-*.*s", cure->frames,
+    if(ncplane_printf_yx(hud, line, 1, "%-6d %*ju.%02jus %s", cure->frames,
                         NSLEN - 3, cure->totalns / GIG,
                         (cure->totalns % GIG) / (GIG / 100),
-                        PLEN, PLEN, cure->name) < 0){
+                        cure->name) < 0){
       return -1;
     }
   }
@@ -514,7 +521,6 @@ int demo_render(struct notcurses* nc){
     ncplane_move_top(ncmenu_plane(menu));
   }
   if(hud){
-    const int plen = HUD_COLS - 12 - NSLEN;
     if(!hud_hidden){
       ncplane_move_top(hud);
     }
@@ -526,10 +532,10 @@ int demo_render(struct notcurses* nc){
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
     ncplane_set_fg(hud, 0xffffff);
     cell_release(hud, &c);
-    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 1, "%-6d %*ju.%02jus %-*.*s",
+    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 1, "%-6d %*ju.%02jus %s",
                          running->frames,
                          NSLEN - 3, ns / GIG, (ns % GIG) / (GIG / 100),
-                         plen, plen, running->name) < 0){
+                         running->name) < 0){
       return -1;
     }
   }
