@@ -7,7 +7,7 @@
 #ifdef USING_PIDFD
 #error "USING_PIDFD was already defined; it should not be."
 #endif
-#if (defined(__linux__) && !defined(__sparc__) && !defined(__alpha__))
+#if (defined(__linux__))
 #include <linux/wait.h>
 #include <asm/unistd.h>
 #include <linux/sched.h>
