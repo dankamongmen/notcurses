@@ -12,8 +12,8 @@
 #include <asm/unistd.h>
 #include <linux/sched.h>
 #if (defined(__NR_clone3) && defined(P_PIDFD) && defined(CLONE_CLEAR_SIGHAND))
-#endif
 #define USING_PIDFD
+#endif
 #endif
 #include "internal.h"
 
