@@ -7,7 +7,7 @@
 struct ncplane* hud = NULL;
 
 static bool hud_hidden;
-static bool plot_hidden = true;
+static bool plot_hidden;
 static struct ncuplot* plot;
 static uint64_t plottimestart;
 
