@@ -6,7 +6,7 @@
 // their mouse. it should always be on the top of the z-stack, unless hidden.
 struct ncplane* hud = NULL;
 
-static bool hud_hidden = true;
+static bool hud_hidden;
 static bool plot_hidden = true;
 static struct ncuplot* plot;
 static uint64_t plottimestart;
