@@ -11,8 +11,7 @@
 #include <linux/wait.h>
 #include <asm/unistd.h>
 #include <linux/sched.h>
-#ifndef CLONE_CLEAR_SIGHAND // FIXME introduced in linux 5.5
-#define CLONE_CLEAR_SIGHAND 0x100000000ULL
+#if (defined(__NR_clone3) && defined(P_PIDFD) && defined(CLONE_CLEAR_SIGHAND))
 #endif
 #define USING_PIDFD
 #endif
