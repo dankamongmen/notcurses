@@ -325,6 +325,9 @@ If things break or seem otherwise lackluster, **please** consult the
        does a palette fade, which is prone to breaking under incorrect `TERM`
        values. If you're not using `xterm`, your `TERM` should not be `xterm`!
 
+* *Q:* In `xterm`, Alt doesn't work as expected.
+* *A:* Check out the `eightBitInput` resource of `xterm`. Add `XTerm*eightBitInput: false` to your `$HOME/.Xresources`, and run `xrdb -a $HOME/.Xresources`.
+
 * *Q:* Why didn't you just use Sixel?
 * *A:* Many terminal emulators don't support Sixel. Sixel doesn't work well
        with mouse selection. With that said, I do intend to support Sixel soon,
