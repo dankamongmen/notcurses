@@ -416,9 +416,9 @@ nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   int stride = 0;
   AVFrame* sframe = nullptr;
   const int targformat = AV_PIX_FMT_RGBA;
-fprintf(stderr, "got format: %d want format: %d\n", inframe->format, targformat);
+//fprintf(stderr, "got format: %d want format: %d\n", inframe->format, targformat);
   if(inframe && (cols != inframe->width || rows != inframe->height || inframe->format != targformat)){
-fprintf(stderr, "resize+render: %d/%d->%d/%d (%dX%d @ %dX%d, %d/%d)\n", inframe->height, inframe->width, rows, cols, begy, begx, placey, placex, leny, lenx);
+//fprintf(stderr, "resize+render: %d/%d->%d/%d (%dX%d @ %dX%d, %d/%d)\n", inframe->height, inframe->width, rows, cols, begy, begx, placey, placex, leny, lenx);
     sframe = av_frame_alloc();
     if(sframe == nullptr){
 //fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
@@ -461,10 +461,10 @@ fprintf(stderr, "resize+render: %d/%d->%d/%d (%dX%d @ %dX%d, %d/%d)\n", inframe-
     stride = ncv->rowstride;
     data = ncv->data;
   }
-fprintf(stderr, "place: %d/%d rows/cols: %d/%d %d/%d+%d/%d\n", placey, placex, rows, cols, begy, begx, leny, lenx);
+//fprintf(stderr, "place: %d/%d rows/cols: %d/%d %d/%d+%d/%d\n", placey, placex, rows, cols, begy, begx, leny, lenx);
   if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx,
                         leny, lenx, blendcolors) <= 0){
-fprintf(stderr, "rgba dispatch failed!\n");
+//fprintf(stderr, "rgba dispatch failed!\n");
     if(sframe){
       av_freep(sframe->data);
       av_freep(&sframe);
