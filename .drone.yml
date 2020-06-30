@@ -12,7 +12,7 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release # -DUSE_RUST=yes -DUSE_NETWORK=yes
     - make
-    - env TERM=linux make test
+    - make test
 ---
 kind: pipeline
 type: docker
@@ -27,7 +27,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
     - make
-    - env TERM=linux make test
+    - make test
 ---
 kind: pipeline
 type: docker
@@ -43,4 +43,4 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make
-    - env TERM=linux make test
+    - make test
