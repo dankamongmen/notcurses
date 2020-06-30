@@ -1,4 +1,5 @@
 #include <locale.h>
+#include <unistd.h>
 #include <notcurses/notcurses.h>
 
 // can we leave what was already on the screen there? (narrator: it seems not)
@@ -12,6 +13,10 @@ int main(void){
     return EXIT_FAILURE;
   }
   if(ncdirect_render_image(n, "../data/warmech.bmp", NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
+    return EXIT_FAILURE;
+  }
+  sleep(1);
+  if(ncdirect_render_image(n, "../data/worldmap.png", NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
     return EXIT_FAILURE;
   }
   if(ncdirect_stop(n)){
