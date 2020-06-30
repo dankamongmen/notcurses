@@ -221,17 +221,6 @@ get_kernel(fetched_info* fi){
   return NCNEO_UNKNOWN;
 }
 
-static int
-display(struct ncdirect* nc, const distro_info* dinfo){
-  if(dinfo->logofile){
-    // FIXME should be NCSCALE_SCALE, not _STRETCH
-    if(ncdirect_render_image(nc, dinfo->logofile, NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
-      return -1;
-    }
-  }
-  return 0;
-}
-
 static const distro_info*
 freebsd_ncneofetch(fetched_info* fi){
   static const distro_info fbsd = {
@@ -378,7 +367,12 @@ display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
   if(m->dinfo){
-    display(m->nc, m->dinfo);
+    if(m->dinfo->logofile){
+      if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCBLIT_2x2,
+                               NCSCALE_SCALE) != NCERR_SUCCESS){
+        return NULL;
+      }
+    }
   }
   sem_post(&m->sem);
   pthread_detach(pthread_self());
