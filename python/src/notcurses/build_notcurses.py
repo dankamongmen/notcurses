@@ -488,6 +488,8 @@ int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax, int* xmax,
 struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 int ncdirect_bg_rgb(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
+int ncdirect_palette_size(const struct ncdirect* nc);
+int ncdirect_putc(struct ncdirect* nc, uint64_t channels, const char* egc);
 int ncdirect_fg(struct ncdirect* n, unsigned rgb);
 int ncdirect_bg(struct ncdirect* n, unsigned rgb);
 int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);

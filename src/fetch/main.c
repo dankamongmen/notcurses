@@ -222,8 +222,9 @@ get_kernel(fetched_info* fi){
 }
 
 // writes the first row drawn to |*drawrow|
+/*
 static struct ncplane*
-display(struct notcurses* nc, const distro_info* dinfo, int* drawrow){
+display(struct ncdirect* nc, const distro_info* dinfo, int* drawrow){
   if(dinfo->logofile){
     int dimy, dimx;
     nc_err_e err;
@@ -253,7 +254,7 @@ display(struct notcurses* nc, const distro_info* dinfo, int* drawrow){
     ncvisual_destroy(ncv);
   }
   return 0;
-}
+}*/
 
 static const distro_info*
 freebsd_ncneofetch(fetched_info* fi){
@@ -266,37 +267,48 @@ freebsd_ncneofetch(fetched_info* fi){
 }
 
 static int
-drawpalette(struct notcurses* nc, int yoff){
-  int psize = notcurses_palette_size(nc);
+drawpalette(struct ncdirect* nc){
+  int psize = ncdirect_palette_size(nc);
   if(psize > 256){
     psize = 256;
   }
-  int dimy, dimx;
-  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
+  int dimx = ncdirect_dim_x(nc);
   if(dimx < 64){
     return -1;
   }
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
-  // FIXME find a better place to put it
-  for(int y = yoff ; y < yoff + psize / 64 ; ++y){
+  for(int y = 0 ; y < psize / 64 ; ++y){
+    if(ncdirect_cursor_move_yx(nc, -1, (dimx - 64) / 2)){
+      return -1;
+    }
+    // FIXME move to center
     for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
       const int truex = x - (dimx - 64) / 2;
-      if((y - yoff) * 64 + truex >= psize){
+      if(y * 64 + truex >= psize){
         break;
       }
-      cell_set_bg_palindex(&c, (y - yoff) * 64 + truex);
-      ncplane_putc_yx(stdn, y, x, &c);
+      if(ncdirect_bg_palindex(nc, y * 64 + truex)){
+        return -1;
+      }
+      if(putchar(' ') == EOF){
+        return -1;
+      }
+    }
+    if(ncdirect_bg_palindex(nc, 0)){
+      return -1;
+    }
+    if(putchar('\n') == EOF){
+      return -1;
     }
   }
   return 0;
 }
 
-static int
-infoplane(struct notcurses* nc, const fetched_info* fi){
+/*static int
+infoplane(struct ncdirect* nc, const fetched_info* fi){
   // FIXME look for an area without background logo in it. pick the one
   // closest to the center horizontally, and lowest vertically. if none
   // can be found, just center it on the bottom as we do now
-  const int dimy = ncplane_dim_y(notcurses_stdplane(nc));
+  const int dimy = ncdirect_dim_y(nc);
   const int planeheight = 8;
   const int planewidth = 60;
   struct ncplane* infop = ncplane_aligned(notcurses_stdplane(nc),
@@ -377,10 +389,10 @@ infoplane(struct notcurses* nc, const fetched_info* fi){
   channels_set_bg_rgb(&channels, 0x50, 0x50, 0x50);
   ncplane_set_base(infop, " ", 0, channels);
   return 0;
-}
+}*/
 
 struct marshal {
-  struct notcurses* nc;
+  struct ncdirect* nc;
   const distro_info* dinfo;
   sem_t sem;
 };
@@ -388,12 +400,9 @@ struct marshal {
 static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
-  int yoff = 1;
+  drawpalette(m->nc);
   if(m->dinfo){
-    display(m->nc, m->dinfo, &yoff);
-  }
-  if(yoff >= 5){
-    drawpalette(m->nc, yoff - 5);
+    // FIXME display(m->nc, m->dinfo, &yoff);
   }
   sem_post(&m->sem);
   pthread_detach(pthread_self());
@@ -401,7 +410,7 @@ display_thread(void* vmarshal){
 }
 
 static int
-ncneofetch(struct notcurses* nc){
+ncneofetch(struct ncdirect* nc){
   fetched_info fi = {};
   ncneo_kernel_e kern = get_kernel(&fi);
   switch(kern){
@@ -431,12 +440,12 @@ ncneofetch(struct notcurses* nc){
   fetch_x_props(&fi);
   fetch_cpu_info(&fi);
   sem_wait(&display_marshal.sem);
-  if(infoplane(nc, &fi)){
+  /*if(infoplane(nc, &fi)){
     return -1;
   }
   if(notcurses_render(nc)){
     return -1;
-  }
+  }*/
   return 0;
 }
 
@@ -444,16 +453,12 @@ int main(void){
   if(setlocale(LC_ALL, "") == NULL){
     fprintf(stderr, "Warning: couldn't set locale based off LANG\n");
   }
-  struct notcurses_options nopts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN |
-              NCOPTION_SUPPRESS_BANNERS,
-  };
-  struct notcurses* nc = notcurses_init(&nopts, NULL);
+  struct ncdirect* nc = ncdirect_init(NULL, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
   int r = ncneofetch(nc);
-  if(notcurses_stop(nc)){
+  if(ncdirect_stop(nc)){
     return EXIT_FAILURE;
   }
   return r ? EXIT_FAILURE : EXIT_SUCCESS;
