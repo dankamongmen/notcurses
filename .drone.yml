@@ -12,8 +12,8 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release # -DUSE_RUST=yes -DUSE_NETWORK=yes
     - make
-    - ./notcurses-tester -p ../data
-    - make test
+    - env TERM=xterm ./notcurses-tester -p ../data
+    - env TERM=xterm make test
 ---
 kind: pipeline
 type: docker
