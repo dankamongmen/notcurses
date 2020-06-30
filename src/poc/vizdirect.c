@@ -12,11 +12,11 @@ int main(void){
   if((n = ncdirect_init(NULL, stdout)) == NULL){
     return EXIT_FAILURE;
   }
-  if(ncdirect_render_image(n, "../data/warmech.bmp", NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
+  if(ncdirect_render_image(n, "../data/normal.png", NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
     return EXIT_FAILURE;
   }
   sleep(1);
-  if(ncdirect_render_image(n, "../data/worldmap.png", NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
+  if(ncdirect_render_image(n, "../data/changes.jpg", NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
     return EXIT_FAILURE;
   }
   if(ncdirect_stop(n)){
