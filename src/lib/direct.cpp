@@ -195,6 +195,12 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
             infd, strerror(errno)); // don't return error for this
   }
+  if(y){
+    --*y;
+  }
+  if(x){
+    --*x;
+  }
   return ret;
 }
 
@@ -227,11 +233,12 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np){
       ncdirect_fg(n, channels_fg(channels));
       ncdirect_bg(n, channels_bg(channels));
 //    fprintf(stderr, "%03d/%03d [%s]\n", y, x, egc);
-      if(printf("%s", egc) < 0){
+      if(printf("%s", strlen(egc) == 0 ? " " : egc) < 0){
         return -1;
       }
     }
-    putchar('\n');
+    ncdirect_cursor_down(n, 1);
+    ncdirect_cursor_left(n, dimx);
   }
   return 0;
 }
@@ -248,6 +255,7 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
     ncvisual_destroy(ncv);
     return NCERR_SYSTEM;
   }
+//fprintf(stderr, "INITIAL CURSOR: %d/%d\n", begy, begx);
   int leny = ncv->rows; // we allow it to freely scroll
   int lenx = ncv->cols - begx;
   if(leny == 0 || lenx == 0){
@@ -272,7 +280,7 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
-fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   struct ncplane* faken = ncplane_create(NULL, NULL, disprows, dispcols, 0, 0, NULL);
   if(faken == NULL){
     return NCERR_NOMEM;
