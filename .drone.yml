@@ -12,6 +12,7 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release # -DUSE_RUST=yes -DUSE_NETWORK=yes
     - make
+    - ./notcurses-tester -p ../data
     - make test
 ---
 kind: pipeline
@@ -27,6 +28,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
     - make
+    - ./notcurses-tester -p ../data
     - make test
 ---
 kind: pipeline
@@ -43,4 +45,5 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make
+    - ./notcurses-tester -p ../data
     - make test
