@@ -212,6 +212,29 @@ int ncdirect_cursor_pop(ncdirect* n){
   return term_emit("rc", n->tcache.rc, n->ttyfp, false);
 }
 
+static int
+ncdirect_dump_plane(ncdirect* n, const ncplane* np){
+  int dimy, dimx;
+  ncplane_dim_yx(np, &dimy, &dimx);
+  for(int y = 0 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      uint32_t attrword;
+      uint64_t channels;
+      char* egc = ncplane_at_yx(np, y, x, &attrword, &channels);
+      if(egc == NULL){
+        return -1;
+      }
+      ncdirect_fg(n, channels_fg(channels));
+      ncdirect_bg(n, channels_bg(channels));
+      if(printf("%s", egc) < 0){
+        return -1;
+      }
+    }
+    putchar('\n');
+  }
+  return 0;
+}
+
 nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitter, ncscale_e scale){
   nc_err_e ret;
   struct ncvisual* ncv = ncvisual_from_file(file, &ret);
@@ -219,18 +242,18 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
     return ret;
   }
   int begy, begx;
-fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
+  if(ncdirect_cursor_yx(n, &begy, &begx)){
+    ncvisual_destroy(ncv);
+    return NCERR_SYSTEM;
+  }
   int leny = ncv->rows; // we allow it to freely scroll
   int lenx = ncv->cols - begx;
   if(leny == 0 || lenx == 0){
     ncvisual_destroy(ncv);
     return NCERR_DECODE;
   }
-  if(ncdirect_cursor_yx(n, &begy, &begx)){
-    ncvisual_destroy(ncv);
-    return NCERR_SYSTEM;
-  }
-fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, scale);
+//fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, scale);
   auto bset = rgba_blitter_low(n->utf8, scale, blitter, NCBLIT_DEFAULT);
   if(!bset){
     return NCERR_INVALID_ARG;
@@ -248,7 +271,7 @@ fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->col
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
-fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   struct ncplane* faken = ncplane_create(NULL, NULL, disprows, dispcols, 0, 0, NULL);
   if(faken == NULL){
     return NCERR_NOMEM;
@@ -261,7 +284,7 @@ fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny,
     return NCERR_SYSTEM;
   }
   ncvisual_destroy(ncv);
-  // FIXME render faken
+  ncdirect_dump_plane(n, faken);
   free_plane(faken);
   return NCERR_SUCCESS;
 }
