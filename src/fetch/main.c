@@ -221,40 +221,16 @@ get_kernel(fetched_info* fi){
   return NCNEO_UNKNOWN;
 }
 
-// writes the first row drawn to |*drawrow|
-/*
-static struct ncplane*
-display(struct ncdirect* nc, const distro_info* dinfo, int* drawrow){
+static int
+display(struct ncdirect* nc, const distro_info* dinfo){
   if(dinfo->logofile){
-    int dimy, dimx;
-    nc_err_e err;
-    struct ncvisual* ncv = ncvisual_from_file(dinfo->logofile, &err);
-    if(ncv == NULL){
-      fprintf(stderr, "Error opening logo file at %s\n", dinfo->logofile);
-      return NULL;
+    // FIXME should be NCSCALE_SCALE, not _STRETCH
+    if(ncdirect_render_image(nc, dinfo->logofile, NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
+      return -1;
     }
-    struct ncvisual_options vopts = {
-      .scaling = NCSCALE_SCALE,
-      .blitter = NCBLIT_2x2,
-      .n = notcurses_stddim_yx(nc, &dimy, &dimx),
-    };
-    int y, x, scaley, scalex;
-    ncvisual_geom(nc, ncv, &vopts, &y, &x, &scaley, &scalex);
-    if(y / scaley < dimy){
-      vopts.y = (dimy - (y + (scaley - 1)) / scaley) / 2;
-    }
-    if(x / scalex < dimx){
-      vopts.x = (dimx - (x + (scalex - 1)) / scalex) / 2;
-    }
-    *drawrow = vopts.y;
-    if(ncvisual_render(nc, ncv, &vopts) == NULL){
-      ncvisual_destroy(ncv);
-      return NULL;
-    }
-    ncvisual_destroy(ncv);
   }
   return 0;
-}*/
+}
 
 static const distro_info*
 freebsd_ncneofetch(fetched_info* fi){
@@ -402,7 +378,7 @@ display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
   if(m->dinfo){
-    // FIXME display(m->nc, m->dinfo, &yoff);
+    display(m->nc, m->dinfo);
   }
   sem_post(&m->sem);
   pthread_detach(pthread_self());
