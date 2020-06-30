@@ -12,6 +12,7 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release # -DUSE_RUST=yes -DUSE_NETWORK=yes
     - make
+    - apt-get install ncurses-term
     - env TERM=xterm ./notcurses-tester -p ../data
     - env TERM=xterm make test
 ---
