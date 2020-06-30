@@ -15,8 +15,7 @@
 typedef struct ncvisual_details {
 } ncvisual_details;
 
-static inline auto
-ncvisual_details_init(ncvisual_details* deets) -> nc_err_e {
+static inline auto ncvisual_details_init(ncvisual_details* deets) -> nc_err_e {
   (void)deets;
   return NCERR_SUCCESS;
 }

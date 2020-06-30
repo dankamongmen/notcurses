@@ -762,6 +762,13 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
   }
 }
 
+// ncdirect needs to "fake" an isolated ncplane as a drawing surface for
+// ncvisual_render(), and thus calls these low-level internal functions.
+// they are not for general use -- check ncplane_new() and ncplane_destroy().
+ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
+                        int yoff, int xoff, void* opaque);
+void free_plane(ncplane* p);
+
 // Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
 nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,

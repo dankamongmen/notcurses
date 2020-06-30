@@ -9,41 +9,6 @@
 // have been prepared already in 'ncv'.
 auto ncvisual_details_seed(struct ncvisual* ncv) -> void;
 
-// number of pixels that map to a single cell, height-wise
-static inline auto
-encoding_y_scale(const struct blitset* bset) -> int {
-  return bset->height;
-}
-
-// number of pixels that map to a single cell, width-wise
-static inline auto
-encoding_x_scale(const struct blitset* bset) -> int {
-  return bset->width;
-}
-
-static inline auto
-ncvisual_default_blitter(const notcurses* nc, ncscale_e scale) -> ncblitter_e {
-  if(notcurses_canutf8(nc)){
-    // NCBLIT_2x2 is better image quality, especially for large images, but
-    // it's not the general default because it doesn't preserve aspect ratio.
-    // NCSCALE_STRETCH throws away aspect ratio, and can safely use NCBLIT_2x2.
-    if(scale == NCSCALE_STRETCH){
-      return NCBLIT_2x2;
-    }
-    return NCBLIT_2x1;
-  }
-  return NCBLIT_1x1;
-}
-
-void scale_visual(const ncvisual* ncv, int* disprows, int* dispcols) {
-  float xratio = (float)(*dispcols) / ncv->cols;
-  if(xratio * ncv->rows > *disprows){
-    xratio = (float)(*disprows) / ncv->rows;
-  }
-  *disprows = xratio * (ncv->rows);
-  *dispcols = xratio * (ncv->cols);
-}
-
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {
@@ -87,24 +52,6 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
     *tox = encoding_x_scale(bset);
   }
   return 0;
-}
-
-// RGBA visuals all use NCBLIT_2x1 by default (or NCBLIT_1x1 if not in
-// UTF-8 mode), but an alternative can be specified.
-static const struct blitset*
-rgba_blitter(const notcurses* nc, const struct ncvisual_options* opts){
-  const struct blitset* bset;
-  const bool maydegrade = !(opts && (opts->flags & NCVISUAL_OPTION_NODEGRADE));
-  const ncscale_e scale = opts ? opts->scaling : NCSCALE_NONE;
-  if(opts && opts->blitter != NCBLIT_DEFAULT){
-    bset = lookup_blitset(nc, opts->blitter, maydegrade);
-  }else{
-    bset = lookup_blitset(nc, ncvisual_default_blitter(nc, scale), maydegrade);
-  }
-  if(bset && !bset->blit){ // FIXME remove this once all blitters are enabled
-    bset = nullptr;
-  }
-  return bset;
 }
 
 auto bgra_to_rgba(const void* data, int rows, int rowstride, int cols) -> void* {
@@ -442,7 +389,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   if(begx + lenx > ncv->cols || begy + leny > ncv->rows){
     return nullptr;
   }
-  auto bset = rgba_blitter(notcurses_canutf8(nc), vopts);
+  auto bset = rgba_blitter(nc, vopts);
   if(!bset){
     return nullptr;
   }

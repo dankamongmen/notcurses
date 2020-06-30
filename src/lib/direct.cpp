@@ -231,7 +231,7 @@ fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->co
     return NCERR_SYSTEM;
   }
 fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, scale);
-  auto bset = rgba_blitter(n->utf8, blitter, true);
+  auto bset = rgba_blitter_low(n->utf8, scale, blitter, NCBLIT_DEFAULT);
   if(!bset){
     return NCERR_INVALID_ARG;
   }
@@ -248,13 +248,21 @@ fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->col
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
-  ncvisual_destroy(ncv);
-//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
-  if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
+fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+  struct ncplane* faken = ncplane_create(NULL, NULL, disprows, dispcols, 0, 0, NULL);
+  if(faken == NULL){
+    return NCERR_NOMEM;
+  }
+  if(ncvisual_blit(ncv, disprows, dispcols, faken, bset,
                    begy, begx, begy, begx, leny, lenx,
                    false)){
+    ncvisual_destroy(ncv);
+    free_plane(faken);
     return NCERR_SYSTEM;
   }
+  ncvisual_destroy(ncv);
+  // FIXME render faken
+  free_plane(faken);
   return NCERR_SUCCESS;
 }
 

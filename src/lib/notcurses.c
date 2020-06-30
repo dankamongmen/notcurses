@@ -240,11 +240,13 @@ int update_term_dimensions(int fd, int* rows, int* cols){
   return 0;
 }
 
-static void
-free_plane(ncplane* p){
+void free_plane(ncplane* p){
   if(p){
-    --p->nc->stats.planes;
-    p->nc->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
+    // ncdirect fakes an ncplane with no ->nc
+    if(p->nc){
+      --p->nc->stats.planes;
+      p->nc->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
+    }
     egcpool_dump(&p->pool);
     free(p->fb);
     free(p);
@@ -258,9 +260,11 @@ free_plane(ncplane* p){
 // size in both dimensions. bind the plane to 'n', which may be NULL. if bound
 // to a plane, this plane moves when that plane moves, and move targets are
 // relative to that plane.
-static ncplane*
-ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
-               int yoff, int xoff, void* opaque){
+// there's a denormalized case we also must handle, that of the "fake" isolated
+// ncplane created by ncdirect for rendering visuals. in that case (and only in
+// that case), nc is NULL.
+ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
+                        int yoff, int xoff, void* opaque){
   if(rows <= 0 || cols <= 0){
     return NULL;
   }
@@ -287,8 +291,8 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
     p->bprev = &n->blist;
     *p->bprev = p;
   }else{
-    p->absx = xoff + nc->margin_l;
-    p->absy = yoff + nc->margin_t;
+    p->absx = xoff + (nc ? nc->margin_l : 0);
+    p->absy = yoff + (nc ? nc->margin_t : 0);
     p->bnext = NULL;
     p->bprev = NULL;
   }
@@ -298,15 +302,18 @@ ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   cell_init(&p->basecell);
   p->userptr = opaque;
   p->above = NULL;
-  if( (p->below = nc->top) ){ // always happens save initial plane
-    nc->top->above = p;
+  if( (p->nc = nc) ){
+    if( (p->below = nc->top) ){ // always happens save initial plane
+      nc->top->above = p;
+    }else{
+      nc->bottom = p;
+    }
+    nc->top = p;
+    nc->stats.fbbytes += fbsize;
+    ++nc->stats.planes;
   }else{
-    nc->bottom = p;
+    p->below = NULL;
   }
-  nc->top = p;
-  p->nc = nc;
-  nc->stats.fbbytes += fbsize;
-  ++nc->stats.planes;
   return p;
 }
 
