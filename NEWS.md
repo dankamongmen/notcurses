@@ -1,6 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.5.4 (not yet released)
+  * `ncdirect_render_image()` has been added, allowing images (but not
+    videos or animated images) to be rendered directly into the standard I/O
+    streams. It begins drawing from the current cursor position, running
+    through the right-hand side of the screen, and scrolling as much content
+    as is necessary.
+
 * 1.5.3 (2020-06-28)
   * The default blitter when `NCSCALE_STRETCH` is used is now `NCBLIT_2x2`,
     replacing `NCBLIT_2x1`. It is not the default for `NCSCALE_NONE` and
