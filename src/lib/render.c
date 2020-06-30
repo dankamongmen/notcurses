@@ -748,6 +748,10 @@ int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
                        n->tcache.italics, n->tcache.italoff);
 }
 
+int ncdirect_palette_size(const ncdirect* nc){
+  return nc->tcache.colors;
+}
+
 int ncdirect_fg_default(ncdirect* nc){
   if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
     nc->fgdefault = true;
