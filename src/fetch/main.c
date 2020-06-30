@@ -245,7 +245,6 @@ drawpalette(struct ncdirect* nc){
     if(ncdirect_cursor_move_yx(nc, -1, (dimx - 64) / 2)){
       return -1;
     }
-    // FIXME move to center
     for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
       const int truex = x - (dimx - 64) / 2;
       if(y * 64 + truex >= psize){
