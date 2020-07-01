@@ -267,17 +267,41 @@ drawpalette(struct ncdirect* nc){
   return 0;
 }
 
-/*static int
-infoplane(struct ncdirect* nc, const fetched_info* fi){
-  // FIXME look for an area without background logo in it. pick the one
-  // closest to the center horizontally, and lowest vertically. if none
-  // can be found, just center it on the bottom as we do now
-  const int dimy = ncdirect_dim_y(nc);
+// FIXME look for an area without background logo in it. pick the one
+// closest to the center horizontally, and lowest vertically. if none
+// can be found, just center it on the bottom as we do now
+static struct notcurses*
+place_infoplane(struct ncdirect* ncd, int planeheight){
+  const int dimy = ncdirect_dim_y(ncd);
+  struct notcurses_options opts = {
+    .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_INHIBIT_SETLOCALE
+              | NCOPTION_NO_ALTERNATE_SCREEN,
+    .margin_t = dimy - planeheight,
+  };
+  if(ncdirect_stop(ncd)){
+    return NULL;
+  }
+  for(int i = 0 ; i < planeheight ; ++i){
+    if(putchar('\n') == EOF){
+      return NULL;
+    }
+  }
+  return notcurses_init(&opts, NULL);
+}
+
+static int
+infoplane(struct ncdirect* ncd, const fetched_info* fi){
   const int planeheight = 8;
   const int planewidth = 60;
-  struct ncplane* infop = ncplane_aligned(notcurses_stdplane(nc),
+  struct notcurses* nc = place_infoplane(ncd, planeheight);
+  if(nc == NULL){
+    return -1;
+  }
+  int dimy;
+  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
+  struct ncplane* infop = ncplane_aligned(std,
                                           planeheight, planewidth,
-                                          dimy - (planeheight + 1),
+                                          dimy - planeheight,
                                           NCALIGN_CENTER, NULL);
   if(infop == NULL){
     return -1;
@@ -352,8 +376,14 @@ infoplane(struct ncdirect* nc, const fetched_info* fi){
   channels_set_fg_rgb(&channels, 0, 0, 0);
   channels_set_bg_rgb(&channels, 0x50, 0x50, 0x50);
   ncplane_set_base(infop, " ", 0, channels);
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  if(notcurses_stop(nc)){
+    return -1;
+  }
   return 0;
-}*/
+}
 
 struct marshal {
   struct ncdirect* nc;
@@ -410,12 +440,9 @@ ncneofetch(struct ncdirect* nc){
   fetch_x_props(&fi);
   fetch_cpu_info(&fi);
   sem_wait(&display_marshal.sem);
-  /*if(infoplane(nc, &fi)){
+  if(infoplane(nc, &fi)){
     return -1;
   }
-  if(notcurses_render(nc)){
-    return -1;
-  }*/
   return 0;
 }
 
@@ -428,8 +455,5 @@ int main(void){
     return EXIT_FAILURE;
   }
   int r = ncneofetch(nc);
-  if(ncdirect_stop(nc)){
-    return EXIT_FAILURE;
-  }
   return r ? EXIT_FAILURE : EXIT_SUCCESS;
 }
