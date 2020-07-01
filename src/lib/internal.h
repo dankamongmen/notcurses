@@ -268,9 +268,10 @@ typedef struct tinfo {
 typedef struct ncdirect {
   int attrword;              // current styles
   palette256 palette;        // 256-indexed palette can be used instead of/with RGB
-  FILE* ttyfp;               // FILE* for controlling tty
+  FILE* ttyfp;               // FILE* for output tty
+  int ctermfd;               // fd for controlling terminal
   tinfo tcache;              // terminfo cache
-  uint16_t fgrgb, bgrgb;     // last RGB values of foreground/background
+  unsigned fgrgb, bgrgb;     // last RGB values of foreground/background
   bool fgdefault, bgdefault; // are FG/BG currently using default colors?
   bool utf8;                 // are we using utf-8 encoding, as hoped?
 } ncdirect;
@@ -780,6 +781,9 @@ nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                        int leny, int lenx, bool blendcolors);
 
 void nclog(const char* fmt, ...);
+
+// get a file descriptor for the controlling tty device, -1 on error
+int get_controlling_tty(void);
 
 // logging
 #define logerror(nc, fmt, ...) do{ \
