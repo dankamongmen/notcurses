@@ -269,13 +269,22 @@ drawpalette(struct ncdirect* nc){
 
 static int
 infoplane(struct ncdirect* nc, const fetched_info* fi){
-  const int planeheight = 8;
   const int planewidth = 60;
+  const int infox = (ncdirect_dim_x(nc) - planewidth) / 2;
+  if(infox < 0){
+    return -1;
+  }
+  printf("\n");
   ncdirect_fg_rgb(nc, 0xd0, 0xd0, 0xd0);
   ncdirect_bg_rgb(nc, 0x50, 0x50, 0x50);
   ncdirect_styles_on(nc, NCSTYLE_UNDERLINE);
+  if(ncdirect_cursor_move_yx(nc, -1, infox + 1) < 0){
+    return -1;
+  }
+  if(printf("%s %s", fi->kernel, fi->kernver) < 0){
+    return -1;
+  }
   /*
-  ncplane_printf_aligned(infop, 1, NCALIGN_LEFT, " %s %s", fi->kernel, fi->kernver);
   if(fi->distro_pretty){
     ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
   }
@@ -341,6 +350,11 @@ infoplane(struct ncdirect* nc, const fetched_info* fi){
     return -1;
   }
   */
+  ncdirect_fg_default(nc);
+  ncdirect_bg_default(nc);
+  if(printf("\n") < 0){
+    return -1;
+  }
   return 0;
 }
 
@@ -398,12 +412,9 @@ ncneofetch(struct ncdirect* nc){
   fetch_x_props(&fi);
   fetch_cpu_info(&fi);
   sem_wait(&display_marshal.sem);
-  /*if(infoplane(nc, &fi)){
+  if(infoplane(nc, &fi)){
     return -1;
   }
-  if(notcurses_render(nc)){
-    return -1;
-  }*/
   return 0;
 }
 

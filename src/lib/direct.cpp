@@ -388,8 +388,11 @@ int ncdirect_vprintf_aligned(ncdirect* n, int y, ncalign_e align, const char* fm
     free(r);
     return -1;
   }
-  int ret = vprintf(fmt, ap);
+  int ret = puts(r);
   free(r);
+  if(ret == EOF){
+    return -1;
+  }
   return ret;
 }
 
