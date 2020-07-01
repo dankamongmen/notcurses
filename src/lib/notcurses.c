@@ -631,44 +631,6 @@ ffmpeg_log_level(ncloglevel_e level){
 #endif
 }
 
-ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
-  if(outfp == NULL){
-    outfp = stdout;
-  }
-  ncdirect* ret = malloc(sizeof(*ret));
-  if(ret == NULL){
-    return ret;
-  }
-  ret->ttyfp = outfp;
-  memset(&ret->palette, 0, sizeof(ret->palette));
-  int ttyfd = fileno(ret->ttyfp);
-  if(ttyfd < 0){
-    fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
-    free(ret);
-    return NULL;
-  }
-  int termerr;
-  if(setupterm(termtype, ttyfd, &termerr) != OK){
-    fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
-    free(ret);
-    return NULL;
-  }
-  if(interrogate_terminfo(&ret->tcache)){
-    free(ret);
-    return NULL;
-  }
-  ret->fgdefault = ret->bgdefault = true;
-  ret->fgrgb = ret->bgrgb = 0;
-  ncdirect_styles_set(ret, 0);
-  const char* encoding = nl_langinfo(CODESET);
-  if(encoding && strcmp(encoding, "UTF-8") == 0){
-    ret->utf8 = true;
-  }else if(encoding && strcmp(encoding, "ANSI_X3.4-1968") == 0){
-    ret->utf8 = false;
-  }
-  return ret;
-}
-
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to stdout. we are not yet on the alternate screen.
 static void

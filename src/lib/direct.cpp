@@ -1,3 +1,5 @@
+#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <fcntl.h>
 #include <errno.h>
 #include <cstring>
 #include <unistd.h>
@@ -335,23 +337,6 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
   return NCERR_SUCCESS;
 }
 
-int ncdirect_stop(ncdirect* nc){
-  int ret = 0;
-  if(nc){
-    if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
-      ret = -1;
-    }
-    free(nc);
-  }
-  return ret;
-}
-
 int ncdirect_fg_palindex(ncdirect* nc, int pidx){
   return term_emit("setaf", tiparm(nc->tcache.setaf, pidx), nc->ttyfp, false);
 }
@@ -403,3 +388,72 @@ int ncdirect_printf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt
   va_end(va);
   return ret;
 }
+
+int get_controlling_tty(void){
+  char cbuf[L_ctermid + 1];
+  if(ctermid(cbuf) == NULL){
+    return -1;
+  }
+  return open(cbuf, O_RDWR | O_CLOEXEC);
+}
+
+ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
+  if(outfp == NULL){
+    outfp = stdout;
+  }
+  auto ret = new ncdirect{};
+  if(ret == NULL){
+    return ret;
+  }
+  ret->ttyfp = outfp;
+  memset(&ret->palette, 0, sizeof(ret->palette));
+  int ttyfd = fileno(ret->ttyfp);
+  if(ttyfd < 0){
+    fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
+    delete(ret);
+    return NULL;
+  }
+  int termerr;
+  if(setupterm(termtype, ttyfd, &termerr) != OK){
+    fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
+    delete(ret);
+    return NULL;
+  }
+  if(interrogate_terminfo(&ret->tcache)){
+    delete(ret);
+    return NULL;
+  }
+  // we don't need a controlling tty for everything we do; allow a failure here
+  ret->ctermfd = get_controlling_tty();
+  ret->fgdefault = ret->bgdefault = true;
+  ret->fgrgb = ret->bgrgb = 0;
+  ncdirect_styles_set(ret, 0);
+  const char* encoding = nl_langinfo(CODESET);
+  if(encoding && strcmp(encoding, "UTF-8") == 0){
+    ret->utf8 = true;
+  }else if(encoding && strcmp(encoding, "ANSI_X3.4-1968") == 0){
+    ret->utf8 = false;
+  }
+  return ret;
+}
+
+int ncdirect_stop(ncdirect* nc){
+  int ret = 0;
+  if(nc){
+    if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
+      ret = -1;
+    }
+    if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, true)){
+      ret = -1;
+    }
+    if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
+      ret = -1;
+    }
+    if(nc->ctermfd >= 0){
+      ret |= close(nc->ctermfd);
+    }
+    delete(nc);
+  }
+  return ret;
+}
+
