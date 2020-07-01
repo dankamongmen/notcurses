@@ -359,3 +359,44 @@ int ncdirect_fg_palindex(ncdirect* nc, int pidx){
 int ncdirect_bg_palindex(ncdirect* nc, int pidx){
   return term_emit("setab", tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
 }
+
+static inline int
+ncdirect_align(const struct ncdirect* n, ncalign_e align, int c){
+  if(align == NCALIGN_LEFT){
+    return 0;
+  }
+  int cols = ncdirect_dim_x(n);
+  if(c > cols){
+    return 0;
+  }
+  if(align == NCALIGN_CENTER){
+    return (cols - c) / 2;
+  }else if(align == NCALIGN_RIGHT){
+    return cols - c;
+  }
+  return INT_MAX;
+}
+
+int ncdirect_vprintf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt, va_list ap){
+  char* r = ncplane_vprintf_prep(fmt, ap);
+  if(r == NULL){
+    return -1;
+  }
+  const size_t len = strlen(r);
+  const int x = ncdirect_align(n, align, len);
+  if(ncdirect_cursor_move_yx(n, y, x)){
+    free(r);
+    return -1;
+  }
+  int ret = vprintf(fmt, ap);
+  free(r);
+  return ret;
+}
+
+int ncdirect_printf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt, ...){
+  va_list va;
+  va_start(va, fmt);
+  int ret = ncdirect_vprintf_aligned(n, y, align, fmt, va);
+  va_end(va);
+  return ret;
+}
