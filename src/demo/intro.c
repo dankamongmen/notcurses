@@ -7,7 +7,7 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   ncplane_dim_yx(ncp, &rows, &cols);
   for(int x = 5 ; x < cols - 6 ; ++x){
     ncplane_set_fg_rgb(ncp, 0xd0, 0xf0, 0xd0);
-    if(ncplane_putwc_yx(ncp, rows - 3, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
+    if(ncplane_putwc_yx(ncp, rows - 5, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
       return -1;
     }
   }
@@ -100,9 +100,8 @@ int intro(struct notcurses* nc){
     return -1;
   }
   ncplane_styles_off(ncp, NCSTYLE_ITALIC);
-  // FIXME don't blow away the background color from the gradient. make this a transplane
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
-  if(ncplane_printf_aligned(ncp, rows - 5, NCALIGN_CENTER, "notcurses %s. press 'q' to quit.", notcurses_version()) < 0){
+  if(ncplane_printf_aligned(ncp, rows - 10, NCALIGN_CENTER, "notcurses %s. press 'q' to quit.", notcurses_version()) < 0){
     return -1;
   }
   ncplane_styles_off(ncp, NCSTYLE_BOLD);
