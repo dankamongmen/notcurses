@@ -1,16 +1,22 @@
 # notcurses
 blingful TUI library for modern terminal emulators. definitely not curses.
 
+* **What it is**: a library facilitating complex TUIs on modern terminal
+    emulators, supporting vivid colors and Unicode to the maximum degree
+    possible. Many tasks delegated to Curses can be achieved using Notcurses
+    (and vice versa).
+
+* **What it is not**: a source-compatible X/Open Curses implementation, nor a
+    replacement for NCURSES on existing systems.
+
 * birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
 * C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
-and the [man pages](https://notcurses.com/notcurses). There's also a reference
-[in this repo](USAGE.md).
-
-In addition, there is
-[Doxygen](https://nick-black.com/notcurses/html/) output. There is a [mailing
-list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
+and the [man pages](https://notcurses.com/notcurses). there's also a reference
+[in this repo](USAGE.md). in addition, there is
+[Doxygen](https://nick-black.com/notcurses/html/) output. there is a
+[mailing list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
 via notcurses@googlegroups.com.
 
 I wrote a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which
@@ -46,14 +52,6 @@ and the FreeBSD [Ports Collection](https://www.freshports.org/devel/notcurses/).
   * [Thanks](#thanks)
 
 ## Introduction
-
-* **What it is**: a library facilitating complex TUIs on modern terminal
-    emulators, supporting vivid colors and Unicode to the maximum degree
-    possible. Many tasks delegated to Curses can be achieved using Notcurses
-    (and vice versa).
-
-* **What it is not**: a source-compatible X/Open Curses implementation, nor a
-    replacement for NCURSES on existing systems.
 
 Notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
 Specification. The latter shows its age, and seems not capable of making use of
