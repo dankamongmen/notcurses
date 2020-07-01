@@ -302,7 +302,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
       if(visy < begy + leny - 1){
         rgbbase_bl = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
       }
-//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
+//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->attrword = 0;
