@@ -369,6 +369,7 @@ display_thread(void* vmarshal){
     if(m->dinfo->logofile){
       if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCBLIT_2x2,
                                NCSCALE_SCALE) != NCERR_SUCCESS){
+        sem_post(&m->sem);
         return NULL;
       }
     }
