@@ -568,10 +568,6 @@ add_test(
   NAME rgbbg
   COMMAND rgbbg
 )
-add_test(
-  NAME ncneofetch
-  COMMAND ncneofetch
-)
 endif()
 
 # pkg-config support
