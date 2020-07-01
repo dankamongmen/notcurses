@@ -277,18 +277,19 @@ infoplane(struct ncdirect* nc, const fetched_info* fi){
   printf("\n");
   ncdirect_fg_rgb(nc, 0xd0, 0xd0, 0xd0);
   ncdirect_bg_rgb(nc, 0x50, 0x50, 0x50);
-  ncdirect_styles_on(nc, NCSTYLE_UNDERLINE);
-  if(ncdirect_cursor_move_yx(nc, -1, infox + 1) < 0){
+  ncdirect_styles_set(nc, NCSTYLE_UNDERLINE);
+  if(ncdirect_cursor_move_yx(nc, -1, infox) < 0){
     return -1;
   }
-  if(printf("%s %s", fi->kernel, fi->kernver) < 0){
+  int r = printf(" %s %s", fi->kernel, fi->kernver);
+  if(r < 0){
     return -1;
   }
-  /*
   if(fi->distro_pretty){
-    ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
+    printf("%*s ", planewidth - r, fi->distro_pretty);
   }
-  ncplane_set_attr(infop, NCSTYLE_NONE);
+  ncdirect_styles_set(nc, NCSTYLE_NONE);
+  /*
 #ifdef __linux__
   struct sysinfo sinfo;
   sysinfo(&sinfo);
