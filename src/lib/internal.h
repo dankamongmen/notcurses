@@ -769,6 +769,9 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
                         int yoff, int xoff, void* opaque);
 void free_plane(ncplane* p);
 
+// heap-allocated formatted output
+char* ncplane_vprintf_prep(const char* format, va_list ap);
+
 // Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
 nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,

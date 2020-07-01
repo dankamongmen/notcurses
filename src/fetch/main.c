@@ -267,23 +267,14 @@ drawpalette(struct ncdirect* nc){
   return 0;
 }
 
-/*static int
+static int
 infoplane(struct ncdirect* nc, const fetched_info* fi){
-  // FIXME look for an area without background logo in it. pick the one
-  // closest to the center horizontally, and lowest vertically. if none
-  // can be found, just center it on the bottom as we do now
-  const int dimy = ncdirect_dim_y(nc);
   const int planeheight = 8;
   const int planewidth = 60;
-  struct ncplane* infop = ncplane_aligned(notcurses_stdplane(nc),
-                                          planeheight, planewidth,
-                                          dimy - (planeheight + 1),
-                                          NCALIGN_CENTER, NULL);
-  if(infop == NULL){
-    return -1;
-  }
-  ncplane_set_fg_rgb(infop, 0xd0, 0xd0, 0xd0);
-  ncplane_set_attr(infop, NCSTYLE_UNDERLINE);
+  ncdirect_fg_rgb(nc, 0xd0, 0xd0, 0xd0);
+  ncdirect_bg_rgb(nc, 0x50, 0x50, 0x50);
+  ncdirect_styles_on(nc, NCSTYLE_UNDERLINE);
+  /*
   ncplane_printf_aligned(infop, 1, NCALIGN_LEFT, " %s %s", fi->kernel, fi->kernver);
   if(fi->distro_pretty){
     ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
@@ -349,11 +340,9 @@ infoplane(struct ncdirect* nc, const fetched_info* fi){
                             fi->username, fi->hostname) < 0){
     return -1;
   }
-  channels_set_fg_rgb(&channels, 0, 0, 0);
-  channels_set_bg_rgb(&channels, 0x50, 0x50, 0x50);
-  ncplane_set_base(infop, " ", 0, channels);
+  */
   return 0;
-}*/
+}
 
 struct marshal {
   struct ncdirect* nc;

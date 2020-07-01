@@ -1404,9 +1404,8 @@ unsigned ncplane_styles(const ncplane* n){
 
 // i hate the big allocation and two copies here, but eh what you gonna do?
 // well, for one, we don't need the huge allocation FIXME
-static char*
-ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
-  const size_t size = n->lenx + 1; // healthy estimate, can embiggen below
+char* ncplane_vprintf_prep(const char* format, va_list ap){
+  const size_t size = BUFSIZ; // healthy estimate, can embiggen below
   char* buf = malloc(size);
   if(buf == NULL){
     return NULL;
@@ -1434,7 +1433,7 @@ ncplane_vprintf_prep(ncplane* n, const char* format, va_list ap){
 }
 
 int ncplane_vprintf_yx(ncplane* n, int y, int x, const char* format, va_list ap){
-  char* r = ncplane_vprintf_prep(n, format, ap);
+  char* r = ncplane_vprintf_prep(format, ap);
   if(r == NULL){
     return -1;
   }
@@ -1445,7 +1444,7 @@ int ncplane_vprintf_yx(ncplane* n, int y, int x, const char* format, va_list ap)
 
 int ncplane_vprintf_aligned(ncplane* n, int y, ncalign_e align,
                             const char* format, va_list ap){
-  char* r = ncplane_vprintf_prep(n, format, ap);
+  char* r = ncplane_vprintf_prep(format, ap);
   if(r == NULL){
     return -1;
   }
