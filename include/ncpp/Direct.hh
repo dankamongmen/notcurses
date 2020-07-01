@@ -44,7 +44,7 @@ namespace ncpp
 
 		bool set_fg (unsigned r, unsigned g, unsigned b) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_fg_rgb8 (direct, r, g, b), -1);
+			return error_guard (ncdirect_fg_rgb (direct, r, g, b), -1);
 		}
 
 		bool set_bg_default () const NOEXCEPT_MAYBE
@@ -59,7 +59,7 @@ namespace ncpp
 
 		bool set_bg (unsigned r, unsigned g, unsigned b) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_bg_rgb8 (direct, r, g, b), -1);
+			return error_guard (ncdirect_bg_rgb (direct, r, g, b), -1);
 		}
 
 		int get_dim_x () const NOEXCEPT_MAYBE

@@ -486,8 +486,8 @@ int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gc
 int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* gclustarr);
 int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax, int* xmax, const void* data, size_t len);
 struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
-int ncdirect_bg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
-int ncdirect_fg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
+int ncdirect_bg_rgb(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
+int ncdirect_fg_rgb(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg(struct ncdirect* n, unsigned rgb);
 int ncdirect_bg(struct ncdirect* n, unsigned rgb);
 int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);

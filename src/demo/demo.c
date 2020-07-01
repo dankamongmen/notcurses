@@ -297,7 +297,7 @@ static int
 table_segment_color(struct ncdirect* nc, const char* str, const char* delim, unsigned color){
   ncdirect_fg(nc, color);
   fputs(str, stdout);
-  ncdirect_fg_rgb8(nc, 178, 102, 255);
+  ncdirect_fg_rgb(nc, 178, 102, 255);
   fputs(delim, stdout);
   return 0;
 }
@@ -309,12 +309,12 @@ table_segment(struct ncdirect* nc, const char* str, const char* delim){
 
 static int
 table_printf(struct ncdirect* nc, const char* delim, const char* fmt, ...){
-  ncdirect_fg_rgb8(nc, 0xD4, 0xAF, 0x37);
+  ncdirect_fg_rgb(nc, 0xD4, 0xAF, 0x37);
   va_list va;
   va_start(va, fmt);
   vfprintf(stdout, fmt, va);
   va_end(va);
-  ncdirect_fg_rgb8(nc, 178, 102, 255);
+  ncdirect_fg_rgb(nc, 178, 102, 255);
   fputs(delim, stdout);
   return 0;
 }
@@ -371,11 +371,11 @@ summary_table(struct ncdirect* nc, const char* spec){
     }
     ncdirect_fg(nc, rescolor);
     printf("%2zu", i);
-    ncdirect_fg_rgb8(nc, 178, 102, 255);
+    ncdirect_fg_rgb(nc, 178, 102, 255);
     printf("│");
     ncdirect_fg(nc, rescolor);
     printf("%9s", demos[results[i].selector - 'a'].name);
-    ncdirect_fg_rgb8(nc, 178, 102, 255);
+    ncdirect_fg_rgb(nc, 178, 102, 255);
     printf("│%*ss│%7ju│%*s│ %*ss│%3jd│%7.1f│%7.1f║",
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
            BPREFIXFMT(totalbuf), PREFIXFMT(rtimebuf),
@@ -408,17 +408,17 @@ summary_table(struct ncdirect* nc, const char* spec){
   table_printf(nc, "│", "%3ld", nsdelta ? totalrenderns * 100 / nsdelta : 0);
   table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
   printf("\n");
-  ncdirect_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
+  ncdirect_fg_rgb(nc, 0xff, 0xb0, 0xb0);
   fflush(stdout); // in case we print to stderr below, we want color from above
   if(failed){
     fprintf(stderr, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p.\n", datadir);
   }
 #ifdef DFSG_BUILD
-  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
+  ncdirect_fg_rgb(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
   fflush(stdout); // in case we print to stderr below, we want color from above
   fprintf(stderr, "\nDFSG version. Some demos are unavailable.\n");
 #elif !defined(USE_MULTIMEDIA) // don't double-print for DFSG
-  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
+  ncdirect_fg_rgb(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
   fflush(stdout); // in case we print to stderr below, we want color from above
   fprintf(stderr, "\nNo multimedia support. Some demos are unavailable.\n");
 #endif

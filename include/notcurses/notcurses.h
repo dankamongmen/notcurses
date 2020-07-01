@@ -56,6 +56,13 @@ typedef enum {
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncblitter_e;
 
+// Alignment within a plane or terminal. Left/right-justified, or centered.
+typedef enum {
+  NCALIGN_LEFT,
+  NCALIGN_CENTER,
+  NCALIGN_RIGHT,
+} ncalign_e;
+
 // How to scale an ncvisual during rendering. NCSCALE_NONE will apply no
 // scaling. NCSCALE_SCALE scales a visual to the plane's size, maintaining
 // aspect ratio. NCSCALE_STRETCH stretches and scales the image in an
@@ -80,8 +87,19 @@ API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 API int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
 API int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
 
+API int ncdirect_fg_palindex(struct ncdirect* nc, int pidx);
+API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx);
+
+// Returns the number of simultaneous colors claimed to be supported, or 1 if
+// there is no color support. Note that several terminal emulators advertise
+// more colors than they actually support, downsampling internally.
+API int ncdirect_palette_size(const struct ncdirect* nc);
+
+// Output the EGC |egc| according to the channels |channels|.
+API int ncdirect_putc(struct ncdirect* nc, uint64_t channels, const char* egc);
+
 static inline int
-ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
+ncdirect_bg_rgb(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
@@ -89,7 +107,7 @@ ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
 }
 
 static inline int
-ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
+ncdirect_fg_rgb(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
@@ -126,6 +144,11 @@ API int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x);
 // stack, and indeed its existence, is terminal-dependent.
 API int ncdirect_cursor_push(struct ncdirect* n);
 API int ncdirect_cursor_pop(struct ncdirect* n);
+
+// Formatted printing (plus alignment relative to the terminal).
+API int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
+                                const char* fmt, ...)
+  __attribute__ ((format (printf, 4, 5)));
 
 // Display an image using the specified blitter and scaling. The image may
 // // be arbitrarily many rows -- the output will scroll -- but will only occupy
@@ -1108,13 +1131,6 @@ notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows, int* RESTRI
 API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
                           uint32_t* attrword, uint64_t* channels);
 
-// Alignment within the ncplane. Left/right-justified, or centered.
-typedef enum {
-  NCALIGN_LEFT,
-  NCALIGN_CENTER,
-  NCALIGN_RIGHT,
-} ncalign_e;
-
 // Create a new ncplane at the specified offset (relative to the standard plane)
 // and the specified size. The number of rows and columns must both be positive.
 // This plane is initially at the top of the z-buffer, as if ncplane_move_top()
@@ -1373,6 +1389,9 @@ ncplane_align(const struct ncplane* n, ncalign_e align, int c){
     return 0;
   }
   int cols = ncplane_dim_x(n);
+  if(c > cols){
+    return 0;
+  }
   if(align == NCALIGN_CENTER){
     return (cols - c) / 2;
   }else if(align == NCALIGN_RIGHT){

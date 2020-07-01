@@ -6,6 +6,24 @@
 #include "visual-details.h"
 #include "internal.h"
 
+int ncdirect_putc(ncdirect* nc, uint64_t channels, const char* egc){
+  if(channels_fg_default_p(channels)){
+    if(ncdirect_fg_default(nc)){
+      return -1;
+    }
+  }else if(ncdirect_fg(nc, channels_fg(channels))){
+    return -1;
+  }
+  if(channels_bg_default_p(channels)){
+    if(ncdirect_bg_default(nc)){
+      return -1;
+    }
+  }else if(ncdirect_bg(nc, channels_bg(channels))){
+    return -1;
+  }
+  return fprintf(nc->ttyfp, "%s", egc);
+}
+
 int ncdirect_cursor_up(ncdirect* nc, int num){
   if(num < 0){
     return -1;
@@ -106,8 +124,22 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   return -1;
 }
 
+// verify that fp is actually a terminal, returning 1 if so
+static int
+verify_tty(FILE* fp){
+  int fd = fileno(fp);
+  if(fd < 0){
+    return -1;
+  }
+  return isatty(fd);
+}
+
 static int
 cursor_yx_get(FILE* outfp, FILE* infp, int* y, int* x){
+  // we're never going to be getting an answer if it's not a terminal
+  if(!verify_tty(outfp)){
+    return -1;
+  }
   if(fprintf(outfp, "\033[6n") != 4){
     return -1;
   }
@@ -232,13 +264,16 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np){
       }
       ncdirect_fg(n, channels_fg(channels));
       ncdirect_bg(n, channels_bg(channels));
-//    fprintf(stderr, "%03d/%03d [%s]\n", y, x, egc);
+//fprintf(stdout, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
       if(printf("%s", strlen(egc) == 0 ? " " : egc) < 0){
         return -1;
       }
     }
-    ncdirect_cursor_down(n, 1);
+    // FIXME mystifyingly, we require this cursor_left() when using 2x2, but must
+    // not have it when using 2x1 (we insert blank lines otherwise). don't paper
+    // over it with a conditional, but instead get to the bottom of this FIXME.
     ncdirect_cursor_left(n, dimx);
+    ncdirect_cursor_down(n, 1);
   }
   return 0;
 }
@@ -263,7 +298,7 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
     return NCERR_DECODE;
   }
 //fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, scale);
-  auto bset = rgba_blitter_low(n->utf8, scale, blitter, NCBLIT_DEFAULT);
+  auto bset = rgba_blitter_low(n->utf8, scale, true, blitter);
   if(!bset){
     return NCERR_INVALID_ARG;
   }
@@ -281,13 +316,15 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
 //fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
-  struct ncplane* faken = ncplane_create(NULL, NULL, disprows, dispcols, 0, 0, NULL);
+  struct ncplane* faken = ncplane_create(NULL, NULL,
+                                         disprows / encoding_y_scale(bset),
+                                         dispcols,// / encoding_x_scale(bset),
+                                         0, 0, NULL);
   if(faken == NULL){
     return NCERR_NOMEM;
   }
   if(ncvisual_blit(ncv, disprows, dispcols, faken, bset,
-                   0, 0, 0, 0, leny, lenx,
-                   false)){
+                   0, 0, 0, 0, leny, lenx, false)){
     ncvisual_destroy(ncv);
     free_plane(faken);
     return NCERR_SYSTEM;
@@ -313,4 +350,12 @@ int ncdirect_stop(ncdirect* nc){
     free(nc);
   }
   return ret;
+}
+
+int ncdirect_fg_palindex(ncdirect* nc, int pidx){
+  return term_emit("setaf", tiparm(nc->tcache.setaf, pidx), nc->ttyfp, false);
+}
+
+int ncdirect_bg_palindex(ncdirect* nc, int pidx){
+  return term_emit("setab", tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
 }
