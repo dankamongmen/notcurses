@@ -58,7 +58,7 @@ notcurses_stop_minimal(notcurses* nc){
     ret = -1;
   }
   ret |= notcurses_mouse_disable(nc);
-  if(nc->true_tty){
+  if(nc->ttyfd >= 0){
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
   }
   return ret;
@@ -221,8 +221,11 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry.
-// FIXME ought check true_tty here, but ncdirect calls us...
 int update_term_dimensions(int fd, int* rows, int* cols){
+  // if we're not a real tty, we presumably haven't changed geometry, return
+  if(fd < 0){
+    return 0;
+  }
   struct winsize ws;
   int i = ioctl(fd, TIOCGWINSZ, &ws);
   if(i < 0){
@@ -714,6 +717,31 @@ init_lang(const notcurses_options* opts){
   }
 }
 
+// if ttyfp is a tty, return a file descriptor extracted from it. otherwise,
+// try to get the controlling terminal. otherwise, return -1.
+static int
+get_tty_fd(notcurses* nc, FILE* ttyfp){
+  int fd = -1;
+  if(ttyfp){
+    if((fd = fileno(ttyfp)) < 0){
+      logwarning(nc, "No file descriptor was available in outfp %p\n", ttyfp);
+    }else{
+      if(!isatty(fd)){
+        loginfo(nc, "File descriptor %d was not a TTY\n", fd);
+        fd = -1;
+      }
+      // FIXME otherwise we ought dup() it, so we can always close() ttyfd
+    }
+  }
+  if(fd < 0){
+    fd = open("/dev/tty", O_RDWR | O_CLOEXEC);
+    if(fd < 0){
+      logwarning(nc, "Error opening /dev/tty (%s)\n", strerror(errno));
+    }
+  }
+  return fd;
+}
+
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
@@ -745,14 +773,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  bool own_outfp = false;
   if(outfp == NULL){
-    if((outfp = fopen("/dev/tty", "wbe")) == NULL){
-      logwarning(ret, "Couldn't get controlling terminal %s\n", strerror(errno));
-      outfp = stdout;
-    }else{
-      own_outfp = true;
-    }
+    outfp = stdout;
   }
   ret->margin_t = opts->margin_t;
   ret->margin_b = opts->margin_b;
@@ -763,7 +785,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   reset_stats(&ret->stats);
   reset_stats(&ret->stashstats);
   ret->ttyfp = outfp;
-  ret->ownttyfp = own_outfp;
   ret->renderfp = opts->renderfp;
   ret->inputescapes = NULL;
   ret->ttyinfp = stdin; // FIXME
@@ -783,32 +804,30 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->inputbuf_valid_starts = 0;
   ret->inputbuf_write_at = 0;
   ret->input_events = 0;
-  if((ret->ttyfd = fileno(ret->ttyfp)) < 0){
-    fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
-    free(ret);
-    return NULL;
-  }
+  ret->ttyfd = get_tty_fd(ret, ret->ttyfp);
   notcurses_mouse_disable(ret);
-  if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
-    logwarning(ret, "Couldn't preserve terminal state for %d (%s)\n", ret->ttyfd, strerror(errno));
-    // assume it's not a true terminal (e.g. we might be redirected to a file)
-    ret->true_tty = false;
-  }else{
-    ret->true_tty = true;
-    struct termios modtermios;
-    memcpy(&modtermios, &ret->tpreserved, sizeof(modtermios));
-    // see termios(3). disabling ECHO and ICANON means input will not be echoed
-    // to the screen, input is made available without enter-based buffering, and
-    // line editing is disabled. since we have not gone into raw mode, ctrl+c
-    // etc. still have their typical effects. ICRNL maps return to 13 (Ctrl+M)
-    // instead of 10 (Ctrl+J).
-    modtermios.c_lflag &= (~ECHO & ~ICANON);
-    modtermios.c_iflag &= (~ICRNL);
-    if(tcsetattr(ret->ttyfd, TCSANOW, &modtermios)){
-      fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n",
-              ret->ttyfd, strerror(errno));
+  if(ret->ttyfd >= 0){
+    if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
+      logerror(ret, "Couldn't preserve terminal state for %d (%s)\n", ret->ttyfd, strerror(errno));
       free(ret);
       return NULL;
+      // assume it's not a true terminal (e.g. we might be redirected to a file)
+    }else{
+      struct termios modtermios;
+      memcpy(&modtermios, &ret->tpreserved, sizeof(modtermios));
+      // see termios(3). disabling ECHO and ICANON means input will not be echoed
+      // to the screen, input is made available without enter-based buffering, and
+      // line editing is disabled. since we have not gone into raw mode, ctrl+c
+      // etc. still have their typical effects. ICRNL maps return to 13 (Ctrl+M)
+      // instead of 10 (Ctrl+J).
+      modtermios.c_lflag &= (~ECHO & ~ICANON);
+      modtermios.c_iflag &= (~ICRNL);
+      if(tcsetattr(ret->ttyfd, TCSANOW, &modtermios)){
+        fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n",
+                ret->ttyfd, strerror(errno));
+        free(ret);
+        return NULL;
+      }
     }
   }
   if(setup_signals(ret,
@@ -822,7 +841,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   int dimy, dimx;
-  if(ret->true_tty){
+  if(ret->ttyfd >= 0){
     if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
       goto err;
     }
@@ -918,9 +937,6 @@ int notcurses_stop(notcurses* nc){
     free(nc->rstate.mstream);
     input_free_esctrie(&nc->inputescapes);
     stash_stats(nc);
-    if(nc->ownttyfp){
-      ret |= fclose(nc->ttyfp);
-    }
     if(!nc->suppress_banner){
       if(nc->stashstats.renders){
         char totalbuf[BPREFIXSTRLEN + 1];

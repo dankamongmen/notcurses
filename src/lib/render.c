@@ -18,13 +18,10 @@ notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   }
   int oldrows = n->stdscr->leny;
   int oldcols = n->stdscr->lenx;
-  if(n->true_tty){
-    if(update_term_dimensions(n->ttyfd, rows, cols)){
-      return -1;
-    }
-  }else{
-    *rows = oldrows;
-    *cols = oldcols;
+  *rows = oldrows;
+  *cols = oldcols;
+  if(update_term_dimensions(n->ttyfd, rows, cols)){
+    return -1;
   }
   n->truecols = *cols;
   *rows -= n->margin_t + n->margin_b;
@@ -1027,7 +1024,7 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
   }
   ret |= fflush(out);
   //fflush(nc->ttyfp);
-  if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
+  if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
   }
 //fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu %d\n", nc->stats.defaultelisions, nc->stats.defaultemissions, nc->stats.fgelisions, nc->stats.fgemissions, nc->stats.bgelisions, nc->stats.bgemissions, ret);

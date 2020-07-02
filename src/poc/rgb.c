@@ -12,11 +12,9 @@ int main(void){
     .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
-fprintf(stderr, "notcurses struct: %p\n", nc);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-return EXIT_SUCCESS;
   int y, x, dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);

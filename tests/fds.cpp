@@ -148,13 +148,13 @@ TEST_CASE("FdsAndSubprocs"
   }
 
   SUBCASE("SubprocDestroyCmdHung") {
-    char * const argv[] = { strdup("/bin/sleep"), strdup("10"), nullptr, };
+    char * const argv[] = { strdup("/bin/cat"), nullptr, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
-    // FIXME want CHECK on this, breaking on debian drone 2020-07-02
+    // FIXME ought be CHECK, breaking in drone
     WARN(0 != ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
   }
