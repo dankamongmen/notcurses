@@ -726,13 +726,14 @@ fprintf(stderr, "HERE WE ARE\n");
     fprintf(stderr, "Provided an illegal Notcurses option, refusing to start\n");
     return NULL;
   }
-fprintf(stderr, "VALID OPTS\n");
+fprintf(stderr, "VALID OPTS flags: %016x\n", opts->flags);
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
   }
   init_lang(opts);
   const char* encoding = nl_langinfo(CODESET);
+fprintf(stderr, "ENCODING: %s\n", encoding);
   if(encoding && strcmp(encoding, "UTF-8") == 0){
     ret->utf8 = true;
   }else if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") || !strcmp(encoding, "US-ASCII"))){
@@ -776,6 +777,7 @@ fprintf(stderr, "VALID OPTS\n");
     free(ret);
     return NULL;
   }
+fprintf(stderr, "MADE NONBLOCKING\n");
   ret->inputbuf_occupied = 0;
   ret->inputbuf_valid_starts = 0;
   ret->inputbuf_write_at = 0;
@@ -785,6 +787,7 @@ fprintf(stderr, "VALID OPTS\n");
     free(ret);
     return NULL;
   }
+fprintf(stderr, "FD: %d\n", ret->ttyfd);
   notcurses_mouse_disable(ret);
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
     fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
@@ -807,20 +810,24 @@ fprintf(stderr, "VALID OPTS\n");
     free(ret);
     return NULL;
   }
+fprintf(stderr, "SET ATTRS ON %d\n", ret->ttyfd);
   if(setup_signals(ret,
                    (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER))){
     goto err;
   }
   int termerr;
+fprintf(stderr, "SETUP SIGNALS\n");
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
   int dimy, dimx;
+fprintf(stderr, "SETUP TERM\n");
   if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
     goto err;
   }
+fprintf(stderr, "TERMDIMS: %d/%d\n", dimy, dimx);
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
   char* shortname_term = termname();
   char* longname_term = longname();
