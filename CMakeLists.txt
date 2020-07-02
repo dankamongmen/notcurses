@@ -541,10 +541,6 @@ target_link_libraries(notcurses-tester
 set(CMAKE_CTEST_ARGUMENTS "-V")
 enable_testing()
 add_test(
-  NAME notcurses-tester
-  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
-)
-add_test(
   NAME ncpp_build
   COMMAND ncpp_build
 )
@@ -567,6 +563,10 @@ add_test(
 add_test(
   NAME rgbbg
   COMMAND rgbbg
+)
+add_test(
+  NAME notcurses-tester
+  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
 endif()
 
