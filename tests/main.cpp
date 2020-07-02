@@ -21,7 +21,6 @@ auto testing_notcurses() -> struct notcurses* {
                 | NCOPTION_NO_QUIT_SIGHANDLERS
                 | NCOPTION_INHIBIT_SETLOCALE;
   auto nc = notcurses_init(&nopts, nullptr);
-notcurses_debug(nc, stderr);
   return nc;
 }
 
