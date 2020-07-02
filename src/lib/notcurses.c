@@ -717,6 +717,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(!opts){
     opts = &defaultopts;
   }
+fprintf(stderr, "HERE WE ARE\n");
   if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
     fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
     return NULL;
@@ -725,6 +726,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Provided an illegal Notcurses option, refusing to start\n");
     return NULL;
   }
+fprintf(stderr, "VALID OPTS\n");
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
