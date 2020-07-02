@@ -58,7 +58,9 @@ notcurses_stop_minimal(notcurses* nc){
     ret = -1;
   }
   ret |= notcurses_mouse_disable(nc);
-  ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
+  if(nc->true_tty){
+    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
+  }
   return ret;
 }
 
