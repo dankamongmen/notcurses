@@ -7,7 +7,8 @@
 // Check whether the terminal geometry has changed, and if so, copies what can
 // be copied from the old stdscr. Assumes that the screen is always anchored at
 // the same origin. Also syncs up lastframe.
-int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
+static int
+notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   int r, c;
   if(rows == NULL){
     rows = &r;
@@ -21,6 +22,9 @@ int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
     if(update_term_dimensions(n->ttyfd, rows, cols)){
       return -1;
     }
+  }else{
+    *rows = oldrows;
+    *cols = oldcols;
   }
   n->truecols = *cols;
   *rows -= n->margin_t + n->margin_b;
@@ -1110,27 +1114,22 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
 }
 
 int notcurses_render(notcurses* nc){
-fprintf(stderr, "LET'S RENDER THIS BITCH\n");
   struct timespec start, done;
   int ret;
   clock_gettime(CLOCK_MONOTONIC, &start);
   int dimy, dimx;
-fprintf(stderr, "RESIZE RUN\n");
   notcurses_resize(nc, &dimy, &dimx);
   int bytes = -1;
   const size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
   struct crender* crender = malloc(crenderlen);
   memset(crender, 0, crenderlen);
-fprintf(stderr, "INTERNAL RUN\n");
   if(notcurses_render_internal(nc, crender) == 0){
-fprintf(stderr, "RASTERIZXE RUN\n");
     bytes = notcurses_rasterize(nc, crender);
   }
   free(crender);
   clock_gettime(CLOCK_MONOTONIC, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
   ret = bytes >= 0 ? 0 : -1;
-fprintf(stderr, "RENDERRES %d\n", ret);
   return ret;
 }
 
