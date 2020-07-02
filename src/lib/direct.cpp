@@ -254,6 +254,8 @@ int ncdirect_cursor_pop(ncdirect* n){
 
 static int
 ncdirect_dump_plane(ncdirect* n, const ncplane* np){
+  const int totx = ncdirect_dim_x(n);
+  const int toty = ncdirect_dim_y(n);
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
   for(int y = 0 ; y < dimy ; ++y){
@@ -266,7 +268,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np){
       }
       ncdirect_fg(n, channels_fg(channels));
       ncdirect_bg(n, channels_bg(channels));
-//fprintf(stdout, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
+//fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
       if(printf("%s", strlen(egc) == 0 ? " " : egc) < 0){
         return -1;
       }
@@ -274,8 +276,16 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np){
     // FIXME mystifyingly, we require this cursor_left() when using 2x2, but must
     // not have it when using 2x1 (we insert blank lines otherwise). don't paper
     // over it with a conditional, but instead get to the bottom of this FIXME.
+    if(dimx < totx){
+      ncdirect_bg_default(n);
+      if(putchar('\n') == EOF){
+        return -1;
+      }
+    }
     ncdirect_cursor_left(n, dimx);
-    //ncdirect_cursor_down(n, 1);
+    if(y == toty){
+      ncdirect_cursor_down(n, 1);
+    }
   }
   return 0;
 }
@@ -332,7 +342,9 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
     return NCERR_SYSTEM;
   }
   ncvisual_destroy(ncv);
-  ncdirect_dump_plane(n, faken);
+  if(ncdirect_dump_plane(n, faken)){
+    return NCERR_SYSTEM;
+  }
   free_plane(faken);
   return NCERR_SUCCESS;
 }

@@ -397,7 +397,6 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
 struct marshal {
   struct ncdirect* nc;
   const distro_info* dinfo;
-  sem_t sem;
 };
 
 static void*
@@ -408,13 +407,10 @@ display_thread(void* vmarshal){
     if(m->dinfo->logofile){
       if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCBLIT_2x2,
                                NCSCALE_SCALE) != NCERR_SUCCESS){
-        sem_post(&m->sem);
         return NULL;
       }
     }
   }
-  sem_post(&m->sem);
-  pthread_detach(pthread_self());
   return NULL;
 }
 
@@ -438,17 +434,16 @@ ncneofetch(struct ncdirect* nc){
     .nc = nc,
     .dinfo = fi.distro,
   };
-  sem_init(&display_marshal.sem, 0, 0);
   pthread_t tid;
-  if(pthread_create(&tid, NULL, display_thread, &display_marshal)){
-    sem_post(&display_marshal.sem);
-  }
+  const bool launched = !pthread_create(&tid, NULL, display_thread, &display_marshal);
   unix_gethostname(&fi);
   unix_getusername(&fi);
   fetch_env_vars(&fi);
   fetch_x_props(&fi);
   fetch_cpu_info(&fi);
-  sem_wait(&display_marshal.sem);
+  if(launched){
+    pthread_join(tid, NULL);
+  }
   if(infoplane(nc, &fi)){
     return -1;
   }
