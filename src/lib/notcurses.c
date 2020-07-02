@@ -717,7 +717,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(!opts){
     opts = &defaultopts;
   }
-fprintf(stderr, "HERE WE ARE\n");
   if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
     fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
     return NULL;
@@ -726,14 +725,13 @@ fprintf(stderr, "HERE WE ARE\n");
     fprintf(stderr, "Provided an illegal Notcurses option, refusing to start\n");
     return NULL;
   }
-fprintf(stderr, "VALID OPTS flags: %016x\n", opts->flags);
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
   }
+  ret->loglevel = opts->loglevel;
   init_lang(opts);
   const char* encoding = nl_langinfo(CODESET);
-fprintf(stderr, "ENCODING: %s\n", encoding);
   if(encoding && strcmp(encoding, "UTF-8") == 0){
     ret->utf8 = true;
   }else if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") || !strcmp(encoding, "US-ASCII"))){
@@ -747,11 +745,11 @@ fprintf(stderr, "ENCODING: %s\n", encoding);
   bool own_outfp = false;
   if(outfp == NULL){
     if((outfp = fopen("/dev/tty", "wbe")) == NULL){
-      free(ret);
-fprintf(stderr, "couldn't get controlling terminal %s\n", strerror(errno));
-      return NULL;
+      logwarning(ret, "couldn't get controlling terminal %s\n", strerror(errno));
+      outfp = stdout;
+    }else{
+      own_outfp = true;
     }
-    own_outfp = true;
   }
   ret->margin_t = opts->margin_t;
   ret->margin_b = opts->margin_b;
@@ -850,7 +848,6 @@ fprintf(stderr, "TERMDIMS: %d/%d\n", dimy, dimx);
     terminfostr(&ret->tcache.rmcup, "rmcup");
   }
   ret->bottom = ret->top = ret->stdscr = NULL;
-  ret->loglevel = opts->loglevel;
   if(ncvisual_init(ffmpeg_log_level(ret->loglevel))){
     goto err;
   }
