@@ -241,7 +241,7 @@ drawpalette(struct ncdirect* nc){
   if(dimx < 64){
     return -1;
   }
-  for(int y = 0 ; y < psize / 64 ; ++y){
+  for(int y = 0 ; y < (psize + 63) / 64 ; ++y){
     if(ncdirect_cursor_move_yx(nc, -1, (dimx - 64) / 2)){
       return -1;
     }

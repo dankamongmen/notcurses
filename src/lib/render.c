@@ -7,7 +7,8 @@
 // Check whether the terminal geometry has changed, and if so, copies what can
 // be copied from the old stdscr. Assumes that the screen is always anchored at
 // the same origin. Also syncs up lastframe.
-int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
+static int
+notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   int r, c;
   if(rows == NULL){
     rows = &r;
@@ -17,6 +18,8 @@ int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   }
   int oldrows = n->stdscr->leny;
   int oldcols = n->stdscr->lenx;
+  *rows = oldrows;
+  *cols = oldcols;
   if(update_term_dimensions(n->ttyfd, rows, cols)){
     return -1;
   }
@@ -1021,7 +1024,7 @@ fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_g
   }
   ret |= fflush(out);
   //fflush(nc->ttyfp);
-  if(blocking_write(nc->ttyfd, nc->rstate.mstream, nc->rstate.mstrsize)){
+  if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
   }
 //fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu %d\n", nc->stats.defaultelisions, nc->stats.defaultemissions, nc->stats.fgelisions, nc->stats.fgemissions, nc->stats.bgelisions, nc->stats.bgemissions, ret);

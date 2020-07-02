@@ -325,7 +325,6 @@ typedef struct notcurses {
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
-  bool ownttyfp;  // do we own ttyfp (and thus must close it?)
   bool utf8;      // are we using utf-8 encoding, as hoped?
   bool libsixel;  // do we have Sixel support?
 } notcurses;
@@ -792,6 +791,14 @@ int get_controlling_tty(void);
 // logging
 #define logerror(nc, fmt, ...) do{ \
   if((nc)->loglevel >= NCLOGLEVEL_ERROR){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+
+#define logwarning(nc, fmt, ...) do{ \
+  if((nc)->loglevel >= NCLOGLEVEL_WARNING){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+
+#define loginfo(nc, fmt, ...) do{ \
+  if((nc)->loglevel >= NCLOGLEVEL_INFO){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
 
 #ifdef __cplusplus
