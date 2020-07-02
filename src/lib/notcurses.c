@@ -745,7 +745,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   bool own_outfp = false;
   if(outfp == NULL){
     if((outfp = fopen("/dev/tty", "wbe")) == NULL){
-      logwarning(ret, "couldn't get controlling terminal %s\n", strerror(errno));
+      logwarning(ret, "Couldn't get controlling terminal %s\n", strerror(errno));
       outfp = stdout;
     }else{
       own_outfp = true;
@@ -786,28 +786,28 @@ fprintf(stderr, "MADE NONBLOCKING\n");
     free(ret);
     return NULL;
   }
-fprintf(stderr, "FD: %d\n", ret->ttyfd);
   notcurses_mouse_disable(ret);
   if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
-    fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n",
-            ret->ttyfd, strerror(errno));
-    free(ret);
-    return NULL;
-  }
-  struct termios modtermios;
-  memcpy(&modtermios, &ret->tpreserved, sizeof(modtermios));
-  // see termios(3). disabling ECHO and ICANON means input will not be echoed
-  // to the screen, input is made available without enter-based buffering, and
-  // line editing is disabled. since we have not gone into raw mode, ctrl+c
-  // etc. still have their typical effects. ICRNL maps return to 13 (Ctrl+M)
-  // instead of 10 (Ctrl+J).
-  modtermios.c_lflag &= (~ECHO & ~ICANON);
-  modtermios.c_iflag &= (~ICRNL);
-  if(tcsetattr(ret->ttyfd, TCSANOW, &modtermios)){
-    fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n",
-            ret->ttyfd, strerror(errno));
-    free(ret);
-    return NULL;
+    logwarning(ret, "Couldn't preserve terminal state for %d (%s)\n", ret->ttyfd, strerror(errno));
+    // assume it's not a true terminal (e.g. we might be redirected to a file)
+    ret->true_tty = false;
+  }else{
+    ret->true_tty = true;
+    struct termios modtermios;
+    memcpy(&modtermios, &ret->tpreserved, sizeof(modtermios));
+    // see termios(3). disabling ECHO and ICANON means input will not be echoed
+    // to the screen, input is made available without enter-based buffering, and
+    // line editing is disabled. since we have not gone into raw mode, ctrl+c
+    // etc. still have their typical effects. ICRNL maps return to 13 (Ctrl+M)
+    // instead of 10 (Ctrl+J).
+    modtermios.c_lflag &= (~ECHO & ~ICANON);
+    modtermios.c_iflag &= (~ICRNL);
+    if(tcsetattr(ret->ttyfd, TCSANOW, &modtermios)){
+      fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n",
+              ret->ttyfd, strerror(errno));
+      free(ret);
+      return NULL;
+    }
   }
 fprintf(stderr, "SET ATTRS ON %d\n", ret->ttyfd);
   if(setup_signals(ret,
@@ -823,8 +823,13 @@ fprintf(stderr, "SETUP SIGNALS\n");
   }
   int dimy, dimx;
 fprintf(stderr, "SETUP TERM\n");
-  if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
-    goto err;
+  if(ret->true_tty){
+    if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
+      goto err;
+    }
+  }else{
+    dimy = 24; // fuck it, lol
+    dimx = 80;
   }
 fprintf(stderr, "TERMDIMS: %d/%d\n", dimy, dimx);
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;

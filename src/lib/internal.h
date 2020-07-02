@@ -306,6 +306,7 @@ typedef struct notcurses {
   FILE* renderfp; // debugging FILE* to which renderings are written
   struct termios tpreserved; // terminal state upon entry
   bool suppress_banner; // from notcurses_options
+  bool true_tty;  // ttyfp responds to tty ioctl()s, etc
   unsigned char inputbuf[BUFSIZ];
   // we keep a wee ringbuffer of input queued up for delivery. if
   // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
