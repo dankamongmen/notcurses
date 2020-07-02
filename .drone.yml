@@ -13,8 +13,8 @@ steps:
     - cmake .. -DCMAKE_BUILD_TYPE=Release # -DUSE_RUST=yes -DUSE_NETWORK=yes
     - make
     - apt-get install ncurses-term
-    - env TERM=xterm ./notcurses-tester -p ../data
     - env TERM=xterm make test
+    - env TERM=xterm ./notcurses-tester -p ../data
 ---
 kind: pipeline
 type: docker
@@ -29,8 +29,8 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
     - make
-    - ./notcurses-tester -p ../data
-    - make test
+    - env TERM=xterm make test
+    - env TERM=xterm ./notcurses-tester -p ../data
 ---
 kind: pipeline
 type: docker
@@ -46,5 +46,5 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make
-    - ./notcurses-tester -p ../data
-    - make test
+    - env TERM=xterm make test
+    - env TERM=xterm ./notcurses-tester -p ../data
