@@ -12,6 +12,7 @@ int main(void){
     .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
+fprintf(stderr, "notcurses struct: %p\n", nc);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
