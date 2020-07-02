@@ -32,7 +32,9 @@ pivot_on(int pivot, int* sgrs, int sgrcount){
 
 int main(int argc, char** argv){
   (void)argc;
-  setlocale(LC_ALL, "");
+  if(!setlocale(LC_ALL, "")){
+    return EXIT_FAILURE;
+  }
   const char* sgr;
   if(setupterm(NULL, -1, NULL)){
     fprintf(stderr, "Error initializing terminal\n");

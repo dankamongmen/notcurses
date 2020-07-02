@@ -15,6 +15,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
+return EXIT_SUCCESS;
   int y, x, dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
