@@ -373,6 +373,7 @@ int ncsubproc_destroy(ncsubproc* n){
   int ret = 0;
   if(n){
     void* vret = NULL;
+fprintf(stderr, "pid: %u pidfd: %d waittid: %u\n", n->pid, n->pidfd, n->waittid);
 #ifdef USING_PIDFD
     if(n->pidfd >= 0){
       if(syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0)){
