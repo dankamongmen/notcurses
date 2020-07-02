@@ -506,16 +506,20 @@ term_emit(const char* name __attribute__ ((unused)), const char* seq,
   }
   int ret = fprintf(out, "%s", seq);
   if(ret < 0){
-// fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
+//fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
     return -1;
   }
   if((size_t)ret != strlen(seq)){
-// fprintf(stderr, "Short write (%db) for %zub %s sequence\n", ret, strlen(seq), name);
+//fprintf(stderr, "Short write (%db) for %zub %s sequence\n", ret, strlen(seq), name);
     return -1;
   }
-  if(flush && fflush(out)){
-// fprintf(stderr, "Error flushing after %db %s sequence (%s)\n", ret, name, strerror(errno));
-    return -1;
+  if(flush){
+    while(fflush(out) == EOF){
+      if(errno != EAGAIN){
+        fprintf(stderr, "Error flushing after %db %s sequence (%s)\n", ret, name, strerror(errno));
+        return -1;
+      }
+    }
   }
   return 0;
 }
