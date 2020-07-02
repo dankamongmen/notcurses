@@ -748,6 +748,7 @@ fprintf(stderr, "ENCODING: %s\n", encoding);
   if(outfp == NULL){
     if((outfp = fopen("/dev/tty", "wbe")) == NULL){
       free(ret);
+fprintf(stderr, "couldn't get controlling terminal %s\n", strerror(errno));
       return NULL;
     }
     own_outfp = true;
