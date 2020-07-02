@@ -219,6 +219,7 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry.
+// FIXME ought check true_tty here, but ncdirect calls us...
 int update_term_dimensions(int fd, int* rows, int* cols){
   struct winsize ws;
   int i = ioctl(fd, TIOCGWINSZ, &ws);

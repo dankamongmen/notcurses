@@ -17,8 +17,10 @@ int notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   }
   int oldrows = n->stdscr->leny;
   int oldcols = n->stdscr->lenx;
-  if(update_term_dimensions(n->ttyfd, rows, cols)){
-    return -1;
+  if(n->true_tty){
+    if(update_term_dimensions(n->ttyfd, rows, cols)){
+      return -1;
+    }
   }
   n->truecols = *cols;
   *rows -= n->margin_t + n->margin_b;
