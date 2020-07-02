@@ -148,7 +148,7 @@ TEST_CASE("FdsAndSubprocs"
   }
 
   SUBCASE("SubprocDestroyCmdHung") {
-    char * const argv[] = { strdup("/bin/cat"), nullptr, };
+    char * const argv[] = { strdup("/bin/sleep"), strdup("1000"), nullptr, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.curry = &outofline_cancelled;
