@@ -273,18 +273,27 @@ drawpalette(struct ncdirect* nc){
 static struct notcurses*
 place_infoplane(struct ncdirect* ncd, int planeheight){
   const int dimy = ncdirect_dim_y(ncd);
+  int cury;
+  if(ncdirect_cursor_yx(ncd, &cury, NULL)){
+    ncdirect_stop(ncd);
+    return NULL;
+  }
   struct notcurses_options opts = {
     .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_INHIBIT_SETLOCALE
               | NCOPTION_NO_ALTERNATE_SCREEN,
-    .margin_t = dimy - planeheight,
+    .margin_t = cury,
+    .margin_b = dimy - (cury + planeheight),
   };
-  if(ncdirect_stop(ncd)){
-    return NULL;
-  }
-  for(int i = 0 ; i < planeheight ; ++i){
+  // if we're at the bottom of the screen, we need scroll it up, and adjust
+  while(opts.margin_b < 0){
     if(putchar('\n') == EOF){
       return NULL;
     }
+    ++opts.margin_b;
+    --opts.margin_t;
+  }
+  if(ncdirect_stop(ncd)){
+    return NULL;
   }
   return notcurses_init(&opts, NULL);
 }

@@ -275,7 +275,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np){
     // not have it when using 2x1 (we insert blank lines otherwise). don't paper
     // over it with a conditional, but instead get to the bottom of this FIXME.
     ncdirect_cursor_left(n, dimx);
-    ncdirect_cursor_down(n, 1);
+    //ncdirect_cursor_down(n, 1);
   }
   return 0;
 }
