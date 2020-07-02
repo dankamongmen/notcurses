@@ -779,7 +779,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-fprintf(stderr, "MADE NONBLOCKING\n");
   ret->inputbuf_occupied = 0;
   ret->inputbuf_valid_starts = 0;
   ret->inputbuf_write_at = 0;
@@ -812,20 +811,17 @@ fprintf(stderr, "MADE NONBLOCKING\n");
       return NULL;
     }
   }
-fprintf(stderr, "SET ATTRS ON %d\n", ret->ttyfd);
   if(setup_signals(ret,
                    (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER))){
     goto err;
   }
   int termerr;
-fprintf(stderr, "SETUP SIGNALS\n");
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
   int dimy, dimx;
-fprintf(stderr, "SETUP TERM\n");
   if(ret->true_tty){
     if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
       goto err;
@@ -834,7 +830,6 @@ fprintf(stderr, "SETUP TERM\n");
     dimy = 24; // fuck it, lol
     dimx = 80;
   }
-fprintf(stderr, "TERMDIMS: %d/%d\n", dimy, dimx);
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
   char* shortname_term = termname();
   char* longname_term = longname();
