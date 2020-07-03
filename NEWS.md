@@ -1,12 +1,25 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.5.4 (not yet released)
+* 1.6.0 (not yet released)
+  * Behavior has changed regarding use of the provided `FILE*` (which, when
+    `NULL`, is assumed to be `stdout`). Both Notcurses and `ncdirect` now
+    try to open a handle to the controlling TTY, **unless** the provided
+    `FILE` is a TTY, in which case it is used directly. Certain interactions
+    now only go to a TTY, in particular `ncdirect_cursor_yx()` and various
+    `ioctl()`s used internally. Furthermore, when no true TTY is found (true
+    for e.g. daemonized processes and those in a Docker launched without
+    `-t`), Notcurses (in both full mode and direct mode) will return a virtual
+    screen size of 80x24. This greatly improves behavior when redirecting to a
+    file or lacking a TTY; one upshot is that we now have much-expanded unit
+    test coverage in the Docker+Drone autobuilders.
   * `ncdirect_render_image()` has been added, allowing images (but not
     videos or animated images) to be rendered directly into the standard I/O
     streams. It begins drawing from the current cursor position, running
     through the right-hand side of the screen, and scrolling as much content
     as is necessary.
+  * `ncneofetch` has been rewritten to use `ncdirect`, and thus no longer
+    clobbers your entire terminal, and scrolls like standard I/O.
 
 * 1.5.3 (2020-06-28)
   * The default blitter when `NCSCALE_STRETCH` is used is now `NCBLIT_2x2`,
