@@ -154,7 +154,8 @@ API int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
 // // be arbitrarily many rows -- the output will scroll -- but will only occupy
 // // the column of the cursor, and those to the right.
 API nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename,
-                                   ncblitter_e blitter, ncscale_e scale);
+                                   ncalign_e align, ncblitter_e blitter,
+                                   ncscale_e scale);
 
 // Clear the screen.
 API int ncdirect_clear(struct ncdirect* nc);
