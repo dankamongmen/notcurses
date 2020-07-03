@@ -393,7 +393,13 @@ int ncdirect_printf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt
   return ret;
 }
 
-int get_controlling_tty(void){
+int get_controlling_tty(FILE* ttyfp){
+  int fd = fileno(ttyfp);
+  if(fd > 0 && isatty(fd)){
+    if((fd = dup(fd)) >= 0){
+      return fd;
+    }
+  }
   char cbuf[L_ctermid + 1];
   if(ctermid(cbuf) == NULL){
     return -1;
@@ -412,7 +418,7 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   ret->ttyfp = outfp;
   memset(&ret->palette, 0, sizeof(ret->palette));
   // we don't need a controlling tty for everything we do; allow a failure here
-  ret->ctermfd = get_controlling_tty();
+  ret->ctermfd = get_controlling_tty(ret->ttyfp);
   int termerr;
   if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
