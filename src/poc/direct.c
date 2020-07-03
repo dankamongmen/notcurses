@@ -13,21 +13,18 @@ int main(void){
     fprintf(stderr, "Couldn't set locale\n");
     return EXIT_FAILURE;
   }
-  struct winsize geom;
-  if(ioctl(fileno(stdout), TIOCGWINSZ, &geom)){
-    fprintf(stderr, "Couldn't get terminal geometry (%s)\n", strerror(errno));
-    return EXIT_FAILURE;
-  }
-  for(int y = 0 ; y < geom.ws_row ; ++y){
-    for(int x = 0 ; x < geom.ws_col ; ++x){
-      printf("X");
-    }
-  }
-  fflush(stdout);
   struct ncdirect* n; // see bug #391
   if((n = ncdirect_init(NULL, stdout)) == NULL){
     return EXIT_FAILURE;
   }
+  int dimy = ncdirect_dim_y(n);
+  int dimx = ncdirect_dim_x(n);
+  for(int y = 0 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      printf("X");
+    }
+  }
+  fflush(stdout);
   int ret = 0;
   ret |= ncdirect_fg(n, 0xff8080);
   ret |= ncdirect_styles_on(n, NCSTYLE_STANDOUT);
@@ -38,8 +35,8 @@ int main(void){
   printf(" erp erp \n");
   ret |= ncdirect_fg(n, 0xff8080);
   printf(" erp erp \n");
-  ret |= ncdirect_cursor_right(n, geom.ws_col / 2);
-  ret |= ncdirect_cursor_up(n, geom.ws_row / 2);
+  ret |= ncdirect_cursor_right(n, dimx / 2);
+  ret |= ncdirect_cursor_up(n, dimy / 2);
   printf(" erperperp! \n");
   int y = -420, x = -420;
   // FIXME try a push/pop

@@ -75,16 +75,24 @@ int ncdirect_clear(ncdirect* nc){
 
 int ncdirect_dim_x(const ncdirect* nc){
   int x;
-  if(update_term_dimensions(fileno(nc->ttyfp), NULL, &x) == 0){
-    return x;
+  if(nc->ctermfd >= 0){
+    if(update_term_dimensions(nc->ctermfd, NULL, &x) == 0){
+      return x;
+    }
+  }else{
+    return 80; // lol
   }
   return -1;
 }
 
 int ncdirect_dim_y(const ncdirect* nc){
   int y;
-  if(update_term_dimensions(fileno(nc->ttyfp), &y, NULL) == 0){
-    return y;
+  if(nc->ctermfd >= 0){
+    if(update_term_dimensions(nc->ctermfd, &y, NULL) == 0){
+      return y;
+    }
+  }else{
+    return 24; // lol
   }
   return -1;
 }
@@ -126,26 +134,11 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   return -1;
 }
 
-// verify that fp is actually a terminal, returning 1 if so
 static int
-verify_tty(FILE* fp){
-  int fd = fileno(fp);
-  if(fd < 0){
+cursor_yx_get(int ttyfd, int* y, int* x){
+  if(write(ttyfd, "\033[6n", 4) != 4){
     return -1;
   }
-  return isatty(fd);
-}
-
-static int
-cursor_yx_get(FILE* outfp, FILE* infp, int* y, int* x){
-  // we're never going to be getting an answer if it's not a terminal
-  if(!verify_tty(outfp)){
-    return -1;
-  }
-  if(fprintf(outfp, "\033[6n") != 4){
-    return -1;
-  }
-  int in;
   bool done = false;
   enum { // what we expect now
     CURSOR_ESC, // 27 (0x1b)
@@ -155,7 +148,8 @@ cursor_yx_get(FILE* outfp, FILE* infp, int* y, int* x){
     CURSOR_R,
   } state = CURSOR_ESC;
   int row = 0, column = 0;
-  while((in = getc(infp)) != EOF){
+  char in;
+  while(read(ttyfd, &in, 1) == 1){
     bool valid = false;
     switch(state){
       case CURSOR_ESC: valid = (in == '\x1b'); state = CURSOR_LSQUARE; break;
@@ -206,28 +200,26 @@ cursor_yx_get(FILE* outfp, FILE* infp, int* y, int* x){
 
 // no terminfo capability for this. dangerous!
 int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
-  int infd = fileno(stdin); // FIXME n->ttyfp?
-  if(infd < 0){
-    fprintf(stderr, "Couldn't get file descriptor from stdin\n");
+  struct termios termio, oldtermios;
+  // this only works for real terminals
+  if(n->ctermfd < 0){
     return -1;
   }
-  // do *not* close infd!
-  struct termios termio, oldtermios;
-  if(tcgetattr(infd, &termio)){
-    fprintf(stderr, "Couldn't get terminal info from %d (%s)\n", infd, strerror(errno));
+  if(tcgetattr(n->ctermfd, &termio)){
+    fprintf(stderr, "Couldn't get terminal info from %d (%s)\n", n->ctermfd, strerror(errno));
     return -1;
   }
   memcpy(&oldtermios, &termio, sizeof(termio));
   termio.c_lflag &= ~(ICANON | ECHO);
-  if(tcsetattr(infd, TCSAFLUSH, &termio)){
+  if(tcsetattr(n->ctermfd, TCSAFLUSH, &termio)){
     fprintf(stderr, "Couldn't put terminal into cbreak mode via %d (%s)\n",
-            infd, strerror(errno));
+            n->ctermfd, strerror(errno));
     return -1;
   }
-  int ret = cursor_yx_get(n->ttyfp, stdin, y, x);
-  if(tcsetattr(infd, TCSANOW, &oldtermios)){
+  int ret = cursor_yx_get(n->ctermfd, y, x);
+  if(tcsetattr(n->ctermfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
-            infd, strerror(errno)); // don't return error for this
+            n->ctermfd, strerror(errno)); // don't return error for this
   }
   if(y){
     --*y;
@@ -419,14 +411,10 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   }
   ret->ttyfp = outfp;
   memset(&ret->palette, 0, sizeof(ret->palette));
-  int ttyfd = fileno(ret->ttyfp);
-  if(ttyfd < 0){
-    fprintf(stderr, "No file descriptor was available in outfp %p\n", outfp);
-    delete(ret);
-    return NULL;
-  }
+  // we don't need a controlling tty for everything we do; allow a failure here
+  ret->ctermfd = get_controlling_tty();
   int termerr;
-  if(setupterm(termtype, ttyfd, &termerr) != OK){
+  if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     delete(ret);
     return NULL;
@@ -435,8 +423,6 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
     delete(ret);
     return NULL;
   }
-  // we don't need a controlling tty for everything we do; allow a failure here
-  ret->ctermfd = get_controlling_tty();
   ret->fgdefault = ret->bgdefault = true;
   ret->fgrgb = ret->bgrgb = 0;
   ncdirect_styles_set(ret, 0);

@@ -94,6 +94,8 @@ int main(void){
 
   int leny = ncdirect_dim_y(nc);
   int lenx = ncdirect_dim_x(nc);
+  ncdirect_fg_default(nc);
+  ncdirect_bg_default(nc);
   if(ncdirect_cursor_move_yx(nc, leny / 2, (lenx - 4) / 2)){
     ncdirect_stop(nc);
     return EXIT_FAILURE;

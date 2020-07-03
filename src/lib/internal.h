@@ -24,6 +24,7 @@ const char* oiio_version(void);
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -498,12 +499,11 @@ rgb_greyscale(int r, int g, int b){
 }
 
 static inline int
-term_emit(const char* name __attribute__ ((unused)), const char* seq,
-          FILE* out, bool flush){
+tty_emit(const char* name __attribute__ ((unused)), const char* seq, int fd){
   if(!seq){
     return -1;
   }
-  int ret = fprintf(out, "%s", seq);
+  ssize_t ret = write(fd, seq, strlen(seq));
   if(ret < 0){
 //fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
     return -1;
@@ -512,10 +512,24 @@ term_emit(const char* name __attribute__ ((unused)), const char* seq,
 //fprintf(stderr, "Short write (%db) for %zub %s sequence\n", ret, strlen(seq), name);
     return -1;
   }
+  return 0;
+}
+
+static inline int
+term_emit(const char* name __attribute__ ((unused)), const char* seq,
+          FILE* out, bool flush){
+  if(!seq){
+    return -1;
+  }
+  if(fputs(seq, out) == EOF){
+//fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
+    return -1;
+  }
   if(flush){
     while(fflush(out) == EOF){
       if(errno != EAGAIN){
-        fprintf(stderr, "Error flushing after %db %s sequence (%s)\n", ret, name, strerror(errno));
+        fprintf(stderr, "Error flushing after %zub %s sequence (%s)\n",
+                strlen(seq), name, strerror(errno));
         return -1;
       }
     }
