@@ -726,11 +726,12 @@ get_tty_fd(notcurses* nc, FILE* ttyfp){
     if((fd = fileno(ttyfp)) < 0){
       logwarning(nc, "No file descriptor was available in outfp %p\n", ttyfp);
     }else{
-      if(!isatty(fd)){
+      if(isatty(fd)){
+        fd = dup(fd);
+      }else{
         loginfo(nc, "File descriptor %d was not a TTY\n", fd);
         fd = -1;
       }
-      // FIXME otherwise we ought dup() it, so we can always close() ttyfd
     }
   }
   if(fd < 0){
@@ -931,6 +932,9 @@ int notcurses_stop(notcurses* nc){
     }
     if(nc->rstate.mstreamfp){
       fclose(nc->rstate.mstreamfp);
+    }
+    if(nc->ttyfd >= 0){
+      ret |= close(nc->ttyfd);
     }
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
