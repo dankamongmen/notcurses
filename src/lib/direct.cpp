@@ -288,20 +288,14 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
   if(ncv == NULL){
     return ret;
   }
-  int begy, begx;
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
-  if(ncdirect_cursor_yx(n, &begy, &begx)){
-    ncvisual_destroy(ncv);
-    return NCERR_SYSTEM;
-  }
-//fprintf(stderr, "INITIAL CURSOR: %d/%d\n", begy, begx);
   int leny = ncv->rows; // we allow it to freely scroll
-  int lenx = ncv->cols - begx;
+  int lenx = ncv->cols;
   if(leny == 0 || lenx == 0){
     ncvisual_destroy(ncv);
     return NCERR_DECODE;
   }
-//fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, scale);
+//fprintf(stderr, "render %d/%d to %d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
   auto bset = rgba_blitter_low(n->utf8, scale, true, blitter);
   if(!bset){
     return NCERR_INVALID_ARG;
@@ -312,14 +306,13 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitte
   if(scale != NCSCALE_NONE){
     dispcols *= encoding_x_scale(bset);
     disprows *= encoding_y_scale(bset);
-    dispcols -= begx;
     if(scale == NCSCALE_SCALE){
       scale_visual(ncv, &disprows, &dispcols);
     }
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
-//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+//fprintf(stderr, "render: %d+%d of %d/%d stride %u %p\n", leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   struct ncplane* faken = ncplane_create(NULL, NULL,
                                          disprows / encoding_y_scale(bset),
                                          dispcols,// / encoding_x_scale(bset),

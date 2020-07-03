@@ -16,12 +16,10 @@ int main(void){
     return EXIT_FAILURE;
   }
   sleep(1);
-  printf("\n");
   if(ncdirect_render_image(n, "../data/changes.jpg", NCBLIT_DEFAULT, NCSCALE_SCALE) != NCERR_SUCCESS){
     return EXIT_FAILURE;
   }
   sleep(1);
-  printf("\n");
   if(ncdirect_render_image(n, "../data/warmech.bmp", NCBLIT_DEFAULT, NCSCALE_NONE) != NCERR_SUCCESS){
     return EXIT_FAILURE;
   }
