@@ -405,7 +405,8 @@ display_thread(void* vmarshal){
   drawpalette(m->nc);
   if(m->dinfo){
     if(m->dinfo->logofile){
-      if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCBLIT_2x2,
+      if(ncdirect_render_image(m->nc, m->dinfo->logofile,
+                               NCALIGN_CENTER, NCBLIT_2x2,
                                NCSCALE_SCALE) != NCERR_SUCCESS){
         return NULL;
       }

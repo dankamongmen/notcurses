@@ -282,7 +282,8 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np){
   return 0;
 }
 
-nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncblitter_e blitter, ncscale_e scale){
+nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
+                               ncblitter_e blitter, ncscale_e scale){
   nc_err_e ret;
   struct ncvisual* ncv = ncvisual_from_file(file, &ret);
   if(ncv == NULL){
