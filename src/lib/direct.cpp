@@ -244,6 +244,23 @@ int ncdirect_cursor_pop(ncdirect* n){
   return term_emit("rc", n->tcache.rc, n->ttyfp, false);
 }
 
+static inline int
+ncdirect_align(const struct ncdirect* n, ncalign_e align, int c){
+  if(align == NCALIGN_LEFT){
+    return 0;
+  }
+  int cols = ncdirect_dim_x(n);
+  if(c > cols){
+    return 0;
+  }
+  if(align == NCALIGN_CENTER){
+    return (cols - c) / 2;
+  }else if(align == NCALIGN_RIGHT){
+    return cols - c;
+  }
+  return INT_MAX;
+}
+
 static int
 ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   const int totx = ncdirect_dim_x(n);
@@ -334,7 +351,8 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
     return NCERR_SYSTEM;
   }
   ncvisual_destroy(ncv);
-  int xoff = 0;
+  int xoff = ncdirect_align(n, align, lenx / encoding_x_scale(bset));
+fprintf(stderr, "XOFF: %d lenx: %d dispcols: %d\n", xoff, lenx, dispcols);
   if(ncdirect_dump_plane(n, faken, xoff)){
     return NCERR_SYSTEM;
   }
@@ -353,23 +371,6 @@ int ncdirect_fg_palindex(ncdirect* nc, int pidx){
 
 int ncdirect_bg_palindex(ncdirect* nc, int pidx){
   return term_emit("setab", tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
-}
-
-static inline int
-ncdirect_align(const struct ncdirect* n, ncalign_e align, int c){
-  if(align == NCALIGN_LEFT){
-    return 0;
-  }
-  int cols = ncdirect_dim_x(n);
-  if(c > cols){
-    return 0;
-  }
-  if(align == NCALIGN_CENTER){
-    return (cols - c) / 2;
-  }else if(align == NCALIGN_RIGHT){
-    return cols - c;
-  }
-  return INT_MAX;
 }
 
 int ncdirect_vprintf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt, va_list ap){
