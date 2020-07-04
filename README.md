@@ -392,6 +392,8 @@ If things break or seem otherwise lackluster, **please** consult the
 
 ### History
 
+* 2020-07-04: Notcurses [1.6.0 "aquemini"](https://github.com/dankamongmen/notcurses/releases/tag/v1.6.0).
+* 2020-07-03: Notcurses is [accepted into Alpine Edge](https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/9924).
 * 2020-06-08: Notcurses [1.5.0 "ghetto bird"](https://github.com/dankamongmen/notcurses/releases/tag/v1.5.0).
 * 2020-05-13: Notcurses is [accepted into Fedora Core](https://bugzilla.redhat.com/show_bug.cgi?id=1822971).
 * 2020-05-10: Notcurses [1.4.0 "the saga continues"](https://github.com/dankamongmen/notcurses/releases/tag/v1.4.0).
