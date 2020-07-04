@@ -42,7 +42,8 @@ class ncppplot {
      }
    }
    bool degrade_blitter = !(opts && (opts->flags & NCPLOT_OPTION_NODEGRADE));
-   auto bset = lookup_blitset(ncplane_notcurses(n), blitter, degrade_blitter);
+   auto bset = lookup_blitset(notcurses_canutf8(ncplane_notcurses(n)),
+                              blitter, degrade_blitter);
    if(bset == nullptr){
      return false;
    }

@@ -20,7 +20,8 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
     blitter = vopts->blitter;
   }
   const bool maydegrade = !(vopts && (vopts->flags & NCVISUAL_OPTION_NODEGRADE));
-  const struct blitset* bset = lookup_blitset(nc, blitter, maydegrade);
+  const struct blitset* bset = lookup_blitset(notcurses_canutf8(nc),
+                                              blitter, maydegrade);
   if(!bset){
     return -1;
   }

@@ -4,7 +4,7 @@
 #include "notcurses/notcurses.h"
 
 static inline const struct blitset*
-lookup_blitset(bool utf8, ncblitter_e setid, bool may_degrade) {
+lookup_blitset(unsigned utf8, ncblitter_e setid, bool may_degrade) {
   if(setid == NCBLIT_DEFAULT){
     setid = NCBLIT_2x1;
     may_degrade = true;
