@@ -814,6 +814,9 @@ int get_controlling_tty(void);
   if((nc)->loglevel >= NCLOGLEVEL_INFO){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
 
+// Convert a notcurses log level to some multimedia library equivalent.
+int ffmpeg_log_level(ncloglevel_e level);
+
 #ifdef __cplusplus
 }
 #endif

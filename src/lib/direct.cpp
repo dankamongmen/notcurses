@@ -431,6 +431,10 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
     delete(ret);
     return NULL;
   }
+  if(ncvisual_init(ffmpeg_log_level(NCLOGLEVEL_SILENT))){
+    delete(ret);
+    return NULL;
+  }
   if(interrogate_terminfo(&ret->tcache)){
     delete(ret);
     return NULL;
