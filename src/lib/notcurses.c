@@ -1217,8 +1217,6 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     }
     scroll_down(n);
   }
-
-if(c->gcluster == '\n'){ fprintf(stderr, "YARP YARP\n"); }
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
@@ -1333,7 +1331,7 @@ int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
 int cell_load(ncplane* n, cell* c, const char* gcluster){
   int bytes;
   int cols;
-  if((bytes = utf8_egc_len(gcluster, &cols)) >= 0 && bytes <= 1){
+  if((bytes = utf8_egc_len(gcluster, &cols)) >= 0 && cols >= 0 && bytes <= 1){
     cell_release(n, c);
     c->channels &= ~CELL_WIDEASIAN_MASK;
     c->gcluster = *gcluster;
@@ -1341,8 +1339,10 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
   }
   if(cols > 1){
     c->channels |= CELL_WIDEASIAN_MASK;
-  }else{
+  }else if(cols >= 0){
     c->channels &= ~CELL_WIDEASIAN_MASK;
+  }else{
+    return -1;
   }
   if(!cell_simple_p(c)){
     if(strcmp(gcluster, cell_extended_gcluster(n, c)) == 0){
