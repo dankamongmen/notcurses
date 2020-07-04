@@ -18,7 +18,6 @@ auto testing_notcurses() -> struct notcurses* {
   nopts.loglevel = NCLOGLEVEL_DEBUG;
   nopts.flags = NCOPTION_SUPPRESS_BANNERS
                 | NCOPTION_NO_ALTERNATE_SCREEN
-                | NCOPTION_NO_QUIT_SIGHANDLERS
                 | NCOPTION_INHIBIT_SETLOCALE;
   auto nc = notcurses_init(&nopts, nullptr);
   return nc;
