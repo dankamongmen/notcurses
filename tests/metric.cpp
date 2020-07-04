@@ -106,7 +106,6 @@ TEST_CASE("Metric") {
   }
 
   const char suffixes[] = "\0KMGTPE";
-  const wchar_t smallsuffixes[] = L"yzafpnµm";
 
   SUBCASE("PowersOfTen") {
     char gold[PREFIXSTRLEN + 1];
@@ -420,6 +419,12 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("NegativePowersOfTen") {
+    const wchar_t* smallsuffixes;
+    if(enforce_utf8()){
+      smallsuffixes = L"yzafpnµm";
+    }else{
+      smallsuffixes = L"yzafpnum";
+    }
     char gold[PREFIXSTRLEN + 1];
     char buf[PREFIXSTRLEN + 1];
     uintmax_t goldval = 1;
@@ -439,7 +444,7 @@ TEST_CASE("Metric") {
       }
     }while(++i < (wcslen(smallsuffixes) - 3) * 3);
     // If we ran through all our suffixes, that's a problem
-    CHECK(sizeof(smallsuffixes) / sizeof(*smallsuffixes) * 3 > i);
+    CHECK(wcslen(smallsuffixes) * 3 > i);
   }
 
 }
