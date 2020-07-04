@@ -17,11 +17,17 @@ int main(void){
     return EXIT_FAILURE;
   }
   sleep(1);
+  if(ncdirect_clear(n)){
+    return EXIT_FAILURE;
+  }
   if(ncdirect_render_image(n, "../data/changes.jpg", NCALIGN_CENTER,
                            NCBLIT_DEFAULT, NCSCALE_SCALE) != NCERR_SUCCESS){
     return EXIT_FAILURE;
   }
   sleep(1);
+  if(ncdirect_clear(n)){
+    return EXIT_FAILURE;
+  }
   if(ncdirect_render_image(n, "../data/warmech.bmp", NCALIGN_RIGHT,
                            NCBLIT_DEFAULT, NCSCALE_NONE) != NCERR_SUCCESS){
     return EXIT_FAILURE;

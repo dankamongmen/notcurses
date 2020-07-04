@@ -250,7 +250,6 @@ typedef struct tinfo {
   char* italoff;  // CELL_STYLE_ITALIC (disable)
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
-  char* clear;    // clear the screen
   char* clearscr; // erase screen and home cursor
   char* cleareol; // clear to end of line
   char* clearbol; // clear to beginning of line
