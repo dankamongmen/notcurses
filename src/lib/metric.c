@@ -2,24 +2,41 @@
 #include <string.h>
 #include <locale.h>
 #include <pthread.h>
+#include <langinfo.h>
 #include "notcurses/notcurses.h"
+
+static const wchar_t UTF8_SUBPREFIX[] = L"mµnpfazy"; // 10^24-1
+static const wchar_t ASCII_SUBPREFIX[] = L"munpfazy"; // 10^24-1
+static const wchar_t* SUBPREFIXES = ASCII_SUBPREFIX;
+static pthread_once_t utf8_detector = PTHREAD_ONCE_INIT;
+
+// sure hope we've called setlocale() by the time we hit this!
+static void
+detect_utf8(void){
+  const char* encoding = nl_langinfo(CODESET);
+  if(encoding){
+    if(strcmp(encoding, "UTF-8") == 0){
+      SUBPREFIXES = UTF8_SUBPREFIX;
+    }
+  }
+}
 
 const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
                      uintmax_t mult, int uprefix){
-  // these two must have the same number of elements
-  const wchar_t prefixes[] =    L"KMGTPEZY"; // 10^21-1 encompasses 2^64-1
-  const wchar_t subprefixes[] = L"mµnpfazy"; // 10^24-1
-  unsigned consumed = 0;
-  uintmax_t dv;
-
+  // FIXME this is global to the process...ick :/
   fesetround(FE_TONEAREST);
+  pthread_once(&utf8_detector, detect_utf8);
+  // these two must have the same number of elements
+  const wchar_t* subprefixes = SUBPREFIXES;
+  const wchar_t prefixes[] = L"KMGTPEZY"; // 10^21-1 encompasses 2^64-1
   if(decimal == 0 || mult == 0){
     return NULL;
   }
   if(decimal > UINTMAX_MAX / 10){
     return NULL;
   }
-  dv = mult;
+  unsigned consumed = 0;
+  uintmax_t dv = mult;
   if(decimal <= val || val == 0){
     // FIXME verify that input < 2^89, wish we had static_assert() :/
     while((val / decimal) >= dv && consumed < sizeof(prefixes) / sizeof(*prefixes)){
@@ -30,7 +47,7 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
       }
     }
   }else{
-    while(val < decimal && consumed < sizeof(subprefixes) / sizeof(*subprefixes)){
+    while(val < decimal && consumed < sizeof(prefixes) / sizeof(*prefixes)){
       val *= mult;
       ++consumed;
       if(UINTMAX_MAX / dv < mult){ // near overflow--can't scale dv again
