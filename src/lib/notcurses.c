@@ -614,9 +614,8 @@ void notcurses_reset_stats(notcurses* nc, ncstats* stats){
   stash_stats(nc);
 }
 
-// Convert a notcurses log level to its ffmpeg equivalent.
-static int
-ffmpeg_log_level(ncloglevel_e level){
+// Convert a notcurses log level to some multimedia library equivalent.
+int ffmpeg_log_level(ncloglevel_e level){
 #ifdef USE_FFMPEG
   switch(level){
     case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
