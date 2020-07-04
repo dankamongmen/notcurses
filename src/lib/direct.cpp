@@ -67,10 +67,10 @@ int ncdirect_cursor_down(ncdirect* nc, int num){
 }
 
 int ncdirect_clear(ncdirect* nc){
-  if(!nc->tcache.clear){
+  if(!nc->tcache.clearscr){
     return -1; // FIXME scroll output off the screen
   }
-  return term_emit("clear", nc->tcache.clear, nc->ttyfp, true);
+  return term_emit("clear", nc->tcache.clearscr, nc->ttyfp, true);
 }
 
 int ncdirect_dim_x(const ncdirect* nc){
