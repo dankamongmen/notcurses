@@ -45,12 +45,24 @@ ncselector_draw(ncselector* n){
   ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, dimy - yoff, bodywidth, 0);
   if(n->title){
     n->ncp->channels = n->boxchannels;
-    ncplane_putegc_yx(n->ncp, 2, dimx - 1, "┤", NULL);
+    if(notcurses_canutf8(n->ncp->nc)){
+      ncplane_putegc_yx(n->ncp, 2, dimx - 1, "┤", NULL);
+    }else{
+      ncplane_putsimple_yx(n->ncp, 2, dimx - 1, '|');
+    }
     if(bodywidth < dimx){
-      ncplane_putegc_yx(n->ncp, 2, dimx - bodywidth, "┬", NULL);
+      if(notcurses_canutf8(n->ncp->nc)){
+        ncplane_putegc_yx(n->ncp, 2, dimx - bodywidth, "┬", NULL);
+      }else{
+        ncplane_putsimple_yx(n->ncp, 2, dimx - bodywidth, '-');
+      }
     }
     if((n->titlecols + 4 != dimx) && n->titlecols > n->secondarycols){
-      ncplane_putegc_yx(n->ncp, 2, dimx - (n->titlecols + 4), "┴", NULL);
+      if(notcurses_canutf8(n->ncp->nc)){
+        ncplane_putegc_yx(n->ncp, 2, dimx - (n->titlecols + 4), "┴", NULL);
+      }else{
+        ncplane_putsimple_yx(n->ncp, 2, dimx - (n->titlecols + 4), '-');
+      }
     }
   }
   // There is always at least one space available on the right for the
@@ -81,7 +93,11 @@ ncselector_draw(ncselector* n){
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
     n->arrowx = bodyoffset + n->longop;
-    ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
+    if(notcurses_canutf8(n->ncp->nc)){
+      ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
+    }else{
+      ncplane_putsimple_yx(n->ncp, yoff, n->arrowx, '<');
+    }
   }else{
     n->arrowx = -1;
   }
@@ -118,7 +134,11 @@ ncselector_draw(ncselector* n){
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
-    ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↓", NULL);
+    if(notcurses_canutf8(n->ncp->nc)){
+      ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↓", NULL);
+    }else{
+      ncplane_putsimple_yx(n->ncp, yoff, n->arrowx, '>');
+    }
   }
   n->darrowy = yoff;
   return notcurses_render(n->ncp->nc);
