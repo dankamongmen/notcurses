@@ -245,12 +245,21 @@ int ncdirect_cursor_pop(ncdirect* n){
 }
 
 static int
-ncdirect_dump_plane(ncdirect* n, const ncplane* np){
+ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   const int totx = ncdirect_dim_x(n);
   const int toty = ncdirect_dim_y(n);
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
+fprintf(stderr, "rasterizing %dx%d\n", dimy, dimx);
   for(int y = 0 ; y < dimy ; ++y){
+    if(ncdirect_cursor_move_yx(n, -1, xoff)){
+      return -1;
+    }
+    for(int x = 0 ; x < xoff ; ++x){
+      if(putchar(' ') == EOF){
+        return -1;
+      }
+    }
     for(int x = 0 ; x < dimx ; ++x){
       uint32_t attrword;
       uint64_t channels;
@@ -274,7 +283,6 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np){
         return -1;
       }
     }
-    ncdirect_cursor_left(n, dimx);
     if(y == toty){
       ncdirect_cursor_down(n, 1);
     }
@@ -302,14 +310,15 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
     return NCERR_INVALID_ARG;
   }
   int disprows, dispcols;
-  disprows = ncdirect_dim_y(n);
-  dispcols = ncdirect_dim_x(n);
   if(scale != NCSCALE_NONE){
-    dispcols *= encoding_x_scale(bset);
-    disprows *= encoding_y_scale(bset);
+    dispcols = ncdirect_dim_x(n) * encoding_x_scale(bset);
+    disprows = ncdirect_dim_y(n) * encoding_y_scale(bset);
     if(scale == NCSCALE_SCALE){
       scale_visual(ncv, &disprows, &dispcols);
     }
+  }else{
+    disprows = ncv->rows;
+    dispcols = ncv->cols / encoding_x_scale(bset);
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
@@ -328,7 +337,8 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
     return NCERR_SYSTEM;
   }
   ncvisual_destroy(ncv);
-  if(ncdirect_dump_plane(n, faken)){
+  int xoff = 0;
+  if(ncdirect_dump_plane(n, faken, xoff)){
     return NCERR_SYSTEM;
   }
   free_plane(faken);
