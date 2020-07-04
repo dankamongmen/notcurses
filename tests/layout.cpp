@@ -223,12 +223,10 @@ TEST_CASE("TextLayout") {
     const char boundstr[] = "quantum balls scratchy?! true! arrrrp";
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
-sleep(1);
     CHECK(bytes == strlen(boundstr));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "scratchy?! true! arrrrp"));
-fprintf(stderr, "LINE: [%s]\n", line);
+    CHECK(0 == strcmp(line, "scratchy?!true! arrrrp"));
     free(line);
     ncplane_destroy(sp);
   }
