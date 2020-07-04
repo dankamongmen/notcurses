@@ -280,6 +280,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
+//fprintf(stderr, "quadblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, placey, placex);
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = begy;

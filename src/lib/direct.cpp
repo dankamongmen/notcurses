@@ -250,13 +250,11 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   const int toty = ncdirect_dim_y(n);
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
-fprintf(stderr, "rasterizing %dx%d\n", dimy, dimx);
+//fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
+  assert(dimx + xoff <= totx);
   for(int y = 0 ; y < dimy ; ++y){
-    if(ncdirect_cursor_move_yx(n, -1, xoff)){
-      return -1;
-    }
-    for(int x = 0 ; x < xoff ; ++x){
-      if(putchar(' ') == EOF){
+    if(xoff){
+      if(ncdirect_cursor_move_yx(n, -1, xoff)){
         return -1;
       }
     }
@@ -270,21 +268,20 @@ fprintf(stderr, "rasterizing %dx%d\n", dimy, dimx);
       ncdirect_fg(n, channels_fg(channels));
       ncdirect_bg(n, channels_bg(channels));
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
-      if(printf("%s", strlen(egc) == 0 ? " " : egc) < 0){
+      if(fprintf(n->ttyfp, "%s", strlen(egc) == 0 ? " " : egc) < 0){
         return -1;
       }
     }
-    // FIXME mystifyingly, we require this cursor_left() when using 2x2, but must
-    // not have it when using 2x1 (we insert blank lines otherwise). don't paper
-    // over it with a conditional, but instead get to the bottom of this FIXME.
     if(dimx < totx){
       ncdirect_bg_default(n);
-      if(putchar('\n') == EOF){
+      if(putc('\n', n->ttyfp) == EOF){
         return -1;
       }
     }
     if(y == toty){
-      ncdirect_cursor_down(n, 1);
+      if(ncdirect_cursor_down(n, 1)){
+        return -1;
+      }
     }
   }
   return 0;
@@ -325,7 +322,7 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
 //fprintf(stderr, "render: %d+%d of %d/%d stride %u %p\n", leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   struct ncplane* faken = ncplane_create(NULL, NULL,
                                          disprows / encoding_y_scale(bset),
-                                         dispcols,// / encoding_x_scale(bset),
+                                         dispcols / encoding_x_scale(bset),
                                          0, 0, NULL);
   if(faken == NULL){
     return NCERR_NOMEM;
@@ -341,7 +338,12 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   if(ncdirect_dump_plane(n, faken, xoff)){
     return NCERR_SYSTEM;
   }
+  while(fflush(stdout) == EOF && errno == EAGAIN){
+    ;
+  }
   free_plane(faken);
+  ncdirect_fg_default(n);
+  ncdirect_bg_default(n);
   return NCERR_SUCCESS;
 }
 
