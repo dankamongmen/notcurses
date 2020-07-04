@@ -188,13 +188,47 @@ TEST_CASE("TextLayout") {
     auto sp = ncplane_new(nc_, 2, 13, 0, 0, nullptr);
     REQUIRE(sp);
     size_t bytes;
-    const char boundstr[] = "quantum balls scratchy?!";
+    const char boundstr[] = "quantum balls scratchy no?!";
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "quantum ballsscratchy?!"));
+    CHECK(0 == strcmp(line, "quantum ballsscratchy no?!"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
+  SUBCASE("LayoutLongNoScroll") {
+    auto sp = ncplane_new(nc_, 2, 13, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "quantum balls scratchy no?! truly! arrrrp";
+    int res = ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes);
+    CHECK(0 > res);
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes < strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "quantum ballsscratchy no?!"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
+  SUBCASE("LayoutLongScroll") {
+    auto sp = ncplane_new(nc_, 2, 13, 0, 0, nullptr);
+    REQUIRE(sp);
+    ncplane_set_scrolling(sp, true);
+    size_t bytes;
+    const char boundstr[] = "quantum balls scratchy?! true! arrrrp";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+sleep(1);
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "scratchy?! true! arrrrp"));
+fprintf(stderr, "LINE: [%s]\n", line);
     free(line);
     ncplane_destroy(sp);
   }

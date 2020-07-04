@@ -371,7 +371,7 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
     n->x = x;
   }
   if(y >= n->leny){
-    logerror(n->nc, "Target y %d >= length %d\n", y, n->leny);
+    logerror(n->nc, "Target y %d >= height %d\n", y, n->leny);
     return -1;
   }else if(y < 0){
     if(y < -1){
@@ -403,7 +403,10 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
       ncplane_destroy(newn);
       return NULL;
     }else{
-      ncplane_cursor_move_yx(newn, n->y, n->x);
+      if(ncplane_cursor_move_yx(newn, n->y, n->x) < 0){
+        ncplane_destroy(newn);
+        return NULL;
+      }
       newn->attrword = attr;
       newn->channels = chan;
       memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
@@ -1191,6 +1194,7 @@ cell_obliterate(ncplane* n, cell* c){
 // increment y by 1 and rotate the framebuffer up one line. x moves to 0.
 static inline void
 scroll_down(ncplane* n){
+fprintf(stderr, "SCROLL!\n");
   n->x = 0;
   if(n->y == n->leny - 1){
     n->logrow = (n->logrow + 1) % n->leny;
@@ -1214,6 +1218,8 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     }
     scroll_down(n);
   }
+
+if(c->gcluster == '\n'){ fprintf(stderr, "YARP YARP\n"); }
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
@@ -1506,6 +1512,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
   // through the linebreaker, and advance text.
   // FIXME what about a long word? do we want to leave the big gap?
   const int dimx = ncplane_dim_x(n);
+  const int dimy = ncplane_dim_y(n);
   const char* linestart = text;
   int x = 0; // number of columns consumed for this line
   do{
@@ -1517,7 +1524,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     // might catch a space, in which case we want breaker updated. if it's
     // not a space, it won't be printed, and we carry the word forward.
     // FIXME what ought be done with \n or multiple spaces?
-//fprintf(stderr, "laying out [%s] at %d (%d)\n", linestart, x, dimx);
+fprintf(stderr, "laying out [%s] at %d (%d)\n", linestart, x, dimx);
     while(*text && x <= dimx){
       wchar_t w;
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
@@ -1552,6 +1559,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       x += width;
       text += consumed;
     }
+fprintf(stderr, "OUT! %s\n", linestart);
     int carrycols = 0;
     // if we have no breaker, we got a word that was longer than our line;
     // print what we can and move along. if *text is nul, we're done.
@@ -1565,7 +1573,8 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       totalcols += (breaker - linestart);
       const int xpos = ncplane_align(n, align, x);
       // blows out if we supply a y beyond leny
-      if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) < 0){ 
+fprintf(stderr, "y: %d %d %.*s\n", y, breaker - linestart, breaker - linestart, linestart);
+      if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){ 
         if(bytes){
           *bytes = linestart - beginning;
         }
@@ -1578,7 +1587,20 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     }else{
       linestart = breaker + 1;
     }
-    ++y; // FIXME scrolling!??!!
+fprintf(stderr, "OUT2! %s\n", linestart);
+    if(++y >= dimy){
+      if(n->scrolling){
+        if(ncplane_putsimple_yx(n, -1, -1, '\n') < 0){
+fprintf(stderr, "NO NEWLINE!\n");
+          if(bytes){
+            *bytes = linestart - beginning;
+          }
+          return -1;
+        }
+        --y;
+      }
+    }
+fprintf(stderr, "LOOKING AT: [%c]\n", *text);
   }while(*text);
   if(bytes){
     *bytes = text - beginning;
