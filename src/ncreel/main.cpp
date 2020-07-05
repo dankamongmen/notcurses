@@ -14,9 +14,13 @@ class TabletCtx {
   public:
     TabletCtx() :
       lines(rand() % 5 + 3),
-      rgb(rand() % 0x1000000) {}
+      rgb(rand() % 0x1000000),
+      idx(++class_idx) {}
     int getLines() const {
       return lines;
+    }
+    int getIdx() const {
+      return idx;
     }
     unsigned getRGB() const {
       return rgb;
@@ -24,6 +28,8 @@ class TabletCtx {
   private:
     int lines;
     unsigned rgb;
+    int idx;
+    inline static int class_idx = 0;
 };
 
 int tabletfxn(struct nctablet* _t, int begx, int begy, int maxx, int maxy,
@@ -40,6 +46,9 @@ int tabletfxn(struct nctablet* _t, int begx, int begy, int maxx, int maxy,
   c.set_bg(tctx->getRGB());
   p->set_base_cell(c);
   p->release(c);
+  p->set_bg(0xffffff);
+  p->set_fg(0x000000);
+  p->printf(1, 1, "%d", tctx->getIdx());
   return tctx->getLines() > maxy - begy ? maxy - begy : tctx->getLines();
 }
 
