@@ -3508,36 +3508,6 @@ unicode7emoji2(struct ncplane* title, int y){
   return n;
 }
 
-static struct ncplane*
-unicode13(struct ncplane* title, int y){
-  const char SUMMARY[] = "[Unicode 13.0 (2020), 56 codepoints]";
-  const int ROWS = 4;
-  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
-  if(n == NULL){
-    return NULL;
-  }
-  ncplane_putstr_yx(n, 1, 1, "\xf0\x9f\xa5\xb2\xf0\x9f\xa5\xb8\xf0\x9f\xa4\x8c"
-                             "\xf0\x9f\xab\x80\xf0\x9f\xab\x81\xf0\x9f\xa5\xb7"
-                             "\xf0\x9f\xab\x82\xf0\x9f\xa6\xac\xf0\x9f\xa6\xa3"
-                             "\xf0\x9f\xa6\xab\xf0\x9f\xa6\xa4\xf0\x9f\xaa\xb6"
-                             "\xf0\x9f\xa6\xad\xf0\x9f\xaa\xb2\xf0\x9f\xaa\xb3"
-                             "\xf0\x9f\xaa\xb0\xf0\x9f\xaa\xb1\xf0\x9f\xaa\xb4"
-                             "\xf0\x9f\xab\x90\xf0\x9f\xab\x92\xf0\x9f\xab\x91"
-                             "\xf0\x9f\xab\x93\xf0\x9f\xab\x94\xf0\x9f\xab\x95"
-                             "\xf0\x9f\xab\x96\xf0\x9f\xa7\x8b\xf0\x9f\xaa\xa8"
-                             "\xf0\x9f\xaa\xb5\xf0\x9f\x9b\x96\xf0\x9f\x9b\xbb"
-                             "\xf0\x9f\x9b\xbc\xf0\x9f\xaa\x84");
-  ncplane_putstr_yx(n, 2, 1, "\xf0\x9f\xaa\x85\xf0\x9f\xaa\x86\xf0\x9f\xaa\xa1"
-                             "\xf0\x9f\xaa\xa2\xf0\x9f\xa9\xb4\xf0\x9f\xaa\x96"
-                             "\xf0\x9f\xaa\x97\xf0\x9f\xaa\x98\xf0\x9f\xaa\x99"
-                             "\xf0\x9f\xaa\x83\xf0\x9f\xaa\x9a\xf0\x9f\xaa\x9b"
-                             "\xf0\x9f\xaa\x9d\xf0\x9f\xaa\x9c\xf0\x9f\x9b\x97"
-                             "\xf0\x9f\xaa\x9e\xf0\x9f\xaa\x9f\xf0\x9f\xaa\xa0"
-                             "\xf0\x9f\xaa\xa4\xf0\x9f\xaa\xa3\xf0\x9f\xaa\xa5"
-                             "\xf0\x9f\xaa\xa6\xf0\x9f\xaa\xa7\xe2\x9a\xa7");
-  return n;
-}
-
 struct ncplane*
 makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
   int cols = mbswidth(emoji);
@@ -3621,7 +3591,6 @@ int mojibake_demo(struct notcurses* nc){
     unicode52(title, dimy + 1),
     unicode60(title, dimy + 1),
     unicode7emoji2(title, dimy + 1),
-    unicode13(title, dimy + 1),
     makegroup(title, dimy + 1, face_smiling, "face-smiling"),
     makegroup(title, dimy + 1, face_affection, "face-affection"),
     makegroup(title, dimy + 1, face_tongue, "face-tongue"),
@@ -3697,6 +3666,22 @@ int mojibake_demo(struct notcurses* nc){
     makegroup(title, dimy + 1, household, "household"),
     makegroup(title, dimy + 1, other_object, "other-object"),
     makegroup(title, dimy + 1, transport_sign, "transport-sign"),
+    makegroup(title, dimy + 1, warning, "warning"),
+    makegroup(title, dimy + 1, arrow, "arrow"),
+    makegroup(title, dimy + 1, religion, "religion"),
+    makegroup(title, dimy + 1, zodiac, "zodiac"),
+    makegroup(title, dimy + 1, av_symbol, "av-symbol"),
+    makegroup(title, dimy + 1, gender, "gender"),
+    makegroup(title, dimy + 1, math, "math"),
+    makegroup(title, dimy + 1, punctuation, "punctuation"),
+    makegroup(title, dimy + 1, currency, "currency"),
+    makegroup(title, dimy + 1, other_symbol, "other-symbol"),
+    makegroup(title, dimy + 1, keycap, "keycap"),
+    makegroup(title, dimy + 1, alphanum, "alphanum"),
+    makegroup(title, dimy + 1, geometric, "geometric"),
+    makegroup(title, dimy + 1, flags, "flags"),
+    makegroup(title, dimy + 1, country_flag, "country-flag"),
+    makegroup(title, dimy + 1, subdivision_flag, "subdivision-flag"),
   };
   for(unsigned u = 0 ; u < sizeof(planes) / sizeof(*planes) ; ++u){
     if(planes[u] == NULL){
