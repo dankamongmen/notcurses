@@ -320,7 +320,7 @@ If things break or seem otherwise lackluster, **please** consult the
 `TERM` and `LANG` definition, and probably want `COLORTERM`.
 
 * *Q:* The demo fails in the middle of `intro`.
-* *A:* Check that your `TERM` definitions is correct for your terminal. `intro`
+* *A:* Check that your `TERM` value is correct for your terminal. `intro`
        does a palette fade, which is prone to breaking under incorrect `TERM`
        values. If you're not using `xterm`, your `TERM` should not be `xterm`!
 
