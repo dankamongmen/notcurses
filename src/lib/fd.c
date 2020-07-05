@@ -240,6 +240,7 @@ ncsubproc_waiter(void* vncsp){
     ;
   }
   if(pid != ncsp->pid){
+    free(status);
     return NULL;
   }
   pthread_mutex_lock(&ncsp->lock);

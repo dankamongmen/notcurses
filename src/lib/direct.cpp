@@ -1,6 +1,6 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <fcntl.h>
-#include <errno.h>
+#include <cerrno>
 #include <cstring>
 #include <unistd.h>
 #include <termios.h>
@@ -76,7 +76,7 @@ int ncdirect_clear(ncdirect* nc){
 int ncdirect_dim_x(const ncdirect* nc){
   int x;
   if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, NULL, &x) == 0){
+    if(update_term_dimensions(nc->ctermfd, nullptr, &x) == 0){
       return x;
     }
   }else{
@@ -88,7 +88,7 @@ int ncdirect_dim_x(const ncdirect* nc){
 int ncdirect_dim_y(const ncdirect* nc){
   int y;
   if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, &y, NULL) == 0){
+    if(update_term_dimensions(nc->ctermfd, &y, nullptr) == 0){
       return y;
     }
   }else{
@@ -231,14 +231,14 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
 }
 
 int ncdirect_cursor_push(ncdirect* n){
-  if(n->tcache.sc == NULL){
+  if(n->tcache.sc == nullptr){
     return -1;
   }
   return term_emit("sc", n->tcache.sc, n->ttyfp, false);
 }
 
 int ncdirect_cursor_pop(ncdirect* n){
-  if(n->tcache.rc == NULL){
+  if(n->tcache.rc == nullptr){
     return -1;
   }
   return term_emit("rc", n->tcache.rc, n->ttyfp, false);
@@ -279,7 +279,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       uint32_t attrword;
       uint64_t channels;
       char* egc = ncplane_at_yx(np, y, x, &attrword, &channels);
-      if(egc == NULL){
+      if(egc == nullptr){
         return -1;
       }
       ncdirect_fg(n, channels_fg(channels));
@@ -308,7 +308,7 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
                                ncblitter_e blitter, ncscale_e scale){
   nc_err_e ret;
   struct ncvisual* ncv = ncvisual_from_file(file, &ret);
-  if(ncv == NULL){
+  if(ncv == nullptr){
     return ret;
   }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
@@ -337,11 +337,11 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
 //fprintf(stderr, "render: %d+%d of %d/%d stride %u %p\n", leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
-  struct ncplane* faken = ncplane_create(NULL, NULL,
+  struct ncplane* faken = ncplane_create(nullptr, nullptr,
                                          disprows / encoding_y_scale(bset),
                                          dispcols / encoding_x_scale(bset),
-                                         0, 0, NULL);
-  if(faken == NULL){
+                                         0, 0, nullptr);
+  if(faken == nullptr){
     return NCERR_NOMEM;
   }
   if(ncvisual_blit(ncv, disprows, dispcols, faken, bset,
@@ -375,7 +375,7 @@ int ncdirect_bg_palindex(ncdirect* nc, int pidx){
 
 int ncdirect_vprintf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt, va_list ap){
   char* r = ncplane_vprintf_prep(fmt, ap);
-  if(r == NULL){
+  if(r == nullptr){
     return -1;
   }
   const size_t len = strlen(r);
@@ -408,18 +408,18 @@ int get_controlling_tty(FILE* ttyfp){
     }
   }
   char cbuf[L_ctermid + 1];
-  if(ctermid(cbuf) == NULL){
+  if(ctermid(cbuf) == nullptr){
     return -1;
   }
   return open(cbuf, O_RDWR | O_CLOEXEC);
 }
 
 ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
-  if(outfp == NULL){
+  if(outfp == nullptr){
     outfp = stdout;
   }
   auto ret = new ncdirect{};
-  if(ret == NULL){
+  if(ret == nullptr){
     return ret;
   }
   ret->ttyfp = outfp;
@@ -430,15 +430,15 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     delete(ret);
-    return NULL;
+    return nullptr;
   }
   if(ncvisual_init(ffmpeg_log_level(NCLOGLEVEL_SILENT))){
     delete(ret);
-    return NULL;
+    return nullptr;
   }
   if(interrogate_terminfo(&ret->tcache)){
     delete(ret);
-    return NULL;
+    return nullptr;
   }
   ret->fgdefault = ret->bgdefault = true;
   ret->fgrgb = ret->bgrgb = 0;
