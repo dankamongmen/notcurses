@@ -170,6 +170,10 @@ updated to reflect the changes:
 // successful call to notcurses_render().
 int notcurses_render(struct notcurses* nc);
 
+// Write the last rendered frame, in its entirety, to 'fp'. This is not valid
+// until notcurses_render() has been successfully called at least once.
+int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
+
 // Retrieve the contents of the specified cell as last rendered. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
 // attrword and channels are written to 'attrword' and 'channels', respectively.

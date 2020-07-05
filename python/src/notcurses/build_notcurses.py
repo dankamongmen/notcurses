@@ -85,6 +85,7 @@ struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 int notcurses_lex_margins(const char* op, notcurses_options* opts);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
+int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 struct ncplane* notcurses_stdplane(struct notcurses*);
 const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);

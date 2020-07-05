@@ -993,6 +993,10 @@ API int notcurses_stop(struct notcurses* nc);
 // successful call to notcurses_render().
 API int notcurses_render(struct notcurses* nc);
 
+// Write the last rendered frame, in its entirety, to 'fp'. This is not valid
+// until notcurses_render() has been successfully called at least once.
+API int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
+
 // Return the topmost ncplane, of which there is always at least one.
 API struct ncplane* notcurses_top(struct notcurses* n);
 

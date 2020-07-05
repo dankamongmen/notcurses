@@ -14,6 +14,8 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels);**
 
+**int notcurses_render_to_file(struct notcurses* nc, FILE* fp);**
+
 # DESCRIPTION
 
 **notcurses_render** syncs the physical display to the context's prepared
@@ -25,7 +27,7 @@ render (see notcurses_stats(3)), and screen geometry is refreshed (similarly to
 
 While **notcurses_render** is called, you **must not call any other functions
 on the same notcurses context**, with the one exception of **notcurses_getc**
-(and its input-related helpers).
+(and its input-related helpers; see **notcurses_input(3)**.).
 
 A render operation consists of two logical phases: generation of the rendered
 scene, and blitting this scene to the terminal (these two phases might actually
@@ -86,8 +88,9 @@ purposes of color blending.
 
 **notcurses(3)**,
 **notcurses_cell(3)**,
-**notcurses_plane(3)**,
+**notcurses_input(3)**,
 **notcurses_output(3)**,
+**notcurses_plane(3)**,
 **notcurses_refresh(3)**,
 **notcurses_stats(3)**,
 **console_codes(4)**,

@@ -865,8 +865,7 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
 // lastframe has *not yet been written to the screen*, i.e. it's only about to
 // *become* the last frame rasterized.
 static int
-notcurses_rasterize(notcurses* nc, const struct crender* rvec){
-  FILE* out = nc->rstate.mstreamfp;
+notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
   int ret = 0;
   int y, x;
   fseeko(out, 0, SEEK_SET);
@@ -1078,13 +1077,50 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   for(int i = 0 ; i < count ; ++i){
     rvec[i].damaged = true;
   }
-  int ret = notcurses_rasterize(nc, rvec);
+  int ret = notcurses_rasterize(nc, rvec, nc->rstate.mstreamfp);
   free(rvec);
   if(ret < 0){
     return -1;
   }
   return 0;
 }
+
+int notcurses_render_to_file(struct notcurses* nc, FILE* fp){
+  if(nc->lfdimx == 0 || nc->lfdimy == 0){
+    return 0;
+  }
+  char* rastered = NULL;
+  size_t rastbytes = 0;
+  FILE* out = open_memstream(&rastered, &rastbytes);
+  if(out == NULL){
+    return -1;
+  }
+  const int count = (nc->lfdimx > nc->stdscr->lenx ? nc->lfdimx : nc->stdscr->lenx) *
+                    (nc->lfdimy > nc->stdscr->leny ? nc->lfdimy : nc->stdscr->leny);
+  struct crender* rvec = malloc(count * sizeof(*rvec));
+  if(rvec == NULL){
+    fclose(out);
+    free(rastered);
+    return -1;
+  }
+  memset(rvec, 0, count * sizeof(*rvec));
+  for(int i = 0 ; i < count ; ++i){
+    rvec[i].damaged = true;
+  }
+  int ret = notcurses_rasterize(nc, rvec, out);
+  free(rvec);
+  if(ret > 0){
+    if(fprintf(fp, "%s", rastered) == ret){
+      ret = 0;
+    }else{
+      ret = -1;
+    }
+  }
+  fclose(out);
+  free(rastered);
+  return 0;
+}
+
 
 // We execute the painter's algorithm, starting from our topmost plane. The
 // damagevector should be all zeros on input. On success, it will reflect
@@ -1123,7 +1159,7 @@ int notcurses_render(notcurses* nc){
   struct crender* crender = malloc(crenderlen);
   memset(crender, 0, crenderlen);
   if(notcurses_render_internal(nc, crender) == 0){
-    bytes = notcurses_rasterize(nc, crender);
+    bytes = notcurses_rasterize(nc, crender, nc->rstate.mstreamfp);
   }
   free(crender);
   clock_gettime(CLOCK_MONOTONIC, &done);

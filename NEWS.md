@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.1 (not yet released)
+  * Added `notcurses_render_file()` to dump last rendered frame to a `FILE*`.
+
 * 1.6.0 (2020-07-04)
   * Behavior has changed regarding use of the provided `FILE*` (which, when
     `NULL`, is assumed to be `stdout`). Both Notcurses and `ncdirect` now
