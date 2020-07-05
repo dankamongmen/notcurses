@@ -538,11 +538,17 @@ term_emit(const char* name __attribute__ ((unused)), const char* seq,
 
 static inline int
 term_bg_palindex(const notcurses* nc, FILE* out, unsigned pal){
+  if(nc->tcache.setab == NULL){
+    return 0;
+  }
   return term_emit("setab", tiparm(nc->tcache.setab, pal), out, false);
 }
 
 static inline int
 term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
+  if(nc->tcache.setaf == NULL){
+    return 0;
+  }
   return term_emit("setaf", tiparm(nc->tcache.setaf, pal), out, false);
 }
 

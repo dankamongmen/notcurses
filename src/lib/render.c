@@ -655,7 +655,7 @@ term_bg_rgb8(bool RGBflag, const char* setab, int colors, FILE* out,
     return term_esc_rgb(out, false, r, g, b);
   }else{
     if(setab == NULL){
-      return -1;
+      return 0;
     }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
@@ -682,7 +682,7 @@ term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
     return term_esc_rgb(out, true, r, g, b);
   }else{
     if(setaf == NULL){
-      return -1;
+      return 0;
     }
     // For 256-color indexed mode, start constructing a palette based off
     // the inputs *if we can change the palette*. If more than 256 are used on
@@ -926,7 +926,9 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec){
         if((!noforeground && cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
           if(!nc->rstate.defaultelidable){
             ++nc->stats.defaultemissions;
-            ret |= term_emit("op", nc->tcache.op, out, false);
+            if(nc->tcache.op){
+              ret |= term_emit("op", nc->tcache.op, out, false);
+            }
           }else{
             ++nc->stats.defaultelisions;
           }

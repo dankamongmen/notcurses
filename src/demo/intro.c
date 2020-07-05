@@ -132,6 +132,9 @@ int intro(struct notcurses* nc){
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC_RAW, &now);
   }while(timespec_to_ns(&now) < deadline);
+  if(!notcurses_canfade(nc)){
+    return 0;
+  }
   struct timespec fade = demodelay;
   return ncplane_fadeout(ncp, &fade, demo_fader, NULL);
 }
