@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "internal.h"
 
 static const unsigned char zeroes[] = "\x00\x00\x00\x00";

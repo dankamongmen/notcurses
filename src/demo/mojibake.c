@@ -3458,7 +3458,7 @@ unicode52(struct ncplane* title, int y){
                              "\xf0\x9f\x85\xbf \xf0\x9f\x85\xbf\ufe0f"
                              "\xf0\x9f\x88\xaf \xf0\x9f\x88\xaf\ufe0f"
                              "\xf0\x9f\x88\x9a \xf0\x9f\x88\x9a\ufe0f"
-                             "\u3299 \u3299\ufe0f \U0001F41D");
+                             "\u3299 \u3299\ufe0f");
   return n;
 }
 
@@ -3511,10 +3511,10 @@ unicode7emoji2(struct ncplane* title, int y){
 struct ncplane*
 makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
   int cols = mbswidth(emoji);
-  if(cols < 0){
-    cols = 1;
+  if(cols < 0){ // take a wild guess on mbswidth() error.
+    cols = strlen(emoji) * 3 / 5; // best by test
   }
-  struct ncplane* n = mojiplane(title, y, 2 + (cols + (planewidth - 1)) / planewidth, name);
+  struct ncplane* n = mojiplane(title, y, 2 + (cols + (planewidth - 3)) / (planewidth - 2), name);
   if(n == NULL){
     return NULL;
   }
@@ -3537,7 +3537,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
     }
     emoji += bytes;
     x += w;
-    if(x >= planewidth - 1){
+    if(x >= planewidth - 2){
       ++y;
       x = 1;
     }
