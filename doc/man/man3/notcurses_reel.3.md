@@ -31,10 +31,6 @@ typedef struct ncreel_options {
   int max_supported_cols;
   int max_supported_rows;
 
-  // desired offsets within the surrounding WINDOW (top right
-  // bottom left) upon creation / resize. an ncreel_move()
-  // operation updates these.
-  int toff, roff, boff, loff;
   // notcurses can draw a border around the ncreel, and also
   // around the component tablets. inhibit borders by setting all
   // valid bits in the masks. partially inhibit borders by setting

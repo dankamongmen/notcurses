@@ -1900,9 +1900,6 @@ typedef struct ncreel_options {
   int max_supported_cols;
   int max_supported_rows;
 
-  // desired offsets within the surrounding WINDOW (top right bottom left) upon
-  // creation / resize. an ncreel_move() operation updates these.
-  int toff, roff, boff, loff;
   // is scrolling infinite (can one move down or up forever, or is an end
   // reached?). if true, 'circular' specifies how to handle the special case of
   // an incompletely-filled reel.

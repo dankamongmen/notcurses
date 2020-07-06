@@ -389,7 +389,6 @@ typedef struct ncreel_options {
   int min_supported_rows;
   int max_supported_cols;
   int max_supported_rows;
-  int toff, roff, boff, loff;
   unsigned bordermask;
   uint64_t borderchan;
   unsigned tabletmask;
