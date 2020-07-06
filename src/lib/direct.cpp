@@ -352,7 +352,6 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   }
   ncvisual_destroy(ncv);
   int xoff = ncdirect_align(n, align, lenx / encoding_x_scale(bset));
-fprintf(stderr, "XOFF: %d lenx: %d dispcols: %d\n", xoff, lenx, dispcols);
   if(ncdirect_dump_plane(n, faken, xoff)){
     return NCERR_SYSTEM;
   }
