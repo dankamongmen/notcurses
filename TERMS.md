@@ -23,5 +23,7 @@ The following have been established on a Debian Unstable workstation.
 | Konsole | `TERM=konsole-direct` | |
 | Alacritty | `TERM=alacritty` `COLORTERM=24bit` | |
 | Kitty | `TERM=kitty-direct` | |
+| Sakura | `TERM=vte-256color` `COLORTERM=24bit` | |
+| st | `TERM=st-256color` `COLORTERM=24bit` | |
 | GNU Screen | `screen-256colors` | Must be compiled with `--enable-256color`. |
 | tmux | | |
