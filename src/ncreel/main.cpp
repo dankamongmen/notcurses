@@ -91,6 +91,9 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
 
 int runreels(NotCurses& nc, ncreel_options& nopts){
   std::unique_ptr<Plane> nstd(nc.get_stdplane());
+  if(nstd->putstr(0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0){
+    return -1;
+  }
   int dimy, dimx;
   nstd->get_dim(&dimy, &dimx);
   auto n = std::make_shared<Plane>(dimy - 1, dimx, 1, 0);
@@ -98,9 +101,6 @@ int runreels(NotCurses& nc, ncreel_options& nopts){
     return -1;
   }
   if(!n->set_fg_rgb(0xb1, 0x1b, 0xb1)){
-    return -1;
-  }
-  if(n->putstr(0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0){
     return -1;
   }
   channels_set_fg(&nopts.focusedchan, 0xffffff);
