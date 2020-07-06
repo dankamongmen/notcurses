@@ -1913,13 +1913,8 @@ struct nctablet;
 struct ncreel;
 
 // Create an ncreel according to the provided specifications. Returns NULL on
-// failure. 'nc' must be a valid plane, to which offsets are relative. Note that
-// there might not be enough room for the specified offsets, in which case the
-// ncreel will be clipped on the bottom and right. A minimum number of rows
-// and columns can be enforced via popts. efd, if non-negative, is an eventfd
-// that ought be written to whenever ncreel_touch() updates a tablet (this
-// is useful in the case of nonblocking input).
-struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);
+// failure. 'nc' must be a valid plane.
+struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
 
 // Returns the ncplane on which this ncreel lives.
 struct ncplane* ncreel_plane(struct ncreel* pr);
@@ -1954,11 +1949,6 @@ struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after,
 
 // Return the number of tablets.
 int ncreel_tabletcount(const struct ncreel* pr);
-
-// Indicate that the specified tablet has been updated in a way that would
-// change its display. This will trigger some non-negative number of callbacks
-// (though not in the caller's context).
-int ncreel_touch(struct ncreel* pr, struct nctablet* t);
 
 // Delete the tablet specified by t from the ncreel specified by pr. Returns
 // -1 if the tablet cannot be found.

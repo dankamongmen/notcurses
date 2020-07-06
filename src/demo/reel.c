@@ -175,12 +175,10 @@ tablet_thread(void* vtabletctx){
       if((tctx->lines -= (action + 1)) < 1){
         tctx->lines = 1;
       }
-      ncreel_touch(tctx->pr, tctx->t);
     }else if(action > 2){
       if((tctx->lines += (action - 2)) < 1){
         tctx->lines = 1;
       }
-      ncreel_touch(tctx->pr, tctx->t);
     }
     pthread_mutex_unlock(&tctx->lock);
   }
@@ -212,11 +210,11 @@ new_tabletctx(struct ncreel* pr, unsigned *id){
 }
 
 static wchar_t
-handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
+handle_input(struct notcurses* nc, struct ncreel* pr,
              const struct timespec* deadline){
-  struct pollfd fds[2] = {
+  (void)pr; // FIXME
+  struct pollfd fds[1] = {
     { .fd = demo_input_fd(), .events = POLLIN, .revents = 0, },
-    { .fd = efd,             .events = POLLIN, .revents = 0, },
   };
   sigset_t sset;
   sigemptyset(&sset);
@@ -250,30 +248,13 @@ handle_input(struct notcurses* nc, struct ncreel* pr, int efd,
           }
         }
       }
-      if(fds[1].revents & POLLIN){
-        uint64_t val;
-        if(read(efd, &val, sizeof(val)) != sizeof(val)){
-          fprintf(stderr, "Error reading from eventfd %d (%s)\n", efd, strerror(errno));
-        }else if(key == (wchar_t)-1){
-          ncreel_redraw(pr);
-          DEMO_RENDER(nc);
-        }
-      }
     }
   }while(key == (wchar_t)-1);
   return key;
 }
 
 static int
-close_pipes(int* pipes){
-  if(close(pipes[0]) | close(pipes[1])){ // intentional, avoid short-circuiting
-    return -1;
-  }
-  return 0;
-}
-
-static int
-ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
+ncreel_demo_core(struct notcurses* nc){
   tabletctx* tctxs = NULL;
   bool aborted = false;
   int x = 8, y = 4;
@@ -305,7 +286,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     ncplane_destroy(w);
     return -1;
   }
-  struct ncreel* pr = ncreel_create(w, &popts, efdw);
+  struct ncreel* pr = ncreel_create(w, &popts);
   if(pr == NULL){
     ncplane_destroy(w);
     return -1;
@@ -344,7 +325,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(std, 0, 55, 218);
     wchar_t rw;
-    if((rw = handle_input(nc, pr, efdr, &deadline)) == (wchar_t)-1){
+    if((rw = handle_input(nc, pr, &deadline)) == (wchar_t)-1){
       break;
     }
     // FIXME clrtoeol();
@@ -388,15 +369,8 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
 }
 
 int reel_demo(struct notcurses* nc){
-  int pipes[2];
   ncplane_greyscale(notcurses_stdplane(nc));
-  // freebsd doesn't have eventfd :/
-  if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
-    fprintf(stderr, "Error creating pipe (%s)\n", strerror(errno));
-    return -1;
-  }
-  int ret = ncreel_demo_core(nc, pipes[0], pipes[1]);
-  close_pipes(pipes);
+  int ret = ncreel_demo_core(nc);
   DEMO_RENDER(nc);
   return ret;
 }
