@@ -48,7 +48,7 @@ int tabletfxn(struct nctablet* _t, int begx, int begy, int maxx, int maxy,
   p->release(c);
   p->set_bg(0xffffff);
   p->set_fg(0x000000);
-  p->printf(1, 1, "%d", tctx->getIdx());
+  p->printf(1, 1, "%d %p", tctx->getIdx(), _t);
   return tctx->getLines() > maxy - begy ? maxy - begy : tctx->getLines();
 }
 
