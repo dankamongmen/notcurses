@@ -6,7 +6,7 @@ rearrangements of Notcurses.
   * The `ncreel` widget has been overhauled to bring it in line with the
     others (`ncreel` began life in another project, predating Notcurses).
     The `toff`, `boff`, `roff`, and `loff` fields of `ncreel_options` have
-    been purged.
+    been purged, as have `min_` and `max_supported_rows` and `_cols`.
 
 * 1.6.0 (2020-07-04)
   * Behavior has changed regarding use of the provided `FILE*` (which, when

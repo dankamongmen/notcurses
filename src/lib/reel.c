@@ -149,12 +149,6 @@ draw_ncreel_borders(const ncreel* nr){
   assert(maxy >= 0 && maxx >= 0);
   --maxx; // last column we can safely write to
   --maxy; // last line we can safely write to
-  if(begx >= maxx || maxx - begx + 1 < nr->ropts.min_supported_rows){
-    return 0; // no room
-  }
-  if(begy >= maxy || maxy - begy + 1 < nr->ropts.min_supported_cols){
-    return 0; // no room
-  }
   return draw_borders(nr->p, nr->ropts.bordermask, nr->ropts.borderchan, false, false);
 }
 

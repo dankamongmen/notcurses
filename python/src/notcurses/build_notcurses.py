@@ -385,10 +385,6 @@ bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
 int ncmenu_destroy(struct ncmenu* n);
 const char* ncmetric(uintmax_t val, unsigned decimal, char* buf, int omitdec, unsigned mult, int uprefix);
 typedef struct ncreel_options {
-  int min_supported_cols;
-  int min_supported_rows;
-  int max_supported_cols;
-  int max_supported_rows;
   unsigned bordermask;
   uint64_t borderchan;
   unsigned tabletmask;

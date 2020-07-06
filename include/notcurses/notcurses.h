@@ -2496,20 +2496,6 @@ API int ncblit_bgrx(const void* data, int linesize,
 #define NCREEL_OPTION_CIRCULAR       0x0002ull
 
 typedef struct ncreel_options {
-  // require this many rows and columns (including borders). otherwise, a
-  // message will be displayed stating that a larger terminal is necessary, and
-  // input will be queued. if 0, no minimum will be enforced. may not be
-  // negative. note that ncreel_create() does not return error if given an
-  // ncplane smaller than these minima; it instead patiently waits for the
-  // screen to get bigger.
-  int min_supported_cols;
-  int min_supported_rows;
-
-  // use no more than this many rows and columns (including borders). may not be
-  // less than the corresponding minimum. 0 means no maximum.
-  int max_supported_cols;
-  int max_supported_rows;
-
   // notcurses can draw a border around the ncreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
