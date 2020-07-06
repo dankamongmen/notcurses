@@ -380,12 +380,12 @@ draw_following_tablets(const ncreel* nr, const nctablet* otherend){
   int frontiery;
   // move down past the focused tablet, filling up the reel to the bottom
   do{
-//fprintf(stderr, "following otherend: %p ->p: %p\n", otherend, otherend->p);
+fprintf(stderr, "following otherend: %p ->p: %p\n", otherend, otherend->p);
     // modify frontier based off the one we're at
     window_coordinates(working->p, &wbegy, &wbegx, &wleny, &wlenx);
     wmaxy = wbegy + wleny - 1;
     frontiery = wmaxy + 2;
-//fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiery, wmaxy + 2);
+fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiery, wmaxy + 2);
     working = working->next;
     if(working == otherend && otherend->p){
 //fprintf(stderr, "BREAKOUT ON OTHEREND %p:%p\n", working, working->p);
@@ -404,7 +404,7 @@ draw_following_tablets(const ncreel* nr, const nctablet* otherend){
 // returns the last tablet drawn.
 static nctablet*
 draw_previous_tablets(const ncreel* nr, const nctablet* otherend){
-//fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
+fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
   int wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
   nctablet* upworking = nr->tablets;
   int frontiery;
@@ -412,7 +412,7 @@ draw_previous_tablets(const ncreel* nr, const nctablet* otherend){
   window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
   frontiery = wbegy - 2;
   while(upworking->prev != otherend || otherend->p == NULL){
-//fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, frontiery, wbegy - 2);
+fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, frontiery, wbegy - 2);
     upworking = upworking->prev;
     ncreel_draw_tablet(nr, upworking, frontiery, -1);
     if(upworking->p){
@@ -481,7 +481,7 @@ ncreel_arrange_denormalized(ncreel* nr){
       topmost = topmost->prev;
     }
   }
-//fprintf(stderr, "gotta draw 'em all FROM: %d NOW: %d!\n", fromline, nowline);
+fprintf(stderr, "gotta draw 'em all FROM: %d NOW: %d!\n", fromline, nowline);
   nctablet* t = topmost;
   do{
     int broken;
@@ -512,7 +512,7 @@ ncreel_arrange_denormalized(ncreel* nr){
 //
 // This can still leave a gap plus a partially-onscreen tablet FIXME
 int ncreel_redraw(ncreel* nr){
-//fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
+fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
   if(draw_ncreel_borders(nr)){
     return -1; // enforces specified dimensional minima
   }
@@ -527,12 +527,12 @@ int ncreel_redraw(ncreel* nr){
   // having to do an o(n) iteration each round, but this is still grotesque, and
   // feels fragile...
   if(nr->all_visible){
-//fprintf(stderr, "all are visible!\n");
+fprintf(stderr, "all are visible!\n");
     return ncreel_arrange_denormalized(nr);
   }
-//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
+fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
   draw_focused_tablet(nr);
-//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
+fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
   nctablet* otherend = focused;
   if(nr->last_traveled_direction >= 0){
     otherend = draw_previous_tablets(nr, otherend);
@@ -543,7 +543,7 @@ int ncreel_redraw(ncreel* nr){
     otherend = draw_previous_tablets(nr, otherend);
     draw_following_tablets(nr, otherend);
   }
-//fprintf(stderr, "DONE ARRANGING\n");
+fprintf(stderr, "DONE ARRANGING\n");
   return 0;
 }
 
@@ -631,12 +631,12 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts, int efd){
 // can just call ncreel_redraw(). otherwise, we need make ourselves at least
 // minimally visible, to satisfy the preconditions of
 // ncreel_arrange_denormalized(). this function, and approach, is shit.
-// FIXME get rid of nc param here
 static nctablet*
-insert_new_panel(struct notcurses* nc, ncreel* nr, nctablet* t){
+insert_new_panel(ncreel* nr, nctablet* t){
   if(!nr->all_visible){
     return t;
   }
+  struct notcurses* nc = nr->p->nc;
   int wbegy, wbegx, wleny, wlenx; // params of PR
   window_coordinates(nr->p, &wbegy, &wbegx, &wleny, &wlenx);
   // are we the only tablet?
@@ -712,7 +712,7 @@ nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
   t->p = NULL;
   // if we have room, it needs become visible immediately, in the proper place,
   // lest we invalidate the preconditions of ncreel_arrange_denormalized().
-  insert_new_panel(nr->p->nc, nr, t);
+  insert_new_panel(nr, t);
   ncreel_redraw(nr); // don't return failure; tablet was still created...
   return t;
 }
