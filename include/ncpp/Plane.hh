@@ -884,9 +884,9 @@ namespace ncpp
 			return static_cast<T*>(get_userptr ());
 		}
 
-		NcReel* ncreel_create (const ncreel_options *popts = nullptr, int efd = -1) const
+		NcReel* ncreel_create (const ncreel_options *popts = nullptr) const
 		{
-			return new NcReel (this, popts, efd);
+			return new NcReel (this, popts);
 		}
 
 		// Some Cell APIs go here since they act on individual panels even though it may seem weird at points (e.g.

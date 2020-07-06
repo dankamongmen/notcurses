@@ -23,7 +23,6 @@ typedef struct nctablet {
 typedef struct ncreel {
   ncplane* p;              // ncplane this ncreel occupies, under tablets
   ncreel_options ropts; // copied in ncreel_create()
-  int efd;                 // eventfd/pipe, signaled in ncreel_touch()
   // doubly-linked list, a circular one when infinity scrolling is in effect.
   // points at the focused tablet (when at least one tablet exists, one must be
   // focused), which might be anywhere on the screen (but is always visible).
@@ -573,7 +572,7 @@ ncplane* ncreel_plane(ncreel* nr){
   return nr->p;
 }
 
-ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts, int efd){
+ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts){
   ncreel* nr;
 
   if(!validate_ncreel_opts(w, ropts)){
@@ -582,7 +581,6 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts, int efd){
   if((nr = malloc(sizeof(*nr))) == NULL){
     return NULL;
   }
-  nr->efd = efd;
   nr->tablets = NULL;
   nr->tabletcount = 0;
   nr->all_visible = true;
@@ -754,19 +752,6 @@ void* nctablet_userptr(nctablet* t){
 
 int ncreel_tabletcount(const ncreel* nreel){
   return nreel->tabletcount;
-}
-
-int ncreel_touch(ncreel* nr, nctablet* t){
-  (void)t; // FIXME make these more granular eventually
-  int ret = 0;
-  if(nr->efd >= 0){
-    uint64_t val = 1;
-    if(write(nr->efd, &val, sizeof(val)) != sizeof(val)){
-// fprintf(stderr, "Error writing to eventfd %d (%s)\n", nr->efd, strerror(errno));
-      ret = -1;
-    }
-  }
-  return ret;
 }
 
 // Move to some position relative to the current position

@@ -393,7 +393,7 @@ typedef struct ncreel_options {
   uint64_t bgchannel;
   unsigned flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
-struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);
+struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
 struct ncplane* ncreel_plane(struct ncreel* pr);
 typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop);
 struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after, struct nctablet* before, tabletcb cb, void* opaque);

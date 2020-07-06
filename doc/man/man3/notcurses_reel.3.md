@@ -48,7 +48,7 @@ typedef struct ncreel_options {
 } ncreel_options;
 ```
 
-**struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);**
+**struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);**
 
 **struct ncplane* ncreel_plane(struct ncreel* nr);**
 
@@ -57,8 +57,6 @@ typedef struct ncreel_options {
 **struct nctablet* ncreel_add(struct ncreel* nr, struct nctablet* after, struct nctablet* before, tabletcb cb, void* opaque);**
 
 **int ncreel_tabletcount(const struct ncreel* nr);**
-
-**int ncreel_touch(struct ncreel* nr, struct nctablet* t);**
 
 **int ncreel_del(struct ncreel* nr, struct nctablet* t);**
 

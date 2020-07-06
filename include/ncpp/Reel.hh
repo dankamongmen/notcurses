@@ -15,27 +15,27 @@ namespace ncpp
 	public:
 		static ncreel_options default_options;
 
-		explicit NcReel (Plane &plane, const ncreel_options *popts = nullptr, int efd = -1)
-			: NcReel (static_cast<Plane const&>(plane), popts, efd)
+		explicit NcReel (Plane &plane, const ncreel_options *popts = nullptr)
+			: NcReel (static_cast<Plane const&>(plane), popts)
 		{}
 
-		explicit NcReel (Plane const&plane, const ncreel_options *popts = nullptr, int efd = -1)
+		explicit NcReel (Plane const&plane, const ncreel_options *popts = nullptr)
 			: Root (Utilities::get_notcurses_cpp (plane))
 		{
-			common_init (Utilities::to_ncplane (plane), popts, efd);
+			common_init (Utilities::to_ncplane (plane), popts);
 		}
 
-		explicit NcReel (Plane *plane, const ncreel_options *popts = nullptr, int efd = -1)
-			: NcReel (static_cast<const Plane*>(plane), popts, efd)
+		explicit NcReel (Plane *plane, const ncreel_options *popts = nullptr)
+			: NcReel (static_cast<const Plane*>(plane), popts)
 		{}
 
-		explicit NcReel (const Plane *plane, const ncreel_options *popts = nullptr, int efd = -1)
+		explicit NcReel (const Plane *plane, const ncreel_options *popts = nullptr)
 			: Root (Utilities::get_notcurses_cpp (plane))
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			common_init (Utilities::to_ncplane (plane), popts, efd);
+			common_init (Utilities::to_ncplane (plane), popts);
 		}
 
 		~NcReel ()
@@ -72,16 +72,6 @@ namespace ncpp
 		int get_tabletcount () const noexcept
 		{
 			return ncreel_tabletcount (reel);
-		}
-
-		bool touch (NcTablet *t) const NOEXCEPT_MAYBE
-		{
-			return error_guard (ncreel_touch (reel, get_tablet (t)), -1);
-		}
-
-		bool touch (NcTablet &t) const NOEXCEPT_MAYBE
-		{
-			return touch (&t);
 		}
 
 		bool del (NcTablet *t) const NOEXCEPT_MAYBE
@@ -147,9 +137,9 @@ namespace ncpp
 			return t->get_tablet ();
 		}
 
-		void common_init (ncplane *plane, const ncreel_options *popts = nullptr, int efd = -1)
+		void common_init (ncplane *plane, const ncreel_options *popts = nullptr)
 		{
-			reel = ncreel_create (plane, popts == nullptr ? &default_options : popts, efd);
+			reel = ncreel_create (plane, popts == nullptr ? &default_options : popts);
 			if (reel == nullptr)
 				throw init_error ("Notcurses failed to create a new ncreel");
 		}
