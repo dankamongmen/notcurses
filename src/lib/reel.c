@@ -224,17 +224,17 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
   int lenx, leny, begy, begx;
   ncplane* fp = t->p;
   if(tablet_columns(nr, &begx, &begy, &lenx, &leny, frontiery, direction)){
-//fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d dir %d\n", t, fp, begy, begx, leny, lenx, direction);
-//fprintf(stderr, "FRONTIER DONE!!!!!!\n");
+fprintf(stderr, "no room: %p:%p base %d/%d len %d/%d dir %d\n", t, fp, begy, begx, leny, lenx, direction);
+fprintf(stderr, "FRONTIER DONE!!!!!!\n");
     if(fp){
-//fprintf(stderr, "HIDING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
+fprintf(stderr, "HIDING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
       ncplane_destroy(fp);
       t->p = NULL;
     }
     return -1;
   }
-//fprintf(stderr, "tplacement: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
-//fprintf(stderr, "DRAWING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
+fprintf(stderr, "tplacement: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
+fprintf(stderr, "DRAWING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
   if(fp == NULL){ // create a panel for the tablet
     t->p = ncplane_new(nr->p->nc, leny + 1, lenx, begy, begx, NULL);
     if((fp = t->p) == NULL){
@@ -246,7 +246,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
     int truey, truex;
     ncplane_dim_yx(fp, &truey, &truex);
     if(truey != leny){
-//fprintf(stderr, "RESIZE TRUEY: %d BEGY: %d LENY: %d\n", truey, begy, leny);
+fprintf(stderr, "RESIZE TRUEY: %d BEGY: %d LENY: %d\n", truey, begy, leny);
       if(wresize(fp, leny, truex)){
         return -1;
       }
