@@ -1886,20 +1886,6 @@ configured instead.
 // scrolling gestures, trackballs, scrollwheels, touchpads, and verbal commands.
 
 typedef struct ncreel_options {
-  // require this many rows and columns (including borders). otherwise, a
-  // message will be displayed stating that a larger terminal is necessary, and
-  // input will be queued. if 0, no minimum will be enforced. may not be
-  // negative. note that ncreel_create() does not return error if given a
-  // plane smaller than these minima; it instead patiently waits for the
-  // screen to get bigger.
-  int min_supported_cols;
-  int min_supported_rows;
-
-  // use no more than this many rows and columns (including borders). may not be
-  // less than the corresponding minimum. 0 means no maximum.
-  int max_supported_cols;
-  int max_supported_rows;
-
   // is scrolling infinite (can one move down or up forever, or is an end
   // reached?). if true, 'circular' specifies how to handle the special case of
   // an incompletely-filled reel.

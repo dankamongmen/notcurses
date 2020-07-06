@@ -284,8 +284,6 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     return -1;
   }
   ncreel_options popts = {
-    .min_supported_cols = 8,
-    .min_supported_rows = 5,
     .bordermask = 0,
     .borderchan = 0,
     .tabletchan = 0,

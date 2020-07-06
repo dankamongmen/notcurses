@@ -5,10 +5,6 @@
 using namespace ncpp;
 
 ncreel_options NcReel::default_options = {
-	/* min_supported_cols */ 0,
-	/* min_supported_rows */ 0,
-	/* max_supported_cols */ 0,
-	/* max_supported_rows */ 0,
 	/* bordermask         */ NCBox::MaskBottom | NCBox::MaskTop | NCBox::MaskRight | NCBox::MaskLeft,
 	/* borderchan         */ 0,
 	/* tabletmask         */ 0,
