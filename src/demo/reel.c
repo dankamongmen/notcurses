@@ -277,6 +277,12 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   tabletctx* tctxs = NULL;
   bool aborted = false;
   int x = 8, y = 4;
+  int dimy, dimx;
+  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  struct ncplane* w = ncplane_new(nc, dimy - 8, dimx - 16, y, x, NULL);
+  if(w == NULL){
+    return -1;
+  }
   ncreel_options popts = {
     .min_supported_cols = 8,
     .min_supported_rows = 5,
@@ -284,10 +290,6 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     .borderchan = 0,
     .tabletchan = 0,
     .focusedchan = 0,
-    .toff = y,
-    .loff = x,
-    .roff = x,
-    .boff = y,
     .bgchannel = 0,
     .flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR,
   };
@@ -298,25 +300,25 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
   channels_set_fg_rgb(&popts.borderchan, 136, 23, 152);
   channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
   if(channels_set_fg_alpha(&popts.bgchannel, CELL_ALPHA_TRANSPARENT)){
+    ncplane_destroy(w);
     return -1;
   }
   if(channels_set_bg_alpha(&popts.bgchannel, CELL_ALPHA_TRANSPARENT)){
+    ncplane_destroy(w);
     return -1;
   }
-  int dimy;
-  struct ncplane* w = notcurses_stddim_yx(nc, &dimy, NULL);
   struct ncreel* pr = ncreel_create(w, &popts, efdw);
   if(pr == NULL){
-    fprintf(stderr, "Error creating ncreel\n");
+    ncplane_destroy(w);
     return -1;
   }
   // Press a for a new nc above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement.
-  ncplane_styles_on(w, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-  ncplane_set_fg_rgb(w, 58, 150, 221);
-  ncplane_set_bg_default(w);
-  ncplane_printf_yx(w, dimy - 1, 1, "a, b, c create tablets, DEL deletes.");
-  ncplane_styles_off(w, NCSTYLE_BOLD | NCSTYLE_ITALIC);
+  ncplane_styles_on(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
+  ncplane_set_fg_rgb(std, 58, 150, 221);
+  ncplane_set_bg_default(std);
+  ncplane_printf_yx(std, 1, 1, "a, b, c create tablets, DEL deletes.");
+  ncplane_styles_off(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   // FIXME clrtoeol();
   struct timespec deadline;
   clock_gettime(CLOCK_MONOTONIC, &deadline);
@@ -335,14 +337,14 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
     tctxs = newtablet;
   }
   do{
-    ncplane_styles_set(w, 0);
-    ncplane_set_fg_rgb(w, 197, 15, 31);
+    ncplane_styles_set(std, 0);
+    ncplane_set_fg_rgb(std, 197, 15, 31);
     int count = ncreel_tabletcount(pr);
-    ncplane_styles_on(w, NCSTYLE_BOLD);
-    ncplane_printf_yx(w, dimy - 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
-    ncplane_styles_off(w, NCSTYLE_BOLD);
+    ncplane_styles_on(std, NCSTYLE_BOLD);
+    ncplane_printf_yx(std, 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
+    ncplane_styles_off(std, NCSTYLE_BOLD);
     // FIXME wclrtoeol(w);
-    ncplane_set_fg_rgb(w, 0, 55, 218);
+    ncplane_set_fg_rgb(std, 0, 55, 218);
     wchar_t rw;
     if((rw = handle_input(nc, pr, efdr, &deadline)) == (wchar_t)-1){
       break;
@@ -364,7 +366,7 @@ ncreel_demo_core(struct notcurses* nc, int efdr, int efdw){
       case NCKEY_DOWN: ncreel_next(pr); break;
       case NCKEY_DEL: kill_active_tablet(pr, &tctxs); break;
       case NCKEY_RESIZE: notcurses_render(nc); break;
-      default: ncplane_printf_yx(w, 3, 2, "Unknown keycode (0x%x)\n", rw); break;
+      default: ncplane_printf_yx(std, 3, 2, "Unknown keycode (0x%x)\n", rw); break;
     }
     if(newtablet){
       newtablet->next = tctxs;

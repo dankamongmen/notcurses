@@ -45,53 +45,20 @@ int tabletfxn(struct nctablet* _t, int begx, int begy, int maxx, int maxy,
 
 void usage(const char* argv0, std::ostream& c, int status){
   c << "usage: " << argv0 << " [ -h ] | options\n";
-  c << " --ot: offset from top\n";
-  c << " --ob: offset from bottom\n";
-  c << " --ol: offset from left\n";
-  c << " --or: offset from right\n";
   c << " -b bordermask: hex ncreel border mask (0x0..0xf)\n";
   c << " -t tabletmask: hex tablet border mask (0x0..0xf)" << std::endl;
   exit(status);
 }
 
-constexpr int OPT_TOPOFF = 100;
-constexpr int OPT_BOTTOMOFF = 101;
-constexpr int OPT_LEFTOFF = 102;
-constexpr int OPT_RIGHTOFF = 103;
-
 void parse_args(int argc, char** argv, struct notcurses_options* opts,
                 struct ncreel_options* ropts){
   const struct option longopts[] = {
-    { .name = "ot", .has_arg = 1, .flag = nullptr, .val = OPT_TOPOFF, },
-    { .name = "ob", .has_arg = 1, .flag = nullptr, .val = OPT_BOTTOMOFF, },
-    { .name = "ol", .has_arg = 1, .flag = nullptr, .val = OPT_LEFTOFF, },
-    { .name = "or", .has_arg = 1, .flag = nullptr, .val = OPT_RIGHTOFF, },
     { .name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0, },
   };
   int c;
   while((c = getopt_long(argc, argv, "b:t:h", longopts, nullptr)) != -1){
     switch(c){
-      case OPT_BOTTOMOFF:{
-        std::stringstream ss;
-        ss << optarg;
-        ss >> ropts->boff;
-        break;
-      }case OPT_TOPOFF:{
-        std::stringstream ss;
-        ss << optarg;
-        ss >> ropts->toff;
-        break;
-      }case OPT_LEFTOFF:{
-        std::stringstream ss;
-        ss << optarg;
-        ss >> ropts->loff;
-        break;
-      }case OPT_RIGHTOFF:{
-        std::stringstream ss;
-        ss << optarg;
-        ss >> ropts->roff;
-        break;
-      }case 'b':{
+      case 'b':{
         std::stringstream ss;
         ss << std::hex << optarg;
         ss >> ropts->bordermask;
@@ -130,7 +97,6 @@ int runreels(NotCurses& nc, ncreel_options& nopts){
   channels_set_fg(&nopts.focusedchan, 0xffffff);
   channels_set_bg(&nopts.focusedchan, 0x00c080);
   channels_set_fg(&nopts.borderchan, 0x00c080);
-  nopts.toff = 3;
   std::shared_ptr<NcReel> nr(n->ncreel_create(&nopts));
   if(!nr || !nc.render()){
     return -1;

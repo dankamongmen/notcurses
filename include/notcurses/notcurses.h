@@ -2510,9 +2510,6 @@ typedef struct ncreel_options {
   int max_supported_cols;
   int max_supported_rows;
 
-  // desired offsets within the surrounding ncplane (top right bottom left) upon
-  // creation / resize. an ncreel_move() operation updates these.
-  int toff, roff, boff, loff;
   // notcurses can draw a border around the ncreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
@@ -2532,7 +2529,7 @@ struct nctablet;
 struct ncreel;
 
 // Create an ncreel according to the provided specifications. Returns NULL on
-// failure. w must be a valid ncplane*, to which offsets are relative. Note that
+// failure. nc must be a valid ncplane*, to which offsets are relative. Note that
 // there might not be enough room for the specified offsets, in which case the
 // ncreel will be clipped on the bottom and right. A minimum number of rows
 // and columns can be enforced via popts. efd, if non-negative, is an eventfd

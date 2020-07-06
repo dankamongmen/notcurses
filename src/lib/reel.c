@@ -599,21 +599,21 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts, int efd){
   --maxy;
   --maxx;
   int ylen, xlen;
-  ylen = maxy - ropts->boff - ropts->toff + 1;
+  ylen = maxy + 1;
   if(ylen < 0){
-    ylen = maxy - ropts->toff;
+    ylen = maxy;
     if(ylen < 0){
       ylen = 0; // but this translates to a full-screen window...FIXME
     }
   }
-  xlen = maxx - ropts->roff - ropts->loff + 1;
+  xlen = maxx + 1;
   if(xlen < 0){
-    xlen = maxx - ropts->loff;
+    xlen = maxx;
     if(xlen < 0){
       xlen = 0; // FIXME see above...
     }
   }
-  if((nr->p = ncplane_new(w->nc, ylen, xlen, ropts->toff + wy, ropts->loff + wx, NULL)) == NULL){
+  if((nr->p = ncplane_new(w->nc, ylen, xlen, wy, wx, NULL)) == NULL){
     free(nr);
     return NULL;
   }
