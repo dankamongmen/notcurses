@@ -820,3 +820,21 @@ nctablet* ncreel_prev(ncreel* nr){
   ncreel_redraw(nr);
   return nr->tablets;
 }
+
+bool ncreel_offer_input(ncreel* n, const ncinput* nc){
+  if(nc->id == NCKEY_UP){
+    ncreel_prev(n);
+    return true;
+  }else if(nc->id == NCKEY_DOWN){
+    ncreel_next(n);
+    return true;
+  }else if(nc->id == NCKEY_SCROLL_UP){
+    ncreel_prev(n);
+    return true;
+  }else if(nc->id == NCKEY_SCROLL_DOWN){
+    ncreel_next(n);
+    return true;
+  }
+  // FIXME there are a few more
+  return false;
+}

@@ -2566,6 +2566,14 @@ API int ncreel_move(struct ncreel* pr, int y, int x);
 // Redraw the ncreel in its entirety.
 API int ncreel_redraw(struct ncreel* pr);
 
+// Offer the input to the ncreel. If it's relevant, this function returns
+// true, and the input ought not be processed further. If it's irrelevant to
+// the reel, false is returned. Relevant inputs include:
+//  * a mouse click on a tablet (focuses tablet)
+//  * a mouse scrollwheel event (rolls reel)
+//  * up, down, pgup, or pgdown (navigates among items)
+API bool ncreel_offer_input(struct ncreel* n, const struct ncinput* nc);
+
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
 API struct nctablet* ncreel_focused(struct ncreel* pr);
