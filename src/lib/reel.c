@@ -156,7 +156,9 @@ draw_ncreel_borders(const ncreel* nr){
 static int
 tablet_columns(const ncreel* nr, int* begx, int* begy, int* lenx, int* leny,
                int frontiery, int direction){
-  tablet_coordinates(nr->p, begy, begx, leny, lenx);
+  *begy = 0;
+  *begx = 0;
+  ncplane_dim_yx(nr->p, leny, lenx);
   int maxy = *leny + *begy - 1;
   int begindraw = *begy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
   int enddraw = maxy - !(nr->ropts.bordermask & NCBOXMASK_TOP);
