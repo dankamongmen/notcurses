@@ -3547,7 +3547,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
 
 struct ncplane*
 maketitle(struct ncplane* std){
-  struct ncplane* title = ncplane_aligned(std, 3, 74, 1, NCALIGN_CENTER, NULL);
+  struct ncplane* title = ncplane_aligned(std, 3, 74, 2, NCALIGN_CENTER, NULL);
   if(title == NULL){
     return NULL;
   }

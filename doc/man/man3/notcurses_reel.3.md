@@ -62,8 +62,6 @@ typedef struct ncreel_options {
 
 **int ncreel_del_focused(struct ncreel* nr);**
 
-**int ncreel_move(struct ncreel* nr, int y, int x);**
-
 **int ncreel_redraw(struct ncreel* nr);**
 
 **struct nctablet* ncreel_focused(struct ncreel* nr);**

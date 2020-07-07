@@ -89,11 +89,6 @@ namespace ncpp
 			return error_guard (ncreel_del_focused (reel), -1);
 		}
 
-		bool move (int x, int y) const NOEXCEPT_MAYBE
-		{
-			return error_guard (ncreel_move (reel, x, y), -1);
-		}
-
 		bool redraw () const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncreel_redraw (reel), -1);

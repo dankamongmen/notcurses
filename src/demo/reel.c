@@ -181,6 +181,7 @@ tablet_thread(void* vtabletctx){
       }
     }
     pthread_mutex_unlock(&tctx->lock);
+    // FIXME take lock, redraw, render
   }
   return tctx;
 }
@@ -220,8 +221,9 @@ handle_input(struct notcurses* nc, const struct timespec* deadline,
   if(curns > deadlinens){
     return 0;
   }
-  ns_to_timespec(curns - deadlinens, &pollspec);
-  return demo_getc(nc, &pollspec, ni);
+  ns_to_timespec(deadlinens - curns, &pollspec);
+  wchar_t r = demo_getc(nc, &pollspec, ni);
+  return r;
 }
 
 static int
@@ -262,12 +264,13 @@ ncreel_demo_core(struct notcurses* nc){
     ncplane_destroy(w);
     return -1;
   }
+  ncplane_destroy(w);
   // Press a for a new nc above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement.
   ncplane_styles_on(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   ncplane_set_fg_rgb(std, 58, 150, 221);
   ncplane_set_bg_default(std);
-  ncplane_printf_yx(std, 1, 1, "a, b, c create tablets, DEL deletes.");
+  ncplane_printf_yx(std, 1, 2, "a, b, c create tablets, DEL deletes.");
   ncplane_styles_off(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   // FIXME clrtoeol();
   struct timespec deadline;
@@ -297,6 +300,7 @@ ncreel_demo_core(struct notcurses* nc){
     ncplane_set_fg_rgb(std, 0, 55, 218);
     wchar_t rw;
     ncinput ni;
+    ncreel_redraw(pr);
     if((rw = handle_input(nc, &deadline, &ni)) == (wchar_t)-1){
       break;
     }
@@ -306,13 +310,9 @@ ncreel_demo_core(struct notcurses* nc){
       case 'a': newtablet = new_tabletctx(pr, &id); break;
       case 'b': newtablet = new_tabletctx(pr, &id); break;
       case 'c': newtablet = new_tabletctx(pr, &id); break;
-      case 'h': --x; if(ncreel_move(pr, x, y)){ ++x; } break;
-      case 'l': ++x; if(ncreel_move(pr, x, y)){ --x; } break;
       case 'k': ncreel_prev(pr); break;
       case 'j': ncreel_next(pr); break;
       case 'q': aborted = true; break;
-      case NCKEY_LEFT: --x; if(ncreel_move(pr, x, y)){ ++x; } break;
-      case NCKEY_RIGHT: ++x; if(ncreel_move(pr, x, y)){ --x; } break;
       case NCKEY_UP: ncreel_prev(pr); break;
       case NCKEY_DOWN: ncreel_next(pr); break;
       case NCKEY_DEL: kill_active_tablet(pr, &tctxs); break;
@@ -343,6 +343,5 @@ ncreel_demo_core(struct notcurses* nc){
 int reel_demo(struct notcurses* nc){
   ncplane_greyscale(notcurses_stdplane(nc));
   int ret = ncreel_demo_core(nc);
-  DEMO_RENDER(nc);
   return ret;
 }

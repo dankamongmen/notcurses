@@ -84,13 +84,15 @@ char32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni)
           if(id == 'L' && q->ni.ctrl){
             notcurses_refresh(nc, NULL, NULL);
           }else{
-            handoff = false;
+            handoff = true;
           }
         }
-      }else if(id == 'L' && q->ni.ctrl){
-        notcurses_refresh(nc, NULL, NULL);
       }else{
-        handoff = false;
+        if(id == 'L' && q->ni.ctrl){
+          notcurses_refresh(nc, NULL, NULL);
+        }else{
+          handoff = true;
+        }
       }
     }
     if(handoff && ni){
