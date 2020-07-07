@@ -314,6 +314,14 @@ ncreel_demo_core(struct notcurses* nc){
       case 'q': aborted = true; break;
       case NCKEY_UP: ncreel_prev(pr); break;
       case NCKEY_DOWN: ncreel_next(pr); break;
+      case NCKEY_LEFT:
+        ncplane_yx(ncreel_plane(pr), &y, &x);
+        ncplane_move_yx(ncreel_plane(pr), y, x - 1);
+        break;
+      case NCKEY_RIGHT:
+        ncplane_yx(ncreel_plane(pr), &y, &x);
+        ncplane_move_yx(ncreel_plane(pr), y, x + 1);
+        break;
       case NCKEY_DEL: kill_active_tablet(pr, &tctxs); break;
       case NCKEY_RESIZE: notcurses_render(nc); break;
       default: ncplane_printf_yx(std, 3, 2, "Unknown keycode (0x%x)\n", rw); break;
