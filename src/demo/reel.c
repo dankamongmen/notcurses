@@ -210,47 +210,18 @@ new_tabletctx(struct ncreel* pr, unsigned *id){
 }
 
 static wchar_t
-handle_input(struct notcurses* nc, struct ncreel* pr,
-             const struct timespec* deadline){
-  (void)pr; // FIXME
-  struct pollfd fds[1] = {
-    { .fd = demo_input_fd(), .events = POLLIN, .revents = 0, },
-  };
-  sigset_t sset;
-  sigemptyset(&sset);
-  wchar_t key = -1;
-  int pret;
+handle_input(struct notcurses* nc, const struct timespec* deadline,
+             ncinput* ni){
   DEMO_RENDER(nc);
   int64_t deadlinens = timespec_to_ns(deadline);
-  do{
-    struct timespec pollspec, cur;
-    clock_gettime(CLOCK_MONOTONIC, &cur);
-    int64_t curns = timespec_to_ns(&cur);
-    if(curns > deadlinens){
-      return 0;
-    }
-    ns_to_timespec(curns - deadlinens, &pollspec);
-    pret = ppoll(fds, sizeof(fds) / sizeof(*fds), &pollspec, &sset);
-    if(pret == 0){
-      return 0;
-    }else if(pret < 0){
-      if(errno != EINTR){
-        fprintf(stderr, "Error polling on stdin/eventfd (%s)\n", strerror(errno));
-        return (wchar_t)-1;
-      }
-    }else{
-      if(fds[0].revents & POLLIN){
-        uint64_t eventcount;
-        if(read(fds[0].fd, &eventcount, sizeof(eventcount)) > 0){
-          key = demo_getc_nblock(nc, NULL);
-          if(key == (wchar_t)-1){
-            return -1;
-          }
-        }
-      }
-    }
-  }while(key == (wchar_t)-1);
-  return key;
+  struct timespec pollspec, cur;
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  int64_t curns = timespec_to_ns(&cur);
+  if(curns > deadlinens){
+    return 0;
+  }
+  ns_to_timespec(curns - deadlinens, &pollspec);
+  return demo_getc(nc, &pollspec, ni);
 }
 
 static int
@@ -325,7 +296,8 @@ ncreel_demo_core(struct notcurses* nc){
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb(std, 0, 55, 218);
     wchar_t rw;
-    if((rw = handle_input(nc, pr, &deadline)) == (wchar_t)-1){
+    ncinput ni;
+    if((rw = handle_input(nc, &deadline, &ni)) == (wchar_t)-1){
       break;
     }
     // FIXME clrtoeol();
