@@ -264,7 +264,6 @@ ncreel_demo_core(struct notcurses* nc){
     ncplane_destroy(w);
     return -1;
   }
-  ncplane_destroy(w);
   // Press a for a new nc above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement.
   ncplane_styles_on(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
