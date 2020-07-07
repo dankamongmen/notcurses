@@ -229,7 +229,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
 //fprintf(stderr, "tplacement: %p:%p base %d/%d len %d/%d\n", t, fp, begx, begy, lenx, leny);
 //fprintf(stderr, "DRAWING %p at frontier %d (dir %d) with %d\n", t, frontiery, direction, leny);
   if(fp == NULL){ // create a panel for the tablet
-    t->p = ncplane_new(nr->p->nc, leny + 1, lenx, begy, begx, NULL);
+    t->p = ncplane_bound(nr->p, leny + 1, lenx, begy, begx, NULL);
     if((fp = t->p) == NULL){
       return -1;
     }
@@ -586,29 +586,7 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts){
   nr->all_visible = true;
   nr->last_traveled_direction = -1; // draw down after the initial tablet
   memcpy(&nr->ropts, ropts, sizeof(*ropts));
-  int maxx, maxy, wx, wy;
-  window_coordinates(w, &wy, &wx, &maxy, &maxx);
-  --maxy;
-  --maxx;
-  int ylen, xlen;
-  ylen = maxy + 1;
-  if(ylen < 0){
-    ylen = maxy;
-    if(ylen < 0){
-      ylen = 0; // but this translates to a full-screen window...FIXME
-    }
-  }
-  xlen = maxx + 1;
-  if(xlen < 0){
-    xlen = maxx;
-    if(xlen < 0){
-      xlen = 0; // FIXME see above...
-    }
-  }
-  if((nr->p = ncplane_new(w->nc, ylen, xlen, wy, wx, NULL)) == NULL){
-    free(nr);
-    return NULL;
-  }
+  nr->p = w;
   ncplane_set_base(nr->p, "", 0, ropts->bgchannel);
   if(ncreel_redraw(nr)){
     ncplane_destroy(nr->p);
@@ -628,7 +606,6 @@ insert_new_panel(ncreel* nr, nctablet* t){
   if(!nr->all_visible){
     return t;
   }
-  struct notcurses* nc = nr->p->nc;
   int wbegy, wbegx, wleny, wlenx; // params of PR
   window_coordinates(nr->p, &wbegy, &wbegx, &wleny, &wlenx);
   // are we the only tablet?
@@ -640,7 +617,7 @@ insert_new_panel(ncreel* nr, nctablet* t){
       return t;
     }
 // fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, leny, lenx);
-    if((t->p = ncplane_new(nc, leny, lenx, begy, begx, NULL)) == NULL){
+    if((t->p = ncplane_bound(nr->p, leny, lenx, begy, begx, NULL)) == NULL){
       nr->all_visible = false;
       return t;
     }
@@ -658,7 +635,7 @@ insert_new_panel(ncreel* nr, nctablet* t){
     return t;
   }
 // fprintf(stderr, "newwin: %d/%d + %d/%d\n", begy, begx, 2, lenx);
-  if((t->p = ncplane_new(nc, 2, lenx, begy, begx, NULL)) == NULL){
+  if((t->p = ncplane_bound(nr->p, 2, lenx, begy, begx, NULL)) == NULL){
     nr->all_visible = false;
     return t;
   }
@@ -707,10 +684,6 @@ nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
   insert_new_panel(nr, t);
   ncreel_redraw(nr); // don't return failure; tablet was still created...
   return t;
-}
-
-int ncreel_del_focused(ncreel* nr){
-  return ncreel_del(nr, nr->tablets);
 }
 
 int ncreel_del(ncreel* nr, struct nctablet* t){

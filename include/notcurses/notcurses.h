@@ -2514,8 +2514,8 @@ typedef struct ncreel_options {
 struct nctablet;
 struct ncreel;
 
-// Create an ncreel according to the provided specifications. Returns NULL on
-// failure. nc must be a valid ncplane*.
+// Take over the ncplane 'nc' and use it to draw a reel according to 'popts'.
+// The plane will be destroyed by ncreel_destroy(); this transfers ownership.
 API struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
 
 // Returns the ncplane on which this ncreel lives.
@@ -2556,9 +2556,6 @@ API int ncreel_tabletcount(const struct ncreel* pr);
 // Delete the tablet specified by t from the ncreel specified by pr. Returns
 // -1 if the tablet cannot be found.
 API int ncreel_del(struct ncreel* pr, struct nctablet* t);
-
-// Delete the active tablet. Returns -1 if there are no tablets.
-API int ncreel_del_focused(struct ncreel* pr);
 
 // Redraw the ncreel in its entirety.
 API int ncreel_redraw(struct ncreel* pr);
