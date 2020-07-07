@@ -89,62 +89,62 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
   opts->flags |= NCOPTION_SUPPRESS_BANNERS;
 }
 
-int runreels(NotCurses& nc, ncreel_options& nopts){
-  std::unique_ptr<Plane> nstd(nc.get_stdplane());
-  if(nstd->putstr(0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0){
+int runreels(struct notcurses* nc, ncreel_options* nopts){
+  int dimy, dimx;
+  auto nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
+  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (q)uit") <= 0){
     return -1;
   }
-  int dimy, dimx;
-  nstd->get_dim(&dimy, &dimx);
-  auto n = std::make_shared<Plane>(dimy - 1, dimx, 1, 0);
+  auto n = ncplane_new(nc, dimy - 1, dimx, 1, 0, nullptr);
   if(!n){
     return -1;
   }
-  if(!n->set_fg_rgb(0xb1, 0x1b, 0xb1)){
+  if(ncplane_set_fg_rgb(n, 0xb1, 0x1b, 0xb1)){
     return -1;
   }
-  channels_set_fg(&nopts.focusedchan, 0xffffff);
-  channels_set_bg(&nopts.focusedchan, 0x00c080);
-  channels_set_fg(&nopts.borderchan, 0x00c080);
-  std::shared_ptr<NcReel> nr(n->ncreel_create(&nopts));
-  if(!nr || !nc.render()){
+  channels_set_fg(&nopts->focusedchan, 0xffffff);
+  channels_set_bg(&nopts->focusedchan, 0x00c080);
+  channels_set_fg(&nopts->borderchan, 0x00c080);
+  auto nr = ncreel_create(n, nopts);
+  if(!nr || notcurses_render(nc)){
     return -1;
   }
   int y, x;
   char32_t key;
-  while((key = nc.getc(true)) != (char32_t)-1){
+  ncinput ni;
+  while((key = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     switch(key){
       case 'q':
         return 0;
       case 'a':{
         auto tctx = new TabletCtx();
-        nr->add(nullptr, nullptr, tabletfxn, tctx);
+        ncreel_add(nr, nullptr, nullptr, tabletfxn, tctx);
         break;
       }
       case 'd':
-        nr->del_focused();
+        ncreel_del(nr, ncreel_focused(nr));
         break;
       case '*':
         notcurses_debug(nc, stderr);
         break;
       case NCKEY_LEFT:
-        nr->get_plane()->get_yx(&y, &x);
-        nr->get_plane()->move(y, x - 1);
+        ncplane_yx(ncreel_plane(nr), &y, &x);
+        ncplane_move_yx(ncreel_plane(nr), y, x - 1);
         break;
       case NCKEY_RIGHT:
-        nr->get_plane()->get_yx(&y, &x);
-        nr->get_plane()->move(y, x + 1);
+        ncplane_yx(ncreel_plane(nr), &y, &x);
+        ncplane_move_yx(ncreel_plane(nr), y, x + 1);
         break;
       case NCKEY_UP:
-        nr->prev();
+        ncreel_prev(nr);
         break;
       case NCKEY_DOWN:
-        nr->next();
+        ncreel_next(nr);
         break;
       default:
         break;
     }
-    if(!nc.render()){
+    if(notcurses_render(nc)){
       break;
     }
   }
@@ -158,8 +158,13 @@ int main(int argc, char** argv){
   notcurses_options ncopts{};
   ncreel_options nopts{};
   parse_args(argc, argv, &ncopts, &nopts);
-  NotCurses nc(ncopts);
-  int r = runreels(nc, nopts);
-  nc.stop();
+  auto nc = notcurses_init(&ncopts, NULL);
+  if(nc == nullptr){
+    return EXIT_FAILURE;
+  }
+  int r = runreels(nc, &nopts);
+  if(notcurses_stop(nc)){
+    return EXIT_FAILURE;
+  }
   return r ? EXIT_FAILURE : EXIT_SUCCESS;
 }

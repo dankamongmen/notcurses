@@ -93,7 +93,7 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
-    CHECK(0 == ncreel_del_focused(nr));
+    CHECK(0 == ncreel_del(nr, ncreel_focused(nr)));
   }
 
   SUBCASE("NoBorder") {

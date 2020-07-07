@@ -1954,9 +1954,6 @@ int ncreel_tabletcount(const struct ncreel* pr);
 // -1 if the tablet cannot be found.
 int ncreel_del(struct ncreel* pr, struct nctablet* t);
 
-// Delete the active tablet. Returns -1 if there are no tablets.
-int ncreel_del_focused(struct ncreel* pr);
-
 // Redraw the ncreel in its entirety.
 int ncreel_redraw(struct ncreel* pr);
 

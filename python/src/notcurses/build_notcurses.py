@@ -400,7 +400,6 @@ struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after, struct nc
 int ncreel_tabletcount(const struct ncreel* pr);
 int ncreel_touch(struct ncreel* pr, struct nctablet* t);
 int ncreel_del(struct ncreel* pr, struct nctablet* t);
-int ncreel_del_focused(struct ncreel* pr);
 int ncreel_move(struct ncreel* pr, int x, int y);
 int ncreel_redraw(struct ncreel* pr);
 struct nctablet* ncreel_focused(struct ncreel* pr);
