@@ -42,9 +42,9 @@ typedef struct ncreel {
 } ncreel;
 
 // Returns the starting coordinates (relative to the screen) of the specified
-// window, and its length. End is (begx + lenx - 1, begy + leny - 1).
+// tablet, and its length. End is (begx + lenx - 1, begy + leny - 1).
 static inline void
-window_coordinates(ncplane* w, int* begy, int* begx, int* leny, int* lenx){
+tablet_coordinates(ncplane* w, int* begy, int* begx, int* leny, int* lenx){
   ncplane_yx(w, begy, begx);
   ncplane_dim_yx(w, leny, lenx);
 }
@@ -63,45 +63,43 @@ assert(lenx > 0);
 static int
 draw_borders(ncplane* w, unsigned mask, uint64_t channel,
              bool cliphead, bool clipfoot){
-  int begx, begy, lenx, leny;
+  int lenx, leny;
   int ret = 0;
-  window_coordinates(w, &begy, &begx, &leny, &lenx);
-  begx = 0;
-  begy = 0;
-  int maxx = begx + lenx - 1;
-  int maxy = begy + leny - 1;
+  ncplane_dim_yx(w, &leny, &lenx);
+  int maxx = lenx - 1;
+  int maxy = leny - 1;
   cell ul, ur, ll, lr, hl, vl;
   cell_init(&ul); cell_init(&ur); cell_init(&hl);
   cell_init(&ll); cell_init(&lr); cell_init(&vl);
   if(cells_rounded_box(w, 0, channel, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-/*fprintf(stderr, "drawing borders %p %d/%d->%d/%d, mask: %04x, clipping: %c%c\n",
-        w, begx, begy, maxx, maxy, mask,
+/*fprintf(stderr, "drawing borders %p ->%d/%d, mask: %04x, clipping: %c%c\n",
+        w, maxx, maxy, mask,
         cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');*/
   if(!cliphead){
-    // lenx - begx + 1 is the number of columns we have, but drop 2 due to
-    // corners. we thus want lenx - begx - 1 horizontal lines.
+    // lenx is the number of columns we have, but drop 2 due to
+    // corners. we thus want lenx horizontal lines.
     if(!(mask & NCBOXMASK_TOP)){
-      ret |= ncplane_cursor_move_yx(w, begy, begx);
+      ncplane_home(w);
       ncplane_putc(w, &ul);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &ur);
     }else{
       if(!(mask & NCBOXMASK_LEFT)){
-        ret |= ncplane_cursor_move_yx(w, begy, begx);
+        ncplane_home(w);
         ncplane_putc(w, &ul);
       }
       if(!(mask & NCBOXMASK_RIGHT)){
-        ret |= ncplane_cursor_move_yx(w, begy, maxx);
+        ncplane_home(w);
         ncplane_putc(w, &ur);
       }
     }
   }
   int y;
-  for(y = begy + !cliphead ; y < maxy + !!clipfoot ; ++y){
+  for(y = !cliphead ; y < maxy + !!clipfoot ; ++y){
     if(!(mask & NCBOXMASK_LEFT)){
-      ret |= ncplane_cursor_move_yx(w, y, begx);
+      ret |= ncplane_cursor_move_yx(w, y, 0);
       ncplane_putc(w, &vl);
     }
     if(!(mask & NCBOXMASK_RIGHT)){
@@ -111,13 +109,13 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel,
   }
   if(!clipfoot){
     if(!(mask & NCBOXMASK_BOTTOM)){
-      ret |= ncplane_cursor_move_yx(w, maxy, begx);
+      ret |= ncplane_cursor_move_yx(w, maxy, 0);
       ncplane_putc(w, &ll);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &lr);
     }else{
       if(!(mask & NCBOXMASK_LEFT)){
-        if(ncplane_cursor_move_yx(w, maxy, begx) || ncplane_putc(w, &ll) < 0){
+        if(ncplane_cursor_move_yx(w, maxy, 0) || ncplane_putc(w, &ll) < 0){
           ret = -1;
         }
       }
@@ -133,8 +131,8 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel,
   }
   cell_release(w, &ul); cell_release(w, &ur); cell_release(w, &hl);
   cell_release(w, &ll); cell_release(w, &lr); cell_release(w, &vl);
-// fprintf(stderr, "||--borders %d %d %d %d clip: %c%c ret: %d\n",
-//    begx, begy, maxx, maxy, cliphead ? 'y' : 'n', clipfoot ? 'y' : 'n', ret);
+// fprintf(stderr, "||--borders %d %d clip: %c%c ret: %d\n",
+//    maxx, maxy, cliphead ? 'y' : 'n', clipfoot ? 'y' : 'n', ret);
   return ret;
 }
 
@@ -142,9 +140,8 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel,
 // any provided restrictions on visible window size.
 static int
 draw_ncreel_borders(const ncreel* nr){
-  int begx, begy;
   int maxx, maxy;
-  window_coordinates(nr->p, &begy, &begx, &maxy, &maxx);
+  ncplane_dim_yx(nr->p, &maxy, &maxx);
   assert(maxy >= 0 && maxx >= 0);
   --maxx; // last column we can safely write to
   --maxy; // last line we can safely write to
@@ -159,7 +156,7 @@ draw_ncreel_borders(const ncreel* nr){
 static int
 tablet_columns(const ncreel* nr, int* begx, int* begy, int* lenx, int* leny,
                int frontiery, int direction){
-  window_coordinates(nr->p, begy, begx, leny, lenx);
+  tablet_coordinates(nr->p, begy, begx, leny, lenx);
   int maxy = *leny + *begy - 1;
   int begindraw = *begy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
   int enddraw = maxy - !(nr->ropts.bordermask & NCBOXMASK_TOP);
@@ -330,7 +327,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
 static int
 draw_focused_tablet(const ncreel* nr){
   int pbegy, pbegx, plenx, pleny; // ncreel window coordinates
-  window_coordinates(nr->p, &pbegy, &pbegx, &pleny, &plenx);
+  tablet_coordinates(nr->p, &pbegy, &pbegx, &pleny, &plenx);
   int fulcrum;
   if(nr->tablets->p == NULL){
     if(nr->last_traveled_direction >= 0){
@@ -375,7 +372,7 @@ draw_following_tablets(const ncreel* nr, const nctablet* otherend){
   do{
 //fprintf(stderr, "following otherend: %p ->p: %p\n", otherend, otherend->p);
     // modify frontier based off the one we're at
-    window_coordinates(working->p, &wbegy, &wbegx, &wleny, &wlenx);
+    tablet_coordinates(working->p, &wbegy, &wbegx, &wleny, &wlenx);
     wmaxy = wbegy + wleny - 1;
     frontiery = wmaxy + 2;
 //fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiery, wmaxy + 2);
@@ -402,14 +399,14 @@ draw_previous_tablets(const ncreel* nr, const nctablet* otherend){
   nctablet* upworking = nr->tablets;
   int frontiery;
   // modify frontier based off the one we're at
-  window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
+  tablet_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
   frontiery = wbegy - 2;
   while(upworking->prev != otherend || otherend->p == NULL){
 //fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, frontiery, wbegy - 2);
     upworking = upworking->prev;
     ncreel_draw_tablet(nr, upworking, frontiery, -1);
     if(upworking->p){
-      window_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
+      tablet_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
 //fprintf(stderr, "new up coords: %d/%d + %d/%d, %d\n", wbegy, wbegx, wleny, wlenx, frontiery);
       frontiery = wbegy - 2;
     }else{
@@ -460,9 +457,9 @@ ncreel_arrange_denormalized(ncreel* nr){
   // how do we know whether we were at the end? if the new line is not in the
   // direction of movement relative to the old one, of course!
   nctablet* topmost = find_topmost(nr);
-  int wbegy, wbegx, wleny, wlenx;
-  window_coordinates(nr->p, &wbegy, &wbegx, &wleny, &wlenx);
-  int frontiery = wbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
+  int wleny, wlenx;
+  ncplane_dim_yx(nr->p, &wleny, &wlenx);
+  int frontiery = !(nr->ropts.bordermask & NCBOXMASK_TOP);
   if(nr->last_traveled_direction >= 0){
     ncplane_yx(nr->tablets->prev->p, &fromline, NULL);
     if(fromline > nowline){ // keep the order we had
@@ -505,8 +502,9 @@ ncreel_arrange_denormalized(ncreel* nr){
 //
 // This can still leave a gap plus a partially-onscreen tablet FIXME
 int ncreel_redraw(ncreel* nr){
-//fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
+fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
   if(draw_ncreel_borders(nr)){
+fprintf(stderr, "EEOEE\n");
     return -1; // enforces specified dimensional minima
   }
   nctablet* focused = nr->tablets;
@@ -606,12 +604,12 @@ insert_new_panel(ncreel* nr, nctablet* t){
   if(!nr->all_visible){
     return t;
   }
-  int wbegy, wbegx, wleny, wlenx; // params of PR
-  window_coordinates(nr->p, &wbegy, &wbegx, &wleny, &wlenx);
+  int wleny, wlenx; // params of PR
+  ncplane_dim_yx(nr->p, &wleny, &wlenx);
   // are we the only tablet?
   int begx, begy, lenx, leny, frontiery;
   if(t->prev == t){
-    frontiery = wbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
+    frontiery = !(nr->ropts.bordermask & NCBOXMASK_TOP);
     if(tablet_columns(nr, &begx, &begy, &lenx, &leny, frontiery, 1)){
       nr->all_visible = false;
       return t;
