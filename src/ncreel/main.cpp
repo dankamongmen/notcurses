@@ -129,11 +129,11 @@ int runreels(NotCurses& nc, ncreel_options& nopts){
         break;
       case NCKEY_LEFT:
         nr->get_plane()->get_yx(&y, &x);
-        nr->move(y, x - 1);
+        nr->get_plane()->move(y, x - 1);
         break;
       case NCKEY_RIGHT:
         nr->get_plane()->get_yx(&y, &x);
-        nr->move(y, x + 1);
+        nr->get_plane()->move(y, x + 1);
         break;
       case NCKEY_UP:
         nr->prev();
