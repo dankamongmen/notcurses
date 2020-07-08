@@ -393,7 +393,7 @@ draw_focused_tablet(const ncreel* nr){
       }
     }
   }
-fprintf(stderr, "PR dims: %d/%d + %d/%d fulcrum: %d\n", pbegy, pbegx, pleny, plenx, fulcrum);
+//fprintf(stderr, "PR dims: %d/%d + %d/%d fulcrum: %d\n", pbegy, pbegx, pleny, plenx, fulcrum);
   ncreel_draw_tablet(nr, nr->tablets, fulcrum, 0 /* nr->last_traveled_direction*/);
   return 0;
 }
@@ -407,15 +407,15 @@ draw_following_tablets(const ncreel* nr, const nctablet* otherend){
   int frontiery;
   // move down past the focused tablet, filling up the reel to the bottom
   do{
-fprintf(stderr, "following otherend: %p ->p: %p\n", otherend, otherend->p);
+//fprintf(stderr, "following otherend: %p ->p: %p\n", otherend, otherend->p);
     // modify frontier based off the one we're at
     tablet_coordinates(working->p, &wbegy, &wbegx, &wleny, &wlenx);
     wmaxy = wbegy + wleny - 1;
     frontiery = wmaxy + 2;
-fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiery, wmaxy + 2);
+//fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiery, wmaxy + 2);
     working = working->next;
     if(working == otherend && otherend->p){
-fprintf(stderr, "BREAKOUT ON OTHEREND %p:%p\n", working, working->p);
+//fprintf(stderr, "BREAKOUT ON OTHEREND %p:%p\n", working, working->p);
       break;
     }
     ncreel_draw_tablet(nr, working, frontiery, 1);
@@ -431,7 +431,7 @@ fprintf(stderr, "BREAKOUT ON OTHEREND %p:%p\n", working, working->p);
 // returns the last tablet drawn.
 static nctablet*
 draw_previous_tablets(const ncreel* nr, const nctablet* otherend){
-fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
+//fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
   int wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
   nctablet* upworking = nr->tablets;
   int frontiery;
@@ -457,6 +457,55 @@ fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
   return upworking;
 }
 
+// run at the end of redraw, this aligns the top tablet with the top
+// of the reel. we prefer empty space at the bottom (FIXME but not
+// really -- we ought prefer space away from the last direction of
+// movement. rather than this postprocessing, draw things to the
+// right places!).
+static int
+tighten_reel(ncreel* r){
+  nctablet* top = r->tablets;
+  nctablet* cur = top;
+  int ytop = INT_MAX;
+  while(cur){
+    if(cur->p == NULL){
+      break;
+    }
+    int cury;
+    ncplane_yx(cur->p, &cury, NULL);
+    if(cury >= ytop){
+      break;
+    }
+    ytop = cury;
+    top = cur;
+    cur = cur->prev;
+  }
+  int expected = 1;
+  cur = top;
+  while(cur){
+    if(cur->p == NULL){
+      break;
+    }
+    int cury, curx;
+    ncplane_yx(cur->p, &cury, &curx);
+    if(cury != expected){
+      if(ncplane_move_yx(cur->p, expected, curx)){
+        return -1;
+      }
+    }else{
+      break;
+    }
+    int ylen;
+    ncplane_dim_yx(cur->p, &ylen, NULL);
+    expected += ylen + 1;
+    cur = cur->next;
+    if(cur == top){
+      break;
+    }
+  }
+  return 0;
+}
+
 // Arrange the panels, starting with the focused window, wherever it may be.
 // If necessary, resize it to the full size of the reel--focus has its
 // privileges. We then work in the opposite direction of travel, filling out
@@ -467,19 +516,19 @@ fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
 //
 // This can still leave a gap plus a partially-onscreen tablet FIXME
 int ncreel_redraw(ncreel* nr){
-fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
+//fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
   if(draw_ncreel_borders(nr)){
     return -1; // enforces specified dimensional minima
   }
   nctablet* focused = nr->tablets;
   if(focused == NULL){
-fprintf(stderr, "no focus!\n");
+//fprintf(stderr, "no focus!\n");
     return 0; // if none are focused, none exist
   }
 //fprintf(stderr, "focused %p!\n", focused);
-fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
+//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
   draw_focused_tablet(nr);
-fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
+//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
   nctablet* otherend = focused;
   if(nr->last_traveled_direction >= 0){
     otherend = draw_previous_tablets(nr, otherend);
@@ -490,7 +539,8 @@ fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_
     otherend = draw_previous_tablets(nr, otherend);
     draw_following_tablets(nr, otherend);
   }
-fprintf(stderr, "DONE ARRANGING\n");
+  tighten_reel(nr);
+//fprintf(stderr, "DONE ARRANGING\n");
   return 0;
 }
 
