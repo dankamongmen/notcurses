@@ -126,7 +126,7 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel,
         ncplane_putc(w, &ul);
       }
       if(!(mask & NCBOXMASK_RIGHT)){
-        ncplane_home(w);
+        ncplane_cursor_move_yx(w, 0, lenx - 1);
         ncplane_putc(w, &ur);
       }
     }
@@ -480,7 +480,7 @@ tighten_reel(ncreel* r){
     top = cur;
     cur = cur->prev;
   }
-  int expected = 1;
+  int expected = !(r->ropts.bordermask & NCBOXMASK_TOP);
   cur = top;
   while(cur){
     if(cur->p == NULL){
