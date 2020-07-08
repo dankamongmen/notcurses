@@ -144,6 +144,7 @@ int runreels(struct notcurses* nc, ncreel_options* nopts){
       default:
         break;
     }
+    ncreel_redraw(nr);
     if(notcurses_render(nc)){
       break;
     }
