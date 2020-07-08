@@ -363,8 +363,9 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
 // NULL). it can occupy the entire ncreel.
 static int
 draw_focused_tablet(const ncreel* nr){
-  int pbegy, pbegx, plenx, pleny; // ncreel window coordinates
-  tablet_coordinates(nr->p, &pbegy, &pbegx, &pleny, &plenx);
+  int pbegy, plenx, pleny; // ncreel window coordinates
+  ncplane_dim_yx(nr->p, &pleny, &plenx);
+  pbegy = 0;
   int fulcrum;
   if(nr->tablets->p == NULL){
     if(nr->last_traveled_direction >= 0){
