@@ -10,6 +10,8 @@
 
 #define INITIAL_TABLET_COUNT 4
 
+static pthread_mutex_t renderlock = PTHREAD_MUTEX_INITIALIZER;
+
 // FIXME ought just be an unordered_map
 typedef struct tabletctx {
   pthread_t tid;
@@ -151,9 +153,7 @@ tabletdraw(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool clip
     }
     ncplane_styles_off(p, NCSTYLE_BOLD);
   }
-/*fprintf(stderr, "  \\--> callback for %d, %d lines (%d/%d -> %d/%d) dir: %s wrote: %d ret: %d\n", tctx->id,
-    tctx->lines, begy, begx, maxy, maxx,
-    cliptop ? "up" : "down", ll, err);*/
+//fprintf(stderr, "  \\--> callback for %d, %d lines (%d/%d -> %d/%d) dir: %s wrote: %d\n", tctx->id, tctx->lines, begy, begx, maxy, maxx, cliptop ? "up" : "down", ll);
   pthread_mutex_unlock(&tctx->lock);
   return ll;
 }
@@ -181,7 +181,12 @@ tablet_thread(void* vtabletctx){
       }
     }
     pthread_mutex_unlock(&tctx->lock);
-    // FIXME take lock, redraw, render
+    pthread_mutex_lock(&renderlock);
+    if(nctablet_ncplane(tctx->t)){
+      ncreel_redraw(tctx->pr);
+      demo_render(ncplane_notcurses(nctablet_ncplane(tctx->t)));
+    }
+    pthread_mutex_unlock(&renderlock);
   }
   return tctx;
 }
@@ -213,7 +218,6 @@ new_tabletctx(struct ncreel* pr, unsigned *id){
 static wchar_t
 handle_input(struct notcurses* nc, const struct timespec* deadline,
              ncinput* ni){
-  DEMO_RENDER(nc);
   int64_t deadlinens = timespec_to_ns(deadline);
   struct timespec pollspec, cur;
   clock_gettime(CLOCK_MONOTONIC, &cur);
@@ -299,7 +303,15 @@ ncreel_demo_core(struct notcurses* nc){
     ncplane_set_fg_rgb(std, 0, 55, 218);
     wchar_t rw;
     ncinput ni;
+    pthread_mutex_lock(&renderlock);
     ncreel_redraw(pr);
+    int renderret;
+    renderret = demo_render(nc);
+    pthread_mutex_unlock(&renderlock);
+    if(renderret){
+      ncreel_destroy(pr);
+      return renderret;
+    }
     if((rw = handle_input(nc, &deadline, &ni)) == (wchar_t)-1){
       break;
     }
