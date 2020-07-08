@@ -14,9 +14,9 @@ The following have been established on a Debian Unstable workstation.
 
 | Terminal | Recommended environment | Notes |
 | -------- | ------ | ----- |
-| Linux console | `linux` | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max. |
+| Linux console | `TERM=linux` | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max. |
 | FBterm | | |
-| kmscon | | |
+| kmscon | `TERM=xterm-256color` | No RGB color AFAICT, nor any distinct terminfo entry. |
 | XTerm | `TERM=xterm-256color` `COLORTERM=24bit` | Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. |
 | XFCE4 Terminal | `TERM=xfce` `COLORTERM=24bit` | No `xfce-direct` variant exists |
 | Gnome Terminal | `TERM=gnome` `COLORTERM=24bit` | |
@@ -25,5 +25,5 @@ The following have been established on a Debian Unstable workstation.
 | Kitty | `TERM=kitty-direct` | |
 | Sakura | `TERM=vte-256color` `COLORTERM=24bit` | |
 | st | `TERM=st-256color` `COLORTERM=24bit` | |
-| GNU Screen | `screen-256colors` | Must be compiled with `--enable-256color`. |
+| GNU Screen | `TERM=screen-256colors` | Must be compiled with `--enable-256color`. |
 | tmux | | |
