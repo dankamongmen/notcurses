@@ -31,7 +31,7 @@ static void
 fdthread(ncfdplane* ncfp, int pidfd){
   struct pollfd pfds[2];
   memset(pfds, 0, sizeof(pfds));
-  char* buf = malloc(BUFSIZ);
+  char* buf = malloc(BUFSIZ + 1);
   int pevents;
   pfds[0].fd = ncfp->fd;
   pfds[0].events = POLLIN;
@@ -47,6 +47,7 @@ fdthread(ncfdplane* ncfp, int pidfd){
         if(r == 0){
           break;
         }
+        buf[r] = '\0';
         if( (r = ncfp->cb(ncfp, buf, r, ncfp->curry)) ){
           break;
         }
