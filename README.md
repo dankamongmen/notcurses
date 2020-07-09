@@ -32,14 +32,10 @@ and the FreeBSD [Ports Collection](https://www.freshports.org/devel/notcurses/).
 **If you're running Notcurses applications in a Docker, please consult
 "[Environment notes](#environment-notes)" below.**
 
-<div style="text-align: right">
 <a href="https://drone.dsscaw.com:4443/dankamongmen/notcurses">
-<img src="https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg" alt="Build status" align="right">
+<img src="https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg" alt="Build status">
 </a>
-<a href="https://opensource.org/licenses/Apache-2.0">
-<img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: ASL 2" align="right">
-</a>
-</div>
+
 <a href="https://repology.org/project/notcurses/versions">
 <img src="https://repology.org/badge/vertical-allrepos/notcurses.svg" alt="Packaging status" align="right">
 </a>
