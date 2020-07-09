@@ -15,22 +15,6 @@ notcurses_reel - high-level widget for hierarchical data
 #define NCREEL_OPTION_CIRCULAR       0x0002
 
 typedef struct ncreel_options {
-  // require this many rows and columns (including borders).
-  // otherwise, a message will be displayed stating that a
-  // larger terminal is necessary, and input will be queued.
-  // if 0, no minimum will be enforced. may not be negative.
-  // note that ncreel_create() does not return error if
-  // given a WINDOW smaller than these minima; it instead
-  // patiently waits for the screen to get bigger.
-  int min_supported_cols;
-  int min_supported_rows;
-
-  // use no more than this many rows and columns (including
-  // borders). may not be less than the corresponding minimum.
-  // 0 means no maximum.
-  int max_supported_cols;
-  int max_supported_rows;
-
   // notcurses can draw a border around the ncreel, and also
   // around the component tablets. inhibit borders by setting all
   // valid bits in the masks. partially inhibit borders by setting
@@ -48,7 +32,7 @@ typedef struct ncreel_options {
 } ncreel_options;
 ```
 
-**struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);**
+**struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);**
 
 **struct ncplane* ncreel_plane(struct ncreel* nr);**
 
@@ -58,13 +42,7 @@ typedef struct ncreel_options {
 
 **int ncreel_tabletcount(const struct ncreel* nr);**
 
-**int ncreel_touch(struct ncreel* nr, struct nctablet* t);**
-
 **int ncreel_del(struct ncreel* nr, struct nctablet* t);**
-
-**int ncreel_del_focused(struct ncreel* nr);**
-
-**int ncreel_move(struct ncreel* nr, int y, int x);**
 
 **int ncreel_redraw(struct ncreel* nr);**
 

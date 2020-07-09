@@ -1886,20 +1886,6 @@ configured instead.
 // scrolling gestures, trackballs, scrollwheels, touchpads, and verbal commands.
 
 typedef struct ncreel_options {
-  // require this many rows and columns (including borders). otherwise, a
-  // message will be displayed stating that a larger terminal is necessary, and
-  // input will be queued. if 0, no minimum will be enforced. may not be
-  // negative. note that ncreel_create() does not return error if given a
-  // plane smaller than these minima; it instead patiently waits for the
-  // screen to get bigger.
-  int min_supported_cols;
-  int min_supported_rows;
-
-  // use no more than this many rows and columns (including borders). may not be
-  // less than the corresponding minimum. 0 means no maximum.
-  int max_supported_cols;
-  int max_supported_rows;
-
   // is scrolling infinite (can one move down or up forever, or is an end
   // reached?). if true, 'circular' specifies how to handle the special case of
   // an incompletely-filled reel.
@@ -1927,13 +1913,8 @@ struct nctablet;
 struct ncreel;
 
 // Create an ncreel according to the provided specifications. Returns NULL on
-// failure. 'nc' must be a valid plane, to which offsets are relative. Note that
-// there might not be enough room for the specified offsets, in which case the
-// ncreel will be clipped on the bottom and right. A minimum number of rows
-// and columns can be enforced via popts. efd, if non-negative, is an eventfd
-// that ought be written to whenever ncreel_touch() updates a tablet (this
-// is useful in the case of nonblocking input).
-struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);
+// failure. 'nc' must be a valid plane.
+struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
 
 // Returns the ncplane on which this ncreel lives.
 struct ncplane* ncreel_plane(struct ncreel* pr);
@@ -1969,20 +1950,9 @@ struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after,
 // Return the number of tablets.
 int ncreel_tabletcount(const struct ncreel* pr);
 
-// Indicate that the specified tablet has been updated in a way that would
-// change its display. This will trigger some non-negative number of callbacks
-// (though not in the caller's context).
-int ncreel_touch(struct ncreel* pr, struct nctablet* t);
-
 // Delete the tablet specified by t from the ncreel specified by pr. Returns
 // -1 if the tablet cannot be found.
 int ncreel_del(struct ncreel* pr, struct nctablet* t);
-
-// Delete the active tablet. Returns -1 if there are no tablets.
-int ncreel_del_focused(struct ncreel* pr);
-
-// Move to the specified location.
-int ncreel_move(struct ncreel* pr, int y, int x);
 
 // Redraw the ncreel in its entirety.
 int ncreel_redraw(struct ncreel* pr);

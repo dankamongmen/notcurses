@@ -22,21 +22,21 @@ TEST_CASE("Reels") {
 
   SUBCASE("InitLinear") {
     ncreel_options r = { };
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
   }
 
   SUBCASE("InitLinearInfinite") {
     ncreel_options r{};
     r.flags = NCREEL_OPTION_INFINITESCROLL;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
   }
 
   SUBCASE("InitCircular") {
     ncreel_options r{};
     r.flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     REQUIRE(0 == ncreel_destroy(nr));
   }
@@ -45,7 +45,7 @@ TEST_CASE("Reels") {
   SUBCASE("FiniteCircleRejected") {
     ncreel_options r{};
     r.flags = NCREEL_OPTION_CIRCULAR;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(!nr);
   }
 
@@ -53,7 +53,7 @@ TEST_CASE("Reels") {
   // even if there are no tablets. They both ought return nullptr.
   SUBCASE("MovementWithoutTablets") {
     ncreel_options r{};
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK(!ncreel_next(nr));
     // CHECK_EQ(0, ncreel_validate(n_, pr));
@@ -63,7 +63,7 @@ TEST_CASE("Reels") {
 
   SUBCASE("OneTablet") {
     ncreel_options r{};
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
@@ -74,7 +74,7 @@ TEST_CASE("Reels") {
 
   SUBCASE("MovementWithOneTablet") {
     ncreel_options r{};
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
@@ -89,25 +89,25 @@ TEST_CASE("Reels") {
 
   SUBCASE("DeleteActiveTablet") {
     ncreel_options r{};
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
-    CHECK(0 == ncreel_del_focused(nr));
+    CHECK(0 == ncreel_del(nr, ncreel_focused(nr)));
   }
 
   SUBCASE("NoBorder") {
     ncreel_options r{};
     r.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT |
                     NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
   }
 
   SUBCASE("BadBorderBitsRejected") {
     ncreel_options r{};
     r.bordermask = NCBOXMASK_LEFT * 2;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(!nr);
   }
 
@@ -115,28 +115,28 @@ TEST_CASE("Reels") {
     ncreel_options r{};
     r.tabletmask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT |
                     NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
   }
 
   SUBCASE("NoTopBottomBorder") {
     ncreel_options r{};
     r.bordermask = NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
   }
 
   SUBCASE("NoSideBorders") {
     ncreel_options r{};
     r.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
   }
 
   SUBCASE("BadTabletBorderBitsRejected") {
     ncreel_options r{};
     r.tabletmask = NCBOXMASK_LEFT * 2;
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(!nr);
   }
 
@@ -173,7 +173,7 @@ TEST_CASE("Reels") {
     REQUIRE_NE(nullptr, base);
     WINDOW* basew = panel_window(base);
     REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r, -1);
+    struct ncreel* nr = ncreel_create(basew, &r);
     REQUIRE_NE(nullptr, pr);
     CHECK_EQ(0, ncreel_validate(basew, pr));
     REQUIRE_EQ(0, ncreel_destroy(nr));
@@ -194,7 +194,7 @@ TEST_CASE("Reels") {
     REQUIRE_NE(nullptr, base);
     WINDOW* basew = panel_window(base);
     REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r, -1);
+    struct ncreel* nr = ncreel_create(basew, &r);
     REQUIRE_NE(nullptr, pr);
     CHECK_EQ(0, ncreel_validate(basew, pr));
     REQUIRE_EQ(0, ncreel_destroy(nr));
@@ -209,7 +209,7 @@ TEST_CASE("Reels") {
     REQUIRE_NE(nullptr, base);
     WINDOW* basew = panel_window(base);
     REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r, -1);
+    struct ncreel* nr = ncreel_create(basew, &r);
     REQUIRE_NE(nullptr, pr);
     CHECK_EQ(0, ncreel_validate(basew, pr));
     REQUIRE_EQ(0, ncreel_destroy(nr));
@@ -221,7 +221,7 @@ TEST_CASE("Reels") {
   SUBCASE("TransparentBackground") {
     ncreel_options r{};
     channels_set_bg_alpha(&r.bgchannel, 3);
-    struct ncreel* nr = ncreel_create(n_, &r, -1);
+    struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     // FIXME
   }

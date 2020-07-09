@@ -385,10 +385,6 @@ bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
 int ncmenu_destroy(struct ncmenu* n);
 const char* ncmetric(uintmax_t val, unsigned decimal, char* buf, int omitdec, unsigned mult, int uprefix);
 typedef struct ncreel_options {
-  int min_supported_cols;
-  int min_supported_rows;
-  int max_supported_cols;
-  int max_supported_rows;
   unsigned bordermask;
   uint64_t borderchan;
   unsigned tabletmask;
@@ -397,15 +393,12 @@ typedef struct ncreel_options {
   uint64_t bgchannel;
   unsigned flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
-struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts, int efd);
+struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
 struct ncplane* ncreel_plane(struct ncreel* pr);
 typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop);
 struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after, struct nctablet* before, tabletcb cb, void* opaque);
 int ncreel_tabletcount(const struct ncreel* pr);
-int ncreel_touch(struct ncreel* pr, struct nctablet* t);
 int ncreel_del(struct ncreel* pr, struct nctablet* t);
-int ncreel_del_focused(struct ncreel* pr);
-int ncreel_move(struct ncreel* pr, int x, int y);
 int ncreel_redraw(struct ncreel* pr);
 struct nctablet* ncreel_focused(struct ncreel* pr);
 struct nctablet* ncreel_next(struct ncreel* pr);
