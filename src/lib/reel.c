@@ -373,6 +373,7 @@ draw_focused_tablet(const ncreel* nr){
     }else{
       fulcrum = pbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
     }
+//fprintf(stderr, "LTD: %d  placing new at %d\n", nr->last_traveled_direction, fulcrum);
   }else{ // focused was already present. want to stay where we are, if possible
     ncplane_yx(nr->tablets->p, &fulcrum, NULL);
     // FIXME ugh can't we just remember the previous fulcrum?
@@ -393,6 +394,7 @@ draw_focused_tablet(const ncreel* nr){
         }
       }
     }
+//fprintf(stderr, "existing: %p %d  placing at %d\n", nr->tablets, nr->last_traveled_direction, fulcrum);
   }
 //fprintf(stderr, "PR dims: %d/%d + %d/%d fulcrum: %d\n", pbegy, pbegx, pleny, plenx, fulcrum);
   ncreel_draw_tablet(nr, nr->tablets, fulcrum, 0 /* nr->last_traveled_direction*/);
@@ -507,6 +509,82 @@ tighten_reel(ncreel* r){
   return 0;
 }
 
+// debugging
+bool ncreel_validate(const ncreel* n){
+  if(n->tablets == NULL){
+    return true;
+  }
+  const nctablet* t = n->tablets;
+  int cury = -1;
+  bool wentaround = false;
+  do{
+    const ncplane* np = t->p;
+    if(np){
+      int y, x;
+      ncplane_yx(np, &y, &x);
+//fprintf(stderr, "forvart: %p (%p) @ %d\n", t, np, y);
+      if(y < cury){
+        if(wentaround){
+          return false;
+        }
+        wentaround = true;
+      }else if(y == cury){
+        return false;
+      }
+      cury = y;
+    }
+  }while((t = t->next) != n->tablets);
+  cury = INT_MAX;
+  wentaround = false;
+  do{
+    const ncplane* np = t->p;
+    if(np){
+      int y, x;
+      ncplane_yx(np, &y, &x);
+//fprintf(stderr, "backwards: %p (%p) @ %d\n", t, np, y);
+      if(y > cury){
+        if(wentaround){
+          return false;
+        }
+        wentaround = true;
+      }else if(y == cury){
+        return false;
+      }
+      cury = y;
+    }
+  }while((t = t->prev) != n->tablets);
+  return true;
+}
+
+// destroy all existing tablet planes pursuant to redraw
+static void
+clean_reel(ncreel* r){
+  nctablet* focused = r->tablets;
+  nctablet* cur = focused;
+  if(r->tablets){
+    cur = r->tablets->next;
+    while(cur && cur != r->tablets){// && cur->p){
+//fprintf(stderr, "CLEANING: %p (%p)\n", cur, cur->p);
+      if(cur->p){
+        ncplane_destroy(cur->p);
+        cur->p = NULL;
+      }
+      cur = cur->next;
+    }
+//fprintf(stderr, "done clean next, %p %p %p\n", cur, r->tablets, cur ? cur->p : NULL);
+    cur = r->tablets->prev;
+    while(cur && cur != r->tablets){// && cur->p){
+//fprintf(stderr, "CLEANING: %p (%p)\n", cur, cur->p);
+      if(cur->p){
+        ncplane_destroy(cur->p);
+        cur->p = NULL;
+      }
+      cur = cur->prev;
+    }
+  }
+//fprintf(stderr, "done clean prev, %p %p %p\n", cur, r->tablets, cur ? cur->p : NULL);
+}
+
 // Arrange the panels, starting with the focused window, wherever it may be.
 // If necessary, resize it to the full size of the reel--focus has its
 // privileges. We then work in the opposite direction of travel, filling out
@@ -530,6 +608,7 @@ int ncreel_redraw(ncreel* nr){
 //fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
   draw_focused_tablet(nr);
 //fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
+  clean_reel(nr);
   nctablet* otherend = focused;
   if(nr->last_traveled_direction >= 0){
     otherend = draw_previous_tablets(nr, otherend);
@@ -542,6 +621,9 @@ int ncreel_redraw(ncreel* nr){
   }
   tighten_reel(nr);
 //fprintf(stderr, "DONE ARRANGING\n");
+  if(!ncreel_validate(nr)){
+    return -1;
+  }
   return 0;
 }
 
