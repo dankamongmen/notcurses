@@ -35,6 +35,10 @@ and the FreeBSD [Ports Collection](https://www.freshports.org/devel/notcurses/).
 [![Build Status](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+<a href="https://repology.org/project/notcurses/versions">
+<img src="https://repology.org/badge/vertical-allrepos/notcurses.svg" alt="Packaging status" align="right">
+</a>
+
 * [Introduction](#introduction)
 * [Requirements](#requirements)
   * [Building](#building)
