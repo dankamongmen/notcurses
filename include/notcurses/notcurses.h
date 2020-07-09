@@ -27,6 +27,9 @@ extern "C" {
 
 // Get a human-readable string describing the running notcurses version.
 API const char* notcurses_version(void);
+// Cannot be inline, as we want to get the versions of the actual notcurses
+// library we loaded, not what we compile against.
+API void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);
 
 struct notcurses; // notcurses state for a given terminal, composed of ncplanes
 struct ncplane;   // a drawable notcurses surface, composed of cells

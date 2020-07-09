@@ -20,6 +20,13 @@
 
 #define ESC "\x1b"
 
+void notcurses_version_components(int* major, int* minor, int* patch, int* tweak){
+  *major = atoi(notcurses_VERSION_MAJOR);
+  *minor = atoi(notcurses_VERSION_MINOR);
+  *patch = atoi(notcurses_VERSION_PATCH);
+  *tweak = atoi(notcurses_VERSION_TWEAK);
+}
+
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature.
 static notcurses* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh

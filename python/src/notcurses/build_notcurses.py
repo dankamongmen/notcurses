@@ -82,6 +82,7 @@ typedef struct notcurses_options {
   uint64_t flags;
 } notcurses_options;
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
+void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);
 int notcurses_lex_margins(const char* op, notcurses_options* opts);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);

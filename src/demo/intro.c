@@ -101,7 +101,10 @@ int intro(struct notcurses* nc){
   }
   ncplane_styles_off(ncp, NCSTYLE_ITALIC);
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
-  if(ncplane_printf_aligned(ncp, rows - 10, NCALIGN_CENTER, "notcurses %s. press 'q' to quit.", notcurses_version()) < 0){
+  int major, minor, patch, tweak;
+  notcurses_version_components(&major, &minor, &patch, &tweak);
+  if(ncplane_printf_aligned(ncp, rows - 10, NCALIGN_CENTER, "notcurses %d.%d.%d.%d. press 'q' to quit.",
+                            major, minor, patch, tweak) < 0){
     return -1;
   }
   ncplane_styles_off(ncp, NCSTYLE_BOLD);

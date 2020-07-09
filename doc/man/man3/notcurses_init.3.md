@@ -28,6 +28,8 @@ typedef struct notcurses_options {
 
 **int notcurses_lex_margins(const char* op, notcurses_options* opts);**
 
+**void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);**
+
 **struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);**
 
 # DESCRIPTION

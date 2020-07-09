@@ -1,6 +1,7 @@
 #define notcurses_VERSION_MAJOR "@notcurses_VERSION_MAJOR@"
 #define notcurses_VERSION_MINOR "@notcurses_VERSION_MINOR@"
 #define notcurses_VERSION_PATCH "@notcurses_VERSION_PATCH@"
+#define notcurses_VERSION_TWEAK "@notcurses_VERSION_TWEAK@"
 #cmakedefine DFSG_BUILD
 #cmakedefine USE_QRCODEGEN
 // exclusive with USE_OIIO

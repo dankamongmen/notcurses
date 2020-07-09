@@ -2,6 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.6.1 (not yet released)
+  * Added `notcurses_version_components()` to get the numeric components of
+    the loaded Notcurses version.
   * Added `notcurses_render_file()` to dump last rendered frame to a `FILE*`.
   * The `ncreel` widget has been overhauled to bring it in line with the
     others (`ncreel` began life in another project, predating Notcurses).

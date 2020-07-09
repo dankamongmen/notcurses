@@ -572,7 +572,7 @@ int witherworm_demo(struct notcurses* nc){
         if(timespec_to_ns(&screenend) < timespec_to_ns(&cur)){
           break;
         }
-      }while(key == 0);
+      }while(key != NCKEY_RESIZE);
       free(wctx.worms);
 
       ncplane_destroy(mess);
@@ -584,9 +584,6 @@ int witherworm_demo(struct notcurses* nc){
         DEMO_RENDER(nc);
       }
     }while(key == NCKEY_RESIZE);
-    if(key == 'q'){
-      return 1;
-    }
   }
   ncplane_set_scrolling(n, false);
   return 0;
