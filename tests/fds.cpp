@@ -14,7 +14,7 @@ bool inline_cancelled = false;
 auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) -> int {
   struct ncplane* n = ncfdplane_plane(ncfd);
   lock.lock();
-  if(ncplane_putstr(n, static_cast<const char*>(buf)) <= 0){
+  if(ncplane_putnstr(n, s, static_cast<const char*>(buf)) <= 0){
     lock.unlock();
     return -1;
   }
