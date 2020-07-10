@@ -363,7 +363,7 @@ TEST_CASE("Wide") {
     // should be nothing, having been stomped
     egc = notcurses_at_yx(nc_, 0, 3, &c.attrword, &c.channels);
     REQUIRE(egc);
-    CHECK(0 == strcmp(" ", egc));
+    CHECK(0 == strcmp("", egc));
     free(egc);
     cell_init(&c);
 
@@ -461,7 +461,7 @@ TEST_CASE("Wide") {
     CHECK(widechans == channels);
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
     CHECK(0 == strcmp(egc, " "));
@@ -483,7 +483,7 @@ TEST_CASE("Wide") {
     CHECK(narchans == channels);
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     CHECK(0 == ncplane_move_yx(topp, 0, 2));
     CHECK(0 == notcurses_render(nc_));
@@ -492,7 +492,7 @@ TEST_CASE("Wide") {
     CHECK(widechans == channels);
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
     CHECK(0 == strcmp(egc, "a"));
@@ -539,14 +539,14 @@ TEST_CASE("Wide") {
     CHECK(narchans == channels);
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &attrword, &channels)));
     CHECK(0 == strcmp(egc, "六"));
     CHECK(widechans == channels);
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     CHECK(0 == ncplane_move_yx(topp, 0, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -578,7 +578,7 @@ TEST_CASE("Wide") {
     CHECK(widechans == channels);
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     ncplane_destroy(topp);
   }
@@ -627,7 +627,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
     CHECK(0 == strcmp(egc, " "));
@@ -645,7 +645,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     CHECK(0 == ncplane_move_yx(topp, 0, 2));
     CHECK(0 == notcurses_render(nc_));
@@ -653,7 +653,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &attrword, &channels)));
     CHECK(0 == strcmp(egc, "次"));
@@ -691,13 +691,13 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &attrword, &channels)));
     CHECK(0 == strcmp(egc, "六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     CHECK(0 == ncplane_move_yx(topp, 0, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -723,7 +723,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &attrword, &channels)));
-    CHECK(0 == strcmp(egc, " "));
+    CHECK(0 == strcmp(egc, ""));
     free(egc);
     ncplane_destroy(topp);
   }

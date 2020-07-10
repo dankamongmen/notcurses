@@ -160,7 +160,7 @@ TEST_CASE("Scrolling") {
       if(i < 11){
         CHECK(next2[i - 1] == *egc);
       }else{
-        CHECK(' ' == *egc);
+        CHECK('\0' == *egc);
       }
       free(egc);
     }
@@ -193,7 +193,7 @@ TEST_CASE("Scrolling") {
       if(i < 11){
         CHECK(onext[i - 1] == *egc);
       }else{
-        CHECK(' ' == *egc);
+        CHECK('\0' == *egc);
       }
       free(egc);
     }
