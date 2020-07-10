@@ -9,7 +9,7 @@
 #include "notcurses/direct.h"
 #include "internal.h"
 
-int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* egc){
+int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   if(channels_fg_default_p(channels)){
     if(ncdirect_fg_default(nc)){
       return -1;
@@ -24,7 +24,7 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* egc){
   }else if(ncdirect_bg(nc, channels_bg(channels))){
     return -1;
   }
-  return fprintf(nc->ttyfp, "%s", egc);
+  return fprintf(nc->ttyfp, "%s", utf8);
 }
 
 int ncdirect_cursor_up(ncdirect* nc, int num){
@@ -650,6 +650,123 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
     }
   }
   return ret;
+}
+
+//  wchars: wchar_t[6] mapping to UL, UR, BL, BR, HL, VL.
+//  they cannot be complex EGCs, but only a single wchar_t, alas.
+int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
+                 uint64_t ll, uint64_t lr, const wchar_t* wchars,
+                 int ylen, int xlen, unsigned ctlword){
+  if(xlen < 2 || ylen < 2){
+    return -1;
+  }
+  char hl[WCHAR_MAX_UTF8BYTES + 1];
+  char vl[WCHAR_MAX_UTF8BYTES + 1];
+  unsigned edges;
+  edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_LEFT);
+  if(edges >= box_corner_needs(ctlword)){
+    ncdirect_fg(n, channels_fg(ul));
+    ncdirect_bg(n, channels_bg(ul));
+    if(fprintf(n->ttyfp, "%lc", wchars[0]) < 0){
+      return -1;
+    }
+  }else{
+    ncdirect_cursor_right(n, 1);
+  }
+  mbstate_t ps = {};
+  size_t bytes;
+  if((bytes = wcrtomb(hl, wchars[4], &ps)) == (size_t)-1){
+    return -1;
+  }
+  hl[bytes] = '\0';
+  memset(&ps, 0, sizeof(ps));
+  if((bytes = wcrtomb(vl, wchars[5], &ps)) == (size_t)-1){
+    return -1;
+  }
+  vl[bytes] = '\0';
+  if(!(ctlword & NCBOXMASK_TOP)){ // draw top border, if called for
+    if(xlen > 2){
+      if(ncdirect_hline_interp(n, hl, xlen - 2, ul, ur) < 0){
+        return -1;
+      }
+    }
+  }else{
+    ncdirect_cursor_right(n, xlen - 2);
+  }
+  edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_RIGHT);
+  if(edges >= box_corner_needs(ctlword)){
+    ncdirect_fg(n, channels_fg(ur));
+    ncdirect_bg(n, channels_bg(ur));
+    if(fprintf(n->ttyfp, "%lc", wchars[1]) < 0){
+      return -1;
+    }
+    ncdirect_cursor_left(n, xlen);
+  }else{
+    ncdirect_cursor_left(n, xlen - 1);
+  }
+  ncdirect_cursor_down(n, 1);
+  // middle rows (vertical lines)
+  if(ylen > 2){
+    if(!(ctlword & NCBOXMASK_LEFT)){
+      if(ncdirect_vline_interp(n, vl, ylen - 2, ul, ll) < 0){
+        return -1;
+      }
+      ncdirect_cursor_right(n, xlen - 2);
+      ncdirect_cursor_up(n, ylen - 3);
+    }else{
+      ncdirect_cursor_right(n, xlen - 1);
+    }
+    if(!(ctlword & NCBOXMASK_RIGHT)){
+      if(ncdirect_vline_interp(n, vl, ylen - 2, ur, lr) < 0){
+        return -1;
+      }
+      ncdirect_cursor_left(n, xlen);
+    }else{
+      ncdirect_cursor_left(n, xlen - 1);
+    }
+  }
+  ncdirect_cursor_down(n, 1);
+  // bottom line
+  edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
+  if(edges >= box_corner_needs(ctlword)){
+    ncdirect_fg(n, channels_fg(ll));
+    ncdirect_bg(n, channels_bg(ll));
+    if(fprintf(n->ttyfp, "%lc", wchars[2]) < 0){
+      return -1;
+    }
+  }else{
+    ncdirect_cursor_right(n, 1);
+  }
+  if(!(ctlword & NCBOXMASK_BOTTOM)){
+    if(xlen > 2){
+      if(ncdirect_hline_interp(n, hl, xlen - 2, ll, lr) < 0){
+        return -1;
+      }
+    }
+  }else{
+    ncdirect_cursor_right(n, xlen - 2);
+  }
+  edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_RIGHT);
+  if(edges >= box_corner_needs(ctlword)){
+    ncdirect_fg(n, channels_fg(lr));
+    ncdirect_bg(n, channels_bg(lr));
+    if(fprintf(n->ttyfp, "%lc", wchars[3]) < 0){
+      return -1;
+    }
+  }
+  return 0;
+}
+
+int ncdirect_rounded_box(ncdirect* n, uint64_t ul, uint64_t ur,
+                         uint64_t ll, uint64_t lr,
+                         int ylen, int xlen, unsigned ctlword){
+  return ncdirect_box(n, ul, ur, ll, lr, L"╭╮╰╯─│", ylen, xlen, ctlword);
+}
+
+int ncdirect_double_box(ncdirect* n, uint64_t ul, uint64_t ur,
+                         uint64_t ll, uint64_t lr,
+                         int ylen, int xlen, unsigned ctlword){
+  return ncdirect_box(n, ul, ur, ll, lr, L"╔╗╚╝═║", ylen, xlen, ctlword);
 }
 
 // Can we load images? This requires being built against FFmpeg/OIIO.

@@ -357,6 +357,24 @@ int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len,
 int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
                           uint64_t h1, uint64_t h2);
 
+// Draw a box with its upper-left corner at the current cursor position, having
+// dimensions |ylen|x|xlen|. See ncplane_box() for more information. The
+// minimum box size is 2x2, and it cannot be drawn off-screen. |wchars| is an
+// array of 6 wide characters: UL, UR, LL, LR, HL, VL.
+int ncdirect_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
+                 uint64_t ll, uint64_t lr, const wchar_t* wchars,
+                 int ylen, int xlen, unsigned ctlword);
+
+// ncdirect_box() with the rounded box-drawing characters
+int ncdirect_rounded_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
+                         uint64_t ll, uint64_t lr,
+                         int ylen, int xlen, unsigned ctlword);
+
+// ncdirect_box() with the double box-drawing characters
+int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
+                        uint64_t ll, uint64_t lr,
+                        int ylen, int xlen, unsigned ctlword);
+
 // Display an image using the specified blitter and scaling. The image may
 // be arbitrarily many rows -- the output will scroll -- but will only occupy
 // the column of the cursor, and those to the right.

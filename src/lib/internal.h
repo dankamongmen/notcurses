@@ -826,6 +826,12 @@ int ffmpeg_log_level(ncloglevel_e level);
 int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
                   const char* ton, const char* toff);
 
+// how many edges need touch a corner for it to be printed?
+static inline unsigned
+box_corner_needs(unsigned ctlword){
+  return (ctlword & NCBOXCORNER_MASK) >> NCBOXCORNER_SHIFT;
+}
+
 #ifdef __cplusplus
 }
 #endif
