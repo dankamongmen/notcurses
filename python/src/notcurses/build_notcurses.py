@@ -484,7 +484,7 @@ struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 int ncdirect_bg_rgb(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_palette_size(const struct ncdirect* nc);
-int ncdirect_putc(struct ncdirect* nc, uint64_t channels, const char* egc);
+int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
 int ncdirect_fg(struct ncdirect* n, unsigned rgb);
 int ncdirect_bg(struct ncdirect* n, unsigned rgb);
 int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
@@ -501,6 +501,8 @@ int ncdirect_cursor_up(struct ncdirect* nc, int num);
 int ncdirect_cursor_left(struct ncdirect* nc, int num);
 int ncdirect_cursor_right(struct ncdirect* nc, int num);
 int ncdirect_cursor_down(struct ncdirect* nc, int num);
+int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len, uint64_t h1, uint64_t h2);
+int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len, uint64_t h1, uint64_t h2);
 nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncalign_e align, ncblitter_e blitter, ncscale_e scale);
 """)
 

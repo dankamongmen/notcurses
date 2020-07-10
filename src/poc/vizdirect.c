@@ -1,6 +1,6 @@
 #include <locale.h>
 #include <unistd.h>
-#include <notcurses/notcurses.h>
+#include <notcurses/direct.h>
 
 // can we leave what was already on the screen there? (narrator: it seems not)
 int main(void){

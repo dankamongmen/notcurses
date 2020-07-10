@@ -9,7 +9,7 @@
 #include "notcurses/direct.h"
 #include "internal.h"
 
-int ncdirect_putc(ncdirect* nc, uint64_t channels, const char* egc){
+int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* egc){
   if(channels_fg_default_p(channels)){
     if(ncdirect_fg_default(nc)){
       return -1;
@@ -474,7 +474,7 @@ int ncdirect_stop(ncdirect* nc){
 
 static inline int
 ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out){
-  if(sgr == NULL){
+  if(sgr == nullptr){
     return -1;
   }
   int r = term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
@@ -536,7 +536,7 @@ int ncdirect_fg_default(ncdirect* nc){
     if(nc->bgdefault){
       return 0;
     }
-    return ncdirect_bg(nc, nc->fgrgb);
+    return ncdirect_bg(nc, nc->bgrgb);
   }
   return -1;
 }
@@ -547,7 +547,107 @@ int ncdirect_bg_default(ncdirect* nc){
     if(nc->fgdefault){
       return 0;
     }
-    return ncdirect_fg(nc, nc->bgrgb);
+    return ncdirect_fg(nc, nc->fgrgb);
   }
   return -1;
+}
+
+int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
+                          uint64_t c1, uint64_t c2){
+  unsigned ur, ug, ub;
+  int r1, g1, b1, r2, g2, b2;
+  int br1, bg1, bb1, br2, bg2, bb2;
+  channels_fg_rgb(c1, &ur, &ug, &ub);
+  r1 = ur; g1 = ug; b1 = ub;
+  channels_fg_rgb(c2, &ur, &ug, &ub);
+  r2 = ur; g2 = ug; b2 = ub;
+  channels_bg_rgb(c1, &ur, &ug, &ub);
+  br1 = ur; bg1 = ug; bb1 = ub;
+  channels_bg_rgb(c2, &ur, &ug, &ub);
+  br2 = ur; bg2 = ug; bb2 = ub;
+  int deltr = r2 - r1;
+  int deltg = g2 - g1;
+  int deltb = b2 - b1;
+  int deltbr = br2 - br1;
+  int deltbg = bg2 - bg1;
+  int deltbb = bb2 - bb1;
+  int ret;
+  bool fgdef = false, bgdef = false;
+  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
+    fgdef = true;
+  }
+  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
+    bgdef = true;
+  }
+  for(ret = 0 ; ret < len ; ++ret){
+    int r = (deltr * ret) / len + r1;
+    int g = (deltg * ret) / len + g1;
+    int b = (deltb * ret) / len + b1;
+    int br = (deltbr * ret) / len + br1;
+    int bg = (deltbg * ret) / len + bg1;
+    int bb = (deltbb * ret) / len + bb1;
+    if(!fgdef){
+      ncdirect_fg_rgb(n, r, g, b);
+    }
+    if(!bgdef){
+      ncdirect_bg_rgb(n, br, bg, bb);
+    }
+    if(fprintf(n->ttyfp, "%s", egc) < 0){
+      break;
+    }
+  }
+  return ret;
+}
+
+int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
+                          uint64_t c1, uint64_t c2){
+  unsigned ur, ug, ub;
+  int r1, g1, b1, r2, g2, b2;
+  int br1, bg1, bb1, br2, bg2, bb2;
+  channels_fg_rgb(c1, &ur, &ug, &ub);
+  r1 = ur; g1 = ug; b1 = ub;
+  channels_fg_rgb(c2, &ur, &ug, &ub);
+  r2 = ur; g2 = ug; b2 = ub;
+  channels_bg_rgb(c1, &ur, &ug, &ub);
+  br1 = ur; bg1 = ug; bb1 = ub;
+  channels_bg_rgb(c2, &ur, &ug, &ub);
+  br2 = ur; bg2 = ug; bb2 = ub;
+  int deltr = (r2 - r1) / (len + 1);
+  int deltg = (g2 - g1) / (len + 1);
+  int deltb = (b2 - b1) / (len + 1);
+  int deltbr = (br2 - br1) / (len + 1);
+  int deltbg = (bg2 - bg1) / (len + 1);
+  int deltbb = (bb2 - bb1) / (len + 1);
+  int ret;
+  bool fgdef = false, bgdef = false;
+  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
+    fgdef = true;
+  }
+  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
+    bgdef = true;
+  }
+  for(ret = 0 ; ret < len ; ++ret){
+    r1 += deltr;
+    g1 += deltg;
+    b1 += deltb;
+    br1 += deltbr;
+    bg1 += deltbg;
+    bb1 += deltbb;
+    uint64_t channels = 0;
+    if(!fgdef){
+      channels_set_fg_rgb(&channels, r1, g1, b1);
+    }
+    if(!bgdef){
+      channels_set_bg_rgb(&channels, br1, bg1, bb1);
+    }
+    if(ncdirect_putstr(n, channels, egc) <= 0){
+      break;
+    }
+    if(len - ret > 1){
+      if(ncdirect_cursor_down(n, 1) || ncdirect_cursor_left(n, 1)){
+        break;
+      }
+    }
+  }
+  return ret;
 }
