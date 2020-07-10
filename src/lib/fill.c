@@ -269,8 +269,10 @@ int ncplane_stain(struct ncplane* n, int ystop, int xstop,
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
-      calc_gradient_channels(&targc->channels, tl, tr, bl, br,
-                             y - yoff, x - xoff, ylen, xlen);
+      if(targc->gcluster){
+        calc_gradient_channels(&targc->channels, tl, tr, bl, br,
+                              y - yoff, x - xoff, ylen, xlen);
+      }
       ++total;
     }
   }
