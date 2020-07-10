@@ -47,6 +47,10 @@ supplied a struct of type `notcurses_options`:
 // Get a human-readable string describing the running Notcurses version.
 const char* notcurses_version(void);
 
+// Cannot be inline, as we want to get the versions of the actual notcurses
+// library we loaded, not what we compile against.
+void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);
+
 struct cell;      // a coordinate on an ncplane: an EGC plus styling
 struct ncplane;   // a drawable Notcurses surface, composed of cells
 struct notcurses; // Notcurses state for a given terminal, composed of ncplanes
@@ -263,10 +267,10 @@ bool notcurses_cansixel(const struct notcurses* nc);
 ## Direct mode
 
 "Direct mode" makes a limited subset of notcurses is available for manipulating
-typical scrolling or file-backed output. These functions output directly and
-immediately to the provided `FILE*`, and `notcurses_render()` is neither
-supported nor necessary for such an instance. Use `ncdirect_init()` to create a
-direct mode context:
+typical scrolling or file-backed output. Its functions are exported via
+`<notcurses/direct.h>`, and output directly and immediately to the provided
+`FILE*`. `notcurses_render()` is neither supported nor necessary for such an
+instance. Use `ncdirect_init()` to create a direct mode context:
 
 ```c
 struct ncdirect; // minimal state for a terminal
@@ -327,6 +331,31 @@ int ncdirect_cursor_up(struct ncdirect* nc, int num);
 int ncdirect_cursor_left(struct ncdirect* nc, int num);
 int ncdirect_cursor_right(struct ncdirect* nc, int num);
 int ncdirect_cursor_down(struct ncdirect* nc, int num);
+
+// Get the cursor position, when supported. This requires writing to the
+// terminal, and then reading from it. If the terminal doesn't reply, or
+// doesn't reply in a way we understand, the results might be deleterious.
+int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x);
+
+// Push or pop the cursor location to the terminal's stack. The depth of this
+// stack, and indeed its existence, is terminal-dependent.
+int ncdirect_cursor_push(struct ncdirect* n);
+int ncdirect_cursor_pop(struct ncdirect* n);
+
+// Formatted printing (plus alignment relative to the terminal).
+int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
+                            const char* fmt, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
+// Draw horizontal/vertical lines using the specified channels, interpolating
+// between them as we go. The EGC may not use more than one column. For a
+// horizontal line, |len| cannot exceed the screen width minus the cursor's
+// offset. For a vertical line, it may be as long as you'd like; the screen
+// will scroll as necessary. All lines start at the current cursor position.
+int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len,
+                          uint64_t h1, uint64_t h2);
+int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
+                          uint64_t h1, uint64_t h2);
 
 // Display an image using the specified blitter and scaling. The image may
 // be arbitrarily many rows -- the output will scroll -- but will only occupy

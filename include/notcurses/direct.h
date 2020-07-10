@@ -31,8 +31,8 @@ API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx);
 // more colors than they actually support, downsampling internally.
 API int ncdirect_palette_size(const struct ncdirect* nc);
 
-// Output the EGC |egc| according to the channels |channels|.
-API int ncdirect_putc(struct ncdirect* nc, uint64_t channels, const char* egc);
+// Output the string |utf8| according to the channels |channels|.
+API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
 
 static inline int
 ncdirect_bg_rgb(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
@@ -87,8 +87,8 @@ API int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
   __attribute__ ((format (printf, 4, 5)));
 
 // Display an image using the specified blitter and scaling. The image may
-// // be arbitrarily many rows -- the output will scroll -- but will only occupy
-// // the column of the cursor, and those to the right.
+// be arbitrarily many rows -- the output will scroll -- but will only occupy
+// the column of the cursor, and those to the right.
 API nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename,
                                    ncalign_e align, ncblitter_e blitter,
                                    ncscale_e scale);
@@ -98,6 +98,16 @@ API int ncdirect_clear(struct ncdirect* nc);
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 API int ncdirect_stop(struct ncdirect* nc);
+
+// Draw horizontal/vertical lines using the specified channels, interpolating
+// between them as we go. The EGC may not use more than one column. For a
+// horizontal line, |len| cannot exceed the screen width minus the cursor's
+// offset. For a vertical line, it may be as long as you'd like; the screen
+// will scroll as necessary. All lines start at the current cursor position.
+API int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len,
+                              uint64_t h1, uint64_t h2);
+API int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
+                              uint64_t h1, uint64_t h2);
 
 #undef API
 

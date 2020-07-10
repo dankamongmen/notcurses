@@ -54,7 +54,7 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **int ncdirect_cursor_down(struct ncdirect* nc, int num);**
 
-**int ncdirect_putc(struct ncdirect* nc, uint64_t channels, const char* egc);**
+**int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);**
 
 **nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncblitter_e blitter, ncscale_e scale);**
 
