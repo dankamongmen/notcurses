@@ -96,8 +96,11 @@ API nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename,
 // Clear the screen.
 API int ncdirect_clear(struct ncdirect* nc);
 
-// Release 'nc' and any associated resources. 0 on success, non-0 on failure.
-API int ncdirect_stop(struct ncdirect* nc);
+// Can we load images? This requires being built against FFmpeg/OIIO.
+API bool ncdirect_canopen_images(const struct ncdirect* n);
+
+// Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
+API bool ncdirect_canutf8(const struct ncdirect* n);
 
 // Draw horizontal/vertical lines using the specified channels, interpolating
 // between them as we go. The EGC may not use more than one column. For a
@@ -108,6 +111,9 @@ API int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len,
                               uint64_t h1, uint64_t h2);
 API int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
                               uint64_t h1, uint64_t h2);
+
+// Release 'nc' and any associated resources. 0 on success, non-0 on failure.
+API int ncdirect_stop(struct ncdirect* nc);
 
 #undef API
 

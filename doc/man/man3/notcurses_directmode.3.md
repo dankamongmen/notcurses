@@ -56,6 +56,10 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);**
 
+**bool ncdirect_canopen_images(const struct ncdirect* n);**
+
+**bool ncdirect_canutf8(const struct ncdirect* n);**
+
 **nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncblitter_e blitter, ncscale_e scale);**
 
 # DESCRIPTION

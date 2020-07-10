@@ -364,6 +364,13 @@ nc_err_e ncdirect_render_image(struct ncdirect* nc, const char* filename,
                                ncblitter_e blitter, ncscale_e scale);
 ```
 
+Several of the Notcurses capability predicates have `ncdirect` analogues:
+
+```c
+bool ncdirect_canopen_images(const struct ncdirect* n);
+bool ncdirect_canutf8(const struct ncdirect* n);
+```
+
 ## Alignment
 
 Most functions that generate output can be aligned relative to an ncplane.
