@@ -34,6 +34,20 @@ int main(void){
       }
     }
   }
+  printf("\n");
+  uint64_t ul, ur, ll, lr;
+  ul = ur = ll = lr = 0;
+  channels_set_fg_rgb(&ul, 0xff, 0x0, 0xff);
+  channels_set_fg_rgb(&ur, 0x0, 0xff, 0x0);
+  channels_set_fg_rgb(&ll, 0x0, 0x0, 0xff);
+  channels_set_fg_rgb(&lr, 0xff, 0x0, 0x0);
+  if(ncdirect_rounded_box(n, ul, ur, ll, lr, 10, 10, 0) < 0){
+    return EXIT_FAILURE;
+  }
+  ncdirect_cursor_up(n, 9);
+  if(ncdirect_double_box(n, ul, ur, ll, lr, 10, 20, 0) < 0){
+    return EXIT_FAILURE;
+  }
   if(ncdirect_stop(n)){
     return EXIT_FAILURE;
   }

@@ -11,7 +11,9 @@ rearrangements of Notcurses.
     been purged, as have `min_` and `max_supported_rows` and `_cols`. There
     is no longer any need to provide a pipe/eventfd. `ncreel_touch()`,
     `ncreel_del_focused()`, and `ncreel_move()` have been removed.
-  * Added `ncdirect_hline_interp()` and `ncdirect_vline_interp()`.
+  * Added `ncdirect_hline_interp()`, `ncdirect_vline_interp()`,
+    `ncdirect_rounded_box()`, `ncdirect_double_box()`, and the ridiculously
+    flexible `ncdirect_box()`.
 
 * 1.6.0 (2020-07-04)
   * Behavior has changed regarding use of the provided `FILE*` (which, when

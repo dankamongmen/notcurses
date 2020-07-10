@@ -1668,12 +1668,6 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
   return ret;
 }
 
-// how many edges need touch a corner for it to be printed?
-static inline unsigned
-box_corner_needs(unsigned ctlword){
-  return (ctlword & NCBOXCORNER_MASK) >> NCBOXCORNER_SHIFT;
-}
-
 int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
                 const cell* ll, const cell* lr, const cell* hl,
                 const cell* vl, int ystop, int xstop,
