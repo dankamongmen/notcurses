@@ -436,6 +436,43 @@ TEST_CASE("Fills") {
     ncplane_destroy(p2);
   }
 
+  // test merging down one plane to another plane which is smaller than the
+  // standard plane when using unicode
+  SUBCASE("MergeDownSmallPlaneUni") {
+    constexpr int DIMX = 10;
+    constexpr int DIMY = 10;
+    auto p1 = ncplane_new(nc_, DIMY, DIMX, 2, 2, nullptr);
+    REQUIRE(p1);
+    uint64_t ul = 0, ur = 0, bl = 0, br = 0;
+    channels_set_fg(&ur, 0xff0000);
+    channels_set_fg(&bl, 0x00ff00);
+    channels_set_fg(&br, 0x0000ff);
+    ncplane_highgradient_sized(p1, ul, ur, bl, br, DIMY, DIMX);
+    CHECK(0 == notcurses_render(nc_));
+    auto p2 = ncplane_new(nc_, DIMY / 2, DIMX / 2, 3, 3, nullptr);
+    REQUIRE(p2);
+    ncplane_highgradient_sized(p2, br, bl, ur, ul, DIMY / 2, DIMX / 2);
+    CHECK(0 == ncplane_mergedown(p2, p1));
+    CHECK(0 == notcurses_render(nc_));
+    for(int y = 0 ; y < DIMY ; ++y){
+      for(int x = 0 ; x < DIMX ; ++x){
+        cell c1 = CELL_TRIVIAL_INITIALIZER;
+        CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
+        if(y < 1 || y > 5 || x < 1 || x > 5){
+          CHECK(0 == strcmp(extended_gcluster(p1, &c1), "▀"));
+        }else{
+          cell c2 = CELL_TRIVIAL_INITIALIZER;
+          CHECK(0 < ncplane_at_yx_cell(p2, y - 1, x - 1, &c2));
+          CHECK(0 == cellcmp(p1, &c1, p2, &c2));
+          cell_release(p2, &c2);
+        }
+        cell_release(p1, &c1);
+      }
+    }
+    ncplane_destroy(p1);
+    ncplane_destroy(p2);
+  }
+
 #ifdef USE_QRCODEGEN
   SUBCASE("QRCodes") {
     const char* qr = "a very simple qr code";
