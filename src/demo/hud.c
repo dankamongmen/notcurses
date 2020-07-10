@@ -479,11 +479,9 @@ demo_nanosleep_abstime_ns(struct notcurses* nc, uint64_t deadline){
     }
     ncinput ni;
     // throw away any input we receive. if it was for the menu or HUD, it was
-    // already dispatched internally to demo_getc().
-    char32_t id;
-    if((id = demo_getc(nc, &fsleep, &ni)) < 0){
-      return -1;
-    }
+    // already dispatched internally to demo_getc(). we need to ensure input
+    // is being procesed, however, to drive the demo elements.
+    demo_getc(nc, &fsleep, &ni);
     if(hud){
       int r = demo_render(nc);
       if(r){
