@@ -12,6 +12,10 @@ int main(void){
   if((n = ncdirect_init(NULL, stdout)) == NULL){
     return EXIT_FAILURE;
   }
+  if(!ncdirect_canopen_images(n)){
+    fprintf(stderr, "This notcurses was not build with multimedia support.\n");
+    return EXIT_FAILURE;
+  }
   if(ncdirect_render_image(n, "../data/normal.png", NCALIGN_LEFT,
                            NCBLIT_DEFAULT, NCSCALE_STRETCH) != NCERR_SUCCESS){
     return EXIT_FAILURE;

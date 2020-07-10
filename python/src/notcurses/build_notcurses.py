@@ -503,6 +503,8 @@ int ncdirect_cursor_right(struct ncdirect* nc, int num);
 int ncdirect_cursor_down(struct ncdirect* nc, int num);
 int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len, uint64_t h1, uint64_t h2);
 int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len, uint64_t h1, uint64_t h2);
+bool ncdirect_canopen_images(const struct ncdirect* n);
+bool ncdirect_canutf8(const struct ncdirect* n);
 nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncalign_e align, ncblitter_e blitter, ncscale_e scale);
 """)
 

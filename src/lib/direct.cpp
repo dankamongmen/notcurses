@@ -651,3 +651,21 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
   }
   return ret;
 }
+
+// Can we load images? This requires being built against FFmpeg/OIIO.
+bool ncdirect_canopen_images(const ncdirect* n){
+  (void)n;
+#ifdef USE_FFMPEG
+  return true;
+#else
+#ifdef USE_OIIO
+  return true;
+#endif
+#endif
+  return false;
+}
+
+// Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
+bool ncdirect_canutf8(const ncdirect* n){
+  return n->utf8;
+}
