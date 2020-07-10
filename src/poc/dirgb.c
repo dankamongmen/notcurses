@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
-#include <notcurses/notcurses.h>
+#include <notcurses/direct.h>
 
 static int
 print_b(struct ncdirect* nc, int r, int g, int total){

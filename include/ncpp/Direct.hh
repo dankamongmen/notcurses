@@ -2,6 +2,7 @@
 #define __NCPP_DIRECT_HH
 
 #include <cstdio>
+#include <notcurses/direct.h>
 #include <notcurses/notcurses.h>
 
 #include "Root.hh"

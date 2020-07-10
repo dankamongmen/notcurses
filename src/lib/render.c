@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <unistd.h>
+#include <notcurses/direct.h>
 #include "internal.h"
 
 // Check whether the terminal geometry has changed, and if so, copies what can
@@ -508,9 +509,8 @@ term_putc(FILE* out, const egcpool* e, const cell* c){
 // check the current and target style bitmasks against the specified 'stylebit'.
 // if they are different, and we have the necessary capability, write the
 // applicable terminfo entry to 'out'. returns -1 only on a true error.
-static int
-term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
-              const char* ton, const char* toff){
+int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
+                  const char* ton, const char* toff){
   int ret = 0;
   unsigned curon = cur & stylebit;
   unsigned targon = targ & stylebit;
@@ -691,112 +691,6 @@ term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
       return term_emit("setaf", tiparm(setaf, rgb_quantize_8(r, g, b)), out, false);
     }
   }
-  return 0;
-}
-
-static inline int
-ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out){
-  if(sgr == NULL){
-    return -1;
-  }
-  int r = term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
-                                  stylebits & NCSTYLE_UNDERLINE,
-                                  stylebits & NCSTYLE_REVERSE,
-                                  stylebits & NCSTYLE_BLINK,
-                                  stylebits & NCSTYLE_DIM,
-                                  stylebits & NCSTYLE_BOLD,
-                                  stylebits & NCSTYLE_INVIS,
-                                  stylebits & NCSTYLE_PROTECT, 0), out, false);
-  // sgr resets colors, so set them back up if not defaults
-  if(r == 0){
-    if(!n->fgdefault){
-      r |= ncdirect_fg(n, n->fgrgb);
-    }
-    if(!n->bgdefault){
-      r |= ncdirect_bg(n, n->bgrgb);
-    }
-  }
-  return r;
-}
-
-int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
-  n->attrword |= stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
-    return 0;
-  }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
-                       n->tcache.italics, n->tcache.italoff);
-}
-
-// turn off any specified stylebits
-int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
-  n->attrword &= ~stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
-    return 0;
-  }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
-                       n->tcache.italics, n->tcache.italoff);
-}
-
-// set the current stylebits to exactly those provided
-int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
-  n->attrword = stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
-    return 0;
-  }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
-                       n->tcache.italics, n->tcache.italoff);
-}
-
-int ncdirect_palette_size(const ncdirect* nc){
-  return nc->tcache.colors;
-}
-
-int ncdirect_fg_default(ncdirect* nc){
-  if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
-    nc->fgdefault = true;
-    if(nc->bgdefault){
-      return 0;
-    }
-    return ncdirect_bg(nc, nc->fgrgb);
-  }
-  return -1;
-}
-
-int ncdirect_bg_default(ncdirect* nc){
-  if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
-    nc->bgdefault = true;
-    if(nc->fgdefault){
-      return 0;
-    }
-    return ncdirect_fg(nc, nc->bgrgb);
-  }
-  return -1;
-}
-
-int ncdirect_bg(ncdirect* nc, unsigned rgb){
-  if(rgb > 0xffffffu){
-    return -1;
-  }
-  if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, nc->ttyfp,
-                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
-    return -1;
-  }
-  nc->bgdefault = false;
-  nc->bgrgb = rgb;
-  return 0;
-}
-
-int ncdirect_fg(ncdirect* nc, unsigned rgb){
-  if(rgb > 0xffffffu){
-    return -1;
-  }
-  if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, nc->ttyfp,
-                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
-    return -1;
-  }
-  nc->fgdefault = false;
-  nc->fgrgb = rgb;
   return 0;
 }
 
@@ -1179,4 +1073,30 @@ char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint32_t* attrword, uin
     }
   }
   return egc;
+}
+
+int ncdirect_bg(ncdirect* nc, unsigned rgb){
+  if(rgb > 0xffffffu){
+    return -1;
+  }
+  if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, nc->ttyfp,
+                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+    return -1;
+  }
+  nc->bgdefault = false;
+  nc->bgrgb = rgb;
+  return 0;
+}
+
+int ncdirect_fg(ncdirect* nc, unsigned rgb){
+  if(rgb > 0xffffffu){
+    return -1;
+  }
+  if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, nc->ttyfp,
+                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+    return -1;
+  }
+  nc->fgdefault = false;
+  nc->fgrgb = rgb;
+  return 0;
 }

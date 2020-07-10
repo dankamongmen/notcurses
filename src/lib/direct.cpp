@@ -6,6 +6,7 @@
 #include <termios.h>
 #include "version.h"
 #include "visual-details.h"
+#include "notcurses/direct.h"
 #include "internal.h"
 
 int ncdirect_putc(ncdirect* nc, uint64_t channels, const char* egc){
@@ -471,3 +472,82 @@ int ncdirect_stop(ncdirect* nc){
   return ret;
 }
 
+static inline int
+ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out){
+  if(sgr == NULL){
+    return -1;
+  }
+  int r = term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
+                                  stylebits & NCSTYLE_UNDERLINE,
+                                  stylebits & NCSTYLE_REVERSE,
+                                  stylebits & NCSTYLE_BLINK,
+                                  stylebits & NCSTYLE_DIM,
+                                  stylebits & NCSTYLE_BOLD,
+                                  stylebits & NCSTYLE_INVIS,
+                                  stylebits & NCSTYLE_PROTECT, 0), out, false);
+  // sgr resets colors, so set them back up if not defaults
+  if(r == 0){
+    if(!n->fgdefault){
+      r |= ncdirect_fg(n, n->fgrgb);
+    }
+    if(!n->bgdefault){
+      r |= ncdirect_bg(n, n->bgrgb);
+    }
+  }
+  return r;
+}
+
+int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
+  n->attrword |= stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
+    return 0;
+  }
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
+                       n->tcache.italics, n->tcache.italoff);
+}
+
+// turn off any specified stylebits
+int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
+  n->attrword &= ~stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
+    return 0;
+  }
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
+                       n->tcache.italics, n->tcache.italoff);
+}
+
+// set the current stylebits to exactly those provided
+int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
+  n->attrword = stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
+    return 0;
+  }
+  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
+                       n->tcache.italics, n->tcache.italoff);
+}
+
+int ncdirect_palette_size(const ncdirect* nc){
+  return nc->tcache.colors;
+}
+
+int ncdirect_fg_default(ncdirect* nc){
+  if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
+    nc->fgdefault = true;
+    if(nc->bgdefault){
+      return 0;
+    }
+    return ncdirect_bg(nc, nc->fgrgb);
+  }
+  return -1;
+}
+
+int ncdirect_bg_default(ncdirect* nc){
+  if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
+    nc->bgdefault = true;
+    if(nc->fgdefault){
+      return 0;
+    }
+    return ncdirect_fg(nc, nc->bgrgb);
+  }
+  return -1;
+}

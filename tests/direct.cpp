@@ -1,4 +1,5 @@
 #include "main.h"
+#include <notcurses/direct.h>
 
 TEST_CASE("DirectMode") {
   struct ncdirect* nc_ = ncdirect_init(NULL, stderr);

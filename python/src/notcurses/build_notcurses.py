@@ -4,6 +4,7 @@ ffibuild = FFI()
 ffibuild.set_source(
     "_notcurses",
     """
+    #include <notcurses/direct.h>
     #include <notcurses/notcurses.h>
     """,
     libraries=["notcurses"],

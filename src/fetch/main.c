@@ -9,6 +9,7 @@
 #include <sys/sysinfo.h>
 #endif
 #include <sys/utsname.h>
+#include <notcurses/direct.h>
 #include <notcurses/notcurses.h>
 
 typedef struct distro_info {

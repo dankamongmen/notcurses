@@ -823,6 +823,9 @@ int get_controlling_tty(void);
 // Convert a notcurses log level to some multimedia library equivalent.
 int ffmpeg_log_level(ncloglevel_e level);
 
+int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
+                  const char* ton, const char* toff);
+
 #ifdef __cplusplus
 }
 #endif
