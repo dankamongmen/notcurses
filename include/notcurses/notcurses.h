@@ -1519,6 +1519,8 @@ ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
   return ncplane_vprintf_yx(n, -1, -1, format, ap);
 }
 
+API int ncplane_vprintf_stainable(struct ncplane* n, const char* format, va_list ap);
+
 static inline int
 ncplane_printf(struct ncplane* n, const char* format, ...)
   __attribute__ ((format (printf, 2, 3)));
@@ -1555,6 +1557,19 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
   va_list va;
   va_start(va, format);
   int ret = ncplane_vprintf_aligned(n, y, align, format, va);
+  va_end(va);
+  return ret;
+}
+
+static inline int
+ncplane_printf_stainable(struct ncplane* n, const char* format, ...)
+  __attribute__ ((format (printf, 2, 3)));
+
+static inline int
+ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
+  va_list va;
+  va_start(va, format);
+  int ret = ncplane_vprintf_stainable(n, format, va);
   va_end(va);
   return ret;
 }

@@ -1456,6 +1456,16 @@ int ncplane_vprintf_aligned(ncplane* n, int y, ncalign_e align,
   return ret;
 }
 
+int ncplane_vprintf_stainable(struct ncplane* n, const char* format, va_list ap){
+  char* r = ncplane_vprintf_prep(format, ap);
+  if(r == NULL){
+    return -1;
+  }
+  int ret = ncplane_putstr_stainable(n, r);
+  free(r);
+  return ret;
+}
+
 int ncplane_hline_interp(ncplane* n, const cell* c, int len,
                          uint64_t c1, uint64_t c2){
   unsigned ur, ug, ub;
