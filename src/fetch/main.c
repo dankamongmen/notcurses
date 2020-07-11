@@ -274,10 +274,17 @@ drawpalette(struct ncdirect* nc){
 static struct notcurses*
 place_infoplane(struct ncdirect* ncd, int planeheight){
   const int dimy = ncdirect_dim_y(ncd);
-  int cury;
-  if(ncdirect_cursor_yx(ncd, &cury, NULL)){
+  int cury, curx;
+  if(ncdirect_cursor_yx(ncd, &cury, &curx)){
     ncdirect_stop(ncd);
     return NULL;
+  }
+  // kmscon (and possibly other terminals) report rows/columns in the opposite
+  // order from normal. if cury/curx are clearly wrong, flip 'em. gross.
+  if(cury < curx){
+    int tmp = curx;
+    curx = cury;
+    cury = tmp;
   }
   struct notcurses_options opts = {
     .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_INHIBIT_SETLOCALE
@@ -447,6 +454,9 @@ ncneofetch(struct ncdirect* nc){
     pthread_join(tid, NULL);
   }
   if(infoplane(nc, &fi)){
+    return -1;
+  }
+  if(printf("\n") < 0){
     return -1;
   }
   return 0;
