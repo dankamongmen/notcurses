@@ -209,6 +209,7 @@ int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
 int ncplane_putwc(struct ncplane* n, wchar_t w);
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
 int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
+int ncplane_putstr_stainable(struct ncplane* n, const char* s);
 struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
 void cell_init(cell* c);
 int cell_load(struct ncplane* n, cell* c, const char* gcluster);

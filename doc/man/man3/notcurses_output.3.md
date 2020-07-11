@@ -42,6 +42,8 @@ notcurses_output - output to ncplanes
 
 **int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);**
 
+**int ncplane_putstr_stainable(struct ncplane* n, const char* s);**
+
 **int ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr);**
 
 **static inline int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align, const wchar_t* gclustarr);**

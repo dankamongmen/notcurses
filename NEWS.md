@@ -14,6 +14,7 @@ rearrangements of Notcurses.
   * Added `ncdirect_hline_interp()`, `ncdirect_vline_interp()`,
     `ncdirect_rounded_box()`, `ncdirect_double_box()`, and the ridiculously
     flexible `ncdirect_box()`.
+  * Added `ncplane_putstr_stainable()`.
 
 * 1.6.0 (2020-07-04)
   * Behavior has changed regarding use of the provided `FILE*` (which, when

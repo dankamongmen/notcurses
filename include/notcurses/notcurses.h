@@ -1440,6 +1440,10 @@ ncplane_putstr(struct ncplane* n, const char* gclustarr){
 API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
                                const char* s);
 
+// Replace a string's worth of glyphs at the current cursor location, but
+// retain the styling. The current styling of the plane will not be changed.
+API int ncplane_putstr_stainable(struct ncplane* n, const char* s);
+
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of columns

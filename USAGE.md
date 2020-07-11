@@ -982,6 +982,10 @@ ncplane_putstr(struct ncplane* n, const char* gclustarr){
 
 int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
 
+// Replace a string's worth of glyphs at the current cursor location, but
+// retain the styling. The current styling of the plane will not be changed.
+int ncplane_putstr_stainable(struct ncplane* n, const char* s);
+
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
 ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){

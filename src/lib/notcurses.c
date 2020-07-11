@@ -2265,6 +2265,24 @@ int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
   return ret;
 }
 
+int ncplane_putstr_stainable(struct ncplane* n, const char* gclusters){
+  int ret = 0;
+  // FIXME speed up this blissfully naive solution
+  while(*gclusters){
+    int wcs;
+    int cols = ncplane_putegc_stainable(n, gclusters, &wcs);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    gclusters += wcs;
+    ret += wcs;
+  }
+  return ret;
+}
+
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
   size_t ret = 0;
   // FIXME speed up this blissfully naive solution
