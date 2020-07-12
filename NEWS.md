@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.1 (not yet released)
+* 1.6.1 (2020-07-12)
   * Added `notcurses_version_components()` to get the numeric components of
     the loaded Notcurses version.
   * Added `notcurses_render_file()` to dump last rendered frame to a `FILE*`.
