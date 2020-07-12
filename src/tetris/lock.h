@@ -26,8 +26,8 @@ bool LockPiece(){ // returns true if game has ended by reaching level 16
       }
       linescleared_ += cleared;
       static constexpr int points[] = {50, 150, 350, 1000};
-      score_ += (level_ + 1) * points[cleared - 1];
-      if((level_ = linescleared_ / 10) > MAX_LEVEL){
+      score_ += (level_) * points[cleared - 1];
+      if((level_ = linescleared_ / 10 + 1) > MAX_LEVEL){
         return true;
       }
       mtx_.lock();

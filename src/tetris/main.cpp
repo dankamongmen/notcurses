@@ -29,7 +29,7 @@ public:
     stdplane_(nc_.get_stdplane()),
     scoreplane_(nullptr),
     gameover_(gameover),
-    level_(0),
+    level_(1),
     linescleared_(0),
     msdelay_(Gravity(level_))
   {

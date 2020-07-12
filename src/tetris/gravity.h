@@ -1,4 +1,4 @@
-static constexpr int MAX_LEVEL = 15;
+static constexpr int MAX_LEVEL = 16;
 // the number of milliseconds before a drop is forced at the given level,
 // using the NES fps counter of 50ms
 static constexpr int Gravity(int level) {
