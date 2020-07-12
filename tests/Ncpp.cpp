@@ -10,20 +10,51 @@ TEST_CASE("Ncpp"
   // or even just no argument (decays to nullptr).
   SUBCASE("ConstructNotCurses") {
     NotCurses nc;
+    CHECK(!NotCurses::is_notcurses_stopped(&nc));
     CHECK(nc.stop());
+    CHECK(NotCurses::is_notcurses_stopped(&nc));
   }
 
   SUBCASE("ConstructNotCursesNullFILE") {
     NotCurses ncnull(nullptr);
+    CHECK(!NotCurses::is_notcurses_stopped(&ncnull));
     CHECK(ncnull.stop());
+    CHECK(NotCurses::is_notcurses_stopped(&ncnull));
   }
 
   // we ought be able to get a new NotCurses object after stop()ping one.
   SUBCASE("ConstructNotCursesTwice") {
     NotCurses nc;
     CHECK(nc.stop());
+    CHECK(NotCurses::is_notcurses_stopped(&nc));
     NotCurses ncnull(nullptr);
+    CHECK(!NotCurses::is_notcurses_stopped(&ncnull));
     CHECK(ncnull.stop());
+    CHECK(NotCurses::is_notcurses_stopped(&ncnull));
+  }
+
+  SUBCASE("StdPlane") {
+    NotCurses nc;
+    auto std1 = nc.get_stdplane();
+    CHECK(nullptr != std1);
+    int y, x;
+    auto std2 = nc.get_stdplane(&y, &x);
+    CHECK(nullptr != std2);
+    CHECK(0 < x);
+    CHECK(0 < y);
+    CHECK(nc.stop());
+  }
+
+  SUBCASE("Debug") { // just test to ensure it doesn't coredump
+    NotCurses nc;
+    nc.debug(stderr);
+    CHECK(nc.stop());
+  }
+
+  SUBCASE("GetPaletteSize") {
+    NotCurses nc;
+    CHECK(0 < nc.get_palette_size());
+    CHECK(nc.stop());
   }
 
   SUBCASE("VisualFromFile") {
