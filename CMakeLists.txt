@@ -16,11 +16,9 @@ include(GNUInstallDirs)
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(USE_COVERAGE "Assess code coverage with llvm-cov/lcov" OFF)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
-option(USE_NETWORK "Allow cargo to use the network" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_PYTHON "Build Python wrappers" ON)
 option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
-option(USE_RUST "Build Rust wrappers (experimental)" OFF)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
@@ -633,49 +631,6 @@ if(${USE_PYTHON})
       ${CMAKE_CURRENT_BINARY_DIR}/python
   )
   install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} setup.py install --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)")
-endif()
-
-# Rust bindings
-if(${USE_RUST})
-  file(GLOB LIBNCRSSRC CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys/src/*.rs ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys/src/*.rs)
-  set(LIBNOTCURSESSYS ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/liblibnotcurses_sys.rlib)
-  set(CRATENOTCURSES ${CMAKE_CURRENT_BINARY_DIR}/rust/debug/libnotcurses.rlib)
-  find_program(CARGO cargo REQUIRED)
-  # might need --locked here
-  set(CARGO_ARGS --verbose --release)
-  if(NOT ${USE_NETWORK})
-    set(CARGO_ARGS "${CARGO_ARGS}" --offline) # might want --frozen here
-  endif()
-  add_custom_command(
-    OUTPUT
-      ${LIBNOTCURSESSYS}
-    COMMAND
-      PKG_CONFIG_PATH=${CMAKE_CURRENT_BINARY_DIR} CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
-    DEPENDS
-      ${LIBNCRSSRC}
-    COMMENT "Building rust crate libnotcurses-sys"
-    WORKING_DIRECTORY
-      ${CMAKE_CURRENT_SOURCE_DIR}/rust/libnotcurses-sys
-  )
-  add_custom_target(libnotcurses-sys ALL
-    DEPENDS
-      ${LIBNOTCURSESSYS}
-  )
-  add_custom_command(
-    OUTPUT
-      ${CRATENOTCURSES}
-    COMMAND
-      CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/rust CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/rust ${CARGO} build ${CARGO_ARGS}
-    DEPENDS
-      ${CRATENOTCURSESSRC} ${LIBNOTCURSESSYS}
-    COMMENT "Building rust crate notcurses"
-    WORKING_DIRECTORY
-      ${CMAKE_CURRENT_SOURCE_DIR}/rust/notcurses
-  )
-  add_custom_target(cratenotcurses ALL
-    DEPENDS
-      ${CRATENOTCURSES}
-  )
 endif()
 
 # Installation

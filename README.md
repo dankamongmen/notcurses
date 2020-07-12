@@ -161,8 +161,6 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
 * `USE_PYTHON`: build the Python wrappers
-* `USE_RUST`: build the Rust wrappers
-* `USE_NETWORK`: allow `cargo` to use the network for building Rust
 * `USE_STATIC`: build static libraries (in addition to shared ones)
 * `USE_COVERAGE`: build coverage support (for developers, requires use of Clang)
 
