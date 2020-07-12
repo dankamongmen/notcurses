@@ -2302,6 +2302,13 @@ int ncplane_putstr_stainable(struct ncplane* n, const char* gclusters){
   return ret;
 }
 
+int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
+  char* chopped = strndup(str, s);
+  int ret = ncplane_putstr_aligned(n, y, align, chopped);
+  free(chopped);
+  return ret;
+}
+
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
   size_t ret = 0;
   // FIXME speed up this blissfully naive solution
