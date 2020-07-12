@@ -1,10 +1,17 @@
 void StainBoard(int dimy, int dimx){
   board_->cursor_move(0, 1);
-  int high = 0xff - level_ * 16, low = level_ * 16; // rgb calculation limits us to 16 levels (0--15)
+  const int l = level_ - 1;
+  int high = 0xff - l * 0x10, low = l * 0x20; // rgb calculation limits us to 16 levels (1--16)
+  int green = 0;
+  if(low >= 0x100){
+    low = low % 0x100;
+    green = (l - 8) * 0x20;
+  }
   uint64_t tl = 0, tr = 0, bl = 0, br = 0;
-  channels_set_fg_rgb(&tl, high, 0xff, low); channels_set_bg_alpha(&tl, CELL_ALPHA_TRANSPARENT);
-  channels_set_fg_rgb(&tr, low, high, 0xff); channels_set_bg_alpha(&tr, CELL_ALPHA_TRANSPARENT);
-  channels_set_fg_rgb(&bl, 0xff, low, high); channels_set_bg_alpha(&bl, CELL_ALPHA_TRANSPARENT);
-  channels_set_fg_rgb(&br, 0xff, high, low); channels_set_bg_alpha(&br, CELL_ALPHA_TRANSPARENT);
+  const int c1 = level_ % 2 ? high : low; const int c2 = level_ % 2 ? low : high;
+  channels_set_fg_rgb(&tl, c1, green, c2); channels_set_bg_alpha(&tl, CELL_ALPHA_TRANSPARENT);
+  channels_set_fg_rgb(&tr, c2, green, c1); channels_set_bg_alpha(&tr, CELL_ALPHA_TRANSPARENT);
+  channels_set_fg_rgb(&bl, c2, green, c1); channels_set_bg_alpha(&bl, CELL_ALPHA_TRANSPARENT);
+  channels_set_fg_rgb(&br, c1, green, c2); channels_set_bg_alpha(&br, CELL_ALPHA_TRANSPARENT);
   board_->stain(dimy - 2, dimx - 2, tl, tr, bl, br);
 }

@@ -10,7 +10,7 @@ bool IOLoop(ncpp::NotCurses& nc, Tetris& t, std::atomic_bool& gameover) {
     switch(input){
       case NCKEY_LEFT: case 'h': t.MoveLeft(); break;
       case NCKEY_RIGHT: case 'l': t.MoveRight(); break;
-      case NCKEY_DOWN: case 'j': t.MoveDown(); break;
+      case NCKEY_DOWN: case 'j': { if(t.MoveDown()){ gameover = true; } break; }
       case 'L': if(ni.ctrl){ nc.refresh(nullptr, nullptr); } break;
       case 'z': t.RotateCcw(); break;
       case 'x': t.RotateCw(); break;
@@ -32,7 +32,7 @@ int main(void) {
   srand(time(nullptr));
   std::atomic_bool gameover = false;
   notcurses_options ncopts{};
-  ncopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  ncopts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN;
   ncpp::NotCurses nc(ncopts);
   {
     Tetris t{nc, gameover};
