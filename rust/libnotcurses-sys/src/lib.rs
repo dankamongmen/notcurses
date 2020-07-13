@@ -68,10 +68,6 @@ mod tests {
     use super::*;
     use serial_test_derive::serial; // serialize tests w/ ffi::notcurses_init()
 
-    extern {
-        fn libc_stdout() -> *mut _IO_FILE;
-    }
-
     #[test]
     #[serial]
     fn get_notcurses_version() {
@@ -101,7 +97,7 @@ mod tests {
                 margin_l: 0,
                 flags: NCOPTION_NO_ALTERNATE_SCREEN as u64,
             };
-            let nc = notcurses_init(&opts, libc_stdout());
+            let nc = notcurses_init(&opts, std::ptr::null_mut());
             notcurses_stop(nc);
         }
     }
