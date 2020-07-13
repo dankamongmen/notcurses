@@ -120,10 +120,17 @@ jam_linux_consolefont(int fd, unsigned showglyphs, unsigned* upper, unsigned* lo
     free(cfd.chardata);
     return -1;
   }
-  *upper = cfd.charcount - 1;
-  *lower = cfd.charcount - 2;
+  *upper = cfd.charcount - 2;
+  *lower = cfd.charcount - 1;
+  // FIXME find best place. could be whatever the fewest unicodes map to, or
+  // something similar to our target, or who knows...
   if(shim_upper_half_block(&cfd, *upper) || shim_lower_half_block(&cfd, *lower)){
     fprintf(stderr, "Failed to shim font\n");
+    free(cfd.chardata);
+    return -1;
+  }
+  if(ioctl(fd, PIO_FONTX, &cfd)){
+    fprintf(stderr, "Failed to set font (%s)\n", strerror(errno));
     free(cfd.chardata);
     return -1;
   }
@@ -165,7 +172,7 @@ jam_linux_consolefont(int fd, unsigned showglyphs, unsigned* upper, unsigned* lo
 }
 
 static int
-jam_linux_consolemap(int fd){
+jam_linux_consolemap(int fd, unsigned upper, unsigned lower){
   struct unimapdesc map = {};
   map.entry_ct = USHRT_MAX;
   map.entries = malloc(map.entry_ct * sizeof(struct unipair));
@@ -175,6 +182,37 @@ jam_linux_consolemap(int fd){
     return -1;
   }
   printf("Unicode->font entries: %hu\n", map.entry_ct);
+  unsigned found_up = 0, found_low = 0;
+  for(int i = 0 ; i < map.entry_ct ; ++i){
+    if(map.entries[i].unicode == 0x2580){ // upper half block
+      map.entries[i].fontpos = upper;
+      found_up = 1;
+    }else if(map.entries[i].unicode == 0x2584){ // lower half block
+      map.entries[i].fontpos = lower;
+      found_low = 1;
+    }
+  }
+  const int need_insert = !found_up + !found_low;
+  if(map.entry_ct > USHRT_MAX - need_insert){
+    fprintf(stderr, "Too many damn entries (need %d)!\n", need_insert);
+    free(map.entries);
+    return -1;
+  }
+  if(!found_up){
+    map.entries[map.entry_ct].unicode = 0x2580;
+    map.entries[map.entry_ct].fontpos = upper;
+    ++map.entry_ct;
+  }
+  if(!found_low){
+    map.entries[map.entry_ct].unicode = 0x2584;
+    map.entries[map.entry_ct].fontpos = lower;
+    ++map.entry_ct;
+  }
+  if(ioctl(fd, PIO_UNIMAP, &map)){
+    fprintf(stderr, "Error writing Unicode->font map (%s)\n", strerror(errno));
+    free(map.entries);
+    return -1;
+  }
   for(int i = 0 ; i < map.entry_ct ; ++i){
     wchar_t w = map.entries[i].unicode;
     printf(" %05hx (%lc)->%3hu ", map.entries[i].unicode,
@@ -208,10 +246,13 @@ int main(int argc, char** argv){
   if(!is_linux_console(fd)){
     return EXIT_FAILURE;
   }
-  int r = 0;
+  int r = -1;
   unsigned upper, lower;
-  r |= jam_linux_consolefont(fd, true, &upper, &lower);
-  r |= jam_linux_consolemap(fd);
+  if(jam_linux_consolefont(fd, true, &upper, &lower) == 0){
+    if(jam_linux_consolemap(fd, upper, lower) == 0){
+      r = 0;
+    }
+  }
   if(close(fd)){
     fprintf(stderr, "Error closing %d (%s)\n", fd, strerror(errno));
   }
