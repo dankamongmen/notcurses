@@ -112,12 +112,14 @@ setup_signals(notcurses* nc, bool no_quit_sigs, bool no_winch_sig){
     sigaddset(&sa.sa_mask, SIGQUIT);
     sigaddset(&sa.sa_mask, SIGSEGV);
     sigaddset(&sa.sa_mask, SIGABRT);
+    sigaddset(&sa.sa_mask, SIGTERM);
     sa.sa_flags = SA_RESETHAND; // don't try twice
     int ret = 0;
     ret |= sigaction(SIGINT, &sa, &oldact);
     ret |= sigaction(SIGQUIT, &sa, &oldact);
     ret |= sigaction(SIGSEGV, &sa, &oldact);
     ret |= sigaction(SIGABRT, &sa, &oldact);
+    ret |= sigaction(SIGTERM, &sa, &oldact);
     if(ret){
       atomic_store(&signal_nc, NULL);
       fprintf(stderr, "Error installing fatal signal handlers (%s)\n",

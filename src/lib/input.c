@@ -282,6 +282,8 @@ block_on_input(FILE* fp, const struct timespec* ts, sigset_t* sigmask){
   sigdelset(sigmask, SIGINT);
   sigdelset(sigmask, SIGQUIT);
   sigdelset(sigmask, SIGSEGV);
+  sigdelset(sigmask, SIGABRT);
+  sigdelset(sigmask, SIGTERM);
 #ifdef POLLRDHUP
   pfd.events |= POLLRDHUP;
 #endif
