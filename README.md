@@ -121,7 +121,7 @@ that fine library.
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+
 * (OPTIONAL) (rust bindings): rust 1.40.0+, cargo 0.40.0+, [bindgen](https://crates.io/crates/bindgen) 0.53.0+
-* (runtime) Linux 5.3+ or FreeBSD 12+
+* (runtime) Linux 5.3+ or FreeBSD 11+
 
 ### Building
 
@@ -129,6 +129,7 @@ that fine library.
 * `cmake ..`. You might want to set e.g. `CMAKE_BUILD_TYPE`.
 * `make`
 * `make test`
+* `make install`
 
 The default multimedia engine is FFmpeg. You can select a different engine
 using `USE_MULTIMEDIA`. Valid values are `ffmpeg`, `oiio` (for OpenImageIO),
@@ -147,6 +148,8 @@ Install with `make install` following a successful build.
 To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
 be found on the `notcurses-demo(1)` man page.
 
+This does not install the Python or Rust wrappers.
+
 #### Build options
 
 To set the C compiler, export `CC`. To set the C++ compiler, export `CXX`. The
@@ -160,7 +163,6 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
-* `USE_PYTHON`: build the Python wrappers
 * `USE_STATIC`: build static libraries (in addition to shared ones)
 * `USE_COVERAGE`: build coverage support (for developers, requires use of Clang)
 
