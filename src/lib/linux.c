@@ -132,10 +132,10 @@ shim_lower_right_quad(struct consolefontdesc* cfd, unsigned idx){
 static int
 program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
   struct simset {
-    bool found[8];
-    wchar_t ws[8];
+    bool found[10];
+    wchar_t ws[10];
     int fontidx;
-  } sets[4] = {
+  } sets[] = {
     {
       .found = {},
       .ws = L"└┕┖┗╘╙╚╰",
@@ -151,6 +151,14 @@ program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
     }, {
       .found = {},
       .ws = L"┐┑┒┓╕╖╗╮",
+      .fontidx = -1,
+    }, {
+      .found = {},
+      .ws = L"─━┄┅┈┉╌╍═",
+      .fontidx = -1,
+    }, {
+      .found = {},
+      .ws = L"│┃┆┇┊┋╎╏║",
       .fontidx = -1,
     }
   };
@@ -193,7 +201,7 @@ program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
     return 0;
   }
   if(ioctl(nc->ttyfd, PIO_UNIMAP, map)){
-    logwarn(nc, "Error setting kernel unicode map (%s)\n", strerror(errno));
+    logwarning(nc, "Error setting kernel unicode map (%s)\n", strerror(errno));
     return -1;
   }
   loginfo(nc, "Successfully added %d kernel unicode mapping%s\n",
