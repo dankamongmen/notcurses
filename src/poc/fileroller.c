@@ -13,8 +13,7 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static int
 cb(struct ncfdplane* ncfd, const void* data, size_t len, void* curry){
   int ret = -1;
-  // FIXME unsafe -- input isn't necessarily nul-terminated!
-  if(ncplane_putstr(ncfdplane_plane(ncfd), data) >= 0){
+  if(ncplane_putnstr(ncfdplane_plane(ncfd), len, data) >= 0){
     if(!notcurses_render(ncplane_notcurses(ncfdplane_plane(ncfd)))){
       ret = 0;
     }
@@ -62,7 +61,10 @@ int main(int argc, char** argv){
     }
     fddone = false;
     pthread_mutex_unlock(&lock);
-    ncfdplane_destroy(ncfp);
+    if(ncfdplane_destroy(ncfp)){
+      notcurses_stop(nc);
+      return EXIT_FAILURE;
+    }
   }
 
 done:

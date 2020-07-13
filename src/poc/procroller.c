@@ -13,8 +13,8 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static int
 cb(struct ncfdplane* ncfd, const void* data, size_t len, void* curry){
   int ret = -1;
-  // FIXME unsafe -- input isn't necessarily nul-terminated!
-  if(ncplane_putstr(ncfdplane_plane(ncfd), data) >= 0){
+  ncplane_set_scrolling(ncfdplane_plane(ncfd), true);
+  if(ncplane_putnstr(ncfdplane_plane(ncfd), len, data) >= 0){
     if(!notcurses_render(ncplane_notcurses(ncfdplane_plane(ncfd)))){
       ret = 0;
     }
@@ -50,16 +50,24 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   ++argv;
-  struct ncplane* n = notcurses_stdplane(nc);
-  ncplane_set_scrolling(n, true);
+  struct ncplane* std = notcurses_stdplane(nc);
+  ncplane_set_scrolling(std, true);
   ncsubproc_options nopts = {};
-  struct ncsubproc* nsproc = ncsubproc_createvp(n, &nopts, *argv, argv, cb, eofcb);
+  struct ncsubproc* nsproc = ncsubproc_createvp(std, &nopts, *argv, argv, cb, eofcb);
+  if(nsproc == NULL){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   pthread_mutex_lock(&lock);
   while(!fddone){
     pthread_cond_wait(&cond, &lock);
   }
   pthread_mutex_unlock(&lock);
-  ncsubproc_destroy(nsproc);
+  notcurses_render(nc);
+  if(ncsubproc_destroy(nsproc)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
