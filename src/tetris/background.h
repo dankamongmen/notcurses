@@ -4,8 +4,7 @@ void DrawBackground(const std::string& s) { // drawn to the standard plane
   backg_->decode();
   ncvisual_options opts{};
   opts.scaling = NCSCALE_STRETCH;
-  auto p = backg_->render(&opts);
-  ncplane_greyscale(p);
+  backg_->render(&opts);
 }
 
 void DrawBoard() { // draw all fixed components of the game
