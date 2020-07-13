@@ -14,7 +14,7 @@ steps:
     - make
     - env TERM=xterm make test
 ---
-kind: pipelin
+kind: pipeline
 type: docker
 name: ubuntu-focal
 
