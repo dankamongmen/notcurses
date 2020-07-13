@@ -214,6 +214,27 @@ program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
 }
 
 static int
+program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
+                            struct unimapdesc* map){
+  struct shimmer {
+    int (*glyphfxn)(struct consolefontdesc* cfd, unsigned idx);
+    wchar_t w;
+  } shimmers[] = {
+    { .glyphfxn = shim_upper_half_block, .w = L'▀', },
+    { .glyphfxn = shim_lower_half_block, .w = L'▄', },
+    { .glyphfxn = shim_left_half_block, .w = L'▌', },
+    { .glyphfxn = shim_right_half_block, .w = L'▐', },
+    // FIXME more
+  };
+  int toadd = 0;
+
+  // FIXME need a table of functions + UCS2
+  loginfo(nc, "Successfully added %d kernel font glyph%s\n",
+          toadd, toadd == 1 ? "" : "s");
+  return 0;
+}
+
+static int
 reprogram_linux_font(const notcurses* nc, struct consolefontdesc* cfd,
                      struct unimapdesc* map){
   if(ioctl(nc->ttyfd, GIO_FONTX, cfd)){
@@ -236,11 +257,8 @@ reprogram_linux_font(const notcurses* nc, struct consolefontdesc* cfd,
   if(program_line_drawing_chars(nc, map)){
     return -1;
   }
-  for(unsigned idx = 0 ; idx < map->entry_ct ; ++idx){
-    // FIXME check to see if our desired codepoints already map
-    //  if already declared, trust it?
-    // if not, see if we ought add one or reuse something
-    // if we want to add, find a good place
+  if(program_block_drawing_chars(nc, cfd, map)){
+    return -1;
   }
   return 0;
 }
