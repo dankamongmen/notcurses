@@ -821,10 +821,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  if((ret->ttyfd = get_tty_fd(ret, ret->ttyfp)) < 0){
-    free(ret);
-    return NULL;
-  }
+  ret->ttyfd = get_tty_fd(ret, ret->ttyfp);
   is_linux_console(ret);
   notcurses_mouse_disable(ret);
   if(ret->ttyfd >= 0){
