@@ -112,12 +112,14 @@ setup_signals(notcurses* nc, bool no_quit_sigs, bool no_winch_sig){
     sigaddset(&sa.sa_mask, SIGQUIT);
     sigaddset(&sa.sa_mask, SIGSEGV);
     sigaddset(&sa.sa_mask, SIGABRT);
+    sigaddset(&sa.sa_mask, SIGTERM);
     sa.sa_flags = SA_RESETHAND; // don't try twice
     int ret = 0;
     ret |= sigaction(SIGINT, &sa, &oldact);
     ret |= sigaction(SIGQUIT, &sa, &oldact);
     ret |= sigaction(SIGSEGV, &sa, &oldact);
     ret |= sigaction(SIGABRT, &sa, &oldact);
+    ret |= sigaction(SIGTERM, &sa, &oldact);
     if(ret){
       atomic_store(&signal_nc, NULL);
       fprintf(stderr, "Error installing fatal signal handlers (%s)\n",
@@ -814,7 +816,16 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->inputbuf_valid_starts = 0;
   ret->inputbuf_write_at = 0;
   ret->input_events = 0;
-  ret->ttyfd = get_tty_fd(ret, ret->ttyfp);
+  if((ret->loglevel = opts->loglevel) > NCLOGLEVEL_TRACE || ret->loglevel < 0){
+    fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
+    free(ret);
+    return NULL;
+  }
+  if((ret->ttyfd = get_tty_fd(ret, ret->ttyfp)) < 0){
+    free(ret);
+    return NULL;
+  }
+  is_linux_console(ret);
   notcurses_mouse_disable(ret);
   if(ret->ttyfd >= 0){
     if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
@@ -2290,6 +2301,13 @@ int ncplane_putstr_stainable(struct ncplane* n, const char* gclusters){
     gclusters += wcs;
     ret += wcs;
   }
+  return ret;
+}
+
+int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
+  char* chopped = strndup(str, s);
+  int ret = ncplane_putstr_aligned(n, y, align, chopped);
+  free(chopped);
   return ret;
 }
 

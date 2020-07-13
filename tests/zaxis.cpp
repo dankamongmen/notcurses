@@ -112,5 +112,15 @@ TEST_CASE("ZAxis") {
     // FIXME inspect
   }
 
+  SUBCASE("DropPlanes") {
+    auto p = ncplane_new(nc_, 1, 1, 1, 1, nullptr);
+    REQUIRE(nullptr != p);
+    CHECK(notcurses_top(nc_) == p);
+    CHECK(0 == notcurses_render(nc_));
+    notcurses_drop_planes(nc_);
+    CHECK(notcurses_top(nc_) != p);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 }

@@ -861,6 +861,12 @@ typedef enum {
 // of the "alternate screen". This flag inhibits use of smcup/rmcup.
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
 
+// Do not modify the font. Notcurses might attempt to change the font slightly,
+// to support certain glyphs (especially on the Linux console). If this is set,
+// no such modifications will be made. Note that font changes will not affect
+// anything but the virtual console/terminal in which Notcurses is running.
+#define NCOPTION_NO_FONT_CHANGES     0x0080ull
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
