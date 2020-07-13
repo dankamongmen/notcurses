@@ -11,18 +11,33 @@ notcurses_init - initialize a notcurses instance
 **#include <notcurses/notcurses.h>**
 
 ```c
-#define NCOPTION_INHIBIT_SETLOCALE 0x0001
+#define NCOPTION_INHIBIT_SETLOCALE   0x0001ull
+#define NCOPTION_VERIFY_SIXEL        0x0002ull
+#define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
+#define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
+#define NCOPTION_RETAIN_CURSOR       0x0010ull
+#define NCOPTION_SUPPRESS_BANNERS    0x0020ull
+#define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
+#define NCOPTION_NO_FONT_CHANGES     0x0080ull
+
+typedef enum {
+  NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
+  NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
+  NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
+  NCLOGLEVEL_ERROR,   // we can't keep doin' this, but we can do other things
+  NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
+  NCLOGLEVEL_INFO,    // "standard information"
+  NCLOGLEVEL_VERBOSE, // "detailed information"
+  NCLOGLEVEL_DEBUG,   // this is honestly a bit much
+  NCLOGLEVEL_TRACE,   // there's probably a better way to do what you want
+} ncloglevel_e;
 
 typedef struct notcurses_options {
   const char* termtype;
-  bool inhibit_alternate_screen;
-  bool retain_cursor;
-  bool suppress_banner;
-  bool no_quit_sighandlers;
-  bool no_winch_sighandler;
   FILE* renderfp;
+  ncloglevel_e loglevel;
   int margin_t, margin_r, margin_b, margin_l;
-  unsigned flags; // from NCOPTION_* bits
+  uint64_t flags; // from NCOPTION_* bits
 } notcurses_options;
 ```
 
@@ -55,18 +70,18 @@ display capabilities, and/or display errors. notcurses natively targets
 
 If the terminal advertises support for an "alternate screen" via the **smcup**
 terminfo capability, notcurses will employ it by default. This can be prevented
-by setting **inhibit_alternate_screen** to **true**. Users tend to have strong
-opinions regarding the alternate screen, so it's often useful to expose this
-via a command-line option.
+by setting **NCOPTION_NO_ALTERNATE_SCREEN** in **flags**. Users tend to have
+strong opinions regarding the alternate screen, so it's often useful to expose
+this via a command-line option.
 
-notcurses furthermore hides the cursor by default, but **retain_cursor** can
-prevent this (the cursor can be dynamically enabled or disabled during
+notcurses furthermore hides the cursor by default, but **NCOPTION_RETAIN_CURSOR**
+can prevent this (the cursor can be dynamically enabled or disabled during
 execution via **notcurses_cursor_enable(3)** and **notcurses_cursor_disable(3)**).
 
 **notcurses_init** typically emits some diagnostics at startup, including version
 information and some details of the configured terminal. This can be inhibited
-with **suppress_banner**. This will also inhibit the performance summary normally
-printed by **notcurses_stop(3)**.
+with **NCOPTION_SUPPRESS_BANNERS**. This will also inhibit the performance
+summary normally printed by **notcurses_stop(3)**.
 
 Notcurses can render to a subregion of the terminal by specifying desired
 margins on all four sides. By default, all margins are zero, and thus rendering
@@ -93,6 +108,32 @@ zero. The following flags are defined:
     the **LANG** environment variable. Your program should call **setlocale(3)**
     itself, usually as one of the first lines.
 
+* **NCOPTION_VERIFY_SIXEL**: Checking for Sixel support requires writing an
+    escape, and then reading an inline reply from the terminal. Since this can
+    interact poorly with actual user input, it's not done unless Sixel will
+    actually be used. Set this flag to unconditionally test for Sixel support
+    in **notcurses_init**.
+
+* **NCOPTION_NO_WINCH_SIGHANDLER**: A signal handler will usually be installed
+    for **SIGWINCH**, resulting in **NCKEY_RESIZE** events being generated on
+    input. With this flag, the handler will not be installed.
+
+* **NCOPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be installed
+    for **SIGINT**, **SIGQUIT**, **SIGSEGV**, **SIGTERM**, and **SIGABRT**,
+    cleaning up the terminal on such exceptions. With this flag, the handler
+    will not be installed.
+
+* **NCOPTION_RETAIN_CURSOR**: Notcurses typically disables the cursor on
+    startup. With this flag, the cursor will be left enabled.
+
+* **NCOPTION_SUPPRESS_BANNERS**: Disables the diagnostics and version
+    information printed on startup, and the performance summary on exit.
+
+* **NCOPTION_NO_ALTERNATE_SCREEN**: Do not use the alternate screen
+    (see **terminfo(5)**), even if it is available.
+
+* **NCOPTION_NO_FONT_CHANGES**: Do not touch the font. Notcurses might
+    otherwise attempt to extend the font, especially in the Linux console.
 
 ## Fatal signals
 
@@ -116,9 +157,9 @@ is resized. The default action is to ignore it (**SIG_IGN**). notcurses installs
 a handler for this signal. The handler causes notcurses to update its idea of
 the terminal's size using **TIOCGWINSZ** (see **ioctl_tty(2)**), and generates an
 **NCKEY_RESIZE** input event (see **notcurses_input(3)**. This signal handler can be
-inhibited by setting **no_winch_sighandler** to **true**. If this is done, the
-caller should probably watch for the signal, and invoke **notcurses_refresh(3)**
-or **notcurses_render(3)** upon its receipt.
+inhibited by setting **NCOPTION_NO_WINCH_SIGHANDLER** in **flags**. If this is
+done, the caller should probably watch for the signal, and invoke
+**notcurses_refresh(3)** or **notcurses_render(3)** upon its receipt.
 
 A resize event does not invalidate any references returned earlier by
 notcurses. The content of any new screen area is undefined until the next call
@@ -128,7 +169,7 @@ arrive while the ncplanes are being modified. Signal handlers are quite
 restricted as to what actions they can perform, so minimal work is performed in
 the handler proper.
 
-Thus, in the absence of **no_winch_sighandler**, **SIGWINCH** results in:
+Thus, in the absence of **NCOPTION_NO_WINCH_SIGHANDLER**, **SIGWINCH** results in:
 
 * interruption of some thread to process the signal
 * a **TIOCGWINSZ** **ioctl** to retrieve the new screen size
