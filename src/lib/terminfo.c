@@ -32,6 +32,14 @@ int terminfostr(char** gseq, const char* name){
     *gseq = NULL;
     return -1;
   }
+  // terminfo syntax allows a number N of milliseconds worth of pause to be
+  // specified using $<N> syntax. this is then honored by tputs(). but we don't
+  // use tputs(), instead preferring the much faster stdio+tiparm(). to avoid
+  // dumping "$<N>" sequences all over stdio, we chop them out.
+  char* pause;
+  if( (pause = strchr(*gseq, '$')) ){
+    *pause = '\0';
+  }
   return 0;
 }
 
