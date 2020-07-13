@@ -132,63 +132,67 @@ shim_lower_right_quad(struct consolefontdesc* cfd, unsigned idx){
 static int
 program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
   struct simset {
-    bool found[10];
-    wchar_t ws[10];
-    int fontidx;
+    wchar_t* ws;
   } sets[] = {
     {
-      .found = {},
+      .ws = L"/╱",
+    }, {
+      .ws = L"\\╲",
+    }, {
+      .ws = L"X╳",
+    }, {
       .ws = L"└┕┖┗╘╙╚╰",
-      .fontidx = -1,
     }, {
-      .found = {},
       .ws = L"┘┙┚┛╛╜╝╯",
-      .fontidx = -1,
     }, {
-      .found = {},
       .ws = L"┌┍┎┏╒╓╔╭",
-      .fontidx = -1,
     }, {
-      .found = {},
       .ws = L"┐┑┒┓╕╖╗╮",
-      .fontidx = -1,
     }, {
-      .found = {},
-      .ws = L"─━┄┅┈┉╌╍═",
-      .fontidx = -1,
+      .ws = L"─━┄┅┈┉╌╍═╼╾",
     }, {
-      .found = {},
-      .ws = L"│┃┆┇┊┋╎╏║",
-      .fontidx = -1,
-    }
+      .ws = L"│┃┆┇┊┋╎╏║╽╿",
+    }, {
+      .ws = L"├┝┞┟┠┡┢┣╞╟╠",
+    }, {
+      .ws = L"┤┥┦┧┨┩┪┫╡╢╣",
+    }, {
+      .ws = L"┬┭┮┯┰┱┲┳╤╥╦",
+    }, {
+      .ws = L"┴┵┶┷┸┹┺┻╧╨╩",
+    }, {
+      .ws = L"┼┽┾┿╀╁╂╃╄╅╆╇╈╉╊╋╪╫╬",
+    },
   };
   int toadd = 0;
   for(size_t sidx = 0 ; sidx < sizeof(sets) / sizeof(*sets) ; ++sidx){
+    int fontidx = -1;
     struct simset* s = &sets[sidx];
+    bool found[wcslen(s->ws)];
+    memset(found, 0, sizeof(found));
     for(unsigned idx = 0 ; idx < map->entry_ct ; ++idx){
       for(size_t widx = 0 ; widx < wcslen(s->ws) ; ++widx){
         if(map->entries[idx].unicode == s->ws[widx]){
           logtrace(nc, "Found desired character U+%04x -> %03u\n",
                    map->entries[idx].unicode, map->entries[idx].fontpos);
-          s->found[widx] = true;
-          if(s->fontidx == -1){
-            s->fontidx = map->entries[idx].fontpos;
+          found[widx] = true;
+          if(fontidx == -1){
+            fontidx = map->entries[idx].fontpos;
           }
         }
       }
     }
-    if(s->fontidx > -1){
+    if(fontidx > -1){
       for(size_t widx = 0 ; widx < wcslen(s->ws) ; ++widx){
-        if(!s->found[widx]){
-          logdebug(nc, "Adding mapping U+%04x -> %03u\n",
-                   s->ws[widx], s->fontidx);
+        if(!found[widx]){
+          logdebug(nc, "Adding mapping U+%04x -> %03u\n", s->ws[widx], fontidx);
           struct unipair* tmp = realloc(map->entries, sizeof(*map->entries) * (map->entry_ct + 1));
           if(tmp == NULL){
             return -1;
           }
           map->entries = tmp;
           map->entries[map->entry_ct].unicode = s->ws[widx];
-          map->entries[map->entry_ct].fontpos = s->fontidx;
+          map->entries[map->entry_ct].fontpos = fontidx;
           ++map->entry_ct;
           ++toadd;
         }
