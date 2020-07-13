@@ -5,22 +5,22 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-06-19a
+  image: dankamongmen/unstable_builder:2020-07-13a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release # -DUSE_RUST=yes -DUSE_NETWORK=yes
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
     - env TERM=xterm make test
 ---
-kind: pipeline
+kind: pipelin
 type: docker
 name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/focal:2020-06-19a
+  image: dankamongmen/focal:2020-07-13a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
@@ -35,10 +35,9 @@ name: fedora-rawhide
 
 steps:
 - name: fedora-rawhide
-  image: dankamongmen/fedora33:2020-06-19a
+  image: dankamongmen/fedora33:2020-07-13a
   commands:
     - export LANG=en_US.UTF-8
-    - dnf install -y doctest-devel
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
