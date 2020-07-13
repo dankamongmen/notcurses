@@ -804,7 +804,7 @@ nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
 
 void nclog(const char* fmt, ...);
 
-bool is_linux_console(const notcurses* nc);
+bool is_linux_console(const notcurses* nc, unsigned no_font_changes);
 
 // get a file descriptor for the controlling tty device, -1 on error
 int get_controlling_tty(void);
@@ -829,6 +829,11 @@ int get_controlling_tty(void);
 #define logdebug(nc, fmt, ...) do{ \
   if((nc)->loglevel >= NCLOGLEVEL_DEBUG){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+
+#define logtrace(nc, fmt, ...) do{ \
+  if((nc)->loglevel >= NCLOGLEVEL_TRACE){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+
 
 // Convert a notcurses log level to some multimedia library equivalent.
 int ffmpeg_log_level(ncloglevel_e level);

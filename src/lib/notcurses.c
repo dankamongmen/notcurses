@@ -822,7 +822,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     return NULL;
   }
   ret->ttyfd = get_tty_fd(ret, ret->ttyfp);
-  is_linux_console(ret);
+  is_linux_console(ret, !!(opts->flags & NCOPTION_NO_FONT_CHANGES));
   notcurses_mouse_disable(ret);
   if(ret->ttyfd >= 0){
     if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
