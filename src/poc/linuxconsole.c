@@ -62,6 +62,10 @@ get_linux_colormap(int fd){
   return 0;
 }
 
+// FIXME assumes a width of 8. it is apparently possible to have widths
+// other than 8, but they don't work properly with GIO_FONTX according to
+// the showconsolefont source code. use the KDFONTOP ioctl to learn true
+// font width.
 static int
 explode_glyph_row(const unsigned char** row){
   printf("%s%s%s%s%s%s%s%s ",
@@ -98,16 +102,34 @@ get_linux_consolefont(int fd, unsigned showglyphs){
     return -1;
   }
   if(showglyphs){
-    for(unsigned i = 0 ; i < cfd.charcount ; i += 4){
+    for(unsigned i = 0 ; i < cfd.charcount ; i += 7){
       const unsigned char* g1 = (unsigned char*)cfd.chardata + 32 * i;
       const unsigned char* g2 = g1 + 32;
       const unsigned char* g3 = g2 + 32;
       const unsigned char* g4 = g3 + 32;
+      const unsigned char* g5 = g4 + 32;
+      const unsigned char* g6 = g5 + 32;
+      const unsigned char* g7 = g6 + 32;
       for(unsigned row = 0 ; row < cfd.charheight ; ++row){
         explode_glyph_row(&g1);
-        explode_glyph_row(&g2);
-        explode_glyph_row(&g3);
-        explode_glyph_row(&g4);
+        if(i < cfd.charcount - 1u){
+          explode_glyph_row(&g2);
+          if(i < cfd.charcount - 2u){
+            explode_glyph_row(&g3);
+            if(i < cfd.charcount - 3u){
+              explode_glyph_row(&g4);
+              if(i < cfd.charcount - 4u){
+              explode_glyph_row(&g5);
+                if(i < cfd.charcount - 5u){
+                  explode_glyph_row(&g6);
+                  if(i < cfd.charcount - 6u){
+                    explode_glyph_row(&g7);
+                  }
+                }
+              }
+            }
+          }
+        }
         printf("\n");
       }
     }
