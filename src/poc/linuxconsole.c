@@ -1,6 +1,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <locale.h>
+#include <wctype.h>
 #include <limits.h>
 #include <unistd.h>
 #include <string.h>
@@ -51,17 +53,32 @@ get_linux_colormap(int fd){
     const int c2 = c1 + 1;
     const int c3 = c2 + 1;
     const int c4 = c3 + 1;
-    fprintf(stderr, " |%02d| %3u %3u %3u |%02d| %3u %3u %3u |%02d| %3u %3u %3u |%02d| %3u %3u %3u\n",
-            c1, cmap[c1 * 3], cmap[c1 * 3 + 1], cmap[c1 * 3 + 2],
-            c2, cmap[c2 * 3], cmap[c2 * 3 + 1], cmap[c2 * 3 + 2],
-            c3, cmap[c3 * 3], cmap[c3 * 3 + 1], cmap[c3 * 3 + 2],
-            c4, cmap[c4 * 3], cmap[c4 * 3 + 1], cmap[c4 * 3 + 2]);
+    printf(" |%02d| %3u %3u %3u |%02d| %3u %3u %3u |%02d| %3u %3u %3u |%02d| %3u %3u %3u\n",
+           c1, cmap[c1 * 3], cmap[c1 * 3 + 1], cmap[c1 * 3 + 2],
+           c2, cmap[c2 * 3], cmap[c2 * 3 + 1], cmap[c2 * 3 + 2],
+           c3, cmap[c3 * 3], cmap[c3 * 3 + 1], cmap[c3 * 3 + 2],
+           c4, cmap[c4 * 3], cmap[c4 * 3 + 1], cmap[c4 * 3 + 2]);
   }
   return 0;
 }
 
 static int
-get_linux_consolefont(int fd){
+explode_glyph_row(const unsigned char** row){
+  printf("%s%s%s%s%s%s%s%s ",
+          **row & 0x80 ? "*": " ",
+          **row & 0x40 ? "*": " ",
+          **row & 0x20 ? "*": " ",
+          **row & 0x10 ? "*": " ",
+          **row & 0x08 ? "*": " ",
+          **row & 0x04 ? "*": " ",
+          **row & 0x02 ? "*": " ",
+          **row & 0x01 ? "*": " ");
+  ++*row;
+  return 0;
+}
+
+static int
+get_linux_consolefont(int fd, unsigned showglyphs){
   struct consolefontdesc cfd = {};
   cfd.charcount = 512;
   cfd.chardata = malloc(32 * cfd.charcount);
@@ -75,7 +92,26 @@ get_linux_consolefont(int fd){
   }
   printf("Kernel font size (glyphcount): %hu\n", cfd.charcount);
   printf("Kernel font character height: %hu\n", cfd.charheight);
-  // FIXME
+  if(cfd.charcount > 512){
+    fprintf(stderr, "Warning: kernel returned excess charcount\n");
+    free(cfd.chardata);
+    return -1;
+  }
+  if(showglyphs){
+    for(unsigned i = 0 ; i < cfd.charcount ; i += 4){
+      const unsigned char* g1 = (unsigned char*)cfd.chardata + 32 * i;
+      const unsigned char* g2 = g1 + 32;
+      const unsigned char* g3 = g2 + 32;
+      const unsigned char* g4 = g3 + 32;
+      for(unsigned row = 0 ; row < cfd.charheight ; ++row){
+        explode_glyph_row(&g1);
+        explode_glyph_row(&g2);
+        explode_glyph_row(&g3);
+        explode_glyph_row(&g4);
+        printf("\n");
+      }
+    }
+  }
   free(cfd.chardata);
   return 0;
 }
@@ -92,7 +128,9 @@ get_linux_consolemap(int fd){
   }
   printf("Unicode->font entries: %hu\n", map.entry_ct);
   for(int i = 0 ; i < map.entry_ct ; ++i){
-    printf("%05hx->%3hu ", map.entries[i].unicode, map.entries[i].fontpos);
+    wchar_t w = map.entries[i].unicode;
+    printf(" %05hx (%lc)->%3hu ", map.entries[i].unicode,
+           iswprint(w) ? w : L' ', map.entries[i].fontpos);
     if(i % 4 == 3){
       printf("\n");
     }
@@ -104,7 +142,32 @@ get_linux_consolemap(int fd){
   return 0;
 }
 
+static int
+get_linux_unimap(int fd){
+  unsigned short map[E_TABSZ];
+  if(ioctl(fd, GIO_UNISCRNMAP, map)){
+    fprintf(stderr, "Error reading Unicode->screen map (%s)\n", strerror(errno));
+    return -1;
+  }
+  printf("Unicode->screen entries: %d\n", E_TABSZ);
+  int standard = 0;
+  for(size_t i = 0 ; i < sizeof(map) / sizeof(*map) ; ++i){
+    if(map[i] != 0xf000 + i){
+      printf(" |%03zu| %hx\n", i, map[i]);
+    }else{
+      ++standard;
+    }
+  }
+  printf(" %d/%d direct-to-font mapping%s\n", standard,
+         E_TABSZ, standard == 1 ? "" : "s");
+  return 0;
+}
+
 int main(int argc, char** argv){
+  if(setlocale(LC_ALL, "") == NULL){
+    fprintf(stderr, "Error setting locale\n");
+    return EXIT_FAILURE;
+  }
   if(argc > 2){
     usage(argv[0]);
     return EXIT_FAILURE;
@@ -118,8 +181,9 @@ int main(int argc, char** argv){
   }
   int r = 0;
   r |= get_linux_colormap(fd);
-  r |= get_linux_consolefont(fd);
+  r |= get_linux_consolefont(fd, true);
   r |= get_linux_consolemap(fd);
+  r |= get_linux_unimap(fd);
   if(close(fd)){
     fprintf(stderr, "Error closing %d (%s)\n", fd, strerror(errno));
   }
