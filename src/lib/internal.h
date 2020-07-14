@@ -814,7 +814,7 @@ int get_controlling_tty(void);
   if((nc)->loglevel >= NCLOGLEVEL_ERROR){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
 
-#define logwarning(nc, fmt, ...) do{ \
+#define logwarn(nc, fmt, ...) do{ \
   if((nc)->loglevel >= NCLOGLEVEL_WARNING){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
 
