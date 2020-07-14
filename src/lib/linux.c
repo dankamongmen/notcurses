@@ -78,6 +78,9 @@ shim_upper_left_quad(struct consolefontdesc* cfd, unsigned idx){
   if(glyph == NULL){
     return -1;
   }
+  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+    *glyph = 0xf0;
+  }
   for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
     *glyph = 0;
   }
@@ -234,7 +237,10 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
     { .glyphfxn = shim_lower_half_block, .w = L'▄', .found = false, },
     { .glyphfxn = shim_left_half_block, .w = L'▌', .found = false, },
     { .glyphfxn = shim_right_half_block, .w = L'▐', .found = false, },
-    // FIXME more
+    { .glyphfxn = shim_upper_left_quad, .w = L'▘', .found = false, },
+    { .glyphfxn = shim_upper_right_quad, .w = L'▝', .found = false, },
+    { .glyphfxn = shim_lower_left_quad, .w = L'▖', .found = false, },
+    { .glyphfxn = shim_lower_right_quad, .w = L'▗', .found = false, },
   };
   // first, take a pass to see which glyphs we already have
   for(unsigned i = 0 ; i < cfd->charcount ; ++i){
