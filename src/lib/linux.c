@@ -192,7 +192,36 @@ shim_no_lower_right_quad(struct consolefontdesc* cfd, unsigned idx){
   return 0;
 }
 
-// P
+static int
+shim_quad_ul_lr(struct consolefontdesc* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+    *glyph = 0xf0;
+  }
+  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+    *glyph = 0x0f;
+  }
+  return 0;
+}
+
+static int
+shim_quad_ll_ur(struct consolefontdesc* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+    *glyph = 0x0f;
+  }
+  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+    *glyph = 0xf0;
+  }
+  return 0;
+}
+
 // add UCS2 codepoint |w| to |map| for font idx |fidx|
 static int
 add_to_map(const notcurses* nc, struct unimapdesc* map, wchar_t w, unsigned fidx){
@@ -306,6 +335,8 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
     { .glyphfxn = shim_no_upper_right_quad, .w = L'▙', .found = false, },
     { .glyphfxn = shim_no_lower_left_quad, .w = L'▜', .found = false, },
     { .glyphfxn = shim_no_lower_right_quad, .w = L'▛', .found = false, },
+    { .glyphfxn = shim_quad_ul_lr, .w = L'▚', .found = false, },
+    { .glyphfxn = shim_quad_ll_ur, .w = L'▞', .found = false, },
   };
   // first, take a pass to see which glyphs we already have
   for(unsigned i = 0 ; i < cfd->charcount ; ++i){
