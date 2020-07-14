@@ -14,7 +14,7 @@ The following have been established on a Debian Unstable workstation.
 
 | Terminal | Recommended environment | Notes |
 | -------- | ------ | ----- |
-| Linux console | `TERM=linux` | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max. |
+| Linux console | `TERM=linux` | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette (see below). |
 | FBterm | `TERM=fbterm` | 256 colors, no RGB color. |
 | kmscon | `TERM=xterm-256color` | No RGB color AFAICT, nor any distinct terminfo entry. |
 | XTerm | `TERM=xterm-256color` `COLORTERM=24bit` | Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. |
@@ -63,6 +63,12 @@ configuration is 512 glyphs. The keyboard is further configured with a keymap,
 mapping keyboard scancodes to elements of the character set. These properties
 are per-virtual console, not common to all of them. These limitations are not
 typically present on framebuffer consoles.
+
+Exporting `COLORTERM=24bit` and emitting RGB escapes to the Linux console
+**does** work, though the RGB values provided are downsampled to a 256-slot
+palette. Backgrounds don't seem to have the same degree of flexibility in this
+situation as do foregrounds. The output is better, but not as much better as
+one might expect. More research is necessary here.
 
 The following more-or-less standard tools exist:
 * `showconsolefont`: show the console font
