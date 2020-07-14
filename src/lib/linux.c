@@ -129,6 +129,21 @@ shim_lower_right_quad(struct consolefontdesc* cfd, unsigned idx){
   return 0;
 }
 
+// add UCS2 codepoint |w| to |map| for font idx |fidx|
+static int
+add_to_map(const notcurses* nc, struct unimapdesc* map, wchar_t w, unsigned fidx){
+  logdebug(nc, "Adding mapping U+%04x -> %03u\n", w, fidx);
+  struct unipair* tmp = realloc(map->entries, sizeof(*map->entries) * (map->entry_ct + 1));
+  if(tmp == NULL){
+    return -1;
+  }
+  map->entries = tmp;
+  map->entries[map->entry_ct].unicode = w;
+  map->entries[map->entry_ct].fontpos = fidx;
+  ++map->entry_ct;
+  return 0;
+}
+
 static int
 program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
   struct simset {
@@ -185,27 +200,21 @@ program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
     if(fontidx > -1){
       for(size_t widx = 0 ; widx < wcslen(s->ws) ; ++widx){
         if(!found[widx]){
-          logdebug(nc, "Adding mapping U+%04x -> %03u\n", s->ws[widx], fontidx);
-          struct unipair* tmp = realloc(map->entries, sizeof(*map->entries) * (map->entry_ct + 1));
-          if(tmp == NULL){
+          if(add_to_map(nc, map, s->ws[widx], fontidx)){
             return -1;
           }
-          map->entries = tmp;
-          map->entries[map->entry_ct].unicode = s->ws[widx];
-          map->entries[map->entry_ct].fontpos = fontidx;
-          ++map->entry_ct;
           ++toadd;
         }
       }
     }else{
-      logwarning(nc, "Couldn't find any glyphs for set %zu\n", sidx);
+      logwarn(nc, "Couldn't find any glyphs for set %zu\n", sidx);
     }
   }
   if(toadd == 0){
     return 0;
   }
   if(ioctl(nc->ttyfd, PIO_UNIMAP, map)){
-    logwarning(nc, "Error setting kernel unicode map (%s)\n", strerror(errno));
+    logwarn(nc, "Error setting kernel unicode map (%s)\n", strerror(errno));
     return -1;
   }
   loginfo(nc, "Successfully added %d kernel unicode mapping%s\n",
@@ -219,18 +228,59 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
   struct shimmer {
     int (*glyphfxn)(struct consolefontdesc* cfd, unsigned idx);
     wchar_t w;
+    bool found;
   } shimmers[] = {
-    { .glyphfxn = shim_upper_half_block, .w = L'▀', },
-    { .glyphfxn = shim_lower_half_block, .w = L'▄', },
-    { .glyphfxn = shim_left_half_block, .w = L'▌', },
-    { .glyphfxn = shim_right_half_block, .w = L'▐', },
+    { .glyphfxn = shim_upper_half_block, .w = L'▀', .found = false, },
+    { .glyphfxn = shim_lower_half_block, .w = L'▄', .found = false, },
+    { .glyphfxn = shim_left_half_block, .w = L'▌', .found = false, },
+    { .glyphfxn = shim_right_half_block, .w = L'▐', .found = false, },
     // FIXME more
   };
-  int toadd = 0;
-
-  // FIXME need a table of functions + UCS2
+  // first, take a pass to see which glyphs we already have
+  for(unsigned i = 0 ; i < cfd->charcount ; ++i){
+    if(map->entries[i].unicode >= 0x2580 && map->entries[i].unicode <= 0x259f){
+      for(size_t s = 0 ; s < sizeof(shimmers) / sizeof(*shimmers) ; ++s){
+        if(map->entries[i].unicode == shimmers[s].w){
+          logdebug(nc, "Found %lc at fontidx %u\n", shimmers[s].w, i);
+          shimmers[s].found = true;
+          break;
+        }
+      }
+    }
+  }
+  int added = 0;
+  unsigned candidate = cfd->charcount;
+  for(size_t s = 0 ; s < sizeof(shimmers) / sizeof(*shimmers) ; ++s){
+    if(!shimmers[s].found){
+      while(--candidate){
+        if(map->entries[candidate].unicode < 0x2580 || map->entries[candidate].unicode > 0x259f){
+          break;
+        }
+      }
+      if(candidate == 0){
+        logwarn(nc, "Ran out of replaceable glyphs for U+%04x\n", shimmers[s].w);
+        return -1;
+      }
+      if(shimmers[s].glyphfxn(cfd, candidate)){
+        logwarn(nc, "Error replacing glyph for U+%04x at %u\n", shimmers[s].w, candidate);
+        return -1;
+      }
+      if(add_to_map(nc, map, shimmers[s].w, candidate)){
+        return -1;
+      }
+      ++added;
+    }
+  }
+  if(ioctl(nc->ttyfd, PIO_FONTX, cfd)){
+    logwarn(nc, "Error programming kernel font (%s)\n", strerror(errno));
+    return -1;
+  }
+  if(ioctl(nc->ttyfd, PIO_UNIMAP, map)){
+    logwarn(nc, "Error setting kernel unicode map (%s)\n", strerror(errno));
+    return -1;
+  }
   loginfo(nc, "Successfully added %d kernel font glyph%s\n",
-          toadd, toadd == 1 ? "" : "s");
+          added, added == 1 ? "" : "s");
   return 0;
 }
 
@@ -238,17 +288,17 @@ static int
 reprogram_linux_font(const notcurses* nc, struct consolefontdesc* cfd,
                      struct unimapdesc* map){
   if(ioctl(nc->ttyfd, GIO_FONTX, cfd)){
-    logwarning(nc, "Error reading Linux kernelfont (%s)\n", strerror(errno));
+    logwarn(nc, "Error reading Linux kernelfont (%s)\n", strerror(errno));
     return -1;
   }
   loginfo(nc, "Kernel font size (glyphcount): %hu\n", cfd->charcount);
   loginfo(nc, "Kernel font character geometry: 8x%hu\n", cfd->charheight);
   if(cfd->charcount > 512){
-    logwarning(nc, "Warning: kernel returned excess charcount\n");
+    logwarn(nc, "Warning: kernel returned excess charcount\n");
     return -1;
   }
   if(ioctl(nc->ttyfd, GIO_UNIMAP, map)){
-    logwarning(nc, "Error reading Linux unimap (%s)\n", strerror(errno));
+    logwarn(nc, "Error reading Linux unimap (%s)\n", strerror(errno));
     return -1;
   }
   loginfo(nc, "Kernel Unimap size: %hu/%hu\n", map->entry_ct, USHRT_MAX);
@@ -270,7 +320,7 @@ reprogram_console_font(const notcurses* nc){
   size_t totsize = 32 * cfd.charcount;
   cfd.chardata = malloc(totsize);
   if(cfd.chardata == NULL){
-    logwarning(nc, "Error acquiring %zub for font descriptors (%s)\n", totsize, strerror(errno));
+    logwarn(nc, "Error acquiring %zub for font descriptors (%s)\n", totsize, strerror(errno));
     return -1;
   }
   struct unimapdesc map = {};
@@ -278,7 +328,7 @@ reprogram_console_font(const notcurses* nc){
   totsize = map.entry_ct * sizeof(struct unipair);
   map.entries = malloc(totsize);
   if(map.entries == NULL){
-    logwarning(nc, "Error acquiring %zub for Unicode font map (%s)\n", totsize, strerror(errno));
+    logwarn(nc, "Error acquiring %zub for Unicode font map (%s)\n", totsize, strerror(errno));
     free(cfd.chardata);
     return -1;
   }

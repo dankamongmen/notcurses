@@ -735,7 +735,7 @@ get_tty_fd(notcurses* nc, FILE* ttyfp){
   int fd = -1;
   if(ttyfp){
     if((fd = fileno(ttyfp)) < 0){
-      logwarning(nc, "No file descriptor was available in outfp %p\n", ttyfp);
+      logwarn(nc, "No file descriptor was available in outfp %p\n", ttyfp);
     }else{
       if(isatty(fd)){
         fd = dup(fd);
@@ -748,7 +748,7 @@ get_tty_fd(notcurses* nc, FILE* ttyfp){
   if(fd < 0){
     fd = open("/dev/tty", O_RDWR | O_CLOEXEC);
     if(fd < 0){
-      logwarning(nc, "Error opening /dev/tty (%s)\n", strerror(errno));
+      logwarn(nc, "Error opening /dev/tty (%s)\n", strerror(errno));
     }
   }
   return fd;
