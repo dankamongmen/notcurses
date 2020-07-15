@@ -2309,9 +2309,9 @@ int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s,
 }
 
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
-  size_t ret = 0;
+  int ret = 0;
   // FIXME speed up this blissfully naive solution
-  while(ret < s && *gclusters){
+  while((size_t)ret < s && *gclusters){
     int wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
     if(cols < 0){

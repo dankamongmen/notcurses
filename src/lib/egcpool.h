@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include <errno.h>
 #include <stdio.h>
+#include <wctype.h>
 #include <stddef.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -82,6 +83,10 @@ utf8_egc_len(const char* gcluster, int* colcount){
       if(cols){
         if(*colcount){ // this must be starting a new EGC, exit and do not claim
           break;
+        }
+        if(cols < 0 && iswspace(wc)){ // newline or tab
+          cols = 0;
+          return ret + 1;
         }
         *colcount += cols;
       }
