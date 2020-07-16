@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#ifdef __linux__
 #include <linux/kd.h>
 #include <sys/ioctl.h>
 
@@ -258,3 +259,9 @@ int main(int argc, char** argv){
   }
   return r ? EXIT_FAILURE : EXIT_SUCCESS;
 }
+#else
+int main(void){
+  fprintf(stderr, "This is a Linux-only program\n");
+  return EXIT_FAILURE;
+}
+#endif
