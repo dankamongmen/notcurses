@@ -1,6 +1,14 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.2 (2020-07-15)
+  * The option `NCOPTION_NO_FONT_CHANGES` has been added. This will cause
+    Notcurses to not muck with the current font. Because...
+  * Notcurses now detects a Linux text console, and reprograms its Unicode
+    to glyph tables and font data tables to include certain Box-Drawing and
+    Block-Drawing glyphs. This vastly improves multimedia rendering and
+    line/box art in the Linux console.
+
 * 1.6.1 (2020-07-12)
   * Added `notcurses_version_components()` to get the numeric components of
     the loaded Notcurses version.
