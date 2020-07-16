@@ -410,13 +410,6 @@ pool_egc_copy(const egcpool* e, const cell* c){
   return ret;
 }
 
-// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
-// result is not tied to the ncplane, and persists across erases / destruction.
-static inline char*
-cell_egc_copy(const ncplane* n, const cell* c){
-  return pool_egc_copy(&n->pool, c);
-}
-
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
 // ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
 // even semi-portably recover the palette) proceeds via: map each 8-bit to

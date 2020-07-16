@@ -1626,6 +1626,21 @@ void cell_release(struct ncplane* n, cell* c);
 #define NCSTYLE_PROTECT   0x00010000ul
 #define NCSTYLE_ITALIC    0x01000000ul
 
+// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+// result is not tied to the ncplane, and persists across erases / destruction.
+static inline char*
+cell_strdup(const struct ncplane* n, const cell* c){
+  char* ret;
+  if(cell_simple_p(c)){
+    if( (ret = (char*)malloc(2)) ){ // cast is here for C++ clients
+      ret[0] = c->gcluster;
+      ret[1] = '\0';
+    }
+  }else{
+    ret = strdup(cell_extended_gcluster(n, c));
+  }
+  return ret;
+}
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not.
