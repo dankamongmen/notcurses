@@ -1284,17 +1284,66 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
 }
 
 int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes){
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  int primed = cell_prime(n, &c, gclust, n->attrword, n->channels);
+  int cols;
+  int bytes = utf8_egc_len(gclust, &cols);
   if(sbytes){
-    *sbytes = primed;
+    *sbytes = bytes;
   }
-  if(primed < 0){
+  // if scrolling is enabled, check *before ncplane_cursor_move_yx()* whether
+  // we're past the end of the line, and move to the next line if so.
+  bool wide = cols > 1;
+  if(x == -1 && y == -1 && n->x + wide >= n->lenx){
+    if(!n->scrolling){
+      return -1;
+    }
+    scroll_down(n);
+  }
+  if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  int ret = ncplane_putc_yx(n, y, x, &c);
-  cell_release(n, &c);
-  return ret;
+  if(*gclust == '\n'){
+    if(n->scrolling){
+      scroll_down(n);
+      return 0;
+    }
+  }
+  // A wide character obliterates anything to its immediate right (and marks
+  // that cell as wide). Any character placed atop one half of a wide character
+  // obliterates the other half. Note that a wide char can thus obliterate two
+  // wide chars, totalling four columns.
+  cell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
+  if(n->x > 0){
+    if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
+      if(targ->gcluster == 0){ // we're the right half
+        cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x - 1)]);
+      }else{
+        cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
+      }
+    }
+  }
+  uint64_t channels = n->channels & ~CELL_WIDEASIAN_MASK;
+  if(wide){
+    channels |= CELL_WIDEASIAN_MASK;
+  }
+  if(cell_prime(n, targ, gclust, n->attrword, channels) < 0){
+    return -1;
+  }
+  if(wide){ // must set our right wide, and check for further damage
+    if(n->x < n->lenx - 1){ // check to our right
+      cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
+      if(n->x < n->lenx - 2){
+        if(cell_wide_left_p(candidate)){
+          cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 2)]);
+        }
+      }
+      cell_obliterate(n, candidate);
+      cell_set_wide(candidate);
+      candidate->channels = channels;
+      candidate->attrword = n->attrword;
+    }
+  }
+  n->x += cols;
+  return cols;
 }
 
 int ncplane_putsimple_stainable(ncplane* n, char c){
@@ -1867,7 +1916,7 @@ void ncplane_erase(ncplane* n){
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the attrword
   // and channels), and then reload.
-  char* egc = cell_egc_copy(n, &n->basecell);
+  char* egc = cell_strdup(n, &n->basecell);
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);

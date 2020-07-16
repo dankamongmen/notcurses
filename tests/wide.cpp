@@ -284,7 +284,7 @@ TEST_CASE("Wide") {
 
     // should be wide char 1
     REQUIRE(3 == ncplane_at_yx_cell(n_, 0, 0, &c));
-    egc = cell_egc_copy(n_, &c);
+    egc = cell_strdup(n_, &c);
     REQUIRE(egc);
     CHECK(!strcmp("\xe5\x85\xa8", egc));
     CHECK(cell_double_wide_p(&c));
@@ -297,7 +297,7 @@ TEST_CASE("Wide") {
     cell_init(&c);
     // should be wide char 1 right side
     REQUIRE(0 == ncplane_at_yx_cell(n_, 0, 1, &c));
-    egc = cell_egc_copy(n_, &c);
+    egc = cell_strdup(n_, &c);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
@@ -311,7 +311,7 @@ TEST_CASE("Wide") {
 
     // should be wide char 2
     REQUIRE(3 == ncplane_at_yx_cell(n_, 0, 2, &c));
-    egc = cell_egc_copy(n_, &c);
+    egc = cell_strdup(n_, &c);
     REQUIRE(egc);
     CHECK(!strcmp("\xe5\xbd\xa2", egc));
     CHECK(cell_double_wide_p(&c));
@@ -324,7 +324,7 @@ TEST_CASE("Wide") {
     cell_init(&c);
     // should be wide char 2 right side
     CHECK(0 == ncplane_at_yx_cell(n_, 0, 3, &c));
-    egc = cell_egc_copy(n_, &c);
+    egc = cell_strdup(n_, &c);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));

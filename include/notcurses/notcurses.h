@@ -729,7 +729,8 @@ cell_simple_p(const cell* c){
 // is invalidated by any further operation on the plane 'n', so...watch out!
 API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 
-// Extract the EGC from 'c' as a nul-terminated string.
+// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+// result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
 cell_strdup(const struct ncplane* n, const cell* c){
   char* ret;
