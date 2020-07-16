@@ -216,9 +216,9 @@ target_compile_definitions(notcurses-static
   PRIVATE
    _GNU_SOURCE _DEFAULT_SOURCE
 )
-set(PKGCONFIG_DIR "lib/pkgconfig")
+set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-set(PKGCONFIG_DIR "libdata/pkgconfig")
+set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
 endif()
 
 # libnotcurses++
@@ -582,7 +582,7 @@ configure_file(tools/notcurses++.pc.in
 )
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/${PKGCONFIG_DIR}
+  DESTINATION ${PKGCONFIG_DIR}
 )
 
 include(CMakePackageConfigHelpers)
@@ -607,7 +607,7 @@ install(FILES
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/${PKGCONFIG_DIR}
+  DESTINATION ${PKGCONFIG_DIR}
 )
 
 if(${USE_FFMPEG} OR ${USE_OIIO})
