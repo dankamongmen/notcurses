@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.3 (2020-07-16)
+  * No user-visible changes.
+
 * 1.6.2 (2020-07-15)
   * The option `NCOPTION_NO_FONT_CHANGES` has been added. This will cause
     Notcurses to not muck with the current font. Because...
