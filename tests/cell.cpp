@@ -110,6 +110,145 @@ TEST_CASE("Cell") {
     CHECK(!cell_bg_default_p(&c));
   }
 
+  // white on a black background ought be unmolested for highcontrast
+  SUBCASE("HighContrastWhiteOnBlackBackground"){
+    cell c = CELL_SIMPLE_INITIALIZER('+');
+    CHECK(0 == cell_set_fg_rgb(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
+    CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
+    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    REQUIRE(nullptr != np);
+    CHECK(1 == ncplane_putc(np, &c));
+    cell_load_simple(np, &c, '*');
+    CHECK(0 == cell_set_bg_rgb(&c, 0x0, 0x0, 0x0));
+    CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
+    CHECK(1 == ncplane_putc(n_, &c));
+    CHECK(0 == notcurses_render(nc_));
+    uint64_t channels, underchannels, overchannels;
+    auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
+    REQUIRE(nullptr != egc);
+    auto negc = ncplane_at_yx(n_, 0, 0, nullptr, &underchannels);
+    REQUIRE(nullptr != negc);
+    auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
+    REQUIRE(nullptr != topegc);
+    CHECK(channels_bg(channels) == channels_bg(underchannels));
+    CHECK(channels_fg(channels) == channels_fg(overchannels));
+    free(topegc);
+    free(negc);
+    free(egc);
+  }
+
+  // white on a white background ought be changed for highcontrast
+  SUBCASE("HighContrastWhiteOnWhiteBackground"){
+    cell c = CELL_SIMPLE_INITIALIZER('+');
+    CHECK(0 == cell_set_fg_rgb(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
+    CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
+    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    REQUIRE(nullptr != np);
+    CHECK(1 == ncplane_putc(np, &c));
+    cell_load_simple(np, &c, '*');
+    CHECK(0 == cell_set_bg_rgb(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
+    CHECK(1 == ncplane_putc(n_, &c));
+    CHECK(0 == notcurses_render(nc_));
+    uint64_t channels, underchannels, overchannels;
+    auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
+    REQUIRE(nullptr != egc);
+    auto negc = ncplane_at_yx(n_, 0, 0, nullptr, &underchannels);
+    REQUIRE(nullptr != negc);
+    auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
+    REQUIRE(nullptr != topegc);
+    CHECK(channels_bg(channels) == channels_bg(underchannels));
+    CHECK(channels_fg(channels) < channels_fg(overchannels));
+    free(topegc);
+    free(negc);
+    free(egc);
+  }
+
+  // black on a black background must be changed for highcontrast
+  SUBCASE("HighContrastBlackOnBlackBackground"){
+    cell c = CELL_SIMPLE_INITIALIZER('+');
+    CHECK(0 == cell_set_fg_rgb(&c, 0x0, 0x0, 0x0));
+    CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
+    CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
+    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    REQUIRE(nullptr != np);
+    CHECK(1 == ncplane_putc(np, &c));
+    CHECK(0 == cell_set_bg_rgb(&c, 0x0, 0x0, 0x0));
+    CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
+    CHECK(1 == ncplane_putc(n_, &c));
+    CHECK(0 == notcurses_render(nc_));
+    uint64_t channels, underchannels, overchannels;
+    auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
+    REQUIRE(nullptr != egc);
+    auto negc = ncplane_at_yx(n_, 0, 0, nullptr, &underchannels);
+    REQUIRE(nullptr != negc);
+    auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
+    REQUIRE(nullptr != topegc);
+    CHECK(channels_bg(channels) == channels_bg(underchannels));
+    CHECK(channels_fg(channels) > channels_fg(overchannels));
+    free(topegc);
+    free(negc);
+    free(egc);
+  }
+
+  // black on a white background ought be unmolested for highcontrast
+  SUBCASE("HighContrastBlackOnWhiteBackground"){
+    cell c = CELL_SIMPLE_INITIALIZER('+');
+    CHECK(0 == cell_set_fg_rgb(&c, 0x0, 0x0, 0x0));
+    CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
+    CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
+    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    REQUIRE(nullptr != np);
+    CHECK(1 == ncplane_putc(np, &c));
+    CHECK(0 == cell_set_bg_rgb(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
+    CHECK(1 == ncplane_putc(n_, &c));
+    CHECK(0 == notcurses_render(nc_));
+    uint64_t channels, underchannels, overchannels;
+    auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
+    REQUIRE(nullptr != egc);
+    auto negc = ncplane_at_yx(n_, 0, 0, nullptr, &underchannels);
+    REQUIRE(nullptr != negc);
+    auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
+    REQUIRE(nullptr != topegc);
+    CHECK(channels_bg(channels) == channels_bg(underchannels));
+    CHECK(channels_fg(channels) == channels_fg(overchannels));
+    free(topegc);
+    free(negc);
+    free(egc);
+  }
+
+  // high contrast ought only be activated relevant to the background equal to
+  // or below them, not above.
+  SUBCASE("HighContrastBelowOnly"){
+    cell c = CELL_SIMPLE_INITIALIZER('+');
+    // top has a background of white
+    CHECK(0 == cell_set_bg_rgb(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT));
+    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    REQUIRE(nullptr != np);
+    CHECK(1 == ncplane_putc(np, &c));
+    // bottom has white foreground + HIGHCONTRAST, should remain white
+    CHECK(0 == cell_set_fg_rgb(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT));
+    CHECK(1 == ncplane_putc(n_, &c));
+    CHECK(0 == notcurses_render(nc_));
+    uint64_t channels, underchannels, overchannels;
+    auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
+    REQUIRE(nullptr != egc);
+    auto negc = ncplane_at_yx(n_, 0, 0, nullptr, &underchannels);
+    REQUIRE(nullptr != negc);
+    auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
+    REQUIRE(nullptr != topegc);
+    CHECK(channels_bg(channels) == channels_bg(overchannels));
+    CHECK(channels_fg(channels) == channels_fg(underchannels));
+    free(topegc);
+    free(negc);
+    free(egc);
+  }
+
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
 }

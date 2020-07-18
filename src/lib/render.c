@@ -227,12 +227,16 @@ highcontrast(uint32_t bchannel){
 static inline void
 lock_in_highcontrast(cell* targc, struct crender* crender){
   if(crender->highcontrast){
+fprintf(stderr, "PREPPING HIGHCONTRAST\n");
     // highcontrast weighs the original at 1/4 and the contrast at 3/4
     if(!cell_fg_default_p(targc)){
       crender->fgblends = 3;
       uint32_t fchan = cell_fchannel(targc);
       uint32_t bchan = cell_bchannel(targc);
-      cell_set_fchannel(targc, channels_blend(highcontrast(bchan), fchan, &crender->fgblends));
+fprintf(stderr, "fchan: %08x %08x\n", fchan, bchan);
+      uint32_t hchan = channels_blend(highcontrast(bchan), fchan, &crender->fgblends);
+      cell_set_fchannel(targc, hchan);
+fprintf(stderr, "post-fchan: %016lx (%08x)\n", targc->channels, hchan);
     }else{
       cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
     }
@@ -384,6 +388,7 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
             }
           }
         }
+if(y == 0 && x == 0){ fprintf(stderr, "postpaint %016lx\n", prevcell->channels); }
       }
     }
   }
@@ -418,6 +423,7 @@ postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
         if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
           crender->damaged = true;
         }
+if(y == 0 && x == 0){ fprintf(stderr, "postpaint %016lx\n", prevcell->channels); }
       }
     }
   }
@@ -1065,8 +1071,12 @@ char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint32_t* attrword, uin
     if(yoff >= 0 && yoff < nc->lfdimy){
       if(xoff >= 0 || xoff < nc->lfdimx){
         const cell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
-        *attrword = srccell->attrword;
-        *channels = srccell->channels;
+        if(attrword){
+          *attrword = srccell->attrword;
+        }
+        if(channels){
+          *channels = srccell->channels;
+        }
 //fprintf(stderr, "COPYING: %d from %p\n", srccell->gcluster, &nc->pool);
         egc = pool_egc_copy(&nc->pool, srccell);
       }
