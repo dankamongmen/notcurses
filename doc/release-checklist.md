@@ -70,6 +70,13 @@
   * Test that package builds with `makepkg`
   * `git commit -a`
 
+### Alpine
+
+* Update version in `APKBUILD`
+  * Run `abuild checksum` to get new checksums
+  * `abuild -r` to test `APKBUILD`
+  * create merge request
+
 ### FreeBSD
 
 * Update svn checkout of Ports tree: `cd /usr/ports && svn up`
