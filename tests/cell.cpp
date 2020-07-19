@@ -251,7 +251,7 @@ TEST_CASE("Cell") {
     auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
     REQUIRE(nullptr != topegc);
     CHECK(channels_bg(channels) == channels_bg(overchannels));
-    CHECK(channels_fg(channels) == channels_fg(underchannels));
+    CHECK(channels_fg(channels) < channels_fg(underchannels));
     free(topegc);
     free(negc);
     free(egc);
