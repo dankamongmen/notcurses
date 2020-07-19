@@ -1022,6 +1022,22 @@ int notcurses_render_to_file(struct notcurses* nc, FILE* fp){
   return 0;
 }
 
+// We render left-to-right, top-to-bottom, one cell at a time. At any given
+// cell, we only want to test intersecting planes. Each ptest tracks a plane
+// and the cell at which it next needs be checked.
+typedef struct ptest {
+  ncplane* n;
+  unsigned nextcell;
+} ptest;
+
+unsigned* initialize_ptests(const notcurses* nc){
+  const size_t puntlen = sizeof(uint64_t) * nc->stats.planes;
+  unsigned* punts = malloc(puntlen);
+  for(ncplane* p = nc->top ; p ; p = p->below){
+
+  }
+  return punts;
+}
 
 // We execute the painter's algorithm, starting from our topmost plane. The
 // damagevector should be all zeros on input. On success, it will reflect
@@ -1030,6 +1046,8 @@ int notcurses_render_to_file(struct notcurses* nc, FILE* fp){
 // locking down the EGC, the attributes, and the channels for each cell.
 static int
 notcurses_render_internal(notcurses* nc, struct crender* rvec){
+  // the punts array is used to track when each plane needs to be tested.
+  unsigned* punts = initialize_ptests(nc);
   int dimy, dimx;
   ncplane_dim_yx(nc->stdplane, &dimy, &dimx);
   cell* fb = malloc(sizeof(*fb) * dimy * dimx);
@@ -1040,12 +1058,14 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
              nc->stdplane->leny, nc->stdplane->lenx,
              nc->stdplane->absy, nc->stdplane->absx, nc->lfdimx)){
       free(fb);
+      free(punts);
       return -1;
     }
     p = p->below;
   }
   postpaint(fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
   free(fb);
+  free(punts);
   return 0;
 }
 
@@ -1059,9 +1079,10 @@ int notcurses_render(notcurses* nc){
   const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
   struct crender* crender = malloc(crenderlen);
   memset(crender, 0, crenderlen);
-  if(notcurses_render_internal(nc, crender) == 0){
+  if(notcurses_render_internal(nc, crender, punts) == 0){
     bytes = notcurses_rasterize(nc, crender, nc->rstate.mstreamfp);
   }
+  free(punts);
   free(crender);
   clock_gettime(CLOCK_MONOTONIC, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
