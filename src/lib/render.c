@@ -186,6 +186,11 @@ struct crender {
   // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
   // background is locked in. set highcontrast to indicate this.
   bool highcontrast;
+  // we'll need recalculate the foreground relative to the solved background,
+  // and then reapply any foreground shading from above the highcontrast
+  // declaration. save the foreground state when we go highcontrast.
+  unsigned hcfgblends; // number of foreground blends prior to HIGHCONTRAST
+  uint32_t hcfg;       // foreground channel prior to HIGHCONTRAST
 };
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
@@ -227,16 +232,15 @@ highcontrast(uint32_t bchannel){
 static inline void
 lock_in_highcontrast(cell* targc, struct crender* crender){
   if(crender->highcontrast){
-fprintf(stderr, "PREPPING HIGHCONTRAST\n");
     // highcontrast weighs the original at 1/4 and the contrast at 3/4
     if(!cell_fg_default_p(targc)){
       crender->fgblends = 3;
       uint32_t fchan = cell_fchannel(targc);
       uint32_t bchan = cell_bchannel(targc);
-fprintf(stderr, "fchan: %08x %08x\n", fchan, bchan);
       uint32_t hchan = channels_blend(highcontrast(bchan), fchan, &crender->fgblends);
       cell_set_fchannel(targc, hchan);
-fprintf(stderr, "post-fchan: %016lx (%08x)\n", targc->channels, hchan);
+      hchan = channels_blend(hchan, crender->hcfg, &crender->hcfgblends);
+      cell_set_fchannel(targc, hchan);
     }else{
       cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
     }
@@ -327,6 +331,7 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
       // glyph. If we've already locked in the background, it has no effect.
       // If it's transparent, it has no effect. Otherwise, update the
       // background channel and balpha.
+      // Evaluate the background first, in case we have HIGHCONTRAST fg text.
       vis = &p->fb[nfbcellidx(p, y, x)];
       if(cell_bg_default_p(vis)){
         vis = &p->basecell;
@@ -339,7 +344,6 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
         cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
       }
 
-      // Evaluate the background first, in case this is HIGHCONTRAST fg text.
       vis = &p->fb[nfbcellidx(p, y, x)];
       if(cell_fg_default_p(vis)){
         vis = &p->basecell;
@@ -351,6 +355,8 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
       }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
         if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
           crender->highcontrast = true;
+          crender->hcfgblends = crender->fgblends;
+          crender->hcfg = cell_fchannel(targc);
         }
         cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
         // crender->highcontrast can only be true if we just set it, since we're
@@ -388,7 +394,6 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
             }
           }
         }
-if(y == 0 && x == 0){ fprintf(stderr, "postpaint %016lx\n", prevcell->channels); }
       }
     }
   }
@@ -423,7 +428,6 @@ postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
         if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
           crender->damaged = true;
         }
-if(y == 0 && x == 0){ fprintf(stderr, "postpaint %016lx\n", prevcell->channels); }
       }
     }
   }
