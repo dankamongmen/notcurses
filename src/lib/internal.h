@@ -300,7 +300,7 @@ typedef struct notcurses {
 
   tinfo tcache;   // terminfo cache
 
-  FILE* ttyfp;    // FILE* for controlling tty
+  FILE* ttyfp;    // FILE* for writing rasterized data
   int ttyfd;      // file descriptor for controlling tty
   FILE* ttyinfp;  // FILE* for processing input
   FILE* renderfp; // debugging FILE* to which renderings are written

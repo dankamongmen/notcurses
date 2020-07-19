@@ -49,11 +49,13 @@ static int
 notcurses_stop_minimal(notcurses* nc){
   int ret = 0;
   drop_signals(nc);
-  if(nc->tcache.rmcup && term_emit("rmcup", nc->tcache.rmcup, nc->ttyfp, true)){
-    ret = -1;
-  }
-  if(nc->tcache.cnorm && term_emit("cnorm", nc->tcache.cnorm, nc->ttyfp, true)){
-    ret = -1;
+  if(nc->ttyfd >= 0){
+    if(nc->tcache.rmcup && tty_emit("rmcup", nc->tcache.rmcup, nc->ttyfd)){
+      ret = -1;
+    }
+    if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd)){
+      ret = -1;
+    }
   }
   if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
     ret = -1;
@@ -894,14 +896,16 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if((ret->stdscr = create_initial_ncplane(ret, dimy, dimx)) == NULL){
     goto err;
   }
-  if(ret->tcache.smkx && term_emit("smkx", ret->tcache.smkx, ret->ttyfp, false)){
-    free_plane(ret->top);
-    goto err;
-  }
-  if(!(opts->flags & NCOPTION_RETAIN_CURSOR)){
-    if(ret->tcache.civis && term_emit("civis", ret->tcache.civis, ret->ttyfp, true)){
+  if(ret->ttyfd >= 0){
+    if(ret->tcache.smkx && tty_emit("smkx", ret->tcache.smkx, ret->ttyfd)){
       free_plane(ret->top);
       goto err;
+    }
+    if(!(opts->flags & NCOPTION_RETAIN_CURSOR)){
+      if(ret->tcache.civis && tty_emit("civis", ret->tcache.civis, ret->ttyfd)){
+        free_plane(ret->top);
+        goto err;
+      }
     }
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
@@ -911,9 +915,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->rstate.x = ret->rstate.y = -1;
   init_banner(ret);
   // flush on the switch to alternate screen, lest initial output be swept away
-  if(ret->tcache.smcup && term_emit("smcup", ret->tcache.smcup, ret->ttyfp, true)){
-    free_plane(ret->top);
-    goto err;
+  if(ret->ttyfd >= 0){
+    if(ret->tcache.smcup && tty_emit("smcup", ret->tcache.smcup, ret->ttyfd)){
+      free_plane(ret->top);
+      goto err;
+    }
   }
   return ret;
 
@@ -1874,14 +1880,18 @@ void ncplane_erase(ncplane* n){
 }
 
 void notcurses_cursor_enable(notcurses* nc){
-  if(nc->tcache.cnorm){
-    term_emit("cnorm", nc->tcache.cnorm, nc->ttyfp, true);
+  if(nc->ttyfd >= 0){
+    if(nc->tcache.cnorm){
+      tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd);
+    }
   }
 }
 
 void notcurses_cursor_disable(notcurses* nc){
-  if(nc->tcache.civis){
-    term_emit("civis", nc->tcache.civis, nc->ttyfp, true);
+  if(nc->ttyfd >= 0){
+    if(nc->tcache.civis){
+      tty_emit("civis", nc->tcache.civis, nc->ttyfd);
+    }
   }
 }
 
@@ -1898,17 +1908,23 @@ ncplane* ncplane_below(ncplane* n){
 #define SET_FOCUS_EVENT_MOUSE "1004"
 #define SET_SGR_MODE_MOUSE    "1006"
 int notcurses_mouse_enable(notcurses* n){
-  return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
-                   n->ttyfp, true);
+  if(n->ttyfd >= 0){
+    return tty_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
+                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
+                    n->ttyfd);
+  }
+  return 0;
 }
 
 // this seems to work (note difference in suffix, 'l' vs 'h'), but what about
 // the sequences 1000 etc?
 int notcurses_mouse_disable(notcurses* n){
-  return term_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
-                   n->ttyfp, true);
+  if(n->ttyfd >= 0){
+    return tty_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
+                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
+                    n->ttyfd);
+  }
+  return 0;
 }
 
 bool notcurses_canutf8(const notcurses* nc){
