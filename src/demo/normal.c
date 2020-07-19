@@ -221,7 +221,7 @@ int normal_demo(struct notcurses* nc){
   if(notcurses_canutf8(nc)){
     ncplane_erase(nstd);
     ncplane_home(n);
-    if(rotate_plane(nc, n)){
+    if( (r = rotate_plane(nc, n)) ){
       goto err;
     }
   }
