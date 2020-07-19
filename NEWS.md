@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.4 (not yet released)
+  * Added `notcurses_str_blitter()`.
+
 * 1.6.3 (2020-07-16)
   * No user-visible changes.
 

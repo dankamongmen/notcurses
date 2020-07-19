@@ -85,6 +85,7 @@ typedef struct notcurses_options {
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);
 int notcurses_lex_margins(const char* op, notcurses_options* opts);
+const char* notcurses_str_blitter(ncblitter_e blitter);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
 int notcurses_render_to_file(struct notcurses* nc, FILE* fp);

@@ -2639,6 +2639,9 @@ typedef enum {
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncblitter_e;
 
+// Get the name of a blitter.
+const char* notcurses_str_blitter(ncblitter_e blitter);
+
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
   // necessary to render the source with perfect fidelity (this might be

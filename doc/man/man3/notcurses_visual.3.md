@@ -82,6 +82,8 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **char* ncvisual_subtitle(const struct ncvisual* ncv);**
 
+**const char* notcurses_str_blitter(ncblitter_e blitter);**
+
 # DESCRIPTION
 
 An **ncvisual** is a virtual pixel framebuffer. They can be created from

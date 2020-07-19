@@ -61,7 +61,8 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   clock_gettime(CLOCK_MONOTONIC, &now);
   intmax_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
   // clear top line only
-  stdn->printf(0, NCAlign::Left, "frame %06d\u2026", *framecount);
+  stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", *framecount,
+               notcurses_str_blitter(vopts->blitter));
   char* subtitle = ncvisual_subtitle(ncv);
   if(subtitle){
     if(!subtitle_plane){

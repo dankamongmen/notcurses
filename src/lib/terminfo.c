@@ -72,6 +72,9 @@ int interrogate_terminfo(tinfo* ti){
     return -1;
   }
   terminfostr(&ti->civis, "civis"); // cursor invisible
+  if(ti->civis == NULL){
+    terminfostr(&ti->civis, "chts");// hard-to-see cursor
+  }
   terminfostr(&ti->cnorm, "cnorm"); // cursor normal (undo civis/cvvis)
   terminfostr(&ti->standout, "smso"); // begin standout mode
   terminfostr(&ti->uline, "smul");    // begin underline mode

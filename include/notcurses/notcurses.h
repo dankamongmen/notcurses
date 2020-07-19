@@ -895,6 +895,9 @@ typedef struct notcurses_options {
 // there can be four numbers separated by commas.
 API int notcurses_lex_margins(const char* op, notcurses_options* opts);
 
+// Get the name of a blitter.
+API const char* notcurses_str_blitter(ncblitter_e blitter);
+
 // Lex a visual scaling mode (one of "none", "stretch", or "scale").
 API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 

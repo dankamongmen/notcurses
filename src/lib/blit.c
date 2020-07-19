@@ -499,6 +499,31 @@ const struct blitset notcurses_blitters[] = {
      .blit = NULL,           .fill = false,  },
 };
 
+const char* notcurses_str_blitter(ncblitter_e blitter){
+  switch(blitter){
+    case NCBLIT_DEFAULT:
+      return "default";
+    case NCBLIT_8x1:
+      return "eightstep";
+    case NCBLIT_1x1:
+      return "ascii";
+    case NCBLIT_2x1:
+      return "halfblocks";
+    case NCBLIT_1x1x4:
+      return "shadeblocks";
+    case NCBLIT_2x2:
+      return "quadblitter";
+    case NCBLIT_4x1:
+      return "fourstep";
+    case NCBLIT_BRAILLE:
+      return "braille";
+    case NCBLIT_SIXEL:
+      return "sixel";
+    default:
+      return NULL;
+  }
+}
+
 int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* vopts){
   if(vopts->flags > NCVISUAL_OPTION_BLEND){
     return -1;
