@@ -52,6 +52,7 @@ rotate_plane(struct notcurses* nc, struct ncplane* n){
 static int
 rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   struct timespec scaled;
+  int r = 0;
   timespec_div(&demodelay, 8, &scaled);
   int fromy = 0, fromx = 0;
   if(dy * 2 > dx){
@@ -71,11 +72,9 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   ncplane_destroy(n);
   int dimy, dimx;
   n = notcurses_stddim_yx(nc, &dimy, &dimx);
-  bool failed = false;
   const int ROTATIONS = 32;
   timespec_div(&demodelay, ROTATIONS / 2, &scaled);
-  struct ncvisual_options vopts = {
-  };
+  struct ncvisual_options vopts = { };
   ncplane_erase(n);
   struct ncvisual* nncv = NULL;
   if(notcurses_canopen_images(nc)){
@@ -100,7 +99,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   for(double i = 0 ; i < ROTATIONS ; ++i){
     demo_nanosleep(nc, &scaled);
     if(ncvisual_rotate(ncv, -M_PI / (i / 8 + 2))){
-      failed = true;
+      r = -1;
       break;
     }
     int vy, vx, vyscale, vxscale;
@@ -109,18 +108,17 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
     vopts.y = (dimy - (vy / vyscale)) / 2;
     struct ncplane* newn;
     if((newn = ncvisual_render(nc, ncv, &vopts)) == NULL){
-      failed = true;
+      r = -1;
       break;
     }
-    if(demo_render(nc)){
-      failed = true;
+    if( (r = demo_render(nc)) ){
       break;
     }
     ncplane_destroy(newn);
   }
   ncvisual_destroy(nncv);
   ncvisual_destroy(ncv);
-  return failed ? -1 : 0;
+  return r;
 }
 
 static const int ITERMAX = 256;
@@ -243,8 +241,8 @@ int normal_demo(struct notcurses* nc){
   cell_set_bg_rgb(&c, 0, 0, 0);
   ncplane_set_base_cell(nstd, &c);
   cell_release(nstd, &c);
-  bool failed = rotate_visual(nc, n, dy, dx);
-  return failed ? -1 : 0;
+  r = rotate_visual(nc, n, dy, dx);
+  return r;
 
 err:
   free(rgba);
