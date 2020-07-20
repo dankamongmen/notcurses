@@ -279,6 +279,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
       }
       truey = leny;
     }
+//fprintf(stderr, "begy: %d trueby: %d\n", begy, trueby);
     if(begy != trueby){
       ncplane_move_yx(fp, begy, begx);
     }
@@ -310,8 +311,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cbmaxx/cbmaxy: %d/%d dir: %d\n",
 //    lenx, leny, cbx, cby, cbmaxx, cbmaxy, direction);
   int ll = t->cbfxn(t, cbx, cby, cbmaxx, cbmaxy, cbdir);
-//fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n",
-//        t, ll, cby, cbmaxy, leny, direction);
+//fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbmaxy, leny, direction);
   if(ll != leny){
     if(ll == leny - 1){ // only has one border visible (partially off-screen)
       if(cbdir){
@@ -345,11 +345,11 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
     // Move it back to the frontier, or the nearest line above if it has grown.
     if(direction == 0){
       if(leny - frontiery + 1 < ll){
-//fprintf(stderr, "frontieryIZING ADJ %d %d %d %d NEW %d\n", cbmaxy, leny,
-//         frontiery, ll, frontiery - ll + 1);
-        ncplane_yx(nr->p, &frontiery, NULL);
+//fprintf(stderr, "frontieryIZING ADJ %d %d %d %d NEW %d\n", cbmaxy, leny, frontiery, ll, frontiery - ll + 1);
+        ncplane_yx(fp, &frontiery, NULL);
         frontiery += (leny - ll);
       }
+//fprintf(stderr, "moving to frontiery %d\n", frontiery);
       ncplane_move_yx(fp, frontiery, begx);
     }
   }
@@ -396,7 +396,7 @@ draw_focused_tablet(const ncreel* nr){
     }
 //fprintf(stderr, "existing: %p %d  placing at %d\n", nr->tablets, nr->last_traveled_direction, fulcrum);
   }
-//fprintf(stderr, "PR dims: %d/%d + %d/%d fulcrum: %d\n", pbegy, pbegx, pleny, plenx, fulcrum);
+//fprintf(stderr, "PR dims: %d + %d/%d fulcrum: %d\n", pbegy, pleny, plenx, fulcrum);
   ncreel_draw_tablet(nr, nr->tablets, fulcrum, 0 /* nr->last_traveled_direction*/);
   return 0;
 }
