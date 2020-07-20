@@ -132,7 +132,7 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
   do{
     if(egcpool_alloc_justified(pool, len) || searched){
       if(!duplicated){
-        if((duplicated = strdup(egc)) == NULL){
+        if((duplicated = strndup(egc, ulen)) == NULL){
           return -1;
         }
       }
