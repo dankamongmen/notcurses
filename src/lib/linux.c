@@ -247,7 +247,9 @@ program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
     }, {
       .ws = L"\\╲",
     }, {
-      .ws = L"X╳",
+      .ws = L"X╳☒",
+    }, {
+      .ws = L"-☐",
     }, {
       .ws = L"└┕┖┗╘╙╚╰",
     }, {
