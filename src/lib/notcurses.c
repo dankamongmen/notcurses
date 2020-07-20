@@ -2076,10 +2076,19 @@ int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode){
     *scalemode = NCSCALE_SCALE;
   }else if(strcasecmp(op, "none") == 0){
     *scalemode = NCSCALE_NONE;
-  }else{
-    return -1;
   }
-  return 0;
+  return -1;
+}
+
+const char* notcurses_str_scalemode(ncscale_e scalemode){
+  if(scalemode == NCSCALE_STRETCH){
+    return "stretch";
+  }else if(scalemode == NCSCALE_SCALE){
+    return "scale";
+  }else if(scalemode == NCSCALE_NONE){
+    return "none";
+  }
+  return NULL;
 }
 
 int notcurses_lex_margins(const char* op, notcurses_options* opts){
