@@ -3041,6 +3041,7 @@ struct blitset {
   int (*blit)(struct ncplane* nc, int placey, int placex, int linesize,
               const void* data, int begy, int begx, int leny, int lenx,
               bool bgr, bool blendcolors);
+  const char* name;
   bool fill;
 };
 

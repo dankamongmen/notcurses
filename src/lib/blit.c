@@ -480,48 +480,37 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
 // be replaced with some real blitter implementation by the calling widget.
 const struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_8x1,     .width = 1, .height = 8, .egcs = L" ▁▂▃▄▅▆▇█",
-     .blit = tria_blit,       .fill = false, }, // FIXME
+     .blit = tria_blit,      .name = "eightstep",     .fill = false, },
    { .geom = NCBLIT_1x1,     .width = 1, .height = 1, .egcs = L" █",
-     .blit = tria_blit_ascii,.fill = false, },
+     .blit = tria_blit_ascii,.name = "ascii",         .fill = false, },
    { .geom = NCBLIT_2x1,     .width = 1, .height = 2, .egcs = L" ▄█",
-     .blit = tria_blit,      .fill = false, },
+     .blit = tria_blit,      .name = "halfblock",     .fill = false, },
    { .geom = NCBLIT_1x1x4,   .width = 1, .height = 4, .egcs = L" ▒░▓█",
-     .blit = tria_blit,      .fill = false, }, // FIXME
+     .blit = tria_blit,      .name = "shadeblocks",   .fill = false, },
    { .geom = NCBLIT_2x2,     .width = 2, .height = 2, .egcs = L" ▗▐▖▄▟▌▙█",
-     .blit = quadrant_blit,  .fill = false, },
+     .blit = quadrant_blit,  .name = "quadblitter",   .fill = false, },
    { .geom = NCBLIT_4x1,     .width = 1, .height = 4, .egcs = L" ▂▄▆█",
-     .blit = tria_blit,      .fill = false, }, // FIXME
+     .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿",
-     .blit = braille_blit,   .fill = true,  },
+     .blit = braille_blit,   .name = "braille",       .fill = true,  },
    { .geom = NCBLIT_SIXEL,   .width = 1, .height = 6, .egcs = L"",
-     .blit = tria_blit,      .fill = true,  }, // FIXME
+     .blit = NULL,           .name = "sixel",         .fill = true,  }, // FIXME
    { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
-     .blit = NULL,           .fill = false,  },
+     .blit = NULL,           .name = NULL,            .fill = false,  },
 };
 
 const char* notcurses_str_blitter(ncblitter_e blitter){
-  switch(blitter){
-    case NCBLIT_DEFAULT:
-      return "default";
-    case NCBLIT_8x1:
-      return "eightstep";
-    case NCBLIT_1x1:
-      return "ascii";
-    case NCBLIT_2x1:
-      return "halfblocks";
-    case NCBLIT_1x1x4:
-      return "shadeblocks";
-    case NCBLIT_2x2:
-      return "quadblitter";
-    case NCBLIT_4x1:
-      return "fourstep";
-    case NCBLIT_BRAILLE:
-      return "braille";
-    case NCBLIT_SIXEL:
-      return "sixel";
-    default:
-      return NULL;
+  if(blitter == NCBLIT_DEFAULT){
+    return "default";
   }
+  const struct blitset* bset = notcurses_blitters;
+  while(bset->name){
+    if(bset->geom == blitter){
+      return bset->name;
+    }
+    ++bset;
+  }
+  return NULL;
 }
 
 int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* vopts){
