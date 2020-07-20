@@ -26,7 +26,7 @@ static int plot_grab_y = -1;
 static int plot_pos_y;
 
 // how many columns for runtime?
-static const int HUD_ROWS = 3 + 2; // 2 for borders
+#define HUD_ROWS (3 + 2) // 2 for borders
 static const int HUD_COLS = 30 + 2; // 2 for borders
 
 typedef struct elem {
