@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.6 (2020-07-19)
+  * `notcurses-pydemo` is now only installed alongside the Python module,
+    using setuptools. CMake no longer installs it.
+  * Added `notcurses_lex_blitter()` and `notcurses_str_scalemode()`.
+
 * 1.6.5 (2020-07-19)
   * No user-visible changes.
 

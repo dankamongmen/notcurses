@@ -82,6 +82,12 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **char* ncvisual_subtitle(const struct ncvisual* ncv);**
 
+**int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);**
+
+**const char* notcurses_str_scalemode(ncscale_e scalemode);**
+
+**int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);**
+
 **const char* notcurses_str_blitter(ncblitter_e blitter);**
 
 # DESCRIPTION

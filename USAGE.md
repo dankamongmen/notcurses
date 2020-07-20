@@ -2639,6 +2639,9 @@ typedef enum {
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncblitter_e;
 
+// Lex a blitter.
+int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
+
 // Get the name of a blitter.
 const char* notcurses_str_blitter(ncblitter_e blitter);
 
@@ -2670,6 +2673,12 @@ typedef enum {
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
 } ncscale_e;
+
+// Lex a visual scaling mode (one of "none", "stretch", or "scale").
+int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
+
+// Get the name of a scaling mode.
+const char* notcurses_str_scalemode(ncscale_e scalemode);
 
 // the streaming operation ceases immediately, and that value is propagated out.
 // The recommended absolute display time target is passed in 'tspec'.

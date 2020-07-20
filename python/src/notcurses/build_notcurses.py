@@ -146,6 +146,7 @@ typedef enum {
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
 } ncblitter_e;
 const char* notcurses_str_blitter(ncblitter_e blitter);
+int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
 uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit, int begy, int begx, int leny, int lenx);
 char* ncplane_contents(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
@@ -273,6 +274,8 @@ typedef enum {
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
 } ncscale_e;
+int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
+const char* notcurses_str_scalemode(ncscale_e scalemode);
 struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
 struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);
 struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows, int rowstride, int cols);

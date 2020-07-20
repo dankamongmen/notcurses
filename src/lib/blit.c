@@ -499,6 +499,22 @@ const struct blitset notcurses_blitters[] = {
      .blit = NULL,           .name = NULL,            .fill = false,  },
 };
 
+int notcurses_lex_blitter(const char* op, ncblitter_e* blitter){
+  const struct blitset* bset = notcurses_blitters;
+  while(bset->name){
+    if(strcasecmp(bset->name, op) == 0){
+      *blitter = bset->geom;
+      return 0;
+    }
+    ++bset;
+  }
+  if(strcasecmp("default", op) == 0){
+    *blitter = NCBLIT_DEFAULT;
+    return 0;
+  }
+  return -1;
+}
+
 const char* notcurses_str_blitter(ncblitter_e blitter){
   if(blitter == NCBLIT_DEFAULT){
     return "default";
