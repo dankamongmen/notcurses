@@ -425,8 +425,7 @@ draw_following_tablets(const ncreel* nr, const nctablet* otherend){
     if(working == otherend){
       otherend = otherend->next;
     }
-  }while(working->p); // FIXME might be more to hide
-  // FIXME keep going forward, hiding those no longer visible
+  }while(working->p);
   return working;
 }
 
@@ -456,7 +455,6 @@ draw_previous_tablets(const ncreel* nr, const nctablet* otherend){
       otherend = otherend->prev;
     }
   }
-  // FIXME keep going backwards, hiding those no longer visible
   return upworking;
 }
 
