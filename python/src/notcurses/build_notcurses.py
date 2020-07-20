@@ -85,7 +85,6 @@ typedef struct notcurses_options {
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);
 int notcurses_lex_margins(const char* op, notcurses_options* opts);
-const char* notcurses_str_blitter(ncblitter_e blitter);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
 int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
@@ -146,6 +145,7 @@ typedef enum {
   NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
 } ncblitter_e;
+const char* notcurses_str_blitter(ncblitter_e blitter);
 uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit, int begy, int begx, int leny, int lenx);
 char* ncplane_contents(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
