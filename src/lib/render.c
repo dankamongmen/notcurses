@@ -6,7 +6,7 @@
 #include "internal.h"
 
 // Check whether the terminal geometry has changed, and if so, copies what can
-// be copied from the old stdscr. Assumes that the screen is always anchored at
+// be copied from the old stdplane. Assumes that the screen is always anchored at
 // the same origin. Also syncs up lastframe.
 static int
 notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
@@ -17,8 +17,8 @@ notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   if(cols == NULL){
     cols = &c;
   }
-  int oldrows = n->stdscr->leny;
-  int oldcols = n->stdscr->lenx;
+  int oldrows = n->stdplane->leny;
+  int oldcols = n->stdplane->lenx;
   *rows = oldrows;
   *cols = oldcols;
   if(update_term_dimensions(n->ttyfd, rows, cols)){
@@ -58,7 +58,7 @@ notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   if(keepx > oldcols){
     keepx = oldcols;
   }
-  if(ncplane_resize_internal(n->stdscr, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
+  if(ncplane_resize_internal(n->stdplane, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
     return -1;
   }
   return 0;
@@ -438,7 +438,7 @@ postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
 int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   notcurses* nc = src->nc;
   if(dst == NULL){
-    dst = nc->stdscr;
+    dst = nc->stdplane;
   }
   int dimy, dimx;
   ncplane_dim_yx(dst, &dimy, &dimx);
@@ -776,10 +776,10 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
-  for(y = nc->stdscr->absy ; y < nc->stdscr->leny + nc->stdscr->absy ; ++y){
-    const int innery = y - nc->stdscr->absy;
-    for(x = nc->stdscr->absx ; x < nc->stdscr->lenx + nc->stdscr->absx ; ++x){
-      const int innerx = x - nc->stdscr->absx;
+  for(y = nc->stdplane->absy ; y < nc->stdplane->leny + nc->stdplane->absy ; ++y){
+    const int innery = y - nc->stdplane->absy;
+    for(x = nc->stdplane->absx ; x < nc->stdplane->lenx + nc->stdplane->absx ; ++x){
+      const int innerx = x - nc->stdplane->absx;
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
       const cell* srccell = &nc->lastframe[damageidx];
@@ -968,8 +968,8 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(home_cursor(nc, true)){
     return -1;
   }
-  const int count = (nc->lfdimx > nc->stdscr->lenx ? nc->lfdimx : nc->stdscr->lenx) *
-                    (nc->lfdimy > nc->stdscr->leny ? nc->lfdimy : nc->stdscr->leny);
+  const int count = (nc->lfdimx > nc->stdplane->lenx ? nc->lfdimx : nc->stdplane->lenx) *
+                    (nc->lfdimy > nc->stdplane->leny ? nc->lfdimy : nc->stdplane->leny);
   struct crender* rvec = malloc(count * sizeof(*rvec));
   if(rvec == NULL){
     return -1;
@@ -996,8 +996,8 @@ int notcurses_render_to_file(struct notcurses* nc, FILE* fp){
   if(out == NULL){
     return -1;
   }
-  const int count = (nc->lfdimx > nc->stdscr->lenx ? nc->lfdimx : nc->stdscr->lenx) *
-                    (nc->lfdimy > nc->stdscr->leny ? nc->lfdimy : nc->stdscr->leny);
+  const int count = (nc->lfdimx > nc->stdplane->lenx ? nc->lfdimx : nc->stdplane->lenx) *
+                    (nc->lfdimy > nc->stdplane->leny ? nc->lfdimy : nc->stdplane->leny);
   struct crender* rvec = malloc(count * sizeof(*rvec));
   if(rvec == NULL){
     fclose(out);
@@ -1031,14 +1031,14 @@ int notcurses_render_to_file(struct notcurses* nc, FILE* fp){
 static int
 notcurses_render_internal(notcurses* nc, struct crender* rvec){
   int dimy, dimx;
-  ncplane_dim_yx(nc->stdscr, &dimy, &dimx);
+  ncplane_dim_yx(nc->stdplane, &dimy, &dimx);
   cell* fb = malloc(sizeof(*fb) * dimy * dimx);
   init_fb(fb, dimy, dimx);
   ncplane* p = nc->top;
   while(p){
     if(paint(p, nc->lastframe, rvec, fb, &nc->pool,
-             nc->stdscr->leny, nc->stdscr->lenx,
-             nc->stdscr->absy, nc->stdscr->absx, nc->lfdimx)){
+             nc->stdplane->leny, nc->stdplane->lenx,
+             nc->stdplane->absy, nc->stdplane->absx, nc->lfdimx)){
       free(fb);
       return -1;
     }
@@ -1056,7 +1056,7 @@ int notcurses_render(notcurses* nc){
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
   int bytes = -1;
-  const size_t crenderlen = sizeof(struct crender) * nc->stdscr->leny * nc->stdscr->lenx;
+  const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
   struct crender* crender = malloc(crenderlen);
   memset(crender, 0, crenderlen);
   if(notcurses_render_internal(nc, crender) == 0){

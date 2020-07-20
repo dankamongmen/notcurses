@@ -338,17 +338,17 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
 // the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
-  nc->stdscr = ncplane_create(nc, NULL, dimy - (nc->margin_t + nc->margin_b),
+  nc->stdplane = ncplane_create(nc, NULL, dimy - (nc->margin_t + nc->margin_b),
                               dimx - (nc->margin_l + nc->margin_r), 0, 0, NULL);
-  return nc->stdscr;
+  return nc->stdplane;
 }
 
 ncplane* notcurses_stdplane(notcurses* nc){
-  return nc->stdscr;
+  return nc->stdplane;
 }
 
 const ncplane* notcurses_stdplane_const(const notcurses* nc){
-  return nc->stdscr;
+  return nc->stdplane;
 }
 
 ncplane* ncplane_new(notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque){
@@ -428,7 +428,7 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   return newn;
 }
 
-// can be used on stdscr, unlike ncplane_resize() which prohibits it.
+// can be used on stdplane, unlike ncplane_resize() which prohibits it.
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
                             int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
@@ -524,7 +524,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
 
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                    int keeplenx, int yoff, int xoff, int ylen, int xlen){
-  if(n == n->nc->stdscr){
+  if(n == n->nc->stdplane){
 //fprintf(stderr, "Can't resize standard plane\n");
     return -1;
   }
@@ -536,7 +536,7 @@ int ncplane_destroy(ncplane* ncp){
   if(ncp == NULL){
     return 0;
   }
-  if(ncp->nc->stdscr == ncp){
+  if(ncp->nc->stdplane == ncp){
     logerror(ncp->nc, "Won't destroy standard plane\n");
     return -1;
   }
@@ -662,7 +662,7 @@ init_banner(const notcurses* nc){
     printf("\n  %d rows, %d columns (%sB), %d colors (%s)\n"
            "  compiled with gcc-%s\n"
            "  terminfo from %s\n",
-           nc->stdscr->leny, nc->stdscr->lenx,
+           nc->stdplane->leny, nc->stdplane->lenx,
            bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
            nc->tcache.colors, nc->tcache.RGBflag ? "direct" : "palette",
            __VERSION__, curses_version());
@@ -889,11 +889,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     terminfostr(&ret->tcache.smcup, "smcup");
     terminfostr(&ret->tcache.rmcup, "rmcup");
   }
-  ret->bottom = ret->top = ret->stdscr = NULL;
+  ret->bottom = ret->top = ret->stdplane = NULL;
   if(ncvisual_init(ffmpeg_log_level(ret->loglevel))){
     goto err;
   }
-  if((ret->stdscr = create_initial_ncplane(ret, dimy, dimx)) == NULL){
+  if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
     goto err;
   }
   if(ret->ttyfd >= 0){
@@ -935,13 +935,13 @@ void notcurses_drop_planes(notcurses* nc){
   ncplane* p = nc->top;
   while(p){
     ncplane* tmp = p->below;
-    if(nc->stdscr != p){
+    if(nc->stdplane != p){
       free_plane(p);
     }
     p = tmp;
   }
-  nc->top = nc->bottom = nc->stdscr;
-  nc->stdscr->above = nc->stdscr->below = NULL;
+  nc->top = nc->bottom = nc->stdplane;
+  nc->stdplane->above = nc->stdplane->below = NULL;
 }
 
 int notcurses_stop(notcurses* nc){
@@ -1829,7 +1829,7 @@ move_bound_planes(ncplane* n, int dy, int dx){
 }
 
 int ncplane_move_yx(ncplane* n, int y, int x){
-  if(n == n->nc->stdscr){
+  if(n == n->nc->stdplane){
     return -1;
   }
   int dy, dx; // amount moved
@@ -1837,8 +1837,8 @@ int ncplane_move_yx(ncplane* n, int y, int x){
     dy = (n->boundto->absy + y) - n->absy;
     dx = (n->boundto->absx + x) - n->absx;
   }else{
-    dy = (n->nc->stdscr->absy + y) - n->absy;
-    dx = (n->nc->stdscr->absx + x) - n->absx;
+    dy = (n->nc->stdplane->absy + y) - n->absy;
+    dx = (n->nc->stdplane->absx + x) - n->absx;
   }
   n->absx += dx;
   n->absy += dy;
@@ -1849,14 +1849,14 @@ int ncplane_move_yx(ncplane* n, int y, int x){
 void ncplane_yx(const ncplane* n, int* y, int* x){
   if(y){
     if(n->boundto == NULL){
-      *y = n->absy - n->nc->stdscr->absy;
+      *y = n->absy - n->nc->stdplane->absy;
     }else{
       *y = n->absy - n->boundto->absy;
     }
   }
   if(x){
     if(n->boundto == NULL){
-      *x = n->absx - n->nc->stdscr->absx;
+      *x = n->absx - n->nc->stdplane->absx;
     }else{
       *x = n->absx - n->boundto->absx;
     }
@@ -2020,7 +2020,7 @@ const notcurses* ncplane_notcurses_const(const ncplane* n){
 }
 
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
-  if(n == n->nc->stdscr){
+  if(n == n->nc->stdplane){
     return NULL; // can't reparent standard plane
   }
   if(n->boundto == newparent){

@@ -37,8 +37,8 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
       *y = n->rows;
       *x = n->cols;
     }else{
-      int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdscr);
-      int cols = vopts->n ? ncplane_dim_x(vopts->n) : ncplane_dim_x(nc->stdscr);
+      int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdplane);
+      int cols = vopts->n ? ncplane_dim_x(vopts->n) : ncplane_dim_x(nc->stdplane);
       *y = rows * encoding_y_scale(bset);
       *x = cols * encoding_x_scale(bset);
     }

@@ -277,9 +277,9 @@ typedef struct ncdirect {
 } ncdirect;
 
 typedef struct notcurses {
-  ncplane* top;   // topmost plane, never NULL
-  ncplane* bottom;// bottommost plane, never NULL 
-  ncplane* stdscr;// aliases some plane from the z-buffer, covers screen
+  ncplane* top;     // topmost plane, never NULL
+  ncplane* bottom;  // bottommost plane, never NULL 
+  ncplane* stdplane;// standard plane, covers screen
 
   // the style state of the terminal is carried across render runs
   renderstate rstate;
