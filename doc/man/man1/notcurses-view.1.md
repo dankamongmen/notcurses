@@ -1,6 +1,6 @@
 % notcurses-view(1)
 % nick black <nickblack@linux.com>
-% v1.6.4
+% v1.6.5
 
 # NAME
 
