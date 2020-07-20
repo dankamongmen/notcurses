@@ -8,6 +8,7 @@ setup(
     name="notcurses",
     version="1.6.5",
     packages=['notcurses'],
+    scripts=['notcurses-pydemo'],
     package_dir={'': 'src'},
     author="Nick Black",
     author_email="nickblack@linux.com",
