@@ -1283,6 +1283,42 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   return cols;
 }
 
+static inline int
+cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols){
+  if(bytes >= 0 && cols >= 0 && bytes <= 1){
+    cell_release(n, c);
+    c->channels &= ~CELL_WIDEASIAN_MASK;
+    c->gcluster = *gcluster;
+    return !!c->gcluster;
+  }
+  if(cols > 1){
+    c->channels |= CELL_WIDEASIAN_MASK;
+  }else if(cols >= 0){
+    c->channels &= ~CELL_WIDEASIAN_MASK;
+  }else{
+    return -1;
+  }
+  if(!cell_simple_p(c)){
+    if(strcmp(gcluster, cell_extended_gcluster(n, c)) == 0){
+      return bytes; // reduce, reuse, recycle
+    }else{
+      cell_release(n, c);
+    }
+  }
+  int eoffset = egcpool_stash(&n->pool, gcluster, bytes);
+  if(eoffset < 0){
+    return -1;
+  }
+  c->gcluster = eoffset + 0x80;
+  return bytes;
+}
+
+int cell_load(ncplane* n, cell* c, const char* gcluster){
+  int cols;
+  int bytes = utf8_egc_len(gcluster, &cols);
+  return cell_load_direct(n, c, gcluster, bytes, cols);
+}
+
 int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes){
   int cols;
   int bytes = utf8_egc_len(gclust, &cols);
@@ -1325,9 +1361,11 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   if(wide){
     channels |= CELL_WIDEASIAN_MASK;
   }
-  if(cell_prime(n, targ, gclust, n->attrword, channels) < 0){
+  if(cell_load_direct(n, targ, gclust, bytes, cols) < 0){
     return -1;
   }
+  targ->attrword = n->attrword;
+  targ->channels = channels;
   if(wide){ // must set our right wide, and check for further damage
     if(n->x < n->lenx - 1){ // check to our right
       cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
@@ -1396,37 +1434,6 @@ int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
     }
   }
   return 0;
-}
-
-int cell_load(ncplane* n, cell* c, const char* gcluster){
-  int bytes;
-  int cols;
-  if((bytes = utf8_egc_len(gcluster, &cols)) >= 0 && cols >= 0 && bytes <= 1){
-    cell_release(n, c);
-    c->channels &= ~CELL_WIDEASIAN_MASK;
-    c->gcluster = *gcluster;
-    return !!c->gcluster;
-  }
-  if(cols > 1){
-    c->channels |= CELL_WIDEASIAN_MASK;
-  }else if(cols >= 0){
-    c->channels &= ~CELL_WIDEASIAN_MASK;
-  }else{
-    return -1;
-  }
-  if(!cell_simple_p(c)){
-    if(strcmp(gcluster, cell_extended_gcluster(n, c)) == 0){
-      return bytes; // reduce, reuse, recycle
-    }else{
-      cell_release(n, c);
-    }
-  }
-  int eoffset = egcpool_stash(&n->pool, gcluster, bytes);
-  if(eoffset < 0){
-    return -1;
-  }
-  c->gcluster = eoffset + 0x80;
-  return bytes;
 }
 
 unsigned notcurses_supported_styles(const notcurses* nc){
