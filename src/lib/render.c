@@ -734,13 +734,15 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
   if(nc->rstate.y == y){ // only need move x
     const int xdiff = x - nc->rstate.x;
     if(xdiff > 0){
-      if(xdiff == 1){
-        ret = term_emit("cuf1", tiparm(nc->tcache.cuf1), out, false);
-      }else{
-        ret = term_emit("cuf", tiparm(nc->tcache.cuf, xdiff), out, false);
+      if(nc->tcache.cuf && nc->tcache.cuf1){
+        if(xdiff == 1){
+          ret = term_emit("cuf1", tiparm(nc->tcache.cuf1), out, false);
+        }else{
+          ret = term_emit("cuf", tiparm(nc->tcache.cuf, xdiff), out, false);
+        }
+        nc->rstate.x = x;
+        return ret;
       }
-      nc->rstate.x = x;
-      return ret;
     }else if(xdiff == 0){
       return 0; // no move needed
     }
