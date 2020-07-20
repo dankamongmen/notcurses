@@ -54,9 +54,10 @@ int tabletfxn(struct nctablet* _t, int begx, int begy, int maxx, int maxy,
 }
 
 void usage(const char* argv0, std::ostream& c, int status){
-  c << "usage: " << argv0 << " [ -h ] | options\n";
-  c << " -b bordermask: hex ncreel border mask (0x0..0xf)\n";
-  c << " -t tabletmask: hex tablet border mask (0x0..0xf)" << std::endl;
+  c << "usage: " << argv0 << " [ -h ] | options\n"
+    << " -b bordermask: hex ncreel border mask (0x0..0xf)\n"
+    << " -m margin(s): margin(s) around the reel\n"
+    << " -t tabletmask: hex tablet border mask (0x0..0xf)" << std::endl;
   exit(status);
 }
 
@@ -66,7 +67,7 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
     { .name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0, },
   };
   int c;
-  while((c = getopt_long(argc, argv, "b:t:h", longopts, nullptr)) != -1){
+  while((c = getopt_long(argc, argv, "b:t:m:h", longopts, nullptr)) != -1){
     switch(c){
       case 'b':{
         std::stringstream ss;
@@ -77,6 +78,11 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
         std::stringstream ss;
         ss << std::hex << optarg;
         ss >> ropts->tabletmask;
+        break;
+      }case 'm':{
+        if(notcurses_lex_margins(optarg, opts)){
+          usage(argv[0], std::cout, EXIT_FAILURE);
+        }
         break;
       }case 'h':
         usage(argv[0], std::cout, EXIT_SUCCESS);
@@ -90,16 +96,7 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
   opts->flags |= NCOPTION_SUPPRESS_BANNERS;
 }
 
-int runreels(struct notcurses* nc, ncreel_options* nopts){
-  int dimy, dimx;
-  auto nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
-  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (q)uit") <= 0){
-    return -1;
-  }
-  auto n = ncplane_new(nc, dimy - 1, dimx, 1, 0, nullptr);
-  if(!n){
-    return -1;
-  }
+int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
   if(ncplane_set_fg_rgb(n, 0xb1, 0x1b, 0xb1)){
     return -1;
   }
@@ -162,11 +159,27 @@ int main(int argc, char** argv){
   notcurses_options ncopts{};
   ncreel_options nopts{};
   parse_args(argc, argv, &ncopts, &nopts);
+  int margin_t = ncopts.margin_t;
+  int margin_l = ncopts.margin_l;
+  int margin_r = ncopts.margin_r;
+  int margin_b = ncopts.margin_b;
+  ncopts.margin_t = ncopts.margin_l = ncopts.margin_r = ncopts.margin_b = 0;
   auto nc = notcurses_init(&ncopts, NULL);
   if(nc == nullptr){
     return EXIT_FAILURE;
   }
-  int r = runreels(nc, &nopts);
+  int dimy, dimx;
+  auto nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
+  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (q)uit") <= 0){
+    return -1;
+  }
+  auto n = ncplane_new(nc, dimy - 1 - (margin_t + margin_b),
+                       dimx - (margin_r + margin_l),
+                       1 + margin_t, margin_l, nullptr);
+  if(!n){
+    return -1;
+  }
+  int r = runreels(nc, n, &nopts);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
