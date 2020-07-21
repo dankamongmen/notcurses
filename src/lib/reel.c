@@ -458,6 +458,29 @@ draw_previous_tablets(const ncreel* nr, const nctablet* otherend){
   return upworking;
 }
 
+static int
+tighten_reel_down(ncreel* r, int ybot){
+  nctablet* cur = r->tablets;
+  while(cur){
+    if(cur->p == NULL){
+      break;
+    }
+    int cury, curx, ylen;
+    ncplane_yx(cur->p, &cury, &curx);
+    ncplane_dim_yx(cur->p, &ylen, NULL);
+    if(cury == ybot - ylen){
+      break;
+    }
+    cury = ybot - ylen;
+    ncplane_move_yx(cur->p, cury, curx);
+    ybot = cury - 1;
+    if((cur = cur->prev) == r->tablets){
+      break;
+    }
+  }
+  return 0;
+}
+
 // run at the end of redraw, this aligns the top tablet with the top
 // of the reel. we prefer empty space at the bottom (FIXME but not
 // really -- we ought prefer space away from the last direction of
@@ -502,6 +525,20 @@ tighten_reel(ncreel* r){
     cur = cur->next;
     if(cur == top){
       break;
+    }
+  }
+  cur = r->tablets;
+  if(cur){
+    const ncplane* n = cur->p;
+    int yoff, ylen, rylen;
+    ncplane_dim_yx(r->p, &rylen, NULL);
+    ncplane_yx(n, &yoff, NULL);
+    ncplane_dim_yx(n, &ylen, NULL);
+    const int ybot = rylen - 1 - !!(r->ropts.bordermask & NCBOXMASK_BOTTOM);
+    // FIXME want to tighten down whenever we're at the bottom, and the reel
+    // is full, not just in this case (this can leave a gap of more than 1 row)
+    if(yoff + ylen + 1 >= ybot){
+      return tighten_reel_down(r, ybot);
     }
   }
   return 0;
