@@ -222,6 +222,96 @@ shim_quad_ll_ur(struct consolefontdesc* cfd, unsigned idx){
   return 0;
 }
 
+static int
+shim_lower_seven_eighth(struct consolefontdesc* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->charheight / 8 ; ++r, ++glyph){
+    *glyph = 0;
+  }
+  for(unsigned r = cfd->charheight / 8 ; r < cfd->charheight ; ++r, ++glyph){
+    *glyph = 0xff;
+  }
+  return 0;
+}
+
+static int
+shim_lower_three_quarter(struct consolefontdesc* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->charheight / 4 ; ++r, ++glyph){
+    *glyph = 0;
+  }
+  for(unsigned r = cfd->charheight / 4 ; r < cfd->charheight ; ++r, ++glyph){
+    *glyph = 0xff;
+  }
+  return 0;
+}
+
+static int
+shim_lower_five_eighth(struct consolefontdesc* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->charheight * 5 / 8 ; ++r, ++glyph){
+    *glyph = 0;
+  }
+  for(unsigned r = cfd->charheight * 5 / 8 ; r < cfd->charheight ; ++r, ++glyph){
+    *glyph = 0xff;
+  }
+  return 0;
+}
+
+static int
+shim_lower_three_eighth(struct consolefontdesc* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->charheight * 3 / 8 ; ++r, ++glyph){
+    *glyph = 0;
+  }
+  for(unsigned r = cfd->charheight * 3 / 8 ; r < cfd->charheight ; ++r, ++glyph){
+    *glyph = 0xff;
+  }
+  return 0;
+}
+
+static int
+shim_lower_quarter(struct consolefontdesc* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->charheight * 3 / 4 ; ++r, ++glyph){
+    *glyph = 0;
+  }
+  for(unsigned r = cfd->charheight * 3 / 4 ; r < cfd->charheight ; ++r, ++glyph){
+    *glyph = 0xff;
+  }
+  return 0;
+}
+
+static int
+shim_lower_eighth(struct consolefontdesc* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->charheight * 7 / 8 ; ++r, ++glyph){
+    *glyph = 0;
+  }
+  for(unsigned r = cfd->charheight * 7 / 8 ; r < cfd->charheight ; ++r, ++glyph){
+    *glyph = 0xff;
+  }
+  return 0;
+}
+
 // add UCS2 codepoint |w| to |map| for font idx |fidx|
 static int
 add_to_map(const notcurses* nc, struct unimapdesc* map, wchar_t w, unsigned fidx){
@@ -339,6 +429,12 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
     { .glyphfxn = shim_no_lower_right_quad, .w = L'▛', .found = false, },
     { .glyphfxn = shim_quad_ul_lr, .w = L'▚', .found = false, },
     { .glyphfxn = shim_quad_ll_ur, .w = L'▞', .found = false, },
+    { .glyphfxn = shim_lower_seven_eighth, .w = L'▇', .found = false, },
+    { .glyphfxn = shim_lower_three_quarter, .w = L'▆', .found = false, },
+    { .glyphfxn = shim_lower_five_eighth, .w = L'▅', .found = false, },
+    { .glyphfxn = shim_lower_three_eighth, .w = L'▃', .found = false, },
+    { .glyphfxn = shim_lower_quarter, .w = L'▂', .found = false, },
+    { .glyphfxn = shim_lower_eighth, .w = L'▁', .found = false, },
   };
   // first, take a pass to see which glyphs we already have
   for(unsigned i = 0 ; i < cfd->charcount ; ++i){
