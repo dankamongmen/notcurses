@@ -5,6 +5,20 @@ import locale
 import _cffi_backend
 from _notcurses import lib, ffi
 
+NCOPTION_INHIBIT_SETLOCALE = 0x0001
+NCOPTION_VERIFY_SIXEL = 0x0002
+NCOPTION_NO_WINCH_SIGHANDLER = 0x0004
+NCOPTION_NO_QUIT_SIGHANDLERS = 0x0008
+NCOPTION_RETAIN_CURSOR = 0x0010
+NCOPTION_SUPPRESS_BANNERS = 0x0020
+NCOPTION_NO_ALTERNATE_SCREEN = 0x0040
+NCOPTION_NO_FONT_CHANGES = 0x0080
+
+class NotcursesError(Exception):
+    """Base class for notcurses exceptions."""
+    def __init__(self, message):
+        self.message = message
+
 def checkRGB(r, g, b):
     if r < 0 or r > 255:
         raise ValueError("Bad red value")
@@ -82,8 +96,10 @@ class Ncplane:
 class Notcurses:
     def __init__(self):
         opts = ffi.new("notcurses_options *")
-        opts.inhibit_alternate_screen = True
+        opts.flags = NCOPTION_NO_ALTERNATE_SCREEN
         self.nc = lib.notcurses_init(opts, sys.stdout)
+        if not self.nc:
+            raise NotcursesError("Error initializing notcurses")
         self.stdncplane = Ncplane(lib.notcurses_stdplane(self.nc))
 
     def __del__(self):
