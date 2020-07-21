@@ -156,10 +156,11 @@ To set the C compiler, export `CC`. To set the C++ compiler, export `CXX`. The
 `CMAKE_BUILD_TYPE` CMake variable can be defined to any of its standard values,
 but must be `Debug` for use of `USE_COVERAGE`.
 
-* `BUILD_TESTING`: build `notcurses-tester` using doctest
 * `DFSG_BUILD`: leave out all content considered non-free under the Debian Free
-                Software Guidelines.
-* `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none.
+                Software Guidelines
+* `BUILD_TESTING`: build test targets
+* `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`
+* `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen

@@ -9,12 +9,18 @@ set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
+include(CTest)
 include(GNUInstallDirs)
+include(CMakeDependentOption)
 
 ###################### USER-SELECTABLE OPTIONS ###########################
 # BUILD_TESTING is defined by CTest
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(USE_COVERAGE "Assess code coverage with llvm-cov/lcov" OFF)
+cmake_dependent_option(
+  USE_DOCTEST "Build notcurses-tester with doctest" ON
+  "${BUILD_TESTING}" OFF
+)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
@@ -60,6 +66,7 @@ message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
+find_package(doctest REQUIRED)
 # some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
 # into ncurses. accept either, and may god have mercy on our souls.
 pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
@@ -81,7 +88,7 @@ if(NOT "${HAVE_QRCODEGEN_H}")
 endif()
 endif()
 find_library(LIBRT rt)
-if(${BUILD_TESTING})
+if(${USE_DOCTEST})
 find_package(doctest 2.3.5 REQUIRED)
 endif()
 
@@ -522,21 +529,7 @@ target_link_libraries(notcurses-view
 endif()
 
 # Testing
-include(CTest)
 if(${BUILD_TESTING})
-file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
-add_executable(notcurses-tester ${TESTSRCS})
-target_include_directories(notcurses-tester
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-    src/lib
-)
-target_link_libraries(notcurses-tester
-  PRIVATE
-    notcurses++
-    "${TERMINFO_LIBRARIES}"
-)
 # sadly, this doesn't take effect until CMake 3.17...
 set(CMAKE_CTEST_ARGUMENTS "-V")
 enable_testing()
@@ -564,10 +557,26 @@ add_test(
   NAME rgbbg
   COMMAND rgbbg
 )
+if(${USE_DOCTEST})
+file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
+add_executable(notcurses-tester ${TESTSRCS})
+target_include_directories(notcurses-tester
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+    src/lib
+)
+target_link_libraries(notcurses-tester
+  PRIVATE
+    notcurses++
+    "${TERMINFO_LIBRARIES}"
+)
 add_test(
   NAME notcurses-tester
   COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
+install(TARGETS notcurses-tester DESTINATION bin)
+endif()
 endif()
 
 # pkg-config support
@@ -627,9 +636,6 @@ install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS notcurses-ncreel DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
-if(${BUILD_TESTING})
-install(TARGETS notcurses-tester DESTINATION bin)
-endif()
 install(TARGETS notcurses-tetris DESTINATION bin)
 if(${USE_FFMPEG} OR ${USE_OIIO})
 install(TARGETS notcurses-view DESTINATION bin)
