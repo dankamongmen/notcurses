@@ -546,10 +546,6 @@ add_test(
   COMMAND dirgb
 )
 add_test(
-  NAME sgr
-  COMMAND sgr
-)
-add_test(
   NAME rgb
   COMMAND rgb
 )
