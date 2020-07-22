@@ -80,6 +80,7 @@ typedef struct ncplane {
   cell basecell;         // cell written anywhere that fb[i].gcluster == 0
   struct notcurses* nc;  // notcurses object of which we are a part
   bool scrolling;        // is scrolling enabled? always disabled by default
+  char* name;            // used only for debugging
 } ncplane;
 
 #include "blitset.h"
@@ -782,7 +783,7 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
 // ncvisual_render(), and thus calls these low-level internal functions.
 // they are not for general use -- check ncplane_new() and ncplane_destroy().
 ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
-                        int yoff, int xoff, void* opaque);
+                        int yoff, int xoff, void* opaque, const char* name);
 void free_plane(ncplane* p);
 
 // heap-allocated formatted output

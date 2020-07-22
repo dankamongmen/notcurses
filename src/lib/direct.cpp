@@ -341,7 +341,7 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   struct ncplane* faken = ncplane_create(nullptr, nullptr,
                                          disprows / encoding_y_scale(bset),
                                          dispcols / encoding_x_scale(bset),
-                                         0, 0, nullptr);
+                                         0, 0, nullptr, nullptr);
   if(faken == nullptr){
     return NCERR_NOMEM;
   }
