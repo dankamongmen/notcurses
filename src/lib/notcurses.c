@@ -1291,6 +1291,9 @@ cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols)
     c->gcluster = *gcluster;
     return !!c->gcluster;
   }
+  if(bytes < 0){
+    return -1;
+  }
   if(cols > 1){
     c->channels |= CELL_WIDEASIAN_MASK;
   }else if(cols >= 0){
@@ -1322,6 +1325,9 @@ int cell_load(ncplane* n, cell* c, const char* gcluster){
 int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes){
   int cols;
   int bytes = utf8_egc_len(gclust, &cols);
+  if(bytes < 0){
+    return -1;
+  }
   if(sbytes){
     *sbytes = bytes;
   }
@@ -1330,6 +1336,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   bool wide = cols > 1;
   if(x == -1 && y == -1 && n->x + wide >= n->lenx){
     if(!n->scrolling){
+      logerror(n->nc, "No room to output [%s]\n", gclust);
       return -1;
     }
     scroll_down(n);
@@ -1588,6 +1595,34 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   return ret;
 }
 
+// FIXME there are more advanced means of wordbreaking within unicode; use them
+static bool
+iswordbreak(wchar_t w){
+  return iswspace(w);
+}
+
+static bool
+overlong_word(const char* text, int dimx){
+  size_t width = 0;
+  while(*text && !iswordbreak(*text)){
+    mbstate_t mbstate = {};
+    wchar_t w;
+    size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
+    if(consumed == (size_t)-2 || consumed == (size_t)-1){
+      return false;
+    }
+    text += consumed;
+    size_t w = wcwidth(w);
+    if(w > 0){
+      width += w;
+    }
+    if(w > dimx){
+      return true;
+    }
+  }
+  return false;
+}
+
 int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes){
   int totalcols = 0;
   // save the beginning for diagnostic
@@ -1621,8 +1656,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         }
         return -1;
       }
-      // FIXME use the more advanced unicode functionality to break lines
-      if(iswspace(w)){
+      if(iswordbreak(w)){
         if(x == 0){
           text += consumed;
           linestart = text;
@@ -1647,19 +1681,28 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     }
 //fprintf(stderr, "OUT! %s\n", linestart);
     int carrycols = 0;
+    bool overlong = false; // ugh
     // if we have no breaker, we got a word that was longer than our line;
     // print what we can and move along. if *text is nul, we're done.
     if(!*text || breaker == NULL){
       breaker = text + 1;
     }else{
-      carrycols = text - breaker;
+      // if the word on which we ended is overlong (longer than the plane is
+      // wide), go ahead and start printing it where it starts
+      if(overlong_word(breaker + 1, dimx)){
+        breaker = text;
+        overlong = true;
+//fprintf(stderr, "NEW BREAKER: %s\n", breaker);
+      }else{
+        carrycols = text - breaker;
+      }
     }
 //fprintf(stderr, "exited at %d (%d) looking at [%.*s]\n", x, dimx, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
       totalcols += (breaker - linestart);
       const int xpos = ncplane_align(n, align, x);
       // blows out if we supply a y beyond leny
-//fprintf(stderr, "y: %d %d %.*s\n", y, breaker - linestart, breaker - linestart, linestart);
+//fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
       if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){ 
         if(bytes){
           *bytes = linestart - beginning;
@@ -1668,7 +1711,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       }
     }
     x = carrycols;
-    if(breaker == text + 1){
+    if(breaker == text + 1 || overlong){
       linestart = breaker;
     }else{
       linestart = breaker + 1;
@@ -1684,7 +1727,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         y = -1;
       }
     }
-//fprintf(stderr, "LOOKING AT: [%c]\n", *text);
+//fprintf(stderr, "LOOKING AT: [%c] [%s]\n", *text, linestart);
   }while(*text);
   if(bytes){
     *bytes = text - beginning;

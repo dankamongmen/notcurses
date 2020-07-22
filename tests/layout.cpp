@@ -85,7 +85,8 @@ TEST_CASE("TextLayout") {
     ncplane_destroy(sp);
   }
 
-  // lay out text where a word is longer than the plane
+  // a long word (one requiring a split no matter what) ought not force the
+  // next line, but instead be printed where it starts
   SUBCASE("LayoutTransPlanar") {
     auto sp = ncplane_new(nc_, 3, 10, 0, 0, nullptr);
     REQUIRE(sp);
@@ -96,26 +97,7 @@ TEST_CASE("TextLayout") {
     CHECK(bytes == strlen(boundstr));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    // FIXME i think i'd prefer that this printed what it could of thermo
-    // on the first line, and continued it on the second, since it has to
-    // break the word anyway...then we'd get "my thermonuclear arms"
-    CHECK(0 == strcmp(line, "mythermonuclear arms"));
-    free(line);
-    ncplane_destroy(sp);
-  }
-
-  // lay out text where a word is longer than the plane
-  SUBCASE("LayoutTransPlanar") {
-    auto sp = ncplane_new(nc_, 3, 10, 0, 0, nullptr);
-    REQUIRE(sp);
-    size_t bytes;
-    const char boundstr[] = "my thermonuclear arms";
-    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
-    CHECK(0 == notcurses_render(nc_));
-    CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
-    REQUIRE(line);
-    CHECK(0 == strcmp(line, "mythermonuclear arms"));
+    CHECK(0 == strcmp(line, "my thermonucleararms"));
     free(line);
     ncplane_destroy(sp);
   }
@@ -130,7 +112,7 @@ TEST_CASE("TextLayout") {
     CHECK(bytes == strlen(boundstr));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "mythermonuclear arms"));
+    CHECK(0 == strcmp(line, "my thermonucleararms"));
     free(line);
     ncplane_destroy(sp);
   }

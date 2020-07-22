@@ -557,7 +557,6 @@ set_tests_properties(
   ncpp_build
   ncpp_build_exceptions
   dirgb
-  sgr
   rgb
   rgbbg
   PROPERTIES RUN_SERIAL TRUE
