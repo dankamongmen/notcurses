@@ -66,7 +66,7 @@ pub fn cells_load_box(_n: *mut ncplane, _attrs: u32, _channels: u64,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serial_test_derive::serial; // serialize tests w/ ffi::notcurses_init()
+    use serial_test::serial; // serialize tests w/ ffi::notcurses_init()
 
     #[test]
     #[serial]
