@@ -1612,11 +1612,11 @@ overlong_word(const char* text, int dimx){
       return false;
     }
     text += consumed;
-    size_t w = wcwidth(w);
-    if(w > 0){
-      width += w;
+    size_t wide = wcwidth(w);
+    if(wide > 0){
+      width += wide;
     }
-    if(w > dimx){
+    if(width > (size_t)dimx){
       return true;
     }
   }
