@@ -8,6 +8,7 @@ void DrawBackground(const std::string& s) { // drawn to the standard plane
 }
 
 void DrawBoard() { // draw all fixed components of the game
+  stdplane_->erase();
   try{
     DrawBackground(BackgroundFile);
   }catch(...){
