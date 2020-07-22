@@ -927,7 +927,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
         free_plane(ret->top);
         goto err;
       }
-    }else{
+    }else if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
       // if they expected the alternate screen, but we didn't have one to
       // offer, at least clear the screen. try using "clear"; if that doesn't
       // fly, use notcurses_refresh() to force a clearing via iterated writes.
