@@ -9,7 +9,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   struct notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_INHIBIT_SETLOCALE,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
