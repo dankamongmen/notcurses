@@ -550,10 +550,6 @@ add_test(
   COMMAND ncpp_build_exceptions
 )
 add_test(
-  NAME dirgb
-  COMMAND dirgb
-)
-add_test(
   NAME rgb
   COMMAND rgb
 )
@@ -564,7 +560,6 @@ add_test(
 set_tests_properties(
   ncpp_build
   ncpp_build_exceptions
-  dirgb
   rgb
   rgbbg
   PROPERTIES RUN_SERIAL TRUE
