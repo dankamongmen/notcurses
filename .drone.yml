@@ -8,6 +8,7 @@ steps:
   image: dankamongmen/unstable_builder:2020-07-13a
   commands:
     - export LANG=en_US.UTF-8
+    - apt-get install -y libunistring-dev
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -23,6 +24,7 @@ steps:
   image: dankamongmen/focal:2020-07-13a
   commands:
     - export LANG=en_US.UTF-8
+    - apt-get install -y libunistring-dev
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
@@ -38,6 +40,7 @@ steps:
   image: dankamongmen/fedora33:2020-07-13a
   commands:
     - export LANG=en_US.UTF-8
+    - dnf install -y libunistring-devel
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
