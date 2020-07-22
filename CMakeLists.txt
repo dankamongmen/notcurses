@@ -557,6 +557,15 @@ add_test(
   NAME rgbbg
   COMMAND rgbbg
 )
+set_tests_properties(
+  ncpp_build
+  ncpp_build_exceptions
+  dirgb
+  sgr
+  rgb
+  rgbbg
+  PROPERTIES RUN_SERIAL TRUE
+)
 if(${USE_DOCTEST})
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
@@ -575,6 +584,7 @@ add_test(
   NAME notcurses-tester
   COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
+set_tests_properties(notcurses-tester PROPERTIES RUN_SERIAL TRUE)
 install(TARGETS notcurses-tester DESTINATION bin)
 endif()
 endif()
