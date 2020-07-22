@@ -922,9 +922,18 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   init_banner(ret);
   // flush on the switch to alternate screen, lest initial output be swept away
   if(ret->ttyfd >= 0){
-    if(ret->tcache.smcup && tty_emit("smcup", ret->tcache.smcup, ret->ttyfd)){
-      free_plane(ret->top);
-      goto err;
+    if(ret->tcache.smcup){
+      if(tty_emit("smcup", ret->tcache.smcup, ret->ttyfd)){
+        free_plane(ret->top);
+        goto err;
+      }
+    }else{
+      // if they expected the alternate screen, but we didn't have one to
+      // offer, at least clear the screen. try using "clear"; if that doesn't
+      // fly, use notcurses_refresh() to force a clearing via iterated writes.
+      if(tty_emit("clear", ret->tcache.clearscr, ret->ttyfd)){
+        notcurses_refresh(ret, NULL, NULL);
+      }
     }
   }
   return ret;

@@ -35,7 +35,6 @@ int main(void) {
   ncopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   ncpp::NotCurses nc(ncopts);
   {
-    nc.refresh(nullptr, nullptr); // clear screen if smcup+background are unavailable
     Tetris t{nc, gameover};
     std::thread tid(&Tetris::Ticker, &t);
     if(IOLoop(nc, t, gameover)){

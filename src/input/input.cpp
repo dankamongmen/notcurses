@@ -322,8 +322,6 @@ int main(void){
   if(!nc.mouse_enable()){
     return EXIT_FAILURE;
   }
-  // clear the screen in the absence of smcup mode
-  nc.refresh(nullptr, nullptr);
   int ret = input_demo(&nc);
   if(!nc.stop() || ret){
     return EXIT_FAILURE;
