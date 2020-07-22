@@ -498,6 +498,7 @@ TEST_CASE("NCPlane") {
     ncplane_cursor_yx(n_, &y, &x);
     REQUIRE(1 == y);
     REQUIRE(dimx == x);
+    // this ought not print anything, since we're at the end of the row
     REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1
@@ -534,6 +535,7 @@ TEST_CASE("NCPlane") {
     ncplane_cursor_yx(n_, &y, &x);
     REQUIRE(1 == y);
     REQUIRE(dimx == x);
+    // this ought not print anything, since we're at the end of the row
     REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1

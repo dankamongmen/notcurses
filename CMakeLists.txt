@@ -79,18 +79,24 @@ elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
 endif()
 find_library(MATH_LIBRARIES m)
-# don't cache this, or installing it requires clearing the cache to be found
+if(${USE_DOCTEST})
+find_package(doctest 2.3.5 REQUIRED)
+endif()
+
+# don't cache these, or installing them requires clearing the cache to be found.
+# this is going to be true for anything lacking pkg-config/CMake support.
 unset(HAVE_QRCODEGEN_H CACHE)
-check_include_file("qrcodegen/qrcodegen.h" HAVE_QRCODEGEN_H)
+check_include_file("uniwbrk.h" HAVE_UNISTRING_H)
+if(NOT "${HAVE_UNISTRING_H}")
+  message(FATAL_ERROR "Couldn't find uniwbrk.h from GNU libunistring")
+endif()
 if("${USE_QRCODEGEN}")
+check_include_file("qrcodegen/qrcodegen.h" HAVE_QRCODEGEN_H)
 if(NOT "${HAVE_QRCODEGEN_H}")
   message(FATAL_ERROR "USE_QRCODEGEN is active, but couldn't find qrcodegen.h")
 endif()
 endif()
 find_library(LIBRT rt)
-if(${USE_DOCTEST})
-find_package(doctest 2.3.5 REQUIRED)
-endif()
 
 # libnotcurses (core shared library and static library)
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
@@ -129,6 +135,7 @@ target_link_libraries(notcurses
   PRIVATE
     "${TERMINFO_LIBRARIES}"
     "${LIBRT}"
+    unistring
   PUBLIC
     Threads::Threads
 )
@@ -136,6 +143,7 @@ target_link_libraries(notcurses-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBRT}"
+    unistring
   PUBLIC
     Threads::Threads
 )

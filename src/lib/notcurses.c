@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <locale.h>
+#include <uniwbrk.h>
 #include <langinfo.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
@@ -265,6 +266,7 @@ void free_plane(ncplane* p){
       p->nc->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
     }
     egcpool_dump(&p->pool);
+    free(p->name);
     free(p->fb);
     free(p);
   }
@@ -281,7 +283,7 @@ void free_plane(ncplane* p){
 // ncplane created by ncdirect for rendering visuals. in that case (and only in
 // that case), nc is NULL.
 ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
-                        int yoff, int xoff, void* opaque){
+                        int yoff, int xoff, void* opaque, const char* name){
   if(rows <= 0 || cols <= 0){
     return NULL;
   }
@@ -299,6 +301,7 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   p->x = p->y = 0;
   p->logrow = 0;
   p->blist = NULL;
+  p->name = name ? strdup(name) : NULL;
   if( (p->boundto = n) ){
     p->absx = xoff + n->absx;
     p->absy = yoff + n->absy;
@@ -339,7 +342,8 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
   nc->stdplane = ncplane_create(nc, NULL, dimy - (nc->margin_t + nc->margin_b),
-                              dimx - (nc->margin_l + nc->margin_r), 0, 0, NULL);
+                                dimx - (nc->margin_l + nc->margin_r), 0, 0, NULL,
+                                "std");
   return nc->stdplane;
 }
 
@@ -352,16 +356,17 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 ncplane* ncplane_new(notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque){
-  return ncplane_create(nc, NULL, rows, cols, yoff, xoff, opaque);
+  return ncplane_create(nc, NULL, rows, cols, yoff, xoff, opaque, NULL);
 }
 
 ncplane* ncplane_bound(ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque){
-  return ncplane_create(n->nc, n, rows, cols, yoff, xoff, opaque);
+  return ncplane_create(n->nc, n, rows, cols, yoff, xoff, opaque, NULL);
 }
 
 ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int yoff,
                          ncalign_e align, void* opaque){
-  return ncplane_create(n->nc, n, rows, cols, yoff, ncplane_align(n, align, cols), opaque);
+  return ncplane_create(n->nc, n, rows, cols, yoff,
+                        ncplane_align(n, align, cols), opaque, NULL);
 }
 
 void ncplane_home(ncplane* n){
@@ -408,7 +413,8 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   const struct notcurses* nc = ncplane_notcurses_const(n);
   const int placey = n->absy - nc->margin_t;
   const int placex = n->absx - nc->margin_l;
-  ncplane* newn = ncplane_create(n->nc, n->boundto, dimy, dimx, placey, placex, opaque);
+  ncplane* newn = ncplane_create(n->nc, n->boundto, dimy, dimx,
+                                 placey, placex, opaque, n->name);
   if(newn){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);
@@ -1595,10 +1601,10 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   return ret;
 }
 
-// FIXME there are more advanced means of wordbreaking within unicode; use them
 static bool
-iswordbreak(wchar_t w){
-  return iswspace(w);
+iswordbreak(wchar_t wchar){
+  int w = uc_wordbreak_property(wchar);
+  return (w == WBP_OTHER || w == WBP_NEWLINE || w == WBP_CR || w == WBP_LF);
 }
 
 static bool
@@ -1623,6 +1629,7 @@ overlong_word(const char* text, int dimx){
   return false;
 }
 
+// FIXME probably best to use u8_wordbreaks() and get all wordbreaks at once...
 int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes){
   int totalcols = 0;
   // save the beginning for diagnostic

@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.7 (not yet released)
+  * GNU libunistring is now required to build/load Notcurses.
+
 * 1.6.6 (2020-07-19)
   * `notcurses-pydemo` is now only installed alongside the Python module,
     using setuptools. CMake no longer installs it.

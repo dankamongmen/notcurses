@@ -114,6 +114,7 @@ that fine library.
 * (build) A C11 and a C++17 compiler
 * (build) CMake 3.14.0+
 * (build+runtime) From NCURSES: terminfo 6.1+
+* (build+runtime) GNU libunistring 0.9.10+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.15.0+
