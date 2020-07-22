@@ -36,7 +36,7 @@ pub fn dim_yx(_n: *const ffi::notcurses, _dimy: &mut i32, _dimx: &mut i32) {
 mod tests {
     use super::*;
     use all_asserts;
-    use serial_test_derive::serial; // serialize tests w/ ffi::notcurses_init()
+    use serial_test::serial; // serialize tests w/ ffi::notcurses_init()
 
     extern {
         static stdout: *mut ffi::_IO_FILE;
