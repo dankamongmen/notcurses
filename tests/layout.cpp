@@ -112,7 +112,6 @@ TEST_CASE("TextLayout") {
     CHECK(bytes == strlen(boundstr));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-fprintf(stderr, "LINE: [%s]\n", line);
     CHECK(0 == strcmp(line, "my thermonucleararms"));
     free(line);
     ncplane_destroy(sp);
@@ -183,7 +182,6 @@ fprintf(stderr, "LINE: [%s]\n", line);
   }
 
   // create a plane of two rows, and exactly fill both, with no spaces
-/*
   SUBCASE("LayoutFillsPlaneNoSpaces") {
     auto sp = ncplane_new(nc_, 2, 6, 0, 0, nullptr);
     REQUIRE(sp);
@@ -194,16 +192,14 @@ fprintf(stderr, "LINE: [%s]\n", line);
     CHECK(bytes == strlen(boundstr));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-fprintf(stderr, "LINE: [%s]\n", line);
     CHECK(0 == strcmp(line, "0123456789AB"));
     free(line);
     ncplane_destroy(sp);
   }
-*/
 
   // create a plane of two rows, and exactly fill both with wide chars
   SUBCASE("LayoutFillsPlaneWide") {
-    auto sp = ncplane_new(nc_, 2, 7, 0, 0, nullptr);
+    auto sp = ncplane_new(nc_, 2, 6, 0, 0, nullptr);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "我能吞 下玻璃";
