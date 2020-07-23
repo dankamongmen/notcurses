@@ -594,10 +594,8 @@ bool ncreel_validate(const ncreel* n){
 // destroy all existing tablet planes pursuant to redraw
 static void
 clean_reel(ncreel* r){
-  nctablet* focused = r->tablets;
-  nctablet* cur = focused;
   if(r->tablets){
-    cur = r->tablets->next;
+    nctablet* cur = r->tablets->next;
     while(cur && cur != r->tablets){// && cur->p){
 //fprintf(stderr, "CLEANING: %p (%p)\n", cur, cur->p);
       if(cur->p){
