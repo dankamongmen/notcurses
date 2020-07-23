@@ -15,6 +15,7 @@
 #include <signal.h>
 #include <locale.h>
 #include <uniwbrk.h>
+#include <unictype.h>
 #include <langinfo.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
@@ -1612,8 +1613,17 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
 
 static bool
 iswordbreak(wchar_t wchar){
+  /*
   int w = uc_wordbreak_property(wchar);
+  uc_general_category_t c = uc_general_category(wchar);
+fprintf(stderr, "wordbreak property: %d general cat: %08ld (%lc)\n", w, c, wchar);
   return (w == WBP_OTHER || w == WBP_NEWLINE || w == WBP_CR || w == WBP_LF);
+  */
+  const uint32_t mask = UC_CATEGORY_MASK_Z |
+                        UC_CATEGORY_MASK_Zs |
+                        UC_CATEGORY_MASK_Zl |
+                        UC_CATEGORY_MASK_Zp;
+  return uc_is_general_category_withtable(wchar, mask);
 }
 
 static bool
@@ -1661,8 +1671,8 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     // might catch a space, in which case we want breaker updated. if it's
     // not a space, it won't be printed, and we carry the word forward.
     // FIXME what ought be done with \n or multiple spaces?
-//fprintf(stderr, "laying out [%s] at %d (%d)\n", linestart, x, dimx);
     while(*text && x <= dimx){
+fprintf(stderr, "laying out [%s] at %d (%d)\n", linestart, x, dimx);
       wchar_t w;
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
       if(consumed == (size_t)-2 || consumed == (size_t)-1){
@@ -1672,6 +1682,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         }
         return -1;
       }
+//fprintf(stderr, "have possible wordbreak %lc\n", w);
       if(iswordbreak(w)){
         if(x == 0){
           text += consumed;
@@ -1682,12 +1693,9 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         }
       }
       width = wcwidth(w);
+//fprintf(stderr, "have non-wordbreak char %lc (%d)\n", w, width);
       if(width < 0){
-        logerror(n->nc, "Non-printable UTF-8 after %zu bytes\n", text - beginning);
-        if(bytes){
-          *bytes = text - beginning;
-        }
-        return -1;
+        width = 0;
       }
       if(x + width > dimx){
         break;
@@ -1695,7 +1703,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       x += width;
       text += consumed;
     }
-//fprintf(stderr, "OUT! %s\n", linestart);
+fprintf(stderr, "OUT! %s\n", linestart);
     int carrycols = 0;
     bool overlong = false; // ugh
     // if we have no breaker, we got a word that was longer than our line;
@@ -1708,17 +1716,17 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       if(overlong_word(breaker + 1, dimx)){
         breaker = text;
         overlong = true;
-//fprintf(stderr, "NEW BREAKER: %s\n", breaker);
+fprintf(stderr, "NEW BREAKER: %s\n", breaker);
       }else{
         carrycols = text - breaker;
       }
     }
-//fprintf(stderr, "exited at %d (%d) looking at [%.*s]\n", x, dimx, (int)(breaker - linestart), linestart);
+fprintf(stderr, "exited at %d (%d) looking at [%.*s]\n", x, dimx, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
       totalcols += (breaker - linestart);
       const int xpos = ncplane_align(n, align, x);
       // blows out if we supply a y beyond leny
-//fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
+fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
       if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){ 
         if(bytes){
           *bytes = linestart - beginning;
@@ -2450,6 +2458,7 @@ int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s,
 
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
   int ret = 0;
+fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
   // FIXME speed up this blissfully naive solution
   while((size_t)ret < s && *gclusters){
     int wcs;
