@@ -84,9 +84,11 @@ utf8_egc_len(const char* gcluster, int* colcount){
         if(*colcount){ // this must be starting a new EGC, exit and do not claim
           break;
         }
-        if(cols < 0 && iswspace(wc)){ // newline or tab
+        if(cols < 0){
+          if(iswspace(wc)){ // newline or tab
+            return ret + 1;
+          }
           cols = 0;
-          return ret + 1;
         }
         *colcount += cols;
       }
