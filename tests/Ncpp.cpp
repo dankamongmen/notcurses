@@ -9,6 +9,7 @@ TEST_CASE("Ncpp"
   notcurses_options nopts{};
   nopts.flags = NCOPTION_SUPPRESS_BANNERS |
                 NCOPTION_INHIBIT_SETLOCALE;
+  nopts.loglevel = NCLOGLEVEL_VERBOSE;
 
   // we ought be able to construct a NotCurses object with a nullptr FILE
   // or even just no argument (decays to nullptr).
