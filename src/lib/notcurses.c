@@ -1721,7 +1721,7 @@ fprintf(stderr, "NEW BREAKER: %s\n", breaker);
         carrycols = text - breaker;
       }
     }
-fprintf(stderr, "exited at %d (%d) looking at [%.*s]\n", x, dimx, (int)(breaker - linestart), linestart);
+fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
       totalcols += (breaker - linestart);
       const int xpos = ncplane_align(n, align, x);

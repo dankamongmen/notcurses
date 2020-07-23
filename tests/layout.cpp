@@ -182,7 +182,8 @@ fprintf(stderr, "LINE: [%s]\n", line);
     ncplane_destroy(sp);
   }
 
-  // create a plane of two rows, and exactly fill both with wide chars
+  // create a plane of two rows, and exactly fill both, with no spaces
+/*
   SUBCASE("LayoutFillsPlaneNoSpaces") {
     auto sp = ncplane_new(nc_, 2, 6, 0, 0, nullptr);
     REQUIRE(sp);
@@ -198,6 +199,7 @@ fprintf(stderr, "LINE: [%s]\n", line);
     free(line);
     ncplane_destroy(sp);
   }
+*/
 
   // create a plane of two rows, and exactly fill both with wide chars
   SUBCASE("LayoutFillsPlaneWide") {
