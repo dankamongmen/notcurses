@@ -1021,7 +1021,7 @@ int notcurses_render_to_file(struct notcurses* nc, FILE* fp){
   }
   fclose(out);
   free(rastered);
-  return 0;
+  return ret;
 }
 
 
