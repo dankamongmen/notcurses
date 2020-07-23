@@ -6,17 +6,21 @@ using namespace ncpp;
 TEST_CASE("Ncpp"
           * doctest::description("Basic C++ wrapper tests")) {
 
+  notcurses_options nopts{};
+  nopts.flags = NCOPTION_SUPPRESS_BANNERS |
+                NCOPTION_INHIBIT_SETLOCALE;
+
   // we ought be able to construct a NotCurses object with a nullptr FILE
   // or even just no argument (decays to nullptr).
   SUBCASE("ConstructNotCurses") {
-    NotCurses nc;
+    NotCurses nc{ nopts };
     CHECK(!NotCurses::is_notcurses_stopped(&nc));
     CHECK(nc.stop());
     CHECK(NotCurses::is_notcurses_stopped(&nc));
   }
 
   SUBCASE("ConstructNotCursesNullFILE") {
-    NotCurses ncnull(nullptr);
+    NotCurses ncnull{ nopts, nullptr };
     CHECK(!NotCurses::is_notcurses_stopped(&ncnull));
     CHECK(ncnull.stop());
     CHECK(NotCurses::is_notcurses_stopped(&ncnull));
@@ -24,17 +28,17 @@ TEST_CASE("Ncpp"
 
   // we ought be able to get a new NotCurses object after stop()ping one.
   SUBCASE("ConstructNotCursesTwice") {
-    NotCurses nc;
+    NotCurses nc{ nopts };
     CHECK(nc.stop());
     CHECK(NotCurses::is_notcurses_stopped(&nc));
-    NotCurses ncnull(nullptr);
+    NotCurses ncnull{ nopts, nullptr };
     CHECK(!NotCurses::is_notcurses_stopped(&ncnull));
     CHECK(ncnull.stop());
     CHECK(NotCurses::is_notcurses_stopped(&ncnull));
   }
 
   SUBCASE("StdPlane") {
-    NotCurses nc;
+    NotCurses nc{ nopts };
     auto std1 = nc.get_stdplane();
     CHECK(nullptr != std1);
     int y, x;
@@ -46,19 +50,19 @@ TEST_CASE("Ncpp"
   }
 
   SUBCASE("Debug") { // just test to ensure it doesn't coredump
-    NotCurses nc;
+    NotCurses nc{ nopts };
     nc.debug(stderr);
     CHECK(nc.stop());
   }
 
   SUBCASE("GetPaletteSize") {
-    NotCurses nc;
+    NotCurses nc{ nopts };
     CHECK(0 < nc.get_palette_size());
     CHECK(nc.stop());
   }
 
   SUBCASE("VisualFromFile") {
-    NotCurses nc;
+    NotCurses nc{ nopts };
     if(nc.can_open_images()){
       nc_err_e err;
       {
@@ -70,7 +74,7 @@ TEST_CASE("Ncpp"
   }
 
   SUBCASE("VisualFromRGBA") {
-    NotCurses nc;
+    NotCurses nc{ nopts };
     uint32_t rgba[] = {
       0x4080c0ff,
       0x105090ff,
@@ -83,7 +87,7 @@ TEST_CASE("Ncpp"
   }
 
   SUBCASE("VisualFromPlane") {
-    NotCurses nc;
+    NotCurses nc{ nopts };
     {
       auto n = nc.get_stdplane();
       REQUIRE(n);

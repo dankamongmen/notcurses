@@ -203,16 +203,16 @@ fprintf(stderr, "LINE: [%s]\n", line);
 
   // create a plane of two rows, and exactly fill both with wide chars
   SUBCASE("LayoutFillsPlaneWide") {
-    auto sp = ncplane_new(nc_, 2, 8, 0, 0, nullptr);
+    auto sp = ncplane_new(nc_, 2, 7, 0, 0, nullptr);
     REQUIRE(sp);
     size_t bytes;
-    const char boundstr[] = "我能吞 下玻 璃";
+    const char boundstr[] = "我能吞 下玻璃";
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "我能吞下玻 璃"));
+    CHECK(0 == strcmp(line, "我能吞下玻璃"));
     free(line);
     ncplane_destroy(sp);
   }
