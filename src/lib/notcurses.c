@@ -1662,7 +1662,8 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
   const char* linestart = text;
   int x = 0; // number of columns consumed for this line
   do{
-    const char* breaker = NULL;
+    const char* breaker = NULL; // where the last wordbreaker starts
+    int breakercol = 0; // column of the last wordbreaker
     // figure how much text to output on this line
     mbstate_t mbstate = {};
     int width;
@@ -1671,7 +1672,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     // not a space, it won't be printed, and we carry the word forward.
     // FIXME what ought be done with \n or multiple spaces?
     while(*text && x <= dimx){
-fprintf(stderr, "laying out [%s] at %d <= %d, %zu\n", linestart, x, dimx, text - linestart);
+//fprintf(stderr, "laying out [%s] at %d <= %d, %zu\n", linestart, x, dimx, text - linestart);
       wchar_t w;
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
       if(consumed == (size_t)-2 || consumed == (size_t)-1){
@@ -1689,10 +1690,11 @@ fprintf(stderr, "laying out [%s] at %d <= %d, %zu\n", linestart, x, dimx, text -
           continue; // don't emit leading whitespace, or count it
         }else{
           breaker = text;
+          breakercol = x;
         }
       }
       width = wcwidth(w);
-fprintf(stderr, "have char %lc (%d)\n", w, width);
+//fprintf(stderr, "have char %lc (%d) (%zu)\n", w, width, text - linestart);
       if(width < 0){
         width = 0;
       }
@@ -1702,31 +1704,30 @@ fprintf(stderr, "have char %lc (%d)\n", w, width);
       x += width;
       text += consumed;
     }
-fprintf(stderr, "OUT! %s %zu\n", linestart, text - linestart);
-    int carrybytes = 0;
+//fprintf(stderr, "OUT! %s %zu %d\n", linestart, text - linestart, x);
     bool overlong = false; // ugh
     // if we have no breaker, we got a single word that was longer than our
     // line. print what we can and move along. if *text is nul, we're done.
     if(!*text || breaker == NULL){
-      breaker = text/* + 1*/;
+      breaker = text;
+      breakercol = dimx;
     }else{
       // if the word on which we ended is overlong (longer than the plane is
       // wide), go ahead and start printing it where it starts. otherwise, punt
       // it to the next line, to avoid breaking it across lines.
       if(overlong_word(breaker + 1, dimx)){
         breaker = text;
+        breakercol = dimx;
         overlong = true;
-fprintf(stderr, "NEW BREAKER: %s\n", breaker);
-      }else{
-        carrybytes = text - breaker;
+//fprintf(stderr, "NEW BREAKER: %s\n", breaker);
       }
     }
-fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
+//fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
-      totalcols += x;
-      const int xpos = ncplane_align(n, align, x);
+      totalcols += breakercol;
+      const int xpos = ncplane_align(n, align, breakercol);
       // blows out if we supply a y beyond leny
-fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
+//fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
       if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){ 
         if(bytes){
           *bytes = linestart - beginning;
@@ -1734,7 +1735,8 @@ fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - line
         return -1;
       }
     }
-    x = carrybytes;
+//fprintf(stderr, "x gets breakercol: %d\n", breakercol);
+    x = breakercol;
     if(breaker == text || overlong){
       linestart = breaker;
     }else{
@@ -2458,7 +2460,7 @@ int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s,
 
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
   int ret = 0;
-fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
+//fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
   // FIXME speed up this blissfully naive solution
   while((size_t)ret < s && *gclusters){
     int wcs;
