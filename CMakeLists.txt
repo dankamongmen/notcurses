@@ -85,11 +85,12 @@ endif()
 
 # don't cache these, or installing them requires clearing the cache to be found.
 # this is going to be true for anything lacking pkg-config/CMake support.
-unset(HAVE_QRCODEGEN_H CACHE)
+unset(HAVE_UNISTRING_H CACHE)
 check_include_file("uniwbrk.h" HAVE_UNISTRING_H)
 if(NOT "${HAVE_UNISTRING_H}")
   message(FATAL_ERROR "Couldn't find uniwbrk.h from GNU libunistring")
 endif()
+unset(HAVE_QRCODEGEN_H CACHE)
 if("${USE_QRCODEGEN}")
 check_include_file("qrcodegen/qrcodegen.h" HAVE_QRCODEGEN_H)
 if(NOT "${HAVE_QRCODEGEN_H}")
