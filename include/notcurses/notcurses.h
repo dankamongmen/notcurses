@@ -2804,7 +2804,7 @@ struct ncmenu_section {
 };
 
 #define NCMENU_OPTION_BOTTOM 0x0001ull // bottom row (as opposed to top row)
-#define NCMENU_OPTION_HIDING 0x0002ull // hide the menu when not being used
+#define NCMENU_OPTION_HIDING 0x0002ull // hide the menu when not unrolled
 
 typedef struct ncmenu_options {
   struct ncmenu_section* sections; // array of 'sectioncount' menu_sections
@@ -2840,6 +2840,14 @@ API int ncmenu_previtem(struct ncmenu* n);
 // 'ni' is not NULL, and the selected item has a shortcut, 'ni' will be filled
 // in with that shortcut--this can allow faster matching.
 API const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);
+
+// Return the item description corresponding to the mouse click 'click'. The
+// item must be on an actively unrolled section, and the click must be in the
+// area of a valid item. If 'ni' is not NULL, and the selected item has a
+// shortcut, 'ni' will be filled in with the shortcut.
+API const char* ncmenu_mouse_selected(const struct ncmenu* n,
+                                      const struct ncinput* click,
+                                      struct ncinput* ni);
 
 // Return the ncplane backing this ncmenu.
 API struct ncplane* ncmenu_plane(struct ncmenu* n);
