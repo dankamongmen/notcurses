@@ -118,6 +118,23 @@ TEST_CASE("TextLayout") {
     ncplane_destroy(sp);
   }
 
+  // a long word (one requiring a split no matter what) ought not force the
+  // next line, but instead be printed where it starts
+  SUBCASE("LayoutTransPlanarWide") {
+    auto sp = ncplane_new(nc_, 2, 8, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    const char boundstr[] = "1 我能吞下玻璃";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "1 我能吞下玻璃"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
   SUBCASE("LayoutLeadingSpaces") {
     auto sp = ncplane_new(nc_, 3, 10, 0, 0, nullptr);
     REQUIRE(sp);
