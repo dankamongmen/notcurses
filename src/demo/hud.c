@@ -37,7 +37,6 @@ typedef struct elem {
   struct elem* next;
 } elem;
 
-static bool menu_unrolled;
 static struct ncmenu* menu;
 static struct ncplane* about; // "about" modal popup
 
@@ -162,6 +161,11 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     if(sel == NULL){
       return false;
     }
+  }else if(menu && ni->id == NCKEY_RELEASE){
+    const char* sel = ncmenu_mouse_selected(menu, ni, &tmpni);
+    if(sel == NULL){
+      memcpy(&tmpni, ni, sizeof(tmpni));
+    }
   }else{
     memcpy(&tmpni, ni, sizeof(tmpni));
   }
@@ -198,21 +202,11 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
   if(ncmenu_offer_input(menu, ni)){
     return true;
   }else if(ni->id == 'o' && ni->alt && !ni->ctrl){
-    if(ncmenu_unroll(menu, 0) == 0){
-      menu_unrolled = true;
-    }
+    ncmenu_unroll(menu, 0);
     return true;
   }else if(ni->id == 'h' && ni->alt && !ni->ctrl){
-    if(ncmenu_unroll(menu, 2) == 0){
-      menu_unrolled = true;
-    }
+    ncmenu_unroll(menu, 2);
     return true;
-  }else if(ni->id == '\x1b'){
-    if(menu_unrolled){
-      ncmenu_rollup(menu);
-      menu_unrolled = false;
-      return true;
-    }
   }
   return false;
 }

@@ -511,6 +511,38 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
   return sec->items[itemidx].desc;
 }
 
+const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
+                                  ncinput* ni){
+  if(click->id != NCKEY_RELEASE){
+    return NULL;
+  }
+  int y, x, dimy, dimx;
+  struct ncplane* nc = n->ncp;
+  y = click->y;
+  x = click->x;
+  ncplane_dim_yx(nc, &dimy, &dimx);
+  if(!ncplane_translate_abs(nc, &y, &x)){
+    return NULL;
+  }
+  // FIXME section_x() works only off the section header lenghts, meaning that
+  // if we click an item outside of those columns covered by the header, it will
+  // read as a -1 from section_x(). we want to instead get the unrolled section,
+  // find its boundaries, and verify that we are within them.
+  int i = section_x(n, x);
+  if(i < 0 || i != n->unrolledsection){
+    return NULL;
+  }
+  const struct ncmenu_int_section* sec = &n->sections[n->unrolledsection];
+  if(y < 2 || y - 2 >= sec->itemcount){
+    return NULL;
+  }
+  const int itemidx = y - 2;
+  if(ni){
+    memcpy(ni, &sec->items[itemidx].shortcut, sizeof(*ni));
+  }
+  return sec->items[itemidx].desc;
+}
+
 bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
   // we can't actually select menu items in this function, since we need to
   // invoke an arbitrary function as a result.
