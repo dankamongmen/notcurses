@@ -3,6 +3,8 @@ rearrangements of Notcurses.
 
 * 1.6.7 (not yet released)
   * GNU libunistring is now required to build/load Notcurses.
+  * Added `ncmenu_mouse_selection()`. Escape now closes an unrolled menu
+    when processed by `ncmenu_offer_input()`.
 
 * 1.6.6 (2020-07-19)
   * `notcurses-pydemo` is now only installed alongside the Python module,

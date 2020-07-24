@@ -512,6 +512,8 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
 }
 
 bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
+  // we can't actually select menu items in this function, since we need to
+  // invoke an arbitrary function as a result.
   if(nc->id == NCKEY_RELEASE){
     int y, x, dimy, dimx;
     y = nc->y;
@@ -554,10 +556,8 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
     }
     return true;
   }else if(nc->id == 0x1b){
-    if(n->unrolledsection){
-      ncmenu_rollup(n);
-      return true;
-    }
+    ncmenu_rollup(n);
+    return true;
   }
   return false;
 }

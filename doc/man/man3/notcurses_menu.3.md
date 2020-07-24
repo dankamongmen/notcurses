@@ -26,7 +26,7 @@ struct ncmenu_section {
 };
 
 #define NCMENU_OPTION_BOTTOM 0x0001 // bottom row (as opposed to top row)
-#define NCMENU_OPTION_HIDING 0x0002 // hide the menu when not being used
+#define NCMENU_OPTION_HIDING 0x0002 // hide the menu when not unrolled
 
 typedef struct ncmenu_options {
   struct ncmenu_section* sections; // 'sectioncount' menu_sections
@@ -53,6 +53,8 @@ typedef struct ncmenu_options {
 
 **const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);**
 
+**const char* ncmenu_mouse_selected(const struct ncmenu* n, const struct ncinput* click, struct ncinput* ni);**
+
 **struct ncplane* ncmenu_plane(struct ncmenu* n);**
 
 **bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);**
@@ -70,12 +72,20 @@ specified one. **ncmenu_destroy** removes a menu bar, and frees all associated
 resources.
 
 **ncmenu_selected** return the selected item description, or NULL if no section
-is unrolled.
+is unrolled, or no valid item is selected. **ncmenu_mouse_selected** returns
+the item selected by a mouse click (described in **click**), which must be on
+the actively unrolled section. In either case, if there is a shortcut for the
+item and **ni** is not **NULL**, **ni** will be filled in with the shortcut.
 
 The menu can be driven either entirely by the application, via direct calls to
 **ncmenu_previtem**, **ncmenu_prevsection**, and the like, or **struct ncinput**
 objects can be handed to **ncmenu_offer_input**. In the latter case, the menu
-will largely manage itself.
+will largely manage itself. The application must handle item selection (usually
+via the Enter key and/or mouse click) itself, since the menu cannot arbitrarily
+call into the application. **ncmenu_offer_input** will handle clicks to unroll
+menu sections, clicks to dismiss the menu, Escape to dismiss the menu, left
+and right to change menu sections, and up and down to change menu items (these
+latter are only consumed if there is an actively unrolled section).
 
 # RETURN VALUES
 
