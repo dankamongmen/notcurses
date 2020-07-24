@@ -20,7 +20,7 @@ TEST_CASE("TextLayout") {
     CHECK(bytes == strlen(str));
     char* line = ncplane_contents(sp, 0, 0, 2, 20);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "this is going to bebroken up"));
+    CHECK(0 == strcmp(line, "this is going to be broken up"));
     free(line);
     ncplane_destroy(sp);
   }
@@ -34,7 +34,7 @@ TEST_CASE("TextLayout") {
     CHECK(bytes == strlen(str));
     char* line = ncplane_contents(sp, 0, 0, 2, 20);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "this is going to bebroken up"));
+    CHECK(0 == strcmp(line, "this is going to be broken up"));
     free(line);
     ncplane_destroy(sp);
   }
@@ -48,7 +48,7 @@ TEST_CASE("TextLayout") {
     CHECK(bytes == strlen(str));
     char* line = ncplane_contents(sp, 0, 0, 2, 20);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "this is going to bebroken up"));
+    CHECK(0 == strcmp(line, "this is going to be broken up"));
     free(line);
     ncplane_destroy(sp);
   }

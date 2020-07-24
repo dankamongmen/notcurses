@@ -1722,6 +1722,12 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
 //fprintf(stderr, "NEW BREAKER: %s\n", breaker);
       }
     }
+    // if the most recent breaker was the last column, it doesn't really count
+    if(breakercol == dimx - 1){
+//fprintf(stderr, "END OF THE LINE. breakercol: %d -> %d breakerdiff: %zu\n", breakercol, dimx, breaker - linestart);
+      breakercol = dimx;
+      ++breaker; // FIXME need to advance # of bytes in the UTF8 breaker, not 1
+    }
 //fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
       totalcols += breakercol;
@@ -1734,14 +1740,16 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         }
         return -1;
       }
+      text = breaker;
     }
-//fprintf(stderr, "x gets breakercol: %d\n", breakercol);
-    x = breakercol;
+//fprintf(stderr, "x gets %d\n", dimx == breakercol ? 0 : breakercol);
+    x = 0;
     if(breaker == text || overlong){
       linestart = breaker;
     }else{
       linestart = breaker + 1;
     }
+    // FIXME does this print a bottom line with breakers twice?
     if(y >= 0 && ++y >= dimy){
       if(n->scrolling){
         if(ncplane_putsimple_yx(n, -1, -1, '\n') < 0){
