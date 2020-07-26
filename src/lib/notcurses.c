@@ -44,6 +44,23 @@ drop_signals(notcurses* nc){
   return 0;
 }
 
+// reset the current colors, styles, and palette. called on startup (to purge
+// any preexisting styling) and shutdown (to not affect further programs).
+static int
+reset_term_attributes(notcurses* nc){
+  int ret = 0;
+  if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, false)){
+    ret = -1;
+  }
+  if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, false)){
+    ret = -1;
+  }
+  if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, false)){
+    ret = -1;
+  }
+  return ret;
+}
+
 // Do the minimum necessary stuff to restore the terminal, then return. This is
 // the end of the line for fatal signal handlers. notcurses_stop() will go on
 // to tear down and account for internal structures.
@@ -51,6 +68,9 @@ static int
 notcurses_stop_minimal(notcurses* nc){
   int ret = 0;
   drop_signals(nc);
+  // be sure to write the restoration sequences *prior* to running rmcup, as
+  // they apply to the screen (alternate or otherwise) we're actually using.
+  ret |= reset_term_attributes(nc);
   if(nc->ttyfd >= 0){
     if(nc->tcache.rmcup && tty_emit("rmcup", nc->tcache.rmcup, nc->ttyfd)){
       ret = -1;
@@ -59,16 +79,6 @@ notcurses_stop_minimal(notcurses* nc){
       ret = -1;
     }
   }
-  if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
-    ret = -1;
-  }
-  if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, true)){
-    ret = -1;
-  }
-  if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
-    ret = -1;
-  }
-  ret |= notcurses_mouse_disable(nc);
   if(nc->ttyfd >= 0){
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
   }
