@@ -832,6 +832,8 @@ bool ncreel_offer_input(ncreel* n, const ncinput* nc){
     ncreel_next(n);
     return true;
   }
-  // FIXME there are a few more
+  // FIXME there are a few more:
+  //  page up/page down
+  //  end/home (when not using infinite scrolling)
   return false;
 }

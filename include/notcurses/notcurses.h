@@ -50,12 +50,12 @@ struct ncfadectx; // context for a palette fade operation
 typedef enum {
   NCBLIT_DEFAULT, // let the ncvisual pick
   NCBLIT_1x1,     // full block                █
-  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
+  NCBLIT_2x1,     // upper half + 1x1          ▀█
   NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
+  NCBLIT_2x2,     // quadrants + 2x1           ▗▐ ▖▀▟▌▙█
+  NCBLIT_4x1,     // four vertical levels      █▆▄▂
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
+  NCBLIT_8x1,     // eight vertical levels     █▇▆▅▄▃▂▁
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncblitter_e;
 
