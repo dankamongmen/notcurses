@@ -637,7 +637,6 @@ int ncreel_redraw(ncreel* nr){
 //fprintf(stderr, "no focus!\n");
     return 0; // if none are focused, none exist
   }
-//fprintf(stderr, "focused %p!\n", focused);
 //fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
   draw_focused_tablet(nr);
 //fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
