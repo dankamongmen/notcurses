@@ -231,11 +231,6 @@ namespace ncpp
 			return cell_bg_default_p (&_cell);
 		}
 
-		bool has_no_foreground () const noexcept
-		{
-			return cell_noforeground_p (&_cell);
-		}
-
 		bool is_wide_right () const noexcept
 		{
 			return cell_wide_right_p (&_cell);

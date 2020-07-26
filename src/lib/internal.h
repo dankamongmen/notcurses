@@ -599,14 +599,6 @@ plane_debug(const ncplane* n, bool details){
   }
 }
 
-// True if the cell does not generate background pixels. Only the FULL BLOCK
-// glyph has this property, AFAIK.
-// FIXME set a bit, doing this at load time
-static inline bool
-cell_nobackground_p(const egcpool* e, const cell* c){
-  return !cell_simple_p(c) && !strcmp(egcpool_extended_gcluster(e, c), "\xe2\x96\x88");
-}
-
 static inline void
 pool_release(egcpool* pool, cell* c){
   if(!cell_simple_p(c)){

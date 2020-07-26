@@ -1012,12 +1012,6 @@ namespace ncpp
 			return error_guard (ncplane_rotate_ccw (plane), -1);
 		}
 
-		// Upstream call doesn't take ncplane* but we put it here for parity with has_no_background below
-		bool has_no_foreground (Cell &cell) const noexcept
-		{
-			return cell.has_no_foreground ();
-		}
-
 		const char* get_extended_gcluster (Cell &cell) const noexcept
 		{
 			return cell_extended_gcluster (plane, cell);

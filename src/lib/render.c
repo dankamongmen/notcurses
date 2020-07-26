@@ -756,6 +756,22 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
   return ret;
 }
 
+// True if the cell does not generate background pixels. Only the FULL BLOCK
+// glyph has this property, AFAIK.
+// FIXME set a bit, doing this at load time
+static inline bool
+cell_nobackground_p(const egcpool* e, const cell* c){
+  return !cell_simple_p(c) && !strcmp(egcpool_extended_gcluster(e, c), "\xe2\x96\x88");
+}
+
+// True if the cell does not generate foreground pixels (i.e., the cell is
+// entirely whitespace or special characters).
+// FIXME do this at cell prep time and set a bit in the channels
+static inline bool
+cell_noforeground_p(const cell* c){
+  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
+}
+
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8/ASCII stream of escapes and EGCs
