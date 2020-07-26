@@ -55,7 +55,7 @@ reset_term_attributes(notcurses* nc){
   if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, false)){
     ret = -1;
   }
-  if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, false)){
+  if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
     ret = -1;
   }
   return ret;
