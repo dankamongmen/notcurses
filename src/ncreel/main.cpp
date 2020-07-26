@@ -19,6 +19,14 @@ class TabletCtx {
     int getLines() const {
       return lines;
     }
+    void addLine() {
+      ++lines;
+    }
+    void subLine() {
+      if(lines){
+        --lines;
+      }
+    }
     int getIdx() const {
       return idx;
     }
@@ -122,7 +130,21 @@ int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
       case 'd':
         ncreel_del(nr, ncreel_focused(nr));
         break;
-      case '*':
+      case '+':{
+        auto t = ncreel_focused(nr);
+        if(t){
+          auto tctx = static_cast<TabletCtx*>(nctablet_userptr(t));
+          tctx->addLine();
+        }
+        break;
+      }case '-':{
+        auto t = ncreel_focused(nr);
+        if(t){
+          auto tctx = static_cast<TabletCtx*>(nctablet_userptr(t));
+          tctx->subLine();
+        }
+        break;
+      }case '*':
         notcurses_debug(nc, stderr);
         break;
       case NCKEY_LEFT:
@@ -170,7 +192,7 @@ int main(int argc, char** argv){
   }
   int dimy, dimx;
   auto nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
-  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (q)uit") <= 0){
+  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){
     return -1;
   }
   auto n = ncplane_new(nc, dimy - 1 - (margin_t + margin_b),
