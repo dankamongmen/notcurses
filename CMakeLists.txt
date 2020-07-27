@@ -66,7 +66,6 @@ message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
-find_package(doctest REQUIRED)
 # some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
 # into ncurses. accept either, and may god have mercy on our souls.
 pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
