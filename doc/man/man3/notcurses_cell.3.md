@@ -72,8 +72,6 @@ typedef struct cell {
 
 **const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);**
 
-**bool cell_noforeground_p(const cell* c);**
-
 **int cell_load_simple(struct ncplane* n, cell* c, char ch);**
 
 **uint32_t cell_egc_idx(const cell* c);**
