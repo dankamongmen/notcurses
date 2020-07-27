@@ -12,6 +12,7 @@ dch -v $VERSION+dfsg.1-1
 dch -r
 uscan --repack --compression xz --force
 gpg --sign --armor --detach-sign ../notcurses_$VERSION+dfsg.1.orig.tar.xz
+# FIXME this seems to upload to $VERSION.dfsg as opposed to $VERSION+dfsg?
 github-asset dankamongmen/notcurses upload v$VERSION ../notcurses_$VERSION+dfsg.1.orig.tar.xz ../notcurses_$VERSION+dfsg.1.orig.tar.xz.asc
 git commit -m "v$VERSION" -a
 gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz
