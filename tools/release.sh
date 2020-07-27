@@ -49,10 +49,10 @@ echo "Now upload the sig to https://github.com/dankamongmen/notcurses/releases"
 echo "The bastards are trying to immanentize the Eschaton"
 
 # requires token in ~/.netrc
-github-release dankamongmen/notcurses create --name "v$VERSION—$QUIP" --publish
-github-asset dankamongmen/notcurses upload v$VERSION $TARBALL.asc
+github-release dankamongmen/notcurses create v$VERSION --name "v$VERSION—$QUIP" --publish $TARBALL.asc
 
-cd ../rust/libnotcurses-sys
+# FIXME need to install fresh notcurses for rust to compile
+cd rust/libnotcurses-sys
 cargo clean
 cargo publish
 cd ../notcurses
