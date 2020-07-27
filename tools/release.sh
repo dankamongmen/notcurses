@@ -26,7 +26,8 @@ cd build
 cmake -DUSE_DOXYGEN=on ..
 make -j
 make test
-scp html/* qemfd.net:/var/www/notcurses/html/
+ssh qemfd.net rm -rf /var/www/notcurses/html
+scp -r html qemfd.net:/var/www/notcurses/html
 scp *.html ../doc/man/index.html qemfd.net:/var/www/notcurses/
 cd ..
 rm -rf build
