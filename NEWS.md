@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.7 (not yet released)
+* 1.6.7 (2020-07-26)
   * GNU libunistring is now required to build/load Notcurses.
   * Added `ncmenu_mouse_selection()`. Escape now closes an unrolled menu
     when processed by `ncmenu_offer_input()`.
