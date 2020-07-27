@@ -9,7 +9,7 @@
 
 ## Release
 
-* Run tools/release.sh $OLDVERSION $VERSION "quip"
+* In toplevel, run `tools/release.sh $OLDVERSION $VERSION "quip"`:
   * Cleans repo with `git clean -f -d -x`
   * Opens an editor to finalize NEWS.md
   * Bumps version numbers everywhere they need bumping
@@ -30,22 +30,20 @@
 
 ### Debian
 
-* In gbp repository:
-  * Update Debian changelog, if necessary: `dch -v $VERSION+dfsg.1-1`
-  * Finalize Debian changelog with `dch -r`
-  * Repack DFSG-safe tarball with uscan, upload to github
+* In gbp repository, run `tools/debrelease.sh $VERSION`:
+  * Updates Debian changelog with `dch -v $VERSION+dfsg.1-1`
+  * Finalizes Debian changelog with `dch -r`
+  * Repacks DFSG-safe tarball with `uscan`:
     * `uscan --repack --compression xz --force`
     * `gpg --sign --armor --detach-sign ../notcurses_$VERSION+dfsg.1.orig.tar.xz`
-    * sign, upload dfsg+sig to github
-    * import new version: `gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz`
-    * `git push --tags`
-    * build source package: `dpkg-buildpackage --build=source`
-    * build binaries: `cd .. && export TERM=xterm-256color && sudo pbuilder build *dsc`
-        * perform this in xterm with TERM=xterm-256color
-        * beware: freak TERMs won't be present in pbuilder
+  * Uploads repack + signature to github
+  * imports new version: `gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz`
+  * `git push --tags`
+  * builds source package: `dpkg-buildpackage --build=source`
+  * builds binaries: `cd .. && export TERM=xterm-256color && sudo pbuilder build *dsc`
+    * performs this in xterm with TERM=xterm-256color
+    * beware: freak TERMs won't be present in pbuilder
 * Copy `../*notcurses*$VERSION*` to apt repo, import with `reprepro`
-* Update Debian changelog with `dch -v $NEXTVERSION-1`
-* Update CMakeLists.txt with next version
 
 ### Fedora
 
