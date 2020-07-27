@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.9 (2020-07-26)
+  * No user-visible changes.
+
 * 1.6.8 (2020-07-26)
   * No user-visible changes.
 
