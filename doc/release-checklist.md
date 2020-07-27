@@ -9,23 +9,22 @@
 
 ## Release
 
-* Run tools/release.sh $OLDVERSION $VERSION
+* Run tools/release.sh $OLDVERSION $VERSION "quip"
+  * Cleans repo with `git clean -f -d -x`
   * Opens an editor to finalize NEWS.md
   * Bumps version numbers everywhere they need bumping
   * Commits changes, tags result with v$VERSION, pushes tag
   * Downloads new tarball and signs it
-  * Upload signature to github
-* Draft new release at https://github.com/dankamongmen/notcurses/releases
-  * Title is "v$VERSION—some quip"
-  * That's an em dash (U+2014, UTF-8 e2 80 94), get it right
-* Upload new Rust crate with `cargo publish`
-* Upload new Python pip with
-  * `python3 setup.py sdist`
-  * `twine upload dist/*`
-* Generate and upload new HTML documentation via `make html`
-  * `scp *.html ../doc/man/index.html qemfd.net:/var/www/notcurses/`
-* Generate and upload new Doxygen documentation via `doxygen ../doc/Doxyfile`
-  * `scp -r html qemfd.net:/var/www/notcurses/`
+  * Uploads signature to github
+  * Uploads new Rust crates with `cargo publish`
+  * Uploads new Python pip with
+    * `python3 setup.py sdist`
+    * `twine upload dist/*`
+  * Generates and uploads new HTML documentation via `make html`
+    * `scp *.html ../doc/man/index.html qemfd.net:/var/www/notcurses/`
+    * `scp -r html qemfd.net:/var/www/notcurses/`
+  * Publishes new release at https://github.com/dankamongmen/notcurses/releases
+    * Title is "v$VERSION—some quip"
 
 ## Packaging
 
