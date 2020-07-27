@@ -99,6 +99,12 @@ auto main(int argc, const char **argv) -> int {
     std::cerr << "Couldn't set locale based on user preferences!" << std::endl;
     return EXIT_FAILURE;
   }
+  const char* lang = getenv("LANG");
+  if(lang == nullptr){
+    std::cerr << "Warning: LANG wasn't defined" << std::endl;
+  }else{
+    std::cout << "Running with LANG=" << lang << std::endl;
+  }
   const char* term = getenv("TERM");
   if(term == nullptr){
     std::cerr << "TERM wasn't defined, exiting with success" << std::endl;
