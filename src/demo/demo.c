@@ -20,7 +20,7 @@ static int democount;
 static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
-static const char DEFAULT_DEMO[] = "ixeaydthnbcmgrwuvlsfjqo";
+static const char DEFAULT_DEMO[] = "ixezaydthnbcmgrwuvlsfjqo";
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
@@ -99,7 +99,7 @@ static struct {
   { "whiteout", witherworm_demo, false, },
   { "xray", xray_demo, false, },
   { "yield", yield_demo, false, },
-  { NULL, NULL, false, }, // zoo
+  { "zoo", zoo_demo, false, },
 };
 
 static void

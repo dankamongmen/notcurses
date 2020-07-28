@@ -53,6 +53,7 @@ int eagle_demo(struct notcurses* nc);
 int reel_demo(struct notcurses* nc);
 int xray_demo(struct notcurses* nc);
 int luigi_demo(struct notcurses* nc);
+int zoo_demo(struct notcurses* nc);
 int intro(struct notcurses* nc);
 int outro(struct notcurses* nc);
 
