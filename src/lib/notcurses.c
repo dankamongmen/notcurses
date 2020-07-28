@@ -58,6 +58,7 @@ reset_term_attributes(notcurses* nc){
   if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
     ret = -1;
   }
+  ret |= notcurses_mouse_disable(nc);
   return ret;
 }
 

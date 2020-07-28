@@ -16,17 +16,28 @@ typedef struct nctablet {
   void* curry;                 // application data provided to cbfxn
 } nctablet;
 
+// First rule: there must not be 2+ consecutive lines of blank space if there is
+//             data which could be presented there (always fill the reel).
+// Second rule: if there must be 2+ consecutive lines of blank space, they must
+//             all be at the bottom of the reel (connect and anchor the reel).
+// Third rule: the focused tablet gets all the space it can use.
+// Fourth rule: the focused tablet should remain where it is across redraws,
+//              except as necessary to accommodate the prior rules.
+//
 // The visible screen can be reconstructed from four things:
-//  * which tablet is focused (pointed at by tablets)
-//  * which row the focused tablet starts at (derived from focused window)
+//  * which tablet is focused (pointed at by ncreel->tablets)
+//  * which row the focused tablet starts at (derived from focused tablet)
+//    * *except* when we reached it via border wrap, in which case it is
+//      defined by the border
 //  * the list of tablets (available from the focused tablet)
-//  * from which direction we arrived at the focused window
+//  * from which direction we arrived at the focused tablet
 // Things which can happen between ncreel_redraw() calls:
 //  * new focused tablet added (only when no tablets exist)
 //  * new unfocused tablet added
 //  * tablet removed (may be focused)
 //  * tablets may grow or shrink
-//  * focus can change
+//  * focus can change due to move
+//  * we *only* redraw when ncreel_redraw() is explicitly called (and creation)
 // On tablet remove:
 //  * destroy plane, remove from list
 //  * if tablet was focused, change focus
@@ -37,7 +48,7 @@ typedef struct nctablet {
 //  * change focus, update travel direction
 // On redraw:
 //  * if no tablets, we're done (deleted planes are already gone)
-//  * resize focused tablet to maximum
+//  * resize focused tablet to maximum, preserving nothing
 //  * call back for focused tablet redraw
 //  * shrink focused tablet if applicable
 //  * place focused tablet according to:
