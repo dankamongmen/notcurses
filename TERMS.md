@@ -12,22 +12,22 @@ you're going to have a bad time.
 
 The following have been established on a Debian Unstable workstation.
 
-| Terminal | Recommended environment | Notes |
-| -------- | ------ | ----- |
-| Linux console | `TERM=linux` `COLORTERM=24bit` | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
-| FBterm | `TERM=fbterm` | 256 colors, no RGB color. |
-| kmscon | `TERM=xterm-256color` | No RGB color AFAICT, nor any distinct terminfo entry. |
-| XTerm | `TERM=xterm-256color` `COLORTERM=24bit` | Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. Sixel support when built with `--enable-sixel-graphics` and run in vt340 mode. |
-| XFCE4 Terminal | `TERM=xfce` `COLORTERM=24bit` | No `xfce-direct` variant exists. |
-| Gnome Terminal | `TERM=gnome` `COLORTERM=24bit` | |
-| Konsole | `TERM=konsole-direct` | |
-| Alacritty | `TERM=alacritty` `COLORTERM=24bit` | |
-| Kitty | `TERM=kitty-direct` | |
-| Sakura | `TERM=vte-256color` `COLORTERM=24bit` | No terminfo entry? |
-| mlterm | `TERM=mlterm-256color` | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
-| st | `TERM=st-256color` `COLORTERM=24bit` | |
-| GNU Screen | `TERM=screen.OLDTERM` | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
-| tmux | | |
+| Terminal | `ccc` | Recommended environment | Notes |
+| -------- | ----- | ------ | ----- |
+| Linux console | ✔ | `TERM=linux` `COLORTERM=24bit` | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
+| FBterm | | `TERM=fbterm` | 256 colors, no RGB color. |
+| kmscon | | `TERM=xterm-256color` | No RGB color AFAICT, nor any distinct terminfo entry. |
+| XTerm | | `TERM=xterm-256color` `COLORTERM=24bit` | Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. Sixel support when built with `--enable-sixel-graphics` and run in vt340 mode. |
+| XFCE4 Terminal | ✔ | `TERM=xfce` `COLORTERM=24bit` | No `xfce-direct` variant exists. |
+| Gnome Terminal | | `TERM=gnome` `COLORTERM=24bit` | |
+| Konsole | 🗴 | `TERM=konsole-direct` | |
+| Alacritty | ✔ | `TERM=alacritty` `COLORTERM=24bit` | |
+| Kitty | ✔ |`TERM=kitty-direct` | |
+| Sakura | ✔ |`TERM=vte-256color` `COLORTERM=24bit` | No terminfo entry? |
+| mlterm | 🗴 |`TERM=mlterm-256color` | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
+| st | ✔ |`TERM=st-256color` `COLORTERM=24bit` | |
+| GNU Screen | 🗴 |`TERM=screen.OLDTERM` | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
+| tmux | | | |
 
 Note that `xfce4-terminal`, `gnome-terminal`, etc. are all skinning atop the
 common VTE ("Virtual TErminal") library.
