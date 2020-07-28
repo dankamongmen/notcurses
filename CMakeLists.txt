@@ -541,6 +541,7 @@ if(${BUILD_TESTING})
 # sadly, this doesn't take effect until CMake 3.17...
 set(CMAKE_CTEST_ARGUMENTS "-V")
 enable_testing()
+if(DEFINED ENV{TERM})
 add_test(
   NAME ncpp_build
   COMMAND ncpp_build
@@ -557,13 +558,10 @@ add_test(
   NAME rgbbg
   COMMAND rgbbg
 )
-set_tests_properties(
-  ncpp_build
-  ncpp_build_exceptions
-  rgb
-  rgbbg
+set_tests_properties(ncpp_build ncpp_build_exceptions rgb rgbbg
   PROPERTIES RUN_SERIAL TRUE
 )
+endif()
 if(${USE_DOCTEST})
 file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
