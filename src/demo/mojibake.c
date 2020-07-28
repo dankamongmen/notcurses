@@ -3395,7 +3395,7 @@ static struct ncplane*
 mojiplane(struct ncplane* title, int y, int rows, const char* summary){
   struct ncplane* n = ncplane_aligned(title, rows, planewidth, y, NCALIGN_CENTER, NULL);
   uint64_t channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xa0, 0xf0, 0x10, 0x10, 0x60);
-  if(ncplane_perimeter_rounded(n, 0, channels, 0) < 0){
+  if(ncplane_perimeter_rounded(n, 0, channels, NCBOXMASK_RIGHT) < 0){
     ncplane_destroy(n);
     return NULL;
   }
