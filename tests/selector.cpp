@@ -76,6 +76,7 @@ TEST_CASE("Selectors") {
       { strdup("op1"), strdup("this is option 1"), 0, 0, },
       { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
       { strdup("tres"), strdup("option the third"), 0, 0, },
+      { NULL, NULL, 0, 0, },
     };
     struct ncselector_options opts{};
     opts.items = items;
@@ -112,6 +113,7 @@ TEST_CASE("Selectors") {
       { strdup("op1"), strdup("this is option 1"), 0, 0, },
       { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
       { strdup("tres"), strdup("option the third"), 0, 0, },
+      { NULL, NULL, 0, 0, },
     };
     struct ncselector_options opts{};
     opts.items = items;
@@ -148,6 +150,7 @@ TEST_CASE("Selectors") {
       { strdup("op1"), strdup("this is option 1"), 0, 0, },
       { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
       { strdup("tres"), strdup("option the third"), 0, 0, },
+      { NULL, NULL, 0, 0, },
     };
     struct ncselector_options opts{};
     opts.maxdisplay = 1;
@@ -190,6 +193,7 @@ TEST_CASE("Selectors") {
       { strdup("op1"), strdup("this is option 1"), 0, 0, },
       { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
       { strdup("tres"), strdup("option the third"), 0, 0, },
+      { NULL, NULL, 0, 0, },
     };
     struct ncselector_options opts{};
     opts.maxdisplay = 2;
