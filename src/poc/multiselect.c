@@ -70,18 +70,12 @@ int main(void){
   sopts.title = "this is truly an awfully long example of a MULTISELECTOR title";
   sopts.secondary = "pick one (you will die regardless)";
   sopts.footer = "press q to exit (there is sartrev(\"no exit\"))";
-  channels_set_fg(&sopts.boxchannels, 0x20e0e0);
-  channels_set_bg(&sopts.boxchannels, 0x200000);
-  channels_set_fg(&sopts.opchannels, 0xe08040);
-  channels_set_bg(&sopts.opchannels, 0);
-  channels_set_fg(&sopts.descchannels, 0xe0e040);
-  channels_set_bg(&sopts.descchannels, 0);
-  channels_set_fg(&sopts.footchannels, 0xe00040);
-  channels_set_bg(&sopts.footchannels, 0x202000);
-  channels_set_fg(&sopts.titlechannels, 0x20ffff);
-  channels_set_bg(&sopts.titlechannels, 0x000020);
-  channels_set_fg(&sopts.bgchannels, 0x002000);
-  channels_set_bg(&sopts.bgchannels, 0x002000);
+  sopts.boxchannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0x20, 0, 0),
+  sopts.opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
+  sopts.descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
+  sopts.footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0x20, 0),
+  sopts.titlechannels = CHANNELS_RGB_INITIALIZER(0x20, 0xff, 0xff, 0, 0, 0x20),
+  sopts.bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x20, 0, 0, 0x20, 0),
   channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   struct ncplane* n = notcurses_stdplane(nc);
