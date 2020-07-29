@@ -8,6 +8,7 @@ static struct ncselector_item select_items[] = {
   SITEM("rpm", "Fedora Rawhide Linux"),
   SITEM("pac", "Arch Linux"),
   SITEM("apk", "Alpine Edge Linux"),
+  SITEM(NULL, NULL),
 #undef SITEM
 };
 
@@ -54,7 +55,6 @@ int zoo_demo(struct notcurses* nc){
     .maxdisplay = 4,
     .title = "single-item selector",
     .items = select_items,
-    .itemcount = sizeof(select_items) / sizeof(*select_items),
   };
   channels_set_fg(&sopts.boxchannels, 0x20e040);
   channels_set_fg(&sopts.opchannels, 0xe08040);
