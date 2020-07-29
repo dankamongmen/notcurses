@@ -48,8 +48,32 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   return mselector;
 }
 
+static int
+draw_background(struct notcurses* nc){
+  if(notcurses_canopen_images(nc)){
+    struct ncplane* n = notcurses_stdplane(nc);
+    nc_err_e err;
+    struct ncvisual* ncv = ncvisual_from_file("../data/changes.jpg", &err);
+    if(!ncv){
+      return -1;
+    }
+    struct ncvisual_options vopts = {
+      .scaling = NCSCALE_STRETCH,
+      .n = n,
+    };
+    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+  }
+  return 0;
+}
+
 int zoo_demo(struct notcurses* nc){
   int dimx;
+  if(draw_background(nc)){
+    return -1;
+  }
   struct ncplane* n = notcurses_stddim_yx(nc, NULL, &dimx);
   ncselector_options sopts = {
     .maxdisplay = 4,
