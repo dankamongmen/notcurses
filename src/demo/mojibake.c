@@ -3537,7 +3537,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
     }
     emoji += bytes;
     x += w;
-    if(x >= planewidth - 2){
+    if(x >= planewidth - 10){ // leave some wiggle room for wcwdith() problems
       ++y;
       x = 1;
     }
