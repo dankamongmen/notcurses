@@ -12,11 +12,37 @@ static struct ncselector_item select_items[] = {
 #undef SITEM
 };
 
+static struct ncmselector_item mselect_items[] = {
+  { "Pa231", "Protactinium-231 (162kg)", .selected = false, },
+  { "U233", "Uranium-233 (15kg)", .selected = false, },
+  { "U235", "Uranium-235 (50kg)", .selected = false, },
+  { "Np236", "Neptunium-236 (7kg)", .selected = false, },
+  { "Np237", "Neptunium-237 (60kg)", .selected = false, },
+  { "Pu238", "Plutonium-238 (10kg)", .selected = false, },
+  { "Pu239", "Plutonium-239 (10kg)", .selected = false, },
+  { "Pu240", "Plutonium-240 (40kg)", .selected = false, },
+  { "Pu241", "Plutonium-241 (13kg)", .selected = false, },
+  { "Am241", "Americium-241 (100kg)", .selected = false, },
+  { "Pu242", "Plutonium-242 (100kg)", .selected = false, },
+  { "Am242", "Americium-242 (18kg)", .selected = false, },
+  { "Am243", "Americium-243 (155kg)", .selected = false, },
+  { "Cm243", "Curium-243 (10kg)", .selected = false, },
+  { "Cm244", "Curium-244 (30kg)", .selected = false, },
+  { "Cm245", "Curium-245 (13kg)", .selected = false, },
+  { "Cm246", "Curium-246 (84kg)", .selected = false, },
+  { "Cm247", "Curium-247 (7kg)", .selected = false, },
+  { "Bk247", "Berkelium-247 (10kg)", .selected = false, },
+  { "Cf249", "Californium-249 (6kg)", .selected = false, },
+  { "Cf251", "Californium-251 (9kg)", .selected = false, },
+  { NULL, NULL, .selected = false, },
+};
+
 static struct ncmultiselector*
 multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   ncmultiselector_options mopts = {
     .maxdisplay = 8,
     .title = "multi-item selector",
+    .items = mselect_items,
   };
   channels_set_fg(&mopts.boxchannels, 0x20e040);
   channels_set_fg(&mopts.opchannels, 0xe08040);
@@ -84,7 +110,6 @@ int zoo_demo(struct notcurses* nc){
   struct ncmultiselector* mselector = NULL;
   struct ncplane* n = notcurses_stddim_yx(nc, NULL, &dimx);
   ncselector_options sopts = {
-    .maxdisplay = 4,
     .title = "single-item selector",
     .items = select_items,
   };
@@ -121,6 +146,7 @@ int zoo_demo(struct notcurses* nc){
   if(mselector == NULL){
     goto err;
   }
+  demo_nanosleep(nc, &demodelay);
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
   DEMO_RENDER(nc);
