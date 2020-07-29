@@ -1,5 +1,21 @@
 from setuptools import setup
+from setuptools.command.install import install
 import os
+import sys
+import pypandoc
+
+class ManPageGenerator(install):
+    def run(self):
+        here = os.path.dirname(__file__) or '.'
+        files = []
+        outfile = 'notcurses-pydemo.1'
+        pypandoc.convert_file(os.path.join(here, 'notcurses-pydemo.1.md'), 'man', outputfile=outfile, extra_args=['-s'])
+        files.append(outfile)
+        # this breaks when using --user without --prefix
+        ipage = (os.path.join(self.prefix, 'share', 'man', 'man1'), files)
+        self.distribution.data_files.append(ipage)
+        print("data_files: ", self.distribution.data_files)
+        super().run()
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -20,6 +36,7 @@ setup(
     platforms=["any"],
     long_description=read('README.md'),
     long_description_content_type="text/markdown",
+    data_files=[],
     install_requires=["cffi>=1.0.0"],
     setup_requires=["cffi>=1.0.0"],
     cffi_modules=["src/notcurses/build_notcurses.py:ffibuild"],
@@ -31,4 +48,8 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python',
     ],
+    include_package_data=True,
+    cmdclass=dict(
+        install=ManPageGenerator,
+    )
 )
