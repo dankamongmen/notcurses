@@ -560,7 +560,7 @@ channels_set_bg_default(uint64_t* channels){
 //
 // Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
-// Dynamic requirements (the egcpool) can add up to 32MB to an ncplane, but
+// Dynamic requirements (the egcpool) can add up to 16MB to an ncplane, but
 // such large pools are unlikely in common use.
 //
 // We implement some small alpha compositing. Foreground and background both
@@ -581,9 +581,11 @@ channels_set_bg_default(uint64_t* channels){
 // RGB is used if neither default terminal colors nor palette indexing are in
 // play, and fully supports all transparency options.
 typedef struct cell {
-  // These 32 bits are either a single-byte, single-character grapheme cluster
-  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
+  // These 32 bits are either a single-character EGC, encoded as UTF-8, or a
+  // 24-bit offset into a per-ncplane attached pool of varying-length UTF-8
+  // grapheme clusters. This pool may thus be up to 16MB. Such an offset is
+  // encoded with a first byte of 0x01 (non-printable SOH character); the
+  // offset is the lower 24 bits.
   uint32_t gcluster;          // 4B -> 4B
   // NCSTYLE_* attributes (16 bits) + 8 foreground palette index bits + 8
   // background palette index bits. palette index bits are used only if the
@@ -611,6 +613,7 @@ typedef struct cell {
 } cell;
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
+// c *must not* be 0x01, or the cell will be interpreted as an egcpool pointer!
 #define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
 #define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
 
