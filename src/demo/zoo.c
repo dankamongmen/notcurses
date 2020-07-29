@@ -60,8 +60,9 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   struct timespec swoopdelay;
   timespec_div(&demodelay, dimx / 3, &swoopdelay);
   int length = ncplane_dim_x(mplane);
+  ncplane_move_yx(mplane, y, -length);
   ncinput ni;
-  for(int i = 0 ; i < dimx - (length + 1) ; ++i){
+  for(int i = -length + 1 ; i < dimx - (length + 1) ; ++i){
     if(demo_render(nc)){
       ncmultiselector_destroy(mselector);
       return NULL;
@@ -121,16 +122,13 @@ selector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   ncselector_options sopts = {
     .title = "single-item selector",
     .items = select_items,
+    .boxchannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0x40, 0x20, 0x20, 0x20),
+    .opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
+    .descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
+    .footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0, 0),
+    .titlechannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0x80, 0, 0, 0x20),
+    .bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x20, 0, 0, 0x20, 0),
   };
-  channels_set_fg(&sopts.boxchannels, 0x20e040);
-  channels_set_fg(&sopts.opchannels, 0xe08040);
-  channels_set_fg(&sopts.descchannels, 0x80e040);
-  channels_set_bg(&sopts.opchannels, 0);
-  channels_set_bg(&sopts.descchannels, 0);
-  channels_set_fg(&sopts.footchannels, 0xe00040);
-  channels_set_fg(&sopts.titlechannels, 0xffff80);
-  channels_set_fg(&sopts.bgchannels, 0x002000);
-  channels_set_bg(&sopts.bgchannels, 0x002000);
   channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   struct ncselector* selector = ncselector_create(n, y, dimx, &sopts);
