@@ -118,11 +118,16 @@ usage(const char* exe, int status){
   fprintf(out, " -p: data file path (default: %s)\n", NOTCURSES_SHARE);
   fprintf(out, " -m: margin, or 4 comma-separated margins\n");
   fprintf(out, "\nspecify demos via their first letter. repetitions are allowed.\n");
-  fprintf(out, "default spec: %s\n", DEFAULT_DEMO);
+  fprintf(out, "default spec: %s\n\n", DEFAULT_DEMO);
   int printed = 0;
   for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
     if(demos[i].name){
-      fprintf(out, "%*.*s", 10, 10, demos[i].name);
+      if(printed % 6 == 0){
+        fprintf(out, " ");
+      }
+      // U+24D0: CIRCLED LATIN SMALL LETTER A
+      fprintf(out, "%lc ", *demos[i].name - 'a' + 0x24d0);
+      fprintf(out, "%-*.*s", 8, 8, demos[i].name + 1);
       if(++printed % 6 == 0){
         fprintf(out, "\n");
       }
@@ -197,7 +202,12 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
   *json_output = NULL;
   int c;
   memset(opts, 0, sizeof(*opts));
-  while((c = getopt(argc, argv, "VhickJ:l:r:d:f:p:m:")) != EOF){
+  const struct option longopts[] = {
+    { .name = "help", .has_arg = 0, .flag = NULL, .val = 'h', },
+    { .name = NULL, .has_arg = 0, .flag = NULL, .val = 0, },
+  };
+  int lidx;
+  while((c = getopt_long(argc, argv, "VhickJ:l:r:d:f:p:m:", longopts, &lidx)) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
