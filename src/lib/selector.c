@@ -195,9 +195,16 @@ ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_option
   ns->footer = opts->footer ? strdup(opts->footer) : NULL;
   ns->footercols = opts->footer ? mbswidth(opts->footer) : 0;
   ns->selected = opts->defidx;
-  ns->startdisp = opts->defidx >= opts->maxdisplay ? opts->defidx - opts->maxdisplay + 1 : 0;
   ns->longop = 0;
-  ns->maxdisplay = opts->maxdisplay;
+  if( (ns->maxdisplay = opts->maxdisplay) ){
+    if(opts->defidx >= ns->maxdisplay){
+      ns->startdisp = opts->defidx - ns->maxdisplay + 1;
+    }else{
+      ns->startdisp = 0;
+    }
+  }else{
+    ns->startdisp = 0;
+  }
   ns->longdesc = 0;
   ns->opchannels = opts->opchannels;
   ns->boxchannels = opts->boxchannels;

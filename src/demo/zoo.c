@@ -126,6 +126,8 @@ selector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   ncselector_options sopts = {
     .title = "single-item selector",
     .items = select_items,
+    .defidx = 4,
+    .maxdisplay = 3,
     .boxchannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0x40, 0x20, 0x20, 0x20),
     .opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
     .descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),

@@ -70,7 +70,7 @@ int main(void){
   sopts.title = "this is truly, absolutely an awfully long example of a selector title";
   sopts.secondary = "pick one (you will die regardless)";
   sopts.footer = "press q to exit (there is no exit)";
-  sopts.defidx = 5;
+  sopts.defidx = 1;
   sopts.boxchannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0x40, 0x20, 0x20, 0x20),
   sopts.opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
   sopts.descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
