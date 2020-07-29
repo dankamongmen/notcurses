@@ -79,7 +79,6 @@ TEST_CASE("Selectors") {
     };
     struct ncselector_options opts{};
     opts.items = items;
-    opts.itemcount = sizeof(items) / sizeof(*items);
     struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
@@ -116,7 +115,6 @@ TEST_CASE("Selectors") {
     };
     struct ncselector_options opts{};
     opts.items = items;
-    opts.itemcount = sizeof(items) / sizeof(*items);
     struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     auto sel = ncselector_selected(ncs);
@@ -154,7 +152,6 @@ TEST_CASE("Selectors") {
     struct ncselector_options opts{};
     opts.maxdisplay = 1;
     opts.items = items;
-    opts.itemcount = sizeof(items) / sizeof(*items);
     struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));
@@ -197,7 +194,6 @@ TEST_CASE("Selectors") {
     struct ncselector_options opts{};
     opts.maxdisplay = 2;
     opts.items = items;
-    opts.itemcount = sizeof(items) / sizeof(*items);
     struct ncselector* ncs = ncselector_create(n_, 0, 0, &opts);
     REQUIRE(nullptr != ncs);
     CHECK(0 == notcurses_render(nc_));

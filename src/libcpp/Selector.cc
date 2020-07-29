@@ -8,7 +8,6 @@ ncselector_options Selector::default_options = {
 	/* secondary */ nullptr,
 	/* footer */ nullptr,
 	/* items */ nullptr,
-	/* itemcount */ 0,
 	/* defidx */ 0,
 	/* maxdisplay */ 0,
 	/* opchannels */ 0,

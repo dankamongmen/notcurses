@@ -18,6 +18,7 @@ static struct ncmselector_item items[] = {
   { "9", "And, eventually noticing the rest of the world was there,", .selected = false, },
   { "10", "Decided to rule it.", .selected = false, },
   { "11", "This is their story.", .selected = false, },
+  { NULL, NULL, .selected = false, },
 };
 
 static void
@@ -66,17 +67,19 @@ int main(void){
   memset(&sopts, 0, sizeof(sopts));
   sopts.maxdisplay = 10;
   sopts.items = items;
-  sopts.itemcount = sizeof(items) / sizeof(*items);
   sopts.title = "this is truly an awfully long example of a MULTISELECTOR title";
   sopts.secondary = "pick one (you will die regardless)";
   sopts.footer = "press q to exit (there is sartrev(\"no exit\"))";
   channels_set_fg(&sopts.boxchannels, 0x20e0e0);
+  channels_set_bg(&sopts.boxchannels, 0x200000);
   channels_set_fg(&sopts.opchannels, 0xe08040);
-  channels_set_fg(&sopts.descchannels, 0xe0e040);
   channels_set_bg(&sopts.opchannels, 0);
+  channels_set_fg(&sopts.descchannels, 0xe0e040);
   channels_set_bg(&sopts.descchannels, 0);
   channels_set_fg(&sopts.footchannels, 0xe00040);
-  channels_set_fg(&sopts.titlechannels, 0x80ffff);
+  channels_set_bg(&sopts.footchannels, 0x202000);
+  channels_set_fg(&sopts.titlechannels, 0x20ffff);
+  channels_set_bg(&sopts.titlechannels, 0x000020);
   channels_set_fg(&sopts.bgchannels, 0x002000);
   channels_set_bg(&sopts.bgchannels, 0x002000);
   channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);

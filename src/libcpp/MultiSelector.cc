@@ -8,7 +8,6 @@ ncmultiselector_options MultiSelector::default_options = {
 	/* secondary */ nullptr,
 	/* footer */ nullptr,
 	/* items */ nullptr,
-	/* itemcount */ 0,
 	/* maxdisplay */ 0,
 	/* opchannels */ 0,
 	/* descchannels */ 0,

@@ -26,7 +26,6 @@ typedef struct ncselector_options {
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
   struct ncselector_item* items; // initial items and descriptions
-  unsigned itemcount; // number of initial items and descriptions
   // default item (selected at start)
   unsigned defidx;
   // maximum number of options to display at once

@@ -27,7 +27,6 @@ typedef struct ncmultiselector_options {
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
   struct ncmselector_item* items; // initial items, statuses
-  unsigned itemcount; // number of initial items
   // default item (selected at start)
   unsigned defidx;
   // maximum number of options to display at once

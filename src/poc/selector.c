@@ -17,6 +17,7 @@ static struct ncselector_item items[] = {
   SITEM("8 8 8", "the chinese 平仮名平平仮名仮名love me, i'm told"),
   SITEM("nine", "nine, nine, nine 'cause you left me"),
   SITEM("ten", "stunning and brave"),
+  SITEM(NULL, NULL),
 #undef SITEM
 };
 
@@ -66,7 +67,6 @@ int main(void){
   memset(&sopts, 0, sizeof(sopts));
   sopts.maxdisplay = 4;
   sopts.items = items;
-  sopts.itemcount = sizeof(items) / sizeof(*items);
   sopts.title = "this is truly, absolutely an awfully long example of a selector title";
   sopts.secondary = "pick one (you will die regardless)";
   sopts.footer = "press q to exit (there is no exit)";

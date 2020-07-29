@@ -178,7 +178,13 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
 }
 
 ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_options* opts){
-  if(opts->defidx && opts->defidx >= opts->itemcount){
+  unsigned itemcount = 0;
+  if(opts->items){
+    for(const struct ncselector_item* i = opts->items ; i->option ; ++i){
+      ++itemcount;
+    }
+  }
+  if(opts->defidx && opts->defidx >= itemcount){
     return NULL;
   }
   ncselector* ns = malloc(sizeof(*ns));
@@ -200,8 +206,8 @@ ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_option
   ns->footchannels = opts->footchannels;
   ns->boxchannels = opts->boxchannels;
   ns->darrowy = ns->uarrowy = ns->arrowx = -1;
-  if(opts->itemcount){
-    if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
+  if(itemcount){
+    if(!(ns->items = malloc(sizeof(*ns->items) * itemcount))){
       free(ns->title); free(ns->secondary); free(ns->footer);
       free(ns);
       return NULL;
@@ -209,7 +215,7 @@ ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_option
   }else{
     ns->items = NULL;
   }
-  for(ns->itemcount = 0 ; ns->itemcount < opts->itemcount ; ++ns->itemcount){
+  for(ns->itemcount = 0 ; ns->itemcount < itemcount ; ++ns->itemcount){
     const struct ncselector_item* src = &opts->items[ns->itemcount];
     int cols = mbswidth(src->option);
     ns->items[ns->itemcount].opcolumns = cols;
@@ -675,6 +681,12 @@ ncmultiselector_dim_yx(notcurses* nc, const ncmultiselector* n, int* ncdimy, int
 
 ncmultiselector* ncmultiselector_create(ncplane* nc, int y, int x,
                                         const ncmultiselector_options* opts){
+  unsigned itemcount = 0;
+  if(opts->items){
+    for(const struct ncmselector_item* i = opts->items ; i->option ; ++i){
+      ++itemcount;
+    }
+  }
   ncmultiselector* ns = malloc(sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
   ns->titlecols = opts->title ? mbswidth(opts->title) : 0;
@@ -693,8 +705,8 @@ ncmultiselector* ncmultiselector_create(ncplane* nc, int y, int x,
   ns->footchannels = opts->footchannels;
   ns->boxchannels = opts->boxchannels;
   ns->darrowy = ns->uarrowy = ns->arrowx = -1;
-  if(opts->itemcount){
-    if(!(ns->items = malloc(sizeof(*ns->items) * opts->itemcount))){
+  if(itemcount){
+    if(!(ns->items = malloc(sizeof(*ns->items) * itemcount))){
       free(ns->title); free(ns->secondary); free(ns->footer);
       free(ns);
       return NULL;
@@ -702,7 +714,7 @@ ncmultiselector* ncmultiselector_create(ncplane* nc, int y, int x,
   }else{
     ns->items = NULL;
   }
-  for(ns->itemcount = 0 ; ns->itemcount < opts->itemcount ; ++ns->itemcount){
+  for(ns->itemcount = 0 ; ns->itemcount < itemcount ; ++ns->itemcount){
     const struct ncmselector_item* src = &opts->items[ns->itemcount];
     int cols = mbswidth(src->option);
     if(cols > ns->longitem){
