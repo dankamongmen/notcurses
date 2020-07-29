@@ -1,5 +1,16 @@
 #include "demo.h"
 
+// we list all distributions on which notcurses is known to exist
+static struct ncselector_item select_items[] = {
+#define SITEM(short, long) { short, long, 0, 0, }
+  SITEM("fbsd", "FreeBSD"),
+  SITEM("deb", "Debian Unstable Linux"),
+  SITEM("rpm", "Fedora Rawhide Linux"),
+  SITEM("pac", "Arch Linux"),
+  SITEM("apk", "Alpine Edge Linux"),
+#undef SITEM
+};
+
 static struct ncmultiselector*
 multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   ncmultiselector_options mopts = {
@@ -42,6 +53,8 @@ int zoo_demo(struct notcurses* nc){
   ncselector_options sopts = {
     .maxdisplay = 4,
     .title = "single-item selector",
+    .items = select_items,
+    .itemcount = sizeof(select_items) / sizeof(*select_items),
   };
   channels_set_fg(&sopts.boxchannels, 0x20e040);
   channels_set_fg(&sopts.opchannels, 0xe08040);
