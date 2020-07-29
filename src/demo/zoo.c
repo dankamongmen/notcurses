@@ -76,6 +76,10 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
       ncmultiselector_offer_input(mselector, &ni);
     }
   }
+  if(demo_render(nc)){
+    ncmultiselector_destroy(mselector);
+    return NULL;
+  }
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   uint64_t cur = timespec_to_ns(&ts);
@@ -152,6 +156,10 @@ selector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
     }else if(wc){
       ncselector_offer_input(selector, &ni);
     }
+  }
+  if(demo_render(nc)){
+    ncselector_destroy(selector, NULL);
+    return NULL;
   }
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
