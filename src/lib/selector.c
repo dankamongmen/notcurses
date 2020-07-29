@@ -763,12 +763,8 @@ freeitems:
   return NULL;
 }
 
-void ncmultiselector_destroy(ncmultiselector* n, char** item){
+void ncmultiselector_destroy(ncmultiselector* n){
   if(n){
-    if(item){
-      *item = n->items[n->current].option;
-      n->items[n->current].option = NULL;
-    }
     while(n->itemcount--){
       free(n->items[n->itemcount].option);
       free(n->items[n->itemcount].desc);

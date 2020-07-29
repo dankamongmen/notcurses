@@ -359,7 +359,7 @@ struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, 
 int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
 struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
-void ncmultiselector_destroy(struct ncmultiselector* n, char** item);
+void ncmultiselector_destroy(struct ncmultiselector* n);
 struct ncmenu_item {
   char* desc;           // utf-8 menu item, NULL for horizontal separator
   ncinput shortcut;     // shortcut, all should be distinct
