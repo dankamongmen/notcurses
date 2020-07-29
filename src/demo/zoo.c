@@ -43,16 +43,13 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
     .maxdisplay = 8,
     .title = "multi-item selector",
     .items = mselect_items,
+    .boxchannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0x20, 0, 0),
+    .opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
+    .descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
+    .footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0x20, 0),
+    .titlechannels = CHANNELS_RGB_INITIALIZER(0x20, 0xff, 0xff, 0, 0, 0x20),
+    .bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x20, 0, 0, 0x20, 0),
   };
-  channels_set_fg(&mopts.boxchannels, 0x20e040);
-  channels_set_fg(&mopts.opchannels, 0xe08040);
-  channels_set_fg(&mopts.descchannels, 0x80e040);
-  channels_set_bg(&mopts.opchannels, 0);
-  channels_set_bg(&mopts.descchannels, 0);
-  channels_set_fg(&mopts.footchannels, 0xe00040);
-  channels_set_fg(&mopts.titlechannels, 0xffff80);
-  channels_set_fg(&mopts.bgchannels, 0x002000);
-  channels_set_bg(&mopts.bgchannels, 0x002000);
   channels_set_fg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
   struct ncmultiselector* mselector = ncmultiselector_create(n, y, 0, &mopts);

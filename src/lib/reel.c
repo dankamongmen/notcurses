@@ -374,15 +374,14 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery,
 // NULL). it can occupy the entire ncreel.
 static int
 draw_focused_tablet(const ncreel* nr){
-  int pbegy, plenx, pleny; // ncreel window coordinates
+  int plenx, pleny; // ncreel window coordinates
   ncplane_dim_yx(nr->p, &pleny, &plenx);
-  pbegy = 0;
   int fulcrum;
   if(nr->tablets->p == NULL){
     if(nr->last_traveled_direction >= 0){
-      fulcrum = pleny + pbegy - !(nr->ropts.bordermask & NCBOXMASK_BOTTOM);
+      fulcrum = pleny + !(nr->ropts.bordermask & NCBOXMASK_BOTTOM);
     }else{
-      fulcrum = pbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
+      fulcrum = !(nr->ropts.bordermask & NCBOXMASK_TOP);
     }
 //fprintf(stderr, "LTD: %d  placing new at %d\n", nr->last_traveled_direction, fulcrum);
   }else{ // focused was already present. want to stay where we are, if possible
@@ -393,7 +392,7 @@ draw_focused_tablet(const ncreel* nr){
         int prevfulcrum;
         ncplane_yx(nr->tablets->prev->p, &prevfulcrum, NULL);
         if(fulcrum < prevfulcrum){
-          fulcrum = pleny + pbegy - !(nr->ropts.bordermask & NCBOXMASK_BOTTOM);
+          fulcrum = pleny + !(nr->ropts.bordermask & NCBOXMASK_BOTTOM);
         }
       }
     }else if(nr->last_traveled_direction < 0){
@@ -401,13 +400,13 @@ draw_focused_tablet(const ncreel* nr){
         int nextfulcrum;
         ncplane_yx(nr->tablets->next->p, &nextfulcrum, NULL);
         if(fulcrum > nextfulcrum){
-          fulcrum = pbegy + !(nr->ropts.bordermask & NCBOXMASK_TOP);
+          fulcrum = !(nr->ropts.bordermask & NCBOXMASK_TOP);
         }
       }
     }
 //fprintf(stderr, "existing: %p %d  placing at %d\n", nr->tablets, nr->last_traveled_direction, fulcrum);
   }
-//fprintf(stderr, "PR dims: %d + %d/%d fulcrum: %d\n", pbegy, pleny, plenx, fulcrum);
+//fprintf(stderr, "PR dims: %d/%d fulcrum: %d\n", pleny, plenx, fulcrum);
   ncreel_draw_tablet(nr, nr->tablets, fulcrum, 0 /* nr->last_traveled_direction*/);
   return 0;
 }
