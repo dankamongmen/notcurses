@@ -43,7 +43,14 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
       return NULL;
     }
     ncplane_move_yx(mplane, y, i);
-    demo_nanosleep(nc, &swoopdelay);
+    ncinput ni;
+    char32_t wc = demo_getc(nc, &swoopdelay, &ni);
+    if(wc == (char32_t)-1){
+      ncmultiselector_destroy(mselector);
+      return NULL;
+    }else if(wc){
+      ncmultiselector_offer_input(mselector, &ni);
+    }
   }
   return mselector;
 }
@@ -74,6 +81,7 @@ int zoo_demo(struct notcurses* nc){
   if(draw_background(nc)){
     return -1;
   }
+  struct ncmultiselector* mselector = NULL;
   struct ncplane* n = notcurses_stddim_yx(nc, NULL, &dimx);
   ncselector_options sopts = {
     .maxdisplay = 4,
@@ -93,7 +101,7 @@ int zoo_demo(struct notcurses* nc){
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   struct ncselector* selector = ncselector_create(n, 2, dimx, &sopts);
   if(selector == NULL){
-    return -1;
+    goto err;
   }
   struct ncplane* splane = ncselector_plane(selector);
   struct timespec swoopdelay;
@@ -101,12 +109,25 @@ int zoo_demo(struct notcurses* nc){
   for(int i = dimx - 1 ; i > 1 ; --i){
     DEMO_RENDER(nc);
     ncplane_move_yx(splane, 2, i);
-    demo_nanosleep(nc, &swoopdelay);
+    ncinput ni;
+    char32_t wc = demo_getc(nc, &swoopdelay, &ni);
+    if(wc == (char32_t)-1){
+      goto err;
+    }else if(wc){
+      ncselector_offer_input(selector, &ni);
+    }
   }
-  struct ncmultiselector* mselector;
   mselector = multiselector_demo(nc, n, dimx, 8); // FIXME calculate from splane
+  if(mselector == NULL){
+    goto err;
+  }
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
   DEMO_RENDER(nc);
   return 0;
+
+err:
+  ncselector_destroy(selector, NULL);
+  ncmultiselector_destroy(mselector);
+  return -1;
 }
