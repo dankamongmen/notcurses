@@ -63,13 +63,13 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   struct timespec swoopdelay;
   timespec_div(&demodelay, dimx / 3, &swoopdelay);
   int length = ncplane_dim_x(mplane);
+  ncinput ni;
   for(int i = 0 ; i < dimx - (length + 1) ; ++i){
     if(demo_render(nc)){
       ncmultiselector_destroy(mselector);
       return NULL;
     }
     ncplane_move_yx(mplane, y, i);
-    ncinput ni;
     char32_t wc = demo_getc(nc, &swoopdelay, &ni);
     if(wc == (char32_t)-1){
       ncmultiselector_destroy(mselector);
@@ -78,6 +78,23 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
       ncmultiselector_offer_input(mselector, &ni);
     }
   }
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  uint64_t cur = timespec_to_ns(&ts);
+  uint64_t targ = cur + GIG;
+  do{
+    struct timespec rel;
+    ns_to_timespec(targ - cur, &rel);
+    char32_t wc = demo_getc(nc, &rel, &ni);
+    if(wc == (char32_t)-1){
+      ncmultiselector_destroy(mselector);
+      return NULL;
+    }else if(wc){
+      ncmultiselector_offer_input(mselector, &ni);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    cur = timespec_to_ns(&ts);
+  }while(cur < targ);
   return mselector;
 }
 
