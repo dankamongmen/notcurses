@@ -50,7 +50,7 @@ typedef struct ncmultiselector_options {
 
 **bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);**
 
-**void ncmultiselector_destroy(struct ncmultiselector* n, char** item);**
+**void ncmultiselector_destroy(struct ncmultiselector* n);**
 
 # DESCRIPTION
 

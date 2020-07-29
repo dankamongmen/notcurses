@@ -38,7 +38,7 @@ namespace ncpp
 		~MultiSelector ()
 		{
 			if (!is_notcurses_stopped ())
-				ncmultiselector_destroy (multiselector, nullptr);
+				ncmultiselector_destroy (multiselector);
 		}
 
 		bool offer_input (const struct ncinput *ni) const noexcept

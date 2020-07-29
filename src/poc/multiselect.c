@@ -36,8 +36,8 @@ run_mselect(struct notcurses* nc, struct ncmultiselector* ns){
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     if(!ncmultiselector_offer_input(ns, &ni)){
       switch(keypress){
-        case NCKEY_ENTER: ncmultiselector_destroy(ns, NULL); return;
-        case 'M': case 'J': if(ni.ctrl){ ncmultiselector_destroy(ns, NULL); return; }
+        case NCKEY_ENTER: ncmultiselector_destroy(ns); return;
+        case 'M': case 'J': if(ni.ctrl){ ncmultiselector_destroy(ns); return; }
       }
       if(keypress == 'q'){
         break;
@@ -45,7 +45,7 @@ run_mselect(struct notcurses* nc, struct ncmultiselector* ns){
     }
     notcurses_render(nc);
   }
-  ncmultiselector_destroy(ns, NULL);
+  ncmultiselector_destroy(ns);
 }
 
 int main(void){

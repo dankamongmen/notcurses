@@ -2773,7 +2773,7 @@ API struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 API bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
 
 // Destroy the ncmultiselector.
-API void ncmultiselector_destroy(struct ncmultiselector* n, char** item);
+API void ncmultiselector_destroy(struct ncmultiselector* n);
 
 // Menus. Horizontal menu bars are supported, on the top and/or bottom rows.
 // If the menu bar is longer than the screen, it will be only partially
