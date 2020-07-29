@@ -313,8 +313,7 @@ typedef struct ncselector_options {
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
   struct ncselector_item* items; // initial items and descriptions
-  unsigned itemcount; // number of initial items and descriptions
-  // default item (selected at start), must be < itemcount unless 'itemcount'
+  // default item (selected at start), must be < itemcount unless itemcount
   // is 0, in which case 'defidx' must also be 0
   unsigned defidx;
   // maximum number of options to display at once, 0 to use all available space
@@ -346,7 +345,6 @@ typedef struct ncmultiselector_options {
   char* secondary; // secondary may be NULL
   char* footer; // footer may be NULL
   struct ncmselector_item* items; // initial items, descriptions, and statuses
-  unsigned itemcount; // number of items and descriptions, can't be 0
   // maximum number of options to display at once, 0 to use all available space
   unsigned maxdisplay;
   // exhaustive styling options
