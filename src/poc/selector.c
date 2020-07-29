@@ -72,12 +72,15 @@ int main(void){
   sopts.footer = "press q to exit (there is no exit)";
   sopts.defidx = 5;
   channels_set_fg(&sopts.boxchannels, 0x20e040);
+  channels_set_bg(&sopts.boxchannels, 0x202020);
   channels_set_fg(&sopts.opchannels, 0xe08040);
   channels_set_fg(&sopts.descchannels, 0x80e040);
   channels_set_bg(&sopts.opchannels, 0);
   channels_set_bg(&sopts.descchannels, 0);
   channels_set_fg(&sopts.footchannels, 0xe00040);
+  channels_set_bg(&sopts.footchannels, 0x200000);
   channels_set_fg(&sopts.titlechannels, 0xffff80);
+  channels_set_bg(&sopts.titlechannels, 0x000020);
   channels_set_fg(&sopts.bgchannels, 0x002000);
   channels_set_bg(&sopts.bgchannels, 0x002000);
   channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
