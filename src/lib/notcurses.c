@@ -2329,6 +2329,7 @@ uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
   return ret;
 }
 
+// return a heap-allocated copy of the contents
 char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx){
   if(begy < 0 || begx < 0){
     logerror(nc->nc, "Beginning coordinates (%d/%d) below 0\n", begy, begx);

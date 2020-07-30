@@ -1,4 +1,19 @@
 #include "demo.h"
+#include <pthread.h>
+
+static int
+locked_demo_render(struct notcurses* nc, pthread_mutex_t* lock){
+  int ret;
+
+  if(pthread_mutex_lock(lock)){
+    return -1;
+  }
+  ret = demo_render(nc);
+  if(pthread_mutex_unlock(lock)){
+    return -1;
+  }
+  return ret;
+}
 
 // we list all distributions on which notcurses is known to exist
 static struct ncselector_item select_items[] = {
@@ -38,7 +53,8 @@ static struct ncmselector_item mselect_items[] = {
 };
 
 static struct ncmultiselector*
-multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
+multiselector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
+  struct notcurses* nc = ncplane_notcurses(n);
   ncmultiselector_options mopts = {
     .maxdisplay = 8,
     .title = "multi-item selector",
@@ -63,7 +79,7 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   ncplane_move_yx(mplane, y, -length);
   ncinput ni;
   for(int i = -length + 1 ; i < dimx - (length + 1) ; ++i){
-    if(demo_render(nc)){
+    if(locked_demo_render(nc, lock)){
       ncmultiselector_destroy(mselector);
       return NULL;
     }
@@ -76,14 +92,14 @@ multiselector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
       ncmultiselector_offer_input(mselector, &ni);
     }
   }
-  if(demo_render(nc)){
+  if(locked_demo_render(nc, lock)){
     ncmultiselector_destroy(mselector);
     return NULL;
   }
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   uint64_t cur = timespec_to_ns(&ts);
-  uint64_t targ = cur + GIG;
+  uint64_t targ = cur + timespec_to_ns(&demodelay);
   do{
     struct timespec rel;
     ns_to_timespec(targ - cur, &rel);
@@ -122,7 +138,8 @@ draw_background(struct notcurses* nc){
 }
 
 static struct ncselector*
-selector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
+selector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
+  struct notcurses* nc = ncplane_notcurses(n);
   ncselector_options sopts = {
     .title = "single-item selector",
     .items = select_items,
@@ -146,7 +163,7 @@ selector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   timespec_div(&demodelay, dimx / 3, &swoopdelay);
   ncinput ni;
   for(int i = dimx - 1 ; i > 1 ; --i){
-    if(demo_render(nc)){
+    if(locked_demo_render(nc, lock)){
       ncselector_destroy(selector, NULL);
       return NULL;
     }
@@ -159,14 +176,14 @@ selector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
       ncselector_offer_input(selector, &ni);
     }
   }
-  if(demo_render(nc)){
+  if(locked_demo_render(nc, lock)){
     ncselector_destroy(selector, NULL);
     return NULL;
   }
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   uint64_t cur = timespec_to_ns(&ts);
-  uint64_t targ = cur + GIG;
+  uint64_t targ = cur + timespec_to_ns(&demodelay);
   do{
     struct timespec rel;
     ns_to_timespec(targ - cur, &rel);
@@ -183,24 +200,109 @@ selector_demo(struct notcurses* nc, struct ncplane* n, int dimx, int y){
   return selector;
 }
 
+typedef struct read_marshal {
+  struct notcurses* nc;
+  struct ncreader* reader;
+  pthread_mutex_t* lock;
+} read_marshal;
+
+static void*
+reader_thread(void* vmarsh){
+  read_marshal* marsh = vmarsh;
+  struct notcurses* nc = marsh->nc;
+  struct ncreader* reader = marsh->reader;
+  pthread_mutex_t* lock = marsh->lock; 
+  free(marsh);
+  int x, y;
+  struct ncplane* rplane = ncreader_plane(reader);
+  ncplane_yx(rplane, &y, &x);
+  // FIXME move it up, add text
+  if(locked_demo_render(nc, lock)){
+    // FIXME
+  }
+  return NULL;
+}
+
+// creates an ncreader, and spawns a thread which will fill it with text
+// describing the rest of the demo
+static struct ncreader*
+reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
+  read_marshal* marsh = malloc(sizeof(*marsh));
+  if(marsh == NULL){
+    return NULL;
+  }
+  marsh->nc = nc;
+  marsh->lock = lock;
+  int dimy;
+  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
+  const int READER_COLS = 40;
+  const int READER_ROWS = 8;
+  ncreader_options nopts = {
+    .physcols = READER_COLS,
+    .physrows = READER_ROWS,
+  };
+  const int x = ncplane_align(std, NCALIGN_CENTER, nopts.physcols);
+fprintf(stderr, "PUT READER AT %d/%d\n", dimy, x);
+  if((marsh->reader = ncreader_create(std, dimy, x, &nopts)) == NULL){
+    free(marsh);
+    return NULL;
+  }
+  struct ncreader* reader = marsh->reader;
+fprintf(stderr, "PUT READER AT %p\n", reader);
+  if(pthread_create(tid, NULL, reader_thread, marsh)){
+    ncreader_destroy(marsh->reader, NULL);
+    free(marsh);
+    return NULL;
+  }
+  return reader;
+}
+
+static int
+zap_reader(pthread_t tid, struct ncreader* reader){
+  pthread_cancel(tid);
+  int ret = pthread_join(tid, NULL);
+  ncreader_destroy(reader, NULL);
+  return ret;
+}
+
 int zoo_demo(struct notcurses* nc){
   int dimx;
   if(draw_background(nc)){
     return -1;
   }
+  pthread_mutex_t lock;
+  if(pthread_mutex_init(&lock, NULL)){
+    return -1;
+  }
   struct ncplane* n = notcurses_stddim_yx(nc, NULL, &dimx);
-  struct ncselector* selector = selector_demo(nc, n, dimx, 2);
-  struct ncmultiselector* mselector = multiselector_demo(nc, n, dimx, 8); // FIXME calculate from splane
+  pthread_t readertid;
+  struct ncreader* reader = reader_demo(nc, &readertid, &lock);
+  // if we didn't get a reader, need to hand-roll the exit, since we have no
+  // thread at which we might go off blasting
+  if(reader == NULL){
+    pthread_mutex_destroy(&lock);
+    return -1;
+  }
+  struct ncselector* selector = selector_demo(n, dimx, 2, &lock);
+  struct ncmultiselector* mselector = multiselector_demo(n, dimx, 8, &lock); // FIXME calculate from splane
   if(selector == NULL || mselector == NULL){
     goto err;
   }
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
-  DEMO_RENDER(nc);
-  return 0;
+  locked_demo_render(nc, &lock);
+  int ret = 0;
+fprintf(stderr, "RET: %d\n", ret);
+  ret |= zap_reader(readertid, reader);
+fprintf(stderr, "RET: %d\n", ret);
+  ret |= pthread_mutex_destroy(&lock);
+fprintf(stderr, "RET: %d\n", ret);
+  return ret;
 
 err:
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
+  zap_reader(readertid, reader);
+  pthread_mutex_destroy(&lock);
   return -1;
 }
