@@ -220,11 +220,11 @@ reader_thread(void* vmarsh){
   // FIXME use ncplane_puttext() to handle word breaking; this is ugly
   const char text[] =
     "Notcurses provides several widgets to quickly build vivid TUIs.\n\n"
-    "This ncreader widget facilitates free-form text entry complete with readline-style bindings. "
-    "The ncselector allows a single option to be selected from a list. "
-    "The ncmultiselector allows 0..n options to be selected from a list of n items. "
-    "The ncfdplane allows a file descriptor to be streamed to a plane. The ncsubproc spawns a subprocess and streams its output to a plane. "
-    "Menus can be placed along the top and/or bottom of any plane.\n\n"
+    "This NCReader widget facilitates free-form text entry complete with readline-style bindings. "
+    "NCSelector allows a single option to be selected from a list. "
+    "NCMultiselector allows 0..n options to be selected from a list of n items. "
+    "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. "
+    "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\n\n"
     "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
   const size_t textlen = strlen(text);
   read_marshal* marsh = vmarsh;
