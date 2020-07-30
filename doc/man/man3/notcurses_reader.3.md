@@ -24,7 +24,7 @@ typedef struct ncreader_options {
   uint64_t echannels; // channels used for empty space
   uint32_t tattrword; // attributes used for input
   uint32_t eattrword; // attributes used for empty space
-  char* egc;          // egc used for empty space
+  const char* egc;    // egc used for empty space
   int physrows;
   int physcols;
   unsigned flags;     // bitfield over NCREADER_OPTION_*

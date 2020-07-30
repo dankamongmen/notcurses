@@ -229,7 +229,9 @@ reader_thread(void* vmarsh){
   struct timespec rowdelay;
   ncplane_yx(rplane, &y, &x);
   int targrow = y / 2;
-  timespec_div(&demodelay, y - targrow, &rowdelay);
+  // the other widgets divide the movement range by 3 (and thus take about 3
+  // demodelays to transit). take about 4 demodelays to rise to midscreen.
+  timespec_div(&demodelay, (y - targrow) / 4, &rowdelay);
   while(y > targrow){
     // FIXME add text
     pthread_mutex_lock(lock);
@@ -259,6 +261,7 @@ reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
   ncreader_options nopts = {
     .physcols = READER_COLS,
     .physrows = READER_ROWS,
+    .egc = "░",
   };
   const int x = ncplane_align(std, NCALIGN_CENTER, nopts.physcols);
   if((marsh->reader = ncreader_create(std, dimy, x, &nopts)) == NULL){

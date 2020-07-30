@@ -21,7 +21,7 @@ auto main() -> int {
   ncreader_options opts{};
   opts.physrows = dimy / 8;
   opts.physcols = dimx / 2;
-  opts.egc = strdup("░");
+  opts.egc = "░";
   // FIXME c++ is crashing
   //Reader nr(nc, 0, 0, &opts);
   auto nr = ncreader_create(**n, 2, 2, &opts);
