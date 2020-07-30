@@ -758,6 +758,7 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
 
 // True if the cell does not generate background pixels. Only the FULL BLOCK
 // glyph has this property, AFAIK.
+// FIXME also shaded blocks! ░ etc
 // FIXME set a bit, doing this at load time
 static inline bool
 cell_nobackground_p(const egcpool* e, const cell* c){
