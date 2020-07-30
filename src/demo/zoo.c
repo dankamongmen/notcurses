@@ -68,15 +68,19 @@ multiselector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
   };
   channels_set_fg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
+  pthread_mutex_lock(lock);
   struct ncmultiselector* mselector = ncmultiselector_create(n, y, 0, &mopts);
+  pthread_mutex_unlock(lock);
   if(mselector == NULL){
     return NULL;
   }
-  struct ncplane* mplane = ncmultiselector_plane(mselector);
   struct timespec swoopdelay;
   timespec_div(&demodelay, dimx / 3, &swoopdelay);
+  pthread_mutex_lock(lock);
+  struct ncplane* mplane = ncmultiselector_plane(mselector);
   int length = ncplane_dim_x(mplane);
   ncplane_move_yx(mplane, y, -length);
+  pthread_mutex_unlock(lock);
   ncinput ni;
   for(int i = -length + 1 ; i < dimx - (length + 1) ; ++i){
     if(locked_demo_render(nc, lock)){
@@ -154,7 +158,9 @@ selector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
   };
   channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
+  pthread_mutex_lock(lock);
   struct ncselector* selector = ncselector_create(n, y, dimx, &sopts);
+  pthread_mutex_unlock(lock);
   if(selector == NULL){
     return NULL;
   }
@@ -163,17 +169,18 @@ selector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
   timespec_div(&demodelay, dimx / 3, &swoopdelay);
   ncinput ni;
   for(int i = dimx - 1 ; i > 1 ; --i){
-    if(locked_demo_render(nc, lock)){
-      ncselector_destroy(selector, NULL);
-      return NULL;
-    }
-    ncplane_move_yx(splane, y, i);
+    pthread_mutex_lock(lock);
+      demo_render(nc);
+      ncplane_move_yx(splane, y, i);
+    pthread_mutex_unlock(lock);
     char32_t wc = demo_getc(nc, &swoopdelay, &ni);
     if(wc == (char32_t)-1){
       ncselector_destroy(selector, NULL);
       return NULL;
     }else if(wc){
-      ncselector_offer_input(selector, &ni);
+      pthread_mutex_lock(lock);
+        ncselector_offer_input(selector, &ni);
+      pthread_mutex_unlock(lock);
     }
   }
   if(locked_demo_render(nc, lock)){
@@ -192,7 +199,9 @@ selector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
       ncselector_destroy(selector, NULL);
       return NULL;
     }else if(wc){
-      ncselector_offer_input(selector, &ni);
+      pthread_mutex_lock(lock);
+        ncselector_offer_input(selector, &ni);
+      pthread_mutex_unlock(lock);
     }
     clock_gettime(CLOCK_MONOTONIC, &ts);
     cur = timespec_to_ns(&ts);
@@ -214,12 +223,22 @@ reader_thread(void* vmarsh){
   pthread_mutex_t* lock = marsh->lock; 
   free(marsh);
   int x, y;
+  pthread_mutex_lock(lock);
   struct ncplane* rplane = ncreader_plane(reader);
+  pthread_mutex_unlock(lock);
+  struct timespec rowdelay;
   ncplane_yx(rplane, &y, &x);
-  // FIXME move it up, add text
-  if(locked_demo_render(nc, lock)){
-    // FIXME
+  int targrow = y / 2;
+  timespec_div(&demodelay, y - targrow, &rowdelay);
+  while(y > targrow){
+    // FIXME add text
+    pthread_mutex_lock(lock);
+      demo_render(nc);
+      ncplane_move_yx(rplane, --y, x);
+    pthread_mutex_unlock(lock);
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
   }
+  // FIXME want to communicate exceptional exit vs successful run...
   return NULL;
 }
 
@@ -242,13 +261,11 @@ reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
     .physrows = READER_ROWS,
   };
   const int x = ncplane_align(std, NCALIGN_CENTER, nopts.physcols);
-fprintf(stderr, "PUT READER AT %d/%d\n", dimy, x);
   if((marsh->reader = ncreader_create(std, dimy, x, &nopts)) == NULL){
     free(marsh);
     return NULL;
   }
   struct ncreader* reader = marsh->reader;
-fprintf(stderr, "PUT READER AT %p\n", reader);
   if(pthread_create(tid, NULL, reader_thread, marsh)){
     ncreader_destroy(marsh->reader, NULL);
     free(marsh);
@@ -288,21 +305,20 @@ int zoo_demo(struct notcurses* nc){
   if(selector == NULL || mselector == NULL){
     goto err;
   }
-  ncselector_destroy(selector, NULL);
-  ncmultiselector_destroy(mselector);
-  locked_demo_render(nc, &lock);
+  pthread_mutex_lock(&lock);
+    ncselector_destroy(selector, NULL);
+    ncmultiselector_destroy(mselector);
+    demo_render(nc);
+  pthread_mutex_unlock(&lock);
   int ret = 0;
-fprintf(stderr, "RET: %d\n", ret);
   ret |= zap_reader(readertid, reader);
-fprintf(stderr, "RET: %d\n", ret);
   ret |= pthread_mutex_destroy(&lock);
-fprintf(stderr, "RET: %d\n", ret);
   return ret;
 
 err:
+  zap_reader(readertid, reader);
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
-  zap_reader(readertid, reader);
   pthread_mutex_destroy(&lock);
   return -1;
 }
