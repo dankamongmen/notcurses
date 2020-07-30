@@ -217,29 +217,69 @@ typedef struct read_marshal {
 
 static void*
 reader_thread(void* vmarsh){
+  // FIXME use ncplane_puttext() to handle word breaking; this is ugly
+  const char text[] =
+    "Notcurses provides widgets to quickly build vivid TUIs.\n"
+    "This ncreader widget facilitates free-form text entry complete with readline-style bindings. "
+    "The ncselector allows a single option to be selected from a list. "
+    "The ncmultiselector allows 0..n options to be selected from a list of n items. "
+    "The ncfdplane allows a file descriptor to be streamed to a plane. The ncsubproc spawns a subprocess and streams its output to a plane. "
+    "Menus can be placed along the top and/or bottom of any plane. "
+    "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
+  const size_t textlen = strlen(text);
   read_marshal* marsh = vmarsh;
   struct notcurses* nc = marsh->nc;
   struct ncreader* reader = marsh->reader;
   pthread_mutex_t* lock = marsh->lock; 
   free(marsh);
   int x, y;
-  pthread_mutex_lock(lock);
   struct ncplane* rplane = ncreader_plane(reader);
-  pthread_mutex_unlock(lock);
   struct timespec rowdelay;
   ncplane_yx(rplane, &y, &x);
   int targrow = y / 2;
   // the other widgets divide the movement range by 3 (and thus take about 3
   // demodelays to transit). take about 4 demodelays to rise to midscreen.
   timespec_div(&demodelay, (y - targrow) / 4, &rowdelay);
+  // we usually won't be done rendering the text before reaching our target row
+  size_t textpos = 0;
+  const int TOWRITEMAX = 4; // FIXME throw in some jitter!
   while(y > targrow){
-    // FIXME add text
     pthread_mutex_lock(lock);
-      demo_render(nc);
+      if(demo_render(nc)){
+        pthread_mutex_unlock(lock);
+        return NULL; // FIXME
+      }
       ncplane_move_yx(rplane, --y, x);
+      size_t towrite = textlen - textpos;
+      if(towrite > TOWRITEMAX){
+        towrite = TOWRITEMAX;
+      }
+      if(towrite){
+        ncplane_putnstr(rplane, towrite, text + textpos);
+        textpos += towrite;
+      }
     pthread_mutex_unlock(lock);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
   }
+  while(textpos < textlen){
+    pthread_mutex_lock(lock);
+      if(demo_render(nc)){
+        pthread_mutex_unlock(lock);
+        return NULL; // FIXME
+      }
+      size_t towrite = textlen - textpos;
+      if(towrite > TOWRITEMAX){
+        towrite = TOWRITEMAX;
+      }
+      if(towrite){
+        ncplane_putnstr(rplane, towrite, text + textpos);
+        textpos += towrite;
+      }
+    pthread_mutex_unlock(lock);
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
+  }
+  // FIXME unsafe if other widgets aren't yet done!
+  demo_nanosleep(nc, &demodelay);
   // FIXME want to communicate exceptional exit vs successful run...
   return NULL;
 }
@@ -256,14 +296,13 @@ reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
   marsh->lock = lock;
   int dimy;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
-  const int READER_COLS = 40;
+  const int READER_COLS = 64;
   const int READER_ROWS = 8;
   ncreader_options nopts = {
-    .echannels = CHANNELS_RGB_INITIALIZER(0x20, 0, 0xe0, 0, 0, 0),
-    .egc = "░",
+    .echannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0, 0, 0),
+    .egc = " ",
     .physcols = READER_COLS,
     .physrows = READER_ROWS,
-    // FIXME .flags = NCREADER_OPTION_VERSCROLL,
   };
   channels_set_bg_alpha(&nopts.echannels, CELL_ALPHA_BLEND);
   const int x = ncplane_align(std, NCALIGN_CENTER, nopts.physcols);
@@ -272,6 +311,7 @@ reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
     return NULL;
   }
   struct ncreader* reader = marsh->reader;
+  ncplane_set_scrolling(ncreader_plane(reader), true);
   if(pthread_create(tid, NULL, reader_thread, marsh)){
     ncreader_destroy(marsh->reader, NULL);
     free(marsh);
@@ -281,8 +321,10 @@ reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
 }
 
 static int
-zap_reader(pthread_t tid, struct ncreader* reader){
-  pthread_cancel(tid);
+zap_reader(pthread_t tid, struct ncreader* reader, unsigned cancel){
+  if(cancel){
+    pthread_cancel(tid);
+  }
   int ret = pthread_join(tid, NULL);
   ncreader_destroy(reader, NULL);
   return ret;
@@ -311,20 +353,17 @@ int zoo_demo(struct notcurses* nc){
   if(selector == NULL || mselector == NULL){
     goto err;
   }
-  pthread_mutex_lock(&lock);
-    ncselector_destroy(selector, NULL);
-    ncmultiselector_destroy(mselector);
-    demo_render(nc);
-  pthread_mutex_unlock(&lock);
   int ret = 0;
-  ret |= zap_reader(readertid, reader);
+  ret |= zap_reader(readertid, reader, false); // let the thread do its thang
   ret |= pthread_mutex_destroy(&lock);
+  ncselector_destroy(selector, NULL);
+  ncmultiselector_destroy(mselector);
   return ret;
 
 err:
-  zap_reader(readertid, reader);
+  zap_reader(readertid, reader, true);
+  pthread_mutex_destroy(&lock);
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
-  pthread_mutex_destroy(&lock);
   return -1;
 }
