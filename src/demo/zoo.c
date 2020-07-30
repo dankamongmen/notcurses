@@ -259,10 +259,13 @@ reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
   const int READER_COLS = 40;
   const int READER_ROWS = 8;
   ncreader_options nopts = {
+    .echannels = CHANNELS_RGB_INITIALIZER(0x20, 0, 0xe0, 0, 0, 0),
+    .egc = "░",
     .physcols = READER_COLS,
     .physrows = READER_ROWS,
-    .egc = "░",
+    // FIXME .flags = NCREADER_OPTION_VERSCROLL,
   };
+  channels_set_bg_alpha(&nopts.echannels, CELL_ALPHA_BLEND);
   const int x = ncplane_align(std, NCALIGN_CENTER, nopts.physcols);
   if((marsh->reader = ncreader_create(std, dimy, x, &nopts)) == NULL){
     free(marsh);
