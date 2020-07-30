@@ -219,12 +219,12 @@ static void*
 reader_thread(void* vmarsh){
   // FIXME use ncplane_puttext() to handle word breaking; this is ugly
   const char text[] =
-    "Notcurses provides widgets to quickly build vivid TUIs.\n"
+    "Notcurses provides several widgets to quickly build vivid TUIs.\n\n"
     "This ncreader widget facilitates free-form text entry complete with readline-style bindings. "
     "The ncselector allows a single option to be selected from a list. "
     "The ncmultiselector allows 0..n options to be selected from a list of n items. "
     "The ncfdplane allows a file descriptor to be streamed to a plane. The ncsubproc spawns a subprocess and streams its output to a plane. "
-    "Menus can be placed along the top and/or bottom of any plane. "
+    "Menus can be placed along the top and/or bottom of any plane.\n\n"
     "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
   const size_t textlen = strlen(text);
   read_marshal* marsh = vmarsh;
@@ -238,8 +238,9 @@ reader_thread(void* vmarsh){
   ncplane_yx(rplane, &y, &x);
   int targrow = y / 2;
   // the other widgets divide the movement range by 3 (and thus take about 3
-  // demodelays to transit). take about 4 demodelays to rise to midscreen.
-  timespec_div(&demodelay, (y - targrow) / 4, &rowdelay);
+  // demodelays to transit). take about 3 demodelays to rise to midscreen. this
+  // also affects the "typing" speed.
+  timespec_div(&demodelay, (y - targrow) / 3, &rowdelay);
   // we usually won't be done rendering the text before reaching our target row
   size_t textpos = 0;
   const int TOWRITEMAX = 4; // FIXME throw in some jitter!
