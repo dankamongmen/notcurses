@@ -56,9 +56,9 @@ static int
 hud_standard_bg(struct ncplane* n){
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb(&channels, 0x0, 0x0, 0x0);
+  channels_set_fg_rgb(&channels, 0xff, 0xff, 0xff);
   channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_bg_rgb(&channels, 0x0, 0x0, 0x0);
+  channels_set_bg_rgb(&channels, 0xff, 0xff, 0xff);
   if(ncplane_set_base(n, "", 0, channels) >= 0){
     return -1;
   }
@@ -296,7 +296,7 @@ hud_print_finished(int* line){
       ncplane_base(hud, &c);
       ncplane_set_bg(hud, cell_bg(&c));
       ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
-      ncplane_set_fg(hud, 0xffffff);
+      ncplane_set_fg(hud, 0);
       ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
       cell_release(hud, &c);
       if(ncplane_printf_yx(hud, *line, 1, "%d", e->frames) < 0){
@@ -439,7 +439,7 @@ int hud_schedule(const char* demoname){
   cure->startns = timespec_to_ns(&cur);
   running = cure;
   if(hud){
-    ncplane_set_fg_alpha(hud, CELL_ALPHA_BLEND);
+    ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
     ncplane_set_fg(hud, 0);
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
     ncplane_set_bg(hud, 0);
@@ -530,7 +530,7 @@ int demo_render(struct notcurses* nc){
     ncplane_base(hud, &c);
     ncplane_set_bg(hud, cell_bg(&c));
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
-    ncplane_set_fg(hud, 0xffd0ff);
+    ncplane_set_fg(hud, 0x002080);
     ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
     cell_release(hud, &c);
     if(ncplane_printf_yx(hud, HUD_ROWS - 2, 1, "%d", running->frames) < 0){
