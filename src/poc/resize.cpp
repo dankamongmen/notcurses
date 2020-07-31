@@ -21,25 +21,53 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&opts, nullptr)) == nullptr){
     return EXIT_FAILURE;
   }
-  int dimy, dimx;
-  struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncvisual_options vopts{};
   bool failed = false;
   nc_err_e ncerr;
+  int dimy, dimx;
+  int scaley, scalex;
+  int top = 0;
+  int bot;
   auto ncv = ncvisual_from_file(file, &ncerr);
   if(!ncv){
     goto err;
   }
-  int scaley, scalex;
   ncvisual_geom(nc, ncv, &vopts, nullptr, nullptr, &scaley, &scalex);
-  //ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
-  vopts.n = n;
   vopts.scaling = NCSCALE_STRETCH;
-  if(ncvisual_render(nc, ncv, &vopts) == nullptr){
+  struct ncplane* ntarg;
+  if((ntarg = ncvisual_render(nc, ncv, &vopts)) == nullptr){
     goto err;
   }
   if(notcurses_render(nc)){
     goto err;
+  }
+  ncplane_dim_yx(ntarg, &dimy, &dimx);
+  // start chopping off rows
+  bot = dimy - 1;
+  while(top <= bot){
+    // one from top
+    sleep(1);
+    if(ncplane_resize(ntarg, 1, 0, bot - top, dimx, 0, 0, bot - top, dimx)){
+      goto err;
+    }
+    ++top;
+    if(notcurses_render(nc)){
+      goto err;
+    }
+    if(top > bot){
+      break;
+    }
+    /*
+    // one from bottom
+    sleep(1);
+    if(ncplane_resize(ntarg, 0, 0, bot - top, dimx, 0, 0, bot - top, dimx)){
+      goto err;
+    }
+    --bot;
+    if(notcurses_render(nc)){
+      goto err;
+    }
+    */
   }
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
