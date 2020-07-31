@@ -3699,17 +3699,22 @@ int mojibake_demo(struct notcurses* nc){
   do{
     unsigned u = topmost;
     do{
-      int y, x, leny;
+      int y, x, leny, lenx;
       ncplane_yx(planes[u], &y, &x);
       if(y >= dimy){
         break;
       }
-      if(ncplane_move_yx(planes[u], y - 1, x)){
+      ncplane_dim_yx(planes[u], &leny, &lenx);
+      if(y == 1){
+        if(leny > 1){
+          if(ncplane_resize(planes[u], 1, 0, leny - 1, lenx, -1, 0, leny - 1, lenx)){
+            goto err;
+          }
+        }else{
+          ++topmost;
+        }
+      }else if(ncplane_move_yx(planes[u], y - 1, x)){
         goto err;
-      }
-      ncplane_dim_yx(planes[u], &leny, NULL);
-      if(leny + y + 1 == 0){
-        ++topmost;
       }
       if(leny + y + 1 == dimy - 1){
         if(u + 1 < sizeof(planes) / sizeof(*planes)){

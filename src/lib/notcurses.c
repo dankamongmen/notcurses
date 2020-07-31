@@ -490,8 +490,8 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   n->nc->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
   n->nc->stats.fbbytes += fbsize;
   n->fb = fb;
-  n->absy = n->absy + keepy - yoff;
-  n->absx = n->absx + keepx - xoff;
+  n->absy += keepy + yoff;
+  n->absx += keepx + xoff;
   // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
   // and keep it. perhaps we ought compact it?
   if(keptarea == 0){ // keep nothing, resize/move only
