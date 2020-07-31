@@ -116,6 +116,11 @@ namespace ncpp
 			return NcTablet::map_tablet (t, get_notcurses_cpp ());
 		}
 
+		bool offer_input (const struct ncinput* nci) const NOEXCEPT_MAYBE
+		{
+			return error_guard<bool, bool> (ncreel_offer_input (reel, nci), false);
+		}
+
 		Plane* get_plane () const noexcept;
 
 	private:

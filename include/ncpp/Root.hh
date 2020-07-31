@@ -36,7 +36,7 @@ namespace ncpp {
 		{}
 
 		template<typename TRet = bool, typename TValue = int>
-		TRet error_guard (TValue ret, TValue error_value) const
+		static TRet error_guard (TValue ret, TValue error_value)
 		{
 			static constexpr bool ret_is_bool = std::is_same_v<TRet, bool>;
 
@@ -64,7 +64,7 @@ namespace ncpp {
 		}
 
 		template<typename TRet = bool, typename TValue = int>
-		TRet error_guard_cond ([[maybe_unused]] TValue ret, bool error_value) const
+		static TRet error_guard_cond ([[maybe_unused]] TValue ret, bool error_value)
 		{
 			static constexpr bool ret_is_bool = std::is_same_v<TRet, bool>;
 

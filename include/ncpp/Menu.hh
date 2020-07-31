@@ -65,6 +65,11 @@ namespace ncpp
 			return ncmenu_selected (menu, ni);
 		}
 
+		const char* get_mouse_selected (const struct ncinput* click, struct ncinput* ni) const noexcept
+		{
+			return ncmenu_mouse_selected (menu, click, ni);
+		}
+
 		bool offer_input (const struct ncinput* ni) const noexcept
 		{
 			return ncmenu_offer_input (menu, ni);

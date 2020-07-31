@@ -161,7 +161,7 @@ namespace ncpp
 			return cell_fg_default_p (&_cell);
 		}
 
-		bool set_fg_alpha (int alpha) noexcept
+		bool set_fg_alpha (unsigned alpha) noexcept
 		{
 			return cell_set_fg_alpha (&_cell, alpha) != -1;
 		}
@@ -171,7 +171,7 @@ namespace ncpp
 			return cell_bg_alpha (&_cell);
 		}
 
-		bool set_bg_alpha (int alpha) noexcept
+		bool set_bg_alpha (unsigned alpha) noexcept
 		{
 			return cell_set_bg_alpha (&_cell, alpha) != -1;
 		}
