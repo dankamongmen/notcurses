@@ -84,6 +84,36 @@ namespace ncpp
 			return notcurses_version ();
 		}
 
+		static void version_components (int* major, int* minor, int* patch, int* tweak) noexcept
+		{
+			notcurses_version_components (major, minor, patch, tweak);
+		}
+
+		static const char* str_blitter (ncblitter_e blitter) noexcept
+		{
+			return notcurses_str_blitter (blitter);
+		}
+
+		static const char* str_scalemode (ncscale_e scalemode) noexcept
+		{
+			return notcurses_str_scalemode (scalemode);
+		}
+
+		static bool lex_margins (const char* op, notcurses_options* opts) NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_lex_margins (op, opts), -1);
+		}
+
+		static bool lex_blitter (const char* op, ncblitter_e* blitter) NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_lex_blitter (op, blitter), -1);
+		}
+
+		static bool lex_scalemode (const char* op, ncscale_e* scalemode) NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_lex_scalemode (op, scalemode), -1);
+		}
+
 		bool stop ();
 
 		bool can_utf8 () const noexcept
@@ -148,6 +178,11 @@ namespace ncpp
 		bool render () const NOEXCEPT_MAYBE
 		{
 			return error_guard (notcurses_render (nc), -1);
+		}
+
+		bool render_to_file (FILE* fp) const NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_render_to_file (nc, fp), -1);
 		}
 
 		void get_term_dim (int *rows, int *cols) const noexcept

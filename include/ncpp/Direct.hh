@@ -48,6 +48,11 @@ namespace ncpp
 			return error_guard (ncdirect_fg_rgb (direct, r, g, b), -1);
 		}
 
+		bool fg_palindex (int pidx) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncdirect_fg_palindex (direct, pidx), -1);
+		}
+
 		bool set_bg_default () const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncdirect_bg_default (direct), -1);
@@ -63,6 +68,11 @@ namespace ncpp
 			return error_guard (ncdirect_bg_rgb (direct, r, g, b), -1);
 		}
 
+		bool bg_palindex (int pidx) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncdirect_bg_palindex (direct, pidx), -1);
+		}
+
 		int get_dim_x () const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncdirect_dim_x (direct), -1);
@@ -71,6 +81,11 @@ namespace ncpp
 		int get_dim_y () const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncdirect_dim_y (direct), -1);
+		}
+
+		int get_palette_size () const noexcept
+		{
+			return ncdirect_palette_size (direct);
 		}
 
 		void styles_set (CellStyle stylebits) const noexcept
@@ -126,6 +141,48 @@ namespace ncpp
 		nc_err_e render_image (const char* file, ncalign_e align, ncblitter_e blitter, ncscale_e scale) const noexcept
 		{
 			return ncdirect_render_image (direct, file, align, blitter, scale);
+		}
+
+		bool putstr (uint64_t channels, const char* utf8) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncdirect_putstr (direct, channels, utf8), -1);
+		}
+
+		// TODO: ncdirect_printf_aligned (will need a version which takes vargs)
+
+		int hline_interp (const char* egc, int len, uint64_t h1, uint64_t h2) const noexcept
+		{
+			return ncdirect_hline_interp (direct, egc, len, h1, h2);
+		}
+
+		int vline_interp (const char* egc, int len, uint64_t h1, uint64_t h2) const noexcept
+		{
+			return ncdirect_vline_interp (direct, egc, len, h1, h2);
+		}
+
+		bool box (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, const wchar_t* wchars, int ylen, int xlen, unsigned ctlword) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncdirect_box (direct, ul, ur, ll, lr, wchars, ylen, xlen, ctlword), -1);
+		}
+
+		bool rounded_box (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen, unsigned ctlword) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncdirect_rounded_box (direct, ul, ur, ll, lr, ylen, xlen, ctlword), -1);
+		}
+
+		bool double_box (uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen, unsigned ctlword) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncdirect_double_box (direct, ul, ur, ll, lr, ylen, xlen, ctlword), -1);
+		}
+
+		bool canopen_images () const noexcept
+		{
+			return ncdirect_canopen_images (direct);
+		}
+
+		bool canutf8 () const noexcept
+		{
+			return ncdirect_canutf8 (direct);
 		}
 
 	private:

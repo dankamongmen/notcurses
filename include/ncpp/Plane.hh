@@ -481,6 +481,24 @@ namespace ncpp
 			return error_guard<int> (ncplane_putwstr_aligned (plane, y, static_cast<ncalign_e>(atype), gclustattr), -1);
 		}
 
+		int putstr_stainable (const char* s) const NOEXCEPT_MAYBE
+		{
+			int ret = ncplane_putstr_stainable (plane, s);
+			return error_guard_cond<int> (ret, ret < 0);
+		}
+
+		int printf_stainable (const char* format, ...) const NOEXCEPT_MAYBE
+			__attribute__ ((format (printf, 2, 3)))
+		{
+			va_list va;
+
+			va_start (va, format);
+			int ret = ncplane_vprintf_stainable (plane, format, va);
+			va_end (va);
+
+			return error_guard<int> (ret, -1);
+		}
+
 		int printf (const char* format, ...) const NOEXCEPT_MAYBE
 			__attribute__ ((format (printf, 2, 3)))
 		{
@@ -515,6 +533,11 @@ namespace ncpp
 			va_end (va);
 
 			return error_guard<int> (ret, -1);
+		}
+
+		int vprintf_stainable (const char* format, va_list ap) const NOEXCEPT_MAYBE
+		{
+			return error_guard<int> (ncplane_vprintf_stainable (plane, format, ap), -1);
 		}
 
 		int vprintf (const char* format, va_list ap) const NOEXCEPT_MAYBE
@@ -691,7 +714,7 @@ namespace ncpp
 			ncplane_set_attr (plane, attrword);
 		}
 
-		bool set_fg_alpha (int alpha) const NOEXCEPT_MAYBE
+		bool set_fg_alpha (unsigned alpha) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_set_fg_alpha (plane, alpha), -1);
 		}
@@ -701,7 +724,7 @@ namespace ncpp
 			return ncplane_bg_alpha (plane);
 		}
 
-		bool set_bg_alpha (int alpha) const NOEXCEPT_MAYBE
+		bool set_bg_alpha (unsigned alpha) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_set_bg_alpha (plane, alpha), -1);
 		}
