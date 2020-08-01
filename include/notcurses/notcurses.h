@@ -112,6 +112,7 @@ mbswidth(const char* mbs){
 // cell is the left or right side of the glyph can be determined by checking
 // whether ->gcluster is zero.
 #define CELL_WIDEASIAN_MASK     0x8000000000000000ull
+#define CELL_NOBACKGROUND_MASK  0x0400000000000000ull
 // if this bit is set, we are *not* using the default background color
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 // if this bit is set, we are *not* using the default foreground color
@@ -594,7 +595,8 @@ typedef struct cell {
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
   // (channels & 0x0800000000000000ull): foreground uses palette index
-  // (channels & 0x0700000000000000ull): reserved, must be 0
+  // (channels & 0x0400000000000000ull): glyph is entirely foreground
+  // (channels & 0x0300000000000000ull): reserved, must be 0
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
   // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"

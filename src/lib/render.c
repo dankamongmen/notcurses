@@ -756,15 +756,6 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
   return ret;
 }
 
-// True if the cell does not generate background pixels. Only the FULL BLOCK
-// glyph has this property, AFAIK.
-// FIXME also shaded blocks! ░ etc
-// FIXME set a bit, doing this at load time
-static inline bool
-cell_nobackground_p(const egcpool* e, const cell* c){
-  return !cell_simple_p(c) && !strcmp(egcpool_extended_gcluster(e, c), "\xe2\x96\x88");
-}
-
 // True if the cell does not generate foreground pixels (i.e., the cell is
 // entirely whitespace or special characters).
 // FIXME do this at cell prep time and set a bit in the channels
@@ -841,7 +832,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
         //  * we are a no-foreground glyph, and the previous was default background, or
         //  * we are a no-background glyph, and the previous was default foreground
         bool noforeground = cell_noforeground_p(srccell);
-        bool nobackground = cell_nobackground_p(&nc->pool, srccell);
+        bool nobackground = cell_nobackground_p(srccell);
         if((!noforeground && cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
           if(!nc->rstate.defaultelidable){
             ++nc->stats.defaultemissions;
@@ -905,19 +896,17 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
           nc->rstate.defaultelidable = false;
           nc->rstate.bgelidable = false;
         }else if(!cell_bg_default_p(srccell)){ // rgb background
-          if(!nobackground){
-            cell_bg_rgb(srccell, &br, &bg, &bb);
-            if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
-              ++nc->stats.bgelisions;
-            }else{
-              ret |= term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, out, br, bg, bb);
-              ++nc->stats.bgemissions;
-              nc->rstate.bgelidable = true;
-            }
-            nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
-            nc->rstate.defaultelidable = false;
-            nc->rstate.bgpalelidable = false;
+          cell_bg_rgb(srccell, &br, &bg, &bb);
+          if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
+            ++nc->stats.bgelisions;
+          }else{
+            ret |= term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, out, br, bg, bb);
+            ++nc->stats.bgemissions;
+            nc->rstate.bgelidable = true;
           }
+          nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
+          nc->rstate.defaultelidable = false;
+          nc->rstate.bgpalelidable = false;
         }
 /*if(cell_simple_p(srccell)){
 fprintf(stderr, "RAST %u [%c] to %d/%d\n", srccell->gcluster, srccell->gcluster, y, x);

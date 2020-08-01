@@ -835,6 +835,13 @@ box_corner_needs(unsigned ctlword){
   return (ctlword & NCBOXCORNER_MASK) >> NCBOXCORNER_SHIFT;
 }
 
+// True if the cell does not generate background pixels (i.e., the cell is a
+// solid or shaded block, or certain emoji).
+static inline bool
+cell_nobackground_p(const cell* c){
+  return c->channels & CELL_NOBACKGROUND_MASK;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -1326,15 +1326,11 @@ cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols)
     return -1;
   }
   if(bytes <= 1){
+    assert(cols < 2);
     cell_release(n, c);
-    c->channels &= ~CELL_WIDEASIAN_MASK;
+    c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
     c->gcluster = *gcluster;
     return bytes;
-  }
-  if(cols > 1){
-    c->channels |= CELL_WIDEASIAN_MASK;
-  }else{
-    c->channels &= ~CELL_WIDEASIAN_MASK;
   }
   if(!cell_simple_p(c)){
     if(strcmp(gcluster, cell_extended_gcluster(n, c)) == 0){
@@ -1342,6 +1338,17 @@ cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols)
     }else{
       cell_release(n, c);
     }
+  }
+  if(cols > 1){
+    c->channels |= CELL_WIDEASIAN_MASK;
+  }else{
+    c->channels &= ~CELL_WIDEASIAN_MASK;
+  }
+  // FIXME also shaded blocks! ░ etc
+  if(strncmp(gcluster, "\xe2\x96\x88", 3)){
+    c->channels &= ~CELL_NOBACKGROUND_MASK;
+  }else{
+    c->channels |= CELL_NOBACKGROUND_MASK;
   }
   int eoffset = egcpool_stash(&n->pool, gcluster, bytes);
   if(eoffset < 0){
