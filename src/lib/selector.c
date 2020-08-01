@@ -281,6 +281,16 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   n->items = items;
   n->items[n->itemcount].option = strdup(item->option);
   n->items[n->itemcount].desc = strdup(item->desc);
+  int cols = mbswidth(item->option);
+  n->items[n->itemcount].opcolumns = cols;
+  if(cols > n->longop){
+    n->longop = cols;
+  }
+  cols = mbswidth(item->desc);
+  n->items[n->itemcount].desccolumns = cols;
+  if(cols > n->longdesc){
+    n->longdesc = cols;
+  }
   ++n->itemcount;
   return ncselector_draw(n);
 }
