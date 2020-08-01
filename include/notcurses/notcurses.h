@@ -1212,11 +1212,13 @@ API int ncplane_set_base(struct ncplane* ncp, const char* egc,
 // 'ncp' is destroyed.
 API int ncplane_base(struct ncplane* ncp, cell* c);
 
-// Move this plane relative to the standard plane. It is an error to attempt to
-// move the standard plane.
+// Move this plane relative to the standard plane, or the plane to which it is
+// bound (if it is bound to a plane). It is an error to attempt to move the
+// standard plane.
 API int ncplane_move_yx(struct ncplane* n, int y, int x);
 
-// Get the origin of this plane relative to the standard plane.
+// Get the origin of this plane relative to the standard plane, or the plane to
+// which it is bound (if it is bound to a plane).
 API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.

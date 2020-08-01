@@ -712,12 +712,14 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
   return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
 }
 
-// Move this plane relative to the standard plane. It is an error to attempt to
-// move the standard plane.
+// Move this plane relative to the standard plane, or the plane to which it is
+// bound (if it is bound to a plane). It is an error to attempt to move the
+// standard plane.
 int ncplane_move_yx(struct ncplane* n, int y, int x);
 
-// Get the origin of this ncplane relative to the standard plane.
-void ncplane_yx(struct ncplane* n, int* restrict y, int* restrict x);
+// Get the origin of this plane relative to the standard plane, or the plane to
+// which it is bound (if it is bound to a plane).
+void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);
 
 // Return the dimensions of this ncplane.
 void ncplane_dim_yx(struct ncplane* n, int* restrict rows, int* restrict cols);
