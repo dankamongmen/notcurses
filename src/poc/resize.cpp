@@ -57,9 +57,7 @@ int main(int argc, char** argv){
     if(top > bot){
       break;
     }
-    /*
     // one from bottom
-    sleep(1);
     if(ncplane_resize(ntarg, 0, 0, bot - top, dimx, 0, 0, bot - top, dimx)){
       goto err;
     }
@@ -67,7 +65,6 @@ int main(int argc, char** argv){
     if(notcurses_render(nc)){
       goto err;
     }
-    */
   }
   return notcurses_stop(nc) || failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
