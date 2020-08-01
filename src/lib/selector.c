@@ -254,7 +254,7 @@ ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_option
   channels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(ns->ncp, "", 0, transchan);
-  if(cell_prime(ns->ncp, &ns->background, " ", 0, opts->bgchannels) < 0){
+  if(cell_prime(ns->ncp, &ns->background, "", 0, opts->bgchannels) < 0){
     ncplane_destroy(ns->ncp);
     goto freeitems;
   }
@@ -762,7 +762,7 @@ ncmultiselector* ncmultiselector_create(ncplane* nc, int y, int x,
   channels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(ns->ncp, "", 0, transchan);
-  if(cell_prime(ns->ncp, &ns->background, " ", 0, opts->bgchannels) < 0){
+  if(cell_prime(ns->ncp, &ns->background, "", 0, opts->bgchannels) < 0){
     ncplane_destroy(ns->ncp);
     goto freeitems;
   }
