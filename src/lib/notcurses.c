@@ -453,22 +453,28 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     logerror(n->nc, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
   }
-  if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
-    logerror(n->nc, "Can't achieve negative size %dx%d\n", ylen, xlen);
-    return -1;
-  }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
     logerror(n->nc, "Can't retain null dimension %dx%d\n", keepleny, keeplenx);
     return -1;
   }
-  if(ylen < keepleny || xlen < keeplenx){ // can't be smaller than our keep
-    logerror(n->nc, "Can't violate space %dx%d vs %dx%d\n", keepleny, keeplenx, ylen, xlen);
+  // can't be smaller than keep length + abs(offset from keep area)
+  const int yprescribed = keepleny + (yoff < 0 ? -yoff : yoff);
+  if(ylen < yprescribed){
+    logerror(n->nc, "Can't map in y dimension: %d < %d\n", ylen, yprescribed);
+    return -1;
+  }
+  const int xprescribed = keeplenx + (xoff < 0 ? -xoff : xoff);
+  if(xlen < xprescribed){
+    logerror(n->nc, "Can't map in x dimension: %d < %d\n", xlen, xprescribed);
+    return -1;
+  }
+  if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
+    logerror(n->nc, "Can't achieve meaningless size %dx%d\n", ylen, xlen);
     return -1;
   }
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
-//fprintf(stderr, "NCPLANE(RESIZING) to %dx%d at %d/%d (keeping %dx%d from %d/%d)\n",
-//        ylen, xlen, yoff, xoff, keepleny, keeplenx, keepy, keepx);
+  loginfo(n->nc, "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.
@@ -490,11 +496,16 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   n->nc->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
   n->nc->stats.fbbytes += fbsize;
   n->fb = fb;
+  const int oldabsy = n->absy;
+  // go ahead and move. we can no longer fail at this point. but don't yet
+  // resize, because n->len[xy] are used in fbcellidx() in the loop below. we
+  // don't use ncplane_move_yx(), because we want to planebinding-invariant.
   n->absy += keepy + yoff;
   n->absx += keepx + xoff;
-  // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
-  // and keep it. perhaps we ought compact it?
+//fprintf(stderr, "absx: %d keepx: %d xoff: %d\n", n->absx, keepx, xoff);
   if(keptarea == 0){ // keep nothing, resize/move only
+    // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
+    // and keep it. perhaps we ought compact it?
     memset(fb, 0, sizeof(*fb) * newarea);
     egcpool_dump(&n->pool);
     n->lenx = xlen;
@@ -503,36 +514,35 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     return 0;
   }
   // we currently have maxy rows of maxx cells each. we will be keeping rows
-  // keepy..keepy + keepleny - 1 and columns keepx..keepx + keeplenx - 1. they
-  // will end up at keepy + yoff..keepy + keepleny - 1 + yoff and
-  // keepx + xoff..keepx + keeplenx - 1 + xoff. everything else is zerod out.
-  int itery;
-  // we'll prepare each cell in our new framebuffer with either zeroes or a copy
-  // from the old one.
-  int sourceline = keepy;
-  for(itery = 0 ; itery < ylen ; ++itery){
-    int copyoff = itery * xlen; // our target at any given time
-    // FIXME in memset()s here of existing text, don't we need cell_release()?
+  // keepy..keepy + keepleny - 1 and columns keepx..keepx + keeplenx - 1.
+  // anything else is zerod out. itery is the row we're writing *to*, and we
+  // must write to each (and every cell in each).
+  for(int itery = 0 ; itery < ylen ; ++itery){
+    int truey = itery + n->absy;
+    int sourceoffy = truey - oldabsy;
+//fprintf(stderr, "sourceoffy: %d keepy: %d ylen: %d\n", sourceoffy, keepy, ylen);
     // if we have nothing copied to this line, zero it out in one go
-    if(itery < keepy || itery > keepy + keepleny - 1){
-      memset(fb + copyoff, 0, sizeof(*fb) * xlen);
-      continue;
+    if(sourceoffy < keepy || sourceoffy >= keepy + keepleny){
+//fprintf(stderr, "writing 0s to line %d of %d\n", itery, ylen);
+      memset(fb + (itery * xlen), 0, sizeof(*fb) * xlen);
+    }else{
+      int copyoff = itery * xlen; // our target at any given time
+      // we do have something to copy, and zero, one, or two regions to zero out
+      int copied = 0;
+      if(xoff < 0){
+        memset(fb + copyoff, 0, sizeof(*fb) * -xoff);
+        copyoff += -xoff;
+        copied += -xoff;
+      }
+      const int sourceidx = nfbcellidx(n, sourceoffy, keepx);
+//fprintf(stderr, "copying line %d (%d) to %d (%d)\n", sourceoffy, sourceidx, copyoff / xlen, copyoff);
+      memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
+      copyoff += keeplenx;
+      copied += keeplenx;
+      if(xlen > copied){
+        memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
+      }
     }
-    // we do have something to copy, and zero, one, or two regions to zero out
-    int copied = 0;
-    if(xoff < 0){
-      memset(fb + copyoff, 0, sizeof(*fb) * -xoff);
-      copyoff += -xoff;
-      copied += -xoff;
-    }
-    const int sourceidx = nfbcellidx(n, sourceline, keepx);
-    memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
-    copyoff += keeplenx;
-    copied += keeplenx;
-    if(xlen > copied){
-      memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
-    }
-    ++sourceline;
   }
   n->lenx = xlen;
   n->leny = ylen;
@@ -1743,7 +1753,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       const int xpos = ncplane_align(n, align, breakercol);
       // blows out if we supply a y beyond leny
 //fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
-      if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){ 
+      if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){
         if(bytes){
           *bytes = linestart - beginning;
         }
