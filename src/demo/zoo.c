@@ -137,6 +137,7 @@ draw_background(struct notcurses* nc){
       ncvisual_destroy(ncv);
       return -1;
     }
+    ncplane_greyscale(n);
   }
   return 0;
 }

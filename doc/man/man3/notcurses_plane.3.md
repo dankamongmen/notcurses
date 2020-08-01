@@ -159,7 +159,10 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of cells
 * a current style, foreground channel, and background channel,
 * its geometry,
 * a configured user pointer,
-* its position relative to the visible plane, and
+* position relative to the standard plane,
+* the plane, if any, to which it is bound,
+* the next plane bound by the plane to which it is bound,
+* the head of the list of its bound planes, and
 * its z-index.
 
 New planes can be created with **ncplane_new**, **ncplane_bound**, and

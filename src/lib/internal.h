@@ -381,12 +381,14 @@ int ncvisual_init(int loglevel);
 
 static inline int
 fbcellidx(int row, int rowlen, int col){
+//fprintf(stderr, "row: %d rowlen: %d col: %d\n", row, rowlen, col);
   return row * rowlen + col;
 }
 
 // take a logical 'y' and convert it to the virtual 'y'. see HACKING.md.
 static inline int
 logical_to_virtual(const ncplane* n, int y){
+//fprintf(stderr, "y: %d n->logrow: %d n->leny: %d\n", y, n->logrow, n->leny);
   return (y + n->logrow) % n->leny;
 }
 
