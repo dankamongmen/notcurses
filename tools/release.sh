@@ -58,7 +58,8 @@ cargo publish
 cd ../notcurses
 cargo clean
 cargo publish
+# FIXME and at this point, uninstall, yuck
 
 cd ../../python
 python3 setup.py sdist
-twine upload dist/*
+twine -s -udankamongmen upload dist/*
