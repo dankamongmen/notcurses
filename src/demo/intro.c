@@ -92,28 +92,28 @@ int intro(struct notcurses* nc){
   if(ncplane_set_bg_rgb(ncp, 0, 40, 0)){
     return -1;
   }
-  if(ncplane_putstr_aligned(ncp, rows / 2 - 2, NCALIGN_CENTER, s1) != (int)strlen(s1)){
+  if(ncplane_putstr_aligned(ncp, rows / 2 - 4, NCALIGN_CENTER, s1) != (int)strlen(s1)){
     return -1;
   }
   ncplane_styles_on(ncp, NCSTYLE_ITALIC | NCSTYLE_BOLD);
-  if(ncplane_putstr_aligned(ncp, rows / 2, NCALIGN_CENTER, str) != (int)strlen(str)){
+  if(ncplane_putstr_aligned(ncp, rows / 2 - 2, NCALIGN_CENTER, str) != (int)strlen(str)){
     return -1;
   }
   ncplane_styles_off(ncp, NCSTYLE_ITALIC);
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
   int major, minor, patch, tweak;
   notcurses_version_components(&major, &minor, &patch, &tweak);
-  if(ncplane_printf_aligned(ncp, rows - 10, NCALIGN_CENTER, "notcurses %d.%d.%d.%d. press 'q' to quit.",
+  if(ncplane_printf_aligned(ncp, rows / 2, NCALIGN_CENTER, "notcurses %d.%d.%d.%d. press 'q' to quit.",
                             major, minor, patch, tweak) < 0){
     return -1;
   }
   ncplane_styles_off(ncp, NCSTYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  if(ncplane_putwstr_aligned(ncp, rows / 2 - 5, NCALIGN_CENTER, wstr) < 0){
+  if(ncplane_putwstr_aligned(ncp, rows / 2 - 6, NCALIGN_CENTER, wstr) < 0){
     return -1;
   }
   if(rows < 45){
-    ncplane_set_fg_rgb(ncp, 0xc0, 0, 0x80);
+    ncplane_set_fg_rgb(ncp, 0xc0, 0x80, 0x80);
     ncplane_set_bg_rgb(ncp, 0x20, 0x20, 0x20);
     ncplane_styles_on(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
     if(ncplane_putstr_aligned(ncp, 2, NCALIGN_CENTER, "demo runs best with at least 45 lines") < 0){
