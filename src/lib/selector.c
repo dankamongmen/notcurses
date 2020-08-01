@@ -273,6 +273,8 @@ freeitems:
 }
 
 int ncselector_additem(ncselector* n, const struct ncselector_item* item){
+  int origdimy, origdimx;
+  ncselector_dim_yx(n->ncp->nc, n, &origdimy, &origdimx);
   size_t newsize = sizeof(*n->items) * (n->itemcount + 1);
   struct ncselector_item* items = realloc(n->items, newsize);
   if(!items){
@@ -292,10 +294,19 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
     n->longdesc = cols;
   }
   ++n->itemcount;
+  int dimy, dimx;
+  ncselector_dim_yx(n->ncp->nc, n, &dimy, &dimx);
+  if(origdimx < dimx || origdimy < dimy){ // resize if too small
+    ncplane_resize(n->ncp, 0, 0, 0, 0, 0, 0, dimy, dimx);
+  }
   return ncselector_draw(n);
 }
 
 int ncselector_delitem(ncselector* n, const char* item){
+  int origdimy, origdimx;
+  ncselector_dim_yx(n->ncp->nc, n, &origdimy, &origdimx);
+  bool found = false;
+  int maxop = 0, maxdesc = 0;
   for(unsigned idx = 0 ; idx < n->itemcount ; ++idx){
     if(strcmp(n->items[idx].option, item) == 0){ // found it
       free(n->items[idx].option);
@@ -308,8 +319,28 @@ int ncselector_delitem(ncselector* n, const char* item){
         }
       }
       --n->itemcount;
-      return ncselector_draw(n);
+      found = true;
+      --idx;
+    }else{
+      int cols = mbswidth(n->items[idx].option);
+      if(cols > maxop){
+        maxop = cols;
+      }
+      cols = mbswidth(n->items[idx].desc);
+      if(cols > maxdesc){
+        maxdesc = cols;
+      }
     }
+  }
+  if(found){
+    n->longop = maxop;
+    n->longdesc = maxdesc;
+    int dimy, dimx;
+    ncselector_dim_yx(n->ncp->nc, n, &dimy, &dimx);
+    if(origdimx > dimx || origdimy > dimy){ // resize if too big
+      ncplane_resize(n->ncp, 0, 0, 0, 0, 0, 0, dimy, dimx);
+    }
+    return ncselector_draw(n);
   }
   return -1; // wasn't found
 }
