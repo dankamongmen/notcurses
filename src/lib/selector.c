@@ -338,7 +338,7 @@ int ncselector_delitem(ncselector* n, const char* item){
     int dimy, dimx;
     ncselector_dim_yx(n->ncp->nc, n, &dimy, &dimx);
     if(origdimx > dimx || origdimy > dimy){ // resize if too big
-      if(!ncplane_resize_simple(n->ncp, dimy, dimx));
+      ncplane_resize_simple(n->ncp, dimy, dimx);
     }
     return ncselector_draw(n);
   }
