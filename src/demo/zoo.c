@@ -125,7 +125,9 @@ draw_background(struct notcurses* nc){
   if(notcurses_canopen_images(nc)){
     struct ncplane* n = notcurses_stdplane(nc);
     nc_err_e err;
-    struct ncvisual* ncv = ncvisual_from_file("../data/changes.jpg", &err);
+    char* path = find_data("changes.jpg");
+    struct ncvisual* ncv = ncvisual_from_file(path, &err);
+    free(path);
     if(!ncv){
       return -1;
     }
