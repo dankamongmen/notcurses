@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.11 (not yet released)
+* 1.6.11 (2020-08-03)
   * `cell_egc_idx()` is no longer exported; it was never intended to be.
 
 * 1.6.10 (2020-08-01)
