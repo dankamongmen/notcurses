@@ -485,7 +485,7 @@ channels_set_bg_default(uint64_t* channels){
 //
 // Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
-// Dynamic requirements (the egcpool) can add up to 32MB to an ncplane, but
+// Dynamic requirements (the egcpool) can add up to 16MB to an ncplane, but
 // such large pools are unlikely in common use.
 //
 // We implement some small alpha compositing. Foreground and background both
@@ -506,9 +506,12 @@ channels_set_bg_default(uint64_t* channels){
 // RGB is used if neither default terminal colors nor palette indexing are in
 // play, and fully supports all transparency options.
 typedef struct cell {
-  // These 32 bits are either a single-byte, single-character grapheme cluster
-  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
+  // These 32 bits are either a complete grapheme cluster in 4 bytes or less,
+  // or 0x01000000 plus an offset into a per-ncplane attached pool of varying-
+  // length UTF-8 EGCs (an egcpool). This pool may thus be up to 16MB.
+  // Obviously, this implies that EGCs beginning with 0x01 are disallowed; such
+  // an EGC, if we wanted to support them, could be spilled to the egcpool. If
+  // the EGC is less than four bytes, it will be padded with zeroes.
   uint32_t gcluster;          // 4B -> 4B
   // 8 bits of zero + 8 reserved bits + NCSTYLE_* attributes (16 bits).
   // (attrword & 0xff000000): reserved, *must be zero*
@@ -648,7 +651,7 @@ cell_wide_left_p(const cell* c){
 // Is the cell simple (a lone ASCII character, encoded as such)?
 static inline bool
 cell_simple_p(const cell* c){
-  return c->gcluster < 0x80;
+  return (c->gcluster >> 24u) != 0x01;
 }
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer

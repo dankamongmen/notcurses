@@ -608,7 +608,7 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
   if(eoffset < 0){
     return -1;
   }
-  targ->gcluster = eoffset + 0x80;
+  targ->gcluster = 0x01000000ul + eoffset;
   return ulen;
 }
 

@@ -1364,36 +1364,30 @@ cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols)
   if(bytes < 0 || cols < 0){
     return -1;
   }
-  if(bytes <= 1){
-    assert(cols < 2);
-    cell_release(n, c);
-    c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-    c->gcluster = *gcluster;
-    return bytes;
-  }
-  if(!cell_simple_p(c)){
-    if(strcmp(gcluster, cell_extended_gcluster(n, c)) == 0){
-      return bytes; // reduce, reuse, recycle
-    }else{
-      cell_release(n, c);
-    }
-  }
-  if(cols > 1){
-    c->channels |= CELL_WIDEASIAN_MASK;
-  }else{
+  if(cols < 2){
     c->channels &= ~CELL_WIDEASIAN_MASK;
+  }else{
+    c->channels |= CELL_WIDEASIAN_MASK;
   }
-  // FIXME also shaded blocks! ░ etc
+  // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
   if(strncmp(gcluster, "\xe2\x96\x88", 3)){
     c->channels &= ~CELL_NOBACKGROUND_MASK;
   }else{
     c->channels |= CELL_NOBACKGROUND_MASK;
   }
+  if(bytes <= 4){
+    cell_release(n, c);
+    c->channels &= ~CELL_WIDEASIAN_MASK;
+    c->gcluster = 0;
+    memcpy(&c->gcluster, gcluster, bytes);
+    return bytes;
+  }
   int eoffset = egcpool_stash(&n->pool, gcluster, bytes);
   if(eoffset < 0){
     return -1;
   }
-  c->gcluster = eoffset + 0x80;
+  cell_release(n, c);
+  c->gcluster = 0x01000000ul + eoffset;
   return bytes;
 }
 
@@ -1452,6 +1446,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   if(cell_load_direct(n, targ, gclust, bytes, cols) < 0){
     return -1;
   }
+//fprintf(stderr, "%08x %d %d\n", targ->gcluster, bytes, cols);
   targ->attrword = n->attrword;
   targ->channels = channels;
   if(wide){ // must set our right wide, and check for further damage
