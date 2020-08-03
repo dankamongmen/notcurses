@@ -425,7 +425,9 @@ TEST_CASE("Fills") {
       for(int x = 0 ; x < DIMX ; ++x){
         CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
-          CHECK(0 == strcmp(extended_gcluster(p1, &c1), "█"));
+          auto cstr = cell_strdup(p1, &c1);
+          CHECK(0 == strcmp(cstr, "█"));
+          free(cstr);
         }else{
           CHECK(0 < ncplane_at_yx_cell(p2, y - 1, x - 1, &c2));
           CHECK(0 == cellcmp(p1, &c1, p2, &c2));
@@ -459,7 +461,9 @@ TEST_CASE("Fills") {
         cell c1 = CELL_TRIVIAL_INITIALIZER;
         CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
-          CHECK(0 == strcmp(extended_gcluster(p1, &c1), "▀"));
+          auto cstr = cell_strdup(p1, &c1);
+          CHECK(0 == strcmp(cstr, "▀"));
+          free(cstr);
         }else{
           cell c2 = CELL_TRIVIAL_INITIALIZER;
           CHECK(0 < ncplane_at_yx_cell(p2, y - 1, x - 1, &c2));
