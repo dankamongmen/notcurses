@@ -51,6 +51,10 @@ echo "The bastards are trying to immanentize the Eschaton"
 # requires token in ~/.netrc
 github-release dankamongmen/notcurses create v$VERSION --name "v$VERSION—$QUIP" --publish $TARBALL.asc
 
+cd ../../python
+python3 setup.py sdist
+twine upload -s -udankamongmen dist/*
+
 # FIXME need to install fresh notcurses for rust to compile
 cd rust/libnotcurses-sys
 cargo clean
@@ -59,7 +63,3 @@ cd ../notcurses
 cargo clean
 cargo publish
 # FIXME and at this point, uninstall, yuck
-
-cd ../../python
-python3 setup.py sdist
-twine -s -udankamongmen upload dist/*
