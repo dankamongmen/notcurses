@@ -664,9 +664,9 @@ static inline char*
 cell_strdup(const struct ncplane* n, const cell* c){
   char* ret;
   if(cell_simple_p(c)){
-    if( (ret = (char*)malloc(2)) ){ // cast is here for C++ clients
-      ret[0] = c->gcluster;
-      ret[1] = '\0';
+    if( (ret = (char*)malloc(sizeof(c->gcluster) + 1)) ){ // cast is here for C++ clients
+      memset(ret, 0, sizeof(c->gcluster) + 1);
+      memcpy(ret, &c->gcluster, sizeof(c->gcluster));
     }
   }else{
     ret = strdup(cell_extended_gcluster(n, c));
