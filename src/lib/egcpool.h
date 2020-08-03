@@ -249,7 +249,7 @@ egcpool_dump(egcpool* pool){
 // unsafe results if called on a simple cell.
 static inline uint32_t
 cell_egc_idx(const cell* c){
-  return c->gcluster - 0x80;
+  return c->gcluster & 0x00fffffflu;
 }
 
 __attribute__ ((__returns_nonnull__)) static inline const char*

@@ -500,16 +500,12 @@ ncfputc(char c, FILE* out){
 static int
 term_putc(FILE* out, const egcpool* e, const cell* c){
   if(cell_simple_p(c)){
-    if(c->gcluster == 0 || iscntrl(c->gcluster)){
-// fprintf(stderr, "[ ]\n");
-      if(ncfputc(' ', out) == EOF){
-        return -1;
-      }
-    }else{
-//fprintf(stderr, "[%c]\n", c->gcluster);
-      if(ncfputc(c->gcluster, out) == EOF){
-        return -1;
-      }
+    char egc[5];
+    memset(egc, 0, sizeof(egc));
+    memcpy(egc, &c->gcluster, sizeof(c->gcluster));
+//fprintf(stderr, "[%ls]\n", egc);
+    if(ncfputs(egc, out) == EOF){
+      return -1;
     }
   }else{
     const char* ext = egcpool_extended_gcluster(e, c);
