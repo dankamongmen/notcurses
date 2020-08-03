@@ -756,14 +756,6 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
   return ret;
 }
 
-// True if the cell does not generate foreground pixels (i.e., the cell is
-// entirely whitespace or special characters).
-// FIXME do this at cell prep time and set a bit in the channels
-static inline bool
-cell_noforeground_p(const cell* c){
-  return cell_simple_p(c) && (c->gcluster == ' ' || !isprint(c->gcluster));
-}
-
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8/ASCII stream of escapes and EGCs
@@ -831,9 +823,8 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
         //  * we are a partial glyph, and the previous was default on both, or
         //  * we are a no-foreground glyph, and the previous was default background, or
         //  * we are a no-background glyph, and the previous was default foreground
-        bool noforeground = cell_noforeground_p(srccell);
         bool nobackground = cell_nobackground_p(srccell);
-        if((!noforeground && cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
+        if((cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
           if(!nc->rstate.defaultelidable){
             ++nc->stats.defaultemissions;
             if(nc->tcache.op){
@@ -853,9 +844,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
         // foreground set iff either:
         //  * the previous was non-default, and matches what we have now, or
         //  * we are a no-foreground glyph (iswspace() is true)
-        if(noforeground){
-          ++nc->stats.fgelisions;
-        }else if(cell_fg_palindex_p(srccell)){ // palette-indexed foreground
+        if(cell_fg_palindex_p(srccell)){ // palette-indexed foreground
           palfg = cell_fg_palindex(srccell);
           // we overload lastr for the palette index; both are 8 bits
           if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
