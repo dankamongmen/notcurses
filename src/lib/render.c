@@ -500,11 +500,8 @@ ncfputc(char c, FILE* out){
 static int
 term_putc(FILE* out, const egcpool* e, const cell* c){
   if(cell_simple_p(c)){
-    char egc[5];
-    memset(egc, 0, sizeof(egc));
-    memcpy(egc, &c->gcluster, sizeof(c->gcluster));
 //fprintf(stderr, "[%ls]\n", egc);
-    if(ncfputs(egc, out) == EOF){
+    if(fprintf(out, "%.4s", (const char*)&c->gcluster) < 0){
       return -1;
     }
   }else{
