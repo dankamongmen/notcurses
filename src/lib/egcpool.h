@@ -245,6 +245,13 @@ egcpool_dump(egcpool* pool){
   pool->poolused = 0;
 }
 
+// get the offset into the egcpool for this cell's EGC. returns meaningless and
+// unsafe results if called on a simple cell.
+static inline uint32_t
+cell_egc_idx(const cell* c){
+  return c->gcluster - 0x80;
+}
+
 __attribute__ ((__returns_nonnull__)) static inline const char*
 egcpool_extended_gcluster(const egcpool* pool, const cell* c) {
   uint32_t idx = cell_egc_idx(c);

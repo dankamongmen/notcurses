@@ -1,7 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.10 (not yet released)
+* 1.6.11 (not yet released)
+  * `cell_egc_idx()` is no longer exported; it was never intended to be.
+
+* 1.6.10 (2020-08-01)
   * The `egc` member of `ncreader_options` is now `const`.
 
 * 1.6.9 (2020-07-26)

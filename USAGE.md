@@ -1693,13 +1693,6 @@ cell_load_simple(struct ncplane* n, cell* c, char ch){
   return -1;
 }
 
-// get the offset into the egcpool for this cell's EGC. returns meaningless and
-// unsafe results if called on a simple cell.
-static inline uint32_t
-cell_egc_idx(const cell* c){
-  return c->gcluster - 0x80;
-}
-
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // is invalidated by any further operation on the plane 'n', so...watch out!
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);

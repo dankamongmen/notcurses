@@ -793,13 +793,6 @@ cell_load_simple(struct ncplane* n, cell* c, char ch){
   return -1;
 }
 
-// get the offset into the egcpool for this cell's EGC. returns meaningless and
-// unsafe results if called on a simple cell.
-static inline uint32_t
-cell_egc_idx(const cell* c){
-  return c->gcluster - 0x80;
-}
-
 // These log levels consciously map cleanly to those of libav; notcurses itself
 // does not use this full granularity. The log level does not affect the opening
 // and closing banners, which can be disabled via the notcurses_option struct's

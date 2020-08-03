@@ -74,8 +74,6 @@ typedef struct cell {
 
 **int cell_load_simple(struct ncplane* n, cell* c, char ch);**
 
-**uint32_t cell_egc_idx(const cell* c);**
-
 **unsigned cell_bchannel(const cell* cl);**
 
 **unsigned cell_fchannel(const cell* cl);**
