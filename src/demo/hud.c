@@ -5,6 +5,7 @@
 // about to run, running, and just runned. the user can move this HUD with
 // their mouse. it should always be on the top of the z-stack, unless hidden.
 struct ncplane* hud = NULL;
+static struct elem* elems;   // tracks the last n demos
 
 static bool hud_hidden;
 static bool plot_hidden;
@@ -39,12 +40,6 @@ typedef struct elem {
 
 static struct ncmenu* menu;
 static struct ncplane* about; // "about" modal popup
-
-static struct elem* elems;
-static struct elem* running;
-// which line we're writing the next entry to. once this becomes -1, we stop decrementing
-// it, and throw away the oldest entry each time.
-static int writeline = HUD_ROWS - 2;
 
 #define MENUSTR_TOGGLE_HUD "Toggle HUD"
 #define MENUSTR_TOGGLE_PLOT "Toggle FPS plot"
@@ -282,15 +277,22 @@ hud_refresh(struct ncplane* n){
   return 0;
 }
 
-static elem**
-hud_print_finished(int* line){
-  elem** hook = &elems;
-  elem* e = elems;
+static int
+hud_print_finished(elem* list){
+  elem* e = list;
   if(hud){
     hud_refresh(hud);
   }
+  int line = 0;
   while(e){
-    hook = &e->next;
+    if(++line == HUD_ROWS - 1){
+      if(e->next){
+        free(e->next->name);
+        free(e->next);
+        e->next = NULL;
+      }
+      break;
+    }
     if(hud){
       cell c = CELL_TRIVIAL_INITIALIZER;
       ncplane_base(hud, &c);
@@ -299,21 +301,20 @@ hud_print_finished(int* line){
       ncplane_set_fg(hud, 0);
       ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
       cell_release(hud, &c);
-      if(ncplane_printf_yx(hud, *line, 1, "%d", e->frames) < 0){
-        return NULL;
+      if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
+        return -1;
       }
-      if(ncplane_printf_yx(hud, *line, 7, "%ju.%02jus", e->totalns / GIG,
+      if(ncplane_printf_yx(hud, line, 7, "%ju.%02jus", e->totalns / GIG,
                            (e->totalns % GIG) / (GIG / 100)) < 0){
-        return NULL;
+        return -1;
       }
-      if(ncplane_putstr_yx(hud, *line, 18, e->name) < 0){
-        return NULL;
+      if(ncplane_putstr_yx(hud, line, 18, e->name) < 0){
+        return -1;
       }
     }
-    ++*line;
     e = e->next;
   }
-  return hook;
+  return 0;
 }
 
 struct ncplane* hud_create(struct notcurses* nc){
@@ -400,61 +401,28 @@ int fpsplot_release(void){
 
 // currently running demo is always at y = HUD_ROWS-2
 int hud_completion_notify(const demoresult* result){
-  if(running){
-    running->totalns = result->timens;
-    running->frames = result->stats.renders;
+  if(elems){
+    elems->totalns = result->timens;
+    elems->frames = result->stats.renders;
   }
   return 0;
 }
 
 // inform the HUD of an upcoming demo
 int hud_schedule(const char* demoname){
-  elem* cure;
-  int line = writeline;
-  // once we pass through this conditional:
-  //  * cure is ready to write to, and print at y = HUD_ROWS - 2
-  //  * hooks is ready to enqueue cure to
-  //  * reused entries have been printed, if any exist
-  if(line <= 0){
-    cure = elems;
-    elems = cure->next;
-    line = 1;
-    free(cure->name);
-  }else{
-    --writeline;
-    cure = malloc(sizeof(*cure));
-  }
-  elem** hook = hud_print_finished(&line);
-  if(hook == NULL){
-    free(cure);
+  elem* cure = malloc(sizeof(*cure));
+  if(!cure){
     return -1;
   }
-  *hook = cure;
+  cure->next = elems;
   cure->name = strdup(demoname);
-  cure->next = NULL;
   cure->totalns = 0;
   cure->frames = 0;
+  elems = cure;
   struct timespec cur;
   clock_gettime(CLOCK_MONOTONIC, &cur);
   cure->startns = timespec_to_ns(&cur);
-  running = cure;
-  if(hud){
-    ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
-    ncplane_set_fg(hud, 0);
-    ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
-    ncplane_set_bg(hud, 0);
-    if(ncplane_printf_yx(hud, line, 1, "%d", cure->frames) < 0){
-      return -1;
-    }
-    if(ncplane_printf_yx(hud, line, 7, "%ju.%02jus", cure->totalns / GIG,
-                        (cure->totalns % GIG) / (GIG / 100)) < 0){
-      return -1;
-    }
-    if(ncplane_putstr_yx(hud, line, 18, cure->name) < 0){
-      return -1;
-    }
-  }
-  return 0;
+  return hud_print_finished(elems);
 }
 
 // wake up every 100ms and render a frame so the HUD doesn't appear locked up.
@@ -524,8 +492,8 @@ int demo_render(struct notcurses* nc){
     if(!hud_hidden){
       ncplane_move_top(hud);
     }
-    uint64_t ns = timespec_to_ns(&ts) - running->startns;
-    ++running->frames;
+    uint64_t ns = timespec_to_ns(&ts) - elems->startns;
+    ++elems->frames;
     cell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_base(hud, &c);
     ncplane_set_bg(hud, cell_bg(&c));
@@ -533,14 +501,14 @@ int demo_render(struct notcurses* nc){
     ncplane_set_fg(hud, 0x002080);
     ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
     cell_release(hud, &c);
-    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 1, "%d", running->frames) < 0){
+    if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
-    if(ncplane_printf_yx(hud, HUD_ROWS - 2, 7, "%ju.%02jus",
+    if(ncplane_printf_yx(hud, 1, 7, "%ju.%02jus",
                          ns / GIG, (ns % GIG) / (GIG / 100)) < 0){
       return -1;
     }
-    if(ncplane_putstr_yx(hud, HUD_ROWS - 2, 18, running->name) < 0){
+    if(ncplane_putstr_yx(hud, 1, 18, elems->name) < 0){
       return -1;
     }
   }
