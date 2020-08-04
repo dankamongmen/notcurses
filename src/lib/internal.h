@@ -385,9 +385,9 @@ static inline char*
 pool_egc_copy(const egcpool* e, const cell* c){
   char* ret;
   if(cell_simple_p(c)){
-    if( (ret = (char*)malloc(2)) ){
-      ret[0] = c->gcluster;
-      ret[1] = '\0';
+    if( (ret = (char*)malloc(sizeof(c->gcluster) + 1)) ){
+      memset(ret, 0, sizeof(c->gcluster) + 1);
+      memcpy(ret, &c->gcluster, sizeof(c->gcluster));
     }
   }else{
     ret = strdup(egcpool_extended_gcluster(e, c));
@@ -599,7 +599,7 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
   targ->channels = c->channels;
   if(cell_simple_p(c)){
     targ->gcluster = c->gcluster;
-    return !!c->gcluster;
+    return strnlen((char*)&c->gcluster, sizeof(c->gcluster));
   }
   assert(splane);
   const char* egc = extended_gcluster(splane, c);
