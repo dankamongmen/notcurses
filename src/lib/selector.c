@@ -1,5 +1,52 @@
 #include "internal.h"
 
+typedef struct ncselector {
+  ncplane* ncp;                  // backing ncplane
+  unsigned selected;             // index of selection
+  unsigned startdisp;            // index of first option displayed
+  unsigned maxdisplay;           // max number of items to display, 0 -> no limit
+  int longop;                    // columns occupied by longest option
+  int longdesc;                  // columns occupied by longest description
+  struct ncselector_item* items; // list of items and descriptions, heap-copied
+  unsigned itemcount;            // number of pairs in 'items'
+  char* title;                   // can be NULL, in which case there's no riser
+  int titlecols;                 // columns occupied by title
+  char* secondary;               // can be NULL
+  int secondarycols;             // columns occupied by secondary
+  char* footer;                  // can be NULL
+  int footercols;                // columns occupied by footer
+  cell background;               // background, used in body only
+  uint64_t opchannels;           // option channels
+  uint64_t descchannels;         // description channels
+  uint64_t titlechannels;        // title channels
+  uint64_t footchannels;         // secondary and footer channels
+  uint64_t boxchannels;          // border channels
+  int uarrowy, darrowy, arrowx;// location of scrollarrows, even if not present
+} ncselector;
+
+typedef struct ncmultiselector {
+  ncplane* ncp;                   // backing ncplane
+  unsigned current;               // index of highlighted item
+  unsigned startdisp;             // index of first option displayed
+  unsigned maxdisplay;            // max number of items to display, 0 -> no limit
+  int longitem;                   // columns occupied by longest item
+  struct ncmselector_item* items; // items, descriptions, and statuses, heap-copied
+  unsigned itemcount;             // number of pairs in 'items'
+  char* title;                    // can be NULL, in which case there's no riser
+  int titlecols;                  // columns occupied by title
+  char* secondary;                // can be NULL
+  int secondarycols;              // columns occupied by secondary
+  char* footer;                   // can be NULL
+  int footercols;                 // columns occupied by footer
+  cell background;                // background, used in body only
+  uint64_t opchannels;            // option channels
+  uint64_t descchannels;          // description channels
+  uint64_t titlechannels;         // title channels
+  uint64_t footchannels;          // secondary and footer channels
+  uint64_t boxchannels;           // border channels
+  int uarrowy, darrowy, arrowx;   // location of scrollarrows, even if not present
+} ncmultiselector;
+
 // ideal body width given the ncselector's items and secondary/footer
 static int
 ncselector_body_width(const ncselector* n){
