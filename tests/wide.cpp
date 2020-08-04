@@ -73,11 +73,16 @@ TEST_CASE("Wide") {
       CHECK(0 == ncplane_cursor_move_yx(n_, 0, x));
       cell testcell = CELL_TRIVIAL_INITIALIZER;
       REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell));
-      CHECK(!strcmp(cell_extended_gcluster(n_, &tcell),
-                    cell_extended_gcluster(n_, &testcell)));
+      auto cstr1 = cell_strdup(n_, &tcell);
+      auto cstr2 = cell_strdup(n_, &testcell);
+      CHECK(!strcmp(cstr1, cstr2));
+      free(cstr1); free(cstr2);
       CHECK(0 == testcell.attrword);
       wchar_t w;
-      REQUIRE(0 < mbtowc(&w, cell_extended_gcluster(n_, &tcell), MB_CUR_MAX));
+      auto cstr = cell_strdup(n_, &tcell);
+      REQUIRE(cstr);
+      REQUIRE(0 < mbtowc(&w, cstr, MB_CUR_MAX));
+      free(cstr);
       if(wcwidth(w) == 2){
         CHECK(CELL_WIDEASIAN_MASK == testcell.channels);
         ++x;
