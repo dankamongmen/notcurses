@@ -110,15 +110,19 @@ TEST_CASE("Wide") {
     CHECK(0 < ncplane_putegc_yx(n_, 1, 0, w, &sbytes));
     cell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
-    const char* wres = extended_gcluster(n_, &c);
+    char* wres = cell_strdup(n_, &c);
+    REQUIRE(nullptr != wres);
     CHECK(0 == strcmp(wres, FROG));
+    free(wres);
     ncplane_at_yx_cell(n_, 0, 1, &c);
     CHECK(mbswidth(FROG) == 1 + cell_double_wide_p(&c)); // should be wide
     ncplane_at_yx_cell(n_, 0, 2, &c);
     CHECK(0 == c.gcluster); // should be nothing
     ncplane_at_yx_cell(n_, 1, 0, &c);
-    wres = extended_gcluster(n_, &c);
+    wres = cell_strdup(n_, &c);
+    REQUIRE(nullptr != wres);
     CHECK(0 == strcmp(wres, FROG));
+    free(wres);
     ncplane_at_yx_cell(n_, 1, 1, &c);
     CHECK(mbswidth(FROG) == 1 + cell_double_wide_p(&c)); //should be wide
     ncplane_at_yx_cell(n_, 0, 2, &c);
@@ -146,8 +150,10 @@ TEST_CASE("Wide") {
       CHECK(0 == c.gcluster); // should be nothing
     }
     ncplane_at_yx_cell(n_, 0, 1, &c);
-    const char* wres = extended_gcluster(n_, &c);
+    char* wres = cell_strdup(n_, &c);
+    REQUIRE(nullptr != wres);
     CHECK(0 == strcmp(wres, SNAKE));
+    free(wres);
     ncplane_at_yx_cell(n_, 0, 2, &c);
     CHECK(mbswidth(SNAKE) == 1 + cell_double_wide_p(&c)); // should be wide
     CHECK(0 == notcurses_render(nc_));
@@ -200,15 +206,19 @@ TEST_CASE("Wide") {
     CHECK(3 == x);
     cell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
-    const char* wres = extended_gcluster(n_, &c);
+    char* wres = cell_strdup(n_, &c);
+    REQUIRE(nullptr != wres);
     CHECK(0 == strcmp(wres, SNAKE));
+    free(wres);
     ncplane_at_yx_cell(n_, 0, 1, &c);
     CHECK(mbswidth(SNAKE) == 1 + cell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 2, &c);
     CHECK(cc == c.gcluster); // should be 'X'
     ncplane_at_yx_cell(n_, 0, 3, &c);
-    wres = extended_gcluster(n_, &c);
+    wres = cell_strdup(n_, &c);
+    REQUIRE(nullptr != wres);
     CHECK(0 == strcmp(wres, SCORPION));
+    free(wres);
     ncplane_at_yx_cell(n_, 0, 4, &c);
     CHECK(mbswidth(SCORPION) == 1 + cell_double_wide_p(&c));
     CHECK(0 == notcurses_render(nc_));
@@ -224,14 +234,20 @@ TEST_CASE("Wide") {
     CHECK(0 == notcurses_render(nc_));
     cell c = CELL_TRIVIAL_INITIALIZER;
     REQUIRE(0 < ncplane_at_yx_cell(ncp, 1, 0, &c));
-    CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
+    auto cstr = cell_strdup(ncp, &c);
+    REQUIRE(nullptr != cstr);
+    CHECK(!strcmp(cstr, "│"));
+    free(cstr);
     cell_release(ncp, &c);
     char* egc = notcurses_at_yx(nc_, 1, 0, &c.attrword, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp(egc, "│"));
     free(egc);
     REQUIRE(0 < ncplane_at_yx_cell(ncp, 1, 3, &c));
-    CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
+    cstr = cell_strdup(ncp, &c);
+    REQUIRE(nullptr != cstr);
+    CHECK(!strcmp(cstr, "│"));
+    free(cstr);
     cell_release(ncp, &c);
     egc = notcurses_at_yx(nc_, 1, 3, &c.attrword, &c.channels);
     REQUIRE(egc);

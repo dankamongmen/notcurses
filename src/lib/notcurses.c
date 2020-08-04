@@ -1377,7 +1377,6 @@ cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols)
   }
   if(bytes <= 4){
     cell_release(n, c);
-    c->channels &= ~CELL_WIDEASIAN_MASK;
     c->gcluster = 0;
     memcpy(&c->gcluster, gcluster, bytes);
     return bytes;
