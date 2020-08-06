@@ -9,7 +9,6 @@
 // a single, distinct ncplane.
 typedef struct nctablet {
   ncplane* p;                    // visible panel, NULL when offscreen
-  ncplane* border;
   struct nctablet* next;
   struct nctablet* prev;
   tabletcb cbfxn;              // application callback to draw tablet
@@ -21,6 +20,25 @@ typedef enum {
   DIRECTION_DOWN,
 } direction_e;
 
+// A UNIFIED THEORY OF NCREELS
+// (which are more complex than they may seem)
+//
+// We only redraw when ncreel_redraw() is explicitly called (and at creation).
+// Redrawing consists of arranging the tablets, and calling the user's
+// callbacks to fill them in. In general, drawing a tablet involves creating a
+// plane having all available size, calling the callback, and then trimming the
+// plane if it was not filled.
+//
+// Things which can happen between ncreel_redraw() calls:
+//
+//  * new focused tablet added (only when no tablets exist)
+//  * new unfocused tablet added
+//  * tablet removed (may be the focused tablet)
+//  * tablets may grow or shrink
+//  * focus can change due to new selection
+//
+// Any number and mix of these events can occur between draws.
+//
 // First rule: there must not be 2+ consecutive lines of blank space if there is
 //             data which could be presented there (always fill the reel).
 // Second rule: if there must be 2+ consecutive lines of blank space, they must
@@ -29,34 +47,51 @@ typedef enum {
 // Fourth rule: the focused tablet should remain where it is across redraws,
 //              except as necessary to accommodate the prior rules.
 //
-// At any time, you can make three types of moves:
-//  - move up from the topmost tablet
-//  - move down from the bottommost tablet
-//  - move otherwise
+// At any ncreel_redraw(), you can make three types of moves:
+//
+//  - i. moving up and replacing the topmost tablet (spinning operation)
+//  - ii. moving down and replacing the bottommost tablet (spinning operation)
+//  - iii. don't move / move otherwise (no necessary spin)
+//
 // The first two are simple -- draw the focused tablet next to the appropriate
 // border of the reel, and then draw what we can in the other direction until
 // running out of space (and then shift up if there is more than one line of
 // gap at the top, or if we were moving up from the topmost tablet). This can
 // be done independently of all other tablets; it is immaterial if some were
-// removed, added, etc.
+// removed, added, etc. We can detect these two cases thus:
 //
-// The visible screen can be reconstructed from four things:
-//  * which tablet is focused (pointed at by ncreel->tablets)
-//  * which row the focused tablet starts at (derived from focused tablet)
-//    * *except* when we reached it via border wrap, in which case it is
-//      defined by the border
-//  * the list of tablets (available from the focused tablet)
-//  * from which direction we arrived at the focused tablet
-// Things which can happen between ncreel_redraw() calls:
-//  * new focused tablet added (only when no tablets exist)
-//  * new unfocused tablet added
-//  * tablet removed (may be focused)
-//  * tablets may grow or shrink
-//  * focus can change due to move
-//  * we *only* redraw when ncreel_redraw() is explicitly called (and creation)
+//  - store a direction_e, written to by ncreel_next(), ncreel_prev(), and
+//     ncreel_del() (when the focused tablet is deleted), defaulting to DOWN.
+//  - store a pointer to the "visibly focused" tablet, written and read only by
+//     ncreel_redraw(). this identifies the focused tablet upon last redraw. if
+//     the visibly-focused tablet is removed, it instead takes the next tablet,
+//     iff that tablet is visible. it otherwise takes the prev tablet, iff that
+//     tablet is visible. it otherwise takes NULL.
+//  - with these, in ncreel_redraw(), we have:
+//    - case i iff the last direction was UP, and either the focused tablet is
+//       not visible, or below the visibly-focused tablet, or there is no
+//       visibly-focused tablet.
+//    - case ii iff the last direction was DOWN, and either the focused tablet
+//       is not visible, or above the visibly-focused tablet, or there is no
+//       visibly-focused tablet.
+//
+// We otherwise have case iii. The focused tablet must be on-screen (if it was
+// off-screen, we matched one of case i or case ii). We want to draw it as near
+// to its current position as possible, subject to the first three Rules.
+//
+// ncreel_redraw() thus starts by determining the case. This must be done
+// before any changes are made to the arrangement. It then clears the reel.
+// The focused tablet is drawn as close to its desired line as possible. For
+// case i, then draw the tablets below the focused tablet. For case ii, then
+// draw the tablets above the focused tablet (and move them up, if necessary).
+// Both of these cases are then handled.
+//
+// For case iii, see below...
+//
 // On tablet remove:
 //  * destroy plane, remove from list
-//  * if tablet was focused, change focus
+//  * if tablet was focused, change focus, update travel direction
+//  * if tablet was visibly focused, change visible focus
 // On tablet add:
 //  * add to list (do not create plane)
 //  * if no tablet existed, change focus to new tablet
@@ -88,19 +123,14 @@ typedef enum {
 //    * draw through edge
 typedef struct ncreel {
   ncplane* p;           // ncplane this ncreel occupies, under tablets
-  ncreel_options ropts; // copied in ncreel_create()
   // doubly-linked list, a circular one when infinity scrolling is in effect.
   // points at the focused tablet (when at least one tablet exists, one must be
-  // focused), which might be anywhere on the screen (but is always visible).
+  // focused). it will be visibly focused following the next redraw.
   nctablet* tablets;
-  // these values could all be derived at any time, but keeping them computed
-  // makes other things easier, or saves us time (at the cost of complexity).
-  int tabletcount;         // could be derived, but we keep it o(1)
-  // last direction in which we moved. positive if we moved down ("next"),
-  // negative if we moved up ("prev"), 0 for non-linear operation. we start
-  // drawing unfocused tablets opposite the direction of our last movement, so
-  // that movement in an unfilled reel doesn't reorient our tablets.
-  int last_traveled_direction;
+  nctablet* vft;        // the visibly-focused tablet
+  direction_e direction;// last direction of travel
+  int tabletcount;      // could be derived, but we keep it o(1)
+  ncreel_options ropts; // copied in ncreel_create()
 } ncreel;
 
 // Returns the starting coordinates (relative to the screen) of the specified
@@ -382,16 +412,16 @@ draw_focused_tablet(const ncreel* nr){
   ncplane_dim_yx(nr->p, &pleny, &plenx);
   int fulcrum;
   if(nr->tablets->p == NULL){
-    if(nr->last_traveled_direction >= 0){
+    if(nr->direction == DIRECTION_DOWN){
       fulcrum = pleny + !(nr->ropts.bordermask & NCBOXMASK_BOTTOM);
     }else{
       fulcrum = !(nr->ropts.bordermask & NCBOXMASK_TOP);
     }
-//fprintf(stderr, "LTD: %d  placing new at %d\n", nr->last_traveled_direction, fulcrum);
+//fprintf(stderr, "LTD: %d  placing new at %d\n", nr->direction, fulcrum);
   }else{ // focused was already present. want to stay where we are, if possible
     ncplane_yx(nr->tablets->p, &fulcrum, NULL);
     // FIXME ugh can't we just remember the previous fulcrum?
-    if(nr->last_traveled_direction > 0){
+    if(nr->direction == DIRECTION_DOWN){
       if(nr->tablets->prev->p){
         int prevfulcrum;
         ncplane_yx(nr->tablets->prev->p, &prevfulcrum, NULL);
@@ -399,7 +429,7 @@ draw_focused_tablet(const ncreel* nr){
           fulcrum = pleny + !(nr->ropts.bordermask & NCBOXMASK_BOTTOM);
         }
       }
-    }else if(nr->last_traveled_direction < 0){
+    }else if(nr->direction == DIRECTION_UP){
       if(nr->tablets->next->p){
         int nextfulcrum;
         ncplane_yx(nr->tablets->next->p, &nextfulcrum, NULL);
@@ -408,7 +438,7 @@ draw_focused_tablet(const ncreel* nr){
         }
       }
     }
-//fprintf(stderr, "existing: %p %d  placing at %d\n", nr->tablets, nr->last_traveled_direction, fulcrum);
+//fprintf(stderr, "existing: %p %d  placing at %d\n", nr->tablets, nr->direction, fulcrum);
   }
 //fprintf(stderr, "PR dims: %d/%d fulcrum: %d\n", pleny, plenx, fulcrum);
   return ncreel_draw_tablet(nr, nr->tablets, fulcrum, 0);
@@ -650,12 +680,12 @@ int ncreel_redraw(ncreel* nr){
 //fprintf(stderr, "no focus!\n");
     return 0; // if none are focused, none exist
   }
-//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
+//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->direction);
   draw_focused_tablet(nr);
-//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->last_traveled_direction);
+//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->direction);
   clean_reel(nr);
   nctablet* otherend = focused;
-  if(nr->last_traveled_direction >= 0){
+  if(nr->direction >= DIRECTION_DOWN){
     otherend = draw_previous_tablets(nr, otherend);
     otherend = draw_following_tablets(nr, otherend);
     draw_previous_tablets(nr, otherend);
@@ -715,7 +745,7 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts){
   }
   nr->tablets = NULL;
   nr->tabletcount = 0;
-  nr->last_traveled_direction = -1; // draw down after the initial tablet
+  nr->direction = DIRECTION_DOWN; // draw down after the initial tablet
   memcpy(&nr->ropts, ropts, sizeof(*ropts));
   nr->p = w;
   ncplane_set_base(nr->p, "", 0, ropts->bgchannel);
@@ -815,7 +845,7 @@ nctablet* ncreel_next(ncreel* nr){
     nr->tablets = nr->tablets->next;
 //fprintf(stderr, "---------------> moved to next, %p to %p <----------\n",
 //        nr->tablets->prev, nr->tablets);
-    nr->last_traveled_direction = 1;
+    nr->direction = DIRECTION_DOWN;
   }
   return nr->tablets;
 }
@@ -825,7 +855,7 @@ nctablet* ncreel_prev(ncreel* nr){
     nr->tablets = nr->tablets->prev;
 //fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n",
 //        nr->tablets->next, nr->tablets);
-    nr->last_traveled_direction = -1;
+    nr->direction = DIRECTION_UP;
   }
   return nr->tablets;
 }
