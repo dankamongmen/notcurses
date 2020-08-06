@@ -625,30 +625,28 @@ clean_reel(ncreel* r){
 // This can still leave a gap plus a partially-onscreen tablet FIXME
 int ncreel_redraw(ncreel* nr){
 //fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
+  nctablet* focused = nr->tablets;
+  if(focused){
+//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->direction);
+    draw_focused_tablet(nr);
+//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->direction);
+    clean_reel(nr);
+    nctablet* otherend = focused;
+    if(nr->direction >= DIRECTION_DOWN){
+      otherend = draw_previous_tablets(nr, otherend);
+      otherend = draw_following_tablets(nr, otherend);
+      draw_previous_tablets(nr, otherend);
+    }else{
+      otherend = draw_following_tablets(nr, otherend);
+      otherend = draw_previous_tablets(nr, otherend);
+      draw_following_tablets(nr, otherend);
+    }
+    tighten_reel(nr);
+  }
+//fprintf(stderr, "DONE ARRANGING\n");
   if(draw_ncreel_borders(nr)){
     return -1; // enforces specified dimensional minima
   }
-  nctablet* focused = nr->tablets;
-  if(focused == NULL){
-//fprintf(stderr, "no focus!\n");
-    return 0; // if none are focused, none exist
-  }
-//fprintf(stderr, "drawing focused tablet %p dir: %d!\n", focused, nr->direction);
-  draw_focused_tablet(nr);
-//fprintf(stderr, "drew focused tablet %p dir: %d!\n", focused, nr->direction);
-  clean_reel(nr);
-  nctablet* otherend = focused;
-  if(nr->direction >= DIRECTION_DOWN){
-    otherend = draw_previous_tablets(nr, otherend);
-    otherend = draw_following_tablets(nr, otherend);
-    draw_previous_tablets(nr, otherend);
-  }else{
-    otherend = draw_following_tablets(nr, otherend);
-    otherend = draw_previous_tablets(nr, otherend);
-    draw_following_tablets(nr, otherend);
-  }
-  tighten_reel(nr);
-//fprintf(stderr, "DONE ARRANGING\n");
   return 0;
 }
 
@@ -712,6 +710,7 @@ nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
   nctablet* t;
   if(after && before){
     if(after->prev != before || before->next != after){
+      logerror(nr->p->nc, "bad before (%p) / after (%p) spec\n", before, after);
       return NULL;
     }
   }else if(!after && !before){
