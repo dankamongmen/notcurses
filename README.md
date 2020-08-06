@@ -112,7 +112,7 @@ that fine library.
 ## Requirements
 
 * (build) A C11 and a C++17 compiler
-* (build) CMake 3.14.0+
+* (build) CMake 3.11.4+
 * (build+runtime) From NCURSES: terminfo 6.1+
 * (build+runtime) GNU libunistring 0.9.10+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
