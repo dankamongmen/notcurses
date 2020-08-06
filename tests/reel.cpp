@@ -56,9 +56,9 @@ TEST_CASE("Reels") {
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK(!ncreel_next(nr));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK(!ncreel_prev(nr));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
   }
 
   SUBCASE("OneTablet") {
@@ -67,9 +67,9 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK(0 == ncreel_del(nr, t));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
   }
 
   SUBCASE("MovementWithOneTablet") {
@@ -78,13 +78,13 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK(ncreel_next(nr));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK(ncreel_prev(nr));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK(0 == ncreel_del(nr, t));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
   }
 
   SUBCASE("DeleteActiveTablet") {

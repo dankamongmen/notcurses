@@ -587,53 +587,6 @@ tighten_reel(ncreel* r){
   return 0;
 }
 
-// debugging
-bool ncreel_validate(const ncreel* n){
-  if(n->tablets == NULL){
-    return true;
-  }
-  const nctablet* t = n->tablets;
-  int cury = -1;
-  bool wentaround = false;
-  do{
-    const ncplane* np = t->p;
-    if(np){
-      int y, x;
-      ncplane_yx(np, &y, &x);
-//fprintf(stderr, "forvart: %p (%p) @ %d\n", t, np, y);
-      if(y < cury){
-        if(wentaround){
-          return false;
-        }
-        wentaround = true;
-      }else if(y == cury){
-        return false;
-      }
-      cury = y;
-    }
-  }while((t = t->next) != n->tablets);
-  cury = INT_MAX;
-  wentaround = false;
-  do{
-    const ncplane* np = t->p;
-    if(np){
-      int y, x;
-      ncplane_yx(np, &y, &x);
-//fprintf(stderr, "backwards: %p (%p) @ %d\n", t, np, y);
-      if(y > cury){
-        if(wentaround){
-          return false;
-        }
-        wentaround = true;
-      }else if(y == cury){
-        return false;
-      }
-      cury = y;
-    }
-  }while((t = t->prev) != n->tablets);
-  return true;
-}
-
 // destroy all existing tablet planes pursuant to redraw
 static void
 clean_reel(ncreel* r){
@@ -696,9 +649,6 @@ int ncreel_redraw(ncreel* nr){
   }
   tighten_reel(nr);
 //fprintf(stderr, "DONE ARRANGING\n");
-  if(!ncreel_validate(nr)){
-    return -1;
-  }
   return 0;
 }
 
