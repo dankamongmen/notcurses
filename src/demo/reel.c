@@ -336,7 +336,7 @@ ncreel_demo_core(struct notcurses* nc){
         break;
       case NCKEY_DEL: kill_active_tablet(pr, &tctxs); break;
       case NCKEY_RESIZE: notcurses_render(nc); break;
-      default: ncplane_printf_yx(std, 3, 2, "Unknown keycode (0x%lx)\n", (wint_t)rw); break;
+      default: ncplane_printf_yx(std, 3, 2, "Unknown keycode (0x%lx)\n", rw); break;
     }
     if(newtablet){
       newtablet->next = tctxs;
