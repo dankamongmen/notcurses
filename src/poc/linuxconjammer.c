@@ -217,7 +217,7 @@ jam_linux_consolemap(int fd, unsigned upper, unsigned lower){
   for(int i = 0 ; i < map.entry_ct ; ++i){
     wchar_t w = map.entries[i].unicode;
     printf(" %05hx (%lc)->%3hu ", map.entries[i].unicode,
-           iswprint(w) ? w : L' ', map.entries[i].fontpos);
+           (wint_t)(iswprint(w) ? w : L' '), map.entries[i].fontpos);
     if(i % 4 == 3){
       printf("\n");
     }

@@ -67,7 +67,8 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
         if(bwc < 0){
           fprintf(stderr, "Couldn't convert %u (%x) (%lc) (%s)\n",
                   blockstart + chunk * CHUNKSIZE + z,
-                  blockstart + chunk * CHUNKSIZE + z, w, strerror(errno));
+                  blockstart + chunk * CHUNKSIZE + z,
+                  (wint_t)w, strerror(errno));
           return -1;
         }
         if(wcwidth(w) < 2){

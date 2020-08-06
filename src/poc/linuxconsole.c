@@ -152,9 +152,9 @@ get_linux_consolemap(int fd){
   }
   printf("Unicode->font entries: %hu\n", map.entry_ct);
   for(int i = 0 ; i < map.entry_ct ; ++i){
-    wchar_t w = map.entries[i].unicode;
+    wint_t w = map.entries[i].unicode;
     printf(" %05hx (%lc)->%3hu ", map.entries[i].unicode,
-           iswprint(w) ? w : L' ', map.entries[i].fontpos);
+           (wint_t)(iswprint(w) ? w : L' '), map.entries[i].fontpos);
     if(i % 4 == 3){
       printf("\n");
     }
