@@ -95,10 +95,20 @@ mod tests {
                 margin_r: 0,
                 margin_b: 0,
                 margin_l: 0,
-                flags: NCOPTION_NO_ALTERNATE_SCREEN as u64,
+                flags: (NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_INHIBIT_SETLOCALE) as u64,
             };
             let nc = notcurses_init(&opts, std::ptr::null_mut());
             notcurses_stop(nc);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn create_direct_context() {
+        unsafe {
+            let _ = libc::setlocale(libc::LC_ALL, std::ffi::CString::new("").unwrap().as_ptr());
+            let nc = ncdirect_init(std::ptr::null_mut(), std::ptr::null_mut());
+            ncdirect_stop(nc);
         }
     }
 
