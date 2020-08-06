@@ -141,7 +141,7 @@ ncselector_draw(ncselector* n){
     }
   }
   n->darrowy = yoff;
-  return notcurses_render(n->ncp->nc);
+  return 0;
 }
 
 // calculate the necessary dimensions based off properties of the selector and
@@ -599,7 +599,7 @@ ncmultiselector_draw(ncmultiselector* n){
     ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↓", NULL);
   }
   n->darrowy = yoff;
-  return notcurses_render(n->ncp->nc);
+  return 0;
 }
 
 const char* ncmultiselector_previtem(ncmultiselector* n){

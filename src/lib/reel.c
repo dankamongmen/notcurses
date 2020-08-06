@@ -24,6 +24,17 @@ typedef struct nctablet {
 // Fourth rule: the focused tablet should remain where it is across redraws,
 //              except as necessary to accommodate the prior rules.
 //
+// At any time, you can make three types of moves:
+//  - move up from the topmost tablet
+//  - move down from the bottommost tablet
+//  - move otherwise
+// The first two are simple -- draw the focused tablet next to the appropriate
+// border of the reel, and then draw what we can in the other direction until
+// running out of space (and then shift up if there is more than one line of
+// gap at the top, or if we were moving up from the topmost tablet). This can
+// be done independently of all other tablets; it is immaterial if some were
+// removed, added, etc.
+//
 // The visible screen can be reconstructed from four things:
 //  * which tablet is focused (pointed at by ncreel->tablets)
 //  * which row the focused tablet starts at (derived from focused tablet)

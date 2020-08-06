@@ -174,8 +174,8 @@ updated to reflect the changes:
 // successful call to notcurses_render().
 int notcurses_render(struct notcurses* nc);
 
-// Write the last rendered frame, in its entirety, to 'fp'. This is not valid
-// until notcurses_render() has been successfully called at least once.
+// Write the last rendered frame, in its entirety, to 'fp'. If
+// notcurses_render() has not yet been called, nothing will be written.
 int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 
 // Retrieve the contents of the specified cell as last rendered. The EGC is

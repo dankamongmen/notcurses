@@ -486,7 +486,6 @@ auto ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
   }
   int ret = 0;
   if(curry){
-    // need a cast for C++ callers
     ncplane* subncp = static_cast<ncplane*>(curry);
     char* subtitle = ncvisual_subtitle(ncv);
     if(subtitle){
