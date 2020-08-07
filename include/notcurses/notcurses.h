@@ -892,7 +892,7 @@ API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
                             sigset_t* sigmask, ncinput* ni);
 
 // Get a file descriptor suitable for input event poll()ing. When this
-// descriptor becomes available, you can call notcureses_getc_nblock(),
+// descriptor becomes available, you can call notcurses_getc_nblock(),
 // and input ought be ready. This file descriptor is *not* necessarily
 // the file descriptor associated with stdin (but it might be!).
 API int notcurses_inputready_fd(struct notcurses* n);
@@ -927,9 +927,10 @@ API int notcurses_mouse_disable(struct notcurses* n);
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
 // primarily useful if the screen is externally corrupted, or if an
-// NCKEY_RESIZE event has been read and you're not ready to render.
+// NCKEY_RESIZE event has been read and you're not yet ready to render.
 API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
+// Extract the notcurses context to which this plane is attached.
 API struct notcurses* ncplane_notcurses(struct ncplane* n);
 API const struct notcurses* ncplane_notcurses_const(const struct ncplane* n);
 
@@ -1564,7 +1565,7 @@ ncplane_vline(struct ncplane* n, const cell* c, int len){
 // not. The value of the bits corresponding to NCBOXCORNER_MASK control this,
 // and are interpreted as the number of connecting edges necessary to draw a
 // given corner. At 0 (the default), corners are always drawn. At 3, corners
-// are never drawn (as at most 2 edges can touch a box's corner).
+// are never drawn (since at most 2 edges can touch a box's corner).
 API int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
                     const cell* ll, const cell* lr, const cell* hline,
                     const cell* vline, int ystop, int xstop,
@@ -2197,7 +2198,7 @@ API struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
 // These must be arranged in 'rowstride' lines, where the first 'cols' * 4b
 // are actual data. There must be 'rows' lines. The total size of 'rgba'
 // must thus be at least (rows * rowstride) bytes, of which (rows * cols * 4)
-// bytes are actual data. The resulting plane will be ceil('rows'/2)x'cols'.
+// bytes are actual data. Resulting planes are ceil('rows' / 2) x 'cols'.
 API struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
                                         int rowstride, int cols);
 
@@ -2215,7 +2216,7 @@ API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                          int begy, int begx,
                                          int leny, int lenx);
 
-#define NCVISUAL_OPTION_NODEGRADE 0x0001ull // fail rather than degrading
+#define NCVISUAL_OPTION_NODEGRADE 0x0001ull // fail rather than degrade
 #define NCVISUAL_OPTION_BLEND     0x0002ull // use CELL_ALPHA_BLEND with visual
 
 struct ncvisual_options {
@@ -2417,10 +2418,10 @@ ncpixel_set_rgb(uint32_t* pixel, int r, int g, int b){
 }
 
 // An ncreel is a notcurses region devoted to displaying zero or more
-// line-oriented, contained panels between which the user may navigate. If at
-// least one panel exists, there is an active panel. As much of the active
-// panel as is possible is always displayed. If there is space left over, other
-// panels are included in the display. Panels can come and go at any time, and
+// line-oriented, contained tablets between which the user may navigate. If at
+// least one tablets exists, there is a "focused tablet". As much of the focused
+// tablet as is possible is always displayed. If there is space left over, other
+// tablets are included in the display. Tablets can come and go at any time, and
 // can grow or shrink at any time.
 //
 // This structure is amenable to line- and page-based navigation via keystrokes,
@@ -2430,7 +2431,7 @@ ncpixel_set_rgb(uint32_t* pixel, int r, int g, int b){
 // reached?). if true, 'circular' specifies how to handle the special case of
 // an incompletely-filled reel.
 #define NCREEL_OPTION_INFINITESCROLL 0x0001ull
-// is navigation circular (does moving down from the last panel move to the
+// is navigation circular (does moving down from the last tablet move to the
 // first, and vice versa)? only meaningful when infinitescroll is true. if
 // infinitescroll is false, this must be false.
 #define NCREEL_OPTION_CIRCULAR       0x0002ull
