@@ -1,10 +1,8 @@
 #include "main.h"
 #include <iostream>
 
-auto panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop) -> int {
+auto panelcb(struct nctablet* t, bool cliptop) -> int {
   CHECK(nctablet_ncplane(t));
-  CHECK(begx < maxx);
-  CHECK(begy < maxy);
   CHECK(!nctablet_userptr(t));
   CHECK(!cliptop);
   // FIXME verify geometry is as expected

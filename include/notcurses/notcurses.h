@@ -1222,7 +1222,7 @@ API char* ncplane_contents(const struct ncplane* nc, int begy, int begx,
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
 // it with 'opaque'. the others simply return the userptr.
-API void* ncplane_set_userptR(STRUCT Ncplane* n, void* opaque);
+API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 API void* ncplane_userptr(struct ncplane* n);
 
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
@@ -2463,22 +2463,18 @@ API struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts
 API struct ncplane* ncreel_plane(struct ncreel* pr);
 
 // Tablet draw callback, provided a tablet (from which the ncplane and userptr
-// may be extracted), the first column that may be used, the first row that may
-// be used, the first column that may not be used, the first row that may not
-// be used, and a bool indicating whether output ought be clipped at the top
-// (true) or bottom (false). Rows and columns are zero-indexed, and both are
-// relative to the tablet's plane.
+// may be extracted), and a bool indicating whether output ought be clipped at
+// the top (true) or bottom (false).
 //
 // Regarding clipping: it is possible that the tablet is only partially
 // displayed on the screen. If so, it is either partially present on the top of
 // the screen, or partially present at the bottom. In the former case, the top
-// is clipped (cliptop will be true), and output ought start from the end. In
-// the latter case, cliptop is false, and output ought start from the beginning.
+// is clipped (cliptop will be true), and output must start from the end. In
+// the latter case, cliptop is false, and output must start from the beginning.
 //
 // Returns the number of lines of output, which ought be less than or equal to
 // maxy - begy, and non-negative (negative values might be used in the future).
-typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx,
-                        int maxy, bool cliptop);
+typedef int (*tabletcb)(struct nctablet* t, bool cliptop);
 
 // Add a new nctablet to the provided ncreel, having the callback object
 // opaque. Neither, either, or both of after and before may be specified. If

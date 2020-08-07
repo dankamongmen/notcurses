@@ -355,7 +355,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, int direction){
   bool cbdir = (nr->tablets != t && direction == DIRECTION_UP) ? true : false;
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cbmaxx/cbmaxy: %d/%d dir: %d\n",
 //    lenx, leny, cbx, cby, cbmaxx, cbmaxy, direction);
-  int ll = t->cbfxn(t, cbx, cby, cbmaxx, cbmaxy, cbdir);
+  int ll = t->cbfxn(t, cbdir);
 //fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbmaxy, leny, direction);
   if(ll != leny){
     if(ll == leny - 1){ // only has one border visible (partially off-screen)
