@@ -1222,7 +1222,7 @@ API char* ncplane_contents(const struct ncplane* nc, int begy, int begx,
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
 // it with 'opaque'. the others simply return the userptr.
-API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
+API void* ncplane_set_userptR(STRUCT Ncplane* n, void* opaque);
 API void* ncplane_userptr(struct ncplane* n);
 
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
