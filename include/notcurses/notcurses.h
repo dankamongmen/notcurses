@@ -524,7 +524,7 @@ channels_set_fg_default(uint64_t* channels){
   return *channels;
 }
 
-// Mark the foreground channel as using its default color.
+// Mark the background channel as using its default color.
 static inline uint64_t
 channels_set_bg_default(uint64_t* channels){
   unsigned channel = channels_bchannel(*channels);
