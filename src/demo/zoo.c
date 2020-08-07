@@ -63,7 +63,7 @@ multiselector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
     .opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
     .descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
     .footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0x20, 0),
-    .titlechannels = CHANNELS_RGB_INITIALIZER(0x20, 0xff, 0xff, 0, 0, 0x20),
+    .titlechannels = CHANNELS_RGB_INITIALIZER(0x80, 0x80, 0xff, 0, 0, 0x20),
     .bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x40, 0, 0, 0x40, 0),
   };
   channels_set_fg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
