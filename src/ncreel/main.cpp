@@ -41,7 +41,6 @@ class TabletCtx {
 };
 
 int tabletfxn(struct nctablet* _t, bool cliptop){
-  (void)cliptop; // FIXME
   NcTablet *t = NcTablet::map_tablet (_t);
   Plane* p = t->get_plane();
   auto tctx = t->get_userptr<TabletCtx>();

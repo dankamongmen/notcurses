@@ -142,8 +142,7 @@ tablet_coordinates(ncplane* w, int* begy, int* begx, int* leny, int* lenx){
 }
 
 static int
-draw_borders(ncplane* w, unsigned mask, uint64_t channel,
-             bool cliphead, bool clipfoot){
+draw_borders(ncplane* w, unsigned mask, uint64_t channel){
   int lenx, leny;
   int ret = 0;
   ncplane_dim_yx(w, &leny, &lenx);
@@ -155,30 +154,26 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel,
   if(cells_rounded_box(w, 0, channel, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-/*fprintf(stderr, "drawing borders %p ->%d/%d, mask: %04x, clipping: %c%c\n",
-        w, maxx, maxy, mask,
-        cliphead ? 'T' : 't', clipfoot ? 'F' : 'f');*/
-  if(!cliphead){
-    // lenx is the number of columns we have, but drop 2 due to
-    // corners. we thus want lenx horizontal lines.
-    if(!(mask & NCBOXMASK_TOP)){
+//fprintf(stderr, "drawing borders %p ->%d/%d, mask: %04x\n", w, maxx, maxy, mask);
+  // lenx is the number of columns we have, but drop 2 due to corners. we thus
+  // want lenx horizontal lines.
+  if(!(mask & NCBOXMASK_TOP)){
+    ncplane_home(w);
+    ncplane_putc(w, &ul);
+    ncplane_hline(w, &hl, lenx - 2);
+    ncplane_putc(w, &ur);
+  }else{
+    if(!(mask & NCBOXMASK_LEFT)){
       ncplane_home(w);
       ncplane_putc(w, &ul);
-      ncplane_hline(w, &hl, lenx - 2);
+    }
+    if(!(mask & NCBOXMASK_RIGHT)){
+      ncplane_cursor_move_yx(w, 0, lenx - 1);
       ncplane_putc(w, &ur);
-    }else{
-      if(!(mask & NCBOXMASK_LEFT)){
-        ncplane_home(w);
-        ncplane_putc(w, &ul);
-      }
-      if(!(mask & NCBOXMASK_RIGHT)){
-        ncplane_cursor_move_yx(w, 0, lenx - 1);
-        ncplane_putc(w, &ur);
-      }
     }
   }
   int y;
-  for(y = !cliphead ; y < maxy + !!clipfoot ; ++y){
+  for(y = 1 ; y < maxy ; ++y){
     if(!(mask & NCBOXMASK_LEFT)){
       ret |= ncplane_cursor_move_yx(w, y, 0);
       ncplane_putc(w, &vl);
@@ -188,32 +183,28 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel,
       ncplane_putc(w, &vl);
     }
   }
-  if(!clipfoot){
-    if(!(mask & NCBOXMASK_BOTTOM)){
-      ret |= ncplane_cursor_move_yx(w, maxy, 0);
-      ncplane_putc(w, &ll);
-      ncplane_hline(w, &hl, lenx - 2);
-      ncplane_putc(w, &lr);
-    }else{
-      if(!(mask & NCBOXMASK_LEFT)){
-        if(ncplane_cursor_move_yx(w, maxy, 0) || ncplane_putc(w, &ll) < 0){
-          ret = -1;
-        }
+  if(!(mask & NCBOXMASK_BOTTOM)){
+    ret |= ncplane_cursor_move_yx(w, maxy, 0);
+    ncplane_putc(w, &ll);
+    ncplane_hline(w, &hl, lenx - 2);
+    ncplane_putc(w, &lr);
+  }else{
+    if(!(mask & NCBOXMASK_LEFT)){
+      if(ncplane_cursor_move_yx(w, maxy, 0) || ncplane_putc(w, &ll) < 0){
+        ret = -1;
       }
-      if(!(mask & NCBOXMASK_RIGHT)){
-        // mvwadd_wch returns error if we print to the lowermost+rightmost
-        // character cell. maybe we can make this go away with scrolling controls
-        // at setup? until then, don't check for error here FIXME.
-        if(ncplane_cursor_move_yx(w, maxy, maxx) || ncplane_putc(w, &lr) < 0){
-          ret = -1;
-        }
+    }
+    if(!(mask & NCBOXMASK_RIGHT)){
+      // mvwadd_wch returns error if we print to the lowermost+rightmost
+      // character cell. maybe we can make this go away with scrolling controls
+      // at setup? until then, don't check for error here FIXME.
+      if(ncplane_cursor_move_yx(w, maxy, maxx) || ncplane_putc(w, &lr) < 0){
+        ret = -1;
       }
     }
   }
   cell_release(w, &ul); cell_release(w, &ur); cell_release(w, &hl);
   cell_release(w, &ll); cell_release(w, &lr); cell_release(w, &vl);
-// fprintf(stderr, "||--borders %d %d clip: %c%c ret: %d\n",
-//    maxx, maxy, cliphead ? 'y' : 'n', clipfoot ? 'y' : 'n', ret);
   return ret;
 }
 
@@ -226,7 +217,7 @@ draw_ncreel_borders(const ncreel* nr){
   assert(maxy >= 0 && maxx >= 0);
   --maxx; // last column we can safely write to
   --maxy; // last line we can safely write to
-  return draw_borders(nr->p, nr->ropts.bordermask, nr->ropts.borderchan, false, false);
+  return draw_borders(nr->p, nr->ropts.bordermask, nr->ropts.borderchan);
 }
 
 // Calculate the starting and ending coordinates available for occupation by
@@ -290,7 +281,6 @@ tablet_columns(const ncreel* nr, nctablet* t, int* begx, int* begy,
 // work with (i.e. up to the edge we're approaching, or the entire panel for
 // the focused tablet). If the callback uses less space, shrinks the panel back
 // down before displaying it. Destroys any panel if it ought be hidden.
-// Returns 0 if the tablet was able to be wholly rendered, non-zero otherwise.
 static int
 ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, int direction){
   int lenx, leny, begy, begx;
@@ -332,8 +322,6 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, int direction){
   if(ncplane_resize_simple(fp, leny, lenx)){
     return -1;
   }
-  bool cliphead = false;
-  bool clipfoot = false;
   // We pass the coordinates in which the callback may freely write. That's
   // the full width (minus tablet borders), and the full range of open space
   // in the direction we're moving. We're not passing *lenghts* to the callback,
@@ -366,11 +354,8 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, int direction){
       }
       ncplane_resize_simple(fp, ll, lenx);
       if(direction == DIRECTION_UP && nr->tablets != t){
-        cliphead = true;
         ncplane_move_yx(fp, begy + leny - ll, begx);
 //fprintf(stderr, "MOVEDOWN CLIPPED RESIZED (-1) from %d to %d\n", leny, ll);
-      }else{
-        clipfoot = true;
 //fprintf(stderr, "RESIZED (-1) from %d to %d\n", leny, ll);
       }
     }else if(ll < leny - 1){ // both borders are visible
@@ -399,9 +384,8 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, int direction){
     }
   }
   draw_borders(fp, nr->ropts.tabletmask,
-               nr->tablets == t ? nr->ropts.focusedchan : nr->ropts.tabletchan,
-               cliphead, clipfoot);
-  return cliphead || clipfoot;
+               nr->tablets == t ? nr->ropts.focusedchan : nr->ropts.tabletchan);
+  return 0;
 }
 
 // draw and size the focused tablet, which must exist (nr->tablets may not be
