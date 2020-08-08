@@ -185,7 +185,7 @@ tablet_thread(void* vtabletctx){
     pthread_mutex_lock(&renderlock);
     if(nctablet_ncplane(tctx->t)){
       ncreel_redraw(tctx->pr);
-      auto tplane = nctablet_ncplane(tctx->t);
+      struct ncplane* tplane = nctablet_ncplane(tctx->t);
       if(tplane){
         demo_render(ncplane_notcurses(tplane));
       }
