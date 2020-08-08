@@ -258,10 +258,16 @@ TEST_CASE("Reels") {
       CHECK_EQ(0, notcurses_render(nc_));
       CHECK(ncreel_validate(nr));
     }
+    int t0y;
+    ncplane_yx(nctablet_ncplane(tabs[0]), &t0y, nullptr);
+    CHECK(1 == t0y);
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_EQ(2 - n, order[n]);
     }
     ncreel_next(nr);
+    CHECK(tabs[1] == nr->tablets);
+    ncplane_yx(nctablet_ncplane(tabs[0]), &t0y, nullptr);
+    CHECK(1 == t0y);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
@@ -269,6 +275,9 @@ TEST_CASE("Reels") {
       CHECK_EQ(2 - n + 1, order[n]);
     }
     ncreel_next(nr);
+    CHECK(tabs[2] == nr->tablets);
+    ncplane_yx(nctablet_ncplane(tabs[0]), &t0y, nullptr);
+    CHECK(1 == t0y);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
@@ -276,6 +285,9 @@ TEST_CASE("Reels") {
       CHECK_EQ(2 - n + 2, order[n]);
     }
     ncreel_prev(nr);
+    CHECK(tabs[1] == nr->tablets);
+    ncplane_yx(nctablet_ncplane(tabs[0]), &t0y, nullptr);
+    CHECK(1 == t0y);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
@@ -283,6 +295,9 @@ TEST_CASE("Reels") {
       CHECK_EQ(2 - n + 3, order[n]);
     }
     ncreel_prev(nr);
+    ncplane_yx(nctablet_ncplane(tabs[0]), &t0y, nullptr);
+    CHECK(1 == t0y);
+    CHECK(tabs[0] == nr->tablets);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
