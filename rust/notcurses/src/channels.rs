@@ -7,30 +7,30 @@ extern crate libnotcurses_sys as ffi;
 // - The channel components are u8 instead of u32. Because of type enforcing by the
 //   compiler, some runtime checks are now unnecessary.
 //
-// - Some functions now can't fail and doesn't have to return an error:
+// - These functions now can't fail and doesn't have to return an error:
 //   - `channel_set_rgb()`
 //   - `channels_set_fg_rgb()`
 //   - `channels_set_bg_rgb()`
 //
-// - These other functions don't seem to be necessary to reimplement:
-//    - `channel_set_rgb_clipped()`
-//    - `channels_set_fg_rgb_clipped()`
-//    - `channels_set_bg_rgb_clipped()`
+// - These functions were therefore deemed unnecessary to implement:
+//   - `channel_set_rgb_clipped()`
+//   - `channels_set_fg_rgb_clipped()`
+//   - `channels_set_bg_rgb_clipped()`
 //
-// - These functions are under consideration:
-//    - `channel_set()`
-//    - `channels_set_fg()`
-//    - `channels_set_bg()`
-//
-// TODO: choose an implementation of alpha functions (search for alpha2)
-//       see issue: https://github.com/dankamongmen/notcurses/issues/861
+// - These functions return an integer error result:
+//   - `channel_set_alpha()`
+//   - `channel_set_rgb()`
+//   - `channels_set_fg()`
+//   - `channels_set_bg()`
+//   - `channels_set_fg_alpha()`
+//   - `channels_set_bg_alpha()`
 //
 
 pub type Channel = u32;
 pub type ChannelPair = u64;
 pub type Color = u8;
+pub type Rgb = u32;
 pub type Alpha = u32;
-pub type Alpha2 = u8;
 pub type IntResult = i32; // -1 == err
 
 /// Extract the 8-bit red component from a 32-bit channel.
@@ -64,8 +64,19 @@ pub fn channel_rgb(channel: Channel, r: &mut Color, g: &mut Color, b: &mut Color
 /// the default color. Retain the other bits unchanged.
 #[inline]
 pub fn channel_set_rgb(channel: &mut Channel, r: Color, g: Color, b: Color) {
-    let c: Channel = (r as Channel) << 16 | (g as Channel) << 8 | (b as Channel);
-    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | c;
+    let rgb: Rgb = (r as Channel) << 16 | (g as Channel) << 8 | (b as Channel);
+    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | rgb;
+}
+
+/// Same as chennel_set_rgb(), but provide an assembled, packed 24 bits of rgb.
+// TODO: TEST
+#[inline]
+pub fn channel_set(channel: &mut Channel, rgb: Rgb) -> IntResult {
+    if rgb > 0xffffff_u32 {
+        return -1;
+    }
+    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | rgb;
+    0
 }
 
 /// Extract the 2-bit alpha component from a 32-bit channel.
@@ -73,12 +84,6 @@ pub fn channel_set_rgb(channel: &mut Channel, r: Color, g: Color, b: Color) {
 pub fn channel_alpha(channel: Channel) -> Alpha {
     channel & ffi::NCCHANNEL_ALPHA_MASK
 }
-/// Extract the 2-bit alpha component from a 32-bit channel.
-#[inline]
-pub fn channel_alpha2(channel: Channel) -> Alpha2 {
-    ((channel & ffi::NCCHANNEL_ALPHA_MASK) >> 28) as Alpha2
-}
-
 
 /// Set the 2-bit alpha component of the 32-bit channel.
 #[inline]
@@ -93,29 +98,16 @@ pub fn channel_set_alpha(channel: &mut Channel, alpha: Alpha) -> IntResult {
     }
     0
 }
-/// Set the 2-bit alpha component of the 32-bit channel.
-// TODO: test
-#[inline]
-pub fn channel_set_alpha2(channel: &mut Channel, alpha: Alpha2) {
-    let mut a = alpha;
-    if alpha > (ffi::NCCHANNEL_ALPHA_MASK >> 28) as u8 {
-        a = ffi::CELL_ALPHA_OPAQUE as u8;
-    }
-    *channel = (a as u32) << 28 | (*channel & !ffi::NCCHANNEL_ALPHA_MASK);
-    if a != ffi::CELL_ALPHA_OPAQUE as u8 {
-        *channel |= ffi::CELL_BGDEFAULT_MASK;
-    }
-}
 
 /// Is this channel using the "default color" rather than RGB/palette-indexed?
-// FIXME: test
+// TODO: TEST
 #[inline]
 pub fn channel_default_p(channel: Channel) -> bool {
     (channel & ffi::CELL_BGDEFAULT_MASK) == 0
 }
 
 /// Is this channel using palette-indexed color rather than RGB?
-// TODO: test
+// TODO: TEST
 #[inline]
 pub fn channel_palindex_p(channel: Channel) -> bool {
     !channel_default_p(channel) && (channel & ffi::CELL_BG_PALETTE) == 0
@@ -222,19 +214,20 @@ pub fn channels_bg_rgb(
 pub fn channels_set_fg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
     let mut channel = channels_fchannel(*channels);
     channel_set_rgb(&mut channel, r, g, b);
-    *channels = (channel as u64) << 32 | *channels & 0xffffffff as u64;
+    *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
 }
 
-// // Same, but set an assembled 24 bit channel at once.
-// static inline int
-// channels_set_fg(uint64_t* channels, unsigned rgb){
-//   unsigned channel = channels_fchannel(*channels);
-//   if(channel_set(&channel, rgb) < 0){
-//     return -1;
-//   }
-//   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-//   return 0;
-// }
+/// Same as channels_set_fg_rgb but but set an assembled 24 bit channel at once.
+// TODO: TEST
+#[inline]
+pub fn channels_set_fg(channels: &mut ChannelPair, rgb: Rgb) -> IntResult {
+    let mut channel = channels_fchannel(*channels);
+    if channel_set(&mut channel, rgb) < 0 {
+        return -1;
+    }
+    *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
+    0
+}
 
 /// Set the r, g, and b channels for the background component of this 64-bit
 /// 'channels' variable, and mark it as not using the default color.
@@ -245,48 +238,46 @@ pub fn channels_set_bg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Co
     channel_set_rgb(&mut channel, r, g, b);
     channels_set_bchannel(channels, channel);
 }
-// // Same, but set an assembled 24 bit channel at once.
-// static inline int
-// channels_set_bg(uint64_t* channels, unsigned rgb){
-//   unsigned channel = channels_bchannel(*channels);
-//   if(channel_set(&channel, rgb) < 0){
-//     return -1;
-//   }
-//   channels_set_bchannel(channels, channel);
-//   return 0;
-// }
 
-// /// Set the 2-bit alpha component of the foreground channel.
-// TODO:
-// #[inline]
-// pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: Alpha) {
-//     let mut channel = channels_fchannel(*channels);
-//
-// }
-// static inline int
-// channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
-//   unsigned channel = channels_fchannel(*channels);
-//   if(channel_set_alpha(&channel, alpha) < 0){
-//     return -1;
-//   }
-//   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-//   return 0;
-// }
-// TODO: and the background channel
-// /// Set the 2-bit alpha component of the background channel.
-// static inline int
-// channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
-//   if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
-//     return -1;
-//   }
-//   unsigned channel = channels_bchannel(*channels);
-//   if(channel_set_alpha(&channel, alpha) < 0){
-//     return -1;
-//   }
-//   channels_set_bchannel(channels, channel);
-//   return 0;
-// }
+/// Same as channels_set_bg_rgb but but set an assembled 24 bit channel at once.
+// TODO: TEST
+#[inline]
+pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) -> IntResult {
+    let mut channel = channels_bchannel(*channels);
+    if channel_set(&mut channel, rgb) < 0 {
+        return -1;
+    }
+    channels_set_bchannel(channels, channel);
+    0
+}
 
+/// Set the 2-bit alpha component of the foreground channel.
+// TODO: TEST
+#[inline]
+pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: Alpha) -> IntResult {
+    let mut channel = channels_fchannel(*channels);
+    if channel_set_alpha(&mut channel, alpha) < 0 {
+        return -1;
+    }
+    *channels = (channel as ChannelPair) << 32 | *channels & 0xffffffff_u64;
+    0
+}
+
+/// Set the 2-bit alpha component of the background channel.
+// TODO: TEST
+#[inline]
+pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: Alpha) -> IntResult {
+    if alpha == ffi::CELL_ALPHA_HIGHCONTRAST {
+        // forbidden for background alpha
+        return -1;
+    }
+    let mut channel = channels_bchannel(*channels);
+    if channel_set_alpha(&mut channel, alpha) < 0 {
+        return -1;
+    }
+    channels_set_bchannel(channels, channel);
+    0
+}
 
 /// Is the foreground using the "default foreground color"?
 // TODO: TEST
@@ -324,10 +315,10 @@ pub fn channels_bg_palindex_p(channels: ChannelPair) -> bool {
 pub fn channels_set_fg_default(channels: &mut ChannelPair) -> ChannelPair {
     let mut channel = channels_fchannel(*channels);
     channel_set_default(&mut channel);
-    *channels = (channel as u64) << 32 | *channels & 0xffffffff as u64;
+    *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
     *channels
 }
- 
+
 /// Mark the background channel as using its default color.
 // TODO: TEST
 #[inline]
@@ -337,7 +328,6 @@ pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
     channels_set_bchannel(channels, channel);
     *channels
 }
- 
 
 #[cfg(test)]
 mod test {
