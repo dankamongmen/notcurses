@@ -25,6 +25,10 @@ fn main() {
         // The input header we would like to generate
         // builder for.
         .header("wrapper.h")
+        // generate comments, also from headers and not just doc comments (///)
+        .generate_comments(true)
+        .clang_arg("-fretain-comments-from-system-headers")
+        .clang_arg("-fparse-all-comments")
         // Remove warnings about improper_ctypes
         .blacklist_function("strtold")
         .blacklist_function("wcstold")
