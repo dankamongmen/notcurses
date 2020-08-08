@@ -560,6 +560,22 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                                  yoff, xoff, ylen, xlen);
 }
 
+int ncplane_genocide(ncplane *ncp){
+  if(ncp == NULL){
+    return 0;
+  }
+  if(ncp->nc->stdplane == ncp){
+    logerror(ncp->nc, "Won't destroy standard plane\n");
+    return -1;
+  }
+  int ret = 0;
+  while(ncp->blist){
+    ret |= ncplane_genocide(ncp->blist);
+  }
+  ret |= ncplane_destroy(ncp);
+  return ret;
+}
+
 int ncplane_destroy(ncplane* ncp){
   if(ncp == NULL){
     return 0;
@@ -583,13 +599,17 @@ int ncplane_destroy(ncplane* ncp){
       ncp->bnext->bprev = ncp->bprev;
     }
   }
-  if(ncp->blist){
-    // FIXME need unlink all on list
-    ncp->blist->bprev = NULL;
-    ncp->blist->bnext = NULL;
+  int ret = 0;
+  struct ncplane* bound = ncp->blist;
+  while(bound){
+    struct ncplane* tmp = bound->bnext;
+    if(ncplane_reparent(bound, ncp->boundto) == NULL){
+      ret = -1;
+    }
+    bound = tmp;
   }
   free_plane(ncp);
-  return 0;
+  return ret;
 }
 
 static int

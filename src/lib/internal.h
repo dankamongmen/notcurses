@@ -795,6 +795,9 @@ cell_nobackground_p(const cell* c){
   return c->channels & CELL_NOBACKGROUND_MASK;
 }
 
+// Destroy a plane and all its bound descendants.
+int ncplane_genocide(ncplane *ncp);
+
 #ifdef __cplusplus
 }
 #endif
