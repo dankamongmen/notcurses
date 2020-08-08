@@ -541,7 +541,8 @@ if(${BUILD_TESTING})
 # sadly, this doesn't take effect until CMake 3.17...
 set(CMAKE_CTEST_ARGUMENTS "-V")
 enable_testing()
-if(DEFINED ENV{TERM})
+# the accursed Ubuntu buildd sets "TERM=unknown" for unfathomable reasons
+if(DEFINED ENV{TERM} AND NOT $ENV{TERM} STREQUAL "unknown")
 add_test(
   NAME ncpp_build
   COMMAND ncpp_build

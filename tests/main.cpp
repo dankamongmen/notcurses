@@ -106,7 +106,8 @@ auto main(int argc, const char **argv) -> int {
     std::cout << "Running with LANG=" << lang << std::endl;
   }
   const char* term = getenv("TERM");
-  if(term == nullptr){
+  // ubuntu's buildd sets TERM=unknown, fuck it, handle this atrocity
+  if(term == nullptr || strcmp(term, "unknown") == 0){
     std::cerr << "TERM wasn't defined, exiting with success" << std::endl;
     return EXIT_SUCCESS;
   }
