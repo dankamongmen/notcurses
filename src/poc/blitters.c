@@ -19,11 +19,6 @@ int main(int argc, char** argv){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  nc_err_e err;
-  struct ncvisual* ncv = ncvisual_from_file(fname, &err);
-  if(ncv == NULL){
-    goto err;
-  }
   struct ncplane* std = notcurses_stdplane(nc);
   // FIXME not all work yet; this subset does
   const int blitters[] = {
@@ -43,28 +38,35 @@ int main(int argc, char** argv){
       for(int i = 1 ; i < argc ; ++i){
         ncplane_erase(std);
         const char* fname = argv[i];
+        nc_err_e err;
+        struct ncvisual* ncv = ncvisual_from_file(fname, &err);
+        if(ncv == NULL){
+          goto err;
+        }
+        notcurses_render(nc);
         struct ncvisual_options vopts = {
           .n = std,
           .scaling = scaling,
           .blitter = *blitter,
         };
         if(!ncvisual_render(nc, ncv, &vopts)){
+          ncvisual_destroy(ncv);
           goto err;
         }
-        if(notcurses_render(nc)){
-          goto err;
-        }
-        struct timespec ts = { .tv_sec = 0, .tv_nsec = 500000000, };
+        notcurses_render(nc);
+        struct timespec ts = {
+          .tv_sec = 0,
+          .tv_nsec = 500000000,
+        };
         clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+        ncvisual_destroy(ncv);
       }
     }
   }
-  ncvisual_destroy(ncv);
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 
 err:
-  ncvisual_destroy(ncv);
   notcurses_stop(nc);
   return EXIT_FAILURE;
 }
