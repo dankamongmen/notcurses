@@ -102,7 +102,10 @@ tabletdown(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
   cell c = CELL_TRIVIAL_INITIALIZER;
   int y;
   int maxx = ncplane_dim_x(w) - 1;
-  for(y = 0 ; y <= maxy && y < tctx->lines ; ++y, rgb += 16){
+  if(maxy > tctx->lines){
+    maxy = tctx->lines;
+  }
+  for(y = 0 ; y <= maxy ; ++y, rgb += 16){
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", y % 16);
     cell_load(w, &c, cchbuf);
     if(cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
@@ -182,7 +185,10 @@ tablet_thread(void* vtabletctx){
     pthread_mutex_lock(&renderlock);
     if(nctablet_ncplane(tctx->t)){
       ncreel_redraw(tctx->pr);
-      demo_render(ncplane_notcurses(nctablet_ncplane(tctx->t)));
+      auto tplane = nctablet_ncplane(tctx->t);
+      if(tplane){
+        demo_render(ncplane_notcurses(tplane));
+      }
     }
     pthread_mutex_unlock(&renderlock);
   }
