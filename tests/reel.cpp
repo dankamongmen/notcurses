@@ -12,12 +12,10 @@ auto panelcb(struct nctablet* t, bool toptobottom) -> int {
 auto cbfxn(struct nctablet* t, bool toptobottom) -> int {
   (void)toptobottom;
   int* userptr = static_cast<int*>(nctablet_userptr(t));
-  REQUIRE(userptr);
-  CHECK(0 == *userptr);
   int y;
   ncplane_yx(nctablet_ncplane(t), &y, NULL);
-  *userptr = y;
-  return 0;
+  *userptr += y;
+  return 4;
 }
 
 // debugging
