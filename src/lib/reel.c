@@ -228,13 +228,15 @@ draw_ncreel_borders(const ncreel* nr){
 // suggestion in this case -- so give it the full breadth.
 static int
 tablet_columns(const ncreel* nr, nctablet* t, int* begx, int* begy,
-               int* lenx, int* leny, int frontiery, direction_e direction){
+               int* lenx, int* leny, int frontiertop, int frontierbottom,
+               direction_e direction){
+fprintf(stderr, "jigsawing %p with %d/%d dir %d\n", t, frontiertop, frontierbottom, direction);
   *begy = 0;
   *begx = 0;
   ncplane_dim_yx(nr->p, leny, lenx);
-  if(frontiery < 0){
+  if(direction == DIRECTION_UP && frontiertop < 0){
     return -1;
-  }else if(frontiery >= *leny){
+  }else if(direction == DIRECTION_DOWN && frontierbottom >= *leny){
     return -1;
   }
   // account for the ncreel borders on the sides
@@ -248,32 +250,33 @@ tablet_columns(const ncreel* nr, nctablet* t, int* begx, int* begy,
   // at this point, our coordinates describe the largest possible tablet for
   // this ncreel. this is the correct solution for the focused tablet. other
   // tablets can only grow in one of two directions, so tighten them up.
-  if(direction == DIRECTION_DOWN && nr->tablets != t){
-    *leny -= (frontiery - *begy);
-    *begy = frontiery;
-  }else if(direction == DIRECTION_UP && nr->tablets != t){
-    *leny = frontiery - *begy + 1;
+  if(nr->tablets != t){
+    *leny -= (frontierbottom - frontiertop);
+    if(direction == DIRECTION_DOWN){
+      *begy = frontierbottom;
+    }
   }
   return 0;
 }
 
 // Draw the specified tablet, if possible. DIRECTION_UP means we're laying out
-// bottom-to-top. DIRECTION_DOWN means top-to-bottom. 'frontiery' is the line
-// to which we'll be fitting the tablet (our last row for DIRECTION_UP, and our
-// first row for DIRECTION_DOWN). Gives the tablet all possible space to work
-// with (i.e. up through the edge we're approaching, or the entire reel for
-// the focused tablet). If the callback uses less space, shrinks the panel to
-// that size before displaying it.
+// bottom-to-top. DIRECTION_DOWN means top-to-bottom. 'frontier{top, bottom}'
+// are the lines to which we'll be fitting the tablet ('frontiertop' to our
+// last row for DIRECTION_UP, and 'frontierbottom' to our first row for
+// DIRECTION_DOWN). Gives the tablet all possible space to work with (i.e.
+// everything beyond the frontiers, or the entire reel for the focused tablet).
+// If the callback uses less space, shrinks the plane to that size.
 static int
-ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, direction_e direction){
+ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
+                   int frontierbottom, direction_e direction){
   assert(!t->p);
   int lenx, leny, begy, begx;
-  if(tablet_columns(nr, t, &begx, &begy, &lenx, &leny, frontiery, direction)){
-//fprintf(stderr, "no room: %p base %d/%d len %d/%d dir %d\n", t, begy, begx, leny, lenx, direction);
+  if(tablet_columns(nr, t, &begx, &begy, &lenx, &leny, frontiertop, frontierbottom, direction)){
+fprintf(stderr, "no room: %p base %d/%d len %d/%d dir %d\n", t, begy, begx, leny, lenx, direction);
     return -1;
   }
 //fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d dir %d\n", t, begx, begy, lenx, leny, frontiery, direction);
-  ncplane* fp = ncplane_bound(nr->p, leny + 1, lenx, begy, begx, NULL);
+  ncplane* fp = ncplane_bound(nr->p, leny, lenx, begy, begx, NULL);
   if((t->p = fp) == NULL){
     return -1;
   }
@@ -282,8 +285,6 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, direction_e dir
   // in the direction we're moving. We're not passing *lengths* to the callback,
   // but *coordinates* within the window--everywhere save tabletborders.
   int cby = 0, cbx = 0, cbmaxy = leny, cbmaxx = lenx;
-  --cbmaxy;
-  --cbmaxx;
   // If we're drawing up, we'll always have a bottom border unless it's masked
   if((nr->tablets != t && direction == DIRECTION_UP) && !(nr->ropts.tabletmask & NCBOXMASK_BOTTOM)){
     --cbmaxy;
@@ -329,13 +330,13 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, direction_e dir
     // be out of position (the focused tablet ought move as little as possible). 
     // Move it back to the frontier, or the nearest line above if it has grown.
     if(nr->tablets == t){
-      if(leny - frontiery + 1 < ll){
+      if(leny - frontiertop + 1 < ll){
 //fprintf(stderr, "frontieryIZING ADJ %d %d %d %d NEW %d\n", cbmaxy, leny, frontiery, ll, frontiery - ll + 1);
-        ncplane_yx(fp, &frontiery, NULL);
-        frontiery += (leny - ll);
+        ncplane_yx(fp, &frontiertop, NULL);
+        frontiertop += (leny - ll);
       }
 //fprintf(stderr, "moving to frontiery %d\n", frontiery);
-      ncplane_move_yx(fp, frontiery, begx);
+      ncplane_move_yx(fp, frontiertop, begx);
     }
   }
   draw_borders(fp, nr->ropts.tabletmask,
@@ -343,75 +344,52 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, direction_e dir
   return 0;
 }
 
-static int
-ncreel_draw_focused(ncreel* nr, int frontiery){
-  int dimy, dimx;
-  ncplane_dim_yx(nr->p, &dimy, &dimx);
-  int yoff = !(nr->ropts.tabletmask & NCBOXMASK_TOP);
-  dimy -= yoff + !(nr->ropts.tabletmask & NCBOXMASK_BOTTOM);
-  int xoff = !(nr->ropts.tabletmask & NCBOXMASK_LEFT);
-  dimx -= xoff + !(nr->ropts.tabletmask & NCBOXMASK_RIGHT);
-  nr->tablets->p = ncplane_bound(nr->p, dimy, dimx, yoff, xoff, NULL);
-  if(nr->tablets->p == NULL){
-    return -1;
-  }
-  return ncreel_draw_tablet(nr, nr->tablets, frontiery, 0);
-}
-
 // move down below the focused tablet, filling up the reel to the bottom.
 // returns the last tablet drawn.
 static nctablet*
-draw_following_tablets(const ncreel* nr, const nctablet* otherend){
-  int wmaxy, wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
-  nctablet* working = nr->tablets;
-  int frontiery;
+draw_following_tablets(const ncreel* nr, nctablet* otherend,
+                       int frontiertop, int* frontierbottom){
+fprintf(stderr, "following otherend: %p ->p: %p %d/%d\n", otherend, otherend->p, frontiertop, *frontierbottom);
+  nctablet* working = nr->tablets->next;
+  const int maxx = ncplane_dim_y(nr->p) - 1;
   // move down past the focused tablet, filling up the reel to the bottom
-  do{
+  while(*frontierbottom <= maxx && (working != otherend || !otherend->p)){
 //fprintf(stderr, "following otherend: %p ->p: %p\n", otherend, otherend->p);
     // modify frontier based off the one we're at
-    tablet_coordinates(working->p, &wbegy, &wbegx, &wleny, &wlenx);
-    wmaxy = wbegy + wleny - 1;
-    frontiery = wmaxy + 2;
-//fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiery, wmaxy + 2);
-    working = working->next;
-    if(working == otherend && otherend->p){
-//fprintf(stderr, "BREAKOUT ON OTHEREND %p:%p\n", working, working->p);
-      break;
+fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiertop, *frontierbottom);
+    if(ncreel_draw_tablet(nr, working, frontiertop, *frontierbottom, DIRECTION_DOWN)){
+      return NULL;
     }
-    ncreel_draw_tablet(nr, working, frontiery, DIRECTION_DOWN);
     if(working == otherend){
       otherend = otherend->next;
     }
-  }while(working->p);
+    *frontierbottom += ncplane_dim_y(working->p) + 2;
+    working = working->next;
+  }
+fprintf(stderr, "done with prevs: %p->%p %d %d\n", working, working->prev, frontiertop, *frontierbottom);
   return working;
 }
 
 // move up above the focused tablet, filling up the reel to the top.
 // returns the last tablet drawn.
 static nctablet*
-draw_previous_tablets(const ncreel* nr, const nctablet* otherend){
-//fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
-  int wbegy, wbegx, wlenx, wleny; // working tablet window coordinates
-  nctablet* upworking = nr->tablets;
-  int frontiery;
+draw_previous_tablets(const ncreel* nr, nctablet* otherend,
+                      int* frontiertop, int frontierbottom){
+fprintf(stderr, "preceding otherend: %p ->p: %p\n", otherend, otherend->p);
+  nctablet* upworking = nr->tablets->prev;
   // modify frontier based off the one we're at
-  tablet_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
-  frontiery = wbegy - 2;
-  while(upworking->prev != otherend || otherend->p == NULL){
-//fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, frontiery, wbegy - 2);
-    upworking = upworking->prev;
-    ncreel_draw_tablet(nr, upworking, frontiery, DIRECTION_UP);
-    if(upworking->p){
-      tablet_coordinates(upworking->p, &wbegy, &wbegx, &wleny, &wlenx);
-//fprintf(stderr, "new up coords: %d/%d + %d/%d, %d\n", wbegy, wbegx, wleny, wlenx, frontiery);
-      frontiery = wbegy - 2;
-    }else{
-      break;
+  while(*frontiertop >= 0 && (upworking->prev != otherend || !otherend->p)){
+fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, *frontiertop, frontierbottom);
+    if(ncreel_draw_tablet(nr, upworking, *frontiertop, frontierbottom, DIRECTION_UP)){
+      return NULL;
     }
     if(upworking == otherend){
       otherend = otherend->prev;
     }
+    *frontiertop -= ncplane_dim_y(upworking->p) + 1;
+    upworking = upworking->prev;
   }
+fprintf(stderr, "done with prevs: %p->%p %d %d\n", upworking, upworking->prev, *frontiertop, frontierbottom);
   return upworking;
 }
 
@@ -445,6 +423,7 @@ tighten_reel_down(ncreel* r, int ybot){
 // right places!).
 static int
 tighten_reel(ncreel* r){
+fprintf(stderr, "tightening it up\n");
   nctablet* top = r->tablets;
   nctablet* cur = top;
   int ytop = INT_MAX;
@@ -569,19 +548,31 @@ int ncreel_redraw(ncreel* nr){
   clean_reel(nr);
   if(focused){
 fprintf(stderr, "drawing focused tablet %p dir: %d fulcrum: %d!\n", focused, nr->direction, fulcrum);
-    if(ncreel_draw_focused(nr, fulcrum) == 0){
+    if(ncreel_draw_tablet(nr, focused, fulcrum, fulcrum, DIRECTION_DOWN) == 0){
 fprintf(stderr, "drew focused tablet %p -> %p dir: %d!\n", focused, focused->p, nr->direction);
       nctablet* otherend = focused;
-      if(nr->direction >= DIRECTION_DOWN){
-        otherend = draw_previous_tablets(nr, otherend);
-        otherend = draw_following_tablets(nr, otherend);
-        draw_previous_tablets(nr, otherend);
-      }else{
-        otherend = draw_following_tablets(nr, otherend);
-        otherend = draw_previous_tablets(nr, otherend);
-        draw_following_tablets(nr, otherend);
+      int frontiertop, frontierbottom;
+      ncplane_yx(nr->tablets->p, &frontiertop, NULL);
+      frontierbottom = frontiertop + ncplane_dim_y(nr->tablets->p) + 1;
+      frontiertop -= 2;
+      if(nr->direction == DIRECTION_DOWN){
+        otherend = draw_previous_tablets(nr, otherend, &frontiertop, frontierbottom);
+        if(otherend == NULL){
+          return -1;
+        }
+        otherend = draw_following_tablets(nr, otherend, frontiertop, &frontierbottom);
+      }else{ // DIRECTION_UP
+        otherend = draw_following_tablets(nr, otherend, frontiertop, &frontierbottom);
+        if(otherend == NULL){
+          return -1;
+        }
+        otherend = draw_previous_tablets(nr, otherend, &frontiertop, frontierbottom);
+      }
+      if(otherend == NULL){
+        return -1;
       }
       tighten_reel(nr);
+fprintf(stderr, "done tightening\n");
     }
   }
   nr->vft = nr->tablets; // update the visually-focused tablet pointer
