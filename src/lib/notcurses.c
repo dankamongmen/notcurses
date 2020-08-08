@@ -297,11 +297,13 @@ void free_plane(ncplane* p){
 ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
                         int yoff, int xoff, void* opaque, const char* name){
   if(rows <= 0 || cols <= 0){
+    logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n", rows, cols);
     return NULL;
   }
   ncplane* p = malloc(sizeof(*p));
   size_t fbsize = sizeof(*p->fb) * (rows * cols);
   if((p->fb = malloc(fbsize)) == NULL){
+    logerror(nc, "Error allocating cellmatrix (r=%d, c=%d)\n", rows, cols);
     free(p);
     return NULL;
   }
