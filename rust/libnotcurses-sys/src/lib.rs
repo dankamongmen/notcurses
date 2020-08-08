@@ -2,6 +2,8 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+mod channels;
+
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 pub fn ncplane_putstr(_n: *mut ncplane, _str: &str) -> i32 {

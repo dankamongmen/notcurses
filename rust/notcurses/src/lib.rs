@@ -1,5 +1,3 @@
-mod channels;
-
 extern crate libnotcurses_sys as ffi;
 
 pub fn getc_blocking(_n: *mut ffi::notcurses, _ni: &mut ffi::ncinput) -> u32 {

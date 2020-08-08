@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-extern crate libnotcurses_sys as ffi;
+use crate as ffi;
 
 // NOTE: There are several differences from the original functions in C:
 //
