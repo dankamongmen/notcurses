@@ -248,48 +248,46 @@ TEST_CASE("Reels") {
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     int order[3];
+    nctablet* tabs[3];
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       order[n] = -1;
+      tabs[n] = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[n]);
+      REQUIRE(tabs[n]);
+      CHECK(tabs[0] == nr->tablets);
+      CHECK_EQ(0, ncreel_redraw(nr));
+      CHECK_EQ(0, notcurses_render(nc_));
+      CHECK(ncreel_validate(nr));
     }
-    auto t0 = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[0]);
-    REQUIRE(t0);
-    auto t1 = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[1]);
-    REQUIRE(t1);
-    auto t2 = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[2]);
-    REQUIRE(t2);
-    CHECK_EQ(0, ncreel_redraw(nr));
-    CHECK_EQ(0, notcurses_render(nc_));
-    CHECK(ncreel_validate(nr));
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      CHECK_EQ(0, order[n]);
+      CHECK_EQ(2 - n, order[n]);
     }
     ncreel_next(nr);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      CHECK_EQ(1, order[n]);
+      CHECK_EQ(2 - n + 1, order[n]);
     }
     ncreel_next(nr);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      CHECK_EQ(2, order[n]);
+      CHECK_EQ(2 - n + 2, order[n]);
     }
     ncreel_prev(nr);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      CHECK_EQ(3, order[n]);
+      CHECK_EQ(2 - n + 3, order[n]);
     }
     ncreel_prev(nr);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      CHECK_EQ(4, order[n]);
+      CHECK_EQ(2 - n + 4, order[n]);
     }
   }
 
