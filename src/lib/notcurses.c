@@ -348,6 +348,7 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   }else{
     p->below = NULL;
   }
+  loginfo(nc, "Created new %dx%d plane @ %dx%d\n", rows, cols, yoff, xoff);
   return p;
 }
 
@@ -562,22 +563,6 @@ int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                                  yoff, xoff, ylen, xlen);
 }
 
-int ncplane_genocide(ncplane *ncp){
-  if(ncp == NULL){
-    return 0;
-  }
-  if(ncp->nc->stdplane == ncp){
-    logerror(ncp->nc, "Won't destroy standard plane\n");
-    return -1;
-  }
-  int ret = 0;
-  while(ncp->blist){
-    ret |= ncplane_genocide(ncp->blist);
-  }
-  ret |= ncplane_destroy(ncp);
-  return ret;
-}
-
 int ncplane_destroy(ncplane* ncp){
   if(ncp == NULL){
     return 0;
@@ -611,6 +596,22 @@ int ncplane_destroy(ncplane* ncp){
     bound = tmp;
   }
   free_plane(ncp);
+  return ret;
+}
+
+int ncplane_genocide(ncplane *ncp){
+  if(ncp == NULL){
+    return 0;
+  }
+  if(ncp->nc->stdplane == ncp){
+    logerror(ncp->nc, "Won't destroy standard plane\n");
+    return -1;
+  }
+  int ret = 0;
+  while(ncp->blist){
+    ret |= ncplane_genocide(ncp->blist);
+  }
+  ret |= ncplane_destroy(ncp);
   return ret;
 }
 

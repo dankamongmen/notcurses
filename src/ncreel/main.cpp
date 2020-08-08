@@ -181,6 +181,7 @@ int main(int argc, char** argv){
   int margin_r = ncopts.margin_r;
   int margin_b = ncopts.margin_b;
   ncopts.margin_t = ncopts.margin_l = ncopts.margin_r = ncopts.margin_b = 0;
+  ncopts.loglevel = NCLOGLEVEL_VERBOSE;
   auto nc = notcurses_init(&ncopts, NULL);
   if(nc == nullptr){
     return EXIT_FAILURE;

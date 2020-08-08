@@ -289,7 +289,7 @@ fprintf(stderr, "already drew %p: %p %p\n", t, t->p, t->cbp);
 fprintf(stderr, "no room: %p base %d/%d len %d/%d dir %d\n", t, begy, begx, leny, lenx, direction);
     return -1;
   }
-fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
+//fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
   ncplane* fp = ncplane_bound(nr->p, leny, lenx, begy, begx, NULL);
   if((t->p = fp) == NULL){
 fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy, begx);
@@ -313,19 +313,18 @@ fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy,
   if(cbleny - cby + 1 > 0){
     t->cbp = ncplane_bound(t->p, cbleny - cby + 1, cblenx - cbx + 1, cby, cbx, NULL);
     if(t->cbp == NULL){
-  fprintf(stderr, "failure creating data plane %d %d %d %d\n", cbleny - cby + 1, cblenx - cbx + 1, cby, cbx);
+fprintf(stderr, "failure creating data plane %d %d %d %d\n", cbleny - cby + 1, cblenx - cbx + 1, cby, cbx);
       ncplane_destroy(t->p);
       t->p = NULL;
       return -1;
     }
     ncplane_move_above(t->cbp, t->p);
-  // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cblenx/cbleny: %d/%d dir: %d\n",
-  //    lenx, leny, cbx, cby, cblenx, cbleny, direction);
+// fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cblenx/cbleny: %d/%d dir: %d\n", lenx, leny, cbx, cby, cblenx, cbleny, direction);
     int ll = t->cbfxn(t, direction == DIRECTION_DOWN);
-  fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbleny, leny, direction);
+fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbleny, leny, direction);
     if(ll != cbleny - cby + 1){
       int diff = (cbleny - cby + 1) - ll;
-  fprintf(stderr, "resizing data plane %d->%d\n", cbleny - cby + 1, ll);
+fprintf(stderr, "resizing data plane %d->%d\n", cbleny - cby + 1, ll);
       ncplane_resize_simple(t->cbp, ll, cblenx - cbx + 1);
       ncplane_resize_simple(t->p, leny - diff, lenx);
       // We needn't move the resized plane if drawing down, or the focused plane.
@@ -338,10 +337,10 @@ fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy,
           frontiertop += (leny - ll);
         }
         ncplane_move_yx(fp, frontiertop, begx);
-  fprintf(stderr, "moved to frontiertop %d\n", frontiertop);
+fprintf(stderr, "moved to frontiertop %d\n", frontiertop);
       }else if(direction == DIRECTION_UP){
         ncplane_move_yx(fp, begy + diff, begx);
-  fprintf(stderr, "MOVEDOWN from %d to %d\n", begy, begy + diff);
+fprintf(stderr, "MOVEDOWN from %d to %d\n", begy, begy + diff);
       }
     }
   }
@@ -420,6 +419,7 @@ tighten_reel_down(ncreel* r, int ybot){
     }
     cury = ybot - ylen;
     ncplane_move_yx(cur->p, cury, curx);
+fprintf(stderr, "tightened %p down to %d\n", cur, cury);
     ybot = cury - 1;
     if((cur = cur->prev) == r->tablets){
       break;
@@ -462,6 +462,7 @@ fprintf(stderr, "tightening it up\n");
     ncplane_yx(cur->p, &cury, &curx);
     if(cury != expected){
       if(ncplane_move_yx(cur->p, expected, curx)){
+fprintf(stderr, "tightened %p up to %d\n", cur, expected);
         return -1;
       }
     }else{
@@ -525,7 +526,7 @@ fprintf(stderr, "CLEANING VFT: %p (%p)\n", vft, vft->p);
 // place relative to the new focus; they could otherwise pivot around the new
 // focus, if we're not filling out the reel.
 int ncreel_redraw(ncreel* nr){
-//fprintf(stderr, "--------> BEGIN REDRAW <--------\n");
+fprintf(stderr, "\n--------> BEGIN REDRAW <--------\n");
   nctablet* focused = nr->tablets;
   int fulcrum; // target line
   if(nr->direction == DIRECTION_UP){
@@ -544,7 +545,7 @@ fprintf(stderr, "case i fulcrum %d\n", fulcrum);
 fprintf(stderr, "case i fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
       }else{
         ncplane_yx(focused->p, &fulcrum, NULL); // case iii
-fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
+fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy, vfty, focused, nr->vft, nr->direction);
       }
     }
   }else{
@@ -563,7 +564,7 @@ fprintf(stderr, "case ii fulcrum %d\n", fulcrum);
 fprintf(stderr, "case ii fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
       }else{
         ncplane_yx(focused->p, &fulcrum, NULL); // case iii
-fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
+fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy, vfty, focused, nr->vft, nr->direction);
       }
     }
   }
