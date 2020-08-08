@@ -1,10 +1,10 @@
 #include "main.h"
 #include <iostream>
 
-auto panelcb(struct nctablet* t, bool cliptop) -> int {
+auto panelcb(struct nctablet* t, bool toptobottom) -> int {
   CHECK(nctablet_ncplane(t));
   CHECK(!nctablet_userptr(t));
-  CHECK(!cliptop);
+  CHECK(toptobottom);
   // FIXME verify geometry is as expected
   return 0;
 }
@@ -83,6 +83,7 @@ TEST_CASE("Reels") {
     r.flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK(ncreel_validate(nr));
     REQUIRE(0 == ncreel_destroy(nr));
   }
 
@@ -103,9 +104,11 @@ TEST_CASE("Reels") {
     CHECK(!ncreel_next(nr));
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(!ncreel_prev(nr));
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("OneTablet") {
@@ -116,9 +119,11 @@ TEST_CASE("Reels") {
     REQUIRE(t);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(0 == ncreel_del(nr, t));
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("MovementWithOneTablet") {
@@ -128,12 +133,20 @@ TEST_CASE("Reels") {
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(ncreel_next(nr));
     CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(ncreel_prev(nr));
     CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(0 == ncreel_del(nr, t));
     CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("DeleteActiveTablet") {
@@ -143,6 +156,9 @@ TEST_CASE("Reels") {
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK(0 == ncreel_del(nr, ncreel_focused(nr)));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("NoBorder") {
@@ -151,6 +167,9 @@ TEST_CASE("Reels") {
                     NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("BadBorderBitsRejected") {
@@ -166,6 +185,9 @@ TEST_CASE("Reels") {
                     NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("NoTopBottomBorder") {
@@ -173,6 +195,9 @@ TEST_CASE("Reels") {
     r.bordermask = NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("NoSideBorders") {
@@ -180,6 +205,9 @@ TEST_CASE("Reels") {
     r.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("BadTabletBorderBitsRejected") {
@@ -194,7 +222,14 @@ TEST_CASE("Reels") {
     channels_set_bg_alpha(&r.bgchannel, 3);
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
-    // FIXME
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+  }
+
+  // Layout tests. Add some tablets, move around, and verify that they all
+  // have the expected locations/contents/geometries.
+  SUBCASE("ThreeCycleDown") {
   }
 
   CHECK(0 == notcurses_stop(nc_));

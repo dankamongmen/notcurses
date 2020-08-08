@@ -511,7 +511,7 @@ fprintf(stderr, "\n--------> BEGIN REDRAW <--------\n");
     // case i iff the last direction was UP, and either the focused tablet is
     // not visible, or below the visibly-focused tablet, or there is no
     // visibly-focused tablet.
-    if((focused && !focused->p) || !nr->vft){
+    if(!focused || !focused->p || !nr->vft){
       fulcrum = 0;
 fprintf(stderr, "case i fulcrum %d\n", fulcrum);
     }else{
@@ -530,11 +530,12 @@ fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy
     // case ii iff the last direction was DOWN, and either the focused tablet
     // is not visible, or above the visibly-focused tablet, or there is no
     // visibly-focused tablet.
-    if((focused && !focused->p) || !nr->vft){
+    if(!focused || !focused->p || !nr->vft){
       fulcrum = ncplane_dim_y(nr->p) - 1;
 fprintf(stderr, "case ii fulcrum %d\n", fulcrum);
     }else{
       int focy, vfty;
+fprintf(stderr, "focused: %p\n", focused);
       ncplane_yx(focused->p, &focy, NULL);
       ncplane_yx(nr->vft->p, &vfty, NULL);
       if(focy < vfty){
@@ -692,6 +693,9 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
     }
     // FIXME ought set direction based on actual location of replacement t
     nr->direction = LASTDIRECTION_DOWN;
+  }
+  if(nr->vft == t){
+    nr->vft = NULL;
   }
   t->next->prev = t->prev;
   if(t->p){
