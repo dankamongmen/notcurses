@@ -3,6 +3,7 @@
 #![allow(non_snake_case)]
 
 mod channels;
+pub use channels::*;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
