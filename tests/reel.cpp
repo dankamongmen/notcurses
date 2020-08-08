@@ -9,6 +9,17 @@ auto panelcb(struct nctablet* t, bool toptobottom) -> int {
   return 0;
 }
 
+auto cbfxn(struct nctablet* t, bool toptobottom) -> int {
+  (void)toptobottom;
+  int* userptr = static_cast<int*>(nctablet_userptr(t));
+  REQUIRE(userptr);
+  CHECK(0 == *userptr);
+  int y;
+  ncplane_yx(nctablet_ncplane(t), &y, NULL);
+  *userptr = y;
+  return 0;
+}
+
 // debugging
 bool ncreel_validate(const ncreel* n){
   if(n->tablets == NULL){
@@ -230,6 +241,23 @@ TEST_CASE("Reels") {
   // Layout tests. Add some tablets, move around, and verify that they all
   // have the expected locations/contents/geometries.
   SUBCASE("ThreeCycleDown") {
+    ncreel_options r{};
+    channels_set_bg_alpha(&r.bgchannel, 3);
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    int order[3] = {};
+    ncreel_add(nr, nullptr, nullptr, cbfxn, &order[0]);
+    ncreel_add(nr, nullptr, nullptr, cbfxn, &order[1]);
+    ncreel_add(nr, nullptr, nullptr, cbfxn, &order[2]);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    for(int& n : order){
+      CHECK(1 == order[n]);
+    }
   }
 
   CHECK(0 == notcurses_stop(nc_));
