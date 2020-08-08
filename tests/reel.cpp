@@ -13,6 +13,7 @@ auto cbfxn(struct nctablet* t, bool toptobottom) -> int {
   (void)toptobottom;
   int* userptr = static_cast<int*>(nctablet_userptr(t));
   int y;
+fprintf(stderr, "WRITEBACK CBFXN: %d %d\n", *userptr, y);
   ncplane_yx(nctablet_ncplane(t), &y, NULL);
   *userptr += y;
   return 4;
@@ -246,15 +247,32 @@ TEST_CASE("Reels") {
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    int order[3] = {};
+    int order[3];
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      order[n] = -1;
+    }
     ncreel_add(nr, nullptr, nullptr, cbfxn, &order[0]);
     ncreel_add(nr, nullptr, nullptr, cbfxn, &order[1]);
     ncreel_add(nr, nullptr, nullptr, cbfxn, &order[2]);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    for(int& n : order){
-      CHECK(1 == order[n]);
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_EQ(0, order[n]);
+    }
+    ncreel_next(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_EQ(1, order[n]);
+    }
+    ncreel_next(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_EQ(2, order[n]);
     }
   }
 
