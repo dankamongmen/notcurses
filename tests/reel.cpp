@@ -251,9 +251,12 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       order[n] = -1;
     }
-    ncreel_add(nr, nullptr, nullptr, cbfxn, &order[0]);
-    ncreel_add(nr, nullptr, nullptr, cbfxn, &order[1]);
-    ncreel_add(nr, nullptr, nullptr, cbfxn, &order[2]);
+    auto t0 = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[0]);
+    REQUIRE(t0);
+    auto t1 = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[1]);
+    REQUIRE(t1);
+    auto t2 = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[2]);
+    REQUIRE(t2);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
@@ -273,6 +276,20 @@ TEST_CASE("Reels") {
     CHECK(ncreel_validate(nr));
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_EQ(2, order[n]);
+    }
+    ncreel_prev(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_EQ(3, order[n]);
+    }
+    ncreel_prev(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_EQ(4, order[n]);
     }
   }
 
