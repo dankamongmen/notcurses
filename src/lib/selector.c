@@ -191,9 +191,8 @@ ncselector_draw(ncselector* n){
   return 0;
 }
 
-// calculate the necessary dimensions based off properties of the selector and
-// the containing screen FIXME should be based on containing ncplane
-static int
+// calculate the necessary dimensions based off properties of the selector
+static void
 ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   int rows = 0, cols = 0; // desired dimensions
   int dimy, dimx; // dimensions of containing screen
@@ -204,9 +203,6 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   // we have a top line, a bottom line, two lines of margin, and must be able
   // to display at least one row beyond that, so require five more
   rows += 5;
-  if(rows > dimy){ // insufficient height to display selector
-    return -1;
-  }
   rows += (!n->maxdisplay || n->maxdisplay > n->itemcount ? n->itemcount : n->maxdisplay) - 1; // rows necessary to display all options
   if(rows > dimy){ // claw excess back
     rows = dimy;
@@ -217,11 +213,7 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   if(n->titlecols + 4 > cols){
     cols = n->titlecols + 4;
   }
-  if(cols > dimx){ // insufficient width to display selector
-    return -1;
-  }
   *ncdimx = cols;
-  return 0;
 }
 
 ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_options* opts){
@@ -290,10 +282,8 @@ ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_option
     }
   }
   int dimy, dimx;
-  if(ncselector_dim_yx(nc->nc, ns, &dimy, &dimx)){
-    goto freeitems;
-  }
-  if(!(ns->ncp = ncplane_new(nc->nc, dimy, dimx, y, x, NULL))){
+  ncselector_dim_yx(nc->nc, ns, &dimy, &dimx);
+  if(!(ns->ncp = ncplane_bound(nc, dimy, dimx, y, x, NULL))){
     goto freeitems;
   }
   cell_init(&ns->background);
@@ -832,7 +822,7 @@ ncmultiselector* ncmultiselector_create(ncplane* nc, int y, int x,
   if(ncmultiselector_dim_yx(nc->nc, ns, &dimy, &dimx)){
     goto freeitems;
   }
-  if(!(ns->ncp = ncplane_new(nc->nc, dimy, dimx, y, x, NULL))){
+  if(!(ns->ncp = ncplane_bound(nc, dimy, dimx, y, x, NULL))){
     goto freeitems;
   }
   cell_init(&ns->background);

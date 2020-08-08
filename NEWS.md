@@ -4,7 +4,9 @@ rearrangements of Notcurses.
 * 1.6.12 (not yet released)
   * `ncselector_redraw()` and `ncmultiselector_redraw()` no longer call
     `notcurses_render()`. You will need to call `notcurses_render()` for the
-    display to reflect any changes.
+    display to reflect any changes. `ncselector_create` now binds the plane
+    it creates to the plane it was provided, and no longer checks to ensure
+    the widget can be fit within the borders of this binding plane.
 
 * 1.6.11 (2020-08-03)
   * `cell_egc_idx()` is no longer exported; it was never intended to be.
