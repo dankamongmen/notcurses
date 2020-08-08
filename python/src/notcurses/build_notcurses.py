@@ -510,6 +510,8 @@ int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur, uint64_t l
 bool ncdirect_canopen_images(const struct ncdirect* n);
 bool ncdirect_canutf8(const struct ncdirect* n);
 nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncalign_e align, ncblitter_e blitter, ncscale_e scale);
+struct ncplane* ncplane_parent(struct ncplane* n);
+const struct ncplane* ncplane_parent_const(const struct ncplane* n);
 """)
 
 if __name__ == "__main__":
