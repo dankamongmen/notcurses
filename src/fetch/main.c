@@ -33,6 +33,12 @@ typedef struct fetched_info {
   int core_count;
 } fetched_info;
 
+static void
+free_fetched_info(fetched_info* fi){
+  free(fi->cpu_model);
+  free(fi->username);
+}
+
 static int
 fetch_env_vars(fetched_info* fi){
   fi->desktop = getenv("XDG_CURRENT_DESKTOP");
@@ -123,6 +129,7 @@ fetch_x_props(fetched_info* fi){
     free(xrandr);
     return -1;
   }
+  free(xrandr);
   return 0;
 }
 
@@ -454,11 +461,14 @@ ncneofetch(struct ncdirect* nc){
     pthread_join(tid, NULL);
   }
   if(infoplane(nc, &fi)){
+    free_fetched_info(&fi);
     return -1;
   }
   if(printf("\n") < 0){
+    free_fetched_info(&fi);
     return -1;
   }
+  free_fetched_info(&fi);
   return 0;
 }
 
