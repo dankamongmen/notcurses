@@ -25,6 +25,9 @@ fn main() {
         // The input header we would like to generate
         // builder for.
         .header("wrapper.h")
+        // Remove warnings about improper_ctypes
+        .blacklist_function("strtold")
+        .blacklist_function("wcstold")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks));
