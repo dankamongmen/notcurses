@@ -7,6 +7,8 @@ rearrangements of Notcurses.
     display to reflect any changes. `ncselector_create` now binds the plane
     it creates to the plane it was provided, and no longer checks to ensure
     the widget can be fit within the borders of this binding plane.
+  * Added `ncplane_parent()` and `ncplane_parent_const()` for accessing the
+    plane to which a plane is bound.
 
 * 1.6.11 (2020-08-03)
   * `cell_egc_idx()` is no longer exported; it was never intended to be.

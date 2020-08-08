@@ -631,6 +631,10 @@ struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols,
 // and will be made a bound child of 'newparent', if 'newparent' is not NULL.
 struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
 
+// Get the plane to which the plane 'n' is bound, if any.
+struct ncplane* ncplane_parent(struct ncplane* n);
+const struct ncplane* ncplane_parent_const(const struct ncplane* n);
+
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);

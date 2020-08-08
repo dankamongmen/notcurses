@@ -1141,6 +1141,10 @@ API int ncplane_move_yx(struct ncplane* n, int y, int x);
 // which it is bound (if it is bound to a plane).
 API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
+// Get the plane to which the plane 'n' is bound, if any.
+API struct ncplane* ncplane_parent(struct ncplane* n);
+API const struct ncplane* ncplane_parent_const(const struct ncplane* n);
+
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
 API void ncplane_move_top(struct ncplane* n);
 API void ncplane_move_bottom(struct ncplane* n);

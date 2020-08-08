@@ -2201,6 +2201,14 @@ const notcurses* ncplane_notcurses_const(const ncplane* n){
   return n->nc;
 }
 
+ncplane* ncplane_parent(ncplane* n){
+  return n->boundto;
+}
+
+const ncplane* ncplane_parent_const(const ncplane* n){
+  return n->boundto;
+}
+
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n == n->nc->stdplane){
     return NULL; // can't reparent standard plane
