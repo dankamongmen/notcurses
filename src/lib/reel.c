@@ -44,8 +44,9 @@ typedef enum {
 // Second rule: if there must be 2+ consecutive lines of blank space, they must
 //             all be at the bottom of the reel (connect and anchor the reel).
 // Third rule: the focused tablet gets all the space it can use.
-// Fourth rule: the focused tablet should remain where it is across redraws,
-//              except as necessary to accommodate the prior rules.
+// Fourth rule: thou shalt never wrap a tablet [across a border]
+// Fifth rule: the focused tablet should remain where it is across redraws,
+//             except as necessary to accommodate the prior rules.
 //
 // At any ncreel_redraw(), you can make three types of moves:
 //
@@ -77,7 +78,7 @@ typedef enum {
 //
 // We otherwise have case iii. The focused tablet must be on-screen (if it was
 // off-screen, we matched one of case i or case ii). We want to draw it as near
-// to its current position as possible, subject to the first three Rules.
+// to its current position as possible, subject to the first four Rules.
 //
 // ncreel_redraw() thus starts by determining the case. This must be done
 // before any changes are made to the arrangement. It then clears the reel.
@@ -271,18 +272,15 @@ tablet_columns(const ncreel* nr, nctablet* t, int* begx, int* begy,
   return 0;
 }
 
-// Draw the specified tablet, if possible. DIRECTION_UP means we're
-// laying out towards the top. DIRECTION_DOWN means towards the bottom. 0
-// means this is the focused tablet, always the first one to be drawn.
-// frontiery is the line on which we're placing the tablet (in the case of the
-// focused window, this is only an ideal, subject to change). For direction
-// greater than or equal to 0, it's the top line of the tablet. For direction
-// less than 0, it's the bottom line. Gives the tablet all possible space to
-// work with (i.e. up to the edge we're approaching, or the entire panel for
-// the focused tablet). If the callback uses less space, shrinks the panel back
-// down before displaying it. Destroys any panel if it ought be hidden.
+// Draw the specified tablet, if possible. DIRECTION_UP means we're laying out
+// bottom-to-top. DIRECTION_DOWN means top-to-bottom. 'frontiery' is the line
+// to which we'll be fitting the tablet (our last row for DIRECTION_UP, and our
+// first row for DIRECTION_DOWN). Gives the tablet all possible space to work
+// with (i.e. up through the edge we're approaching, or the entire reel for
+// the focused tablet). If the callback uses less space, shrinks the panel to
+// that size before displaying it.
 static int
-ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, int direction){
+ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiery, direction_e direction){
   int lenx, leny, begy, begx;
   ncplane* fp = t->p;
   if(tablet_columns(nr, t, &begx, &begy, &lenx, &leny, frontiery, direction)){
