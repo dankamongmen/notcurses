@@ -9,6 +9,53 @@ auto panelcb(struct nctablet* t, bool cliptop) -> int {
   return 0;
 }
 
+// debugging
+bool ncreel_validate(const ncreel* n){
+  if(n->tablets == NULL){
+    return true;
+  }
+  const nctablet* t = n->tablets;
+  int cury = -1;
+  bool wentaround = false;
+  do{
+    const ncplane* np = t->p;
+    if(np){
+      int y, x;
+      ncplane_yx(np, &y, &x);
+//fprintf(stderr, "forvart: %p (%p) @ %d\n", t, np, y);
+      if(y < cury){
+        if(wentaround){
+          return false;
+        }
+        wentaround = true;
+      }else if(y == cury){
+        return false;
+      }
+      cury = y;
+    }
+  }while((t = t->next) != n->tablets);
+  cury = INT_MAX;
+  wentaround = false;
+  do{
+    const ncplane* np = t->p;
+    if(np){
+      int y, x;
+      ncplane_yx(np, &y, &x);
+//fprintf(stderr, "backwards: %p (%p) @ %d\n", t, np, y);
+      if(y > cury){
+        if(wentaround){
+          return false;
+        }
+        wentaround = true;
+      }else if(y == cury){
+        return false;
+      }
+      cury = y;
+    }
+  }while((t = t->prev) != n->tablets);
+  return true;
+}
+
 TEST_CASE("Reels") {
   auto nc_ = testing_notcurses();
   if(!nc_){
@@ -55,8 +102,10 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     CHECK(!ncreel_next(nr));
     CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
     CHECK(!ncreel_prev(nr));
     CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
   }
 
   SUBCASE("OneTablet") {
@@ -66,8 +115,10 @@ TEST_CASE("Reels") {
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
     CHECK(0 == ncreel_del(nr, t));
     CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
   }
 
   SUBCASE("MovementWithOneTablet") {
@@ -137,84 +188,6 @@ TEST_CASE("Reels") {
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(!nr);
   }
-
-  /*
-  // Make a target window occupying all but a containing perimeter of the
-  // specified WINDOW (which will usually be n_).
-  struct ncpanel* make_targwin(struct ncpanel* w) {
-    cchar_t cc;
-    int cpair = COLOR_GREEN;
-    CHECK_EQ(OK, setcchar(&cc, L"W", 0, 0, &cpair));
-    int x, y, xx, yy;
-    getbegyx(w, y, x);
-    getmaxyx(w, yy, xx);
-    yy -= 2;
-    xx -= 2;
-    ++x;
-    ++y;
-    WINDOW* ww = subwin(w, yy, xx, y, x);
-    CHECK_NE(nullptr, ww);
-    PANEL* p = new_panel(ww);
-    CHECK_NE(nullptr, p);
-    CHECK_EQ(OK, wbkgrnd(ww, &cc));
-    return p;
-  }
-
-  SUBCASE("InitWithinSubwin") {
-    ncreel_options r{};
-    r.loff = 1;
-    r.roff = 1;
-    r.toff = 1;
-    r.boff = 1;
-    CHECK_EQ(0, clear());
-    PANEL* base = make_targwin(n_);
-    REQUIRE_NE(nullptr, base);
-    WINDOW* basew = panel_window(base);
-    REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r);
-    REQUIRE_NE(nullptr, pr);
-    CHECK_EQ(0, ncreel_validate(basew, pr));
-    REQUIRE_EQ(0, ncreel_destroy(nr));
-    CHECK_EQ(OK, del_panel(base));
-    CHECK_EQ(OK, delwin(basew));
-  }
-
-  SUBCASE("SubwinNoncreelBorders") {
-    ncreel_options r{};
-    r.loff = 1;
-    r.roff = 1;
-    r.toff = 1;
-    r.boff = 1;
-    r.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT |
-                    NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
-    CHECK_EQ(0, clear());
-    PANEL* base = make_targwin(n_);
-    REQUIRE_NE(nullptr, base);
-    WINDOW* basew = panel_window(base);
-    REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r);
-    REQUIRE_NE(nullptr, pr);
-    CHECK_EQ(0, ncreel_validate(basew, pr));
-    REQUIRE_EQ(0, ncreel_destroy(nr));
-    CHECK_EQ(OK, del_panel(base));
-    CHECK_EQ(OK, delwin(basew));
-  }
-
-  SUBCASE("SubwinNoOffsetGeom") {
-    ncreel_options r{};
-    CHECK_EQ(0, clear());
-    PANEL* base = make_targwin(n_);
-    REQUIRE_NE(nullptr, base);
-    WINDOW* basew = panel_window(base);
-    REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r);
-    REQUIRE_NE(nullptr, pr);
-    CHECK_EQ(0, ncreel_validate(basew, pr));
-    REQUIRE_EQ(0, ncreel_destroy(nr));
-    CHECK_EQ(OK, del_panel(base));
-    CHECK_EQ(OK, delwin(basew));
-  }
-  */
 
   SUBCASE("TransparentBackground") {
     ncreel_options r{};

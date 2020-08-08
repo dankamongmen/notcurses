@@ -5,21 +5,10 @@
 #include <string.h>
 #include "internal.h"
 
-// Tablets are the toplevel entitites within an ncreel. Each corresponds to
-// a single, distinct ncplane.
-typedef struct nctablet {
-  ncplane* p;                  // border plane, NULL when offscreen
-  ncplane* cbp;                // data plane, NULL when offscreen
-  struct nctablet* next;
-  struct nctablet* prev;
-  tabletcb cbfxn;              // application callback to draw cbp
-  void* curry;                 // application data provided to cbfxn
-} nctablet;
-
 typedef enum {
   DIRECTION_UP,
   DIRECTION_DOWN,
-} direction_e;
+} direction_e; // current direction of travel
 
 // A UNIFIED THEORY OF NCREELS
 // (which are more complex than they may seem)
@@ -123,17 +112,6 @@ typedef enum {
 //  * walk the list in the direction against travel, foc->focw
 //    * if focw == backstop, we're done
 //    * draw through edge
-typedef struct ncreel {
-  ncplane* p;           // ncplane this ncreel occupies, under tablets
-  // doubly-linked list, a circular one when infinity scrolling is in effect.
-  // points at the focused tablet (when at least one tablet exists, one must be
-  // focused). it will be visibly focused following the next redraw.
-  nctablet* tablets;
-  nctablet* vft;        // the visibly-focused tablet
-  direction_e direction;// last direction of travel
-  int tabletcount;      // could be derived, but we keep it o(1)
-  ncreel_options ropts; // copied in ncreel_create()
-} ncreel;
 
 // Returns the starting coordinates (relative to the screen) of the specified
 // tablet, and its length. End is (begx + lenx - 1, begy + leny - 1).
@@ -529,7 +507,7 @@ int ncreel_redraw(ncreel* nr){
 fprintf(stderr, "\n--------> BEGIN REDRAW <--------\n");
   nctablet* focused = nr->tablets;
   int fulcrum; // target line
-  if(nr->direction == DIRECTION_UP){
+  if(nr->direction == LASTDIRECTION_UP){
     // case i iff the last direction was UP, and either the focused tablet is
     // not visible, or below the visibly-focused tablet, or there is no
     // visibly-focused tablet.
@@ -578,7 +556,7 @@ fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused-
       ncplane_yx(nr->tablets->p, &frontiertop, NULL);
       frontierbottom = frontiertop + ncplane_dim_y(nr->tablets->p) + 1;
       frontiertop -= 2;
-      if(nr->direction == DIRECTION_DOWN){
+      if(nr->direction == LASTDIRECTION_DOWN){
         otherend = draw_previous_tablets(nr, otherend, &frontiertop, frontierbottom);
         if(otherend == NULL){
           return -1;
@@ -649,7 +627,7 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts){
   }
   nr->tablets = NULL;
   nr->tabletcount = 0;
-  nr->direction = DIRECTION_DOWN; // draw down after the initial tablet
+  nr->direction = LASTDIRECTION_DOWN; // draw down after the initial tablet
   memcpy(&nr->ropts, ropts, sizeof(*ropts));
   nr->p = w;
   nr->vft = NULL;
@@ -713,7 +691,7 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
       nr->tablets = NULL;
     }
     // FIXME ought set direction based on actual location of replacement t
-    nr->direction = DIRECTION_DOWN;
+    nr->direction = LASTDIRECTION_DOWN;
   }
   t->next->prev = t->prev;
   if(t->p){
@@ -753,7 +731,7 @@ nctablet* ncreel_next(ncreel* nr){
   if(nr->tablets){
     nr->tablets = nr->tablets->next;
 fprintf(stderr, "---------------> moved to next, %p to %p <----------\n", nr->tablets->prev, nr->tablets);
-    nr->direction = DIRECTION_DOWN;
+    nr->direction = LASTDIRECTION_DOWN;
   }
   return nr->tablets;
 }
@@ -762,7 +740,7 @@ nctablet* ncreel_prev(ncreel* nr){
   if(nr->tablets){
     nr->tablets = nr->tablets->prev;
 fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n", nr->tablets->next, nr->tablets);
-    nr->direction = DIRECTION_UP;
+    nr->direction = LASTDIRECTION_UP;
   }
   return nr->tablets;
 }

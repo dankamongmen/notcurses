@@ -117,6 +117,32 @@ typedef struct renderstate {
   bool defaultelidable;
 } renderstate;
 
+// Tablets are the toplevel entitites within an ncreel. Each corresponds to
+// a single, distinct ncplane.
+typedef struct nctablet {
+  ncplane* p;                  // border plane, NULL when offscreen
+  ncplane* cbp;                // data plane, NULL when offscreen
+  struct nctablet* next;
+  struct nctablet* prev;
+  tabletcb cbfxn;              // application callback to draw cbp
+  void* curry;                 // application data provided to cbfxn
+} nctablet;
+
+typedef struct ncreel {
+  ncplane* p;           // ncplane this ncreel occupies, under tablets
+  // doubly-linked list, a circular one when infinity scrolling is in effect.
+  // points at the focused tablet (when at least one tablet exists, one must be
+  // focused). it will be visibly focused following the next redraw.
+  nctablet* tablets;
+  nctablet* vft;        // the visibly-focused tablet
+  enum {
+    LASTDIRECTION_UP,
+    LASTDIRECTION_DOWN,
+  } direction;          // last direction of travel
+  int tabletcount;      // could be derived, but we keep it o(1)
+  ncreel_options ropts; // copied in ncreel_create()
+} ncreel;
+
 // ncmenu_item and ncmenu_section have internal and (minimal) external forms
 typedef struct ncmenu_int_item {
   char* desc;           // utf-8 menu item, NULL for horizontal separator

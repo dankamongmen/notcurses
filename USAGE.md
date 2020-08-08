@@ -536,7 +536,7 @@ typedef struct ncinput {
 // be NULL. Returns 0 on a timeout. If an event is processed, the return value
 // is the 'id' field from that event. 'ni' may be NULL.
 char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                            sigset_t* sigmask, ncinput* ni);
+                        sigset_t* sigmask, ncinput* ni);
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.
@@ -699,7 +699,7 @@ It is an error to invoke these functions on the standard plane.
 // Essentially, the kept material does not move. It serves to anchor the
 // resized plane. If there is no kept material, the plane can move freely.
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
-                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
+                   int keeplenx, int yoff, int xoff, int ylen, int xlen);
 
 // Resize the plane, retaining what data we can (everything, unless we're
 // shrinking in some dimension). Keep the origin where it is.
@@ -1038,10 +1038,10 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
 
 // The ncplane equivalents of printf(3) and vprintf(3).
 int ncplane_vprintf_aligned(struct ncplane* n, int y, ncalign_e align,
-                                const char* format, va_list ap);
+                            const char* format, va_list ap);
 
 int ncplane_vprintf_yx(struct ncplane* n, int y, int x,
-                           const char* format, va_list ap);
+                       const char* format, va_list ap);
 
 static inline int
 ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
@@ -1119,7 +1119,7 @@ on both sides. Boxes allow fairly detailed specification of how they're drawn.
 // number of cells drawn on success. On error, return the negative number of
 // cells drawn.
 int ncplane_hline_interp(struct ncplane* n, const cell* c, int len,
-                             uint64_t c1, uint64_t c2);
+                         uint64_t c1, uint64_t c2);
 
 static inline int
 ncplane_hline(struct ncplane* n, const cell* c, int len){
@@ -1127,7 +1127,7 @@ ncplane_hline(struct ncplane* n, const cell* c, int len){
 }
 
 int ncplane_vline_interp(struct ncplane* n, const cell* c, int len,
-                             uint64_t c1, uint64_t c2);
+                         uint64_t c1, uint64_t c2);
 
 static inline int
 ncplane_vline(struct ncplane* n, const cell* c, int len){
@@ -1165,9 +1165,8 @@ ncplane_vline(struct ncplane* n, const cell* c, int len){
 #define NCBOXCORNER_SHIFT 8u
 
 int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
-                    const cell* ll, const cell* lr, const cell* hline,
-                    const cell* vline, int ystop, int xstop,
-                    unsigned ctlword);
+                const cell* ll, const cell* lr, const cell* hline,
+                const cell* vline, int ystop, int xstop, unsigned ctlword);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
@@ -1323,13 +1322,13 @@ typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp,
 // modification (if the terminal uses a palette, our ability to fade planes is
 // limited, and affected by the complexity of the rest of the screen).
 int ncplane_fadeout(struct ncplane* n, const struct timespec* ts,
-                        fadecb fader, void* curry);
+                    fadecb fader, void* curry);
 
 // Fade the ncplane in over the specified time. Load the ncplane with the
 // target cells without rendering, then call this function. When it's done, the
 // ncplane will have reached the target levels, starting from zeroes.
 int ncplane_fadein(struct ncplane* n, const struct timespec* ts,
-                       fadecb fader, void* curry);
+                   fadecb fader, void* curry);
 
 // Rather than the simple ncplane_fade{in/out}(), ncfadectx_setup() can be
 // Pulse the plane in and out until the callback returns non-zero, relying on
@@ -1381,8 +1380,6 @@ int ncblit_rgba(const void* data, int linesize,
 int ncblit_bgrx(const void* data, int linesize,
                 const struct ncvisual_options* vopts);
 ```
-
-
 
 ### Plane channels API
 
