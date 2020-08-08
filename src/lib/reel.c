@@ -730,6 +730,7 @@ int ncreel_destroy(ncreel* nreel){
     while( (t = nreel->tablets) ){
       ncreel_del(nreel, t);
     }
+    ncplane_destroy(nreel->p);
     free(nreel);
   }
   return ret;
