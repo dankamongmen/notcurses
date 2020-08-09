@@ -1,3 +1,4 @@
+build/
 debian/files
 obj-x86_64-linux-gnu
 python/.eggs/
@@ -11,3 +12,5 @@ rust/*/Cargo.lock
 src/colloquy/target/
 *.pyc
 *.so
+*.swp
+*.swo
