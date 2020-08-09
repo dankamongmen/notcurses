@@ -349,7 +349,7 @@ fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, fr
     if(working == otherend){
       otherend = otherend->next;
     }
-    *frontierbottom += ncplane_dim_y(working->p) + 2;
+    *frontierbottom += ncplane_dim_y(working->p) + 1;
     working = working->next;
   }
 fprintf(stderr, "done with prevs: %p->%p %d %d\n", working, working->prev, frontiertop, *frontierbottom);
