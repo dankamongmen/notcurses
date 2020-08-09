@@ -2,6 +2,12 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.6.12 (not yet released)
+  * `ncreel`s `tabletcb` callback function semantics are radically simplified.
+    No more worrying about borders that might or might not have been drawn;
+    simply fill up the plane that you're handed. This eliminates four of the
+    seven arguments to these callbacks. I hope the inconvenience of adapting
+    them is worth the elimination of complexity therein; I obviously think
+    it is =].
   * `ncselector_redraw()` and `ncmultiselector_redraw()` no longer call
     `notcurses_render()`. You will need to call `notcurses_render()` for the
     display to reflect any changes. `ncselector_create` now binds the plane
