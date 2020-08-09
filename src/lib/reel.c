@@ -566,18 +566,18 @@ fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused-
       }
       otherend = draw_following_tablets(nr, otherend, frontiertop, &frontierbottom);
     }else{ // DIRECTION_UP
-      otherend = draw_following_tablets(nr, otherend, frontiertop, &frontierbottom);
+      otherend = draw_previous_tablets(nr, otherend, &frontiertop, frontierbottom);
       if(otherend == NULL){
         return -1;
       }
-      otherend = draw_previous_tablets(nr, otherend, &frontiertop, frontierbottom);
+      otherend = draw_following_tablets(nr, otherend, frontiertop, &frontierbottom);
     }
     if(otherend == NULL){
       return -1;
     }
 notcurses_debug(nr->p->nc, stderr);
     tighten_reel(nr);
-fprintf(stderr, "done tightening\n");
+notcurses_debug(nr->p->nc, stderr);
   }
   nr->vft = nr->tablets; // update the visually-focused tablet pointer
 //fprintf(stderr, "DONE ARRANGING\n");
