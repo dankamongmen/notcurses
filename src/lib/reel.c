@@ -382,6 +382,79 @@ fprintf(stderr, "done with prevs: %p->%p %d %d\n", upworking, upworking->prev, *
   return upworking;
 }
 
+// Tablets are initially drawn assuming more space to be available than may
+// actually exist. We do a pass at the end trimming any overhang.
+static int
+trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
+  assert(top);
+  assert(top->p);
+  assert(bottom);
+  assert(bottom->p);
+  int y;
+fprintf(stderr, "trimming: top %p bottom %p\n", top->p, bottom->p);
+  ncplane_yx(top->p, &y, NULL);
+  int ylen, xlen;
+  ncplane_dim_yx(top->p, &ylen, &xlen);
+  const int miny = !(r->ropts.bordermask & NCBOXMASK_TOP);
+  int boty = y + ylen - 1;
+fprintf(stderr, "top: %dx%d @ %d, miny: %d\n", ylen, xlen, y, miny);
+  if(boty < miny){
+fprintf(stderr, "NUKING top!\n");
+    ncplane_genocide(top->p);
+    top->p = NULL;
+    top->cbp = NULL;
+    top = top->next;
+    return trim_reel_overhang(r, top, bottom); // FIXME need this at bottom?
+  }else if(y < miny){
+    const int ynew = ylen - (miny - y);
+    if(ynew <= 0){
+      ncplane_genocide(top->p);
+      top->p = NULL;
+      top->cbp = NULL;
+    }else{
+      if(ncplane_resize(top->p, miny - y, 0, ynew, xlen, 0, 0, ynew, xlen)){
+        return -1;
+      }
+      if(top->cbp){
+        if(ynew == 1){
+          ncplane_genocide(top->cbp);
+          top->cbp = NULL;
+        }else{
+          // FIXME resize cbp
+        }
+      }
+fprintf(stderr, "TRIMMED top %p from %d to %d (%d)\n", top->p, ylen, ynew, y - miny);
+    }
+  }
+  ncplane_dim_yx(bottom->p, &ylen, &xlen);
+  ncplane_yx(bottom->p, &y, NULL);
+  const int maxy = ncplane_dim_y(r->p) - (1 + !(r->ropts.bordermask & NCBOXMASK_BOTTOM));
+  boty = y + ylen - 1;
+fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
+  if(maxy < boty){
+    const int ynew = ylen - (boty - maxy);
+    if(ynew <= 0){
+      ncplane_genocide(bottom->p);
+      bottom->p = NULL;
+      bottom->cbp = NULL;
+    }else{
+      if(ncplane_resize(bottom->p, 0, 0, ynew, xlen, 0, 0, ynew, xlen)){
+        return -1;
+      }
+      if(bottom->cbp){
+        if(ynew == 1){
+          ncplane_genocide(bottom->cbp);
+          bottom->cbp = NULL;
+        }else{
+          // FIXME resize cbp
+        }
+      }
+fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
+    }
+  }
+  return 0;
+}
+
 static int
 tighten_reel_down(ncreel* r, int ybot){
   nctablet* cur = r->tablets;
@@ -397,7 +470,7 @@ tighten_reel_down(ncreel* r, int ybot){
     }
     cury = ybot - ylen;
     ncplane_move_yx(cur->p, cury, curx);
-fprintf(stderr, "tightened %p down to %d\n", cur, cury);
+//fprintf(stderr, "tightened %p down to %d\n", cur, cury);
     ybot = cury - 1;
     if((cur = cur->prev) == r->tablets){
       break;
@@ -410,7 +483,8 @@ fprintf(stderr, "tightened %p down to %d\n", cur, cury);
 // of the reel. we prefer empty space at the bottom (FIXME but not
 // really -- we ought prefer space away from the last direction of
 // movement. rather than this postprocessing, draw things to the
-// right places!).
+// right places!). we then trim any tablet overhang.
+// FIXME could pass top/bottom in directly, available as otherend
 static int
 tighten_reel(ncreel* r){
 fprintf(stderr, "tightening it up\n");
@@ -432,6 +506,7 @@ fprintf(stderr, "tightening it up\n");
   }
   int expected = !(r->ropts.bordermask & NCBOXMASK_TOP);
   cur = top;
+  nctablet* bottom = r->tablets;
   while(cur){
     if(cur->p == NULL){
       break;
@@ -449,6 +524,7 @@ fprintf(stderr, "tightened %p up to %d\n", cur, expected);
     int ylen;
     ncplane_dim_yx(cur->p, &ylen, NULL);
     expected += ylen + 1;
+    bottom = cur;
     cur = cur->next;
     if(cur == top){
       break;
@@ -465,10 +541,12 @@ fprintf(stderr, "tightened %p up to %d\n", cur, expected);
     // FIXME want to tighten down whenever we're at the bottom, and the reel
     // is full, not just in this case (this can leave a gap of more than 1 row)
     if(yoff + ylen + 1 >= ybot){
-      return tighten_reel_down(r, ybot);
+      if(tighten_reel_down(r, ybot)){
+        return -1;
+      }
     }
   }
-  return 0;
+  return trim_reel_overhang(r, top, bottom);
 }
 
 // destroy all existing tablet planes pursuant to redraw
@@ -575,7 +653,7 @@ fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy
     if(otherend == NULL){
       return -1;
     }
-//notcurses_debug(nr->p->nc, stderr);
+notcurses_debug(nr->p->nc, stderr);
     tighten_reel(nr);
 //notcurses_debug(nr->p->nc, stderr);
   }
