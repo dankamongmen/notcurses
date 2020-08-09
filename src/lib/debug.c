@@ -10,7 +10,7 @@ void notcurses_debug(notcurses* nc, FILE* debugfp){
             planeidx, n->absy, n->absx, n->leny, n->lenx, n->y, n->x,
             n, n->name ? n->name : "");
     if(n->boundto || n->bnext || n->bprev || n->blist){
-      fprintf(debugfp, " bound %p -> %p <- %p binds %p\n",
+      fprintf(debugfp, " bound %p → %p ← %p binds %p\n",
               n->boundto, n->bnext, n->bprev, n->blist);
     }
     if(n->bnext == n || n->boundto == n || n->blist == n){

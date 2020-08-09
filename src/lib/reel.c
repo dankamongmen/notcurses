@@ -299,10 +299,10 @@ fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", 
     ncplane_move_above(t->cbp, t->p);
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cblenx/cbleny: %d/%d dir: %d\n", lenx, leny, cbx, cby, cblenx, cbleny, direction);
     int ll = t->cbfxn(t, direction == DIRECTION_DOWN);
-fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbleny, leny, direction);
+//fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbleny, leny, direction);
     if(ll != cbleny - cby + 1){
       int diff = (cbleny - cby + 1) - ll;
-fprintf(stderr, "resizing data plane %d->%d\n", cbleny - cby + 1, ll);
+//fprintf(stderr, "resizing data plane %d->%d\n", cbleny - cby + 1, ll);
       ncplane_resize_simple(t->cbp, ll, cblenx - cbx + 1);
       ncplane_resize_simple(t->p, leny - diff, lenx);
       // We needn't move the resized plane if drawing down, or the focused plane.
@@ -315,10 +315,10 @@ fprintf(stderr, "resizing data plane %d->%d\n", cbleny - cby + 1, ll);
           frontiertop += (leny - ll);
         }
         ncplane_move_yx(fp, frontiertop, begx);
-fprintf(stderr, "moved to frontiertop %d\n", frontiertop);
+//fprintf(stderr, "moved to frontiertop %d\n", frontiertop);
       }else if(direction == DIRECTION_UP){
         ncplane_move_yx(fp, begy + diff, begx);
-fprintf(stderr, "MOVEDOWN from %d to %d\n", begy, begy + diff);
+//fprintf(stderr, "MOVEDOWN from %d to %d\n", begy, begy + diff);
       }
     }
   }
@@ -332,7 +332,7 @@ fprintf(stderr, "MOVEDOWN from %d to %d\n", begy, begy + diff);
 static nctablet*
 draw_following_tablets(const ncreel* nr, nctablet* otherend,
                        int frontiertop, int* frontierbottom){
-fprintf(stderr, "following otherend: %p ->p: %p %d/%d\n", otherend, otherend->p, frontiertop, *frontierbottom);
+//fprintf(stderr, "following otherend: %p ->p: %p %d/%d\n", otherend, otherend->p, frontiertop, *frontierbottom);
   nctablet* working = nr->tablets->next;
   const int maxx = ncplane_dim_y(nr->p) - 1;
   // move down past the focused tablet, filling up the reel to the bottom
@@ -342,7 +342,7 @@ fprintf(stderr, "following otherend: %p ->p: %p %d/%d\n", otherend, otherend->p,
     }
 //fprintf(stderr, "following otherend: %p ->p: %p\n", otherend, otherend->p);
     // modify frontier based off the one we're at
-fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiertop, *frontierbottom);
+//fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, frontiertop, *frontierbottom);
     if(ncreel_draw_tablet(nr, working, frontiertop, *frontierbottom, DIRECTION_DOWN)){
       return NULL;
     }
@@ -352,7 +352,7 @@ fprintf(stderr, "EASTBOUND AND DOWN: %p->%p %d %d\n", working, working->next, fr
     *frontierbottom += ncplane_dim_y(working->p) + 1;
     working = working->next;
   }
-fprintf(stderr, "done with prevs: %p->%p %d %d\n", working, working->prev, frontiertop, *frontierbottom);
+//fprintf(stderr, "done with prevs: %p->%p %d %d\n", working, working->prev, frontiertop, *frontierbottom);
   return working;
 }
 
