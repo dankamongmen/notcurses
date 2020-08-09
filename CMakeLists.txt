@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11.4)
 project(notcurses VERSION 1.6.11
-  DESCRIPTION "UI for modern terminal emulators"
+  DESCRIPTION "Blingful UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)
 set(CMAKE_CXX_EXTENSIONS OFF)
