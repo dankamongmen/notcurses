@@ -446,7 +446,10 @@ fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
           ncplane_genocide(bottom->cbp);
           bottom->cbp = NULL;
         }else{
-          // FIXME resize cbp
+          ncplane_dim_yx(bottom->cbp, &ylen, &xlen);
+          if(ncplane_resize(bottom->cbp, 0, 0, ynew - 1, xlen, 0, 0, ynew - 1, xlen)){
+            return -1;
+          }
         }
       }
 fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
