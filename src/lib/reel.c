@@ -303,7 +303,12 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
     if(ll != cbleny - cby + 1){
       int diff = (cbleny - cby + 1) - ll;
 //fprintf(stderr, "resizing data plane %d->%d\n", cbleny - cby + 1, ll);
-      ncplane_resize_simple(t->cbp, ll, cblenx - cbx + 1);
+      if(ll){
+        ncplane_resize_simple(t->cbp, ll, cblenx - cbx + 1);
+      }else{
+        ncplane_genocide(t->cbp);
+        t->cbp = NULL;
+      }
       ncplane_resize_simple(t->p, leny - diff, lenx);
       // We needn't move the resized plane if drawing down, or the focused plane.
       // The focused tablet will have been resized properly above, but it might
