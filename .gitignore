@@ -1,5 +1,4 @@
 build/
-debian/files
 obj-x86_64-linux-gnu
 python/.eggs/
 python/build/
@@ -9,7 +8,6 @@ python/src/notcurses.egg-info/
 python/src/_notcurses.so
 rust/*/target
 rust/*/Cargo.lock
-src/colloquy/target/
 *.pyc
 *.so
 *.swp
