@@ -297,11 +297,13 @@ void free_plane(ncplane* p){
 ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
                         int yoff, int xoff, void* opaque, const char* name){
   if(rows <= 0 || cols <= 0){
+    logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n", rows, cols);
     return NULL;
   }
   ncplane* p = malloc(sizeof(*p));
   size_t fbsize = sizeof(*p->fb) * (rows * cols);
   if((p->fb = malloc(fbsize)) == NULL){
+    logerror(nc, "Error allocating cellmatrix (r=%d, c=%d)\n", rows, cols);
     free(p);
     return NULL;
   }
@@ -346,6 +348,7 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
   }else{
     p->below = NULL;
   }
+  loginfo(nc, "Created new %dx%d plane @ %dx%d\n", rows, cols, yoff, xoff);
   return p;
 }
 
@@ -371,14 +374,30 @@ ncplane* ncplane_new(notcurses* nc, int rows, int cols, int yoff, int xoff, void
   return ncplane_create(nc, NULL, rows, cols, yoff, xoff, opaque, NULL);
 }
 
+ncplane* ncplane_new_named(notcurses* nc, int rows, int cols, int yoff,
+                           int xoff, void* opaque, const char* name){
+  return ncplane_create(nc, NULL, rows, cols, yoff, xoff, opaque, name);
+}
+
 ncplane* ncplane_bound(ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque){
   return ncplane_create(n->nc, n, rows, cols, yoff, xoff, opaque, NULL);
+}
+
+ncplane* ncplane_bound_named(ncplane* n, int rows, int cols, int yoff, int xoff,
+                             void* opaque, const char* name){
+  return ncplane_create(n->nc, n, rows, cols, yoff, xoff, opaque, name);
 }
 
 ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int yoff,
                          ncalign_e align, void* opaque){
   return ncplane_create(n->nc, n, rows, cols, yoff,
                         ncplane_align(n, align, cols), opaque, NULL);
+}
+
+ncplane* ncplane_aligned_named(ncplane* n, int rows, int cols, int yoff,
+                               ncalign_e align, void* opaque, const char* name){
+  return ncplane_create(n->nc, n, rows, cols, yoff,
+                        ncplane_align(n, align, cols), opaque, name);
 }
 
 void ncplane_home(ncplane* n){
@@ -583,13 +602,33 @@ int ncplane_destroy(ncplane* ncp){
       ncp->bnext->bprev = ncp->bprev;
     }
   }
-  if(ncp->blist){
-    // FIXME need unlink all on list
-    ncp->blist->bprev = NULL;
-    ncp->blist->bnext = NULL;
+  int ret = 0;
+  struct ncplane* bound = ncp->blist;
+  while(bound){
+    struct ncplane* tmp = bound->bnext;
+    if(ncplane_reparent(bound, ncp->boundto) == NULL){
+      ret = -1;
+    }
+    bound = tmp;
   }
   free_plane(ncp);
-  return 0;
+  return ret;
+}
+
+int ncplane_genocide(ncplane *ncp){
+  if(ncp == NULL){
+    return 0;
+  }
+  if(ncp->nc->stdplane == ncp){
+    logerror(ncp->nc, "Won't destroy standard plane\n");
+    return -1;
+  }
+  int ret = 0;
+  while(ncp->blist){
+    ret |= ncplane_genocide(ncp->blist);
+  }
+  ret |= ncplane_destroy(ncp);
+  return ret;
 }
 
 static int
@@ -2176,6 +2215,14 @@ notcurses* ncplane_notcurses(ncplane* n){
 
 const notcurses* ncplane_notcurses_const(const ncplane* n){
   return n->nc;
+}
+
+ncplane* ncplane_parent(ncplane* n){
+  return n->boundto;
+}
+
+const ncplane* ncplane_parent_const(const ncplane* n){
+  return n->boundto;
 }
 
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){

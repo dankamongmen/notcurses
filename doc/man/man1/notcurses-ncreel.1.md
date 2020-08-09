@@ -8,7 +8,7 @@ notcurses-ncreel - Experiment with ncreels
 
 # SYNOPSIS
 
-**notcurses-ncreel** [**-t tabletbordermask**] [**-b bordermask**] [**-ob bottomoffset**] [**-ot topoffset**] [**-ol leftoffset**] [**-or rightoffset**]
+**notcurses-ncreel** [**-t tabletbordermask**] [**-b bordermask**] [**-ob bottomoffset**] [**-ot topoffset**] [**-ol leftoffset**] [**-or rightoffset**] [**-ln**]
 
 # DESCRIPTION
 
@@ -17,6 +17,8 @@ program open, press 'a' to create a new tablet, or 'd' to delete the focused
 tablet (if one exists). 'q' quits at any time.
 
 # OPTIONS
+
+**-l loglevel**: Log everything (log level 8) or nothing (log level 0) to stderr.
 
 # NOTES
 

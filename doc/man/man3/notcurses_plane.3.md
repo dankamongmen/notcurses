@@ -12,11 +12,17 @@ notcurses_plane - operations on ncplanes
 
 **struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);**
 
+**struct ncplane* ncplane_new_named(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);**
+
 **struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque);**
 
-**struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);**
+**struct ncplane* ncplane_bound_named(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);**
 
 **struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);**
+
+**struct ncplane* ncplane_aligned_named(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque, const char* name);**
+
+**struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);**
 
 **struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);**
 
@@ -25,6 +31,10 @@ notcurses_plane - operations on ncplanes
 **int ncplane_move_yx(struct ncplane* n, int y, int x);**
 
 **void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);**
+
+**struct ncplane* ncplane_parent(struct ncplane* n);**
+
+**const struct ncplane* ncplane_parent_const(const struct ncplane* n);**
 
 **int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);**
 

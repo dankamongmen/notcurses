@@ -64,25 +64,25 @@ kill_active_tablet(struct ncreel* pr, tabletctx** tctx){
 // partially off-screen), but also leave unused space at the end (since
 // wresize() only keeps the top and left on a shrink).
 static int
-tabletup(struct ncplane* w, int begx, int begy, int maxx, int maxy,
-         tabletctx* tctx, int rgb){
+tabletup(struct ncplane* w, int maxy, tabletctx* tctx, int rgb){
   char cchbuf[2];
   cell c = CELL_TRIVIAL_INITIALIZER;
   int y, idx;
   idx = tctx->lines;
-  if(maxy - begy > tctx->lines){
-    maxy -= (maxy - begy - tctx->lines);
+  int maxx = ncplane_dim_x(w) - 1;
+  if(maxy > tctx->lines){
+    maxy = tctx->lines;
   }
 /*fprintf(stderr, "-OFFSET BY %d (%d->%d)\n", maxy - begy - tctx->lines,
         maxy, maxy - (maxy - begy - tctx->lines));*/
-  for(y = maxy ; y >= begy ; --y, rgb += 16){
+  for(y = maxy ; y >= 0 ; --y, rgb += 16){
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", idx % 16);
     cell_load(w, &c, cchbuf);
     if(cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
       return -1;
     }
     int x;
-    for(x = begx ; x <= maxx ; ++x){
+    for(x = 0 ; x <= maxx ; ++x){
       if(ncplane_putc_yx(w, y, x, &c) <= 0){
         return -1;
       }
@@ -97,57 +97,58 @@ tabletup(struct ncplane* w, int begx, int begy, int maxx, int maxy,
 }
 
 static int
-tabletdown(struct ncplane* w, int begx, int begy, int maxx, int maxy,
-           tabletctx* tctx, unsigned rgb){
+tabletdown(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
   char cchbuf[2];
   cell c = CELL_TRIVIAL_INITIALIZER;
   int y;
-  for(y = begy ; y <= maxy ; ++y, rgb += 16){
-    if(y - begy >= tctx->lines){
-      break;
-    }
+  int maxx = ncplane_dim_x(w) - 1;
+  if(maxy > tctx->lines){
+    maxy = tctx->lines;
+  }
+  for(y = 0 ; y <= maxy ; ++y, rgb += 16){
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", y % 16);
     cell_load(w, &c, cchbuf);
     if(cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
       return -1;
     }
     int x;
-    for(x = begx ; x <= maxx ; ++x){
+    for(x = 0 ; x <= maxx ; ++x){
       if(ncplane_putc_yx(w, y, x, &c) <= 0){
         return -1;
       }
     }
     cell_release(w, &c);
   }
-  return y - begy;
+  return y;
 }
 
 static int
-tabletdraw(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop){
+tabletdraw(struct nctablet* t, bool cliptop){
   struct ncplane* p = nctablet_ncplane(t);
   tabletctx* tctx = nctablet_userptr(t);
   pthread_mutex_lock(&tctx->lock);
   unsigned rgb = tctx->rgb;
   int ll;
+  int maxy = ncplane_dim_y(p);
   if(cliptop){
-    ll = tabletup(p, begx, begy, maxx, maxy, tctx, rgb);
+    ll = tabletup(p, maxy, tctx, rgb);
   }else{
-    ll = tabletdown(p, begx, begy, maxx, maxy, tctx, rgb);
+    ll = tabletdown(p, maxy, tctx, rgb);
   }
   ncplane_set_fg_rgb(p, 242, 242, 242);
   if(ll){
-    int summaryy = begy;
+    int summaryy = 0;
     if(cliptop){
-      if(ll == maxy - begy + 1){
+      if(ll == maxy + 1){
         summaryy = ll - 1;
       }else{
         summaryy = ll;
       }
     }
     ncplane_styles_on(p, NCSTYLE_BOLD);
-    if(ncplane_printf_yx(p, summaryy, begx, "[#%u %d line%s %u/%u] ",
+    if(ncplane_printf_yx(p, summaryy, 0, "[#%u %d line%s %u available] ",
                          tctx->id, tctx->lines, tctx->lines == 1 ? "" : "s",
-                         begy, maxy) < 0){
+                         maxy) < 0){
       pthread_mutex_unlock(&tctx->lock);
       return -1;
     }
@@ -184,7 +185,10 @@ tablet_thread(void* vtabletctx){
     pthread_mutex_lock(&renderlock);
     if(nctablet_ncplane(tctx->t)){
       ncreel_redraw(tctx->pr);
-      demo_render(ncplane_notcurses(nctablet_ncplane(tctx->t)));
+      struct ncplane* tplane = nctablet_ncplane(tctx->t);
+      if(tplane){
+        demo_render(ncplane_notcurses(tplane));
+      }
     }
     pthread_mutex_unlock(&renderlock);
   }

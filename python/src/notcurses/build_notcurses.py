@@ -96,15 +96,18 @@ int ncplane_base(struct ncplane* ncp, cell* c);
 struct ncplane* notcurses_top(struct notcurses* n);
 void notcurses_drop_planes(struct notcurses* nc);
 int notcurses_refresh(struct notcurses* n, int* restrict y, int* restrict x);
-struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);
-struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque);
 struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
 typedef enum {
   NCALIGN_LEFT,
   NCALIGN_CENTER,
   NCALIGN_RIGHT,
 } ncalign_e;
+struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);
+struct ncplane* ncplane_new_named(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);
+struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque);
+struct ncplane* ncplane_bound_named(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);
 struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);
+struct ncplane* ncplane_aligned_named(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque, const char* name);
 unsigned notcurses_supported_styles(const struct notcurses* nc);
 int notcurses_palette_size(const struct notcurses* nc);
 bool notcurses_cantruecolor(const struct notcurses* nc);
@@ -510,6 +513,8 @@ int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur, uint64_t l
 bool ncdirect_canopen_images(const struct ncdirect* n);
 bool ncdirect_canutf8(const struct ncdirect* n);
 nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncalign_e align, ncblitter_e blitter, ncscale_e scale);
+struct ncplane* ncplane_parent(struct ncplane* n);
+const struct ncplane* ncplane_parent_const(const struct ncplane* n);
 """)
 
 if __name__ == "__main__":

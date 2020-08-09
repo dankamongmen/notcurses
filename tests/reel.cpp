@@ -1,14 +1,68 @@
 #include "main.h"
 #include <iostream>
 
-auto panelcb(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop) -> int {
+auto panelcb(struct nctablet* t, bool toptobottom) -> int {
   CHECK(nctablet_ncplane(t));
-  CHECK(begx < maxx);
-  CHECK(begy < maxy);
   CHECK(!nctablet_userptr(t));
-  CHECK(!cliptop);
+  CHECK(toptobottom);
   // FIXME verify geometry is as expected
   return 0;
+}
+
+auto cbfxn(struct nctablet* t, bool toptobottom) -> int {
+  (void)toptobottom;
+  int* userptr = static_cast<int*>(nctablet_userptr(t));
+  int y;
+  ncplane_yx(nctablet_ncplane(t), &y, NULL);
+  *userptr += y;
+  return 4;
+}
+
+// debugging
+bool ncreel_validate(const ncreel* n){
+  if(n->tablets == NULL){
+    return true;
+  }
+  const nctablet* t = n->tablets;
+  int cury = -1;
+  bool wentaround = false;
+  do{
+    const ncplane* np = t->p;
+    if(np){
+      int y, x;
+      ncplane_yx(np, &y, &x);
+//fprintf(stderr, "forvart: %p (%p) @ %d\n", t, np, y);
+      if(y < cury){
+        if(wentaround){
+          return false;
+        }
+        wentaround = true;
+      }else if(y == cury){
+        return false;
+      }
+      cury = y;
+    }
+  }while((t = t->next) != n->tablets);
+  cury = INT_MAX;
+  wentaround = false;
+  do{
+    const ncplane* np = t->p;
+    if(np){
+      int y, x;
+      ncplane_yx(np, &y, &x);
+//fprintf(stderr, "backwards: %p (%p) @ %d\n", t, np, y);
+      if(y > cury){
+        if(wentaround){
+          return false;
+        }
+        wentaround = true;
+      }else if(y == cury){
+        return false;
+      }
+      cury = y;
+    }
+  }while((t = t->prev) != n->tablets);
+  return true;
 }
 
 TEST_CASE("Reels") {
@@ -38,6 +92,7 @@ TEST_CASE("Reels") {
     r.flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK(ncreel_validate(nr));
     REQUIRE(0 == ncreel_destroy(nr));
   }
 
@@ -56,9 +111,13 @@ TEST_CASE("Reels") {
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK(!ncreel_next(nr));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(!ncreel_prev(nr));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("OneTablet") {
@@ -67,9 +126,13 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(0 == ncreel_del(nr, t));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("MovementWithOneTablet") {
@@ -78,13 +141,21 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(ncreel_next(nr));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(ncreel_prev(nr));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
     CHECK(0 == ncreel_del(nr, t));
-    // CHECK_EQ(0, ncreel_validate(n_, pr));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("DeleteActiveTablet") {
@@ -94,6 +165,9 @@ TEST_CASE("Reels") {
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK(0 == ncreel_del(nr, ncreel_focused(nr)));
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("NoBorder") {
@@ -102,6 +176,9 @@ TEST_CASE("Reels") {
                     NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("BadBorderBitsRejected") {
@@ -117,6 +194,9 @@ TEST_CASE("Reels") {
                     NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("NoTopBottomBorder") {
@@ -124,6 +204,9 @@ TEST_CASE("Reels") {
     r.bordermask = NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("NoSideBorders") {
@@ -131,6 +214,9 @@ TEST_CASE("Reels") {
     r.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT;
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
   }
 
   SUBCASE("BadTabletBorderBitsRejected") {
@@ -140,90 +226,97 @@ TEST_CASE("Reels") {
     REQUIRE(!nr);
   }
 
-  /*
-  // Make a target window occupying all but a containing perimeter of the
-  // specified WINDOW (which will usually be n_).
-  struct ncpanel* make_targwin(struct ncpanel* w) {
-    cchar_t cc;
-    int cpair = COLOR_GREEN;
-    CHECK_EQ(OK, setcchar(&cc, L"W", 0, 0, &cpair));
-    int x, y, xx, yy;
-    getbegyx(w, y, x);
-    getmaxyx(w, yy, xx);
-    yy -= 2;
-    xx -= 2;
-    ++x;
-    ++y;
-    WINDOW* ww = subwin(w, yy, xx, y, x);
-    CHECK_NE(nullptr, ww);
-    PANEL* p = new_panel(ww);
-    CHECK_NE(nullptr, p);
-    CHECK_EQ(OK, wbkgrnd(ww, &cc));
-    return p;
-  }
-
-  SUBCASE("InitWithinSubwin") {
-    ncreel_options r{};
-    r.loff = 1;
-    r.roff = 1;
-    r.toff = 1;
-    r.boff = 1;
-    CHECK_EQ(0, clear());
-    PANEL* base = make_targwin(n_);
-    REQUIRE_NE(nullptr, base);
-    WINDOW* basew = panel_window(base);
-    REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r);
-    REQUIRE_NE(nullptr, pr);
-    CHECK_EQ(0, ncreel_validate(basew, pr));
-    REQUIRE_EQ(0, ncreel_destroy(nr));
-    CHECK_EQ(OK, del_panel(base));
-    CHECK_EQ(OK, delwin(basew));
-  }
-
-  SUBCASE("SubwinNoncreelBorders") {
-    ncreel_options r{};
-    r.loff = 1;
-    r.roff = 1;
-    r.toff = 1;
-    r.boff = 1;
-    r.bordermask = NCBOXMASK_LEFT | NCBOXMASK_RIGHT |
-                    NCBOXMASK_TOP | NCBOXMASK_BOTTOM;
-    CHECK_EQ(0, clear());
-    PANEL* base = make_targwin(n_);
-    REQUIRE_NE(nullptr, base);
-    WINDOW* basew = panel_window(base);
-    REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r);
-    REQUIRE_NE(nullptr, pr);
-    CHECK_EQ(0, ncreel_validate(basew, pr));
-    REQUIRE_EQ(0, ncreel_destroy(nr));
-    CHECK_EQ(OK, del_panel(base));
-    CHECK_EQ(OK, delwin(basew));
-  }
-
-  SUBCASE("SubwinNoOffsetGeom") {
-    ncreel_options r{};
-    CHECK_EQ(0, clear());
-    PANEL* base = make_targwin(n_);
-    REQUIRE_NE(nullptr, base);
-    WINDOW* basew = panel_window(base);
-    REQUIRE_NE(nullptr, basew);
-    struct ncreel* nr = ncreel_create(basew, &r);
-    REQUIRE_NE(nullptr, pr);
-    CHECK_EQ(0, ncreel_validate(basew, pr));
-    REQUIRE_EQ(0, ncreel_destroy(nr));
-    CHECK_EQ(OK, del_panel(base));
-    CHECK_EQ(OK, delwin(basew));
-  }
-  */
-
   SUBCASE("TransparentBackground") {
     ncreel_options r{};
     channels_set_bg_alpha(&r.bgchannel, 3);
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
-    // FIXME
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+  }
+
+  // Layout tests. Add some tablets, move around, and verify that they all
+  // have the expected locations/contents/geometries.
+  SUBCASE("ThreeCycleDown") {
+    ncreel_options r{};
+    channels_set_bg_alpha(&r.bgchannel, 3);
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    int order[3];
+    nctablet* tabs[3];
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      order[n] = -1;
+      tabs[n] = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[n]);
+      REQUIRE(tabs[n]);
+      CHECK(tabs[0] == nr->tablets);
+      CHECK_EQ(0, ncreel_redraw(nr));
+      CHECK_EQ(0, notcurses_render(nc_));
+      CHECK(ncreel_validate(nr));
+    }
+    int expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_LE(0, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 7;
+    }
+    ncreel_next(nr);
+    CHECK(tabs[1] == nr->tablets);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_LE(1, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 7;
+    }
+    ncreel_next(nr);
+    CHECK(tabs[2] == nr->tablets);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      //CHECK_EQ(2 - n + 2, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 7;
+    }
+    ncreel_prev(nr);
+    CHECK(tabs[1] == nr->tablets);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      //CHECK_EQ(2 - n + 3, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 7;
+    }
+    ncreel_prev(nr);
+    CHECK(tabs[0] == nr->tablets);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      //CHECK_EQ(2 - n + 4, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 7;
+    }
   }
 
   CHECK(0 == notcurses_stop(nc_));

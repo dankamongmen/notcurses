@@ -984,14 +984,30 @@ API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
 API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
                                 int yoff, int xoff, void* opaque);
 
-API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
-                                    int yoff, ncalign_e align, void* opaque);
+// Create a named plane ala ncplane_new(). Names are only used for debugging.
+API struct ncplane* ncplane_new_named(struct notcurses* nc, int rows, int cols,
+                                      int yoff, int xoff, void* opaque,
+                                      const char* name);
 
 // Create a plane bound to plane 'n'. Being bound to 'n' means that 'yoff' and
 // 'xoff' are interpreted relative to that plane's origin, and that if that
 // plane is moved later, this new plane is moved by the same amount.
 API struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols,
                                   int yoff, int xoff, void* opaque);
+
+// Create a named plane ala ncplane_bound(). Names are used only for debugging.
+API struct ncplane* ncplane_bound_named(struct ncplane* n, int rows, int cols,
+                                        int yoff, int xoff, void* opaque,
+                                        const char* name);
+
+// Create a plane bound to 'n', and aligned relative to it using 'align'.
+API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
+                                    int yoff, ncalign_e align, void* opaque);
+
+// Create a named plane ala ncplane_aligned(). Names are used only for debugging.
+API struct ncplane* ncplane_aligned_named(struct ncplane* n, int rows, int cols,
+                                          int yoff, ncalign_e align,
+                                          void* opaque, const char* name);
 
 // Plane 'n' will be unbound from its parent plane, if it is currently bound,
 // and will be made a bound child of 'newparent', if 'newparent' is not NULL.
@@ -1140,6 +1156,10 @@ API int ncplane_move_yx(struct ncplane* n, int y, int x);
 // Get the origin of this plane relative to the standard plane, or the plane to
 // which it is bound (if it is bound to a plane).
 API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+
+// Get the plane to which the plane 'n' is bound, if any.
+API struct ncplane* ncplane_parent(struct ncplane* n);
+API const struct ncplane* ncplane_parent_const(const struct ncplane* n);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
 API void ncplane_move_top(struct ncplane* n);
@@ -2463,22 +2483,10 @@ API struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts
 API struct ncplane* ncreel_plane(struct ncreel* pr);
 
 // Tablet draw callback, provided a tablet (from which the ncplane and userptr
-// may be extracted), the first column that may be used, the first row that may
-// be used, the first column that may not be used, the first row that may not
-// be used, and a bool indicating whether output ought be clipped at the top
-// (true) or bottom (false). Rows and columns are zero-indexed, and both are
-// relative to the tablet's plane.
-//
-// Regarding clipping: it is possible that the tablet is only partially
-// displayed on the screen. If so, it is either partially present on the top of
-// the screen, or partially present at the bottom. In the former case, the top
-// is clipped (cliptop will be true), and output ought start from the end. In
-// the latter case, cliptop is false, and output ought start from the beginning.
-//
-// Returns the number of lines of output, which ought be less than or equal to
-// maxy - begy, and non-negative (negative values might be used in the future).
-typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx,
-                        int maxy, bool cliptop);
+// may be extracted), and a bool indicating whether output ought be drawn from
+// the top (true) or bottom (false). Returns non-negative count of output lines,
+// which must be less than or equal to ncplane_dim_y(nctablet_plane(t)).
+typedef int (*tabletcb)(struct nctablet* t, bool drawfromtop);
 
 // Add a new nctablet to the provided ncreel, having the callback object
 // opaque. Neither, either, or both of after and before may be specified. If

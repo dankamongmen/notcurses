@@ -2,11 +2,23 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.6.12 (not yet released)
+  * `ncreel`s `tabletcb` callback function semantics are radically simplified.
+    No more worrying about borders that might or might not have been drawn;
+    simply fill up the plane that you're handed. This eliminates four of the
+    seven arguments to these callbacks. I hope the inconvenience of adapting
+    them is worth the elimination of complexity therein; I obviously think
+    it is =].
   * `ncselector_redraw()` and `ncmultiselector_redraw()` no longer call
     `notcurses_render()`. You will need to call `notcurses_render()` for the
     display to reflect any changes. `ncselector_create` now binds the plane
     it creates to the plane it was provided, and no longer checks to ensure
     the widget can be fit within the borders of this binding plane.
+  * Added `ncplane_new_named()`, `ncplane_bound_named()`, and
+    `ncplane_aligned_named()`. These would be the defaults, but I didn't want
+    to break existing code. They might become the defaults by 2.0. Names are
+    used only for debugging (`notcurses_debug()`) at this time.
+  * Added `ncplane_parent()` and `ncplane_parent_const()` for accessing the
+    plane to which a plane is bound.
 
 * 1.6.11 (2020-08-03)
   * `cell_egc_idx()` is no longer exported; it was never intended to be.
