@@ -217,7 +217,7 @@ fprintf(stderr, "jigsawing %p with %d/%d dir %d\n", t, frontiertop, frontierbott
     if(direction == DIRECTION_UP){
       return -1;
     }
-    frontierbottom = 0;
+    frontiertop = 0;
   }
   if(frontierbottom >= *leny){
     if(direction == DIRECTION_DOWN){
@@ -267,7 +267,7 @@ fprintf(stderr, "already drew %p: %p %p\n", t, t->p, t->cbp);
 fprintf(stderr, "no room: %p base %d/%d len %d/%d dir %d\n", t, begy, begx, leny, lenx, direction);
     return -1;
   }
-//fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
+fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
   ncplane* fp = ncplane_bound(nr->p, leny, lenx, begy, begx, NULL);
   if((t->p = fp) == NULL){
 fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy, begx);
