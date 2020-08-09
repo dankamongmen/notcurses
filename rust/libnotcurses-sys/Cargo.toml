@@ -29,3 +29,6 @@ pkg-config = "0.3.18"
 [dev-dependencies]
 serial_test = ">= 0.4.0"
 serial_test_derive = ">= 0.4.0"
+
+[lib]
+doctest = false
