@@ -448,6 +448,12 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
   }else if(nc->id == NCKEY_SCROLL_DOWN){
     ncselector_nextitem(n);
     return true;
+  }else if(nc->id == NCKEY_PGDOWN){
+    ncselector_nextitem(n); // FIXME should be a page's worth, or go to bottom
+    return true;
+  }else if(nc->id == NCKEY_PGUP){
+    ncselector_previtem(n); // FIXME should be a page's worth, or go to top
+    return true;
   }else if(nc->id == NCKEY_RELEASE){
     int y = nc->y, x = nc->x;
     if(!ncplane_translate_abs(n->ncp, &y, &x)){
@@ -691,6 +697,12 @@ bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
     return true;
   }else if(nc->id == NCKEY_DOWN){
     ncmultiselector_nextitem(n);
+    return true;
+  }else if(nc->id == NCKEY_PGDOWN){
+    ncmultiselector_nextitem(n); // FIXME should be a page's worth, or go to bottom
+    return true;
+  }else if(nc->id == NCKEY_PGUP){
+    ncmultiselector_previtem(n); // FIXME should be a page's worth, or go to top
     return true;
   }else if(nc->id == NCKEY_SCROLL_UP){
     ncmultiselector_previtem(n);
