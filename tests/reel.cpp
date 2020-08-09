@@ -13,7 +13,7 @@ auto cbfxn(struct nctablet* t, bool toptobottom) -> int {
   (void)toptobottom;
   int* userptr = static_cast<int*>(nctablet_userptr(t));
   int y;
-  ncplane_yx(ncplane_parent(nctablet_ncplane(t)), &y, NULL);
+  ncplane_yx(nctablet_ncplane(t), &y, NULL);
   *userptr += y;
   return 4;
 }
@@ -257,22 +257,26 @@ TEST_CASE("Reels") {
       CHECK_EQ(0, notcurses_render(nc_));
       CHECK(ncreel_validate(nr));
     }
+    int expectedy = 1;
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      //CHECK_GT(-1, order[n]);
+      CHECK_LE(0, order[n]);
       int y;
       ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
-      // FIXME
+      CHECK(y == expectedy);
+      expectedy += 7;
     }
     ncreel_next(nr);
     CHECK(tabs[1] == nr->tablets);
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
+    expectedy = 1;
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      //CHECK_EQ(2 - n + 1, order[n]);
+      CHECK_LE(1, order[n]);
       int y;
       ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
-      // FIXME
+      CHECK(y == expectedy);
+      expectedy += 7;
     }
     ncreel_next(nr);
     CHECK(tabs[2] == nr->tablets);
