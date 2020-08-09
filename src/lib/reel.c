@@ -362,13 +362,13 @@ static nctablet*
 draw_previous_tablets(const ncreel* nr, nctablet* otherend,
                       int* frontiertop, int frontierbottom){
   nctablet* upworking = nr->tablets->prev;
-fprintf(stderr, "preceding %p otherend: %p ->p: %p frontiers: %d %d\n", upworking, otherend, otherend->p, *frontiertop, frontierbottom);
+//fprintf(stderr, "preceding %p otherend: %p ->p: %p frontiers: %d %d\n", upworking, otherend, otherend->p, *frontiertop, frontierbottom);
   // modify frontier based off the one we're at
   while(*frontiertop >= 0 && (upworking != otherend || !otherend->p)){
     if(upworking->p){
       break;
     }
-fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, *frontiertop, frontierbottom);
+//fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, *frontiertop, frontierbottom);
     if(ncreel_draw_tablet(nr, upworking, *frontiertop, frontierbottom, DIRECTION_UP)){
       return NULL;
     }
@@ -378,7 +378,7 @@ fprintf(stderr, "MOVIN' ON UP: %p->%p %d %d\n", upworking, upworking->prev, *fro
     *frontiertop -= ncplane_dim_y(upworking->p) + 1;
     upworking = upworking->prev;
   }
-fprintf(stderr, "done with prevs: %p->%p %d %d\n", upworking, upworking->prev, *frontiertop, frontierbottom);
+//fprintf(stderr, "done with prevs: %p->%p %d %d\n", upworking, upworking->prev, *frontiertop, frontierbottom);
   return upworking;
 }
 
@@ -452,6 +452,7 @@ fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
 fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
     }
   }
+fprintf(stderr, "finished trimming\n");
   return 0;
 }
 
@@ -627,11 +628,11 @@ fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy
   }
   clean_reel(nr);
   if(focused){
-//fprintf(stderr, "drawing focused tablet %p dir: %d fulcrum: %d!\n", focused, nr->direction, fulcrum);
+fprintf(stderr, "drawing focused tablet %p dir: %d fulcrum: %d!\n", focused, nr->direction, fulcrum);
     if(ncreel_draw_tablet(nr, focused, fulcrum, fulcrum, DIRECTION_DOWN)){
       return -1;
     }
-//fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused->p, nr->direction);
+fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused->p, nr->direction);
     nctablet* otherend = focused;
     int frontiertop, frontierbottom;
     ncplane_yx(nr->tablets->p, &frontiertop, NULL);
@@ -775,7 +776,7 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
     nr->direction = LASTDIRECTION_DOWN;
   }
   if(nr->vft == t){
-    nr->vft = NULL;
+    clean_reel(nr); // maybe just make nr->tablets the vft?
   }
   t->next->prev = t->prev;
   if(t->p){
