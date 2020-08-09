@@ -53,7 +53,8 @@ static struct ncmselector_item mselect_items[] = {
 };
 
 static struct ncmultiselector*
-multiselector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
+multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx,
+                   int y, pthread_mutex_t* lock){
   struct notcurses* nc = ncplane_notcurses(n);
   ncmultiselector_options mopts = {
     .maxdisplay = 8,
@@ -70,14 +71,16 @@ multiselector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
   channels_set_bg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
   pthread_mutex_lock(lock);
   struct ncmultiselector* mselector = ncmultiselector_create(n, y, 0, &mopts);
-  pthread_mutex_unlock(lock);
   if(mselector == NULL){
+    pthread_mutex_unlock(lock);
     return NULL;
   }
+  struct ncplane* mplane = ncmultiselector_plane(mselector);
+  ncplane_move_below(mplane, under);
+  pthread_mutex_unlock(lock);
   struct timespec swoopdelay;
   timespec_div(&demodelay, dimx / 3, &swoopdelay);
   pthread_mutex_lock(lock);
-  struct ncplane* mplane = ncmultiselector_plane(mselector);
   int length = ncplane_dim_x(mplane);
   ncplane_move_yx(mplane, y, -length);
   pthread_mutex_unlock(lock);
@@ -145,7 +148,8 @@ draw_background(struct notcurses* nc){
 }
 
 static struct ncselector*
-selector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
+selector_demo(struct ncplane* n, struct ncplane* under, int dimx,
+              int y, pthread_mutex_t* lock){
   struct notcurses* nc = ncplane_notcurses(n);
   ncselector_options sopts = {
     .title = "single-item selector",
@@ -163,11 +167,13 @@ selector_demo(struct ncplane* n, int dimx, int y, pthread_mutex_t* lock){
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   pthread_mutex_lock(lock);
   struct ncselector* selector = ncselector_create(n, y, dimx, &sopts);
-  pthread_mutex_unlock(lock);
   if(selector == NULL){
+    pthread_mutex_unlock(lock);
     return NULL;
   }
   struct ncplane* splane = ncselector_plane(selector);
+  ncplane_move_below(splane, under);
+  pthread_mutex_unlock(lock);
   struct timespec swoopdelay;
   timespec_div(&demodelay, dimx / 3, &swoopdelay);
   ncinput ni;
@@ -352,8 +358,8 @@ int zoo_demo(struct notcurses* nc){
     pthread_mutex_destroy(&lock);
     return -1;
   }
-  struct ncselector* selector = selector_demo(n, dimx, 2, &lock);
-  struct ncmultiselector* mselector = multiselector_demo(n, dimx, 8, &lock); // FIXME calculate from splane
+  struct ncselector* selector = selector_demo(n, ncreader_plane(reader), dimx, 2, &lock);
+  struct ncmultiselector* mselector = multiselector_demo(n, ncreader_plane(reader), dimx, 8, &lock); // FIXME calculate from splane
   if(selector == NULL || mselector == NULL){
     goto err;
   }
