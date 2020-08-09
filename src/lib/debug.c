@@ -6,9 +6,9 @@ void notcurses_debug(notcurses* nc, FILE* debugfp){
   int planeidx = 0;
   fprintf(debugfp, "*************************** notcurses debug state *****************************\n");
   while(n){
-    fprintf(debugfp, "%04d off y: %3d x: %3d geom y: %3d x: %3d curs y: %3d x: %3d %06llx %.8s\n",
+    fprintf(debugfp, "%04d off y: %3d x: %3d geom y: %3d x: %3d curs y: %3d x: %3d %p %.8s\n",
             planeidx, n->absy, n->absx, n->leny, n->lenx, n->y, n->x,
-            (uintptr_t)n % 0x100000000ull, n->name ? n->name : "");
+            n, n->name ? n->name : "");
     if(n->boundto || n->bnext || n->bprev || n->blist){
       fprintf(debugfp, " bound %p -> %p <- %p binds %p\n",
               n->boundto, n->bnext, n->bprev, n->blist);

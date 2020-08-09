@@ -12,11 +12,17 @@ notcurses_plane - operations on ncplanes
 
 **struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);**
 
+**struct ncplane* ncplane_new_named(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);**
+
 **struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque);**
 
-**struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);**
+**struct ncplane* ncplane_bound_named(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);**
 
 **struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);**
+
+**struct ncplane* ncplane_aligned_named(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque, const char* name);**
+
+**struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);**
 
 **struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);**
 

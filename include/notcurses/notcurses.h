@@ -984,14 +984,30 @@ API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
 API struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
                                 int yoff, int xoff, void* opaque);
 
-API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
-                                    int yoff, ncalign_e align, void* opaque);
+// Create a named plane ala ncplane_new(). Names are only used for debugging.
+API struct ncplane* ncplane_new_named(struct notcurses* nc, int rows, int cols,
+                                      int yoff, int xoff, void* opaque,
+                                      const char* name);
 
 // Create a plane bound to plane 'n'. Being bound to 'n' means that 'yoff' and
 // 'xoff' are interpreted relative to that plane's origin, and that if that
 // plane is moved later, this new plane is moved by the same amount.
 API struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols,
                                   int yoff, int xoff, void* opaque);
+
+// Create a named plane ala ncplane_bound(). Names are used only for debugging.
+API struct ncplane* ncplane_bound_named(struct ncplane* n, int rows, int cols,
+                                        int yoff, int xoff, void* opaque,
+                                        const char* name);
+
+// Create a plane bound to 'n', and aligned relative to it using 'align'.
+API struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
+                                    int yoff, ncalign_e align, void* opaque);
+
+// Create a named plane ala ncplane_aligned(). Names are used only for debugging.
+API struct ncplane* ncplane_aligned_named(struct ncplane* n, int rows, int cols,
+                                          int yoff, ncalign_e align,
+                                          void* opaque, const char* name);
 
 // Plane 'n' will be unbound from its parent plane, if it is currently bound,
 // and will be made a bound child of 'newparent', if 'newparent' is not NULL.

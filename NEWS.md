@@ -7,6 +7,10 @@ rearrangements of Notcurses.
     display to reflect any changes. `ncselector_create` now binds the plane
     it creates to the plane it was provided, and no longer checks to ensure
     the widget can be fit within the borders of this binding plane.
+  * Added `ncplane_new_named()`, `ncplane_bound_named()`, and
+    `ncplane_aligned_named()`. These would be the defaults, but I didn't want
+    to break existing code. They might become the defaults by 2.0. Names are
+    used only for debugging (`notcurses_debug()`) at this time.
   * Added `ncplane_parent()` and `ncplane_parent_const()` for accessing the
     plane to which a plane is bound.
 

@@ -575,6 +575,7 @@ fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused-
     if(otherend == NULL){
       return -1;
     }
+notcurses_debug(nr->p->nc, stderr);
     tighten_reel(nr);
 fprintf(stderr, "done tightening\n");
   }
