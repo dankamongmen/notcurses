@@ -60,6 +60,7 @@ void usage(const char* argv0, std::ostream& c, int status){
   c << "usage: " << argv0 << " [ -h ] | options\n"
     << " -b bordermask: hex ncreel border mask (0x0..0xf)\n"
     << " -m margin(s): margin(s) around the reel\n"
+    << " -ln: logging level, higher n for more output (0 ≤ n ≤ 8)\n"
     << " -t tabletmask: hex tablet border mask (0x0..0xf)" << std::endl;
   exit(status);
 }
@@ -70,9 +71,19 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
     { .name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0, },
   };
   int c;
-  while((c = getopt_long(argc, argv, "b:t:m:h", longopts, nullptr)) != -1){
+  while((c = getopt_long(argc, argv, "l:b:t:m:h", longopts, nullptr)) != -1){
     switch(c){
-      case 'b':{
+      case 'l':{
+        int loglevel;
+        std::stringstream s(optarg);
+        s >> loglevel;
+        opts->loglevel = static_cast<ncloglevel_e>(loglevel);
+        if(opts->loglevel < NCLOGLEVEL_SILENT || opts->loglevel > NCLOGLEVEL_TRACE){
+          fprintf(stderr, "Invalid log level: %d\n", opts->loglevel);
+          usage(argv[0], std::cerr, EXIT_FAILURE);
+        }
+        break;
+      }case 'b':{
         std::stringstream ss;
         ss << std::hex << optarg;
         ss >> ropts->bordermask;
@@ -181,7 +192,6 @@ int main(int argc, char** argv){
   int margin_r = ncopts.margin_r;
   int margin_b = ncopts.margin_b;
   ncopts.margin_t = ncopts.margin_l = ncopts.margin_r = ncopts.margin_b = 0;
-  ncopts.loglevel = NCLOGLEVEL_VERBOSE;
   auto nc = notcurses_init(&ncopts, NULL);
   if(nc == nullptr){
     return EXIT_FAILURE;

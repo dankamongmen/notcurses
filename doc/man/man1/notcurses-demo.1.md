@@ -55,7 +55,7 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 
 **-d delaymult**: Apply a non-negative rational multiplier to the standard delay of 1s.
 
-**-l loglevel**: Log everything (high log level) or nothing (log level 0) to stderr.
+**-l loglevel**: Log everything (log level 8) or nothing (log level 0) to stderr.
 
 **-f renderfile**: Render each frame to **renderfile** in addition to the screen.
 

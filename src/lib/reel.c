@@ -267,7 +267,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
 //fprintf(stderr, "no room: %p base %d/%d len %d/%d dir %d\n", t, begy, begx, leny, lenx, direction);
     return -1;
   }
-fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
+//fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
   ncplane* fp = ncplane_bound_named(nr->p, leny, lenx, begy, begx, NULL, "tab");
   if((t->p = fp) == NULL){
 //fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy, begx);
@@ -391,15 +391,15 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   assert(bottom);
   assert(bottom->p);
   int y;
-fprintf(stderr, "trimming: top %p bottom %p\n", top->p, bottom->p);
+//fprintf(stderr, "trimming: top %p bottom %p\n", top->p, bottom->p);
   ncplane_yx(top->p, &y, NULL);
   int ylen, xlen;
   ncplane_dim_yx(top->p, &ylen, &xlen);
   const int miny = !(r->ropts.bordermask & NCBOXMASK_TOP);
   int boty = y + ylen - 1;
-fprintf(stderr, "top: %dx%d @ %d, miny: %d\n", ylen, xlen, y, miny);
+//fprintf(stderr, "top: %dx%d @ %d, miny: %d\n", ylen, xlen, y, miny);
   if(boty < miny){
-fprintf(stderr, "NUKING top!\n");
+//fprintf(stderr, "NUKING top!\n");
     ncplane_genocide(top->p);
     top->p = NULL;
     top->cbp = NULL;
@@ -420,17 +420,23 @@ fprintf(stderr, "NUKING top!\n");
           ncplane_genocide(top->cbp);
           top->cbp = NULL;
         }else{
-          // FIXME resize cbp
+          ncplane_dim_yx(top->cbp, &ylen, &xlen);
+          if(ncplane_resize(top->cbp, miny - y, 0, ynew - 1, xlen, 0, 0, ynew - 1, xlen)){
+            return -1;
+          }
+          int x;
+          ncplane_yx(top->cbp, &y, &x);
+          ncplane_move_yx(top->cbp, y - 1, x);
         }
       }
-fprintf(stderr, "TRIMMED top %p from %d to %d (%d)\n", top->p, ylen, ynew, y - miny);
+//fprintf(stderr, "TRIMMED top %p from %d to %d (%d)\n", top->p, ylen, ynew, y - miny);
     }
   }
   ncplane_dim_yx(bottom->p, &ylen, &xlen);
   ncplane_yx(bottom->p, &y, NULL);
   const int maxy = ncplane_dim_y(r->p) - (1 + !(r->ropts.bordermask & NCBOXMASK_BOTTOM));
   boty = y + ylen - 1;
-fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
+//fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
   if(maxy < boty){
     const int ynew = ylen - (boty - maxy);
     if(ynew <= 0){
@@ -452,10 +458,10 @@ fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
           }
         }
       }
-fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
+//fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
     }
   }
-fprintf(stderr, "finished trimming\n");
+//fprintf(stderr, "finished trimming\n");
   return 0;
 }
 
@@ -491,7 +497,7 @@ tighten_reel_down(ncreel* r, int ybot){
 // FIXME could pass top/bottom in directly, available as otherend
 static int
 tighten_reel(ncreel* r){
-fprintf(stderr, "tightening it up\n");
+//fprintf(stderr, "tightening it up\n");
   nctablet* top = r->tablets;
   nctablet* cur = top;
   int ytop = INT_MAX;
@@ -519,7 +525,7 @@ fprintf(stderr, "tightening it up\n");
     ncplane_yx(cur->p, &cury, &curx);
     if(cury != expected){
       if(ncplane_move_yx(cur->p, expected, curx)){
-fprintf(stderr, "tightened %p up to %d\n", cur, expected);
+//fprintf(stderr, "tightened %p up to %d\n", cur, expected);
         return -1;
       }
     }else{
@@ -586,7 +592,7 @@ clean_reel(ncreel* r){
 // place relative to the new focus; they could otherwise pivot around the new
 // focus, if we're not filling out the reel.
 int ncreel_redraw(ncreel* nr){
-fprintf(stderr, "\n--------> BEGIN REDRAW <--------\n");
+//fprintf(stderr, "\n--------> BEGIN REDRAW <--------\n");
   nctablet* focused = nr->tablets;
   int fulcrum; // target line
   if(nr->direction == LASTDIRECTION_UP){
@@ -595,17 +601,17 @@ fprintf(stderr, "\n--------> BEGIN REDRAW <--------\n");
     // visibly-focused tablet.
     if(!focused || !focused->p || !nr->vft){
       fulcrum = 0;
-fprintf(stderr, "case i fulcrum %d\n", fulcrum);
+//fprintf(stderr, "case i fulcrum %d\n", fulcrum);
     }else{
       int focy, vfty;
       ncplane_yx(focused->p, &focy, NULL);
       ncplane_yx(nr->vft->p, &vfty, NULL);
       if(focy > vfty){
         fulcrum = 0;
-fprintf(stderr, "case i fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
+//fprintf(stderr, "case i fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
       }else{
         ncplane_yx(focused->p, &fulcrum, NULL); // case iii
-fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy, vfty, focused, nr->vft, nr->direction);
+//fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy, vfty, focused, nr->vft, nr->direction);
       }
     }
   }else{
@@ -614,28 +620,28 @@ fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy
     // visibly-focused tablet.
     if(!focused || !focused->p || !nr->vft){
       fulcrum = ncplane_dim_y(nr->p) - 1;
-fprintf(stderr, "case ii fulcrum %d\n", fulcrum);
+//fprintf(stderr, "case ii fulcrum %d\n", fulcrum);
     }else{
       int focy, vfty;
-fprintf(stderr, "focused: %p\n", focused);
+//fprintf(stderr, "focused: %p\n", focused);
       ncplane_yx(focused->p, &focy, NULL);
       ncplane_yx(nr->vft->p, &vfty, NULL);
       if(focy < vfty){
         fulcrum = ncplane_dim_y(nr->p) - 1;
-fprintf(stderr, "case ii fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
+//fprintf(stderr, "case ii fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
       }else{
         ncplane_yx(focused->p, &fulcrum, NULL); // case iii
-fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy, vfty, focused, nr->vft, nr->direction);
+//fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy, vfty, focused, nr->vft, nr->direction);
       }
     }
   }
   clean_reel(nr);
   if(focused){
-fprintf(stderr, "drawing focused tablet %p dir: %d fulcrum: %d!\n", focused, nr->direction, fulcrum);
+//fprintf(stderr, "drawing focused tablet %p dir: %d fulcrum: %d!\n", focused, nr->direction, fulcrum);
     if(ncreel_draw_tablet(nr, focused, fulcrum, fulcrum, DIRECTION_DOWN)){
       return -1;
     }
-fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused->p, nr->direction);
+//fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused->p, nr->direction);
     nctablet* otherend = focused;
     int frontiertop, frontierbottom;
     ncplane_yx(nr->tablets->p, &frontiertop, NULL);
@@ -657,8 +663,10 @@ fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused-
     if(otherend == NULL){
       return -1;
     }
-notcurses_debug(nr->p->nc, stderr);
-    tighten_reel(nr);
+//notcurses_debug(nr->p->nc, stderr);
+    if(tighten_reel(nr)){
+      return -1;
+    }
 //notcurses_debug(nr->p->nc, stderr);
   }
   nr->vft = nr->tablets; // update the visually-focused tablet pointer
@@ -818,7 +826,7 @@ nctablet* ncreel_focused(ncreel* nr){
 nctablet* ncreel_next(ncreel* nr){
   if(nr->tablets){
     nr->tablets = nr->tablets->next;
-fprintf(stderr, "---------------> moved to next, %p to %p <----------\n", nr->tablets->prev, nr->tablets);
+//fprintf(stderr, "---------------> moved to next, %p to %p <----------\n", nr->tablets->prev, nr->tablets);
     nr->direction = LASTDIRECTION_DOWN;
   }
   return nr->tablets;
@@ -827,7 +835,7 @@ fprintf(stderr, "---------------> moved to next, %p to %p <----------\n", nr->ta
 nctablet* ncreel_prev(ncreel* nr){
   if(nr->tablets){
     nr->tablets = nr->tablets->prev;
-fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n", nr->tablets->next, nr->tablets);
+//fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n", nr->tablets->next, nr->tablets);
     nr->direction = LASTDIRECTION_UP;
   }
   return nr->tablets;
