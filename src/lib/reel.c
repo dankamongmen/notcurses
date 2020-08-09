@@ -209,7 +209,7 @@ static int
 tablet_geom(const ncreel* nr, nctablet* t, int* begx, int* begy,
             int* lenx, int* leny, int frontiertop, int frontierbottom,
             direction_e direction){
-fprintf(stderr, "jigsawing %p with %d/%d dir %d\n", t, frontiertop, frontierbottom, direction);
+//fprintf(stderr, "jigsawing %p with %d/%d dir %d\n", t, frontiertop, frontierbottom, direction);
   *begy = 0;
   *begx = 0;
   ncplane_dim_yx(nr->p, leny, lenx);
@@ -259,18 +259,18 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
                    int frontierbottom, direction_e direction){
   assert(!t->p);
   if(t->p || t->cbp){
-fprintf(stderr, "already drew %p: %p %p\n", t, t->p, t->cbp);
+//fprintf(stderr, "already drew %p: %p %p\n", t, t->p, t->cbp);
     return -1;
   }
   int lenx, leny, begy, begx;
   if(tablet_geom(nr, t, &begx, &begy, &lenx, &leny, frontiertop, frontierbottom, direction)){
-fprintf(stderr, "no room: %p base %d/%d len %d/%d dir %d\n", t, begy, begx, leny, lenx, direction);
+//fprintf(stderr, "no room: %p base %d/%d len %d/%d dir %d\n", t, begy, begx, leny, lenx, direction);
     return -1;
   }
 fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
-  ncplane* fp = ncplane_bound(nr->p, leny, lenx, begy, begx, NULL);
+  ncplane* fp = ncplane_bound_named(nr->p, leny, lenx, begy, begx, NULL, "tab");
   if((t->p = fp) == NULL){
-fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy, begx);
+//fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy, begx);
     return -1;
   }
   // we allow the callback to use a bound plane that lives above our border
@@ -289,9 +289,9 @@ fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy,
     ++cbx;
   }
   if(cbleny - cby + 1 > 0){
-    t->cbp = ncplane_bound(t->p, cbleny - cby + 1, cblenx - cbx + 1, cby, cbx, NULL);
+    t->cbp = ncplane_bound_named(t->p, cbleny - cby + 1, cblenx - cbx + 1, cby, cbx, NULL, "tdat");
     if(t->cbp == NULL){
-fprintf(stderr, "failure creating data plane %d %d %d %d\n", cbleny - cby + 1, cblenx - cbx + 1, cby, cbx);
+//fprintf(stderr, "failure creating data plane %d %d %d %d\n", cbleny - cby + 1, cblenx - cbx + 1, cby, cbx);
       ncplane_destroy(t->p);
       t->p = NULL;
       return -1;
@@ -477,18 +477,18 @@ clean_reel(ncreel* r){
   nctablet* vft = r->vft;
   if(vft){
     for(nctablet* n = vft->next ; n->p && n != vft ; n = n->next){
-fprintf(stderr, "CLEANING NEXT: %p (%p)\n", n, n->p);
+//fprintf(stderr, "CLEANING NEXT: %p (%p)\n", n, n->p);
       ncplane_genocide(n->p);
       n->p = NULL;
       n->cbp = NULL;
     }
     for(nctablet* n = vft->prev ; n->p && n != vft ; n = n->prev){
-fprintf(stderr, "CLEANING PREV: %p (%p)\n", n, n->p);
+//fprintf(stderr, "CLEANING PREV: %p (%p)\n", n, n->p);
       ncplane_genocide(n->p);
       n->p = NULL;
       n->cbp = NULL;
     }
-fprintf(stderr, "CLEANING VFT: %p (%p)\n", vft, vft->p);
+//fprintf(stderr, "CLEANING VFT: %p (%p)\n", vft, vft->p);
     ncplane_genocide(vft->p);
     vft->p = NULL;
     vft->cbp = NULL;
@@ -549,11 +549,11 @@ fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy
   }
   clean_reel(nr);
   if(focused){
-fprintf(stderr, "drawing focused tablet %p dir: %d fulcrum: %d!\n", focused, nr->direction, fulcrum);
+//fprintf(stderr, "drawing focused tablet %p dir: %d fulcrum: %d!\n", focused, nr->direction, fulcrum);
     if(ncreel_draw_tablet(nr, focused, fulcrum, fulcrum, DIRECTION_DOWN)){
       return -1;
     }
-fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused->p, nr->direction);
+//fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused->p, nr->direction);
     nctablet* otherend = focused;
     int frontiertop, frontierbottom;
     ncplane_yx(nr->tablets->p, &frontiertop, NULL);
@@ -575,9 +575,9 @@ fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused-
     if(otherend == NULL){
       return -1;
     }
-notcurses_debug(nr->p->nc, stderr);
+//notcurses_debug(nr->p->nc, stderr);
     tighten_reel(nr);
-notcurses_debug(nr->p->nc, stderr);
+//notcurses_debug(nr->p->nc, stderr);
   }
   nr->vft = nr->tablets; // update the visually-focused tablet pointer
 //fprintf(stderr, "DONE ARRANGING\n");
