@@ -1,23 +1,30 @@
 [package]
 name = "libnotcurses-sys"
+version = "1.6.11"
 authors = ["nick black <dankamongmen@gmail.com>"]
 license = "Apache-2.0"
-description = "Low-level rust bindings for the notcurses C library."
+edition = "2018"
+description = "Low-level Rust bindings for the notcurses C library."
 repository = "https://github.com/dankamongmen/notcurses"
 homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
-version = "1.6.11"
 links = "notcurses"
 build = "build.rs"
-edition = "2018"
-categories = ["external-ffi-bindings"]
+categories = [
+	"external-ffi-bindings",
+	"command-line-interface",
+	"visualization",
+	"multimedia",
+	"rendering",
+	]
+keywords = ["tui", "cli", "terminal", "ncurses", "ffi"]
 
 [dependencies]
-libc = "0.2.66"
+libc = "0.2.74"
 
 [build-dependencies]
 bindgen = ">= 0.52.0"
 cc = "1.0"
-pkg-config = "0.3.17"
+pkg-config = "0.3.18"
 
 [dev-dependencies]
 serial_test = ">= 0.4.0"
