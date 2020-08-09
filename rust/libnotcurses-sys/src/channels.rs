@@ -1,7 +1,3 @@
-#![allow(dead_code)]
-
-use crate as ffi;
-
 // NOTE: There are several differences from the original functions in C:
 //
 // - The channel components are u8 instead of u32. Because of type enforcing by the
@@ -25,13 +21,11 @@ use crate as ffi;
 //   - `channels_set_fg_alpha()`
 //   - `channels_set_bg_alpha()`
 //
+#![allow(dead_code)]
 
-pub type Channel = u32;
-pub type ChannelPair = u64;
-pub type Color = u8;
-pub type Rgb = u32;
-pub type Alpha = u32;
-pub type IntResult = i32; // -1 == err
+use crate as ffi;
+
+use crate::types::{Alpha, Channel, ChannelPair, Color, IntResult, Rgb};
 
 /// Extract the 8-bit red component from a 32-bit channel.
 #[inline]
@@ -331,7 +325,7 @@ pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
 
 #[cfg(test)]
 mod test {
-    use super::{Channel, ChannelPair};
+    use super::{ffi, Channel, ChannelPair};
     use serial_test::serial;
 
     #[test]
