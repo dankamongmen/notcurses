@@ -404,7 +404,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
     top->p = NULL;
     top->cbp = NULL;
     top = top->next;
-    return trim_reel_overhang(r, top, bottom); // FIXME need this at bottom?
+    return trim_reel_overhang(r, top, bottom);
   }else if(y < miny){
     const int ynew = ylen - (miny - y);
     if(ynew <= 0){
@@ -437,7 +437,13 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   const int maxy = ncplane_dim_y(r->p) - (1 + !(r->ropts.bordermask & NCBOXMASK_BOTTOM));
   boty = y + ylen - 1;
 //fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
-  if(maxy < boty){
+  if(maxy < y){
+    ncplane_genocide(bottom->p);
+    bottom->p = NULL;
+    bottom->cbp = NULL;
+    bottom = bottom->prev;
+    return trim_reel_overhang(r, top, bottom);
+  }if(maxy < boty){
     const int ynew = ylen - (boty - maxy);
     if(ynew <= 0){
       ncplane_genocide(bottom->p);
