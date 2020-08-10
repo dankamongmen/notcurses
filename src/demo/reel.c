@@ -60,44 +60,8 @@ kill_active_tablet(struct ncreel* pr, tabletctx** tctx){
   return 0;
 }
 
-// We need write in reverse order (since only the bottom will be seen, if we're
-// partially off-screen), but also leave unused space at the end (since
-// wresize() only keeps the top and left on a shrink).
 static int
-tabletup(struct ncplane* w, int maxy, tabletctx* tctx, int rgb){
-  char cchbuf[2];
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  int y, idx;
-  idx = tctx->lines;
-  int maxx = ncplane_dim_x(w) - 1;
-  if(maxy > tctx->lines){
-    maxy = tctx->lines;
-  }
-/*fprintf(stderr, "-OFFSET BY %d (%d->%d)\n", maxy - begy - tctx->lines,
-        maxy, maxy - (maxy - begy - tctx->lines));*/
-  for(y = maxy ; y >= 0 ; --y, rgb += 16){
-    snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", idx % 16);
-    cell_load(w, &c, cchbuf);
-    if(cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
-      return -1;
-    }
-    int x;
-    for(x = 0 ; x <= maxx ; ++x){
-      if(ncplane_putc_yx(w, y, x, &c) <= 0){
-        return -1;
-      }
-    }
-    cell_release(w, &c);
-    if(--idx == 0){
-      break;
-    }
-  }
-// fprintf(stderr, "tabletup done%s at %d (%d->%d)\n", idx == 0 ? " early" : "", y, begy, maxy);
-  return tctx->lines - idx;
-}
-
-static int
-tabletdown(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
+tabletdraw(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
   char cchbuf[2];
   cell c = CELL_TRIVIAL_INITIALIZER;
   int y;
@@ -105,7 +69,7 @@ tabletdown(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
   if(maxy > tctx->lines){
     maxy = tctx->lines;
   }
-  for(y = 0 ; y <= maxy ; ++y, rgb += 16){
+  for(y = 0 ; y < maxy ; ++y, rgb += 16){
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", y % 16);
     cell_load(w, &c, cchbuf);
     if(cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
@@ -119,32 +83,24 @@ tabletdown(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
     }
     cell_release(w, &c);
   }
-  return y;
+  return y - 1;
 }
 
 static int
-tabletdraw(struct nctablet* t, bool cliptop){
+drawcb(struct nctablet* t, bool drawfromtop){
   struct ncplane* p = nctablet_ncplane(t);
   tabletctx* tctx = nctablet_userptr(t);
+  if(tctx == NULL){
+    return -1;
+  }
   pthread_mutex_lock(&tctx->lock);
   unsigned rgb = tctx->rgb;
   int ll;
-  int maxy = ncplane_dim_y(p);
-  if(cliptop){
-    ll = tabletup(p, maxy, tctx, rgb);
-  }else{
-    ll = tabletdown(p, maxy, tctx, rgb);
-  }
+  int maxy = ncplane_dim_y(p) - 1;
+  ll = tabletdraw(p, maxy, tctx, rgb);
   ncplane_set_fg_rgb(p, 242, 242, 242);
   if(ll){
-    int summaryy = 0;
-    if(cliptop){
-      if(ll == maxy + 1){
-        summaryy = ll - 1;
-      }else{
-        summaryy = ll;
-      }
-    }
+    const int summaryy = drawfromtop ? 0 : ll - 1;
     ncplane_styles_on(p, NCSTYLE_BOLD);
     if(ncplane_printf_yx(p, summaryy, 0, "[#%u %d line%s %u available] ",
                          tctx->id, tctx->lines, tctx->lines == 1 ? "" : "s",
@@ -206,7 +162,7 @@ new_tabletctx(struct ncreel* pr, unsigned *id){
   tctx->lines = random() % 10 + 1; // FIXME a nice gaussian would be swell
   tctx->rgb = random() % (1u << 24u);
   tctx->id = ++*id;
-  if((tctx->t = ncreel_add(pr, NULL, NULL, tabletdraw, tctx)) == NULL){
+  if((tctx->t = ncreel_add(pr, NULL, NULL, drawcb, tctx)) == NULL){
     pthread_mutex_destroy(&tctx->lock);
     free(tctx);
     return NULL;
