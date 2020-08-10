@@ -284,6 +284,34 @@ TEST_CASE("TextLayout") {
     ncplane_destroy(sp);
   }
 
+  SUBCASE("LayoutZooText") {
+    // straight from the zoo demo, which didn't work at first
+    const int READER_COLS = 64;
+    const int READER_ROWS = 8;
+    const char text[] =
+      "Notcurses provides several widgets to quickly build vivid TUIs.\n\n"
+      "This NCReader widget facilitates free-form text entry complete with readline-style bindings. "
+      "NCSelector allows a single option to be selected from a list. "
+      "NCMultiselector allows 0..n options to be selected from a list of n items. "
+      "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. "
+      "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\n\n"
+      "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
+    auto sp = ncplane_new(nc_, READER_ROWS, READER_COLS, 0, 0, nullptr);
+    REQUIRE(sp);
+    ncplane_set_scrolling(sp, true);
+    size_t bytes;
+    ncplane_home(sp);
+    CHECK(0 < ncplane_puttext(sp, -1, NCALIGN_LEFT, text, &bytes));
+    CHECK(bytes == strlen(text));
+    CHECK(0 == notcurses_render(nc_));
+sleep(5);
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+fprintf(stderr, "RESULT: %s\n", line);
+    free(line);
+    ncplane_destroy(sp);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }

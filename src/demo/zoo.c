@@ -265,7 +265,6 @@ typedef struct read_marshal {
 
 static void*
 reader_thread(void* vmarsh){
-  // FIXME use ncplane_puttext() to handle word breaking; this is ugly
   const char text[] =
     "Notcurses provides several widgets to quickly build vivid TUIs.\n\n"
     "This NCReader widget facilitates free-form text entry complete with readline-style bindings. "
@@ -291,9 +290,8 @@ reader_thread(void* vmarsh){
   timespec_div(&demodelay, (y - targrow) / 3, &rowdelay);
   // we usually won't be done rendering the text before reaching our target row
   size_t textpos = 0;
-  const int TOWRITEMAX = 4; // FIXME throw in some jitter!
   int ret;
-  while(y > targrow){
+  while(textpos < textlen || y > targrow){
     pthread_mutex_lock(lock);
       if( (ret = demo_render(nc)) ){
         pthread_mutex_unlock(lock);
@@ -303,34 +301,20 @@ reader_thread(void* vmarsh){
           return THREAD_RETURN_POSITIVE;
         }
       }
-      ncplane_move_yx(rplane, --y, x);
-      size_t towrite = textlen - textpos;
-      if(towrite > TOWRITEMAX){
-        towrite = TOWRITEMAX;
+      if(y > targrow){
+        --y;
       }
+      ncplane_move_yx(rplane, y, x);
+      size_t towrite = strlen(text + textpos);
+      //size_t towrite = strcspn(text + textpos, " \t\n") + 1;
       if(towrite){
-        ncplane_putnstr(rplane, towrite, text + textpos);
-        textpos += towrite;
-      }
-    pthread_mutex_unlock(lock);
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
-  }
-  while(textpos < textlen){
-    pthread_mutex_lock(lock);
-      if( (ret = demo_render(nc)) ){
-        pthread_mutex_unlock(lock);
-        if(ret < 0){
+        char* duped = strndup(text + textpos, towrite);
+        size_t bytes;
+        if(ncplane_puttext(rplane, -1, NCALIGN_LEFT, duped, &bytes) < 0 || bytes != towrite){
+          free(duped);
           return THREAD_RETURN_NEGATIVE;
-        }else if(ret > 0){
-          return THREAD_RETURN_POSITIVE;
         }
-      }
-      size_t towrite = textlen - textpos;
-      if(towrite > TOWRITEMAX){
-        towrite = TOWRITEMAX;
-      }
-      if(towrite){
-        ncplane_putnstr(rplane, towrite, text + textpos);
+        free(duped);
         textpos += towrite;
       }
     pthread_mutex_unlock(lock);
