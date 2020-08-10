@@ -1715,7 +1715,6 @@ overlong_word(const char* text, int dimx){
 
 // FIXME probably best to use u8_wordbreaks() and get all wordbreaks at once...
 int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes){
-fprintf(stderr, "SHITFAYRE %s\n", text);
   int totalcols = 0;
   // save the beginning for diagnostic
   const char* beginning = text;
@@ -1738,7 +1737,7 @@ fprintf(stderr, "SHITFAYRE %s\n", text);
     // not a space, it won't be printed, and we carry the word forward.
     // FIXME what ought be done with \n or multiple spaces?
     while(*text && x <= dimx){
-fprintf(stderr, "laying out [%s] at %d <= %d, %zu\n", linestart, x, dimx, text - linestart);
+//fprintf(stderr, "laying out [%s] at %d <= %d, %zu\n", linestart, x, dimx, text - linestart);
       wchar_t w;
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
       if(consumed == (size_t)-2 || consumed == (size_t)-1){
@@ -1749,7 +1748,7 @@ fprintf(stderr, "laying out [%s] at %d <= %d, %zu\n", linestart, x, dimx, text -
         return -1;
       }
       if(iswordbreak(w)){
-fprintf(stderr, "wordbreak [%lc] at %d\n", w, x);
+//fprintf(stderr, "wordbreak [%lc] at %d\n", w, x);
         if(x == 0){
           text += consumed;
           linestart = text;
@@ -1760,7 +1759,7 @@ fprintf(stderr, "wordbreak [%lc] at %d\n", w, x);
         }
       }
       width = wcwidth(w);
-fprintf(stderr, "have char %lc (%d) (%zu)\n", w, width, text - linestart);
+//fprintf(stderr, "have char %lc (%d) (%zu)\n", w, width, text - linestart);
       if(width < 0){
         width = 0;
       }
@@ -1770,7 +1769,7 @@ fprintf(stderr, "have char %lc (%d) (%zu)\n", w, width, text - linestart);
       x += width;
       text += consumed;
     }
-fprintf(stderr, "OUT! %s %zu %d\n", linestart, text - linestart, x);
+//fprintf(stderr, "OUT! %s %zu %d\n", linestart, text - linestart, x);
     bool overlong = false; // ugh
     // if we have no breaker, we got a single word that was longer than our
     // line. print what we can and move along. if *text is nul, we're done.
@@ -1785,12 +1784,12 @@ fprintf(stderr, "OUT! %s %zu %d\n", linestart, text - linestart, x);
         breaker = text;
         breakercol = dimx;
         overlong = true;
-fprintf(stderr, "NEW BREAKER: %s\n", breaker);
+//fprintf(stderr, "NEW BREAKER: %s\n", breaker);
       }
     }
     // if the most recent breaker was the last column, it doesn't really count
     if(breakercol == dimx - 1){
-fprintf(stderr, "END OF THE LINE. breakercol: %d -> %d breakerdiff: %zu\n", breakercol, dimx, breaker - linestart);
+//fprintf(stderr, "END OF THE LINE. breakercol: %d -> %d breakerdiff: %zu\n", breakercol, dimx, breaker - linestart);
       breakercol = dimx;
       ++breaker; // FIXME need to advance # of bytes in the UTF8 breaker, not 1
     }
