@@ -566,6 +566,9 @@ tighten_reel(ncreel* r){
       }
     }
   }
+  if(!top || !bottom){
+    return 0;
+  }
   return trim_reel_overhang(r, top, bottom);
 }
 
