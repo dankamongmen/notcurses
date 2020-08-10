@@ -1,6 +1,9 @@
 #include "demo.h"
 #include <pthread.h>
 
+#define THREAD_RETURN_NEGATIVE ((void*)-1)
+#define THREAD_RETURN_POSITIVE ((void*)1)
+
 static int
 locked_demo_render(struct notcurses* nc, pthread_mutex_t* lock){
   int ret;
@@ -253,11 +256,16 @@ reader_thread(void* vmarsh){
   // we usually won't be done rendering the text before reaching our target row
   size_t textpos = 0;
   const int TOWRITEMAX = 4; // FIXME throw in some jitter!
+  int ret;
   while(y > targrow){
     pthread_mutex_lock(lock);
-      if(demo_render(nc)){
+      if( (ret = demo_render(nc)) ){
         pthread_mutex_unlock(lock);
-        return NULL; // FIXME
+        if(ret < 0){
+          return THREAD_RETURN_NEGATIVE;
+        }else if(ret > 0){
+          return THREAD_RETURN_POSITIVE;
+        }
       }
       ncplane_move_yx(rplane, --y, x);
       size_t towrite = textlen - textpos;
@@ -273,9 +281,13 @@ reader_thread(void* vmarsh){
   }
   while(textpos < textlen){
     pthread_mutex_lock(lock);
-      if(demo_render(nc)){
+      if( (ret = demo_render(nc)) ){
         pthread_mutex_unlock(lock);
-        return NULL; // FIXME
+        if(ret < 0){
+          return THREAD_RETURN_NEGATIVE;
+        }else if(ret > 0){
+          return THREAD_RETURN_POSITIVE;
+        }
       }
       size_t towrite = textlen - textpos;
       if(towrite > TOWRITEMAX){
@@ -288,9 +300,13 @@ reader_thread(void* vmarsh){
     pthread_mutex_unlock(lock);
     clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
   }
-  // FIXME unsafe if other widgets aren't yet done!
-  demo_nanosleep(nc, &demodelay);
-  // FIXME want to communicate exceptional exit vs successful run...
+  // FIXME unsafe if other widgets aren't yet done (can eat their input)!
+  ret = demo_nanosleep(nc, &demodelay);
+  if(ret < 0){
+    return THREAD_RETURN_NEGATIVE;
+  }else if(ret > 0){
+    return THREAD_RETURN_POSITIVE;
+  }
   return NULL;
 }
 
@@ -335,8 +351,14 @@ zap_reader(pthread_t tid, struct ncreader* reader, unsigned cancel){
   if(cancel){
     pthread_cancel(tid);
   }
-  int ret = pthread_join(tid, NULL);
+  void* res;
+  int ret = pthread_join(tid, &res);
   ncreader_destroy(reader, NULL);
+  if(res == THREAD_RETURN_NEGATIVE){
+    return -1;
+  }else if(res == THREAD_RETURN_POSITIVE){
+    return 1;
+  }
   return ret;
 }
 
