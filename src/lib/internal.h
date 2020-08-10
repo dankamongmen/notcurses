@@ -65,6 +65,9 @@ typedef struct ncplane {
   cell* fb;              // "framebuffer" of character cells
   int logrow;            // logical top row, starts at 0, add one for each scroll
   int x, y;              // current cursor location within this plane
+  // ncplane_yx() etc. use coordinates relative to the plane to which this
+  // plane is bound, but absx/absy are always relative to the terminal origin.
+  // they must thus be translated by any such function.
   int absx, absy;        // origin of the plane relative to the screen
   int lenx, leny;        // size of the plane, [0..len{x,y}) is addressable
   struct ncplane* above; // plane above us, NULL if we're on top

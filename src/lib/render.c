@@ -247,17 +247,25 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
   }
 }
 
-// Paints a single ncplane into the provided scratch framebuffer 'fb', and
+// Paints a single ncplane 'p' into the provided scratch framebuffer 'fb', and
 // ultimately 'lastframe' (we can't always write directly into 'lastframe',
 // because we need build state to solve certain cells, and need compare their
 // solved result to the last frame). Whenever a cell is locked in, it is
 // compared against the last frame. If it is different, the 'rvec' bitmap is
 // updated with a 1. 'pool' is typically nc->pool, but should be whatever's
 // backing fb.
+//
+//  dstleny: leny of target rendering area described by fb/lastframe
+//  dstlenx: lenx of target rendering area described by fb
+//  dstabsy: absy of target rendering area (relative to terminal)
+//  dstabsx: absx of target rendering area (relative to terminal)
+//
+// only those cells where 'p' intersects with the target rendering area are
+// rendered.
 static int
 paint(ncplane* p, cell* lastframe, struct crender* rvec,
       cell* fb, egcpool* pool, int dstleny, int dstlenx,
-      int dstabsy, int dstabsx, int lfdimx){
+      int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
@@ -278,12 +286,12 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
   for(y = starty ; y < dimy ; ++y){
     const int absy = y + offy;
     // once we've passed the physical screen's bottom, we're done
-    if(absy >= dstleny){
+    if(absy >= dstleny || absy < 0){
       break;
     }
     for(x = startx ; x < dimx ; ++x){
       const int absx = x + offx;
-      if(absx >= dstlenx){
+      if(absx >= dstlenx || absx < 0){
         break;
       }
       cell* targc = &fb[fbcellidx(absy, dstlenx, absx)];
@@ -371,7 +379,7 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
       // which were already locked in were skipped at the top of the loop)?
       if(cell_locked_p(targc)){
         lock_in_highcontrast(targc, crender);
-        cell* prevcell = &lastframe[fbcellidx(absy, lfdimx, absx)];
+        cell* prevcell = &lastframe[fbcellidx(absy, dstlenx, absx)];
 /*if(cell_simple_p(targc)){
 fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, targc->gcluster, y, x, absy, absx);
 }else{
@@ -406,9 +414,6 @@ init_fb(cell* fb, int dimy, int dimx){
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       cell* c = &fb[fbcellidx(y, dimx, x)];
-      c->gcluster = 0;
-      c->channels = 0;
-      c->attrword = 0;
       cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
       cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
     }
@@ -442,22 +447,22 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   }
   int dimy, dimx;
   ncplane_dim_yx(dst, &dimy, &dimx);
-  cell* tmpfb = malloc(sizeof(*tmpfb) * dimy * dimx);
-  cell* rendfb = malloc(sizeof(*rendfb) * dimy * dimx);
+  cell* tmpfb = calloc(sizeof(*tmpfb), dimy * dimx);
+  cell* rendfb = calloc(sizeof(*rendfb), dimy * dimx);
   const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
   struct crender* rvec = malloc(crenderlen);
   memset(rvec, 0, crenderlen);
   init_fb(tmpfb, dimy, dimx);
   init_fb(rendfb, dimy, dimx);
   if(paint(src, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
-           dst->absy, dst->absx, dst->lenx)){
+           dst->absy, dst->absx)){
     free(rvec);
     free(rendfb);
     free(tmpfb);
     return -1;
   }
   if(paint(dst, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
-           dst->absy, dst->absx, dst->lenx)){
+           dst->absy, dst->absx)){
     free(rvec);
     free(rendfb);
     free(tmpfb);
@@ -1029,13 +1034,13 @@ static int
 notcurses_render_internal(notcurses* nc, struct crender* rvec){
   int dimy, dimx;
   ncplane_dim_yx(nc->stdplane, &dimy, &dimx);
-  cell* fb = malloc(sizeof(*fb) * dimy * dimx);
+  cell* fb = calloc(sizeof(*fb), dimy * dimx);
   init_fb(fb, dimy, dimx);
   ncplane* p = nc->top;
   while(p){
     if(paint(p, nc->lastframe, rvec, fb, &nc->pool,
              nc->stdplane->leny, nc->stdplane->lenx,
-             nc->stdplane->absy, nc->stdplane->absx, nc->lfdimx)){
+             nc->stdplane->absy, nc->stdplane->absx)){
       free(fb);
       return -1;
     }
