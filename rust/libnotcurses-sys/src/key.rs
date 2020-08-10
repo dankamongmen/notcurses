@@ -11,12 +11,11 @@
 // --------------
 // nckey_mouse_p
 // nckey_supppuab_p
-//
 
-// use std::ffi::CString;
-//
+
 // use crate as ffi;
 // use crate::types::{ChannelPair, IntResult};
+
 
 // // Is this char32_t a Supplementary Private Use Area-B codepoint?
 // static inline bool

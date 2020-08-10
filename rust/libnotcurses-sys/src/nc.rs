@@ -51,8 +51,6 @@
 // notcurses_term_dim_yx
 
 
-// use std::ffi::CString;
-//
 // use crate as ffi;
 // use crate::types::{ChannelPair, IntResult};
 
