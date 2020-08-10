@@ -273,9 +273,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
   // we allow the callback to use a bound plane that lives above our border
   // plane, thus preventing the callback from spilling over the tablet border.
   int cby = 0, cbx = 0, cbleny = leny, cblenx = lenx;
-  if(!(nr->ropts.tabletmask & NCBOXMASK_BOTTOM)){
-    --cbleny;
-  }
+  cbleny -= !(nr->ropts.tabletmask & NCBOXMASK_BOTTOM);
   if(!(nr->ropts.tabletmask & NCBOXMASK_TOP)){
     --cbleny;
     ++cby;

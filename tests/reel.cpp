@@ -12,9 +12,7 @@ auto panelcb(struct nctablet* t, bool toptobottom) -> int {
 auto cbfxn(struct nctablet* t, bool toptobottom) -> int {
   (void)toptobottom;
   int* userptr = static_cast<int*>(nctablet_userptr(t));
-  int y;
-  ncplane_yx(nctablet_ncplane(t), &y, NULL);
-  *userptr += y;
+  ++*userptr;
   return 4;
 }
 
@@ -32,7 +30,7 @@ bool ncreel_validate(const ncreel* n){
       int y, x;
       ncplane_yx(np, &y, &x);
 //fprintf(stderr, "forvart: %p (%p) @ %d\n", t, np, y);
-      if(y < cury){
+      if(y < cury + 1){
         if(wentaround){
           return false;
         }
@@ -40,7 +38,9 @@ bool ncreel_validate(const ncreel* n){
       }else if(y == cury){
         return false;
       }
-      cury = y;
+      int ylen, xlen;
+      ncplane_dim_yx(np, &ylen, &xlen);
+      cury = y + ylen - 1;
     }
   }while((t = t->next) != n->tablets);
   cury = INT_MAX;
@@ -48,10 +48,11 @@ bool ncreel_validate(const ncreel* n){
   do{
     const ncplane* np = t->p;
     if(np){
-      int y, x;
+      int y, x, ylen, xlen;
       ncplane_yx(np, &y, &x);
+      ncplane_dim_yx(np, &ylen, &xlen);
 //fprintf(stderr, "backwards: %p (%p) @ %d\n", t, np, y);
-      if(y > cury){
+      if(y + ylen - 1 > cury - 1){
         if(wentaround){
           return false;
         }
@@ -285,7 +286,7 @@ TEST_CASE("Reels") {
     CHECK(ncreel_validate(nr));
     expectedy = 1;
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      //CHECK_EQ(2 - n + 2, order[n]);
+      CHECK_LE(2, order[n]);
       int y;
       ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
@@ -298,7 +299,7 @@ TEST_CASE("Reels") {
     CHECK(ncreel_validate(nr));
     expectedy = 1;
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      //CHECK_EQ(2 - n + 3, order[n]);
+      CHECK_LE(3, order[n]);
       int y;
       ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
@@ -311,11 +312,95 @@ TEST_CASE("Reels") {
     CHECK(ncreel_validate(nr));
     expectedy = 1;
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
-      //CHECK_EQ(2 - n + 4, order[n]);
+      CHECK_LE(4, order[n]);
       int y;
       ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 7;
+    }
+  }
+
+  // Layout tests. Add some tablets, move around, and verify that they all
+  // have the expected locations/contents/geometries.
+  SUBCASE("ThreeCycleDownNoTabletBorders") {
+    ncreel_options r{};
+    r.tabletmask = 0xf;
+    channels_set_bg_alpha(&r.bgchannel, 3);
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    int order[3];
+    nctablet* tabs[3];
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      order[n] = -1;
+      tabs[n] = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[n]);
+      REQUIRE(tabs[n]);
+      CHECK(tabs[0] == nr->tablets);
+      CHECK_EQ(0, ncreel_redraw(nr));
+      CHECK_EQ(0, notcurses_render(nc_));
+      CHECK(ncreel_validate(nr));
+    }
+    int expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_LE(-1, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 5;
+    }
+    ncreel_next(nr);
+    CHECK(tabs[1] == nr->tablets);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_LE(1, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 5;
+    }
+    ncreel_next(nr);
+    CHECK(tabs[2] == nr->tablets);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_LE(2, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 5;
+    }
+    ncreel_prev(nr);
+    CHECK(tabs[1] == nr->tablets);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_LE(3, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 5;
+    }
+    ncreel_prev(nr);
+    CHECK(tabs[0] == nr->tablets);
+    CHECK_EQ(0, ncreel_redraw(nr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    expectedy = 1;
+    for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
+      CHECK_LE(4, order[n]);
+      int y;
+      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      CHECK(y == expectedy);
+      expectedy += 5;
     }
   }
 
