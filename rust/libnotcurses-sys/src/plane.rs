@@ -5,8 +5,8 @@
 // - ncplane_dim_x
 // - ncplane_perimeter
 
-use std::ffi::CString;
-use std::ptr::null_mut;
+use core::ptr::null_mut;
+use cstr_core::CString;
 
 use crate as ffi;
 use ffi::types::IntResult;

@@ -1,6 +1,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
+#![no_std]
 
 mod cells;
 mod channels;
@@ -15,9 +16,10 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[cfg(test)]
 mod tests {
-    use std::ffi::{CStr, CString};
-    use std::ptr::{null, null_mut};
+    use core::ptr::{null, null_mut};
+    use cstr_core::{CStr, CString};
 
+    use libc_print::*;
     use serial_test::serial; // serialize tests w/ ffi::notcurses_init()
 
     use crate as ffi;
@@ -31,7 +33,7 @@ mod tests {
             CStr::from_ptr(s)
         };
         let r_str = c_str.to_str().unwrap();
-        println!("rust-bound notcurses v{}", r_str);
+        libc_println!("rust-bound notcurses v{}", r_str);
     }
 
     #[test]

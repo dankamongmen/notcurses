@@ -26,7 +26,7 @@
 // - ? gcluster (&str) > type alias?
 // - ? attr (u32)  > type alias?
 
-use std::ffi::CString;
+use cstr_core::CString;
 
 use crate as ffi;
 use crate::types::{ChannelPair, IntResult};
@@ -100,7 +100,6 @@ pub fn cells_load_box(
 //     }
 //     return -1;
 // }
-
 
 // static inline void
 // cell_init(cell* c){
