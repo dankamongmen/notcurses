@@ -175,9 +175,6 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel){
       }
     }
     if(!(mask & NCBOXMASK_RIGHT)){
-      // mvwadd_wch returns error if we print to the lowermost+rightmost
-      // character cell. maybe we can make this go away with scrolling controls
-      // at setup? until then, don't check for error here FIXME.
       if(ncplane_cursor_move_yx(w, maxy, maxx) || ncplane_putc(w, &lr) < 0){
         ret = -1;
       }
@@ -411,7 +408,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
     top = top->next;
     return trim_reel_overhang(r, top, bottom);
   }else if(y < miny){
-    const int ynew = ylen - (miny - y);
+    int ynew = ylen - (miny - y);
     if(ynew <= 0){
       ncplane_genocide(top->p);
       top->p = NULL;
@@ -421,12 +418,13 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
         return -1;
       }
       if(top->cbp){
-        if(ynew == 1){
+        if(ynew == !(r->ropts.tabletmask & NCBOXMASK_TOP)){
           ncplane_genocide(top->cbp);
           top->cbp = NULL;
         }else{
           ncplane_dim_yx(top->cbp, &ylen, &xlen);
-          if(ncplane_resize(top->cbp, miny - y, 0, ynew - 1, xlen, 0, 0, ynew - 1, xlen)){
+          ynew -= !(r->ropts.tabletmask & NCBOXMASK_TOP);
+          if(ncplane_resize(top->cbp, miny - y, 0, ynew, xlen, 0, 0, ynew, xlen)){
             return -1;
           }
           int x;
@@ -434,7 +432,6 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
           ncplane_move_yx(top->cbp, y - 1, x);
         }
       }
-//fprintf(stderr, "TRIMMED top %p from %d to %d (%d)\n", top->p, ylen, ynew, y - miny);
     }
   }
   ncplane_dim_yx(bottom->p, &ylen, &xlen);
@@ -443,13 +440,14 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   boty = y + ylen - 1;
 //fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
   if(maxy < y){
+//fprintf(stderr, "NUKING bottom!\n");
     ncplane_genocide(bottom->p);
     bottom->p = NULL;
     bottom->cbp = NULL;
     bottom = bottom->prev;
     return trim_reel_overhang(r, top, bottom);
   }if(maxy < boty){
-    const int ynew = ylen - (boty - maxy);
+    int ynew = ylen - (boty - maxy);
     if(ynew <= 0){
       ncplane_genocide(bottom->p);
       bottom->p = NULL;
@@ -458,18 +456,19 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
       if(ncplane_resize(bottom->p, 0, 0, ynew, xlen, 0, 0, ynew, xlen)){
         return -1;
       }
+//fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
       if(bottom->cbp){
-        if(ynew == 1){
+        if(ynew == !(r->ropts.tabletmask & NCBOXMASK_BOTTOM)){
           ncplane_genocide(bottom->cbp);
           bottom->cbp = NULL;
         }else{
           ncplane_dim_yx(bottom->cbp, &ylen, &xlen);
-          if(ncplane_resize(bottom->cbp, 0, 0, ynew - 1, xlen, 0, 0, ynew - 1, xlen)){
+          ynew -= !(r->ropts.tabletmask & NCBOXMASK_BOTTOM);
+          if(ncplane_resize(bottom->cbp, 0, 0, ynew, xlen, 0, 0, ynew, xlen)){
             return -1;
           }
         }
       }
-//fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
     }
   }
 //fprintf(stderr, "finished trimming\n");
@@ -539,12 +538,11 @@ tighten_reel(ncreel* r){
 //fprintf(stderr, "tightened %p up to %d\n", cur, expected);
         return -1;
       }
-    }else{
-      break;
     }
     int ylen;
     ncplane_dim_yx(cur->p, &ylen, NULL);
     expected += ylen + 1;
+//fprintf(stderr, "bottom (%p) gets %p\n", bottom, cur);
     bottom = cur;
     cur = cur->next;
     if(cur == top){
