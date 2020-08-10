@@ -300,11 +300,11 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
 // fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cblenx/cbleny: %d/%d dir: %d\n", lenx, leny, cbx, cby, cblenx, cbleny, direction);
     int ll = t->cbfxn(t, direction == DIRECTION_DOWN);
 //fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbleny, leny, direction);
-    if(ll != cbleny - cby + 1){
-      int diff = (cbleny - cby + 1) - ll;
-//fprintf(stderr, "resizing data plane %d->%d\n", cbleny - cby + 1, ll);
+    if(ll != cbleny){
+      int diff = cbleny - ll;
+//fprintf(stderr, "resizing data plane %d->%d\n", cbleny, ll);
       if(ll){
-        ncplane_resize_simple(t->cbp, ll, cblenx - cbx + 1);
+        ncplane_resize_simple(t->cbp, ll, cblenx);
       }else{
         ncplane_genocide(t->cbp);
         t->cbp = NULL;
