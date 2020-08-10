@@ -57,7 +57,7 @@ static struct ncmselector_item mselect_items[] = {
 
 static struct ncmultiselector*
 multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx,
-                   int y, pthread_mutex_t* lock){
+                   int y, pthread_mutex_t* lock, int* res){
   struct notcurses* nc = ncplane_notcurses(n);
   ncmultiselector_options mopts = {
     .maxdisplay = 8,
@@ -89,7 +89,7 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx,
   pthread_mutex_unlock(lock);
   ncinput ni;
   for(int i = -length + 1 ; i < dimx - (length + 1) ; ++i){
-    if(locked_demo_render(nc, lock)){
+    if( (*res = locked_demo_render(nc, lock)) ){
       ncmultiselector_destroy(mselector);
       return NULL;
     }
@@ -102,7 +102,7 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx,
       ncmultiselector_offer_input(mselector, &ni);
     }
   }
-  if(locked_demo_render(nc, lock)){
+  if( (*res = locked_demo_render(nc, lock)) ){
     ncmultiselector_destroy(mselector);
     return NULL;
   }
@@ -152,7 +152,7 @@ draw_background(struct notcurses* nc){
 
 static struct ncselector*
 selector_demo(struct ncplane* n, struct ncplane* under, int dimx,
-              int y, pthread_mutex_t* lock){
+              int y, pthread_mutex_t* lock, int* ret){
   struct notcurses* nc = ncplane_notcurses(n);
   ncselector_options sopts = {
     .title = "single-item selector",
@@ -182,9 +182,13 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx,
   ncinput ni;
   for(int i = dimx - 1 ; i > 1 ; --i){
     pthread_mutex_lock(lock);
-      demo_render(nc);
+      *ret = demo_render(nc);
       ncplane_move_yx(splane, y, i);
     pthread_mutex_unlock(lock);
+    if(*ret){
+      ncselector_destroy(selector, NULL);
+      return NULL;
+    }
     char32_t wc = demo_getc(nc, &swoopdelay, &ni);
     if(wc == (char32_t)-1){
       ncselector_destroy(selector, NULL);
@@ -195,7 +199,7 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx,
       pthread_mutex_unlock(lock);
     }
   }
-  if(locked_demo_render(nc, lock)){
+  if( (*ret = locked_demo_render(nc, lock)) ){
     ncselector_destroy(selector, NULL);
     return NULL;
   }
@@ -380,12 +384,15 @@ int zoo_demo(struct notcurses* nc){
     pthread_mutex_destroy(&lock);
     return -1;
   }
-  struct ncselector* selector = selector_demo(n, ncreader_plane(reader), dimx, 2, &lock);
-  struct ncmultiselector* mselector = multiselector_demo(n, ncreader_plane(reader), dimx, 8, &lock); // FIXME calculate from splane
-  if(selector == NULL || mselector == NULL){
+  int ret = 0;
+  struct ncselector* selector = selector_demo(n, ncreader_plane(reader), dimx, 2, &lock, &ret);
+  if(selector == NULL || ret){
     goto err;
   }
-  int ret = 0;
+  struct ncmultiselector* mselector = multiselector_demo(n, ncreader_plane(reader), dimx, 8, &lock, &ret); // FIXME calculate from splane
+  if(mselector == NULL || ret){
+    goto err;
+  }
   ret |= zap_reader(readertid, reader, false); // let the thread do its thang
   ret |= pthread_mutex_destroy(&lock);
   ncselector_destroy(selector, NULL);
@@ -397,5 +404,5 @@ err:
   pthread_mutex_destroy(&lock);
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
-  return -1;
+  return ret ? ret : -1;
 }
