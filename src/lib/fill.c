@@ -617,6 +617,7 @@ int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax,
         }
         ncvisual_geom(n->nc, ncv, &vopts, NULL, NULL, &yscale, &xscale);
       }
+      ncvisual_destroy(ncv);
     }
   }
   free(src);
