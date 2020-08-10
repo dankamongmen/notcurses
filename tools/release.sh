@@ -59,7 +59,4 @@ twine upload -s -udankamongmen dist/*
 cd rust/libnotcurses-sys
 cargo clean
 cargo publish
-cd ../notcurses
-cargo clean
-cargo publish
 # FIXME and at this point, uninstall, yuck
