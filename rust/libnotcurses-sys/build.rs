@@ -21,6 +21,8 @@ fn main() {
     // The bindgen::Builder is the main entry point to bindgen, and lets you
     // build up options for the resulting bindings.
     let mut builder = bindgen::Builder::default()
+        .use_core()
+        .ctypes_prefix("cty")
         .clang_arg("-D_XOPEN_SOURCE")
         // The input header we would like to generate
         // builder for.

@@ -140,8 +140,8 @@
 // ncplane_vline
 // ncplane_vprintf
 
-use std::ffi::CString;
-use std::ptr::null_mut;
+use core::ptr::null_mut;
+use cstr_core::CString;
 
 use crate as ffi;
 use ffi::types::IntResult;
