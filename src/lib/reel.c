@@ -391,6 +391,9 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   assert(bottom);
   assert(bottom->p);
   int y;
+  if(!top || !top->p || !bottom || !bottom->p){
+    return -1;
+  }
 //fprintf(stderr, "trimming: top %p bottom %p\n", top->p, bottom->p);
   ncplane_yx(top->p, &y, NULL);
   int ylen, xlen;
