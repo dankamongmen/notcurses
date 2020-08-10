@@ -1,4 +1,4 @@
-// Already exported by bindgen:
+// Already exported by bindgen: 6
 //
 // - cell_duplicate
 // - cell_extended_gcluster
@@ -7,20 +7,60 @@
 // - cells_double_box
 // - cells_rounded_box
 //
-// Already done by dankamongmen:
-// - cell_prime
-// - cells_load_box
-//
 //  FUNCTIONS TO REIMPLEMENT:
-//  - from notcurses.h:
-//   - lines: 543-718   (18 functions)
-//   - lines: 1729-1901 (26 functions)
-//   - lines: 2056-2084 (1 function)
-//   -----------------------------
-//   - total: 45
-//   - done: ±2
-//   - remaining: 43
+//  - from notcurses.h: 45
+//    - done: ±2
+//    - remaining: 43
 //
+// ---------------
+// + reimplemented
+// # and unit test
+// --------------
+// cell_bchannel
+// cell_bg
+// cell_bg_alpha
+// cell_bg_default_p
+// cell_bg_palindex
+// cell_bg_palindex_p
+// cell_bg_rgb
+// cell_blend_bchannel
+// cell_blend_fchannel
+// cellcmp
+// cell_double_wide_p
+// cell_extract
+// cell_fchannel
+// cell_fg
+// cell_fg_alpha
+// cell_fg_default_p
+// cell_fg_palindex
+// cell_fg_palindex_p
+// cell_fg_rgb
+// cell_init
+// cell_load_simple
+//+cell_prime
+// cell_set_bchannel
+// cell_set_bg
+// cell_set_bg_alpha
+// cell_set_bg_default
+// cell_set_bg_palindex
+// cell_set_bg_rgb
+// cell_set_bg_rgb_clipped
+// cell_set_fchannel
+// cell_set_fg
+// cell_set_fg_alpha
+// cell_set_fg_default
+// cell_set_fg_palindex
+// cell_set_fg_rgb
+// cell_set_fg_rgb_clipped
+// cell_simple_p
+//+cells_load_box  // FIXME
+// cell_strdup
+// cell_styles
+// cell_styles_off
+// cell_styles_on
+// cell_styles_set
+// cell_wide_left_p
+// cell_wide_right_p
 //
 // NOTE:
 // - ? gcluster (&str) > type alias?
@@ -60,6 +100,7 @@ pub fn cell_prime(
 /// have loaded before the error are cell_release()d. There must be at least
 /// six EGCs in gcluster.
 // TODO: TEST
+// FIXME missing cell_prime()s
 pub fn cells_load_box(
     plane: *mut ffi::ncplane,
     attrs: u32,
@@ -72,7 +113,6 @@ pub fn cells_load_box(
     _vl: *mut ffi::cell,
     gcluster: &str,
 ) -> IntResult {
-    // FIXME cell_prime()s
     cell_prime(plane, _ul, gcluster, attrs, channels)
 }
 // static inline int

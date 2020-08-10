@@ -21,6 +21,56 @@
 //   - `channels_set_fg_alpha()`
 //   - `channels_set_bg_alpha()`
 //
+//
+//  FUNCTIONS TO REIMPLEMENT:
+//  - from notcurses.h: 38
+//    - done: ±37
+//    - remaining: 1
+//
+// ---------------
+// + reimplemented
+// # and unit test
+// x not needed
+// --------------
+//#channel_alpha
+//#channel_b
+//#channel_default_p  // FIXME TEST
+//#channel_g
+//+channel_palindex_p
+//#channel_r
+//#channel_rgb
+//#channels_bchannel
+//+channels_bg
+//+channels_bg_alpha
+//+channels_bg_default_p
+//+channels_bg_palindex_p
+//+channels_bg_rgb
+// channels_blend   // TODO
+//#channels_combine
+//+channel_set
+//#channel_set_alpha
+//#channel_set_default
+//#channel_set_rgb
+//xchannel_set_rgb_clipped
+//#channels_fchannel
+//+channels_fg
+//+channels_fg_alpha
+//+channels_fg_default_p
+//+channels_fg_palindex_p
+//+channels_fg_rgb
+//#channels_set_bchannel
+//+channels_set_bg
+//+channels_set_bg_alpha
+//+channels_set_bg_default
+//+channels_set_bg_rgb
+//xchannels_set_bg_rgb_clipped
+//#channels_set_fchannel
+//+channels_set_fg
+//+channels_set_fg_alpha
+//+channels_set_fg_default
+//+channels_set_fg_rgb
+//xchannels_set_fg_rgb_clipped
+//
 #![allow(dead_code)]
 
 use crate as ffi;
@@ -322,6 +372,45 @@ pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
     channels_set_bchannel(channels, channel);
     *channels
 }
+
+
+/// Returns the result of blending two channels. 'blends' indicates how heavily
+/// 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
+/// 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
+/// since we can't blend default colors. Likewise, if 'c2' is a default color,
+/// it will not be used (unless 'blends' is 0).
+///
+/// Palette-indexed colors do not blend, and since we need the attrword to store
+/// them, we just don't fuck wit' 'em here. Do not pass me palette-indexed
+/// channels! I will eat them.
+// TODO
+// static inline unsigned
+// channels_blend(unsigned c1, unsigned c2, unsigned* blends){
+//   if(channel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
+//     return c1; // do *not* increment *blends
+//   }
+//   unsigned rsum, gsum, bsum;
+//   channel_rgb(c2, &rsum, &gsum, &bsum);
+//   bool c2default = channel_default_p(c2);
+//   if(*blends == 0){
+//     // don't just return c2, or you set wide status and all kinds of crap
+//     if(channel_default_p(c2)){
+//       channel_set_default(&c1);
+//     }else{
+//       channel_set_rgb(&c1, rsum, gsum, bsum);
+//     }
+//     channel_set_alpha(&c1, channel_alpha(c2));
+//   }else if(!c2default && !channel_default_p(c1)){
+//     rsum = (channel_r(c1) * *blends + rsum) / (*blends + 1);
+//     gsum = (channel_g(c1) * *blends + gsum) / (*blends + 1);
+//     bsum = (channel_b(c1) * *blends + bsum) / (*blends + 1);
+//     channel_set_rgb(&c1, rsum, gsum, bsum);
+//     channel_set_alpha(&c1, channel_alpha(c2));
+//   }
+//   ++*blends;
+//   return c1;
+// }
+
 
 #[cfg(test)]
 mod test {

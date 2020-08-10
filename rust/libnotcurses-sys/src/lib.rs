@@ -3,11 +3,19 @@
 #![allow(non_snake_case)]
 
 mod cells;
-mod channels;
+mod channel;
+mod key;
+mod nc;
+mod palette;
+mod pixel;
 mod plane;
 mod types;
 pub use cells::*;
-pub use channels::*;
+pub use channel::*;
+pub use key::*;
+pub use nc::*;
+pub use palette::*;
+pub use pixel::*;
 pub use plane::*;
 pub use types::*;
 
