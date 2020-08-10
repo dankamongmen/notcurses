@@ -182,23 +182,36 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx,
   timespec_div(&demodelay, dimx / 3, &swoopdelay);
   ncinput ni;
   for(int i = dimx - 1 ; i > 1 ; --i){
-    pthread_mutex_lock(lock);
-      *ret = demo_render(nc);
-      ncplane_move_yx(splane, y, i);
-    pthread_mutex_unlock(lock);
-    if(*ret){
-      ncselector_destroy(selector, NULL);
-      return NULL;
-    }
-    char32_t wc = demo_getc(nc, &swoopdelay, &ni);
-    if(wc == (char32_t)-1){
-      ncselector_destroy(selector, NULL);
-      return NULL;
-    }else if(wc){
+    struct timespec now, deadline;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    ns_to_timespec(timespec_to_ns(&swoopdelay) + timespec_to_ns(&now), &deadline);
+    do{
       pthread_mutex_lock(lock);
-        ncselector_offer_input(selector, &ni);
+        *ret = demo_render(nc);
+        ncplane_move_yx(splane, y, i);
       pthread_mutex_unlock(lock);
-    }
+      if(*ret){
+        ncselector_destroy(selector, NULL);
+        return NULL;
+      }
+      struct timespec iterdelay;
+      ns_to_timespec(timespec_subtract_ns(&deadline, &now), &iterdelay);
+      char32_t wc = demo_getc(nc, &iterdelay, &ni);
+      if(wc == (char32_t)-1){
+        ncselector_destroy(selector, NULL);
+        return NULL;
+      }else if(wc){
+        pthread_mutex_lock(lock);
+          ncselector_offer_input(selector, &ni);
+          *ret = demo_render(nc);
+        pthread_mutex_unlock(lock);
+        if(*ret){
+          ncselector_destroy(selector, NULL);
+          return NULL;
+        }
+      }
+      clock_gettime(CLOCK_MONOTONIC, &now);
+    }while(timespec_to_ns(&now) < timespec_to_ns(&deadline));
   }
   if( (*ret = locked_demo_render(nc, lock)) ){
     ncselector_destroy(selector, NULL);
