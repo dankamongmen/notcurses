@@ -385,11 +385,13 @@ int zoo_demo(struct notcurses* nc){
     return -1;
   }
   int ret = 0;
-  struct ncselector* selector = selector_demo(n, ncreader_plane(reader), dimx, 2, &lock, &ret);
+  struct ncmultiselector* mselector = NULL;
+  struct ncselector* selector = NULL;
+  selector = selector_demo(n, ncreader_plane(reader), dimx, 2, &lock, &ret);
   if(selector == NULL || ret){
     goto err;
   }
-  struct ncmultiselector* mselector = multiselector_demo(n, ncreader_plane(reader), dimx, 8, &lock, &ret); // FIXME calculate from splane
+  mselector = multiselector_demo(n, ncreader_plane(reader), dimx, 8, &lock, &ret); // FIXME calculate from splane
   if(mselector == NULL || ret){
     goto err;
   }
