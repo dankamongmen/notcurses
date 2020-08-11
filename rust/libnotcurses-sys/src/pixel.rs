@@ -1,102 +1,82 @@
+//! The ncpixel API facilitates direct management of the pixels within an
+//! ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render
+//! them down to terminal graphics in ncvisual_render()).
+//
+// - NOTE: The pixel color & alpha components are u8 instead of u32.
+//   Because of type enforcing, some runtime checks are now unnecessary.
+//
+// - NOTE: None of the functions can't fail anymore and don't have to return an error.
+//
+//
 // functions already exported by bindgen : 0
 // -----------------------------------------
 //
-// static inline functions to reimplement: 3
-// -----------------------------------------
-// - finished : 0
-// - remaining: 10
+// static inline functions to reimplement: 10
+// ------------------------------------------
+// - finished : 10
+// - remaining: 0
 // --------------- (+) implemented (#) + unit test (x) wont implement
-// ncpixel
-// ncpixel_a
-// ncpixel_b
-// ncpixel_g
-// ncpixel_r
-// ncpixel_set_a
-// ncpixel_set_b
-// ncpixel_set_g
-// ncpixel_set_r
-// ncpixel_set_rgb
+//+ncpixel
+//+ncpixel_a
+//+ncpixel_b
+//+ncpixel_g
+//+ncpixel_r
+//+ncpixel_set_a
+//+ncpixel_set_b
+//+ncpixel_set_g
+//+ncpixel_set_r
+//+ncpixel_set_rgb
 
+use crate::types::{Color, Pixel};
 
-// use crate as ffi;
-// use crate::types::{ChannelPair, IntResult};
+/// Get an RGB pixel from RGB values
+pub fn ncpixel(r: Color, g: Color, b: Color) -> Pixel {
+    0xff000000 as Pixel | r as Pixel | (b as Pixel) << 8 | (g as Pixel) << 16
+}
 
+/// Extract the 8-bit alpha component from a pixel
+pub fn ncpixel_a(pixel: Pixel) -> Color {
+    ((pixel & 0xff0000ff) >> 24) as Color
+}
 
-// // The ncpixel API facilitates direct management of the pixels within an
-// // ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render
-// // them down to terminal graphics in ncvisual_render()).
-// static inline uint32_t
-// ncpixel(int r, int g, int b){
-//   if(r < 0) r = 0;
-//   if(r > 255) r = 255;
-//   if(g < 0) g = 0;
-//   if(g > 255) g = 255;
-//   if(b < 0) b = 0;
-//   if(b > 255) b = 255;
-//   return 0xff000000ul | r | (b << 8u) | (g << 16u);
-// }
-//
-// static inline unsigned
-// ncpixel_a(uint32_t pixel){
-//   return (pixel & 0xff0000fful) >> 24u;
-// }
-//
-// static inline unsigned
-// ncpixel_r(uint32_t pixel){
-//   return (pixel & 0x000000fful);
-// }
-//
-// static inline int
-// ncpixel_g(uint32_t pixel){
-//   return (pixel & 0x00ff0000ul) >> 16u;
-// }
-//
-// static inline int
-// ncpixel_b(uint32_t pixel){
-//   return (pixel & 0x0000ff00ul) >> 8u;
-// }
-//
-// static inline int
-// ncpixel_set_a(uint32_t* pixel, int a){
-//   if(a > 255 || a < 0){
-//     return -1;
-//   }
-//   *pixel = (*pixel & 0x00fffffful) | (a << 24u);
-//   return 0;
-// }
-//
-// static inline int
-// ncpixel_set_r(uint32_t* pixel, int r){
-//   if(r > 255 || r < 0){
-//     return -1;
-//   }
-//   *pixel = (*pixel & 0xffffff00ul) | r;
-//   return 0;
-// }
-//
-// static inline int
-// ncpixel_set_g(uint32_t* pixel, int g){
-//   if(g > 255 || g < 0){
-//     return -1;
-//   }
-//   *pixel = (*pixel & 0xff00fffful) | (g << 16u);
-//   return 0;
-// }
-//
-// static inline int
-// ncpixel_set_b(uint32_t* pixel, int b){
-//   if(b > 255 || b < 0){
-//     return -1;
-//   }
-//   *pixel = (*pixel & 0xffff00fful) | (b << 8u);
-//   return 0;
-// }
-//
-// // set the RGB values of an RGB pixel
-// static inline int
-// ncpixel_set_rgb(uint32_t* pixel, int r, int g, int b){
-//   if(ncpixel_set_r(pixel, r) || ncpixel_set_g(pixel, g) || ncpixel_set_b(pixel, b)){
-//     return -1;
-//   }
-//   return 0;
-// }
+/// Extract the 8 bit green component from a pixel
+pub fn ncpixel_g(pixel: Pixel) -> Color {
+    ((pixel & 0x00ff0000) >> 16 ) as Color
+}
+
+/// Extract the 8 bit blue component from a pixel
+pub fn ncpixel_b(pixel: Pixel) -> Color {
+    ((pixel & 0x0000ff00) >> 8 ) as Color
+}
+
+/// Extract the 8 bit red component from a pixel
+pub fn ncpixel_r(pixel: Pixel) -> Color {
+    (pixel & 0x000000ff) as Color
+}
+
+/// Set the 8-bit alpha component on a pixel
+pub fn ncpixel_set_a(pixel: &mut Pixel, alpha: Color) {
+    *pixel = (*pixel & 0x00ffffff) | ((alpha as Pixel) << 24);
+}
+
+/// Set the 8-bit green component on a pixel
+pub fn ncpixel_set_g(pixel: &mut Pixel, green: Color) {
+    *pixel = (*pixel & 0xff00ffff) | ((green as Pixel) << 16);
+}
+
+/// Set the 8-bit blue component on a pixel
+pub fn ncpixel_set_b(pixel: &mut Pixel, blue: Color) {
+    *pixel = (*pixel & 0xffff00ff) | ((blue as Pixel) << 8);
+}
+
+/// Set the 8-bit red component on a pixel
+pub fn ncpixel_set_r(pixel: &mut Pixel, red: Color) {
+    *pixel = (*pixel & 0xffffff00) | red as Pixel;
+}
+
+/// set the RGB values of an RGB pixel
+pub fn ncpixel_set_rgb(pixel: &mut Pixel, red: Color, green: Color, blue: Color) {
+    ncpixel_set_r(pixel, red);
+    ncpixel_set_g(pixel, green);
+    ncpixel_set_b(pixel, blue);
+}
