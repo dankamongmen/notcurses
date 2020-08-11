@@ -1,19 +1,22 @@
-// These defined macros can't be handled by bindgen yet, see:
+//! Special composed key definitions. These values are added to 0x100000.
+
+// NOTE: These defined macros can't be handled by bindgen yet, see:
 //  - https://github.com/rust-lang/rust-bindgen/issues/316
 //  - https://github.com/jethrogb/rust-cexpr/pull/15
 
 pub const fn suppuabize(w: u32) -> u32 {w + 0x100000}
 
-// Special composed key defintions. These values are added to 0x100000.
 pub const NCKEY_INVALID :u32 = suppuabize(0);
-pub const NCKEY_RESIZE  :u32 = suppuabize(1); // generated interally in response to SIGWINCH
+///generated interally in response to SIGWINCH
+pub const NCKEY_RESIZE  :u32 = suppuabize(1);
 pub const NCKEY_UP      :u32 = suppuabize(2);
 pub const NCKEY_RIGHT   :u32 = suppuabize(3);
 pub const NCKEY_DOWN    :u32 = suppuabize(4);
 pub const NCKEY_LEFT    :u32 = suppuabize(5);
 pub const NCKEY_INS     :u32 = suppuabize(6);
 pub const NCKEY_DEL     :u32 = suppuabize(7);
-pub const NCKEY_BACKSPACE :u32 = suppuabize(8); // backspace (sometimes)
+/// backspace (sometimes)
+pub const NCKEY_BACKSPACE :u32 = suppuabize(8);
 pub const NCKEY_PGDOWN  :u32 = suppuabize(9);
 pub const NCKEY_PGUP    :u32 = suppuabize(10);
 pub const NCKEY_HOME    :u32 = suppuabize(11);
@@ -79,14 +82,20 @@ pub const NCKEY_F57     :u32 = suppuabize(77);
 pub const NCKEY_F58     :u32 = suppuabize(78);
 pub const NCKEY_F59     :u32 = suppuabize(79);
 pub const NCKEY_F60     :u32 = suppuabize(80);
+
 // ... leave room for up to 100 function keys, egads
+
 pub const NCKEY_ENTER   :u32 = suppuabize(121);
-pub const NCKEY_CLS     :u32 = suppuabize(122); // "clear-screen or erase"
-pub const NCKEY_DLEFT   :u32 = suppuabize(123); // down + left on keypad
+/// "clear-screen or erase"
+pub const NCKEY_CLS     :u32 = suppuabize(122);
+/// down + left on keypad
+pub const NCKEY_DLEFT   :u32 = suppuabize(123);
 pub const NCKEY_DRIGHT  :u32 = suppuabize(124);
-pub const NCKEY_ULEFT   :u32 = suppuabize(125); // up + left on keypad
+/// up + left on keypad
+pub const NCKEY_ULEFT   :u32 = suppuabize(125);
 pub const NCKEY_URIGHT  :u32 = suppuabize(126);
-pub const NCKEY_CENTER  :u32 = suppuabize(127); // the most truly neutral of keypresses
+/// the most truly neutral of keypresses
+pub const NCKEY_CENTER  :u32 = suppuabize(127);
 pub const NCKEY_BEGIN   :u32 = suppuabize(128);
 pub const NCKEY_CANCEL  :u32 = suppuabize(129);
 pub const NCKEY_CLOSE   :u32 = suppuabize(130);
@@ -95,14 +104,17 @@ pub const NCKEY_COPY    :u32 = suppuabize(132);
 pub const NCKEY_EXIT    :u32 = suppuabize(133);
 pub const NCKEY_PRINT   :u32 = suppuabize(134);
 pub const NCKEY_REFRESH :u32 = suppuabize(135);
+//
 // Mouse events. We try to encode some details into the char32_t (i.e. which
 // button was pressed);, but some is embedded in the ncinput event. The release
 // event is generic across buttons; callers must maintain state, if they care.
 pub const NCKEY_BUTTON1  :u32 = suppuabize(201);
 pub const NCKEY_BUTTON2  :u32 = suppuabize(202);
 pub const NCKEY_BUTTON3  :u32 = suppuabize(203);
-pub const NCKEY_BUTTON4  :u32 = suppuabize(204); // scrollwheel up
-pub const NCKEY_BUTTON5  :u32 = suppuabize(205); // scrollwheel down
+/// scrollwheel up
+pub const NCKEY_BUTTON4  :u32 = suppuabize(204);
+/// scrollwheel down
+pub const NCKEY_BUTTON5  :u32 = suppuabize(205);
 pub const NCKEY_BUTTON6  :u32 = suppuabize(206);
 pub const NCKEY_BUTTON7  :u32 = suppuabize(207);
 pub const NCKEY_BUTTON8  :u32 = suppuabize(208);

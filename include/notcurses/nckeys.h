@@ -7,9 +7,9 @@ extern "C" {
 
 #define suppuabize(w) ((w) + 0x100000)
 
-// Special composed key defintions. These values are added to 0x100000.
+// Special composed key definitions. These values are added to 0x100000.
 #define NCKEY_INVALID suppuabize(0)
-#define NCKEY_RESIZE  suppuabize(1) // generated interally in response to SIGWINCH
+#define NCKEY_RESIZE  suppuabize(1) // generated internally in response to SIGWINCH
 #define NCKEY_UP      suppuabize(2)
 #define NCKEY_RIGHT   suppuabize(3)
 #define NCKEY_DOWN    suppuabize(4)
