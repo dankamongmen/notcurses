@@ -1417,7 +1417,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   bool wide = cols > 1;
   if(x == -1 && y == -1 && n->x + wide >= n->lenx){
     if(!n->scrolling){
-      logerror(n->nc, "No room to output [%s]\n", gclust);
+      logerror(n->nc, "No room to output [%s] %d/%d\n", gclust, n->y, n->x);
       return -1;
     }
     scroll_down(n);
@@ -1793,12 +1793,12 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       breakercol = dimx;
       ++breaker; // FIXME need to advance # of bytes in the UTF8 breaker, not 1
     }
-fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
+//fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
       totalcols += breakercol;
       const int xpos = (align == NCALIGN_LEFT) ? -1 : ncplane_align(n, align, breakercol);
       // blows out if we supply a y beyond leny
-fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
+//fprintf(stderr, "%d/%d %ld %.*s\n", y, xpos, breaker - linestart, (int)(breaker - linestart), linestart);
       if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){
         if(bytes){
           *bytes = linestart - beginning;
@@ -1824,8 +1824,16 @@ fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - line
           return -1;
         }
         y = -1;
+      }else{
+      }
+    }else{
+      // FIXME can fail at last line. do this *before* printing, if we found we
+      // couldn't print anything, and started other than the far left.
+      if(ncplane_cursor_move_yx(n, y, 0)){
+        return -1;
       }
     }
+//fprintf(stderr, "new cursor: %d/%d\n", n->y, n->x);
 //fprintf(stderr, "LOOKING AT: [%c] [%s]\n", *text, linestart);
   }while(*text);
   if(bytes){

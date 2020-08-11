@@ -1531,7 +1531,9 @@ ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
 // to '*bytes' if it is not NULL. Cleared columns are included in the return
 // value, but *not* included in the number of bytes written. Leaves the cursor
 // at the end of output. A partial write will be accomplished as far as it can;
-// determine whether the write completed by inspecting '*bytes'.
+// determine whether the write completed by inspecting '*bytes'. Can output to
+// multiple rows even in the absence of scrolling, but not more rows than are
+// available. With scrolling enabled, arbitrary amounts of data can be emitted.
 API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
                         const char* text, size_t* bytes);
 
