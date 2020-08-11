@@ -8,9 +8,9 @@
 // - cells_rounded_box
 //
 // static inline functions to reimplement: 45
-// ------------------------------------------
-// - finished : ±2
-// - remaining: 43
+// ------------------------------------------ (done / wont / remaining)
+// - implement : 2 / 0 / 43
+// - unit tests: 0 / 0 / 45
 // --------------- (+) implemented (#) + unit test (x) wont implement
 // cell_bchannel
 // cell_bg
@@ -449,3 +449,15 @@ pub fn cells_load_box(
 // cell_bg_palindex_p(const cell* cl){
 //     return channels_bg_palindex_p(cl->channels);
 // }
+
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}

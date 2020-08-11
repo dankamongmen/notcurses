@@ -88,9 +88,9 @@
 // ncplane_yx
 //
 // static inline functions to reimplement: 42
-// ------------------------------------------
-// - finished : ±4
-// - remaining: 38
+// ------------------------------------------ (done / wont / remaining)
+// - implement : 4 / 0 / 38
+// - unit tests: 0 / 0 / 42
 // --------------- (+) implemented (#) + unit test (x) wont implement
 // ncplane_align
 // ncplane_at_cursor_cell
@@ -180,8 +180,6 @@ pub fn ncplane_perimeter(
 ) -> IntResult {
     unsafe { ffi::ncplane_cursor_move_yx(plane, 0, 0) }
 }
-
-
 
 // // Resize the plane, retaining what data we can (everything, unless we're
 // // shrinking in some dimension). Keep the origin where it is.
@@ -652,3 +650,15 @@ pub fn ncplane_perimeter(
 //                             x + xlen - 1, ctlword);
 // }
 //
+
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}

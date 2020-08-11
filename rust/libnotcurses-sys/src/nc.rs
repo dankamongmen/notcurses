@@ -37,19 +37,17 @@
 // notcurses_version_components
 //
 // static inline functions to reimplement: 4
-// -----------------------------------------
-// - finished : 0
-// - remaining: 4
+// ----------------------------------------- (done / wont / remaining)
+// - implement : 0 / 0 / 4
+// - unit tests: 0 / 0 / 4
 // --------------- (+) implemented (#) + unit test (x) wont implement
 // notcurses_getc_blocking
 // notcurses_getc_nblock
 // notcurses_stddim_yx
 // notcurses_term_dim_yx
 
-
 // use crate as ffi;
 // use crate::types::{ChannelPair, IntResult};
-
 
 // // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // // is ready, returns 0.
@@ -84,3 +82,14 @@
 //   ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 // }
 
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}
