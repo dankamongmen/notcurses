@@ -449,3 +449,15 @@ pub fn cells_load_box(
 // cell_bg_palindex_p(const cell* cl){
 //     return channels_bg_palindex_p(cl->channels);
 // }
+
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}

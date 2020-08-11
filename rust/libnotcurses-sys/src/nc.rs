@@ -84,3 +84,14 @@
 //   ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 // }
 
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}

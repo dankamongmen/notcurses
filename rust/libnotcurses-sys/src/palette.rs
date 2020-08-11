@@ -42,3 +42,15 @@ pub fn palette256_set_rgb(palette: &mut ffi::palette256, idx: usize, r: Color, g
 //   }
 //   return channel_rgb(p->chans[idx], r, g, b);
 // }
+
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}

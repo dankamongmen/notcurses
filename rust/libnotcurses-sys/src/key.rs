@@ -22,3 +22,15 @@ pub fn nckey_supppuab_p(w: u32)-> bool {
 pub fn nckey_mouse_p(r: u32)-> bool {
     r >= ffi::NCKEY_BUTTON1 && r <= ffi::NCKEY_RELEASE
 }
+
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}

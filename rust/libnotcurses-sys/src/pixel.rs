@@ -80,3 +80,16 @@ pub fn ncpixel_set_rgb(pixel: &mut Pixel, red: Color, green: Color, blue: Color)
     ncpixel_set_g(pixel, green);
     ncpixel_set_b(pixel, blue);
 }
+
+
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}

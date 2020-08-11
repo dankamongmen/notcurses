@@ -652,3 +652,15 @@ pub fn ncplane_perimeter(
 //                             x + xlen - 1, ctlword);
 // }
 //
+
+#[cfg(test)]
+mod test {
+    // use super::ffi;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}
