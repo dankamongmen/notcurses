@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------------------------------
-// NOTE: These functions now can't fail and dont't have to return an error:
-// - `palette256_set_rgb()`
+// NOTE: Now none of these functions can't fail and therefore don't return errors.
 // ---------------------------------------------------------------------------------------
 //
 // functions already exported by bindgen : 3
@@ -15,33 +14,48 @@
 // - unit tests: 0 / 0 / 3
 // --------------- (+) implemented (#) + unit test (x) wont implement
 //+palette256_get_rgb
-// palette256_set
-// palette256_set_rgb
+//+palette256_set
+//+palette256_set_rgb
 
 use crate as ffi;
 use crate::types::Color;
+use ffi::{Channel, PaletteIndex, Rgb};
 
-/// Manipulate entries in the palette store 'p'. These are *not* locked.
-pub fn palette256_set_rgb(palette: &mut ffi::palette256, idx: usize, r: Color, g: Color, b: Color) {
-    ffi::channel_set_rgb(&mut palette.chans[idx], r, g, b)
+/// Set the different color components of an entry inside a palette store.
+// TODO: TEST
+#[inline]
+pub fn palette256_set_rgb(
+    palette: &mut ffi::palette256,
+    idx: PaletteIndex,
+    red: Color,
+    green: Color,
+    blue: Color,
+) {
+    ffi::channel_set_rgb(&mut palette.chans[idx as usize], red, green, blue)
 }
 
-// XXX: what is the return type?
-// static inline int
-// palette256_set(palette256* p, int idx, unsigned rgb){
-//   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
-//     return -1;
-//   }
-//   return channel_set(&p->chans[idx], rgb);
-// }
+/// Same as `palette256_set_rgb()` but set an assembled 24 bit channel at once.
+// TODO: TEST
+#[inline]
+pub fn palette256_set(
+    palette: &mut ffi::palette256,
+    idx: PaletteIndex,
+    rgb: Rgb) {
+    ffi::channel_set(&mut palette.chans[idx as usize], rgb);
+}
 
-// static inline int
-// palette256_get_rgb(const palette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
-//   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
-//     return -1;
-//   }
-//   return channel_rgb(p->chans[idx], r, g, b);
-// }
+/// Extract the three 8-bit R/G/B components from an entry inside a palette store.
+// TODO: TEST
+#[inline]
+pub fn palette256_get_rgb(
+    palette: &ffi::palette256,
+    idx: PaletteIndex,
+    red: &mut Color,
+    green: &mut Color,
+    blue: &mut Color,
+) -> Channel {
+    ffi::channel_rgb(palette.chans[idx as usize], red, green, blue)
+}
 
 #[cfg(test)]
 mod test {
