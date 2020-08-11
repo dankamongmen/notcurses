@@ -2607,14 +2607,14 @@ API void notcurses_cursor_disable(struct notcurses* nc);
 // Palette API. Some terminals only support 256 colors, but allow the full
 // palette to be specified with arbitrary RGB colors. In all cases, it's more
 // performant to use indexed colors, since it's much less data to write to the
-// terminal. If you can limit yourself to 256 colors, that' probably best.
+// terminal. If you can limit yourself to 256 colors, that's probably best.
 
 typedef struct palette256 {
   // We store the RGB values as a regular ol' channel
   uint32_t chans[NCPALETTESIZE];
 } palette256;
 
-// Create a new palette store. It will be initialized with notcurses's best
+// Create a new palette store. It will be initialized with notcurses' best
 // knowledge of the currently configured palette.
 API palette256* palette256_new(struct notcurses* nc);
 
