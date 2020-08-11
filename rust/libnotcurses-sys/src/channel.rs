@@ -6,6 +6,9 @@
 //   - `channel_set_rgb()`
 //   - `channels_set_fg_rgb()`
 //   - `channels_set_bg_rgb()`
+//   - `channel_set()`
+//   - `channels_set_fg()`
+//   - `channels_set_bg()`
 //
 // - NOTE: These functions were therefore deemed unnecessary to implement:
 //   - `channel_set_rgb_clipped()`
@@ -14,9 +17,6 @@
 //
 // - These functions still return an integer error result:
 //   - `channel_set_alpha()`
-//   - `channel_set_rgb()`
-//   - `channels_set_fg()`
-//   - `channels_set_bg()`
 //   - `channels_set_fg_alpha()`
 //   - `channels_set_bg_alpha()`
 // ---------------------------------------------------------------------------------------
@@ -112,12 +112,8 @@ pub fn channel_set_rgb(channel: &mut Channel, r: Color, g: Color, b: Color) {
 /// Same as channel_set_rgb(), but provide an assembled, packed 24 bits of rgb.
 // TODO: TEST
 #[inline]
-pub fn channel_set(channel: &mut Channel, rgb: Rgb) -> IntResult {
-    if rgb > 0xffffff_u32 {
-        return -1;
-    }
-    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | rgb;
-    0
+pub fn channel_set(channel: &mut Channel, rgb: Rgb) {
+    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | (rgb & 0x00ffffff);
 }
 
 /// Extract the 2-bit alpha component from a 32-bit channel.
@@ -261,13 +257,10 @@ pub fn channels_set_fg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Co
 /// Same as channels_set_fg_rgb but but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
-pub fn channels_set_fg(channels: &mut ChannelPair, rgb: Rgb) -> IntResult {
+pub fn channels_set_fg(channels: &mut ChannelPair, rgb: Rgb) {
     let mut channel = channels_fchannel(*channels);
-    if channel_set(&mut channel, rgb) < 0 {
-        return -1;
-    }
+    channel_set(&mut channel, rgb);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
-    0
 }
 
 /// Set the r, g, and b channels for the background component of this 64-bit
@@ -283,13 +276,10 @@ pub fn channels_set_bg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Co
 /// Same as channels_set_bg_rgb but but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
-pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) -> IntResult {
+pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) {
     let mut channel = channels_bchannel(*channels);
-    if channel_set(&mut channel, rgb) < 0 {
-        return -1;
-    }
+    channel_set(&mut channel, rgb);
     channels_set_bchannel(channels, channel);
-    0
 }
 
 /// Set the 2-bit alpha component of the foreground channel.
@@ -370,7 +360,6 @@ pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
     *channels
 }
 
-
 /// Returns the result of blending two channels. 'blends' indicates how heavily
 /// 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
 /// 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
@@ -407,7 +396,6 @@ pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
 //   ++*blends;
 //   return c1;
 // }
-
 
 #[cfg(test)]
 mod test {
