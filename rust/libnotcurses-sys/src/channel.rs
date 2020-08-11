@@ -254,7 +254,7 @@ pub fn channels_set_fg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Co
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
 }
 
-/// Same as channels_set_fg_rgb but but set an assembled 24 bit channel at once.
+/// Same as channels_set_fg_rgb but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
 pub fn channels_set_fg(channels: &mut ChannelPair, rgb: Rgb) {
@@ -273,7 +273,7 @@ pub fn channels_set_bg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Co
     channels_set_bchannel(channels, channel);
 }
 
-/// Same as channels_set_bg_rgb but but set an assembled 24 bit channel at once.
+/// Same as channels_set_bg_rgb but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
 pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) {

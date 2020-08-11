@@ -46,10 +46,8 @@
 // notcurses_stddim_yx
 // notcurses_term_dim_yx
 
-
 // use crate as ffi;
 // use crate::types::{ChannelPair, IntResult};
-
 
 // // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // // is ready, returns 0.

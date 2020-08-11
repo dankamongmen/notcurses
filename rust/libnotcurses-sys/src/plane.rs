@@ -181,8 +181,6 @@ pub fn ncplane_perimeter(
     unsafe { ffi::ncplane_cursor_move_yx(plane, 0, 0) }
 }
 
-
-
 // // Resize the plane, retaining what data we can (everything, unless we're
 // // shrinking in some dimension). Keep the origin where it is.
 // static inline int

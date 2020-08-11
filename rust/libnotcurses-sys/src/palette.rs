@@ -37,10 +37,7 @@ pub fn palette256_set_rgb(
 /// Same as `palette256_set_rgb()` but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
-pub fn palette256_set(
-    palette: &mut ffi::palette256,
-    idx: PaletteIndex,
-    rgb: Rgb) {
+pub fn palette256_set(palette: &mut ffi::palette256, idx: PaletteIndex, rgb: Rgb) {
     ffi::channel_set(&mut palette.chans[idx as usize], rgb);
 }
 
