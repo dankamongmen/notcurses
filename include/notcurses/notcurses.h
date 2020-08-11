@@ -2387,13 +2387,13 @@ ncpixel_r(uint32_t pixel){
 }
 
 // Extract the 8 bit green component from a pixel
-static inline int
+static inline unsigned
 ncpixel_g(uint32_t pixel){
   return (pixel & 0x00ff0000ul) >> 16u;
 }
 
 // Extract the 8 bit blue component from a pixel
-static inline int
+static inline unsigned
 ncpixel_b(uint32_t pixel){
   return (pixel & 0x0000ff00ul) >> 8u;
 }
