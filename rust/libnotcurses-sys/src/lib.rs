@@ -6,6 +6,7 @@
 mod cells;
 mod channel;
 mod key;
+mod keycodes;
 mod nc;
 mod palette;
 mod pixel;
@@ -14,6 +15,7 @@ mod types;
 pub use cells::*;
 pub use channel::*;
 pub use key::*;
+pub use keycodes::*;
 pub use nc::*;
 pub use palette::*;
 pub use pixel::*;
