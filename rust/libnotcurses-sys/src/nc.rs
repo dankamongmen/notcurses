@@ -1,5 +1,5 @@
-// Already exported by bindgen: 35
-//
+// functions already exported by bindgen : 35
+// ------------------------------------------
 // notcurses_at_yx
 // notcurses_canchangecolor
 // notcurses_canfade
@@ -36,15 +36,11 @@
 // notcurses_version
 // notcurses_version_components
 //
-//  FUNCTIONS TO REIMPLEMENT:
-//  - from notcurses.h: 4
-//    - done: 0
-//    - remaining: 4
-//
-// ---------------
-// + reimplemented
-// # and unit test
-// --------------
+// static inline functions to reimplement: 4
+// -----------------------------------------
+// - finished : 0
+// - remaining: 4
+// --------------- (+) implemented (#) + unit test (x) wont implement
 // notcurses_getc_blocking
 // notcurses_getc_nblock
 // notcurses_stddim_yx

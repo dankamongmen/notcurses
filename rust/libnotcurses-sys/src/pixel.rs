@@ -1,15 +1,11 @@
-// Already exported by bindgen: 0
+// functions already exported by bindgen : 0
+// -----------------------------------------
 //
-//  FUNCTIONS TO REIMPLEMENT:
-//  - from notcurses.h: 10
-//    - done: 0
-//    - remaining: 10
-//
-// ---------------
-// + reimplemented
-// # and unit test
-// --------------
-//
+// static inline functions to reimplement: 3
+// -----------------------------------------
+// - finished : 0
+// - remaining: 10
+// --------------- (+) implemented (#) + unit test (x) wont implement
 // ncpixel
 // ncpixel_a
 // ncpixel_b

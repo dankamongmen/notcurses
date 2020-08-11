@@ -1,5 +1,5 @@
-// Already exported by bindgen: 86
-//
+// functions already exported by bindgen : 86
+// ------------------------------------------
 // ncplane_aligned
 // ncplane_at_cursor
 // ncplane_attr
@@ -87,16 +87,11 @@
 // ncplane_vprintf_yx
 // ncplane_yx
 //
-//
-//  FUNCTIONS TO REIMPLEMENT:
-//  - from notcurses.h: 42
-//    - done: ±4
-//    - remaining: 38
-//
-// ---------------
-// + reimplemented
-// # and unit test
-// --------------
+// static inline functions to reimplement: 42
+// ------------------------------------------
+// - finished : ±4
+// - remaining: 38
+// --------------- (+) implemented (#) + unit test (x) wont implement
 // ncplane_align
 // ncplane_at_cursor_cell
 // ncplane_at_yx_cell

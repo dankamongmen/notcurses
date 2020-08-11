@@ -1,5 +1,5 @@
-// Already exported by bindgen: 6
-//
+// functions already exported by bindgen : 6
+// -----------------------------------------
 // - cell_duplicate
 // - cell_extended_gcluster
 // - cell_load
@@ -7,15 +7,11 @@
 // - cells_double_box
 // - cells_rounded_box
 //
-//  FUNCTIONS TO REIMPLEMENT:
-//  - from notcurses.h: 45
-//    - done: ±2
-//    - remaining: 43
-//
-// ---------------
-// + reimplemented
-// # and unit test
-// --------------
+// static inline functions to reimplement: 45
+// ------------------------------------------
+// - finished : ±2
+// - remaining: 43
+// --------------- (+) implemented (#) + unit test (x) wont implement
 // cell_bchannel
 // cell_bg
 // cell_bg_alpha

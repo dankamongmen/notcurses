@@ -1,13 +1,9 @@
-// Functions already exported by bindgen: 0
-// static inline functions to reimplement: 2
-//   - done: 2
-//   - remaining: 0
+// functions already exported by bindgen : 0
 //
-// Function list
-// ---------------
-// + reimplemented
-// # and unit test
-// --------------
+// static inline functions to reimplement: 2
+// - finished : 2
+// - remaining: 0
+// --------------- (+) implemented (#) + unit test (x) wont implement
 //+nckey_mouse_p
 //+nckey_supppuab_p
 

@@ -1,37 +1,34 @@
-// NOTE: There are several differences from the original functions in C:
+// ---------------------------------------------------------------------------------------
+// - NOTE: The channel components are u8 instead of u32.
+//   Because of type enforcing, some runtime checks are now unnecessary.
 //
-// - The channel components are u8 instead of u32. Because of type enforcing by the
-//   compiler, some runtime checks are now unnecessary.
-//
-// - These functions now can't fail and doesn't have to return an error:
+// - NOTE: These functions now can't fail and don't have to return an error:
 //   - `channel_set_rgb()`
 //   - `channels_set_fg_rgb()`
 //   - `channels_set_bg_rgb()`
 //
-// - These functions were therefore deemed unnecessary to implement:
+// - NOTE: These functions were therefore deemed unnecessary to implement:
 //   - `channel_set_rgb_clipped()`
 //   - `channels_set_fg_rgb_clipped()`
 //   - `channels_set_bg_rgb_clipped()`
 //
-// - These functions return an integer error result:
+// - These functions still return an integer error result:
 //   - `channel_set_alpha()`
 //   - `channel_set_rgb()`
 //   - `channels_set_fg()`
 //   - `channels_set_bg()`
 //   - `channels_set_fg_alpha()`
 //   - `channels_set_bg_alpha()`
+// ---------------------------------------------------------------------------------------
 //
+// functions already exported by bindgen : 0
+// ------------------------------------------
 //
-//  FUNCTIONS TO REIMPLEMENT:
-//  - from notcurses.h: 38
-//    - done: ±37
-//    - remaining: 1
-//
-// ---------------
-// + reimplemented
-// # and unit test
-// x not needed
-// --------------
+// static inline functions to reimplement: 38
+// ------------------------------------------
+// - finished : 37
+// - remaining: 1
+// --------------- (+) implemented (#) + unit test (x) wont implement
 //#channel_alpha
 //#channel_b
 //#channel_default_p  // FIXME TEST
