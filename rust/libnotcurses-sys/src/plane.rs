@@ -88,9 +88,9 @@
 // ncplane_yx
 //
 // static inline functions to reimplement: 42
-// ------------------------------------------
-// - finished : ±4
-// - remaining: 38
+// ------------------------------------------ (done / wont / remaining)
+// - implement : 4 / 0 / 38
+// - unit tests: 0 / 0 / 42
 // --------------- (+) implemented (#) + unit test (x) wont implement
 // ncplane_align
 // ncplane_at_cursor_cell

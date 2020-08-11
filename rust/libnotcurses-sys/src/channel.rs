@@ -25,9 +25,9 @@
 // ------------------------------------------
 //
 // static inline functions to reimplement: 38
-// ------------------------------------------
-// - finished : 37
-// - remaining: 1
+// ------------------------------------------ (done / wont / remaining)
+// - implement : 34 / 3 /  1
+// - unit tests: 14 / 0 / 21
 // --------------- (+) implemented (#) + unit test (x) wont implement
 //#channel_alpha
 //#channel_b
@@ -109,7 +109,7 @@ pub fn channel_set_rgb(channel: &mut Channel, r: Color, g: Color, b: Color) {
     *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | rgb;
 }
 
-/// Same as chennel_set_rgb(), but provide an assembled, packed 24 bits of rgb.
+/// Same as channel_set_rgb(), but provide an assembled, packed 24 bits of rgb.
 // TODO: TEST
 #[inline]
 pub fn channel_set(channel: &mut Channel, rgb: Rgb) -> IntResult {

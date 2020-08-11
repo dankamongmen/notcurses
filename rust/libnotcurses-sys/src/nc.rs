@@ -37,9 +37,9 @@
 // notcurses_version_components
 //
 // static inline functions to reimplement: 4
-// -----------------------------------------
-// - finished : 0
-// - remaining: 4
+// ----------------------------------------- (done / wont / remaining)
+// - implement : 0 / 0 / 4
+// - unit tests: 0 / 0 / 4
 // --------------- (+) implemented (#) + unit test (x) wont implement
 // notcurses_getc_blocking
 // notcurses_getc_nblock

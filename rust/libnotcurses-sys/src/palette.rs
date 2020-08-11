@@ -10,9 +10,9 @@
 // palette256_use
 //
 // static inline functions to reimplement: 3
-// -----------------------------------------
-// - finished : 1
-// - remaining: 2
+// ----------------------------------------- (done / wont / remaining)
+// - implement : 1 / 0 / 2
+// - unit tests: 0 / 0 / 3
 // --------------- (+) implemented (#) + unit test (x) wont implement
 //+palette256_get_rgb
 // palette256_set
