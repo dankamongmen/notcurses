@@ -4,8 +4,8 @@ a blingful TUI/character graphics library for modern terminal emulators.
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
     emulators, supporting vivid colors, multimedia, and Unicode to the maximum
-    degree possible. [things](https://www.youtube.com/watch?v=b4lmMADP1lA) can
-    be done with Notcurses than simply can't be done with NCURSES.
+    degree possible. [Things](https://www.youtube.com/watch?v=b4lmMADP1lA) can
+    be done with Notcurses that simply can't be done with NCURSES.
 
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
     replacement for NCURSES on existing systems.
