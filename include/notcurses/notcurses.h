@@ -2382,12 +2382,12 @@ ncpixel_r(uint32_t pixel){
   return (pixel & 0x000000fful);
 }
 
-static inline int
+static inline unsigned
 ncpixel_g(uint32_t pixel){
   return (pixel & 0x00ff0000ul) >> 16u;
 }
 
-static inline int
+static inline unsigned
 ncpixel_b(uint32_t pixel){
   return (pixel & 0x0000ff00ul) >> 8u;
 }
