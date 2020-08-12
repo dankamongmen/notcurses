@@ -291,6 +291,7 @@ reader_thread(void* vmarsh){
   // we usually won't be done rendering the text before reaching our target row
   size_t textpos = 0;
   int ret;
+  const int MAXTOWRITE = 8;
   while(textpos < textlen || y > targrow){
     pthread_mutex_lock(lock);
       if( (ret = demo_render(nc)) ){
@@ -305,12 +306,14 @@ reader_thread(void* vmarsh){
         --y;
       }
       ncplane_move_yx(rplane, y, x);
-      size_t towrite = strlen(text + textpos);
-      //size_t towrite = strcspn(text + textpos, " \t\n") + 1;
+      size_t towrite = strcspn(text + textpos, " \t\n") + 1;
+      if(towrite > MAXTOWRITE){
+        towrite = MAXTOWRITE;
+      }
       if(towrite){
         char* duped = strndup(text + textpos, towrite);
         size_t bytes;
-        if(ncplane_puttext(rplane, -1, NCALIGN_LEFT, duped, &bytes) < 0 || bytes != towrite){
+        if(ncplane_puttext(rplane, -1, NCALIGN_LEFT, duped, &bytes) < 0 || bytes != strlen(duped)){
           free(duped);
           return THREAD_RETURN_NEGATIVE;
         }
