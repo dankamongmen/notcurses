@@ -88,27 +88,27 @@
 // ncplane_yx
 //
 // static inline functions to reimplement: 42
-// ------------------------------------------ (done / wont / remaining)
-// - implement : 4 / 0 / 38
-// - unit tests: 0 / 0 / 42
-// --------------- (+) implemented (#) + unit test (x) wont implement
+// ------------------------------------------ (done / (x) wont / remaining)
+// (+) implement : 10 / … / 32
+// (#) unit tests:  0 / … / 42
+// ------------------------------------------
 // ncplane_align
 // ncplane_at_cursor_cell
 // ncplane_at_yx_cell
-// ncplane_bchannel
-// ncplane_bg
-// ncplane_bg_alpha
-// ncplane_bg_default_p
+//+ncplane_bchannel
+//+ncplane_bg
+//+ncplane_bg_alpha
+//+ncplane_bg_default_p
 //+ncplane_bg_rgb
 // ncplane_box_sized
 //+ncplane_dim_x
 //+ncplane_dim_y
 // ncplane_double_box
 // ncplane_double_box_sized
-// ncplane_fchannel
-// ncplane_fg
-// ncplane_fg_alpha
-// ncplane_fg_default_p
+//+ncplane_fchannel
+//+ncplane_fg
+//+ncplane_fg_alpha
+//+ncplane_fg_default_p
 //+ncplane_fg_rgb
 // ncplane_gradient_sized
 // ncplane_highgradient_sized
@@ -139,7 +139,7 @@ use core::ptr::null_mut;
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::{Channel, Color, IntResult};
+use ffi::types::{Alpha, Channel, Color, IntResult};
 
 pub fn ncplane_putstr(plane: *mut ffi::ncplane, _str: &str) -> i32 {
     unsafe {
@@ -486,53 +486,62 @@ pub fn ncplane_perimeter(
 //   return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 // }
 
-// // Extract the 32-bit working background channel from an ncplane.
-// static inline unsigned
-// ncplane_bchannel(const struct ncplane* nc){
-//   return channels_bchannel(ncplane_channels(nc));
-// }
+/// Extract the 32-bit working foreground channel from an ncplane.
+// TODO: TEST
+#[inline]
+pub fn ncplane_fchannel(plane: &ffi::ncplane) -> Channel {
+    ffi::channels_fchannel(unsafe { ffi::ncplane_channels(plane)})
+}
 
-// // Extract the 32-bit working foreground channel from an ncplane.
-// static inline unsigned
-// ncplane_fchannel(const struct ncplane* nc){
-//   return channels_fchannel(ncplane_channels(nc));
-// }
+/// Extract the 32-bit working background channel from an ncplane.
+// TODO: TEST
+#[inline]
+pub fn ncplane_bchannel(plane: &ffi::ncplane) -> Channel {
+    ffi::channels_bchannel(unsafe { ffi::ncplane_channels(plane)})
+}
 
-// // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
-// static inline unsigned
-// ncplane_fg(const struct ncplane* nc){
-//   return channels_fg(ncplane_channels(nc));
-// }
+/// Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
+// TODO: TEST
+#[inline]
+pub fn ncplane_fg(plane: &ffi::ncplane) -> Channel {
+    ffi::channels_fg(unsafe { ffi::ncplane_channels(plane)})
+}
 
-// // Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
-// static inline unsigned
-// ncplane_bg(const struct ncplane* nc){
-//   return channels_bg(ncplane_channels(nc));
-// }
 
-// // Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
-// static inline unsigned
-// ncplane_fg_alpha(const struct ncplane* nc){
-//   return channels_fg_alpha(ncplane_channels(nc));
-// }
+/// Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
+// TODO: TEST
+#[inline]
+pub fn ncplane_bg(plane: &ffi::ncplane) -> Channel {
+    ffi::channels_bg(unsafe { ffi::ncplane_channels(plane)})
+}
 
-// // Is the plane's foreground using the "default foreground color"?
-// static inline bool
-// ncplane_fg_default_p(const struct ncplane* nc){
-//   return channels_fg_default_p(ncplane_channels(nc));
-// }
+/// Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
+// TODO: TEST
+#[inline]
+pub fn ncplane_fg_alpha(plane: &ffi::ncplane) -> Alpha {
+    ffi::channels_fg_alpha(unsafe { ffi::ncplane_channels(plane)})
+}
 
-// // Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
-// static inline unsigned
-// ncplane_bg_alpha(const struct ncplane* nc){
-//   return channels_bg_alpha(ncplane_channels(nc));
-// }
+/// Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
+// TODO: TEST
+#[inline]
+pub fn ncplane_bg_alpha(plane: &ffi::ncplane) -> Alpha {
+    ffi::channels_bg_alpha(unsafe { ffi::ncplane_channels(plane)})
+}
 
-// // Is the plane's background using the "default background color"?
-// static inline bool
-// ncplane_bg_default_p(const struct ncplane* nc){
-//   return channels_bg_default_p(ncplane_channels(nc));
-// }
+/// Is the plane's foreground using the "default foreground color"?
+// TODO: TEST
+#[inline]
+pub fn ncplane_fg_default_p(plane: &ffi::ncplane) -> bool {
+    ffi::channels_fg_default_p(unsafe { ffi::ncplane_channels(plane)})
+}
+
+/// Is the plane's background using the "default background color"?
+// TODO: TEST
+#[inline]
+pub fn ncplane_bg_default_p(plane: &ffi::ncplane) -> bool {
+    ffi::channels_bg_default_p(unsafe { ffi::ncplane_channels(plane)})
+}
 
 /// Extract 24 bits of foreground RGB from a plane, split into components.
 // TODO: TEST

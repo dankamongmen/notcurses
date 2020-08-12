@@ -106,7 +106,7 @@ pub const NCKEY_COPY: u32 = suppuabize(132);
 pub const NCKEY_EXIT: u32 = suppuabize(133);
 pub const NCKEY_PRINT: u32 = suppuabize(134);
 pub const NCKEY_REFRESH: u32 = suppuabize(135);
-//
+
 // Mouse events. We try to encode some details into the char32_t (i.e. which
 // button was pressed);, but some is embedded in the ncinput event. The release
 // event is generic across buttons; callers must maintain state, if they care.

@@ -1,6 +1,6 @@
-// ---------------------------------------------------------------------------------------
-// NOTE: Now none of these functions can't fail and therefore don't return errors.
-// ---------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Now none of these functions can't fail and therefore don't return errors.
+// -----------------------------------------------------------------------------
 //
 // functions already exported by bindgen : 3
 // -----------------------------------------
@@ -9,10 +9,10 @@
 // palette256_use
 //
 // static inline functions to reimplement: 3
-// ----------------------------------------- (done / wont / remaining)
-// - implement : 1 / 0 / 2
-// - unit tests: 0 / 0 / 3
-// --------------- (+) implemented (#) + unit test (x) wont implement
+// ----------------------------------------- (done / (x) wont / remaining)
+// (+) implement : 1 / 0 / 2
+// (#) unit tests: 0 / 0 / 3
+// -----------------------------------------
 //+palette256_get_rgb
 //+palette256_set
 //+palette256_set_rgb

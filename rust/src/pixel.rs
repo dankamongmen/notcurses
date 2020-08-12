@@ -12,10 +12,10 @@
 // -----------------------------------------
 //
 // static inline functions to reimplement: 10
-// ------------------------------------------ (done / wont / remaining)
-// - implement : 10 /  0 /  0
-// - unit tests:  0 /  0 / 10
-// --------------- (+) implemented (#) + unit test (x) wont implement
+// ------------------------------------------ (done / (x) wont / remaining)
+// (+) implement : 10 /  0 /  0
+// (#) unit tests:  0 /  0 / 10
+// ------------------------------------------
 //+ncpixel
 //+ncpixel_a
 //+ncpixel_b

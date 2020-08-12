@@ -8,10 +8,10 @@
 // - cells_rounded_box
 //
 // static inline functions to reimplement: 45
-// ------------------------------------------ (done / wont / remaining)
-// - implement : 2 / 0 / 43
-// - unit tests: 0 / 0 / 45
-// --------------- (+) implemented (#) + unit test (x) wont implement
+// ------------------------------------------ (done / (x) wont / remaining)
+// (+) implement : 2 / 0 / 43
+// (#) unit tests: 0 / 0 / 45
+// ------------------------------------------
 // cell_bchannel
 // cell_bg
 // cell_bg_alpha
@@ -49,7 +49,7 @@
 // cell_set_fg_rgb
 // cell_set_fg_rgb_clipped
 // cell_simple_p
-//+cells_load_box  // FIXME
+//+cells_load_box            // FIXME
 // cell_strdup
 // cell_styles
 // cell_styles_off
@@ -57,10 +57,6 @@
 // cell_styles_set
 // cell_wide_left_p
 // cell_wide_right_p
-//
-// NOTE:
-// - ? gcluster (&str) > type alias?
-// - ? attr (u32)  > type alias?
 
 use cstr_core::CString;
 
