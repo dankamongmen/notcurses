@@ -64,5 +64,5 @@ int main(void){
   }else{
     ret = -1;
   }
-  return ret ? EXIT_FAILURE : EXIT_SUCCESS;
+  return ncdirect_stop(n) || ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }
