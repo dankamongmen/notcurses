@@ -138,7 +138,8 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts,
         break;
       case 's':
         if(notcurses_lex_scalemode(optarg, scalemode)){
-          std::cerr <<  "Scaling type should be one of stretch, scale, none" << std::endl;
+          std::cerr << "Scaling type should be one of stretch, scale, none (got "
+                    << optarg << ")" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
         break;

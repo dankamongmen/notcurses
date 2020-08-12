@@ -2352,8 +2352,10 @@ int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode){
     *scalemode = NCSCALE_SCALE;
   }else if(strcasecmp(op, "none") == 0){
     *scalemode = NCSCALE_NONE;
+  }else{
+    return -1;
   }
-  return -1;
+  return 0;
 }
 
 const char* notcurses_str_scalemode(ncscale_e scalemode){
