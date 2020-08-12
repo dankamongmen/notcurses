@@ -6,8 +6,8 @@ python/dist/
 python/notcurses-pydemo.1
 python/src/notcurses.egg-info/
 python/src/_notcurses.so
-rust/*/target
-rust/*/Cargo.lock
+rust/target
+rust/Cargo.lock
 *.pyc
 *.so
 *.swp
