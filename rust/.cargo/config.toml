@@ -2,6 +2,8 @@
 d = "doc --no-deps"
 do = "doc --no-deps --open"
 
+re = "run --example"
+
 # TEST
 # fix IO errors: https://github.com/dankamongmen/notcurses/issues/766
 t = "test -- --test-threads 1 --nocapture"
