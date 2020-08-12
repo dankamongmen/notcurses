@@ -1877,7 +1877,6 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       text = breaker;
     }
 //fprintf(stderr, "x gets %d\n", dimx == breakercol ? 0 : breakercol);
-    x = 0;
     if(breaker == text || overlong){
       linestart = breaker;
     }else{
