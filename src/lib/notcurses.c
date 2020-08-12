@@ -1417,7 +1417,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   bool wide = cols > 1;
   if(x == -1 && y == -1 && n->x + wide >= n->lenx){
     if(!n->scrolling){
-      logerror(n->nc, "No room to output [%s]\n", gclust);
+      logerror(n->nc, "No room to output [%s] %d/%d\n", gclust, n->y, n->x);
       return -1;
     }
     scroll_down(n);
@@ -1713,8 +1713,66 @@ overlong_word(const char* text, int dimx){
   return false;
 }
 
+// Determine if we need to drop down to the next line before trying to print
+// anything. We do if both (1) there is not enough room to print an entire word
+// on the line, and (2) we did not start on the left-hand side. If #2 is not
+// true, it's just a very long word, and we print the portion we can. Performs
+// the move, if it is determined to be necessary.
+static int
+puttext_premove(ncplane* n, const char* text){
+//fprintf(stderr, "CHECKING %d/%d %s\n", n->y, n->x, text);
+  if(n->x == 0){ // never move down when starting on the left hand origin
+    return 0;
+  }
+  const char* breaker = NULL; // where the last wordbreaker starts
+  if(n->x > 0 && n->x < n->lenx){
+    int x = n->x;
+    const char* beginning = text;
+    while(*text && x <= ncplane_dim_x(n)){
+      mbstate_t mbstate = {};
+      wchar_t w;
+      size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
+      if(consumed == (size_t)-2 || consumed == (size_t)-1){
+        logerror(n->nc, "Invalid UTF-8 after %zu bytes\n", text - beginning);
+        return -1;
+      }
+      if(iswordbreak(w)){
+  //fprintf(stderr, "wordbreak [%lc] at %d\n", w, x);
+        if(x == n->x){
+          text += consumed;
+          continue; // don't emit leading whitespace, or count it
+        }else{
+          return 0;
+        }
+      }
+      int width = wcwidth(w);
+  //fprintf(stderr, "have char %lc (%d) (%zu)\n", w, width, text - linestart);
+      if(width < 0){
+        width = 0;
+      }
+      if(x + width > n->lenx){
+        break;
+      }
+      x += width;
+      text += consumed;
+    }
+  }
+  if(*text && breaker == NULL){
+//fprintf(stderr, "ADVANCING DA FOKKER, JA\n");
+    if(n->scrolling){
+      scroll_down(n);
+    }else{
+      return ncplane_cursor_move_yx(n, n->y + 1, 0);
+    }
+  }
+  return 0;
+}
+
 // FIXME probably best to use u8_wordbreaks() and get all wordbreaks at once...
 int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes){
+  if(bytes){
+    *bytes = 0;
+  }
   int totalcols = 0;
   // save the beginning for diagnostic
   const char* beginning = text;
@@ -1725,8 +1783,19 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
   const int dimx = ncplane_dim_x(n);
   const int dimy = ncplane_dim_y(n);
   const char* linestart = text;
-  int x = 0; // number of columns consumed for this line
+  // if we're using NCALIGN_LEFT, we'll be printing with x==-1, i.e. wherever
+  // the cursor is. if there's insufficient room to print anything, we need to
+  // try moving to the next line first. FIXME this ought actually apply to all
+  // alignments, which ought be taken relative to n->x. no change for
+  // NCALIGN_RIGHT, but NCALIGN_CENTER needs explicitly handle it...
   do{
+    //if(align == NCALIGN_LEFT){
+      if(puttext_premove(n, text)){
+        return -1;
+      }
+    //}
+//fprintf(stderr, "**************STARTING AT %d/%d of %d/%d\n", n->y, n->x, n->leny, n->lenx);
+    int x = n->x; // number of columns consumed for this line
     const char* breaker = NULL; // where the last wordbreaker starts
     int breakercol = 0; // column of the last wordbreaker
     // figure how much text to output on this line
@@ -1747,8 +1816,8 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         }
         return -1;
       }
-//fprintf(stderr, "have possible wordbreak %lc\n", w);
       if(iswordbreak(w)){
+//fprintf(stderr, "wordbreak [%lc] at %d\n", w, x);
         if(x == 0){
           text += consumed;
           linestart = text;
@@ -1769,7 +1838,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       x += width;
       text += consumed;
     }
-//fprintf(stderr, "OUT! %s %zu %d\n", linestart, text - linestart, x);
+//fprintf(stderr, "%d/%d OUT! %s %zu %d\n", n->y, n->x, linestart, text - linestart, x);
     bool overlong = false; // ugh
     // if we have no breaker, we got a single word that was longer than our
     // line. print what we can and move along. if *text is nul, we're done.
@@ -1796,7 +1865,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
 //fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
       totalcols += breakercol;
-      const int xpos = ncplane_align(n, align, breakercol);
+      const int xpos = (align == NCALIGN_LEFT) ? -1 : ncplane_align(n, align, breakercol);
       // blows out if we supply a y beyond leny
 //fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
       if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){
@@ -1826,6 +1895,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
         y = -1;
       }
     }
+//fprintf(stderr, "new cursor: %d/%d\n", n->y, n->x);
 //fprintf(stderr, "LOOKING AT: [%c] [%s]\n", *text, linestart);
   }while(*text);
   if(bytes){
