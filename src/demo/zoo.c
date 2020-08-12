@@ -4,6 +4,14 @@
 #define THREAD_RETURN_NEGATIVE ((void*)-1)
 #define THREAD_RETURN_POSITIVE ((void*)1)
 
+// As the subwidgets (selector etc.) are taking the catwalk out, they process
+// input to show off their functionality. Once they're done, the expositional
+// plane might still be generating output; it should then start using
+// demo_getc_blocking(), passing any input to the widgets itself (since they're
+// inactive otherwise). This is set by the last widget (current multiselector).
+static int sub_widgets_done = 0; // guarded by main lock
+static struct ncmultiselector* mselector = NULL;
+
 static int
 locked_demo_render(struct notcurses* nc, pthread_mutex_t* lock){
   int ret;
@@ -73,12 +81,12 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx,
   channels_set_fg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
   pthread_mutex_lock(lock);
-  struct ncmultiselector* mselector = ncmultiselector_create(n, y, 0, &mopts);
-  if(mselector == NULL){
+  struct ncmultiselector* mselect = ncmultiselector_create(n, y, 0, &mopts);
+  if(mselect == NULL){
     pthread_mutex_unlock(lock);
     return NULL;
   }
-  struct ncplane* mplane = ncmultiselector_plane(mselector);
+  struct ncplane* mplane = ncmultiselector_plane(mselect);
   ncplane_move_below(mplane, under);
   pthread_mutex_unlock(lock);
   struct timespec swoopdelay;
@@ -98,22 +106,22 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx,
         ncplane_move_yx(mplane, y, i);
       pthread_mutex_unlock(lock);
       if(*ret){
-        ncmultiselector_destroy(mselector);
+        ncmultiselector_destroy(mselect);
         return NULL;
       }
       struct timespec iterdelay;
       ns_to_timespec(timespec_subtract_ns(&deadline, &now), &iterdelay);
       char32_t wc = demo_getc(nc, &iterdelay, &ni);
       if(wc == (char32_t)-1){
-        ncmultiselector_destroy(mselector);
+        ncmultiselector_destroy(mselect);
         return NULL;
       }else if(wc){
         pthread_mutex_lock(lock);
-          ncmultiselector_offer_input(mselector, &ni);
+          ncmultiselector_offer_input(mselect, &ni);
           *ret = demo_render(nc);
         pthread_mutex_unlock(lock);
         if(*ret){
-          ncmultiselector_destroy(mselector);
+          ncmultiselector_destroy(mselect);
           return NULL;
         }
       }
@@ -121,7 +129,7 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx,
     }while(timespec_to_ns(&now) < timespec_to_ns(&deadline));
   }
   if( (*ret = locked_demo_render(nc, lock)) ){
-    ncmultiselector_destroy(mselector);
+    ncmultiselector_destroy(mselect);
     return NULL;
   }
   struct timespec ts;
@@ -133,15 +141,18 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx,
     ns_to_timespec(targ - cur, &rel);
     char32_t wc = demo_getc(nc, &rel, &ni);
     if(wc == (char32_t)-1){
-      ncmultiselector_destroy(mselector);
+      ncmultiselector_destroy(mselect);
       return NULL;
     }else if(wc){
-      ncmultiselector_offer_input(mselector, &ni);
+      ncmultiselector_offer_input(mselect, &ni);
     }
     clock_gettime(CLOCK_MONOTONIC, &ts);
     cur = timespec_to_ns(&ts);
   }while(cur < targ);
-  return mselector;
+  pthread_mutex_lock(lock);
+  sub_widgets_done = 1;
+  pthread_mutex_unlock(lock);
+  return mselect;
 }
 
 static int
@@ -257,6 +268,24 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx,
   return selector;
 }
 
+static int
+riser_collect_input(struct notcurses* nc, const struct timespec* ts){
+  struct timespec now, deadline;
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  ns_to_timespec(timespec_to_ns(&now) + timespec_to_ns(ts), &deadline);
+  do{
+    ncinput ni;
+    char32_t key = demo_getc(nc, &demodelay, &ni);
+    if(key == (char32_t)-1){
+      return -1;
+    }else if(key){
+      ncmultiselector_offer_input(mselector, &ni);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &now);
+  }while(timespec_to_ns(&deadline) > timespec_to_ns(&now));
+  return 0;
+}
+
 typedef struct read_marshal {
   struct notcurses* nc;
   struct ncreader* reader;
@@ -292,6 +321,7 @@ reader_thread(void* vmarsh){
   size_t textpos = 0;
   int ret;
   const int MAXTOWRITE = 8;
+  bool collect_input = false;
   while(textpos < textlen || y > targrow){
     pthread_mutex_lock(lock);
       if( (ret = demo_render(nc)) ){
@@ -320,11 +350,26 @@ reader_thread(void* vmarsh){
         free(duped);
         textpos += towrite;
       }
+      if(sub_widgets_done){
+        collect_input = true;
+      }
     pthread_mutex_unlock(lock);
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
+    if(collect_input){
+      ret = riser_collect_input(nc, &rowdelay);
+    }else{
+      clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
+    }
   }
-  // FIXME unsafe if other widgets aren't yet done (can eat their input)!
-  ret = demo_nanosleep(nc, &demodelay);
+  pthread_mutex_lock(lock);
+  if(sub_widgets_done){
+    collect_input = true;
+  }
+  pthread_mutex_unlock(lock);
+  if(collect_input){
+    ret = riser_collect_input(nc, &demodelay);
+  }else{
+    ret = clock_nanosleep(CLOCK_MONOTONIC, 0, &demodelay, NULL);
+  }
   if(ret < 0){
     return THREAD_RETURN_NEGATIVE;
   }else if(ret > 0){
@@ -404,7 +449,6 @@ int zoo_demo(struct notcurses* nc){
     return -1;
   }
   int ret = 0;
-  struct ncmultiselector* mselector = NULL;
   struct ncselector* selector = NULL;
   selector = selector_demo(n, ncreader_plane(reader), dimx, 2, &lock, &ret);
   if(selector == NULL || ret){
