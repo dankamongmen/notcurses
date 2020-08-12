@@ -1,25 +1,72 @@
-// NOTE: There are several differences from the original functions in C:
+// ---------------------------------------------------------------------------------------
+// - NOTE: The channel components are u8 instead of u32.
+//   Because of type enforcing, some runtime checks are now unnecessary.
 //
-// - The channel components are u8 instead of u32. Because of type enforcing by the
-//   compiler, some runtime checks are now unnecessary.
-//
-// - These functions now can't fail and doesn't have to return an error:
+// - NOTE: These functions now can't fail and don't have to return an error:
 //   - `channel_set_rgb()`
 //   - `channels_set_fg_rgb()`
 //   - `channels_set_bg_rgb()`
+//   - `channel_set()`
+//   - `channels_set_fg()`
+//   - `channels_set_bg()`
 //
-// - These functions were therefore deemed unnecessary to implement:
+// - NOTE: These functions were therefore deemed unnecessary to implement:
 //   - `channel_set_rgb_clipped()`
 //   - `channels_set_fg_rgb_clipped()`
 //   - `channels_set_bg_rgb_clipped()`
 //
-// - These functions return an integer error result:
+// - These functions still return an integer error result:
 //   - `channel_set_alpha()`
-//   - `channel_set_rgb()`
-//   - `channels_set_fg()`
-//   - `channels_set_bg()`
 //   - `channels_set_fg_alpha()`
 //   - `channels_set_bg_alpha()`
+// ---------------------------------------------------------------------------------------
+//
+// functions already exported by bindgen : 0
+// ------------------------------------------
+//
+// static inline functions to reimplement: 38
+// ------------------------------------------ (done / wont / remaining)
+// - implement : 34 / 3 /  1
+// - unit tests: 14 / 0 / 21
+// --------------- (+) implemented (#) + unit test (x) wont implement
+//#channel_alpha
+//#channel_b
+//#channel_default_p  // FIXME TEST
+//#channel_g
+//+channel_palindex_p
+//#channel_r
+//#channel_rgb
+//#channels_bchannel
+//+channels_bg
+//+channels_bg_alpha
+//+channels_bg_default_p
+//+channels_bg_palindex_p
+//+channels_bg_rgb
+// channels_blend   // TODO
+//#channels_combine
+//+channel_set
+//#channel_set_alpha
+//#channel_set_default
+//#channel_set_rgb
+//xchannel_set_rgb_clipped
+//#channels_fchannel
+//+channels_fg
+//+channels_fg_alpha
+//+channels_fg_default_p
+//+channels_fg_palindex_p
+//+channels_fg_rgb
+//#channels_set_bchannel
+//+channels_set_bg
+//+channels_set_bg_alpha
+//+channels_set_bg_default
+//+channels_set_bg_rgb
+//xchannels_set_bg_rgb_clipped
+//#channels_set_fchannel
+//+channels_set_fg
+//+channels_set_fg_alpha
+//+channels_set_fg_default
+//+channels_set_fg_rgb
+//xchannels_set_fg_rgb_clipped
 //
 #![allow(dead_code)]
 
@@ -62,15 +109,11 @@ pub fn channel_set_rgb(channel: &mut Channel, r: Color, g: Color, b: Color) {
     *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | rgb;
 }
 
-/// Same as chennel_set_rgb(), but provide an assembled, packed 24 bits of rgb.
+/// Same as channel_set_rgb(), but provide an assembled, packed 24 bits of rgb.
 // TODO: TEST
 #[inline]
-pub fn channel_set(channel: &mut Channel, rgb: Rgb) -> IntResult {
-    if rgb > 0xffffff_u32 {
-        return -1;
-    }
-    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | rgb;
-    0
+pub fn channel_set(channel: &mut Channel, rgb: Rgb) {
+    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | (rgb & 0x00ffffff);
 }
 
 /// Extract the 2-bit alpha component from a 32-bit channel.
@@ -211,16 +254,13 @@ pub fn channels_set_fg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Co
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
 }
 
-/// Same as channels_set_fg_rgb but but set an assembled 24 bit channel at once.
+/// Same as channels_set_fg_rgb but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
-pub fn channels_set_fg(channels: &mut ChannelPair, rgb: Rgb) -> IntResult {
+pub fn channels_set_fg(channels: &mut ChannelPair, rgb: Rgb) {
     let mut channel = channels_fchannel(*channels);
-    if channel_set(&mut channel, rgb) < 0 {
-        return -1;
-    }
+    channel_set(&mut channel, rgb);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
-    0
 }
 
 /// Set the r, g, and b channels for the background component of this 64-bit
@@ -233,16 +273,13 @@ pub fn channels_set_bg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Co
     channels_set_bchannel(channels, channel);
 }
 
-/// Same as channels_set_bg_rgb but but set an assembled 24 bit channel at once.
+/// Same as channels_set_bg_rgb but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
-pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) -> IntResult {
+pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) {
     let mut channel = channels_bchannel(*channels);
-    if channel_set(&mut channel, rgb) < 0 {
-        return -1;
-    }
+    channel_set(&mut channel, rgb);
     channels_set_bchannel(channels, channel);
-    0
 }
 
 /// Set the 2-bit alpha component of the foreground channel.
@@ -322,6 +359,43 @@ pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
     channels_set_bchannel(channels, channel);
     *channels
 }
+
+/// Returns the result of blending two channels. 'blends' indicates how heavily
+/// 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
+/// 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
+/// since we can't blend default colors. Likewise, if 'c2' is a default color,
+/// it will not be used (unless 'blends' is 0).
+///
+/// Palette-indexed colors do not blend, and since we need the attrword to store
+/// them, we just don't fuck wit' 'em here. Do not pass me palette-indexed
+/// channels! I will eat them.
+// TODO
+// static inline unsigned
+// channels_blend(unsigned c1, unsigned c2, unsigned* blends){
+//   if(channel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
+//     return c1; // do *not* increment *blends
+//   }
+//   unsigned rsum, gsum, bsum;
+//   channel_rgb(c2, &rsum, &gsum, &bsum);
+//   bool c2default = channel_default_p(c2);
+//   if(*blends == 0){
+//     // don't just return c2, or you set wide status and all kinds of crap
+//     if(channel_default_p(c2)){
+//       channel_set_default(&c1);
+//     }else{
+//       channel_set_rgb(&c1, rsum, gsum, bsum);
+//     }
+//     channel_set_alpha(&c1, channel_alpha(c2));
+//   }else if(!c2default && !channel_default_p(c1)){
+//     rsum = (channel_r(c1) * *blends + rsum) / (*blends + 1);
+//     gsum = (channel_g(c1) * *blends + gsum) / (*blends + 1);
+//     bsum = (channel_b(c1) * *blends + bsum) / (*blends + 1);
+//     channel_set_rgb(&c1, rsum, gsum, bsum);
+//     channel_set_alpha(&c1, channel_alpha(c2));
+//   }
+//   ++*blends;
+//   return c1;
+// }
 
 #[cfg(test)]
 mod test {

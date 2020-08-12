@@ -284,6 +284,29 @@ TEST_CASE("TextLayout") {
     ncplane_destroy(sp);
   }
 
+  SUBCASE("LayoutLongLines") {
+    // straight from the zoo demo, which didn't work at first
+    const int READER_COLS = 71; // equal to longest line
+    const int READER_ROWS = 4;
+    const char text[] =
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare "
+      "neque ac ipsum viverra, vestibulum hendrerit leo consequat. Integer "
+      "velit, pharetra sed nisl quis, porttitor ornare purus. Cras ac "
+      "sollicitudin dolor, eget elementum dolor. Quisque lobortis sagittis.";
+    auto sp = ncplane_new(nc_, READER_ROWS, READER_COLS, 0, 0, nullptr);
+    REQUIRE(sp);
+    size_t bytes;
+    ncplane_home(sp);
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, text, &bytes));
+    CHECK(bytes == strlen(text));
+    CHECK(0 == notcurses_render(nc_));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+    // FIXME check line
+    free(line);
+    ncplane_destroy(sp);
+  }
+
   SUBCASE("LayoutZooText") {
     // straight from the zoo demo, which didn't work at first
     const int READER_COLS = 64;
@@ -304,10 +327,9 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, text, &bytes));
     CHECK(bytes == strlen(text));
     CHECK(0 == notcurses_render(nc_));
-sleep(5);
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-fprintf(stderr, "RESULT: %s\n", line);
+    // FIXME check line
     free(line);
     ncplane_destroy(sp);
   }
@@ -332,10 +354,9 @@ fprintf(stderr, "RESULT: %s\n", line);
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, text, &bytes));
     CHECK(bytes == strlen(text));
     CHECK(0 == notcurses_render(nc_));
-sleep(5);
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-fprintf(stderr, "RESULT: %s\n", line);
+    // FIXME check line
     free(line);
     ncplane_destroy(sp);
   }

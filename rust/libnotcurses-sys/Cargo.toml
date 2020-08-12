@@ -19,7 +19,11 @@ categories = [
 keywords = ["tui", "cli", "terminal", "ncurses", "ffi"]
 
 [dependencies]
-libc = "0.2.74"
+libc = {version = "0.2.74", default-features = false}
+cty = "0.2.1"
+# cstr_core = "0.2" # waiting for the next version after 0.2.0
+cstr_core = {git= "https://github.com/Amanieu/cstr_core"}
+libc-print = "0.1.13"
 
 [build-dependencies]
 bindgen = ">= 0.52.0"

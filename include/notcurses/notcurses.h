@@ -1531,7 +1531,9 @@ ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
 // to '*bytes' if it is not NULL. Cleared columns are included in the return
 // value, but *not* included in the number of bytes written. Leaves the cursor
 // at the end of output. A partial write will be accomplished as far as it can;
-// determine whether the write completed by inspecting '*bytes'.
+// determine whether the write completed by inspecting '*bytes'. Can output to
+// multiple rows even in the absence of scrolling, but not more rows than are
+// available. With scrolling enabled, arbitrary amounts of data can be emitted.
 API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
                         const char* text, size_t* bytes);
 
@@ -2361,6 +2363,8 @@ API int ncblit_bgrx(const void* data, int linesize,
 // The ncpixel API facilitates direct management of the pixels within an
 // ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render
 // them down to terminal graphics in ncvisual_render()).
+
+// Extract the 8-bit alpha component from a pixel
 static inline uint32_t
 ncpixel(int r, int g, int b){
   if(r < 0) r = 0;
@@ -2372,26 +2376,31 @@ ncpixel(int r, int g, int b){
   return 0xff000000ul | r | (b << 8u) | (g << 16u);
 }
 
+// Extract the 8-bit alpha component from a pixel
 static inline unsigned
 ncpixel_a(uint32_t pixel){
   return (pixel & 0xff0000fful) >> 24u;
 }
 
+// Extract the 8 bit red component from a pixel
 static inline unsigned
 ncpixel_r(uint32_t pixel){
   return (pixel & 0x000000fful);
 }
 
+// Extract the 8 bit green component from a pixel
 static inline int
 ncpixel_g(uint32_t pixel){
   return (pixel & 0x00ff0000ul) >> 16u;
 }
 
+// Extract the 8 bit blue component from a pixel
 static inline int
 ncpixel_b(uint32_t pixel){
   return (pixel & 0x0000ff00ul) >> 8u;
 }
 
+// Set the 8-bit alpha component of a pixel
 static inline int
 ncpixel_set_a(uint32_t* pixel, int a){
   if(a > 255 || a < 0){
@@ -2401,6 +2410,7 @@ ncpixel_set_a(uint32_t* pixel, int a){
   return 0;
 }
 
+// Set the 8-bit red component of a pixel
 static inline int
 ncpixel_set_r(uint32_t* pixel, int r){
   if(r > 255 || r < 0){
@@ -2410,6 +2420,7 @@ ncpixel_set_r(uint32_t* pixel, int r){
   return 0;
 }
 
+// Set the 8-bit green component of a pixel
 static inline int
 ncpixel_set_g(uint32_t* pixel, int g){
   if(g > 255 || g < 0){
@@ -2419,6 +2430,7 @@ ncpixel_set_g(uint32_t* pixel, int g){
   return 0;
 }
 
+// Set the 8-bit blue component of a pixel
 static inline int
 ncpixel_set_b(uint32_t* pixel, int b){
   if(b > 255 || b < 0){
@@ -2597,14 +2609,14 @@ API void notcurses_cursor_disable(struct notcurses* nc);
 // Palette API. Some terminals only support 256 colors, but allow the full
 // palette to be specified with arbitrary RGB colors. In all cases, it's more
 // performant to use indexed colors, since it's much less data to write to the
-// terminal. If you can limit yourself to 256 colors, that' probably best.
+// terminal. If you can limit yourself to 256 colors, that's probably best.
 
 typedef struct palette256 {
   // We store the RGB values as a regular ol' channel
   uint32_t chans[NCPALETTESIZE];
 } palette256;
 
-// Create a new palette store. It will be initialized with notcurses's best
+// Create a new palette store. It will be initialized with notcurses' best
 // knowledge of the currently configured palette.
 API palette256* palette256_new(struct notcurses* nc);
 
