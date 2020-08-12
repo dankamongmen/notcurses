@@ -275,7 +275,7 @@ riser_collect_input(struct notcurses* nc, const struct timespec* ts){
   ns_to_timespec(timespec_to_ns(&now) + timespec_to_ns(ts), &deadline);
   do{
     ncinput ni;
-    char32_t key = demo_getc(nc, &demodelay, &ni);
+    char32_t key = demo_getc(nc, ts, &ni);
     if(key == (char32_t)-1){
       return -1;
     }else if(key){
