@@ -132,7 +132,7 @@ of **cell_load()**, **cell_prime()**, or **cell_duplicate()**. All of these
 functions first call **cell_release()**, as does **cell_load_simple()**. When
 done using a **cell** entirely, call **cell_release()**. **ncplane_destroy()**
 will free up the memory used by the **cell**, but the backing egcpool has a
-maximum size of 16MiB, and failure to release **cell**s can eventually block new
+maximum size of 32MiB, and failure to release **cell**s can eventually block new
 output.
 
 # RETURN VALUES

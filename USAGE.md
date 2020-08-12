@@ -1513,7 +1513,7 @@ useful to use a `cell` when the same styling is used in a discontinuous manner.
 //
 // Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
-// Dynamic requirements can add up to 16MB to an ncplane, but such large pools
+// Dynamic requirements can add up to 32MB to an ncplane, but such large pools
 // are unlikely in common use.
 //
 // We implement some small alpha compositing. Foreground and background both
