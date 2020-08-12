@@ -1757,7 +1757,7 @@ puttext_premove(ncplane* n, const char* text){
       text += consumed;
     }
   }
-  if(breaker == NULL){
+  if(*text && breaker == NULL){
 //fprintf(stderr, "ADVANCING DA FOKKER, JA\n");
     if(n->scrolling){
       scroll_down(n);
@@ -1770,6 +1770,9 @@ puttext_premove(ncplane* n, const char* text){
 
 // FIXME probably best to use u8_wordbreaks() and get all wordbreaks at once...
 int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes){
+  if(bytes){
+    *bytes = 0;
+  }
   int totalcols = 0;
   // save the beginning for diagnostic
   const char* beginning = text;
