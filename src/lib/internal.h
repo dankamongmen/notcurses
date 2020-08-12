@@ -781,29 +781,40 @@ int get_controlling_tty(void);
 
 // logging
 #define logerror(nc, fmt, ...) do{ \
-  if((nc)->loglevel >= NCLOGLEVEL_ERROR){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_ERROR){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  }else{ fprintf(stderr, "%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+}while(0);
 
 #define logwarn(nc, fmt, ...) do{ \
-  if((nc)->loglevel >= NCLOGLEVEL_WARNING){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_WARNING){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  }else{ fprintf(stderr, "%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+}while(0);
 
 #define loginfo(nc, fmt, ...) do{ \
-  if((nc)->loglevel >= NCLOGLEVEL_INFO){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_INFO){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  }else{ fprintf(stderr, "%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+}while(0);
 
 #define logverbose(nc, fmt, ...) do{ \
-  if((nc)->loglevel >= NCLOGLEVEL_VERBOSE){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_VERBOSE){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  }else{ fprintf(stderr, "%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+}while(0);
 
 #define logdebug(nc, fmt, ...) do{ \
-  if((nc)->loglevel >= NCLOGLEVEL_DEBUG){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
+  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_DEBUG){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  }else{ fprintf(stderr, "%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+}while(0);
 
 #define logtrace(nc, fmt, ...) do{ \
-  if((nc)->loglevel >= NCLOGLEVEL_TRACE){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } }while(0);
-
+  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_TRACE){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  }else{ fprintf(stderr, "%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+}while(0);
 
 // Convert a notcurses log level to some multimedia library equivalent.
 int ffmpeg_log_level(ncloglevel_e level);
