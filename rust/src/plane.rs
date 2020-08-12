@@ -99,7 +99,7 @@
 // ncplane_bg
 // ncplane_bg_alpha
 // ncplane_bg_default_p
-// ncplane_bg_rgb
+//+ncplane_bg_rgb
 // ncplane_box_sized
 //+ncplane_dim_x
 //+ncplane_dim_y
@@ -109,7 +109,7 @@
 // ncplane_fg
 // ncplane_fg_alpha
 // ncplane_fg_default_p
-// ncplane_fg_rgb
+//+ncplane_fg_rgb
 // ncplane_gradient_sized
 // ncplane_highgradient_sized
 // ncplane_hline
@@ -139,7 +139,7 @@ use core::ptr::null_mut;
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::IntResult;
+use ffi::types::{Channel, Color, IntResult};
 
 pub fn ncplane_putstr(plane: *mut ffi::ncplane, _str: &str) -> i32 {
     unsafe {
@@ -191,7 +191,7 @@ pub fn ncplane_perimeter(
 //   int keeplenx = oldx > xlen ? xlen : oldx;
 //   return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
 // }
-//
+
 // // Retrieve the current contents of the cell under the cursor into 'c'. This
 // // cell is invalidated if the associated plane is destroyed.
 // static inline int
@@ -208,7 +208,7 @@ pub fn ncplane_perimeter(
 //   }
 //   return r;
 // }
-//
+
 // // Retrieve the current contents of the specified cell into 'c'. This cell is
 // // invalidated if the associated plane is destroyed.
 // static inline int
@@ -223,7 +223,7 @@ pub fn ncplane_perimeter(
 //   free(egc);
 //   return r;
 // }
-//
+
 // // Return the column at which 'c' cols ought start in order to be aligned
 // // according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
 // // Undefined behavior on negative 'c'.
@@ -243,13 +243,13 @@ pub fn ncplane_perimeter(
 //   }
 //   return INT_MAX;
 // }
-//
+
 // // Call ncplane_putc_yx() for the current cursor location.
 // static inline int
 // ncplane_putc(struct ncplane* n, const cell* c){
 //   return ncplane_putc_yx(n, -1, -1, c);
 // }
-//
+
 // // Replace the EGC underneath us, but retain the styling. The current styling
 // // of the plane will not be changed.
 // //
@@ -264,14 +264,13 @@ pub fn ncplane_perimeter(
 //   }
 //   return ncplane_putc_yx(n, y, x, &ce);
 // }
-//
+
 // // Call ncplane_putsimple_yx() at the current cursor location.
 // static inline int
 // ncplane_putsimple(struct ncplane* n, char c){
 //   return ncplane_putsimple_yx(n, -1, -1, c);
 // }
-//
-//
+
 // // Call ncplane_putegc() at the current cursor location.
 // static inline int
 // ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
@@ -296,7 +295,7 @@ pub fn ncplane_perimeter(
 //   free(mbstr);
 //   return ret;
 // }
-//
+
 // // Call ncplane_putwegc() after successfully moving to y, x.
 // static inline int
 // ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
@@ -306,7 +305,7 @@ pub fn ncplane_perimeter(
 //   }
 //   return ncplane_putwegc(n, gclust, sbytes);
 // }
-//
+
 // static inline int
 // ncplane_putstr(struct ncplane* n, const char* gclustarr){
 //   return ncplane_putstr_yx(n, -1, -1, gclustarr);
@@ -316,7 +315,7 @@ pub fn ncplane_perimeter(
 // ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr){
 //   return ncplane_putnstr_yx(n, -1, -1, s, gclustarr);
 // }
-//
+
 // // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 // static inline int
 // ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
@@ -335,7 +334,7 @@ pub fn ncplane_perimeter(
 //   free(mbstr);
 //   return ret;
 // }
-//
+
 // static inline int
 // ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
 //                         const wchar_t* gclustarr){
@@ -343,12 +342,12 @@ pub fn ncplane_perimeter(
 //   int xpos = ncplane_align(n, align, width);
 //   return ncplane_putwstr_yx(n, y, xpos, gclustarr);
 // }
-//
+
 // static inline int
 // ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
 //   return ncplane_putwstr_yx(n, -1, -1, gclustarr);
 // }
-//
+
 // // Replace the cell at the specified coordinates with the provided wide char
 // // 'w'. Advance the cursor by the character's width as reported by wcwidth().
 // // On success, returns 1. On failure, returns -1.
@@ -357,22 +356,22 @@ pub fn ncplane_perimeter(
 //   wchar_t warr[2] = { w, L'\0' };
 //   return ncplane_putwstr_yx(n, y, x, warr);
 // }
-//
+
 // // Call ncplane_putwc() at the current cursor position.
 // static inline int
 // ncplane_putwc(struct ncplane* n, wchar_t w){
 //   return ncplane_putwc_yx(n, -1, -1, w);
 // }
-//
+
 // static inline int
 // ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
 //   return ncplane_vprintf_yx(n, -1, -1, format, ap);
 // }
-//
+
 // static inline int
 // ncplane_printf(struct ncplane* n, const char* format, ...)
 //   __attribute__ ((format (printf, 2, 3)));
-//
+
 // static inline int
 // ncplane_printf(struct ncplane* n, const char* format, ...){
 //   va_list va;
@@ -381,11 +380,11 @@ pub fn ncplane_perimeter(
 //   va_end(va);
 //   return ret;
 // }
-//
+
 // static inline int
 // ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
 //   __attribute__ ((format (printf, 4, 5)));
-//
+
 // static inline int
 // ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
 //   va_list va;
@@ -394,12 +393,12 @@ pub fn ncplane_perimeter(
 //   va_end(va);
 //   return ret;
 // }
-//
+
 // static inline int
 // ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
 //                        const char* format, ...)
 //   __attribute__ ((format (printf, 4, 5)));
-//
+
 // static inline int
 // ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...){
 //   va_list va;
@@ -408,11 +407,11 @@ pub fn ncplane_perimeter(
 //   va_end(va);
 //   return ret;
 // }
-//
+
 // static inline int
 // ncplane_printf_stainable(struct ncplane* n, const char* format, ...)
 //   __attribute__ ((format (printf, 2, 3)));
-//
+
 // static inline int
 // ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
 //   va_list va;
@@ -421,17 +420,17 @@ pub fn ncplane_perimeter(
 //   va_end(va);
 //   return ret;
 // }
-//
+
 // static inline int
 // ncplane_hline(struct ncplane* n, const cell* c, int len){
 //   return ncplane_hline_interp(n, c, len, c->channels, c->channels);
 // }
-//
+
 // static inline int
 // ncplane_vline(struct ncplane* n, const cell* c, int len){
 //   return ncplane_vline_interp(n, c, len, c->channels, c->channels);
 // }
-//
+
 // // Draw a box with its upper-left corner at the current cursor position, having
 // // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
 // // minimum box size is 2x2, and it cannot be drawn off-screen.
@@ -444,7 +443,7 @@ pub fn ncplane_perimeter(
 //   return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1,
 //                      x + xlen - 1, ctlword);
 // }
-//
+
 // static inline int
 // ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
 //                   const cell* ll, const cell* lr, const cell* hline,
@@ -456,7 +455,7 @@ pub fn ncplane_perimeter(
 //   ncplane_dim_yx(n, &dimy, &dimx);
 //   return ncplane_box_sized(n, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword);
 // }
-//
+
 // // Draw a gradient with its upper-left corner at the current cursor position,
 // // having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
 // static inline int
@@ -470,7 +469,7 @@ pub fn ncplane_perimeter(
 //   ncplane_cursor_yx(n, &y, &x);
 //   return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 // }
-//
+
 // static inline int
 // ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
 //                            uint32_t ll, uint32_t lr, int ylen, int xlen){
@@ -486,68 +485,79 @@ pub fn ncplane_perimeter(
 //   ncplane_cursor_yx(n, &y, &x);
 //   return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 // }
-//
+
 // // Extract the 32-bit working background channel from an ncplane.
 // static inline unsigned
 // ncplane_bchannel(const struct ncplane* nc){
 //   return channels_bchannel(ncplane_channels(nc));
 // }
-//
+
 // // Extract the 32-bit working foreground channel from an ncplane.
 // static inline unsigned
 // ncplane_fchannel(const struct ncplane* nc){
 //   return channels_fchannel(ncplane_channels(nc));
 // }
-//
+
 // // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 // static inline unsigned
 // ncplane_fg(const struct ncplane* nc){
 //   return channels_fg(ncplane_channels(nc));
 // }
-//
+
 // // Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 // static inline unsigned
 // ncplane_bg(const struct ncplane* nc){
 //   return channels_bg(ncplane_channels(nc));
 // }
-//
+
 // // Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
 // static inline unsigned
 // ncplane_fg_alpha(const struct ncplane* nc){
 //   return channels_fg_alpha(ncplane_channels(nc));
 // }
-//
+
 // // Is the plane's foreground using the "default foreground color"?
 // static inline bool
 // ncplane_fg_default_p(const struct ncplane* nc){
 //   return channels_fg_default_p(ncplane_channels(nc));
 // }
-//
+
 // // Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 // static inline unsigned
 // ncplane_bg_alpha(const struct ncplane* nc){
 //   return channels_bg_alpha(ncplane_channels(nc));
 // }
-//
+
 // // Is the plane's background using the "default background color"?
 // static inline bool
 // ncplane_bg_default_p(const struct ncplane* nc){
 //   return channels_bg_default_p(ncplane_channels(nc));
 // }
-//
-// // Extract 24 bits of foreground RGB from 'n', split into components.
-// static inline unsigned
-// ncplane_fg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
-//   return channels_fg_rgb(ncplane_channels(n), r, g, b);
-// }
-//
-// // Extract 24 bits of background RGB from 'n', split into components.
-// static inline unsigned
-// ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
-//   return channels_bg_rgb(ncplane_channels(n), r, g, b);
-// }
-//
-//
+
+/// Extract 24 bits of foreground RGB from a plane, split into components.
+// TODO: TEST
+#[inline]
+pub fn ncplane_fg_rgb(
+    plane: &ffi::ncplane,
+    red: &mut Color,
+    green: &mut Color,
+    blue: &mut Color,
+) -> Channel {
+    ffi::channels_fg_rgb(unsafe { ffi::ncplane_channels(plane) }, red, green, blue)
+}
+
+/// Extract 24 bits of background RGB from a plane, split into components.
+// TODO: TEST
+#[inline]
+pub fn ncplane_bg_rgb(
+    plane: &ffi::ncplane,
+    red: &mut Color,
+    green: &mut Color,
+    blue: &mut Color,
+) -> Channel {
+    ffi::channels_bg_rgb(unsafe { ffi::ncplane_channels(plane) }, red, green, blue)
+}
+
 // static inline int
 // ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 //                     int ystop, int xstop, unsigned ctlword){
@@ -563,7 +573,7 @@ pub fn ncplane_perimeter(
 //   cell_release(n, &hl); cell_release(n, &vl);
 //   return ret;
 // }
-//
+
 // static inline int
 // ncplane_perimeter_rounded(struct ncplane* n, uint32_t attrword,
 //                           uint64_t channels, unsigned ctlword){
@@ -587,7 +597,7 @@ pub fn ncplane_perimeter(
 //   cell_release(n, &hl); cell_release(n, &vl);
 //   return r;
 // }
-//
+
 // static inline int
 // ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 //                           int ylen, int xlen, unsigned ctlword){
@@ -596,11 +606,7 @@ pub fn ncplane_perimeter(
 //   return ncplane_rounded_box(n, attr, channels, y + ylen - 1,
 //                              x + xlen - 1, ctlword);
 // }
-//
-// API int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-//                          cell* ul, cell* ur, cell* ll, cell* lr,
-//                          cell* hl, cell* vl);
-//
+
 // static inline int
 // ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 //                    int ystop, int xstop, unsigned ctlword){
@@ -616,7 +622,7 @@ pub fn ncplane_perimeter(
 //   cell_release(n, &hl); cell_release(n, &vl);
 //   return ret;
 // }
-//
+
 // static inline int
 // ncplane_perimeter_double(struct ncplane* n, uint32_t attrword,
 //                          uint64_t channels, unsigned ctlword){
@@ -640,7 +646,7 @@ pub fn ncplane_perimeter(
 //   cell_release(n, &hl); cell_release(n, &vl);
 //   return r;
 // }
-//
+
 // static inline int
 // ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
 //                          int ylen, int xlen, unsigned ctlword){
@@ -649,7 +655,6 @@ pub fn ncplane_perimeter(
 //   return ncplane_double_box(n, attr, channels, y + ylen - 1,
 //                             x + xlen - 1, ctlword);
 // }
-//
 
 #[cfg(test)]
 mod test {

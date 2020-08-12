@@ -12,12 +12,14 @@
 use crate as ffi;
 
 /// Is this char32_t a Supplementary Private Use Area-B codepoint?
+// TODO: TEST
 #[inline]
 pub fn nckey_supppuab_p(w: u32) -> bool {
     w >= 0x100000 && w <= 0x10fffd
 }
 
 /// Is the event a synthesized mouse event?
+// TODO: TEST
 #[inline]
 pub fn nckey_mouse_p(r: u32) -> bool {
     r >= ffi::NCKEY_BUTTON1 && r <= ffi::NCKEY_RELEASE
