@@ -1,24 +1,14 @@
 // ---------------------------------------------------------------------------------------
-// - NOTE: The channel components are u8 instead of u32.
+// - The channel components are u8 instead of u32.
 //   Because of type enforcing, some runtime checks are now unnecessary.
 //
-// - NOTE: These functions now can't fail and don't have to return an error:
-//   - `channel_set_rgb()`
-//   - `channels_set_fg_rgb()`
-//   - `channels_set_bg_rgb()`
-//   - `channel_set()`
-//   - `channels_set_fg()`
-//   - `channels_set_bg()`
+// - None of the functions can't fail now. The original checks for dirty bits
+//   have been substitued by mask cleaning (bitwise and)
 //
-// - NOTE: These functions were therefore deemed unnecessary to implement:
+// - These functions were deemed unnecessary to implement:
 //   - `channel_set_rgb_clipped()`
 //   - `channels_set_fg_rgb_clipped()`
 //   - `channels_set_bg_rgb_clipped()`
-//
-// - These functions still return an integer error result:
-//   - `channel_set_alpha()`
-//   - `channels_set_fg_alpha()`
-//   - `channels_set_bg_alpha()`
 // ---------------------------------------------------------------------------------------
 //
 // functions already exported by bindgen : 0
@@ -31,7 +21,7 @@
 // --------------- (+) implemented (#) + unit test (x) wont implement
 //#channel_alpha
 //#channel_b
-//#channel_default_p  // FIXME TEST
+//#channel_default_p
 //#channel_g
 //+channel_palindex_p
 //#channel_r
@@ -42,7 +32,7 @@
 //+channels_bg_default_p
 //+channels_bg_palindex_p
 //+channels_bg_rgb
-// channels_blend   // TODO
+// channels_blend        // TODO
 //#channels_combine
 //+channel_set
 //#channel_set_alpha
@@ -67,12 +57,12 @@
 //+channels_set_fg_default
 //+channels_set_fg_rgb
 //xchannels_set_fg_rgb_clipped
-//
+
 #![allow(dead_code)]
 
 use crate as ffi;
 
-use crate::types::{Alpha, Channel, ChannelPair, Color, IntResult, Rgb};
+use crate::types::{Alpha, Channel, ChannelPair, Color, Rgb};
 
 /// Extract the 8-bit red component from a 32-bit channel.
 #[inline]
@@ -124,16 +114,14 @@ pub fn channel_alpha(channel: Channel) -> Alpha {
 
 /// Set the 2-bit alpha component of the 32-bit channel.
 #[inline]
-pub fn channel_set_alpha(channel: &mut Channel, alpha: Alpha) -> IntResult {
-    if (alpha & !ffi::NCCHANNEL_ALPHA_MASK) != 0 {
-        return -1;
-    }
-    *channel = alpha | (*channel & !ffi::NCCHANNEL_ALPHA_MASK);
+pub fn channel_set_alpha(channel: &mut Channel, alpha: Alpha) {
+    let mut alpha_clean = alpha & ffi::NCCHANNEL_ALPHA_MASK;
+    *channel = alpha_clean | (*channel & !ffi::NCCHANNEL_ALPHA_MASK);
+
     if alpha != ffi::CELL_ALPHA_OPAQUE {
         // indicate that we are *not* using the default background color
         *channel |= ffi::CELL_BGDEFAULT_MASK;
     }
-    0
 }
 
 /// Is this channel using the "default color" rather than RGB/palette-indexed?
@@ -285,29 +273,24 @@ pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) {
 /// Set the 2-bit alpha component of the foreground channel.
 // TODO: TEST
 #[inline]
-pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: Alpha) -> IntResult {
+pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: Alpha) {
     let mut channel = channels_fchannel(*channels);
-    if channel_set_alpha(&mut channel, alpha) < 0 {
-        return -1;
-    }
+    channel_set_alpha(&mut channel, alpha);
     *channels = (channel as ChannelPair) << 32 | *channels & 0xffffffff_u64;
-    0
 }
 
 /// Set the 2-bit alpha component of the background channel.
 // TODO: TEST
 #[inline]
-pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: Alpha) -> IntResult {
+pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: Alpha) {
+    let mut _alpha_clean = alpha;
     if alpha == ffi::CELL_ALPHA_HIGHCONTRAST {
-        // forbidden for background alpha
-        return -1;
+        // forbidden for background alpha, so makes it opaque
+        _alpha_clean = ffi::CELL_ALPHA_OPAQUE;
     }
     let mut channel = channels_bchannel(*channels);
-    if channel_set_alpha(&mut channel, alpha) < 0 {
-        return -1;
-    }
+    channel_set_alpha(&mut channel, _alpha_clean);
     channels_set_bchannel(channels, channel);
-    0
 }
 
 /// Is the foreground using the "default foreground color"?
