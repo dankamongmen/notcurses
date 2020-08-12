@@ -8,7 +8,7 @@ description = "Low-level Rust bindings for the notcurses C library."
 repository = "https://github.com/dankamongmen/notcurses"
 homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
 links = "notcurses"
-build = "build.rs"
+build = "build/build.rs"
 categories = [
 	"external-ffi-bindings",
 	"command-line-interface",

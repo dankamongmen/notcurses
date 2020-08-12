@@ -15,7 +15,7 @@ fn main() {
     println!("cargo:rerun-if-changed=wrapper.h");
 
     cc::Build::new()
-        .file("stdout.c")
+        .file("build/stdout.c")
         .compile("stdout");
 
     // The bindgen::Builder is the main entry point to bindgen, and lets you
@@ -24,9 +24,8 @@ fn main() {
         .use_core()
         .ctypes_prefix("cty")
         .clang_arg("-D_XOPEN_SOURCE")
-        // The input header we would like to generate
-        // builder for.
-        .header("wrapper.h")
+        // The input header we would like to generate builder for.
+        .header("build/wrapper.h")
         // generate comments, also from headers and not just doc comments (///)
         .generate_comments(true)
         .clang_arg("-fretain-comments-from-system-headers")
