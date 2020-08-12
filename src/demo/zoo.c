@@ -316,7 +316,7 @@ reader_thread(void* vmarsh){
   // the other widgets divide the movement range by 3 (and thus take about 3
   // demodelays to transit). take about 3 demodelays to rise to midscreen. this
   // also affects the "typing" speed.
-  timespec_div(&demodelay, (y - targrow) / 3, &rowdelay);
+  timespec_div(&demodelay, (y - targrow) / 2, &rowdelay);
   // we usually won't be done rendering the text before reaching our target row
   size_t textpos = 0;
   int ret;
@@ -324,17 +324,6 @@ reader_thread(void* vmarsh){
   bool collect_input = false;
   while(textpos < textlen || y > targrow){
     pthread_mutex_lock(lock);
-      if( (ret = demo_render(nc)) ){
-        pthread_mutex_unlock(lock);
-        if(ret < 0){
-          return THREAD_RETURN_NEGATIVE;
-        }else if(ret > 0){
-          return THREAD_RETURN_POSITIVE;
-        }
-      }
-      if(y > targrow){
-        --y;
-      }
       ncplane_move_yx(rplane, y, x);
       size_t towrite = strcspn(text + textpos, " \t\n") + 1;
       if(towrite > MAXTOWRITE){
@@ -353,11 +342,27 @@ reader_thread(void* vmarsh){
       if(sub_widgets_done){
         collect_input = true;
       }
+      if( (ret = demo_render(nc)) ){
+        pthread_mutex_unlock(lock);
+        if(ret < 0){
+          return THREAD_RETURN_NEGATIVE;
+        }else if(ret > 0){
+          return THREAD_RETURN_POSITIVE;
+        }
+      }
+      if(y > targrow){
+        --y;
+      }
     pthread_mutex_unlock(lock);
     if(collect_input){
       ret = riser_collect_input(nc, &rowdelay);
     }else{
-      clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
+      ret = clock_nanosleep(CLOCK_MONOTONIC, 0, &rowdelay, NULL);
+    }
+    if(ret < 0){
+      return THREAD_RETURN_NEGATIVE;
+    }else if(ret > 0){
+      return THREAD_RETURN_POSITIVE;
     }
   }
   pthread_mutex_lock(lock);
