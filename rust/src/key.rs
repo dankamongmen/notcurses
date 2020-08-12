@@ -2,10 +2,10 @@
 // ------------------------------------------
 //
 // static inline functions to reimplement: 2
-// ------------------------------------------ (done / wont / remaining)
-// - implement : 2 / 0 / 0
-// - unit tests: 0 / 0 / 2
-// --------------- (+) implemented (#) + unit test (x) wont implement
+// ------------------------------------------ (done / (x) wont / remaining)
+// (+) implement : 2 / 0 / 0
+// (#) unit tests: 0 / 0 / 2
+// ------------------------------------------
 //+nckey_mouse_p
 //+nckey_supppuab_p
 

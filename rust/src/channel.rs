@@ -15,10 +15,10 @@
 // ------------------------------------------
 //
 // static inline functions to reimplement: 38
-// ------------------------------------------ (done / wont / remaining)
-// - implement : 34 / 3 /  1
-// - unit tests: 14 / 0 / 21
-// --------------- (+) implemented (#) + unit test (x) wont implement
+// ------------------------------------------ (done / (x) wont / remaining)
+// (+) implement : 34 / 3 /  1
+// (#) unit tests: 14 / 0 / 21
+// ------------------------------------------
 //#channel_alpha
 //#channel_b
 //#channel_default_p
@@ -115,7 +115,7 @@ pub fn channel_alpha(channel: Channel) -> Alpha {
 /// Set the 2-bit alpha component of the 32-bit channel.
 #[inline]
 pub fn channel_set_alpha(channel: &mut Channel, alpha: Alpha) {
-    let mut alpha_clean = alpha & ffi::NCCHANNEL_ALPHA_MASK;
+    let alpha_clean = alpha & ffi::NCCHANNEL_ALPHA_MASK;
     *channel = alpha_clean | (*channel & !ffi::NCCHANNEL_ALPHA_MASK);
 
     if alpha != ffi::CELL_ALPHA_OPAQUE {
@@ -283,13 +283,13 @@ pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: Alpha) {
 // TODO: TEST
 #[inline]
 pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: Alpha) {
-    let mut _alpha_clean = alpha;
+    let mut alpha_clean = alpha;
     if alpha == ffi::CELL_ALPHA_HIGHCONTRAST {
         // forbidden for background alpha, so makes it opaque
-        _alpha_clean = ffi::CELL_ALPHA_OPAQUE;
+        alpha_clean = ffi::CELL_ALPHA_OPAQUE;
     }
     let mut channel = channels_bchannel(*channels);
-    channel_set_alpha(&mut channel, _alpha_clean);
+    channel_set_alpha(&mut channel, alpha_clean);
     channels_set_bchannel(channels, channel);
 }
 
@@ -473,7 +473,7 @@ mod test {
         let mut c: Channel = 0x112233;
         assert_eq!(true, super::channel_default_p(c));
 
-        // TODO FIXME: succesfully test for the false result
+        // TODO FIXME: test for the false result
         // let _ = super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_TRANSPARENT);
         // assert_eq!(false, super::channel_default_p(c));
 
