@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.12 (not yet released)
+* 1.6.12 (2020-08-12)
   * `ncreel`s `tabletcb` callback function semantics are radically simplified.
     No more worrying about borders that might or might not have been drawn;
     simply fill up the plane that you're handed. This eliminates four of the
@@ -19,6 +19,9 @@ rearrangements of Notcurses.
     used only for debugging (`notcurses_debug()`) at this time.
   * Added `ncplane_parent()` and `ncplane_parent_const()` for accessing the
     plane to which a plane is bound.
+  * The `notcurses` Rust crate (`rust/notcurses`) has been moved to
+    `dankamongmen/notcurses-rs` on GitHub, and removed from the tree.
+    Jose Luis will be leading development on this high-level wrapper.
 
 * 1.6.11 (2020-08-03)
   * `cell_egc_idx()` is no longer exported; it was never intended to be.
