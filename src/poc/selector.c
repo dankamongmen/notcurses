@@ -94,6 +94,7 @@ int main(void){
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       goto err;
     }
+    ncvisual_destroy(ncv);
   }
 
   ncplane_set_fg(n, 0x40f040);
