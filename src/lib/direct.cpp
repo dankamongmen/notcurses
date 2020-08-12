@@ -287,8 +287,10 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       ncdirect_bg(n, channels_bg(channels));
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
       if(fprintf(n->ttyfp, "%s", strlen(egc) == 0 ? " " : egc) < 0){
+        free(egc);
         return -1;
       }
+      free(egc);
     }
     if(dimx < totx){
       ncdirect_bg_default(n);
