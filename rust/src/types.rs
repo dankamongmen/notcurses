@@ -47,51 +47,53 @@ pub type AlphaBits = u32;
 
 /// Channels: 64 bits containing a foreground and background channel
 ///
+/// type in C: channels (uint64_t) // + 8B == 16B
+///
 /// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
 /// ↑↑↑↑↑↑↑↑↑↑↑↑ foreground ↑↑↑↑↑↑↑↑↑↑↑|↑↑↑↑↑↑↑↑↑↑↑↑ background ↑↑↑↑↑↑↑↑↑↑↑
 ///
-/// type in C: channels (uint64_t) // + 8B == 16B
+/// Detailed info (specially on the context-dependent bits on the 4th byte;
 ///
-/// The hairy details: (source from include/notcurses/notcurses.h)
+///                             ~foreground channel~
+/// part of a wide glyph:                                ↓bits view↓               ↓hex view↓
+/// 1······· ········ ········ ········ ········ ········ ········ ········  =  8······· ········
 ///
-/// part of a wide glyph
-/// 10000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 = 80000000 00000000
+/// foreground is *not* "default color":
+/// ·1······ ········ ········ ········ ········ ········ ········ ········  =  4······· ········
 ///
-/// foreground is *not* "default color"
-/// 01000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 = 40000000 00000000
+/// foreground alpha (2bits):
+/// ··11···· ········ ········ ········ ········ ········ ········ ········  =  3······· ········
 ///
-/// foreground alpha (2bits)
-/// 00110000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 = 30000000 00000000
+/// foreground uses palette index:
+/// ····1··· ········ ········ ········ ········ ········ ········ ········  =  ·8······ ········
 ///
-/// foreground uses palette index
-/// 00001000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 = 08000000 00000000
+/// glyph is entirely foreground:
+/// ·····1·· ········ ········ ········ ········ ········ ········ ········  =  ·4······ ········
 ///
-/// glyph is entirely foreground
-/// 00000100 00000000 00000000 00000000 00000000 00000000 00000000 00000000 = 04000000 00000000
+/// reserved, must be 0:
+/// ······00 ········ ········ ········ ········ ········ ········ ········  =  ·3······ ········
 ///
-/// reserved, must be 0
-/// 00000011 00000000 00000000 00000000 00000000 00000000 00000000 00000000 = 03000000 00000000
+/// foreground in 3x8 RGB (rrggbb):
+/// ········ 11111111 11111111 11111111 ········ ········ ········ ········  =  ··FFFFFF ········
 ///
-/// foreground in 3x8 RGB (rrggbb)
-/// 00000000 11111111 11111111 11111111 00000000 00000000 00000000 00000000 = 00FFFFFF 00000000
+///                             ~background channel~
+/// reserved, must be 0:                                 ↓bits view↓               ↓hex view↓
+/// ········ ········ ········ ········ 0······· ········ ········ ········  =  ········ 8·······
 ///
-/// reserved, must be 0
-/// 00000000 00000000 00000000 00000000 10000000 00000000 00000000 00000000 = 00000000 80000000
+/// background is *not* "default color":
+/// ········ ········ ········ ········ ·1······ ········ ········ ········  =  ········ 4·······
 ///
-/// background is *not* "default color"
-/// 00000000 00000000 00000000 00000000 01000000 00000000 00000000 00000000 = 00000000 40000000
+/// background alpha (2 bits):
+/// ········ ········ ········ ········ ··11···· ········ ········ ········  =  ········ 3·······
 ///
-/// background alpha (2 bits)
-/// 00000000 00000000 00000000 00000000 00110000 00000000 00000000 00000000 = 00000000 30000000
+/// background uses palette index:
+/// ········ ········ ········ ········ ····1··· ········ ········ ········  =  ········ ·8······
 ///
-/// background uses palette index
-/// 00000000 00000000 00000000 00000000 00001000 00000000 00000000 00000000 = 00000000 08000000
+/// reserved, must be 0:
+/// ········ ········ ········ ········ ·····000 ········ ········ ········  =  ········ ·7······
 ///
-/// reserved, must be 0
-/// 00000000 00000000 00000000 00000000 00000111 00000000 00000000 00000000 = 00000000 07000000
-///
-/// background in 3x8 RGB (rrggbb)
-/// 00000000 00000000 00000000 00000000 00000000 11111111 11111111 11111111 = 00000000 00FFFFFF
+/// background in 3x8 RGB (rrggbb):
+/// 0········ ········ ········ ········ ········11111111 11111111 11111111  =  ········ ··FFFFFF
 ///
 ///
 /// At render time, these 24-bit values are quantized down to terminal
@@ -108,34 +110,38 @@ pub type ChannelPair = u64;
 ///
 /// type in C: ncpixel (uint32_t)
 ///
-/// ncpixel has 8 bits of alpha, and no other gunk.
+/// ncpixel has 8 bits of alpha,  more or less linear, contributing
+/// directly to the usual alpha blending equation
 ///
-/// we map the 8 bits of alpha to 2 bits of alpha via a level function,
+/// we map the 8 bits of alpha to 2 bits of alpha via a level function:
+/// https://nick-black.com/dankwiki/index.php?title=Notcurses#Transparency.2FContrasting
 //
 // NOTE: the order of the colors is different than channel. Why.
 pub type Pixel = u32;
 
-pub type PaletteIndex = u8;
-
-pub type IntResult = i32;     // -1 == err
-
 /// Attrword: 32 bits of styling, including:
-///
-/// - 16 "classic" NCURSES bits
-/// - 16 bits for palette-indexed color
 ///
 /// type in C:  attrword (uint32_t)
 ///
-/// NOTE: WIP unstable
-/// https://github.com/dankamongmen/notcurses/issues/884
+/// -  8 bits of zero
+/// -  8 bits reserved
+/// - 16 bits NCSTYLE_* boolean attributes
+///
+/// 00000000 ~~~~~~~~ FFFFFFFF FFFFFFFF
+///   zero   reserved      NCSTYLE
+///
 pub type Attribute = u32;
 
-
-/// GCluster: 32 bits representing
-/// either a directly-encoded ASCII-1968 value of 7 bits
-/// or a 25-bit index into an egcpool
+/// GCluster: 32 bits representing:
 ///
-///  type in C: gcluster (uint32_t)
+/// 1. a directly-encoded ASCII-1968 value of 7 bits (values 0--0x7f)
+///    (A single-byte single-character grapheme cluster)
+///
+/// 2. or a 25-bit index into an egcpool, which may be up to 32MB.
+///    (An offset into a per-ncplane attached pool of varying-length UTF-8
+///    grapheme clusters).
+///
+/// type in C: gcluster (uint32_t)
 ///
 /// NOTE: WIP unstable
 /// https://github.com/dankamongmen/notcurses/issues/830
@@ -168,4 +174,8 @@ pub type GraphemeCluster = u32;
 //
 // NOTE: need more info
 
+
+pub type PaletteIndex = u8;
+
+pub type IntResult = i32;     // <0 == err (usually -1)
 
