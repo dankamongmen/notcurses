@@ -2377,7 +2377,7 @@ ncpixel(int r, int g, int b){
 // Extract the 8-bit alpha component from a pixel
 static inline unsigned
 ncpixel_a(uint32_t pixel){
-  return (pixel & 0xff0000fful) >> 24u;
+  return (pixel & 0xff000000ul) >> 24u;
 }
 
 // Extract the 8 bit red component from a pixel
