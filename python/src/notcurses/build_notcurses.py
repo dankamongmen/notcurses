@@ -401,7 +401,7 @@ typedef struct ncreel_options {
 } ncreel_options;
 struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
 struct ncplane* ncreel_plane(struct ncreel* pr);
-typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop);
+typedef int (*tabletcb)(struct nctablet* t, bool cliptop);
 struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after, struct nctablet* before, tabletcb cb, void* opaque);
 int ncreel_tabletcount(const struct ncreel* pr);
 int ncreel_del(struct ncreel* pr, struct nctablet* t);
