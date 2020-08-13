@@ -139,7 +139,7 @@ use core::ptr::null_mut;
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::{Alpha, Channel, Color, IntResult};
+use ffi::types::{AlphaBits, Channel, Color, IntResult};
 
 pub fn ncplane_putstr(plane: *mut ffi::ncplane, _str: &str) -> i32 {
     unsafe {
@@ -518,14 +518,14 @@ pub fn ncplane_bg(plane: &ffi::ncplane) -> Channel {
 /// Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn ncplane_fg_alpha(plane: &ffi::ncplane) -> Alpha {
+pub fn ncplane_fg_alpha(plane: &ffi::ncplane) -> AlphaBits {
     ffi::channels_fg_alpha(unsafe { ffi::ncplane_channels(plane)})
 }
 
 /// Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn ncplane_bg_alpha(plane: &ffi::ncplane) -> Alpha {
+pub fn ncplane_bg_alpha(plane: &ffi::ncplane) -> AlphaBits {
     ffi::channels_bg_alpha(unsafe { ffi::ncplane_channels(plane)})
 }
 

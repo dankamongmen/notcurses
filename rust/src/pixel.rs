@@ -29,6 +29,13 @@
 
 use crate::types::{Color, Pixel};
 
+// Pixel Structure:
+//
+// 0xff000000 8 bit Alpha
+// 0x00ff0000 8 bit Green
+// 0x0000ff00 8 bit Blue
+// 0x000000ff 8 bit Red
+
 /// Get an RGB pixel from RGB values
 pub fn ncpixel(r: Color, g: Color, b: Color) -> Pixel {
     0xff000000 as Pixel | r as Pixel | (b as Pixel) << 8 | (g as Pixel) << 16
@@ -36,7 +43,7 @@ pub fn ncpixel(r: Color, g: Color, b: Color) -> Pixel {
 
 /// Extract the 8-bit alpha component from a pixel
 pub fn ncpixel_a(pixel: Pixel) -> Color {
-    ((pixel & 0xff0000ff) >> 24) as Color
+    ((pixel & 0xff000000) >> 24) as Color
 }
 
 /// Extract the 8 bit green component from a pixel
