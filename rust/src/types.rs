@@ -43,7 +43,7 @@ pub type Channel = u32;
 ///
 /// ~~AA~~~~ -------- -------- --------
 ///
-pub type Alpha = u32;
+pub type AlphaBits = u32;
 
 /// Channels: 64 bits containing a foreground and background channel
 ///
@@ -128,7 +128,7 @@ pub type IntResult = i32;     // -1 == err
 ///
 /// NOTE: WIP unstable
 /// https://github.com/dankamongmen/notcurses/issues/884
-pub type Attribute: u32;
+pub type Attribute = u32;
 
 
 /// GCluster: 32 bits representing
@@ -139,7 +139,7 @@ pub type Attribute: u32;
 ///
 /// NOTE: WIP unstable
 /// https://github.com/dankamongmen/notcurses/issues/830
-pub type GraphemeCluster: u32;
+pub type GraphemeCluster = u32;
 
 // Cell: 128 bits tying together a:
 //

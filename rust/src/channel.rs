@@ -62,7 +62,7 @@
 
 use crate as ffi;
 
-use crate::types::{Alpha, Channel, ChannelPair, Color, Rgb};
+use crate::types::{AlphaBits, Channel, ChannelPair, Color, Rgb};
 
 /// Extract the 8-bit red component from a 32-bit channel.
 #[inline]
@@ -108,13 +108,13 @@ pub fn channel_set(channel: &mut Channel, rgb: Rgb) {
 
 /// Extract the 2-bit alpha component from a 32-bit channel.
 #[inline]
-pub fn channel_alpha(channel: Channel) -> Alpha {
+pub fn channel_alpha(channel: Channel) -> AlphaBits {
     channel & ffi::NCCHANNEL_ALPHA_MASK
 }
 
 /// Set the 2-bit alpha component of the 32-bit channel.
 #[inline]
-pub fn channel_set_alpha(channel: &mut Channel, alpha: Alpha) {
+pub fn channel_set_alpha(channel: &mut Channel, alpha: AlphaBits) {
     let alpha_clean = alpha & ffi::NCCHANNEL_ALPHA_MASK;
     *channel = alpha_clean | (*channel & !ffi::NCCHANNEL_ALPHA_MASK);
 
@@ -197,14 +197,14 @@ pub fn channels_bg(channels: ChannelPair) -> Channel {
 /// Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn channels_fg_alpha(channels: ChannelPair) -> Alpha {
+pub fn channels_fg_alpha(channels: ChannelPair) -> AlphaBits {
     channel_alpha(channels_fchannel(channels))
 }
 
 /// Extract 2 bits of background alpha from 'channels', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn channels_bg_alpha(channels: ChannelPair) -> Alpha {
+pub fn channels_bg_alpha(channels: ChannelPair) -> AlphaBits {
     channel_alpha(channels_bchannel(channels))
 }
 
@@ -273,7 +273,7 @@ pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) {
 /// Set the 2-bit alpha component of the foreground channel.
 // TODO: TEST
 #[inline]
-pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: Alpha) {
+pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: AlphaBits) {
     let mut channel = channels_fchannel(*channels);
     channel_set_alpha(&mut channel, alpha);
     *channels = (channel as ChannelPair) << 32 | *channels & 0xffffffff_u64;
@@ -282,7 +282,7 @@ pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: Alpha) {
 /// Set the 2-bit alpha component of the background channel.
 // TODO: TEST
 #[inline]
-pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: Alpha) {
+pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: AlphaBits) {
     let mut alpha_clean = alpha;
     if alpha == ffi::CELL_ALPHA_HIGHCONTRAST {
         // forbidden for background alpha, so makes it opaque
