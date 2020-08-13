@@ -434,25 +434,18 @@ mod test {
     #[serial]
     fn channel_set_alpha() {
         let mut c: Channel = 0x112233;
-        assert_eq!(
-            0,
-            super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_HIGHCONTRAST)
-        );
+        super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_HIGHCONTRAST);
         assert_eq!(ffi::CELL_ALPHA_HIGHCONTRAST, super::channel_alpha(c));
 
-        assert_eq!(
-            0,
-            super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_TRANSPARENT)
-        );
+        super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_TRANSPARENT);
         assert_eq!(ffi::CELL_ALPHA_TRANSPARENT, super::channel_alpha(c));
 
-        assert_eq!(0, super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_BLEND));
+        super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_BLEND);
         assert_eq!(ffi::CELL_ALPHA_BLEND, super::channel_alpha(c));
 
-        assert_eq!(0, super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_OPAQUE));
+        super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_OPAQUE);
         assert_eq!(ffi::CELL_ALPHA_OPAQUE, super::channel_alpha(c));
-
-        assert_eq!(-1, super::channel_set_alpha(&mut c, 12345));
+        // TODO: CHECK for ffi::CELL_BGDEFAULT_MASK
     }
 
     #[test]
