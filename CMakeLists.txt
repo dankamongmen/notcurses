@@ -368,6 +368,7 @@ target_include_directories(notcurses-demo
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
+    unistring
     ${MATH_LIBRARIES}
 )
 

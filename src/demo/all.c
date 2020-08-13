@@ -1,4 +1,5 @@
 #include "demo.h"
+#include <unictype.h>
 
 // planes as of unicode 13.0:
 //  0: BMP
@@ -15,17 +16,21 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
   // some of these cause major problems with Kitty, if not others, due to
   // heavy duty beating on freetype FIXME reenable when reasonable
   const int valid_planes[] = {
-    0, 1, /*2,*/ 3, 14,
+    0, 1,/* 2, 3, 14,*/
     /*15, 16,*/ -1
   };
   struct ncplane* std = notcurses_stdplane(nc);
   const int dimx = ncplane_dim_x(column);
+  ncplane_set_base(column, " ", 0, 0);
   for(const int* plane = valid_planes ; *plane >= 0 ; ++plane){
     for(long int c = 0 ; c < 0x10000l ; ++c){
       const char32_t wc = *plane * 0x10000l + c;
       wchar_t w[2] = { wc, L'\0', };
       // surrogates are meaningful only for UTF-16
       if(wc >= 0xd800 && wc <= 0xdfff){
+        continue;
+      }
+      if(uc_bidi_category(wc)){
         continue;
       }
       if(wcwidth(w[0]) >= 1){

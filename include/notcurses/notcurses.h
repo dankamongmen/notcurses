@@ -510,10 +510,10 @@ typedef struct cell {
   // (values 0--0x7f), or an offset into a per-ncplane attached pool of
   // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
   uint32_t gcluster;          // 4B -> 4B
-  // NCSTYLE_* attributes (16 bits) + 8 foreground palette index bits + 8
-  // background palette index bits. palette index bits are used only if the
-  // corresponding default color bit *is not* set, and the corresponding
-  // palette index bit *is* set.
+  // 8 bits of zero + 8 reserved bits + NCSTYLE_* attributes (16 bits).
+  // (attrword & 0xff000000): reserved, *must be zero*
+  // (attrword & 0x00ff0000): reserved
+  // (attrword & 0x0000ffff): NCSTYLE_* booleans
   uint32_t attrword;          // + 4B -> 8B
   // (channels & 0x8000000000000000ull): part of a wide glyph
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
@@ -567,16 +567,16 @@ API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 API void cell_release(struct ncplane* n, cell* c);
 
-#define NCSTYLE_MASK      0xffff0000ul
-#define NCSTYLE_STANDOUT  0x00800000ul
-#define NCSTYLE_UNDERLINE 0x00400000ul
-#define NCSTYLE_REVERSE   0x00200000ul
-#define NCSTYLE_BLINK     0x00100000ul
-#define NCSTYLE_DIM       0x00080000ul
-#define NCSTYLE_BOLD      0x00040000ul
-#define NCSTYLE_INVIS     0x00020000ul
-#define NCSTYLE_PROTECT   0x00010000ul
-#define NCSTYLE_ITALIC    0x01000000ul
+#define NCSTYLE_MASK      0x0000fffful
+#define NCSTYLE_STANDOUT  0x00000080ul
+#define NCSTYLE_UNDERLINE 0x00000040ul
+#define NCSTYLE_REVERSE   0x00000020ul
+#define NCSTYLE_BLINK     0x00000010ul
+#define NCSTYLE_DIM       0x00000008ul
+#define NCSTYLE_BOLD      0x00000004ul
+#define NCSTYLE_INVIS     0x00000002ul
+#define NCSTYLE_PROTECT   0x00000001ul
+#define NCSTYLE_ITALIC    0x00000100ul
 #define NCSTYLE_NONE      0
 
 // Set the specified style bits for the cell 'c', whether they're actively
@@ -1718,9 +1718,7 @@ API void ncplane_erase(struct ncplane* n);
 // since we can't blend default colors. Likewise, if 'c2' is a default color,
 // it will not be used (unless 'blends' is 0).
 //
-// Palette-indexed colors do not blend, and since we need the attrword to store
-// them, we just don't fuck wit' 'em here. Do not pass me palette-indexed
-// channels! I will eat them.
+// Palette-indexed colors do not blend. Do not pass me palette-indexed channels!
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2, unsigned* blends){
   if(channel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
@@ -1848,14 +1846,14 @@ cell_set_fg_palindex(cell* cl, int idx){
   cl->channels |= CELL_FGDEFAULT_MASK;
   cl->channels |= CELL_FG_PALETTE;
   cell_set_fg_alpha(cl, CELL_ALPHA_OPAQUE);
-  cl->attrword &= 0xffff00ff;
-  cl->attrword |= (idx << 8u);
+  cl->channels &= 0xff000000ffffffffull;
+  cl->channels |= ((uint64_t)idx << 32u);
   return 0;
 }
 
 static inline unsigned
 cell_fg_palindex(const cell* cl){
-  return (cl->attrword & 0x0000ff00) >> 8u;
+  return (cl->channels & 0xff00000000ull) >> 32u;
 }
 
 // Set the r, g, and b cell for the background component of this 64-bit
@@ -1888,14 +1886,14 @@ cell_set_bg_palindex(cell* cl, int idx){
   cl->channels |= CELL_BGDEFAULT_MASK;
   cl->channels |= CELL_BG_PALETTE;
   cell_set_bg_alpha(cl, CELL_ALPHA_OPAQUE);
-  cl->attrword &= 0xffffff00;
-  cl->attrword |= idx;
+  cl->channels &= 0xffffffffff000000;
+  cl->channels |= idx;
   return 0;
 }
 
 static inline unsigned
 cell_bg_palindex(const cell* cl){
-  return cl->attrword & 0x000000ff;
+  return (cl->channels & 0xff);
 }
 
 // Is the foreground using the "default foreground color"?
