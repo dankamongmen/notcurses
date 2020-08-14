@@ -379,22 +379,6 @@ nfbcellidx(const ncplane* n, int row, int col){
   return fbcellidx(logical_to_virtual(n, row), n->lenx, col);
 }
 
-// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
-// result is not tied to the ncplane, and persists across erases / destruction.
-static inline char*
-pool_egc_copy(const egcpool* e, const cell* c){
-  char* ret;
-  if(cell_simple_p(c)){
-    if( (ret = (char*)malloc(sizeof(c->gcluster) + 1)) ){
-      memset(ret, 0, sizeof(c->gcluster) + 1);
-      memcpy(ret, &c->gcluster, sizeof(c->gcluster));
-    }
-  }else{
-    ret = strdup(egcpool_extended_gcluster(e, c));
-  }
-  return ret;
-}
-
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
 // ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
 // even semi-portably recover the palette) proceeds via: map each 8-bit to
@@ -599,7 +583,7 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
   targ->channels = c->channels;
   if(cell_simple_p(c)){
     targ->gcluster = c->gcluster;
-    return strnlen((char*)&c->gcluster, sizeof(c->gcluster));
+    return 0;
   }
   assert(splane);
   const char* egc = extended_gcluster(splane, c);
@@ -609,7 +593,7 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
     return -1;
   }
   targ->gcluster = 0x01000000ul + eoffset;
-  return ulen;
+  return 0;
 }
 
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx,

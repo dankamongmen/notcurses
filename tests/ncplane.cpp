@@ -338,9 +338,9 @@ TEST_CASE("NCPlane") {
     cell cell4 = CELL_TRIVIAL_INITIALIZER;
     cell cell5 = CELL_TRIVIAL_INITIALIZER;
     cell cell6 = CELL_TRIVIAL_INITIALIZER;
-    CHECK(2 == cell_duplicate(n_, &cell4, &cell1));
-    CHECK(3 == cell_duplicate(n_, &cell5, &cell2));
-    CHECK(1 == cell_duplicate(n_, &cell6, &cell3));
+    CHECK(0 == cell_duplicate(n_, &cell4, &cell1));
+    CHECK(0 == cell_duplicate(n_, &cell5, &cell2));
+    CHECK(0 == cell_duplicate(n_, &cell6, &cell3));
     cell_release(n_, &cell1);
     cell_release(n_, &cell2);
     cell_release(n_, &cell3);
