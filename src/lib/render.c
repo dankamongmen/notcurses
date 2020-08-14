@@ -1074,16 +1074,10 @@ int notcurses_render(notcurses* nc){
 // result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
 pool_egc_copy(const egcpool* e, const cell* c){
-  char* ret;
   if(cell_simple_p(c)){
-    if( (ret = (char*)malloc(sizeof(c->gcluster) + 1)) ){
-      memset(ret, 0, sizeof(c->gcluster) + 1);
-      memcpy(ret, &c->gcluster, sizeof(c->gcluster));
-    }
-  }else{
-    ret = strdup(egcpool_extended_gcluster(e, c));
+    return strdup((const char*)&c->gcluster);
   }
-  return ret;
+  return strdup(egcpool_extended_gcluster(e, c));
 }
 
 char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels){
