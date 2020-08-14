@@ -724,7 +724,9 @@ init_banner(const notcurses* nc){
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
-    printf("\n notcurses %s by nick black et al", notcurses_version());
+    // FIXME do runtime detection of endianness, ensure it matches compile time
+    printf("\n notcurses %s %s by nick black et al", notcurses_version(),
+           (int)NC_ENDIANNESS == (int)NC_BIGENDIAN ? "BE" : "LE");
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
     printf("\n  %d rows, %d columns (%sB), %d colors (%s)\n"
            "  compiled with gcc-%s\n"

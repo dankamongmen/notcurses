@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <notcurses/nckeys.h>
 #include <notcurses/ncerrs.h>
+#include <notcurses/endianness.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -570,6 +571,9 @@ API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 API void cell_release(struct ncplane* n, cell* c);
 
+// We want the 2 bytes at the highest address of a 32-bit word, so that the
+// octet adjacent to g->clusters is left undisturbed as zero.
+#ifdef NC_BIGENDIAN
 #define NCSTYLE_MASK      0x0000fffful
 #define NCSTYLE_STANDOUT  0x00000080ul
 #define NCSTYLE_UNDERLINE 0x00000040ul
@@ -580,6 +584,18 @@ API void cell_release(struct ncplane* n, cell* c);
 #define NCSTYLE_INVIS     0x00000002ul
 #define NCSTYLE_PROTECT   0x00000001ul
 #define NCSTYLE_ITALIC    0x00000100ul
+#else
+#define NCSTYLE_MASK      0xffff0000ul
+#define NCSTYLE_STANDOUT  0x00800000ul
+#define NCSTYLE_UNDERLINE 0x00400000ul
+#define NCSTYLE_REVERSE   0x00200000ul
+#define NCSTYLE_BLINK     0x00100000ul
+#define NCSTYLE_DIM       0x00080000ul
+#define NCSTYLE_BOLD      0x00040000ul
+#define NCSTYLE_INVIS     0x00020000ul
+#define NCSTYLE_PROTECT   0x00010000ul
+#define NCSTYLE_ITALIC    0x01000000ul
+#endif
 #define NCSTYLE_NONE      0
 
 // Set the specified style bits for the cell 'c', whether they're actively
