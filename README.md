@@ -203,9 +203,9 @@ some design decisions might surprise NCURSES programmers:
 * Scrolling is disabled by default, and cannot be globally enabled.
 * The Curses `cchar_t` has a fixed-size array of `wchar_t`. The notcurses
   `cell` instead supports a UTF-8 encoded extended grapheme cluster of
-  arbitrary length. The only supported charsets are `ANSI_X3.4-1968` and
-  `UTF-8`.
-* The hardware cursor is disabled by default, when supported (`civis` capability).
+  arbitrary length. The only supported encodings are ASCII via `ANSI_X3.4-1968`
+  and Unicode via `UTF-8`.
+* The cursor is disabled by default, when supported (`civis` capability).
 * Echoing of input is disabled by default, and `cbreak` mode is used by default.
 * Colors are always specified as 24 bits in 3 components (RGB). If necessary,
   these will be quantized for the actual terminal. There are no "color pairs".
