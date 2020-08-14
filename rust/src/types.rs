@@ -17,9 +17,9 @@ pub type Rgb = u32;
 ///
 /// CCCCCCCC (1 Byte)
 ///
-/// type in C: no data type
-///
 /// Used both for R/G/B color and 8 bit alpha
+///
+/// type in C: no data type
 ///
 pub type Color = u8;
 
@@ -28,8 +28,6 @@ pub type Color = u8;
 ///
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
 ///
-/// type in C: channel (uint32_t)
-///
 /// It is:
 /// - an RGB value
 /// - plus 2 bits of alpha
@@ -37,17 +35,20 @@ pub type Color = u8;
 ///
 /// The context details are documented in ChannelPair,
 ///
+/// type in C: channel (uint32_t)
+///
 pub type Channel = u32;
 
-/// 2 bits of (alpha + crap) which is part of a Channel
+/// 2 bits of alpha (surrounded by context dependent bits).
+/// It is part of a Channel.
 ///
 /// ~~AA~~~~ -------- -------- --------
+///
+/// type in C: no data type
 ///
 pub type AlphaBits = u32;
 
 /// Channels: 64 bits containing a foreground and background channel
-///
-/// type in C: channels (uint64_t)
 ///
 /// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
 /// ↑↑↑↑↑↑↑↑↑↑↑↑ foreground ↑↑↑↑↑↑↑↑↑↑↑|↑↑↑↑↑↑↑↑↑↑↑↑ background ↑↑↑↑↑↑↑↑↑↑↑
@@ -102,11 +103,11 @@ pub type AlphaBits = u32;
 /// best explained by color(3NCURSES). ours is the same concept. until the
 /// "not default color" bit is set, any color you load will be ignored.
 ///
+/// type in C: channels (uint64_t)
+///
 pub type ChannelPair = u64;
 
 /// Pixel (RGBA): 32 bits broken into RGB + 8-bit alpha
-///
-/// type in C: ncpixel (uint32_t)
 ///
 /// AAAAAAAA GGGGGGGG BBBBBBBB RRRRRRRR
 ///
@@ -115,50 +116,71 @@ pub type ChannelPair = u64;
 ///
 /// we map the 8 bits of alpha to 2 bits of alpha via a level function:
 /// https://nick-black.com/dankwiki/index.php?title=Notcurses#Transparency.2FContrasting
-//
+///
+/// type in C: ncpixel (uint32_t)
+///
 // NOTE: the order of the colors is different than channel. Why.
 pub type Pixel = u32;
 
-/// Attrword: 32 bits of styling, including:
-///
-/// type in C:  attrword (uint32_t)
-///
-/// -  8 bits of zero
-/// -  8 bits reserved
-/// - 16 bits NCSTYLE_* boolean attributes
-///
-/// 00000000 ~~~~~~~~ FFFFFFFF FFFFFFFF
-///   zero   reserved      NCSTYLE
-///
-pub type Attribute = u32;
+// Cell: 128 bits tying together a:
+//
+// 1. GCluster (32b), either or:
+// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
+// 00000001 IIIIIIII IIIIIIII IIIIIIII
+//
+// 2. Attrword (32b)
+// 11111111 11111111 ~~~~~~~~ 00000000
+//
+// 3. Channels (64b)
+// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
+//
+// type in C: cell (struct)
 
-/// GCluster: 32 bits representing:
+/// GCluster
 ///
-/// 1. a directly-encoded ASCII-1968 value (V) of 7 bits (values 0--0x7f)
-///    (A single-byte single-character grapheme cluster)
+/// These 32 bits, together with the associated plane's associated egcpool,
+/// completely define this cell's EGC. Unless the EGC requires more than four
+/// bytes to encode as UTF-8, it will be inlined here:
 ///
-/// ········ ········ ········ ·VVVVVVV
+/// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
+/// extended grapheme cluster <= 4bytes
 ///
-/// 2. or a 25-bit index (I) into an egcpool, which may be up to 16MB.
-///    (An offset into a per-ncplane attached pool of varying-length UTF-8
-///    grapheme clusters).
+/// If more than four bytes are required, it will be spilled into the egcpool.
+/// In either case, there's a NUL-terminated string available without copying,
+/// because (1) the egcpool is all NUL-terminated sequences and (2) the fifth
+/// byte of this struct (the first byte of the attrword, see below) is
+/// guaranteed to be zero, as are any unused bytes in gcluster.
 ///
-/// ·······I IIIIIIII IIIIIIII IIIIIIII
+/// A spilled EGC is indicated by the value 0x01XXXXXX. This cannot alias a
+/// true supra-ASCII EGC, because UTF-8 only encodes bytes <= 0x80 when they
+/// are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
+/// index into the egcpool (which may thus be up to 16MB):
 ///
+/// 00000001 IIIIIIII IIIIIIII IIIIIIII
+///   sign     24bit index to egpool
+///
+/// The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
+/// in a cell, and therefore it must not be allowed through the API.
 ///
 /// type in C: gcluster (uint32_t)
 ///
-/// NOTE: WIP unstable (obsolete)
-/// https://github.com/dankamongmen/notcurses/issues/830
 pub type GraphemeCluster = u32;
 
-// Cell: 128 bits tying together a:
-//
-// - GCluster (32b)
-// - Attrword (32b)
-// - Channels (64b)
-//
-// type in C: cell (struct)
+/// Attrword: 32 bits of styling, including:
+///
+/// 8 bits of zero + 8 reserved bits + 16 bits NCSTYLE_* boolean attributes:
+///
+/// 11111111 11111111 ~~~~~~~~ 00000000  =  0xFFFF~~00
+///     NCSTYLE_      reserved   zero
+///
+/// The values of the NCSTYLE_* bits depend on endianness at compile time:
+/// we need them in the higher memory addresses, because we rely on the octet
+/// adjacent to gcluster being zero, as a backstop to a 4-byte inlined UTF-8
+/// value.  (attrword & 0xff000000): egc backstop, *must be zero*
+///
+/// type in C:  attrword (uint32_t)
+///
+pub type Attribute = u32;
 
 // Plane: fundamental drawing surface. unites a:
 //
