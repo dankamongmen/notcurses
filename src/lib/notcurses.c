@@ -1377,7 +1377,7 @@ cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols)
     return bytes;
   }
   // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
-  if(strncmp(gcluster, "\xe2\x96\x88", 3)){
+  if(strcmp(gcluster, "\xe2\x96\x88")){
     c->channels &= ~CELL_NOBACKGROUND_MASK;
     if(cols < 2){
       c->channels &= ~CELL_WIDEASIAN_MASK;
