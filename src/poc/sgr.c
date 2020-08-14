@@ -44,8 +44,8 @@ int main(int argc, char** argv){
     fprintf(stderr, "Couldn't get terminfo entry for sgr\n");
     return EXIT_FAILURE;
   }
-  int sgrs[9] = { 0 };
-  int pivot = 8;
+  int sgrs[8] = { 0 };
+  int pivot = sizeof(sgrs) / sizeof(*sgrs);
   if(DISABLE_ALTCHARSET){
     --pivot;
   }
@@ -53,22 +53,21 @@ int main(int argc, char** argv){
   // generate all values
   int cols = 0;
   while(pivot >= 0){
-    int i;
-    for(i = 0 ; i < 9 ; ++i){
+    for(size_t i = 0 ; i < sizeof(sgrs) / sizeof(*sgrs) ; ++i){
       cols += printf("%c", sgrs[i] ? '1' : '0');
     }
     cols += printf(" (%02d)", pivot);
-    i = putp(tiparm(sgr, sgrs[0], sgrs[1], sgrs[2], sgrs[3], sgrs[4],
+    int r = putp(tiparm(sgr, sgrs[0], sgrs[1], sgrs[2], sgrs[3], sgrs[4],
                          sgrs[5], sgrs[6], sgrs[7], sgrs[8]));
-    if(i != OK){
+    if(r != OK){
       return EXIT_FAILURE;
     }
-    if((i = printf(" %s ", argv[0])) < 0){
+    if((r = printf(" %s ", argv[0])) < 0){
       return EXIT_FAILURE;
     }
-    cols += i;
-    i = putp(tiparm(sgr, 0, 0, 0, 0, 0, 0, 0, 0, 0));
-    if(i != OK){
+    cols += r;
+    r = putp(tiparm(sgr, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+    if(r != OK){
       return EXIT_FAILURE;
     }
     pivot = pivot_on(pivot, sgrs, sgrcount);

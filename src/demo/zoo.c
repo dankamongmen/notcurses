@@ -320,7 +320,7 @@ reader_thread(void* vmarsh){
   // we usually won't be done rendering the text before reaching our target row
   size_t textpos = 0;
   int ret;
-  const int MAXTOWRITE = 8;
+  const size_t MAXTOWRITE = 8;
   bool collect_input = false;
   while(textpos < textlen || y > targrow){
     pthread_mutex_lock(lock);
