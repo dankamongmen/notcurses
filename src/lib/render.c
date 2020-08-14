@@ -510,8 +510,7 @@ term_putc(FILE* out, const egcpool* e, const cell* c){
       return -1;
     }
   }else{
-    const char* ext = egcpool_extended_gcluster(e, c);
-    if(ncfputs(ext, out) == EOF){
+    if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
       return -1;
     }
   }
