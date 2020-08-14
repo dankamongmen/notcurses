@@ -1364,21 +1364,31 @@ cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols)
   if(bytes < 0 || cols < 0){
     return -1;
   }
-  if(cols < 2){
-    c->channels &= ~CELL_WIDEASIAN_MASK;
-  }else{
-    c->channels |= CELL_WIDEASIAN_MASK;
+  if(bytes <= 1){
+    assert(cols < 2);
+    cell_release(n, c);
+    c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
+    c->gcluster = *gcluster;
+    return bytes;
   }
   // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
   if(strncmp(gcluster, "\xe2\x96\x88", 3)){
     c->channels &= ~CELL_NOBACKGROUND_MASK;
+    if(cols < 2){
+      c->channels &= ~CELL_WIDEASIAN_MASK;
+    }else{
+      c->channels |= CELL_WIDEASIAN_MASK;
+    }
   }else{
     c->channels |= CELL_NOBACKGROUND_MASK;
+    c->channels &= ~CELL_WIDEASIAN_MASK;
   }
   if(bytes <= 4){
-    cell_release(n, c);
-    c->gcluster = 0;
-    memcpy(&c->gcluster, gcluster, bytes);
+    if(strcmp(gcluster, (const char*)&c->gcluster)){
+      cell_release(n, c);
+      c->gcluster = 0;
+      memcpy(&c->gcluster, gcluster, bytes);
+    }
     return bytes;
   }
   int eoffset = egcpool_stash(&n->pool, gcluster, bytes);
