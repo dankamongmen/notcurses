@@ -27,27 +27,8 @@ char32_t notcurses_getc_nblock(struct notcurses* n, ncinput* ni);
 char32_t notcurses_getc_blocking(struct notcurses* n, ncinput* ni);
 int notcurses_inputready_fd(struct notcurses* n);
 typedef struct cell {
-  // These 32 bits are either a single-byte, single-character grapheme cluster
-  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
   uint32_t gcluster;          // 1 * 4b -> 4b
-  // CELL_STYLE_* attributes (16 bits) + 16 reserved bits
   uint32_t attrword;          // + 4b -> 8b
-  // (channels & 0x8000000000000000ull): left half of wide character
-  // (channels & 0x4000000000000000ull): foreground is *not* "default color"
-  // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
-  // (channels & 0x0f00000000000000ull): reserved, must be 0
-  // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
-  // (channels & 0x0000000080000000ull): right half of wide character
-  // (channels & 0x0000000040000000ull): background is *not* "default color"
-  // (channels & 0x0000000030000000ull): background alpha (2 bits)
-  // (channels & 0x000000000f000000ull): reserved, must be 0
-  // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
-  // At render time, these 24-bit values are quantized down to terminal
-  // capabilities, if necessary. There's a clear path to 10-bit support should
-  // we one day need it, but keep things cagey for now. "default color" is
-  // best explained by color(3NCURSES). ours is the same concept. until the
-  // "not default color" bit is set, any color you load will be ignored.
   uint64_t channels;          // + 8b == 16b
 } cell;
 typedef enum {
@@ -62,24 +43,10 @@ typedef enum {
   NCLOGLEVEL_TRACE,   // there's probably a better way to do what you want
 } ncloglevel_e;
 typedef struct notcurses_options {
-  // The name of the terminfo database entry describing this terminal. If NULL,
-  // the environment variable TERM is used. Failure to open the terminal
-  // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // If non-NULL, notcurses_render() will write each rendered frame to this
-  // FILE* in addition to outfp. This is used primarily for debugging.
   FILE* renderfp;
-  // Progressively higher log levels result in more logging to stderr. By
-  // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
-  // Desirable margins. If all are 0 (default), we will render to the entirety
-  // of the screen. If the screen is too small, we do what we can--this is
-  // strictly best-effort. Absolute coordinates are relative to the rendering
-  // area ((0, 0) is always the origin of the rendering area).
   int margin_t, margin_r, margin_b, margin_l;
-  // General flags; see NCOPTION_*. This is expressed as a bitfield so that
-  // future options can be added without reshaping the struct. Undefined bits
-  // must be set to 0.
   uint64_t flags;
 } notcurses_options;
 struct notcurses* notcurses_init(const notcurses_options*, FILE*);
