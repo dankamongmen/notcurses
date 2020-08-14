@@ -500,32 +500,41 @@ ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out)
 }
 
 int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
-  n->attrword |= stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
-    return 0;
+  uint32_t attrword = n->attrword | stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, attrword, n->ttyfp) == 0){
+    if(term_setstyle(n->ttyfp, n->attrword, attrword, NCSTYLE_ITALIC,
+                     n->tcache.italics, n->tcache.italoff) == 0){
+      n->attrword = attrword;
+      return 0;
+    }
   }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
-                       n->tcache.italics, n->tcache.italoff);
+  return -1;
 }
 
 // turn off any specified stylebits
 int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
-  n->attrword &= ~stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
-    return 0;
+  uint32_t attrword = n->attrword & ~stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, attrword, n->ttyfp) == 0){
+    if(term_setstyle(n->ttyfp, n->attrword, attrword, NCSTYLE_ITALIC,
+                     n->tcache.italics, n->tcache.italoff) == 0){
+      n->attrword = attrword;
+      return 0;
+    }
   }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
-                       n->tcache.italics, n->tcache.italoff);
+  return -1;
 }
 
 // set the current stylebits to exactly those provided
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
-  n->attrword = stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, n->attrword, n->ttyfp)){
-    return 0;
+  uint32_t attrword = stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, attrword, n->ttyfp) == 0){
+    if(term_setstyle(n->ttyfp, n->attrword, attrword, NCSTYLE_ITALIC,
+                     n->tcache.italics, n->tcache.italoff) == 0){
+      n->attrword = attrword;
+      return 0;
+    }
   }
-  return term_setstyle(n->ttyfp, n->attrword, stylebits, NCSTYLE_ITALIC,
-                       n->tcache.italics, n->tcache.italoff);
+  return -1;
 }
 
 int ncdirect_palette_size(const ncdirect* nc){

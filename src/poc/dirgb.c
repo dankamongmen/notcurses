@@ -31,6 +31,12 @@ print_gb(struct ncdirect* nc, int r, int total){
 
 static int
 print_rgb(struct ncdirect* nc, int total){
+  if(random() % 2){
+    ncdirect_styles_off(nc, NCSTYLE_ITALIC);
+  }
+  if(random() % 16 == 0){
+    ncdirect_styles_on(nc, NCSTYLE_ITALIC);
+  }
   for(int r = 0 ; r <= total && r < 256 ; r += 4){
     if(print_gb(nc, r, total)){
       return -1;
