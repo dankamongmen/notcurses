@@ -505,7 +505,7 @@ term_putc(FILE* out, const egcpool* e, const cell* c){
       if(ncfputc(' ', out) == EOF){
         return -1;
       }
-    }else if(fprintf(out, "%.4s", (const char*)&c->gcluster) < 0){
+    }else if(ncfputs((const char*)&c->gcluster, out) == EOF){
       return -1;
     }
   }else{
