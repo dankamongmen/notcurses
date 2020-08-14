@@ -29,7 +29,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
     - make
-    - env TERM=xterm make test
+    - env TERM=xterm make test || env TERM=xterm ./notcurses-tester -p ../data
 ---
 kind: pipeline
 type: docker
