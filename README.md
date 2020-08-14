@@ -372,6 +372,12 @@ If things break or seem otherwise lackluster, **please** consult the
 * *Q:* Do you support [musl](https://musl.libc.org/)?
 * *A:* I try to! You'll need at least 1.20.
 
+* *Q:* I only seem to blit in ASCII.
+* *A:* `setlocale(3)` has not been called, or your `LANG` environment variable is underdefined or incorrectly defined, or the necessary locale is not present on your machine.
+
+* *Q:* I pretty much always need an `ncplane` when using a `cell`. Why doesn't the latter hold a point to the former?
+* *A:* Besides the massive redundancy this would entail, `cell` needs to remain as small as possible, and you almost always have the `ncplane` handy if you've got a reference to a valid `cell` anyway.
+
 ## Supplemental material
 
 ### Useful links
