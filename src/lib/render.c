@@ -500,13 +500,16 @@ ncfputc(char c, FILE* out){
 static int
 term_putc(FILE* out, const egcpool* e, const cell* c){
   if(cell_simple_p(c)){
-//fprintf(stderr, "[%ls]\n", egc);
-    if(fprintf(out, "%.4s", (const char*)&c->gcluster) < 0){
+//fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
+    if(c->gcluster == 0 || iscntrl(c->gcluster & 0xffu)){
+      if(ncfputc(' ', out) == EOF){
+        return -1;
+      }
+    }else if(fprintf(out, "%.4s", (const char*)&c->gcluster) < 0){
       return -1;
     }
   }else{
     const char* ext = egcpool_extended_gcluster(e, c);
-// fprintf(stderr, "[%s]\n", ext);
     if(ncfputs(ext, out) == EOF){
       return -1;
     }
