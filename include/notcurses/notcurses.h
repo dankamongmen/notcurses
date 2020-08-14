@@ -587,30 +587,21 @@ API void cell_release(struct ncplane* n, cell* c);
 
 // We want the 2 bytes at the highest address of a 32-bit word, so that the
 // octet adjacent to g->clusters is left undisturbed as zero.
-#ifdef NC_BIGENDIAN
-#define NCSTYLE_MASK      0x0000fffful
-#define NCSTYLE_STANDOUT  0x00000080ul
-#define NCSTYLE_UNDERLINE 0x00000040ul
-#define NCSTYLE_REVERSE   0x00000020ul
-#define NCSTYLE_BLINK     0x00000010ul
-#define NCSTYLE_DIM       0x00000008ul
-#define NCSTYLE_BOLD      0x00000004ul
-#define NCSTYLE_INVIS     0x00000002ul
-#define NCSTYLE_PROTECT   0x00000001ul
-#define NCSTYLE_ITALIC    0x00000100ul
-#else
-#define NCSTYLE_MASK      0xffff0000ul
-#define NCSTYLE_STANDOUT  0x00800000ul
-#define NCSTYLE_UNDERLINE 0x00400000ul
-#define NCSTYLE_REVERSE   0x00200000ul
-#define NCSTYLE_BLINK     0x00100000ul
-#define NCSTYLE_DIM       0x00080000ul
-#define NCSTYLE_BOLD      0x00040000ul
-#define NCSTYLE_INVIS     0x00020000ul
-#define NCSTYLE_PROTECT   0x00010000ul
-#define NCSTYLE_ITALIC    0x01000000ul
-#endif
+#ifdef NC_LITTLEENDIAN
+#define NCSTYLE_MASK      (0x0000fffful << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_STANDOUT  (0x00000080ul << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_UNDERLINE (0x00000040ul << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_REVERSE   (0x00000020ul << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_BLINK     (0x00000010ul << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_DIM       (0x00000008ul << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_BOLD      (0x00000004ul << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_INVIS     (0x00000002ul << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_PROTECT   (0x00000001ul << (16u * !NC_LITTLEENDIAN))
+#define NCSTYLE_ITALIC    (0x00000100ul << (16u * !NC_LITTLEENDIAN))
 #define NCSTYLE_NONE      0
+#else
+#error "Groping blindly through an uncaring universe, I know not my endianness"
+#endif
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not.

@@ -17,9 +17,11 @@ enum ncendianness_t {
 // Sprinkle parentheses of salt and recite the ancient incantation...
 #ifdef __BIG_ENDIAN__
 enum { NC_ENDIANNESS = NC_BIGENDIAN };
+#define NC_LITTLEENDIAN 0
 #else
 #ifdef __LITTLE_ENDIAN__
 enum { NC_ENDIANNESS = NC_LITENDIAN };
+#define NC_LITTLEENDIAN 1
 #else
 #ifdef BSD
 #include <sys/endian.h>
@@ -28,8 +30,10 @@ enum { NC_ENDIANNESS = NC_LITENDIAN };
 #endif
 #if __BYTE_ORDER == __BIG_ENDIAN
 enum { NC_ENDIANNESS = NC_BIGENDIAN };
+#define NC_LITTLEENDIAN 0
 #elif __BYTE_ORDER == __LITTLE_ENDIAN
 enum { NC_ENDIANNESS = NC_LITENDIAN };
+#define NC_LITTLEENDIAN 1
 #else
 #error "Couldn't determine endianness"
 #endif
