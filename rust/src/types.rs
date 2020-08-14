@@ -17,9 +17,9 @@ pub type Rgb = u32;
 ///
 /// CCCCCCCC (1 Byte)
 ///
-/// Used both for R/G/B color and 8 bit alpha
-///
 /// type in C: no data type
+///
+/// Used both for R/G/B color and 8 bit alpha
 ///
 pub type Color = u8;
 
@@ -47,7 +47,7 @@ pub type AlphaBits = u32;
 
 /// Channels: 64 bits containing a foreground and background channel
 ///
-/// type in C: channels (uint64_t) // + 8B == 16B
+/// type in C: channels (uint64_t)
 ///
 /// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
 /// ↑↑↑↑↑↑↑↑↑↑↑↑ foreground ↑↑↑↑↑↑↑↑↑↑↑|↑↑↑↑↑↑↑↑↑↑↑↑ background ↑↑↑↑↑↑↑↑↑↑↑
@@ -106,9 +106,9 @@ pub type ChannelPair = u64;
 
 /// Pixel (RGBA): 32 bits broken into RGB + 8-bit alpha
 ///
-/// AAAAAAAA GGGGGGGG BBBBBBBB RRRRRRRR
-///
 /// type in C: ncpixel (uint32_t)
+///
+/// AAAAAAAA GGGGGGGG BBBBBBBB RRRRRRRR
 ///
 /// ncpixel has 8 bits of alpha,  more or less linear, contributing
 /// directly to the usual alpha blending equation
@@ -134,16 +134,21 @@ pub type Attribute = u32;
 
 /// GCluster: 32 bits representing:
 ///
-/// 1. a directly-encoded ASCII-1968 value of 7 bits (values 0--0x7f)
+/// 1. a directly-encoded ASCII-1968 value (V) of 7 bits (values 0--0x7f)
 ///    (A single-byte single-character grapheme cluster)
 ///
-/// 2. or a 25-bit index into an egcpool, which may be up to 32MB.
+/// ········ ········ ········ ·VVVVVVV
+///
+/// 2. or a 25-bit index (I) into an egcpool, which may be up to 16MB.
 ///    (An offset into a per-ncplane attached pool of varying-length UTF-8
 ///    grapheme clusters).
 ///
+/// ·······I IIIIIIII IIIIIIII IIIIIIII
+///
+///
 /// type in C: gcluster (uint32_t)
 ///
-/// NOTE: WIP unstable
+/// NOTE: WIP unstable (obsolete)
 /// https://github.com/dankamongmen/notcurses/issues/830
 pub type GraphemeCluster = u32;
 
@@ -165,17 +170,15 @@ pub type GraphemeCluster = u32;
 // EGCPool: contiguous region chopped up into NUL-terminated UTF8 EGCs, one per plane
 //
 // type in C: egcpool (struct)
-//
-// NOTE: need more info
 
 
 // CellMatrix: rectilinear array of Cells
 // one -- fb per plane, and transients show up ?
-//
-// NOTE: need more info
 
-
+/// 8-bit value used for indexing into a palette
+///
 pub type PaletteIndex = u8;
 
-pub type IntResult = i32;     // <0 == err (usually -1)
-
+/// 32-bit signed value used to return errors, when value < 0, (usually -1)
+///
+pub type IntResult = i32;
