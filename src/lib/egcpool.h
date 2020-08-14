@@ -252,6 +252,7 @@ cell_egc_idx(const cell* c){
   return c->gcluster & 0x00fffffflu;
 }
 
+// only applies to complex cells, do not use on simple cells
 __attribute__ ((__returns_nonnull__)) static inline const char*
 egcpool_extended_gcluster(const egcpool* pool, const cell* c) {
   uint32_t idx = cell_egc_idx(c);
