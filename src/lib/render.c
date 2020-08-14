@@ -124,11 +124,11 @@ void cell_release(ncplane* n, cell* c){
 
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int cell_duplicate(ncplane* n, cell* targ, const cell* c){
-  int r = cell_duplicate_far(&n->pool, targ, n, c);
-  if(r < 0){
+  if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
     logerror(n->nc, "Failed duplicating cell");
+    return -1;
   }
-  return r;
+  return 0;
 }
 
 // the heart of damage detection. compare two cells (from two different planes)
@@ -1064,6 +1064,22 @@ int notcurses_render(notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
   ret = bytes >= 0 ? 0 : -1;
+  return ret;
+}
+
+// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+// result is not tied to the ncplane, and persists across erases / destruction.
+static inline char*
+pool_egc_copy(const egcpool* e, const cell* c){
+  char* ret;
+  if(cell_simple_p(c)){
+    if( (ret = (char*)malloc(sizeof(c->gcluster) + 1)) ){
+      memset(ret, 0, sizeof(c->gcluster) + 1);
+      memcpy(ret, &c->gcluster, sizeof(c->gcluster));
+    }
+  }else{
+    ret = strdup(egcpool_extended_gcluster(e, c));
+  }
   return ret;
 }
 
