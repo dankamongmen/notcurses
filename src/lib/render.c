@@ -606,8 +606,8 @@ term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
   assert(b < 256);
   // The correct way to do this is using tiparm+tputs, but doing so (at least
   // as of terminfo 6.1.20191019) both emits ~3% more bytes for a run of 'rgb'
-  // and gives rise to some corrupted cells (possibly due to special handling of
-  // values < 256; I'm not at this time sure). So we just cons up our own.
+  // and gives rise to some inaccurate colors (possibly due to special handling
+  // of values < 256; I'm not at this time sure). So we just cons up our own.
   /*if(esc == 4){
     return term_emit("setab", tiparm(nc->setab, (int)((r << 16u) | (g << 8u) | b)), out, false);
   }else if(esc == 3){
