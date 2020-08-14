@@ -379,10 +379,7 @@ TEST_CASE("Wide") {
     free(egc);
     cell cl = CELL_TRIVIAL_INITIALIZER, cr = CELL_TRIVIAL_INITIALIZER;
     CHECK(3 == ncplane_at_yx_cell(n_, 1, 1, &cl));
-    egc = cell_strdup(n_, &cl);
-    REQUIRE(nullptr != egc);
-    CHECK(0 == strcmp("六", egc));
-    free(egc);
+    CHECK(0 == strcmp("六", cell_extended_gcluster(n_, &cl)));
     CHECK(0 == ncplane_at_yx_cell(n_, 1, 2, &cr));
     REQUIRE(cell_simple_p(&cr));
     CHECK(0 == cr.gcluster);
