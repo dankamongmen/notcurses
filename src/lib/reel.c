@@ -113,14 +113,6 @@ typedef enum {
 //    * if focw == backstop, we're done
 //    * draw through edge
 
-// Returns the starting coordinates (relative to the screen) of the specified
-// tablet, and its length. End is (begx + lenx - 1, begy + leny - 1).
-static inline void
-tablet_coordinates(ncplane* w, int* begy, int* begx, int* leny, int* lenx){
-  ncplane_yx(w, begy, begx);
-  ncplane_dim_yx(w, leny, lenx);
-}
-
 static int
 draw_borders(ncplane* w, unsigned mask, uint64_t channel){
   int lenx, leny;
