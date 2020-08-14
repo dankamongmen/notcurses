@@ -1513,7 +1513,7 @@ useful to use a `cell` when the same styling is used in a discontinuous manner.
 //
 // Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
-// Dynamic requirements can add up to 32MB to an ncplane, but such large pools
+// Dynamic requirements can add up to 16MB to an ncplane, but such large pools
 // are unlikely in common use.
 //
 // We implement some small alpha compositing. Foreground and background both
@@ -1536,7 +1536,7 @@ useful to use a `cell` when the same styling is used in a discontinuous manner.
 typedef struct cell {
   // These 32 bits are either a single-byte, single-character grapheme cluster
   // (values 0--0x7f), or an offset into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 32MB.
+  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 16MB.
   uint32_t gcluster;          // 4B -> 4B
   // NCSTYLE_* attributes (16 bits) + 8 foreground palette index bits + 8
   // background palette index bits. palette index bits are used only if the
