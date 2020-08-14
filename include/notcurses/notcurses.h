@@ -678,30 +678,22 @@ cell_wide_left_p(const cell* c){
   return cell_double_wide_p(c) && c->gcluster;
 }
 
-// Is the cell simple (a lone ASCII character, encoded as such)?
+// Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
 static inline bool
 cell_simple_p(const cell* c){
   return (c->gcluster >> 24u) != 0x01;
 }
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
-// is invalidated by any further operation on the plane 'n', so...watch out!
+// can be invalidated by any further operation on the plane 'n', so...watch out!
+// works on both simple and non-simple cells.
 API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 // result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
 cell_strdup(const struct ncplane* n, const cell* c){
-  char* ret;
-  if(cell_simple_p(c)){
-    if( (ret = (char*)malloc(sizeof(c->gcluster) + 1)) ){ // cast is here for C++ clients
-      memset(ret, 0, sizeof(c->gcluster) + 1);
-      memcpy(ret, &c->gcluster, sizeof(c->gcluster));
-    }
-  }else{
-    ret = strdup(cell_extended_gcluster(n, c));
-  }
-  return ret;
+  return strdup(cell_extended_gcluster(n, c));
 }
 
 // Extract the three elements of a cell.
