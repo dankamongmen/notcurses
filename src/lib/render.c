@@ -601,6 +601,9 @@ static const char* NUMBERS[] = {
 
 static inline int
 term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
+  assert(r < 256);
+  assert(g < 256);
+  assert(b < 256);
   // The correct way to do this is using tiparm+tputs, but doing so (at least
   // as of terminfo 6.1.20191019) both emits ~3% more bytes for a run of 'rgb'
   // and gives rise to some corrupted cells (possibly due to special handling of
