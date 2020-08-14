@@ -507,15 +507,29 @@ channels_set_bg_default(uint64_t* channels){
 // RGB is used if neither default terminal colors nor palette indexing are in
 // play, and fully supports all transparency options.
 typedef struct cell {
-  // These 32 bits are either a complete grapheme cluster in 4 bytes or less,
-  // or 0x01000000 plus an offset into a per-ncplane attached pool of varying-
-  // length UTF-8 EGCs (an egcpool). This pool may thus be up to 16MB.
-  // Obviously, this implies that EGCs beginning with 0x01 are disallowed; such
-  // an EGC, if we wanted to support them, could be spilled to the egcpool. If
-  // the EGC is less than four bytes, it will be padded with zeroes.
+  // These 32 bits, together with the associated plane's associated egcpool,
+  // completely define this cell's EGC. Unless the EGC requires more than four
+  // bytes to encode as UTF-8, it will be inlined here. If more than four bytes
+  // are required, it will be spilled into the egcpool. In either case, there's
+  // a NUL-terminated string available without copying, because (1) the egcpool
+  // is all NUL-terminated sequences and (2) the fifth byte of this struct (the
+  // first byte of the attrword, see below) is guaranteed to be zero, as are any
+  // unused bytes in gcluster.
+  //
+  // A spilled EGC is indicated by the value 0x01XXXXXX. This cannot alias a
+  // true supra-ASCII EGC, because UTF-8 only encodes bytes <= 0x80 when they
+  // are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
+  // index into the egcpool. These pools may thus be up to 16MB.
+  //
+  // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
+  // in a cell, which is absolutely fine because what 70s horseshit is SOH? It
+  // must not be allowed through the API, or havoc will result.
   uint32_t gcluster;          // 4B -> 4B
-  // 8 bits of zero + 8 reserved bits + NCSTYLE_* attributes (16 bits).
-  // (attrword & 0xff000000): reserved, *must be zero*
+  // 8 bits of zero + 8 reserved bits + NCSTYLE_* attributes (16 bits). The
+  // values of the NCSTYLE_* bits depend on endianness at compile time: we need
+  // them in the higher memory addresses, because we rely on the octet adjacent
+  // to gcluster being zero, as a backstop to a 4-byte inlined UTF-8 value.
+  // (attrword & 0xff000000): egc backstop, *must be zero*
   // (attrword & 0x00ff0000): reserved
   // (attrword & 0x0000ffff): NCSTYLE_* booleans
   uint32_t attrword;          // + 4B -> 8B
