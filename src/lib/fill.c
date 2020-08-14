@@ -28,13 +28,11 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c, const char* ta
     return 0; // not fillable
   }
   cell* cur = &n->fb[nfbcellidx(n, y, x)];
-  char* glust = cell_strdup(n, cur);
-//fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, glust, targ);
-  if(strcmp(glust, targ)){
-    free(glust);
+  const char* glust = cell_extended_gcluster(n, cur);
+fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, glust, targ);
+  if(strcmp(glust, targ) == 0){
     return 0;
   }
-  free(glust);
   if(cell_duplicate(n, cur, c) < 0){
     return -1;
   }
@@ -70,16 +68,13 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
         return -1; // not fillable
       }
       cell* cur = &n->fb[nfbcellidx(n, y, x)];
-      char* targ = cell_strdup(n, cur);
-      char* fillegc = cell_strdup(n, c);
+      const char* targ = cell_extended_gcluster(n, cur);
+      const char* fillegc = cell_extended_gcluster(n, c);
+fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, fillegc, targ);
       if(strcmp(fillegc, targ) == 0){
-        free(targ);
-        free(fillegc);
         return 0;
       }
-      free(fillegc);
       ret = ncplane_polyfill_recurse(n, y, x, c, targ);
-      free(targ);
     }
   }
   return ret;
@@ -309,23 +304,20 @@ int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
 // the background. if we're a full block, set both to the foreground.
 static int
 rotate_channels(ncplane* src, const cell* c, uint32_t* fchan, uint32_t* bchan){
-  if(cell_simple_p(c)){
-    if(!isgraph(c->gcluster)){
-      *fchan = *bchan;
-    }
+  const char* egc = cell_extended_gcluster(src, c);
+  if(egc[0] == ' ' || egc[0] == 0){
+    *fchan = *bchan;
     return 0;
-  }
-  const char* origc = cell_extended_gcluster(src, c);
-  if(strcmp(origc, "▄") == 0 || strcmp(origc, "▀") == 0){
+  }else if(strcmp(egc, "▄") == 0 || strcmp(egc, "▀") == 0){
     uint32_t tmp = *fchan;
     *fchan = *bchan;
     *bchan = tmp;
     return 0;
-  }else if(strcmp(origc, "█") == 0){
+  }else if(strcmp(egc, "█") == 0){
     *bchan = *fchan;
     return 0;
   }
-  logerror(src->nc, "Invalid EGC for rotation [%s]\n", origc);
+  logerror(src->nc, "Invalid EGC for rotation [%s]\n", egc);
   return -1;
 }
 

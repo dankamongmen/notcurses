@@ -1187,7 +1187,10 @@ int ncplane_base(ncplane* ncp, cell* c){
 }
 
 const char* cell_extended_gcluster(const ncplane* n, const cell* c){
-  return extended_gcluster(n, c);
+  if(cell_simple_p(c)){
+    return (const char*)&c->gcluster;
+  }
+  return egcpool_extended_gcluster(&n->pool, c);
 }
 
 // 'n' ends up above 'above'
