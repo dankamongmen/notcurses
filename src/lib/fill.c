@@ -20,7 +20,7 @@ void ncplane_greyscale(ncplane *n){
 // success. so a return of 0 means there's no work to be done here, and N means
 // we did some work here, filling everything we could reach. out-of-plane is 0.
 static int
-ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c, const char* targ){
+ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c, const char* filltarg){
   if(y >= n->leny || x >= n->lenx){
     return 0; // not fillable
   }
@@ -29,27 +29,28 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c, const char* ta
   }
   cell* cur = &n->fb[nfbcellidx(n, y, x)];
   const char* glust = cell_extended_gcluster(n, cur);
-fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, glust, targ);
-  if(strcmp(glust, targ) == 0){
+//fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, glust, filltarg);
+  if(strcmp(glust, filltarg)){
     return 0;
   }
   if(cell_duplicate(n, cur, c) < 0){
     return -1;
   }
   int r, ret = 1;
-  if((r = ncplane_polyfill_recurse(n, y - 1, x, c, targ)) < 0){
+//fprintf(stderr, "blooming from %d/%d ret: %d\n", y, x, ret);
+  if((r = ncplane_polyfill_recurse(n, y - 1, x, c, filltarg)) < 0){
     return -1;
   }
   ret += r;
-  if((r = ncplane_polyfill_recurse(n, y + 1, x, c, targ)) < 0){
+  if((r = ncplane_polyfill_recurse(n, y + 1, x, c, filltarg)) < 0){
     return -1;
   }
   ret += r;
-  if((r = ncplane_polyfill_recurse(n, y, x - 1, c, targ)) < 0){
+  if((r = ncplane_polyfill_recurse(n, y, x - 1, c, filltarg)) < 0){
     return -1;
   }
   ret += r;
-  if((r = ncplane_polyfill_recurse(n, y, x + 1, c, targ)) < 0){
+  if((r = ncplane_polyfill_recurse(n, y, x + 1, c, filltarg)) < 0){
     return -1;
   }
   ret += r;
@@ -67,14 +68,20 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
       if(y < 0 || x < 0){
         return -1; // not fillable
       }
-      cell* cur = &n->fb[nfbcellidx(n, y, x)];
+      const cell* cur = &n->fb[nfbcellidx(n, y, x)];
       const char* targ = cell_extended_gcluster(n, cur);
       const char* fillegc = cell_extended_gcluster(n, c);
-fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, fillegc, targ);
+//fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, targ, fillegc);
       if(strcmp(fillegc, targ) == 0){
         return 0;
       }
-      ret = ncplane_polyfill_recurse(n, y, x, c, targ);
+      // we need an external copy of this, since we'll be writing to it on
+      // the first call into ncplane_polyfill_recurse()
+      char* targcopy = strdup(targ);
+      if(targcopy){
+        ret = ncplane_polyfill_recurse(n, y, x, c, targcopy);
+        free(targcopy);
+      }
     }
   }
   return ret;
