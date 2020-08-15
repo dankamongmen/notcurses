@@ -28,7 +28,6 @@ static struct ncplane*
 legend(struct notcurses* nc, const char* msg){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  // FIXME replace with ncplane_new_aligned()
   struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), 3,
                                       strlen(msg) + 4, 3,
                                       NCALIGN_CENTER, NULL);
@@ -39,9 +38,15 @@ legend(struct notcurses* nc, const char* msg){
   cell_set_fg_rgb(&c, 0, 0, 0); // darken surrounding characters by half
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT); // don't touch background
-  ncplane_set_base_cell(n, &c);
-  ncplane_set_fg(n, 0xd78700);
-  ncplane_set_bg(n, 0);
+  if(ncplane_set_base_cell(n, &c)){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  if(ncplane_set_fg(n, 0xd78700) || ncplane_set_bg(n, 0)){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  ncplane_styles_on(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   if(ncplane_printf_aligned(n, 1, NCALIGN_CENTER, " %s ", msg) < 0){
     ncplane_destroy(n);
     return NULL;
