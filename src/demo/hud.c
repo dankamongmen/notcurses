@@ -28,7 +28,7 @@ static int plot_pos_y;
 
 // how many columns for runtime?
 #define HUD_ROWS (3 + 2) // 2 for borders
-static const int HUD_COLS = 24 + 2; // 2 for borders
+static const int HUD_COLS = 23 + 2; // 2 for borders
 
 typedef struct elem {
   char* name;
