@@ -28,7 +28,7 @@ static int plot_pos_y;
 
 // how many columns for runtime?
 #define HUD_ROWS (3 + 2) // 2 for borders
-static const int HUD_COLS = 30 + 2; // 2 for borders
+static const int HUD_COLS = 24 + 2; // 2 for borders
 
 typedef struct elem {
   char* name;
@@ -304,11 +304,11 @@ hud_print_finished(elem* list){
       if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
         return -1;
       }
-      if(ncplane_printf_yx(hud, line, 7, "%ju.%02jus", e->totalns / GIG,
-                           (e->totalns % GIG) / (GIG / 100)) < 0){
+      if(ncplane_printf_yx(hud, line, 7, "%ju.%03jus", e->totalns / GIG,
+                           (e->totalns % GIG) / 1000000) < 0){
         return -1;
       }
-      if(ncplane_putstr_yx(hud, line, 18, e->name) < 0){
+      if(ncplane_putstr_yx(hud, line, 16, e->name) < 0){
         return -1;
       }
     }
@@ -504,11 +504,11 @@ int demo_render(struct notcurses* nc){
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
-    if(ncplane_printf_yx(hud, 1, 7, "%ju.%02jus",
-                         ns / GIG, (ns % GIG) / (GIG / 100)) < 0){
+    if(ncplane_printf_yx(hud, 1, 7, "%ju.%03jus", ns / GIG,
+                         (ns % GIG) / 1000000) < 0){
       return -1;
     }
-    if(ncplane_putstr_yx(hud, 1, 18, elems->name) < 0){
+    if(ncplane_putstr_yx(hud, 1, 16, elems->name) < 0){
       return -1;
     }
   }
