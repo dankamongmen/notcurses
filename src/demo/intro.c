@@ -103,9 +103,16 @@ int intro(struct notcurses* nc){
   ncplane_set_fg_rgb(ncp, 0xff, 0xff, 0xff);
   int major, minor, patch, tweak;
   notcurses_version_components(&major, &minor, &patch, &tweak);
-  if(ncplane_printf_aligned(ncp, rows / 2, NCALIGN_CENTER, "notcurses %d.%d.%d.%d. press 'q' to quit.",
-                            major, minor, patch, tweak) < 0){
-    return -1;
+  if(tweak){
+    if(ncplane_printf_aligned(ncp, rows / 2, NCALIGN_CENTER, "notcurses %d.%d.%d.%d. press 'q' to quit.",
+                              major, minor, patch, tweak) < 0){
+      return -1;
+    }
+  }else{
+    if(ncplane_printf_aligned(ncp, rows / 2, NCALIGN_CENTER, "notcurses %d.%d.%d. press 'q' to quit.",
+                              major, minor, patch) < 0){
+      return -1;
+    }
   }
   ncplane_styles_off(ncp, NCSTYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
