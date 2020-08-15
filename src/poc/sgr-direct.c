@@ -4,8 +4,7 @@
 #include <assert.h>
 #include <notcurses/direct.h>
 
-int main(int argc, char** argv){
-  (void)argc;
+int main(void){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
   }
