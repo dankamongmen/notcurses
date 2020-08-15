@@ -94,7 +94,7 @@ TEST_CASE("Fills") {
       for(int x = 0 ; x < dimx ; ++x){
         REQUIRE(0 <= ncplane_at_yx_cell(n_, y, x, &cl));
         CHECK('M' == cl.gcluster);
-        CHECK(0 == cl.attrword);
+        CHECK(0 == cl.stylemask);
         CHECK(channels == cl.channels);
       }
     }
@@ -128,7 +128,7 @@ TEST_CASE("Fills") {
       for(int x = 0 ; x < dimx ; ++x){
         REQUIRE(0 <= ncplane_at_yx_cell(n_, y, x, &c));
         CHECK('V' == c.gcluster);
-        CHECK(0 == c.attrword);
+        CHECK(0 == c.stylemask);
         if(lastxrgb == (uint64_t)-1){
           if(lastyrgb == (uint64_t)-1){
             lastyrgb = c.channels;
@@ -217,10 +217,10 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     cell c = CELL_TRIVIAL_INITIALIZER;
     cell_styles_on(&c, NCSTYLE_BOLD);
-    CHECK(0 < ncplane_format(n_, 0, 0, c.attrword));
+    CHECK(0 < ncplane_format(n_, 0, 0, c.stylemask));
     cell d = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
-    CHECK(d.attrword == c.attrword);
+    CHECK(d.stylemask == c.stylemask);
     CHECK(0x444444 == cell_fg(&d));
   }
 

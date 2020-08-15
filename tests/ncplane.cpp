@@ -482,13 +482,13 @@ TEST_CASE("NCPlane") {
     const char STR1[] = "Jackdaws love my big sphinx of quartz";
     const char STR2[] = "Cwm fjord bank glyphs vext quiz";
     const char STR3[] = "Pack my box with five dozen liquor jugs";
-    ncplane_styles_set(n_, 0);
+    ncplane_styles_set(n_, NCSCALE_NONE);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
     cell testcell = CELL_TRIVIAL_INITIALIZER;
     REQUIRE(0 == ncplane_at_cursor_cell(n_, &testcell)); // want nothing at the cursor
     CHECK(0 == testcell.gcluster);
-    CHECK(0 == testcell.attrword);
+    CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
@@ -503,12 +503,12 @@ TEST_CASE("NCPlane") {
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1
     CHECK(STR1[0] == testcell.gcluster);
-    CHECK(0 == testcell.attrword);
+    CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - 1));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want last char of STR2
     CHECK(STR2[strlen(STR2) - 1] == testcell.gcluster);
-    CHECK(0 == testcell.attrword);
+    CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     // FIXME maybe check all cells?
     CHECK(0 == notcurses_render(nc_));
@@ -519,13 +519,13 @@ TEST_CASE("NCPlane") {
     const char STR1[] = "Σιβυλλα τι θελεις; respondebat illa:";
     const char STR2[] = "αποθανειν θελω";
     const char STR3[] = "Война и мир"; // just thrown in to complicate things
-    ncplane_styles_set(n_, 0);
+    ncplane_styles_set(n_, NCSTYLE_NONE);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
     cell testcell = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_cursor_cell(n_, &testcell); // should be nothing at the cursor
     CHECK(0 == testcell.gcluster);
-    CHECK(0 == testcell.attrword);
+    CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
@@ -540,12 +540,12 @@ TEST_CASE("NCPlane") {
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1
     CHECK(!strcmp("Σ", cell_extended_gcluster(n_, &testcell)));
-    CHECK(0 == testcell.attrword);
+    CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(nullptr, STR2, 0)));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR2
     CHECK(!strcmp("α", cell_extended_gcluster(n_, &testcell)));
-    CHECK(0 == testcell.attrword);
+    CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     // FIXME maybe check all cells?
     CHECK(0 == notcurses_render(nc_));

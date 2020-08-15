@@ -137,7 +137,7 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 static int
 cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
                    const ncplane* srcplane, const cell* srccell){
-  if(damcell->attrword == srccell->attrword){
+  if(damcell->stylemask == srccell->stylemask){
     if(damcell->channels == srccell->channels){
       bool srcsimple = cell_simple_p(srccell);
       bool damsimple = cell_simple_p(damcell);
@@ -329,7 +329,7 @@ paint(ncplane* p, cell* lastframe, struct crender* rvec,
             }
           }
           crender->p = p;
-          targc->attrword = vis->attrword;
+          targc->stylemask = vis->stylemask;
         }else if(cell_wide_left_p(vis)){
           cell_set_wide(targc);
         }
@@ -396,7 +396,7 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
             ++targc;
             targc->gcluster = 0;
             targc->channels = targc[-1].channels;
-            targc->attrword = targc[-1].attrword;
+            targc->stylemask = targc[-1].stylemask;
             if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
               crender->damaged = true;
             }
@@ -1080,14 +1080,14 @@ pool_egc_copy(const egcpool* e, const cell* c){
   return strdup(egcpool_extended_gcluster(e, c));
 }
 
-char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels){
+char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint16_t* stylemask, uint64_t* channels){
   char* egc = NULL;
   if(nc->lastframe){
     if(yoff >= 0 && yoff < nc->lfdimy){
       if(xoff >= 0 || xoff < nc->lfdimx){
         const cell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
-        if(attrword){
-          *attrword = srccell->attrword;
+        if(stylemask){
+          *stylemask = srccell->stylemask;
         }
         if(channels){
           *channels = srccell->channels;

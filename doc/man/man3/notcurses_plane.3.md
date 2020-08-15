@@ -38,7 +38,7 @@ notcurses_plane - operations on ncplanes
 
 **int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);**
 
-**int ncplane_set_base(struct ncplane* ncp, const char* egc, uint32_t attrword, uint64_t channels);**
+**int ncplane_set_base(struct ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t channels);**
 
 **int ncplane_base(struct ncplane* ncp, cell* c);**
 
@@ -52,11 +52,11 @@ notcurses_plane - operations on ncplanes
 
 **struct ncplane* ncplane_below(struct ncplane* n);**
 
-**char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);**
+**char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);**
 
 **int ncplane_at_cursor_cell(struct ncplane* n, cell* c);**
 
-**char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);**
+**char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels);**
 
 **int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);**
 

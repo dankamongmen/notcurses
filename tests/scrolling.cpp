@@ -140,9 +140,9 @@ TEST_CASE("Scrolling") {
     CHECK(20 == x);
     CHECK(0 == notcurses_render(nc_));
     for(int i = 1 ; i < 21 ; ++i){
-      uint32_t attr;
+      uint16_t styles;
       uint64_t channels;
-      char* egc = notcurses_at_yx(nc_, 2, i, &attr, &channels);
+      char* egc = notcurses_at_yx(nc_, 2, i, &styles, &channels);
       REQUIRE(egc);
       CHECK(onext[i - 1] == *egc);
       free(egc);
@@ -153,9 +153,9 @@ TEST_CASE("Scrolling") {
     CHECK(10 == ncplane_putstr(n, next2));
     CHECK(0 == notcurses_render(nc_));
     for(int i = 1 ; i < 21 ; ++i){
-      uint32_t attr;
+      uint16_t styles;
       uint64_t channels;
-      char* egc = notcurses_at_yx(nc_, 2, i, &attr, &channels);
+      char* egc = notcurses_at_yx(nc_, 2, i, &styles, &channels);
       REQUIRE(egc);
       if(i < 11){
         CHECK(next2[i - 1] == *egc);
@@ -186,9 +186,9 @@ TEST_CASE("Scrolling") {
     CHECK(10 == ncplane_putstr(n, onext));
     CHECK(0 == notcurses_render(nc_));
     for(int i = 1 ; i < 21 ; ++i){
-      uint32_t attr;
+      uint16_t styles;
       uint64_t channels;
-      char* egc = notcurses_at_yx(nc_, 2, i, &attr, &channels);
+      char* egc = notcurses_at_yx(nc_, 2, i, &styles, &channels);
       REQUIRE(egc);
       if(i < 11){
         CHECK(onext[i - 1] == *egc);

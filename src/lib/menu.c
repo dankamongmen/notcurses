@@ -236,7 +236,7 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
     return -1;
   }
   cell c = CELL_INITIALIZER(' ', 0, ncm->headerchannels);
-  ncplane_styles_set(ncm->ncp, 0);
+  ncplane_set_attr(ncm->ncp, 0);
   if(ncplane_putc(ncm->ncp, &c) < 0){
     return -1;
   }
@@ -372,9 +372,9 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     if(sec->items[i].desc){
       n->ncp->channels = n->sectionchannels;
       if(i == sec->itemselected){
-        ncplane_styles_set(n->ncp, NCSTYLE_REVERSE);
+        ncplane_set_attr(n->ncp, NCSTYLE_REVERSE);
       }else{
-        ncplane_styles_set(n->ncp, 0);
+        ncplane_set_attr(n->ncp, 0);
       }
       int cols = ncplane_putstr_yx(n->ncp, ypos, xpos + 1, sec->items[i].desc);
       if(cols < 0){
@@ -411,7 +411,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
       }
     }else{
       n->ncp->channels = n->headerchannels;
-      ncplane_styles_set(n->ncp, 0);
+      ncplane_set_attr(n->ncp, 0);
       if(ncplane_putegc_yx(n->ncp, ypos, xpos, "├", NULL) < 0){
         return -1;
       }

@@ -211,18 +211,18 @@ cursor_invalid_p(const ncplane* n){
   return false;
 }
 
-char* ncplane_at_cursor(ncplane* n, uint32_t* attrword, uint64_t* channels){
+char* ncplane_at_cursor(ncplane* n, uint16_t* stylemask, uint64_t* channels){
   if(cursor_invalid_p(n)){
     return NULL;
   }
-  return cell_extract(n, &n->fb[nfbcellidx(n, n->y, n->x)], attrword, channels);
+  return cell_extract(n, &n->fb[nfbcellidx(n, n->y, n->x)], stylemask, channels);
 }
 
-char* ncplane_at_yx(const ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels){
+char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels){
   char* ret = NULL;
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
-      ret = cell_extract(n, &n->fb[nfbcellidx(n, y, x)], attrword, channels);
+      ret = cell_extract(n, &n->fb[nfbcellidx(n, y, x)], stylemask, channels);
     }
   }
   return ret;
@@ -330,7 +330,7 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
     p->bnext = NULL;
     p->bprev = NULL;
   }
-  p->attrword = 0;
+  p->stylemask = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
   cell_init(&p->basecell);
@@ -438,7 +438,7 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimy = n->leny;
   int dimx = n->lenx;
-  uint32_t attr = ncplane_attr(n);
+  uint16_t attr = ncplane_attr(n);
   uint64_t chan = ncplane_channels(n);
   // if we're duping the standard plane, we need adjust for marginalia
   const struct notcurses* nc = ncplane_notcurses_const(n);
@@ -455,7 +455,7 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
         ncplane_destroy(newn);
         return NULL;
       }
-      newn->attrword = attr;
+      newn->stylemask = attr;
       newn->channels = chan;
       memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
       // we dupd the egcpool, so just dup the goffset
@@ -724,15 +724,13 @@ init_banner(const notcurses* nc){
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
-    // FIXME do runtime detection of endianness, ensure it matches compile time
-    printf("\n notcurses %s %s by nick black et al", notcurses_version(),
-           (int)NC_ENDIANNESS == (int)NC_BIGENDIAN ? "BE" : "LE");
+    printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
-    printf("\n  %d rows, %d columns (%sB), %d colors (%s)\n"
+    printf("\n  %d rows %d cols (%sB) %zub cells %d colors (%s)\n"
            "  compiled with gcc-%s\n"
            "  terminfo from %s\n",
            nc->stdplane->leny, nc->stdplane->lenx,
-           bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
+           bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(cell),
            nc->tcache.colors, nc->tcache.RGBflag ? "direct" : "palette",
            __VERSION__, curses_version());
 #ifdef USE_FFMPEG
@@ -1098,16 +1096,12 @@ uint64_t ncplane_channels(const ncplane* n){
   return n->channels;
 }
 
-uint32_t ncplane_attr(const ncplane* n){
-  return n->attrword;
+uint16_t ncplane_attr(const ncplane* n){
+  return n->stylemask;
 }
 
 void ncplane_set_channels(ncplane* n, uint64_t channels){
   n->channels = channels;
-}
-
-void ncplane_set_attr(ncplane* n, uint32_t attrword){
-  n->attrword = attrword;
 }
 
 void ncplane_set_fg_default(ncplane* n){
@@ -1157,8 +1151,8 @@ int ncplane_set_fg_palindex(ncplane* n, int idx){
   n->channels |= CELL_FGDEFAULT_MASK;
   n->channels |= CELL_FG_PALETTE;
   channels_set_fg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
-  n->attrword &= 0xffff00ff;
-  n->attrword |= (idx << 8u);
+  n->stylemask &= 0xffff00ff;
+  n->stylemask |= (idx << 8u);
   return 0;
 }
 
@@ -1169,8 +1163,8 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   n->channels |= CELL_BGDEFAULT_MASK;
   n->channels |= CELL_BG_PALETTE;
   channels_set_bg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
-  n->attrword &= 0xffffff00;
-  n->attrword |= idx;
+  n->stylemask &= 0xffffff00;
+  n->stylemask |= idx;
   return 0;
 }
 
@@ -1178,8 +1172,8 @@ int ncplane_set_base_cell(ncplane* ncp, const cell* c){
   return cell_duplicate(ncp, &ncp->basecell, c);
 }
 
-int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t attrword, uint64_t channels){
-  return cell_prime(ncp, &ncp->basecell, egc, attrword, channels);
+int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t channels){
+  return cell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
 }
 
 int ncplane_base(ncplane* ncp, cell* c){
@@ -1461,7 +1455,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
     return -1;
   }
 //fprintf(stderr, "%08x %d %d\n", targ->gcluster, bytes, cols);
-  targ->attrword = n->attrword;
+  targ->stylemask = n->stylemask;
   targ->channels = channels;
   if(wide){ // must set our right wide, and check for further damage
     if(n->x < n->lenx - 1){ // check to our right
@@ -1474,7 +1468,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
       cell_obliterate(n, candidate);
       cell_set_wide(candidate);
       candidate->channels = channels;
-      candidate->attrword = n->attrword;
+      candidate->stylemask = n->stylemask;
     }
   }
   n->x += cols;
@@ -1483,37 +1477,37 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
 
 int ncplane_putsimple_stainable(ncplane* n, char c){
   uint64_t channels = n->channels;
-  uint32_t attrword = n->attrword;
+  uint32_t stylemask = n->stylemask;
   const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
-  n->attrword = targ->attrword;
+  n->stylemask = targ->stylemask;
   int ret = ncplane_putsimple(n, c);
   n->channels = channels;
-  n->attrword = attrword;
+  n->stylemask = stylemask;
   return ret;
 }
 
 int ncplane_putwegc_stainable(ncplane* n, const wchar_t* gclust, int* sbytes){
   uint64_t channels = n->channels;
-  uint32_t attrword = n->attrword;
+  uint32_t stylemask = n->stylemask;
   const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
-  n->attrword = targ->attrword;
+  n->stylemask = targ->stylemask;
   int ret = ncplane_putwegc(n, gclust, sbytes);
   n->channels = channels;
-  n->attrword = attrword;
+  n->stylemask = stylemask;
   return ret;
 }
 
 int ncplane_putegc_stainable(ncplane* n, const char* gclust, int* sbytes){
   uint64_t channels = n->channels;
-  uint32_t attrword = n->attrword;
+  uint32_t stylemask = n->stylemask;
   const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
-  n->attrword = targ->attrword;
+  n->stylemask = targ->stylemask;
   int ret = ncplane_putegc(n, gclust, sbytes);
   n->channels = channels;
-  n->attrword = attrword;
+  n->stylemask = stylemask;
   return ret;
 }
 
@@ -1553,23 +1547,28 @@ bool notcurses_cantruecolor(const notcurses* nc){
   return nc->tcache.RGBflag;
 }
 
+// conform to the specified stylebits
+void ncplane_styles_set(ncplane* n, unsigned stylebits){
+  n->stylemask = (stylebits & NCSTYLE_MASK);
+}
+
 // turn on any specified stylebits
 void ncplane_styles_on(ncplane* n, unsigned stylebits){
-  n->attrword |= (stylebits & NCSTYLE_MASK);
+  n->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
 // turn off any specified stylebits
 void ncplane_styles_off(ncplane* n, unsigned stylebits){
-  n->attrword &= ~(stylebits & NCSTYLE_MASK);
+  n->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
 // set the current stylebits to exactly those provided
-void ncplane_styles_set(ncplane* n, unsigned stylebits){
-  n->attrword = (n->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
+void ncplane_set_attr(ncplane* n, unsigned stylebits){
+  n->stylemask = stylebits & NCSTYLE_MASK;
 }
 
 unsigned ncplane_styles(const ncplane* n){
-  return (n->attrword & NCSTYLE_MASK);
+  return n->stylemask;
 }
 
 // i hate the big allocation and two copies here, but eh what you gonna do?
@@ -2141,7 +2140,7 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
 
 void ncplane_erase(ncplane* n){
   // we must preserve the background, but a pure cell_duplicate() would be
-  // wiped out by the egcpool_dump(). do a duplication (to get the attrword
+  // wiped out by the egcpool_dump(). do a duplication (to get the stylemask
   // and channels), and then reload.
   char* egc = cell_strdup(n, &n->basecell);
   memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
@@ -2432,9 +2431,9 @@ uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
     for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
       for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
         // FIXME what if there's a wide glyph to the left of the selection?
-        uint32_t attrword;
+        uint16_t stylemask;
         uint64_t channels;
-        char* c = ncplane_at_yx(nc, y, x, &attrword, &channels);
+        char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
         if(c == NULL){
           free(ret);
           return NULL;
@@ -2504,9 +2503,9 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
   if(ret){
     for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
       for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
-        uint32_t attrword;
+        uint16_t stylemask;
         uint64_t channels;
-        char* c = ncplane_at_yx(nc, y, x, &attrword, &channels);
+        char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
         if(!c){
           free(ret);
           return NULL;

@@ -156,14 +156,14 @@ namespace ncpp
 			return error_guard (ncplane_pulse (plane, ts, fader, curry), -1);
 		}
 
-		int gradient (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const NOEXCEPT_MAYBE
+		int gradient (const char* egc, uint16_t stylemask, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_gradient (plane, egc, attrword, ul, ur, ll, lr, ystop, xstop), -1);
+			return error_guard<int> (ncplane_gradient (plane, egc, stylemask, ul, ur, ll, lr, ystop, xstop), -1);
 		}
 
-		int gradient_sized (const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
+		int gradient_sized (const char* egc, uint16_t stylemask, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_gradient_sized (plane, egc, attrword, ul, ur, ll, lr, ylen, xlen), -1);
+			return error_guard<int> (ncplane_gradient_sized (plane, egc, stylemask, ul, ur, ll, lr, ylen, xlen), -1);
 		}
 
 		int high_gradient (uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
@@ -476,9 +476,9 @@ namespace ncpp
 			return error_guard<int> (ncplane_putwstr_yx (plane, y, x, gclustarr), -1);
 		}
 
-		int putstr (int y, NCAlign atype, const wchar_t *gclustattr) const NOEXCEPT_MAYBE
+		int putstr (int y, NCAlign atype, const wchar_t *gcluststyles) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_putwstr_aligned (plane, y, static_cast<ncalign_e>(atype), gclustattr), -1);
+			return error_guard<int> (ncplane_putwstr_aligned (plane, y, static_cast<ncalign_e>(atype), gcluststyles), -1);
 		}
 
 		int putstr_stainable (const char* s) const NOEXCEPT_MAYBE
@@ -575,34 +575,34 @@ namespace ncpp
 			return error_guard<int> (ncplane_vline_interp (plane, c, len, c1, c2), -1);
 		}
 
-		bool load_box (uint32_t attrs, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const NOEXCEPT_MAYBE
+		bool load_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_load_box (plane, attrs, channels, ul, ur, ll, lr, hl, vl, gclusters), -1);
+			return error_guard (cells_load_box (plane, styles, channels, ul, ur, ll, lr, hl, vl, gclusters), -1);
 		}
 
 		bool load_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const NOEXCEPT_MAYBE
 		{
-			return load_box (static_cast<uint32_t>(style), channels, ul, ur, ll, lr, hl, vl, gclusters);
+			return load_box (static_cast<uint16_t>(style), channels, ul, ur, ll, lr, hl, vl, gclusters);
 		}
 
-		bool load_rounded_box (uint32_t attr, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
+		bool load_rounded_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_rounded_box (plane, attr, channels, ul, ur, ll, lr, hl, vl), -1);
+			return error_guard (cells_rounded_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
 		}
 
 		bool load_rounded_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
 		{
-			return load_rounded_box (static_cast<uint32_t>(style), channels, ul, ur, ll, lr, hl, vl);
+			return load_rounded_box (static_cast<uint16_t>(style), channels, ul, ur, ll, lr, hl, vl);
 		}
 
-		bool load_double_box (uint32_t attr, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
+		bool load_double_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_double_box (plane, attr, channels, ul, ur, ll, lr, hl, vl), -1);
+			return error_guard (cells_double_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
 		}
 
 		bool load_double_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
 		{
-			return load_double_box (static_cast<uint32_t>(style), channels, ul, ur, ll, lr, hl, vl);
+			return load_double_box (static_cast<uint16_t>(style), channels, ul, ur, ll, lr, hl, vl);
 		}
 
 		bool box (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr,
@@ -619,24 +619,24 @@ namespace ncpp
 			return error_guard (ncplane_box_sized (plane, ul, ur, ll, lr, hline, vline, ylen, xlen, ctlword), -1);
 		}
 
-		bool rounded_box (uint32_t attr, uint64_t channels, int ystop, int xstop, unsigned ctlword) const NOEXCEPT_MAYBE
+		bool rounded_box (uint16_t styles, uint64_t channels, int ystop, int xstop, unsigned ctlword) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_rounded_box (plane, attr, channels, ystop, xstop, ctlword), -1);
+			return error_guard (ncplane_rounded_box (plane, styles, channels, ystop, xstop, ctlword), -1);
 		}
 
-		bool rounded_box_sized (uint32_t attr, uint64_t channels, int ylen, int xlen, unsigned ctlword) const NOEXCEPT_MAYBE
+		bool rounded_box_sized (uint16_t styles, uint64_t channels, int ylen, int xlen, unsigned ctlword) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_rounded_box_sized (plane, attr, channels, ylen, xlen, ctlword), -1);
+			return error_guard (ncplane_rounded_box_sized (plane, styles, channels, ylen, xlen, ctlword), -1);
 		}
 
-		bool double_box (uint32_t attr, uint64_t channels, int ystop, int xstop, unsigned ctlword) const NOEXCEPT_MAYBE
+		bool double_box (uint16_t styles, uint64_t channels, int ystop, int xstop, unsigned ctlword) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_double_box (plane, attr, channels, ystop, xstop, ctlword), -1);
+			return error_guard (ncplane_double_box (plane, styles, channels, ystop, xstop, ctlword), -1);
 		}
 
-		bool double_box_sized (uint32_t attr, uint64_t channels, int ylen, int xlen, unsigned ctlword) const NOEXCEPT_MAYBE
+		bool double_box_sized (uint16_t styles, uint64_t channels, int ylen, int xlen, unsigned ctlword) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_double_box_sized (plane, attr, channels, ylen, xlen, ctlword), -1);
+			return error_guard (ncplane_double_box_sized (plane, styles, channels, ylen, xlen, ctlword), -1);
 		}
 
 		bool perimeter (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr, const Cell &hline, const Cell &vline, unsigned ctlword) const NOEXCEPT_MAYBE
@@ -644,14 +644,14 @@ namespace ncpp
 			return error_guard (ncplane_perimeter (plane, ul, ur, ll, lr, hline, vline, ctlword), -1);
 		}
 
-		bool perimeter_rounded (uint32_t attrword, uint64_t channels, unsigned ctlword) const NOEXCEPT_MAYBE
+		bool perimeter_rounded (uint16_t stylemask, uint64_t channels, unsigned ctlword) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_perimeter_rounded (plane, attrword, channels, ctlword), -1);
+			return error_guard (ncplane_perimeter_rounded (plane, stylemask, channels, ctlword), -1);
 		}
 
-		bool perimeter_double (uint32_t attrword, uint64_t channels, unsigned ctlword) const NOEXCEPT_MAYBE
+		bool perimeter_double (uint16_t stylemask, uint64_t channels, unsigned ctlword) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_perimeter_double (plane, attrword, channels, ctlword), -1);
+			return error_guard (ncplane_perimeter_double (plane, stylemask, channels, ctlword), -1);
 		}
 
 		int polyfill (int y, int x, const Cell& c) const NOEXCEPT_MAYBE
@@ -709,9 +709,9 @@ namespace ncpp
 			ncplane_set_channels (plane, channels);
 		}
 
-		void set_attr (uint32_t attrword) const noexcept
+		void set_attr (uint32_t attr) const noexcept
 		{
-			ncplane_set_attr (plane, attrword);
+			ncplane_set_attr (plane, attr);
 		}
 
 		bool set_fg_alpha (unsigned alpha) const NOEXCEPT_MAYBE
@@ -809,9 +809,9 @@ namespace ncpp
 			ncplane_styles_off (plane, static_cast<unsigned>(styles));
 		}
 
-		int format (int ystop, int xstop, uint32_t attrword) const NOEXCEPT_MAYBE
+		int format (int ystop, int xstop, uint16_t stylemask) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_format (plane, ystop, xstop, attrword), -1);
+			return error_guard<int> (ncplane_format (plane, ystop, xstop, stylemask), -1);
 		}
 
 		int stain (int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr) const NOEXCEPT_MAYBE
@@ -830,9 +830,9 @@ namespace ncpp
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
-		bool set_base (const char* egc, uint32_t attrword, uint64_t channels) const NOEXCEPT_MAYBE
+		bool set_base (const char* egc, uint16_t stylemask, uint64_t channels) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncplane_set_base (plane, egc, attrword, channels) < 0;
+			bool ret = ncplane_set_base (plane, egc, stylemask, channels) < 0;
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
@@ -856,12 +856,12 @@ namespace ncpp
 			return at_cursor (*c);
 		}
 
-		char* at_cursor (uint32_t* attrword, uint64_t* channels) const
+		char* at_cursor (uint16_t* stylemask, uint64_t* channels) const
 		{
-			if (attrword == nullptr || channels == nullptr)
+			if (stylemask == nullptr || channels == nullptr)
 				return nullptr;
 
-			return ncplane_at_cursor (plane, attrword, channels);
+			return ncplane_at_cursor (plane, stylemask, channels);
 		}
 
 		int get_at (int y, int x, Cell &c) const NOEXCEPT_MAYBE
@@ -877,12 +877,12 @@ namespace ncpp
 			return get_at (y, x, *c);
 		}
 
-		char* get_at (int y, int x, uint32_t* attrword, uint64_t* channels) const
+		char* get_at (int y, int x, uint16_t* stylemask, uint64_t* channels) const
 		{
-			if (attrword == nullptr || channels == nullptr)
+			if (stylemask == nullptr || channels == nullptr)
 				return nullptr;
 
-			return ncplane_at_yx (plane, y, x, attrword, channels);
+			return ncplane_at_yx (plane, y, x, stylemask, channels);
 		}
 
 		void* set_userptr (void *opaque) const noexcept
@@ -925,9 +925,9 @@ namespace ncpp
 			return error_guard (cell_load_simple (plane, cell, ch), -1);
 		}
 
-		int prime (Cell &cell, const char *gcluster, uint32_t attr, uint64_t channels) const NOEXCEPT_MAYBE
+		int prime (Cell &cell, const char *gcluster, uint16_t styles, uint64_t channels) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (cell_prime (plane, cell, gcluster, attr, channels), -1);
+			return error_guard<int> (cell_prime (plane, cell, gcluster, styles, channels), -1);
 		}
 
 		void release (Cell &cell) const noexcept

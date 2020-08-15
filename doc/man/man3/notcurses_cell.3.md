@@ -13,17 +13,19 @@ notcurses_cell - operations on notcurses cells
 ```c
 // See DESCRIPTION below for information on EGC encoding
 typedef struct cell {
-  uint32_t gcluster;
-  uint32_t attrword;
+  uint32_t gcluster;          // 4B → 4B
+  uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
+  uint8_t reserved;           // 1B → 6B (8 reserved bits, ought be zero)
+  uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
   uint64_t channels;
 } cell;
 
 #define CELL_TRIVIAL_INITIALIZER \
- { .gcluster = '\0', .attrword = 0, .channels = 0, }
+ { .gcluster = '\0', .stylemask = 0, .channels = 0, }
 #define CELL_SIMPLE_INITIALIZER(c) \
- { .gcluster = (c), .attrword = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, a, chan) \
- { .gcluster = (c), .attrword = (a), .channels = (chan), }
+ { .gcluster = (c), .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) \
+ { .gcluster = (c), .stylemask = (s), .channels = (chan), }
 
 #define CELL_WIDEASIAN_MASK     0x8000000080000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
@@ -44,7 +46,7 @@ typedef struct cell {
 **int cell_load(struct ncplane* n, cell* c, const char* gcluster);**
 
 **int cell_prime(struct ncplane* n, cell* c, const char* gcluster,
-                 uint32_t attr, uint64_t channels);**
+                 uint32_t stylemask, uint64_t channels);**
 
 **int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);**
 

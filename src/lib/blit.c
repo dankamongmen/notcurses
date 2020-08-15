@@ -67,7 +67,7 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       c->channels = 0;
-      c->attrword = 0;
+      c->stylemask = 0;
       if(blendcolors){
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
@@ -121,7 +121,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       c->channels = 0;
-      c->attrword = 0;
+      c->stylemask = 0;
       if(blendcolors){
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
@@ -307,7 +307,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
-      c->attrword = 0;
+      c->stylemask = 0;
       // FIXME for now, we're only transparent if all four are transparent. we ought
       // match transparent like anything else...
       const char* egc = NULL;
@@ -443,7 +443,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       c->channels = 0;
-      c->attrword = 0;
+      c->stylemask = 0;
       if(blendcolors){
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
