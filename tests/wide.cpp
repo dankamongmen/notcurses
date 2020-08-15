@@ -1,5 +1,6 @@
 #include <array>
 #include <cstdlib>
+#include <netinet/in.h>
 #include "main.h"
 #include "internal.h"
 
@@ -851,6 +852,48 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "h"));
     free(egc);
     ncplane_destroy(topp);
+  }
+
+  // Verify that we can use long (4-byte) UTF-encoded characters together with
+  // styles without a problem (since the attrword holds both styling bits and
+  // the NUL backstop for long inlined UTF8).
+  // U+1F90C PINCHED FINGERS → UTF8(f0 9f a4 8c)
+  SUBCASE("ItalicEmoji") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    cell_load(n_, &c, "\U0001F90C");
+    CHECK(htonl(0xf09fa48clu) == c.gcluster);
+    cell_styles_on(&c, NCSTYLE_ITALIC);
+    CHECK(4 == strlen(cell_extended_gcluster(n_, &c)));
+    CHECK(0 == strcmp("\U0001F90C", cell_extended_gcluster(n_, &c)));
+    CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
+    CHECK(0 == notcurses_render(nc_));
+    uint32_t attrword;
+    uint64_t channels;
+    auto egc = notcurses_at_yx(nc_, 0, 0, &attrword, &channels);
+    REQUIRE(nullptr != egc);
+    CHECK(4 == strlen(egc));
+    CHECK(0 == strcmp("\U0001F90C", egc));
+    free(egc);
+    CHECK(NCSTYLE_ITALIC == attrword);
+  }
+
+  SUBCASE("StyleMaxEmoji") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    cell_load(n_, &c, "\U0001F90C");
+    CHECK(htonl(0xf09fa48clu) == c.gcluster);
+    cell_styles_on(&c, NCSTYLE_MASK);
+    CHECK(4 == strlen(cell_extended_gcluster(n_, &c)));
+    CHECK(0 == strcmp("\U0001F90C", cell_extended_gcluster(n_, &c)));
+    CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
+    CHECK(0 == notcurses_render(nc_));
+    uint32_t attrword;
+    uint64_t channels;
+    auto egc = notcurses_at_yx(nc_, 0, 0, &attrword, &channels);
+    REQUIRE(nullptr != egc);
+    CHECK(4 == strlen(egc));
+    CHECK(0 == strcmp("\U0001F90C", egc));
+    free(egc);
+    CHECK(NCSTYLE_MASK == attrword);
   }
 
   CHECK(0 == notcurses_stop(nc_));
