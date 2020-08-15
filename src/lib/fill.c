@@ -188,7 +188,7 @@ int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
   return total;
 }
 
-int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
+int ncplane_gradient(ncplane* n, const char* egc, uint32_t stylemask,
                      uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br,
                      int ystop, int xstop){
   if(check_gradient_args(ul, ur, bl, br)){
@@ -236,7 +236,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t attrword,
       if(cell_load(n, targc, egc) < 0){
         return -1;
       }
-      targc->attrword = attrword;
+      targc->stylemask = stylemask;
       calc_gradient_channels(&targc->channels, ul, ur, bl, br,
                              y - yoff, x - xoff, ylen, xlen);
       ++total;
@@ -281,7 +281,7 @@ int ncplane_stain(struct ncplane* n, int ystop, int xstop,
   return total;
 }
 
-int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
+int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t stylemask){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
@@ -300,7 +300,7 @@ int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword){
   for(int y = yoff ; y < ystop + 1 ; ++y){
     for(int x = xoff ; x < xstop + 1 ; ++x){
       cell* targc = ncplane_cell_ref_yx(n, y, x);
-      targc->attrword = attrword;
+      targc->stylemask = stylemask;
       ++total;
     }
   }

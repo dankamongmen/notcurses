@@ -191,9 +191,9 @@ TEST_CASE("Visual") {
       CHECK(0 == notcurses_render(nc_));
       for(int y = 0 ; y < DIMY / 2 ; ++y){
         for(int x = 0 ; x < DIMX ; ++x){
-          uint32_t attrword;
+          uint16_t stylemask;
           uint64_t channels;
-          char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
+          char* egc = notcurses_at_yx(nc_, y, x, &stylemask, &channels);
           REQUIRE(nullptr != egc);
           CHECK((rgba[y * 2 * DIMX + x] & 0xffffff) == channels_bg(channels));
           CHECK((rgba[(y * 2 + 1) * DIMX + x] & 0xffffff) == channels_fg(channels));
@@ -231,9 +231,9 @@ TEST_CASE("Visual") {
       CHECK(0 == notcurses_render(nc_));
       for(int y = 0 ; y < DIMY / 2 ; ++y){
         for(int x = 0 ; x < DIMX / 2 ; ++x){
-          uint32_t attrword;
+          uint16_t stylemask;
           uint64_t channels;
-          char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
+          char* egc = notcurses_at_yx(nc_, y, x, &stylemask, &channels);
           REQUIRE(nullptr != egc);
           CHECK((rgba[(y * 2 * DIMX) + (x * 2)] & 0xffffff) == channels_fg(channels));
           CHECK((rgba[(y * 2 + 1) * DIMX + (x * 2) + 1] & 0xffffff) == channels_fg(channels));
@@ -289,9 +289,9 @@ TEST_CASE("Visual") {
       CHECK(0 == notcurses_render(nc_));
       for(int y = 0 ; y < DIMY / 2 ; ++y){
         for(int x = 0 ; x < DIMX / 2 ; ++x){
-          uint32_t attrword;
+          uint16_t stylemask;
           uint64_t channels;
-          char* egc = notcurses_at_yx(nc_, y, x, &attrword, &channels);
+          char* egc = notcurses_at_yx(nc_, y, x, &stylemask, &channels);
           REQUIRE(nullptr != egc);
   /* FIXME need to match
   [▀] 00000000 00000000

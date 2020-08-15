@@ -127,9 +127,9 @@ TEST_CASE("Rotate") {
     free(rgbaret);
     CHECK(0 == notcurses_render(nc_));
     for(int x = 0 ; x < width ; ++x){
-      uint32_t attrword;
+      uint16_t stylemask;
       uint64_t channels;
-      char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
+      char* c = notcurses_at_yx(nc_, 0, x, &stylemask, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
       if(channels_fg(channels) & CELL_BG_RGB_MASK){
@@ -178,9 +178,9 @@ TEST_CASE("Rotate") {
     free(rgbaret);
     CHECK(0 == notcurses_render(nc_));
     for(int x = 0 ; x < width ; ++x){
-      uint32_t attrword;
+      uint16_t stylemask;
       uint64_t channels;
-      char* c = notcurses_at_yx(nc_, 0, x, &attrword, &channels);
+      char* c = notcurses_at_yx(nc_, 0, x, &stylemask, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
       if(channels_fg(channels) & CELL_BG_RGB_MASK){

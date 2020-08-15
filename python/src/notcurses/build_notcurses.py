@@ -27,8 +27,10 @@ char32_t notcurses_getc_nblock(struct notcurses* n, ncinput* ni);
 char32_t notcurses_getc_blocking(struct notcurses* n, ncinput* ni);
 int notcurses_inputready_fd(struct notcurses* n);
 typedef struct cell {
-  uint32_t gcluster;          // 1 * 4b -> 4b
-  uint32_t attrword;          // + 4b -> 8b
+  uint32_t gcluster;          // 4B → 4B
+  uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
+  uint8_t reserved;           // 1B → 6B (8 reserved bits, ought be zero)
+  uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
   uint64_t channels;          // + 8b == 16b
 } cell;
 typedef enum {
@@ -57,6 +59,7 @@ int notcurses_render(struct notcurses*);
 int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 struct ncplane* notcurses_stdplane(struct notcurses*);
 const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+void ncplane_set_channels(struct ncplane* nc, uint64_t channels);
 int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 int ncplane_set_base(struct ncplane* ncp, const char* egc, uint32_t attrword, uint64_t channels);
 int ncplane_base(struct ncplane* ncp, cell* c);
@@ -100,10 +103,10 @@ void ncplane_move_bottom(struct ncplane* n);
 int ncplane_move_below(struct ncplane* restrict n, struct ncplane* restrict below);
 int ncplane_move_above(struct ncplane* restrict n, struct ncplane* restrict above);
 struct ncplane* ncplane_below(struct ncplane* n);
-char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels);
-char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);
+char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint16_t* stylemask, uint64_t* channels);
+char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);
 int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
-char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint32_t* attrword, uint64_t* channels);
+char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels);
 int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 typedef enum {
   NCBLIT_1x1,     // full block                █
@@ -124,7 +127,7 @@ void* ncplane_userptr(struct ncplane* n);
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 uint64_t ncplane_channels(struct ncplane* n);
-uint32_t ncplane_attr(struct ncplane* n);
+uint16_t ncplane_attr(struct ncplane* n);
 unsigned ncplane_bchannel(struct ncplane* nc);
 unsigned ncplane_fchannel(struct ncplane* nc);
 unsigned ncplane_fg(struct ncplane* nc);
@@ -148,7 +151,7 @@ int ncplane_set_bg_palindex(struct ncplane* n, int idx);
 void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
 void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
-unsigned ncplane_styles(const struct ncplane* n);
+unsigned ncplane_attr(const struct ncplane* n);
 typedef struct ncstats {
   uint64_t renders;          // number of successful notcurses_render() runs
   uint64_t failed_renders;   // number of aborted renders, should be 0

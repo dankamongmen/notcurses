@@ -78,12 +78,12 @@ typedef struct ncplane {
   struct ncplane* boundto; // plane to which we are bound, if any
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells
-  uint32_t attrword;     // same deal as in a cell
   void* userptr;         // slot for the user to stick some opaque pointer
   cell basecell;         // cell written anywhere that fb[i].gcluster == 0
   struct notcurses* nc;  // notcurses object of which we are a part
-  bool scrolling;        // is scrolling enabled? always disabled by default
   char* name;            // used only for debugging
+  uint16_t stylemask;    // same deal as in a cell
+  bool scrolling;        // is scrolling enabled? always disabled by default
 } ncplane;
 
 #include "blitset.h"
@@ -542,13 +542,8 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
 
 static inline void
 cell_debug(const egcpool* p, const cell* c){
-	if(cell_simple_p(c)){
-		fprintf(stderr, "gcluster: %u %c attr: 0x%08x chan: 0x%016jx\n",
-				    c->gcluster, c->gcluster, c->attrword, c->channels);
-	}else{
-		fprintf(stderr, "gcluster: %u %s attr: 0x%08x chan: 0x%016jx\n",
-				    c->gcluster, egcpool_extended_gcluster(p, c), c->attrword, c->channels);
-	}
+  fprintf(stderr, "gcluster: %u %s style: 0x%04x chan: 0x%016jx\n",
+				  c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask, c->channels);
 }
 
 static inline void
@@ -579,7 +574,7 @@ pool_release(egcpool* pool, cell* c){
 static inline int
 cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
   pool_release(tpool, targ);
-  targ->attrword = c->attrword;
+  targ->stylemask = c->stylemask;
   targ->channels = c->channels;
   if(cell_simple_p(c)){
     targ->gcluster = c->gcluster;

@@ -1,6 +1,15 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.13 (not yet released)
+  * Styles now work properly with `ncdirect`, which apparently has never
+    been the case until now :/.
+  * EGCs occupying four bytes or fewer when encoded as UTF8 are now
+    inlined directly into the `cell` structure. This should mean nothing
+    for you save less memory consumption per plane, and faster operation.
+    In the course of doing so, the `attrword` field of the `cell` structure
+    was renamed `stylemask`, and reduced from 32 to 16 bits.
+
 * 1.6.12 (2020-08-12)
   * `ncreel`s `tabletcb` callback function semantics are radically simplified.
     No more worrying about borders that might or might not have been drawn;

@@ -91,7 +91,7 @@ TEST_CASE("Palette256") {
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     cell r = CELL_TRIVIAL_INITIALIZER;
-    CHECK(nullptr != notcurses_at_yx(nc_, 0, 0, &r.attrword, &r.channels));
+    CHECK(nullptr != notcurses_at_yx(nc_, 0, 0, &r.stylemask, &r.channels));
     CHECK(cell_fg_palindex_p(&r));
     CHECK(cell_bg_palindex_p(&r));
     CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&r));

@@ -1408,7 +1408,7 @@ all implemented in terms of the lower-level [Channels API](#channels).
 ```c
 // Get the current channels or attribute word for ncplane 'n'.
 uint64_t ncplane_channels(const struct ncplane* n);
-uint32_t ncplane_attr(const struct ncplane* n);
+uint16_t ncplane_attr(const struct ncplane* n);
 
 // Extract the 32-bit working background channel from an ncplane.
 static inline unsigned

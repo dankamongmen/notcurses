@@ -40,7 +40,7 @@ namespace ncpp
 			_cell = CELL_SIMPLE_INITIALIZER (c);
 		}
 
-		explicit Cell (uint32_t c, uint32_t a, uint64_t chan, NotCurses *ncinst = nullptr) noexcept
+		explicit Cell (uint32_t c, uint16_t a, uint64_t chan, NotCurses *ncinst = nullptr) noexcept
 			: Root (ncinst)
 		{
 			_cell = CELL_INITIALIZER (c, a, chan);
@@ -66,9 +66,9 @@ namespace ncpp
 			cell_init (&_cell);
 		}
 
-		uint32_t get_attrword () const noexcept
+		uint16_t get_stylemask () const noexcept
 		{
-			return _cell.attrword;
+			return _cell.stylemask;
 		}
 
 		uint64_t get_channels () const noexcept

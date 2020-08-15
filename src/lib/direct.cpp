@@ -277,7 +277,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       }
     }
     for(int x = 0 ; x < dimx ; ++x){
-      uint32_t attrword;
+      uint16_t attrword;
       uint64_t channels;
       char* egc = ncplane_at_yx(np, y, x, &attrword, &channels);
       if(egc == nullptr){

@@ -15,7 +15,6 @@
 #include <stdbool.h>
 #include <notcurses/nckeys.h>
 #include <notcurses/ncerrs.h>
-#include <notcurses/endianness.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -513,7 +512,7 @@ typedef struct cell {
   // are required, it will be spilled into the egcpool. In either case, there's
   // a NUL-terminated string available without copying, because (1) the egcpool
   // is all NUL-terminated sequences and (2) the fifth byte of this struct (the
-  // first byte of the attrword, see below) is guaranteed to be zero, as are any
+  // gcluster_backstop field, see below) is guaranteed to be zero, as are any
   // unused bytes in gcluster.
   //
   // A spilled EGC is indicated by the value 0x01XXXXXX. This cannot alias a
@@ -524,15 +523,10 @@ typedef struct cell {
   // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
   // in a cell, which is absolutely fine because what 70s horseshit is SOH? It
   // must not be allowed through the API, or havoc will result.
-  uint32_t gcluster;          // 4B -> 4B
-  // 8 bits of zero + 8 reserved bits + NCSTYLE_* attributes (16 bits). The
-  // values of the NCSTYLE_* bits depend on endianness at compile time: we need
-  // them in the higher memory addresses, because we rely on the octet adjacent
-  // to gcluster being zero, as a backstop to a 4-byte inlined UTF-8 value.
-  // (attrword & 0xff000000): egc backstop, *must be zero*
-  // (attrword & 0x00ff0000): reserved
-  // (attrword & 0x0000ffff): NCSTYLE_* booleans
-  uint32_t attrword;          // + 4B -> 8B
+  uint32_t gcluster;          // 4B → 4B
+  uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
+  uint8_t reserved;           // 1B → 6B (8 reserved bits, ought be zero)
+  uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
   // (channels & 0x8000000000000000ull): part of a wide glyph
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
@@ -554,9 +548,9 @@ typedef struct cell {
   uint64_t channels;          // + 8B == 16B
 } cell;
 
-#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
+#define CELL_TRIVIAL_INITIALIZER { }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
@@ -572,8 +566,8 @@ API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
 cell_prime(struct ncplane* n, cell* c, const char* gcluster,
-           uint32_t attr, uint64_t channels){
-  c->attrword = attr;
+           uint32_t stylemask, uint64_t channels){
+  c->stylemask = stylemask;
   c->channels = channels;
   int ret = cell_load(n, c, gcluster);
   return ret;
@@ -587,46 +581,42 @@ API void cell_release(struct ncplane* n, cell* c);
 
 // We want the 2 bytes at the highest address of a 32-bit word, so that the
 // octet adjacent to g->clusters is left undisturbed as zero.
-#ifdef NC_LITTLEENDIAN
-#define NCSTYLE_MASK      (0x0000fffful << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_STANDOUT  (0x00000080ul << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_UNDERLINE (0x00000040ul << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_REVERSE   (0x00000020ul << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_BLINK     (0x00000010ul << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_DIM       (0x00000008ul << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_BOLD      (0x00000004ul << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_INVIS     (0x00000002ul << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_PROTECT   (0x00000001ul << (16u * NC_LITTLEENDIAN))
-#define NCSTYLE_ITALIC    (0x00000100ul << (16u * NC_LITTLEENDIAN))
+#define NCSTYLE_MASK      0xfffful
+#define NCSTYLE_STANDOUT  0x0080ul
+#define NCSTYLE_UNDERLINE 0x0040ul
+#define NCSTYLE_REVERSE   0x0020ul
+#define NCSTYLE_BLINK     0x0010ul
+#define NCSTYLE_DIM       0x0008ul
+#define NCSTYLE_BOLD      0x0004ul
+#define NCSTYLE_INVIS     0x0002ul
+#define NCSTYLE_PROTECT   0x0001ul
+#define NCSTYLE_ITALIC    0x0100ul
 #define NCSTYLE_NONE      0
-#else
-#error "Groping blindly through an uncaring universe, I know not my endianness"
-#endif
 
 // Set the specified style bits for the cell 'c', whether they're actively
-// supported or not.
+// supported or not. Only the lower 16 bits are meaningful.
 static inline void
 cell_styles_set(cell* c, unsigned stylebits){
-  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
+  c->stylemask = stylebits & NCSTYLE_MASK;
 }
 
-// Extract the style bits from the cell's attrword.
+// Extract the style bits from the cell.
 static inline unsigned
 cell_styles(const cell* c){
-  return c->attrword & NCSTYLE_MASK;
+  return c->stylemask;
 }
 
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
 cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= (stylebits & NCSTYLE_MASK);
+  c->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
 cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~(stylebits & NCSTYLE_MASK);
+  c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
 // Use the default color for the foreground.
@@ -690,9 +680,9 @@ cell_strdup(const struct ncplane* n, const cell* c){
 // Extract the three elements of a cell.
 static inline char*
 cell_extract(const struct ncplane* n, const cell* c,
-             uint32_t* attrword, uint64_t* channels){
-  if(attrword){
-    *attrword = c->attrword;
+             uint16_t* stylemask, uint64_t* channels){
+  if(stylemask){
+    *stylemask = c->stylemask;
   }
   if(channels){
     *channels = c->channels;
@@ -707,7 +697,7 @@ cell_extract(const struct ncplane* n, const cell* c,
 static inline bool
 cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
         const struct ncplane* n2, const cell* RESTRICT c2){
-  if(c1->attrword != c2->attrword){
+  if(c1->stylemask != c2->stylemask){
     return true;
   }
   if(c1->channels != c2->channels){
@@ -987,11 +977,11 @@ notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows, int* RESTRI
   ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 }
 
-// Retrieve the contents of the specified cell as last rendered. The EGC is
-// returned, or NULL on error. This EGC must be free()d by the caller. The
-// attrword and channels are written to 'attrword' and 'channels', respectively.
+// Retrieve the contents of the specified cell as last rendered. Returns the EGC
+// or NULL on error. This EGC must be free()d by the caller. The stylemask and
+// channels are written to 'stylemask' and 'channels', respectively.
 API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
-                          uint32_t* attrword, uint64_t* channels);
+                          uint16_t* stylemask, uint64_t* channels);
 
 // Create a new ncplane at the specified offset (relative to the standard plane)
 // and the specified size. The number of rows and columns must both be positive.
@@ -1158,7 +1148,7 @@ API int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 // does not reset the base cell; this function must be called with an empty
 // 'egc'. 'egc' must be a single extended grapheme cluster.
 API int ncplane_set_base(struct ncplane* ncp, const char* egc,
-                         uint32_t attrword, uint64_t channels);
+                         uint32_t stylemask, uint64_t channels);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
@@ -1207,20 +1197,18 @@ API int ncplane_rotate_ccw(struct ncplane* n);
 
 // Retrieve the current contents of the cell under the cursor. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
-// attrword and channels are written to 'attrword' and 'channels', respectively.
-API char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);
+// stylemask and channels are written to 'stylemask' and 'channels', respectively.
+API char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);
 
 // Retrieve the current contents of the cell under the cursor into 'c'. This
 // cell is invalidated if the associated plane is destroyed.
 static inline int
 ncplane_at_cursor_cell(struct ncplane* n, cell* c){
-  char* egc = ncplane_at_cursor(n, &c->attrword, &c->channels);
+  char* egc = ncplane_at_cursor(n, &c->stylemask, &c->channels);
   if(!egc){
     return -1;
   }
-  uint64_t channels = c->channels; // need to preserve wide flag
   int r = cell_load(n, c, egc);
-  c->channels = channels;
   if(r < 0){
     free(egc);
   }
@@ -1228,16 +1216,16 @@ ncplane_at_cursor_cell(struct ncplane* n, cell* c){
 }
 
 // Retrieve the current contents of the specified cell. The EGC is returned, or
-// NULL on error. This EGC must be free()d by the caller. The attrword and
-// channels are written to 'attrword' and 'channels', respectively.
+// NULL on error. This EGC must be free()d by the caller. The stylemask and
+// channels are written to 'stylemask' and 'channels', respectively.
 API char* ncplane_at_yx(const struct ncplane* n, int y, int x,
-                        uint32_t* attrword, uint64_t* channels);
+                        uint16_t* stylemask, uint64_t* channels);
 
 // Retrieve the current contents of the specified cell into 'c'. This cell is
 // invalidated if the associated plane is destroyed.
 static inline int
 ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c){
-  char* egc = ncplane_at_yx(n, y, x, &c->attrword, &c->channels);
+  char* egc = ncplane_at_yx(n, y, x, &c->stylemask, &c->channels);
   if(!egc){
     return -1;
   }
@@ -1297,7 +1285,9 @@ API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRI
 
 // Get the current channels or attribute word for ncplane 'n'.
 API uint64_t ncplane_channels(const struct ncplane* n);
-API uint32_t ncplane_attr(const struct ncplane* n);
+
+// Return the current styling for this ncplane.
+API uint16_t ncplane_attr(const struct ncplane* n);
 
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the
@@ -1642,7 +1632,7 @@ ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
 API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 
 // Draw a gradient with its upper-left corner at the current cursor position,
-// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'attrword' is
+// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'stylemask' is
 // used for all cells. The channels specified by 'ul', 'ur', 'll', and 'lr'
 // are composed into foreground and background gradients. To do a vertical
 // gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
@@ -1660,7 +1650,7 @@ API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 //  1x1: all four colors must be the same
 //  1xN: both top and both bottom colors must be the same (vertical gradient)
 //  Nx1: both left and both right colors must be the same (horizontal gradient)
-API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
+API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t stylemask,
                          uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                          int ystop, int xstop);
 
@@ -1674,7 +1664,7 @@ API int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
 // Draw a gradient with its upper-left corner at the current cursor position,
 // having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
 static inline int
-ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
+ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t stylemask,
                        uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                        int ylen, int xlen){
   if(ylen < 1 || xlen < 1){
@@ -1682,7 +1672,8 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
   }
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
+  return ncplane_gradient(n, egc, stylemask, ul, ur, ll, lr,
+                          y + ylen - 1, x + xlen - 1);
 }
 
 static inline int
@@ -1703,7 +1694,7 @@ ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
 
 // Set the given style throughout the specified region, keeping content and
 // channels unchanged. Returns the number of cells set, or -1 on failure.
-API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
+API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t stylemask);
 
 // Set the given channels throughout the specified region, keeping content and
 // attributes unchanged. Returns the number of cells set, or -1 on failure.
@@ -1950,7 +1941,17 @@ ncplane_fchannel(const struct ncplane* nc){
 
 API void ncplane_set_channels(struct ncplane* nc, uint64_t channels);
 
-API void ncplane_set_attr(struct ncplane* nc, uint32_t attrword);
+API void ncplane_set_attr(struct ncplane* n, unsigned stylebits);
+
+// Set the specified style bits for the ncplane 'n', whether they're actively
+// supported or not.
+API void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
+
+// Add the specified styles to the ncplane's existing spec.
+API void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
+
+// Remove the specified styles from the ncplane's existing spec.
+API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline unsigned
@@ -2030,19 +2031,6 @@ API int ncplane_set_bg_palindex(struct ncplane* n, int idx);
 API int ncplane_set_fg_alpha(struct ncplane* n, int alpha);
 API int ncplane_set_bg_alpha(struct ncplane* n, int alpha);
 
-// Set the specified style bits for the ncplane 'n', whether they're actively
-// supported or not.
-API void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
-
-// Add the specified styles to the ncplane's existing spec.
-API void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
-
-// Remove the specified styles from the ncplane's existing spec.
-API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
-
-// Return the current styling for this ncplane.
-API unsigned ncplane_styles(const struct ncplane* n);
-
 // Called for each fade iteration on 'ncp'. If anything but 0 is returned,
 // the fading operation ceases immediately, and that value is propagated out.
 // The recommended absolute display time target is passed in 'tspec'.
@@ -2094,16 +2082,16 @@ API void ncfadectx_free(struct ncfadectx* nctx);
 // have loaded before the error are cell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
-cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
+cells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                cell* ul, cell* ur, cell* ll, cell* lr,
                cell* hl, cell* vl, const char* gclusters){
   int ulen;
-  if((ulen = cell_prime(n, ul, gclusters, attrs, channels)) > 0){
-    if((ulen = cell_prime(n, ur, gclusters += ulen, attrs, channels)) > 0){
-      if((ulen = cell_prime(n, ll, gclusters += ulen, attrs, channels)) > 0){
-        if((ulen = cell_prime(n, lr, gclusters += ulen, attrs, channels)) > 0){
-          if((ulen = cell_prime(n, hl, gclusters += ulen, attrs, channels)) > 0){
-            if((ulen = cell_prime(n, vl, gclusters += ulen, attrs, channels)) > 0){
+  if((ulen = cell_prime(n, ul, gclusters, styles, channels)) > 0){
+    if((ulen = cell_prime(n, ur, gclusters += ulen, styles, channels)) > 0){
+      if((ulen = cell_prime(n, ll, gclusters += ulen, styles, channels)) > 0){
+        if((ulen = cell_prime(n, lr, gclusters += ulen, styles, channels)) > 0){
+          if((ulen = cell_prime(n, hl, gclusters += ulen, styles, channels)) > 0){
+            if((ulen = cell_prime(n, vl, gclusters += ulen, styles, channels)) > 0){
               return 0;
             }
             cell_release(n, hl);
@@ -2119,18 +2107,18 @@ cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
   return -1;
 }
 
-API int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+API int cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                           cell* ul, cell* ur, cell* ll, cell* lr,
                           cell* hl, cell* vl);
 
 static inline int
-ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                     int ystop, int xstop, unsigned ctlword){
   int ret = 0;
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+  if((ret = cells_rounded_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
   cell_release(n, &ul); cell_release(n, &ur);
@@ -2140,7 +2128,7 @@ ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
-ncplane_perimeter_rounded(struct ncplane* n, uint32_t attrword,
+ncplane_perimeter_rounded(struct ncplane* n, uint32_t stylemask,
                           uint64_t channels, unsigned ctlword){
   if(ncplane_cursor_move_yx(n, 0, 0)){
     return -1;
@@ -2153,7 +2141,7 @@ ncplane_perimeter_rounded(struct ncplane* n, uint32_t attrword,
   cell lr = CELL_TRIVIAL_INITIALIZER;
   cell vl = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_rounded_box(n, attrword, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_rounded_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
@@ -2164,11 +2152,11 @@ ncplane_perimeter_rounded(struct ncplane* n, uint32_t attrword,
 }
 
 static inline int
-ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
+ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
                           int ylen, int xlen, unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_rounded_box(n, attr, channels, y + ylen - 1,
+  return ncplane_rounded_box(n, styles, channels, y + ylen - 1,
                              x + xlen - 1, ctlword);
 }
 
@@ -2193,7 +2181,7 @@ ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
-ncplane_perimeter_double(struct ncplane* n, uint32_t attrword,
+ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
                          uint64_t channels, unsigned ctlword){
   if(ncplane_cursor_move_yx(n, 0, 0)){
     return -1;
@@ -2206,7 +2194,7 @@ ncplane_perimeter_double(struct ncplane* n, uint32_t attrword,
   cell lr = CELL_TRIVIAL_INITIALIZER;
   cell vl = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, attrword, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_double_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);

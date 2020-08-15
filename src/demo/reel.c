@@ -253,7 +253,7 @@ ncreel_demo_core(struct notcurses* nc){
     tctxs = newtablet;
   }
   do{
-    ncplane_styles_set(std, 0);
+    ncplane_styles_set(std, NCPLANE_NONE);
     ncplane_set_fg_rgb(std, 197, 15, 31);
     int count = ncreel_tabletcount(pr);
     ncplane_styles_on(std, NCSTYLE_BOLD);
