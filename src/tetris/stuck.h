@@ -1,4 +1,4 @@
-bool InvalidMove() { // a bit wasteful, but piece are tiny
+bool InvalidMove() { // a bit wasteful, but pieces are tiny
   int dy, dx;
   curpiece_->get_dim(&dy, &dx);
   while(dy--){
@@ -6,7 +6,7 @@ bool InvalidMove() { // a bit wasteful, but piece are tiny
     while(x--){
       ncpp::Cell c, b;
       curpiece_->get_at(dy, x, &c);
-      if(c.is_simple()){
+      if(strcmp(curpiece_->get_extended_gcluster(c), "") == 0){
         continue;
       }
       curpiece_->release(c);
@@ -16,7 +16,7 @@ bool InvalidMove() { // a bit wasteful, but piece are tiny
         return true;
       }
       board_->get_at(transy, transx, &b);
-      if(!b.is_simple()){
+      if(strcmp(board_->get_extended_gcluster(b), "")){
         return true;
       }
       board_->release(b);

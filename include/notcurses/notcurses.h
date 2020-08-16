@@ -659,12 +659,6 @@ cell_wide_left_p(const cell* c){
   return cell_double_wide_p(c) && c->gcluster;
 }
 
-// Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
-static inline bool
-cell_simple_p(const cell* c){
-  return (c->gcluster >> 24u) != 0x01;
-}
-
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
 // works on both simple and non-simple cells.
@@ -703,24 +697,15 @@ cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
   if(c1->channels != c2->channels){
     return true;
   }
-  if(cell_simple_p(c1) && cell_simple_p(c2)){
-    return c1->gcluster != c2->gcluster;
-  }
-  if(cell_simple_p(c1) || cell_simple_p(c2)){
-    return true;
-  }
   return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
 }
 
 static inline int
 cell_load_simple(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
-  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
   c->gcluster = ch;
-  if(cell_simple_p(c)){
-    return 1;
-  }
-  return -1;
+  return 1;
 }
 
 // These log levels consciously map cleanly to those of libav; notcurses itself
@@ -1311,9 +1296,6 @@ ncplane_putc(struct ncplane* n, const cell* c){
 static inline int
 ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
   cell ce = CELL_INITIALIZER((uint32_t)c, ncplane_attr(n), ncplane_channels(n));
-  if(!cell_simple_p(&ce)){
-    return -1;
-  }
   return ncplane_putc_yx(n, y, x, &ce);
 }
 

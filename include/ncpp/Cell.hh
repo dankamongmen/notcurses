@@ -121,11 +121,6 @@ namespace ncpp
 			return cell_double_wide_p (&_cell);
 		}
 
-		bool is_simple () const noexcept
-		{
-			return cell_simple_p (&_cell);
-		}
-
 		unsigned get_bchannel () const noexcept
 		{
 			return cell_bchannel (&_cell);

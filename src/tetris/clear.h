@@ -4,7 +4,7 @@ bool LineClear(int y){
   for(int x = 1 ; x < dimx - 1 ; ++x){
     ncpp::Cell c;
     board_->get_at(y, x, &c);
-    if(c.is_simple()){
+    if(strcmp(board_->get_extended_gcluster(c), "") == 0){
       return false;
     }
   }

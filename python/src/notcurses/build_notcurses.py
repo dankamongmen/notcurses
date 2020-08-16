@@ -200,7 +200,6 @@ void cell_set_bg_default(cell* c);
 int cell_set_fg_alpha(cell* c, unsigned alpha);
 int cell_set_bg_alpha(cell* c, unsigned alpha);
 bool cell_double_wide_p(const cell* c);
-bool cell_simple_p(const cell* c);
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 int cell_load_simple(struct ncplane* n, cell* c, char ch);
 unsigned cell_bchannel(const cell* cl);
