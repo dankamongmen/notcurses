@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unictype.h>
 #include "demo.h"
 
 // show unicode blocks. a block is always a multiple of 16 codepoints.
@@ -74,9 +75,11 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
         if(wcwidth(w) < 2){
           utf8arr[bwc++] = ' ';
         }
-        utf8arr[bwc++] = 0xe2;
-        utf8arr[bwc++] = 0x80;
-        utf8arr[bwc++] = 0x8e;
+        if(uc_bidi_category(w)){
+          utf8arr[bwc++] = 0xe2;
+          utf8arr[bwc++] = 0x80;
+          utf8arr[bwc++] = 0x8e;
+        }
         utf8arr[bwc++] = '\0';
       }else{ // don't dump non-printing codepoints
         strcpy(utf8arr, "  ");
