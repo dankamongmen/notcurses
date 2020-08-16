@@ -15,7 +15,7 @@ vi NEWS.md
 git clean -f -d -x
 
 # bump version numbers wherever they occur (wherever we enumerate them, anyway)
-BUMP="CMakeLists.txt doc/Doxyfile doc/man/man*/* doc/man/index.html python/setup.py python/notcurses-pydemo.1.md rust/*/Cargo.toml rust/libnotcurses-sys/build.rs"
+BUMP="CMakeLists.txt doc/Doxyfile doc/man/man*/* doc/man/index.html python/setup.py python/notcurses-pydemo.1.md rust/Cargo.toml rust/build/build.rs"
 for i in $BUMP ; do
   sed -i -e "s/$OLDVERSION/$VERSION/g" $i
 done
