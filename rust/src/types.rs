@@ -1,6 +1,4 @@
-//! # Types in notcurses
-//!
-//! The types are defined and explined here
+//! The notcurses types are defined and/or explained here
 //!
 
 
@@ -124,14 +122,20 @@ pub type Pixel = u32;
 
 // Cell: 128 bits tying together a:
 //
-// 1. GCluster (32b), either or:
+// 1. GCluster, 32b, either or:
 // UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
 // 00000001 IIIIIIII IIIIIIII IIIIIIII
 //
-// 2. Attrword (32b)
-// 11111111 11111111 ~~~~~~~~ 00000000
+// 2. GCluster backstop, 8b, (zero)
+// 00000000
 //
-// 3. Channels (64b)
+// 3. reserved, 8b (ought to be zero)
+// ~~~~~~~~
+//
+// 4. Stylemask, 16b
+// 11111111 11111111
+//
+// 5. Channels (64b)
 // ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
 //
 // type in C: cell (struct)
@@ -148,7 +152,7 @@ pub type Pixel = u32;
 /// If more than four bytes are required, it will be spilled into the egcpool.
 /// In either case, there's a NUL-terminated string available without copying,
 /// because (1) the egcpool is all NUL-terminated sequences and (2) the fifth
-/// byte of this struct (the first byte of the attrword, see below) is
+/// byte of this struct (the GClusterBackStop field, see below) is
 /// guaranteed to be zero, as are any unused bytes in gcluster.
 ///
 /// A spilled EGC is indicated by the value 0x01XXXXXX. This cannot alias a
@@ -166,21 +170,23 @@ pub type Pixel = u32;
 ///
 pub type GraphemeCluster = u32;
 
-/// Attrword: 32 bits of styling, including:
+/// GraphemeClusterBackStop
 ///
-/// 8 bits of zero + 8 reserved bits + 16 bits NCSTYLE_* boolean attributes:
+/// type in C: cell.gcluster_backstop
+pub type GraphemeClusterBackStop = u8;
+
+/// StyleMask
 ///
-/// 11111111 11111111 ~~~~~~~~ 00000000  =  0xFFFF~~00
-///     NCSTYLE_      reserved   zero
+/// 16 bits NCSTYLE_* of boolean styling attributes:
 ///
-/// The values of the NCSTYLE_* bits depend on endianness at compile time:
-/// we need them in the higher memory addresses, because we rely on the octet
-/// adjacent to gcluster being zero, as a backstop to a 4-byte inlined UTF-8
-/// value.  (attrword & 0xff000000): egc backstop, *must be zero*
+/// 11111111 11111111
 ///
-/// type in C:  attrword (uint32_t)
+/// type in C:  stylemask (uint16_t)
 ///
-pub type Attribute = u32;
+pub type StyleMask = u16;
+
+
+
 
 // Plane: fundamental drawing surface. unites a:
 //
