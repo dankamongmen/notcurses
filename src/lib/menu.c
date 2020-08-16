@@ -4,6 +4,7 @@ static void
 free_menu_section(ncmenu_int_section* ms){
   for(int i = 0 ; i < ms->itemcount ; ++i){
     free(ms->items[i].desc);
+    free(ms->items[i].shortdesc);
   }
   free(ms->items);
   free(ms->name);
