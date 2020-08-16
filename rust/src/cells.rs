@@ -69,11 +69,11 @@ pub fn cell_prime(
     plane: *mut ffi::ncplane,
     cell: *mut ffi::cell,
     gcluster: &str,
-    attr: u32,
+    style: u16,
     channels: ChannelPair,
 ) -> IntResult {
     unsafe {
-        (*cell).attrword = attr;
+        (*cell).stylemask = style;
         (*cell).channels = channels;
         ffi::cell_load(plane, cell, CString::new(gcluster).unwrap().as_ptr())
     }
@@ -81,7 +81,7 @@ pub fn cell_prime(
 // static inline int
 // cell_prime(struct ncplane* n, cell* c, const char* gcluster,
 //            uint32_t attr, uint64_t channels){
-//   c->attrword = attr;
+//   c->stylemask = attr;
 //   c->channels = channels;
 //   int ret = cell_load(n, c, gcluster);
 //   return ret;
@@ -95,7 +95,7 @@ pub fn cell_prime(
 // FIXME missing cell_prime()s
 pub fn cells_load_box(
     plane: *mut ffi::ncplane,
-    attrs: u32,
+    style: u16,
     channels: ChannelPair,
     _ul: *mut ffi::cell,
     _ur: *mut ffi::cell,
@@ -105,19 +105,19 @@ pub fn cells_load_box(
     _vl: *mut ffi::cell,
     gcluster: &str,
 ) -> IntResult {
-    cell_prime(plane, _ul, gcluster, attrs, channels)
+    cell_prime(plane, _ul, gcluster, style, channels)
 }
 // static inline int
-// cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
+// cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
 //                cell* ul, cell* ur, cell* ll, cell* lr,
 //                cell* hl, cell* vl, const char* gclusters){
 //     int ulen;
-//     if((ulen = cell_prime(n, ul, gclusters, attrs, channels)) > 0){
-//         if((ulen = cell_prime(n, ur, gclusters += ulen, attrs, channels)) > 0){
-//             if((ulen = cell_prime(n, ll, gclusters += ulen, attrs, channels)) > 0){
-//                 if((ulen = cell_prime(n, lr, gclusters += ulen, attrs, channels)) > 0){
-//                     if((ulen = cell_prime(n, hl, gclusters += ulen, attrs, channels)) > 0){
-//                         if((ulen = cell_prime(n, vl, gclusters += ulen, attrs, channels)) > 0){
+//     if((ulen = cell_prime(n, ul, gclusters, style, channels)) > 0){
+//         if((ulen = cell_prime(n, ur, gclusters += ulen, style, channels)) > 0){
+//             if((ulen = cell_prime(n, ll, gclusters += ulen, style, channels)) > 0){
+//                 if((ulen = cell_prime(n, lr, gclusters += ulen, style, channels)) > 0){
+//                     if((ulen = cell_prime(n, hl, gclusters += ulen, style, channels)) > 0){
+//                         if((ulen = cell_prime(n, vl, gclusters += ulen, style, channels)) > 0){
 //                             return 0;
 //                         }
 //                         cell_release(n, hl);
@@ -142,26 +142,26 @@ pub fn cells_load_box(
 // // supported or not.
 // static inline void
 // cell_styles_set(cell* c, unsigned stylebits){
-//     c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
+//     c->stylemask = (c->stylemask & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
 // }
 //
-// // Extract the style bits from the cell's attrword.
+// // Extract the style bits from the cell's stylemask.
 // static inline unsigned
 // cell_styles(const cell* c){
-//     return c->attrword & NCSTYLE_MASK;
+//     return c->stylemask & NCSTYLE_MASK;
 // }
 //
 // // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // // they're actively supported or not.
 // static inline void
 // cell_styles_on(cell* c, unsigned stylebits){
-//     c->attrword |= (stylebits & NCSTYLE_MASK);
+//     c->stylemask |= (stylebits & NCSTYLE_MASK);
 // }
 //
 // // Remove the specified styles (in the LSBs) from the cell's existing spec.
 // static inline void
 // cell_styles_off(cell* c, unsigned stylebits){
-//     c->attrword &= ~(stylebits & NCSTYLE_MASK);
+//     c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 // }
 //
 // // Use the default color for the foreground.
@@ -229,9 +229,9 @@ pub fn cells_load_box(
 // // Extract the three elements of a cell.
 // static inline char*
 // cell_extract(const struct ncplane* n, const cell* c,
-//                            uint32_t* attrword, uint64_t* channels){
-//     if(attrword){
-//         *attrword = c->attrword;
+//                            uint32_t* stylemask, uint64_t* channels){
+//     if(stylemask){
+//         *stylemask = c->stylemask;
 //     }
 //     if(channels){
 //         *channels = c->channels;
@@ -246,7 +246,7 @@ pub fn cells_load_box(
 // static inline bool
 // cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
 //                 const struct ncplane* n2, const cell* RESTRICT c2){
-//     if(c1->attrword != c2->attrword){
+//     if(c1->stylemask != c2->stylemask){
 //         return true;
 //     }
 //     if(c1->channels != c2->channels){
@@ -372,14 +372,14 @@ pub fn cells_load_box(
 //     cl->channels |= CELL_FGDEFAULT_MASK;
 //     cl->channels |= CELL_FG_PALETTE;
 //     cell_set_fg_alpha(cl, CELL_ALPHA_OPAQUE);
-//     cl->attrword &= 0xffff00ff;
-//     cl->attrword |= (idx << 8u);
+//     cl->stylemask &= 0xffff00ff;
+//     cl->stylemask |= (idx << 8u);
 //     return 0;
 // }
 //
 // static inline unsigned
 // cell_fg_palindex(const cell* cl){
-//     return (cl->attrword & 0x0000ff00) >> 8u;
+//     return (cl->stylemask & 0x0000ff00) >> 8u;
 // }
 //
 // // Set the r, g, and b cell for the background component of this 64-bit
@@ -412,14 +412,14 @@ pub fn cells_load_box(
 //     cl->channels |= CELL_BGDEFAULT_MASK;
 //     cl->channels |= CELL_BG_PALETTE;
 //     cell_set_bg_alpha(cl, CELL_ALPHA_OPAQUE);
-//     cl->attrword &= 0xffffff00;
-//     cl->attrword |= idx;
+//     cl->stylemask &= 0xffffff00;
+//     cl->stylemask |= idx;
 //     return 0;
 // }
 //
 // static inline unsigned
 // cell_bg_palindex(const cell* cl){
-//     return cl->attrword & 0x000000ff;
+//     return cl->stylemask & 0x000000ff;
 // }
 //
 // // Is the foreground using the "default foreground color"?
