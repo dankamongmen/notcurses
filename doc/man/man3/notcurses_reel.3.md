@@ -36,7 +36,7 @@ typedef struct ncreel_options {
 
 **struct ncplane* ncreel_plane(struct ncreel* nr);**
 
-**typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx, int maxy, bool cliptop);**
+**typedef int (*tabletcb)(struct nctablet* t, bool cliptop);**
 
 **struct nctablet* ncreel_add(struct ncreel* nr, struct nctablet* after, struct nctablet* before, tabletcb cb, void* opaque);**
 

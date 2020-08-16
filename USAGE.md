@@ -2001,22 +2001,10 @@ struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
 struct ncplane* ncreel_plane(struct ncreel* pr);
 
 // Tablet draw callback, provided a tablet (from which the ncplane and userptr
-// may be extracted), the first column that may be used, the first row that may
-// be used, the first column that may not be used, the first row that may not
-// be used, and a bool indicating whether output ought be clipped at the top
-// (true) or bottom (false). Rows and columns are zero-indexed, and both are
-// relative to the tablet's plane.
-//
-// Regarding clipping: it is possible that the tablet is only partially
-// displayed on the screen. If so, it is either partially present on the top of
-// the screen, or partially present at the bottom. In the former case, the top
-// is clipped (cliptop will be true), and output ought start from the end. In
-// the latter case, cliptop is false, and output ought start from the beginning.
-//
-// Returns the number of lines of output, which ought be less than or equal to
-// maxy - begy, and non-negative (negative values might be used in the future).
-typedef int (*tabletcb)(struct nctablet* t, int begx, int begy, int maxx,
-                        int maxy, bool cliptop);
+// may be extracted), and a bool indicating whether output ought be drawn from
+// the top (true) or bottom (false). Returns non-negative count of output lines,
+// which must be less than or equal to ncplane_dim_y(nctablet_plane(t)).
+typedef int (*tabletcb)(struct nctablet* t, bool cliptop);
 
 // Add a new tablet to the provided ncreel, having the callback object
 // opaque. Neither, either, or both of after and before may be specified. If
