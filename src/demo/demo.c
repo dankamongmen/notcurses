@@ -139,12 +139,12 @@ usage(const char* exe, int status){
   exit(status);
 }
 
-static demoresult*
+static int
 ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
   int ret = 0;
   results = malloc(sizeof(*results) * strlen(spec));
   if(results == NULL){
-    return NULL;
+    return -1;
   }
   memset(results, 0, sizeof(*results) * strlen(spec));
   democount = strlen(spec);
@@ -188,7 +188,7 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
     }
     notcurses_refresh(nc, NULL, NULL);
   }
-  return results;
+  return 0;
 }
 
 // returns the demos to be run as a string. on error, returns NULL. on no
@@ -500,6 +500,7 @@ int main(int argc, char** argv){
       nanosleep(&demodelay, NULL);
     }
   }
+  struct ncmenu* menu = NULL;
   do{
     restart_demos = false;
     interrupted = false;
@@ -513,14 +514,14 @@ int main(int argc, char** argv){
     if(fpsgraph_init(nc)){
       goto err;
     }
-    if(menu_create(nc) == NULL){
+    if((menu = menu_create(nc)) == NULL){
       goto err;
     }
     if(notcurses_render(nc)){
       goto err;
     }
     notcurses_reset_stats(nc, NULL);
-    if(ext_demos(nc, spec, ignore_failures) == NULL){
+    if(ext_demos(nc, spec, ignore_failures)){
       goto err;
     }
     if(hud_destroy()){ // destroy here since notcurses_drop_planes will kill it
@@ -531,6 +532,7 @@ int main(int argc, char** argv){
     }
     about_destroy(nc);
   }while(restart_demos);
+  ncmenu_destroy(menu);
   if(stop_input()){
     goto err;
   }

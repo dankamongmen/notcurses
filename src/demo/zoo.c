@@ -398,6 +398,7 @@ reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
   const int READER_COLS = 64;
   const int READER_ROWS = 8;
   ncreader_options nopts = {
+    .tchannels = CHANNELS_RGB_INITIALIZER(0xa0, 0xe0, 0xe0, 0, 0, 0),
     .echannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0, 0, 0),
     .egc = " ",
     .physcols = READER_COLS,
