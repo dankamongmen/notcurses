@@ -436,6 +436,7 @@ const char* ncselector_nextitem(ncselector* n){
 }
 
 bool ncselector_offer_input(ncselector* n, const ncinput* nc){
+  const int items_shown = ncplane_dim_y(n->ncp) - 4 - (n->title ? 2 : 0);
   if(nc->id == NCKEY_UP){
     ncselector_previtem(n);
     return true;
@@ -449,10 +450,18 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
     ncselector_nextitem(n);
     return true;
   }else if(nc->id == NCKEY_PGDOWN){
-    ncselector_nextitem(n); // FIXME should be a page's worth, or go to bottom
+    if(items_shown > 0){
+      for(int i = 0 ; i < items_shown ; ++i){
+        ncselector_nextitem(n);
+      }
+    }
     return true;
   }else if(nc->id == NCKEY_PGUP){
-    ncselector_previtem(n); // FIXME should be a page's worth, or go to top
+    if(items_shown > 0){
+      for(int i = 0 ; i < items_shown ; ++i){
+        ncselector_previtem(n);
+      }
+    }
     return true;
   }else if(nc->id == NCKEY_RELEASE){
     int y = nc->y, x = nc->x;
