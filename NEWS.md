@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.14 (2020-08-16)
+* 1.6.15 (2020-08-16)
   * Styles now work properly with `ncdirect`, which apparently has never
     been the case until now :/.
   * EGCs occupying four bytes or fewer when encoded as UTF8 are now
