@@ -320,15 +320,11 @@ reader_thread(void* vmarsh){
   // we usually won't be done rendering the text before reaching our target row
   size_t textpos = 0;
   int ret;
-  const size_t MAXTOWRITE = 8;
   bool collect_input = false;
   while(textpos < textlen || y > targrow){
     pthread_mutex_lock(lock);
       ncplane_move_yx(rplane, y, x);
       size_t towrite = strcspn(text + textpos, " \t\n") + 1;
-      if(towrite > MAXTOWRITE){
-        towrite = MAXTOWRITE;
-      }
       if(towrite){
         char* duped = strndup(text + textpos, towrite);
         size_t bytes;
