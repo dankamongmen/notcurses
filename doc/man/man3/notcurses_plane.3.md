@@ -82,7 +82,7 @@ notcurses_plane - operations on ncplanes
 
 **uint64_t ncplane_channels(const struct ncplane* n);**
 
-**uint32_t ncplane_attr(const struct ncplane* n);**
+**uint16_t ncplane_attr(const struct ncplane* n);**
 
 **void ncplane_set_channels(struct ncplane* nc, uint64_t channels);**
 
@@ -133,8 +133,6 @@ notcurses_plane - operations on ncplanes
 **void ncplane_styles_on(struct ncplane* n, unsigned stylebits);**
 
 **void ncplane_styles_off(struct ncplane* n, unsigned stylebits);**
-
-**unsigned ncplane_styles(const struct ncplane* n);**
 
 **void ncplane_greyscale(struct ncplane* n);**
 
