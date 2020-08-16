@@ -32,8 +32,8 @@ class Cell:
         self.ncp = ncplane
         self.c = ffi.new("cell *")
         self.c.gcluster = egc
+        self.c.stylemask = 0
         self.c.channels = 0
-        self.c.attrword = 0
 
     def __del__(self):
         lib.cell_release(self.ncp.getNcplane(), self.c)
