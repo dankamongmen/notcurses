@@ -29,7 +29,7 @@ API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx);
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
 // there is no color support. Note that several terminal emulators advertise
 // more colors than they actually support, downsampling internally.
-API int ncdirect_palette_size(const struct ncdirect* nc);
+API unsigned ncdirect_palette_size(const struct ncdirect* nc);
 
 // Output the string |utf8| according to the channels |channels|.
 API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);

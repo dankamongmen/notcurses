@@ -205,7 +205,7 @@ typedef struct ncmenu {
 
 // terminfo cache
 typedef struct tinfo {
-  int colors;     // number of colors terminfo reported usable for this screen
+  unsigned colors;// number of colors terminfo reported usable for this screen
   char* sgr;      // set many graphics properties at once
   char* sgr0;     // restore default presentation properties
   char* setaf;    // set foreground color (ANSI)

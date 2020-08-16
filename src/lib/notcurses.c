@@ -1539,7 +1539,7 @@ unsigned notcurses_supported_styles(const notcurses* nc){
   return styles;
 }
 
-int notcurses_palette_size(const notcurses* nc){
+unsigned notcurses_palette_size(const notcurses* nc){
   return nc->tcache.colors;
 }
 

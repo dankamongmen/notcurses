@@ -1052,7 +1052,7 @@ API unsigned notcurses_supported_styles(const struct notcurses* nc);
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
 // there is no color support. Note that several terminal emulators advertise
 // more colors than they actually support, downsampling internally.
-API int notcurses_palette_size(const struct notcurses* nc);
+API unsigned notcurses_palette_size(const struct notcurses* nc);
 
 // Can we directly specify RGB values per cell, or only use palettes?
 API bool notcurses_cantruecolor(const struct notcurses* nc);
