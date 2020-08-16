@@ -1288,6 +1288,7 @@ API uint64_t ncplane_channels(const struct ncplane* n);
 
 // Return the current styling for this ncplane.
 API uint16_t ncplane_attr(const struct ncplane* n);
+API unsigned ncplane_styles(const struct ncplane* n);
 
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the

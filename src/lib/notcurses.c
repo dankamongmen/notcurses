@@ -1100,6 +1100,10 @@ uint16_t ncplane_attr(const ncplane* n){
   return n->stylemask;
 }
 
+unsigned ncplane_styles(const ncplane* n){
+  return n->stylemask;
+}
+
 void ncplane_set_channels(ncplane* n, uint64_t channels){
   n->channels = channels;
 }
