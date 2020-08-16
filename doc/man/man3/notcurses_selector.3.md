@@ -65,7 +65,20 @@ typedef struct ncselector_options {
 
 Currently, the **ncplane** **n** provided to **ncselector_create** must not be
 **NULL**, though the **ncselector** will always get its own plane, and this
-plane will not (currently) be bound to **n**.
+plane will not (currently) be bound to **n**. **ncselector_selected**
+returns the currently-selected option. **ncselector_additem** and
+**ncselector_delitem** allow items to be added and deleted on the fly
+(a static set of items can all be provided in the **ncselector_create**
+call).
+
+**ncselector_plane** will return the **ncplane** on which the widget is
+drawn.
+
+While the **ncselector** can be driven entirely by client code, input can
+be run through **ncselector_offer_input** to take advantage of common
+controls. It will handle the up and down arrows, along with PageUp and
+PageDown. If the mouse is enabled, the mouse scrollwheel and mouse clicks
+on the scroll arrows will be handled.
 
 # RETURN VALUES
 
