@@ -137,6 +137,7 @@ previous action.
 **ncurses(3NCURSES)**,
 **notcurses-demo(1)**,
 **notcurses-input(1)**,
+**notcurses_capabilities(3)**,
 **notcurses_cell(3)**,
 **notcurses_channels(3)**,
 **notcurses_directmode(3)**,
