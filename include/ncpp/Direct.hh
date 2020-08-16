@@ -83,7 +83,7 @@ namespace ncpp
 			return error_guard (ncdirect_dim_y (direct), -1);
 		}
 
-		int get_palette_size () const noexcept
+		unsigned get_palette_size () const noexcept
 		{
 			return ncdirect_palette_size (direct);
 		}

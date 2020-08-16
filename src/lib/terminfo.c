@@ -46,12 +46,14 @@ int terminfostr(char** gseq, const char* name){
 int interrogate_terminfo(tinfo* ti){
   memset(ti, 0, sizeof(*ti));
   ti->RGBflag = query_rgb();
-  if((ti->colors = tigetnum("colors")) <= 0){
+  int colors = tigetnum("colors");
+  if(colors <= 0){
     ti->colors = 1;
     ti->CCCflag = false;
     ti->RGBflag = false;
     ti->initc = NULL;
   }else{
+    ti->colors = colors;
     terminfostr(&ti->initc, "initc");
     if(ti->initc){
       ti->CCCflag = tigetflag("ccc") == 1;
