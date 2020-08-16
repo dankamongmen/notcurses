@@ -35,7 +35,9 @@ int yield_demo(struct notcurses* nc){
   vopts.scaling = NCSCALE_STRETCH;
   struct timespec scaled;
   const long total = vy * vx;
-  const long threshold_painted = total * 4 / 5;
+  // less than this, and we exit almost immediately. more than this, and we
+  // run closer to twenty seconds. 11/50 it is, then.
+  const long threshold_painted = total * 11 / 50;
   timespec_div(&demodelay, 128, &scaled);
   long tfilled = 0;
   while(tfilled < threshold_painted){
@@ -49,11 +51,14 @@ int yield_demo(struct notcurses* nc){
         ncvisual_destroy(wmv);
         return -1;
       }
-      if(ncpixel_a(pixel) != 0xff){
+      if(ncpixel_a(pixel) != 0xff){ // don't do areas we've already done
+        continue;
+      }
+      if(ncpixel_g(pixel) < 0x80){ // only do land, which is whiter than blue
         continue;
       }
       ncpixel_set_a(&pixel, 0xfe);
-      ncpixel_set_rgb(&pixel, random() % 256, 0, ncpixel_b(pixel) / 2);
+      ncpixel_set_rgb(&pixel, (random() % 128) + 128, 0, ncpixel_b(pixel) / 4);
       pfilled = ncvisual_polyfill_yx(wmv, y, x, pixel);
       if(pfilled < 0){
         ncvisual_destroy(wmv);
