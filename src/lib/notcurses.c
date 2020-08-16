@@ -87,7 +87,7 @@ notcurses_stop_minimal(notcurses* nc){
 }
 
 // this wildly unsafe handler will attempt to restore the screen upon
-// reception of SIG{INT, SEGV, ABRT, QUIT}. godspeed you, black emperor!
+// reception of SIG{INT, SEGV, ABRT, QUIT, TERM}. godspeed you, black emperor!
 static void
 fatal_handler(int signo){
   notcurses* nc = atomic_load(&signal_nc);

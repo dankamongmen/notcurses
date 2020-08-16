@@ -464,13 +464,21 @@ tty_emit(const char* name __attribute__ ((unused)), const char* seq, int fd){
   if(!seq){
     return -1;
   }
-  ssize_t ret = write(fd, seq, strlen(seq));
-  if(ret < 0){
+  size_t slen = strlen(seq);
+  size_t written = 0;
+  do{
+    ssize_t ret = write(fd, seq, slen);
+    if(ret > 0){
+      written += ret;
+    }
+    if(ret < 0){
+      if(errno != EAGAIN){
+        break;
+      }
+    }
+  }while(written < slen);
+  if(written < slen){
 //fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
-    return -1;
-  }
-  if((size_t)ret != strlen(seq)){
-//fprintf(stderr, "Short write (%db) for %zub %s sequence\n", ret, strlen(seq), name);
     return -1;
   }
   return 0;
