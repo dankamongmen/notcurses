@@ -30,7 +30,7 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
       if(wc >= 0xd800 && wc <= 0xdfff){
         continue;
       }
-      if(uc_bidi_category(wc)){
+      if(uc_bidi_category(wc)){ // FIXME
         continue;
       }
       if(wcwidth(w[0]) >= 1){
@@ -38,11 +38,11 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
         if(ncplane_putwegc(column, w, NULL) < 0){
           return -1;
         }
-        if(ncplane_printf_aligned(std, legendy, NCALIGN_CENTER, "0x%06x", wc) < 0){
-          return -1;
-        }
         ncplane_cursor_yx(column, NULL, &x);
         if(x >= dimx){
+          if(ncplane_printf_aligned(std, legendy, NCALIGN_CENTER, "0x%06x", wc) < 0){
+            return -1;
+          }
           DEMO_RENDER(nc);
           ncplane_set_fg_rgb(column,
                              random() % 192 + 64,

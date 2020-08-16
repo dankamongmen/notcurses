@@ -135,9 +135,7 @@ draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx)
   return ret;
 }
 
-// break whatever's on the screen into panels and shift them around like a
-// sliding puzzle. FIXME once we have copying, anyway. until then, just use
-// background colors.
+// make a bunch of boxes with gradients and use them to play a sliding puzzle.
 int sliding_puzzle_demo(struct notcurses* nc){
   int ret = -1, z;
   int maxx, maxy;
