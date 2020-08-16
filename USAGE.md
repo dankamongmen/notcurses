@@ -1645,16 +1645,7 @@ void cell_release(struct ncplane* n, cell* c);
 // result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
 cell_strdup(const struct ncplane* n, const cell* c){
-  char* ret;
-  if(cell_simple_p(c)){
-    if( (ret = (char*)malloc(2)) ){ // cast is here for C++ clients
-      ret[0] = c->gcluster;
-      ret[1] = '\0';
-    }
-  }else{
-    ret = strdup(cell_extended_gcluster(n, c));
-  }
-  return ret;
+  return strdup(cell_extended_gcluster(n, c));
 }
 
 // Set the specified style bits for the cell 'c', whether they're actively
@@ -1689,21 +1680,12 @@ cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
-// is the cell simple (a lone ASCII character, encoded as such)?
-static inline bool
-cell_simple_p(const cell* c){
-  return c->gcluster < 0x80;
-}
-
 static inline int
 cell_load_simple(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
-  c->channels &= ~CELL_WIDEASIAN_MASK;
+  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
   c->gcluster = ch;
-  if(cell_simple_p(c)){
-    return 1;
-  }
-  return -1;
+  return 1;
 }
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer

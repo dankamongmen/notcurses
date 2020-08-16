@@ -141,14 +141,15 @@ int fallin_demo(struct notcurses* nc){
             continue;
           }
           cell c = CELL_TRIVIAL_INITIALIZER;
-          if(ncplane_at_yx_cell(stdn, usey, usex, &c) < 0){
+          cell stdc = CELL_TRIVIAL_INITIALIZER;
+          if(ncplane_at_yx_cell(stdn, usey, usex, &stdc) < 0){
             goto err;
           }
-          if(!cell_simple_p(&c)){
-            const char* cons = cell_extended_gcluster(stdn, &c);
-            c.gcluster = 0;
-            cell_load(n, &c, cons);
+          if(cell_load(n, &c, cell_extended_gcluster(stdn, &stdc)) < 0){
+            cell_release(stdn, &stdc);
+            goto err;
           }
+          cell_release(stdn, &stdc);
           if(c.gcluster){
             if(ncplane_putc_yx(n, usey - y, usex - x, &c) < 0){
               // allow a fail if we were printing a wide char to the
