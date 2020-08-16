@@ -151,7 +151,6 @@ int ncplane_set_bg_palindex(struct ncplane* n, int idx);
 void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
 void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
-unsigned ncplane_attr(const struct ncplane* n);
 typedef struct ncstats {
   uint64_t renders;          // number of successful notcurses_render() runs
   uint64_t failed_renders;   // number of aborted renders, should be 0
