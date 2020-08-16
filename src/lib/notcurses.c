@@ -774,24 +774,22 @@ init_banner(const notcurses* nc){
 // practice is for the client code to have called setlocale() themselves, and
 // set the NCOPTION_INHIBIT_SETLOCALE flag. if that flag is set, we take the
 // locale as we get it.
-void init_lang(int verbose){
+void init_lang(struct notcurses* nc){
   const char* locale = setlocale(LC_ALL, "");
   if(locale && (!strcmp(locale, "C") || !strcmp(locale, "POSIX"))){
     const char* lang = getenv("LANG");
     if(lang){
       // if LANG was explicitly set to C/POSIX, roll with it
       if(strcmp(locale, "C") && strcmp(locale, "POSIX")){
-        if(verbose){
-          if(!locale){ // otherwise, generate diagnostic
-            fprintf(stderr, "Couldn't set locale based off LANG %s\n", lang);
-          }else{
-            fprintf(stderr, "Set %s locale from LANG; client should call setlocale(2)!\n",
-                    lang ? lang : "???");
-          }
+        if(!locale){ // otherwise, generate diagnostic
+          logerror(nc, "Couldn't set locale based off LANG %s\n", lang);
+        }else{
+          loginfo(nc, "Set %s locale from LANG; client should call setlocale(2)!\n",
+                  lang ? lang : "???");
         }
       }
-    }else if(verbose){
-      fprintf(stderr, "No LANG environment variable was set, ick :/\n");
+    }else{
+      logwarn(nc, "No LANG environment variable was set, ick :/\n");
     }
   }
 }
@@ -842,7 +840,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->loglevel = opts->loglevel;
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
-    init_lang(true);
+    init_lang(ret);
   }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding && strcmp(encoding, "UTF-8") == 0){

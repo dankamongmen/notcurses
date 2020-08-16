@@ -445,7 +445,7 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   ret->fgdefault = ret->bgdefault = true;
   ret->fgrgb = ret->bgrgb = 0;
   ncdirect_styles_set(ret, 0);
-  init_lang(false);
+  init_lang(nullptr);
   const char* encoding = nl_langinfo(CODESET);
   if(encoding && strcmp(encoding, "UTF-8") == 0){
     ret->utf8 = true;
