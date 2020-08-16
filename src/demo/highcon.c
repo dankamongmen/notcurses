@@ -90,6 +90,10 @@ int highcontrast_demo(struct notcurses* nc){
   // each iteration, "draw the background in" one cell from the top left and
   // bottom right.
   int offset = 0;
+  struct timespec start;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  uint64_t totalns = timespec_to_ns(&demodelay) * 2;
+  uint64_t iterns = totalns / (totcells / 2);
   do{
     if(offset){
       cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
@@ -111,6 +115,16 @@ int highcontrast_demo(struct notcurses* nc){
       }
     }
     DEMO_RENDER(nc);
+    uint64_t targns = timespec_to_ns(&start) + offset * iterns;
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    if(targns > timespec_to_ns(&now)){
+      struct timespec abstime;
+      ns_to_timespec(targns, &abstime);
+      if((ret = demo_nanosleep_abstime(nc, &abstime))){
+          goto err;
+      }
+    }
   }while(++offset < totcells / 2);
   ret = 0;
 

@@ -5,10 +5,9 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-08-14a
+  image: dankamongmen/unstable_builder:2020-08-15a
   commands:
     - export LANG=en_US.UTF-8
-    - apt-get install -y libunistring-dev
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -24,7 +23,6 @@ steps:
   image: dankamongmen/focal:2020-08-14a
   commands:
     - export LANG=en_US.UTF-8
-    - apt-get install -y libunistring-dev
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
@@ -37,10 +35,9 @@ name: fedora-rawhide
 
 steps:
 - name: fedora-rawhide
-  image: dankamongmen/fedora33:2020-07-13a
+  image: dankamongmen/fedora33:2020-08-15a
   commands:
     - export LANG=en_US.UTF-8
-    - dnf install -y libunistring-devel
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
