@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <unictype.h>
 #include "demo.h"
 
 // Fill up the screen with as much crazy Unicode as we can, and then set a
@@ -503,6 +504,10 @@ int witherworm_demo(struct notcurses* nc){
             return -1;
           }
           if(iswspace(wcs)){
+            idx += eaten;
+            continue;
+          }
+          if(uc_bidi_category(wcs)){ // FIXME
             idx += eaten;
             continue;
           }
