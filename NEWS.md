@@ -9,6 +9,7 @@ rearrangements of Notcurses.
     for you save less memory consumption per plane, and faster operation.
     In the course of doing so, the `attrword` field of the `cell` structure
     was renamed `stylemask`, and reduced from 32 to 16 bits.
+  * `notcurses_palette_size()` now returns `unsigned`.
 
 * 1.6.12 (2020-08-12)
   * `ncreel`s `tabletcb` callback function semantics are radically simplified.

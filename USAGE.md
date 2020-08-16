@@ -240,7 +240,7 @@ unsigned notcurses_supported_styles(const struct notcurses* nc);
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
 // there is no color support. Note that several terminal emulators advertise
 // more colors than they actually support, downsampling internally.
-int notcurses_palette_size(const struct notcurses* nc);
+unsigned notcurses_palette_size(const struct notcurses* nc);
 
 // Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
 bool notcurses_canfade(const struct notcurses* nc);

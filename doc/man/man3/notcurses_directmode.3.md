@@ -12,7 +12,7 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);**
 
-**int ncdirect_palette_size(const struct ncdirect* nc);**
+**unsigned ncdirect_palette_size(const struct ncdirect* nc);**
 
 **int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
 

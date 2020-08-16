@@ -205,7 +205,7 @@ namespace ncpp
 			return refresh (&rows, &cols);
 		}
 
-		int get_palette_size () const noexcept
+		unsigned get_palette_size () const noexcept
 		{
 			return notcurses_palette_size (static_cast<const notcurses*> (nc));
 		}
