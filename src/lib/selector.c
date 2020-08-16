@@ -697,6 +697,7 @@ const char* ncmultiselector_nextitem(ncmultiselector* n){
 }
 
 bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
+  const int items_shown = ncplane_dim_y(n->ncp) - 4 - (n->title ? 2 : 0);
   if(nc->id == ' '){
     n->items[n->current].selected = !n->items[n->current].selected;
     ncmultiselector_draw(n);
@@ -708,10 +709,18 @@ bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
     ncmultiselector_nextitem(n);
     return true;
   }else if(nc->id == NCKEY_PGDOWN){
-    ncmultiselector_nextitem(n); // FIXME should be a page's worth, or go to bottom
+    if(items_shown > 0){
+      for(int i = 0 ; i < items_shown ; ++i){
+        ncmultiselector_nextitem(n);
+      }
+    }
     return true;
   }else if(nc->id == NCKEY_PGUP){
-    ncmultiselector_previtem(n); // FIXME should be a page's worth, or go to top
+    if(items_shown > 0){
+      for(int i = 0 ; i < items_shown ; ++i){
+        ncmultiselector_previtem(n);
+      }
+    }
     return true;
   }else if(nc->id == NCKEY_SCROLL_UP){
     ncmultiselector_previtem(n);

@@ -56,10 +56,21 @@ typedef struct ncmultiselector_options {
 
 # NOTES
 
-Currently, the **ncplane** **n** provided to **ncmultiselector_create** must
-not be **NULL**, though the **ncmultiselector** will always get its own plane,
-and this plane will not (currently) be bound to **n**.
+Currently, the **ncplane** **n** provided to **ncmultiselector_create**
+must not be **NULL**, though the **ncmultiselector** will always get its
+own plane, and this plane will not (currently) be bound to **n**.
+**ncmultiselector_selected** returns a bitmap corresponding to the
+currently-selected options.
 
+**ncmultiselector_plane** will return the **ncplane** on which the widget is
+drawn.
+
+While the **ncmultiselector** can be driven entirely by client code,
+input can be run through **ncmultiselector_offer_input** to take
+advantage of common controls. It will handle the up and down arrows,
+along with PageUp and PageDown, and space to select/deselect options.
+If the mouse is enabled, the mouse scrollwheel and mouse clicks on the scroll
+arrows will be handled.
 
 # RETURN VALUES
 
