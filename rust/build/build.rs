@@ -12,7 +12,7 @@ fn main() {
         .unwrap();
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
-    println!("cargo:rerun-if-changed=wrapper.h");
+    println!("cargo:rerun-if-changed=build/wrapper.h");
 
     cc::Build::new()
         .file("build/stdout.c")
