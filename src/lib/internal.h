@@ -314,6 +314,7 @@ typedef struct notcurses {
 
 void sigwinch_handler(int signo);
 
+void init_lang(int verbose);
 int terminfostr(char** gseq, const char* name);
 int interrogate_terminfo(tinfo* ti);
 
