@@ -1567,10 +1567,6 @@ void ncplane_set_attr(ncplane* n, unsigned stylebits){
   n->stylemask = stylebits & NCSTYLE_MASK;
 }
 
-unsigned ncplane_styles(const ncplane* n){
-  return n->stylemask;
-}
-
 // i hate the big allocation and two copies here, but eh what you gonna do?
 // well, for one, we don't need the huge allocation FIXME
 char* ncplane_vprintf_prep(const char* format, va_list ap){

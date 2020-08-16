@@ -788,9 +788,6 @@ void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
 // Remove the specified styles from the ncplane's existing spec.
 void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
-// Return the current styling for this ncplane.
-unsigned ncplane_styles(const struct ncplane* n);
-
 // Set the ncplane's base cell to this cell. It will be used for purposes of
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
 // does not reset the base cell; this function must be called with a zero 'c'.

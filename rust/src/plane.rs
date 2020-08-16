@@ -74,7 +74,6 @@
 // ncplane_set_scrolling
 // ncplane_set_userptr
 // ncplane_stain
-// ncplane_styles
 // ncplane_styles_off
 // ncplane_styles_on
 // ncplane_styles_set
