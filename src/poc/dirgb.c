@@ -106,6 +106,7 @@ int main(void){
     ncdirect_stop(nc);
     return EXIT_FAILURE;
   }
+  ncdirect_styles_on(nc, NCSTYLE_ITALIC);
   printf("dank\n");
   if(ncdirect_stop(nc)){
     return EXIT_FAILURE;
