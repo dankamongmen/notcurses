@@ -1,6 +1,5 @@
 #include <array>
 #include <cstdlib>
-#include <netinet/in.h>
 #include "main.h"
 #include "internal.h"
 
@@ -861,7 +860,7 @@ TEST_CASE("Wide") {
   SUBCASE("ItalicEmoji") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     cell_load(n_, &c, "\U0001F90C");
-    CHECK(htonl(0xf09fa48clu) == c.gcluster);
+    CHECK(0x8ca49ff0lu == c.gcluster);
     cell_styles_on(&c, NCSTYLE_ITALIC);
     CHECK(4 == strlen(cell_extended_gcluster(n_, &c)));
     CHECK(0 == strcmp("\U0001F90C", cell_extended_gcluster(n_, &c)));
@@ -880,7 +879,7 @@ TEST_CASE("Wide") {
   SUBCASE("StyleMaxEmoji") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     cell_load(n_, &c, "\U0001F90C");
-    CHECK(htonl(0xf09fa48clu) == c.gcluster);
+    CHECK(0x8ca49ff0lu == c.gcluster);
     cell_styles_on(&c, NCSTYLE_MASK);
     CHECK(4 == strlen(cell_extended_gcluster(n_, &c)));
     CHECK(0 == strcmp("\U0001F90C", cell_extended_gcluster(n_, &c)));
