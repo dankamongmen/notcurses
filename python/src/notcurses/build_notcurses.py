@@ -79,7 +79,7 @@ struct ncplane* ncplane_bound_named(struct ncplane* n, int rows, int cols, int y
 struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);
 struct ncplane* ncplane_aligned_named(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque, const char* name);
 unsigned notcurses_supported_styles(const struct notcurses* nc);
-int notcurses_palette_size(const struct notcurses* nc);
+unsigned notcurses_palette_size(const struct notcurses* nc);
 bool notcurses_cantruecolor(const struct notcurses* nc);
 bool notcurses_canfade(const struct notcurses* nc);
 bool notcurses_canchangecolor(const struct notcurses* nc);
@@ -456,7 +456,7 @@ int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax, int* xmax,
 struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
 int ncdirect_bg_rgb(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
-int ncdirect_palette_size(const struct ncdirect* nc);
+unsigned ncdirect_palette_size(const struct ncdirect* nc);
 int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
 int ncdirect_fg(struct ncdirect* n, unsigned rgb);
 int ncdirect_bg(struct ncdirect* n, unsigned rgb);
