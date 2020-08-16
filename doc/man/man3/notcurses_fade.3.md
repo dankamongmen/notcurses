@@ -1,6 +1,6 @@
 % notcurses_fade(3)
 % nick black <nickblack@linux.com>
-% v1.6.14
+% v1.6.15
 
 # NAME
 
