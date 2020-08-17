@@ -314,6 +314,7 @@ typedef struct notcurses {
 
 void sigwinch_handler(int signo);
 
+void init_lang(struct notcurses* nc); // nc may be NULL, only used for logging
 int terminfostr(char** gseq, const char* name);
 int interrogate_terminfo(tinfo* ti);
 
