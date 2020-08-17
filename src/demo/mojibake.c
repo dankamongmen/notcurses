@@ -2207,14 +2207,13 @@ const char animal_mammal[] =
   "\U0001F436"
   "\U0001F415"
   "\U0001F9AE"
-  "\U0001F415\u200D\U0001F9BA"
+  "\U0001F415"
   "\U0001F429"
   "\U0001F43A"
   "\U0001F98A"
   "\U0001F99D"
   "\U0001F431"
   "\U0001F408"
-  "\U0001F408\u200D\u2B1B"
   "\U0001F981"
   "\U0001F42F"
   "\U0001F405"
@@ -2224,7 +2223,6 @@ const char animal_mammal[] =
   "\U0001F984"
   "\U0001F993"
   "\U0001F98C"
-  "\U0001F9AC"
   "\U0001F42E"
   "\U0001F402"
   "\U0001F403"
@@ -2241,7 +2239,6 @@ const char animal_mammal[] =
   "\U0001F999"
   "\U0001F992"
   "\U0001F418"
-  "\U0001F9A3"
   "\U0001F98F"
   "\U0001F99B"
   "\U0001F42D"
@@ -2255,7 +2252,6 @@ const char animal_mammal[] =
   "\U0001F994"
   "\U0001F987"
   "\U0001F43B"
-  "\U0001F43B\u200D\u2744"
   "\U0001F428"
   "\U0001F43C"
   "\U0001F9A5"
@@ -2263,7 +2259,9 @@ const char animal_mammal[] =
   "\U0001F9A8"
   "\U0001F998"
   "\U0001F9A1"
-  "\U0001F43E";
+  "\U0001F43E"
+  "\U0001F9AC"
+  "\U0001F9A3";
 const char animal_bird[] =
   "\U0001F983"
   "\U0001F414"
@@ -2387,7 +2385,6 @@ const char food_prepared[] =
   "\U0001F35E"
   "\U0001F950"
   "\U0001F956"
-  "\U0001FAD3"
   "\U0001F968"
   "\U0001F96F"
   "\U0001F95E"
@@ -2404,20 +2401,21 @@ const char food_prepared[] =
   "\U0001F96A"
   "\U0001F32E"
   "\U0001F32F"
-  "\U0001FAD4"
   "\U0001F959"
   "\U0001F9C6"
   "\U0001F95A"
   "\U0001F373"
   "\U0001F958"
   "\U0001F372"
-  "\U0001FAD5"
   "\U0001F963"
   "\U0001F957"
   "\U0001F37F"
   "\U0001F9C8"
   "\U0001F9C2"
-  "\U0001F96B";
+  "\U0001F96B"
+  "\U0001FAD3"
+  "\U0001FAD4"
+  "\U0001FAD5";
 const char food_asian[] =
   "\U0001F371"
   "\U0001F358"
@@ -2503,15 +2501,7 @@ const char place_geographic[] =
   "\U0001F3DD"
   "\U0001F3DE";
 const char place_building[] =
-  "\U0001F3DF"
-  "\U0001F3DB"
-  "\U0001F3D7"
   "\U0001F9F1"
-  "\U0001FAA8"
-  "\U0001FAB5"
-  "\U0001F6D6"
-  "\U0001F3D8"
-  "\U0001F3DA"
   "\U0001F3E0"
   "\U0001F3E1"
   "\U0001F3E2"
@@ -2529,7 +2519,15 @@ const char place_building[] =
   "\U0001F3F0"
   "\U0001F492"
   "\U0001F5FC"
-  "\U0001F5FD";
+  "\U0001F5FD"
+  "\U0001F3DF"
+  "\U0001F3DB"
+  "\U0001F3D7"
+  "\U0001FAA8"
+  "\U0001FAB5"
+  "\U0001F6D6"
+  "\U0001F3D8"
+  "\U0001F3DA";
 const char place_religious[] =
   "\u26EA"
   "\U0001F54C"
@@ -2998,15 +2996,9 @@ const char lock[] =
 const char tool[] =
   "\U0001F528"
   "\U0001FA93"
-  "\u26CF"
-  "\u2692"
-  "\U0001F6E0"
   "\U0001F5E1"
-  "\u2694"
   "\U0001F52B"
-  "\U0001FA83"
   "\U0001F3F9"
-  "\U0001F6E1"
   "\U0001FA9A"
   "\U0001F527"
   "\U0001FA9B"
@@ -3020,7 +3012,13 @@ const char tool[] =
   "\U0001FA9D"
   "\U0001F9F0"
   "\U0001F9F2"
-  "\U0001FA9C";
+  "\U0001FA9C"
+  "\u26CF"
+  "\u2692"
+  "\U0001F6E0"
+  "\u2694"
+  "\U0001FA83"
+  "\U0001F6E1";
 const char science[] =
   "\u2697"
   "\U0001F9EA"
@@ -3530,6 +3528,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
     if(bytes < 0){
       break;
     }
+fprintf(stderr, "PLACING %d/%d: %zu [%s]\n", y, x, strlen(cell_extended_gcluster(n, &c)), cell_extended_gcluster(n, &c));
     int w = ncplane_putc_yx(n, y, x, &c);
     cell_release(n, &c);
     if(w < 0){
@@ -3538,7 +3537,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
     }
     emoji += bytes;
     x += w;
-    if(x >= planewidth - 10){ // leave some wiggle room for wcwdith() problems
+    if(x >= planewidth - 10){ // leave some wiggle room for wcwidth() problems
       ++y;
       x = 1;
     }
