@@ -145,7 +145,7 @@ int fallin_demo(struct notcurses* nc){
           if(ncplane_at_yx_cell(stdn, usey, usex, &stdc) < 0){
             goto err;
           }
-          if(cell_load(n, &c, cell_extended_gcluster(stdn, &stdc)) < 0){
+          if(cell_prime(n, &c, cell_extended_gcluster(stdn, &stdc), stdc.stylemask, stdc.channels) < 0){
             cell_release(stdn, &stdc);
             goto err;
           }
