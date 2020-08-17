@@ -2779,16 +2779,16 @@ const char game[] =
   "\U0001F3B2"
   "\U0001F9E9"
   "\U0001F9F8"
+  "\U0001F0CF"
+  "\U0001F004"
+  "\U0001F3B4"
   "\U0001FA85"
   "\U0001FA86"
   "\u2660"
   "\u2665"
   "\u2666"
   "\u2663"
-  "\u265F"
-  "\U0001F0CF"
-  "\U0001F004"
-  "\U0001F3B4";
+  "\u265F";
 const char arts_crafts[] =
   "\U0001F3AD"
   "\U0001F5BC"
@@ -3035,9 +3035,6 @@ const char medical[] =
   "\U0001FA7A";
 const char household[] =
   "\U0001F6AA"
-  "\U0001F6D7"
-  "\U0001FA9E"
-  "\U0001FA9F"
   "\U0001F6CF"
   "\U0001F6CB"
   "\U0001FA91"
@@ -3052,12 +3049,15 @@ const char household[] =
   "\U0001F9F9"
   "\U0001F9FA"
   "\U0001F9FB"
-  "\U0001FAA3"
   "\U0001F9FC"
-  "\U0001FAA5"
   "\U0001F9FD"
   "\U0001F9EF"
-  "\U0001F6D2";
+  "\U0001F6D2"
+  "\U0001F6D7"
+  "\U0001FA9E"
+  "\U0001FA9F"
+  "\U0001FAA3"
+  "\U0001FAA5";
 const char other_object[] =
   "\U0001F6AC"
   "\u26B0"
