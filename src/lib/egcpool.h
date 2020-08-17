@@ -88,7 +88,8 @@ utf8_egc_len(const char* gcluster, int* colcount){
           if(iswspace(wc)){ // newline or tab
             return ret + 1;
           }
-          cols = 0;
+          ret += r;
+          break;
         }
         *colcount += cols;
       }
