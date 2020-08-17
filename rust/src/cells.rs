@@ -61,13 +61,14 @@
 use cstr_core::CString;
 
 use crate as ffi;
-use crate::types::{ChannelPair, IntResult};
+use ffi::types::{ChannelPair, IntResult};
+use ffi::{cell, ncplane};
 
 /// cell_load(), plus blast the styling with 'attr' and 'channels'.
 // TODO: TEST
 pub fn cell_prime(
-    plane: *mut ffi::ncplane,
-    cell: *mut ffi::cell,
+    plane: &mut ffi::ncplane,
+    cell: &mut ffi::cell,
     gcluster: &str,
     style: u16,
     channels: ChannelPair,
@@ -94,15 +95,15 @@ pub fn cell_prime(
 // TODO: TEST
 // FIXME missing cell_prime()s
 pub fn cells_load_box(
-    plane: *mut ffi::ncplane,
+    plane: &mut ncplane,
     style: u16,
     channels: ChannelPair,
-    _ul: *mut ffi::cell,
-    _ur: *mut ffi::cell,
-    _ll: *mut ffi::cell,
-    _lr: *mut ffi::cell,
-    _hl: *mut ffi::cell,
-    _vl: *mut ffi::cell,
+    _ul: &mut cell,
+    _ur: &mut cell,
+    _ll: &mut cell,
+    _lr: &mut cell,
+    _hl: &mut cell,
+    _vl: &mut cell,
     gcluster: &str,
 ) -> IntResult {
     cell_prime(plane, _ul, gcluster, style, channels)
@@ -138,17 +139,17 @@ pub fn cells_load_box(
 //     memset(c, 0, sizeof(*c));
 // }
 //
-// // Set the specified style bits for the cell 'c', whether they're actively
-// // supported or not.
+// Set the specified style bits for the cell 'c', whether they're actively
+// supported or not. Only the lower 16 bits are meaningful.
 // static inline void
 // cell_styles_set(cell* c, unsigned stylebits){
-//     c->stylemask = (c->stylemask & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
+//     c->stylemask = stylebits & NCSTYLE_MASK;
 // }
 //
-// // Extract the style bits from the cell's stylemask.
+// // Extract the style bits from the cell.
 // static inline unsigned
 // cell_styles(const cell* c){
-//     return c->stylemask & NCSTYLE_MASK;
+//     return c->stylemask;
 // }
 //
 // // Add the specified styles (in the LSBs) to the cell's existing spec, whether
@@ -204,32 +205,17 @@ pub fn cells_load_box(
 //     return cell_double_wide_p(c) && c->gcluster;
 // }
 //
-// // Is the cell simple (a lone ASCII character, encoded as such)?
-// static inline bool
-// cell_simple_p(const cell* c){
-//     return c->gcluster < 0x80;
-// }
-//
 // // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 // // result is not tied to the ncplane, and persists across erases / destruction.
 // static inline char*
 // cell_strdup(const struct ncplane* n, const cell* c){
-//     char* ret;
-//     if(cell_simple_p(c)){
-//         if( (ret = (char*)malloc(2)) ){ // cast is here for C++ clients
-//             ret[0] = c->gcluster;
-//             ret[1] = '\0';
-//         }
-//     }else{
-//         ret = strdup(cell_extended_gcluster(n, c));
-//     }
-//     return ret;
+//     return strdup(cell_extended_gcluster(n, c));
 // }
 //
 // // Extract the three elements of a cell.
 // static inline char*
 // cell_extract(const struct ncplane* n, const cell* c,
-//                            uint32_t* stylemask, uint64_t* channels){
+//                            uint16_t* stylemask, uint64_t* channels){
 //     if(stylemask){
 //         *stylemask = c->stylemask;
 //     }
@@ -252,24 +238,15 @@ pub fn cells_load_box(
 //     if(c1->channels != c2->channels){
 //         return true;
 //     }
-//     if(cell_simple_p(c1) && cell_simple_p(c2)){
-//         return c1->gcluster != c2->gcluster;
-//     }
-//     if(cell_simple_p(c1) || cell_simple_p(c2)){
-//         return true;
-//     }
 //     return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
 // }
 //
 // static inline int
 // cell_load_simple(struct ncplane* n, cell* c, char ch){
 //     cell_release(n, c);
-//     c->channels &= ~CELL_WIDEASIAN_MASK;
+//     c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
 //     c->gcluster = ch;
-//     if(cell_simple_p(c)){
-//         return 1;
-//     }
-//     return -1;
+//     return 1;
 // }
 //
 // // Extract the 32-bit background channel from a cell.
@@ -361,9 +338,7 @@ pub fn cells_load_box(
 // cell_set_fg(cell* c, uint32_t channel){
 //     return channels_set_fg(&c->channels, channel);
 // }
-//
-// // Set the cell's foreground palette index, set the foreground palette index
-// // bit, set it foreground-opaque, and clear the foreground default color bit.
+
 // static inline int
 // cell_set_fg_palindex(cell* cl, int idx){
 //     if(idx < 0 || idx >= NCPALETTESIZE){
@@ -372,14 +347,14 @@ pub fn cells_load_box(
 //     cl->channels |= CELL_FGDEFAULT_MASK;
 //     cl->channels |= CELL_FG_PALETTE;
 //     cell_set_fg_alpha(cl, CELL_ALPHA_OPAQUE);
-//     cl->stylemask &= 0xffff00ff;
-//     cl->stylemask |= (idx << 8u);
+//     cl->channels &= 0xff000000ffffffffull;
+//     cl->channels |= ((uint64_t)idx << 32u);
 //     return 0;
 // }
 //
 // static inline unsigned
 // cell_fg_palindex(const cell* cl){
-//     return (cl->stylemask & 0x0000ff00) >> 8u;
+//     return (cl->channels & 0xff00000000ull) >> 32u;
 // }
 //
 // // Set the r, g, and b cell for the background component of this 64-bit
@@ -412,14 +387,14 @@ pub fn cells_load_box(
 //     cl->channels |= CELL_BGDEFAULT_MASK;
 //     cl->channels |= CELL_BG_PALETTE;
 //     cell_set_bg_alpha(cl, CELL_ALPHA_OPAQUE);
-//     cl->stylemask &= 0xffffff00;
-//     cl->stylemask |= idx;
+//     cl->channels &= 0xffffffffff000000;
+//     cl->channels |= idx;
 //     return 0;
 // }
 //
 // static inline unsigned
 // cell_bg_palindex(const cell* cl){
-//     return cl->stylemask & 0x000000ff;
+//     return (cl->channels & 0xff);
 // }
 //
 // // Is the foreground using the "default foreground color"?

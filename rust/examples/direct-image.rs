@@ -23,7 +23,7 @@ fn render_image(ncd: &mut nc::ncdirect, blit: nc::ncblitter_e) {
     unsafe {
         if nc::ncdirect_render_image(
             ncd,
-            CString::new("direct-image.png").unwrap().as_ptr(),
+            CString::new("image-16x16.png").unwrap().as_ptr(),
             nc::ncalign_e_NCALIGN_CENTER,
             blit,
             nc::ncscale_e_NCSCALE_NONE,
