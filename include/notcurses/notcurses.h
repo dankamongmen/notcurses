@@ -579,18 +579,16 @@ API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 API void cell_release(struct ncplane* n, cell* c);
 
-// We want the 2 bytes at the highest address of a 32-bit word, so that the
-// octet adjacent to g->clusters is left undisturbed as zero.
-#define NCSTYLE_MASK      0xfffful
-#define NCSTYLE_STANDOUT  0x0080ul
-#define NCSTYLE_UNDERLINE 0x0040ul
-#define NCSTYLE_REVERSE   0x0020ul
-#define NCSTYLE_BLINK     0x0010ul
-#define NCSTYLE_DIM       0x0008ul
-#define NCSTYLE_BOLD      0x0004ul
-#define NCSTYLE_INVIS     0x0002ul
-#define NCSTYLE_PROTECT   0x0001ul
-#define NCSTYLE_ITALIC    0x0100ul
+#define NCSTYLE_MASK      0xffffu
+#define NCSTYLE_STANDOUT  0x0080u
+#define NCSTYLE_UNDERLINE 0x0040u
+#define NCSTYLE_REVERSE   0x0020u
+#define NCSTYLE_BLINK     0x0010u
+#define NCSTYLE_DIM       0x0008u
+#define NCSTYLE_BOLD      0x0004u
+#define NCSTYLE_INVIS     0x0002u
+#define NCSTYLE_PROTECT   0x0001u
+#define NCSTYLE_ITALIC    0x0100u
 #define NCSTYLE_NONE      0
 
 // Set the specified style bits for the cell 'c', whether they're actively
