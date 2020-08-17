@@ -355,13 +355,13 @@ summary_table(struct ncdirect* nc, const char* spec){
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   printf("\n");
-  table_segment(nc, "              runtime", "│");
+  table_segment(nc, "             runtime", "│");
   table_segment(nc, " frames", "│");
   table_segment(nc, "output(B)", "│");
   table_segment(nc, "rendering", "│");
   table_segment(nc, " %r", "│");
   table_segment(nc, "    FPS", "│");
-  table_segment(nc, "TheoFPS", "║\n══╤═════════╤════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
+  table_segment(nc, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
@@ -386,7 +386,7 @@ summary_table(struct ncdirect* nc, const char* spec){
     ncdirect_fg_rgb(nc, 178, 102, 255);
     printf("│");
     ncdirect_fg(nc, rescolor);
-    printf("%9s", demos[results[i].selector - 'a'].name);
+    printf("%8s", demos[results[i].selector - 'a'].name);
     ncdirect_fg_rgb(nc, 178, 102, 255);
     printf("│%*ss│%7ju│%*s│ %*ss│%3jd│%7.1f│%7.1f║",
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
@@ -411,8 +411,8 @@ summary_table(struct ncdirect* nc, const char* spec){
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  table_segment(nc, "", "══╧═════════╪════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
-  printf("            │");
+  table_segment(nc, "", "══╧════════╪════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
+  printf("           │");
   table_printf(nc, "│", "%*ss", PREFIXFMT(timebuf));
   table_printf(nc, "│", "%7lu", totalframes);
   table_printf(nc, "│", "%*s", BPREFIXFMT(totalbuf));
