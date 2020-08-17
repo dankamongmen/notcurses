@@ -9,59 +9,59 @@
 //
 // static inline functions to reimplement: 45
 // ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement : 2 / 0 / 43
+// (+) implement : 24 / 0 / 21
 // (#) unit tests: 0 / 0 / 45
 // ------------------------------------------
-// cell_bchannel
+//+cell_bchannel
 // cell_bg
 // cell_bg_alpha
 // cell_bg_default_p
 // cell_bg_palindex
 // cell_bg_palindex_p
-// cell_bg_rgb
+//+cell_bg_rgb
 // cell_blend_bchannel
 // cell_blend_fchannel
-// cellcmp
-// cell_double_wide_p
-// cell_extract
-// cell_fchannel
+//+cellcmp
+//+cell_double_wide_p
+//+cell_extract
+//+cell_fchannel
 // cell_fg
 // cell_fg_alpha
 // cell_fg_default_p
 // cell_fg_palindex
 // cell_fg_palindex_p
-// cell_fg_rgb
-// cell_init
-// cell_load_simple
+//+cell_fg_rgb
+//+cell_init
+//+cell_load_simple
 //+cell_prime
-// cell_set_bchannel
+//+cell_set_bchannel
 // cell_set_bg
-// cell_set_bg_alpha
+//+cell_set_bg_alpha
 // cell_set_bg_default
 // cell_set_bg_palindex
 // cell_set_bg_rgb
 // cell_set_bg_rgb_clipped
-// cell_set_fchannel
+//+cell_set_fchannel
 // cell_set_fg
-// cell_set_fg_alpha
-// cell_set_fg_default
-// cell_set_fg_palindex
+//+cell_set_fg_alpha
+//+cell_set_fg_default
+//+cell_set_fg_palindex
 // cell_set_fg_rgb
 // cell_set_fg_rgb_clipped
 // cell_simple_p
 //+cells_load_box            // FIXME
-// cell_strdup
-// cell_styles
-// cell_styles_off
-// cell_styles_on
-// cell_styles_set
-// cell_wide_left_p
-// cell_wide_right_p
+//+cell_strdup
+//+cell_styles
+//+cell_styles_off
+//+cell_styles_on
+//+cell_styles_set
+//+cell_wide_left_p
+//+cell_wide_right_p
 
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::{ChannelPair, IntResult};
+use ffi::types::{AlphaBits, Channel, ChannelPair, Color, GraphemeCluster, IntResult, StyleMask};
 use ffi::{cell, ncplane};
 
 /// cell_load(), plus blast the styling with 'attr' and 'channels'.
@@ -108,6 +108,7 @@ pub fn cells_load_box(
 ) -> IntResult {
     cell_prime(plane, _ul, gcluster, style, channels)
 }
+
 // static inline int
 // cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
 //                cell* ul, cell* ur, cell* ll, cell* lr,
@@ -134,192 +135,227 @@ pub fn cells_load_box(
 //     return -1;
 // }
 
-// static inline void
-// cell_init(cell* c){
-//     memset(c, 0, sizeof(*c));
-// }
-//
-// Set the specified style bits for the cell 'c', whether they're actively
-// supported or not. Only the lower 16 bits are meaningful.
-// static inline void
-// cell_styles_set(cell* c, unsigned stylebits){
-//     c->stylemask = stylebits & NCSTYLE_MASK;
-// }
-//
-// // Extract the style bits from the cell.
-// static inline unsigned
-// cell_styles(const cell* c){
-//     return c->stylemask;
-// }
-//
-// // Add the specified styles (in the LSBs) to the cell's existing spec, whether
-// // they're actively supported or not.
-// static inline void
-// cell_styles_on(cell* c, unsigned stylebits){
-//     c->stylemask |= (stylebits & NCSTYLE_MASK);
-// }
-//
-// // Remove the specified styles (in the LSBs) from the cell's existing spec.
-// static inline void
-// cell_styles_off(cell* c, unsigned stylebits){
-//     c->stylemask &= ~(stylebits & NCSTYLE_MASK);
-// }
-//
-// // Use the default color for the foreground.
-// static inline void
-// cell_set_fg_default(cell* c){
-//     channels_set_fg_default(&c->channels);
-// }
-//
-// // Use the default color for the background.
-// static inline void
-// cell_set_bg_default(cell* c){
-//     channels_set_bg_default(&c->channels);
-// }
-//
-// static inline int
-// cell_set_fg_alpha(cell* c, int alpha){
-//     return channels_set_fg_alpha(&c->channels, alpha);
-// }
-//
-// static inline int
-// cell_set_bg_alpha(cell* c, int alpha){
-//     return channels_set_bg_alpha(&c->channels, alpha);
-// }
-//
-// // Does the cell contain an East Asian Wide codepoint?
-// static inline bool
-// cell_double_wide_p(const cell* c){
-//     return (c->channels & CELL_WIDEASIAN_MASK);
-// }
-//
-// // Is this the right half of a wide character?
-// static inline bool
-// cell_wide_right_p(const cell* c){
-//     return cell_double_wide_p(c) && c->gcluster == 0;
-// }
-//
-// // Is this the left half of a wide character?
-// static inline bool
-// cell_wide_left_p(const cell* c){
-//     return cell_double_wide_p(c) && c->gcluster;
-// }
-//
-// // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
-// // result is not tied to the ncplane, and persists across erases / destruction.
-// static inline char*
-// cell_strdup(const struct ncplane* n, const cell* c){
-//     return strdup(cell_extended_gcluster(n, c));
-// }
-//
-// // Extract the three elements of a cell.
-// static inline char*
-// cell_extract(const struct ncplane* n, const cell* c,
-//                            uint16_t* stylemask, uint64_t* channels){
-//     if(stylemask){
-//         *stylemask = c->stylemask;
-//     }
-//     if(channels){
-//         *channels = c->channels;
-//     }
-//     return cell_strdup(n, c);
-// }
-//
-// // Returns true if the two cells are distinct EGCs, attributes, or channels.
-// // The actual egcpool index needn't be the same--indeed, the planes needn't even
-// // be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
-// // it would probably be better to test whether they're Unicode-equal FIXME.
-// static inline bool
-// cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
-//                 const struct ncplane* n2, const cell* RESTRICT c2){
-//     if(c1->stylemask != c2->stylemask){
-//         return true;
-//     }
-//     if(c1->channels != c2->channels){
-//         return true;
-//     }
-//     return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
-// }
-//
-// static inline int
-// cell_load_simple(struct ncplane* n, cell* c, char ch){
-//     cell_release(n, c);
-//     c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-//     c->gcluster = ch;
-//     return 1;
-// }
-//
-// // Extract the 32-bit background channel from a cell.
-// static inline unsigned
-// cell_bchannel(const cell* cl){
-//     return channels_bchannel(cl->channels);
-// }
-//
-// // Extract the 32-bit foreground channel from a cell.
-// static inline unsigned
-// cell_fchannel(const cell* cl){
-//     return channels_fchannel(cl->channels);
-// }
-//
-// // Set the 32-bit background channel of a cell.
-// static inline uint64_t
-// cell_set_bchannel(cell* cl, uint32_t channel){
-//     return channels_set_bchannel(&cl->channels, channel);
-// }
-//
-// // Set the 32-bit foreground channel of a cell.
-// static inline uint64_t
-// cell_set_fchannel(cell* cl, uint32_t channel){
-//     return channels_set_fchannel(&cl->channels, channel);
-// }
-//
-// // do not pass palette-indexed channels!
+
+// TODO: TEST
+#[inline]
+pub fn cell_init(cell: &mut cell) {
+    *cell = unsafe { core::mem::zeroed() }
+}
+
+/// Set the specified style bits for the cell 'c', whether they're actively
+/// supported or not. Only the lower 16 bits are meaningful.
+/// static inline void
+// TODO: TEST
+#[inline]
+pub fn cell_styles_set(cell: &mut cell, stylebits: StyleMask) {
+    cell.stylemask = stylebits & ffi::NCSTYLE_MASK as u16;
+}
+
+/// Extract the style bits from the cell.
+// TODO: TEST
+#[inline]
+pub fn cell_styles(cell: &cell) -> StyleMask {
+    cell.stylemask
+}
+
+/// Add the specified styles (in the LSBs) to the cell's existing spec, whether
+/// they're actively supported or not.
+// TODO: TEST
+#[inline]
+pub fn cell_styles_on(cell: &mut cell, stylebits: StyleMask) {
+    cell.stylemask |= stylebits & ffi::NCSTYLE_MASK as u16;
+}
+
+/// Remove the specified styles (in the LSBs) from the cell's existing spec.
+// TODO: TEST
+#[inline]
+pub fn cell_styles_off(cell: &mut cell, stylebits: StyleMask) {
+    cell.stylemask &= !(stylebits & ffi::NCSTYLE_MASK as u16);
+}
+
+/// Use the default color for the foreground.
+// TODO: TEST
+#[inline]
+pub fn cell_set_fg_default(cell: &mut cell) {
+    ffi::channels_set_fg_default(&mut cell.channels);
+}
+
+/// Use the default color for the background.
+// TODO: TEST
+#[inline]
+pub fn cell_set_bg_default(cell: &mut cell) {
+    ffi::channels_set_bg_default(&mut cell.channels);
+}
+
+/// Set the foreground alpha.
+// TODO: TEST
+#[inline]
+pub fn cell_set_fg_alpha(cell: &mut cell, alpha: AlphaBits) {
+    ffi::channels_set_fg_alpha(&mut cell.channels, alpha);
+}
+
+/// Set the background alpha.
+// TODO: TEST
+#[inline]
+pub fn cell_set_bg_alpha(cell: &mut cell, alpha: AlphaBits) {
+    ffi::channels_set_bg_alpha(&mut cell.channels, alpha);
+}
+
+/// Does the cell contain an East Asian Wide codepoint?
+// TODO: TEST
+// NOTE: remove casting when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
+#[inline]
+pub fn cell_double_wide_p(cell: &cell) -> bool {
+    (cell.channels & ffi::CELL_WIDEASIAN_MASK as u64) != 0
+}
+
+/// Is this the right half of a wide character?
+// TODO: TEST
+#[inline]
+pub fn cell_wide_right_p(cell: &cell) -> bool {
+    cell_double_wide_p(cell) && cell.gcluster == 0
+}
+
+/// Is this the left half of a wide character?
+// TODO: TEST
+#[inline]
+pub fn cell_wide_left_p(cell: &cell) -> bool {
+    cell_double_wide_p(cell) && cell.gcluster != 0
+}
+
+/// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
+/// result is not tied to the ncplane, and persists across erases / destruction.
+// TODO: TEST
+#[inline]
+pub fn cell_strdup(plane: &ncplane, cell: &cell) -> *mut i8 {
+    unsafe{
+        libc::strdup(ffi::cell_extended_gcluster(plane, cell))
+    }
+}
+
+/// Extract the three elements of a cell.
+// TODO: TEST
+#[inline]
+pub fn cell_extract(plane: &ncplane, cell: &cell, stylemask: &mut StyleMask, channels: &mut ChannelPair) -> *mut i8 {
+    if *stylemask != 0 {
+        *stylemask = cell.stylemask;
+    }
+    if *channels != 0 {
+        *channels = cell.channels;
+    }
+    cell_strdup(plane, cell)
+}
+
+/// Returns true if the two cells are distinct EGCs, attributes, or channels.
+/// The actual egcpool index needn't be the same--indeed, the planes needn't even
+/// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
+/// it would probably be better to test whether they're Unicode-equal FIXME.
+// TODO: TEST
+#[inline]
+pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -> bool {
+    if cell1.stylemask != cell2.stylemask {
+        return true;
+    }
+    if cell1.channels != cell2.channels {
+        return true;
+    }
+    unsafe {
+        libc::strcmp(ffi::cell_extended_gcluster(plane1, cell1), ffi::cell_extended_gcluster(plane2, cell2)) != 0
+    }
+}
+
+// TODO: TEST
+// NOTE: remove casting when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
+#[inline]
+pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: char) -> i32 {
+    unsafe { ffi::cell_release(plane, cell); }
+    cell.channels &= !(ffi::CELL_WIDEASIAN_MASK as u64 | ffi::CELL_NOBACKGROUND_MASK);
+    cell.gcluster = ch as GraphemeCluster;
+    1
+}
+
+/// Extract the 32-bit background channel from a cell.
+// TODO: TEST
+#[inline]
+pub fn cell_bchannel(cell: &cell) -> Channel {
+    ffi::channels_bchannel(cell.channels)
+}
+
+/// Extract the 32-bit foreground channel from a cell.
+// TODO: TEST
+#[inline]
+pub fn cell_fchannel(cell: &cell) -> Channel {
+    ffi::channels_fchannel(cell.channels)
+}
+
+/// Set the 32-bit background channel of a cell.
+// TODO: TEST
+#[inline]
+pub fn cell_set_bchannel(cell: &mut cell, channel: Channel) -> ChannelPair {
+    ffi::channels_set_bchannel(&mut cell.channels, channel)
+}
+
+/// Set the 32-bit foreground channel of a cell.
+// TODO: TEST
+#[inline]
+pub fn cell_set_fchannel(cell: &mut cell, channel: Channel) -> ChannelPair {
+    ffi::channels_set_fchannel(&mut cell.channels, channel)
+}
+
+// NOTE: do not pass palette-indexed channels!
 // static inline uint64_t
 // cell_blend_fchannel(cell* cl, unsigned channel, unsigned* blends){
 //     return cell_set_fchannel(cl, channels_blend(cell_fchannel(cl), channel, blends));
 // }
-//
+
+// NOTE: do not pass palette-indexed channels!
 // static inline uint64_t
 // cell_blend_bchannel(cell* cl, unsigned channel, unsigned* blends){
 //     return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
 // }
-//
-// // Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
-// static inline unsigned
-// cell_fg(const cell* cl){
-//     return channels_fg(cl->channels);
-// }
-//
-// // Extract 24 bits of background RGB from 'cell', shifted to LSBs.
-// static inline unsigned
-// cell_bg(const cell* cl){
-//     return channels_bg(cl->channels);
-// }
-//
-// // Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
-// static inline unsigned
-// cell_fg_alpha(const cell* cl){
-//     return channels_fg_alpha(cl->channels);
-// }
-//
-// // Extract 2 bits of background alpha from 'cell', shifted to LSBs.
-// static inline unsigned
-// cell_bg_alpha(const cell* cl){
-//     return channels_bg_alpha(cl->channels);
-// }
-//
-// // Extract 24 bits of foreground RGB from 'cell', split into components.
-// static inline unsigned
-// cell_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
-//     return channels_fg_rgb(cl->channels, r, g, b);
-// }
-//
-// // Extract 24 bits of background RGB from 'cell', split into components.
-// static inline unsigned
-// cell_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
-//     return channels_bg_rgb(cl->channels, r, g, b);
-// }
-//
+
+/// Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
+// TODO: TEST
+#[inline]
+pub fn cell_fg(cell: &cell) -> Channel {
+    ffi::channels_fg(cell.channels)
+}
+
+/// Extract 24 bits of background RGB from 'cell', shifted to LSBs.
+// TODO: TEST
+#[inline]
+pub fn cell_bg(cell: &cell) -> Channel {
+    ffi::channels_bg(cell.channels)
+}
+
+/// Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
+// TODO: TEST
+#[inline]
+pub fn cell_fg_alpha(cell: &cell) -> AlphaBits {
+    ffi::channels_fg_alpha(cell.channels)
+}
+
+/// Extract 2 bits of background alpha from 'cell', shifted to LSBs.
+// TODO: TEST
+#[inline]
+pub fn cell_bg_alpha(cell: &cell) -> AlphaBits {
+    ffi::channels_bg_alpha(cell.channels)
+}
+
+/// Extract 24 bits of foreground RGB from 'cell', split into components.
+// TODO: TEST
+#[inline]
+pub fn cell_fg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
+    ffi::channels_fg_rgb(cell.channels, red, green, blue)
+}
+
+/// Extract 24 bits of background RGB from 'cell', split into components.
+// TODO: TEST
+#[inline]
+pub fn cell_bg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
+    ffi::channels_bg_rgb(cell.channels, red, green, blue)
+}
+
 // // Set the r, g, and b cell for the foreground component of this 64-bit
 // // 'cell' variable, and mark it as not using the default color.
 // static inline int
