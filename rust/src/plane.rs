@@ -230,7 +230,7 @@ pub fn ncplane_dim_x(plane: &ncplane) -> i32 {
     unsafe {
         let mut x = 0;
         ffi::ncplane_dim_yx(plane, null_mut(), &mut x);
-        return x;
+        x
     }
 }
 
@@ -241,7 +241,7 @@ pub fn ncplane_dim_y(plane: &ncplane) -> i32 {
     unsafe {
         let mut y = 0;
         ffi::ncplane_dim_yx(plane, &mut y, null_mut());
-        return y;
+        y
     }
 }
 
@@ -353,7 +353,7 @@ pub fn ncplane_perimeter(plane: &mut ncplane, ul: &cell, ur: &cell, ll: &cell, l
 ///
 // TODO: TEST
 #[inline]
-pub fn ncplane_putstr(plane: *mut ncplane, _str: &str) -> i32 {
+pub fn ncplane_putstr(plane: &mut ncplane, _str: &str) -> i32 {
     unsafe {
         ffi::ncplane_putstr_yx(
             plane,

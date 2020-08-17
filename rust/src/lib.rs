@@ -3,6 +3,15 @@
 #![allow(non_snake_case)]
 #![no_std]
 
+#![allow(clippy::too_many_arguments)]
+
+// see https://github.com/rust-lang/rust-bindgen/issues/1470
+#[allow(clippy::all)]
+mod bindings {
+    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+}
+pub use bindings::*;
+
 mod cells;
 mod channel;
 mod key;
@@ -21,8 +30,6 @@ pub use palette::*;
 pub use pixel::*;
 pub use plane::*;
 pub use types::*;
-
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[cfg(test)]
 mod tests {
