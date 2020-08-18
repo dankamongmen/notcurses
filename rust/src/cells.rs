@@ -7,47 +7,46 @@
 // - cells_double_box
 // - cells_rounded_box
 //
-// static inline functions to reimplement: 45
+// static inline functions to reimplement: 42
 // ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement : 24 / 0 / 21
-// (#) unit tests: 0 / 0 / 45
+// (+) implement : 38 / 2 /  2
+// (#) unit tests:  0 / 2 / 40
 // ------------------------------------------
 //+cell_bchannel
-// cell_bg
-// cell_bg_alpha
-// cell_bg_default_p
-// cell_bg_palindex
-// cell_bg_palindex_p
+//+cell_bg
+//+cell_bg_alpha
+//+cell_bg_default_p
+//+cell_bg_palindex
+//+cell_bg_palindex_p
 //+cell_bg_rgb
 //+cellcmp
 //+cell_double_wide_p
 //+cell_extract
 //+cell_fchannel
-// cell_fg
-// cell_fg_alpha
-// cell_fg_default_p
-// cell_fg_palindex
-// cell_fg_palindex_p
+//+cell_fg
+//+cell_fg_alpha
+//+cell_fg_default_p
+//+cell_fg_palindex
+//+cell_fg_palindex_p
 //+cell_fg_rgb
 //+cell_init
 //+cell_load_simple
-//+cell_prime
+// cell_prime                // FIXME
 //+cell_set_bchannel
-// cell_set_bg
+//+cell_set_bg
 //+cell_set_bg_alpha
-// cell_set_bg_default
-// cell_set_bg_palindex
-// cell_set_bg_rgb
-// cell_set_bg_rgb_clipped
+//+cell_set_bg_default
+//+cell_set_bg_palindex
+//+cell_set_bg_rgb
+//xcell_set_bg_rgb_clipped   // unneeded
 //+cell_set_fchannel
-// cell_set_fg
+//+cell_set_fg
 //+cell_set_fg_alpha
 //+cell_set_fg_default
 //+cell_set_fg_palindex
-// cell_set_fg_rgb
-// cell_set_fg_rgb_clipped
-// cell_simple_p
-//+cells_load_box            // FIXME
+//+cell_set_fg_rgb
+//xcell_set_fg_rgb_clipped   // unneeded
+// cells_load_box            // FIXME
 //+cell_strdup
 //+cell_styles
 //+cell_styles_off
@@ -59,15 +58,16 @@
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::{AlphaBits, Channel, ChannelPair, Color, GraphemeCluster, IntResult, StyleMask};
+use ffi::types::{AlphaBits, Channel, ChannelPair, Color, GraphemeCluster, IntResult, PaletteIndex, StyleMask};
 use ffi::{cell, ncplane};
 
-/// cell_load(), plus blast the styling with 'attr' and 'channels'.
+/*
+/// cell_load(), plus blast the styling with 'style' and 'channels'.
 // TODO: TEST
 pub fn cell_prime(
     plane: &mut ffi::ncplane,
     cell: &mut ffi::cell,
-    gcluster: &str,
+    gcluster: GraphemeCluster,
     style: u16,
     channels: ChannelPair,
 ) -> IntResult {
@@ -77,61 +77,67 @@ pub fn cell_prime(
         ffi::cell_load(plane, cell, CString::new(gcluster).unwrap().as_ptr())
     }
 }
-// static inline int
-// cell_prime(struct ncplane* n, cell* c, const char* gcluster,
-//            uint32_t attr, uint64_t channels){
-//   c->stylemask = attr;
-//   c->channels = channels;
-//   int ret = cell_load(n, c, gcluster);
-//   return ret;
-// }
-
-/// load up six cells with the EGCs necessary to draw a box. returns 0 on
-/// success, -1 on error. on error, any cells this function might
-/// have loaded before the error are cell_release()d. There must be at least
-/// six EGCs in gcluster.
+*/
+/*
+/// load up six cells with the EGCs necessary to draw a box.
+///
+/// returns 0 on success, -1 on error.
+///
+/// on error, any cells this function might have loaded before the error
+/// are cell_release()d. There must be at least six EGCs in gcluster.
+///
+// TODO: need clarification: https://github.com/dankamongmen/notcurses/issues/918
 // TODO: TEST
-// FIXME missing cell_prime()s
 pub fn cells_load_box(
     plane: &mut ncplane,
-    style: u16,
+    style: StyleMask,
     channels: ChannelPair,
-    _ul: &mut cell,
-    _ur: &mut cell,
-    _ll: &mut cell,
-    _lr: &mut cell,
-    _hl: &mut cell,
-    _vl: &mut cell,
-    gcluster: &str,
+    ul: &mut cell,
+    ur: &mut cell,
+    ll: &mut cell,
+    lr: &mut cell,
+    hl: &mut cell,
+    vl: &mut cell,
+    gcluster: GraphemeCluster,
 ) -> IntResult {
-    cell_prime(plane, _ul, gcluster, style, channels)
-}
 
-// static inline int
-// cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
-//                cell* ul, cell* ur, cell* ll, cell* lr,
-//                cell* hl, cell* vl, const char* gclusters){
-//     int ulen;
-//     if((ulen = cell_prime(n, ul, gclusters, style, channels)) > 0){
-//         if((ulen = cell_prime(n, ur, gclusters += ulen, style, channels)) > 0){
-//             if((ulen = cell_prime(n, ll, gclusters += ulen, style, channels)) > 0){
-//                 if((ulen = cell_prime(n, lr, gclusters += ulen, style, channels)) > 0){
-//                     if((ulen = cell_prime(n, hl, gclusters += ulen, style, channels)) > 0){
-//                         if((ulen = cell_prime(n, vl, gclusters += ulen, style, channels)) > 0){
-//                             return 0;
-//                         }
-//                         cell_release(n, hl);
-//                     }
-//                     cell_release(n, lr);
-//                 }
-//                 cell_release(n, ll);
-//             }
-//             cell_release(n, ur);
-//         }
-//         cell_release(n, ul);
-//     }
-//     return -1;
-// }
+    let mut ulen;
+
+    ulen = cell_prime(plane, ul, gcluster, style, channels);
+    if ulen > 0 {
+
+        ulen = cell_prime(plane, ur, gcluster += ulen, style, channels);
+        if ulen > 0 {
+        }
+
+    }
+
+}
+*/
+
+/*
+    int ulen;
+    if((ulen = cell_prime(n, ul, gclusters, style, channels)) > 0){ // done
+        if((ulen = cell_prime(n, ur, gclusters += ulen, style, channels)) > 0){
+
+            if((ulen = cell_prime(n, ll, gclusters += ulen, style, channels)) > 0){
+                if((ulen = cell_prime(n, lr, gclusters += ulen, style, channels)) > 0){
+                    if((ulen = cell_prime(n, hl, gclusters += ulen, style, channels)) > 0){
+                        if((ulen = cell_prime(n, vl, gclusters += ulen, style, channels)) > 0){
+                            return 0;
+                        }
+                        cell_release(n, hl);
+                    }
+                    cell_release(n, lr);
+                }
+                cell_release(n, ll);
+            }
+            cell_release(n, ur);
+        }
+        cell_release(n, ul);
+    }
+    return -1;
+*/
 
 
 // TODO: TEST
@@ -342,106 +348,104 @@ pub fn cell_bg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut C
     ffi::channels_bg_rgb(cell.channels, red, green, blue)
 }
 
-// // Set the r, g, and b cell for the foreground component of this 64-bit
-// // 'cell' variable, and mark it as not using the default color.
-// static inline int
-// cell_set_fg_rgb(cell* cl, int r, int g, int b){
-//     return channels_set_fg_rgb(&cl->channels, r, g, b);
-// }
-//
-// // Same, but clipped to [0..255].
-// static inline void
-// cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
-//     channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
-// }
-//
-// // Same, but with an assembled 24-bit RGB value.
-// static inline int
-// cell_set_fg(cell* c, uint32_t channel){
-//     return channels_set_fg(&c->channels, channel);
-// }
+/// Set the r, g, and b cell for the foreground component of this 64-bit
+/// 'cell' variable, and mark it as not using the default color.
+// TODO: TEST
+#[inline]
+pub fn cell_set_fg_rgb(cell: &mut cell, red: Color, green: Color, blue: Color) {
+    ffi::channels_set_fg_rgb(&mut cell.channels, red, green, blue);
+}
 
-// static inline int
-// cell_set_fg_palindex(cell* cl, int idx){
-//     if(idx < 0 || idx >= NCPALETTESIZE){
-//         return -1;
-//     }
-//     cl->channels |= CELL_FGDEFAULT_MASK;
-//     cl->channels |= CELL_FG_PALETTE;
-//     cell_set_fg_alpha(cl, CELL_ALPHA_OPAQUE);
-//     cl->channels &= 0xff000000ffffffffull;
-//     cl->channels |= ((uint64_t)idx << 32u);
-//     return 0;
-// }
-//
-// static inline unsigned
-// cell_fg_palindex(const cell* cl){
-//     return (cl->channels & 0xff00000000ull) >> 32u;
-// }
-//
-// // Set the r, g, and b cell for the background component of this 64-bit
-// // 'cell' variable, and mark it as not using the default color.
-// static inline int
-// cell_set_bg_rgb(cell* cl, int r, int g, int b){
-//     return channels_set_bg_rgb(&cl->channels, r, g, b);
-// }
-//
-// // Same, but clipped to [0..255].
-// static inline void
-// cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
-//     channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
-// }
-//
-// // Same, but with an assembled 24-bit RGB value. A value over 0xffffff
-// // will be rejected, with a non-zero return value.
-// static inline int
-// cell_set_bg(cell* c, uint32_t channel){
-//     return channels_set_bg(&c->channels, channel);
-// }
-//
-// // Set the cell's background palette index, set the background palette index
-// // bit, set it background-opaque, and clear the background default color bit.
-// static inline int
-// cell_set_bg_palindex(cell* cl, int idx){
-//     if(idx < 0 || idx >= NCPALETTESIZE){
-//         return -1;
-//     }
-//     cl->channels |= CELL_BGDEFAULT_MASK;
-//     cl->channels |= CELL_BG_PALETTE;
-//     cell_set_bg_alpha(cl, CELL_ALPHA_OPAQUE);
-//     cl->channels &= 0xffffffffff000000;
-//     cl->channels |= idx;
-//     return 0;
-// }
-//
-// static inline unsigned
-// cell_bg_palindex(const cell* cl){
-//     return (cl->channels & 0xff);
-// }
-//
-// // Is the foreground using the "default foreground color"?
-// static inline bool
-// cell_fg_default_p(const cell* cl){
-//     return channels_fg_default_p(cl->channels);
-// }
-//
-// static inline bool
-// cell_fg_palindex_p(const cell* cl){
-//     return channels_fg_palindex_p(cl->channels);
-// }
-//
-// // Is the background using the "default background color"? The "default
-// // background color" must generally be used to take advantage of
-// // terminal-effected transparency.
-// static inline bool
-// cell_bg_default_p(const cell* cl){
-//     return channels_bg_default_p(cl->channels);
-// }
-//
-// static inline bool
-// cell_bg_palindex_p(const cell* cl){
-//     return channels_bg_palindex_p(cl->channels);
-// }
+/// Same as `cell_set_fg_rgb()` but with an assembled 24-bit RGB value.
+// TODO: TEST
+#[inline]
+pub fn cell_set_fg(cell: &mut cell, channel: Channel) {
+    ffi::channels_set_fg(&mut cell.channels, channel);
+}
+
+/// Set the cell's foreground palette index, set the foreground palette index
+/// bit, set it foreground-opaque, and clear the foreground default color bit.
+///
+// TODO: TEST
+// NOTE: this function now can't fail
+#[inline]
+pub fn cell_set_fg_palindex(cell: &mut cell, index: PaletteIndex) {
+    cell.channels |= ffi::CELL_FGDEFAULT_MASK;
+    cell.channels |= ffi::CELL_FG_PALETTE;
+    cell_set_fg_alpha(cell, ffi::CELL_ALPHA_OPAQUE);
+    cell.channels &= 0xff000000ffffffff_u64;
+    cell.channels |= (index as u64) << 32;
+}
+
+// TODO: TEST
+#[inline]
+pub fn cell_fg_palindex(cell: &cell) -> PaletteIndex {
+    ((cell.channels & 0xff00000000_u64) >> 32) as PaletteIndex
+}
+
+/// Set the r, g, and b cell for the background component of this 64-bit
+/// 'cell' variable, and mark it as not using the default color.
+///
+// TODO: TEST
+#[inline]
+pub fn cell_set_bg_rgb(cell: &mut cell, red: Color, green: Color, blue: Color) {
+    ffi::channels_set_bg_rgb(&mut cell.channels, red, green, blue);
+}
+
+/// Same as `cell_set_fg_rgb()` but with an assembled 24-bit RGB value.
+///
+// TODO: TEST
+#[inline]
+pub fn cell_set_bg(cell: &mut cell, channel: Channel) {
+    ffi::channels_set_bg(&mut cell.channels, channel);
+}
+
+/// Set the cell's background palette index, set the background palette index
+/// bit, set it background-opaque, and clear the background default color bit.
+///
+// TODO: TEST
+// NOTE: this function now can't fail
+#[inline]
+pub fn cell_set_bg_palindex(cell: &mut cell, index: PaletteIndex) {
+    cell.channels |= ffi::CELL_BGDEFAULT_MASK as u64 ;
+    cell.channels |= ffi::CELL_BG_PALETTE as u64;
+    cell_set_bg_alpha(cell, ffi::CELL_ALPHA_OPAQUE);
+    cell.channels &= 0xffffffffff000000;
+    cell.channels |= index as u64;
+}
+
+// TODO: TEST
+#[inline]
+pub fn cell_bg_palindex(cell: &cell) -> PaletteIndex {
+    (cell.channels & 0xff) as PaletteIndex
+}
+
+/// Is the foreground using the "default foreground color"?
+// TODO: TEST
+#[inline]
+pub fn cell_fg_default_p(cell: &cell) -> bool {
+    ffi::channels_fg_default_p(cell.channels)
+}
+// TODO: TEST
+#[inline]
+pub fn cell_fg_palindex_p(cell: &cell) -> bool {
+    ffi::channels_fg_palindex_p(cell.channels)
+}
+
+/// Is the background using the "default background color"? The "default
+/// background color" must generally be used to take advantage of
+/// terminal-effected transparency.
+// TODO: TEST
+#[inline]
+pub fn cell_bg_default_p(cell: &cell) -> bool {
+    ffi::channels_bg_default_p(cell.channels)
+}
+
+// TODO: TEST
+#[inline]
+pub fn cell_bg_palindex_p(cell: &cell) -> bool {
+    ffi::channels_bg_palindex_p(cell.channels)
+}
 
 #[cfg(test)]
 mod test {
