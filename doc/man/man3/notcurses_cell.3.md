@@ -82,10 +82,6 @@ typedef struct cell {
 
 **uint64_t cell_set_fchannel(cell* cl, uint32_t channel);**
 
-**uint64_t cell_blend_fchannel(cell* cl, unsigned channel, unsigned blends)**
-
-**uint64_t cell_blend_bchannel(cell* cl, unsigned channel, unsigned blends)**
-
 **unsigned cell_fg(const cell* cl);**
 
 **unsigned cell_bg(const cell* cl);**

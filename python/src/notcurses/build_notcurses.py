@@ -206,8 +206,6 @@ unsigned cell_bchannel(const cell* cl);
 unsigned cell_fchannel(const cell* cl);
 uint64_t cell_set_bchannel(cell* cl, uint32_t channel);
 uint64_t cell_set_fchannel(cell* cl, uint32_t channel);
-uint64_t cell_blend_fchannel(cell* cl, unsigned channel, unsigned* blends);
-uint64_t cell_blend_bchannel(cell* cl, unsigned channel, unsigned* blends);
 unsigned cell_fg(const cell* cl);
 unsigned cell_bg(const cell* cl);
 unsigned cell_fg_alpha(const cell* cl);

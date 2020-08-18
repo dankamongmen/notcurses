@@ -4,6 +4,12 @@ rearrangements of Notcurses.
 * 1.6.16 (not yet released)
   * `cell_simple_p()` has been removed. It is no longer a useful concept for
     user code, and its presence is indicative of a likely error.
+  * `channels_blend()` has been removed. It wasn't really useful to users,
+    and was difficult to explain.
+  * `ncplane_mergedown()` has been renamed `ncplane_mergedown_simple()`. A
+    more general form, capable of projecting arbitrary subregions of the source
+    plane down to the destination plane. The source argument to
+    `ncplane_mergedown_simple()` is now `const`.
 
 * 1.6.15 (2020-08-16)
   * Styles now work properly with `ncdirect`, which apparently has never

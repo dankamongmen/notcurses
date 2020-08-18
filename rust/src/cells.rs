@@ -19,8 +19,6 @@
 // cell_bg_palindex
 // cell_bg_palindex_p
 //+cell_bg_rgb
-// cell_blend_bchannel
-// cell_blend_fchannel
 //+cellcmp
 //+cell_double_wide_p
 //+cell_extract
@@ -301,18 +299,6 @@ pub fn cell_set_bchannel(cell: &mut cell, channel: Channel) -> ChannelPair {
 pub fn cell_set_fchannel(cell: &mut cell, channel: Channel) -> ChannelPair {
     ffi::channels_set_fchannel(&mut cell.channels, channel)
 }
-
-// NOTE: do not pass palette-indexed channels!
-// static inline uint64_t
-// cell_blend_fchannel(cell* cl, unsigned channel, unsigned* blends){
-//     return cell_set_fchannel(cl, channels_blend(cell_fchannel(cl), channel, blends));
-// }
-
-// NOTE: do not pass palette-indexed channels!
-// static inline uint64_t
-// cell_blend_bchannel(cell* cl, unsigned channel, unsigned* blends){
-//     return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
-// }
 
 /// Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
 // TODO: TEST
