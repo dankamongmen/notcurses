@@ -330,7 +330,7 @@ TEST_CASE("Fills") {
     REQUIRE(p1);
     // make sure glyphs replace nulls
     CHECK(0 < ncplane_putstr(p1, "0123456789"));
-    CHECK(0 == ncplane_mergedown(p1, n_));
+    CHECK(0 == ncplane_mergedown_simple(p1, n_));
     cell cbase = CELL_TRIVIAL_INITIALIZER;
     cell cp = CELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
@@ -341,7 +341,7 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_cursor_move_yx(p1, 0, 0));
     // make sure glyphs replace glyps
     CHECK(0 < ncplane_putstr(p1, "9876543210"));
-    CHECK(0 == ncplane_mergedown(p1, n_));
+    CHECK(0 == ncplane_mergedown_simple(p1, n_));
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
@@ -349,7 +349,7 @@ TEST_CASE("Fills") {
     }
     // make sure nulls do not replace glyphs
     auto p2 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
-    CHECK(0 == ncplane_mergedown(p2, n_));
+    CHECK(0 == ncplane_mergedown_simple(p2, n_));
     ncplane_destroy(p2);
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
@@ -364,7 +364,7 @@ TEST_CASE("Fills") {
     REQUIRE(p1);
     // make sure glyphs replace nulls
     CHECK(0 < ncplane_putstr(p1, "█▀▄▌▐🞵🞶🞷🞸🞹"));
-    CHECK(0 == ncplane_mergedown(p1, n_));
+    CHECK(0 == ncplane_mergedown_simple(p1, n_));
     cell cbase = CELL_TRIVIAL_INITIALIZER;
     cell cp = CELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
@@ -378,7 +378,7 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_cursor_move_yx(p3, 0, 0));
     // make sure glyphs replace glyps
     CHECK(0 < ncplane_putstr(p3, "🞵🞶🞷🞸🞹█▀▄▌▐"));
-    CHECK(0 == ncplane_mergedown(p3, nullptr));
+    CHECK(0 == ncplane_mergedown_simple(p3, nullptr));
     cell c3 = CELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
@@ -388,7 +388,7 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     // make sure nulls do not replace glyphs
     auto p2 = ncplane_new(nc_, 1, 10, 0, 0, nullptr);
-    CHECK(0 == ncplane_mergedown(p2, nullptr));
+    CHECK(0 == ncplane_mergedown_simple(p2, nullptr));
     ncplane_destroy(p2);
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
@@ -419,7 +419,7 @@ TEST_CASE("Fills") {
     CHECK(0 == cell_set_bg(&c2, 0x00ffff));
     CHECK(0 == cell_set_fg(&c2, 0xff00ff));
     CHECK(0 < ncplane_polyfill_yx(p2, 0, 0, &c2));
-    CHECK(0 == ncplane_mergedown(p2, p1));
+    CHECK(0 == ncplane_mergedown_simple(p2, p1));
     CHECK(0 == notcurses_render(nc_));
     for(int y = 0 ; y < DIMY ; ++y){
       for(int x = 0 ; x < DIMX ; ++x){
@@ -454,7 +454,7 @@ TEST_CASE("Fills") {
     auto p2 = ncplane_new(nc_, DIMY / 2, DIMX / 2, 3, 3, nullptr);
     REQUIRE(p2);
     ncplane_highgradient_sized(p2, br, bl, ur, ul, DIMY / 2, DIMX / 2);
-    CHECK(0 == ncplane_mergedown(p2, p1));
+    CHECK(0 == ncplane_mergedown_simple(p2, p1));
     CHECK(0 == notcurses_render(nc_));
     for(int y = 0 ; y < DIMY ; ++y){
       for(int x = 0 ; x < DIMX ; ++x){

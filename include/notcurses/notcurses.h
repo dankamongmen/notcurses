@@ -1702,15 +1702,24 @@ API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t stylema
 API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
                       uint64_t ur, uint64_t ll, uint64_t lr);
 
+// If 'src' does not intersect with 'dst', 'dst' will not be changed, but it is
+// not an error. If 'dst' is NULL, the operation will target the standard plane.
+API int ncplane_mergedown_simple(const struct ncplane* RESTRICT src,
+                                 struct ncplane* RESTRICT dst);
+
 // Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
 // defined as "write to 'dst' the frame that would be rendered were the entire
-// stack made up only of 'src' and, below it, 'dst', and 'dst' was the entire
-// rendering region." Merging is independent of the position of 'src' viz 'dst'
-// on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
-// changed, but it is not an error. The source plane still exists following
-// this operation. If 'dst' is NULL, it will be interpreted as the standard
-// plane. Do not supply the same plane for both 'src' and 'dst'.
-API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT dst);
+// stack made up only of the specified subregion of 'src' and, below it, the
+// subregion of 'dst' having the specified origin. Merging is independent of
+// the position of 'src' viz 'dst' on the z-axis. It is an error to define a
+// subregion of zero area, or that is not entirely contained within 'src'. It
+// is an error to define a target origin such that the projected subregion is
+// not entirely contained within 'dst'.  Behavior is undefined if 'src' and
+// 'dst' are equivalent. 'dst' is modified, but 'src' remains unchanged.
+API int ncplane_mergedown(const struct ncplane* RESTRICT src,
+                          struct ncplane* RESTRICT dst,
+                          int begsrcy, int begsrcx, int leny, int lenx,
+                          int dsty, int dstx);
 
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
