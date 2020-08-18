@@ -102,6 +102,7 @@ static struct {
   { "zoo", zoo_demo, false, },
 };
 
+// FIXME stylize this a little
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;

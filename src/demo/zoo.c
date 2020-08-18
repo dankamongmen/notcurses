@@ -368,8 +368,6 @@ reader_thread(void* vmarsh){
   pthread_mutex_unlock(lock);
   if(collect_input){
     ret = riser_collect_input(nc, &demodelay);
-  }else{
-    ret = clock_nanosleep(CLOCK_MONOTONIC, 0, &demodelay, NULL);
   }
   if(ret < 0){
     return THREAD_RETURN_NEGATIVE;
@@ -417,13 +415,12 @@ reader_demo(struct notcurses* nc, pthread_t* tid, pthread_mutex_t* lock){
 }
 
 static int
-zap_reader(pthread_t tid, struct ncreader* reader, unsigned cancel){
+zap_reader(pthread_t tid, unsigned cancel){
   if(cancel){
     pthread_cancel(tid);
   }
   void* res;
   int ret = pthread_join(tid, &res);
-  ncreader_destroy(reader, NULL);
   if(res == THREAD_RETURN_NEGATIVE){
     return -1;
   }else if(res == THREAD_RETURN_POSITIVE){
@@ -460,15 +457,29 @@ int zoo_demo(struct notcurses* nc){
   if(mselector == NULL || ret){
     goto err;
   }
-  ret |= zap_reader(readertid, reader, false); // let the thread do its thang
+  ret |= zap_reader(readertid, false); // let the thread do its thang
   ret |= pthread_mutex_destroy(&lock);
+  if(notcurses_canfade(nc)){
+    if(ncplane_fadeout(ncselector_plane(selector), &demodelay, demo_fader, NULL)){
+      goto err;
+    }
+    if(ncplane_fadeout(ncmultiselector_plane(mselector), &demodelay, demo_fader, NULL)){
+      goto err;
+    }
+  }else{
+    if( (ret = demo_nanosleep(nc, &demodelay)) ){
+      goto err;
+    }
+  }
+  ncreader_destroy(reader, NULL);
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
   return ret;
 
 err:
-  zap_reader(readertid, reader, true);
+  zap_reader(readertid, true);
   pthread_mutex_destroy(&lock);
+  ncreader_destroy(reader, NULL);
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
   return ret ? ret : -1;
