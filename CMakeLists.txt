@@ -12,6 +12,7 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 include(CTest)
 include(GNUInstallDirs)
 include(CMakeDependentOption)
+include(FeatureSummary)
 
 ###################### USER-SELECTABLE OPTIONS ###########################
 # BUILD_TESTING is defined by CTest
@@ -65,21 +66,26 @@ message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
 message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
 
 find_package(PkgConfig REQUIRED)
-find_package(Threads REQUIRED)
+# don't use REQUIRED with subsequent find_package() operations; we use
+# feature_summary + set_package_properties to fail in one fell swoop.
+find_package(Threads)
+set_package_properties(Threads PROPERTIES TYPE REQUIRED)
 # some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
 # into ncurses. accept either, and may god have mercy on our souls.
 pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
 if(${USE_FFMPEG})
-pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
+pkg_check_modules(AVCODEC libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
+set_package_properties(AVCODEC PROPERTIES TYPE REQUIRED)
 elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
 endif()
 find_library(MATH_LIBRARIES m)
 if(${USE_DOCTEST})
-find_package(doctest 2.3.5 REQUIRED)
+find_package(doctest 2.3.5)
+set_package_properties(doctest PROPERTIES TYPE REQUIRED)
 endif()
 
 # don't cache these, or installing them requires clearing the cache to be found.
@@ -110,6 +116,8 @@ set_target_properties(
   notcurses-static PROPERTIES
   OUTPUT_NAME notcurses
 )
+
+feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 set_target_properties(notcurses PROPERTIES
   VERSION ${PROJECT_VERSION}
@@ -606,20 +614,20 @@ install(FILES
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)
 
-configure_package_config_file(tools/notcursesConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake
+configure_package_config_file(tools/NotcursesConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/notcurses/cmake
 )
 
 write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfigVersion.cmake
   COMPATIBILITY SameMajorVersion
 )
 
 # Installation
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/notcurses"
 )
 
