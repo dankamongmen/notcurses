@@ -1717,7 +1717,7 @@ channels_blend(unsigned c1, unsigned c2, unsigned* blends){
   bool c2default = channel_default_p(c2);
   if(*blends == 0){
     // don't just return c2, or you set wide status and all kinds of crap
-    if(channel_default_p(c2)){
+    if(c2default){
       channel_set_default(&c1);
     }else{
       channel_set_rgb(&c1, rsum, gsum, bsum);
