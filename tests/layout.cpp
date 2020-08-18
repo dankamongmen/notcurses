@@ -89,7 +89,25 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutNewlines") {
     auto sp = ncplane_new(nc_, 5, 5, 0, 0, nullptr);
     REQUIRE(sp);
+    size_t bytes;
     const char boundstr[] = "a\nb\nc\nd\ne";
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(boundstr));
+    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    REQUIRE(line);
+fprintf(stderr, "LINE: [%s]\n", line);
+sleep(3);
+    CHECK(0 == strcmp(line, "a b c d e"));
+    free(line);
+    ncplane_destroy(sp);
+  }
+
+  // ensure we're honoring newlines at the start/end of rows
+  SUBCASE("LayoutNewlinesAtBorders") {
+    auto sp = ncplane_new(nc_, 4, 3, 0, 0, nullptr);
+    REQUIRE(sp);
+    const char boundstr[] = "ab\ncde\nfgh";
     size_t bytes;
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
@@ -97,8 +115,8 @@ TEST_CASE("TextLayout") {
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
 fprintf(stderr, "LINE: [%s]\n", line);
-sleep(5);
-    CHECK(0 == strcmp(line, "a b c d e"));
+sleep(3);
+    CHECK(0 == strcmp(line, "ab cde fgh"));
     free(line);
     ncplane_destroy(sp);
   }

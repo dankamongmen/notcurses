@@ -1644,17 +1644,19 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
 }
 
 static bool
+islinebreak(wchar_t wchar){
+  // UC_LINE_SEPARATOR + UC_PARAGRAPH_SEPARATOR
+  if(wchar == '\n'){
+    return true;
+  }
+  const uint32_t mask = UC_CATEGORY_MASK_Zl | UC_CATEGORY_MASK_Zp;
+  return uc_is_general_category_withtable(wchar, mask);
+}
+
+static bool
 iswordbreak(wchar_t wchar){
-  /*
-  int w = uc_wordbreak_property(wchar);
-  uc_general_category_t c = uc_general_category(wchar);
-fprintf(stderr, "wordbreak property: %d general cat: %08ld (%lc)\n", w, c, wchar);
-  return (w == WBP_OTHER || w == WBP_NEWLINE || w == WBP_CR || w == WBP_LF);
-  */
   const uint32_t mask = UC_CATEGORY_MASK_Z |
-                        UC_CATEGORY_MASK_Zs |
-                        UC_CATEGORY_MASK_Zl |
-                        UC_CATEGORY_MASK_Zp;
+                        UC_CATEGORY_MASK_Zs;
   return uc_is_general_category_withtable(wchar, mask);
 }
 
@@ -1725,7 +1727,7 @@ puttext_premove(ncplane* n, const char* text){
     }
   }
   if(*text && breaker == NULL){
-//fprintf(stderr, "ADVANCING DA FOKKER, JA\n");
+fprintf(stderr, "ADVANCING DA FOKKER, JA\n");
     if(n->scrolling){
       scroll_down(n);
     }else{
@@ -1768,13 +1770,13 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
     // figure how much text to output on this line
     mbstate_t mbstate = {};
     int width;
+    wchar_t w;
     // let it go all the way through to dimx. on that last hit of dimx, we
     // might catch a space, in which case we want breaker updated. if it's
     // not a space, it won't be printed, and we carry the word forward.
-    // FIXME what ought be done with \n or multiple spaces?
+    // FIXME what ought be done with multiple/leading spaces?
     while(*text && x <= dimx){
 //fprintf(stderr, "laying out [%s] at %d <= %d, %zu\n", linestart, x, dimx, text - linestart);
-      wchar_t w;
       size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
       if(consumed == (size_t)-2 || consumed == (size_t)-1){
         logerror(n->nc, "Invalid UTF-8 after %zu bytes\n", text - beginning);
@@ -1805,7 +1807,7 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       x += width;
       text += consumed;
     }
-//fprintf(stderr, "%d/%d OUT! %s %zu %d\n", n->y, n->x, linestart, text - linestart, x);
+fprintf(stderr, "oury: %d cursor: %d/%d(%d) OUT! %s %zu %d\n", y, n->y, n->x, n->lenx, linestart, text - linestart, x);
     bool overlong = false; // ugh
     // if we have no breaker, we got a single word that was longer than our
     // line. print what we can and move along. if *text is nul, we're done.
@@ -1829,12 +1831,12 @@ int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t
       breakercol = dimx;
       ++breaker; // FIXME need to advance # of bytes in the UTF8 breaker, not 1
     }
-//fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
+fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
     if(breaker != linestart){
       totalcols += breakercol;
       const int xpos = (align == NCALIGN_LEFT) ? -1 : ncplane_align(n, align, breakercol);
       // blows out if we supply a y beyond leny
-//fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
+fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
       if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){
         if(bytes){
           *bytes = linestart - beginning;
@@ -2580,7 +2582,7 @@ int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s,
 
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
   int ret = 0;
-//fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
+fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
   // FIXME speed up this blissfully naive solution
   while((size_t)ret < s && *gclusters){
     int wcs;
