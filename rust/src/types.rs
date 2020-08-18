@@ -186,8 +186,6 @@ pub type GraphemeClusterBackStop = u8;
 pub type StyleMask = u16;
 
 
-
-
 // Plane: fundamental drawing surface. unites a:
 //
 // - CellMatrix

@@ -14,10 +14,10 @@
 // functions already exported by bindgen : 0
 // ------------------------------------------
 //
-// static inline functions to reimplement: 38
+// static inline functions to reimplement: 33
 // ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement : 34 / 3 /  1
-// (#) unit tests: 14 / 0 / 21
+// (+) implement : 34 / 3 /  0
+// (#) unit tests: 14 / 0 / 20
 // ------------------------------------------
 //#channel_alpha
 //#channel_b
@@ -32,7 +32,6 @@
 //+channels_bg_default_p
 //+channels_bg_palindex_p
 //+channels_bg_rgb
-// channels_blend        // TODO
 //#channels_combine
 //+channel_set
 //#channel_set_alpha
@@ -342,43 +341,6 @@ pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
     channels_set_bchannel(channels, channel);
     *channels
 }
-
-/// Returns the result of blending two channels. 'blends' indicates how heavily
-/// 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
-/// 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
-/// since we can't blend default colors. Likewise, if 'c2' is a default color,
-/// it will not be used (unless 'blends' is 0).
-///
-/// Palette-indexed colors do not blend, and since we need the attrword to store
-/// them, we just don't fuck wit' 'em here. Do not pass me palette-indexed
-/// channels! I will eat them.
-// TODO
-// static inline unsigned
-// channels_blend(unsigned c1, unsigned c2, unsigned* blends){
-//   if(channel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
-//     return c1; // do *not* increment *blends
-//   }
-//   unsigned rsum, gsum, bsum;
-//   channel_rgb(c2, &rsum, &gsum, &bsum);
-//   bool c2default = channel_default_p(c2);
-//   if(*blends == 0){
-//     // don't just return c2, or you set wide status and all kinds of crap
-//     if(channel_default_p(c2)){
-//       channel_set_default(&c1);
-//     }else{
-//       channel_set_rgb(&c1, rsum, gsum, bsum);
-//     }
-//     channel_set_alpha(&c1, channel_alpha(c2));
-//   }else if(!c2default && !channel_default_p(c1)){
-//     rsum = (channel_r(c1) * *blends + rsum) / (*blends + 1);
-//     gsum = (channel_g(c1) * *blends + gsum) / (*blends + 1);
-//     bsum = (channel_b(c1) * *blends + bsum) / (*blends + 1);
-//     channel_set_rgb(&c1, rsum, gsum, bsum);
-//     channel_set_alpha(&c1, channel_alpha(c2));
-//   }
-//   ++*blends;
-//   return c1;
-// }
 
 #[cfg(test)]
 mod test {
