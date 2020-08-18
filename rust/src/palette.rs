@@ -10,7 +10,7 @@
 //
 // static inline functions to reimplement: 3
 // ----------------------------------------- (done / (x) wont / remaining)
-// (+) implement : 1 / 0 / 2
+// (+) implement : 3 / 0 / 0
 // (#) unit tests: 0 / 0 / 3
 // -----------------------------------------
 //+palette256_get_rgb

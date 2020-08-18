@@ -139,7 +139,7 @@ use cstr_core::CString;
 
 use crate as ffi;
 use ffi::types::{AlphaBits, Channel, Color, IntResult};
-use ffi::{cell, ncplane, ncalign_e};
+use ffi::{cell, ncalign_e, ncplane};
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
 /// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
@@ -148,10 +148,14 @@ use ffi::{cell, ncplane, ncalign_e};
 // TODO: TEST
 #[inline]
 pub fn ncplane_align(plane: &ncplane, align: ncalign_e, cols: i32) -> i32 {
-    if align == ffi::ncalign_e_NCALIGN_LEFT { return 0; }
+    if align == ffi::ncalign_e_NCALIGN_LEFT {
+        return 0;
+    }
 
     let plane_cols = ncplane_dim_x(plane);
-    if cols > plane_cols { return 0; }
+    if cols > plane_cols {
+        return 0;
+    }
 
     if align == ffi::ncalign_e_NCALIGN_CENTER {
         return plane_cols - cols / 2;
@@ -215,11 +219,33 @@ pub fn ncplane_align(plane: &ncplane, align: ncalign_e, cols: i32) -> i32 {
 /// minimum box size is 2x2, and it cannot be drawn off-screen.
 // TODO: TEST
 #[inline]
-pub fn ncplane_box_sized(plane: &mut ncplane, ul: &cell, ur: &cell, ll: &cell, lr: &cell, hline: &cell, vline: &cell, ylen: i32, xlen: i32, ctrlword: u32) -> IntResult {
+pub fn ncplane_box_sized(
+    plane: &mut ncplane,
+    ul: &cell,
+    ur: &cell,
+    ll: &cell,
+    lr: &cell,
+    hline: &cell,
+    vline: &cell,
+    ylen: i32,
+    xlen: i32,
+    ctrlword: u32,
+) -> IntResult {
     unsafe {
-        let (mut y, mut x) = (0,0);
+        let (mut y, mut x) = (0, 0);
         ffi::ncplane_cursor_yx(plane, &mut y, &mut x);
-        ffi::ncplane_box(plane, ul, ur, ll, lr, hline, vline, y + ylen -1, x + xlen -1, ctrlword)
+        ffi::ncplane_box(
+            plane,
+            ul,
+            ur,
+            ll,
+            lr,
+            hline,
+            vline,
+            y + ylen - 1,
+            x + xlen - 1,
+            ctrlword,
+        )
     }
 }
 
@@ -250,18 +276,25 @@ pub fn ncplane_dim_y(plane: &ncplane) -> i32 {
 // TODO: TEST
 #[inline]
 pub fn ncplane_hline(plane: &mut ncplane, cell: &cell, len: i32) -> i32 {
-    unsafe {
-        ffi::ncplane_hline_interp(plane, cell, len, cell.channels, cell.channels)
-    }
+    unsafe { ffi::ncplane_hline_interp(plane, cell, len, cell.channels, cell.channels) }
 }
 
 ///
 // TODO: TEST
 #[inline]
-pub fn ncplane_perimeter(plane: &mut ncplane, ul: &cell, ur: &cell, ll: &cell, lr: &cell, hline: &cell, vline: &cell, ctlword: u32) -> IntResult {
+pub fn ncplane_perimeter(
+    plane: &mut ncplane,
+    ul: &cell,
+    ur: &cell,
+    ll: &cell,
+    lr: &cell,
+    hline: &cell,
+    vline: &cell,
+    ctlword: u32,
+) -> IntResult {
     unsafe {
         ffi::ncplane_cursor_move_yx(plane, 0, 0);
-        let (mut dimy, mut dimx) = (0,0);
+        let (mut dimy, mut dimx) = (0, 0);
         ffi::ncplane_dim_yx(plane, &mut dimy, &mut dimx);
         ncplane_box_sized(plane, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword)
     }
@@ -291,7 +324,6 @@ pub fn ncplane_perimeter(plane: &mut ncplane, ul: &cell, ur: &cell, ll: &cell, l
 //   return r;
 // }
 
-
 // static inline int
 // ncplane_perimeter_rounded(struct ncplane* n, uint32_t attrword,
 //                           uint64_t channels, unsigned ctlword){
@@ -315,7 +347,6 @@ pub fn ncplane_perimeter(plane: &mut ncplane, ul: &cell, ur: &cell, ll: &cell, l
 //   cell_release(n, &hl); cell_release(n, &vl);
 //   return r;
 // }
-
 
 // // Call ncplane_putc_yx() for the current cursor location.
 // static inline int
@@ -519,16 +550,13 @@ pub fn ncplane_putstr(plane: &mut ncplane, _str: &str) -> i32 {
 // TODO: TEST
 #[inline]
 pub fn ncplane_vline(plane: &mut ncplane, cell: &cell, len: i32) -> i32 {
-    unsafe {
-        ffi::ncplane_vline_interp(plane, cell, len, cell.channels, cell.channels)
-    }
+    unsafe { ffi::ncplane_vline_interp(plane, cell, len, cell.channels, cell.channels) }
 }
 
 // static inline int
 // ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
 //   return ncplane_vprintf_yx(n, -1, -1, format, ap);
 // }
-
 
 // // Draw a gradient with its upper-left corner at the current cursor position,
 // // having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
@@ -564,57 +592,56 @@ pub fn ncplane_vline(plane: &mut ncplane, cell: &cell, len: i32) -> i32 {
 // TODO: TEST
 #[inline]
 pub fn ncplane_fchannel(plane: &ncplane) -> Channel {
-    ffi::channels_fchannel(unsafe { ffi::ncplane_channels(plane)})
+    ffi::channels_fchannel(unsafe { ffi::ncplane_channels(plane) })
 }
 
 /// Extract the 32-bit working background channel from an ncplane.
 // TODO: TEST
 #[inline]
 pub fn ncplane_bchannel(plane: &ncplane) -> Channel {
-    ffi::channels_bchannel(unsafe { ffi::ncplane_channels(plane)})
+    ffi::channels_bchannel(unsafe { ffi::ncplane_channels(plane) })
 }
 
 /// Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn ncplane_fg(plane: &ncplane) -> Channel {
-    ffi::channels_fg(unsafe { ffi::ncplane_channels(plane)})
+    ffi::channels_fg(unsafe { ffi::ncplane_channels(plane) })
 }
-
 
 /// Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn ncplane_bg(plane: &ncplane) -> Channel {
-    ffi::channels_bg(unsafe { ffi::ncplane_channels(plane)})
+    ffi::channels_bg(unsafe { ffi::ncplane_channels(plane) })
 }
 
 /// Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn ncplane_fg_alpha(plane: &ncplane) -> AlphaBits {
-    ffi::channels_fg_alpha(unsafe { ffi::ncplane_channels(plane)})
+    ffi::channels_fg_alpha(unsafe { ffi::ncplane_channels(plane) })
 }
 
 /// Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn ncplane_bg_alpha(plane: &ncplane) -> AlphaBits {
-    ffi::channels_bg_alpha(unsafe { ffi::ncplane_channels(plane)})
+    ffi::channels_bg_alpha(unsafe { ffi::ncplane_channels(plane) })
 }
 
 /// Is the plane's foreground using the "default foreground color"?
 // TODO: TEST
 #[inline]
 pub fn ncplane_fg_default_p(plane: &ncplane) -> bool {
-    ffi::channels_fg_default_p(unsafe { ffi::ncplane_channels(plane)})
+    ffi::channels_fg_default_p(unsafe { ffi::ncplane_channels(plane) })
 }
 
 /// Is the plane's background using the "default background color"?
 // TODO: TEST
 #[inline]
 pub fn ncplane_bg_default_p(plane: &ncplane) -> bool {
-    ffi::channels_bg_default_p(unsafe { ffi::ncplane_channels(plane)})
+    ffi::channels_bg_default_p(unsafe { ffi::ncplane_channels(plane) })
 }
 
 /// Extract 24 bits of foreground RGB from a plane, split into components.

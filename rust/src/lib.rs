@@ -2,7 +2,6 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![no_std]
-
 #![allow(clippy::too_many_arguments)]
 
 // see https://github.com/rust-lang/rust-bindgen/issues/1470

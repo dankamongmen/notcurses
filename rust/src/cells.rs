@@ -55,10 +55,10 @@
 //+cell_wide_left_p
 //+cell_wide_right_p
 
-use cstr_core::CString;
-
 use crate as ffi;
-use ffi::types::{AlphaBits, Channel, ChannelPair, Color, GraphemeCluster, IntResult, PaletteIndex, StyleMask};
+use ffi::types::{
+    AlphaBits, Channel, ChannelPair, Color, GraphemeCluster, PaletteIndex, StyleMask,
+};
 use ffi::{cell, ncplane};
 
 /*
@@ -138,7 +138,6 @@ pub fn cells_load_box(
     }
     return -1;
 */
-
 
 // TODO: TEST
 #[inline]
@@ -232,15 +231,18 @@ pub fn cell_wide_left_p(cell: &cell) -> bool {
 // TODO: TEST
 #[inline]
 pub fn cell_strdup(plane: &ncplane, cell: &cell) -> *mut i8 {
-    unsafe{
-        libc::strdup(ffi::cell_extended_gcluster(plane, cell))
-    }
+    unsafe { libc::strdup(ffi::cell_extended_gcluster(plane, cell)) }
 }
 
 /// Extract the three elements of a cell.
 // TODO: TEST
 #[inline]
-pub fn cell_extract(plane: &ncplane, cell: &cell, stylemask: &mut StyleMask, channels: &mut ChannelPair) -> *mut i8 {
+pub fn cell_extract(
+    plane: &ncplane,
+    cell: &cell,
+    stylemask: &mut StyleMask,
+    channels: &mut ChannelPair,
+) -> *mut i8 {
     if *stylemask != 0 {
         *stylemask = cell.stylemask;
     }
@@ -264,7 +266,10 @@ pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -
         return true;
     }
     unsafe {
-        libc::strcmp(ffi::cell_extended_gcluster(plane1, cell1), ffi::cell_extended_gcluster(plane2, cell2)) != 0
+        libc::strcmp(
+            ffi::cell_extended_gcluster(plane1, cell1),
+            ffi::cell_extended_gcluster(plane2, cell2),
+        ) != 0
     }
 }
 
@@ -272,7 +277,9 @@ pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -
 // NOTE: remove casting when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: char) -> i32 {
-    unsafe { ffi::cell_release(plane, cell); }
+    unsafe {
+        ffi::cell_release(plane, cell);
+    }
     cell.channels &= !(ffi::CELL_WIDEASIAN_MASK as u64 | ffi::CELL_NOBACKGROUND_MASK);
     cell.gcluster = ch as GraphemeCluster;
     1
@@ -407,7 +414,7 @@ pub fn cell_set_bg(cell: &mut cell, channel: Channel) {
 // NOTE: this function now can't fail
 #[inline]
 pub fn cell_set_bg_palindex(cell: &mut cell, index: PaletteIndex) {
-    cell.channels |= ffi::CELL_BGDEFAULT_MASK as u64 ;
+    cell.channels |= ffi::CELL_BGDEFAULT_MASK as u64;
     cell.channels |= ffi::CELL_BG_PALETTE as u64;
     cell_set_bg_alpha(cell, ffi::CELL_ALPHA_OPAQUE);
     cell.channels &= 0xffffffffff000000;

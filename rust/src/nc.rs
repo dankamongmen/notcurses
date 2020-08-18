@@ -59,7 +59,10 @@ pub fn notcurses_getc_nblock(nc: &mut notcurses, input: &mut ncinput) -> ffi::ch
     unsafe {
         let mut sigmask = ffi::sigset_t { __val: [0; 16] };
         ffi::sigfillset(&mut sigmask);
-        let ts = ffi::timespec {tv_sec: 0, tv_nsec: 0};
+        let ts = ffi::timespec {
+            tv_sec: 0,
+            tv_nsec: 0,
+        };
         ffi::notcurses_getc(nc, &ts, &mut sigmask, input)
     }
 }

@@ -1,7 +1,6 @@
 //! The notcurses types are defined and/or explained here
 //!
 
-
 /// RGB: 24 bits broken into 3x 8bpp channels.
 ///
 /// -------- RRRRRRRR GGGGGGGG BBBBBBBB
@@ -9,7 +8,6 @@
 /// type in C: no data type
 ///
 pub type Rgb = u32;
-
 
 /// 8 bpp channel
 ///
@@ -185,7 +183,6 @@ pub type GraphemeClusterBackStop = u8;
 ///
 pub type StyleMask = u16;
 
-
 // Plane: fundamental drawing surface. unites a:
 //
 // - CellMatrix
@@ -196,7 +193,6 @@ pub type StyleMask = u16;
 // EGCPool: contiguous region chopped up into NUL-terminated UTF8 EGCs, one per plane
 //
 // type in C: egcpool (struct)
-
 
 // CellMatrix: rectilinear array of Cells
 // one -- fb per plane, and transients show up ?
