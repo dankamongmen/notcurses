@@ -23,7 +23,7 @@ unified commentary, consider the [paperback](https://www.amazon.com/dp/B086PNVNC
 A program wishing to use Notcurses will need to link it, ideally using the
 output of `pkg-config --libs notcurses`. It is advised to compile with the
 output of `pkg-config --cflags notcurses`. If using CMake, a support file is
-provided, and can be accessed as `Notcurses`.
+provided, and can be accessed as `notcurses`.
 
 Before calling into Notcurses—and usually as one of the first calls of the
 program—be sure to call `setlocale(3)` with an appropriate UTF-8 locale. It is
