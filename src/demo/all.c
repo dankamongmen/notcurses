@@ -50,6 +50,7 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
                              random() % 192 + 64);
         }
       }
+if(wc > 0x4000){ sleep(3); exit(EXIT_FAILURE); }
     }
   }
   DEMO_RENDER(nc);
