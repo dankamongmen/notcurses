@@ -38,49 +38,63 @@
 //
 // static inline functions to reimplement: 4
 // ----------------------------------------- (done / (x) wont / remaining)
-// (+) implement : 0 / 0 / 4
+// (+) implement : 4 / 0 / 0
 // (#) unit tests: 0 / 0 / 4
 // -----------------------------------------
-// notcurses_getc_blocking
-// notcurses_getc_nblock
-// notcurses_stddim_yx
-// notcurses_term_dim_yx
+//+notcurses_getc_blocking
+//+notcurses_getc_nblock
+//+notcurses_stddim_yx
+//+notcurses_term_dim_yx
 
-// use crate as ffi;
-// use crate::types::{ChannelPair, IntResult};
+use core::ptr::null;
 
-// // 'ni' may be NULL if the caller is uninterested in event details. If no event
-// // is ready, returns 0.
-// static inline char32_t
-// notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
-//   sigset_t sigmask;
-//   sigfillset(&sigmask);
-//   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-//   return notcurses_getc(n, &ts, &sigmask, ni);
-// }
-//
-// // 'ni' may be NULL if the caller is uninterested in event details. Blocks
-// // until an event is processed or a signal is received.
-// static inline char32_t
-// notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
-//   sigset_t sigmask;
-//   sigemptyset(&sigmask);
-//   return notcurses_getc(n, NULL, &sigmask, ni);
-// }
-//
-// // notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
-// static inline struct ncplane*
-// notcurses_stddim_yx(struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
-//   struct ncplane* s = notcurses_stdplane(nc); // can't fail
-//   ncplane_dim_yx(s, y, x); // accepts NULL
-//   return s;
-// }
-//
-// // Return our current idea of the terminal dimensions in rows and cols.
-// static inline void
-// notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
-//   ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
-// }
+use crate as ffi;
+use ffi::{ncinput, ncplane, notcurses};
+
+/// 'input' may be NULL if the caller is uninterested in event details.
+/// If no event is ready, returns 0.
+// TODO: TEST
+#[inline]
+pub fn notcurses_getc_nblock(nc: &mut notcurses, input: &mut ncinput) -> ffi::char32_t {
+    unsafe {
+        let mut sigmask = ffi::sigset_t { __val: [0; 16] };
+        ffi::sigfillset(&mut sigmask);
+        let ts = ffi::timespec {tv_sec: 0, tv_nsec: 0};
+        ffi::notcurses_getc(nc, &ts, &mut sigmask, input)
+    }
+}
+
+/// 'input' may be NULL if the caller is uninterested in event details.
+/// Blocks until an event is processed or a signal is received.
+// TODO: TEST
+#[inline]
+pub fn notcurses_getc_nblocking(nc: &mut notcurses, input: &mut ncinput) -> ffi::char32_t {
+    unsafe {
+        let mut sigmask = ffi::sigset_t { __val: [0; 16] };
+        ffi::sigemptyset(&mut sigmask);
+        ffi::notcurses_getc(nc, null(), &mut sigmask, input)
+    }
+}
+
+/// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
+// TODO: TEST
+#[inline]
+pub fn notcurses_stddim_yx(nc: &mut notcurses, y: &mut i32, x: &mut i32) -> ncplane {
+    unsafe {
+        let s = ffi::notcurses_stdplane(nc);
+        ffi::ncplane_dim_yx(s, y, x);
+        *s
+    }
+}
+
+/// Return our current idea of the terminal dimensions in rows and cols.
+// TODO: TEST
+#[inline]
+pub fn notcurses_term_dim_yx(nc: &notcurses, rows: &mut i32, cols: &mut i32) {
+    unsafe {
+        ffi::ncplane_dim_yx(ffi::notcurses_stdplane_const(nc), rows, cols);
+    }
+}
 
 #[cfg(test)]
 mod test {
