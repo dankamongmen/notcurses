@@ -32,7 +32,7 @@ int qrcode_demo(struct notcurses* nc){
       DEMO_RENDER(nc);
     }
   }
-  ncplane_mergedown(n, stdn); // leave the last one on-screen
+  ncplane_mergedown_simple(n, stdn); // leave the last one on-screen
   ncplane_destroy(n);
 #endif
   return 0;
