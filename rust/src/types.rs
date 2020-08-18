@@ -138,7 +138,7 @@ pub type Pixel = u32;
 //
 // type in C: cell (struct)
 
-/// GCluster
+/// EGC (Extended Grapheme Cluster)
 ///
 /// These 32 bits, together with the associated plane's associated egcpool,
 /// completely define this cell's EGC. Unless the EGC requires more than four
@@ -153,25 +153,32 @@ pub type Pixel = u32;
 /// byte of this struct (the GClusterBackStop field, see below) is
 /// guaranteed to be zero, as are any unused bytes in gcluster.
 ///
-/// A spilled EGC is indicated by the value 0x01XXXXXX. This cannot alias a
+/// A spilled EGC is indicated by the value 0x01iiiiii. This cannot alias a
 /// true supra-ASCII EGC, because UTF-8 only encodes bytes <= 0x80 when they
-/// are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
+/// are single-byte ASCII-derived values. The iiiiii is interpreted as a 24-bit
 /// index into the egcpool (which may thus be up to 16MB):
 ///
-/// 00000001 IIIIIIII IIIIIIII IIIIIIII
+/// 00000001 iiiiiiii iiiiiiii iiiiiiii
 ///   sign     24bit index to egpool
 ///
 /// The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
 /// in a cell, and therefore it must not be allowed through the API.
 ///
+/// -----
+/// NOTE that even if the EGC is <= 4 bytes and inlined, is still interpreted a
+/// a NUL-terminated char * (technically, &cell->gcluster is treated as a char*).
+/// If it is more than 4 bytes, cell->gcluster has a first byte of 0x01,
+/// and the remaining 24 bits are an index into the plane's egcpool,
+/// which is carved into NUL-terminated chunks of arbitrary length.
+///
 /// type in C: gcluster (uint32_t)
 ///
-pub type GraphemeCluster = u32;
+pub type EGC = u32;
 
-/// GraphemeClusterBackStop
+/// EGC BackStop
 ///
 /// type in C: cell.gcluster_backstop
-pub type GraphemeClusterBackStop = u8;
+pub type EGCBackstop = u8;
 
 /// StyleMask
 ///

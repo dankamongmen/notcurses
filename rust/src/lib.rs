@@ -11,6 +11,9 @@ mod bindings {
 }
 pub use bindings::*;
 
+#[macro_use]
+mod macros;
+
 mod cells;
 mod channel;
 mod key;

@@ -57,7 +57,7 @@
 
 use crate as ffi;
 use ffi::types::{
-    AlphaBits, Channel, ChannelPair, Color, GraphemeCluster, PaletteIndex, StyleMask,
+    AlphaBits, Channel, ChannelPair, Color, EGC, PaletteIndex, StyleMask,
 };
 use ffi::{cell, ncplane};
 
@@ -67,7 +67,7 @@ use ffi::{cell, ncplane};
 pub fn cell_prime(
     plane: &mut ffi::ncplane,
     cell: &mut ffi::cell,
-    gcluster: GraphemeCluster,
+    gcluster: EGC,
     style: u16,
     channels: ChannelPair,
 ) -> IntResult {
@@ -98,7 +98,7 @@ pub fn cells_load_box(
     lr: &mut cell,
     hl: &mut cell,
     vl: &mut cell,
-    gcluster: GraphemeCluster,
+    gcluster: EGC,
 ) -> IntResult {
 
     let mut ulen;
@@ -266,7 +266,7 @@ pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -
         return true;
     }
     unsafe {
-        libc::strcmp(
+        ffi::strcmp(
             ffi::cell_extended_gcluster(plane1, cell1),
             ffi::cell_extended_gcluster(plane2, cell2),
         ) != 0
@@ -281,7 +281,7 @@ pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: char) -> i32 {
         ffi::cell_release(plane, cell);
     }
     cell.channels &= !(ffi::CELL_WIDEASIAN_MASK as u64 | ffi::CELL_NOBACKGROUND_MASK);
-    cell.gcluster = ch as GraphemeCluster;
+    cell.gcluster = ch as EGC;
     1
 }
 
