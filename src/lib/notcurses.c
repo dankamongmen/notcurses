@@ -1520,12 +1520,10 @@ int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
   }
   const cell* src = &n->fb[nfbcellidx(n, n->y, n->x)];
   memcpy(c, src, sizeof(*src));
-  *gclust = NULL;
-  if(!cell_simple_p(src)){
-    *gclust = strdup(extended_gcluster(n, src));
-    if(*gclust == NULL){
-      return -1;
-    }
+  if(cell_simple_p(c)){
+    *gclust = NULL;
+  }else if((*gclust = strdup(cell_extended_gcluster(n, src))) == NULL){
+    return -1;
   }
   return 0;
 }

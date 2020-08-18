@@ -530,8 +530,11 @@ term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
 }
 
 static inline const char*
-extended_gcluster(const ncplane* n, const cell* c){
-  return egcpool_extended_gcluster(&n->pool, c);
+pool_extended_gcluster(const egcpool* pool, const cell* c){
+  if(cell_simple_p(c)){
+    return (const char*)&c->gcluster;
+  }
+  return egcpool_extended_gcluster(pool, c);
 }
 
 cell* ncplane_cell_ref_yx(ncplane* n, int y, int x);
@@ -596,7 +599,7 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
     return 0;
   }
   assert(splane);
-  const char* egc = extended_gcluster(splane, c);
+  const char* egc = cell_extended_gcluster(splane, c);
   size_t ulen = strlen(egc);
   int eoffset = egcpool_stash(tpool, egc, ulen);
   if(eoffset < 0){
