@@ -36,6 +36,12 @@ gradStriations(struct notcurses* nc){
   if(notcurses_render(nc)){
     return -1;
   }
+  if(ncplane_gradient(stdn, "▄", NCSTYLE_NONE, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
+    return -1;
+  }
+  if(notcurses_render(nc)){
+    return -1;
+  }
   sleep(3);
   return 0;
 }
