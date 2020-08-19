@@ -137,6 +137,9 @@ mbswidth(const char* mbs){
   (((((uint64_t)(fr) << 16u) + ((uint64_t)(fg) << 8u) + (uint64_t)(fb)) << 32ull) + \
    (((br) << 16u) + ((bg) << 8u) + (bb)) + CELL_BGDEFAULT_MASK + CELL_FGDEFAULT_MASK)
 
+#define CHANNEL_RGB_INITIALIZER(r, g, b) \
+  (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + CELL_BGDEFAULT_MASK)
+
 // These lowest-level functions manipulate a 64-bit channel encoding directly.
 // Users will typically manipulate ncplane and cell channels through those APIs,
 // rather than calling these directly.
