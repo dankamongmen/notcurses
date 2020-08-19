@@ -174,6 +174,7 @@ pub type Pixel = u32;
 /// type in C: gcluster (uint32_t)
 ///
 pub type EGC = u32;
+// pub type EGC<'a> = &'a[u8]; // XXX WIP in a safer abstraction
 
 /// EGC BackStop
 ///

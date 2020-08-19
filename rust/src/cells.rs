@@ -9,7 +9,7 @@
 //
 // static inline functions to reimplement: 42
 // ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement : 38 / 2 /  2
+// (+) implement : 40 / 2 /  0
 // (#) unit tests:  0 / 2 / 40
 // ------------------------------------------
 //+cell_bchannel
@@ -31,7 +31,7 @@
 //+cell_fg_rgb
 //+cell_init
 //+cell_load_simple
-// cell_prime                // FIXME
+//+cell_prime                // (unsafe) TODO: WIP safer EGC type
 //+cell_set_bchannel
 //+cell_set_bg
 //+cell_set_bg_alpha
@@ -46,7 +46,7 @@
 //+cell_set_fg_palindex
 //+cell_set_fg_rgb
 //xcell_set_fg_rgb_clipped   // unneeded
-// cells_load_box            // FIXME
+//+cells_load_box            // (unsafe) TODO: WIP safer EGC type
 //+cell_strdup
 //+cell_styles
 //+cell_styles_off
@@ -55,30 +55,49 @@
 //+cell_wide_left_p
 //+cell_wide_right_p
 
+//use core::mem::transmute;
+
 use crate as ffi;
 use ffi::types::{
-    AlphaBits, Channel, ChannelPair, Color, EGC, PaletteIndex, StyleMask,
+    AlphaBits, Channel, ChannelPair, Color, EGC, IntResult, PaletteIndex, StyleMask,
 };
 use ffi::{cell, ncplane};
 
-/*
+
 /// cell_load(), plus blast the styling with 'style' and 'channels'.
-// TODO: TEST
-pub fn cell_prime(
+///
+/// - Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'cell'.
+/// - Returns the number of bytes copied out of 'gcluster', or -1 on failure.
+/// - The styling of the cell is left untouched, but any resources are released.
+/// - blast the styling with 'style' and 'channels'
+///
+/// # Safety
+///
+/// Until we can change gcluster to a safer type, this function will remain unsafe
+///
+// TODO: TEST!
+#[allow(unused_unsafe)]
+pub unsafe fn cell_prime(
     plane: &mut ffi::ncplane,
     cell: &mut ffi::cell,
-    gcluster: EGC,
-    style: u16,
+    gcluster: *const i8,
+    style: StyleMask,
     channels: ChannelPair,
 ) -> IntResult {
+
+    cell.stylemask = style;
+    cell.channels = channels;
     unsafe {
-        (*cell).stylemask = style;
-        (*cell).channels = channels;
-        ffi::cell_load(plane, cell, CString::new(gcluster).unwrap().as_ptr())
+        ffi::cell_load(plane, cell, gcluster)
+
+        //let mut egc_bytes: [u8; 4] = gcluster.to_ne_bytes(); // < TODO: WIP (u8...)
+
+        //let egc_bytes = transmute::<EGC, [i8; 4]>(gcluster);
+        //ffi::cell_load(plane, cell, &egc_bytes as *const i8)
     }
 }
-*/
-/*
+
+
 /// load up six cells with the EGCs necessary to draw a box.
 ///
 /// returns 0 on success, -1 on error.
@@ -86,9 +105,14 @@ pub fn cell_prime(
 /// on error, any cells this function might have loaded before the error
 /// are cell_release()d. There must be at least six EGCs in gcluster.
 ///
-// TODO: need clarification: https://github.com/dankamongmen/notcurses/issues/918
-// TODO: TEST
-pub fn cells_load_box(
+/// # Safety
+///
+/// Until we can change gcluster to a safer type, this function will remain unsafe
+///
+// TODO: WIP gcluster should use a safer abstraction (EGC type)
+// TODO: TEST!
+#[allow(unused_unsafe)]
+pub unsafe fn cells_load_box(
     plane: &mut ncplane,
     style: StyleMask,
     channels: ChannelPair,
@@ -98,47 +122,54 @@ pub fn cells_load_box(
     lr: &mut cell,
     hl: &mut cell,
     vl: &mut cell,
-    gcluster: EGC,
+    gcluster: *const i8, // WIP EGC
 ) -> IntResult {
 
-    let mut ulen;
+    //let gcluster = transmute::<EGC, *const u8>(gcluster); // WIP EGC
 
-    ulen = cell_prime(plane, ul, gcluster, style, channels);
-    if ulen > 0 {
+    let mut ulen: IntResult;
+    let mut gclu: *const i8 = gcluster; // mutable copy for pointer arithmetics
 
-        ulen = cell_prime(plane, ur, gcluster += ulen, style, channels);
-        if ulen > 0 {
-        }
+    ulen = unsafe { cell_prime(plane, ul, gclu, style, channels) };
 
-    }
+    if ulen > 0 { // 1
+        gclu = unsafe { gclu.offset(ulen as isize) };
+        ulen = unsafe { cell_prime(plane, ur, gclu, style, channels) };
 
-}
-*/
+        if ulen > 0 { // 2
+            gclu = unsafe { gclu.offset(ulen as isize) };
+            ulen = unsafe { cell_prime(plane, ll, gclu, style, channels) };
 
-/*
-    int ulen;
-    if((ulen = cell_prime(n, ul, gclusters, style, channels)) > 0){ // done
-        if((ulen = cell_prime(n, ur, gclusters += ulen, style, channels)) > 0){
+            if ulen > 0 { // 3
+                gclu = unsafe { gcluster.offset(ulen as isize) };
+                ulen = unsafe { cell_prime(plane, lr, gclu, style, channels) };
 
-            if((ulen = cell_prime(n, ll, gclusters += ulen, style, channels)) > 0){
-                if((ulen = cell_prime(n, lr, gclusters += ulen, style, channels)) > 0){
-                    if((ulen = cell_prime(n, hl, gclusters += ulen, style, channels)) > 0){
-                        if((ulen = cell_prime(n, vl, gclusters += ulen, style, channels)) > 0){
+                if ulen > 0 { // 4
+                    gclu = unsafe { gcluster.offset(ulen as isize) };
+                    ulen = unsafe { cell_prime(plane, hl, gclu, style, channels) };
+
+                    if ulen > 0 { // 5
+                        gclu = unsafe { gcluster.offset(ulen as isize) };
+                        ulen = unsafe { cell_prime(plane, vl, gclu, style, channels) };
+
+                        if ulen > 0 { // 6
                             return 0;
                         }
-                        cell_release(n, hl);
+                        unsafe {ffi::cell_release(plane, hl);}
                     }
-                    cell_release(n, lr);
+                    unsafe {ffi::cell_release(plane, lr);}
                 }
-                cell_release(n, ll);
+                unsafe {ffi::cell_release(plane, ll);}
             }
-            cell_release(n, ur);
+            unsafe {ffi::cell_release(plane, ur);}
         }
-        cell_release(n, ul);
+        unsafe {ffi::cell_release(plane, ul);}
     }
-    return -1;
-*/
+    -1
+}
 
+
+///
 // TODO: TEST
 #[inline]
 pub fn cell_init(cell: &mut cell) {
