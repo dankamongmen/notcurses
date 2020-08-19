@@ -25,6 +25,7 @@
 // ncplane_gradient
 // ncplane_greyscale
 // ncplane_highgradient
+// ncplane_highgradient_sized
 // ncplane_hline_interp
 // ncplane_home
 // ncplane_mergedown
@@ -86,10 +87,10 @@
 // ncplane_vprintf_yx
 // ncplane_yx
 //
-// static inline functions to reimplement: 42
+// static inline functions to reimplement: 41
 // ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement: 35 / 7 /  0
-// (#) unit test:  0 / 7 / 35
+// (+) implement: 34 / 7 /  0
+// (#) unit test:  0 / 7 / 34
 // ------------------------------------------
 //+ncplane_align
 //+ncplane_at_cursor_cell
@@ -110,7 +111,6 @@
 //+ncplane_fg_default_p
 //+ncplane_fg_rgb
 //+ncplane_gradient_sized     // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
-//+ncplane_highgradient_sized //
 //+ncplane_hline
 //+ncplane_perimeter
 //+ncplane_perimeter_double
@@ -136,7 +136,6 @@
 //
 // NOTE: TODO: Still remains all the ncplane_printf* functions/macros (at the end)
 
-use core::convert::TryInto;
 use core::ffi::c_void;
 use core::ptr::null_mut;
 
@@ -609,39 +608,6 @@ pub fn ncplane_gradient_sized(
             ur,
             ll,
             lr,
-            y + ylen - 1,
-            x + xlen - 1,
-        )
-    }
-}
-
-// TODO: TEST
-// XXX receive cells as u32? https://github.com/dankamongmen/notcurses/issues/920
-#[inline]
-pub fn ncplane_highgradient_sized(
-    plane: &mut ncplane,
-    ul: u64,
-    ur: u64,
-    ll: u64,
-    lr: u64,
-    ylen: i32,
-    xlen: i32,
-) -> IntResult {
-    if ylen < 1 || xlen < 1 {
-        return -1;
-    }
-    let (mut y, mut x) = (0, 0);
-    if unsafe { !ffi::notcurses_canutf8(ffi::ncplane_notcurses_const(plane)) } {
-        return ncplane_gradient_sized(plane, b" ", 0, ul, ur, ll, lr, ylen, xlen);
-    }
-    unsafe {
-        ffi::ncplane_cursor_yx(plane, &mut y, &mut x);
-        ffi::ncplane_highgradient(
-            plane,
-            ul.try_into().unwrap(),
-            ur.try_into().unwrap(),
-            ll.try_into().unwrap(),
-            lr.try_into().unwrap(),
             y + ylen - 1,
             x + xlen - 1,
         )
