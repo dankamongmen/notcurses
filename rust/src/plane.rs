@@ -88,8 +88,8 @@
 //
 // static inline functions to reimplement: 42
 // ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement: 24 / … / 18
-// (#) unit test:  0 / … / 42
+// (+) implement: 35 / 7 /  0
+// (#) unit test:  0 / 7 / 35
 // ------------------------------------------
 //+ncplane_align
 //+ncplane_at_cursor_cell
@@ -102,47 +102,48 @@
 //+ncplane_box_sized
 //+ncplane_dim_x
 //+ncplane_dim_y
-// ncplane_double_box
-// ncplane_double_box_sized
+//+ncplane_double_box
+//+ncplane_double_box_sized
 //+ncplane_fchannel
 //+ncplane_fg
 //+ncplane_fg_alpha
 //+ncplane_fg_default_p
 //+ncplane_fg_rgb
-// ncplane_gradient_sized
-// ncplane_highgradient_sized
+//+ncplane_gradient_sized     // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
+//+ncplane_highgradient_sized //
 //+ncplane_hline
 //+ncplane_perimeter
-// ncplane_perimeter_double
+//+ncplane_perimeter_double
 //+ncplane_perimeter_rounded
-// ncplane_putc
+//+ncplane_putc
 //+ncplane_putegc
-// ncplane_putnstr
+//+ncplane_putnstr
 //+ncplane_putsimple
 //+ncplane_putsimple_yx
 //+ncplane_putstr
-// ncplane_putwc
-// ncplane_putwc_yx
-// ncplane_putwegc
-// ncplane_putwegc_yx
-// ncplane_putwstr
-// ncplane_putwstr_aligned
-// ncplane_putwstr_yx
-// ncplane_resize_simple
-// ncplane_rounded_box
-// ncplane_rounded_box_sized
+//xncplane_putwc                // I don't think these will be needed from Rust. See:
+//xncplane_putwc_yx             // https://locka99.gitbooks.io/a-guide-to-porting-c-to-rust/content/features_of_rust/strings.html
+//xncplane_putwegc              //
+//xncplane_putwegc_yx           //
+//xncplane_putwstr              //
+//xncplane_putwstr_aligned      //
+//xncplane_putwstr_yx           //
+//+ncplane_resize_simple
+//+ncplane_rounded_box
+//+ncplane_rounded_box_sized
 //+ncplane_vline
-// ncplane_vprintf
+//+ncplane_vprintf
+//
+// NOTE: TODO: Still remains all the ncplane_printf* functions/macros (at the end)
 
+use core::convert::TryInto;
 use core::ffi::c_void;
 use core::ptr::null_mut;
+
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::{
-    AlphaBits, Channel, ChannelPair, Color, EGC, EGCBackstop, IntResult,
-    StyleMask,
-};
+use ffi::types::{AlphaBits, Channel, ChannelPair, Color, EGCBackstop, IntResult, StyleMask, EGC};
 use ffi::{cell, ncalign_e, ncplane};
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
@@ -222,13 +223,23 @@ pub fn ncplane_box_sized(
     vline: &cell,
     ylen: i32,
     xlen: i32,
-    ctrlword: u32,
+    ctlword: u32,
 ) -> IntResult {
-
     let (mut y, mut x) = (0, 0);
     unsafe {
         ffi::ncplane_cursor_yx(plane, &mut y, &mut x);
-        ffi::ncplane_box(plane, ul, ur, ll, lr, hline, vline, y + ylen - 1, x + xlen - 1, ctrlword,)
+        ffi::ncplane_box(
+            plane,
+            ul,
+            ur,
+            ll,
+            lr,
+            hline,
+            vline,
+            y + ylen - 1,
+            x + xlen - 1,
+            ctlword,
+        )
     }
 }
 
@@ -254,7 +265,76 @@ pub fn ncplane_dim_y(plane: &ncplane) -> i32 {
     }
 }
 
-///
+// TODO: TEST
+#[inline]
+pub fn ncplane_double_box(
+    plane: &mut ncplane,
+    stylemask: StyleMask,
+    channels: ChannelPair,
+    ystop: i32,
+    xstop: i32,
+    ctlword: u32,
+) -> IntResult {
+    #[allow(unused_assignments)]
+    let mut ret = 0;
+
+    let mut ul = cell_trivial_initializer![];
+    let mut ur = cell_trivial_initializer![];
+    let mut ll = cell_trivial_initializer![];
+    let mut lr = cell_trivial_initializer![];
+    let mut hl = cell_trivial_initializer![];
+    let mut vl = cell_trivial_initializer![];
+
+    unsafe {
+        ret = ffi::cells_double_box(
+            plane,
+            stylemask as u32,
+            channels,
+            &mut ul,
+            &mut ur,
+            &mut ll,
+            &mut lr,
+            &mut hl,
+            &mut vl,
+        );
+        if ret == 0 {
+            ret = ffi::ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
+        }
+
+        ffi::cell_release(plane, &mut ul);
+        ffi::cell_release(plane, &mut ur);
+        ffi::cell_release(plane, &mut ll);
+        ffi::cell_release(plane, &mut lr);
+        ffi::cell_release(plane, &mut hl);
+        ffi::cell_release(plane, &mut vl);
+    }
+    ret
+}
+
+// TODO: TEST
+#[inline]
+pub fn ncplane_double_box_sized(
+    plane: &mut ncplane,
+    stylemask: StyleMask,
+    channels: ChannelPair,
+    ylen: i32,
+    xlen: i32,
+    ctlword: u32,
+) -> IntResult {
+    let (mut y, mut x) = (0, 0);
+    unsafe {
+        ffi::ncplane_cursor_yx(plane, &mut y, &mut x);
+    }
+    ncplane_double_box(
+        plane,
+        stylemask,
+        channels,
+        y + ylen - 1,
+        x + xlen - 1,
+        ctlword,
+    )
+}
+
 /// On error, return the negative number of cells drawn.
 // TODO: TEST
 #[inline]
@@ -283,37 +363,13 @@ pub fn ncplane_perimeter(
     }
 }
 
-// static inline int
-// ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
-//                          uint64_t channels, unsigned ctlword){
-//   if(ncplane_cursor_move_yx(n, 0, 0)){
-//     return -1;
-//   }
-//   int dimy, dimx;
-//   ncplane_dim_yx(n, &dimy, &dimx);
-//   cell ul = CELL_TRIVIAL_INITIALIZER;
-//   cell ur = CELL_TRIVIAL_INITIALIZER;
-//   cell ll = CELL_TRIVIAL_INITIALIZER;
-//   cell lr = CELL_TRIVIAL_INITIALIZER;
-//   cell vl = CELL_TRIVIAL_INITIALIZER;
-//   cell hl = CELL_TRIVIAL_INITIALIZER;
-//   if(cells_double_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
-//     return -1;
-//   }
-//   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
-//   cell_release(n, &ul); cell_release(n, &ur);
-//   cell_release(n, &ll); cell_release(n, &lr);
-//   cell_release(n, &hl); cell_release(n, &vl);
-//   return r;
-// }
-
-// TODO: TEST!
+// TODO: TEST
 #[inline]
-pub fn ncplane_perimeter_rounded(
+pub fn ncplane_perimeter_double(
     plane: &mut ncplane,
     stylemask: StyleMask,
     channels: ChannelPair,
-    ctrlword: u32,
+    ctlword: u32,
 ) -> IntResult {
     if unsafe { ffi::ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
         return -1;
@@ -329,11 +385,71 @@ pub fn ncplane_perimeter_rounded(
     let mut hl = cell_trivial_initializer![];
     let mut vl = cell_trivial_initializer![];
     if unsafe {
-        ffi::cells_rounded_box(plane, stylemask as u32, channels,
-        &mut ul, &mut ur, &mut ll, &mut lr, &mut hl, &mut vl) } != 0 {
+        ffi::cells_double_box(
+            plane,
+            stylemask as u32,
+            channels,
+            &mut ul,
+            &mut ur,
+            &mut ll,
+            &mut lr,
+            &mut hl,
+            &mut vl,
+        )
+    } != 0
+    {
         return -1;
     }
-    let ret = ncplane_box_sized(plane, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctrlword);
+    let ret = ncplane_box_sized(plane, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
+    unsafe {
+        ffi::cell_release(plane, &mut ul);
+        ffi::cell_release(plane, &mut ur);
+        ffi::cell_release(plane, &mut ll);
+        ffi::cell_release(plane, &mut lr);
+        ffi::cell_release(plane, &mut hl);
+        ffi::cell_release(plane, &mut vl);
+    }
+    ret
+}
+
+// TODO: TEST!
+#[inline]
+pub fn ncplane_perimeter_rounded(
+    plane: &mut ncplane,
+    stylemask: StyleMask,
+    channels: ChannelPair,
+    ctlword: u32,
+) -> IntResult {
+    if unsafe { ffi::ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
+        return -1;
+    }
+    let (mut dimy, mut dimx) = (0, 0);
+    unsafe {
+        ffi::ncplane_dim_yx(plane, &mut dimy, &mut dimx);
+    }
+    let mut ul = cell_trivial_initializer![];
+    let mut ur = cell_trivial_initializer![];
+    let mut ll = cell_trivial_initializer![];
+    let mut lr = cell_trivial_initializer![];
+    let mut hl = cell_trivial_initializer![];
+    let mut vl = cell_trivial_initializer![];
+    if unsafe {
+        ffi::cells_rounded_box(
+            plane,
+            stylemask as u32,
+            channels,
+            &mut ul,
+            &mut ur,
+            &mut ll,
+            &mut lr,
+            &mut hl,
+            &mut vl,
+        )
+    } != 0
+    {
+        return -1;
+    }
+    let ret = ncplane_box_sized(plane, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
     unsafe {
         ffi::cell_release(plane, &mut ul);
         ffi::cell_release(plane, &mut ur);
@@ -384,166 +500,57 @@ pub fn ncplane_putsimple_yx(plane: &mut ncplane, y: i32, x: i32, char: i8) -> In
 ///
 // TODO: TEST
 #[inline]
-pub fn ncplane_putstr(plane: &mut ncplane, _str: &str) -> i32 {
+pub fn ncplane_putstr(plane: &mut ncplane, gclustarr: &[u8]) -> IntResult {
     unsafe {
         ffi::ncplane_putstr_yx(
             plane,
             -1,
             -1,
-            CString::new(_str).expect("Bad string").as_ptr(),
+            CString::new(gclustarr).expect("Bad string").as_ptr(),
         )
     }
 }
 
-// static inline int
-// ncplane_putstr(struct ncplane* n, const char* gclustarr){
-//   return ncplane_putstr_yx(n, -1, -1, gclustarr);
-// }
-//
-// static inline int
-// ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr){
-//   return ncplane_putnstr_yx(n, -1, -1, s, gclustarr);
-// }
+///
+// TODO: TEST
+#[inline]
+pub fn ncplane_putnstr(plane: &mut ncplane, size: ffi::size_t, gclustarr: &[u8]) -> IntResult {
+    unsafe {
+        ffi::ncplane_putnstr_yx(
+            plane,
+            -1,
+            -1,
+            size,
+            CString::new(gclustarr).expect("Bad string").as_ptr(),
+        )
+    }
+}
 
-// // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
-// static inline int
-// ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
-//   // maximum of six UTF8-encoded bytes per wchar_t
-//   const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
-//   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
-//   if(mbstr == NULL){
-//     return -1;
-//   }
-//   size_t s = wcstombs(mbstr, gclustarr, mbytes);
-//   if(s == (size_t)-1){
-//     free(mbstr);
-//     return -1;
-//   }
-//   int ret = ncplane_putstr_yx(n, y, x, mbstr);
-//   free(mbstr);
-//   return ret;
-// }
-
-// // ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
-// static inline int
-// ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
-//   // maximum of six UTF8-encoded bytes per wchar_t
-//   const size_t mbytes = (wcslen(gclust) * WCHAR_MAX_UTF8BYTES) + 1;
-//   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
-//   if(mbstr == NULL){
-//     return -1;
-//   }
-//   size_t s = wcstombs(mbstr, gclust, mbytes);
-//   if(s == (size_t)-1){
-//     free(mbstr);
-//     return -1;
-//   }
-//   int ret = ncplane_putegc(n, mbstr, sbytes);
-//   free(mbstr);
-//   return ret;
-// }
-
-// Call ncplane_putwegc() after successfully moving to y, x.
-// static inline int
-// ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
-//                    int* sbytes){
-//   if(ncplane_cursor_move_yx(n, y, x)){
-//     return -1;
-//   }
-//   return ncplane_putwegc(n, gclust, sbytes);
-// }
-
-// static inline int
-// ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
-//                         const wchar_t* gclustarr){
-//   int width = wcswidth(gclustarr, INT_MAX);
-//   int xpos = ncplane_align(n, align, width);
-//   return ncplane_putwstr_yx(n, y, xpos, gclustarr);
-// }
-
-// static inline int
-// ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
-//   return ncplane_putwstr_yx(n, -1, -1, gclustarr);
-// }
-
-// Replace the cell at the specified coordinates with the provided wide char
-// 'w'. Advance the cursor by the character's width as reported by wcwidth().
-// On success, returns 1. On failure, returns -1.
-// static inline int
-// ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
-//   wchar_t warr[2] = { w, L'\0' };
-//   return ncplane_putwstr_yx(n, y, x, warr);
-// }
-
-// Call ncplane_putwc() at the current cursor position.
-// static inline int
-// ncplane_putwc(struct ncplane* n, wchar_t w){
-//   return ncplane_putwc_yx(n, -1, -1, w);
-// }
-
-// static inline int
-// ncplane_printf(struct ncplane* n, const char* format, ...)
-//   __attribute__ ((format (printf, 2, 3)));
-
-// static inline int
-// ncplane_printf(struct ncplane* n, const char* format, ...){
-//   va_list va;
-//   va_start(va, format);
-//   int ret = ncplane_vprintf(n, format, va);
-//   va_end(va);
-//   return ret;
-// }
-
-// static inline int
-// ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
-//   __attribute__ ((format (printf, 4, 5)));
-
-// static inline int
-// ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
-//   va_list va;
-//   va_start(va, format);
-//   int ret = ncplane_vprintf_yx(n, y, x, format, va);
-//   va_end(va);
-//   return ret;
-// }
-
-// static inline int
-// ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
-//                        const char* format, ...)
-//   __attribute__ ((format (printf, 4, 5)));
-
-// static inline int
-// ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...){
-//   va_list va;
-//   va_start(va, format);
-//   int ret = ncplane_vprintf_aligned(n, y, align, format, va);
-//   va_end(va);
-//   return ret;
-// }
-
-// static inline int
-// ncplane_printf_stainable(struct ncplane* n, const char* format, ...)
-//   __attribute__ ((format (printf, 2, 3)));
-
-// static inline int
-// ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
-//   va_list va;
-//   va_start(va, format);
-//   int ret = ncplane_vprintf_stainable(n, format, va);
-//   va_end(va);
-//   return ret;
-// }
-
-// // Resize the plane, retaining what data we can (everything, unless we're
-// // shrinking in some dimension). Keep the origin where it is.
-// static inline int
-// ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
-//   int oldy, oldx;
-//   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
-//   int keepleny = oldy > ylen ? ylen : oldy;
-//   int keeplenx = oldx > xlen ? xlen : oldx;
-//   return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
-// }
+/// Resize the plane, retaining what data we can (everything, unless we're
+/// shrinking in some dimension). Keep the origin where it is.
+// TODO: TEST
+#[inline]
+pub fn ncplane_resize_simple(plane: &mut ncplane, ylen: i32, xlen: i32) -> IntResult {
+    let (mut oldy, mut oldx) = (0, 0);
+    unsafe {
+        ffi::ncplane_dim_yx(plane, &mut oldy, &mut oldx);
+    }
+    let keepleny = {
+        if oldy > ylen {
+            ylen
+        } else {
+            oldy
+        }
+    };
+    let keeplenx = {
+        if oldx > xlen {
+            xlen
+        } else {
+            oldx
+        }
+    };
+    unsafe { ffi::ncplane_resize(plane, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen) }
+}
 
 ///
 /// On error, return the negative number of cells drawn.
@@ -553,40 +560,93 @@ pub fn ncplane_vline(plane: &mut ncplane, cell: &cell, len: i32) -> i32 {
     unsafe { ffi::ncplane_vline_interp(plane, cell, len, cell.channels, cell.channels) }
 }
 
-// static inline int
-// ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
-//   return ncplane_vprintf_yx(n, -1, -1, format, ap);
-// }
+// TODO: TEST
+#[inline]
+pub fn ncplane_vprintf(
+    plane: &mut ncplane,
+    format: &str,
+    ap: &mut ffi::__va_list_tag,
+) -> IntResult {
+    unsafe {
+        ffi::ncplane_vprintf_yx(
+            plane,
+            -1,
+            -1,
+            CString::new(format).expect("Bad string").as_ptr(),
+            ap,
+        )
+    }
+}
 
-// // Draw a gradient with its upper-left corner at the current cursor position,
-// // having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
-// static inline int
-// ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
-//                        uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
-//                        int ylen, int xlen){
-//   if(ylen < 1 || xlen < 1){
-//     return -1;
-//   }
-//   int y, x;
-//   ncplane_cursor_yx(n, &y, &x);
-//   return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
-// }
+/// Draw a gradient with its upper-left corner at the current cursor position,
+/// having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
+/// static inline int
+// TODO: TEST
+// XXX receive cells as u32? https://github.com/dankamongmen/notcurses/issues/920
+#[inline]
+pub fn ncplane_gradient_sized(
+    plane: &mut ncplane,
+    egc: &[u8],
+    stylemask: StyleMask,
+    ul: u64,
+    ur: u64,
+    ll: u64,
+    lr: u64,
+    ylen: i32,
+    xlen: i32,
+) -> IntResult {
+    if ylen < 1 || xlen < 1 {
+        return -1;
+    }
+    let (mut y, mut x) = (0, 0);
+    unsafe {
+        ffi::ncplane_cursor_yx(plane, &mut y, &mut x);
+        ffi::ncplane_gradient(
+            plane,
+            CString::new(egc).expect("Bad EGC").as_ptr(),
+            stylemask as u32,
+            ul,
+            ur,
+            ll,
+            lr,
+            y + ylen - 1,
+            x + xlen - 1,
+        )
+    }
+}
 
-// static inline int
-// ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
-//                            uint32_t ll, uint32_t lr, int ylen, int xlen){
-//   if(ylen < 1 || xlen < 1){
-//     return -1;
-//   }
-//   int y, x;
-//   if(!notcurses_canutf8(ncplane_notcurses_const(n))){
-//     // this works because the uin32_ts we pass in will be promoted to uint64_ts
-//     // via extension, and the space will employ the background. mwahh!
-//     return ncplane_gradient_sized(n, " ", 0, ul, ur, ll, lr, ylen, xlen);
-//   }
-//   ncplane_cursor_yx(n, &y, &x);
-//   return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
-// }
+// TODO: TEST
+// XXX receive cells as u32? https://github.com/dankamongmen/notcurses/issues/920
+#[inline]
+pub fn ncplane_highgradient_sized(
+    plane: &mut ncplane,
+    ul: u64,
+    ur: u64,
+    ll: u64,
+    lr: u64,
+    ylen: i32,
+    xlen: i32,
+) -> IntResult {
+    if ylen < 1 || xlen < 1 {
+        return -1;
+    }
+    let (mut y, mut x) = (0, 0);
+    if unsafe { !ffi::notcurses_canutf8(ffi::ncplane_notcurses_const(plane)) } {
+        return ncplane_gradient_sized(plane, b" ", 0, ul, ur, ll, lr, ylen, xlen);
+    }
+    unsafe {
+        ffi::ncplane_cursor_yx(plane, &mut y, &mut x);
+        ffi::ncplane_highgradient(
+            plane,
+            ul.try_into().unwrap(),
+            ur.try_into().unwrap(),
+            ll.try_into().unwrap(),
+            lr.try_into().unwrap(),
+            y + ylen - 1,
+            x + xlen - 1,
+        )
+    }
+}
 
 /// Extract the 32-bit working foreground channel from an ncplane.
 // TODO: TEST
@@ -668,54 +728,127 @@ pub fn ncplane_bg_rgb(
     ffi::channels_bg_rgb(unsafe { ffi::ncplane_channels(plane) }, red, green, blue)
 }
 
+// TODO: TEST
+#[inline]
+pub fn ncplane_rounded_box(
+    plane: &mut ncplane,
+    stylemask: StyleMask,
+    channels: ChannelPair,
+    ystop: i32,
+    xstop: i32,
+    ctlword: u32,
+) -> IntResult {
+    #[allow(unused_assignments)]
+    let mut ret = 0;
+
+    let mut ul = cell_trivial_initializer![];
+    let mut ur = cell_trivial_initializer![];
+    let mut ll = cell_trivial_initializer![];
+    let mut lr = cell_trivial_initializer![];
+    let mut hl = cell_trivial_initializer![];
+    let mut vl = cell_trivial_initializer![];
+
+    unsafe {
+        ret = ffi::cells_rounded_box(
+            plane,
+            stylemask as u32,
+            channels,
+            &mut ul,
+            &mut ur,
+            &mut ll,
+            &mut lr,
+            &mut hl,
+            &mut vl,
+        );
+        if ret == 0 {
+            ret = ffi::ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
+        }
+
+        ffi::cell_release(plane, &mut ul);
+        ffi::cell_release(plane, &mut ur);
+        ffi::cell_release(plane, &mut ll);
+        ffi::cell_release(plane, &mut lr);
+        ffi::cell_release(plane, &mut hl);
+        ffi::cell_release(plane, &mut vl);
+    }
+    ret
+}
+
+// TODO: TEST
+#[inline]
+pub fn ncplane_rounded_box_sized(
+    plane: &mut ncplane,
+    stylemask: StyleMask,
+    channels: ChannelPair,
+    ylen: i32,
+    xlen: i32,
+    ctlword: u32,
+) -> IntResult {
+    let (mut y, mut x) = (0, 0);
+    unsafe {
+        ffi::ncplane_cursor_yx(plane, &mut y, &mut x);
+    }
+    ncplane_rounded_box(
+        plane,
+        stylemask,
+        channels,
+        y + ylen - 1,
+        x + xlen - 1,
+        ctlword,
+    )
+}
+
 // static inline int
-// ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-//                     int ystop, int xstop, unsigned ctlword){
-//   int ret = 0;
-//   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-//   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-//   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-//   if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
-//     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
-//   }
-//   cell_release(n, &ul); cell_release(n, &ur);
-//   cell_release(n, &ll); cell_release(n, &lr);
-//   cell_release(n, &hl); cell_release(n, &vl);
+// ncplane_printf(struct ncplane* n, const char* format, ...)
+//   __attribute__ ((format (printf, 2, 3)));
+
+// static inline int
+// ncplane_printf(struct ncplane* n, const char* format, ...){
+//   va_list va;
+//   va_start(va, format);
+//   int ret = ncplane_vprintf(n, format, va);
+//   va_end(va);
 //   return ret;
 // }
 
 // static inline int
-// ncplane_rounded_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
-//                           int ylen, int xlen, unsigned ctlword){
-//   int y, x;
-//   ncplane_cursor_yx(n, &y, &x);
-//   return ncplane_rounded_box(n, attr, channels, y + ylen - 1,
-//                              x + xlen - 1, ctlword);
-// }
+// ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
+//   __attribute__ ((format (printf, 4, 5)));
 
 // static inline int
-// ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-//                    int ystop, int xstop, unsigned ctlword){
-//   int ret = 0;
-//   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-//   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-//   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-//   if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
-//     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
-//   }
-//   cell_release(n, &ul); cell_release(n, &ur);
-//   cell_release(n, &ll); cell_release(n, &lr);
-//   cell_release(n, &hl); cell_release(n, &vl);
+// ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
+//   va_list va;
+//   va_start(va, format);
+//   int ret = ncplane_vprintf_yx(n, y, x, format, va);
+//   va_end(va);
 //   return ret;
 // }
 
 // static inline int
-// ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
-//                          int ylen, int xlen, unsigned ctlword){
-//   int y, x;
-//   ncplane_cursor_yx(n, &y, &x);
-//   return ncplane_double_box(n, attr, channels, y + ylen - 1,
-//                             x + xlen - 1, ctlword);
+// ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
+//                        const char* format, ...)
+//   __attribute__ ((format (printf, 4, 5)));
+
+// static inline int
+// ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...){
+//   va_list va;
+//   va_start(va, format);
+//   int ret = ncplane_vprintf_aligned(n, y, align, format, va);
+//   va_end(va);
+//   return ret;
+// }
+
+// static inline int
+// ncplane_printf_stainable(struct ncplane* n, const char* format, ...)
+//   __attribute__ ((format (printf, 2, 3)));
+
+// static inline int
+// ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
+//   va_list va;
+//   va_start(va, format);
+//   int ret = ncplane_vprintf_stainable(n, format, va);
+//   va_end(va);
+//   return ret;
 // }
 
 #[cfg(test)]
