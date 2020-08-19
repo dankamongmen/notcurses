@@ -88,12 +88,12 @@
 //
 // static inline functions to reimplement: 42
 // ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement: 18 / … / 24
+// (+) implement: 24 / … / 18
 // (#) unit test:  0 / … / 42
 // ------------------------------------------
 //+ncplane_align
-// ncplane_at_cursor_cell
-// ncplane_at_yx_cell
+//+ncplane_at_cursor_cell
+//+ncplane_at_yx_cell
 //+ncplane_bchannel
 //+ncplane_bg
 //+ncplane_bg_alpha
@@ -114,12 +114,12 @@
 //+ncplane_hline
 //+ncplane_perimeter
 // ncplane_perimeter_double
-// ncplane_perimeter_rounded
+//+ncplane_perimeter_rounded
 // ncplane_putc
-// ncplane_putegc
+//+ncplane_putegc
 // ncplane_putnstr
-// ncplane_putsimple
-// ncplane_putsimple_yx
+//+ncplane_putsimple
+//+ncplane_putsimple_yx
 //+ncplane_putstr
 // ncplane_putwc
 // ncplane_putwc_yx
@@ -134,17 +134,22 @@
 //+ncplane_vline
 // ncplane_vprintf
 
+use core::ffi::c_void;
 use core::ptr::null_mut;
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::{AlphaBits, Channel, Color, IntResult};
+use ffi::types::{
+    AlphaBits, Channel, ChannelPair, Color, EGC, EGCBackstop, IntResult,
+    StyleMask,
+};
 use ffi::{cell, ncalign_e, ncplane};
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
 /// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
 /// Undefined behavior on negative 'cols'.
-// XXX: change cols type to u32? https://github.com/dankamongmen/notcurses/issues/904
+//
+// NOTE: [leave cols as i32](https://github.com/dankamongmen/notcurses/issues/904)
 // TODO: TEST
 #[inline]
 pub fn ncplane_align(plane: &ncplane, align: ncalign_e, cols: i32) -> i32 {
@@ -165,54 +170,42 @@ pub fn ncplane_align(plane: &ncplane, align: ncalign_e, cols: i32) -> i32 {
     core::i32::MAX
 }
 
-// static inline int
-// ncplane_align(const struct ncplane* n, ncalign_e align, int c){
-//   if(align == NCALIGN_LEFT){
-//     return 0;
-//   }
-//   int cols = ncplane_dim_x(n);
-//   if(c > cols){
-//     return 0;
-//   }
-//   if(align == NCALIGN_CENTER){
-//     return (cols - c) / 2;
-//   }else if(align == NCALIGN_RIGHT){
-//     return cols - c;
-//   }
-//   return INT_MAX;
-// }
+/// Retrieve the current contents of the cell under the cursor into 'cell'.
+/// This cell is invalidated if the associated plane is destroyed.
+// TODO: TEST
+#[inline]
+pub fn nplane_at_cursor_cell(plane: &mut ncplane, cell: &mut cell) -> IntResult {
+    let mut egc = unsafe { ffi::ncplane_at_cursor(plane, &mut cell.stylemask, &mut cell.channels) };
+    if egc.is_null() {
+        return -1;
+    }
+    let result: IntResult = unsafe { ffi::cell_load(plane, cell, egc) };
+    if result < 0 {
+        unsafe {
+            ffi::free(&mut egc as *mut _ as *mut c_void);
+        }
+    }
+    result
+}
 
-// Retrieve the current contents of the cell under the cursor into 'c'. This
-// cell is invalidated if the associated plane is destroyed.
-// static inline int
-// ncplane_at_cursor_cell(struct ncplane* n, cell* c){
-//   char* egc = ncplane_at_cursor(n, &c->attrword, &c->channels);
-//   if(!egc){
-//     return -1;
-//   }
-//   uint64_t channels = c->channels; // need to preserve wide flag
-//   int r = cell_load(n, c, egc);
-//   c->channels = channels;
-//   if(r < 0){
-//     free(egc);
-//   }
-//   return r;
-// }
-
-// Retrieve the current contents of the specified cell into 'c'. This cell is
-// invalidated if the associated plane is destroyed.
-// static inline int
-// ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c){
-//   char* egc = ncplane_at_yx(n, y, x, &c->attrword, &c->channels);
-//   if(!egc){
-//     return -1;
-//   }
-//   uint64_t channels = c->channels; // need to preserve wide flag
-//   int r = cell_load(n, c, egc);
-//   c->channels = channels;
-//   free(egc);
-//   return r;
-// }
+/// Retrieve the current contents of the specified cell into 'cell'.
+/// This cell is invalidated if the associated plane is destroyed.
+// TODO: TEST
+#[inline]
+pub fn ncplane_at_yx_cell(plane: &mut ncplane, y: i32, x: i32, cell: &mut cell) -> IntResult {
+    let mut egc =
+        unsafe { ffi::ncplane_at_yx(plane, y, x, &mut cell.stylemask, &mut cell.channels) };
+    if egc.is_null() {
+        return -1;
+    }
+    let channels = cell.channels; // need to preserve wide flag
+    let result: IntResult = unsafe { ffi::cell_load(plane, cell, egc) };
+    cell.channels = channels;
+    unsafe {
+        ffi::free(&mut egc as *mut _ as *mut c_void);
+    }
+    result
+}
 
 /// Draw a box with its upper-left corner at the current cursor position, having
 /// dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
@@ -231,21 +224,11 @@ pub fn ncplane_box_sized(
     xlen: i32,
     ctrlword: u32,
 ) -> IntResult {
+
+    let (mut y, mut x) = (0, 0);
     unsafe {
-        let (mut y, mut x) = (0, 0);
         ffi::ncplane_cursor_yx(plane, &mut y, &mut x);
-        ffi::ncplane_box(
-            plane,
-            ul,
-            ur,
-            ll,
-            lr,
-            hline,
-            vline,
-            y + ylen - 1,
-            x + xlen - 1,
-            ctrlword,
-        )
+        ffi::ncplane_box(plane, ul, ur, ll, lr, hline, vline, y + ylen - 1, x + xlen - 1, ctrlword,)
     }
 }
 
@@ -301,7 +284,7 @@ pub fn ncplane_perimeter(
 }
 
 // static inline int
-// ncplane_perimeter_double(struct ncplane* n, uint32_t attrword,
+// ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
 //                          uint64_t channels, unsigned ctlword){
 //   if(ncplane_cursor_move_yx(n, 0, 0)){
 //     return -1;
@@ -314,7 +297,7 @@ pub fn ncplane_perimeter(
 //   cell lr = CELL_TRIVIAL_INITIALIZER;
 //   cell vl = CELL_TRIVIAL_INITIALIZER;
 //   cell hl = CELL_TRIVIAL_INITIALIZER;
-//   if(cells_double_box(n, attrword, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+//   if(cells_double_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
 //     return -1;
 //   }
 //   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
@@ -324,62 +307,79 @@ pub fn ncplane_perimeter(
 //   return r;
 // }
 
-// static inline int
-// ncplane_perimeter_rounded(struct ncplane* n, uint32_t attrword,
-//                           uint64_t channels, unsigned ctlword){
-//   if(ncplane_cursor_move_yx(n, 0, 0)){
-//     return -1;
-//   }
-//   int dimy, dimx;
-//   ncplane_dim_yx(n, &dimy, &dimx);
-//   cell ul = CELL_TRIVIAL_INITIALIZER;
-//   cell ur = CELL_TRIVIAL_INITIALIZER;
-//   cell ll = CELL_TRIVIAL_INITIALIZER;
-//   cell lr = CELL_TRIVIAL_INITIALIZER;
-//   cell vl = CELL_TRIVIAL_INITIALIZER;
-//   cell hl = CELL_TRIVIAL_INITIALIZER;
-//   if(cells_rounded_box(n, attrword, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
-//     return -1;
-//   }
-//   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
-//   cell_release(n, &ul); cell_release(n, &ur);
-//   cell_release(n, &ll); cell_release(n, &lr);
-//   cell_release(n, &hl); cell_release(n, &vl);
-//   return r;
-// }
+// TODO: TEST!
+#[inline]
+pub fn ncplane_perimeter_rounded(
+    plane: &mut ncplane,
+    stylemask: StyleMask,
+    channels: ChannelPair,
+    ctrlword: u32,
+) -> IntResult {
+    if unsafe { ffi::ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
+        return -1;
+    }
+    let (mut dimy, mut dimx) = (0, 0);
+    unsafe {
+        ffi::ncplane_dim_yx(plane, &mut dimy, &mut dimx);
+    }
+    let mut ul = cell_trivial_initializer![];
+    let mut ur = cell_trivial_initializer![];
+    let mut ll = cell_trivial_initializer![];
+    let mut lr = cell_trivial_initializer![];
+    let mut hl = cell_trivial_initializer![];
+    let mut vl = cell_trivial_initializer![];
+    if unsafe {
+        ffi::cells_rounded_box(plane, stylemask as u32, channels,
+        &mut ul, &mut ur, &mut ll, &mut lr, &mut hl, &mut vl) } != 0 {
+        return -1;
+    }
+    let ret = ncplane_box_sized(plane, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctrlword);
+    unsafe {
+        ffi::cell_release(plane, &mut ul);
+        ffi::cell_release(plane, &mut ur);
+        ffi::cell_release(plane, &mut ll);
+        ffi::cell_release(plane, &mut lr);
+        ffi::cell_release(plane, &mut hl);
+        ffi::cell_release(plane, &mut vl);
+    }
+    ret
+}
 
-// // Call ncplane_putc_yx() for the current cursor location.
-// static inline int
-// ncplane_putc(struct ncplane* n, const cell* c){
-//   return ncplane_putc_yx(n, -1, -1, c);
-// }
+/// Call ncplane_putc_yx() for the current cursor location.
+// TODO: TEST
+#[inline]
+pub fn ncplane_putc(plane: &mut ncplane, cell: &cell) -> IntResult {
+    unsafe { ffi::ncplane_putc_yx(plane, -1, -1, cell) }
+}
 
-// // Call ncplane_putsimple_yx() at the current cursor location.
-// static inline int
-// ncplane_putsimple(struct ncplane* n, char c){
-//   return ncplane_putsimple_yx(n, -1, -1, c);
-// }
+/// Call ncplane_putsimple_yx() at the current cursor location.
+// TODO: TEST
+#[inline]
+pub fn ncplane_putsimple(plane: &mut ncplane, char: i8) -> IntResult {
+    ffi::ncplane_putsimple_yx(plane, -1, -1, char)
+}
 
-// // Call ncplane_putegc() at the current cursor location.
-// static inline int
-// ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
-//   return ncplane_putegc_yx(n, -1, -1, gclust, sbytes);
-// }
+/// Call ncplane_putegc() at the current cursor location.
+// TODO: TEST
+#[inline]
+pub fn ncplane_putegc(plane: &mut ncplane, gcluster: i8, sbytes: &mut i32) -> IntResult {
+    unsafe { ffi::ncplane_putegc_yx(plane, -1, -1, &gcluster, sbytes) }
+}
 
-// Replace the EGC underneath us, but retain the styling. The current styling
-// of the plane will not be changed.
-//
-// Replace the cell at the specified coordinates with the provided 7-bit char
-// 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
-// This works whether the underlying char is signed or unsigned.
-// static inline int
-// ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
-//   cell ce = CELL_INITIALIZER((uint32_t)c, ncplane_attr(n), ncplane_channels(n));
-//   if(!cell_simple_p(&ce)){
-//     return -1;
-//   }
-//   return ncplane_putc_yx(n, y, x, &ce);
-// }
+/// Replace the EGC underneath us, but retain the styling. The current styling
+/// of the plane will not be changed.
+///
+/// Replace the cell at the specified coordinates with the provided 7-bit char
+/// 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
+/// This works whether the underlying char is signed or unsigned.
+// TODO: TEST
+#[inline]
+pub fn ncplane_putsimple_yx(plane: &mut ncplane, y: i32, x: i32, char: i8) -> IntResult {
+    let newcell = cell_initializer![char, unsafe { ffi::ncplane_attr(plane) }, unsafe {
+        ffi::ncplane_channels(plane)
+    }];
+    unsafe { ffi::ncplane_putc_yx(plane, y, x, &newcell) }
+}
 
 ///
 // TODO: TEST
