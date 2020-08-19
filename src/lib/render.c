@@ -169,7 +169,7 @@ cell_locked_p(const cell* p){
 // Extracellular state for a cell during the render process. This array is
 // passed along to rasterization, which uses only the 'damaged' bools.
 struct crender {
-  ncplane *p;
+  const ncplane *p;
   unsigned fgblends;
   unsigned bgblends;
   bool damaged;       // also used in rasterization
@@ -253,7 +253,7 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 // only those cells where 'p' intersects with the target rendering area are
 // rendered.
 static int
-paint(ncplane* p, cell* lastframe, struct crender* rvec,
+paint(const ncplane* p, cell* lastframe, struct crender* rvec,
       cell* fb, egcpool* pool, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
@@ -378,7 +378,7 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
         if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
           crender->damaged = true;
           if(cell_wide_left_p(targc)){
-            ncplane* tmpp = crender->p;
+            const ncplane* tmpp = crender->p;
             ++crender;
             crender->p = tmpp;
             ++x;
