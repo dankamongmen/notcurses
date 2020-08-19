@@ -40,7 +40,6 @@ gradStriations(struct notcurses* nc){
   return 0;
 }
 
-// gradient of 'A's changing color and background changing in reverse
 static int
 gradHigh(struct notcurses* nc){
   int dimy, dimx;
