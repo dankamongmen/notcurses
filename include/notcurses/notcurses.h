@@ -1660,7 +1660,7 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t stylemask,
                           y + ylen - 1, x + xlen - 1);
 }
 
-// ncplane_gradent_sized() meet ncplane_highgradient().
+// ncplane_gradent_sized() meets ncplane_highgradient().
 API int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
                                    uint32_t ll, uint32_t lr, int ylen, int xlen);
 

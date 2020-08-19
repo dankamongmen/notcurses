@@ -1298,7 +1298,7 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
 int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
                          uint32_t ll, uint32_t lr, int ystop, int xstop);
 
-// ncplane_gradent_sized() meet ncplane_highgradient().
+// ncplane_gradent_sized() meets ncplane_highgradient().
 int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
                                uint32_t ll, uint32_t lr, int ylen, int xlen);
 
