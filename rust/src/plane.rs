@@ -143,7 +143,7 @@ use core::ptr::null_mut;
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::{AlphaBits, Channel, ChannelPair, Color, EGCBackstop, IntResult, StyleMask, EGC};
+use ffi::types::{AlphaBits, Channel, ChannelPair, Color, EGCBackstop, IntResult, StyleMask};
 use ffi::{cell, ncalign_e, ncplane};
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
@@ -471,8 +471,8 @@ pub fn ncplane_putc(plane: &mut ncplane, cell: &cell) -> IntResult {
 /// Call ncplane_putsimple_yx() at the current cursor location.
 // TODO: TEST
 #[inline]
-pub fn ncplane_putsimple(plane: &mut ncplane, char: i8) -> IntResult {
-    ffi::ncplane_putsimple_yx(plane, -1, -1, char)
+pub fn ncplane_putsimple(plane: &mut ncplane, ch: char) -> IntResult {
+    ffi::ncplane_putsimple_yx(plane, -1, -1, ch)
 }
 
 /// Call ncplane_putegc() at the current cursor location.
@@ -486,12 +486,12 @@ pub fn ncplane_putegc(plane: &mut ncplane, gcluster: i8, sbytes: &mut i32) -> In
 /// of the plane will not be changed.
 ///
 /// Replace the cell at the specified coordinates with the provided 7-bit char
-/// 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
+/// 'ch'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 /// This works whether the underlying char is signed or unsigned.
 // TODO: TEST
 #[inline]
-pub fn ncplane_putsimple_yx(plane: &mut ncplane, y: i32, x: i32, char: i8) -> IntResult {
-    let newcell = cell_initializer![char, unsafe { ffi::ncplane_attr(plane) }, unsafe {
+pub fn ncplane_putsimple_yx(plane: &mut ncplane, y: i32, x: i32, ch: char) -> IntResult {
+    let newcell = cell_initializer![ch, unsafe { ffi::ncplane_attr(plane) }, unsafe {
         ffi::ncplane_channels(plane)
     }];
     unsafe { ffi::ncplane_putc_yx(plane, y, x, &newcell) }

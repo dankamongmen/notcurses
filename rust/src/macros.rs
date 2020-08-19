@@ -4,7 +4,7 @@
 macro_rules! cell_initializer {
     ( $c:expr, $s:expr, $chan:expr  ) => {
         cell {
-            gcluster: $c as EGC,
+            gcluster: $c as u32,
             gcluster_backstop: 0 as EGCBackstop,
             reserved: 0,
             stylemask: $s,

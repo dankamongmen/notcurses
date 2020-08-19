@@ -59,7 +59,7 @@
 
 use crate as ffi;
 use ffi::types::{
-    AlphaBits, Channel, ChannelPair, Color, EGC, IntResult, PaletteIndex, StyleMask,
+    AlphaBits, Channel, ChannelPair, Color, IntResult, PaletteIndex, StyleMask,
 };
 use ffi::{cell, ncplane};
 
@@ -305,14 +305,14 @@ pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -
 }
 
 // TODO: TEST
-// NOTE: remove casting when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
+// NOTE: remove casting for CELL_WIEDASIAN_MASK when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: char) -> i32 {
     unsafe {
         ffi::cell_release(plane, cell);
     }
     cell.channels &= !(ffi::CELL_WIDEASIAN_MASK as u64 | ffi::CELL_NOBACKGROUND_MASK);
-    cell.gcluster = ch as EGC;
+    cell.gcluster = ch as u32;
     1
 }
 
