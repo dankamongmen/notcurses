@@ -65,7 +65,7 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 
 **int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ystop, int xstop);**
 
-**static inline int ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);**
+**int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ylen, int xlen);**
 
 **int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);**
 
