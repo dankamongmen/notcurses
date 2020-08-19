@@ -1298,16 +1298,9 @@ ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
 int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
                          uint32_t ll, uint32_t lr, int ystop, int xstop);
 
-static inline int
-ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
-                           uint32_t ll, uint32_t lr, int ylen, int xlen){
-  if(ylen < 1 || xlen < 1){
-    return -1;
-  }
-  int y, x;
-  ncplane_cursor_yx(n, &y, &x);
-  return ncplane_highgradient(n, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
-}
+// ncplane_gradent_sized() meets ncplane_highgradient().
+int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
+                               uint32_t ll, uint32_t lr, int ylen, int xlen);
 
 // Set the given style throughout the specified region, keeping content and
 // channels unchanged. Returns the number of cells set, or -1 on failure.

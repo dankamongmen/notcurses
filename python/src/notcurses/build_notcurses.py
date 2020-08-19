@@ -383,7 +383,7 @@ int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop);
 int ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);
 int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ystop, int xstop);
-int ncplane_highgradient_sized(struct ncplane* n, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);
+int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ylen, int xlen);
 int ncplane_putsimple_stainable(struct ncplane* n, char c);
 int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
 int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
