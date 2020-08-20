@@ -151,20 +151,21 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
 }
 
 // Extracellular state for a cell during the render process. This array is
-// passed along to rasterization, which uses only the 'damaged' bools.
+// passed along to rasterization, which uses only the 'damaged' bools. There
+// is one crender per rendered cell, and they are initialized to all zeroes.
 struct crender {
   const ncplane *p;
   unsigned fgblends;
   unsigned bgblends;
-  bool damaged;       // also used in rasterization
-  // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
-  // background is locked in. set highcontrast to indicate this.
-  bool highcontrast;
   // we'll need recalculate the foreground relative to the solved background,
   // and then reapply any foreground shading from above the highcontrast
   // declaration. save the foreground state when we go highcontrast.
   unsigned hcfgblends; // number of foreground blends prior to HIGHCONTRAST
   uint32_t hcfg;       // foreground channel prior to HIGHCONTRAST
+  bool damaged;       // also used in rasterization
+  // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
+  // background is locked in. set highcontrast to indicate this.
+  bool highcontrast;
 };
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
