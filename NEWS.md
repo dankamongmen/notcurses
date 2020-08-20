@@ -10,6 +10,9 @@ rearrangements of Notcurses.
     more general form, capable of projecting arbitrary subregions of the source
     plane down to the destination plane. The source argument to
     `ncplane_mergedown_simple()` is now `const`.
+  * `iprefix()` has been added, corresponding to `IPREFIXSTRLEN`. This ought
+    be used if you want binary prefixes without the 'i' suffix indicating
+    binary prefixes, which I predict will endear you to exactly no one.
 
 * 1.6.15 (2020-08-16)
   * Styles now work properly with `ncdirect`, which apparently has never

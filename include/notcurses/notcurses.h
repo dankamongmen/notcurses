@@ -2526,6 +2526,12 @@ qprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
 }
 
+// Mibi, kebi, gibibytes sans 'i' suffix. Use IPREFIXSTRLEN + 1.
+static inline const char*
+iprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+  return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
+}
+
 // Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1.
 static inline const char*
 bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
