@@ -378,6 +378,9 @@ If things break or seem otherwise lackluster, **please** consult the
 * *Q:* I pretty much always need an `ncplane` when using a `cell`. Why doesn't the latter hold a point to the former?
 * *A:* Besides the massive redundancy this would entail, `cell` needs to remain as small as possible, and you almost always have the `ncplane` handy if you've got a reference to a valid `cell` anyway.
 
+* *Q*: I ran `notcurses-demo` with a single demo, but my summary numbers don't match that demo's numbers, you charlatan.
+* *A*: `notcurses-demo` renders several frames beyond the actual demos.
+
 ## Supplemental material
 
 ### Useful links

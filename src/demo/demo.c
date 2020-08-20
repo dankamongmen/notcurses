@@ -374,7 +374,7 @@ summary_table(struct ncdirect* nc, const char* spec){
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     if(results[i].stats.renders){
-      qprefix((double)results[i].stats.renders * GIG / results[i].stats.render_ns, 1, tfpsbuf, 0);
+      qprefix((uintmax_t)results[i].stats.renders * GIG * 1000 / results[i].stats.render_ns, 1000, tfpsbuf, 0);
     }else{
       qprefix(0, GIG, tfpsbuf, 0);
     }
