@@ -57,12 +57,11 @@
 
 //use core::mem::transmute;
 
-use crate as ffi;
-use ffi::types::{
-    AlphaBits, Channel, ChannelPair, CellGcluster, Color, EGC, IntResult, PaletteIndex, StyleMask,
+use crate as nc;
+use nc::types::{
+    AlphaBits, CellGcluster, Channel, ChannelPair, Color, IntResult, PaletteIndex, StyleMask, EGC,
 };
-use ffi::{cell, ncplane};
-
+use nc::{cell, ncplane};
 
 /// cell_load(), plus blast the styling with 'style' and 'channels'.
 ///
@@ -78,25 +77,23 @@ use ffi::{cell, ncplane};
 // TODO: TEST!
 #[allow(unused_unsafe)]
 pub unsafe fn cell_prime(
-    plane: &mut ffi::ncplane,
-    cell: &mut ffi::cell,
+    plane: &mut nc::ncplane,
+    cell: &mut nc::cell,
     gcluster: *const i8,
     style: StyleMask,
     channels: ChannelPair,
 ) -> IntResult {
-
     cell.stylemask = style;
     cell.channels = channels;
     unsafe {
-        ffi::cell_load(plane, cell, gcluster)
+        nc::cell_load(plane, cell, gcluster)
 
         //let mut egc_bytes: [u8; 4] = gcluster.to_ne_bytes(); // < TODO: WIP (u8...)
 
         //let egc_bytes = transmute::<EGC, [i8; 4]>(gcluster);
-        //ffi::cell_load(plane, cell, &egc_bytes as *const i8)
+        //nc::cell_load(plane, cell, &egc_bytes as *const i8)
     }
 }
-
 
 /// load up six cells with the EGCs necessary to draw a box.
 ///
@@ -124,7 +121,6 @@ pub unsafe fn cells_load_box(
     vl: &mut cell,
     gcluster: *const i8, // WIP EGC
 ) -> IntResult {
-
     //let gcluster = transmute::<EGC, *const u8>(gcluster); // WIP EGC
 
     let mut ulen: IntResult;
@@ -132,42 +128,51 @@ pub unsafe fn cells_load_box(
 
     ulen = unsafe { cell_prime(plane, ul, gclu, style, channels) };
 
-    if ulen > 0 { // 1
+    if ulen > 0 {
         gclu = unsafe { gclu.offset(ulen as isize) };
         ulen = unsafe { cell_prime(plane, ur, gclu, style, channels) };
 
-        if ulen > 0 { // 2
+        if ulen > 0 {
             gclu = unsafe { gclu.offset(ulen as isize) };
             ulen = unsafe { cell_prime(plane, ll, gclu, style, channels) };
 
-            if ulen > 0 { // 3
+            if ulen > 0 {
                 gclu = unsafe { gcluster.offset(ulen as isize) };
                 ulen = unsafe { cell_prime(plane, lr, gclu, style, channels) };
 
-                if ulen > 0 { // 4
+                if ulen > 0 {
                     gclu = unsafe { gcluster.offset(ulen as isize) };
                     ulen = unsafe { cell_prime(plane, hl, gclu, style, channels) };
 
-                    if ulen > 0 { // 5
+                    if ulen > 0 {
                         gclu = unsafe { gcluster.offset(ulen as isize) };
                         ulen = unsafe { cell_prime(plane, vl, gclu, style, channels) };
 
-                        if ulen > 0 { // 6
+                        if ulen > 0 {
                             return 0;
                         }
-                        unsafe {ffi::cell_release(plane, hl);}
+                        unsafe {
+                            nc::cell_release(plane, hl);
+                        }
                     }
-                    unsafe {ffi::cell_release(plane, lr);}
+                    unsafe {
+                        nc::cell_release(plane, lr);
+                    }
                 }
-                unsafe {ffi::cell_release(plane, ll);}
+                unsafe {
+                    nc::cell_release(plane, ll);
+                }
             }
-            unsafe {ffi::cell_release(plane, ur);}
+            unsafe {
+                nc::cell_release(plane, ur);
+            }
         }
-        unsafe {ffi::cell_release(plane, ul);}
+        unsafe {
+            nc::cell_release(plane, ul);
+        }
     }
     -1
 }
-
 
 ///
 // TODO: TEST
@@ -182,7 +187,7 @@ pub fn cell_init(cell: &mut cell) {
 // TODO: TEST
 #[inline]
 pub fn cell_styles_set(cell: &mut cell, stylebits: StyleMask) {
-    cell.stylemask = stylebits & ffi::NCSTYLE_MASK as u16;
+    cell.stylemask = stylebits & nc::NCSTYLE_MASK as u16;
 }
 
 /// Extract the style bits from the cell.
@@ -197,42 +202,42 @@ pub fn cell_styles(cell: &cell) -> StyleMask {
 // TODO: TEST
 #[inline]
 pub fn cell_styles_on(cell: &mut cell, stylebits: StyleMask) {
-    cell.stylemask |= stylebits & ffi::NCSTYLE_MASK as u16;
+    cell.stylemask |= stylebits & nc::NCSTYLE_MASK as u16;
 }
 
 /// Remove the specified styles (in the LSBs) from the cell's existing spec.
 // TODO: TEST
 #[inline]
 pub fn cell_styles_off(cell: &mut cell, stylebits: StyleMask) {
-    cell.stylemask &= !(stylebits & ffi::NCSTYLE_MASK as u16);
+    cell.stylemask &= !(stylebits & nc::NCSTYLE_MASK as u16);
 }
 
 /// Use the default color for the foreground.
 // TODO: TEST
 #[inline]
 pub fn cell_set_fg_default(cell: &mut cell) {
-    ffi::channels_set_fg_default(&mut cell.channels);
+    nc::channels_set_fg_default(&mut cell.channels);
 }
 
 /// Use the default color for the background.
 // TODO: TEST
 #[inline]
 pub fn cell_set_bg_default(cell: &mut cell) {
-    ffi::channels_set_bg_default(&mut cell.channels);
+    nc::channels_set_bg_default(&mut cell.channels);
 }
 
 /// Set the foreground alpha.
 // TODO: TEST
 #[inline]
 pub fn cell_set_fg_alpha(cell: &mut cell, alpha: AlphaBits) {
-    ffi::channels_set_fg_alpha(&mut cell.channels, alpha);
+    nc::channels_set_fg_alpha(&mut cell.channels, alpha);
 }
 
 /// Set the background alpha.
 // TODO: TEST
 #[inline]
 pub fn cell_set_bg_alpha(cell: &mut cell, alpha: AlphaBits) {
-    ffi::channels_set_bg_alpha(&mut cell.channels, alpha);
+    nc::channels_set_bg_alpha(&mut cell.channels, alpha);
 }
 
 /// Does the cell contain an East Asian Wide codepoint?
@@ -240,7 +245,7 @@ pub fn cell_set_bg_alpha(cell: &mut cell, alpha: AlphaBits) {
 // NOTE: remove casting when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub fn cell_double_wide_p(cell: &cell) -> bool {
-    (cell.channels & ffi::CELL_WIDEASIAN_MASK as u64) != 0
+    (cell.channels & nc::CELL_WIDEASIAN_MASK as u64) != 0
 }
 
 /// Is this the right half of a wide character?
@@ -263,12 +268,13 @@ pub fn cell_wide_left_p(cell: &cell) -> bool {
 #[inline]
 pub fn cell_strdup(plane: &ncplane, cell: &cell) -> EGC {
     core::char::from_u32(
-        unsafe {libc::strdup(ffi::cell_extended_gcluster(plane, cell)) } as i32 as u32)
-        .expect("wrong char")
+        unsafe { libc::strdup(nc::cell_extended_gcluster(plane, cell)) } as i32 as u32,
+    )
+    .expect("wrong char")
 
     // unsafer option B (maybe faster, TODO: bench)
     // unsafe {
-    //     core::char::from_u32_unchecked(libc::strdup(ffi::cell_extended_gcluster(plane, cell)) as i32 as u32)
+    //     core::char::from_u32_unchecked(libc::strdup(nc::cell_extended_gcluster(plane, cell)) as i32 as u32)
     // }
 }
 
@@ -304,9 +310,9 @@ pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -
         return true;
     }
     unsafe {
-        ffi::strcmp(
-            ffi::cell_extended_gcluster(plane1, cell1),
-            ffi::cell_extended_gcluster(plane2, cell2),
+        nc::strcmp(
+            nc::cell_extended_gcluster(plane1, cell1),
+            nc::cell_extended_gcluster(plane2, cell2),
         ) != 0
     }
 }
@@ -316,9 +322,9 @@ pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -
 #[inline]
 pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: EGC) -> i32 {
     unsafe {
-        ffi::cell_release(plane, cell);
+        nc::cell_release(plane, cell);
     }
-    cell.channels &= !(ffi::CELL_WIDEASIAN_MASK as u64 | ffi::CELL_NOBACKGROUND_MASK);
+    cell.channels &= !(nc::CELL_WIDEASIAN_MASK as u64 | nc::CELL_NOBACKGROUND_MASK);
     cell.gcluster = ch as CellGcluster;
     1
 }
@@ -327,70 +333,70 @@ pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: EGC) -> i32 {
 // TODO: TEST
 #[inline]
 pub fn cell_bchannel(cell: &cell) -> Channel {
-    ffi::channels_bchannel(cell.channels)
+    nc::channels_bchannel(cell.channels)
 }
 
 /// Extract the 32-bit foreground channel from a cell.
 // TODO: TEST
 #[inline]
 pub fn cell_fchannel(cell: &cell) -> Channel {
-    ffi::channels_fchannel(cell.channels)
+    nc::channels_fchannel(cell.channels)
 }
 
 /// Set the 32-bit background channel of a cell.
 // TODO: TEST
 #[inline]
 pub fn cell_set_bchannel(cell: &mut cell, channel: Channel) -> ChannelPair {
-    ffi::channels_set_bchannel(&mut cell.channels, channel)
+    nc::channels_set_bchannel(&mut cell.channels, channel)
 }
 
 /// Set the 32-bit foreground channel of a cell.
 // TODO: TEST
 #[inline]
 pub fn cell_set_fchannel(cell: &mut cell, channel: Channel) -> ChannelPair {
-    ffi::channels_set_fchannel(&mut cell.channels, channel)
+    nc::channels_set_fchannel(&mut cell.channels, channel)
 }
 
 /// Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn cell_fg(cell: &cell) -> Channel {
-    ffi::channels_fg(cell.channels)
+    nc::channels_fg(cell.channels)
 }
 
 /// Extract 24 bits of background RGB from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn cell_bg(cell: &cell) -> Channel {
-    ffi::channels_bg(cell.channels)
+    nc::channels_bg(cell.channels)
 }
 
 /// Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn cell_fg_alpha(cell: &cell) -> AlphaBits {
-    ffi::channels_fg_alpha(cell.channels)
+    nc::channels_fg_alpha(cell.channels)
 }
 
 /// Extract 2 bits of background alpha from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn cell_bg_alpha(cell: &cell) -> AlphaBits {
-    ffi::channels_bg_alpha(cell.channels)
+    nc::channels_bg_alpha(cell.channels)
 }
 
 /// Extract 24 bits of foreground RGB from 'cell', split into components.
 // TODO: TEST
 #[inline]
 pub fn cell_fg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
-    ffi::channels_fg_rgb(cell.channels, red, green, blue)
+    nc::channels_fg_rgb(cell.channels, red, green, blue)
 }
 
 /// Extract 24 bits of background RGB from 'cell', split into components.
 // TODO: TEST
 #[inline]
 pub fn cell_bg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
-    ffi::channels_bg_rgb(cell.channels, red, green, blue)
+    nc::channels_bg_rgb(cell.channels, red, green, blue)
 }
 
 /// Set the r, g, and b cell for the foreground component of this 64-bit
@@ -398,14 +404,14 @@ pub fn cell_bg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut C
 // TODO: TEST
 #[inline]
 pub fn cell_set_fg_rgb(cell: &mut cell, red: Color, green: Color, blue: Color) {
-    ffi::channels_set_fg_rgb(&mut cell.channels, red, green, blue);
+    nc::channels_set_fg_rgb(&mut cell.channels, red, green, blue);
 }
 
 /// Same as `cell_set_fg_rgb()` but with an assembled 24-bit RGB value.
 // TODO: TEST
 #[inline]
 pub fn cell_set_fg(cell: &mut cell, channel: Channel) {
-    ffi::channels_set_fg(&mut cell.channels, channel);
+    nc::channels_set_fg(&mut cell.channels, channel);
 }
 
 /// Set the cell's foreground palette index, set the foreground palette index
@@ -415,9 +421,9 @@ pub fn cell_set_fg(cell: &mut cell, channel: Channel) {
 // NOTE: this function now can't fail
 #[inline]
 pub fn cell_set_fg_palindex(cell: &mut cell, index: PaletteIndex) {
-    cell.channels |= ffi::CELL_FGDEFAULT_MASK;
-    cell.channels |= ffi::CELL_FG_PALETTE;
-    cell_set_fg_alpha(cell, ffi::CELL_ALPHA_OPAQUE);
+    cell.channels |= nc::CELL_FGDEFAULT_MASK;
+    cell.channels |= nc::CELL_FG_PALETTE;
+    cell_set_fg_alpha(cell, nc::CELL_ALPHA_OPAQUE);
     cell.channels &= 0xff000000ffffffff_u64;
     cell.channels |= (index as u64) << 32;
 }
@@ -434,7 +440,7 @@ pub fn cell_fg_palindex(cell: &cell) -> PaletteIndex {
 // TODO: TEST
 #[inline]
 pub fn cell_set_bg_rgb(cell: &mut cell, red: Color, green: Color, blue: Color) {
-    ffi::channels_set_bg_rgb(&mut cell.channels, red, green, blue);
+    nc::channels_set_bg_rgb(&mut cell.channels, red, green, blue);
 }
 
 /// Same as `cell_set_fg_rgb()` but with an assembled 24-bit RGB value.
@@ -442,7 +448,7 @@ pub fn cell_set_bg_rgb(cell: &mut cell, red: Color, green: Color, blue: Color) {
 // TODO: TEST
 #[inline]
 pub fn cell_set_bg(cell: &mut cell, channel: Channel) {
-    ffi::channels_set_bg(&mut cell.channels, channel);
+    nc::channels_set_bg(&mut cell.channels, channel);
 }
 
 /// Set the cell's background palette index, set the background palette index
@@ -452,9 +458,9 @@ pub fn cell_set_bg(cell: &mut cell, channel: Channel) {
 // NOTE: this function now can't fail
 #[inline]
 pub fn cell_set_bg_palindex(cell: &mut cell, index: PaletteIndex) {
-    cell.channels |= ffi::CELL_BGDEFAULT_MASK as u64;
-    cell.channels |= ffi::CELL_BG_PALETTE as u64;
-    cell_set_bg_alpha(cell, ffi::CELL_ALPHA_OPAQUE);
+    cell.channels |= nc::CELL_BGDEFAULT_MASK as u64;
+    cell.channels |= nc::CELL_BG_PALETTE as u64;
+    cell_set_bg_alpha(cell, nc::CELL_ALPHA_OPAQUE);
     cell.channels &= 0xffffffffff000000;
     cell.channels |= index as u64;
 }
@@ -469,12 +475,12 @@ pub fn cell_bg_palindex(cell: &cell) -> PaletteIndex {
 // TODO: TEST
 #[inline]
 pub fn cell_fg_default_p(cell: &cell) -> bool {
-    ffi::channels_fg_default_p(cell.channels)
+    nc::channels_fg_default_p(cell.channels)
 }
 // TODO: TEST
 #[inline]
 pub fn cell_fg_palindex_p(cell: &cell) -> bool {
-    ffi::channels_fg_palindex_p(cell.channels)
+    nc::channels_fg_palindex_p(cell.channels)
 }
 
 /// Is the background using the "default background color"? The "default
@@ -483,18 +489,18 @@ pub fn cell_fg_palindex_p(cell: &cell) -> bool {
 // TODO: TEST
 #[inline]
 pub fn cell_bg_default_p(cell: &cell) -> bool {
-    ffi::channels_bg_default_p(cell.channels)
+    nc::channels_bg_default_p(cell.channels)
 }
 
 // TODO: TEST
 #[inline]
 pub fn cell_bg_palindex_p(cell: &cell) -> bool {
-    ffi::channels_bg_palindex_p(cell.channels)
+    nc::channels_bg_palindex_p(cell.channels)
 }
 
 #[cfg(test)]
 mod test {
-    // use super::ffi;
+    // use super::nc;
     // use serial_test::serial;
     /*
     #[test]

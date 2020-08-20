@@ -4,6 +4,7 @@
 #![no_std]
 #![allow(clippy::too_many_arguments)]
 
+// Include the bindgen bindings
 // see https://github.com/rust-lang/rust-bindgen/issues/1470
 #[allow(clippy::all)]
 mod bindings {
@@ -35,21 +36,22 @@ pub use pixel::*;
 pub use plane::*;
 pub use types::*;
 
+// TODO: move tests out
 #[cfg(test)]
 mod tests {
     use core::ptr::{null, null_mut};
     use cstr_core::{CStr, CString};
 
     use libc_print::*;
-    use serial_test::serial; // serialize tests w/ ffi::notcurses_init()
+    use serial_test::serial; // serialize tests w/ nc::notcurses_init()
 
-    use crate as ffi;
+    use crate as nc;
 
     #[test]
     #[serial]
     fn get_notcurses_version() {
         let c_str = unsafe {
-            let s = ffi::notcurses_version();
+            let s = nc::notcurses_version();
             assert!(!s.is_null());
             CStr::from_ptr(s)
         };
@@ -62,7 +64,7 @@ mod tests {
     fn create_notcurses_context() {
         unsafe {
             let _ = libc::setlocale(libc::LC_ALL, CString::new("").unwrap().as_ptr());
-            let opts = ffi::notcurses_options {
+            let opts = nc::notcurses_options {
                 loglevel: 0,
                 termtype: null(),
                 renderfp: null_mut(),
@@ -70,10 +72,10 @@ mod tests {
                 margin_r: 0,
                 margin_b: 0,
                 margin_l: 0,
-                flags: (ffi::NCOPTION_NO_ALTERNATE_SCREEN | ffi::NCOPTION_INHIBIT_SETLOCALE) as u64,
+                flags: (nc::NCOPTION_NO_ALTERNATE_SCREEN | nc::NCOPTION_INHIBIT_SETLOCALE) as u64,
             };
-            let nc = ffi::notcurses_init(&opts, null_mut());
-            ffi::notcurses_stop(nc);
+            let nc = nc::notcurses_init(&opts, null_mut());
+            nc::notcurses_stop(nc);
         }
     }
 
@@ -82,8 +84,8 @@ mod tests {
     fn create_direct_context() {
         unsafe {
             let _ = libc::setlocale(libc::LC_ALL, CString::new("").unwrap().as_ptr());
-            let nc = ffi::ncdirect_init(null_mut(), null_mut());
-            ffi::ncdirect_stop(nc);
+            let nc = nc::ncdirect_init(null_mut(), null_mut());
+            nc::ncdirect_stop(nc);
         }
     }
 }

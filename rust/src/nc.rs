@@ -48,22 +48,22 @@
 
 use core::ptr::null;
 
-use crate as ffi;
-use ffi::{ncinput, ncplane, notcurses};
+use crate as nc;
+use nc::{ncinput, ncplane, notcurses};
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// If no event is ready, returns 0.
 // TODO: TEST
 #[inline]
-pub fn notcurses_getc_nblock(nc: &mut notcurses, input: &mut ncinput) -> ffi::char32_t {
+pub fn notcurses_getc_nblock(nc: &mut notcurses, input: &mut ncinput) -> nc::char32_t {
     unsafe {
-        let mut sigmask = ffi::sigset_t { __val: [0; 16] };
-        ffi::sigfillset(&mut sigmask);
-        let ts = ffi::timespec {
+        let mut sigmask = nc::sigset_t { __val: [0; 16] };
+        nc::sigfillset(&mut sigmask);
+        let ts = nc::timespec {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        ffi::notcurses_getc(nc, &ts, &mut sigmask, input)
+        nc::notcurses_getc(nc, &ts, &mut sigmask, input)
     }
 }
 
@@ -71,11 +71,11 @@ pub fn notcurses_getc_nblock(nc: &mut notcurses, input: &mut ncinput) -> ffi::ch
 /// Blocks until an event is processed or a signal is received.
 // TODO: TEST
 #[inline]
-pub fn notcurses_getc_nblocking(nc: &mut notcurses, input: &mut ncinput) -> ffi::char32_t {
+pub fn notcurses_getc_nblocking(nc: &mut notcurses, input: &mut ncinput) -> nc::char32_t {
     unsafe {
-        let mut sigmask = ffi::sigset_t { __val: [0; 16] };
-        ffi::sigemptyset(&mut sigmask);
-        ffi::notcurses_getc(nc, null(), &mut sigmask, input)
+        let mut sigmask = nc::sigset_t { __val: [0; 16] };
+        nc::sigemptyset(&mut sigmask);
+        nc::notcurses_getc(nc, null(), &mut sigmask, input)
     }
 }
 
@@ -84,8 +84,8 @@ pub fn notcurses_getc_nblocking(nc: &mut notcurses, input: &mut ncinput) -> ffi:
 #[inline]
 pub fn notcurses_stddim_yx(nc: &mut notcurses, y: &mut i32, x: &mut i32) -> ncplane {
     unsafe {
-        let s = ffi::notcurses_stdplane(nc);
-        ffi::ncplane_dim_yx(s, y, x);
+        let s = nc::notcurses_stdplane(nc);
+        nc::ncplane_dim_yx(s, y, x);
         *s
     }
 }
@@ -95,13 +95,13 @@ pub fn notcurses_stddim_yx(nc: &mut notcurses, y: &mut i32, x: &mut i32) -> ncpl
 #[inline]
 pub fn notcurses_term_dim_yx(nc: &notcurses, rows: &mut i32, cols: &mut i32) {
     unsafe {
-        ffi::ncplane_dim_yx(ffi::notcurses_stdplane_const(nc), rows, cols);
+        nc::ncplane_dim_yx(nc::notcurses_stdplane_const(nc), rows, cols);
     }
 }
 
 #[cfg(test)]
 mod test {
-    // use super::ffi;
+    // use super::nc;
     // use serial_test::serial;
     /*
     #[test]

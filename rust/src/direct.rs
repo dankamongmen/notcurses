@@ -37,11 +37,11 @@
 // ncdirect_vline_interp
 //
 
-use crate as ffi;
-use ffi::ncdirect;
+use crate as nc;
+use nc::ncdirect;
 
 extern "C" {
-    fn libc_stdout() -> *mut ffi::_IO_FILE;
+    fn libc_stdout() -> *mut nc::_IO_FILE;
 }
 
 /// A simple ncdirect_init() wrapper
@@ -53,13 +53,12 @@ extern "C" {
 /// This can be used to add color and styling to text in the standard output paradigm.
 /// Returns NULL on error, including any failure initializing terminfo.
 pub unsafe fn ncdirect_start() -> *mut ncdirect {
-    ffi::ncdirect_init(core::ptr::null(), libc_stdout())
+    nc::ncdirect_init(core::ptr::null(), libc_stdout())
 }
-
 
 #[cfg(test)]
 mod test {
-    // use super::ffi;
+    // use super::nc;
     // use serial_test::serial;
     /*
     #[test]
@@ -68,4 +67,3 @@ mod test {
     }
     */
 }
-

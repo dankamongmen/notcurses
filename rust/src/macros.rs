@@ -1,4 +1,3 @@
-
 // #define CELL_INITIALIZER(c, s, chan) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 #[macro_export]
 macro_rules! cell_initializer {
@@ -20,7 +19,6 @@ macro_rules! cell_simple_initializer {
         cell_initializer![$c, 0, 0]
     };
 }
-
 
 // #define CELL_TRIVIAL_INITIALIZER { }
 #[macro_export]

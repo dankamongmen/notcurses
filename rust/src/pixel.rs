@@ -27,7 +27,8 @@
 //+ncpixel_set_r
 //+ncpixel_set_rgb
 
-use crate::types::{Color, Pixel};
+use crate as nc;
+use nc::{Color, Pixel};
 
 // Pixel Structure:
 //
@@ -90,7 +91,7 @@ pub fn ncpixel_set_rgb(pixel: &mut Pixel, red: Color, green: Color, blue: Color)
 
 #[cfg(test)]
 mod test {
-    // use super::ffi;
+    // use super::nc;
     // use serial_test::serial;
     /*
     #[test]

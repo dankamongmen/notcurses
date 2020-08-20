@@ -9,7 +9,7 @@
 //+nckey_mouse_p
 //+nckey_supppuab_p
 
-use crate as ffi;
+use crate as nc;
 
 /// Is this char32_t a Supplementary Private Use Area-B codepoint?
 // TODO: TEST
@@ -22,12 +22,12 @@ pub fn nckey_supppuab_p(w: u32) -> bool {
 // TODO: TEST
 #[inline]
 pub fn nckey_mouse_p(r: u32) -> bool {
-    r >= ffi::NCKEY_BUTTON1 && r <= ffi::NCKEY_RELEASE
+    r >= nc::NCKEY_BUTTON1 && r <= nc::NCKEY_RELEASE
 }
 
 #[cfg(test)]
 mod test {
-    // use super::ffi;
+    // use super::nc;
     // use serial_test::serial;
     /*
     #[test]

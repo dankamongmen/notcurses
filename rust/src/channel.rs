@@ -59,7 +59,7 @@
 
 #![allow(dead_code)]
 
-use crate as ffi;
+use crate as nc;
 
 use crate::types::{AlphaBits, Channel, ChannelPair, Color, Rgb};
 
@@ -95,31 +95,31 @@ pub fn channel_rgb(channel: Channel, r: &mut Color, g: &mut Color, b: &mut Color
 #[inline]
 pub fn channel_set_rgb(channel: &mut Channel, r: Color, g: Color, b: Color) {
     let rgb: Rgb = (r as Channel) << 16 | (g as Channel) << 8 | (b as Channel);
-    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | rgb;
+    *channel = (*channel & !nc::CELL_BG_RGB_MASK) | nc::CELL_BGDEFAULT_MASK | rgb;
 }
 
 /// Same as channel_set_rgb(), but provide an assembled, packed 24 bits of rgb.
 // TODO: TEST
 #[inline]
 pub fn channel_set(channel: &mut Channel, rgb: Rgb) {
-    *channel = (*channel & !ffi::CELL_BG_RGB_MASK) | ffi::CELL_BGDEFAULT_MASK | (rgb & 0x00ffffff);
+    *channel = (*channel & !nc::CELL_BG_RGB_MASK) | nc::CELL_BGDEFAULT_MASK | (rgb & 0x00ffffff);
 }
 
 /// Extract the 2-bit alpha component from a 32-bit channel.
 #[inline]
 pub fn channel_alpha(channel: Channel) -> AlphaBits {
-    channel & ffi::NCCHANNEL_ALPHA_MASK
+    channel & nc::NCCHANNEL_ALPHA_MASK
 }
 
 /// Set the 2-bit alpha component of the 32-bit channel.
 #[inline]
 pub fn channel_set_alpha(channel: &mut Channel, alpha: AlphaBits) {
-    let alpha_clean = alpha & ffi::NCCHANNEL_ALPHA_MASK;
-    *channel = alpha_clean | (*channel & !ffi::NCCHANNEL_ALPHA_MASK);
+    let alpha_clean = alpha & nc::NCCHANNEL_ALPHA_MASK;
+    *channel = alpha_clean | (*channel & !nc::NCCHANNEL_ALPHA_MASK);
 
-    if alpha != ffi::CELL_ALPHA_OPAQUE {
+    if alpha != nc::CELL_ALPHA_OPAQUE {
         // indicate that we are *not* using the default background color
-        *channel |= ffi::CELL_BGDEFAULT_MASK;
+        *channel |= nc::CELL_BGDEFAULT_MASK;
     }
 }
 
@@ -127,20 +127,20 @@ pub fn channel_set_alpha(channel: &mut Channel, alpha: AlphaBits) {
 // TODO: TEST
 #[inline]
 pub fn channel_default_p(channel: Channel) -> bool {
-    (channel & ffi::CELL_BGDEFAULT_MASK) == 0
+    (channel & nc::CELL_BGDEFAULT_MASK) == 0
 }
 
 /// Is this channel using palette-indexed color rather than RGB?
 // TODO: TEST
 #[inline]
 pub fn channel_palindex_p(channel: Channel) -> bool {
-    !channel_default_p(channel) && (channel & ffi::CELL_BG_PALETTE) == 0
+    !channel_default_p(channel) && (channel & nc::CELL_BG_PALETTE) == 0
 }
 
 /// Mark the channel as using its default color, which also marks it opaque.
 #[inline]
 pub fn channel_set_default(channel: &mut Channel) -> Channel {
-    *channel &= !(ffi::CELL_BGDEFAULT_MASK | ffi::CELL_ALPHA_HIGHCONTRAST); // < NOTE shouldn't be better NCCHANNEL_ALPHA_MASK?
+    *channel &= !(nc::CELL_BGDEFAULT_MASK | nc::CELL_ALPHA_HIGHCONTRAST); // < NOTE shouldn't be better NCCHANNEL_ALPHA_MASK?
     *channel
 }
 
@@ -183,14 +183,14 @@ pub fn channels_combine(fchannel: Channel, bchannel: Channel) -> ChannelPair {
 // TODO: TEST
 #[inline]
 pub fn channels_fg(channels: ChannelPair) -> Channel {
-    channels_fchannel(channels) & ffi::CELL_BG_RGB_MASK
+    channels_fchannel(channels) & nc::CELL_BG_RGB_MASK
 }
 
 /// Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 // TODO: TEST
 #[inline]
 pub fn channels_bg(channels: ChannelPair) -> Channel {
-    channels_bchannel(channels) & ffi::CELL_BG_RGB_MASK
+    channels_bchannel(channels) & nc::CELL_BG_RGB_MASK
 }
 
 /// Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
@@ -283,9 +283,9 @@ pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: AlphaBits) {
 #[inline]
 pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: AlphaBits) {
     let mut alpha_clean = alpha;
-    if alpha == ffi::CELL_ALPHA_HIGHCONTRAST {
+    if alpha == nc::CELL_ALPHA_HIGHCONTRAST {
         // forbidden for background alpha, so makes it opaque
-        alpha_clean = ffi::CELL_ALPHA_OPAQUE;
+        alpha_clean = nc::CELL_ALPHA_OPAQUE;
     }
     let mut channel = channels_bchannel(*channels);
     channel_set_alpha(&mut channel, alpha_clean);
@@ -344,7 +344,7 @@ pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
 
 #[cfg(test)]
 mod test {
-    use super::{ffi, Channel, ChannelPair};
+    use super::{nc, Channel, ChannelPair};
     use serial_test::serial;
 
     #[test]
@@ -389,25 +389,25 @@ mod test {
     #[test]
     #[serial]
     fn channel_alpha() {
-        let c: Channel = 0x112233 | ffi::CELL_ALPHA_TRANSPARENT;
-        assert_eq!(super::channel_alpha(c), ffi::CELL_ALPHA_TRANSPARENT);
+        let c: Channel = 0x112233 | nc::CELL_ALPHA_TRANSPARENT;
+        assert_eq!(super::channel_alpha(c), nc::CELL_ALPHA_TRANSPARENT);
     }
     #[test]
     #[serial]
     fn channel_set_alpha() {
         let mut c: Channel = 0x112233;
-        super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_HIGHCONTRAST);
-        assert_eq!(ffi::CELL_ALPHA_HIGHCONTRAST, super::channel_alpha(c));
+        super::channel_set_alpha(&mut c, nc::CELL_ALPHA_HIGHCONTRAST);
+        assert_eq!(nc::CELL_ALPHA_HIGHCONTRAST, super::channel_alpha(c));
 
-        super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_TRANSPARENT);
-        assert_eq!(ffi::CELL_ALPHA_TRANSPARENT, super::channel_alpha(c));
+        super::channel_set_alpha(&mut c, nc::CELL_ALPHA_TRANSPARENT);
+        assert_eq!(nc::CELL_ALPHA_TRANSPARENT, super::channel_alpha(c));
 
-        super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_BLEND);
-        assert_eq!(ffi::CELL_ALPHA_BLEND, super::channel_alpha(c));
+        super::channel_set_alpha(&mut c, nc::CELL_ALPHA_BLEND);
+        assert_eq!(nc::CELL_ALPHA_BLEND, super::channel_alpha(c));
 
-        super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_OPAQUE);
-        assert_eq!(ffi::CELL_ALPHA_OPAQUE, super::channel_alpha(c));
-        // TODO: CHECK for ffi::CELL_BGDEFAULT_MASK
+        super::channel_set_alpha(&mut c, nc::CELL_ALPHA_OPAQUE);
+        assert_eq!(nc::CELL_ALPHA_OPAQUE, super::channel_alpha(c));
+        // TODO: CHECK for nc::CELL_BGDEFAULT_MASK
     }
 
     #[test]
@@ -415,7 +415,7 @@ mod test {
     fn channel_set_default() {
         const DEFAULT: Channel = 0x112233;
 
-        let mut c: Channel = DEFAULT | ffi::CELL_ALPHA_TRANSPARENT;
+        let mut c: Channel = DEFAULT | nc::CELL_ALPHA_TRANSPARENT;
         assert!(c != DEFAULT);
 
         super::channel_set_default(&mut c);
@@ -429,10 +429,10 @@ mod test {
         assert_eq!(true, super::channel_default_p(c));
 
         // TODO FIXME: test for the false result
-        // let _ = super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_TRANSPARENT);
+        // let _ = super::channel_set_alpha(&mut c, nc::CELL_ALPHA_TRANSPARENT);
         // assert_eq!(false, super::channel_default_p(c));
 
-        let _ = super::channel_set_alpha(&mut c, ffi::CELL_ALPHA_OPAQUE);
+        let _ = super::channel_set_alpha(&mut c, nc::CELL_ALPHA_OPAQUE);
         assert_eq!(true, super::channel_default_p(c));
     }
     #[test]
