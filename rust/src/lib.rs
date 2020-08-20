@@ -16,6 +16,7 @@ mod macros;
 
 mod cells;
 mod channel;
+mod direct;
 mod key;
 mod keycodes;
 mod nc;
@@ -25,6 +26,7 @@ mod plane;
 mod types;
 pub use cells::*;
 pub use channel::*;
+pub use direct::*;
 pub use key::*;
 pub use keycodes::*;
 pub use nc::*;

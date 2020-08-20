@@ -2,14 +2,9 @@ use cstr_core::CString;
 
 use libnotcurses_sys as nc;
 
-extern "C" {
-    fn libc_stdout() -> *mut nc::_IO_FILE;
-}
-
 fn main() {
     unsafe {
-        let _ = libc::setlocale(libc::LC_ALL, CString::new("").unwrap().as_ptr());
-        let ncd: *mut nc::ncdirect = nc::ncdirect_init(std::ptr::null(), libc_stdout());
+        let ncd = nc::ncdirect_start();
 
         render_image(&mut *ncd, nc::ncblitter_e_NCBLIT_1x1);
         render_image(&mut *ncd, nc::ncblitter_e_NCBLIT_2x1);
