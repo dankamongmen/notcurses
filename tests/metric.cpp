@@ -447,4 +447,15 @@ TEST_CASE("Metric") {
     CHECK(wcslen(smallsuffixes) * 3 > i);
   }
 
+  // inspired by #929
+  SUBCASE("BigMult") {
+    char qbuf[IPREFIXSTRLEN + 1];
+    CHECK(nullptr != qprefix(1115614, 1000, qbuf, '\0'));
+    CHECK(0 == strcmp("1.11K", qbuf));
+    CHECK(nullptr != iprefix(372688, 1024, qbuf, '\0'));
+    CHECK(0 == strcmp("363.95", qbuf));
+    CHECK(nullptr != iprefix(372688, 1, qbuf, '\0'));
+    CHECK(0 == strcmp("363.95K", qbuf));
+  }
+
 }

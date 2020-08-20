@@ -57,7 +57,7 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
   }
   int sprintfed;
   if(dv != mult){ // if consumed == 0, dv must equal mult
-    if(val / dv > 0){
+    if((val / decimal) / dv > 0){
       ++consumed;
     }else{
       dv /= mult;
