@@ -142,7 +142,7 @@ use core::ptr::null_mut;
 use cstr_core::CString;
 
 use crate as ffi;
-use ffi::types::{AlphaBits, Channel, ChannelPair, Color, EGCBackstop, IntResult, StyleMask};
+use ffi::types::{AlphaBits, Channel, ChannelPair, Color, EGC, EGCBackstop, IntResult, StyleMask};
 use ffi::{cell, ncalign_e, ncplane};
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
@@ -470,7 +470,7 @@ pub fn ncplane_putc(plane: &mut ncplane, cell: &cell) -> IntResult {
 /// Call ncplane_putsimple_yx() at the current cursor location.
 // TODO: TEST
 #[inline]
-pub fn ncplane_putsimple(plane: &mut ncplane, ch: char) -> IntResult {
+pub fn ncplane_putsimple(plane: &mut ncplane, ch: EGC) -> IntResult {
     ffi::ncplane_putsimple_yx(plane, -1, -1, ch)
 }
 
@@ -484,12 +484,12 @@ pub fn ncplane_putegc(plane: &mut ncplane, gcluster: i8, sbytes: &mut i32) -> In
 /// Replace the EGC underneath us, but retain the styling. The current styling
 /// of the plane will not be changed.
 ///
-/// Replace the cell at the specified coordinates with the provided 7-bit char
-/// 'ch'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
-/// This works whether the underlying char is signed or unsigned.
+/// Replace the cell at the specified coordinates with the provided 7-bit char 'ch'.
+/// Advance the cursor by 1. On success, returns 1. On failure, returns -1.
+///
 // TODO: TEST
 #[inline]
-pub fn ncplane_putsimple_yx(plane: &mut ncplane, y: i32, x: i32, ch: char) -> IntResult {
+pub fn ncplane_putsimple_yx(plane: &mut ncplane, y: i32, x: i32, ch: EGC) -> IntResult {
     let newcell = cell_initializer![ch, unsafe { ffi::ncplane_attr(plane) }, unsafe {
         ffi::ncplane_channels(plane)
     }];

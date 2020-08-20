@@ -140,7 +140,7 @@ pub type Pixel = u32;
 
 /// EGC (Extended Grapheme Cluster)
 ///
-/// These 32 bits, together with the associated plane's associated egcpool,
+/// This 32 bit char, together with the associated plane's associated egcpool,
 /// completely define this cell's EGC. Unless the EGC requires more than four
 /// bytes to encode as UTF-8, it will be inlined here:
 ///
@@ -174,9 +174,9 @@ pub type Pixel = u32;
 /// type in C: gcluster (uint32_t)
 ///
 // WIP towards a safe abstraction for Cell & functions receiving
-// pub type EGC = u32;
-// pub type EGC = char;
-// pub type EGC<'a> = &'a[u8];
+pub type EGC = char;
+// pub type EGCPool<'a> = &'a[u8];
+pub type CellGcluster = u32; // the type cell.gcluster expects the EGB to be
 
 /// EGC BackStop
 ///

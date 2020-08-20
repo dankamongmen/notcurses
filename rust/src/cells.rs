@@ -59,7 +59,7 @@
 
 use crate as ffi;
 use ffi::types::{
-    AlphaBits, Channel, ChannelPair, Color, IntResult, PaletteIndex, StyleMask,
+    AlphaBits, Channel, ChannelPair, CellGcluster, Color, EGC, IntResult, PaletteIndex, StyleMask,
 };
 use ffi::{cell, ncplane};
 
@@ -261,8 +261,10 @@ pub fn cell_wide_left_p(cell: &cell) -> bool {
 /// result is not tied to the ncplane, and persists across erases / destruction.
 // TODO: TEST
 #[inline]
-pub fn cell_strdup(plane: &ncplane, cell: &cell) -> *mut i8 {
-    unsafe { libc::strdup(ffi::cell_extended_gcluster(plane, cell)) }
+pub fn cell_strdup(plane: &ncplane, cell: &cell) -> EGC {
+    unsafe {
+        core::char::from_u32_unchecked(libc::strdup(ffi::cell_extended_gcluster(plane, cell)) as i32 as u32)
+    }
 }
 
 /// Extract the three elements of a cell.
@@ -273,7 +275,7 @@ pub fn cell_extract(
     cell: &cell,
     stylemask: &mut StyleMask,
     channels: &mut ChannelPair,
-) -> *mut i8 {
+) -> EGC {
     if *stylemask != 0 {
         *stylemask = cell.stylemask;
     }
@@ -307,12 +309,12 @@ pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -
 // TODO: TEST
 // NOTE: remove casting for CELL_WIEDASIAN_MASK when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
-pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: char) -> i32 {
+pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: EGC) -> i32 {
     unsafe {
         ffi::cell_release(plane, cell);
     }
     cell.channels &= !(ffi::CELL_WIDEASIAN_MASK as u64 | ffi::CELL_NOBACKGROUND_MASK);
-    cell.gcluster = ch as u32;
+    cell.gcluster = ch as CellGcluster;
     1
 }
 
