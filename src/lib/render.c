@@ -162,7 +162,7 @@ struct crender {
   // declaration. save the foreground state when we go highcontrast.
   unsigned hcfgblends; // number of foreground blends prior to HIGHCONTRAST
   uint32_t hcfg;       // foreground channel prior to HIGHCONTRAST
-  bool damaged;       // also used in rasterization
+  bool damaged;        // also used in rasterization
   // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
   // background is locked in. set highcontrast to indicate this.
   bool highcontrast;
@@ -371,6 +371,11 @@ postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
       lock_in_highcontrast(targc, crender);
       cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
+/*if(cell_simple_p(targc)){
+fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, targc->gcluster, y, x, absy, absx);
+}else{
+fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
+}*/
       if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
         crender->damaged = true;
         if(cell_wide_left_p(targc)){
