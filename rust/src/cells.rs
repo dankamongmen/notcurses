@@ -262,9 +262,14 @@ pub fn cell_wide_left_p(cell: &cell) -> bool {
 // TODO: TEST
 #[inline]
 pub fn cell_strdup(plane: &ncplane, cell: &cell) -> EGC {
-    unsafe {
-        core::char::from_u32_unchecked(libc::strdup(ffi::cell_extended_gcluster(plane, cell)) as i32 as u32)
-    }
+    core::char::from_u32(
+        unsafe {libc::strdup(ffi::cell_extended_gcluster(plane, cell)) } as i32 as u32)
+        .expect("wrong char")
+
+    // unsafer option B (maybe faster, TODO: bench)
+    // unsafe {
+    //     core::char::from_u32_unchecked(libc::strdup(ffi::cell_extended_gcluster(plane, cell)) as i32 as u32)
+    // }
 }
 
 /// Extract the three elements of a cell.
