@@ -31,7 +31,7 @@
 //+cell_fg_rgb
 //+cell_init
 //+cell_load_simple
-//+cell_prime                // (unsafe) TODO: WIP safer EGC type
+//+cell_prime
 //+cell_set_bchannel
 //+cell_set_bg
 //+cell_set_bg_alpha
@@ -46,7 +46,7 @@
 //+cell_set_fg_palindex
 //+cell_set_fg_rgb
 //xcell_set_fg_rgb_clipped   // unneeded
-//+cells_load_box            // (unsafe) TODO: WIP safer EGC type
+//+cells_load_box
 //+cell_strdup
 //+cell_styles
 //+cell_styles_off
@@ -54,8 +54,6 @@
 //+cell_styles_set
 //+cell_wide_left_p
 //+cell_wide_right_p
-
-//use core::mem::transmute;
 
 use crate as nc;
 use nc::types::{
@@ -79,19 +77,14 @@ use nc::{cell, ncplane};
 pub unsafe fn cell_prime(
     plane: &mut nc::ncplane,
     cell: &mut nc::cell,
-    gcluster: *const i8,
+    gcluster: EGC,
     style: StyleMask,
     channels: ChannelPair,
 ) -> IntResult {
     cell.stylemask = style;
     cell.channels = channels;
     unsafe {
-        nc::cell_load(plane, cell, gcluster)
-
-        //let mut egc_bytes: [u8; 4] = gcluster.to_ne_bytes(); // < TODO: WIP (u8...)
-
-        //let egc_bytes = transmute::<EGC, [i8; 4]>(gcluster);
-        //nc::cell_load(plane, cell, &egc_bytes as *const i8)
+        nc::cell_load(plane, cell, gcluster as u32 as *const i8)
     }
 }
 
@@ -106,7 +99,6 @@ pub unsafe fn cell_prime(
 ///
 /// Until we can change gcluster to a safer type, this function will remain unsafe
 ///
-// TODO: WIP gcluster should use a safer abstraction (EGC type)
 // TODO: TEST!
 #[allow(unused_unsafe)]
 pub unsafe fn cells_load_box(
@@ -119,34 +111,34 @@ pub unsafe fn cells_load_box(
     lr: &mut cell,
     hl: &mut cell,
     vl: &mut cell,
-    gcluster: *const i8, // WIP EGC
+    gcluster: EGC,
 ) -> IntResult {
-    //let gcluster = transmute::<EGC, *const u8>(gcluster); // WIP EGC
-
+    // mutable copy for pointer arithmetics:
+    let mut gclu = gcluster as u32 as *const i8;
     let mut ulen: IntResult;
-    let mut gclu: *const i8 = gcluster; // mutable copy for pointer arithmetics
 
-    ulen = unsafe { cell_prime(plane, ul, gclu, style, channels) };
+    ulen = unsafe { cell_prime(plane, ul, gcluster, style, channels) };
 
     if ulen > 0 {
         gclu = unsafe { gclu.offset(ulen as isize) };
-        ulen = unsafe { cell_prime(plane, ur, gclu, style, channels) };
+        ulen = unsafe { cell_prime(plane, ur, gcluster, style, channels) };
 
         if ulen > 0 {
             gclu = unsafe { gclu.offset(ulen as isize) };
-            ulen = unsafe { cell_prime(plane, ll, gclu, style, channels) };
+            ulen = unsafe { cell_prime(plane, ll, gcluster, style, channels) };
 
             if ulen > 0 {
-                gclu = unsafe { gcluster.offset(ulen as isize) };
-                ulen = unsafe { cell_prime(plane, lr, gclu, style, channels) };
+                gclu = unsafe { gclu.offset(ulen as isize) };
+                ulen = unsafe { cell_prime(plane, lr, gcluster, style, channels) };
 
                 if ulen > 0 {
-                    gclu = unsafe { gcluster.offset(ulen as isize) };
-                    ulen = unsafe { cell_prime(plane, hl, gclu, style, channels) };
+                    gclu = unsafe { gclu.offset(ulen as isize) };
+                    ulen = unsafe { cell_prime(plane, hl, gcluster, style, channels) };
 
+                    #[allow(unused_assignments)] // gclu is not read
                     if ulen > 0 {
-                        gclu = unsafe { gcluster.offset(ulen as isize) };
-                        ulen = unsafe { cell_prime(plane, vl, gclu, style, channels) };
+                        gclu = unsafe { gclu.offset(ulen as isize) };
+                        ulen = unsafe { cell_prime(plane, vl, gcluster, style, channels) };
 
                         if ulen > 0 {
                             return 0;
