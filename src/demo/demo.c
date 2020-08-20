@@ -364,6 +364,7 @@ summary_table(struct ncdirect* nc, const char* spec){
   table_segment(nc, "    FPS", "│");
   table_segment(nc, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
+  char tfpsbuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
   char rtimebuf[PREFIXSTRLEN + 1];
   uint64_t nsdelta = 0;
@@ -372,6 +373,12 @@ summary_table(struct ncdirect* nc, const char* spec){
     qprefix(results[i].timens, GIG, timebuf, 0);
     qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
+    if(results[i].stats.renders){
+      qprefix((double)results[i].stats.renders * GIG / results[i].stats.render_ns, 1, tfpsbuf, 0);
+    }else{
+      qprefix(0, GIG, tfpsbuf, 0);
+    }
+           //GIG * (double)results[i].stats.renders / results[i].stats.render_ns
     uint32_t rescolor;
     if(results[i].result < 0){
       rescolor = 0xff303c;
@@ -389,15 +396,14 @@ summary_table(struct ncdirect* nc, const char* spec){
     ncdirect_fg(nc, rescolor);
     printf("%8s", demos[results[i].selector - 'a'].name);
     ncdirect_fg_rgb(nc, 178, 102, 255);
-    printf("│%*ss│%7ju│%*s│ %*ss│%3jd│%7.1f│%7.1f║",
+    printf("│%*ss│%7ju│%*s│ %*ss│%3jd│%7.1f│%*s║",
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
            BPREFIXFMT(totalbuf), PREFIXFMT(rtimebuf),
            (uintmax_t)(results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0),
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / GIG) : 0.0,
-           results[i].stats.renders ?
-            GIG * (double)results[i].stats.renders / results[i].stats.render_ns : 0.0);
+           PREFIXFMT(tfpsbuf));
     ncdirect_fg(nc, rescolor);
     printf("%s\n", results[i].result < 0 ? "FAILED" :
             results[i].result > 0 ? "ABORTED" :
