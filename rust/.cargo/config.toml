@@ -2,8 +2,6 @@
 d = "doc --no-deps"
 do = "doc --no-deps --open"
 
-c = "clippy"
-
 re = "run --example"
 
 # TEST
