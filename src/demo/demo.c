@@ -378,7 +378,6 @@ summary_table(struct ncdirect* nc, const char* spec){
     }else{
       qprefix(0, GIG, tfpsbuf, 0);
     }
-           //GIG * (double)results[i].stats.renders / results[i].stats.render_ns
     uint32_t rescolor;
     if(results[i].result < 0){
       rescolor = 0xff303c;
