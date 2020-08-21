@@ -13,6 +13,9 @@ steps:
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make
     - env TERM=xterm make test
+    - make install
+    - cd ../python
+    - python3 setup.py sdist
 ---
 kind: pipeline
 type: docker
@@ -28,6 +31,9 @@ steps:
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
     - make
     - env TERM=xterm make test
+    - make install
+    - cd ../python
+    - python3 setup.py sdist
 ---
 kind: pipeline
 type: docker
