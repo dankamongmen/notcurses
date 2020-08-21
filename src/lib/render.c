@@ -503,7 +503,7 @@ term_setstyles(FILE* out, uint32_t* curattr, const cell* c, bool* normalized,
   int ret = 0;
   // if only italics changed, don't emit any sgr escapes. xor of current and
   // target ought have all 0s in the lower 8 bits if only italics changed.
-  if((cellattr ^ *curattr) & 0x00ff0000ul){
+  if((cellattr ^ *curattr) & 0xfful){
     *normalized = true; // FIXME this is pretty conservative
     // if everything's 0, emit the shorter sgr0
     if(sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
