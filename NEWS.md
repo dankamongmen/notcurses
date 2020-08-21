@@ -17,6 +17,8 @@ rearrangements of Notcurses.
     Rewrote `cell_set_fg_palindex()` and `cell_set_bg_palindex()` in terms
     of these two. This is possible because the palette index now overlaps the
     RGB in a channel (they were originally in the attrword).
+  * Added `ncdirect_flush()`, mainly for the benefit of FFI that might not
+    have a native interface to `fflush(3)`.
 
 * 1.6.15 (2020-08-16)
   * Styles now work properly with `ncdirect`, which apparently has never

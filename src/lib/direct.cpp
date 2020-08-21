@@ -796,3 +796,10 @@ bool ncdirect_canopen_images(const ncdirect* n){
 bool ncdirect_canutf8(const ncdirect* n){
   return n->utf8;
 }
+
+int ncdirect_flush(const ncdirect* nc){
+  if(fflush(nc->ttyfp) == EOF){
+    return -1;
+  }
+  return 0;
+}
