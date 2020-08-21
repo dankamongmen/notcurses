@@ -267,6 +267,9 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       }
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
       cell* targc = &crender->c;
+      if(cell_wide_right_p(targc)){
+        continue;
+      }
       const cell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
       // writing in a zero), use the plane's base cell.
@@ -280,7 +283,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // from cells underneath us.
       if(!crender->p){
         // if the following is true, we're a real glyph, and not the right-hand
-        // side of a wide glyph (or the null codepoint).
+        // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
           // we can't plop down a wide glyph if the next cell is beyond the
           // screen, nor if we're bisected by a higher plane.
@@ -289,15 +292,20 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             if(absx >= dstlenx - 1){
               targc->gcluster = ' ';
             // is the next cell occupied? if so, 0x20 us
-            }else if(targc[1].gcluster){
+            }else if(crender[1].c.gcluster){
 //fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, targc[1].gcluster);
               targc->gcluster = ' ';
             }else{
               cell_set_wide(targc);
+              crender->p = p;
+              targc->stylemask = vis->stylemask;
+              targc[1].gcluster = 0;
+              cell_set_wide(&crender[1].c);
             }
+          }else{
+            crender->p = p;
+            targc->stylemask = vis->stylemask;
           }
-          crender->p = p;
-          targc->stylemask = vis->stylemask;
         }else if(cell_wide_left_p(vis)){
           cell_set_wide(targc);
         }
@@ -385,8 +393,8 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
           ++prevcell;
           ++targc;
           targc->gcluster = 0;
-          targc->channels = targc[-1].channels;
-          targc->stylemask = targc[-1].stylemask;
+          targc->channels = crender[-1].c.channels;
+          targc->stylemask = crender[-1].c.stylemask;
           if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
             crender->damaged = true;
           }
@@ -491,7 +499,7 @@ int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 }
 
 // write any escape sequences necessary to set the desired style
-static inline int
+static int
 term_setstyles(FILE* out, uint32_t* curattr, const cell* c, bool* normalized,
                const char* sgr0, const char* sgr, const char* italics,
                const char* italoff){
