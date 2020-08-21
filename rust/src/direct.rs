@@ -38,7 +38,7 @@
 //
 
 use crate as nc;
-use nc::ncdirect;
+use nc::types::DirectMode;
 
 extern "C" {
     fn libc_stdout() -> *mut nc::_IO_FILE;
@@ -52,7 +52,7 @@ extern "C" {
 /// and neither supports nor requires notcurses_render().
 /// This can be used to add color and styling to text in the standard output paradigm.
 /// Returns NULL on error, including any failure initializing terminfo.
-pub unsafe fn ncdirect_start() -> *mut ncdirect {
+pub unsafe fn ncdirect_start() -> *mut DirectMode {
     nc::ncdirect_init(core::ptr::null(), libc_stdout())
 }
 

@@ -57,11 +57,9 @@
 //+channels_set_fg_rgb
 //xchannels_set_fg_rgb_clipped
 
-#![allow(dead_code)]
-
 use crate as nc;
 
-use crate::types::{AlphaBits, Channel, ChannelPair, Color, Rgb};
+use nc::types::{AlphaBits, Channel, ChannelPair, Color, Rgb};
 
 /// Extract the 8-bit red component from a 32-bit channel.
 #[inline]

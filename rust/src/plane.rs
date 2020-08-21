@@ -142,8 +142,10 @@ use core::ptr::null_mut;
 use cstr_core::CString;
 
 use crate as nc;
-use nc::types::{AlphaBits, Channel, ChannelPair, Color, EGCBackstop, IntResult, StyleMask, EGC};
-use nc::{cell, ncalign_e, ncplane};
+use nc::types::{
+    Align, AlphaBits, Cell, Channel, ChannelPair, Color, EGCBackstop, IntResult, Plane, StyleMask,
+    ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT, EGC,
+};
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
 /// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
@@ -152,8 +154,8 @@ use nc::{cell, ncalign_e, ncplane};
 // NOTE: [leave cols as i32](https://github.com/dankamongmen/notcurses/issues/904)
 // TODO: TEST
 #[inline]
-pub fn ncplane_align(plane: &ncplane, align: ncalign_e, cols: i32) -> i32 {
-    if align == nc::ncalign_e_NCALIGN_LEFT {
+pub fn ncplane_align(plane: &Plane, align: Align, cols: i32) -> i32 {
+    if align == ALIGN_LEFT {
         return 0;
     }
 
@@ -162,9 +164,9 @@ pub fn ncplane_align(plane: &ncplane, align: ncalign_e, cols: i32) -> i32 {
         return 0;
     }
 
-    if align == nc::ncalign_e_NCALIGN_CENTER {
+    if align == ALIGN_CENTER {
         return plane_cols - cols / 2;
-    } else if align == nc::ncalign_e_NCALIGN_RIGHT {
+    } else if align == ALIGN_RIGHT {
         return plane_cols - cols;
     }
     core::i32::MAX
@@ -174,7 +176,7 @@ pub fn ncplane_align(plane: &ncplane, align: ncalign_e, cols: i32) -> i32 {
 /// This cell is invalidated if the associated plane is destroyed.
 // TODO: TEST
 #[inline]
-pub fn nplane_at_cursor_cell(plane: &mut ncplane, cell: &mut cell) -> IntResult {
+pub fn nplane_at_cursor_cell(plane: &mut Plane, cell: &mut Cell) -> IntResult {
     let mut egc = unsafe { nc::ncplane_at_cursor(plane, &mut cell.stylemask, &mut cell.channels) };
     if egc.is_null() {
         return -1;
@@ -192,7 +194,7 @@ pub fn nplane_at_cursor_cell(plane: &mut ncplane, cell: &mut cell) -> IntResult 
 /// This cell is invalidated if the associated plane is destroyed.
 // TODO: TEST
 #[inline]
-pub fn ncplane_at_yx_cell(plane: &mut ncplane, y: i32, x: i32, cell: &mut cell) -> IntResult {
+pub fn ncplane_at_yx_cell(plane: &mut Plane, y: i32, x: i32, cell: &mut Cell) -> IntResult {
     let mut egc =
         unsafe { nc::ncplane_at_yx(plane, y, x, &mut cell.stylemask, &mut cell.channels) };
     if egc.is_null() {
@@ -213,13 +215,13 @@ pub fn ncplane_at_yx_cell(plane: &mut ncplane, y: i32, x: i32, cell: &mut cell) 
 // TODO: TEST
 #[inline]
 pub fn ncplane_box_sized(
-    plane: &mut ncplane,
-    ul: &cell,
-    ur: &cell,
-    ll: &cell,
-    lr: &cell,
-    hline: &cell,
-    vline: &cell,
+    plane: &mut Plane,
+    ul: &Cell,
+    ur: &Cell,
+    ll: &Cell,
+    lr: &Cell,
+    hline: &Cell,
+    vline: &Cell,
     ylen: i32,
     xlen: i32,
     ctlword: u32,
@@ -245,7 +247,7 @@ pub fn ncplane_box_sized(
 ///
 // TODO: TEST
 #[inline]
-pub fn ncplane_dim_x(plane: &ncplane) -> i32 {
+pub fn ncplane_dim_x(plane: &Plane) -> i32 {
     unsafe {
         let mut x = 0;
         nc::ncplane_dim_yx(plane, null_mut(), &mut x);
@@ -256,7 +258,7 @@ pub fn ncplane_dim_x(plane: &ncplane) -> i32 {
 ///
 // TODO: TEST
 #[inline]
-pub fn ncplane_dim_y(plane: &ncplane) -> i32 {
+pub fn ncplane_dim_y(plane: &Plane) -> i32 {
     unsafe {
         let mut y = 0;
         nc::ncplane_dim_yx(plane, &mut y, null_mut());
@@ -267,7 +269,7 @@ pub fn ncplane_dim_y(plane: &ncplane) -> i32 {
 // TODO: TEST
 #[inline]
 pub fn ncplane_double_box(
-    plane: &mut ncplane,
+    plane: &mut Plane,
     stylemask: StyleMask,
     channels: ChannelPair,
     ystop: i32,
@@ -313,7 +315,7 @@ pub fn ncplane_double_box(
 // TODO: TEST
 #[inline]
 pub fn ncplane_double_box_sized(
-    plane: &mut ncplane,
+    plane: &mut Plane,
     stylemask: StyleMask,
     channels: ChannelPair,
     ylen: i32,
@@ -337,7 +339,7 @@ pub fn ncplane_double_box_sized(
 /// On error, return the negative number of cells drawn.
 // TODO: TEST
 #[inline]
-pub fn ncplane_hline(plane: &mut ncplane, cell: &cell, len: i32) -> i32 {
+pub fn ncplane_hline(plane: &mut Plane, cell: &Cell, len: i32) -> i32 {
     unsafe { nc::ncplane_hline_interp(plane, cell, len, cell.channels, cell.channels) }
 }
 
@@ -345,13 +347,13 @@ pub fn ncplane_hline(plane: &mut ncplane, cell: &cell, len: i32) -> i32 {
 // TODO: TEST
 #[inline]
 pub fn ncplane_perimeter(
-    plane: &mut ncplane,
-    ul: &cell,
-    ur: &cell,
-    ll: &cell,
-    lr: &cell,
-    hline: &cell,
-    vline: &cell,
+    plane: &mut Plane,
+    ul: &Cell,
+    ur: &Cell,
+    ll: &Cell,
+    lr: &Cell,
+    hline: &Cell,
+    vline: &Cell,
     ctlword: u32,
 ) -> IntResult {
     unsafe {
@@ -365,7 +367,7 @@ pub fn ncplane_perimeter(
 // TODO: TEST
 #[inline]
 pub fn ncplane_perimeter_double(
-    plane: &mut ncplane,
+    plane: &mut Plane,
     stylemask: StyleMask,
     channels: ChannelPair,
     ctlword: u32,
@@ -414,7 +416,7 @@ pub fn ncplane_perimeter_double(
 // TODO: TEST!
 #[inline]
 pub fn ncplane_perimeter_rounded(
-    plane: &mut ncplane,
+    plane: &mut Plane,
     stylemask: StyleMask,
     channels: ChannelPair,
     ctlword: u32,
@@ -463,21 +465,21 @@ pub fn ncplane_perimeter_rounded(
 /// Call ncplane_putc_yx() for the current cursor location.
 // TODO: TEST
 #[inline]
-pub fn ncplane_putc(plane: &mut ncplane, cell: &cell) -> IntResult {
+pub fn ncplane_putc(plane: &mut Plane, cell: &Cell) -> IntResult {
     unsafe { nc::ncplane_putc_yx(plane, -1, -1, cell) }
 }
 
 /// Call ncplane_putsimple_yx() at the current cursor location.
 // TODO: TEST
 #[inline]
-pub fn ncplane_putsimple(plane: &mut ncplane, ch: EGC) -> IntResult {
+pub fn ncplane_putsimple(plane: &mut Plane, ch: EGC) -> IntResult {
     nc::ncplane_putsimple_yx(plane, -1, -1, ch)
 }
 
 /// Call ncplane_putegc() at the current cursor location.
 // TODO: TEST
 #[inline]
-pub fn ncplane_putegc(plane: &mut ncplane, gcluster: i8, sbytes: &mut i32) -> IntResult {
+pub fn ncplane_putegc(plane: &mut Plane, gcluster: i8, sbytes: &mut i32) -> IntResult {
     unsafe { nc::ncplane_putegc_yx(plane, -1, -1, &gcluster, sbytes) }
 }
 
@@ -489,7 +491,7 @@ pub fn ncplane_putegc(plane: &mut ncplane, gcluster: i8, sbytes: &mut i32) -> In
 ///
 // TODO: TEST
 #[inline]
-pub fn ncplane_putsimple_yx(plane: &mut ncplane, y: i32, x: i32, ch: EGC) -> IntResult {
+pub fn ncplane_putsimple_yx(plane: &mut Plane, y: i32, x: i32, ch: EGC) -> IntResult {
     let newcell = cell_initializer![ch, unsafe { nc::ncplane_attr(plane) }, unsafe {
         nc::ncplane_channels(plane)
     }];
@@ -499,7 +501,7 @@ pub fn ncplane_putsimple_yx(plane: &mut ncplane, y: i32, x: i32, ch: EGC) -> Int
 ///
 // TODO: TEST
 #[inline]
-pub fn ncplane_putstr(plane: &mut ncplane, gclustarr: &[u8]) -> IntResult {
+pub fn ncplane_putstr(plane: &mut Plane, gclustarr: &[u8]) -> IntResult {
     unsafe {
         nc::ncplane_putstr_yx(
             plane,
@@ -513,7 +515,7 @@ pub fn ncplane_putstr(plane: &mut ncplane, gclustarr: &[u8]) -> IntResult {
 ///
 // TODO: TEST
 #[inline]
-pub fn ncplane_putnstr(plane: &mut ncplane, size: nc::size_t, gclustarr: &[u8]) -> IntResult {
+pub fn ncplane_putnstr(plane: &mut Plane, size: nc::size_t, gclustarr: &[u8]) -> IntResult {
     unsafe {
         nc::ncplane_putnstr_yx(
             plane,
@@ -529,7 +531,7 @@ pub fn ncplane_putnstr(plane: &mut ncplane, size: nc::size_t, gclustarr: &[u8]) 
 /// shrinking in some dimension). Keep the origin where it is.
 // TODO: TEST
 #[inline]
-pub fn ncplane_resize_simple(plane: &mut ncplane, ylen: i32, xlen: i32) -> IntResult {
+pub fn ncplane_resize_simple(plane: &mut Plane, ylen: i32, xlen: i32) -> IntResult {
     let (mut oldy, mut oldx) = (0, 0);
     unsafe {
         nc::ncplane_dim_yx(plane, &mut oldy, &mut oldx);
@@ -555,13 +557,13 @@ pub fn ncplane_resize_simple(plane: &mut ncplane, ylen: i32, xlen: i32) -> IntRe
 /// On error, return the negative number of cells drawn.
 // TODO: TEST
 #[inline]
-pub fn ncplane_vline(plane: &mut ncplane, cell: &cell, len: i32) -> i32 {
+pub fn ncplane_vline(plane: &mut Plane, cell: &Cell, len: i32) -> i32 {
     unsafe { nc::ncplane_vline_interp(plane, cell, len, cell.channels, cell.channels) }
 }
 
 // TODO: TEST
 #[inline]
-pub fn ncplane_vprintf(plane: &mut ncplane, format: &str, ap: &mut nc::__va_list_tag) -> IntResult {
+pub fn ncplane_vprintf(plane: &mut Plane, format: &str, ap: &mut nc::__va_list_tag) -> IntResult {
     unsafe {
         nc::ncplane_vprintf_yx(
             plane,
@@ -580,7 +582,7 @@ pub fn ncplane_vprintf(plane: &mut ncplane, format: &str, ap: &mut nc::__va_list
 // XXX receive cells as u32? https://github.com/dankamongmen/notcurses/issues/920
 #[inline]
 pub fn ncplane_gradient_sized(
-    plane: &mut ncplane,
+    plane: &mut Plane,
     egc: &[u8],
     stylemask: StyleMask,
     ul: u64,
@@ -613,56 +615,56 @@ pub fn ncplane_gradient_sized(
 /// Extract the 32-bit working foreground channel from an ncplane.
 // TODO: TEST
 #[inline]
-pub fn ncplane_fchannel(plane: &ncplane) -> Channel {
+pub fn ncplane_fchannel(plane: &Plane) -> Channel {
     nc::channels_fchannel(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Extract the 32-bit working background channel from an ncplane.
 // TODO: TEST
 #[inline]
-pub fn ncplane_bchannel(plane: &ncplane) -> Channel {
+pub fn ncplane_bchannel(plane: &Plane) -> Channel {
     nc::channels_bchannel(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn ncplane_fg(plane: &ncplane) -> Channel {
+pub fn ncplane_fg(plane: &Plane) -> Channel {
     nc::channels_fg(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn ncplane_bg(plane: &ncplane) -> Channel {
+pub fn ncplane_bg(plane: &Plane) -> Channel {
     nc::channels_bg(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn ncplane_fg_alpha(plane: &ncplane) -> AlphaBits {
+pub fn ncplane_fg_alpha(plane: &Plane) -> AlphaBits {
     nc::channels_fg_alpha(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn ncplane_bg_alpha(plane: &ncplane) -> AlphaBits {
+pub fn ncplane_bg_alpha(plane: &Plane) -> AlphaBits {
     nc::channels_bg_alpha(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Is the plane's foreground using the "default foreground color"?
 // TODO: TEST
 #[inline]
-pub fn ncplane_fg_default_p(plane: &ncplane) -> bool {
+pub fn ncplane_fg_default_p(plane: &Plane) -> bool {
     nc::channels_fg_default_p(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Is the plane's background using the "default background color"?
 // TODO: TEST
 #[inline]
-pub fn ncplane_bg_default_p(plane: &ncplane) -> bool {
+pub fn ncplane_bg_default_p(plane: &Plane) -> bool {
     nc::channels_bg_default_p(unsafe { nc::ncplane_channels(plane) })
 }
 
@@ -670,7 +672,7 @@ pub fn ncplane_bg_default_p(plane: &ncplane) -> bool {
 // TODO: TEST
 #[inline]
 pub fn ncplane_fg_rgb(
-    plane: &ncplane,
+    plane: &Plane,
     red: &mut Color,
     green: &mut Color,
     blue: &mut Color,
@@ -682,7 +684,7 @@ pub fn ncplane_fg_rgb(
 // TODO: TEST
 #[inline]
 pub fn ncplane_bg_rgb(
-    plane: &ncplane,
+    plane: &Plane,
     red: &mut Color,
     green: &mut Color,
     blue: &mut Color,
@@ -693,7 +695,7 @@ pub fn ncplane_bg_rgb(
 // TODO: TEST
 #[inline]
 pub fn ncplane_rounded_box(
-    plane: &mut ncplane,
+    plane: &mut Plane,
     stylemask: StyleMask,
     channels: ChannelPair,
     ystop: i32,
@@ -739,7 +741,7 @@ pub fn ncplane_rounded_box(
 // TODO: TEST
 #[inline]
 pub fn ncplane_rounded_box_sized(
-    plane: &mut ncplane,
+    plane: &mut Plane,
     stylemask: StyleMask,
     channels: ChannelPair,
     ylen: i32,

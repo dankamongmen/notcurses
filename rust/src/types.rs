@@ -1,5 +1,6 @@
 //! The notcurses types are defined and/or explained here
 //!
+use crate as nc;
 
 /// RGB: 24 bits broken into 3x 8bpp channels.
 ///
@@ -137,6 +138,7 @@ pub type Pixel = u32;
 // ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
 //
 // type in C: cell (struct)
+pub type Cell = nc::cell;
 
 /// EGC (Extended Grapheme Cluster)
 ///
@@ -199,6 +201,7 @@ pub type StyleMask = u16;
 // - EGCPool
 //
 // type in C: ncplane (struct)
+pub type Plane = nc::ncplane;
 
 // EGCPool: contiguous region chopped up into NUL-terminated UTF8 EGCs, one per plane
 //
@@ -210,7 +213,17 @@ pub type StyleMask = u16;
 /// 8-bit value used for indexing into a palette
 ///
 pub type PaletteIndex = u8;
+pub type Palette = nc::palette256;
 
 /// 32-bit signed value used to return errors, when value < 0, (usually -1)
 ///
 pub type IntResult = i32;
+
+///
+pub type Align = nc::ncalign_e;
+pub const ALIGN_LEFT: Align = nc::ncalign_e_NCALIGN_LEFT;
+pub const ALIGN_RIGHT: Align = nc::ncalign_e_NCALIGN_RIGHT;
+pub const ALIGN_CENTER: Align = nc::ncalign_e_NCALIGN_CENTER;
+
+///
+pub type DirectMode = nc::ncdirect;

@@ -1,8 +1,12 @@
-// #define CELL_INITIALIZER(c, s, chan) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
+use crate as nc;
+
+#[allow(unused_imports)]
+use nc::Cell;
+
 #[macro_export]
 macro_rules! cell_initializer {
     ( $c:expr, $s:expr, $chan:expr  ) => {
-        cell {
+        Cell {
             gcluster: $c as u32,
             gcluster_backstop: 0 as EGCBackstop,
             reserved: 0,
@@ -12,7 +16,6 @@ macro_rules! cell_initializer {
     };
 }
 
-//#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
 #[macro_export]
 macro_rules! cell_simple_initializer {
     ( $c:expr ) => {
@@ -20,7 +23,6 @@ macro_rules! cell_simple_initializer {
     };
 }
 
-// #define CELL_TRIVIAL_INITIALIZER { }
 #[macro_export]
 macro_rules! cell_trivial_initializer {
     ( ) => {
