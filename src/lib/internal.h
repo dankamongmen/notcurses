@@ -876,6 +876,54 @@ cell_blend_bchannel(cell* cl, unsigned channel, unsigned* blends){
   return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
 }
 
+static inline int
+pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
+  if(bytes < 0 || cols < 0){
+    return -1;
+  }
+  if(bytes <= 1){
+    assert(cols < 2);
+    pool_release(pool, c);
+    c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
+    c->gcluster = *gcluster;
+    return bytes;
+  }
+  // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
+  if(strcmp(gcluster, "\xe2\x96\x88")){
+    c->channels &= ~CELL_NOBACKGROUND_MASK;
+    if(cols < 2){
+      c->channels &= ~CELL_WIDEASIAN_MASK;
+    }else{
+      c->channels |= CELL_WIDEASIAN_MASK;
+    }
+  }else{
+    c->channels |= CELL_NOBACKGROUND_MASK;
+    c->channels &= ~CELL_WIDEASIAN_MASK;
+  }
+  if(bytes <= 4){
+    if(strcmp(gcluster, (const char*)&c->gcluster)){
+      pool_release(pool, c);
+      c->gcluster = 0;
+      memcpy(&c->gcluster, gcluster, bytes);
+    }
+    return bytes;
+  }
+  int eoffset = egcpool_stash(pool, gcluster, bytes);
+  if(eoffset < 0){
+    return -1;
+  }
+  pool_release(pool, c);
+  c->gcluster = 0x01000000ul + eoffset;
+  return bytes;
+}
+
+static inline int
+pool_load(egcpool* pool, cell* c, const char* gcluster){
+  int cols;
+  int bytes = utf8_egc_len(gcluster, &cols);
+  return pool_load_direct(pool, c, gcluster, bytes, cols);
+}
+
 #ifdef __cplusplus
 }
 #endif
