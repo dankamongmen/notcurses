@@ -57,9 +57,9 @@
 
 use crate as nc;
 use nc::types::{
-    AlphaBits, CellGcluster, Channel, ChannelPair, Color, IntResult, PaletteIndex, StyleMask, EGC,
+    AlphaBits, Cell, CellGcluster, Channel, ChannelPair, Color, IntResult, PaletteIndex, Plane,
+    StyleMask, EGC,
 };
-use nc::{cell, ncplane};
 
 /// cell_load(), plus blast the styling with 'style' and 'channels'.
 ///
@@ -83,9 +83,7 @@ pub unsafe fn cell_prime(
 ) -> IntResult {
     cell.stylemask = style;
     cell.channels = channels;
-    unsafe {
-        nc::cell_load(plane, cell, gcluster as u32 as *const i8)
-    }
+    unsafe { nc::cell_load(plane, cell, gcluster as u32 as *const i8) }
 }
 
 /// load up six cells with the EGCs necessary to draw a box.
@@ -102,15 +100,15 @@ pub unsafe fn cell_prime(
 // TODO: TEST!
 #[allow(unused_unsafe)]
 pub unsafe fn cells_load_box(
-    plane: &mut ncplane,
+    plane: &mut Plane,
     style: StyleMask,
     channels: ChannelPair,
-    ul: &mut cell,
-    ur: &mut cell,
-    ll: &mut cell,
-    lr: &mut cell,
-    hl: &mut cell,
-    vl: &mut cell,
+    ul: &mut Cell,
+    ur: &mut Cell,
+    ll: &mut Cell,
+    lr: &mut Cell,
+    hl: &mut Cell,
+    vl: &mut Cell,
     gcluster: EGC,
 ) -> IntResult {
     // mutable copy for pointer arithmetics:
@@ -169,7 +167,7 @@ pub unsafe fn cells_load_box(
 ///
 // TODO: TEST
 #[inline]
-pub fn cell_init(cell: &mut cell) {
+pub fn cell_init(cell: &mut Cell) {
     *cell = unsafe { core::mem::zeroed() }
 }
 
@@ -178,14 +176,14 @@ pub fn cell_init(cell: &mut cell) {
 /// static inline void
 // TODO: TEST
 #[inline]
-pub fn cell_styles_set(cell: &mut cell, stylebits: StyleMask) {
+pub fn cell_styles_set(cell: &mut Cell, stylebits: StyleMask) {
     cell.stylemask = stylebits & nc::NCSTYLE_MASK as u16;
 }
 
 /// Extract the style bits from the cell.
 // TODO: TEST
 #[inline]
-pub fn cell_styles(cell: &cell) -> StyleMask {
+pub fn cell_styles(cell: &Cell) -> StyleMask {
     cell.stylemask
 }
 
@@ -193,42 +191,42 @@ pub fn cell_styles(cell: &cell) -> StyleMask {
 /// they're actively supported or not.
 // TODO: TEST
 #[inline]
-pub fn cell_styles_on(cell: &mut cell, stylebits: StyleMask) {
+pub fn cell_styles_on(cell: &mut Cell, stylebits: StyleMask) {
     cell.stylemask |= stylebits & nc::NCSTYLE_MASK as u16;
 }
 
 /// Remove the specified styles (in the LSBs) from the cell's existing spec.
 // TODO: TEST
 #[inline]
-pub fn cell_styles_off(cell: &mut cell, stylebits: StyleMask) {
+pub fn cell_styles_off(cell: &mut Cell, stylebits: StyleMask) {
     cell.stylemask &= !(stylebits & nc::NCSTYLE_MASK as u16);
 }
 
 /// Use the default color for the foreground.
 // TODO: TEST
 #[inline]
-pub fn cell_set_fg_default(cell: &mut cell) {
+pub fn cell_set_fg_default(cell: &mut Cell) {
     nc::channels_set_fg_default(&mut cell.channels);
 }
 
 /// Use the default color for the background.
 // TODO: TEST
 #[inline]
-pub fn cell_set_bg_default(cell: &mut cell) {
+pub fn cell_set_bg_default(cell: &mut Cell) {
     nc::channels_set_bg_default(&mut cell.channels);
 }
 
 /// Set the foreground alpha.
 // TODO: TEST
 #[inline]
-pub fn cell_set_fg_alpha(cell: &mut cell, alpha: AlphaBits) {
+pub fn cell_set_fg_alpha(cell: &mut Cell, alpha: AlphaBits) {
     nc::channels_set_fg_alpha(&mut cell.channels, alpha);
 }
 
 /// Set the background alpha.
 // TODO: TEST
 #[inline]
-pub fn cell_set_bg_alpha(cell: &mut cell, alpha: AlphaBits) {
+pub fn cell_set_bg_alpha(cell: &mut Cell, alpha: AlphaBits) {
     nc::channels_set_bg_alpha(&mut cell.channels, alpha);
 }
 
@@ -236,21 +234,21 @@ pub fn cell_set_bg_alpha(cell: &mut cell, alpha: AlphaBits) {
 // TODO: TEST
 // NOTE: remove casting when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
-pub fn cell_double_wide_p(cell: &cell) -> bool {
+pub fn cell_double_wide_p(cell: &Cell) -> bool {
     (cell.channels & nc::CELL_WIDEASIAN_MASK as u64) != 0
 }
 
 /// Is this the right half of a wide character?
 // TODO: TEST
 #[inline]
-pub fn cell_wide_right_p(cell: &cell) -> bool {
+pub fn cell_wide_right_p(cell: &Cell) -> bool {
     cell_double_wide_p(cell) && cell.gcluster == 0
 }
 
 /// Is this the left half of a wide character?
 // TODO: TEST
 #[inline]
-pub fn cell_wide_left_p(cell: &cell) -> bool {
+pub fn cell_wide_left_p(cell: &Cell) -> bool {
     cell_double_wide_p(cell) && cell.gcluster != 0
 }
 
@@ -258,7 +256,7 @@ pub fn cell_wide_left_p(cell: &cell) -> bool {
 /// result is not tied to the ncplane, and persists across erases / destruction.
 // TODO: TEST
 #[inline]
-pub fn cell_strdup(plane: &ncplane, cell: &cell) -> EGC {
+pub fn cell_strdup(plane: &Plane, cell: &Cell) -> EGC {
     core::char::from_u32(
         unsafe { libc::strdup(nc::cell_extended_gcluster(plane, cell)) } as i32 as u32,
     )
@@ -274,8 +272,8 @@ pub fn cell_strdup(plane: &ncplane, cell: &cell) -> EGC {
 // TODO: TEST
 #[inline]
 pub fn cell_extract(
-    plane: &ncplane,
-    cell: &cell,
+    plane: &Plane,
+    cell: &Cell,
     stylemask: &mut StyleMask,
     channels: &mut ChannelPair,
 ) -> EGC {
@@ -294,7 +292,7 @@ pub fn cell_extract(
 /// it would probably be better to test whether they're Unicode-equal FIXME.
 // TODO: TEST
 #[inline]
-pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -> bool {
+pub fn cellcmp(plane1: &Plane, cell1: &Cell, plane2: &Plane, cell2: &Cell) -> bool {
     if cell1.stylemask != cell2.stylemask {
         return true;
     }
@@ -312,7 +310,7 @@ pub fn cellcmp(plane1: &ncplane, cell1: &cell, plane2: &ncplane, cell2: &cell) -
 // TODO: TEST
 // NOTE: remove casting for CELL_WIEDASIAN_MASK when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
-pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: EGC) -> i32 {
+pub fn cell_load_simple(plane: &mut Plane, cell: &mut Cell, ch: EGC) -> i32 {
     unsafe {
         nc::cell_release(plane, cell);
     }
@@ -324,70 +322,70 @@ pub fn cell_load_simple(plane: &mut ncplane, cell: &mut cell, ch: EGC) -> i32 {
 /// Extract the 32-bit background channel from a cell.
 // TODO: TEST
 #[inline]
-pub fn cell_bchannel(cell: &cell) -> Channel {
+pub fn cell_bchannel(cell: &Cell) -> Channel {
     nc::channels_bchannel(cell.channels)
 }
 
 /// Extract the 32-bit foreground channel from a cell.
 // TODO: TEST
 #[inline]
-pub fn cell_fchannel(cell: &cell) -> Channel {
+pub fn cell_fchannel(cell: &Cell) -> Channel {
     nc::channels_fchannel(cell.channels)
 }
 
 /// Set the 32-bit background channel of a cell.
 // TODO: TEST
 #[inline]
-pub fn cell_set_bchannel(cell: &mut cell, channel: Channel) -> ChannelPair {
+pub fn cell_set_bchannel(cell: &mut Cell, channel: Channel) -> ChannelPair {
     nc::channels_set_bchannel(&mut cell.channels, channel)
 }
 
 /// Set the 32-bit foreground channel of a cell.
 // TODO: TEST
 #[inline]
-pub fn cell_set_fchannel(cell: &mut cell, channel: Channel) -> ChannelPair {
+pub fn cell_set_fchannel(cell: &mut Cell, channel: Channel) -> ChannelPair {
     nc::channels_set_fchannel(&mut cell.channels, channel)
 }
 
 /// Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn cell_fg(cell: &cell) -> Channel {
+pub fn cell_fg(cell: &Cell) -> Channel {
     nc::channels_fg(cell.channels)
 }
 
 /// Extract 24 bits of background RGB from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn cell_bg(cell: &cell) -> Channel {
+pub fn cell_bg(cell: &Cell) -> Channel {
     nc::channels_bg(cell.channels)
 }
 
 /// Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn cell_fg_alpha(cell: &cell) -> AlphaBits {
+pub fn cell_fg_alpha(cell: &Cell) -> AlphaBits {
     nc::channels_fg_alpha(cell.channels)
 }
 
 /// Extract 2 bits of background alpha from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn cell_bg_alpha(cell: &cell) -> AlphaBits {
+pub fn cell_bg_alpha(cell: &Cell) -> AlphaBits {
     nc::channels_bg_alpha(cell.channels)
 }
 
 /// Extract 24 bits of foreground RGB from 'cell', split into components.
 // TODO: TEST
 #[inline]
-pub fn cell_fg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
+pub fn cell_fg_rgb(cell: &Cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
     nc::channels_fg_rgb(cell.channels, red, green, blue)
 }
 
 /// Extract 24 bits of background RGB from 'cell', split into components.
 // TODO: TEST
 #[inline]
-pub fn cell_bg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
+pub fn cell_bg_rgb(cell: &Cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
     nc::channels_bg_rgb(cell.channels, red, green, blue)
 }
 
@@ -395,14 +393,14 @@ pub fn cell_bg_rgb(cell: &cell, red: &mut Color, green: &mut Color, blue: &mut C
 /// 'cell' variable, and mark it as not using the default color.
 // TODO: TEST
 #[inline]
-pub fn cell_set_fg_rgb(cell: &mut cell, red: Color, green: Color, blue: Color) {
+pub fn cell_set_fg_rgb(cell: &mut Cell, red: Color, green: Color, blue: Color) {
     nc::channels_set_fg_rgb(&mut cell.channels, red, green, blue);
 }
 
 /// Same as `cell_set_fg_rgb()` but with an assembled 24-bit RGB value.
 // TODO: TEST
 #[inline]
-pub fn cell_set_fg(cell: &mut cell, channel: Channel) {
+pub fn cell_set_fg(cell: &mut Cell, channel: Channel) {
     nc::channels_set_fg(&mut cell.channels, channel);
 }
 
@@ -412,7 +410,7 @@ pub fn cell_set_fg(cell: &mut cell, channel: Channel) {
 // TODO: TEST
 // NOTE: this function now can't fail
 #[inline]
-pub fn cell_set_fg_palindex(cell: &mut cell, index: PaletteIndex) {
+pub fn cell_set_fg_palindex(cell: &mut Cell, index: PaletteIndex) {
     cell.channels |= nc::CELL_FGDEFAULT_MASK;
     cell.channels |= nc::CELL_FG_PALETTE;
     cell_set_fg_alpha(cell, nc::CELL_ALPHA_OPAQUE);
@@ -422,7 +420,7 @@ pub fn cell_set_fg_palindex(cell: &mut cell, index: PaletteIndex) {
 
 // TODO: TEST
 #[inline]
-pub fn cell_fg_palindex(cell: &cell) -> PaletteIndex {
+pub fn cell_fg_palindex(cell: &Cell) -> PaletteIndex {
     ((cell.channels & 0xff00000000_u64) >> 32) as PaletteIndex
 }
 
@@ -431,7 +429,7 @@ pub fn cell_fg_palindex(cell: &cell) -> PaletteIndex {
 ///
 // TODO: TEST
 #[inline]
-pub fn cell_set_bg_rgb(cell: &mut cell, red: Color, green: Color, blue: Color) {
+pub fn cell_set_bg_rgb(cell: &mut Cell, red: Color, green: Color, blue: Color) {
     nc::channels_set_bg_rgb(&mut cell.channels, red, green, blue);
 }
 
@@ -439,7 +437,7 @@ pub fn cell_set_bg_rgb(cell: &mut cell, red: Color, green: Color, blue: Color) {
 ///
 // TODO: TEST
 #[inline]
-pub fn cell_set_bg(cell: &mut cell, channel: Channel) {
+pub fn cell_set_bg(cell: &mut Cell, channel: Channel) {
     nc::channels_set_bg(&mut cell.channels, channel);
 }
 
@@ -449,7 +447,7 @@ pub fn cell_set_bg(cell: &mut cell, channel: Channel) {
 // TODO: TEST
 // NOTE: this function now can't fail
 #[inline]
-pub fn cell_set_bg_palindex(cell: &mut cell, index: PaletteIndex) {
+pub fn cell_set_bg_palindex(cell: &mut Cell, index: PaletteIndex) {
     cell.channels |= nc::CELL_BGDEFAULT_MASK as u64;
     cell.channels |= nc::CELL_BG_PALETTE as u64;
     cell_set_bg_alpha(cell, nc::CELL_ALPHA_OPAQUE);
@@ -459,19 +457,19 @@ pub fn cell_set_bg_palindex(cell: &mut cell, index: PaletteIndex) {
 
 // TODO: TEST
 #[inline]
-pub fn cell_bg_palindex(cell: &cell) -> PaletteIndex {
+pub fn cell_bg_palindex(cell: &Cell) -> PaletteIndex {
     (cell.channels & 0xff) as PaletteIndex
 }
 
 /// Is the foreground using the "default foreground color"?
 // TODO: TEST
 #[inline]
-pub fn cell_fg_default_p(cell: &cell) -> bool {
+pub fn cell_fg_default_p(cell: &Cell) -> bool {
     nc::channels_fg_default_p(cell.channels)
 }
 // TODO: TEST
 #[inline]
-pub fn cell_fg_palindex_p(cell: &cell) -> bool {
+pub fn cell_fg_palindex_p(cell: &Cell) -> bool {
     nc::channels_fg_palindex_p(cell.channels)
 }
 
@@ -480,13 +478,13 @@ pub fn cell_fg_palindex_p(cell: &cell) -> bool {
 /// terminal-effected transparency.
 // TODO: TEST
 #[inline]
-pub fn cell_bg_default_p(cell: &cell) -> bool {
+pub fn cell_bg_default_p(cell: &Cell) -> bool {
     nc::channels_bg_default_p(cell.channels)
 }
 
 // TODO: TEST
 #[inline]
-pub fn cell_bg_palindex_p(cell: &cell) -> bool {
+pub fn cell_bg_palindex_p(cell: &Cell) -> bool {
     nc::channels_bg_palindex_p(cell.channels)
 }
 

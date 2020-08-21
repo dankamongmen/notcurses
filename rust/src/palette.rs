@@ -18,14 +18,13 @@
 //+palette256_set_rgb
 
 use crate as nc;
-use crate::types::Color;
-use nc::{Channel, PaletteIndex, Rgb};
+use nc::types::{Channel, Color, Palette, PaletteIndex, Rgb};
 
 /// Set the different color components of an entry inside a palette store.
 // TODO: TEST
 #[inline]
 pub fn palette256_set_rgb(
-    palette: &mut nc::palette256,
+    palette: &mut Palette,
     idx: PaletteIndex,
     red: Color,
     green: Color,
@@ -37,7 +36,7 @@ pub fn palette256_set_rgb(
 /// Same as `palette256_set_rgb()` but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
-pub fn palette256_set(palette: &mut nc::palette256, idx: PaletteIndex, rgb: Rgb) {
+pub fn palette256_set(palette: &mut Palette, idx: PaletteIndex, rgb: Rgb) {
     nc::channel_set(&mut palette.chans[idx as usize], rgb);
 }
 
@@ -45,7 +44,7 @@ pub fn palette256_set(palette: &mut nc::palette256, idx: PaletteIndex, rgb: Rgb)
 // TODO: TEST
 #[inline]
 pub fn palette256_get_rgb(
-    palette: &nc::palette256,
+    palette: &Palette,
     idx: PaletteIndex,
     red: &mut Color,
     green: &mut Color,
