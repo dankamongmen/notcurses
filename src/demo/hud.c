@@ -97,7 +97,7 @@ about_toggle(struct notcurses* nc){
     channels = 0;
     channels_set_fg(&channels, 0xc020c0);
     channels_set_bg(&channels, 0);
-    if(cells_double_box(n, 0, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
+    if(cells_double_box(n, NCSTYLE_NONE, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
       if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
         cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
         cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
@@ -252,7 +252,7 @@ hud_refresh(struct ncplane* n){
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_double_box(n, NCSTYLE_NONE, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   cell_set_fg(&ul, 0xc0f0c0);
@@ -501,6 +501,7 @@ int demo_render(struct notcurses* nc){
     ncplane_set_fg(hud, 0x80d0ff);
     ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
     cell_release(hud, &c);
+    ncplane_styles_on(hud, NCSTYLE_BOLD);
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
@@ -511,6 +512,7 @@ int demo_render(struct notcurses* nc){
     if(ncplane_putstr_yx(hud, 1, 16, elems->name) < 0){
       return -1;
     }
+    ncplane_styles_off(hud, NCSTYLE_BOLD);
   }
   ncinput ni;
   char32_t id;
