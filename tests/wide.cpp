@@ -909,6 +909,16 @@ TEST_CASE("Wide") {
     egc = notcurses_at_yx(nc_, 0, 1, nullptr, nullptr);
     CHECK(0 == strcmp(egc, ""));
     free(egc);
+    CHECK(0 == ncplane_move_yx(high, 0, 1));
+    CHECK(0 == notcurses_render(nc_));
+    egc = notcurses_at_yx(nc_, 0, 0, nullptr, nullptr);
+    REQUIRE(nullptr != egc);
+    CHECK(0 == strcmp(egc, " "));
+    free(egc);
+    egc = notcurses_at_yx(nc_, 0, 1, nullptr, nullptr);
+    CHECK(0 == strcmp(egc, "a"));
+    free(egc);
+    ncplane_destroy(high);
   }
 
   CHECK(0 == notcurses_stop(nc_));
