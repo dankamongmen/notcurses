@@ -253,6 +253,12 @@ cell_egc_idx(const cell* c){
   return c->gcluster & 0x00fffffflu;
 }
 
+// Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
+static inline bool
+cell_simple_p(const cell* c){
+  return (c->gcluster >> 24u) != 0x01;
+}
+
 // only applies to complex cells, do not use on simple cells
 __attribute__ ((__returns_nonnull__)) static inline const char*
 egcpool_extended_gcluster(const egcpool* pool, const cell* c) {

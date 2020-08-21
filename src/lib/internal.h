@@ -318,12 +318,6 @@ void init_lang(struct notcurses* nc); // nc may be NULL, only used for logging
 int terminfostr(char** gseq, const char* name);
 int interrogate_terminfo(tinfo* ti);
 
-// Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
-static inline bool
-cell_simple_p(const cell* c){
-  return (c->gcluster >> 24u) != 0x01;
-}
-
 // Search the provided multibyte (UTF8) string 's' for the provided unicode
 // codepoint 'cp'. If found, return the column offset of the EGC in which the
 // codepoint appears in 'col', and the byte offset as the return value. If not
