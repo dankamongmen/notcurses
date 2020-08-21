@@ -895,6 +895,22 @@ TEST_CASE("Wide") {
     CHECK(NCSTYLE_MASK == stylemask);
   }
 
+  // a higher glyph ought not be annihilated by a lower wide glyph
+  SUBCASE("HigherGlyphAbides") {
+    auto high = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    REQUIRE(nullptr != high);
+    CHECK(0 < ncplane_putsimple_yx(high, 0, 0, 'a'));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, "全", nullptr));
+    CHECK(0 == notcurses_render(nc_));
+    auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, nullptr);
+    REQUIRE(nullptr != egc);
+    CHECK(0 == strcmp(egc, "a"));
+    free(egc);
+    egc = notcurses_at_yx(nc_, 0, 1, nullptr, nullptr);
+    CHECK(0 == strcmp(egc, ""));
+    free(egc);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
