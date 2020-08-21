@@ -542,6 +542,7 @@ int fpsgraph_init(struct notcurses* nc){
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_EXPONENTIALD;
+  opts.legendstyle = NCSTYLE_ITALIC;
   channels_set_fg_rgb(&opts.minchannel, 0xff, 0x00, 0xff);
   channels_set_bg(&opts.minchannel, 0x201020);
   channels_set_bg_alpha(&opts.minchannel, CELL_ALPHA_BLEND);
