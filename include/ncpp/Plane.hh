@@ -331,17 +331,17 @@ namespace ncpp
 			return move_above (*above);
 		}
 
-		bool mergedown (Plane &dst) const
+		bool mergedown_simple (Plane &dst) const
 		{
-			return mergedown (&dst);
+			return mergedown_simple (&dst);
 		}
 
-		bool mergedown (Plane *dst) const
+		bool mergedown_simple (Plane *dst) const
 		{
 			if (dst != nullptr && plane == dst->plane)
-				throw invalid_argument ("'dst' must refer to a differnt plane than the one this method is called on");
+				throw invalid_argument ("'dst' must refer to a different plane than the one this method is called on");
 
-			return error_guard (ncplane_mergedown (plane, dst != nullptr ? dst->plane : nullptr), -1);
+			return error_guard (ncplane_mergedown_simple (plane, dst != nullptr ? dst->plane : nullptr), -1);
 		}
 
 		bool cursor_move (int y, int x) const NOEXCEPT_MAYBE

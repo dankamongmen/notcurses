@@ -397,9 +397,7 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
   }
 }
 
-// FIXME need handle a dst that isn't the standard plane! paint() will only
-// paint within the real viewport currently.
-int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
+int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst){
   notcurses* nc = src->nc;
   if(dst == NULL){
     dst = nc->stdplane;
