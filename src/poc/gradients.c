@@ -30,13 +30,14 @@ gradStriations(struct notcurses* nc){
   uint64_t ur = CHANNELS_RGB_INITIALIZER(0, 0xff, 0xff, 0xff, 0, 0);
   uint64_t ll = CHANNELS_RGB_INITIALIZER(0xff, 0, 0, 0, 0xff, 0xff);
   uint64_t lr = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
-  if(ncplane_gradient(stdn, "▀", NCSTYLE_NONE, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
+  if(ncplane_gradient(stdn, "▄", NCSTYLE_NONE, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
     return -1;
   }
   if(notcurses_render(nc)){
     return -1;
   }
-  if(ncplane_gradient(stdn, "▄", NCSTYLE_NONE, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
+  sleep(3);
+  if(ncplane_gradient(stdn, "▀", NCSTYLE_NONE, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
     return -1;
   }
   if(notcurses_render(nc)){

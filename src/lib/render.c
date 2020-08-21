@@ -853,11 +853,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
           nc->rstate.defaultelidable = false;
           nc->rstate.bgpalelidable = false;
         }
-/*if(cell_simple_p(srccell)){
-fprintf(stderr, "RAST %u [%c] to %d/%d\n", srccell->gcluster, srccell->gcluster, y, x);
-}else{
-fprintf(stderr, "RAST %u [%s] to %d/%d\n", srccell->gcluster, egcpool_extended_gcluster(&nc->pool, srccell), y, x);
-}*/
+//fprintf(stderr, "RAST %08x [%s] to %d/%d %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->channels);
         if(term_putc(out, &nc->pool, srccell) == 0){
           ++nc->rstate.x;
           if(cell_wide_left_p(srccell)){
