@@ -350,6 +350,7 @@ bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 typedef struct ncplot_options {
   uint64_t maxchannel;
   uint64_t minchannel;
+  uint16_t legendstyle;
   ncblitter_e gridtype;
   uint64_t rangex;
   unsigned flags;

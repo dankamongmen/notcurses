@@ -64,6 +64,7 @@ class ncppplot {
    if(dimx < ncpp->rangex){
      ncpp->slotcount = scaleddim;
    }
+   ncpp->legendstyle = opts->legendstyle;
    if( (ncpp->labelaxisd = opts->flags & NCPLOT_OPTION_LABELTICKSD) ){
      if(ncpp->slotcount + scaledprefixlen > scaleddim){
        if(scaleddim > scaledprefixlen){
@@ -128,6 +129,7 @@ class ncppplot {
    const int finalx = (slotcount < scaleddim - 1 - (startx * scale) ? startx + (slotcount / scale) - 1 : dimx - 1);
    if(labelaxisd){
      // show the *top* of each interval range
+     ncplane_set_attr(ncp, legendstyle);
      for(int y = 0 ; y < dimy ; ++y){
        uint64_t channels = 0;
        calc_gradient_channels(&channels, maxchannel, maxchannel,
@@ -145,6 +147,7 @@ class ncppplot {
        }
        ncplane_printf_yx(ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s", buf);
      }
+     ncplane_set_attr(ncp, NCSTYLE_NONE);
    }
    if(finalx < startx){ // exit on pathologically narrow planes
      return 0;
@@ -362,6 +365,7 @@ class ncppplot {
 
  uint64_t maxchannel;
  uint64_t minchannel;
+ uint16_t legendstyle;
  bool vertical_indep; // not yet implemented FIXME
  const struct blitset* bset;
  // requested number of slots. 0 for automatically setting the number of slots

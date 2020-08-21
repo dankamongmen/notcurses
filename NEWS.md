@@ -19,6 +19,9 @@ rearrangements of Notcurses.
     RGB in a channel (they were originally in the attrword).
   * Added `ncdirect_flush()`, mainly for the benefit of FFI that might not
     have a native interface to `fflush(3)`.
+  * The `ncplot_options` struct has a new field, `legendstyle`. If the
+    dependent variable is being labeled, this style will be applied to the
+    legend. Without NCPLOT_OPTION_LABELTICKSD, this value is ignored.
 
 * 1.6.15 (2020-08-16)
   * Styles now work properly with `ncdirect`, which apparently has never

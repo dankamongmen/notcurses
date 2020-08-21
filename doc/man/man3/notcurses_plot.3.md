@@ -11,15 +11,19 @@ notcurses_plot - high level widget for plotting
 **#include <notcurses/notcurses.h>**
 
 ```c
-#define NCPLOT_OPTION_LABELTICKSD  0x0001
-#define NCPLOT_OPTION_EXPONENTIALD 0x0002
-#define NCPLOT_OPTION_VERTICALI    0x0004
+#define NCPLOT_OPTION_LABELTICKSD   0x0001u
+#define NCPLOT_OPTION_EXPONENTIALD  0x0002u
+#define NCPLOT_OPTION_VERTICALI     0x0004u
+#define NCPLOT_OPTION_NODEGRADE     0x0008u
+#define NCPLOT_OPTION_DETECTMAXONLY 0x0010u
 
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels.
   // lerp across the domain between these two.
   uint64_t maxchannel;
   uint64_t minchannel;
+  // styling used for labels (NCPLOT_OPTION_LABELTICKSD)
+  uint16_t legendstyle;
   // number of "pixels" per row x column
   ncblitter_e gridtype;
   // independent variable is a contiguous range
@@ -81,9 +85,14 @@ how the braille glyphs will look in a given font.
 The same **ncplot_options** struct can be used with all ncplot types. The
 **flags** field is a bitmask composed of:
 
-* **NCPLOT_OPTION_LABELTICKSD**: Label dependent axis ticks.
-* **NCPLOT_OPTION_EXPONENTIALD**: Use an exponential dependent axis.
-* **NCPLOT_OPTION_VERTICALI**: Vertical independent axis.
+* **NCPLOT_OPTION_LABELTICKSD**: Label dependent axis ticks
+* **NCPLOT_OPTION_EXPONENTIALD**: Use an exponential dependent axis
+* **NCPLOT_OPTION_VERTICALI**: Vertical independent axis
+* **NCPLOT_OPTION_NODEGRADE**: Fail rather than degrade blitter
+* **NCPLOT_OPTION_DETECTMAXONLY**: Detect only max domain, not min
+
+If **NCPLOT_OPTION_LABELTICKSD** is supplied, the **legendstyle** field will be
+used to style the labels. It is otherwise ignored.
 
 # NOTES
 
