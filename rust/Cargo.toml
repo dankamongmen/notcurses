@@ -19,7 +19,7 @@ categories = [
 keywords = ["tui", "cli", "terminal", "ncurses", "ffi"]
 
 [dependencies]
-libc = {version = "0.2.74", default-features = false}
+libc = {version = "0.2.76", default-features = false}
 cty = "0.2.1"
 cstr_core = "0.2.1"
 libc-print = "0.1.13"
