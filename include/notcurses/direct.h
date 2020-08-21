@@ -31,7 +31,9 @@ API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx);
 // more colors than they actually support, downsampling internally.
 API unsigned ncdirect_palette_size(const struct ncdirect* nc);
 
-// Output the string |utf8| according to the channels |channels|.
+// Output the string |utf8| according to the channels |channels|. Note that
+// ncdirect_putstr() does not explicitly flush output buffers, so it will not
+// necessarily be immediately visible.
 API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
 
 static inline int
