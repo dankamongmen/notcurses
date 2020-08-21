@@ -16,6 +16,9 @@ steps:
     - make install
     - cd ../python
     - python3 setup.py sdist
+    - cd ../rust
+    - cargo build
+    - cargo t
 ---
 kind: pipeline
 type: docker
@@ -34,6 +37,9 @@ steps:
     - make install
     - cd ../python
     - python3 setup.py sdist
+    - cd ../rust
+    - cargo build
+    - cargo t
 ---
 kind: pipeline
 type: docker
