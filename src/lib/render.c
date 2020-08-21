@@ -155,6 +155,7 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
 // is one crender per rendered cell, and they are initialized to all zeroes.
 struct crender {
   const ncplane *p;
+  cell c;
   unsigned fgblends;
   unsigned bgblends;
   // we'll need recalculate the foreground relative to the solved background,
@@ -234,8 +235,8 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 // only those cells where 'p' intersects with the target rendering area are
 // rendered.
 static int
-paint(const ncplane* p, struct crender* rvec, cell* fb,
-      int dstleny, int dstlenx, int dstabsy, int dstabsx){
+paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
+      int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
@@ -264,8 +265,8 @@ paint(const ncplane* p, struct crender* rvec, cell* fb,
       if(absx >= dstlenx || absx < 0){
         break;
       }
-      cell* targc = &fb[fbcellidx(absy, dstlenx, absx)];
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
+      cell* targc = &crender->c;
       const cell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
       // writing in a zero), use the plane's base cell.
@@ -352,23 +353,21 @@ paint(const ncplane* p, struct crender* rvec, cell* fb,
 
 // it's not a pure memset(), because CELL_ALPHA_OPAQUE is the zero value
 static void
-init_fb(cell* fb, int dimy, int dimx){
-  for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
-      cell* c = &fb[fbcellidx(y, dimx, x)];
-      cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-    }
+init_rvec(struct crender* rvec, int totalcells){
+  memset(rvec, 0, sizeof(*rvec) * totalcells);
+  for(int t = 0 ; t < totalcells ; ++t){
+    struct crender* c = &rvec[t];
+    cell_set_fg_alpha(&c->c, CELL_ALPHA_TRANSPARENT);
+    cell_set_bg_alpha(&c->c, CELL_ALPHA_TRANSPARENT);
   }
 }
 
 static void
-postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
-          struct crender* rvec, egcpool* pool){
+postpaint(cell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* pool){
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
-      cell* targc = &fb[fbcellidx(y, dimx, x)];
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
+      cell* targc = &crender->c;
       lock_in_highcontrast(targc, crender);
       cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
 /*if(cell_simple_p(targc)){
@@ -404,29 +403,23 @@ int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst)
   }
   int dimy, dimx;
   ncplane_dim_yx(dst, &dimy, &dimx);
-  cell* tmpfb = calloc(sizeof(*tmpfb), dimy * dimx);
   cell* rendfb = calloc(sizeof(*rendfb), dimy * dimx);
   const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
   struct crender* rvec = malloc(crenderlen);
-  memset(rvec, 0, crenderlen);
-  init_fb(tmpfb, dimy, dimx);
-  init_fb(rendfb, dimy, dimx);
-  if(paint(src, rvec, tmpfb, dst->leny, dst->lenx, dst->absy, dst->absx)){
+  init_rvec(rvec, dimy * dimx);
+  if(paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
     free(rvec);
     free(rendfb);
-    free(tmpfb);
     return -1;
   }
-  if(paint(dst, rvec, tmpfb, dst->leny, dst->lenx, dst->absy, dst->absx)){
+  if(paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
     free(rvec);
     free(rendfb);
-    free(tmpfb);
     return -1;
   }
-  postpaint(tmpfb, rendfb, dimy, dimx, rvec, &dst->pool);
+  postpaint(rendfb, dimy, dimx, rvec, &dst->pool);
   free(dst->fb);
   dst->fb = rendfb;
-  free(tmpfb);
   free(rvec);
   return 0;
 }
@@ -979,19 +972,15 @@ static int
 notcurses_render_internal(notcurses* nc, struct crender* rvec){
   int dimy, dimx;
   ncplane_dim_yx(nc->stdplane, &dimy, &dimx);
-  cell* fb = calloc(sizeof(*fb), dimy * dimx);
-  init_fb(fb, dimy, dimx);
   ncplane* p = nc->top;
   while(p){
-    if(paint(p, rvec, fb, nc->stdplane->leny, nc->stdplane->lenx,
+    if(paint(p, rvec, nc->stdplane->leny, nc->stdplane->lenx,
              nc->stdplane->absy, nc->stdplane->absx)){
-      free(fb);
       return -1;
     }
     p = p->below;
   }
-  postpaint(fb, nc->lastframe, dimy, dimx, rvec, &nc->pool);
-  free(fb);
+  postpaint(nc->lastframe, dimy, dimx, rvec, &nc->pool);
   return 0;
 }
 
@@ -1004,7 +993,7 @@ int notcurses_render(notcurses* nc){
   int bytes = -1;
   const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
   struct crender* crender = malloc(crenderlen);
-  memset(crender, 0, crenderlen);
+  init_rvec(crender, crenderlen / sizeof(struct crender));
   if(notcurses_render_internal(nc, crender) == 0){
     bytes = notcurses_rasterize(nc, crender, nc->rstate.mstreamfp);
   }
