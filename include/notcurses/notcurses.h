@@ -124,6 +124,7 @@ mbswidth(const char* mbs){
 // if this bit *and* CELL_BGDEFAULT_MASK are set, we're using a
 // palette-indexed background color
 #define CELL_BG_PALETTE         0x0000000008000000ull
+#define NCPALETTESIZE 256
 // if this bit *and* CELL_FGDEFAULT_MASK are set, we're using a
 // palette-indexed foreground color
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
@@ -349,6 +350,30 @@ channels_set_fg_rgb_clipped(uint64_t* channels, int r, int g, int b){
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
 }
 
+// Set the 2-bit alpha component of the foreground channel.
+static inline int
+channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
+  unsigned channel = channels_fchannel(*channels);
+  if(channel_set_alpha(&channel, alpha) < 0){
+    return -1;
+  }
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return 0;
+}
+
+static inline int
+channels_set_fg_palindex(uint64_t* channels, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  *channels |= CELL_FGDEFAULT_MASK;
+  *channels |= CELL_FG_PALETTE;
+  channels_set_fg_alpha(channels, CELL_ALPHA_OPAQUE);
+  *channels &= 0xff000000ffffffffull;
+  *channels |= ((uint64_t)idx << 32u);
+  return 0;
+}
+
 // Same, but set an assembled 24 bit channel at once.
 static inline int
 channels_set_fg(uint64_t* channels, unsigned rgb){
@@ -380,28 +405,6 @@ channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
   channels_set_bchannel(channels, channel);
 }
 
-// Same, but set an assembled 24 bit channel at once.
-static inline int
-channels_set_bg(uint64_t* channels, unsigned rgb){
-  unsigned channel = channels_bchannel(*channels);
-  if(channel_set(&channel, rgb) < 0){
-    return -1;
-  }
-  channels_set_bchannel(channels, channel);
-  return 0;
-}
-
-// Set the 2-bit alpha component of the foreground channel.
-static inline int
-channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
-  unsigned channel = channels_fchannel(*channels);
-  if(channel_set_alpha(&channel, alpha) < 0){
-    return -1;
-  }
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-  return 0;
-}
-
 // Set the 2-bit alpha component of the background channel.
 static inline int
 channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
@@ -410,6 +413,32 @@ channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
   }
   unsigned channel = channels_bchannel(*channels);
   if(channel_set_alpha(&channel, alpha) < 0){
+    return -1;
+  }
+  channels_set_bchannel(channels, channel);
+  return 0;
+}
+
+// Set the cell's background palette index, set the background palette index
+// bit, set it background-opaque, and clear the background default color bit.
+static inline int
+channels_set_bg_palindex(uint64_t* channels, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  *channels |= CELL_BGDEFAULT_MASK;
+  *channels |= CELL_BG_PALETTE;
+  channels_set_bg_alpha(channels, CELL_ALPHA_OPAQUE);
+  *channels &= 0xffffffffff000000;
+  *channels |= idx;
+  return 0;
+}
+
+// Same, but set an assembled 24 bit channel at once.
+static inline int
+channels_set_bg(uint64_t* channels, unsigned rgb){
+  unsigned channel = channels_bchannel(*channels);
+  if(channel_set(&channel, rgb) < 0){
     return -1;
   }
   channels_set_bchannel(channels, channel);
@@ -1689,8 +1718,6 @@ API int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT
 // *excluding* the base cell. The cursor is homed.
 API void ncplane_erase(struct ncplane* n);
 
-#define NCPALETTESIZE 256
-
 // Extract the 32-bit background channel from a cell.
 static inline unsigned
 cell_bchannel(const cell* cl){
@@ -1774,15 +1801,7 @@ cell_set_fg(cell* c, uint32_t channel){
 // bit, set it foreground-opaque, and clear the foreground default color bit.
 static inline int
 cell_set_fg_palindex(cell* cl, int idx){
-  if(idx < 0 || idx >= NCPALETTESIZE){
-    return -1;
-  }
-  cl->channels |= CELL_FGDEFAULT_MASK;
-  cl->channels |= CELL_FG_PALETTE;
-  cell_set_fg_alpha(cl, CELL_ALPHA_OPAQUE);
-  cl->channels &= 0xff000000ffffffffull;
-  cl->channels |= ((uint64_t)idx << 32u);
-  return 0;
+  return channels_set_fg_palindex(&cl->channels, idx);
 }
 
 static inline unsigned
@@ -1814,15 +1833,7 @@ cell_set_bg(cell* c, uint32_t channel){
 // bit, set it background-opaque, and clear the background default color bit.
 static inline int
 cell_set_bg_palindex(cell* cl, int idx){
-  if(idx < 0 || idx >= NCPALETTESIZE){
-    return -1;
-  }
-  cl->channels |= CELL_BGDEFAULT_MASK;
-  cl->channels |= CELL_BG_PALETTE;
-  cell_set_bg_alpha(cl, CELL_ALPHA_OPAQUE);
-  cl->channels &= 0xffffffffff000000;
-  cl->channels |= idx;
-  return 0;
+  return channels_set_bg_palindex(&cl->channels, idx);
 }
 
 static inline unsigned
