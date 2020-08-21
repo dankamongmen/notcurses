@@ -150,22 +150,6 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
   return 1;
 }
 
-// Is this cell locked in? I.e. does it have all three of:
-//  * a selected EGC
-//  * CELL_ALPHA_OPAQUE foreground channel
-//  * CELL_ALPHA_OPAQUE background channel
-static inline bool
-cell_locked_p(const cell* p){
-  if(p->gcluster || cell_double_wide_p(p)){
-    if(cell_fg_alpha(p) == CELL_ALPHA_OPAQUE){
-      if(cell_bg_alpha(p) == CELL_ALPHA_OPAQUE){
-        return 1;
-      }
-    }
-  }
-  return 0;
-}
-
 // Extracellular state for a cell during the render process. This array is
 // passed along to rasterization, which uses only the 'damaged' bools.
 struct crender {
@@ -237,13 +221,9 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
   }
 }
 
-// Paints a single ncplane 'p' into the provided scratch framebuffer 'fb', and
-// ultimately 'lastframe' (we can't always write directly into 'lastframe',
-// because we need build state to solve certain cells, and need compare their
-// solved result to the last frame). Whenever a cell is locked in, it is
-// compared against the last frame. If it is different, the 'rvec' bitmap is
-// updated with a 1. 'pool' is typically nc->pool, but should be whatever's
-// backing fb.
+// Paints a single ncplane 'p' into the provided scratch framebuffer 'fb' (we
+// can't always write directly into lastframe, because we need build state to
+// solve certain cells, and need compare their solved result to the last frame).
 //
 //  dstleny: leny of target rendering area described by fb/lastframe
 //  dstlenx: lenx of target rendering area described by fb
@@ -253,9 +233,8 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 // only those cells where 'p' intersects with the target rendering area are
 // rendered.
 static int
-paint(const ncplane* p, cell* lastframe, struct crender* rvec,
-      cell* fb, egcpool* pool, int dstleny, int dstlenx,
-      int dstabsy, int dstabsx){
+paint(const ncplane* p, struct crender* rvec, cell* fb,
+      int dstleny, int dstlenx, int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
@@ -285,9 +264,6 @@ paint(const ncplane* p, cell* lastframe, struct crender* rvec,
         break;
       }
       cell* targc = &fb[fbcellidx(absy, dstlenx, absx)];
-      if(cell_locked_p(targc)){
-        continue;
-      }
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
       const cell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
@@ -330,66 +306,41 @@ paint(const ncplane* p, cell* lastframe, struct crender* rvec,
       // If it's transparent, it has no effect. Otherwise, update the
       // background channel and balpha.
       // Evaluate the background first, in case we have HIGHCONTRAST fg text.
-      vis = &p->fb[nfbcellidx(p, y, x)];
-      if(cell_bg_default_p(vis)){
-        vis = &p->basecell;
-      }
-      if(cell_bg_palindex_p(vis)){
-        if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-          cell_set_bg_palindex(targc, cell_bg_palindex(vis));
+      if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
+        vis = &p->fb[nfbcellidx(p, y, x)];
+        if(cell_bg_default_p(vis)){
+          vis = &p->basecell;
         }
-      }else if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
-      }
-
-      vis = &p->fb[nfbcellidx(p, y, x)];
-      if(cell_fg_default_p(vis)){
-        vis = &p->basecell;
-      }
-      if(cell_fg_palindex_p(vis)){
-        if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-          cell_set_fg_palindex(targc, cell_fg_palindex(vis));
-        }
-      }else if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
-          crender->highcontrast = true;
-          crender->hcfgblends = crender->fgblends;
-          crender->hcfg = cell_fchannel(targc);
-        }
-        cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
-        // crender->highcontrast can only be true if we just set it, since we're
-        // about to set targc opaque based on crender->highcontrast (and this
-        // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
-        if(crender->highcontrast){
-          cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
+        if(cell_bg_palindex_p(vis)){
+          if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+            cell_set_bg_palindex(targc, cell_bg_palindex(vis));
+          }
+        }else{
+          cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
         }
       }
 
-      // have we locked this coordinate in as a result of this plane (cells
-      // which were already locked in were skipped at the top of the loop)?
-      if(cell_locked_p(targc)){
-        lock_in_highcontrast(targc, crender);
-        cell* prevcell = &lastframe[fbcellidx(absy, dstlenx, absx)];
-/*if(cell_simple_p(targc)){
-fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, targc->gcluster, y, x, absy, absx);
-}else{
-fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
-}*/
-        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
-          crender->damaged = true;
-          if(cell_wide_left_p(targc)){
-            const ncplane* tmpp = crender->p;
-            ++crender;
-            crender->p = tmpp;
-            ++x;
-            ++prevcell;
-            ++targc;
-            targc->gcluster = 0;
-            targc->channels = targc[-1].channels;
-            targc->stylemask = targc[-1].stylemask;
-            if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
-              crender->damaged = true;
-            }
+      if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
+        vis = &p->fb[nfbcellidx(p, y, x)];
+        if(cell_fg_default_p(vis)){
+          vis = &p->basecell;
+        }
+        if(cell_fg_palindex_p(vis)){
+          if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+            cell_set_fg_palindex(targc, cell_fg_palindex(vis));
+          }
+        }else{
+          if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
+            crender->highcontrast = true;
+            crender->hcfgblends = crender->fgblends;
+            crender->hcfg = cell_fchannel(targc);
+          }
+          cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
+          // crender->highcontrast can only be true if we just set it, since we're
+          // about to set targc opaque based on crender->highcontrast (and this
+          // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
+          if(crender->highcontrast){
+            cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
           }
         }
       }
@@ -416,12 +367,24 @@ postpaint(cell* fb, cell* lastframe, int dimy, int dimx,
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       cell* targc = &fb[fbcellidx(y, dimx, x)];
-      if(!cell_locked_p(targc)){
-        struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-        lock_in_highcontrast(targc, crender);
-        cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
-        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
-          crender->damaged = true;
+      struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
+      lock_in_highcontrast(targc, crender);
+      cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
+      if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+        crender->damaged = true;
+        if(cell_wide_left_p(targc)){
+          const ncplane* tmpp = crender->p;
+          ++crender;
+          crender->p = tmpp;
+          ++x;
+          ++prevcell;
+          ++targc;
+          targc->gcluster = 0;
+          targc->channels = targc[-1].channels;
+          targc->stylemask = targc[-1].stylemask;
+          if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+            crender->damaged = true;
+          }
         }
       }
     }
@@ -444,15 +407,13 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst){
   memset(rvec, 0, crenderlen);
   init_fb(tmpfb, dimy, dimx);
   init_fb(rendfb, dimy, dimx);
-  if(paint(src, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
-           dst->absy, dst->absx)){
+  if(paint(src, rvec, tmpfb, dst->leny, dst->lenx, dst->absy, dst->absx)){
     free(rvec);
     free(rendfb);
     free(tmpfb);
     return -1;
   }
-  if(paint(dst, rendfb, rvec, tmpfb, &dst->pool, dst->leny, dst->lenx,
-           dst->absy, dst->absx)){
+  if(paint(dst, rvec, tmpfb, dst->leny, dst->lenx, dst->absy, dst->absx)){
     free(rvec);
     free(rendfb);
     free(tmpfb);
@@ -1022,8 +983,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   init_fb(fb, dimy, dimx);
   ncplane* p = nc->top;
   while(p){
-    if(paint(p, nc->lastframe, rvec, fb, &nc->pool,
-             nc->stdplane->leny, nc->stdplane->lenx,
+    if(paint(p, rvec, fb, nc->stdplane->leny, nc->stdplane->lenx,
              nc->stdplane->absy, nc->stdplane->absx)){
       free(fb);
       return -1;
