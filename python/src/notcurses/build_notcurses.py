@@ -20,11 +20,8 @@ typedef struct ncinput {
   bool ctrl;       // Was Ctrl held during the event?
   uint64_t seqnum; // Monotonically increasing input event counter
 } ncinput;
-bool nckey_mouse_p(char32_t r);
 // sigset_t differs from system to system, annoying
 // char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask, ncinput* ni);
-char32_t notcurses_getc_nblock(struct notcurses* n, ncinput* ni);
-char32_t notcurses_getc_blocking(struct notcurses* n, ncinput* ni);
 int notcurses_inputready_fd(struct notcurses* n);
 typedef struct cell {
   uint32_t gcluster;          // 4B → 4B
@@ -106,9 +103,7 @@ int ncplane_move_above(struct ncplane* restrict n, struct ncplane* restrict abov
 struct ncplane* ncplane_below(struct ncplane* n);
 char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint16_t* stylemask, uint64_t* channels);
 char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);
-int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
 char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels);
-int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
 typedef enum {
   NCBLIT_1x1,     // full block                █
   NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
@@ -129,14 +124,6 @@ int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 uint64_t ncplane_channels(struct ncplane* n);
 uint16_t ncplane_attr(struct ncplane* n);
-unsigned ncplane_bchannel(struct ncplane* nc);
-unsigned ncplane_fchannel(struct ncplane* nc);
-unsigned ncplane_fg(struct ncplane* nc);
-unsigned ncplane_bg(struct ncplane* nc);
-unsigned ncplane_fg_alpha(struct ncplane* nc);
-unsigned ncplane_bg_alpha(struct ncplane* nc);
-unsigned ncplane_fg_rgb(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);
-unsigned ncplane_bg_rgb(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);
 int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
 int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
 void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
@@ -180,8 +167,6 @@ typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, const struct ti
 int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
 int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
 int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
-int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);
-int ncplane_putwc(struct ncplane* n, wchar_t w);
 int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
 int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);
 int ncplane_putstr_stainable(struct ncplane* n, const char* s);
@@ -191,44 +176,13 @@ int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 int cell_prime(struct ncplane* n, cell* c, const char* gcluster, uint32_t attr, uint64_t channels);
 int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 void cell_release(struct ncplane* n, cell* c);
-void cell_styles_set(cell* c, unsigned stylebits);
-unsigned cell_styles(const cell* c);
-void cell_styles_on(cell* c, unsigned stylebits);
-void cell_styles_off(cell* c, unsigned stylebits);
-void cell_set_fg_default(cell* c);
-void cell_set_bg_default(cell* c);
-int cell_set_fg_alpha(cell* c, unsigned alpha);
-int cell_set_bg_alpha(cell* c, unsigned alpha);
-bool cell_double_wide_p(const cell* c);
 const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
-int cell_load_simple(struct ncplane* n, cell* c, char ch);
-unsigned cell_bchannel(const cell* cl);
-unsigned cell_fchannel(const cell* cl);
-uint64_t cell_set_bchannel(cell* cl, uint32_t channel);
-uint64_t cell_set_fchannel(cell* cl, uint32_t channel);
-unsigned cell_fg(const cell* cl);
-unsigned cell_bg(const cell* cl);
-unsigned cell_fg_alpha(const cell* cl);
-unsigned cell_bg_alpha(const cell* cl);
-unsigned cell_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b);
-unsigned cell_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b);
-int cell_set_fg_rgb(cell* cl, int r, int g, int b);
-int cell_set_bg_rgb(cell* cl, int r, int g, int b);
-void cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b);
-void cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b);
-int cell_set_fg(cell* c, uint32_t channel);
-int cell_set_bg(cell* c, uint32_t channel);
-bool cell_fg_default_p(const cell* cl);
-bool cell_bg_default_p(const cell* cl);
 typedef struct palette256 {
   // We store the RGB values as a regular ol' channel
   uint32_t chans[256];
 } palette256;
 palette256* palette256_new(struct notcurses* nc);
 int palette256_use(struct notcurses* nc, const palette256* p);
-int palette256_set_rgb(palette256* p, int idx, int r, int g, int b);
-int palette256_set(palette256* p, int idx, unsigned rgb);
-int palette256_get_rgb(const palette256* p, int idx, unsigned* r, unsigned* g, unsigned* b);
 void palette256_free(palette256* p);
 typedef enum {
   NCERR_SUCCESS,
@@ -381,7 +335,6 @@ void* nctablet_userptr(struct nctablet* t);
 struct ncplane* nctablet_ncplane(struct nctablet* t);
 int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop);
-int ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen);
 int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ystop, int xstop);
 int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ylen, int xlen);
 int ncplane_putsimple_stainable(struct ncplane* n, char c);
