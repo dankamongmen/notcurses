@@ -302,7 +302,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 == notcurses_render(nc_));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    // FIXME check line
+    CHECK(0 == strcmp(line, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornareneque ac ipsum viverra, vestibulum hendrerit leo consequat. Integervelit, pharetra sed nisl quis, porttitor ornare purus. Cras acsollicitudin dolor, eget elementum dolor. Quisque lobortis sagittis."));
     free(line);
     ncplane_destroy(sp);
   }
@@ -327,7 +327,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 == notcurses_render(nc_));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    // FIXME check line
+    CHECK(0 == strcmp(line, "to be selected from a list of n items. NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can beplaced along the top and/or bottom of any plane.Widgets can be controlled with the keyboard and/or mouse. Theyare implemented atop ncplanes, and these planes can bemanipulated like all others."));
     free(line);
     ncplane_destroy(sp);
   }
@@ -353,7 +353,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 == notcurses_render(nc_));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    // FIXME check line
+    CHECK(0 == strcmp(line, "Notcurses provides several widgets to quickly build vividTUIs.This NCReader widget facilitates free-form text entrycomplete with readline-style bindings. NCSelector allows asingleoption to be selected from a list. NCMultiselector allows 0..noptions to be selected from a list of n items. NCFdplane streamsa file descriptor, while NCSubproc spawns a subprocess andstreams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.Widgetscan be controlled with the keyboard and/or mouse. They areimplemented atop ncplanes, and these planes can be manipulatedlike all others."));
     free(line);
     ncplane_destroy(sp);
   }
