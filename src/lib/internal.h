@@ -918,6 +918,9 @@ pool_load(egcpool* pool, cell* c, const char* gcluster){
   return pool_load_direct(pool, c, gcluster, bytes, cols);
 }
 
+// increment y by 1 and rotate the framebuffer up one line. x moves to 0.
+void scroll_down(ncplane* n);
+
 #ifdef __cplusplus
 }
 #endif

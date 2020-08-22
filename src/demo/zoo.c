@@ -324,7 +324,8 @@ reader_thread(void* vmarsh){
   while(textpos < textlen || y > targrow){
     pthread_mutex_lock(lock);
       ncplane_move_yx(rplane, y, x);
-      size_t towrite = strcspn(text + textpos, " \t\n") + 1;
+      size_t towrite = strcspn(text + textpos, " \t\n");
+      towrite += strspn(text + textpos + towrite, " \t\n");
       if(towrite){
         char* duped = strndup(text + textpos, towrite);
         size_t bytes;
