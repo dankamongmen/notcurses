@@ -15,7 +15,7 @@ steps:
     - env TERM=xterm make test
     - make install
     - cd ../python
-    - python3 setup.py sdist
+    - python3 setup.py sdist build
 ---
 kind: pipeline
 type: docker
@@ -33,7 +33,7 @@ steps:
     - env TERM=xterm make test
     - make install
     - cd ../python
-    - python3 setup.py sdist
+    - python3 setup.py sdist build
     - cd ../rust
     - cargo build
     - cargo t
