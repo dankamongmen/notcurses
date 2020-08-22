@@ -1267,24 +1267,28 @@ API void* ncplane_userptr(struct ncplane* n);
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
                             int* RESTRICT x);
 
+// return the offset into 'availcols' at which 'cols' ought be output given the
+// requirements of 'align'.
+static inline int
+notcurses_align(int availcols, ncalign_e align, int cols){
+  if(align == NCALIGN_LEFT){
+    return 0;
+  }
+  if(cols > availcols){
+    return 0;
+  }
+  if(align == NCALIGN_CENTER){
+    return (availcols - cols) / 2;
+  }
+  return availcols - cols; // NCALIGN_RIGHT
+}
+
 // Return the column at which 'c' cols ought start in order to be aligned
 // according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
 // Undefined behavior on negative 'c'.
 static inline int
 ncplane_align(const struct ncplane* n, ncalign_e align, int c){
-  if(align == NCALIGN_LEFT){
-    return 0;
-  }
-  int cols = ncplane_dim_x(n);
-  if(c > cols){
-    return 0;
-  }
-  if(align == NCALIGN_CENTER){
-    return (cols - c) / 2;
-  }else if(align == NCALIGN_RIGHT){
-    return cols - c;
-  }
-  return INT_MAX;
+  return notcurses_align(ncplane_dim_x(n), align, c);
 }
 
 // Move the cursor to the specified position (the cursor needn't be visible).
@@ -1553,6 +1557,15 @@ ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
 // determine whether the write completed by inspecting '*bytes'. Can output to
 // multiple rows even in the absence of scrolling, but not more rows than are
 // available. With scrolling enabled, arbitrary amounts of data can be emitted.
+// All provided whitespace is preserved -- ncplane_puttext() followed by an
+// appropriate ncplane_contents() will read back the original output.
+//
+// If 'y' is -1, the first row of output is taken relative to the current
+// cursor: it will be left-, right-, or center-aligned in whatever remains
+// of the row. On subsequent rows -- or if 'y' is not -1 -- the entire row can
+// be used, and alignment works normally.
+//
+// A newline at any point will move the cursor to the next row.
 API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
                         const char* text, size_t* bytes);
 

@@ -15,7 +15,6 @@
 #include <signal.h>
 #include <locale.h>
 #include <uniwbrk.h>
-#include <unictype.h>
 #include <langinfo.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
@@ -1291,8 +1290,7 @@ cell_obliterate(ncplane* n, cell* c){
 }
 
 // increment y by 1 and rotate the framebuffer up one line. x moves to 0.
-static inline void
-scroll_down(ncplane* n){
+void scroll_down(ncplane* n){
   n->x = 0;
   if(n->y == n->leny - 1){
     n->logrow = (n->logrow + 1) % n->leny;
@@ -1320,6 +1318,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     return -1;
   }
   if(c->gcluster == '\n'){
+fprintf(stderr, "GOT NEWLINE AT %d/%d\n", n->y, n->x);
     if(n->scrolling){
       scroll_down(n);
       return 0;
@@ -1641,235 +1640,6 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   }
   cell_release(n, &dupc);
   return ret;
-}
-
-static bool
-islinebreak(wchar_t wchar){
-  // UC_LINE_SEPARATOR + UC_PARAGRAPH_SEPARATOR
-  if(wchar == '\n'){
-    return true;
-  }
-  const uint32_t mask = UC_CATEGORY_MASK_Zl | UC_CATEGORY_MASK_Zp;
-  return uc_is_general_category_withtable(wchar, mask);
-}
-
-static bool
-iswordbreak(wchar_t wchar){
-  const uint32_t mask = UC_CATEGORY_MASK_Z |
-                        UC_CATEGORY_MASK_Zs;
-  return uc_is_general_category_withtable(wchar, mask);
-}
-
-static bool
-overlong_word(const char* text, int dimx){
-  size_t width = 0;
-  while(*text && !iswordbreak(*text)){
-    mbstate_t mbstate = {};
-    wchar_t w;
-    size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
-    if(consumed == (size_t)-2 || consumed == (size_t)-1){
-      return false;
-    }
-    text += consumed;
-    size_t wide = wcwidth(w);
-    if(wide > 0){
-      width += wide;
-    }
-    if(width > (size_t)dimx){
-      return true;
-    }
-  }
-  return false;
-}
-
-// Determine if we need to drop down to the next line before trying to print
-// anything. We do if both (1) there is not enough room to print an entire word
-// on the line, and (2) we did not start on the left-hand side. If #2 is not
-// true, it's just a very long word, and we print the portion we can. Performs
-// the move, if it is determined to be necessary.
-static int
-puttext_premove(ncplane* n, const char* text){
-//fprintf(stderr, "CHECKING %d/%d %s\n", n->y, n->x, text);
-  if(n->x == 0){ // never move down when starting on the left hand origin
-    return 0;
-  }
-  const char* breaker = NULL; // where the last wordbreaker starts
-  if(n->x > 0 && n->x < n->lenx){
-    int x = n->x;
-    const char* beginning = text;
-    while(*text && x <= ncplane_dim_x(n)){
-      mbstate_t mbstate = {};
-      wchar_t w;
-      size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
-      if(consumed == (size_t)-2 || consumed == (size_t)-1){
-        logerror(n->nc, "Invalid UTF-8 after %zu bytes\n", text - beginning);
-        return -1;
-      }
-      if(iswordbreak(w)){
-  //fprintf(stderr, "wordbreak [%lc] at %d\n", w, x);
-        if(x == n->x){
-          text += consumed;
-          continue; // don't emit leading whitespace, or count it
-        }else{
-          return 0;
-        }
-      }
-      int width = wcwidth(w);
-  //fprintf(stderr, "have char %lc (%d) (%zu)\n", w, width, text - linestart);
-      if(width < 0){
-        width = 0;
-      }
-      if(x + width > n->lenx){
-        break;
-      }
-      x += width;
-      text += consumed;
-    }
-  }
-  if(*text && breaker == NULL){
-fprintf(stderr, "ADVANCING DA FOKKER, JA\n");
-    if(n->scrolling){
-      scroll_down(n);
-    }else{
-      return ncplane_cursor_move_yx(n, n->y + 1, 0);
-    }
-  }
-  return 0;
-}
-
-// FIXME probably best to use u8_wordbreaks() and get all wordbreaks at once...
-int ncplane_puttext(ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes){
-  if(bytes){
-    *bytes = 0;
-  }
-  int totalcols = 0;
-  // save the beginning for diagnostic
-  const char* beginning = text;
-  // text points to the text we have *not* yet output. at each step, we see
-  // how much space we have available, and begin iterating from text. remember
-  // the most recent linebreaker that we see. when we exhaust our line, print
-  // through the linebreaker, and advance text.
-  const int dimx = ncplane_dim_x(n);
-  const int dimy = ncplane_dim_y(n);
-  const char* linestart = text;
-  // if we're using NCALIGN_LEFT, we'll be printing with x==-1, i.e. wherever
-  // the cursor is. if there's insufficient room to print anything, we need to
-  // try moving to the next line first. FIXME this ought actually apply to all
-  // alignments, which ought be taken relative to n->x. no change for
-  // NCALIGN_RIGHT, but NCALIGN_CENTER needs explicitly handle it...
-  do{
-    //if(align == NCALIGN_LEFT){
-      if(puttext_premove(n, text)){
-        return -1;
-      }
-    //}
-//fprintf(stderr, "**************STARTING AT %d/%d of %d/%d\n", n->y, n->x, n->leny, n->lenx);
-    int x = n->x; // number of columns consumed for this line
-    const char* breaker = NULL; // where the last wordbreaker starts
-    int breakercol = 0; // column of the last wordbreaker
-    // figure how much text to output on this line
-    mbstate_t mbstate = {};
-    int width;
-    wchar_t w;
-    // let it go all the way through to dimx. on that last hit of dimx, we
-    // might catch a space, in which case we want breaker updated. if it's
-    // not a space, it won't be printed, and we carry the word forward.
-    // FIXME what ought be done with multiple/leading spaces?
-    while(*text && x <= dimx){
-//fprintf(stderr, "laying out [%s] at %d <= %d, %zu\n", linestart, x, dimx, text - linestart);
-      size_t consumed = mbrtowc(&w, text, MB_CUR_MAX, &mbstate);
-      if(consumed == (size_t)-2 || consumed == (size_t)-1){
-        logerror(n->nc, "Invalid UTF-8 after %zu bytes\n", text - beginning);
-        if(bytes){
-          *bytes = text - beginning;
-        }
-        return -1;
-      }
-      if(iswordbreak(w)){
-//fprintf(stderr, "wordbreak [%lc] at %d\n", w, x);
-        if(x == 0){
-          text += consumed;
-          linestart = text;
-          continue; // don't emit leading whitespace, or count it
-        }else{
-          breaker = text;
-          breakercol = x;
-        }
-      }
-      width = wcwidth(w);
-//fprintf(stderr, "have char %lc (%d) (%zu)\n", w, width, text - linestart);
-      if(width < 0){
-        width = 0;
-      }
-      if(x + width > dimx){
-        break;
-      }
-      x += width;
-      text += consumed;
-    }
-fprintf(stderr, "oury: %d cursor: %d/%d(%d) OUT! %s %zu %d\n", y, n->y, n->x, n->lenx, linestart, text - linestart, x);
-    bool overlong = false; // ugh
-    // if we have no breaker, we got a single word that was longer than our
-    // line. print what we can and move along. if *text is nul, we're done.
-    if(!*text || breaker == NULL){
-      breaker = text;
-      breakercol = dimx;
-    }else{
-      // if the word on which we ended is overlong (longer than the plane is
-      // wide), go ahead and start printing it where it starts. otherwise, punt
-      // it to the next line, to avoid breaking it across lines.
-      if(overlong_word(breaker + 1, dimx)){
-        breaker = text;
-        breakercol = dimx;
-        overlong = true;
-//fprintf(stderr, "NEW BREAKER: %s\n", breaker);
-      }
-    }
-    // if the most recent breaker was the last column, it doesn't really count
-    if(breakercol == dimx - 1){
-//fprintf(stderr, "END OF THE LINE. breakercol: %d -> %d breakerdiff: %zu\n", breakercol, dimx, breaker - linestart);
-      breakercol = dimx;
-      ++breaker; // FIXME need to advance # of bytes in the UTF8 breaker, not 1
-    }
-fprintf(stderr, "exited at %d (%d) %zu looking at [%.*s]\n", x, dimx, breaker - linestart, (int)(breaker - linestart), linestart);
-    if(breaker != linestart){
-      totalcols += breakercol;
-      const int xpos = (align == NCALIGN_LEFT) ? -1 : ncplane_align(n, align, breakercol);
-      // blows out if we supply a y beyond leny
-fprintf(stderr, "y: %d %ld %.*s\n", y, breaker - linestart, (int)(breaker - linestart), linestart);
-      if(ncplane_putnstr_yx(n, y, xpos, breaker - linestart, linestart) <= 0){
-        if(bytes){
-          *bytes = linestart - beginning;
-        }
-        return -1;
-      }
-      text = breaker;
-    }
-//fprintf(stderr, "x gets %d\n", dimx == breakercol ? 0 : breakercol);
-    if(breaker == text || overlong){
-      linestart = breaker;
-    }else{
-      linestart = breaker + 1;
-    }
-    // FIXME does this print a bottom line with breakers twice?
-    if(y >= 0 && ++y >= dimy){
-      if(n->scrolling){
-        if(ncplane_putsimple_yx(n, -1, -1, '\n') < 0){
-          if(bytes){
-            *bytes = linestart - beginning;
-          }
-          return -1;
-        }
-        y = -1;
-      }
-    }
-//fprintf(stderr, "new cursor: %d/%d\n", n->y, n->x);
-//fprintf(stderr, "LOOKING AT: [%c] [%s]\n", *text, linestart);
-  }while(*text);
-  if(bytes){
-    *bytes = text - beginning;
-  }
-  return totalcols;
 }
 
 int ncplane_vline_interp(ncplane* n, const cell* c, int len,
@@ -2582,7 +2352,7 @@ int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s,
 
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
   int ret = 0;
-fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
+//fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
   // FIXME speed up this blissfully naive solution
   while((size_t)ret < s && *gclusters){
     int wcs;
