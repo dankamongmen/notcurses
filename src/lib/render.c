@@ -227,8 +227,8 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 // can't always write directly into lastframe, because we need build state to
 // solve certain cells, and need compare their solved result to the last frame).
 //
-//  dstleny: leny of target rendering area described by fb/lastframe
-//  dstlenx: lenx of target rendering area described by fb
+//  dstleny: leny of target rendering area described by rvec
+//  dstlenx: lenx of target rendering area described by rvec
 //  dstabsy: absy of target rendering area (relative to terminal)
 //  dstabsx: absx of target rendering area (relative to terminal)
 //
@@ -241,7 +241,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
   offx = p->absx - dstabsx;
-//fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, dstleny, dstlenx);
+fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, dstleny, dstlenx);
   // skip content above or to the left of the physical screen
   int starty, startx;
   if(offy < 0){
@@ -359,7 +359,8 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   return 0;
 }
 
-// it's not a pure memset(), because CELL_ALPHA_OPAQUE is the zero value
+// it's not a pure memset(), because CELL_ALPHA_OPAQUE is the zero value, and
+// we need CELL_ALPHA_TRANSPARENT
 static void
 init_rvec(struct crender* rvec, int totalcells){
   memset(rvec, 0, sizeof(*rvec) * totalcells);
@@ -404,6 +405,60 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
   }
 }
 
+int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
+                      int begsrcy, int begsrcx, int leny, int lenx,
+                      int dsty, int dstx){
+fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
+  if(dsty >= dst->leny || dstx >= dst->lenx){
+    logerror(dst->nc, "Dest origin %d/%d ≥ dest dimensions %d/%d\n",
+             dsty, dstx, dst->leny, dst->lenx);
+    return -1;
+  }
+  if(dst->leny - leny < dsty || dst->lenx - lenx < dstx){
+    logerror(dst->nc, "Dest len %d/%d ≥ dest dimensions %d/%d\n",
+             leny, lenx, dst->leny, dst->lenx);
+    return -1;
+  }
+  if(begsrcy >= src->leny || begsrcx >= src->lenx){
+    logerror(dst->nc, "Source origin %d/%d ≥ source dimensions %d/%d\n",
+             begsrcy, begsrcx, src->leny, src->lenx);
+    return -1;
+  }
+  if(src->leny - leny < begsrcy || src->lenx - lenx < begsrcx){
+    logerror(dst->nc, "Source len %d/%d ≥ source dimensions %d/%d\n",
+             leny, lenx, src->leny, src->lenx);
+    return -1;
+  }
+  const int totalcells = dst->leny * dst->lenx;
+  cell* rendfb = calloc(sizeof(*rendfb), totalcells);
+  const size_t crenderlen = sizeof(struct crender) * totalcells;
+  struct crender* rvec = malloc(crenderlen);
+  if(!rendfb || !rvec){
+    logerror(dst->nc, "Error allocating render state for %dx%d\n", leny, lenx);
+    free(rendfb);
+    free(rvec);
+    return -1;
+  }
+  init_rvec(rvec, totalcells);
+  if(paint(src, rvec, dst->leny, dst->lenx, 0, 0)){
+    free(rvec);
+    free(rendfb);
+    return -1;
+  }
+  if(paint(dst, rvec, dst->leny, dst->lenx, 0, 0)){
+    free(rvec);
+    free(rendfb);
+    return -1;
+  }
+fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
+  postpaint(rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
+fprintf(stderr, "Postpaint done (%dx%d)\n", dst->leny, dst->lenx);
+  free(dst->fb);
+  dst->fb = rendfb;
+  free(rvec);
+  return 0;
+}
+
 int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst){
   notcurses* nc = src->nc;
   if(dst == NULL){
@@ -411,25 +466,8 @@ int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst)
   }
   int dimy, dimx;
   ncplane_dim_yx(dst, &dimy, &dimx);
-  cell* rendfb = calloc(sizeof(*rendfb), dimy * dimx);
-  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
-  struct crender* rvec = malloc(crenderlen);
-  init_rvec(rvec, dimy * dimx);
-  if(paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
-    free(rvec);
-    free(rendfb);
-    return -1;
-  }
-  if(paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
-    free(rvec);
-    free(rendfb);
-    return -1;
-  }
-  postpaint(rendfb, dimy, dimx, rvec, &dst->pool);
-  free(dst->fb);
-  dst->fb = rendfb;
-  free(rvec);
-  return 0;
+  return ncplane_mergedown(src, dst, 0, 0, ncplane_dim_y(src),
+                           ncplane_dim_x(src), 0, 0);
 }
 
 static inline int
