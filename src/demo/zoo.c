@@ -176,20 +176,18 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
       }
       ++yi;
     }
-    if( (ret = demo_nanosleep(nc, &iterdelay)) ){
-      break;
-    }
-    struct timespec targettime, deadline, now;
-    timespec_mul(&iterdelay, i, &targettime);
-    const uint64_t deadline_ns = timespec_add(&deadline, &start, &targettime);
+    struct timespec targettime, now;
+    timespec_mul(&iterdelay, i + 1, &targettime);
+    const uint64_t deadline_ns = timespec_to_ns(&start) + timespec_to_ns(&targettime);
     clock_gettime(CLOCK_MONOTONIC, &now);
     while(timespec_to_ns(&now) < deadline_ns){
       if( (ret = demo_render(nc)) ){
         return ret;
       }
       struct ncinput ni;
-    // FIXME take input through absolute start + iters * iterdelay
-      char32_t wc = demo_getc(nc, &iterdelay, &ni);
+      struct timespec inputtime;
+      ns_to_timespec(deadline_ns - timespec_to_ns(&now), &inputtime);
+      char32_t wc = demo_getc(nc, &inputtime, &ni);
       if(wc == (char32_t)-1){
         return -1;
       }else if(wc){
