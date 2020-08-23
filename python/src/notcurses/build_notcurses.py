@@ -354,6 +354,7 @@ typedef struct ncplot_options {
   ncblitter_e gridtype;
   uint64_t rangex;
   unsigned flags;
+  const char* title;
 } ncplot_options;
 struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy);
 struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts, double miny, double maxy);

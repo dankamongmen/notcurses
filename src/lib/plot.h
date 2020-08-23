@@ -4,6 +4,7 @@
 #include <cmath>
 #include <array>
 #include <limits>
+#include <string>
 #include "internal.h"
 #include "notcurses/notcurses.h"
 
@@ -53,6 +54,9 @@ class ncppplot {
      return false;
    }
    int dimx = sdimx;
+   if(opts->title){
+     ncpp->title = std::string(opts->title);
+   }
    ncpp->rangex = opts->rangex;
    // if we're sizing the plot based off the plane dimensions, scale it by the
    // plot geometry's width for all calculations
@@ -127,9 +131,9 @@ class ncppplot {
    // if we want fewer slots than there are available columns, our final column
    // will be other than the plane's final column. most recent x goes here.
    const int finalx = (slotcount < scaleddim - 1 - (startx * scale) ? startx + (slotcount / scale) - 1 : dimx - 1);
+   ncplane_set_attr(ncp, legendstyle);
    if(labelaxisd){
      // show the *top* of each interval range
-     ncplane_set_attr(ncp, legendstyle);
      for(int y = 0 ; y < dimy ; ++y){
        uint64_t channels = 0;
        calc_gradient_channels(&channels, minchannels, minchannels,
@@ -145,10 +149,20 @@ class ncppplot {
        }else{
          ncmetric((maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0');
        }
-       ncplane_printf_yx(ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s", buf);
+       if(y == dimy - 1 && !title.empty()){
+         ncplane_printf_yx(ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s %s", buf, title.c_str());
+       }else{
+         ncplane_printf_yx(ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s", buf);
+       }
      }
-     ncplane_set_attr(ncp, NCSTYLE_NONE);
+   }else if(!title.empty()){
+      uint64_t channels = 0;
+      calc_gradient_channels(&channels, minchannels, minchannels,
+                             maxchannels, maxchannels, dimy - 1, 0, dimy, dimx);
+      ncplane_set_channels(ncp, channels);
+      ncplane_printf_yx(ncp, 0, PREFIXCOLUMNS - title.length(), "%s", title.c_str());
    }
+   ncplane_set_attr(ncp, NCSTYLE_NONE);
    if(finalx < startx){ // exit on pathologically narrow planes
      return 0;
    }
@@ -368,6 +382,7 @@ class ncppplot {
  uint16_t legendstyle;
  bool vertical_indep; // not yet implemented FIXME
  const struct blitset* bset;
+ std::string title;
  // requested number of slots. 0 for automatically setting the number of slots
  // to span the horizontal area. if there are more slots than there are
  // columns, we prefer showing more recent slots to less recent. if there are

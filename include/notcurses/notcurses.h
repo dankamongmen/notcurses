@@ -2906,6 +2906,7 @@ typedef struct ncplot_options {
   // if rangex is 0, it is dynamically set to the number of columns.
   int rangex;
   uint64_t flags;      // bitfield over NCPLOT_OPTION_*
+  const char* title;   // optional, printed by the labels
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.

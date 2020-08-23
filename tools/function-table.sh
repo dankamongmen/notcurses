@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # Extract a list of the public API, both shared object functions and those
 # static inline functions in the public headers.
 
