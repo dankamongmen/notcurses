@@ -241,7 +241,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
   offx = p->absx - dstabsx;
-fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, dstleny, dstlenx);
+//fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, dstleny, dstlenx);
   // skip content above or to the left of the physical screen
   int starty, startx;
   if(offy < 0){
@@ -379,11 +379,7 @@ postpaint(cell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* po
       cell* targc = &crender->c;
       lock_in_highcontrast(targc, crender);
       cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
-/*if(cell_simple_p(targc)){
-fprintf(stderr, "WROTE %u [%c] to %d/%d (%d/%d)\n", targc->gcluster, targc->gcluster, y, x, absy, absx);
-}else{
-fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gcluster(crender->p, targc), y, x, absy, absx);
-}*/
+//fprintf(stderr, "WROTE %u [%s] to %d/%d\n", targc->gcluster, cell_extended_gcluster(crender->p, targc), y, x);
       if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
         crender->damaged = true;
         if(cell_wide_left_p(targc)){
@@ -408,7 +404,7 @@ fprintf(stderr, "WROTE %u [%s] to %d/%d (%d/%d)\n", targc->gcluster, extended_gc
 int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
                       int begsrcy, int begsrcx, int leny, int lenx,
                       int dsty, int dstx){
-fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
+//fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
   if(dsty >= dst->leny || dstx >= dst->lenx){
     logerror(dst->nc, "Dest origin %d/%d ≥ dest dimensions %d/%d\n",
              dsty, dstx, dst->leny, dst->lenx);
@@ -440,19 +436,19 @@ fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, be
     return -1;
   }
   init_rvec(rvec, totalcells);
-  if(paint(src, rvec, dst->leny, dst->lenx, 0, 0)){
+  if(paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
     free(rvec);
     free(rendfb);
     return -1;
   }
-  if(paint(dst, rvec, dst->leny, dst->lenx, 0, 0)){
+  if(paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
     free(rvec);
     free(rendfb);
     return -1;
   }
-fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
+//fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
   postpaint(rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
-fprintf(stderr, "Postpaint done (%dx%d)\n", dst->leny, dst->lenx);
+//fprintf(stderr, "Postpaint done (%dx%d)\n", dst->leny, dst->lenx);
   free(dst->fb);
   dst->fb = rendfb;
   free(rvec);
