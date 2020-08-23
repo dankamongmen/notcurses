@@ -404,7 +404,7 @@ TEST_CASE("Fills") {
   SUBCASE("MergeDownSmallPlane") {
     constexpr int DIMX = 10;
     constexpr int DIMY = 10;
-    auto p1 = ncplane_new(nc_, DIMY, DIMX, 2, 2, nullptr);
+    auto p1 = ncplane_new(nc_, DIMY, DIMX, 2, 2, nullptr);        // dst, 10x10
     REQUIRE(p1);
     cell c1 = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < cell_load(p1, &c1, "█"));
@@ -412,7 +412,7 @@ TEST_CASE("Fills") {
     CHECK(0 == cell_set_fg(&c1, 0x0000ff));
     CHECK(0 < ncplane_polyfill_yx(p1, 0, 0, &c1));
     CHECK(0 == notcurses_render(nc_));
-    auto p2 = ncplane_new(nc_, DIMY / 2, DIMX / 2, 3, 3, nullptr);
+    auto p2 = ncplane_new(nc_, DIMY / 2, DIMX / 2, 3, 3, nullptr);  // src, 5x5
     REQUIRE(p2);
     cell c2 = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < cell_load(p2, &c2, "🞶"));
