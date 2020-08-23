@@ -144,7 +144,7 @@ use cstr_core::CString;
 use crate as nc;
 use nc::types::{
     Align, AlphaBits, Cell, Channel, ChannelPair, Color, EGCBackstop, IntResult, Plane, StyleMask,
-    ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT, EGC,
+    EGC,
 };
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
@@ -155,21 +155,7 @@ use nc::types::{
 // TODO: TEST
 #[inline]
 pub fn ncplane_align(plane: &Plane, align: Align, cols: i32) -> i32 {
-    if align == ALIGN_LEFT {
-        return 0;
-    }
-
-    let plane_cols = ncplane_dim_x(plane);
-    if cols > plane_cols {
-        return 0;
-    }
-
-    if align == ALIGN_CENTER {
-        return plane_cols - cols / 2;
-    } else if align == ALIGN_RIGHT {
-        return plane_cols - cols;
-    }
-    core::i32::MAX
+    nc::notcurses_align(nc::ncplane_dim_x(plane), align, cols)
 }
 
 /// Retrieve the current contents of the cell under the cursor into 'cell'.

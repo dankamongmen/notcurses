@@ -38,9 +38,10 @@
 //
 // static inline functions to reimplement: 4
 // ----------------------------------------- (done / (x) wont / remaining)
-// (+) implement : 4 / 0 / 0
-// (#) unit tests: 0 / 0 / 4
+// (+) implement : 4 / 0 / 1
+// (#) unit tests: 0 / 0 / 5
 // -----------------------------------------
+//+notcurses_align
 //+notcurses_getc_blocking
 //+notcurses_getc_nblock
 //+notcurses_stddim_yx
@@ -49,7 +50,23 @@
 use core::ptr::null;
 
 use crate as nc;
-use nc::{ncinput, ncplane, notcurses};
+use nc::types::{Align, Input, FullMode, Plane, ALIGN_CENTER, ALIGN_LEFT};
+
+/// return the offset into 'availcols' at which 'cols' ought be output given the requirements of 'align'
+// TODO: TEST
+#[inline]
+pub fn notcurses_align(availcols: i32, align: Align, cols: i32) -> i32 {
+    if align == ALIGN_LEFT {
+        return 0;
+    }
+    if cols > availcols {
+        return 0;
+    }
+    if align == ALIGN_CENTER {
+        return (availcols - cols) / 2;
+    }
+    availcols - cols // ALIGN_RIGHT
+}
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// If no event is ready, returns 0.
