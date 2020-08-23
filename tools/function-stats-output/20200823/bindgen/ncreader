@@ -1,0 +1,6 @@
+ncreader_clear
+ncreader_contents
+ncreader_create
+ncreader_destroy
+ncreader_offer_input
+ncreader_plane
