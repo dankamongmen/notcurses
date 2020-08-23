@@ -144,6 +144,14 @@ reader_demo(struct notcurses* nc){
   if(mselector == NULL){
     goto err;
   }
+  if(notcurses_canfade(nc)){
+    if(ncplane_fadeout(ncselector_plane(selector), &demodelay, demo_fader, NULL)){
+      goto err;
+    }
+    if(ncplane_fadeout(ncmultiselector_plane(mselector), &demodelay, demo_fader, NULL)){
+      goto err;
+    }
+  }
   ncreader_destroy(reader, NULL);
   ncmultiselector_destroy(mselector);
   ncselector_destroy(selector, NULL);
