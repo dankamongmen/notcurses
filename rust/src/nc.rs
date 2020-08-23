@@ -72,7 +72,7 @@ pub fn notcurses_align(availcols: i32, align: Align, cols: i32) -> i32 {
 /// If no event is ready, returns 0.
 // TODO: TEST
 #[inline]
-pub fn notcurses_getc_nblock(nc: &mut notcurses, input: &mut ncinput) -> nc::char32_t {
+pub fn notcurses_getc_nblock(nc: &mut FullMode, input: &mut Input) -> nc::char32_t {
     unsafe {
         let mut sigmask = nc::sigset_t { __val: [0; 16] };
         nc::sigfillset(&mut sigmask);
@@ -88,7 +88,7 @@ pub fn notcurses_getc_nblock(nc: &mut notcurses, input: &mut ncinput) -> nc::cha
 /// Blocks until an event is processed or a signal is received.
 // TODO: TEST
 #[inline]
-pub fn notcurses_getc_nblocking(nc: &mut notcurses, input: &mut ncinput) -> nc::char32_t {
+pub fn notcurses_getc_nblocking(nc: &mut FullMode, input: &mut Input) -> nc::char32_t {
     unsafe {
         let mut sigmask = nc::sigset_t { __val: [0; 16] };
         nc::sigemptyset(&mut sigmask);
@@ -99,7 +99,7 @@ pub fn notcurses_getc_nblocking(nc: &mut notcurses, input: &mut ncinput) -> nc::
 /// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
 // TODO: TEST
 #[inline]
-pub fn notcurses_stddim_yx(nc: &mut notcurses, y: &mut i32, x: &mut i32) -> ncplane {
+pub fn notcurses_stddim_yx(nc: &mut FullMode, y: &mut i32, x: &mut i32) -> Plane {
     unsafe {
         let s = nc::notcurses_stdplane(nc);
         nc::ncplane_dim_yx(s, y, x);
@@ -110,7 +110,7 @@ pub fn notcurses_stddim_yx(nc: &mut notcurses, y: &mut i32, x: &mut i32) -> ncpl
 /// Return our current idea of the terminal dimensions in rows and cols.
 // TODO: TEST
 #[inline]
-pub fn notcurses_term_dim_yx(nc: &notcurses, rows: &mut i32, cols: &mut i32) {
+pub fn notcurses_term_dim_yx(nc: &FullMode, rows: &mut i32, cols: &mut i32) {
     unsafe {
         nc::ncplane_dim_yx(nc::notcurses_stdplane_const(nc), rows, cols);
     }

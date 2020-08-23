@@ -227,3 +227,9 @@ pub const ALIGN_CENTER: Align = nc::ncalign_e_NCALIGN_CENTER;
 
 ///
 pub type DirectMode = nc::ncdirect;
+
+///
+pub type FullMode = nc::notcurses;
+
+///
+pub type Input = nc::ncinput;
