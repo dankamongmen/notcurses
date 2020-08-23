@@ -112,10 +112,43 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
   return selector;
 }
 
+// wait one demodelay period, offering input to the multiselector, then fade
+// out both widgets (if supported).
+static int
+reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultiselector* mselector){
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  uint64_t cur = timespec_to_ns(&ts);
+  uint64_t targ = cur + timespec_to_ns(&demodelay);
+  do{
+    struct timespec rel;
+    ns_to_timespec(targ - cur, &rel);
+    ncinput ni;
+    char32_t wc = demo_getc(nc, &rel, &ni);
+    if(wc == (char32_t)-1){
+      return -1;
+    }else if(wc){
+      ncmultiselector_offer_input(mselector, &ni);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    cur = timespec_to_ns(&ts);
+  }while(cur < targ);
+  if(notcurses_canfade(nc)){
+    if(ncplane_fadeout(ncselector_plane(selector), &demodelay, demo_fader, NULL)){
+      return -1;
+    }
+    if(ncplane_fadeout(ncmultiselector_plane(mselector), &demodelay, demo_fader, NULL)){
+      return -1;
+    }
+  }
+  return 0;
+}
+
 // creates an ncreader, ncselector, and ncmultiselector, and moves them into
 // place. the latter two are then faded out. all three are then destroyed.
 static int
 reader_demo(struct notcurses* nc){
+  int ret = -1;
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int READER_COLS = 64;
@@ -133,35 +166,33 @@ reader_demo(struct notcurses* nc){
   struct ncmultiselector* mselector = NULL;
   struct ncreader* reader = ncreader_create(std, dimy, x, &nopts);
   if(reader == NULL){
-    goto err;
+    goto done;
   }
   ncplane_set_scrolling(ncreader_plane(reader), true);
+  // Bring the selector left across the top, while raising the exposition
+  // halfway to its target height.
   selector = selector_demo(std, ncreader_plane(reader), dimx, 2);
   if(selector == NULL){
-    goto err;
+    goto done;
   }
+  // FIXME
+  // Bring the multiselector right across the top, while raising the exposition
+  // the remainder of its path to the center of the screen.
   mselector = multiselector_demo(std, ncreader_plane(reader), dimx, 8);
   if(mselector == NULL){
-    goto err;
+    goto done;
   }
-  if(notcurses_canfade(nc)){
-    if(ncplane_fadeout(ncselector_plane(selector), &demodelay, demo_fader, NULL)){
-      goto err;
-    }
-    if(ncplane_fadeout(ncmultiselector_plane(mselector), &demodelay, demo_fader, NULL)){
-      goto err;
-    }
+  // FIXME
+  // Delay and fade
+  if( (ret = reader_post(nc, selector, mselector)) ){
+    goto done;
   }
-  ncreader_destroy(reader, NULL);
-  ncmultiselector_destroy(mselector);
-  ncselector_destroy(selector, NULL);
-  return 0;
 
-err:
+done:
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
   ncreader_destroy(reader, NULL);
-  return -1;
+  return ret;
 }
 
 
