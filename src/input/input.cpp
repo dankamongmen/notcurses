@@ -210,9 +210,9 @@ int input_demo(ncpp::NotCurses* nc) {
   struct ncplot_options popts{};
   // FIXME would be nice to switch over to exponential at some level
   popts.flags = NCPLOT_OPTION_LABELTICKSD;
-  popts.minchannel = popts.maxchannel = 0;
-  channels_set_fg_rgb(&popts.minchannel, 0x40, 0x50, 0xb0);
-  channels_set_fg_rgb(&popts.maxchannel, 0x40, 0xff, 0xd0);
+  popts.minchannels = popts.maxchannels = 0;
+  channels_set_fg_rgb(&popts.minchannels, 0x40, 0x50, 0xb0);
+  channels_set_fg_rgb(&popts.maxchannels, 0x40, 0xff, 0xd0);
   popts.gridtype = static_cast<ncblitter_e>(NCBLIT_2x2);
   plot = ncuplot_create(pplane, &popts, 0, 0);
   if(!plot){

@@ -77,8 +77,8 @@ class ncppplot {
    if(ncpp->slots){
      memset(ncpp->slots, 0, slotsize);
      ncpp->ncp = n;
-     ncpp->maxchannel = opts->maxchannel;
-     ncpp->minchannel = opts->minchannel;
+     ncpp->maxchannels = opts->maxchannels;
+     ncpp->minchannels = opts->minchannels;
      ncpp->bset = bset;
      ncpp->miny = miny;
      ncpp->maxy = maxy;
@@ -132,8 +132,8 @@ class ncppplot {
      ncplane_set_attr(ncp, legendstyle);
      for(int y = 0 ; y < dimy ; ++y){
        uint64_t channels = 0;
-       calc_gradient_channels(&channels, maxchannel, maxchannel,
-                             minchannel, minchannel, y, 0, dimy, dimx);
+       calc_gradient_channels(&channels, minchannels, minchannels,
+                              maxchannels, maxchannels, y, 0, dimy, dimx);
        ncplane_set_channels(ncp, channels);
        char buf[PREFIXSTRLEN + 1];
        if(exponentiali){
@@ -182,8 +182,8 @@ class ncppplot {
      const wchar_t* egc = bset->egcs;
      for(int y = 0 ; y < dimy ; ++y){
        uint64_t channels = 0;
-       calc_gradient_channels(&channels, maxchannel, maxchannel,
-                             minchannel, minchannel, y, x, dimy, dimx);
+       calc_gradient_channels(&channels, minchannels, minchannels,
+                              maxchannels, maxchannels, y, x, dimy, dimx);
        ncplane_set_channels(ncp, channels);
        size_t egcidx = 0, sumidx = 0;
        // if we've got at least one interval's worth on the number of positions
@@ -363,8 +363,8 @@ class ncppplot {
 
  private:
 
- uint64_t maxchannel;
- uint64_t minchannel;
+ uint64_t maxchannels;
+ uint64_t minchannels;
  uint16_t legendstyle;
  bool vertical_indep; // not yet implemented FIXME
  const struct blitset* bset;

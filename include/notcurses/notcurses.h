@@ -2893,8 +2893,8 @@ API int ncmenu_destroy(struct ncmenu* n);
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear or exponential
   // interpolation will be applied across the domain between these two.
-  uint64_t maxchannel;
-  uint64_t minchannel;
+  uint64_t maxchannels;
+  uint64_t minchannels;
   // styling used for the legend, if NCPLOT_OPTION_LABELTICKSD is set
   uint16_t legendstyle;
   // if you don't care, pass NCBLIT_DEFAULT and get NCBLIT_8x1 (assuming
