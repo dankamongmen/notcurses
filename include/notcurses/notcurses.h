@@ -1899,7 +1899,7 @@ ncplane_fchannel(const struct ncplane* nc){
   return channels_fchannel(ncplane_channels(nc));
 }
 
-API void ncplane_set_channels(struct ncplane* nc, uint64_t channels);
+API void ncplane_set_channels(struct ncplane* n, uint64_t channels);
 
 API void ncplane_set_attr(struct ncplane* n, unsigned stylebits);
 
@@ -2120,18 +2120,18 @@ ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
                              x + xlen - 1, ctlword);
 }
 
-API int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+API int cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                          cell* ul, cell* ur, cell* ll, cell* lr,
                          cell* hl, cell* vl);
 
 static inline int
-ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                    int ystop, int xstop, unsigned ctlword){
   int ret = 0;
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+  if((ret = cells_double_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
   cell_release(n, &ul); cell_release(n, &ur);
@@ -2165,11 +2165,11 @@ ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
 }
 
 static inline int
-ncplane_double_box_sized(struct ncplane* n, uint32_t attr, uint64_t channels,
+ncplane_double_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
                          int ylen, int xlen, unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_double_box(n, attr, channels, y + ylen - 1,
+  return ncplane_double_box(n, styles, channels, y + ylen - 1,
                             x + xlen - 1, ctlword);
 }
 

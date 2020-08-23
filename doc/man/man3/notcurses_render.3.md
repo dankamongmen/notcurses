@@ -1,6 +1,6 @@
 % notcurses_render(3)
 % nick black <nickblack@linux.com>
-% v1.6.16
+% v1.6.17
 
 # NAME
 
@@ -12,7 +12,7 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **int notcurses_render(struct notcurses* nc);**
 
-**char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint32_t* attrword, uint64_t* channels);**
+**char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint16_t* styles, uint64_t* channels);**
 
 **int notcurses_render_to_file(struct notcurses* nc, FILE* fp);**
 

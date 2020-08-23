@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.17 (not yet released)
+* 1.6.17 (2020-08-22)
   * `ncdirect_flush()` now takes a `const struct ncdirect*`.
   * A `const char* title` field has been added to `ncplot_options`. If not
     `NULL`, this title will be displayed to the right of any labels. Plot

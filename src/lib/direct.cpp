@@ -277,9 +277,9 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       }
     }
     for(int x = 0 ; x < dimx ; ++x){
-      uint16_t attrword;
+      uint16_t stylemask;
       uint64_t channels;
-      char* egc = ncplane_at_yx(np, y, x, &attrword, &channels);
+      char* egc = ncplane_at_yx(np, y, x, &stylemask, &channels);
       if(egc == nullptr){
         return -1;
       }
@@ -466,6 +466,11 @@ int ncdirect_stop(ncdirect* nc){
       ret = -1;
     }
     if(nc->ctermfd >= 0){
+      if(nc->ctermfd >= 0){
+        if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
+          ret = -1;
+        }
+      }
       ret |= close(nc->ctermfd);
     }
     delete(nc);
@@ -499,11 +504,11 @@ ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out)
 }
 
 int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
-  uint32_t attrword = n->attrword | stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, attrword, n->ttyfp) == 0){
-    if(term_setstyle(n->ttyfp, n->attrword, attrword, NCSTYLE_ITALIC,
+  uint32_t stylemask = n->stylemask | stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
+    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
                      n->tcache.italics, n->tcache.italoff) == 0){
-      n->attrword = attrword;
+      n->stylemask = stylemask;
       return 0;
     }
   }
@@ -512,11 +517,11 @@ int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
 
 // turn off any specified stylebits
 int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
-  uint32_t attrword = n->attrword & ~stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, attrword, n->ttyfp) == 0){
-    if(term_setstyle(n->ttyfp, n->attrword, attrword, NCSTYLE_ITALIC,
+  uint32_t stylemask = n->stylemask & ~stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
+    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
                      n->tcache.italics, n->tcache.italoff) == 0){
-      n->attrword = attrword;
+      n->stylemask = stylemask;
       return 0;
     }
   }
@@ -525,11 +530,11 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
 
 // set the current stylebits to exactly those provided
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
-  uint32_t attrword = stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, attrword, n->ttyfp) == 0){
-    if(term_setstyle(n->ttyfp, n->attrword, attrword, NCSTYLE_ITALIC,
+  uint32_t stylemask = stylebits;
+  if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
+    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
                      n->tcache.italics, n->tcache.italoff) == 0){
-      n->attrword = attrword;
+      n->stylemask = stylemask;
       return 0;
     }
   }
