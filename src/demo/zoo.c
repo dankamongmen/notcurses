@@ -148,9 +148,43 @@ reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultisel
   return 0;
 }
 
+static int
+layout_next_text(struct ncreader* reader, const char* text, size_t* textpos){
+  size_t towrite = strcspn(text + *textpos, " \t\n");
+  towrite += strspn(text + *textpos + towrite, " \t\n");
+  if(towrite){
+    char* duped = strndup(text + *textpos, towrite);
+    size_t bytes;
+    if(ncplane_puttext(ncreader_plane(reader), -1, NCALIGN_LEFT, duped, &bytes) < 0 || bytes != strlen(duped)){
+      free(duped);
+      return -1;
+    }
+    free(duped);
+    *textpos += towrite;
+  }
+  return 0;
+}
+
+static int
+run_out_text(struct ncreader* reader, const char* text, size_t* textpos,
+             const struct timespec* iterdelay){
+  while(text[*textpos]){
+    int ret = layout_next_text(reader, text, textpos);
+    if(ret){
+      return ret;
+    }
+    demo_nanosleep(ncplane_notcurses(ncreader_plane(reader)), iterdelay);
+  }
+  return 0;
+}
+
 // selector moves across to the left; reader moves up halfway to the center
 static int
 selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* selector){
+  const char text[] =
+    "Notcurses provides several widgets to quickly build vivid TUIs.\n\n"
+    "This NCReader widget facilitates free-form text entry complete with readline-style bindings. "
+    "NCSelector allows a single option to be selected from a list. ";
   int ret = 0, dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;
@@ -166,8 +200,12 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
   int yi = 1;
   struct timespec iterdelay, start;
   timespec_div(&demodelay, iters, &iterdelay);
+  size_t textpos = 0;
   clock_gettime(CLOCK_MONOTONIC, &start);
   for(int i = 0 ; i < iters ; ++i){
+    if( (ret = layout_next_text(reader, text, &textpos)) ){
+      return ret;
+    }
     if(i == (int)(xi * eachx)){
       if(ncplane_move_yx(ncselector_plane(selector), sy, --sx)){
         return -1;
@@ -200,12 +238,17 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
       clock_gettime(CLOCK_MONOTONIC, &now);
     }
   }
-  return ret;
+  return run_out_text(reader, text, &textpos, &iterdelay);
 }
 
 // selector moves across to the right; reader moves up halfway to the center
 static int
 mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselector* mselector){
+  const char text[] =
+    "NCMultiselector allows 0..n options to be selected from a list of n items. "
+    "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. "
+    "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\n\n"
+    "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
   int ret = 0, dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;
@@ -222,7 +265,11 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
   struct timespec iterdelay, start;
   timespec_div(&demodelay, iters, &iterdelay);
   clock_gettime(CLOCK_MONOTONIC, &start);
+  size_t textpos = 0;
   for(int i = 0 ; i < iters ; ++i){
+    if( (ret = layout_next_text(reader, text, &textpos)) ){
+      return ret;
+    }
     if(i == (int)(xi * eachx)){
       if(ncplane_move_yx(ncmultiselector_plane(mselector), sy, ++sx)){
         return -1;
@@ -255,7 +302,7 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
       clock_gettime(CLOCK_MONOTONIC, &now);
     }
   }
-  return ret;
+  return run_out_text(reader, text, &textpos, &iterdelay);
 }
 
 // creates an ncreader, ncselector, and ncmultiselector, and moves them into
