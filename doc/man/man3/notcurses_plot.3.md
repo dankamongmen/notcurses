@@ -20,8 +20,8 @@ notcurses_plot - high level widget for plotting
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels.
   // lerp across the domain between these two.
-  uint64_t maxchannel;
-  uint64_t minchannel;
+  uint64_t maxchannels;
+  uint64_t minchannels;
   // styling used for labels (NCPLOT_OPTION_LABELTICKSD)
   uint16_t legendstyle;
   // number of "pixels" per row x column
@@ -31,6 +31,7 @@ typedef struct ncplot_options {
   bool labelaxisd;     // label dependent axis
   bool exponentially;   // is dependent exponential?
   bool vertical_indep; // vertical independent variable
+  const char* title;   // optional title
 } ncplot_options;
 ```
 

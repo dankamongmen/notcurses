@@ -348,12 +348,13 @@ int ncplane_rotate_ccw(struct ncplane* n);
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* y, int* x);
 bool ncplane_translate_abs(const struct ncplane* n, int* y, int* x);
 typedef struct ncplot_options {
-  uint64_t maxchannel;
-  uint64_t minchannel;
+  uint64_t maxchannels;
+  uint64_t minchannels;
   uint16_t legendstyle;
   ncblitter_e gridtype;
   uint64_t rangex;
   unsigned flags;
+  const char* title;
 } ncplot_options;
 struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy);
 struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts, double miny, double maxy);

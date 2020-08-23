@@ -119,6 +119,13 @@ timespec_subtract(struct timespec *result, const struct timespec *time0,
   return timespec_to_ns(time0) < timespec_to_ns(time1);
 }
 
+static inline uint64_t
+timespec_add(struct timespec *result, const struct timespec *time0,
+             struct timespec *time1){
+  uint64_t ns = timespec_to_ns(time0) + timespec_to_ns(time1);
+  ns_to_timespec(ns, result);
+  return ns;
+}
 
 // divide the provided timespec 'ts' by 'divisor' into 'quots'
 static inline void

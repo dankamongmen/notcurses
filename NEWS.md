@@ -3,6 +3,11 @@ rearrangements of Notcurses.
 
 * 1.6.17 (not yet released)
   * `ncdirect_flush()` now takes a `const struct ncdirect*`.
+  * A `const char* title` field has been added to `ncplot_options`. If not
+    `NULL`, this title will be displayed to the right of any labels. Plot
+    data will cover the title, if present.
+  * `ncplot` no longer inverts `maxchannel` and `minchannel`. Speaking
+    of which, both of these fields are now plural, `maxchannels` etc.
 
 * 1.6.16 (2020-08-22)
   * `cell_simple_p()` has been removed. It is no longer a useful concept for

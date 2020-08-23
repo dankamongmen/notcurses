@@ -2206,20 +2206,20 @@ API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
   // necessary to render the source with perfect fidelity (this might be
-  // smaller or larger than the rendering area). if provided, style is
-  // taken into account, relative to the provided ncplane.
+  // smaller or larger than the rendering area).
   struct ncplane* n;
-  // the style is ignored if no ncplane is provided (it ought be NCSCALE_NONE
+  // the scaling is ignored if no ncplane is provided (it ought be NCSCALE_NONE
   // in this case). otherwise, the source is stretched/scaled relative to the
   // provided ncplane.
   ncscale_e scaling;
   // if an ncplane is provided, y and x specify where the visual will be
   // rendered on that plane. otherwise, they specify where the created ncplane
-  // will be placed.
+  // will be placed relative to the standard plane's origin.
   int y, x;
   // the section of the visual that ought be rendered. for the entire visual,
   // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).
-  // these numbers are all in terms of ncvisual pixels.
+  // these numbers are all in terms of ncvisual pixels. negative values are
+  // prohibited.
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
   // use NCBLIT_DEFAULT if you don't care, to use NCBLIT_2x2 (assuming
@@ -2571,6 +2571,7 @@ bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
 
+// Enable or disable the terminal's cursor, if supported. Immediate effect.
 API void notcurses_cursor_enable(struct notcurses* nc);
 API void notcurses_cursor_disable(struct notcurses* nc);
 
@@ -2580,16 +2581,16 @@ API void notcurses_cursor_disable(struct notcurses* nc);
 // terminal. If you can limit yourself to 256 colors, that's probably best.
 
 typedef struct palette256 {
-  // We store the RGB values as a regular ol' channel
-  uint32_t chans[NCPALETTESIZE];
+  uint32_t chans[NCPALETTESIZE]; // RGB values as regular ol' channels
 } palette256;
 
 // Create a new palette store. It will be initialized with notcurses' best
-// knowledge of the currently configured palette.
+// knowledge of the currently configured palette. The palette upon startup
+// cannot be reliably detected, sadly.
 API palette256* palette256_new(struct notcurses* nc);
 
 // Attempt to configure the terminal with the provided palette 'p'. Does not
-// transfer ownership of 'p'; palette256_free() can still be called.
+// transfer ownership of 'p'; palette256_free() can (ought) still be called.
 API int palette256_use(struct notcurses* nc, const palette256* p);
 
 // Manipulate entries in the palette store 'p'. These are *not* locked.
@@ -2671,6 +2672,8 @@ typedef struct ncselector_options {
 API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
                                          const ncselector_options* opts);
 
+// Dynamically add or delete items. It is usually sufficient to supply a static
+// list of items via ncselector_options->items.
 API int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);
 API int ncselector_delitem(struct ncselector* n, const char* item);
 
@@ -2890,8 +2893,8 @@ API int ncmenu_destroy(struct ncmenu* n);
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear or exponential
   // interpolation will be applied across the domain between these two.
-  uint64_t maxchannel;
-  uint64_t minchannel;
+  uint64_t maxchannels;
+  uint64_t minchannels;
   // styling used for the legend, if NCPLOT_OPTION_LABELTICKSD is set
   uint16_t legendstyle;
   // if you don't care, pass NCBLIT_DEFAULT and get NCBLIT_8x1 (assuming
@@ -2903,6 +2906,7 @@ typedef struct ncplot_options {
   // if rangex is 0, it is dynamically set to the number of columns.
   int rangex;
   uint64_t flags;      // bitfield over NCPLOT_OPTION_*
+  const char* title;   // optional, printed by the labels
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.

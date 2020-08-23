@@ -543,12 +543,13 @@ int fpsgraph_init(struct notcurses* nc){
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_EXPONENTIALD;
   opts.legendstyle = NCSTYLE_ITALIC;
-  channels_set_fg_rgb(&opts.minchannel, 0xff, 0x00, 0xff);
-  channels_set_bg(&opts.minchannel, 0x201020);
-  channels_set_bg_alpha(&opts.minchannel, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb(&opts.maxchannel, 0x00, 0xff, 0x00);
-  channels_set_bg(&opts.maxchannel, 0x201020);
-  channels_set_bg_alpha(&opts.maxchannel, CELL_ALPHA_BLEND);
+  opts.title = "frames per second";
+  channels_set_fg_rgb(&opts.minchannels, 0x80, 0x80, 0xff);
+  channels_set_bg(&opts.minchannels, 0x201020);
+  channels_set_bg_alpha(&opts.minchannels, CELL_ALPHA_BLEND);
+  channels_set_fg_rgb(&opts.maxchannels, 0x80, 0xff, 0x80);
+  channels_set_bg(&opts.maxchannels, 0x201020);
+  channels_set_bg_alpha(&opts.maxchannels, CELL_ALPHA_BLEND);
   struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);
   if(!fpsplot){
     ncplane_destroy(newp);

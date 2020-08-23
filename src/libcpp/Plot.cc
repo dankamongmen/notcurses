@@ -4,21 +4,23 @@
 using namespace ncpp;
 
 ncplot_options PlotD::default_options = {
-	0, // maxchannel
-	0, // minchannel
-  0, // legendstyle
+	0,  // maxchannels
+	0,  // minchannels
+  0,  // legendstyle
 	ncblitter_e::NCBLIT_1x1, // ncblitter_e
-	0, // rangex
-	0, // flags
+	0,  // rangex
+	0,  // flags
+  "", // title
 };
 
 ncplot_options PlotU::default_options = {
-	0, // maxchannel
-	0, // minchannel
-  0, // legendstyle
+	0,  // maxchannels
+	0,  // minchannels
+  0,  // legendstyle
 	ncblitter_e::NCBLIT_1x1, // ncblitter_e
-	0, // rangex
-	0, // flags
+	0,  // rangex
+	0,  // flags
+  "", // title
 };
 
 Plane* PlotD::get_plane () const noexcept
