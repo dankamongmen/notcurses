@@ -37,7 +37,7 @@ API unsigned ncdirect_palette_size(const struct ncdirect* nc);
 API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
 
 // Force a flush. Returns 0 on success, -1 on failure.
-API int ncdirect_flush(struct ncdirect* nc);
+API int ncdirect_flush(const struct ncdirect* nc);
 
 static inline int
 ncdirect_bg_rgb(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
