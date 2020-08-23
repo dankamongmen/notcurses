@@ -144,6 +144,74 @@ reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultisel
   return 0;
 }
 
+// selector moves across to the left; reader moves up halfway to the center
+static int
+selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* selector){
+  int ret = 0, dimy, dimx;
+  ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
+  const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;
+  int ry, rx, sy, sx;
+  ncplane_yx(ncreader_plane(reader), &ry, &rx);
+  ncplane_yx(ncselector_plane(selector), &sy, &sx);
+  const int xiters = sx - 2;
+  const int yiters = ry - centery;
+  const int iters = yiters > xiters ? yiters : xiters;
+  const double eachy = (double)iters / yiters;
+  const double eachx = (double)iters / xiters;
+  int xi = 1;
+  int yi = 1;
+  struct timespec iterdelay, start;
+  timespec_div(&demodelay, iters, &iterdelay);
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  for(int i = 0 ; i < iters ; ++i){
+    if(i == (int)(xi * eachx)){
+      if(ncplane_move_yx(ncselector_plane(selector), sy, --sx)){
+        return -1;
+      }
+      ++xi;
+    }
+    if(i == (int)(yi * eachy)){
+      if(ncplane_move_yx(ncreader_plane(reader), --ry, rx)){
+        return -1;
+      }
+      ++yi;
+    }
+    if( (ret = demo_nanosleep(nc, &iterdelay)) ){
+      break;
+    }
+    struct timespec targettime, deadline, now;
+    timespec_mul(&iterdelay, i, &targettime);
+    const uint64_t deadline_ns = timespec_add(&deadline, &start, &targettime);
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    while(timespec_to_ns(&now) < deadline_ns){
+      if( (ret = demo_render(nc)) ){
+        return ret;
+      }
+      struct ncinput ni;
+    // FIXME take input through absolute start + iters * iterdelay
+      char32_t wc = demo_getc(nc, &iterdelay, &ni);
+      if(wc == (char32_t)-1){
+        return -1;
+      }else if(wc){
+        ncselector_offer_input(selector, &ni);
+      }
+      clock_gettime(CLOCK_MONOTONIC, &now);
+    }
+  }
+  return ret;
+}
+
+// selector moves across to the right; reader moves up halfway to the center
+static int
+mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselector* mselector){
+  int ret = -1;
+  int dimy, dimx;
+  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  // FIXME
+  ret = 0;
+  return ret;
+}
+
 // creates an ncreader, ncselector, and ncmultiselector, and moves them into
 // place. the latter two are then faded out. all three are then destroyed.
 static int
@@ -175,14 +243,18 @@ reader_demo(struct notcurses* nc){
   if(selector == NULL){
     goto done;
   }
-  // FIXME
+  if( (ret = selector_run(nc, reader, selector)) ){
+    goto done;
+  }
   // Bring the multiselector right across the top, while raising the exposition
   // the remainder of its path to the center of the screen.
   mselector = multiselector_demo(std, ncreader_plane(reader), dimx, 8);
   if(mselector == NULL){
     goto done;
   }
-  // FIXME
+  if( (ret = mselector_run(nc, reader, mselector)) ){
+    goto done;
+  }
   // Delay and fade
   if( (ret = reader_post(nc, selector, mselector)) ){
     goto done;
@@ -200,7 +272,6 @@ done:
 // screen. as it does so, two widgets (selector and multiselector) come in
 // from the left and right, respectively. they then fade out.
 int zoo_demo(struct notcurses* nc){
-  int dimx;
   if(draw_background(nc)){
     return -1;
   }
