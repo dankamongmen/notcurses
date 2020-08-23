@@ -1,6 +1,6 @@
 % notcurses-tester(1)
 % nick black <nickblack@linux.com>
-% v1.6.15
+% v1.6.16
 
 # NAME
 

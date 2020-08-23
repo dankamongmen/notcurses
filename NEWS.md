@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.16 (not yet released)
+* 1.6.16 (2020-08-22)
   * `cell_simple_p()` has been removed. It is no longer a useful concept for
     user code, and its presence is indicative of a likely error.
   * `channels_blend()` has been removed. It wasn't really useful to users,
