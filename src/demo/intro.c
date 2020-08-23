@@ -96,7 +96,7 @@ int intro(struct notcurses* nc){
     return -1;
   }
   ncplane_styles_on(ncp, NCSTYLE_ITALIC | NCSTYLE_BOLD);
-  if(ncplane_putstr_aligned(ncp, rows / 2 - 2, NCALIGN_CENTER, str) != (int)strlen(str)){
+  if(ncplane_putstr_aligned(ncp, rows / 2 - 3, NCALIGN_CENTER, str) != (int)strlen(str)){
     return -1;
   }
   ncplane_styles_off(ncp, NCSTYLE_ITALIC);
@@ -104,12 +104,12 @@ int intro(struct notcurses* nc){
   int major, minor, patch, tweak;
   notcurses_version_components(&major, &minor, &patch, &tweak);
   if(tweak){
-    if(ncplane_printf_aligned(ncp, rows / 2, NCALIGN_CENTER, "notcurses %d.%d.%d.%d. press 'q' to quit.",
+    if(ncplane_printf_aligned(ncp, rows / 2 - 1, NCALIGN_CENTER, "notcurses %d.%d.%d.%d. press 'q' to quit.",
                               major, minor, patch, tweak) < 0){
       return -1;
     }
   }else{
-    if(ncplane_printf_aligned(ncp, rows / 2, NCALIGN_CENTER, "notcurses %d.%d.%d. press 'q' to quit.",
+    if(ncplane_printf_aligned(ncp, rows / 2 - 1, NCALIGN_CENTER, "notcurses %d.%d.%d. press 'q' to quit.",
                               major, minor, patch) < 0){
       return -1;
     }
@@ -117,6 +117,10 @@ int intro(struct notcurses* nc){
   ncplane_styles_off(ncp, NCSTYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
   if(ncplane_putwstr_aligned(ncp, rows / 2 - 6, NCALIGN_CENTER, wstr) < 0){
+    return -1;
+  }
+  const wchar_t iwstr[] = L"▏█ ▇ ▆ ▅ ▄ ▃ ▂ ▁ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █▕";
+  if(ncplane_putwstr_aligned(ncp, rows / 2 + 1, NCALIGN_CENTER, iwstr) < 0){
     return -1;
   }
   if(rows < 45){
