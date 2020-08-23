@@ -64,7 +64,7 @@ static struct ncmselector_item mselect_items[] = {
 };
 
 static struct ncmultiselector*
-multiselector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
+multiselector_demo(struct ncplane* n, struct ncplane* under, int y){
   ncmultiselector_options mopts = {
     .maxdisplay = 8,
     .title = "multi-item selector",
@@ -116,6 +116,7 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
 // out both widgets (if supported).
 static int
 reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultiselector* mselector){
+  int ret;
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   uint64_t cur = timespec_to_ns(&ts);
@@ -132,6 +133,9 @@ reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultisel
     }
     clock_gettime(CLOCK_MONOTONIC, &ts);
     cur = timespec_to_ns(&ts);
+    if( (ret = demo_render(nc)) ){
+      return ret;
+    }
   }while(cur < targ);
   if(notcurses_canfade(nc)){
     if(ncplane_fadeout(ncselector_plane(selector), &demodelay, demo_fader, NULL)){
@@ -154,7 +158,7 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
   ncplane_yx(ncreader_plane(reader), &ry, &rx);
   ncplane_yx(ncselector_plane(selector), &sy, &sx);
   const int xiters = sx - 2;
-  const int yiters = ry - centery;
+  const int yiters = (ry - centery) / 2;
   const int iters = yiters > xiters ? yiters : xiters;
   const double eachy = (double)iters / yiters;
   const double eachx = (double)iters / xiters;
@@ -202,11 +206,55 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
 // selector moves across to the right; reader moves up halfway to the center
 static int
 mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselector* mselector){
-  int ret = -1;
-  int dimy, dimx;
-  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
-  // FIXME
-  ret = 0;
+  int ret = 0, dimy, dimx;
+  ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
+  const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;
+  int ry, rx, sy, sx;
+  ncplane_yx(ncreader_plane(reader), &ry, &rx);
+  ncplane_yx(ncmultiselector_plane(mselector), &sy, &sx);
+  const int xiters = dimx - ncplane_dim_x(ncmultiselector_plane(mselector));
+  const int yiters = ry - centery;
+  const int iters = yiters > xiters ? yiters : xiters;
+  const double eachy = (double)iters / yiters;
+  const double eachx = (double)iters / xiters;
+  int xi = 1;
+  int yi = 1;
+  struct timespec iterdelay, start;
+  timespec_div(&demodelay, iters, &iterdelay);
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  for(int i = 0 ; i < iters ; ++i){
+    if(i == (int)(xi * eachx)){
+      if(ncplane_move_yx(ncmultiselector_plane(mselector), sy, ++sx)){
+        return -1;
+      }
+      ++xi;
+    }
+    if(i == (int)(yi * eachy)){
+      if(ncplane_move_yx(ncreader_plane(reader), --ry, rx)){
+        return -1;
+      }
+      ++yi;
+    }
+    struct timespec targettime, now;
+    timespec_mul(&iterdelay, i + 1, &targettime);
+    const uint64_t deadline_ns = timespec_to_ns(&start) + timespec_to_ns(&targettime);
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    while(timespec_to_ns(&now) < deadline_ns){
+      if( (ret = demo_render(nc)) ){
+        return ret;
+      }
+      struct ncinput ni;
+      struct timespec inputtime;
+      ns_to_timespec(deadline_ns - timespec_to_ns(&now), &inputtime);
+      char32_t wc = demo_getc(nc, &inputtime, &ni);
+      if(wc == (char32_t)-1){
+        return -1;
+      }else if(wc){
+        ncmultiselector_offer_input(mselector, &ni);
+      }
+      clock_gettime(CLOCK_MONOTONIC, &now);
+    }
+  }
   return ret;
 }
 
@@ -246,7 +294,7 @@ reader_demo(struct notcurses* nc){
   }
   // Bring the multiselector right across the top, while raising the exposition
   // the remainder of its path to the center of the screen.
-  mselector = multiselector_demo(std, ncreader_plane(reader), dimx, 8);
+  mselector = multiselector_demo(std, ncreader_plane(reader), 8);
   if(mselector == NULL){
     goto done;
   }
