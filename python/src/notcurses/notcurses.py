@@ -5,6 +5,11 @@ import locale
 import _cffi_backend
 from _notcurses import lib, ffi
 
+NCCHANNEL_ALPHA_MASK = 0x30000000
+CELL_ALPHA_HIGHCONTRAST = 0x30000000
+CELL_ALPHA_TRANSPARENT = 0x20000000
+CELL_ALPHA_BLEND = 0x10000000
+CELL_ALPHA_OPAQUE = 0x00000000
 NCOPTION_INHIBIT_SETLOCALE = 0x0001
 NCOPTION_VERIFY_SIXEL = 0x0002
 NCOPTION_NO_WINCH_SIGHANDLER = 0x0004
@@ -13,6 +18,68 @@ NCOPTION_RETAIN_CURSOR = 0x0010
 NCOPTION_SUPPRESS_BANNERS = 0x0020
 NCOPTION_NO_ALTERNATE_SCREEN = 0x0040
 NCOPTION_NO_FONT_CHANGES = 0x0080
+CELL_WIDEASIAN_MASK = 0x8000000000000000
+CELL_NOBACKGROUND_MASK = 0x0400000000000000
+CELL_BGDEFAULT_MASK = 0x0000000040000000
+CELL_FGDEFAULT_MASK = (CELL_BGDEFAULT_MASK << 32)
+CELL_BG_RGB_MASK = 0x0000000000ffffff
+CELL_FG_RGB_MASK = (CELL_BG_RGB_MASK << 32)
+CELL_BG_PALETTE = 0x0000000008000000
+NCPALETTESIZE = 256
+CELL_FG_PALETTE = (CELL_BG_PALETTE << 32)
+CELL_BG_ALPHA_MASK = NCCHANNEL_ALPHA_MASK
+CELL_FG_ALPHA_MASK = (CELL_BG_ALPHA_MASK << 32)
+
+def channel_r(channel):
+    return (channel & 0xff0000) >> 16;
+
+def channel_g(channel):
+    return (channel & 0x00ff00) >> 8;
+
+def channel_b(channel):
+    return (channel & 0x0000ff);
+
+def channel_rgb(channel):
+    return (channel_r(channel), channel_g(channel), channel_b(channel))
+
+def channel_set_rgb(channel, r, g, b):
+    checkRGB(r, g, b)
+    c = (r << 16) | (g << 8) | b
+    return (channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | c
+
+def channels_fchannel(channels):
+    return channels & 0xffffffff00000000
+
+def channels_bchannel(channels):
+    return channels & 0xffffffff
+
+def channels_fg_rgb(channels):
+    return channel_rgb(channels_fchannel(channels))
+
+def channels_set_fchannel(channels, channel):
+    return (channel << 32) | (channels & 0xffffffff)
+
+def channels_set_fg_rgb(channels, r, g, b):
+    channel = channels_fchannel(channels)
+    channel = channel_set_rgb(channel, r, g, b)
+    return channels_set_fchannel(channels, channel)
+
+def channels_bg_rgb(channels):
+    return channel_rgb(channels_bchannel(channels))
+
+def channels_set_bchannel(channels, channel):
+    return (channels & 0xffffffff00000000) | channel;
+
+def channels_set_bg_rgb(channels, r, g, b):
+    channel = channels_bchannel(channels)
+    channel = channel_set_rgb(channel, r, g, b)
+    return channels_set_bchannel(channels, channel);
+
+def ncplane_fg_rgb(n, r, g, b):
+    return channels_fg_rgb(ncplane_channels(n))
+
+def ncplane_bg_rgb(n, r, g, b):
+    return channels_bg_rgb(ncplane_channels(n))
 
 class NotcursesError(Exception):
     """Base class for notcurses exceptions."""
@@ -31,23 +98,21 @@ class Cell:
     def __init__(self, ncplane, egc):
         self.ncp = ncplane
         self.c = ffi.new("cell *")
-        self.c.gcluster = egc
-        self.c.stylemask = 0
-        self.c.channels = 0
+        self.c.gcluster = egc # FIXME need use cell_load
 
     def __del__(self):
         lib.cell_release(self.ncp.getNcplane(), self.c)
 
     def setFgRGB(self, r, g, b):
         checkRGB(r, g, b)
-        lib.cell_set_fg_rgb(self.c, r, g, b)
+        channel = channels_fchannel(self.c.channels)
+        c = (r << 16) | (g << 8) | b;
+        channel = (channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | c;
+        self.c.channels = (channel << 32) | (self.c.channels & 0xffffffff);
 
     def setBgRGB(self, r, g, b):
         checkRGB(r, g, b)
-        lib.cell_set_bg_rgb(self.c, r, g, b)
-
-    def simpleP(self):
-        return self.c.gcluster < 0x80
+        channel = channels_bchannel(self.c.channels)
 
     def getNccell(self):
         return self.c
@@ -68,15 +133,10 @@ class Ncplane:
         if x < -1:
             raise ValueError("Bad x position")
         c = Cell(self, ch)
-        if not c.simpleP():
-            raise ValueError("Bad simple value")
-        r = ffi.new("unsigned *")
-        g = ffi.new("unsigned *")
-        b = ffi.new("unsigned *")
-        lib.ncplane_fg_rgb(self.n, r, g, b)
-        c.setFgRGB(r[0], g[0], b[0])
-        lib.ncplane_bg_rgb(self.n, r, g, b)
-        c.setBgRGB(r[0], g[0], b[0])
+        (r, g, b) = self.getFgRGB()
+        c.setFgRGB(r, g, b)
+        (r, g, b) = self.getBgRGB()
+        c.setBgRGB(r, g, b)
         return lib.ncplane_putc_yx(self.n, y, x, c.getNccell())
 
     def getDimensions(self):
@@ -85,13 +145,25 @@ class Ncplane:
         lib.ncplane_dim_yx(self.n, y, x)
         return (y[0], x[0])
 
+    def getFChannel(self):
+        return channels_fchannel(lib.ncplane_channels(self.n));
+
+    def getBChannel(self):
+        return channels_bchannel(lib.ncplane_channels(self.n));
+
+    def getFgRGB(self):
+        return channel_rgb(self.getFChannel())
+
+    def getBgRGB(self):
+        return channel_rgb(self.getBChannel())
+
     def setFgRGB(self, r, g, b):
         checkRGB(r, g, b)
-        lib.ncplane_set_fg_rgb(self.n, r, g, b)
+        lib.ncplane_set_fg(self.n, channel_set_rgb(self.getFChannel(), r, g, b))
 
     def setBgRGB(self, r, g, b):
         checkRGB(r, g, b)
-        lib.ncplane_set_bg_rgb(self.n, r, g, b)
+        lib.ncplane_set_bg(self.n, channel_set_rgb(self.getBChannel(), r, g, b))
 
 class Notcurses:
     def __init__(self):
@@ -138,3 +210,5 @@ class Ncdirect:
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, "")
     nc = Notcurses()
+    n = nc.stdplane()
+    nc.render()

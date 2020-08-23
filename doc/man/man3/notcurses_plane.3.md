@@ -1,6 +1,6 @@
 % notcurses_plane(3)
 % nick black <nickblack@linux.com>
-% v1.6.16
+% v1.6.17
 
 # NAME
 
@@ -86,7 +86,7 @@ notcurses_plane - operations on ncplanes
 
 **void ncplane_set_channels(struct ncplane* nc, uint64_t channels);**
 
-**void ncplane_set_attr(struct ncplane* nc, uint32_t attrword);**
+**void ncplane_set_attr(struct ncplane* nc, uint32_t styles);**
 
 **static inline unsigned ncplane_bchannel(struct ncplane* nc);**
 

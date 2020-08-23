@@ -180,9 +180,9 @@ int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 
 // Retrieve the contents of the specified cell as last rendered. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
-// attrword and channels are written to 'attrword' and 'channels', respectively.
+// styles and channels are written to 'attrword' and 'channels', respectively.
 char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
-                      uint32_t* attrword, uint64_t* channels);
+                      uint16_t* styles, uint64_t* channels);
 ```
 
 One `ncplane` is guaranteed to exist: the "standard plane". The user cannot
@@ -798,7 +798,7 @@ int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 // does not reset the base cell; this function must be called with an empty
 // 'egc'. 'egc' must be a single extended grapheme cluster.
 int ncplane_set_base(struct ncplane* ncp, const char* egc,
-                     uint32_t attrword, uint64_t channels);
+                     uint32_t styles, uint64_t channels);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
@@ -834,18 +834,18 @@ not necessarily reflect anything on the actual screen).
 ```c
 // Retrieve the current contents of the cell under the cursor. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
-// attrword and channels are written to 'attrword' and 'channels', respectively.
-char* ncplane_at_cursor(struct ncplane* n, uint32_t* attrword, uint64_t* channels);
+// styles and channels are written to 'styles' and 'channels', respectively.
+char* ncplane_at_cursor(struct ncplane* n, uint16_t* styles, uint64_t* channels);
 
 // Retrieve the current contents of the cell under the cursor into 'c'. This
 // cell is invalidated if the associated plane is destroyed.
 int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
 
 // Retrieve the current contents of the specified cell. The EGC is returned, or
-// NULL on error. This EGC must be free()d by the caller. The attrword and
-// channels are written to 'attrword' and 'channels', respectively.
+// NULL on error. This EGC must be free()d by the caller. The styles and
+// channels are written to 'styles' and 'channels', respectively.
 char* ncplane_at_yx(const struct ncplane* n, int y, int x,
-                    uint32_t* attrword, uint64_t* channels);
+                    uint16_t* styles, uint64_t* channels);
 
 // Retrieve the current contents of the specified cell into 'c'. This cell is
 // invalidated if the associated plane is destroyed.
@@ -1268,7 +1268,7 @@ Similarly, areas can be filled with a cell.
 int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 
 // Draw a gradient with its upper-left corner at the current cursor position,
-// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'attrword' is
+// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'styles' is
 // used for all cells. The channels specified by 'ul', 'ur', 'll', and 'lr'
 // are composed into foreground and background gradients. To do a vertical
 // gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
@@ -1276,19 +1276,19 @@ int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 // color everything the same, all four channels should be equivalent. The
 // resulting alpha values are equal to incoming alpha values. Returns the
 // number of cells filled on success, or -1 on failure.
-int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t attrword,
+int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t styles,
                      uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                      int ystop, int xstop);
 
 // Draw a gradient with its upper-left corner at the current cursor position,
 // having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
 static inline int
-ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t attrword,
+ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t styles,
                        uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
                        int ylen, int xlen){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_gradient(n, egc, attrword, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
+  return ncplane_gradient(n, egc, styles, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
 }
 
 // Do a high-resolution gradient using upper blocks and synced backgrounds.
@@ -1304,7 +1304,7 @@ int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
 
 // Set the given style throughout the specified region, keeping content and
 // channels unchanged. Returns the number of cells set, or -1 on failure.
-int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t attrword);
+int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t styles);
 
 // Set the given channels throughout the specified region, keeping content and
 // attributes unchanged. Returns the number of cells set, or -1 on failure.
@@ -1521,20 +1521,33 @@ useful to use a `cell` when the same styling is used in a discontinuous manner.
 // RGB is used if neither default terminal colors nor palette indexing are in
 // play, and fully supports all transparency options.
 typedef struct cell {
-  // These 32 bits are either a single-byte, single-character grapheme cluster
-  // (values 0--0x7f), or an offset into a per-ncplane attached pool of
-  // varying-length UTF-8 grapheme clusters. This pool may thus be up to 16MB.
-  uint32_t gcluster;          // 4B -> 4B
-  // NCSTYLE_* attributes (16 bits) + 8 foreground palette index bits + 8
-  // background palette index bits. palette index bits are used only if the
-  // corresponding default color bit *is not* set, and the corresponding
-  // palette index bit *is* set.
-  uint32_t attrword;          // + 4B -> 8B
+  // These 32 bits, together with the associated plane's associated egcpool,
+  // completely define this cell's EGC. Unless the EGC requires more than four
+  // bytes to encode as UTF-8, it will be inlined here. If more than four bytes
+  // are required, it will be spilled into the egcpool. In either case, there's
+  // a NUL-terminated string available without copying, because (1) the egcpool
+  // is all NUL-terminated sequences and (2) the fifth byte of this struct (the
+  // gcluster_backstop field, see below) is guaranteed to be zero, as are any
+  // unused bytes in gcluster.
+  //
+  // A spilled EGC is indicated by the value 0x01XXXXXX. This cannot alias a
+  // true supra-ASCII EGC, because UTF-8 only encodes bytes <= 0x80 when they
+  // are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
+  // index into the egcpool. These pools may thus be up to 16MB.
+  //
+  // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
+  // in a cell, which is absolutely fine because what 70s horseshit is SOH? It
+  // must not be allowed through the API, or havoc will result.
+  uint32_t gcluster;          // 4B → 4B
+  uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
+  uint8_t reserved;           // 1B → 6B (8 reserved bits, ought be zero)
+  uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
   // (channels & 0x8000000000000000ull): part of a wide glyph
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
   // (channels & 0x0800000000000000ull): foreground uses palette index
-  // (channels & 0x0700000000000000ull): reserved, must be 0
+  // (channels & 0x0400000000000000ull): glyph is entirely foreground
+  // (channels & 0x0300000000000000ull): reserved, must be 0
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
   // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"
@@ -1569,9 +1582,9 @@ before any other use. `cell_init()` and `CELL_TRIVIAL_INITIALIZER` both
 simply zero out the `cell`.
 
 ```c
-#define CELL_TRIVIAL_INITIALIZER { .gcluster = '\0', .attrword = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .attrword = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, a, chan) { .gcluster = (c), .attrword = (a), .channels = (chan), }
+#define CELL_TRIVIAL_INITIALIZER { }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
@@ -1606,8 +1619,8 @@ int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
 cell_prime(struct ncplane* n, cell* c, const char* gcluster,
-           uint32_t attr, uint64_t channels){
-  c->attrword = attr;
+           uint32_t stylemask, uint64_t channels){
+  c->stylemask = stylemask;
   c->channels = channels;
   int ret = cell_load(n, c, gcluster);
   return ret;
@@ -1639,29 +1652,29 @@ cell_strdup(const struct ncplane* n, const cell* c){
 }
 
 // Set the specified style bits for the cell 'c', whether they're actively
-// supported or not.
+// supported or not. Only the lower 16 bits are meaningful.
 static inline void
 cell_styles_set(cell* c, unsigned stylebits){
-  c->attrword = (c->attrword & ~NCSTYLE_MASK) | ((stylebits & NCSTYLE_MASK));
+  c->stylemask = stylebits & NCSTYLE_MASK;
 }
 
-// Extract the style bits from the cell's attrword.
+// Extract the style bits from the cell.
 static inline unsigned
 cell_styles(const cell* c){
-  return c->attrword & NCSTYLE_MASK;
+  return c->stylemask;
 }
 
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
 cell_styles_on(cell* c, unsigned stylebits){
-  c->attrword |= (stylebits & NCSTYLE_MASK;
+  c->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
 cell_styles_off(cell* c, unsigned stylebits){
-  c->attrword &= ~(stylebits & NCSTYLE_MASK);
+  c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
 // does the cell contain an East Asian Wide codepoint?
@@ -1687,16 +1700,16 @@ const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 // have loaded before the error are cell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
-cells_load_box(struct ncplane* n, uint32_t attrs, uint64_t channels,
+cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
                cell* ul, cell* ur, cell* ll, cell* lr,
                cell* hl, cell* vl, const char* gclusters){
   int ulen;
-  if((ulen = cell_prime(n, ul, gclusters, attrs, channels)) > 0){
-    if((ulen = cell_prime(n, ur, gclusters += ulen, attrs, channels)) > 0){
-      if((ulen = cell_prime(n, ll, gclusters += ulen, attrs, channels)) > 0){
-        if((ulen = cell_prime(n, lr, gclusters += ulen, attrs, channels)) > 0){
-          if((ulen = cell_prime(n, hl, gclusters += ulen, attrs, channels)) > 0){
-            if((ulen = cell_prime(n, vl, gclusters += ulen, attrs, channels)) > 0){
+  if((ulen = cell_prime(n, ul, gclusters, style, channels)) > 0){
+    if((ulen = cell_prime(n, ur, gclusters += ulen, style, channels)) > 0){
+      if((ulen = cell_prime(n, ll, gclusters += ulen, style, channels)) > 0){
+        if((ulen = cell_prime(n, lr, gclusters += ulen, style, channels)) > 0){
+          if((ulen = cell_prime(n, hl, gclusters += ulen, style, channels)) > 0){
+            if((ulen = cell_prime(n, vl, gclusters += ulen, style, channels)) > 0){
               return 0;
             }
             cell_release(n, hl);

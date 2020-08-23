@@ -20,9 +20,11 @@ for i in $BUMP ; do
   sed -i -e "s/$OLDVERSION/$VERSION/g" $i
 done
 
+BUILDDIR="build-$VERSION"
+
 # do a build with Doxygen enabled, upload docs, clean it up
-mkdir build
-cd build
+mkdir "$BUILDDIR"
+cd "$BUILDDIR"
 cmake -DUSE_DOXYGEN=on ..
 make -j
 make test
@@ -30,7 +32,6 @@ ssh qemfd.net rm -rf /var/www/notcurses/html
 scp -r html qemfd.net:/var/www/notcurses/html
 scp *.html ../doc/man/index.html qemfd.net:/var/www/notcurses/
 cd ..
-rm -rf build
 
 # if that all worked, commit, push, and tag
 git commit -a -m v$VERSION
@@ -51,7 +52,7 @@ echo "The bastards are trying to immanentize the Eschaton"
 # requires token in ~/.netrc
 github-release dankamongmen/notcurses create v$VERSION --name "v$VERSION—$QUIP" --publish $TARBALL.asc
 
-cd build
+cd "$BUILDDIR"
 sudo make install
 cd ../python
 python3 setup.py sdist
@@ -60,5 +61,5 @@ twine upload -s -udankamongmen dist/*
 cd ../rust
 cargo clean
 cargo publish
-cd ../build
+cd "../$BUILDDIR"
 cat install_manifest.txt | sudo xargs rm

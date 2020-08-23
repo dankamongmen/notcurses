@@ -7,6 +7,7 @@ steps:
 - name: debian-build
   image: dankamongmen/unstable_builder:2020-08-20a
   commands:
+    - apt-get -y install python3-cffi
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
@@ -15,7 +16,8 @@ steps:
     - env TERM=xterm make test
     - make install
     - cd ../python
-    - python3 setup.py sdist build
+    - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
+    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo
 ---
 kind: pipeline
 type: docker

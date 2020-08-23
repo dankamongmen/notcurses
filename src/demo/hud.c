@@ -532,13 +532,13 @@ int fpsgraph_init(struct notcurses* nc){
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   struct ncplane* newp = ncplane_new(nc, PLOTHEIGHT, dimx, dimy - PLOTHEIGHT, 0, NULL);
-  uint32_t attrword = 0;
+  uint32_t style = 0;
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_fg(&channels, 0x201020);
   channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_bg(&channels, 0x201020);
-  ncplane_set_base(newp, "", attrword, channels);
+  ncplane_set_base(newp, "", style, channels);
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_EXPONENTIALD;

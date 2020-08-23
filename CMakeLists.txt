@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14.0)
-project(notcurses VERSION 1.6.16
+project(notcurses VERSION 1.6.17
   DESCRIPTION "Blingful UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)
@@ -98,7 +98,7 @@ endif()
 endif()
 find_library(LIBRT rt)
 
-# libnotcurses (core shared library and static library)
+# libnotcurses (core shared library, core static library)
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
 add_library(notcurses SHARED ${NCSRCS})
 if(${USE_STATIC})

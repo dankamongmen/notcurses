@@ -249,12 +249,12 @@ typedef struct tinfo {
 } tinfo;
 
 typedef struct ncdirect {
-  int attrword;              // current styles
   palette256 palette;        // 256-indexed palette can be used instead of/with RGB
   FILE* ttyfp;               // FILE* for output tty
   int ctermfd;               // fd for controlling terminal
   tinfo tcache;              // terminfo cache
   unsigned fgrgb, bgrgb;     // last RGB values of foreground/background
+  uint16_t stylemask;        // current styles
   bool fgdefault, bgdefault; // are FG/BG currently using default colors?
   bool utf8;                 // are we using utf-8 encoding, as hoped?
 } ncdirect;
