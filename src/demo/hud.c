@@ -543,7 +543,7 @@ int fpsgraph_init(struct notcurses* nc){
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_EXPONENTIALD;
   opts.legendstyle = NCSTYLE_ITALIC;
-  opts.title = "FPS/sec";
+  opts.title = "frames per second";
   channels_set_fg_rgb(&opts.minchannels, 0x80, 0x80, 0xff);
   channels_set_bg(&opts.minchannels, 0x201020);
   channels_set_bg_alpha(&opts.minchannels, CELL_ALPHA_BLEND);
