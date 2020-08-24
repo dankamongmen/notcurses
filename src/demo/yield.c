@@ -38,10 +38,11 @@ int yield_demo(struct notcurses* nc){
   // less than this, and we exit almost immediately. more than this, and we
   // run closer to twenty seconds. 11/50 it is, then.
   const long threshold_painted = total * 11 / 50;
-  timespec_div(&demodelay, 128, &scaled);
+  const int MAXITER = 512;
+  timespec_div(&demodelay, MAXITER, &scaled);
   long tfilled = 0;
   int iters = 0;
-  while(tfilled < threshold_painted && iters < 512){
+  while(tfilled < threshold_painted && iters < MAXITER){
 //fprintf(stderr, "%d/%d x %d/%d tfilled: %ld thresh: %ld total: %ld\n", vy, vx, vscaley, vscalex, tfilled, threshold_painted, total);
     int pfilled = 0;
     do{
@@ -75,7 +76,6 @@ int yield_demo(struct notcurses* nc){
     demo_nanosleep(nc, &scaled);
     ++iters;
   }
-
   ncvisual_destroy(wmv);
   return 0;
 }
