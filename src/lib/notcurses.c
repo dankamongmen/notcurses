@@ -1909,7 +1909,6 @@ ncplane* ncplane_below(ncplane* n){
   return n->below;
 }
 
-// FIXME this clears the screen for some reason! what's up?
 #define SET_BTN_EVENT_MOUSE   "1002"
 #define SET_FOCUS_EVENT_MOUSE "1004"
 #define SET_SGR_MODE_MOUSE    "1006"
