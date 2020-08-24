@@ -72,6 +72,11 @@ int yield_demo(struct notcurses* nc){
       ncvisual_destroy(wmv);
       return -1;
     }
+    ncplane_set_bg_rgb(std, 0x10, 0x10, 0x10);
+    ncplane_set_fg_rgb(std, 0xf0, 0x20, 0x20);
+    ncplane_set_attr(std, NCSTYLE_BOLD);
+    ncplane_printf_aligned(std, 3, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)tfilled * 100) / threshold_painted);
+    ncplane_set_attr(std, NCSTYLE_NONE);
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &scaled);
     ++iters;
