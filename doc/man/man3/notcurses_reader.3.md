@@ -55,8 +55,7 @@ The contents of the **ncreader** can be retrieved with **ncreader_contents**.
 The **ncreader** consists of at least one **ncplane** (the visible editing
 area). If the **ncreader** supports scrolling, it will consist of two
 **ncplanes**, one of which will be kept outside the rendering area (and will
-thus be invisible). **ncreader_plane** always returns the visible plane, to
-which the invisible plane (if it exists) is bound.
+thus be invisible). **ncreader_plane** always returns the visible plane.
 
 **ncreader_clear** drops all input from the **ncreader**, restoring it to
 the same pristine condition in which it was returned by **ncreader_create**.
