@@ -46,11 +46,12 @@ gpg --sign --armor --detach-sign $TARBALL
 rm v$VERSION.tar.gz
 
 echo "Cut $VERSION, signed to $TARBALL.asc"
-echo "Now upload the sig to https://github.com/dankamongmen/notcurses/releases"
+echo "Now uploadling the sig to https://github.com/dankamongmen/notcurses/releases"
 echo "The bastards are trying to immanentize the Eschaton"
 
 # requires token in ~/.netrc
 github-release dankamongmen/notcurses create v$VERSION --name "v$VERSION—$QUIP" --publish $TARBALL.asc
+rm $TARBALL.asc
 
 cd "$BUILDDIR"
 sudo make install
