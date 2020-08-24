@@ -140,9 +140,9 @@ zero. The following flags are defined:
 It is important to reset the terminal before exiting, whether terminating due
 to intended operation or a received signal. This is usually accomplished by
 explicitly calling **notcurses_stop(3)** during shutdown. For convenience, notcurses
-by default installs signal handlers for various signals typically resulting in
-process termination (see **signal(7)**). These signal handlers call
-notcurses_stop(3) for each **struct notcurses** in the process, and then propagate
+by default installs signal handlers for various signals which would typically
+result in process termination (see **signal(7)**). These signal handlers call
+**notcurses_stop(3)** for each **struct notcurses** in the process, and then propagate
 the signal to any previously-configured handler. These handlers are disabled
 upon entry to **notcurses_stop(3)**.
 
@@ -163,7 +163,7 @@ done, the caller should probably watch for the signal, and invoke
 
 A resize event does not invalidate any references returned earlier by
 notcurses. The content of any new screen area is undefined until the next call
-to notcurses_render(3). This is true even if an existing **struct ncplane**
+to **notcurses_render(3)**. This is true even if an existing **struct ncplane**
 (see **notcurses_plane(3)**) overlaps the new area, since the signal could
 arrive while the ncplanes are being modified. Signal handlers are quite
 restricted as to what actions they can perform, so minimal work is performed in

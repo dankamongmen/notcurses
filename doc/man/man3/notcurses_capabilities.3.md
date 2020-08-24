@@ -56,7 +56,7 @@ multimedia support.
 multimedia support capable of decoding videos.
 
 **notcurses_canutf8** returns **true** if the configured locale uses
-UTF-8 encoding.
+UTF-8 encoding, and the locale was successfully loaded.
 
 **notcurses_cansixel** returns **true** if the terminal advertises
 support for Sixel, and Notcurses has been built with Sixel support.
