@@ -575,6 +575,7 @@ target_include_directories(notcurses-tester
 )
 target_link_libraries(notcurses-tester
   PRIVATE
+    unistring
     notcurses++
     "${TERMINFO_LIBRARIES}"
 )

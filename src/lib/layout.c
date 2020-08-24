@@ -1,22 +1,4 @@
 #include "internal.h"
-#include <unictype.h>
-
-static bool
-islinebreak(wchar_t wchar){
-  // UC_LINE_SEPARATOR + UC_PARAGRAPH_SEPARATOR
-  if(wchar == '\n'){
-    return true;
-  }
-  const uint32_t mask = UC_CATEGORY_MASK_Zl | UC_CATEGORY_MASK_Zp;
-  return uc_is_general_category_withtable(wchar, mask);
-}
-
-static bool
-iswordbreak(wchar_t wchar){
-  const uint32_t mask = UC_CATEGORY_MASK_Z |
-                        UC_CATEGORY_MASK_Zs;
-  return uc_is_general_category_withtable(wchar, mask);
-}
 
 // print the first 'bytes' bytes of 'text' to 'n', using alignment 'align'
 // and requiring 'cols' columns, relative to the current cursor position.

@@ -33,6 +33,7 @@ const char* oiio_version(void);
 #include <pthread.h>
 #include <termios.h>
 #include <stdbool.h>
+#include <unictype.h>
 #include <langinfo.h>
 #include "notcurses/notcurses.h"
 #include "egcpool.h"
@@ -920,6 +921,23 @@ pool_load(egcpool* pool, cell* c, const char* gcluster){
 
 // increment y by 1 and rotate the framebuffer up one line. x moves to 0.
 void scroll_down(ncplane* n);
+
+static inline bool
+islinebreak(wchar_t wchar){
+  // UC_LINE_SEPARATOR + UC_PARAGRAPH_SEPARATOR
+  if(wchar == L'\n' || wchar == L'\v' || wchar == L'\f'){
+    return true;
+  }
+  const uint32_t mask = UC_CATEGORY_MASK_Zl | UC_CATEGORY_MASK_Zp;
+  return uc_is_general_category_withtable(wchar, mask);
+}
+
+static inline bool
+iswordbreak(wchar_t wchar){
+  const uint32_t mask = UC_CATEGORY_MASK_Z |
+                        UC_CATEGORY_MASK_Zs;
+  return uc_is_general_category_withtable(wchar, mask);
+}
 
 #ifdef __cplusplus
 }
