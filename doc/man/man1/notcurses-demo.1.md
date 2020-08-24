@@ -116,7 +116,7 @@ The following keypresses are recognized (and are also available from the menu):
 
 # COPYRIGHT
 
-* All code and design copyright Nick Black <dankamongmen@gmail.com>.
+* All code and design copyright Nick Black <nickblack@linux.com>.
 * Images from Street Fighter II and Mega Man 2 copyright Capcom of America.
 * Images from Super Mario Bros. copyright Nintendo of America.
 * Images from Ninja Gaiden copyright Koei Tecmo America.
