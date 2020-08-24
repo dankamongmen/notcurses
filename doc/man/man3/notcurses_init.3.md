@@ -40,11 +40,11 @@ typedef struct notcurses_options {
 } notcurses_options;
 ```
 
-**int notcurses_lex_margins(const char* op, notcurses_options* opts);**
+**struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);**
 
 **void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);**
 
-**struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);**
+**int notcurses_lex_margins(const char* op, notcurses_options* opts);**
 
 **int notcurses_cursor_enable(struct notcurses* nc, int y, int x);**
 

@@ -2,10 +2,12 @@
 
 ncreader* ncreader_create(ncplane* n, int y, int x, const ncreader_options* opts){
   if(opts->physrows <= 0 || opts->physcols <= 0){
+    logerror(n->nc, "Provided illegal geometry %dx%d\n", opts->physcols, opts->physrows);
     return NULL;
   }
-  if(opts->flags){
-    return NULL; // FIXME none yet handled
+  if(opts->flags > NCREADER_OPTION_HORSCROLL){
+    logerror(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+    return NULL;
   }
   ncreader* nr = malloc(sizeof(*nr));
   if(nr){
