@@ -97,7 +97,7 @@ about_toggle(struct notcurses* nc){
     channels = 0;
     channels_set_fg(&channels, 0xc020c0);
     channels_set_bg(&channels, 0);
-    if(cells_double_box(n, NCSTYLE_NONE, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
+    if(cells_rounded_box(n, NCSTYLE_NONE, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
       if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
         cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
         cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
@@ -252,21 +252,21 @@ hud_refresh(struct ncplane* n){
   cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
   cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, NCSTYLE_NONE, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_rounded_box(n, NCSTYLE_NONE, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  cell_set_fg(&ul, 0xc0f0c0);
-  cell_set_fg(&ur, 0xc0f0c0);
-  cell_set_fg(&ll, 0xc0f0c0);
-  cell_set_fg(&lr, 0xc0f0c0);
-  cell_set_fg(&hl, 0xc0f0c0);
-  cell_set_fg(&vl, 0xc0f0c0);
-  cell_set_bg(&ul, 0);
-  cell_set_bg(&ur, 0);
-  cell_set_bg(&ll, 0);
-  cell_set_bg(&lr, 0);
-  cell_set_bg(&hl, 0);
-  cell_set_bg(&vl, 0);
+  ul.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  ur.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  ll.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  lr.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  hl.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  vl.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  cell_set_bg_alpha(&ul, CELL_ALPHA_BLEND);
+  cell_set_bg_alpha(&ur, CELL_ALPHA_BLEND);
+  cell_set_bg_alpha(&ll, CELL_ALPHA_BLEND);
+  cell_set_bg_alpha(&lr, CELL_ALPHA_BLEND);
+  cell_set_bg_alpha(&hl, CELL_ALPHA_BLEND);
+  cell_set_bg_alpha(&vl, CELL_ALPHA_BLEND);
   if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0)){
     cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
     cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
