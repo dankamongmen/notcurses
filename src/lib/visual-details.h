@@ -10,14 +10,13 @@
 #ifdef USE_OIIO
 #include "oiio.h"
 #else
-#include "notcurses/ncerrs.h"
 
 typedef struct ncvisual_details {
 } ncvisual_details;
 
-static inline auto ncvisual_details_init(ncvisual_details* deets) -> nc_err_e {
+static inline auto ncvisual_details_init(ncvisual_details* deets) -> int {
   (void)deets;
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 static inline auto

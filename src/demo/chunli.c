@@ -16,11 +16,10 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
   for(int i = 0 ; i < count ; ++i){
-    nc_err_e err;
     notcurses_refresh(nc, &dimy, &dimx);
     snprintf(file, sizeof(file), "chunli%d.%s", i + 1, ext);
     chuns[i].path = find_data(file);
-    chuns[i].ncv = ncvisual_from_file(chuns[i].path, &err);
+    chuns[i].ncv = ncvisual_from_file(chuns[i].path);
     if(chuns[i].ncv == NULL){
       return -1;
     }
@@ -62,8 +61,7 @@ int chunli_demo(struct notcurses* nc){
   for(int i = 1 ; i < 100 ; ++i){
     snprintf(file, sizeof(file), "chunli%02d.png", i);
     char* path = find_data(file);
-    nc_err_e err;
-    struct ncvisual* ncv = ncvisual_from_file(path, &err);
+    struct ncvisual* ncv = ncvisual_from_file(path);
     if(ncv == NULL){
       free(path);
       break;

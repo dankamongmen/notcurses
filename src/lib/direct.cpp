@@ -307,24 +307,23 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   return 0;
 }
 
-nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
-                               ncblitter_e blitter, ncscale_e scale){
-  nc_err_e ret;
-  struct ncvisual* ncv = ncvisual_from_file(file, &ret);
+int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
+                          ncblitter_e blitter, ncscale_e scale){
+  struct ncvisual* ncv = ncvisual_from_file(file);
   if(ncv == nullptr){
-    return ret;
+    return -1;
   }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
   int leny = ncv->rows; // we allow it to freely scroll
   int lenx = ncv->cols;
   if(leny == 0 || lenx == 0){
     ncvisual_destroy(ncv);
-    return NCERR_DECODE;
+    return -1;
   }
 //fprintf(stderr, "render %d/%d to %d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
   auto bset = rgba_blitter_low(n->utf8, scale, true, blitter);
   if(!bset){
-    return NCERR_INVALID_ARG;
+    return -1;
   }
   int disprows, dispcols;
   if(scale != NCSCALE_NONE){
@@ -345,18 +344,18 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
                                          dispcols / encoding_x_scale(bset),
                                          0, 0, nullptr, nullptr);
   if(faken == nullptr){
-    return NCERR_NOMEM;
+    return -1;
   }
   if(ncvisual_blit(ncv, disprows, dispcols, faken, bset,
                    0, 0, 0, 0, leny, lenx, false)){
     ncvisual_destroy(ncv);
     free_plane(faken);
-    return NCERR_SYSTEM;
+    return -1;
   }
   ncvisual_destroy(ncv);
   int xoff = ncdirect_align(n, align, lenx / encoding_x_scale(bset));
   if(ncdirect_dump_plane(n, faken, xoff)){
-    return NCERR_SYSTEM;
+    return -1;
   }
   while(fflush(stdout) == EOF && errno == EAGAIN){
     ;
@@ -364,7 +363,7 @@ nc_err_e ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   free_plane(faken);
   ncdirect_fg_default(n);
   ncdirect_bg_default(n);
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 int ncdirect_fg_palindex(ncdirect* nc, int pidx){

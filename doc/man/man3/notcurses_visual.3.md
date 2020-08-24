@@ -50,7 +50,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **bool notcurses_cansixel(const struct notcurses* nc);**
 
-**struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* err);**
+**struct ncvisual* ncvisual_from_file(const char* file);**
 
 **struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);**
 
@@ -62,13 +62,13 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **void ncvisual_destroy(struct ncvisual* ncv);**
 
-**nc_err_e ncvisual_decode(struct ncvisual* nc);**
+**int ncvisual_decode(struct ncvisual* nc);**
 
 **struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);**
 
 **int ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv, const struct timespec* disptime, void* curry);**
 
-**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* err, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);**
+**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);**
 
 **int ncvisual_rotate(struct ncvisual* n, double rads);**
 
@@ -160,10 +160,11 @@ built with insufficient multimedia support.
 **ncvisual_from_file** returns an **ncvisual** object on success, or **NULL**
 on failure. Success indicates that the specified **file** was opened, and
 enough data was read to make a firm codec identification. It does not imply
-that the entire file is properly-formed. On failure, **err** will be updated.
-**ncvisual_decode** returns **NCERR_SUCCESS** on success, or **NCERR_EOF** on
-end of file, or some other **nc_err_e** on failure. It likewise updates **err**
-in the event of an error. It is only necessary for multimedia-based visuals.
+that the entire file is properly-formed.
+
+**ncvisual_decode** returns 0 on success, or 1 on end of file, or -1 on
+failure. It is only necessary for multimedia-based visuals. It advances one
+frame for each call.
 
 **ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
 and bound. This is usually due to illegal content in the source **ncplane**.

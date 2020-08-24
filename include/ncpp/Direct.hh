@@ -138,7 +138,7 @@ namespace ncpp
 			return error_guard (ncdirect_cursor_disable (direct), -1);
 		}
 
-		nc_err_e render_image (const char* file, ncalign_e align, ncblitter_e blitter, ncscale_e scale) const noexcept
+		int render_image (const char* file, ncalign_e align, ncblitter_e blitter, ncscale_e scale) const noexcept
 		{
 			return ncdirect_render_image (direct, file, align, blitter, scale);
 		}

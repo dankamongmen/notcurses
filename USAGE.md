@@ -378,8 +378,8 @@ int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
 // Display an image using the specified blitter and scaling. The image may
 // be arbitrarily many rows -- the output will scroll -- but will only occupy
 // the column of the cursor, and those to the right.
-nc_err_e ncdirect_render_image(struct ncdirect* nc, const char* filename,
-                               ncblitter_e blitter, ncscale_e scale);
+int ncdirect_render_image(struct ncdirect* nc, const char* filename,
+                          ncblitter_e blitter, ncscale_e scale);
 ```
 
 Several of the Notcurses capability predicates have `ncdirect` analogues:
@@ -2587,11 +2587,11 @@ int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
 
 // Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.
-nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
+int ncvisual_rotate(struct ncvisual* n, double rads);
 
 // Resize the visual so that it is 'rows' X 'columns'. This is a lossy
 // transformation, unless the size is unchanged.
-nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
+int ncvisual_resize(struct ncvisual* n, int rows, int cols);
 
 // Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
 int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
@@ -2715,9 +2715,9 @@ ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv,
 // visual naturally running at 30FPS, a 'timescale' of 0.1 will result in
 // 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
 // supply 'timescale' less than or equal to 0.
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
-                    nc_err_e* ncerr, float timescale, streamcb streamer,
-                    const struct ncvisual_options* vopts, void* curry);
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, float timescale,
+                    streamcb streamer, const struct ncvisual_options* vopts,
+                    void* curry);
 ```
 
 ### QR codes
@@ -2746,12 +2746,12 @@ have only one frame), until it returns `NCERR_EOF`:
 
 ```c
 // Open a visual at 'file', extracting a codec and parameters.
-struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
+struct ncvisual* ncvisual_from_file(const char* file);
 
 
 // extract the next frame from an ncvisual. returns NCERR_EOF on end of file,
 // and NCERR_SUCCESS on success, otherwise some other NCERR.
-nc_err_e ncvisual_decode(struct ncvisual* nc);
+int ncvisual_decode(struct ncvisual* nc);
 ```
 
 ### Pixels

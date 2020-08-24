@@ -249,16 +249,16 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
   return *leny * *lenx;
 }
 
-auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
+auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   // done to force conversion into RGBA
-  nc_err_e err = ncvisual_resize(ncv, ncv->rows, ncv->cols);
-  if(err != NCERR_SUCCESS){
+  int err = ncvisual_resize(ncv, ncv->rows, ncv->cols);
+  if(err){
     return err;
   }
   assert(ncv->rowstride / 4 >= ncv->cols);
   rads = -rads; // we're a left-handed Cartesian
   if(ncv->data == nullptr){
-    return NCERR_DECODE;
+    return -1;
   }
   int centy, centx;
   ncvisual_center(ncv, &centy, &centx); // pixel center (center of 'data')
@@ -273,12 +273,12 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
   int bboffy = 0;
   int bboffx = 0;
   if(ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx) <= 0){
-    return NCERR_DECODE;
+    return -1;
   }
   int bbarea;
   bbarea = rotate_bounding_box(stheta, ctheta, &bby, &bbx, &bboffy, &bboffx);
   if(bbarea <= 0){
-    return NCERR_DECODE;
+    return -1;
   }
   int bbcentx = bbx, bbcenty = bby;
   center_box(&bbcenty, &bbcentx);
@@ -286,7 +286,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
   assert(ncv->rowstride / 4 >= ncv->cols);
   auto data = static_cast<uint32_t*>(malloc(bbarea * 4));
   if(data == nullptr){
-    return NCERR_NOMEM;
+    return -1;
   }
   memset(data, 0, bbarea * 4);
 //fprintf(stderr, "bbarea: %d bby: %d bbx: %d centy: %d centx: %d bbcenty: %d bbcentx: %d\n", bbarea, bby, bbx, centy, centx, bbcenty, bbcentx);
@@ -309,7 +309,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> nc_err_e {
   ncv->rows = bby;
   ncv->rowstride = bbx * 4;
   ncvisual_details_seed(ncv);
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
@@ -556,9 +556,8 @@ auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
 
 #ifndef USE_OIIO // built without ffmpeg or oiio
 #ifndef USE_FFMPEG
-auto ncvisual_from_file(const char* filename, nc_err_e* err) -> ncvisual* {
+auto ncvisual_from_file(const char* filename) -> ncvisual* {
   (void)filename;
-  *err = NCERR_UNIMPLEMENTED;
   return nullptr;
 }
 
@@ -570,21 +569,20 @@ auto notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) -> b
   return false;
 }
 
-auto ncvisual_decode(ncvisual* nc) -> nc_err_e {
+auto ncvisual_decode(ncvisual* nc) -> int {
   (void)nc;
-  return NCERR_UNIMPLEMENTED;
+  return -1;
 }
 
-auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
-                    float timescale, streamcb streamer,
-                    const ncvisual_options* vopts, void* curry) -> int {
+auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
+                     streamcb streamer, const ncvisual_options* vopts,
+                     void* curry) -> int {
   (void)nc;
   (void)ncv;
   (void)timescale;
   (void)streamer;
   (void)vopts;
   (void)curry;
-  *ncerr = NCERR_UNIMPLEMENTED;
   return -1;
 }
 
@@ -601,28 +599,28 @@ auto ncvisual_init(int loglevel) -> int {
 auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                    const struct blitset* bset, int placey, int placex,
                    int begy, int begx, int leny, int lenx,
-                   bool blendcolors) -> nc_err_e {
+                   bool blendcolors) -> int {
   (void)rows;
   (void)cols;
   if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
                         begy, begx, leny, lenx, blendcolors) <= 0){
-    return NCERR_DECODE;
+    return -1;
   }
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
   (void)ncv;
 }
 
-auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> nc_err_e {
+auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
   // we'd need to verify that it's RGBA as well, except that if we've got no
   // multimedia engine, we've only got memory-assembled ncvisuals, which are
   // RGBA-native. so we ought be good, but this is undeniably sloppy...
   if(nc->rows == rows && nc->cols == cols){
-    return NCERR_SUCCESS;
+    return 0;
   }
-  return NCERR_UNIMPLEMENTED;
+  return -1;
 }
 
 #endif

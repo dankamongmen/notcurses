@@ -19,12 +19,12 @@ typedef struct ncvisual_details {
 } ncvisual_details;
 
 static inline auto
-ncvisual_details_init(ncvisual_details *deets) -> nc_err_e {
+ncvisual_details_init(ncvisual_details *deets) -> int {
   deets->image = nullptr;
   deets->frame = nullptr;
   deets->ibuf = nullptr;
   deets->framenum = 0;
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 static inline auto

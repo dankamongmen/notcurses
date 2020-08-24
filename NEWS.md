@@ -1,6 +1,12 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.18 (not yet released)
+  * `nc_err_e` has been taken behind the shed and shot in the face. All
+    functions which once returned `nc_err_e` now return a bimodal `int`. Those
+    functions which accepted a value-result `nc_err_e*` no longer take this
+    argument.
+
 * 1.6.17 (2020-08-22)
   * `ncdirect_flush()` now takes a `const struct ncdirect*`.
   * A `const char* title` field has been added to `ncplot_options`. If not

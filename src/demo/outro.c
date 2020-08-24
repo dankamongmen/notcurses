@@ -46,9 +46,8 @@ changes_fadeout(struct notcurses* nc, struct ncplane* ncp,
 static void*
 videothread(void* vnc){
   struct notcurses* nc = vnc;
-  nc_err_e err;
   char* path = find_data("samoa.avi");
-  struct ncvisual* ncv = ncvisual_from_file(path, &err);
+  struct ncvisual* ncv = ncvisual_from_file(path);
   free(path);
   if(ncv == NULL){
     return NULL;
@@ -97,7 +96,7 @@ videothread(void* vnc){
   ncplane_set_bg_rgb(apiap, 0, 0, 0);
   ncplane_putstr_aligned(apiap, 0, NCALIGN_CENTER,
       "Apia 🡺 Atlanta. Samoa, tula'i ma sisi ia lau fu'a, lou pale lea!");
-  int canceled = ncvisual_stream(nc, ncv, &err, delaymultiplier, perframe, &ovopts, &three);
+  int canceled = ncvisual_stream(nc, ncv, delaymultiplier, perframe, &ovopts, &three);
   ncvisual_destroy(ncv);
   ncplane_destroy(apiap);
   if(canceled == 1){
@@ -181,9 +180,8 @@ int outro(struct notcurses* nc){
   struct ncvisual* chncv = NULL;
   memset(&vopts, 0, sizeof(vopts));
   if(notcurses_canopen_images(nc)){
-    nc_err_e err = 0;
     char* path = find_data("changes.jpg");
-    chncv = ncvisual_from_file(path, &err);
+    chncv = ncvisual_from_file(path);
     free(path);
     if(chncv == NULL){
       return -1;

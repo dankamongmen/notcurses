@@ -97,19 +97,19 @@ auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
   return nullptr;
 }
 
-static nc_err_e
+static int
 averr2ncerr(int averr){
   if(averr == AVERROR_EOF){
-    return NCERR_EOF;
+    return 1;
   }
   // FIXME need to map averror codes to ncerrors
 //fprintf(stderr, "AVERR: %d/%x %d/%x\n", averr, averr, -averr, -averr);
-  return NCERR_DECODE;
+  return -1;
 }
 
-nc_err_e ncvisual_decode(ncvisual* nc){
+int ncvisual_decode(ncvisual* nc){
   if(nc->details.fmtctx == nullptr){ // not a file-backed ncvisual
-    return NCERR_DECODE;
+    return -1;
   }
   bool have_frame = false;
   bool unref = false;
@@ -165,16 +165,16 @@ nc_err_e ncvisual_decode(ncvisual* nc){
   nc->rows = nc->details.frame->height;
 //fprintf(stderr, "good decode! %d/%d %d %p\n", nc->details.frame->height, nc->details.frame->width, nc->rowstride, f->data);
   ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(f->data[0]), false);
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 // resize frame to oframe, converting to RGBA (if necessary) along the way
-nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
+int ncvisual_resize(ncvisual* nc, int rows, int cols) {
   const int targformat = AV_PIX_FMT_RGBA;
   AVFrame* inf = nc->details.oframe ? nc->details.oframe : nc->details.frame;
 //fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inf->format, nc->rows, nc->cols, targformat, rows, cols);
   if(inf->format == targformat && nc->rows == rows && nc->cols == cols){
-    return NCERR_SUCCESS;
+    return 0;
   }
   auto swsctx = sws_getContext(inf->width,
                                inf->height,
@@ -184,13 +184,13 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
                                SWS_LANCZOS, nullptr, nullptr, nullptr);
   if(swsctx == nullptr){
     //fprintf(stderr, "Error retrieving swsctx\n");
-    return NCERR_NOMEM;
+    return -1;
   }
   AVFrame* sframe;
   if((sframe = av_frame_alloc()) == nullptr){
     // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
     sws_freeContext(swsctx);
-    return NCERR_NOMEM; // no need to free swsctx
+    return -1; // no need to free swsctx
   }
   memcpy(sframe, inf, sizeof(*sframe));
   sframe->format = targformat;
@@ -205,7 +205,7 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
 //fprintf(stderr, "Error allocating visual data (%d)\n", size);
     av_freep(&sframe);
     sws_freeContext(swsctx);
-    return NCERR_NOMEM;
+    return -1;
   }
   int height = sws_scale(swsctx, inf->data,
                          inf->linesize, 0,
@@ -216,7 +216,7 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
     //fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(height));
     av_freep(sframe->data);
     av_freep(&sframe);
-    return NCERR_DECODE;
+    return -1;
   }
   const AVFrame* f = sframe;
   int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(static_cast<AVPixelFormat>(f->format)));
@@ -224,7 +224,7 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
 //fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
     av_freep(sframe->data);
     av_freep(&sframe);
-    return NCERR_DECODE;
+    return -1;
   }
   nc->rowstride = sframe->linesize[0];
   nc->rows = rows;
@@ -237,29 +237,25 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
   nc->details.oframe = sframe;
 
 //fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", nc->details.oframe->height, nc->details.oframe->width, nc->details.oframe->linesize[0]);
-  return NCERR_SUCCESS;
+  return 0;
 }
 
-ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
+ncvisual* ncvisual_from_file(const char* filename) {
   AVStream* st;
-  *ncerr = NCERR_SUCCESS;
   ncvisual* ncv = ncvisual_create();
   if(ncv == nullptr){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
-    *ncerr = NCERR_NOMEM;
     return nullptr;
   }
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details.frame);
   int averr = avformat_open_input(&ncv->details.fmtctx, filename, nullptr, nullptr);
   if(averr < 0){
 //fprintf(stderr, "Couldn't open %s (%d)\n", filename, averr);
-    *ncerr = averr2ncerr(averr);
     goto err;
   }
   averr = avformat_find_stream_info(ncv->details.fmtctx, nullptr);
   if(averr < 0){
 //fprintf(stderr, "Error extracting stream info from %s (%d)\n", filename, averr);
-    *ncerr = averr2ncerr(averr);
     goto err;
   }
 //av_dump_format(ncv->details.fmtctx, 0, filename, false);
@@ -267,13 +263,11 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
     ncv->details.sub_stream_index = averr;
     if((ncv->details.subtcodecctx = avcodec_alloc_context3(ncv->details.subtcodec)) == nullptr){
       //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
-      *ncerr = NCERR_NOMEM;
       goto err;
     }
     // FIXME do we need avcodec_parameters_to_context() here?
     if((averr = avcodec_open2(ncv->details.subtcodecctx, ncv->details.subtcodec, nullptr)) < 0){
       //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
-      *ncerr = averr2ncerr(averr);
       goto err;
     }
   }else{
@@ -282,24 +276,20 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details.frame);
   if((ncv->details.packet = av_packet_alloc()) == nullptr){
     // fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
-    *ncerr = NCERR_NOMEM;
     goto err;
   }
   if((averr = av_find_best_stream(ncv->details.fmtctx, AVMEDIA_TYPE_VIDEO, -1, -1, &ncv->details.codec, 0)) < 0){
     // fprintf(stderr, "Couldn't find visuals in %s (%s)\n", filename, av_err2str(*averr));
-    *ncerr = averr2ncerr(averr);
     goto err;
   }
   ncv->details.stream_index = averr;
   if(ncv->details.codec == nullptr){
     //fprintf(stderr, "Couldn't find decoder for %s\n", filename);
-    *ncerr = NCERR_DECODE;
     goto err;
   }
   st = ncv->details.fmtctx->streams[ncv->details.stream_index];
   if((ncv->details.codecctx = avcodec_alloc_context3(ncv->details.codec)) == nullptr){
     //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
-    *ncerr = NCERR_NOMEM;
     goto err;
   }
   if(avcodec_parameters_to_context(ncv->details.codecctx, st->codecpar) < 0){
@@ -307,12 +297,10 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
   }
   if((averr = avcodec_open2(ncv->details.codecctx, ncv->details.codec, nullptr)) < 0){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
-    *ncerr = averr2ncerr(averr);
     goto err;
   }
   /*if((ncv->cparams = avcodec_parameters_alloc()) == nullptr){
     //fprintf(stderr, "Couldn't allocate codec params for %s\n", filename);
-    *averr = NCERR_NOMEM;
     goto err;
   }
   if((*averr = avcodec_parameters_from_context(ncv->cparams, ncv->details.codecctx)) < 0){
@@ -323,7 +311,7 @@ ncvisual* ncvisual_from_file(const char* filename, nc_err_e* ncerr) {
   // frame is set up in prep_details(), so that format can be set there, as
   // is necessary when it is prepared from inputs other than files. oframe
   // is set up whenever we convert to RGBA.
-  if((*ncerr = ncvisual_decode(ncv)) != NCERR_SUCCESS){
+  if(ncvisual_decode(ncv)){
     goto err;
   }
   return ncv;
@@ -337,10 +325,9 @@ err:
 // frames carry a presentation time relative to the beginning, so we get an
 // initial timestamp, and check each frame against the elapsed time to sync
 // up playback.
-int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
-                    float timescale, streamcb streamer,
-                    const struct ncvisual_options* vopts, void* curry) {
-  *ncerr = NCERR_SUCCESS;
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
+                    streamcb streamer, const struct ncvisual_options* vopts,
+                    void* curry) {
   int frame = 1;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -352,6 +339,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
   ncplane* newn = NULL;
   ncvisual_options activevopts;
   memcpy(&activevopts, vopts, sizeof(*vopts));
+  int ncerr;
   do{
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
     // the time_base from the avformatctx.
@@ -396,20 +384,20 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr,
       }
       return r;
     }
-  }while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS);
+  }while((ncerr = ncvisual_decode(ncv)) == 0);
   if(activevopts.n != vopts->n){
     ncplane_destroy(activevopts.n);
   }
-  if(*ncerr == NCERR_EOF){
-    return 0;
+  if(ncerr == 1){ // 1 indicates reaching EOF
+    ncerr = 0;
   }
-  return -1;
+  return ncerr;
 }
 
-nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                       const struct blitset* bset, int placey, int placex,
-                       int begy, int begx, int leny, int lenx,
-                       bool blendcolors) {
+int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
+                  const struct blitset* bset, int placey, int placex,
+                  int begy, int begx, int leny, int lenx,
+                  bool blendcolors) {
   const AVFrame* inframe = ncv->details.oframe ? ncv->details.oframe : ncv->details.frame;
 //fprintf(stderr, "inframe: %p oframe: %p frame: %p\n", inframe, ncv->details.oframe, ncv->details.frame);
   void* data = nullptr;
@@ -422,7 +410,7 @@ nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     sframe = av_frame_alloc();
     if(sframe == nullptr){
 //fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
-      return NCERR_NOMEM;
+      return -1;
     }
     //fprintf(stderr, "WHN NCV: %d/%d\n", inframe->width, inframe->height);
     ncv->details.swsctx = sws_getCachedContext(ncv->details.swsctx,
@@ -433,7 +421,7 @@ nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                                                SWS_LANCZOS, nullptr, nullptr, nullptr);
     if(ncv->details.swsctx == nullptr){
 //fprintf(stderr, "Error retrieving details.swsctx\n");
-      return NCERR_NOMEM;
+      return -1;
     }
     memcpy(sframe, inframe, sizeof(*inframe));
     sframe->format = targformat;
@@ -445,14 +433,14 @@ nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                               IMGALLOCALIGN);
     if(size < 0){
 //fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
-      return NCERR_NOMEM;
+      return -1;
     }
     int height = sws_scale(ncv->details.swsctx, (const uint8_t* const*)inframe->data,
                            inframe->linesize, 0, inframe->height, sframe->data,
                            sframe->linesize);
     if(height < 0){
 //fprintf(stderr, "Error applying scaling (%d X %d)\n", inframe->height, inframe->width);
-      return NCERR_DECODE;
+      return -1;
     }
     stride = sframe->linesize[0]; // FIXME check for others?
     data = sframe->data[0];
@@ -469,13 +457,13 @@ nc_err_e ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
       av_freep(sframe->data);
       av_freep(&sframe);
     }
-    return NCERR_DECODE;
+    return -1;
   }
   if(sframe){
     av_freep(sframe->data);
     av_freep(&sframe);
   }
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 auto ncvisual_details_seed(ncvisual* ncv) -> void {

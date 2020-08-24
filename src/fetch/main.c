@@ -1,8 +1,9 @@
 #include <pwd.h>
+#include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <locale.h>
+#include <pthread.h>
 #include <semaphore.h>
 #include <sys/types.h>
 #ifdef __linux__
@@ -420,9 +421,8 @@ display_thread(void* vmarshal){
   drawpalette(m->nc);
   if(m->dinfo){
     if(m->dinfo->logofile){
-      if(ncdirect_render_image(m->nc, m->dinfo->logofile,
-                               NCALIGN_CENTER, NCBLIT_2x2,
-                               NCSCALE_SCALE) != NCERR_SUCCESS){
+      if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
+                               NCBLIT_2x2, NCSCALE_SCALE)){
         return NULL;
       }
     }

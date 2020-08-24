@@ -5,9 +5,8 @@ static int
 draw_background(struct notcurses* nc){
   if(notcurses_canopen_images(nc)){
     struct ncplane* n = notcurses_stdplane(nc);
-    nc_err_e err;
     char* path = find_data("changes.jpg");
-    struct ncvisual* ncv = ncvisual_from_file(path, &err);
+    struct ncvisual* ncv = ncvisual_from_file(path);
     free(path);
     if(!ncv){
       return -1;

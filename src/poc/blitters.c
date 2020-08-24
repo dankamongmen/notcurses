@@ -38,8 +38,7 @@ int main(int argc, char** argv){
       for(int i = 1 ; i < argc ; ++i){
         ncplane_erase(std);
         const char* fname = argv[i];
-        nc_err_e err;
-        struct ncvisual* ncv = ncvisual_from_file(fname, &err);
+        struct ncvisual* ncv = ncvisual_from_file(fname);
         if(ncv == NULL){
           goto err;
         }

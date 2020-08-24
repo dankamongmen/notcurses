@@ -26,13 +26,12 @@ const char eagle1[] =
 static struct ncplane*
 zoom_map(struct notcurses* nc, const char* map, int* ret){
   *ret = -1;
-  nc_err_e ncerr;
   // determine size that will be represented on screen at once, and how
   // large that section has been rendered in the outzoomed map. take the map
   // and begin opening it on larger and larger planes that fit on the screen
   // less and less. eventually, reach our natural NCSCALE_NONE size and begin
   // scrolling through the map, whooooooooosh.
-  struct ncvisual* ncv = ncvisual_from_file(map, &ncerr);
+  struct ncvisual* ncv = ncvisual_from_file(map);
   if(ncv == NULL){
     return NULL;
   }

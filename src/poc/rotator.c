@@ -65,7 +65,7 @@ rotate_grad(struct notcurses* nc){
   ncplane_erase(n);
   for(int i = 0 ; i < 4 ; ++i){
     int vy, vx, scaley, scalex;
-    if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 2)){
+    if(ncvisual_rotate(v, M_PI / 2)){
       return -1;
     }
     ncvisual_geom(nc, v, &vopts, &vy, &vx, &scaley, &scalex);
@@ -85,7 +85,7 @@ rotate_grad(struct notcurses* nc){
     ncvisual_geom(nc, v, &vopts, &vy, &vx, &scaley, &scalex);
     vopts.x = (dimx - (vx / scalex)) / 2;
     vopts.y = (dimy - (vy / scaley)) / 2;
-    if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 4)){
+    if(ncvisual_rotate(v, M_PI / 4)){
       return -1;
     }
     ncplane_erase(n);
@@ -195,7 +195,7 @@ rotate(struct notcurses* nc){
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);;
 
   for(int i = 0 ; i < 4 ; ++i){
-    if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 2)){
+    if(ncvisual_rotate(v, M_PI / 2)){
       return -1;
     }
     ncplane_erase(n);
@@ -205,7 +205,7 @@ rotate(struct notcurses* nc){
   }
 
   for(int i = 0 ; i < 8 ; ++i){
-    if(NCERR_SUCCESS != ncvisual_rotate(v, M_PI / 4)){
+    if(ncvisual_rotate(v, M_PI / 4)){
       return -1;
     }
     ncplane_erase(n);

@@ -65,10 +65,8 @@ TEST_CASE("Ncpp"
   SUBCASE("VisualFromFile") {
     NotCurses nc{ nopts };
     if(nc.can_open_images()){
-      nc_err_e err;
       {
-        Visual v = Visual(find_data("changes.jpg"), &err);
-        CHECK(NCERR_SUCCESS == err);
+        Visual v = Visual(find_data("changes.jpg"));
       }
     }
     CHECK(nc.stop());
