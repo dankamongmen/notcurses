@@ -141,7 +141,6 @@ previous action.
 **notcurses_cell(3)**,
 **notcurses_channels(3)**,
 **notcurses_directmode(3)**,
-**notcurses_error(3)**,
 **notcurses_fade(3)**,
 **notcurses_fds(3)**,
 **notcurses_init(3)**,

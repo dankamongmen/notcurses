@@ -12,45 +12,42 @@ bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) {
   return false; // too slow for reliable use at the moment
 }
 
-ncvisual* ncvisual_from_file(const char* filename, nc_err_e* err) {
-  *err = NCERR_SUCCESS;
+ncvisual* ncvisual_from_file(const char* filename) {
   ncvisual* ncv = ncvisual_create();
   if(ncv == nullptr){
-    *err = NCERR_NOMEM;
     return nullptr;
   }
   ncv->details.image = OIIO::ImageInput::open(filename);
   if(!ncv->details.image){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
-    *err = NCERR_DECODE;
     ncvisual_destroy(ncv);
     return nullptr;
   }
 /*const auto &spec = ncv->details.image->spec_dimensions(0);
 std::cout << "Opened " << filename << ": " << spec.height << "x" <<
 spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*/
-  if((*err = ncvisual_decode(ncv)) != NCERR_SUCCESS){
+  if(ncvisual_decode(ncv)){
     ncvisual_destroy(ncv);
     return nullptr;
   }
   return ncv;
 }
 
-nc_err_e ncvisual_decode(ncvisual* nc) {
+int ncvisual_decode(ncvisual* nc) {
 //fprintf(stderr, "current subimage: %d frame: %p\n", nc->details.image->current_subimage(), nc->details.frame.get());
   const auto &spec = nc->details.image->spec_dimensions(nc->details.framenum);
   if(nc->details.frame){
 //fprintf(stderr, "seeking subimage: %d\n", nc->details.image->current_subimage() + 1);
     OIIO::ImageSpec newspec;
     if(!nc->details.image->seek_subimage(nc->details.image->current_subimage() + 1, 0, newspec)){
-       return NCERR_EOF;
+       return 1;
     }
     // FIXME check newspec vis-a-vis image->spec()?
   }
 //fprintf(stderr, "SUBIMAGE: %d\n", nc->details.image->current_subimage());
   auto pixels = spec.width * spec.height;// * spec.nchannels;
   if(spec.nchannels < 3 || spec.nchannels > 4){
-    return NCERR_DECODE; // FIXME get some to test with
+    return -1; // FIXME get some to test with
   }
   nc->details.frame = std::make_unique<uint32_t[]>(pixels);
   if(spec.nchannels == 3){ // FIXME replace with channel shuffle
@@ -58,7 +55,7 @@ nc_err_e ncvisual_decode(ncvisual* nc) {
   }
 //fprintf(stderr, "READING: %d %ju\n", nc->details.image->current_subimage(), nc->details.framenum);
   if(!nc->details.image->read_image(nc->details.framenum++, 0, 0, spec.nchannels, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->details.frame.get(), 4)){
-    return NCERR_DECODE;
+    return -1;
   }
 //fprintf(stderr, "READ: %d %ju\n", nc->details.image->current_subimage(), nc->details.framenum);
 /*for(int i = 0 ; i < pixels ; ++i){
@@ -79,11 +76,11 @@ nc_err_e ncvisual_decode(ncvisual* nc) {
 //fprintf(stderr, "SUBS: %d\n", nc->details.ibuf->nsubimages());
   ncvisual_set_data(nc, static_cast<uint32_t*>(nc->details.ibuf->localpixels()), false);
 //fprintf(stderr, "POST-DECODE DATA: %d %d %p %p\n", nc->rows, nc->cols, nc->data, nc->details.ibuf->localpixels());
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 // resize, converting to RGBA (if necessary) along the way
-nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
+int ncvisual_resize(ncvisual* nc, int rows, int cols) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
   if(nc->details.ibuf && (nc->cols != cols || nc->rows != rows)){ // scale it
@@ -93,7 +90,7 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
     ibuf->reset(sp, OIIO::InitializePixels::Yes);
     OIIO::ROI roi(0, cols, 0, rows, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(*ibuf, *nc->details.ibuf, "", 0, roi)){
-      return NCERR_DECODE;
+      return -1;
     }
     nc->cols = cols;
     nc->rows = rows;
@@ -102,13 +99,13 @@ nc_err_e ncvisual_resize(ncvisual* nc, int rows, int cols) {
 //fprintf(stderr, "HAVE SOME NEW DATA: %p\n", ibuf->localpixels());
     nc->details.ibuf = std::move(ibuf);
   }
-  return NCERR_SUCCESS;
+  return 0;
 }
 
-nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
-                       ncplane* n, const struct blitset* bset,
-                       int placey, int placex, int begy, int begx,
-                       int leny, int lenx, bool blendcolors) {
+int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
+                  ncplane* n, const struct blitset* bset,
+                  int placey, int placex, int begy, int begx,
+                  int leny, int lenx, bool blendcolors) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
   void* data = nullptr;
   int stride = 0;
@@ -120,7 +117,7 @@ nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
     ibuf->reset(sp, OIIO::InitializePixels::Yes);
     OIIO::ROI roi(0, cols, 0, rows, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(*ibuf, *ncv->details.ibuf, "", 0, roi)){
-      return NCERR_DECODE;
+      return -1;
     }
     stride = cols * 4;
     data = ibuf->localpixels();
@@ -131,21 +128,21 @@ nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
   }
   if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx,
                         leny, lenx, blendcolors) <= 0){
-    return NCERR_DECODE;
+    return -1;
   }
-  return NCERR_SUCCESS;
+  return 0;
 }
 
-auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timescale,
+auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
                      streamcb streamer, const struct ncvisual_options* vopts, void* curry) -> int {
   (void)timescale; // FIXME
-  *ncerr = NCERR_SUCCESS;
   int frame = 1;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
   ncplane* newn = nullptr;
   ncvisual_options activevopts;
   memcpy(&activevopts, vopts, sizeof(*vopts));
+  int ncerr;
   do{
     if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
@@ -173,11 +170,11 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, nc_err_e* ncerr, float timesc
       return r;
     }
     ++frame;
-  }while((*ncerr = ncvisual_decode(ncv)) == NCERR_SUCCESS);
+  }while((ncerr = ncvisual_decode(ncv)) == 0);
   if(activevopts.n != vopts->n){
     ncplane_destroy(activevopts.n);
   }
-  if(*ncerr == NCERR_EOF){
+  if(ncerr == 1){
     return 0;
   }
   return -1;

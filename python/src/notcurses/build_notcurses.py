@@ -185,26 +185,19 @@ palette256* palette256_new(struct notcurses* nc);
 int palette256_use(struct notcurses* nc, const palette256* p);
 void palette256_free(palette256* p);
 typedef enum {
-  NCERR_SUCCESS,
-  NCERR_NOMEM,
-  NCERR_EOF,
-  NCERR_DECODE,
-  NCERR_UNIMPLEMENTED,
-} nc_err_e;
-typedef enum {
   NCSCALE_NONE,
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
 } ncscale_e;
 int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 const char* notcurses_str_scalemode(ncscale_e scalemode);
-struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
+struct ncvisual* ncvisual_from_file(const char* file);
 struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);
 struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows, int rowstride, int cols);
 struct ncvisual* ncvisual_from_plane(const struct ncplane* n, ncblitter_e blit, int begy, int begx, int leny, int lenx);
 int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, const struct ncvisual_options* vopts, int* y, int* x, int* toy, int* tox);
 void ncvisual_destroy(struct ncvisual* ncv);
-nc_err_e ncvisual_decode(struct ncvisual* nc);
+int ncvisual_decode(struct ncvisual* nc);
 int ncvisual_rotate(struct ncvisual* n, double rads);
 int ncvisual_resize(struct ncvisual* n, int rows, int cols);
 int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
@@ -213,7 +206,7 @@ char* ncvisual_subtitle(const struct ncvisual* ncv);
 int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
 int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
 typedef int (*streamcb)(struct ncvisual*, struct ncvisual_options*, const struct timespec*, void*);
-int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, nc_err_e* ncerr, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);
+int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);
 struct ncvisual_options {
   struct ncplane* n;
   ncscale_e scaling;
@@ -435,7 +428,7 @@ int ncdirect_rounded_box(struct ncdirect* n, uint64_t ul, uint64_t ur, uint64_t 
 int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen, unsigned ctlword);
 bool ncdirect_canopen_images(const struct ncdirect* n);
 bool ncdirect_canutf8(const struct ncdirect* n);
-nc_err_e ncdirect_render_image(struct ncdirect* n, const char* filename, ncalign_e align, ncblitter_e blitter, ncscale_e scale);
+int ncdirect_render_image(struct ncdirect* n, const char* filename, ncalign_e align, ncblitter_e blitter, ncscale_e scale);
 struct ncplane* ncplane_parent(struct ncplane* n);
 const struct ncplane* ncplane_parent_const(const struct ncplane* n);
 """)

@@ -14,7 +14,6 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <notcurses/nckeys.h>
-#include <notcurses/ncerrs.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -2175,7 +2174,7 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
 
 // Open a visual at 'file', extract a codec and parameters, decode the first
 // image to memory.
-API struct ncvisual* ncvisual_from_file(const char* file, nc_err_e* ncerr);
+API struct ncvisual* ncvisual_from_file(const char* file);
 
 // Prepare an ncvisual, and its underlying plane, based off RGBA content in
 // memory at 'rgba'. 'rgba' must be a flat array of 32-bit 8bpc RGBA pixels.
@@ -2248,17 +2247,17 @@ API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
 // can be neither decoded nor rendered any further.
 API void ncvisual_destroy(struct ncvisual* ncv);
 
-// extract the next frame from an ncvisual. returns NCERR_EOF on end of file,
-// and NCERR_SUCCESS on success, otherwise some other NCERR.
-API nc_err_e ncvisual_decode(struct ncvisual* nc);
+// extract the next frame from an ncvisual. returns 1 on end of file, 0 on
+// success, and -1 on failure.
+API int ncvisual_decode(struct ncvisual* nc);
 
 // Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.
-API nc_err_e ncvisual_rotate(struct ncvisual* n, double rads);
+API int ncvisual_rotate(struct ncvisual* n, double rads);
 
 // Resize the visual so that it is 'rows' X 'columns'. This is a lossy
 // transformation, unless the size is unchanged.
-API nc_err_e ncvisual_resize(struct ncvisual* n, int rows, int cols);
+API int ncvisual_resize(struct ncvisual* n, int rows, int cols);
 
 // Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
 API int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
@@ -2305,7 +2304,7 @@ API int ncvisual_simple_streamer(struct ncvisual* ncv, struct ncvisual_options* 
 // 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
 // supply 'timescale' less than or equal to 0.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
-                        nc_err_e* ncerr, float timescale, streamcb streamer,
+                        float timescale, streamcb streamer,
                         const struct ncvisual_options* vopts, void* curry);
 
 // Blit a flat array 'data' of RGBA 32-bit values to the ncplane 'vopts->n',

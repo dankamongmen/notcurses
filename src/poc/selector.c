@@ -82,8 +82,7 @@ int main(void){
   struct ncplane* n = notcurses_stdplane(nc);
 
   if(notcurses_canopen_images(nc)){
-    nc_err_e err;
-    struct ncvisual* ncv = ncvisual_from_file("../data/changes.jpg", &err);
+    struct ncvisual* ncv = ncvisual_from_file("../data/changes.jpg");
     if(!ncv){
       goto err;
     }

@@ -216,10 +216,9 @@ auto main(int argc, char** argv) -> int {
     std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
     for(auto i = nonopt ; i < argc ; ++i){
       int frames = 0;
-      nc_err_e err;
       std::unique_ptr<Visual> ncv;
       try{
-        ncv = std::make_unique<Visual>(argv[i], &err);
+        ncv = std::make_unique<Visual>(argv[i]);
       }catch(std::exception& e){
         // FIXME want to stop nc first :/ can't due to stdn, ugh
         std::cerr << argv[i] << ": " << e.what() << "\n";
@@ -231,11 +230,11 @@ auto main(int argc, char** argv) -> int {
       vopts.n = *stdn;
       vopts.scaling = scalemode;
       vopts.blitter = blitter;
-      int r = ncv->stream(&vopts, &err, timescale, perframe, &frames);
+      int r = ncv->stream(&vopts, timescale, perframe, &frames);
       free(stdn->get_userptr());
       stdn->set_userptr(nullptr);
       if(r < 0){ // positive is intentional abort
-        std::cerr << "Error decoding " << argv[i] << ": " << nc_strerror(err) << std::endl;
+        std::cerr << "Error decoding " << argv[i] << std::endl;
         failed = true;
         break;
       }else if(r == 0){

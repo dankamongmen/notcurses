@@ -147,9 +147,8 @@ int luigi_demo(struct notcurses* nc){
     return 0;
   }
   int rows, cols;
-  nc_err_e ncerr = NCERR_SUCCESS;
   char* map = find_data("megaman2.bmp");
-  struct ncvisual* nv = ncvisual_from_file(map, &ncerr);
+  struct ncvisual* nv = ncvisual_from_file(map);
   free(map);
   if(nv == NULL){
     return -1;
@@ -161,7 +160,7 @@ int luigi_demo(struct notcurses* nc){
   if(ncvisual_render(nc, nv, &vopts) == NULL){
     return -1;
   }
-  assert(NCERR_EOF == ncvisual_decode(nv));
+  assert(1 == ncvisual_decode(nv));
   // he should be walking on the platform ~4/5 of the way down
   const int height = 32;
   int yoff = rows * 4 / 5 - height + 1; // tuned
@@ -187,7 +186,7 @@ int luigi_demo(struct notcurses* nc){
   if(fname == NULL){
     return -1;
   }
-  wmncv = ncvisual_from_file(fname, &ncerr);
+  wmncv = ncvisual_from_file(fname);
   free(fname);
   if(wmncv == NULL){
     return -1;

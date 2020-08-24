@@ -16,10 +16,10 @@ namespace ncpp
 	class NCPP_API_EXPORT Visual : public Root
 	{
 	public:
-		explicit Visual (const char *file, nc_err_e *ncerr)
+		explicit Visual (const char *file)
 			: Root (NotCurses::get_instance ())
 		{
-			visual = ncvisual_from_file (file, ncerr);
+			visual = ncvisual_from_file (file);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}
@@ -56,7 +56,7 @@ namespace ncpp
 			return visual;
 		}
 
-		nc_err_e decode () const noexcept
+		int decode () const noexcept
 		{
 			return ncvisual_decode (visual);
 		}
@@ -66,9 +66,9 @@ namespace ncpp
 			return error_guard<ncplane*, ncplane*> (ncvisual_render (get_notcurses (), visual, vopts), nullptr);
 		}
 
-		int stream (const ncvisual_options* vopts, nc_err_e* ncerr, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
+		int stream (const ncvisual_options* vopts, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, ncerr, timescale, streamer, vopts, curry), -1);
+			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, timescale, streamer, vopts, curry), -1);
 		}
 
 		char* subtitle () const noexcept
@@ -78,8 +78,7 @@ namespace ncpp
 
 		bool rotate (double rads) const NOEXCEPT_MAYBE
 		{
-			nc_err_e ret = ncvisual_rotate (visual, rads);
-			return error_guard_cond (ret, ret != NCERR_SUCCESS);
+			return error_guard (ncvisual_rotate (visual, rads), -1);
 		}
 
 		bool simple_streamer (ncvisual_options* vopts, const timespec* tspec, void* curry = nullptr) const NOEXCEPT_MAYBE
@@ -111,12 +110,12 @@ namespace ncpp
 		}
 
 	private:
-		void common_init (ncplane *plane, const char *file, nc_err_e* ncerr)
+		void common_init (ncplane *plane, const char *file)
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			visual = ncvisual_from_file (file, ncerr);
+			visual = ncvisual_from_file (file);
 			if (visual == nullptr)
 				throw init_error ("Notcurses failed to create a new visual");
 		}

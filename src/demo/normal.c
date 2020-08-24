@@ -80,8 +80,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   if(notcurses_canopen_images(nc)){
     char* path = find_data("normal.png");
     if(path){
-      nc_err_e err;
-      nncv = ncvisual_from_file(path, &err);
+      nncv = ncvisual_from_file(path);
       if(nncv){
         struct ncvisual_options nvopts = {
           .n = notcurses_stdplane(nc),

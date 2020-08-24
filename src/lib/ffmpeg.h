@@ -6,7 +6,6 @@
 
 extern "C" {
 
-#include "notcurses/ncerrs.h"
 #include <libavutil/error.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
@@ -45,14 +44,14 @@ typedef struct ncvisual_details {
 } ncvisual_details;
 
 static inline auto
-ncvisual_details_init(ncvisual_details* deets) -> nc_err_e {
+ncvisual_details_init(ncvisual_details* deets) -> int {
   memset(deets, 0, sizeof(*deets));
   deets->stream_index = -1;
   deets->sub_stream_index = -1;
   if((deets->frame = av_frame_alloc()) == nullptr){
-    return NCERR_NOMEM;
+    return -1;
   }
-  return NCERR_SUCCESS;
+  return 0;
 }
 
 static inline auto

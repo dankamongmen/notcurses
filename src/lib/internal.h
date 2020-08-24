@@ -759,10 +759,10 @@ char* ncplane_vprintf_prep(const char* format, va_list ap);
 
 // Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
-nc_err_e ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
-                       ncplane* n, const struct blitset* bset,
-                       int placey, int placex, int begy, int begx,
-                       int leny, int lenx, bool blendcolors);
+int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
+                  ncplane* n, const struct blitset* bset,
+                  int placey, int placex, int begy, int begx,
+                  int leny, int lenx, bool blendcolors);
 
 void nclog(const char* fmt, ...);
 

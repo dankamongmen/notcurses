@@ -79,8 +79,7 @@ int xray_demo(struct notcurses* nc){
     return -1;
   }
   char* path = find_data("notcursesI.avi");
-  nc_err_e err;
-  struct ncvisual* ncv = ncvisual_from_file(path, &err);
+  struct ncvisual* ncv = ncvisual_from_file(path);
   free(path);
   if(ncv == NULL){
     return -1;
@@ -96,7 +95,7 @@ int xray_demo(struct notcurses* nc){
     .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_2x1,
   };
-  int ret = ncvisual_stream(nc, ncv, &err, 0.5 * delaymultiplier, perframecb, &vopts, newpanel);
+  int ret = ncvisual_stream(nc, ncv, 0.5 * delaymultiplier, perframecb, &vopts, newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);

@@ -7,8 +7,7 @@ int yield_demo(struct notcurses* nc){
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   char* pic = find_data("worldmap.png");
-  nc_err_e err;
-  struct ncvisual* wmv = ncvisual_from_file(pic, &err);
+  struct ncvisual* wmv = ncvisual_from_file(pic);
   free(pic);
   if(wmv == NULL){
     return -1;

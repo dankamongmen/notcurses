@@ -22,12 +22,10 @@ TEST_CASE("Visual") {
   }
 
   SUBCASE("LoadImageCreatePlane") {
-    nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
+    auto ncv = ncvisual_from_file(find_data("changes.jpg"));
     REQUIRE(ncv);
-    REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
     struct ncvisual_options opts{};
@@ -35,19 +33,16 @@ TEST_CASE("Visual") {
     auto newn = ncvisual_render(nc_, ncv, &opts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
-    ncerr = ncvisual_decode(ncv);
-    CHECK(NCERR_EOF == ncerr);
+    CHECK(1 == ncvisual_decode(ncv));
     ncplane_destroy(newn);
     ncvisual_destroy(ncv);
   }
 
   SUBCASE("LoadImage") {
-    nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
+    auto ncv = ncvisual_from_file(find_data("changes.jpg"));
     REQUIRE(ncv);
-    REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
     struct ncvisual_options opts{};
@@ -55,18 +50,15 @@ TEST_CASE("Visual") {
     opts.n = ncp_;
     CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    ncerr = ncvisual_decode(ncv);
-    CHECK(NCERR_EOF == ncerr);
+    CHECK(1 == ncvisual_decode(ncv));
     ncvisual_destroy(ncv);
   }
 
   SUBCASE("PlaneDuplicate") {
-    nc_err_e ncerr = NCERR_SUCCESS;
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_from_file(find_data("changes.jpg"), &ncerr);
+    auto ncv = ncvisual_from_file(find_data("changes.jpg"));
     REQUIRE(ncv);
-    REQUIRE(NCERR_SUCCESS == ncerr);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
     struct ncvisual_options opts{};
@@ -89,18 +81,16 @@ TEST_CASE("Visual") {
 
   SUBCASE("LoadVideo") {
     if(notcurses_canopen_videos(nc_)){
-      nc_err_e ncerr = NCERR_SUCCESS;
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesI.avi"), &ncerr);
+      auto ncv = ncvisual_from_file(find_data("notcursesI.avi"));
       REQUIRE(ncv);
-      CHECK(NCERR_SUCCESS == ncerr);
       for(;;){ // run at the highest speed we can
-        ncerr = ncvisual_decode(ncv);
-        if(NCERR_EOF == ncerr){
+        int ret = ncvisual_decode(ncv);
+        if(1 == ret){
           break;
         }
-        CHECK(NCERR_SUCCESS == ncerr);
+        CHECK(0 == ret);
         /*CHECK(dimy * 2 == frame->height);
         CHECK(dimx == frame->width); FIXME */
         struct ncvisual_options opts{};
@@ -115,14 +105,11 @@ TEST_CASE("Visual") {
 
   SUBCASE("LoadVideoCreatePlane") {
     if(notcurses_canopen_videos(nc_)){
-      nc_err_e ncerr = NCERR_SUCCESS;
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesI.avi"), &ncerr);
+      auto ncv = ncvisual_from_file(find_data("notcursesI.avi"));
       REQUIRE(ncv);
-      CHECK(NCERR_SUCCESS == ncerr);
-      ncerr = ncvisual_decode(ncv);
-      CHECK(NCERR_SUCCESS == ncerr);
+      CHECK(0 == ncvisual_decode(ncv));
       /*CHECK(dimy * 2 == frame->height);
       CHECK(dimx == frame->width); FIXME */
       struct ncvisual_options opts{};
