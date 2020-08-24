@@ -46,7 +46,7 @@ very large (or very small) non-negative numbers, and prepare formatted output
 of a maximum width using metric suffixes. The suffix can represent arbitrary
 amounts of growth, but is designed for 1000 (**PREFIX**) or 1024
 (**IPREFIX**). 1024 is used for "digital units of information", i.e. kibibytes
-and kilobytes. **ncmetric** supports the large suffixes KMGTPEZY (Kilo, Mega,
+and gibibits. **ncmetric** supports the large suffixes KMGTPEZY (Kilo, Mega,
 Giga, Tera, Peta, Exa, Zetta, and Yotta) and the small suffixes mµnpfazy
 (Milli, Micro, Nano, Pico, Femto, Atto, Zepto, and Yocto). This covers the
 range 10^-24 through 10^24. As **uintmax_t** is typically only 64 bits, this
