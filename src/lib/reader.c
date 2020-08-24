@@ -16,6 +16,17 @@ ncreader* ncreader_create(ncplane* n, int y, int x, const ncreader_options* opts
       free(nr);
       return NULL;
     }
+    if(opts->flags & NCREADER_OPTION_HORSCROLL){
+      // do *not* bind it to the visible plane; we always want it offscreen,
+      // to the upper left of the true origin
+      if((nr->textarea = ncplane_new(n->nc, opts->physrows, opts->physcols, -opts->physrows, -opts->physcols, NULL)) == NULL){
+        ncplane_destroy(nr->ncp);
+        free(nr);
+        return NULL;
+      }
+    }else{
+      nr->textarea = NULL;
+    }
     const char* egc = opts->egc ? opts->egc : "_";
     if(ncplane_set_base(nr->ncp, egc, opts->eattrword, opts->echannels) <= 0){
       ncreader_destroy(nr, NULL);
@@ -134,6 +145,7 @@ void ncreader_destroy(ncreader* n, char** contents){
     if(contents){
       *contents = ncreader_contents(n);
     }
+    ncplane_destroy(n->textarea);
     ncplane_destroy(n->ncp);
     free(n);
   }

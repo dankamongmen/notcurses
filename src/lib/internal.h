@@ -191,6 +191,7 @@ typedef struct ncreader {
   ncplane* ncp;               // always owned by ncreader
   uint64_t tchannels;         // channels for input text
   uint32_t tattrs;            // attributes for input text
+  ncplane* textarea;          // might be NULL; can grow if it exists
 } ncreader;
 
 typedef struct ncmenu {
