@@ -10,99 +10,76 @@ notcurses_channels - operations on notcurses channels
 
 **#include <notcurses/notcurses.h>**
 
-**static inline unsigned
-channel_r(unsigned channel);**
+```c
+#define CHANNELS_RGB_INITIALIZER(fr, fg, fb, br, bg, bb) \
+  (((((uint64_t)(fr) << 16u) + ((uint64_t)(fg) << 8u) + (uint64_t)(fb)) << 32ull) + \
+   (((br) << 16u) + ((bg) << 8u) + (bb)) + CELL_BGDEFAULT_MASK + CELL_FGDEFAULT_MASK)
 
-**static inline unsigned
-channel_g(unsigned channel);**
+#define CHANNEL_RGB_INITIALIZER(r, g, b) \
+  (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + CELL_BGDEFAULT_MASK)
+```
 
-**static inline unsigned
-channel_b(unsigned channel);**
+**unsigned channel_r(unsigned channel);**
 
-**static inline unsigned
-channel_rgb(unsigned channel, unsigned* restrict r, unsigned* restrict g,
-                unsigned* restrict b);**
+**unsigned channel_g(unsigned channel);**
 
-**static inline int
-channel_set_rgb(unsigned* channel, int r, int g, int b);**
+**unsigned channel_b(unsigned channel);**
 
-**static inline int
-channel_set(unsigned* channel, unsigned rgb);**
+**unsigned channel_rgb(unsigned channel, unsigned* restrict r, unsigned* restrict g, unsigned* restrict b);**
 
-**static inline unsigned
-channel_alpha(unsigned channel);**
+**int channel_set_rgb(unsigned* channel, int r, int g, int b);**
 
-**static inline int
-channel_set_alpha(unsigned* channel, int alpha);**
+**int channel_set(unsigned* channel, unsigned rgb);**
 
-**static inline bool
-channel_default_p(unsigned channel);**
+**unsigned channel_alpha(unsigned channel);**
 
-**static inline unsigned
-channel_set_default(unsigned* channel);**
+**int channel_set_alpha(unsigned* channel, int alpha);**
 
-**static inline unsigned
-channels_bchannel(uint64_t channels);**
+**bool channel_default_p(unsigned channel);**
 
-**static inline unsigned
-channels_fchannel(uint64_t channels);**
+**unsigned channel_set_default(unsigned* channel);**
 
-**static inline uint64_t
-channels_set_bchannel(uint64_t* channels, uint32_t channel);**
+**unsigned channels_bchannel(uint64_t channels);**
 
-**static inline uint64_t
-channels_set_fchannel(uint64_t* channels, uint32_t channel);**
+**unsigned channels_fchannel(uint64_t channels);**
 
-**static inline unsigned
-channels_fg(uint64_t channels);**
+**uint64_t channels_set_bchannel(uint64_t* channels, uint32_t channel);**
 
-**static inline unsigned
-channels_bg(uint64_t channels);**
+**uint64_t channels_set_fchannel(uint64_t* channels, uint32_t channel);**
 
-**static inline unsigned
-channels_fg_alpha(uint64_t channels);**
+**unsigned channels_fg(uint64_t channels);**
 
-**static inline unsigned
-channels_bg_alpha(uint64_t channels);**
+**unsigned channels_bg(uint64_t channels);**
 
-**static inline unsigned
-channels_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned channels_fg_alpha(uint64_t channels);**
 
-**static inline unsigned
-channels_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned channels_bg_alpha(uint64_t channels);**
 
-**static inline int
-channels_set_fg_rgb(uint64_t* channels, int r, int g, int b);**
+**unsigned channels_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
 
-**static inline int
-channels_set_bg_rgb(uint64_t* channels, int r, int g, int b);**
+**unsigned channels_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
 
-**static inline int
-channels_set_fg(uint64_t* channels, unsigned rgb);**
+**int channels_set_fg_rgb(uint64_t* channels, int r, int g, int b);**
 
-**static inline int
-channels_set_bg(uint64_t* channels, unsigned rgb);**
+**int channels_set_bg_rgb(uint64_t* channels, int r, int g, int b);**
 
-**static inline int
-channels_set_fg_alpha(uint64_t* channels, int alpha);**
+**int channels_set_fg(uint64_t* channels, unsigned rgb);**
 
-**static inline int
-channels_set_bg_alpha(uint64_t* channels, int alpha);**
+**int channels_set_bg(uint64_t* channels, unsigned rgb);**
 
-**static inline bool
-channels_fg_default_p(uint64_t channels);**
+**int channels_set_fg_alpha(uint64_t* channels, int alpha);**
 
-**static inline bool
-channels_bg_default_p(uint64_t channels);**
+**int channels_set_bg_alpha(uint64_t* channels, int alpha);**
 
-**static inline uint64_t
-channels_set_fg_default(uint64_t* channels);**
+**bool channels_fg_default_p(uint64_t channels);**
 
-**static inline uint64_t
-channels_set_bg_default(uint64_t* channels);**
+**bool channels_bg_default_p(uint64_t channels);**
 
-**static inline unsigned
-channels_blend(unsigned c1, unsigned c2, unsigned blends);**
+**uint64_t channels_set_fg_default(uint64_t* channels);**
+
+**uint64_t channels_set_bg_default(uint64_t* channels);**
+
+**unsigned channels_blend(unsigned c1, unsigned c2, unsigned blends);**
 
 # DESCRIPTION
 

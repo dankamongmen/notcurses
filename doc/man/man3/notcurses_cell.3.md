@@ -72,7 +72,11 @@ typedef struct cell {
 
 **const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);**
 
+**char* cell_strdup(const struct ncplane* n, const cell* c);**
+
 **int cell_load_simple(struct ncplane* n, cell* c, char ch);**
+
+**char* cell_extract(const struct ncplane* n, const cell* c, uint16_t* stylemask, uint64_t* channels);**
 
 **unsigned cell_bchannel(const cell* cl);**
 
@@ -116,20 +120,25 @@ Cells make up the framebuffer associated with each plane, with one cell per
 addressable coordinate. You should not usually need to interact directly
 with cells.
 
-Each **cell** contains exactly one extended grapheme cluster. If the EGC happens
-to be a single ASCII character, i.e. a single character with a value less than
-128, it is encoded directly into the **cell**'s **gcluster** field, and no
-additional storage is necessary. In this case, **cell_simple_p()** is **true**.
-Otherwise, the EGC is stored as a UTF-8 string in some backing egcpool. Egcpools
-are associated with **ncplane**s, so **cell**s must be considered associated
-with **ncplane**s. Indeed, **ncplane_erase()** destroys the backing storage for
-all a plane's cells, invalidating them. This association is formed at the time
-of **cell_load()**, **cell_prime()**, or **cell_duplicate()**. All of these
-functions first call **cell_release()**, as does **cell_load_simple()**. When
-done using a **cell** entirely, call **cell_release()**. **ncplane_destroy()**
-will free up the memory used by the **cell**, but the backing egcpool has a
-maximum size of 32MiB, and failure to release **cell**s can eventually block new
-output.
+Each **cell** contains exactly one extended grapheme cluster. If the EGC
+is encoded in UTF-8 with four or fewer bytes (all Unicode codepoints as of
+Unicode 13 can be encoded in no more than four UTF-8 bytes), it is encoded
+directly into the **cell**'s **gcluster** field, and no additional storage
+is necessary. Otherwise, the EGC is stored as a nul-terminated UTF-8 string in
+some backing egcpool. Egcpools are associated with **ncplane**s, so **cell**s
+must be considered associated with **ncplane**s. Indeed, **ncplane_erase()**
+destroys the backing storage for all a plane's cells, invalidating them. This
+association is formed at the time of **cell_load()**, **cell_prime()**, or
+**cell_duplicate()**. All of these functions first call **cell_release()**, as
+does **cell_load_simple()**. When done using a **cell** entirely, call
+**cell_release()**. **ncplane_destroy()** will free up the memory used by the
+**cell**, but the backing egcpool has a maximum size of 16MiB, and failure to
+release **cell**s can eventually block new output.
+
+**cell_extended_gcluster** provides a nul-terminated handle to the EGC. This
+ought be considered invalidated by changes to the **cell** or **egcpool**.
+The handle is **not** heap-allocated; do **not** attempt to **free(3)** it.
+A heap-allocated copy can be acquired with **cell_strdup**.
 
 # RETURN VALUES
 
