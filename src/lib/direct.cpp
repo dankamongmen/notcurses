@@ -466,10 +466,8 @@ int ncdirect_stop(ncdirect* nc){
       ret = -1;
     }
     if(nc->ctermfd >= 0){
-      if(nc->ctermfd >= 0){
-        if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
-          ret = -1;
-        }
+      if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
+        ret = -1;
       }
       ret |= close(nc->ctermfd);
     }
