@@ -55,7 +55,7 @@ static int
 ncreader_redraw(ncreader* n){
   int ret = 0;
 //fprintf(stderr, "redraw: xproj %d\n", n->xproject);
-notcurses_debug(n->ncp->nc, stderr);
+//notcurses_debug(n->ncp->nc, stderr);
   assert(n->xproject >= 0);
   assert(n->textarea->lenx >= n->ncp->lenx);
   assert(n->textarea->leny >= n->ncp->leny);

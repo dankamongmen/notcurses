@@ -228,14 +228,9 @@ notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
 int notcurses_refresh(struct notcurses* n, int* restrict y, int* restrict x);
 
 // Enable or disable the terminal's cursor, if supported. Immediate effect.
+// It is an error to supply coordinates outside of the standard plane.
 void notcurses_cursor_enable(struct notcurses* nc, int y, int x);
 void notcurses_cursor_disable(struct notcurses* nc);
-
-// Move the terminal cursor to the specified location. If 'y' or 'x' is
-// negative, there is no movement along that axis. Returns error if the
-// coordinates are outside the viewing area. The cursor must be explicitly
-// enabled with notcurses_cursor_enable() to be seen.
-int notcurses_cursor_move_yx(struct notcurses* nc, int y, int x);
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only

@@ -39,7 +39,7 @@ auto main() -> int {
     }
     int y, x;
     ncplane_cursor_yx(ncreader_plane(nr), &y, &x);
-    nc.cursor_move_yx(y + 2, x + 2);
+    nc.cursor_enable(y + 2, x + 2);
     nc.render();
   }
   nc.render();

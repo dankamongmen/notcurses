@@ -6,9 +6,6 @@ rearrangements of Notcurses.
     functions which once returned `nc_err_e` now return a bimodal `int`. Those
     functions which accepted a value-result `nc_err_e*` no longer take this
     argument.
-  * `notcurses_cursor_move_yx()` has been added for placement of the terminal
-    cursor. Remember, you must call `notcurses_cursor_enable()` before it will
-    be made visible.
   * `notcurses_cursor_enable()` now takes two `int` parameters specifying the
     desired location of the cursor. Both `notcurses_cursor_enable()` and
     `notcurses_cursor_disable()` now return `int` rather than `void`.

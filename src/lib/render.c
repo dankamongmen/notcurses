@@ -1101,10 +1101,6 @@ int ncdirect_fg(ncdirect* nc, unsigned rgb){
 }
 
 int notcurses_cursor_enable(notcurses* nc, int y, int x){
-  if(nc->cursory >= 0 || nc->cursorx >= 0){
-    logerror(nc, "Cursor is already enabled\n");
-    return -1;
-  }
   if(y < 0 || x < 0){
     logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
     return -1;
@@ -1115,11 +1111,18 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   }
   if(nc->ttyfd >= 0){
     if(nc->tcache.cnorm){
-      if(stage_cursor(nc, nc->ttyfp, y, x) == 0){
-        if(!tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd) && !fflush(nc->ttyfp)){
-          nc->cursory = y;
-          nc->cursorx = x;
-          return 0;
+      if(nc->cursory != y || nc->cursorx != x){
+        if(stage_cursor(nc, nc->ttyfp, y, x) == 0){
+          if(nc->cursory >= 0 && nc->cursorx >= 0){
+            nc->cursory = y;
+            nc->cursorx = x;
+            return 0;
+          }
+          if(!tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd) && !fflush(nc->ttyfp)){
+            nc->cursory = y;
+            nc->cursorx = x;
+            return 0;
+          }
         }
       }
     }
@@ -1142,21 +1145,4 @@ int notcurses_cursor_disable(notcurses* nc){
     }
   }
   return -1;
-}
-
-int notcurses_cursor_move_yx(notcurses* nc, int y, int x){
-  if(nc->cursory < 0 || nc->cursorx < 0){
-    logerror(nc, "Cursor is not enabled");
-    return -1;
-  }
-  if(y < 0 || x < 0){
-    logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
-    return -1;
-  }
-  if(stage_cursor(nc, nc->ttyfp, y, x) || fflush(nc->ttyfp)){
-    return -1;
-  }
-  nc->cursory = y;
-  nc->cursorx = x;
-  return 0;
 }
