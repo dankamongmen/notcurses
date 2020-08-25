@@ -89,10 +89,10 @@ int ncreader_move_left(ncreader* n){
     if(y == 0){
       return -1; // no move possible
     }
-    viewx = n->textarea->lenx - 1; // FIXME find end of particular row
+    viewx = n->ncp->lenx - 1; // FIXME find end of particular row
     --y;
-    textx = viewx;
-    n->xproject = 0;
+    textx = n->textarea->x - 1;
+    n->xproject = n->textarea->x - n->ncp->x;
   }else{
     // if we're on the first column of the viewarea, but not the first column
     // of the textarea, we must be able to scroll to the left. do so.
