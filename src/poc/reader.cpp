@@ -35,7 +35,7 @@ auto main(int argc, const char** argv) -> int {
   nc.get_term_dim(&dimy, &dimx);
   ncreader_options opts{};
   opts.physrows = 2;//dimy / 8;
-  opts.physcols = dimx / 2;
+  opts.physcols = 20; //dimx / 2;
   opts.egc = "░";
   opts.flags = horscroll ? NCREADER_OPTION_HORSCROLL : 0;
   // FIXME c++ is crashing

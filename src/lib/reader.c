@@ -181,6 +181,12 @@ int ncreader_write_egc(ncreader* n, const char* egc){
     logerror(n->ncp->nc, "Fed illegal UTF-8 [%s]\n", egc);
     return -1;
   }
+
+int viewx = n->ncp->x;
+int textx = n->textarea->x;
+int y = n->ncp->y;
+fprintf(stderr, "putting [%s]: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", egc, y, textx, y, viewx, n->xproject);
+
   if(n->textarea->x >= n->textarea->lenx - cols){
     if(n->horscroll){
       if(ncplane_resize_simple(n->textarea, n->textarea->leny, n->textarea->lenx + cols)){
@@ -198,6 +204,15 @@ int ncreader_write_egc(ncreader* n, const char* egc){
   if(ncplane_putegc(n->ncp, egc, NULL) < 0){
     return -1;
   }
+
+  if(n->ncp->x >= n->ncp->lenx){
+    n->ncp->x = n->ncp->lenx - 1;
+  }
+viewx = n->ncp->x;
+textx = n->textarea->x;
+y = n->ncp->y;
+fprintf(stderr, "put [%s]: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", egc, y, textx, y, viewx, n->xproject);
+
   return 0;
 }
 
