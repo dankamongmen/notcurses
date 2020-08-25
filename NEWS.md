@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.18 (not yet released)
+* 1.6.18 (2020-08-25)
   * `nc_err_e` has been taken behind the shed and shot in the face. All
     functions which once returned `nc_err_e` now return a bimodal `int`. Those
     functions which accepted a value-result `nc_err_e*` no longer take this
