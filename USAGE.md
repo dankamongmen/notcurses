@@ -228,7 +228,7 @@ notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
 int notcurses_refresh(struct notcurses* n, int* restrict y, int* restrict x);
 
 // Enable or disable the terminal's cursor, if supported. Immediate effect.
-void notcurses_cursor_enable(struct notcurses* nc);
+void notcurses_cursor_enable(struct notcurses* nc, int y, int x);
 void notcurses_cursor_disable(struct notcurses* nc);
 
 // Move the terminal cursor to the specified location. If 'y' or 'x' is
