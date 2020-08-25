@@ -28,9 +28,9 @@ cd "$BUILDDIR"
 cmake -DUSE_DOXYGEN=on ..
 make -j
 make test
-ssh qemfd.net rm -rf /var/www/notcurses/html
-scp -r html qemfd.net:/var/www/notcurses/html
-scp *.html ../doc/man/index.html qemfd.net:/var/www/notcurses/
+ssh qemfd.net rm -rf /opt/notcurses/html
+scp -r html qemfd.net:/opt/notcurses/html
+scp *.html ../doc/man/index.html qemfd.net:/opt/notcurses/
 cd ..
 
 # if that all worked, commit, push, and tag
