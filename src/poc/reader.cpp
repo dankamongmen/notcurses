@@ -28,7 +28,7 @@ auto main() -> int {
   if(nr == nullptr){
     return EXIT_FAILURE;
   }
-  if(!nc.cursor_enable(2 + opts.physrows, 2 + opts.physcols)){
+  if(!nc.cursor_enable(2, 2)){
     return EXIT_FAILURE;
   }
   ncinput ni;
@@ -37,6 +37,9 @@ auto main() -> int {
     if(!ncreader_offer_input(nr, &ni)){
       break;
     }
+    int y, x;
+    ncplane_cursor_yx(ncreader_plane(nr), &y, &x);
+    nc.cursor_move_yx(y + 2, x + 2);
     nc.render();
   }
   nc.render();
@@ -44,7 +47,7 @@ auto main() -> int {
   ncreader_destroy(nr, &contents);
   nc.stop();
   if(contents){
-    printf("input: %s\n", contents);
+    printf("\n input: %s\n", contents);
   }
   return EXIT_SUCCESS;
 }

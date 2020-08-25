@@ -3022,6 +3022,17 @@ API struct ncplane* ncreader_plane(struct ncreader* n);
 // are relevant to an ncreader, save synthesized ones.
 API bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
 
+// Atttempt to move in the specified direction. Returns 0 if a move was
+// successfully executed, -1 otherwise. Scrolling is taken into account.
+API int ncreader_move_left(struct ncreader* n);
+API int ncreader_move_right(struct ncreader* n);
+API int ncreader_move_up(struct ncreader* n);
+API int ncreader_move_down(struct ncreader* n);
+
+// Destructively write the provided EGC to the current cursor location. Move
+// the cursor as necessary, scrolling if applicable.
+API int ncreader_write_egc(struct ncreader* n, const char* egc);
+
 // return a heap-allocated copy of the current (UTF-8) contents.
 API char* ncreader_contents(const struct ncreader* n);
 
