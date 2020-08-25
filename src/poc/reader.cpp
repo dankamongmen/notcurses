@@ -28,6 +28,9 @@ auto main() -> int {
   if(nr == nullptr){
     return EXIT_FAILURE;
   }
+  if(!nc.cursor_enable(2 + opts.physrows, 2 + opts.physcols)){
+    return EXIT_FAILURE;
+  }
   ncinput ni;
   nc.render();
   while(nc.getc(true, &ni) != (char32_t)-1){
@@ -41,7 +44,7 @@ auto main() -> int {
   ncreader_destroy(nr, &contents);
   nc.stop();
   if(contents){
-    printf("%s\n", contents);
+    printf("input: %s\n", contents);
   }
   return EXIT_SUCCESS;
 }

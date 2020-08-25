@@ -968,7 +968,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   return 0;
 }
 
-int notcurses_render_to_file(struct notcurses* nc, FILE* fp){
+int notcurses_render_to_file(notcurses* nc, FILE* fp){
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
     return 0;
   }
@@ -1099,5 +1099,54 @@ int ncdirect_fg(ncdirect* nc, unsigned rgb){
   }
   nc->fgdefault = false;
   nc->fgrgb = rgb;
+  return 0;
+}
+
+int notcurses_cursor_enable(notcurses* nc, int y, int x){
+  if(y < 0 || x < 0){
+    logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
+    return -1;
+  }
+  if(y >= nc->stdplane->leny || x >= nc->stdplane->lenx){
+    logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
+    return -1;
+  }
+  if(nc->ttyfd >= 0){
+    if(nc->tcache.cnorm){
+      if(stage_cursor(nc, nc->ttyfp, y, x) || fflush(nc->ttyfp)){
+        return -1;
+      }
+      nc->cursory = y;
+      nc->cursorx = x;
+      if(tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd) == 0){
+        return 0;
+      }
+    }
+  }
+  return -1;
+}
+
+int notcurses_cursor_disable(notcurses* nc){
+  nc->cursory = -1;
+  nc->cursorx = -1;
+  if(nc->ttyfd >= 0){
+    if(nc->tcache.civis){
+      if(tty_emit("civis", nc->tcache.civis, nc->ttyfd) == 0){
+        return 0;
+      }
+    }
+  }
+  return -1;
+}
+
+int notcurses_cursor_move_yx(notcurses* nc, int y, int x){
+  if(nc->cursory >= 0 && nc->cursorx >= 0){
+    return -1;
+  }
+  if(stage_cursor(nc, nc->ttyfp, y, x) || fflush(nc->ttyfp)){
+    return -1;
+  }
+  nc->cursory = y;
+  nc->cursorx = x;
   return 0;
 }

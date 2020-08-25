@@ -431,6 +431,9 @@ bool ncdirect_canutf8(const struct ncdirect* n);
 int ncdirect_render_image(struct ncdirect* n, const char* filename, ncalign_e align, ncblitter_e blitter, ncscale_e scale);
 struct ncplane* ncplane_parent(struct ncplane* n);
 const struct ncplane* ncplane_parent_const(const struct ncplane* n);
+int notcurses_cursor_enable(struct notcurses* nc, int y, int x);
+int notcurses_cursor_move_yx(struct notcurses* nc, int y, int x);
+int notcurses_cursor_disable(struct notcurses* nc);
 """)
 
 if __name__ == "__main__":

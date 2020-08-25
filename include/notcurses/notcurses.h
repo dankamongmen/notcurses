@@ -781,9 +781,7 @@ typedef enum {
 // registration of these signal handlers.
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 
-// By default, we hide the cursor if possible. This flag inhibits use of
-// the civis capability, retaining the cursor.
-#define NCOPTION_RETAIN_CURSOR       0x0010ull
+// NCOPTION_RETAIN_CURSOR was removed in 1.6.18. It ought be repurposed. FIXME.
 
 // Notcurses typically prints version info in notcurses_init() and performance
 // info in notcurses_stop(). This inhibits that output.
@@ -2570,9 +2568,17 @@ bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
 
-// Enable or disable the terminal's cursor, if supported. Immediate effect.
-API void notcurses_cursor_enable(struct notcurses* nc);
-API void notcurses_cursor_disable(struct notcurses* nc);
+// Enable or disable the terminal's cursor, if supported, placing it at
+// 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
+// It is an error if 'y', 'x' lies outside the standard plane.
+API int notcurses_cursor_enable(struct notcurses* nc, int y, int x);
+API int notcurses_cursor_disable(struct notcurses* nc);
+
+// Move the terminal cursor to the specified location. If 'y' or 'x' is
+// negative, there is no movement along that axis. Returns error if the
+// coordinates are outside the viewing area. The cursor must be explicitly
+// enabled with notcurses_cursor_enable() to be seen.
+API int notcurses_cursor_move_yx(struct notcurses* nc, int y, int x);
 
 // Palette API. Some terminals only support 256 colors, but allow the full
 // palette to be specified with arbitrary RGB colors. In all cases, it's more

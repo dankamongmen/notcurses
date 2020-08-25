@@ -151,14 +151,19 @@ namespace ncpp
 			return notcurses_cantruecolor (nc);
 		}
 
-    void cursor_enable () const noexcept
+    int cursor_enable (int y, int x) const noexcept
     {
-      notcurses_cursor_enable (nc);
+      return error_guard (notcurses_cursor_enable (nc, y, x), -1);
     }
 
-    void cursor_disable () const noexcept
+    int cursor_disable () const noexcept
     {
-      notcurses_cursor_disable (nc);
+      return error_guard (notcurses_cursor_disable (nc), -1);
+    }
+
+    int cursor_move_yx (int y, int x) const noexcept
+    {
+      return error_guard (notcurses_cursor_move_yx (nc, y, x), -1);
     }
 
 		void get_stats (ncstats *stats) const noexcept

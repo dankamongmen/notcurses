@@ -99,10 +99,6 @@ typedef enum {
 // registration of these signal handlers.
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008
 
-// By default, we hide the cursor if possible. This flag inhibits use of
-// the civis capability, retaining the cursor.
-#define NCOPTION_RETAIN_CURSOR       0x0010
-
 // Notcurses typically prints version info in notcurses_init() and performance
 // info in notcurses_stop(). This inhibits that output.
 #define NCOPTION_SUPPRESS_BANNERS    0x0020
@@ -230,6 +226,16 @@ notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
 // primarily useful if the screen is externally corrupted, or if an
 // NCKEY_RESIZE event has been read and you're not ready to render.
 int notcurses_refresh(struct notcurses* n, int* restrict y, int* restrict x);
+
+// Enable or disable the terminal's cursor, if supported. Immediate effect.
+void notcurses_cursor_enable(struct notcurses* nc);
+void notcurses_cursor_disable(struct notcurses* nc);
+
+// Move the terminal cursor to the specified location. If 'y' or 'x' is
+// negative, there is no movement along that axis. Returns error if the
+// coordinates are outside the viewing area. The cursor must be explicitly
+// enabled with notcurses_cursor_enable() to be seen.
+int notcurses_cursor_move_yx(struct notcurses* nc, int y, int x);
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only

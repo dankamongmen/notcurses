@@ -15,7 +15,6 @@ notcurses_init - initialize a notcurses instance
 #define NCOPTION_VERIFY_SIXEL        0x0002ull
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
-#define NCOPTION_RETAIN_CURSOR       0x0010ull
 #define NCOPTION_SUPPRESS_BANNERS    0x0020ull
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
@@ -47,6 +46,12 @@ typedef struct notcurses_options {
 
 **struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);**
 
+**int notcurses_cursor_enable(struct notcurses* nc, int y, int x);**
+
+**int notcurses_cursor_move_yx(struct notcurses* nc, int y, int x);**
+
+**int notcurses_cursor_disable(struct notcurses* nc);**
+
 # DESCRIPTION
 
 **notcurses_init** prepares the terminal for cursor-addressable (multiline)
@@ -74,9 +79,9 @@ by setting **NCOPTION_NO_ALTERNATE_SCREEN** in **flags**. Users tend to have
 strong opinions regarding the alternate screen, so it's often useful to expose
 this via a command-line option.
 
-notcurses furthermore hides the cursor by default, but **NCOPTION_RETAIN_CURSOR**
-can prevent this (the cursor can be dynamically enabled or disabled during
-execution via **notcurses_cursor_enable(3)** and **notcurses_cursor_disable(3)**).
+notcurses hides the cursor by default. It can be dynamically enabled or
+disabled during execution via **notcurses_cursor_enable(3)** and
+**notcurses_cursor_disable(3)**, and moved with **notcurses_cursor_move_yx()**.
 
 **notcurses_init** typically emits some diagnostics at startup, including version
 information and some details of the configured terminal. This can be inhibited
@@ -122,9 +127,6 @@ zero. The following flags are defined:
     for **SIGINT**, **SIGQUIT**, **SIGSEGV**, **SIGTERM**, and **SIGABRT**,
     cleaning up the terminal on such exceptions. With this flag, the handler
     will not be installed.
-
-* **NCOPTION_RETAIN_CURSOR**: Notcurses typically disables the cursor on
-    startup. With this flag, the cursor will be left enabled.
 
 * **NCOPTION_SUPPRESS_BANNERS**: Disables the diagnostics and version
     information printed on startup, and the performance summary on exit.
