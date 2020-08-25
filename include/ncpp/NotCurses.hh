@@ -74,6 +74,11 @@ namespace ncpp
 			return ::qprefix (val, decimal, buf, omitdec);
 		}
 
+		static const char* iprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
+		{
+			return ::iprefix (val, decimal, buf, omitdec);
+		}
+
 		static const char* bprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
 			return ::bprefix (val, decimal, buf, omitdec);
@@ -145,6 +150,16 @@ namespace ncpp
 		{
 			return notcurses_cantruecolor (nc);
 		}
+
+    void cursor_enable () const noexcept
+    {
+      notcurses_cursor_enable (nc);
+    }
+
+    void cursor_disable () const noexcept
+    {
+      notcurses_cursor_disable (nc);
+    }
 
 		void get_stats (ncstats *stats) const noexcept
 		{
