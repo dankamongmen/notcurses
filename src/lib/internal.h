@@ -101,7 +101,7 @@ typedef struct renderstate {
 
   // the current cursor position. this is independent of whether the cursor is
   // visible. it is the cell at which the next write will take place. this is
-  // modified by: output, cursor moves, clearing the screen (during refresh)
+  // modified by: output, cursor moves, clearing the screen (during refresh).
   int y, x;
 
   uint32_t curattr;// current attributes set (does not include colors)
@@ -274,6 +274,9 @@ typedef struct notcurses {
   int lfdimx;     // dimensions of lastframe, unchanged by screen resize
   int lfdimy;     // lfdimx/lfdimy are 0 until first render
   egcpool pool;   // duplicate EGCs into this pool
+
+  int cursory;    // desired cursor placement according to user. -1 is a don't-
+  int cursorx;    //  care, otherwise moved here after each render.
 
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashstats; // cumulative stats, unaffected by notcurses_reset_stats()

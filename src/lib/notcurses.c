@@ -859,6 +859,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->margin_b = opts->margin_b;
   ret->margin_l = opts->margin_l;
   ret->margin_r = opts->margin_r;
+  ret->cursory = ret->cursorx = -1;
   ret->stats.fbbytes = 0;
   ret->stashstats.fbbytes = 0;
   reset_stats(&ret->stats);
@@ -966,11 +967,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       free_plane(ret->top);
       goto err;
     }
-    if(!(opts->flags & NCOPTION_RETAIN_CURSOR)){
-      if(ret->tcache.civis && tty_emit("civis", ret->tcache.civis, ret->ttyfd)){
-        free_plane(ret->top);
-        goto err;
-      }
+    if(ret->tcache.civis && tty_emit("civis", ret->tcache.civis, ret->ttyfd)){
+      free_plane(ret->top);
+      goto err;
     }
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
@@ -1883,22 +1882,6 @@ void ncplane_erase(ncplane* n){
   cell_load(n, &n->basecell, egc);
   free(egc);
   n->y = n->x = 0;
-}
-
-void notcurses_cursor_enable(notcurses* nc){
-  if(nc->ttyfd >= 0){
-    if(nc->tcache.cnorm){
-      tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd);
-    }
-  }
-}
-
-void notcurses_cursor_disable(notcurses* nc){
-  if(nc->ttyfd >= 0){
-    if(nc->tcache.civis){
-      tty_emit("civis", nc->tcache.civis, nc->ttyfd);
-    }
-  }
 }
 
 ncplane* notcurses_top(notcurses* n){
