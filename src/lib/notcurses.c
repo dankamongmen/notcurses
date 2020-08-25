@@ -1109,6 +1109,14 @@ void ncplane_set_fg_default(ncplane* n){
   channels_set_fg_default(&n->channels);
 }
 
+uint64_t ncplane_set_fchannel(ncplane* n, uint32_t channel){
+  return channels_set_fchannel(&n->channels, channel);
+}
+
+uint64_t ncplane_set_bchannel(ncplane* n, uint32_t channel){
+  return channels_set_bchannel(&n->channels, channel);
+}
+
 void ncplane_set_bg_default(ncplane* n){
   channels_set_bg_default(&n->channels);
 }

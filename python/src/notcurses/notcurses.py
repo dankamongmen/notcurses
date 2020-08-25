@@ -29,23 +29,6 @@ CELL_FG_PALETTE = (CELL_BG_PALETTE << 32)
 CELL_BG_ALPHA_MASK = NCCHANNEL_ALPHA_MASK
 CELL_FG_ALPHA_MASK = (CELL_BG_ALPHA_MASK << 32)
 
-def channel_r(channel):
-    return (channel & 0xff0000) >> 16;
-
-def channel_g(channel):
-    return (channel & 0x00ff00) >> 8;
-
-def channel_b(channel):
-    return (channel & 0x0000ff);
-
-def channel_rgb(channel):
-    return (channel_r(channel), channel_g(channel), channel_b(channel))
-
-def channel_set_rgb(channel, r, g, b):
-    checkRGB(r, g, b)
-    c = (r << 16) | (g << 8) | b
-    return (channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | c
-
 def channels_fchannel(channels):
     return channels & 0xffffffff00000000
 
@@ -73,12 +56,6 @@ def channels_set_bg_rgb(channels, r, g, b):
     channel = channels_bchannel(channels)
     channel = channel_set_rgb(channel, r, g, b)
     return channels_set_bchannel(channels, channel);
-
-def ncplane_fg_rgb(n, r, g, b):
-    return channels_fg_rgb(ncplane_channels(n))
-
-def ncplane_bg_rgb(n, r, g, b):
-    return channels_bg_rgb(ncplane_channels(n))
 
 class NotcursesError(Exception):
     """Base class for notcurses exceptions."""

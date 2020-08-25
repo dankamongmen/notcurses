@@ -1404,6 +1404,10 @@ all implemented in terms of the lower-level [Channels API](#channels).
 uint64_t ncplane_channels(const struct ncplane* n);
 uint16_t ncplane_attr(const struct ncplane* n);
 
+// Set an entire 32-bit channel of the plane 'n'
+int ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
+int ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
+
 // Extract the 32-bit working background channel from an ncplane.
 static inline unsigned
 ncplane_bchannel(const struct ncplane* nc){
@@ -1470,8 +1474,8 @@ void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);
 void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
 
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
-int ncplane_set_fg(struct ncplane* n, unsigned channel);
-int ncplane_set_bg(struct ncplane* n, unsigned channel);
+int ncplane_set_fg(struct ncplane* n, uint32_t channel);
+int ncplane_set_bg(struct ncplane* n, uint32_t channel);
 
 // Use the default color for the foreground/background.
 void ncplane_set_fg_default(struct ncplane* n);
@@ -1753,25 +1757,25 @@ implemented in terms of the lower-level [Channels API](#channels).
 
 ```c
 // Extract the 32-bit background channel from a cell.
-static inline unsigned
+static inline uint32_t
 cell_bchannel(const cell* cl){
   return channels_bchannel(cl->channels);
 }
 
 // Extract the 32-bit foreground channel from a cell.
-static inline unsigned
+static inline uint32_t
 cell_fchannel(const cell* cl){
   return channels_fchannel(cl->channels);
 }
 
 // Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 cell_fg(const cell* cl){
   return channels_fg(cl->channels);
 }
 
 // Extract 24 bits of background RGB from 'cell', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 cell_bg(const cell* cl){
   return channels_bg(cl->channels);
 }
@@ -1789,13 +1793,13 @@ cell_bg_alpha(const cell* cl){
 }
 
 // Extract 24 bits of foreground RGB from 'cell', split into subcell.
-static inline unsigned
+static inline uint32_t
 cell_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb(cl->channels, r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'cell', split into subcell.
-static inline unsigned
+static inline uint32_t
 cell_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb(cl->channels, r, g, b);
 }
@@ -2303,25 +2307,25 @@ and `cell` functionality is implemented in terms of this API.
 ```c
 // Extract the 8-bit red component from a 32-bit channel.
 static inline unsigned
-channel_r(unsigned channel){
+channel_r(uint32_t channel){
   return (channel & 0xff0000u) >> 16u;
 }
 
 // Extract the 8-bit green component from a 32-bit channel.
 static inline unsigned
-channel_g(unsigned channel){
+channel_g(uint32_t channel){
   return (channel & 0x00ff00u) >> 8u;
 }
 
 // Extract the 8-bit blue component from a 32-bit channel.
 static inline unsigned
-channel_b(unsigned channel){
+channel_b(uint32_t channel){
   return (channel & 0x0000ffu);
 }
 
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 static inline unsigned
-channel_rgb(unsigned channel, unsigned* r, unsigned* g, unsigned* b){
+channel_rgb(uint32_t channel, unsigned* r, unsigned* g, unsigned* b){
   *r = channel_r(channel);
   *g = channel_g(channel);
   *b = channel_b(channel);

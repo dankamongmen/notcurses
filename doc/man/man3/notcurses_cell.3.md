@@ -78,17 +78,17 @@ typedef struct cell {
 
 **char* cell_extract(const struct ncplane* n, const cell* c, uint16_t* stylemask, uint64_t* channels);**
 
-**unsigned cell_bchannel(const cell* cl);**
+**uint32_t cell_bchannel(const cell* cl);**
 
-**unsigned cell_fchannel(const cell* cl);**
+**uint32_t cell_fchannel(const cell* cl);**
 
 **uint64_t cell_set_bchannel(cell* cl, uint32_t channel);**
 
 **uint64_t cell_set_fchannel(cell* cl, uint32_t channel);**
 
-**unsigned cell_fg(const cell* cl);**
+**uint32_t cell_fg(const cell* cl);**
 
-**unsigned cell_bg(const cell* cl);**
+**uint32_t cell_bg(const cell* cl);**
 
 **unsigned cell_fg_alpha(const cell* cl);**
 

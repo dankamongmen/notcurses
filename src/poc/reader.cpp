@@ -34,7 +34,7 @@ auto main(int argc, const char** argv) -> int {
   std::unique_ptr<Plane *> n = std::make_unique<Plane *>(nc.get_stdplane(&dimy, &dimx));
   nc.get_term_dim(&dimy, &dimx);
   ncreader_options opts{};
-  opts.physrows = dimy / 8;
+  opts.physrows = 2;//dimy / 8;
   opts.physcols = dimx / 2;
   opts.egc = "░";
   opts.flags = horscroll ? NCREADER_OPTION_HORSCROLL : 0;
@@ -50,23 +50,26 @@ auto main(int argc, const char** argv) -> int {
   ncinput ni;
   nc.render();
   while(nc.getc(true, &ni) != (char32_t)-1){
-    if(!ncreader_offer_input(nr, &ni)){
+fprintf(stderr, "ID: %04x %c %lc\n", ni.id, ni.ctrl ? 'C' : 'c', ni.id);
+    if(ni.ctrl && ni.id == 'L'){
+      notcurses_refresh(nc, NULL, NULL);
+    }else if((ni.ctrl && ni.id == 'D') || ni.id == NCKEY_ENTER){
       break;
+    }else if(ncreader_offer_input(nr, &ni)){
+      int y, x;
+      struct ncplane* ncp = ncreader_plane(nr);
+      ncplane_cursor_yx(ncp, &y, &x);
+      nc.cursor_enable(y + 2, 2 + (x >= ncplane_dim_x(ncp) ? ncplane_dim_x(ncp) - 1 : x));
+      int ncpy, ncpx;
+      ncplane_cursor_yx(ncp, &ncpy, &ncpx);
+      struct ncplane* tplane = ncplane_above(ncp);
+      int tgeomy, tgeomx, vgeomy, vgeomx;
+      ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
+      ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
+      (*n)->printf(0, 0, "Scroll: %lc Cursor: %03d/%03d Viewgeom: %03d/%03d Textgeom: %03d/%03d",
+                  horscroll ? L'✔' : L'🗴', ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
+      nc.render();
     }
-    int y, x;
-    struct ncplane* ncp = ncreader_plane(nr);
-    ncplane_cursor_yx(ncp, &y, &x);
-    nc.cursor_enable(y + 2, 2 + (x >= ncplane_dim_x(ncp) ? ncplane_dim_x(ncp) - 1 : x));
-    int ncpy, ncpx;
-    ncplane_cursor_yx(ncp, &ncpy, &ncpx);
-    struct ncplane* tplane = ncplane_above(ncp);
-    int tgeomy, tgeomx, vgeomy, vgeomx;
-    ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
-    ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
-    (*n)->printf(0, 0, "Scroll: %lc Cursor: %d/%d Viewgeom: %d/%d Textgeom: %d/%d",
-                 horscroll ? L'✔' : L'🗴',
-                 ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
-    nc.render();
   }
   nc.render();
   char* contents;

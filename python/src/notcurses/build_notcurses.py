@@ -6,6 +6,8 @@ ffibuild.set_source(
     """
     #include <notcurses/direct.h>
     #include <notcurses/notcurses.h>
+    static inline uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel){ return channels_set_fchannel(&n->channels, channel); }
+    static inline uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel){ return channels_set_bchannel(&n->channels, channel); }
     """,
     libraries=["notcurses"],
 )

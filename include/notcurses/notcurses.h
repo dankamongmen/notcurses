@@ -146,25 +146,25 @@ mbswidth(const char* mbs){
 
 // Extract the 8-bit red component from a 32-bit channel.
 static inline unsigned
-channel_r(unsigned channel){
+channel_r(uint32_t channel){
   return (channel & 0xff0000u) >> 16u;
 }
 
 // Extract the 8-bit green component from a 32-bit channel.
 static inline unsigned
-channel_g(unsigned channel){
+channel_g(uint32_t channel){
   return (channel & 0x00ff00u) >> 8u;
 }
 
 // Extract the 8-bit blue component from a 32-bit channel.
 static inline unsigned
-channel_b(unsigned channel){
+channel_b(uint32_t channel){
   return (channel & 0x0000ffu);
 }
 
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 static inline unsigned
-channel_rgb(unsigned channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
+channel_rgb(uint32_t channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
             unsigned* RESTRICT b){
   *r = channel_r(channel);
   *g = channel_g(channel);
@@ -175,7 +175,7 @@ channel_rgb(unsigned channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
 // Set the three 8-bit components of a 32-bit channel, and mark it as not using
 // the default color. Retain the other bits unchanged.
 static inline int
-channel_set_rgb(unsigned* channel, int r, int g, int b){
+channel_set_rgb(uint32_t* channel, int r, int g, int b){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
@@ -1962,6 +1962,10 @@ ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb(ncplane_channels(n), r, g, b);
 }
 
+// Set an entire 32-bit channel of the plane
+API uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
+API uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
+
 // Set the current fore/background color using RGB specifications. If the
 // terminal does not support directly-specified 3x8b cells (24-bit "TrueColor",
 // indicated by the "RGB" terminfo capability), the provided values will be
@@ -2069,8 +2073,8 @@ cells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
 }
 
 API int cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                          cell* ul, cell* ur, cell* ll, cell* lr,
-                          cell* hl, cell* vl);
+                          cell* ul, cell* ur, cell* ll,
+                          cell* lr, cell* hl, cell* vl);
 
 static inline int
 ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
@@ -2122,8 +2126,8 @@ ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
 }
 
 API int cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                         cell* ul, cell* ur, cell* ll, cell* lr,
-                         cell* hl, cell* vl);
+                         cell* ul, cell* ur, cell* ll,
+                         cell* lr, cell* hl, cell* vl);
 
 static inline int
 ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
