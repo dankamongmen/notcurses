@@ -34,8 +34,8 @@ auto main(int argc, const char** argv) -> int {
   std::unique_ptr<Plane *> n = std::make_unique<Plane *>(nc.get_stdplane(&dimy, &dimx));
   nc.get_term_dim(&dimy, &dimx);
   ncreader_options opts{};
-  opts.physrows = 2;//dimy / 8;
-  opts.physcols = 20; //dimx / 2;
+  opts.physrows = dimy / 8;
+  opts.physcols = dimx / 2;
   opts.egc = "░";
   opts.flags = horscroll ? NCREADER_OPTION_HORSCROLL : 0;
   // FIXME c++ is crashing
@@ -50,7 +50,6 @@ auto main(int argc, const char** argv) -> int {
   ncinput ni;
   nc.render();
   while(nc.getc(true, &ni) != (char32_t)-1){
-fprintf(stderr, "ID: %04x %c %lc\n", ni.id, ni.ctrl ? 'C' : 'c', ni.id);
     if(ni.ctrl && ni.id == 'L'){
       notcurses_refresh(nc, NULL, NULL);
     }else if((ni.ctrl && ni.id == 'D') || ni.id == NCKEY_ENTER){

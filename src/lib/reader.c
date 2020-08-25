@@ -82,7 +82,7 @@ int ncreader_move_left(ncreader* n){
   int viewx = n->ncp->x;
   int textx = n->textarea->x;
   int y = n->ncp->y;
-fprintf(stderr, "moving left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+//fprintf(stderr, "moving left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
   if(textx == 0){
     // are we on the first column of the textarea? if so, we must also be on
     // the first column of the viewarea. try to move up.
@@ -106,7 +106,7 @@ fprintf(stderr, "moving left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, 
   }
   ncplane_cursor_move_yx(n->textarea, y, textx);
   ncplane_cursor_move_yx(n->ncp, y, viewx);
-fprintf(stderr, "moved left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+//fprintf(stderr, "moved left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
   return 0;
 }
 
@@ -181,12 +181,6 @@ int ncreader_write_egc(ncreader* n, const char* egc){
     logerror(n->ncp->nc, "Fed illegal UTF-8 [%s]\n", egc);
     return -1;
   }
-
-int viewx = n->ncp->x;
-int textx = n->textarea->x;
-int y = n->ncp->y;
-fprintf(stderr, "putting [%s]: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", egc, y, textx, y, viewx, n->xproject);
-
   if(n->textarea->x >= n->textarea->lenx - cols){
     if(n->horscroll){
       if(ncplane_resize_simple(n->textarea, n->textarea->leny, n->textarea->lenx + cols)){
@@ -208,11 +202,6 @@ fprintf(stderr, "putting [%s]: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", egc, y, t
   if(n->ncp->x >= n->ncp->lenx){
     n->ncp->x = n->ncp->lenx - 1;
   }
-viewx = n->ncp->x;
-textx = n->textarea->x;
-y = n->ncp->y;
-fprintf(stderr, "put [%s]: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", egc, y, textx, y, viewx, n->xproject);
-
   return 0;
 }
 
