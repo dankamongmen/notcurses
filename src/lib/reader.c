@@ -82,7 +82,7 @@ int ncreader_move_left(ncreader* n){
   int viewx = n->ncp->x;
   int textx = n->textarea->x;
   int y = n->ncp->y;
-//fprintf(stderr, "moving left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+fprintf(stderr, "moving left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
   if(textx == 0){
     // are we on the first column of the textarea? if so, we must also be on
     // the first column of the viewarea. try to move up.
@@ -91,7 +91,7 @@ int ncreader_move_left(ncreader* n){
     }
     viewx = n->ncp->lenx - 1; // FIXME find end of particular row
     --y;
-    textx = n->textarea->x - 1;
+    textx = n->textarea->lenx - 1;
     n->xproject = n->textarea->x - n->ncp->x;
   }else{
     // if we're on the first column of the viewarea, but not the first column
@@ -106,7 +106,7 @@ int ncreader_move_left(ncreader* n){
   }
   ncplane_cursor_move_yx(n->textarea, y, textx);
   ncplane_cursor_move_yx(n->ncp, y, viewx);
-//fprintf(stderr, "moved left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+fprintf(stderr, "moved left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
   return 0;
 }
 
@@ -122,7 +122,7 @@ int ncreader_move_right(ncreader* n){
   if(textx >= n->textarea->lenx - 1){
     // are we on the last column of the textarea? if so, we must also be on
     // the first column of the viewarea. try to move up.
-    if(y >= n->textarea->y - 1){
+    if(y >= n->textarea->leny - 1){
       return -1; // no move possible
     }
     viewx = 0;
