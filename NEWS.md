@@ -13,6 +13,13 @@ rearrangements of Notcurses.
     desired location of the cursor. Both `notcurses_cursor_enable()` and
     `notcurses_cursor_disable()` now return `int` rather than `void`.
   * `NCOPTION_RETAIN_CURSOR` has been removed.
+  * `ncreader` now implements `NCREADER_OPTION_HORSCROLL` for horizontal
+    scrolling. In addition, the following functions have been added:
+    * `int ncreader_move_left(struct ncreader* n);`
+    * `int ncreader_move_right(struct ncreader* n);`
+    * `int ncreader_move_up(struct ncreader* n);`
+    * `int ncreader_move_down(struct ncreader* n);`
+    * `int ncreader_write_egc(struct ncreader* n, const char* egc);`
 
 * 1.6.17 (2020-08-22)
   * `ncdirect_flush()` now takes a `const struct ncdirect*`.

@@ -191,7 +191,9 @@ typedef struct ncreader {
   ncplane* ncp;               // always owned by ncreader
   uint64_t tchannels;         // channels for input text
   uint32_t tattrs;            // attributes for input text
-  ncplane* textarea;          // might be NULL; can grow if it exists
+  ncplane* textarea;          // grows as needed iff scrolling is enabled
+  int xproject;               // virtual x location of ncp origin on textarea
+  bool horscroll;             // is there horizontal panning?
 } ncreader;
 
 typedef struct ncmenu {
@@ -599,6 +601,8 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
   }
   assert(splane);
   const char* egc = cell_extended_gcluster(splane, c);
+  // FIXME we could eliminate this strlen() with a cell_extended_gcluster_len()
+  // that returned the length, combined with O(1) length for inlined EGCs...
   size_t ulen = strlen(egc);
   int eoffset = egcpool_stash(tpool, egc, ulen);
   if(eoffset < 0){
@@ -941,6 +945,25 @@ iswordbreak(wchar_t wchar){
   const uint32_t mask = UC_CATEGORY_MASK_Z |
                         UC_CATEGORY_MASK_Zs;
   return uc_is_general_category_withtable(wchar, mask);
+}
+
+// the heart of damage detection. compare two cells (from two different planes)
+// for equality. if they are equal, return 0. otherwise, dup the second onto
+// the first and return non-zero.
+static inline int
+cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
+                   const ncplane* srcplane, const cell* srccell){
+  if(damcell->stylemask == srccell->stylemask){
+    if(damcell->channels == srccell->channels){
+      const char* srcegc = cell_extended_gcluster(srcplane, srccell);
+      const char* damegc = pool_extended_gcluster(dampool, damcell);
+      if(strcmp(damegc, srcegc) == 0){
+        return 0; // EGC match
+      }
+    }
+  }
+  cell_duplicate_far(dampool, damcell, srcplane, srccell);
+  return 1;
 }
 
 #ifdef __cplusplus

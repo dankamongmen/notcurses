@@ -434,6 +434,11 @@ const struct ncplane* ncplane_parent_const(const struct ncplane* n);
 int notcurses_cursor_enable(struct notcurses* nc, int y, int x);
 int notcurses_cursor_move_yx(struct notcurses* nc, int y, int x);
 int notcurses_cursor_disable(struct notcurses* nc);
+int ncreader_move_left(struct ncreader* n);
+int ncreader_move_right(struct ncreader* n);
+int ncreader_move_up(struct ncreader* n);
+int ncreader_move_down(struct ncreader* n);
+int ncreader_write_egc(struct ncreader* n, const char* egc);
 """)
 
 if __name__ == "__main__":

@@ -131,25 +131,6 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   return 0;
 }
 
-// the heart of damage detection. compare two cells (from two different planes)
-// for equality. if they are equal, return 0. otherwise, dup the second onto
-// the first and return non-zero.
-static int
-cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
-                   const ncplane* srcplane, const cell* srccell){
-  if(damcell->stylemask == srccell->stylemask){
-    if(damcell->channels == srccell->channels){
-      const char* srcegc = cell_extended_gcluster(srcplane, srccell);
-      const char* damegc = pool_extended_gcluster(dampool, damcell);
-      if(strcmp(damegc, srcegc) == 0){
-        return 0; // EGC match
-      }
-    }
-  }
-  cell_duplicate_far(dampool, damcell, srcplane, srccell);
-  return 1;
-}
-
 // Extracellular state for a cell during the render process. This array is
 // passed along to rasterization, which uses only the 'damaged' bools. There
 // is one crender per rendered cell, and they are initialized to all zeroes.
@@ -757,7 +738,7 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
 // lastframe has *not yet been written to the screen*, i.e. it's only about to
 // *become* the last frame rasterized.
 static int
-notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
+notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
   int ret = 0;
   int y, x;
   fseeko(out, 0, SEEK_SET);
@@ -921,6 +902,23 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
   return nc->rstate.mstrsize;
 }
 
+// if the cursor is enabled, store its location and disable it. then, once done
+// rasterizing, enable it afresh, moving it to the stored location. if left on
+// during rasterization, we'll get grotesque flicker.
+static inline int
+notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
+  const int cursory = nc->cursory;
+  const int cursorx = nc->cursorx;
+  if(cursory >= 0){ // either both are good, or neither is
+    notcurses_cursor_disable(nc);
+  }
+  int ret = notcurses_rasterize_inner(nc, rvec, out);
+  if(cursory >= 0){
+    notcurses_cursor_enable(nc, cursory, cursorx);
+  }
+  return ret;
+}
+
 // get the cursor to the upper-left corner by one means or another. will clear
 // the screen if need be.
 static int
@@ -990,7 +988,7 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
   for(int i = 0 ; i < count ; ++i){
     rvec[i].damaged = true;
   }
-  int ret = notcurses_rasterize(nc, rvec, out);
+  int ret = notcurses_rasterize_inner(nc, rvec, out);
   free(rvec);
   if(ret > 0){
     if(fprintf(fp, "%s", rastered) == ret){

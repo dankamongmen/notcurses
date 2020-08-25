@@ -37,6 +37,16 @@ typedef struct ncreader_options {
 
 **struct ncplane* ncreader_plane(struct ncreader* n);**
 
+**int ncreader_move_left(struct ncreader* n);**
+
+**int ncreader_move_right(struct ncreader* n);**
+
+**int ncreader_move_up(struct ncreader* n);**
+
+**int ncreader_move_down(struct ncreader* n);**
+
+**int ncreader_write_egc(struct ncreader* n, const char* egc);**
+
 **bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);**
 
 **char* ncreader_contents(const struct ncreader* n);**
