@@ -10,6 +10,10 @@ notcurses_plane - operations on ncplanes
 
 **#include <notcurses/notcurses.h>**
 
+**struct ncplane* notcurses_top(struct notcurses* n);**
+
+**struct ncplane* notcurses_bottom(struct notcurses* n);**
+
 **struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);**
 
 **struct ncplane* ncplane_new_named(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);**
@@ -51,6 +55,8 @@ notcurses_plane - operations on ncplanes
 **int ncplane_move_below(struct ncplane* restrict n, struct ncplane* restrict below);**
 
 **struct ncplane* ncplane_below(struct ncplane* n);**
+
+**struct ncplane* ncplane_above(struct ncplane* n);**
 
 **char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);**
 

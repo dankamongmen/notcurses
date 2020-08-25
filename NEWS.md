@@ -17,6 +17,7 @@ rearrangements of Notcurses.
     * `int ncreader_move_up(struct ncreader* n);`
     * `int ncreader_move_down(struct ncreader* n);`
     * `int ncreader_write_egc(struct ncreader* n, const char* egc);`
+  * Added `ncplane_above()` and `notcurses_bottom()`.
 
 * 1.6.17 (2020-08-22)
   * `ncdirect_flush()` now takes a `const struct ncdirect*`.

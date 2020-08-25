@@ -56,13 +56,16 @@ auto main(int argc, const char** argv) -> int {
     int y, x;
     struct ncplane* ncp = ncreader_plane(nr);
     ncplane_cursor_yx(ncp, &y, &x);
-    nc.cursor_enable(y + 2, x + 2);
+    nc.cursor_enable(y + 2, 2 + (x >= ncplane_dim_x(ncp) ? ncplane_dim_x(ncp) - 1 : x));
     int ncpy, ncpx;
     ncplane_cursor_yx(ncp, &ncpy, &ncpx);
+    struct ncplane* tplane = ncplane_above(ncp);
     int tgeomy, tgeomx, vgeomy, vgeomx;
-    (*n)->get_dim(&tgeomy, &tgeomx);
+    ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
     ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
-    (*n)->printf(0, 0, "Cursor: %d/%d Viewgeom: %d/%d Textgeom: %d/%d", ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
+    (*n)->printf(0, 0, "Scroll: %lc Cursor: %d/%d Viewgeom: %d/%d Textgeom: %d/%d",
+                 horscroll ? L'✔' : L'🗴',
+                 ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
     nc.render();
   }
   nc.render();

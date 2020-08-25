@@ -181,10 +181,15 @@ int ncreader_write_egc(ncreader* n, const char* egc){
     logerror(n->ncp->nc, "Fed illegal UTF-8 [%s]\n", egc);
     return -1;
   }
-  if(n->textarea->x >= n->textarea->lenx - (cols + 1)){
+  if(n->textarea->x >= n->textarea->lenx - cols){
     if(n->horscroll){
-      // FIXME resize
+      if(ncplane_resize_simple(n->textarea, n->textarea->leny, n->textarea->lenx + cols)){
+        return -1;
+      }
+      ++n->xproject;
     }
+  }else if(n->ncp->x >= n->ncp->lenx){
+    ++n->xproject;
   }
   // use ncplane_putegc on both planes because it'll get cursor movement right
   if(ncplane_putegc(n->textarea, egc, NULL) < 0){
@@ -193,7 +198,6 @@ int ncreader_write_egc(ncreader* n, const char* egc){
   if(ncplane_putegc(n->ncp, egc, NULL) < 0){
     return -1;
   }
-  // FIXME pan right if necessary
   return 0;
 }
 
@@ -225,6 +229,7 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     }
     ncplane_putegc_yx(n->textarea, y, x, "", NULL);
     ncplane_cursor_move_yx(n->textarea, y, x);
+    ncplane_cursor_move_yx(n->ncp, n->ncp->y, n->ncp->x - 1);
     ncreader_redraw(n);
     return true;
   }
