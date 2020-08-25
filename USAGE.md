@@ -214,6 +214,9 @@ Utility functions operating on the toplevel `notcurses` object include:
 // Return the topmost ncplane, of which there is always at least one.
 struct ncplane* notcurses_top(struct notcurses* n);
 
+// Return the bottommost ncplane, of which there is always at least one.
+struct ncplane* notcurses_bottom(struct notcurses* n);
+
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
 notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
@@ -826,6 +829,9 @@ int ncplane_move_above(struct ncplane* restrict n, struct ncplane* restrict abov
 
 // Return the ncplane below this one, or NULL if this is at the stack's bottom.
 struct ncplane* ncplane_below(struct ncplane* n);
+
+// Return the ncplane above this one, or NULL if this is at the stack's top.
+struct ncplane* ncplane_above(struct ncplane* n);
 ```
 
 Each plane holds a user pointer which can be retrieved and set (or ignored). In

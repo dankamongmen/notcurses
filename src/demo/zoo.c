@@ -189,7 +189,7 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
     "Notcurses provides several widgets to quickly build vivid TUIs.\n\n"
     "This NCReader widget facilitates free-form text entry complete with readline-style bindings.\n\n"
     "NCSelector allows a single option to be selected from a list.\n\n"
-    "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. ";
+    "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output.\n\n";
   int ret = 0, dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;

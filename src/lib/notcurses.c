@@ -1888,8 +1888,16 @@ ncplane* notcurses_top(notcurses* n){
   return n->top;
 }
 
+ncplane* notcurses_bottom(notcurses* n){
+  return n->bottom;
+}
+
 ncplane* ncplane_below(ncplane* n){
   return n->below;
+}
+
+ncplane* ncplane_above(ncplane* n){
+  return n->above;
 }
 
 #define SET_BTN_EVENT_MOUSE   "1002"

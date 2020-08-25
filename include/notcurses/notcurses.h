@@ -858,6 +858,9 @@ API int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 // Return the topmost ncplane, of which there is always at least one.
 API struct ncplane* notcurses_top(struct notcurses* n);
 
+// Return the bottommost ncplane, of which there is always at least one.
+API struct ncplane* notcurses_bottom(struct notcurses* n);
+
 // Destroy all ncplanes other than the stdplane.
 API void notcurses_drop_planes(struct notcurses* nc);
 
@@ -1197,6 +1200,7 @@ API int ncplane_move_below(struct ncplane* RESTRICT n,
 
 // Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n);
+API struct ncplane* ncplane_above(struct ncplane* n);
 
 // Rotate the plane π/2 radians clockwise or counterclockwise. This cannot
 // be performed on arbitrary planes, because glyphs cannot be arbitrarily
