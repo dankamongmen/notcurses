@@ -54,7 +54,7 @@ ncplane* ncreader_plane(ncreader* n){
 static int
 ncreader_redraw(ncreader* n){
   int ret = 0;
-fprintf(stderr, "redraw: xproj %d\n", n->xproject);
+//fprintf(stderr, "redraw: xproj %d\n", n->xproject);
 notcurses_debug(n->ncp->nc, stderr);
   assert(n->xproject >= 0);
   assert(n->textarea->lenx >= n->ncp->lenx);
@@ -65,7 +65,7 @@ notcurses_debug(n->ncp->nc, stderr);
       const int textx = x + n->xproject;
       const cell* src = &n->textarea->fb[nfbcellidx(n->textarea, texty, textx)];
       cell* dst = &n->ncp->fb[nfbcellidx(n->ncp, y, x)];
-fprintf(stderr, "projecting %d/%d [%s] to %d/%d [%s]\n", texty, textx, cell_extended_gcluster(n->textarea, src), y, x, cell_extended_gcluster(n->ncp, dst));
+//fprintf(stderr, "projecting %d/%d [%s] to %d/%d [%s]\n", texty, textx, cell_extended_gcluster(n->textarea, src), y, x, cell_extended_gcluster(n->ncp, dst));
       if(cellcmp_and_dupfar(&n->ncp->pool, dst, n->textarea, src) < 0){
         ret = -1;
       }
@@ -77,12 +77,12 @@ fprintf(stderr, "projecting %d/%d [%s] to %d/%d [%s]\n", texty, textx, cell_exte
 // try to move left. does not move past the start of the textarea, but will
 // try to move up and to the end of the previous row if not on the top row.
 // if on the left side of the viewarea, but not the left side of the textarea,
-// scrolls left. returns true if a move was made.
+// scrolls left. returns 0 if a move was made.
 int ncreader_move_left(ncreader* n){
   int viewx = n->ncp->x;
   int textx = n->textarea->x;
   int y = n->ncp->y;
-fprintf(stderr, "moving left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+//fprintf(stderr, "moving left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
   if(textx == 0){
     // are we on the first column of the textarea? if so, we must also be on
     // the first column of the viewarea. try to move up.
@@ -92,20 +92,85 @@ fprintf(stderr, "moving left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, 
     viewx = n->textarea->lenx - 1; // FIXME find end of particular row
     --y;
     textx = viewx;
+    n->xproject = 0;
   }else{
     // if we're on the first column of the viewarea, but not the first column
     // of the textarea, we must be able to scroll to the left. do so.
     // if we're not on the last column anywhere, move cursor right everywhere.
-    if(viewx < n->ncp->leny - 1){
-      ++viewx;
+    if(viewx == 0){
+      --n->xproject;
     }else{
+      --viewx;
+    }
+    --textx;
+  }
+  ncplane_cursor_move_yx(n->textarea, y, textx);
+  ncplane_cursor_move_yx(n->ncp, y, viewx);
+//fprintf(stderr, "moved left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+  return 0;
+}
+
+// try to move right. does not move past the end of the textarea, but will
+// try to move down and to the start of the previous row if not on the bottom
+// row. if on the right side of the viewarea, but not the right side of the
+// textarea, pans right. returns 0 if a move was made.
+int ncreader_move_right(ncreader* n){
+  int viewx = n->ncp->x;
+  int textx = n->textarea->x;
+  int y = n->ncp->y;
+//fprintf(stderr, "moving right: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+  if(textx >= n->textarea->lenx - 1){
+    // are we on the last column of the textarea? if so, we must also be on
+    // the first column of the viewarea. try to move up.
+    if(y >= n->textarea->y - 1){
+      return -1; // no move possible
+    }
+    viewx = 0;
+    ++y;
+    textx = viewx;
+    n->xproject = 0;
+  }else{
+    // if we're on the first column of the viewarea, but not the first column
+    // of the textarea, we must be able to scroll to the left. do so.
+    // if we're not on the last column anywhere, move cursor right everywhere.
+    if(viewx >= n->ncp->lenx - 1){
       ++n->xproject;
+    }else{
+      ++viewx;
     }
     ++textx;
   }
   ncplane_cursor_move_yx(n->textarea, y, textx);
   ncplane_cursor_move_yx(n->ncp, y, viewx);
-fprintf(stderr, "moved right: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+//fprintf(stderr, "moved right: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+  return 0;
+}
+
+// try to move up. does not move past the top of the textarea.
+// returns 0 if a move was made.
+int ncreader_move_up(ncreader* n){
+  int y = n->ncp->y;
+  if(y == 0){
+    // are we on the last row of the textarea? if so, we can't move.
+    return -1;
+  }
+  --y;
+  ncplane_cursor_move_yx(n->textarea, y, -1);
+  ncplane_cursor_move_yx(n->ncp, y, -1);
+  return 0;
+}
+
+// try to move down. does not move past the bottom of the textarea.
+// returns 0 if a move was made.
+int ncreader_move_down(ncreader* n){
+  int y = n->ncp->y;
+  if(y >= n->textarea->leny - 1){
+    // are we on the last row of the textarea? if so, we can't move.
+    return -1;
+  }
+  ++y;
+  ncplane_cursor_move_yx(n->textarea, y, -1);
+  ncplane_cursor_move_yx(n->ncp, y, -1);
   return 0;
 }
 
@@ -170,33 +235,15 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     ncreader_redraw(n);
     return true;
   }else if(ni->id == NCKEY_RIGHT){
-    if(x == n->textarea->lenx - 1){
-      if(y < n->textarea->leny - 1){
-        ++y;
-        x = 0;
-      }
-    }else{
-      ++x;
-    }
-    ncplane_cursor_move_yx(n->textarea, y, x);
+    ncreader_move_right(n);
     ncreader_redraw(n);
     return true;
   }else if(ni->id == NCKEY_UP){
-    if(y == 0){
-      x = 0;
-    }else{
-      --y;
-    }
-    ncplane_cursor_move_yx(n->textarea, y, x);
+    ncreader_move_up(n);
     ncreader_redraw(n);
     return true;
   }else if(ni->id == NCKEY_DOWN){
-    if(y >= n->textarea->leny){
-      x = n->textarea->lenx - 1;
-    }else{
-      ++y;
-    }
-    ncplane_cursor_move_yx(n->textarea, y, x);
+    ncreader_move_down(n);
     ncreader_redraw(n);
     return true;
   }else if(nckey_supppuab_p(ni->id)){
