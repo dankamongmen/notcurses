@@ -4,24 +4,29 @@
 # and static inline functions in notcurses.h on the other, grouped by prefix.
 # It also generates some statistics.
 #
+# It would be nice if this script could check for changes in the body of
+# filtered functions, by asking git... between the date of today and a custom
+# past date you want to check out (modified file in the bindings).
+#
+# I should probably re-do this in Rust, and put it as an advanced example…
 
-PATH_SOURCE_FILE="../include/notcurses/notcurses.h"
+
+# TODO:enhancement: support multiple paths
+PATH_SOURCE_FILE="../../include/notcurses/notcurses.h"
 
 # this is the path to the latest bindgen generated rust sources
-PATH_BINDGEN_LATEST="function-stats.bindgen_20200823.rs"
+# TODO: retrieve it automatically, from the target folder, the most recently created/updated)
+PATH_BINDGEN_LATEST="bindgen_20200823.rs"
 
 # these are the main function prefixes used in notcurses (before the first `_`) for STATS_FILE
+# NOTE: updated manually
 PREFIX_LIST="cell channel ncblit ncdirect ncdplot ncfadectx ncfdplane nckey ncmenu ncmetric ncmultiselector ncpixel ncplane ncreader ncreel ncselector ncsubproc nctablet ncuplot ncvisual notcurses palette"
 
 
-OUTPUT_DIR_ROOT="function-stats-output/"
-#DATE="$(date +%Y%m%d_%H%M%S)" # with time
-DATE="$(date +%Y%m%d)"
-OUTPUT_DIR="$OUTPUT_DIR_ROOT/$DATE"
+OUTPUT_DIR="out-$(date +%Y%m%d)"
 OUTPUT_DIR_BG="$OUTPUT_DIR/bindgen" # (bindgen generated)
 OUTPUT_DIR_SI="$OUTPUT_DIR/static" # (static inline)
 STATS_FILE="$OUTPUT_DIR/STATS"
-# TODO: add to the STATS_FILE and/or OUTPUT_DIR a prefix of the source_file
 
 TERM="static inline"
 
@@ -99,10 +104,11 @@ generate() {
 	listfn_bindgen | $GREP -vE "$filterout" | $UNIQ -u | $SORT > "$OUTPUT_DIR_BG/_NON_FILTERED" | tee -a $STATS_FILE
 	listfn | $GREP -vE "$filterout" | $UNIQ -u | $SORT > "$OUTPUT_DIR_SI/_NON_FILTERED" | tee -a $STATS_FILE
 
+	echo -e "\n» results generated in folder \"$OUTPUT_DIR\""
 
-}
+} #/generate
 
-usage() {
+main() {
 
 	if [[ $1 == "p" ]]; then
 		listprefixes
@@ -130,4 +136,4 @@ usage() {
 	fi
 }
 
-usage $1
+main $1
