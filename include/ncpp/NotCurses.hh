@@ -161,11 +161,6 @@ namespace ncpp
       return error_guard (notcurses_cursor_disable (nc), -1);
     }
 
-    int cursor_move_yx (int y, int x) const noexcept
-    {
-      return error_guard (notcurses_cursor_move_yx (nc, y, x), -1);
-    }
-
 		void get_stats (ncstats *stats) const noexcept
 		{
 			if (stats == nullptr)
