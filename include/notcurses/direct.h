@@ -135,6 +135,43 @@ API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                             uint64_t ll, uint64_t lr,
                             int ylen, int xlen, unsigned ctlword);
 
+API int ncdirect_getc_nonblocking(struct ncdirect* n);
+
+// See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
+// of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
+// Signals in sigmask (less several we handle internally) will be atomically
+// masked and unmasked per ppoll(2). '*sigmask' should generally contain all
+// signals. Returns a single Unicode code point, or (char32_t)-1 on error.
+// 'sigmask' may be NULL. Returns 0 on a timeout. If an event is processed, the
+// return value is the 'id' field from that event. 'ni' may be NULL.
+API char32_t ncdirect_getc(struct ncdirect* n, const struct timespec* ts,
+                           sigset_t* sigmask, ncinput* ni);
+
+// Get a file descriptor suitable for input event poll()ing. When this
+// descriptor becomes available, you can call ncdirect_getc_nblock(),
+// and input ought be ready. This file descriptor is *not* necessarily
+// the file descriptor associated with stdin (but it might be!).
+API int ncdirect_inputready_fd(struct ncdirect* n);
+
+// 'ni' may be NULL if the caller is uninterested in event details. If no event
+// is ready, returns 0.
+static inline char32_t
+ncdirect_getc_nblock(struct ncdirect* n, ncinput* ni){
+  sigset_t sigmask;
+  sigfillset(&sigmask);
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+  return ncdirect_getc(n, &ts, &sigmask, ni);
+}
+
+// 'ni' may be NULL if the caller is uninterested in event details. Blocks
+// until an event is processed or a signal is received.
+static inline char32_t
+ncdirect_getc_blocking(struct ncdirect* n, ncinput* ni){
+  sigset_t sigmask;
+  sigemptyset(&sigmask);
+  return ncdirect_getc(n, NULL, &sigmask, ni);
+}
+
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 API int ncdirect_stop(struct ncdirect* nc);
 

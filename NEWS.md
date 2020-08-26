@@ -1,6 +1,16 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.19 (not yet released)
+  * Direct mode now places the terminal into "cbreak mode". This disables
+    echo and line-buffering of input. If this is undesirable, you can restore
+    the terminal state following `ncdirect_init()`, but this will break the
+    semantics of `ncdirect_getc()` and derivatives (due to line buffering).
+  * The notcurses input layer has been reproduced for direct mode, including
+    `ncdirect_getc()`, `ncdirect_getc_nblock()`, `ncdirect_getc_blocking()`,
+    and `ncdirect_inputready_fd()`. Mouse support is not yet available in
+    direct mode, but becomes possible through these additions.
+
 * 1.6.18 (2020-08-25)
   * `nc_err_e` has been taken behind the shed and shot in the face. All
     functions which once returned `nc_err_e` now return a bimodal `int`. Those
