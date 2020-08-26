@@ -4,7 +4,6 @@
 // OpenImageIO implementation of ncvisual_details
 #include "version.h"
 #ifdef USE_OIIO
-#include "notcurses/ncerrs.h"
 #include <OpenImageIO/filter.h>
 #include <OpenImageIO/version.h>
 #include <OpenImageIO/imageio.h>
