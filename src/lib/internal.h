@@ -261,6 +261,7 @@ typedef struct ncdirect {
   uint16_t stylemask;        // current styles
   bool fgdefault, bgdefault; // are FG/BG currently using default colors?
   bool utf8;                 // are we using utf-8 encoding, as hoped?
+  struct termios tpreserved; // terminal state upon entry
 } ncdirect;
 
 typedef struct notcurses {
@@ -965,6 +966,8 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
   cell_duplicate_far(dampool, damcell, srcplane, srccell);
   return 1;
 }
+
+int cbreak_mode(int ttyfd, struct termios* tpreserved);
 
 #ifdef __cplusplus
 }

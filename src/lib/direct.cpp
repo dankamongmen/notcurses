@@ -426,7 +426,12 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
   ret->ttyfp = outfp;
   memset(&ret->palette, 0, sizeof(ret->palette));
   // we don't need a controlling tty for everything we do; allow a failure here
-  ret->ctermfd = get_controlling_tty(ret->ttyfp);
+  if((ret->ctermfd = get_controlling_tty(ret->ttyfp)) >= 0){
+    if(cbreak_mode(ret->ctermfd, &ret->tpreserved)){
+      delete(ret);
+      return nullptr;
+    }
+  }
   int termerr;
   if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
@@ -468,6 +473,7 @@ int ncdirect_stop(ncdirect* nc){
       if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
         ret = -1;
       }
+      tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
       ret |= close(nc->ctermfd);
     }
     delete(nc);
