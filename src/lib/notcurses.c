@@ -888,8 +888,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   reset_stats(&ret->stashstats);
   ret->ttyfp = outfp;
   ret->renderfp = opts->renderfp;
-  ret->inputescapes = NULL;
-  ret->ttyinfp = stdin; // FIXME
+  ret->input.inputescapes = NULL;
+  ret->input.ttyinfp = stdin; // FIXME
   memset(&ret->rstate, 0, sizeof(ret->rstate));
   memset(&ret->palette_damage, 0, sizeof(ret->palette_damage));
   memset(&ret->palette, 0, sizeof(ret->palette));
@@ -898,14 +898,14 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->lfdimx = 0;
   ret->libsixel = false;
   egcpool_init(&ret->pool);
-  if(make_nonblocking(ret->ttyinfp)){
+  if(make_nonblocking(ret->input.ttyinfp)){
     free(ret);
     return NULL;
   }
-  ret->inputbuf_occupied = 0;
-  ret->inputbuf_valid_starts = 0;
-  ret->inputbuf_write_at = 0;
-  ret->input_events = 0;
+  ret->input.inputbuf_occupied = 0;
+  ret->input.inputbuf_valid_starts = 0;
+  ret->input.inputbuf_write_at = 0;
+  ret->input.input_events = 0;
   if((ret->loglevel = opts->loglevel) > NCLOGLEVEL_TRACE || ret->loglevel < 0){
     fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
     free(ret);
@@ -951,7 +951,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(&ret->tcache)){
     goto err;
   }
-  if(prep_special_keys(ret)){
+  if(prep_special_keys(&ret->input)){
     goto err;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
@@ -1039,7 +1039,7 @@ int notcurses_stop(notcurses* nc){
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
     free(nc->rstate.mstream);
-    input_free_esctrie(&nc->inputescapes);
+    input_free_esctrie(&nc->input.inputescapes);
     stash_stats(nc);
     if(!nc->suppress_banner){
       if(nc->stashstats.renders){
@@ -2134,7 +2134,7 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts){
 }
 
 int notcurses_inputready_fd(notcurses* n){
-  return fileno(n->ttyinfp);
+  return fileno(n->input.ttyinfp);
 }
 
 uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
