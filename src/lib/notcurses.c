@@ -2137,6 +2137,10 @@ int notcurses_inputready_fd(notcurses* n){
   return fileno(n->input.ttyinfp);
 }
 
+int ncdirect_inputready_fd(ncdirect* n){
+  return fileno(n->input.ttyinfp);
+}
+
 uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
                        int begy, int begx, int leny, int lenx){
   if(begy < 0 || begx < 0){

@@ -382,6 +382,18 @@ char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
   return r;
 }
 
+char32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
+                       sigset_t* sigmask, ncinput* ni){
+  char32_t r = ncinputlayer_prestamp(&nc->input, ts, sigmask, ni, 0, 0);
+  if(r != (char32_t)-1){
+    uint64_t stamp = nc->input.input_events++; // need increment even if !ni
+    if(ni){
+      ni->seqnum = stamp;
+    }
+  }
+  return r;
+}
+
 int prep_special_keys(ncinputlayer* nc){
   static const struct {
     const char* tinfo;
