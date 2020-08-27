@@ -958,7 +958,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(make_nonblocking(ret->input.ttyinfp)){
-    return -1;
+    goto err;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
