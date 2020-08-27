@@ -1335,7 +1335,6 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
     return -1;
   }
   if(c->gcluster == '\n'){
-fprintf(stderr, "GOT NEWLINE AT %d/%d\n", n->y, n->x);
     if(n->scrolling){
       scroll_down(n);
       return 0;
@@ -1371,6 +1370,7 @@ fprintf(stderr, "GOT NEWLINE AT %d/%d\n", n->y, n->x);
       cell_obliterate(n, candidate);
       cell_set_wide(candidate);
       candidate->channels = c->channels;
+      candidate->stylemask = n->stylemask;
     }
   }
   n->x += cols;
