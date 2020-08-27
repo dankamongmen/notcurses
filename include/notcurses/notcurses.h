@@ -2495,7 +2495,9 @@ API int ncreel_tabletcount(const struct ncreel* pr);
 // -1 if the tablet cannot be found.
 API int ncreel_del(struct ncreel* pr, struct nctablet* t);
 
-// Redraw the ncreel in its entirety.
+// Redraw the ncreel in its entirety. The reel will be cleared, and tablets
+// will be lain out, using the focused tablet as a fulcrum. Tablet drawing
+// callbacks will be invoked for each visible tablet.
 API int ncreel_redraw(struct ncreel* pr);
 
 // Offer the input to the ncreel. If it's relevant, this function returns
