@@ -7,9 +7,9 @@
 #include "internal.h"
 #include <condition_variable>
 
-std::mutex lock;
-std::condition_variable cond;
-bool inline_cancelled = false;
+static std::mutex lock;
+static std::condition_variable cond;
+static bool inline_cancelled = false;
 
 auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) -> int {
   struct ncplane* n = ncfdplane_plane(ncfd);
@@ -74,7 +74,6 @@ TEST_CASE("FdsAndSubprocs"
     }
     CHECK(0 == ncfdplane_destroy(ncfdp));
     CHECK(0 == notcurses_render(nc_));
-    lock.unlock();
   }
 
   // destroy the ncfdplane within its own context, i.e. from the eof callback
@@ -92,7 +91,6 @@ TEST_CASE("FdsAndSubprocs"
       cond.wait(lck);
     }
     CHECK(0 == notcurses_render(nc_));
-    lock.unlock();
   }
 
   SUBCASE("SubprocDestroyCmdExecFails") {
@@ -110,7 +108,6 @@ TEST_CASE("FdsAndSubprocs"
     CHECK(0 != ncsubproc_destroy(ncsubp));
     // FIXME we ought get indication of an error here! or via callback...
     CHECK(0 == notcurses_render(nc_));
-    lock.unlock();
   }
 
   SUBCASE("SubprocDestroyCmdSucceeds") {
@@ -127,7 +124,6 @@ TEST_CASE("FdsAndSubprocs"
     }
     CHECK(0 == ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
-    lock.unlock();
   }
 
   SUBCASE("SubprocDestroyCmdFailed") {
@@ -144,7 +140,6 @@ TEST_CASE("FdsAndSubprocs"
     }
     CHECK(0 != ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
-    lock.unlock();
   }
 
   SUBCASE("SubprocDestroyCmdHung") {

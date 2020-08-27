@@ -34,11 +34,11 @@ fdthread(ncfdplane* ncfp, int pidfd){
   char* buf = malloc(BUFSIZ + 1);
   int pevents;
   pfds[0].fd = ncfp->fd;
-  pfds[0].events = POLLIN;
+  pfds[0].events = POLLIN | POLLRDHUP;
   const int fdcount = pidfd < 0 ? 1 : 2;
   if(fdcount > 1){
     pfds[1].fd = pidfd;
-    pfds[1].events = POLLIN;
+    pfds[1].events = POLLIN | POLLRDHUP;
   }
   ssize_t r = 0;
   while((pevents = poll(pfds, fdcount, -1)) >= 0 || errno == EINTR){
@@ -166,6 +166,7 @@ launch_pipe_process(int* pipe, int* pidfd){
   memset(&clargs, 0, sizeof(clargs));
   clargs.pidfd = (uintptr_t)pidfd;
   clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
+  clargs.exit_signal = SIGCHLD;
   p = syscall(__NR_clone3, &clargs, sizeof(clargs));
 #else
 #endif
@@ -323,7 +324,6 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
     execvp(bin, arg);
-//fprintf(stderr, "Error execv()ing %s\n", bin);
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
