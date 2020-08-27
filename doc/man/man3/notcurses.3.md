@@ -1,6 +1,6 @@
 % notcurses(3)
 % nick black <nickblack@linux.com>
-% v1.6.18.4
+% v1.6.19
 
 # NAME
 
