@@ -35,6 +35,7 @@ const char* oiio_version(void);
 #include <stdbool.h>
 #include <unictype.h>
 #include <langinfo.h>
+#include <netinet/in.h>
 #include "notcurses/notcurses.h"
 #include "egcpool.h"
 
@@ -593,6 +594,12 @@ pool_release(egcpool* pool, cell* c){
   }
 }
 
+// set the cell 'c' to point into the egcpool at location 'eoffset'
+static inline void
+set_gcluster_egc(cell* c, int eoffset){
+  c->gcluster = htonl(0x01ul) + eoffset;
+}
+
 // Duplicate one cell onto another, possibly crossing ncplanes.
 static inline int
 cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
@@ -612,7 +619,7 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
   if(eoffset < 0){
     return -1;
   }
-  targ->gcluster = 0x01000000ul + eoffset;
+  set_gcluster_egc(targ, eoffset);
   return 0;
 }
 
@@ -892,7 +899,8 @@ pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
     assert(cols < 2);
     pool_release(pool, c);
     c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-    c->gcluster = *gcluster;
+    ((unsigned char*)&c->gcluster)[0] = *gcluster;
+    ((unsigned char*)&c->gcluster)[1] = 0;
     return bytes;
   }
   // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
@@ -920,7 +928,7 @@ pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
     return -1;
   }
   pool_release(pool, c);
-  c->gcluster = 0x01000000ul + eoffset;
+  set_gcluster_egc(c, eoffset);
   return bytes;
 }
 

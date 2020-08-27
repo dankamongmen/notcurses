@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <netinet/in.h>
 #include <notcurses/nckeys.h>
 
 #ifdef __cplusplus
@@ -580,8 +581,8 @@ typedef struct cell {
 } cell;
 
 #define CELL_TRIVIAL_INITIALIZER { }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, s, chan) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (htonl(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htonl(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
