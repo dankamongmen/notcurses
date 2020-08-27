@@ -88,7 +88,7 @@ TEST_CASE("ZAxis") {
     REQUIRE(!ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(1 == ncplane_at_cursor_cell(n_, &cat));
     REQUIRE(cell_simple_p(&cat));
-    REQUIRE('x' == cat.gcluster);
+    REQUIRE(0 == strcmp("x", cell_extended_gcluster(n_, &c)));
     struct ncplane* n2 = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(1 == cell_load(n2, &c, "y"));
     REQUIRE(!cell_set_fg_rgb(&c, 0, 0xff, 0));
