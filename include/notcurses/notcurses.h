@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <byteswap.h>
 #include <netinet/in.h>
 #include <notcurses/nckeys.h>
 
@@ -580,9 +581,10 @@ typedef struct cell {
   uint64_t channels;          // + 8B == 16B
 } cell;
 
+#define ntole(x) (bswap_32(htonl(x)))
 #define CELL_TRIVIAL_INITIALIZER { }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (htonl(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htonl(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
+#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (ntole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) { .gcluster = (ntole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){

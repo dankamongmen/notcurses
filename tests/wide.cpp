@@ -108,13 +108,13 @@ TEST_CASE("Wide") {
     ncplane_at_yx_cell(n_, 0, 1, &c);
     CHECK(mbswidth(FROG) == 1 + cell_double_wide_p(&c)); // should be wide
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(0 == c.gcluster); // should be nothing
+    CHECK(0 == strlen(cell_extended_gcluster(n_, &c))); // should be nothing
     ncplane_at_yx_cell(n_, 1, 0, &c);
     CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), FROG));
     ncplane_at_yx_cell(n_, 1, 1, &c);
     CHECK(mbswidth(FROG) == 1 + cell_double_wide_p(&c)); //should be wide
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(0 == c.gcluster);
+    CHECK(0 == strlen(cell_extended_gcluster(n_, &c)));
     CHECK(0 == notcurses_render(nc_)); // should be nothing
   }
 
@@ -147,14 +147,14 @@ TEST_CASE("Wide") {
   // Placing a normal char on either half of a wide char ought obliterate
   // the original wide char.
   SUBCASE("WideCharsAnnihilated") {
-    const char cc = 'X';
+    const char* cc = "X";
     const char* wbashedl = SNAKE;
     const char* wbashedr = SCORPION;
     int sbytes = 0;
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashedl, &sbytes));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, &sbytes));
-    CHECK(1 == ncplane_putsimple_yx(n_, 0, 1, cc));
-    CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, cc));
+    CHECK(1 == ncplane_putsimple_yx(n_, 0, 1, *cc));
+    CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, *cc));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -165,12 +165,12 @@ TEST_CASE("Wide") {
       CHECK(0 == c.gcluster); // should be nothing
     }
     ncplane_at_yx_cell(n_, 0, 1, &c);
-    CHECK(cc == c.gcluster); // should be 'X'
+    CHECK(0 == strcmp(cc, cell_extended_gcluster(n_, &c))); // should be 'X'
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(cc == c.gcluster); // should be 'X'
+    CHECK(0 == strcmp(cc, cell_extended_gcluster(n_, &c))); // should be 'X'
     ncplane_at_yx_cell(n_, 0, 3, &c);
     if(mbswidth(wbashedr) > 1){
-      CHECK(0 == c.gcluster); // should be nothing
+      CHECK(0 == strlen(cell_extended_gcluster(n_, &c))); // should be nothing
     }
     CHECK(0 == notcurses_render(nc_));
   }
@@ -178,13 +178,13 @@ TEST_CASE("Wide") {
   // But placing something to the immediate right of any glyph, that is not a
   // problem. Ensure it is so.
   SUBCASE("AdjacentCharsSafe") {
-    const char cc = 'X';
+    const char* cc = "X";
     const char* wsafel = SNAKE;
     const char* wsafer = SCORPION;
     int sbytes = 0;
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, &sbytes));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, &sbytes));
-    CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, cc));
+    CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, *cc));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -195,7 +195,7 @@ TEST_CASE("Wide") {
     ncplane_at_yx_cell(n_, 0, 1, &c);
     CHECK(mbswidth(SNAKE) == 1 + cell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(cc == c.gcluster); // should be 'X'
+    CHECK(0 == strcmp(cc, cell_extended_gcluster(n_, &c))); // should be 'X'
     ncplane_at_yx_cell(n_, 0, 3, &c);
     CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), SCORPION));
     ncplane_at_yx_cell(n_, 0, 4, &c);
