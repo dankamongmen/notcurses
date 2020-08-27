@@ -57,6 +57,8 @@ int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 struct ncplane* notcurses_stdplane(struct notcurses*);
 const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 void ncplane_set_channels(struct ncplane* n, uint64_t channels);
+uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
+uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
 void ncplane_set_attr(struct ncplane* n, unsigned stylebits);
 int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 int ncplane_set_base(struct ncplane* ncp, const char* egc, uint32_t styles, uint64_t channels);
