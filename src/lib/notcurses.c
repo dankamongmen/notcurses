@@ -18,6 +18,7 @@
 #include <langinfo.h>
 #include <stdatomic.h>
 #include <sys/ioctl.h>
+#include <notcurses/direct.h>
 
 #define ESC "\x1b"
 
