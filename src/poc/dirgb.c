@@ -56,55 +56,55 @@ int main(void){
   }
   for(int t = 0 ; t < 768 ; t += 4){
     if(print_rgb(nc, t)){
-      ncdirect_stop(nc);
-      return EXIT_FAILURE;
+      goto err;
     }
   }
-  printf("\n");
+  if(fflush(stdout) == EOF){
+    goto err;
+  }
 
   if(ncdirect_styles_set(nc, NCSTYLE_BOLD)){
-    ncdirect_stop(nc);
-    return EXIT_FAILURE;
+    goto err;
   }
   for(int t = 768 ; t ; t -= 4){
     if(print_rgb(nc, t)){
-      ncdirect_stop(nc);
-      return EXIT_FAILURE;
+      goto err;
     }
   }
-  printf("\n");
+  if(fflush(stdout) == EOF){
+    goto err;
+  }
 
   if(ncdirect_styles_set(nc, NCSTYLE_UNDERLINE)){
-    ncdirect_stop(nc);
-    return EXIT_FAILURE;
+    goto err;
   }
   for(int t = 0 ; t < 768 ; t += 4){
     if(print_rgb(nc, t)){
-      ncdirect_stop(nc);
-      return EXIT_FAILURE;
+      goto err;
     }
   }
-  printf("\n");
+  if(fflush(stdout) == EOF){
+    goto err;
+  }
 
   if(ncdirect_styles_set(nc, NCSTYLE_ITALIC)){
-    ncdirect_stop(nc);
-    return EXIT_FAILURE;
+    goto err;
   }
   for(int t = 768 ; t ; t -= 4){
     if(print_rgb(nc, t)){
-      ncdirect_stop(nc);
-      return EXIT_FAILURE;
+      goto err;
     }
   }
-  printf("\n");
+  if(fflush(stdout) == EOF){
+    goto err;
+  }
 
   int leny = ncdirect_dim_y(nc);
   int lenx = ncdirect_dim_x(nc);
   ncdirect_fg_default(nc);
   ncdirect_bg_default(nc);
   if(ncdirect_cursor_move_yx(nc, leny / 2, (lenx - 4) / 2)){
-    ncdirect_stop(nc);
-    return EXIT_FAILURE;
+    goto err;
   }
   ncdirect_styles_on(nc, NCSTYLE_ITALIC);
   printf("dank\n");
@@ -112,4 +112,8 @@ int main(void){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
+
+err:
+  ncdirect_stop(nc);
+  return EXIT_FAILURE;
 }
