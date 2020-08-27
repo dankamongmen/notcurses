@@ -252,6 +252,23 @@ typedef struct tinfo {
   char* rmcup;    // restore primary mode
 } tinfo;
 
+typedef struct ncinputlayer {
+  FILE* ttyinfp;  // FILE* for processing input
+  unsigned char inputbuf[BUFSIZ];
+  // we keep a wee ringbuffer of input queued up for delivery. if
+  // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
+  // can be read to inputbuf_write_at until we fill up. the first datum
+  // available for the app is at inputbuf_valid_starts iff inputbuf_occupied is
+  // not 0. the main purpose is working around bad predictions of escapes.
+  unsigned inputbuf_occupied;
+  unsigned inputbuf_valid_starts;
+  unsigned inputbuf_write_at;
+  // number of input events seen. does not belong in ncstats, since it must not
+  // be reset (semantics are relied upon by widgets for mouse click detection).
+  uint64_t input_events;
+  struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
+} ncinputlayer;
+
 typedef struct ncdirect {
   palette256 palette;        // 256-indexed palette can be used instead of/with RGB
   FILE* ttyfp;               // FILE* for output tty
@@ -259,6 +276,7 @@ typedef struct ncdirect {
   tinfo tcache;              // terminfo cache
   unsigned fgrgb, bgrgb;     // last RGB values of foreground/background
   uint16_t stylemask;        // current styles
+  ncinputlayer input;        // input layer; we're in cbreak mode
   bool fgdefault, bgdefault; // are FG/BG currently using default colors?
   bool utf8;                 // are we using utf-8 encoding, as hoped?
   struct termios tpreserved; // terminal state upon entry
@@ -288,34 +306,19 @@ typedef struct notcurses {
   int truecols;   // true number of columns in the physical rendering area.
                   // used only to see if output motion takes us to the next
                   // line thanks to terminal action alone.
-
-  tinfo tcache;   // terminfo cache
-
   FILE* ttyfp;    // FILE* for writing rasterized data
   int ttyfd;      // file descriptor for controlling tty
-  FILE* ttyinfp;  // FILE* for processing input
+  ncinputlayer input; // input layer; we're in cbreak mode
   FILE* renderfp; // debugging FILE* to which renderings are written
+  tinfo tcache;   // terminfo cache
   struct termios tpreserved; // terminal state upon entry
   bool suppress_banner; // from notcurses_options
-  unsigned char inputbuf[BUFSIZ];
-  // we keep a wee ringbuffer of input queued up for delivery. if
-  // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
-  // can be read to inputbuf_write_at until we fill up. the first datum
-  // available for the app is at inputbuf_valid_starts iff inputbuf_occupied is
-  // not 0. the main purpose is working around bad predictions of escapes.
-  unsigned inputbuf_occupied;
-  unsigned inputbuf_valid_starts;
-  unsigned inputbuf_write_at;
-  // number of input events seen. does not belong in ncstats, since it must not
-  // be reset (semantics are relied upon by widgets for mouse click detection).
-  uint64_t input_events;
 
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
   int loglevel;
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
-  struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   bool utf8;      // are we using utf-8 encoding, as hoped?
   bool libsixel;  // do we have Sixel support?
 } notcurses;
@@ -362,7 +365,7 @@ ncplane_stdplane_const(const ncplane* n){
 }
 
 // load all known special keys from terminfo, and build the input sequence trie
-int prep_special_keys(notcurses* nc);
+int prep_special_keys(ncinputlayer* nc);
 
 // free up the input escapes trie
 void input_free_esctrie(struct esctrie** trie);

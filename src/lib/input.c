@@ -20,7 +20,7 @@ void sigwinch_handler(int signo){
 }
 
 static inline int
-pop_input_keypress(notcurses* nc){
+pop_input_keypress(ncinputlayer* nc){
   int candidate = nc->inputbuf[nc->inputbuf_valid_starts];
 // fprintf(stderr, "DEOCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_valid_starts, nc->inputbuf[nc->inputbuf_valid_starts]);
   if(++nc->inputbuf_valid_starts == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
@@ -32,7 +32,7 @@ pop_input_keypress(notcurses* nc){
 
 // assumes there is space, as you presumably just popped it
 static inline void
-unpop_keypress(notcurses* nc, int kpress){
+unpop_keypress(ncinputlayer* nc, int kpress){
   ++nc->inputbuf_occupied;
   if(nc->inputbuf_valid_starts-- == 0){
     nc->inputbuf_valid_starts = sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - 1;
@@ -73,7 +73,7 @@ void input_free_esctrie(esctrie** eptr){
 }
 
 static int
-notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
+ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t special){
   if(esc[0] != ESC || strlen(esc) < 2){ // assume ESC prefix + content
     fprintf(stderr, "Not an escape: %s (0x%x)\n", esc, special);
     return -1;
@@ -116,7 +116,7 @@ notcurses_add_input_escape(notcurses* nc, const char* esc, char32_t special){
 
 // We received the CSI prefix. Extract the data payload.
 static char32_t
-handle_csi(notcurses* nc, ncinput* ni){
+handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   enum {
     PARAM1,  // reading first param (button + modifiers) plus delimiter
     PARAM2,  // reading second param (x coordinate) plus delimiter
@@ -162,7 +162,7 @@ handle_csi(notcurses* nc, ncinput* ni){
           break;
         }
         if(ni){
-          ni->x = param - 1 - nc->margin_l;
+          ni->x = param - 1 - leftmargin;
         }
         param = 0;
       }else if(isdigit(candidate)){
@@ -180,7 +180,7 @@ handle_csi(notcurses* nc, ncinput* ni){
           break;
         }
         if(ni){
-          ni->y = param - 1 - nc->margin_t;
+          ni->y = param - 1 - topmargin;
           ni->id = id;
         }
         return id;
@@ -200,7 +200,7 @@ handle_csi(notcurses* nc, ncinput* ni){
 // if there is a full UTF8 codepoint or keystroke (composed or otherwise),
 // return it, and pop it from the queue.
 static char32_t
-handle_getc(notcurses* nc, int kpress, ncinput* ni){
+handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topmargin){
 //fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress < 0){
     return -1;
@@ -220,7 +220,7 @@ handle_getc(notcurses* nc, int kpress, ncinput* ni){
     }
     if(esc && esc->special != NCKEY_INVALID){
       if(esc->special == NCKEY_CSI){
-        return handle_csi(nc, ni);
+        return handle_csi(nc, ni, leftmargin, topmargin);
       }
       return esc->special;
     }
@@ -291,12 +291,12 @@ block_on_input(FILE* fp, const struct timespec* ts, sigset_t* sigmask){
 }
 
 static bool
-input_queue_full(const notcurses* nc){
+input_queue_full(const ncinputlayer* nc){
   return nc->inputbuf_occupied == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf);
 }
 
 static char32_t
-handle_input(notcurses* nc, ncinput* ni){
+handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   int r;
   // getc() returns unsigned chars cast to ints
   while(!input_queue_full(nc) && (r = getc(nc->ttyinfp)) >= 0){
@@ -317,15 +317,15 @@ handle_input(notcurses* nc, ncinput* ni){
     return -1;
   }
   r = pop_input_keypress(nc);
-  return handle_getc(nc, r, ni);
+  return handle_getc(nc, r, ni, leftmargin, topmargin);
 }
 
 static char32_t
-handle_ncinput(notcurses* nc, ncinput* ni){
+handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   if(ni){
     memset(ni, 0, sizeof(*ni));
   }
-  char32_t r = handle_input(nc, ni);
+  char32_t r = handle_input(nc, ni, leftmargin, topmargin);
   // ctrl (*without* alt) + letter maps to [1..26], and is independent of shift
   // FIXME need to distinguish between:
   //  - Enter and ^J
@@ -353,14 +353,15 @@ handle_ncinput(notcurses* nc, ncinput* ni){
 
 // helper so we can do counter increment at a single location
 static inline char32_t
-notcurses_prestamp(notcurses* nc, const struct timespec *ts,
-                            sigset_t* sigmask, ncinput* ni){
+ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
+                      sigset_t* sigmask, ncinput* ni, int leftmargin,
+                      int topmargin){
   errno = 0;
-  char32_t r = handle_ncinput(nc, ni);
+  char32_t r = handle_ncinput(nc, ni, leftmargin, topmargin);
   if(r == (char32_t)-1){
     if(errno == EAGAIN || errno == EWOULDBLOCK){
       block_on_input(nc->ttyinfp, ts, sigmask);
-      r = handle_ncinput(nc, ni);
+      r = handle_ncinput(nc, ni, leftmargin, topmargin);
     }
     return r;
   }
@@ -370,9 +371,10 @@ notcurses_prestamp(notcurses* nc, const struct timespec *ts,
 // infp has already been set non-blocking
 char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
                         sigset_t* sigmask, ncinput* ni){
-  char32_t r = notcurses_prestamp(nc, ts, sigmask, ni);
+  char32_t r = ncinputlayer_prestamp(&nc->input, ts, sigmask, ni,
+                                     nc->margin_l, nc->margin_t);
   if(r != (char32_t)-1){
-    uint64_t stamp = nc->input_events++; // need increment even if !ni
+    uint64_t stamp = nc->input.input_events++; // need increment even if !ni
     if(ni){
       ni->seqnum = stamp;
     }
@@ -380,7 +382,7 @@ char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
   return r;
 }
 
-int prep_special_keys(notcurses* nc){
+int prep_special_keys(ncinputlayer* nc){
   static const struct {
     const char* tinfo;
     char32_t key;
@@ -484,12 +486,12 @@ int prep_special_keys(notcurses* nc){
       continue;
     }
 //fprintf(stderr, "support for terminfo's %s: %s\n", k->tinfo, seq);
-    if(notcurses_add_input_escape(nc, seq, k->key)){
+    if(ncinputlayer_add_input_escape(nc, seq, k->key)){
       fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
       return -1;
     }
   }
-  if(notcurses_add_input_escape(nc, CSIPREFIX, NCKEY_CSI)){
+  if(ncinputlayer_add_input_escape(nc, CSIPREFIX, NCKEY_CSI)){
     fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
     return -1;
   }
