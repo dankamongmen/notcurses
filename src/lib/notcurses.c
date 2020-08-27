@@ -844,9 +844,6 @@ int cbreak_mode(int ttyfd, struct termios* tpreserved){
 int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
   nilayer->inputescapes = NULL;
   nilayer->ttyinfp = infp;
-  if(make_nonblocking(nilayer->ttyinfp)){
-    return -1;
-  }
   if(prep_special_keys(nilayer)){
     return -1;
   }
@@ -959,6 +956,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
+  }
+  if(make_nonblocking(ret->input.ttyinfp)){
+    return -1;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){

@@ -15,7 +15,9 @@ print_b(struct ncdirect* nc, int r, int g, int total){
   if(ret){
     return -1;
   }
-  printf("X");
+  if(printf("X") < 0){
+    return -1;
+  }
   return 0;
 }
 
@@ -32,10 +34,14 @@ print_gb(struct ncdirect* nc, int r, int total){
 static int
 print_rgb(struct ncdirect* nc, int total){
   if(random() % 2){
-    ncdirect_styles_off(nc, NCSTYLE_ITALIC);
+    if(ncdirect_styles_off(nc, NCSTYLE_ITALIC)){
+      return -1;
+    }
   }
   if(random() % 16 == 0){
-    ncdirect_styles_on(nc, NCSTYLE_ITALIC);
+    if(ncdirect_styles_on(nc, NCSTYLE_ITALIC)){
+      return -1;
+    }
   }
   for(int r = 0 ; r <= total && r < 256 ; r += 4){
     if(print_gb(nc, r, total)){
@@ -114,6 +120,7 @@ int main(void){
   return EXIT_SUCCESS;
 
 err:
+  fprintf(stderr, "WE HAD A BAD ERROR YO (%s)\n", strerror(errno));
   ncdirect_stop(nc);
   return EXIT_FAILURE;
 }
