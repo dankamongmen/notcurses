@@ -96,7 +96,7 @@ TEST_CASE("ZAxis") {
     CHECK_EQ(0, notcurses_render(nc_));
     REQUIRE(!ncplane_cursor_move_yx(n2, 0, 0));
     REQUIRE(1 == ncplane_at_cursor_cell(n2, &cat));
-    REQUIRE('y' == cat.gcluster);
+    REQUIRE(0 == strcmp("y", cell_extended_gcluster(n_, &c)));
     struct ncplane* n3 = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(1 == cell_load(n3, &c, "z"));
     REQUIRE(!cell_set_fg_rgb(&c, 0, 0, 0xff));
@@ -104,7 +104,7 @@ TEST_CASE("ZAxis") {
     CHECK(!notcurses_render(nc_));
     REQUIRE(!ncplane_cursor_move_yx(n3, 0, 0));
     REQUIRE(1 == ncplane_at_cursor_cell(n3, &cat));
-    REQUIRE('z' == cat.gcluster);
+    REQUIRE(0 == strcmp("z", cell_extended_gcluster(n_, &c)));
     // FIXME testing damage requires notcurses keeping a copy of the screen....
     // FIXME move y atop z
     // FIXME inspect
