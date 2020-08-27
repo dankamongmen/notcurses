@@ -841,6 +841,22 @@ int cbreak_mode(int ttyfd, struct termios* tpreserved){
   return 0;
 }
 
+int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
+  nilayer->inputescapes = NULL;
+  nilayer->ttyinfp = infp;
+  if(make_nonblocking(nilayer->ttyinfp)){
+    return -1;
+  }
+  if(prep_special_keys(nilayer)){
+    return -1;
+  }
+  nilayer->inputbuf_occupied = 0;
+  nilayer->inputbuf_valid_starts = 0;
+  nilayer->inputbuf_write_at = 0;
+  nilayer->input_events = 0;
+  return 0;
+}
+
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
@@ -888,8 +904,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   reset_stats(&ret->stashstats);
   ret->ttyfp = outfp;
   ret->renderfp = opts->renderfp;
-  ret->input.inputescapes = NULL;
-  ret->input.ttyinfp = stdin; // FIXME
   memset(&ret->rstate, 0, sizeof(ret->rstate));
   memset(&ret->palette_damage, 0, sizeof(ret->palette_damage));
   memset(&ret->palette, 0, sizeof(ret->palette));
@@ -898,14 +912,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   ret->lfdimx = 0;
   ret->libsixel = false;
   egcpool_init(&ret->pool);
-  if(make_nonblocking(ret->input.ttyinfp)){
-    free(ret);
-    return NULL;
-  }
-  ret->input.inputbuf_occupied = 0;
-  ret->input.inputbuf_valid_starts = 0;
-  ret->input.inputbuf_write_at = 0;
-  ret->input.input_events = 0;
   if((ret->loglevel = opts->loglevel) > NCLOGLEVEL_TRACE || ret->loglevel < 0){
     fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
     free(ret);
@@ -951,7 +957,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(&ret->tcache)){
     goto err;
   }
-  if(prep_special_keys(&ret->input)){
+  if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
