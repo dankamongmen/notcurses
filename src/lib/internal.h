@@ -899,8 +899,8 @@ pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
     assert(cols < 2);
     pool_release(pool, c);
     c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
+    c->gcluster = 0;
     ((unsigned char*)&c->gcluster)[0] = *gcluster;
-    ((unsigned char*)&c->gcluster)[1] = 0;
     return bytes;
   }
   // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
