@@ -11,9 +11,12 @@
 #include <linux/wait.h>
 #include <asm/unistd.h>
 #include <linux/sched.h>
+#define NCPOLLEVENTS (POLLIN | POLLRDHUP)
 #if (defined(__NR_clone3) && defined(P_PIDFD) && defined(CLONE_CLEAR_SIGHAND))
 #define USING_PIDFD
 #endif
+#else
+#define NCPOLLEVENTS (POLLIN)
 #endif
 #include "internal.h"
 
@@ -34,15 +37,15 @@ fdthread(ncfdplane* ncfp, int pidfd){
   char* buf = malloc(BUFSIZ + 1);
   int pevents;
   pfds[0].fd = ncfp->fd;
-  pfds[0].events = POLLIN | POLLRDHUP;
+  pfds[0].events = NCPOLLEVENTS;
   const int fdcount = pidfd < 0 ? 1 : 2;
   if(fdcount > 1){
     pfds[1].fd = pidfd;
-    pfds[1].events = POLLIN | POLLRDHUP;
+    pfds[1].events = NCPOLLEVENTS;
   }
   ssize_t r = 0;
   while((pevents = poll(pfds, fdcount, -1)) >= 0 || errno == EINTR){
-    if(pfds[0].revents & POLLIN){
+    if(pfds[0].revents){
       while((r = read(ncfp->fd, buf, BUFSIZ)) >= 0){
         if(r == 0){
           break;
@@ -60,7 +63,7 @@ fdthread(ncfdplane* ncfp, int pidfd){
         break;
       }
     }
-    if(fdcount > 1 && pfds[1].revents & POLLIN){
+    if(fdcount > 1 && pfds[1].revents){
       r = 0;
       break;
     }
