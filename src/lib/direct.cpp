@@ -436,6 +436,9 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
       goto err;
     }
   }
+  if(ncinputlayer_init(&ret->input, stdin)){
+    goto err;
+  }
   int termerr;
   if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
@@ -479,6 +482,7 @@ int ncdirect_stop(ncdirect* nc){
       ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
       ret |= close(nc->ctermfd);
     }
+    input_free_esctrie(&nc->input.inputescapes);
     delete(nc);
   }
   return ret;

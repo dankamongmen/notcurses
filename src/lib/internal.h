@@ -970,6 +970,9 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
   return 1;
 }
 
+int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
+
+// FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, struct termios* tpreserved);
 
 #ifdef __cplusplus
