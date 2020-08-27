@@ -256,7 +256,7 @@ cell_egc_idx(const cell* c){
 // Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
 static inline bool
 cell_simple_p(const cell* c){
-  return (c->gcluster >> 24u) != 0x01;
+  return ((const unsigned char*)&c->gcluster)[0] != 0x01;
 }
 
 // only applies to complex cells, do not use on simple cells
