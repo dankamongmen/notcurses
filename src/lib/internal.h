@@ -597,7 +597,7 @@ pool_release(egcpool* pool, cell* c){
 // set the cell 'c' to point into the egcpool at location 'eoffset'
 static inline void
 set_gcluster_egc(cell* c, int eoffset){
-  c->gcluster = htonl(0x01ul) + eoffset;
+  c->gcluster = ntole(0x01000000ul) + eoffset;
 }
 
 // Duplicate one cell onto another, possibly crossing ncplanes.

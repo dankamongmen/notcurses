@@ -736,7 +736,7 @@ static inline int
 cell_load_simple(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
   c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  c->gcluster = ch;
+  c->gcluster = ntole((uint32_t)ch);
   return 1;
 }
 
