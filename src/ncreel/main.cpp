@@ -198,12 +198,19 @@ int main(int argc, char** argv){
   }
   int dimy, dimx;
   auto nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
-  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){
-    return -1;
+  struct ncplane* n;
+  if(nopts.bordermask != 0xf){
+    if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){
+      return -1;
+    }
+    n = ncplane_new(nc, dimy - 1 - (margin_t + margin_b),
+                    dimx - (margin_r + margin_l),
+                    1 + margin_t, margin_l, nullptr);
+  }else{
+    n = ncplane_new(nc, dimy - (margin_t + margin_b),
+                    dimx - (margin_r + margin_l),
+                    margin_t, margin_l, nullptr);
   }
-  auto n = ncplane_new(nc, dimy - 1 - (margin_t + margin_b),
-                       dimx - (margin_r + margin_l),
-                       1 + margin_t, margin_l, nullptr);
   if(!n){
     return -1;
   }
