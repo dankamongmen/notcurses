@@ -323,8 +323,8 @@ struct ncplane* hud_create(struct notcurses* nc){
   }
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  int yoffset = dimy - (6 + HUD_ROWS);
-  struct ncplane* n = ncplane_new(nc, HUD_ROWS, HUD_COLS, yoffset, 1, NULL);
+  int yoffset = dimy - HUD_ROWS;
+  struct ncplane* n = ncplane_new(nc, HUD_ROWS, HUD_COLS, yoffset, 7, NULL);
   if(n == NULL){
     return NULL;
   }

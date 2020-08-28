@@ -85,13 +85,13 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
     if(consumed){
       sprintfed = sprintf(buf, "%ju%lc", val / decimal, (wint_t)subprefixes[consumed - 1]);
     }else{
-      sprintf(buf, "%ju", val / decimal);
+      sprintfed = sprintf(buf, "%ju", val / decimal);
     }
   }else{
     if(consumed){
       sprintfed = sprintf(buf, "%.2f%lc", (double)val / decimal, (wint_t)subprefixes[consumed - 1]);
     }else{
-      sprintf(buf, "%.2f", (double)val / decimal);
+      sprintfed = sprintf(buf, "%.2f", (double)val / decimal);
     }
   }
   if(consumed && uprefix){
