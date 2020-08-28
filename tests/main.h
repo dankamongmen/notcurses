@@ -12,5 +12,6 @@
 auto find_data(const char* datum) -> char*;
 auto enforce_utf8() -> bool;
 auto testing_notcurses() -> struct notcurses*;
+auto ncreel_validate(const ncreel* n) -> bool;
 
 #endif
