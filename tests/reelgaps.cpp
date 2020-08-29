@@ -68,6 +68,8 @@ TEST_CASE("ReelGaps") {
   SUBCASE("ReelsGapping") {
     ncreel_options r{};
     r.bordermask = 0xf;
+    r.tabletchan = CHANNELS_RGB_INITIALIZER(0, 0xb0, 0xb0, 0, 0, 0);
+    r.focusedchan = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
     channels_set_bg_alpha(&r.bgchannel, 3);
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);

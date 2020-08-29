@@ -14,6 +14,9 @@ notcurses_reel - high-level widget for hierarchical data
 #define NCREEL_OPTION_INFINITESCROLL 0x0001
 #define NCREEL_OPTION_CIRCULAR       0x0002
 
+struct ncreel;
+struct nctablet;
+
 typedef struct ncreel_options {
   // notcurses can draw a border around the ncreel, and also
   // around the component tablets. inhibit borders by setting all
@@ -59,6 +62,26 @@ typedef struct ncreel_options {
 **struct ncplane* nctablet_ncplane(struct nctablet* t);**
 
 # DESCRIPTION
+
+An **ncreel** is a widget for display and manipulation of hierarchal data,
+intended to make effective use of the display area while supporting keyboards,
+mice, and haptic interfaces. A series of **nctablet**s are ordered on a
+virtual cylinder; the tablets can grow and shrink freely, while moving among
+the tablets "spins" the cylinder. **ncreel**s support optional borders around
+the reel and/or tablets.
+
+**ncreel_redraw** arranges the tablets, invoking the **tabletcb** defined by
+each. It will invoke the callbacks of only those tablets currently visible.
+This function ought be called whenever the data within a tablet need be
+refreshed. The return value of this callback is the number of lines drawn into
+the **ncplane**. The tablet will be grown or shrunk as necessary to reflect
+this return value.
+
+Unless the reel is devoid of tablets, there is always a "focused" tablet (the
+first tablet added to an empty reel becomes focused). The focused tablet can
+change via **ncreel_next** and **ncreel_prev**. If **ncreel_del** is called on
+the focused tablet, and at least one other tablet remains, some tablet receives
+the focus.
 
 # RETURN VALUES
 
