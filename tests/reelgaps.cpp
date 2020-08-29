@@ -78,72 +78,59 @@ TEST_CASE("ReelGaps") {
     CHECK(ncreel_validate(nr));
     auto t1 = ncreel_add(nr, NULL, NULL, t1_tablet_cb, NULL);
     CHECK(nullptr != t1);
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     auto t2 = ncreel_add(nr, NULL, NULL, t2_tablet_cb, NULL);
     CHECK(nullptr != t2);
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     auto t3 = ncreel_add(nr, NULL, NULL, t3_tablet_cb, NULL);
     CHECK(nullptr != t3);
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     auto t4 = ncreel_add(nr, NULL, NULL, t4_tablet_cb, NULL);
     CHECK(nullptr != t4);
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     auto t5 = ncreel_add(nr, NULL, NULL, t5_tablet_cb, NULL);
     CHECK(nullptr != t5);
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     auto t6 = ncreel_add(nr, NULL, NULL, t6_tablet_cb, NULL);
     CHECK(nullptr != t6);
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     ncreel_next(nr); // move to t2
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     ncreel_next(nr); // move to t3
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     ncreel_next(nr); // move to t4
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     ncreel_next(nr); // move to t5
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     ncreel_next(nr); // move to t6
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     ncreel_next(nr); // move to t7
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);
     ncreel_next(nr); // move to t8
-    ncreel_redraw(nr);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
 sleep(1);

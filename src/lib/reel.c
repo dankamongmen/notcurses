@@ -776,6 +776,7 @@ nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
   ++nr->tabletcount;
   t->p = NULL;
   t->cbp = NULL;
+  ncreel_redraw(nr);
   return t;
 }
 
@@ -800,6 +801,7 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
   }
   free(t);
   --nr->tabletcount;
+  ncreel_redraw(nr);
   return 0;
 }
 
@@ -833,6 +835,7 @@ nctablet* ncreel_next(ncreel* nr){
     nr->tablets = nr->tablets->next;
 //fprintf(stderr, "---------------> moved to next, %p to %p <----------\n", nr->tablets->prev, nr->tablets);
     nr->direction = LASTDIRECTION_DOWN;
+    ncreel_redraw(nr);
   }
   return nr->tablets;
 }
@@ -842,6 +845,7 @@ nctablet* ncreel_prev(ncreel* nr){
     nr->tablets = nr->tablets->prev;
 //fprintf(stderr, "----------------> moved to prev, %p to %p <----------\n", nr->tablets->next, nr->tablets);
     nr->direction = LASTDIRECTION_UP;
+    ncreel_redraw(nr);
   }
   return nr->tablets;
 }
