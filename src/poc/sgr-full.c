@@ -10,15 +10,16 @@ int main(void){
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_set_attr(n, NCSTYLE_NONE);
-  ncplane_putstr_yx(n, 0, 0, "a ═");
+  ncplane_putstr_yx(n, 0, 0, "a ═ none");
   ncplane_set_attr(n, NCSTYLE_ITALIC);
-  ncplane_putstr_yx(n, 1, 0, "a ═");
+  ncplane_putstr_yx(n, 1, 0, "a ═ italic");
   ncplane_set_attr(n, NCSTYLE_BOLD);
-  ncplane_putstr_yx(n, 2, 0, "a ═");
+  ncplane_putstr_yx(n, 2, 0, "a ═ bold");
   ncplane_set_attr(n, NCSTYLE_REVERSE);
-  ncplane_putstr_yx(n, 3, 0, "a ═");
+  ncplane_putstr_yx(n, 3, 0, "a ═ reverse");
   ncplane_set_attr(n, NCSTYLE_UNDERLINE);
-  ncplane_putstr_yx(n, 4, 0, "a ═");
+  ncplane_putstr_yx(n, 4, 0, "a ═ underline");
+  ncplane_putstr_yx(n, 5, 0, "sleeping for 5s...");
   if(notcurses_render(nc)){
     goto err;
   }
