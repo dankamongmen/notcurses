@@ -80,60 +80,47 @@ TEST_CASE("ReelGaps") {
     CHECK(nullptr != t1);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     auto t2 = ncreel_add(nr, NULL, NULL, t2_tablet_cb, NULL);
     CHECK(nullptr != t2);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     auto t3 = ncreel_add(nr, NULL, NULL, t3_tablet_cb, NULL);
     CHECK(nullptr != t3);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     auto t4 = ncreel_add(nr, NULL, NULL, t4_tablet_cb, NULL);
     CHECK(nullptr != t4);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     auto t5 = ncreel_add(nr, NULL, NULL, t5_tablet_cb, NULL);
     CHECK(nullptr != t5);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     auto t6 = ncreel_add(nr, NULL, NULL, t6_tablet_cb, NULL);
     CHECK(nullptr != t6);
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     ncreel_next(nr); // move to t2
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     ncreel_next(nr); // move to t3
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     ncreel_next(nr); // move to t4
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     ncreel_next(nr); // move to t5
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     ncreel_next(nr); // move to t6
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     ncreel_next(nr); // move to t7
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
     ncreel_next(nr); // move to t8
     CHECK(ncreel_validate(nr));
     CHECK_EQ(0, notcurses_render(nc_));
-sleep(1);
   }
 
   CHECK(0 == notcurses_stop(nc_));
