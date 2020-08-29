@@ -7,6 +7,8 @@ rearrangements of Notcurses.
   * `ncreel` functions now generally call `ncreel_redraw()` themselves. This
     includes `ncreel_add()`, `ncreel_del()`, `ncreel_next()`, and
     `ncreel_prev()`. `ncreel_redraw()` need only be called to update tablets.
+  * In order to conform with CMake naming conventions, our CMake package is
+    now accessed as "Notcurses" rather than "notcurses".
 
 * 1.6.19 (2020-08-27)
   * Direct mode now places the terminal into "cbreak mode". This disables

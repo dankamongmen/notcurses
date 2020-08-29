@@ -614,21 +614,21 @@ install(FILES
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)
 
-configure_package_config_file(tools/notcursesConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake
+configure_package_config_file(tools/NotcursesConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/notcurses/cmake
 )
 
 write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfigVersion.cmake
   COMPATIBILITY SameMajorVersion
 )
 
 # Installation
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/notcursesConfig.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/notcursesConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/notcurses"
+  "${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses"
 )
 
 install(FILES
