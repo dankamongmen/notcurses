@@ -30,7 +30,7 @@ TEST_CASE("Wide") {
     CHECK(0 == notcurses_render(nc_));
   }
 
-  // Verify a wide character is rejected on the last column
+  // Verify a wide character is rejected with cursor on the last column
   SUBCASE("RejectWideAsian") {
     const char* w = "\u5168";
     int sbytes = 0;
@@ -43,6 +43,24 @@ TEST_CASE("Wide") {
     CHECK(dimx - 1 == x);
     // now it ought be rejected
     CHECK(0 > ncplane_putegc(n_, w, &sbytes));
+    // cursor ought remain where it was
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(dimx - 1 == x);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // Verify a wide character is rejected when placed on the last column
+  SUBCASE("RejectWideAsianPlaced") {
+    const char* w = "\u5168";
+    int sbytes = 0;
+    int dimx;
+    ncplane_dim_yx(n_, nullptr, &dimx);
+    // now it ought be rejected
+    CHECK(0 > ncplane_putegc_yx(n_, 0, dimx - 1, w, &sbytes));
+    // cursor ought remain where it was
+    int y, x;
+    ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(dimx - 1 == x);
     CHECK(0 == notcurses_render(nc_));
