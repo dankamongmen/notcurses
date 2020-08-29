@@ -554,7 +554,7 @@ if(${BUILD_TESTING})
 set(CMAKE_CTEST_ARGUMENTS "-V")
 enable_testing()
 # the accursed Ubuntu buildd sets "TERM=unknown" for unfathomable reasons
-if(DEFINED ENV{TERM} AND NOT $ENV{TERM} STREQUAL "unknown")
+if(DEFINED ENV{TERM} AND NOT $ENV{TERM} STREQUAL "unknown" AND USE_POC)
 add_test(
   NAME ncpp_build
   COMMAND ncpp_build
