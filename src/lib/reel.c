@@ -284,12 +284,12 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
       return -1;
     }
     ncplane_move_above(t->cbp, t->p);
-// fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cblenx/cbleny: %d/%d dir: %d\n", lenx, leny, cbx, cby, cblenx, cbleny, direction);
+//fprintf(stderr, "calling! lenx/leny: %d/%d cbx/cby: %d/%d cblenx/cbleny: %d/%d dir: %d\n", lenx, leny, cbx, cby, cblenx, cbleny, direction);
     int ll = t->cbfxn(t, direction == DIRECTION_DOWN);
 //fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbleny, leny, direction);
     if(ll != cbleny){
       int diff = cbleny - ll;
-//fprintf(stderr, "resizing data plane %d->%d\n", cbleny, ll);
+//fprintf(stderr, "resizing data plane %d->%d\n", cbleny, leny - diff);
       if(ll){
         ncplane_resize_simple(t->cbp, ll, cblenx);
       }else{
@@ -481,9 +481,9 @@ tighten_reel_down(ncreel* r, int ybot){
     if(cury == ybot - ylen){
       break;
     }
+//fprintf(stderr, "tightening %p down to %d from %d\n", cur, ybot - ylen, cury);
     cury = ybot - ylen;
     ncplane_move_yx(cur->p, cury, curx);
-//fprintf(stderr, "tightened %p down to %d\n", cur, cury);
     ybot = cury - 1;
     if((cur = cur->prev) == r->tablets){
       break;
@@ -492,18 +492,18 @@ tighten_reel_down(ncreel* r, int ybot){
   return 0;
 }
 
-// run at the end of redraw, this aligns the top tablet with the top
-// of the reel. we prefer empty space at the bottom (FIXME but not
-// really -- we ought prefer space away from the last direction of
-// movement. rather than this postprocessing, draw things to the
-// right places!). we then trim any tablet overhang.
-// FIXME could pass top/bottom in directly, available as otherend
+// run at the end of redraw, this aligns the top tablet with the top of the
+// reel. we prefer empty space at the bottom (FIXME but not really -- we ought
+// prefer space away from the last direction of movement. rather than this
+// postprocessing, draw things to the right places!). we then trim any tablet
+// overhang. FIXME could pass top/bottom in directly, available as otherend
 static int
 tighten_reel(ncreel* r){
 //fprintf(stderr, "tightening it up\n");
   nctablet* top = r->tablets;
   nctablet* cur = top;
   int ytop = INT_MAX;
+  // find the top tablet
   while(cur){
     if(cur->p == NULL){
       break;
@@ -520,6 +520,7 @@ tighten_reel(ncreel* r){
   int expected = !(r->ropts.bordermask & NCBOXMASK_TOP);
   cur = top;
   nctablet* bottom = r->tablets;
+  // find the bottom tablet, moving tablets up as we go along
   while(cur){
     if(cur->p == NULL){
       break;
@@ -549,7 +550,7 @@ tighten_reel(ncreel* r){
     ncplane_dim_yx(r->p, &rylen, NULL);
     ncplane_yx(n, &yoff, NULL);
     ncplane_dim_yx(n, &ylen, NULL);
-    const int ybot = rylen - 1 - !!(r->ropts.bordermask & NCBOXMASK_BOTTOM);
+    const int ybot = rylen - 1 + !!(r->ropts.bordermask & NCBOXMASK_BOTTOM);
     // FIXME want to tighten down whenever we're at the bottom, and the reel
     // is full, not just in this case (this can leave a gap of more than 1 row)
     if(yoff + ylen + 1 >= ybot){
