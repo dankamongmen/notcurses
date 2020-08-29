@@ -160,13 +160,14 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `DFSG_BUILD`: leave out all content considered non-free under the Debian Free
                 Software Guidelines
 * `BUILD_TESTING`: build test targets
-* `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`
-* `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none
-* `USE_QRCODEGEN`: build qrcode support via libqrcodegen
-* `USE_PANDOC`: build man pages with pandoc
-* `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
-* `USE_STATIC`: build static libraries (in addition to shared ones)
 * `USE_COVERAGE`: build coverage support (for developers, requires use of Clang)
+* `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`
+* `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
+* `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none
+* `USE_PANDOC`: build man pages with pandoc
+* `USE_POC`: build small, uninstalled proof-of-concept binaries
+* `USE_QRCODEGEN`: build qrcode support via libqrcodegen
+* `USE_STATIC`: build static libraries (in addition to shared ones)
 
 ## Included tools
 
