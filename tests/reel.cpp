@@ -118,11 +118,9 @@ TEST_CASE("Reels") {
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK(!ncreel_next(nr));
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     CHECK(!ncreel_prev(nr));
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     REQUIRE(0 == ncreel_destroy(nr));
@@ -134,11 +132,9 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     CHECK(0 == ncreel_del(nr, t));
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     REQUIRE(0 == ncreel_destroy(nr));
@@ -150,19 +146,15 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     CHECK(ncreel_next(nr));
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     CHECK(ncreel_prev(nr));
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     CHECK(0 == ncreel_del(nr, t));
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     REQUIRE(0 == ncreel_destroy(nr));
@@ -175,7 +167,6 @@ TEST_CASE("Reels") {
     struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK(0 == ncreel_del(nr, ncreel_focused(nr)));
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     REQUIRE(0 == ncreel_destroy(nr));
@@ -269,7 +260,6 @@ TEST_CASE("Reels") {
       tabs[n] = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[n]);
       REQUIRE(tabs[n]);
       CHECK(tabs[0] == nr->tablets);
-      CHECK_EQ(0, ncreel_redraw(nr));
       CHECK_EQ(0, notcurses_render(nc_));
       CHECK(ncreel_validate(nr));
     }
@@ -283,7 +273,6 @@ TEST_CASE("Reels") {
     }
     ncreel_next(nr);
     CHECK(tabs[1] == nr->tablets);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     expectedy = 1;
@@ -296,7 +285,6 @@ TEST_CASE("Reels") {
     }
     ncreel_next(nr);
     CHECK(tabs[2] == nr->tablets);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     expectedy = 1;
@@ -309,7 +297,6 @@ TEST_CASE("Reels") {
     }
     ncreel_prev(nr);
     CHECK(tabs[1] == nr->tablets);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     expectedy = 1;
@@ -322,7 +309,6 @@ TEST_CASE("Reels") {
     }
     ncreel_prev(nr);
     CHECK(tabs[0] == nr->tablets);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     expectedy = 1;
@@ -344,7 +330,6 @@ TEST_CASE("Reels") {
     channels_set_bg_alpha(&r.bgchannel, 3);
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     int order[3];
@@ -354,7 +339,6 @@ TEST_CASE("Reels") {
       tabs[n] = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[n]);
       REQUIRE(tabs[n]);
       CHECK(tabs[0] == nr->tablets);
-      CHECK_EQ(0, ncreel_redraw(nr));
       CHECK_EQ(0, notcurses_render(nc_));
       CHECK(ncreel_validate(nr));
     }
@@ -368,7 +352,6 @@ TEST_CASE("Reels") {
     }
     ncreel_next(nr);
     CHECK(tabs[1] == nr->tablets);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     expectedy = 1;
@@ -381,7 +364,6 @@ TEST_CASE("Reels") {
     }
     ncreel_next(nr);
     CHECK(tabs[2] == nr->tablets);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     expectedy = 1;
@@ -394,7 +376,6 @@ TEST_CASE("Reels") {
     }
     ncreel_prev(nr);
     CHECK(tabs[1] == nr->tablets);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     expectedy = 1;
@@ -407,7 +388,6 @@ TEST_CASE("Reels") {
     }
     ncreel_prev(nr);
     CHECK(tabs[0] == nr->tablets);
-    CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
     expectedy = 1;
