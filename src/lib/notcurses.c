@@ -1870,20 +1870,26 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   return 0;
 }
 
+int ncplane_y(const ncplane* n){
+  if(n->boundto == NULL){
+    return n->absy - n->nc->stdplane->absy;
+  }
+  return n->absy - n->boundto->absy;
+}
+
+int ncplane_x(const ncplane* n){
+  if(n->boundto == NULL){
+    return n->absx - n->nc->stdplane->absx;
+  }
+  return n->absx - n->boundto->absx;
+}
+
 void ncplane_yx(const ncplane* n, int* y, int* x){
   if(y){
-    if(n->boundto == NULL){
-      *y = n->absy - n->nc->stdplane->absy;
-    }else{
-      *y = n->absy - n->boundto->absy;
-    }
+    *y = ncplane_y(n);
   }
   if(x){
-    if(n->boundto == NULL){
-      *x = n->absx - n->nc->stdplane->absx;
-    }else{
-      *x = n->absx - n->boundto->absx;
-    }
+    *x = ncplane_x(n);
   }
 }
 

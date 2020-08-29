@@ -36,6 +36,10 @@ notcurses_plane - operations on ncplanes
 
 **void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);**
 
+**int ncplane_y(const struct ncplane* n);**
+
+**int ncplane_x(const struct ncplane* n);**
+
 **struct ncplane* ncplane_parent(struct ncplane* n);**
 
 **const struct ncplane* ncplane_parent_const(const struct ncplane* n);**

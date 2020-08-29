@@ -743,6 +743,8 @@ int ncplane_move_yx(struct ncplane* n, int y, int x);
 // Get the origin of this plane relative to the standard plane, or the plane to
 // which it is bound (if it is bound to a plane).
 void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);
+int ncplane_y(const struct ncplane* n);
+int ncplane_x(const struct ncplane* n);
 
 // Return the dimensions of this ncplane.
 void ncplane_dim_yx(struct ncplane* n, int* restrict rows, int* restrict cols);

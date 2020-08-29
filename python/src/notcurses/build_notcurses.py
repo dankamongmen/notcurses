@@ -98,6 +98,8 @@ int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 void ncplane_cursor_yx(struct ncplane* n, int* y, int* x);
 int ncplane_move_yx(struct ncplane* n, int y, int x);
 void ncplane_yx(struct ncplane* n, int* y, int* x);
+int ncplane_y(const struct ncplane* n);
+int ncplane_x(const struct ncplane* n);
 void ncplane_dim_yx(const struct ncplane* n, int* rows, int* cols);
 int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
 void ncplane_move_top(struct ncplane* n);

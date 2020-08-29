@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.6.20 (not yet released)
+  * Added convenience functions `ncplane_y()` and `ncplane_x()`, components
+    of longstanding `ncplane_yx()`.
+
 * 1.6.19 (2020-08-27)
   * Direct mode now places the terminal into "cbreak mode". This disables
     echo and line-buffering of input. If this is undesirable, you can restore
