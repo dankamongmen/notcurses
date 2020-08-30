@@ -1112,7 +1112,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->ttyfd >= 0){
     if(nc->tcache.cnorm){
       if(nc->cursory != y || nc->cursorx != x){
-        if(stage_cursor(nc, nc->ttyfp, y, x) == 0){
+        if(stage_cursor(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
           if(nc->cursory >= 0 && nc->cursorx >= 0){
             nc->cursory = y;
             nc->cursorx = x;
