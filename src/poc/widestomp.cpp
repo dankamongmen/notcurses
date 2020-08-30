@@ -73,6 +73,11 @@ auto main() -> int {
     return EXIT_FAILURE;
   }
   stomper(nc, nn);
+  nn->erase();
+  if(nn->putstr(0, 0, "r") <= 0){
+    return EXIT_FAILURE;
+  }
+  stomper(nc, nn);
 
   return EXIT_SUCCESS;
 }
