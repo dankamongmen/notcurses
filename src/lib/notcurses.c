@@ -1340,8 +1340,15 @@ static inline int
 ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
             uint16_t stylemask, uint64_t channels, int bytes){
   // if scrolling is enabled, check *before ncplane_cursor_move_yx()* whether
-  // we're past the end of the line, and move to the next line if so.
-  if(x == -1 && y == -1 && n->x + cols > n->lenx){
+  // we're past the end of the line, and move to the next line if so. if x or y
+  // are specified, however, we must always try to print there.
+  if(x != -1){
+    if(x + cols > n->lenx){
+      logerror(n->nc, "Target x %d + %d cols >= length %d\n", x, cols, n->lenx);
+      ncplane_cursor_move_yx(n, y, x); // update cursor, though
+      return -1;
+    }
+  }else if(y == -1 && n->x + cols > n->lenx){
     if(!n->scrolling){
       logerror(n->nc, "No room to output [%.*s] %d/%d\n", bytes, egc, n->y, n->x);
       return -1;
