@@ -1373,11 +1373,12 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   cell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
   if(n->x > 0){
     if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
-      if(targ->gcluster == 0){ // we're the right half
-        cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x - 1)]);
-      }else{
-        cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
-      }
+      cell* sacrifice = targ->gcluster == 0 ?
+        // right half will never be on the first column of a row
+        &n->fb[nfbcellidx(n, n->y, n->x - 1)] :
+        // left half will never be on the last column of a row
+        &n->fb[nfbcellidx(n, n->y, n->x + 1)];
+      cell_obliterate(n, sacrifice);
     }
   }
   targ->stylemask = stylemask;
@@ -1387,17 +1388,13 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   }
 //fprintf(stderr, "%08x %d %d\n", targ->gcluster, bytes, cols);
   if(cols > 1){ // must set our right wide, and check for further damage
-    if(n->x < n->lenx - 1){ // check to our right
-      cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
-      if(n->x < n->lenx - 2){
-        if(cell_wide_left_p(candidate)){
-          cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 2)]);
-        }
-      }
-      cell_obliterate(n, candidate);
-      candidate->channels = targ->channels;
-      candidate->stylemask = targ->stylemask;
+    cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
+    if(cell_wide_left_p(candidate)){
+      cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 2)]);
     }
+    cell_release(n, candidate);
+    candidate->channels = targ->channels;
+    candidate->stylemask = targ->stylemask;
   }
   n->x += cols;
   return cols;
