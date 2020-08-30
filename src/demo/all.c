@@ -1,6 +1,25 @@
 #include "demo.h"
 #include <unictype.h>
 
+// ¡PROBLEMATIC!
+static int
+problematic_unicode(char32_t wc){
+  // surrogates are meaningful only for UTF-16
+  if(wc >= 0xd800 && wc <= 0xdfff){
+    return 1;
+  }
+  // right-to-left text fucks with us hard
+  if(uc_bidi_category(wc)){ // FIXME
+    return 1;
+  }
+  // these are broken in several terminals ㉈ ㉉ ㉊ ㉋ ㉌ ㉍ ㉎ ㉏
+  // https://github.com/dankamongmen/notcurses/issues/881
+  if(wc >= 0x3248 && wc <= 0x324f){
+    return 1;
+  }
+  return 0;
+}
+
 // planes as of unicode 13.0:
 //  0: BMP
 //  1: SMP
@@ -9,7 +28,6 @@
 // 14: SSPP
 // 15: SPUAP
 // 16: SPUBP
-
 // works on a scrolling plane
 static int
 allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
@@ -26,11 +44,7 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
     for(long int c = 0 ; c < 0x10000l ; ++c){
       const char32_t wc = *plane * 0x10000l + c;
       wchar_t w[2] = { wc, L'\0', };
-      // surrogates are meaningful only for UTF-16
-      if(wc >= 0xd800 && wc <= 0xdfff){
-        continue;
-      }
-      if(uc_bidi_category(wc)){ // FIXME
+      if(problematic_unicode(wc)){
         continue;
       }
       if(wcwidth(w[0]) >= 1){
