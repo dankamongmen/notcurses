@@ -65,7 +65,7 @@ int main(void){
       goto err;
     }
   }
-  if(fflush(stdout) == EOF){
+  if(ncdirect_flush(nc)){
     goto err;
   }
 
@@ -77,7 +77,7 @@ int main(void){
       goto err;
     }
   }
-  if(fflush(stdout) == EOF){
+  if(ncdirect_flush(nc)){
     goto err;
   }
 
@@ -89,7 +89,7 @@ int main(void){
       goto err;
     }
   }
-  if(fflush(stdout) == EOF){
+  if(ncdirect_flush(nc)){
     goto err;
   }
 
@@ -101,7 +101,7 @@ int main(void){
       goto err;
     }
   }
-  if(fflush(stdout) == EOF){
+  if(ncdirect_flush(nc)){
     goto err;
   }
 

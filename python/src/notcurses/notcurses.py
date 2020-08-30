@@ -70,6 +70,7 @@ def channels_set_bchannel(channels, channel):
     return (channels & 0xffffffff00000000) | channel;
 
 def channels_set_bg_rgb(channels, r, g, b):
+    checkRGB(r, g, b)
     channel = channels_bchannel(channels)
     channel = channel_set_rgb(channel, r, g, b)
     return channels_set_bchannel(channels, channel);
@@ -97,11 +98,9 @@ class Cell:
         lib.cell_release(self.ncp.getNcplane(), self.c)
 
     def setFgRGB(self, r, g, b):
-        checkRGB(r, g, b)
         self.c.channels = channels_set_fg_rgb(self.c.channels, r, g, b)
 
     def setBgRGB(self, r, g, b):
-        checkRGB(r, g, b)
         self.c.channels = channels_set_bg_rgb(self.c.channels, r, g, b)
 
     def getNccell(self):
@@ -146,12 +145,10 @@ class Ncplane:
         return channel_rgb(self.getBChannel())
 
     def setFgRGB(self, r, g, b):
-        checkRGB(r, g, b)
         if lib.ncplane_set_fg_rgb(self.n, r, g, b):
             raise ValueError("Bad foreground RGB")
 
     def setBgRGB(self, r, g, b):
-        checkRGB(r, g, b)
         if lib.ncplane_set_bg_rgb(self.n, r, g, b):
             raise ValueError("Bad background RGB")
 
@@ -180,22 +177,21 @@ class Ncdirect:
     def __del__(self):
         lib.ncdirect_stop(self.nc)
 
-    # FIXME ought be checking for errors on the actual library calls, also
     def setFgRGB8(self, r, g, b):
-        checkRGB8(r, g, b)
-        lib.ncdirect_fg_rgb8(self.nc, r, g, b)
+        if lib.ncdirect_fg_rgb(self.nc, r, g, b):
+            raise ValueError("Bad foreground RGB")
 
     def setBgRGB8(self, r, g, b):
-        checkRGB8(r, g, b)
-        lib.ncdirect_bg_rgb8(self.nc, r, g, b)
+        if lib.ncdirect_bg_rgb(self.nc, r, g, b):
+            raise ValueError("Bad background RGB")
 
     def setFg(self, rgb):
-        checkRGB(rgb)
-        lib.ncdirect_fg(self.nc, rgb)
+        if lib.ncdirect_fg(self.nc, rgb):
+            raise ValueError("Bad foreground RGB")
 
     def setBg(self, rgb):
-        checkRGB(rgb)
-        lib.ncdirect_bg(self.nc, rgb)
+        if lib.ncdirect_bg(self.nc, rgb):
+            raise ValueError("Bad background RGB")
 
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, "")
