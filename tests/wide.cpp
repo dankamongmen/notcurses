@@ -119,8 +119,10 @@ TEST_CASE("Wide") {
     CHECK(1 == y);
     CHECK(2 == x);
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, &sbytes));
-    CHECK(0 < ncplane_putegc_yx(n_, 1, 0, w, &sbytes));
     cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 < cell_load(n_, &c, w));
+    CHECK(0 < ncplane_putc_yx(n_, 1, 0, &c));
+    cell_release(n_, &c);
     ncplane_at_yx_cell(n_, 0, 0, &c);
     CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), FROG));
     ncplane_at_yx_cell(n_, 0, 1, &c);
