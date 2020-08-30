@@ -187,11 +187,6 @@ int main(int argc, char** argv){
   notcurses_options ncopts{};
   ncreel_options nopts{};
   parse_args(argc, argv, &ncopts, &nopts);
-  int margin_t = ncopts.margin_t;
-  int margin_l = ncopts.margin_l;
-  int margin_r = ncopts.margin_r;
-  int margin_b = ncopts.margin_b;
-  ncopts.margin_t = ncopts.margin_l = ncopts.margin_r = ncopts.margin_b = 0;
   auto nc = notcurses_init(&ncopts, NULL);
   if(nc == nullptr){
     return EXIT_FAILURE;
@@ -199,18 +194,10 @@ int main(int argc, char** argv){
   int dimy, dimx;
   auto nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane* n;
-  if(nopts.bordermask != 0xf){
-    if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){
-      return -1;
-    }
-    n = ncplane_new(nc, dimy - 1 - (margin_t + margin_b),
-                    dimx - (margin_r + margin_l),
-                    1 + margin_t, margin_l, nullptr);
-  }else{
-    n = ncplane_new(nc, dimy - (margin_t + margin_b),
-                    dimx - (margin_r + margin_l),
-                    margin_t, margin_l, nullptr);
+  if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){
+    return -1;
   }
+  n = ncplane_new(nc, dimy - 1, dimx, 1, 0, nullptr);
   if(!n){
     return -1;
   }
