@@ -727,12 +727,12 @@ init_banner(const notcurses* nc){
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
     printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
-    printf("\n  %d rows %d cols (%sB) %zuB cells %d colors (%s)\n"
+    printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s\n"
            "  compiled with gcc-%s\n"
            "  terminfo from %s\n",
            nc->stdplane->leny, nc->stdplane->lenx,
            bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(cell),
-           nc->tcache.colors, nc->tcache.RGBflag ? "direct" : "palette",
+           nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "",
            __VERSION__, curses_version());
 #ifdef USE_FFMPEG
     printf("  avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
