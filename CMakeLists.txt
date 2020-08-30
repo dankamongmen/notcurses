@@ -305,14 +305,10 @@ target_link_libraries(notcurses++
 set(NCPP_COMPILE_OPTIONS
   -Werror=format-security
   -Wnull-dereference
-  -Wmisleading-indentation
   -Wunused
-  -Wsuggest-override
   -Wno-c99-extensions
   -fno-strict-aliasing
   -ffunction-sections
-  -funswitch-loops
-  -finline-limit=300
   -fstack-protector
   -fno-rtti
   -fpic
