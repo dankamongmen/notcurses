@@ -844,6 +844,7 @@ int cbreak_mode(int ttyfd, struct termios* tpreserved){
 }
 
 int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
+  setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
   nilayer->ttyinfp = infp;
   if(prep_special_keys(nilayer)){
