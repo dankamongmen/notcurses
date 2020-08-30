@@ -417,7 +417,10 @@ int get_controlling_tty(FILE* ttyfp){
   return open(cbuf, O_RDWR | O_CLOEXEC);
 }
 
-ncdirect* ncdirect_init(const char* termtype, FILE* outfp){
+ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
+  if(flags){ // allow them through with warning
+    logwarn((struct notcurses*)NULL, "Passed non-zero flags 0x%016jx, but no flags are defined\n", (uintmax_t)flags);
+  }
   if(outfp == nullptr){
     outfp = stdout;
   }

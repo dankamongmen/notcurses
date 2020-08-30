@@ -283,9 +283,10 @@ struct ncdirect; // minimal state for a terminal
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
 // limited subset of notcurses routines which directly affect 'fp', and neither
 // supports nor requires notcurses_render(). This can be used to add color and
-// styling to text in the standard output paradigm. Returns NULL on error,
-// including any failure initializing terminfo.
-struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
+// styling to text in the standard output paradigm. No flags are yet defined;
+// 'flags' should be set to 0.
+// Returns NULL on error, including any failure initializing terminfo.
+struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 int ncdirect_stop(struct ncdirect* nc);

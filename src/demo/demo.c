@@ -551,7 +551,7 @@ int main(int argc, char** argv){
       fprintf(stderr, "Warning: error closing renderfile\n");
     }
   }
-  struct ncdirect* ncd = ncdirect_init(NULL, stdout);
+  struct ncdirect* ncd = ncdirect_init(NULL, stdout, 0);
   if(!ncd){
     return EXIT_FAILURE;
   }

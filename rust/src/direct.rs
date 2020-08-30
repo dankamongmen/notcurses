@@ -53,7 +53,7 @@ extern "C" {
 /// This can be used to add color and styling to text in the standard output paradigm.
 /// Returns NULL on error, including any failure initializing terminfo.
 pub unsafe fn ncdirect_start() -> *mut DirectMode {
-    nc::ncdirect_init(core::ptr::null(), libc_stdout())
+    nc::ncdirect_init(core::ptr::null(), libc_stdout(), 0)
 }
 
 #[cfg(test)]

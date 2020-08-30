@@ -84,7 +84,7 @@ mod tests {
     fn create_direct_context() {
         unsafe {
             let _ = libc::setlocale(libc::LC_ALL, CString::new("").unwrap().as_ptr());
-            let nc = nc::ncdirect_init(null_mut(), null_mut());
+            let nc = nc::ncdirect_init(null_mut(), null_mut(), 0);
             nc::ncdirect_stop(nc);
         }
     }

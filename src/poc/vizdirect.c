@@ -9,7 +9,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   struct ncdirect* n; // see bug #391
-  if((n = ncdirect_init(NULL, stdout)) == NULL){
+  if((n = ncdirect_init(NULL, stdout, 0)) == NULL){
     return EXIT_FAILURE;
   }
   if(!ncdirect_canopen_images(n)){
