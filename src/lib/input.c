@@ -297,36 +297,46 @@ input_queue_full(const ncinputlayer* nc){
 }
 
 static char32_t
-handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
+handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
+  // if there was some error in getc(), we still dole out the existing queue
+  if(nc->inputbuf_occupied == 0){
+    return -1;
+  }
+  int r = pop_input_keypress(nc);
+  return handle_getc(nc, r, ni, leftmargin, topmargin);
+}
+
+static char32_t
+handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin, sigset_t* sigmask){
   int r;
   // getc() returns unsigned chars cast to ints
   while(!input_queue_full(nc) && (r = getc(nc->ttyinfp)) >= 0){
     nc->inputbuf[nc->inputbuf_write_at] = (unsigned char)r;
-// fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
+//fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
     if(++nc->inputbuf_write_at == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
       nc->inputbuf_write_at = 0;
     }
     ++nc->inputbuf_occupied;
+    const struct timespec ts = {};
+    if(block_on_input(nc->ttyinfp, &ts, sigmask) < 1){
+      break;
+    }
   }
   // highest priority is resize notifications, since they don't queue
   if(resize_seen){
     resize_seen = 0;
     return NCKEY_RESIZE;
   }
-  // if there was some error in getc(), we still dole out the existing queue
-  if(nc->inputbuf_occupied == 0){
-    return -1;
-  }
-  r = pop_input_keypress(nc);
-  return handle_getc(nc, r, ni, leftmargin, topmargin);
+  return handle_queued_input(nc, ni, leftmargin, topmargin);
 }
 
 static char32_t
-handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
+handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
+               sigset_t* sigmask){
   if(ni){
     memset(ni, 0, sizeof(*ni));
   }
-  char32_t r = handle_input(nc, ni, leftmargin, topmargin);
+  char32_t r = handle_input(nc, ni, leftmargin, topmargin, sigmask);
   // ctrl (*without* alt) + letter maps to [1..26], and is independent of shift
   // FIXME need to distinguish between:
   //  - Enter and ^J
@@ -357,16 +367,16 @@ static inline char32_t
 ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
                       sigset_t* sigmask, ncinput* ni, int leftmargin,
                       int topmargin){
-  errno = 0;
-  char32_t r = handle_ncinput(nc, ni, leftmargin, topmargin);
-  if(r == (char32_t)-1){
-    if(errno == EAGAIN || errno == EWOULDBLOCK){
-      block_on_input(nc->ttyinfp, ts, sigmask);
-      r = handle_ncinput(nc, ni, leftmargin, topmargin);
-    }
-    return r;
+//fprintf(stderr, "PRESTAMP OCCUPADO: %d\n", nc->inputbuf_occupied);
+  if(nc->inputbuf_occupied){
+    return handle_queued_input(nc, ni, leftmargin, topmargin);
   }
-  return r;
+  errno = 0;
+  int events;
+  if((events = block_on_input(nc->ttyinfp, ts, sigmask)) > 0){
+    return handle_ncinput(nc, ni, leftmargin, topmargin, sigmask);
+  }
+  return -1;
 }
 
 // infp has already been set non-blocking
