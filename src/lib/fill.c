@@ -188,7 +188,7 @@ int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
   return total;
 }
 
-int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
+int ncplane_highgradient_sized(ncplane* n, uint32_t ul, uint32_t ur,
                                uint32_t ll, uint32_t lr, int ylen, int xlen){
   if(ylen < 1 || xlen < 1){
     return -1;
@@ -207,6 +207,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t stylemask,
                      uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br,
                      int ystop, int xstop){
   if(check_gradient_args(ul, ur, bl, br)){
+    logerror(n->nc, "Illegal gradient inputs\n");
     return -1;
   }
   if(egc == NULL){
@@ -216,9 +217,11 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t stylemask,
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
   if(ystop < yoff){
+    logerror(n->nc, "Ystop %d < yoff %d\n", ystop, yoff);
     return -1;
   }
   if(xstop < xoff){
+    logerror(n->nc, "Xstop %d < xoff %d\n", xstop, xoff);
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);
@@ -260,19 +263,22 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t stylemask,
   return total;
 }
 
-int ncplane_stain(struct ncplane* n, int ystop, int xstop,
+int ncplane_stain(ncplane* n, int ystop, int xstop,
                   uint64_t tl, uint64_t tr, uint64_t bl, uint64_t br){
   // Can't use default or palette-indexed colors in a gradient
   if(check_gradient_args(tl, tr, bl, br)){
+    logerror(n->nc, "Illegal staining inputs\n");
     return -1;
   }
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
   if(ystop < yoff){
+    logerror(n->nc, "Ystop %d < yoff %d\n", ystop, yoff);
     return -1;
   }
   if(xstop < xoff){
+    logerror(n->nc, "Xstop %d < xoff %d\n", xstop, xoff);
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);
@@ -288,7 +294,7 @@ int ncplane_stain(struct ncplane* n, int ystop, int xstop,
       cell* targc = ncplane_cell_ref_yx(n, y, x);
       if(targc->gcluster){
         calc_gradient_channels(&targc->channels, tl, tr, bl, br,
-                              y - yoff, x - xoff, ylen, xlen);
+                               y - yoff, x - xoff, ylen, xlen);
       }
       ++total;
     }
@@ -296,7 +302,7 @@ int ncplane_stain(struct ncplane* n, int ystop, int xstop,
   return total;
 }
 
-int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t stylemask){
+int ncplane_format(ncplane* n, int ystop, int xstop, uint32_t stylemask){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
@@ -558,8 +564,8 @@ qrcode_cols(int version){
   return QR_BASE_SIZE + (version * PER_QR_VERSION);
 }
 
-int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax,
-                   int* xmax, const void* data, size_t len){
+int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax, int* xmax,
+                   const void* data, size_t len){
   const int MAX_QR_VERSION = 40; // QR library only supports up to 40
   if(*ymax <= 0 || *xmax <= 0){
     return -1;
