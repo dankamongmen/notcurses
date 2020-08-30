@@ -1322,12 +1322,28 @@ void scroll_down(ncplane* n){
   }
 }
 
-int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
+static inline int
+cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols){
+  return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
+}
+
+int cell_load(ncplane* n, cell* c, const char* gcluster){
+  return pool_load(&n->pool, c, gcluster);
+}
+
+// where the magic happens. write the single EGC completely described by |egc|,
+// occupying |cols| columns, to the ncplane |n| at the coordinate |y|, |x|. if
+// either or both of |y|/|x| is -1, the current cursor location for that
+// dimension will be used. if the glyph cannot fit on the current line, it is
+// an error unless scrolling is enabled.
+static inline int
+ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
+            uint16_t stylemask, uint64_t channels, int bytes){
   // if scrolling is enabled, check *before ncplane_cursor_move_yx()* whether
   // we're past the end of the line, and move to the next line if so.
-  bool wide = cell_double_wide_p(c);
-  if(x == -1 && y == -1 && n->x + wide >= n->lenx){
+  if(x == -1 && y == -1 && n->x + cols > n->lenx){
     if(!n->scrolling){
+      logerror(n->nc, "No room to output [%.*s] %d/%d\n", bytes, egc, n->y, n->x);
       return -1;
     }
     scroll_down(n);
@@ -1335,11 +1351,13 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  if(c->gcluster == '\n'){
+  // FIXME don't we need to check here for wide character on edge?
+  if(*egc == '\n'){
     if(n->scrolling){
       scroll_down(n);
       return 0;
     }
+    // FIXME isn't it an error if scrolling is disabled?
   }
   // A wide character obliterates anything to its immediate right (and marks
   // that cell as wide). Any character placed atop one half of a wide character
@@ -1355,12 +1373,13 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
       }
     }
   }
-  if(cell_duplicate(n, targ, c) < 0){
+  targ->stylemask = stylemask;
+  targ->channels = channels;
+  if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
     return -1;
   }
-  int cols = 1;
-  if(wide){ // must set our right wide, and check for further damage
-    ++cols;
+//fprintf(stderr, "%08x %d %d\n", targ->gcluster, bytes, cols);
+  if(cols > 1){ // must set our right wide, and check for further damage
     if(n->x < n->lenx - 1){ // check to our right
       cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
       if(n->x < n->lenx - 2){
@@ -1369,22 +1388,18 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
         }
       }
       cell_obliterate(n, candidate);
-      cell_set_wide(candidate);
-      candidate->channels = c->channels;
-      candidate->stylemask = n->stylemask;
+      candidate->channels = targ->channels;
+      candidate->stylemask = targ->stylemask;
     }
   }
   n->x += cols;
   return cols;
 }
 
-static inline int
-cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols){
-  return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
-}
-
-int cell_load(ncplane* n, cell* c, const char* gcluster){
-  return pool_load(&n->pool, c, gcluster);
+int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
+  const int cols = cell_double_wide_p(c) ? 2 : 1;
+  const char* egc = cell_extended_gcluster(n, c);
+  return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
 }
 
 int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes){
@@ -1396,65 +1411,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   if(sbytes){
     *sbytes = bytes;
   }
-  // if scrolling is enabled, check *before ncplane_cursor_move_yx()* whether
-  // we're past the end of the line, and move to the next line if so.
-  bool wide = cols > 1;
-  if(x == -1 && y == -1 && n->x + wide >= n->lenx){
-    if(!n->scrolling){
-      logerror(n->nc, "No room to output [%s] %d/%d\n", gclust, n->y, n->x);
-      return -1;
-    }
-    scroll_down(n);
-  }
-  if(ncplane_cursor_move_yx(n, y, x)){
-    return -1;
-  }
-  if(*gclust == '\n'){
-    if(n->scrolling){
-      scroll_down(n);
-      return 0;
-    }
-  }
-  // A wide character obliterates anything to its immediate right (and marks
-  // that cell as wide). Any character placed atop one half of a wide character
-  // obliterates the other half. Note that a wide char can thus obliterate two
-  // wide chars, totalling four columns.
-  cell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
-  if(n->x > 0){
-    if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
-      if(targ->gcluster == 0){ // we're the right half
-        cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x - 1)]);
-      }else{
-        cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
-      }
-    }
-  }
-  uint64_t channels = n->channels & ~CELL_WIDEASIAN_MASK;
-  if(wide){
-    channels |= CELL_WIDEASIAN_MASK;
-  }
-  if(cell_load_direct(n, targ, gclust, bytes, cols) < 0){
-    return -1;
-  }
-//fprintf(stderr, "%08x %d %d\n", targ->gcluster, bytes, cols);
-  targ->stylemask = n->stylemask;
-  targ->channels = channels;
-  if(wide){ // must set our right wide, and check for further damage
-    if(n->x < n->lenx - 1){ // check to our right
-      cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
-      if(n->x < n->lenx - 2){
-        if(cell_wide_left_p(candidate)){
-          cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 2)]);
-        }
-      }
-      cell_obliterate(n, candidate);
-      cell_set_wide(candidate);
-      candidate->channels = channels;
-      candidate->stylemask = n->stylemask;
-    }
-  }
-  n->x += cols;
-  return cols;
+  return ncplane_put(n, y, x, gclust, cols, n->stylemask, n->channels, bytes);
 }
 
 int ncplane_putsimple_stainable(ncplane* n, char c){

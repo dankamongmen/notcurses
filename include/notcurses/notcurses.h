@@ -1323,7 +1323,7 @@ API unsigned ncplane_styles(const struct ncplane* n);
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
-// On failure, -1 is returned.
+// 'c' must already be associated with 'n'. On failure, -1 is returned.
 API int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
 
 // Call ncplane_putc_yx() for the current cursor location.
