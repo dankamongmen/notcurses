@@ -1,24 +1,20 @@
 #!/usr/bin/python3
 
 import locale
-import _cffi_backend
 from notcurses import notcurses
-from _notcurses import lib, ffi
 
 def demo():
     nc = notcurses.Notcurses()
-    c = notcurses.Cell(nc.stdplane(), ord(' '))
-    c.setBgRGB(0x80, 0xc0, 0x80)
-    nc.stdplane().setBaseCell(c)
-    dims = nc.stdplane().getDimensions()
+    stdplane = nc.stdplane()
+    dims = stdplane.getDimensions()
     r = 0x80
     g = 0x80
     b = 0x80
     for y in range(dims[0]):
         for x in range(dims[1]):
-            nc.stdplane().setFgRGB(r, g, b)
-            nc.stdplane().setBgRGB(b, r, g)
-            nc.stdplane().putSimpleYX(y, x, ord('X'))
+            stdplane.setFgRGB(r, g, b)
+            stdplane.setBgRGB(b, r, g)
+            stdplane.putEGCYX(y, x, "X")
             b = b + 2
             if b == 256:
                 b = 0

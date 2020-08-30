@@ -98,14 +98,11 @@ class Cell:
 
     def setFgRGB(self, r, g, b):
         checkRGB(r, g, b)
-        channel = channels_fchannel(self.c.channels)
-        c = (r << 16) | (g << 8) | b;
-        channel = (channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | c;
-        self.c.channels = (channel << 32) | (self.c.channels & 0xffffffff);
+        self.c.channels = channels_set_fg_rgb(self.c.channels, r, g, b)
 
     def setBgRGB(self, r, g, b):
         checkRGB(r, g, b)
-        channel = channels_bchannel(self.c.channels)
+        self.c.channels = channels_set_bg_rgb(self.c.channels, r, g, b)
 
     def getNccell(self):
         return self.c
@@ -120,17 +117,15 @@ class Ncplane:
     def getNcplane(self):
         return self.n
 
-    def putSimpleYX(self, y, x, ch):
+    def putEGCYX(self, y, x, egc):
         if y < -1:
             raise ValueError("Bad y position")
         if x < -1:
             raise ValueError("Bad x position")
-        c = Cell(self, ch)
-        (r, g, b) = self.getFgRGB()
-        c.setFgRGB(r, g, b)
-        (r, g, b) = self.getBgRGB()
-        c.setBgRGB(r, g, b)
-        return lib.ncplane_putc_yx(self.n, y, x, c.getNccell())
+        cstr = ffi.new("char[]", egc.encode('utf-8'))
+        ret = lib.ncplane_putegc_yx(self.n, y, x, cstr, ffi.NULL)
+        ffi.release(cstr)
+        return ret
 
     def getDimensions(self):
         y = ffi.new("int *")
@@ -152,11 +147,13 @@ class Ncplane:
 
     def setFgRGB(self, r, g, b):
         checkRGB(r, g, b)
-        lib.ncplane_set_fg(self.n, channel_set_rgb(self.getFChannel(), r, g, b))
+        if lib.ncplane_set_fg_rgb(self.n, r, g, b):
+            raise ValueError("Bad foreground RGB")
 
     def setBgRGB(self, r, g, b):
         checkRGB(r, g, b)
-        lib.ncplane_set_bg(self.n, channel_set_rgb(self.getBChannel(), r, g, b))
+        if lib.ncplane_set_bg_rgb(self.n, r, g, b):
+            raise ValueError("Bad background RGB")
 
 class Notcurses:
     def __init__(self):
