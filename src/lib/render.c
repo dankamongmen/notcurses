@@ -278,15 +278,12 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
               targc->gcluster = ' ';
             }else{
               cell_set_wide(targc);
-              crender->p = p;
               targc->stylemask = vis->stylemask;
-              targc[1].gcluster = 0;
-              cell_set_wide(&crender[1].c);
             }
           }else{
-            crender->p = p;
             targc->stylemask = vis->stylemask;
           }
+          crender->p = p;
         }else if(cell_wide_left_p(vis)){
           cell_set_wide(targc);
         }
