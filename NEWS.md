@@ -3,6 +3,8 @@ rearrangements of Notcurses.
 
 * 1.7.0 (2020-08-30)
   * Added `notcurses_ucs32_to_utf8()` conversion helper.
+  * `ncdirect_init()` now takes a third `uint64_t flags` parameter. No flags
+    have been defined, and this parameter ought be set to 0.
 
 * 1.6.20 (2020-08-30)
   * Added convenience functions `ncplane_y()` and `ncplane_x()`, components

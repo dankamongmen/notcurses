@@ -4,7 +4,7 @@
 #include <notcurses/direct.h>
 
 int main(void){
-  struct ncdirect* n = ncdirect_init(NULL, NULL);
+  struct ncdirect* n = ncdirect_init(NULL, NULL, 0);
   if(n == NULL){
     return EXIT_FAILURE;
   }

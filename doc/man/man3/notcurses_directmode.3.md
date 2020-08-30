@@ -10,7 +10,7 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **#include <notcurses/direct.h>**
 
-**struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);**
+**struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);**
 
 **unsigned ncdirect_palette_size(const struct ncdirect* nc);**
 
@@ -82,6 +82,9 @@ terminal and free up resources. **ncdirect_init** places the terminal into
 "cbreak" (also known as "rare") mode, disabling line-buffering and echo of
 input. **ncdirect_stop** restores the terminal state as it was when the
 corresponding **ncdirect_init** call was made.
+
+The **flags** parameter to **ncdirect_init** does not yet have any flags
+defined, and should be passed as 0 for now.
 
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see

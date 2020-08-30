@@ -2,7 +2,7 @@
 #include <notcurses/direct.h>
 
 TEST_CASE("DirectMode") {
-  struct ncdirect* nc_ = ncdirect_init(NULL, stderr);
+  struct ncdirect* nc_ = ncdirect_init(NULL, stdout, 0);
   if(!nc_){
     return;
   }
@@ -29,4 +29,12 @@ TEST_CASE("DirectMode") {
   }
 
   CHECK(0 == ncdirect_stop(nc_));
+
+  // make sure that we can pass undefined flags and still create the ncdirect
+  SUBCASE("FutureFlags") {
+    nc_ = ncdirect_init(NULL, stdout, ~0ULL);
+    REQUIRE(nullptr != nc_);
+    CHECK(0 == ncdirect_stop(nc_));
+  }
+
 }

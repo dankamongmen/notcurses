@@ -172,7 +172,7 @@ class Notcurses:
 
 class Ncdirect:
     def __init__(self):
-        self.nc = lib.ncdirect_init(ffi.NULL, sys.stdout)
+        self.nc = lib.ncdirect_init(ffi.NULL, sys.stdout, 0)
 
     def __del__(self):
         lib.ncdirect_stop(self.nc)

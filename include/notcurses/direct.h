@@ -13,9 +13,10 @@ extern "C" {
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
 // limited subset of notcurses routines which directly affect 'fp', and neither
 // supports nor requires notcurses_render(). This can be used to add color and
-// styling to text in the standard output paradigm. Returns NULL on error,
-// including any failure initializing terminfo.
-API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp);
+// styling to text in the standard output paradigm. No flags are yet defined;
+// 'flags' should be set to 0.
+// Returns NULL on error, including any failure initializing terminfo.
+API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);
 
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should

@@ -469,7 +469,7 @@ int main(void){
   if(setlocale(LC_ALL, "") == NULL){
     fprintf(stderr, "Warning: couldn't set locale based off LANG\n");
   }
-  struct ncdirect* nc = ncdirect_init(NULL, NULL);
+  struct ncdirect* nc = ncdirect_init(NULL, NULL, 0);
   if(nc == NULL){
     return EXIT_FAILURE;
   }

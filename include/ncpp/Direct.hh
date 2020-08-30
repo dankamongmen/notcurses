@@ -18,7 +18,7 @@ namespace ncpp
 		explicit Direct (const char *termtype = nullptr, FILE *fp = nullptr, NotCurses *ncinst = nullptr)
 			: Root (ncinst)
 		{
-			direct = ncdirect_init (termtype, fp == nullptr ? stdout : fp);
+			direct = ncdirect_init (termtype, fp == nullptr ? stdout : fp, 0);
 			if (direct == nullptr)
 				throw init_error ("Notcurses failed to initialize direct mode");
 		}
