@@ -274,7 +274,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
               targc->gcluster = ' ';
             // is the next cell occupied? if so, 0x20 us
             }else if(crender[1].c.gcluster){
-//fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, targc[1].gcluster);
+//fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, crender[1].c.gcluster);
               targc->gcluster = ' ';
             }else{
               cell_set_wide(targc);
@@ -284,8 +284,9 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             targc->stylemask = vis->stylemask;
           }
           crender->p = p;
-        }else if(cell_wide_left_p(vis)){
+        }else if(cell_wide_right_p(vis)){
           cell_set_wide(targc);
+          crender->p = p;
         }
       }
 
@@ -752,11 +753,6 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
       const cell* srccell = &nc->lastframe[damageidx];
-//      cell c;
-//      memcpy(c, srccell, sizeof(*c)); // unsafe copy of gcluster
-//fprintf(stderr, "COPYING: %d from %p\n", c->gcluster, &nc->pool);
-//      const char* egc = pool_egc_copy(&nc->pool, srccell);
-//      c->gcluster = 0; // otherwise cell_release() will blow up
       if(!rvec[damageidx].damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
