@@ -287,13 +287,6 @@ place_infoplane(struct ncdirect* ncd, int planeheight){
     ncdirect_stop(ncd);
     return NULL;
   }
-  // kmscon (and possibly other terminals) report rows/columns in the opposite
-  // order from normal. if cury/curx are clearly wrong, flip 'em. gross.
-  if(cury < curx){
-    int tmp = curx;
-    curx = cury;
-    cury = tmp;
-  }
   struct notcurses_options opts = {
     .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_INHIBIT_SETLOCALE
               | NCOPTION_NO_ALTERNATE_SCREEN,

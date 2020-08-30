@@ -199,7 +199,9 @@ cursor_yx_get(int ttyfd, int* y, int* x){
   return 0;
 }
 
-// no terminfo capability for this. dangerous!
+// no terminfo capability for this. dangerous! kmscon and possibly other
+// terminals report y and x inverted from the normal form; we ought detect this
+// using the algorithm in https://github.com/dankamongmen/notcurses/issues/784.
 int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   struct termios termio, oldtermios;
   // this only works for real terminals
