@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.6.20 (not yet released)
+* 1.6.20 (2020-08-30)
   * Added convenience functions `ncplane_y()` and `ncplane_x()`, components
     of longstanding `ncplane_yx()`.
   * `ncreel` functions now generally call `ncreel_redraw()` themselves. This
