@@ -107,6 +107,14 @@ mbswidth(const char* mbs){
   return cols;
 }
 
+// input functions like notcurses_getc() return ucs32-encoded char32_t. convert
+// a series of char32_t to utf8. result must be at least 4 bytes per input
+// char32_t (6 bytes per char32_t will future-proof against Unicode expansion).
+// the number of bytes used is returned, or -1 if passed illegal ucs32, or too
+// small of a buffer.
+API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
+                                unsigned char* resultbuf, size_t buflen);
+
 // extract these bits to get a channel's alpha value
 #define NCCHANNEL_ALPHA_MASK    0x30000000ull
 // background cannot be highcontrast, only foreground

@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <unistr.h>
 #include <signal.h>
 #include <locale.h>
 #include <uniwbrk.h>
@@ -2351,4 +2352,12 @@ int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gc
     ret += wcs;
   }
   return ret;
+}
+
+int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
+                            unsigned char* resultbuf, size_t buflen){
+  if(u32_to_u8(ucs32, ucs32count, resultbuf, &buflen) == NULL){
+    return -1;
+  }
+  return buflen;
 }
