@@ -202,7 +202,6 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
 // return it, and pop it from the queue.
 static char32_t
 handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topmargin){
-//fprintf(stderr, "KEYPRESS: %d\n", kpress);
   if(kpress < 0){
     return -1;
   }
@@ -303,7 +302,11 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
     return -1;
   }
   int r = pop_input_keypress(nc);
-  return handle_getc(nc, r, ni, leftmargin, topmargin);
+  char32_t ret = handle_getc(nc, r, ni, leftmargin, topmargin);
+  if(ret != (char32_t)-1 && ni){
+    ni->id = ret;
+  }
+  return ret;
 }
 
 static char32_t
