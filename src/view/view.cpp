@@ -203,7 +203,7 @@ auto main(int argc, char** argv) -> int {
   notcurses_options nopts{};
   auto nonopt = handle_opts(argc, argv, nopts, &timescale, &scalemode);
   nopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
-  NotCurses nc;
+  NotCurses nc{nopts};
   if(!nc.can_open_images()){
     nc.stop();
     std::cerr << "Notcurses was compiled without multimedia support\n";
@@ -225,7 +225,9 @@ auto main(int argc, char** argv) -> int {
         failed = true;
         break;
       }
-      stdn->erase();
+      if(!(nopts.flags & NCOPTION_NO_ALTERNATE_SCREEN)){
+        stdn->erase();
+      }
       struct ncvisual_options vopts{};
       vopts.n = *stdn;
       vopts.scaling = scalemode;
