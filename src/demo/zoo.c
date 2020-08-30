@@ -204,10 +204,10 @@ get_word_count(const char* text){
 static int
 selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* selector){
   const char text[] =
-    "Notcurses provides several widgets to quickly build vivid TUIs.\n\n"
-    "This NCReader widget facilitates free-form text entry complete with readline-style bindings.\n\n"
-    "NCSelector allows a single option to be selected from a list.\n\n"
-    "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output.\n\n";
+    "Notcurses provides several widgets to quickly build vivid TUIs.\n"
+    "This NCReader widget facilitates free-form text entry complete with readline-style bindings.\n"
+    "NCSelector allows a single option to be selected from a list.\n"
+    "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output.\n";
   int titers = get_word_count(text);
   int ret = 0, dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
@@ -277,8 +277,8 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
 static int
 mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselector* mselector){
   const char text[] =
-    "NCMultiselector allows 0..n options to be selected from a list of n items.\n\n"
-    "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\n\n"
+    "NCMultiselector allows 0..n options to be selected from a list of n items.\n"
+    "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane. "
     "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
   const int titers = get_word_count(text);
   int ret = 0, dimy, dimx;
