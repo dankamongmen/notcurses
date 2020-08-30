@@ -182,6 +182,24 @@ run_out_text(struct ncreader* reader, const char* text, size_t* textpos,
   return 0;
 }
 
+static int
+get_word_count(const char* text){
+  bool inspace = true;
+  int words = 0;
+  while(*text){
+    if(isspace(*text)){
+      if(!inspace){
+        ++words;
+        inspace = true;
+      }
+    }else{
+      inspace = false;
+    }
+    ++text;
+  }
+  return words;
+}
+
 // selector moves across to the left; reader moves up halfway to the center
 static int
 selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* selector){
@@ -190,6 +208,7 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
     "This NCReader widget facilitates free-form text entry complete with readline-style bindings.\n\n"
     "NCSelector allows a single option to be selected from a list.\n\n"
     "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output.\n\n";
+  int titers = get_word_count(text);
   int ret = 0, dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;
@@ -198,18 +217,26 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
   ncplane_yx(ncselector_plane(selector), &sy, &sx);
   const int xiters = sx - 2;
   const int yiters = (ry - centery) / 2;
-  const int iters = yiters > xiters ? yiters : xiters;
+  int iters = yiters > xiters ? yiters : xiters;
+  if(titers > iters){
+    iters = titers;
+  }
   const double eachy = (double)iters / yiters;
   const double eachx = (double)iters / xiters;
+  const double eacht = (double)iters / titers;
   int xi = 1;
   int yi = 1;
+  int ti = 1;
   struct timespec iterdelay, start;
   timespec_div(&demodelay, iters / 4, &iterdelay);
   size_t textpos = 0;
   clock_gettime(CLOCK_MONOTONIC, &start);
   for(int i = 0 ; i < iters ; ++i){
-    if( (ret = layout_next_text(reader, text, &textpos)) ){
-      return ret;
+    if(i == (int)(ti * eacht)){
+      if( (ret = layout_next_text(reader, text, &textpos)) ){
+        return ret;
+      }
+      ++ti;
     }
     if(i == (int)(xi * eachx)){
       if(ncplane_move_yx(ncselector_plane(selector), sy, --sx)){
@@ -253,6 +280,7 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
     "NCMultiselector allows 0..n options to be selected from a list of n items.\n\n"
     "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\n\n"
     "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
+  const int titers = get_word_count(text);
   int ret = 0, dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;
@@ -261,18 +289,26 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
   ncplane_yx(ncmultiselector_plane(mselector), &sy, &sx);
   const int xiters = dimx - ncplane_dim_x(ncmultiselector_plane(mselector));
   const int yiters = ry - centery;
-  const int iters = yiters > xiters ? yiters : xiters;
+  int iters = yiters > xiters ? yiters : xiters;
+  if(titers > iters){
+    iters = titers;
+  }
   const double eachy = (double)iters / yiters;
   const double eachx = (double)iters / xiters;
+  const double eacht = (double)iters / titers;
   int xi = 1;
   int yi = 1;
+  int ti = 1;
   struct timespec iterdelay, start;
   timespec_div(&demodelay, iters / 4, &iterdelay);
   clock_gettime(CLOCK_MONOTONIC, &start);
   size_t textpos = 0;
   for(int i = 0 ; i < iters ; ++i){
-    if( (ret = layout_next_text(reader, text, &textpos)) ){
-      return ret;
+    if(i == (int)(ti * eacht)){
+      if( (ret = layout_next_text(reader, text, &textpos)) ){
+        return ret;
+      }
+      ++ti;
     }
     if(i == (int)(xi * eachx)){
       if(ncplane_move_yx(ncmultiselector_plane(mselector), sy, ++sx)){
