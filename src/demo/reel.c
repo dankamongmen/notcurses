@@ -159,7 +159,7 @@ new_tabletctx(struct ncreel* pr, unsigned *id){
   }
   pthread_mutex_init(&tctx->lock, NULL);
   tctx->pr = pr;
-  tctx->lines = random() % 10 + 1; // FIXME a nice gaussian would be swell
+  tctx->lines = random() % 10 + 2; // FIXME a nice gaussian would be swell
   tctx->rgb = random() % (1u << 24u);
   tctx->id = ++*id;
   if((tctx->t = ncreel_add(pr, NULL, NULL, drawcb, tctx)) == NULL){
