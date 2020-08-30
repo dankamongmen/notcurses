@@ -441,8 +441,7 @@ int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst)
   }
   int dimy, dimx;
   ncplane_dim_yx(dst, &dimy, &dimx);
-  return ncplane_mergedown(src, dst, 0, 0, ncplane_dim_y(src),
-                           ncplane_dim_x(src), 0, 0);
+  return ncplane_mergedown(src, dst, 0, 0, ncplane_dim_y(src), ncplane_dim_x(src), 0, 0);
 }
 
 static inline int

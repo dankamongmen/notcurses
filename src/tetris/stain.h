@@ -8,11 +8,11 @@ void StainBoard(int dimy, int dimx){
     low = low % 0x100;
   }
   green = (l / 2) * 0x20;
-  uint64_t tl = 0, tr = 0, bl = 0, br = 0;
-  const int c1 = level_ % 2 ? high : low; const int c2 = level_ % 2 ? low : high;
-  channels_set_fg_rgb(&tl, c1, green, c2); channels_set_bg_alpha(&tl, CELL_ALPHA_TRANSPARENT);
-  channels_set_fg_rgb(&tr, c2, green, c1); channels_set_bg_alpha(&tr, CELL_ALPHA_TRANSPARENT);
-  channels_set_fg_rgb(&bl, c2, green, c1); channels_set_bg_alpha(&bl, CELL_ALPHA_TRANSPARENT);
-  channels_set_fg_rgb(&br, c1, green, c2); channels_set_bg_alpha(&br, CELL_ALPHA_TRANSPARENT);
+  const int c1 = level_ % 2 ? high : low;
+  const int c2 = level_ % 2 ? low : high;
+  uint64_t tl = CHANNELS_RGB_INITIALIZER(c1, green, c2, c1, green, c2);
+  uint64_t tr = CHANNELS_RGB_INITIALIZER(c2, green, c1, c2, green, c1);
+  uint64_t bl = CHANNELS_RGB_INITIALIZER(c2, green, c1, c2, green, c1);
+  uint64_t br = CHANNELS_RGB_INITIALIZER(c1, green, c2, c1, green, c2);
   board_->stain(dimy - 2, dimx - 2, tl, tr, bl, br);
 }
