@@ -2005,6 +2005,9 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n == n->nc->stdplane){
     return NULL; // can't reparent standard plane
   }
+  if(newparent == NULL){
+    newparent = n->nc->stdplane;
+  }
   if(n->boundto == newparent){
     return n;
   }
