@@ -1388,7 +1388,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
     return -1;
   }
-//fprintf(stderr, "%08x %d %d\n", targ->gcluster, bytes, cols);
+//fprintf(stderr, "%08x %016lx %c %d %d\n", targ->gcluster, targ->channels, cell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
   if(cols > 1){ // must set our right wide, and check for further damage
     cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
     if(cell_wide_left_p(candidate)){

@@ -590,8 +590,8 @@ static inline void
 pool_release(egcpool* pool, cell* c){
   if(!cell_simple_p(c)){
     egcpool_release(pool, cell_egc_idx(c));
-    c->gcluster = 0; // don't subject ourselves to double-release problems
   }
+  c->gcluster = 0; // don't subject ourselves to double-release problems
 }
 
 // set the cell 'c' to point into the egcpool at location 'eoffset'
