@@ -330,6 +330,7 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
     p->absy = yoff + (nc ? nc->margin_t : 0);
     p->bnext = NULL;
     p->bprev = NULL;
+    p->boundto = p;
   }
   p->stylemask = 0;
   p->channels = 0;
@@ -372,12 +373,12 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 ncplane* ncplane_new(notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque){
-  return ncplane_create(nc, NULL, rows, cols, yoff, xoff, opaque, NULL);
+  return ncplane_create(nc, nc->stdplane, rows, cols, yoff, xoff, opaque, NULL);
 }
 
 ncplane* ncplane_new_named(notcurses* nc, int rows, int cols, int yoff,
                            int xoff, void* opaque, const char* name){
-  return ncplane_create(nc, NULL, rows, cols, yoff, xoff, opaque, name);
+  return ncplane_create(nc, nc->stdplane, rows, cols, yoff, xoff, opaque, name);
 }
 
 ncplane* ncplane_bound(ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque){
@@ -1820,13 +1821,8 @@ int ncplane_move_yx(ncplane* n, int y, int x){
     return -1;
   }
   int dy, dx; // amount moved
-  if(n->boundto){
-    dy = (n->boundto->absy + y) - n->absy;
-    dx = (n->boundto->absx + x) - n->absx;
-  }else{
-    dy = (n->nc->stdplane->absy + y) - n->absy;
-    dx = (n->nc->stdplane->absx + x) - n->absx;
-  }
+  dy = (n->boundto->absy + y) - n->absy;
+  dx = (n->boundto->absx + x) - n->absx;
   n->absx += dx;
   n->absy += dy;
   move_bound_planes(n->blist, dy, dx);
@@ -1834,16 +1830,10 @@ int ncplane_move_yx(ncplane* n, int y, int x){
 }
 
 int ncplane_y(const ncplane* n){
-  if(n->boundto == NULL){
-    return n->absy - n->nc->stdplane->absy;
-  }
   return n->absy - n->boundto->absy;
 }
 
 int ncplane_x(const ncplane* n){
-  if(n->boundto == NULL){
-    return n->absx - n->nc->stdplane->absx;
-  }
   return n->absx - n->boundto->absx;
 }
 
