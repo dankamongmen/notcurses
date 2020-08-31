@@ -54,17 +54,10 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
   return ncplane_putc_yx(n, y, x, c);
 }
 
-static void
-surrounding_cells(struct ncplane* n, cell* lightup, int y, int x){
-  ncplane_at_yx_cell(n, y, x, lightup);
-}
-
-static int
-lightup_surrounding_cells(struct ncplane* n, const cell* lightup, int y, int x){
-  cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_duplicate(n, &c, lightup);
-  lighten(n, &c, 0, y, x);
-  cell_release(n, &c);
+static inline int
+lightup_surrounding_cells(struct ncplane* n, cell* lightup, int y, int x){
+  lighten(n, lightup, 0, y, x);
+  cell_release(n, lightup);
   return 0;
 }
 
@@ -86,7 +79,7 @@ init_worm(worm* s, int dimy, int dimx){
 static int
 wormy_top(struct notcurses* nc, worm* s){
   struct ncplane* n = notcurses_stdplane(nc);
-  surrounding_cells(n, &s->lightup, s->y, s->x);
+  ncplane_at_yx_cell(n, s->y, s->x, &s->lightup);
   if(lightup_surrounding_cells(n, &s->lightup, s->y, s->x)){
     return -1;
   }
