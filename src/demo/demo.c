@@ -102,24 +102,67 @@ static struct {
   { "zoo", zoo_demo, false, },
 };
 
+static void
+usage_option(FILE* out, struct ncdirect* n, const char* op){
+  if(n) ncdirect_fg_rgb(n, 0x80, 0x80, 0x80);
+  fprintf(out, " [ ");
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+  fprintf(out, "%s", op);
+  if(n) ncdirect_fg_rgb(n, 0x80, 0x80, 0x80);
+  fprintf(out, " ] ");
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+}
+
+static void
+usage_expo(FILE* out, struct ncdirect* n, const char* op, const char* expo){
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+  fprintf(out, " %s: ", op);
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  fprintf(out, "%s\n", expo);
+}
+
 // FIXME stylize this a little
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  fprintf(out, "usage: %s [ -hVikc ] [ -m margins ] [ -p path ] [ -l loglevel ] [ -d mult ] [ -J jsonfile ] [ -f renderfile ] demospec\n", exe);
-  fprintf(out, " -h: this message\n");
-  fprintf(out, " -V: print program name and version\n");
-  fprintf(out, " -l: logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
-  fprintf(out, " -i: ignore failures, keep going\n");
-  fprintf(out, " -k: keep screen; do not switch to alternate\n");
-  fprintf(out, " -d: delay multiplier (non-negative float)\n");
-  fprintf(out, " -f: render to file in addition to stdout\n");
-  fprintf(out, " -J: emit JSON summary to file\n");
-  fprintf(out, " -c: constant PRNG seed, useful for benchmarking\n");
-  fprintf(out, " -p: data file path (default: %s)\n", NOTCURSES_SHARE);
-  fprintf(out, " -m: margin, or 4 comma-separated margins\n");
+  struct ncdirect* n = ncdirect_init(NULL, out, 0);
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  fprintf(out, "usage: ");
+  if(n) ncdirect_fg_rgb(n, 0x80, 0xff, 0x80);
+  fprintf(out, "%s ", exe);
+  const char* options[] = { "-hVikc", "-m margins", "-p path", "-l loglevel",
+                            "-d mult", "-J jsonfile", "-f renderfile", NULL };
+  for(const char** op = options ; *op ; ++op){
+    usage_option(out, n, *op);
+  }
+  if(n) ncdirect_fg_rgb(n, 0x80, 0xff, 0x80);
+  fprintf(out, "demospec\n\n");
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  const char* optexpo[] = {
+    "-h", "this message", "-V", "print program name and version",
+    "-i", "ignore failures, keep going", "-k", "keep screen; do not switch to alternate",
+    "-d", "delay multiplier (non-negative float)", "-J", "emit JSON summary to file",
+    "-f", "render to file (in addition to stdout)",
+    "-c", "constant PRNG seed, useful for benchmarking",
+    "-m", "margin, or 4 comma-separated margins",
+    NULL
+  };
+  for(const char** op = optexpo ; *op ; op += 2){
+    const char* expo = op[1];
+    usage_expo(out, n, *op, expo);
+  }
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+  fprintf(out, " -l:");
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  fprintf(out, " logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+  fprintf(out, " -p:");
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  fprintf(out, " data file path (default: %s)\n", NOTCURSES_SHARE);
   fprintf(out, "\nspecify demos via their first letter. repetitions are allowed.\n");
-  fprintf(out, "default spec: %s\n\n", DEFAULT_DEMO);
+  if(n) ncdirect_fg_rgb(n, 0x80, 0xff, 0x80);
+  fprintf(out, " default spec: %s\n\n", DEFAULT_DEMO);
+  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
   int printed = 0;
   for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
     if(demos[i].name){
@@ -137,6 +180,7 @@ usage(const char* exe, int status){
   if(printed % 6){
     fprintf(out, "\n");
   }
+  ncdirect_stop(n);
   exit(status);
 }
 
