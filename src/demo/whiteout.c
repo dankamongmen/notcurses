@@ -513,7 +513,7 @@ int witherworm_demo(struct notcurses* nc){
               }
             }
           }else{
-            if((r = ncplane_putsimple(n, '#')) < 1){
+            if((r = ncplane_putchar(n, '#')) < 1){
               return -1;
             }
           }

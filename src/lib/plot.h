@@ -241,7 +241,7 @@ class ncppplot {
            channels_set_bchannel(&channels, swapfg);
            channels_set_fchannel(&channels, swapbg);
            ncplane_set_channels(ncp, channels);
-           if(ncplane_putsimple_yx(ncp, dimy - y - 1, x, ' ') <= 0){
+           if(ncplane_putchar_yx(ncp, dimy - y - 1, x, ' ') <= 0){
              return -1;
            }
            channels_set_bchannel(&channels, swapbg);

@@ -910,20 +910,20 @@ ncplane_putc(struct ncplane* n, const cell* c){
 // 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.
 static inline int
-ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
+ncplane_putchar_yx(struct ncplane* n, int y, int x, char c){
   cell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
   return ncplane_putc_yx(n, y, x, &ce);
 }
 
-// Call ncplane_putsimple_yx() at the current cursor location.
+// Call ncplane_putchar_yx() at the current cursor location.
 static inline int
-ncplane_putsimple(struct ncplane* n, char c){
-  return ncplane_putsimple_yx(n, -1, -1, c);
+ncplane_putchar(struct ncplane* n, char c){
+  return ncplane_putchar_yx(n, -1, -1, c);
 }
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-int ncplane_putsimple_stainable(struct ncplane* n, char c);
+int ncplane_putchar_stainable(struct ncplane* n, char c);
 
 // Replace the cell at the specified coordinates with the provided wide char
 // 'w'. Advance the cursor by the character's width as reported by wcwidth().
@@ -1597,7 +1597,7 @@ simply zero out the `cell`.
 
 ```c
 #define CELL_TRIVIAL_INITIALIZER { }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
+#define CELL_CHAR_INITIALIZER(c) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
@@ -1698,7 +1698,7 @@ cell_double_wide_p(const cell* c){
 }
 
 static inline int
-cell_load_simple(struct ncplane* n, cell* c, char ch){
+cell_load_char(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
   c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
   c->gcluster = ch;

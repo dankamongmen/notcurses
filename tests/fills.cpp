@@ -25,7 +25,7 @@ TEST_CASE("Fills") {
   SUBCASE("PolyfillOffplane") {
     int dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    cell c = CELL_SIMPLE_INITIALIZER('+');
+    cell c = CELL_CHAR_INITIALIZER('+');
     CHECK(0 > ncplane_polyfill_yx(n_, dimy, 0, &c));
     CHECK(0 > ncplane_polyfill_yx(n_, 0, dimx, &c));
     CHECK(0 > ncplane_polyfill_yx(n_, 0, -1, &c));
@@ -33,7 +33,7 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("PolyfillOnGlyph") {
-    cell c = CELL_SIMPLE_INITIALIZER('+');
+    cell c = CELL_CHAR_INITIALIZER('+');
     struct ncplane* pfn = ncplane_new(nc_, 4, 4, 0, 0, nullptr);
     REQUIRE(nullptr != pfn);
     CHECK(16 == ncplane_polyfill_yx(pfn, 0, 0, &c));
@@ -49,13 +49,13 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("PolyfillStandardPlane") {
-    cell c = CELL_SIMPLE_INITIALIZER('-');
+    cell c = CELL_CHAR_INITIALIZER('-');
     CHECK(0 < ncplane_polyfill_yx(n_, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("PolyfillEmptyPlane") {
-    cell c = CELL_SIMPLE_INITIALIZER('+');
+    cell c = CELL_CHAR_INITIALIZER('+');
     struct ncplane* pfn = ncplane_new(nc_, 20, 20, 0, 0, nullptr);
     REQUIRE(nullptr != pfn);
     CHECK(400 == ncplane_polyfill_yx(pfn, 0, 0, &c));
@@ -64,7 +64,7 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("PolyfillWalledPlane") {
-    cell c = CELL_SIMPLE_INITIALIZER('+');
+    cell c = CELL_CHAR_INITIALIZER('+');
     struct ncplane* pfn = ncplane_new(nc_, 4, 4, 0, 0, nullptr);
     REQUIRE(nullptr != pfn);
     CHECK(0 < ncplane_putc_yx(pfn, 0, 1, &c));

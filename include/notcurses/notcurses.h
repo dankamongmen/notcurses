@@ -596,7 +596,7 @@ typedef struct cell {
 } cell;
 
 #define CELL_TRIVIAL_INITIALIZER { }
-#define CELL_SIMPLE_INITIALIZER(c) { .gcluster = (ntole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
+#define CELL_CHAR_INITIALIZER(c) { .gcluster = (ntole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (ntole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
@@ -706,11 +706,10 @@ cell_wide_left_p(const cell* c){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
-// works on both simple and non-simple cells.
 API const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 
-// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
-// result is not tied to the ncplane, and persists across erases / destruction.
+// copy the UTF8-encoded EGC out of the cell. the result is not tied to any
+// ncplane, and persists across erases / destruction.
 static inline char*
 cell_strdup(const struct ncplane* n, const cell* c){
   return strdup(cell_extended_gcluster(n, c));
@@ -745,8 +744,9 @@ cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
   return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
 }
 
+// Load a 7-bit char 'ch' into the cell 'c'.
 static inline int
-cell_load_simple(struct ncplane* n, cell* c, char ch){
+cell_load_char(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
   c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
   c->gcluster = ntole((uint32_t)ch);
@@ -1347,20 +1347,20 @@ ncplane_putc(struct ncplane* n, const cell* c){
 // 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.
 static inline int
-ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c){
+ncplane_putchar_yx(struct ncplane* n, int y, int x, char c){
   cell ce = CELL_INITIALIZER((uint32_t)c, ncplane_attr(n), ncplane_channels(n));
   return ncplane_putc_yx(n, y, x, &ce);
 }
 
-// Call ncplane_putsimple_yx() at the current cursor location.
+// Call ncplane_putchar_yx() at the current cursor location.
 static inline int
-ncplane_putsimple(struct ncplane* n, char c){
-  return ncplane_putsimple_yx(n, -1, -1, c);
+ncplane_putchar(struct ncplane* n, char c){
+  return ncplane_putchar_yx(n, -1, -1, c);
 }
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putsimple_stainable(struct ncplane* n, char c);
+API int ncplane_putchar_stainable(struct ncplane* n, char c);
 
 // Replace the cell at the specified coordinates with the provided EGC, and
 // advance the cursor by the width of the cluster (but not past the end of the

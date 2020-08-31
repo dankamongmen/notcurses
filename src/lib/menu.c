@@ -313,7 +313,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
         ret->sectionchannels = opts->sectionchannels;
-        cell c = CELL_SIMPLE_INITIALIZER('\0');
+        cell c = CELL_TRIVIAL_INITIALIZER;
         cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
         cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
         ncplane_set_base_cell(ret->ncp, &c);
@@ -390,7 +390,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
       }
       // print any necessary padding spaces
       for(int j = cols + 1 ; j < thiswidth - 1 ; ++j){
-        if(ncplane_putsimple(n->ncp, ' ') < 0){
+        if(ncplane_putchar(n->ncp, ' ') < 0){
           return -1;
         }
       }

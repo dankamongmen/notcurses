@@ -18,7 +18,7 @@ int main(void){
   while(true){
     struct timespec req = { .tv_sec = 0, .tv_nsec = 1000000, };
     nanosleep(&req, NULL);
-    if(ncplane_putsimple(n, c) != 1){
+    if(ncplane_putchar(n, c) != 1){
       break;
     }
     if(++c == '{'){

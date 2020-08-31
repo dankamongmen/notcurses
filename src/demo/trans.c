@@ -109,7 +109,7 @@ slidepanel(struct notcurses* nc){
   // no glyph, we should show underlying glyphs in the default colors. The
   // background default might be transparent, at the window level (i.e. a copy
   // of the underlying desktop).
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  cell c = CELL_CHAR_INITIALIZER(' ');
   struct timespec cur;
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
@@ -125,7 +125,7 @@ slidepanel(struct notcurses* nc){
   }
   ncplane_destroy(l);
 
-  cell_load_simple(n, &c, '\0');
+  cell_load_char(n, &c, '\0');
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
@@ -183,7 +183,7 @@ slidepanel(struct notcurses* nc){
 
   // Now we replace the characters with X's, colored as underneath us.
   // Our background color remains opaque default.
-  cell_load_simple(n, &c, 'X');
+  cell_load_char(n, &c, 'X');
   cell_set_fg_default(&c);
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
@@ -258,7 +258,7 @@ int trans_demo(struct notcurses* nc){
     while(x < maxx - 1){
       ncplane_set_fg_rgb(n, (rgb & 0xff0000) >> 16u, (rgb & 0xff00) >> 8u, rgb & 0xff);
       ncplane_set_bg_rgb(n, 0, 10, 0);
-      ncplane_putsimple(n, x % 10 + '0');
+      ncplane_putchar(n, x % 10 + '0');
       grow_rgb(&rgb);
       ++x;
     }

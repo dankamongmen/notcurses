@@ -92,7 +92,7 @@ int box_demo(struct notcurses* nc){
   const int targx = 7;
   const int targy = 7;
   int ytargbase = (ylen - targy) / 2;
-  cell c = CELL_SIMPLE_INITIALIZER(' ');
+  cell c = CELL_CHAR_INITIALIZER(' ');
   cell_set_bg_default(&c);
   ncplane_set_base_cell(n, &c);
   cell_release(n, &c);

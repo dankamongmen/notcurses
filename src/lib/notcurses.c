@@ -1421,13 +1421,13 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   return ncplane_put(n, y, x, gclust, cols, n->stylemask, n->channels, bytes);
 }
 
-int ncplane_putsimple_stainable(ncplane* n, char c){
+int ncplane_putchar_stainable(ncplane* n, char c){
   uint64_t channels = n->channels;
   uint32_t stylemask = n->stylemask;
   const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
   n->stylemask = targ->stylemask;
-  int ret = ncplane_putsimple(n, c);
+  int ret = ncplane_putchar(n, c);
   n->channels = channels;
   n->stylemask = stylemask;
   return ret;

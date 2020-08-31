@@ -706,7 +706,7 @@ TEST_CASE("NCPlane") {
   }
 
   SUBCASE("Perimeter") {
-    cell c = CELL_SIMPLE_INITIALIZER('X');
+    cell c = CELL_CHAR_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(n_, &c, &c, &c, &c, &c, &c, 0));
     CHECK(0 == notcurses_render(nc_));
   }

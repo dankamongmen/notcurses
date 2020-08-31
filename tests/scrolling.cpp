@@ -47,9 +47,9 @@ TEST_CASE("Scrolling") {
     CHECK(0 > ncplane_cursor_move_yx(n, 0, 20));
     CHECK(0 > ncplane_cursor_move_yx(n, 1, 20));
     CHECK(0 > ncplane_cursor_move_yx(n, 2, 2));
-    CHECK(0 > ncplane_putsimple_yx(n, 0, 20, 'c'));
-    CHECK(0 > ncplane_putsimple_yx(n, 1, 20, 'c'));
-    CHECK(0 > ncplane_putsimple_yx(n, 2, 0, 'c'));
+    CHECK(0 > ncplane_putchar_yx(n, 0, 20, 'c'));
+    CHECK(0 > ncplane_putchar_yx(n, 1, 20, 'c'));
+    CHECK(0 > ncplane_putchar_yx(n, 2, 0, 'c'));
   }
 
   // verify that two strings, each the length of the plane, can be output when
@@ -81,7 +81,7 @@ TEST_CASE("Scrolling") {
     CHECK(!ncplane_set_scrolling(n, false));
     // try to write 40 EGCs; the last 20 ought fail
     for(const char* c = out ; *c ; ++c){
-      int ret = ncplane_putsimple(n, *c);
+      int ret = ncplane_putchar(n, *c);
       if(c - out < 20){
         CHECK(1 == ret);
       }else{
@@ -96,7 +96,7 @@ TEST_CASE("Scrolling") {
     CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
     // try to write 40 EGCs; all ought succeed
     for(const char* c = out ; *c ; ++c){
-      CHECK(1 == ncplane_putsimple(n, *c));
+      CHECK(1 == ncplane_putchar(n, *c));
     }
     ncplane_cursor_yx(n, &y, &x);
     CHECK(1 == y);
