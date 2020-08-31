@@ -14,11 +14,11 @@ notcurses_output - output to ncplanes
 
 **int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);**
 
-**static inline int ncplane_putsimple(struct ncplane* n, char c);**
+**static inline int ncplane_putchar(struct ncplane* n, char c);**
 
-**static inline int ncplane_putsimple_yx(struct ncplane* n, int y, int x, char c);**
+**static inline int ncplane_putchar_yx(struct ncplane* n, int y, int x, char c);**
 
-**int ncplane_putsimple_stainable(struct ncplane* n, char c);**
+**int ncplane_putchar_stainable(struct ncplane* n, char c);**
 
 **static inline int ncplane_putwc(struct ncplane* n, wchar_t w);**
 
@@ -78,7 +78,7 @@ These functions write EGCs (Extended Grapheme Clusters) to the specified
 **struct ncplane**s. The following inputs are supported:
 
 * **ncplane_putc()**: writes a single cell (see **notcurses_cell(3)**)
-* **ncplane_put_simple()**: writes a single 7-bit ASCII character
+* **ncplane_putchar()**: writes a single 7-bit ASCII character
 * **ncplane_putwc()**: writes a single **wchar_t** (following UTF-8 conversion)
 * **ncplane_putwegc()**: writes a single EGC from an array of **wchar_t**
 * **ncplane_putegc()**: writes a single EGC from an array of UTF-8

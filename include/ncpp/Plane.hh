@@ -389,9 +389,9 @@ namespace ncpp
 		{
 			int ret;
 			if (retain_styling) {
-				ret = ncplane_putsimple_stainable (plane, c);
+				ret = ncplane_putchar_stainable (plane, c);
 			} else {
-				ret = ncplane_putsimple (plane, c);
+				ret = ncplane_putchar (plane, c);
 			}
 
 			return error_guard<int> (ret, -1);
@@ -399,7 +399,7 @@ namespace ncpp
 
 		int putc (int y, int x, char c) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_putsimple_yx (plane, y, x, c), -1);
+			return error_guard<int> (ncplane_putchar_yx (plane, y, x, c), -1);
 		}
 
 		int putc (const char *gclust, int *sbytes = nullptr, bool retain_styling = false) const NOEXCEPT_MAYBE
@@ -922,7 +922,7 @@ namespace ncpp
 
 		bool load (Cell &cell, char ch) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cell_load_simple (plane, cell, ch), -1);
+			return error_guard (cell_load_char (plane, cell, ch), -1);
 		}
 
 		int prime (Cell &cell, const char *gcluster, uint16_t styles, uint64_t channels) const NOEXCEPT_MAYBE

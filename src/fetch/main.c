@@ -344,14 +344,14 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell);
   if(notcurses_cantruecolor(nc)){
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
-    cell c = CELL_SIMPLE_INITIALIZER('R');
+    cell c = CELL_CHAR_INITIALIZER('R');
     cell_styles_set(&c, NCSTYLE_BOLD);
     cell_set_fg_rgb(&c, 0xd0, 0, 0);
     ncplane_putc_yx(infop, 4, 1, &c);
-    cell_load_simple(infop, &c, 'G');
+    cell_load_char(infop, &c, 'G');
     cell_set_fg_rgb(&c, 0, 0xd0, 0);
     ncplane_putc_yx(infop, 4, 2, &c);
-    cell_load_simple(infop, &c, 'B');
+    cell_load_char(infop, &c, 'B');
     cell_set_fg_rgb(&c, 0, 0, 0xd);
     ncplane_putc_yx(infop, 4, 3, &c);
     cell_styles_set(&c, NCSTYLE_NONE);

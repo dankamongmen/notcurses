@@ -31,7 +31,7 @@ int main(void){
       if(ncplane_cursor_move_yx(n, y, x)){
         goto err;
       }
-      if(ncplane_putsimple(n, 'x') <= 0){
+      if(ncplane_putchar(n, 'x') <= 0){
         goto err;
       }
       if(g % 2){

@@ -1,6 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.7.1 (not yet released)
+  * Renamed `CELL_SIMPLE_INITIALIZER` to `CELL_CHAR_INITIALIZER`, and
+    `cell_load_simple()` to `cell_load_char()`.
+  * Renamed `ncplane_putsimple()` to `ncplane_putchar()`,
+    `ncplane_putsimple_stainable()` to `ncplane_putchar_stainable()`,
+    and `ncplane_putsimple_yx()` to `ncplane_putchar_yx()`.
+
 * 1.7.0 (2020-08-30)
   * Added `notcurses_ucs32_to_utf8()` conversion helper.
   * `ncdirect_init()` now takes a third `uint64_t flags` parameter. No flags

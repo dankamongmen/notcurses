@@ -113,7 +113,7 @@ TEST_CASE("Wide") {
     const char bashed = 'X';
     int sbytes = 0;
     CHECK(0 < ncplane_putegc_yx(n_, 0, 1, wbashed, &sbytes));
-    CHECK(0 < ncplane_putsimple_yx(n_, 1, 1, bashed));
+    CHECK(0 < ncplane_putchar_yx(n_, 1, 1, bashed));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(1 == y);
@@ -173,8 +173,8 @@ TEST_CASE("Wide") {
     int sbytes = 0;
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashedl, &sbytes));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, &sbytes));
-    CHECK(1 == ncplane_putsimple_yx(n_, 0, 1, *cc));
-    CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, *cc));
+    CHECK(1 == ncplane_putchar_yx(n_, 0, 1, *cc));
+    CHECK(1 == ncplane_putchar_yx(n_, 0, 2, *cc));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -204,7 +204,7 @@ TEST_CASE("Wide") {
     int sbytes = 0;
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, &sbytes));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, &sbytes));
-    CHECK(1 == ncplane_putsimple_yx(n_, 0, 2, *cc));
+    CHECK(1 == ncplane_putchar_yx(n_, 0, 2, *cc));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -377,7 +377,7 @@ TEST_CASE("Wide") {
   SUBCASE("OverWide") {
     struct ncplane* p = ncplane_new(nc_, 3, 4, 0, 0, nullptr);
     REQUIRE(nullptr != p);
-    cell c = CELL_SIMPLE_INITIALIZER('X');
+    cell c = CELL_CHAR_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(p, &c, &c, &c, &c, &c, &c, 0));
     ncplane_set_bg_rgb(n_, 0x20, 0x20, 0x20);
     int sbytes;
@@ -919,7 +919,7 @@ TEST_CASE("Wide") {
   SUBCASE("HigherGlyphAbides") {
     auto high = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
     REQUIRE(nullptr != high);
-    CHECK(0 < ncplane_putsimple_yx(high, 0, 0, 'a'));
+    CHECK(0 < ncplane_putchar_yx(high, 0, 0, 'a'));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, "全", nullptr));
     CHECK(0 == notcurses_render(nc_));
     auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, nullptr);

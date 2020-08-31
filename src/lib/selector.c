@@ -95,20 +95,20 @@ ncselector_draw(ncselector* n){
     if(notcurses_canutf8(n->ncp->nc)){
       ncplane_putegc_yx(n->ncp, 2, dimx - 1, "┤", NULL);
     }else{
-      ncplane_putsimple_yx(n->ncp, 2, dimx - 1, '|');
+      ncplane_putchar_yx(n->ncp, 2, dimx - 1, '|');
     }
     if(bodywidth < dimx){
       if(notcurses_canutf8(n->ncp->nc)){
         ncplane_putegc_yx(n->ncp, 2, dimx - bodywidth, "┬", NULL);
       }else{
-        ncplane_putsimple_yx(n->ncp, 2, dimx - bodywidth, '-');
+        ncplane_putchar_yx(n->ncp, 2, dimx - bodywidth, '-');
       }
     }
     if((n->titlecols + 4 != dimx) && n->titlecols > n->secondarycols){
       if(notcurses_canutf8(n->ncp->nc)){
         ncplane_putegc_yx(n->ncp, 2, dimx - (n->titlecols + 4), "┴", NULL);
       }else{
-        ncplane_putsimple_yx(n->ncp, 2, dimx - (n->titlecols + 4), '-');
+        ncplane_putchar_yx(n->ncp, 2, dimx - (n->titlecols + 4), '-');
       }
     }
   }
@@ -143,7 +143,7 @@ ncselector_draw(ncselector* n){
     if(notcurses_canutf8(n->ncp->nc)){
       ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
     }else{
-      ncplane_putsimple_yx(n->ncp, yoff, n->arrowx, '<');
+      ncplane_putchar_yx(n->ncp, yoff, n->arrowx, '<');
     }
   }else{
     n->arrowx = -1;
@@ -184,7 +184,7 @@ ncselector_draw(ncselector* n){
     if(notcurses_canutf8(n->ncp->nc)){
       ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↓", NULL);
     }else{
-      ncplane_putsimple_yx(n->ncp, yoff, n->arrowx, '>');
+      ncplane_putchar_yx(n->ncp, yoff, n->arrowx, '>');
     }
   }
   n->darrowy = yoff;
@@ -624,7 +624,7 @@ ncmultiselector_draw(ncmultiselector* n){
     if(notcurses_canutf8(n->ncp->nc)){
       ncplane_putegc_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? "☒" : "☐", NULL);
     }else{
-      ncplane_putsimple_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? 'X' : '-');
+      ncplane_putchar_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? 'X' : '-');
     }
     n->ncp->channels = n->opchannels;
     if(printidx == n->current){

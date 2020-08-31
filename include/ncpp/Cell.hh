@@ -37,7 +37,7 @@ namespace ncpp
 		explicit Cell (uint32_t c, NotCurses *ncinst = nullptr) noexcept
 			: Root (ncinst)
 		{
-			_cell = CELL_SIMPLE_INITIALIZER (c);
+			_cell = CELL_CHAR_INITIALIZER (c);
 		}
 
 		explicit Cell (uint32_t c, uint16_t a, uint64_t chan, NotCurses *ncinst = nullptr) noexcept
