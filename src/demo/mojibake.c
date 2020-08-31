@@ -3529,7 +3529,6 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
       break;
     }
     int w = ncplane_putc_yx(n, y, x, &c);
-//fprintf(stderr, "PLACED %d/%d (%d): %zu [%s]\n", y, x, w, strlen(cell_extended_gcluster(n, &c)), cell_extended_gcluster(n, &c));
     cell_release(n, &c);
     if(w < 0){
       ncplane_destroy(n);
