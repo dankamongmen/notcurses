@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.7.1 (not yet released)
+* 1.7.1 (2020-08-31)
   * Renamed `CELL_SIMPLE_INITIALIZER` to `CELL_CHAR_INITIALIZER`, and
     `cell_load_simple()` to `cell_load_char()`.
   * Renamed `ncplane_putsimple()` to `ncplane_putchar()`,

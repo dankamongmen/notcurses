@@ -1,6 +1,6 @@
 % notcurses-demo(1)
 % nick black <nickblack@linux.com>
-% v1.7.0
+% v1.7.1
 
 # NAME
 
