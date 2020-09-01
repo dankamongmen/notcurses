@@ -22,3 +22,4 @@ cd ..
 export TERM=xterm-256color && sudo pbuilder build *dsc
 cd -
 git push
+rm debian/files

@@ -5,9 +5,8 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-08-20a
+  image: dankamongmen/unstable_builder:2020-08-31a
   commands:
-    - apt-get -y install python3-cffi
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
@@ -25,12 +24,12 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/focal:2020-08-20a
+  image: dankamongmen/focal:2020-08-31a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=none ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
     - make
     - env TERM=xterm make test
     - make install
@@ -46,7 +45,7 @@ name: fedora-rawhide
 
 steps:
 - name: fedora-rawhide
-  image: dankamongmen/fedora33:2020-08-15a
+  image: dankamongmen/fedora33:2020-08-31a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
