@@ -18,6 +18,7 @@ struct notcurses;
 
 #define NCREADER_OPTION_HORSCROLL  0x0001
 #define NCREADER_OPTION_VERSCROLL  0x0002
+#define NCREADER_OPTION_NOCMDKEYS  0x0004
 
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
@@ -84,8 +85,6 @@ preserving whitespace.
 # NOTES
 
 Support for **NCREADER_OPTION_VERSCROLL** is not yet implemented.
-
-Ideally, most of the functionality of **readline(3)** will be implemented.
 
 **ncreader** does not buffer inputs in order to assemble EGCs from them. If
 inputs are to be processed as EGCs (as they should), the caller would need

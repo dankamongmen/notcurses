@@ -3014,8 +3014,12 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 API int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax,
                        int* xmax, const void* data, size_t len);
 
-#define NCREADER_OPTION_HORSCROLL  0x0001ull
-#define NCREADER_OPTION_VERSCROLL  0x0002ull
+// Enable horizontal scrolling. Virtual lines can then grow arbitrarily long.
+#define NCREADER_OPTION_HORSCROLL 0x0001ull
+// Enable vertical scrolling. You can then use arbitrarily many virtual lines.
+#define NCREADER_OPTION_VERSCROLL 0x0002ull
+// Disable all editing shortcuts. By default, emacs-style keys are available.
+#define NCREADER_OPTION_NOCMDKEYS 0x0004ull
 
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
