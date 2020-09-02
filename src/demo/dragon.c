@@ -32,9 +32,11 @@ dragonmayer(struct ncvisual* ncv, const char* str, int iters){
       case '-': { int tmp = -dy; dy = dx; dx = tmp; break; }
       case 'F': // FIXME want a line
         ncpixel_set_r(&pixel, 0xb0 - (iters * 0x10));
+        ncpixel_set_a(&pixel, 0xff);
         if(ncvisual_set_yx(ncv, y, x, pixel) == 0){
           ++total;
         }
+        pixel = 0;
         x += dx;
         y += dy;
         break;
@@ -70,15 +72,11 @@ int dragon_demo(struct notcurses* nc){
     return -1;
   }
   memset(rgba, 0, fbbytes);
-  for(int i = 0 ; i < dimy * dimx ; ++i){
-    ncpixel_set_a(&rgba[i], 0xff);
-  }
   struct ncvisual* ncv = ncvisual_from_rgba(rgba, dimy, dimx * sizeof(uint32_t), dimx);
+  free(rgba);
   if(ncv == NULL){
-    free(rgba);
     return -1;
   }
-  free(rgba);
   struct timespec scaled;
   timespec_div(&demodelay, 8, &scaled);
   int lasttotal = 0;
@@ -87,8 +85,6 @@ int dragon_demo(struct notcurses* nc){
   do{
     ++iters;
     lasttotal = r;
-    pixel = 0xffffffffull;
-    ncpixel_set_rgb(&pixel, 0, 0xb * iters, 0xf0 - (4 * iters));
     dx = dxstart;
     dy = dystart;
     x = dimx / 2;

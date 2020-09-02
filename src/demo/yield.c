@@ -81,5 +81,6 @@ int yield_demo(struct notcurses* nc){
     ++iters;
   }
   ncvisual_destroy(wmv);
+  ncplane_erase(std);
   return 0;
 }
