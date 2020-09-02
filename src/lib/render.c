@@ -1022,15 +1022,66 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   return 0;
 }
 
-int notcurses_render_nblock(notcurses* nc){
-  int dimy, dimx;
-  notcurses_resize(nc, &dimy, &dimx);
-  const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
-  struct crender* crender = malloc(crenderlen);
-  init_rvec(crender, crenderlen / sizeof(struct crender));
-  if(notcurses_render_internal(nc, crender) == 0){
-    // FIXME enqueue frame
+// a frame ready to be rasterized
+typedef struct rendered_frame {
+  int dimy, dimx;          // dimensions at render time
+  struct crender* crender; // heap-allocated per-cell render state
+  struct timespec start;   // starttime of render
+} rendered_frame;
+
+static pthread_t writer_tid;
+static rendered_frame* towrite;
+static pthread_cond_t writer_cond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t writer_lock = PTHREAD_MUTEX_INITIALIZER;
+
+// this writer thread is spun up at startup, and signaled by
+// notcurses_render_nblock() when a frame is ready.
+static void*
+writer_thread(void* vnc){
+  notcurses* nc = vnc;
+  rendered_frame* rend;
+  struct timespec done;
+  do{
+    pthread_mutex_lock(&writer_lock);
+    while((rend = towrite) == NULL){
+      pthread_cond_wait(&writer_cond, &writer_lock);
+    }
+    towrite = NULL;
+    pthread_mutex_unlock(&writer_lock);
+    int bytes = notcurses_rasterize(nc, rend->crender, nc->rstate.mstreamfp);
+    free(rend->crender);
+    clock_gettime(CLOCK_MONOTONIC, &done);
+    update_render_stats(&done, &rend->start, &nc->stats, bytes);
+    free(rend);
+  }while(1);
+  return NULL;
+}
+
+static rendered_frame*
+get_writeable_frame(notcurses* nc){
+  rendered_frame* rframe = malloc(sizeof(*rframe));
+  if(rframe){
+    clock_gettime(CLOCK_MONOTONIC, &rframe->start);
+    notcurses_resize(nc, &rframe->dimy, &rframe->dimx);
+    const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
+    rframe->crender = malloc(crenderlen);
+    init_rvec(rframe->crender, crenderlen / sizeof(struct crender));
   }
+  return rframe;
+}
+
+int notcurses_render_nblock(notcurses* nc){
+  rendered_frame* rframe = get_writeable_frame(nc);
+  if(rframe == NULL){
+    return -1;
+  }
+  if(notcurses_render_internal(nc, rframe->crender)){
+    return -1;
+  }
+  pthread_mutex_lock(&writer_lock);
+  towrite = rframe;
+  pthread_mutex_unlock(&writer_lock);
+  pthread_cond_signal(&writer_cond);
   return 0;
 }
 
@@ -1160,4 +1211,12 @@ int notcurses_cursor_disable(notcurses* nc){
     }
   }
   return -1;
+}
+
+int render_init(notcurses* nc){
+  if(pthread_create(&writer_tid, NULL, writer_thread, nc)){
+    logerror(nc, "Error launching raster thread (%s)\n", strerror(errno));
+    return -1;
+  }
+  return 0;
 }
