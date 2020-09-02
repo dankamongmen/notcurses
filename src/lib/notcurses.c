@@ -964,6 +964,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(make_nonblocking(ret->input.ttyinfp)){
     goto err;
   }
+  if(render_init(ret)){
+    goto err;
+  }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
     terminfostr(&ret->tcache.smcup, "smcup");

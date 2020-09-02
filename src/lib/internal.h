@@ -989,6 +989,8 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
 // FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, struct termios* tpreserved);
 
+int render_init(notcurses* nc);
+
 #ifdef __cplusplus
 }
 #endif
