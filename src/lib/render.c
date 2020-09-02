@@ -1022,23 +1022,36 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   return 0;
 }
 
-int notcurses_render(notcurses* nc){
-  struct timespec start, done;
-  int ret;
-  clock_gettime(CLOCK_MONOTONIC, &start);
+int notcurses_render_nblock(notcurses* nc){
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
-  int bytes = -1;
   const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
   struct crender* crender = malloc(crenderlen);
   init_rvec(crender, crenderlen / sizeof(struct crender));
   if(notcurses_render_internal(nc, crender) == 0){
-    bytes = notcurses_rasterize(nc, crender, nc->rstate.mstreamfp);
+    // FIXME enqueue frame
+  }
+  return 0;
+}
+
+int notcurses_render(notcurses* nc){
+  struct timespec start, done;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  int dimy, dimx;
+  notcurses_resize(nc, &dimy, &dimx);
+  int bytes = -1;
+  int ret = -1;
+  const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
+  struct crender* crender = malloc(crenderlen);
+  init_rvec(crender, crenderlen / sizeof(struct crender));
+  if(notcurses_render_internal(nc, crender) == 0){
+    if((bytes = notcurses_rasterize(nc, crender, nc->rstate.mstreamfp)) >= 0){
+      ret = 0;
+    }
   }
   free(crender);
   clock_gettime(CLOCK_MONOTONIC, &done);
   update_render_stats(&done, &start, &nc->stats, bytes);
-  ret = bytes >= 0 ? 0 : -1;
   return ret;
 }
 
