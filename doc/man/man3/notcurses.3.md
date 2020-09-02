@@ -23,7 +23,7 @@ transparency, multimedia, and safe multithreaded use.
 A program wishing to use notcurses will need to link it, ideally using the
 output of **pkg-config --libs notcurses** (see **pkg-config(1)**). It is
 advised to compile with the output of **pkg-config --cflags notcurses**. If
-using CMake, a support file is provided, and can be accessed as **notcurses**
+using CMake, a support file is provided, and can be accessed as **Notcurses**
 (see **cmake(1)**).
 
 **notcurses_init(3)** can then be used to initialize a notcurses instance for a
@@ -70,12 +70,13 @@ Information on input is available at **notcurses_input(3)**. The included tool
 
 Following initialization, a single ncplane exists, the "standard plane" (see
 **notcurses_stdplane(3)**). This plane cannot be destroyed nor manually resized,
-and is always exactly as large as the screen. Further ncplanes can be created
-with **ncplane_new(3)**. A total z-ordering always exists on the set of
-ncplanes, and new ncplanes are placed at the top of the z-buffer. Ncplanes can
-be larger, smaller, or the same size as the physical screen, and can be placed
-anywhere relative to it (including entirely off-screen). Ncplanes are made up
-of cells (see [Cells][] below). Information on ncplanes is available at
+and is always exactly as large as the screen (if run without a TTY, the "screen"
+is assumed to be 80x24 cells). Further ncplanes can be created with
+**ncplane_new(3)**. A total z-ordering always exists on the set of ncplanes,
+and new ncplanes are placed at the top of the z-buffer. Ncplanes can be larger,
+smaller, or the same size as the physical screen, and can be placed anywhere
+relative to it (including entirely off-screen). Ncplanes are made up of cells
+(see [Cells][] below). Information on ncplanes is available at
 **notcurses_plane(3)**.
 
 ## Cells
