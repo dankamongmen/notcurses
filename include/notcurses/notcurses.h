@@ -846,6 +846,13 @@ API int notcurses_stop(struct notcurses* nc);
 // successful call to notcurses_render().
 API int notcurses_render(struct notcurses* nc);
 
+// Render the virtual screen to a buffer, and alert a helper thread so that it
+// is written to the screen. Returns independently of writing to the terminal.
+// Successive calls to notcurses_render_nblock() can be made immediately. Use
+// of notcurses_render_nblock() can see frames dropped if they're produced more
+// rapidly than the terminal is updated.
+API int notcurses_render_nblock(struct notcurses* nc);
+
 // Write the last rendered frame, in its entirety, to 'fp'. If
 // notcurses_render() has not yet been called, nothing will be written.
 API int notcurses_render_to_file(struct notcurses* nc, FILE* fp);

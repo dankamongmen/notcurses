@@ -12,6 +12,8 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **int notcurses_render(struct notcurses* nc);**
 
+**int notcurses_render_nblock(struct notcurses* nc);**
+
 **char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint16_t* styles, uint64_t* channels);**
 
 **int notcurses_render_to_file(struct notcurses* nc, FILE* fp);**
@@ -67,6 +69,15 @@ the color as computed thus far is used.
 
 **notcurses_at_yx** retrieves a call *as rendered*. The EGC in that cell is
 copied and returned; it must be **free(3)**d by the caller.
+
+## Nonblocking use
+
+**notcurses_render_nblock** renders the virtual screen to a buffer, and alerts a
+helper thread to actually rasterize the frame to the terminal. It returns
+independently of writing to the terminal, returning immediately following
+the render. Successive calls to **notcurses_render_nblock** can be made
+immediately. Use of **notcurses_render_nblock** can see frames dropped if
+they're produced more rapidly than the terminal is updated.
 
 # RETURN VALUES
 

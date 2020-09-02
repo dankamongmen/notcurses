@@ -20,7 +20,10 @@ rearrangements of Notcurses.
      * `ncreader_options` has lost its `echannels`, `eattrword`, `egc`,
        `physrows`, and `physcols` fields. Just set the base character and size
        for the `ncplane`.
-     * ...
+  * Added `notcurses_render_nblock()`. This function enlists a helper thread to
+    write rendered frames to the terminal. It returns immediately following
+    rendering of the current frame to a buffer. If frames are rendered more
+    quickly than the terminal can ingest them, frames can be dropped.
 
 * 1.7.2 (2020-09-09)
   * Exported `ncvisual_default_blitter()`, so that the effective value of
