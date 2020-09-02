@@ -3398,8 +3398,7 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
     return NULL;
   }
   channels = 0;
-  channels_set_bg(&channels, 0x0);
-  if(ncplane_set_fg(n, 0x40d0d0) || ncplane_set_bg(n, 0)){
+  if(ncplane_set_fg(n, 0x40d0d0)){
     ncplane_destroy(n);
     return NULL;
   }
