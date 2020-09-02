@@ -188,6 +188,12 @@ highcontrast(uint32_t bchannel){
 // against the real background.
 static inline void
 lock_in_highcontrast(cell* targc, struct crender* crender){
+  if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+    cell_set_fg_default(targc);
+  }
+  if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+    cell_set_bg_default(targc);
+  }
   if(crender->highcontrast){
     // highcontrast weighs the original at 1/4 and the contrast at 3/4
     if(!cell_fg_default_p(targc)){
