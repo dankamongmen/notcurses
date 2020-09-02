@@ -32,6 +32,7 @@ ncreader* ncreader_create(ncplane* n, int y, int x, const ncreader_options* opts
     nr->xproject = 0;
     nr->tchannels = opts->tchannels;
     nr->tattrs = opts->tattrword;
+    nr->no_cmd_keys = opts->flags & NCREADER_OPTION_NOCMDKEYS;
     ncplane_set_channels(nr->ncp, opts->tchannels);
     ncplane_set_attr(nr->ncp, opts->tattrword);
   }
@@ -215,7 +216,7 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   if(ni->alt){ // pass on all alts
     return false;
   }
-  if(ni->ctrl){
+  if(ni->ctrl && !n->no_cmd_keys){
     if(ni->id == 'U'){
       ncplane_erase(n->ncp);
       return true;

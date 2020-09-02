@@ -195,6 +195,7 @@ typedef struct ncreader {
   ncplane* textarea;          // grows as needed iff scrolling is enabled
   int xproject;               // virtual x location of ncp origin on textarea
   bool horscroll;             // is there horizontal panning?
+  bool no_cmd_keys;           // are shortcuts disabled?
 } ncreader;
 
 typedef struct ncmenu {
