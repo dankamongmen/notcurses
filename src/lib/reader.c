@@ -218,7 +218,8 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   }
   if(ni->ctrl && !n->no_cmd_keys){
     if(ni->id == 'U'){
-      ncplane_erase(n->ncp);
+      ncplane_erase(n->ncp); // homes the cursor
+      ncplane_erase(n->textarea);
       return true;
     }
     return false; // pass on all other ctrls
