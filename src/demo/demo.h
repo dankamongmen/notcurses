@@ -166,6 +166,7 @@ int hud_schedule(const char* demoname);
 // this result ought be propagated out so that the demo is reported as having
 // been aborted, rather than having failed.
 int demo_render(struct notcurses* nc);
+int demo_render_nblock(struct notcurses* nc);
 
 #define DEMO_RENDER(nc) { int demo_render_err = demo_render(nc); if(demo_render_err){ return demo_render_err; }}
 

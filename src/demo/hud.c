@@ -470,7 +470,8 @@ int demo_nanosleep_abstime(struct notcurses* nc, const struct timespec* abstime)
 }
 
 // FIXME needs to pass back any ncinput read, if requested...hrmmm
-int demo_render(struct notcurses* nc){
+static char32_t
+demo_render_internal(struct notcurses* nc){
   if(interrupted){
     return 1;
   }
@@ -516,8 +517,23 @@ int demo_render(struct notcurses* nc){
     ncplane_styles_off(hud, NCSTYLE_BOLD);
   }
   ncinput ni;
-  char32_t id;
-  id = demo_getc_nblock(nc, &ni);
+  return demo_getc_nblock(nc, &ni);
+}
+
+int demo_render_nblock(struct notcurses* nc){
+  char32_t id = demo_render_internal(nc);
+  int ret = notcurses_render_nblock(nc);
+  if(ret){
+    return ret;
+  }
+  if(id == 'q'){
+    return 1;
+  }
+  return 0;
+}
+
+int demo_render(struct notcurses* nc){
+  char32_t id = demo_render_internal(nc);
   int ret = notcurses_render(nc);
   if(ret){
     return ret;
