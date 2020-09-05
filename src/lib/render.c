@@ -1107,25 +1107,29 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
     return -1;
   }
-  if(nc->ttyfd >= 0){
-    if(nc->tcache.cnorm){
-      if(nc->cursory != y || nc->cursorx != x){
-        if(stage_cursor(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
-          if(nc->cursory >= 0 && nc->cursorx >= 0){
-            nc->cursory = y;
-            nc->cursorx = x;
-            return 0;
-          }
-          if(!tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd) && !fflush(nc->ttyfp)){
-            nc->cursory = y;
-            nc->cursorx = x;
-            return 0;
-          }
-        }
-      }
-    }
+  // if we're already at the demanded location, we must already be visible, and
+  // we needn't move the cursor -- return success immediately.
+  if(nc->cursory == y && nc->cursorx == x){
+    return 0;
   }
-  return -1;
+  if(nc->ttyfd < 0 || !nc->tcache.cnorm){
+    return -1;
+  }
+  if(stage_cursor(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx)){
+    return -1;
+  }
+  // if we were already positive, we're already visible, no need to write cnorm
+  if(nc->cursory >= 0 && nc->cursorx >= 0){
+    nc->cursory = y;
+    nc->cursorx = x;
+    return 0;
+  }
+  if(tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd) || fflush(nc->ttyfp) == EOF){
+    return -1;
+  }
+  nc->cursory = y;
+  nc->cursorx = x;
+  return 0;
 }
 
 int notcurses_cursor_disable(notcurses* nc){
