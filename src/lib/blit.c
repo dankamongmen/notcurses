@@ -269,25 +269,91 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   return egc;
 }
 
-// quadrant check for transparency. returns 1 if we found transparent quads,
-// and have solved for color+EGC. transparency trumps everything else in terms
+// quadrant check for transparency. returns an EGC if we found transparent
+// quads and have solved for colors (this EGC ought then be loaded into the
+// cell). returns NULL otherwise. transparency trumps everything else in terms
 // of priority -- if even one quadrant is transparent, we will have a
-// transparent background, and lerp the rest together for foreground.
-static int
-qtrans_check(ncplane* nc, cell* c, bool bgr,
+// transparent background, and lerp the rest together for foreground. we thus
+// have a 16-way conditional tree in which each EGC must show up exactly once.
+static const char*
+qtrans_check(cell* c, bool bgr, bool blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
              const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br){
-  if(ffmpeg_trans_p(bgr, rgbbase_tl[3]) && ffmpeg_trans_p(bgr, rgbbase_tr[3])
-      && ffmpeg_trans_p(bgr, rgbbase_bl[3]) && ffmpeg_trans_p(bgr, rgbbase_br[3])){
-      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-      cell_set_fg_default(c);
-      const char* egc = " "; // FIXME
-      if(cell_load(nc, c, egc) <= 0){
-        return -1;
+  const int rpos = bgr ? 2 : 0;
+  const int bpos = bgr ? 0 : 2;
+  const char* egc = NULL;
+  if(ffmpeg_trans_p(bgr, rgbbase_tl[3])){
+    // top left is transparent
+    if(ffmpeg_trans_p(bgr, rgbbase_tr[3])){
+      // all of top is transparent
+      if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
+        // top and left are transparent
+        if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
+          // entirety is transparent, load with space
+          cell_set_fg_default(c);
+          egc = " ";
+        }else{
+          cell_set_fg_rgb(c, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
+          egc = "▗";
+        }
+      }else{
+        if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
+          cell_set_fg_rgb(c, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
+          egc = "▖";
+        }else{
+          // FIXME lerp for bottom
+          egc = "▄";
+        }
       }
-      return 1;
+    }else{ // top right is foreground, top left is transparent
+      if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
+        if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // entire bottom is transparent
+          cell_set_fg_rgb(c, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
+          egc = "▝";
+        }else{
+          egc = "▐";
+        }
+      }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // only br is transparent
+        // FIXME lerp other two
+        egc = "▞";
+      }else{
+        egc = "▟";
+      }
+    }
+  }else{ // topleft is foreground for all here
+    if(ffmpeg_trans_p(bgr, rgbbase_tr[3])){
+      if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
+        if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
+          cell_set_fg_rgb(c, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
+          egc = "▘";
+        }else{
+          egc = "▚";
+        }
+      }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
+        egc = "▌";
+      }else{
+        egc = "▙";
+      }
+    }else if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
+      if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // entire bottom is transparent
+        egc = "▀";
+      }else{ // only bl is transparent
+        // FIXME lerp other three
+        egc = "▜";
+      }
+    }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // only br is transparent
+      // FIXME lerp other three
+      egc = "▛";
+    }else{
+      return NULL; // no transparency
+    }
   }
-  return 0;
+  assert(egc);
+  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+  if(blendcolors){
+    cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+  }
+  return egc;
 }
 
 // quadrant blitter. maps 2x2 to each cell. since we only have two colors at
@@ -329,8 +395,8 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = NULL;
-      if(!qtrans_check(nc, c, bgr, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br)){
+      const char* egc = qtrans_check(c, bgr, blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
+      if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
         channel_set_rgb(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
         channel_set_rgb(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
@@ -346,9 +412,9 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
-        if(cell_load(nc, c, egc) <= 0){
-          return -1;
-        }
+      }
+      if(cell_load(nc, c, egc) <= 0){
+        return -1;
       }
       ++total;
     }
