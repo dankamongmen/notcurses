@@ -269,6 +269,27 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   return egc;
 }
 
+// quadrant check for transparency. returns 1 if we found transparent quads,
+// and have solved for color+EGC. transparency trumps everything else in terms
+// of priority -- if even one quadrant is transparent, we will have a
+// transparent background, and lerp the rest together for foreground.
+static int
+qtrans_check(ncplane* nc, cell* c, bool bgr,
+             const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
+             const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br){
+  if(ffmpeg_trans_p(bgr, rgbbase_tl[3]) && ffmpeg_trans_p(bgr, rgbbase_tr[3])
+      && ffmpeg_trans_p(bgr, rgbbase_bl[3]) && ffmpeg_trans_p(bgr, rgbbase_br[3])){
+      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+      cell_set_fg_default(c);
+      const char* egc = " "; // FIXME
+      if(cell_load(nc, c, egc) <= 0){
+        return -1;
+      }
+      return 1;
+  }
+  return 0;
+}
+
 // quadrant blitter. maps 2x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
@@ -308,14 +329,8 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      // FIXME for now, we're only transparent if all four are transparent. we ought
-      // match transparent like anything else...
       const char* egc = NULL;
-      if(ffmpeg_trans_p(bgr, rgbbase_tl[3]) && ffmpeg_trans_p(bgr, rgbbase_tr[3])
-          && ffmpeg_trans_p(bgr, rgbbase_bl[3]) && ffmpeg_trans_p(bgr, rgbbase_br[3])){
-          cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-          cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-      }else{
+      if(!qtrans_check(nc, c, bgr, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br)){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
         channel_set_rgb(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
         channel_set_rgb(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
