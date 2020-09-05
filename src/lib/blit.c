@@ -275,12 +275,17 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 // of priority -- if even one quadrant is transparent, we will have a
 // transparent background, and lerp the rest together for foreground. we thus
 // have a 16-way conditional tree in which each EGC must show up exactly once.
-static const char*
+static inline const char*
 qtrans_check(cell* c, bool bgr, bool blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
              const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br){
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
+  uint32_t tl = 0, tr = 0, bl = 0, br = 0;
+  channel_set_rgb(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
+  channel_set_rgb(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
+  channel_set_rgb(&bl, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
+  channel_set_rgb(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
   const char* egc = NULL;
   if(ffmpeg_trans_p(bgr, rgbbase_tl[3])){
     // top left is transparent
@@ -301,7 +306,7 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
           cell_set_fg_rgb(c, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
           egc = "▖";
         }else{
-          // FIXME lerp for bottom
+          cell_set_fchannel(c, lerp(bl, br));
           egc = "▄";
         }
       }
@@ -311,12 +316,14 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
           cell_set_fg_rgb(c, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
           egc = "▝";
         }else{
+          cell_set_fchannel(c, lerp(tr, br));
           egc = "▐";
         }
       }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // only br is transparent
-        // FIXME lerp other two
+        cell_set_fchannel(c, lerp(tr, bl));
         egc = "▞";
       }else{
+        cell_set_fchannel(c, trilerp(tr, bl, br));
         egc = "▟";
       }
     }
@@ -327,22 +334,26 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
           cell_set_fg_rgb(c, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
           egc = "▘";
         }else{
+          cell_set_fchannel(c, lerp(tl, br));
           egc = "▚";
         }
       }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
+        cell_set_fchannel(c, lerp(tl, bl));
         egc = "▌";
       }else{
+        cell_set_fchannel(c, trilerp(tl, bl, br));
         egc = "▙";
       }
     }else if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
       if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // entire bottom is transparent
+        cell_set_fchannel(c, lerp(tl, tr));
         egc = "▀";
       }else{ // only bl is transparent
-        // FIXME lerp other three
+        cell_set_fchannel(c, trilerp(tl, tr, br));
         egc = "▜";
       }
     }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // only br is transparent
-      // FIXME lerp other three
+      cell_set_fchannel(c, trilerp(tl, tr, bl));
       egc = "▛";
     }else{
       return NULL; // no transparency
