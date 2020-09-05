@@ -221,7 +221,7 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 //
 // only those cells where 'p' intersects with the target rendering area are
 // rendered.
-static int
+static void
 paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
@@ -341,7 +341,6 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       }
     }
   }
-  return 0;
 }
 
 // it's not a pure memset(), because CELL_ALPHA_OPAQUE is the zero value, and
@@ -421,16 +420,8 @@ int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
     return -1;
   }
   init_rvec(rvec, totalcells);
-  if(paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
-    free(rvec);
-    free(rendfb);
-    return -1;
-  }
-  if(paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
-    free(rvec);
-    free(rendfb);
-    return -1;
-  }
+  paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx);
+  paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx);
 //fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
   postpaint(rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
 //fprintf(stderr, "Postpaint done (%dx%d)\n", dst->leny, dst->lenx);
@@ -1012,10 +1003,8 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   ncplane_dim_yx(nc->stdplane, &dimy, &dimx);
   ncplane* p = nc->top;
   while(p){
-    if(paint(p, rvec, nc->stdplane->leny, nc->stdplane->lenx,
-             nc->stdplane->absy, nc->stdplane->absx)){
-      return -1;
-    }
+    paint(p, rvec, nc->stdplane->leny, nc->stdplane->lenx,
+          nc->stdplane->absy, nc->stdplane->absx);
     p = p->below;
   }
   postpaint(nc->lastframe, dimy, dimx, rvec, &nc->pool);
@@ -1027,10 +1016,18 @@ typedef struct rendered_frame {
   int dimy, dimx;          // dimensions at render time
   struct crender* crender; // heap-allocated per-cell render state
   struct timespec start;   // starttime of render
+  enum {
+    UNUSED,      // garbage frame
+    RENDERED,    // we've rendered to this frame, and it can be written
+    RASTERIZING, // we're writing this frame out to the terminal, do not disrupt
+  } state;
 } rendered_frame;
 
 static pthread_t writer_tid;
-static rendered_frame* towrite;
+// we have two frames available. the rendering client renders to the primary if
+// it is available. if both are full, the secondary can be blown away.
+static int next_to_render = 0;
+static rendered_frame rframes[1];
 static pthread_cond_t writer_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t writer_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -1039,47 +1036,60 @@ static pthread_mutex_t writer_lock = PTHREAD_MUTEX_INITIALIZER;
 static void*
 writer_thread(void* vnc){
   notcurses* nc = vnc;
-  rendered_frame* rend;
   struct timespec done;
+  int next_to_raster = 0;
+  rendered_frame* rframe;
+  bool inloop = false;
   do{
     pthread_mutex_lock(&writer_lock);
-    while((rend = towrite) == NULL){
+    if(inloop){
+      rframe->state = UNUSED;
+    }
+    rframe = &rframes[next_to_raster];
+    while(rframe->state != RENDERED){
       pthread_cond_wait(&writer_cond, &writer_lock);
     }
-    towrite = NULL;
+    rframe->state = RASTERIZING;
     pthread_mutex_unlock(&writer_lock);
-    int bytes = notcurses_rasterize(nc, rend->crender, nc->rstate.mstreamfp);
-    free(rend->crender);
+    int bytes = notcurses_rasterize(nc, rframe->crender, nc->rstate.mstreamfp);
+    free(rframe->crender);
     clock_gettime(CLOCK_MONOTONIC, &done);
-    update_render_stats(&done, &rend->start, &nc->stats, bytes);
-    free(rend);
+    update_render_stats(&done, &rframe->start, &nc->stats, bytes);
+    if(++next_to_raster == sizeof(rframes) / sizeof(*rframes)){
+      next_to_raster = 0;
+    }
+    inloop = true;
   }while(1);
   return NULL;
 }
 
 static rendered_frame*
 get_writeable_frame(notcurses* nc){
-  rendered_frame* rframe = malloc(sizeof(*rframe));
-  if(rframe){
-    clock_gettime(CLOCK_MONOTONIC, &rframe->start);
-    notcurses_resize(nc, &rframe->dimy, &rframe->dimx);
-    const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
-    rframe->crender = malloc(crenderlen);
-    init_rvec(rframe->crender, crenderlen / sizeof(struct crender));
+  rendered_frame* rframe = &rframes[next_to_render];
+  if(rframe->state != UNUSED){
+    return NULL;
   }
+  if(++next_to_render == sizeof(rframes) / sizeof(*rframes)){
+    next_to_render = 0;
+  }
+  clock_gettime(CLOCK_MONOTONIC, &rframe->start);
+  notcurses_resize(nc, &rframe->dimy, &rframe->dimx);
+  const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
+  rframe->crender = malloc(crenderlen);
+  init_rvec(rframe->crender, crenderlen / sizeof(struct crender));
   return rframe;
 }
 
 int notcurses_render_nblock(notcurses* nc){
   rendered_frame* rframe = get_writeable_frame(nc);
   if(rframe == NULL){
-    return -1;
+    return 0;
   }
   if(notcurses_render_internal(nc, rframe->crender)){
     return -1;
   }
   pthread_mutex_lock(&writer_lock);
-  towrite = rframe;
+  rframe->state = RENDERED;
   pthread_mutex_unlock(&writer_lock);
   pthread_cond_signal(&writer_cond);
   return 0;

@@ -231,7 +231,6 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
     if(ret && !ignore_failures){
       break;
     }
-    notcurses_refresh(nc, NULL, NULL);
   }
   return 0;
 }

@@ -141,7 +141,7 @@ reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultisel
     }
     clock_gettime(CLOCK_MONOTONIC, &ts);
     cur = timespec_to_ns(&ts);
-    if( (ret = demo_render(nc)) ){
+    if( (ret = demo_render_blocking(nc)) ){
       return ret;
     }
   }while(cur < targ);
@@ -269,7 +269,7 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
     const uint64_t deadline_ns = timespec_to_ns(&start) + timespec_to_ns(&targettime);
     clock_gettime(CLOCK_MONOTONIC, &now);
     while(timespec_to_ns(&now) < deadline_ns){
-      if( (ret = demo_render(nc)) ){
+      if( (ret = demo_render_blocking(nc)) ){
         return ret;
       }
       struct ncinput ni;
@@ -343,7 +343,7 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
     const uint64_t deadline_ns = timespec_to_ns(&start) + timespec_to_ns(&targettime);
     clock_gettime(CLOCK_MONOTONIC, &now);
     while(timespec_to_ns(&now) < deadline_ns){
-      if( (ret = demo_render(nc)) ){
+      if( (ret = demo_render_blocking(nc)) ){
         return ret;
       }
       struct ncinput ni;

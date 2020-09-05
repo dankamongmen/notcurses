@@ -520,9 +520,9 @@ demo_render_internal(struct notcurses* nc){
   return demo_getc_nblock(nc, &ni);
 }
 
-int demo_render_nblock(struct notcurses* nc){
+int demo_render_blocking(struct notcurses* nc){
   char32_t id = demo_render_internal(nc);
-  int ret = notcurses_render_nblock(nc);
+  int ret = notcurses_render(nc);
   if(ret){
     return ret;
   }
@@ -534,7 +534,7 @@ int demo_render_nblock(struct notcurses* nc){
 
 int demo_render(struct notcurses* nc){
   char32_t id = demo_render_internal(nc);
-  int ret = notcurses_render(nc);
+  int ret = notcurses_render_nblock(nc);
   if(ret){
     return ret;
   }
