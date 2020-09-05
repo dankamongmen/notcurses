@@ -158,12 +158,17 @@ layout_next_text(struct ncreader* reader, const char* text, size_t* textpos){
       free(duped);
       return -1;
     }
+    free(duped);
     int y, x, posy, posx;
     struct ncplane* ncp = ncreader_plane(reader);
     ncplane_cursor_yx(ncp, &y, &x);
     ncplane_yx(ncp, &posy, &posx);
-    notcurses_cursor_enable(ncplane_notcurses(ncp), y + posy, x + posx);
-    free(duped);
+    int stdy = ncplane_dim_y(notcurses_stdplane(ncplane_notcurses(ncp)));
+    if(y + posy < stdy - 1){
+      if(notcurses_cursor_enable(ncplane_notcurses(ncp), y + posy, x + posx)){
+        return -1;
+      }
+    }
     *textpos += towrite;
   }
   return 0;
