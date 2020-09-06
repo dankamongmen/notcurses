@@ -59,10 +59,7 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
             return -1;
           }
           ncplane_set_attr(std, NCSTYLE_NONE);
-          int r = demo_render_blocking(nc);
-          if(r){
-            return r;
-          }
+          DEMO_RENDER_BLOCK(nc);
           ncplane_set_fg_rgb(column,
                              random() % 192 + 64,
                              random() % 192 + 64,
