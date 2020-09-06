@@ -102,6 +102,8 @@ int interrogate_terminfo(tinfo* ti){
   terminfostr(&ti->cub, "cub"); // n non-destructive backspaces
   terminfostr(&ti->cuf1, "cuf1"); // non-destructive space
   terminfostr(&ti->cub1, "cub1"); // non-destructive backspace
+  terminfostr(&ti->sc, "sc"); // push ("save") cursor
+  terminfostr(&ti->rc, "rc"); // pop ("restore") cursor
   // Some terminals cannot combine certain styles with colors. Don't advertise
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
