@@ -273,11 +273,14 @@ block_on_input(FILE* fp, const struct timespec* ts, sigset_t* sigmask){
     .events = POLLIN,
     .revents = 0,
   };
+  // we don't want to persistently modify the provided sigmask
   sigset_t scratchmask;
-  if(!sigmask){
-    sigemptyset(&scratchmask);
-    sigmask = &scratchmask;
+  if(sigmask){
+    memcpy(&scratchmask, sigmask, sizeof(*sigmask));
+  }else{
+    pthread_sigmask(0, NULL, &scratchmask);
   }
+  sigmask = &scratchmask;
   sigdelset(sigmask, SIGWINCH);
   sigdelset(sigmask, SIGINT);
   sigdelset(sigmask, SIGQUIT);
@@ -287,7 +290,19 @@ block_on_input(FILE* fp, const struct timespec* ts, sigset_t* sigmask){
 #ifdef POLLRDHUP
   pfd.events |= POLLRDHUP;
 #endif
-  return ppoll(&pfd, 1, ts, sigmask);
+  int events;
+  while((events = ppoll(&pfd, 1, ts, sigmask)) < 0){
+    if(events == 0){
+      return 0;
+    }
+    if(errno != EINTR && errno != EAGAIN){
+      return -1;
+    }
+    if(resize_seen){
+      return 1;
+    }
+  }
+  return events;
 }
 
 static bool
@@ -377,8 +392,10 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
   errno = 0;
   int events;
   if((events = block_on_input(nc->ttyinfp, ts, sigmask)) > 0){
+//fprintf(stderr, "%d events from input!\n", events);
     return handle_ncinput(nc, ni, leftmargin, topmargin, sigmask);
   }
+//fprintf(stderr, "ERROR: %d events from input!\n", events);
   return -1;
 }
 
