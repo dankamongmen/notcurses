@@ -237,12 +237,6 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
   size_t textpos = 0;
   clock_gettime(CLOCK_MONOTONIC, &start);
   for(int i = 0 ; i < iters ; ++i){
-    if(i == (int)(ti * eacht)){
-      if( (ret = layout_next_text(reader, text, &textpos)) ){
-        return ret;
-      }
-      ++ti;
-    }
     if(i == (int)(xi * eachx)){
       if(ncplane_move_yx(ncselector_plane(selector), sy, --sx)){
         return -1;
@@ -254,6 +248,12 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
         return -1;
       }
       ++yi;
+    }
+    if(i == (int)(ti * eacht)){
+      if( (ret = layout_next_text(reader, text, &textpos)) ){
+        return ret;
+      }
+      ++ti;
     }
     struct timespec targettime, now;
     timespec_mul(&iterdelay, i + 1, &targettime);
