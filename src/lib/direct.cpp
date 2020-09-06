@@ -222,20 +222,30 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
   if(cursor_yx_get(n->ctermfd, y, x)){
     return -1;
   }
-  if(ncdirect_cursor_right(n, 1) || ncdirect_cursor_up(n, 1) || fflush(n->ttyfp) == EOF){
+  if(*x == cols && *y == 1){
+    if(ncdirect_cursor_down(n, 1) || ncdirect_cursor_left(n, 1)){
+      return -1;
+    }
+  }else{
+    if(ncdirect_cursor_right(n, 1) || ncdirect_cursor_up(n, 1)){
+      return -1;
+    }
+  }
+  if(fflush(n->ttyfp) == EOF){
     return -1;
   }
   int newy, newx;
   if(cursor_yx_get(n->ctermfd, &newy, &newx)){
     return -1;
   }
-fprintf(stderr, "NEW: %d/%d OLD: %d/%d\n", newy, newx, *y, *x);
+  if(*x == cols && *y == 1){ // need to swap values, since we moved opposite
+    *x = newx;
+    newx = cols;
+    *y = newy;
+    newy = 1;
+  }
   if(*y == newy && *x == newx){
-    if(newx == cols && newy == 1){
-      // FIXME retry, or just move down and left
-    }else{
-      return -1;
-    }
+    return -1; // hopelessly broken
   }else if(*x == newx){
     // we only changed one, supposedly the number of rows. if we were on the
     // top row before, the reply is inverted.
