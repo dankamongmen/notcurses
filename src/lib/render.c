@@ -1028,16 +1028,14 @@ typedef struct rendered_frame {
 // it is available. if both are full, the secondary can be blown away.
 static int next_to_render = 0;
 static rendered_frame rframes[1];
-static pthread_cond_t writer_cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t writer_lock = PTHREAD_MUTEX_INITIALIZER;
 
 void notcurses_render_flush(notcurses* nc){
-  pthread_mutex_lock(&writer_lock);
+  pthread_mutex_lock(&nc->raster_lock);
   rendered_frame* rframe = &rframes[next_to_render];
   while(rframe->state != UNUSED){
-    pthread_cond_wait(&writer_cond, &writer_lock);
+    pthread_cond_wait(&nc->raster_cond, &nc->raster_lock);
   }
-  pthread_mutex_unlock(&writer_lock);
+  pthread_mutex_unlock(&nc->raster_lock);
 }
 
 // this writer thread is spun up at startup, and signaled by
@@ -1050,17 +1048,17 @@ writer_thread(void* vnc){
   rendered_frame* rframe;
   bool inloop = false;
   do{
-    pthread_mutex_lock(&writer_lock);
+    pthread_mutex_lock(&nc->raster_lock);
     if(inloop){
       rframe->state = UNUSED;
-      pthread_cond_signal(&writer_cond);
+      pthread_cond_signal(&nc->raster_cond);
     }
     rframe = &rframes[next_to_raster];
     while(rframe->state != RENDERED){
-      pthread_cond_wait(&writer_cond, &writer_lock);
+      pthread_cond_wait(&nc->raster_cond, &nc->raster_lock);
     }
     rframe->state = RASTERIZING;
-    pthread_mutex_unlock(&writer_lock);
+    pthread_mutex_unlock(&nc->raster_lock);
     int bytes = notcurses_rasterize(nc, rframe->crender, nc->rstate.mstreamfp);
     free(rframe->crender);
     clock_gettime(CLOCK_MONOTONIC, &done);
@@ -1098,10 +1096,10 @@ int notcurses_render_nblock(notcurses* nc){
   if(notcurses_render_internal(nc, rframe->crender)){
     return -1;
   }
-  pthread_mutex_lock(&writer_lock);
+  pthread_mutex_lock(&nc->raster_lock);
   rframe->state = RENDERED;
-  pthread_mutex_unlock(&writer_lock);
-  pthread_cond_signal(&writer_cond);
+  pthread_mutex_unlock(&nc->raster_lock);
+  pthread_cond_signal(&nc->raster_cond);
   return 0;
 }
 
@@ -1213,7 +1211,6 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   }
   nc->cursory = y;
   nc->cursorx = x;
-fprintf(stderr, "ENABLED CURSOR AT %d/%d\n", nc->cursory, nc->cursorx);
   return 0;
 }
 
@@ -1235,21 +1232,41 @@ int notcurses_cursor_disable(notcurses* nc){
 }
 
 int render_init(notcurses* nc){
-  if(pthread_create(&nc->writer_tid, NULL, writer_thread, nc)){
+  if(pthread_mutex_init(&nc->raster_lock, NULL)){
+    logerror(nc, "Error initializing raster lock (%s)\n", strerror(errno));
+    return -1;
+  }
+  if(pthread_cond_init(&nc->raster_cond, NULL)){
+    logerror(nc, "Error initializing raster cond (%s)\n", strerror(errno));
+    pthread_mutex_destroy(&nc->raster_lock);
+    return -1;
+  }
+  if(pthread_create(&nc->raster_tid, NULL, writer_thread, nc)){
     logerror(nc, "Error launching raster thread (%s)\n", strerror(errno));
+    pthread_cond_destroy(&nc->raster_cond);
+    pthread_mutex_destroy(&nc->raster_lock);
     return -1;
   }
   return 0;
 }
 
 int render_stop(notcurses* nc){
+  int r = 0;
   void* ret;
-  if(pthread_cancel(nc->writer_tid)){
+  if(pthread_cancel(nc->raster_tid)){
     logerror(nc, "Couldn't cancel rasterizer (%s)\n", strerror(errno));
   }
-  if(pthread_join(nc->writer_tid, &ret)){
+  if(pthread_join(nc->raster_tid, &ret)){
     logerror(nc, "Couldn't join rasterizer (%s)\n", strerror(errno));
-    return -1;
+    r = -1;
   }
-  return 0;
+  if(pthread_cond_destroy(&nc->raster_cond)){
+    logerror(nc, "Couldn't destroy rasterizer cond (%s)\n", strerror(errno));
+    r = -1;
+  }
+  if(pthread_mutex_destroy(&nc->raster_lock)){
+    logerror(nc, "Couldn't destroy rasterizer lock (%s)\n", strerror(errno));
+    r = -1;
+  }
+  return r;
 }
