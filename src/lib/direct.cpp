@@ -136,6 +136,11 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
 }
 
 static int
+detect_cursor_inversion(ncdirect* n, int* y, int* x){
+  return 0; // FIXME
+}
+
+static int
 cursor_yx_get(int ttyfd, int* y, int* x){
   if(write(ttyfd, "\033[6n", 4) != 4){
     return -1;
@@ -199,12 +204,12 @@ cursor_yx_get(int ttyfd, int* y, int* x){
   return 0;
 }
 
-// no terminfo capability for this. dangerous! kmscon and possibly other
-// terminals report y and x inverted from the normal form; we ought detect this
-// using the algorithm in https://github.com/dankamongmen/notcurses/issues/784.
+// no terminfo capability for this. dangerous--it involves writing controls to
+// the terminal, and then reading a response. many things can distupt this
+// non-atomic procedure.
 int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   struct termios termio, oldtermios;
-  // this only works for real terminals
+  // this is only meaningful for real terminals
   if(n->ctermfd < 0){
     return -1;
   }
@@ -213,22 +218,39 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
     return -1;
   }
   memcpy(&oldtermios, &termio, sizeof(termio));
+  // we should already be in cbreak mode from ncdirect_init(), but just in case
+  // it got changed by the client code since then, duck into cbreak mode anew.
   termio.c_lflag &= ~(ICANON | ECHO);
   if(tcsetattr(n->ctermfd, TCSAFLUSH, &termio)){
     fprintf(stderr, "Couldn't put terminal into cbreak mode via %d (%s)\n",
             n->ctermfd, strerror(errno));
     return -1;
   }
-  int ret = cursor_yx_get(n->ctermfd, y, x);
+  int ret;
+  if(!n->detected_cursor_inversion){
+    ret = detect_cursor_inversion(n, y, x);
+  }else{
+    int yval, xval;
+    if(!y){
+      y = &yval;
+    }
+    if(!x){
+      x = &xval;
+    }
+    // we use 0-based coordinates, but known terminals use 1-based coordinates
+    if((ret = cursor_yx_get(n->ctermfd, y, x)) == 0){
+      if(n->inverted_cursor){
+        int tmp = *y;
+        *y = *x;
+        *x = tmp;
+      }
+      --*y;
+      --*x;
+    }
+  }
   if(tcsetattr(n->ctermfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
             n->ctermfd, strerror(errno)); // don't return error for this
-  }
-  if(y){
-    --*y;
-  }
-  if(x){
-    --*x;
   }
   return ret;
 }

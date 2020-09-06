@@ -282,6 +282,10 @@ typedef struct ncdirect {
   bool fgdefault, bgdefault; // are FG/BG currently using default colors?
   bool utf8;                 // are we using utf-8 encoding, as hoped?
   struct termios tpreserved; // terminal state upon entry
+  // some terminals (e.g. kmscon) return cursor coordinates inverted from the
+  // typical order. we detect it the first time ncdirect_cursor_yx() is called.
+  bool detected_cursor_inversion; // have we performed inversion testing?
+  bool inverted_cursor;      // does the terminal return inverted coordinates?
 } ncdirect;
 
 typedef struct notcurses {
