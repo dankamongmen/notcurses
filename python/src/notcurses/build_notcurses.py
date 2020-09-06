@@ -54,6 +54,7 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses*);
 int notcurses_render_nblock(struct notcurses* nc);
+void notcurses_render_flush(struct notcurses* nc);
 int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 struct ncplane* notcurses_stdplane(struct notcurses*);
 const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);

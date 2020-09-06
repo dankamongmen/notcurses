@@ -59,7 +59,10 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
             return -1;
           }
           ncplane_set_attr(std, NCSTYLE_NONE);
-          DEMO_RENDER(nc);
+          int r = demo_render_blocking(nc);
+          if(r){
+            return r;
+          }
           ncplane_set_fg_rgb(column,
                              random() % 192 + 64,
                              random() % 192 + 64,
@@ -68,8 +71,7 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
       }
     }
   }
-  DEMO_RENDER(nc);
-  return 0;
+  return demo_render_blocking(nc);
 }
 
 // render all the glyphs worth rendering

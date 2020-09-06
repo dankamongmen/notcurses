@@ -146,7 +146,7 @@ worm_move(struct notcurses* nc, struct worm_ctx* wctx, int dimy, int dimx){
     }
   }
   int err;
-  if( (err = demo_render(nc)) ){
+  if( (err = demo_render_blocking(nc)) ){
     return err;
   }
   for(int s = 0 ; s < wctx->wormcount ; ++s){
@@ -540,7 +540,7 @@ int witherworm_demo(struct notcurses* nc){
         return -1;
       }
       int err;
-      if( (err = demo_render(nc)) ){
+      if( (err = demo_render_blocking(nc)) ){
         ncplane_destroy(math); ncplane_destroy(mess);
         return err;
       }
@@ -579,7 +579,9 @@ int witherworm_demo(struct notcurses* nc){
         return err;
       }
       if(key == NCKEY_RESIZE){
-        DEMO_RENDER(nc);
+        if( (i = demo_render_blocking(nc)) ){
+          return i;
+        }
       }
     }while(key == NCKEY_RESIZE);
   }

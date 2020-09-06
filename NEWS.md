@@ -23,7 +23,8 @@ rearrangements of Notcurses.
   * Added `notcurses_render_nblock()`. This function enlists a helper thread to
     write rendered frames to the terminal. It returns immediately following
     rendering of the current frame to a buffer. If frames are rendered more
-    quickly than the terminal can ingest them, frames can be dropped.
+    quickly than the terminal can ingest them, frames can be dropped. Added
+    `notcurses_render_flush()` to block on all outstanding rasterizations.
 
 * 1.7.2 (2020-09-09)
   * Exported `ncvisual_default_blitter()`, so that the effective value of

@@ -177,6 +177,9 @@ int notcurses_render(struct notcurses* nc);
 // rapidly than the terminal is updated.
 int notcurses_render_nblock(struct notcurses* nc);
 
+// Block on all outstanding rasterizations.
+void notcurses_render_flush(struct notcurses* nc);
+
 // Write the last rendered frame, in its entirety, to 'fp'. If
 // notcurses_render() has not yet been called, nothing will be written.
 int notcurses_render_to_file(struct notcurses* nc, FILE* fp);

@@ -169,6 +169,7 @@ int demo_render_blocking(struct notcurses* nc);
 int demo_render(struct notcurses* nc);
 
 #define DEMO_RENDER(nc) { int demo_render_err = demo_render(nc); if(demo_render_err){ return demo_render_err; }}
+#define DEMO_RENDER_BLOCK(nc) { int demo_render_err = demo_render_blocking(nc); if(demo_render_err){ return demo_render_err; }}
 
 // if you won't be doing things, and it's a long sleep, consider using
 // demo_nanosleep(). it updates the HUD, which looks better to the user, and

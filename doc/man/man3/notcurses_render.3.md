@@ -14,6 +14,8 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **int notcurses_render_nblock(struct notcurses* nc);**
 
+**void notcurses_render_flush(struct notcurses* nc);**
+
 **char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint16_t* styles, uint64_t* channels);**
 
 **int notcurses_render_to_file(struct notcurses* nc, FILE* fp);**
@@ -77,7 +79,14 @@ helper thread to actually rasterize the frame to the terminal. It returns
 independently of writing to the terminal, returning immediately following
 the render. Successive calls to **notcurses_render_nblock** can be made
 immediately. Use of **notcurses_render_nblock** can see frames dropped if
-they're produced more rapidly than the terminal is updated.
+they're produced more rapidly than the terminal is updated. Nonblocking use
+is not intended to cut down on the total time between when rendering begins,
+and when the frame is displayed.
+
+It is important that functions which directly write to the terminal
+(**notcurses_refresh()**, **notcurses_cursor_enable()**, and
+**notcurses_cursor_disable**) are not called while rasterization is occurring.
+**notcurses_render_flush** is provided to block on rasterization.
 
 # RETURN VALUES
 
