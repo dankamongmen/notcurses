@@ -60,9 +60,14 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   intmax_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
+  auto blitter = vopts->blitter;
+  if(blitter == NCBLIT_DEFAULT){
+    blitter = ncvisual_default_blitter(notcurses_canutf8(nc), vopts->scaling);
+    vopts->blitter = blitter;
+  }
   // clear top line only
   stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", *framecount,
-               notcurses_str_blitter(vopts->blitter));
+               notcurses_str_blitter(blitter));
   char* subtitle = ncvisual_subtitle(ncv);
   if(subtitle){
     if(!subtitle_plane){

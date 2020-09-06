@@ -3089,6 +3089,20 @@ struct blitset {
 
 API extern const struct blitset notcurses_blitters[];
 
+static inline ncblitter_e
+ncvisual_default_blitter(bool utf8, ncscale_e scale){
+  if(utf8){
+    // NCBLIT_2x2 is better image quality, especially for large images, but
+    // it's not the general default because it doesn't preserve aspect ratio.
+    // NCSCALE_STRETCH throws away aspect ratio, and can safely use NCBLIT_2x2.
+    if(scale == NCSCALE_STRETCH){
+      return NCBLIT_2x2;
+    }
+    return NCBLIT_2x1;
+  }
+  return NCBLIT_1x1;
+}
+
 #undef API
 
 #ifdef __cplusplus

@@ -39,20 +39,6 @@ encoding_x_scale(const struct blitset* bset) {
   return bset->width;
 }
 
-static inline ncblitter_e
-ncvisual_default_blitter(bool utf8, ncscale_e scale) {
-  if(utf8){
-    // NCBLIT_2x2 is better image quality, especially for large images, but
-    // it's not the general default because it doesn't preserve aspect ratio.
-    // NCSCALE_STRETCH throws away aspect ratio, and can safely use NCBLIT_2x2.
-    if(scale == NCSCALE_STRETCH){
-      return NCBLIT_2x2;
-    }
-    return NCBLIT_2x1;
-  }
-  return NCBLIT_1x1;
-}
-
 static inline const struct blitset*
 rgba_blitter_low(bool utf8, ncscale_e scale, bool maydegrade, ncblitter_e blitrec) {
   const struct blitset* bset;
