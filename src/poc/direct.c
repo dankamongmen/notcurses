@@ -44,22 +44,24 @@ int main(void){
     printf("\n\tRead cursor position: y: %d x: %d\n", y, x);
     y += 2; // we just went down two lines
     while(y > 3){
+      ret = -1;
       const int up = y >= 3 ? 3 : y;
       if(ncdirect_cursor_up(n, up)){
-        return EXIT_FAILURE;
+        break;
       }
       fflush(stdout);
       y -= up;
       int newy;
       if(ncdirect_cursor_yx(n, &newy, NULL)){
-        return EXIT_FAILURE;
+        break;
       }
       if(newy != y){
         fprintf(stderr, "Expected %d, got %d\n", y, newy);
-        return EXIT_FAILURE;
+        break;
       }
       printf("\n\tRead cursor position: y: %d x: %d\n", newy, x);
       y += 2;
+      ret = 0;
     }
   }else{
     ret = -1;
