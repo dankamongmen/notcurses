@@ -853,6 +853,10 @@ API int notcurses_render(struct notcurses* nc);
 // rapidly than the terminal is updated.
 API int notcurses_render_nblock(struct notcurses* nc);
 
+// Block until all rendered frames have been rasterized. Only meaningful
+// following the use of notcurses_render_nblock().
+API void notcurses_render_flush(struct notcurses* nc);
+
 // Write the last rendered frame, in its entirety, to 'fp'. If
 // notcurses_render() has not yet been called, nothing will be written.
 API int notcurses_render_to_file(struct notcurses* nc, FILE* fp);

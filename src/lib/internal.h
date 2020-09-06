@@ -304,6 +304,8 @@ typedef struct notcurses {
   int lfdimy;     // lfdimx/lfdimy are 0 until first render
   egcpool pool;   // duplicate EGCs into this pool
 
+  pthread_t writer_tid; // tid of rasterizer thread, for nonblocking rendering
+
   int cursory;    // desired cursor placement according to user. -1 is a don't-
   int cursorx;    //  care, otherwise moved here after each render.
 

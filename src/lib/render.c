@@ -1023,13 +1023,22 @@ typedef struct rendered_frame {
   } state;
 } rendered_frame;
 
-static pthread_t writer_tid;
+// FIXME these all need to be taken up into the notcurses struct
 // we have two frames available. the rendering client renders to the primary if
 // it is available. if both are full, the secondary can be blown away.
 static int next_to_render = 0;
 static rendered_frame rframes[1];
 static pthread_cond_t writer_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t writer_lock = PTHREAD_MUTEX_INITIALIZER;
+
+void notcurses_render_flush(notcurses* nc){
+  pthread_mutex_lock(&writer_lock);
+  rendered_frame* rframe = &rframes[next_to_render];
+  while(rframe->state != UNUSED){
+    pthread_cond_wait(&writer_cond, &writer_lock);
+  }
+  pthread_mutex_unlock(&writer_lock);
+}
 
 // this writer thread is spun up at startup, and signaled by
 // notcurses_render_nblock() when a frame is ready.
@@ -1044,6 +1053,7 @@ writer_thread(void* vnc){
     pthread_mutex_lock(&writer_lock);
     if(inloop){
       rframe->state = UNUSED;
+      pthread_cond_signal(&writer_cond);
     }
     rframe = &rframes[next_to_raster];
     while(rframe->state != RENDERED){
@@ -1203,6 +1213,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   }
   nc->cursory = y;
   nc->cursorx = x;
+fprintf(stderr, "ENABLED CURSOR AT %d/%d\n", nc->cursory, nc->cursorx);
   return 0;
 }
 
@@ -1224,8 +1235,20 @@ int notcurses_cursor_disable(notcurses* nc){
 }
 
 int render_init(notcurses* nc){
-  if(pthread_create(&writer_tid, NULL, writer_thread, nc)){
+  if(pthread_create(&nc->writer_tid, NULL, writer_thread, nc)){
     logerror(nc, "Error launching raster thread (%s)\n", strerror(errno));
+    return -1;
+  }
+  return 0;
+}
+
+int render_stop(notcurses* nc){
+  void* ret;
+  if(pthread_cancel(nc->writer_tid)){
+    logerror(nc, "Couldn't cancel rasterizer (%s)\n", strerror(errno));
+  }
+  if(pthread_join(nc->writer_tid, &ret)){
+    logerror(nc, "Couldn't join rasterizer (%s)\n", strerror(errno));
     return -1;
   }
   return 0;

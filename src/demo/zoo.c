@@ -412,6 +412,7 @@ done:
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
   ncreader_destroy(reader, NULL);
+  notcurses_render_flush(nc);
   if(notcurses_cursor_disable(nc)){
     return -1;
   }
