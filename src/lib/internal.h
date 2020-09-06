@@ -306,6 +306,7 @@ typedef struct notcurses {
 
   pthread_mutex_t raster_lock; // lock for rasterizer thread
   pthread_cond_t raster_cond;  // condvar for rasterization
+  int next_to_render;          // next rendered_frame into which we'll render
   pthread_t raster_tid; // tid of rasterizer thread, for nonblocking rendering
 
   int cursory;    // desired cursor placement according to user. -1 is a don't-

@@ -1026,12 +1026,11 @@ typedef struct rendered_frame {
 // FIXME these all need to be taken up into the notcurses struct
 // we have two frames available. the rendering client renders to the primary if
 // it is available. if both are full, the secondary can be blown away.
-static int next_to_render = 0;
 static rendered_frame rframes[1];
 
 void notcurses_render_flush(notcurses* nc){
   pthread_mutex_lock(&nc->raster_lock);
-  rendered_frame* rframe = &rframes[next_to_render];
+  rendered_frame* rframe = &rframes[nc->next_to_render];
   while(rframe->state != UNUSED){
     pthread_cond_wait(&nc->raster_cond, &nc->raster_lock);
   }
@@ -1073,12 +1072,12 @@ writer_thread(void* vnc){
 
 static rendered_frame*
 get_writeable_frame(notcurses* nc){
-  rendered_frame* rframe = &rframes[next_to_render];
+  rendered_frame* rframe = &rframes[nc->next_to_render];
   if(rframe->state != UNUSED){
     return NULL;
   }
-  if(++next_to_render == sizeof(rframes) / sizeof(*rframes)){
-    next_to_render = 0;
+  if(++nc->next_to_render == sizeof(rframes) / sizeof(*rframes)){
+    nc->next_to_render = 0;
   }
   clock_gettime(CLOCK_MONOTONIC, &rframe->start);
   notcurses_resize(nc, &rframe->dimy, &rframe->dimx);
@@ -1232,6 +1231,7 @@ int notcurses_cursor_disable(notcurses* nc){
 }
 
 int render_init(notcurses* nc){
+  nc->next_to_render = 0;
   if(pthread_mutex_init(&nc->raster_lock, NULL)){
     logerror(nc, "Error initializing raster lock (%s)\n", strerror(errno));
     return -1;
