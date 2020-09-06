@@ -136,11 +136,6 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
 }
 
 static int
-detect_cursor_inversion(ncdirect* n, int* y, int* x){
-  return 0; // FIXME
-}
-
-static int
 cursor_yx_get(int ttyfd, int* y, int* x){
   if(write(ttyfd, "\033[6n", 4) != 4){
     return -1;
@@ -204,6 +199,80 @@ cursor_yx_get(int ttyfd, int* y, int* x){
   return 0;
 }
 
+// an algorithm to detect inverted cursor reporting on terminals 2x2 or larger:
+//  * get initial cursor position / push cursor position
+//  * move right using cursor-independent routines
+//  * move up using cursor-independent routines
+//  * get cursor position
+//  * if cursor position is unchanged, either cursor reporting is broken, or
+//    we started in the upper-right corner. determine the latter by checking
+//    terminal dimensions. if we were in the upper-right corner, move somewhere
+//    else and retry.
+//  * if cursor coordinate changed in only one dimension, we were either on the
+//    right side, or along the top row, but not both. determine which one, and
+//    determine whether we're inverted.
+//  * if both dimensions changed, determine whether we're inverted by checking
+//    the change. the row ought have decreased; the column ought have increased.
+//  * move back to intiial position / pop cursor position
+static int
+detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
+  if(rows <= 1 || cols <= 1){ // FIXME can this be made to work in 1 dimension?
+    return -1;
+  }
+  if(cursor_yx_get(n->ctermfd, y, x)){
+    return -1;
+  }
+  if(ncdirect_cursor_right(n, 1) || ncdirect_cursor_up(n, 1) || fflush(n->ttyfp) == EOF){
+    return -1;
+  }
+  int newy, newx;
+  if(cursor_yx_get(n->ctermfd, &newy, &newx)){
+    return -1;
+  }
+fprintf(stderr, "NEW: %d/%d OLD: %d/%d\n", newy, newx, *y, *x);
+  if(*y == newy && *x == newx){
+    if(newx == cols && newy == 1){
+      // FIXME retry, or just move down and left
+    }else{
+      return -1;
+    }
+  }else if(*x == newx){
+    // we only changed one, supposedly the number of rows. if we were on the
+    // top row before, the reply is inverted.
+    if(*y == 0){
+      n->inverted_cursor = true;
+    }
+  }else if(*y == newy){
+    // we only changed one, supposedly the number of columns. if we were on the
+    // rightmost column before, the reply is inverted.
+    if(*x == cols){
+      n->inverted_cursor = true;
+    }
+  }else{
+    // the row ought have decreased, and the column ought have increased. if it
+    // went the other way, the reply is inverted.
+    if(newy > *y && newx < *x){
+      n->inverted_cursor = true;
+    }
+  }
+  n->detected_cursor_inversion = true;
+  return 0;
+}
+
+static int
+detect_cursor_inversion_wrapper(ncdirect* n, int* y, int* x){
+  const int toty = ncdirect_dim_y(n);
+  const int totx = ncdirect_dim_x(n);
+  if(ncdirect_cursor_push(n)){
+    return -1; // FIXME work around lack of sc
+  }
+  int ret = detect_cursor_inversion(n, toty, totx, y, x);
+  if(ncdirect_cursor_pop(n)){
+    return -1;
+  }
+  return ret;
+}
+
 // no terminfo capability for this. dangerous--it involves writing controls to
 // the terminal, and then reading a response. many things can distupt this
 // non-atomic procedure.
@@ -226,27 +295,27 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
             n->ctermfd, strerror(errno));
     return -1;
   }
-  int ret;
+  int ret, yval, xval;
+  if(!y){
+    y = &yval;
+  }
+  if(!x){
+    x = &xval;
+  }
   if(!n->detected_cursor_inversion){
-    ret = detect_cursor_inversion(n, y, x);
+    ret = detect_cursor_inversion_wrapper(n, y, x);
   }else{
-    int yval, xval;
-    if(!y){
-      y = &yval;
-    }
-    if(!x){
-      x = &xval;
+    ret = cursor_yx_get(n->ctermfd, y, x);
+  }
+  if(ret == 0){
+    if(n->inverted_cursor){
+      int tmp = *y;
+      *y = *x;
+      *x = tmp;
     }
     // we use 0-based coordinates, but known terminals use 1-based coordinates
-    if((ret = cursor_yx_get(n->ctermfd, y, x)) == 0){
-      if(n->inverted_cursor){
-        int tmp = *y;
-        *y = *x;
-        *x = tmp;
-      }
-      --*y;
-      --*x;
-    }
+    --*y;
+    --*x;
   }
   if(tcsetattr(n->ctermfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
