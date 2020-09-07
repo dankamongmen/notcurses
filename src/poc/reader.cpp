@@ -37,14 +37,11 @@ auto main(int argc, const char** argv) -> int {
   opts.physrows = dimy / 8;
   opts.physcols = dimx / 2;
   opts.egc = "░";
-  opts.flags = horscroll ? NCREADER_OPTION_HORSCROLL : 0;
+  opts.flags = NCREADER_OPTION_CURSOR | (horscroll ? NCREADER_OPTION_HORSCROLL : 0);
   // FIXME c++ is crashing
   //Reader nr(nc, 0, 0, &opts);
   auto nr = ncreader_create(**n, 2, 2, &opts);
   if(nr == nullptr){
-    return EXIT_FAILURE;
-  }
-  if(!nc.cursor_enable(2, 2)){
     return EXIT_FAILURE;
   }
   ncinput ni;
@@ -55,10 +52,7 @@ auto main(int argc, const char** argv) -> int {
     }else if((ni.ctrl && ni.id == 'D') || ni.id == NCKEY_ENTER){
       break;
     }else if(ncreader_offer_input(nr, &ni)){
-      int y, x;
       struct ncplane* ncp = ncreader_plane(nr);
-      ncplane_cursor_yx(ncp, &y, &x);
-      nc.cursor_enable(y + 2, 2 + (x >= ncplane_dim_x(ncp) ? ncplane_dim_x(ncp) - 1 : x));
       int ncpy, ncpx;
       ncplane_cursor_yx(ncp, &ncpy, &ncpx);
       struct ncplane* tplane = ncplane_above(ncp);
