@@ -4,6 +4,8 @@ rearrangements of Notcurses.
 * 1.7.2 (not yet released)
   * Exported `ncvisual_default_blitter()`, so that the effective value of
     `NCBLIT_DEFAULT` can be determined.
+  * Added `NCREADER_OPTION_CURSOR`, instructing the `ncreader` to make the
+    terminal cursor visible, and manage the cursor's placement.
 
 * 1.7.1 (2020-08-31)
   * Renamed `CELL_SIMPLE_INITIALIZER` to `CELL_CHAR_INITIALIZER`, and

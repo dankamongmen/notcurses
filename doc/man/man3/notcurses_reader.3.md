@@ -16,9 +16,10 @@ struct ncplane;
 struct ncreader;
 struct notcurses;
 
-#define NCREADER_OPTION_HORSCROLL  0x0001
-#define NCREADER_OPTION_VERSCROLL  0x0002
-#define NCREADER_OPTION_NOCMDKEYS  0x0004
+#define NCREADER_OPTION_HORSCROLL 0x0001
+#define NCREADER_OPTION_VERSCROLL 0x0002
+#define NCREADER_OPTION_NOCMDKEYS 0x0004
+#define NCREADER_OPTION_CURSOR    0x0008
 
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
@@ -61,6 +62,17 @@ navigation with the arrow keys and scrolling. While the visible portion of
 the **ncreader** is always the same size (**physrows** by **physcols**), the
 actual text backing this visible region can grow arbitrarily large.
 
+The following option flags are supported:
+
+* **NCREADER_OPTION_HORSCROLL**: The visual area will be backed by a plane
+     that can grow arbitrarily wide.
+* **NCREADER_OPTION_VERSCROLL**: The visual area will be backed by a plane
+     that can grow arbitrarily high.
+* **NCREADER_OPTION_NOCMDKEYS**: The typical keyboard shortcuts (see below)
+     will not be honored.
+* **NCREADER_OPTION_CURSOR**: The terminal's cursor will be made visible across
+     the life of the **ncreader**, and its location will be managed.
+
 The contents of the **ncreader** can be retrieved with **ncreader_contents**.
 
 The **ncreader** consists of at least one **ncplane** (the visible editing
@@ -81,6 +93,10 @@ consumed). Otherwise, most inputs will be reproduced onto the **ncreader**
 
 All the **ncreader**'s content is returned from **ncreader_contents**,
 preserving whitespace.
+
+"Emacs-style" keyboard shortcuts similar to those supported by **readline(3)**
+and most shells are supported unless **NCREADER_OPTION_NOCMDKEYS** is provided
+to **ncreader_create**.
 
 # NOTES
 
