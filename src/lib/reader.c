@@ -80,6 +80,9 @@ ncreader_redraw(ncreader* n){
       }
     }
   }
+  if(notcurses_cursor_enable(n->ncp->nc, n->ncp->absy + n->ncp->y, n->ncp->absx + n->ncp->x)){
+    ret = -1;
+  }
   return ret;
 }
 
