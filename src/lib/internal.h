@@ -196,6 +196,7 @@ typedef struct ncreader {
   int xproject;               // virtual x location of ncp origin on textarea
   bool horscroll;             // is there horizontal panning?
   bool no_cmd_keys;           // are shortcuts disabled?
+  bool manage_cursor;         // enable and place the terminal cursor
 } ncreader;
 
 typedef struct ncmenu {
