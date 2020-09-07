@@ -3691,9 +3691,11 @@ int mojibake_demo(struct notcurses* nc){
   // next one onscreen; at each step, we move all onscreen up by one row. when
   // the last one exits via the top, we're done.
   unsigned topmost = 0; // index of the topmost visible panel
-  struct timespec stepdelay;
+  int iters = 0;
+  struct timespec stepdelay, starttime;
   // two seconds onscreen per plane at standard (1s) delay
   timespec_div(&demodelay, dimy / 2, &stepdelay);
+  clock_gettime(CLOCK_MONOTONIC, &starttime);
   do{
     unsigned u = topmost;
     do{
@@ -3727,7 +3729,15 @@ int mojibake_demo(struct notcurses* nc){
       ++u;
     }while(u < sizeof(planes) / sizeof(*planes));
     DEMO_RENDER(nc);
-    demo_nanosleep(nc, &stepdelay);
+    ++iters;
+    uint64_t targtime = iters * timespec_to_ns(&stepdelay) + timespec_to_ns(&starttime);
+    struct timespec curtime;
+    clock_gettime(CLOCK_MONOTONIC, &curtime);
+    if(timespec_to_ns(&curtime) < targtime){
+      struct timespec abs;
+      ns_to_timespec(targtime, &abs);
+      demo_nanosleep_abstime(nc, &abs);
+    }
   }while(topmost < sizeof(planes) / sizeof(*planes));
   for(unsigned u = 0 ; u < sizeof(planes) / sizeof(*planes) ; ++u){
     ncplane_destroy(planes[u]);
