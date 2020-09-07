@@ -3020,6 +3020,9 @@ API int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax,
 #define NCREADER_OPTION_VERSCROLL 0x0002ull
 // Disable all editing shortcuts. By default, emacs-style keys are available.
 #define NCREADER_OPTION_NOCMDKEYS 0x0004ull
+// Make the terminal cursor visible across the lifetime of the ncreader, and
+// have the ncreader manage the cursor's placement.
+#define NCREADER_OPTION_CURSOR    0x0008ull
 
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
