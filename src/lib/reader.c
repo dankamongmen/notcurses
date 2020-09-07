@@ -119,6 +119,7 @@ int ncreader_move_left(ncreader* n){
   ncplane_cursor_move_yx(n->textarea, y, textx);
   ncplane_cursor_move_yx(n->ncp, y, viewx);
 //fprintf(stderr, "moved left: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+  ncreader_redraw(n);
   return 0;
 }
 
@@ -155,6 +156,7 @@ int ncreader_move_right(ncreader* n){
   ncplane_cursor_move_yx(n->textarea, y, textx);
   ncplane_cursor_move_yx(n->ncp, y, viewx);
 //fprintf(stderr, "moved right: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
+  ncreader_redraw(n);
   return 0;
 }
 
@@ -169,6 +171,7 @@ int ncreader_move_up(ncreader* n){
   --y;
   ncplane_cursor_move_yx(n->textarea, y, -1);
   ncplane_cursor_move_yx(n->ncp, y, -1);
+  ncreader_redraw(n);
   return 0;
 }
 
@@ -183,6 +186,7 @@ int ncreader_move_down(ncreader* n){
   ++y;
   ncplane_cursor_move_yx(n->textarea, y, -1);
   ncplane_cursor_move_yx(n->ncp, y, -1);
+  ncreader_redraw(n);
   return 0;
 }
 
@@ -210,10 +214,15 @@ int ncreader_write_egc(ncreader* n, const char* egc){
   if(ncplane_putegc(n->ncp, egc, NULL) < 0){
     return -1;
   }
-
-  if(n->ncp->x >= n->ncp->lenx){
-    n->ncp->x = n->ncp->lenx - 1;
+  if(n->textarea->x >= n->textarea->lenx - cols){
+    if(!n->horscroll){
+      n->textarea->x = n->textarea->lenx - cols;
+    }
   }
+  if(n->ncp->x >= n->ncp->lenx - cols){
+    n->ncp->x = n->ncp->lenx - cols;
+  }
+  ncreader_redraw(n);
   return 0;
 }
 
@@ -254,19 +263,15 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   // general ncplane_cursor_{left, right, up, down}()
   if(ni->id == NCKEY_LEFT){
     ncreader_move_left(n);
-    ncreader_redraw(n);
     return true;
   }else if(ni->id == NCKEY_RIGHT){
     ncreader_move_right(n);
-    ncreader_redraw(n);
     return true;
   }else if(ni->id == NCKEY_UP){
     ncreader_move_up(n);
-    ncreader_redraw(n);
     return true;
   }else if(ni->id == NCKEY_DOWN){
     ncreader_move_down(n);
-    ncreader_redraw(n);
     return true;
   }else if(nckey_supppuab_p(ni->id)){
     return false;
@@ -276,7 +281,6 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   // FIXME breaks for wint_t < 32bits
   if(snprintf(wbuf, sizeof(wbuf), "%lc", (wint_t)ni->id) < (int)sizeof(wbuf)){
     ncreader_write_egc(n, wbuf);
-    ncreader_redraw(n);
   }
   return true;
 }
