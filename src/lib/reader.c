@@ -5,9 +5,8 @@ ncreader* ncreader_create(ncplane* n, int y, int x, const ncreader_options* opts
     logerror(n->nc, "Provided illegal geometry %dx%d\n", opts->physcols, opts->physrows);
     return NULL;
   }
-  if(opts->flags > NCREADER_OPTION_HORSCROLL){
-    logerror(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
-    return NULL;
+  if(opts->flags > NCREADER_OPTION_CURSOR){
+    logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
   }
   ncreader* nr = malloc(sizeof(*nr));
   if(nr){
@@ -33,8 +32,17 @@ ncreader* ncreader_create(ncplane* n, int y, int x, const ncreader_options* opts
     nr->tchannels = opts->tchannels;
     nr->tattrs = opts->tattrword;
     nr->no_cmd_keys = opts->flags & NCREADER_OPTION_NOCMDKEYS;
+    nr->manage_cursor = opts->flags & NCREADER_OPTION_CURSOR;
     ncplane_set_channels(nr->ncp, opts->tchannels);
     ncplane_set_attr(nr->ncp, opts->tattrword);
+    if(nr->manage_cursor){
+      if(notcurses_cursor_enable(n->nc, nr->ncp->absy, nr->ncp->absx)){
+        ncplane_destroy(nr->textarea);
+        ncplane_destroy(nr->ncp);
+        free(nr);
+        return NULL;
+      }
+    }
   }
   return nr;
 }
@@ -278,6 +286,9 @@ void ncreader_destroy(ncreader* n, char** contents){
   if(n){
     if(contents){
       *contents = ncreader_contents(n);
+    }
+    if(n->manage_cursor){
+      notcurses_cursor_disable(n->ncp->nc);
     }
     ncplane_destroy(n->textarea);
     ncplane_destroy(n->ncp);
