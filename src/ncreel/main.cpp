@@ -142,12 +142,18 @@ int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
           auto tctx = static_cast<TabletCtx*>(nctablet_userptr(t));
           tctx->addLine();
         }
+        if(ncreel_redraw(nr)){
+          return -1;
+        }
         break;
       }case '-':{
         auto t = ncreel_focused(nr);
         if(t){
           auto tctx = static_cast<TabletCtx*>(nctablet_userptr(t));
           tctx->subLine();
+        }
+        if(ncreel_redraw(nr)){
+          return -1;
         }
         break;
       }case '*':
@@ -169,9 +175,6 @@ int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
         break;
       default:
         break;
-    }
-    if(ncreel_redraw(nr)){
-      break;
     }
     if(notcurses_render(nc)){
       break;
