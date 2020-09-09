@@ -529,24 +529,10 @@ target_include_directories(notcurses-view
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
-    "${AVCODEC_INCLUDE_DIRS}"
-    "${AVFORMAT_INCLUDE_DIRS}"
-    "${AVUTIL_INCLUDE_DIRS}"
-)
-target_link_directories(notcurses-view
-  PRIVATE
-    "${AVCODEC_LIBRARY_DIRS}"
-    "${AVFORMAT_LIBRARY_DIRS}"
-    "${AVUTIL_LIBRARY_DIRS}"
 )
 target_link_libraries(notcurses-view
   PRIVATE
     notcurses++
-  PRIVATE
-    "${AVCODEC_LIBRARIES}"
-    "${AVFORMAT_LIBRARIES}"
-    "${AVUTIL_LIBRARIES}"
-    "${SWSCALE_LIBRARIES}"
 )
 endif()
 
