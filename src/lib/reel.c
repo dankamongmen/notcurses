@@ -478,7 +478,7 @@ tighten_reel_down(ncreel* r, int ybot){
     int cury, curx, ylen;
     ncplane_yx(cur->p, &cury, &curx);
     ncplane_dim_yx(cur->p, &ylen, NULL);
-    if(cury == ybot - ylen){
+    if(cury <= ybot - ylen - 1){
       break;
     }
 //fprintf(stderr, "tightening %p down to %d from %d\n", cur, ybot - ylen, cury);
@@ -637,7 +637,7 @@ int ncreel_redraw(ncreel* nr){
 //fprintf(stderr, "case ii fulcrum %d (%d %d) %p %p\n", fulcrum, focy, vfty, focused, nr->vft);
       }else{
         ncplane_yx(focused->p, &fulcrum, NULL); // case iii
-//fprintf(stderr, "case iii fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy, vfty, focused, nr->vft, nr->direction);
+//fprintf(stderr, "case iiib fulcrum %d (%d %d) %p %p lastdir: %d\n", fulcrum, focy, vfty, focused, nr->vft, nr->direction);
       }
     }
   }
@@ -790,7 +790,7 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
     if((nr->tablets = t->next) == t){
       nr->tablets = NULL;
     }
-    // FIXME ought set direction based on actual location of replacement t
+    // FIXME ought set direction based on actual location of replacement tablet
     nr->direction = LASTDIRECTION_DOWN;
   }
   if(nr->vft == t){
