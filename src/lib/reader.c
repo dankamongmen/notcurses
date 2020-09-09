@@ -237,12 +237,21 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     return false;
   }
   if(ni->ctrl && !n->no_cmd_keys){
-    if(ni->id == 'U'){
-      ncplane_erase(n->ncp); // homes the cursor
-      ncplane_erase(n->textarea);
-      return true;
+    switch(ni->id){
+      case 'U':
+        ncplane_erase(n->ncp); // homes the cursor
+        ncplane_erase(n->textarea);
+        break;
+      case 'B':
+        ncreader_move_left(n);
+        break;
+      case 'F':
+        ncreader_move_right(n);
+        break;
+      default:
+        return false; // pass on all other ctrls
     }
-    return false; // pass on all other ctrls
+    return true;
   }
   if(ni->id == NCKEY_BACKSPACE){
     if(n->textarea->x == 0){
