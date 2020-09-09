@@ -226,6 +226,40 @@ int ncreader_write_egc(ncreader* n, const char* egc){
   return 0;
 }
 
+static bool
+ncreader_ctrl_input(ncreader* n, const ncinput* ni){
+  switch(ni->id){
+    case 'U':
+      ncplane_erase(n->ncp); // homes the cursor
+      ncplane_erase(n->textarea);
+      break;
+    case 'B':
+      ncreader_move_left(n);
+      break;
+    case 'F':
+      ncreader_move_right(n);
+      break;
+    default:
+      return false; // pass on all other ctrls
+  }
+  return true;
+}
+
+static bool
+ncreader_alt_input(ncreader* n, const ncinput* ni){
+  switch(ni->id){
+    case 'B': // back one word (to first cell) FIXME
+      ncreader_move_left(n);
+      break;
+    case 'F': // forward one word (past end cell) FIXME
+      ncreader_move_right(n);
+      break;
+    default:
+      return false;
+  }
+  return true;
+}
+
 // we pass along:
 //  * anything with Alt
 //  * anything with Ctrl, except 'U' (which clears all input)
@@ -237,21 +271,9 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     return false;
   }
   if(ni->ctrl && !n->no_cmd_keys){
-    switch(ni->id){
-      case 'U':
-        ncplane_erase(n->ncp); // homes the cursor
-        ncplane_erase(n->textarea);
-        break;
-      case 'B':
-        ncreader_move_left(n);
-        break;
-      case 'F':
-        ncreader_move_right(n);
-        break;
-      default:
-        return false; // pass on all other ctrls
-    }
-    return true;
+    return ncreader_ctrl_input(n, ni);
+  }else if(ni->alt && !n->no_cmd_keys){
+    return ncreader_alt_input(n, ni);
   }
   if(ni->id == NCKEY_BACKSPACE){
     if(n->textarea->x == 0){
