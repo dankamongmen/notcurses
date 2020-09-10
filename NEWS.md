@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.7.2 (not yet released)
+* 1.7.2 (2020-09-09)
   * Exported `ncvisual_default_blitter()`, so that the effective value of
     `NCBLIT_DEFAULT` can be determined.
   * Added `NCREADER_OPTION_CURSOR`, instructing the `ncreader` to make the
