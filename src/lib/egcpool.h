@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unigbrk.h>
 #include <stdbool.h>
 #include "notcurses/notcurses.h"
 
@@ -59,43 +60,42 @@ egcpool_grow(egcpool* pool, size_t len){
   return 0;
 }
 
-// Eat an EGC from the UTF-8 string input. This consists of extracting a
-// multibyte via mbrtowc, then continuing to extract any which have zero
-// width until hitting another spacing character or a NUL terminator. Writes
-// the number of columns occupied to '*colcount'. Returns the number of bytes
-// consumed, not including any NUL terminator. Note that neither the number
-// of bytes nor columns is necessarily equivalent to the number of decoded code
-// points. Such are the ways of Unicode.
+// Eat an EGC from the UTF-8 string input, counting bytes and columns. We use
+// libunistring's uc_is_grapheme_break() to segment EGCs. Writes the number of
+// columns to '*colcount'. Returns the number of bytes consumed, not including
+// any NUL terminator. Neither the number of bytes nor columns is necessarily
+// equal to the number of decoded code points. Such are the ways of Unicode.
+// uc_is_grapheme_break() wants UTF-32, which is fine, because we need wchar_t
+// to use wcwidth() anyway FIXME except this doesn't work with 16-bit wchar_t!
 static inline int
 utf8_egc_len(const char* gcluster, int* colcount){
   size_t ret = 0;
   *colcount = 0;
-  wchar_t wc;
   int r;
   mbstate_t mbt;
   memset(&mbt, 0, sizeof(mbt));
+  wchar_t wc, prevw = 0;
   do{
     r = mbrtowc(&wc, gcluster, MB_CUR_MAX, &mbt);
-    if(r < 0){
-      return -1;
-    }else if(r){
-      int cols = wcwidth(wc);
-      if(cols){
-        if(*colcount){ // this must be starting a new EGC, exit and do not claim
-          break;
-        }
-        if(cols < 0){
-          if(iswspace(wc)){ // newline or tab
-            return ret + 1;
-          }
-          ret += r;
-          break;
-        }
-        *colcount += cols;
+    if(r > 0){
+      if(prevw && uc_is_grapheme_break(prevw, wc)){
+        break; // starts a new EGC, exit and do not claim
       }
+      int cols = wcwidth(wc);
+      if(cols < 0){
+        if(iswspace(wc)){ // newline or tab
+          return ret + 1;
+        }
+        ret += r;
+        break;
+      }
+      *colcount += cols;
       ret += r;
       gcluster += r;
+    }else if(r < 0){
+      return -1;
     }
+    prevw = wc;
   }while(r);
   return ret;
 }
