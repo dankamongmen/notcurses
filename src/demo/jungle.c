@@ -26517,7 +26517,7 @@ load_palette(struct notcurses* nc, const unsigned char* pal, size_t size){
 
 static int
 cycle_palettes(struct notcurses* nc, palette256* p){
-  // these ranges are cycling amongst themselves
+  // these ranges [lower, upper] are cycling amongst themselves
   static const struct {
     int l, u;
   } sets[] = {
@@ -26538,11 +26538,12 @@ cycle_palettes(struct notcurses* nc, palette256* p){
   }, *s;
   for(s = sets ; s->l ; ++s){
     unsigned tr, tg, tb;
-    // we're cycling left, so first grab the first rgbs
-    if(palette256_get_rgb(p, s->l, &tr, &tg, &tb) < 0){
+    // first grab the top rgbs (u), for use in bottom (l)
+    if(palette256_get_rgb(p, s->u, &tr, &tg, &tb) < 0){
       return -1;
     }
-    for(int i = s->u ; i >= s->l ; --i){
+    // shift each range up one
+    for(int i = s->l ; i <= s->u ; ++i){
       unsigned r, g, b;
       if(palette256_get_rgb(p, i, &r, &g, &b) < 0){
         return -1;
