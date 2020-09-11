@@ -15,13 +15,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [macos-latest]
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Dependencies garbage
-      run: brew options ffmpeg
+      run: brew options ffmpeg libav
 
     - name: Dependencies
       run: brew install ffmpeg
