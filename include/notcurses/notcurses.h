@@ -2932,8 +2932,8 @@ typedef struct ncplot_options {
   // resolution, the independent variable would be the range [0..3600): 3600.
   // if rangex is 0, it is dynamically set to the number of columns.
   int rangex;
-  uint64_t flags;      // bitfield over NCPLOT_OPTION_*
   const char* title;   // optional, printed by the labels
+  uint64_t flags;      // bitfield over NCPLOT_OPTION_*
 } ncplot_options;
 
 // Use the provided plane 'n' for plotting according to the options 'opts'.
