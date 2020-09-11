@@ -9,8 +9,8 @@ ncplot_options PlotD::default_options = {
   0,  // legendstyle
 	ncblitter_e::NCBLIT_1x1, // ncblitter_e
 	0,  // rangex
-	0,  // flags
   "", // title
+	0,  // flags
 };
 
 ncplot_options PlotU::default_options = {
@@ -19,8 +19,8 @@ ncplot_options PlotU::default_options = {
   0,  // legendstyle
 	ncblitter_e::NCBLIT_1x1, // ncblitter_e
 	0,  // rangex
-	0,  // flags
   "", // title
+	0,  // flags
 };
 
 Plane* PlotD::get_plane () const noexcept
