@@ -20,8 +20,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Dependencies
+    - name: Dependencies garbage
       run: brew options ffmpeg
+
+    - name: Dependencies
       run: brew install ffmpeg
 
     - name: Create Build Environment
