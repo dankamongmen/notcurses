@@ -15,7 +15,6 @@ typedef struct ncselector {
   int secondarycols;             // columns occupied by secondary
   char* footer;                  // can be NULL
   int footercols;                // columns occupied by footer
-  cell background;               // background, used in body only
   uint64_t opchannels;           // option channels
   uint64_t descchannels;         // description channels
   uint64_t titlechannels;        // title channels
@@ -38,7 +37,6 @@ typedef struct ncmultiselector {
   int secondarycols;              // columns occupied by secondary
   char* footer;                   // can be NULL
   int footercols;                 // columns occupied by footer
-  cell background;                // background, used in body only
   uint64_t opchannels;            // option channels
   uint64_t descchannels;          // description channels
   uint64_t titlechannels;         // title channels
@@ -71,6 +69,9 @@ ncselector_body_width(const ncselector* n){
 static int
 ncselector_draw(ncselector* n){
   ncplane_erase(n->ncp);
+  cell transchar = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&transchar, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&transchar, CELL_ALPHA_TRANSPARENT);
   // if we have a title, we'll draw a riser. the riser is two rows tall, and
   // exactly four columns longer than the title, and aligned to the right. we
   // draw a rounded box. the body will blow part or all of the bottom away.
@@ -134,7 +135,7 @@ ncselector_draw(ncselector* n){
   ++yoff;
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
-    ncplane_putc(n->ncp, &n->background);
+    ncplane_putc(n->ncp, &transchar);
   }
   const int bodyoffset = dimx - bodywidth + 2;
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
@@ -157,7 +158,7 @@ ncselector_draw(ncselector* n){
     }
     ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
     for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
-      ncplane_putc(n->ncp, &n->background);
+      ncplane_putc(n->ncp, &transchar);
     }
     n->ncp->channels = n->opchannels;
     if(printidx == n->selected){
@@ -177,7 +178,7 @@ ncselector_draw(ncselector* n){
   // Bottom line of body (background and possibly down arrow)
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
-    ncplane_putc(n->ncp, &n->background);
+    ncplane_putc(n->ncp, &transchar);
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
@@ -293,15 +294,6 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   ns->ncp = n;
   ncselector_dim_yx(ns, &dimy, &dimx);
   if(ncplane_resize_simple(n, dimy, dimx)){
-    ncplane_destroy(ns->ncp);
-    goto freeitems;
-  }
-  cell_init(&ns->background);
-  uint64_t transchan = 0;
-  channels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
-  channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(ns->ncp, "", 0, transchan);
-  if(cell_prime(ns->ncp, &ns->background, "", 0, opts->bgchannels) < 0){
     ncplane_destroy(ns->ncp);
     goto freeitems;
   }
@@ -517,7 +509,6 @@ void ncselector_destroy(ncselector* n, char** item){
       free(n->items[n->itemcount].option);
       free(n->items[n->itemcount].desc);
     }
-    cell_release(n->ncp, &n->background);
     ncplane_destroy(n->ncp);
     free(n->items);
     free(n->title);
@@ -604,9 +595,10 @@ ncmultiselector_draw(ncmultiselector* n){
   }
   // Top line of body (background and possibly up arrow)
   ++yoff;
+  cell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
-    ncplane_putc(n->ncp, &n->background);
+    ncplane_putc(n->ncp, &transc);
   }
   const int bodyoffset = dimx - bodywidth + 2;
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
@@ -626,7 +618,7 @@ ncmultiselector_draw(ncmultiselector* n){
     }
     ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
     for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
-      ncplane_putc(n->ncp, &n->background);
+      ncplane_putc(n->ncp, &transc);
     }
     n->ncp->channels = n->descchannels;
     if(printidx == n->current){
@@ -655,7 +647,7 @@ ncmultiselector_draw(ncmultiselector* n){
   // Bottom line of body (background and possibly down arrow)
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
-    ncplane_putc(n->ncp, &n->background);
+    ncplane_putc(n->ncp, &transc);
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
@@ -871,15 +863,6 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
   if(ncplane_resize_simple(ns->ncp, dimy, dimx)){
     goto freeitems;
   }
-  cell_init(&ns->background);
-  uint64_t transchan = 0;
-  channels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
-  channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(ns->ncp, "", 0, transchan);
-  if(cell_prime(ns->ncp, &ns->background, "", 0, opts->bgchannels) < 0){
-    ncplane_destroy(ns->ncp);
-    goto freeitems;
-  }
   ncmultiselector_draw(ns); // deal with error here?
   return ns;
 
@@ -901,7 +884,6 @@ void ncmultiselector_destroy(ncmultiselector* n){
       free(n->items[n->itemcount].option);
       free(n->items[n->itemcount].desc);
     }
-    cell_release(n->ncp, &n->background);
     ncplane_destroy(n->ncp);
     free(n->items);
     free(n->title);
