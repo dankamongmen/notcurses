@@ -246,7 +246,7 @@ typedef struct ncselector_options {
   uint64_t titlechannels;// title channels
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
-  uint64_t bgchannels;   // background channels, used only in body
+  uint64_t flags;        // bitmap over NCSELECTOR_OPTIONS_*
 } ncselector_options;
 struct ncselector* ncselector_create(struct ncplane* n, const ncselector_options* opts);
 int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);
@@ -275,7 +275,7 @@ typedef struct ncmultiselector_options {
   uint64_t titlechannels;// title channels
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
-  uint64_t bgchannels;   // background channels, used only in body
+  uint64_t flags;        // bitmap over NCSELECTOR_OPTIONS_*
 } ncmultiselector_options;
 struct ncmultiselector* ncmultiselector_create(struct ncplane* n, const ncmultiselector_options* opts);
 int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
@@ -316,7 +316,6 @@ typedef struct ncreel_options {
   unsigned tabletmask;
   uint64_t tabletchan;
   uint64_t focusedchan;
-  uint64_t bgchannel;
   unsigned flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
@@ -353,6 +352,7 @@ typedef struct ncplot_options {
   uint64_t rangex;
   unsigned flags;
   const char* title;
+  uint64_t flags;        // bitmap over NCPLOT_OPTIONS_*
 } ncplot_options;
 struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy);
 struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts, double miny, double maxy);
@@ -370,6 +370,7 @@ bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
 typedef struct ncfdplane_options {
   void* curry; // parameter provided to callbacks
   bool follow; // keep reading after hitting end? (think tail -f)
+  uint64_t flags;        // bitmap over NCPLOT_OPTIONS_*
 } ncfdplane_options;
 typedef int(ncfdplane_callback)(struct ncfdplane* n, const void* buf, size_t s, void* curry);
 typedef int(ncfdplane_done_cb)(struct ncfdplane* n, int fderrno, void* curry);
@@ -379,6 +380,7 @@ int ncfdplane_destroy(struct ncfdplane* n);
 typedef struct ncsubproc_options {
   void* curry;
   uint64_t restart_period;  // restart this many seconds after an exit (watch)
+  uint64_t flags;        // bitmap over NCPLOT_OPTIONS_*
 } ncsubproc_options;
 struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts, const char* bin, char* const arg[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
 struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts, const char* bin, char* const arg[], ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);

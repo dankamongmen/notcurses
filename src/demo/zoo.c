@@ -73,14 +73,15 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int y){
     .descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
     .footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0x20, 0),
     .titlechannels = CHANNELS_RGB_INITIALIZER(0x80, 0x80, 0xff, 0, 0, 0x20),
-    .bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x40, 0, 0, 0x40, 0),
   };
-  channels_set_fg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
-  channels_set_bg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
+  uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x40, 0, 0, 0x40, 0);
+  channels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
+  channels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
   struct ncplane* mseln = ncplane_new(ncplane_notcurses(n), 1, 1, y, 0, NULL);
   if(mseln == NULL){
     return NULL;
   }
+  ncplane_set_base(mseln, "", 0, bgchannels);
   struct ncmultiselector* mselect = ncmultiselector_create(mseln, &mopts);
   if(mselect == NULL){
     return NULL;
@@ -102,19 +103,20 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
     .descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
     .footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0, 0),
     .titlechannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0x80, 0, 0, 0x20),
-    .bgchannels = CHANNELS_RGB_INITIALIZER(0, 0, 0x40, 0, 0, 0x40),
   };
-  channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
-  channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
-  struct ncplane* mplane = ncplane_new(ncplane_notcurses(n), 1, 1, y, dimx, NULL);
-  if(mplane == NULL){
+  uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0, 0x40, 0, 0, 0x40);
+  channels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
+  channels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
+  struct ncplane* seln = ncplane_new(ncplane_notcurses(n), 1, 1, y, dimx, NULL);
+  if(seln == NULL){
     return NULL;
   }
-  struct ncselector* selector = ncselector_create(mplane, &sopts);
+  ncplane_set_base(seln, "", 0, bgchannels);
+  struct ncselector* selector = ncselector_create(seln, &sopts);
   if(selector == NULL){
     return NULL;
   }
-  ncplane_move_below(mplane, under);
+  ncplane_move_below(seln, under);
   return selector;
 }
 

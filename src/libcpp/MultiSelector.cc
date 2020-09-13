@@ -14,7 +14,6 @@ ncmultiselector_options MultiSelector::default_options = {
 	/* titlechannels */ 0,
 	/* footchannels */ 0,
 	/* boxchannels */ 0,
-	/* bgchannels */ 0,
 	/* flags */ 0,
 };
 

@@ -6,12 +6,14 @@ rearrangements of Notcurses.
     all widgets, has been effected. Sorry, there was no getting around this
     one. Pretty much all widgets have slightly changed, because pretty much all
     widgets previously behaved slightly differently:
-     * `ncselector` no longer accepts `y, x` placement parameters.
-     * `ncselector` now takes ownership of the provided `ncplane`. It is
-       destroyed by `ncselector_destroy`/`ncselector_create`.
-     * `ncmultiselector` no longer accepts `y, x` placement parameters.
-     * `ncmultiselector` now takes ownership of the provided `ncplane`. It is
-       destroyed by `ncmultiselector_destroy`/`ncmultiselector_create`.
+     * `ncselector_create()` and `ncmultiselector_create()` now take ownership
+       of the provided `ncplane`. On an error in these functions, the `ncplane`
+       will be destroyed. Otherwise, the `ncplane` is destroyed by
+       `ncselector_destroy()` or `ncmultiselector_destroy()`.
+     * `ncselector_create()` and `ncmultiselector_create()` no longer accept
+       `int y, int x` placement parameters. Just place the `ncplane`.
+     * `ncselector_options` and `ncmultiselector_options` have lost their
+       `bgchannels` members. Just set the base character for the `ncplane`.
      * ...
 
 * 1.7.2 (2020-09-09)

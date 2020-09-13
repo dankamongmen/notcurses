@@ -71,14 +71,14 @@ int main(void){
   sopts.secondary = "pick one (you will die regardless)";
   sopts.footer = "press q to exit (there is no exit)";
   sopts.defidx = 1;
-  sopts.boxchannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0x40, 0x20, 0x20, 0x20),
-  sopts.opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
-  sopts.descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
-  sopts.footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0, 0),
-  sopts.titlechannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0x80, 0, 0, 0x20),
-  sopts.bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x20, 0, 0, 0x20, 0),
-  channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
-  channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
+  sopts.boxchannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0x40, 0x20, 0x20, 0x20);
+  sopts.opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0);
+  sopts.descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0);
+  sopts.footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0, 0);
+  sopts.titlechannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0x80, 0, 0, 0x20);
+  uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x20, 0, 0, 0x20, 0);
+  channels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
+  channels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
   struct ncplane* n = notcurses_stdplane(nc);
 
   if(notcurses_canopen_images(nc)){
@@ -99,17 +99,20 @@ int main(void){
   ncplane_set_fg(n, 0x40f040);
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "selector widget demo");
   struct ncplane* seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ncplane_set_base(seln, "", 0, bgchannels);
   struct ncselector* ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "short round title";
   seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ncplane_set_base(seln, "", 0, bgchannels);
   ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "short round title";
   sopts.secondary = "now this secondary is also very, very, very outlandishly long, you see";
   seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ncplane_set_base(seln, "", 0, bgchannels);
   ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
@@ -117,6 +120,7 @@ int main(void){
   sopts.secondary = NULL;
   sopts.footer = "now this FOOTERFOOTER is also very, very, very outlandishly long, you see";
   seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ncplane_set_base(seln, "", 0, bgchannels);
   ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
@@ -124,6 +128,7 @@ int main(void){
   sopts.secondary = NULL;
   sopts.footer = NULL;
   seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ncplane_set_base(seln, "", 0, bgchannels);
   ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
