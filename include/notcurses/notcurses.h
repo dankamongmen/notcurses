@@ -607,7 +607,6 @@ cell_init(cell* c){
 // Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
 // the number of bytes copied out of 'gcluster', or -1 on failure. The styling
 // of the cell is left untouched, but any resources are released.
-__attribute__ ((nonnull (1, 2, 3)))
 API int cell_load(struct ncplane* n, cell* c, const char* gcluster);
 
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
@@ -2474,7 +2473,8 @@ struct ncreel;
 
 // Take over the ncplane 'nc' and use it to draw a reel according to 'popts'.
 // The plane will be destroyed by ncreel_destroy(); this transfers ownership.
-API struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* popts);
+API struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* popts)
+  __attribute__ ((nonnull (1)));
 
 // Returns the ncplane on which this ncreel lives.
 API struct ncplane* ncreel_plane(struct ncreel* pr);
@@ -2697,7 +2697,8 @@ typedef struct ncselector_options {
 } ncselector_options;
 
 API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
-                                         const ncselector_options* opts);
+                                         const ncselector_options* opts)
+  __attribute__ ((nonnull (1)));
 
 // Dynamically add or delete items. It is usually sufficient to supply a static
 // list of items via ncselector_options->items.
@@ -2773,7 +2774,8 @@ typedef struct ncmultiselector_options {
 } ncmultiselector_options;
 
 API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
-                                                   const ncmultiselector_options* opts);
+                                                   const ncmultiselector_options* opts)
+  __attribute__ ((nonnull (1)));
 
 // Return selected vector. An array of bools must be provided, along with its
 // length. If that length doesn't match the itemcount, it is an error.
@@ -2826,7 +2828,8 @@ typedef struct ncmenu_options {
 // Create a menu with the specified options. Menus are currently bound to an
 // overall notcurses object (as opposed to a particular plane), and are
 // implemented as ncplanes kept atop other ncplanes.
-API struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts);
+API struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts)
+  __attribute__ ((nonnull (1)));
 
 // Unroll the specified menu section, making the menu visible if it was
 // invisible, and rolling up any menu section that is already unrolled.
@@ -2940,9 +2943,12 @@ typedef struct ncplot_options {
 // The plot will make free use of the entirety of the plane.
 // for domain autodiscovery, set miny == maxy == 0.
 API struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts,
-                                   uint64_t miny, uint64_t maxy);
+                                   uint64_t miny, uint64_t maxy)
+  __attribute__ ((nonnull (1)));
+
 API struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts,
-                                   double miny, double maxy);
+                                   double miny, double maxy)
+  __attribute__ ((nonnull (1)));
 
 // Return a reference to the ncplot's underlying ncplane.
 API struct ncplane* ncuplot_plane(struct ncuplot* n);
@@ -2979,7 +2985,8 @@ typedef struct ncfdplane_options {
 // Create an ncfdplane around the fd 'fd'. Consider this function to take
 // ownership of the file descriptor, which will be closed in ncfdplane_destroy().
 API struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* opts,
-                          int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+                          int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
+  __attribute__ ((nonnull (1)));
 
 API struct ncplane* ncfdplane_plane(struct ncfdplane* n);
 
@@ -2994,13 +3001,18 @@ typedef struct ncsubproc_options {
 // see exec(2). p-types use $PATH. e-type passes environment vars.
 API struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
                                         const char* bin,  char* const arg[],
-                                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+                                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
+  __attribute__ ((nonnull (1)));
+
 API struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
                                          const char* bin,  char* const arg[],
-                                         ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+                                         ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
+  __attribute__ ((nonnull (1)));
+
 API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
                        const char* bin,  char* const arg[], char* const env[],
-                       ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn);
+                       ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
+  __attribute__ ((nonnull (1)));
 
 API struct ncplane* ncsubproc_plane(struct ncsubproc* n);
 
@@ -3039,7 +3051,8 @@ typedef struct ncreader_options {
 // supporting readline keybindings. 'rows' and 'cols' both must be negative.
 // there are no restrictions on 'y' or 'x'. creates its own plane.
 API struct ncreader* ncreader_create(struct ncplane* n, int y, int x,
-                                     const ncreader_options* opts);
+                                     const ncreader_options* opts)
+  __attribute__ ((nonnull (1)));
 
 // empty the ncreader of any user input, and home the cursor.
 API int ncreader_clear(struct ncreader* n);
