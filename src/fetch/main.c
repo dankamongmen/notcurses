@@ -100,7 +100,7 @@ pipe_getline(const char* cmdline){
   }
   char* buf = malloc(BUFSIZ); // gatesv("BUFSIZ bytes is enough for anyone")
   if(fgets(buf, BUFSIZ, p) == NULL){
-    fprintf(stderr, "Error reading from %s (%s)\n", cmdline, strerror(errno));
+//fprintf(stderr, "Error reading from %s (%s)\n", cmdline, strerror(errno));
     fclose(p);
     free(buf);
     return NULL;
@@ -116,7 +116,7 @@ pipe_getline(const char* cmdline){
 
 static int
 fetch_x_props(fetched_info* fi){
-  char* xrandr = pipe_getline("xrandr --current");
+  char* xrandr = pipe_getline("xrandr --current 2>/dev/null");
   if(xrandr == NULL){
     return -1;
   }
