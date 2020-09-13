@@ -216,8 +216,11 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   *ncdimx = cols;
 }
 
-ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_options* opts){
+ncselector* ncselector_create(ncplane* n, int y, int x, const ncselector_options* opts){
   unsigned itemcount = 0;
+  if(opts->flags > 0){
+    logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+  }
   if(opts->items){
     for(const struct ncselector_item* i = opts->items ; i->option ; ++i){
       ++itemcount;
@@ -282,8 +285,8 @@ ncselector* ncselector_create(ncplane* nc, int y, int x, const ncselector_option
     }
   }
   int dimy, dimx;
-  ncselector_dim_yx(nc->nc, ns, &dimy, &dimx);
-  if(!(ns->ncp = ncplane_bound(nc, dimy, dimx, y, x, NULL))){
+  ncselector_dim_yx(n->nc, ns, &dimy, &dimx);
+  if(!(ns->ncp = ncplane_bound(n, dimy, dimx, y, x, NULL))){
     goto freeitems;
   }
   cell_init(&ns->background);
@@ -794,8 +797,11 @@ ncmultiselector_dim_yx(notcurses* nc, const ncmultiselector* n, int* ncdimy, int
   return 0;
 }
 
-ncmultiselector* ncmultiselector_create(ncplane* nc, int y, int x,
+ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x,
                                         const ncmultiselector_options* opts){
+  if(opts->flags > 0){
+    logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+  }
   unsigned itemcount = 0;
   if(opts->items){
     for(const struct ncmselector_item* i = opts->items ; i->option ; ++i){
@@ -849,10 +855,10 @@ ncmultiselector* ncmultiselector_create(ncplane* nc, int y, int x,
     }
   }
   int dimy, dimx;
-  if(ncmultiselector_dim_yx(nc->nc, ns, &dimy, &dimx)){
+  if(ncmultiselector_dim_yx(n->nc, ns, &dimy, &dimx)){
     goto freeitems;
   }
-  if(!(ns->ncp = ncplane_bound(nc, dimy, dimx, y, x, NULL))){
+  if(!(ns->ncp = ncplane_bound(n, dimy, dimx, y, x, NULL))){
     goto freeitems;
   }
   cell_init(&ns->background);

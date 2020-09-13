@@ -16,6 +16,9 @@ class ncppplot {
  // ought admit nullptr opts FIXME
  // reenable logging once #703 is done
  static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy) {
+   if(opts->flags > NCPLOT_OPTION_DETECTMAXONLY){
+     logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+   }
    //struct notcurses* nc = n->nc;
    // if miny == maxy (enabling domain detection), they both must be equal to 0
    if(miny == maxy && miny){

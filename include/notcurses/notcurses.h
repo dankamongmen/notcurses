@@ -1167,23 +1167,23 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
 // Destroy the specified ncplane. None of its contents will be visible after
 // the next call to notcurses_render(). It is an error to attempt to destroy
 // the standard plane.
-API int ncplane_destroy(struct ncplane* ncp);
+API int ncplane_destroy(struct ncplane* n);
 
 // Set the ncplane's base cell to this cell. It will be used for purposes of
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
 // does not reset the base cell; this function must be called with a zero 'c'.
-API int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
+API int ncplane_set_base_cell(struct ncplane* n, const cell* c);
 
 // Set the ncplane's base cell to this cell. It will be used for purposes of
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
 // does not reset the base cell; this function must be called with an empty
 // 'egc'. 'egc' must be a single extended grapheme cluster.
-API int ncplane_set_base(struct ncplane* ncp, const char* egc,
+API int ncplane_set_base(struct ncplane* n, const char* egc,
                          uint32_t stylemask, uint64_t channels);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
-API int ncplane_base(struct ncplane* ncp, cell* c);
+API int ncplane_base(struct ncplane* n, cell* c);
 
 // Move this plane relative to the standard plane, or the plane to which it is
 // bound (if it is bound to a plane). It is an error to attempt to move the
@@ -1271,10 +1271,10 @@ ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c){
 }
 
 // Create a flat string from the EGCs of the selected region of the ncplane
-// 'nc'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
+// 'n'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as -1 to go through the boundary of the plane.
-API char* ncplane_contents(const struct ncplane* nc, int begy, int begx,
+API char* ncplane_contents(const struct ncplane* n, int begy, int begx,
                            int leny, int lenx);
 
 // Manipulate the opaque user pointer associated with this plane.
@@ -1908,14 +1908,14 @@ cell_bg_palindex_p(const cell* cl){
 
 // Extract the 32-bit working background channel from an ncplane.
 static inline unsigned
-ncplane_bchannel(const struct ncplane* nc){
-  return channels_bchannel(ncplane_channels(nc));
+ncplane_bchannel(const struct ncplane* n){
+  return channels_bchannel(ncplane_channels(n));
 }
 
 // Extract the 32-bit working foreground channel from an ncplane.
 static inline unsigned
-ncplane_fchannel(const struct ncplane* nc){
-  return channels_fchannel(ncplane_channels(nc));
+ncplane_fchannel(const struct ncplane* n){
+  return channels_fchannel(ncplane_channels(n));
 }
 
 API void ncplane_set_channels(struct ncplane* n, uint64_t channels);
@@ -1934,38 +1934,38 @@ API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline unsigned
-ncplane_fg(const struct ncplane* nc){
-  return channels_fg(ncplane_channels(nc));
+ncplane_fg(const struct ncplane* n){
+  return channels_fg(ncplane_channels(n));
 }
 
 // Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 static inline unsigned
-ncplane_bg(const struct ncplane* nc){
-  return channels_bg(ncplane_channels(nc));
+ncplane_bg(const struct ncplane* n){
+  return channels_bg(ncplane_channels(n));
 }
 
 // Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
 static inline unsigned
-ncplane_fg_alpha(const struct ncplane* nc){
-  return channels_fg_alpha(ncplane_channels(nc));
+ncplane_fg_alpha(const struct ncplane* n){
+  return channels_fg_alpha(ncplane_channels(n));
 }
 
 // Is the plane's foreground using the "default foreground color"?
 static inline bool
-ncplane_fg_default_p(const struct ncplane* nc){
-  return channels_fg_default_p(ncplane_channels(nc));
+ncplane_fg_default_p(const struct ncplane* n){
+  return channels_fg_default_p(ncplane_channels(n));
 }
 
 // Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 static inline unsigned
-ncplane_bg_alpha(const struct ncplane* nc){
-  return channels_bg_alpha(ncplane_channels(nc));
+ncplane_bg_alpha(const struct ncplane* n){
+  return channels_bg_alpha(ncplane_channels(n));
 }
 
 // Is the plane's background using the "default background color"?
 static inline bool
-ncplane_bg_default_p(const struct ncplane* nc){
-  return channels_bg_default_p(ncplane_channels(nc));
+ncplane_bg_default_p(const struct ncplane* n){
+  return channels_bg_default_p(ncplane_channels(n));
 }
 
 // Extract 24 bits of foreground RGB from 'n', split into components.
@@ -2017,7 +2017,7 @@ API int ncplane_set_bg_alpha(struct ncplane* n, int alpha);
 // Called for each fade iteration on 'ncp'. If anything but 0 is returned,
 // the fading operation ceases immediately, and that value is propagated out.
 // The recommended absolute display time target is passed in 'tspec'.
-typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp,
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* n,
                       const struct timespec*, void* curry);
 
 // Fade the ncplane out over the provided time, calling 'fader' at each
@@ -2256,7 +2256,7 @@ struct ncvisual_options {
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as -1 to go through the boundary of the plane.
 // Only glyphs from the specified blitset may be present.
-API uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit,
+API uint32_t* ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
                            int begy, int begx, int leny, int lenx);
 
 // Get the size and ratio of ncvisual pixels to output cells along the y
@@ -2474,7 +2474,7 @@ struct ncreel;
 
 // Take over the ncplane 'nc' and use it to draw a reel according to 'popts'.
 // The plane will be destroyed by ncreel_destroy(); this transfers ownership.
-API struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
+API struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* popts);
 
 // Returns the ncplane on which this ncreel lives.
 API struct ncplane* ncreel_plane(struct ncreel* pr);
@@ -2826,7 +2826,7 @@ typedef struct ncmenu_options {
 // Create a menu with the specified options. Menus are currently bound to an
 // overall notcurses object (as opposed to a particular plane), and are
 // implemented as ncplanes kept atop other ncplanes.
-API struct ncmenu* ncmenu_create(struct ncplane* nc, const ncmenu_options* opts);
+API struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts);
 
 // Unroll the specified menu section, making the menu visible if it was
 // invisible, and rolling up any menu section that is already unrolled.
@@ -3038,7 +3038,7 @@ typedef struct ncreader_options {
 // ncreaders provide freeform input in a (possibly multiline) region,
 // supporting readline keybindings. 'rows' and 'cols' both must be negative.
 // there are no restrictions on 'y' or 'x'. creates its own plane.
-API struct ncreader* ncreader_create(struct ncplane* nc, int y, int x,
+API struct ncreader* ncreader_create(struct ncplane* n, int y, int x,
                                      const ncreader_options* opts);
 
 // empty the ncreader of any user input, and home the cursor.
@@ -3083,7 +3083,7 @@ struct blitset {
   // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
   // the first five braille EGCs are all 0 on the left, [0..4] on the right.
   const wchar_t* egcs;
-  int (*blit)(struct ncplane* nc, int placey, int placex, int linesize,
+  int (*blit)(struct ncplane* n, int placey, int placex, int linesize,
               const void* data, int begy, int begx, int leny, int lenx,
               bool bgr, bool blendcolors);
   const char* name;

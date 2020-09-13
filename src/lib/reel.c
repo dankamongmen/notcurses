@@ -684,9 +684,12 @@ int ncreel_redraw(ncreel* nr){
 }
 
 static bool
-validate_ncreel_opts(ncplane* w, const ncreel_options* ropts){
-  if(w == NULL){
+validate_ncreel_opts(ncplane* n, const ncreel_options* ropts){
+  if(n == NULL){
     return false;
+  }
+  if(ropts->flags > NCREEL_OPTION_CIRCULAR){
+    logwarn(n->nc, "Provided unsupported flags %016lx\n", ropts->flags);
   }
   if(ropts->flags & NCREEL_OPTION_CIRCULAR){
     if(!(ropts->flags & NCREEL_OPTION_INFINITESCROLL)){
@@ -715,10 +718,10 @@ ncplane* ncreel_plane(ncreel* nr){
   return nr->p;
 }
 
-ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts){
+ncreel* ncreel_create(ncplane* n, const ncreel_options* ropts){
   ncreel* nr;
 
-  if(!validate_ncreel_opts(w, ropts)){
+  if(!validate_ncreel_opts(n, ropts)){
     return NULL;
   }
   if((nr = malloc(sizeof(*nr))) == NULL){
@@ -728,7 +731,7 @@ ncreel* ncreel_create(ncplane* w, const ncreel_options* ropts){
   nr->tabletcount = 0;
   nr->direction = LASTDIRECTION_DOWN; // draw down after the initial tablet
   memcpy(&nr->ropts, ropts, sizeof(*ropts));
-  nr->p = w;
+  nr->p = n;
   nr->vft = NULL;
   ncplane_set_base(nr->p, "", 0, ropts->bgchannel);
   if(ncreel_redraw(nr)){
