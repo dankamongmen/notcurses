@@ -24,14 +24,18 @@ typedef struct ncplot_options {
   uint64_t minchannels;
   // styling used for labels (NCPLOT_OPTION_LABELTICKSD)
   uint16_t legendstyle;
-  // number of "pixels" per row x column
+  // pass NCBLIT_DEFAULT maps to NCBLIT_8x1 (assuming
+  // UTF8) or NCBLIT_1x1 (in an ASCII environment)
   ncblitter_e gridtype;
-  // independent variable is a contiguous range
+  // independent variable can either be a contiguous range,
+  // or a finite set of keys. for a time range, say the
+  // previous hour sampled with second resolution, the
+  // independent variable would be the range [0..3600): 3600.
+  // if rangex is 0, it is dynamically set to the number
+  // of columns.
   int rangex;
-  bool labelaxisd;     // label dependent axis
-  bool exponentially;   // is dependent exponential?
-  bool vertical_indep; // vertical independent variable
   const char* title;   // optional title
+  uint64_t flags;      // bitfield over NCPLOT_OPTION_*
 } ncplot_options;
 ```
 
