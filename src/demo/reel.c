@@ -96,7 +96,7 @@ drawcb(struct nctablet* t, bool drawfromtop){
   pthread_mutex_lock(&tctx->lock);
   unsigned rgb = tctx->rgb;
   int ll;
-  int maxy = ncplane_dim_y(p) - 1;
+  int maxy = ncplane_dim_y(p);
   ll = tabletdraw(p, maxy, tctx, rgb);
   ncplane_set_fg_rgb(p, 242, 242, 242);
   if(ll){
