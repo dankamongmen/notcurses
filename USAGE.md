@@ -2221,14 +2221,14 @@ Selectors:
                               ╭──────────────────────────╮
                               │This is the primary header│
 ╭──────────────────────this is the secondary header──────╮
-│                                                        │
+│         ↑                                              │
 │ option1   Long text #1                                 │
 │ option2   Long text #2                                 │
 │ option3   Long text #3                                 │
 │ option4   Long text #4                                 │
 │ option5   Long text #5                                 │
 │ option6   Long text #6                                 │
-│                                                        │
+│         ↓                                              │
 ╰────────────────────────────────────here's the footer───╯
 ```
 
@@ -2237,7 +2237,7 @@ Multiselectors:
 ```
       ╭────────────────────────────────────────────────────────────────╮
       │ this is truly an awfully long example of a MULTISELECTOR title │
-╭─────┴─────────────────────────────pick one (you will die regardless)─┤
+╭─────┴─────────────────────────────pick one or more options───────────┤
 │  ↑                                                                   │
 │ ☐ 1 Across the Atlantic Ocean, there was a place called North America│
 │ ☐ 2 Discovered by an Italian in the employ of the queen of Spain     │
