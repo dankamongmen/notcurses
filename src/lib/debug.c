@@ -13,7 +13,7 @@ void notcurses_debug(notcurses* nc, FILE* debugfp){
       fprintf(debugfp, " bound %p → %p ← %p binds %p\n",
               n->boundto, n->bnext, n->bprev, n->blist);
     }
-    if(n->bnext == n || n->boundto == n || n->blist == n){
+    if(n->bnext == n || (n->boundto == n && n != nc->stdplane) || n->blist == n){
       fprintf(debugfp, "WARNING: bound pointers target self\n");
     }
     if(n->bprev && (*n->bprev != n)){

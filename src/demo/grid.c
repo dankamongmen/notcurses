@@ -254,6 +254,8 @@ int grid_demo(struct notcurses* nc){
   cell cl, cc, cr;
   prep_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
 
+// notcurses_debug(nc, stderr);
+
   int ret = 0;
   for(int i = 0 ; i < 256 ; ++i){
     int maxx, maxy;

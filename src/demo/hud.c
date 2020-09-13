@@ -324,7 +324,8 @@ struct ncplane* hud_create(struct notcurses* nc){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int yoffset = dimy - HUD_ROWS;
-  struct ncplane* n = ncplane_new(nc, HUD_ROWS, HUD_COLS, yoffset, 7, NULL);
+  struct ncplane* n = ncplane_new_named(nc, HUD_ROWS, HUD_COLS,
+                                        yoffset, 7, NULL, "hud");
   if(n == NULL){
     return NULL;
   }
@@ -531,7 +532,8 @@ int fpsgraph_init(struct notcurses* nc){
   const int PLOTHEIGHT = 6;
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  struct ncplane* newp = ncplane_new(nc, PLOTHEIGHT, dimx, dimy - PLOTHEIGHT, 0, NULL);
+  struct ncplane* newp = ncplane_new_named(nc, PLOTHEIGHT, dimx,
+                                           dimy - PLOTHEIGHT, 0, NULL, "fps");
   uint32_t style = 0;
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
