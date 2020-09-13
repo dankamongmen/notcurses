@@ -31,16 +31,14 @@ auto main(int argc, const char** argv) -> int {
   nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc(nopts);
   int dimy, dimx;
-  std::unique_ptr<Plane *> n = std::make_unique<Plane *>(nc.get_stdplane(&dimy, &dimx));
+  auto n = std::make_unique<Plane *>(nc.get_stdplane(&dimy, &dimx));
   nc.get_term_dim(&dimy, &dimx);
   ncreader_options opts{};
-  opts.physrows = dimy / 8;
-  opts.physcols = dimx / 2;
-  opts.egc = "░";
   opts.flags = NCREADER_OPTION_CURSOR | (horscroll ? NCREADER_OPTION_HORSCROLL : 0);
-  // FIXME c++ is crashing
-  //Reader nr(nc, 0, 0, &opts);
-  auto nr = ncreader_create(**n, 2, 2, &opts);
+  // can't use Plane until we have move constructor for Reader
+  struct ncplane* rp = ncplane_new(nc, dimy / 8, dimx / 2, 2, 2, nullptr);
+  ncplane_set_base(rp, "░", 0, 0);
+  auto nr = ncreader_create(rp, &opts);
   if(nr == nullptr){
     return EXIT_FAILURE;
   }
@@ -67,7 +65,7 @@ auto main(int argc, const char** argv) -> int {
   nc.render();
   char* contents;
   ncreader_destroy(nr, &contents);
-  nc.stop();
+  //nc.stop();
   if(contents){
     printf("\n input: %s\n", contents);
   }

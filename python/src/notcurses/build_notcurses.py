@@ -389,15 +389,10 @@ struct ncplane* ncsubproc_plane(struct ncsubproc* n);
 int ncsubproc_destroy(struct ncsubproc* n);
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
-  uint64_t echannels; // channels used for empty space
   uint32_t tattrword; // attributes used for input
-  uint32_t eattrword; // attributes used for empty space
-  const char* egc;    // egc used for empty space
-  int physrows;
-  int physcols;
   unsigned flags;     // bitfield over NCREADER_OPTION_*
 } ncreader_options;
-struct ncreader* ncreader_create(struct ncplane* n, int y, int x, const ncreader_options* opts);
+struct ncreader* ncreader_create(struct ncplane* n, const ncreader_options* opts);
 int ncreader_clear(struct ncreader* n);
 struct ncplane* ncreader_plane(struct ncreader* n);
 bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);

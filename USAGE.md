@@ -2271,20 +2271,14 @@ xxxxxxxxxxxxxxxx╰─────────────╯xxxxxxxxxxxxxxxxxxx
 ```c
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
-  uint64_t echannels; // channels used for empty space
   uint32_t tattrword; // attributes used for input
-  uint32_t eattrword; // attributes used for empty space
-  const char* egc;    // egc used for empty space
-  int physrows;
-  int physcols;
   bool scroll; // allow more than the physical area's worth of input
 } ncreader_options;
 
-// ncreaders provide freeform input in a (possibly multiline) region,
-// supporting readline keybindings. 'rows' and 'cols' both must be negative.
-// there are no restrictions on 'y' or 'x'. creates its own plane.
-struct ncreader* ncreader_create(struct notcurses* nc, int y, int x,
-                                 const ncreader_options* opts);
+// ncreaders provide freeform input in a (possibly multiline) region, supporting
+// optional readline keybindings. takes ownership of 'n', destroying it on any
+// error (ncreader_destroy() otherwise destroys the ncplane).
+struct ncreader* ncreader_create(struct ncplane* n, const ncreader_options* opts);
 
 // empty the ncreader of any user input, and home the cursor.
 int ncreader_clear(struct ncreader* n);
@@ -2299,7 +2293,7 @@ bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
 // return a nul-terminated heap copy of the current (UTF-8) contents.
 char* ncreader_contents(const struct ncreader* n);
 
-// destroy the reader and its bound plane. if 'contents' is not NULL, the
+// destroy the reader and its bound plane(s). if 'contents' is not NULL, the
 // UTF-8 input will be heap-duplicated and written to 'contents'.
 void ncreader_destroy(struct ncreader* n, char** contents);
 ```

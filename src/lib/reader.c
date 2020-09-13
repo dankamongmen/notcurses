@@ -1,53 +1,35 @@
 #include "internal.h"
 
-ncreader* ncreader_create(ncplane* n, int y, int x, const ncreader_options* opts){
+ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
   ncreader_options zeroed = {};
   if(!opts){
     opts = &zeroed;
-  }
-  if(opts->physrows <= 0 || opts->physcols <= 0){
-    logerror(n->nc, "Provided illegal geometry %dx%d\n", opts->physcols, opts->physrows);
-    return NULL;
   }
   if(opts->flags > NCREADER_OPTION_CURSOR){
     logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
   }
   ncreader* nr = malloc(sizeof(*nr));
-  if(nr){
-    nr->ncp = ncplane_new(n->nc, opts->physrows, opts->physcols, y, x, NULL);
-    if(!nr->ncp){
-      free(nr);
-      return NULL;
-    }
-    // do *not* bind it to the visible plane; we always want it offscreen,
-    // to the upper left of the true origin
-    if((nr->textarea = ncplane_new(n->nc, opts->physrows, opts->physcols, -opts->physrows, -opts->physcols, NULL)) == NULL){
-      ncplane_destroy(nr->ncp);
-      free(nr);
-      return NULL;
-    }
-    const char* egc = opts->egc ? opts->egc : "_";
-    if(ncplane_set_base(nr->ncp, egc, opts->eattrword, opts->echannels) <= 0){
-      ncreader_destroy(nr, NULL);
-      return NULL;
-    }
-    nr->horscroll = opts->flags & NCREADER_OPTION_HORSCROLL;
-    nr->xproject = 0;
-    nr->tchannels = opts->tchannels;
-    nr->tattrs = opts->tattrword;
-    nr->no_cmd_keys = opts->flags & NCREADER_OPTION_NOCMDKEYS;
-    nr->manage_cursor = opts->flags & NCREADER_OPTION_CURSOR;
-    ncplane_set_channels(nr->ncp, opts->tchannels);
-    ncplane_set_attr(nr->ncp, opts->tattrword);
-    if(nr->manage_cursor){
-      if(notcurses_cursor_enable(n->nc, nr->ncp->absy, nr->ncp->absx)){
-        ncplane_destroy(nr->textarea);
-        ncplane_destroy(nr->ncp);
-        free(nr);
-        return NULL;
-      }
-    }
+  if(nr == NULL){
+    ncplane_destroy(n);
+    return NULL;
   }
+  nr->ncp = n;
+  // do *not* bind it to the visible plane; we always want it offscreen,
+  // to the upper left of the true origin
+  if((nr->textarea = ncplane_new(n->nc, ncplane_dim_y(n), ncplane_dim_x(n),
+                                 -ncplane_dim_y(n), -ncplane_dim_x(n), NULL)) == NULL){
+    ncplane_destroy(nr->ncp);
+    free(nr);
+    return NULL;
+  }
+  nr->horscroll = opts->flags & NCREADER_OPTION_HORSCROLL;
+  nr->xproject = 0;
+  nr->tchannels = opts->tchannels;
+  nr->tattrs = opts->tattrword;
+  nr->no_cmd_keys = opts->flags & NCREADER_OPTION_NOCMDKEYS;
+  nr->manage_cursor = opts->flags & NCREADER_OPTION_CURSOR;
+  ncplane_set_channels(nr->ncp, opts->tchannels);
+  ncplane_set_attr(nr->ncp, opts->tattrword);
   return nr;
 }
 

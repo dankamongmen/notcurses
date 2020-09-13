@@ -23,17 +23,12 @@ struct notcurses;
 
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
-  uint64_t echannels; // channels used for empty space
   uint32_t tattrword; // attributes used for input
-  uint32_t eattrword; // attributes used for empty space
-  const char* egc;    // egc used for empty space
-  int physrows;
-  int physcols;
   unsigned flags;     // bitfield over NCREADER_OPTION_*
 } ncreader_options;
 ```
 
-**struct ncreader* ncreader_create(struct notcurses* nc, int y, int x, const ncreader_options* opts);**
+**struct ncreader* ncreader_create(struct notcurses* nc, const ncreader_options* opts);**
 
 **int ncreader_clear(struct ncreader* n);**
 
@@ -59,8 +54,9 @@ typedef struct ncreader_options {
 
 The **ncreader** widget supports free-form, multi-line input. It supports
 navigation with the arrow keys and scrolling. While the visible portion of
-the **ncreader** is always the same size (**physrows** by **physcols**), the
-actual text backing this visible region can grow arbitrarily large.
+the **ncreader** is always the same size (defined by the provided **ncplane**),
+the actual text backing this visible region can grow arbitrarily large if
+scrolling is enabled.
 
 The following option flags are supported:
 

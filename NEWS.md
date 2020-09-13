@@ -10,10 +10,14 @@ rearrangements of Notcurses.
        of the provided `ncplane`. On an error in these functions, the `ncplane`
        will be destroyed. Otherwise, the `ncplane` is destroyed by
        `ncselector_destroy()` or `ncmultiselector_destroy()`.
-     * `ncselector_create()` and `ncmultiselector_create()` no longer accept
-       `int y, int x` placement parameters. Just place the `ncplane`.
+     * `ncselector_create()`, `ncmultiselector_create()`, and
+       `ncreader_create()` no longer accept `int y, int x` placement
+       parameters. Just place the `ncplane`.
      * `ncselector_options` and `ncmultiselector_options` have lost their
        `bgchannels` members. Just set the base character for the `ncplane`.
+     * `ncreader_options` has lost its `echannels`, `eattrword`, `egc`,
+       `physrows`, and `physcols` fields. Just set the base character and size
+       for the `ncplane`.
      * ...
 
 * 1.7.2 (2020-09-09)

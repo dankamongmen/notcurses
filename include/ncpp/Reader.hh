@@ -12,27 +12,27 @@ namespace ncpp
 	class NCPP_API_EXPORT Reader : public Root
 	{
 	public:
-		explicit Reader (Plane *p, int y, int x, const ncreader_options *opts)
-			: Reader (static_cast<const Plane*>(p), y, x, opts)
+		explicit Reader (Plane *p, const ncreader_options *opts)
+			: Reader (static_cast<const Plane*>(p), opts)
 		{}
 
-		explicit Reader (Plane const* p, int y, int x, const ncreader_options *opts)
+		explicit Reader (Plane const* p, const ncreader_options *opts)
 			: Root (Utilities::get_notcurses_cpp (p))
 		{
 			if (p == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			common_init (Utilities::to_ncplane (p), y, x, opts);
+			common_init (Utilities::to_ncplane (p), opts);
 		}
 
-		explicit Reader (Plane &p, int y, int x, const ncreader_options *opts)
-			: Reader (static_cast<Plane const&>(p), y, x, opts)
+		explicit Reader (Plane &p, const ncreader_options *opts)
+			: Reader (static_cast<Plane const&>(p), opts)
 		{}
 
-		explicit Reader (Plane const& p, int y, int x, const ncreader_options *opts)
+		explicit Reader (Plane const& p, const ncreader_options *opts)
 			: Root (Utilities::get_notcurses_cpp (p))
 		{
-			common_init (Utilities::to_ncplane (p), y, x, opts);
+			common_init (Utilities::to_ncplane (p), opts);
 		}
 
 		~Reader ()
@@ -58,9 +58,9 @@ namespace ncpp
 		}
 
 	private:
-		void common_init (ncplane *n, int y, int x, const ncreader_options *opts)
+		void common_init (ncplane *n, const ncreader_options *opts)
 		{
-			reader = ncreader_create (n, y, x, opts);
+			reader = ncreader_create (n, opts);
 			if (reader == nullptr)
 				throw init_error ("Notcurses failed to create a new reader");
 		}

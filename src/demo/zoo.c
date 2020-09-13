@@ -372,16 +372,15 @@ reader_demo(struct notcurses* nc){
   const int READER_ROWS = 8;
   ncreader_options nopts = {
     .tchannels = CHANNELS_RGB_INITIALIZER(0xa0, 0xe0, 0xe0, 0, 0, 0),
-    .echannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0, 0, 0),
-    .egc = " ",
-    .physcols = READER_COLS,
-    .physrows = READER_ROWS,
   };
-  channels_set_bg_alpha(&nopts.echannels, CELL_ALPHA_BLEND);
-  const int x = ncplane_align(std, NCALIGN_CENTER, nopts.physcols);
+  uint64_t echannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0, 0, 0);
+  channels_set_bg_alpha(&echannels, CELL_ALPHA_BLEND);
+  const int x = ncplane_align(std, NCALIGN_CENTER, READER_COLS);
   struct ncselector* selector = NULL;
   struct ncmultiselector* mselector = NULL;
-  struct ncreader* reader = ncreader_create(std, dimy, x, &nopts);
+  struct ncplane* rp = ncplane_new(nc, READER_ROWS, READER_COLS, dimy, x, NULL);
+  ncplane_set_base(rp, " ", 0, echannels);
+  struct ncreader* reader = ncreader_create(rp, &nopts);
   if(reader == NULL){
     goto done;
   }

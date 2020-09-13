@@ -3034,20 +3034,14 @@ API int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax,
 
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
-  uint64_t echannels; // channels used for empty space
   uint32_t tattrword; // attributes used for input
-  uint32_t eattrword; // attributes used for empty space
-  const char* egc;    // egc used for empty space
-  int physrows;
-  int physcols;
   uint64_t flags;     // bitfield of NCREADER_OPTION_*
 } ncreader_options;
 
-// ncreaders provide freeform input in a (possibly multiline) region,
-// supporting readline keybindings. 'rows' and 'cols' both must be negative.
-// there are no restrictions on 'y' or 'x'. creates its own plane.
-API struct ncreader* ncreader_create(struct ncplane* n, int y, int x,
-                                     const ncreader_options* opts)
+// ncreaders provide freeform input in a (possibly multiline) region, supporting
+// optional readline keybindings. takes ownership of 'n', destroying it on any
+// error (ncreader_destroy() otherwise destroys the ncplane).
+API struct ncreader* ncreader_create(struct ncplane* n, const ncreader_options* opts)
   __attribute__ ((nonnull (1)));
 
 // empty the ncreader of any user input, and home the cursor.

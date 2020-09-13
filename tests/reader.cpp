@@ -12,32 +12,13 @@ TEST_CASE("Readers") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
-  SUBCASE("ReaderBadOptions") {
-    ncreader_options opts{};
-    auto nr = ncreader_create(n_, 0, 0, &opts);
-    CHECK(!nr);
-    opts.physrows = 1;
-    nr = ncreader_create(n_, 0, 0, &opts);
-    CHECK(!nr);
-    opts.physcols = 1;
-    opts.physrows = 0;
-    nr = ncreader_create(n_, 0, 0, &opts);
-    CHECK(!nr);
-  }
-
   SUBCASE("ReaderRender") {
     ncreader_options opts{};
-    opts.physrows = dimy / 2;
-    opts.physcols = dimx / 2;
-    if(enforce_utf8()){
-      opts.egc = strdup("▒");
-    }else{
-      opts.egc = strdup("x");
-    }
-    auto nr = ncreader_create(n_, 0, 0, &opts);
+    auto ncp = ncplane_new(nc_, dimy / 2, dimx / 2, 0, 0, nullptr);
+    uint64_t echannels = CHANNELS_RGB_INITIALIZER(0xff, 0x44, 0xff, 0, 0, 0);
+    ncplane_set_base(ncp, enforce_utf8() ? strdup("▒") : strdup("x"), 0, echannels);
+    auto nr = ncreader_create(ncp, &opts);
     REQUIRE(nullptr != nr);
-    channels_set_fg(&opts.echannels, 0xff44ff);
-    ncplane_set_base(n_, opts.egc, opts.eattrword, opts.echannels);
     CHECK(0 == notcurses_render(nc_));
     char* contents = nullptr;
     ncreader_destroy(nr, &contents);
