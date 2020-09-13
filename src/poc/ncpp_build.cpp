@@ -27,10 +27,14 @@ int run ()
 
 	const char *ncver = nc.version ();
 	{
-		Plane plane (1, 1, 0, 0);
-		Plot plot1 (plane);
-		PlotU plot2 (plane);
-		PlotD plot3 (plane);
+    /*
+		Plane p1 (1, 1, 0, 0);
+		Plot plot1 (p1);
+		Plane p2 (1, 1, 0, 0);
+		PlotU plot2 (p2);
+		Plane p3 (1, 1, 0, 0);
+		PlotD plot3 (p3);
+    */
 	}
 
 	nc.stop ();
