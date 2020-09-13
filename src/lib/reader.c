@@ -1,6 +1,10 @@
 #include "internal.h"
 
 ncreader* ncreader_create(ncplane* n, int y, int x, const ncreader_options* opts){
+  ncreader_options zeroed = {};
+  if(!opts){
+    opts = &zeroed;
+  }
   if(opts->physrows <= 0 || opts->physcols <= 0){
     logerror(n->nc, "Provided illegal geometry %dx%d\n", opts->physcols, opts->physrows);
     return NULL;

@@ -217,6 +217,10 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
 }
 
 ncselector* ncselector_create(ncplane* n, int y, int x, const ncselector_options* opts){
+  ncselector_options zeroed = {};
+  if(!opts){
+    opts = &zeroed;
+  }
   unsigned itemcount = 0;
   if(opts->flags > 0){
     logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
@@ -799,6 +803,10 @@ ncmultiselector_dim_yx(notcurses* nc, const ncmultiselector* n, int* ncdimy, int
 
 ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x,
                                         const ncmultiselector_options* opts){
+  ncmultiselector_options zeroed = {};
+  if(!opts){
+    opts = &zeroed;
+  }
   if(opts->flags > 0){
     logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
   }

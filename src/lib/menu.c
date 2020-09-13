@@ -287,6 +287,10 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
 }
 
 ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
+  ncmenu_options zeroed = {};
+  if(!opts){
+    opts = &zeroed;
+  }
   if(opts->sectioncount <= 0 || !opts->sections){
     return NULL;
   }

@@ -16,6 +16,10 @@ class ncppplot {
  // ought admit nullptr opts FIXME
  // reenable logging once #703 is done
  static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy) {
+   ncplot_options zeroed = {};
+   if(!opts){
+     opts = &zeroed;
+   }
    if(opts->flags > NCPLOT_OPTION_DETECTMAXONLY){
      logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
    }

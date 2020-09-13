@@ -126,6 +126,10 @@ ncfdplane_create_internal(ncplane* n, const ncfdplane_options* opts, int fd,
 
 ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
                             ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  ncfdplane_options zeroed = {};
+  if(!opts){
+    opts = &zeroed;
+  }
   if(fd < 0 || !cbfxn || !donecbfxn){
     return NULL;
   }
@@ -290,6 +294,10 @@ ncsubproc_launch(ncplane* n, ncsubproc* ret, const ncsubproc_options* opts, int 
 ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
                              const char* bin,  char* const arg[],
                              ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  ncsubproc_options zeroed = {};
+  if(!opts){
+    opts = &zeroed;
+  }
   if(!cbfxn || !donecbfxn){
     return NULL;
   }
@@ -321,6 +329,10 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
 ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
                               const char* bin,  char* const arg[],
                               ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  ncsubproc_options zeroed = {};
+  if(!opts){
+    opts = &zeroed;
+  }
   if(!cbfxn || !donecbfxn){
     return NULL;
   }
@@ -352,6 +364,10 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
 ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
                        const char* bin,  char* const arg[], char* const env[],
                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  ncsubproc_options zeroed = {};
+  if(!opts){
+    opts = &zeroed;
+  }
   if(!cbfxn || !donecbfxn){
     return NULL;
   }
