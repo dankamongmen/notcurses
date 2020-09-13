@@ -248,7 +248,7 @@ typedef struct ncselector_options {
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
 } ncselector_options;
-struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const ncselector_options* opts);
+struct ncselector* ncselector_create(struct ncplane* n, const ncselector_options* opts);
 int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);
 int ncselector_delitem(struct ncselector* n, const char* item);
 const char* ncselector_selected(const struct ncselector* n);
