@@ -41,7 +41,7 @@ typedef struct ncselector_options {
 } ncselector_options;
 ```
 
-**struct ncselector* ncselector_create(struct ncplane* n, int y, int x, const ncselector_options* opts);**
+**struct ncselector* ncselector_create(struct ncplane* n, const ncselector_options* opts);**
 
 **int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);**
 
@@ -63,13 +63,16 @@ typedef struct ncselector_options {
 
 # NOTES
 
-Currently, the **ncplane** **n** provided to **ncselector_create** must not be
-**NULL**, though the **ncselector** will always get its own plane, and this
-plane will not (currently) be bound to **n**. **ncselector_selected**
+The **ncplane** **n** provided to **ncselector_create** must not be **NULL**.
+It will be freely resized by the new **ncselector**. **ncselector_selected**
 returns the currently-selected option. **ncselector_additem** and
 **ncselector_delitem** allow items to be added and deleted on the fly
 (a static set of items can all be provided in the **ncselector_create**
-call).
+call). The backing plane will be resized as necessary for item changes.
+
+**ncselector_nextitem** and **ncselector_previtem** select the next (down) or
+previous (up) option, scrolling if necessary. It is safe to call these
+functions even if no options are present.
 
 **ncselector_plane** will return the **ncplane** on which the widget is
 drawn.
@@ -80,7 +83,20 @@ controls. It will handle the up and down arrows, along with PageUp and
 PageDown. If the mouse is enabled, the mouse scrollwheel and mouse clicks
 on the scroll arrows will be handled.
 
+**ncselector_destroy** destroys the backing **ncplane**, as does
+**ncselector_create** in the event of any error.
+
 # RETURN VALUES
+
+**ncselector_create** returns **NULL** on an error, in which case the passed
+**ncplane** is destroyed.
+
+**ncselector_selected** returns a reference to the **option** part of the
+selected **ncselector_item**. If there are no items, it returns **NULL**.
+
+**ncselector_previtem** and **ncselector_nextitem** return references to the
+**option** part of the newly-selected **ncselector_item**. If there are no
+items, they return **NULL**.
 
 # SEE ALSO
 
