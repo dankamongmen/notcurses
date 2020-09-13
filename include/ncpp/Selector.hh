@@ -15,26 +15,26 @@ namespace ncpp
 		static ncselector_options default_options;
 
 	public:
-		explicit Selector (Plane *plane, int y, int x, const ncselector_options *opts = nullptr)
-			: Selector (static_cast<const Plane*>(plane), y, x, opts)
+		explicit Selector (Plane *plane, const ncselector_options *opts = nullptr)
+			: Selector (static_cast<const Plane*>(plane), opts)
 		{}
 
-		explicit Selector (Plane const* plane, int y, int x, const ncselector_options *opts = nullptr)
+		explicit Selector (Plane const* plane, const ncselector_options *opts = nullptr)
 			: Root (Utilities::get_notcurses_cpp (plane))
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
-			common_init (Utilities::to_ncplane (plane), y, x, opts);
+			common_init (Utilities::to_ncplane (plane), opts);
 		}
 
-		explicit Selector (Plane &plane, int y, int x, const ncselector_options *opts = nullptr)
-			: Selector (static_cast<Plane const&>(plane), y, x, opts)
+		explicit Selector (Plane &plane, const ncselector_options *opts = nullptr)
+			: Selector (static_cast<Plane const&>(plane), opts)
 		{}
 
-		explicit Selector (Plane const& plane, int y, int x, const ncselector_options *opts = nullptr)
+		explicit Selector (Plane const& plane, const ncselector_options *opts = nullptr)
 			: Root (Utilities::get_notcurses_cpp (plane))
 		{
-			common_init (Utilities::to_ncplane (plane), y, x, opts);
+			common_init (Utilities::to_ncplane (plane), opts);
 		}
 
 		~Selector ()
@@ -76,12 +76,12 @@ namespace ncpp
 		Plane* get_plane () const noexcept;
 
 	private:
-		void common_init (ncplane *plane, int y, int x, const ncselector_options *opts = nullptr)
+		void common_init (ncplane *plane, const ncselector_options *opts = nullptr)
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			selector = ncselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
+			selector = ncselector_create (plane, opts == nullptr ? &default_options : opts);
 			if (selector == nullptr)
 				throw init_error ("Notcurses failed to create a new selector");
 		}

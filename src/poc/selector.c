@@ -7,16 +7,16 @@
 
 static struct ncselector_item items[] = {
 #define SITEM(short, long) { short, long, 0, 0, }
-  SITEM("first", "this is the first option"),
-  SITEM("2nd", "this is the second option"),
-  SITEM("3", "third, third, third option am i"),
-  SITEM("fourth", "i have another option here"),
-  SITEM("five", "golden rings"),
-  SITEM("666", "now it is time for me to REIGN IN BLOOD"),
-  SITEM("7seven7", "this monkey's gone to heaven"),
-  SITEM("8 8 8", "the chinese 平仮名平平仮名仮名love me, i'm told"),
-  SITEM("nine", "nine, nine, nine 'cause you left me"),
-  SITEM("ten", "stunning and brave"),
+  SITEM("Afrikaans", "Ek kan glas eet, dit maak my nie seer nie."),
+  SITEM("Kabuverdianu", "M’tá podê kumê vidru, ká stá máguame."),
+  SITEM("Lao", "ຂອ້ຍກິນແກ້ວໄດ້ໂດຍທີ່ມັນບໍ່ໄດ້ເຮັດໃຫ້ຂອ້ຍເຈັບ."),
+  SITEM("Japanese", "私はガラスを食べられます。それは私を傷つけません。"),
+  SITEM("Khmer", "ខ្ញុំអាចញុំកញ្ចក់បាន ដោយគ្មានបញ្ហារ"),
+  SITEM("Hindi", "मैं काँच खा सकता हूँ और मुझे उससे कोई चोट नहीं पहुंचती. "),
+  SITEM("Tamil", "நான் கண்ணாடி சாப்பிடுவேன், அதனால் எனக்கு ஒரு கேடும் வராது. "),
+  SITEM("Telugu", "నేను గాజు తినగలను మరియు అలా చేసినా నాకు ఏమి ఇబ్బంది లేదు "),
+  SITEM("Tibetan", "ཤེལ་སྒོ་ཟ་ནས་ང་ན་གི་མ་རེད།"),
+  SITEM("Russian", "Я могу есть стекло, оно мне не вредит."),
   SITEM(NULL, NULL),
 #undef SITEM
 };
@@ -98,28 +98,33 @@ int main(void){
 
   ncplane_set_fg(n, 0x40f040);
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "selector widget demo");
-  struct ncselector* ns = ncselector_create(n, 3, 0, &sopts);
+  struct ncplane* seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  struct ncselector* ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "short round title";
-  ns = ncselector_create(n, 3, 0, &sopts);
+  seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "short round title";
   sopts.secondary = "now this secondary is also very, very, very outlandishly long, you see";
-  ns = ncselector_create(n, 3, 0, &sopts);
+  seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "the whole world is watching";
   sopts.secondary = NULL;
   sopts.footer = "now this FOOTERFOOTER is also very, very, very outlandishly long, you see";
-  ns = ncselector_create(n, 3, 0, &sopts);
+  seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
   sopts.title = "chomps";
   sopts.secondary = NULL;
   sopts.footer = NULL;
-  ns = ncselector_create(n, 3, 0, &sopts);
+  seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ns = ncselector_create(seln, &sopts);
   run_selector(nc, ns);
 
   if(notcurses_stop(nc)){

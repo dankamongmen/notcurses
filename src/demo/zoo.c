@@ -102,11 +102,14 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
   };
   channels_set_fg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&sopts.bgchannels, CELL_ALPHA_BLEND);
-  struct ncselector* selector = ncselector_create(n, y, dimx, &sopts);
+  struct ncplane* mplane = ncplane_new(ncplane_notcurses(n), 1, 1, y, dimx, NULL);
+  if(mplane == NULL){
+    return NULL;
+  }
+  struct ncselector* selector = ncselector_create(mplane, &sopts);
   if(selector == NULL){
     return NULL;
   }
-  struct ncplane* mplane = ncselector_plane(selector);
   ncplane_move_below(mplane, under);
   return selector;
 }
