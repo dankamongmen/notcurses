@@ -7,17 +7,27 @@
 
 // http://theboomerbible.com/tbb112.html
 static struct ncmselector_item items[] = {
-  { "1", "Across the Atlantic Ocean, there was a place called North America", .selected = false, },
-  { "2", "Discovered by an Italian in the employ of the queen of Spain", .selected = false, },
-  { "3", "Colonized extensively by the Spanish and the French", .selected = false, },
-  { "4", "Developed into a rich nation by Dutch-supplied African slaves", .selected = false, },
-  { "5", "And thus became the largest English-speaking nation on earth", .selected = false, },
-  { "6", "Namely, the United States of America", .selected = false, },
-  { "7", "The inhabitants of the United States called themselves Yankees", .selected = false, },
-  { "8", "For some reason", .selected = false, },
-  { "9", "And, eventually noticing the rest of the world was there,", .selected = false, },
-  { "10", "Decided to rule it.", .selected = false, },
-  { "11", "This is their story.", .selected = false, },
+  { "Pa231", "Protactinium-231 (162kg)", .selected = false, },
+  { "U233", "Uranium-233 (15kg)", .selected = false, },
+  { "U235", "Uranium-235 (50kg)", .selected = false, },
+  { "Np236", "Neptunium-236 (7kg)", .selected = false, },
+  { "Np237", "Neptunium-237 (60kg)", .selected = false, },
+  { "Pu238", "Plutonium-238 (10kg)", .selected = false, },
+  { "Pu239", "Plutonium-239 (10kg)", .selected = false, },
+  { "Pu240", "Plutonium-240 (40kg)", .selected = false, },
+  { "Pu241", "Plutonium-241 (13kg)", .selected = false, },
+  { "Am241", "Americium-241 (100kg)", .selected = false, },
+  { "Pu242", "Plutonium-242 (100kg)", .selected = false, },
+  { "Am242", "Americium-242 (18kg)", .selected = false, },
+  { "Am243", "Americium-243 (155kg)", .selected = false, },
+  { "Cm243", "Curium-243 (10kg)", .selected = false, },
+  { "Cm244", "Curium-244 (30kg)", .selected = false, },
+  { "Cm245", "Curium-245 (13kg)", .selected = false, },
+  { "Cm246", "Curium-246 (84kg)", .selected = false, },
+  { "Cm247", "Curium-247 (7kg)", .selected = false, },
+  { "Bk247", "Berkelium-247 (10kg)", .selected = false, },
+  { "Cf249", "Californium-249 (6kg)", .selected = false, },
+  { "Cf251", "Californium-251 (9kg)", .selected = false, },
   { NULL, NULL, .selected = false, },
 };
 
@@ -96,28 +106,36 @@ int main(void){
 
   ncplane_set_fg(n, 0x40f040);
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "multiselect widget demo");
-  struct ncmultiselector* ns = ncmultiselector_create(n, 3, 0, &sopts);
+  struct ncplane* mseln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  if(mseln == NULL){
+    goto err;
+  }
+  struct ncmultiselector* ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
 
   sopts.title = "short round title";
-  ns = ncmultiselector_create(n, 3, 0, &sopts);
+  mseln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
 
   sopts.title = "short round title";
   sopts.secondary = "now this secondary is also very, very, very outlandishly long, you see";
-  ns = ncmultiselector_create(n, 3, 0, &sopts);
+  mseln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
 
   sopts.title = "the whole world is watching";
   sopts.secondary = NULL;
   sopts.footer = "now this FOOTERFOOTER is also very, very, very outlandishly long, you see";
-  ns = ncmultiselector_create(n, 3, 0, &sopts);
+  mseln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
 
   sopts.title = "chomps";
   sopts.secondary = NULL;
   sopts.footer = NULL;
-  ns = ncmultiselector_create(n, 3, 0, &sopts);
+  mseln = ncplane_new(nc, 1, 1, 3, 0, NULL);
+  ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
 
   if(notcurses_stop(nc)){

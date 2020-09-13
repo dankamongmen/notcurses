@@ -77,7 +77,11 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int y){
   };
   channels_set_fg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&mopts.bgchannels, CELL_ALPHA_BLEND);
-  struct ncmultiselector* mselect = ncmultiselector_create(n, y, 0, &mopts);
+  struct ncplane* mseln = ncplane_new(ncplane_notcurses(n), 1, 1, y, 0, NULL);
+  if(mseln == NULL){
+    return NULL;
+  }
+  struct ncmultiselector* mselect = ncmultiselector_create(mseln, &mopts);
   if(mselect == NULL){
     return NULL;
   }
