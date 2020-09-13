@@ -27,18 +27,22 @@ class ncppplot {
    // if miny == maxy (enabling domain detection), they both must be equal to 0
    if(miny == maxy && miny){
      //logerror(nc, "Supplied non-zero domain detection param %d\n", miny);
+     ncplane_destroy(n);
      return false;
    }
    if(opts->rangex < 0){
      //logerror(nc, "Supplied negative independent range %d\n", opts->rangex);
+     ncplane_destroy(n);
      return false;
    }
    if(maxy < miny){
+     ncplane_destroy(n);
      return false;
    }
    // DETECTMAXONLY can't be used without domain detection
    if(opts->flags & NCPLOT_OPTION_DETECTMAXONLY && (miny != maxy)){
      //logerror(nc, "Supplied DETECTMAXONLY without domain detection");
+     ncplane_destroy(n);
      return false;
    }
    ncblitter_e blitter = opts ? opts->gridtype : NCBLIT_DEFAULT;
@@ -53,11 +57,13 @@ class ncppplot {
    auto bset = lookup_blitset(notcurses_canutf8(ncplane_notcurses(n)),
                               blitter, degrade_blitter);
    if(bset == nullptr){
+     ncplane_destroy(n);
      return false;
    }
    int sdimy, sdimx;
    ncplane_dim_yx(n, &sdimy, &sdimx);
    if(sdimx <= 0){
+     ncplane_destroy(n);
      return false;
    }
    int dimx = sdimx;
@@ -85,31 +91,33 @@ class ncppplot {
    }
    size_t slotsize = sizeof(*ncpp->slots) * ncpp->slotcount;
    ncpp->slots = static_cast<T*>(malloc(slotsize));
-   if(ncpp->slots){
-     memset(ncpp->slots, 0, slotsize);
-     ncpp->ncp = n;
-     ncpp->maxchannels = opts->maxchannels;
-     ncpp->minchannels = opts->minchannels;
-     ncpp->bset = bset;
-     ncpp->miny = miny;
-     ncpp->maxy = maxy;
-     ncpp->vertical_indep = opts->flags & NCPLOT_OPTION_VERTICALI;
-     ncpp->exponentiali = opts->flags & NCPLOT_OPTION_EXPONENTIALD;
-     ncpp->detectonlymax = opts->flags & NCPLOT_OPTION_DETECTMAXONLY;
-     if( (ncpp->detectdomain = (miny == maxy)) ){
-       ncpp->maxy = 0;
-       ncpp->miny = std::numeric_limits<T>::max();
-     }
-     ncpp->slotstart = 0;
-     ncpp->slotx = 0;
-     ncpp->redraw_plot();
-     return true;
+   if(ncpp->slots == nullptr){
+     ncplane_destroy(n);
+     return false;
    }
-   return false;
+   memset(ncpp->slots, 0, slotsize);
+   ncpp->ncp = n;
+   ncpp->maxchannels = opts->maxchannels;
+   ncpp->minchannels = opts->minchannels;
+   ncpp->bset = bset;
+   ncpp->miny = miny;
+   ncpp->maxy = maxy;
+   ncpp->vertical_indep = opts->flags & NCPLOT_OPTION_VERTICALI;
+   ncpp->exponentiali = opts->flags & NCPLOT_OPTION_EXPONENTIALD;
+   ncpp->detectonlymax = opts->flags & NCPLOT_OPTION_DETECTMAXONLY;
+   if( (ncpp->detectdomain = (miny == maxy)) ){
+     ncpp->maxy = 0;
+     ncpp->miny = std::numeric_limits<T>::max();
+   }
+   ncpp->slotstart = 0;
+   ncpp->slotx = 0;
+   ncpp->redraw_plot();
+   return true;
  }
 
  void destroy(){
    free(slots);
+   ncplane_destroy(ncp);
  }
 
  auto redraw_plot() -> int {
