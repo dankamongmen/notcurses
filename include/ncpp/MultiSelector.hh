@@ -15,24 +15,24 @@ namespace ncpp
 		static ncmultiselector_options default_options;
 
 	public:
-		explicit MultiSelector (Plane *plane, int y, int x, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (static_cast<const Plane*>(plane), y, x, opts)
+		explicit MultiSelector (Plane *plane, const ncmultiselector_options *opts = nullptr)
+			: MultiSelector (static_cast<const Plane*>(plane), opts)
 		{}
 
-		explicit MultiSelector (Plane const* plane, int y, int x, const ncmultiselector_options *opts = nullptr)
+		explicit MultiSelector (Plane const* plane, const ncmultiselector_options *opts = nullptr)
 			: Root (Utilities::get_notcurses_cpp (plane))
 		{
-			common_init (Utilities::to_ncplane (plane), y, x, opts);
+			common_init (Utilities::to_ncplane (plane), opts);
 		}
 
-		explicit MultiSelector (Plane &plane, int y, int x, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (static_cast<Plane const&>(plane), y, x, opts)
+		explicit MultiSelector (Plane &plane, const ncmultiselector_options *opts = nullptr)
+			: MultiSelector (static_cast<Plane const&>(plane), opts)
 		{}
 
-		explicit MultiSelector (Plane const& plane, int y, int x, const ncmultiselector_options *opts = nullptr)
+		explicit MultiSelector (Plane const& plane, const ncmultiselector_options *opts = nullptr)
 			: Root (Utilities::get_notcurses_cpp (plane))
 		{
-			common_init (Utilities::to_ncplane (plane), y, x, opts);
+			common_init (Utilities::to_ncplane (plane), opts);
 		}
 
 		~MultiSelector ()
@@ -54,12 +54,12 @@ namespace ncpp
 		Plane* get_plane () const noexcept;
 
 	private:
-		void common_init (ncplane *plane, int y, int x, const ncmultiselector_options *opts)
+		void common_init (ncplane *plane, const ncmultiselector_options *opts)
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
-			multiselector = ncmultiselector_create (plane, y, x, opts == nullptr ? &default_options : opts);
+			multiselector = ncmultiselector_create (plane, opts == nullptr ? &default_options : opts);
 			if (multiselector == nullptr)
 				throw init_error ("Notcurses failed to create a new multiselector");
 		}

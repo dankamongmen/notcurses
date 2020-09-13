@@ -42,7 +42,7 @@ typedef struct ncmultiselector_options {
 } ncmultiselector_options;
 ```
 
-**struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const ncmultiselector_options* opts);**
+**struct ncmultiselector* ncmultiselector_create(struct ncplane* n, const ncmultiselector_options* opts);**
 
 **int ncmultiselector_selected(bool* selected, unsigned n);**
 
@@ -56,23 +56,33 @@ typedef struct ncmultiselector_options {
 
 # NOTES
 
-Currently, the **ncplane** **n** provided to **ncmultiselector_create**
-must not be **NULL**, though the **ncmultiselector** will always get its
-own plane, and this plane will not (currently) be bound to **n**.
-**ncmultiselector_selected** returns a bitmap corresponding to the
-currently-selected options.
+The **ncplane** **n** provided to **ncmultiselector_create** must not be
+**NULL**. It will be freely resized by the new **ncmultiselector**.
+
+**ncmultiselector_selected** returns the index of the option currently
+highlighted. It stores to the **n**-ary bitmap pointed to by **selected**
+based on the currently-selected options.
 
 **ncmultiselector_plane** will return the **ncplane** on which the widget is
 drawn.
 
-While the **ncmultiselector** can be driven entirely by client code,
-input can be run through **ncmultiselector_offer_input** to take
-advantage of common controls. It will handle the up and down arrows,
-along with PageUp and PageDown, and space to select/deselect options.
-If the mouse is enabled, the mouse scrollwheel and mouse clicks on the scroll
-arrows will be handled.
+Input should be run through **ncmultiselector_offer_input** to take advantage
+of common controls. It will handle the up and down arrows, along with PageUp
+and PageDown. If the mouse is enabled, the mouse scrollwheel and mouse clicks
+on the scroll arrows will be handled.
+
+**ncmultiselector_destroy** destroys the backing **ncplane**, as does
+**ncmultiselector_create** in the event of any error.
 
 # RETURN VALUES
+
+**ncmultiselector_create** returns **NULL** on an error, in which case the
+passed **ncplane** is destroyed.
+
+**ncmultiselector_selected** returns -1 if there are no items, or if **n** is
+not equal to the number of items. It otherwise returns the index of the
+currently highlighted option, and writes a bitmap to **selected** based off
+the selected items.
 
 # SEE ALSO
 

@@ -2657,14 +2657,14 @@ API void ncplane_greyscale(struct ncplane* n);
 //                                 ╭──────────────────────────╮
 //                                 │This is the primary header│
 //   ╭──────────────────────this is the secondary header──────╮
-//   │                                                        │
-//   │ option1   Long text #1                                 │
-//   │ option2   Long text #2                                 │
-//   │ option3   Long text #3                                 │
-//   │ option4   Long text #4                                 │
-//   │ option5   Long text #5                                 │
-//   │ option6   Long text #6                                 │
-//   │                                                        │
+//   │        ↑                                               │
+//   │ option1 Long text #1                                   │
+//   │ option2 Long text #2                                   │
+//   │ option3 Long text #3                                   │
+//   │ option4 Long text #4                                   │
+//   │ option5 Long text #5                                   │
+//   │ option6 Long text #6                                   │
+//   │        ↓                                               │
 //   ╰────────────────────────────────────here's the footer───╯
 //
 // At all times, exactly one item is selected.
@@ -2736,22 +2736,22 @@ struct ncmselector_item {
 
 // multiselection widget -- a selector supporting multiple selections.
 //
-//      ╭────────────────────────────────────────────────────────────────╮
-//      │ this is truly an awfully long example of a MULTISELECTOR title │
-//╭─────┴─────────────────────────────pick one (you will die regardless)─┤
+//                                                   ╭───────────────────╮
+//                                                   │ short round title │
+//╭now this secondary is also very, very, very outlandishly long, you see┤
 //│  ↑                                                                   │
-//│ ☐ 1 Across the Atlantic Ocean, there was a place called North America│
-//│ ☐ 2 Discovered by an Italian in the employ of the queen of Spain     │
-//│ ☐ 3 Colonized extensively by the Spanish and the French              │
-//│ ☐ 4 Developed into a rich nation by Dutch-supplied African slaves    │
-//│ ☐ 5 And thus became the largest English-speaking nation on earth     │
-//│ ☐ 6 Namely, the United States of America                             │
-//│ ☐ 7 The inhabitants of the United States called themselves Yankees   │
-//│ ☐ 8 For some reason                                                  │
-//│ ☐ 9 And, eventually noticing the rest of the world was there,        │
-//│ ☐ 10 Decided to rule it.                                             │
+//│ ☐ Pa231 Protactinium-231 (162kg)                                     │
+//│ ☐ U233 Uranium-233 (15kg)                                            │
+//│ ☐ U235 Uranium-235 (50kg)                                            │
+//│ ☐ Np236 Neptunium-236 (7kg)                                          │
+//│ ☐ Np237 Neptunium-237 (60kg)                                         │
+//│ ☐ Pu238 Plutonium-238 (10kg)                                         │
+//│ ☐ Pu239 Plutonium-239 (10kg)                                         │
+//│ ☐ Pu240 Plutonium-240 (40kg)                                         │
+//│ ☐ Pu241 Plutonium-241 (13kg)                                         │
+//│ ☐ Am241 Americium-241 (100kg)                                        │
 //│  ↓                                                                   │
-//╰─────────────────────────press q to exit (there is sartrev("no exit")─╯
+//╰────────────────────────press q to exit (there is sartrev("no exit"))─╯
 //
 // Unlike the selector widget, zero to all of the items can be selected, but
 // also the widget does not support adding or removing items at runtime.
@@ -2772,8 +2772,7 @@ typedef struct ncmultiselector_options {
   uint64_t flags;        // bitfield of NCMULTISELECTOR_OPTION_*
 } ncmultiselector_options;
 
-API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x,
-                                                   const ncmultiselector_options* opts)
+API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, const ncmultiselector_options* opts)
   __attribute__ ((nonnull (1)));
 
 // Return selected vector. An array of bools must be provided, along with its

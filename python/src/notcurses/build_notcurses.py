@@ -277,7 +277,7 @@ typedef struct ncmultiselector_options {
   uint64_t boxchannels;  // border channels
   uint64_t bgchannels;   // background channels, used only in body
 } ncmultiselector_options;
-struct ncmultiselector* ncmultiselector_create(struct ncplane* n, int y, int x, const ncmultiselector_options* opts);
+struct ncmultiselector* ncmultiselector_create(struct ncplane* n, const ncmultiselector_options* opts);
 int ncmultiselector_selected(struct ncmultiselector* n, bool* selected, unsigned count);
 struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);

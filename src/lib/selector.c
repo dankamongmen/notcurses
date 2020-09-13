@@ -773,12 +773,12 @@ bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
 }
 
 // calculate the necessary dimensions based off properties of the selector and
-// the containing screen FIXME should be based on containing ncplane
+// the containing plane
 static int
-ncmultiselector_dim_yx(notcurses* nc, const ncmultiselector* n, int* ncdimy, int* ncdimx){
+ncmultiselector_dim_yx(const ncmultiselector* n, int* ncdimy, int* ncdimx){
   int rows = 0, cols = 0; // desired dimensions
   int dimy, dimx; // dimensions of containing screen
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  ncplane_dim_yx(ncplane_parent(n->ncp), &dimy, &dimx);
   if(n->title){ // header adds two rows for riser
     rows += 2;
   }
@@ -805,8 +805,7 @@ ncmultiselector_dim_yx(notcurses* nc, const ncmultiselector* n, int* ncdimy, int
   return 0;
 }
 
-ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x,
-                                        const ncmultiselector_options* opts){
+ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_options* opts){
   ncmultiselector_options zeroed = {};
   if(!opts){
     opts = &zeroed;
@@ -840,9 +839,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x,
   ns->darrowy = ns->uarrowy = ns->arrowx = -1;
   if(itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * itemcount))){
-      free(ns->title); free(ns->secondary); free(ns->footer);
-      free(ns);
-      return NULL;
+      goto freeitems;
     }
   }else{
     ns->items = NULL;
@@ -867,10 +864,11 @@ ncmultiselector* ncmultiselector_create(ncplane* n, int y, int x,
     }
   }
   int dimy, dimx;
-  if(ncmultiselector_dim_yx(n->nc, ns, &dimy, &dimx)){
+  ns->ncp = n;
+  if(ncmultiselector_dim_yx(ns, &dimy, &dimx)){
     goto freeitems;
   }
-  if(!(ns->ncp = ncplane_bound(n, dimy, dimx, y, x, NULL))){
+  if(ncplane_resize_simple(ns->ncp, dimy, dimx)){
     goto freeitems;
   }
   cell_init(&ns->background);
@@ -893,6 +891,7 @@ freeitems:
   free(ns->items);
   free(ns->title); free(ns->secondary); free(ns->footer);
   free(ns);
+  ncplane_destroy(n);
   return NULL;
 }
 

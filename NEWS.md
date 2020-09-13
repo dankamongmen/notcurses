@@ -1,6 +1,19 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.7.3 (not yet released)
+  * The long-promised/dreaded Great Widget Review, normalizing behavior across
+    all widgets, has been effected. Sorry, there was no getting around this
+    one. Pretty much all widgets have slightly changed, because pretty much all
+    widgets previously behaved slightly differently:
+     * `ncselector` no longer accepts `y, x` placement parameters.
+     * `ncselector` now takes ownership of the provided `ncplane`. It is
+       destroyed by `ncselector_destroy`/`ncselector_create`.
+     * `ncmultiselector` no longer accepts `y, x` placement parameters.
+     * `ncmultiselector` now takes ownership of the provided `ncplane`. It is
+       destroyed by `ncmultiselector_destroy`/`ncmultiselector_create`.
+     * ...
+
 * 1.7.2 (2020-09-09)
   * Exported `ncvisual_default_blitter()`, so that the effective value of
     `NCBLIT_DEFAULT` can be determined.
