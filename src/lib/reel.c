@@ -736,7 +736,6 @@ ncreel* ncreel_create(ncplane* n, const ncreel_options* ropts){
   memcpy(&nr->ropts, ropts, sizeof(*ropts));
   nr->p = n;
   nr->vft = NULL;
-  ncplane_set_base(nr->p, "", 0, ropts->bgchannel);
   if(ncreel_redraw(nr)){
     ncplane_destroy(nr->p);
     free(nr);

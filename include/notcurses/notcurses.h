@@ -2464,7 +2464,6 @@ typedef struct ncreel_options {
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
-  uint64_t bgchannel;  // background colors
   uint64_t flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 

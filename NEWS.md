@@ -13,8 +13,9 @@ rearrangements of Notcurses.
      * `ncselector_create()`, `ncmultiselector_create()`, and
        `ncreader_create()` no longer accept `int y, int x` placement
        parameters. Just place the `ncplane`.
-     * `ncselector_options` and `ncmultiselector_options` have lost their
-       `bgchannels` members. Just set the base character for the `ncplane`.
+     * `ncselector_options`, `ncmultiselector_options`, and `ncreel_options`
+       have lost their `bgchannels` members. Just set the base character for
+       the `ncplane`.
      * `ncreader_options` has lost its `echannels`, `eattrword`, `egc`,
        `physrows`, and `physcols` fields. Just set the base character and size
        for the `ncplane`.

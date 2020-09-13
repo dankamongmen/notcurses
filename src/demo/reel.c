@@ -102,9 +102,8 @@ drawcb(struct nctablet* t, bool drawfromtop){
   if(ll){
     const int summaryy = drawfromtop ? 0 : ll - 1;
     ncplane_styles_on(p, NCSTYLE_BOLD);
-    if(ncplane_printf_yx(p, summaryy, 0, "[#%u %d line%s %u available] ",
-                         tctx->id, tctx->lines, tctx->lines == 1 ? "" : "s",
-                         maxy) < 0){
+    if(ncplane_printf_yx(p, summaryy, 0, "[#%u %d lines %u available] ",
+                         tctx->id, tctx->lines, maxy) < 0){
       pthread_mutex_unlock(&tctx->lock);
       return -1;
     }
@@ -129,13 +128,12 @@ tablet_thread(void* vtabletctx){
     int action = random() % 5;
     pthread_mutex_lock(&tctx->lock);
     if(action < 2){
-      if((tctx->lines -= (action + 1)) < 1){
-        tctx->lines = 1;
-      }
+      tctx->lines -= (action + 1);
     }else if(action > 2){
-      if((tctx->lines += (action - 2)) < 1){
-        tctx->lines = 1;
-      }
+      tctx->lines += (action - 2);
+    }
+    if(tctx->lines < 2){
+      tctx->lines = 2;
     }
     pthread_mutex_unlock(&tctx->lock);
     pthread_mutex_lock(&renderlock);
@@ -206,7 +204,6 @@ ncreel_demo_core(struct notcurses* nc){
     .borderchan = 0,
     .tabletchan = 0,
     .focusedchan = 0,
-    .bgchannel = 0,
     .flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR,
   };
   channels_set_fg_rgb(&popts.focusedchan, 58, 150, 221);
@@ -215,14 +212,16 @@ ncreel_demo_core(struct notcurses* nc){
   channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
   channels_set_fg_rgb(&popts.borderchan, 136, 23, 152);
   channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
-  if(channels_set_fg_alpha(&popts.bgchannel, CELL_ALPHA_TRANSPARENT)){
+  uint64_t bgchannels = 0;
+  if(channels_set_fg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
     ncplane_destroy(w);
     return -1;
   }
-  if(channels_set_bg_alpha(&popts.bgchannel, CELL_ALPHA_TRANSPARENT)){
+  if(channels_set_bg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
     ncplane_destroy(w);
     return -1;
   }
+  ncplane_set_base(w, "", 0, bgchannels);
   struct ncreel* pr = ncreel_create(w, &popts);
   if(pr == NULL){
     ncplane_destroy(w);

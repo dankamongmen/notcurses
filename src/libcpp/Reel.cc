@@ -10,7 +10,6 @@ ncreel_options NcReel::default_options = {
 	/* tabletmask         */ 0,
 	/* tabletchan         */ 0,
 	/* focusedchan        */ 0,
-	/* bgchannel          */ 0,
   /* flags              */ 0,
 };
 

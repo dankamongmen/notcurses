@@ -234,7 +234,13 @@ TEST_CASE("Reels") {
 
   SUBCASE("TransparentBackground") {
     ncreel_options r{};
-    channels_set_bg_alpha(&r.bgchannel, 3);
+    int dimy, dimx;
+    notcurses_term_dim_yx(nc_, &dimy, &dimx);
+    uint64_t channels = 0;
+    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    auto ncp = ncplane_new(nc_, dimy, dimx, 0, 0, nullptr);
+    REQUIRE(nullptr != ncp);
+    CHECK(0 == ncplane_set_base(ncp, "", 0, channels));
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK_EQ(0, ncreel_redraw(nr));
@@ -247,7 +253,6 @@ TEST_CASE("Reels") {
   // have the expected locations/contents/geometries.
   SUBCASE("ThreeCycleDown") {
     ncreel_options r{};
-    channels_set_bg_alpha(&r.bgchannel, 3);
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK_EQ(0, ncreel_redraw(nr));
@@ -327,7 +332,6 @@ TEST_CASE("Reels") {
   SUBCASE("ThreeCycleDownNoTabletBorders") {
     ncreel_options r{};
     r.tabletmask = 0xf;
-    channels_set_bg_alpha(&r.bgchannel, 3);
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK_EQ(0, notcurses_render(nc_));
