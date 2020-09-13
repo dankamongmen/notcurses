@@ -546,6 +546,9 @@ ncmultiselector_body_width(const ncmultiselector* n){
 static int
 ncmultiselector_draw(ncmultiselector* n){
   ncplane_erase(n->ncp);
+  cell transchar = CELL_TRIVIAL_INITIALIZER;
+  cell_set_fg_alpha(&transchar, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&transchar, CELL_ALPHA_TRANSPARENT);
   // if we have a title, we'll draw a riser. the riser is two rows tall, and
   // exactly four columns longer than the title, and aligned to the right. we
   // draw a rounded box. the body will blow part or all of the bottom away.
@@ -553,17 +556,26 @@ ncmultiselector_draw(ncmultiselector* n){
   if(n->title){
     size_t riserwidth = n->titlecols + 4;
     int offx = ncplane_align(n->ncp, NCALIGN_RIGHT, riserwidth);
-    ncplane_cursor_move_yx(n->ncp, 0, offx);
+    ncplane_cursor_move_yx(n->ncp, 0, 0);
+    ncplane_hline(n->ncp, &transchar, offx);
     ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, 3, riserwidth, 0);
     n->ncp->channels = n->titlechannels;
     ncplane_printf_yx(n->ncp, 1, offx + 1, " %s ", n->title);
     yoff += 2;
+    ncplane_cursor_move_yx(n->ncp, 1, 0);
+    ncplane_hline(n->ncp, &transchar, offx);
   }
   int bodywidth = ncmultiselector_body_width(n);
-  int xoff = ncplane_align(n->ncp, NCALIGN_RIGHT, bodywidth);
-  ncplane_cursor_move_yx(n->ncp, yoff, xoff);
   int dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
+  int xoff = ncplane_align(n->ncp, NCALIGN_RIGHT, bodywidth);
+  if(xoff){
+    for(int y = yoff + 1 ; y < dimy ; ++y){
+      ncplane_cursor_move_yx(n->ncp, y, 0);
+      ncplane_hline(n->ncp, &transchar, xoff);
+    }
+  }
+  ncplane_cursor_move_yx(n->ncp, yoff, xoff);
   ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, dimy - yoff, bodywidth, 0);
   if(n->title){
     n->ncp->channels = n->boxchannels;
@@ -595,9 +607,9 @@ ncmultiselector_draw(ncmultiselector* n){
   }
   // Top line of body (background and possibly up arrow)
   ++yoff;
-  cell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+    cell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
   const int bodyoffset = dimx - bodywidth + 2;
@@ -618,6 +630,7 @@ ncmultiselector_draw(ncmultiselector* n){
     }
     ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
     for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+      cell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
       ncplane_putc(n->ncp, &transc);
     }
     n->ncp->channels = n->descchannels;
@@ -647,6 +660,7 @@ ncmultiselector_draw(ncmultiselector* n){
   // Bottom line of body (background and possibly down arrow)
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+    cell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
