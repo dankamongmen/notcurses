@@ -2242,11 +2242,11 @@ Multiselectors:
 │ ☐ Pa231 Protactinium-231 (162kg)                                     │
 │ ☐ U233 Uranium-233 (15kg)                                            │
 │ ☐ U235 Uranium-235 (50kg)                                            │
-│ ☐ Np236 Neptunium-236 (7kg)                                          │
+│ ☒ Np236 Neptunium-236 (7kg)                                          │
 │ ☐ Np237 Neptunium-237 (60kg)                                         │
 │ ☐ Pu238 Plutonium-238 (10kg)                                         │
 │ ☐ Pu239 Plutonium-239 (10kg)                                         │
-│ ☐ Pu240 Plutonium-240 (40kg)                                         │
+│ ☒ Pu240 Plutonium-240 (40kg)                                         │
 │ ☐ Pu241 Plutonium-241 (13kg)                                         │
 │ ☐ Am241 Americium-241 (100kg)                                        │
 │  ↓                                                                   │
