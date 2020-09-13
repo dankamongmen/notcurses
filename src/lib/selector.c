@@ -193,10 +193,11 @@ ncselector_draw(ncselector* n){
 
 // calculate the necessary dimensions based off properties of the selector
 static void
-ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
+ncselector_dim_yx(const ncselector* n, int* ncdimy, int* ncdimx){
   int rows = 0, cols = 0; // desired dimensions
   int dimy, dimx; // dimensions of containing screen
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  const ncplane* parent = ncplane_parent(n->ncp);
+  ncplane_dim_yx(parent, &dimy, &dimx);
   if(n->title){ // header adds two rows for riser
     rows += 2;
   }
@@ -216,7 +217,7 @@ ncselector_dim_yx(notcurses* nc, const ncselector* n, int* ncdimy, int* ncdimx){
   *ncdimx = cols;
 }
 
-ncselector* ncselector_create(ncplane* n, int y, int x, const ncselector_options* opts){
+ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   ncselector_options zeroed = {};
   if(!opts){
     opts = &zeroed;
@@ -230,10 +231,13 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const ncselector_options
       ++itemcount;
     }
   }
-  if(opts->defidx && opts->defidx >= itemcount){
-    return NULL;
-  }
   ncselector* ns = malloc(sizeof(*ns));
+  if(ns == NULL){
+    goto freeitems;
+  }
+  if(opts->defidx && opts->defidx >= itemcount){
+    goto freeitems;
+  }
   ns->title = opts->title ? strdup(opts->title) : NULL;
   ns->titlecols = opts->title ? mbswidth(opts->title) : 0;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
@@ -261,9 +265,7 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const ncselector_options
   ns->darrowy = ns->uarrowy = ns->arrowx = -1;
   if(itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * itemcount))){
-      free(ns->title); free(ns->secondary); free(ns->footer);
-      free(ns);
-      return NULL;
+      goto freeitems;
     }
   }else{
     ns->items = NULL;
@@ -276,8 +278,7 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const ncselector_options
       ns->longop = cols;
     }
     cols = mbswidth(src->desc);
-    ns->items[ns->itemcount].desccolumns = cols;
-    if(cols > ns->longdesc){
+    ns->items[ns->itemcount].desccolumns = cols; if(cols > ns->longdesc){
       ns->longdesc = cols;
     }
     ns->items[ns->itemcount].option = strdup(src->option);
@@ -289,8 +290,10 @@ ncselector* ncselector_create(ncplane* n, int y, int x, const ncselector_options
     }
   }
   int dimy, dimx;
-  ncselector_dim_yx(n->nc, ns, &dimy, &dimx);
-  if(!(ns->ncp = ncplane_bound(n, dimy, dimx, y, x, NULL))){
+  ns->ncp = n;
+  ncselector_dim_yx(ns, &dimy, &dimx);
+  if(ncplane_resize_simple(n, dimy, dimx)){
+    ncplane_destroy(ns->ncp);
     goto freeitems;
   }
   cell_init(&ns->background);
@@ -313,12 +316,13 @@ freeitems:
   free(ns->items);
   free(ns->title); free(ns->secondary); free(ns->footer);
   free(ns);
+  ncplane_destroy(n);
   return NULL;
 }
 
 int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   int origdimy, origdimx;
-  ncselector_dim_yx(n->ncp->nc, n, &origdimy, &origdimx);
+  ncselector_dim_yx(n, &origdimy, &origdimx);
   size_t newsize = sizeof(*n->items) * (n->itemcount + 1);
   struct ncselector_item* items = realloc(n->items, newsize);
   if(!items){
@@ -339,7 +343,7 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   }
   ++n->itemcount;
   int dimy, dimx;
-  ncselector_dim_yx(n->ncp->nc, n, &dimy, &dimx);
+  ncselector_dim_yx(n, &dimy, &dimx);
   if(origdimx < dimx || origdimy < dimy){ // resize if too small
     ncplane_resize_simple(n->ncp, dimy, dimx);
   }
@@ -348,7 +352,7 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
 
 int ncselector_delitem(ncselector* n, const char* item){
   int origdimy, origdimx;
-  ncselector_dim_yx(n->ncp->nc, n, &origdimy, &origdimx);
+  ncselector_dim_yx(n, &origdimy, &origdimx);
   bool found = false;
   int maxop = 0, maxdesc = 0;
   for(unsigned idx = 0 ; idx < n->itemcount ; ++idx){
@@ -380,7 +384,7 @@ int ncselector_delitem(ncselector* n, const char* item){
     n->longop = maxop;
     n->longdesc = maxdesc;
     int dimy, dimx;
-    ncselector_dim_yx(n->ncp->nc, n, &dimy, &dimx);
+    ncselector_dim_yx(n, &dimy, &dimx);
     if(origdimx > dimx || origdimy > dimy){ // resize if too big
       ncplane_resize_simple(n->ncp, dimy, dimx);
     }

@@ -2696,8 +2696,7 @@ typedef struct ncselector_options {
   uint64_t flags;        // bitfield of NCSELECTOR_OPTION_*
 } ncselector_options;
 
-API struct ncselector* ncselector_create(struct ncplane* n, int y, int x,
-                                         const ncselector_options* opts)
+API struct ncselector* ncselector_create(struct ncplane* n, const ncselector_options* opts)
   __attribute__ ((nonnull (1)));
 
 // Dynamically add or delete items. It is usually sufficient to supply a static
