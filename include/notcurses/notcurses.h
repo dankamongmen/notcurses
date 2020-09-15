@@ -85,7 +85,7 @@ typedef enum {
 
 // Returns the number of columns occupied by a multibyte (UTF-8) string, or
 // -1 if a non-printable/illegal character is encountered.
-API int mbswidth(const char* mbs);
+API int ncstrwidth(const char* mbs);
 
 // input functions like notcurses_getc() return ucs32-encoded char32_t. convert
 // a series of char32_t to utf8. result must be at least 4 bytes per input
@@ -2530,7 +2530,7 @@ API struct ncplane* nctablet_ncplane(struct nctablet* t);
 #define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
 // Used as arguments to a variable field width (i.e. "%*s" -- these are the *).
 // We need this convoluted grotesquery to properly handle 'µ'.
-#define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - mbswidth(x) + (cols)))
+#define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - ncstrwidth(x) + (cols)))
 #define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
 #define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
 #define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)

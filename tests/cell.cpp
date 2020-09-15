@@ -42,21 +42,21 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("MultibyteWidth") {
-    CHECK(0 == mbswidth(""));       // zero bytes, zero columns
-    CHECK(0 == mbswidth("\x7"));   // single byte, non-printable
-    CHECK(1 == mbswidth(" "));      // single byte, one column
-    CHECK(5 == mbswidth("abcde"));  // single byte, one column
-    CHECK(1 == mbswidth("µ"));      // two bytes, one column
-    CHECK(1 <= mbswidth("\xf0\x9f\xa6\xb2"));     // four bytes, two columns
-    CHECK(3 <= mbswidth("平仮名")); // nine bytes, six columns
-    CHECK(1 == mbswidth("\ufdfd")); // three bytes, ? columns, wcwidth() returns 1
+    CHECK(0 == ncstrwidth(""));       // zero bytes, zero columns
+    CHECK(0 == ncstrwidth("\x7"));   // single byte, non-printable
+    CHECK(1 == ncstrwidth(" "));      // single byte, one column
+    CHECK(5 == ncstrwidth("abcde"));  // single byte, one column
+    CHECK(1 == ncstrwidth("µ"));      // two bytes, one column
+    CHECK(1 <= ncstrwidth("\xf0\x9f\xa6\xb2"));     // four bytes, two columns
+    CHECK(3 <= ncstrwidth("平仮名")); // nine bytes, six columns
+    CHECK(1 == ncstrwidth("\ufdfd")); // three bytes, ? columns, wcwidth() returns 1
   }
 
   // test combining characters and ZWJs
   SUBCASE("MultiglyphWidth") {
-    CHECK(2 == mbswidth("\U0001F471"));
-    CHECK(2 == mbswidth("\U0001F471\u200D"));
-    CHECK(3 == mbswidth("\U0001F471\u200D\u2640")); // *not* a single EGC!
+    CHECK(2 == ncstrwidth("\U0001F471"));
+    CHECK(2 == ncstrwidth("\U0001F471\u200D"));
+    CHECK(3 == ncstrwidth("\U0001F471\u200D\u2640")); // *not* a single EGC!
   }
 
   SUBCASE("SetItalic") {

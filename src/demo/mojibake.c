@@ -3508,8 +3508,8 @@ unicode7emoji2(struct ncplane* title, int y){
 
 struct ncplane*
 makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
-  int cols = mbswidth(emoji);
-  if(cols < 0){ // take a wild guess on mbswidth() error from old libcs, sigh.
+  int cols = ncstrwidth(emoji);
+  if(cols < 0){ // take a wild guess on ncstrwidth() error from old libcs, sigh.
     cols = strlen(emoji) * 3 / 5; // best by test
   }
   struct ncplane* n = mojiplane(title, y, 3 + cols / (planewidth - 12), name);

@@ -114,7 +114,7 @@ typedef struct cell {
 
 **bool cell_bg_default_p(const cell* cl);**
 
-**int mbswidth(const char* text)**;
+**int ncstrwidth(const char* text)**;
 
 # DESCRIPTION
 

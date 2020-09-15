@@ -2356,7 +2356,7 @@ int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
   return buflen;
 }
 
-int mbswidth(const char* mbs){
+int ncstrwidth(const char* mbs){
   int cols = 0;   // number of columns consumed thus far
   do{
     int thesecols, thesebytes;

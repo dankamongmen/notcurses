@@ -17,7 +17,7 @@ notcurses_metric - fixed-width numeric output with metric suffixes
 #define PREFIXSTRLEN (PREFIXCOLUMNS + 1)
 #define IPREFIXSTRLEN (IPREFIXCOLUMNS + 1)
 #define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1)
-#define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - mbswidth(x) + (cols)))
+#define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - ncstrwidth(x) + (cols)))
 #define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
 #define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
 #define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)

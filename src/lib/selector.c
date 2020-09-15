@@ -253,11 +253,11 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
     goto freeitems;
   }
   ns->title = opts->title ? strdup(opts->title) : NULL;
-  ns->titlecols = opts->title ? mbswidth(opts->title) : 0;
+  ns->titlecols = opts->title ? ncstrwidth(opts->title) : 0;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
-  ns->secondarycols = opts->secondary ? mbswidth(opts->secondary) : 0;
+  ns->secondarycols = opts->secondary ? ncstrwidth(opts->secondary) : 0;
   ns->footer = opts->footer ? strdup(opts->footer) : NULL;
-  ns->footercols = opts->footer ? mbswidth(opts->footer) : 0;
+  ns->footercols = opts->footer ? ncstrwidth(opts->footer) : 0;
   ns->selected = opts->defidx;
   ns->longop = 0;
   if( (ns->maxdisplay = opts->maxdisplay) ){
@@ -286,12 +286,12 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   for(ns->itemcount = 0 ; ns->itemcount < itemcount ; ++ns->itemcount){
     const struct ncselector_item* src = &opts->items[ns->itemcount];
-    int cols = mbswidth(src->option);
+    int cols = ncstrwidth(src->option);
     ns->items[ns->itemcount].opcolumns = cols;
     if(cols > ns->longop){
       ns->longop = cols;
     }
-    cols = mbswidth(src->desc);
+    cols = ncstrwidth(src->desc);
     ns->items[ns->itemcount].desccolumns = cols;
     if(cols > ns->longdesc){
       ns->longdesc = cols;
@@ -337,12 +337,12 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   n->items = items;
   n->items[n->itemcount].option = strdup(item->option);
   n->items[n->itemcount].desc = strdup(item->desc);
-  int cols = mbswidth(item->option);
+  int cols = ncstrwidth(item->option);
   n->items[n->itemcount].opcolumns = cols;
   if(cols > n->longop){
     n->longop = cols;
   }
-  cols = mbswidth(item->desc);
+  cols = ncstrwidth(item->desc);
   n->items[n->itemcount].desccolumns = cols;
   if(cols > n->longdesc){
     n->longdesc = cols;
@@ -376,11 +376,11 @@ int ncselector_delitem(ncselector* n, const char* item){
       found = true;
       --idx;
     }else{
-      int cols = mbswidth(n->items[idx].option);
+      int cols = ncstrwidth(n->items[idx].option);
       if(cols > maxop){
         maxop = cols;
       }
-      cols = mbswidth(n->items[idx].desc);
+      cols = ncstrwidth(n->items[idx].desc);
       if(cols > maxdesc){
         maxdesc = cols;
       }
@@ -841,11 +841,11 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
   }
   ncmultiselector* ns = malloc(sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
-  ns->titlecols = opts->title ? mbswidth(opts->title) : 0;
+  ns->titlecols = opts->title ? ncstrwidth(opts->title) : 0;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
-  ns->secondarycols = opts->secondary ? mbswidth(opts->secondary) : 0;
+  ns->secondarycols = opts->secondary ? ncstrwidth(opts->secondary) : 0;
   ns->footer = opts->footer ? strdup(opts->footer) : NULL;
-  ns->footercols = opts->footer ? mbswidth(opts->footer) : 0;
+  ns->footercols = opts->footer ? ncstrwidth(opts->footer) : 0;
   ns->current = 0;
   ns->startdisp = 0;
   ns->longitem = 0;
@@ -866,11 +866,11 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
   }
   for(ns->itemcount = 0 ; ns->itemcount < itemcount ; ++ns->itemcount){
     const struct ncmselector_item* src = &opts->items[ns->itemcount];
-    int cols = mbswidth(src->option);
+    int cols = ncstrwidth(src->option);
     if(cols > ns->longitem){
       ns->longitem = cols;
     }
-    int cols2 = mbswidth(src->desc);
+    int cols2 = ncstrwidth(src->desc);
     if(cols + cols2 > ns->longitem){
       ns->longitem = cols + cols2;
     }

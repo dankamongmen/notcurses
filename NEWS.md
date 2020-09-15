@@ -2,6 +2,7 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 1.7.3 (not yet released)
+  * `mbswidth()` has been renamed `ncstrwidth()`.
   * The long-promised/dreaded Great Widget Review, normalizing behavior across
     all widgets, has been effected. Sorry, there was no getting around this
     one. Pretty much all widgets have slightly changed, because pretty much all
