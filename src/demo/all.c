@@ -113,6 +113,7 @@ int allglyphs_demo(struct notcurses* nc){
   int r = allglyphs(nc, column, planey - 2);
   ncplane_destroy(column);
   // reflash the gradient to eliminate the counter, setting stage for next demo
+  ncplane_cursor_move_yx(n, 1, 0);
   if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) < 0){
     return -1;
   }
