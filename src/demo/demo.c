@@ -22,6 +22,7 @@ static char *datadir = NOTCURSES_SHARE;
 
 static const char DEFAULT_DEMO[] = "ixezcydthnbgmarwuvlsfjqo";
 
+bool nonblocking_rendering = false;
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
 static atomic_bool restart_demos = ATOMIC_VAR_INIT(false);
@@ -523,9 +524,9 @@ int main(int argc, char** argv){
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
   bool ignore_failures; // continue after a failure? (-k)
-  bool nonblocking; // use nonblocking rendering? (-n)
   notcurses_options nopts;
-  if((spec = handle_opts(argc, argv, &nopts, &ignore_failures, &nonblocking, &json)) == NULL){
+  if((spec = handle_opts(argc, argv, &nopts, &ignore_failures,
+                         &nonblocking_rendering, &json)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }

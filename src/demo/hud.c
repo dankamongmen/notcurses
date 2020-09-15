@@ -533,6 +533,9 @@ int demo_render_blocking(struct notcurses* nc){
 }
 
 int demo_render(struct notcurses* nc){
+  if(!nonblocking_rendering){
+    return demo_render_blocking(nc);
+  }
   char32_t id = demo_render_internal(nc);
   int ret = notcurses_render_nblock(nc);
   if(ret){

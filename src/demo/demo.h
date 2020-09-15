@@ -25,6 +25,7 @@ extern "C" {
 // configured via command line option -- the base number of ns between demos
 extern struct timespec demodelay;
 extern float delaymultiplier; // scales demodelay (applied internally)
+extern bool nonblocking_rendering; // use nonblocking rendering by default
 
 // checked in demo_render() and between demos
 extern atomic_bool interrupted;
