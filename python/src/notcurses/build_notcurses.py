@@ -441,7 +441,7 @@ int ncreader_move_right(struct ncreader* n);
 int ncreader_move_up(struct ncreader* n);
 int ncreader_move_down(struct ncreader* n);
 int ncreader_write_egc(struct ncreader* n, const char* egc);
-int mbswidth(const char* text);
+int ncstrwidth(const char* text);
 """)
 
 if __name__ == "__main__":
