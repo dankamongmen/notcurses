@@ -1011,26 +1011,9 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   return 0;
 }
 
-// a frame ready to be rasterized
-typedef struct rendered_frame {
-  int dimy, dimx;          // dimensions at render time
-  struct crender* crender; // heap-allocated per-cell render state
-  struct timespec start;   // starttime of render
-  enum {
-    UNUSED,      // garbage frame
-    RENDERED,    // we've rendered to this frame, and it can be written
-    RASTERIZING, // we're writing this frame out to the terminal, do not disrupt
-  } state;
-} rendered_frame;
-
-// FIXME these all need to be taken up into the notcurses struct
-// we have two frames available. the rendering client renders to the primary if
-// it is available. if both are full, the secondary can be blown away.
-static rendered_frame rframes[1];
-
 void notcurses_render_flush(notcurses* nc){
   pthread_mutex_lock(&nc->raster_lock);
-  rendered_frame* rframe = &rframes[nc->next_to_render];
+  rendered_frame* rframe = &nc->rframes[nc->next_to_render];
   while(rframe->state != UNUSED){
     pthread_cond_wait(&nc->raster_cond, &nc->raster_lock);
   }
@@ -1052,7 +1035,7 @@ writer_thread(void* vnc){
       rframe->state = UNUSED;
       pthread_cond_signal(&nc->raster_cond);
     }
-    rframe = &rframes[next_to_raster];
+    rframe = &nc->rframes[next_to_raster];
     while(rframe->state != RENDERED){
       pthread_cond_wait(&nc->raster_cond, &nc->raster_lock);
     }
@@ -1062,7 +1045,7 @@ writer_thread(void* vnc){
     free(rframe->crender);
     clock_gettime(CLOCK_MONOTONIC, &done);
     update_render_stats(&done, &rframe->start, &nc->stats, bytes);
-    if(++next_to_raster == sizeof(rframes) / sizeof(*rframes)){
+    if(++next_to_raster == sizeof(nc->rframes) / sizeof(*nc->rframes)){
       next_to_raster = 0;
     }
     inloop = true;
@@ -1072,11 +1055,11 @@ writer_thread(void* vnc){
 
 static rendered_frame*
 get_writeable_frame(notcurses* nc){
-  rendered_frame* rframe = &rframes[nc->next_to_render];
+  rendered_frame* rframe = &nc->rframes[nc->next_to_render];
   if(rframe->state != UNUSED){
     return NULL;
   }
-  if(++nc->next_to_render == sizeof(rframes) / sizeof(*rframes)){
+  if(++nc->next_to_render == sizeof(nc->rframes) / sizeof(*nc->rframes)){
     nc->next_to_render = 0;
   }
   clock_gettime(CLOCK_MONOTONIC, &rframe->start);

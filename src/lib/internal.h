@@ -289,6 +289,18 @@ typedef struct ncdirect {
   bool inverted_cursor;      // does the terminal return inverted coordinates?
 } ncdirect;
 
+// a frame ready to be rasterized
+typedef struct rendered_frame {
+  int dimy, dimx;          // dimensions at render time
+  struct crender* crender; // heap-allocated per-cell render state
+  struct timespec start;   // starttime of render
+  enum {
+    UNUSED,      // garbage frame
+    RENDERED,    // we've rendered to this frame, and it can be written
+    RASTERIZING, // we're writing this frame out to the terminal, do not disrupt
+  } state;
+} rendered_frame;
+
 typedef struct notcurses {
   ncplane* top;     // topmost plane, never NULL
   ncplane* bottom;  // bottommost plane, never NULL 
@@ -306,6 +318,10 @@ typedef struct notcurses {
 
   pthread_mutex_t raster_lock; // lock for rasterizer thread
   pthread_cond_t raster_cond;  // condvar for rasterization
+  // we have two frames available. the rendering client renders to the primary
+  // if it is available. if both are full, the secondary can be blown away.
+  rendered_frame rframes[2];
+
   int next_to_render;          // next rendered_frame into which we'll render
   pthread_t raster_tid; // tid of rasterizer thread, for nonblocking rendering
 
