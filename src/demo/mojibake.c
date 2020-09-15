@@ -3611,7 +3611,7 @@ int mojibake_demo(struct notcurses* nc){
     makegroup(title, dimy + 1, hands, "hands"),
     makegroup(title, dimy + 1, hand_prop, "hand-prop"),
     makegroup(title, dimy + 1, body_parts, "body-parts"),
-    makegroup(title, dimy + 1, person, "person"),
+    //makegroup(title, dimy + 1, person, "person"),
     //makegroup(title, dimy + 1, person_gesture, "person-gesture"),
     makegroup(title, dimy + 1, animal_mammal, "animal-mammal"),
     makegroup(title, dimy + 1, animal_bird, "animal-bird"),
