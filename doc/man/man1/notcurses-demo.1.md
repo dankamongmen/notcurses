@@ -10,7 +10,7 @@ notcurses-demo - Show off some notcurses features
 
 **notcurses-demo** [**-h|--help**] [**-p path**] [**-d delaymult**]
  [**-l loglevel**] [**-f renderfile**] [**-J jsonfile**] [**-m margins**]
- [**-ikVc**] demospec
+ [**-inkVc**] demospec
 
 # DESCRIPTION
 
@@ -69,6 +69,8 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 
 **-i**: Continue after a failing demo.
 
+**-n**: Use nonblocking rendering.
+
 **-h**: Print a usage message, and exit with success.
 
 **-V**: Print the program name and version, and exit with success.
@@ -80,6 +82,9 @@ Default margins are all 0, and thus the full screen will be rendered. Using
 **-m**, margins can be supplied. Provide a single number to set all four margins
 to the same value, or four comma-delimited values for the top, right, bottom,
 and left margins respectively. Negative margins are illegal.
+
+Nonblocking rendering will drop frames when rasterization isn't keeping up with
+frame production. It's thus unsuitable for benchmarking.
 
 # NOTES
 
@@ -112,6 +117,9 @@ The following keypresses are recognized (and are also available from the menu):
 * **Ctrl-R**: Restart the demo.
 * **q**: Quit.
 
+Benchmarking should be performed using **-c** to get a well-defined PRNG seed,
+and should not use **-n**. JSON output via **-J** will probably be useful.
+
 # BUGS
 
 # COPYRIGHT
@@ -121,7 +129,7 @@ The following keypresses are recognized (and are also available from the menu):
 * Images from Super Mario Bros. copyright Nintendo of America.
 * Images from Ninja Gaiden copyright Koei Tecmo America.
 * Images from Final Fantasy copyright Square Enix Co Ltd.
-* "Jungle with Rain" and "Ruins with Rain" copyright Mark Ferrari/Living Worlds.
+* "Jungle with Rain" copyright Mark Ferrari/Living Worlds.
 
 # SEE ALSO
 

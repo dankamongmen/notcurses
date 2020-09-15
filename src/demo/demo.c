@@ -126,11 +126,11 @@ static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
   struct ncdirect* n = ncdirect_init(NULL, out, 0);
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  if(n) ncdirect_fg_rgb(n, 0x00, 0xc0, 0xc0);
   fprintf(out, "usage: ");
   if(n) ncdirect_fg_rgb(n, 0x80, 0xff, 0x80);
   fprintf(out, "%s ", exe);
-  const char* options[] = { "-hVikc", "-m margins", "-p path", "-l loglevel",
+  const char* options[] = { "-hVnikc", "-m margins", "-p path", "-l loglevel",
                             "-d mult", "-J jsonfile", "-f renderfile", NULL };
   for(const char** op = options ; *op ; ++op){
     usage_option(out, n, *op);
@@ -145,6 +145,7 @@ usage(const char* exe, int status){
     "-f", "render to file (in addition to stdout)",
     "-c", "constant PRNG seed, useful for benchmarking",
     "-m", "margin, or 4 comma-separated margins",
+    "-n", "use nonblocking rendering",
     NULL
   };
   for(const char** op = optexpo ; *op ; op += 2){
@@ -170,7 +171,9 @@ usage(const char* exe, int status){
         fprintf(out, " ");
       }
       // U+24D0: CIRCLED LATIN SMALL LETTER A
+      if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
       fprintf(out, "%lc ", *demos[i].name - 'a' + 0x24d0);
+      if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
       fprintf(out, "%-*.*s", 8, 8, demos[i].name + 1);
       if(++printed % 6 == 0){
         fprintf(out, "\n");
@@ -240,10 +243,11 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
 // if it's NULL, there were valid options, but no spec.
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failures,
-            FILE** json_output){
+            bool* nonblocking, FILE** json_output){
   bool constant_seed = false;
   *ignore_failures = false;
   char *renderfile = NULL;
+  *nonblocking = false;
   *json_output = NULL;
   int c;
   memset(opts, 0, sizeof(*opts));
@@ -252,7 +256,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
     { .name = NULL, .has_arg = 0, .flag = NULL, .val = 0, },
   };
   int lidx;
-  while((c = getopt_long(argc, argv, "VhickJ:l:r:d:f:p:m:", longopts, &lidx)) != EOF){
+  while((c = getopt_long(argc, argv, "VhinckJ:l:r:d:f:p:m:", longopts, &lidx)) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
@@ -281,6 +285,13 @@ handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failure
       }case 'V':
         printf("notcurses-demo version %s\n", notcurses_version());
         exit(EXIT_SUCCESS);
+      case 'n':
+        if(*nonblocking){
+          fprintf(stderr, "Supplied -n twice\n");
+          usage(*argv, EXIT_FAILURE);
+        }
+        *nonblocking = true;
+        break;
       case 'J':
         if(*json_output){
           fprintf(stderr, "Supplied -J twice: %s\n", optarg);
@@ -512,8 +523,9 @@ int main(int argc, char** argv){
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
   bool ignore_failures; // continue after a failure? (-k)
+  bool nonblocking; // use nonblocking rendering? (-n)
   notcurses_options nopts;
-  if((spec = handle_opts(argc, argv, &nopts, &ignore_failures, &json)) == NULL){
+  if((spec = handle_opts(argc, argv, &nopts, &ignore_failures, &nonblocking, &json)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
