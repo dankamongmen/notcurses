@@ -12,6 +12,28 @@ TEST_CASE("Cell") {
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(nullptr != n_);
 
+  SUBCASE("EGCs") {
+    int cols, bytes;
+    bytes = utf8_egc_len("é", &cols);
+    CHECK(2 == bytes);
+    CHECK(1 == cols);
+    bytes = utf8_egc_len("\x41\u0301", &cols);
+    CHECK(3 == bytes);
+    CHECK(1 == cols);
+    bytes = utf8_egc_len(" ி", &cols);
+    CHECK(4 == bytes);
+    CHECK(1 == cols);
+    bytes = utf8_egc_len(" ि", &cols);
+    CHECK(4 == bytes);
+    CHECK(1 == cols);
+    bytes = utf8_egc_len("◌̈", &cols);
+    CHECK(5 == bytes);
+    CHECK(1 == cols);
+    bytes = utf8_egc_len("นี้", &cols);
+    CHECK(9 == bytes);
+    CHECK(1 == cols);
+  }
+
   SUBCASE("Loadchar") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == cell_load(n_, &c, " "));
@@ -21,13 +43,20 @@ TEST_CASE("Cell") {
 
   SUBCASE("MultibyteWidth") {
     CHECK(0 == mbswidth(""));       // zero bytes, zero columns
-    CHECK(-1 == mbswidth("\x7"));   // single byte, non-printable
+    CHECK(0 == mbswidth("\x7"));   // single byte, non-printable
     CHECK(1 == mbswidth(" "));      // single byte, one column
     CHECK(5 == mbswidth("abcde"));  // single byte, one column
     CHECK(1 == mbswidth("µ"));      // two bytes, one column
     CHECK(1 <= mbswidth("\xf0\x9f\xa6\xb2"));     // four bytes, two columns
     CHECK(3 <= mbswidth("平仮名")); // nine bytes, six columns
     CHECK(1 == mbswidth("\ufdfd")); // three bytes, ? columns, wcwidth() returns 1
+  }
+
+  // test combining characters and ZWJs
+  SUBCASE("MultiglyphWidth") {
+    CHECK(2 == mbswidth("\U0001F471"));
+    CHECK(2 == mbswidth("\U0001F471\u200D"));
+    CHECK(3 == mbswidth("\U0001F471\u200D\u2640")); // *not* a single EGC!
   }
 
   SUBCASE("SetItalic") {

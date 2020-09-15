@@ -2355,3 +2355,17 @@ int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
   }
   return buflen;
 }
+
+int mbswidth(const char* mbs){
+  int cols = 0;   // number of columns consumed thus far
+  do{
+    int thesecols, thesebytes;
+    thesebytes = utf8_egc_len(mbs, &thesecols);
+    if(thesebytes < 0){
+      return -1;
+    }
+    mbs += thesebytes;
+    cols += thesecols;
+  }while(*mbs);
+  return cols;
+}

@@ -89,7 +89,9 @@ utf8_egc_len(const char* gcluster, int* colcount){
         ret += r;
         break;
       }
-      *colcount += cols;
+      if(!*colcount){ // only count first printing char towards width
+        *colcount += cols;
+      }
       ret += r;
       gcluster += r;
     }else if(r < 0){

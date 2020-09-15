@@ -114,6 +114,8 @@ typedef struct cell {
 
 **bool cell_bg_default_p(const cell* cl);**
 
+**int mbswidth(const char* text)**;
+
 # DESCRIPTION
 
 Cells make up the framebuffer associated with each plane, with one cell per
