@@ -126,22 +126,25 @@ static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
   struct ncdirect* n = ncdirect_init(NULL, out, 0);
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  if(n) ncdirect_fg_rgb(n, 0x00, 0xc0, 0xc0);
   fprintf(out, "usage: ");
   if(n) ncdirect_fg_rgb(n, 0x80, 0xff, 0x80);
   fprintf(out, "%s ", exe);
   const char* options[] = { "-hVikc", "-m margins", "-p path", "-l loglevel",
-                            "-d mult", "-J jsonfile", "-f renderfile", NULL };
+                            "-d mult", "-J jsonfile", "-f renderfile", "demospec",
+                            NULL };
   for(const char** op = options ; *op ; ++op){
     usage_option(out, n, *op);
   }
-  if(n) ncdirect_fg_rgb(n, 0x80, 0xff, 0x80);
-  fprintf(out, "demospec\n\n");
+  fprintf(out, "\n\n");
   if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
   const char* optexpo[] = {
-    "-h", "this message", "-V", "print program name and version",
-    "-i", "ignore failures, keep going", "-k", "keep screen; do not switch to alternate",
-    "-d", "delay multiplier (non-negative float)", "-J", "emit JSON summary to file",
+    "-h", "this message",
+    "-V", "print program name and version",
+    "-i", "ignore failures, keep going",
+    "-k", "keep screen; do not switch to alternate",
+    "-d", "delay multiplier (non-negative float)",
+    "-J", "emit JSON summary to file",
     "-f", "render to file (in addition to stdout)",
     "-c", "constant PRNG seed, useful for benchmarking",
     "-m", "margin, or 4 comma-separated margins",
@@ -170,7 +173,9 @@ usage(const char* exe, int status){
         fprintf(out, " ");
       }
       // U+24D0: CIRCLED LATIN SMALL LETTER A
+      if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
       fprintf(out, "%lc ", *demos[i].name - 'a' + 0x24d0);
+      if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
       fprintf(out, "%-*.*s", 8, 8, demos[i].name + 1);
       if(++printed % 6 == 0){
         fprintf(out, "\n");
@@ -231,7 +236,6 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
     if(ret && !ignore_failures){
       break;
     }
-    notcurses_refresh(nc, NULL, NULL);
   }
   return 0;
 }
@@ -240,8 +244,8 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
 // specification, also returns NULL, heh. determine this by argv[optind];
 // if it's NULL, there were valid options, but no spec.
 static const char*
-handle_opts(int argc, char** argv, notcurses_options* opts, bool* ignore_failures,
-            FILE** json_output){
+handle_opts(int argc, char** argv, notcurses_options* opts,
+            bool* ignore_failures, FILE** json_output){
   bool constant_seed = false;
   *ignore_failures = false;
   char *renderfile = NULL;
