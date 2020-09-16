@@ -112,7 +112,16 @@ The following keypresses are recognized (and are also available from the menu):
 * **Ctrl-R**: Restart the demo.
 * **q**: Quit.
 
+Benchmarking should be performed using **-c** to get a well-defined PRNG seed.
+JSON output via **-J** will probably be useful.
+
 # BUGS
+
+Certain demos (especially **mojibake** and **allglyph**) heavily exercise the
+font rendering stack. If your font or rendering engine draws glyphs with width
+different from that reported by the standard library's **wcwidth(3)**,
+Notcurses will have an incorrect notion of cursor placement, leading to
+undesirable behavior.
 
 # COPYRIGHT
 
@@ -121,10 +130,11 @@ The following keypresses are recognized (and are also available from the menu):
 * Images from Super Mario Bros. copyright Nintendo of America.
 * Images from Ninja Gaiden copyright Koei Tecmo America.
 * Images from Final Fantasy copyright Square Enix Co Ltd.
-* "Jungle with Rain" and "Ruins with Rain" copyright Mark Ferrari/Living Worlds.
+* "Jungle with Rain" copyright Mark Ferrari/Living Worlds.
 
 # SEE ALSO
 
 **notcurses(3)**,
 **ncurses(3NCURSES)**,
+**wcwidth(3)**,
 **terminfo(5)**
