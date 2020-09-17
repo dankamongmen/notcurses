@@ -72,7 +72,7 @@ tabletdraw(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
   for(y = 0 ; y < maxy ; ++y, rgb += 16){
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", y % 16);
     cell_load(w, &c, cchbuf);
-    if(cell_set_fg_rgb(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
+    if(cell_set_fg_rgb8(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
       return -1;
     }
     int x;
@@ -98,7 +98,7 @@ drawcb(struct nctablet* t, bool drawfromtop){
   int ll;
   int maxy = ncplane_dim_y(p);
   ll = tabletdraw(p, maxy, tctx, rgb);
-  ncplane_set_fg_rgb(p, 242, 242, 242);
+  ncplane_set_fg_rgb8(p, 242, 242, 242);
   if(ll){
     const int summaryy = drawfromtop ? 0 : ll - 1;
     ncplane_styles_on(p, NCSTYLE_BOLD);
@@ -206,12 +206,12 @@ ncreel_demo_core(struct notcurses* nc){
     .focusedchan = 0,
     .flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR,
   };
-  channels_set_fg_rgb(&popts.focusedchan, 58, 150, 221);
-  channels_set_bg_rgb(&popts.focusedchan, 97, 214, 214);
-  channels_set_fg_rgb(&popts.tabletchan, 19, 161, 14);
-  channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
-  channels_set_fg_rgb(&popts.borderchan, 136, 23, 152);
-  channels_set_bg_rgb(&popts.borderchan, 0, 0, 0);
+  channels_set_fg_rgb8(&popts.focusedchan, 58, 150, 221);
+  channels_set_bg_rgb8(&popts.focusedchan, 97, 214, 214);
+  channels_set_fg_rgb8(&popts.tabletchan, 19, 161, 14);
+  channels_set_bg_rgb8(&popts.borderchan, 0, 0, 0);
+  channels_set_fg_rgb8(&popts.borderchan, 136, 23, 152);
+  channels_set_bg_rgb8(&popts.borderchan, 0, 0, 0);
   uint64_t bgchannels = 0;
   if(channels_set_fg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
     ncplane_destroy(w);
@@ -230,7 +230,7 @@ ncreel_demo_core(struct notcurses* nc){
   // Press a for a new nc above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement.
   ncplane_styles_on(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-  ncplane_set_fg_rgb(std, 58, 150, 221);
+  ncplane_set_fg_rgb8(std, 58, 150, 221);
   ncplane_set_bg_default(std);
   ncplane_printf_yx(std, 1, 2, "a, b, c create tablets, DEL deletes.");
   ncplane_styles_off(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
@@ -253,13 +253,13 @@ ncreel_demo_core(struct notcurses* nc){
   }
   do{
     ncplane_styles_set(std, NCSTYLE_NONE);
-    ncplane_set_fg_rgb(std, 197, 15, 31);
+    ncplane_set_fg_rgb8(std, 197, 15, 31);
     int count = ncreel_tabletcount(pr);
     ncplane_styles_on(std, NCSTYLE_BOLD);
     ncplane_printf_yx(std, 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
     ncplane_styles_off(std, NCSTYLE_BOLD);
     // FIXME wclrtoeol(w);
-    ncplane_set_fg_rgb(std, 0, 55, 218);
+    ncplane_set_fg_rgb8(std, 0, 55, 218);
     wchar_t rw;
     ncinput ni;
     pthread_mutex_lock(&renderlock);

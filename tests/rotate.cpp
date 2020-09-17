@@ -40,14 +40,14 @@ TEST_CASE("Rotate") {
 
   uint64_t ul, ur, ll, lr;
   ul = ur = ll = lr = 0;
-  channels_set_fg(&ul, 0x40f040);
-  channels_set_bg(&ul, 0x40f040);
-  channels_set_fg(&ll, 0xf040f0);
-  channels_set_bg(&ll, 0xf040f0);
-  channels_set_fg(&ur, 0x40f040);
-  channels_set_bg(&ur, 0x40f040);
-  channels_set_fg(&lr, 0xf040f0);
-  channels_set_bg(&lr, 0xf040f0);
+  channels_set_fg_rgb(&ul, 0x40f040);
+  channels_set_bg_rgb(&ul, 0x40f040);
+  channels_set_fg_rgb(&ll, 0xf040f0);
+  channels_set_bg_rgb(&ll, 0xf040f0);
+  channels_set_fg_rgb(&ur, 0x40f040);
+  channels_set_bg_rgb(&ur, 0x40f040);
+  channels_set_fg_rgb(&lr, 0xf040f0);
+  channels_set_bg_rgb(&lr, 0xf040f0);
 
   SUBCASE("RotateTransparentCW") {
     struct ncplane* testn = ncplane_new(nc_, 8, 16, dimy / 2, dimx / 2, nullptr);
@@ -132,11 +132,11 @@ TEST_CASE("Rotate") {
       char* c = notcurses_at_yx(nc_, 0, x, &stylemask, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      if(channels_fg(channels) & CELL_BG_RGB_MASK){
-        CHECK(0xffccbb == channels_fg(channels));
+      if(channels_fg_rgb(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == channels_fg_rgb(channels));
       }
-      if(channels_bg(channels) & CELL_BG_RGB_MASK){
-        CHECK(0xffccbb == channels_bg(channels));
+      if(channels_bg_rgb(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == channels_bg_rgb(channels));
       }
       free(c);
     }
@@ -183,11 +183,11 @@ TEST_CASE("Rotate") {
       char* c = notcurses_at_yx(nc_, 0, x, &stylemask, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      if(channels_fg(channels) & CELL_BG_RGB_MASK){
-        CHECK(0xffccbb == channels_fg(channels));
+      if(channels_fg_rgb(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == channels_fg_rgb(channels));
       }
-      if(channels_bg(channels) & CELL_BG_RGB_MASK){
-        CHECK(0xffccbb == channels_bg(channels));
+      if(channels_bg_rgb(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == channels_bg_rgb(channels));
       }
       free(c);
     }

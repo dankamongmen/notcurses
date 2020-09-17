@@ -39,10 +39,10 @@ int run ()
 	nc.stop ();
 
 	Direct direct (getenv ("TERM"));
-	direct.set_fg (0xb5, 0x0d, 0xff);
+	direct.set_fg_rgb (0xb5, 0x0d, 0xff);
 	std::cout << "notcurses version: ";
-	direct.set_bg (0x05, 0x6e, 0xee);
-	direct.set_fg (0xe2, 0xbf, 0x00);
+	direct.set_bg_rgb (0x05, 0x6e, 0xee);
+	direct.set_fg_rgb (0xe2, 0xbf, 0x00);
 	std::cout << ncver << std::endl;
 
 	return 0;

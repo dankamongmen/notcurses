@@ -21,7 +21,7 @@ std::unique_ptr<ncpp::Plane> NewPiece() {
     uint64_t channels = 0;
     channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    n->set_fg(t->color);
+    n->set_fg_rgb(t->color);
     n->set_bg_alpha(CELL_ALPHA_TRANSPARENT);
     n->set_base("", 0, channels);
     y = 0; x = 0;

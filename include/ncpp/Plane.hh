@@ -689,14 +689,14 @@ namespace ncpp
 			return ncplane_fchannel (plane);
 		}
 
-		unsigned get_fg () const noexcept
+		unsigned get_fg_rgb () const noexcept
 		{
-			return ncplane_fg (plane);
+			return ncplane_fg_rgb (plane);
 		}
 
-		unsigned get_bg () const noexcept
+		unsigned get_bg_rgb () const noexcept
 		{
-			return ncplane_bg (plane);
+			return ncplane_bg_rgb (plane);
 		}
 
 		unsigned get_fg_alpha () const noexcept
@@ -729,19 +729,19 @@ namespace ncpp
 			return error_guard (ncplane_set_bg_alpha (plane, alpha), -1);
 		}
 
-		unsigned get_fg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
+		unsigned get_fg_rgb8 (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return ncplane_fg_rgb (plane, r, g, b);
+			return ncplane_fg_rgb8 (plane, r, g, b);
 		}
 
-		bool set_fg_rgb (int r, int g, int b, bool clipped = false) const NOEXCEPT_MAYBE
+		bool set_fg_rgb8 (int r, int g, int b, bool clipped = false) const NOEXCEPT_MAYBE
 		{
 			if (clipped) {
 				ncplane_set_fg_rgb_clipped (plane, r, g, b);
 				return true;
 			}
 
-			return error_guard (ncplane_set_fg_rgb (plane, r, g, b), -1);
+			return error_guard (ncplane_set_fg_rgb8 (plane, r, g, b), -1);
 		}
 
 		bool set_fg_palindex (int idx) const NOEXCEPT_MAYBE
@@ -749,9 +749,9 @@ namespace ncpp
 			return error_guard (ncplane_set_fg_palindex (plane, idx), -1);
 		}
 
-		bool set_fg (uint32_t channel) const NOEXCEPT_MAYBE
+		bool set_fg_rgb (uint32_t channel) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_set_fg (plane, channel), -1);
+			return error_guard (ncplane_set_fg_rgb (plane, channel), -1);
 		}
 
 		void set_fg_default () const noexcept
@@ -759,19 +759,19 @@ namespace ncpp
 			ncplane_set_fg_default (plane);
 		}
 
-		unsigned get_bg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
+		unsigned get_bg_rgb8 (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return ncplane_bg_rgb (plane, r, g, b);
+			return ncplane_bg_rgb8 (plane, r, g, b);
 		}
 
-		bool set_bg_rgb (int r, int g, int b, bool clipped = false) const NOEXCEPT_MAYBE
+		bool set_bg_rgb8 (int r, int g, int b, bool clipped = false) const NOEXCEPT_MAYBE
 		{
 			if (clipped) {
 				ncplane_set_fg_rgb_clipped (plane, r, g, b);
 				return true;
 			}
 
-			return error_guard (ncplane_set_bg_rgb (plane, r, g, b), -1);
+			return error_guard (ncplane_set_bg_rgb8 (plane, r, g, b), -1);
 		}
 
 		bool set_bg_palindex (int idx) const NOEXCEPT_MAYBE
@@ -779,9 +779,9 @@ namespace ncpp
 			return error_guard (ncplane_set_bg_alpha (plane, idx), -1);
 		}
 
-		bool set_bg (uint32_t channel) const NOEXCEPT_MAYBE
+		bool set_bg_rgb (uint32_t channel) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncplane_set_bg (plane, channel), -1);
+			return error_guard (ncplane_set_bg_rgb (plane, channel), -1);
 		}
 
 		void set_bg_default () const noexcept

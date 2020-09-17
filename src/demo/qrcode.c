@@ -28,7 +28,7 @@ int qrcode_demo(struct notcurses* nc){
     if(qlen > 0){ // FIXME can fail due to being too large for display; distinguish this case
       ncplane_move_yx(n, (dimy - y) / 2, (dimx - x) / 2);
       ncplane_home(n);
-      ncplane_set_fg_rgb(n, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1); 
+      ncplane_set_fg_rgb8(n, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1); 
       DEMO_RENDER(nc);
     }
   }

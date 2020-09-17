@@ -30,13 +30,13 @@ legend(struct notcurses* nc, int dimy, int dimx){
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, " ", 0, channels);
   ncplane_styles_set(n, NCSTYLE_BOLD);
-  ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
   ncplane_set_fg_alpha(n, CELL_ALPHA_HIGHCONTRAST);
   if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "target launch") <= 0){
     ncplane_destroy(n);
     return NULL;
   }
-  ncplane_set_fg_rgb(n, 0, 0, 0);
+  ncplane_set_fg_rgb8(n, 0, 0, 0);
   if(ncplane_putstr_aligned(n, 1, NCALIGN_CENTER, "2003-12-11 FM-6") <= 0){
     ncplane_destroy(n);
     return NULL;
@@ -45,7 +45,7 @@ legend(struct notcurses* nc, int dimy, int dimx){
     ncplane_destroy(n);
     return NULL;
   }
-  ncplane_set_fg_rgb(n, 0x80, 0xc0, 0x80);
+  ncplane_set_fg_rgb8(n, 0x80, 0xc0, 0x80);
   if(ncplane_putstr_aligned(n, 3, NCALIGN_CENTER, "exo-atmospheric intercept") <= 0){
     ncplane_destroy(n);
     return NULL;

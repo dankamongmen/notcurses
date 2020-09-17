@@ -51,12 +51,12 @@ auto main() -> int {
 
   // first, a 2x1 with "AB"
   auto nn = std::make_shared<Plane>(1, 2, 1, 16);
-  nn->set_fg_rgb(0xc0, 0x80, 0xc0);
-  nn->set_bg_rgb(0x20, 0x00, 0x20);
+  nn->set_fg_rgb8(0xc0, 0x80, 0xc0);
+  nn->set_bg_rgb8(0x20, 0x00, 0x20);
   nn->putstr("AB");
 
-  n->set_fg_rgb(0x80, 0xc0, 0x80);
-  n->set_bg_rgb(0x00, 0x40, 0x00);
+  n->set_fg_rgb8(0x80, 0xc0, 0x80);
+  n->set_bg_rgb8(0x00, 0x40, 0x00);
   n->putstr("\xe5\xbd\xa2\xe5\x85\xa8");
   n->putstr(1, 0, "\xe5\xbd\xa2\xe5\x85\xa8");
   n->putstr(2, 0, "\xe5\xbd\xa2\xe5\x85\xa8");

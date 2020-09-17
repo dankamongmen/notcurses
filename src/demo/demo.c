@@ -104,20 +104,20 @@ static struct {
 
 static void
 usage_option(FILE* out, struct ncdirect* n, const char* op){
-  if(n) ncdirect_fg_rgb(n, 0x80, 0x80, 0x80);
+  if(n) ncdirect_fg_rgb8(n, 0x80, 0x80, 0x80);
   fprintf(out, " [ ");
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0x80);
   fprintf(out, "%s", op);
-  if(n) ncdirect_fg_rgb(n, 0x80, 0x80, 0x80);
+  if(n) ncdirect_fg_rgb8(n, 0x80, 0x80, 0x80);
   fprintf(out, " ] ");
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0xff);
 }
 
 static void
 usage_expo(FILE* out, struct ncdirect* n, const char* op, const char* expo){
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0x80);
   fprintf(out, " %s: ", op);
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0xff);
   fprintf(out, "%s\n", expo);
 }
 
@@ -126,9 +126,9 @@ static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
   struct ncdirect* n = ncdirect_init(NULL, out, 0);
-  if(n) ncdirect_fg_rgb(n, 0x00, 0xc0, 0xc0);
+  if(n) ncdirect_fg_rgb8(n, 0x00, 0xc0, 0xc0);
   fprintf(out, "usage: ");
-  if(n) ncdirect_fg_rgb(n, 0x80, 0xff, 0x80);
+  if(n) ncdirect_fg_rgb8(n, 0x80, 0xff, 0x80);
   fprintf(out, "%s ", exe);
   const char* options[] = { "-hVikc", "-m margins", "-p path", "-l loglevel",
                             "-d mult", "-J jsonfile", "-f renderfile", "demospec",
@@ -137,7 +137,7 @@ usage(const char* exe, int status){
     usage_option(out, n, *op);
   }
   fprintf(out, "\n\n");
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0xff);
   const char* optexpo[] = {
     "-h", "this message",
     "-V", "print program name and version",
@@ -154,18 +154,18 @@ usage(const char* exe, int status){
     const char* expo = op[1];
     usage_expo(out, n, *op, expo);
   }
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0x80);
   fprintf(out, " -l:");
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0xff);
   fprintf(out, " logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0x80);
   fprintf(out, " -p:");
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0xff);
   fprintf(out, " data file path (default: %s)\n", NOTCURSES_SHARE);
   fprintf(out, "\nspecify demos via their first letter. repetitions are allowed.\n");
-  if(n) ncdirect_fg_rgb(n, 0x80, 0xff, 0x80);
+  if(n) ncdirect_fg_rgb8(n, 0x80, 0xff, 0x80);
   fprintf(out, " default spec: %s\n\n", DEFAULT_DEMO);
-  if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+  if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0xff);
   int printed = 0;
   for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
     if(demos[i].name){
@@ -173,9 +173,9 @@ usage(const char* exe, int status){
         fprintf(out, " ");
       }
       // U+24D0: CIRCLED LATIN SMALL LETTER A
-      if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0x80);
+      if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0x80);
       fprintf(out, "%lc ", *demos[i].name - 'a' + 0x24d0);
-      if(n) ncdirect_fg_rgb(n, 0xff, 0xff, 0xff);
+      if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0xff);
       fprintf(out, "%-*.*s", 8, 8, demos[i].name + 1);
       if(++printed % 6 == 0){
         fprintf(out, "\n");
@@ -219,8 +219,8 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
     // erase the plane (we let one demo bleed through to the next, an effect
     // we exploit in a few transitions).
     cell c = CELL_TRIVIAL_INITIALIZER;
-    cell_set_fg_rgb(&c, 0, 0, 0);
-    cell_set_bg_rgb(&c, 0, 0, 0);
+    cell_set_fg_rgb8(&c, 0, 0, 0);
+    cell_set_bg_rgb8(&c, 0, 0, 0);
     ncplane_set_base_cell(n, &c);
     cell_release(n, &c);
 
@@ -356,9 +356,9 @@ handle_opts(int argc, char** argv, notcurses_options* opts,
 
 static int
 table_segment_color(struct ncdirect* nc, const char* str, const char* delim, unsigned color){
-  ncdirect_fg(nc, color);
+  ncdirect_fg_rgb(nc, color);
   fputs(str, stdout);
-  ncdirect_fg_rgb(nc, 178, 102, 255);
+  ncdirect_fg_rgb8(nc, 178, 102, 255);
   fputs(delim, stdout);
   return 0;
 }
@@ -370,12 +370,12 @@ table_segment(struct ncdirect* nc, const char* str, const char* delim){
 
 static int
 table_printf(struct ncdirect* nc, const char* delim, const char* fmt, ...){
-  ncdirect_fg_rgb(nc, 0xD4, 0xAF, 0x37);
+  ncdirect_fg_rgb8(nc, 0xD4, 0xAF, 0x37);
   va_list va;
   va_start(va, fmt);
   vfprintf(stdout, fmt, va);
   va_end(va);
-  ncdirect_fg_rgb(nc, 178, 102, 255);
+  ncdirect_fg_rgb8(nc, 178, 102, 255);
   fputs(delim, stdout);
   return 0;
 }
@@ -437,13 +437,13 @@ summary_table(struct ncdirect* nc, const char* spec){
     }else{
       rescolor = 0x32CD32;
     }
-    ncdirect_fg(nc, rescolor);
+    ncdirect_fg_rgb(nc, rescolor);
     printf("%2zu", i);
-    ncdirect_fg_rgb(nc, 178, 102, 255);
+    ncdirect_fg_rgb8(nc, 178, 102, 255);
     printf("│");
-    ncdirect_fg(nc, rescolor);
+    ncdirect_fg_rgb(nc, rescolor);
     printf("%8s", demos[results[i].selector - 'a'].name);
-    ncdirect_fg_rgb(nc, 178, 102, 255);
+    ncdirect_fg_rgb8(nc, 178, 102, 255);
     printf("│%*ss│%7ju│%*s│ %*ss│%3jd│%7.1f│%*s║",
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
            BPREFIXFMT(totalbuf), PREFIXFMT(rtimebuf),
@@ -452,7 +452,7 @@ summary_table(struct ncdirect* nc, const char* spec){
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / GIG) : 0.0,
            PREFIXFMT(tfpsbuf));
-    ncdirect_fg(nc, rescolor);
+    ncdirect_fg_rgb(nc, rescolor);
     printf("%s\n", results[i].result < 0 ? "FAILED" :
             results[i].result > 0 ? "ABORTED" :
              !results[i].stats.renders ? "SKIPPED"  : "");
@@ -475,17 +475,17 @@ summary_table(struct ncdirect* nc, const char* spec){
   table_printf(nc, "│", "%3ld", nsdelta ? totalrenderns * 100 / nsdelta : 0);
   table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
   printf("\n");
-  ncdirect_fg_rgb(nc, 0xff, 0xb0, 0xb0);
+  ncdirect_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
   fflush(stdout); // in case we print to stderr below, we want color from above
   if(failed){
     fprintf(stderr, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p.\n", datadir);
   }
 #ifdef DFSG_BUILD
-  ncdirect_fg_rgb(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
+  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
   fflush(stdout); // in case we print to stderr below, we want color from above
   fprintf(stderr, "\nDFSG version. Some demos are unavailable.\n");
 #elif !defined(USE_MULTIMEDIA) // don't double-print for DFSG
-  ncdirect_fg_rgb(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
+  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
   fflush(stdout); // in case we print to stderr below, we want color from above
   fprintf(stderr, "\nNo multimedia support. Some demos are unavailable.\n");
 #endif
@@ -496,8 +496,8 @@ static int
 scrub_stdplane(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   uint64_t channels = 0;
-  channels_set_fg(&channels, 0); // explicit black + opaque
-  channels_set_bg(&channels, 0);
+  channels_set_fg_rgb(&channels, 0); // explicit black + opaque
+  channels_set_bg_rgb(&channels, 0);
   if(ncplane_set_base(n, "", 0, channels)){
     return -1;
   }

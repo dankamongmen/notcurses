@@ -9,8 +9,8 @@ using namespace ncpp;
 
 auto mathtext([[maybe_unused]] NotCurses& nc, std::shared_ptr<Plane>& n) -> int {
   if(n){
-    n->set_fg(0xffffff);
-    n->set_bg(0x008000);
+    n->set_fg_rgb(0xffffff);
+    n->set_bg_rgb(0x008000);
     n->printf(0, NCAlign::Right, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)⎧⎡⎛┌─────┐⎞⎤⎫");
     n->printf(1, NCAlign::Right, "⎪⎢⎜│a²+b³ ⎟⎥⎪");
     n->printf(2, NCAlign::Right, "∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)⎪⎢⎜│───── ⎟⎥⎪");

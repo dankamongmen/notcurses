@@ -161,14 +161,14 @@ dim_rows(const Plane* n){
         return false;
       }
       unsigned r, g, b;
-      c.get_fg_rgb(&r, &g, &b);
+      c.get_fg_rgb8(&r, &g, &b);
       r -= r / 32;
       g -= g / 32;
       b -= b / 32;
       if(r > 247){ r = 0; }
       if(g > 247){ g = 0; }
       if(b > 247){ b = 0; }
-      if(!c.set_fg_rgb(r, g, b)){
+      if(!c.set_fg_rgb8(r, g, b)){
         n->release(c);
         return false;
       }
@@ -211,15 +211,15 @@ int input_demo(ncpp::NotCurses* nc) {
   // FIXME would be nice to switch over to exponential at some level
   popts.flags = NCPLOT_OPTION_LABELTICKSD;
   popts.minchannels = popts.maxchannels = 0;
-  channels_set_fg_rgb(&popts.minchannels, 0x40, 0x50, 0xb0);
-  channels_set_fg_rgb(&popts.maxchannels, 0x40, 0xff, 0xd0);
+  channels_set_fg_rgb8(&popts.minchannels, 0x40, 0x50, 0xb0);
+  channels_set_fg_rgb8(&popts.maxchannels, 0x40, 0xff, 0xd0);
   popts.gridtype = static_cast<ncblitter_e>(NCBLIT_2x2);
   plot = ncuplot_create(pplane, &popts, 0, 0);
   if(!plot){
     return EXIT_FAILURE;
   }
-  n->set_fg_rgb(0x00, 0x00, 0x00);
-  n->set_bg_rgb(0xbb, 0x64, 0xbb);
+  n->set_fg_rgb8(0x00, 0x00, 0x00);
+  n->set_bg_rgb8(0xbb, 0x64, 0xbb);
   n->styles_on(CellStyle::Underline);
   if(n->putstr(0, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
     return -1;
@@ -256,18 +256,18 @@ int input_demo(ncpp::NotCurses* nc) {
     if(!n->cursor_move(y, 0)){
       break;
     }
-    n->set_fg_rgb(0xd0, 0xd0, 0xd0);
+    n->set_fg_rgb8(0xd0, 0xd0, 0xd0);
     n->printf("%c%c%c ", ni.alt ? 'A' : 'a', ni.ctrl ? 'C' : 'c',
               ni.shift ? 'S' : 's');
     if(r < 0x80){
-      n->set_fg_rgb(128, 250, 64);
+      n->set_fg_rgb8(128, 250, 64);
       if(n->printf("ASCII: [0x%02x (%03d)] '%lc'", r, r,
                    (wchar_t)(iswprint(r) ? r : printutf8(r))) < 0){
         break;
       }
     }else{
       if(nckey_supppuab_p(r)){
-        n->set_fg_rgb(250, 64, 128);
+        n->set_fg_rgb8(250, 64, 128);
         if(n->printf("Special: [0x%02x (%02d)] '%s'", r, r, nckeystr(r)) < 0){
           break;
         }
@@ -277,7 +277,7 @@ int input_demo(ncpp::NotCurses* nc) {
           }
         }
       }else{
-        n->set_fg_rgb(64, 128, 250);
+        n->set_fg_rgb8(64, 128, 250);
         n->printf("Unicode: [0x%08x] '%lc'", r, (wchar_t)r);
       }
     }

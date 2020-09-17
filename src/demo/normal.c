@@ -158,8 +158,8 @@ int normal_demo(struct notcurses* nc){
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
   ncplane_erase(nstd);
   cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_rgb(&c, 0x0, 0x0, 0x0);
-  cell_set_bg_rgb(&c, 0x0, 0x0, 0x0);
+  cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0);
+  cell_set_bg_rgb8(&c, 0x0, 0x0, 0x0);
   ncplane_set_base_cell(nstd, &c);
   cell_release(nstd, &c);
   struct ncplane* n = NULL;
@@ -225,10 +225,10 @@ int normal_demo(struct notcurses* nc){
   ncplane_home(n);
   uint64_t tl, tr, bl, br;
   tl = tr = bl = br = 0;
-  channels_set_fg_rgb(&tl, 0, 0, 0);
-  channels_set_fg_rgb(&tr, 0, 0xff, 0);
-  channels_set_fg_rgb(&bl, 0xff, 0, 0xff);
-  channels_set_fg_rgb(&br, 0, 0, 0);
+  channels_set_fg_rgb8(&tl, 0, 0, 0);
+  channels_set_fg_rgb8(&tr, 0, 0xff, 0);
+  channels_set_fg_rgb8(&bl, 0xff, 0, 0xff);
+  channels_set_fg_rgb8(&br, 0, 0, 0);
   ncplane_dim_yx(n, &dy, &dx);
   if(ncplane_stain(n, dy - 1, dx - 1, tl, tr, bl, br) < 0){
     goto err;
@@ -236,8 +236,8 @@ int normal_demo(struct notcurses* nc){
   DEMO_RENDER(nc);
   timespec_div(&demodelay, 2, &scaled);
   demo_nanosleep(nc, &scaled);
-  cell_set_fg_rgb(&c, 0, 0, 0);
-  cell_set_bg_rgb(&c, 0, 0, 0);
+  cell_set_fg_rgb8(&c, 0, 0, 0);
+  cell_set_bg_rgb8(&c, 0, 0, 0);
   ncplane_set_base_cell(nstd, &c);
   cell_release(nstd, &c);
   r = rotate_visual(nc, n, dy, dx);

@@ -11,7 +11,7 @@ print_b(struct ncdirect* nc, int r, int g, int total){
   if(b > 255){
     return 0;
   }
-  int ret = ncdirect_fg_rgb(nc, r, g, b);
+  int ret = ncdirect_fg_rgb8(nc, r, g, b);
   if(ret){
     return -1;
   }
@@ -32,7 +32,7 @@ print_gb(struct ncdirect* nc, int r, int total){
 }
 
 static int
-print_rgb(struct ncdirect* nc, int total){
+print_rgb8(struct ncdirect* nc, int total){
   if(random() % 2){
     if(ncdirect_styles_off(nc, NCSTYLE_ITALIC)){
       return -1;
@@ -61,7 +61,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   for(int t = 0 ; t < 768 ; t += 4){
-    if(print_rgb(nc, t)){
+    if(print_rgb8(nc, t)){
       goto err;
     }
   }
@@ -73,7 +73,7 @@ int main(void){
     goto err;
   }
   for(int t = 768 ; t ; t -= 4){
-    if(print_rgb(nc, t)){
+    if(print_rgb8(nc, t)){
       goto err;
     }
   }
@@ -85,7 +85,7 @@ int main(void){
     goto err;
   }
   for(int t = 0 ; t < 768 ; t += 4){
-    if(print_rgb(nc, t)){
+    if(print_rgb8(nc, t)){
       goto err;
     }
   }
@@ -97,7 +97,7 @@ int main(void){
     goto err;
   }
   for(int t = 768 ; t ; t -= 4){
-    if(print_rgb(nc, t)){
+    if(print_rgb8(nc, t)){
       goto err;
     }
   }

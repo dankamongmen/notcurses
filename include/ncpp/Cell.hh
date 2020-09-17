@@ -121,14 +121,14 @@ namespace ncpp
 			return cell_fchannel (&_cell);
 		}
 
-		unsigned get_fg () const noexcept
+		unsigned get_fg_rgb () const noexcept
 		{
-			return cell_fg (&_cell);
+			return cell_fg_rgb (&_cell);
 		}
 
-		unsigned get_bg () const noexcept
+		unsigned get_bg_rgb () const noexcept
 		{
-			return cell_bg (&_cell);
+			return cell_bg_rgb (&_cell);
 		}
 
 		unsigned get_fg_alpha () const noexcept
@@ -156,24 +156,24 @@ namespace ncpp
 			return cell_set_bg_alpha (&_cell, alpha) != -1;
 		}
 
-		unsigned get_fg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
+		unsigned get_fg_rgb8 (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return cell_fg_rgb (&_cell, r, g, b);
+			return cell_fg_rgb8 (&_cell, r, g, b);
 		}
 
-		bool set_fg_rgb (int r, int g, int b, bool clipped = false) noexcept
+		bool set_fg_rgb8 (int r, int g, int b, bool clipped = false) noexcept
 		{
 			if (clipped) {
 				cell_set_fg_rgb_clipped (&_cell, r, g, b);
 				return true;
 			}
 
-			return cell_set_fg_rgb (&_cell, r, g, b) != -1;
+			return cell_set_fg_rgb8 (&_cell, r, g, b) != -1;
 		}
 
-		void set_fg (uint32_t channel) noexcept
+		void set_fg_rgb (uint32_t channel) noexcept
 		{
-			cell_set_fg (&_cell, channel);
+			cell_set_fg_rgb (&_cell, channel);
 		}
 
 		void set_fg_default () noexcept
@@ -181,24 +181,24 @@ namespace ncpp
 			cell_set_fg_default (&_cell);
 		}
 
-		unsigned get_bg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
+		unsigned get_bg_rgb8 (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return cell_bg_rgb (&_cell, r, g, b);
+			return cell_bg_rgb8 (&_cell, r, g, b);
 		}
 
-		bool set_bg_rgb (int r, int g, int b, bool clipped = false) noexcept
+		bool set_bg_rgb8 (int r, int g, int b, bool clipped = false) noexcept
 		{
 			if (clipped) {
 				cell_set_bg_rgb_clipped (&_cell, r, g, b);
 				return true;
 			}
 
-			return cell_set_bg_rgb (&_cell, r, g, b) != -1;
+			return cell_set_bg_rgb8 (&_cell, r, g, b) != -1;
 		}
 
-		void set_bg (uint32_t channel) noexcept
+		void set_bg_rgb (uint32_t channel) noexcept
 		{
-			cell_set_bg (&_cell, channel);
+			cell_set_bg_rgb (&_cell, channel);
 		}
 
 		void set_bg_default () noexcept

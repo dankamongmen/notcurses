@@ -21,10 +21,10 @@ auto main() -> int {
   r = 0;
   g = 0x80;
   b = 0;
-  ncplane_set_fg_rgb(n, 0x40, 0x20, 0x40);
+  ncplane_set_fg_rgb8(n, 0x40, 0x20, 0x40);
   for(y = 0 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
-      if(ncplane_set_bg_rgb(n, r, g, b)){
+      if(ncplane_set_bg_rgb8(n, r, g, b)){
         goto err;
       }
       if(ncplane_cursor_move_yx(n, y, x)){

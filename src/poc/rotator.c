@@ -14,10 +14,10 @@ rotate_grad(struct notcurses* nc){
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_home(n);
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-  channel_set_rgb(&tl, 0xff, 0, 0);
-  channel_set_rgb(&tr, 0, 0, 0xff);
-  channel_set_rgb(&bl, 0, 0xff, 0);
-  channel_set_rgb(&br, 0, 0xff, 0xff);
+  channel_set_rgb8(&tl, 0xff, 0, 0);
+  channel_set_rgb8(&tr, 0, 0, 0xff);
+  channel_set_rgb8(&bl, 0, 0xff, 0);
+  channel_set_rgb8(&br, 0, 0xff, 0xff);
   if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) <= 0){
     return -1;
   }
@@ -118,10 +118,10 @@ rotate(struct notcurses* nc){
   int g = 0;
   int b = 0;
   for(int x = 0 ; x < XSIZE ; ++x){
-    if(ncplane_set_fg_rgb(n, r, g, b)){
+    if(ncplane_set_fg_rgb8(n, r, g, b)){
       return -1;
     }
-    if(ncplane_set_bg_rgb(n, b, r, g)){
+    if(ncplane_set_bg_rgb8(n, b, r, g)){
       return -1;
     }
     if(ncplane_putegc_yx(n, dimy / 2, x, "▀", NULL) < 0){
@@ -133,10 +133,10 @@ rotate(struct notcurses* nc){
   g = 0;
   b = 255;
   for(int x = 0 ; x < XSIZE ; ++x){
-    if(ncplane_set_fg_rgb(n, r, g, b)){
+    if(ncplane_set_fg_rgb8(n, r, g, b)){
       return -1;
     }
-    if(ncplane_set_bg_rgb(n, b, r, g)){
+    if(ncplane_set_bg_rgb8(n, b, r, g)){
       return -1;
     }
     if(ncplane_putegc_yx(n, dimy / 2 + 1, x, "▄", NULL) < 0){

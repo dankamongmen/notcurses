@@ -379,12 +379,12 @@ TEST_CASE("Wide") {
     REQUIRE(nullptr != p);
     cell c = CELL_CHAR_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(p, &c, &c, &c, &c, &c, &c, 0));
-    ncplane_set_bg_rgb(n_, 0x20, 0x20, 0x20);
+    ncplane_set_bg_rgb8(n_, 0x20, 0x20, 0x20);
     int sbytes;
     CHECK(2 == ncplane_putegc_yx(n_, 1, 1, "六", &sbytes));
     uint64_t channels = 0;
     channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
-    channels_set_bg_rgb(&channels, 0x80, 0xf0, 0x10);
+    channels_set_bg_rgb8(&channels, 0x80, 0xf0, 0x10);
     CHECK(1 == ncplane_set_base(p, " ", 0, channels));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
@@ -412,11 +412,11 @@ TEST_CASE("Wide") {
   // drag a plane of narrow chars across a plane of wide glyphs
   SUBCASE("NarrowPlaneAtopWide") {
     notcurses_cursor_disable(nc_);
-    CHECK(0 == ncplane_set_fg_rgb(n_, 0xff, 0, 0xff));
+    CHECK(0 == ncplane_set_fg_rgb8(n_, 0xff, 0, 0xff));
     // start the 1x4 top plane at 0, 4
     struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
     REQUIRE(nullptr != topp);
-    CHECK(0 == ncplane_set_bg_rgb(topp, 0, 0xff, 0));
+    CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
     CHECK(4 == ncplane_putstr(topp, "abcd"));
     CHECK(12 == ncplane_putstr(n_, "六六六六"));
     CHECK(0 == notcurses_render(nc_));
@@ -586,11 +586,11 @@ TEST_CASE("Wide") {
 
   // drag a plane of wide glyphs across a plane of wide glyphs
   SUBCASE("WidePlaneAtopWide") {
-    CHECK(0 == ncplane_set_fg_rgb(n_, 0xff, 0, 0xff));
+    CHECK(0 == ncplane_set_fg_rgb8(n_, 0xff, 0, 0xff));
     // start the 1x4 top plane at 0, 4
     struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
     REQUIRE(nullptr != topp);
-    CHECK(0 == ncplane_set_bg_rgb(topp, 0, 0xff, 0));
+    CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
     CHECK(6 == ncplane_putstr(topp, "次次"));
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     CHECK(12 == ncplane_putstr(n_, "六六六六"));
@@ -731,11 +731,11 @@ TEST_CASE("Wide") {
 
   // drag a plane of wide glyphs across a plane of narrow glyphs
   SUBCASE("WidePlaneAtopNarrow") {
-    CHECK(0 == ncplane_set_fg_rgb(n_, 0xff, 0, 0xff));
+    CHECK(0 == ncplane_set_fg_rgb8(n_, 0xff, 0, 0xff));
     // start the 1x4 top plane at 0, 4
     struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
     REQUIRE(nullptr != topp);
-    CHECK(0 == ncplane_set_bg_rgb(topp, 0, 0xff, 0));
+    CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
     CHECK(6 == ncplane_putstr(topp, "次次"));
     CHECK(8 == ncplane_putstr(n_, "abcdefgh"));
     CHECK(0 == notcurses_render(nc_));

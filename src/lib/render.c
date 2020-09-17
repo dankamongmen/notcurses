@@ -205,7 +205,7 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
       hchan = channels_blend(hchan, crender->hcfg, &crender->hcfgblends);
       cell_set_fchannel(targc, hchan);
     }else{
-      cell_set_fg(targc, highcontrast(cell_bchannel(targc)));
+      cell_set_fg_rgb(targc, highcontrast(cell_bchannel(targc)));
     }
   }
 }
@@ -674,7 +674,7 @@ update_palette(notcurses* nc, FILE* out){
     for(size_t damageidx = 0 ; damageidx < sizeof(nc->palette.chans) / sizeof(*nc->palette.chans) ; ++damageidx){
       unsigned r, g, b;
       if(nc->palette_damage[damageidx]){
-        channel_rgb(nc->palette.chans[damageidx], &r, &g, &b);
+        channel_rgb8(nc->palette.chans[damageidx], &r, &g, &b);
         // Need convert RGB values [0..256) to [0..1000], ugh
         // FIXME need handle HSL case also
         r = r * 1000 / 255;
@@ -817,7 +817,7 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           nc->rstate.defaultelidable = false;
           nc->rstate.fgelidable = false;
         }else if(!cell_fg_default_p(srccell)){ // rgb foreground
-          cell_fg_rgb(srccell, &r, &g, &b);
+          cell_fg_rgb8(srccell, &r, &g, &b);
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
           }else{
@@ -844,7 +844,7 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           nc->rstate.defaultelidable = false;
           nc->rstate.bgelidable = false;
         }else if(!cell_bg_default_p(srccell)){ // rgb background
-          cell_bg_rgb(srccell, &br, &bg, &bb);
+          cell_bg_rgb8(srccell, &br, &bg, &bb);
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
             ++nc->stats.bgelisions;
           }else{
@@ -1061,7 +1061,7 @@ char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint16_t* stylemask, ui
   return egc;
 }
 
-int ncdirect_bg(ncdirect* nc, unsigned rgb){
+int ncdirect_bg_rgb(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
@@ -1074,7 +1074,7 @@ int ncdirect_bg(ncdirect* nc, unsigned rgb){
   return 0;
 }
 
-int ncdirect_fg(ncdirect* nc, unsigned rgb){
+int ncdirect_fg_rgb(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }

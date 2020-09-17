@@ -120,26 +120,26 @@ draw_eagle(struct ncplane* n, const char* sprite){
       case '0':
         break;
       case '1':
-        ncplane_set_fg_rgb(n, 0xff, 0xff, 0xff);
+        ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
         break;
       case '2':
-        ncplane_set_fg_rgb(n, 0xe3, 0x9d, 0x25);
+        ncplane_set_fg_rgb8(n, 0xe3, 0x9d, 0x25);
         break;
       case '3':
-        ncplane_set_fg_rgb(n, 0x3a, 0x84, 0x00);
+        ncplane_set_fg_rgb8(n, 0x3a, 0x84, 0x00);
         break;
     }
     if(sprite[s] != '0'){
       unsigned f, b;
-      f = ncplane_fg(n);
-      b = ncplane_bg(n);
-      ncplane_set_fg(n, b);
-      ncplane_set_bg(n, f);
+      f = ncplane_fg_rgb(n);
+      b = ncplane_bg_rgb(n);
+      ncplane_set_fg_rgb(n, b);
+      ncplane_set_bg_rgb(n, f);
       if(ncplane_putegc_yx(n, s / 16, s % 16, " ", &sbytes) != 1){
         return -1;
       }
-      ncplane_set_fg(n, f);
-      ncplane_set_bg(n, b);
+      ncplane_set_fg_rgb(n, f);
+      ncplane_set_bg_rgb(n, b);
     }
   }
   return 0;
