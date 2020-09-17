@@ -83,7 +83,7 @@ int highcontrast_demo(struct notcurses* nc){
       total = r = g = b = 0;
     }
     cell_load_char(n, &c, motto[out % strlen(motto)]);
-    cell_set_bg(&c, scrcolors[out % totcells]);
+    cell_set_bg_rgb(&c, scrcolors[out % totcells]);
     if(ncplane_putc_yx(n, (out + dimx) / dimx, out % dimx, &c) < 0){
       free(scrcolors);
       goto err;
@@ -103,15 +103,15 @@ int highcontrast_demo(struct notcurses* nc){
       const int f = offset - 1 + dimx;
       const int l = totcells + dimx - offset;
       ncplane_at_yx_cell(n, f / dimx, f % dimx, &c);
-      cell_set_fg(&c, 0x004000 + (16 * offset));
-      cell_set_bg(&c, 0);
+      cell_set_fg_rgb(&c, 0x004000 + (16 * offset));
+      cell_set_bg_rgb(&c, 0);
       cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
       if(ncplane_putc_yx(n, f / dimx, f % dimx, &c) < 0){
         goto err;
       }
       ncplane_at_yx_cell(n, l / dimx, l % dimx, &c);
-      cell_set_fg(&c, 0x004000 + (16 * offset));
-      cell_set_bg(&c, 0);
+      cell_set_fg_rgb(&c, 0x004000 + (16 * offset));
+      cell_set_bg_rgb(&c, 0);
       cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
       if(ncplane_putc_yx(n, l / dimx, l % dimx, &c) < 0){
         goto err;

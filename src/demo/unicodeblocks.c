@@ -32,22 +32,22 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   cell_set_bg_alpha(&ur, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&ll, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&lr, CELL_ALPHA_TRANSPARENT);
-  cell_set_fg_rgb(&ul, 0xea, 0xaa, 0x00);
-  cell_set_fg_rgb(&ur, 0x00, 0x30, 0x57);
-  cell_set_fg_rgb(&ll, 0x00, 0x30, 0x57);
-  cell_set_fg_rgb(&lr, 0xea, 0xaa, 0x00);
+  cell_set_fg_rgb8(&ul, 0xea, 0xaa, 0x00);
+  cell_set_fg_rgb8(&ur, 0x00, 0x30, 0x57);
+  cell_set_fg_rgb8(&ll, 0x00, 0x30, 0x57);
+  cell_set_fg_rgb8(&lr, 0xea, 0xaa, 0x00);
   // see https://github.com/dankamongmen/notcurses/issues/259. we use a random
   // (but dark) background for the perimeter to force refreshing on the box,
   // when it might otherwise be molested by RTL text. hacky and gross :( FIXME
   int rbg = random() % 20;
-  cell_set_bg(&ul, rbg);
-  cell_set_bg(&ur, rbg);
-  cell_set_bg(&ll, rbg);
-  cell_set_bg(&lr, rbg);
-  cell_set_fg_rgb(&hl, 255, 255, 255);
-  cell_set_fg_rgb(&vl, 255, 255, 255);
-  cell_set_bg_rgb(&hl, 0, 0, 0);
-  cell_set_bg_rgb(&vl, 0, 0, 0);
+  cell_set_bg_rgb(&ul, rbg);
+  cell_set_bg_rgb(&ur, rbg);
+  cell_set_bg_rgb(&ll, rbg);
+  cell_set_bg_rgb(&lr, rbg);
+  cell_set_fg_rgb8(&hl, 255, 255, 255);
+  cell_set_fg_rgb8(&vl, 255, 255, 255);
+  cell_set_bg_rgb8(&hl, 0, 0, 0);
+  cell_set_bg_rgb8(&vl, 0, 0, 0);
   ncplane_home(nn);
   unsigned control = NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM | NCBOXGRAD_LEFT | NCBOXGRAD_RIGHT;
   if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, control)){
@@ -84,8 +84,8 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
       }else{ // don't dump non-printing codepoints
         strcpy(utf8arr, "  ");
       }
-      ncplane_set_fg_rgb(nn, 0xad + z * 2, 0xff, 0x2f - z * 2);
-      ncplane_set_bg_rgb(nn, 8 * chunk, 8 * chunk, 8 * chunk);
+      ncplane_set_fg_rgb8(nn, 0xad + z * 2, 0xff, 0x2f - z * 2);
+      ncplane_set_bg_rgb8(nn, 8 * chunk, 8 * chunk, 8 * chunk);
       if(ncplane_putstr_yx(nn, chunk + 1, z * 2 + 1, utf8arr) < 0){
         return -1;
       }
@@ -194,15 +194,15 @@ int unicodeblocks_demo(struct notcurses* nc){
   }
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_fg(&channels, 0x004000);
-  channels_set_bg(&channels, 0x0);
+  channels_set_fg_rgb(&channels, 0x004000);
+  channels_set_bg_rgb(&channels, 0x0);
   ncplane_set_base(header, "", 0, channels);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
-    ncplane_set_bg_rgb(n, 0, 0, 0);
+    ncplane_set_bg_rgb8(n, 0, 0, 0);
     uint32_t blockstart = blocks[sindex].start;
     const char* description = blocks[sindex].name;
-    ncplane_set_bg(header, 0);
-    ncplane_set_fg(header, 0xbde8f6);
+    ncplane_set_bg_rgb(header, 0);
+    ncplane_set_fg_rgb(header, 0xbde8f6);
     if(ncplane_printf_aligned(header, 1, NCALIGN_CENTER, "Unicode points 0x%05x—0x%05x (%u—%u)",
                               blockstart, blockstart + BLOCKSIZE,
                               blockstart, blockstart + BLOCKSIZE) <= 0){
@@ -216,7 +216,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(draw_block(nn, blockstart)){
       return -1;
     }
-    if(ncplane_set_fg_rgb(n, 0x40, 0xc0, 0x40)){
+    if(ncplane_set_fg_rgb8(n, 0x40, 0xc0, 0x40)){
       return -1;
     }
     if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 0)){

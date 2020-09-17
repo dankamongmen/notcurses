@@ -27,8 +27,8 @@ auto main() -> int {
     if(!na){
       goto err;
     }
-    n->set_fg(0x00ff00);
-    na->set_fg(0x00ff00);
+    n->set_fg_rgb(0x00ff00);
+    na->set_fg_rgb(0x00ff00);
     if(!na->cursor_move(0, 0)){
       goto err;
     }

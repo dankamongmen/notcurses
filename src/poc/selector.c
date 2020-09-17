@@ -96,7 +96,7 @@ int main(void){
     ncvisual_destroy(ncv);
   }
 
-  ncplane_set_fg(n, 0x40f040);
+  ncplane_set_fg_rgb(n, 0x40f040);
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "selector widget demo");
   struct ncplane* seln = ncplane_new(nc, 1, 1, 3, 0, NULL);
   ncplane_set_base(seln, "", 0, bgchannels);

@@ -19,12 +19,12 @@ mathplane(struct notcurses* nc){
   const int WIDTH = dimx;
   struct ncplane* n = ncplane_new(nc, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH, NULL);
   uint64_t channels = 0;
-  channels_set_fg(&channels, 0x2b50c8); // metallic gold, inverted
+  channels_set_fg_rgb(&channels, 0x2b50c8); // metallic gold, inverted
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, "", 0, channels);
-  ncplane_set_fg(n, 0xd4af37); // metallic gold
-  ncplane_set_bg(n, 0x0);
+  ncplane_set_fg_rgb(n, 0xd4af37); // metallic gold
+  ncplane_set_bg_rgb(n, 0x0);
   if(n){
     ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)╭╭╭       ╮╮╮");
     ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "│││ 8πG   ││⎪");
@@ -46,7 +46,7 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
     return 0;
   }
   unsigned r, g, b;
-  cell_fg_rgb(c, &r, &g, &b);
+  cell_fg_rgb8(c, &r, &g, &b);
   r += rand() % (64 / (2 * distance + 1) + 1);
   g += rand() % (64 / (2 * distance + 1) + 1);
   b += rand() % (64 / (2 * distance + 1) + 1);
@@ -164,11 +164,11 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, "", 0, channels);
-  ncplane_set_fg_rgb(n, 255, 255, 255);
-  ncplane_set_bg_rgb(n, 32, 64, 32);
+  ncplane_set_fg_rgb8(n, 255, 255, 255);
+  ncplane_set_bg_rgb8(n, 32, 64, 32);
   channels = 0;
-  channels_set_fg_rgb(&channels, 255, 255, 255);
-  channels_set_bg_rgb(&channels, 32, 64, 32);
+  channels_set_fg_rgb8(&channels, 255, 255, 255);
+  channels_set_bg_rgb8(&channels, 32, 64, 32);
   ncplane_cursor_move_yx(n, 2, 0);
   if(ncplane_rounded_box(n, 0, channels, 4, 56, 0)){
     return -1;
@@ -179,8 +179,8 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 6, 17, "╰", NULL);
   cell hl = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &hl, "─");
-  cell_set_fg_rgb(&hl, 255, 255, 255);
-  cell_set_bg_rgb(&hl, 32, 64, 32);
+  cell_set_fg_rgb8(&hl, 255, 255, 255);
+  cell_set_bg_rgb8(&hl, 32, 64, 32);
   ncplane_hline(n, &hl, 57 - 18 - 1);
   ncplane_putegc_yx(n, 6, 56, "╯", NULL);
   ncplane_putegc_yx(n, 5, 56, "│", NULL);
@@ -196,15 +196,15 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 0, 19, "╗", NULL);
   ncplane_putegc_yx(n, 1, 19, "║", NULL);
   ncplane_putegc_yx(n, 2, 19, "╨", NULL);
-  ncplane_set_fg_rgb(n, 64, 128, 240);
-  ncplane_set_bg_rgb(n, 32, 64, 32);
+  ncplane_set_fg_rgb8(n, 64, 128, 240);
+  ncplane_set_bg_rgb8(n, 32, 64, 32);
   ncplane_styles_on(n, NCSTYLE_ITALIC);
   ncplane_printf_yx(n, 5, 18, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
   ncplane_printf_yx(n, 1, 4, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_styles_off(n, NCSTYLE_ITALIC);
-  ncplane_set_fg_rgb(n, 224, 128, 224);
+  ncplane_set_fg_rgb8(n, 224, 128, 224);
   ncplane_putstr_yx(n, 3, 1, "   🔥 unicode 13, resize awareness, 24b truecolor…🔥   ");
-  ncplane_set_fg_rgb(n, 255, 255, 255);
+  ncplane_set_fg_rgb8(n, 255, 255, 255);
   return 0;
 }
 
@@ -473,13 +473,13 @@ int witherworm_demo(struct notcurses* nc){
       if(ncplane_cursor_move_yx(n, y, x)){
         return -1;
       }
-      ncplane_set_bg_rgb(n, 20, 20, 20);
+      ncplane_set_bg_rgb8(n, 20, 20, 20);
       do{ // we fill up the screen, however large, bouncing around our strtable
         s = strs + random() % ((sizeof(strs) / sizeof(*strs)) - 1);
         size_t idx = 0;
         ncplane_cursor_yx(n, &y, &x);
         while((*s)[idx]){ // each multibyte char of string
-          if(ncplane_set_fg_rgb(n, channel_r(rgb), channel_g(rgb), channel_b(rgb))){
+          if(ncplane_set_fg_rgb8(n, channel_r(rgb), channel_g(rgb), channel_b(rgb))){
             return -1;
           }
           if(x >= maxx){

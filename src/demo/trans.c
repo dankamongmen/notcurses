@@ -2,7 +2,7 @@
 #include "demo.h"
 
 static void
-grow_rgb(uint32_t* rgb){
+grow_rgb8(uint32_t* rgb){
   int r = channel_r(*rgb);
   int g = channel_g(*rgb);
   int b = channel_b(*rgb);
@@ -35,14 +35,14 @@ legend(struct notcurses* nc, const char* msg){
     return NULL;
   }
   cell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_rgb(&c, 0, 0, 0); // darken surrounding characters by half
+  cell_set_fg_rgb8(&c, 0, 0, 0); // darken surrounding characters by half
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT); // don't touch background
   if(ncplane_set_base_cell(n, &c)){
     ncplane_destroy(n);
     return NULL;
   }
-  if(ncplane_set_fg(n, 0xd78700) || ncplane_set_bg(n, 0)){
+  if(ncplane_set_fg_rgb(n, 0xd78700) || ncplane_set_bg_rgb(n, 0)){
     ncplane_destroy(n);
     return NULL;
   }
@@ -153,7 +153,7 @@ slidepanel(struct notcurses* nc){
 
   // Set the foreground color, setting it to blend. We should get the underlying
   // glyphs in a blended color, with the default background color.
-  cell_set_fg(&c, 0x80c080);
+  cell_set_fg_rgb(&c, 0x80c080);
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
@@ -168,7 +168,7 @@ slidepanel(struct notcurses* nc){
 
   // Opaque foreground color. This produces underlying glyphs in the specified,
   // fixed color, with the default background color.
-  cell_set_fg(&c, 0x80c080);
+  cell_set_fg_rgb(&c, 0x80c080);
   cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
@@ -217,8 +217,8 @@ slidepanel(struct notcurses* nc){
   // characters. We blend, however, to show the underlying color in our glyphs.
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
   cell_set_bg_alpha(&c, CELL_ALPHA_BLEND);
-  cell_set_fg(&c, 0x80c080);
-  cell_set_bg(&c, 0x204080);
+  cell_set_fg_rgb(&c, 0x80c080);
+  cell_set_bg_rgb(&c, 0x204080);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "all blended, print glyph");
@@ -240,10 +240,10 @@ slidepanel(struct notcurses* nc){
 int trans_demo(struct notcurses* nc){
   int maxx, maxy;
   struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
-  ncplane_set_fg_rgb(n, 255, 255, 255);
+  ncplane_set_fg_rgb8(n, 255, 255, 255);
   uint64_t channels = 0;
-  channels_set_fg_rgb(&channels, 0, 128, 128);
-  channels_set_bg_rgb(&channels, 90, 0, 90);
+  channels_set_fg_rgb8(&channels, 0, 128, 128);
+  channels_set_bg_rgb8(&channels, 90, 0, 90);
   int y = 1, x = 0;
   ncplane_cursor_move_yx(n, y, x);
   if(ncplane_rounded_box_sized(n, 0, channels, maxy - 1, maxx, 0)){
@@ -256,10 +256,10 @@ int trans_demo(struct notcurses* nc){
       return -1;
     }
     while(x < maxx - 1){
-      ncplane_set_fg_rgb(n, (rgb & 0xff0000) >> 16u, (rgb & 0xff00) >> 8u, rgb & 0xff);
-      ncplane_set_bg_rgb(n, 0, 10, 0);
+      ncplane_set_fg_rgb8(n, (rgb & 0xff0000) >> 16u, (rgb & 0xff00) >> 8u, rgb & 0xff);
+      ncplane_set_bg_rgb8(n, 0, 10, 0);
       ncplane_putchar(n, x % 10 + '0');
-      grow_rgb(&rgb);
+      grow_rgb8(&rgb);
       ++x;
     }
   }

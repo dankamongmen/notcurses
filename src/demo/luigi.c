@@ -118,19 +118,19 @@ draw_luigi(struct ncplane* n, const char* sprite){
   size_t s;
   int sbytes;
   // optimization so we can elide more color changes, see README's "#perf"
-  ncplane_set_bg_rgb(n, 0x00, 0x00, 0x00);
+  ncplane_set_bg_rgb8(n, 0x00, 0x00, 0x00);
   for(s = 0 ; sprite[s] ; ++s){
     switch(sprite[s]){
       case '0':
         break;
       case '1':
-        ncplane_set_bg_rgb(n, 0xff, 0xff, 0xff);
+        ncplane_set_bg_rgb8(n, 0xff, 0xff, 0xff);
         break;
       case '2':
-        ncplane_set_bg_rgb(n, 0xe3, 0x9d, 0x25);
+        ncplane_set_bg_rgb8(n, 0xe3, 0x9d, 0x25);
         break;
       case '3':
-        ncplane_set_bg_rgb(n, 0x3a, 0x84, 0x00);
+        ncplane_set_bg_rgb8(n, 0x3a, 0x84, 0x00);
         break;
     }
     if(sprite[s] != '0'){

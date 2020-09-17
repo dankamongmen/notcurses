@@ -38,14 +38,14 @@ namespace ncpp
 			return error_guard (ncdirect_fg_default (direct), -1);
 		}
 
-		bool set_fg (unsigned rgb) const NOEXCEPT_MAYBE
+		bool set_fg_rgb (unsigned rgb) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_fg (direct, rgb), -1);
+			return error_guard (ncdirect_fg_rgb (direct, rgb), -1);
 		}
 
-		bool set_fg (unsigned r, unsigned g, unsigned b) const NOEXCEPT_MAYBE
+		bool set_fg_rgb (unsigned r, unsigned g, unsigned b) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_fg_rgb (direct, r, g, b), -1);
+			return error_guard (ncdirect_fg_rgb8 (direct, r, g, b), -1);
 		}
 
 		bool fg_palindex (int pidx) const NOEXCEPT_MAYBE
@@ -58,14 +58,14 @@ namespace ncpp
 			return error_guard (ncdirect_bg_default (direct), -1);
 		}
 
-		bool set_bg (unsigned rgb) const NOEXCEPT_MAYBE
+		bool set_bg_rgb (unsigned rgb) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_bg (direct, rgb), -1);
+			return error_guard (ncdirect_bg_rgb (direct, rgb), -1);
 		}
 
-		bool set_bg (unsigned r, unsigned g, unsigned b) const NOEXCEPT_MAYBE
+		bool set_bg_rgb (unsigned r, unsigned g, unsigned b) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_bg_rgb (direct, r, g, b), -1);
+			return error_guard (ncdirect_bg_rgb8 (direct, r, g, b), -1);
 		}
 
 		bool bg_palindex (int pidx) const NOEXCEPT_MAYBE

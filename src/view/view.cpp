@@ -56,7 +56,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   std::unique_ptr<Plane> stdn(nc.get_stdplane());
   int* framecount = static_cast<int*>(vframecount);
   ++*framecount;
-  stdn->set_fg(0x80c080);
+  stdn->set_fg_rgb(0x80c080);
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   intmax_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
@@ -78,7 +78,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       ncplane_set_base(subtitle_plane, "", 0, channels);
-      ncplane_set_fg(subtitle_plane, 0x00ffff);
+      ncplane_set_fg_rgb(subtitle_plane, 0x00ffff);
       ncplane_set_fg_alpha(subtitle_plane, CELL_ALPHA_HIGHCONTRAST);
       ncplane_set_bg_alpha(subtitle_plane, CELL_ALPHA_TRANSPARENT);
     }else{

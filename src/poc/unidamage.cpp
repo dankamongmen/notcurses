@@ -19,7 +19,7 @@ auto main() -> int {
   int dimx, dimy;
   n->get_dim(&dimy, &dimx);
   Cell c;
-  c.set_bg_rgb(0, 0x80, 0);
+  c.set_bg_rgb8(0, 0x80, 0);
   //n->set_default(c);
   if(n->load(c, "🐳") < 0){
     goto err;

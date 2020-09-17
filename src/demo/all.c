@@ -60,7 +60,7 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
           }
           ncplane_set_attr(std, NCSTYLE_NONE);
           DEMO_RENDER(nc);
-          ncplane_set_fg_rgb(column,
+          ncplane_set_fg_rgb8(column,
                              random() % 192 + 64,
                              random() % 192 + 64,
                              random() % 192 + 64);
@@ -82,15 +82,15 @@ int allglyphs_demo(struct notcurses* nc){
   ncplane_erase(n);
   ncplane_home(n);
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-  channel_set_rgb(&tl, 0, 0, 0);
-  channel_set_rgb(&tr, 0, 0xff, 0);
-  channel_set_rgb(&bl, 0, 0, 0xff);
-  channel_set_rgb(&br, 0, 0xff, 0xff);
+  channel_set_rgb8(&tl, 0, 0, 0);
+  channel_set_rgb8(&tr, 0, 0xff, 0);
+  channel_set_rgb8(&bl, 0, 0, 0xff);
+  channel_set_rgb8(&br, 0, 0xff, 0xff);
   if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) < 0){
     return -1;
   }
-  ncplane_set_fg(n, 0xf0f0a0);
-  ncplane_set_bg(n, 0);
+  ncplane_set_fg_rgb(n, 0xf0f0a0);
+  ncplane_set_bg_rgb(n, 0);
   int width = 40;
   if(width > dimx - 8){
     if((width = dimx - 8) <= 0){

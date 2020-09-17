@@ -3398,7 +3398,7 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
     return NULL;
   }
   channels = 0;
-  if(ncplane_set_fg(n, 0x40d0d0)){
+  if(ncplane_set_fg_rgb(n, 0x40d0d0)){
     ncplane_destroy(n);
     return NULL;
   }
@@ -3407,7 +3407,7 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
     ncplane_destroy(n);
     return NULL;
   }
-  if(ncplane_set_base(n, " ", 0, channels) < 0 || ncplane_set_fg(n, 0x40d040)){
+  if(ncplane_set_base(n, " ", 0, channels) < 0 || ncplane_set_fg_rgb(n, 0x40d040)){
     ncplane_destroy(n);
     return NULL;
   }
@@ -3550,22 +3550,22 @@ maketitle(struct ncplane* std){
     return NULL;
   }
   uint64_t channels = 0;
-  channels_set_bg(&channels, 0x0);
-  if(ncplane_set_base(title, " ", 0, channels) < 0 || ncplane_set_bg(title, 0)){
+  channels_set_bg_rgb(&channels, 0x0);
+  if(ncplane_set_base(title, " ", 0, channels) < 0 || ncplane_set_bg_rgb(title, 0)){
     ncplane_destroy(title);
     return NULL;
   }
-  ncplane_set_fg(title, 0xe0b0b0);
+  ncplane_set_fg_rgb(title, 0xe0b0b0);
   if(ncplane_putstr_aligned(title, 0, NCALIGN_CENTER, "mojibake 文字化けmodʑibake (english: \"garbled\")") < 0){
     ncplane_destroy(title);
     return NULL;
   }
-  ncplane_set_fg(title, 0xa0ffff);
+  ncplane_set_fg_rgb(title, 0xa0ffff);
   if(ncplane_putstr_aligned(title, 1, NCALIGN_CENTER, "Display of emoji depends upon terminal, font, and font rendering engine.") < 0){
     ncplane_destroy(title);
     return NULL;
   }
-  ncplane_set_fg(title, 0xe0a0a0);
+  ncplane_set_fg_rgb(title, 0xe0a0a0);
   if(ncplane_putstr_aligned(title, 2, NCALIGN_CENTER, "Not all symbols are emoji, and not all emoji map to a single code point.") < 0){
     ncplane_destroy(title);
     return NULL;

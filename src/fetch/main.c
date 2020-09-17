@@ -324,7 +324,7 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   if(infop == NULL){
     return -1;
   }
-  ncplane_set_fg_rgb(infop, 0xd0, 0xd0, 0xd0);
+  ncplane_set_fg_rgb8(infop, 0xd0, 0xd0, 0xd0);
   ncplane_set_attr(infop, NCSTYLE_UNDERLINE);
   ncplane_printf_aligned(infop, 1, NCALIGN_LEFT, " %s %s", fi->kernel, fi->kernver);
   if(fi->distro_pretty){
@@ -346,13 +346,13 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
     cell c = CELL_CHAR_INITIALIZER('R');
     cell_styles_set(&c, NCSTYLE_BOLD);
-    cell_set_fg_rgb(&c, 0xd0, 0, 0);
+    cell_set_fg_rgb8(&c, 0xd0, 0, 0);
     ncplane_putc_yx(infop, 4, 1, &c);
     cell_load_char(infop, &c, 'G');
-    cell_set_fg_rgb(&c, 0, 0xd0, 0);
+    cell_set_fg_rgb8(&c, 0, 0xd0, 0);
     ncplane_putc_yx(infop, 4, 2, &c);
     cell_load_char(infop, &c, 'B');
-    cell_set_fg_rgb(&c, 0, 0, 0xd);
+    cell_set_fg_rgb8(&c, 0, 0, 0xd);
     ncplane_putc_yx(infop, 4, 3, &c);
     cell_styles_set(&c, NCSTYLE_NONE);
   }else{
@@ -369,30 +369,30 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   if(cells_rounded_box(infop, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  cell_set_fg_rgb(&ul, 0x90, 0x90, 0x90);
-  cell_set_fg_rgb(&ur, 0x90, 0x90, 0x90);
-  cell_set_fg_rgb(&ll, 0, 0, 0);
-  cell_set_fg_rgb(&lr, 0, 0, 0);
+  cell_set_fg_rgb8(&ul, 0x90, 0x90, 0x90);
+  cell_set_fg_rgb8(&ur, 0x90, 0x90, 0x90);
+  cell_set_fg_rgb8(&ll, 0, 0, 0);
+  cell_set_fg_rgb8(&lr, 0, 0, 0);
   unsigned ctrlword = NCBOXGRAD_BOTTOM | NCBOXGRAD_LEFT | NCBOXGRAD_RIGHT;
   if(ncplane_perimeter(infop, &ul, &ur, &ll, &lr, &hl, &vl, ctrlword)){
     return -1;
   }
   ncplane_home(infop);
   uint64_t channels = 0;
-  channels_set_fg_rgb(&channels, 0, 0xff, 0);
+  channels_set_fg_rgb8(&channels, 0, 0xff, 0);
   ncplane_hline_interp(infop, &hl, planewidth / 2, ul.channels, channels);
   ncplane_hline_interp(infop, &hl, planewidth / 2, channels, ur.channels);
   cell_release(infop, &ul); cell_release(infop, &ur);
   cell_release(infop, &ll); cell_release(infop, &lr);
   cell_release(infop, &hl); cell_release(infop, &vl);
-  ncplane_set_fg_rgb(infop, 0xff, 0xff, 0xff);
+  ncplane_set_fg_rgb8(infop, 0xff, 0xff, 0xff);
   ncplane_set_attr(infop, NCSTYLE_BOLD);
   if(ncplane_printf_aligned(infop, 0, NCALIGN_CENTER, "[ %s@%s ]",
                             fi->username, fi->hostname) < 0){
     return -1;
   }
-  channels_set_fg_rgb(&channels, 0, 0, 0);
-  channels_set_bg_rgb(&channels, 0x50, 0x50, 0x50);
+  channels_set_fg_rgb8(&channels, 0, 0, 0);
+  channels_set_bg_rgb8(&channels, 0x50, 0x50, 0x50);
   ncplane_set_base(infop, " ", 0, channels);
   if(notcurses_render(nc)){
     return -1;

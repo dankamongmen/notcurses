@@ -96,7 +96,7 @@ int box_demo(struct notcurses* nc){
   cell_set_bg_default(&c);
   ncplane_set_base_cell(n, &c);
   cell_release(n, &c);
-  ncplane_set_fg_rgb(n, 180, 40, 180);
+  ncplane_set_fg_rgb8(n, 180, 40, 180);
   ncplane_set_bg_default(n);
   if(notcurses_canutf8(nc)){
     if(utf8_target(n, ytargbase)){
@@ -107,28 +107,28 @@ int box_demo(struct notcurses* nc){
       return -1;
     }
   }
-  if(cell_set_fg_rgb(&ul, 0xff, 0, 0)){
+  if(cell_set_fg_rgb8(&ul, 0xff, 0, 0)){
     return -1;
   }
-  if(cell_set_bg_rgb(&ul, 20, 40, 20)){
+  if(cell_set_bg_rgb8(&ul, 20, 40, 20)){
     return -1;
   }
-  if(cell_set_fg_rgb(&ur, 0, 0xff, 0)){
+  if(cell_set_fg_rgb8(&ur, 0, 0xff, 0)){
     return -1;
   }
-  if(cell_set_bg_rgb(&ur, 20, 40, 20)){
+  if(cell_set_bg_rgb8(&ur, 20, 40, 20)){
     return -1;
   }
-  if(cell_set_fg_rgb(&ll, 0, 0, 0xff)){
+  if(cell_set_fg_rgb8(&ll, 0, 0, 0xff)){
     return -1;
   }
-  if(cell_set_bg_rgb(&ll, 20, 40, 20)){
+  if(cell_set_bg_rgb8(&ll, 20, 40, 20)){
     return -1;
   }
-  if(cell_set_fg_rgb(&lr, 0xff, 0xff, 0xff)){
+  if(cell_set_fg_rgb8(&lr, 0xff, 0xff, 0xff)){
     return -1;
   }
-  if(cell_set_bg_rgb(&lr, 20, 40, 20)){
+  if(cell_set_bg_rgb8(&lr, 20, 40, 20)){
     return -1;
   }
   int y = 1, x = 0;

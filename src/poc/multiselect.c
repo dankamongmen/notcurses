@@ -104,7 +104,7 @@ int main(void){
     }
   }
 
-  ncplane_set_fg(n, 0x40f040);
+  ncplane_set_fg_rgb(n, 0x40f040);
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "multiselect widget demo");
   struct ncplane* mseln = ncplane_new(nc, 1, 1, 3, 0, NULL);
   if(mseln == NULL){

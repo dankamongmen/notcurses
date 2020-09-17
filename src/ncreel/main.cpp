@@ -47,11 +47,11 @@ int tabletfxn(struct nctablet* _t, bool cliptop){
   auto tctx = t->get_userptr<TabletCtx>();
   p->erase();
   Cell c(' ');
-  c.set_bg(tctx->getRGB());
+  c.set_bg_rgb(tctx->getRGB());
   p->set_base_cell(c);
   p->release(c);
-  p->set_bg(0xffffff);
-  p->set_fg(0x000000);
+  p->set_bg_rgb(0xffffff);
+  p->set_fg_rgb(0x000000);
   p->printf(1, 1, "%d %p lines: %d", tctx->getIdx(), _t, tctx->getLines());
   return tctx->getLines();
 }
@@ -111,12 +111,12 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
 }
 
 int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
-  if(ncplane_set_fg_rgb(n, 0xb1, 0x1b, 0xb1)){
+  if(ncplane_set_fg_rgb8(n, 0xb1, 0x1b, 0xb1)){
     return -1;
   }
-  channels_set_fg(&nopts->focusedchan, 0xffffff);
-  channels_set_bg(&nopts->focusedchan, 0x00c080);
-  channels_set_fg(&nopts->borderchan, 0x00c080);
+  channels_set_fg_rgb(&nopts->focusedchan, 0xffffff);
+  channels_set_bg_rgb(&nopts->focusedchan, 0x00c080);
+  channels_set_fg_rgb(&nopts->borderchan, 0x00c080);
   auto nr = ncreel_create(n, nopts);
   if(!nr || notcurses_render(nc)){
     return -1;

@@ -34,7 +34,7 @@ make_slider(struct notcurses* nc, int dimy, int dimx){
   for(int x = 0 ; x < REPS ; ++x){
     for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l){
       ncplane_set_fg_rgb_clipped(n, r + 0x8 * l, g + 0x8 * l, b + 0x8 * l);
-      if(ncplane_set_bg_rgb(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
+      if(ncplane_set_bg_rgb8(n, (l + 1) * 0x2, 0x20, (l + 1) * 0x2)){
         ncplane_destroy(n);
         return NULL;
       }

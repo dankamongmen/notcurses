@@ -82,7 +82,7 @@ TEST_CASE("ZAxis") {
   SUBCASE("ZAxisDamage") {
     cell cat = CELL_TRIVIAL_INITIALIZER;
     cell c = CELL_CHAR_INITIALIZER('x');
-    REQUIRE(!cell_set_fg_rgb(&c, 0xff, 0, 0));
+    REQUIRE(!cell_set_fg_rgb8(&c, 0xff, 0, 0));
     REQUIRE(1 == ncplane_putc(n_, &c));
     CHECK(!notcurses_render(nc_));
     REQUIRE(!ncplane_cursor_move_yx(n_, 0, 0));
@@ -91,7 +91,7 @@ TEST_CASE("ZAxis") {
     REQUIRE(0 == strcmp("x", cell_extended_gcluster(n_, &c)));
     struct ncplane* n2 = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(1 == cell_load(n2, &c, "y"));
-    REQUIRE(!cell_set_fg_rgb(&c, 0, 0xff, 0));
+    REQUIRE(!cell_set_fg_rgb8(&c, 0, 0xff, 0));
     REQUIRE(1 == ncplane_putc(n2, &c));
     CHECK_EQ(0, notcurses_render(nc_));
     REQUIRE(!ncplane_cursor_move_yx(n2, 0, 0));
@@ -99,7 +99,7 @@ TEST_CASE("ZAxis") {
     REQUIRE(0 == strcmp("y", cell_extended_gcluster(n_, &c)));
     struct ncplane* n3 = ncplane_new(nc_, 2, 2, 0, 0, nullptr);
     REQUIRE(1 == cell_load(n3, &c, "z"));
-    REQUIRE(!cell_set_fg_rgb(&c, 0, 0, 0xff));
+    REQUIRE(!cell_set_fg_rgb8(&c, 0, 0, 0xff));
     REQUIRE(1 == ncplane_putc(n3, &c));
     CHECK(!notcurses_render(nc_));
     REQUIRE(!ncplane_cursor_move_yx(n3, 0, 0));

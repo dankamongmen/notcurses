@@ -26,14 +26,14 @@ int main(void){
   }
   fflush(stdout);
   int ret = 0;
-  ret |= ncdirect_fg(n, 0xff8080);
+  ret |= ncdirect_fg_rgb(n, 0xff8080);
   ret |= ncdirect_styles_on(n, NCSTYLE_STANDOUT);
   printf(" erp erp \n");
-  ret |= ncdirect_fg(n, 0x80ff80);
+  ret |= ncdirect_fg_rgb(n, 0x80ff80);
   printf(" erp erp \n");
   ret |= ncdirect_styles_off(n, NCSTYLE_STANDOUT);
   printf(" erp erp \n");
-  ret |= ncdirect_fg(n, 0xff8080);
+  ret |= ncdirect_fg_rgb(n, 0xff8080);
   printf(" erp erp \n");
   ret |= ncdirect_cursor_right(n, dimx / 2);
   ret |= ncdirect_cursor_up(n, dimy / 2);

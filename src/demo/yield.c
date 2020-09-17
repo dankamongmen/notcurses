@@ -59,7 +59,7 @@ int yield_demo(struct notcurses* nc){
         continue;
       }
       ncpixel_set_a(&pixel, 0xfe);
-      ncpixel_set_rgb(&pixel, (random() % 128) + 128, 0, ncpixel_b(pixel) / 4);
+      ncpixel_set_rgb8(&pixel, (random() % 128) + 128, 0, ncpixel_b(pixel) / 4);
       pfilled = ncvisual_polyfill_yx(wmv, y, x, pixel);
       if(pfilled < 0){
         ncvisual_destroy(wmv);
@@ -71,8 +71,8 @@ int yield_demo(struct notcurses* nc){
       ncvisual_destroy(wmv);
       return -1;
     }
-    ncplane_set_bg_rgb(std, 0x10, 0x10, 0x10);
-    ncplane_set_fg_rgb(std, 0xf0, 0x20, 0x20);
+    ncplane_set_bg_rgb8(std, 0x10, 0x10, 0x10);
+    ncplane_set_fg_rgb8(std, 0xf0, 0x20, 0x20);
     ncplane_set_attr(std, NCSTYLE_BOLD);
     if(tfilled > threshold_painted){
       tfilled = threshold_painted; // don't allow printing of 100.1% etc

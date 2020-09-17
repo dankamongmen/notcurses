@@ -21,8 +21,8 @@ API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flag
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should
 // not be intermixed with standard notcurses rendering.
-API int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
-API int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
+API int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb);
+API int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb);
 
 API int ncdirect_fg_palindex(struct ncdirect* nc, int pidx);
 API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx);
@@ -41,19 +41,19 @@ API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8
 API int ncdirect_flush(const struct ncdirect* nc);
 
 static inline int
-ncdirect_bg_rgb(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
+ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
-  return ncdirect_bg(nc, (r << 16u) + (g << 8u) + b);
+  return ncdirect_bg_rgb(nc, (r << 16u) + (g << 8u) + b);
 }
 
 static inline int
-ncdirect_fg_rgb(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
+ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
-  return ncdirect_fg(nc, (r << 16u) + (g << 8u) + b);
+  return ncdirect_fg_rgb(nc, (r << 16u) + (g << 8u) + b);
 }
 
 API int ncdirect_fg_default(struct ncdirect* nc);

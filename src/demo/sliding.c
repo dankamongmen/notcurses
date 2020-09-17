@@ -101,12 +101,12 @@ fill_chunk(struct ncplane* n, int idx){
   int r = 64 + hidx * 10;
   int b = 64 + vidx * 30;
   int g = 225 - ((hidx + vidx) * 12);
-  channels_set_fg_rgb(&channels, r, g, b);
+  channels_set_fg_rgb8(&channels, r, g, b);
   uint32_t ul = 0, ur = 0, ll = 0, lr = 0;
-  channel_set_rgb(&ul, r, g, b);
-  channel_set_rgb(&lr, r, g, b);
-  channel_set_rgb(&ur, g, b, r);
-  channel_set_rgb(&ll, b, r, g);
+  channel_set_rgb8(&ul, r, g, b);
+  channel_set_rgb8(&lr, r, g, b);
+  channel_set_rgb8(&ur, g, b, r);
+  channel_set_rgb8(&ll, b, r, g);
   int ret = 0;
   if(ncplane_highgradient_sized(n, ul, ur, ll, lr, maxy, maxx) <= 0){
     ret = -1;
@@ -126,8 +126,8 @@ static int
 draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx){
   int ret;
   uint64_t channels = 0;
-  channels_set_fg_rgb(&channels, 180, 80, 180);
-  //channels_set_bg_rgb(&channels, 0, 0, 0);
+  channels_set_fg_rgb8(&channels, 180, 80, 180);
+  //channels_set_bg_rgb8(&channels, 0, 0, 0);
   ncplane_cursor_move_yx(n, yoff, xoff);
   ret = ncplane_rounded_box(n, 0, channels,
                             CHUNKS_VERT * chunky + yoff + 1,
