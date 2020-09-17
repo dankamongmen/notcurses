@@ -25,9 +25,9 @@ notcurses_channels - operations on notcurses channels
 
 **unsigned channel_b(unsigned channel);**
 
-**unsigned channel_rgb(unsigned channel, unsigned* restrict r, unsigned* restrict g, unsigned* restrict b);**
+**unsigned channel_rgb8(unsigned channel, unsigned* restrict r, unsigned* restrict g, unsigned* restrict b);**
 
-**int channel_set_rgb(unsigned* channel, int r, int g, int b);**
+**int channel_set_rgb8(unsigned* channel, int r, int g, int b);**
 
 **int channel_set(unsigned* channel, unsigned rgb);**
 
@@ -47,25 +47,25 @@ notcurses_channels - operations on notcurses channels
 
 **uint64_t channels_set_fchannel(uint64_t* channels, uint32_t channel);**
 
-**unsigned channels_fg(uint64_t channels);**
+**unsigned channels_fg_rgb(uint64_t channels);**
 
-**unsigned channels_bg(uint64_t channels);**
+**unsigned channels_bg_rgb(uint64_t channels);**
 
 **unsigned channels_fg_alpha(uint64_t channels);**
 
 **unsigned channels_bg_alpha(uint64_t channels);**
 
-**unsigned channels_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned channels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
 
-**unsigned channels_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
 
-**int channels_set_fg_rgb(uint64_t* channels, int r, int g, int b);**
+**int channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b);**
 
-**int channels_set_bg_rgb(uint64_t* channels, int r, int g, int b);**
+**int channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b);**
 
-**int channels_set_fg(uint64_t* channels, unsigned rgb);**
+**int channels_set_fg_rgb(uint64_t* channels, unsigned rgb);**
 
-**int channels_set_bg(uint64_t* channels, unsigned rgb);**
+**int channels_set_bg_rgb(uint64_t* channels, unsigned rgb);**
 
 **int channels_set_fg_alpha(uint64_t* channels, int alpha);**
 

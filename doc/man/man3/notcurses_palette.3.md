@@ -23,11 +23,11 @@ typedef struct palette256 {
 
 **int palette256_use(struct notcurses* nc, const palette256* p);**
 
-**int palette256_set_rgb(palette256* p, int idx, int r, int g, int b);**
+**int palette256_set_rgb8(palette256* p, int idx, int r, int g, int b);**
 
 **int palette256_set(palette256* p, int idx, unsigned rgb);**
 
-**int palette256_get_rgb(const palette256* p, int idx, int* restrict r, int* restrict g, int* restrict b);**
+**int palette256_get_rgb8(const palette256* p, int idx, int* restrict r, int* restrict g, int* restrict b);**
 
 **void palette256_free(palette256* p);**
 

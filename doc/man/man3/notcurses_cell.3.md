@@ -86,29 +86,29 @@ typedef struct cell {
 
 **uint64_t cell_set_fchannel(cell* cl, uint32_t channel);**
 
-**uint32_t cell_fg(const cell* cl);**
+**uint32_t cell_fg_rgb(const cell* cl);**
 
-**uint32_t cell_bg(const cell* cl);**
+**uint32_t cell_bg_rgb(const cell* cl);**
 
 **unsigned cell_fg_alpha(const cell* cl);**
 
 **unsigned cell_bg_alpha(const cell* cl);**
 
-**unsigned cell_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned cell_fg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b);**
 
-**unsigned cell_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned cell_bg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b);**
 
-**int cell_set_fg_rgb(cell* cl, int r, int g, int b);**
+**int cell_set_fg_rgb8(cell* cl, int r, int g, int b);**
 
-**int cell_set_bg_rgb(cell* cl, int r, int g, int b);**
+**int cell_set_bg_rgb8(cell* cl, int r, int g, int b);**
 
 **void cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b);**
 
 **void cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b);**
 
-**int cell_set_fg(cell* c, uint32_t channel);**
+**int cell_set_fg_rgb(cell* c, uint32_t channel);**
 
-**int cell_set_bg(cell* c, uint32_t channel);**
+**int cell_set_bg_rgb(cell* c, uint32_t channel);**
 
 **bool cell_fg_default_p(const cell* cl);**
 
@@ -148,7 +148,7 @@ A heap-allocated copy can be acquired with **cell_strdup**.
 EGC, or -1 on failure. They can fail due to either an invalid UTF-8 input, or the
 backing egcpool reaching its maximum size.
 
-**cell_set_fg_rgb()** and similar functions will return -1 if provided invalid
+**cell_set_fg_rgb8()** and similar functions will return -1 if provided invalid
 inputs, and 0 otherwise.
 
 # SEE ALSO
