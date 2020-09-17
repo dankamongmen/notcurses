@@ -294,9 +294,9 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
       if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
         // top and left are transparent
         if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
-          // entirety is transparent, load with space
+          // entirety is transparent, load with nul (but not NULL)
           cell_set_fg_default(c);
-          egc = " ";
+          egc = "";
         }else{
           cell_set_fg_rgb(c, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
           egc = "▗";
@@ -424,7 +424,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
       }
-      if(cell_load(nc, c, egc) <= 0){
+      if(*egc && cell_load(nc, c, egc) <= 0){
         return -1;
       }
       ++total;
