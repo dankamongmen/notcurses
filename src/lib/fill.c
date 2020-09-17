@@ -5,12 +5,12 @@ void ncplane_greyscale(ncplane *n){
     for(int x = 0 ; x < n->lenx ; ++x){
       cell* c = &n->fb[nfbcellidx(n, y, x)];
       unsigned r, g, b;
-      cell_fg_rgb(c, &r, &g, &b);
+      cell_fg_rgb8(c, &r, &g, &b);
       int gy = rgb_greyscale(r, g, b);
-      cell_set_fg_rgb(c, gy, gy, gy);
-      cell_bg_rgb(c, &r, &g, &b);
+      cell_set_fg_rgb8(c, gy, gy, gy);
+      cell_bg_rgb8(c, &r, &g, &b);
       gy = rgb_greyscale(r, g, b);
-      cell_set_bg_rgb(c, gy, gy, gy);
+      cell_set_bg_rgb8(c, gy, gy, gy);
     }
   }
 }
@@ -608,7 +608,7 @@ int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax, int* xmax,
   if(ncplane_fg_default_p(n)){
     r = g = b = 0xff;
   }else{
-    ncplane_fg_rgb(n, &r, &g, &b);
+    ncplane_fg_rgb8(n, &r, &g, &b);
   }
   memcpy(src, data, len);
   int ret = -1;
@@ -621,7 +621,7 @@ int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax, int* xmax,
         for(int x = startx ; x < startx + square ; ++x){
           const bool pixel = qrcodegen_getModule(dst, x, y);
           ncpixel_set_a(&rgba[y * square + x], 0xff);
-          ncpixel_set_rgb(&rgba[y * square + x], r * pixel, g * pixel, b * pixel);
+          ncpixel_set_rgb8(&rgba[y * square + x], r * pixel, g * pixel, b * pixel);
         }
       }
       struct ncvisual* ncv = ncvisual_from_rgba(rgba, square, square * sizeof(uint32_t), square);

@@ -8,9 +8,9 @@ static inline uint32_t
 lerp(uint32_t c0, uint32_t c1){
   uint32_t ret = 0;
   unsigned r0, g0, b0, r1, g1, b1;
-  channel_rgb(c0, &r0, &g0, &b0);
-  channel_rgb(c1, &r1, &g1, &b1);
-  channel_set_rgb(&ret, (r0 + r1 + 1) / 2, (g0 + g1 + 1) / 2, (b0 + b1 + 1) / 2);
+  channel_rgb8(c0, &r0, &g0, &b0);
+  channel_rgb8(c1, &r1, &g1, &b1);
+  channel_set_rgb8(&ret, (r0 + r1 + 1) / 2, (g0 + g1 + 1) / 2, (b0 + b1 + 1) / 2);
   return ret;
 }
 
@@ -19,10 +19,10 @@ static inline uint32_t
 trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
   uint32_t ret = 0;
   unsigned r0, g0, b0, r1, g1, b1, r2, g2, b2;
-  channel_rgb(c0, &r0, &g0, &b0);
-  channel_rgb(c1, &r1, &g1, &b1);
-  channel_rgb(c2, &r2, &g2, &b2);
-  channel_set_rgb(&ret, (r0 + r1 + r2 + 2) / 3,
+  channel_rgb8(c0, &r0, &g0, &b0);
+  channel_rgb8(c1, &r1, &g1, &b1);
+  channel_rgb8(c2, &r2, &g2, &b2);
+  channel_set_rgb8(&ret, (r0 + r1 + r2 + 2) / 3,
                         (g0 + g1 + g2 + 2) / 3,
                         (b0 + b1 + b2 + 2) / 3);
   return ret;
@@ -76,8 +76,8 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
       }else{
-        cell_set_fg_rgb(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
-        cell_set_bg_rgb(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+        cell_set_fg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+        cell_set_bg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
         if(cell_load(nc, c, " ") <= 0){
           return -1;
         }
@@ -134,23 +134,23 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
           if(cell_load(nc, c, "\u2584") <= 0){ // lower half block
             return -1;
           }
-          cell_set_fg_rgb(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
         }else{ // up has the color
           if(cell_load(nc, c, "\u2580") <= 0){ // upper half block
             return -1;
           }
-          cell_set_fg_rgb(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
         }
       }else{
         if(memcmp(rgbbase_up, rgbbase_down, 3) == 0){
-          cell_set_fg_rgb(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
-          cell_set_bg_rgb(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
+          cell_set_bg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
           if(cell_load(nc, c, " ") <= 0){ // only need the background
             return -1;
           }
         }else{
-          cell_set_fg_rgb(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
-          cell_set_bg_rgb(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+          cell_set_bg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
           if(cell_load(nc, c, "\u2580") <= 0){ // upper half block
             return -1;
           }
@@ -198,10 +198,10 @@ rgb_4diff(uint32_t* diffs, uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br){
   struct rgb {
     unsigned r, g, b;
   } colors[4];
-  channel_rgb(tl, &colors[0].r, &colors[0].g, &colors[0].b);
-  channel_rgb(tr, &colors[1].r, &colors[1].g, &colors[1].b);
-  channel_rgb(bl, &colors[2].r, &colors[2].g, &colors[2].b);
-  channel_rgb(br, &colors[3].r, &colors[3].g, &colors[3].b);
+  channel_rgb8(tl, &colors[0].r, &colors[0].g, &colors[0].b);
+  channel_rgb8(tr, &colors[1].r, &colors[1].g, &colors[1].b);
+  channel_rgb8(bl, &colors[2].r, &colors[2].g, &colors[2].b);
+  channel_rgb8(br, &colors[3].r, &colors[3].g, &colors[3].b);
   for(size_t idx = 0 ; idx < sizeof(quadrant_drivers) / sizeof(*quadrant_drivers) ; ++idx){
     const struct qdriver* qd = quadrant_drivers + idx;
     const struct rgb* rgb0 = colors + qd->pair[0];
@@ -245,10 +245,10 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   // break down the excluded pair and lerp
   unsigned r0, r1, g0, g1, b0, b1;
   unsigned roth, goth, both, rlerp, glerp, blerp;
-  channel_rgb(colors[qd->others[0]], &r0, &g0, &b0);
-  channel_rgb(colors[qd->others[1]], &r1, &g1, &b1);
-  channel_rgb(*fore, &rlerp, &glerp, &blerp);
-  channel_rgb(*back, &roth, &goth, &both);
+  channel_rgb8(colors[qd->others[0]], &r0, &g0, &b0);
+  channel_rgb8(colors[qd->others[1]], &r1, &g1, &b1);
+  channel_rgb8(*fore, &rlerp, &glerp, &blerp);
+  channel_rgb8(*back, &roth, &goth, &both);
 //fprintf(stderr, "rgbs: %02x %02x %02x / %02x %02x %02x\n", r0, g0, b0, r1, g1, b1);
   diffs[0] = rgb_diff(r0, g0, b0, rlerp, glerp, blerp);
   diffs[1] = rgb_diff(r0, g0, b0, roth, goth, both);
@@ -282,10 +282,10 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-  channel_set_rgb(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
-  channel_set_rgb(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
-  channel_set_rgb(&bl, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
-  channel_set_rgb(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
+  channel_set_rgb8(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
+  channel_set_rgb8(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
+  channel_set_rgb8(&bl, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
+  channel_set_rgb8(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
   const char* egc = NULL;
   if(ffmpeg_trans_p(bgr, rgbbase_tl[3])){
     // top left is transparent
@@ -298,12 +298,12 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
           cell_set_fg_default(c);
           egc = " ";
         }else{
-          cell_set_fg_rgb(c, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
           egc = "▗";
         }
       }else{
         if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
-          cell_set_fg_rgb(c, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
           egc = "▖";
         }else{
           cell_set_fchannel(c, lerp(bl, br));
@@ -313,7 +313,7 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
     }else{ // top right is foreground, top left is transparent
       if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
         if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // entire bottom is transparent
-          cell_set_fg_rgb(c, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
           egc = "▝";
         }else{
           cell_set_fchannel(c, lerp(tr, br));
@@ -331,7 +331,7 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
     if(ffmpeg_trans_p(bgr, rgbbase_tr[3])){
       if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
         if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
-          cell_set_fg_rgb(c, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
           egc = "▘";
         }else{
           cell_set_fchannel(c, lerp(tl, br));
@@ -409,10 +409,10 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
       const char* egc = qtrans_check(c, bgr, blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
       if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-        channel_set_rgb(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
-        channel_set_rgb(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
-        channel_set_rgb(&bl, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
-        channel_set_rgb(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
+        channel_set_rgb8(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
+        channel_set_rgb8(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
+        channel_set_rgb8(&bl, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
+        channel_set_rgb8(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
         uint32_t bg, fg;
         egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
         assert(egc);
@@ -436,7 +436,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 // fold the r, g, and b components of the pixel into *r, *g, and *b, and
 // increment *foldcount
 static inline void
-fold_rgb(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
+fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
          bool bgr, const uint8_t* pixel, unsigned* foldcount){
   *r += bgr ? pixel[2] : pixel[0];
   *g += pixel[1];
@@ -500,35 +500,35 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
       // FIXME fold this into the above?
       if(!ffmpeg_trans_p(bgr, rgbbase_l0[3])){
         egcidx |= 1u;
-        fold_rgb(&r, &g, &b, bgr, rgbbase_l0, &blends);
+        fold_rgb8(&r, &g, &b, bgr, rgbbase_l0, &blends);
       }
       if(!ffmpeg_trans_p(bgr, rgbbase_l1[3])){
         egcidx |= 2u;
-        fold_rgb(&r, &g, &b, bgr, rgbbase_l1, &blends);
+        fold_rgb8(&r, &g, &b, bgr, rgbbase_l1, &blends);
       }
       if(!ffmpeg_trans_p(bgr, rgbbase_l2[3])){
         egcidx |= 4u;
-        fold_rgb(&r, &g, &b, bgr, rgbbase_l2, &blends);
+        fold_rgb8(&r, &g, &b, bgr, rgbbase_l2, &blends);
       }
       if(!ffmpeg_trans_p(bgr, rgbbase_r0[3])){
         egcidx |= 8u;
-        fold_rgb(&r, &g, &b, bgr, rgbbase_r0, &blends);
+        fold_rgb8(&r, &g, &b, bgr, rgbbase_r0, &blends);
       }
       if(!ffmpeg_trans_p(bgr, rgbbase_r1[3])){
         egcidx |= 16u;
-        fold_rgb(&r, &g, &b, bgr, rgbbase_r1, &blends);
+        fold_rgb8(&r, &g, &b, bgr, rgbbase_r1, &blends);
       }
       if(!ffmpeg_trans_p(bgr, rgbbase_r2[3])){
         egcidx |= 32u;
-        fold_rgb(&r, &g, &b, bgr, rgbbase_r2, &blends);
+        fold_rgb8(&r, &g, &b, bgr, rgbbase_r2, &blends);
       }
       if(!ffmpeg_trans_p(bgr, rgbbase_l3[3])){
         egcidx |= 64u;
-        fold_rgb(&r, &g, &b, bgr, rgbbase_l3, &blends);
+        fold_rgb8(&r, &g, &b, bgr, rgbbase_l3, &blends);
       }
       if(!ffmpeg_trans_p(bgr, rgbbase_r3[3])){
         egcidx |= 128u;
-        fold_rgb(&r, &g, &b, bgr, rgbbase_r3, &blends);
+        fold_rgb8(&r, &g, &b, bgr, rgbbase_r3, &blends);
       }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
@@ -551,7 +551,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
           // FIXME else look for pairs of transparency!
       }else{
         if(blends){
-          cell_set_fg_rgb(c, r / blends, g / blends, b / blends);
+          cell_set_fg_rgb8(c, r / blends, g / blends, b / blends);
         }
         // UTF-8 encodings of the Brailler Patterns are always 0xe2 0xaX 0xCC,
         // where 0 <= X <= 3 and 0x80 <= CC <= 0xbf (4 groups of 64).

@@ -20,7 +20,12 @@ rearrangements of Notcurses.
      * `ncreader_options` has lost its `echannels`, `eattrword`, `egc`,
        `physrows`, and `physcols` fields. Just set the base character and size
        for the `ncplane`.
-     * ...
+  * Functions which set a 24-bit RGB value have had the suffix `g` replaced
+    with `g_rgb`. Functions which set three 8-bit RGB components have had the
+    suffix `rgb` replaced with `rgb8`. This was done because e.g.
+    `channels_set_fg()` and `channels_set_fchannel()` were indistinguishable on
+    sight. Failure to make the necessary conversions will result in compiler
+    errors. See https://github.com/dankamongmen/notcurses/issues/985.
 
 * 1.7.2 (2020-09-09)
   * Exported `ncvisual_default_blitter()`, so that the effective value of
