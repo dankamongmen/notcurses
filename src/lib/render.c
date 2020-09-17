@@ -221,7 +221,7 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 //
 // only those cells where 'p' intersects with the target rendering area are
 // rendered.
-static int
+static void
 paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
@@ -341,7 +341,6 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       }
     }
   }
-  return 0;
 }
 
 // it's not a pure memset(), because CELL_ALPHA_OPAQUE is the zero value, and
@@ -421,16 +420,8 @@ int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
     return -1;
   }
   init_rvec(rvec, totalcells);
-  if(paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
-    free(rvec);
-    free(rendfb);
-    return -1;
-  }
-  if(paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx)){
-    free(rvec);
-    free(rendfb);
-    return -1;
-  }
+  paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx);
+  paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx);
 //fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
   postpaint(rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
 //fprintf(stderr, "Postpaint done (%dx%d)\n", dst->leny, dst->lenx);
@@ -1012,10 +1003,8 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
   ncplane_dim_yx(nc->stdplane, &dimy, &dimx);
   ncplane* p = nc->top;
   while(p){
-    if(paint(p, rvec, nc->stdplane->leny, nc->stdplane->lenx,
-             nc->stdplane->absy, nc->stdplane->absx)){
-      return -1;
-    }
+    paint(p, rvec, nc->stdplane->leny, nc->stdplane->lenx,
+          nc->stdplane->absy, nc->stdplane->absx);
     p = p->below;
   }
   postpaint(nc->lastframe, dimy, dimx, rvec, &nc->pool);
