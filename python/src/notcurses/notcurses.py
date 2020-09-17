@@ -38,10 +38,10 @@ def channel_g(channel):
 def channel_b(channel):
     return (channel & 0x0000ff);
 
-def channel_rgb(channel):
+def channel_rgb8(channel):
     return (channel_r(channel), channel_g(channel), channel_b(channel))
 
-def channel_set_rgb(channel, r, g, b):
+def channel_set_rgb8(channel, r, g, b):
     checkRGB(r, g, b)
     c = (r << 16) | (g << 8) | b
     return (channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | c
@@ -52,27 +52,27 @@ def channels_fchannel(channels):
 def channels_bchannel(channels):
     return channels & 0xffffffff
 
-def channels_fg_rgb(channels):
-    return channel_rgb(channels_fchannel(channels))
+def channels_fg_rgb8(channels):
+    return channel_rgb8(channels_fchannel(channels))
 
 def channels_set_fchannel(channels, channel):
     return (channel << 32) | (channels & 0xffffffff)
 
-def channels_set_fg_rgb(channels, r, g, b):
+def channels_set_fg_rgb8(channels, r, g, b):
     channel = channels_fchannel(channels)
-    channel = channel_set_rgb(channel, r, g, b)
+    channel = channel_set_rgb8(channel, r, g, b)
     return channels_set_fchannel(channels, channel)
 
-def channels_bg_rgb(channels):
-    return channel_rgb(channels_bchannel(channels))
+def channels_bg_rgb8(channels):
+    return channel_rgb8(channels_bchannel(channels))
 
 def channels_set_bchannel(channels, channel):
     return (channels & 0xffffffff00000000) | channel;
 
-def channels_set_bg_rgb(channels, r, g, b):
+def channels_set_bg_rgb8(channels, r, g, b):
     checkRGB(r, g, b)
     channel = channels_bchannel(channels)
-    channel = channel_set_rgb(channel, r, g, b)
+    channel = channel_set_rgb8(channel, r, g, b)
     return channels_set_bchannel(channels, channel);
 
 class NotcursesError(Exception):
@@ -98,10 +98,10 @@ class Cell:
         lib.cell_release(self.ncp.getNcplane(), self.c)
 
     def setFgRGB(self, r, g, b):
-        self.c.channels = channels_set_fg_rgb(self.c.channels, r, g, b)
+        self.c.channels = channels_set_fg_rgb8(self.c.channels, r, g, b)
 
     def setBgRGB(self, r, g, b):
-        self.c.channels = channels_set_bg_rgb(self.c.channels, r, g, b)
+        self.c.channels = channels_set_bg_rgb8(self.c.channels, r, g, b)
 
     def getNccell(self):
         return self.c
@@ -139,17 +139,17 @@ class Ncplane:
         return channels_bchannel(lib.ncplane_channels(self.n));
 
     def getFgRGB(self):
-        return channel_rgb(self.getFChannel())
+        return channel_rgb8(self.getFChannel())
 
     def getBgRGB(self):
-        return channel_rgb(self.getBChannel())
+        return channel_rgb8(self.getBChannel())
 
     def setFgRGB(self, r, g, b):
-        if lib.ncplane_set_fg_rgb(self.n, r, g, b):
+        if lib.ncplane_set_fg_rgb8(self.n, r, g, b):
             raise ValueError("Bad foreground RGB")
 
     def setBgRGB(self, r, g, b):
-        if lib.ncplane_set_bg_rgb(self.n, r, g, b):
+        if lib.ncplane_set_bg_rgb8(self.n, r, g, b):
             raise ValueError("Bad background RGB")
 
 class Notcurses:
@@ -178,19 +178,19 @@ class Ncdirect:
         lib.ncdirect_stop(self.nc)
 
     def setFgRGB8(self, r, g, b):
-        if lib.ncdirect_fg_rgb(self.nc, r, g, b):
+        if lib.ncdirect_fg_rgb8(self.nc, r, g, b):
             raise ValueError("Bad foreground RGB")
 
     def setBgRGB8(self, r, g, b):
-        if lib.ncdirect_bg_rgb(self.nc, r, g, b):
+        if lib.ncdirect_bg_rgb8(self.nc, r, g, b):
             raise ValueError("Bad background RGB")
 
     def setFg(self, rgb):
-        if lib.ncdirect_fg(self.nc, rgb):
+        if lib.ncdirect_fg_rgb(self.nc, rgb):
             raise ValueError("Bad foreground RGB")
 
     def setBg(self, rgb):
-        if lib.ncdirect_bg(self.nc, rgb):
+        if lib.ncdirect_bg_rgb(self.nc, rgb):
             raise ValueError("Bad background RGB")
 
 if __name__ == '__main__':
