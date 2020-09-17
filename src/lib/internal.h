@@ -864,21 +864,21 @@ channels_blend(unsigned c1, unsigned c2, unsigned* blends){
     return c1; // do *not* increment *blends
   }
   unsigned rsum, gsum, bsum;
-  channel_rgb(c2, &rsum, &gsum, &bsum);
+  channel_rgb8(c2, &rsum, &gsum, &bsum);
   bool c2default = channel_default_p(c2);
   if(*blends == 0){
     // don't just return c2, or you set wide status and all kinds of crap
     if(channel_default_p(c2)){
       channel_set_default(&c1);
     }else{
-      channel_set_rgb(&c1, rsum, gsum, bsum);
+      channel_set_rgb8(&c1, rsum, gsum, bsum);
     }
     channel_set_alpha(&c1, channel_alpha(c2));
   }else if(!c2default && !channel_default_p(c1)){
     rsum = (channel_r(c1) * *blends + rsum) / (*blends + 1);
     gsum = (channel_g(c1) * *blends + gsum) / (*blends + 1);
     bsum = (channel_b(c1) * *blends + bsum) / (*blends + 1);
-    channel_set_rgb(&c1, rsum, gsum, bsum);
+    channel_set_rgb8(&c1, rsum, gsum, bsum);
     channel_set_alpha(&c1, channel_alpha(c2));
   }
   ++*blends;

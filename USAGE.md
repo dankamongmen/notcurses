@@ -296,15 +296,15 @@ This context must be destroyed using `ncdirect_stop()`. The following functions
 are available for direct mode:
 
 ```c
-int ncdirect_fg(struct ncdirect* nc, unsigned rgb);
-int ncdirect_bg(struct ncdirect* nc, unsigned rgb);
+int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb);
+int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb);
 
 static inline int
 ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
-  return ncdirect_bg(nc, (r << 16u) + (g << 8u) + b);
+  return ncdirect_bg_rgb(nc, (r << 16u) + (g << 8u) + b);
 }
 
 static inline int
@@ -312,7 +312,7 @@ ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
-  return ncdirect_fg(nc, (r << 16u) + (g << 8u) + b);
+  return ncdirect_fg_rgb(nc, (r << 16u) + (g << 8u) + b);
 }
 
 // Get the current number of columns/rows.
@@ -1425,14 +1425,14 @@ ncplane_fchannel(const struct ncplane* nc){
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline unsigned
-ncplane_fg(const struct ncplane* nc){
-  return channels_fg(ncplane_channels(nc));
+ncplane_fg_rgb(const struct ncplane* nc){
+  return channels_fg_rgb(ncplane_channels(nc));
 }
 
 // Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 static inline unsigned
-ncplane_bg(const struct ncplane* nc){
-  return channels_bg(ncplane_channels(nc));
+ncplane_bg_rgb(const struct ncplane* nc){
+  return channels_bg_rgb(ncplane_channels(nc));
 }
 
 // Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
@@ -1453,14 +1453,14 @@ int ncplane_set_bg_alpha(struct ncplane* n, unsigned alpha);
 
 // Extract 24 bits of foreground RGB from 'n', split into subcomponents.
 static inline unsigned
-ncplane_fg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
-  return channels_fg_rgb(ncplane_channels(n), r, g, b);
+ncplane_fg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
+  return channels_fg_rgb8(ncplane_channels(n), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'n', split into subcomponents.
 static inline unsigned
-ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
-  return channels_bg_rgb(ncplane_channels(n), r, g, b);
+ncplane_bg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
+  return channels_bg_rgb8(ncplane_channels(n), r, g, b);
 }
 
 // Set the current fore/background color using RGB specifications. If the
@@ -1469,16 +1469,16 @@ ncplane_bg_rgb(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
 // interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
 // time using "color pairs"; notcurses will manage color pairs transparently.
-int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);
-int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);
+int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);
+int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
 // Same, but clipped to [0..255].
 void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);
 void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
 
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
-int ncplane_set_fg(struct ncplane* n, uint32_t channel);
-int ncplane_set_bg(struct ncplane* n, uint32_t channel);
+int ncplane_set_fg_rgb(struct ncplane* n, uint32_t channel);
+int ncplane_set_bg_rgb(struct ncplane* n, uint32_t channel);
 
 // Use the default color for the foreground/background.
 void ncplane_set_fg_default(struct ncplane* n);
@@ -1773,14 +1773,14 @@ cell_fchannel(const cell* cl){
 
 // Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
 static inline uint32_t
-cell_fg(const cell* cl){
-  return channels_fg(cl->channels);
+cell_fg_rgb(const cell* cl){
+  return channels_fg_rgb(cl->channels);
 }
 
 // Extract 24 bits of background RGB from 'cell', shifted to LSBs.
 static inline uint32_t
-cell_bg(const cell* cl){
-  return channels_bg(cl->channels);
+cell_bg_rgb(const cell* cl){
+  return channels_bg_rgb(cl->channels);
 }
 
 // Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
@@ -1797,21 +1797,21 @@ cell_bg_alpha(const cell* cl){
 
 // Extract 24 bits of foreground RGB from 'cell', split into subcell.
 static inline uint32_t
-cell_fg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return channels_fg_rgb(cl->channels, r, g, b);
+cell_fg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return channels_fg_rgb8(cl->channels, r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'cell', split into subcell.
 static inline uint32_t
-cell_bg_rgb(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return channels_bg_rgb(cl->channels, r, g, b);
+cell_bg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return channels_bg_rgb8(cl->channels, r, g, b);
 }
 
 // Set the r, g, and b cell for the foreground component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
-cell_set_fg_rgb(cell* cl, int r, int g, int b){
-  return channels_set_fg_rgb(&cl->channels, r, g, b);
+cell_set_fg_rgb8(cell* cl, int r, int g, int b){
+  return channels_set_fg_rgb8(&cl->channels, r, g, b);
 }
 
 // Same, but clipped to [0..255].
@@ -1822,15 +1822,15 @@ cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
 
 // Same, but with an assembled 24-bit RGB value.
 static inline int
-cell_set_fg(cell* c, uint32_t channel){
-  return channels_set_fg(&c->channels, channel);
+cell_set_fg_rgb(cell* c, uint32_t channel){
+  return channels_set_fg_rgb(&c->channels, channel);
 }
 
 // Set the r, g, and b cell for the background component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
-cell_set_bg_rgb(cell* cl, int r, int g, int b){
-  return channels_set_bg_rgb(&cl->channels, r, g, b);
+cell_set_bg_rgb8(cell* cl, int r, int g, int b){
+  return channels_set_bg_rgb8(&cl->channels, r, g, b);
 }
 
 // Same, but clipped to [0..255].
@@ -1841,8 +1841,8 @@ cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
 
 // Same, but with an assembled 24-bit RGB value.
 static inline int
-cell_set_bg(cell* c, uint32_t channel){
-  return channels_set_bg(&c->channels, channel);
+cell_set_bg_rgb(cell* c, uint32_t channel){
+  return channels_set_bg_rgb(&c->channels, channel);
 }
 
 static inline int
@@ -2334,7 +2334,7 @@ channel_b(uint32_t channel){
 
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 static inline unsigned
-channel_rgb(uint32_t channel, unsigned* r, unsigned* g, unsigned* b){
+channel_rgb8(uint32_t channel, unsigned* r, unsigned* g, unsigned* b){
   *r = channel_r(channel);
   *g = channel_g(channel);
   *b = channel_b(channel);
@@ -2344,7 +2344,7 @@ channel_rgb(uint32_t channel, unsigned* r, unsigned* g, unsigned* b){
 // Set the three 8-bit components of a 32-bit channel, and mark it as not using
 // the default color. Retain the other bits unchanged.
 static inline int
-channel_set_rgb(unsigned* channel, int r, int g, int b){
+channel_set_rgb8(unsigned* channel, int r, int g, int b){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
@@ -2410,13 +2410,13 @@ channels_fchannel(uint64_t channels){
 
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline unsigned
-channels_fg(uint64_t channels){
+channels_fg_rgb(uint64_t channels){
   return channels_fchannel(channels) & CELL_BG_MASK;
 }
 
 // Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 static inline unsigned
-channels_bg(uint64_t channels){
+channels_bg_rgb(uint64_t channels){
   return channels_bchannel(channels) & CELL_BG_MASK;
 }
 
@@ -2434,22 +2434,22 @@ channels_bg_alpha(uint64_t channels){
 
 // Extract 24 bits of foreground RGB from 'channels', split into subchannels.
 static inline unsigned
-channels_fg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_rgb(channels_fchannel(channels), r, g, b);
+channels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return channel_rgb8(channels_fchannel(channels), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'channels', split into subchannels.
 static inline unsigned
-channels_bg_rgb(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_rgb(channels_bchannel(channels), r, g, b);
+channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return channel_rgb8(channels_bchannel(channels), r, g, b);
 }
 
 // Set the r, g, and b channels for the foreground component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
-channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
+channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
   unsigned channel = channels_fchannel(*channels);
-  if(channel_set_rgb(&channel, r, g, b) < 0){
+  if(channel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
   }
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
@@ -2459,9 +2459,9 @@ channels_set_fg_rgb(uint64_t* channels, int r, int g, int b){
 // Set the r, g, and b channels for the background component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
-channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
+channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
   unsigned channel = channels_bchannel(*channels);
-  if(channel_set_rgb(&channel, r, g, b) < 0){
+  if(channel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
   }
   *channels = (*channels & 0xffffffff00000000llu) | channel;
@@ -2470,7 +2470,7 @@ channels_set_bg_rgb(uint64_t* channels, int r, int g, int b){
 
 // Same, but set an assembled 32 bit channel at once.
 static inline int
-channels_set_fg(uint64_t* channels, unsigned rgb){
+channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
   unsigned channel = channels_fchannel(*channels);
   if(channel_set(&channel, rgb) < 0){
     return -1;
@@ -2480,7 +2480,7 @@ channels_set_fg(uint64_t* channels, unsigned rgb){
 }
 
 static inline int
-channels_set_bg(uint64_t* channels, unsigned rgb){
+channels_set_bg_rgb(uint64_t* channels, unsigned rgb){
   unsigned channel = channels_bchannel(*channels);
   if(channel_set(&channel, rgb) < 0){
     return -1;
@@ -2808,7 +2808,7 @@ ncpixel_set_b(uint32_t* pixel, int b){
 
 // set the RGB values of an RGB pixel
 static inline int
-ncpixel_set_rgb(uint32_t* pixel, int r, int g, int b){
+ncpixel_set_rgb8(uint32_t* pixel, int r, int g, int b){
   if(pixel_set_r(pixel, r) || pixel_set_g(pixel, g) || pixel_set_b(pixel, b)){
     return -1;
   }
