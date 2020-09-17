@@ -102,29 +102,29 @@ notcurses_plane - operations on ncplanes
 
 **static inline unsigned ncplane_fchannel(struct ncplane* nc);**
 
-**static inline unsigned ncplane_fg(struct ncplane* nc);**
+**static inline unsigned ncplane_fg_rgb8(struct ncplane* nc);**
 
-**static inline unsigned ncplane_bg(struct ncplane* nc);**
+**static inline unsigned ncplane_bg_rgb8(struct ncplane* nc);**
 
 **static inline unsigned ncplane_fg_alpha(struct ncplane* nc);**
 
 **static inline unsigned ncplane_bg_alpha(struct ncplane* nc);**
 
-**static inline unsigned ncplane_fg_rgb(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
+**static inline unsigned ncplane_fg_rgb8(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
 
-**static inline unsigned ncplane_bg_rgb(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
+**static inline unsigned ncplane_bg_rgb8(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
 
-**int ncplane_set_fg_rgb(struct ncplane* n, int r, int g, int b);**
+**int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);**
 
-**int ncplane_set_bg_rgb(struct ncplane* n, int r, int g, int b);**
+**int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);**
 
 **void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);**
 
 **void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);**
 
-**int ncplane_set_fg(struct ncplane* n, uint32_t channel);**
+**int ncplane_set_fg_rgb8(struct ncplane* n, uint32_t channel);**
 
-**int ncplane_set_bg(struct ncplane* n, uint32_t channel);**
+**int ncplane_set_bg_rgb8(struct ncplane* n, uint32_t channel);**
 
 **void ncplane_set_fg_default(struct ncplane* n);**
 
