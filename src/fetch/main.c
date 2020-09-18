@@ -320,7 +320,7 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   struct ncplane* infop = ncplane_aligned(std,
                                           planeheight, planewidth,
                                           dimy - planeheight,
-                                          NCALIGN_CENTER, NULL);
+                                          NCALIGN_CENTER, NULL, "info");
   if(infop == NULL){
     return -1;
   }

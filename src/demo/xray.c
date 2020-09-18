@@ -21,7 +21,8 @@ make_slider(struct notcurses* nc, int dimy, int dimx){
   const int len = strlen(leg[0]);
   const int REPS = 600 / len + dimx / len;
   int y = dimy - sizeof(leg) / sizeof(*leg);
-  struct ncplane* n = ncplane_new(nc, sizeof(leg) / sizeof(*leg), len * REPS, y, 0, NULL);
+  struct ncplane* n = ncplane_new(notcurses_stdplane(nc), sizeof(leg) / sizeof(*leg),
+                                  len * REPS, y, 0, NULL, NULL);
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -74,7 +75,7 @@ int xray_demo(struct notcurses* nc){
   }
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  struct ncplane* n = ncplane_new(nc, dimy, dimx, 0, 0, NULL);
+  struct ncplane* n = ncplane_new(notcurses_stdplane(nc), dimy, dimx, 0, 0, NULL, NULL);
   if(n == NULL){
     return -1;
   }

@@ -257,7 +257,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
     return -1;
   }
 //fprintf(stderr, "tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
-  ncplane* fp = ncplane_bound_named(nr->p, leny, lenx, begy, begx, NULL, "tab");
+  ncplane* fp = ncplane_new(nr->p, leny, lenx, begy, begx, NULL, "tab");
   if((t->p = fp) == NULL){
 //fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy, begx);
     return -1;
@@ -276,7 +276,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
     ++cbx;
   }
   if(cbleny - cby + 1 > 0){
-    t->cbp = ncplane_bound_named(t->p, cbleny - cby + 1, cblenx - cbx + 1, cby, cbx, NULL, "tdat");
+    t->cbp = ncplane_new(t->p, cbleny - cby + 1, cblenx - cbx + 1, cby, cbx, NULL, "tdat");
     if(t->cbp == NULL){
 //fprintf(stderr, "failure creating data plane %d %d %d %d\n", cbleny - cby + 1, cblenx - cbx + 1, cby, cbx);
       ncplane_destroy(t->p);

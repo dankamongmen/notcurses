@@ -36,7 +36,7 @@ auto main(int argc, const char** argv) -> int {
   ncreader_options opts{};
   opts.flags = NCREADER_OPTION_CURSOR | (horscroll ? NCREADER_OPTION_HORSCROLL : 0);
   // can't use Plane until we have move constructor for Reader
-  struct ncplane* rp = ncplane_new(nc, dimy / 8, dimx / 2, 2, 2, nullptr);
+  struct ncplane* rp = ncplane_new(**n, dimy / 8, dimx / 2, 2, 2, nullptr, "read");
   ncplane_set_base(rp, "░", 0, 0);
   auto nr = ncreader_create(rp, &opts);
   if(nr == nullptr){

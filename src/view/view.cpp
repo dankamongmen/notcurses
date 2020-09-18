@@ -73,7 +73,8 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     if(!subtitle_plane){
       int dimx, dimy;
       ncplane_dim_yx(vopts->n, &dimy, &dimx);
-      subtitle_plane = ncplane_new(nc, 1, dimx, dimy - 1, 0, nullptr);
+      subtitle_plane = ncplane_new(notcurses_stdplane(nc), 1, dimx,
+                                   dimy - 1, 0, nullptr, "subt");
       uint64_t channels = 0;
       channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);

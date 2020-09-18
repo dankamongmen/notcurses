@@ -50,7 +50,7 @@ TEST_CASE("Rotate") {
   channels_set_bg_rgb(&lr, 0xf040f0);
 
   SUBCASE("RotateTransparentCW") {
-    struct ncplane* testn = ncplane_new(nc_, 8, 16, dimy / 2, dimx / 2, nullptr);
+    struct ncplane* testn = ncplane_new(n_, 8, 16, dimy / 2, dimx / 2, nullptr, nullptr);
     uint64_t channels = 0;
     CHECK(0 == channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
     CHECK(0 == channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
@@ -74,7 +74,7 @@ TEST_CASE("Rotate") {
 
   SUBCASE("RotateGradientCW") {
     // should be a square, and should remain a square through rotations
-    struct ncplane* testn = ncplane_new(nc_, 8, 16, dimy / 2, dimx / 2, nullptr);
+    struct ncplane* testn = ncplane_new(n_, 8, 16, dimy / 2, dimx / 2, nullptr, nullptr);
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
     RotateCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
@@ -82,7 +82,7 @@ TEST_CASE("Rotate") {
 
   SUBCASE("RotateRectangleCW") {
     // should be a square, and should remain a square through rotations
-    struct ncplane* testn = ncplane_new(nc_, 8, 32, dimy / 2, dimx / 2, nullptr);
+    struct ncplane* testn = ncplane_new(n_, 8, 32, dimy / 2, dimx / 2, nullptr, nullptr);
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
     RotateCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
@@ -90,7 +90,7 @@ TEST_CASE("Rotate") {
 
   SUBCASE("RotateGradientCCW") {
     // should be a square, and should remain a square through rotations
-    struct ncplane* testn = ncplane_new(nc_, 8, 16, dimy / 2, dimx / 2, nullptr);
+    struct ncplane* testn = ncplane_new(n_, 8, 16, dimy / 2, dimx / 2, nullptr, nullptr);
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
     RotateCCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
@@ -98,7 +98,7 @@ TEST_CASE("Rotate") {
 
   SUBCASE("RotateRectangleCCW") {
     // should be a square, and should remain a square through rotations
-    struct ncplane* testn = ncplane_new(nc_, 8, 32, 0, 0, nullptr);
+    struct ncplane* testn = ncplane_new(n_, 8, 32, 0, 0, nullptr, nullptr);
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
     RotateCCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));

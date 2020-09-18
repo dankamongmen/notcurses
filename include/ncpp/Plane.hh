@@ -55,12 +55,13 @@ namespace ncpp
 			: Root (ncinst)
 		{
 			plane = ncplane_new (
-				get_notcurses (),
+				notcurses_stdplane(get_notcurses ()),
 				rows,
 				cols,
 				yoff,
 				xoff,
-				opaque
+				opaque,
+        nullptr
 			);
 
 			if (plane == nullptr)
@@ -1090,13 +1091,14 @@ namespace ncpp
 	private:
 		ncplane* create_plane (const Plane &n, int rows, int cols, int yoff, int xoff, void *opaque)
 		{
-			ncplane *ret = ncplane_bound (
+			ncplane *ret = ncplane_new (
 				n.plane,
 				rows,
 				cols,
 				yoff,
 				xoff,
-				opaque
+				opaque,
+        nullptr
 			);
 
 			if (ret == nullptr)
@@ -1115,7 +1117,8 @@ namespace ncpp
 				cols,
 				yoff,
 				static_cast<ncalign_e>(align),
-				opaque
+				opaque,
+        nullptr
 			);
 
 			if (ret == nullptr)

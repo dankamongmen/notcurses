@@ -30,7 +30,7 @@ legend(struct notcurses* nc, const char* msg){
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), 3,
                                       strlen(msg) + 4, 3,
-                                      NCALIGN_CENTER, NULL);
+                                      NCALIGN_CENTER, NULL, NULL);
   if(n == NULL){
     return NULL;
   }
@@ -93,7 +93,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
 
 // run panels atop the display in an exploration of transparency
 static int
-slidepanel(struct notcurses* nc){
+slidepanel(struct notcurses* nc, struct ncplane* stdn){
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int ny = dimy / 4;
@@ -103,7 +103,7 @@ slidepanel(struct notcurses* nc){
   struct ncplane* l;
 
   // First we just create a plane with no styling and no glyphs.
-  struct ncplane* n = ncplane_new(nc, ny, nx, yoff, xoff, NULL);
+  struct ncplane* n = ncplane_new(stdn, ny, nx, yoff, xoff, NULL, NULL);
 
   // Zero-initialized channels use the default color, opaquely. Since we have
   // no glyph, we should show underlying glyphs in the default colors. The
@@ -274,5 +274,5 @@ int trans_demo(struct notcurses* nc){
     }
     ncplane_destroy(l);
   }
-  return slidepanel(nc);
+  return slidepanel(nc, n);
 }

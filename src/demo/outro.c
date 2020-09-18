@@ -81,7 +81,7 @@ videothread(void* vnc){
   }
   ncfadectx_free(samoactx);
   ncplane_destroy(vopts.n);
-  struct ncplane* apiap = ncplane_new(nc, 1, cols, rows - 1, 0, NULL);
+  struct ncplane* apiap = ncplane_new(ncp, 1, cols, 1, 0, NULL, NULL);
   if(apiap == NULL){
     ncfadectx_free(samoactx);
     ncplane_destroy(vopts.n);
@@ -113,7 +113,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   int ystart = *rows - 6;
   struct ncplane* non = ncplane_aligned(notcurses_stdplane(nc), 5,
                                         strlen(str1) + 4, ystart,
-                                        NCALIGN_CENTER, NULL);
+                                        NCALIGN_CENTER, NULL, NULL);
   if(non == NULL){
     return NULL;
   }

@@ -413,8 +413,8 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
       }
     }
 //fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
-    n = ncplane_new(nc, disprows / encoding_y_scale(bset),
-                    dispcols / encoding_x_scale(bset), placey, placex, nullptr);
+    n = ncplane_new(notcurses_stdplane(nc), disprows / encoding_y_scale(bset),
+                    dispcols / encoding_x_scale(bset), placey, placex, nullptr, "vis");
     if(n == nullptr){
       return nullptr;
     }

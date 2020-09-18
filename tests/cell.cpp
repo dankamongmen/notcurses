@@ -145,7 +145,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
-    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    auto np = ncplane_new(n_, 1, 1, 0, 0, nullptr, nullptr);
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     cell_load_char(np, &c, '*');
@@ -174,7 +174,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
-    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    auto np = ncplane_new(n_, 1, 1, 0, 0, nullptr, nullptr);
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     cell_load_char(np, &c, '*');
@@ -203,7 +203,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
-    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    auto np = ncplane_new(n_, 1, 1, 0, 0, nullptr, nullptr);
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     cell_load_char(np, &c, '*');
@@ -232,7 +232,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
-    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    auto np = ncplane_new(n_, 1, 1, 0, 0, nullptr, nullptr);
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     cell_load_char(np, &c, '*');
@@ -262,7 +262,7 @@ TEST_CASE("Cell") {
     // top has a background of white
     CHECK(0 == cell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT));
-    auto np = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    auto np = ncplane_new(n_, 1, 1, 0, 0, nullptr, nullptr);
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     cell_load_char(n_, &c, '*');

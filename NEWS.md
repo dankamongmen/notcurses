@@ -29,7 +29,13 @@ rearrangements of Notcurses.
   * Functions ending in `_stainable()` now end in `_stained()`.
   * `ncplane_putwc_stained()` and `ncplane_putwstr_stained()` have been
     added in the interest of orthogonality.
-
+  * `ncplane_new_named()` has been eliminated. `ncplane_new()` now takes a
+    `const char* name` argument. `ncplane_bound()` and `ncplane_bound_named()`
+    have both been eliminated. `ncplane_new()` now accepts an `ncplane*`
+    instead of a `notcurses*`. All functionality exposed by the removed
+    functions is thus now present in `ncplane_new()`.
+  * `ncplane_aligned_named()` has been removed. `ncplane_aligned()` now accepts
+    a `const char* name` argument.
 
 * 1.7.2 (2020-09-09)
   * Exported `ncvisual_default_blitter()`, so that the effective value of

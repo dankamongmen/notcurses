@@ -77,7 +77,7 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int y){
   uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x40, 0, 0, 0x40, 0);
   channels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
-  struct ncplane* mseln = ncplane_new(ncplane_notcurses(n), 1, 1, y, 0, NULL);
+  struct ncplane* mseln = ncplane_new(n, 1, 1, y, 0, NULL, NULL);
   if(mseln == NULL){
     return NULL;
   }
@@ -107,7 +107,7 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
   uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0, 0x40, 0, 0, 0x40);
   channels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
-  struct ncplane* seln = ncplane_new(ncplane_notcurses(n), 1, 1, y, dimx, NULL);
+  struct ncplane* seln = ncplane_new(n, 1, 1, y, dimx, NULL, NULL);
   if(seln == NULL){
     return NULL;
   }
@@ -378,7 +378,7 @@ reader_demo(struct notcurses* nc){
   const int x = ncplane_align(std, NCALIGN_CENTER, READER_COLS);
   struct ncselector* selector = NULL;
   struct ncmultiselector* mselector = NULL;
-  struct ncplane* rp = ncplane_new(nc, READER_ROWS, READER_COLS, dimy, x, NULL);
+  struct ncplane* rp = ncplane_new(std, READER_ROWS, READER_COLS, dimy, x, NULL, NULL);
   ncplane_set_base(rp, " ", 0, echannels);
   struct ncreader* reader = ncreader_create(rp, &nopts);
   if(reader == NULL){

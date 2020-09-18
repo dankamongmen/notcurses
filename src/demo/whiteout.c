@@ -13,11 +13,12 @@
 
 static struct ncplane*
 mathplane(struct notcurses* nc){
+  struct ncplane* stdn = notcurses_stdplane(nc);
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   const int HEIGHT = 9;
   const int WIDTH = dimx;
-  struct ncplane* n = ncplane_new(nc, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH, NULL);
+  struct ncplane* n = ncplane_new(stdn, HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH, NULL, NULL);
   uint64_t channels = 0;
   channels_set_fg_rgb(&channels, 0x2b50c8); // metallic gold, inverted
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
@@ -529,7 +530,7 @@ int witherworm_demo(struct notcurses* nc){
       if(math == NULL){
         return -1;
       }
-      struct ncplane* mess = ncplane_new(nc, 7, 57, 2, 4, NULL);
+      struct ncplane* mess = ncplane_new(n, 7, 57, 2, 4, NULL, NULL);
       if(mess == NULL){
         ncplane_destroy(math);
         return -1;

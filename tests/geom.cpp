@@ -6,8 +6,8 @@ TEST_CASE("Geometry") {
   if(!nc_){
     return;
   }
-  ncplane* ncp_ = notcurses_stdplane(nc_);
-  REQUIRE(ncp_);
+  ncplane* n_ = notcurses_stdplane(nc_);
+  REQUIRE(n_);
 
   SUBCASE("Center") {
     const struct test {
@@ -24,7 +24,7 @@ TEST_CASE("Geometry") {
       { 0, 0, 0, 0, }
     }, *t;
     for(t = tests ; !t->leny ; ++t){
-      auto n = ncplane_new(nc_, t->leny, t->lenx, 0, 0, nullptr);
+      auto n = ncplane_new(n_, t->leny, t->lenx, 0, 0, nullptr, nullptr);
       REQUIRE(n);
       cell tl = CELL_TRIVIAL_INITIALIZER; cell tr = CELL_TRIVIAL_INITIALIZER;
       cell bl = CELL_TRIVIAL_INITIALIZER; cell br = CELL_TRIVIAL_INITIALIZER;
@@ -60,7 +60,7 @@ TEST_CASE("Geometry") {
       { 0, 0, 10, 20, 0, 0, }
     }, *t;
     for(t = tests ; !t->leny ; ++t){
-      auto n = ncplane_new(nc_, t->leny, t->lenx, t->absy, t->absx, nullptr);
+      auto n = ncplane_new(n_, t->leny, t->lenx, t->absy, t->absx, nullptr, nullptr);
       REQUIRE(n);
       cell tl = CELL_TRIVIAL_INITIALIZER; cell tr = CELL_TRIVIAL_INITIALIZER;
       cell bl = CELL_TRIVIAL_INITIALIZER; cell br = CELL_TRIVIAL_INITIALIZER;
