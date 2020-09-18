@@ -6,7 +6,7 @@
 
 static int
 run_menu(struct notcurses* nc, struct ncmenu* ncm){
-  struct ncplane* selplane = ncplane_aligned(notcurses_stdplane(nc), 3, 40, 10, NCALIGN_CENTER, NULL);
+  struct ncplane* selplane = ncplane_aligned(notcurses_stdplane(nc), 3, 40, 10, NCALIGN_CENTER, NULL, NULL);
   if(selplane == NULL){
     return -1;
   }

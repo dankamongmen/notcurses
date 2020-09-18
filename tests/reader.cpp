@@ -14,7 +14,7 @@ TEST_CASE("Readers") {
 
   SUBCASE("ReaderRender") {
     ncreader_options opts{};
-    auto ncp = ncplane_new(nc_, dimy / 2, dimx / 2, 0, 0, nullptr);
+    auto ncp = ncplane_new(notcurses_stdplane(nc_), dimy / 2, dimx / 2, 0, 0, nullptr, nullptr);
     uint64_t echannels = CHANNELS_RGB_INITIALIZER(0xff, 0x44, 0xff, 0, 0, 0);
     ncplane_set_base(ncp, enforce_utf8() ? strdup("▒") : strdup("x"), 0, echannels);
     auto nr = ncreader_create(ncp, &opts);

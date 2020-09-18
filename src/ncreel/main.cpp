@@ -200,7 +200,7 @@ int main(int argc, char** argv){
   if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){
     return -1;
   }
-  n = ncplane_new(nc, dimy - 1, dimx, 1, 0, nullptr);
+  n = ncplane_new(nstd, dimy - 1, dimx, 1, 0, nullptr, "reel");
   if(!n){
     return -1;
   }

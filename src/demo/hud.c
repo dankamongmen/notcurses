@@ -73,7 +73,7 @@ about_toggle(struct notcurses* nc){
   int dimy;
   notcurses_term_dim_yx(nc, &dimy, NULL);
   struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), ABOUT_ROWS,
-                                      ABOUT_COLS, 3, NCALIGN_CENTER, NULL);
+                                      ABOUT_COLS, 3, NCALIGN_CENTER, NULL, NULL);
   // let the glyphs below show through, but only dimly
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
@@ -324,8 +324,8 @@ struct ncplane* hud_create(struct notcurses* nc){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int yoffset = dimy - HUD_ROWS;
-  struct ncplane* n = ncplane_new_named(nc, HUD_ROWS, HUD_COLS,
-                                        yoffset, 7, NULL, "hud");
+  struct ncplane* n = ncplane_new(notcurses_stdplane(nc), HUD_ROWS, HUD_COLS,
+                                  yoffset, 7, NULL, "hud");
   if(n == NULL){
     return NULL;
   }
@@ -531,9 +531,9 @@ int demo_render(struct notcurses* nc){
 int fpsgraph_init(struct notcurses* nc){
   const int PLOTHEIGHT = 6;
   int dimy, dimx;
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
-  struct ncplane* newp = ncplane_new_named(nc, PLOTHEIGHT, dimx,
-                                           dimy - PLOTHEIGHT, 0, NULL, "fps");
+  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
+  struct ncplane* newp = ncplane_new(stdn, PLOTHEIGHT, dimx,
+                                     dimy - PLOTHEIGHT, 0, NULL, "fps");
   uint32_t style = 0;
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);

@@ -195,7 +195,7 @@ ncreel_demo_core(struct notcurses* nc){
   int x = 8, y = 4;
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
-  struct ncplane* w = ncplane_new(nc, dimy - 12, dimx - 16, y, x, NULL);
+  struct ncplane* w = ncplane_new(std, dimy - 12, dimx - 16, y, x, NULL, NULL);
   if(w == NULL){
     return -1;
   }

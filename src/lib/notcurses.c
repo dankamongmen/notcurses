@@ -372,34 +372,14 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
   return nc->stdplane;
 }
 
-ncplane* ncplane_new(notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque){
-  return ncplane_create(nc, nc->stdplane, rows, cols, yoff, xoff, opaque, NULL);
+ncplane* ncplane_new(ncplane* n, int rows, int cols, int y, int x,
+                     void* opaque, const char* name){
+  return ncplane_create(n->nc, n, rows, cols, y, x, opaque, name);
 }
 
-ncplane* ncplane_new_named(notcurses* nc, int rows, int cols, int yoff,
-                           int xoff, void* opaque, const char* name){
-  return ncplane_create(nc, nc->stdplane, rows, cols, yoff, xoff, opaque, name);
-}
-
-ncplane* ncplane_bound(ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque){
-  return ncplane_create(n->nc, n, rows, cols, yoff, xoff, opaque, NULL);
-}
-
-ncplane* ncplane_bound_named(ncplane* n, int rows, int cols, int yoff, int xoff,
-                             void* opaque, const char* name){
-  return ncplane_create(n->nc, n, rows, cols, yoff, xoff, opaque, name);
-}
-
-ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int yoff,
-                         ncalign_e align, void* opaque){
-  return ncplane_create(n->nc, n, rows, cols, yoff,
-                        ncplane_align(n, align, cols), opaque, NULL);
-}
-
-ncplane* ncplane_aligned_named(ncplane* n, int rows, int cols, int yoff,
-                               ncalign_e align, void* opaque, const char* name){
-  return ncplane_create(n->nc, n, rows, cols, yoff,
-                        ncplane_align(n, align, cols), opaque, name);
+ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int y,
+                         ncalign_e align, void* opaque, const char* name){
+  return ncplane_create(n->nc, n, rows, cols, y, ncplane_align(n, align, cols), opaque, name);
 }
 
 void ncplane_home(ncplane* n){

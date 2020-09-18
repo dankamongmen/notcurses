@@ -25,6 +25,7 @@ const char eagle1[] =
 
 static struct ncplane*
 zoom_map(struct notcurses* nc, const char* map, int* ret){
+  struct ncplane* n = notcurses_stdplane(nc);
   *ret = -1;
   // determine size that will be represented on screen at once, and how
   // large that section has been rendered in the outzoomed map. take the map
@@ -80,7 +81,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   while(vheight > truey || vwidth > truex){
     *ret = -1;
     ncplane_destroy(zncp);
-    if((zncp = ncplane_new(nc, truey, truex, 0, 0, NULL)) == NULL){
+    if((zncp = ncplane_new(n, truey, truex, 0, 0, NULL, NULL)) == NULL){
       ncvisual_destroy(ncv);
       return NULL;
     }
@@ -146,7 +147,7 @@ draw_eagle(struct ncplane* n, const char* sprite){
 }
 
 static int
-eagles(struct notcurses* nc){
+eagles(struct notcurses* nc, struct ncplane* n){
   int ret = 0;
   int truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
@@ -161,7 +162,7 @@ eagles(struct notcurses* nc){
   for(size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i){
     e[i].xoff = 0;
     e[i].yoff = random() % ((truey - height) / 2);
-    e[i].n = ncplane_new(nc, height, width, e[i].yoff, e[i].xoff, NULL);
+    e[i].n = ncplane_new(n, height, width, e[i].yoff, e[i].xoff, NULL, NULL);
     if(e[i].n == NULL){
       return -1;
     }
@@ -210,7 +211,8 @@ int eagle_demo(struct notcurses* nc){
     }
     free(map);
   }
-  err = eagles(nc);
+  struct ncplane* n = notcurses_stdplane(nc);
+  err = eagles(nc, n);
   ncplane_destroy(zncp);
   return err;
 }

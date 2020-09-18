@@ -188,7 +188,7 @@ int unicodeblocks_demo(struct notcurses* nc){
   ns_to_timespec(nstotal / 5, &subdelay);
   struct ncplane* header = ncplane_aligned(notcurses_stdplane(nc), 2,
                                            (CHUNKSIZE * 2) - 2, 2,
-                                           NCALIGN_CENTER, NULL);
+                                           NCALIGN_CENTER, NULL, NULL);
   if(header == NULL){
     return -1;
   }
@@ -210,7 +210,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     }
     struct ncplane* nn;
     if((nn = ncplane_aligned(notcurses_stdplane(nc), BLOCKSIZE / CHUNKSIZE + 2,
-                             (CHUNKSIZE * 2) + 2, 4, NCALIGN_CENTER, NULL)) == NULL){
+                             (CHUNKSIZE * 2) + 2, 4, NCALIGN_CENTER, NULL, NULL)) == NULL){
       return -1;
     }
     if(draw_block(nn, blockstart)){

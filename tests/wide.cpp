@@ -224,7 +224,7 @@ TEST_CASE("Wide") {
   }
 
   SUBCASE("BoxedWideGlyph") {
-    struct ncplane* ncp = ncplane_new(nc_, 3, 4, 0, 0, nullptr);
+    struct ncplane* ncp = ncplane_new(n_, 3, 4, 0, 0, nullptr, nullptr);
     REQUIRE(ncp);
     int dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
@@ -338,7 +338,7 @@ TEST_CASE("Wide") {
     free(egc);
     cell_init(&c);
 
-    struct ncplane* n = ncplane_new(nc_, 1, 2, 0, 1, nullptr);
+    struct ncplane* n = ncplane_new(n_, 1, 2, 0, 1, nullptr, nullptr);
     REQUIRE(n);
     CHECK(0 < ncplane_putstr(n, "AB"));
     CHECK(!notcurses_render(nc_));
@@ -375,7 +375,7 @@ TEST_CASE("Wide") {
   // Render a translucent plane atop a wide glyph, and check the colors on both
   // cells. See https://github.com/dankamongmen/notcurses/issues/362.
   SUBCASE("OverWide") {
-    struct ncplane* p = ncplane_new(nc_, 3, 4, 0, 0, nullptr);
+    struct ncplane* p = ncplane_new(n_, 3, 4, 0, 0, nullptr, nullptr);
     REQUIRE(nullptr != p);
     cell c = CELL_CHAR_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(p, &c, &c, &c, &c, &c, &c, 0));
@@ -414,7 +414,7 @@ TEST_CASE("Wide") {
     notcurses_cursor_disable(nc_);
     CHECK(0 == ncplane_set_fg_rgb8(n_, 0xff, 0, 0xff));
     // start the 1x4 top plane at 0, 4
-    struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
+    struct ncplane* topp = ncplane_new(n_, 1, 4, 0, 4, nullptr, nullptr);
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
     CHECK(4 == ncplane_putstr(topp, "abcd"));
@@ -588,7 +588,7 @@ TEST_CASE("Wide") {
   SUBCASE("WidePlaneAtopWide") {
     CHECK(0 == ncplane_set_fg_rgb8(n_, 0xff, 0, 0xff));
     // start the 1x4 top plane at 0, 4
-    struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
+    struct ncplane* topp = ncplane_new(n_, 1, 4, 0, 4, nullptr, nullptr);
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
     CHECK(6 == ncplane_putstr(topp, "次次"));
@@ -733,7 +733,7 @@ TEST_CASE("Wide") {
   SUBCASE("WidePlaneAtopNarrow") {
     CHECK(0 == ncplane_set_fg_rgb8(n_, 0xff, 0, 0xff));
     // start the 1x4 top plane at 0, 4
-    struct ncplane* topp = ncplane_new(nc_, 1, 4, 0, 4, nullptr);
+    struct ncplane* topp = ncplane_new(n_, 1, 4, 0, 4, nullptr, nullptr);
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
     CHECK(6 == ncplane_putstr(topp, "次次"));
@@ -917,7 +917,7 @@ TEST_CASE("Wide") {
 
   // a higher glyph ought not be annihilated by a lower wide glyph
   SUBCASE("HigherGlyphAbides") {
-    auto high = ncplane_new(nc_, 1, 1, 0, 0, nullptr);
+    auto high = ncplane_new(n_, 1, 1, 0, 0, nullptr, nullptr);
     REQUIRE(nullptr != high);
     CHECK(0 < ncplane_putchar_yx(high, 0, 0, 'a'));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, "全", nullptr));

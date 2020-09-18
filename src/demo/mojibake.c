@@ -3391,7 +3391,7 @@ const char subdivision_flag[] =
 
 static struct ncplane*
 mojiplane(struct ncplane* title, int y, int rows, const char* summary){
-  struct ncplane* n = ncplane_aligned(title, rows, planewidth, y, NCALIGN_CENTER, NULL);
+  struct ncplane* n = ncplane_aligned(title, rows, planewidth, y, NCALIGN_CENTER, NULL, NULL);
   uint64_t channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xa0, 0xf0, 0x10, 0x10, 0x60);
   if(ncplane_perimeter_rounded(n, 0, channels, NCBOXMASK_RIGHT) < 0){
     ncplane_destroy(n);
@@ -3545,7 +3545,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
 
 struct ncplane*
 maketitle(struct ncplane* std){
-  struct ncplane* title = ncplane_aligned(std, 3, 74, 2, NCALIGN_CENTER, NULL);
+  struct ncplane* title = ncplane_aligned(std, 3, 74, 2, NCALIGN_CENTER, NULL, NULL);
   if(title == NULL){
     return NULL;
   }

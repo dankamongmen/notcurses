@@ -610,42 +610,22 @@ but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
 
 In addition to `ncplane_new()`, an `ncplane` can be created aligned relative
-to an existing `ncplane` (including the standard plane) using `ncplane_aligned()`.
-When an `ncplane` is no longer needed, free it with `ncplane_destroy()`. To
-quickly reset the `ncplane`, use `ncplane_erase()`.
+to an existing `ncplane` (including the standard plane) using
+`ncplane_aligned()`. When an `ncplane` is no longer needed, free it with
+`ncplane_destroy()`. To quickly reset the `ncplane`, use `ncplane_erase()`.
 
 ```c
-// Create a new ncplane at the specified offset (relative to the standard plane)
-// and the specified size. The number of rows and columns must both be positive.
-// This plane is initially at the top of the z-buffer, as if ncplane_move_top()
-// had been called on it. The void* 'opaque' can be retrieved (and reset) later.
-struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols,
-                            int yoff, int xoff, void* opaque);
-
-// Create a named plane ala ncplane_new(). Names are only used for debugging.
-struct ncplane* ncplane_new_named(struct notcurses* nc, int rows, int cols,
-                                  int yoff, int xoff, void* opaque,
-                                  const char* name);
-
-// Create a plane bound to plane 'n'. Being bound to 'n' means that 'yoff' and
-// 'xoff' are interpreted relative to that plane's origin, and that if that
-// plane is moved later, this new plane is moved by the same amount.
-struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols,
-                              int yoff, int xoff, void* opaque);
-
-// Create a named plane ala ncplane_bound(). Names are used only for debugging.
-struct ncplane* ncplane_bound_named(struct ncplane* n, int rows, int cols,
-                                    int yoff, int xoff, void* opaque,
-                                    const char* name);
+// Create a new ncplane bound to plane 'n', at the offset 'y'x'x' (relative to
+// the origin of 'n') and the specified size. The number of rows and columns
+// must both be positive. This plane is initially at the top of the z-buffer,
+// as if ncplane_move_top() had been called on it. The void* 'opaque' can be
+// retrieved (and reset) later. A name can be set, used in debugging.
+struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols,
+                            int y, int x, void* opaque, const char* name);
 
 // Create a plane bound to 'n', and aligned relative to it using 'align'.
 struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
-                                int yoff, ncalign_e align, void* opaque);
-
-// Create a named plane ala ncplane_aligned(). Names are used only for debugging.
-struct ncplane* ncplane_aligned_named(struct ncplane* n, int rows, int cols,
-                                      int yoff, ncalign_e align,
-                                      void* opaque, const char* name);
+                int y, ncalign_e align, void* opaque, const char* name);
 
 // Plane 'n' will be unbound from its parent plane, if it is currently bound,
 // and will be made a bound child of 'newparent', if 'newparent' is not NULL.

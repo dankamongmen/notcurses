@@ -312,7 +312,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
         totalwidth = dimx;
       }
       int ypos = ret->bottom ? dimy - totalheight : 0;
-      ret->ncp = ncplane_new_named(n->nc, totalheight, totalwidth, ypos, 0, NULL, "menu");
+      ret->ncp = ncplane_new(n, totalheight, totalwidth, ypos, 0, NULL, "menu");
       if(ret->ncp){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;

@@ -73,12 +73,8 @@ typedef enum {
   NCALIGN_CENTER,
   NCALIGN_RIGHT,
 } ncalign_e;
-struct ncplane* ncplane_new(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque);
-struct ncplane* ncplane_new_named(struct notcurses* nc, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);
-struct ncplane* ncplane_bound(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque);
-struct ncplane* ncplane_bound_named(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);
-struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque);
-struct ncplane* ncplane_aligned_named(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque, const char* name);
+struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);
+struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque, const char* name);
 unsigned notcurses_supported_styles(const struct notcurses* nc);
 unsigned notcurses_palette_size(const struct notcurses* nc);
 bool notcurses_cantruecolor(const struct notcurses* nc);

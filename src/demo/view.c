@@ -23,8 +23,8 @@ view_video_demo(struct notcurses* nc){
 }
 
 static struct ncplane*
-legend(struct notcurses* nc, int dimy, int dimx){
-  struct ncplane* n = ncplane_new(nc, 4, 25, dimy / 8 - 1, (dimx - 25) / 2, NULL);
+legend(struct ncplane* stdn, int dimy, int dimx){
+  struct ncplane* n = ncplane_new(stdn, 4, 25, dimy / 8 - 1, (dimx - 25) / 2, NULL, NULL);
   ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
   uint64_t channels = 0;
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -63,7 +63,7 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   ncplane_erase(nstd);
   // standard plane gets PurpleDrank (which will cover the plane), but first
   // serves as a blocker behind dsplane, which gets the DSSCAW logo.
-  struct ncplane* dsplane = ncplane_new(nc, dimy, dimx, 0, 0, NULL);
+  struct ncplane* dsplane = ncplane_new(nstd, dimy, dimx, 0, 0, NULL, NULL);
   if(dsplane == NULL){
     return -1;
   }
@@ -129,7 +129,7 @@ int view_demo(struct notcurses* nc){
   if(ret){
     return ret;
   }
-  struct ncplane* ncpl = legend(nc, dimy, dimx);
+  struct ncplane* ncpl = legend(nstd, dimy, dimx);
   if(ncpl == NULL){
     return -1;
   }

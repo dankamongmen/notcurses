@@ -477,7 +477,7 @@ rotate_merge(ncplane* n, ncplane* newp){
 
 // generate a temporary plane that can hold the contents of n, rotated 90°
 static ncplane*
-rotate_plane(const ncplane* n){
+rotate_plane(ncplane* n){
   int absy, absx;
   ncplane_yx(n, &absy, &absx);
   int dimy, dimx;
@@ -487,7 +487,7 @@ rotate_plane(const ncplane* n){
   }
   const int newy = dimx / 2;
   const int newx = dimy * 2;
-  ncplane* newp = ncplane_new(n->nc, newy, newx, absy, absx, n->userptr);
+  ncplane* newp = ncplane_new(n, newy, newx, absy, absx, n->userptr, "copy");
   return newp;
 }
 

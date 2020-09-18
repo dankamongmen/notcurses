@@ -16,8 +16,8 @@ ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
   nr->ncp = n;
   // do *not* bind it to the visible plane; we always want it offscreen,
   // to the upper left of the true origin
-  if((nr->textarea = ncplane_new(n->nc, ncplane_dim_y(n), ncplane_dim_x(n),
-                                 -ncplane_dim_y(n), -ncplane_dim_x(n), NULL)) == NULL){
+  if((nr->textarea = ncplane_new(n, ncplane_dim_y(n), ncplane_dim_x(n),
+                      -ncplane_dim_y(n), -ncplane_dim_x(n), NULL, "text")) == NULL){
     ncplane_destroy(nr->ncp);
     free(nr);
     return NULL;
