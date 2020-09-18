@@ -16,12 +16,14 @@ ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
   nr->ncp = n;
   // do *not* bind it to the visible plane; we always want it offscreen,
   // to the upper left of the true origin
-  if((nr->textarea = ncplane_new(n, ncplane_dim_y(n), ncplane_dim_x(n),
-                      -ncplane_dim_y(n), -ncplane_dim_x(n), NULL, "text")) == NULL){
+  if((nr->textarea = ncplane_new(notcurses_stdplane(ncplane_notcurses(n)),
+                                 ncplane_dim_y(n), ncplane_dim_x(n),
+                                 -ncplane_dim_y(n), -ncplane_dim_x(n), NULL, "text")) == NULL){
     ncplane_destroy(nr->ncp);
     free(nr);
     return NULL;
   }
+
   nr->horscroll = opts->flags & NCREADER_OPTION_HORSCROLL;
   nr->xproject = 0;
   nr->tchannels = opts->tchannels;

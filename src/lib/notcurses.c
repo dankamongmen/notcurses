@@ -325,7 +325,7 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
     }
     p->bprev = &n->blist;
     *p->bprev = p;
-  }else{
+  }else{ // new standard plane
     p->absx = xoff + (nc ? nc->margin_l : 0);
     p->absy = yoff + (nc ? nc->margin_t : 0);
     p->bnext = NULL;
