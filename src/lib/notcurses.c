@@ -2318,6 +2318,23 @@ int ncplane_putstr_stainable(struct ncplane* n, const char* gclusters){
   return ret;
 }
 
+int ncplane_putwstr_stainable(ncplane* n, const wchar_t* gclustarr){
+  // maximum of six UTF8-encoded bytes per wchar_t
+  const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
+  char* mbstr = malloc(mbytes); // need cast for c++ callers
+  if(mbstr == NULL){
+    return -1;
+  }
+  size_t s = wcstombs(mbstr, gclustarr, mbytes);
+  if(s == (size_t)-1){
+    free(mbstr);
+    return -1;
+  }
+  int r = ncplane_putstr_stainable(n, mbstr);
+  free(mbstr);
+  return r;
+}
+
 int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
   char* chopped = strndup(str, s);
   int ret = ncplane_putstr_aligned(n, y, align, chopped);

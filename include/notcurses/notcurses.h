@@ -1458,6 +1458,8 @@ ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
   return ncplane_putwstr_yx(n, y, xpos, gclustarr);
 }
 
+API int ncplane_putwstr_stainable(struct ncplane* n, const wchar_t* gclustarr);
+
 static inline int
 ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
   return ncplane_putwstr_yx(n, -1, -1, gclustarr);
@@ -1472,10 +1474,18 @@ ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
   return ncplane_putwstr_yx(n, y, x, warr);
 }
 
-// Call ncplane_putwc() at the current cursor position.
+// Write 'w' at the current cursor position, using the plane's current styling.
 static inline int
 ncplane_putwc(struct ncplane* n, wchar_t w){
   return ncplane_putwc_yx(n, -1, -1, w);
+}
+
+// Write 'w' at the current cursor position, using any preexisting styling
+// at that cell.
+static inline int
+ncplane_putwc_stainable(struct ncplane* n, wchar_t w){
+  wchar_t warr[2] = { w, L'\0' };
+  return ncplane_putwstr_stainable(n, warr);
 }
 
 // The ncplane equivalents of printf(3) and vprintf(3).

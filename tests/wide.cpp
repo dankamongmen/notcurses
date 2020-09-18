@@ -953,6 +953,40 @@ TEST_CASE("Wide") {
     CHECK(0 == notcurses_render(nc_));
   }
 
+  SUBCASE("Putwc") {
+    wchar_t w = L'\u2658';
+    CHECK(0 == ncplane_set_fg(n_, 0xff00ff));
+    CHECK(0 < ncplane_putwc(n_, w));
+    CHECK(0 == ncplane_set_fg(n_, 0x00ff00));
+    CHECK(0 == notcurses_render(nc_));
+    uint16_t stylemask;
+    uint64_t channels;
+    char* egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels);
+    REQUIRE(egc);
+    CHECK(0 == stylemask);
+    CHECK(0xff00ff == channels_fg(channels));
+    CHECK(0 == strcmp("\u2658", egc));
+    free(egc);
+  }
+
+  SUBCASE("PutwcStainable") {
+    wchar_t w = L'\u2658';
+    CHECK(0 == ncplane_set_fg(n_, 0xff00ff));
+    CHECK(0 < ncplane_putwc(n_, w));
+    CHECK(0 == ncplane_set_fg(n_, 0x00ff00));
+    ncplane_home(n_);
+    CHECK(0 < ncplane_putwc_stainable(n_, w));
+    CHECK(0 == notcurses_render(nc_));
+    uint16_t stylemask;
+    uint64_t channels;
+    char* egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels);
+    REQUIRE(egc);
+    CHECK(0 == stylemask);
+    CHECK(0xff00ff == channels_fg(channels));
+    CHECK(0 == strcmp("\u2658", egc));
+    free(egc);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
