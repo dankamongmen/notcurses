@@ -26,6 +26,10 @@ rearrangements of Notcurses.
     `channels_set_fg()` and `channels_set_fchannel()` were indistinguishable on
     sight. Failure to make the necessary conversions will result in compiler
     errors. See https://github.com/dankamongmen/notcurses/issues/985.
+  * Functions ending in `_stainable()` now end in `_stained()`.
+  * `ncplane_putwc_stained()` and `ncplane_putwstr_stained()` have been
+    added in the interest of orthogonality.
+
 
 * 1.7.2 (2020-09-09)
   * Exported `ncvisual_default_blitter()`, so that the effective value of

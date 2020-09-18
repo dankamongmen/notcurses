@@ -1339,7 +1339,7 @@ ncplane_putchar(struct ncplane* n, char c){
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putchar_stainable(struct ncplane* n, char c);
+API int ncplane_putchar_stained(struct ncplane* n, char c);
 
 // Replace the cell at the specified coordinates with the provided EGC, and
 // advance the cursor by the width of the cluster (but not past the end of the
@@ -1356,7 +1356,7 @@ ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
+API int ncplane_putegc_stained(struct ncplane* n, const char* gclust, int* sbytes);
 
 // 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes...but we aren't
 // yet actively guarding against higher values getting into wcstombs FIXME
@@ -1393,7 +1393,7 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
+API int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, int* sbytes);
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -1413,7 +1413,7 @@ API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
 
 // Replace a string's worth of glyphs at the current cursor location, but
 // retain the styling. The current styling of the plane will not be changed.
-API int ncplane_putstr_stainable(struct ncplane* n, const char* s);
+API int ncplane_putstr_stained(struct ncplane* n, const char* s);
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -1458,7 +1458,7 @@ ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
   return ncplane_putwstr_yx(n, y, xpos, gclustarr);
 }
 
-API int ncplane_putwstr_stainable(struct ncplane* n, const wchar_t* gclustarr);
+API int ncplane_putwstr_stained(struct ncplane* n, const wchar_t* gclustarr);
 
 static inline int
 ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
@@ -1483,9 +1483,9 @@ ncplane_putwc(struct ncplane* n, wchar_t w){
 // Write 'w' at the current cursor position, using any preexisting styling
 // at that cell.
 static inline int
-ncplane_putwc_stainable(struct ncplane* n, wchar_t w){
+ncplane_putwc_stained(struct ncplane* n, wchar_t w){
   wchar_t warr[2] = { w, L'\0' };
-  return ncplane_putwstr_stainable(n, warr);
+  return ncplane_putwstr_stained(n, warr);
 }
 
 // The ncplane equivalents of printf(3) and vprintf(3).
@@ -1500,7 +1500,7 @@ ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
   return ncplane_vprintf_yx(n, -1, -1, format, ap);
 }
 
-API int ncplane_vprintf_stainable(struct ncplane* n, const char* format, va_list ap);
+API int ncplane_vprintf_stained(struct ncplane* n, const char* format, va_list ap);
 
 static inline int
 ncplane_printf(struct ncplane* n, const char* format, ...)
@@ -1543,14 +1543,14 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
 }
 
 static inline int
-ncplane_printf_stainable(struct ncplane* n, const char* format, ...)
+ncplane_printf_stained(struct ncplane* n, const char* format, ...)
   __attribute__ ((format (printf, 2, 3)));
 
 static inline int
-ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
+ncplane_printf_stained(struct ncplane* n, const char* format, ...){
   va_list va;
   va_start(va, format);
-  int ret = ncplane_vprintf_stainable(n, format, va);
+  int ret = ncplane_vprintf_stained(n, format, va);
   va_end(va);
   return ret;
 }
