@@ -711,7 +711,7 @@ TEST_CASE("NCPlane") {
     CHECK(0 == notcurses_render(nc_));
   }
 
-  SUBCASE("EGCStainable") {
+  SUBCASE("EGCStained") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     int sbytes;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
@@ -722,8 +722,8 @@ TEST_CASE("NCPlane") {
     CHECK(0 == notcurses_render(nc_));
     // EGC should change, but not the color
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x222222));
-    CHECK(1 == ncplane_putegc_stainable(n_, "C", &sbytes));
-    CHECK(1 == ncplane_putegc_stainable(n_, "D", &sbytes));
+    CHECK(1 == ncplane_putegc_stained(n_, "C", &sbytes));
+    CHECK(1 == ncplane_putegc_stained(n_, "D", &sbytes));
     uint64_t channels = 0;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &c));
     CHECK(cell_simple_p(&c));

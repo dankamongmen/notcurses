@@ -389,7 +389,7 @@ namespace ncpp
 		{
 			int ret;
 			if (retain_styling) {
-				ret = ncplane_putchar_stainable (plane, c);
+				ret = ncplane_putchar_stained (plane, c);
 			} else {
 				ret = ncplane_putchar (plane, c);
 			}
@@ -406,7 +406,7 @@ namespace ncpp
 		{
 			int ret;
 			if (retain_styling) {
-				ret = ncplane_putegc_stainable (plane, gclust, sbytes);
+				ret = ncplane_putegc_stained (plane, gclust, sbytes);
 			} else {
 				ret = ncplane_putegc (plane, gclust, sbytes);
 			}
@@ -423,7 +423,7 @@ namespace ncpp
 		{
 			int ret;
 			if (retain_styling) {
-				ret = ncplane_putwegc_stainable (plane, gclust, sbytes);
+				ret = ncplane_putwegc_stained (plane, gclust, sbytes);
 			} else {
 				ret = ncplane_putwegc (plane, gclust, sbytes);
 			}
@@ -481,19 +481,19 @@ namespace ncpp
 			return error_guard<int> (ncplane_putwstr_aligned (plane, y, static_cast<ncalign_e>(atype), gcluststyles), -1);
 		}
 
-		int putstr_stainable (const char* s) const NOEXCEPT_MAYBE
+		int putstr_stained (const char* s) const NOEXCEPT_MAYBE
 		{
-			int ret = ncplane_putstr_stainable (plane, s);
+			int ret = ncplane_putstr_stained (plane, s);
 			return error_guard_cond<int> (ret, ret < 0);
 		}
 
-		int printf_stainable (const char* format, ...) const NOEXCEPT_MAYBE
+		int printf_stained (const char* format, ...) const NOEXCEPT_MAYBE
 			__attribute__ ((format (printf, 2, 3)))
 		{
 			va_list va;
 
 			va_start (va, format);
-			int ret = ncplane_vprintf_stainable (plane, format, va);
+			int ret = ncplane_vprintf_stained (plane, format, va);
 			va_end (va);
 
 			return error_guard<int> (ret, -1);
@@ -535,9 +535,9 @@ namespace ncpp
 			return error_guard<int> (ret, -1);
 		}
 
-		int vprintf_stainable (const char* format, va_list ap) const NOEXCEPT_MAYBE
+		int vprintf_stained (const char* format, va_list ap) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_vprintf_stainable (plane, format, ap), -1);
+			return error_guard<int> (ncplane_vprintf_stained (plane, format, ap), -1);
 		}
 
 		int vprintf (const char* format, va_list ap) const NOEXCEPT_MAYBE

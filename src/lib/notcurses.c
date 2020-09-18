@@ -1421,7 +1421,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   return ncplane_put(n, y, x, gclust, cols, n->stylemask, n->channels, bytes);
 }
 
-int ncplane_putchar_stainable(ncplane* n, char c){
+int ncplane_putchar_stained(ncplane* n, char c){
   uint64_t channels = n->channels;
   uint32_t stylemask = n->stylemask;
   const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
@@ -1433,7 +1433,7 @@ int ncplane_putchar_stainable(ncplane* n, char c){
   return ret;
 }
 
-int ncplane_putwegc_stainable(ncplane* n, const wchar_t* gclust, int* sbytes){
+int ncplane_putwegc_stained(ncplane* n, const wchar_t* gclust, int* sbytes){
   uint64_t channels = n->channels;
   uint32_t stylemask = n->stylemask;
   const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
@@ -1445,7 +1445,7 @@ int ncplane_putwegc_stainable(ncplane* n, const wchar_t* gclust, int* sbytes){
   return ret;
 }
 
-int ncplane_putegc_stainable(ncplane* n, const char* gclust, int* sbytes){
+int ncplane_putegc_stained(ncplane* n, const char* gclust, int* sbytes){
   uint64_t channels = n->channels;
   uint32_t stylemask = n->stylemask;
   const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
@@ -1562,12 +1562,12 @@ int ncplane_vprintf_aligned(ncplane* n, int y, ncalign_e align,
   return ret;
 }
 
-int ncplane_vprintf_stainable(struct ncplane* n, const char* format, va_list ap){
+int ncplane_vprintf_stained(struct ncplane* n, const char* format, va_list ap){
   char* r = ncplane_vprintf_prep(format, ap);
   if(r == NULL){
     return -1;
   }
-  int ret = ncplane_putstr_stainable(n, r);
+  int ret = ncplane_putstr_stained(n, r);
   free(r);
   return ret;
 }
@@ -2300,12 +2300,12 @@ int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
   return ret;
 }
 
-int ncplane_putstr_stainable(struct ncplane* n, const char* gclusters){
+int ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
   int ret = 0;
   // FIXME speed up this blissfully naive solution
   while(*gclusters){
     int wcs;
-    int cols = ncplane_putegc_stainable(n, gclusters, &wcs);
+    int cols = ncplane_putegc_stained(n, gclusters, &wcs);
     if(cols < 0){
       return -ret;
     }
@@ -2318,7 +2318,7 @@ int ncplane_putstr_stainable(struct ncplane* n, const char* gclusters){
   return ret;
 }
 
-int ncplane_putwstr_stainable(ncplane* n, const wchar_t* gclustarr){
+int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
   // maximum of six UTF8-encoded bytes per wchar_t
   const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
   char* mbstr = malloc(mbytes); // need cast for c++ callers
@@ -2330,7 +2330,7 @@ int ncplane_putwstr_stainable(ncplane* n, const wchar_t* gclustarr){
     free(mbstr);
     return -1;
   }
-  int r = ncplane_putstr_stainable(n, mbstr);
+  int r = ncplane_putstr_stained(n, mbstr);
   free(mbstr);
   return r;
 }

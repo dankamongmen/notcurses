@@ -923,7 +923,7 @@ ncplane_putchar(struct ncplane* n, char c){
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-int ncplane_putchar_stainable(struct ncplane* n, char c);
+int ncplane_putchar_stained(struct ncplane* n, char c);
 
 // Replace the cell at the specified coordinates with the provided wide char
 // 'w'. Advance the cursor by the character's width as reported by wcwidth().
@@ -955,7 +955,7 @@ ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-int ncplane_putegc_stainable(struct ncplane* n, const char* gclust, int* sbytes);
+int ncplane_putegc_stained(struct ncplane* n, const char* gclust, int* sbytes);
 
 #define WCHAR_MAX_UTF8BYTES 6
 
@@ -990,7 +990,7 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-int ncplane_putwegc_stainable(struct ncplane* n, const wchar_t* gclust, int* sbytes);
+int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, int* sbytes);
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -1009,7 +1009,7 @@ int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char
 
 // Replace a string's worth of glyphs at the current cursor location, but
 // retain the styling. The current styling of the plane will not be changed.
-int ncplane_putstr_stainable(struct ncplane* n, const char* s);
+int ncplane_putstr_stained(struct ncplane* n, const char* s);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int

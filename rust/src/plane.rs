@@ -40,16 +40,16 @@
 // ncplane_polyfill_yx
 // ncplane_pulse
 // ncplane_putc_yx
-// ncplane_putegc_stainable
+// ncplane_putegc_stained
 // ncplane_putegc_yx
 // ncplane_putnstr_aligned
 // ncplane_putnstr_yx
-// ncplane_putsimple_stainable
+// ncplane_putsimple_stained
 // ncplane_putstr_aligned
-// ncplane_putstr_stainable
+// ncplane_putstr_stained
 // ncplane_putstr_yx
 // ncplane_puttext
-// ncplane_putwegc_stainable
+// ncplane_putwegc_stained
 // ncplane_qrcode
 // ncplane_reparent
 // ncplane_resize
@@ -83,7 +83,7 @@
 // ncplane_userptr
 // ncplane_vline_interp
 // ncplane_vprintf_aligned
-// ncplane_vprintf_stainable
+// ncplane_vprintf_stained
 // ncplane_vprintf_yx
 // ncplane_yx
 //
@@ -789,14 +789,14 @@ pub fn ncplane_rounded_box_sized(
 // }
 
 // static inline int
-// ncplane_printf_stainable(struct ncplane* n, const char* format, ...)
+// ncplane_printf_stained(struct ncplane* n, const char* format, ...)
 //   __attribute__ ((format (printf, 2, 3)));
 
 // static inline int
-// ncplane_printf_stainable(struct ncplane* n, const char* format, ...){
+// ncplane_printf_stained(struct ncplane* n, const char* format, ...){
 //   va_list va;
 //   va_start(va, format);
-//   int ret = ncplane_vprintf_stainable(n, format, va);
+//   int ret = ncplane_vprintf_stained(n, format, va);
 //   va_end(va);
 //   return ret;
 // }
