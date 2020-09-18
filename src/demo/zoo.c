@@ -378,7 +378,7 @@ reader_demo(struct notcurses* nc){
   const int x = ncplane_align(std, NCALIGN_CENTER, READER_COLS);
   struct ncselector* selector = NULL;
   struct ncmultiselector* mselector = NULL;
-  struct ncplane* rp = ncplane_new(std, READER_ROWS, READER_COLS, dimy, x, NULL, NULL);
+  struct ncplane* rp = ncplane_new(std, READER_ROWS, READER_COLS, dimy, x, NULL, "read");
   ncplane_set_base(rp, " ", 0, echannels);
   struct ncreader* reader = ncreader_create(rp, &nopts);
   if(reader == NULL){
