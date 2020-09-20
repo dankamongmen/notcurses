@@ -164,7 +164,7 @@ namespace ncpp
 		bool set_fg_rgb8 (int r, int g, int b, bool clipped = false) noexcept
 		{
 			if (clipped) {
-				cell_set_fg_rgb_clipped (&_cell, r, g, b);
+				cell_set_fg_rgb8_clipped (&_cell, r, g, b);
 				return true;
 			}
 
@@ -189,7 +189,7 @@ namespace ncpp
 		bool set_bg_rgb8 (int r, int g, int b, bool clipped = false) noexcept
 		{
 			if (clipped) {
-				cell_set_bg_rgb_clipped (&_cell, r, g, b);
+				cell_set_bg_rgb8_clipped (&_cell, r, g, b);
 				return true;
 			}
 

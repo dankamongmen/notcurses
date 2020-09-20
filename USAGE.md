@@ -1453,8 +1453,8 @@ int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);
 int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
 // Same, but clipped to [0..255].
-void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);
-void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
+void ncplane_set_bg_rgb8_clipped(struct ncplane* n, int r, int g, int b);
+void ncplane_set_fg_rgb8_clipped(struct ncplane* n, int r, int g, int b);
 
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
 int ncplane_set_fg_rgb(struct ncplane* n, uint32_t channel);
@@ -1796,8 +1796,8 @@ cell_set_fg_rgb8(cell* cl, int r, int g, int b){
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
-  channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
+cell_set_fg_rgb8_clipped(cell* cl, int r, int g, int b){
+  channels_set_fg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.
@@ -1815,8 +1815,8 @@ cell_set_bg_rgb8(cell* cl, int r, int g, int b){
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
-  channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
+cell_set_bg_rgb8_clipped(cell* cl, int r, int g, int b){
+  channels_set_bg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.

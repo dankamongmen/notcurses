@@ -1115,16 +1115,16 @@ void ncplane_set_bg_default(ncplane* n){
   channels_set_bg_default(&n->channels);
 }
 
-void ncplane_set_bg_rgb_clipped(ncplane* n, int r, int g, int b){
-  channels_set_bg_rgb_clipped(&n->channels, r, g, b);
+void ncplane_set_bg_rgb8_clipped(ncplane* n, int r, int g, int b){
+  channels_set_bg_rgb8_clipped(&n->channels, r, g, b);
 }
 
 int ncplane_set_bg_rgb8(ncplane* n, int r, int g, int b){
   return channels_set_bg_rgb8(&n->channels, r, g, b);
 }
 
-void ncplane_set_fg_rgb_clipped(ncplane* n, int r, int g, int b){
-  channels_set_fg_rgb_clipped(&n->channels, r, g, b);
+void ncplane_set_fg_rgb8_clipped(ncplane* n, int r, int g, int b){
+  channels_set_fg_rgb8_clipped(&n->channels, r, g, b);
 }
 
 int ncplane_set_fg_rgb8(ncplane* n, int r, int g, int b){

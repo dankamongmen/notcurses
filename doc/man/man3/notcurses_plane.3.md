@@ -110,9 +110,9 @@ notcurses_plane - operations on ncplanes
 
 **int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);**
 
-**void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);**
+**void ncplane_set_fg_rgb8_clipped(struct ncplane* n, int r, int g, int b);**
 
-**void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);**
+**void ncplane_set_bg_rgb8_clipped(struct ncplane* n, int r, int g, int b);**
 
 **int ncplane_set_fg_rgb8(struct ncplane* n, uint32_t channel);**
 

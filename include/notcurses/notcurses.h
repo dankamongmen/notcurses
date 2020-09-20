@@ -187,7 +187,7 @@ channel_set_rgb8(uint32_t* channel, int r, int g, int b){
 // the default color. Retain the other bits unchanged. r, g, and b will be
 // clipped to the range [0..255].
 static inline void
-channel_set_rgb_clipped(unsigned* channel, int r, int g, int b){
+channel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
   if(r >= 256){
     r = 255;
   }
@@ -339,9 +339,9 @@ channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
 
 // Same, but clips to [0..255].
 static inline void
-channels_set_fg_rgb_clipped(uint64_t* channels, int r, int g, int b){
+channels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
   unsigned channel = channels_fchannel(*channels);
-  channel_set_rgb_clipped(&channel, r, g, b);
+  channel_set_rgb8_clipped(&channel, r, g, b);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
 }
 
@@ -394,9 +394,9 @@ channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
 
 // Same, but clips to [0..255].
 static inline void
-channels_set_bg_rgb_clipped(uint64_t* channels, int r, int g, int b){
+channels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
   unsigned channel = channels_bchannel(*channels);
-  channel_set_rgb_clipped(&channel, r, g, b);
+  channel_set_rgb8_clipped(&channel, r, g, b);
   channels_set_bchannel(channels, channel);
 }
 
@@ -1798,8 +1798,8 @@ cell_set_fg_rgb8(cell* cl, int r, int g, int b){
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b){
-  channels_set_fg_rgb_clipped(&cl->channels, r, g, b);
+cell_set_fg_rgb8_clipped(cell* cl, int r, int g, int b){
+  channels_set_fg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.
@@ -1829,8 +1829,8 @@ cell_set_bg_rgb8(cell* cl, int r, int g, int b){
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b){
-  channels_set_bg_rgb_clipped(&cl->channels, r, g, b);
+cell_set_bg_rgb8_clipped(cell* cl, int r, int g, int b){
+  channels_set_bg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value. A value over 0xffffff
@@ -1964,8 +1964,8 @@ API int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
 // Same, but clipped to [0..255].
-API void ncplane_set_bg_rgb_clipped(struct ncplane* n, int r, int g, int b);
-API void ncplane_set_fg_rgb_clipped(struct ncplane* n, int r, int g, int b);
+API void ncplane_set_bg_rgb8_clipped(struct ncplane* n, int r, int g, int b);
+API void ncplane_set_fg_rgb8_clipped(struct ncplane* n, int r, int g, int b);
 
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
 API int ncplane_set_fg_rgb(struct ncplane* n, unsigned channel);

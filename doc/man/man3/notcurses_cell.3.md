@@ -102,9 +102,9 @@ typedef struct cell {
 
 **int cell_set_bg_rgb8(cell* cl, int r, int g, int b);**
 
-**void cell_set_fg_rgb_clipped(cell* cl, int r, int g, int b);**
+**void cell_set_fg_rgb8_clipped(cell* cl, int r, int g, int b);**
 
-**void cell_set_bg_rgb_clipped(cell* cl, int r, int g, int b);**
+**void cell_set_bg_rgb8_clipped(cell* cl, int r, int g, int b);**
 
 **int cell_set_fg_rgb(cell* c, uint32_t channel);**
 

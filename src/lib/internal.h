@@ -730,16 +730,16 @@ static inline uint32_t
 calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
                       int y, int x, int ylen, int xlen){
   uint32_t chan = 0;
-  channel_set_rgb_clipped(&chan,
-                         calc_gradient_component(channel_r(ul), channel_r(ur),
-                                                 channel_r(ll), channel_r(lr),
-                                                 y, x, ylen, xlen),
-                         calc_gradient_component(channel_g(ul), channel_g(ur),
-                                                 channel_g(ll), channel_g(lr),
-                                                 y, x, ylen, xlen),
-                         calc_gradient_component(channel_b(ul), channel_b(ur),
-                                                 channel_b(ll), channel_b(lr),
-                                                 y, x, ylen, xlen));
+  channel_set_rgb8_clipped(&chan,
+                           calc_gradient_component(channel_r(ul), channel_r(ur),
+                                                   channel_r(ll), channel_r(lr),
+                                                   y, x, ylen, xlen),
+                           calc_gradient_component(channel_g(ul), channel_g(ur),
+                                                   channel_g(ll), channel_g(lr),
+                                                   y, x, ylen, xlen),
+                           calc_gradient_component(channel_b(ul), channel_b(ur),
+                                                   channel_b(ll), channel_b(lr),
+                                                   y, x, ylen, xlen));
   channel_set_alpha(&chan, channel_alpha(ul)); // precondition: all αs are equal
   return chan;
 }
