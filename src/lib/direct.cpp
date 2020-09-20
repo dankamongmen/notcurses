@@ -443,13 +443,16 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
 //fprintf(stderr, "render: %d+%d of %d/%d stride %u %p\n", leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   ncplane_options nopts = {
+    .y = 0,
+    .horiz = {
+      .x = 0,
+    },
     .rows = disprows / encoding_y_scale(bset),
     .cols = dispcols / encoding_x_scale(bset),
-    .horiz.x = 0,
-    .y = 0,
     .userptr = nullptr,
-    .resizecb = nullptr,
     .name = "direct",
+    .resizecb = nullptr,
+    .flags = 0,
   };
   struct ncplane* faken = ncplane_new_internal(nullptr, nullptr, &nopts);
   if(faken == nullptr){
