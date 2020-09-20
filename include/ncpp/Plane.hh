@@ -1111,19 +1111,19 @@ namespace ncpp
 
 		ncplane* create_plane (Plane &n, int rows, int cols, int yoff, NCAlign align, void *opaque)
 		{
-      ncplane_options nopts = {
-        yoff,
-        static_cast<ncalign_e>(align),
-        rows,
-        cols,
-        opaque,
-        nullptr,
-        0
-      };
+			ncplane_options nopts = {
+				yoff,
+				static_cast<ncalign_e>(align),
+				rows,
+				cols,
+				opaque,
+				nullptr,
+				0
+			};
 			ncplane *ret = ncplane_create (
-        n.plane,
-        &nopts
-      );
+				n.plane,
+				&nopts
+			);
 
 			if (ret == nullptr)
 				throw init_error ("Notcurses failed to create an aligned plane");
