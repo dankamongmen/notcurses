@@ -540,8 +540,22 @@ int fpsgraph_init(struct notcurses* nc){
   const int PLOTHEIGHT = 6;
   int dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  struct ncplane* newp = ncplane_new(stdn, PLOTHEIGHT, dimx,
-                                     dimy - PLOTHEIGHT, 0, NULL, "fps");
+  ncplane_options nopts = {
+    .y = dimy - PLOTHEIGHT,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .rows = PLOTHEIGHT,
+    .cols = dimx,
+    .userptr = NULL,
+    .name = "fps",
+    .resizecb = ncplane_resize_realign,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* newp = ncplane_create(stdn, &nopts);
+  if(newp == NULL){
+    return -1;
+  }
   uint32_t style = 0;
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
@@ -593,7 +607,7 @@ int fpsplot_grab(int y){
   // are we in the middle of a grab?
   if(plot_grab_y >= 0){
     int delty = y - plot_grab_y;
-    ret = ncplane_move_yx(ncuplot_plane(plot), plot_pos_y + delty, 0);
+    ret = ncplane_move_yx(ncuplot_plane(plot), plot_pos_y + delty, ncplane_x(ncuplot_plane(plot)));
   }else{
     // new grab. stash point of original grab, and location of plot at original
     // grab. any delta while grabbed (relative to the original grab point)
