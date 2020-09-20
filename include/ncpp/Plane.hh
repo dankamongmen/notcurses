@@ -1118,6 +1118,7 @@ namespace ncpp
 				cols,
 				opaque,
 				nullptr,
+        nullptr,
 				0
 			};
 			ncplane *ret = ncplane_create (

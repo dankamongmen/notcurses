@@ -296,7 +296,8 @@ void free_plane(ncplane* p){
 // ncplane created by ncdirect for rendering visuals. in that case (and only in
 // that case), nc is NULL.
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, int rows, int cols,
-                              int yoff, int xoff, void* opaque, const char* name){
+                              int yoff, int xoff, void* opaque, const char* name,
+                              int (*resizecb)(ncplane*)){
   if(rows <= 0 || cols <= 0){
     logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n", rows, cols);
     return NULL;
@@ -332,6 +333,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, int rows, int cols,
     p->bprev = NULL;
     p->boundto = p;
   }
+  p->resizecb = resizecb;
   p->stylemask = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
@@ -360,7 +362,7 @@ static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
   nc->stdplane = ncplane_new_internal(nc, NULL, dimy - (nc->margin_t + nc->margin_b),
                                       dimx - (nc->margin_l + nc->margin_r), 0, 0, NULL,
-                                      "std");
+                                      "std", NULL);
   return nc->stdplane;
 }
 
@@ -379,7 +381,7 @@ ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
   const int x = (nopts->flags & NCPLANE_OPTION_HORALIGNED) ?
     ncplane_align(n, nopts->horiz.align, nopts->cols) : nopts->horiz.x;
   return ncplane_new_internal(n->nc, n, nopts->rows, nopts->cols, nopts->y,
-                              x, nopts->userptr, nopts->name);
+                              x, nopts->userptr, nopts->name, nopts->resizecb);
 }
 
 void ncplane_home(ncplane* n){

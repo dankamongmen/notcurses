@@ -9,6 +9,9 @@ rearrangements of Notcurses.
     `ncplane_new()`. The latter ought be considered deprecated, and will be
     removed in the future. To align a place as previously done with
     `ncplane_aligned()`, use the `NCPLANE_OPTION_HORALIGNED` flag.
+  * The `ncplane_options` struct includes a function pointer member,
+    `resizecb`. If not `NULL`, this function will be called after the parent
+    plane is resized. See `notcurses_plane.3` for more information.
 
 * 1.7.3 (2020-09-19)
   * API changes pursuant to 2.0 API finalization:

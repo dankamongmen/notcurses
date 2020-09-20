@@ -1006,6 +1006,7 @@ typedef struct ncplane_options {
   int cols;         // number of columns, must be positive
   void* userptr;    // user curry, may be NULL
   const char* name; // name (used only for debugging), may be NULL
+  int (*resizecb)(struct ncplane*); // callback when parent is resized
   uint64_t flags;   // closure over NCPLANE_OPTION_*
 } ncplane_options;
 
@@ -1029,6 +1030,7 @@ ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, c
     .cols = cols,
     .userptr = opaque,
     .name = name,
+    .resizecb = NULL,
     .flags = 0,
   };
   return ncplane_create(n, &nopts);
