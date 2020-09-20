@@ -12,6 +12,10 @@ rearrangements of Notcurses.
   * The `ncplane_options` struct includes a function pointer member,
     `resizecb`. If not `NULL`, this function will be called after the parent
     plane is resized. See `notcurses_plane.3` for more information.
+  * `ncplane_resize_realign()` has been added, suitable for use as a
+    `resizecb`. It realigns the plane against its parent.
+  * `NCCHANNEL_ALPHA_MASK` has been renamed `CHANNEL_ALPHA_MASK`, to match
+    the other declarations.
 
 * 1.7.3 (2020-09-19)
   * API changes pursuant to 2.0 API finalization:
