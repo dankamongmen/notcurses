@@ -232,7 +232,7 @@ might see changes. It is an error to merge a plane onto itself.
 homes the cursor. The base cell is preserved.
 
 When a plane is resized (whether by **ncplane_resize**, **SIGWINCH**, or any
-other mechanism), a breadth-first recursion is performed on its children.
+other mechanism), a depth-first recursion is performed on its children.
 Each child plane having a non-**NULL** **resizecb** will see that callback
 invoked following resizing of its parent's plane. If it returns non-zero, the
 resizing cascade terminates, returning non-zero. Otherwise, resizing proceeds
