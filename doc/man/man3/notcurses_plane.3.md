@@ -23,6 +23,7 @@ typedef struct ncplane_options {
   int cols;         // number of columns, must be positive
   void* userptr;    // user curry, may be NULL
   const char* name; // name (used only for debugging), may be NULL
+  int (*resizecb)(struct ncplane*); // callback when parent is resized
   uint64_t flags;   // closure over NCPLANE_OPTION_*
 } ncplane_options;
 ```
@@ -229,6 +230,13 @@ might see changes. It is an error to merge a plane onto itself.
 
 **ncplane_erase** zeroes out every cell of the plane, dumps the egcpool, and
 homes the cursor. The base cell is preserved.
+
+When a plane is resized (whether by **ncplane_resize**, **SIGWINCH**, or any
+other mechanism), a breadth-first recursion is performed on its children.
+Each child plane having a non-**NULL** **resizecb** will see that callback
+invoked following resizing of its parent's plane. If it returns non-zero, the
+resizing cascade terminates, returning non-zero. Otherwise, resizing proceeds
+recursively.
 
 ## Scrolling
 

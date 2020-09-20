@@ -445,7 +445,7 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   struct ncplane* faken = ncplane_new_internal(nullptr, nullptr,
                                                disprows / encoding_y_scale(bset),
                                                dispcols / encoding_x_scale(bset),
-                                               0, 0, nullptr, nullptr);
+                                               0, 0, nullptr, nullptr, nullptr);
   if(faken == nullptr){
     return -1;
   }

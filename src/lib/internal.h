@@ -81,6 +81,7 @@ typedef struct ncplane {
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells
   void* userptr;         // slot for the user to stick some opaque pointer
+  int (*resizecb)(struct ncplane*); // callback after parent is resized
   cell basecell;         // cell written anywhere that fb[i].gcluster == 0
   struct notcurses* nc;  // notcurses object of which we are a part
   char* name;            // used only for debugging
@@ -775,8 +776,10 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
 // ncdirect needs to "fake" an isolated ncplane as a drawing surface for
 // ncvisual_render(), and thus calls these low-level internal functions.
 // they are not for general use -- check ncplane_new() and ncplane_destroy().
+// FIXME rewrite using ncplane_options
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, int rows, int cols,
-                              int yoff, int xoff, void* opaque, const char* name);
+                              int yoff, int xoff, void* opaque,
+                              const char* name, int (*resizecb)(ncplane*));
 
 void free_plane(ncplane* p);
 
