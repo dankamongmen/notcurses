@@ -320,9 +320,11 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   p->logrow = 0;
   p->blist = NULL;
   p->name = nopts->name ? strdup(nopts->name) : NULL;
+  p->align = NCALIGN_UNALIGNED;
   if( (p->boundto = n) ){
     if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
       p->absx = ncplane_align(n, nopts->horiz.align, nopts->cols);
+      p->align = nopts->horiz.align;
     }else{
       p->absx = nopts->horiz.x;
     }
@@ -2005,6 +2007,20 @@ ncplane* ncplane_parent(ncplane* n){
 
 const ncplane* ncplane_parent_const(const ncplane* n){
   return n->boundto;
+}
+
+int ncplane_resize_realign(ncplane* n){
+  const ncplane* parent = ncplane_parent_const(n);
+  if(parent == n){ // somehow got stdplane, should never get here
+    logerror(ncplane_notcurses(n), "Passed the standard plane");
+    return -1;
+  }
+  if(n->align == NCALIGN_UNALIGNED){
+    logerror(ncplane_notcurses(n), "Passed a non-aligned plane");
+    return -1;
+  }
+  int xpos = ncplane_align(parent, n->align, ncplane_dim_x(n));
+  return ncplane_move_yx(n, ncplane_y(n), xpos);
 }
 
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){

@@ -85,6 +85,7 @@ typedef struct ncplane {
   cell basecell;         // cell written anywhere that fb[i].gcluster == 0
   struct notcurses* nc;  // notcurses object of which we are a part
   char* name;            // used only for debugging
+  ncalign_e align;       // relative to parent plane, for automatic realignment
   uint16_t stylemask;    // same deal as in a cell
   bool scrolling;        // is scrolling enabled? always disabled by default
 } ncplane;

@@ -68,6 +68,7 @@ typedef enum {
 
 // Alignment within a plane or terminal. Left/right-justified, or centered.
 typedef enum {
+  NCALIGN_UNALIGNED,
   NCALIGN_LEFT,
   NCALIGN_CENTER,
   NCALIGN_RIGHT,
@@ -1293,7 +1294,10 @@ notcurses_align(int availcols, ncalign_e align, int cols){
   if(align == NCALIGN_CENTER){
     return (availcols - cols) / 2;
   }
-  return availcols - cols; // NCALIGN_RIGHT
+  if(align == NCALIGN_RIGHT){
+    return availcols - cols;
+  }
+  return -INT_MAX;
 }
 
 // Return the column at which 'c' cols ought start in order to be aligned
