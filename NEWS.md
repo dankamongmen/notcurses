@@ -4,7 +4,13 @@ rearrangements of Notcurses.
 * 1.7.4 (not yet released)
   * All `_rgb_clipped()` functions have been renamed `_rgb8_clipped()`, to
     match the changes made in 1.7.2. Sorry, I ought have done this before.
+  * `ncplane_create()` has been introduced, taking a `struct ncplane_options`
+    parameter. This replaces `ncplane_aligned()`, and will replace
+    `ncplane_new()`. The latter ought be considered deprecated, and will be
+    removed in the future. To align a place as previously done with
+    `ncplane_aligned()`, use the `NCPLANE_OPTION_HORALIGNED` flag.
 
+and
 * 1.7.3 (2020-09-19)
   * API changes pursuant to 2.0 API finalization:
   * `mbswidth()` has been renamed `ncstrwidth()`.

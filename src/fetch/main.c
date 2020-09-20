@@ -317,10 +317,16 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   }
   int dimy;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
-  struct ncplane* infop = ncplane_aligned(std,
-                                          planeheight, planewidth,
-                                          dimy - planeheight,
-                                          NCALIGN_CENTER, NULL, "info");
+  struct ncplane_options nopts = {
+    .y = dimy - planeheight,
+    .horiz.align = NCALIGN_CENTER,
+    .rows = planeheight,
+    .cols = planewidth,
+    .userptr = NULL,
+    .name = "info",
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* infop = ncplane_create(std, &nopts);
   if(infop == NULL){
     return -1;
   }

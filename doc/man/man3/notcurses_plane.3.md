@@ -10,13 +10,28 @@ notcurses_plane - operations on ncplanes
 
 **#include <notcurses/notcurses.h>**
 
+```c
+#define NCPLANE_OPTION_HORALIGNED 0x0001ull
+
+typedef struct ncplane_options {
+  int y;            // vertical placement relative to parent plane
+  union {
+    int x;
+    ncalign_e align;
+  } horiz;          // horizontal placement relative to parent plane
+  int rows;         // number of rows, must be positive
+  int cols;         // number of columns, must be positive
+  void* userptr;    // user curry, may be NULL
+  const char* name; // name (used only for debugging), may be NULL
+  uint64_t flags;   // closure over NCPLANE_OPTION_*
+} ncplane_options;
+```
+
+**struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);**
+
 **struct ncplane* notcurses_top(struct notcurses* n);**
 
 **struct ncplane* notcurses_bottom(struct notcurses* n);**
-
-**struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);**
-
-**struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque, const char* name);**
 
 **struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);**
 
@@ -174,17 +189,18 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of cells
 * position relative to the standard plane,
 * the plane, if any, to which it is bound,
 * the next plane bound by the plane to which it is bound,
-* the head of the list of its bound planes, and
-* its z-index.
+* the head of the list of its bound planes,
+* its z-index, and
+* a name (used only for debugging).
 
-New planes can be created with **ncplane_new** and **ncplane_aligned**. If a
-plane is bound to another, x and y coordinates are relative to the plane to
-which it is bound, and if this latter plane moves, all its bound planes move
-along with it. When a plane is destroyed, all planes bound to it (directly or
-transitively) are destroyed. **ncplane_reparent** detaches the plane **n** from
-any plane to which it is bound, and binds it to **newparent** if **newparent**
-is not **NULL**. All planes bound to **n** move along with it during a
-reparenting operation.
+New planes can be created with **ncplane_create**. If a plane is bound to
+another, x and y coordinates are relative to the plane to which it is bound,
+and if this latter plane moves, all its bound planes move along with it. When a
+plane is destroyed, all planes bound to it (directly or transitively) are
+destroyed. **ncplane_reparent** detaches the plane **n** from any plane to
+which it is bound, and binds it to **newparent** if **newparent** is not
+**NULL**. All planes bound to **n** move along with it during a reparenting
+operation.
 
 **ncplane_destroy** destroys a particular ncplane, after which it must not be
 used again. **notcurses_drop_planes** destroys all ncplanes other than the

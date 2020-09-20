@@ -3391,7 +3391,19 @@ const char subdivision_flag[] =
 
 static struct ncplane*
 mojiplane(struct ncplane* title, int y, int rows, const char* summary){
-  struct ncplane* n = ncplane_aligned(title, rows, planewidth, y, NCALIGN_CENTER, NULL, NULL);
+  ncplane_options nopts = {
+    .y = y,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .rows = rows,
+    .cols = planewidth,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* n = ncplane_create(title, &nopts);
+  if(n == NULL){
+    return NULL;
+  }
   uint64_t channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xa0, 0xf0, 0x10, 0x10, 0x60);
   if(ncplane_perimeter_rounded(n, 0, channels, NCBOXMASK_RIGHT) < 0){
     ncplane_destroy(n);
@@ -3545,7 +3557,16 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
 
 struct ncplane*
 maketitle(struct ncplane* std){
-  struct ncplane* title = ncplane_aligned(std, 3, 74, 2, NCALIGN_CENTER, NULL, NULL);
+  ncplane_options nopts = {
+    .y = 2,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .rows = 3,
+    .cols = 74,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* title = ncplane_create(std, &nopts);
   if(title == NULL){
     return NULL;
   }

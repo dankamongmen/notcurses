@@ -6,7 +6,16 @@
 
 static int
 run_menu(struct notcurses* nc, struct ncmenu* ncm){
-  struct ncplane* selplane = ncplane_aligned(notcurses_stdplane(nc), 3, 40, 10, NCALIGN_CENTER, NULL, NULL);
+  ncplane_options nopts = {
+    .y = 10,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .rows = 3,
+    .cols = 40,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* selplane = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(selplane == NULL){
     return -1;
   }

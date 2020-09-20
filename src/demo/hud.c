@@ -72,8 +72,16 @@ about_toggle(struct notcurses* nc){
   const int ABOUT_COLS = 40;
   int dimy;
   notcurses_term_dim_yx(nc, &dimy, NULL);
-  struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), ABOUT_ROWS,
-                                      ABOUT_COLS, 3, NCALIGN_CENTER, NULL, NULL);
+  ncplane_options nopts = {
+    .y = 3,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .rows = ABOUT_ROWS,
+    .cols = ABOUT_COLS,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   // let the glyphs below show through, but only dimly
   uint64_t channels = 0;
   channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);

@@ -600,8 +600,9 @@ In addition to its framebuffer--a rectilinear matrix of cells
 * a current style, foreground channel, and background channel,
 * its geometry,
 * a configured user curry (a `void*`),
-* its position relative to the visible plane, and
-* its z-index.
+* its position relative to the visible plane,
+* its z-index, and
+* a name (used only for debugging).
 
 If opaque, a `cell` on a higher `ncplane` completely obstructs a corresponding
 `cell` from a lower `ncplane` from being seen. An `ncplane` corresponds loosely
@@ -609,23 +610,34 @@ to an [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#pa
 but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
 
-In addition to `ncplane_new()`, an `ncplane` can be created aligned relative
-to an existing `ncplane` (including the standard plane) using
-`ncplane_aligned()`. When an `ncplane` is no longer needed, free it with
+An `ncplane` can be created aligned relative to an existing `ncplane`
+(including the standard plane) using `NCPLANE_OPTION_ALIGNED`.
+
+When an `ncplane` is no longer needed, free it with
 `ncplane_destroy()`. To quickly reset the `ncplane`, use `ncplane_erase()`.
 
 ```c
-// Create a new ncplane bound to plane 'n', at the offset 'y'x'x' (relative to
-// the origin of 'n') and the specified size. The number of rows and columns
-// must both be positive. This plane is initially at the top of the z-buffer,
-// as if ncplane_move_top() had been called on it. The void* 'opaque' can be
-// retrieved (and reset) later. A name can be set, used in debugging.
-struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols,
-                            int y, int x, void* opaque, const char* name);
+#define NCPLANE_OPTION_HORALIGNED 0x0001ull
 
-// Create a plane bound to 'n', and aligned relative to it using 'align'.
-struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols,
-                int y, ncalign_e align, void* opaque, const char* name);
+typedef struct ncplane_options {
+  int y;            // vertical placement relative to parent plane
+  union {
+    int x;
+    ncalign_e align;
+  } horiz;          // horizontal placement relative to parent plane
+  int rows;         // number of rows, must be positive
+  int cols;         // number of columns, must be positive
+  void* userptr;    // user curry, may be NULL
+  const char* name; // name (used only for debugging), may be NULL
+  uint64_t flags;   // closure over NCPLANE_OPTION_*
+} ncplane_options;
+
+// Create a new ncplane bound to plane 'n', at THE OFFset 'y'x'x' (relative to
+// the origin of 'n') and the specified size. The number of 'rows' and 'cols'
+// must both be positive. This plane is initially at the top of the z-buffer,
+// as if ncplane_move_top() had been called on it. The void* 'userptr' can be
+// retrieved (and reset) later. A 'name' can be set, used in debugging.
+struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);
 
 // Plane 'n' will be unbound from its parent plane, if it is currently bound,
 // and will be made a bound child of 'newparent', if 'newparent' is not NULL.
