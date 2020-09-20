@@ -106,14 +106,14 @@ pub fn channel_set(channel: &mut Channel, rgb: Rgb) {
 /// Extract the 2-bit alpha component from a 32-bit channel.
 #[inline]
 pub fn channel_alpha(channel: Channel) -> AlphaBits {
-    channel & nc::NCCHANNEL_ALPHA_MASK
+    channel & nc::CHANNEL_ALPHA_MASK
 }
 
 /// Set the 2-bit alpha component of the 32-bit channel.
 #[inline]
 pub fn channel_set_alpha(channel: &mut Channel, alpha: AlphaBits) {
-    let alpha_clean = alpha & nc::NCCHANNEL_ALPHA_MASK;
-    *channel = alpha_clean | (*channel & !nc::NCCHANNEL_ALPHA_MASK);
+    let alpha_clean = alpha & nc::CHANNEL_ALPHA_MASK;
+    *channel = alpha_clean | (*channel & !nc::CHANNEL_ALPHA_MASK);
 
     if alpha != nc::CELL_ALPHA_OPAQUE {
         // indicate that we are *not* using the default background color
@@ -138,7 +138,7 @@ pub fn channel_palindex_p(channel: Channel) -> bool {
 /// Mark the channel as using its default color, which also marks it opaque.
 #[inline]
 pub fn channel_set_default(channel: &mut Channel) -> Channel {
-    *channel &= !(nc::CELL_BGDEFAULT_MASK | nc::CELL_ALPHA_HIGHCONTRAST); // < NOTE shouldn't be better NCCHANNEL_ALPHA_MASK?
+    *channel &= !(nc::CELL_BGDEFAULT_MASK | nc::CELL_ALPHA_HIGHCONTRAST); // < NOTE shouldn't be better CHANNEL_ALPHA_MASK?
     *channel
 }
 
