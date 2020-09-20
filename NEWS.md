@@ -10,7 +10,6 @@ rearrangements of Notcurses.
     removed in the future. To align a place as previously done with
     `ncplane_aligned()`, use the `NCPLANE_OPTION_HORALIGNED` flag.
 
-and
 * 1.7.3 (2020-09-19)
   * API changes pursuant to 2.0 API finalization:
   * `mbswidth()` has been renamed `ncstrwidth()`.

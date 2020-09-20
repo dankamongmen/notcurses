@@ -1,6 +1,5 @@
 // functions already exported by bindgen : 86
 // ------------------------------------------
-// ncplane_aligned
 // ncplane_at_cursor
 // ncplane_attr
 // ncplane_at_yx
@@ -64,14 +63,14 @@
 // ncplane_set_bg_default
 // ncplane_set_bg_palindex
 // ncplane_set_bg_rgb
-// ncplane_set_bg_rgb_clipped
+// ncplane_set_bg_rgb8_clipped
 // ncplane_set_channels
-// ncplane_set_fg
 // ncplane_set_fg_alpha
 // ncplane_set_fg_default
 // ncplane_set_fg_palindex
 // ncplane_set_fg_rgb
-// ncplane_set_fg_rgb_clipped
+// ncplane_set_fg_rgb8
+// ncplane_set_fg_rgb8_clipped
 // ncplane_set_scrolling
 // ncplane_set_userptr
 // ncplane_stain
@@ -96,10 +95,11 @@
 //+ncplane_at_cursor_cell
 //+ncplane_at_yx_cell
 //+ncplane_bchannel
-//+ncplane_bg
 //+ncplane_bg_alpha
 //+ncplane_bg_default_p
 //+ncplane_bg_rgb
+//+ncplane_bg_rgb8
+//+ncplane_bg_rgb8_clipped
 //+ncplane_box_sized
 //+ncplane_dim_x
 //+ncplane_dim_y
