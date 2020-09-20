@@ -111,9 +111,16 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   const char str1[] = " throw your hands in the air ";
   const char str2[] = " hack on! —dank❤ ";
   int ystart = *rows - 6;
-  struct ncplane* non = ncplane_aligned(notcurses_stdplane(nc), 5,
-                                        strlen(str1) + 4, ystart,
-                                        NCALIGN_CENTER, NULL, NULL);
+  ncplane_options nopts = {
+    .rows = 5,
+    .cols = strlen(str1) + 4,
+    .y = ystart,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* non = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(non == NULL){
     return NULL;
   }

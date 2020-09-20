@@ -295,8 +295,8 @@ void free_plane(ncplane* p){
 // there's a denormalized case we also must handle, that of the "fake" isolated
 // ncplane created by ncdirect for rendering visuals. in that case (and only in
 // that case), nc is NULL.
-ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
-                        int yoff, int xoff, void* opaque, const char* name){
+ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, int rows, int cols,
+                              int yoff, int xoff, void* opaque, const char* name){
   if(rows <= 0 || cols <= 0){
     logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n", rows, cols);
     return NULL;
@@ -358,9 +358,9 @@ ncplane* ncplane_create(notcurses* nc, ncplane* n, int rows, int cols,
 // the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
-  nc->stdplane = ncplane_create(nc, NULL, dimy - (nc->margin_t + nc->margin_b),
-                                dimx - (nc->margin_l + nc->margin_r), 0, 0, NULL,
-                                "std");
+  nc->stdplane = ncplane_new_internal(nc, NULL, dimy - (nc->margin_t + nc->margin_b),
+                                      dimx - (nc->margin_l + nc->margin_r), 0, 0, NULL,
+                                      "std");
   return nc->stdplane;
 }
 
@@ -372,14 +372,14 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
   return nc->stdplane;
 }
 
-ncplane* ncplane_new(ncplane* n, int rows, int cols, int y, int x,
-                     void* opaque, const char* name){
-  return ncplane_create(n->nc, n, rows, cols, y, x, opaque, name);
-}
-
-ncplane* ncplane_aligned(ncplane* n, int rows, int cols, int y,
-                         ncalign_e align, void* opaque, const char* name){
-  return ncplane_create(n->nc, n, rows, cols, y, ncplane_align(n, align, cols), opaque, name);
+ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
+  if(nopts->flags > NCPLANE_OPTION_HORALIGNED){
+    logwarn(n->nc, "Provided unsupported flags %016lx\n", nopts->flags);
+  }
+  const int x = (nopts->flags & NCPLANE_OPTION_HORALIGNED) ?
+    ncplane_align(n, nopts->horiz.align, nopts->cols) : nopts->horiz.x;
+  return ncplane_new_internal(n->nc, n, nopts->rows, nopts->cols, nopts->y,
+                              x, nopts->userptr, nopts->name);
 }
 
 void ncplane_home(ncplane* n){
@@ -426,8 +426,8 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   const struct notcurses* nc = ncplane_notcurses_const(n);
   const int placey = n->absy - nc->margin_t;
   const int placex = n->absx - nc->margin_l;
-  ncplane* newn = ncplane_create(n->nc, n->boundto, dimy, dimx,
-                                 placey, placex, opaque, n->name);
+  ncplane* newn = ncplane_new(n->boundto, dimy, dimx,
+                              placey, placex, opaque, n->name);
   if(newn){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);

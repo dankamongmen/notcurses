@@ -28,9 +28,16 @@ static struct ncplane*
 legend(struct notcurses* nc, const char* msg){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  struct ncplane* n = ncplane_aligned(notcurses_stdplane(nc), 3,
-                                      strlen(msg) + 4, 3,
-                                      NCALIGN_CENTER, NULL, NULL);
+  ncplane_options nopts = {
+    .rows = 3,
+    .cols = strlen(msg) + 4,
+    .y = 3,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(n == NULL){
     return NULL;
   }

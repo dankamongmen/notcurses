@@ -442,10 +442,10 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
 //fprintf(stderr, "render: %d+%d of %d/%d stride %u %p\n", leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
-  struct ncplane* faken = ncplane_create(nullptr, nullptr,
-                                         disprows / encoding_y_scale(bset),
-                                         dispcols / encoding_x_scale(bset),
-                                         0, 0, nullptr, nullptr);
+  struct ncplane* faken = ncplane_new_internal(nullptr, nullptr,
+                                               disprows / encoding_y_scale(bset),
+                                               dispcols / encoding_x_scale(bset),
+                                               0, 0, nullptr, nullptr);
   if(faken == nullptr){
     return -1;
   }

@@ -73,8 +73,19 @@ typedef enum {
   NCALIGN_CENTER,
   NCALIGN_RIGHT,
 } ncalign_e;
-struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int yoff, int xoff, void* opaque, const char* name);
-struct ncplane* ncplane_aligned(struct ncplane* n, int rows, int cols, int yoff, ncalign_e align, void* opaque, const char* name);
+typedef struct ncplane_options {
+  int y;            // vertical placement relative to parent plane
+  union {
+    int x;
+    ncalign_e align;
+  } horiz;          // horizontal placement relative to parent plane
+  int rows;         // number of rows, must be positive
+  int cols;         // number of columns, must be positive
+  void* userptr;    // user curry, may be NULL
+  const char* name; // name (used only for debugging), may be NULL
+  uint64_t flags;   // closure over NCPLANE_OPTION_*
+} ncplane_options;
+struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);
 unsigned notcurses_supported_styles(const struct notcurses* nc);
 unsigned notcurses_palette_size(const struct notcurses* nc);
 bool notcurses_cantruecolor(const struct notcurses* nc);

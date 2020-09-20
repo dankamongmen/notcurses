@@ -104,8 +104,16 @@ int allglyphs_demo(struct notcurses* nc){
     }
   }
   const int planey = (dimy - height) / 2 + 1;
-  struct ncplane* column = ncplane_aligned(n, height, width, planey,
-                                           NCALIGN_CENTER, NULL, NULL);
+  ncplane_options nopts = {
+    .y = planey,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .rows = height,
+    .cols = width,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* column = ncplane_create(n, &nopts);
   if(column == NULL){
     return -1;
   }
