@@ -459,6 +459,20 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   return newn;
 }
 
+// call the resize callback for each bound child in turn. we only need to do
+// the first generation; if they resize, they'll invoke
+// ncplane_resize_internal(), leading to this function being called anew.
+static int
+resize_children(ncplane* n){
+  int ret = 0;
+  for(struct ncplane* child = n->blist ; child ; child = child->bnext){
+    if(child->resizecb){
+      ret |= child->resizecb(child);
+    }
+  }
+  return ret;
+}
+
 // can be used on stdplane, unlike ncplane_resize() which prohibits it.
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
                             int keeplenx, int yoff, int xoff, int ylen, int xlen){
@@ -524,7 +538,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     n->lenx = xlen;
     n->leny = ylen;
     free(preserved);
-    return 0;
+    return resize_children(n);
   }
   // we currently have maxy rows of maxx cells each. we will be keeping rows
   // keepy..keepy + keepleny - 1 and columns keepx..keepx + keeplenx - 1.
@@ -560,7 +574,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   n->lenx = xlen;
   n->leny = ylen;
   free(preserved);
-  return 0;
+  return resize_children(n);
 }
 
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
