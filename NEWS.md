@@ -1,7 +1,8 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.7.3 (not yet released)
+* 1.7.3 (2020-09-19)
+  * API changes pursuant to 2.0 API finalization:
   * `mbswidth()` has been renamed `ncstrwidth()`.
   * The long-promised/dreaded Great Widget Review, normalizing behavior across
     all widgets, has been effected. Sorry, there was no getting around this
