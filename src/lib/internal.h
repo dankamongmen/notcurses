@@ -776,10 +776,7 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
 // ncdirect needs to "fake" an isolated ncplane as a drawing surface for
 // ncvisual_render(), and thus calls these low-level internal functions.
 // they are not for general use -- check ncplane_new() and ncplane_destroy().
-// FIXME rewrite using ncplane_options
-ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, int rows, int cols,
-                              int yoff, int xoff, void* opaque,
-                              const char* name, int (*resizecb)(ncplane*));
+ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* nopts);
 
 void free_plane(ncplane* p);
 

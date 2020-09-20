@@ -295,29 +295,28 @@ void free_plane(ncplane* p){
 // there's a denormalized case we also must handle, that of the "fake" isolated
 // ncplane created by ncdirect for rendering visuals. in that case (and only in
 // that case), nc is NULL.
-ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, int rows, int cols,
-                              int yoff, int xoff, void* opaque, const char* name,
-                              int (*resizecb)(ncplane*)){
-  if(rows <= 0 || cols <= 0){
-    logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n", rows, cols);
+ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* nopts){
+  if(nopts->rows <= 0 || nopts->cols <= 0){
+    logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n",
+             nopts->rows, nopts->cols);
     return NULL;
   }
   ncplane* p = malloc(sizeof(*p));
-  size_t fbsize = sizeof(*p->fb) * (rows * cols);
+  size_t fbsize = sizeof(*p->fb) * (nopts->rows * nopts->cols);
   if((p->fb = malloc(fbsize)) == NULL){
-    logerror(nc, "Error allocating cellmatrix (r=%d, c=%d)\n", rows, cols);
+    logerror(nc, "Error allocating cellmatrix (r=%d, c=%d)\n",
+             nopts->rows, nopts->cols);
     free(p);
     return NULL;
   }
   memset(p->fb, 0, fbsize);
   p->scrolling = false;
-  p->userptr = NULL;
-  p->leny = rows;
-  p->lenx = cols;
+  p->leny = nopts->rows;
+  p->lenx = nopts->cols;
   p->x = p->y = 0;
   p->logrow = 0;
   p->blist = NULL;
-  p->name = name ? strdup(name) : NULL;
+  p->name = nopts->name ? strdup(nopts->name) : NULL;
   if( (p->boundto = n) ){
     p->absx = xoff + n->absx;
     p->absy = yoff + n->absy;
@@ -333,12 +332,12 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, int rows, int cols,
     p->bprev = NULL;
     p->boundto = p;
   }
-  p->resizecb = resizecb;
+  p->resizecb = nopts->resizecb;
   p->stylemask = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
   cell_init(&p->basecell);
-  p->userptr = opaque;
+  p->userptr = nopts->userptr;
   p->above = NULL;
   if( (p->nc = nc) ){
     if( (p->below = nc->top) ){ // always happens save initial plane
@@ -352,7 +351,8 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, int rows, int cols,
   }else{
     p->below = NULL;
   }
-  loginfo(nc, "Created new %dx%d plane @ %dx%d\n", rows, cols, yoff, xoff);
+  loginfo(nc, "Created new %dx%d plane @ %dx%d\n",
+          nopts->rows, nopts->cols, yoff, xoff);
   return p;
 }
 
