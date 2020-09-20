@@ -296,6 +296,9 @@ void free_plane(ncplane* p){
 // ncplane created by ncdirect for rendering visuals. in that case (and only in
 // that case), nc is NULL.
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* nopts){
+  if(nopts->flags > NCPLANE_OPTION_HORALIGNED){
+    logwarn(nc, "Provided unsupported flags %016lx\n", nopts->flags);
+  }
   if(nopts->rows <= 0 || nopts->cols <= 0){
     logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n",
              nopts->rows, nopts->cols);
@@ -318,16 +321,24 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   p->blist = NULL;
   p->name = nopts->name ? strdup(nopts->name) : NULL;
   if( (p->boundto = n) ){
-    p->absx = xoff + n->absx;
-    p->absy = yoff + n->absy;
+    if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
+      p->absx = ncplane_align(n, nopts->horiz.align, nopts->cols);
+    }else{
+      p->absx = nopts->horiz.x;
+    }
+    p->absx += n->absx;
+    p->absy = nopts->y + n->absy;
     if( (p->bnext = n->blist) ){
       n->blist->bprev = &p->bnext;
     }
     p->bprev = &n->blist;
     *p->bprev = p;
   }else{ // new standard plane
-    p->absx = xoff + (nc ? nc->margin_l : 0);
-    p->absy = yoff + (nc ? nc->margin_t : 0);
+    assert(!(nopts->flags & NCPLANE_OPTION_HORALIGNED));
+    assert(0 == nopts->y);
+    assert(0 == nopts->horiz.x);
+    p->absx = (nc ? nc->margin_l : 0);
+    p->absy = (nc ? nc->margin_t : 0);
     p->bnext = NULL;
     p->bprev = NULL;
     p->boundto = p;
@@ -339,7 +350,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   cell_init(&p->basecell);
   p->userptr = nopts->userptr;
   p->above = NULL;
-  if( (p->nc = nc) ){
+  if( (p->nc = nc) ){ // every plane associated with a notcurses object
     if( (p->below = nc->top) ){ // always happens save initial plane
       nc->top->above = p;
     }else{
@@ -348,11 +359,11 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
     nc->top = p;
     nc->stats.fbbytes += fbsize;
     ++nc->stats.planes;
-  }else{
+  }else{ // fake ncplane backing ncdirect object
     p->below = NULL;
   }
   loginfo(nc, "Created new %dx%d plane @ %dx%d\n",
-          nopts->rows, nopts->cols, yoff, xoff);
+          nopts->rows, nopts->cols, p->absy, p->absx);
   return p;
 }
 
@@ -360,10 +371,15 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
 // the z-buffer. clear out all cells. this is for a wholly new context.
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
-  nc->stdplane = ncplane_new_internal(nc, NULL, dimy - (nc->margin_t + nc->margin_b),
-                                      dimx - (nc->margin_l + nc->margin_r), 0, 0, NULL,
-                                      "std", NULL);
-  return nc->stdplane;
+  ncplane_options nopts = {
+    .y = 0,
+    .horiz = {
+      .x = 0,
+    },
+    .rows = dimy - (nc->margin_t + nc->margin_b),
+    .cols = dimx - (nc->margin_l + nc->margin_r),
+  };
+  return nc->stdplane = ncplane_new_internal(nc, NULL, &nopts);
 }
 
 ncplane* notcurses_stdplane(notcurses* nc){
@@ -375,13 +391,7 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
-  if(nopts->flags > NCPLANE_OPTION_HORALIGNED){
-    logwarn(n->nc, "Provided unsupported flags %016lx\n", nopts->flags);
-  }
-  const int x = (nopts->flags & NCPLANE_OPTION_HORALIGNED) ?
-    ncplane_align(n, nopts->horiz.align, nopts->cols) : nopts->horiz.x;
-  return ncplane_new_internal(n->nc, n, nopts->rows, nopts->cols, nopts->y,
-                              x, nopts->userptr, nopts->name, nopts->resizecb);
+  return ncplane_new_internal(n->nc, n, nopts);
 }
 
 void ncplane_home(ncplane* n){
