@@ -511,6 +511,7 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   sigset_t sigmask;
+  // ensure SIGWINCH is delivered only to a thread doing input
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
