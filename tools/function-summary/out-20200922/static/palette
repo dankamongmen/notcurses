@@ -1,0 +1,3 @@
+palette256_get_rgb8
+palette256_set
+palette256_set_rgb8

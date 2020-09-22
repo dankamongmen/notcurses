@@ -1,0 +1,12 @@
+ncmenu_create
+ncmenu_destroy
+ncmenu_mouse_selected
+ncmenu_nextitem
+ncmenu_nextsection
+ncmenu_offer_input
+ncmenu_plane
+ncmenu_previtem
+ncmenu_prevsection
+ncmenu_rollup
+ncmenu_selected
+ncmenu_unroll

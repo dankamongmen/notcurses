@@ -1,0 +1,6 @@
+ncuplot_add_sample
+ncuplot_create
+ncuplot_destroy
+ncuplot_plane
+ncuplot_sample
+ncuplot_set_sample
