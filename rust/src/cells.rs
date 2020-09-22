@@ -13,39 +13,39 @@
 // (#) unit tests:  0 / 2 / 40
 // ------------------------------------------
 //+cell_bchannel
-//+cell_bg
 //+cell_bg_alpha
 //+cell_bg_default_p
 //+cell_bg_palindex
 //+cell_bg_palindex_p
 //+cell_bg_rgb
+//+cell_bg_rgb8
 //+cellcmp
 //+cell_double_wide_p
 //+cell_extract
 //+cell_fchannel
-//+cell_fg
 //+cell_fg_alpha
 //+cell_fg_default_p
 //+cell_fg_palindex
 //+cell_fg_palindex_p
 //+cell_fg_rgb
+//+cell_fg_rgb8
 //+cell_init
 //+cell_load_simple
 //+cell_prime
 //+cell_set_bchannel
-//+cell_set_bg
 //+cell_set_bg_alpha
 //+cell_set_bg_default
 //+cell_set_bg_palindex
 //+cell_set_bg_rgb
-//xcell_set_bg_rgb_clipped   // unneeded
+//+cell_set_bg_rgb8
+//xcell_set_bg_rgb8_clipped   // unneeded
 //+cell_set_fchannel
-//+cell_set_fg
 //+cell_set_fg_alpha
 //+cell_set_fg_default
 //+cell_set_fg_palindex
 //+cell_set_fg_rgb
-//xcell_set_fg_rgb_clipped   // unneeded
+//+cell_set_fg_rgb8
+//xcell_set_fg_rgb8_clipped   // unneeded
 //+cells_load_box
 //+cell_strdup
 //+cell_styles
@@ -350,15 +350,15 @@ pub fn cell_set_fchannel(cell: &mut Cell, channel: Channel) -> ChannelPair {
 /// Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn cell_fg(cell: &Cell) -> Channel {
-    nc::channels_fg(cell.channels)
+pub fn cell_fg_rgb(cell: &Cell) -> Channel {
+    nc::channels_fg_rgb(cell.channels)
 }
 
 /// Extract 24 bits of background RGB from 'cell', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn cell_bg(cell: &Cell) -> Channel {
-    nc::channels_bg(cell.channels)
+pub fn cell_bg_rgb(cell: &Cell) -> Channel {
+    nc::channels_bg_rgb(cell.channels)
 }
 
 /// Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
@@ -378,30 +378,30 @@ pub fn cell_bg_alpha(cell: &Cell) -> AlphaBits {
 /// Extract 24 bits of foreground RGB from 'cell', split into components.
 // TODO: TEST
 #[inline]
-pub fn cell_fg_rgb(cell: &Cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
-    nc::channels_fg_rgb(cell.channels, red, green, blue)
+pub fn cell_fg_rgb8(cell: &Cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
+    nc::channels_fg_rgb8(cell.channels, red, green, blue)
 }
 
 /// Extract 24 bits of background RGB from 'cell', split into components.
 // TODO: TEST
 #[inline]
-pub fn cell_bg_rgb(cell: &Cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
-    nc::channels_bg_rgb(cell.channels, red, green, blue)
+pub fn cell_bg_rgb8(cell: &Cell, red: &mut Color, green: &mut Color, blue: &mut Color) -> Channel {
+    nc::channels_bg_rgb8(cell.channels, red, green, blue)
 }
 
 /// Set the r, g, and b cell for the foreground component of this 64-bit
 /// 'cell' variable, and mark it as not using the default color.
 // TODO: TEST
 #[inline]
-pub fn cell_set_fg_rgb(cell: &mut Cell, red: Color, green: Color, blue: Color) {
-    nc::channels_set_fg_rgb(&mut cell.channels, red, green, blue);
+pub fn cell_set_fg_rgb8(cell: &mut Cell, red: Color, green: Color, blue: Color) {
+    nc::channels_set_fg_rgb8(&mut cell.channels, red, green, blue);
 }
 
-/// Same as `cell_set_fg_rgb()` but with an assembled 24-bit RGB value.
+/// Same as `cell_set_fg_rgb8()` but with an assembled 24-bit RGB value.
 // TODO: TEST
 #[inline]
-pub fn cell_set_fg(cell: &mut Cell, channel: Channel) {
-    nc::channels_set_fg(&mut cell.channels, channel);
+pub fn cell_set_fg_rgb(cell: &mut Cell, channel: Channel) {
+    nc::channels_set_fg_rgb(&mut cell.channels, channel);
 }
 
 /// Set the cell's foreground palette index, set the foreground palette index
@@ -429,16 +429,16 @@ pub fn cell_fg_palindex(cell: &Cell) -> PaletteIndex {
 ///
 // TODO: TEST
 #[inline]
-pub fn cell_set_bg_rgb(cell: &mut Cell, red: Color, green: Color, blue: Color) {
-    nc::channels_set_bg_rgb(&mut cell.channels, red, green, blue);
+pub fn cell_set_bg_rgb8(cell: &mut Cell, red: Color, green: Color, blue: Color) {
+    nc::channels_set_bg_rgb8(&mut cell.channels, red, green, blue);
 }
 
-/// Same as `cell_set_fg_rgb()` but with an assembled 24-bit RGB value.
+/// Same as `cell_set_fg_rgb8()` but with an assembled 24-bit RGB value.
 ///
 // TODO: TEST
 #[inline]
-pub fn cell_set_bg(cell: &mut Cell, channel: Channel) {
-    nc::channels_set_bg(&mut cell.channels, channel);
+pub fn cell_set_bg_rgb(cell: &mut Cell, channel: Channel) {
+    nc::channels_set_bg_rgb(&mut cell.channels, channel);
 }
 
 /// Set the cell's background palette index, set the background palette index

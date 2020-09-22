@@ -7,17 +7,17 @@
 //
 // - These functions were deemed unnecessary to implement:
 //   - `channel_set_rgb_clipped()`
-//   - `channels_set_fg_rgb_clipped()`
-//   - `channels_set_bg_rgb_clipped()`
+//   - `channels_set_fg_rgb8_clipped()`
+//   - `channels_set_bg_rgb8_clipped()`
 // ---------------------------------------------------------------------------------------
 //
 // functions already exported by bindgen : 0
 // ------------------------------------------
 //
-// static inline functions to reimplement: 33
+// static inline functions to reimplement: 37
 // ------------------------------------------ (done / (x) wont / remaining)
 // (+) implement : 34 / 3 /  0
-// (#) unit tests: 14 / 0 / 20
+// (#) unit tests: 14 / 3 / 20
 // ------------------------------------------
 //#channel_alpha
 //#channel_b
@@ -27,11 +27,11 @@
 //#channel_r
 //#channel_rgb
 //#channels_bchannel
-//+channels_bg
 //+channels_bg_alpha
 //+channels_bg_default_p
 //+channels_bg_palindex_p
 //+channels_bg_rgb
+//+channels_bg_rgb8
 //#channels_combine
 //+channel_set
 //#channel_set_alpha
@@ -39,23 +39,23 @@
 //#channel_set_rgb
 //xchannel_set_rgb_clipped
 //#channels_fchannel
-//+channels_fg
 //+channels_fg_alpha
 //+channels_fg_default_p
 //+channels_fg_palindex_p
 //+channels_fg_rgb
+//+channels_fg_rgb8
 //#channels_set_bchannel
-//+channels_set_bg
 //+channels_set_bg_alpha
 //+channels_set_bg_default
 //+channels_set_bg_rgb
-//xchannels_set_bg_rgb_clipped
+//+channels_set_bg_rgb8
+//xchannels_set_bg_rgb8_clipped
 //#channels_set_fchannel
-//+channels_set_fg
 //+channels_set_fg_alpha
 //+channels_set_fg_default
 //+channels_set_fg_rgb
-//xchannels_set_fg_rgb_clipped
+//+channels_set_fg_rgb8
+//xchannels_set_fg_rgb8_clipped
 
 use crate as nc;
 
@@ -180,14 +180,14 @@ pub fn channels_combine(fchannel: Channel, bchannel: Channel) -> ChannelPair {
 /// Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn channels_fg(channels: ChannelPair) -> Channel {
+pub fn channels_fg_rgb(channels: ChannelPair) -> Channel {
     channels_fchannel(channels) & nc::CELL_BG_RGB_MASK
 }
 
 /// Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn channels_bg(channels: ChannelPair) -> Channel {
+pub fn channels_bg_rgb(channels: ChannelPair) -> Channel {
     channels_bchannel(channels) & nc::CELL_BG_RGB_MASK
 }
 
@@ -208,7 +208,7 @@ pub fn channels_bg_alpha(channels: ChannelPair) -> AlphaBits {
 /// Extract 24 bits of foreground RGB from 'channels', split into subchannels.
 // TODO: TEST
 #[inline]
-pub fn channels_fg_rgb(
+pub fn channels_fg_rgb8(
     channels: ChannelPair,
     r: &mut Color,
     g: &mut Color,
@@ -220,7 +220,7 @@ pub fn channels_fg_rgb(
 /// Extract 24 bits of background RGB from 'channels', split into subchannels.
 // TODO: TEST
 #[inline]
-pub fn channels_bg_rgb(
+pub fn channels_bg_rgb8(
     channels: ChannelPair,
     r: &mut Color,
     g: &mut Color,
@@ -233,16 +233,16 @@ pub fn channels_bg_rgb(
 /// 'channels' variable, and mark it as not using the default color.
 // TODO: TEST
 #[inline]
-pub fn channels_set_fg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
+pub fn channels_set_fg_rgb8(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
     let mut channel = channels_fchannel(*channels);
     channel_set_rgb(&mut channel, r, g, b);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
 }
 
-/// Same as channels_set_fg_rgb but set an assembled 24 bit channel at once.
+/// Same as channels_set_fg_rgb8 but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
-pub fn channels_set_fg(channels: &mut ChannelPair, rgb: Rgb) {
+pub fn channels_set_fg_rgb(channels: &mut ChannelPair, rgb: Rgb) {
     let mut channel = channels_fchannel(*channels);
     channel_set(&mut channel, rgb);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
@@ -252,16 +252,16 @@ pub fn channels_set_fg(channels: &mut ChannelPair, rgb: Rgb) {
 /// 'channels' variable, and mark it as not using the default color.
 // TODO: TEST
 #[inline]
-pub fn channels_set_bg_rgb(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
+pub fn channels_set_bg_rgb8(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
     let mut channel = channels_bchannel(*channels);
     channel_set_rgb(&mut channel, r, g, b);
     channels_set_bchannel(channels, channel);
 }
 
-/// Same as channels_set_bg_rgb but set an assembled 24 bit channel at once.
+/// Same as channels_set_bg_rgb8 but set an assembled 24 bit channel at once.
 // TODO: TEST
 #[inline]
-pub fn channels_set_bg(channels: &mut ChannelPair, rgb: Rgb) {
+pub fn channels_set_bg_rgb(channels: &mut ChannelPair, rgb: Rgb) {
     let mut channel = channels_bchannel(*channels);
     channel_set(&mut channel, rgb);
     channels_set_bchannel(channels, channel);

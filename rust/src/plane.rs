@@ -1,15 +1,16 @@
-// functions already exported by bindgen : 86
+// functions already exported by bindgen : 94
 // ------------------------------------------
+// ncplane_above
 // ncplane_at_cursor
 // ncplane_attr
 // ncplane_at_yx
 // ncplane_base
 // ncplane_below
-// ncplane_bound
 // ncplane_box
 // ncplane_center_abs
 // ncplane_channels
 // ncplane_contents
+// ncplane_create
 // ncplane_cursor_move_yx
 // ncplane_cursor_yx
 // ncplane_destroy
@@ -28,43 +29,49 @@
 // ncplane_hline_interp
 // ncplane_home
 // ncplane_mergedown
+// ncplane_mergedown_simple
 // ncplane_move_above
 // ncplane_move_below
 // ncplane_move_bottom
 // ncplane_move_top
 // ncplane_move_yx
-// ncplane_new
 // ncplane_notcurses
 // ncplane_notcurses_const
+// ncplane_parent
+// ncplane_parent_const
 // ncplane_polyfill_yx
 // ncplane_pulse
+// ncplane_putchar_stained
 // ncplane_putc_yx
 // ncplane_putegc_stained
 // ncplane_putegc_yx
 // ncplane_putnstr_aligned
 // ncplane_putnstr_yx
-// ncplane_putsimple_stained
 // ncplane_putstr_aligned
 // ncplane_putstr_stained
 // ncplane_putstr_yx
 // ncplane_puttext
 // ncplane_putwegc_stained
+// ncplane_putwstr_stained
 // ncplane_qrcode
 // ncplane_reparent
 // ncplane_resize
+// ncplane_resize_realign
 // ncplane_rgba
 // ncplane_rotate_ccw
 // ncplane_rotate_cw
 // ncplane_set_attr
 // ncplane_set_base
 // ncplane_set_base_cell
-// ncplane_set_bg
+// ncplane_set_bchannel
 // ncplane_set_bg_alpha
 // ncplane_set_bg_default
 // ncplane_set_bg_palindex
 // ncplane_set_bg_rgb
+// ncplane_set_bg_rgb8
 // ncplane_set_bg_rgb8_clipped
 // ncplane_set_channels
+// ncplane_set_fchannel
 // ncplane_set_fg_alpha
 // ncplane_set_fg_default
 // ncplane_set_fg_palindex
@@ -84,7 +91,12 @@
 // ncplane_vprintf_aligned
 // ncplane_vprintf_stained
 // ncplane_vprintf_yx
+// ncplane_x
+// ncplane_y
 // ncplane_yx
+//
+// NOTE: functions removed:
+// ncplane_styles (duplicates ncplane_attr)
 //
 // static inline functions to reimplement: 41
 // ------------------------------------------ (done / (x) wont / remaining)
@@ -99,29 +111,30 @@
 //+ncplane_bg_default_p
 //+ncplane_bg_rgb
 //+ncplane_bg_rgb8
-//+ncplane_bg_rgb8_clipped
 //+ncplane_box_sized
 //+ncplane_dim_x
 //+ncplane_dim_y
 //+ncplane_double_box
 //+ncplane_double_box_sized
 //+ncplane_fchannel
-//+ncplane_fg
+//+ncplane_fg <<<<
 //+ncplane_fg_alpha
 //+ncplane_fg_default_p
 //+ncplane_fg_rgb
+//+ncplane_fg_rgb8
 //+ncplane_gradient_sized     // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
 //+ncplane_hline
 //+ncplane_perimeter
 //+ncplane_perimeter_double
 //+ncplane_perimeter_rounded
 //+ncplane_putc
+// ncplane_putchar
+// ncplane_putchar_yx
 //+ncplane_putegc
 //+ncplane_putnstr
-//+ncplane_putsimple
-//+ncplane_putsimple_yx
 //+ncplane_putstr
 //xncplane_putwc                // I don't think these will be needed from Rust. See:
+//xncplane_putwc_stained
 //xncplane_putwc_yx             // https://locka99.gitbooks.io/a-guide-to-porting-c-to-rust/content/features_of_rust/strings.html
 //xncplane_putwegc              //
 //xncplane_putwegc_yx           //
@@ -144,7 +157,6 @@ use cstr_core::CString;
 use crate as nc;
 use nc::types::{
     Align, AlphaBits, Cell, Channel, ChannelPair, Color, EGCBackstop, IntResult, Plane, StyleMask,
-    EGC,
 };
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
@@ -455,33 +467,11 @@ pub fn ncplane_putc(plane: &mut Plane, cell: &Cell) -> IntResult {
     unsafe { nc::ncplane_putc_yx(plane, -1, -1, cell) }
 }
 
-/// Call ncplane_putsimple_yx() at the current cursor location.
-// TODO: TEST
-#[inline]
-pub fn ncplane_putsimple(plane: &mut Plane, ch: EGC) -> IntResult {
-    nc::ncplane_putsimple_yx(plane, -1, -1, ch)
-}
-
 /// Call ncplane_putegc() at the current cursor location.
 // TODO: TEST
 #[inline]
 pub fn ncplane_putegc(plane: &mut Plane, gcluster: i8, sbytes: &mut i32) -> IntResult {
     unsafe { nc::ncplane_putegc_yx(plane, -1, -1, &gcluster, sbytes) }
-}
-
-/// Replace the EGC underneath us, but retain the styling. The current styling
-/// of the plane will not be changed.
-///
-/// Replace the cell at the specified coordinates with the provided 7-bit char 'ch'.
-/// Advance the cursor by 1. On success, returns 1. On failure, returns -1.
-///
-// TODO: TEST
-#[inline]
-pub fn ncplane_putsimple_yx(plane: &mut Plane, y: i32, x: i32, ch: EGC) -> IntResult {
-    let newcell = cell_initializer![ch, unsafe { nc::ncplane_attr(plane) }, unsafe {
-        nc::ncplane_channels(plane)
-    }];
-    unsafe { nc::ncplane_putc_yx(plane, y, x, &newcell) }
 }
 
 ///
@@ -615,15 +605,15 @@ pub fn ncplane_bchannel(plane: &Plane) -> Channel {
 /// Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn ncplane_fg(plane: &Plane) -> Channel {
-    nc::channels_fg(unsafe { nc::ncplane_channels(plane) })
+pub fn ncplane_fg_rgb(plane: &Plane) -> Channel {
+    nc::channels_fg_rgb(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 // TODO: TEST
 #[inline]
-pub fn ncplane_bg(plane: &Plane) -> Channel {
-    nc::channels_bg(unsafe { nc::ncplane_channels(plane) })
+pub fn ncplane_bg_rgb(plane: &Plane) -> Channel {
+    nc::channels_bg_rgb(unsafe { nc::ncplane_channels(plane) })
 }
 
 /// Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
@@ -657,25 +647,25 @@ pub fn ncplane_bg_default_p(plane: &Plane) -> bool {
 /// Extract 24 bits of foreground RGB from a plane, split into components.
 // TODO: TEST
 #[inline]
-pub fn ncplane_fg_rgb(
+pub fn ncplane_fg_rgb8(
     plane: &Plane,
     red: &mut Color,
     green: &mut Color,
     blue: &mut Color,
 ) -> Channel {
-    nc::channels_fg_rgb(unsafe { nc::ncplane_channels(plane) }, red, green, blue)
+    nc::channels_fg_rgb8(unsafe { nc::ncplane_channels(plane) }, red, green, blue)
 }
 
 /// Extract 24 bits of background RGB from a plane, split into components.
 // TODO: TEST
 #[inline]
-pub fn ncplane_bg_rgb(
+pub fn ncplane_bg_rgb8(
     plane: &Plane,
     red: &mut Color,
     green: &mut Color,
     blue: &mut Color,
 ) -> Channel {
-    nc::channels_bg_rgb(unsafe { nc::ncplane_channels(plane) }, red, green, blue)
+    nc::channels_bg_rgb8(unsafe { nc::ncplane_channels(plane) }, red, green, blue)
 }
 
 // TODO: TEST
