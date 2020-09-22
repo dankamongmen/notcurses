@@ -23,13 +23,13 @@ fn main() {
         sleep(Duration::new(1, 0));
 
         nc::ncdirect_putstr(ncd, 0, CString::new("HELLO").unwrap().as_ptr());
+        nc::ncdirect_flush(ncd);
 
-        nc::ncdirect_cursor_enable(ncd); // force flush
         sleep(Duration::new(1, 0));
 
         nc::ncdirect_putstr(ncd, 0, CString::new(" WORLD").unwrap().as_ptr());
+        nc::ncdirect_flush(ncd);
 
-        nc::ncdirect_cursor_enable(ncd); // force flush
         sleep(Duration::new(1, 0));
 
         // show current coordinates
