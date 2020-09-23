@@ -583,7 +583,7 @@ const struct blitset notcurses_blitters[] = {
      .blit = quadrant_blit,  .name = "quadblitter",   .fill = false, },
    { .geom = NCBLIT_4x1,     .width = 1, .height = 4, .egcs = L" ▂▄▆█",
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
-   { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿",
+   { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
      .blit = braille_blit,   .name = "braille",       .fill = true,  },
    { .geom = NCBLIT_SIXEL,   .width = 1, .height = 6, .egcs = L"",
      .blit = NULL,           .name = "sixel",         .fill = true,  }, // FIXME
