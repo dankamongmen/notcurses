@@ -151,15 +151,15 @@ namespace ncpp
 			return notcurses_cantruecolor (nc);
 		}
 
-    int cursor_enable (int y, int x) const noexcept
-    {
-      return error_guard (notcurses_cursor_enable (nc, y, x), -1);
-    }
+		int cursor_enable (int y, int x) const NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_cursor_enable (nc, y, x), -1);
+		}
 
-    int cursor_disable () const noexcept
-    {
-      return error_guard (notcurses_cursor_disable (nc), -1);
-    }
+		int cursor_disable () const NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_cursor_disable (nc), -1);
+		}
 
 		void get_stats (ncstats *stats) const noexcept
 		{
@@ -273,6 +273,16 @@ namespace ncpp
 			notcurses_debug (nc, debugfp);
 		}
 
+		bool align (int availcols, ncalign_e align, int cols) const NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_align (availcols, align, cols), -INT_MAX);
+		}
+
+		static bool ucs32_to_utf8 (const char32_t *ucs32, unsigned ucs32count, unsigned char *resultbuf, size_t buflen) NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_ucs32_to_utf8 (ucs32, ucs32count, resultbuf, buflen), -1);
+		}
+
 		Plane* get_stdplane () noexcept
 		{
 			return new Plane (notcurses_stdplane (nc), true);
@@ -294,6 +304,7 @@ namespace ncpp
 		}
 
 		Plane* get_top () noexcept;
+		Plane* get_bottom () noexcept;
 
 	private:
 		notcurses *nc;

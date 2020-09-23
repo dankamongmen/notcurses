@@ -50,6 +50,15 @@ Plane* NotCurses::get_top () noexcept
 	return Plane::map_plane (top);
 }
 
+Plane* NotCurses::get_bottom () noexcept
+{
+	ncplane *bottom = notcurses_bottom (nc);
+	if (bottom == nullptr)
+		return nullptr;
+
+	return Plane::map_plane (bottom);
+}
+
 // This is potentially dangerous, but alas necessary. It can cause other calls
 // here to fail in a bad way, but we need a way to report errors to
 // std{out,err} in case of failure and that will work only if notcurses is

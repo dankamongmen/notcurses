@@ -135,6 +135,11 @@ namespace ncpp
 			return plane;
 		}
 
+		bool resize_realign () const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncplane_resize_realign (plane), -1);
+		}
+
 		bool resize (int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen) const NOEXCEPT_MAYBE
 		{
 			int ret = ncplane_resize (
@@ -230,6 +235,16 @@ namespace ncpp
 		void erase () const noexcept
 		{
 			ncplane_erase (plane);
+		}
+
+		int get_x () const noexcept
+		{
+			return ncplane_x (plane);
+		}
+
+		int get_y () const noexcept
+		{
+			return ncplane_y (plane);
 		}
 
 		int get_align (NCAlign align, int c) const NOEXCEPT_MAYBE
@@ -330,6 +345,19 @@ namespace ncpp
 				throw invalid_argument ("'above' must be a valid pointer");
 
 			return move_above (*above);
+		}
+
+		bool mergedown (Plane &dst, int begsrcy, int begsrcx, int leny, int lenx, int dsty, int dstx) const
+		{
+			return mergedown (&dst, begsrcy, begsrcx, leny, lenx, dsty, dstx);
+		}
+
+		bool mergedown (Plane *dst, int begsrcy, int begsrcx, int leny, int lenx, int dsty, int dstx) const
+		{
+			if (dst != nullptr && plane == dst->plane)
+				throw invalid_argument ("'dst' must refer to a different plane than the one this method is called on");
+
+			return error_guard (ncplane_mergedown (plane, dst != nullptr ? dst->plane : nullptr, begsrcy, begsrcx, leny, lenx, dsty, dstx), -1);
 		}
 
 		bool mergedown_simple (Plane &dst) const
@@ -439,15 +467,20 @@ namespace ncpp
 
 		// OK, this is ugly, but we need to rename this overload or calls similar to n->putc (0, 0, '0') will be
 		// considered ambiguous with the above `putc (int, int, char)` overload.
-		int putcw (int y, int x, wchar_t w) const NOEXCEPT_MAYBE
+		int putwc (int y, int x, wchar_t w) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_putwc_yx (plane, y, x, w), -1);
 		}
 
 		// Ditto
-		int putcw (wchar_t w) const NOEXCEPT_MAYBE
+		int putwc (wchar_t w) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_putwc (plane, w), -1);
+		}
+
+		int putwc_stained (wchar_t w) const NOEXCEPT_MAYBE
+		{
+			return error_guard<int> (ncplane_putwc_stained (plane, w), -1);
 		}
 
 		int putstr (const char *gclustarr) const NOEXCEPT_MAYBE
@@ -480,6 +513,11 @@ namespace ncpp
 		int putstr (int y, NCAlign atype, const wchar_t *gcluststyles) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_putwstr_aligned (plane, y, static_cast<ncalign_e>(atype), gcluststyles), -1);
+		}
+
+		int putstr_stained (const wchar_t* gclustarr) const NOEXCEPT_MAYBE
+		{
+			return error_guard<int> (ncplane_putwstr_stained (plane, gclustarr), -1);
 		}
 
 		int putstr_stained (const char* s) const NOEXCEPT_MAYBE
@@ -705,6 +743,16 @@ namespace ncpp
 			return ncplane_fg_alpha (plane);
 		}
 
+		uint64_t set_fchannel (uint32_t channel) const noexcept
+		{
+			return ncplane_set_fchannel (plane, channel);
+		}
+
+		uint64_t set_bchannel (uint32_t channel) const noexcept
+		{
+			return ncplane_set_bchannel (plane, channel);
+		}
+
 		void set_channels (uint64_t channels) const noexcept
 		{
 			ncplane_set_channels (plane, channels);
@@ -795,6 +843,11 @@ namespace ncpp
 			return ncplane_set_scrolling (plane, scrollp);
 		}
 
+		unsigned get_styles () const noexcept
+		{
+			return ncplane_styles (plane);
+		}
+
 		void styles_set (CellStyle styles) const noexcept
 		{
 			ncplane_styles_set (plane, static_cast<unsigned>(styles));
@@ -823,6 +876,11 @@ namespace ncpp
 		Plane* get_below () const noexcept
 		{
 			return map_plane (ncplane_below (plane));
+		}
+
+		Plane* get_above () const noexcept
+		{
+			return map_plane (ncplane_above (plane));
 		}
 
 		bool set_base_cell (Cell &c) const NOEXCEPT_MAYBE

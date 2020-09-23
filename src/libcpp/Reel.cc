@@ -10,7 +10,7 @@ ncreel_options NcReel::default_options = {
 	/* tabletmask         */ 0,
 	/* tabletchan         */ 0,
 	/* focusedchan        */ 0,
-  /* flags              */ 0,
+	/* flags              */ 0,
 };
 
 Plane* NcReel::get_plane () const noexcept

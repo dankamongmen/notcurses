@@ -175,6 +175,28 @@ namespace ncpp
 			return error_guard (ncdirect_double_box (direct, ul, ur, ll, lr, ylen, xlen, ctlword), -1);
 		}
 
+		bool flush () const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncdirect_flush (direct), -1);
+		}
+
+		char32_t getc (ncinput *ni, bool blocking) const noexcept
+		{
+			if (blocking)
+				return ncdirect_getc_blocking (direct, ni);
+			return ncdirect_getc_nblock (direct, ni);
+		}
+
+		char32_t getc (const struct timespec *ts, sigset_t *sigmask, ncinput *ni) const noexcept
+		{
+			return ncdirect_getc (direct, ts, sigmask, ni);
+		}
+
+		int get_inputready_fd () const noexcept
+		{
+			return ncdirect_inputready_fd (direct);
+		}
+
 		bool canopen_images () const noexcept
 		{
 			return ncdirect_canopen_images (direct);
