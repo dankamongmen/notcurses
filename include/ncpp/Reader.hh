@@ -47,6 +47,36 @@ namespace ncpp
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
+		//
+		// None of the move* methods should throw since their return value (0 - moved, -1 - not moved) appear to be
+		// purely informational, not errors per se. If we had `can_move*` functions then `move*` could throw exceptions,
+		// potentially.
+		//
+		int move_left () const noexcept
+		{
+			return ncreader_move_left (reader);
+		}
+
+		int move_right () const noexcept
+		{
+			return ncreader_move_right (reader);
+		}
+
+		int move_up () const noexcept
+		{
+			return ncreader_move_up (reader);
+		}
+
+		int move_down () const noexcept
+		{
+			return ncreader_move_down (reader);
+		}
+
+		bool write_egc (const char *egc) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncreader_write_egc (reader, egc), -1);
+		}
+
 		char* get_contents () const noexcept
 		{
 			return ncreader_contents(reader);
