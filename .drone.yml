@@ -24,7 +24,7 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/focal:2020-08-31a
+  image: dankamongmen/focal:2020-09-22a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
