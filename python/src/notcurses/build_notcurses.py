@@ -337,7 +337,7 @@ int ncreel_redraw(struct ncreel* pr);
 struct nctablet* ncreel_focused(struct ncreel* pr);
 struct nctablet* ncreel_next(struct ncreel* pr);
 struct nctablet* ncreel_prev(struct ncreel* pr);
-int ncreel_destroy(struct ncreel* pr);
+void ncreel_destroy(struct ncreel* pr);
 void* nctablet_userptr(struct nctablet* t);
 struct ncplane* nctablet_ncplane(struct nctablet* t);
 int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);

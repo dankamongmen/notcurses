@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.7.5 (not yet released)
+  * `ncreel_destroy()` now returns `void` rather than `int`.
+
 * 1.7.4 (2020-09-20)
   * All `_rgb_clipped()` functions have been renamed `_rgb8_clipped()`, to
     match the changes made in 1.7.2. Sorry, I ought have done this before.

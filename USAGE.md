@@ -1949,24 +1949,25 @@ configured instead.
 
 ```c
 // An ncreel is a notcurses region devoted to displaying zero or more
-// line-oriented, contained planes ("tablets") between which the user may
-// navigate. If at least one tablet exists, there is an active tablet. As much
-// of the active tablet as is possible is always displayed. If there is space
-// left over, other tablets are included in the display. Tablets can come and go
-// at any time, and can grow or shrink at any time.
+// line-oriented, contained tablets between which the user may navigate. If at
+// least one tablets exists, there is a "focused tablet". As much of the focused
+// tablet as is possible is always displayed. If there is space left over, other
+// tablets are included in the display. Tablets can come and go at any time, and
+// can grow or shrink at any time.
 //
 // This structure is amenable to line- and page-based navigation via keystrokes,
 // scrolling gestures, trackballs, scrollwheels, touchpads, and verbal commands.
 
+// is scrolling infinite (can one move down or up forever, or is an end
+// reached?). if true, 'circular' specifies how to handle the special case of
+// an incompletely-filled reel.
+#define NCREEL_OPTION_INFINITESCROLL 0x0001ull
+// is navigation circular (does moving down from the last tablet move to the
+// first, and vice versa)? only meaningful when infinitescroll is true. if
+// infinitescroll is false, this must be false.
+#define NCREEL_OPTION_CIRCULAR       0x0002ull
+
 typedef struct ncreel_options {
-  // is scrolling infinite (can one move down or up forever, or is an end
-  // reached?). if true, 'circular' specifies how to handle the special case of
-  // an incompletely-filled reel.
-  bool infinitescroll;
-  // is navigation circular (does moving down from the last tablet move to the
-  // first, and vice versa)? only meaningful when infinitescroll is true. if
-  // infinitescroll is false, this must be false.
-  bool circular;
   // notcurses can draw a border around the ncreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
@@ -1978,16 +1979,16 @@ typedef struct ncreel_options {
   unsigned tabletmask; // bitfield; same as bordermask but for tablet borders
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
-  uint64_t bgchannel;  // background colors
-  unsigned flags;      // bitfield over NCREEL_OPTION_*
+  uint64_t flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 
 struct nctablet;
 struct ncreel;
 
-// Create an ncreel according to the provided specifications. Returns NULL on
-// failure. 'nc' must be a valid plane.
-struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);
+// Take over the ncplane 'nc' and use it to draw a reel according to 'popts'.
+// The plane will be destroyed by ncreel_destroy(); this transfers ownership.
+struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* popts)
+  __attribute__ ((nonnull (1)));
 
 // Returns the ncplane on which this ncreel lives.
 struct ncplane* ncreel_plane(struct ncreel* pr);
@@ -1996,58 +1997,55 @@ struct ncplane* ncreel_plane(struct ncreel* pr);
 // may be extracted), and a bool indicating whether output ought be drawn from
 // the top (true) or bottom (false). Returns non-negative count of output lines,
 // which must be less than or equal to ncplane_dim_y(nctablet_plane(t)).
-typedef int (*tabletcb)(struct nctablet* t, bool cliptop);
+typedef int (*tabletcb)(struct nctablet* t, bool drawfromtop);
 
-// Add a new nctablet to the provided ncreel, having the callback object
-// opaque. Neither, either, or both of after and before may be specified. If
-// neither is specified, the new tablet can be added anywhere on the reel. If
-// one or the other is specified, the tablet will be added before or after the
-// specified tablet. If both are specified, the tablet will be added to the
+// Add a new nctablet to the provided ncreel 'nr', having the callback object
+// 'opaque'. Neither, either, or both of 'after' and 'before' may be specified.
+// If neither is specified, the new tablet can be added anywhere on the reel.
+// If one or the other is specified, the tablet will be added before or after
+// the specified tablet. If both are specified, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
-// Calls ncreel_redraw() upon success.
-struct nctablet* ncreel_add(struct ncreel* pr, struct nctablet* after,
-                            struct nctablet* before, tabletcb cb,
-                            void* opaque);
+struct nctablet* ncreel_add(struct ncreel* nr, struct nctablet* after,
+                            struct nctablet* before, tabletcb cb, void* opaque);
 
-// Return the number of nctablets in the ncreel.
-int ncreel_tabletcount(const struct ncreel* pr);
+// Return the number of nctablets in the ncreel 'nr'.
+int ncreel_tabletcount(const struct ncreel* nr);
 
-// Delete the tablet specified by t from the ncreel specified by pr. Returns
-// -1 if the tablet cannot be found. Calls ncreel_redraw() on success.
-int ncreel_del(struct ncreel* pr, struct nctablet* t);
+// Delete the tablet specified by t from the ncreel 'nr'. Returns -1 if the
+// tablet cannot be found.
+int ncreel_del(struct ncreel* nr, struct nctablet* t);
 
-// Redraw the ncreel in its entirety. The reel will be cleared, and tablets
-// will be lain out, using the focused tablet as a fulcrum. Tablet drawing
-// callbacks will be invoked for each visible tablet.
-int ncreel_redraw(struct ncreel* pr);
+// Redraw the ncreel 'nr' in its entirety. The reel will be cleared, and
+// tablets will be lain out, using the focused tablet as a fulcrum. Tablet
+// drawing callbacks will be invoked for each visible tablet.
+int ncreel_redraw(struct ncreel* nr);
 
-// Offer the input to the ncreel. If it's relevant, this function returns
+// Offer input 'ni' to the ncreel 'nr'. If it's relevant, this function returns
 // true, and the input ought not be processed further. If it's irrelevant to
 // the reel, false is returned. Relevant inputs include:
 //  * a mouse click on a tablet (focuses tablet)
 //  * a mouse scrollwheel event (rolls reel)
 //  * up, down, pgup, or pgdown (navigates among items)
-bool ncreel_offer_input(struct ncreel* n, const struct ncinput* nc);
+bool ncreel_offer_input(struct ncreel* nr, const struct ncinput* ni);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
-struct nctablet* ncreel_focused(struct ncreel* pr);
+struct nctablet* ncreel_focused(struct ncreel* nr);
 
-// Change focus to the next tablet, if one exists. Calls ncreel_redraw().
-struct nctablet* ncreel_next(struct ncreel* pr);
+// Change focus to the next tablet, if one exists
+struct nctablet* ncreel_next(struct ncreel* nr);
 
-// Change focus to the previous tablet, if one exists. Calls ncreel_redraw().
-struct nctablet* ncreel_prev(struct ncreel* pr);
+// Change focus to the previous tablet, if one exists
+struct nctablet* ncreel_prev(struct ncreel* nr);
 
-// Destroy an ncreel allocated with ncreel_create(). Does not destroy the
-// underlying plane. Returns non-zero on failure.
-int ncreel_destroy(struct ncreel* pr);
+// Destroy an ncreel allocated with ncreel_create().
+void ncreel_destroy(struct ncreel* nr);
 
 // Returns a pointer to a user pointer associated with this nctablet.
 void* nctablet_userptr(struct nctablet* t);
 
-// Access the ncplane associated with this tablet, if one exists.
+// Access the ncplane associated with this nctablet, if one exists.
 struct ncplane* nctablet_ncplane(struct nctablet* t);
 ```
 

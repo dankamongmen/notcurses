@@ -30,7 +30,6 @@ typedef struct ncreel_options {
   unsigned tabletmask; // bitfield for tablet borders
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
-  uint64_t bgchannel;  // background colors
   unsigned flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 ```
@@ -55,7 +54,7 @@ typedef struct ncreel_options {
 
 **struct nctablet* ncreel_prev(struct ncreel* nr);**
 
-**int ncreel_destroy(struct ncreel* nr);**
+**void ncreel_destroy(struct ncreel* nr);**
 
 **void* nctablet_userptr(struct nctablet* t);**
 

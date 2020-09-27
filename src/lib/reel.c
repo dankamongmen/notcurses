@@ -811,8 +811,7 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
   return 0;
 }
 
-int ncreel_destroy(ncreel* nreel){
-  int ret = 0;
+void ncreel_destroy(ncreel* nreel){
   if(nreel){
     nctablet* t;
     while( (t = nreel->tablets) ){
@@ -821,7 +820,6 @@ int ncreel_destroy(ncreel* nreel){
     ncplane_destroy(nreel->p);
     free(nreel);
   }
-  return ret;
 }
 
 void* nctablet_userptr(nctablet* t){

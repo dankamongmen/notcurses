@@ -195,8 +195,8 @@ ncreel_demo_core(struct notcurses* nc){
   int x = 8, y = 4;
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
-  struct ncplane* w = ncplane_new(std, dimy - 12, dimx - 16, y, x, NULL, NULL);
-  if(w == NULL){
+  struct ncplane* n = ncplane_new(std, dimy - 12, dimx - 16, y, x, NULL, NULL);
+  if(n == NULL){
     return -1;
   }
   ncreel_options popts = {
@@ -214,17 +214,17 @@ ncreel_demo_core(struct notcurses* nc){
   channels_set_bg_rgb8(&popts.borderchan, 0, 0, 0);
   uint64_t bgchannels = 0;
   if(channels_set_fg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
-    ncplane_destroy(w);
+    ncplane_destroy(n);
     return -1;
   }
   if(channels_set_bg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
-    ncplane_destroy(w);
+    ncplane_destroy(n);
     return -1;
   }
-  ncplane_set_base(w, "", 0, bgchannels);
-  struct ncreel* pr = ncreel_create(w, &popts);
-  if(pr == NULL){
-    ncplane_destroy(w);
+  ncplane_set_base(n, "", 0, bgchannels);
+  struct ncreel* nr = ncreel_create(n, &popts);
+  if(nr == NULL){
+    ncplane_destroy(n);
     return -1;
   }
   // Press a for a new nc above the current, c for a new one below the
@@ -243,9 +243,9 @@ ncreel_demo_core(struct notcurses* nc){
   struct tabletctx* newtablet;
   // Make an initial number of tablets suitable for the screen's height
   while(id < dimy / 8u){
-    newtablet = new_tabletctx(pr, &id);
+    newtablet = new_tabletctx(nr, &id);
     if(newtablet == NULL){
-      ncreel_destroy(pr);
+      ncreel_destroy(nr);
       return -1;
     }
     newtablet->next = tctxs;
@@ -254,7 +254,7 @@ ncreel_demo_core(struct notcurses* nc){
   do{
     ncplane_styles_set(std, NCSTYLE_NONE);
     ncplane_set_fg_rgb8(std, 197, 15, 31);
-    int count = ncreel_tabletcount(pr);
+    int count = ncreel_tabletcount(nr);
     ncplane_styles_on(std, NCSTYLE_BOLD);
     ncplane_printf_yx(std, 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
     ncplane_styles_off(std, NCSTYLE_BOLD);
@@ -263,12 +263,12 @@ ncreel_demo_core(struct notcurses* nc){
     wchar_t rw;
     ncinput ni;
     pthread_mutex_lock(&renderlock);
-    ncreel_redraw(pr);
+    ncreel_redraw(nr);
     int renderret;
     renderret = demo_render(nc);
     pthread_mutex_unlock(&renderlock);
     if(renderret){
-      ncreel_destroy(pr);
+      ncreel_destroy(nr);
       return renderret;
     }
     if((rw = handle_input(nc, &deadline, &ni)) == (wchar_t)-1){
@@ -277,23 +277,23 @@ ncreel_demo_core(struct notcurses* nc){
     // FIXME clrtoeol();
     newtablet = NULL;
     switch(rw){
-      case 'a': newtablet = new_tabletctx(pr, &id); break;
-      case 'b': newtablet = new_tabletctx(pr, &id); break;
-      case 'c': newtablet = new_tabletctx(pr, &id); break;
-      case 'k': ncreel_prev(pr); break;
-      case 'j': ncreel_next(pr); break;
+      case 'a': newtablet = new_tabletctx(nr, &id); break;
+      case 'b': newtablet = new_tabletctx(nr, &id); break;
+      case 'c': newtablet = new_tabletctx(nr, &id); break;
+      case 'k': ncreel_prev(nr); break;
+      case 'j': ncreel_next(nr); break;
       case 'q': aborted = true; break;
-      case NCKEY_UP: ncreel_prev(pr); break;
-      case NCKEY_DOWN: ncreel_next(pr); break;
+      case NCKEY_UP: ncreel_prev(nr); break;
+      case NCKEY_DOWN: ncreel_next(nr); break;
       case NCKEY_LEFT:
-        ncplane_yx(ncreel_plane(pr), &y, &x);
-        ncplane_move_yx(ncreel_plane(pr), y, x - 1);
+        ncplane_yx(ncreel_plane(nr), &y, &x);
+        ncplane_move_yx(ncreel_plane(nr), y, x - 1);
         break;
       case NCKEY_RIGHT:
-        ncplane_yx(ncreel_plane(pr), &y, &x);
-        ncplane_move_yx(ncreel_plane(pr), y, x + 1);
+        ncplane_yx(ncreel_plane(nr), &y, &x);
+        ncplane_move_yx(ncreel_plane(nr), y, x + 1);
         break;
-      case NCKEY_DEL: kill_active_tablet(pr, &tctxs); break;
+      case NCKEY_DEL: kill_active_tablet(nr, &tctxs); break;
       case NCKEY_RESIZE: notcurses_render(nc); break;
       default: ncplane_printf_yx(std, 3, 2, "Unknown keycode (0x%lx)\n", (unsigned long)rw); break;
     }
@@ -306,15 +306,12 @@ ncreel_demo_core(struct notcurses* nc){
     if(timespec_subtract_ns(&cur, &deadline) >= 0){
       break;
     }
-    dimy = ncplane_dim_y(w);
+    dimy = ncplane_dim_y(n);
   }while(!aborted);
   while(tctxs){
     kill_tablet(&tctxs);
   }
-  if(ncreel_destroy(pr)){
-    fprintf(stderr, "Error destroying ncreel\n");
-    return -1;
-  }
+  ncreel_destroy(nr);
   return aborted ? 1 : 0;
 }
 

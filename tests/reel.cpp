@@ -79,7 +79,7 @@ TEST_CASE("Reels") {
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("InitLinearInfinite") {
@@ -88,7 +88,7 @@ TEST_CASE("Reels") {
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("InitCircular") {
@@ -98,7 +98,7 @@ TEST_CASE("Reels") {
     REQUIRE(nr);
     CHECK(ncreel_validate(nr));
     CHECK(0 == notcurses_render(nc_));
-    REQUIRE(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   // circular is not allowed to be true when infinitescroll is false
@@ -108,7 +108,7 @@ TEST_CASE("Reels") {
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(!nr);
     CHECK(0 == notcurses_render(nc_));
-    REQUIRE(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   // We ought be able to invoke ncreel_next() and ncreel_prev() safely,
@@ -123,7 +123,7 @@ TEST_CASE("Reels") {
     CHECK(!ncreel_prev(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    REQUIRE(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("OneTablet") {
@@ -137,7 +137,7 @@ TEST_CASE("Reels") {
     CHECK(0 == ncreel_del(nr, t));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    REQUIRE(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("MovementWithOneTablet") {
@@ -157,7 +157,7 @@ TEST_CASE("Reels") {
     CHECK(0 == ncreel_del(nr, t));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    REQUIRE(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("DeleteActiveTablet") {
@@ -169,7 +169,7 @@ TEST_CASE("Reels") {
     CHECK(0 == ncreel_del(nr, ncreel_focused(nr)));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    REQUIRE(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("NoBorder") {
@@ -181,7 +181,7 @@ TEST_CASE("Reels") {
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("BadBorderBitsRejected") {
@@ -200,7 +200,7 @@ TEST_CASE("Reels") {
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("NoTopBottomBorder") {
@@ -211,7 +211,7 @@ TEST_CASE("Reels") {
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("NoSideBorders") {
@@ -222,7 +222,7 @@ TEST_CASE("Reels") {
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   SUBCASE("BadTabletBorderBitsRejected") {
@@ -246,7 +246,7 @@ TEST_CASE("Reels") {
     CHECK_EQ(0, ncreel_redraw(nr));
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   // Layout tests. Add some tablets, move around, and verify that they all
@@ -324,7 +324,7 @@ TEST_CASE("Reels") {
       CHECK(y == expectedy);
       expectedy += 7;
     }
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
 
   // Layout tests. Add some tablets, move around, and verify that they all
@@ -402,7 +402,7 @@ TEST_CASE("Reels") {
       CHECK(y == expectedy);
       expectedy += 5;
     }
-    CHECK(0 == ncreel_destroy(nr));
+    ncreel_destroy(nr);
   }
   CHECK(0 == notcurses_stop(nc_));
 }
