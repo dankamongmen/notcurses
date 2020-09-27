@@ -710,7 +710,7 @@ validate_ncreel_opts(ncplane* n, const ncreel_options* ropts){
   return true;
 }
 
-ncplane* nctablet_ncplane(nctablet* t){
+ncplane* nctablet_plane(nctablet* t){
   return t->cbp;
 }
 

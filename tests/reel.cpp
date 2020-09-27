@@ -51,7 +51,7 @@ auto ncreel_validate(const ncreel* n) -> bool {
 }
 
 auto panelcb(struct nctablet* t, bool toptobottom) -> int {
-  CHECK(nctablet_ncplane(t));
+  CHECK(nctablet_plane(t));
   CHECK(!nctablet_userptr(t));
   CHECK(toptobottom);
   // FIXME verify geometry is as expected
@@ -272,7 +272,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(0, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 7;
     }
@@ -284,7 +284,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(1, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 7;
     }
@@ -296,7 +296,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(2, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 7;
     }
@@ -308,7 +308,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(3, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 7;
     }
@@ -320,7 +320,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(4, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 7;
     }
@@ -350,7 +350,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(-1, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 5;
     }
@@ -362,7 +362,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(1, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 5;
     }
@@ -374,7 +374,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(2, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 5;
     }
@@ -386,7 +386,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(3, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 5;
     }
@@ -398,7 +398,7 @@ TEST_CASE("Reels") {
     for(size_t n = 0 ; n < sizeof(order) / sizeof(*order) ; ++n){
       CHECK_LE(4, order[n]);
       int y;
-      ncplane_yx(ncplane_parent(nctablet_ncplane(tabs[n])), &y, nullptr);
+      ncplane_yx(ncplane_parent(nctablet_plane(tabs[n])), &y, nullptr);
       CHECK(y == expectedy);
       expectedy += 5;
     }

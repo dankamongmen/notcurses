@@ -2045,8 +2045,8 @@ void ncreel_destroy(struct ncreel* nr);
 // Returns a pointer to a user pointer associated with this nctablet.
 void* nctablet_userptr(struct nctablet* t);
 
-// Access the ncplane associated with this nctablet, if one exists.
-struct ncplane* nctablet_ncplane(struct nctablet* t);
+// Access the ncplane associated with nctablet 't', if one exists.
+struct ncplane* nctablet_plane(struct nctablet* t);
 ```
 
 ### ncreel examples

@@ -88,7 +88,7 @@ tabletdraw(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
 
 static int
 drawcb(struct nctablet* t, bool drawfromtop){
-  struct ncplane* p = nctablet_ncplane(t);
+  struct ncplane* p = nctablet_plane(t);
   tabletctx* tctx = nctablet_userptr(t);
   if(tctx == NULL){
     return -1;
@@ -137,9 +137,9 @@ tablet_thread(void* vtabletctx){
     }
     pthread_mutex_unlock(&tctx->lock);
     pthread_mutex_lock(&renderlock);
-    if(nctablet_ncplane(tctx->t)){
+    if(nctablet_plane(tctx->t)){
       ncreel_redraw(tctx->pr);
-      struct ncplane* tplane = nctablet_ncplane(tctx->t);
+      struct ncplane* tplane = nctablet_plane(tctx->t);
       if(tplane){
         demo_render(ncplane_notcurses(tplane));
       }

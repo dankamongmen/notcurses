@@ -2540,8 +2540,8 @@ API void ncreel_destroy(struct ncreel* nr);
 // Returns a pointer to a user pointer associated with this nctablet.
 API void* nctablet_userptr(struct nctablet* t);
 
-// Access the ncplane associated with this nctablet, if one exists.
-API struct ncplane* nctablet_ncplane(struct nctablet* t);
+// Access the ncplane associated with nctablet 't', if one exists.
+API struct ncplane* nctablet_plane(struct nctablet* t);
 
 // The number of columns is one fewer, as the STRLEN expressions must leave
 // an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. PREFIXCOLUMNS

@@ -32,5 +32,5 @@ void NcTablet::unmap_tablet (NcTablet *p) noexcept
 
 Plane* NcTablet::get_plane () const noexcept
 {
-	return Plane::map_plane (nctablet_ncplane (_tablet));
+	return Plane::map_plane (nctablet_plane (_tablet));
 }

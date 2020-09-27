@@ -339,7 +339,7 @@ struct nctablet* ncreel_next(struct ncreel* pr);
 struct nctablet* ncreel_prev(struct ncreel* pr);
 void ncreel_destroy(struct ncreel* pr);
 void* nctablet_userptr(struct nctablet* t);
-struct ncplane* nctablet_ncplane(struct nctablet* t);
+struct ncplane* nctablet_plane(struct nctablet* t);
 int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
 int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t styles, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop);
 int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ystop, int xstop);
