@@ -276,9 +276,10 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
     ++cbx;
   }
   if(cbleny - cby + 1 > 0){
-    t->cbp = ncplane_new(t->p, cbleny - cby + 1, cblenx - cbx + 1, cby, cbx, NULL, "tdat");
+//fprintf(stderr, "CREATING %dx%d\n", cbleny, cblenx);
+    t->cbp = ncplane_new(t->p, cbleny, cblenx, cby, cbx, NULL, "tdat");
     if(t->cbp == NULL){
-//fprintf(stderr, "failure creating data plane %d %d %d %d\n", cbleny - cby + 1, cblenx - cbx + 1, cby, cbx);
+//fprintf(stderr, "failure creating data plane %d %d %d %d\n", cbleny, cblenx, cby, cbx);
       ncplane_destroy(t->p);
       t->p = NULL;
       return -1;

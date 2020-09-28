@@ -83,7 +83,7 @@ tabletdraw(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
     }
     cell_release(w, &c);
   }
-  return y - 1;
+  return y;
 }
 
 static int
