@@ -50,7 +50,7 @@ auto ncreel_validate(const ncreel* n) -> bool {
   return true;
 }
 
-auto panelcb(struct nctablet* t, bool toptobottom) -> int {
+auto panelcb(nctablet* t, bool toptobottom) -> int {
   CHECK(nctablet_plane(t));
   CHECK(!nctablet_userptr(t));
   CHECK(toptobottom);
@@ -58,11 +58,63 @@ auto panelcb(struct nctablet* t, bool toptobottom) -> int {
   return 0;
 }
 
-auto cbfxn(struct nctablet* t, bool toptobottom) -> int {
+auto cbfxn(nctablet* t, bool toptobottom) -> int {
   (void)toptobottom;
   int* userptr = static_cast<int*>(nctablet_userptr(t));
   ++*userptr;
   return 4;
+}
+
+int check_allborders(nctablet* t, bool drawfromtop) {
+  (void)drawfromtop;
+  auto ncp = nctablet_plane(t);
+  REQUIRE(ncp);
+  int rows, cols;
+  ncplane_dim_yx(ncp, &rows, &cols);
+  int srows, scols;
+  ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
+  CHECK(srows == rows + 4);
+  CHECK(scols == cols + 4);
+  return 1;
+}
+
+int check_noborders(nctablet* t, bool drawfromtop) {
+  (void)drawfromtop;
+  auto ncp = nctablet_plane(t);
+  REQUIRE(ncp);
+  int rows, cols;
+  ncplane_dim_yx(ncp, &rows, &cols);
+  int srows, scols;
+  ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
+  CHECK(srows == rows);
+  CHECK(scols == cols);
+  return 1;
+}
+
+int check_notborders(nctablet* t, bool drawfromtop) {
+  (void)drawfromtop;
+  auto ncp = nctablet_plane(t);
+  REQUIRE(ncp);
+  int rows, cols;
+  ncplane_dim_yx(ncp, &rows, &cols);
+  int srows, scols;
+  ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
+  CHECK(srows == rows + 2);
+  CHECK(scols == cols + 2);
+  return 1;
+}
+
+int check_norborders(nctablet* t, bool drawfromtop) {
+  (void)drawfromtop;
+  auto ncp = nctablet_plane(t);
+  REQUIRE(ncp);
+  int rows, cols;
+  ncplane_dim_yx(ncp, &rows, &cols);
+  int srows, scols;
+  ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
+  CHECK(srows == rows + 2);
+  CHECK(scols == cols + 2);
+  return 1;
 }
 
 TEST_CASE("Reels") {
@@ -130,7 +182,7 @@ TEST_CASE("Reels") {
     ncreel_options r{};
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
-    struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
+    nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
@@ -144,7 +196,7 @@ TEST_CASE("Reels") {
     ncreel_options r{};
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
-    struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
+    nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK_EQ(0, notcurses_render(nc_));
     CHECK(ncreel_validate(nr));
@@ -164,7 +216,7 @@ TEST_CASE("Reels") {
     ncreel_options r{};
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
-    struct nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
+    nctablet* t = ncreel_add(nr, nullptr, nullptr, panelcb, nullptr);
     REQUIRE(t);
     CHECK(0 == ncreel_del(nr, ncreel_focused(nr)));
     CHECK_EQ(0, notcurses_render(nc_));
@@ -404,5 +456,61 @@ TEST_CASE("Reels") {
     }
     ncreel_destroy(nr);
   }
+
+  // tablet size checks----------------------------------------------------
+  // check that, with all borders, the tablets are the correct size
+  SUBCASE("AllBordersSize") {
+    ncreel_options r{};
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    REQUIRE(nullptr != ncreel_add(nr, nullptr, nullptr, check_allborders, nullptr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    ncreel_destroy(nr);
+  }
+
+  // check that, without any borders, the tablets are the correct size
+  SUBCASE("NoBordersSize") {
+    ncreel_options r{};
+    r.tabletmask = 0xf;
+    r.bordermask = 0xf;
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    REQUIRE(nullptr != ncreel_add(nr, nullptr, nullptr, check_noborders, nullptr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    ncreel_destroy(nr);
+  }
+
+  // check that, without tablet borders (but with reel borders), the tablets
+  // are the correct size
+  SUBCASE("NoTabletBordersSize") {
+    ncreel_options r{};
+    r.tabletmask = 0xf;
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    REQUIRE(nullptr != ncreel_add(nr, nullptr, nullptr, check_notborders, nullptr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    ncreel_destroy(nr);
+  }
+
+  // check that, without reel borders (but with tablet borders), the tablets
+  // are the correct size
+  SUBCASE("NoReelBordersSize") {
+    ncreel_options r{};
+    r.bordermask = 0xf;
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK_EQ(0, notcurses_render(nc_));
+    CHECK(ncreel_validate(nr));
+    REQUIRE(nullptr != ncreel_add(nr, nullptr, nullptr, check_norborders, nullptr));
+    CHECK_EQ(0, notcurses_render(nc_));
+    ncreel_destroy(nr);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 }
