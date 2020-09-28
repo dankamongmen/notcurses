@@ -3,8 +3,8 @@ rearrangements of Notcurses.
 
 * 1.7.5 (not yet released)
   * `ncreel_destroy()` now returns `void` rather than `int`.
-  * `nctablet_ncplane()` has been renamed `nctablet_plane()`. The former name
-    has been retained as a (deprecated) alias, to be removed in the near future.
+  * `nctablet_ncplane()` has been renamed `nctablet_plane()`.
+  * The standard plane now has the name `std`.
 
 * 1.7.4 (2020-09-20)
   * All `_rgb_clipped()` functions have been renamed `_rgb8_clipped()`, to

@@ -380,6 +380,7 @@ create_initial_ncplane(notcurses* nc, int dimy, int dimx){
     },
     .rows = dimy - (nc->margin_t + nc->margin_b),
     .cols = dimx - (nc->margin_l + nc->margin_r),
+    .name = "std",
   };
   return nc->stdplane = ncplane_new_internal(nc, NULL, &nopts);
 }
