@@ -2543,6 +2543,15 @@ API void* nctablet_userptr(struct nctablet* t);
 // Access the ncplane associated with nctablet 't', if one exists.
 API struct ncplane* nctablet_plane(struct nctablet* t);
 
+// deprecated predecessor of nctablet_plane()
+static inline struct ncplane*
+nctablet_ncplane(struct nctablet* t) __attribute__ ((deprecated));
+
+static inline struct ncplane*
+nctablet_ncplane(struct nctablet* t){
+  return nctablet_plane(t);
+}
+
 // The number of columns is one fewer, as the STRLEN expressions must leave
 // an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. PREFIXCOLUMNS
 // is the maximum number of columns used by a mult == 1000 (standard)
