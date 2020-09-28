@@ -1,8 +1,9 @@
 # notcurses
 
-Python bindings for the C [https://github.com/dankamongmen/notcurses notcurses]
-library. notcurses is a library for building complex, vibrant textual user
-interfaces (TUIs) on modern terminal emulators.
+Python bindings for the C [https://github.com/dankamongmen/notcurses Notcurses]
+library. Notcurses is a blingful library for building complex, vibrant textual
+user interfaces (TUIs) on modern terminal emulators, of which these Python
+bindings offer nowhere near complete coverage.
 
 by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
 
