@@ -136,8 +136,6 @@ API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                             uint64_t ll, uint64_t lr,
                             int ylen, int xlen, unsigned ctlword);
 
-API int ncdirect_getc_nonblocking(struct ncdirect* n);
-
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
