@@ -495,19 +495,6 @@ target_link_libraries(notcurses-input
     notcurses++
 )
 
-# notcurses-ncreel
-file(GLOB NCREELSRCS CONFIGURE_DEPENDS src/ncreel/*.cpp)
-add_executable(notcurses-ncreel ${NCREELSRCS})
-target_include_directories(notcurses-ncreel
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-)
-target_link_libraries(notcurses-ncreel
-  PRIVATE
-    notcurses++
-)
-
 # notcurses-tetris
 file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(notcurses-tetris ${TETRISSRC})
@@ -642,7 +629,6 @@ install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
-install(TARGETS notcurses-ncreel DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
 install(TARGETS notcurses-tetris DESTINATION bin)
 if(${USE_FFMPEG} OR ${USE_OIIO})
