@@ -778,15 +778,17 @@ not rendered. Note that the base cell, like every other cell, has its own
 foreground and background channels.
 
 ```c
+uint16_t ncplane_styles(const struct ncplane* n);**
+
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
-void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
+void ncplane_set_styles(struct ncplane* n, unsigned stylebits);
 
 // Add the specified styles to the ncplane's existing spec.
-void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
+void ncplane_on_styles(struct ncplane* n, unsigned stylebits);
 
 // Remove the specified styles from the ncplane's existing spec.
-void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
+void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
 
 // Set the ncplane's base cell to this cell. It will be used for purposes of
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane

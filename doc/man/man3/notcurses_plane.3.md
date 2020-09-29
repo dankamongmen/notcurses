@@ -100,11 +100,7 @@ typedef struct ncplane_options {
 
 **uint64_t ncplane_channels(const struct ncplane* n);**
 
-**uint16_t ncplane_attr(const struct ncplane* n);**
-
 **void ncplane_set_channels(struct ncplane* nc, uint64_t channels);**
-
-**void ncplane_set_attr(struct ncplane* nc, uint32_t styles);**
 
 **static inline unsigned ncplane_bchannel(struct ncplane* nc);**
 
@@ -146,11 +142,13 @@ typedef struct ncplane_options {
 
 **int ncplane_set_bg_palindex(struct ncplane* n, int idx);**
 
-**void ncplane_styles_set(struct ncplane* n, unsigned stylebits);**
+**uint16_t ncplane_styles(const struct ncplane* n);**
 
-**void ncplane_styles_on(struct ncplane* n, unsigned stylebits);**
+**void ncplane_set_styles(struct ncplane* n, unsigned stylebits);**
 
-**void ncplane_styles_off(struct ncplane* n, unsigned stylebits);**
+**void ncplane_on_styles(struct ncplane* n, unsigned stylebits);**
+
+**void ncplane_off_styles(struct ncplane* n, unsigned stylebits);**
 
 **void ncplane_greyscale(struct ncplane* n);**
 
