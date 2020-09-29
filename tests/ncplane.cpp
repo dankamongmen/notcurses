@@ -482,7 +482,7 @@ TEST_CASE("NCPlane") {
     const char STR1[] = "Jackdaws love my big sphinx of quartz";
     const char STR2[] = "Cwm fjord bank glyphs vext quiz";
     const char STR3[] = "Pack my box with five dozen liquor jugs";
-    ncplane_styles_set(n_, NCSCALE_NONE);
+    ncplane_set_styles(n_, NCSCALE_NONE);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
     cell testcell = CELL_TRIVIAL_INITIALIZER;
@@ -519,7 +519,7 @@ TEST_CASE("NCPlane") {
     const char STR1[] = "Σιβυλλα τι θελεις; respondebat illa:";
     const char STR2[] = "αποθανειν θελω";
     const char STR3[] = "Война и мир"; // just thrown in to complicate things
-    ncplane_styles_set(n_, NCSTYLE_NONE);
+    ncplane_set_styles(n_, NCSTYLE_NONE);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
     cell testcell = CELL_TRIVIAL_INITIALIZER;
@@ -556,17 +556,17 @@ TEST_CASE("NCPlane") {
     const char STR1[] = "this has been a world destroyer production";
     const char STR2[] = "not to mention dank";
     const char STR3[] = "da chronic lives";
-    ncplane_styles_set(n_, NCSTYLE_BOLD);
+    ncplane_set_styles(n_, NCSTYLE_BOLD);
     REQUIRE(0 < ncplane_putstr(n_, STR1));
     int y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == ncplane_cursor_move_yx(n_, y + 1, x - strlen(STR2)));
-    ncplane_styles_on(n_, NCSTYLE_ITALIC);
+    ncplane_on_styles(n_, NCSTYLE_ITALIC);
     REQUIRE(0 < ncplane_putstr(n_, STR2));
     CHECK(0 == ncplane_cursor_move_yx(n_, y + 2, x - strlen(STR3)));
-    ncplane_styles_off(n_, NCSTYLE_BOLD);
+    ncplane_off_styles(n_, NCSTYLE_BOLD);
     REQUIRE(0 < ncplane_putstr(n_, STR3));
-    ncplane_styles_off(n_, NCSTYLE_ITALIC);
+    ncplane_off_styles(n_, NCSTYLE_ITALIC);
     CHECK(0 == notcurses_render(nc_));
     int newx;
     ncplane_cursor_yx(n_, &y, &newx);

@@ -5,6 +5,13 @@ rearrangements of Notcurses.
   * `ncreel_destroy()` now returns `void` rather than `int`.
   * `nctablet_ncplane()` has been renamed `nctablet_plane()`.
   * The standard plane now has the name `std`.
+  * Removed long-deprecated `ncplane_set_attrs()` and `ncplane_attrs()`.
+  * Renamed `ncplane_styles_*()` to `ncplane_*_styles()`, to conform with
+    every other `ncplane_set_*()` function, but retained the old versions as
+    (deprecated) aliases.
+  * Renamed `cell_styles_*()` to `cell_*_styles()`, to conform with every other
+    `cell_set_*()` function. Since these were inline functions, I've not
+    bothered to retain the old versions.
 
 * 1.7.4 (2020-09-20)
   * All `_rgb_clipped()` functions have been renamed `_rgb8_clipped()`, to

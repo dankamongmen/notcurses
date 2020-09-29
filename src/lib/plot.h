@@ -146,7 +146,7 @@ class ncppplot {
    // if we want fewer slots than there are available columns, our final column
    // will be other than the plane's final column. most recent x goes here.
    const int finalx = (slotcount < scaleddim - 1 - (startx * scale) ? startx + (slotcount / scale) - 1 : dimx - 1);
-   ncplane_set_attr(ncp, legendstyle);
+   ncplane_set_styles(ncp, legendstyle);
    if(labelaxisd){
      // show the *top* of each interval range
      for(int y = 0 ; y < dimy ; ++y){
@@ -177,7 +177,7 @@ class ncppplot {
       ncplane_set_channels(ncp, channels);
       ncplane_printf_yx(ncp, 0, PREFIXCOLUMNS - title.length(), "%s", title.c_str());
    }
-   ncplane_set_attr(ncp, NCSTYLE_NONE);
+   ncplane_set_styles(ncp, NCSTYLE_NONE);
    if(finalx < startx){ // exit on pathologically narrow planes
      return 0;
    }

@@ -199,10 +199,10 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 2, 19, "╨", NULL);
   ncplane_set_fg_rgb8(n, 64, 128, 240);
   ncplane_set_bg_rgb8(n, 32, 64, 32);
-  ncplane_styles_on(n, NCSTYLE_ITALIC);
+  ncplane_on_styles(n, NCSTYLE_ITALIC);
   ncplane_printf_yx(n, 5, 18, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
   ncplane_printf_yx(n, 1, 4, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
-  ncplane_styles_off(n, NCSTYLE_ITALIC);
+  ncplane_off_styles(n, NCSTYLE_ITALIC);
   ncplane_set_fg_rgb8(n, 224, 128, 224);
   ncplane_putstr_yx(n, 3, 1, "   🔥 unicode 13, resize awareness, 24b truecolor…🔥   ");
   ncplane_set_fg_rgb8(n, 255, 255, 255);

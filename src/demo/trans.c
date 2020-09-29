@@ -53,7 +53,7 @@ legend(struct notcurses* nc, const char* msg){
     ncplane_destroy(n);
     return NULL;
   }
-  ncplane_styles_on(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
+  ncplane_on_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   if(ncplane_printf_aligned(n, 1, NCALIGN_CENTER, " %s ", msg) < 0){
     ncplane_destroy(n);
     return NULL;

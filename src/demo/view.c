@@ -29,7 +29,7 @@ legend(struct ncplane* stdn, int dimy, int dimx){
   uint64_t channels = 0;
   channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, " ", 0, channels);
-  ncplane_styles_set(n, NCSTYLE_BOLD);
+  ncplane_set_styles(n, NCSTYLE_BOLD);
   ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
   ncplane_set_fg_alpha(n, CELL_ALPHA_HIGHCONTRAST);
   if(ncplane_putstr_aligned(n, 0, NCALIGN_CENTER, "target launch") <= 0){
@@ -50,7 +50,7 @@ legend(struct ncplane* stdn, int dimy, int dimx){
     ncplane_destroy(n);
     return NULL;
   }
-  ncplane_styles_off(n, NCSTYLE_BOLD);
+  ncplane_off_styles(n, NCSTYLE_BOLD);
   return n;
 }
 

@@ -510,7 +510,7 @@ int demo_render(struct notcurses* nc){
     ncplane_set_fg_rgb(hud, 0x80d0ff);
     ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
     cell_release(hud, &c);
-    ncplane_styles_on(hud, NCSTYLE_BOLD);
+    ncplane_on_styles(hud, NCSTYLE_BOLD);
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
@@ -521,7 +521,7 @@ int demo_render(struct notcurses* nc){
     if(ncplane_putstr_yx(hud, 1, 16, elems->name) < 0){
       return -1;
     }
-    ncplane_styles_off(hud, NCSTYLE_BOLD);
+    ncplane_off_styles(hud, NCSTYLE_BOLD);
   }
   ncinput ni;
   char32_t id;

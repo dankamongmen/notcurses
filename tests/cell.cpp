@@ -63,39 +63,39 @@ TEST_CASE("Cell") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
-    cell_styles_set(&c, NCSTYLE_ITALIC);
+    cell_set_styles(&c, NCSTYLE_ITALIC);
     CHECK(1 == cell_load(n_, &c, "i"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
-    cell_styles_off(&c, NCSTYLE_ITALIC);
+    cell_off_styles(&c, NCSTYLE_ITALIC);
   }
 
   SUBCASE("SetBold") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
-    cell_styles_set(&c, NCSTYLE_BOLD);
+    cell_set_styles(&c, NCSTYLE_BOLD);
     CHECK(1 == cell_load(n_, &c, "b"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
-    cell_styles_off(&c, NCSTYLE_BOLD);
+    cell_off_styles(&c, NCSTYLE_BOLD);
   }
 
   SUBCASE("SetUnderline") {
     cell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
-    cell_styles_set(&c, NCSTYLE_UNDERLINE);
+    cell_set_styles(&c, NCSTYLE_UNDERLINE);
     CHECK(1 == cell_load(n_, &c, "u"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     cell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
-    cell_styles_off(&c, NCSTYLE_UNDERLINE);
+    cell_off_styles(&c, NCSTYLE_UNDERLINE);
   }
 
   /*SUBCASE("CellLoadTamil") {

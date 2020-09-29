@@ -59,7 +59,6 @@ const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 void ncplane_set_channels(struct ncplane* n, uint64_t channels);
 uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
 uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
-void ncplane_set_attr(struct ncplane* n, unsigned stylebits);
 int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
 int ncplane_set_base(struct ncplane* ncp, const char* egc, uint32_t styles, uint64_t channels);
 int ncplane_base(struct ncplane* ncp, cell* c);
@@ -138,8 +137,6 @@ void* ncplane_userptr(struct ncplane* n);
 int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
                        int keeplenx, int yoff, int xoff, int ylen, int xlen);
 uint64_t ncplane_channels(const struct ncplane* n);
-uint16_t ncplane_attr(const struct ncplane* n);
-unsigned ncplane_styles(const struct ncplane* n);
 int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);
 int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);
 void ncplane_set_fg_rgb8_clipped(struct ncplane* n, int r, int g, int b);
@@ -152,9 +149,10 @@ int ncplane_set_fg_alpha(struct ncplane* n, unsigned alpha);
 int ncplane_set_bg_alpha(struct ncplane* n, unsigned alpha);
 int ncplane_set_fg_palindex(struct ncplane* n, int idx);
 int ncplane_set_bg_palindex(struct ncplane* n, int idx);
-void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
-void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
-void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
+unsigned ncplane_styles(const struct ncplane* n);
+void ncplane_set_styles(struct ncplane* n, unsigned stylebits);
+void ncplane_on_styles(struct ncplane* n, unsigned stylebits);
+void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
 typedef struct ncstats {
   uint64_t renders;          // number of successful notcurses_render() runs
   uint64_t failed_renders;   // number of aborted renders, should be 0

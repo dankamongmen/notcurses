@@ -73,12 +73,12 @@ int yield_demo(struct notcurses* nc){
     }
     ncplane_set_bg_rgb8(std, 0x10, 0x10, 0x10);
     ncplane_set_fg_rgb8(std, 0xf0, 0x20, 0x20);
-    ncplane_set_attr(std, NCSTYLE_BOLD);
+    ncplane_set_styles(std, NCSTYLE_BOLD);
     if(tfilled > threshold_painted){
       tfilled = threshold_painted; // don't allow printing of 100.1% etc
     }
     ncplane_printf_aligned(std, 3, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)tfilled * 100) / threshold_painted);
-    ncplane_set_attr(std, NCSTYLE_NONE);
+    ncplane_set_styles(std, NCSTYLE_NONE);
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &scaled);
     ++iters;

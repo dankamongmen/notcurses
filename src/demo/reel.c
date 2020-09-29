@@ -101,13 +101,13 @@ drawcb(struct nctablet* t, bool drawfromtop){
   ncplane_set_fg_rgb8(p, 242, 242, 242);
   if(ll){
     const int summaryy = drawfromtop ? 0 : ll - 1;
-    ncplane_styles_on(p, NCSTYLE_BOLD);
+    ncplane_on_styles(p, NCSTYLE_BOLD);
     if(ncplane_printf_yx(p, summaryy, 0, "[#%u %d lines %u available] ",
                          tctx->id, tctx->lines, maxy) < 0){
       pthread_mutex_unlock(&tctx->lock);
       return -1;
     }
-    ncplane_styles_off(p, NCSTYLE_BOLD);
+    ncplane_off_styles(p, NCSTYLE_BOLD);
   }
 //fprintf(stderr, "  \\--> callback for %d, %d lines (%d/%d -> %d/%d) dir: %s wrote: %d\n", tctx->id, tctx->lines, begy, begx, maxy, maxx, cliptop ? "up" : "down", ll);
   pthread_mutex_unlock(&tctx->lock);
@@ -229,11 +229,11 @@ ncreel_demo_core(struct notcurses* nc){
   }
   // Press a for a new nc above the current, c for a new one below the
   // current, and b for a new block at arbitrary placement.
-  ncplane_styles_on(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
+  ncplane_on_styles(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   ncplane_set_fg_rgb8(std, 58, 150, 221);
   ncplane_set_bg_default(std);
   ncplane_printf_yx(std, 1, 2, "a, b, c create tablets, DEL deletes.");
-  ncplane_styles_off(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
+  ncplane_off_styles(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   // FIXME clrtoeol();
   struct timespec deadline;
   clock_gettime(CLOCK_MONOTONIC, &deadline);
@@ -252,12 +252,12 @@ ncreel_demo_core(struct notcurses* nc){
     tctxs = newtablet;
   }
   do{
-    ncplane_styles_set(std, NCSTYLE_NONE);
+    ncplane_set_styles(std, NCSTYLE_NONE);
     ncplane_set_fg_rgb8(std, 197, 15, 31);
     int count = ncreel_tabletcount(nr);
-    ncplane_styles_on(std, NCSTYLE_BOLD);
+    ncplane_on_styles(std, NCSTYLE_BOLD);
     ncplane_printf_yx(std, 2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
-    ncplane_styles_off(std, NCSTYLE_BOLD);
+    ncplane_off_styles(std, NCSTYLE_BOLD);
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb8(std, 0, 55, 218);
     wchar_t rw;
