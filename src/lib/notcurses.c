@@ -397,6 +397,22 @@ ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
   return ncplane_new_internal(n->nc, n, nopts);
 }
 
+struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name){
+  ncplane_options nopts = {
+    .y = y,
+    .horiz = {
+      .x = x,
+    },
+    .rows = rows,
+    .cols = cols,
+    .userptr = opaque,
+    .name = name,
+    .resizecb = NULL,
+    .flags = 0,
+  };
+  return ncplane_create(n, &nopts);
+}
+
 void ncplane_home(ncplane* n){
   n->x = 0;
   n->y = 0;

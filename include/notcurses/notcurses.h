@@ -1020,22 +1020,7 @@ API struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nop
 
 // This function will be marked deprecated in 2.0 in favor of ncplane_create().
 // It persists only for backwards compatibility.
-static inline struct ncplane*
-ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name){
-  ncplane_options nopts = {
-    .y = y,
-    .horiz = {
-      .x = x,
-    },
-    .rows = rows,
-    .cols = cols,
-    .userptr = opaque,
-    .name = name,
-    .resizecb = NULL,
-    .flags = 0,
-  };
-  return ncplane_create(n, &nopts);
-}
+API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name);
 
 // Suitable for use as a `resizecb`. This will realign the plane 'n' against its
 // parent, using the alignment specified at ncplane_create()-time.
