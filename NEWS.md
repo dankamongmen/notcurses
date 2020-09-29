@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.7.5 (not yet released)
+* 1.7.5 (2020-09-29)
   * `ncreel_destroy()` now returns `void` rather than `int`.
   * `nctablet_ncplane()` has been renamed `nctablet_plane()`.
   * The standard plane now has the name `std`.
