@@ -88,7 +88,7 @@ namespace ncpp
 
 		void set_styles (CellStyle styles) noexcept
 		{
-			cell_styles_set (&_cell, static_cast<unsigned>(styles));
+			cell_set_styles (&_cell, static_cast<unsigned>(styles));
 		}
 
 		CellStyle get_styles () noexcept
@@ -98,12 +98,12 @@ namespace ncpp
 
 		void styles_on (CellStyle styles) noexcept
 		{
-			cell_styles_on (&_cell, static_cast<unsigned>(styles));
+			cell_on_styles (&_cell, static_cast<unsigned>(styles));
 		}
 
 		void styles_off (CellStyle styles) noexcept
 		{
-			cell_styles_off (&_cell, static_cast<unsigned>(styles));
+			cell_off_styles (&_cell, static_cast<unsigned>(styles));
 		}
 
 		bool is_double_wide () const noexcept

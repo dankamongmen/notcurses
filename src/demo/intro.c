@@ -95,11 +95,11 @@ int intro(struct notcurses* nc){
   if(ncplane_putstr_aligned(ncp, rows / 2 - 4, NCALIGN_CENTER, s1) != (int)strlen(s1)){
     return -1;
   }
-  ncplane_styles_on(ncp, NCSTYLE_ITALIC | NCSTYLE_BOLD);
+  ncplane_on_styles(ncp, NCSTYLE_ITALIC | NCSTYLE_BOLD);
   if(ncplane_putstr_aligned(ncp, rows / 2 - 3, NCALIGN_CENTER, str) != (int)strlen(str)){
     return -1;
   }
-  ncplane_styles_off(ncp, NCSTYLE_ITALIC);
+  ncplane_off_styles(ncp, NCSTYLE_ITALIC);
   ncplane_set_fg_rgb8(ncp, 0xff, 0xff, 0xff);
   int major, minor, patch, tweak;
   notcurses_version_components(&major, &minor, &patch, &tweak);
@@ -114,7 +114,7 @@ int intro(struct notcurses* nc){
       return -1;
     }
   }
-  ncplane_styles_off(ncp, NCSTYLE_BOLD);
+  ncplane_off_styles(ncp, NCSTYLE_BOLD);
   const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
   if(ncplane_putwstr_aligned(ncp, rows / 2 - 6, NCALIGN_CENTER, wstr) < 0){
     return -1;
@@ -126,11 +126,11 @@ int intro(struct notcurses* nc){
   if(rows < 45){
     ncplane_set_fg_rgb8(ncp, 0xc0, 0x80, 0x80);
     ncplane_set_bg_rgb8(ncp, 0x20, 0x20, 0x20);
-    ncplane_styles_on(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
+    ncplane_on_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
     if(ncplane_putstr_aligned(ncp, 2, NCALIGN_CENTER, "demo runs best with at least 45 lines") < 0){
       return -1;
     }
-    ncplane_styles_off(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
+    ncplane_off_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
   }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC_RAW, &now);

@@ -621,7 +621,7 @@ API void cell_release(struct ncplane* n, cell* c);
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not. Only the lower 16 bits are meaningful.
 static inline void
-cell_styles_set(cell* c, unsigned stylebits){
+cell_set_styles(cell* c, unsigned stylebits){
   c->stylemask = stylebits & NCSTYLE_MASK;
 }
 
@@ -634,13 +634,13 @@ cell_styles(const cell* c){
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
-cell_styles_on(cell* c, unsigned stylebits){
+cell_on_styles(cell* c, unsigned stylebits){
   c->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
-cell_styles_off(cell* c, unsigned stylebits){
+cell_off_styles(cell* c, unsigned stylebits){
   c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
@@ -1020,8 +1020,7 @@ API struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nop
 
 // This function will be marked deprecated in 2.0 in favor of ncplane_create().
 // It persists only for backwards compatibility.
-API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
-  __attribute__ ((deprecated));
+API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name);
 
 // Suitable for use as a `resizecb`. This will realign the plane 'n' against its
 // parent, using the alignment specified at ncplane_create()-time.
@@ -1309,8 +1308,7 @@ API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRI
 API uint64_t ncplane_channels(const struct ncplane* n);
 
 // Return the current styling for this ncplane.
-API uint16_t ncplane_attr(const struct ncplane* n);
-API unsigned ncplane_styles(const struct ncplane* n);
+API uint16_t ncplane_styles(const struct ncplane* n);
 
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the
@@ -1332,7 +1330,7 @@ ncplane_putc(struct ncplane* n, const cell* c){
 // This works whether the underlying char is signed or unsigned.
 static inline int
 ncplane_putchar_yx(struct ncplane* n, int y, int x, char c){
-  cell ce = CELL_INITIALIZER((uint32_t)c, ncplane_attr(n), ncplane_channels(n));
+  cell ce = CELL_INITIALIZER((uint32_t)c, ncplane_styles(n), ncplane_channels(n));
   return ncplane_putc_yx(n, y, x, &ce);
 }
 
@@ -1914,17 +1912,23 @@ ncplane_fchannel(const struct ncplane* n){
 
 API void ncplane_set_channels(struct ncplane* n, uint64_t channels);
 
-API void ncplane_set_attr(struct ncplane* n, unsigned stylebits);
-
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
-API void ncplane_styles_set(struct ncplane* n, unsigned stylebits);
+API void ncplane_set_styles(struct ncplane* n, unsigned stylebits);
 
 // Add the specified styles to the ncplane's existing spec.
-API void ncplane_styles_on(struct ncplane* n, unsigned stylebits);
+API void ncplane_on_styles(struct ncplane* n, unsigned stylebits);
 
 // Remove the specified styles from the ncplane's existing spec.
-API void ncplane_styles_off(struct ncplane* n, unsigned stylebits);
+API void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
+
+// Deprecated forms of above.
+API void ncplane_styles_set(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((deprecated));
+API void ncplane_styles_on(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((deprecated));
+API void ncplane_styles_off(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((deprecated));
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline unsigned

@@ -54,11 +54,11 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
         }
         ncplane_cursor_yx(column, NULL, &x);
         if(x >= dimx){
-          ncplane_set_attr(std, NCSTYLE_BOLD | NCSTYLE_UNDERLINE | NCSTYLE_ITALIC);
+          ncplane_set_styles(std, NCSTYLE_BOLD | NCSTYLE_UNDERLINE | NCSTYLE_ITALIC);
           if(ncplane_printf_aligned(std, legendy, NCALIGN_CENTER, "0x%06x", wc) < 0){
             return -1;
           }
-          ncplane_set_attr(std, NCSTYLE_NONE);
+          ncplane_set_styles(std, NCSTYLE_NONE);
           DEMO_RENDER(nc);
           ncplane_set_fg_rgb8(column,
                              random() % 192 + 64,

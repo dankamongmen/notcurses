@@ -713,11 +713,6 @@ namespace ncpp
 			return ncplane_channels (plane);
 		}
 
-		uint32_t get_attr () const noexcept
-		{
-			return ncplane_attr (plane);
-		}
-
 		unsigned get_bchannel () const noexcept
 		{
 			return ncplane_bchannel (plane);
@@ -756,11 +751,6 @@ namespace ncpp
 		void set_channels (uint64_t channels) const noexcept
 		{
 			ncplane_set_channels (plane, channels);
-		}
-
-		void set_attr (uint32_t attr) const noexcept
-		{
-			ncplane_set_attr (plane, attr);
 		}
 
 		bool set_fg_alpha (unsigned alpha) const NOEXCEPT_MAYBE
@@ -850,17 +840,17 @@ namespace ncpp
 
 		void styles_set (CellStyle styles) const noexcept
 		{
-			ncplane_styles_set (plane, static_cast<unsigned>(styles));
+			ncplane_set_styles (plane, static_cast<unsigned>(styles));
 		}
 
 		void styles_on (CellStyle styles) const noexcept
 		{
-			ncplane_styles_on (plane, static_cast<unsigned>(styles));
+			ncplane_on_styles (plane, static_cast<unsigned>(styles));
 		}
 
 		void styles_off (CellStyle styles) const noexcept
 		{
-			ncplane_styles_off (plane, static_cast<unsigned>(styles));
+			ncplane_off_styles (plane, static_cast<unsigned>(styles));
 		}
 
 		int format (int ystop, int xstop, uint16_t stylemask) const NOEXCEPT_MAYBE

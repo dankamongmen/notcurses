@@ -451,7 +451,7 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimy = n->leny;
   int dimx = n->lenx;
-  uint16_t attr = ncplane_attr(n);
+  uint16_t attr = ncplane_styles(n);
   uint64_t chan = ncplane_channels(n);
   // if we're duping the standard plane, we need adjust for marginalia
   const struct notcurses* nc = ncplane_notcurses_const(n);
@@ -1132,11 +1132,7 @@ uint64_t ncplane_channels(const ncplane* n){
   return n->channels;
 }
 
-uint16_t ncplane_attr(const ncplane* n){
-  return n->stylemask;
-}
-
-unsigned ncplane_styles(const ncplane* n){
+uint16_t ncplane_styles(const ncplane* n){
   return n->stylemask;
 }
 
@@ -1517,23 +1513,30 @@ bool notcurses_cantruecolor(const notcurses* nc){
 }
 
 // conform to the specified stylebits
-void ncplane_styles_set(ncplane* n, unsigned stylebits){
+void ncplane_set_styles(ncplane* n, unsigned stylebits){
   n->stylemask = (stylebits & NCSTYLE_MASK);
 }
 
+void ncplane_styles_set(ncplane* n, unsigned stylebits){ // deprecated
+  ncplane_set_styles(n, stylebits);
+}
+
 // turn on any specified stylebits
-void ncplane_styles_on(ncplane* n, unsigned stylebits){
+void ncplane_on_styles(ncplane* n, unsigned stylebits){
   n->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
+void ncplane_styles_on(ncplane* n, unsigned stylebits){ // deprecated
+  ncplane_on_styles(n, stylebits);
+}
+
 // turn off any specified stylebits
-void ncplane_styles_off(ncplane* n, unsigned stylebits){
+void ncplane_off_styles(ncplane* n, unsigned stylebits){
   n->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
-// set the current stylebits to exactly those provided
-void ncplane_set_attr(ncplane* n, unsigned stylebits){
-  n->stylemask = stylebits & NCSTYLE_MASK;
+void ncplane_styles_off(ncplane* n, unsigned stylebits){ // deprecated
+  ncplane_off_styles(n, stylebits);
 }
 
 // i hate the big allocation and two copies here, but eh what you gonna do?

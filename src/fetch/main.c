@@ -331,12 +331,12 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
     return -1;
   }
   ncplane_set_fg_rgb8(infop, 0xd0, 0xd0, 0xd0);
-  ncplane_set_attr(infop, NCSTYLE_UNDERLINE);
+  ncplane_set_styles(infop, NCSTYLE_UNDERLINE);
   ncplane_printf_aligned(infop, 1, NCALIGN_LEFT, " %s %s", fi->kernel, fi->kernver);
   if(fi->distro_pretty){
     ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
   }
-  ncplane_set_attr(infop, NCSTYLE_NONE);
+  ncplane_set_styles(infop, NCSTYLE_NONE);
 #ifdef __linux__
   struct sysinfo sinfo;
   sysinfo(&sinfo);
@@ -351,7 +351,7 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   if(notcurses_cantruecolor(nc)){
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
     cell c = CELL_CHAR_INITIALIZER('R');
-    cell_styles_set(&c, NCSTYLE_BOLD);
+    cell_set_styles(&c, NCSTYLE_BOLD);
     cell_set_fg_rgb8(&c, 0xd0, 0, 0);
     ncplane_putc_yx(infop, 4, 1, &c);
     cell_load_char(infop, &c, 'G');
@@ -360,14 +360,14 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
     cell_load_char(infop, &c, 'B');
     cell_set_fg_rgb8(&c, 0, 0, 0xd);
     ncplane_putc_yx(infop, 4, 3, &c);
-    cell_styles_set(&c, NCSTYLE_NONE);
+    cell_set_styles(&c, NCSTYLE_NONE);
   }else{
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
   }
   ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, "Screen0: %dx%d ", fi->dimx, fi->dimy);
   ncplane_printf_aligned(infop, 5, NCALIGN_LEFT, " LANG: %s", fi->lang);
   ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %ju ", (uintmax_t)getuid());
-  ncplane_set_attr(infop, NCSTYLE_ITALIC);
+  ncplane_set_styles(infop, NCSTYLE_ITALIC);
   ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)", fi->cpu_model, fi->core_count);
   cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
   cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
@@ -392,7 +392,7 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   cell_release(infop, &ll); cell_release(infop, &lr);
   cell_release(infop, &hl); cell_release(infop, &vl);
   ncplane_set_fg_rgb8(infop, 0xff, 0xff, 0xff);
-  ncplane_set_attr(infop, NCSTYLE_BOLD);
+  ncplane_set_styles(infop, NCSTYLE_BOLD);
   if(ncplane_printf_aligned(infop, 0, NCALIGN_CENTER, "[ %s@%s ]",
                             fi->username, fi->hostname) < 0){
     return -1;

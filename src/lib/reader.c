@@ -31,7 +31,7 @@ ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
   nr->no_cmd_keys = opts->flags & NCREADER_OPTION_NOCMDKEYS;
   nr->manage_cursor = opts->flags & NCREADER_OPTION_CURSOR;
   ncplane_set_channels(nr->ncp, opts->tchannels);
-  ncplane_set_attr(nr->ncp, opts->tattrword);
+  ncplane_set_styles(nr->ncp, opts->tattrword);
   return nr;
 }
 
