@@ -41,7 +41,6 @@ class TabletCtx {
 };
 
 int tabletfxn(struct nctablet* _t, bool cliptop){
-  (void)cliptop;
   NcTablet *t = NcTablet::map_tablet (_t);
   Plane* p = t->get_plane();
   auto tctx = t->get_userptr<TabletCtx>();
@@ -52,8 +51,12 @@ int tabletfxn(struct nctablet* _t, bool cliptop){
   p->release(c);
   p->set_bg_rgb(0xffffff);
   p->set_fg_rgb(0x000000);
-  p->printf(1, 1, "%d %p lines: %d", tctx->getIdx(), _t, tctx->getLines());
-  return tctx->getLines();
+  int ret = tctx->getLines();
+  if(ret > p->get_dim_y()){
+    ret = p->get_dim_y();
+  }
+  p->printf(1, 1, "%d %p lines: %d (showing: %d)", tctx->getIdx(), _t, tctx->getLines(), ret);
+  return ret;
 }
 
 void usage(const char* argv0, std::ostream& c, int status){
