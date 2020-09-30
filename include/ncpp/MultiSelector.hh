@@ -6,33 +6,30 @@
 #include "NCAlign.hh"
 #include "Plane.hh"
 #include "Utilities.hh"
+#include "Widget.hh"
 
 namespace ncpp
 {
-	class NCPP_API_EXPORT MultiSelector : public Root
+	class NCPP_API_EXPORT MultiSelector : public Widget
 	{
 	public:
 		static ncmultiselector_options default_options;
 
 	public:
 		explicit MultiSelector (Plane *plane, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (static_cast<const Plane*>(plane), opts)
-		{}
-
-		explicit MultiSelector (Plane const* plane, const ncmultiselector_options *opts = nullptr)
-			: Root (Utilities::get_notcurses_cpp (plane))
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
+			ensure_valid_plane (plane);
 			common_init (Utilities::to_ncplane (plane), opts);
+			take_plane_ownership (plane);
 		}
 
 		explicit MultiSelector (Plane &plane, const ncmultiselector_options *opts = nullptr)
-			: MultiSelector (static_cast<Plane const&>(plane), opts)
-		{}
-
-		explicit MultiSelector (Plane const& plane, const ncmultiselector_options *opts = nullptr)
-			: Root (Utilities::get_notcurses_cpp (plane))
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
+			ensure_valid_plane (plane);
 			common_init (Utilities::to_ncplane (plane), opts);
+			take_plane_ownership (plane);
 		}
 
 		~MultiSelector ()

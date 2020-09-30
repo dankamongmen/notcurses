@@ -5,67 +5,47 @@
 
 #include "Root.hh"
 #include "Plane.hh"
+#include "Widget.hh"
+#include "Utilities.hh"
 
 namespace ncpp
 {
-	class NCPP_API_EXPORT Subproc : public Root
+	class NCPP_API_EXPORT Subproc : public Widget
 	{
 	public:
 		static ncsubproc_options default_options;
 
 	public:
-		explicit Subproc (Plane* n, const char* bin, bool use_path = true,
+		explicit Subproc (Plane* plane, const char* bin, bool use_path = true,
 		                  char* const arg[] = nullptr, char* const env[] = nullptr,
 		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Subproc (n, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
+			: Subproc (plane, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
 		{}
 
-		explicit Subproc (const Plane* n, const char* bin, bool use_path = true,
+		explicit Subproc (Plane* plane, const char* bin, const ncsubproc_options* opts, bool use_path = true,
 		                  char* const arg[] = nullptr, char* const env[] = nullptr,
 		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Subproc (n, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
-		{}
-
-		explicit Subproc (Plane* n, const char* bin, const ncsubproc_options* opts, bool use_path = true,
-		                  char* const arg[] = nullptr, char* const env[] = nullptr,
-		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Subproc (static_cast<const Plane*>(n), bin, opts, use_path, arg, env, cbfxn, donecbfxn)
-		{}
-
-		explicit Subproc (const Plane* n, const char* bin, const ncsubproc_options* opts, bool use_path = true,
-		                  char* const arg[] = nullptr, char* const env[] = nullptr,
-		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Root (Utilities::get_notcurses_cpp (n))
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
-			if (n == nullptr)
-				throw invalid_argument ("'n' must be a valid pointer");
-			create_subproc (const_cast<Plane&>(*n), bin, opts, use_path, arg, env, cbfxn, donecbfxn);
+			ensure_valid_plane (plane);
+			create_subproc (*plane, bin, opts, use_path, arg, env, cbfxn, donecbfxn);
+			take_plane_ownership (plane);
 		}
 
-		explicit Subproc (Plane const& n, const char* bin, bool use_path = true,
+		explicit Subproc (Plane& plane, const char* bin, bool use_path = true,
 		                  char* const arg[] = nullptr, char* const env[] = nullptr,
 		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Subproc (n, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
+			: Subproc (plane, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
 		{}
 
-		explicit Subproc (Plane& n, const char* bin, bool use_path = true,
+		explicit Subproc (Plane& plane, const char* bin, const ncsubproc_options* opts, bool use_path = true,
 		                  char* const arg[] = nullptr, char* const env[] = nullptr,
 		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Subproc (n, bin, nullptr, use_path, arg, env, cbfxn, donecbfxn)
-		{}
-
-		explicit Subproc (Plane& n, const char* bin, const ncsubproc_options* opts, bool use_path = true,
-		                  char* const arg[] = nullptr, char* const env[] = nullptr,
-		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Subproc (static_cast<Plane const&>(n), bin, opts, use_path, arg, env, cbfxn, donecbfxn)
-		{}
-
-		explicit Subproc (const Plane& n, const char* bin, const ncsubproc_options* opts, bool use_path = true,
-		                  char* const arg[] = nullptr, char* const env[] = nullptr,
-		                  ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Root (Utilities::get_notcurses_cpp (n))
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
-			create_subproc (const_cast<Plane&>(n), bin, opts, use_path, arg, env, cbfxn, donecbfxn);
+			ensure_valid_plane (plane);
+			create_subproc (plane, bin, opts, use_path, arg, env, cbfxn, donecbfxn);
+			take_plane_ownership (plane);
 		}
 
 		~Subproc ()
