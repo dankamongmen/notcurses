@@ -6,33 +6,27 @@
 #include "NCAlign.hh"
 #include "Plane.hh"
 #include "Utilities.hh"
+#include "Widget.hh"
 
 namespace ncpp
 {
-	class NCPP_API_EXPORT Reader : public Root
+	class NCPP_API_EXPORT Reader : public Widget
 	{
 	public:
-		explicit Reader (Plane *p, const ncreader_options *opts)
-			: Reader (static_cast<const Plane*>(p), opts)
-		{}
-
-		explicit Reader (Plane const* p, const ncreader_options *opts)
-			: Root (Utilities::get_notcurses_cpp (p))
+		explicit Reader (Plane *plane, const ncreader_options *opts)
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
-			if (p == nullptr)
-				throw invalid_argument ("'plane' must be a valid pointer");
-
-			common_init (Utilities::to_ncplane (p), opts);
+			ensure_valid_plane (plane);
+			common_init (Utilities::to_ncplane (plane), opts);
+			take_plane_ownership (plane);
 		}
 
-		explicit Reader (Plane &p, const ncreader_options *opts)
-			: Reader (static_cast<Plane const&>(p), opts)
-		{}
-
-		explicit Reader (Plane const& p, const ncreader_options *opts)
-			: Root (Utilities::get_notcurses_cpp (p))
+		explicit Reader (Plane &plane, const ncreader_options *opts)
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
-			common_init (Utilities::to_ncplane (p), opts);
+			ensure_valid_plane (plane);
+			common_init (Utilities::to_ncplane (plane), opts);
+			take_plane_ownership (plane);
 		}
 
 		~Reader ()

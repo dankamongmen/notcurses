@@ -8,11 +8,12 @@
 #include "NCAlign.hh"
 #include "Plane.hh"
 #include "Utilities.hh"
+#include "Widget.hh"
 
 namespace ncpp
 {
 	template<typename TPlot, typename TCoord>
-	class NCPP_API_EXPORT PlotBase : public Root
+	class NCPP_API_EXPORT PlotBase : public Widget
 	{
 		static constexpr bool is_double = std::is_same_v<TCoord,double>;
 		static constexpr bool is_uint64 = std::is_same_v<TCoord,uint64_t>;
@@ -58,7 +59,7 @@ namespace ncpp
 
 	protected:
 		explicit PlotBase (Plane *plane, const ncplot_options *opts, TCoord miny = 0, TCoord maxy = 0)
-			: Root (Utilities::get_notcurses_cpp (plane))
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
 			static_assert (is_double || is_uint64, "PlotBase must be parameterized with either 'double' or 'uint64_t' types");
 			if constexpr (is_double) {
@@ -67,8 +68,10 @@ namespace ncpp
 				static_assert (std::is_same_v<TPlot, ncuplot>, "ncuplot must be used for a plot using uint64_t coordinates");
 			}
 
-			if (plane == nullptr)
-				throw invalid_argument ("'plane' must be a valid pointer");
+			ensure_valid_plane (plane);
+
+			if (!plane->is_valid ())
+				throw invalid_argument ("Invalid Plane object passed in 'plane'. Widgets must not reuse the same plane.");
 
 			if (opts == nullptr)
 				throw invalid_argument ("'opts' must be a valid pointer");
@@ -81,6 +84,8 @@ namespace ncpp
 
 			if (plot == nullptr)
 				throw init_error ("Notcurses failed to create a new plot");
+
+			take_plane_ownership (plane);
 		}
 
 		~PlotBase ()

@@ -10,16 +10,31 @@
 
 #include "Root.hh"
 #include "Cell.hh"
-#include "Reel.hh"
 #include "CellStyle.hh"
 #include "NCAlign.hh"
 #include "NCBox.hh"
 
 namespace ncpp
 {
+	class NcReel;
+
 	class NCPP_API_EXPORT Plane : public Root
 	{
 	public:
+		Plane (Plane&& other)
+			: Root (nullptr)
+		{
+			unmap_plane (&other);
+
+			plane = other.plane;
+			is_stdplane = other.is_stdplane;
+
+			map_plane (plane, this);
+
+			other.plane = nullptr;
+			other.is_stdplane = false;
+		}
+
 		Plane (Plane const& other)
 			: Root (nullptr)
 		{
@@ -61,7 +76,7 @@ namespace ncpp
 				yoff,
 				xoff,
 				opaque,
-        nullptr
+				nullptr
 			);
 
 			if (plane == nullptr)
@@ -107,7 +122,7 @@ namespace ncpp
 
 		~Plane () noexcept
 		{
-			if (is_stdplane)
+			if (is_stdplane || plane == nullptr)
 				return;
 
 			if (!is_notcurses_stopped ())
@@ -956,10 +971,7 @@ namespace ncpp
 			return static_cast<T*>(get_userptr ());
 		}
 
-		NcReel* ncreel_create (const ncreel_options *popts = nullptr) const
-		{
-			return new NcReel (this, popts);
-		}
+		NcReel* ncreel_create (const ncreel_options *popts = nullptr);
 
 		// Some Cell APIs go here since they act on individual panels even though it may seem weird at points (e.g.
 		// release)
@@ -1124,6 +1136,11 @@ namespace ncpp
 			return ncplane_bg_default_p (plane);
 		}
 
+		bool is_valid () const noexcept
+		{
+			return plane != nullptr;
+		}
+
 	protected:
 		explicit Plane (ncplane *_plane, bool _is_stdplane)
 			: Root (nullptr),
@@ -1132,6 +1149,15 @@ namespace ncpp
 		{
 			if (_plane == nullptr)
 				throw invalid_argument ("_plane must be a valid pointer");
+		}
+
+		void release_native_plane () noexcept
+		{
+			if (plane == nullptr)
+				return;
+
+			unmap_plane (this);
+			plane = nullptr;
 		}
 
 		static void unmap_plane (Plane *p) noexcept;
@@ -1146,7 +1172,7 @@ namespace ncpp
 				yoff,
 				xoff,
 				opaque,
-        nullptr
+				nullptr
 			);
 
 			if (ret == nullptr)
@@ -1166,7 +1192,7 @@ namespace ncpp
 				cols,
 				opaque,
 				nullptr,
-        nullptr,
+				nullptr,
 				0
 			};
 			ncplane *ret = ncplane_create (
@@ -1200,6 +1226,8 @@ namespace ncpp
 		friend class NotCurses;
 		friend class NcReel;
 		friend class Tablet;
+		friend class Widget;
+		template<typename TPlot, typename TCoord> friend class PlotBase;
 	};
 }
 #endif

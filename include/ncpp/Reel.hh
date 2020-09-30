@@ -7,35 +7,32 @@
 #include "Tablet.hh"
 #include "Plane.hh"
 #include "Utilities.hh"
+#include "Widget.hh"
 
 namespace ncpp
 {
-	class NCPP_API_EXPORT NcReel : public Root
+	class NCPP_API_EXPORT NcReel : public Widget
 	{
 	public:
 		static ncreel_options default_options;
 
 		explicit NcReel (Plane &plane, const ncreel_options *popts = nullptr)
-			: NcReel (static_cast<Plane const&>(plane), popts)
-		{}
-
-		explicit NcReel (Plane const&plane, const ncreel_options *popts = nullptr)
-			: Root (Utilities::get_notcurses_cpp (plane))
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
+			ensure_valid_plane (plane);
 			common_init (Utilities::to_ncplane (plane), popts);
+			take_plane_ownership (plane);
 		}
 
 		explicit NcReel (Plane *plane, const ncreel_options *popts = nullptr)
-			: NcReel (static_cast<const Plane*>(plane), popts)
-		{}
-
-		explicit NcReel (const Plane *plane, const ncreel_options *popts = nullptr)
-			: Root (Utilities::get_notcurses_cpp (plane))
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
 			if (plane == nullptr)
 				throw invalid_argument ("'plane' must be a valid pointer");
 
+			ensure_valid_plane (plane);
 			common_init (Utilities::to_ncplane (plane), popts);
+			take_plane_ownership (plane);
 		}
 
 		~NcReel ()

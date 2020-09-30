@@ -1,4 +1,5 @@
 #include <ncpp/Plane.hh>
+#include <ncpp/Reel.hh>
 #include <ncpp/internal/Helpers.hh>
 
 using namespace ncpp;
@@ -27,4 +28,9 @@ void Plane::unmap_plane (Plane *p) noexcept
 		return;
 
 	internal::Helpers::remove_map_entry (plane_map, plane_map_mutex, p->plane);
+}
+
+NcReel* Plane::ncreel_create (const ncreel_options *popts)
+{
+	return new NcReel (this, popts);
 }

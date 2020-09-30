@@ -5,51 +5,38 @@
 
 #include "Utilities.hh"
 #include "Plane.hh"
+#include "Widget.hh"
 
 namespace ncpp
 {
-	class NCPP_API_EXPORT FDPlane : public Root
+	class NCPP_API_EXPORT FDPlane : public Widget
 	{
 	public:
 		static ncfdplane_options default_options;
 
 	public:
-		explicit FDPlane (Plane* n, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: FDPlane (n, fd, nullptr, cbfxn, donecbfxn)
+		explicit FDPlane (Plane *plane, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: FDPlane (plane, fd, nullptr, cbfxn, donecbfxn)
 		{}
 
-		explicit FDPlane (const Plane* n, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: FDPlane (n, fd, nullptr, cbfxn, donecbfxn)
-		{}
-
-		explicit FDPlane (Plane* n, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: FDPlane (static_cast<const Plane*>(n), fd, opts, cbfxn, donecbfxn)
-		{}
-
-		explicit FDPlane (const Plane* n, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Root (Utilities::get_notcurses_cpp (n))
+		explicit FDPlane (Plane *plane, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
-			if (n == nullptr)
-				throw invalid_argument ("'n' must be a valid pointer");
-			create_fdplane (const_cast<Plane&>(*n), fd, opts, cbfxn, donecbfxn);
+			ensure_valid_plane (plane);
+			create_fdplane (*plane, fd, opts, cbfxn, donecbfxn);
+			take_plane_ownership (plane);
 		}
 
-		explicit FDPlane (const Plane& n, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: FDPlane (n, fd, nullptr, cbfxn, donecbfxn)
+		explicit FDPlane (Plane &plane, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: FDPlane (plane, fd, nullptr, cbfxn, donecbfxn)
 		{}
 
-		explicit FDPlane (Plane& n, int fd, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: FDPlane (n, fd, nullptr, cbfxn, donecbfxn)
-		{}
-
-		explicit FDPlane (Plane& n, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: FDPlane (static_cast<Plane const&>(n), fd, opts, cbfxn, donecbfxn)
-		{}
-
-		explicit FDPlane (const Plane& n, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
-			: Root (Utilities::get_notcurses_cpp (n))
+		explicit FDPlane (Plane &plane, int fd, ncfdplane_options *opts = nullptr, ncfdplane_callback cbfxn = nullptr, ncfdplane_done_cb donecbfxn = nullptr)
+			: Widget (Utilities::get_notcurses_cpp (plane))
 		{
-			create_fdplane (const_cast<Plane&>(n), fd, opts, cbfxn, donecbfxn);
+			ensure_valid_plane (plane);
+			create_fdplane (plane, fd, opts, cbfxn, donecbfxn);
+			take_plane_ownership (plane);
 		}
 
 		~FDPlane ()
