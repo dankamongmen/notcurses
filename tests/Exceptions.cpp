@@ -1,5 +1,6 @@
 #define NCPP_EXCEPTIONS_PLEASE
 #include "main.h"
+#include <memory>
 
 using namespace ncpp;
 
