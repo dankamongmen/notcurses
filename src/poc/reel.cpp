@@ -40,7 +40,7 @@ class TabletCtx {
     inline static int class_idx = 0;
 };
 
-int tabletfxn(struct nctablet* _t, bool cliptop){
+int tabletfxn(struct nctablet* _t, bool cliptop __attribute__ ((unused))){
   NcTablet *t = NcTablet::map_tablet (_t);
   Plane* p = t->get_plane();
   auto tctx = t->get_userptr<TabletCtx>();
