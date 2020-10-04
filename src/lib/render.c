@@ -909,7 +909,7 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
   }
-  return 0;
+  return nc->rstate.mstrsize;
 }
 
 // rasterize the rendered frame, and blockingly write it out to the terminal.
@@ -935,7 +935,8 @@ raster_and_write(notcurses* nc, const struct crender* rvec, FILE* out){
 
 // if the cursor is enabled, store its location and disable it. then, once done
 // rasterizing, enable it afresh, moving it to the stored location. if left on
-// during rasterization, we'll get grotesque flicker.
+// during rasterization, we'll get grotesque flicker. 'out' is a memstream
+// used to collect a buffer.
 static inline int
 notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
   const int cursory = nc->cursory;
@@ -1054,7 +1055,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
 }
 
 int notcurses_render(notcurses* nc){
-  struct timespec start, rasterdone, writedone;
+  struct timespec start, rasterdone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
@@ -1072,8 +1073,38 @@ int notcurses_render(notcurses* nc){
   if(bytes < 0){
     return -1;
   }
+  struct timespec writedone;
   clock_gettime(CLOCK_MONOTONIC, &writedone);
   update_write_stats(&writedone, &rasterdone, &nc->stats);
+  return 0;
+}
+
+// for now, we just run the top half of notcurses_render(), and copy out the
+// memstream from within rstate. we want to allocate our own here, and return
+// it, to avoid the copy, but we need feed the params through to do so FIXME.
+int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
+  struct timespec start, rasterdone;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  int dimy, dimx;
+  notcurses_resize(nc, &dimy, &dimx);
+  int bytes = -1;
+  const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
+  struct crender* crender = malloc(crenderlen);
+  init_rvec(crender, crenderlen / sizeof(struct crender));
+  if(notcurses_render_internal(nc, crender) == 0){
+    clock_gettime(CLOCK_MONOTONIC, &rasterdone);
+    update_render_stats(&rasterdone, &start, &nc->stats);
+    bytes = notcurses_rasterize_inner(nc, crender, nc->rstate.mstreamfp);
+  }
+  update_render_bytes(&nc->stats, bytes);
+  if(bytes < 0){
+    return -1;
+  }
+  *buf = memdup(nc->rstate.mstreamfp, nc->rstate.mstrsize);
+  if(buf == NULL){
+    return -1;
+  }
+  *buflen = nc->rstate.mstrsize;
   return 0;
 }
 
