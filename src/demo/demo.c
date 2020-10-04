@@ -403,14 +403,16 @@ summary_table(struct ncdirect* nc, const char* spec){
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
+  uint64_t totalwriteoutns = 0;
   printf("\n");
   table_segment(nc, "             runtime", "│");
   table_segment(nc, " frames", "│");
   table_segment(nc, "output(B)", "│");
   table_segment(nc, "rendering", "│");
   table_segment(nc, " %r", "│");
+  table_segment(nc, " %w", "│");
   table_segment(nc, "    FPS", "│");
-  table_segment(nc, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╣\n");
+  table_segment(nc, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═════════╪═══╪═══╪═══════╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char tfpsbuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
@@ -444,11 +446,13 @@ summary_table(struct ncdirect* nc, const char* spec){
     ncdirect_fg_rgb(nc, rescolor);
     printf("%8s", demos[results[i].selector - 'a'].name);
     ncdirect_fg_rgb8(nc, 178, 102, 255);
-    printf("│%*ss│%7ju│%*s│ %*ss│%3jd│%7.1f│%*s║",
+    printf("│%*ss│%7ju│%*s│ %*ss│%3jd│%3jd│%7.1f│%*s║",
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
            BPREFIXFMT(totalbuf), PREFIXFMT(rtimebuf),
            (uintmax_t)(results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0),
+           (uintmax_t)(results[i].timens ?
+            results[i].stats.writeout_ns * 100 / results[i].timens : 0),
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / GIG) : 0.0,
            PREFIXFMT(tfpsbuf));
@@ -462,17 +466,19 @@ summary_table(struct ncdirect* nc, const char* spec){
     totalframes += results[i].stats.renders;
     totalbytes += results[i].stats.render_bytes;
     totalrenderns += results[i].stats.render_ns;
+    totalwriteoutns += results[i].stats.writeout_ns;
   }
   qprefix(nsdelta, GIG, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
   qprefix(totalrenderns, GIG, rtimebuf, 0);
-  table_segment(nc, "", "══╧════════╧════════╪═══════╪═════════╪═════════╪═══╪═══════╪═══════╝\n");
+  table_segment(nc, "", "══╧════════╧════════╪═══════╪═════════╪═════════╪═══╪═══╪═══════╪═══════╝\n");
   printf("            ");
   table_printf(nc, "│", "%*ss", PREFIXFMT(timebuf));
   table_printf(nc, "│", "%7lu", totalframes);
   table_printf(nc, "│", "%*s", BPREFIXFMT(totalbuf));
   table_printf(nc, "│", " %*ss", PREFIXFMT(rtimebuf));
   table_printf(nc, "│", "%3ld", nsdelta ? totalrenderns * 100 / nsdelta : 0);
+  table_printf(nc, "│", "%3ld", nsdelta ? totalwriteoutns * 100 / nsdelta : 0);
   table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
   printf("\n");
   ncdirect_fg_rgb8(nc, 0xff, 0xb0, 0xb0);

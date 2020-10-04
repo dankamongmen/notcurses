@@ -89,12 +89,25 @@ blocking_write(int fd, const char* buf, size_t buflen){
   return 0;
 }
 
+// update timings for writeout. only call on success.
 static void
-update_render_stats(const struct timespec* time1, const struct timespec* time0,
-                    ncstats* stats, int bytes){
-  int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
-  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
-  //        (elapsed % NANOSECS_IN_SEC) / 1000000);
+update_write_stats(const struct timespec* time1, const struct timespec* time0,
+                   ncstats* stats){
+  const int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
+  if(elapsed > 0){ // don't count clearly incorrect information, egads
+    stats->writeout_ns += elapsed;
+    if(elapsed > stats->writeout_max_ns){
+      stats->writeout_max_ns = elapsed;
+    }
+    if(elapsed < stats->writeout_min_ns){
+      stats->writeout_min_ns = elapsed;
+    }
+  }
+}
+
+// negative 'bytes' is recorded as a failure.
+static void
+update_render_bytes(ncstats* stats, int bytes){
   if(bytes >= 0){
     stats->render_bytes += bytes;
     if(bytes > stats->render_max_bytes){
@@ -106,6 +119,14 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
   }else{
     ++stats->failed_renders;
   }
+}
+
+static void
+update_render_stats(const struct timespec* time1, const struct timespec* time0,
+                    ncstats* stats){
+  const int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
+  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
+  //        (elapsed % NANOSECS_IN_SEC) / 1000000);
   if(elapsed > 0){ // don't count clearly incorrect information, egads
     ++stats->renders;
     stats->render_ns += elapsed;
@@ -1033,8 +1054,7 @@ notcurses_render_internal(notcurses* nc, struct crender* rvec){
 }
 
 int notcurses_render(notcurses* nc){
-  struct timespec start, done;
-  int ret;
+  struct timespec start, rasterdone, writedone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
@@ -1043,13 +1063,18 @@ int notcurses_render(notcurses* nc){
   struct crender* crender = malloc(crenderlen);
   init_rvec(crender, crenderlen / sizeof(struct crender));
   if(notcurses_render_internal(nc, crender) == 0){
+    clock_gettime(CLOCK_MONOTONIC, &rasterdone);
+    update_render_stats(&rasterdone, &start, &nc->stats);
     bytes = notcurses_rasterize(nc, crender, nc->rstate.mstreamfp);
   }
+  update_render_bytes(&nc->stats, bytes);
   free(crender);
-  clock_gettime(CLOCK_MONOTONIC, &done);
-  update_render_stats(&done, &start, &nc->stats, bytes);
-  ret = bytes >= 0 ? 0 : -1;
-  return ret;
+  if(bytes < 0){
+    return -1;
+  }
+  clock_gettime(CLOCK_MONOTONIC, &writedone);
+  update_write_stats(&writedone, &rasterdone, &nc->stats);
+  return 0;
 }
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
