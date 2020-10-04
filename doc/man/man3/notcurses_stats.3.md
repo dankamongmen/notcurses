@@ -18,9 +18,12 @@ typedef struct ncstats {
   uint64_t render_bytes;     // bytes emitted to ttyfp
   int64_t render_max_bytes;  // max bytes emitted for a frame
   int64_t render_min_bytes;  // min bytes emitted for a frame
-  uint64_t render_ns;        // nanoseconds spent rendering
-  int64_t render_max_ns;     // max ns spent rendering
-  int64_t render_min_ns;     // min ns spent rendering
+  uint64_t render_ns;        // nanoseconds spent in render+raster
+  int64_t render_max_ns;     // max ns spent in render+raster for a frame
+  int64_t render_min_ns;     // min ns spent in render+raster for a frame
+  uint64_t writeout_ns;      // nanoseconds spent writing frames to terminal
+  int64_t writeout_max_ns;   // max ns spent writing out a frame
+  int64_t writeout_min_ns;   // min ns spent writing out a frame
   uint64_t cellelisions;     // cells elided entirely
   uint64_t cellemissions;    // cells emitted
   uint64_t fgelisions;       // RGB fg elision count
@@ -46,6 +49,39 @@ typedef struct ncstats {
 related to notcurses_render(3). **notcurses_reset_stats** does the same, but
 also resets all cumulative stats (immediate stats such as **fbbytes** are not
 reset).
+
+**renders** is the number of successful calls to **notcurses_render(3)**
+or **notcurses_render_to_buffer(3)**. **failed_renders** is the number of
+unsuccessful calls to these functions. **failed_renders** should be 0;
+renders are not expected to fail except under exceptional circumstances.
+should **notcurses_render(3)** fail while writing out a frame to the terminal,
+it counts as a failed render.
+
+**render_max_bytes** and **render_min_bytes** track the maximum and minimum
+number of bytes used rasterizing a frame. A given state of Notcurses does not
+correspond to a unique number of bytes; the size is also dependent on the
+existing terminal state. As a first approximation, the time a terminal takes to
+ingest and reflect a frame is dependent on the size of the rasterized frame.
+
+**render_ns**, **render_max_ns**, and **render_min_ns** track the total
+amount of time spent rendering and rasterizing frames in nanoseconds. Rendering
+and rasterizing takes place in **notcurses_render(3)**, and is the entirety of
+**notcurses_render_to_buffer(3)**. These steps are independent of the terminal.
+
+**writeout_ns**, **writeout_max_ns**, and **writeout_min_ns** track the total
+amount of time spent writing frames to the terminal. This takes place in only
+**notcurses_render(3)**. If **notcurses_render_to_buffer(3)** is used, the
+user is responsible for writing out the frame, and it will not be tracked by
+any stat.
+
+**cellemissions** reflects the number of EGCs written to the terminal.
+**cellelisions** reflects the number of cells which were not written, due to
+damage detection.
+
+**fbbytes** is the total number of bytes devoted to framebuffers throughout
+the **struct notcurses** context. **planes** is the number of planes in the
+context. Neither of these stats can reach 0, due to the mandatory standard
+plane.
 
 # NOTES
 
