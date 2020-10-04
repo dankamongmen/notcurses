@@ -898,6 +898,30 @@ cell_blend_bchannel(cell* cl, unsigned channel, unsigned* blends){
   return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
 }
 
+// examine the UTF-8 EGC in the first |*bytes| bytes of |egc|. if the EGC is
+// right-to-left, we make a copy, appending an U+200E to force left-to-right.
+// only the first unicode char of the EGC is currently checked FIXME. if the
+// EGC is not RTL, we return NULL.
+static char*
+egc_rtl(const char* egc, int* bytes){
+  wchar_t w;
+  mbstate_t mbstate = { };
+  size_t r = mbrtowc(&w, egc, *bytes, &mbstate);
+  if(r == (size_t)-1 || r == (size_t)-2){
+    return NULL;
+  }
+  if(!uc_bidi_category(w)){ // FIXME too aggressive, counts punctuation etc
+    return NULL;
+  }
+  // insert U+200E, "LEFT-TO-RIGHT MARK". This ought reset the text direction
+  // after emitting a potentially RTL EGC.
+  const char LTRMARK[] = "\xe2\x80\x8e";
+  char* s = (char*)malloc(*bytes + sizeof(LTRMARK)); // cast for C++ callers
+  memcpy(s, egc, *bytes);
+  memcpy(s + *bytes, LTRMARK, sizeof(LTRMARK));
+  return s;
+}
+
 static inline int
 pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
   if(bytes < 0 || cols < 0){
@@ -923,15 +947,26 @@ pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
     c->channels |= CELL_NOBACKGROUND_MASK;
     c->channels &= ~CELL_WIDEASIAN_MASK;
   }
+  // checks for RTL and adds U+200E if so FIXME
+  char* rtl = egc_rtl(gcluster, &bytes);
+  if(rtl){
+    gcluster = rtl;
+  }
   if(bytes <= 4){
     if(strcmp(gcluster, (const char*)&c->gcluster)){
       pool_release(pool, c);
       c->gcluster = 0;
       memcpy(&c->gcluster, gcluster, bytes);
     }
+    if(rtl){
+      free(rtl);
+    }
     return bytes;
   }
   int eoffset = egcpool_stash(pool, gcluster, bytes);
+  if(rtl){
+    free(rtl);
+  }
   if(eoffset < 0){
     return -1;
   }
