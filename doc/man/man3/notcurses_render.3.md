@@ -16,6 +16,8 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **int notcurses_render_to_file(struct notcurses* nc, FILE* fp);**
 
+**int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t buflen);**
+
 # DESCRIPTION
 
 **notcurses_render** syncs the physical display to the context's prepared
@@ -28,6 +30,12 @@ render (see notcurses_stats(3)), and screen geometry is refreshed (similarly to
 While **notcurses_render** is called, you **must not call any other functions
 on the same notcurses context**, with the one exception of **notcurses_getc**
 (and its input-related helpers; see **notcurses_input(3)**.).
+
+**notcurses_render_to_buffer** performs the render and raster processes of
+**notcurses_render**, but does not write the resulting buffer to the
+terminal. The user is responsible for writing the buffer to the terminal in
+its entirety. If there is an error, subsequent frames will be out of sync,
+and **notcurses_refresh(3)** must be called.
 
 A render operation consists of two logical phases: generation of the rendered
 scene, and blitting this scene to the terminal (these two phases might actually
