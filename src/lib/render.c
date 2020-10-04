@@ -899,12 +899,6 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           ++nc->rstate.x;
           ++x;
         }
-        // if the terminal's own motion carried us down to the next line,
-        // we need update our concept of the cursor's true y
-        /*if(nc->rstate.x >= nc->truecols){
-          ++nc->rstate.y; // FIXME not if on last line, right?
-          nc->rstate.x = 0;
-        }*/
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }

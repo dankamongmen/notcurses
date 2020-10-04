@@ -8,10 +8,6 @@ problematic_unicode(char32_t wc){
   if(wc >= 0xd800 && wc <= 0xdfff){
     return 1;
   }
-  // right-to-left text fucks with us hard
-  if(uc_bidi_category(wc)){ // FIXME
-    return 1;
-  }
   // these are broken in several terminals ㉈ ㉉ ㉊ ㉋ ㉌ ㉍ ㉎ ㉏
   // https://github.com/dankamongmen/notcurses/issues/881
   if(wc >= 0x3248 && wc <= 0x324f){
