@@ -1,6 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 1.7.6 (not yet released)
+  * `ncstats` added the new stats `writeout_ns`, `writeout_min_ns`, and
+    `writeout_max_ns`. The `render_*ns` stats now only cover the rendering
+    and rasterizing process. The `writeout*ns` stats cover the time spent
+    writing data out to the terminal. `notcurses_render()` involves both of
+    these processes.
+
 * 1.7.5 (2020-09-29)
   * `ncreel_destroy()` now returns `void` rather than `int`.
   * `nctablet_ncplane()` has been renamed `nctablet_plane()`.
