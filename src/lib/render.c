@@ -733,7 +733,6 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
 // *become* the last frame rasterized.
 static int
 notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
-  int ret = 0;
   int y, x;
   fseeko(out, 0, SEEK_SET);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
@@ -758,13 +757,17 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
         }
       }else{
         ++nc->stats.cellemissions;
-        ret |= stage_cursor(nc, out, y, x);
+        if(stage_cursor(nc, out, y, x)){
+          return -1;
+        }
         // set the style. this can change the color back to the default; if it
         // does, we need update our elision possibilities.
         bool normalized;
-        ret |= term_setstyles(out, &nc->rstate.curattr, srccell, &normalized,
-                              nc->tcache.sgr0, nc->tcache.sgr,
-                              nc->tcache.italics, nc->tcache.italoff);
+        if(term_setstyles(out, &nc->rstate.curattr, srccell, &normalized,
+                          nc->tcache.sgr0, nc->tcache.sgr,
+                          nc->tcache.italics, nc->tcache.italoff)){
+          return -1;
+        }
         if(normalized){
           nc->rstate.defaultelidable = true;
           nc->rstate.bgelidable = false;
@@ -787,7 +790,9 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           if(!nc->rstate.defaultelidable){
             ++nc->stats.defaultemissions;
             if(nc->tcache.op){
-              ret |= term_emit("op", nc->tcache.op, out, false);
+              if(term_emit("op", nc->tcache.op, out, false)){
+                return -1;
+              }
             }
           }else{
             ++nc->stats.defaultelisions;
@@ -809,7 +814,9 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
             ++nc->stats.fgelisions;
           }else{
-            ret |= term_fg_palindex(nc, out, palfg);
+            if(term_fg_palindex(nc, out, palfg)){
+              return -1;
+            }
             ++nc->stats.fgemissions;
             nc->rstate.fgpalelidable = true;
           }
@@ -821,7 +828,9 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
           }else{
-            ret |= term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, out, r, g, b);
+            if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, out, r, g, b)){
+              return -1;
+            }
             ++nc->stats.fgemissions;
             nc->rstate.fgelidable = true;
           }
@@ -836,7 +845,9 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
             ++nc->stats.bgelisions;
           }else{
-            ret |= term_bg_palindex(nc, out, palbg);
+            if(term_bg_palindex(nc, out, palbg)){
+              return -1;
+            }
             ++nc->stats.bgemissions;
             nc->rstate.bgpalelidable = true;
           }
@@ -848,7 +859,9 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
             ++nc->stats.bgelisions;
           }else{
-            ret |= term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, out, br, bg, bb);
+            if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, out, br, bg, bb)){
+              return -1;
+            }
             ++nc->stats.bgemissions;
             nc->rstate.bgelidable = true;
           }
@@ -857,26 +870,34 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
           nc->rstate.bgpalelidable = false;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->channels);
-        if(term_putc(out, &nc->pool, srccell) == 0){
-          ++nc->rstate.x;
-          if(cell_wide_left_p(srccell)){
-            ++nc->rstate.x;
-            ++x;
-          }
-          // if the terminal's own motion carried us down to the next line,
-          // we need update our concept of the cursor's true y
-          /*if(nc->rstate.x >= nc->truecols){
-            ++nc->rstate.y; // FIXME not if on last line, right?
-            nc->rstate.x = 0;
-          }*/
-        }else{
-          ret = -1;
+        if(term_putc(out, &nc->pool, srccell)){
+          return -1;
         }
+        ++nc->rstate.x;
+        if(cell_wide_left_p(srccell)){
+          ++nc->rstate.x;
+          ++x;
+        }
+        // if the terminal's own motion carried us down to the next line,
+        // we need update our concept of the cursor's true y
+        /*if(nc->rstate.x >= nc->truecols){
+          ++nc->rstate.y; // FIXME not if on last line, right?
+          nc->rstate.x = 0;
+        }*/
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
   }
-  ret |= fflush(out);
+  return 0;
+}
+
+// rasterize the rendered frame, and blockingly write it out to the terminal.
+static int
+raster_and_write(notcurses* nc, const struct crender* rvec, FILE* out){
+  if(notcurses_rasterize_inner(nc, rvec, out) < 0){
+    return -1;
+  }
+  int ret = fflush(out);
   //fflush(nc->ttyfp);
   if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
@@ -901,7 +922,7 @@ notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
   if(cursory >= 0){ // either both are good, or neither is
     notcurses_cursor_disable(nc);
   }
-  int ret = notcurses_rasterize_inner(nc, rvec, out);
+  int ret = raster_and_write(nc, rvec, out);
   if(cursory >= 0){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }
@@ -977,7 +998,7 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
   for(int i = 0 ; i < count ; ++i){
     rvec[i].damaged = true;
   }
-  int ret = notcurses_rasterize_inner(nc, rvec, out);
+  int ret = raster_and_write(nc, rvec, out);
   free(rvec);
   if(ret > 0){
     if(fprintf(fp, "%s", rastered) == ret){
