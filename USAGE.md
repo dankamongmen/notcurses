@@ -12,6 +12,7 @@ version 2, notcurses will honor Semantic Versioning.
 * [Widgets](#widgets) ([Readers](#readers))
 * [Channels](#channels)
 * [Visuals](#visuals) ([QR codes](#qrcodes)) ([Multimedia](#multimedia)) ([Pixels](#pixels))
+* [Stats](#stats)
 * [C++](#c++)
 
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
@@ -2808,6 +2809,47 @@ ncpixel_set_rgb8(uint32_t* pixel, int r, int g, int b){
   return 0;
 }
 ```
+
+## Stats
+
+Notcurses supplies a number of stats related to performance and state.
+Cumulative stats can be reset at any time.
+
+```c
+typedef struct ncstats {
+  // purely increasing stats
+  uint64_t renders;          // number of successful notcurses_render() runs
+  uint64_t failed_renders;   // number of aborted renders, should be 0
+  uint64_t render_bytes;     // bytes emitted to ttyfp
+  int64_t render_max_bytes;  // max bytes emitted for a frame
+  int64_t render_min_bytes;  // min bytes emitted for a frame
+  uint64_t render_ns;        // nanoseconds spent in render+raster
+  int64_t render_max_ns;     // max ns spent in render+raster for a frame
+  int64_t render_min_ns;     // min ns spent in render+raster for a frame
+  uint64_t writeout_ns;      // nanoseconds spent writing frames to terminal
+  int64_t writeout_max_ns;   // max ns spent writing out a frame
+  int64_t writeout_min_ns;   // min ns spent writing out a frame
+  uint64_t cellelisions;     // cells we elided entirely thanks to damage maps
+  uint64_t cellemissions;    // total number of cells emitted to terminal
+  uint64_t fgelisions;       // RGB fg elision count
+  uint64_t fgemissions;      // RGB fg emissions
+  uint64_t bgelisions;       // RGB bg elision count
+  uint64_t bgemissions;      // RGB bg emissions
+  uint64_t defaultelisions;  // default color was emitted
+  uint64_t defaultemissions; // default color was elided
+
+  // current state -- these can decrease
+  uint64_t fbbytes;          // total bytes devoted to all active framebuffers
+  unsigned planes;           // number of planes currently in existence
+} ncstats;
+
+// Acquire an atomic snapshot of the notcurses object's stats.
+void notcurses_stats(const struct notcurses* nc, ncstats* stats);
+
+// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
+void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
+```
+
 
 ## C++
 
