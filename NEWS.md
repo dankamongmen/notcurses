@@ -7,6 +7,8 @@ rearrangements of Notcurses.
     and rasterizing process. The `writeout*ns` stats cover the time spent
     writing data out to the terminal. `notcurses_render()` involves both of
     these processes.
+  * `notcurses_render_to_buffer()` has been added, allowing user control of
+    the process of writing frames out to the terminal.
 
 * 1.7.5 (2020-09-29)
   * `ncreel_destroy()` now returns `void` rather than `int`.
