@@ -910,7 +910,8 @@ egc_rtl(const char* egc, int* bytes){
   if(r == (size_t)-1 || r == (size_t)-2){
     return NULL;
   }
-  if(!uc_bidi_category(w)){ // FIXME too aggressive, counts punctuation etc
+  const int bidic = uc_bidi_category(w);
+  if(bidic != UC_BIDI_R && bidic != UC_BIDI_RLE && bidic != UC_BIDI_RLO){
     return NULL;
   }
   // insert U+200E, "LEFT-TO-RIGHT MARK". This ought reset the text direction
