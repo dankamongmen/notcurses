@@ -40,7 +40,7 @@ class TabletCtx {
     inline static int class_idx = 0;
 };
 
-int tabletfxn(struct nctablet* _t, bool cliptop __attribute__ ((unused))){
+int tabletfxn(struct nctablet* _t, bool cliptop){
   NcTablet *t = NcTablet::map_tablet (_t);
   Plane* p = t->get_plane();
   auto tctx = t->get_userptr<TabletCtx>();
@@ -146,6 +146,7 @@ int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
           tctx->addLine();
         }
         if(ncreel_redraw(nr)){
+          fprintf(stderr, "Error redrawing reel\n");
           return -1;
         }
         break;
@@ -156,6 +157,7 @@ int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
           tctx->subLine();
         }
         if(ncreel_redraw(nr)){
+          fprintf(stderr, "Error redrawing reel\n");
           return -1;
         }
         break;
