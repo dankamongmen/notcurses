@@ -9,7 +9,7 @@ rearrangements of Notcurses.
     these processes.
   * `notcurses_render_to_buffer()` has been added, allowing user control of
     the process of writing frames out to the terminal.
-  * `notcurses_stats_create()` has been added, to allocate an `ncstats` object.
+  * `notcurses_stats_alloc()` has been added, to allocate an `ncstats` object.
     `notcurses_reset_stats()` has been renamed `notcurses_stats_reset()`.
 
 * 1.7.5 (2020-09-29)

@@ -310,7 +310,7 @@ typedef struct notcurses {
   int cursorx;    //  care, otherwise moved here after each render.
 
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
-  ncstats stashstats; // cumulative stats, unaffected by notcurses_reset_stats()
+  ncstats stashstats; // cumulative stats, unaffected by notcurses_stats_reset()
 
   int truecols;   // true number of columns in the physical rendering area.
                   // used only to see if output motion takes us to the next

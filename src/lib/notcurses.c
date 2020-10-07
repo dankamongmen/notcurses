@@ -715,7 +715,7 @@ void notcurses_stats(const notcurses* nc, ncstats* stats){
   memcpy(stats, &nc->stats, sizeof(*stats));
 }
 
-ncstats* notcurses_stats_create(const notcurses* nc __attribute__ ((unused))){
+ncstats* notcurses_stats_alloc(const notcurses* nc __attribute__ ((unused))){
   return malloc(sizeof(ncstats));
 }
 

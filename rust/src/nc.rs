@@ -24,7 +24,8 @@
 // notcurses_refresh
 // notcurses_render
 // notcurses_render_to_file
-// notcurses_reset_stats
+// notcurses_stats_alloc
+// notcurses_stats_reset
 // notcurses_stats
 // notcurses_stdplane
 // notcurses_stdplane_const
