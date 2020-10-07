@@ -226,7 +226,7 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
 
     hud_schedule(demos[idx].name);
     ret = demos[idx].fxn(nc);
-    notcurses_reset_stats(nc, &results[i].stats);
+    notcurses_stats_reset(nc, &results[i].stats);
     clock_gettime(CLOCK_MONOTONIC, &now);
     uint64_t nowns = timespec_to_ns(&now);
     results[i].timens = nowns - prevns;
@@ -582,7 +582,7 @@ int main(int argc, char** argv){
     if(notcurses_render(nc)){
       goto err;
     }
-    notcurses_reset_stats(nc, NULL);
+    notcurses_stats_reset(nc, NULL);
     if(ext_demos(nc, spec, ignore_failures)){
       goto err;
     }

@@ -39,14 +39,20 @@ typedef struct ncstats {
 } ncstats;
 ```
 
+**ncstats* notcurses_stats_alloc(struct notcurses* nc);**
+
 **void notcurses_stats(struct notcurses* nc, ncstats* stats);**
 
-**void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);**
+**void notcurses_stats_reset(struct notcurses* nc, ncstats* stats);**
 
 # DESCRIPTION
 
+**notcurses_stats_alloc** allocates an **ncstats** object. This should be used
+rather than allocating the object in client code, to future-proof against
+the struct being enlarged by later Notcurses versions.
+
 **notcurses_stats** acquires an atomic snapshot of statistics, primarily
-related to notcurses_render(3). **notcurses_reset_stats** does the same, but
+related to notcurses_render(3). **notcurses_stats_reset** does the same, but
 also resets all cumulative stats (immediate stats such as **fbbytes** are not
 reset).
 
@@ -89,7 +95,9 @@ Unsuccessful render operations do not contribute to the render timing stats.
 
 # RETURN VALUES
 
-Neither of these functions can fail. Neither returns any value.
+Neither **notcurses_stats** nor **notcurses_stats_reset** can fail. Neither
+returns any value. **notcurses_stats_alloc** returns a valid **ncstats**
+object on success, or **NULL** on failure.
 
 # SEE ALSO
 

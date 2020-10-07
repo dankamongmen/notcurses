@@ -2849,11 +2849,15 @@ typedef struct ncstats {
   unsigned planes;           // number of planes currently in existence
 } ncstats;
 
+// Allocate an ncstats object. Use this rather than allocating your own, since
+// future versions of Notcurses might enlarge this structure.
+ncstats* notcurses_stats_create(const struct notcurses* nc);
+
 // Acquire an atomic snapshot of the notcurses object's stats.
 void notcurses_stats(const struct notcurses* nc, ncstats* stats);
 
 // Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
-void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
+void notcurses_stats_reset(struct notcurses* nc, ncstats* stats);
 ```
 
 

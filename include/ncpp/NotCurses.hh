@@ -174,7 +174,7 @@ namespace ncpp
 			if (stats == nullptr)
 				throw invalid_argument ("'stats' must be a valid pointer");
 
-			notcurses_reset_stats (nc, stats);
+			notcurses_stats_reset (nc, stats);
 		}
 
 		bool use (const Palette256 *p) const

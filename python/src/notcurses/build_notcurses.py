@@ -173,8 +173,9 @@ typedef struct ncstats {
   uint64_t defaultelisions;  // default color was emitted
   uint64_t defaultemissions; // default color was elided
 } ncstats;
+ncstats* notcurses_stats_alloc(struct notcurses* nc);
 void notcurses_stats(struct notcurses* nc, ncstats* stats);
-void notcurses_reset_stats(struct notcurses* nc, ncstats* stats);
+void notcurses_stats_reset(struct notcurses* nc, ncstats* stats);
 int ncplane_hline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);
 int ncplane_vline_interp(struct ncplane* n, const cell* c, int len, uint64_t c1, uint64_t c2);
 int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur, const cell* ll, const cell* lr, const cell* hline, const cell* vline, int ystop, int xstop, unsigned ctlword);
