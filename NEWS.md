@@ -11,6 +11,10 @@ rearrangements of Notcurses.
     the process of writing frames out to the terminal.
   * `notcurses_stats_alloc()` has been added, to allocate an `ncstats` object.
     `notcurses_reset_stats()` has been renamed `notcurses_stats_reset()`.
+  * Two flags have been defined for `ncdirect_init()`:
+    `NCDIRECT_OPTION_INHIBIT_SETLOCALE` and `NCDIRECT_OPTION_INHIBIT_CBREAK`.
+    The former is similar to `NCOPTION_INHIBIT_SETLOCALE`. The latter keeps
+    `ncdirect_init()` from touching the termios and entering cbreak mode.
 
 * 1.7.5 (2020-09-29)
   * `ncreel_destroy()` now returns `void` rather than `int`.

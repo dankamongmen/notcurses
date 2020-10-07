@@ -851,11 +851,7 @@ get_tty_fd(notcurses* nc, FILE* ttyfp){
   return fd;
 }
 
-int cbreak_mode(int ttyfd, struct termios* tpreserved){
-  if(tcgetattr(ttyfd, tpreserved)){
-    fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ttyfd, strerror(errno));
-    return -1;
-  }
+int cbreak_mode(int ttyfd, const struct termios* tpreserved){
   // assume it's not a true terminal (e.g. we might be redirected to a file)
   struct termios modtermios;
   memcpy(&modtermios, tpreserved, sizeof(modtermios));
@@ -951,6 +947,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   is_linux_console(ret, !!(opts->flags & NCOPTION_NO_FONT_CHANGES));
   notcurses_mouse_disable(ret);
   if(ret->ttyfd >= 0){
+    if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
+      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ttyfd, strerror(errno));
+      free(ret);
+      return NULL;
+    }
     if(cbreak_mode(ret->ttyfd, &ret->tpreserved)){
       free(ret);
       return NULL;

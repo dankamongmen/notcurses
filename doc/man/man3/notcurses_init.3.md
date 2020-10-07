@@ -101,7 +101,7 @@ margin argument expression in one of two forms:
 * four comma-delimited numbers, applied to top, right, bottom, and left.
 
 To allow future options without requiring redefinition of the structure, the
-**flags** field is only a partially-defined bitfield. Undefined bits must be
+**flags** field is only a partially-defined bitfield. Undefined bits should be
 zero. The following flags are defined:
 
 * **NCOPTION_INHIBIT_SETLOCALE**: Unless this flag is set, **notcurses_init**

@@ -289,6 +289,7 @@ typedef struct ncdirect {
   // typical order. we detect it the first time ncdirect_cursor_yx() is called.
   bool detected_cursor_inversion; // have we performed inversion testing?
   bool inverted_cursor;      // does the terminal return inverted coordinates?
+  uint64_t flags;            // copied in ncdirect_init() from param
 } ncdirect;
 
 typedef struct notcurses {
@@ -1025,7 +1026,7 @@ cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
 int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
 
 // FIXME absorb into ncinputlayer_init()
-int cbreak_mode(int ttyfd, struct termios* tpreserved);
+int cbreak_mode(int ttyfd, const struct termios* tpreserved);
 
 #ifdef __cplusplus
 }

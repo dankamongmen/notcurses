@@ -290,10 +290,24 @@ struct ncdirect; // minimal state for a terminal
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
 // limited subset of notcurses routines which directly affect 'fp', and neither
 // supports nor requires notcurses_render(). This can be used to add color and
-// styling to text in the standard output paradigm. No flags are yet defined;
-// 'flags' should be set to 0.
+// styling to text in the standard output paradigm. 'flags' is a bitmask over
+// NCDIRECT_OPTION_*.
 // Returns NULL on error, including any failure initializing terminfo.
 struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);
+
+// ncdirect_init() will call setlocale() to inspect the current locale. If
+// that locale is "C" or "POSIX", it will call setlocale(LC_ALL, "") to set
+// the locale according to the LANG environment variable. Ideally, this will
+// result in UTF8 being enabled, even if the client app didn't call
+// setlocale() itself. Unless you're certain that you're invoking setlocale()
+// prior to notcurses_init(), you should not set this bit. Even if you are
+// invoking setlocale(), this behavior shouldn't be an issue unless you're
+// doing something weird (setting a locale not based on LANG).
+#define NCDIRECT_OPTION_INHIBIT_SETLOCALE 0x0001ull
+
+// *Don't* place the terminal into cbreak mode (see tcgetattr(3)). By default,
+// echo and line buffering are turned off.
+#define NCDIRECT_OPTION_INHIBIT_CBREAK    0x0002ull
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 int ncdirect_stop(struct ncdirect* nc);
