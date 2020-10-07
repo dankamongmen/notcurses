@@ -480,7 +480,6 @@ namespace ncpp
 			return error_guard<int> (ncplane_putwegc_yx (plane, y, x, gclust, sbytes), -1);
 		}
 
-#undef putwc
 		// OK, this is ugly, but we need to rename this overload or calls similar to n->putc (0, 0, '0') will be
 		// considered ambiguous with the above `putc (int, int, char)` overload.
 		int putwc (int y, int x, wchar_t w) const NOEXCEPT_MAYBE
