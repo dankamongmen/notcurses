@@ -174,9 +174,8 @@ layout_next_text(struct ncreader* reader, const char* text, size_t* textpos){
     ncplane_yx(ncp, &posy, &posx);
     int stdy = ncplane_dim_y(notcurses_stdplane(ncplane_notcurses(ncp)));
     if(y + posy < stdy - 1){
-      if(notcurses_cursor_enable(ncplane_notcurses(ncp), y + posy, x + posx)){
-        return -1;
-      }
+      // don't check for failure -- not supported under vt100
+      notcurses_cursor_enable(ncplane_notcurses(ncp), y + posy, x + posx);
     }
     *textpos += towrite;
   }
@@ -412,9 +411,8 @@ done:
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
   ncreader_destroy(reader, NULL);
-  if(notcurses_cursor_disable(nc)){
-    return -1;
-  }
+  // don't check for failure -- not supported under vt100
+  notcurses_cursor_disable(nc);
   return ret;
 }
 
