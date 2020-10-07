@@ -83,8 +83,18 @@ terminal and free up resources. **ncdirect_init** places the terminal into
 input. **ncdirect_stop** restores the terminal state as it was when the
 corresponding **ncdirect_init** call was made.
 
-The **flags** parameter to **ncdirect_init** does not yet have any flags
-defined, and should be passed as 0 for now.
+The following flags are defined:
+
+* **NCDIRECT_OPTION_INHIBIT_SETLOCALE**: Unless this flag is set,
+    **ncdirect_init** will call **setlocale(LC_ALL, NULL)**. If the result is
+    either "**C**" or "**POSIX**", it will print a diagnostic to **stder**, and
+    then call **setlocale(LC_ALL, "").** This will attempt to set the locale
+    based off the **LANG** environment variable. Your program should call
+    **setlocale(3)** itself, usually as one of the first lines.
+
+* **NCDIRECT_OPTION_INHIBIT_CBREAK**: Unless this flag is set, **ncdirect_init**
+    will place the terminal into cbreak mode (i.e. disabling echo and line
+    buffering; see **tcgetattr(3)**).
 
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see

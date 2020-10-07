@@ -528,8 +528,8 @@ int get_controlling_tty(FILE* ttyfp){
 }
 
 ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
-  if(flags){ // allow them through with warning
-    logwarn((struct notcurses*)NULL, "Passed non-zero flags 0x%016jx, but no flags are defined\n", (uintmax_t)flags);
+  if(flags > (NCDIRECT_OPTION_INHIBIT_CBREAK << 1)){ // allow them through with warning
+    logwarn((struct notcurses*)NULL, "Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
   if(outfp == nullptr){
     outfp = stdout;
@@ -538,17 +538,26 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ret == nullptr){
     return ret;
   }
+  ret->flags = flags;
   ret->ttyfp = outfp;
   memset(&ret->palette, 0, sizeof(ret->palette));
-  init_lang(nullptr);
+  if(!(flags & NCDIRECT_OPTION_INHIBIT_SETLOCALE)){
+    init_lang(nullptr);
+  }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding && strcmp(encoding, "UTF-8") == 0){
     ret->utf8 = true;
   }
   // we don't need a controlling tty for everything we do; allow a failure here
   if((ret->ctermfd = get_controlling_tty(ret->ttyfp)) >= 0){
-    if(cbreak_mode(ret->ctermfd, &ret->tpreserved)){
-      goto err;
+    if(!(flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
+      if(tcgetattr(ret->ctermfd, &ret->tpreserved)){
+        fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ctermfd, strerror(errno));
+        goto err;
+      }
+      if(cbreak_mode(ret->ctermfd, &ret->tpreserved)){
+        goto err;
+      }
     }
   }
   if(ncinputlayer_init(&ret->input, stdin)){
@@ -572,7 +581,9 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
 
 err:
   if(ret->ctermfd >= 0){
-    tcsetattr(ret->ctermfd, TCSANOW, &ret->tpreserved);
+    if(!(flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
+      tcsetattr(ret->ctermfd, TCSANOW, &ret->tpreserved);
+    }
   }
   delete(ret);
   return nullptr;
@@ -594,7 +605,9 @@ int ncdirect_stop(ncdirect* nc){
       if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
         ret = -1;
       }
-      ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
+      if(!(nc->flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
+        ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
+      }
       ret |= close(nc->ctermfd);
     }
     input_free_esctrie(&nc->input.inputescapes);
