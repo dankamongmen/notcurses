@@ -15,6 +15,8 @@ rearrangements of Notcurses.
     `NCDIRECT_OPTION_INHIBIT_SETLOCALE` and `NCDIRECT_OPTION_INHIBIT_CBREAK`.
     The former is similar to `NCOPTION_INHIBIT_SETLOCALE`. The latter keeps
     `ncdirect_init()` from touching the termios and entering cbreak mode.
+  * The C++ wrapper `Ncplane::putwc()` has been renamed `Ncplane::putwch()`, so
+    as not to clash with standard libraries implementing `putwc()` as a macro.
 
 * 1.7.5 (2020-09-29)
   * `ncreel_destroy()` now returns `void` rather than `int`.
