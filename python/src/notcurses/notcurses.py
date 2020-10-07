@@ -193,6 +193,14 @@ class Ncdirect:
         if lib.ncdirect_bg_rgb(self.nc, rgb):
             raise ValueError("Bad background RGB")
 
+    def cursorEnable(self):
+        if lib.ncdirect_cursor_enable(self.nc):
+            raise RuntimeError("Couldn't enable terminal cursor");
+
+    def cursorDisable(self):
+        if lib.ncdirect_cursor_disable(self.nc):
+            raise RuntimeError("Couldn't disable terminal cursor");
+
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, "")
     nc = Notcurses()

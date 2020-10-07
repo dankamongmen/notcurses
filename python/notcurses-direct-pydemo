@@ -24,6 +24,7 @@ def print_rgb(nc, total):
 
 def demo():
     nc = notcurses.Ncdirect()
+    nc.cursorDisable()
     for t in range(768):
       print_rgb(nc, t);
     print()
