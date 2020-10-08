@@ -55,6 +55,8 @@ rm $TARBALL.asc
 
 cd "$BUILDDIR"
 sudo make install
+tar czvf notcurses-doc-$VERSION.tar.gz *.1 *.3 *.html
+github-asset dankamongmen/notcurses upload v$VERSION notcurses-doc-$VERSION.tar.gz
 cd ../python
 python3 setup.py sdist
 python3 setup.py build
