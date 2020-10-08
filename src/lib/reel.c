@@ -114,7 +114,7 @@ typedef enum {
 //    * draw through edge
 
 static int
-draw_borders(ncplane* w, unsigned mask, uint64_t channel){
+draw_borders(ncplane* w, unsigned mask, uint64_t channel, direction_e direction){
   int lenx, leny;
   int ret = 0;
   ncplane_dim_yx(w, &leny, &lenx);
@@ -129,19 +129,21 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel){
 //fprintf(stderr, "drawing borders %p ->%d/%d, mask: %04x\n", w, maxx, maxy, mask);
   // lenx is the number of columns we have, but drop 2 due to corners. we thus
   // want lenx horizontal lines.
-  if(!(mask & NCBOXMASK_TOP)){
-    ncplane_home(w);
-    ncplane_putc(w, &ul);
-    ncplane_hline(w, &hl, lenx - 2);
-    ncplane_putc(w, &ur);
-  }else{
-    if(!(mask & NCBOXMASK_LEFT)){
+  if(maxy || direction == DIRECTION_DOWN){
+    if(!(mask & NCBOXMASK_TOP)){
       ncplane_home(w);
       ncplane_putc(w, &ul);
-    }
-    if(!(mask & NCBOXMASK_RIGHT)){
-      ncplane_cursor_move_yx(w, 0, lenx - 1);
+      ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &ur);
+    }else{
+      if(!(mask & NCBOXMASK_LEFT)){
+        ncplane_home(w);
+        ncplane_putc(w, &ul);
+      }
+      if(!(mask & NCBOXMASK_RIGHT)){
+        ncplane_cursor_move_yx(w, 0, lenx - 1);
+        ncplane_putc(w, &ur);
+      }
     }
   }
   int y;
@@ -155,20 +157,22 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel){
       ncplane_putc(w, &vl);
     }
   }
-  if(!(mask & NCBOXMASK_BOTTOM)){
-    ret |= ncplane_cursor_move_yx(w, maxy, 0);
-    ncplane_putc(w, &ll);
-    ncplane_hline(w, &hl, lenx - 2);
-    ncplane_putc(w, &lr);
-  }else{
-    if(!(mask & NCBOXMASK_LEFT)){
-      if(ncplane_cursor_move_yx(w, maxy, 0) || ncplane_putc(w, &ll) < 0){
-        ret = -1;
+  if(maxy || direction == DIRECTION_UP){
+    if(!(mask & NCBOXMASK_BOTTOM)){
+      ret |= ncplane_cursor_move_yx(w, maxy, 0);
+      ncplane_putc(w, &ll);
+      ncplane_hline(w, &hl, lenx - 2);
+      ncplane_putc(w, &lr);
+    }else{
+      if(!(mask & NCBOXMASK_LEFT)){
+        if(ncplane_cursor_move_yx(w, maxy, 0) || ncplane_putc(w, &ll) < 0){
+          ret = -1;
+        }
       }
-    }
-    if(!(mask & NCBOXMASK_RIGHT)){
-      if(ncplane_cursor_move_yx(w, maxy, maxx) || ncplane_putc(w, &lr) < 0){
-        ret = -1;
+      if(!(mask & NCBOXMASK_RIGHT)){
+        if(ncplane_cursor_move_yx(w, maxy, maxx) || ncplane_putc(w, &lr) < 0){
+          ret = -1;
+        }
       }
     }
   }
@@ -186,7 +190,8 @@ draw_ncreel_borders(const ncreel* nr){
   assert(maxy >= 0 && maxx >= 0);
   --maxx; // last column we can safely write to
   --maxy; // last line we can safely write to
-  return draw_borders(nr->p, nr->ropts.bordermask, nr->ropts.borderchan);
+  return draw_borders(nr->p, nr->ropts.bordermask, nr->ropts.borderchan,
+                      DIRECTION_UP); // direction shouldn't matter for reel
 }
 
 // Calculate the starting and ending coordinates available for occupation by
@@ -330,7 +335,8 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
     }
   }
   draw_borders(fp, nr->ropts.tabletmask,
-               nr->tablets == t ? nr->ropts.focusedchan : nr->ropts.tabletchan);
+               nr->tablets == t ? nr->ropts.focusedchan : nr->ropts.tabletchan,
+               direction);
   return 0;
 }
 
