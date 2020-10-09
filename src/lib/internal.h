@@ -252,6 +252,7 @@ typedef struct tinfo {
   char* getm;     // get mouse events
   bool RGBflag;   // ti-reported "RGB" flag for 24bpc truecolor
   bool CCCflag;   // ti-reported "CCC" flag for palette set capability
+  bool BCEflag;   // ti-reported "BCE" flag for erases with background color
   bool AMflag;    // ti-reported "AM" flag for automatic movement to next line
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode

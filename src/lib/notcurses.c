@@ -945,7 +945,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->ttyfd = get_tty_fd(ret, ret->ttyfp);
   is_linux_console(ret, !!(opts->flags & NCOPTION_NO_FONT_CHANGES));
-  notcurses_mouse_disable(ret);
   if(ret->ttyfd >= 0){
     if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ttyfd, strerror(errno));
@@ -975,6 +974,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }else{
     dimy = 24; // fuck it, lol
     dimx = 80;
+    fprintf(stderr, "Defaulting to %dx%d (output is not to a terminal)\n", dimy, dimx);
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
   char* shortname_term = termname();
@@ -988,6 +988,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(&ret->tcache)){
     goto err;
   }
+  reset_term_attributes(ret);
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
@@ -1028,6 +1029,10 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       if(tty_emit("smcup", ret->tcache.smcup, ret->ttyfd)){
         free_plane(ret->top);
         goto err;
+      }
+      // explicit clear even though smcup *might* clear
+      if(tty_emit("clear", ret->tcache.clearscr, ret->ttyfd)){
+        notcurses_refresh(ret, NULL, NULL);
       }
     }else if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
       // if they expected the alternate screen, but we didn't have one to
