@@ -73,6 +73,7 @@ int interrogate_terminfo(tinfo* ti){
     fprintf(stderr, "Required terminfo capability 'am' not defined\n");
     return -1;
   }
+  ti->BCEflag = tigetflag("bce") == 1;
   terminfostr(&ti->civis, "civis"); // cursor invisible
   if(ti->civis == NULL){
     terminfostr(&ti->civis, "chts");// hard-to-see cursor
