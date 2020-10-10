@@ -175,7 +175,7 @@ int fallin_demo(struct notcurses* nc){
     }
   }
   ncplane_erase(stdn);
-#ifdef USE_MULTIMEDIA
+#ifdef NOTCURSES_USE_MULTIMEDIA
 #ifndef DFSG_BUILD
   char* path = find_data("lamepatents.jpg");
   struct ncvisual* ncv = ncvisual_from_file(path);

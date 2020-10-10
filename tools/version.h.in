@@ -10,6 +10,6 @@
 #cmakedefine USE_OIIO
 // set if either USE_FFMPEG || USE_OIIO
 #if defined(USE_FFMPEG) || defined(USE_OIIO)
-#define USE_MULTIMEDIA
+#define NOTCURSES_USE_MULTIMEDIA
 #endif
 #define NOTCURSES_SHARE "@CMAKE_INSTALL_FULL_DATADIR@/notcurses"

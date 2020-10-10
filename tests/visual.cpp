@@ -11,7 +11,7 @@ TEST_CASE("Visual") {
   auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
-#ifndef USE_MULTIMEDIA
+#ifndef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("VisualDisabled"){
     REQUIRE(!notcurses_canopen_images(nc_));
     REQUIRE(!notcurses_canopen_videos(nc_));

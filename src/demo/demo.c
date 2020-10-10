@@ -490,7 +490,7 @@ summary_table(struct ncdirect* nc, const char* spec){
   ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
   fflush(stdout); // in case we print to stderr below, we want color from above
   fprintf(stderr, "\nDFSG version. Some demos are unavailable.\n");
-#elif !defined(USE_MULTIMEDIA) // don't double-print for DFSG
+#elif !defined(NOTCURSES_USE_MULTIMEDIA) // don't double-print for DFSG
   ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
   fflush(stdout); // in case we print to stderr below, we want color from above
   fprintf(stderr, "\nNo multimedia support. Some demos are unavailable.\n");
