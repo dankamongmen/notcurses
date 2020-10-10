@@ -175,8 +175,8 @@ int fallin_demo(struct notcurses* nc){
     }
   }
   ncplane_erase(stdn);
-#ifdef NOTCURSES_USE_MULTIMEDIA
 #ifndef DFSG_BUILD
+  if(notcurses_canopen_images(nc)){
   char* path = find_data("lamepatents.jpg");
   struct ncvisual* ncv = ncvisual_from_file(path);
   free(path);
@@ -194,7 +194,7 @@ int fallin_demo(struct notcurses* nc){
   }
   assert(ncvisual_decode(ncv) == 1);
   ncvisual_destroy(ncv);
-#endif
+  }
 #endif
   int ret = drop_bricks(nc, arr, arrcount);
   free(arr);
