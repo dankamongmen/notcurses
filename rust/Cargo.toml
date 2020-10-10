@@ -1,6 +1,6 @@
 [package]
 name = "libnotcurses-sys"
-version = "1.7.5"
+version = "1.7.6"
 authors = ["nick black <dankamongmen@gmail.com>"]
 license = "Apache-2.0"
 edition = "2018"

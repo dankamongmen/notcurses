@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 1.7.6 (not yet released)
+* 1.7.6 (2020-10-09)
   * `ncstats` added the new stats `writeout_ns`, `writeout_min_ns`, and
     `writeout_max_ns`. The `render_*ns` stats now only cover the rendering
     and rasterizing process. The `writeout*ns` stats cover the time spent
