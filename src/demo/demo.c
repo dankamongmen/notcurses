@@ -398,7 +398,7 @@ summary_json(FILE* f, const char* spec, int rows, int cols){
 }
 
 static int
-summary_table(struct ncdirect* nc, const char* spec){
+summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvideo){
   bool failed = false;
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
@@ -486,15 +486,16 @@ summary_table(struct ncdirect* nc, const char* spec){
   if(failed){
     fprintf(stderr, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p.\n", datadir);
   }
+  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
+  fflush(stdout); // in case we print to stderr below, we want color from above
 #ifdef DFSG_BUILD
-  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
-  fflush(stdout); // in case we print to stderr below, we want color from above
   fprintf(stderr, "\nDFSG version. Some demos are unavailable.\n");
-#elif !defined(NOTCURSES_USE_MULTIMEDIA) // don't double-print for DFSG
-  ncdirect_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
-  fflush(stdout); // in case we print to stderr below, we want color from above
-  fprintf(stderr, "\nNo multimedia support. Some demos are unavailable.\n");
 #endif
+  if(!canimage){
+    fprintf(stderr, "\nNo multimedia support. Some demos are unavailable.\n");
+  }else if(!canvideo){
+    fprintf(stderr, "\nNo video support. Some demos are unavailable.\n");
+  }
   return failed;
 }
 
@@ -544,6 +545,8 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&nopts, NULL)) == NULL){
     return EXIT_FAILURE;
   }
+  const bool canimage = notcurses_canopen_images(nc);
+  const bool canvideo = notcurses_canopen_videos(nc);
   if(notcurses_mouse_enable(nc)){
     goto err;
   }
@@ -614,7 +617,7 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   // reinitialize without alternate screen to do some coloring
-  if(summary_table(ncd, spec)){
+  if(summary_table(ncd, spec, canimage, canvideo)){
     ncdirect_stop(ncd);
     return EXIT_FAILURE;
   }
