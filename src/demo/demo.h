@@ -7,12 +7,8 @@
 #include <limits.h>
 #include <stdatomic.h>
 #include <notcurses/notcurses.h>
+#include <builddef.h>
 #include <version.h>
-#ifdef USE_FFMPEG
-#include <libavutil/pixdesc.h>
-#include <libavutil/avconfig.h>
-#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
-#endif
 
 #ifdef __cplusplus
 extern "C" {

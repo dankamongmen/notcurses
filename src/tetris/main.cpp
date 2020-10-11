@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
+#include "builddef.h"
 #include "version.h"
 
 std::mutex ncmtx;

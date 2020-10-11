@@ -1,4 +1,4 @@
-#include "version.h"
+#include "builddef.h"
 #ifdef USE_OIIO
 #include "oiio.h"
 #include "internal.h"

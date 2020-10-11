@@ -1,6 +1,6 @@
 #include <cmath>
 #include <cstring>
-#include "version.h"
+#include "builddef.h"
 #include "visual-details.h"
 #include "internal.h"
 

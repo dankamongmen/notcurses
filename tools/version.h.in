@@ -1,5 +1,10 @@
 // Populated by CMake, and installed to the host system
+#ifndef NOTCURSES_VERSION_HEADER
+#define NOTCURSES_VERSION_HEADER
+
 #define NOTCURSES_VERSION_MAJOR "@notcurses_VERSION_MAJOR@"
 #define NOTCURSES_VERSION_MINOR "@notcurses_VERSION_MINOR@"
 #define NOTCURSES_VERSION_PATCH "@notcurses_VERSION_PATCH@"
 #define NOTCURSES_VERSION_TWEAK "@notcurses_VERSION_TWEAK@"
+
+#endif

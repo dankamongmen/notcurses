@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "version.h"
+#include "builddef.h"
 
 #ifdef USE_FFMPEG
 #include <libavutil/error.h>

@@ -341,7 +341,8 @@ target_compile_definitions(notcurses++-static
 file(GLOB NOTCURSES_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
-  ${PROJECT_SOURCE_DIR}/include/notcurses/*.h)
+  ${PROJECT_SOURCE_DIR}/include/notcurses/*.h
+  ${CMAKE_CURRENT_BINARY_DIR}/include/version.h)
 
 file(GLOB NCPP_HEADERS
   CONFIGURE_DEPENDS
@@ -591,6 +592,7 @@ install(FILES
 
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)
+configure_file(tools/builddef.h.in include/builddef.h)
 
 configure_package_config_file(tools/NotcursesConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake

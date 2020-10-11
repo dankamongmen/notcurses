@@ -1,4 +1,4 @@
-#include "version.h"
+#include "builddef.h"
 #ifdef USE_FFMPEG
 #include "ffmpeg.h"
 #include "internal.h"
