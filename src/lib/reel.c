@@ -128,17 +128,22 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel, direction_e direction)
   }
 //fprintf(stderr, "drawing borders %p ->%d/%d, mask: %04x\n", w, maxx, maxy, mask);
   // lenx is the number of columns we have, but drop 2 due to corners. we thus
-  // want lenx horizontal lines.
-  if(maxy || direction == DIRECTION_DOWN){
+  // want lenx - 2 horizontal lines in a top or bottom border.
+  int y = 0;
+  if(y < maxy || direction == DIRECTION_DOWN || (mask & NCBOXMASK_BOTTOM)){
     if(!(mask & NCBOXMASK_TOP)){
       ncplane_home(w);
       ncplane_putc(w, &ul);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &ur);
+      ++y;
     }
   }
-  int y;
-  for(y = 1 ; y < maxy ; ++y){
+  // draw the vertical sides, assuming they're not masked out. start wherever
+  // we're left following the previous stanza, end based on maxhorizy.
+  const bool candrawbottom = y < maxy || direction == DIRECTION_UP || (mask & NCBOXMASK_TOP);
+  const int maxhorizy = maxy - (candrawbottom && !(mask & NCBOXMASK_BOTTOM));
+  while(y <= maxhorizy){
     if(!(mask & NCBOXMASK_LEFT)){
       ret |= ncplane_cursor_move_yx(w, y, 0);
       ncplane_putc(w, &vl);
@@ -147,8 +152,9 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel, direction_e direction)
       ret |= ncplane_cursor_move_yx(w, y, maxx);
       ncplane_putc(w, &vl);
     }
+    ++y;
   }
-  if(maxy || direction == DIRECTION_UP){
+  if(candrawbottom){
     if(!(mask & NCBOXMASK_BOTTOM)){
       ret |= ncplane_cursor_move_yx(w, maxy, 0);
       ncplane_putc(w, &ll);
