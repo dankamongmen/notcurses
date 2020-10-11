@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 #include "version.h"
+#include "builddef.h"
 #include <doctest/doctest.h>
 #include <notcurses/notcurses.h>
 #include <ncpp/NotCurses.hh>

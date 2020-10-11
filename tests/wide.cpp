@@ -12,9 +12,7 @@ TEST_CASE("Wide") {
     return;
   }
   auto nc_ = testing_notcurses();
-  if(!nc_){
-    return;
-  }
+  REQUIRE(nullptr != nc_);
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 

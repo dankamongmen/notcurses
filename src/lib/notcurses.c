@@ -24,10 +24,10 @@
 #define ESC "\x1b"
 
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak){
-  *major = atoi(notcurses_VERSION_MAJOR);
-  *minor = atoi(notcurses_VERSION_MINOR);
-  *patch = atoi(notcurses_VERSION_PATCH);
-  *tweak = atoi(notcurses_VERSION_TWEAK);
+  *major = atoi(NOTCURSES_VERSION_MAJOR);
+  *minor = atoi(NOTCURSES_VERSION_MINOR);
+  *patch = atoi(NOTCURSES_VERSION_PATCH);
+  *tweak = atoi(NOTCURSES_VERSION_TWEAK);
 }
 
 // only one notcurses object can be the target of signal handlers, due to their
@@ -177,9 +177,9 @@ int ncplane_putstr_aligned(ncplane* n, int y, ncalign_e align, const char* s){
 }
 
 static const char NOTCURSES_VERSION[] =
- notcurses_VERSION_MAJOR "."
- notcurses_VERSION_MINOR "."
- notcurses_VERSION_PATCH;
+ NOTCURSES_VERSION_MAJOR "."
+ NOTCURSES_VERSION_MINOR "."
+ NOTCURSES_VERSION_PATCH;
 
 const char* notcurses_version(void){
   return NOTCURSES_VERSION;
@@ -319,7 +319,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   p->x = p->y = 0;
   p->logrow = 0;
   p->blist = NULL;
-  p->name = nopts->name ? strdup(nopts->name) : NULL;
+  p->name = strdup(nopts->name ? nopts->name : "");
   p->align = NCALIGN_UNALIGNED;
   if( (p->boundto = n) ){
     if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
@@ -364,8 +364,8 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   }else{ // fake ncplane backing ncdirect object
     p->below = NULL;
   }
-  loginfo(nc, "Created new %dx%d plane @ %dx%d\n",
-          nopts->rows, nopts->cols, p->absy, p->absx);
+  loginfo(nc, "Created new %dx%d plane \"%s\" @ %dx%d\n",
+          nopts->rows, nopts->cols, p->name, p->absy, p->absx);
   return p;
 }
 

@@ -3,9 +3,7 @@
 
 TEST_CASE("Visual") {
   auto nc_ = testing_notcurses();
-  if(!nc_){
-    return;
-  }
+  REQUIRE(nullptr != nc_);
   ncplane* ncp_ = notcurses_stdplane(nc_);
   REQUIRE(ncp_);
   auto n_ = notcurses_stdplane(nc_);

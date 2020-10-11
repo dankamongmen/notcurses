@@ -1,15 +1,5 @@
-#define notcurses_VERSION_MAJOR "@notcurses_VERSION_MAJOR@"
-#define notcurses_VERSION_MINOR "@notcurses_VERSION_MINOR@"
-#define notcurses_VERSION_PATCH "@notcurses_VERSION_PATCH@"
-#define notcurses_VERSION_TWEAK "@notcurses_VERSION_TWEAK@"
-#cmakedefine DFSG_BUILD
-#cmakedefine USE_QRCODEGEN
-// exclusive with USE_OIIO
-#cmakedefine USE_FFMPEG
-// exclusive with USE_FFMPEG
-#cmakedefine USE_OIIO
-// set if either USE_FFMPEG || USE_OIIO
-#if defined(USE_FFMPEG) || defined(USE_OIIO)
-#define NOTCURSES_USE_MULTIMEDIA
-#endif
-#define NOTCURSES_SHARE "@CMAKE_INSTALL_FULL_DATADIR@/notcurses"
+// Populated by CMake, and installed to the host system
+#define NOTCURSES_VERSION_MAJOR "@notcurses_VERSION_MAJOR@"
+#define NOTCURSES_VERSION_MINOR "@notcurses_VERSION_MINOR@"
+#define NOTCURSES_VERSION_PATCH "@notcurses_VERSION_PATCH@"
+#define NOTCURSES_VERSION_TWEAK "@notcurses_VERSION_TWEAK@"
