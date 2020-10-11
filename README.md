@@ -382,6 +382,12 @@ If things break or seem otherwise lackluster, **please** consult the
 * *Q*: I ran `notcurses-demo` with a single demo, but my summary numbers don't match that demo's numbers, you charlatan.
 * *A*: `notcurses-demo` renders several frames beyond the actual demos.
 
+* *Q*: When my program exits, I don't have a cursor/text is invisible/colors are weird.
+* *A*: Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals.
+
+* *Q*: How can I use Direct Mode in conjunction with libreadline?
+* *A*: Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, call `ncdirect_init()` prior to calling `rl_prep_terminal()`, and call `rl_deprep_terminal()` before calling `ncdirect_stop()`.
+
 ## Supplemental material
 
 ### Useful links
