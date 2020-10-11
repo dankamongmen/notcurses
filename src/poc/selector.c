@@ -8,15 +8,15 @@
 static struct ncselector_item items[] = {
 #define SITEM(short, long) { short, long, 0, 0, }
   SITEM("Afrikaans", "Ek kan glas eet, dit maak my nie seer nie."),
-  SITEM("Kabuverdianu", "M’tá podê kumê vidru, ká stá máguame."),
-  SITEM("Lao", "ຂອ້ຍກິນແກ້ວໄດ້ໂດຍທີ່ມັນບໍ່ໄດ້ເຮັດໃຫ້ຂອ້ຍເຈັບ."),
+  SITEM("AngloSax", "ᛁᚳ᛫ᛗᚨᚷ᛫ᚷᛚᚨᛋ᛫ᛖᚩᛏᚪᚾ᛫ᚩᚾᛞ᛫ᚻᛁᛏ᛫ᚾᛖ᛫ᚻᛖᚪᚱᛗᛁᚪᚧ᛫ᛗᛖ᛬"),
   SITEM("Japanese", "私はガラスを食べられます。それは私を傷つけません。"),
+  SITEM("Kabuverdianu", "M’tá podê kumê vidru, ká stá máguame."),
   SITEM("Khmer", "ខ្ញុំអាចញុំកញ្ចក់បាន ដោយគ្មានបញ្ហារ"),
-  SITEM("Hindi", "मैं काँच खा सकता हूँ और मुझे उससे कोई चोट नहीं पहुंचती. "),
-  SITEM("Tamil", "நான் கண்ணாடி சாப்பிடுவேன், அதனால் எனக்கு ஒரு கேடும் வராது. "),
-  SITEM("Telugu", "నేను గాజు తినగలను మరియు అలా చేసినా నాకు ఏమి ఇబ్బంది లేదు "),
-  SITEM("Tibetan", "ཤེལ་སྒོ་ཟ་ནས་ང་ན་གི་མ་རེད།"),
+  SITEM("Lao", "ຂອ້ຍກິນແກ້ວໄດ້ໂດຍທີ່ມັນບໍ່ໄດ້ເຮັດໃຫ້ຂອ້ຍເຈັບ."),
   SITEM("Russian", "Я могу есть стекло, оно мне не вредит."),
+  SITEM("Sanskrit", "kācaṃ śaknomyattum; nopahinasti mām."),
+  SITEM("Braille", "⠊⠀⠉⠁⠝⠀⠑⠁⠞⠀⠛⠇⠁⠎⠎⠀⠁⠝⠙⠀⠊⠞⠀⠙⠕⠑⠎⠝⠞⠀⠓⠥⠗⠞⠀⠍⠑"),
+  SITEM("Tibetan", "ཤེལ་སྒོ་ཟ་ནས་ང་ན་གི་མ་རེད།"),
   SITEM(NULL, NULL),
 #undef SITEM
 };
