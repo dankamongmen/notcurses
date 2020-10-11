@@ -1,6 +1,18 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.0.0 (not yet released)
+  * **API STABILITY!** The API expressed in 2.0.0 will be maintained throughout
+    at least 2.x.x. A program compiled against 2.0.0 will continue to compile
+    and function properly against all 2.x.x releases. Thanks for putting up
+    with the freewheeling API breakage until now. Semantic Versioning is in
+    effect from this point on.
+  * `NOTCURSES_VERSION_{MAJOR, MINOR, PATCH, TWEAK}` are now available from
+    `notcurses/version.h`. These represent the version your program was
+    *compiled against*. The version your program is *linked to* can still be
+    acquired with `notcurses_version_components()` (or as a human-readable
+    string via `notcurses_version()`).
+
 * 1.7.6 (2020-10-09)
   * `ncstats` added the new stats `writeout_ns`, `writeout_min_ns`, and
     `writeout_max_ns`. The `render_*ns` stats now only cover the rendering
