@@ -135,15 +135,6 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel, direction_e direction)
       ncplane_putc(w, &ul);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &ur);
-    }else{
-      if(!(mask & NCBOXMASK_LEFT)){
-        ncplane_home(w);
-        ncplane_putc(w, &ul);
-      }
-      if(!(mask & NCBOXMASK_RIGHT)){
-        ncplane_cursor_move_yx(w, 0, lenx - 1);
-        ncplane_putc(w, &ur);
-      }
     }
   }
   int y;
@@ -163,17 +154,6 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel, direction_e direction)
       ncplane_putc(w, &ll);
       ncplane_hline(w, &hl, lenx - 2);
       ncplane_putc(w, &lr);
-    }else{
-      if(!(mask & NCBOXMASK_LEFT)){
-        if(ncplane_cursor_move_yx(w, maxy, 0) || ncplane_putc(w, &ll) < 0){
-          ret = -1;
-        }
-      }
-      if(!(mask & NCBOXMASK_RIGHT)){
-        if(ncplane_cursor_move_yx(w, maxy, maxx) || ncplane_putc(w, &lr) < 0){
-          ret = -1;
-        }
-      }
     }
   }
   cell_release(w, &ul); cell_release(w, &ur); cell_release(w, &hl);
