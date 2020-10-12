@@ -1,7 +1,7 @@
 # Usage
 
-The notcurses API is not yet stable, though it is becoming so. Starting with
-version 2, notcurses will honor Semantic Versioning.
+As of version 2.0.0, Notcurses honors Semantic Versioning, the API is stable,
+and the project is committed to backwards compatibility.
 
 * [Direct Mode](#direct-mode)
 * [Alignment](#alignment)
@@ -16,7 +16,7 @@ version 2, notcurses will honor Semantic Versioning.
 * [C++](#c++)
 
 A full API reference [is available](https://nick-black.com/notcurses/). Manual
-pages ought have been installed along with notcurses. This document is a
+pages ought have been installed along with Notcurses. This document is a
 secondary reference, and should not be considered authoritative. For a more
 unified commentary, consider the [paperback](https://www.amazon.com/dp/B086PNVNC9)
 (also available as a free PDF from https://nick-black.com).
@@ -48,7 +48,7 @@ supplied a struct of type `notcurses_options`:
 // Get a human-readable string describing the running Notcurses version.
 const char* notcurses_version(void);
 
-// Cannot be inline, as we want to get the versions of the actual notcurses
+// Cannot be inline, as we want to get the versions of the actual Notcurses
 // library we loaded, not what we compile against.
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);
 
@@ -58,7 +58,7 @@ struct notcurses; // Notcurses state for a given terminal, composed of ncplanes
 
 // These log levels consciously map cleanly to those of libav; Notcurses itself
 // does not use this full granularity. The log level does not affect the opening
-// and closing banners, which can be disabled via the notcurses_option struct's
+// and closing banners, which can be disabled via the Notcurses_option struct's
 // 'suppress_banner'. Note that if stderr is connected to the same terminal on
 // which we're rendering, any kind of logging will disrupt the output.
 typedef enum {
@@ -104,7 +104,7 @@ typedef enum {
 // info in notcurses_stop(). This inhibits that output.
 #define NCOPTION_SUPPRESS_BANNERS    0x0020
 
-// If smcup/rmcup capabilities are indicated, notcurses defaults to making use
+// If smcup/rmcup capabilities are indicated, Notcurses defaults to making use
 // of the "alternate screen". This flag inhibits use of smcup/rmcup.
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040
 
@@ -112,7 +112,7 @@ typedef enum {
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
   // the environment variable TERM is used. Failure to open the terminal
-  // definition will result in failure to initialize notcurses.
+  // definition will result in failure to initialize Notcurses.
   const char* termtype;
   // If non-NULL, notcurses_render() will write each rendered frame to this
   // FILE* in addition to outfp. This is used primarily for debugging.
@@ -131,18 +131,18 @@ typedef struct notcurses_options {
   uint64_t flags;
 } notcurses_options;
 
-// Lex a margin argument according to the standard notcurses definition. There
+// Lex a margin argument according to the standard Notcurses definition. There
 // can be either a single number, which will define all margins equally, or
 // there can be four numbers separated by commas.
 int notcurses_lex_margins(const char* op, notcurses_options* opts);
 
-// Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
+// Initialize a Notcurses context on the connected terminal at 'fp'. 'fp' must
 // be a tty. You'll usually want stdout. NULL can be supplied for 'fp', in
 // which case /dev/tty will be opened. Returns NULL on error, including any
 // failure initializing terminfo.
 struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 
-// Destroy a notcurses context.
+// Destroy a Notcurses context.
 int notcurses_stop(struct notcurses* nc);
 ```
 
@@ -161,7 +161,7 @@ command line option or environment variable). Developers and motivated users
 might appreciate the ability to manipulate `loglevel` and `renderfp`. The
 remaining options are typically of use only to application authors.
 
-The notcurses API draws almost entirely into the virtual buffers of `ncplane`s.
+The Notcurses API draws almost entirely into the virtual buffers of `ncplane`s.
 Only upon a call to `notcurses_render` will the visible terminal display be
 updated to reflect the changes:
 
@@ -277,7 +277,7 @@ bool notcurses_cansixel(const struct notcurses* nc);
 
 ## Direct mode
 
-"Direct mode" makes a limited subset of notcurses is available for manipulating
+"Direct mode" makes a limited subset of Notcurses is available for manipulating
 typical scrolling or file-backed output. Its functions are exported via
 `<notcurses/direct.h>`, and output directly and immediately to the provided
 `FILE*`. `notcurses_render()` is neither supported nor necessary for such an
@@ -286,9 +286,9 @@ instance. Use `ncdirect_init()` to create a direct mode context:
 ```c
 struct ncdirect; // minimal state for a terminal
 
-// Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
+// Initialize a direct-mode Notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
-// limited subset of notcurses routines which directly affect 'fp', and neither
+// limited subset of Notcurses routines which directly affect 'fp', and neither
 // supports nor requires notcurses_render(). This can be used to add color and
 // styling to text in the standard output paradigm. 'flags' is a bitmask over
 // NCDIRECT_OPTION_*.
@@ -455,7 +455,7 @@ needn't be a terminal device (unlike the ttyfp `FILE*` passed to `notcurses_init
 Generalized input ought happen soon. There is only one input queue per `struct
 notcurses`.
 
-Like NCURSES, notcurses will watch for escape sequences, check them against the
+Like NCURSES, Notcurses will watch for escape sequences, check them against the
 terminfo database, and return them as special keys (we hijack the Private Use
 Area for special keys, specifically Supplementary Private Use Area B (u100000
 through u10ffffd). Unlike NCURSES, the fundamental unit of input is the
@@ -466,7 +466,7 @@ It is generally possible for a false positive to occur, wherein keypresses
 intended to be distinct are combined into an escape sequence. False negatives
 where an intended escape sequence are read as an ESC key followed by distinct
 keystrokes are also possible. NCURSES provides the `ESCDELAY` variable to
-control timing. notcurses brooks no delay; all characters of an escape sequence
+control timing. Notcurses brooks no delay; all characters of an escape sequence
 must be readable without delay for it to be interpreted as such.
 
 ```c
@@ -608,7 +608,7 @@ with coordinate information in the `ncinput` struct.
 
 ## Planes
 
-Fundamental to notcurses is a z-buffer of rectilinear virtual screens, known
+Fundamental to Notcurses is a z-buffer of rectilinear virtual screens, known
 as `ncplane`s. An `ncplane` can be larger than the physical screen, or smaller,
 or the same size; it can be entirely contained within the physical screen, or
 overlap in part, or lie wholly beyond the boundaries, never to be rendered.
@@ -1484,7 +1484,7 @@ ncplane_bg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
 // indicated by the "RGB" terminfo capability), the provided values will be
 // interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
-// time using "color pairs"; notcurses will manage color pairs transparently.
+// time using "color pairs"; Notcurses will manage color pairs transparently.
 int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);
 int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
@@ -1904,7 +1904,7 @@ cell_set_bg_default(cell* c){
 ncreels are a complex UI abstraction offered by notcurses, derived from my
 similar work in [outcurses](https://github.com/dankamongmen/ncreels#ncreels).
 
-The ncreel is a UI abstraction supported by notcurses in which
+The ncreel is a UI abstraction supported by Notcurses in which
 dynamically-created and -destroyed toplevel entities (referred to as tablets)
 are arranged as if on a cylinder, allowing for infinite scrolling
 (infinite scrolling can be disabled, resulting in a rectangle rather than a
@@ -1923,12 +1923,12 @@ optional borders around tablets and the optional border of the reel itself. It
 knows nothing about the actual content of a tablet, save the number of lines it
 occupies at each information depth. The typical control flow is that an
 application receives events (from the UI or other event sources), and calls
-into notcurses saying e.g. "Tablet 2 now has 40 valid lines of information".
+into Notcurses saying e.g. "Tablet 2 now has 40 valid lines of information".
 notcurses might then call back into the application, asking it to draw some
 line(s) from some tablet(s) at some particular coordinate of that tablet's
 plane. Finally, control returns to the application, and the cycle starts anew.
 
-Each tablet might be wholly, partially, or not on-screen. notcurses always
+Each tablet might be wholly, partially, or not on-screen. Notcurses always
 places as much of the focused tablet as is possible on-screen (if the focused
 tablet has more lines than the actual reel does, it cannot be wholly on-screen.
 In this case, the focused subelements of the tablet are always on-screen). The
@@ -1971,7 +1971,7 @@ not fill it). If it is not desired, however, scrolling of focus can be
 configured instead.
 
 ```c
-// An ncreel is a notcurses region devoted to displaying zero or more
+// An ncreel is a Notcurses region devoted to displaying zero or more
 // line-oriented, contained tablets between which the user may navigate. If at
 // least one tablets exists, there is a "focused tablet". As much of the focused
 // tablet as is possible is always displayed. If there is space left over, other
@@ -1991,7 +1991,7 @@ configured instead.
 #define NCREEL_OPTION_CIRCULAR       0x0002ull
 
 typedef struct ncreel_options {
-  // notcurses can draw a border around the ncreel, and also around the
+  // Notcurses can draw a border around the ncreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
   // appropriate attr and pair values will be used to style the borders.
@@ -2867,7 +2867,7 @@ typedef struct ncstats {
 // future versions of Notcurses might enlarge this structure.
 ncstats* notcurses_stats_alloc(const struct notcurses* nc);
 
-// Acquire an atomic snapshot of the notcurses object's stats.
+// Acquire an atomic snapshot of the Notcurses object's stats.
 void notcurses_stats(const struct notcurses* nc, ncstats* stats);
 
 // Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).

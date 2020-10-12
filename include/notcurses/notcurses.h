@@ -32,14 +32,14 @@ extern "C" {
 
 #define API __attribute__((visibility("default")))
 
-// Get a human-readable string describing the running notcurses version.
+// Get a human-readable string describing the running Notcurses version.
 API const char* notcurses_version(void);
-// Cannot be inline, as we want to get the versions of the actual notcurses
+// Cannot be inline, as we want to get the versions of the actual Notcurses
 // library we loaded, not what we compile against.
 API void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);
 
-struct notcurses; // notcurses state for a given terminal, composed of ncplanes
-struct ncplane;   // a drawable notcurses surface, composed of cells
+struct notcurses; // Notcurses state for a given terminal, composed of ncplanes
+struct ncplane;   // a drawable Notcurses surface, composed of cells
 struct cell;      // a coordinate on an ncplane: an EGC plus styling
 struct ncvisual;  // a visual bit of multimedia opened with LibAV|OIIO
 struct ncuplot;   // a histogram, bound to a plane (uint64_ts)
@@ -733,7 +733,7 @@ cell_load_char(struct ncplane* n, cell* c, char ch){
   return 1;
 }
 
-// These log levels consciously map cleanly to those of libav; notcurses itself
+// These log levels consciously map cleanly to those of libav; Notcurses itself
 // does not use this full granularity. The log level does not affect the opening
 // and closing banners, which can be disabled via the notcurses_option struct's
 // 'suppress_banner'. Note that if stderr is connected to the same terminal on
@@ -783,7 +783,7 @@ typedef enum {
 // info in notcurses_stop(). This inhibits that output.
 #define NCOPTION_SUPPRESS_BANNERS    0x0020ull
 
-// If smcup/rmcup capabilities are indicated, notcurses defaults to making use
+// If smcup/rmcup capabilities are indicated, Notcurses defaults to making use
 // of the "alternate screen". This flag inhibits use of smcup/rmcup.
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
 
@@ -816,7 +816,7 @@ typedef struct notcurses_options {
   uint64_t flags;
 } notcurses_options;
 
-// Lex a margin argument according to the standard notcurses definition. There
+// Lex a margin argument according to the standard Notcurses definition. There
 // can be either a single number, which will define all margins equally, or
 // there can be four numbers separated by commas.
 API int notcurses_lex_margins(const char* op, notcurses_options* opts);
@@ -833,13 +833,13 @@ API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 // Get the name of a scaling mode.
 API const char* notcurses_str_scalemode(ncscale_e scalemode);
 
-// Initialize a notcurses context on the connected terminal at 'fp'. 'fp' must
+// Initialize a Notcurses context on the connected terminal at 'fp'. 'fp' must
 // be a tty. You'll usually want stdout. NULL can be supplied for 'fp', in
 // which case /dev/tty will be opened. Returns NULL on error, including any
 // failure initializing terminfo.
 API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 
-// Destroy a notcurses context.
+// Destroy a Notcurses context.
 API int notcurses_stop(struct notcurses* nc);
 
 // Make the physical screen match the virtual screen. Changes made to the
@@ -953,7 +953,7 @@ API int notcurses_mouse_disable(struct notcurses* n);
 // NCKEY_RESIZE event has been read and you're not yet ready to render.
 API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
-// Extract the notcurses context to which this plane is attached.
+// Extract the Notcurses context to which this plane is attached.
 API struct notcurses* ncplane_notcurses(struct ncplane* n);
 API const struct notcurses* ncplane_notcurses_const(const struct ncplane* n);
 
@@ -1123,7 +1123,7 @@ typedef struct ncstats {
 // future versions of Notcurses might enlarge this structure.
 API ncstats* notcurses_stats_alloc(const struct notcurses* nc);
 
-// Acquire an atomic snapshot of the notcurses object's stats.
+// Acquire an atomic snapshot of the Notcurses object's stats.
 API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
 
 // Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
@@ -2000,7 +2000,7 @@ API uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
 // indicated by the "RGB" terminfo capability), the provided values will be
 // interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
-// time using "color pairs"; notcurses will manage color pairs transparently.
+// time using "color pairs"; Notcurses will manage color pairs transparently.
 API int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);
 API int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);
 
@@ -2445,7 +2445,7 @@ ncpixel_set_rgb8(uint32_t* pixel, int r, int g, int b){
   return 0;
 }
 
-// An ncreel is a notcurses region devoted to displaying zero or more
+// An ncreel is a Notcurses region devoted to displaying zero or more
 // line-oriented, contained tablets between which the user may navigate. If at
 // least one tablets exists, there is a "focused tablet". As much of the focused
 // tablet as is possible is always displayed. If there is space left over, other
@@ -2465,7 +2465,7 @@ ncpixel_set_rgb8(uint32_t* pixel, int r, int g, int b){
 #define NCREEL_OPTION_CIRCULAR       0x0002ull
 
 typedef struct ncreel_options {
-  // notcurses can draw a border around the ncreel, and also around the
+  // Notcurses can draw a border around the ncreel, and also around the
   // component tablets. inhibit borders by setting all valid bits in the masks.
   // partially inhibit borders by setting individual bits in the masks. the
   // appropriate attr and pair values will be used to style the borders.
@@ -2837,7 +2837,7 @@ typedef struct ncmenu_options {
 } ncmenu_options;
 
 // Create a menu with the specified options. Menus are currently bound to an
-// overall notcurses object (as opposed to a particular plane), and are
+// overall Notcurses object (as opposed to a particular plane), and are
 // implemented as ncplanes kept atop other ncplanes.
 API struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts)
   __attribute__ ((nonnull (1)));
@@ -3087,7 +3087,7 @@ API char* ncreader_contents(const struct ncreader* n);
 // UTF-8 input will be heap-duplicated and written to 'contents'.
 API void ncreader_destroy(struct ncreader* n, char** contents);
 
-// Dump selected notcurses state to the supplied 'debugfp'. Output is freeform,
+// Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
 // and subject to change. It includes geometry of all planes.
 API void notcurses_debug(struct notcurses* nc, FILE* debugfp);
 

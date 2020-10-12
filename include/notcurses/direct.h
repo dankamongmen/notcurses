@@ -23,9 +23,9 @@ extern "C" {
 // echo and line buffering are turned off.
 #define NCDIRECT_OPTION_INHIBIT_CBREAK    0x0002ull
 
-// Initialize a direct-mode notcurses context on the connected terminal at 'fp'.
+// Initialize a direct-mode Notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
-// limited subset of notcurses routines which directly affect 'fp', and neither
+// limited subset of Notcurses routines which directly affect 'fp', and neither
 // supports nor requires notcurses_render(). This can be used to add color and
 // styling to text in the standard output paradigm. 'flags' is a bitmask over
 // NCDIRECT_OPTION_*.
@@ -34,7 +34,7 @@ API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flag
 
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should
-// not be intermixed with standard notcurses rendering.
+// not be intermixed with standard Notcurses rendering.
 API int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb);
 API int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb);
 

@@ -191,10 +191,10 @@ necessary data files. It can be run by itself, or via `make test`.
 
 ## Differences from NCURSES
 
-The biggest difference, of course, is that notcurses is not an implementation
+The biggest difference, of course, is that Notcurses is not an implementation
 of X/Open (aka XSI) Curses, nor part of SUS4-2018.
 
-The detailed differences between notcurses and NCURSES probably can't be fully
+The detailed differences between Notcurses and NCURSES probably can't be fully
 enumerated, and if they could, no one would want to read them. With that said,
 some design decisions might surprise NCURSES programmers:
 
@@ -217,13 +217,13 @@ some design decisions might surprise NCURSES programmers:
   mutate different `ncplane`s in different threads.
 * NCURSES has thread-ignorant and thread-semi-safe versions, trace-enabled and
   traceless versions, and versions with and without support for wide characters.
-  notcurses is one library: no tracing, UTF-8, thread safety.
-* There is no `ESCDELAY` concept; notcurses expects that all bytes of a
+  Notcurses is one library: no tracing, UTF-8, thread safety.
+* There is no `ESCDELAY` concept; Notcurses expects that all bytes of a
   keyboard escape sequence arrive at the same time. This improves latency
   and simplifies the API.
 * It is an error in NCURSES to print to the bottommost, rightmost coordinate of
   the screen when scrolling is disabled (because the cursor cannot be advanced).
-  Failure to advance the cursor does not result in an error in notcurses (but
+  Failure to advance the cursor does not result in an error in Notcurses (but
   attempting to print at the cursor when it has been advanced off the plane
   *does*).
 
@@ -240,7 +240,7 @@ to implement".
 ### Adapting NCURSES programs
 
 Do you really want to do such a thing? NCURSES and the Curses API it implements
-are far more portable and better-tested than notcurses is ever likely to be.
+are far more portable and better-tested than Notcurses is ever likely to be.
 Will your program really benefit from notcurses's advanced features? If not,
 it's probably best left as it is.
 
@@ -296,7 +296,7 @@ These are pretty obvious, implementation-wise.
   **Narrow**, heh.
 
 * If you can disable BiDi in your terminal, do so while running notcurses
-  applications, until I have that handled better. notcurses doesn't recognize
+  applications, until I have that handled better. Notcurses doesn't recognize
   the BiDi state machine transitions, and thus merrily continues writing
   left-to-right. Likewise, ultra-wide glyphs will have interesting effects.
   ﷽!
@@ -418,6 +418,8 @@ If things break or seem otherwise lackluster, **please** consult the
 
 ### History
 
+* 2020-10-12: Notcurses [2.0.0 "stankonia"](https://github.com/dankamongmen/notcurses/releases/tag/v2.0.0).
+  * A stable API! Semantic versioning is now in effect. This API will be supported going forward.
 * 2020-08-30: Notcurses [1.7.0 "don't pull the bang out"](https://github.com/dankamongmen/notcurses/releases/tag/v1.7.0).
 * 2020-07-04: Notcurses [1.6.0 "aquemini"](https://github.com/dankamongmen/notcurses/releases/tag/v1.6.0).
 * 2020-07-03: Notcurses is [accepted into Alpine Edge](https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/9924).
@@ -437,8 +439,7 @@ If things break or seem otherwise lackluster, **please** consult the
 * 2019-01-04: Notcurses [1.0.0 "track team, crack fiend, dying to geek"](https://github.com/dankamongmen/notcurses/releases/tag/v1.0.0)
     is released, six days ahead of schedule. 147 issues closed. 702 commits.
 * 2019-12-18: Notcurses [0.9.0 "You dig in! You dig out! You get out!"](https://github.com/dankamongmen/notcurses/releases/tag/v0.9.0),
-    and also the first contributor besides myself (@grendello). Last major
-    pre-GA release.
+    and also the first contributor besides myself (@grendello). Last major pre-GA release.
 * 2019-12-05: Notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
     the first generally usable notcurses.
   * I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM), and release it on YouTube.
