@@ -14,38 +14,38 @@ notcurses - TUI library for modern terminal emulators
 
 # DESCRIPTION
 
-notcurses builds atop the **terminfo(5)** abstraction layer to provide
+Notcurses builds atop the **terminfo(5)** abstraction layer to provide
 reasonably portable vivid character displays. It is an intellectual descendant
 of **ncurses(3NCURSES)**, but goes beyond that library (and the X/Open Curses
-API it implements). notcurses is capable of subregion fades, 24bpp TrueColor,
+API it implements). Notcurses is capable of subregion fades, 24bpp TrueColor,
 transparency, multimedia, and safe multithreaded use.
 
-A program wishing to use notcurses will need to link it, ideally using the
+A program wishing to use Notcurses will need to link it, ideally using the
 output of **pkg-config --libs notcurses** (see **pkg-config(1)**). It is
 advised to compile with the output of **pkg-config --cflags notcurses**. If
 using CMake, a support file is provided, and can be accessed as **Notcurses**
 (see **cmake(1)**).
 
-**notcurses_init(3)** can then be used to initialize a notcurses instance for a
+**notcurses_init(3)** can then be used to initialize a Notcurses instance for a
 given **FILE** (usually **stdout**), after calling **setlocale(3)** to prepare a
 UTF-8 locale (see [Construction][]).
 
 ## Construction
 
-Before calling into notcurses—and usually as one of the first calls of the
+Before calling into Notcurses—and usually as one of the first calls of the
 program—be sure to call **setlocale** with an appropriate UTF-8 **LC_ALL**
 locale. It is usually appropriate to use **setlocale(LC_ALL, "")**, relying on
-the user to properly set the **LANG** environment variable. notcurses will
+the user to properly set the **LANG** environment variable. Notcurses will
 refuse to start if **nl_langinfo(3)** doesn't indicate UTF-8 or ANSI_X3.4-1968
 (aka US-ASCII). Be aware that capabilities are substantially reduced in ASCII.
 
 **notcurses_init(3)** accepts a **struct notcurses_options** allowing fine-grained
-control of notcurses behavior, including signal handlers, alternative screens,
+control of Notcurses behavior, including signal handlers, alternative screens,
 and overriding the TERM environment variable. A **terminfo** entry appropriate
 for the actual terminal must be available.
 
 **ncdirect_init(3)** makes available a very restricted subset of
-notcurses functionality. This subset is intended to be interleaved with user-
+Notcurses functionality. This subset is intended to be interleaved with user-
 generated output, and is limited to coloring and styling. Direct mode is
 documented in **notcurses_directmode(3)**
 
@@ -58,7 +58,7 @@ output from multiple threads. Information on drawing functions is available at
 
 ## Input
 
-notcurses supports input from keyboards (via **stdin**) and pointing devices (via
+Notcurses supports input from keyboards (via **stdin**) and pointing devices (via
 a broker such as GPM, X, or Wayland). Input is delivered as 32-bit Unicode
 code points. Synthesized events such as mouse button presses and arrow keys
 are mapped into Unicode's
@@ -114,7 +114,7 @@ ncplanes at the same time. It is safe to output to ncplanes while adding or
 deleting some other ncplane. It is **not** safe for multiple threads to output to
 the same ncplane. It is **not** safe to add, delete, or reorder ncplanes
 from multiple threads, and it is never safe to invoke **notcurses_render**
-while any other thread is touching that notcurses object (aside from input
+while any other thread is touching that **notcurses** object (aside from input
 functions; read on).
 
 Only one thread may call **notcurses_getc** or any other input-related thread
