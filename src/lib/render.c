@@ -719,12 +719,12 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
   if(nc->rstate.y == y){ // only need move x
     const int xdiff = x - nc->rstate.x;
     if(xdiff > 0){
-      if(nc->tcache.cuf && nc->tcache.cuf1){
-        if(xdiff == 1){
-          ret = term_emit("cuf1", tiparm(nc->tcache.cuf1), out, false);
-        }else{
-          ret = term_emit("cuf", tiparm(nc->tcache.cuf, xdiff), out, false);
-        }
+      if(xdiff == 1 && nc->tcache.cuf1){
+        ret = term_emit("cuf1", tiparm(nc->tcache.cuf1), out, false);
+        nc->rstate.x = x;
+        return ret;
+      }else if(nc->tcache.cuf){
+        ret = term_emit("cuf", tiparm(nc->tcache.cuf, xdiff), out, false);
         nc->rstate.x = x;
         return ret;
       }
@@ -733,6 +733,7 @@ stage_cursor(notcurses* nc, FILE* out, int y, int x){
     }
     // cub1/cub tend to be destructive in my experiments :/
   }
+  // cup is required, no need to check for existence
   ret = term_emit("cup", tiparm(nc->tcache.cup, y, x), out, false);
   if(ret == 0){
     nc->rstate.x = x;
