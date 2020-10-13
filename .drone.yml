@@ -34,6 +34,7 @@ steps:
     - make
     - env TERM=xterm make test
     - make install
+    - ldconfig
     - cd ../python
     - python3 setup.py sdist build
     - cd ../rust
