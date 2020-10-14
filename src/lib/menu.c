@@ -293,6 +293,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
     opts = &zeroed;
   }
   if(opts->sectioncount <= 0 || !opts->sections){
+    logerror(n->nc, "Invalid %d-ary section information\n", opts->sectioncount);
     return NULL;
   }
   if(opts->flags > NCMENU_OPTION_HIDING){
