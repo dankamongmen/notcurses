@@ -553,7 +553,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
         if(blends){
           cell_set_fg_rgb8(c, r / blends, g / blends, b / blends);
         }
-        // UTF-8 encodings of the Brailler Patterns are always 0xe2 0xaX 0xCC,
+        // UTF-8 encodings of the Braille Patterns are always 0xe2 0xaX 0xCC,
         // where 0 <= X <= 3 and 0x80 <= CC <= 0xbf (4 groups of 64).
         char egc[4] = { 0xe2, 0xa0, 0x80, 0x00 };
         egc[2] += egcidx % 64;
