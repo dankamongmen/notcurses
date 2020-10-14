@@ -318,6 +318,8 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
         ret->sectionchannels = opts->sectionchannels;
+        ret->disablechannels = ret->sectionchannels;
+        channels_set_fg_rgb(&ret->disablechannels, 0xdddddd);
         cell c = CELL_TRIVIAL_INITIALIZER;
         cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
         cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
@@ -376,10 +378,11 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
   for(int i = 0 ; i < sec->itemcount ; ++i){
     ++ypos;
     if(sec->items[i].desc){
-      n->ncp->channels = n->sectionchannels;
       // FIXME the user ought be able to configure the disabled channel
-      if(sec->items[i].disabled){
-        ncplane_set_fg_rgb(n->ncp, 0xdddddd);
+      if(!sec->items[i].disabled){
+        ncplane_set_channels(n->ncp, n->sectionchannels);
+      }else{
+        ncplane_set_channels(n->ncp, n->disablechannels);
       }
       if(i == sec->itemselected){
         ncplane_set_styles(n->ncp, NCSTYLE_REVERSE);
