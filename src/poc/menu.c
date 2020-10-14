@@ -129,6 +129,9 @@ int main(void){
   if(ncmenu_item_set_status(top, "Schwarzgerät", "Disabled", false)){
     goto err;
   }
+  if(ncmenu_item_set_status(top, "Schwarzgerät", "Restart", false)){
+    goto err;
+  }
   uint64_t channels = 0;
   channels_set_fg_rgb(&channels, 0x88aa00);
   channels_set_bg_rgb(&channels, 0x000088);

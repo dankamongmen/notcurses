@@ -608,15 +608,23 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
 int ncmenu_item_set_status(ncmenu* n, const char* section, const char* item,
                            bool enabled){
   for(int si = 0 ; si < n->sectioncount ; ++si){
-    const struct ncmenu_int_section* sec = &n->sections[si];
+    struct ncmenu_int_section* sec = &n->sections[si];
     if(strcmp(sec->name, section) == 0){
       for(int ii = 0 ; ii < sec->itemcount ; ++ii){
         struct ncmenu_int_item* i = &sec->items[ii];
         if(strcmp(i->desc, item) == 0){
-          const bool changed = i->disabled != enabled;
+          const bool changed = i->disabled == enabled;
           i->disabled = !enabled;
-          if(changed && n->unrolledsection == si){
-            ncmenu_unroll(n, n->unrolledsection);
+          if(changed){
+            if(i->disabled){
+              --sec->enabled_item_count;
+            }else{
+              ++sec->enabled_item_count;
+            }
+            if(n->unrolledsection == si){
+              // FIXME if sec->enabled_item_count == 0, need choose new section
+              ncmenu_unroll(n, n->unrolledsection);
+            }
           }
           return 0;
         }
