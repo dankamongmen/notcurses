@@ -81,6 +81,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
   // we must reject any section which is entirely separators
   bool gotitem = false;
   dst->itemcount = 0;
+  dst->enabled_item_count = 0;
   dst->items = malloc(sizeof(*dst->items) * src->itemcount);
   if(dst->items == NULL){
     return -1;
@@ -114,6 +115,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
     }
     ++dst->itemcount;
   }
+  dst->enabled_item_count = dst->itemcount;
   if(!gotitem){
     while(dst->itemcount){
       free(dst->items[--dst->itemcount].desc);
@@ -452,36 +454,26 @@ int ncmenu_rollup(ncmenu* n){
 }
 
 int ncmenu_nextsection(ncmenu* n){
-  int nextsection = n->unrolledsection + 1;
-  if(nextsection){
-    ncmenu_rollup(n);
-    if(nextsection == n->sectioncount){
-      nextsection = 0;
-    }
-  }
-  if(n->sections[nextsection].name == NULL){
+  int nextsection = n->unrolledsection;
+  // FIXME probably best to detect cycles
+  do{
     if(++nextsection == n->sectioncount){
       nextsection = 0;
     }
-  }
+  }while(n->sections[nextsection].name == NULL ||
+         n->sections[nextsection].enabled_item_count == 0);
   return ncmenu_unroll(n, nextsection);
 }
 
 int ncmenu_prevsection(ncmenu* n){
   int prevsection = n->unrolledsection;
-  if(n->unrolledsection < 0){
-    prevsection = 1;
-  }else{
-    ncmenu_rollup(n);
-  }
-  if(--prevsection == -1){
-    prevsection = n->sectioncount - 1;
-  }
-  if(n->sections[prevsection].name == NULL){
+  // FIXME probably best to detect cycles
+  do{
     if(--prevsection < 0){
       prevsection = n->sectioncount - 1;
     }
-  }
+  }while(n->sections[prevsection].name == NULL ||
+         n->sections[prevsection].enabled_item_count == 0);
   return ncmenu_unroll(n, prevsection);
 }
 
@@ -492,6 +484,7 @@ int ncmenu_nextitem(ncmenu* n){
     }
   }
   ncmenu_int_section* sec = &n->sections[n->unrolledsection];
+  // FIXME probably best to detect cycles
   do{
     if(++sec->itemselected == sec->itemcount){
       sec->itemselected = 0;
@@ -507,6 +500,7 @@ int ncmenu_previtem(ncmenu* n){
     }
   }
   ncmenu_int_section* sec = &n->sections[n->unrolledsection];
+  // FIXME probably best to detect cycles
   do{
     if(sec->itemselected-- == 0){
       sec->itemselected = sec->itemcount - 1;
