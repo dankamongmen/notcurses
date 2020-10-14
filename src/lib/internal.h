@@ -211,6 +211,7 @@ typedef struct ncmenu {
   int headerwidth;          // minimum space necessary to display all sections
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
+  uint64_t disablechannels; // styling for disabled entries
   bool bottom;              // are we on the bottom (vs top)?
 } ncmenu;
 
