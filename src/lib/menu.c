@@ -231,7 +231,8 @@ section_x(const ncmenu* ncm, int x){
 }
 
 static int
-write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
+write_header(ncmenu* ncm){
+  ncplane_set_channels(ncm->ncp, ncm->headerchannels);
   int dimy, dimx;
   ncplane_dim_yx(ncm->ncp, &dimy, &dimx);
   int xoff = 0; // 2-column margin on left
@@ -262,6 +263,11 @@ write_header(ncmenu* ncm){ ncm->ncp->channels = ncm->headerchannels;
         if(ncplane_putc(ncm->ncp, &c) < 0){
           return -1;
         }
+      }
+      if(ncm->sections[i].enabled_item_count <= 0){
+        ncplane_set_channels(ncm->ncp, ncm->dissectchannels);
+      }else{
+        ncplane_set_channels(ncm->ncp, ncm->headerchannels);
       }
       if(ncplane_putstr_yx(ncm->ncp, ypos, xoff, ncm->sections[i].name) < 0){
         return -1;
@@ -320,6 +326,8 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
       if(ret->ncp){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
+        ret->dissectchannels = opts->headerchannels;
+        channels_set_fg_rgb(&ret->dissectchannels, 0xdddddd);
         ret->sectionchannels = opts->sectionchannels;
         ret->disablechannels = ret->sectionchannels;
         channels_set_fg_rgb(&ret->disablechannels, 0xdddddd);
@@ -621,13 +629,20 @@ int ncmenu_item_set_status(ncmenu* n, const char* section, const char* item,
           i->disabled = !enabled;
           if(changed){
             if(i->disabled){
-              --sec->enabled_item_count;
+              if(--sec->enabled_item_count == 0){
+                write_header(n);
+              }
             }else{
-              ++sec->enabled_item_count;
+              if(++sec->enabled_item_count == 1){
+                write_header(n);
+              }
             }
             if(n->unrolledsection == si){
-              // FIXME if sec->enabled_item_count == 0, need choose new section
-              ncmenu_unroll(n, n->unrolledsection);
+              if(sec->enabled_item_count == 0){
+                ncmenu_rollup(n);
+              }else{
+                ncmenu_unroll(n, n->unrolledsection);
+              }
             }
           }
           return 0;
