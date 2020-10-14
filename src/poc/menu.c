@@ -88,6 +88,7 @@ int main(void){
   notcurses_mouse_enable(nc);
   struct ncmenu_item demo_items[] = {
     { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
+    { .desc = "Disabled", .shortcut = { .id = 'd', .ctrl = false, }, },
   };
   struct ncmenu_item file_items[] = {
     { .desc = "New", .shortcut = { .id = 'n', .ctrl = true, }, },
@@ -123,6 +124,9 @@ int main(void){
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncmenu* top = ncmenu_create(n, &mopts);
   if(top == NULL){
+    goto err;
+  }
+  if(ncmenu_item_set_status(top, "Schwarzgerät", "Disabled", false)){
     goto err;
   }
   uint64_t channels = 0;

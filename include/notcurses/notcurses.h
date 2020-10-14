@@ -2859,6 +2859,10 @@ API int ncmenu_prevsection(struct ncmenu* n);
 API int ncmenu_nextitem(struct ncmenu* n);
 API int ncmenu_previtem(struct ncmenu* n);
 
+// Disable or enable a menu item. Returns 0 if the item was found.
+API int ncmenu_item_set_status(struct ncmenu* n, const char* section,
+                               const char* item, bool enabled);
+
 // Return the selected item description, or NULL if no section is unrolled. If
 // 'ni' is not NULL, and the selected item has a shortcut, 'ni' will be filled
 // in with that shortcut--this can allow faster matching.
