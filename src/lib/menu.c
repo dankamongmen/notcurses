@@ -351,11 +351,15 @@ section_width(const ncmenu* n, int sectionidx){
 }
 
 int ncmenu_unroll(ncmenu* n, int sectionidx){
-  if(sectionidx < 0 || sectionidx >= n->sectioncount){
-    return -1;
-  }
   if(ncmenu_rollup(n)){ // roll up any unrolled section
     return -1;
+  }
+  if(sectionidx < 0 || sectionidx >= n->sectioncount){
+    logerror(n->ncp->nc, "Unrolled invalid sectionidx %d\n", sectionidx);
+    return -1;
+  }
+  if(n->sections[sectionidx].enabled_item_count <= 0){
+    return 0;
   }
   if(n->sections[sectionidx].name == NULL){
     return -1;
