@@ -170,6 +170,7 @@ typedef struct ncmenu_int_section {
   int bodycols;           // column width of longest item
   int itemselected;       // current item selected, -1 for no selection
   int shortcut_offset;    // column offset within name of shortcut EGC
+  int enabled_item_count; // number of enabled items: section is disabled iff 0
 } ncmenu_int_section;
 
 typedef struct ncfdplane {
