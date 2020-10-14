@@ -22,6 +22,7 @@ static int
 dup_menu_item(ncmenu_int_item* dst, const struct ncmenu_item* src){
 #define ALTMOD "Alt+"
 #define CTLMOD "Ctrl+"
+  dst->disabled = false;
   if((dst->desc = strdup(src->desc)) == NULL){
     return -1;
   }
@@ -376,6 +377,10 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     ++ypos;
     if(sec->items[i].desc){
       n->ncp->channels = n->sectionchannels;
+      // FIXME the user ought be able to configure the disabled channel
+      if(sec->items[i].disabled){
+        ncplane_set_fg_rgb(n->ncp, 0xdddddd);
+      }
       if(i == sec->itemselected){
         ncplane_set_styles(n->ncp, NCSTYLE_REVERSE);
       }else{

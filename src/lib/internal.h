@@ -158,6 +158,7 @@ typedef struct ncmenu_int_item {
   int shortcut_offset;  // column offset with desc of shortcut EGC
   char* shortdesc;      // description of shortcut, can be NULL
   int shortdesccols;    // columns occupied by shortcut description
+  bool disabled;        // disabled?
 } ncmenu_int_item;
 
 typedef struct ncmenu_int_section {
@@ -251,10 +252,10 @@ typedef struct tinfo {
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
   char* getm;     // get mouse events
-  bool RGBflag;   // ti-reported "RGB" flag for 24bpc truecolor
-  bool CCCflag;   // ti-reported "CCC" flag for palette set capability
-  bool BCEflag;   // ti-reported "BCE" flag for erases with background color
-  bool AMflag;    // ti-reported "AM" flag for automatic movement to next line
+  bool RGBflag;   // "RGB" flag for 24bpc truecolor
+  bool CCCflag;   // "CCC" flag for palette set capability
+  bool BCEflag;   // "BCE" flag for erases with background color
+  bool AMflag;    // "AM" flag for automatic movement to next line
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode
 } tinfo;
