@@ -39,6 +39,8 @@ typedef struct ncinput {
 
 **int notcurses_inputready_fd(struct notcurses* n);**
 
+**static inline int ncinput_equal_p(const struct ncinput* n1, const struct ncinput* n2);**
+
 # DESCRIPTION
 
 notcurses supports input from keyboards and mice, and any device that looks
@@ -66,6 +68,10 @@ details will be reported in **ni**, unless **ni** is NULL.
 I/O multiplexors such as **poll(2)**. This file descriptor might or might not
 be the actual input file descriptor. If it readable, **notcurses_getc** can
 be called without the possibility of blocking.
+
+**ncinput_equal_p** compares two **ncinput** structs for data equality (i.e.
+not considering padding or the **seqnum** field), returning 1 if they
+represent the same input (though not necessarily the same input event).
 
 ## Mice
 
@@ -113,6 +119,9 @@ a synthesized event, is returned.
 
 **notcurses_mouse_enable** returns 0 on success, and non-zero on failure, as
 does **notcurses_mouse_disable**.
+
+**ncinput_equal_p** returns 1 if the two **ncinput** structs represent the
+same input (though not necessarily the same input event), and 0 otherwise.
 
 # NOTES
 
