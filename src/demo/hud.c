@@ -204,12 +204,6 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
   }
   if(ncmenu_offer_input(menu, ni)){
     return true;
-  }else if(ni->id == 'o' && ni->alt && !ni->ctrl){
-    ncmenu_unroll(menu, 0);
-    return true;
-  }else if(ni->id == 'h' && ni->alt && !ni->ctrl){
-    ncmenu_unroll(menu, 2);
-    return true;
   }
   return false;
 }
