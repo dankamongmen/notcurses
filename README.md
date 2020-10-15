@@ -18,17 +18,13 @@ and the [man pages](https://notcurses.com/notcurses). there's also a reference
 [in this repo](USAGE.md). in addition, there is
 [Doxygen](https://nick-black.com/notcurses/html/) output. there is a
 [mailing list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
-via notcurses@googlegroups.com.
+via notcurses@googlegroups.com. i wrote a coherent
+[guidebook](https://nick-black.com/htp-notcurses.pdf), which is available for
+free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
 
-I wrote a coherent [guidebook](https://nick-black.com/htp-notcurses.pdf), which
-is available for free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
+I've not yet added many documented examples, but there are many small
+C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc).
 
-Notcurses is available in the Arch [AUR](https://aur.archlinux.org/packages/notcurses/),
-from [Debian Unstable](https://packages.debian.org/source/sid/notcurses) and
-[Testing](https://packages.debian.org/testing/graphics/notcurses-data),
-[Fedora Core](https://src.fedoraproject.org/rpms/notcurses),
-[Ubuntu Groovy](https://launchpad.net/ubuntu/+source/notcurses),
-and the FreeBSD [Ports Collection](https://www.freshports.org/devel/notcurses/).
 **If you're running Notcurses applications in a Docker, please consult
 "[Environment notes](#environment-notes)" below.**
 
