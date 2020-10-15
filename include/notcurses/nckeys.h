@@ -119,6 +119,9 @@ extern "C" {
 #define NCKEY_SCROLL_DOWN NCKEY_BUTTON5
 #define NCKEY_RETURN      NCKEY_ENTER
 
+// Just aliases, ma'am, from the 128 characters common to ASCII+UTF8
+#define NCKEY_ESC      0x1b
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

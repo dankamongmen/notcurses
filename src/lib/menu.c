@@ -609,7 +609,7 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
       return false;
     }
     return true;
-  }else if(nc->id == 0x1b){
+  }else if(nc->id == NCKEY_ESC){
     ncmenu_rollup(n);
     return true;
   }

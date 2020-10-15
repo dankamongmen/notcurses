@@ -142,7 +142,7 @@ const char* nckeystr(char32_t spkey){
 
 // Print the utf8 Control Pictures for otherwise unprintable ASCII
 char32_t printutf8(char32_t kp){
-  if(kp <= 27){
+  if(kp <= NCKEY_ESC){
     return 0x2400 + kp;
   }
   return kp;
