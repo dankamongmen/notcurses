@@ -121,6 +121,7 @@ extern "C" {
 
 // Just aliases, ma'am, from the 128 characters common to ASCII+UTF8
 #define NCKEY_ESC      0x1b
+#define NCKEY_SPACE    0x20
 
 #ifdef __cplusplus
 } // extern "C"
