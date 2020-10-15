@@ -32,29 +32,7 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   notcurses_render(nc);
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
     if(!ncmenu_offer_input(ncm, &ni)){
-      if(keypress == '\x1b'){
-        if(ncmenu_rollup(ncm)){
-          goto err;
-        }
-      }else if(ni.alt){
-        switch(keypress){
-          case 'a': case 'A': case 0x00e4:
-            if(ncmenu_unroll(ncm, 0)){
-              goto err;
-            }
-            break;
-          case 'f': case 'F':
-            if(ncmenu_unroll(ncm, 1)){
-              goto err;
-            }
-            break;
-          case 'h': case 'H':
-            if(ncmenu_unroll(ncm, 3)){
-              goto err;
-            }
-            break;
-        }
-      }else if(keypress == 'q'){
+      if(keypress == 'q'){
         ncmenu_destroy(ncm);
         ncplane_destroy(selplane);
         return 0;
