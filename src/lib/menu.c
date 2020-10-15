@@ -586,7 +586,19 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
       ncmenu_unroll(n, i);
     }
     return true;
-  }else if(n->unrolledsection < 0){ // all following need an unrolled section
+  }
+  for(int si = 0 ; si < n->sectioncount ; ++si){
+    const ncmenu_int_section* sec = &n->sections[si];
+    if(sec->enabled_item_count == 0){
+      continue;
+    }
+    if(!ncinput_equal_p(&sec->shortcut, nc)){
+      continue;
+    }
+    ncmenu_unroll(n, si);
+    return true;
+  }
+  if(n->unrolledsection < 0){ // all following need an unrolled section
     return false;
   }
   if(nc->id == NCKEY_LEFT){
