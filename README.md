@@ -1,6 +1,4 @@
-# notcurses
-
-a blingful TUI/character graphics library for modern terminal emulators.
+# Notcurses, a blingful TUI/character graphics library
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
     emulators, supporting vivid colors, multimedia, and Unicode to the maximum
@@ -11,7 +9,8 @@ a blingful TUI/character graphics library for modern terminal emulators.
     replacement for NCURSES on existing systems.
 
 birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>).
-C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>).
+C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>). the Notcurses API
+is stable as of version 2.0.
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com/notcurses). there's also a reference
