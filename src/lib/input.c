@@ -12,8 +12,6 @@
 #define CSIPREFIX "\x1b[<"
 static const char32_t NCKEY_CSI = 1;
 
-static const unsigned char ESC = 0x1b; // 27
-
 static sig_atomic_t resize_seen;
 
 void sigwinch_handler(int signo){
@@ -75,7 +73,7 @@ void input_free_esctrie(esctrie** eptr){
 
 static int
 ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t special){
-  if(esc[0] != ESC || strlen(esc) < 2){ // assume ESC prefix + content
+  if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
     fprintf(stderr, "Not an escape: %s (0x%x)\n", esc, special);
     return -1;
   }
@@ -205,7 +203,7 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
   if(kpress < 0){
     return -1;
   }
-  if(kpress == ESC){
+  if(kpress == NCKEY_ESC){
     const esctrie* esc = nc->inputescapes;
     int candidate = 0;
     while(esc && esc->special == NCKEY_INVALID && nc->inputbuf_occupied){
@@ -524,7 +522,7 @@ int prep_special_keys(ncinputlayer* nc){
 //fprintf(stderr, "no support for terminfo's %s\n", k->tinfo);
       continue;
     }
-    if(seq[0] != ESC){
+    if(seq[0] != NCKEY_ESC){
 //fprintf(stderr, "Terminfo's %s is not an escape sequence (%zub)\n", k->tinfo, strlen(seq));
       continue;
     }

@@ -153,7 +153,7 @@ cursor_yx_get(int ttyfd, int* y, int* x){
   while(read(ttyfd, &in, 1) == 1){
     bool valid = false;
     switch(state){
-      case CURSOR_ESC: valid = (in == '\x1b'); state = CURSOR_LSQUARE; break;
+      case CURSOR_ESC: valid = (in == NCKEY_ESC); state = CURSOR_LSQUARE; break;
       case CURSOR_LSQUARE: valid = (in == '['); state = CURSOR_ROW; break;
       case CURSOR_ROW:
         if(isdigit(in)){
