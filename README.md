@@ -10,8 +10,8 @@ a blingful TUI/character graphics library for modern terminal emulators.
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
     replacement for NCURSES on existing systems.
 
-* birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
-* C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
+birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>).
+C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com/notcurses). there's also a reference
@@ -22,7 +22,7 @@ via notcurses@googlegroups.com. i wrote a coherent
 [guidebook](https://nick-black.com/htp-notcurses.pdf), which is available for
 free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
 
-I've not yet added many documented examples, but there are many small
+i've not yet added many documented examples, but there are many small
 C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc).
 
 **If you're running Notcurses applications in a Docker, please consult
