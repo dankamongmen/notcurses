@@ -546,7 +546,7 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
   if(!ncplane_translate_abs(nc, &y, &x)){
     return NULL;
   }
-  // FIXME section_x() works only off the section header lenghts, meaning that
+  // FIXME section_x() works only off the section header lengths, meaning that
   // if we click an item outside of those columns covered by the header, it will
   // read as a -1 from section_x(). we want to instead get the unrolled section,
   // find its boundaries, and verify that we are within them.
