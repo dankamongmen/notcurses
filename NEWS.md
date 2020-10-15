@@ -3,7 +3,12 @@ rearrangements of Notcurses.
 
 * 2.1.0 (not yet released)
   * Add `ncmenu_item_set_status()` for disabling or enabling menu items.
+    * Disabled menu items cannot be selected.
+    * Menu sections consisting only of disabled items are themselves disabled,
+      and cannot be unrolled.
   * Add `ncinput_equal_p()` for comparison of `ncinput` structure data.
+  * `ncmenu_offer_input()` now recognizes the shortcuts for registered
+    sections, and will unroll the appropriate section when given input.
 
 * 2.0.0 (2020-10-12) "Stankonia"
   * **API STABILITY!** The API expressed in 2.0.0 will be maintained throughout
