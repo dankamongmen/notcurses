@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.1.0 (not yet released)
+  * Add `ncmenu_item_set_status()` for disabling or enabling menu items.
+
 * 2.0.0 (2020-10-12) "Stankonia"
   * **API STABILITY!** The API expressed in 2.0.0 will be maintained throughout
     at least 2.x.x. A program compiled against 2.0.0 will continue to compile

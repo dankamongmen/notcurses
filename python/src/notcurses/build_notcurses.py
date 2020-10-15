@@ -315,6 +315,7 @@ int ncmenu_nextsection(struct ncmenu* n);
 int ncmenu_prevsection(struct ncmenu* n);
 int ncmenu_nextitem(struct ncmenu* n);
 int ncmenu_previtem(struct ncmenu* n);
+int ncmenu_item_set_status(struct ncmenu* n, const char* section, const char* item, bool enabled);
 const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);
 bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
 int ncmenu_destroy(struct ncmenu* n);

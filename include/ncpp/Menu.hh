@@ -60,6 +60,11 @@ namespace ncpp
 			return error_guard (ncmenu_previtem (menu), -1);
 		}
 
+		bool item_set_status (const char* section, const char* item, bool status) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncmenu_item_set_status (menu, section, item, status), -1);
+		}
+
 		const char* get_selected (ncinput *ni = nullptr) const noexcept
 		{
 			return ncmenu_selected (menu, ni);

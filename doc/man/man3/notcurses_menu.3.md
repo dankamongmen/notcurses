@@ -51,6 +51,8 @@ typedef struct ncmenu_options {
 
 **int ncmenu_previtem(struct ncmenu* n);**
 
+**int ncmenu_item_set_status(struct ncmenu* n, const char* section, const char* item, bool enabled);**
+
 **const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);**
 
 **const char* ncmenu_mouse_selected(const struct ncmenu* n, const struct ncinput* click, struct ncinput* ni);**
