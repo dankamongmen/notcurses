@@ -381,7 +381,10 @@ If things break or seem otherwise lackluster, **please** consult the
 * *A*: Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals.
 
 * *Q*: How can I use Direct Mode in conjunction with libreadline?
-* *A*: Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, call `ncdirect_init()` prior to calling `rl_prep_terminal()`, and call `rl_deprep_terminal()` before calling `ncdirect_stop()`.
+* *A*: Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, call `ncdirect_init()` prior to calling `rl_prep_terminal()`, and call `rl_deprep_terminal()` before calling `ncdirect_stop()`. But you should probably just use a Notcurses `ncreader`, if possible.
+
+* *Q*: Will there ever be Java wrappers?
+* *A*: I should hope not.
 
 ## Supplemental material
 
