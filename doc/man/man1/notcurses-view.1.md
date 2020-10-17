@@ -23,6 +23,9 @@ and videos to a terminal. Media will be scaled to the terminal's size.
 
 **-s scalemode**: Scaling mode, one of **none**, **scale**, or **stretch**.
 
+**-b blitter**: Blitter, one of **ascii**, **halfblocks**, **quadblitter**,
+or **braille**.
+
 **-m margins**: Define rendering margins (see below).
 
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.

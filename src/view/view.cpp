@@ -21,6 +21,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -k: don't use the alternate screen\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
+  o << " -b blitter: one of 'ascii', 'halfblock', 'quadblitter' or 'braille'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
   exit(exitcode);
@@ -142,11 +143,12 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
 
 // can exit() directly. returns index in argv of first non-option param.
 auto handle_opts(int argc, char** argv, notcurses_options& opts,
-                 float* timescale, ncscale_e* scalemode) -> int {
+                 float* timescale, ncscale_e* scalemode, ncblitter_e* blitter)
+                 -> int {
   *timescale = 1.0;
   *scalemode = NCSCALE_STRETCH;
   int c;
-  while((c = getopt(argc, argv, "hl:d:s:m:k")) != -1){
+  while((c = getopt(argc, argv, "hl:d:s:b:m:k")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -154,6 +156,13 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts,
       case 's':
         if(notcurses_lex_scalemode(optarg, scalemode)){
           std::cerr << "Scaling type should be one of stretch, scale, none (got "
+                    << optarg << ")" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        break;
+      case 'b':
+        if(notcurses_lex_blitter(optarg, blitter)){
+          std::cerr << "Invalid blitter specification (got "
                     << optarg << ")" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
@@ -216,7 +225,8 @@ auto main(int argc, char** argv) -> int {
   float timescale;
   ncscale_e scalemode;
   notcurses_options nopts{};
-  auto nonopt = handle_opts(argc, argv, nopts, &timescale, &scalemode);
+  ncblitter_e blitter = NCBLIT_DEFAULT;
+  auto nonopt = handle_opts(argc, argv, nopts, &timescale, &scalemode, &blitter);
   nopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc{nopts};
   if(!nc.can_open_images()){
@@ -224,7 +234,6 @@ auto main(int argc, char** argv) -> int {
     std::cerr << "Notcurses was compiled without multimedia support\n";
     return EXIT_FAILURE;
   }
-  ncblitter_e blitter = NCBLIT_DEFAULT;
   int dimy, dimx;
   bool failed = false;
   {
