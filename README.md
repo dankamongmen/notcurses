@@ -322,46 +322,46 @@ If things break or seem otherwise lackluster, **please** consult the
 [Environment Notes](#environment_notes) section! You **need** to have a correct
 `TERM` and `LANG` definition, and probably want `COLORTERM`.
 
-* *Q:* The demo fails in the middle of `intro`. *A:* Check that your `TERM`
+* **Q:** The demo fails in the middle of `intro`. **A:** Check that your `TERM`
 value is correct for your terminal. `intro` does a palette fade, which is prone
 to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 `TERM` should not be `xterm`!
 
-* *Q:* In `xterm`, Alt doesn't work as expected. *A:* Check out the `eightBitInput` resource of `xterm`. Add `XTerm*eightBitInput: false` to your `$HOME/.Xresources`, and run `xrdb -a $HOME/.Xresources`.
+* **Q:** In `xterm`, Alt doesn't work as expected. **A:** Check out the `eightBitInput` resource of `xterm`. Add `XTerm*eightBitInput: false` to your `$HOME/.Xresources`, and run `xrdb -a $HOME/.Xresources`.
 
-* *Q:* Notcurses looks like absolute crap in `screen`. *A:* `screen` doesn't support RGB colors (at least as of 4.08.00); if you have `COLORTERM` defined, you'll have a bad time. If you have a `screen` that was compiled with `--enable-colors256`, try exporting `TERM=screen-256color` as opposed to `TERM=screen`.
+* **Q:** Notcurses looks like absolute crap in `screen`. **A:** `screen` doesn't support RGB colors (at least as of 4.08.00); if you have `COLORTERM` defined, you'll have a bad time. If you have a `screen` that was compiled with `--enable-colors256`, try exporting `TERM=screen-256color` as opposed to `TERM=screen`.
 
-* *Q:* Why didn't you just use Sixel? *A:* Many terminal emulators don't support Sixel. Sixel doesn't work well with mouse selection. With that said, I do intend to support Sixel soon, as a backend, when available, for certain types of drawing (see [issue #200](https://github.com/dankamongmen/notcurses/issues/200)).
+* **Q:** Why didn't you just use Sixel? **A:** Many terminal emulators don't support Sixel. Sixel doesn't work well with mouse selection. With that said, I do intend to support Sixel soon, as a backend, when available, for certain types of drawing (see [issue #200](https://github.com/dankamongmen/notcurses/issues/200)).
 
-* *Q:* I'm not seeing `NCKEY_RESIZE` until I press some other key. *A:* You've almost certainly failed to mask `SIGWINCH` in some thread, and that thread is receiving the signal instead of the thread which called `notcurses_getc_blocking()`. As a result, the `poll()` is not interrupted. Call `pthread_sigmask()` before spawning any threads.
+* **Q:** I'm not seeing `NCKEY_RESIZE` until I press some other key. **A:** You've almost certainly failed to mask `SIGWINCH` in some thread, and that thread is receiving the signal instead of the thread which called `notcurses_getc_blocking()`. As a result, the `poll()` is not interrupted. Call `pthread_sigmask()` before spawning any threads.
 
-* *Q:* One of the demos claimed to spend more than 100% of its runtime rendering. Do you know how to count? *A:* Runtime is wall clock time. A multithreaded demo can spend more than the wall-clock time rendering if multiple threads run concurrently.
+* **Q:** One of the demos claimed to spend more than 100% of its runtime rendering. Do you know how to count? **A:** Runtime is wall clock time. A multithreaded demo can spend more than the wall-clock time rendering if multiple threads run concurrently.
 
-* *Q:* Using the C++ wrapper, how can I ensure that the `NotCurses` destructor is run when I return from `main()`? *A:* As noted in the [C++ FAQ](https://isocpp.org/wiki/faq/dtors#artificial-block-to-control-lifetimes), wrap it in an artificial scope (this assumes your `NotCurses` is scoped to `main()`).
+* **Q:** Using the C++ wrapper, how can I ensure that the `NotCurses` destructor is run when I return from `main()`? **A:** As noted in the [C++ FAQ](https://isocpp.org/wiki/faq/dtors#artificial-block-to-control-lifetimes), wrap it in an artificial scope (this assumes your `NotCurses` is scoped to `main()`).
 
-* *Q:* How do I hide a plane I want to make visible later? *A:* Either move it above and to the left of the screen (preventing resizes from making it visible), or place it underneath another (opaque) plane (the latter performs better).
+* **Q:** How do I hide a plane I want to make visible later? **A:** Either move it above and to the left of the screen (preventing resizes from making it visible), or place it underneath another (opaque) plane (the latter performs better).
 
-* *Q:* Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard? *A:* `ncplane_box()` and friends already have far too many arguments, you monster.
+* **Q:** Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard? **A:** `ncplane_box()` and friends already have far too many arguments, you monster.
 
-* *Q:* Why doesn't Notcurses support 10- or 16-bit color? *A:* Notcurses supports 24 bits of color, spread across three eight-bit channels. You presumably mean 10-bit-per-channel color. Notcurses will support it when a terminal supports it.
+* **Q:** Why doesn't Notcurses support 10- or 16-bit color? **A:** Notcurses supports 24 bits of color, spread across three eight-bit channels. You presumably mean 10-bit-per-channel color. Notcurses will support it when a terminal supports it.
 
-* *Q:* You seem a creative guy. Why the least creative name ever? *A:* I really didn't expect this to go anywhere.
+* **Q:** You seem a creative guy. Why the least creative name ever? **A:** I really didn't expect this to go anywhere.
 
-* *Q:* I'm not finding qrcodegen on FreeBSD, despite having installed `graphics/qr-code-generator`. *A:* Try `cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include`. This is passed by `bsd.port.mk`.
+* **Q:** I'm not finding qrcodegen on FreeBSD, despite having installed `graphics/qr-code-generator`. **A:** Try `cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include`. This is passed by `bsd.port.mk`.
 
-* *Q:* Do you support [musl](https://musl.libc.org/)? *A:* I try to! You'll need at least 1.20.
+* **Q:** Do you support [musl](https://musl.libc.org/)? **A:** I try to! You'll need at least 1.20.
 
-* *Q:* I only seem to blit in ASCII. *A:* Your `LANG` environment variable is underdefined or incorrectly defined, or the necessary locale is not present on your machine (it is also possible that you explicitly supplied `NCOPTION_INHIBIT_SETLOCALE`, but never called `setlocale(3)`, in which case don't do that).
+* **Q:** I only seem to blit in ASCII. **A:** Your `LANG` environment variable is underdefined or incorrectly defined, or the necessary locale is not present on your machine (it is also possible that you explicitly supplied `NCOPTION_INHIBIT_SETLOCALE`, but never called `setlocale(3)`, in which case don't do that).
 
-* *Q:* I pretty much always need an `ncplane` when using a `cell`. Why doesn't the latter hold a point to the former? *A:* Besides the massive redundancy this would entail, `cell` needs to remain as small as possible, and you almost always have the `ncplane` handy if you've got a reference to a valid `cell` anyway.
+* **Q:** I pretty much always need an `ncplane` when using a `cell`. Why doesn't the latter hold a point to the former? **A:** Besides the massive redundancy this would entail, `cell` needs to remain as small as possible, and you almost always have the `ncplane` handy if you've got a reference to a valid `cell` anyway.
 
-* *Q*: I ran `notcurses-demo` with a single demo, but my summary numbers don't match that demo's numbers, you charlatan. *A*: `notcurses-demo` renders several frames beyond the actual demos.
+* **Q:**: I ran `notcurses-demo` with a single demo, but my summary numbers don't match that demo's numbers, you charlatan. **A:** `notcurses-demo` renders several frames beyond the actual demos.
 
-* *Q*: When my program exits, I don't have a cursor/text is invisible/colors are weird. *A*: Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals.
+* **Q:**: When my program exits, I don't have a cursor/text is invisible/colors are weird. **A:** Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals.
 
-* *Q*: How can I use Direct Mode in conjunction with libreadline? *A*: Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, call `ncdirect_init()` prior to calling `rl_prep_terminal()`, and call `rl_deprep_terminal()` before calling `ncdirect_stop()`. But you should probably just use a Notcurses `ncreader`, if possible.
+* **Q:**: How can I use Direct Mode in conjunction with libreadline? **A:** Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, call `ncdirect_init()` prior to calling `rl_prep_terminal()`, and call `rl_deprep_terminal()` before calling `ncdirect_stop()`. But you should probably just use a Notcurses `ncreader`, if possible.
 
-* *Q*: Will there ever be Java wrappers? *A*: I should hope not?
+* **Q:**: Will there ever be Java wrappers? **A:** I should hope not.
 
 ## Supplemental material
 
