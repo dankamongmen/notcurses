@@ -25,8 +25,9 @@ i've not yet added many documented examples, but there are many small
 C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc).
 
 **If you're running Notcurses applications in a Docker, please consult
-"[Environment notes](#environment-notes)" below.** I track some [TERMS.md](capabilities of terminal
-emultators) and also maintain a list of [OTHERS.md](other TUI libraries).
+"[Environment notes](#environment-notes)" below.** I track some
+[capabilities of terminal emulators](TERMS.md), and also maintain a list of
+[other TUI libraries](OTHERS.md).
 
 <a href="https://drone.dsscaw.com:4443/dankamongmen/notcurses">
 <img src="https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg" alt="Build status">
