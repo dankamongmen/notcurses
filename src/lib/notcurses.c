@@ -893,7 +893,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
     return NULL;
   }
-  if(opts->flags > (NCOPTION_NO_ALTERNATE_SCREEN << 1u)){
+  if(opts->flags >= (NCOPTION_NO_FONT_CHANGES << 1u)){
     fprintf(stderr, "Provided an illegal Notcurses option, refusing to start\n");
     return NULL;
   }
