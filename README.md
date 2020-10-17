@@ -165,6 +165,12 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `USE_POC`: build small, uninstalled proof-of-concept binaries
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
 * `USE_STATIC`: build static libraries (in addition to shared ones)
+* `USE_XCB`: build X.Org support via libxcb
+
+Note that even if `USE_XCB` is supplied, libxcb might still be linked as a
+result of other Notcurses dependencies (e.g. FFmpeg/OIIO). In this case, the
+library will still be linked into Notcurses, but the X.Open-related
+functionality will be unavailable.
 
 ## Included tools
 
