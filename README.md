@@ -25,7 +25,8 @@ i've not yet added many documented examples, but there are many small
 C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc).
 
 **If you're running Notcurses applications in a Docker, please consult
-"[Environment notes](#environment-notes)" below.**
+"[Environment notes](#environment-notes)" below.** I track some [TERMS.md](capabilities of terminal
+emultators) and also maintain a list of [OTHERS.md](other TUI libraries).
 
 <a href="https://drone.dsscaw.com:4443/dankamongmen/notcurses">
 <img src="https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg" alt="Build status">
@@ -48,7 +49,6 @@ C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses
   * [FAQs](#faqs)
 * [Supplemental material](#supplemental-material)
   * [Useful links](#useful-links)
-  * [Other TUI libraries](#other-tui-libraries-of-note)
   * [History](#history)
   * [Thanks](#thanks)
 
@@ -357,7 +357,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:**: I ran `notcurses-demo` with a single demo, but my summary numbers don't match that demo's numbers, you charlatan. **A:** `notcurses-demo` renders several frames beyond the actual demos.
 
-* **Q:**: When my program exits, I don't have a cursor/text is invisible/colors are weird. **A:** Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals.
+* **Q:**: When my program exits, I don't have a cursor, or text is invisible, or colors are weird, <i>ad nauseam</i>. **A:** Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals.
 
 * **Q:**: How can I use Direct Mode in conjunction with libreadline? **A:** Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, call `ncdirect_init()` prior to calling `rl_prep_terminal()`, and call `rl_deprep_terminal()` before calling `ncdirect_stop()`. But you should probably just use a Notcurses `ncreader`, if possible.
 
