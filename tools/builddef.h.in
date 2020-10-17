@@ -1,7 +1,6 @@
 // Populated by CMake; not installed
 #cmakedefine DFSG_BUILD
 #cmakedefine USE_QRCODEGEN
-#cmakedefine USE_XCB
 // exclusive with USE_OIIO
 #cmakedefine USE_FFMPEG
 // exclusive with USE_FFMPEG

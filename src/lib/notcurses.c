@@ -893,7 +893,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
     return NULL;
   }
-  if(opts->flags > (NCOPTION_NO_XCB_CONNECT << 1u)){
+  if(opts->flags > (NCOPTION_NO_FONT_CHANGES << 1u)){
     fprintf(stderr, "Provided an illegal Notcurses option, refusing to start\n");
     return NULL;
   }
@@ -961,7 +961,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER))){
     goto err;
   }
-  x_connect(ret);
   int termerr;
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
@@ -1133,7 +1132,6 @@ int notcurses_stop(notcurses* nc){
                 (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions));
       }
     }
-    x_disconnect(nc);
     del_curterm(cur_term);
     free(nc);
   }

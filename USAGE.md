@@ -109,11 +109,6 @@ typedef enum {
 // of the "alternate screen". This flag inhibits use of smcup/rmcup.
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040
 
-// If the DISPLAY environment variable is defined, Notcurses will attempt to
-// connect to the specified X.org server using xcb. Failure to do so will not
-// halt Notcurses initialization, but this prevents the attempt from being made.
-#define NCOPTION_NO_XCB_CONNECT      0x0100ull
-
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -2838,10 +2833,8 @@ ncpixel_set_rgb8(uint32_t* pixel, int r, int g, int b){
 
 ## Windowing environments
 
-When built with xcb support, Notcurses can make a connection to the X.Org
-server specified by the `DISPLAY` environment variable. If the
-`NCOPTION_NO_XCB_CONNECT` option is provided to `notcurses_init()`, no attempt
-to connect will be made.
+Some terminals support the OSC escape sequences to retrieve and set the
+window title and icon.
 
 ```c
 // Get and set the application presentation title (i.e. window title). Returns

@@ -9,8 +9,6 @@ rearrangements of Notcurses.
   * Add `ncinput_equal_p()` for comparison of `ncinput` structure data.
   * `ncmenu_offer_input()` now recognizes the shortcuts for registered
     sections, and will unroll the appropriate section when given input.
-  * Added `NCOPTION_NO_XCB_CONNECT` to prevent Notcurses from connecting to X
-    even when the `DISPLAY` environment variable is defined.
   * Added `notcurses_title()` and `notcurses_set_title()`.
 
 * 2.0.0 (2020-10-12) "Stankonia"
