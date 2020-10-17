@@ -29,8 +29,8 @@ The following have been established on a Debian Unstable workstation.
 | GNU Screen | 🗴 |`TERM=screen.OLDTERM` | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
 | tmux | | | |
 
-Note that `xfce4-terminal`, `gnome-terminal`, etc. are all skinning atop the
-common VTE ("Virtual TErminal") library.
+Note that `xfce4-terminal`, `gnome-terminal`, etc. are essentially skinning
+atop the common VTE ("Virtual TErminal") library.
 
 ## GNU screen
 
