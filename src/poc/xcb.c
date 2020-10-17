@@ -6,12 +6,14 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  const char* title = notcurses_title(nc);
+  char* title = notcurses_title(nc);
   if(title == NULL){
-    fprintf(stderr, "Couldn't get window title\n");
     notcurses_stop(nc);
+    fprintf(stderr, "Couldn't get window title\n");
     return EXIT_FAILURE;
   }
   notcurses_stop(nc);
+  printf("Window title: %s\n", title);
+  free(title);
   return EXIT_SUCCESS;
 }

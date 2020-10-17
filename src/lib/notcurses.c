@@ -1133,8 +1133,8 @@ int notcurses_stop(notcurses* nc){
                 (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions));
       }
     }
+    x_disconnect(nc);
     del_curterm(cur_term);
-    x_disconnect(nc->xcb);
     free(nc);
   }
   return ret;
