@@ -94,7 +94,9 @@ TEST_CASE("Fade") {
     ts.tv_nsec = 75000000;
     ncplane_erase(n_);
     ncplane_set_fg_rgb(n_, 0xffd700);
+    CHECK(0 < ncplane_printf_aligned(n_, dimy - 1, NCALIGN_LEFT, "pulllllllse"));
     CHECK(0 < ncplane_printf_aligned(n_, dimy - 1, NCALIGN_CENTER, "pulllllllse"));
+    CHECK(0 < ncplane_printf_aligned(n_, dimy - 1, NCALIGN_RIGHT, "pulllllllse"));
     struct timespec pulsestart;
     clock_gettime(CLOCK_MONOTONIC, &pulsestart);
     CHECK(0 < ncplane_pulse(n_, &ts, pulser, &pulsestart));

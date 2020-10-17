@@ -1300,6 +1300,9 @@ API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
 // requirements of 'align'.
 static inline int
 notcurses_align(int availcols, ncalign_e align, int cols){
+  if(cols < 0){
+    return -INT_MAX;
+  }
   if(align == NCALIGN_LEFT){
     return 0;
   }
@@ -1488,6 +1491,9 @@ ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
                         const wchar_t* gclustarr){
   int width = wcswidth(gclustarr, INT_MAX);
   int xpos = ncplane_align(n, align, width);
+  if(xpos < 0){
+    return -1;
+  }
   return ncplane_putwstr_yx(n, y, xpos, gclustarr);
 }
 
