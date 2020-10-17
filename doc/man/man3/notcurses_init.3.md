@@ -18,6 +18,7 @@ notcurses_init - initialize a notcurses instance
 #define NCOPTION_SUPPRESS_BANNERS    0x0020ull
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
+#define NCOPTION_NO_XCB              0x0100ull
 
 typedef enum {
   NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
@@ -134,6 +135,10 @@ zero. The following flags are defined:
 
 * **NCOPTION_NO_FONT_CHANGES**: Do not touch the font. Notcurses might
     otherwise attempt to extend the font, especially in the Linux console.
+
+* **NCOPTION_NO_XCB_CONNECT**: Do not attempt to connect to X, even if the
+    **DISPLAY** environment variable is defined. Notcurses might otherwise
+    use xcb to establish a connection to the specified X.org server.
 
 ## Fatal signals
 

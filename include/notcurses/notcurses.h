@@ -793,6 +793,11 @@ typedef enum {
 // anything but the virtual console/terminal in which Notcurses is running.
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
 
+// If the DISPLAY environment variable is defined, Notcurses will attempt to
+// connect to the specified X.org server using xcb. Failure to do so will not
+// halt Notcurses initialization, but this prevents the attempt from being made.
+#define NCOPTION_NO_XCB_CONNECT      0x0100ull
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
