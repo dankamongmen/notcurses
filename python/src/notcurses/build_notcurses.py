@@ -452,6 +452,8 @@ int ncreader_move_up(struct ncreader* n);
 int ncreader_move_down(struct ncreader* n);
 int ncreader_write_egc(struct ncreader* n, const char* egc);
 int ncstrwidth(const char* text);
+char* notcurses_title(const struct notcurses* nc);
+int notcurses_set_title(struct notcurses* nc, const char* title);
 """)
 
 if __name__ == "__main__":

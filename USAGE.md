@@ -12,6 +12,7 @@ and the project is committed to backwards compatibility.
 * [Widgets](#widgets) ([Readers](#readers))
 * [Channels](#channels)
 * [Visuals](#visuals) ([QR codes](#qrcodes)) ([Multimedia](#multimedia)) ([Pixels](#pixels))
+* [Windowing Environments](#windowing-environments)
 * [Stats](#stats)
 * [C++](#c++)
 
@@ -107,6 +108,11 @@ typedef enum {
 // If smcup/rmcup capabilities are indicated, Notcurses defaults to making use
 // of the "alternate screen". This flag inhibits use of smcup/rmcup.
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040
+
+// If the DISPLAY environment variable is defined, Notcurses will attempt to
+// connect to the specified X.org server using xcb. Failure to do so will not
+// halt Notcurses initialization, but this prevents the attempt from being made.
+#define NCOPTION_NO_XCB_CONNECT      0x0100ull
 
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
@@ -2828,6 +2834,21 @@ ncpixel_set_rgb8(uint32_t* pixel, int r, int g, int b){
   }
   return 0;
 }
+```
+
+## Windowing environments
+
+When built with xcb support, Notcurses can make a connection to the X.Org
+server specified by the `DISPLAY` environment variable. If the
+`NCOPTION_NO_XCB_CONNECT` option is provided to `notcurses_init()`, no attempt
+to connect will be made.
+
+```c
+// Get and set the application presentation title (i.e. window title). Returns
+// NULL if the title could not be discovered. Some environments (e.g. the Linux
+// virtual console) do not support any concept of a title.
+char* notcurses_title(const struct notcurses* nc);
+int notcurses_set_title(struct notcurses* nc, const char* title);
 ```
 
 ## Stats

@@ -21,6 +21,12 @@ const char* oiio_version(void);
 #endif
 #endif
 
+#ifdef USE_XCB
+#include <xcb/xcb.h>
+#else
+typedef void xcb_connection_t;
+#endif
+
 #include <term.h>
 #include <time.h>
 #include <stdio.h>
@@ -90,6 +96,8 @@ typedef struct ncplane {
   uint16_t stylemask;    // same deal as in a cell
   bool scrolling;        // is scrolling enabled? always disabled by default
 } ncplane;
+
+extern const struct blitset notcurses_blitters[];
 
 #include "blitset.h"
 
@@ -329,6 +337,7 @@ typedef struct notcurses {
   tinfo tcache;   // terminfo cache
   struct termios tpreserved; // terminal state upon entry
   bool suppress_banner; // from notcurses_options
+  xcb_connection_t* xcb; // xcb connection to xorg server
 
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
@@ -1033,6 +1042,11 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
 
 // FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, const struct termios* tpreserved);
+
+// make an XCB connection to the X.Org server specified by DISPLAY, if that
+// environment variable is defined (and we built in support for xcb).
+int x_connect(notcurses* nc);
+int x_disconnect(notcurses* nc);
 
 #ifdef __cplusplus
 }

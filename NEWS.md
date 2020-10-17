@@ -11,6 +11,7 @@ rearrangements of Notcurses.
     sections, and will unroll the appropriate section when given input.
   * Added `NCOPTION_NO_XCB_CONNECT` to prevent Notcurses from connecting to X
     even when the `DISPLAY` environment variable is defined.
+  * Added `notcurses_title()` and `notcurses_set_title()`.
 
 * 2.0.0 (2020-10-12) "Stankonia"
   * **API STABILITY!** The API expressed in 2.0.0 will be maintained throughout

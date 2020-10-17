@@ -961,6 +961,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER))){
     goto err;
   }
+  x_connect(ret);
   int termerr;
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
@@ -1133,6 +1134,7 @@ int notcurses_stop(notcurses* nc){
       }
     }
     del_curterm(cur_term);
+    x_disconnect(nc->xcb);
     free(nc);
   }
   return ret;

@@ -3134,8 +3134,6 @@ struct blitset {
   bool fill;
 };
 
-API extern const struct blitset notcurses_blitters[];
-
 static inline ncblitter_e
 ncvisual_default_blitter(bool utf8, ncscale_e scale){
   if(utf8){
@@ -3149,6 +3147,12 @@ ncvisual_default_blitter(bool utf8, ncscale_e scale){
   }
   return NCBLIT_1x1;
 }
+
+// Get and set the application presentation title (i.e. window title). Returns
+// NULL if the title could not be discovered. Some environments (e.g. the Linux
+// virtual console) do not support any concept of a title.
+API char* notcurses_title(const struct notcurses* nc);
+API int notcurses_set_title(struct notcurses* nc, const char* title);
 
 #undef API
 

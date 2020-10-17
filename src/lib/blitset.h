@@ -1,7 +1,7 @@
 #ifndef NOTCURSES_BLITSET
 #define NOTCURSES_BLITSET
 
-#include "notcurses/notcurses.h"
+#include "internal.h"
 
 static inline const struct blitset*
 lookup_blitset(unsigned utf8, ncblitter_e setid, bool may_degrade) {
