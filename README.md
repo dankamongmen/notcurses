@@ -353,7 +353,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** I only seem to blit in ASCII, and/or can't emit Unicode beyond ASCII in general. **A:** Your `LANG` environment variable is underdefined or incorrectly defined, or the necessary locale is not present on your machine (it is also possible that you explicitly supplied `NCOPTION_INHIBIT_SETLOCALE`, but never called `setlocale(3)`, in which case don't do that).
 
-* **Q:** I pretty much always need an `ncplane` when using a `cell`. Why doesn't the latter hold a point to the former? **A:** Besides the massive redundancy this would entail, `cell` needs to remain as small as possible, and you almost always have the `ncplane` handy if you've got a reference to a valid `cell` anyway.
+* **Q:** I pretty much always need an `ncplane` when using a `cell`. Why doesn't the latter hold a pointer to the former? **A:** Besides the massive redundancy this would entail, `cell` needs to remain as small as possible, and you almost always have the `ncplane` handy if you've got a reference to a valid `cell` anyway.
 
 * **Q:**: I ran `notcurses-demo` with a single demo, but my summary numbers don't match that demo's numbers, you charlatan. **A:** `notcurses-demo` renders several frames beyond the actual demos.
 
