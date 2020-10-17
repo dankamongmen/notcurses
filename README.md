@@ -345,7 +345,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Why doesn't Notcurses support 10- or 16-bit color? **A:** Notcurses supports 24 bits of color, spread across three eight-bit channels. You presumably mean 10-bit-per-channel color. Notcurses will support it when a terminal supports it.
 
-* **Q:** You seem a creative guy. Why the least creative name ever? **A:** I really didn't expect this to go anywhere.
+* **Q:** The name is dumb. **A:** That's not a question?
 
 * **Q:** I'm not finding qrcodegen on FreeBSD, despite having installed `graphics/qr-code-generator`. **A:** Try `cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include`. This is passed by `bsd.port.mk`.
 
