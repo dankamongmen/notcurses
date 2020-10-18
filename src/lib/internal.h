@@ -930,57 +930,65 @@ egc_rtl(const char* egc, int* bytes){
   return s;
 }
 
+// lowest level of cell+pool setup. if the EGC changes the output to RTL, it
+// must be suffixed with a LTR-forcing character by now, and both
+// CELL_WIDEASIAN_MASK and CELL_NOBACKGROUND_MASK ought be set however they're
+// going to be set.
 static inline int
-pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
+pool_blit_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
+  pool_release(pool, c);
   if(bytes < 0 || cols < 0){
     return -1;
   }
   if(bytes <= 1){
     assert(cols < 2);
-    pool_release(pool, c);
-    c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
     c->gcluster = 0;
     ((unsigned char*)&c->gcluster)[0] = *gcluster;
     return bytes;
   }
-  // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
-  if(strcmp(gcluster, "\xe2\x96\x88")){
-    c->channels &= ~CELL_NOBACKGROUND_MASK;
-    if(cols < 2){
-      c->channels &= ~CELL_WIDEASIAN_MASK;
-    }else{
-      c->channels |= CELL_WIDEASIAN_MASK;
-    }
-  }else{
-    c->channels |= CELL_NOBACKGROUND_MASK;
-    c->channels &= ~CELL_WIDEASIAN_MASK;
-  }
-  // checks for RTL and adds U+200E if so FIXME
-  char* rtl = egc_rtl(gcluster, &bytes);
-  if(rtl){
-    gcluster = rtl;
-  }
   if(bytes <= 4){
     if(strcmp(gcluster, (const char*)&c->gcluster)){
-      pool_release(pool, c);
       c->gcluster = 0;
       memcpy(&c->gcluster, gcluster, bytes);
-    }
-    if(rtl){
-      free(rtl);
     }
     return bytes;
   }
   int eoffset = egcpool_stash(pool, gcluster, bytes);
-  if(rtl){
-    free(rtl);
-  }
   if(eoffset < 0){
     return -1;
   }
-  pool_release(pool, c);
   set_gcluster_egc(c, eoffset);
   return bytes;
+}
+
+static inline int
+pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
+  if(bytes <= 1){
+    c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
+  }else if(cols < 2){
+    c->channels &= ~CELL_WIDEASIAN_MASK;
+    // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
+    if(bytes == 3 && memcmp(gcluster, "\xe2\x96\x88", 4) == 0){
+      c->channels |= CELL_NOBACKGROUND_MASK;
+    }else{
+      c->channels &= ~CELL_NOBACKGROUND_MASK;
+    }
+  }else{
+    c->channels |= CELL_WIDEASIAN_MASK;
+    c->channels &= ~CELL_NOBACKGROUND_MASK;
+  }
+  char* rtl = egc_rtl(gcluster, &bytes); // checks for RTL and adds U+200E if so
+  if(rtl){
+    gcluster = rtl;
+  }
+  int r = pool_blit_direct(pool, c, gcluster, bytes, cols);
+  free(rtl);
+  return r;
+}
+
+static inline int
+cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols){
+  return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
 }
 
 static inline int

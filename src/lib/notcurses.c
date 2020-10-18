@@ -1356,11 +1356,6 @@ void scroll_down(ncplane* n){
   }
 }
 
-static inline int
-cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols){
-  return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
-}
-
 int cell_load(ncplane* n, cell* c, const char* gcluster){
   return pool_load(&n->pool, c, gcluster);
 }
