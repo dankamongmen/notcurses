@@ -224,11 +224,20 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   // so fuck it, just go ahead and initialize to 0 / diffs[0]
   size_t mindiffidx = 0;
   unsigned mindiff = diffs[0]; // 3 * 256 + 1; // max distance is 256 * 3
+  // if all diffs are 0, emit a space
+  bool allzerodiffs = (mindiff == 0);
   for(size_t idx = 1 ; idx < sizeof(diffs) / sizeof(*diffs) ; ++idx){
     if(diffs[idx] < mindiff){
       mindiffidx = idx;
       mindiff = diffs[idx];
     }
+    if(diffs[idx]){
+      allzerodiffs = false;
+    }
+  }
+  if(allzerodiffs){
+    *fore = *back = tl;
+    return " ";
   }
   // at this point, 0 <= mindiffidx <= 5. foreground color will be the
   // lerp of this nearest pair. we then check the other two. if they are
