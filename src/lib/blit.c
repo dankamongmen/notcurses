@@ -370,7 +370,9 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
   }
   assert(egc);
   cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-  if(blendcolors){
+  if(*egc == '\0'){
+    cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+  }else if(blendcolors){
     cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
   }
   return egc;
