@@ -78,7 +78,7 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
       }else{
         cell_set_fg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
         cell_set_bg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
-        if(cell_load(nc, c, " ") <= 0){
+        if(pool_load_direct(&nc->pool, c, " ", 1, 1) <= 0){
           return -1;
         }
       }
@@ -424,7 +424,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
       }
-      if(*egc && cell_load(nc, c, egc) <= 0){
+      if(*egc && pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
         return -1;
       }
       ++total;
@@ -558,7 +558,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
         char egc[4] = { 0xe2, 0xa0, 0x80, 0x00 };
         egc[2] += egcidx % 64;
         egc[1] += egcidx / 64;
-        if(cell_load(nc, c, egc) <= 0){
+        if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
         }
       }
