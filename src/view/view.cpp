@@ -17,7 +17,9 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] files" << '\n';
+  o << " -h: display help and exit with success\n";
+  o << " -q: be quiet (no frame/timing information along top of screen)\n";
   o << " -k: don't use the alternate screen\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
@@ -56,7 +58,11 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   }
   std::unique_ptr<Plane> stdn(nc.get_stdplane());
   int* framecount = static_cast<int*>(vframecount);
-  ++*framecount;
+  // negative framecount means don't print framecount/timing (quiet mode)
+  if(*framecount >= 0){
+    ++*framecount;
+  }
+  const bool quiet = (*framecount < 0);
   stdn->set_fg_rgb(0x80c080);
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
@@ -66,9 +72,10 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     blitter = ncvisual_default_blitter(notcurses_canutf8(nc), vopts->scaling);
     vopts->blitter = blitter;
   }
-  // clear top line only
-  stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", *framecount,
-               notcurses_str_blitter(blitter));
+  if(!quiet){
+    stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", *framecount,
+                 notcurses_str_blitter(blitter));
+  }
   char* subtitle = ncvisual_subtitle(ncv);
   if(subtitle){
     if(!subtitle_plane){
@@ -95,8 +102,10 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   ns -= m * (60 * NANOSECS_IN_SEC);
   const intmax_t s = ns / NANOSECS_IN_SEC;
   ns -= s * NANOSECS_IN_SEC;
-  stdn->printf(0, NCAlign::Right, "%02jd:%02jd:%02jd.%04jd",
-               h, m, s, ns / 1000000);
+  if(!quiet){
+    stdn->printf(0, NCAlign::Right, "%02jd:%02jd:%02jd.%04jd",
+                 h, m, s, ns / 1000000);
+  }
   if(!nc.render()){
     return -1;
   }
@@ -142,16 +151,19 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
 }
 
 // can exit() directly. returns index in argv of first non-option param.
-auto handle_opts(int argc, char** argv, notcurses_options& opts,
+auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
                  float* timescale, ncscale_e* scalemode, ncblitter_e* blitter)
                  -> int {
   *timescale = 1.0;
   *scalemode = NCSCALE_STRETCH;
   int c;
-  while((c = getopt(argc, argv, "hl:d:s:b:m:k")) != -1){
+  while((c = getopt(argc, argv, "hql:d:s:b:m:k")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
+        break;
+      case 'q':
+        *quiet = true;
         break;
       case 's':
         if(notcurses_lex_scalemode(optarg, scalemode)){
@@ -226,7 +238,8 @@ auto main(int argc, char** argv) -> int {
   ncscale_e scalemode;
   notcurses_options nopts{};
   ncblitter_e blitter = NCBLIT_DEFAULT;
-  auto nonopt = handle_opts(argc, argv, nopts, &timescale, &scalemode, &blitter);
+  bool quiet = false;
+  auto nonopt = handle_opts(argc, argv, nopts, &quiet, &timescale, &scalemode, &blitter);
   nopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc{nopts};
   if(!nc.can_open_images()){
@@ -239,7 +252,7 @@ auto main(int argc, char** argv) -> int {
   {
     std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
     for(auto i = nonopt ; i < argc ; ++i){
-      int frames = 0;
+      int frames = quiet ? -1 : 0;
       std::unique_ptr<Visual> ncv;
       try{
         ncv = std::make_unique<Visual>(argv[i]);
