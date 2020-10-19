@@ -207,6 +207,14 @@ notcurses_stddim_yx(struct notcurses* nc, int* restrict y, int* restrict x){
   ncplane_dim_yx(s, y, x); // accepts NULL
   return s;
 }
+
+static inline const struct ncplane*
+notcurses_stddim_yx_const(const struct notcurses* nc, int* restrict y, int* restrict x){
+  const struct ncplane* s = notcurses_stdplane_const(nc); // can't fail
+  ncplane_dim_yx(s, y, x); // accepts NULL
+  return s;
+}
+
 ```
 
 A reference to the standard plane *is* persistent across a screen resize, as are

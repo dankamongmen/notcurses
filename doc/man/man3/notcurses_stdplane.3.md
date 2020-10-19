@@ -16,6 +16,8 @@ notcurses_stdplane - acquire the standard ncplane
 
 **static inline struct ncplane* notcurses_stddim_yx(struct notcurses* nc, int* restrict y, int* restrict x);**
 
+**static inline const struct ncplane* notcurses_stddim_yx_const(const struct notcurses* nc, int* restrict y, int* restrict x);**
+
 # DESCRIPTION
 
 **notcurses_stdplane** returns a handle to the standard ncplane for the context
