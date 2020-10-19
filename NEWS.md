@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.1.0 (not yet released)
+* 2.0.1 (2020-10-19)
   * Add `ncmenu_item_set_status()` for disabling or enabling menu items.
     * Disabled menu items cannot be selected.
     * Menu sections consisting only of disabled items are themselves disabled,
@@ -11,12 +11,11 @@ rearrangements of Notcurses.
     sections, and will unroll the appropriate section when given input.
   * Added `notcurses_stddim_yx_const()` (`notcurses_stddim_yx()` `const` form).
 
-* 2.0.0 (2020-10-12) "Stankonia"
+* 2.0.0 (2020-10-12) **"Stankonia"**
   * **API STABILITY!** The API expressed in 2.0.0 will be maintained throughout
     at least 2.x.x. A program compiled against 2.0.0 will continue to compile
     and function properly against all 2.x.x releases. Thanks for putting up
-    with the freewheeling API breakage until now. Semantic Versioning is in
-    effect from this point on.
+    with the freewheeling API breakage until now.
   * `NOTCURSES_VERSION_{MAJOR, MINOR, PATCH, TWEAK}` are now available from
     `notcurses/version.h`. These represent the version your program was
     *compiled against*. The version your program is *linked to* can still be
