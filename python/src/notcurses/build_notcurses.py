@@ -417,6 +417,7 @@ int ncdirect_bg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 int ncdirect_fg_rgb8(struct ncdirect* n, unsigned r, unsigned g, unsigned b);
 unsigned ncdirect_palette_size(const struct ncdirect* nc);
 int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
+int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align, const char* fmt, ...);
 int ncdirect_fg_rgb(struct ncdirect* n, unsigned rgb);
 int ncdirect_bg_rgb(struct ncdirect* n, unsigned rgb);
 int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
