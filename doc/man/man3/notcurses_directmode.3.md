@@ -126,6 +126,9 @@ effect.
 points to a valid **struct ncdirect**, which can be used until it is provided
 to **ncdirect_stop**.
 
+**ncdirect_putstr** returns the number of characters written on success. On
+failure, it returns some negative number.
+
 All other functions return 0 on success, and non-zero on error.
 
 # SEE ALSO
