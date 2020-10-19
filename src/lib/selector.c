@@ -291,13 +291,14 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
     if(cols > ns->longop){
       ns->longop = cols;
     }
-    cols = ncstrwidth(src->desc);
+    const char *desc = src->desc ? src->desc : "";
+    cols = ncstrwidth(desc);
     ns->items[ns->itemcount].desccolumns = cols;
     if(cols > ns->longdesc){
       ns->longdesc = cols;
     }
     ns->items[ns->itemcount].option = strdup(src->option);
-    ns->items[ns->itemcount].desc = strdup(src->desc);
+    ns->items[ns->itemcount].desc = strdup(desc);
     if(!(ns->items[ns->itemcount].desc && ns->items[ns->itemcount].option)){
       free(ns->items[ns->itemcount].option);
       free(ns->items[ns->itemcount].desc);
@@ -336,13 +337,14 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   }
   n->items = items;
   n->items[n->itemcount].option = strdup(item->option);
-  n->items[n->itemcount].desc = strdup(item->desc);
+  const char *desc = item->desc ? item->desc : "";
+  n->items[n->itemcount].desc = strdup(desc);
   int cols = ncstrwidth(item->option);
   n->items[n->itemcount].opcolumns = cols;
   if(cols > n->longop){
     n->longop = cols;
   }
-  cols = ncstrwidth(item->desc);
+  cols = ncstrwidth(desc);
   n->items[n->itemcount].desccolumns = cols;
   if(cols > n->longdesc){
     n->longdesc = cols;
