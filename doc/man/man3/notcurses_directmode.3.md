@@ -56,6 +56,8 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);**
 
+**int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align, const char* fmt, ...);**
+
 **bool ncdirect_canopen_images(const struct ncdirect* n);**
 
 **bool ncdirect_canutf8(const struct ncdirect* n);**
@@ -126,8 +128,8 @@ effect.
 points to a valid **struct ncdirect**, which can be used until it is provided
 to **ncdirect_stop**.
 
-**ncdirect_putstr** returns the number of characters written on success. On
-failure, it returns some negative number.
+**ncdirect_putstr** and **ncdirect_printf_aligned** return the number of bytes
+written on success. On failure, they return some negative number.
 
 All other functions return 0 on success, and non-zero on error.
 
