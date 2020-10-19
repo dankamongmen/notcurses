@@ -8,7 +8,7 @@ notcurses-view - Render images and video to a terminal
 
 # SYNOPSIS
 
-**notcurses-view** [**-h|--help**] [**-d delaymult**] [**-l loglevel**] [**-s scalemode**] [**-k**] files
+**notcurses-view** [**-h**] [**-q**] [**-d delaymult**] [**-l loglevel**] [**-s scalemode**] [**-k**] files
 
 # DESCRIPTION
 
@@ -29,6 +29,10 @@ or **braille**.
 **-m margins**: Define rendering margins (see below).
 
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
+
+**-q**: Don't print frame/timing information along the top of the screen.
+
+**-h**: Print help information, and exit with success.
 
 files: Select which files to render, and what order to render them in.
 
