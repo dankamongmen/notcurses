@@ -153,6 +153,9 @@ The different **ncblitter_e** values select from among available glyph sets:
 * **NCBLIT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCBLIT_4x1**.
 * **NCBLIT_SIXEL**: Sixel, a 6-by-1 RGB pixel arrangement.
 
+**NCBLIT_4x1** and **NCBLIT_8x1** are intended for use with plots, and are
+not really applicable for general visuals.
+
 # RETURN VALUES
 
 **notcurses_canopen_images** and **notcurses_canopen_videos** returns true if
@@ -188,6 +191,11 @@ linked library. OpenImageIO does not support subtitles.
 
 **ncvisual_rotate** currently supports only **M_PI**/2 and -**M_PI**/2
 radians for **rads**, but this will change soon.
+
+**NCBLIT_SIXEL** is not yet implemented, and is only infrequently supported
+among terminals.
+
+Some fonts are lacking the Braille characters necessary for **NCBLIT_BRAILLE**.
 
 # SEE ALSO
 
