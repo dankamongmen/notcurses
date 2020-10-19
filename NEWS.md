@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.0.2 (not yet released)
+  * Add `ncvisual_rewind()`.
+
 * 2.0.1 (2020-10-19)
   * Add `ncmenu_item_set_status()` for disabling or enabling menu items.
     * Disabled menu items cannot be selected.
