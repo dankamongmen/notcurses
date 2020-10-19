@@ -64,6 +64,8 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_decode(struct ncvisual* nc);**
 
+**int ncvisual_rewind(struct ncvisual* nc);**
+
 **struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);**
 
 **int ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv, const struct timespec* disptime, void* curry);**
@@ -102,7 +104,8 @@ image and video files can be loaded into visuals using
 **ncvisual_from_file**. **ncvisual_from_file** discovers the container
 and codecs, but does not verify that the entire file is well-formed.
 **ncvisual_decode** ought be invoked to recover subsequent frames, once
-per frame.
+per frame. **ncvisual_rewind** will return to the beginning of a multiframe
+visual, as if **ncvisual_decode** had never been called on it.
 
 Once the visual is loaded, it can be transformed using **ncvisual_rotate**
 and **ncvisual_resize**. These are persistent operations, unlike any scaling
