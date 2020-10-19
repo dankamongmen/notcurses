@@ -51,6 +51,12 @@ API unsigned ncdirect_palette_size(const struct ncdirect* nc);
 // necessarily be immediately visible.
 API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
 
+// Formatted printing (plus alignment relative to the terminal). Returns the
+// number of columns printed on success.
+API int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
+                                const char* fmt, ...)
+  __attribute__ ((format (printf, 4, 5)));
+
 // Force a flush. Returns 0 on success, -1 on failure.
 API int ncdirect_flush(const struct ncdirect* nc);
 
@@ -100,11 +106,6 @@ API int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x);
 // stack, and indeed its existence, is terminal-dependent.
 API int ncdirect_cursor_push(struct ncdirect* n);
 API int ncdirect_cursor_pop(struct ncdirect* n);
-
-// Formatted printing (plus alignment relative to the terminal).
-API int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
-                                const char* fmt, ...)
-  __attribute__ ((format (printf, 4, 5)));
 
 // Display an image using the specified blitter and scaling. The image may
 // be arbitrarily many rows -- the output will scroll -- but will only occupy
