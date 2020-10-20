@@ -101,6 +101,28 @@ TEST_CASE("Visual") {
     }
   }
 
+  SUBCASE("LoopVideo") {
+    if(notcurses_canopen_videos(nc_)){
+      int dimy, dimx;
+      ncplane_dim_yx(ncp_, &dimy, &dimx);
+      auto ncv = ncvisual_from_file(find_data("notcursesII.mkv"));
+      REQUIRE(ncv);
+      int ret;
+      while((ret = ncvisual_decode(ncv)) == 0){
+        ;
+      }
+      // FIXME verify that it is last frame?
+      CHECK(1 == ret);
+      ret = ncvisual_decode_loop(ncv);
+      CHECK(1 == ret);
+      struct ncplane* ncp = ncvisual_render(nc_, ncv, nullptr);
+      CHECK(nullptr != ncp);
+      // FIXME verify that it is first frame, not last?
+      ncplane_destroy(ncp);
+      ncvisual_destroy(ncv);
+    }
+  }
+
   SUBCASE("LoadVideoCreatePlane") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;

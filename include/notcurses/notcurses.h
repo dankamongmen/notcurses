@@ -2316,9 +2316,11 @@ API void ncvisual_destroy(struct ncvisual* ncv);
 // success, and -1 on failure.
 API int ncvisual_decode(struct ncvisual* nc);
 
+// decode the next frame ala ncvisual_decode(), but if we have reached the end,
 // rewind to the first frame of the ncvisual. a subsequent `ncvisual_render()`
 // will render the first frame, as if the ncvisual had been closed and reopened.
-API int ncvisual_rewind(struct ncvisual* nc);
+// the return values remain the same as those of ncvisual_decode().
+API int ncvisual_decode_loop(struct ncvisual* nc);
 
 // Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.

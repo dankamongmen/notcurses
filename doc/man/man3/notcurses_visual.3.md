@@ -64,7 +64,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_decode(struct ncvisual* nc);**
 
-**int ncvisual_rewind(struct ncvisual* nc);**
+**int ncvisual_decode_loop(struct ncvisual* nc);**
 
 **struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);**
 
@@ -104,8 +104,8 @@ image and video files can be loaded into visuals using
 **ncvisual_from_file**. **ncvisual_from_file** discovers the container
 and codecs, but does not verify that the entire file is well-formed.
 **ncvisual_decode** ought be invoked to recover subsequent frames, once
-per frame. **ncvisual_rewind** will return to the beginning of a multiframe
-visual, as if **ncvisual_decode** had never been called on it.
+per frame. **ncvisual_decode_loop** will return to the first frame,
+as if **ncvisual_decode** had never been called.
 
 Once the visual is loaded, it can be transformed using **ncvisual_rotate**
 and **ncvisual_resize**. These are persistent operations, unlike any scaling
@@ -172,7 +172,9 @@ that the entire file is properly-formed.
 
 **ncvisual_decode** returns 0 on success, or 1 on end of file, or -1 on
 failure. It is only necessary for multimedia-based visuals. It advances one
-frame for each call.
+frame for each call. **ncvisual_decode_loop** has the same return values: when
+called following decoding of the last frame, it will return 1, but a subsequent
+**ncvisual_render** will return the first frame.
 
 **ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
 and bound. This is usually due to illegal content in the source **ncplane**.

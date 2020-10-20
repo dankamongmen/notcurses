@@ -2662,9 +2662,11 @@ And finally, the `ncvisual` can be blitted to one or more `ncplane`s:
 struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
                                     const struct ncvisual_options* vopts);
 
+// decode the next frame ala ncvisual_decode(), but if we have reached the end,
 // rewind to the first frame of the ncvisual. a subsequent `ncvisual_render()`
 // will render the first frame, as if the ncvisual had been closed and reopened.
-int ncvisual_rewind(struct ncvisual* nc);
+// the return values remain the same as those of ncvisual_decode().
+int ncvisual_decode_loop(struct ncvisual* nc);
 
 // each has the empty cell in addition to the product of its dimensions. i.e.
 // NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
