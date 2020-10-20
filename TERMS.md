@@ -17,7 +17,7 @@ The following have been established on a Debian Unstable workstation.
 | Linux console | ✔ | `TERM=linux` `COLORTERM=24bit` | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
 | FBterm | | `TERM=fbterm` | 256 colors, no RGB color. |
 | kmscon | | `TERM=xterm-256color` | No RGB color AFAICT, nor any distinct terminfo entry. |
-| XTerm | | `TERM=xterm-256color` `COLORTERM=24bit` | Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. Sixel support when built with `--enable-sixel-graphics` and run in vt340 mode. |
+| XTerm | | `TERM=xterm-256color` `COLORTERM=24bit` | See note about DirectColor. Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. Sixel support when built with `--enable-sixel-graphics` and run in vt340 mode. |
 | XFCE4 Terminal | ✔ | `TERM=xfce` `COLORTERM=24bit` | No `xfce-direct` variant exists. |
 | Gnome Terminal | 🗴 | `TERM=gnome` `COLORTERM=24bit` | `ccc` support *is* available when run with `vte-256color`. |
 | Konsole | 🗴 | `TERM=konsole-direct` | |
@@ -98,3 +98,20 @@ The following more-or-less standard tools exist:
 
 Both `mapscrn` and `loadunimap` are obsolete; their functionality is present
 in `setfont`.
+
+## DirectColor
+
+Many terminals support one or another form of non-indexed color encoding (also
+known as DirectColor, RGB color, 24-bit color, or the similar but distinct
+TrueColor), using either the semicolon-based presentation introduced by Konsole
+or the colon-delimited presentation specified in ECMA-48 and ITU T.416. The
+`rgb` termcap capability indicates support for such encodings via the
+`set_a_foreground` and `set_b_foreground` capabilities. Not all terminals
+implementing `rgb` use the 3x8bpc model; XTerm for instance:
+
+> for values 0 through 7, it uses the “ANSI” control sequences, while
+> for other values, it uses the 3-byte direct-color sequence introduced by Konsole.
+> the number of colors is 224 while the number of color pairs is 216
+
+Thus emitting `setaf` with an RGB value close to black can result, when
+using `xterm-direct`'s `setaf` and `rgb` definitions, in a bright ANSI color.
