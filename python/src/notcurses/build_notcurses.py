@@ -213,6 +213,7 @@ struct ncvisual* ncvisual_from_plane(const struct ncplane* n, ncblitter_e blit, 
 int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, const struct ncvisual_options* vopts, int* y, int* x, int* toy, int* tox);
 void ncvisual_destroy(struct ncvisual* ncv);
 int ncvisual_decode(struct ncvisual* nc);
+int ncvisual_decode_loop(struct ncvisual* nc);
 int ncvisual_rotate(struct ncvisual* n, double rads);
 int ncvisual_resize(struct ncvisual* n, int rows, int cols);
 int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);

@@ -2,7 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.0.2 (not yet released)
-  * Add `ncvisual_rewind()`.
+  * Add `ncvisual_decode_loop()`, which returns to the first frame upon
+    reaching the end of a file.
 
 * 2.0.1 (2020-10-19)
   * Add `ncmenu_item_set_status()` for disabling or enabling menu items.
