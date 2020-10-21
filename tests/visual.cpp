@@ -117,7 +117,12 @@ TEST_CASE("Visual") {
       CHECK(1 == ret);
       struct ncplane* ncp = ncvisual_render(nc_, ncv, nullptr);
       CHECK(nullptr != ncp);
+      ncplane_destroy(ncp);
       // FIXME verify that it is first frame, not last?
+      ret = ncvisual_decode_loop(ncv);
+      CHECK(0 == ret);
+      ncp = ncvisual_render(nc_, ncv, nullptr);
+      CHECK(nullptr != ncp);
       ncplane_destroy(ncp);
       ncvisual_destroy(ncv);
     }

@@ -401,6 +401,7 @@ int ncvisual_decode_loop(ncvisual* ncv){
       // FIXME log error
       return -1;
     }
+    return ncvisual_decode(ncv);
   }
   return r;
 }

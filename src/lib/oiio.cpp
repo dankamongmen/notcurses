@@ -86,6 +86,7 @@ int ncvisual_decode_loop(ncvisual* ncv){
     if(ncv->details.image->seek_subimage(0, 0, &newspec)){
       return -1;
     }
+    ncv->details.framenum = 0;
   }
   return r;
 }
