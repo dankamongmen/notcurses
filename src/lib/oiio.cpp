@@ -79,6 +79,17 @@ int ncvisual_decode(ncvisual* nc) {
   return 0;
 }
 
+int ncvisual_decode_loop(ncvisual* ncv){
+  int r = ncvisual_decode(ncv);
+  if(r == 1){
+    OIIO::ImageSpec newspec;
+    if(ncv->details.image->seek_subimage(0, 0, &newspec)){
+      return -1;
+    }
+  }
+  return r;
+}
+
 // resize, converting to RGBA (if necessary) along the way
 int ncvisual_resize(ncvisual* nc, int rows, int cols) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
