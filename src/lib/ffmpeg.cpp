@@ -394,6 +394,17 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
   return ncerr;
 }
 
+int ncvisual_decode_loop(ncvisual* ncv){
+  int r = ncvisual_decode(ncv);
+  if(r == 1){
+    if(av_seek_frame(ncv->details.fmtctx, ncv->details.stream_index, 0, AVSEEK_FLAG_FRAME) < 0){
+      // FIXME log error
+      return -1;
+    }
+  }
+  return r;
+}
+
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                   const struct blitset* bset, int placey, int placex,
                   int begy, int begx, int leny, int lenx,
