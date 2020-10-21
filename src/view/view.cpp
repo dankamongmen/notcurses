@@ -17,10 +17,11 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] files" << '\n';
   o << " -h: display help and exit with success\n";
   o << " -q: be quiet (no frame/timing information along top of screen)\n";
   o << " -k: don't use the alternate screen\n";
+  o << " -L: loop frames\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
   o << " -b blitter: one of 'ascii', 'halfblock', 'quadblitter' or 'braille'\n";
@@ -152,12 +153,13 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
 
 // can exit() directly. returns index in argv of first non-option param.
 auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
-                 float* timescale, ncscale_e* scalemode, ncblitter_e* blitter)
+                 float* timescale, ncscale_e* scalemode, ncblitter_e* blitter,
+                 bool* loop)
                  -> int {
   *timescale = 1.0;
   *scalemode = NCSCALE_STRETCH;
   int c;
-  while((c = getopt(argc, argv, "hql:d:s:b:m:k")) != -1){
+  while((c = getopt(argc, argv, "hql:d:s:b:m:kL")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -181,6 +183,9 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
         break;
       case 'k':{
         opts.flags |= NCOPTION_NO_ALTERNATE_SCREEN;
+        break;
+      }case 'L':{
+        *loop = true;
         break;
       }case 'm':{
         if(opts.margin_t || opts.margin_r || opts.margin_b || opts.margin_l){
@@ -239,7 +244,9 @@ auto main(int argc, char** argv) -> int {
   notcurses_options nopts{};
   ncblitter_e blitter = NCBLIT_DEFAULT;
   bool quiet = false;
-  auto nonopt = handle_opts(argc, argv, nopts, &quiet, &timescale, &scalemode, &blitter);
+  bool loop = false;
+  auto nonopt = handle_opts(argc, argv, nopts, &quiet, &timescale, &scalemode,
+                            &blitter, &loop);
   nopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc{nopts};
   if(!nc.can_open_images()){
@@ -269,35 +276,43 @@ auto main(int argc, char** argv) -> int {
       vopts.n = *stdn;
       vopts.scaling = scalemode;
       vopts.blitter = blitter;
-      int r = ncv->stream(&vopts, timescale, perframe, &frames);
-      free(stdn->get_userptr());
-      stdn->set_userptr(nullptr);
+      int r;
+      do{
+        r = ncv->stream(&vopts, timescale, perframe, &frames);
+        free(stdn->get_userptr());
+        stdn->set_userptr(nullptr);
+        if(r == 0){
+          if(!loop){
+            stdn->printf(0, NCAlign::Center, "press any key to advance");
+            if(!nc.render()){
+              failed = true;
+              break;
+            }
+            char32_t ie = nc.getc(true);
+            if(ie == (char32_t)-1){
+              failed = true;
+              break;
+            }else if(ie == 'q'){
+              break;
+            }else if(ie >= '0' && ie <= '8'){
+              --i; // rerun same input with the new blitter
+              blitter = static_cast<ncblitter_e>(ie - '0');
+            }else if(ie == NCKey::Resize){
+              --i; // rerun with the new size
+              if(!nc.refresh(&dimy, &dimx)){
+                failed = true;
+                break;
+              }
+            }
+          }else{
+            ncv->decode_loop();
+          }
+        }
+      }while(loop && r == 0);
       if(r < 0){ // positive is intentional abort
         std::cerr << "Error decoding " << argv[i] << std::endl;
         failed = true;
         break;
-      }else if(r == 0){
-        stdn->printf(0, NCAlign::Center, "press any key to advance");
-        if(!nc.render()){
-          failed = true;
-          break;
-        }
-        char32_t ie = nc.getc(true);
-        if(ie == (char32_t)-1){
-          failed = true;
-          break;
-        }else if(ie == 'q'){
-          break;
-        }else if(ie >= '0' && ie <= '8'){
-          --i; // rerun same input with the new blitter
-          blitter = static_cast<ncblitter_e>(ie - '0');
-        }else if(ie == NCKey::Resize){
-          --i; // rerun with the new size
-          if(!nc.refresh(&dimy, &dimx)){
-            failed = true;
-            break;
-          }
-        }
       }
     }
   }
