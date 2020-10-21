@@ -574,6 +574,11 @@ auto ncvisual_decode(ncvisual* nc) -> int {
   return -1;
 }
 
+auto ncvisual_decode_loop(ncvisual* nc) -> int {
+  (void)nc;
+  return -1;
+}
+
 auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
                      streamcb streamer, const ncvisual_options* vopts,
                      void* curry) -> int {
