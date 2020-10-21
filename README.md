@@ -221,8 +221,9 @@ some design decisions might surprise NCURSES programmers:
   and Unicode via `UTF-8`.
 * The cursor is disabled by default, when supported (`civis` capability).
 * Echoing of input is disabled by default, and `cbreak` mode is used by default.
-* Colors are always specified as 24 bits in 3 components (RGB). If necessary,
-  these will be quantized for the actual terminal. There are no "color pairs".
+* Colors are usually specified as 24 bits in 3 components (RGB). If necessary,
+  these will be quantized for the actual terminal. There are no "color pairs",
+  but indexed palettes are supported.
 * There is no distinct "pad" concept (these are NCURSES `WINDOW`s created with
   the `newpad()` function). All drawable surfaces can exceed the display size.
 * Multiple threads can freely call into notcurses, so long as they're not
