@@ -10,7 +10,9 @@ lerp(uint32_t c0, uint32_t c1){
   unsigned r0, g0, b0, r1, g1, b1;
   channel_rgb8(c0, &r0, &g0, &b0);
   channel_rgb8(c1, &r1, &g1, &b1);
-  channel_set_rgb8(&ret, (r0 + r1 + 1) / 2, (g0 + g1 + 1) / 2, (b0 + b1 + 1) / 2);
+  channel_set_rgb8(&ret, (r0 + r1 + 1) / 2,
+                         (g0 + g1 + 1) / 2,
+                         (b0 + b1 + 1) / 2);
   return ret;
 }
 
@@ -23,8 +25,8 @@ trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
   channel_rgb8(c1, &r1, &g1, &b1);
   channel_rgb8(c2, &r2, &g2, &b2);
   channel_set_rgb8(&ret, (r0 + r1 + r2 + 2) / 3,
-                        (g0 + g1 + g2 + 2) / 3,
-                        (b0 + b1 + b2 + 2) / 3);
+                         (g0 + g1 + g2 + 2) / 3,
+                         (b0 + b1 + b2 + 2) / 3);
   return ret;
 }
 

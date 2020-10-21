@@ -44,12 +44,16 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
   return ts;
 }
 
-// FIXME internalize this via complex curry
-static struct ncplane* subtitle_plane = nullptr;
+struct marshal {
+  struct ncplane* subtitle_plane;
+  int framecount;
+  bool quiet;
+};
 
 // frame count is in the curry. original time is kept in n's userptr.
 auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
-              const struct timespec* abstime, void* vframecount) -> int {
+              const struct timespec* abstime, void* vmarshal) -> int {
+  struct marshal* marsh = static_cast<struct marshal*>(vmarshal);
   NotCurses &nc = NotCurses::get_instance ();
   auto start = static_cast<struct timespec*>(ncplane_userptr(vopts->n));
   if(!start){
@@ -58,12 +62,10 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     ncplane_set_userptr(vopts->n, start);
   }
   std::unique_ptr<Plane> stdn(nc.get_stdplane());
-  int* framecount = static_cast<int*>(vframecount);
   // negative framecount means don't print framecount/timing (quiet mode)
-  if(*framecount >= 0){
-    ++*framecount;
+  if(marsh->framecount >= 0){
+    ++marsh->framecount;
   }
-  const bool quiet = (*framecount < 0);
   stdn->set_fg_rgb(0x80c080);
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
@@ -73,28 +75,28 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     blitter = ncvisual_default_blitter(notcurses_canutf8(nc), vopts->scaling);
     vopts->blitter = blitter;
   }
-  if(!quiet){
-    stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", *framecount,
+  if(!marsh->quiet){
+    stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", marsh->framecount,
                  notcurses_str_blitter(blitter));
   }
   char* subtitle = ncvisual_subtitle(ncv);
   if(subtitle){
-    if(!subtitle_plane){
+    if(!marsh->subtitle_plane){
       int dimx, dimy;
       ncplane_dim_yx(vopts->n, &dimy, &dimx);
-      subtitle_plane = ncplane_new(notcurses_stdplane(nc), 1, dimx,
-                                   dimy - 1, 0, nullptr, "subt");
+      marsh->subtitle_plane = ncplane_new(notcurses_stdplane(nc), 1, dimx,
+                                          dimy - 1, 0, nullptr, "subt");
       uint64_t channels = 0;
       channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-      ncplane_set_base(subtitle_plane, "", 0, channels);
-      ncplane_set_fg_rgb(subtitle_plane, 0x00ffff);
-      ncplane_set_fg_alpha(subtitle_plane, CELL_ALPHA_HIGHCONTRAST);
-      ncplane_set_bg_alpha(subtitle_plane, CELL_ALPHA_TRANSPARENT);
+      ncplane_set_base(marsh->subtitle_plane, "", 0, channels);
+      ncplane_set_fg_rgb(marsh->subtitle_plane, 0x00ffff);
+      ncplane_set_fg_alpha(marsh->subtitle_plane, CELL_ALPHA_HIGHCONTRAST);
+      ncplane_set_bg_alpha(marsh->subtitle_plane, CELL_ALPHA_TRANSPARENT);
     }else{
-      ncplane_erase(subtitle_plane);
+      ncplane_erase(marsh->subtitle_plane);
     }
-    ncplane_printf_yx(subtitle_plane, 0, 0, "%s", subtitle);
+    ncplane_printf_yx(marsh->subtitle_plane, 0, 0, "%s", subtitle);
     free(subtitle);
   }
   const intmax_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
@@ -103,7 +105,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   ns -= m * (60 * NANOSECS_IN_SEC);
   const intmax_t s = ns / NANOSECS_IN_SEC;
   ns -= s * NANOSECS_IN_SEC;
-  if(!quiet){
+  if(!marsh->quiet){
     stdn->printf(0, NCAlign::Right, "%02jd:%02jd:%02jd.%04jd",
                  h, m, s, ns / 1000000);
   }
@@ -259,7 +261,6 @@ auto main(int argc, char** argv) -> int {
   {
     std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
     for(auto i = nonopt ; i < argc ; ++i){
-      int frames = quiet ? -1 : 0;
       std::unique_ptr<Visual> ncv;
       try{
         ncv = std::make_unique<Visual>(argv[i]);
@@ -273,12 +274,15 @@ auto main(int argc, char** argv) -> int {
         stdn->erase();
       }
       struct ncvisual_options vopts{};
+      int r;
       vopts.n = *stdn;
       vopts.scaling = scalemode;
       vopts.blitter = blitter;
-      int r;
       do{
-        r = ncv->stream(&vopts, timescale, perframe, &frames);
+        struct marshal marsh = {
+          .subtitle_plane = nullptr, .framecount = 0, .quiet = quiet,
+        };
+        r = ncv->stream(&vopts, timescale, perframe, &marsh);
         free(stdn->get_userptr());
         stdn->set_userptr(nullptr);
         if(r == 0){

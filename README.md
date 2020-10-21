@@ -1,4 +1,4 @@
-# Notcurses, a blingful TUI/character graphics library
+# Notcurses: blingful TUIs and character graphics
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
     emulators, supporting vivid colors, multimedia, and Unicode to the maximum
