@@ -9,17 +9,20 @@ int main(void){
   }
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
+  int y = 0;
   ncplane_set_styles(n, NCSTYLE_NONE);
-  ncplane_putstr_yx(n, 0, 0, "a ═ none");
+  ncplane_putstr_yx(n, y++, 0, "a ═ none");
   ncplane_set_styles(n, NCSTYLE_ITALIC);
-  ncplane_putstr_yx(n, 1, 0, "a ═ italic");
+  ncplane_putstr_yx(n, y++, 0, "a ═ italic");
   ncplane_set_styles(n, NCSTYLE_BOLD);
-  ncplane_putstr_yx(n, 2, 0, "a ═ bold");
+  ncplane_putstr_yx(n, y++, 0, "a ═ bold");
   ncplane_set_styles(n, NCSTYLE_REVERSE);
-  ncplane_putstr_yx(n, 3, 0, "a ═ reverse");
+  ncplane_putstr_yx(n, y++, 0, "a ═ reverse");
   ncplane_set_styles(n, NCSTYLE_UNDERLINE);
-  ncplane_putstr_yx(n, 4, 0, "a ═ underline");
-  ncplane_putstr_yx(n, 5, 0, "sleeping for 5s...");
+  ncplane_putstr_yx(n, y++, 0, "a ═ underline");
+  ncplane_set_styles(n, NCSTYLE_BLINK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ blink");
+  ncplane_putstr_yx(n, y++, 0, "sleeping for 5s...");
   if(notcurses_render(nc)){
     goto err;
   }
