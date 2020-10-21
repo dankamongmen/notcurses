@@ -140,12 +140,30 @@ test failures, *please* file a bug including the output of
 
 (`make test` also runs `notcurses-tester`, but hides important output).
 
-Install with `make install` following a successful build.
-
 To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
 be found on the `notcurses-demo(1)` man page.
 
-This does not install the Python or Rust wrappers.
+Install with `make install` following a successful build. This installs the C
+core library, the C headers, the C++ library, and the C++ headers (note that
+the C headers are C++-safe). It does not install the Python or Rust wrappers.
+To install the Python wrappers (after installing the core library), run:
+
+```
+cd python
+python setup.py build
+python setup.py install
+```
+
+The Python wrappers are also available from [PyPi](https://pypi.org/project/notcurses/). To install the low-level Rust
+wrappers (`libnotcurses-sys`), run:
+
+```
+cd rust
+cargo build
+cargo install
+```
+
+The Rust wrappers are also available from [crates.io](https://crates.io/crates/libnotcurses-sys/).
 
 #### Build options
 
@@ -395,7 +413,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 ### History
 
 * 2020-10-12: Notcurses [2.0.0 "stankonia"](https://github.com/dankamongmen/notcurses/releases/tag/v2.0.0).
-  * A stable API! Semantic versioning is now in effect. This API will be supported going forward.
+  * A stable API! This API will be supported going forward.
 * 2020-08-30: Notcurses [1.7.0 "don't pull the bang out"](https://github.com/dankamongmen/notcurses/releases/tag/v1.7.0).
 * 2020-07-04: Notcurses [1.6.0 "aquemini"](https://github.com/dankamongmen/notcurses/releases/tag/v1.6.0).
 * 2020-07-03: Notcurses is [accepted into Alpine Edge](https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/9924).
