@@ -189,7 +189,6 @@ Six binaries are installed as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
-* `notcurses-planereels`: play around with ncreels
 * `notcurses-tester`: unit testing
 * `notcurses-tetris`: a tetris clone
 * `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
