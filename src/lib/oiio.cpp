@@ -83,10 +83,11 @@ int ncvisual_decode_loop(ncvisual* ncv){
   int r = ncvisual_decode(ncv);
   if(r == 1){
     OIIO::ImageSpec newspec;
-    if(ncv->details.image->seek_subimage(0, 0, &newspec)){
+    if(ncv->details.image->seek_subimage(0, 0, newspec)){
       return -1;
     }
     ncv->details.framenum = 0;
+    return ncvisual_decode(ncv);
   }
   return r;
 }
