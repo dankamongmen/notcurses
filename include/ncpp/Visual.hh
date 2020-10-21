@@ -61,6 +61,11 @@ namespace ncpp
 			return ncvisual_decode (visual);
 		}
 
+		int decode_loop () const noexcept
+		{
+			return ncvisual_decode_loop (visual);
+		}
+
 		ncplane* render (const ncvisual_options* vopts) const NOEXCEPT_MAYBE
 		{
 			return error_guard<ncplane*, ncplane*> (ncvisual_render (get_notcurses (), visual, vopts), nullptr);
