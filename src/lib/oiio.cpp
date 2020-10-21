@@ -87,7 +87,9 @@ int ncvisual_decode_loop(ncvisual* ncv){
       return -1;
     }
     ncv->details.framenum = 0;
-    return ncvisual_decode(ncv);
+    if(ncvisual_decode(ncv) < 0){
+      return -1;
+    }
   }
   return r;
 }
