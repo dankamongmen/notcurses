@@ -89,11 +89,11 @@ Proper display requires:
 * A monospaced font, and
 * Good Unicode support in your libc, font, and terminal emulator.
 
-The Debian version of notcurses leaves out certain multimedia considered
-non-free under the Debian Free Software Guidelines. As a result, the
-**chunli**, **eagle**, **jungle**, **luigi**, and **view** demos
-are unavailable through the Debian package. This applies to any distro
-which uses the DFSG source tarball, including Ubuntu and Fedora.
+The Debian version of **notcurses-demo** leaves out certain multimedia
+considered non-free under the Debian Free Software Guidelines. As a result, the
+**chunli**, **eagle**, **jungle**, **luigi**, and **view** demos are
+unavailable through the Debian package. This applies to any distro which uses
+the DFSG source tarball, including Ubuntu and Fedora.
 
 If notcurses is built without multimedia support, the **chunli**, **eagle**,
 **outro**, **view**, **xray**, and **yield** demos will be partially or wholly

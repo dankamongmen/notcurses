@@ -51,13 +51,12 @@ struct ncmultiselector; // widget supporting selecting 0..n from n options
 struct ncreader;  // widget supporting free string input ala readline
 struct ncfadectx; // context for a palette fade operation
 
-// each has the empty cell in addition to the product of its dimensions. i.e.
-// NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
-// states: empty, the three shaded blocks, and the full block.
+// we never blit full blocks, but instead spaces (more efficient) with the
+// background set to the desired foreground.
 typedef enum {
   NCBLIT_DEFAULT, // let the ncvisual pick
-  NCBLIT_1x1,     // full block                █
-  NCBLIT_2x1,     // upper half + 1x1          ▀█
+  NCBLIT_1x1,     // spaces, compatible with ASCII
+  NCBLIT_2x1,     // upper half + 1x1 (space)  ▀
   NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
   NCBLIT_2x2,     // quadrants + 2x1           ▗▐ ▖▀▟▌▙█
   NCBLIT_4x1,     // four vertical levels      █▆▄▂
