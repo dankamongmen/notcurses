@@ -350,6 +350,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Notcurses looks like absolute crap in `screen`. **A:** `screen` doesn't support RGB colors (at least as of 4.08.00); if you have `COLORTERM` defined, you'll have a bad time. If you have a `screen` that was compiled with `--enable-colors256`, try exporting `TERM=screen-256color` as opposed to `TERM=screen`.
 
+* **Q:** Notcurses looks like absolute crap in `mosh`. **A**: Yeah it sure does. I'm not yet sure what's up.
+
 * **Q:** Why didn't you just use Sixel? **A:** Many terminal emulators don't support Sixel. Sixel doesn't work well with mouse selection. With that said, I do intend to support Sixel soon, as a backend, when available, for certain types of drawing (see [issue #200](https://github.com/dankamongmen/notcurses/issues/200)).
 
 * **Q:** I'm not seeing `NCKEY_RESIZE` until I press some other key. **A:** You've almost certainly failed to mask `SIGWINCH` in some thread, and that thread is receiving the signal instead of the thread which called `notcurses_getc_blocking()`. As a result, the `poll()` is not interrupted. Call `pthread_sigmask()` before spawning any threads.
