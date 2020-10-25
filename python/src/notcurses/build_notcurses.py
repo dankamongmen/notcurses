@@ -120,14 +120,14 @@ char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint16_t* stylem
 char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);
 char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels);
 typedef enum {
-  NCBLIT_1x1,     // full block                █
-  NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
-  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
-  NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
-  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
+  NCBLIT_1x1,
+  NCBLIT_2x1,
+  NCBLIT_2x2,
+  NCBLIT_3x2,
+  NCBLIT_4x1,
+  NCBLIT_BRAILLE,
+  NCBLIT_8x1,
+  NCBLIT_SIXEL,
 } ncblitter_e;
 const char* notcurses_str_blitter(ncblitter_e blitter);
 int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
@@ -135,8 +135,7 @@ uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit, int begy, int
 char* ncplane_contents(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);
-int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
-                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
+int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen);
 uint64_t ncplane_channels(const struct ncplane* n);
 int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);
 int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);
