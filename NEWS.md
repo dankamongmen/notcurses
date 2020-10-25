@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.0.2 (not yet released)
+* 2.0.2 (2020-10-25)
   * Add `ncvisual_decode_loop()`, which returns to the first frame upon
     reaching the end of a file.
 
