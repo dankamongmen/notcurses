@@ -18,14 +18,14 @@ typedef enum {
 
 typedef enum {
   NCBLIT_DEFAULT, // let the ncvisual pick
-  NCBLIT_1x1,     // full block                █
-  NCBLIT_2x1,     // upper half + 1x1          ▀█
-  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCBLIT_2x2,     // quadrants + 2x1           ▗▐ ▖▀▟▌▙█
-  NCBLIT_4x1,     // four vertical levels      █▆▄▂
-  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vertical levels     █▇▆▅▄▃▂▁
-  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
+  NCBLIT_1x1,     // spaces only
+  NCBLIT_2x1,     // halves + 1x1
+  NCBLIT_2x2,     // quadrants + 2x1
+  NCBLIT_3x2,     // sextants + 1x1
+  NCBLIT_4x1,     // four vertical levels
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
+  NCBLIT_8x1,     // eight vertical levels
+  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
 } ncblitter_e;
 
 #define NCVISUAL_OPTION_NODEGRADE 0x0001
@@ -37,7 +37,7 @@ struct ncvisual_options {
   int y, x;
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
-  ncblitter_e blitter; // glyph set to use (maps input to output cells)
+  ncblitter_e blitter; // glyph set to use
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
 };
 
@@ -147,10 +147,10 @@ geometry of same. **flags** is a bitfield over:
 The different **ncblitter_e** values select from among available glyph sets:
 
 * **NCBLIT_DEFAULT**: Let the **ncvisual** choose its own blitter.
-* **NCBLIT_1x1**: Full block (█) or empty glyph.
-* **NCBLIT_2x1**: Adds the lower half block (▄) to **NCBLIT_1x1**.
-* **NCBLIT_1x1x4**: Adds three shaded full blocks (▓▒░) to **NCBLIT_1x1**.
+* **NCBLIT_1x1**: Spaces only. Works in ASCII, unlike other blitters.
+* **NCBLIT_2x1**: Adds the half blocks (▄▀) to **NCBLIT_1x1**.
 * **NCBLIT_2x2**: Adds left and right half blocks (▌▐) and quadrants (▖▗▟▙) to **NCBLIT_2x1**.
+* **NCBLIT_3x2**: Adds sextants to **NCBLIT_1x1**.
 * **NCBLIT_4x1**: Adds ¼ and ¾ blocks (▂▆) to **NCBLIT_2x1**.
 * **NCBLIT_BRAILLE**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
 * **NCBLIT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCBLIT_4x1**.

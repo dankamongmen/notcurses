@@ -55,13 +55,13 @@ struct ncfadectx; // context for a palette fade operation
 // background set to the desired foreground.
 typedef enum {
   NCBLIT_DEFAULT, // let the ncvisual pick
-  NCBLIT_1x1,     // spaces, compatible with ASCII
-  NCBLIT_2x1,     // upper half + 1x1 (space)  ▀
-  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCBLIT_2x2,     // quadrants + 2x1           ▗▐ ▖▀▟▌▙█
-  NCBLIT_4x1,     // four vertical levels      █▆▄▂
-  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vertical levels     █▇▆▅▄▃▂▁
+  NCBLIT_1x1,     // space, compatible with ASCII
+  NCBLIT_2x1,     // halves + 1x1 (space)     ▄▀
+  NCBLIT_2x2,     // quadrants + 2x1          ▗▐ ▖▀▟▌▙█
+  NCBLIT_3x2,     // sextants (*NOT* 2x2)     🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻
+  NCBLIT_4x1,     // four vertical levels     █▆▄▂
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vertical levels    █▇▆▅▄▃▂▁
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncblitter_e;
 
