@@ -24,7 +24,7 @@ and videos to a terminal. Media will be scaled to the terminal's size.
 **-s scalemode**: Scaling mode, one of **none**, **scale**, or **stretch**.
 
 **-b blitter**: Blitter, one of **ascii**, **halfblocks**, **quadblitter**,
-or **braille**.
+**sexblitter**, or **braille**.
 
 **-m margins**: Define rendering margins (see below).
 
