@@ -2668,18 +2668,17 @@ struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
 // the return values remain the same as those of ncvisual_decode().
 int ncvisual_decode_loop(struct ncvisual* nc);
 
-// each has the empty cell in addition to the product of its dimensions. i.e.
-// NCBLIT_1x1 has two states: empty and full block. NCBLIT_1x1x4 has five
-// states: empty, the three shaded blocks, and the full block.
+// we never blit full blocks, but instead spaces (more efficient) with the
+// background set to the desired foreground.
 typedef enum {
   NCBLIT_DEFAULT, // let the ncvisual pick
-  NCBLIT_1x1,     // full block                █
-  NCBLIT_2x1,     // upper half + 1x1          ▀█
-  NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-  NCBLIT_2x2,     // quadrants + 2x1           ▗▐ ▖▀▟▌▙█
-  NCBLIT_4x1,     // four vertical levels      █▆▄▂
-  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vertical levels     █▇▆▅▄▃▂▁
+  NCBLIT_1x1,     // space, compatible with ASCII
+  NCBLIT_2x1,     // halves + 1x1 (space)     ▄▀
+  NCBLIT_2x2,     // quadrants + 2x1          ▗▐ ▖▀▟▌▙
+  NCBLIT_3x2,     // sextants (*NOT* 2x2)     🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻
+  NCBLIT_4x1,     // four vertical levels     █▆▄▂
+  NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+  NCBLIT_8x1,     // eight vertical levels    █▇▆▅▄▃▂▁
   NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
 } ncblitter_e;
 
