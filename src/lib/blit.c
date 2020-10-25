@@ -448,6 +448,15 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+// quadrant blitter. maps 2x2 to each cell. since we only have two colors at
+// our disposal (foreground and background), we lose some fidelity.
+static inline int
+sextant_blit(ncplane* nc, int placey, int placex, int linesize,
+             const void* data, int begy, int begx,
+             int leny, int lenx, bool bgr, bool blendcolors){
+  return 0;
+}
+
 // fold the r, g, and b components of the pixel into *r, *g, and *b, and
 // increment *foldcount
 static inline void
@@ -592,10 +601,10 @@ const struct blitset notcurses_blitters[] = {
      .blit = tria_blit_ascii,.name = "ascii",         .fill = false, },
    { .geom = NCBLIT_2x1,     .width = 1, .height = 2, .egcs = L" ▄█",
      .blit = tria_blit,      .name = "halfblock",     .fill = false, },
-   { .geom = NCBLIT_1x1x4,   .width = 1, .height = 4, .egcs = L" ▒░▓█",
-     .blit = tria_blit,      .name = "shadeblocks",   .fill = false, },
    { .geom = NCBLIT_2x2,     .width = 2, .height = 2, .egcs = L" ▗▐▖▄▟▌▙█",
      .blit = quadrant_blit,  .name = "quadblitter",   .fill = false, },
+   { .geom = NCBLIT_3x2,     .width = 2, .height = 3, .egcs = L" 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻█",
+     .blit = sextant_blit,   .name = "hexblitter",   .fill = false, },
    { .geom = NCBLIT_4x1,     .width = 1, .height = 4, .egcs = L" ▂▄▆█",
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
