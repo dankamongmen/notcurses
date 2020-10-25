@@ -448,13 +448,80 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
-// quadrant blitter. maps 2x2 to each cell. since we only have two colors at
+// sextant check for transparency. returns an EGC if we found transparent pixels
+// and have solved for colors (this EGC ought then be loaded into the cell).
+// returns NULL otherwise. transparency trumps everything else in terms of
+// priority -- if even one pixel is transparent, we will have a transparent
+// background, and lerp the rest together for foreground. we thus have a 32-way
+// conditional tree in which each EGC must show up exactly once.
+static inline const char*
+strans_check(cell* c, bool bgr, bool blendcolors,
+             const unsigned char* rgbbase_l1, const unsigned char* rgbbase_r1,
+             const unsigned char* rgbbase_l2, const unsigned char* rgbbase_r2,
+             const unsigned char* rgbbase_l3, const unsigned char* rgbbase_r3){
+  // FIXME
+  return NULL;
+}
+
+// sextant blitter. maps 3x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
 sextant_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
              int leny, int lenx, bool bgr, bool blendcolors){
-  return 0;
+  const int bpp = 32;
+  const int rpos = bgr ? 2 : 0;
+  const int bpos = bgr ? 0 : 2;
+  int dimy, dimx, x, y;
+  int total = 0; // number of cells written
+  ncplane_dim_yx(nc, &dimy, &dimx);
+//fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, placey, placex);
+  // FIXME not going to necessarily be safe on all architectures hrmmm
+  const unsigned char* dat = data;
+  int visy = begy;
+  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 3){
+    if(ncplane_cursor_move_yx(nc, y, placex)){
+      return -1;
+    }
+    int visx = begx;
+    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
+      const unsigned char* rgbbase_l1 = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_r1 = zeroes;
+      const unsigned char* rgbbase_l2 = zeroes;
+      const unsigned char* rgbbase_r2 = zeroes;
+      const unsigned char* rgbbase_l3 = zeroes;
+      const unsigned char* rgbbase_r3 = zeroes;
+      if(visx < begx + lenx - 1){
+        rgbbase_r1 = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
+        if(visy < begy + leny - 1){
+          rgbbase_r2 = dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT);
+          if(visy < begy + leny - 2){
+            rgbbase_r3 = dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT);
+          }
+        }
+      }
+      if(visy < begy + leny - 1){
+        rgbbase_l2 = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+        if(visy < begy + leny - 2){
+          rgbbase_l3 = dat + (linesize * (visy + 2)) + (visx  * bpp / CHAR_BIT);
+        }
+      }
+//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
+      cell* c = ncplane_cell_ref_yx(nc, y, x);
+      c->channels = 0;
+      c->stylemask = 0;
+      const char* egc = strans_check(c, bgr, blendcolors, rgbbase_l1, rgbbase_r1,
+                                     rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3);
+      if(egc == NULL){
+        // FIXME
+      }
+      if(*egc && pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
+        return -1;
+      }
+      ++total;
+    }
+  }
+  return total;
 }
 
 // fold the r, g, and b components of the pixel into *r, *g, and *b, and
