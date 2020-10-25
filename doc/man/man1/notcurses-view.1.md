@@ -26,7 +26,7 @@ fill the rendering area, and the **quadblitter** blitter is used for a
 **-s scalemode**: Scaling mode, one of **none**, **scale**, or **stretch**.
 
 **-b blitter**: Blitter, one of **ascii**, **halfblocks**, **quadblitter**,
-or **braille**.
+**sexblitter**, or **braille**.
 
 **-m margins**: Define rendering margins (see below).
 
