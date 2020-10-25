@@ -5,7 +5,7 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-10-10a
+  image: dankamongmen/unstable_builder:2020-10-25a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
@@ -16,7 +16,7 @@ steps:
     - make install
     - cd ../python
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
-    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo
+    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
     - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-direct-pydemo > /dev/null
 ---
 kind: pipeline
@@ -25,7 +25,7 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/focal:2020-10-10a
+  image: dankamongmen/groovy:2020-10-25a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
@@ -47,7 +47,7 @@ name: fedora-rawhide
 
 steps:
 - name: fedora-rawhide
-  image: dankamongmen/fedora33:2020-09-29a
+  image: dankamongmen/fedora33:2020-10-25a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
