@@ -76,14 +76,13 @@ ncdirect_init - minimal notcurses instances for styling text
 
 # DESCRIPTION
 
-**ncdirect_init** prepares the **FILE** provided as **fp** (which must
-be attached to a terminal) for colorizing and styling. On success, a pointer to
-a valid **struct ncdirect** is returned. **NULL** is returned on failure.
-Before the process exits, **ncdirect_stop** should be called to reset the
-terminal and free up resources. **ncdirect_init** places the terminal into
-"cbreak" (also known as "rare") mode, disabling line-buffering and echo of
-input. **ncdirect_stop** restores the terminal state as it was when the
-corresponding **ncdirect_init** call was made.
+**ncdirect_init** prepares the **FILE** provided as **fp** for colorizing and
+styling. On success, a pointer to a valid **struct ncdirect** is returned.
+**NULL** is returned on failure. Before the process exits, **ncdirect_stop**
+should be called to reset the terminal and free up resources. **ncdirect_init**
+places the terminal into "cbreak" (also known as "rare") mode, disabling
+line-buffering and echo of input. **ncdirect_stop** restores the terminal state
+as it was when the corresponding **ncdirect_init** call was made.
 
 The following flags are defined:
 
