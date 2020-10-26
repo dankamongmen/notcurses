@@ -330,5 +330,128 @@ TEST_CASE("Visual") {
     }
   }
 
+  // quadblitter with all 4 colors equal ought generate space
+  SUBCASE("Quadblitter4Same") {
+    const uint32_t pixels[4] = { 0xff605040, 0xff605040, 0xff605040, 0xff605040 };
+    auto ncv = ncvisual_from_rgba(pixels, 2, 2 * sizeof(*pixels), 2);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0,
+      .x = 0,
+      .begy = 0,
+      .begx = 0,
+      .leny = 0,
+      .lenx = 0,
+      .blitter = NCBLIT_2x2,
+      .flags = 0,
+    };
+    auto ncvp = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != ncvp);
+    int dimy, dimx;
+    ncplane_dim_yx(ncvp, &dimy, &dimx);
+    CHECK(1 == dimy);
+    CHECK(1 == dimx);
+    uint16_t stylemask;
+    uint64_t channels;
+    auto egc = ncplane_at_yx(ncvp, 0, 0, &stylemask, &channels);
+    CHECK(0 == strcmp(" ", egc));
+    CHECK(0 == stylemask);
+    CHECK(0x405060 == channels_fg_rgb(channels));
+    CHECK(0x405060 == channels_bg_rgb(channels));
+    free(egc);
+    ncvisual_destroy(ncv);
+  }
+
+  // quadblitter with three pixels equal ought generate three-quarter block
+  SUBCASE("Quadblitter3Same") {
+    const uint32_t pixels[4][4] = {
+      { 0xffcccccc, 0xff605040, 0xff605040, 0xff605040 },
+      { 0xff605040, 0xffcccccc, 0xff605040, 0xff605040 },
+      { 0xff605040, 0xff605040, 0xffcccccc, 0xff605040 },
+      { 0xff605040, 0xff605040, 0xff605040, 0xffcccccc } };
+    const char* egcs[4] = { "▟", "▙", "▜", "▛" };
+    for(int i = 0 ; i < 4 ; ++i){
+      auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
+      REQUIRE(nullptr != ncv);
+      struct ncvisual_options vopts = {
+        .n = nullptr,
+        .scaling = NCSCALE_NONE,
+        .y = 0,
+        .x = 0,
+        .begy = 0,
+        .begx = 0,
+        .leny = 0,
+        .lenx = 0,
+        .blitter = NCBLIT_2x2,
+        .flags = 0,
+      };
+      auto ncvp = ncvisual_render(nc_, ncv, &vopts);
+      REQUIRE(nullptr != ncvp);
+      int dimy, dimx;
+      ncplane_dim_yx(ncvp, &dimy, &dimx);
+      CHECK(1 == dimy);
+      CHECK(1 == dimx);
+      uint16_t stylemask;
+      uint64_t channels;
+      auto egc = ncplane_at_yx(ncvp, 0, 0, &stylemask, &channels);
+      CHECK(0 == strcmp(egcs[i], egc));
+      CHECK(0 == stylemask);
+      CHECK(0x405060 == channels_fg_rgb(channels));
+      CHECK(0xcccccc == channels_bg_rgb(channels));
+      free(egc);
+      ncvisual_destroy(ncv);
+    }
+  }
+
+  // quadblitter with two sets of two equal pixels
+  SUBCASE("Quadblitter2Pairs") {
+    const uint32_t pixels[6][4] = {
+      { 0xffcccccc, 0xffcccccc, 0xff605040, 0xff605040 },
+      { 0xffcccccc, 0xff605040, 0xffcccccc, 0xff605040 },
+      { 0xffcccccc, 0xff605040, 0xff605040, 0xffcccccc },
+      { 0xff605040, 0xffcccccc, 0xffcccccc, 0xff605040 },
+      { 0xff605040, 0xffcccccc, 0xff605040, 0xffcccccc },
+      { 0xff605040, 0xff605040, 0xffcccccc, 0xffcccccc } };
+    const char* egcs[6] = { "▀", "▌", "▚", "▚", "▌", "▀" };
+    for(size_t i = 0 ; i < sizeof(egcs) / sizeof(*egcs) ; ++i){
+      auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
+      REQUIRE(nullptr != ncv);
+      struct ncvisual_options vopts = {
+        .n = nullptr,
+        .scaling = NCSCALE_NONE,
+        .y = 0,
+        .x = 0,
+        .begy = 0,
+        .begx = 0,
+        .leny = 0,
+        .lenx = 0,
+        .blitter = NCBLIT_2x2,
+        .flags = 0,
+      };
+      auto ncvp = ncvisual_render(nc_, ncv, &vopts);
+      REQUIRE(nullptr != ncvp);
+      int dimy, dimx;
+      ncplane_dim_yx(ncvp, &dimy, &dimx);
+      CHECK(1 == dimy);
+      CHECK(1 == dimx);
+      uint16_t stylemask;
+      uint64_t channels;
+      auto egc = ncplane_at_yx(ncvp, 0, 0, &stylemask, &channels);
+      CHECK(0 == strcmp(egcs[i], egc));
+      CHECK(0 == stylemask);
+      if(i >= 3){
+        CHECK(0x405060 == channels_fg_rgb(channels));
+        CHECK(0xcccccc == channels_bg_rgb(channels));
+      }else{
+        CHECK(0x405060 == channels_bg_rgb(channels));
+        CHECK(0xcccccc == channels_fg_rgb(channels));
+      }
+      free(egc);
+      ncvisual_destroy(ncv);
+    }
+  }
+
   CHECK(!notcurses_stop(nc_));
 }
