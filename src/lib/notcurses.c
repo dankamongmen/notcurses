@@ -894,8 +894,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     return NULL;
   }
   if(opts->flags >= (NCOPTION_NO_FONT_CHANGES << 1u)){
-    fprintf(stderr, "Provided an illegal Notcurses option, refusing to start\n");
-    return NULL;
+    fprintf(stderr, "Warning: unknown Notcurses options %016lx\n", opts->flags);
   }
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
