@@ -30,12 +30,9 @@ C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses
 [other TUI libraries](OTHERS.md).
 
 ![Linux](https://img.shields.io/badge/-Linux-grey?logo=linux)
-![FreeBSD](https://img.shields.io/badge/-FreeBSD-red?logo=freebsd)
+![FreeBSD](https://img.shields.io/badge/-FreeBSD-grey?logo=freebsd)
 [![Sponsor](https://img.shields.io/badge/-Sponsor-red?logo=github)](https://github.com/sponsors/dankamongmen)
-
-<a href="https://drone.dsscaw.com:4443/dankamongmen/notcurses">
-<img src="https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg" alt="Build status">
-</a>
+[![Build](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 
 <a href="https://repology.org/project/notcurses/versions">
 <img src="https://repology.org/badge/vertical-allrepos/notcurses.svg" alt="Packaging status" align="right">
