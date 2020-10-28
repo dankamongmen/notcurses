@@ -642,6 +642,11 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
     get_sex_colors(&fg, &bg, bgr, mindiffbits, r, g, b, div, rgbas);
     channels_set_fchannel(channels, fg);
     channels_set_bchannel(channels, bg);
+    if(mindiffbits == 0){
+      mindiffbits = 63;
+      channels_set_fchannel(channels, bg);
+      channels_set_bchannel(channels, fg);
+    }
 //fprintf(stderr, "solved channels: %016lx\n", *channels);
     return sex[mindiffbits];
   }
