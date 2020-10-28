@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include "internal.h"
 
+static const uint32_t zeroes32;
 static const unsigned char zeroes[] = "\x00\x00\x00\x00";
 
 // linearly interpolate a 24-bit RGB value along each 8-bit channel
@@ -454,18 +455,18 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 // returns true iff the pixel is transparent. otherwise, the r/g/b values are
 // accumulated into rsum/gsum/bsum, and npopcnt is increased.
 static inline bool
-strans_fold(unsigned* bitstring, unsigned bit, const uint8_t* rgba, bool bgr,
+strans_fold(unsigned* bitstring, unsigned bit, const uint32_t* rgba, bool bgr,
             unsigned* rsum, unsigned* gsum, unsigned* bsum, unsigned* npopcnt){
-  if(ffmpeg_trans_p(bgr, rgba[3])){
+  if(ffmpeg_trans_p(bgr, ((const uint8_t *)rgba)[3])){
     *bitstring |= bit;
     return true;
   }
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
   ++*npopcnt;
-  *rsum += rgba[rpos];
-  *gsum += rgba[1];
-  *bsum += rgba[bpos];
+  *rsum += ((const uint8_t *)rgba)[rpos];
+  *gsum += ((const uint8_t *)rgba)[1];
+  *bsum += ((const uint8_t *)rgba)[bpos];
 //fprintf(stderr, "adding %u %u %u\n", rgba[rpos], rgba[1], rgba[bpos]);
   return false;
 }
@@ -474,10 +475,12 @@ strans_fold(unsigned* bitstring, unsigned bit, const uint8_t* rgba, bool bgr,
 // component differences into *diff. otherwise, set *diff to UINT_MAX. returns
 // true if neither pixel was transparent, and their components were equal.
 static inline bool
-collect_diffs(unsigned* diff, unsigned bitstring, const uint8_t* rgba1,
-              unsigned bit1, const uint8_t* rgba2, unsigned bit2){
+collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t* rgba1,
+              unsigned bit1, const uint32_t* rgba2, unsigned bit2){
   if((bitstring & (bit1 | bit2)) == 0){
-    *diff = rgb_diff(rgba1[0], rgba1[1], rgba1[2], rgba2[0], rgba2[1], rgba2[2]);
+    *diff = rgb_diff(((const uint8_t*)rgba1)[0], ((const uint8_t*)rgba1)[1],
+                     ((const uint8_t*)rgba1)[2], ((const uint8_t*)rgba2)[0],
+                     ((const uint8_t*)rgba2)[1], ((const uint8_t*)rgba2)[2]);
     if(!*diff){
       return true;
     }
@@ -536,19 +539,16 @@ static const char* sex[64] = {
 // conditional tree in which each EGC must show up exactly once. this also
 // handles the opaque case where all six pixels are the same, emitting a space
 // with both foreground and background set to that color.
-// FIXME accept the RGBAs as uint32_t rgbas[6] so we can do parameterized access
+// there are 15 sums of absolute differences between pixels:
+//  l1 - r1, l1 - l2, l1 - r2, l1 - l3, l1 - r3 (0, 1, 2, 3, 4)
+//  r1 - l2, r1 - r2, r1 - l3, r1 - r3 (5, 6, 7, 8)
+//  l2 - r2, l2 - l3, l2 - r3 (9, 10, 11)
+//  r2 - l3, r2 - r3 (12, 13)
+//  l3 - r3 (14)
+// 6 bits for 6 pixels: l1 r1 l2 r2 l3 r3, same as rgbas[]
 static inline const char*
 strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
-             const uint8_t* rgbbase_l1, const uint8_t* rgbbase_r1,
-             const uint8_t* rgbbase_l2, const uint8_t* rgbbase_r2,
-             const uint8_t* rgbbase_l3, const uint8_t* rgbbase_r3){
-  // there are 15 sums of absolute differences between pixels:
-  //  l1 - r1, l1 - l2, l1 - r2, l1 - l3, l1 - r3 (0, 1, 2, 3, 4)
-  //  r1 - l2, r1 - r2, r1 - l3, r1 - r3 (5, 6, 7, 8)
-  //  l2 - r2, l2 - l3, l2 - r3 (9, 10, 11)
-  //  r2 - l3, r2 - r3 (12, 13)
-  //  l3 - r3 (14)
-  // 6 bits for 6 pixels: l1 r1 l2 r2 l3 r3
+             const uint32_t* rgbas[6]){
   unsigned transtring = 0; // bits which are transparent
   unsigned mindiffbits = 0; // bits which are involved in the minimum diff
   // unsigned min2diffbits = 0; FIXME need to track two equivalency sets (but
@@ -558,38 +558,38 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
   unsigned r, g, b;
   r = g = b = 0;
   bool allzerodiffs = true;
-  strans_fold(&transtring,  1u, rgbbase_l1, bgr, &r, &g, &b, &div);
-  strans_fold(&transtring,  2u, rgbbase_r1, bgr, &r, &g, &b, &div);
+  strans_fold(&transtring,  1u, rgbas[0], bgr, &r, &g, &b, &div);
+  strans_fold(&transtring,  2u, rgbas[1], bgr, &r, &g, &b, &div);
   // if either pixel is transparent, the difference is UINT_MAX
-  allzerodiffs &= collect_diffs(&diffs[0], transtring, rgbbase_r1, 2u, rgbbase_l1, 1u);
+  allzerodiffs &= collect_diffs(&diffs[0], transtring, rgbas[1], 2u, rgbas[0], 1u);
   unsigned mindiffidx = 0;
-  strans_fold(&transtring,  4u, rgbbase_l2, bgr, &r, &g, &b, &div);
-  allzerodiffs &= collect_diffs(&diffs[1], transtring, rgbbase_l2, 4u, rgbbase_l1, 1u);
+  strans_fold(&transtring,  4u, rgbas[2], bgr, &r, &g, &b, &div);
+  allzerodiffs &= collect_diffs(&diffs[1], transtring, rgbas[2], 4u, rgbas[0], 1u);
   collect_mindiff(&mindiffidx, diffs, 1, &mindiffbits);
-  allzerodiffs &= collect_diffs(&diffs[5], transtring, rgbbase_l2, 4u, rgbbase_r1, 2u);
+  allzerodiffs &= collect_diffs(&diffs[5], transtring, rgbas[2], 4u, rgbas[1], 2u);
   collect_mindiff(&mindiffidx, diffs, 5, &mindiffbits);
-  strans_fold(&transtring,  8u, rgbbase_r2, bgr, &r, &g, &b, &div);
-  allzerodiffs &= collect_diffs(&diffs[2], transtring, rgbbase_r2, 8u, rgbbase_l1, 1u);
-  allzerodiffs &= collect_diffs(&diffs[6], transtring, rgbbase_r2, 8u, rgbbase_r1, 2u);
-  allzerodiffs &= collect_diffs(&diffs[9], transtring, rgbbase_r2, 8u, rgbbase_l2, 4u);
+  strans_fold(&transtring,  8u, rgbas[3], bgr, &r, &g, &b, &div);
+  allzerodiffs &= collect_diffs(&diffs[2], transtring, rgbas[3], 8u, rgbas[0], 1u);
+  allzerodiffs &= collect_diffs(&diffs[6], transtring, rgbas[3], 8u, rgbas[1], 2u);
+  allzerodiffs &= collect_diffs(&diffs[9], transtring, rgbas[3], 8u, rgbas[2], 4u);
   collect_mindiff(&mindiffidx, diffs, 2, &mindiffbits);
   collect_mindiff(&mindiffidx, diffs, 6, &mindiffbits);
   collect_mindiff(&mindiffidx, diffs, 9, &mindiffbits);
-  strans_fold(&transtring, 16u, rgbbase_l3, bgr, &r, &g, &b, &div);
-  allzerodiffs &= collect_diffs(&diffs[3], transtring, rgbbase_l3,  16u, rgbbase_l1, 1u);
-  allzerodiffs &= collect_diffs(&diffs[7], transtring, rgbbase_l3,  16u, rgbbase_r1, 2u);
-  allzerodiffs &= collect_diffs(&diffs[10], transtring, rgbbase_l3,  16u, rgbbase_l2, 4u);
-  allzerodiffs &= collect_diffs(&diffs[12], transtring, rgbbase_l3, 16u, rgbbase_r2, 8u);
+  strans_fold(&transtring, 16u, rgbas[4], bgr, &r, &g, &b, &div);
+  allzerodiffs &= collect_diffs(&diffs[3], transtring, rgbas[4],  16u, rgbas[0], 1u);
+  allzerodiffs &= collect_diffs(&diffs[7], transtring, rgbas[4],  16u, rgbas[1], 2u);
+  allzerodiffs &= collect_diffs(&diffs[10], transtring, rgbas[4],  16u, rgbas[2], 4u);
+  allzerodiffs &= collect_diffs(&diffs[12], transtring, rgbas[4], 16u, rgbas[3], 8u);
   collect_mindiff(&mindiffidx, diffs, 3, &mindiffbits);
   collect_mindiff(&mindiffidx, diffs, 7, &mindiffbits);
   collect_mindiff(&mindiffidx, diffs, 10, &mindiffbits);
   collect_mindiff(&mindiffidx, diffs, 12, &mindiffbits);
-  strans_fold(&transtring, 32u, rgbbase_r3, bgr, &r, &g, &b, &div);
-  allzerodiffs &= collect_diffs(&diffs[4], transtring, rgbbase_r3,  32u, rgbbase_l1, 1u);
-  allzerodiffs &= collect_diffs(&diffs[8], transtring, rgbbase_r3,  32u, rgbbase_r1, 2u);
-  allzerodiffs &= collect_diffs(&diffs[11], transtring, rgbbase_r3, 32u, rgbbase_l2, 4u);
-  allzerodiffs &= collect_diffs(&diffs[13], transtring, rgbbase_r3, 32u, rgbbase_r2, 8u);
-  allzerodiffs &= collect_diffs(&diffs[14], transtring, rgbbase_r3, 32u, rgbbase_l3, 16u);
+  strans_fold(&transtring, 32u, rgbas[5], bgr, &r, &g, &b, &div);
+  allzerodiffs &= collect_diffs(&diffs[4], transtring, rgbas[5],  32u, rgbas[0], 1u);
+  allzerodiffs &= collect_diffs(&diffs[8], transtring, rgbas[5],  32u, rgbas[1], 2u);
+  allzerodiffs &= collect_diffs(&diffs[11], transtring, rgbas[5], 32u, rgbas[2], 4u);
+  allzerodiffs &= collect_diffs(&diffs[13], transtring, rgbas[5], 32u, rgbas[3], 8u);
+  allzerodiffs &= collect_diffs(&diffs[14], transtring, rgbas[5], 32u, rgbas[4], 16u);
   collect_mindiff(&mindiffidx, diffs, 4, &mindiffbits);
   collect_mindiff(&mindiffidx, diffs, 8, &mindiffbits);
   collect_mindiff(&mindiffidx, diffs, 11, &mindiffbits);
@@ -645,25 +645,25 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
     }
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
-      const unsigned char* rgbbase_l1 = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
-      const unsigned char* rgbbase_r1 = zeroes;
-      const unsigned char* rgbbase_l2 = zeroes;
-      const unsigned char* rgbbase_r2 = zeroes;
-      const unsigned char* rgbbase_l3 = zeroes;
-      const unsigned char* rgbbase_r3 = zeroes;
+      const uint32_t* rgbbase_l1 = (const uint32_t*)(dat + (linesize * visy) + (visx * bpp / CHAR_BIT));
+      const uint32_t* rgbbase_r1 = &zeroes32;
+      const uint32_t* rgbbase_l2 = &zeroes32;
+      const uint32_t* rgbbase_r2 = &zeroes32;
+      const uint32_t* rgbbase_l3 = &zeroes32;
+      const uint32_t* rgbbase_r3 = &zeroes32;
       if(visx < begx + lenx - 1){
-        rgbbase_r1 = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
+        rgbbase_r1 = (const uint32_t*)(dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT));
         if(visy < begy + leny - 1){
-          rgbbase_r2 = dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT);
+          rgbbase_r2 = (const uint32_t*)(dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT));
           if(visy < begy + leny - 2){
-            rgbbase_r3 = dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT);
+            rgbbase_r3 = (const uint32_t*)(dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT));
           }
         }
       }
       if(visy < begy + leny - 1){
-        rgbbase_l2 = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+        rgbbase_l2 = (const uint32_t*)(dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT));
         if(visy < begy + leny - 2){
-          rgbbase_l3 = dat + (linesize * (visy + 2)) + (visx  * bpp / CHAR_BIT);
+          rgbbase_l3 = (const uint32_t*)(dat + (linesize * (visy + 2)) + (visx  * bpp / CHAR_BIT));
         }
       }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
@@ -671,9 +671,11 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       c->channels = 0;
       c->stylemask = 0;
       unsigned diffs[15];
-      const char* egc = strans_check(&c->channels, bgr, blendcolors, diffs,
-                                     rgbbase_l1, rgbbase_r1, rgbbase_l2,
-                                     rgbbase_r2, rgbbase_l3, rgbbase_r3);
+      // FIXME just lead with these directly
+      const uint32_t* rgbas[6] = {
+        rgbbase_l1, rgbbase_r1, rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3,
+      };
+      const char* egc = strans_check(&c->channels, bgr, blendcolors, diffs, rgbas);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
