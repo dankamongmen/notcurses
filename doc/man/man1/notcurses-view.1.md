@@ -12,8 +12,10 @@ notcurses-view - Render images and video to a terminal
 
 # DESCRIPTION
 
-**notcurses-view** uses a multimedian-enabled notcurses to render images
-and videos to a terminal. Media will be scaled to the terminal's size.
+**notcurses-view** uses a multimedia-enabled notcurses to render images
+and videos to a terminal. By default, **stretch**-type scaling is used to
+fill the rendering area, and the **quadblitter** blitter is used for a
+2x2→1 mapping from pixels to cells.
 
 # OPTIONS
 
@@ -54,7 +56,7 @@ corresponds to '0'. The various blitters are described in
 **notcurses_visual**.
 
 A video can be paused with space. Press space (or any other valid control)
-to unpause.
+to resume.
 
 # NOTES
 
