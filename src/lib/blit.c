@@ -539,7 +539,7 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, bool bgr, unsigned mindiffbits,
   // FIXME fg lerps mindiffbits
   uint32_t fgcs[2];
   size_t i = 0;
-//fprintf(stderr, "start r: %u g: %u b: %u div: %u midbs: %02x\n", r, g, b, div, mindiffbits);
+//fprintf(stderr, "start r: %u g: %u b: %u div: %u midbs: 0x%02x\n", r, g, b, div, mindiffbits);
   for(unsigned shift = 0 ; shift < 6 ; ++shift){
     if(mindiffbits & (1u << shift)){
       // FIXME verify this
@@ -555,7 +555,7 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, bool bgr, unsigned mindiffbits,
     }
   }
   *fg = lerp(fgcs[0], fgcs[1]);
-//fprintf(stderr, "r: %u g: %u b: %u div: %u\n", r, g, b, div);
+//fprintf(stderr, "fg: 0x%08x r: %u g: %u b: %u div: %u\n", *fg, r, g, b, div);
   *bg = ((r / div) << 16) + ((g / div) << 8) + (b / div);
 }
 
@@ -640,8 +640,9 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
     }
     uint32_t fg, bg;
     get_sex_colors(&fg, &bg, bgr, mindiffbits, r, g, b, div, rgbas);
-    channels_set_fg_rgb(channels, fg);
-    channels_set_bg_rgb(channels, bg);
+    channels_set_fchannel(channels, fg);
+    channels_set_bchannel(channels, bg);
+//fprintf(stderr, "solved channels: %016lx\n", *channels);
     return sex[mindiffbits];
   }
   // there were some transparent pixels. since they get priority, the foreground
@@ -711,7 +712,9 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       const uint32_t* rgbas[6] = {
         rgbbase_l1, rgbbase_r1, rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3,
       };
+//fprintf(stderr, "strans check: %d/%d\n", y, x);
       const char* egc = strans_check(&c->channels, bgr, blendcolors, diffs, rgbas);
+//fprintf(stderr, "strans EGC: %s channls: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
