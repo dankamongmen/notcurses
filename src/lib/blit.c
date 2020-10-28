@@ -686,10 +686,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
       // more complicated to do optimally than quadrants, for sure. ideally,
       // we only get one color in an area.
       cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-      if(ffmpeg_trans_p(bgr, rgbbase_l0[3]) && ffmpeg_trans_p(bgr, rgbbase_r0[3])
-          && ffmpeg_trans_p(bgr, rgbbase_l1[3]) && ffmpeg_trans_p(bgr, rgbbase_r1[3])
-          && ffmpeg_trans_p(bgr, rgbbase_l2[3]) && ffmpeg_trans_p(bgr, rgbbase_r2[3])
-          && ffmpeg_trans_p(bgr, rgbbase_l3[3]) && ffmpeg_trans_p(bgr, rgbbase_r3[3])){
+      if(!egcidx){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
           // FIXME else look for pairs of transparency!
       }else{
