@@ -83,8 +83,8 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
         if(pool_load_direct(&nc->pool, c, " ", 1, 1) <= 0){
           return -1;
         }
+        ++total;
       }
-      ++total;
     }
   }
   return total;
@@ -137,11 +137,13 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
             return -1;
           }
           cell_set_fg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
+          ++total;
         }else{ // up has the color
           if(cell_load(nc, c, "\u2580") <= 0){ // upper half block
             return -1;
           }
           cell_set_fg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+          ++total;
         }
       }else{
         if(memcmp(rgbbase_up, rgbbase_down, 3) == 0){
@@ -157,8 +159,8 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
             return -1;
           }
         }
+        ++total;
       }
-      ++total;
     }
   }
   return total;
@@ -438,24 +440,16 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
       }
-      if(*egc && pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
-        return -1;
+      if(*egc){
+        if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
+          return -1;
+        }
+        ++total;
       }
-      ++total;
     }
   }
   return total;
 }
-
-static const char* sex[64] = {
- "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
- "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
- "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
- "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
- "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
- "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
- "🬁", "🬀", " ",
-};
 
 // returns true iff the pixel is transparent. otherwise, the r/g/b values are
 // accumulated into rsum/gsum/bsum, and npopcnt is increased.
@@ -501,6 +495,16 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15], unsigned candida
   }
 }
 
+static const char* sex[64] = {
+ "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
+ "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
+ "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
+ "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
+ "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
+ "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
+ "🬁", "🬀", " ",
+};
+
 // sextant check for transparency. returns an EGC if we found transparent pixels
 // and have solved for colors (this EGC ought then be loaded into the cell).
 // returns NULL otherwise. transparency trumps everything else in terms of
@@ -527,6 +531,8 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
   r = g = b = 0;
   bool allzerodiffs = true;
   unsigned mindiffidx = 0;
+  // FIXME need to track two equivalency sets (but never three), since the
+  // second equivalency set we find might have three members and thus become fg.
   strans_fold(&bitstring,  1u, rgbbase_l1, bgr, &r, &g, &b, &div);
   strans_fold(&bitstring,  2u, rgbbase_r1, bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[0], bitstring, rgbbase_r1, 2u, rgbbase_l1, 1u);
@@ -562,12 +568,14 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
   collect_mindiff(&mindiffidx, diffs, 11);
   collect_mindiff(&mindiffidx, diffs, 13);
   collect_mindiff(&mindiffidx, diffs, 14);
-  if(!bitstring){ // no transparent pixels, use main solver unless all are same
-    if(allzerodiffs){
+  if(!bitstring){ // no transparency. use complex solver unless all are equal.
+    if(allzerodiffs){ // every diff was 0, so all must be the same rgb value.
       channels_set_bg_rgb8(channels, r / div, g / div, b / div);
       return " ";
     }
-    return NULL;
+    //const char* egc = sextant_solver[mindiffidx];
+    channels_set_fg_rgb8(channels, r / div, g / div, b / div);
+    return "*";
   }
   // there were some transparent pixels. since they get priority, the foreground
   // is just a general lerp across non-transparent pixels.
@@ -600,7 +608,6 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
 //fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, placey, placex);
-  // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = begy;
   for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 3){
@@ -638,15 +645,12 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       const char* egc = strans_check(&c->channels, bgr, blendcolors, diffs,
                                      rgbbase_l1, rgbbase_r1, rgbbase_l2,
                                      rgbbase_r2, rgbbase_l3, rgbbase_r3);
-      if(egc == NULL){
-        // no transparent pixels. solve for EGC + colors using the 15 absolute
-        // rgba differences in |diffs|
-        egc = "*"; // FIXME
+      if(*egc){
+        if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
+          return -1;
+        }
+        ++total;
       }
-      if(*egc && pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
-        return -1;
-      }
-      ++total;
     }
   }
   return total;

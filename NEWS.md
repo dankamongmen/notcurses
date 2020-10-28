@@ -1,6 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.0.3 (not yet released)
+  * Add `NCBLIT_3x2` aka the SEXBLITTER, making use of Unicode 13's sextant
+    glyphs. `notcurses_lex_blitter()` now recognizes `sexblitter`.
+  * Blitting functions no longer count transparent cells towards the total
+    returned number of cells written, but since these are not directly
+    callable by the user, this ought not lead to any user-visible changes.
+
 * 2.0.2 (2020-10-25)
   * Add `ncvisual_decode_loop()`, which returns to the first frame upon
     reaching the end of a file.
