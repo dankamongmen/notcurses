@@ -169,7 +169,7 @@ usage(const char* exe, int status){
   int printed = 0;
   for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
     if(demos[i].name){
-      if(printed % 6 == 0){
+      if(printed % 5 == 0){
         fprintf(out, " ");
       }
       // U+24D0: CIRCLED LATIN SMALL LETTER A
@@ -177,12 +177,12 @@ usage(const char* exe, int status){
       fprintf(out, "%lc ", *demos[i].name - 'a' + 0x24d0);
       if(n) ncdirect_fg_rgb8(n, 0xff, 0xff, 0xff);
       fprintf(out, "%-*.*s", 8, 8, demos[i].name + 1);
-      if(++printed % 6 == 0){
+      if(++printed % 5 == 0){
         fprintf(out, "\n");
       }
     }
   }
-  if(printed % 6){
+  if(printed % 5){
     fprintf(out, "\n");
   }
   ncdirect_stop(n);
