@@ -32,6 +32,7 @@ The demonstrations include (see NOTES below):
 * (h)ighcon—high contrast text atop various colors
 * (i)ntro—a setting of tone
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
+* (k)eller—the miracle of sight, and painting with Braille
 * (l)uigi—a dashing Apennine plumber in a world of fire
 * (m)ojibake—a selection of market-price emoji
 * (n)ormal—a normal map of a friend, with effects
@@ -74,7 +75,7 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 **-V**: Print the program name and version, and exit with success.
 
 demospec: Select which demos to run, and what order to run them in. The
-default is **ixezcydthnbgmarwuvlsfjqo**. See above for a list of demos.
+default is **ixezcydthnbkgmarwuvlsfjqo**. See above for a list of demos.
 
 Default margins are all 0, and thus the full screen will be rendered. Using
 **-m**, margins can be supplied. Provide a single number to set all four margins
@@ -91,17 +92,17 @@ Proper display requires:
 
 The Debian version of **notcurses-demo** leaves out certain multimedia
 considered non-free under the Debian Free Software Guidelines. As a result, the
-**chunli**, **eagle**, **jungle**, **luigi**, and **view** demos are
-unavailable through the Debian package. This applies to any distro which uses
-the DFSG source tarball, including Ubuntu and Fedora.
+**chunli**, **eagle**, **jungle**, **keller**, **luigi**, and **view** demos
+are unavailable through the Debian package. This applies to any distro which
+uses the DFSG source tarball, including Ubuntu and Fedora.
 
 If notcurses is built without multimedia support, the **chunli**, **eagle**,
-**outro**, **view**, **xray**, and **yield** demos will be partially or wholly
-unavailable. If notcurses is built without libqrcodegen, the **qrcode** demo
-will be unavailable.
+**keller**, **outro**, **view**, **xray**, and **yield** demos will be
+partially or wholly unavailable. If notcurses is built without libqrcodegen,
+the **qrcode** demo will be unavailable.
 
 If **notcurses-demo** is run in a terminal lacking the **can_change** terminfo
-capability, **jungle** will be skipped.
+capability, the **jungle** demo will be skipped.
 
 The following keypresses are recognized (and are also available from the menu):
 
