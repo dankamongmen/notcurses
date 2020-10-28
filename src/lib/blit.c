@@ -490,35 +490,73 @@ collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t* rgba1,
   return false;
 }
 
-// if the candidate diff is less than the minimum diff, update mindiffidx.
-// if the candidate diff is equal to the minimum diff, add bits to
-// *mindiffbits. FIXME need compare actual values for equality, not just
-// diffs, on equal diff. if diffs are equal, but not values, need to track 2
-// (since we can find 3 with diff of D0, val of V1 after finding 2 with diff
-// of D0, val of V0).
+// if the candidate diff is less than the minimum diff, update |mindiffidx|,
+// and reset |*mindiffbits|. if the candidate diff is equal to the minimum
+// diff, add bits to |*mindiffbits|.
 static inline void
 collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
-                unsigned candidate, unsigned *mindiffbits){
+                unsigned candidate, unsigned *mindiffbits,
+                const uint32_t* rgbas[6]){
   static unsigned mindiffkeys[15] = {
     0x3, 0x5, 0x9, 0x11, 0x21,
     0x6, 0xa, 0x12, 0x22, 0xc,
     0x14, 0x24, 0x18, 0x28, 0x30,
   };
   if(diffs[candidate] <= diffs[*mindiffidx]){
-    *mindiffbits |= mindiffkeys[candidate];
     if(diffs[candidate] < diffs[*mindiffidx]){
       *mindiffidx = candidate;
+      *mindiffbits = mindiffkeys[candidate];
+    }else{
+      uint32_t lowestkey;
+      for(size_t i = 0 ; i < 6 ; ++i){
+        if(mindiffkeys[candidate] & (0x1 << i)){
+          lowestkey = *rgbas[i];
+          break;
+        }
+      }
+      uint32_t lowestcur;
+      for(size_t i = 0 ; i < 6 ; ++i){
+        if((i != lowestkey) && (*mindiffbits & (0x1 << i))){
+          lowestcur = *rgbas[i];
+          break;
+        }
+      }
+      if(memcmp(&lowestcur, &lowestkey, 3) == 0){
+        *mindiffbits |= mindiffkeys[candidate];
+      }
+      // FIXME if diff was equal, but values are different, need to track 2
+      // (since we can find 3 with diff of D0, val of V1 after finding 2 with
+      // diff of D0, val of V0).
     }
   }
 }
 
 // pick the foreground color based off lerping mindiffbits, 
 static void
-get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
-               unsigned r, unsigned g, unsigned b, unsigned div){
-  // FIXME need ingest actual rgbas to drop from sums
-  *fg = ((r / div) << 16) + ((g / div) << 8) + (b / div);
-  *bg = *fg;
+get_sex_colors(uint32_t* fg, uint32_t* bg, bool bgr, unsigned mindiffbits,
+               unsigned r, unsigned g, unsigned b, unsigned div,
+               const uint32_t* rgbas[6]){
+  // FIXME fg lerps mindiffbits
+  uint32_t fgcs[2];
+  size_t i = 0;
+//fprintf(stderr, "start r: %u g: %u b: %u div: %u midbs: %02x\n", r, g, b, div, mindiffbits);
+  for(unsigned shift = 0 ; shift < 6 ; ++shift){
+    if(mindiffbits & (1u << shift)){
+      // FIXME verify this
+      if(i < sizeof(fgcs) / sizeof(*fgcs)){
+        fgcs[i++] = *rgbas[shift];
+      }
+      const int rpos = bgr ? 2 : 0;
+      const int bpos = bgr ? 0 : 2;
+      r -= ((const uint8_t*)rgbas[shift])[rpos];
+      g -= ((const uint8_t*)rgbas[shift])[1];
+      b -= ((const uint8_t*)rgbas[shift])[bpos];
+      --div;
+    }
+  }
+  *fg = lerp(fgcs[0], fgcs[1]);
+//fprintf(stderr, "r: %u g: %u b: %u div: %u\n", r, g, b, div);
+  *bg = ((r / div) << 16) + ((g / div) << 8) + (b / div);
 }
 
 static const char* sex[64] = {
@@ -565,43 +603,43 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
   unsigned mindiffidx = 0;
   strans_fold(&transtring,  4u, rgbas[2], bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[1], transtring, rgbas[2], 4u, rgbas[0], 1u);
-  collect_mindiff(&mindiffidx, diffs, 1, &mindiffbits);
+  collect_mindiff(&mindiffidx, diffs, 1, &mindiffbits, rgbas);
   allzerodiffs &= collect_diffs(&diffs[5], transtring, rgbas[2], 4u, rgbas[1], 2u);
-  collect_mindiff(&mindiffidx, diffs, 5, &mindiffbits);
+  collect_mindiff(&mindiffidx, diffs, 5, &mindiffbits, rgbas);
   strans_fold(&transtring,  8u, rgbas[3], bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[2], transtring, rgbas[3], 8u, rgbas[0], 1u);
   allzerodiffs &= collect_diffs(&diffs[6], transtring, rgbas[3], 8u, rgbas[1], 2u);
   allzerodiffs &= collect_diffs(&diffs[9], transtring, rgbas[3], 8u, rgbas[2], 4u);
-  collect_mindiff(&mindiffidx, diffs, 2, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 6, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 9, &mindiffbits);
+  collect_mindiff(&mindiffidx, diffs, 2, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 6, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 9, &mindiffbits, rgbas);
   strans_fold(&transtring, 16u, rgbas[4], bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[3], transtring, rgbas[4],  16u, rgbas[0], 1u);
   allzerodiffs &= collect_diffs(&diffs[7], transtring, rgbas[4],  16u, rgbas[1], 2u);
   allzerodiffs &= collect_diffs(&diffs[10], transtring, rgbas[4],  16u, rgbas[2], 4u);
   allzerodiffs &= collect_diffs(&diffs[12], transtring, rgbas[4], 16u, rgbas[3], 8u);
-  collect_mindiff(&mindiffidx, diffs, 3, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 7, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 10, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 12, &mindiffbits);
+  collect_mindiff(&mindiffidx, diffs, 3, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 7, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 10, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 12, &mindiffbits, rgbas);
   strans_fold(&transtring, 32u, rgbas[5], bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[4], transtring, rgbas[5],  32u, rgbas[0], 1u);
   allzerodiffs &= collect_diffs(&diffs[8], transtring, rgbas[5],  32u, rgbas[1], 2u);
   allzerodiffs &= collect_diffs(&diffs[11], transtring, rgbas[5], 32u, rgbas[2], 4u);
   allzerodiffs &= collect_diffs(&diffs[13], transtring, rgbas[5], 32u, rgbas[3], 8u);
   allzerodiffs &= collect_diffs(&diffs[14], transtring, rgbas[5], 32u, rgbas[4], 16u);
-  collect_mindiff(&mindiffidx, diffs, 4, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 8, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 11, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 13, &mindiffbits);
-  collect_mindiff(&mindiffidx, diffs, 14, &mindiffbits);
+  collect_mindiff(&mindiffidx, diffs, 4, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 8, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 11, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 13, &mindiffbits, rgbas);
+  collect_mindiff(&mindiffidx, diffs, 14, &mindiffbits, rgbas);
   if(!transtring){ // no transparency. use complex solver unless all are equal.
     if(allzerodiffs){ // every diff was 0, so all must be the same rgb value.
       channels_set_bg_rgb8(channels, r / div, g / div, b / div);
       return " ";
     }
     uint32_t fg, bg;
-    get_sex_colors(&fg, &bg, mindiffbits, r, g, b, div);
+    get_sex_colors(&fg, &bg, bgr, mindiffbits, r, g, b, div, rgbas);
     channels_set_fg_rgb(channels, fg);
     channels_set_bg_rgb(channels, bg);
     return sex[mindiffbits];
@@ -631,8 +669,6 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
              int leny, int lenx, bool bgr, bool blendcolors){
   const int bpp = 32;
-  const int rpos = bgr ? 2 : 0;
-  const int bpos = bgr ? 0 : 2;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
