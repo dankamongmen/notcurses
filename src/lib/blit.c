@@ -459,6 +459,22 @@ static const char* sex[64] = {
  "🬁", "🬀", " ",
 };
 
+static inline void
+strans_fold(unsigned* bitstring, unsigned bit, const uint8_t* rgba, bool bgr,
+            unsigned* rsum, unsigned* gsum, unsigned* bsum, unsigned* npopcnt){
+  if(ffmpeg_trans_p(bgr, rgba[3])){
+    *bitstring |= bit;
+  }else{
+    const int rpos = bgr ? 2 : 0;
+    const int bpos = bgr ? 0 : 2;
+    ++*npopcnt;
+    *rsum += rgba[rpos];
+    *gsum += rgba[1];
+    *bsum += rgba[bpos];
+//fprintf(stderr, "adding %u %u %u\n", rgba[rpos], rgba[1], rgba[bpos]);
+  }
+}
+
 // sextant check for transparency. returns an EGC if we found transparent pixels
 // and have solved for colors (this EGC ought then be loaded into the cell).
 // returns NULL otherwise. transparency trumps everything else in terms of
@@ -470,41 +486,34 @@ strans_check(cell* c, bool bgr, bool blendcolors,
              const uint8_t* rgbbase_l1, const uint8_t* rgbbase_r1,
              const uint8_t* rgbbase_l2, const uint8_t* rgbbase_r2,
              const uint8_t* rgbbase_l3, const uint8_t* rgbbase_r3){
-  const int rpos = bgr ? 2 : 0;
-  const int bpos = bgr ? 0 : 2;
   unsigned bitstring = 0;
-  if(ffmpeg_trans_p(bgr, rgbbase_l1[3])){ // all odd bitstrings lack upper left
-    bitstring |= 1u;
-  }
-  if(ffmpeg_trans_p(bgr, rgbbase_r1[3])){
-    bitstring |= 2u;
-  }
-  if(ffmpeg_trans_p(bgr, rgbbase_l2[3])){
-    bitstring |= 4u;
-  }
-  if(ffmpeg_trans_p(bgr, rgbbase_r2[3])){
-    bitstring |= 8u;
-  }
-  if(ffmpeg_trans_p(bgr, rgbbase_l3[3])){
-    bitstring |= 16u;
-  }
-  if(ffmpeg_trans_p(bgr, rgbbase_r3[3])){
-    bitstring |= 32u;
-  }
-  if(!bitstring){
+  unsigned div = 0;
+  unsigned r, g, b;
+  r = g = b = 0;
+  strans_fold(&bitstring,  1u, rgbbase_l1, bgr, &r, &g, &b, &div);
+  strans_fold(&bitstring,  2u, rgbbase_r1, bgr, &r, &g, &b, &div);
+  strans_fold(&bitstring,  4u, rgbbase_l2, bgr, &r, &g, &b, &div);
+  strans_fold(&bitstring,  8u, rgbbase_r2, bgr, &r, &g, &b, &div);
+  strans_fold(&bitstring, 16u, rgbbase_l3, bgr, &r, &g, &b, &div);
+  strans_fold(&bitstring, 32u, rgbbase_r3, bgr, &r, &g, &b, &div);
+  if(!bitstring){ // no transparent pixels, use main solver
     return NULL;
   }
-  assert(64 == sizeof(sex) / sizeof(*sex));
+  // there were some transparent pixels. since they get priority, the foreground
+  // is just a general lerp across non-transparent pixels.
   const char* egc = sex[bitstring];
   cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
 //fprintf(stderr, "bitstring: %u egcp: %p egc: %s\n", bitstring, egc, egc ? egc : "null");
-  if(*egc == ' '){
+  if(*egc == ' '){ // entirely transparent
     cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
     return "";
-  }else if(blendcolors){
-    cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+  }else{ // partially transparent, thus div >= 1
+//fprintf(stderr, "div: %u r: %u g: %u b: %u\n", div, r, g, b);
+    cell_set_fg_rgb8(c, r / div, g / div, b / div);
+    if(blendcolors){
+      cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+    }
   }
-  // FIXME lerp the opaque pixels together to get the foreground color
   return egc;
 }
 
