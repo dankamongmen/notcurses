@@ -477,15 +477,20 @@ strans_fold(unsigned* bitstring, unsigned bit, const uint8_t* rgba, bool bgr,
 }
 
 // if neither bit is present in the bitstring, store the sum of the absolute
-// component differences into *diff. otherwise, set *diff to UINT_MAX.
-static inline void
+// component differences into *diff. otherwise, set *diff to UINT_MAX. returns
+// true if neither pixel was transparent, and their components were equal.
+static inline bool
 collect_diffs(unsigned* diff, unsigned bitstring, const uint8_t* rgba1,
               unsigned bit1, const uint8_t* rgba2, unsigned bit2){
   if((bitstring & (bit1 | bit2)) == 0){
     *diff = rgb_diff(rgba1[0], rgba1[1], rgba1[2], rgba2[0], rgba2[1], rgba2[2]);
+    if(!*diff){
+      return true;
+    }
   }else{
     *diff = UINT_MAX;
   }
+  return false;
 }
 
 // sextant check for transparency. returns an EGC if we found transparent pixels
@@ -493,9 +498,11 @@ collect_diffs(unsigned* diff, unsigned bitstring, const uint8_t* rgba1,
 // returns NULL otherwise. transparency trumps everything else in terms of
 // priority -- if even one pixel is transparent, we will have a transparent
 // background, and lerp the rest together for foreground. we thus have a 32-way
-// conditional tree in which each EGC must show up exactly once.
+// conditional tree in which each EGC must show up exactly once. this also
+// handles the opaque case where all six pixels are the same, emitting a space
+// with both foreground and background set to that color.
 static inline const char*
-strans_check(cell* c, bool bgr, bool blendcolors,
+strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
              const uint8_t* rgbbase_l1, const uint8_t* rgbbase_r1,
              const uint8_t* rgbbase_l2, const uint8_t* rgbbase_r2,
              const uint8_t* rgbbase_l3, const uint8_t* rgbbase_r3){
@@ -506,48 +513,52 @@ strans_check(cell* c, bool bgr, bool blendcolors,
   //  r2 - l3, r2 - r3
   //  l3 - r3
   // if either pixel is transparent, the difference is UINT_MAX
-  unsigned diffs[15];
   unsigned bitstring = 0;
   unsigned div = 0;
   unsigned r, g, b;
   r = g = b = 0;
+  bool allzerodiffs = true;
   strans_fold(&bitstring,  1u, rgbbase_l1, bgr, &r, &g, &b, &div);
   strans_fold(&bitstring,  2u, rgbbase_r1, bgr, &r, &g, &b, &div);
-  collect_diffs(&diffs[0], bitstring, rgbbase_r1, 2u, rgbbase_l1, 1u);
+  allzerodiffs &= collect_diffs(&diffs[0], bitstring, rgbbase_r1, 2u, rgbbase_l1, 1u);
   strans_fold(&bitstring,  4u, rgbbase_l2, bgr, &r, &g, &b, &div);
-  collect_diffs(&diffs[1], bitstring, rgbbase_l2, 4u, rgbbase_l1, 1u);
-  collect_diffs(&diffs[5], bitstring, rgbbase_l2, 4u, rgbbase_r1, 2u);
+  allzerodiffs &= collect_diffs(&diffs[1], bitstring, rgbbase_l2, 4u, rgbbase_l1, 1u);
+  allzerodiffs &= collect_diffs(&diffs[5], bitstring, rgbbase_l2, 4u, rgbbase_r1, 2u);
   strans_fold(&bitstring,  8u, rgbbase_r2, bgr, &r, &g, &b, &div);
-  collect_diffs(&diffs[2], bitstring, rgbbase_r2, 8u, rgbbase_l1, 1u);
-  collect_diffs(&diffs[6], bitstring, rgbbase_r2, 8u, rgbbase_r1, 2u);
-  collect_diffs(&diffs[9], bitstring, rgbbase_r2, 8u, rgbbase_l1, 4u);
+  allzerodiffs &= collect_diffs(&diffs[2], bitstring, rgbbase_r2, 8u, rgbbase_l1, 1u);
+  allzerodiffs &= collect_diffs(&diffs[6], bitstring, rgbbase_r2, 8u, rgbbase_r1, 2u);
+  allzerodiffs &= collect_diffs(&diffs[9], bitstring, rgbbase_r2, 8u, rgbbase_l1, 4u);
   strans_fold(&bitstring, 16u, rgbbase_l3, bgr, &r, &g, &b, &div);
-  collect_diffs(&diffs[3], bitstring, rgbbase_l3,  16u, rgbbase_l1, 1u);
-  collect_diffs(&diffs[7], bitstring, rgbbase_l3,  16u, rgbbase_r1, 2u);
-  collect_diffs(&diffs[9], bitstring, rgbbase_l3,  16u, rgbbase_l2, 4u);
-  collect_diffs(&diffs[12], bitstring, rgbbase_l3, 16u, rgbbase_r2, 8u);
+  allzerodiffs &= collect_diffs(&diffs[3], bitstring, rgbbase_l3,  16u, rgbbase_l1, 1u);
+  allzerodiffs &= collect_diffs(&diffs[7], bitstring, rgbbase_l3,  16u, rgbbase_r1, 2u);
+  allzerodiffs &= collect_diffs(&diffs[9], bitstring, rgbbase_l3,  16u, rgbbase_l2, 4u);
+  allzerodiffs &= collect_diffs(&diffs[12], bitstring, rgbbase_l3, 16u, rgbbase_r2, 8u);
   strans_fold(&bitstring, 32u, rgbbase_r3, bgr, &r, &g, &b, &div);
-  collect_diffs(&diffs[4], bitstring, rgbbase_r3,  32u, rgbbase_l1, 1u);
-  collect_diffs(&diffs[8], bitstring, rgbbase_r3,  32u, rgbbase_r1, 2u);
-  collect_diffs(&diffs[10], bitstring, rgbbase_r3, 32u, rgbbase_l2, 4u);
-  collect_diffs(&diffs[11], bitstring, rgbbase_r3, 32u, rgbbase_r2, 8u);
-  collect_diffs(&diffs[13], bitstring, rgbbase_r3, 32u, rgbbase_l3, 16u);
-  if(!bitstring){ // no transparent pixels, use main solver
+  allzerodiffs &= collect_diffs(&diffs[4], bitstring, rgbbase_r3,  32u, rgbbase_l1, 1u);
+  allzerodiffs &= collect_diffs(&diffs[8], bitstring, rgbbase_r3,  32u, rgbbase_r1, 2u);
+  allzerodiffs &= collect_diffs(&diffs[10], bitstring, rgbbase_r3, 32u, rgbbase_l2, 4u);
+  allzerodiffs &= collect_diffs(&diffs[11], bitstring, rgbbase_r3, 32u, rgbbase_r2, 8u);
+  allzerodiffs &= collect_diffs(&diffs[13], bitstring, rgbbase_r3, 32u, rgbbase_l3, 16u);
+  if(!bitstring){ // no transparent pixels, use main solver unless all are same
+    if(allzerodiffs){
+      channels_set_bg_rgb8(channels, r / div, g / div, b / div);
+      return " ";
+    }
     return NULL;
   }
   // there were some transparent pixels. since they get priority, the foreground
   // is just a general lerp across non-transparent pixels.
   const char* egc = sex[bitstring];
-  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(channels, CELL_ALPHA_TRANSPARENT);
 //fprintf(stderr, "bitstring: %u egcp: %p egc: %s\n", bitstring, egc, egc ? egc : "null");
   if(*egc == ' '){ // entirely transparent
-    cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+    channels_set_fg_alpha(channels, CELL_ALPHA_TRANSPARENT);
     return "";
   }else{ // partially transparent, thus div >= 1
 //fprintf(stderr, "div: %u r: %u g: %u b: %u\n", div, r, g, b);
-    cell_set_fg_rgb8(c, r / div, g / div, b / div);
+    channels_set_fg_rgb8(channels, r / div, g / div, b / div);
     if(blendcolors){
-      cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+      channels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
     }
   }
   return egc;
@@ -600,9 +611,13 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = strans_check(c, bgr, blendcolors, rgbbase_l1, rgbbase_r1,
-                                     rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3);
+      unsigned diffs[15];
+      const char* egc = strans_check(&c->channels, bgr, blendcolors, diffs,
+                                     rgbbase_l1, rgbbase_r1, rgbbase_l2,
+                                     rgbbase_r2, rgbbase_l3, rgbbase_r3);
       if(egc == NULL){
+        // no transparent pixels. solve for EGC + colors using the 15 absolute
+        // rgba differences in |diffs|
         egc = "*"; // FIXME
       }
       if(*egc && pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
