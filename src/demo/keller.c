@@ -4,7 +4,7 @@
 static int
 visualize(struct notcurses* nc, struct ncvisual* ncv){
   for(ncblitter_e b = NCBLIT_DEFAULT + 1 ; b < NCBLIT_SIXEL ; ++b){
-    struct timespec ts = { .tv_sec = 1, .tv_nsec = 0, };
+    struct timespec ts = { .tv_sec = 0, .tv_nsec = GIG / 2, };
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_STRETCH,
       .blitter = b,
@@ -36,16 +36,22 @@ int keller_demo(struct notcurses* nc){
   if(!notcurses_canopen_images(nc)){
     return 0;
   }
-  char* file = find_data("covid19.jpg");
-  if(file == NULL){
-    return -1;
+  const char* files[] = { "covid19.jpg", "warmech.bmp", NULL, };
+  for(const char** file = files ; *file ; ++file){
+    char* f = find_data(*file);
+    if(f == NULL){
+      return -1;
+    }
+    struct ncvisual* ncv = ncvisual_from_file(f);
+    free(f);
+    if(ncv == NULL){
+      return -1;
+    }
+    int r = visualize(nc, ncv);
+    ncvisual_destroy(ncv);
+    if(r){
+      return r;
+    }
   }
-  struct ncvisual* ncv = ncvisual_from_file(file);
-  free(file);
-  if(ncv == NULL){
-    return -1;
-  }
-  int r = visualize(nc, ncv);
-  ncvisual_destroy(ncv);
-  return r;
+  return 0;
 }
