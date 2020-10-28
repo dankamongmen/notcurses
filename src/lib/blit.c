@@ -495,6 +495,14 @@ collect_diffs(unsigned* diff, unsigned bitstring, const uint8_t* rgba1,
   return false;
 }
 
+// if the candidate diff is less than the minimum diff, update mindiffidx
+static inline void
+collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15], unsigned candidate){
+  if(diffs[candidate] < diffs[*mindiffidx]){
+    *mindiffidx = candidate;
+  }
+}
+
 // sextant check for transparency. returns an EGC if we found transparent pixels
 // and have solved for colors (this EGC ought then be loaded into the cell).
 // returns NULL otherwise. transparency trumps everything else in terms of
@@ -509,38 +517,53 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
              const uint8_t* rgbbase_l2, const uint8_t* rgbbase_r2,
              const uint8_t* rgbbase_l3, const uint8_t* rgbbase_r3){
   // there are 15 sums of absolute differences between pixels:
-  //  l1 - r1, l1 - l2, l1 - r2, l1 - l3, l1 - r3
-  //  r1 - l2, r1 - r2, r1 - l3, r1 - r3
-  //  l2 - r2, l2 - l3, l2 - r3
-  //  r2 - l3, r2 - r3
-  //  l3 - r3
+  //  l1 - r1, l1 - l2, l1 - r2, l1 - l3, l1 - r3 (0, 1, 2, 3, 4)
+  //  r1 - l2, r1 - r2, r1 - l3, r1 - r3 (5, 6, 7, 8)
+  //  l2 - r2, l2 - l3, l2 - r3 (9, 10, 11)
+  //  r2 - l3, r2 - r3 (12, 13)
+  //  l3 - r3 (14)
   // if either pixel is transparent, the difference is UINT_MAX
   unsigned bitstring = 0;
   unsigned div = 0;
   unsigned r, g, b;
   r = g = b = 0;
   bool allzerodiffs = true;
+  unsigned mindiffidx = 0;
   strans_fold(&bitstring,  1u, rgbbase_l1, bgr, &r, &g, &b, &div);
   strans_fold(&bitstring,  2u, rgbbase_r1, bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[0], bitstring, rgbbase_r1, 2u, rgbbase_l1, 1u);
   strans_fold(&bitstring,  4u, rgbbase_l2, bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[1], bitstring, rgbbase_l2, 4u, rgbbase_l1, 1u);
+  collect_mindiff(&mindiffidx, diffs, 1);
   allzerodiffs &= collect_diffs(&diffs[5], bitstring, rgbbase_l2, 4u, rgbbase_r1, 2u);
+  collect_mindiff(&mindiffidx, diffs, 5);
   strans_fold(&bitstring,  8u, rgbbase_r2, bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[2], bitstring, rgbbase_r2, 8u, rgbbase_l1, 1u);
   allzerodiffs &= collect_diffs(&diffs[6], bitstring, rgbbase_r2, 8u, rgbbase_r1, 2u);
-  allzerodiffs &= collect_diffs(&diffs[9], bitstring, rgbbase_r2, 8u, rgbbase_l1, 4u);
+  allzerodiffs &= collect_diffs(&diffs[9], bitstring, rgbbase_r2, 8u, rgbbase_l2, 4u);
+  collect_mindiff(&mindiffidx, diffs, 2);
+  collect_mindiff(&mindiffidx, diffs, 6);
+  collect_mindiff(&mindiffidx, diffs, 9);
   strans_fold(&bitstring, 16u, rgbbase_l3, bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[3], bitstring, rgbbase_l3,  16u, rgbbase_l1, 1u);
   allzerodiffs &= collect_diffs(&diffs[7], bitstring, rgbbase_l3,  16u, rgbbase_r1, 2u);
-  allzerodiffs &= collect_diffs(&diffs[9], bitstring, rgbbase_l3,  16u, rgbbase_l2, 4u);
+  allzerodiffs &= collect_diffs(&diffs[10], bitstring, rgbbase_l3,  16u, rgbbase_l2, 4u);
   allzerodiffs &= collect_diffs(&diffs[12], bitstring, rgbbase_l3, 16u, rgbbase_r2, 8u);
+  collect_mindiff(&mindiffidx, diffs, 3);
+  collect_mindiff(&mindiffidx, diffs, 7);
+  collect_mindiff(&mindiffidx, diffs, 10);
+  collect_mindiff(&mindiffidx, diffs, 12);
   strans_fold(&bitstring, 32u, rgbbase_r3, bgr, &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[4], bitstring, rgbbase_r3,  32u, rgbbase_l1, 1u);
   allzerodiffs &= collect_diffs(&diffs[8], bitstring, rgbbase_r3,  32u, rgbbase_r1, 2u);
-  allzerodiffs &= collect_diffs(&diffs[10], bitstring, rgbbase_r3, 32u, rgbbase_l2, 4u);
-  allzerodiffs &= collect_diffs(&diffs[11], bitstring, rgbbase_r3, 32u, rgbbase_r2, 8u);
-  allzerodiffs &= collect_diffs(&diffs[13], bitstring, rgbbase_r3, 32u, rgbbase_l3, 16u);
+  allzerodiffs &= collect_diffs(&diffs[11], bitstring, rgbbase_r3, 32u, rgbbase_l2, 4u);
+  allzerodiffs &= collect_diffs(&diffs[13], bitstring, rgbbase_r3, 32u, rgbbase_r2, 8u);
+  allzerodiffs &= collect_diffs(&diffs[14], bitstring, rgbbase_r3, 32u, rgbbase_l3, 16u);
+  collect_mindiff(&mindiffidx, diffs, 4);
+  collect_mindiff(&mindiffidx, diffs, 8);
+  collect_mindiff(&mindiffidx, diffs, 11);
+  collect_mindiff(&mindiffidx, diffs, 13);
+  collect_mindiff(&mindiffidx, diffs, 14);
   if(!bitstring){ // no transparent pixels, use main solver unless all are same
     if(allzerodiffs){
       channels_set_bg_rgb8(channels, r / div, g / div, b / div);
