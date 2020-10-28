@@ -286,6 +286,7 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 // of priority -- if even one quadrant is transparent, we will have a
 // transparent background, and lerp the rest together for foreground. we thus
 // have a 16-way conditional tree in which each EGC must show up exactly once.
+// FIXME we ought be able to just build up a bitstring and use it as an index!
 static inline const char*
 qtrans_check(cell* c, bool bgr, bool blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
@@ -448,6 +449,14 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+// FIXME needs left- and right- halves, needs sorting
+static const char* sex[64] = {
+ " ", "🬀", "🬁", "🬂", "🬃", "🬄", "🬅", "🬆", "🬇", "🬈", "🬉", "🬊", "🬋", "🬌", "🬍",
+ "🬎", "🬏", "🬐", "🬑", "🬒", "🬓", "🬔", "🬕", "🬖", "🬗", "🬘", "🬙", "🬚", "🬛", "🬜",
+ "🬝", "🬞", "🬟", "🬠", "🬡", "🬢", "🬣", "🬤", "🬥", "🬦", "🬧", "🬨", "🬩", "🬪", "🬫",
+ "🬬", "🬭", "🬮", "🬯", "🬰", "🬱", "🬲", "🬳", "🬴", "🬵", "🬶", "🬷", "🬸", "🬹", "🬺",
+ "🬻", "█", "▌", "▐",
+};
 // sextant check for transparency. returns an EGC if we found transparent pixels
 // and have solved for colors (this EGC ought then be loaded into the cell).
 // returns NULL otherwise. transparency trumps everything else in terms of
@@ -456,11 +465,45 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 // conditional tree in which each EGC must show up exactly once.
 static inline const char*
 strans_check(cell* c, bool bgr, bool blendcolors,
-             const unsigned char* rgbbase_l1, const unsigned char* rgbbase_r1,
-             const unsigned char* rgbbase_l2, const unsigned char* rgbbase_r2,
-             const unsigned char* rgbbase_l3, const unsigned char* rgbbase_r3){
-  // FIXME
-  return NULL;
+             const uint8_t* rgbbase_l1, const uint8_t* rgbbase_r1,
+             const uint8_t* rgbbase_l2, const uint8_t* rgbbase_r2,
+             const uint8_t* rgbbase_l3, const uint8_t* rgbbase_r3){
+  const int rpos = bgr ? 2 : 0;
+  const int bpos = bgr ? 0 : 2;
+  unsigned bitstring = 0;
+  if(ffmpeg_trans_p(bgr, rgbbase_l1[3])){
+    bitstring |= 1u;
+  }
+  if(ffmpeg_trans_p(bgr, rgbbase_r1[3])){
+    bitstring |= 2u;
+  }
+  if(ffmpeg_trans_p(bgr, rgbbase_l2[3])){
+    bitstring |= 4u;
+  }
+  if(ffmpeg_trans_p(bgr, rgbbase_r2[3])){
+    bitstring |= 8u;
+  }
+  if(ffmpeg_trans_p(bgr, rgbbase_l3[3])){
+    bitstring |= 16u;
+  }
+  if(ffmpeg_trans_p(bgr, rgbbase_r3[3])){
+    bitstring |= 32u;
+  }
+  if(!bitstring){
+    return NULL;
+  }
+  assert(64 == sizeof(sex) / sizeof(*sex));
+  const char* egc = sex[bitstring];
+  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+//fprintf(stderr, "bitstring: %u egcp: %p egc: %s\n", bitstring, egc, egc ? egc : "null");
+  if(*egc == ' '){
+    cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+    return "";
+  }else if(blendcolors){
+    cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+  }
+  // FIXME lerp the opaque pixels together to get the foreground color
+  return egc;
 }
 
 // sextant blitter. maps 3x2 to each cell. since we only have two colors at
@@ -513,7 +556,7 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       const char* egc = strans_check(c, bgr, blendcolors, rgbbase_l1, rgbbase_r1,
                                      rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3);
       if(egc == NULL){
-        // FIXME
+        egc = "*"; // FIXME
       }
       if(*egc && pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
         return -1;
@@ -671,7 +714,7 @@ const struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_2x2,     .width = 2, .height = 2, .egcs = L" ▗▐▖▄▟▌▙█",
      .blit = quadrant_blit,  .name = "quadblitter",   .fill = false, },
    { .geom = NCBLIT_3x2,     .width = 2, .height = 3, .egcs = L" 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻█",
-     .blit = sextant_blit,   .name = "hexblitter",   .fill = false, },
+     .blit = sextant_blit,   .name = "sexblitter",   .fill = false, },
    { .geom = NCBLIT_4x1,     .width = 1, .height = 4, .egcs = L" ▂▄▆█",
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
