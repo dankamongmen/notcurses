@@ -437,10 +437,12 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
       }
-      if(*egc && pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
-        return -1;
+      if(*egc){
+        if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
+          return -1;
+        }
+        ++total;
       }
-      ++total;
     }
   }
   return total;

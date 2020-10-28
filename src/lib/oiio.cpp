@@ -142,7 +142,7 @@ int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
     stride = ncv->rowstride;
   }
   if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx,
-                        leny, lenx, blendcolors) <= 0){
+                        leny, lenx, blendcolors) < 0){
     return -1;
   }
   return 0;
