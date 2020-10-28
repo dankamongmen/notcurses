@@ -7,6 +7,7 @@ rearrangements of Notcurses.
   * Blitting functions no longer count transparent cells towards the total
     returned number of cells written, but since these are not directly
     callable by the user, this ought not lead to any user-visible changes.
+  * Added (k)eller demo to `notcurses-demo`.
 
 * 2.0.2 (2020-10-25)
   * Add `ncvisual_decode_loop()`, which returns to the first frame upon
