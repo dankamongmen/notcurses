@@ -346,6 +346,11 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
     ncv->cols = cols;
     ncv->rows = rows;
     auto data = static_cast<uint32_t*>(memdup(bgra, rowstride * ncv->rows));
+    for(int p = 0 ; p < rowstride / 4 * ncv->rows ; ++p){
+      const unsigned r = (data[p] & 0xffllu) << 16u;
+      const unsigned b = (data[p] & 0xff0000llu) >> 16u;
+      data[p] = (data[p] & 0xff00ff00llu) | r | b;
+    }
     if(data == nullptr){
       ncvisual_destroy(ncv);
       return nullptr;
@@ -608,7 +613,7 @@ auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   (void)rows;
   (void)cols;
   if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
-                        begy, begx, leny, lenx, blendcolors) <= 0){
+                        begy, begx, leny, lenx, blendcolors) < 0){
     return -1;
   }
   return 0;

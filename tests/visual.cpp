@@ -243,13 +243,14 @@ TEST_CASE("Visual") {
   SUBCASE("LoadRGBAFromMemory") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
+    std::vector<uint32_t> rgba(dimx * dimy * 2, 0xff88bbcc);
     auto ncv = ncvisual_from_rgba(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     struct ncvisual_options opts{};
     opts.n = ncp_;
-    CHECK(ncvisual_render(nc_, ncv, &opts));
+    CHECK(nullptr != ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
+    // FIXME check cell for color -- want ccbb88
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }
@@ -257,13 +258,14 @@ TEST_CASE("Visual") {
   SUBCASE("LoadBGRAFromMemory") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    std::vector<uint32_t> rgba(dimx * dimy * 2, 0x88bbccff);
+    std::vector<uint32_t> rgba(dimx * dimy * 2, 0xff88bbcc);
     auto ncv = ncvisual_from_bgra(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     struct ncvisual_options opts{};
     opts.n = ncp_;
-    CHECK(ncvisual_render(nc_, ncv, &opts));
+    CHECK(nullptr != ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
+    // FIXME check cell for color -- want 88bbcc
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }

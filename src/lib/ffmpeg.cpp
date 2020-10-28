@@ -465,7 +465,7 @@ int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   }
 //fprintf(stderr, "place: %d/%d rows/cols: %d/%d %d/%d+%d/%d\n", placey, placex, rows, cols, begy, begx, leny, lenx);
   if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx,
-                        leny, lenx, blendcolors) <= 0){
+                        leny, lenx, blendcolors) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
     if(sframe){
       av_freep(sframe->data);
