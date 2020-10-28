@@ -447,14 +447,16 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
-// FIXME needs left- and right- halves, needs sorting
 static const char* sex[64] = {
- " ", "🬀", "🬁", "🬂", "🬃", "🬄", "🬅", "🬆", "🬇", "🬈", "🬉", "🬊", "🬋", "🬌", "🬍",
- "🬎", "🬏", "🬐", "🬑", "🬒", "🬓", "🬔", "🬕", "🬖", "🬗", "🬘", "🬙", "🬚", "🬛", "🬜",
- "🬝", "🬞", "🬟", "🬠", "🬡", "🬢", "🬣", "🬤", "🬥", "🬦", "🬧", "🬨", "🬩", "🬪", "🬫",
- "🬬", "🬭", "🬮", "🬯", "🬰", "🬱", "🬲", "🬳", "🬴", "🬵", "🬶", "🬷", "🬸", "🬹", "🬺",
- "🬻", "█", "▌", "▐",
+ "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
+ "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
+ "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
+ "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
+ "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
+ "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
+ "🬁", "🬀", " ",
 };
+
 // sextant check for transparency. returns an EGC if we found transparent pixels
 // and have solved for colors (this EGC ought then be loaded into the cell).
 // returns NULL otherwise. transparency trumps everything else in terms of
@@ -469,7 +471,7 @@ strans_check(cell* c, bool bgr, bool blendcolors,
   const int rpos = bgr ? 2 : 0;
   const int bpos = bgr ? 0 : 2;
   unsigned bitstring = 0;
-  if(ffmpeg_trans_p(bgr, rgbbase_l1[3])){
+  if(ffmpeg_trans_p(bgr, rgbbase_l1[3])){ // all odd bitstrings lack upper left
     bitstring |= 1u;
   }
   if(ffmpeg_trans_p(bgr, rgbbase_r1[3])){
