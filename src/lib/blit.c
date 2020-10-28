@@ -459,19 +459,34 @@ static const char* sex[64] = {
  "🬁", "🬀", " ",
 };
 
-static inline void
+// returns true iff the pixel is transparent. otherwise, the r/g/b values are
+// accumulated into rsum/gsum/bsum, and npopcnt is increased.
+static inline bool
 strans_fold(unsigned* bitstring, unsigned bit, const uint8_t* rgba, bool bgr,
             unsigned* rsum, unsigned* gsum, unsigned* bsum, unsigned* npopcnt){
   if(ffmpeg_trans_p(bgr, rgba[3])){
     *bitstring |= bit;
-  }else{
-    const int rpos = bgr ? 2 : 0;
-    const int bpos = bgr ? 0 : 2;
-    ++*npopcnt;
-    *rsum += rgba[rpos];
-    *gsum += rgba[1];
-    *bsum += rgba[bpos];
+    return true;
+  }
+  const int rpos = bgr ? 2 : 0;
+  const int bpos = bgr ? 0 : 2;
+  ++*npopcnt;
+  *rsum += rgba[rpos];
+  *gsum += rgba[1];
+  *bsum += rgba[bpos];
 //fprintf(stderr, "adding %u %u %u\n", rgba[rpos], rgba[1], rgba[bpos]);
+  return false;
+}
+
+// if neither bit is present in the bitstring, store the sum of the absolute
+// component differences into *diff. otherwise, set *diff to UINT_MAX.
+static inline void
+collect_diffs(unsigned* diff, unsigned bitstring, const uint8_t* rgba1,
+              unsigned bit1, const uint8_t* rgba2, unsigned bit2){
+  if((bitstring & (bit1 | bit2)) == 0){
+    *diff = rgb_diff(rgba1[0], rgba1[1], rgba1[2], rgba2[0], rgba2[1], rgba2[2]);
+  }else{
+    *diff = UINT_MAX;
   }
 }
 
@@ -486,16 +501,39 @@ strans_check(cell* c, bool bgr, bool blendcolors,
              const uint8_t* rgbbase_l1, const uint8_t* rgbbase_r1,
              const uint8_t* rgbbase_l2, const uint8_t* rgbbase_r2,
              const uint8_t* rgbbase_l3, const uint8_t* rgbbase_r3){
+  // there are 15 sums of absolute differences between pixels:
+  //  l1 - r1, l1 - l2, l1 - r2, l1 - l3, l1 - r3
+  //  r1 - l2, r1 - r2, r1 - l3, r1 - r3
+  //  l2 - r2, l2 - l3, l2 - r3
+  //  r2 - l3, r2 - r3
+  //  l3 - r3
+  // if either pixel is transparent, the difference is UINT_MAX
+  unsigned diffs[15];
   unsigned bitstring = 0;
   unsigned div = 0;
   unsigned r, g, b;
   r = g = b = 0;
   strans_fold(&bitstring,  1u, rgbbase_l1, bgr, &r, &g, &b, &div);
   strans_fold(&bitstring,  2u, rgbbase_r1, bgr, &r, &g, &b, &div);
+  collect_diffs(&diffs[0], bitstring, rgbbase_r1, 2u, rgbbase_l1, 1u);
   strans_fold(&bitstring,  4u, rgbbase_l2, bgr, &r, &g, &b, &div);
+  collect_diffs(&diffs[1], bitstring, rgbbase_l2, 4u, rgbbase_l1, 1u);
+  collect_diffs(&diffs[5], bitstring, rgbbase_l2, 4u, rgbbase_r1, 2u);
   strans_fold(&bitstring,  8u, rgbbase_r2, bgr, &r, &g, &b, &div);
+  collect_diffs(&diffs[2], bitstring, rgbbase_r2, 8u, rgbbase_l1, 1u);
+  collect_diffs(&diffs[6], bitstring, rgbbase_r2, 8u, rgbbase_r1, 2u);
+  collect_diffs(&diffs[9], bitstring, rgbbase_r2, 8u, rgbbase_l1, 4u);
   strans_fold(&bitstring, 16u, rgbbase_l3, bgr, &r, &g, &b, &div);
+  collect_diffs(&diffs[3], bitstring, rgbbase_l3,  16u, rgbbase_l1, 1u);
+  collect_diffs(&diffs[7], bitstring, rgbbase_l3,  16u, rgbbase_r1, 2u);
+  collect_diffs(&diffs[9], bitstring, rgbbase_l3,  16u, rgbbase_l2, 4u);
+  collect_diffs(&diffs[12], bitstring, rgbbase_l3, 16u, rgbbase_r2, 8u);
   strans_fold(&bitstring, 32u, rgbbase_r3, bgr, &r, &g, &b, &div);
+  collect_diffs(&diffs[4], bitstring, rgbbase_r3,  32u, rgbbase_l1, 1u);
+  collect_diffs(&diffs[8], bitstring, rgbbase_r3,  32u, rgbbase_r1, 2u);
+  collect_diffs(&diffs[10], bitstring, rgbbase_r3, 32u, rgbbase_l2, 4u);
+  collect_diffs(&diffs[11], bitstring, rgbbase_r3, 32u, rgbbase_r2, 8u);
+  collect_diffs(&diffs[13], bitstring, rgbbase_r3, 32u, rgbbase_l3, 16u);
   if(!bitstring){ // no transparent pixels, use main solver
     return NULL;
   }
