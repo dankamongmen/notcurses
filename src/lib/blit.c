@@ -421,7 +421,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
         channel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
         channel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
         uint32_t bg, fg;
-fprintf(stderr, "qtrans check: %d/%d\n%08x %08x\n%08x %08x\n", y, x, *(const uint32_t*)rgbbase_tl, *(const uint32_t*)rgbbase_tr, *(const uint32_t*)rgbbase_bl, *(const uint32_t*)rgbbase_br);
+//fprintf(stderr, "qtrans check: %d/%d\n%08x %08x\n%08x %08x\n", y, x, *(const uint32_t*)rgbbase_tl, *(const uint32_t*)rgbbase_tr, *(const uint32_t*)rgbbase_bl, *(const uint32_t*)rgbbase_br);
         egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
         assert(egc);
 //fprintf(stderr, "%d/%d %08x/%08x\n", y, x, fg, bg);
@@ -496,13 +496,13 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
       *mindiffidx = candidate;
       *mindiffbits = mindiffkeys[candidate];
     }else{
-fprintf(stderr, "mindiffbits: %08x candidate: %08x\n", *mindiffbits, mindiffkeys[candidate]);
+//fprintf(stderr, "mindiffbits: %08x candidate: %08x\n", *mindiffbits, mindiffkeys[candidate]);
       uint32_t lowestkey;
       // find an RGB value from the candidate mindiff set
       for(size_t i = 0 ; i < 6 ; ++i){
         if(mindiffkeys[candidate] & (0x1 << i)){
           lowestkey = *rgbas[i];
-fprintf(stderr, "found lowestkey %08x at bit %zu\n", lowestkey, i);
+//fprintf(stderr, "found lowestkey %08x at bit %zu\n", lowestkey, i);
           break;
         }
       }
@@ -511,7 +511,7 @@ fprintf(stderr, "found lowestkey %08x at bit %zu\n", lowestkey, i);
       for(size_t i = 0 ; i < 6 ; ++i){
         if((i != lowestkey) && (*mindiffbits & (0x1 << i))){
           lowestcur = rgbas[i];
-fprintf(stderr, "found lowestcur %08x at bit %zu\n", lowestkey, i);
+//fprintf(stderr, "found lowestcur %08x at bit %zu\n", lowestkey, i);
           break;
         }
       }
@@ -536,7 +536,7 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
   // FIXME fg lerps mindiffbits
   uint32_t fgcs[2];
   size_t i = 0;
-fprintf(stderr, "start r: %u g: %u b: %u div: %u midbs: 0x%02x\n", r, g, b, div, mindiffbits);
+//fprintf(stderr, "start r: %u g: %u b: %u div: %u midbs: 0x%02x\n", r, g, b, div, mindiffbits);
   for(unsigned shift = 0 ; shift < 6 ; ++shift){
     if(mindiffbits & (1u << shift)){
       // FIXME verify this
@@ -554,7 +554,7 @@ fprintf(stderr, "start r: %u g: %u b: %u div: %u midbs: 0x%02x\n", r, g, b, div,
   *fg = lerp(fgcs[0], fgcs[1]);
   *bg = 0;
   channel_set_rgb8(bg, r / div, g / div, b / div);
-fprintf(stderr, "fg: 0x%08x bg: 0x%08x r: %u g: %u b: %u div: %u\n", *fg, *bg, r, g, b, div);
+//fprintf(stderr, "fg: 0x%08x bg: 0x%08x r: %u g: %u b: %u div: %u\n", *fg, *bg, r, g, b, div);
 }
 
 static const char* sex[64] = {
@@ -715,9 +715,9 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       const uint32_t* rgbas[6] = {
         rgbbase_l1, rgbbase_r1, rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3,
       };
-fprintf(stderr, "strans check: %d/%d\n%08x %08x\n%08x %08x\n%08x %08x\n", y, x, *rgbas[0], *rgbas[1], *rgbas[2], *rgbas[3], *rgbas[4], *rgbas[5]);
+//fprintf(stderr, "strans check: %d/%d\n%08x %08x\n%08x %08x\n%08x %08x\n", y, x, *rgbas[0], *rgbas[1], *rgbas[2], *rgbas[3], *rgbas[4], *rgbas[5]);
       const char* egc = strans_check(&c->channels, blendcolors, diffs, rgbas);
-fprintf(stderr, "strans EGC: %s channels: %016lx\n", egc, c->channels);
+//fprintf(stderr, "strans EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
