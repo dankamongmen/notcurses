@@ -62,6 +62,17 @@ hud_standard_bg_rgb(struct ncplane* n){
   return 0;
 }
 
+static int
+count_debug_lines(const char* output, size_t outputlen){
+  int lines = 0;
+  for(size_t i = 0 ; i < outputlen ; ++i){
+    if(output[i] == '\n'){
+      ++lines;
+    }
+  }
+  return lines;
+}
+
 static void
 debug_toggle(struct notcurses* nc){
   ncmenu_rollup(menu);
@@ -70,22 +81,34 @@ debug_toggle(struct notcurses* nc){
     debug = NULL;
     return;
   }
-  const int ABOUT_ROWS = 9;
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  // FIXME run notcurses_debug on memstream
+  char* output = NULL;
+  size_t outputlen = 0;
+  FILE* mstream = open_memstream(&output, &outputlen);
+  if(mstream == NULL){
+    return;
+  }
+  notcurses_debug(nc, mstream);
+  if(fclose(mstream)){
+    return;
+  }
   // FIXME base rows on actual lines of output
   ncplane_options nopts = {
     .y = 3,
     .horiz = {
       .align = NCALIGN_CENTER,
     },
-    .rows = ABOUT_ROWS,
+    .rows = count_debug_lines(output, outputlen) + 2,
     .cols = dimx,
     .flags = NCPLANE_OPTION_HORALIGNED,
   };
   // FIXME create debug window
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
+  if(n == NULL){
+    free(output);
+    return;
+  }
   // FIXME fill in window
   debug = n;
 }
@@ -513,6 +536,9 @@ int demo_render(struct notcurses* nc){
   }
   if(about){
     ncplane_move_top(about);
+  }
+  if(debug){
+    ncplane_move_top(debug);
   }
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
