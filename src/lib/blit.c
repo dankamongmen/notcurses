@@ -519,7 +519,7 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
   }
 }
 
-// pick the foreground color based off lerping mindiffbits, 
+// pick the foreground color based off lerping mindiffbits
 static void
 get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
                unsigned r, unsigned g, unsigned b, unsigned div,
@@ -541,8 +541,9 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
     }
   }
   *fg = lerp(fgcs[0], fgcs[1]);
-//fprintf(stderr, "fg: 0x%08x r: %u g: %u b: %u div: %u\n", *fg, r, g, b, div);
-  *bg = ((r / div) << 16) + ((g / div) << 8) + (b / div);
+  *bg = 0;
+  channel_set_rgb8(bg, r / div, g / div, b / div);
+//fprintf(stderr, "fg: 0x%08x bg: %08x r: %u g: %u b: %u div: %u\n", *fg, *bg, r, g, b, div);
 }
 
 static const char* sex[64] = {
