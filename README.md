@@ -386,6 +386,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Will there ever be Java wrappers? **A:** I should hope not.
 
+* **Q:** Given that the glyph channel is initialized as transparent for a plane, shouldn't the foreground and background be initialized as transparent, also? **A:** Probably (they are instead initialized to default opaque). This would change some of the most longstanding behavior of Notcurses, though, so it isn't happening.
+
 ## Supplemental material
 
 ### Useful links
