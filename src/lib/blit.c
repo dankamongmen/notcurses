@@ -421,6 +421,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
         channel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
         channel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
         uint32_t bg, fg;
+fprintf(stderr, "qtrans check: %d/%d\n%08x %08x\n%08x %08x\n", y, x, *(const uint32_t*)rgbbase_tl, *(const uint32_t*)rgbbase_tr, *(const uint32_t*)rgbbase_bl, *(const uint32_t*)rgbbase_br);
         egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
         assert(egc);
 //fprintf(stderr, "%d/%d %08x/%08x\n", y, x, fg, bg);
@@ -466,9 +467,8 @@ static inline bool
 collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t* rgba1,
               unsigned bit1, const uint32_t* rgba2, unsigned bit2){
   if((bitstring & (bit1 | bit2)) == 0){
-    *diff = rgb_diff(((const uint8_t*)rgba1)[0], ((const uint8_t*)rgba1)[1],
-                     ((const uint8_t*)rgba1)[2], ((const uint8_t*)rgba2)[0],
-                     ((const uint8_t*)rgba2)[1], ((const uint8_t*)rgba2)[2]);
+    *diff = rgb_diff(ncpixel_r(*rgba1), ncpixel_g(*rgba1), ncpixel_b(*rgba1),
+                     ncpixel_r(*rgba2), ncpixel_g(*rgba2), ncpixel_b(*rgba2));
     if(!*diff){
       return true;
     }
@@ -536,12 +536,14 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
   // FIXME fg lerps mindiffbits
   uint32_t fgcs[2];
   size_t i = 0;
-//fprintf(stderr, "start r: %u g: %u b: %u div: %u midbs: 0x%02x\n", r, g, b, div, mindiffbits);
+fprintf(stderr, "start r: %u g: %u b: %u div: %u midbs: 0x%02x\n", r, g, b, div, mindiffbits);
   for(unsigned shift = 0 ; shift < 6 ; ++shift){
     if(mindiffbits & (1u << shift)){
       // FIXME verify this
       if(i < sizeof(fgcs) / sizeof(*fgcs)){
-        fgcs[i++] = *rgbas[shift];
+        fgcs[i] = 0;
+        channel_set_rgb8(&fgcs[i], ncpixel_r(*rgbas[shift]), ncpixel_g(*rgbas[shift]), ncpixel_b(*rgbas[shift]));
+        ++i;
       }
       r -= ncpixel_r(*rgbas[shift]);
       g -= ncpixel_g(*rgbas[shift]);
@@ -552,7 +554,7 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
   *fg = lerp(fgcs[0], fgcs[1]);
   *bg = 0;
   channel_set_rgb8(bg, r / div, g / div, b / div);
-//fprintf(stderr, "fg: 0x%08x bg: %08x r: %u g: %u b: %u div: %u\n", *fg, *bg, r, g, b, div);
+fprintf(stderr, "fg: 0x%08x bg: 0x%08x r: %u g: %u b: %u div: %u\n", *fg, *bg, r, g, b, div);
 }
 
 static const char* sex[64] = {
@@ -715,7 +717,7 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       };
 fprintf(stderr, "strans check: %d/%d\n%08x %08x\n%08x %08x\n%08x %08x\n", y, x, *rgbas[0], *rgbas[1], *rgbas[2], *rgbas[3], *rgbas[4], *rgbas[5]);
       const char* egc = strans_check(&c->channels, blendcolors, diffs, rgbas);
-fprintf(stderr, "strans EGC: %s channls: %016lx\n", egc, c->channels);
+fprintf(stderr, "strans EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
