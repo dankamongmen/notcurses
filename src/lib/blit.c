@@ -34,24 +34,21 @@ trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
 // alpha comes to us 0--255, but we have only 3 alpha values to map them to.
 // settled on experimentally.
 static inline bool
-ffmpeg_trans_p(bool bgr, unsigned char alpha){
-  if(!bgr && alpha < 192){
+ffmpeg_trans_p(unsigned char alpha){
+  if(alpha < 192){
 //fprintf(stderr, "TRANSPARENT!\n");
     return true;
   }
   return false;
 }
 
-// Retarded RGBA/BGRx blitter (ASCII only).
-// For incoming BGRx (no transparency), bgr == true.
+// Retarded RGBA blitter (ASCII only).
 static inline int
 tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
                 const void* data, int begy, int begx,
-                int leny, int lenx, bool bgr, bool blendcolors){
+                int leny, int lenx, bool blendcolors){
 //fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
-  const int rpos = bgr ? 2 : 0;
-  const int bpos = bgr ? 0 : 2;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -75,12 +72,12 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
-      if(ffmpeg_trans_p(bgr, rgbbase_up[3])){
+      if(ffmpeg_trans_p(rgbbase_up[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
       }else{
-        cell_set_fg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
-        cell_set_bg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+        cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+        cell_set_bg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
         if(pool_load_direct(&nc->pool, c, " ", 1, 1) <= 0){
           return -1;
         }
@@ -91,17 +88,14 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
-// RGBA/BGRx half-block blitter. Best for most images/videos. Full fidelity
+// RGBA half-block blitter. Best for most images/videos. Full fidelity
 // combined with 1:1 pixel aspect ratio.
-// For incoming BGRx (no transparency), bgr == true.
 static inline int
 tria_blit(ncplane* nc, int placey, int placex, int linesize,
           const void* data, int begy, int begx,
-          int leny, int lenx, bool bgr, bool blendcolors){
+          int leny, int lenx, bool blendcolors){
 //fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
-  const int rpos = bgr ? 2 : 0;
-  const int bpos = bgr ? 0 : 2;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -129,33 +123,33 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
-      if(ffmpeg_trans_p(bgr, rgbbase_up[3]) || ffmpeg_trans_p(bgr, rgbbase_down[3])){
+      if(ffmpeg_trans_p(rgbbase_up[3]) || ffmpeg_trans_p(rgbbase_down[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        if(ffmpeg_trans_p(bgr, rgbbase_up[3]) && ffmpeg_trans_p(bgr, rgbbase_down[3])){
+        if(ffmpeg_trans_p(rgbbase_up[3]) && ffmpeg_trans_p(rgbbase_down[3])){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        }else if(ffmpeg_trans_p(bgr, rgbbase_up[3])){ // down has the color
+        }else if(ffmpeg_trans_p(rgbbase_up[3])){ // down has the color
           if(cell_load(nc, c, "\u2584") <= 0){ // lower half block
             return -1;
           }
-          cell_set_fg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           ++total;
         }else{ // up has the color
           if(cell_load(nc, c, "\u2580") <= 0){ // upper half block
             return -1;
           }
-          cell_set_fg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
           ++total;
         }
       }else{
         if(memcmp(rgbbase_up, rgbbase_down, 3) == 0){
-          cell_set_fg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
-          cell_set_bg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          cell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           if(cell_load(nc, c, " ") <= 0){ // only need the background
             return -1;
           }
         }else{
-          cell_set_fg_rgb8(c, rgbbase_up[rpos], rgbbase_up[1], rgbbase_up[bpos]);
-          cell_set_bg_rgb8(c, rgbbase_down[rpos], rgbbase_down[1], rgbbase_down[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+          cell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           if(cell_load(nc, c, "\u2580") <= 0){ // upper half block
             return -1;
           }
@@ -291,34 +285,32 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 // have a 16-way conditional tree in which each EGC must show up exactly once.
 // FIXME we ought be able to just build up a bitstring and use it as an index!
 static inline const char*
-qtrans_check(cell* c, bool bgr, bool blendcolors,
+qtrans_check(cell* c, bool blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
              const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br){
-  const int rpos = bgr ? 2 : 0;
-  const int bpos = bgr ? 0 : 2;
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-  channel_set_rgb8(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
-  channel_set_rgb8(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
-  channel_set_rgb8(&bl, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
-  channel_set_rgb8(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
+  channel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
+  channel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
+  channel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
+  channel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
   const char* egc = NULL;
-  if(ffmpeg_trans_p(bgr, rgbbase_tl[3])){
+  if(ffmpeg_trans_p(rgbbase_tl[3])){
     // top left is transparent
-    if(ffmpeg_trans_p(bgr, rgbbase_tr[3])){
+    if(ffmpeg_trans_p(rgbbase_tr[3])){
       // all of top is transparent
-      if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
+      if(ffmpeg_trans_p(rgbbase_bl[3])){
         // top and left are transparent
-        if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
+        if(ffmpeg_trans_p(rgbbase_br[3])){
           // entirety is transparent, load with nul (but not NULL)
           cell_set_fg_default(c);
           egc = "";
         }else{
-          cell_set_fg_rgb8(c, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
+          cell_set_fg_rgb8(c, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
           egc = "▗";
         }
       }else{
-        if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
-          cell_set_fg_rgb8(c, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
+        if(ffmpeg_trans_p(rgbbase_br[3])){
+          cell_set_fg_rgb8(c, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
           egc = "▖";
         }else{
           cell_set_fchannel(c, lerp(bl, br));
@@ -326,15 +318,15 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
         }
       }
     }else{ // top right is foreground, top left is transparent
-      if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
-        if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // entire bottom is transparent
-          cell_set_fg_rgb8(c, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
+      if(ffmpeg_trans_p(rgbbase_bl[3])){
+        if(ffmpeg_trans_p(rgbbase_br[3])){ // entire bottom is transparent
+          cell_set_fg_rgb8(c, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
           egc = "▝";
         }else{
           cell_set_fchannel(c, lerp(tr, br));
           egc = "▐";
         }
-      }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // only br is transparent
+      }else if(ffmpeg_trans_p(rgbbase_br[3])){ // only br is transparent
         cell_set_fchannel(c, lerp(tr, bl));
         egc = "▞";
       }else{
@@ -343,31 +335,31 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
       }
     }
   }else{ // topleft is foreground for all here
-    if(ffmpeg_trans_p(bgr, rgbbase_tr[3])){
-      if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
-        if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
-          cell_set_fg_rgb8(c, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
+    if(ffmpeg_trans_p(rgbbase_tr[3])){
+      if(ffmpeg_trans_p(rgbbase_bl[3])){
+        if(ffmpeg_trans_p(rgbbase_br[3])){
+          cell_set_fg_rgb8(c, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
           egc = "▘";
         }else{
           cell_set_fchannel(c, lerp(tl, br));
           egc = "▚";
         }
-      }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){
+      }else if(ffmpeg_trans_p(rgbbase_br[3])){
         cell_set_fchannel(c, lerp(tl, bl));
         egc = "▌";
       }else{
         cell_set_fchannel(c, trilerp(tl, bl, br));
         egc = "▙";
       }
-    }else if(ffmpeg_trans_p(bgr, rgbbase_bl[3])){
-      if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // entire bottom is transparent
+    }else if(ffmpeg_trans_p(rgbbase_bl[3])){
+      if(ffmpeg_trans_p(rgbbase_br[3])){ // entire bottom is transparent
         cell_set_fchannel(c, lerp(tl, tr));
         egc = "▀";
       }else{ // only bl is transparent
         cell_set_fchannel(c, trilerp(tl, tr, br));
         egc = "▜";
       }
-    }else if(ffmpeg_trans_p(bgr, rgbbase_br[3])){ // only br is transparent
+    }else if(ffmpeg_trans_p(rgbbase_br[3])){ // only br is transparent
       cell_set_fchannel(c, trilerp(tl, tr, bl));
       egc = "▛";
     }else{
@@ -389,10 +381,8 @@ qtrans_check(cell* c, bool bgr, bool blendcolors,
 static inline int
 quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
               const void* data, int begy, int begx,
-              int leny, int lenx, bool bgr, bool blendcolors){
+              int leny, int lenx, bool blendcolors){
   const int bpp = 32;
-  const int rpos = bgr ? 2 : 0;
-  const int bpos = bgr ? 0 : 2;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -423,13 +413,13 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = qtrans_check(c, bgr, blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
+      const char* egc = qtrans_check(c, blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
       if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-        channel_set_rgb8(&tl, rgbbase_tl[rpos], rgbbase_tl[1], rgbbase_tl[bpos]);
-        channel_set_rgb8(&tr, rgbbase_tr[rpos], rgbbase_tr[1], rgbbase_tr[bpos]);
-        channel_set_rgb8(&bl, rgbbase_bl[rpos], rgbbase_bl[1], rgbbase_bl[bpos]);
-        channel_set_rgb8(&br, rgbbase_br[rpos], rgbbase_br[1], rgbbase_br[bpos]);
+        channel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
+        channel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
+        channel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
+        channel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
         uint32_t bg, fg;
         egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
         assert(egc);
@@ -455,19 +445,17 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 // returns true iff the pixel is transparent. otherwise, the r/g/b values are
 // accumulated into rsum/gsum/bsum, and npopcnt is increased.
 static inline bool
-strans_fold(unsigned* bitstring, unsigned bit, const uint32_t* rgba, bool bgr,
+strans_fold(unsigned* bitstring, unsigned bit, const uint32_t* rgba,
             unsigned* rsum, unsigned* gsum, unsigned* bsum, unsigned* npopcnt){
-  if(ffmpeg_trans_p(bgr, ((const uint8_t *)rgba)[3])){
+  if(ffmpeg_trans_p(ncpixel_a(*rgba))){
     *bitstring |= bit;
     return true;
   }
-  const int rpos = bgr ? 2 : 0;
-  const int bpos = bgr ? 0 : 2;
   ++*npopcnt;
-  *rsum += ((const uint8_t *)rgba)[rpos];
-  *gsum += ((const uint8_t *)rgba)[1];
-  *bsum += ((const uint8_t *)rgba)[bpos];
-//fprintf(stderr, "adding %u %u %u\n", rgba[rpos], rgba[1], rgba[bpos]);
+  *rsum += ncpixel_r(*rgba);
+  *gsum += ncpixel_g(*rgba);
+  *bsum += ncpixel_b(*rgba);
+//fprintf(stderr, "adding %u %u %u\n", rgba[0], rgba[1], rgba[2]);
   return false;
 }
 
@@ -533,7 +521,7 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
 
 // pick the foreground color based off lerping mindiffbits, 
 static void
-get_sex_colors(uint32_t* fg, uint32_t* bg, bool bgr, unsigned mindiffbits,
+get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
                unsigned r, unsigned g, unsigned b, unsigned div,
                const uint32_t* rgbas[6]){
   // FIXME fg lerps mindiffbits
@@ -546,11 +534,9 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, bool bgr, unsigned mindiffbits,
       if(i < sizeof(fgcs) / sizeof(*fgcs)){
         fgcs[i++] = *rgbas[shift];
       }
-      const int rpos = bgr ? 2 : 0;
-      const int bpos = bgr ? 0 : 2;
-      r -= ((const uint8_t*)rgbas[shift])[rpos];
-      g -= ((const uint8_t*)rgbas[shift])[1];
-      b -= ((const uint8_t*)rgbas[shift])[bpos];
+      r -= ncpixel_r(*rgbas[shift]);
+      g -= ncpixel_g(*rgbas[shift]);
+      b -= ncpixel_b(*rgbas[shift]);
       --div;
     }
   }
@@ -585,7 +571,7 @@ static const char* sex[64] = {
 //  l3 - r3 (14)
 // 6 bits for 6 pixels: l1 r1 l2 r2 l3 r3, same as rgbas[]
 static inline const char*
-strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
+strans_check(uint64_t* channels, bool blendcolors, unsigned diffs[15],
              const uint32_t* rgbas[6]){
   unsigned transtring = 0; // bits which are transparent
   unsigned mindiffbits = 0; // bits which are involved in the minimum diff
@@ -596,24 +582,24 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
   unsigned r, g, b;
   r = g = b = 0;
   bool allzerodiffs = true;
-  strans_fold(&transtring,  1u, rgbas[0], bgr, &r, &g, &b, &div);
-  strans_fold(&transtring,  2u, rgbas[1], bgr, &r, &g, &b, &div);
+  strans_fold(&transtring,  1u, rgbas[0], &r, &g, &b, &div);
+  strans_fold(&transtring,  2u, rgbas[1], &r, &g, &b, &div);
   // if either pixel is transparent, the difference is UINT_MAX
   allzerodiffs &= collect_diffs(&diffs[0], transtring, rgbas[1], 2u, rgbas[0], 1u);
   unsigned mindiffidx = 0;
-  strans_fold(&transtring,  4u, rgbas[2], bgr, &r, &g, &b, &div);
+  strans_fold(&transtring,  4u, rgbas[2], &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[1], transtring, rgbas[2], 4u, rgbas[0], 1u);
   collect_mindiff(&mindiffidx, diffs, 1, &mindiffbits, rgbas);
   allzerodiffs &= collect_diffs(&diffs[5], transtring, rgbas[2], 4u, rgbas[1], 2u);
   collect_mindiff(&mindiffidx, diffs, 5, &mindiffbits, rgbas);
-  strans_fold(&transtring,  8u, rgbas[3], bgr, &r, &g, &b, &div);
+  strans_fold(&transtring,  8u, rgbas[3], &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[2], transtring, rgbas[3], 8u, rgbas[0], 1u);
   allzerodiffs &= collect_diffs(&diffs[6], transtring, rgbas[3], 8u, rgbas[1], 2u);
   allzerodiffs &= collect_diffs(&diffs[9], transtring, rgbas[3], 8u, rgbas[2], 4u);
   collect_mindiff(&mindiffidx, diffs, 2, &mindiffbits, rgbas);
   collect_mindiff(&mindiffidx, diffs, 6, &mindiffbits, rgbas);
   collect_mindiff(&mindiffidx, diffs, 9, &mindiffbits, rgbas);
-  strans_fold(&transtring, 16u, rgbas[4], bgr, &r, &g, &b, &div);
+  strans_fold(&transtring, 16u, rgbas[4], &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[3], transtring, rgbas[4],  16u, rgbas[0], 1u);
   allzerodiffs &= collect_diffs(&diffs[7], transtring, rgbas[4],  16u, rgbas[1], 2u);
   allzerodiffs &= collect_diffs(&diffs[10], transtring, rgbas[4],  16u, rgbas[2], 4u);
@@ -622,7 +608,7 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
   collect_mindiff(&mindiffidx, diffs, 7, &mindiffbits, rgbas);
   collect_mindiff(&mindiffidx, diffs, 10, &mindiffbits, rgbas);
   collect_mindiff(&mindiffidx, diffs, 12, &mindiffbits, rgbas);
-  strans_fold(&transtring, 32u, rgbas[5], bgr, &r, &g, &b, &div);
+  strans_fold(&transtring, 32u, rgbas[5], &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[4], transtring, rgbas[5],  32u, rgbas[0], 1u);
   allzerodiffs &= collect_diffs(&diffs[8], transtring, rgbas[5],  32u, rgbas[1], 2u);
   allzerodiffs &= collect_diffs(&diffs[11], transtring, rgbas[5], 32u, rgbas[2], 4u);
@@ -639,7 +625,7 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
       return " ";
     }
     uint32_t fg, bg;
-    get_sex_colors(&fg, &bg, bgr, mindiffbits, r, g, b, div, rgbas);
+    get_sex_colors(&fg, &bg, mindiffbits, r, g, b, div, rgbas);
     channels_set_fchannel(channels, fg);
     channels_set_bchannel(channels, bg);
     if(mindiffbits == 0){
@@ -673,7 +659,7 @@ strans_check(uint64_t* channels, bool bgr, bool blendcolors, unsigned diffs[15],
 static inline int
 sextant_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
-             int leny, int lenx, bool bgr, bool blendcolors){
+             int leny, int lenx, bool blendcolors){
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -718,7 +704,7 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
         rgbbase_l1, rgbbase_r1, rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3,
       };
 //fprintf(stderr, "strans check: %d/%d\n", y, x);
-      const char* egc = strans_check(&c->channels, bgr, blendcolors, diffs, rgbas);
+      const char* egc = strans_check(&c->channels, blendcolors, diffs, rgbas);
 //fprintf(stderr, "strans EGC: %s channls: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
@@ -735,10 +721,10 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
 // increment *foldcount
 static inline void
 fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
-         bool bgr, const uint8_t* pixel, unsigned* foldcount){
-  *r += bgr ? pixel[2] : pixel[0];
-  *g += pixel[1];
-  *b += bgr ? pixel[0] : pixel[2];
+          const uint32_t* pixel, unsigned* foldcount){
+  *r += ncpixel_r(*pixel);
+  *g += ncpixel_g(*pixel);
+  *b += ncpixel_b(*pixel);
   ++*foldcount;
 }
 
@@ -749,7 +735,7 @@ fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
 static inline int
 braille_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
-             int leny, int lenx, bool bgr, bool blendcolors){
+             int leny, int lenx, bool blendcolors){
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -763,70 +749,70 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
     }
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
-      const unsigned char* rgbbase_l0 = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
-      const unsigned char* rgbbase_r0 = zeroes;
-      const unsigned char* rgbbase_l1 = zeroes;
-      const unsigned char* rgbbase_r1 = zeroes;
-      const unsigned char* rgbbase_l2 = zeroes;
-      const unsigned char* rgbbase_r2 = zeroes;
-      const unsigned char* rgbbase_l3 = zeroes;
-      const unsigned char* rgbbase_r3 = zeroes;
+      const uint32_t* rgbbase_l0 = (const uint32_t*)(dat + (linesize * visy) + (visx * bpp / CHAR_BIT));
+      const uint32_t* rgbbase_r0 = &zeroes32;
+      const uint32_t* rgbbase_l1 = &zeroes32;
+      const uint32_t* rgbbase_r1 = &zeroes32;
+      const uint32_t* rgbbase_l2 = &zeroes32;
+      const uint32_t* rgbbase_r2 = &zeroes32;
+      const uint32_t* rgbbase_l3 = &zeroes32;
+      const uint32_t* rgbbase_r3 = &zeroes32;
       unsigned r = 0, g = 0, b = 0;
       unsigned blends = 0;
       unsigned egcidx = 0;
       if(visx < begx + lenx - 1){
-        rgbbase_r0 = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
+        rgbbase_r0 = (const uint32_t*)(dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT));
         if(visy < begy + leny - 1){
-          rgbbase_r1 = dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT);
+          rgbbase_r1 = (const uint32_t*)(dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT));
           if(visy < begy + leny - 2){
-            rgbbase_r2 = dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT);
+            rgbbase_r2 = (const uint32_t*)(dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT));
             if(visy < begy + leny - 3){
-              rgbbase_r3 = dat + (linesize * (visy + 3)) + ((visx + 1) * bpp / CHAR_BIT);
+              rgbbase_r3 = (const uint32_t*)(dat + (linesize * (visy + 3)) + ((visx + 1) * bpp / CHAR_BIT));
             }
           }
         }
       }
       if(visy < begy + leny - 1){
-        rgbbase_l1 = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+        rgbbase_l1 = (const uint32_t*)(dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT));
         if(visy < begy + leny - 2){
-          rgbbase_l2 = dat + (linesize * (visy + 2)) + (visx * bpp / CHAR_BIT);
+          rgbbase_l2 = (const uint32_t*)(dat + (linesize * (visy + 2)) + (visx * bpp / CHAR_BIT));
           if(visy < begy + leny - 3){
-            rgbbase_l3 = dat + (linesize * (visy + 3)) + (visx * bpp / CHAR_BIT);
+            rgbbase_l3 = (const uint32_t*)(dat + (linesize * (visy + 3)) + (visx * bpp / CHAR_BIT));
           }
         }
       }
       // FIXME fold this into the above?
-      if(!ffmpeg_trans_p(bgr, rgbbase_l0[3])){
+      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_l0))){
         egcidx |= 1u;
-        fold_rgb8(&r, &g, &b, bgr, rgbbase_l0, &blends);
+        fold_rgb8(&r, &g, &b, rgbbase_l0, &blends);
       }
-      if(!ffmpeg_trans_p(bgr, rgbbase_l1[3])){
+      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_l1))){
         egcidx |= 2u;
-        fold_rgb8(&r, &g, &b, bgr, rgbbase_l1, &blends);
+        fold_rgb8(&r, &g, &b, rgbbase_l1, &blends);
       }
-      if(!ffmpeg_trans_p(bgr, rgbbase_l2[3])){
+      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_l2))){
         egcidx |= 4u;
-        fold_rgb8(&r, &g, &b, bgr, rgbbase_l2, &blends);
+        fold_rgb8(&r, &g, &b, rgbbase_l2, &blends);
       }
-      if(!ffmpeg_trans_p(bgr, rgbbase_r0[3])){
+      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_r0))){
         egcidx |= 8u;
-        fold_rgb8(&r, &g, &b, bgr, rgbbase_r0, &blends);
+        fold_rgb8(&r, &g, &b, rgbbase_r0, &blends);
       }
-      if(!ffmpeg_trans_p(bgr, rgbbase_r1[3])){
+      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_r1))){
         egcidx |= 16u;
-        fold_rgb8(&r, &g, &b, bgr, rgbbase_r1, &blends);
+        fold_rgb8(&r, &g, &b, rgbbase_r1, &blends);
       }
-      if(!ffmpeg_trans_p(bgr, rgbbase_r2[3])){
+      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_r2))){
         egcidx |= 32u;
-        fold_rgb8(&r, &g, &b, bgr, rgbbase_r2, &blends);
+        fold_rgb8(&r, &g, &b, rgbbase_r2, &blends);
       }
-      if(!ffmpeg_trans_p(bgr, rgbbase_l3[3])){
+      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_l3))){
         egcidx |= 64u;
-        fold_rgb8(&r, &g, &b, bgr, rgbbase_l3, &blends);
+        fold_rgb8(&r, &g, &b, rgbbase_l3, &blends);
       }
-      if(!ffmpeg_trans_p(bgr, rgbbase_r3[3])){
+      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_r3))){
         egcidx |= 128u;
-        fold_rgb8(&r, &g, &b, bgr, rgbbase_r3, &blends);
+        fold_rgb8(&r, &g, &b, rgbbase_r3, &blends);
       }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
@@ -939,8 +925,9 @@ int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* v
     return -1;
   }
   const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
+  // FIXME swap bytes in input
   return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
-                    leny, lenx, true, blend);
+                    leny, lenx, blend);
 }
 
 int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
@@ -967,12 +954,12 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
   }
   const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
   return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
-                    leny, lenx, false, blend);
+                    leny, lenx, blend);
 }
 
 int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
                        int placex, int linesize, const void* data, int begy,
                        int begx, int leny, int lenx, bool blendcolors){
   return bset->blit(nc, placey, placex, linesize, data, begy, begx,
-                    leny, lenx, false, blendcolors);
+                    leny, lenx, blendcolors);
 }
