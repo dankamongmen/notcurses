@@ -491,6 +491,7 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
     0x6, 0xa, 0x12, 0x22, 0xc,
     0x14, 0x24, 0x18, 0x28, 0x30,
   };
+//fprintf(stderr, "idx: %u diffs[candidate]: %u diffs[idx]: %u\n", *mindiffidx, diffs[candidate], diffs[*mindiffidx]);
   if(diffs[candidate] <= diffs[*mindiffidx]){
     if(diffs[candidate] < diffs[*mindiffidx]){
       *mindiffidx = candidate;
@@ -523,6 +524,7 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
       }
     }
   }
+//fprintf(stderr, "DONE: mdbs: %08x\n", *mindiffbits);
 }
 
 // pick the foreground color based off lerping mindiffbits
@@ -540,6 +542,7 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
       if(i < sizeof(fgcs) / sizeof(*fgcs)){
         fgcs[i] = 0;
         channel_set_rgb8(&fgcs[i], ncpixel_r(*rgbas[shift]), ncpixel_g(*rgbas[shift]), ncpixel_b(*rgbas[shift]));
+//fprintf(stderr, "fgcs[%zu]: %u\n", i, fgcs[i]);
         ++i;
       }
       r -= ncpixel_r(*rgbas[shift]);
@@ -548,6 +551,7 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
       --div;
     }
   }
+  assert(2 == i);
   *fg = lerp(fgcs[0], fgcs[1]);
   *bg = 0;
   channel_set_rgb8(bg, r / div, g / div, b / div);
@@ -583,11 +587,10 @@ static inline const char*
 strans_check(uint64_t* channels, bool blendcolors, unsigned diffs[15],
              const uint32_t* rgbas[6]){
   unsigned transtring = 0; // bits which are transparent
-  unsigned mindiffbits = 0; // bits which are involved in the minimum diff
   // unsigned min2diffbits = 0; FIXME need to track two equivalency sets (but
   // never three), since the second equivalency set we find might have three
   // members and thus become fg.
-  unsigned div = 0;
+  unsigned div = 0; // number of non-transparent pixels, divisor for components
   unsigned r, g, b;
   r = g = b = 0;
   bool allzerodiffs = true;
@@ -598,6 +601,7 @@ strans_check(uint64_t* channels, bool blendcolors, unsigned diffs[15],
   unsigned mindiffidx = 0;
   strans_fold(&transtring,  4u, rgbas[2], &r, &g, &b, &div);
   allzerodiffs &= collect_diffs(&diffs[1], transtring, rgbas[2], 4u, rgbas[0], 1u);
+  unsigned mindiffbits = 3; // bits which are involved in the minimum diff
   collect_mindiff(&mindiffidx, diffs, 1, &mindiffbits, rgbas);
   allzerodiffs &= collect_diffs(&diffs[5], transtring, rgbas[2], 4u, rgbas[1], 2u);
   collect_mindiff(&mindiffidx, diffs, 5, &mindiffbits, rgbas);
