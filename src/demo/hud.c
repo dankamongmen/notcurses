@@ -93,23 +93,34 @@ debug_toggle(struct notcurses* nc){
   if(fclose(mstream)){
     return;
   }
-  // FIXME base rows on actual lines of output
   ncplane_options nopts = {
     .y = 3,
     .horiz = {
       .align = NCALIGN_CENTER,
     },
-    .rows = count_debug_lines(output, outputlen) + 2,
-    .cols = dimx,
+    .rows = count_debug_lines(output, outputlen) + 1,
+    .cols = dimx + 1, // so we don't break lines before the true boundary
     .flags = NCPLANE_OPTION_HORALIGNED,
   };
-  // FIXME create debug window
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(n == NULL){
     free(output);
     return;
   }
-  // FIXME fill in window
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_rgb(&channels, 0xffffe5);
+  ncplane_set_base(n, " ", 0, channels);
+  ncplane_set_scrolling(n, true);
+  ncplane_set_fg_rgb(n, 0x0a0a0a);
+  ncplane_set_bg_rgb(n, 0xffffe5);
+  if(ncplane_puttext(n, 0, NCALIGN_CENTER, output, &outputlen) < 0){
+    free(output);
+    ncplane_destroy(n);
+    return;
+  }
+  ncplane_putstr_aligned(n, ncplane_dim_y(n) - 1, NCALIGN_CENTER, "Press Alt+d to hide this window");
+  free(output);
   debug = n;
 }
 
