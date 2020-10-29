@@ -485,6 +485,7 @@ static inline void
 collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
                 unsigned candidate, unsigned *mindiffbits,
                 const uint32_t* rgbas[6]){
+  // the two bits which are turned on by adding in a given difference pair
   static unsigned mindiffkeys[15] = {
     0x3, 0x5, 0x9, 0x11, 0x21,
     0x6, 0xa, 0x12, 0x22, 0xc,
@@ -495,26 +496,34 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
       *mindiffidx = candidate;
       *mindiffbits = mindiffkeys[candidate];
     }else{
+fprintf(stderr, "mindiffbits: %08x candidate: %08x\n", *mindiffbits, mindiffkeys[candidate]);
       uint32_t lowestkey;
+      // find an RGB value from the candidate mindiff set
       for(size_t i = 0 ; i < 6 ; ++i){
         if(mindiffkeys[candidate] & (0x1 << i)){
           lowestkey = *rgbas[i];
+fprintf(stderr, "found lowestkey %08x at bit %zu\n", lowestkey, i);
           break;
         }
       }
-      uint32_t lowestcur;
+      const uint32_t* lowestcur = NULL;
+      // find an RGB value from the current mindiff set
       for(size_t i = 0 ; i < 6 ; ++i){
         if((i != lowestkey) && (*mindiffbits & (0x1 << i))){
-          lowestcur = *rgbas[i];
+          lowestcur = rgbas[i];
+fprintf(stderr, "found lowestcur %08x at bit %zu\n", lowestkey, i);
           break;
         }
       }
-      if(memcmp(&lowestcur, &lowestkey, 3) == 0){
+      if(!lowestcur ||
+         (ncpixel_r(*lowestcur) == ncpixel_r(lowestkey) &&
+          ncpixel_g(*lowestcur) == ncpixel_g(lowestkey) &&
+          ncpixel_b(*lowestcur) == ncpixel_b(lowestkey))){
         *mindiffbits |= mindiffkeys[candidate];
       }
       // FIXME if diff was equal, but values are different, need to track 2
-      // (since we can find 3 with diff of D0, val of V1 after finding 2 with
-      // diff of D0, val of V0).
+      // (since we can find 3 or even 4 with diff of D0, val of V1 after
+      // finding 2 with diff of D0, val of V0).
     }
   }
 }
@@ -704,9 +713,9 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       const uint32_t* rgbas[6] = {
         rgbbase_l1, rgbbase_r1, rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3,
       };
-//fprintf(stderr, "strans check: %d/%d\n", y, x);
+fprintf(stderr, "strans check: %d/%d\n%08x %08x\n%08x %08x\n%08x %08x\n", y, x, *rgbas[0], *rgbas[1], *rgbas[2], *rgbas[3], *rgbas[4], *rgbas[5]);
       const char* egc = strans_check(&c->channels, blendcolors, diffs, rgbas);
-//fprintf(stderr, "strans EGC: %s channls: %016lx\n", egc, c->channels);
+fprintf(stderr, "strans EGC: %s channls: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
