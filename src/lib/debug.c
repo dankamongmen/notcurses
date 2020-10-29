@@ -4,7 +4,7 @@ void notcurses_debug(notcurses* nc, FILE* debugfp){
   const ncplane* n = nc->top;
   const ncplane* prev = NULL;
   int planeidx = 0;
-  fprintf(debugfp, "*************************** notcurses debug state *****************************\n");
+  fprintf(debugfp, " ************************** notcurses debug state *****************************\n");
   while(n){
     fprintf(debugfp, "%04d off y: %3d x: %3d geom y: %3d x: %3d curs y: %3d x: %3d %p %.8s\n",
             planeidx, n->absy, n->absx, n->leny, n->lenx, n->y, n->x, n, n->name);
@@ -28,5 +28,5 @@ void notcurses_debug(notcurses* nc, FILE* debugfp){
   if(nc->bottom != prev){
     fprintf(stderr, " WARNING: expected ->bottom %p, got %p\n", prev, nc->bottom);
   }
-  fprintf(debugfp, "*******************************************************************************\n");
+  fprintf(debugfp, " ******************************************************************************\n");
 }
