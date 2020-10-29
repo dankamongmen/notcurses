@@ -40,11 +40,13 @@ typedef struct elem {
 
 static struct ncmenu* menu;
 static struct ncplane* about; // "about" modal popup
+static struct ncplane* debug; // "debug info" modal popup
 
 #define MENUSTR_TOGGLE_HUD "Toggle HUD"
 #define MENUSTR_TOGGLE_PLOT "Toggle FPS plot"
 #define MENUSTR_RESTART "Restart"
 #define MENUSTR_ABOUT "About"
+#define MENUSTR_DEBUG "Debug info"
 #define MENUSTR_QUIT "Quit"
 
 static int
@@ -58,6 +60,34 @@ hud_standard_bg_rgb(struct ncplane* n){
     return -1;
   }
   return 0;
+}
+
+static void
+debug_toggle(struct notcurses* nc){
+  ncmenu_rollup(menu);
+  if(debug){
+    ncplane_destroy(debug);
+    debug = NULL;
+    return;
+  }
+  const int ABOUT_ROWS = 9;
+  int dimy, dimx;
+  notcurses_term_dim_yx(nc, &dimy, &dimx);
+  // FIXME run notcurses_debug on memstream
+  // FIXME base rows on actual lines of output
+  ncplane_options nopts = {
+    .y = 3,
+    .horiz = {
+      .align = NCALIGN_CENTER,
+    },
+    .rows = ABOUT_ROWS,
+    .cols = dimx,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  // FIXME create debug window
+  struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
+  // FIXME fill in window
+  debug = n;
 }
 
 static void
@@ -185,6 +215,10 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     about_toggle(nc);
     return true;
   }
+  if(tmpni.id == 'd' && tmpni.alt && !tmpni.ctrl){
+    debug_toggle(nc);
+    return true;
+  }
   if(tmpni.id == 'R' && !tmpni.alt && tmpni.ctrl){
     if(menu){
       ncmenu_rollup(menu);
@@ -218,6 +252,7 @@ struct ncmenu* menu_create(struct notcurses* nc){
   };
   struct ncmenu_item help_items[] = {
     { .desc = MENUSTR_ABOUT, .shortcut = { .id = 'U', .ctrl = true, }, },
+    { .desc = MENUSTR_DEBUG, .shortcut = { .id = 'd', .alt = true, }, },
   };
   struct ncmenu_section sections[] = {
     { .name = "notcurses-demo", .items = demo_items,
