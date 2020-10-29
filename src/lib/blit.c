@@ -502,28 +502,25 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
       for(size_t i = 0 ; i < 6 ; ++i){
         if(mindiffkeys[candidate] & (0x1 << i)){
           lowestkey = *rgbas[i];
-//fprintf(stderr, "found lowestkey %08x at bit %zu\n", lowestkey, i);
-          break;
+          const uint32_t* lowestcur = NULL;
+          // find an RGB value from the current mindiff set
+          for(size_t k = 0 ; k < 6 ; ++k){
+            if((k != lowestkey) && (*mindiffbits & (0x1 << k))){
+              lowestcur = rgbas[k];
+//fprintf(stderr, "found lowestcur %08x at bit %zu\n", *lowestcur, k);
+              if((ncpixel_r(*lowestcur) == ncpixel_r(lowestkey) &&
+                ncpixel_g(*lowestcur) == ncpixel_g(lowestkey) &&
+                ncpixel_b(*lowestcur) == ncpixel_b(lowestkey))){
+                *mindiffbits |= mindiffkeys[candidate];
+              }
+              // FIXME if diff was equal, but values are different, need to
+              // track 2 (since we can find 3 or even 4 with diff of D0, val of
+              // V1 after finding 2 with diff of D0, val of V0).
+              break;
+            }
+          }
         }
       }
-      const uint32_t* lowestcur = NULL;
-      // find an RGB value from the current mindiff set
-      for(size_t i = 0 ; i < 6 ; ++i){
-        if((i != lowestkey) && (*mindiffbits & (0x1 << i))){
-          lowestcur = rgbas[i];
-//fprintf(stderr, "found lowestcur %08x at bit %zu\n", lowestkey, i);
-          break;
-        }
-      }
-      if(!lowestcur ||
-         (ncpixel_r(*lowestcur) == ncpixel_r(lowestkey) &&
-          ncpixel_g(*lowestcur) == ncpixel_g(lowestkey) &&
-          ncpixel_b(*lowestcur) == ncpixel_b(lowestkey))){
-        *mindiffbits |= mindiffkeys[candidate];
-      }
-      // FIXME if diff was equal, but values are different, need to track 2
-      // (since we can find 3 or even 4 with diff of D0, val of V1 after
-      // finding 2 with diff of D0, val of V0).
     }
   }
 }
