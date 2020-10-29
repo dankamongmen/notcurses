@@ -934,9 +934,14 @@ int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* v
     return -1;
   }
   const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
-  // FIXME swap bytes in input
-  return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
-                    leny, lenx, blend);
+  void* rdata = bgra_to_rgba(data, leny, linesize, lenx);
+  if(rdata == NULL){
+    return -1;
+  }
+  int r = bset->blit(nc, vopts->y, vopts->x, linesize, rdata, begy, begx,
+                     leny, lenx, blend);
+  free(rdata);
+  return r;
 }
 
 int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
