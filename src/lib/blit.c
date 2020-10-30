@@ -552,9 +552,9 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
     }
   }
   assert(2 == i);
-  *fg = lerp(fgcs[0], fgcs[1]);
-  *bg = 0;
-  channel_set_rgb8(bg, r / div, g / div, b / div);
+  *bg = lerp(fgcs[0], fgcs[1]);
+  *fg = 0;
+  channel_set_rgb8(fg, r / div, g / div, b / div);
 //fprintf(stderr, "fg: 0x%08x bg: 0x%08x r: %u g: %u b: %u div: %u\n", *fg, *bg, r, g, b, div);
 }
 
