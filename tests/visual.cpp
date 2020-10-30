@@ -279,13 +279,13 @@ TEST_CASE("Visual") {
       for(int i = 0 ; i < DIMY * DIMX ; ++i){
         CHECK(0 == ncpixel_set_a(&rgba[i], 0xff));
         if(i % 2){
-          CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
+          CHECK(0 == ncpixel_set_b(&rgba[i], 0xff));
           CHECK(0 == ncpixel_set_r(&rgba[i], 0));
         }else{
           CHECK(0 == ncpixel_set_r(&rgba[i], 0xff));
-          CHECK(0 == ncpixel_set_g(&rgba[i], 0));
+          CHECK(0 == ncpixel_set_b(&rgba[i], 0));
         }
-        CHECK(0 == ncpixel_set_b(&rgba[i], 0));
+        CHECK(0 == ncpixel_set_g(&rgba[i], 0));
       }
       auto ncv = ncvisual_from_rgba(rgba, DIMY, DIMX * sizeof(uint32_t), DIMX);
       REQUIRE(nullptr != ncv);
@@ -319,11 +319,11 @@ TEST_CASE("Visual") {
       for(int i = 0 ; i < DIMY * DIMX ; ++i){
         CHECK(0 == ncpixel_set_a(&rgba[i], 0xff));
         if(i % 2){
-          CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
-          CHECK(0 == ncpixel_set_b(&rgba[i], 0));
-        }else{
           CHECK(0 == ncpixel_set_b(&rgba[i], 0xff));
           CHECK(0 == ncpixel_set_g(&rgba[i], 0));
+        }else{
+          CHECK(0 == ncpixel_set_g(&rgba[i], 0xff));
+          CHECK(0 == ncpixel_set_b(&rgba[i], 0));
         }
         CHECK(0 == ncpixel_set_r(&rgba[i], 0));
       }

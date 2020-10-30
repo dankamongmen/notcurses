@@ -2457,7 +2457,7 @@ ncpixel_set_g(uint32_t* pixel, int g){
   if(g > 255 || g < 0){
     return -1;
   }
-  *pixel = (*pixel & 0xff00fffful) | (g << 16u);
+  *pixel = (*pixel & 0xffff00fful) | (g << 8u);
   return 0;
 }
 
@@ -2467,7 +2467,7 @@ ncpixel_set_b(uint32_t* pixel, int b){
   if(b > 255 || b < 0){
     return -1;
   }
-  *pixel = (*pixel & 0xffff00fful) | (b << 8u);
+  *pixel = (*pixel & 0xff00fffful) | (b << 16u);
   return 0;
 }
 
