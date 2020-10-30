@@ -446,17 +446,16 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 // returns true iff the pixel is transparent. otherwise, the r/g/b values are
 // accumulated into rsum/gsum/bsum, and npopcnt is increased.
 static inline bool
-strans_fold(unsigned* bitstring, unsigned bit, const uint32_t* rgba,
+strans_fold(unsigned* bitstring, unsigned bit, const uint32_t rgba,
             unsigned* rsum, unsigned* gsum, unsigned* bsum, unsigned* npopcnt){
-  if(ffmpeg_trans_p(ncpixel_a(*rgba))){
+  if(ffmpeg_trans_p(ncpixel_a(rgba))){
     *bitstring |= bit;
     return true;
   }
   ++*npopcnt;
-  *rsum += ncpixel_r(*rgba);
-  *gsum += ncpixel_g(*rgba);
-  *bsum += ncpixel_b(*rgba);
-//fprintf(stderr, "adding %u %u %u\n", rgba[0], rgba[1], rgba[2]);
+  *rsum += ncpixel_r(rgba);
+  *gsum += ncpixel_g(rgba);
+  *bsum += ncpixel_b(rgba);
   return false;
 }
 
@@ -464,11 +463,11 @@ strans_fold(unsigned* bitstring, unsigned bit, const uint32_t* rgba,
 // component differences into *diff. otherwise, set *diff to UINT_MAX. returns
 // true if neither pixel was transparent, and their components were equal.
 static inline bool
-collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t* rgba1,
-              unsigned bit1, const uint32_t* rgba2, unsigned bit2){
+collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t rgba1,
+              unsigned bit1, const uint32_t rgba2, unsigned bit2){
   if((bitstring & (bit1 | bit2)) == 0){
-    *diff = rgb_diff(ncpixel_r(*rgba1), ncpixel_g(*rgba1), ncpixel_b(*rgba1),
-                     ncpixel_r(*rgba2), ncpixel_g(*rgba2), ncpixel_b(*rgba2));
+    *diff = rgb_diff(ncpixel_r(rgba1), ncpixel_g(rgba1), ncpixel_b(rgba1),
+                     ncpixel_r(rgba2), ncpixel_g(rgba2), ncpixel_b(rgba2));
     if(!*diff){
       return true;
     }
@@ -484,7 +483,7 @@ collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t* rgba1,
 static inline void
 collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
                 unsigned candidate, unsigned *mindiffbits,
-                const uint32_t* rgbas[6]){
+                const uint32_t rgbas[6]){
   // the two bits which are turned on by adding in a given difference pair
   static unsigned mindiffkeys[15] = {
     0x3, 0x5, 0x9, 0x11, 0x21,
@@ -498,20 +497,18 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
       *mindiffbits = mindiffkeys[candidate];
     }else{
 //fprintf(stderr, "mindiffbits: %08x candidate: %08x\n", *mindiffbits, mindiffkeys[candidate]);
-      uint32_t lowestkey;
       // find an RGB value from the candidate mindiff set
       for(size_t i = 0 ; i < 6 ; ++i){
         if(mindiffkeys[candidate] & (0x1 << i)){
-          lowestkey = *rgbas[i];
-          const uint32_t* lowestcur = NULL;
+          const uint32_t lowestkey = rgbas[i];
           // find an RGB value from the current mindiff set
           for(size_t k = 0 ; k < 6 ; ++k){
             if((k != lowestkey) && (*mindiffbits & (0x1 << k))){
-              lowestcur = rgbas[k];
+              const uint32_t lowestcur = rgbas[k];
 //fprintf(stderr, "found lowestcur %08x at bit %zu\n", *lowestcur, k);
-              if((ncpixel_r(*lowestcur) == ncpixel_r(lowestkey) &&
-                ncpixel_g(*lowestcur) == ncpixel_g(lowestkey) &&
-                ncpixel_b(*lowestcur) == ncpixel_b(lowestkey))){
+              if((ncpixel_r(lowestcur) == ncpixel_r(lowestkey) &&
+                ncpixel_g(lowestcur) == ncpixel_g(lowestkey) &&
+                ncpixel_b(lowestcur) == ncpixel_b(lowestkey))){
                 *mindiffbits |= mindiffkeys[candidate];
               }
               // FIXME if diff was equal, but values are different, need to
@@ -531,7 +528,7 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
 static void
 get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
                unsigned r, unsigned g, unsigned b, unsigned div,
-               const uint32_t* rgbas[6]){
+               const uint32_t rgbas[6]){
   // FIXME fg lerps mindiffbits
   uint32_t fgcs[2];
   size_t i = 0;
@@ -541,13 +538,13 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
       // FIXME verify this
       if(i < sizeof(fgcs) / sizeof(*fgcs)){
         fgcs[i] = 0;
-        channel_set_rgb8(&fgcs[i], ncpixel_r(*rgbas[shift]), ncpixel_g(*rgbas[shift]), ncpixel_b(*rgbas[shift]));
+        channel_set_rgb8(&fgcs[i], ncpixel_r(rgbas[shift]), ncpixel_g(rgbas[shift]), ncpixel_b(rgbas[shift]));
 //fprintf(stderr, "fgcs[%zu]: %u\n", i, fgcs[i]);
         ++i;
       }
-      r -= ncpixel_r(*rgbas[shift]);
-      g -= ncpixel_g(*rgbas[shift]);
-      b -= ncpixel_b(*rgbas[shift]);
+      r -= ncpixel_r(rgbas[shift]);
+      g -= ncpixel_g(rgbas[shift]);
+      b -= ncpixel_b(rgbas[shift]);
       --div;
     }
   }
@@ -568,6 +565,15 @@ static const char* sex[64] = {
  "🬁", "🬀", " ",
 };
 
+// Solve for the cell rendered by this 3x2 sample. None of the input pixels may
+// be transparent (that ought already have been handled). We use exhaustive
+// search, which might be quite computationally intensive for the worst case
+// (all six pixels are different colors).
+static const char*
+sex_solver(const uint32_t rgbas[6]){
+  return NULL;
+}
+
 // sextant check for transparency. returns an EGC if we found transparent pixels
 // and have solved for colors (this EGC ought then be loaded into the cell).
 // returns NULL otherwise. transparency trumps everything else in terms of
@@ -585,7 +591,7 @@ static const char* sex[64] = {
 // 6 bits for 6 pixels: l1 r1 l2 r2 l3 r3, same as rgbas[]
 static inline const char*
 strans_check(uint64_t* channels, bool blendcolors, unsigned diffs[15],
-             const uint32_t* rgbas[6]){
+             const uint32_t rgbas[6]){
   unsigned transtring = 0; // bits which are transparent
   // unsigned min2diffbits = 0; FIXME need to track two equivalency sets (but
   // never three), since the second equivalency set we find might have three
@@ -686,25 +692,26 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
     }
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
-      const uint32_t* rgbbase_l1 = (const uint32_t*)(dat + (linesize * visy) + (visx * bpp / CHAR_BIT));
-      const uint32_t* rgbbase_r1 = &zeroes32;
-      const uint32_t* rgbbase_l2 = &zeroes32;
-      const uint32_t* rgbbase_r2 = &zeroes32;
-      const uint32_t* rgbbase_l3 = &zeroes32;
-      const uint32_t* rgbbase_r3 = &zeroes32;
+      uint32_t rgbbase_l1 = 0;
+      uint32_t rgbbase_r1 = 0;
+      uint32_t rgbbase_l2 = 0;
+      uint32_t rgbbase_r2 = 0;
+      uint32_t rgbbase_l3 = 0;
+      uint32_t rgbbase_r3 = 0;
+      memcpy(&rgbbase_l1, (dat + (linesize * visy) + (visx * bpp / CHAR_BIT)), sizeof(rgbbase_l1));
       if(visx < begx + lenx - 1){
-        rgbbase_r1 = (const uint32_t*)(dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT));
+        rgbbase_r1 = *(const uint32_t*)(dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT));
         if(visy < begy + leny - 1){
-          rgbbase_r2 = (const uint32_t*)(dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT));
+          rgbbase_r2 = *(const uint32_t*)(dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT));
           if(visy < begy + leny - 2){
-            rgbbase_r3 = (const uint32_t*)(dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT));
+            rgbbase_r3 = *(const uint32_t*)(dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT));
           }
         }
       }
       if(visy < begy + leny - 1){
-        rgbbase_l2 = (const uint32_t*)(dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT));
+        rgbbase_l2 = *(const uint32_t*)(dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT));
         if(visy < begy + leny - 2){
-          rgbbase_l3 = (const uint32_t*)(dat + (linesize * (visy + 2)) + (visx  * bpp / CHAR_BIT));
+          rgbbase_l3 = *(const uint32_t*)(dat + (linesize * (visy + 2)) + (visx  * bpp / CHAR_BIT));
         }
       }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
@@ -713,7 +720,7 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       c->stylemask = 0;
       unsigned diffs[15];
       // FIXME just lead with these directly
-      const uint32_t* rgbas[6] = {
+      const uint32_t rgbas[6] = {
         rgbbase_l1, rgbbase_r1, rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3,
       };
 //fprintf(stderr, "strans check: %d/%d\n%08x %08x\n%08x %08x\n%08x %08x\n", y, x, *rgbas[0], *rgbas[1], *rgbas[2], *rgbas[3], *rgbas[4], *rgbas[5]);
