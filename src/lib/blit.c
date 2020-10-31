@@ -284,6 +284,7 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 // transparent background, and lerp the rest together for foreground. we thus
 // have a 16-way conditional tree in which each EGC must show up exactly once.
 // FIXME we ought be able to just build up a bitstring and use it as an index!
+// FIXME pass in rgbas as array of uint32_t ala sexblitter
 static inline const char*
 qtrans_check(cell* c, bool blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
@@ -443,20 +444,137 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+static const char* sex[64] = {
+" ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂",
+
+ "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠",
+
+ "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊",
+
+ "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍",
+
+ "█", "🬻", "🬺", "🬸", "🬴", "🬬", "🬝", "🬹",
+
+ "🬷", "🬳", "🬫", "🬜", "🬶", "🬲", "🬪", "🬛",
+
+ "🬰", "🬨", "🬙", "🬥", "🬕", "🬎", "🬵", "🬱",
+
+ "🬩", "🬚", "🬯", "▐", "🬘", "🬤", "🬔", "🬮",
+};
+
+// take a sum over channels, and the sample count, write back lerped channel
+static inline uint32_t
+generalerp(unsigned rsum, unsigned gsum, unsigned bsum, int count){
+  if(count == 0){
+    assert(0 == rsum);
+    assert(0 == gsum);
+    assert(0 == bsum);
+    return 0;
+  }
+  return CHANNEL_RGB_INITIALIZER((rsum + (count - 1)) / count,
+                                 (gsum + (count - 1)) / count,
+                                 (bsum + (count - 1)) / count);
+}
+
+// Solve for the cell rendered by this 3x2 sample. None of the input pixels may
+// be transparent (that ought already have been handled). We use exhaustive
+// search, which might be quite computationally intensive for the worst case
+// (all six pixels are different colors). We want to solve for the 2-partition
+// of pixels that minimizes total source distance from the resulting lerps.
+static const char*
+sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
+  // each element within the set of 64 has an inverse element within the set,
+  // for which we will calculate the same total differences, so just handle the
+  // first 32, and then assign fg to whichever cluster is larger.
+  static const unsigned partitions[32] = {
+    0, // 1 way to arrange 0
+    1, 2, 4, 8, 16, 32, // 6 ways to arrange 1
+    3, 5, 9, 17, 33, 6, 10, 18, 34, 12, 20, 36, 24, 40, 48, // 15 ways for 2
+    //  16 ways to arrange 3, *but* six of them are inverses, so 10
+    7, 11, 19, 35, 13, 21, 37, 25, 41, 14 //  10 + 15 + 6 + 1 == 32
+  };
+  // we loop over the bitstrings, dividing the pixels into two sets, and then
+  // taking a general lerp over each set. we then compute the sum of absolute
+  // differences, and see if it's the new minimum.
+  int best = -1;
+  uint32_t mindiff = UINT_MAX;
+//fprintf(stderr, "%06x %06x\n%06x %06x\n%06x %06x\n", rgbas[0], rgbas[1], rgbas[2], rgbas[3], rgbas[4], rgbas[5]);
+  for(size_t glyph = 0 ; glyph < sizeof(partitions) / sizeof(*partitions) ; ++glyph){
+    unsigned rsum0 = 0, rsum1 = 0;
+    unsigned gsum0 = 0, gsum1 = 0;
+    unsigned bsum0 = 0, bsum1 = 0;
+    int insum = 0;
+    for(unsigned mask = 0 ; mask < 6 ; ++mask){
+      if(partitions[glyph] & (1u << mask)){
+        rsum0 += ncpixel_r(rgbas[mask]);
+        gsum0 += ncpixel_g(rgbas[mask]);
+        bsum0 += ncpixel_b(rgbas[mask]);
+        ++insum;
+      }else{
+        rsum1 += ncpixel_r(rgbas[mask]);
+        gsum1 += ncpixel_g(rgbas[mask]);
+        bsum1 += ncpixel_b(rgbas[mask]);
+      }
+    }
+//fprintf(stderr, "sum0: %u/%u/%u sum1: %u/%u/%u insum: %d\n", rsum0, gsum0, bsum0, rsum1, gsum1, bsum1, insum);
+    uint32_t l0 = generalerp(rsum0, gsum0, bsum0, insum);
+    uint32_t l1 = generalerp(rsum1, gsum1, bsum1, 6 - insum);
+    uint32_t totaldiff = 0;
+    for(unsigned mask = 0 ; mask < 6 ; ++mask){
+      unsigned r, g, b;
+      if(partitions[glyph] & (1u << mask)){
+        channel_rgb8(l0, &r, &g, &b);
+      }else{
+        channel_rgb8(l1, &r, &g, &b);
+      }
+      totaldiff += rgb_diff(ncpixel_r(rgbas[mask]), ncpixel_g(rgbas[mask]),
+                            ncpixel_b(rgbas[mask]), r, g, b);
+//fprintf(stderr, "mask: %u totaldiff: %u insum: %d (%08x / %08x)\n", mask, totaldiff, insum, l0, l1);
+    }
+//fprintf(stderr, "bits: %u %zu totaldiff: %u best: %u (%d)\n", partitions[glyph], glyph, totaldiff, mindiff, best);
+    if(totaldiff < mindiff){
+      mindiff = totaldiff;
+      best = glyph;
+      channels_set_fchannel(channels, l0);
+      channels_set_bchannel(channels, l1);
+    }
+    if(totaldiff == 0){ // can't beat that!
+      break;
+    }
+  }
+//fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
+  assert(best >= 0 && best < 64);
+  if(blendcolors){
+    channels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
+    channels_set_bg_alpha(channels, CELL_ALPHA_BLEND);
+  }
+  return sex[best];
+}
+
+/*
+static const char* sex[64] = {
+ "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
+ "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
+ "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
+ "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
+ "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
+ "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
+ "🬁", "🬀", " ",
+};
+
 // returns true iff the pixel is transparent. otherwise, the r/g/b values are
 // accumulated into rsum/gsum/bsum, and npopcnt is increased.
 static inline bool
-strans_fold(unsigned* bitstring, unsigned bit, const uint32_t* rgba,
+strans_fold(unsigned* bitstring, unsigned bit, const uint32_t rgba,
             unsigned* rsum, unsigned* gsum, unsigned* bsum, unsigned* npopcnt){
-  if(ffmpeg_trans_p(ncpixel_a(*rgba))){
+  if(ffmpeg_trans_p(ncpixel_a(rgba))){
     *bitstring |= bit;
     return true;
   }
   ++*npopcnt;
-  *rsum += ncpixel_r(*rgba);
-  *gsum += ncpixel_g(*rgba);
-  *bsum += ncpixel_b(*rgba);
-//fprintf(stderr, "adding %u %u %u\n", rgba[0], rgba[1], rgba[2]);
+  *rsum += ncpixel_r(rgba);
+  *gsum += ncpixel_g(rgba);
+  *bsum += ncpixel_b(rgba);
   return false;
 }
 
@@ -464,11 +582,11 @@ strans_fold(unsigned* bitstring, unsigned bit, const uint32_t* rgba,
 // component differences into *diff. otherwise, set *diff to UINT_MAX. returns
 // true if neither pixel was transparent, and their components were equal.
 static inline bool
-collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t* rgba1,
-              unsigned bit1, const uint32_t* rgba2, unsigned bit2){
+collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t rgba1,
+              unsigned bit1, const uint32_t rgba2, unsigned bit2){
   if((bitstring & (bit1 | bit2)) == 0){
-    *diff = rgb_diff(ncpixel_r(*rgba1), ncpixel_g(*rgba1), ncpixel_b(*rgba1),
-                     ncpixel_r(*rgba2), ncpixel_g(*rgba2), ncpixel_b(*rgba2));
+    *diff = rgb_diff(ncpixel_r(rgba1), ncpixel_g(rgba1), ncpixel_b(rgba1),
+                     ncpixel_r(rgba2), ncpixel_g(rgba2), ncpixel_b(rgba2));
     if(!*diff){
       return true;
     }
@@ -484,7 +602,7 @@ collect_diffs(unsigned* diff, unsigned bitstring, const uint32_t* rgba1,
 static inline void
 collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
                 unsigned candidate, unsigned *mindiffbits,
-                const uint32_t* rgbas[6]){
+                const uint32_t rgbas[6]){
   // the two bits which are turned on by adding in a given difference pair
   static unsigned mindiffkeys[15] = {
     0x3, 0x5, 0x9, 0x11, 0x21,
@@ -498,20 +616,18 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
       *mindiffbits = mindiffkeys[candidate];
     }else{
 //fprintf(stderr, "mindiffbits: %08x candidate: %08x\n", *mindiffbits, mindiffkeys[candidate]);
-      uint32_t lowestkey;
       // find an RGB value from the candidate mindiff set
       for(size_t i = 0 ; i < 6 ; ++i){
         if(mindiffkeys[candidate] & (0x1 << i)){
-          lowestkey = *rgbas[i];
-          const uint32_t* lowestcur = NULL;
+          const uint32_t lowestkey = rgbas[i];
           // find an RGB value from the current mindiff set
           for(size_t k = 0 ; k < 6 ; ++k){
             if((k != lowestkey) && (*mindiffbits & (0x1 << k))){
-              lowestcur = rgbas[k];
+              const uint32_t lowestcur = rgbas[k];
 //fprintf(stderr, "found lowestcur %08x at bit %zu\n", *lowestcur, k);
-              if((ncpixel_r(*lowestcur) == ncpixel_r(lowestkey) &&
-                ncpixel_g(*lowestcur) == ncpixel_g(lowestkey) &&
-                ncpixel_b(*lowestcur) == ncpixel_b(lowestkey))){
+              if((ncpixel_r(lowestcur) == ncpixel_r(lowestkey) &&
+                ncpixel_g(lowestcur) == ncpixel_g(lowestkey) &&
+                ncpixel_b(lowestcur) == ncpixel_b(lowestkey))){
                 *mindiffbits |= mindiffkeys[candidate];
               }
               // FIXME if diff was equal, but values are different, need to
@@ -531,7 +647,7 @@ collect_mindiff(unsigned* mindiffidx, const unsigned diffs[15],
 static void
 get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
                unsigned r, unsigned g, unsigned b, unsigned div,
-               const uint32_t* rgbas[6]){
+               const uint32_t rgbas[6]){
   // FIXME fg lerps mindiffbits
   uint32_t fgcs[2];
   size_t i = 0;
@@ -541,13 +657,13 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
       // FIXME verify this
       if(i < sizeof(fgcs) / sizeof(*fgcs)){
         fgcs[i] = 0;
-        channel_set_rgb8(&fgcs[i], ncpixel_r(*rgbas[shift]), ncpixel_g(*rgbas[shift]), ncpixel_b(*rgbas[shift]));
+        channel_set_rgb8(&fgcs[i], ncpixel_r(rgbas[shift]), ncpixel_g(rgbas[shift]), ncpixel_b(rgbas[shift]));
 //fprintf(stderr, "fgcs[%zu]: %u\n", i, fgcs[i]);
         ++i;
       }
-      r -= ncpixel_r(*rgbas[shift]);
-      g -= ncpixel_g(*rgbas[shift]);
-      b -= ncpixel_b(*rgbas[shift]);
+      r -= ncpixel_r(rgbas[shift]);
+      g -= ncpixel_g(rgbas[shift]);
+      b -= ncpixel_b(rgbas[shift]);
       --div;
     }
   }
@@ -557,16 +673,6 @@ get_sex_colors(uint32_t* fg, uint32_t* bg, unsigned mindiffbits,
   channel_set_rgb8(fg, r / div, g / div, b / div);
 //fprintf(stderr, "fg: 0x%08x bg: 0x%08x r: %u g: %u b: %u div: %u\n", *fg, *bg, r, g, b, div);
 }
-
-static const char* sex[64] = {
- "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
- "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
- "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
- "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
- "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
- "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
- "🬁", "🬀", " ",
-};
 
 // sextant check for transparency. returns an EGC if we found transparent pixels
 // and have solved for colors (this EGC ought then be loaded into the cell).
@@ -585,7 +691,7 @@ static const char* sex[64] = {
 // 6 bits for 6 pixels: l1 r1 l2 r2 l3 r3, same as rgbas[]
 static inline const char*
 strans_check(uint64_t* channels, bool blendcolors, unsigned diffs[15],
-             const uint32_t* rgbas[6]){
+             const uint32_t rgbas[6]){
   unsigned transtring = 0; // bits which are transparent
   // unsigned min2diffbits = 0; FIXME need to track two equivalency sets (but
   // never three), since the second equivalency set we find might have three
@@ -666,6 +772,7 @@ strans_check(uint64_t* channels, bool blendcolors, unsigned diffs[15],
   }
   return egc;
 }
+*/
 
 // sextant blitter. maps 3x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
@@ -686,39 +793,28 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
     }
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
-      const uint32_t* rgbbase_l1 = (const uint32_t*)(dat + (linesize * visy) + (visx * bpp / CHAR_BIT));
-      const uint32_t* rgbbase_r1 = &zeroes32;
-      const uint32_t* rgbbase_l2 = &zeroes32;
-      const uint32_t* rgbbase_r2 = &zeroes32;
-      const uint32_t* rgbbase_l3 = &zeroes32;
-      const uint32_t* rgbbase_r3 = &zeroes32;
+      uint32_t rgbas[6] = { 0, 0, 0, 0, 0, 0 };
+      memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
       if(visx < begx + lenx - 1){
-        rgbbase_r1 = (const uint32_t*)(dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT));
+        memcpy(&rgbas[1], (dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT)), sizeof(*rgbas));
         if(visy < begy + leny - 1){
-          rgbbase_r2 = (const uint32_t*)(dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT));
+          memcpy(&rgbas[3], (dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT)), sizeof(*rgbas));
           if(visy < begy + leny - 2){
-            rgbbase_r3 = (const uint32_t*)(dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT));
+            memcpy(&rgbas[5], (dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT)), sizeof(*rgbas));
           }
         }
       }
       if(visy < begy + leny - 1){
-        rgbbase_l2 = (const uint32_t*)(dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT));
+        memcpy(&rgbas[2], (dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
         if(visy < begy + leny - 2){
-          rgbbase_l3 = (const uint32_t*)(dat + (linesize * (visy + 2)) + (visx  * bpp / CHAR_BIT));
+          memcpy(&rgbas[4], (dat + (linesize * (visy + 2)) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
         }
       }
-//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      unsigned diffs[15];
-      // FIXME just lead with these directly
-      const uint32_t* rgbas[6] = {
-        rgbbase_l1, rgbbase_r1, rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3,
-      };
-//fprintf(stderr, "strans check: %d/%d\n%08x %08x\n%08x %08x\n%08x %08x\n", y, x, *rgbas[0], *rgbas[1], *rgbas[2], *rgbas[3], *rgbas[4], *rgbas[5]);
-      const char* egc = strans_check(&c->channels, blendcolors, diffs, rgbas);
-//fprintf(stderr, "strans EGC: %s channels: %016lx\n", egc, c->channels);
+      const char* egc = sex_solver(rgbas, &c->channels, blendcolors);
+//fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
