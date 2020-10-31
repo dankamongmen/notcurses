@@ -14,7 +14,6 @@ int yield_demo(struct notcurses* nc){
   }
   struct ncvisual_options vopts = {
     .n = std,
-    .blitter = NCBLIT_2x2,
     .y = 1,
     .scaling = NCSCALE_STRETCH,
   };
