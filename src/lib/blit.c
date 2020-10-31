@@ -444,17 +444,6 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
-static const char* sex[64] = {
- " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂",
- "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠",
- "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊",
- "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍",
- "█", "🬻", "🬺", "🬸", "🬴", "🬬", "🬝", "🬹",
- "🬷", "🬳", "🬫", "🬜", "🬶", "🬲", "🬪", "🬛",
- "🬰", "🬨", "🬙", "🬥", "🬕", "🬎", "🬵", "🬱",
- "🬩", "🬚", "🬯", "▐", "🬘", "🬤", "🬔", "🬮",
-};
-
 // take a sum over channels, and the sample count, write back lerped channel
 static inline uint32_t
 generalerp(unsigned rsum, unsigned gsum, unsigned bsum, int count){
@@ -476,6 +465,16 @@ generalerp(unsigned rsum, unsigned gsum, unsigned bsum, int count){
 // of pixels that minimizes total source distance from the resulting lerps.
 static const char*
 sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
+	static const char* sex[64] = {
+	  " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂",
+	  "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠",
+	  "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊",
+	  "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍",
+	  "█", "🬻", "🬺", "🬸", "🬴", "🬬", "🬝", "🬹",
+	  "🬷", "🬳", "🬫", "🬜", "🬶", "🬲", "🬪", "🬛",
+	  "🬰", "🬨", "🬙", "🬥", "🬕", "🬎", "🬵", "🬱",
+	  "🬩", "🬚", "🬯", "▐", "🬘", "🬤", "🬔", "🬮",
+	};
   // each element within the set of 64 has an inverse element within the set,
   // for which we will calculate the same total differences, so just handle the
   // first 32, and then assign fg to whichever cluster is larger.
@@ -544,6 +543,52 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
   return sex[best];
 }
 
+static const char*
+sex_trans_check(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
+  static const char* sex[64] = {
+    "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
+    "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
+    "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
+    "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
+    "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
+    "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
+    "🬁", "🬀", " ",
+  };
+  unsigned transstring = 0;
+  unsigned r = 0, g = 0, b = 0;
+  unsigned div = 0;
+  for(unsigned mask = 0 ; mask < 6 ; ++mask){
+    if(ffmpeg_trans_p(ncpixel_a(rgbas[mask]))){
+      transstring |= (1u << mask);
+    }else{
+      r += ncpixel_r(rgbas[mask]);
+      g += ncpixel_g(rgbas[mask]);
+      b += ncpixel_b(rgbas[mask]);
+      ++div;
+    }
+  }
+  if(transstring == 0){
+    return NULL;
+  }
+  channels_set_bg_alpha(channels, CELL_ALPHA_TRANSPARENT);
+  // there were some transparent pixels. since they get priority, the foreground
+  // is just a general lerp across non-transparent pixels.
+  const char* egc = sex[transstring];
+  channels_set_bg_alpha(channels, CELL_ALPHA_TRANSPARENT);
+//fprintf(stderr, "transtring: %u egc: %s\n", transtring, egc);
+  if(*egc == ' '){ // entirely transparent
+    channels_set_fg_alpha(channels, CELL_ALPHA_TRANSPARENT);
+    return "";
+  }else{ // partially transparent, thus div >= 1
+//fprintf(stderr, "div: %u r: %u g: %u b: %u\n", div, r, g, b);
+    channels_set_fchannel(channels, generalerp(r, g, b, div));
+    if(blendcolors){
+      channels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
+    }
+  }
+  return egc;
+}
+
 // sextant blitter. maps 3x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
@@ -583,7 +628,10 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       cell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = sex_solver(rgbas, &c->channels, blendcolors);
+      const char* egc = sex_trans_check(rgbas, &c->channels, blendcolors);
+      if(egc == NULL){
+        egc = sex_solver(rgbas, &c->channels, blendcolors);
+      }
 //fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
