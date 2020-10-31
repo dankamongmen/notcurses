@@ -5,9 +5,8 @@
 
 static inline const struct blitset*
 lookup_blitset(unsigned utf8, ncblitter_e setid, bool may_degrade) {
-  if(setid == NCBLIT_DEFAULT){
-    setid = NCBLIT_2x1;
-    may_degrade = true;
+  if(setid == NCBLIT_DEFAULT){ // ought have resolved NCBLIT_DEFAULT before now
+    return NULL;
   }
   // the only viable blitter in ASCII is NCBLIT_1x1
   if(!utf8 && setid != NCBLIT_1x1){
